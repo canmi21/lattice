@@ -1,3 +1,169 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * Two of Tailwind's own theme variables are read differently and the difference is whether
+	 * anything outside a utility names them. `--font-mono` is also read by `.value-cell` in
+	 * app.css, so it survives however many `font-mono` classes leave the markup; `--leading-relaxed`
+	 * is named by nothing but its own utility, so its value is written out here instead.
+	 */
+	const styles = stylex.create({
+		page: {
+			backgroundColor: 'var(--color-page)',
+			color: 'var(--color-text)',
+		},
+		breadcrumb: {
+			fontSize: '0.9375rem',
+			color: 'var(--color-text-soft)',
+		},
+		breadcrumbLink: {
+			// No colour at rest: the trail sets one on itself and each crumb inherits it, so only
+			// the two states name a colour of their own.
+			color: {
+				default: null,
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		name: {
+			color: 'var(--color-text-strong)',
+			overflowWrap: 'break-word',
+		},
+		version: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.9375rem',
+			color: 'var(--color-text-soft)',
+		},
+		summary: {
+			lineHeight: 1.625,
+			textWrap: 'pretty',
+			color: 'var(--color-text-soft)',
+		},
+		noticeLink: {
+			fontSize: '0.9375rem',
+		},
+		sectionHeading: {
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+		records: {
+			fontSize: '0.9375rem',
+		},
+		label: {
+			color: 'var(--color-text-soft)',
+		},
+		avatar: {
+			// The clamp to half the box is the browser's, so the radius is stated as the
+			// unbounded length Tailwind's `rounded-full` is rather than as a number.
+			borderRadius: 'calc(infinity * 1px)',
+			backgroundColor: 'var(--color-paper)',
+		},
+		spdx: {
+			fontFamily: 'var(--font-mono)',
+			overflowWrap: 'break-word',
+			color: 'var(--color-text-strong)',
+		},
+		spdxTerms: {
+			fontSize: '0.8125rem',
+			color: 'var(--color-text-soft)',
+		},
+		spdxTerm: {
+			fontFamily: 'var(--font-mono)',
+		},
+		assertedNote: {
+			fontSize: '0.8125rem',
+			lineHeight: 1.625,
+			textWrap: 'pretty',
+			color: 'var(--color-text-soft)',
+		},
+		handle: {
+			color: 'var(--color-text-soft)',
+		},
+		authorName: {
+			color: 'var(--color-text-strong)',
+		},
+		fileLink: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.8125rem',
+		},
+		noFiles: {
+			color: 'var(--color-text-soft)',
+		},
+		chainMarker: {
+			// The bullet and the line dropping from it to the next one. Where each sits and how
+			// large it is stays in the markup, which is also what still gives them their
+			// `content`; this is the half that says what they look like.
+			'::before': {
+				borderRadius: 'calc(infinity * 1px)',
+				borderWidth: '1px',
+				borderStyle: 'solid',
+				borderColor: 'var(--color-border-strong)',
+				backgroundColor: 'var(--color-page)',
+			},
+			'::after': {
+				borderLeftWidth: '1px',
+				borderLeftStyle: 'solid',
+				borderColor: 'var(--color-border-strong)',
+			},
+		},
+		chainLink: {
+			color: {
+				default: 'var(--color-text-strong)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
+				':focus-visible': 'var(--color-text-soft)',
+			},
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		chainName: {
+			color: 'var(--color-text-strong)',
+		},
+		nodeVersion: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.75rem',
+			color: 'var(--color-text-soft)',
+		},
+		nodeTag: {
+			fontSize: '0.75rem',
+			color: 'var(--color-text-soft)',
+		},
+		groupLabel: {
+			fontSize: '0.8125rem',
+			color: 'var(--color-text-soft)',
+		},
+		// A dependent's name wraps where a chain's truncates, so the two links differ by one
+		// declaration and are written out rather than composed: merging a second style over the
+		// first would reach the resting colour and leave its two states behind.
+		dependentLink: {
+			color: {
+				default: 'var(--color-text-strong)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
+				':focus-visible': 'var(--color-text-soft)',
+			},
+			overflowWrap: 'break-word',
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		dependentName: {
+			color: 'var(--color-text-strong)',
+			overflowWrap: 'break-word',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls, URLS } from '@canmi/urls';
@@ -67,41 +233,40 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen bg-page text-text">
+<main class="min-h-screen {stylex.attrs(styles.page).class}">
 	<article class="mx-auto max-w-180 px-6 py-24">
 		<nav
 			aria-label={m['licenses.breadcrumb']({}, { locale })}
-			class="flex min-w-0 flex-wrap items-center gap-x-2 text-[0.9375rem] text-text-soft"
+			class="flex min-w-0 flex-wrap items-center gap-x-2 {stylex.attrs(styles.breadcrumb).class}"
 		>
-			<a
-				href="/licenses"
-				class="focus-link transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+			<a href="/licenses" class="focus-link {stylex.attrs(styles.breadcrumbLink).class}"
 				>{m['licenses.all_licenses']({}, { locale })}</a
 			>
 			<span aria-hidden="true">/</span>
-			<a
-				href="/licenses/pkgs"
-				class="focus-link transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+			<a href="/licenses/pkgs" class="focus-link {stylex.attrs(styles.breadcrumbLink).class}"
 				>{m['licenses.packages']({}, { locale })}</a
 			>
 			<span aria-hidden="true">/</span>
 			<a
 				href={data.registry.directoryHref}
-				class="focus-link transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
-				>{data.registry.name}</a
+				class="focus-link {stylex.attrs(styles.breadcrumbLink).class}">{data.registry.name}</a
 			>
 		</nav>
 
 		<header class="mt-8">
 			<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-				<h1 class="min-w-0 break-words text-text-strong">{data.coordinates.name}</h1>
-				<span class="font-mono text-[0.9375rem] text-text-soft">{data.coordinates.version}</span>
+				<h1 class="min-w-0 {stylex.attrs(styles.name).class}">{data.coordinates.name}</h1>
+				<span class={stylex.attrs(styles.version).class}>{data.coordinates.version}</span>
 			</div>
 			{#if data.entry.description}
-				<p class="mt-4 leading-relaxed text-pretty text-text-soft">{data.entry.description}</p>
+				<p class="mt-4 {stylex.attrs(styles.summary).class}">{data.entry.description}</p>
 			{/if}
 			<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">
-				<a href={data.textHref} data-sveltekit-reload class="quiet-control text-[0.9375rem]">
+				<a
+					href={data.textHref}
+					data-sveltekit-reload
+					class="quiet-control {stylex.attrs(styles.noticeLink).class}"
+				>
 					<span class="focus-link-inner inline-flex items-center gap-1.5">
 						<FileText class="size-3.5" aria-hidden="true" />
 						<span>{m['licenses.package_notice']({}, { locale })}</span>
@@ -121,11 +286,14 @@
 		-->
 		<div class="mt-16 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4">
 			<section aria-labelledby="package-metadata" class="col-span-2 grid grid-cols-subgrid">
-				<h2 id="package-metadata" class="col-span-2 mb-4 font-medium text-text-strong">
+				<h2
+					id="package-metadata"
+					class="col-span-2 mb-4 {stylex.attrs(styles.sectionHeading).class}"
+				>
 					{m['licenses.package']({}, { locale })}
 				</h2>
-				<dl class="col-span-2 grid grid-cols-subgrid gap-y-3 text-[0.9375rem]">
-					<dt class="text-text-soft">{m['licenses.registry']({}, { locale })}</dt>
+				<dl class="col-span-2 grid grid-cols-subgrid gap-y-3 {stylex.attrs(styles.records).class}">
+					<dt class={stylex.attrs(styles.label).class}>{m['licenses.registry']({}, { locale })}</dt>
 					<dd class="min-w-0">
 						<a
 							href={data.registry.packageHref}
@@ -138,7 +306,9 @@
 						</a>
 					</dd>
 					{#if data.repository.href}
-						<dt class="text-text-soft">{m['licenses.repository_label']({}, { locale })}</dt>
+						<dt class={stylex.attrs(styles.label).class}>
+							{m['licenses.repository_label']({}, { locale })}
+						</dt>
 						<dd class="min-w-0">
 							{#if data.repository.github}
 								<span class="inline-flex min-w-0 items-center gap-2">
@@ -148,7 +318,7 @@
 										width="24"
 										height="24"
 										loading="lazy"
-										class="size-6 shrink-0 rounded-full bg-paper"
+										class="size-6 shrink-0 {stylex.attrs(styles.avatar).class}"
 									/>
 									<span class="min-w-0 truncate">
 										<a
@@ -178,7 +348,9 @@
 						</dd>
 					{/if}
 					{#if data.entry.homepage}
-						<dt class="text-text-soft">{m['licenses.homepage']({}, { locale })}</dt>
+						<dt class={stylex.attrs(styles.label).class}>
+							{m['licenses.homepage']({}, { locale })}
+						</dt>
 						<dd class="min-w-0">
 							<a
 								href={data.entry.homepage}
@@ -190,7 +362,9 @@
 						</dd>
 					{/if}
 					{#if data.entry.documentation}
-						<dt class="text-text-soft">{m['licenses.documentation']({}, { locale })}</dt>
+						<dt class={stylex.attrs(styles.label).class}>
+							{m['licenses.documentation']({}, { locale })}
+						</dt>
 						<dd class="min-w-0">
 							<a
 								href={data.entry.documentation}
@@ -205,36 +379,40 @@
 			</section>
 
 			<section aria-labelledby="package-terms" class="col-span-2 mt-12 grid grid-cols-subgrid">
-				<h2 id="package-terms" class="col-span-2 mb-4 font-medium text-text-strong">
+				<h2 id="package-terms" class="col-span-2 mb-4 {stylex.attrs(styles.sectionHeading).class}">
 					{m['licenses.terms_attribution']({}, { locale })}
 				</h2>
-				<dl class="col-span-2 grid grid-cols-subgrid gap-y-3 text-[0.9375rem]">
-					<dt class="text-text-soft">{m['licenses.license']({}, { locale })}</dt>
+				<dl class="col-span-2 grid grid-cols-subgrid gap-y-3 {stylex.attrs(styles.records).class}">
+					<dt class={stylex.attrs(styles.label).class}>{m['licenses.license']({}, { locale })}</dt>
 					<dd class="min-w-0">
 						{#if soleLicense}
 							<a
 								href={soleLicense.href}
-								class="focus-link spring-underline article-link font-mono break-words text-text-strong"
+								class="focus-link spring-underline article-link {stylex.attrs(styles.spdx).class}"
 								>{data.entry.spdx}</a
 							>
 						{:else}
-							<p class="font-mono break-words text-text-strong">{data.entry.spdx}</p>
-							<p class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[0.8125rem] text-text-soft">
+							<p class={stylex.attrs(styles.spdx).class}>{data.entry.spdx}</p>
+							<p class="mt-1 flex flex-wrap gap-x-3 gap-y-1 {stylex.attrs(styles.spdxTerms).class}">
 								{#each data.licenses as license (license.license)}
-									<a href={license.href} class="focus-link spring-underline article-link font-mono"
-										>{license.license}</a
+									<a
+										href={license.href}
+										class="focus-link spring-underline article-link {stylex.attrs(styles.spdxTerm)
+											.class}">{license.license}</a
 									>
 								{/each}
 							</p>
 						{/if}
 						{#if data.entry.asserted}
-							<p class="mt-2 text-[0.8125rem] leading-relaxed text-pretty text-text-soft">
+							<p class="mt-2 {stylex.attrs(styles.assertedNote).class}">
 								{m['licenses.asserted_note']({}, { locale })}
 							</p>
 						{/if}
 					</dd>
 					{#if data.entry.authors?.length}
-						<dt class="text-text-soft">{m['licenses.authors']({}, { locale })}</dt>
+						<dt class={stylex.attrs(styles.label).class}>
+							{m['licenses.authors']({}, { locale })}
+						</dt>
 						<dd class="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
 							{#each data.entry.authors as author, index (`${author.name}:${author.github ?? ''}:${index}`)}
 								<span class="inline-flex min-w-0 items-center gap-2">
@@ -245,23 +423,26 @@
 											width="24"
 											height="24"
 											loading="lazy"
-											class="size-6 shrink-0 rounded-full bg-paper"
+											class="size-6 shrink-0 {stylex.attrs(styles.avatar).class}"
 										/>
 										<a
 											href="{data.githubHref}/{author.github}"
 											target="_blank"
 											rel="noopener"
 											class="focus-link spring-underline article-link min-w-0 truncate"
-											>{author.name} <span class="text-text-soft">@{author.github}</span></a
+											>{author.name}
+											<span class={stylex.attrs(styles.handle).class}>@{author.github}</span></a
 										>
 									{:else}
-										<span class="min-w-0 text-text-strong">{author.name}</span>
+										<span class="min-w-0 {stylex.attrs(styles.authorName).class}"
+											>{author.name}</span
+										>
 									{/if}
 								</span>
 							{/each}
 						</dd>
 					{/if}
-					<dt class="text-text-soft">{m['licenses.files']({}, { locale })}</dt>
+					<dt class={stylex.attrs(styles.label).class}>{m['licenses.files']({}, { locale })}</dt>
 					<dd class="flex min-w-0 flex-wrap gap-x-4 gap-y-1">
 						{#if data.entry.texts?.length}
 							{#each data.entry.texts as file (`${file.name}:${file.cid}`)}
@@ -269,12 +450,14 @@
 									href={textUrl(cdn, file.cid)}
 									target="_blank"
 									rel="noopener"
-									class="focus-link spring-underline article-link font-mono text-[0.8125rem]"
-									>{file.name}</a
+									class="focus-link spring-underline article-link {stylex.attrs(styles.fileLink)
+										.class}">{file.name}</a
 								>
 							{/each}
 						{:else}
-							<span class="text-text-soft">{m['licenses.no_files']({}, { locale })}</span>
+							<span class={stylex.attrs(styles.noFiles).class}
+								>{m['licenses.no_files']({}, { locale })}</span
+							>
 						{/if}
 					</dd>
 				</dl>
@@ -282,7 +465,7 @@
 		</div>
 
 		<section aria-labelledby="dependency-paths" class="mt-12">
-			<h2 id="dependency-paths" class="font-medium text-text-strong">
+			<h2 id="dependency-paths" class={stylex.attrs(styles.sectionHeading).class}>
 				{m['licenses.dependency_paths']({}, { locale })}
 			</h2>
 			<!-- Always one column, however many roots there are. Each chain is read top to
@@ -297,24 +480,28 @@
 					<ol aria-label={origin.root}>
 						{#each nodes as node, index (node.id)}
 							<li
-								class="relative min-w-0 pb-3 pl-5 last:pb-0 before:absolute before:top-[0.4375rem] before:left-0 before:size-2 before:rounded-full before:border before:border-border-strong before:bg-page after:absolute after:top-[1rem] after:bottom-0 after:left-[0.21875rem] after:border-l after:border-border-strong last:after:hidden"
+								class="relative min-w-0 pb-3 pl-5 last:pb-0 before:absolute before:top-[0.4375rem] before:left-0 before:size-2 after:absolute after:top-[1rem] after:bottom-0 after:left-[0.21875rem] last:after:hidden {stylex.attrs(
+									styles.chainMarker,
+								).class}"
 							>
 								<div class="flex min-w-0 items-baseline gap-2">
 									{#if node.href}
 										<a
 											href={node.href}
-											class="focus-link min-w-0 truncate text-text-strong transition-colors duration-200 hover:text-text-soft focus-visible:text-text-soft"
+											class="focus-link min-w-0 truncate {stylex.attrs(styles.chainLink).class}"
 											>{node.name}</a
 										>
 									{:else}
-										<span class="min-w-0 truncate text-text-strong">{node.name}</span>
+										<span class="min-w-0 truncate {stylex.attrs(styles.chainName).class}"
+											>{node.name}</span
+										>
 									{/if}
 									{#if node.version}
-										<span class="shrink-0 font-mono text-[0.75rem] text-text-soft"
+										<span class="shrink-0 {stylex.attrs(styles.nodeVersion).class}"
 											>{node.version}</span
 										>
 									{:else if index === 0}
-										<span class="shrink-0 text-[0.75rem] text-text-soft"
+										<span class="shrink-0 {stylex.attrs(styles.nodeTag).class}"
 											>{m['licenses.workspace_root']({}, { locale })}</span
 										>
 									{/if}
@@ -328,13 +515,13 @@
 
 		{#if data.dependents.direct.length}
 			<section aria-labelledby="dependents" class="mt-12">
-				<h2 id="dependents" class="font-medium text-text-strong">
+				<h2 id="dependents" class={stylex.attrs(styles.sectionHeading).class}>
 					{m['licenses.dependents']({}, { locale })}
 				</h2>
 				<div class="mt-5 flex flex-col gap-6">
 					{#each dependents as group (group.key)}
 						<div class="min-w-0">
-							<h3 class="text-[0.8125rem] text-text-soft">{group.label}</h3>
+							<h3 class={stylex.attrs(styles.groupLabel).class}>{group.label}</h3>
 							<!-- One run that wraps, rather than columns. The group holds anywhere from
 							one entry to over a hundred, and fixed columns serve neither end: three
 							entries leave two columns empty and break a long name onto its own line,
@@ -346,18 +533,20 @@
 										{#if node.href}
 											<a
 												href={node.href}
-												class="focus-link min-w-0 break-words text-text-strong transition-colors duration-200 hover:text-text-soft focus-visible:text-text-soft"
+												class="focus-link min-w-0 {stylex.attrs(styles.dependentLink).class}"
 												>{node.name}</a
 											>
 										{:else}
-											<span class="min-w-0 break-words text-text-strong">{node.name}</span>
+											<span class="min-w-0 {stylex.attrs(styles.dependentName).class}"
+												>{node.name}</span
+											>
 										{/if}
 										{#if node.version}
-											<span class="shrink-0 font-mono text-[0.75rem] text-text-soft"
+											<span class="shrink-0 {stylex.attrs(styles.nodeVersion).class}"
 												>{node.version}</span
 											>
 										{:else}
-											<span class="shrink-0 text-[0.75rem] text-text-soft"
+											<span class="shrink-0 {stylex.attrs(styles.nodeTag).class}"
 												>{m['licenses.workspace_root']({}, { locale })}</span
 											>
 										{/if}

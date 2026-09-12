@@ -97,3 +97,17 @@ hover reveal the inner one's control.
 Deciding it costs a build-config change and a file convention: `unstable_moduleResolution` in the
 vite plugin, and a `.stylex.ts` home for markers that components import. That is the same shape of
 question as the `libs/primitives` entry above -- a boundary rather than the inside of a component.
+
+## `truncate` is one utility and two layers
+
+`truncate` is `overflow: hidden` plus `text-overflow: ellipsis` plus `white-space: nowrap`. The
+first decides how large the box is and the other two decide how the text looks, so under
+[architecture/css.md](architecture/css.md) the utility straddles the boundary and no third of it
+can move without settling where the other two go. The package page carries eight of them and six
+other components carry nine more.
+
+Splitting it costs three declarations across two layers at every site, and the markup stops saying
+that the element ellipsises -- which is the argument for utilities, applied against itself.
+Keeping it whole leaves `text-overflow` and `white-space` as the only typography the visual layer
+does not own. The decision is about compound utilities in general rather than about this page,
+and `line-clamp` has the same shape.

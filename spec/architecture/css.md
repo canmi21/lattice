@@ -268,6 +268,14 @@ a person's job.
 lives in those states. They are driven explicitly, from the list the styling rules name, rather than
 assumed to follow.
 
+**It cannot police motion, and it is worth knowing why rather than assuming it does.** The harness
+freezes every duration and delay to zero so that two runs agree, which is the same act that makes a
+duration unreadable: everything measures 0s whether the migration kept it or dropped it. What is
+left comparable is `transition-property` and the timing function, and those are compared. A moved
+transition is otherwise checked by reading it against the utility it replaced -- Tailwind's
+`transition-colors` is seven properties plus three gradient variables the page never sets, and
+`duration-200` with the default easing is `200ms` and `cubic-bezier(0.4, 0, 0.2, 1)`.
+
 **It proves sameness against today, not correctness.** Two errors that cancel at the width being
 measured read as clean.
 
