@@ -1,5 +1,8 @@
 # Styling
 
+What each decision below says. Which of the three systems writing CSS is entitled to say it, and
+what happens where two of them say the same thing, is [architecture/css.md](architecture/css.md).
+
 ## Browser lengths are authored in rem
 
 The default authoring ratio is `16 CSS pixels = 1rem`, matching the site's root size on the

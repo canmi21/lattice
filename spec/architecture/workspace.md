@@ -57,7 +57,8 @@ library rather than reinstating it everywhere.
 
 Bits UI is the site's headless behavior layer. It owns the difficult, reusable interaction
 contracts -- focus management, keyboard navigation, dismissal and floating placement -- while
-the site's tokens and local Tailwind classes continue to own site-only visible decisions.
+the site's tokens and local classes continue to own site-only visible decisions. Which system
+writes which of those is [css.md](css.md).
 Importing a styled component kit on top would create a second design system, so project primitives
 under `apps/site/src/lib/components/` expose the small set of surfaces the site alone repeats.
 
