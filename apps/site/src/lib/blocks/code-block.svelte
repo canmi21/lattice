@@ -1,3 +1,134 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
+	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file is not a leftover of the migration. Shiki writes
+	 * the preformatted element and the spans inside it, and a style reaches an element only
+	 * through a class on that element, so nothing that styles Shiki's markup can be said here.
+	 * What stays beside it is geometry, and the resting frame of the copy control's reveal,
+	 * which is gated by a variant class and a copy state that both sit on an ancestor of what
+	 * they style.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else.
+	 * Measured with the style element's own name: oxfmt then deletes the whole instance script
+	 * below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/** The bordered box: the whole block when it has a title, the code area when it has none. */
+		frame: {
+			borderRadius: '0.75rem',
+			borderWidth: '1px',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			backgroundColor: 'var(--color-paper)',
+		},
+		// Shared by the two titles, which differ only in whether the title is a control.
+		titleFace: {
+			borderColor: 'var(--color-border)',
+			backgroundColor: 'var(--color-paper-hover)',
+			fontSize: '0.875rem',
+			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
+			// 0.875)`, which is the same 1.25rem and cannot be written that way here: StyleX
+			// evaluates a calc and keeps five decimals, and 1.42857 against 14px lands at
+			// 19.99998, which Chrome floors to the 1/64px below. Measured: the title lost
+			// 0.0156px of height and every element under it on the page moved with it.
+			lineHeight: '1.25rem',
+			fontWeight: 500,
+		},
+		titleLabel: {
+			color: 'var(--color-text)',
+		},
+		titleControl: {
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			cursor: 'pointer',
+			color: {
+				default: 'var(--color-text)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+			},
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. Whether the visual layer should
+			// be naming another framework's private variables is in spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '150ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			// The ring belongs to the frame, which `focus-ring-within` draws around the whole
+			// block; a second one on the title inside it would read as two controls.
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+		},
+		/** The divider under a title. The colour is the face's; this is only its edge. */
+		divider: {
+			borderBottomWidth: '1px',
+			borderBottomStyle: 'solid',
+		},
+		chevron: {
+			color: 'var(--color-text-soft)',
+			// Reduced motion is the same suppression the block used to write as `transition:
+			// none`, which is four longhands rather than one: the shorthand also returns the
+			// duration and the curve to their initial values.
+			transitionProperty: {
+				default: 'transform, translate, scale, rotate',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: { default: '200ms', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionTimingFunction: {
+				default: 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
+		// Turning to face the other way is not a move: the box is where it was, and the glyph is
+		// the disclosure's state rather than its position. See spec/architecture/css.md.
+		chevronFlipped: {
+			rotate: '180deg',
+		},
+		scroll: {
+			backgroundColor: 'var(--color-paper)',
+			fontSize: '0.875rem',
+			lineHeight: 1.375,
+		},
+		copy: {
+			cursor: 'pointer',
+			borderRadius: '0.25rem',
+			fontSize: '0.75rem',
+			lineHeight: 1,
+			letterSpacing: '0.05em',
+			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
+			// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
+			color: {
+				default: 'var(--color-text-soft)',
+				':hover': 'var(--color-text-strong)',
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			transitionProperty: 'color',
+			transitionDuration: '150ms',
+		},
+		// Two properties in the list, so the curve is stated twice: a transition's other lists
+		// are read per property, and one value against two properties is not the same computed
+		// style as two.
+		copyIcon: {
+			transitionProperty: {
+				default: 'opacity, transform',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '120ms, 120ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'ease-out, ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
+	});
+</script>
+
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Check from '@lucide/svelte/icons/check';
@@ -234,7 +365,7 @@
 	{#if code !== undefined}
 		<button
 			type="button"
-			class="code-copy focus-ring"
+			class="code-copy focus-ring {stylex.attrs(styles.copy).class}"
 			class:code-copy-unlabelled={!hasLanguageLabel}
 			data-copy-state={copyState}
 			aria-label={copyActionLabel}
@@ -249,13 +380,13 @@
 				{#if label}<span class="code-copy-label" aria-hidden="true">{label}</span>{/if}
 				<span class="code-copy-mask" aria-hidden="true">
 					<span bind:this={copyGlyphEl} class="code-copy-glyph">
-						<span class="code-copy-icon code-copy-request">
+						<span class="code-copy-icon code-copy-request {stylex.attrs(styles.copyIcon).class}">
 							<Copy class="size-3.5" />
 						</span>
-						<span class="code-copy-icon code-copy-success">
+						<span class="code-copy-icon code-copy-success {stylex.attrs(styles.copyIcon).class}">
 							<Check class="size-3.5" />
 						</span>
-						<span class="code-copy-icon code-copy-failure">
+						<span class="code-copy-icon code-copy-failure {stylex.attrs(styles.copyIcon).class}">
 							<X class="size-3.5" />
 						</span>
 					</span>
@@ -276,29 +407,33 @@
 
 <div class="codeblock relative">
 	{#if title}
-		<div
-			class="code-frame focus-ring-within overflow-hidden rounded-xl border border-border bg-paper"
-		>
+		<div class="code-frame focus-ring-within overflow-hidden {stylex.attrs(styles.frame).class}">
 			{#if canCollapse}
 				<button
 					type="button"
-					class="code-title flex w-full cursor-pointer items-center justify-between gap-3 border-border bg-paper-hover px-4 py-2.5 text-left text-sm font-medium text-text transition-colors duration-150 hover:text-text-strong"
-					class:border-b={dividerVisible}
+					class="code-title flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left {stylex.attrs(
+						styles.titleFace,
+						styles.titleControl,
+						dividerVisible && styles.divider,
+					).class}"
 					aria-expanded={expanded}
 					aria-controls={panelId}
 					onclick={() => setExpanded(!expanded)}
 				>
 					<span>{title}</span>
 					<span
-						class="code-chevron shrink-0 text-text-soft transition-transform duration-200"
-						class:rotate-180={expanded}
+						class="code-chevron shrink-0 {stylex.attrs(
+							styles.chevron,
+							expanded && styles.chevronFlipped,
+						).class}"
 					>
 						<ChevronDown class="size-3.5" aria-hidden="true" />
 					</span>
 				</button>
 			{:else}
 				<div
-					class="border-b border-border bg-paper-hover px-4 py-2.5 text-sm font-medium text-text"
+					class="px-4 py-2.5 {stylex.attrs(styles.titleFace, styles.titleLabel, styles.divider)
+						.class}"
 				>
 					{title}
 				</div>
@@ -311,7 +446,7 @@
 			>
 				<div id={panelId} class="code-panel relative" aria-hidden={panelHidden} inert={panelHidden}>
 					{@render codeAction()}
-					<div class="code-scroll overflow-x-auto bg-paper p-4 pr-16 text-sm leading-snug">
+					<div class="code-scroll overflow-x-auto p-4 pr-16 {stylex.attrs(styles.scroll).class}">
 						{@render source()}
 					</div>
 				</div>
@@ -324,7 +459,10 @@
 			code, so focus lands on the inner code area, not this box. The ring is redirected
 			out to this bordered box via :has (see <style>) so it wraps the whole code block. -->
 			<div
-				class="code-scroll focus-ring-within overflow-x-auto rounded-xl border border-border bg-paper p-4 pr-16 text-sm leading-snug"
+				class="code-scroll focus-ring-within overflow-x-auto p-4 pr-16 {stylex.attrs(
+					styles.frame,
+					styles.scroll,
+				).class}"
 			>
 				{@render source()}
 			</div>
@@ -339,12 +477,16 @@
 		padding: 0;
 	}
 
-	/* Shiki's <pre> takes focus, while the shared within utility draws on this box. */
-	.codeblock :global(pre:focus-visible),
-	.code-title:focus-visible {
+	/* Shiki's <pre> takes focus, while the shared within utility draws on this box. The title
+	   suppresses its own outline from the visual layer, which cannot reach in here: this element
+	   is Shiki's rather than the component's. See spec/architecture/css.md. */
+	.codeblock :global(pre:focus-visible) {
 		outline: none;
 	}
 
+	/* The copy control and the collapse, in geometry only: where each part is and how large.
+	   What they look like is the visual layer's and sits at the head of this file. See
+	   spec/architecture/css.md. */
 	.code-copy {
 		position: absolute;
 		top: 0.5rem;
@@ -353,28 +495,22 @@
 		display: inline-flex;
 		height: 1.5rem;
 		min-width: 1.5rem;
-		cursor: pointer;
 		align-items: center;
 		justify-content: flex-end;
 		overflow: hidden;
-		border-radius: 0.25rem;
 		padding-inline: 0.25rem;
-		font-size: 0.75rem;
-		line-height: 1;
-		letter-spacing: 0.05em;
-		color: var(--color-text-soft);
-		transition: color 150ms;
-	}
-
-	.code-copy:hover,
-	.code-copy:focus-visible {
-		color: var(--color-text-strong);
 	}
 
 	.code-copy-unlabelled {
 		justify-content: center;
 	}
 
+	/* The reveal's resting frame, and the same values `renderCopyReveal(0)` writes inline the
+	   moment the script runs. It stays whole here rather than half of it in the visual layer:
+	   the offsets are placement, and what is not -- the opacities, the icons' scale -- has its
+	   other value behind a class on the button above, the unlabelled variant or the copy state.
+	   That is an ancestor, and an ancestor is what the visual layer cannot see without a marker
+	   nobody owns yet. See spec/todo.md. */
 	.code-copy-content {
 		display: inline-flex;
 		align-items: center;
@@ -416,9 +552,6 @@
 		place-items: center;
 		opacity: 0;
 		transform: scale(0.82);
-		transition:
-			opacity 120ms ease-out,
-			transform 120ms ease-out;
 	}
 
 	.code-copy[data-copy-state='idle'] .code-copy-request,
@@ -452,12 +585,5 @@
 	:global([data-theme='dark']) .codeblock :global(.shiki),
 	:global([data-theme='dark']) .codeblock :global(.shiki span) {
 		color: var(--shiki-dark);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.code-chevron,
-		.code-copy-icon {
-			transition: none;
-		}
 	}
 </style>
