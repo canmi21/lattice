@@ -64,13 +64,25 @@
 	$effect(() => installFocusSourceTracker());
 
 	/**
-	 * StyleX's development stylesheet is served, not emitted.
+	 * StyleX's development stylesheet is served, not emitted, and is asked for here rather than
+	 * linked from the head.
 	 *
-	 * A build appends the visual layer's CSS to the asset Vite already emits, so nothing here has
-	 * to link it. The dev server has no such asset: the plugin exposes the sheet at
-	 * `/virtual:stylex.css` and its hot updates behind a runtime module, and both have to be
-	 * asked for by hand. Neither reaches production -- `dev` is a compile-time constant, so the
-	 * link and the import are gone from the built bundle rather than merely unreached.
+	 * A build appends the visual layer's CSS to the asset Vite already emits, after Tailwind's,
+	 * which is what puts its cascade layers above Tailwind's utilities. The dev server has no
+	 * such asset: the plugin serves the sheet at `/virtual:stylex.css` and its hot updates behind
+	 * this runtime module.
+	 *
+	 * **A `<link>` in the head is the obvious way to reach it and it inverts the cascade.** In
+	 * development Tailwind arrives through the module graph as injected styles rather than as a
+	 * stylesheet link, so a static link is declared first, StyleX's layers are registered first,
+	 * and Tailwind outranks the visual layer until this module lands and re-inserts the sheet.
+	 * Measured: `priority1, theme, base, utilities` at load and the reverse a second later, with
+	 * Tailwind's `h2 { font-weight: inherit }` reset beating a StyleX weight in between. Anything
+	 * measuring rendered text during hydration reads whichever side of that flip it lands on.
+	 *
+	 * So there is no link, and the visual layer arrives with this import instead. The cost is a
+	 * moment in development before it applies, which is honest; the alternative was a moment
+	 * during which it applied wrongly.
 	 *
 	 * See spec/architecture/css.md.
 	 */
@@ -137,9 +149,6 @@
 </script>
 
 <svelte:head>
-	{#if dev}
-		<link rel="stylesheet" href="/virtual:stylex.css" />
-	{/if}
 	<link rel="preconnect" href={cdn} crossorigin="anonymous" />
 	<link rel="preconnect" href={URLS.external.googleFonts.css} />
 	<link rel="preconnect" href={URLS.external.googleFonts.static} crossorigin="anonymous" />
