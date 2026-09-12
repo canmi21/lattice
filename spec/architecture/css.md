@@ -226,9 +226,19 @@ bytes an article reader also fetches.
 
 ## Migrating proves sameness, not correctness
 
-**A migrated component renders exactly what it rendered before.** Where the old arrangement put a
-declaration in the wrong layer, moving it to the right one is a second change and does not travel
-with the first.
+**A migrated component renders exactly what it rendered before.** What the migration changes is
+where a declaration is written, never what it says and never how its value is arrived at. A length
+derived through a cascade of custom properties keeps being derived that way; a colour keeps being
+the same variable.
+
+**And it moves the visual layer only.** A component's `<style>` block usually holds layout beside
+visual -- `.code-copy` opens with `position`, `top` and `z-index` and closes with `border-radius`,
+`letter-spacing` and `color` -- and neither half needs a selector, so strictly neither belongs
+there. The visual half moves and the layout half stays, which leaves the block smaller and still
+mixed. That is the intended stopping point rather than a job half done: relocating layout out of
+scoped CSS and into the markup is a second pass with its own volume and its own risk, and running
+it inside a migration whose whole value is an empty diff would make the diff unreadable. It is one
+entry in [todo.md](../todo.md), for the site rather than per component.
 
 The two are worth separating because mixing them destroys the only signal available. If a migration
 is allowed to improve as it goes, a visual regression and an intended improvement arrive in the same
