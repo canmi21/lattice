@@ -1,3 +1,100 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the licence directory. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The page is the package page's sibling -- a trail, a header, a row of quiet controls and a
+	 * list -- and several of these say what a style there says. They are written out rather than
+	 * shared: a visual constant with two consumers wants a module of its own, and where that
+	 * module should live is the question spec/todo.md is already holding.
+	 */
+	const styles = stylex.create({
+		page: {
+			backgroundColor: 'var(--color-page)',
+			color: 'var(--color-text)',
+		},
+		backLink: {
+			fontSize: '0.9375rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. Whether the visual layer should
+			// be naming another framework's private variables is in spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		title: {
+			color: 'var(--color-text-strong)',
+		},
+		/** The opening paragraphs. Both declarations inherit down to the paragraphs inside. */
+		intro: {
+			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
+			// rather than read: that variable is emitted only for the utilities that name it, so
+			// reading it here would leave this line depending on a class somewhere else in the
+			// markup. The value terminates, so there is no arithmetic to round.
+			lineHeight: 1.625,
+			textWrap: 'pretty',
+		},
+		/** The last of the three, quieter than the two above it. */
+		introNote: {
+			color: 'var(--color-text-soft)',
+		},
+		/** A link inside prose. The named classes draw the underline; this is only its colour. */
+		proseLink: {
+			color: 'var(--color-text)',
+		},
+		census: {
+			textWrap: 'pretty',
+			color: 'var(--color-text-soft)',
+		},
+		actionLink: {
+			fontSize: '0.9375rem',
+		},
+		sectionHeading: {
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+		/** One row of the directory: a licence name, a leader, and its count. */
+		entry: {
+			borderRadius: '0.5rem',
+			backgroundColor: {
+				default: null,
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-paper-hover)' },
+			},
+			// The ring belongs to the name inside, which `focus-link-inner` draws around the text
+			// rather than around the full width of the row.
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+		},
+		/** The dashed rule running from the name to the count. */
+		leader: {
+			borderTopWidth: '1px',
+			borderStyle: 'dashed',
+			borderColor: 'var(--color-border-strong)',
+		},
+		count: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.9375rem',
+			fontVariantNumeric: 'tabular-nums',
+			color: 'var(--color-text-soft)',
+		},
+		footnote: {
+			fontSize: '0.8125rem',
+			textWrap: 'pretty',
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls, URLS } from '@canmi/urls';
@@ -61,12 +158,12 @@
 	-->
 </svelte:head>
 
-<main class="min-h-screen bg-page text-text">
+<main class="min-h-screen {stylex.attrs(styles.page).class}">
 	<article class="mx-auto max-w-180 px-6 py-24">
 		<nav aria-label={m['licenses.breadcrumb']({}, { locale })}>
 			<a
 				href="/"
-				class="focus-link inline-flex items-center gap-1.5 text-[0.9375rem] text-text-soft transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+				class="focus-link inline-flex items-center gap-1.5 {stylex.attrs(styles.backLink).class}"
 			>
 				<ArrowLeft class="size-4" aria-hidden="true" />
 				<span>{m['nav.home']({}, { locale })}</span>
@@ -74,32 +171,32 @@
 		</nav>
 
 		<header class="mt-8">
-			<h1 class="text-text-strong">{m['licenses.title']({}, { locale })}</h1>
-			<div class="mt-4 space-y-4 leading-relaxed text-pretty">
+			<h1 class={stylex.attrs(styles.title).class}>{m['licenses.title']({}, { locale })}</h1>
+			<div class="mt-4 space-y-4 {stylex.attrs(styles.intro).class}">
 				<p>{m['licenses.built']({}, { locale })}</p>
 				<p>{m['licenses.thanks']({}, { locale })}</p>
-				<p class="text-text-soft">
+				<p class={stylex.attrs(styles.introNote).class}>
 					<ParaglideMessage message={m['licenses.below']} inputs={{}} options={{ locale }}>
 						{#snippet license()}<a
 								href="{URLS.external.spdx}/MIT.html"
 								target="_blank"
 								rel="noopener"
-								class="focus-link spring-underline article-link text-text"
-								>{m['licenses.mit']({}, { locale })}</a
+								class="focus-link spring-underline article-link {stylex.attrs(styles.proseLink)
+									.class}">{m['licenses.mit']({}, { locale })}</a
 							>{/snippet}
 						{#snippet link()}<a
 								href={URLS.source}
 								target="_blank"
 								rel="noopener"
-								class="focus-link spring-underline article-link text-text"
-								>{m['licenses.repository']({}, { locale })}</a
+								class="focus-link spring-underline article-link {stylex.attrs(styles.proseLink)
+									.class}">{m['licenses.repository']({}, { locale })}</a
 							>{/snippet}
 					</ParaglideMessage>
 				</p>
 			</div>
 		</header>
 
-		<p class="mt-8 text-pretty text-text-soft">
+		<p class="mt-8 {stylex.attrs(styles.census).class}">
 			<ParaglideMessage
 				message={m['licenses.census']}
 				inputs={{ count, licenses: data.licenses.length }}
@@ -109,25 +206,34 @@
 								href={part.registry.href}
 								target="_blank"
 								rel="noopener"
-								class="focus-link spring-underline article-link text-text">{part.value}</a
+								class="focus-link spring-underline article-link {stylex.attrs(styles.proseLink)
+									.class}">{part.value}</a
 							>{:else}{part.value}{/if}{/each}{/snippet}
 			</ParaglideMessage>
 		</p>
 
 		<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">
-			<a href="/licenses/pkgs" class="quiet-control text-[0.9375rem]">
+			<a href="/licenses/pkgs" class="quiet-control {stylex.attrs(styles.actionLink).class}">
 				<span class="focus-link-inner inline-flex items-center gap-1.5">
 					<FolderOpen class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.packages']({}, { locale })}</span>
 				</span>
 			</a>
-			<a href="/licenses.txt" data-sveltekit-reload class="quiet-control text-[0.9375rem]">
+			<a
+				href="/licenses.txt"
+				data-sveltekit-reload
+				class="quiet-control {stylex.attrs(styles.actionLink).class}"
+			>
 				<span class="focus-link-inner inline-flex items-center gap-1.5">
 					<FileText class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.index']({}, { locale })}</span>
 				</span>
 			</a>
-			<a href="/licenses/full.txt" data-sveltekit-reload class="quiet-control text-[0.9375rem]">
+			<a
+				href="/licenses/full.txt"
+				data-sveltekit-reload
+				class="quiet-control {stylex.attrs(styles.actionLink).class}"
+			>
 				<span class="focus-link-inner inline-flex items-center gap-1.5">
 					<Scale class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.full']({}, { locale })}</span>
@@ -137,24 +243,24 @@
 		</nav>
 
 		<section aria-labelledby="license-directory" class="mt-16">
-			<h2 id="license-directory" class="mb-3 font-medium text-text-strong">
+			<h2 id="license-directory" class="mb-3 {stylex.attrs(styles.sectionHeading).class}">
 				{m['licenses.directory']({}, { locale })}
 			</h2>
 			{#each data.licenses as entry (entry.slug)}
 				<a
 					href="/licenses/{entry.slug}"
-					class="focus-ring-within -mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[0.5rem] px-2 py-1 hover:bg-paper-hover focus-visible:outline-none"
+					class="focus-ring-within -mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-2 py-1 {stylex.attrs(
+						styles.entry,
+					).class}"
 				>
 					<span class="flex min-w-0 items-center gap-3">
 						<span class="focus-link-inner min-w-0 truncate">{entry.license}</span>
-						<span class="h-0 min-w-6 flex-1 border-t border-dashed border-border-strong"></span>
+						<span class="h-0 min-w-6 flex-1 {stylex.attrs(styles.leader).class}"></span>
 					</span>
-					<span class="font-mono text-[0.9375rem] tabular-nums text-text-soft"
-						>{compactCount(entry.count)}</span
-					>
+					<span class={stylex.attrs(styles.count).class}>{compactCount(entry.count)}</span>
 				</a>
 			{/each}
-			<p class="mt-3 text-[0.8125rem] text-pretty text-text-soft">
+			<p class="mt-3 {stylex.attrs(styles.footnote).class}">
 				<span aria-hidden="true">*&nbsp;</span>{m['licenses.multiple']({}, { locale })}
 			</p>
 		</section>
