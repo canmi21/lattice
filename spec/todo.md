@@ -112,18 +112,40 @@ Keeping it whole leaves `text-overflow` and `white-space` as the only typography
 does not own. The decision is about compound utilities in general rather than about this page,
 and `line-clamp` has the same shape.
 
-## One transition list, written out twice and counting
+## One transition list, written out three times and counting
 
 Tailwind's `transition-colors` names ten properties: seven real ones and three `--tw-gradient-*`
-custom properties, so that its gradient utilities animate. Neither migrated component sets a
-gradient, so both wrote the seven and dropped the three -- which is right on its own terms, and
-puts one judgement in two files.
+custom properties, so that its gradient utilities animate. Every migrated component writes all ten,
+because the migration's measure of "renders exactly what it rendered before" is the computed value
+and dropping the three changes it -- which the gate proved, on 30 snapshots, after two components
+had already dropped them on the argument that they animate nothing.
 
-The workspace's own threshold says the second consumer is when a thing is extracted rather than
-copied, and this is the second. What stops it being done here is where it would go: a shared
-visual constant wants a `.stylex.ts` module that components import, which is the same boundary
-question as [`libs/primitives`](../libs/primitives/src/style.css) above rather than a smaller one.
-Answering it twice, once small and once large, is how two shared vocabularies end up existing.
+Two things want deciding together, and separately they will disagree. **Whether the three belong
+in our source at all**: they are another framework's private variables, and if Tailwind renames
+them we carry dead names. And **where the string lives**: the workspace's threshold says the second
+consumer is when a thing is extracted rather than copied, and this is the third. A shared visual
+constant wants a `.stylex.ts` module that components import, which is the same boundary question as
+[`libs/primitives`](../libs/primitives/src/style.css) above.
 
 Deciding it settles the timing function and the duration beside it, both of which are also
-literals in both files today.
+literals in every migrated file today.
+
+## Layout sits in the selector layer, in nearly every block that has one
+
+[architecture/css.md](architecture/css.md) says a migration moves the visual layer and stops
+there, which is why a migrated block comes out smaller and still mixed. `code-block.svelte` is the
+first one large enough to show what is left: `position`, `top`, `right`, `z-index`, five
+`display`s, four widths, three `overflow`s and a `height`, most of which needs no selector to
+reach the element it styles.
+
+Measured across the site: 203 of the 327 rules in the 25 `<style>` blocks name nothing but a
+class on an element the component itself renders, and 329 of the declarations inside them are
+layout. Under [architecture/css.md](architecture/css.md) that is the markup's, written as
+utilities on the element, and it is sitting in the one layer that exists to hold what the other
+two cannot address.
+
+Moving it is a second pass rather than a corollary of the first. It is hand-authored geometry
+rewritten as utilities -- `min-width: 1.5rem` as `min-w-6`, `padding-inline: 0.25rem` as `px-1` --
+and the part of it a data attribute gates, such as the code block's `[data-phase='collapsed']`,
+can only follow through Tailwind's `data-[...]` variants, which one component on the site uses
+today. What it buys is a block that finally means one thing.

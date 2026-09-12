@@ -200,6 +200,21 @@ through a class on that element. This is a property of the arrangement rather th
 work around, and it is what keeps the escape hatch from quietly becoming a fourth way to write the
 visual layer.
 
+## A ratio that does not terminate cannot be written as a ratio
+
+StyleX evaluates arithmetic at compile time and emits the result to five decimal places. A Tailwind
+`leading-5` on a 14px body is `calc(1.25 / 0.875)`, which is `1.428571...`, and what reaches the
+stylesheet is `1.42857`. Against 14px that is 19.99998px, Chrome floors it to the 1/64th of a pixel
+below, and the element is 0.0156px shorter than it was.
+
+Nothing about that is visible and everything below it moves. Found by the gate on a titled code
+fence, where it displaced every element beneath the fence on the page.
+
+**So a length is written as a length.** `1.25rem` is exact and `calc(1.25 / 0.875)` is not, and the
+same holds for any ratio whose decimal expansion does not stop. The general form: the visual layer
+takes a value, not the arithmetic that produced one, because the arithmetic is done by a compiler
+that has to round and CSS would not have.
+
 ## `attrs` replaces `class`, so `class` is merged by hand
 
 `stylex.attrs()` returns an object carrying `class`, so spreading it onto an element that already
@@ -230,6 +245,17 @@ bytes an article reader also fetches.
 where a declaration is written, never what it says and never how its value is arrived at. A length
 derived through a cascade of custom properties keeps being derived that way; a colour keeps being
 the same variable.
+
+**The test applies to a declaration, and stops applying to a member of a set.** A group of
+declarations that only means anything together moves whole or stays whole, and it stays wherever
+the members that cannot move are. The code block's reveal is the case: four values make up its
+resting frame, two of them are placement and one has its counterpart in a descendant rule, so the
+fourth -- an `opacity` that is visual and single-element and would otherwise move -- stays with
+them. Splitting it would leave half a mirror in another layer.
+
+The bound, so this does not become a licence to leave anything where it is: **the set has to be one
+that something else already writes as a unit.** There, `renderCopyReveal(0)` writes all four inline,
+which is checkable. Declarations that merely feel related do not qualify.
 
 **And it moves the visual layer only.** A component's `<style>` block usually holds layout beside
 visual -- `.code-copy` opens with `position`, `top` and `z-index` and closes with `border-radius`,
