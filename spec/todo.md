@@ -97,6 +97,3 @@ hover reveal the inner one's control.
 Deciding it costs a build-config change and a file convention: `unstable_moduleResolution` in the
 vite plugin, and a `.stylex.ts` home for markers that components import. That is the same shape of
 question as the `libs/primitives` entry above -- a boundary rather than the inside of a component.
-
-The migration also leaves `group` on the heading, unread by anything, because named classes are
-out of scope. It is the marker's Tailwind half and the two should not both be there.
