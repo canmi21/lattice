@@ -30,7 +30,7 @@
 				':focus-visible': 'var(--color-text-strong)',
 			},
 			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
 			transitionDuration: '200ms',
 			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 		},
@@ -122,7 +122,7 @@
 				':focus-visible': 'var(--color-text-soft)',
 			},
 			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
 			transitionDuration: '200ms',
 			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 		},
@@ -153,7 +153,7 @@
 			},
 			overflowWrap: 'break-word',
 			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
 			transitionDuration: '200ms',
 			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 		},
