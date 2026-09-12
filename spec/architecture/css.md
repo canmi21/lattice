@@ -137,13 +137,30 @@ For that second Tailwind's `h2 { font-weight: inherit }` reset beats a StyleX we
 page inside it, but anything that measures rendered text during hydration does: the table of
 contents sizes its collapsed bars from each heading's width in that heading's own font, and two
 headings a step apart landed on different steps depending on which side of the flip the measurement
-fell. Two runs of one unchanged page disagreed about two bars in 28 of 30 snapshots, and agree in
-all 30 without the link.
+fell.
 
-So the sheet is imported by the layout's dev branch and never linked. The cost is a moment before
-the visual layer applies, which is honest; what the link bought instead was a moment during which it
-applied wrongly. `check-css` cannot see any of this, because it reads a build, where the window does
-not exist.
+**Dropping the link is the other wrong answer, and it fails in the opposite direction.** Importing
+only the runtime module puts the sheet in the document after hydration rather than before it:
+measured on an article, the sheet landed at 709ms while the rail had already sized its bars at
+571ms, against a heading the reset had left at 400. The order was right and the layer was absent,
+which for anything that measures is the same defect wearing better manners.
+
+So the layout declares the layer order first, in a stylesheet carrying no rules, and links the sheet
+after it:
+
+```html
+<style>@layer properties, theme, base, components, utilities;</style>
+<link rel="stylesheet" href="/virtual:stylex.css">
+```
+
+Tailwind names those layers itself and re-declaring them changes nothing; what it buys is that
+`priority1` can no longer be the first layer the document has seen. Measured again, the heading is
+600 from the first frame and the order is the build's. Development only, and the whole of it is
+inside a `dev` branch, which is a compile-time constant.
+
+`check-css` sees none of this, because it reads a build, where the window never existed. What
+catches it is the migration's own gate, which runs against this server -- and did, twice, before
+this arrangement was arrived at.
 
 **Nothing tests this.** Getting it wrong fails the build, by name, with a line number. A loud
 failure needs no test; it needs the comment that is beside the line.

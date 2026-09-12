@@ -64,28 +64,34 @@
 	$effect(() => installFocusSourceTracker());
 
 	/**
-	 * StyleX's development stylesheet is served, not emitted, and is asked for here rather than
-	 * linked from the head.
+	 * StyleX's development stylesheet, linked behind a declaration of the layers above it.
 	 *
 	 * A build appends the visual layer's CSS to the asset Vite already emits, after Tailwind's,
-	 * which is what puts its cascade layers above Tailwind's utilities. The dev server has no
-	 * such asset: the plugin serves the sheet at `/virtual:stylex.css` and its hot updates behind
-	 * this runtime module.
+	 * and that emission order is what puts its cascade layers above Tailwind's utilities. The dev
+	 * server has no such asset: the plugin serves the sheet at `/virtual:stylex.css` and its hot
+	 * updates behind a runtime module.
 	 *
-	 * **A `<link>` in the head is the obvious way to reach it and it inverts the cascade.** In
-	 * development Tailwind arrives through the module graph as injected styles rather than as a
-	 * stylesheet link, so a static link is declared first, StyleX's layers are registered first,
-	 * and Tailwind outranks the visual layer until this module lands and re-inserts the sheet.
-	 * Measured: `priority1, theme, base, utilities` at load and the reverse a second later, with
-	 * Tailwind's `h2 { font-weight: inherit }` reset beating a StyleX weight in between. Anything
-	 * measuring rendered text during hydration reads whichever side of that flip it lands on.
+	 * **Two wrong answers were measured before this one, and they fail in opposite directions.**
+	 * A bare `<link>` inverts the cascade: in development Tailwind arrives through the module
+	 * graph as injected styles rather than as a link, so the link is the first thing in the
+	 * document to declare a layer, and layer order is fixed by first declaration. Dropping the
+	 * link and importing only the runtime avoids that and arrives too late -- measured on an
+	 * article, the sheet landed at 709ms while the table of contents had already sized its bars
+	 * at 571ms, against a heading Tailwind's `h2 { font-weight: inherit }` reset had left at 400.
+	 * Everything on this site that measures rendered text at hydration reads that.
 	 *
-	 * So there is no link, and the visual layer arrives with this import instead. The cost is a
-	 * moment in development before it applies, which is honest; the alternative was a moment
-	 * during which it applied wrongly.
+	 * So the layer order is declared first, in a stylesheet of its own that carries no rules, and
+	 * the sheet is linked after it. Tailwind names these layers itself and re-declaring them
+	 * changes nothing; what it buys is that `priority1` can no longer be the first layer the
+	 * document has seen. The visual layer is then present before hydration and outranked by
+	 * nothing, which is the build's arrangement reached a different way.
 	 *
 	 * See spec/architecture/css.md.
 	 */
+	const DEV_STYLEX =
+		'<style>@layer properties, theme, base, components, utilities;</style>' +
+		'<link rel="stylesheet" href="/virtual:stylex.css">';
+
 	if (dev) {
 		$effect(() => {
 			void import('virtual:stylex:runtime');
@@ -149,6 +155,8 @@
 </script>
 
 <svelte:head>
+	<!-- First in the head on purpose: it declares the order the layers below it take. -->
+	{#if dev}{@html DEV_STYLEX}{/if}
 	<link rel="preconnect" href={cdn} crossorigin="anonymous" />
 	<link rel="preconnect" href={URLS.external.googleFonts.css} />
 	<link rel="preconnect" href={URLS.external.googleFonts.static} crossorigin="anonymous" />
