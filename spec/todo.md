@@ -112,24 +112,36 @@ Keeping it whole leaves `text-overflow` and `white-space` as the only typography
 does not own. The decision is about compound utilities in general rather than about this page,
 and `line-clamp` has the same shape.
 
-## One transition list, written out three times and counting
+## A shared visual vocabulary, arrived at by two people writing it separately
 
-Tailwind's `transition-colors` names ten properties: seven real ones and three `--tw-gradient-*`
-custom properties, so that its gradient utilities animate. Every migrated component writes all ten,
-because the migration's measure of "renders exactly what it rendered before" is the computed value
-and dropping the three changes it -- which the gate proved, on 30 snapshots, after two components
-had already dropped them on the argument that they animate nothing.
+The two directory pages were migrated an hour apart by different hands, and seven of the nine
+style objects on the second are the first's character for character: the page ground, the trail
+link, the heading, the section heading, the row with its radius and hover fill, the dashed leader
+and the tabular count. Fifty-seven of eighty lines in one module block are shared verbatim with
+another file. Nobody copied deliberately; both were translating the same markup under the same
+rules and arrived at the same place.
 
-Two things want deciding together, and separately they will disagree. **Whether the three belong
-in our source at all**: they are another framework's private variables, and if Tailwind renames
-them we carry dead names. And **where the string lives**: the workspace's threshold says the second
-consumer is when a thing is extracted rather than copied, and this is the third. A shared visual
-constant wants a `.stylex.ts` module that components import, which is the same boundary question as
-[`libs/primitives`](../libs/primitives/src/style.css) above.
+That is the extraction threshold reached from an unusual direction. The workspace's rule says a
+thing is extracted when it acquires a second consumer, and normally the second consumer is a
+decision somebody makes. Here it is a measurement: the duplication already exists, in two files
+that will drift the first time one of them is edited alone.
 
-Deciding it settles the timing function and the duration beside it, both of which are also
-literals in every migrated file today.
+Tailwind's `transition-colors` list is the same problem at its smallest. It is now written out
+four times -- the two directory pages, the package page and the article section -- as ten
+properties including three `--tw-gradient-*` custom properties that are another framework's
+private variables and that this site never sets. Whether they belong in our source at all is a
+second question, and it has to be answered wherever the string finally lives or the two answers
+will disagree.
 
+So there are two things to settle and one place to settle them. **Where a shared visual constant
+lives**: a `.stylex.ts` module components import, which is the same boundary question as
+[`libs/primitives`](../libs/primitives/src/style.css) above and should be answered with it rather
+than beside it. And **what the shared surfaces are called**, which is the part that cannot be
+mechanical, because a name that describes the markup it came from stops being true the third time
+it is used.
+
+The timing function and the duration are literals in every migrated file today and follow the
+same string wherever it goes.
 ## Layout sits in the selector layer, in nearly every block that has one
 
 [architecture/css.md](architecture/css.md) says a migration moves the visual layer and stops
