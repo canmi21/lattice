@@ -16,15 +16,15 @@
 		"@canmi/robots": "workspace:*",
 		"@canmi/store": "workspace:*",
 		"@canmi/urls": "workspace:*",
-		"@sentry/cloudflare": "^10.73.0",
+		"@sentry/cloudflare": "^10.74.0",
 		"drizzle-orm": "^0.45.2",
 		"hono": "^4.13.7"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^5.20260910.1",
+		"@cloudflare/workers-types": "^5.20260911.1",
 		"@types/node": "^26.5.1",
 		"drizzle-kit": "^0.31.10",
 		"miniflare": "5.20260908.0-alpha",
-		"wrangler": "^4.130.0"
+		"wrangler": "^4.131.1"
 	}
 }
