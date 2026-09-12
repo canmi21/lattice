@@ -76,3 +76,27 @@ component scope to be the escape hatch.
 So the site's arrangement does not transfer to it unchanged, and the shared vocabulary above is the
 only piece that crosses. Whether the CMS follows, and what the third layer is there if it does, is
 its own decision and not a consequence of this one.
+
+## Ancestor state reaches the visual layer only through a marker nobody owns
+
+`section.svelte` reveals its anchor button while the pointer is over the heading. Tailwind spells
+that `group` plus `group-hover:`, and the two halves cannot be split across layers -- StyleX
+outranks Tailwind's utilities, so a resting `opacity: 0` in the visual layer would win over a
+`group-hover:opacity-100` left in the markup and the control would never appear. Moving the
+resting opacity therefore means moving the hovered one.
+
+StyleX's own answer is `stylex.defineMarker()`, and it is refused here twice: first with `the
+return value of defineMarker() must be bound to a named export`, then, once exported, with
+`unable to generate hash for defineMarker(). Check that the file has a valid extension and that
+unstable_moduleResolution is configured`. A `.svelte` file is not an extension that API will hash,
+and `unstable_moduleResolution` is not set in `vite.config.ts`. The component uses
+`stylex.defaultMarker()` instead, which compiles to the literal class `.x-default-marker` -- one
+name, shared by every component that calls it, so two of them nested would have the outer one's
+hover reveal the inner one's control.
+
+Deciding it costs a build-config change and a file convention: `unstable_moduleResolution` in the
+vite plugin, and a `.stylex.ts` home for markers that components import. That is the same shape of
+question as the `libs/primitives` entry above -- a boundary rather than the inside of a component.
+
+The migration also leaves `group` on the heading, unread by anything, because named classes are
+out of scope. It is the marker's Tailwind half and the two should not both be there.

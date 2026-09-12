@@ -7,11 +7,31 @@ here overrides a decision recorded there.
 
 ## Each layer owns one kind of declaration
 
-| Layer               | Owns                                                 | Written in            |
-| ------------------- | ---------------------------------------------------- | --------------------- |
-| Tailwind            | layout: flow, box, spacing, alignment, size, position | the markup            |
-| StyleX              | visual: colour, type, border, radius, shadow, motion  | TypeScript            |
-| Svelte `<style>`    | the selector: whatever the other two cannot address   | the component's block |
+| Layer            | Owns                                                  | Written in            |
+| ---------------- | ----------------------------------------------------- | --------------------- |
+| Tailwind         | layout: flow, box, spacing, alignment, size, position  | the markup            |
+| StyleX           | visual: colour, type, border, radius, shadow, motion   | TypeScript            |
+| Svelte `<style>` | the selector: whatever the other two cannot address    | the component's block |
+
+**The lists are examples; the test is the rule.** Ask what the declaration decides. If it decides
+where the element is or how large, it is layout and stays in the markup. If it decides how the
+element looks or how it answers a pointer, it is visual and moves. A list can only ever be as long
+as the properties somebody thought of, and the first migrated component reached for four the list
+did not name.
+
+Those four, settled here so nobody has to settle them again:
+
+- **`cursor`, `pointer-events` and `user-select` are visual.** None of them moves anything; each
+  says what the element is to a pointer, which is appearance in the sense that matters -- the
+  reader learns it by looking. `quiet-control` in `utilities.css` already writes `cursor` beside
+  colour and weight, which is the same answer arrived at before there was a rule.
+- **`visibility` is layout**, and it is the one that looks like the exception. It is chosen against
+  `display` precisely for what it does to the box: the newsletter's ghost label is
+  `visibility: hidden` rather than `display: none` because a removed box measures nothing and this
+  one exists to reserve a width. A property picked for its effect on layout belongs with layout.
+- **`transform` follows the test rather than the property.** A translate that centres something is
+  placing it and stays in the markup; a transform that only runs during an animation is motion and
+  moves. The question to ask is whether deleting it moves anything while the page is at rest.
 
 **Tailwind stays in the markup because layout is what the markup is.** A row that is a flex row
 with a gap says so on the element, where somebody reading the structure is already looking, and
@@ -96,6 +116,34 @@ works, because the transform has to run on the JavaScript the Svelte compiler pr
 StyleX's advice to keep the plugin ahead of the framework exists to preserve React's Fast Refresh.
 For Svelte it is exactly inverted, and the official SvelteKit example carries the same override with
 no comment on it.
+
+### In development the visual layer arrives with its runtime, and must not be linked
+
+A build appends StyleX's CSS to the asset Vite already emits, after Tailwind's, which is where the
+layer order above comes from. The dev server has no such asset: the plugin serves the sheet at
+`/virtual:stylex.css` and its updates behind a runtime module.
+
+**Linking that sheet from the head is the obvious way to reach it, and it inverts the cascade.** In
+development Tailwind arrives through the module graph as injected styles rather than as a stylesheet
+link, so a static link is the first thing in the document to declare a layer, and layer order is
+fixed by first declaration. Measured on an article, at load and a second later:
+
+```
+priority1, theme, base, utilities, components, properties    h2 font-weight 400
+theme, base, utilities, components, properties, priority1    h2 font-weight 600
+```
+
+For that second Tailwind's `h2 { font-weight: inherit }` reset beats a StyleX weight. Nobody reads a
+page inside it, but anything that measures rendered text during hydration does: the table of
+contents sizes its collapsed bars from each heading's width in that heading's own font, and two
+headings a step apart landed on different steps depending on which side of the flip the measurement
+fell. Two runs of one unchanged page disagreed about two bars in 28 of 30 snapshots, and agree in
+all 30 without the link.
+
+So the sheet is imported by the layout's dev branch and never linked. The cost is a moment before
+the visual layer applies, which is honest; what the link bought instead was a moment during which it
+applied wrongly. `check-css` cannot see any of this, because it reads a build, where the window does
+not exist.
 
 **Nothing tests this.** Getting it wrong fails the build, by name, with a line number. A loud
 failure needs no test; it needs the comment that is beside the line.
