@@ -55,6 +55,17 @@ run = [
 description = "Check the font manifest, published chunks, stylesheets, and splitter runtime"
 run = ".mise/tasks/fonts --check"
 
+[tasks.check-css]
+description = "Build the site and hold the order of the three layers that write its CSS"
+# Runs after check-site rather than beside it. Both write .svelte-kit, and a build regenerating
+# the types while svelte-check is reading them is exactly the race that has already made the
+# secrets scan fail against a cargo temp file that vanished mid-walk.
+wait_for = ["check-site"]
+run = [
+	"pnpm --filter @canmi/site build",
+	"node apps/site/scripts/css-layers.ts",
+]
+
 [tasks.lint]
 description = "Lint the workspace"
 run = "oxlint ."
@@ -153,6 +164,7 @@ depends = [
 	"check",
 	"check-site",
 	"check-fonts",
+	"check-css",
 	"lint",
 	"test",
 	"refs",

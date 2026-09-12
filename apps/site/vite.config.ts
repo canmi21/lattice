@@ -4,6 +4,7 @@ import { isAbsolute, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEVELOPMENT_PORTS, DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls } from '@canmi/urls';
 import { sentrySvelteKit } from '@sentry/sveltekit';
+import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
@@ -315,6 +316,28 @@ export default defineConfig(async ({ command, mode }) => {
 				},
 			}),
 			sveltekit(),
+			{
+				// The visual layer. StyleX compiles `stylex.create` into atomic classes and appends
+				// its stylesheet after Tailwind's, which is what puts its cascade layers above
+				// Tailwind's utilities and below Svelte's unlayered scoped rules. That ordering is
+				// the arrangement the site depends on; a test holds it, because nothing here or
+				// upstream promises it. See spec/architecture/css.md.
+				//
+				// **`enforce: undefined` is load-bearing and must not be tidied away.** The plugin
+				// declares `enforce: 'pre'`, which hoists it above the Svelte compiler wherever it
+				// sits in this array; its Babel pass then receives an uncompiled `.svelte` file and
+				// parses it as JSX, which fails with `SyntaxError: Unexpected token, expected "}"`
+				// pointing at the first style object. Deleting the field is the only thing that
+				// puts it back after `sveltekit()`, where it belongs -- the transform has to run on
+				// the JavaScript the Svelte compiler produced. Measured three ways, all failing:
+				// before `sveltekit()`, which is what StyleX's own documentation recommends;
+				// last in the array without this override; and first of all.
+				//
+				// StyleX's advice to keep the plugin ahead of the framework exists to preserve
+				// React's Fast Refresh. For Svelte it is exactly inverted.
+				...stylex({ useCSSLayers: true }),
+				enforce: undefined,
+			},
 			{
 				// The merged redirect map, baked into a virtual module. The prerendered
 				// [...path] route emits redirect() responses that each adapter translates to

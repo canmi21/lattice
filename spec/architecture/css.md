@@ -56,8 +56,16 @@ That ordering is the one this layering wants -- the escape hatch outranks the vo
 outranks the frame -- and it is worth being clear that this is luck rather than design. **It falls
 out of which plugin appends its CSS last.** Neither vendor promises it and neither would notice
 breaking it: an inverted order raises no error, it just starts answering some properties from the
-other layer. So it is held by a test rather than by a reading, and the test asserts the relative
-order of the three rather than the layer names, which are upstream's to rename.
+other layer. So it is held by a check rather than by a reading:
+[css-layers.ts](../../apps/site/scripts/css-layers.ts), run over the built stylesheets by
+`mise run check-css` and part of `verify`.
+
+**It asserts the relative order of the three, never the layer names.** `utilities` is Tailwind's
+and `priority2` is StyleX's, and both belong to their owner to rename; a StyleX layer is found by
+the atomic classes inside it. Only `utilities` is named, because a rename there should stop
+somebody rather than pass quietly. The check also refuses a build where the site imports StyleX and
+no stylesheet carries its classes, which is what a plugin ordered wrongly looks like from the
+outside.
 
 **A conflict resolves per property, never per block.** A scoped rule naming only `background` takes
 `background` and leaves a StyleX `border-radius` on the same element standing; measured, including

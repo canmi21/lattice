@@ -64,6 +64,23 @@
 	$effect(() => installFocusSourceTracker());
 
 	/**
+	 * StyleX's development stylesheet is served, not emitted.
+	 *
+	 * A build appends the visual layer's CSS to the asset Vite already emits, so nothing here has
+	 * to link it. The dev server has no such asset: the plugin exposes the sheet at
+	 * `/virtual:stylex.css` and its hot updates behind a runtime module, and both have to be
+	 * asked for by hand. Neither reaches production -- `dev` is a compile-time constant, so the
+	 * link and the import are gone from the built bundle rather than merely unreached.
+	 *
+	 * See spec/architecture/css.md.
+	 */
+	if (dev) {
+		$effect(() => {
+			void import('virtual:stylex:runtime');
+		});
+	}
+
+	/**
 	 * Record the reading trail, for every page rather than only articles.
 	 *
 	 * The Back control lives on an article, but the step it has to remember is often taken
@@ -120,6 +137,9 @@
 </script>
 
 <svelte:head>
+	{#if dev}
+		<link rel="stylesheet" href="/virtual:stylex.css" />
+	{/if}
 	<link rel="preconnect" href={cdn} crossorigin="anonymous" />
 	<link rel="preconnect" href={URLS.external.googleFonts.css} />
 	<link rel="preconnect" href={URLS.external.googleFonts.static} crossorigin="anonymous" />
