@@ -111,3 +111,19 @@ that the element ellipsises -- which is the argument for utilities, applied agai
 Keeping it whole leaves `text-overflow` and `white-space` as the only typography the visual layer
 does not own. The decision is about compound utilities in general rather than about this page,
 and `line-clamp` has the same shape.
+
+## One transition list, written out twice and counting
+
+Tailwind's `transition-colors` names ten properties: seven real ones and three `--tw-gradient-*`
+custom properties, so that its gradient utilities animate. Neither migrated component sets a
+gradient, so both wrote the seven and dropped the three -- which is right on its own terms, and
+puts one judgement in two files.
+
+The workspace's own threshold says the second consumer is when a thing is extracted rather than
+copied, and this is the second. What stops it being done here is where it would go: a shared
+visual constant wants a `.stylex.ts` module that components import, which is the same boundary
+question as [`libs/primitives`](../libs/primitives/src/style.css) above rather than a smaller one.
+Answering it twice, once small and once large, is how two shared vocabularies end up existing.
+
+Deciding it settles the timing function and the duration beside it, both of which are also
+literals in both files today.

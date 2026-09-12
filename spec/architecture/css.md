@@ -276,6 +276,12 @@ transition is otherwise checked by reading it against the utility it replaced --
 `transition-colors` is seven properties plus three gradient variables the page never sets, and
 `duration-200` with the default easing is `200ms` and `cubic-bezier(0.4, 0, 0.2, 1)`.
 
+**A surface that does not exist until it is opened is invisible to it.** The search dialog renders
+nothing until its shortcut is pressed, and the modal, the menu, the popover and the enlarged picture
+are the same shape. Measured, the homepage snapshot holds 247 elements and none of them is the
+search panel. Those components are not ungateable, but gating them means the harness driving the
+interaction first, and until it does they are migrated last and checked by hand.
+
 **It proves sameness against today, not correctness.** Two errors that cancel at the width being
 measured read as clean.
 
