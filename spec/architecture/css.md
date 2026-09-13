@@ -403,6 +403,79 @@ output, and substituting one into an at-rule prelude. Both need a constant whose
 carry zero StyleX-hashed variables and zero at-rule preludes containing `var(`. The boundary is the
 kind of value, not the feature.
 
+## A repeated group gets one name too, and that one is free
+
+[`surfaces.ts`](../../apps/site/src/lib/surfaces.ts) holds the declaration groups several
+components draw: `paper`, the bordered ground; `blockFrame`, which is `paper` at `radius.xl` and is
+written that way; `interactive`, the eight declarations a card answers a pointer with; and
+`heading`, the ink and weight a title takes. A group earns a name on the same bar a value does,
+three components, and on one more: the components have to be unrelated. Two files sharing a block
+because one was copied from the other is a copy, and naming it turns an accident into an
+institution.
+
+**Extraction is free in a way the vocabulary step was not.** A class is hashed from the declaration
+as written, and the hash does not depend on which module wrote it, so moving a group into
+`surfaces.ts` emits the same class it emitted from inside the component. Measured across the four
+extractions: 187 rules before and after, byte-identical including selectors. The vocabulary step
+renamed 32 of those 187 because a constant reaches `create` as `var(--<consthash>)` and the hash is
+taken over that; a recipe carries the literal itself, so nothing moves.
+
+That makes the gate strict rather than statistical, and it is worth saying what it then does not
+see. **A recipe applied to the wrong element emits exactly the same stylesheet.** So a second gate
+reads the class attribute out of the server-rendered HTML for the same thirteen addresses the
+coverage section names -- no browser, no build, thirteen fetches -- and compares each element's
+classes as a set, because emission order inside a merged object is free to move.
+
+### The second gate cannot be an empty diff, and the reason is the readable name
+
+StyleX's development-only class is composed as `<basename>__<varName>.<key>`, so it names the file
+and the constant that declared a style. An extraction changes both, by definition -- that is what
+an extraction is. So every call site's readable name changes while its atomic classes do not, and a
+gate demanding an empty diff would fail on every extraction commit for the one reason that proves
+the extraction happened.
+
+The response is not to look away. **It is the only thing in the output that says which recipe
+reached which element**, and that is precisely the question the second gate exists to answer: two
+elements both wearing `xqfnruw x1uellxl` look identical whether a recipe or a leftover local key put
+them there. So the pass condition is three clauses rather than one.
+
+1. **No atomic class moves.** Any `x`-class appearing or disappearing on any element is a failure.
+2. **The recipe's readable name lands on exactly the intended elements**, count reconciled against
+   the call sites, with every element that lost a local readable name inside that set.
+3. **The classed-element total does not change.** An element that stops carrying a class attribute
+   at all is neither of the above.
+
+Measured over the whole step against the tree before it: 70 elements differ only by a readable name
+-- 18, 45, 1 and 6, reconciling to the four recipes' call sites -- no atomic class moved anywhere,
+nothing else moved, and the total held at 10655.
+
+This is the migration gate's own move made one level down. That gate excluded the class attribute
+because class names were exactly what was supposed to change; here the atomic class is the part
+that must not change and the readable name is the part that must. Safe both times for the same
+reason: the excluded thing is named and measured rather than waved past.
+
+### The merge unit is the property, not the property and its condition
+
+A conditional value is indivisible. A recipe cannot supply the condition while the component
+supplies the default, because a second object carrying the same property replaces the whole value,
+conditions included:
+
+```
+written out              -> xts7igz x4wkmsb
+props(recipe, component) -> xts7igz
+props(component, recipe) -> x4wkmsb
+```
+
+Both orders lose one and which one depends only on the order. **And all three forms emit both rules
+into the stylesheet**, so the first gate passes every one of them, including the two that are wrong.
+That is the case that argues for the second gate more strongly than any reasoning did.
+
+What it rules out is a real candidate rather than a hypothetical. The reduced-motion answer --
+`transition-property: none`, `duration: 0s`, `timing-function: ease` under one query -- recurs
+across seven components and is a set rather than a value, which is exactly the shape this file
+says to name. It cannot be named. The three declarations only travel with a default, and the nine
+sites have nine different defaults.
+
 ## One stylesheet for every route
 
 StyleX aggregates every route's styles into the entry stylesheet. Measured with a second route: a
