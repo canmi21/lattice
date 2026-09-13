@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { duration, easing, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The heading, as the anchor button's `when.ancestor` sees it.
@@ -41,7 +42,7 @@
 				':focus-visible': 1,
 			},
 			transitionProperty: 'opacity',
-			transitionDuration: '200ms',
+			transitionDuration: duration.base,
 			// The curve is Tailwind's `--ease-out`, written out rather than read. Its theme
 			// variables are emitted only for the utilities the markup still names, so a variable
 			// this file is the last reader of would resolve to nothing once the class is gone.
@@ -54,10 +55,9 @@
 				default: 'var(--color-text-soft)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 			},
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 	});
 </script>

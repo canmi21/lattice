@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { leading, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, leading, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
@@ -38,8 +38,8 @@
 		media: {
 			transitionProperty:
 				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 		/** The title over the cover. */
 		title: {

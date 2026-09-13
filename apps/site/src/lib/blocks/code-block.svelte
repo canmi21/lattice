@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, leading, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, easing, leading, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
@@ -56,10 +56,9 @@
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. Whether the visual layer should
 			// be naming another framework's private variables is in spec/todo.md.
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionProperty: transition.colors,
 			transitionDuration: '150ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionTimingFunction: easing.inOut,
 			// The ring belongs to the frame, which `focus-ring-within` draws around the whole
 			// block; a second one on the title inside it would read as two controls.
 			outlineStyle: { default: null, ':focus-visible': 'none' },
@@ -78,9 +77,9 @@
 				default: 'transform, translate, scale, rotate',
 				'@media (prefers-reduced-motion: reduce)': 'none',
 			},
-			transitionDuration: { default: '200ms', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionDuration: { default: duration.base, '@media (prefers-reduced-motion: reduce)': '0s' },
 			transitionTimingFunction: {
-				default: 'cubic-bezier(0.4, 0, 0.2, 1)',
+				default: easing.inOut,
 				'@media (prefers-reduced-motion: reduce)': 'ease',
 			},
 		},

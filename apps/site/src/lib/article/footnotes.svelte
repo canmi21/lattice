@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
@@ -99,7 +99,7 @@
 			// none`, which is more than one longhand: the shorthand also returns the duration and
 			// the curve to their initial values.
 			transitionProperty: { default: 'color', '@media (prefers-reduced-motion: reduce)': 'none' },
-			transitionDuration: { default: '200ms', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionDuration: { default: duration.base, '@media (prefers-reduced-motion: reduce)': '0s' },
 			transitionTimingFunction: {
 				default: 'ease-out',
 				'@media (prefers-reduced-motion: reduce)': 'ease',
@@ -110,7 +110,7 @@
 				default: 'transform',
 				'@media (prefers-reduced-motion: reduce)': 'none',
 			},
-			transitionDuration: { default: '200ms', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionDuration: { default: duration.base, '@media (prefers-reduced-motion: reduce)': '0s' },
 			transitionTimingFunction: {
 				default: 'ease-out',
 				'@media (prefers-reduced-motion: reduce)': 'ease',

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { leading, text } from '$lib/vocabulary.stylex.ts';
+	import { duration, leading, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the language switcher. Every colour is the token variable `libs/tokens`
@@ -23,7 +23,7 @@
 				default: 'transform, translate, scale, rotate',
 				'@media (prefers-reduced-motion: reduce)': 'none',
 			},
-			transitionDuration: '200ms',
+			transitionDuration: duration.base,
 			// The curve is Tailwind's `--ease-out`, written out rather than read. Its theme
 			// variables are emitted only for the utilities the markup still names, so a variable
 			// this file is the last reader of would resolve to nothing once the class is gone.

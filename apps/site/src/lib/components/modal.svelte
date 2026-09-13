@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, easing, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
@@ -57,10 +57,9 @@
 			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. See spec/todo.md.
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionProperty: transition.colors,
 			transitionDuration: '150ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionTimingFunction: easing.inOut,
 		},
 		/**
 		 * The body. Its line is Tailwind's `--leading-relaxed` written out rather than read: that

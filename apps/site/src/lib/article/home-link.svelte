@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { leading, text } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, leading, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
@@ -40,10 +40,9 @@
 			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. See spec/todo.md.
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 	});
 </script>

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the registry directory. Every colour is the token variable `libs/tokens`
@@ -29,10 +29,9 @@
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. Whether the visual layer should
 			// be naming another framework's private variables is in spec/todo.md.
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 		title: {
 			color: 'var(--color-text-strong)',

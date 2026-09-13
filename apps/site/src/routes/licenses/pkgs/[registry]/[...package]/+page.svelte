@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -30,10 +30,9 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 		name: {
 			color: 'var(--color-text-strong)',
@@ -122,10 +121,9 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
 				':focus-visible': 'var(--color-text-soft)',
 			},
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 		chainName: {
 			color: 'var(--color-text-strong)',
@@ -153,10 +151,9 @@
 				':focus-visible': 'var(--color-text-soft)',
 			},
 			overflowWrap: 'break-word',
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 		dependentName: {
 			color: 'var(--color-text-strong)',

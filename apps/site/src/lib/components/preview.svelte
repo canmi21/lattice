@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { duration } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the three elements this component renders itself. Every colour is the
@@ -55,7 +56,7 @@
 				'@media (prefers-reduced-motion: reduce)': 'none',
 			},
 			transitionDuration: {
-				default: '200ms',
+				default: duration.base,
 				'@media (prefers-reduced-motion: reduce)': '0s',
 			},
 			transitionTimingFunction: {

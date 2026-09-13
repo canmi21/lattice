@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable
@@ -93,8 +93,8 @@
 				'@media (hover: hover)': { default: null, ':hover:not(:disabled)': 0.85 },
 			},
 			transitionProperty: 'opacity',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 		row: {
 			fontSize: text.px15,
@@ -132,10 +132,9 @@
 			// and already owns `transition`, so this control's colour has never faded. Carried
 			// across unchanged, because a migration moves what the markup said rather than what it
 			// achieved, and recorded in spec/todo.md.
-			transitionProperty:
-				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
-			transitionDuration: '200ms',
-			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 	});
 </script>
