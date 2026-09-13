@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
@@ -60,14 +60,14 @@
 		},
 		author: {
 			color: 'var(--color-text-strong)',
-			fontSize: '0.8125rem',
-			fontWeight: 560,
+			fontSize: text.px13,
+			fontWeight: weight.strong,
 		},
 		/** The tweet. The preserved whitespace is what the text looks like, not how large it is. */
 		text: {
 			whiteSpace: 'pre-wrap',
 			color: 'var(--color-text)',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			lineHeight: 1.55,
 		},
 		metrics: {

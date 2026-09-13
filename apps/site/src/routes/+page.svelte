@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
@@ -56,11 +56,11 @@
 			// rather than read: that variable is emitted only for the utilities that name it, so
 			// reading it here would leave this line depending on a class somewhere else in the
 			// markup. The value terminates, so there is no arithmetic to round.
-			lineHeight: 1.625,
+			lineHeight: line.relaxed,
 		},
 		/** The line holding the language switcher. Both declarations inherit into it. */
 		switcherRow: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: 'var(--color-text-soft)',
 		},
 		/** One of the glyphs in the row of elsewheres. */
@@ -84,7 +84,7 @@
 		},
 		/** The registration badge sharing the row with them. */
 		icpLink: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: {
 				default: 'var(--color-text-soft)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },

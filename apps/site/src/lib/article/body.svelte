@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the translator's note, which is the only surface this component draws
@@ -18,12 +18,12 @@
 			color: 'var(--color-text-soft)',
 		},
 		noteLabel: {
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			// The line as a length rather than as the ratio `text-xs` writes it, `calc(1 / 0.75)`,
 			// which is the same 1rem and cannot be written that way here: StyleX evaluates a calc
 			// and keeps five decimals. See spec/architecture/css.md.
 			lineHeight: '1rem',
-			fontWeight: 500,
+			fontWeight: weight.medium,
 		},
 		noteClose: {
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what

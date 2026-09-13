@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
@@ -28,8 +28,8 @@
 		},
 		/** The four words naming the directions. */
 		axisLabel: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.625rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px10,
 			lineHeight: 1.25,
 			color: 'var(--color-text-soft)',
 			whiteSpace: 'nowrap',
@@ -67,14 +67,14 @@
 			backgroundColor: 'var(--color-paper-hover)',
 		},
 		itemTitle: {
-			fontSize: '0.8125rem',
-			fontWeight: 500,
+			fontSize: text.px13,
+			fontWeight: weight.medium,
 			lineHeight: 1.2,
 			color: 'var(--color-text-strong)',
 		},
 		itemNote: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.625rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px10,
 			lineHeight: 1.25,
 			color: 'var(--color-text-soft)',
 		},

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border } from '$lib/vocabulary.stylex.ts';
+	import { border, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
@@ -28,12 +28,12 @@
 			// and `text-2xl` reads that variable rather than its own default, so the pair never
 			// competed and the ratio `calc(2 / 1.5)` never reached the element.
 			lineHeight: '3.0625rem',
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text)',
 		},
 		/** The sentence written for a person, on the same line box as the number. */
 		message: {
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			lineHeight: '3.0625rem',
 			color: 'var(--color-text)',
 		},

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable
@@ -20,7 +20,7 @@
 	 */
 	const styles = stylex.create({
 		heading: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		/** Both readings of the pitch. Which one is shown is a width question and stays in the markup. */
@@ -52,7 +52,7 @@
 		},
 		chip: {
 			borderRadius: radius.full,
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			// Ink is for the thing worth pressing. Once pressed this is a label, so it keeps the
 			// shape and gives up the emphasis; cooling out of ink over the same span as the reveal
 			// shows it is the same control settling rather than a different one appearing.
@@ -75,7 +75,7 @@
 		submit: {
 			borderRadius: radius.full,
 			backgroundColor: 'var(--color-ink)',
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-page)',
 			// Two conditions land on this one property and they overlap: Chrome matches `:hover`
 			// on a disabled button, and the pointer is very likely still on the one just pressed.
@@ -97,7 +97,7 @@
 			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
 		},
 		row: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: 'var(--color-text-soft)',
 		},
 		/**
@@ -113,7 +113,7 @@
 		ghost: {
 			fontSize: '1rem',
 			lineHeight: 1.5,
-			fontWeight: 500,
+			fontWeight: weight.medium,
 		},
 		undo: {
 			color: {

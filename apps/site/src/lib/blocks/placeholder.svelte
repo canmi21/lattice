@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, leading, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the placeholder a block falls back to. Every colour is the token
@@ -21,13 +21,13 @@
 			borderStyle: 'dashed',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.875rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px14,
 			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
 			// 0.875)`. StyleX evaluates a calc and keeps five decimals, and 1.42857 against 14px
 			// lands at 19.99998 where the browser's own division lands on 20. See
 			// spec/architecture/css.md.
-			lineHeight: '1.25rem',
+			lineHeight: leading.px20,
 			color: 'var(--color-text-soft)',
 		},
 		kind: {
@@ -38,7 +38,7 @@
 		 * `calc(1 / 0.75)`, which is the same 1rem and cannot be written as that ratio here.
 		 */
 		meta: {
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			lineHeight: '1rem',
 		},
 	});

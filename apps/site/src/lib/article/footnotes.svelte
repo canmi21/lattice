@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border } from '$lib/vocabulary.stylex.ts';
+	import { border, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
@@ -41,7 +41,7 @@
 		 */
 		heading: {
 			color: 'var(--color-text-strong)',
-			fontWeight: 500,
+			fontWeight: weight.medium,
 		},
 		/**
 		 * Small and quiet, the way a note at the foot of a page is: it is there to be stepped
@@ -55,7 +55,7 @@
 		 * else.
 		 */
 		note: {
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 			lineHeight: 1.6,
 			color: 'var(--color-text-soft)',
 			// `balance` rather than `pretty`, which is the opposite of what the shape of the text
@@ -81,7 +81,7 @@
 			borderWidth: 0,
 			borderStyle: 'none',
 			backgroundColor: 'transparent',
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 			// The same 1.6 the notes read at, and it outranks the 1.25rem `focus-link` sets on
 			// this element from the components layer exactly as the scoped rule did.
 			lineHeight: 1.6,
@@ -131,7 +131,7 @@
 		 * and the way back from it.
 		 */
 		phrase: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 		},
 		/**
 		 * The underline stays off -- eight dotted lines of apparatus would out-shout the article

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the licence directory. Every colour is the token variable `libs/tokens`
@@ -17,7 +17,7 @@
 			color: 'var(--color-text)',
 		},
 		backLink: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -43,7 +43,7 @@
 			// rather than read: that variable is emitted only for the utilities that name it, so
 			// reading it here would leave this line depending on a class somewhere else in the
 			// markup. The value terminates, so there is no arithmetic to round.
-			lineHeight: 1.625,
+			lineHeight: line.relaxed,
 			textWrap: 'pretty',
 		},
 		/** The last of the three, quieter than the two above it. */
@@ -59,10 +59,10 @@
 			color: 'var(--color-text-soft)',
 		},
 		actionLink: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 		},
 		sectionHeading: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		/** One row of the directory: a licence name, a leader, and its count. */
@@ -83,13 +83,13 @@
 			borderColor: 'var(--color-border-strong)',
 		},
 		count: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.9375rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px15,
 			fontVariantNumeric: 'tabular-nums',
 			color: 'var(--color-text-soft)',
 		},
 		footnote: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},

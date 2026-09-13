@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border } from '$lib/vocabulary.stylex.ts';
+	import { border, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
@@ -13,7 +13,7 @@
 	 */
 	const styles = stylex.create({
 		heading: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		/** One pill: the like, the favour and the sponsor all wear this. */
@@ -38,7 +38,7 @@
 				':hover': 'var(--color-paper-hover)',
 				':focus-visible': 'var(--color-paper-hover)',
 			},
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 			// Three properties in the list, so every other list is three long: a transition's lists
 			// are read per property, and one value against three is not the same computed style as

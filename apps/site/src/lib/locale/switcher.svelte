@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { leading, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the language switcher. Every colour is the token variable `libs/tokens`
@@ -38,12 +39,12 @@
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
 			// 0.875)`, which is the same 1.25rem and cannot be written that way here: StyleX
 			// evaluates a calc and keeps five decimals, and 1.42857 against 14px lands at
 			// 19.99998, which Chrome floors to the 1/64px below.
-			lineHeight: '1.25rem',
+			lineHeight: leading.px20,
 			whiteSpace: 'nowrap',
 			// No ring on a row: the menu shows where the keyboard is with the highlight fill
 			// Bits UI drives through `data-highlighted`, and a second marker would say it twice.

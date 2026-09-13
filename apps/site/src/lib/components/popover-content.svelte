@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the popover surface. Every colour is the token variable `libs/tokens`
@@ -25,12 +25,12 @@
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
 			// rather than read: that variable is emitted only for the utilities that name it, so
 			// reading it here would leave this line depending on a class somewhere else in the
 			// markup. The value terminates, so there is no arithmetic to round.
-			lineHeight: 1.625,
+			lineHeight: line.relaxed,
 			color: 'var(--color-text)',
 		},
 	});

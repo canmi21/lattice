@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, leading, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
@@ -52,20 +52,20 @@
 		draftMark: {
 			borderRadius: radius.sm,
 			backgroundColor: 'var(--color-paper-hover)',
-			fontSize: '0.75rem',
-			fontWeight: 500,
+			fontSize: text.px12,
+			fontWeight: weight.medium,
 			lineHeight: '1.5rem',
 			letterSpacing: '0.02em',
 			color: 'var(--color-text-soft)',
 			textTransform: 'uppercase',
 		},
 		meta: {
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
 			// 0.875)`: StyleX evaluates a calc at compile time and keeps five decimals, and
 			// 1.42857 against 14px lands short of the 1.25rem the ratio means. See
 			// spec/architecture/css.md.
-			lineHeight: '1.25rem',
+			lineHeight: leading.px20,
 			color: 'var(--color-text-soft)',
 		},
 		/**
@@ -126,17 +126,17 @@
 			// `border-border-strong` colours all four edges and only one of them has width, so
 			// the shorthand is what keeps the computed style the same on the other three.
 			borderColor: 'var(--color-border-strong)',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// `leading-relaxed` overrides the line `text-sm` would have set. It stays a ratio:
 			// 1.625 is exact, and the rule against ratios is about the ones whose decimal
 			// expansion does not stop.
-			lineHeight: 1.625,
+			lineHeight: line.relaxed,
 			color: 'var(--color-text-soft)',
 		},
 		/** The prose's own size and line. What they reach is the compiler's markup, below. */
 		body: {
-			fontSize: '0.9375rem',
-			lineHeight: 1.625,
+			fontSize: text.px15,
+			lineHeight: line.relaxed,
 		},
 		/**
 		 * The rule the subscription invitation opens on. It belongs to this placement rather than

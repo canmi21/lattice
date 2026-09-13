@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
@@ -23,15 +23,15 @@
 	const styles = stylex.create({
 		/** A treemap tile's language name, over the tile's own colour. */
 		tileName: {
-			fontSize: '0.75rem',
-			fontWeight: 500,
+			fontSize: text.px12,
+			fontWeight: weight.medium,
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
 			// the element is to a pointer.
 			pointerEvents: 'none',
 		},
 		/** Its line count, a step quieter on the same ground. */
 		tileSize: {
-			fontSize: '0.625rem',
+			fontSize: text.px10,
 			pointerEvents: 'none',
 		},
 		/** One of the bar chart's horizontal rules. */
@@ -44,14 +44,14 @@
 		/** Every word the bar chart writes: the ticks, the totals and the language names. */
 		axisLabel: {
 			fill: 'var(--color-text-soft)',
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 		},
 		legend: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 		},
 		summary: {
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 		},
 		/** The quieter half of a labelled figure, in the summary and in the tooltip both. */
 		muted: {
@@ -65,7 +65,7 @@
 			borderRadius: radius.md,
 			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			lineHeight: 1.4,
 			pointerEvents: 'none',
 		},
@@ -73,7 +73,7 @@
 			borderRadius: '0.125rem',
 		},
 		tooltipTitle: {
-			fontWeight: 560,
+			fontWeight: weight.strong,
 		},
 		/**
 		 * The line count beside it.
@@ -84,14 +84,14 @@
 		 */
 		tooltipCount: {
 			color: 'var(--color-text-soft)',
-			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-			fontSize: '0.6875rem',
+			fontFamily: family.monoSpelled,
+			fontSize: text.px11,
 		},
 		tooltipBar: {
 			borderRadius: '0.09375rem',
 		},
 		tooltipGrid: {
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 		},
 		nested: {
 			borderTopWidth: border.hairlineRem,
@@ -99,7 +99,7 @@
 			borderTopColor: 'var(--color-border)',
 		},
 		languageCell: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			whiteSpace: 'nowrap',
 		},
 		languageDot: {

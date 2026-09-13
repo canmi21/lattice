@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a package list. Every colour is the token variable `libs/tokens` already
@@ -33,8 +33,8 @@
 			color: 'var(--color-text-strong)',
 		},
 		version: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.8125rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
 		/** The badge on a licence the package states about itself. */
@@ -45,12 +45,12 @@
 			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			color: 'var(--color-text-soft)',
 		},
 		/** The expression, shown only where it differs from the licence this list is under. */
 		spdx: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
 	});

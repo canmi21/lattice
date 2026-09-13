@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { leading, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
@@ -42,12 +43,12 @@
 		},
 		/** The title over the cover. */
 		title: {
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
 			// 0.875)`: StyleX evaluates a calc and keeps five decimals, and 1.42857 against 14px
 			// lands at 19.99998 rather than at 20. See spec/architecture/css.md.
-			lineHeight: '1.25rem',
-			fontWeight: 500,
+			lineHeight: leading.px20,
+			fontWeight: weight.medium,
 		},
 	});
 </script>

@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { family, line, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
@@ -17,7 +18,7 @@
 			color: 'var(--color-text)',
 		},
 		backLink: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -43,22 +44,22 @@
 			// rather than read: that variable is emitted only for the utilities that name it, so
 			// reading it here would leave this line depending on a class somewhere else in the
 			// markup. The value terminates, so there is no arithmetic to round.
-			lineHeight: 1.625,
+			lineHeight: line.relaxed,
 			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		/** The link out to the registry itself. `quiet-control` draws the rest of it. */
 		actionLink: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 		},
 		sectionHeading: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		/** The count beside the section heading, a step smaller than a directory row's. */
 		count: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.8125rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px13,
 			fontVariantNumeric: 'tabular-nums',
 			color: 'var(--color-text-soft)',
 		},

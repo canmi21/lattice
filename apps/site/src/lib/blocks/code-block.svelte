@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, leading, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
@@ -30,14 +30,14 @@
 		titleFace: {
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper-hover)',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
 			// 0.875)`, which is the same 1.25rem and cannot be written that way here: StyleX
 			// evaluates a calc and keeps five decimals, and 1.42857 against 14px lands at
 			// 19.99998, which Chrome floors to the 1/64px below. Measured: the title lost
 			// 0.0156px of height and every element under it on the page moved with it.
-			lineHeight: '1.25rem',
-			fontWeight: 500,
+			lineHeight: leading.px20,
+			fontWeight: weight.medium,
 		},
 		titleLabel: {
 			color: 'var(--color-text)',
@@ -91,13 +91,13 @@
 		},
 		scroll: {
 			backgroundColor: 'var(--color-paper)',
-			fontSize: '0.875rem',
-			lineHeight: 1.375,
+			fontSize: text.px14,
+			lineHeight: line.snug,
 		},
 		copy: {
 			cursor: 'pointer',
 			borderRadius: radius.sm,
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			lineHeight: 1,
 			letterSpacing: '0.05em',
 			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the

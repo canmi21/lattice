@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the writing list. Every colour is the token variable `libs/tokens` already
@@ -14,7 +15,7 @@
 	const styles = stylex.create({
 		/** The section's heading. `selectable` beside it is the vocabulary's, not this. */
 		heading: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 	});

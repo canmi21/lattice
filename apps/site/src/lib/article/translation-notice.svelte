@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`
@@ -38,15 +38,15 @@
 			// All four edges, three of which have no width to draw: `border-blue-ink` is the
 			// shorthand, and the computed style carries the colour on every side.
 			borderColor: 'var(--color-blue-ink)',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// The line as `leading-snug` writes it. 1.375 terminates, so it stays a ratio; the rule
 			// in spec/architecture/css.md is about the expansions that do not.
-			lineHeight: 1.375,
+			lineHeight: line.snug,
 			color: 'var(--color-text-soft)',
 		},
 		/** The way back to the original. Its underline and its ring are the vocabulary's. */
 		original: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 		},
 	});
 </script>

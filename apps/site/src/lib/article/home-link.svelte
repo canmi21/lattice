@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { leading, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
@@ -22,13 +23,13 @@
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
 			// the element is to a pointer.
 			pointerEvents: 'auto',
-			fontSize: '0.875rem',
+			fontSize: text.px14,
 			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
 			// 0.875)`. StyleX evaluates a calc and keeps five decimals, and 1.42857 against 14px
 			// lands at 19.99998 where the browser's own division lands on 20. It is the same
 			// 1.25rem `focus-link` sets on this element from the components layer, which this
 			// outranks exactly as `text-sm` did. See spec/architecture/css.md.
-			lineHeight: '1.25rem',
+			lineHeight: leading.px20,
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`

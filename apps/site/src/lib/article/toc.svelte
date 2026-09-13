@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { radius } from '$lib/vocabulary.stylex.ts';
+	import { line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
@@ -39,12 +39,12 @@
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		label: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			// `leading-snug` is Tailwind's `--leading-snug`, and its value is written out rather
 			// than read: that variable is emitted only for the utilities that name it, so reading
 			// it here would leave this line depending on a class somewhere else in the markup. The
 			// value terminates, so there is no arithmetic to round.
-			lineHeight: 1.375,
+			lineHeight: line.snug,
 			whiteSpace: 'normal',
 			overflowWrap: 'anywhere',
 			// An entry that needs two lines gets two comparable lines. Left to fill and spill, the

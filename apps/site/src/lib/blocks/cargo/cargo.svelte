@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
@@ -28,8 +28,8 @@
 		/** A tile's crate name, over whichever palette colour the tile drew. */
 		tileName: {
 			fill: 'white',
-			fontSize: '0.6875rem',
-			fontWeight: 500,
+			fontSize: text.px11,
+			fontWeight: weight.medium,
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
 			// the element is to a pointer. The anchor underneath takes the hover.
 			pointerEvents: 'none',
@@ -42,11 +42,11 @@
 		/** The line shown in place of a chart when no dependency has a size. */
 		empty: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 		},
 		legend: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 		},
 		/**
 		 * The corner every dot in this widget shares -- the legend's, the tooltip's, and the two
@@ -57,7 +57,7 @@
 			borderRadius: '0.125rem',
 		},
 		footerRight: {
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			// Typography rather than geometry under spec/architecture/css.md, which reads
 			// `white-space` as deciding how the text looks where `overflow` decides how large the
 			// box is. The same call is made on the table's name column below.
@@ -68,7 +68,7 @@
 			color: 'var(--color-text-soft)',
 		},
 		links: {
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 		},
 		tooltip: {
 			borderWidth: border.hairlineRem,
@@ -77,22 +77,22 @@
 			borderRadius: radius.md,
 			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			lineHeight: 1.4,
 			// The tooltip follows the pointer, so it must never be under it.
 			pointerEvents: 'none',
 		},
 		tooltipTitle: {
-			fontWeight: 560,
+			fontWeight: weight.strong,
 		},
 		tooltipCount: {
 			color: 'var(--color-text-soft)',
-			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-			fontSize: '0.6875rem',
+			fontFamily: family.monoSpelled,
+			fontSize: text.px11,
 		},
 		tooltipGrid: {
-			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-			fontSize: '0.6875rem',
+			fontFamily: family.monoSpelled,
+			fontSize: text.px11,
 		},
 		/**
 		 * The crate name in the table. Its `text-align` stays in the block below: the cell rules
@@ -100,12 +100,12 @@
 		 * would lose to the right-aligned `td` it exists to override.
 		 */
 		nameCell: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			whiteSpace: 'nowrap',
 		},
 		optional: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.625rem',
+			fontSize: text.px10,
 		},
 	});
 </script>

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { radius } from '$lib/vocabulary.stylex.ts';
+	import { family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -17,7 +17,7 @@
 			color: 'var(--color-text)',
 		},
 		breadcrumb: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: 'var(--color-text-soft)',
 		},
 		breadcrumbLink: {
@@ -40,24 +40,24 @@
 			overflowWrap: 'break-word',
 		},
 		version: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.9375rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px15,
 			color: 'var(--color-text-soft)',
 		},
 		summary: {
-			lineHeight: 1.625,
+			lineHeight: line.relaxed,
 			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		noticeLink: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 		},
 		sectionHeading: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		records: {
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 		},
 		label: {
 			color: 'var(--color-text-soft)',
@@ -69,20 +69,20 @@
 			backgroundColor: 'var(--color-paper)',
 		},
 		spdx: {
-			fontFamily: 'var(--font-mono)',
+			fontFamily: family.monoTheme,
 			overflowWrap: 'break-word',
 			color: 'var(--color-text-strong)',
 		},
 		spdxTerms: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
 		spdxTerm: {
-			fontFamily: 'var(--font-mono)',
+			fontFamily: family.monoTheme,
 		},
 		assertedNote: {
-			fontSize: '0.8125rem',
-			lineHeight: 1.625,
+			fontSize: text.px13,
+			lineHeight: line.relaxed,
 			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
@@ -93,8 +93,8 @@
 			color: 'var(--color-text-strong)',
 		},
 		fileLink: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.8125rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px13,
 		},
 		noFiles: {
 			color: 'var(--color-text-soft)',
@@ -131,16 +131,16 @@
 			color: 'var(--color-text-strong)',
 		},
 		nodeVersion: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.75rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px12,
 			color: 'var(--color-text-soft)',
 		},
 		nodeTag: {
-			fontSize: '0.75rem',
+			fontSize: text.px12,
 			color: 'var(--color-text-soft)',
 		},
 		groupLabel: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
 		// A dependent's name wraps where a chain's truncates, so the two links differ by one

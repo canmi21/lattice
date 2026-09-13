@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
@@ -47,7 +47,7 @@
 		},
 		query: {
 			backgroundColor: 'transparent',
-			fontSize: '0.9375rem',
+			fontSize: text.px15,
 			color: 'var(--color-text-strong)',
 			outlineStyle: 'none',
 			'::placeholder': {
@@ -60,8 +60,8 @@
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		groupTitle: {
-			fontSize: '0.9375rem',
-			fontWeight: 500,
+			fontSize: text.px15,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		row: {
@@ -84,24 +84,24 @@
 			backgroundColor: 'var(--color-paper-hover)',
 		},
 		hitHeading: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			color: 'var(--color-text)',
 		},
 		hitSnippet: {
-			fontSize: '0.8125rem',
-			lineHeight: 1.375,
+			fontSize: text.px13,
+			lineHeight: line.snug,
 			color: 'var(--color-text-soft)',
 		},
 		/** The one line the body shows when it has no results: failed, empty or waiting. */
 		state: {
-			fontSize: '0.8125rem',
+			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
 		footer: {
 			borderTopWidth: border.hairlinePx,
 			borderTopStyle: 'solid',
 			borderColor: 'var(--color-border)',
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 			color: 'var(--color-text-soft)',
 		},
 	});

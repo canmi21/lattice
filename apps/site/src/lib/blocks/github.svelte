@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
@@ -55,12 +55,12 @@
 		},
 		name: {
 			color: 'var(--color-text-strong)',
-			fontSize: '0.875rem',
-			fontWeight: 560,
+			fontSize: text.px14,
+			fontWeight: weight.strong,
 		},
 		fullname: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.6875rem',
+			fontSize: text.px11,
 		},
 		/**
 		 * The commit the card is pinned to. Its stack is the literal one the rule carried rather
@@ -69,8 +69,8 @@
 		 */
 		ref: {
 			color: 'var(--color-text-soft)',
-			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-			fontSize: '0.6875rem',
+			fontFamily: family.monoSpelled,
+			fontSize: text.px11,
 		},
 		description: {
 			color: 'var(--color-text-soft)',

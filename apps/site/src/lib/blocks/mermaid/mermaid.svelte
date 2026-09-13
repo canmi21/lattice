@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable `libs/tokens`
@@ -36,8 +36,8 @@
 			filter: 'blur(0.3rem)',
 		},
 		loadingLabel: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.75rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px12,
 			lineHeight: 1,
 			color: 'var(--color-text-soft)',
 		},
@@ -57,8 +57,8 @@
 		},
 		/** The diagram source, shown instead when Mermaid could not draw it. */
 		source: {
-			fontFamily: 'var(--font-mono)',
-			fontSize: '0.8125rem',
+			fontFamily: family.monoTheme,
+			fontSize: text.px13,
 			lineHeight: 1.4,
 			color: 'var(--color-text-soft)',
 			// The ring belongs to the stage, which `focus-ring-within` draws around the whole box;

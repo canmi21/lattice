@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
@@ -35,7 +35,7 @@
 			color: 'var(--color-text-soft)',
 		},
 		title: {
-			fontWeight: 500,
+			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 		},
 		close: {
@@ -68,8 +68,8 @@
 		 * reader of would resolve to nothing once the class left the markup.
 		 */
 		body: {
-			fontSize: '0.9375rem',
-			lineHeight: 1.625,
+			fontSize: text.px15,
+			lineHeight: line.relaxed,
 			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
