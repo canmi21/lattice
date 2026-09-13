@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -103,14 +103,14 @@
 			// large it is stays in the markup, which is also what still gives them their
 			// `content`; this is the half that says what they look like.
 			'::before': {
-				borderRadius: 'calc(infinity * 1px)',
-				borderWidth: '1px',
+				borderRadius: radius.full,
+				borderWidth: border.hairlinePx,
 				borderStyle: 'solid',
 				borderColor: 'var(--color-border-strong)',
 				backgroundColor: 'var(--color-page)',
 			},
 			'::after': {
-				borderLeftWidth: '1px',
+				borderLeftWidth: border.hairlinePx,
 				borderLeftStyle: 'solid',
 				borderColor: 'var(--color-border-strong)',
 			},
