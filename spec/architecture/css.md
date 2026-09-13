@@ -72,6 +72,28 @@ The mechanism is cascade layers and the order they are declared in. Tailwind emi
 the same stylesheet; Svelte's scoped rules are unlayered, and an unlayered rule outranks every
 layered one. The order in a `class` attribute decides nothing.
 
+### There is a fourth participant, and it sits above the visual layer
+
+The table above is the three layers this arrangement names. It is not the whole of what writes CSS
+here. **Nineteen of the thirty selectors in `utilities.css` sit outside every `@layer`**, including
+`.spring-underline`, `.article-link`, `.jump-target` and `.article-rail`, while eleven sit inside
+`base` or `components`. Nothing says which a given rule should be, and an unlayered rule outranks
+every layered one -- so most of the named vocabulary beats StyleX.
+
+Measured on the newsletter's unsubscribe control, which carries `focus-link spring-underline` and
+carried `transition-colors duration-200` beside them: the element reports
+`transition-property: --underline-progress` at 315ms. `.spring-underline`'s `transition` shorthand
+takes all four longhands and wins, so the ten-property list never reached it and the hover colour
+snaps rather than fades. That was true before the migration and is true after it, which is why the
+declaration was carried across unchanged: a migration moves what the markup said, not what it
+achieved.
+
+The consequence to expect while migrating: **a component carrying a vocabulary class may find its
+visual layer silently outranked for the same property.** The gate does not catch it, because
+nothing changed. What is wrong is upstream of the migration, and it is in
+[todo.md](../todo.md) beside the question of where the vocabulary should live -- the two are one
+decision, because giving `utilities.css` a layer is also choosing what it is a layer of.
+
 That ordering is the one this layering wants -- the escape hatch outranks the vocabulary, which
 outranks the frame -- and it is worth being clear that this is luck rather than design. **It falls
 out of which plugin appends its CSS last.** Neither vendor promises it and neither would notice
