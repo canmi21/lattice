@@ -200,6 +200,25 @@ through a class on that element. This is a property of the arrangement rather th
 work around, and it is what keeps the escape hatch from quietly becoming a fourth way to write the
 visual layer.
 
+## Two conditions that can both be true are made exclusive, never ranked
+
+Where one property carries two conditions that can hold at once, the layers disagree about which
+wins, and neither disagreement is ours to inherit. Chrome matches `:hover` on a disabled button,
+and the pointer is usually still on the button that just disabled itself, so the newsletter's
+submit carries both `:hover` and `:disabled` on `opacity`. Tailwind emits its hover block before
+its disabled rule and the dimmer value wins; StyleX sorts `:hover` after `:disabled` regardless of
+the order they are written in, and regardless of being nested inside the hover media query.
+Measured on both: 0.6 before, 0.85 after.
+
+**So the migrated form spells out the condition the old ordering left implicit** --
+`:hover:not(:disabled)` beside `:disabled` -- and the two stop being ranked because they can no
+longer both match. That is correct by construction rather than by measurement, which matters:
+a value that depends on one layer's sort order is a value that changes the next time either
+layer changes its mind.
+
+The general form: **if two conditions on one property can be true together, say which one you
+mean.** Relying on an ordering is relying on something no vendor documents.
+
 ## A ratio that does not terminate cannot be written as a ratio
 
 StyleX evaluates arithmetic at compile time and emits the result to five decimal places. A Tailwind

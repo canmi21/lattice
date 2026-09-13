@@ -127,8 +127,8 @@ decision somebody makes. Here it is a measurement: the duplication already exist
 that will drift the first time one of them is edited alone.
 
 Tailwind's `transition-colors` list is the same problem at its smallest. It is now written out
-four times -- the two directory pages, the package page and the article section -- as ten
-properties including three `--tw-gradient-*` custom properties that are another framework's
+five times -- the two directory pages, the package page, the article section and the newsletter --
+as ten properties including three `--tw-gradient-*` custom properties that are another framework's
 private variables and that this site never sets. Whether they belong in our source at all is a
 second question, and it has to be answered wherever the string finally lives or the two answers
 will disagree.
@@ -142,6 +142,7 @@ it is used.
 
 The timing function and the duration are literals in every migrated file today and follow the
 same string wherever it goes.
+
 ## Layout sits in the selector layer, in nearly every block that has one
 
 [architecture/css.md](architecture/css.md) says a migration moves the visual layer and stops
@@ -185,3 +186,63 @@ either, because both of them beat the `base` layer the ring is declared in.
 
 Deciding it is a choice between `focus-ring` on the row and lifting `focus-link-inner` to be a
 direct child of it, and either changes what a keyboard user sees on two pages.
+
+## Two conditions on one property are ranked differently by the two layers
+
+Both Tailwind and StyleX let a declaration be conditional, and where two conditions can be true at
+once they disagree about which one wins. The newsletter's submit button is the case: `hover:opacity-85`
+beside `disabled:opacity-60`, and a request in flight disables the button under a pointer that is
+still resting on it, because Chrome matches `:hover` on a disabled control.
+
+Tailwind emits its `hover:` block before its `disabled:` rule at equal specificity, so the dimmer
+of the two wins -- measured on the unmigrated component, 0.6. StyleX sorts `:hover` after
+`:disabled` and keeps doing so whichever order the pair is written in, and inside a
+`@media (hover: hover)` query as well -- measured twice, 0.85. Neither ordering is documented and
+neither vendor would notice changing it. The only reason this was caught is that the migration
+drove the state; no snapshot has a disabled button in it.
+
+The component states the exclusion instead, `:hover:not(:disabled)`, which makes the two mutually
+exclusive rather than ranked and therefore reads the same under either ordering. What is left
+unresolved is that this is a repair rediscovered per component. Nothing checks that a migrated pair
+of overlapping conditions still resolves the way it did, and
+[css-layers.ts](../apps/site/scripts/css-layers.ts) is about the order of the layers rather than
+about what sits inside one. Deciding it is either a rule that overlapping conditions are always
+written as exclusions, or a check that can see the pair.
+
+## A keyframe holds the resting values the visual layer now owns
+
+Svelte rewrites a keyframe's name to a scoped one and rewrites the `animation` properties in the
+same block to match. Nothing outside that block can name it: an `animation-name` written in the
+visual layer points at a keyframe that does not exist. So the newsletter's eight keyframes stay in
+the selector layer, and so do the eleven classes whose whole content is an `animation` naming one,
+even though [architecture/css.md](architecture/css.md) lists motion as the visual layer's subject.
+
+The part that is a finding rather than a consequence is what the keyframes contain. `cool`'s `to`
+block is `background-color: var(--color-paper-hover)` and `color: var(--color-text-soft)`, which is
+the chip's resting appearance character for character -- and that resting appearance is now a
+StyleX style at the head of the same file. The two were adjacent before the migration and are now
+in two layers and two halves of the file with nothing tying them together, so changing the chip's
+ink without changing the keyframe lands the animation somewhere the element does not rest. `spend`
+and `.spent` are the same shape in `visibility`.
+
+Deciding it is either `stylex.keyframes`, which moves the interpolation into the visual layer and
+leaves the Svelte block only what genuinely needs a selector, or a convention that a keyframe's
+endpoint and the resting declaration read one custom property rather than two literals.
+
+## An unlayered utility swallows a transition the markup still carries
+
+The newsletter's unsubscribe control is `focus-link spring-underline` and, until this migration
+moved it into the visual layer, `transition-colors duration-200` beside them. Measured, the control
+reports `transition-property: --underline-progress`, a duration of 315ms and the shared spring:
+`.spring-underline` in [utilities.css](../apps/site/src/styles/utilities.css) sits outside every
+`@layer`, an unlayered rule outranks every layered one, and its `transition` shorthand takes all
+four longhands. The ten-property list has never reached the element, and the hover colour on that
+control snaps rather than fades.
+
+Moving the declaration changes nothing, because StyleX is layered too and loses to the same rule --
+which is why it was carried across unchanged rather than dropped, a migration moving what the
+markup said rather than what it achieved. The finding is that the named layer is unlayered in some
+places and layered in others with nothing saying which, so an element carrying a vocabulary class
+and a utility for the same property has no way to say which it meant. Deciding it means giving
+`utilities.css` and [`libs/primitives`](../libs/primitives/src/style.css) a layer of their own,
+which is the boundary question the first entry in this file is already holding.
