@@ -661,42 +661,48 @@ costs nothing and changes nothing. Collapsing `1px` and `0.0625rem` into one nam
 change on whichever side loses, so it needs the gate run over it rather than an argument. And the
 two mono stacks are a question about which one is right, which is not a layering question at all.
 
-## Naming the scale costs nothing and renames a sixth of the stylesheet
+## Nothing in the tree asks whether a declaration moved
 
-Naming the scale that exists was the cheap one of the three choices the entry above leaves open,
-and it is taken: [vocabulary.stylex.ts](../apps/site/src/lib/vocabulary.stylex.ts) holds the
-twenty-five values three or more components had written out, and no value on the site changed.
-Thirty-three of the site's 187 StyleX rules came back under a different class name all the same.
-Every declaration, every selector shape and every layer is identical; only the names are not, and
-that is a property of the compiler rather than a choice made while naming.
+[architecture/css.md](architecture/css.md) now says what the gate on a naming change is -- build,
+and compare the multiset of emitted declarations per layer -- and no check makes that comparison.
+It was two scripts written for this change and kept out of the tree with the migration's own
+harness, so the next person to name a value has to write them again or trust a reading.
 
-StyleX resolves an import itself, at compile time. Under `commonJS` module resolution -- the
-unplugin's default, and now stated in [vite.config.ts](../apps/site/vite.config.ts) -- a
-`defineConsts` group reaches the importing file as a proxy, so `radius.md` arrives at
-`stylex.create` as `var(--x1ahajgk)`. The atomic class is hashed from the declaration as written,
-and the value is put back only when `processStylexRules` assembles the stylesheet. So
-`.x6i6fhv{border-radius:.375rem}` is now `.x13k99{border-radius:.375rem}`, and so on thirty-two
-more times.
+The comparison would be cheap and it is not the migration's snapshot harness: one build, which
+`check-css` already runs, and a sorted diff of what the stylesheet declares against a committed
+list. What it costs is a file that has to be regenerated on purpose whenever a value is meant to
+change, which is every other kind of edit to the visual layer, and a stale one fails loudly on
+work that is correct. Whether that trade is worth making is the decision.
 
-The resolution that would have kept the hash is `experimental_crossFileParsing`, which inlines the
-literal by parsing the imported file rather than proxying it. It cannot be reached at 0.19.0:
-`evaluateImportedFile` guards its own parse with `if (!ast || ast.errors || ...)` and
-`parseSync` returns `errors: []`, which is truthy, so every cross-file evaluation deopts and the
-`stylex.create` that reached for the import fails the build with `nonStaticValue`. Measured
-against the pinned plugin, not read off the changelog.
+One consequence of the mechanism has nowhere to be recorded but here, because it is a fact about
+this repository rather than about StyleX. **A constant's key spelling is part of the stylesheet.**
+The class is hashed from `var(--<consthash>)` and the hash is over the module path and the key, so
+renaming `text.px14` or moving the module rewrites rules while changing no declaration. Every name
+in [vocabulary.stylex.ts](../apps/site/src/lib/vocabulary.stylex.ts) was therefore argued once,
+before anything read it, and a later rename is not the free edit it looks like.
 
-Two consequences belong to the class name rather than to the value. A class now depends on the
-const module's path and on the key's spelling, so renaming `text.px14` rewrites part of the
-stylesheet while changing no declaration. And a key that does not exist is not an error the
-compiler reports: the proxy answers any string, so a typo compiles to a `var()` nothing declares
-and the browser drops the declaration in silence. `tsc` is the only thing standing between that
-and a page.
+## A line height with no reason behind it is a lookup, not a name
 
-What is left to decide is what the site's test of sameness is. A comparison of the emitted rules
-line for line answers "did the stylesheet change", and it now answers yes to a change that moved
-nothing; the same comparison with the class names taken out answers "did a declaration change",
-which is the question about the site. Both were scripts written for this change and kept out of
-the tree with the migration's own harness, so nothing asks either one today.
+`1.4` is the site's third repeated line-height ratio -- [cargo](../apps/site/src/lib/blocks/cargo/cargo.svelte),
+[tokei](../apps/site/src/lib/blocks/tokei/tokei.svelte) and
+[mermaid](../apps/site/src/lib/blocks/mermaid/mermaid.svelte) -- so it clears the three-component
+threshold that every other name in the vocabulary was admitted by. It was left a literal anyway.
+
+Nothing distinguishes it. It is on no scale: Tailwind's neighbours are `leading-snug` at 1.375 and
+`leading-normal` at 1.5, and no utility writes 1.4. No comment beside any of the three says why.
+Two of the three are the same block copied -- cargo's tooltip and tokei's are the same eight
+declarations in the same order -- so the three components are closer to two decisions than to
+three. A
+name for it would have to say where it sits in a list of three, which stops being true the moment
+there is a fourth, and a reader following the name arrives at the same three characters they
+started from.
+
+That is the same shape as the `0.71875rem` and `0.78125rem` the entry above names, one step
+further on: there two components each rounded a judgement, here three landed on one number and
+nobody chose it. Deciding it is either moving each of the three onto the scale, which is a visual
+change on at least two of them and therefore needs the gate rather than an argument, or writing
+down that a scale is allowed members nobody chose -- in which case the threshold for a name is not
+repetition alone, and [architecture/css.md](architecture/css.md) says it is.
 
 ## A reduced-motion answer is three declarations that only mean anything together
 

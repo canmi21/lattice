@@ -364,7 +364,7 @@ emits a custom property and rewrites every declaration reading it into a `var()`
 stylesheet and destroys the only cheap way to prove that naming something changed nothing. A const
 is substituted at compile time and the declaration comes out as the literal it always was. So the
 gate on this kind of change is exact: build, and compare the multiset of emitted declarations per
-layer. Naming 25 values across 33 components left all 187 rules and every declaration in them
+layer. Naming 24 values across 33 components left all 187 rules and every declaration in them
 identical.
 
 **What does move is the class name, and expecting otherwise wasted an afternoon.** StyleX hashes an
