@@ -660,3 +660,64 @@ Deciding it is not one choice but three, and only the first is cheap. Naming the
 costs nothing and changes nothing. Collapsing `1px` and `0.0625rem` into one name is a visual
 change on whichever side loses, so it needs the gate run over it rather than an argument. And the
 two mono stacks are a question about which one is right, which is not a layering question at all.
+
+## Naming the scale costs nothing and renames a sixth of the stylesheet
+
+Naming the scale that exists was the cheap one of the three choices the entry above leaves open,
+and it is taken: [vocabulary.stylex.ts](../apps/site/src/lib/vocabulary.stylex.ts) holds the
+twenty-five values three or more components had written out, and no value on the site changed.
+Thirty-three of the site's 187 StyleX rules came back under a different class name all the same.
+Every declaration, every selector shape and every layer is identical; only the names are not, and
+that is a property of the compiler rather than a choice made while naming.
+
+StyleX resolves an import itself, at compile time. Under `commonJS` module resolution -- the
+unplugin's default, and now stated in [vite.config.ts](../apps/site/vite.config.ts) -- a
+`defineConsts` group reaches the importing file as a proxy, so `radius.md` arrives at
+`stylex.create` as `var(--x1ahajgk)`. The atomic class is hashed from the declaration as written,
+and the value is put back only when `processStylexRules` assembles the stylesheet. So
+`.x6i6fhv{border-radius:.375rem}` is now `.x13k99{border-radius:.375rem}`, and so on thirty-two
+more times.
+
+The resolution that would have kept the hash is `experimental_crossFileParsing`, which inlines the
+literal by parsing the imported file rather than proxying it. It cannot be reached at 0.19.0:
+`evaluateImportedFile` guards its own parse with `if (!ast || ast.errors || ...)` and
+`parseSync` returns `errors: []`, which is truthy, so every cross-file evaluation deopts and the
+`stylex.create` that reached for the import fails the build with `nonStaticValue`. Measured
+against the pinned plugin, not read off the changelog.
+
+Two consequences belong to the class name rather than to the value. A class now depends on the
+const module's path and on the key's spelling, so renaming `text.px14` rewrites part of the
+stylesheet while changing no declaration. And a key that does not exist is not an error the
+compiler reports: the proxy answers any string, so a typo compiles to a `var()` nothing declares
+and the browser drops the declaration in silence. `tsc` is the only thing standing between that
+and a page.
+
+What is left to decide is what the site's test of sameness is. A comparison of the emitted rules
+line for line answers "did the stylesheet change", and it now answers yes to a change that moved
+nothing; the same comparison with the class names taken out answers "did a declaration change",
+which is the question about the site. Both were scripts written for this change and kept out of
+the tree with the migration's own harness, so nothing asks either one today.
+
+## A reduced-motion answer is three declarations that only mean anything together
+
+Nine style objects, across eight components, write the same three lines against
+`@media (prefers-reduced-motion: reduce)`: `transitionProperty: 'none'`, `transitionDuration:
+'0s'` and `transitionTimingFunction: 'ease'`. None of the three was given a name. Each is a CSS
+keyword or a zero, so a name would replace a word a reader already knows with a word they would
+have to look up, and `0s` is the value least worth a lookup on the site.
+
+The repetition is real anyway, and it is not of a value. What repeats is a *set*: three
+declarations that say one thing, which is that this element does not animate for a reader who
+asked for that. The three do not always travel together: counted across the same blocks the
+property appears twelve times, the duration fourteen and the curve nine, and
+[switcher.svelte](../apps/site/src/lib/locale/switcher.svelte) answers with the property alone.
+Whether each of those is deliberate is a question one name would have made visible and three
+literals never will. `defineConsts` cannot hold it -- a const is a value, and this is three of them
+against a condition. `stylex.create` can, and a shared style composed into each component is what
+the visual layer is for, which is the argument
+[architecture/css.md](architecture/css.md) makes for the layer in the first place.
+
+Deciding it costs the first composed style on the site, and with it the question of where a
+composed style lives and whether a component may be handed one it did not write -- which is the
+boundary the first entry in this file is holding for `libs/primitives`. It is also the first thing
+the vocabulary module would hold that is not a literal, and the module is named for the literals.
