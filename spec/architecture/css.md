@@ -314,6 +314,57 @@ Checking that the receiver happens to carry no visual layer of its own is the we
 the one used the first time this came up. A component that merges is safe whether or not it has
 one, and a component that does not merge is a trap waiting for the day it gains one.
 
+## A repeated value gets one name, and the name is a constant rather than a variable
+
+[`vocabulary.stylex.ts`](../../apps/site/src/lib/vocabulary.stylex.ts) holds the values the visual
+layer repeats: the radius scale, the type ladder, the two hairlines, the weights, the easing curve,
+the one duration that recurs. A value earns a name at **three components**, not two; a name used
+twice is a name two people have to learn for nothing.
+
+**It is `defineConsts`, and that is a decision about checkability rather than taste.** A var group
+emits a custom property and rewrites every declaration reading it into a `var()`, which changes the
+stylesheet and destroys the only cheap way to prove that naming something changed nothing. A const
+is substituted at compile time and the declaration comes out as the literal it always was. So the
+gate on this kind of change is exact: build, and compare the multiset of emitted declarations per
+layer. Naming 25 values across 33 components left all 187 rules and every declaration in them
+identical.
+
+**What does move is the class name, and expecting otherwise wasted an afternoon.** StyleX hashes an
+atomic class from the declaration *as written*, and under `commonJS` module resolution an imported
+constant arrives at `stylex.create` as `var(--<consthash>)`, with the value substituted later when
+the stylesheet is assembled. So `.x6i6fhv{border-radius:.375rem}` becomes
+`.x13k99{border-radius:.375rem}`: same declaration, different name. 33 of 187 rules were renamed
+that way. This is the one thing the migration's own gate already excludes on purpose, class names
+being exactly what is supposed to change.
+
+### The option that would have preserved the hash has never worked
+
+`unstable_moduleResolution: { type: 'experimental_crossFileParsing' }` reads the imported module and
+inlines the literal, which would keep the hash. It cannot be used. `evaluateImportedFile` guards its
+own parse with
+
+```js
+if (!ast || ast.errors || !t.isNode(ast)) { deopt(bindingPath, state, IMPORT_FILE_PARSING_ERROR); }
+```
+
+and `@babel/core`'s `parseSync` returns `errors: []` on a clean parse, which is truthy. The guard
+therefore fires on every file that parsed perfectly, and `stylex.create` fails the build with
+`nonStaticValue`.
+
+**It is not a regression and there is no version to go back to.** That line is byte-identical in
+every published release from 0.15.0 through 0.19.0, and `@babel/core` has returned an empty array
+there since at least 7.12.0. Upstream, [facebook/stylex#1825](https://github.com/facebook/stylex/issues/1825),
+opened independently two weeks before this migration reached the question, reports the same defect
+with two more stacked behind it and says the cross-file path appears never to have executed
+successfully.
+
+**Two of those three defects do not reach this site, and it is worth knowing why rather than
+assuming.** The issue reports the `commonJS` fallback leaving hashed variables undeclared in the
+output, and substituting one into an at-rule prelude. Both need a constant whose value is itself a
+`var()` or a media query string. Every value here is a plain literal, and the built stylesheets
+carry zero StyleX-hashed variables and zero at-rule preludes containing `var(`. The boundary is the
+kind of value, not the feature.
+
 ## One stylesheet for every route
 
 StyleX aggregates every route's styles into the entry stylesheet. Measured with a second route: a
