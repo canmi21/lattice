@@ -255,7 +255,7 @@ and a utility for the same property has no way to say which it meant. Deciding i
 `utilities.css` and [`libs/primitives`](../libs/primitives/src/style.css) a layer of their own,
 which is the boundary question the first entry in this file is already holding.
 
-## The gate compares seventy-two properties and the rule admits more than that
+## The gate compares a list, and a list is not a test
 
 `cursor`, `pointer-events` and `user-select` are settled as visual in
 [architecture/css.md](architecture/css.md), so the article shell's
@@ -273,8 +273,16 @@ The finding is not that one name is missing from a list. It is that the list was
 properties a migration was expected to move, while what a migration is allowed to move is decided
 by a test -- [architecture/css.md](architecture/css.md) says of its own lists that "the lists are
 examples; the test is the rule". A list and a test drift the first time somebody applies the test
-honestly. Deciding it is either widening the list to what the test admits, or saying out loud that
-the gate covers a subset and which properties are a person's job.
+honestly.
+
+**The first of those has since been taken and the second is still open.** The list went from
+seventy-three properties to ninety-eight, audited against what the site actually declares rather
+than against what a migration was expected to touch, and `border-*-style` was found compared on two
+edges where width and colour were compared on four. What is still true is that a list maintained by
+hand drifts from a test applied honestly, and that nothing reports the drift. Two properties remain
+knowingly outside it -- `transition-duration` and `-delay`, which the harness freezes so that two
+runs agree, which is the same act that makes them unreadable -- and no custom property is compared
+at all, so a utility leaving the markup takes its private variables with it unnoticed.
 
 ## An SVG presentation attribute is a fourth writer, and it sits below every layer
 
@@ -511,6 +519,10 @@ keeps every attribute-conditioned value, or the selector layer does, or `:is([at
 the visual layer says an attribute and the same spelling is used everywhere. Whichever is chosen,
 the sentence in [architecture/css.md](architecture/css.md) has to change with it: a rule stated as
 an impossibility is the one kind a reader never re-measures.
+
+That sentence has since been changed, before any of the three was chosen. It now carries the
+counterexample, the emitted rule, and the admission that the impossibility was a true observation
+about the type generalised one step past what had been tested. The choice above is still open.
 
 ## Tokei draws from a palette of its own, and it is the third one
 
