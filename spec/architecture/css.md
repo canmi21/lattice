@@ -442,6 +442,32 @@ to a reduced-motion branch of `0s`. The newsletter's three keyframe durations we
 should not be: they read the variables `sequence.ts` supplies. An audit like that is a person's job
 each time, which is the cost of freezing durations so that two runs agree.
 
+**What the gate cannot see, a text comparison mostly can, and it costs seconds.** Three of the holes
+above are holes in a *rendered* comparison and not in the source, so they were closed by comparing
+the two trees as text instead. Every property name declared in a component's old scoped block was
+required to have a home in its new one, counting a longhand as covering the shorthand it came from;
+every at-rule condition present before was required to still be present; and every component that
+gained a `@media (hover: hover)` was required to have had a hover answer before. Across all
+thirty-five migrated components and both stylesheets the three came back with nothing: no property
+without a home, no condition dropped, no hover invented. The two the first check named were both
+itself being wrong -- `pre:focus-visible` is a selector that looks like a declaration, and
+`-webkit-user-select` is written by StyleX rather than by the author, which the built stylesheet
+confirms as `.x87ps6o`.
+
+This is worth doing before the browser runs rather than after. It is the only check that sees a
+reduced-motion branch at all, since the harness freezes durations; it reads every route including
+the ones a snapshot never visits; and it fails loudly on the mistake a rendered diff reports most
+confusingly, which is a declaration that simply stopped being written. It cannot tell whether a
+value is right. It can tell whether one went missing.
+
+**A caution that cost an hour: `jj file show` reads its path as a fileset, and this site's routes
+are full of brackets.** `apps/site/src/routes/licenses/[license]/+page.svelte` returns empty and
+exits non-zero, which a script reads as "the file did not exist before" and skips. Four route files
+-- the densest Tailwind on the site among them -- were silently absent from the first run of all
+three checks, and the second run appeared to find five hover behaviours invented out of nothing.
+Both were the quoting. The literal form is `file:"<path>"`, and a check that walks a tree should
+count what it could not read and say the number rather than treat it as zero.
+
 **It proves sameness against today, not correctness.** Two errors that cancel at the width being
 measured read as clean.
 
