@@ -15,14 +15,6 @@
 	 * the rule that brings the element into existence at all.
 	 */
 	const styles = stylex.create({
-		/** The bordered box the whole figure sits in. */
-		frame: {
-			borderRadius: radius.xl,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
-		},
 		/** The plotting ground. The ink is set once here and inherits into everything below. */
 		stage: {
 			color: 'var(--color-text)',
@@ -147,7 +139,7 @@
      sentences assembled below as the description, both in the source language. See
      spec/styling.md. -->
 <figure
-	class="quadrant-block overflow-hidden {stylex.attrs(styles.frame).class}"
+	class="quadrant-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
 	role="img"
 	aria-label={reading}
 	aria-labelledby={reading ? undefined : titleId}

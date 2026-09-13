@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -13,14 +14,6 @@
 	 * resting opacity one of them interpolates from.
 	 */
 	const styles = stylex.create({
-		/** The bordered box around the whole block. */
-		frame: {
-			borderRadius: radius.xl,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
-		},
 		/** The scrolling area inside it, which repeats the frame's corner so the clip agrees. */
 		stage: {
 			borderRadius: radius.xl,
@@ -113,7 +106,7 @@
 	});
 </script>
 
-<div bind:this={root} class="mermaid-block overflow-hidden {stylex.attrs(styles.frame).class}">
+<div bind:this={root} class="mermaid-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}">
 	<div
 		class="mermaid-stage focus-ring-within relative overflow-x-auto p-5 {stylex.attrs(styles.stage)
 			.class}"

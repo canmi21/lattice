@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, duration, easing, leading, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -18,14 +19,6 @@
 	 * below, silently and with a zero exit status.
 	 */
 	const styles = stylex.create({
-		/** The bordered box: the whole block when it has a title, the code area when it has none. */
-		frame: {
-			borderRadius: radius.xl,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
-		},
 		// Shared by the two titles, which differ only in whether the title is a control.
 		titleFace: {
 			borderColor: 'var(--color-border)',
@@ -407,7 +400,7 @@
 
 <div class="codeblock relative">
 	{#if title}
-		<div class="code-frame focus-ring-within overflow-hidden {stylex.attrs(styles.frame).class}">
+		<div class="code-frame focus-ring-within overflow-hidden {stylex.attrs(surfaces.blockFrame).class}">
 			{#if canCollapse}
 				<button
 					type="button"
@@ -460,7 +453,7 @@
 			out to this bordered box via :has (see <style>) so it wraps the whole code block. -->
 			<div
 				class="code-scroll focus-ring-within overflow-x-auto p-4 pr-16 {stylex.attrs(
-					styles.frame,
+					surfaces.blockFrame,
 					styles.scroll,
 				).class}"
 			>

@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
-import { weight } from '$lib/vocabulary.stylex.ts';
+import { border, radius, weight } from '$lib/vocabulary.stylex.ts';
 
 /**
  * The declaration groups the visual layer repeats, each with one name.
@@ -28,6 +28,26 @@ import { weight } from '$lib/vocabulary.stylex.ts';
  * cannot lie.
  */
 export const surfaces = stylex.create({
+	/**
+	 * The frame a full-width block draws around itself: the code block, the Mermaid figure and the
+	 * quadrant.
+	 *
+	 * The three did not arrive at these five separately. At the commit before the migration all
+	 * three carried the one Tailwind string `overflow-hidden rounded-xl border border-border
+	 * bg-paper`, so this is one decision translated three times rather than a paste.
+	 *
+	 * The search panel's five are identical and are deliberately not this. A panel that opens over
+	 * the page is not a block in an article, and the corner they agree on today is the only thing
+	 * they share.
+	 */
+	blockFrame: {
+		borderRadius: radius.xl,
+		borderWidth: border.hairlinePx,
+		borderStyle: 'solid',
+		borderColor: 'var(--color-border)',
+		backgroundColor: 'var(--color-paper)',
+	},
+
 	/**
 	 * What a heading is made of, which on this site is two declarations and no size.
 	 *
