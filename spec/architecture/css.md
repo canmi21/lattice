@@ -115,6 +115,44 @@ through a scoped descendant selector reaching a StyleX-classed child. Two layers
 not two candidates for the element's whole appearance. This is what makes the selector layer usable
 as an override of one declaration rather than a decision to hand-write everything about a node.
 
+### An element's class attribute says which layer wrote what, and one of those names is a lie
+
+In a browser the three layers are readable off a single element, which is the fastest way to answer
+"where does this come from" without opening a file. On the homepage's `<main>`:
+
+```html
+<main class="min-h-screen page__styles.page x1jkd24u xiuzu7u x1winvzj x87ps6o">
+```
+
+`min-h-screen` is Tailwind and says where the element is and how large. The `x`-prefixed names are
+StyleX, one class per declaration, and say how it looks. `page__styles.page` is **also StyleX**, and
+it is the one worth knowing about, because it looks exactly like a Svelte scope class and is not
+one.
+
+It is StyleX's development-only readable name, composed as `<basename>__<varName>.<key>`: the file
+`+page.svelte`, the `const styles = stylex.create(...)` that declared it, and the key inside. It
+does not exist in a production build -- measured, zero occurrences in both the client bundle and
+the server one -- so what ships is Tailwind's utilities plus atomic classes and nothing else. The
+dot in it is not selectable either: `.page__styles.page` parses as two classes, so the name cannot
+be used as a hook by accident. Several plugin options move or rename it (`enableDevClassNames`,
+`enableDebugClassNames`, `enableDebugDataProp`, `debugFilePath`, `classNamePrefix`); none is set
+here and the default follows `dev`.
+
+**What is missing from that element is the more interesting half.** Before the migration it read
+`class="min-h-screen bg-page text-text svelte-1uha8ag"`, and the scope class is now gone. Svelte
+stamps one only on an element some scoped rule in that component matches, and this file's entire
+`<style>` block was a single `main { }` rule whose contents were visual and moved. No rule, no
+stamp.
+
+This did not happen everywhere and the number says why: 22 of 43 components still carry a `<style>`
+block, down from 24. The migration moved the visual half and left layout and everything needing a
+selector where it was, so the blocks shrank rather than vanished.
+
+The useful consequence is a signal that did not exist before. **A `svelte-` class on an element now
+means that element genuinely needed a selector**, because that is the only thing left in the third
+layer. Before, the class was on almost everything and said nothing. Anyone who notices it
+disappearing from most of the site is looking at the layering working, not at something broken.
+
 ## The build order is the opposite of what StyleX documents
 
 ```ts
