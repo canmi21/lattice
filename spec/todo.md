@@ -727,3 +727,119 @@ Deciding it costs the first composed style on the site, and with it the question
 composed style lives and whether a component may be handed one it did not write -- which is the
 boundary the first entry in this file is holding for `libs/primitives`. It is also the first thing
 the vocabulary module would hold that is not a literal, and the module is named for the literals.
+
+## One property has a measured policy in one layer and a flat assertion in the other
+
+[utilities.css](../apps/site/src/styles/utilities.css) answers `text-wrap` for article prose with a
+rule conditioned on language and on width. `.article-content` sets `wrap` at rest and takes
+`pretty` only for English, German, Spanish and French, and only above 45rem. Both exclusions are
+measured rather than omitted: in WebKit at 354px `pretty` adds lines in every language, eleven in
+German and forty-two in Japanese, and roughly doubles the mean right-hand gap everywhere; on
+Japanese it takes that gap from 1.6% to 7.9% and the loose lines from 1 to 58.
+[styling.md](styling.md) argues each of those numbers, and the comment beside the rule calls the
+narrow column the correction a phone forced.
+
+Four licence pages answer the same property with no condition at all. `summary` in
+`routes/licenses/[license]`, `routes/licenses/pkgs`, `routes/licenses/pkgs/[registry]` and
+`routes/licenses/pkgs/[registry]/[...package]` is the same three declarations in the same order --
+`lineHeight: line.relaxed`, `textWrap: 'pretty'` and `color: var(--color-text-soft)` -- and the
+middle one is what the rule above spends a paragraph deciding not to give to Japanese or to a
+narrow column.
+
+Nothing overrides anything today, because the two reach different elements: one is article prose
+and the other is a licence page's summary line. What is unresolved is that one property now has a
+policy in one layer and a flat assertion in the other, and the flat one is what a reader gets on a
+phone.
+
+**The reach is larger than those four and has not been counted.** `color: var(--color-text-soft)`
+beside `textWrap: 'pretty'` recurs on six components across eight style keys; the members of that
+group were not enumerated when it was found, so six is a floor rather than the number. Anyone
+deciding this counts them first.
+
+## A value is written twice on one element, once as a class and once in the visual layer
+
+[body.svelte](../apps/site/src/lib/article/body.svelte)'s note close carries `focus-ring` in its
+markup and `borderRadius: radius.sm` in its style object. `:where(.focus-ring, .focus-ring-inner,
+.focus-ring-within)` in [utilities.css](../apps/site/src/styles/utilities.css) already sets
+`border-radius: 0.25rem`, and `radius.sm` is `0.25rem`, so the element is told the same thing twice
+by two layers.
+
+Nothing renders differently and nothing will until one of the two is changed alone, which is the
+whole of the finding. StyleX outranks `@layer components`, so the visual layer's copy is the one
+that wins, and it wins with the identical value -- so the redundancy is invisible from the browser
+and from every gate this repository has. A component carrying a vocabulary class and restating one
+of its declarations has no way to say which of the two it meant, and neither layer knows the other
+wrote it.
+
+**One instance, verified by reading the markup and the style object together. No sweep was run**,
+and the sweep is the part worth doing: the same shape is available anywhere a component carries
+`focus-ring`, `focus-link` or `quiet-control` and writes a radius, a colour or a transition of its
+own. What the count would be is not known here.
+
+## The border strengthens when a control is engaged, and the site spells that two ways
+
+[utilities.css](../apps/site/src/styles/utilities.css) writes
+`.focus-input-shell:has(.focus-input:focus) { border-color: var(--color-border-strong) }`, which
+reaches a wrapper from a focused descendant. Three components write the same idea as a conditional
+value on the element itself -- `borderColor` from `var(--color-border)` to
+`var(--color-border-strong)` on `:hover` and on `:focus-visible` -- in
+[github.svelte](../apps/site/src/lib/blocks/github.svelte)'s card,
+[twitter.svelte](../apps/site/src/lib/blocks/twitter.svelte)'s card and
+[support.svelte](../apps/site/src/lib/support/support.svelte)'s action.
+
+Neither is wrong and the two are not interchangeable. The `:has()` form is the only one available
+to it, because the focused element and the bordered element are different elements and a StyleX
+condition reaches neither from the other. It also answers `:focus` rather than `:focus-visible` on
+purpose -- [styling.md](styling.md) argues that a pointer focus should match the shell while only a
+keyboard adds the ring -- so the two differ in what they answer as well as in how.
+
+What is unrecorded is that one idea has two spellings and nothing says which applies when. Deciding
+it is either a rule that an element bordering itself writes the conditional value while an element
+bordered by a descendant's state needs a selector, or the recognition that the second was never a
+choice and only the writing down is missing.
+
+## The swallowed transition returns the moment the transition is given a name
+
+The entry above on `.spring-underline` records that it sits outside every `@layer`, that its
+`transition` shorthand takes all four longhands, and that the ten-property `transition-colors` list
+therefore never reaches an element carrying the class. That is a fact about today, where the list
+is written out at each site.
+
+It becomes a trap the moment the list is written once. Six components carry the whole of one soft
+control -- a colour going from `var(--color-text-soft)` to `var(--color-text-strong)` under `@media
+(hover: hover) :hover` and under `:focus-visible`, beside `transition.colors`, `duration.base` and
+`easing.inOut` -- and twelve carry the transition pair alone, which is the group most likely to be
+named first. A composed style holding those three, applied to an element that also carries
+`spring-underline`, is the same swallow as today with one difference that matters: the name says
+the element has a transition, and a reader has no reason to check.
+
+So this is not a second instance of the entry above. It is that entry's consequence for the naming
+decision the first entry in this file is holding, and the cost of getting it wrong rises rather
+than staying flat -- a name is read as a decision, while a repeated literal is read as something
+nobody has looked at yet.
+
+## The extraction threshold counts one layer and the vocabulary lives in three
+
+[architecture/css.md](architecture/css.md) admits a value to the vocabulary at three components,
+and the count is taken over the thirty-five `stylex.create` blocks. The named surfaces are not all
+in those blocks. [utilities.css](../apps/site/src/styles/utilities.css) holds sixteen classes,
+[`libs/primitives`](../libs/primitives/src/style.css) holds eight across eleven selectors, and
+`app.css` holds four more -- `.pill-metrics`, `.pill`, `.value` and `.value-cell` -- so a surface
+can have two instances in the visual layer, sit below the bar, and already be written a third time
+in a stylesheet.
+
+Three cases, measured. **The dashed leader** is `border-top: 1px dashed var(--color-border-strong)`
+in `.article-preview-leader::before` and the same three declarations in `leader` on two licence
+pages: two in the counted layer, three in the site. **The bordered paper surface** --
+`background-color: var(--color-paper)` with `border-style: solid` and `border-color:
+var(--color-border)` -- is ten style keys in ten components, plus `.value-cell` in `app.css` and
+`.article-preview-thumbnail` in `libs/primitives`, each at its own radius: four radii for one
+surface across three layers. And **`color: var(--color-text-strong)` with `font-weight: 500`** is
+thirteen style keys in twelve components, and the first two declarations of
+`.article-preview-title`.
+
+The threshold is not wrong; it is measured over the wrong set. Deciding it costs either a count
+that reads all three layers, which means a script parsing CSS as well as TypeScript, or the
+admission that the bar is about the visual layer's own repetition and that agreement with a
+stylesheet is a separate observation. The two answers differ for the leader, which clears three
+across the site and does not clear it inside one layer.
