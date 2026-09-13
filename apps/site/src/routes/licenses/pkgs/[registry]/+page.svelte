@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, easing, family, line, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { duration, easing, family, line, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
@@ -50,10 +51,6 @@
 		/** The link out to the registry itself. `quiet-control` draws the rest of it. */
 		actionLink: {
 			fontSize: text.px15,
-		},
-		sectionHeading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		/** The count beside the section heading, a step smaller than a directory row's. */
 		count: {
@@ -141,7 +138,7 @@
 
 		<section aria-labelledby="package-list" class="mt-16">
 			<div class="mb-3 flex items-baseline justify-between gap-4">
-				<h2 id="package-list" class={stylex.attrs(styles.sectionHeading).class}>
+				<h2 id="package-list" class={stylex.attrs(surfaces.heading).class}>
 					{m['licenses.packages']({}, { locale })}
 				</h2>
 				<span class={stylex.attrs(styles.count).class}>{compactCount(data.rows.length)}</span>

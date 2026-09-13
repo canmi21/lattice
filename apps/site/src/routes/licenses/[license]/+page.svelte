@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, easing, family, line, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { duration, easing, family, line, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of one licence's page. Every colour is the token variable `libs/tokens`
@@ -55,10 +56,6 @@
 		},
 		actionLink: {
 			fontSize: text.px15,
-		},
-		sectionHeading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		/**
 		 * The package count beside a registry's name. A step smaller than the same count on the
@@ -150,7 +147,7 @@
 		{#each data.groups as group (group.registry)}
 			<section aria-labelledby="registry-{group.registry}" class="mt-16">
 				<div class="mb-3 flex items-baseline justify-between gap-4">
-					<h2 id="registry-{group.registry}" class={stylex.attrs(styles.sectionHeading).class}>
+					<h2 id="registry-{group.registry}" class={stylex.attrs(surfaces.heading).class}>
 						{group.name}
 					</h2>
 					<span class={stylex.attrs(styles.count).class}>{compactCount(group.rows.length)}</span>

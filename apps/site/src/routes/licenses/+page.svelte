@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { border, duration, easing, family, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the licence directory. Every colour is the token variable `libs/tokens`
@@ -59,10 +60,6 @@
 		},
 		actionLink: {
 			fontSize: text.px15,
-		},
-		sectionHeading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		/** One row of the directory: a licence name, a leader, and its count. */
 		entry: {
@@ -243,7 +240,7 @@
 		</nav>
 
 		<section aria-labelledby="license-directory" class="mt-16">
-			<h2 id="license-directory" class="mb-3 {stylex.attrs(styles.sectionHeading).class}">
+			<h2 id="license-directory" class="mb-3 {stylex.attrs(surfaces.heading).class}">
 				{m['licenses.directory']({}, { locale })}
 			</h2>
 			{#each data.licenses as entry (entry.slug)}

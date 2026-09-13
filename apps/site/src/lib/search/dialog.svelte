@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, easing, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { border, easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
@@ -61,8 +62,6 @@
 		},
 		groupTitle: {
 			fontSize: text.px15,
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		row: {
 			borderRadius: radius.md,
@@ -398,7 +397,7 @@
 							<li class="mb-1 last:mb-0">
 								<!-- The title once, for the whole group. Repeating it on every section spent a line
 								     each time telling the reader something the first line already told them. -->
-								<p class="truncate px-2.5 pt-2 pb-1 {stylex.attrs(styles.groupTitle).class}">
+								<p class="truncate px-2.5 pt-2 pb-1 {stylex.attrs(surfaces.heading, styles.groupTitle).class}">
 									{group.title}
 								</p>
 								<ul>

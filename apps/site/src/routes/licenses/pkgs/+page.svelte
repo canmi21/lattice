@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { border, duration, easing, family, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the registry directory. Every colour is the token variable `libs/tokens`
@@ -50,10 +51,6 @@
 		switcherRow: {
 			fontSize: text.px15,
 			color: 'var(--color-text-soft)',
-		},
-		sectionHeading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		/** One row of the directory: a registry name, a leader, and its count. */
 		entry: {
@@ -141,7 +138,7 @@
 		</header>
 
 		<section aria-labelledby="registry-directory" class="mt-16">
-			<h2 id="registry-directory" class="mb-3 {stylex.attrs(styles.sectionHeading).class}">
+			<h2 id="registry-directory" class="mb-3 {stylex.attrs(surfaces.heading).class}">
 				{m['licenses.registries']({}, { locale })}
 			</h2>
 			{#each data.registries as registry (registry.id)}

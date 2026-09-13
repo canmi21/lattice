@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -12,10 +13,6 @@
 	 * cannot see. See spec/todo.md.
 	 */
 	const styles = stylex.create({
-		heading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
-		},
 		/** One pill: the like, the favour and the sponsor all wear this. */
 		action: {
 			// Two of the three are buttons and the third is a link, so without this the row draws
@@ -375,7 +372,7 @@
 {/snippet}
 
 <section aria-labelledby="support-heading" class="mt-16">
-	<h2 id="support-heading" class={stylex.attrs(styles.heading).class}>
+	<h2 id="support-heading" class={stylex.attrs(surfaces.heading).class}>
 		{m['support.heading']({}, { locale })}
 	</h2>
 

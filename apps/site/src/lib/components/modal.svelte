@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, easing, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { border, easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
@@ -33,10 +34,6 @@
 		/** The optional mark, quiet beside the title it stands next to. */
 		mark: {
 			color: 'var(--color-text-soft)',
-		},
-		title: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		close: {
 			borderRadius: radius.md,
@@ -114,7 +111,7 @@
 						{@render icon()}
 					</span>
 				{/if}
-				<Dialog.Title class="min-w-0 flex-1 {stylex.attrs(styles.title).class}">{title}</Dialog.Title
+				<Dialog.Title class="min-w-0 flex-1 {stylex.attrs(surfaces.heading).class}">{title}</Dialog.Title
 				>
 				<Dialog.Close
 					aria-label={closeLabel}

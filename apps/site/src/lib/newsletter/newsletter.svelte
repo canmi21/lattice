@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -19,10 +20,6 @@
 	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
 	 */
 	const styles = stylex.create({
-		heading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
-		},
 		/** Both readings of the pitch. Which one is shown is a width question and stays in the markup. */
 		pitch: {
 			color: 'var(--color-text-soft)',
@@ -339,7 +336,7 @@ otherwise need. See spec/engagement.md. -->
 		class="pill-metrics {className}"
 		style={sequenceStyle()}
 	>
-		<h2 id="newsletter-heading" class="selectable mb-3 {stylex.attrs(styles.heading).class}">
+		<h2 id="newsletter-heading" class="selectable mb-3 {stylex.attrs(surfaces.heading).class}">
 			{m['newsletter.heading']({}, { locale })}
 		</h2>
 

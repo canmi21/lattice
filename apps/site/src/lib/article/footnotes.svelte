@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, duration, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -33,15 +34,6 @@
 			borderTopWidth: border.hairlineRem,
 			borderTopStyle: 'dashed',
 			borderTopColor: 'var(--color-border)',
-		},
-		/**
-		 * No font-size: it inherits the root size the article title and the newsletter heading
-		 * render at, neither of which sets one either -- match by sharing the chain, not by
-		 * copying a number.
-		 */
-		heading: {
-			color: 'var(--color-text-strong)',
-			fontWeight: weight.medium,
 		},
 		/**
 		 * Small and quiet, the way a note at the foot of a page is: it is there to be stepped
@@ -342,7 +334,9 @@
 	<!-- The heading speaks at the same size and colour as the article title and the newsletter
 	     heading: three sections of one page, one voice for their names. Only the notes under it
 	     stay small. -->
-	<h2 class="notes-heading {stylex.attrs(styles.heading).class}">
+	<!-- No font-size: it inherits the root size the article title and the newsletter heading render
+	at, neither of which sets one either -- match by sharing the chain, not by copying a number. -->
+	<h2 class="notes-heading {stylex.attrs(surfaces.heading).class}">
 		{m['article.notes']({}, { locale })}
 	</h2>
 	<ol class="notes-list">

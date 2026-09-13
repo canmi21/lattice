@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, duration, easing, family, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { border, duration, easing, family, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -50,10 +51,6 @@
 		},
 		noticeLink: {
 			fontSize: text.px15,
-		},
-		sectionHeading: {
-			fontWeight: weight.medium,
-			color: 'var(--color-text-strong)',
 		},
 		records: {
 			fontSize: text.px15,
@@ -286,7 +283,7 @@
 			<section aria-labelledby="package-metadata" class="col-span-2 grid grid-cols-subgrid">
 				<h2
 					id="package-metadata"
-					class="col-span-2 mb-4 {stylex.attrs(styles.sectionHeading).class}"
+					class="col-span-2 mb-4 {stylex.attrs(surfaces.heading).class}"
 				>
 					{m['licenses.package']({}, { locale })}
 				</h2>
@@ -377,7 +374,7 @@
 			</section>
 
 			<section aria-labelledby="package-terms" class="col-span-2 mt-12 grid grid-cols-subgrid">
-				<h2 id="package-terms" class="col-span-2 mb-4 {stylex.attrs(styles.sectionHeading).class}">
+				<h2 id="package-terms" class="col-span-2 mb-4 {stylex.attrs(surfaces.heading).class}">
 					{m['licenses.terms_attribution']({}, { locale })}
 				</h2>
 				<dl class="col-span-2 grid grid-cols-subgrid gap-y-3 {stylex.attrs(styles.records).class}">
@@ -463,7 +460,7 @@
 		</div>
 
 		<section aria-labelledby="dependency-paths" class="mt-12">
-			<h2 id="dependency-paths" class={stylex.attrs(styles.sectionHeading).class}>
+			<h2 id="dependency-paths" class={stylex.attrs(surfaces.heading).class}>
 				{m['licenses.dependency_paths']({}, { locale })}
 			</h2>
 			<!-- Always one column, however many roots there are. Each chain is read top to
@@ -513,7 +510,7 @@
 
 		{#if data.dependents.direct.length}
 			<section aria-labelledby="dependents" class="mt-12">
-				<h2 id="dependents" class={stylex.attrs(styles.sectionHeading).class}>
+				<h2 id="dependents" class={stylex.attrs(surfaces.heading).class}>
 					{m['licenses.dependents']({}, { locale })}
 				</h2>
 				<div class="mt-5 flex flex-col gap-6">

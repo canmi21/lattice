@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
@@ -68,9 +69,7 @@
 		},
 		itemTitle: {
 			fontSize: text.px13,
-			fontWeight: weight.medium,
 			lineHeight: 1.2,
-			color: 'var(--color-text-strong)',
 		},
 		itemNote: {
 			fontFamily: family.monoTheme,
@@ -188,7 +187,7 @@
 							{#each quadrantItems as item}
 								<div class="quadrant-box {stylex.attrs(styles.box).class}">
 									<div class="quadrant-item">
-										<span class="quadrant-title {stylex.attrs(styles.itemTitle).class}"
+										<span class="quadrant-title {stylex.attrs(surfaces.heading, styles.itemTitle).class}"
 											>{item.title}</span
 										>
 										{#if item.note}<span class="quadrant-note {stylex.attrs(styles.itemNote).class}"
