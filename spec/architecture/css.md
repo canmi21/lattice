@@ -365,6 +365,41 @@ every entry is explained or reverted.
 Findings about layering that the migration is not allowed to fix go to
 [todo.md](../todo.md), with the evidence, one entry each.
 
+### What the gate answered
+
+It was run once, at the end, over the whole migration rather than per component: the pre-migration
+tree captured whole, the migrated tree captured whole, and the two compared element by element.
+The baseline is the dependency-raise commit, deliberately, because `node_modules` already matches
+it and nothing but the CSS differs between the two trees.
+
+Both captures are 390 page snapshots -- thirteen addresses, five widths, two themes, three locales
+-- and 1010 interaction states. Each snapshot holds every element under `<body>` keyed by a
+structural path of tag names and sibling indices, which is what lets the two trees line up when the
+only thing that changed is the class attribute. Around 152 thousand elements per capture, ninety-
+eight computed properties each, plus geometry to half a pixel.
+
+**The whole migration moved one value, on three elements, by eight thousandths of a pixel.** The
+support section's three action controls read `border-radius: 9999px` before and `9999.01px` after.
+Nothing else on the site differs: not a colour, not a length, not a font, not a geometry, in any
+theme, at any width, in any locale, at rest or hovered or focused or with a menu open.
+
+The cause is precision, not the migration. The declared value is `624.9375rem`, which is seven
+significant digits, and the visual layer's stylesheet prints six: it emits `624.938rem`, which is
+9999.008 pixels. A neighbouring `3.0625rem` in the same sheet keeps all of its digits, so this is a
+limit on significant figures rather than on decimals, and only one value on the site has seven.
+
+**It has no rendered consequence, and that is a fact about CSS rather than an opinion about
+smallness.** A border radius larger than half its box is scaled down until it fits, so both 9999px
+and 9999.01px land on the same stadium. The gate reports it because the gate reads computed style,
+which is the right place to read: a difference invisible today on a small control would not stay
+invisible if the control grew.
+
+**What it costs to have this answer is worth stating.** Two full captures at roughly seventy
+minutes each, one dev server restart between them with every route warmed, and a working copy moved
+to the old commit and back. Nothing about it is per-component and nothing about it is cheap enough
+to run on every edit, which is why the only permanent test this arrangement leaves behind is the
+one holding the layer order.
+
 ### Coverage is counted in components, not in URLs
 
 The corpus renders every block component somewhere, and the smallest set of addresses that reaches
