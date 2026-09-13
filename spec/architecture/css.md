@@ -371,7 +371,7 @@ identical.
 atomic class from the declaration *as written*, and under `commonJS` module resolution an imported
 constant arrives at `stylex.create` as `var(--<consthash>)`, with the value substituted later when
 the stylesheet is assembled. So `.x6i6fhv{border-radius:.375rem}` becomes
-`.x13k99{border-radius:.375rem}`: same declaration, different name. 33 of 187 rules were renamed
+`.x13k99{border-radius:.375rem}`: same declaration, different name. 32 of 187 rules were renamed
 that way. This is the one thing the migration's own gate already excludes on purpose, class names
 being exactly what is supposed to change.
 
