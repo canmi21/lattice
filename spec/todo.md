@@ -656,6 +656,17 @@ rounding a judgement rather than a decision anyone made twice, and one `0.9em` a
 height is the least settled of all -- 41 declarations, fifteen values, mixing unitless ratios with
 `rem` lengths, which are not the same kind of thing.
 
+The pill is worse than that sentence says, and the extra spellings are outside the count. Those 42
+declarations are the visual layer's, and a corner that is fully round is written four ways across
+the site: `calc(infinity * 1px)`, `624.9375rem`, `9999px` -- in
+[preview.svelte](../apps/site/src/lib/components/preview.svelte)'s scoped block and again on
+`.article-preview-thumbnail [data-icon-bar]` in
+[`libs/primitives`](../libs/primitives/src/style.css) -- and `50%` on
+[`blocks/github.svelte`](../apps/site/src/lib/blocks/github.svelte)'s language dot. The last is the
+one that is not a synonym: a percentage is a share of the box, so on anything that is not square it
+draws an ellipse where the other three draw a stadium. Every element carrying it is square today,
+which is why nothing looks wrong and why nothing would say so if one stopped being.
+
 Deciding it is not one choice but three, and only the first is cheap. Naming the scale that exists
 costs nothing and changes nothing. Collapsing `1px` and `0.0625rem` into one name is a visual
 change on whichever side loses, so it needs the gate run over it rather than an argument. And the
@@ -765,11 +776,12 @@ markup and `borderRadius: radius.sm` in its style object. `:where(.focus-ring, .
 by two layers.
 
 Nothing renders differently and nothing will until one of the two is changed alone, which is the
-whole of the finding. StyleX outranks `@layer components`, so the visual layer's copy is the one
-that wins, and it wins with the identical value -- so the redundancy is invisible from the browser
-and from every gate this repository has. A component carrying a vocabulary class and restating one
-of its declarations has no way to say which of the two it meant, and neither layer knows the other
-wrote it.
+whole of the finding. That rule is inside `@layer components` and StyleX outranks it, so here the
+visual layer's copy is the one that wins -- the opposite holds for the unlayered half of the same
+file, which the entry below on the extraction threshold measures. It wins with the identical value,
+so the redundancy is invisible from the browser and from every gate this repository has. A
+component carrying a vocabulary class and restating one of its declarations has no way to say which
+of the two it meant, and neither layer knows the other wrote it.
 
 **One instance, verified by reading the markup and the style object together. No sweep was run**,
 and the sweep is the part worth doing: the same shape is available anywhere a component carries
@@ -828,6 +840,18 @@ in those blocks. [utilities.css](../apps/site/src/styles/utilities.css) holds si
 can have two instances in the visual layer, sit below the bar, and already be written a third time
 in a stylesheet.
 
+Two of those three files sit above the visual layer, which makes the miscount worse than an
+accounting error. Measured on `app.css`: it opens with four imports,
+[`libs/primitives`](../libs/primitives/src/style.css)'s stylesheet third and
+[utilities.css](../apps/site/src/styles/utilities.css) fourth, and neither is inside an `@layer`.
+`utilities.css` layers part of itself and `libs/primitives` layers none of itself, so every rule in
+the second is unlayered and, by [architecture/css.md](architecture/css.md)'s count, nineteen of the
+thirty selectors in the first are too -- and an unlayered rule outranks every layered one. That is
+the fourth participant that file already records for `utilities.css`, now confirmed by measurement
+for `libs/primitives` rather than inferred from the import form. So a surface named in the visual
+layer and also written in one of those two is not merely counted twice: on an element carrying
+both, the copy that renders is the one the count did not see.
+
 Three cases, measured. **The dashed leader** is `border-top: 1px dashed var(--color-border-strong)`
 in `.article-preview-leader::before` and the same three declarations in `leader` on two licence
 pages: two in the counted layer, three in the site. **The bordered paper surface** --
@@ -843,3 +867,28 @@ that reads all three layers, which means a script parsing CSS as well as TypeScr
 admission that the bar is about the visual layer's own repetition and that agreement with a
 stylesheet is a separate observation. The two answers differ for the leader, which clears three
 across the site and does not clear it inside one layer.
+
+## The visual layer has two filename conventions and only one of them is the compiler's
+
+[vocabulary.stylex.ts](../apps/site/src/lib/vocabulary.stylex.ts) carries a vendor's name in its
+filename because `defineConsts` refuses to hash a module spelled any other way, and its own doc
+comment says exactly that: the filename is the compiler's, not this repository's. The module
+holding composed styles has no such requirement -- `stylex.create` hashes from the declaration and
+never reads the filename, which is why a create block declared in one module and imported into a
+component works at all -- so it is `surfaces.ts`, and the visual layer now has two filename
+conventions with nothing saying which applies to the next file.
+
+The rule that settles it is already written and is not about StyleX. The workspace's `naming.md`
+lets a framework own a filename where a renamed file simply stops working, which is exactly
+`vocabulary.stylex.ts` and exactly not `surfaces.ts`; where that exception does not apply, the
+vendor rule does, and a vendor name belongs only in the thin layer that binds to the vendor. Its
+test is the reusable part: **if the vendor were replaced tomorrow, how many names would have to
+change? One. If the answer is more, the vendor has leaked past the boundary.** Applied here the
+answer is zero names for a suffix-free module and one for a suffixed one, which is why the suffix
+was refused.
+
+What is unrecorded is the rule rather than the outcome. Nothing in `spec/` says that a `.stylex`
+filename is a compiler requirement being obeyed rather than a house convention being followed, so
+the next module in this layer is a coin toss -- and the next person to meet the question will be
+meeting it about some other vendor, where the same test gives the answer and no file points them at
+it.
