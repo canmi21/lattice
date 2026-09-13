@@ -269,6 +269,18 @@ than a rule asking people to remember, because a rule cannot be checked here: th
 `lint-format.md` gives semantics to oxlint, and oxlint has no equivalent of
 `@stylexjs/eslint-plugin`.
 
+### A class handed to a child is the same hazard one level up
+
+A caller may pass a StyleX class to a component through its `class` prop, and that is a legitimate
+place for one. The condition is on the receiver: **a component that takes a `class` prop merges it
+with its own rather than replacing either.** Replacing fails exactly the way spreading `attrs` over
+an existing attribute fails, silently and with no complaint from the compiler, only now the two
+halves are written in different files.
+
+Checking that the receiver happens to carry no visual layer of its own is the weaker test and was
+the one used the first time this came up. A component that merges is safe whether or not it has
+one, and a component that does not merge is a trap waiting for the day it gains one.
+
 ## One stylesheet for every route
 
 StyleX aggregates every route's styles into the entry stylesheet. Measured with a second route: a
@@ -358,6 +370,44 @@ nothing until its shortcut is pressed, and the modal, the menu, the popover and 
 are the same shape. Measured, the homepage snapshot holds 247 elements and none of them is the
 search panel. Those components are not ungateable, but gating them means the harness driving the
 interaction first, and until it does they are migrated last and checked by hand.
+
+**It compares a list of properties, and the list is not the rule.** This is the one worth reading
+twice, because the gate's green line is otherwise read as "nothing changed" when what it means is
+"none of the properties on a list somebody wrote by hand changed".
+
+Measured: migrating the article shell applied `user-select: none` to the rail and not to the
+metadata row beside it, so the row silently became selectable again, and the diff over 120
+snapshots was empty. `user-select` was not on the list. It was found by reading computed style in a
+browser afterwards.
+
+The list has since gone from seventy-three properties to ninety-eight, and the additions say what
+kind of hole it had. `translate`, `rotate` and `scale` are separate properties from `transform` in
+modern CSS and were not covered by it -- the code block's chevron turn migrated unwatched for that
+reason, and was checked by hand afterwards rather than by the gate. `border-*-style` was compared
+on two edges while width and colour were compared on four, so a single longhand where a shorthand
+belonged would have passed. The spring underline is drawn as a background, and
+`background-size`, `-position` and `-repeat` were absent.
+
+**The shape of the mistake generalises past the names.** The list was written from the properties a
+migration was expected to move, while what a migration is *allowed* to move is decided by the test
+at the top of this file -- and the file already says of its own lists that the lists are examples
+and the test is the rule. A list and a test drift the first time somebody applies the test
+honestly. So the list is maintained against what the site declares rather than against what anyone
+expects to touch, and a migration that moves a property nobody has compared before says so.
+
+**No custom property is compared, so a utility's private variables leave with it unnoticed.**
+Dropping `text-sm` or `border-l-2` from the markup also stops the element declaring `--tw-leading`
+and `--tw-border-style`. Both are registered with initial values that happen to match, so nothing
+has broken yet; the general case is a descendant reading a variable a migration silently stopped
+setting. Tailwind's three gradient variables are the live example, named by every migrated
+`transition-colors` and set by nothing on this site.
+
+**Ten durations have moved into the visual layer and none of them is gateable.** They were audited
+by reading rather than measured: every one is a literal that matches what it replaced, `duration-150`
+to `150ms`, `duration-200` to `200ms`, `transition: color 150ms` to `150ms`, and `transition: none`
+to a reduced-motion branch of `0s`. The newsletter's three keyframe durations were not moved, and
+should not be: they read the variables `sequence.ts` supplies. An audit like that is a person's job
+each time, which is the cost of freezing durations so that two runs agree.
 
 **It proves sameness against today, not correctness.** Two errors that cancel at the width being
 measured read as clean.

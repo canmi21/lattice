@@ -229,6 +229,14 @@ Deciding it is either `stylex.keyframes`, which moves the interpolation into the
 leaves the Svelte block only what genuinely needs a selector, or a convention that a keyframe's
 endpoint and the resting declaration read one custom property rather than two literals.
 
+The article shell qualifies the first sentence of this entry. Its one keyframe is written
+`@keyframes -global-note-return-marker`, which is Svelte's opt-out from scoping: the name reaches
+the document as `note-return-marker` and any layer could write an `animation-name` pointing at it.
+It stays in the selector layer anyway, because what it animates is a note marker the markdown
+compiler produced and no class of ours is on that element. So one shape hides two constraints --
+sometimes the keyframe's name cannot be reached from the visual layer, and sometimes the name can
+be reached and its subject cannot -- and only the first of them is what `stylex.keyframes` repairs.
+
 ## An unlayered utility swallows a transition the markup still carries
 
 The newsletter's unsubscribe control is `focus-link spring-underline` and, until this migration
@@ -246,3 +254,24 @@ places and layered in others with nothing saying which, so an element carrying a
 and a utility for the same property has no way to say which it meant. Deciding it means giving
 `utilities.css` and [`libs/primitives`](../libs/primitives/src/style.css) a layer of their own,
 which is the boundary question the first entry in this file is already holding.
+
+## The gate compares seventy-two properties and the rule admits more than that
+
+`cursor`, `pointer-events` and `user-select` are settled as visual in
+[architecture/css.md](architecture/css.md), so the article shell's
+`.article-rail, .meta { user-select: none }` moved into the visual layer with everything else. Of
+the three, only `cursor` is in the seventy-two properties the migration's snapshot compares.
+`user-select` is not, `-webkit-user-select` is not, and neither is `pointer-events`.
+
+Measured while migrating [article.svelte](../apps/site/src/lib/article/article.svelte): the style
+was applied to the rail and not to the metadata row beside it, so the row silently became
+selectable again -- and the diff over 120 snapshots was empty. It was found by reading the computed
+style in a browser afterwards. A static snapshot has a second reason to miss it, which is that
+nothing in the harness drags across an element.
+
+The finding is not that one name is missing from a list. It is that the list was written from the
+properties a migration was expected to move, while what a migration is allowed to move is decided
+by a test -- [architecture/css.md](architecture/css.md) says of its own lists that "the lists are
+examples; the test is the rule". A list and a test drift the first time somebody applies the test
+honestly. Deciding it is either widening the list to what the test admits, or saying out loud that
+the gate covers a subset and which properties are a person's job.

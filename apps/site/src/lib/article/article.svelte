@@ -1,3 +1,158 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file is the largest on the site and almost none of it
+	 * is a leftover of the migration. The markdown compiler writes the prose -- the emphasis, the
+	 * strikethrough, the rules, the quotations, the inline code, the note markers and the
+	 * spoilers -- and a style reaches an element only through a class on that element, so nothing
+	 * that styles compiled prose can be said here. That the site's prose typography is therefore
+	 * unreachable from the layer that owns typography is a finding rather than a consequence, and
+	 * it is in spec/todo.md: answering it means deciding what the content pipeline emits, which is
+	 * not a decision a migration takes.
+	 *
+	 * What is left beside them is geometry -- the draft mark's box, and the grid whose row the
+	 * summary animates -- and one keyframe, which is named by a selector reaching that same
+	 * compiled prose and so has nowhere else to be.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		page: {
+			backgroundColor: 'var(--color-page)',
+			color: 'var(--color-text)',
+		},
+		/**
+		 * The apparatus around the article, not the article. A drag that starts on a heading in
+		 * the table of contents or on the way back should not come away with the navigation; the
+		 * same goes for the counts and controls under the title.
+		 *
+		 * Carried by both boxes rather than switched off for the whole page, because on this page
+		 * the prose is most of what there is. The body and everything in it -- including its own
+		 * controls -- is left alone deliberately: somebody quoting a passage is the reason this
+		 * page exists. Visual under the rule in spec/architecture/css.md: it moves nothing, it
+		 * says what the element is to a pointer.
+		 */
+		apparatus: {
+			userSelect: 'none',
+		},
+		title: {
+			color: 'var(--color-text-strong)',
+		},
+		/**
+		 * Never seen in production, so it spends nothing on being pretty: it has to be unmissable
+		 * next to a title and it has to not be mistaken for part of one. What aligns it to the
+		 * middle of the title's own line box is layout and stays below with the rest of its box.
+		 */
+		draftMark: {
+			borderRadius: '0.25rem',
+			backgroundColor: 'var(--color-paper-hover)',
+			fontSize: '0.75rem',
+			fontWeight: 500,
+			lineHeight: '1.5rem',
+			letterSpacing: '0.02em',
+			color: 'var(--color-text-soft)',
+			textTransform: 'uppercase',
+		},
+		meta: {
+			fontSize: '0.875rem',
+			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
+			// 0.875)`: StyleX evaluates a calc at compile time and keeps five decimals, and
+			// 1.42857 against 14px lands short of the 1.25rem the ratio means. See
+			// spec/architecture/css.md.
+			lineHeight: '1.25rem',
+			color: 'var(--color-text-soft)',
+		},
+		/**
+		 * The disclosure while there is nothing to disclose. All four values are conditional on
+		 * `:disabled` and two of them on the pointer being over it as well -- which Tailwind
+		 * already wrote as one conjunction rather than as two conditions to be ranked, so there
+		 * is nothing here for the layers to disagree about.
+		 *
+		 * `quiet-control` draws the resting and hovered surface from `utilities.css`, inside
+		 * `@layer components`. Tailwind's `utilities` beat that layer and so do StyleX's, so
+		 * these still win the pair they are here to neutralise.
+		 */
+		summaryTrigger: {
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			cursor: { default: null, ':disabled': 'not-allowed' },
+			opacity: { default: null, ':disabled': 0.45 },
+			backgroundColor: {
+				default: null,
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the suppression from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':disabled:hover': 'transparent' },
+			},
+			color: {
+				default: null,
+				'@media (hover: hover)': {
+					default: null,
+					':disabled:hover': 'var(--color-text-soft)',
+				},
+			},
+		},
+		/**
+		 * The summary's opening, which is motion and belongs here; the two rows it runs between
+		 * are `grid-template-rows` and stay below, one of them behind an attribute selector on
+		 * this same element that no class can stand in for. A transition whose endpoints are in
+		 * the other layer is the split code-block.svelte already makes for its copy icons.
+		 *
+		 * Reduced motion is the same suppression the block used to write as `transition: none`,
+		 * which is four longhands rather than one: the shorthand also returns the duration and
+		 * the curve to their initial values.
+		 */
+		summaryShell: {
+			transitionProperty: {
+				default: 'grid-template-rows',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '320ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'cubic-bezier(0.22, 1, 0.36, 1)',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
+		summaryPanel: {
+			borderLeftWidth: '2px',
+			// `border-border-strong` colours all four edges and only one of them has width, so
+			// the shorthand is what keeps the computed style the same on the other three.
+			borderColor: 'var(--color-border-strong)',
+			fontSize: '0.875rem',
+			// `leading-relaxed` overrides the line `text-sm` would have set. It stays a ratio:
+			// 1.625 is exact, and the rule against ratios is about the ones whose decimal
+			// expansion does not stop.
+			lineHeight: 1.625,
+			color: 'var(--color-text-soft)',
+		},
+		/** The prose's own size and line. What they reach is the compiler's markup, below. */
+		body: {
+			fontSize: '0.9375rem',
+			lineHeight: 1.625,
+		},
+		/**
+		 * The rule the subscription invitation opens on. It belongs to this placement rather than
+		 * to the newsletter -- see spec/styling.md -- so it arrives through that component's
+		 * `class` prop, which lands on a section carrying no visual layer of its own.
+		 */
+		tail: {
+			borderTopWidth: '1px',
+			borderColor: 'var(--color-border)',
+		},
+		/** Dashed where the article itself is what ended: offered rather than fenced off. */
+		tailDashed: {
+			borderStyle: 'dashed',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { page } from '$app/state';
@@ -245,10 +400,10 @@
 	{@html ldJson(article)}
 </svelte:head>
 
-<main class="min-h-screen bg-page text-text">
+<main class="min-h-screen {stylex.attrs(styles.page).class}">
 	<!-- One rail, one box. It is fit-content, so the browser sizes it to the entries without
 	     anything having to measure them -- see spec/styling.md. -->
-	<div class="article-rail">
+	<div class="article-rail {stylex.attrs(styles.apparatus).class}">
 		<Toc {toc} />
 		<HomeLink locale={locale.code} />
 	</div>
@@ -269,17 +424,26 @@
 				     Both are in the document and CSS chooses, so the choice survives the server
 				     render and the first frame is never the wrong one. `display: none` keeps the
 				     unshown one out of the accessibility tree, so only one is ever announced. -->
-				<h1 class="text-text-strong max-sm:hidden">
-					{meta.title}{#if meta.draft}<span class="draft-mark">
+				<h1 class="max-sm:hidden {stylex.attrs(styles.title).class}">
+					{meta.title}{#if meta.draft}<span
+							class="draft-mark {stylex.attrs(styles.draftMark).class}"
+						>
 							{m['article.draft']({}, { locale: locale.code })}
 						</span>{/if}
 				</h1>
-				<h1 class="text-text-strong sm:hidden">
-					{phoneTitle}{#if meta.draft}<span class="draft-mark">
+				<h1 class="sm:hidden {stylex.attrs(styles.title).class}">
+					{phoneTitle}{#if meta.draft}<span
+							class="draft-mark {stylex.attrs(styles.draftMark).class}"
+						>
 							{m['article.draft']({}, { locale: locale.code })}
 						</span>{/if}
 				</h1>
-				<div class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 text-sm text-text-soft">
+				<div
+					class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 {stylex.attrs(
+						styles.apparatus,
+						styles.meta,
+					).class}"
+				>
 					<time class="selectable" datetime={meta.created}>{date}</time>
 					<span
 						class="inline-flex items-center gap-1"
@@ -321,7 +485,7 @@
 						onclick={() => {
 							if (summary) summaryOpen = !summaryOpen;
 						}}
-						class="quiet-control disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent disabled:hover:text-text-soft"
+						class="quiet-control {stylex.attrs(styles.summaryTrigger).class}"
 					>
 						<span class="focus-link-inner inline-flex items-center gap-1">
 							<Sparkles class="size-3.5" aria-hidden="true" />
@@ -350,13 +514,16 @@
 				{#if summary}
 					<!-- Rows collapse to 0fr rather than the box to height 0, which is the one way to
 					     animate to a height nobody measured. See spec/architecture/media.md on motion. -->
-					<div class="summary-shell" data-open={summaryOpen}>
+					<div
+						class="summary-shell {stylex.attrs(styles.summaryShell).class}"
+						data-open={summaryOpen}
+					>
 						<div class="overflow-hidden">
 							<div
 								id={summaryPanel}
 								role="region"
 								aria-labelledby={summaryTrigger}
-								class="mt-3 border-l-2 border-border-strong pr-3 pl-3 text-sm leading-relaxed text-text-soft"
+								class="mt-3 pr-3 pl-3 {stylex.attrs(styles.summaryPanel).class}"
 							>
 								<p use:alignSummaryProvider>
 									{summary.text}
@@ -377,7 +544,7 @@
 				{/if}
 			</header>
 
-			<div class="article-body mt-8 leading-relaxed">
+			<div class="article-body mt-8 {stylex.attrs(styles.body).class}">
 				{@render children()}
 			</div>
 		</article>
@@ -392,71 +559,45 @@
 			<Footnotes {notes} locale={locale.code} />
 			<!-- Closer than the article's own gap: the notes are small, quiet apparatus, and the
 			     distance that reads as a pause after prose reads as a hole after them. -->
-			<Newsletter offer locale={locale.code} class="mt-8 border-t border-border pt-12" />
+			<Newsletter
+				offer
+				locale={locale.code}
+				class="mt-8 pt-12 {stylex.attrs(styles.tail).class}"
+			/>
 		{:else}
 			<Newsletter
 				offer
 				locale={locale.code}
-				class="mt-16 border-t border-dashed border-border pt-12"
+				class="mt-16 pt-12 {stylex.attrs(styles.tail, styles.tailDashed).class}"
 			/>
 		{/if}
 	</div>
 </main>
 
 <style>
-	/* The apparatus around the article, not the article. A drag that starts on a heading in the
-	   table of contents or on the way back should not come away with the navigation; the same goes
-	   for the counts and controls under the title.
-
-	   Named here rather than switched off for the whole page, because on this page the prose is
-	   most of what there is. The body and everything in it -- including its own controls -- is
-	   left alone deliberately: somebody quoting a passage is the reason this page exists. */
-	.article-rail,
-	.meta {
-		-webkit-user-select: none;
-		user-select: none;
-	}
-
-	/* Never seen in production, so it spends nothing on being pretty: it has to be unmissable
-	   next to a title and it has to not be mistaken for part of one. Aligned to the middle of
-	   the title's own line box rather than its baseline, since it is a label about the article
-	   and not a word of its name. */
+	/* Never seen in production, so it spends nothing on being pretty. What is left here is its
+	   box: aligned to the middle of the title's own line box rather than its baseline, since it
+	   is a label about the article and not a word of its name. */
 	.draft-mark {
 		display: inline-block;
 		margin-inline-start: 0.5rem;
-		border-radius: 0.25rem;
-		background-color: var(--color-paper-hover);
 		padding-inline: 0.4375rem;
 		vertical-align: middle;
-		font-size: 0.75rem;
-		font-weight: 500;
-		line-height: 1.5rem;
-		letter-spacing: 0.02em;
-		color: var(--color-text-soft);
-		text-transform: uppercase;
 	}
 
 	/* Animating to `height: auto` is not possible, so the grid row is animated instead: 0fr to
 	   1fr resolves against the content's own height without anyone measuring it. The child
-	   needs `overflow: hidden` for the clip to happen. */
+	   needs `overflow: hidden` for the clip to happen. The animation between the two rows is
+	   motion and sits in the visual layer at the head of this file; what stays is the open row,
+	   which the visual layer has no way to ask about -- an attribute on this element is not a
+	   class on it. */
 	.summary-shell {
 		display: grid;
 		grid-template-rows: 0fr;
-		transition: grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
 	.summary-shell[data-open='true'] {
 		grid-template-rows: 1fr;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.summary-shell {
-			transition: none;
-		}
-	}
-
-	.article-body {
-		font-size: 0.9375rem;
 	}
 
 	.article-body :global(strong) {
