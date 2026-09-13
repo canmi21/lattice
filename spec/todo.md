@@ -730,14 +730,42 @@ property appears twelve times, the duration fourteen and the curve nine, and
 [switcher.svelte](../apps/site/src/lib/locale/switcher.svelte) answers with the property alone.
 Whether each of those is deliberate is a question one name would have made visible and three
 literals never will. `defineConsts` cannot hold it -- a const is a value, and this is three of them
-against a condition. `stylex.create` can, and a shared style composed into each component is what
-the visual layer is for, which is the argument
-[architecture/css.md](architecture/css.md) makes for the layer in the first place.
+against a condition. `stylex.create` cannot hold it either, and this entry said it could.
 
-Deciding it costs the first composed style on the site, and with it the question of where a
-composed style lives and whether a component may be handed one it did not write -- which is the
-boundary the first entry in this file is holding for `libs/primitives`. It is also the first thing
-the vocabulary module would hold that is not a literal, and the module is named for the literals.
+**What stood here was that it can**, "and a shared style composed into each component is what the
+visual layer is for, which is the argument [architecture/css.md](architecture/css.md) makes for the
+layer in the first place". The argument is sound and the premise is false, which is the combination
+worth leaving on the page: a shared composed style is exactly what the visual layer is for, and
+this set is the one kind of thing it cannot be made of.
+
+Measured on the pinned Babel plugin. A compiled style object maps one key per property to one class
+string, conditions included, so a group carrying only the reduced-motion branch of
+`transitionProperty` is not a branch added to what the component declares -- it is replaced by it.
+Against a card writing the three defaults, `props(group, card)` comes back with the three default
+classes and none of the three branch classes; reversing the arguments loses the defaults instead.
+
+**The stylesheet cannot report that**, which is why the reading looked safe. Both forms compile the
+same six classes, because the group's declarations are still compiled wherever they are written.
+Only the element's class attribute says which of them it ended up wearing.
+
+So the branch travels with a default, and the nine sites have nine of them: the two-item lists on
+github's card and twitter's, which are a copy of each other, `transform, translate, scale, rotate`
+on the code block's chevron, `opacity, transform` on its copy icons, `transform` on the enlarged
+picture, `grid-template-rows` on the article summary, three-item lists on the support pill, and
+`color` and `transform` on the two footnote controls. The escapes were measured and none is
+available: a function in `create` emits `var()` for each default and registers three custom
+properties, which is six rules the stylesheet did not have; a helper called inside `create` fails
+the build on the cross-file path [architecture/css.md](architecture/css.md) already records as
+broken; and there is no `include` in the API at 0.19.
+
+What is left to name is the three literals, which the paragraph above declines. The composed style
+this entry was waiting on now exists -- [surfaces.ts](../apps/site/src/lib/surfaces.ts) holds four
+groups -- and this is the one thing it cannot hold. So the entry is no longer about naming and is
+entirely about the reading: whether
+[switcher.svelte](../apps/site/src/lib/locale/switcher.svelte) answering with the property alone,
+and the twelve, fourteen and nine counts above, are that many deliberate decisions or one decision
+written inconsistently. No arrangement of the visual layer will make that visible, and answering it
+is a person reading nine style objects.
 
 ## One property has a measured policy in one layer and a flat assertion in the other
 
@@ -892,3 +920,67 @@ filename is a compiler requirement being obeyed rather than a house convention b
 the next module in this layer is a coin toss -- and the next person to meet the question will be
 meeting it about some other vendor, where the same test gives the answer and no file points them at
 it.
+
+## Two named surfaces disagree about what a hairline is, and each is internally consistent
+
+The entry on one border and two spellings counts `borderWidth` as `1px` ten times and `0.0625rem`
+seven, and reads the split as a scale nobody named. Naming the surfaces says something the count
+could not: the split is not scattered. Every one of the eight sites of
+[`surfaces.paper`](../apps/site/src/lib/surfaces.ts) writes `1px` -- the three block frames, the
+menu, the popover, the modal, the search panel and the newsletter's pill -- and every one of the
+three sites of `surfaces.interactive` writes `0.0625rem` -- the repository card, the tweet card and
+the support pill. Neither group has an exception.
+
+So one disagreement now sits between two names rather than across seventeen declarations, which is
+better and worse at once. Better because it is one decision in one file affecting two lines. Worse
+because a name is read as a decision, and `surfaces.interactive` asserts that a border which
+answers a pointer is a rem hairline -- which nobody chose. It is what the two cards and the pill
+happened to carry, and the recipe is a description of the site rather than a ruling about it.
+
+**The consequence for anyone reading the two together is the part worth recording.** Side by side
+in one file they look like one surface and its hover states, and they cannot be: composing
+`interactive` onto `paper` would set the border twice from two spellings and the second would win
+silently. That is not a defect in either group, it is the reason they are two groups, and the
+module comment says so -- but it says so in a comment rather than in anything that would stop the
+composition being written.
+
+Two whole-box borders belong to neither group and are named here so a later count does not read
+them as members. The cargo and tokei tooltips draw a `var(--color-paper)` ground with the
+`0.0625rem` hairline, so they are the one combination that crosses the two answers; they are also
+the verbatim copy the entry on the shared vocabulary already holds. `mermaid.node` and
+`quadrant.box` take the rem hairline over a different ground.
+
+Deciding it is choosing one spelling and moving between three and eight declarations onto it, which
+changes what a reader who has enlarged text sees on every surface that moves, so it wants the gate
+rather than an argument. What it cannot stay as is two names that each answer the question
+confidently and differently.
+
+## A declaration can nest two ways, and a sweep that reads one level finds neither
+
+Three declarations kept their literals through the value-naming step, all in `chainMarker` on the
+package route: `borderRadius: 'calc(infinity * 1px)'` and `borderWidth: '1px'` under `'::before'`,
+and `borderLeftWidth: '1px'` under `'::after'`. Each has a name -- `radius.full` and
+`border.hairlinePx` -- and they are exactly the three declarations in that key which do. The other
+five are two `solid` keywords and three token colours, which the vocabulary never held.
+
+The cause is a property of the source rather than of whoever swept it. A style key's value is
+either a declaration or an object, and it is an object in two unrelated cases: a **conditional
+value**, whose keys are `default`, a pseudo-class or an at-rule, and a **pseudo-element block**,
+whose key is `'::before'` and under which everything is a declaration again. The two mean nothing
+alike and nest identically, so a reader that takes a key's value to be a declaration misses both,
+and misses them silently -- a literal that was never visited looks exactly like one that was
+visited and left.
+
+The counts say how narrow this instance was and how wide the shape is. Ten declarations across the
+site sit under a pseudo-element block, in three keys: `chainMarker`, and the `::placeholder`
+colours in [newsletter.svelte](../apps/site/src/lib/newsletter/newsletter.svelte)'s field and
+[dialog.svelte](../apps/site/src/lib/search/dialog.svelte)'s query. The other two hold token
+colours only, so three was the whole of the miss. Conditional values are much the larger half and
+were not missed, which is luck rather than design -- the value-naming step happened to read them.
+
+**Nothing in the tree makes the next sweep walk to the leaves.** The entry on the extraction
+threshold wants a count taken across three layers; the entry on whether a declaration moved wants a
+committed list of what the stylesheet declares. Both are sweeps, both meet this, and a sweep that
+under-reports is the one kind that reports success. What it would cost to fix is one shared reader
+that walks a style object to its leaves and yields paths rather than keys. What it costs to leave
+is invisible every time, which is the argument for writing it down rather than remembering it.

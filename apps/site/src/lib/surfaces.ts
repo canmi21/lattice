@@ -27,6 +27,7 @@ import { border, radius, weight } from '$lib/vocabulary.stylex.ts';
  * that has drifted from what it describes is worse than the literal it replaced, because a literal
  * cannot lie.
  */
+
 /**
  * The four declarations of a bordered paper surface, which eight components draw.
  *
