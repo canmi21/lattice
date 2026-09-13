@@ -19,6 +19,7 @@ import { packArticles, packPages } from './src/lib/content/packed.ts';
 import { contentRefreshQueue } from './vite/content-refresh.ts';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const SITE = fileURLToPath(new URL('.', import.meta.url));
 const SITE_CONFIG = fileURLToPath(new URL('./site.config.yaml', import.meta.url));
 const CONTENTS = fileURLToPath(new URL('../../contents', import.meta.url));
 const ASSETS = fileURLToPath(new URL('../../data/metadata.json', import.meta.url));
@@ -335,7 +336,19 @@ export default defineConfig(async ({ command, mode }) => {
 				//
 				// StyleX's advice to keep the plugin ahead of the framework exists to preserve
 				// React's Fast Refresh. For Svelte it is exactly inverted.
-				...stylex({ useCSSLayers: true }),
+				//
+				// **The module resolution is stated rather than defaulted, and it is what makes
+				// `$lib/vocabulary.stylex.ts` reachable.** StyleX resolves an import itself, at
+				// compile time, and understands neither SvelteKit's aliases nor a `rootDir` other
+				// than the working directory it happened to be started from. Left to the default
+				// it silently declines to resolve the vocabulary and every component importing it
+				// fails the build with `nonStaticValue`. `/ROOT/` is StyleX's own marker for a
+				// path under `rootDir`, which is this app rather than the workspace.
+				...stylex({
+					useCSSLayers: true,
+					aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
+					unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+				}),
 				enforce: undefined,
 			},
 			{
