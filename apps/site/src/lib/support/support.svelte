@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
@@ -22,7 +23,7 @@
 			// under the rule in spec/architecture/css.md: it moves nothing, it says what the element
 			// is to a pointer.
 			cursor: 'pointer',
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			borderColor: {
 				default: 'var(--color-border)',

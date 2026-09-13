@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
@@ -38,8 +39,8 @@
 			// `rounded-full` is `calc(infinity * 1px)` rather than a large length, and the
 			// arithmetic is carried across unread: Chrome clamps it to a value a literal would
 			// have to guess at, and the measure of sameness is the computed one.
-			borderRadius: 'calc(infinity * 1px)',
-			borderWidth: '2px',
+			borderRadius: radius.full,
+			borderWidth: border.doublePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 		},

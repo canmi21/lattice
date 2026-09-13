@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable `libs/tokens`
@@ -14,15 +15,15 @@
 	const styles = stylex.create({
 		/** The bordered box around the whole block. */
 		frame: {
-			borderRadius: '0.75rem',
-			borderWidth: '1px',
+			borderRadius: radius.xl,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
 		},
 		/** The scrolling area inside it, which repeats the frame's corner so the clip agrees. */
 		stage: {
-			borderRadius: '0.75rem',
+			borderRadius: radius.xl,
 		},
 		/**
 		 * The sketch shown while the diagram is being drawn.
@@ -42,10 +43,10 @@
 		},
 		/** One of the sketch's two boxes. Which end it sits at is the block's. */
 		node: {
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border-strong)',
-			borderRadius: '0.5rem',
+			borderRadius: radius.lg,
 			backgroundColor: 'var(--color-paper)',
 		},
 		/** The line between them, drawn as one edge. */

@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable
@@ -29,8 +30,8 @@
 		pill: {
 			// The clamp to half the box is the browser's, so the radius is stated as the unbounded
 			// length Tailwind's `rounded-full` is rather than as a number.
-			borderRadius: 'calc(infinity * 1px)',
-			borderWidth: '1px',
+			borderRadius: radius.full,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
@@ -50,7 +51,7 @@
 			color: 'var(--color-text)',
 		},
 		chip: {
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 			fontWeight: 500,
 			// Ink is for the thing worth pressing. Once pressed this is a label, so it keeps the
 			// shape and gives up the emphasis; cooling out of ink over the same span as the reveal
@@ -72,7 +73,7 @@
 			'::placeholder': { color: 'var(--color-text-soft)' },
 		},
 		submit: {
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 			backgroundColor: 'var(--color-ink)',
 			fontWeight: 500,
 			color: 'var(--color-page)',

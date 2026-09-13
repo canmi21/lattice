@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a package list. Every colour is the token variable `libs/tokens` already
@@ -16,7 +17,7 @@
 	const styles = stylex.create({
 		/** One row of the list: a package, its version, and what it is licensed under. */
 		row: {
-			borderRadius: '0.5rem',
+			borderRadius: radius.lg,
 			backgroundColor: {
 				default: null,
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -38,10 +39,10 @@
 		},
 		/** The badge on a licence the package states about itself. */
 		asserted: {
-			borderRadius: '0.25rem',
+			borderRadius: radius.sm,
 			// `border` writes its style through `--tw-border-style`, which is registered with
 			// `solid` as its initial value, so the edge computes to one pixel of solid.
-			borderWidth: '1px',
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			fontSize: '0.75rem',

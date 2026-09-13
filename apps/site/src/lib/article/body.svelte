@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the translator's note, which is the only surface this component draws
@@ -28,7 +29,7 @@
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
-			borderRadius: '0.25rem',
+			borderRadius: radius.sm,
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -47,7 +48,7 @@
 		 * are zero-width and invisible, and they are still what the element computes.
 		 */
 		noteBody: {
-			borderTopWidth: '1px',
+			borderTopWidth: border.hairlinePx,
 			borderTopStyle: 'solid',
 			borderColor: 'var(--color-border)',
 		},

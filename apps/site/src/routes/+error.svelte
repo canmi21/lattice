@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
@@ -16,7 +17,7 @@
 		status: {
 			// `border-r` writes its style through `--tw-border-style`, which is registered with
 			// `solid` as its initial value, so the edge computes to one pixel of solid.
-			borderRightWidth: '1px',
+			borderRightWidth: border.hairlinePx,
 			borderRightStyle: 'solid',
 			// All four edges, three of which have no width to draw: `border-border` is the
 			// shorthand, and the computed style carries the colour on every side.

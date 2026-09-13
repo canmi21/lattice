@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
@@ -29,7 +30,7 @@
 		 * whole-box `border-style` would dash three edges that are not drawn.
 		 */
 		notes: {
-			borderTopWidth: '0.0625rem',
+			borderTopWidth: border.hairlineRem,
 			borderTopStyle: 'dashed',
 			borderTopColor: 'var(--color-border)',
 		},

@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
@@ -49,7 +50,7 @@
 		 * middle of the title's own line box is layout and stays below with the rest of its box.
 		 */
 		draftMark: {
-			borderRadius: '0.25rem',
+			borderRadius: radius.sm,
 			backgroundColor: 'var(--color-paper-hover)',
 			fontSize: '0.75rem',
 			fontWeight: 500,
@@ -121,7 +122,7 @@
 			},
 		},
 		summaryPanel: {
-			borderLeftWidth: '2px',
+			borderLeftWidth: border.doublePx,
 			// `border-border-strong` colours all four edges and only one of them has width, so
 			// the shorthand is what keeps the computed style the same on the other three.
 			borderColor: 'var(--color-border-strong)',
@@ -143,7 +144,7 @@
 		 * `class` prop, which lands on a section carrying no visual layer of its own.
 		 */
 		tail: {
-			borderTopWidth: '1px',
+			borderTopWidth: border.hairlinePx,
 			borderColor: 'var(--color-border)',
 		},
 		/** Dashed where the article itself is what ended: offered rather than fenced off. */

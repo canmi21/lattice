@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
@@ -58,10 +59,10 @@
 		},
 		/** The panel that follows the pointer across the chart. */
 		tooltip: {
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
-			borderRadius: '0.375rem',
+			borderRadius: radius.md,
 			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
 			fontSize: '0.75rem',
@@ -93,7 +94,7 @@
 			fontSize: '0.6875rem',
 		},
 		nested: {
-			borderTopWidth: '0.0625rem',
+			borderTopWidth: border.hairlineRem,
 			borderTopStyle: 'solid',
 			borderTopColor: 'var(--color-border)',
 		},

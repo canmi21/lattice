@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`
@@ -28,11 +29,11 @@
 			backgroundColor: 'color-mix(in oklab, var(--color-blue) var(--wash), transparent)',
 			// `rounded-r-md` is the two physical corners rather than the logical pair -- that is
 			// which pair Tailwind names it as -- and 0.375rem is the `--radius-md` behind it.
-			borderTopRightRadius: '0.375rem',
-			borderBottomRightRadius: '0.375rem',
+			borderTopRightRadius: radius.md,
+			borderBottomRightRadius: radius.md,
 			// `border-l-2` writes its style through `--tw-border-style`, which is registered with
 			// `solid` as its initial value, so the edge computes to two pixels of solid.
-			borderLeftWidth: '2px',
+			borderLeftWidth: border.doublePx,
 			borderLeftStyle: 'solid',
 			// All four edges, three of which have no width to draw: `border-blue-ink` is the
 			// shorthand, and the computed style carries the colour on every side.

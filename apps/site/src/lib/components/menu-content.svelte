@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`
@@ -22,10 +23,10 @@
 		/** The panel itself: a bordered sheet of paper. Its shadow is still the markup's. */
 		surface: {
 			// 0.375rem is the `--radius-md` behind `rounded-md`.
-			borderRadius: '0.375rem',
+			borderRadius: radius.md,
 			// `border` writes its style through `--tw-border-style`, which is registered with
 			// `solid` as its initial value, so the edge computes to one pixel of solid.
-			borderWidth: '1px',
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',

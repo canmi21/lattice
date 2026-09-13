@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
@@ -18,14 +19,14 @@
 		 * value, so neither ranks above the other. Sameness first; see spec/architecture/css.md.
 		 */
 		card: {
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			borderColor: {
 				default: 'var(--color-border)',
 				':hover': 'var(--color-border-strong)',
 				':focus-visible': 'var(--color-border-strong)',
 			},
-			borderRadius: '0.75rem',
+			borderRadius: radius.xl,
 			backgroundColor: {
 				default: 'var(--color-paper)',
 				':hover': 'var(--color-paper-hover)',

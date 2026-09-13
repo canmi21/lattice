@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -64,7 +65,7 @@
 		avatar: {
 			// The clamp to half the box is the browser's, so the radius is stated as the
 			// unbounded length Tailwind's `rounded-full` is rather than as a number.
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 			backgroundColor: 'var(--color-paper)',
 		},
 		spdx: {

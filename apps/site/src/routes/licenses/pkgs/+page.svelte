@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the registry directory. Every colour is the token variable `libs/tokens`
@@ -57,7 +58,7 @@
 		},
 		/** One row of the directory: a registry name, a leader, and its count. */
 		entry: {
-			borderRadius: '0.5rem',
+			borderRadius: radius.lg,
 			backgroundColor: {
 				default: null,
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-paper-hover)' },
@@ -68,7 +69,7 @@
 		},
 		/** The dashed rule running from the name to the count. */
 		leader: {
-			borderTopWidth: '1px',
+			borderTopWidth: border.hairlinePx,
 			borderStyle: 'dashed',
 			borderColor: 'var(--color-border-strong)',
 		},

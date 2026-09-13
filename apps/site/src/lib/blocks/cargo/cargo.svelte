@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
@@ -70,10 +71,10 @@
 			fontSize: '0.6875rem',
 		},
 		tooltip: {
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
-			borderRadius: '0.375rem',
+			borderRadius: radius.md,
 			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
 			fontSize: '0.75rem',

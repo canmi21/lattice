@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
@@ -17,7 +18,7 @@
 		/** The bar marking the entry being read. Its height and its offset are the animation's. */
 		indicator: {
 			pointerEvents: 'none',
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		entry: {
@@ -30,11 +31,11 @@
 		},
 		/** The wrapper the ring is drawn on while the column is collapsed. */
 		barRing: {
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 		},
 		/** The collapsed thumbnail of one heading. The width it is drawn at stays inline. */
 		bar: {
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		label: {

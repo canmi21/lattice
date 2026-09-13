@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
@@ -15,8 +16,8 @@
 	const styles = stylex.create({
 		/** The bordered box the whole figure sits in. */
 		frame: {
-			borderRadius: '0.75rem',
-			borderWidth: '1px',
+			borderRadius: radius.xl,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
@@ -46,23 +47,23 @@
 		 * horizontal and left to right, so the two resolve to the same computed value.
 		 */
 		verticalRule: {
-			borderInlineStartWidth: '0.0625rem',
+			borderInlineStartWidth: border.hairlineRem,
 			borderInlineStartStyle: 'solid',
 			borderInlineStartColor: 'var(--color-border-strong)',
 		},
 		/** The horizontal axis, drawn the same way along the other edge. */
 		horizontalAxis: {
-			borderBlockStartWidth: '0.0625rem',
+			borderBlockStartWidth: border.hairlineRem,
 			borderBlockStartStyle: 'solid',
 			borderBlockStartColor: 'var(--color-border-strong)',
 			pointerEvents: 'none',
 		},
 		/** One plotted item's card. */
 		box: {
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
-			borderRadius: '0.375rem',
+			borderRadius: radius.md,
 			backgroundColor: 'var(--color-paper-hover)',
 		},
 		itemTitle: {

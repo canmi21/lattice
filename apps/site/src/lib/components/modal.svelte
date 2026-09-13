@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
@@ -22,8 +23,8 @@
 		 * variable move together or not at all. See spec/todo.md.
 		 */
 		surface: {
-			borderRadius: '0.5rem',
-			borderWidth: '1px',
+			borderRadius: radius.lg,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
@@ -38,7 +39,7 @@
 			color: 'var(--color-text-strong)',
 		},
 		close: {
-			borderRadius: '0.375rem',
+			borderRadius: radius.md,
 			// No fill at rest: the card behind it is the resting surface, and only the two states
 			// name a colour of their own.
 			backgroundColor: {

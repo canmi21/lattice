@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
@@ -24,8 +25,8 @@
 	const styles = stylex.create({
 		/** The floating panel: its edge, its ground and the ink everything inside inherits. */
 		panel: {
-			borderRadius: '0.75rem',
-			borderWidth: '1px',
+			borderRadius: radius.xl,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
@@ -37,7 +38,7 @@
 		 * invisible, and they are still what the element computes. Same for the footer below.
 		 */
 		field: {
-			borderBottomWidth: '1px',
+			borderBottomWidth: border.hairlinePx,
 			borderBottomStyle: 'solid',
 			borderColor: 'var(--color-border)',
 		},
@@ -55,7 +56,7 @@
 		},
 		/** The in-flight dot. Its beat is a keyframe and stays in the block below. */
 		pulse: {
-			borderRadius: 'calc(infinity * 1px)',
+			borderRadius: radius.full,
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		groupTitle: {
@@ -64,7 +65,7 @@
 			color: 'var(--color-text-strong)',
 		},
 		row: {
-			borderRadius: '0.375rem',
+			borderRadius: radius.md,
 			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. Whether the visual layer should
@@ -97,7 +98,7 @@
 			color: 'var(--color-text-soft)',
 		},
 		footer: {
-			borderTopWidth: '1px',
+			borderTopWidth: border.hairlinePx,
 			borderTopStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			fontSize: '0.6875rem',

@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
@@ -19,8 +20,8 @@
 	const styles = stylex.create({
 		/** The bordered box: the whole block when it has a title, the code area when it has none. */
 		frame: {
-			borderRadius: '0.75rem',
-			borderWidth: '1px',
+			borderRadius: radius.xl,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
@@ -65,7 +66,7 @@
 		},
 		/** The divider under a title. The colour is the face's; this is only its edge. */
 		divider: {
-			borderBottomWidth: '1px',
+			borderBottomWidth: border.hairlinePx,
 			borderBottomStyle: 'solid',
 		},
 		chevron: {
@@ -95,7 +96,7 @@
 		},
 		copy: {
 			cursor: 'pointer',
-			borderRadius: '0.25rem',
+			borderRadius: radius.sm,
 			fontSize: '0.75rem',
 			lineHeight: 1,
 			letterSpacing: '0.05em',

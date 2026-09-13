@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the placeholder a block falls back to. Every colour is the token
@@ -15,8 +16,8 @@
 	const styles = stylex.create({
 		/** The dashed box. Its type is set once here and both rows inside it read down from it. */
 		frame: {
-			borderRadius: '0.75rem',
-			borderWidth: '2px',
+			borderRadius: radius.xl,
+			borderWidth: border.doublePx,
 			borderStyle: 'dashed',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',

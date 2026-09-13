@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
@@ -17,7 +18,7 @@
 	const styles = stylex.create({
 		/** The card itself, which is the link. Its box stays in the block below. */
 		card: {
-			borderWidth: '0.0625rem',
+			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
 			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
 			// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
@@ -26,7 +27,7 @@
 				':hover': 'var(--color-border-strong)',
 				':focus-visible': 'var(--color-border-strong)',
 			},
-			borderRadius: '0.75rem',
+			borderRadius: radius.xl,
 			backgroundColor: {
 				default: 'var(--color-paper)',
 				':hover': 'var(--color-paper-hover)',

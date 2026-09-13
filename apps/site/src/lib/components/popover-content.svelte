@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the popover surface. Every colour is the token variable `libs/tokens`
@@ -19,8 +20,8 @@
 	const styles = stylex.create({
 		/** The floating surface itself: its edge, its ground and the type it holds. */
 		surface: {
-			borderRadius: '0.375rem',
-			borderWidth: '1px',
+			borderRadius: radius.md,
+			borderWidth: border.hairlinePx,
 			borderStyle: 'solid',
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper)',
