@@ -1,3 +1,22 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the social glyphs. Ten `<svg>` branches carry one declaration between
+	 * them and it is the same one on each, so there is one style here rather than ten.
+	 * See spec/architecture/css.md.
+	 */
+	const styles = stylex.create({
+		/**
+		 * `fill-current`, on every branch. The glyph names no colour of its own: it takes whatever
+		 * ink the link around it is already setting, which is why nothing here reads a token.
+		 */
+		glyph: {
+			fill: 'currentColor',
+		},
+	});
+</script>
+
 <script lang="ts">
 	let {
 		name,
@@ -20,7 +39,7 @@
 
 {#if name === 'twitter'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="-1 -1 26 26"
 		xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +53,7 @@
 	</svg>
 {:else if name === 'github'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="0 0 24 24"
 		xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +64,7 @@
 	</svg>
 {:else if name === 'email'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="1 1 22 22"
 		xmlns="http://www.w3.org/2000/svg"
@@ -56,7 +75,7 @@
 	</svg>
 {:else if name === 'nyaone'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="226 227 573 573"
 		xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +86,7 @@
 	</svg>
 {:else if name === 'bluesky'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="0 0 24 24"
 		xmlns="http://www.w3.org/2000/svg"
@@ -78,7 +97,7 @@
 	</svg>
 {:else if name === 'telegram'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="186 216 600 600"
 		xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +108,7 @@
 	</svg>
 {:else if name === 'sitemap'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="0 0 512 512"
 		xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +119,7 @@
 	</svg>
 {:else if name === 'travellings'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="1.5 2 21 21"
 		xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +130,7 @@
 	</svg>
 {:else if name === 'moe'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="1.5 1.5 21 21"
 		xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +145,7 @@
 	</svg>
 {:else if name === 'rss'}
 	<svg
-		class="{className} fill-current"
+		class="{className} {stylex.attrs(styles.glyph).class}"
 		aria-hidden="true"
 		viewBox="1.5 1.5 21 21"
 		xmlns="http://www.w3.org/2000/svg"

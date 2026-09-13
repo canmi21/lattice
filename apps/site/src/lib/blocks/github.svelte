@@ -1,3 +1,95 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file is not a leftover of the migration. What is left
+	 * in it is geometry -- where each part of the card sits and how large it is -- plus the
+	 * corner glyph's reveal, which is gated on the card's own hover and reaches a descendant.
+	 * That is an ancestor, and an ancestor is what the visual layer cannot see without a marker
+	 * nobody owns yet, so the resting opacity stays with the hovered one. See spec/todo.md.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/** The card itself, which is the link. Its box stays in the block below. */
+		card: {
+			borderWidth: '0.0625rem',
+			borderStyle: 'solid',
+			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
+			// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
+			borderColor: {
+				default: 'var(--color-border)',
+				':hover': 'var(--color-border-strong)',
+				':focus-visible': 'var(--color-border-strong)',
+			},
+			borderRadius: '0.75rem',
+			backgroundColor: {
+				default: 'var(--color-paper)',
+				':hover': 'var(--color-paper-hover)',
+				':focus-visible': 'var(--color-paper-hover)',
+			},
+			color: 'inherit',
+			textDecoration: 'none',
+			// Reduced motion is the same suppression the card used to write as `transition: none`,
+			// which is more than one longhand: the shorthand also returns the duration and the
+			// curve to their initial values. Two properties in the list, so each of the other
+			// lists is stated twice -- a transition's lists are read per property, and one value
+			// against two properties is not the same computed style as two.
+			transitionProperty: {
+				default: 'background-color, border-color',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '150ms, 150ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'ease-out, ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
+		name: {
+			color: 'var(--color-text-strong)',
+			fontSize: '0.875rem',
+			fontWeight: 560,
+		},
+		fullname: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.6875rem',
+		},
+		/**
+		 * The commit the card is pinned to. Its stack is the literal one the rule carried rather
+		 * than `--font-mono`: a migration moves a declaration between layers and never changes
+		 * how its value is arrived at.
+		 */
+		ref: {
+			color: 'var(--color-text-soft)',
+			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+			fontSize: '0.6875rem',
+		},
+		description: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.78125rem',
+			lineHeight: 1.45,
+		},
+		meta: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.71875rem',
+		},
+		/** The language's dot. Its fill is the language's colour and arrives inline. */
+		languageDot: {
+			borderRadius: '50%',
+		},
+		corner: {
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import CircleDot from '@lucide/svelte/icons/circle-dot';
@@ -46,29 +138,30 @@
 	rel="noopener"
 	class:card-center={align === 'center'}
 	class:card-right={align === 'right'}
-	class="repo-card group focus-ring"
+	class="repo-card group focus-ring {stylex.attrs(styles.card).class}"
 >
 	<div class="header">
-		<span class="name">{title || repositoryName(displayName)}</span>
-		<span class="fullname">{repo.full_name}</span>
+		<span class="name {stylex.attrs(styles.name).class}">{title || repositoryName(displayName)}</span
+		>
+		<span class="fullname {stylex.attrs(styles.fullname).class}">{repo.full_name}</span>
 	</div>
 
 	{#if gitRef}
-		<span class="ref">
+		<span class="ref {stylex.attrs(styles.ref).class}">
 			<GitCommitHorizontal class="size-3" strokeWidth={2} aria-hidden="true" />
 			{gitRef.slice(0, 7)}
 		</span>
 	{/if}
 
 	{#if repo.description}
-		<p class="description">{repo.description}</p>
+		<p class="description {stylex.attrs(styles.description).class}">{repo.description}</p>
 	{/if}
 
-	<div class="meta">
+	<div class="meta {stylex.attrs(styles.meta).class}">
 		{#if repo.language}
 			<span class="meta-item">
 				<span
-					class="language-dot"
+					class="language-dot {stylex.attrs(styles.languageDot).class}"
 					style="background-color: {langColor(repo.language)}"
 					aria-hidden="true"
 				></span>
@@ -104,7 +197,7 @@
 		{/if}
 	</div>
 
-	<span class="corner" aria-hidden="true">
+	<span class="corner {stylex.attrs(styles.corner).class}" aria-hidden="true">
 		<ArrowUpRight class="size-4" strokeWidth={2} />
 	</span>
 </a>
@@ -120,21 +213,7 @@
 		flex-direction: column;
 		gap: 0.35rem;
 		overflow: hidden;
-		border: 0.0625rem solid var(--color-border);
-		border-radius: 0.75rem;
-		background: var(--color-paper);
 		padding: 0.6rem 0.75rem;
-		color: inherit;
-		text-decoration: none;
-		transition:
-			background-color 150ms ease-out,
-			border-color 150ms ease-out;
-	}
-
-	.repo-card:hover,
-	.repo-card:focus-visible {
-		border-color: var(--color-border-strong);
-		background: var(--color-paper-hover);
 	}
 
 	.card-center {
@@ -151,16 +230,8 @@
 		gap: 0.5rem;
 	}
 
-	.name {
-		color: var(--color-text-strong);
-		font-size: 0.875rem;
-		font-weight: 560;
-	}
-
 	.fullname {
 		margin-inline-start: 0.4rem;
-		color: var(--color-text-soft);
-		font-size: 0.6875rem;
 	}
 
 	.ref {
@@ -170,9 +241,6 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.2rem;
-		color: var(--color-text-soft);
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 0.6875rem;
 	}
 
 	.description {
@@ -183,9 +251,6 @@
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 		margin: 0;
-		color: var(--color-text-soft);
-		font-size: 0.78125rem;
-		line-height: 1.45;
 	}
 
 	.meta {
@@ -194,10 +259,11 @@
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.6rem;
-		color: var(--color-text-soft);
-		font-size: 0.71875rem;
 	}
 
+	/* `white-space` is the width being reserved rather than how the text looks: an icon and the
+	   number beside it are one item and stay on one line. Layout, for the reason the newsletter's
+	   ghost label is. See spec/architecture/css.md. */
 	.meta-item {
 		display: inline-flex;
 		align-items: center;
@@ -210,14 +276,17 @@
 		width: 0.6rem;
 		height: 0.6rem;
 		flex-shrink: 0;
-		border-radius: 50%;
 	}
 
+	/* The corner glyph's reveal stays whole here rather than half of it in the visual layer: the
+	   offsets are placement, and the opacity it rests at has its other value behind the card's
+	   own hover, one level up. That is an ancestor, and an ancestor is what the visual layer
+	   cannot see without a marker nobody owns yet. The transition between the two goes with them.
+	   See spec/todo.md. */
 	.corner {
 		position: absolute;
 		right: 0.75rem;
 		bottom: 0.75rem;
-		color: var(--color-text-soft);
 		opacity: 0;
 		transition: opacity 200ms ease-out;
 	}
@@ -228,7 +297,6 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.repo-card,
 		.corner {
 			transition: none;
 		}

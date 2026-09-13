@@ -1,3 +1,102 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
+	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The two link styles below say the same thing twice at two sizes. They are written out
+	 * rather than shared: a visual constant with two consumers wants a module of its own, and
+	 * where that module should live is the question spec/todo.md is already holding.
+	 */
+	const styles = stylex.create({
+		/**
+		 * The page ground, and the selection policy that used to be this file's whole `<style>`
+		 * block.
+		 *
+		 * The page is prose in a few places and controls everywhere else, and a drag that starts
+		 * on a card or a button should not sweep up a date, a count and a label with it. So
+		 * selection is off here and the parts that are sentences turn it back on for themselves,
+		 * with `.selectable` in styles/utilities.css -- including the ones inside components this
+		 * page only composes.
+		 *
+		 * Off by default rather than named per control, because the controls outnumber the prose
+		 * and that list grows every time one is added. The prose does not.
+		 *
+		 * `-webkit-` is carried because Safari only dropped the prefix in 17 and the floor in
+		 * spec/compat.md is 16. StyleX prefixes nothing on its own, so the rule this replaced
+		 * wrote both and so does this. `user-select` is visual under
+		 * spec/architecture/css.md: it moves nothing, it says what the element is to a pointer.
+		 */
+		page: {
+			backgroundColor: 'var(--color-page)',
+			color: 'var(--color-text)',
+			WebkitUserSelect: 'none',
+			userSelect: 'none',
+		},
+		avatar: {
+			// `rounded-full` is `calc(infinity * 1px)` rather than a large length, and the
+			// arithmetic is carried across unread: Chrome clamps it to a value a literal would
+			// have to guess at, and the measure of sameness is the computed one.
+			borderRadius: 'calc(infinity * 1px)',
+			borderWidth: '2px',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+		},
+		name: {
+			color: 'var(--color-text-strong)',
+		},
+		role: {
+			color: 'var(--color-text-soft)',
+		},
+		/** The bio, which is the one block of prose on the page. */
+		bio: {
+			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
+			// rather than read: that variable is emitted only for the utilities that name it, so
+			// reading it here would leave this line depending on a class somewhere else in the
+			// markup. The value terminates, so there is no arithmetic to round.
+			lineHeight: 1.625,
+		},
+		/** The line holding the language switcher. Both declarations inherit into it. */
+		switcherRow: {
+			fontSize: '0.9375rem',
+			color: 'var(--color-text-soft)',
+		},
+		/** One of the glyphs in the row of elsewheres. */
+		socialLink: {
+			borderRadius: '0.3125rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. Whether the visual layer should
+			// be naming another framework's private variables is in spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		/** The registration badge sharing the row with them. */
+		icpLink: {
+			fontSize: '0.9375rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { imgsrc } from '@canmi/imgsrc';
@@ -92,7 +191,7 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen bg-page text-text">
+<main class="min-h-screen {stylex.attrs(styles.page).class}">
 	<!-- Less air on a phone at both ends, where 6rem is most of what the reader can see before
 	     scrolling. The foot takes two thirds of what the head does: the space above opens the page
 	     and the space below only ends it. -->
@@ -104,18 +203,18 @@
 				width="52"
 				height="52"
 				fetchpriority="high"
-				class="h-13 w-13 rounded-full border-2 border-border"
+				class="h-13 w-13 {stylex.attrs(styles.avatar).class}"
 			/>
 			<div>
-				<h1 class="selectable text-text-strong">{site.author.fullName}</h1>
-				<p class="selectable text-text-soft">{site.author.role}</p>
+				<h1 class="selectable {stylex.attrs(styles.name).class}">{site.author.fullName}</h1>
+				<p class="selectable {stylex.attrs(styles.role).class}">{site.author.role}</p>
 			</div>
 		</header>
 
 		<!-- Bio prose is compiled from contents/index.md (DLC directives), single-sourced
 		with /llms.txt. PageBody keeps styled text as dead HTML and renders each social
 		link live so its icon reuses the shared <Icon> component. -->
-		<div class="selectable mt-8 space-y-4 leading-relaxed">
+		<div class="selectable mt-8 space-y-4 {stylex.attrs(styles.bio).class}">
 			<PageBody blocks={data.bio} locale={data.locale.code} />
 		</div>
 
@@ -128,7 +227,7 @@
 		     No heading and no rule. This is page furniture rather than a section, and the
 		     preference it writes is the site's, not this page's -- a divider across the column
 		     would say the opposite. -->
-		<div class="mt-8 flex flex-wrap items-center gap-4 text-[0.9375rem] text-text-soft">
+		<div class="mt-8 flex flex-wrap items-center gap-4 {stylex.attrs(styles.switcherRow).class}">
 			<LanguageSwitcher code={data.locale.code} />
 		</div>
 
@@ -158,7 +257,9 @@
 							: `${link.label} (${m['support.new-tab']({}, { locale: data.locale.code })})`}
 						title={link.label}
 						data-sveltekit-reload={'document' in link ? true : undefined}
-						class="focus-ring inline-flex size-5 items-center justify-center rounded-[0.3125rem] text-text-soft transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+						class="focus-ring inline-flex size-5 items-center justify-center {stylex.attrs(
+							styles.socialLink,
+						).class}"
 						{...link.href.startsWith('/') ? {} : { target: '_blank', rel: 'noopener' }}
 					>
 						<Icon name={link.name} class={link.size} />
@@ -170,7 +271,9 @@
 				href="{URLS.external.icpmoe}/?keyword=20260000"
 				target="_blank"
 				rel="noopener"
-				class="focus-link inline-flex items-center gap-1.5 text-[0.9375rem] text-text-soft transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong max-sm:hidden"
+				class="focus-link inline-flex items-center gap-1.5 max-sm:hidden {stylex.attrs(
+					styles.icpLink,
+				).class}"
 			>
 				<Lollipop class="h-4 w-4" aria-hidden="true" />
 				<span>ICP 20260000</span>
@@ -191,17 +294,3 @@
 	{/snippet}
 	{m['sponsor.notice']({}, { locale: data.locale.code })}
 </Modal>
-
-<style>
-	/* The page is prose in a few places and controls everywhere else, and a drag that starts on a
-	   card or a button should not sweep up a date, a count and a label with it. So selection is
-	   off here and the parts that are sentences turn it back on for themselves, with `.selectable`
-	   in styles/utilities.css -- including the ones inside components this page only composes.
-
-	   Off by default rather than named per control, because the controls outnumber the prose and
-	   that list grows every time one is added. The prose does not. */
-	main {
-		-webkit-user-select: none;
-		user-select: none;
-	}
-</style>

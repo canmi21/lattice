@@ -1,3 +1,68 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * Nothing here draws a bar's width or the indicator's height. Those are measured and written
+	 * inline by the script below, an inline style outranks every layer, and this one only says
+	 * what the marks are made of.
+	 */
+	const styles = stylex.create({
+		/** The rail box, which takes the pointer back from the layer above it. */
+		nav: {
+			pointerEvents: 'auto',
+		},
+		/** The bar marking the entry being read. Its height and its offset are the animation's. */
+		indicator: {
+			pointerEvents: 'none',
+			borderRadius: 'calc(infinity * 1px)',
+			backgroundColor: 'var(--color-text-soft)',
+		},
+		entry: {
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
+			// element is to a pointer.
+			cursor: 'pointer',
+			// The ring belongs to one of the two wrappers inside, which `focus-ring-inner` draws
+			// around the bar while the column is collapsed and around the label once it is not.
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+		},
+		/** The wrapper the ring is drawn on while the column is collapsed. */
+		barRing: {
+			borderRadius: 'calc(infinity * 1px)',
+		},
+		/** The collapsed thumbnail of one heading. The width it is drawn at stays inline. */
+		bar: {
+			borderRadius: 'calc(infinity * 1px)',
+			backgroundColor: 'var(--color-text-soft)',
+		},
+		label: {
+			fontSize: '0.8125rem',
+			// `leading-snug` is Tailwind's `--leading-snug`, and its value is written out rather
+			// than read: that variable is emitted only for the utilities that name it, so reading
+			// it here would leave this line depending on a class somewhere else in the markup. The
+			// value terminates, so there is no arithmetic to round.
+			lineHeight: 1.375,
+			whiteSpace: 'normal',
+			overflowWrap: 'anywhere',
+			// An entry that needs two lines gets two comparable lines. Left to fill and spill, the
+			// break lands wherever the width runs out: `Independencia de la` over `UI` puts nineteen
+			// characters above two, which reads as a mistake rather than as a wrapped label. This is
+			// what `balance` is for -- short, headline-shaped text, a couple of lines at most -- and
+			// it is the label's own line lengths it evens out, so entries stay independent of each
+			// other. Where it is unsupported the text simply fills, which is today's behaviour.
+			textWrap: 'balance',
+		},
+		labelActive: {
+			color: 'var(--color-text-strong)',
+		},
+		labelIdle: {
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext';
 	import { animate, frame as motionFrame } from 'motion';
@@ -742,11 +807,12 @@
 		onmouseenter={handleEnter}
 		onmouseleave={handleLeave}
 		class:revealed={showText}
-		class="toc-nav pointer-events-auto relative w-full flex-col items-start overflow-visible"
+		class="toc-nav relative w-full flex-col items-start overflow-visible {stylex.attrs(styles.nav)
+			.class}"
 	>
 		<span
 			bind:this={indicatorEl}
-			class="pointer-events-none absolute w-0.5 rounded-full bg-text-soft"
+			class="absolute w-0.5 {stylex.attrs(styles.indicator).class}"
 			style="left: -0.5rem; top: 0; height: 0.75rem; opacity: 0"
 		></span>
 		{#each entries as entry, i (entry.slug)}
@@ -757,25 +823,29 @@
 				aria-current={i === activeIndex ? 'location' : undefined}
 				title={entry.text}
 				onclick={() => jumpToSection(entry.el, i)}
-				class="block max-w-full cursor-pointer py-[0.1875rem] text-left focus-visible:outline-none"
+				class="block max-w-full py-[0.1875rem] text-left {stylex.attrs(styles.entry).class}"
 			>
 				<!-- Bar and text each sit in a full-opacity ring host: the inner span carries
 				the opacity animation, so drawing the focus ring on the wrapper keeps it crisp
 				instead of inheriting the dimmed opacity. The collapsed/revealed state picks
 				which wrapper shows the ring (see <style>). -->
-				<span class:focus-ring-inner={!showText} class="toc-ring-bar block w-fit rounded-full">
+				<span
+					class:focus-ring-inner={!showText}
+					class="toc-ring-bar block w-fit {stylex.attrs(styles.barRing).class}"
+				>
 					<span
 						data-toc-bar
-						class="block rounded-full bg-text-soft"
+						class="block {stylex.attrs(styles.bar).class}"
 						style="width: 2rem; height: 0.25rem; opacity: 0.35"
 					></span>
 				</span>
 				<span class:focus-ring-inner={showText} class="toc-ring-text block w-fit max-w-full">
 					<span
 						data-toc-text
-						class="text-[0.8125rem] leading-snug"
-						class:text-text-strong={i === activeIndex}
-						class:text-text-soft={i !== activeIndex}
+						class={stylex.attrs(
+							styles.label,
+							i === activeIndex ? styles.labelActive : styles.labelIdle,
+						).class}
 						style="height: 0; opacity: 0"
 					>
 						{entry.text}
@@ -793,19 +863,15 @@
 		transform: translateY(var(--toc-end-offset, 0rem));
 	}
 
+	/* The clamp to two lines, and the width it clamps within. Tailwind writes `line-clamp-2` as
+	   these four declarations together and one of them is a `display`, so the set stays where the
+	   member that cannot move is; spec/todo.md is already holding the question of a compound
+	   utility that straddles the boundary. What the label looks like is the visual layer's and
+	   sits at the head of this file. See spec/architecture/css.md. */
 	[data-toc-text] {
 		display: -webkit-box;
 		max-width: 100%;
 		overflow: hidden;
-		overflow-wrap: anywhere;
-		white-space: normal;
-		/* An entry that needs two lines gets two comparable lines. Left to fill and spill, the
-		   break lands wherever the width runs out: `Independencia de la` over `UI` puts nineteen
-		   characters above two, which reads as a mistake rather than as a wrapped label. This is
-		   what `balance` is for -- short, headline-shaped text, a couple of lines at most -- and
-		   it is the label's own line lengths it evens out, so entries stay independent of each
-		   other. Where it is unsupported the text simply fills, which is today's behaviour. */
-		text-wrap: balance;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
@@ -813,12 +879,15 @@
 
 	/* A script whose spaces mean something breaks at them first.
 
-	   `overflow-wrap: anywhere` above lets a break land between any two characters, which for Han
-	   is usually right and here is not: an entry like `不使用 JS 运行时的代价` came out as
-	   `不使用 JS 运` over `行时的代价`, splitting a word to fill three more characters, when the
-	   author had already written the boundary as a space. `keep-all` prefers that space, giving
-	   `不使用 JS` over `运行时的代价`. The rule above stays as the floor -- a Han run with no space
-	   in it still breaks wherever it must, which is what it did before. See spec/styling.md.
+	   `overflow-wrap: anywhere`, which is now in the visual layer at the head of this file, lets a
+	   break land between any two characters -- for Han usually right, and here not: an entry like
+	   `不使用 JS 运行时的代价` came out as `不使用 JS 运` over `行时的代价`, splitting a word to fill
+	   three more characters, when the author had already written the boundary as a space.
+	   `keep-all` prefers that space, giving `不使用 JS` over `运行时的代价`. That declaration stays
+	   the floor -- a Han run with no space in it still breaks wherever it must, which is what it
+	   did before. The floor and this override now sit in two layers, because the override is
+	   reached through `:lang` and the visual layer reaches an element only through a class on it.
+	   See spec/styling.md and spec/todo.md.
 
 	   Japanese is excluded and the measurement is why. Its spaces are not boundaries in the same
 	   sense, so `keep-all` only removes the break opportunities it has: `Web フレームワークだけで

@@ -1,3 +1,55 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * This file has no scoped block left, which is not the usual outcome. The one it had held the
+	 * wash and the tint mixed from it, and both are visual and reach nothing but the element this
+	 * component renders, so both came here. The knob came with the colour rather than staying
+	 * behind: a custom property resolves against the element it is declared on, and StyleX writes
+	 * one verbatim into an atomic class that lands on the same element as the mix reading it.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/**
+		 * Square on the left so the bar reads as an edge rather than a lozenge, and soft ink
+		 * because this belongs to the metadata row above it, not to the article. See spec/locale.md.
+		 */
+		notice: {
+			// The one knob. Flat across the whole strip; past roughly 20% the tint stops reading as
+			// tinted paper and becomes a coloured box.
+			'--wash': '10%',
+			// The shorthand this replaces said a colour and nothing else: every other longhand it
+			// reset was already at its initial value, and no rule on this element sets one.
+			backgroundColor: 'color-mix(in oklab, var(--color-blue) var(--wash), transparent)',
+			// `rounded-r-md` is the two physical corners rather than the logical pair -- that is
+			// which pair Tailwind names it as -- and 0.375rem is the `--radius-md` behind it.
+			borderTopRightRadius: '0.375rem',
+			borderBottomRightRadius: '0.375rem',
+			// `border-l-2` writes its style through `--tw-border-style`, which is registered with
+			// `solid` as its initial value, so the edge computes to two pixels of solid.
+			borderLeftWidth: '2px',
+			borderLeftStyle: 'solid',
+			// All four edges, three of which have no width to draw: `border-blue-ink` is the
+			// shorthand, and the computed style carries the colour on every side.
+			borderColor: 'var(--color-blue-ink)',
+			fontSize: '0.875rem',
+			// The line as `leading-snug` writes it. 1.375 terminates, so it stays a ratio; the rule
+			// in spec/architecture/css.md is about the expansions that do not.
+			lineHeight: 1.375,
+			color: 'var(--color-text-soft)',
+		},
+		/** The way back to the original. Its underline and its ring are the vocabulary's. */
+		original: {
+			fontWeight: 500,
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { page } from '$app/state';
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
@@ -111,14 +163,7 @@
 	);
 </script>
 
-<!--
-	Square on the left so the bar reads as an edge rather than a lozenge; `text-soft` because
-	this belongs to the metadata row above it, not to the article. See spec/locale.md.
--->
-<div
-	role="note"
-	class="notice mt-4 rounded-r-md border-l-2 border-blue-ink py-1.5 pr-3 pl-3 text-sm leading-snug text-text-soft"
->
+<div role="note" class="notice mt-4 py-1.5 pr-3 pl-3 {stylex.attrs(styles.notice).class}">
 	{#if available}
 		<p class="hidden sm:block">
 			<ParaglideMessage {message} inputs={{ language }} options={{ locale: code }}>
@@ -127,7 +172,8 @@
 						href={originalHref}
 						data-sveltekit-reload
 						onclick={showOriginal}
-						class="focus-link spring-underline font-medium">{@render children?.()}</a
+						class="focus-link spring-underline {stylex.attrs(styles.original).class}"
+						>{@render children?.()}</a
 					>
 				{/snippet}
 			</ParaglideMessage>
@@ -143,7 +189,8 @@
 						href={originalHref}
 						data-sveltekit-reload
 						onclick={showOriginal}
-						class="focus-link spring-underline font-medium">{@render children?.()}</a
+						class="focus-link spring-underline {stylex.attrs(styles.original).class}"
+						>{@render children?.()}</a
 					>
 				{/snippet}
 			</ParaglideMessage>
@@ -153,12 +200,3 @@
 		<p class="sm:hidden">{unavailableShort}</p>
 	{/if}
 </div>
-
-<style>
-	.notice {
-		/* The one knob. Flat across the whole strip; past roughly 20% the tint stops reading as
-		   tinted paper and becomes a coloured box. */
-		--wash: 10%;
-		background: color-mix(in oklab, var(--color-blue) var(--wash), transparent);
-	}
-</style>

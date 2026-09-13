@@ -275,3 +275,336 @@ by a test -- [architecture/css.md](architecture/css.md) says of its own lists th
 examples; the test is the rule". A list and a test drift the first time somebody applies the test
 honestly. Deciding it is either widening the list to what the test admits, or saying out loud that
 the gate covers a subset and which properties are a person's job.
+
+## An SVG presentation attribute is a fourth writer, and it sits below every layer
+
+[icons.svelte](../apps/site/src/lib/home/icons.svelte) draws ten glyphs and two of them ink
+themselves twice. Every branch carried `fill-current`, which is visual and moved; `twitter` also
+carries `stroke="currentColor"`, `stroke-width="0.7"` and `stroke-linejoin="round"` as SVG
+presentation attributes, and `moe` carries those three plus `fill-rule="evenodd"`. All seven decide
+how the glyph looks and none of them is in any of the three layers.
+
+A presentation attribute is defeated by every CSS declaration naming the same property, whatever
+layer it sits in and whether it is layered at all. So this is the mirror of the first entry in this
+file: there a named vocabulary sits above the visual layer with nothing saying it should, here a set
+of visual declarations sits below all three with nothing saying it should. Neither is overridden
+today, which is why the migration left these alone -- moving `fill` while `stroke` stayed an
+attribute changed no pixel, because nothing anywhere sets `stroke` on these elements.
+
+Deciding it costs a behaviour change rather than a rendering one: a stroke written in the visual
+layer stops being overridable by a caller's utility and starts outranking it, on a glyph the
+homepage and the tweet block both render. It also asks whether a path's own description belongs to
+the site at all -- `fill-rule` is closer to the artwork than to the interface -- which is the
+question [`libs/svg-canvas`](../libs/svg-canvas/src/style.css) above is already holding.
+
+
+## A shadow is one utility, two declarations and four variables the visual layer cannot restate
+
+Tailwind 4.3.3 compiles `shadow-lg` to a rule holding two declarations, not one:
+
+```css
+.shadow-lg {
+	--tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+	box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+```
+
+The four ring variables are registered with `@property` at an initial value of `0 0 #0000`, so the
+computed shadow on an element carrying the utility is six layers, four of them transparent. A
+`boxShadow` in the visual layer holding only the two real ones renders the same pixel for pixel and
+computes differently, which is the one thing a migration is not allowed to do.
+
+There are three ways to write it and none of them is good. Declaring `--tw-shadow` from StyleX and
+composing the same five-term `box-shadow` puts another framework's private variables in our source
+and depends on registrations Tailwind emits only while some shadow utility survives somewhere on
+the site. Spelling the four placeholders out as literals -- `0 0 #0000, 0 0 #0000, 0 0 #0000,
+0 0 #0000,` and then the real pair -- computes identically and says nothing to a reader about why
+four transparent shadows are there. Dropping them changes the computed value.
+
+So `shadow-lg` on [dialog.svelte](../apps/site/src/lib/search/dialog.svelte)'s panel and
+`shadow-sm` on [cargo.svelte](../apps/site/src/lib/blocks/cargo/cargo.svelte)'s tooltip stayed in
+the markup, under the set rule in [architecture/css.md](architecture/css.md): Tailwind writes the
+variable and the shorthand as a unit in one rule, which is checkable, and the member that cannot
+move is the `@property` registration. Four more sites carry the same utility --
+[modal.svelte](../apps/site/src/lib/components/modal.svelte),
+[popover-content.svelte](../apps/site/src/lib/components/popover-content.svelte),
+[menu-content.svelte](../apps/site/src/lib/components/menu-content.svelte) and
+[tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte) -- so the decision is the site's
+rather than one component's.
+
+It is the same shape as `transition-colors`'s three `--tw-gradient-*` variables, one step worse.
+There the private names sit inside a value the visual layer can still state in full; here the value
+is composed out of registrations the visual layer has no way to make. Deciding it is either a
+shadow of our own in the token layer, which is where a surface's elevation arguably belonged all
+along, or saying that a utility whose value is assembled from registered variables is not a
+utility the visual layer takes.
+
+The migrated form was written and reverted on
+[menu-content.svelte](../apps/site/src/lib/components/menu-content.svelte), which is where the cost
+showed itself. A `--tw-shadow` declared from StyleX beside the five-term chain compiles and renders
+correctly today, and it is correct only while five other components keep a class this one does not
+control: the registrations reach the document because Tailwind scans the markup and finds a
+`shadow-` utility somewhere in it. Migrate the last of them and `--tw-inset-shadow` is never
+registered, an unresolved custom property makes the whole declaration invalid at computed-value
+time, and this panel's `box-shadow` becomes `none`. There is no build error and no console warning,
+and the gate cannot see it either: a menu renders nothing until it is opened, which
+[architecture/css.md](architecture/css.md) already lists among the surfaces a snapshot never
+reaches. A component whose appearance depends on another component keeping a class is a worse
+arrangement than the one it replaced, and the failure arrives in a file nobody was editing.
+
+So this is a third reason a declaration cannot leave the layer it is in, and it is neither of the
+two already in this file. A rule stays in the selector layer because it needs a selector the other
+two layers have no way to write. An SVG presentation attribute stays below every layer because
+moving it would change which layer wins. Here the declaration cannot be written by anybody in any
+layer: an `@property` registration is not something a component emits, and without it the value the
+visual layer would have to state does not resolve at all.
+
+## Two of the site's colours are not the token layer's, and cannot be read from it
+
+[link-card.svelte](../apps/site/src/lib/blocks/link-card.svelte) writes its title and its corner
+arrow in `text-black` or `text-white` according to the tone the block declares. Measured across the
+markup, those two elements are the only users of either utility on the site, and neither colour is
+in [`libs/tokens`](../libs/tokens/src/colors.css): they are Tailwind's own `--color-black` and
+`--color-white`.
+
+[architecture/css.md](architecture/css.md) says a colour is read as the variable the token layer
+declares and is never retyped, and neither half of that is available here. Retyping gives `#000`,
+which the rule forbids and which puts a colour somewhere other than `libs/tokens`. Reading
+`var(--color-black)` works only for as long as some utility still names it: `app.css` imports
+`tailwindcss` rather than declaring `@theme static`, so a theme variable no generated utility
+mentions is not emitted at all -- and moving the last two uses out of the markup is what stops it
+being mentioned. The declaration would resolve to nothing and the caption would fall back to
+whatever the cover inherits.
+
+So both stayed in the markup and the card is the one migrated component whose colours are not all
+in one place. Deciding it is either a black and a white in `libs/tokens`, which is a decision about
+the palette rather than about this card -- a caption over a photograph is the only thing on the site
+that is deliberately the same colour in both themes -- or a rule that Tailwind's own theme variables
+are readable from the visual layer, which needs a way to keep them emitted.
+
+That last half is the shadow entry above arriving from the other direction. There the visual layer
+cannot make an `@property` registration; here it cannot keep a `@theme` variable alive. Both are a
+value the visual layer can state only while the markup somewhere else keeps a class.
+
+## A style that is only ever conditional cannot be merged into a class attribute
+
+`stylex.attrs()` builds its result by omission. Read in `@stylexjs/stylex` 0.19.0: `props()` adds
+`className` only when the resolved string is neither null nor empty, and `attrs()` adds `class` only
+when `props()` returned one, so a call whose every argument is switched off returns `{}`. Written as
+`stylex.attrs(cond && styles.x).class` that is `undefined`, and a Svelte class attribute
+interpolating it renders those nine characters as a class token beside the real ones.
+
+It bites once so far. link-card's corner arrow takes `mix-blend-difference` only when the block
+declares no tone, and there is no unconditional declaration left on that element to hold the
+attribute open, so the utility stayed in the markup. The one other conditional on the site --
+[switcher.svelte](../apps/site/src/lib/locale/switcher.svelte)'s caret -- passes an unconditional
+style first and never sees it.
+
+Three repairs, and they are not equivalent. A `?? ''` at each site is one more thing to remember at
+exactly the place [architecture/css.md](architecture/css.md) already says a rule cannot be checked.
+A helper that merges class strings is the repair that file proposes for `attrs` replacing `class`,
+and it would absorb this case for free. Writing the off state as its own style so that something
+always resolves adds a declaration the markup never had, which a migration may not do. The middle
+one belongs with the `attrs` hazard rather than beside it.
+
+## A wrapping floor moved and the language override on top of it could not
+
+[toc.svelte](../apps/site/src/lib/article/toc.svelte) writes its entry labels with
+`overflow-wrap: anywhere` and then, for Chinese and Korean, `word-break: keep-all` on top of it.
+The comment beside the second calls the first its floor, and it is: a Han run with no space in it
+still breaks wherever it must.
+
+Both decide how the text looks and neither moves an element, so under
+[architecture/css.md](architecture/css.md) both are the visual layer's. The floor moved. The
+override did not, because it is reached through `:lang(zh)` and `:lang(ko)`, and nothing on this
+site has established whether StyleX takes a functional pseudo-class as a condition key. Reading
+does not settle it -- the plugin either emits the rule or drops it silently -- and the migration's
+gate does not either, because no entry in the corpus wraps in Korean and the Chinese one that does
+would have to be driven at a width that makes it wrap.
+
+The rendering is unchanged: the two are different properties, the scoped rule is unlayered, and the
+interaction between them is the layout algorithm's rather than the cascade's. What is left is one
+mechanism written in two places, and the set rule in [architecture/css.md](architecture/css.md)
+does not cover it -- that rule keeps a group together only where something else already writes the
+group as a unit, and nothing writes `overflow-wrap` beside `word-break`.
+
+Deciding it costs a build and a look at the emitted sheet. It is the same question the first entry
+in this file is holding one level up: `utilities.css` writes `line-break` and `word-break` against
+`:lang(ja)` and `:lang(ko)` for the article prose, so whether the vocabulary can become typed
+depends on the same answer.
+
+## A data attribute on the element itself is a condition the visual layer cannot state
+
+[support.svelte](../apps/site/src/lib/support/support.svelte) draws its like pill dark once the
+reader has liked: `.like[data-liked='true']:is(:hover, :focus-visible)` sets a border colour, a
+background and a text colour. All three are visual, the element is one the component renders
+itself, and no descendant or ancestor is involved -- so by every test in
+[architecture/css.md](architecture/css.md) the declarations belong in the visual layer. StyleX
+cannot hold them. Its conditions are pseudo-classes, pseudo-elements and at-rules; an attribute
+selector is not among them, and the attribute is the whole of what distinguishes this state.
+
+So the pill's resting surface and its hover moved and its liked hover stayed, and one control's
+appearance is now written in two layers with nothing in either saying the other exists. It works
+only because a scoped rule is unlayered and therefore outranks the visual layer for the properties
+they share, which is the accident [architecture/css.md](architecture/css.md) already declines to
+promise. The same shape is in [preview.svelte](../apps/site/src/lib/components/preview.svelte),
+where `[data-starting-style]` and `[data-ending-style]` carry the opening and closing opacities
+that Bits UI drives.
+
+This is not the ancestor entry above wearing different clothes. There the state is held by another
+element and Tailwind spells the pair `group` and `group-hover:`, so the two halves are in one layer
+and the question is how to split them. Here the state is the element's own, Tailwind writes it as a
+`data-[...]` variant, and the question is that one of the two layers that could hold a visual
+declaration cannot hold this one at all. Deciding it is either that half of the markup moving to
+Tailwind's variants, or a rule that a property with an attribute-conditioned value keeps every one
+of its values in the selector layer.
+
+## A portalled surface is out of Svelte's reach and not out of the visual layer's
+
+The entry above on floating surfaces says Bits UI portals them out of the component tree and they
+are therefore reached with `:global`. Migrating
+[preview.svelte](../apps/site/src/lib/components/preview.svelte) sharpens that: the portal is what
+puts them out of the *selector* layer's reach, and it puts them out of nothing else.
+
+The component writes `class="preview-ground fixed inset-0 z-50"` on `Dialog.Overlay`, and Bits UI
+puts that string on the element it renders in the portal. Svelte does not add its scoping class to
+a component's `class` prop, which is the whole reason the rules below are `:global`. A StyleX class
+is a plain global class name and travels the same prop, so the visual layer could reach all three
+of these surfaces -- the ground, the stage and the close -- without a selector of any kind.
+
+It was not taken, and the reasons are worth recording because they are not the portal. The ground's
+`#000` and the close's wash and hairline are literals rather than tokens, argued as such in
+[styling.md](styling.md), so moving them would put the site's only unthemed colours into the layer
+whose one structural guarantee is that a colour is a token variable. And every one of those rules
+has a second half conditioned on a data attribute, which is the entry above: the transitions would
+move and the opacities they animate could not. Three rules split across two layers, for nothing
+gained.
+
+So the decision here is downstream of the other two rather than its own. What is new is only that
+the constraint on these surfaces has been misattributed: they are unreachable by one layer, not by
+two.
+
+## An attribute condition is one `:is()` away from the visual layer after all
+
+The entry above measures that StyleX's conditions are pseudo-classes, pseudo-elements and at-rules,
+and concludes that an attribute-conditioned value has nowhere in the visual layer to go.
+[architecture/css.md](architecture/css.md) has since said the same in stronger words -- "the shape
+has no spelling in the visual layer at all" -- and quoted the type that is supposed to settle it,
+`` `:${string}` ``. That type is exactly the hole: StyleX rejects a key by what it opens with
+rather than by what it contains, and `:is([data-highlighted])` opens with a colon. Compiled through
+the same Babel plugin the build uses:
+
+```css
+.xbhnonm:is([data-highlighted]) {
+	background-color: var(--color-paper-hover);
+}
+```
+
+Nothing on the site writes one, which is why the language switcher's menu rows kept
+`data-[highlighted]:bg-paper-hover` in the markup along with the mark's `text-text-soft` and the
+`group-data-[highlighted]:text-text-strong` it cannot be separated from. Choosing `:is()` mid
+migration would be inventing a convention rather than moving a declaration, and the ancestor half
+still needs the marker that the ancestor entry above is holding.
+
+So this does not settle that entry, it widens it. The choice is not two ways but three: the markup
+keeps every attribute-conditioned value, or the selector layer does, or `:is([attr])` becomes how
+the visual layer says an attribute and the same spelling is used everywhere. Whichever is chosen,
+the sentence in [architecture/css.md](architecture/css.md) has to change with it: a rule stated as
+an impossibility is the one kind a reader never re-measures.
+
+## Tokei draws from a palette of its own, and it is the third one
+
+[architecture/css.md](architecture/css.md) exempts two component-local palettes from the rule that
+a colour is the token layer's -- Cargo's and Mermaid's -- and [styling.md](styling.md) argues both.
+[tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte) has a third that neither file names:
+a colour per language from `langColor`, three hexes in `FUNCTION_COLORS` for code, comments and
+blanks, two `rgba()` literals inline on the tile's completion bar, and two whites inking a tile's
+label over whatever colour the language happens to be.
+
+The whites are the ones the migration had to rule on, because they are `fill` on an element this
+component renders and `fill` is visual by the same test that moved `fill-current` in
+[icons.svelte](../apps/site/src/lib/home/icons.svelte). They stayed, for the reason the link card's
+black and white stayed two entries above: a colour that no token declares cannot be stated in the
+layer whose one structural guarantee is that a colour is a token variable. So `.tile-name` and
+`.tile-size` are now a `fill` in the selector layer and a size and a weight in the visual one.
+
+What is unresolved is smaller than the palette and larger than this component. Two exemptions
+written as a list have a third member nobody added, and the test that admits them -- artwork rather
+than interface -- is not written anywhere. Deciding it is either naming the exemption instead of
+enumerating it, or a home for a chart's palette that is neither the token layer nor a component.
+
+## A `transition` shorthand sets five lists and the migrated form writes three
+
+`transition: background-color 150ms ease-out, border-color 150ms ease-out` on
+[github.svelte](../apps/site/src/lib/blocks/github.svelte)'s repository card is one declaration and
+five computed longhands, each of them a two-item list: `transition-property`, `-duration`,
+`-timing-function`, `-delay` and `-behavior`. The shorthand sets the last two to their initial
+values once per item, so the element computes `transition-delay: 0s, 0s` and `transition-behavior:
+normal, normal`.
+
+The migrated form writes three of the five. It was arrived at on
+[code-block.svelte](../apps/site/src/lib/blocks/code-block.svelte)'s `copyIcon`, whose comment says
+exactly why the curve is stated twice -- "a transition's other lists are read per property, and one
+value against two properties is not the same computed style as two" -- and then stops at the curve.
+`transition-delay` and `transition-behavior` are left to their initial values, which are
+single-item, so a two-property transition that moves into the visual layer computes `0s` where it
+computed `0s, 0s` and `normal` where it computed `normal, normal`.
+
+Nothing renders differently and nothing animates differently: the delay is zero either way and the
+behaviour is normal either way. What changes is the computed value, and
+[architecture/css.md](architecture/css.md) makes the computed value the measure -- it is the same
+argument that keeps three `--tw-gradient-*` variables in every migrated `transition-colors`, where
+the names are another framework's and the values animate nothing. The two answers disagree, and
+they disagree inside one property.
+
+Whether the gate would catch it is not known here. The harness is not in the tree, and
+[architecture/css.md](architecture/css.md) says only that the list has gone from seventy-three
+properties to ninety-eight and that a migration moving a property nobody has compared before should
+say so. This is that: `transition-behavior` reached Chrome in 117 and is younger than most of the
+list.
+
+It reaches only the transitions that were written as a shorthand naming more than one property.
+A single-property shorthand sets a one-item delay, which is what the initial value already is, and
+a Tailwind utility such as `transition-transform` writes one duration against its four properties
+itself -- which is why `code-block.svelte`'s `chevron` is right as it stands and its `copyIcon`,
+moved from a two-property shorthand, is the first instance. `github.svelte`'s card is the second.
+
+Deciding it is either that a moved shorthand states every list it set, which makes the visual layer
+wordier at each site, or that the two lists whose values are inert are outside what sameness means
+-- which needs writing down somewhere a reader will find it before they write the third one.
+
+## An arrowhead is a shape made of borders, and the test cannot cut it in half
+
+[quadrant.svelte](../apps/site/src/lib/blocks/quadrant.svelte) tips each of its two axes with a
+triangle, drawn the way CSS has always drawn one: a pseudo-element at `width: 0; height: 0` with
+three borders, two of them transparent and the third the arrowhead itself.
+
+```css
+.vertical-rule::before {
+	width: 0;
+	height: 0;
+	border-inline: 0.3125rem solid transparent;
+	border-block-end: 0.5625rem solid var(--color-border-strong);
+	content: '';
+}
+```
+
+Every test in [architecture/css.md](architecture/css.md) gives two answers here at once. The border
+widths are the only size the element has, so they decide how large it is; the border colours decide
+how it looks, and one of them is a token. `transparent` is neither: on a box with no width it is
+how CSS says a side does not exist, which is shape rather than appearance. And `content` is not
+classifiable at all -- it is what brings the element into being, so the rule survives whatever else
+leaves it.
+
+The rule stayed whole, and the cost of that is worth naming rather than leaving implicit. The axis
+line beside the arrowhead is `border-inline-start: 0.0625rem solid var(--color-border-strong)`,
+which did move, so one figure's ink is now written in two layers from the same token. Changing the
+axis to a different one leaves the arrowhead behind, which is the trap the keyframe entry above
+describes in a different property. StyleX can reach a pseudo-element -- the newsletter already
+writes `'::placeholder'` -- so the split is available; what stops it is that taking it means
+rewriting the shorthand into longhands in the selector layer to make room for the colour, which is
+restructuring rather than moving.
+
+Deciding it is either that a shape drawn out of borders is one declaration however many properties
+it spans, or that the arrowhead stops being borders -- a `clip-path`, or a glyph -- and the
+question disappears with the technique.

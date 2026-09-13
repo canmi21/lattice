@@ -1,3 +1,114 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the Cargo widget. Every interface colour is the token variable
+	 * `libs/tokens` already declares, so nothing here can change one. See
+	 * spec/architecture/css.md.
+	 *
+	 * Two colours are literals and stay literals. The ink on a treemap tile is white against a
+	 * fill the palette chose, and the tile fills themselves are `palette.css` -- a component-local
+	 * mirror that spec/styling.md argues for and that this layer does not own. Nothing about
+	 * either changes here; a migration moves where a declaration is written, never what it says.
+	 *
+	 * The scoped block at the foot of this file comes out smaller and still mixed, which is the
+	 * intended stopping point. What stays is geometry, plus every rule that has to reach an
+	 * element through something other than a class on it: the chart's `svg`, the focus stroke on
+	 * a tile's first rect, the links inside the footer, the table's own elements, and the value
+	 * column picked out by position.
+	 *
+	 * `shadow-sm` stays in the markup on the tooltip. Tailwind writes a shadow as two
+	 * declarations in one rule, the real shadows into `--tw-shadow` and a `box-shadow` composing
+	 * that with four ring variables it registers with `@property`, so the computed shadow is six
+	 * layers and four of them are transparent. The member that cannot follow the value into this
+	 * layer is the registration, which no component can write. See spec/todo.md.
+	 */
+	const styles = stylex.create({
+		/** A tile's crate name, over whichever palette colour the tile drew. */
+		tileName: {
+			fill: 'white',
+			fontSize: '0.6875rem',
+			fontWeight: 500,
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer. The anchor underneath takes the hover.
+			pointerEvents: 'none',
+		},
+		tileSize: {
+			fill: 'rgb(255 255 255 / 70%)',
+			fontSize: '0.5625rem',
+			pointerEvents: 'none',
+		},
+		/** The line shown in place of a chart when no dependency has a size. */
+		empty: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.8125rem',
+		},
+		legend: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.75rem',
+		},
+		/**
+		 * The corner every dot in this widget shares -- the legend's, the tooltip's, and the two
+		 * in the table. Each is sized and placed differently and each is drawn the same, so the
+		 * one declaration they have in common is written once.
+		 */
+		dot: {
+			borderRadius: '0.125rem',
+		},
+		footerRight: {
+			fontSize: '0.75rem',
+			// Typography rather than geometry under spec/architecture/css.md, which reads
+			// `white-space` as deciding how the text looks where `overflow` decides how large the
+			// box is. The same call is made on the table's name column below.
+			whiteSpace: 'nowrap',
+		},
+		/** A label beside a figure, quieter than the figure it introduces. */
+		muted: {
+			color: 'var(--color-text-soft)',
+		},
+		links: {
+			fontSize: '0.6875rem',
+		},
+		tooltip: {
+			borderWidth: '0.0625rem',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			borderRadius: '0.375rem',
+			backgroundColor: 'var(--color-paper)',
+			color: 'var(--color-text)',
+			fontSize: '0.75rem',
+			lineHeight: 1.4,
+			// The tooltip follows the pointer, so it must never be under it.
+			pointerEvents: 'none',
+		},
+		tooltipTitle: {
+			fontWeight: 560,
+		},
+		tooltipCount: {
+			color: 'var(--color-text-soft)',
+			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+			fontSize: '0.6875rem',
+		},
+		tooltipGrid: {
+			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+			fontSize: '0.6875rem',
+		},
+		/**
+		 * The crate name in the table. Its `text-align` stays in the block below: the cell rules
+		 * there are unlayered scoped CSS and outrank this layer, so an alignment written here
+		 * would lose to the right-aligned `td` it exists to override.
+		 */
+		nameCell: {
+			fontWeight: 500,
+			whiteSpace: 'nowrap',
+		},
+		optional: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.625rem',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import './palette.css';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
@@ -87,19 +198,21 @@
 					<tbody>
 						{#each sorted as item (item.key)}
 							<tr>
-								<td class="name-cell">
+								<td class="name-cell {stylex.attrs(styles.nameCell).class}">
 									<span
-										class="crate-dot"
+										class="crate-dot {stylex.attrs(styles.dot).class}"
 										style="background: {colors.get(item.dep.name) ?? '#888'}"
 										aria-hidden="true"
 									></span>
 									{item.dep.name}
-									{#if item.dep.optional}<span class="optional">opt</span>{/if}
+									{#if item.dep.optional}<span
+											class="optional {stylex.attrs(styles.optional).class}">opt</span
+										>{/if}
 								</td>
 								<td>{item.dep.version}</td>
 								<td>
 									<span
-										class="kind-dot"
+										class="kind-dot {stylex.attrs(styles.dot).class}"
 										style="background: {kindColor(item.dep)}"
 										aria-hidden="true"
 									></span>
@@ -113,7 +226,7 @@
 				</table>
 			</div>
 		{:else if tiles.length === 0}
-			<p class="empty">No dependency size data available.</p>
+			<p class="empty {stylex.attrs(styles.empty).class}">No dependency size data available.</p>
 		{:else}
 			<div
 				bind:this={chart}
@@ -178,14 +291,14 @@
 								<text
 									x={tile.x + 5}
 									y={tile.y + 15}
-									class="tile-name"
+									class="tile-name {stylex.attrs(styles.tileName).class}"
 									clip-path="url(#{clipPrefix}-{index})">{tile.dep.name}</text
 								>
 								{#if tile.height > 38}
 									<text
 										x={tile.x + 5}
 										y={tile.y + 28}
-										class="tile-size"
+										class="tile-size {stylex.attrs(styles.tileSize).class}"
 										clip-path="url(#{clipPrefix}-{index})">{formatBytes(tile.dep.size ?? 0)}</text
 									>
 								{/if}
@@ -196,30 +309,37 @@
 
 				{#if tip}
 					<div
-						class="tooltip shadow-sm"
+						class="tooltip shadow-sm {stylex.attrs(styles.tooltip).class}"
 						style="left: calc({remFromMeasuredPixels(
 							tip.x,
 						)} + 1rem); top: calc({remFromMeasuredPixels(tip.y)} + 1rem)"
 					>
 						<div class="tooltip-head">
-							<span class="tooltip-dot" style="background: {kindColor(tip.dep)}" aria-hidden="true"
+							<span
+								class="tooltip-dot {stylex.attrs(styles.dot).class}"
+								style="background: {kindColor(tip.dep)}"
+								aria-hidden="true"
 							></span>
-							<span class="tooltip-title">{tip.dep.name}</span>
-							<span class="tooltip-count">{tip.dep.version}</span>
+							<span class="tooltip-title {stylex.attrs(styles.tooltipTitle).class}"
+								>{tip.dep.name}</span
+							>
+							<span class="tooltip-count {stylex.attrs(styles.tooltipCount).class}"
+								>{tip.dep.version}</span
+							>
 						</div>
-						<div class="tooltip-grid">
-							<span class="muted">Kind</span>
+						<div class="tooltip-grid {stylex.attrs(styles.tooltipGrid).class}">
+							<span class="muted {stylex.attrs(styles.muted).class}">Kind</span>
 							<span>{tip.dep.kind}{tip.dep.optional ? ' (optional)' : ''}</span>
-							<span class="muted">Size</span>
+							<span class="muted {stylex.attrs(styles.muted).class}">Size</span>
 							<span>{tip.dep.size == null ? 'unknown' : formatBytes(tip.dep.size)}</span>
-							<span class="muted">Depth</span>
+							<span class="muted {stylex.attrs(styles.muted).class}">Depth</span>
 							<span>{tip.dep.depth === 0 ? 'direct' : `transitive (${tip.dep.depth})`}</span>
 							{#if tip.dep.target}
-								<span class="muted">Target</span>
+								<span class="muted {stylex.attrs(styles.muted).class}">Target</span>
 								<span>{tip.dep.target}</span>
 							{/if}
 							{#if tip.dep.features.length > 0}
-								<span class="muted">Features</span>
+								<span class="muted {stylex.attrs(styles.muted).class}">Features</span>
 								<span
 									>{tip.dep.features.length <= 3
 										? tip.dep.features.join(', ')
@@ -234,19 +354,32 @@
 	</div>
 
 	<div class="footer">
-		<div class="legend" aria-label="Dependency kinds">
+		<div class="legend {stylex.attrs(styles.legend).class}" aria-label="Dependency kinds">
 			{#each Object.entries(KIND_COLORS) as [kind, color] (kind)}
 				<span class="legend-item">
-					<span class="legend-dot" style="background: {color}" aria-hidden="true"></span>
+					<span
+						class="legend-dot {stylex.attrs(styles.dot).class}"
+						style="background: {color}"
+						aria-hidden="true"
+					></span>
 					{kind.charAt(0).toUpperCase() + kind.slice(1)}
 				</span>
 			{/each}
 		</div>
-		<div class="footer-right">
-			{#if features > 0}<span><span class="muted">Features</span> <b>{features}</b></span>{/if}
-			<span><span class="muted">Deps</span> <b>{direct}+{crate.deps.length - direct}</b></span>
-			<span><span class="muted">Size</span> <b>{formatBytes(crate.total_dep_size)}</b></span>
-			<span class="links">
+		<div class="footer-right {stylex.attrs(styles.footerRight).class}">
+			{#if features > 0}<span
+					><span class="muted {stylex.attrs(styles.muted).class}">Features</span> <b>{features}</b
+					></span
+				>{/if}
+			<span
+				><span class="muted {stylex.attrs(styles.muted).class}">Deps</span>
+				<b>{direct}+{crate.deps.length - direct}</b></span
+			>
+			<span
+				><span class="muted {stylex.attrs(styles.muted).class}">Size</span>
+				<b>{formatBytes(crate.total_dep_size)}</b></span
+			>
+			<span class="links {stylex.attrs(styles.links).class}">
 				{#each [[`${URLS.external.registries.cargo}/crates/${crate.name}`, 'crates.io'], [`${URLS.external.rust.lib}/crates/${crate.name}`, 'lib.rs'], [`${URLS.external.rust.docs}/${crate.name}`, 'docs.rs']] as [href, label] (label)}
 					<a class="focus-link" {href} target="_blank" rel="noopener">
 						{label}<ArrowUpRight class="size-2.5" strokeWidth={2} aria-hidden="true" />
@@ -279,21 +412,8 @@
 		stroke: white;
 		stroke-width: 2;
 	}
-	.tile-name {
-		fill: white;
-		font-size: 0.6875rem;
-		font-weight: 500;
-		pointer-events: none;
-	}
-	.tile-size {
-		fill: rgb(255 255 255 / 70%);
-		font-size: 0.5625rem;
-		pointer-events: none;
-	}
 	.empty {
 		margin: 0;
-		color: var(--color-text-soft);
-		font-size: 0.8125rem;
 	}
 	.footer {
 		display: flex;
@@ -306,8 +426,6 @@
 	.legend {
 		display: flex;
 		gap: 0.75rem;
-		color: var(--color-text-soft);
-		font-size: 0.75rem;
 	}
 	.legend-item {
 		display: flex;
@@ -318,26 +436,19 @@
 		display: inline-block;
 		width: 0.625rem;
 		height: 0.625rem;
-		border-radius: 0.125rem;
 	}
 	.footer-right {
 		display: flex;
 		align-items: center;
 		gap: 0.65rem;
-		font-size: 0.75rem;
-		white-space: nowrap;
 	}
 	.footer-right b {
 		color: var(--color-text-strong);
 		font-weight: 500;
 	}
-	.muted {
-		color: var(--color-text-soft);
-	}
 	.links {
 		display: flex;
 		gap: 0.5rem;
-		font-size: 0.6875rem;
 	}
 	.links a {
 		display: inline-flex;
@@ -355,14 +466,7 @@
 		z-index: 10;
 		min-width: 11.25rem;
 		max-width: 16.25rem;
-		border: 0.0625rem solid var(--color-border);
-		border-radius: 0.375rem;
-		background: var(--color-paper);
 		padding: 0.4rem 0.55rem;
-		color: var(--color-text);
-		font-size: 0.75rem;
-		line-height: 1.4;
-		pointer-events: none;
 	}
 	.tooltip-head {
 		display: flex;
@@ -374,23 +478,14 @@
 		width: 0.5rem;
 		height: 0.5rem;
 		flex-shrink: 0;
-		border-radius: 0.125rem;
-	}
-	.tooltip-title {
-		font-weight: 560;
 	}
 	.tooltip-count {
 		margin-left: auto;
-		color: var(--color-text-soft);
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 0.6875rem;
 	}
 	.tooltip-grid {
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr);
 		gap: 0 0.5rem;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 0.6875rem;
 	}
 	.tooltip-grid > :nth-child(even) {
 		overflow-wrap: anywhere;
@@ -422,16 +517,11 @@
 	.name-cell {
 		text-align: left;
 	}
-	.name-cell {
-		font-weight: 500;
-		white-space: nowrap;
-	}
 	.crate-dot {
 		display: inline-block;
 		width: 0.5rem;
 		height: 0.5rem;
 		margin-right: 0.3125rem;
-		border-radius: 0.125rem;
 		vertical-align: middle;
 	}
 	.kind-dot {
@@ -439,13 +529,10 @@
 		width: 0.375rem;
 		height: 0.375rem;
 		margin-right: 0.1875rem;
-		border-radius: 0.125rem;
 		vertical-align: middle;
 	}
 	.optional {
 		margin-left: 0.25rem;
-		color: var(--color-text-soft);
-		font-size: 0.625rem;
 	}
 	@media (max-width: 40rem) {
 		.footer-right {

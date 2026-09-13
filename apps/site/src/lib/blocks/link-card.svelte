@@ -1,3 +1,57 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of a link card. Every colour the token layer names is read as that name.
+	 * Two colours here are not the token layer's -- the title and the arrow are black or white
+	 * against the cover, and `libs/tokens` declares neither -- so they stay in the markup; the
+	 * reason is in spec/todo.md. See spec/architecture/css.md.
+	 *
+	 * So does the brightness the cover takes under a pointer, which is a `group-hover:` and
+	 * cannot be split from the `group` on the anchor above it, and the arrow's blend mode, which
+	 * is carried only when no tone is given: `stylex.attrs()` omits `class` altogether when every
+	 * style handed to it is switched off, and merging that into an attribute writes the word
+	 * `undefined`. Both are in spec/todo.md.
+	 *
+	 * The scoped block at the foot of this file holds the other half of the focus treatment. It
+	 * recolours the cover's own border, and `Picture` renders that image, so there is no element
+	 * of ours to put a class on.
+	 */
+	const styles = stylex.create({
+		/**
+		 * The focus ring, drawn in nothing so the cover's border can be the ring instead. The
+		 * recolour that actually draws it is the rule at the foot of this file.
+		 */
+		link: {
+			outlineWidth: { default: null, ':focus-visible': '0.125rem' },
+			outlineStyle: { default: null, ':focus-visible': 'solid' },
+			outlineColor: { default: null, ':focus-visible': 'transparent' },
+		},
+		/**
+		 * The cover's fade. Unqualified `transition` is twenty-three properties in Tailwind 4.3 --
+		 * the three `--tw-gradient-*` variables and the four discrete ones included -- and only
+		 * `filter` is ever animated here. Nothing sets the rest and they interpolate nothing, but
+		 * the measure of sameness is the computed value and dropping them changes it. Whether the
+		 * visual layer should be naming another framework's private variables is in spec/todo.md.
+		 */
+		media: {
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		/** The title over the cover. */
+		title: {
+			fontSize: '0.875rem',
+			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
+			// 0.875)`: StyleX evaluates a calc and keeps five decimals, and 1.42857 against 14px
+			// lands at 19.99998 rather than at 20. See spec/architecture/css.md.
+			lineHeight: '1.25rem',
+			fontWeight: 500,
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls } from '@canmi/urls';
@@ -117,10 +171,10 @@
 	target="_blank"
 	rel="noopener"
 	aria-describedby={description ? describedBy : undefined}
-	class="group relative isolate block"
+	class="group relative isolate block {stylex.attrs(styles.link).class}"
 >
 	<div
-		class="card-media transition duration-200 {hoverTint === 'black'
+		class="card-media {stylex.attrs(styles.media).class} {hoverTint === 'black'
 			? 'group-hover:brightness-90'
 			: hoverTint === 'white'
 				? 'group-hover:brightness-110'
@@ -130,7 +184,11 @@
 	</div>
 	<div class="absolute right-12 bottom-3 left-3 flex items-center gap-2">
 		<img src={faviconSrc} alt="" aria-hidden="true" loading="lazy" class="h-4 w-4 shrink-0" />
-		<span class="truncate text-sm font-medium {tone === 'dark' ? 'text-black' : 'text-white'}">
+		<span
+			class="truncate {stylex.attrs(styles.title).class} {tone === 'dark'
+				? 'text-black'
+				: 'text-white'}"
+		>
 			{title}
 		</span>
 		<span class="sr-only">, {domain}, {m['support.new-tab']({}, { locale })}</span>
@@ -150,11 +208,11 @@
 <style>
 	/* The card image already carries a 0.125rem border, so the focus ring lands right on
 	top of it: drop the box-shadow ring and recolor that border to the accent, so the
-	0.125rem ring overlaps the border exactly with no gap. */
-	a:focus-visible {
-		outline: 0.125rem solid transparent;
-	}
+	0.125rem ring overlaps the border exactly with no gap.
 
+	The ring's own half of that is a StyleX style at the head of this file, which is where a
+	declaration on an element the component renders belongs. This half stays because `Picture`
+	renders the image and nothing of ours is on it. See spec/architecture/css.md. */
 	a:focus-visible .card-media :global(img) {
 		border-color: var(--color-accent);
 	}

@@ -1,3 +1,64 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the language switcher. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * Two things stayed in the markup that look like they belong here. The row's highlight and
+	 * the mark's ink beside it are gated on `data-highlighted`, which Bits UI writes on the row,
+	 * and StyleX addresses an element by pseudo-class or at-rule rather than by attribute. The
+	 * mark's pair is the harder half: its resting colour and its highlighted one cannot be
+	 * split across layers, because StyleX outranks Tailwind's utilities and a resting colour
+	 * here would win over the `group-data-` variant left behind. Recorded in spec/todo.md.
+	 */
+	const styles = stylex.create({
+		/** The trigger's caret, which turns to face the panel that is about to open. */
+		caret: {
+			// Tailwind's `transition-transform` names four properties, and `motion-reduce`
+			// suppresses the list rather than the shorthand: the duration and the curve below
+			// keep their values there, which is what `transition-none` did and did not do.
+			transitionProperty: {
+				default: 'transform, translate, scale, rotate',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: '200ms',
+			// The curve is Tailwind's `--ease-out`, written out rather than read. Its theme
+			// variables are emitted only for the utilities the markup still names, so a variable
+			// this file is the last reader of would resolve to nothing once the class is gone.
+			transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
+		},
+		// Turning to face the other way is not a move: the box is where it was, and the glyph is
+		// the disclosure's state rather than its position. See spec/architecture/css.md.
+		caretClosed: {
+			rotate: '180deg',
+		},
+		/** One row of the menu. */
+		option: {
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			cursor: 'pointer',
+			fontSize: '0.875rem',
+			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
+			// 0.875)`, which is the same 1.25rem and cannot be written that way here: StyleX
+			// evaluates a calc and keeps five decimals, and 1.42857 against 14px lands at
+			// 19.99998, which Chrome floors to the 1/64px below.
+			lineHeight: '1.25rem',
+			whiteSpace: 'nowrap',
+			// No ring on a row: the menu shows where the keyboard is with the highlight fill
+			// Bits UI drives through `data-highlighted`, and a second marker would say it twice.
+			outlineStyle: 'none',
+		},
+		/** The two ink tiers a row reads in: the view being read, and every other choice. */
+		rowStrong: {
+			color: 'var(--color-text-strong)',
+		},
+		rowSoft: {
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	// Mingcute rather than Lucide for the language marks: it distinguishes machine translation
 	// from translation in general, which is the distinction this menu is about. Iconify icons
@@ -208,9 +269,7 @@
 			<!-- Pulled back into the gap: the glyph carries its own padding inside the viewBox, so
 			     the 0.25rem gap reads as noticeably more than it does beside the mark on the left. -->
 			<IconUpSmall
-				class="-ml-0.5 h-4 w-auto transition-transform duration-200 ease-out motion-reduce:transition-none {open
-					? ''
-					: 'rotate-180'}"
+				class="-ml-0.5 h-4 w-auto {stylex.attrs(styles.caret, !open && styles.caretClosed).class}"
 				aria-hidden="true"
 			/>
 		</span>
@@ -227,22 +286,32 @@
 					aria-label={!choice.current && choice.code === preferred
 						? `${choice.name}, your browser's preference`
 						: undefined}
-					class="group flex w-full cursor-pointer items-center gap-2 px-2 py-1 text-left text-sm whitespace-nowrap outline-none data-[highlighted]:bg-paper-hover"
+					class="group flex w-full items-center gap-2 px-2 py-1 text-left data-[highlighted]:bg-paper-hover {stylex.attrs(
+						styles.option,
+					).class}"
 				>
 					{#snippet children({ checked })}
 						<Mark
-							class="{MARK_SIZE[mark]} shrink-0 text-text-soft group-data-[highlighted]:text-text-strong"
+							class="{MARK_SIZE[
+								mark
+							]} shrink-0 text-text-soft group-data-[highlighted]:text-text-strong"
 							aria-hidden="true"
 						/>
-						<span class="flex-1 {checked ? 'text-text-strong' : 'text-text-soft'}"
+						<span class="flex-1 {stylex.attrs(checked ? styles.rowStrong : styles.rowSoft).class}"
 							>{choice.name}</span
 						>
 						<!-- One marker at most: being the current view outranks being the browser's
 						     preference, and showing both on one row would say the same thing twice. -->
 						{#if checked}
-							<Check class="size-3.25 shrink-0 text-text-strong" aria-hidden="true" />
+							<Check
+								class="size-3.25 shrink-0 {stylex.attrs(styles.rowStrong).class}"
+								aria-hidden="true"
+							/>
 						{:else if choice.code === preferred}
-							<Compass class="size-3.25 shrink-0 text-text-soft" aria-hidden="true" />
+							<Compass
+								class="size-3.25 shrink-0 {stylex.attrs(styles.rowSoft).class}"
+								aria-hidden="true"
+							/>
 						{/if}
 					{/snippet}
 				</DropdownMenu.RadioItem>

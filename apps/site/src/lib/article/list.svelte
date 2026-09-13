@@ -1,3 +1,25 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the writing list. Every colour is the token variable `libs/tokens` already
+	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * Almost nothing lands here, and that is the shape of this component: it is a section, a
+	 * heading and a loop, and everything that has an appearance is inside the card it renders.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/** The section's heading. `selectable` beside it is the vocabulary's, not this. */
+		heading: {
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext';
 	import { animate } from 'motion';
@@ -149,7 +171,9 @@
      section does it and one fewer place the same string is written. The id is also what a caller
      needs to reach this heading from outside. -->
 <section bind:this={listEl} aria-labelledby="writing-heading" class="mt-16">
-	<h2 id="writing-heading" class="selectable mb-3 font-medium text-text-strong">{heading}</h2>
+	<h2 id="writing-heading" class="selectable mb-3 {stylex.attrs(styles.heading).class}">
+		{heading}
+	</h2>
 	<div>
 		{#each articles as article (article.path)}
 			<ArticleCard

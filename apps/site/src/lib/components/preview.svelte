@@ -1,3 +1,72 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the three elements this component renders itself. Every colour is the
+	 * token variable `libs/tokens` already declares, so nothing here can change one. See
+	 * spec/architecture/css.md.
+	 *
+	 * Most of this component's appearance is not here and cannot be. The ground, the stage and the
+	 * close are portalled out of the tree by Bits UI and are reached with `:global` in the block at
+	 * the foot of this file, which is also where the ground's literal black stays: that colour is
+	 * a decision argued in spec/styling.md rather than a palette entry, and the close is chrome on
+	 * a layer that is always dark for the same reason.
+	 */
+	const styles = stylex.create({
+		frame: {
+			// One cursor over the whole of it, because every part of it does the one thing. Visual
+			// under the rule in spec/architecture/css.md: it moves nothing, it says what the element
+			// is to a pointer.
+			cursor: 'zoom-in',
+		},
+		/**
+		 * The control over the picture, with no chrome of its own and out of the pointer's way.
+		 *
+		 * Hit-testing it would put an element between the pointer and the drawing, and a node that
+		 * cannot be hovered is the thing this arrangement was built to avoid. Focusable is
+		 * unaffected by `pointer-events`, which is visual under the rule in
+		 * spec/architecture/css.md.
+		 *
+		 * The border is written as three longhands rather than as the `border: 0` it replaces,
+		 * because the shorthand also returned the style to its initial `none` -- and Tailwind's
+		 * preflight declares `border: 0 solid` on everything, so leaving the style out would let
+		 * `solid` stand where `none` stood before.
+		 */
+		openControl: {
+			borderWidth: '0',
+			borderStyle: 'none',
+			borderColor: 'currentColor',
+			backgroundColor: 'transparent',
+			backgroundImage: 'none',
+			pointerEvents: 'none',
+		},
+		figure: {
+			// What a transparent picture keeps: the ground it was drawn against, which is the page's
+			// own and therefore the theme's. A diagram is ink on light or light on dark and has to
+			// stay whichever it is; the black behind it does not move either way. An opaque
+			// photograph covers this and never knows it is there.
+			backgroundColor: 'var(--color-page)',
+			// The transform this animates is not here: it is written against a data attribute the
+			// portalled stage carries, which is an ancestor, and an ancestor is what this layer
+			// cannot see. Reduced motion is the same suppression the block used to write as
+			// `transition: none`, which is four longhands rather than one.
+			transitionProperty: {
+				default: 'transform',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '200ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'cubic-bezier(0.22, 1, 0.36, 1)',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+			transitionDelay: '0s',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
 	import { Dialog } from 'bits-ui';
@@ -82,7 +151,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="preview-frame"
+	class="preview-frame {stylex.attrs(styles.frame).class}"
 	style:border-radius={radius}
 	onclick={() => (open = true)}
 >
@@ -92,7 +161,7 @@
 	     no chance of two. `pointer-events: none` is what keeps it off the drawing. -->
 	<button
 		type="button"
-		class="preview-open focus-ring"
+		class="preview-open focus-ring {stylex.attrs(styles.openControl).class}"
 		style:border-radius={radius}
 		aria-label={label}
 	></button>
@@ -108,7 +177,7 @@
 		>
 			<Dialog.Title class="sr-only">{title}</Dialog.Title>
 			<div
-				class="preview-figure"
+				class="preview-figure {stylex.attrs(styles.figure).class}"
 				class:preview-measured={width && height}
 				style:--picture-width={width}
 				style:--picture-height={height}
@@ -126,22 +195,16 @@
 	.preview-frame {
 		position: relative;
 		display: block;
-		/* One cursor over the whole of it, because every part of it does the one thing. */
-		cursor: zoom-in;
 	}
 
-	/* Over the picture and out of the pointer's way. It exists to be reached by Tab, named, and
-	   given the focus ring; hit-testing it would put an element between the pointer and the
-	   drawing, and a node that cannot be hovered is the thing this arrangement was built to
-	   avoid. Focusable is unaffected by `pointer-events`. */
+	/* Over the picture, in geometry only. It exists to be reached by Tab, named, and given the
+	   focus ring; what keeps it off the drawing, and what keeps it from drawing any chrome of its
+	   own, is the visual layer's and sits at the head of this file. */
 	.preview-open {
 		position: absolute;
 		inset: 0;
 		margin: 0;
-		border: 0;
-		background: none;
 		padding: 0;
-		pointer-events: none;
 	}
 
 	/* Pure black, in both themes, behind every picture. The page's two grounds are a warm
@@ -159,14 +222,8 @@
 	}
 
 	.preview-figure {
-		/* What a transparent picture keeps: the ground it was drawn against, which is the page's
-		   own and therefore the theme's. A diagram is ink on light or light on dark and has to
-		   stay whichever it is; the black behind it does not move either way. An opaque
-		   photograph covers this and never knows it is there. */
-		background: var(--color-page);
 		max-width: 100vw;
 		max-height: 100dvh;
-		transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
 	/* Two terms, and the smaller of them wins: the picture reaches the window's left and right
@@ -229,10 +286,11 @@
 		transform: scale(0.97);
 	}
 
+	/* The picture's own suppression is a reduced-motion branch in the visual layer; these two are
+	   here because the transitions they suppress are. */
 	@media (prefers-reduced-motion: reduce) {
 		:global(.preview-ground),
-		:global(.preview-stage),
-		.preview-figure {
+		:global(.preview-stage) {
 			transition: none;
 		}
 	}

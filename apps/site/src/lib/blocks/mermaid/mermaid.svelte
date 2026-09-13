@@ -1,3 +1,72 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * Nothing here reaches the diagram. Mermaid writes the SVG and its own palette is a
+	 * component-local mirror in palette.css, kept where it is for the reason spec/styling.md gives.
+	 * What is left in the block at the foot of this file is the frame's geometry, the two keyframes
+	 * -- Svelte rewrites a keyframe's name and nothing outside that block can name it -- and the
+	 * resting opacity one of them interpolates from.
+	 */
+	const styles = stylex.create({
+		/** The bordered box around the whole block. */
+		frame: {
+			borderRadius: '0.75rem',
+			borderWidth: '1px',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			backgroundColor: 'var(--color-paper)',
+		},
+		/** The scrolling area inside it, which repeats the frame's corner so the clip agrees. */
+		stage: {
+			borderRadius: '0.75rem',
+		},
+		/**
+		 * The sketch shown while the diagram is being drawn.
+		 *
+		 * Only the blur is here. Its opacity is the resting end of `mermaid-breathe`, which reads
+		 * that value as the animation's implicit start, so the two mean nothing apart -- and the
+		 * keyframe cannot leave the block that names it. See spec/todo.md.
+		 */
+		placeholder: {
+			filter: 'blur(0.3rem)',
+		},
+		loadingLabel: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.75rem',
+			lineHeight: 1,
+			color: 'var(--color-text-soft)',
+		},
+		/** One of the sketch's two boxes. Which end it sits at is the block's. */
+		node: {
+			borderWidth: '0.0625rem',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border-strong)',
+			borderRadius: '0.5rem',
+			backgroundColor: 'var(--color-paper)',
+		},
+		/** The line between them, drawn as one edge. */
+		path: {
+			borderBlockStartWidth: '0.125rem',
+			borderBlockStartStyle: 'solid',
+			borderBlockStartColor: 'var(--color-border-strong)',
+		},
+		/** The diagram source, shown instead when Mermaid could not draw it. */
+		source: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.8125rem',
+			lineHeight: 1.4,
+			color: 'var(--color-text-soft)',
+			// The ring belongs to the stage, which `focus-ring-within` draws around the whole box;
+			// a second one on the source inside it would read as two controls.
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+		},
+	});
+</script>
+
 <script lang="ts">
 	import './palette.css';
 	import { renderMermaid } from './mermaid';
@@ -43,12 +112,10 @@
 	});
 </script>
 
-<div
-	bind:this={root}
-	class="mermaid-block overflow-hidden rounded-xl border border-border bg-paper"
->
+<div bind:this={root} class="mermaid-block overflow-hidden {stylex.attrs(styles.frame).class}">
 	<div
-		class="mermaid-stage focus-ring-within relative overflow-x-auto rounded-xl p-5"
+		class="mermaid-stage focus-ring-within relative overflow-x-auto p-5 {stylex.attrs(styles.stage)
+			.class}"
 		class:mermaid-intrinsic-stage={ratio !== undefined}
 		aria-busy={!svg && !failed}
 	>
@@ -70,7 +137,7 @@
 		{:else if failed}
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex (the source fallback can overflow
 			     horizontally and therefore needs to be reachable by a keyboard) -->
-			<pre tabindex="0"><code>{source}</code></pre>
+			<pre tabindex="0" class={stylex.attrs(styles.source).class}><code>{source}</code></pre>
 		{:else}
 			<div
 				class="mermaid-loading"
@@ -78,12 +145,17 @@
 				style:aspect-ratio={ratio}
 				role="status"
 			>
-				<div class="mermaid-placeholder" aria-hidden="true">
-					<span class="mermaid-path"></span>
-					<span class="mermaid-node mermaid-node-start"></span>
-					<span class="mermaid-node mermaid-node-end"></span>
+				<div
+					class="mermaid-placeholder {stylex.attrs(styles.placeholder).class}"
+					aria-hidden="true"
+				>
+					<span class="mermaid-path {stylex.attrs(styles.path).class}"></span>
+					<span class="mermaid-node mermaid-node-start {stylex.attrs(styles.node).class}"></span>
+					<span class="mermaid-node mermaid-node-end {stylex.attrs(styles.node).class}"></span>
 				</div>
-				<span class="mermaid-loading-label">{loadingLabel}</span>
+				<span class="mermaid-loading-label {stylex.attrs(styles.loadingLabel).class}"
+					>{loadingLabel}</span
+				>
 			</div>
 		{/if}
 	</div>
@@ -100,10 +172,12 @@
 		min-block-size: 8rem;
 	}
 
+	/* The opacity is here because the keyframe below reads it as its own start, and the keyframe
+	   is here because Svelte rewrites its name and no other layer can spell it. See
+	   spec/architecture/css.md and spec/todo.md. */
 	.mermaid-placeholder {
 		position: absolute;
 		inset: 1.25rem;
-		filter: blur(0.3rem);
 		opacity: 0.48;
 		animation: mermaid-breathe 1.6s ease-in-out infinite alternate;
 	}
@@ -119,21 +193,16 @@
 		display: grid;
 		inset: 0;
 		place-items: center;
-		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		line-height: 1;
-		color: var(--color-text-soft);
 	}
 
+	/* The translate is placement: it is what centres the box on the line, and the box moves if
+	   it goes. See spec/architecture/css.md. */
 	.mermaid-node {
 		position: absolute;
 		top: 50%;
 		width: 5.5rem;
 		height: 2.75rem;
 		translate: 0 -50%;
-		border: 0.0625rem solid var(--color-border-strong);
-		border-radius: 0.5rem;
-		background: var(--color-paper);
 	}
 
 	.mermaid-node-start {
@@ -149,7 +218,6 @@
 		top: 50%;
 		left: calc(12% + 5.5rem);
 		right: calc(12% + 5.5rem);
-		border-block-start: 0.125rem solid var(--color-border-strong);
 	}
 
 	.mermaid-result {
@@ -167,14 +235,6 @@
 	pre {
 		min-inline-size: max-content;
 		margin: 0;
-		font-family: var(--font-mono);
-		font-size: 0.8125rem;
-		line-height: 1.4;
-		color: var(--color-text-soft);
-	}
-
-	pre:focus-visible {
-		outline: none;
 	}
 
 	@keyframes mermaid-breathe {

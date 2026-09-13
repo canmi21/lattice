@@ -1,3 +1,111 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file keeps its whole length, and none of it is a
+	 * leftover. The overlay and the panel are surfaces Bits UI portals out of this component's
+	 * tree, the match marks come from `markup` rather than from any element here, the keyframe
+	 * carries a name only Svelte can resolve, and the browser's own clear button on a search
+	 * field is reached through a pseudo-element no class can sit on. What is left beside them is
+	 * the body's overflow, which is geometry.
+	 *
+	 * `shadow-lg` stays in the markup with them, and it is the one thing here that looks like it
+	 * should have moved. Tailwind writes a shadow as two declarations in one rule: the real
+	 * shadows into `--tw-shadow`, and a `box-shadow` composing that with four ring variables it
+	 * registers with `@property` and an initial value of `0 0 #0000`. The computed shadow is
+	 * therefore six layers, four of them transparent, and a `boxShadow` here holding only the
+	 * two real ones renders identically and computes differently. The pair is written as a unit
+	 * by something else, and the member that cannot move is the registration, so the set stays
+	 * whole where it is. Recorded in spec/todo.md.
+	 */
+	const styles = stylex.create({
+		/** The floating panel: its edge, its ground and the ink everything inside inherits. */
+		panel: {
+			borderRadius: '0.75rem',
+			borderWidth: '1px',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			backgroundColor: 'var(--color-paper)',
+			color: 'var(--color-text)',
+		},
+		/**
+		 * The field's row. `border-b` drew one edge and `border-border` coloured all four, so the
+		 * colour is written on all four here as well: the other three are zero-width and
+		 * invisible, and they are still what the element computes. Same for the footer below.
+		 */
+		field: {
+			borderBottomWidth: '1px',
+			borderBottomStyle: 'solid',
+			borderColor: 'var(--color-border)',
+		},
+		fieldIcon: {
+			color: 'var(--color-text-soft)',
+		},
+		query: {
+			backgroundColor: 'transparent',
+			fontSize: '0.9375rem',
+			color: 'var(--color-text-strong)',
+			outlineStyle: 'none',
+			'::placeholder': {
+				color: 'var(--color-text-soft)',
+			},
+		},
+		/** The in-flight dot. Its beat is a keyframe and stays in the block below. */
+		pulse: {
+			borderRadius: 'calc(infinity * 1px)',
+			backgroundColor: 'var(--color-text-soft)',
+		},
+		groupTitle: {
+			fontSize: '0.9375rem',
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+		row: {
+			borderRadius: '0.375rem',
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. Whether the visual layer should
+			// be naming another framework's private variables is in spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '100ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		/**
+		 * The row under the cursor or the arrow keys. A bare fill with no `(hover: hover)` around
+		 * it, because the state it answers is the component's own `active` rather than a pointer:
+		 * the keyboard moves it too, and the markup gated it on nothing.
+		 */
+		rowActive: {
+			backgroundColor: 'var(--color-paper-hover)',
+		},
+		hitHeading: {
+			fontSize: '0.8125rem',
+			color: 'var(--color-text)',
+		},
+		hitSnippet: {
+			fontSize: '0.8125rem',
+			lineHeight: 1.375,
+			color: 'var(--color-text-soft)',
+		},
+		/** The one line the body shows when it has no results: failed, empty or waiting. */
+		state: {
+			fontSize: '0.8125rem',
+			color: 'var(--color-text-soft)',
+		},
+		footer: {
+			borderTopWidth: '1px',
+			borderTopStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			fontSize: '0.6875rem',
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import SearchIcon from '@lucide/svelte/icons/search';
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
@@ -252,12 +360,17 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="search-overlay fixed inset-0 z-60" />
 		<Dialog.Content
-			class="search-panel fixed top-[12vh] left-1/2 z-60 flex max-h-[70vh] w-[min(38rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-border bg-paper text-text shadow-lg"
+			class="search-panel fixed top-[12vh] left-1/2 z-60 flex max-h-[70vh] w-[min(38rem,calc(100vw-2rem))] flex-col overflow-hidden shadow-lg {stylex.attrs(
+				styles.panel,
+			).class}"
 		>
 			<Dialog.Title class="sr-only">{m['search.title']({}, { locale })}</Dialog.Title>
 
-			<div class="flex shrink-0 items-center gap-3 border-b border-border px-4">
-				<SearchIcon class="size-4 shrink-0 text-text-soft" aria-hidden="true" />
+			<div class="flex shrink-0 items-center gap-3 px-4 {stylex.attrs(styles.field).class}">
+				<SearchIcon
+					class="size-4 shrink-0 {stylex.attrs(styles.fieldIcon).class}"
+					aria-hidden="true"
+				/>
 				<input
 					bind:this={input}
 					bind:value={query}
@@ -269,10 +382,10 @@
 					spellcheck="false"
 					placeholder={m['search.placeholder']({}, { locale })}
 					aria-label={m['search.title']({}, { locale })}
-					class="min-w-0 flex-1 bg-transparent py-3.5 text-[0.9375rem] text-text-strong outline-none placeholder:text-text-soft"
+					class="min-w-0 flex-1 py-3.5 {stylex.attrs(styles.query).class}"
 				/>
 				{#if searching}
-					<span class="search-pulse size-1.5 shrink-0 rounded-full bg-text-soft"></span>
+					<span class="search-pulse size-1.5 shrink-0 {stylex.attrs(styles.pulse).class}"></span>
 				{/if}
 			</div>
 
@@ -285,7 +398,7 @@
 							<li class="mb-1 last:mb-0">
 								<!-- The title once, for the whole group. Repeating it on every section spent a line
 								     each time telling the reader something the first line already told them. -->
-								<p class="truncate px-2.5 pt-2 pb-1 text-[0.9375rem] font-medium text-text-strong">
+								<p class="truncate px-2.5 pt-2 pb-1 {stylex.attrs(styles.groupTitle).class}">
 									{group.title}
 								</p>
 								<ul>
@@ -296,17 +409,19 @@
 												type="button"
 												onclick={() => open_(hit)}
 												onmousemove={() => (active = index)}
-												class="focus-ring block w-full rounded-md px-2.5 py-1.5 text-left transition-colors duration-100"
-												class:bg-paper-hover={index === active}
+												class="focus-ring block w-full px-2.5 py-1.5 text-left {stylex.attrs(
+													styles.row,
+													index === active && styles.rowActive,
+												).class}"
 											>
 												{#if hit.heading}
-													<span class="block truncate text-[0.8125rem] text-text">
+													<span class="block truncate {stylex.attrs(styles.hitHeading).class}">
 														<!-- Escaped in `markup`; the only tags here are the ones it inserted. -->
 														{@html markup(hit._highlightResult?.heading?.value, hit.heading)}
 													</span>
 												{/if}
 												<span
-													class="block line-clamp-2 text-[0.8125rem] leading-snug text-text-soft"
+													class="block line-clamp-2 {stylex.attrs(styles.hitSnippet).class}"
 												>
 													{@html markup(hit._snippetResult?.text?.value, hit.text.slice(0, 160))}
 												</span>
@@ -318,7 +433,7 @@
 						{/each}
 					</ul>
 				{:else}
-					<p class="px-4 py-6 text-center text-[0.8125rem] text-text-soft">
+					<p class="px-4 py-6 text-center {stylex.attrs(styles.state).class}">
 						{#if failed}
 							{m['search.failed']({}, { locale })}
 						{:else if empty}
@@ -331,7 +446,9 @@
 			</div>
 
 			<div
-				class="flex shrink-0 items-center justify-between gap-3 border-t border-border px-4 py-2 text-[0.6875rem] text-text-soft"
+				class="flex shrink-0 items-center justify-between gap-3 px-4 py-2 {stylex.attrs(
+					styles.footer,
+				).class}"
 			>
 				<span class="flex items-center gap-1.5">
 					<kbd class="search-key">↑</kbd>

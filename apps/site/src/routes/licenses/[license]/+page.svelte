@@ -1,3 +1,78 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of one licence's page. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The page is the third of the licence surface's directory pages and writes the same trail,
+	 * the same heading and the same tabular count as the two above it, so those styles say what
+	 * their styles say, name for name. They are written out rather than shared: a visual
+	 * constant with two consumers wants a module of its own, and where that module should live
+	 * is the question spec/todo.md is already holding.
+	 */
+	const styles = stylex.create({
+		page: {
+			backgroundColor: 'var(--color-page)',
+			color: 'var(--color-text)',
+		},
+		backLink: {
+			fontSize: '0.9375rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. Whether the visual layer should
+			// be naming another framework's private variables is in spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		/**
+		 * The licence identifier as a heading. It carries a break the two directory titles do
+		 * not, because this one is an SPDX expression rather than a word: `break-words` is how
+		 * the package page's `name` and `spdx` already write the same need.
+		 */
+		title: {
+			overflowWrap: 'break-word',
+			color: 'var(--color-text-strong)',
+		},
+		/** The one opening paragraph, which counts the packages behind the sections below. */
+		summary: {
+			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
+			// rather than read: that variable is emitted only for the utilities that name it, so
+			// reading it here would leave this line depending on a class somewhere else in the
+			// markup. The value terminates, so there is no arithmetic to round.
+			lineHeight: 1.625,
+			textWrap: 'pretty',
+			color: 'var(--color-text-soft)',
+		},
+		actionLink: {
+			fontSize: '0.9375rem',
+		},
+		sectionHeading: {
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+		/**
+		 * The package count beside a registry's name. A step smaller than the same count on the
+		 * two directory pages, which is what the markup said before this moved.
+		 */
+		count: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.8125rem',
+			fontVariantNumeric: 'tabular-nums',
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls, URLS } from '@canmi/urls';
@@ -39,12 +114,12 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen bg-page text-text">
+<main class="min-h-screen {stylex.attrs(styles.page).class}">
 	<article class="mx-auto max-w-180 px-6 py-24">
 		<nav aria-label={m['licenses.breadcrumb']({}, { locale })}>
 			<a
 				href="/licenses"
-				class="focus-link inline-flex items-center gap-1.5 text-[0.9375rem] text-text-soft transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+				class="focus-link inline-flex items-center gap-1.5 {stylex.attrs(styles.backLink).class}"
 			>
 				<ArrowLeft class="size-4" aria-hidden="true" />
 				<span>{m['licenses.all_licenses']({}, { locale })}</span>
@@ -52,8 +127,8 @@
 		</nav>
 
 		<header class="mt-8">
-			<h1 class="break-words text-text-strong">{data.license.license}</h1>
-			<p class="mt-4 leading-relaxed text-pretty text-text-soft">
+			<h1 class={stylex.attrs(styles.title).class}>{data.license.license}</h1>
+			<p class="mt-4 {stylex.attrs(styles.summary).class}">
 				{m['licenses.license_summary']({ count }, { locale })}
 			</p>
 			<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">
@@ -61,7 +136,7 @@
 					href={data.spdxHref}
 					target="_blank"
 					rel="noopener"
-					class="quiet-control text-[0.9375rem]"
+					class="quiet-control {stylex.attrs(styles.actionLink).class}"
 				>
 					<span class="focus-link-inner inline-flex items-center gap-1.5">
 						<ExternalLink class="size-3.5" aria-hidden="true" />
@@ -75,10 +150,10 @@
 		{#each data.groups as group (group.registry)}
 			<section aria-labelledby="registry-{group.registry}" class="mt-16">
 				<div class="mb-3 flex items-baseline justify-between gap-4">
-					<h2 id="registry-{group.registry}" class="font-medium text-text-strong">{group.name}</h2>
-					<span class="font-mono text-[0.8125rem] tabular-nums text-text-soft"
-						>{compactCount(group.rows.length)}</span
-					>
+					<h2 id="registry-{group.registry}" class={stylex.attrs(styles.sectionHeading).class}>
+						{group.name}
+					</h2>
+					<span class={stylex.attrs(styles.count).class}>{compactCount(group.rows.length)}</span>
 				</div>
 				<PackageList rows={group.rows} {locale} license={data.license.license} />
 			</section>

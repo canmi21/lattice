@@ -1,3 +1,115 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the Tokei figure. Every interface colour is the token variable
+	 * `libs/tokens` already declares, so nothing here can change one. See
+	 * spec/architecture/css.md.
+	 *
+	 * The two whites in the block below are the exception and they did not move. They ink a
+	 * label sitting on a treemap tile whose ground is the language's own colour, so they answer
+	 * to the chart's palette rather than to the site's -- and a colour that no token declares is
+	 * one this layer cannot state without becoming the second place a colour lives. Recorded in
+	 * spec/todo.md, beside the two the link card kept for the same reason.
+	 *
+	 * What stays in the block at the foot of this file is geometry, and every rule that reaches
+	 * an element through something a class cannot say: a descendant of the legend, of the
+	 * summary or of the nested row; the table's own elements; and the tooltip grid's even
+	 * children, which are counted rather than named. `shadow-sm` stays in the markup for the
+	 * reason spec/todo.md records: Tailwind composes a shadow through five private variables and
+	 * sets a sixth, and neither writing those nor dropping them is this migration's to choose.
+	 */
+	const styles = stylex.create({
+		/** A treemap tile's language name, over the tile's own colour. */
+		tileName: {
+			fontSize: '0.75rem',
+			fontWeight: 500,
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			pointerEvents: 'none',
+		},
+		/** Its line count, a step quieter on the same ground. */
+		tileSize: {
+			fontSize: '0.625rem',
+			pointerEvents: 'none',
+		},
+		/** One of the bar chart's horizontal rules. */
+		gridLine: {
+			stroke: 'var(--color-border)',
+			// A string rather than a number: SVG reads an unitless stroke width in user units,
+			// and StyleX appends `px` to a number.
+			strokeWidth: '1',
+		},
+		/** Every word the bar chart writes: the ticks, the totals and the language names. */
+		axisLabel: {
+			fill: 'var(--color-text-soft)',
+			fontSize: '0.6875rem',
+		},
+		legend: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.75rem',
+		},
+		summary: {
+			fontSize: '0.75rem',
+		},
+		/** The quieter half of a labelled figure, in the summary and in the tooltip both. */
+		muted: {
+			color: 'var(--color-text-soft)',
+		},
+		/** The panel that follows the pointer across the chart. */
+		tooltip: {
+			borderWidth: '0.0625rem',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			borderRadius: '0.375rem',
+			backgroundColor: 'var(--color-paper)',
+			color: 'var(--color-text)',
+			fontSize: '0.75rem',
+			lineHeight: 1.4,
+			pointerEvents: 'none',
+		},
+		tooltipDot: {
+			borderRadius: '0.125rem',
+		},
+		tooltipTitle: {
+			fontWeight: 560,
+		},
+		/**
+		 * The line count beside it.
+		 *
+		 * The stack is a literal because the figures it sets are the chart's own rather than the
+		 * site's prose, and it is written twice: the tooltip's grid sets the same one on its
+		 * even children, which are counted rather than named and so stay in the block below.
+		 */
+		tooltipCount: {
+			color: 'var(--color-text-soft)',
+			fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+			fontSize: '0.6875rem',
+		},
+		tooltipBar: {
+			borderRadius: '0.09375rem',
+		},
+		tooltipGrid: {
+			fontSize: '0.6875rem',
+		},
+		nested: {
+			borderTopWidth: '0.0625rem',
+			borderTopStyle: 'solid',
+			borderTopColor: 'var(--color-border)',
+		},
+		languageCell: {
+			fontWeight: 500,
+			whiteSpace: 'nowrap',
+		},
+		languageDot: {
+			borderRadius: '0.125rem',
+		},
+		breakdown: {
+			borderRadius: '0.1875rem',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { hierarchy, treemap } from 'd3-hierarchy';
@@ -100,9 +212,9 @@
 						<tbody>
 							{#each sorted as stat (stat.lang)}
 								<tr>
-									<td class="language-cell">
+									<td class="language-cell {stylex.attrs(styles.languageCell).class}">
 										<span
-											class="language-dot"
+											class="language-dot {stylex.attrs(styles.languageDot).class}"
 											style="background: {langColor(stat.lang)}"
 											aria-hidden="true"
 										></span>
@@ -117,7 +229,7 @@
 									<td title={stat.blanks.toLocaleString('en-US')}>{compactCount(stat.blanks)}</td>
 									<td>
 										<div
-											class="breakdown"
+											class="breakdown {stylex.attrs(styles.breakdown).class}"
 											aria-label="{percent(stat.code, stat.lines)}% code, {percent(
 												stat.comments,
 												stat.lines,
@@ -164,8 +276,18 @@
 							<g transform="translate({BAR_MARGIN.left} {BAR_MARGIN.top})">
 								{#each ticks as tick (tick)}
 									{@const tickY = y(tick)}
-									<line x1="0" x2={barInnerWidth} y1={tickY} y2={tickY} class="grid-line" />
-									<text x="-8" y={tickY + 4} text-anchor="end" class="axis-label"
+									<line
+										x1="0"
+										x2={barInnerWidth}
+										y1={tickY}
+										y2={tickY}
+										class="grid-line {stylex.attrs(styles.gridLine).class}"
+									/>
+									<text
+										x="-8"
+										y={tickY + 4}
+										text-anchor="end"
+										class="axis-label {stylex.attrs(styles.axisLabel).class}"
 										>{compactCount(tick)}</text
 									>
 								{/each}
@@ -211,14 +333,15 @@
 												x={barX + barWidth / 2}
 												y={y(stat.lines) - 5}
 												text-anchor="middle"
-												class="axis-label">{compactCount(stat.lines)}</text
+												class="axis-label {stylex.attrs(styles.axisLabel).class}"
+												>{compactCount(stat.lines)}</text
 											>
 										{/if}
 									</g>
 									<text
 										transform="translate({barX + barWidth / 2} {barInnerHeight + 10}) rotate(-45)"
 										text-anchor="end"
-										class="axis-label">{stat.lang}</text
+										class="axis-label {stylex.attrs(styles.axisLabel).class}">{stat.lang}</text
 									>
 								{/each}
 							</g>
@@ -263,13 +386,13 @@
 										<text
 											x={tile.x + 6}
 											y={tile.y + 16}
-											class="tile-name"
+											class="tile-name {stylex.attrs(styles.tileName).class}"
 											clip-path="url(#{clipPrefix}-{index})">{tile.stat.lang}</text
 										>
 										{#if tile.height > 40}<text
 												x={tile.x + 6}
 												y={tile.y + 28}
-												class="tile-size"
+												class="tile-size {stylex.attrs(styles.tileSize).class}"
 												clip-path="url(#{clipPrefix}-{index})"
 												>{compactCount(tile.stat.lines)} lines</text
 											>{/if}
@@ -302,28 +425,33 @@
 						{@const commentPercent = percent(tip.stat.comments, tip.stat.lines)}
 						{@const blankPercent = Math.max(0, 100 - codePercent - commentPercent)}
 						<div
-							class="tooltip shadow-sm"
+							class="tooltip shadow-sm {stylex.attrs(styles.tooltip).class}"
 							style="left: calc({remFromMeasuredPixels(
 								tip.x,
 							)} + 1rem); top: calc({remFromMeasuredPixels(tip.y)} + 1rem)"
 						>
 							<div class="tooltip-head">
 								<span
-									class="tooltip-dot"
+									class="tooltip-dot {stylex.attrs(styles.tooltipDot).class}"
 									style="background: {langColor(tip.stat.lang)}"
 									aria-hidden="true"
 								></span>
-								<span class="tooltip-title">{tip.stat.lang}</span>
-								<span class="tooltip-count">{tip.stat.lines.toLocaleString('en-US')} lines</span>
+								<span class="tooltip-title {stylex.attrs(styles.tooltipTitle).class}"
+									>{tip.stat.lang}</span
+								>
+								<span class="tooltip-count {stylex.attrs(styles.tooltipCount).class}"
+									>{tip.stat.lines.toLocaleString('en-US')} lines</span
+								>
 							</div>
-							<div class="tooltip-bar">
+							<div class="tooltip-bar {stylex.attrs(styles.tooltipBar).class}">
 								<span style="width: {codePercent}%; background: {FUNCTION_COLORS.code}"></span>
 								<span style="width: {commentPercent}%; background: {FUNCTION_COLORS.comments}"
 								></span>
 								<span style="width: {blankPercent}%; background: {FUNCTION_COLORS.blanks}"></span>
 							</div>
-							<div class="tooltip-grid">
-								<span class="muted">Files</span><span>{tip.stat.files.toLocaleString('en-US')}</span
+							<div class="tooltip-grid {stylex.attrs(styles.tooltipGrid).class}">
+								<span class="muted {stylex.attrs(styles.muted).class}">Files</span><span
+									>{tip.stat.files.toLocaleString('en-US')}</span
 								>
 								<span style="color: {FUNCTION_COLORS.code}">Code</span><span
 									>{tip.stat.code.toLocaleString('en-US')} <small>{codePercent}%</small></span
@@ -337,7 +465,7 @@
 								>
 							</div>
 							{#if tip.stat.nested.length > 0}
-								<div class="nested">
+								<div class="nested {stylex.attrs(styles.nested).class}">
 									{#each tip.stat.nested as nested (nested.lang)}
 										<span
 											><i style="background: {langColor(nested.lang)}"></i>{nested.lang}
@@ -353,7 +481,7 @@
 		</div>
 
 		<div class="bottom-bar">
-			<div class="legend" aria-label="Line kinds">
+			<div class="legend {stylex.attrs(styles.legend).class}" aria-label="Line kinds">
 				{#each Object.entries(FUNCTION_COLORS) as [kind, color] (kind)}
 					<span
 						><i style="background: {color}" aria-hidden="true"></i>{kind.charAt(0).toUpperCase() +
@@ -361,12 +489,21 @@
 					>
 				{/each}
 			</div>
-			<div class="summary">
-				<span><span class="muted">Total files</span> <b>{compactCount(totals.files)}</b></span>
-				<span><span class="muted">Total lines</span> <b>{compactCount(totals.lines)}</b></span>
-				<span><span class="muted">Code lines</span> <b>{compactCount(totals.code)}</b></span>
+			<div class="summary {stylex.attrs(styles.summary).class}">
 				<span
-					><span class="muted">Comment ratio</span>
+					><span class="muted {stylex.attrs(styles.muted).class}">Total files</span>
+					<b>{compactCount(totals.files)}</b></span
+				>
+				<span
+					><span class="muted {stylex.attrs(styles.muted).class}">Total lines</span>
+					<b>{compactCount(totals.lines)}</b></span
+				>
+				<span
+					><span class="muted {stylex.attrs(styles.muted).class}">Code lines</span>
+					<b>{compactCount(totals.code)}</b></span
+				>
+				<span
+					><span class="muted {stylex.attrs(styles.muted).class}">Comment ratio</span>
 					<b>{percent(totals.comments, totals.lines)}%</b></span
 				>
 				<a
@@ -396,24 +533,13 @@
 		width: 100%;
 		height: auto;
 	}
+	/* The chart's own palette rather than the site's, so it stays out of the visual layer. See
+	   spec/todo.md. */
 	.tile-name {
 		fill: white;
-		font-size: 0.75rem;
-		font-weight: 500;
-		pointer-events: none;
 	}
 	.tile-size {
 		fill: rgb(255 255 255 / 75%);
-		font-size: 0.625rem;
-		pointer-events: none;
-	}
-	.grid-line {
-		stroke: var(--color-border);
-		stroke-width: 1;
-	}
-	.axis-label {
-		fill: var(--color-text-soft);
-		font-size: 0.6875rem;
 	}
 	.bottom-bar {
 		display: flex;
@@ -426,8 +552,6 @@
 	.legend {
 		display: flex;
 		gap: 0.75rem;
-		color: var(--color-text-soft);
-		font-size: 0.75rem;
 	}
 	.legend span {
 		display: flex;
@@ -445,7 +569,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.4rem 1rem;
-		font-size: 0.75rem;
 	}
 	.summary b {
 		color: var(--color-text-strong);
@@ -463,22 +586,12 @@
 	.summary a:hover {
 		color: var(--color-text-strong);
 	}
-	.muted {
-		color: var(--color-text-soft);
-	}
 	.tooltip {
 		position: absolute;
 		z-index: 10;
 		min-width: 11.25rem;
 		max-width: 16.25rem;
-		border: 0.0625rem solid var(--color-border);
-		border-radius: 0.375rem;
-		background: var(--color-paper);
 		padding: 0.4rem 0.55rem;
-		color: var(--color-text);
-		font-size: 0.75rem;
-		line-height: 1.4;
-		pointer-events: none;
 	}
 	.tooltip-head {
 		display: flex;
@@ -490,29 +603,20 @@
 		width: 0.5rem;
 		height: 0.5rem;
 		flex-shrink: 0;
-		border-radius: 0.125rem;
-	}
-	.tooltip-title {
-		font-weight: 560;
 	}
 	.tooltip-count {
 		margin-left: auto;
-		color: var(--color-text-soft);
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 0.6875rem;
 	}
 	.tooltip-bar {
 		display: flex;
 		height: 0.1875rem;
 		margin-bottom: 0.3rem;
 		overflow: hidden;
-		border-radius: 0.09375rem;
 	}
 	.tooltip-grid {
 		display: grid;
 		grid-template-columns: auto 1fr;
 		gap: 0 0.5rem;
-		font-size: 0.6875rem;
 	}
 	.tooltip-grid > :nth-child(even) {
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -528,7 +632,6 @@
 		padding-top: 0.25rem;
 		flex-wrap: wrap;
 		gap: 0.15rem 0.5rem;
-		border-top: 0.0625rem solid var(--color-border);
 	}
 	.nested span {
 		display: inline-flex;
@@ -568,16 +671,11 @@
 	.language-cell {
 		text-align: left;
 	}
-	.language-cell {
-		font-weight: 500;
-		white-space: nowrap;
-	}
 	.language-dot {
 		display: inline-block;
 		width: 0.625rem;
 		height: 0.625rem;
 		margin-right: 0.375rem;
-		border-radius: 0.125rem;
 		vertical-align: middle;
 	}
 	.breakdown-heading {
@@ -588,7 +686,6 @@
 		min-width: 6.25rem;
 		height: 0.875rem;
 		overflow: hidden;
-		border-radius: 0.1875rem;
 	}
 	@media (max-width: 40rem) {
 		.summary {

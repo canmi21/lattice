@@ -1,3 +1,59 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the translator's note, which is the only surface this component draws
+	 * itself. Every colour is the token variable `libs/tokens` already declares, so nothing here
+	 * can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file does not shrink. Every rule in it reaches
+	 * `.tn-trigger`, a control the markdown compiler wrote into the prose, and a style reaches an
+	 * element only through a class on that element -- so none of it can be said here however
+	 * visual it is.
+	 */
+	const styles = stylex.create({
+		/** The note's header row, which carries the ink its icon and label inherit. */
+		noteHead: {
+			color: 'var(--color-text-soft)',
+		},
+		noteLabel: {
+			fontSize: '0.75rem',
+			// The line as a length rather than as the ratio `text-xs` writes it, `calc(1 / 0.75)`,
+			// which is the same 1rem and cannot be written that way here: StyleX evaluates a calc
+			// and keeps five decimals. See spec/architecture/css.md.
+			lineHeight: '1rem',
+			fontWeight: 500,
+		},
+		noteClose: {
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			cursor: 'pointer',
+			borderRadius: '0.25rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			backgroundColor: {
+				default: null,
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-paper-hover)' },
+			},
+		},
+		/**
+		 * The rule between the header and the note. `border-t` drew one edge and `border-border`
+		 * coloured all four, so the colour is written on all four here as well: the other three
+		 * are zero-width and invisible, and they are still what the element computes.
+		 */
+		noteBody: {
+			borderTopWidth: '1px',
+			borderTopStyle: 'solid',
+			borderColor: 'var(--color-border)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import Cargo from '$lib/blocks/cargo/cargo.svelte';
 	import CodeBlock from '$lib/blocks/code-block.svelte';
@@ -225,21 +281,21 @@
 		onOpenAutoFocus={(event) => event.preventDefault()}
 		onCloseAutoFocus={(event) => event.preventDefault()}
 	>
-		<div class="flex items-center gap-2 px-2 py-1 text-text-soft">
+		<div class="flex items-center gap-2 px-2 py-1 {stylex.attrs(styles.noteHead).class}">
 			<Info class="size-3.5 shrink-0" aria-hidden="true" />
-			<span id="translator-note-label" class="flex-1 text-xs font-medium"
+			<span id="translator-note-label" class="flex-1 {stylex.attrs(styles.noteLabel).class}"
 				>{m['article.translator-note']({}, { locale })}</span
 			>
 			<button
 				type="button"
 				onclick={() => closeNote(true)}
-				class="focus-ring -m-1 cursor-pointer rounded-sm p-1 text-text-soft hover:bg-paper-hover hover:text-text-strong focus-visible:text-text-strong"
+				class="focus-ring -m-1 p-1 {stylex.attrs(styles.noteClose).class}"
 				aria-label={m['article.translator-note.close']({}, { locale })}
 			>
 				<X class="size-3.5" aria-hidden="true" />
 			</button>
 		</div>
-		<p id="translator-note-description" class="border-t border-border px-3 py-2">{note}</p>
+		<p id="translator-note-description" class="px-3 py-2 {stylex.attrs(styles.noteBody).class}">{note}</p>
 	</PopoverContent>
 </Popover.Root>
 

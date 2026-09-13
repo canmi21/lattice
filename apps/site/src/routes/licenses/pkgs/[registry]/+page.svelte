@@ -1,3 +1,70 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The page is a sibling of the two directories above it and writes the same trail, the same
+	 * header and the same quiet control, so several of these say what a style there says, name
+	 * for name. They are written out rather than shared: a visual constant with two consumers
+	 * wants a module of its own, and where that module should live is the question
+	 * spec/todo.md is already holding.
+	 */
+	const styles = stylex.create({
+		page: {
+			backgroundColor: 'var(--color-page)',
+			color: 'var(--color-text)',
+		},
+		backLink: {
+			fontSize: '0.9375rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. Whether the visual layer should
+			// be naming another framework's private variables is in spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+		title: {
+			color: 'var(--color-text-strong)',
+		},
+		/** The one opening paragraph, which counts the packages this registry supplies. */
+		summary: {
+			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
+			// rather than read: that variable is emitted only for the utilities that name it, so
+			// reading it here would leave this line depending on a class somewhere else in the
+			// markup. The value terminates, so there is no arithmetic to round.
+			lineHeight: 1.625,
+			textWrap: 'pretty',
+			color: 'var(--color-text-soft)',
+		},
+		/** The link out to the registry itself. `quiet-control` draws the rest of it. */
+		actionLink: {
+			fontSize: '0.9375rem',
+		},
+		sectionHeading: {
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+		/** The count beside the section heading, a step smaller than a directory row's. */
+		count: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.8125rem',
+			fontVariantNumeric: 'tabular-nums',
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls, URLS } from '@canmi/urls';
@@ -39,12 +106,12 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen bg-page text-text">
+<main class="min-h-screen {stylex.attrs(styles.page).class}">
 	<article class="mx-auto max-w-180 px-6 py-24">
 		<nav aria-label={m['licenses.breadcrumb']({}, { locale })}>
 			<a
 				href="/licenses/pkgs"
-				class="focus-link inline-flex items-center gap-1.5 text-[0.9375rem] text-text-soft transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+				class="focus-link inline-flex items-center gap-1.5 {stylex.attrs(styles.backLink).class}"
 			>
 				<ArrowLeft class="size-4" aria-hidden="true" />
 				<span>{m['licenses.packages']({}, { locale })}</span>
@@ -52,8 +119,8 @@
 		</nav>
 
 		<header class="mt-8">
-			<h1 class="text-text-strong">{data.registry.name}</h1>
-			<p class="mt-4 leading-relaxed text-pretty text-text-soft">
+			<h1 class={stylex.attrs(styles.title).class}>{data.registry.name}</h1>
+			<p class="mt-4 {stylex.attrs(styles.summary).class}">
 				{m['licenses.registry_summary']({ count }, { locale })}
 			</p>
 			<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">
@@ -61,7 +128,7 @@
 					href={data.registry.href}
 					target="_blank"
 					rel="noopener"
-					class="quiet-control text-[0.9375rem]"
+					class="quiet-control {stylex.attrs(styles.actionLink).class}"
 				>
 					<span class="focus-link-inner inline-flex items-center gap-1.5">
 						<ExternalLink class="size-3.5" aria-hidden="true" />
@@ -74,12 +141,10 @@
 
 		<section aria-labelledby="package-list" class="mt-16">
 			<div class="mb-3 flex items-baseline justify-between gap-4">
-				<h2 id="package-list" class="font-medium text-text-strong">
+				<h2 id="package-list" class={stylex.attrs(styles.sectionHeading).class}>
 					{m['licenses.packages']({}, { locale })}
 				</h2>
-				<span class="font-mono text-[0.8125rem] tabular-nums text-text-soft"
-					>{compactCount(data.rows.length)}</span
-				>
+				<span class={stylex.attrs(styles.count).class}>{compactCount(data.rows.length)}</span>
 			</div>
 			<PackageList rows={data.rows} {locale} />
 		</section>

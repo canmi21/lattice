@@ -1,3 +1,52 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file is untouched by the migration and is not a
+	 * leftover of it. Both rules in it are placement -- where the slot sits in the rail box and
+	 * how far the glyph hangs outside the rail's text -- and the second reads a length declared
+	 * on an ancestor, which is a derivation a migration does not get to change.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/** A full-width strip the rail lays out; the control inside it takes its events back. */
+		slot: {
+			pointerEvents: 'none',
+		},
+		link: {
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			pointerEvents: 'auto',
+			fontSize: '0.875rem',
+			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
+			// 0.875)`. StyleX evaluates a calc and keeps five decimals, and 1.42857 against 14px
+			// lands at 19.99998 where the browser's own division lands on 20. It is the same
+			// 1.25rem `focus-link` sets on this element from the components layer, which this
+			// outranks exactly as `text-sm` did. See spec/architecture/css.md.
+			lineHeight: '1.25rem',
+			color: {
+				default: 'var(--color-text-soft)',
+				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
+				// variant does and what keeps the colour from latching on after a tap.
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
+			// is the computed value and dropping them changes it. See spec/todo.md.
+			transitionProperty:
+				'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to',
+			transitionDuration: '200ms',
+			transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
@@ -259,10 +308,15 @@
 	}
 </script>
 
-<div use:followToc={locale} class="home-slot pointer-events-none absolute flex w-full items-center">
+<div
+	use:followToc={locale}
+	class="home-slot absolute flex w-full items-center {stylex.attrs(styles.slot).class}"
+>
 	<a
 		{href}
-		class="home-link focus-link pointer-events-auto inline-flex items-center gap-1.5 whitespace-nowrap text-sm text-text-soft transition-colors duration-200 hover:text-text-strong focus-visible:text-text-strong"
+		class="home-link focus-link inline-flex items-center gap-1.5 whitespace-nowrap {stylex.attrs(
+			styles.link,
+		).class}"
 	>
 		<Undo2 class="size-3.5 shrink-0 -translate-y-[0.03125rem]" aria-hidden="true" />
 		<span>{m['article.back']({}, { locale })}</span>

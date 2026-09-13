@@ -1,3 +1,44 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
+	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The page has no scoped block and needs none: two elements, both of them the component's own,
+	 * so a class on each reaches everything there is to reach.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/** The status number, and the rule between it and the sentence beside it. */
+		status: {
+			// `border-r` writes its style through `--tw-border-style`, which is registered with
+			// `solid` as its initial value, so the edge computes to one pixel of solid.
+			borderRightWidth: '1px',
+			borderRightStyle: 'solid',
+			// All four edges, three of which have no width to draw: `border-border` is the
+			// shorthand, and the computed style carries the colour on every side.
+			borderColor: 'var(--color-border)',
+			fontSize: '1.5rem',
+			// The line both halves are given, which is what puts the number and the sentence on one
+			// box however tall each would otherwise have been. Tailwind writes it as `--tw-leading`
+			// and `text-2xl` reads that variable rather than its own default, so the pair never
+			// competed and the ratio `calc(2 / 1.5)` never reached the element.
+			lineHeight: '3.0625rem',
+			fontWeight: 500,
+			color: 'var(--color-text)',
+		},
+		/** The sentence written for a person, on the same line box as the number. */
+		message: {
+			fontSize: '0.875rem',
+			lineHeight: '3.0625rem',
+			color: 'var(--color-text)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
@@ -38,10 +79,10 @@
 
 <main class="flex min-h-screen items-center justify-center px-6">
 	<div class="flex items-center">
-		<h1 class="border-r border-border pr-6 text-2xl leading-[3.0625rem] font-medium text-text">
+		<h1 class="pr-6 {stylex.attrs(styles.status).class}">
 			{page.status}<span class="sr-only"> {titleText}</span>
 		</h1>
-		<p class="pl-6 text-sm leading-[3.0625rem] text-text">
+		<p class="pl-6 {stylex.attrs(styles.message).class}">
 			{message}
 		</p>
 	</div>

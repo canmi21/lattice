@@ -217,6 +217,39 @@ StyleX runs on the JavaScript the Svelte compiler produced, while the CSS from a
 left that compiler at the same moment and is never handed to StyleX at all. The two never meet, and
 no configuration makes them.
 
+### An attribute selector is not a condition, even on the element itself
+
+A StyleX condition key is a pseudo-class or an at-rule and nothing else:
+
+```ts
+type PseudoClassStr = `:${string}`;
+type AtRuleStr = `@${string}`;
+type CondStr = PseudoClassStr | AtRuleStr;
+```
+
+**But that type admits its own counterexample, and measuring is what found it.** StyleX validates a
+key by the character it opens with rather than by what it contains, so wrapping the attribute makes
+it a pseudo-class and it passes. Run through the build's own Babel plugin at the pinned version:
+
+```
+.x12yfjdu:is([data-highlighted]){background-color:rebeccapurple}
+```
+
+So `[data-liked='true']` cannot be a key and `:is([data-liked='true'])` can. Whether that is a
+deliberate affordance or a validator that only inspects the first character is not something this
+repository can know, which is the argument for treating it as neither settled nor forbidden: it is
+recorded in [todo.md](../todo.md) and no migration has relied on it.
+
+What stands regardless is the narrower fact. `stylex.when.*` takes an attribute selector only to
+describe an *ancestor* or a *sibling*, so a component varying on **its own** data attribute has no
+supported spelling, and every migration that met one left the rule in the selector layer.
+
+**The general lesson is not about attributes.** This section first said such a rule had no spelling
+at all, which was a true observation about the type generalised one step past what had been tested,
+by the same hand that had written "measure the machine before blaming the program" an hour earlier.
+A rule inferred from a type definition is a reading, and this file's own protocol is that a reading
+is confirmed by measurement before it becomes a rule.
+
 So **the selector layer overrides StyleX and never carries it.** A style reaches an element only
 through a class on that element. This is a property of the arrangement rather than a limitation to
 work around, and it is what keeps the escape hatch from quietly becoming a fourth way to write the

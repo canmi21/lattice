@@ -1,3 +1,85 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The block at the foot of this file is the figure's geometry, and it stays: a plot laid out
+	 * in one grid area over another, two axes placed against it, and four cells whose flow is
+	 * chosen by the `data-position` each carries. What went with it are the two arrowheads. Each
+	 * is a pseudo-element with no size of its own, drawn entirely out of borders on a zero box,
+	 * so its widths are the shape rather than a frame around one -- and `content` cannot leave
+	 * the rule that brings the element into existence at all.
+	 */
+	const styles = stylex.create({
+		/** The bordered box the whole figure sits in. */
+		frame: {
+			borderRadius: '0.75rem',
+			borderWidth: '1px',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			backgroundColor: 'var(--color-paper)',
+		},
+		/** The plotting ground. The ink is set once here and inherits into everything below. */
+		stage: {
+			color: 'var(--color-text)',
+		},
+		/** The four words naming the directions. */
+		axisLabel: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.625rem',
+			lineHeight: 1.25,
+			color: 'var(--color-text-soft)',
+			whiteSpace: 'nowrap',
+		},
+		// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
+		// element is to a pointer.
+		verticalAxis: {
+			pointerEvents: 'none',
+		},
+		/**
+		 * The vertical axis, which is a border on a span with no width.
+		 *
+		 * Written as the logical edge it was written as, and StyleX rewrites it to the physical
+		 * one: `border-inline-start` reaches the stylesheet as `border-left`. The site is
+		 * horizontal and left to right, so the two resolve to the same computed value.
+		 */
+		verticalRule: {
+			borderInlineStartWidth: '0.0625rem',
+			borderInlineStartStyle: 'solid',
+			borderInlineStartColor: 'var(--color-border-strong)',
+		},
+		/** The horizontal axis, drawn the same way along the other edge. */
+		horizontalAxis: {
+			borderBlockStartWidth: '0.0625rem',
+			borderBlockStartStyle: 'solid',
+			borderBlockStartColor: 'var(--color-border-strong)',
+			pointerEvents: 'none',
+		},
+		/** One plotted item's card. */
+		box: {
+			borderWidth: '0.0625rem',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			borderRadius: '0.375rem',
+			backgroundColor: 'var(--color-paper-hover)',
+		},
+		itemTitle: {
+			fontSize: '0.8125rem',
+			fontWeight: 500,
+			lineHeight: 1.2,
+			color: 'var(--color-text-strong)',
+		},
+		itemNote: {
+			fontFamily: 'var(--font-mono)',
+			fontSize: '0.625rem',
+			lineHeight: 1.25,
+			color: 'var(--color-text-soft)',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import type { QuadrantDirection, QuadrantItem, QuadrantPosition } from '$lib/content/types';
 
@@ -65,7 +147,7 @@
      sentences assembled below as the description, both in the source language. See
      spec/styling.md. -->
 <figure
-	class="quadrant-block overflow-hidden rounded-xl border border-border bg-paper"
+	class="quadrant-block overflow-hidden {stylex.attrs(styles.frame).class}"
 	role="img"
 	aria-label={reading}
 	aria-labelledby={reading ? undefined : titleId}
@@ -78,16 +160,24 @@
 		</figcaption>
 	{/if}
 	<div class="quadrant-scroll overflow-x-auto">
-		<div class="quadrant-stage" aria-hidden="true">
+		<div class="quadrant-stage {stylex.attrs(styles.stage).class}" aria-hidden="true">
 			<div class="quadrant-plot">
-				<div class="vertical-axis">
-					<span class="axis-label axis-top">{visualAxis(axes.top)}</span>
-					<span class="vertical-rule"></span>
-					<span class="axis-label axis-bottom">{visualAxis(axes.bottom)}</span>
+				<div class="vertical-axis {stylex.attrs(styles.verticalAxis).class}">
+					<span class="axis-label axis-top {stylex.attrs(styles.axisLabel).class}"
+						>{visualAxis(axes.top)}</span
+					>
+					<span class="vertical-rule {stylex.attrs(styles.verticalRule).class}"></span>
+					<span class="axis-label axis-bottom {stylex.attrs(styles.axisLabel).class}"
+						>{visualAxis(axes.bottom)}</span
+					>
 				</div>
-				<div class="horizontal-axis">
-					<span class="axis-label axis-left">{visualAxis(axes.left)}</span>
-					<span class="axis-label axis-right">{visualAxis(axes.right)}</span>
+				<div class="horizontal-axis {stylex.attrs(styles.horizontalAxis).class}">
+					<span class="axis-label axis-left {stylex.attrs(styles.axisLabel).class}"
+						>{visualAxis(axes.left)}</span
+					>
+					<span class="axis-label axis-right {stylex.attrs(styles.axisLabel).class}"
+						>{visualAxis(axes.right)}</span
+					>
 				</div>
 
 				<div class="quadrant-grid">
@@ -95,10 +185,14 @@
 						{@const quadrantItems = items.filter((item) => item.at === position)}
 						<div class="quadrant-cell" data-position={position}>
 							{#each quadrantItems as item}
-								<div class="quadrant-box">
+								<div class="quadrant-box {stylex.attrs(styles.box).class}">
 									<div class="quadrant-item">
-										<span class="quadrant-title">{item.title}</span>
-										{#if item.note}<span class="quadrant-note">{item.note}</span>{/if}
+										<span class="quadrant-title {stylex.attrs(styles.itemTitle).class}"
+											>{item.title}</span
+										>
+										{#if item.note}<span class="quadrant-note {stylex.attrs(styles.itemNote).class}"
+												>{item.note}</span
+											>{/if}
 									</div>
 								</div>
 							{/each}
@@ -117,7 +211,6 @@
 		min-inline-size: 36rem;
 		margin-inline: auto;
 		aspect-ratio: 38 / 21;
-		color: var(--color-text);
 	}
 
 	.quadrant-plot {
@@ -132,28 +225,18 @@
 		translate: -50% -50%;
 	}
 
-	.axis-label {
-		font-family: var(--font-mono);
-		font-size: 0.625rem;
-		line-height: 1.25;
-		color: var(--color-text-soft);
-		white-space: nowrap;
-	}
-
 	.vertical-axis {
 		z-index: 1;
 		position: relative;
 		grid-area: 1 / 1;
 		justify-self: center;
 		inline-size: 0;
-		pointer-events: none;
 	}
 
 	.vertical-rule {
 		position: absolute;
 		inset-block: 0;
 		left: 0;
-		border-inline-start: 0.0625rem solid var(--color-border-strong);
 	}
 
 	.vertical-rule::before {
@@ -189,8 +272,6 @@
 		display: grid;
 		grid-area: 1 / 1;
 		align-self: center;
-		border-block-start: 0.0625rem solid var(--color-border-strong);
-		pointer-events: none;
 	}
 
 	.horizontal-axis::after {
@@ -265,9 +346,6 @@
 		justify-content: center;
 		gap: 0.625rem;
 		padding: 0.625rem 1rem;
-		border: 0.0625rem solid var(--color-border);
-		border-radius: 0.375rem;
-		background: var(--color-paper-hover);
 		text-align: center;
 	}
 
@@ -275,19 +353,5 @@
 		display: grid;
 		gap: 0.35rem;
 		max-inline-size: 13rem;
-	}
-
-	.quadrant-title {
-		font-size: 0.8125rem;
-		font-weight: 500;
-		line-height: 1.2;
-		color: var(--color-text-strong);
-	}
-
-	.quadrant-note {
-		font-family: var(--font-mono);
-		font-size: 0.625rem;
-		line-height: 1.25;
-		color: var(--color-text-soft);
 	}
 </style>

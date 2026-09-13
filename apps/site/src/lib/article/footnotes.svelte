@@ -1,3 +1,159 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
+	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * The scoped block at the foot of this file is not a leftover of the migration. It keeps the
+	 * geometry of the section and of the fold, including `--peek-height`, which the script reads
+	 * back and the mask below is drawn against; it keeps the two `:global` rules reaching the
+	 * marker, which the visual layer cannot address at all; it keeps the fold's mask and its
+	 * heights, which are keyed on a data attribute no class can stand in for; and it keeps the
+	 * note's link colour, whose hovered value is reached
+	 * only through the note above it. That is an ancestor, and an ancestor is what the visual
+	 * layer cannot see without a marker nobody owns yet. See spec/todo.md.
+	 *
+	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
+	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 */
+	const styles = stylex.create({
+		/**
+		 * The article's ending boundary, worn by the notes when they exist and by the newsletter
+		 * otherwise -- see article.svelte. Dashed because what follows an article is offered
+		 * rather than fenced off; the plain rule below the notes is then only a separator between
+		 * two offerings.
+		 *
+		 * Top longhands rather than the whole-box shorthands the article shell writes it with:
+		 * `border-top` left the other three edges at the reset's own width and style, and a
+		 * whole-box `border-style` would dash three edges that are not drawn.
+		 */
+		notes: {
+			borderTopWidth: '0.0625rem',
+			borderTopStyle: 'dashed',
+			borderTopColor: 'var(--color-border)',
+		},
+		/**
+		 * No font-size: it inherits the root size the article title and the newsletter heading
+		 * render at, neither of which sets one either -- match by sharing the chain, not by
+		 * copying a number.
+		 */
+		heading: {
+			color: 'var(--color-text-strong)',
+			fontWeight: 500,
+		},
+		/**
+		 * Small and quiet, the way a note at the foot of a page is: it is there to be stepped
+		 * over and come back to, not read on the way past. Both were tried the other way -- set
+		 * at the article's size and colour, the section competed with the prose above it for the
+		 * same attention.
+		 *
+		 * The first attempt at quiet was grey and small with nothing to catch on, which read as
+		 * somebody else's apparatus. What makes it work now is the phrase: it holds the article's
+		 * own colour, so each note has one strong point to find it by and can be soft everywhere
+		 * else.
+		 */
+		note: {
+			fontSize: '0.6875rem',
+			lineHeight: 1.6,
+			color: 'var(--color-text-soft)',
+			// `balance` rather than `pretty`, which is the opposite of what the shape of the text
+			// suggests -- a note is a sentence, and the prose elsewhere on this site uses
+			// `pretty`. Measured on the Spanish view, `pretty` did nothing at all: every line of
+			// every note came out identical to plain filling, because it only intervenes when the
+			// last line is down to about one word, and these end on a quarter of a line instead.
+			// Balance closed all four of the short endings. The rule follows the measurement
+			// rather than the category.
+			//
+			// Declared on the note rather than on the line inside it, because this is the block
+			// that establishes the lines; the span within it establishes none of its own.
+			textWrap: 'balance',
+		},
+		/**
+		 * Quiet like the notes and brightening whole on approach, the same way a note's own
+		 * explanation does: one gesture vocabulary for this section.
+		 */
+		toggle: {
+			// A button's frame, taken off. The reset leaves every edge at zero width and `solid`,
+			// so the style is stated too: the rule this replaced was `border: 0`, which returns it
+			// to `none`.
+			borderWidth: 0,
+			borderStyle: 'none',
+			backgroundColor: 'transparent',
+			fontSize: '0.6875rem',
+			// The same 1.6 the notes read at, and it outranks the 1.25rem `focus-link` sets on
+			// this element from the components layer exactly as the scoped rule did.
+			lineHeight: 1.6,
+			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
+			// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
+			color: {
+				default: 'var(--color-text-soft)',
+				':hover': 'var(--color-text-strong)',
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// the element is to a pointer.
+			cursor: 'pointer',
+			// Reduced motion is the same suppression the control used to write as `transition:
+			// none`, which is more than one longhand: the shorthand also returns the duration and
+			// the curve to their initial values.
+			transitionProperty: { default: 'color', '@media (prefers-reduced-motion: reduce)': 'none' },
+			transitionDuration: { default: '200ms', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionTimingFunction: {
+				default: 'ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
+		chevron: {
+			transitionProperty: {
+				default: 'transform',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: { default: '200ms', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionTimingFunction: {
+				default: 'ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
+		/**
+		 * Turning to face the other way is not a move: the box is where it was, and the glyph is
+		 * the disclosure's state rather than its position. Written as a `transform` rather than
+		 * as the `rotate` property, which is what the rule it replaces said and is a different
+		 * computed property. See spec/architecture/css.md.
+		 */
+		chevronUp: {
+			transform: 'rotate(180deg)',
+		},
+		/**
+		 * The quoted words are the article's, said again -- weight alone marks them. Colour is
+		 * spent on the number and the arrow instead: the two ends of the walk, which note this is
+		 * and the way back from it.
+		 */
+		phrase: {
+			fontWeight: 500,
+		},
+		/**
+		 * The underline stays off -- eight dotted lines of apparatus would out-shout the article
+		 * above them. The colour it rests at is in the block below, with the ancestor the
+		 * hovered value is reached through.
+		 */
+		link: {
+			textDecoration: 'none',
+		},
+		/**
+		 * The way back, bright at rest like the number at the note's head: the two ends of the
+		 * walk are the two points of colour, and everything between them is the reading.
+		 */
+		back: {
+			// Sized against the note, not against the page, for the same reason the marker is.
+			fontSize: '0.9em',
+			color: 'var(--color-text-strong)',
+			// Zero, so an arrow at the end of a wrapped note cannot open up the line it lands on.
+			lineHeight: 0,
+		},
+	});
+</script>
+
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
@@ -178,11 +334,16 @@
      the dashed rule that is the article's ending boundary, so the rail and the table of contents
      never measure it. The notes stay smaller than the prose they came from; the heading above
      them speaks at the page's shared section-name size. See spec/styling.md. -->
-<section aria-label={m['article.notes']({}, { locale })} class="notes">
+<section
+	aria-label={m['article.notes']({}, { locale })}
+	class="notes {stylex.attrs(styles.notes).class}"
+>
 	<!-- The heading speaks at the same size and colour as the article title and the newsletter
 	     heading: three sections of one page, one voice for their names. Only the notes under it
 	     stay small. -->
-	<h2 class="notes-heading">{m['article.notes']({}, { locale })}</h2>
+	<h2 class="notes-heading {stylex.attrs(styles.heading).class}">
+		{m['article.notes']({}, { locale })}
+	</h2>
 	<ol class="notes-list">
 		{#each shown as note (note.number)}{@render entry(note)}{/each}
 	</ol>
@@ -210,7 +371,7 @@
 
 		<button
 			type="button"
-			class="notes-toggle focus-link"
+			class="notes-toggle focus-link {stylex.attrs(styles.toggle).class}"
 			aria-expanded={expanded}
 			aria-controls={panelId}
 			onclick={() => setExpanded(!expanded)}
@@ -218,7 +379,10 @@
 			{expanded
 				? m['article.notes.fold']({}, { locale })
 				: m['article.notes.unfold']({ count: folded.length }, { locale })}
-			<span class="notes-chevron" class:up={expanded} aria-hidden="true">
+			<span
+				class="notes-chevron {stylex.attrs(styles.chevron, expanded && styles.chevronUp).class}"
+				aria-hidden="true"
+			>
 				<ChevronDown class="size-[1.1em]" />
 			</span>
 		</button>
@@ -226,7 +390,7 @@
 </section>
 
 {#snippet entry(note: ArticleNote)}
-	<li id="note-{note.number}" class="jump-target note">
+	<li id="note-{note.number}" class="jump-target note {stylex.attrs(styles.note).class}">
 		<!-- The words first, so a note names what it is about instead of asking the reader
 		     to hold the sentence they left in their head. Then the same superscript the
 		     marker in the prose is, which makes the two one thing seen twice -- hidden
@@ -240,10 +404,14 @@
 		     replace it -- and the purpose rides after it as words only a screen reader
 		     gets. -->
 		<span class="note-line"
-			><span class="note-phrase">{note.phrase}</span><sup class="note-marker" aria-hidden="true"
-				>{note.number}</sup
-			><a href="#marker-{note.number}" class="note-link focus-link" onclick={jumpBack}
-				>{note.text}<span class="note-back" aria-hidden="true">
+			><span class="note-phrase {stylex.attrs(styles.phrase).class}">{note.phrase}</span><sup
+				class="note-marker"
+				aria-hidden="true">{note.number}</sup
+			><a
+				href="#marker-{note.number}"
+				class="note-link focus-link {stylex.attrs(styles.link).class}"
+				onclick={jumpBack}
+				>{note.text}<span class="note-back {stylex.attrs(styles.back).class}" aria-hidden="true">
 					<CornerDownLeft class="size-[1.1em]" />
 				</span><span class="sr-only">
 					({m['article.notes.back']({ number: note.number }, { locale })})</span
@@ -254,24 +422,16 @@
 {/snippet}
 
 <style>
-	/* This rule is the article's ending boundary, worn by the notes when they exist and by the
-	   newsletter otherwise -- see article.svelte. Dashed because what follows an article is
-	   offered rather than fenced off; the plain rule below the notes is then only a separator
-	   between two offerings. The spacing matches the newsletter's own (mt-16 plus its padding),
-	   so the boundary sits where it always has whether or not an article carried notes. */
+	/* The spacing the article's ending boundary sits at -- the rule itself is at the head of this
+	   file. It matches the newsletter's own (mt-16 plus its padding), so the boundary sits where
+	   it always has whether or not an article carried notes. */
 	.notes {
 		margin-top: 4rem;
-		border-top: 0.0625rem dashed var(--color-border);
 		padding-top: 1.5rem;
 	}
 
 	.notes-heading {
-		/* No font-size: it inherits the root size the article title and the newsletter heading
-		   render at, neither of which sets one either -- match by sharing the chain, not by
-		   copying a number. */
 		margin: 0 0 0.75rem;
-		color: var(--color-text-strong);
-		font-weight: 500;
 	}
 
 	/* An ordered list still, for what a screen reader is told, with nothing of a list drawn: the
@@ -288,28 +448,8 @@
 		list-style: none;
 	}
 
-	/* Small and quiet, the way a note at the foot of a page is: it is there to be stepped over and
-	   come back to, not read on the way past. Both were tried the other way -- set at the article's
-	   size and colour, the section competed with the prose above it for the same attention.
-
-	   The first attempt at quiet was grey and small with nothing to catch on, which read as
-	   somebody else's apparatus. What makes it work now is the phrase: it holds the article's own
-	   colour, so each note has one strong point to find it by and can be soft everywhere else. */
 	.note {
 		margin: 0;
-		font-size: 0.6875rem;
-		line-height: 1.6;
-		color: var(--color-text-soft);
-		/* `balance` rather than `pretty`, which is the opposite of what the shape of the text
-		   suggests -- a note is a sentence, and the prose elsewhere on this site uses `pretty`.
-		   Measured on the Spanish view, `pretty` did nothing at all: every line of every note
-		   came out identical to plain filling, because it only intervenes when the last line is
-		   down to about one word, and these end on a quarter of a line instead. Balance closed all
-		   four of the short endings. The rule follows the measurement rather than the category.
-
-		   Declared on the note rather than on the line inside it, because this is the block that
-		   establishes the lines; the span within it establishes none of its own. */
-		text-wrap: balance;
 	}
 
 	/* The fold. Closed, it stands one line tall so the next note starts and dissolves rather
@@ -347,42 +487,17 @@
 	}
 
 	/* The control sits under the fade, where the list ran out -- the reader's eye is already
-	   there. Quiet like the notes and brightening whole on approach, the same way a note's own
-	   explanation does: one gesture vocabulary for this section. */
+	   there. What it looks like there is at the head of this file; this is the box it takes. */
 	.notes-toggle {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25rem;
 		margin-top: 0.5rem;
-		border: 0;
-		background: transparent;
 		padding: 0;
-		font-size: 0.6875rem;
-		line-height: 1.6;
-		color: var(--color-text-soft);
-		cursor: pointer;
-		transition: color 200ms ease-out;
-	}
-
-	.notes-toggle:hover,
-	.notes-toggle:focus-visible {
-		color: var(--color-text-strong);
 	}
 
 	.notes-chevron {
 		display: inline-flex;
-		transition: transform 200ms ease-out;
-	}
-
-	.notes-chevron.up {
-		transform: rotate(180deg);
-	}
-
-	/* The quoted words are the article's, said again -- weight alone marks them. Colour is spent
-	   on the number and the arrow instead: the two ends of the walk, which note this is and the
-	   way back from it. */
-	.note-phrase {
-		font-weight: 500;
 	}
 
 	/* Descendant rather than child: the marker sits inside .note-line, which the landing light
@@ -400,11 +515,15 @@
 
 	/* The link is the explanation: it inherits the note's quiet colour and brightens whole
 	   under the pointer, so hovering anywhere on those words says they are the control. The
-	   phrase and number ahead of it sit outside and keep their resting look. The underline
-	   stays off -- eight dotted lines of apparatus would out-shout the article above them. */
+	   phrase and number ahead of it sit outside and keep their resting look.
+
+	   The resting colour stays here rather than in the visual layer, and the transition between
+	   the two goes with it: the brightened value is reached through the note above, which is an
+	   ancestor, and an ancestor is what the visual layer cannot see without a marker nobody owns
+	   yet. Half a pair in each layer is what the code block's reveal refused for the same reason.
+	   See spec/todo.md. */
 	.note-link {
 		color: inherit;
-		text-decoration: none;
 		transition: color 200ms ease-out;
 	}
 
@@ -424,24 +543,15 @@
 	}
 
 	/* Trailing the last word, not parked at the right edge. The way back belongs to the sentence
-	   that was just read, and a column of arrows down the right reads as a table's furniture.
-	   Bright at rest, like the number at the note's head: the two ends of the walk are the two
-	   points of colour, and everything between them is the reading. */
+	   that was just read, and a column of arrows down the right reads as a table's furniture. */
 	.note-back {
 		display: inline-flex;
 		margin-inline-start: 0.35rem;
-		/* Sized against the note, not against the page, for the same reason the marker is. */
-		font-size: 0.9em;
-		color: var(--color-text-strong);
-		/* Zero, so an arrow at the end of a wrapped note cannot open up the line it lands on. */
-		line-height: 0;
 		vertical-align: -0.1em;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.note-link,
-		.notes-toggle,
-		.notes-chevron {
+		.note-link {
 			transition: none;
 		}
 	}

@@ -1,3 +1,136 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
+	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 *
+	 * What is left in the block at the foot of this file is the reveal's geometry -- the masks, the
+	 * grid the fallback stacks in, the widths the script animates -- and the states the pill's own
+	 * `data-expanded` gates, which a layer reaching an element through a class on that element
+	 * cannot see. See spec/todo.md.
+	 */
+	const styles = stylex.create({
+		heading: {
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+		},
+		/** One pill: the like, the favour and the sponsor all wear this. */
+		action: {
+			// Two of the three are buttons and the third is a link, so without this the row draws
+			// two arrows and one hand for three controls that do the same kind of thing. Visual
+			// under the rule in spec/architecture/css.md: it moves nothing, it says what the element
+			// is to a pointer.
+			cursor: 'pointer',
+			borderWidth: '0.0625rem',
+			borderStyle: 'solid',
+			borderColor: {
+				default: 'var(--color-border)',
+				// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
+				// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
+				':hover': 'var(--color-border-strong)',
+				':focus-visible': 'var(--color-border-strong)',
+			},
+			borderRadius: '624.9375rem',
+			backgroundColor: {
+				default: 'var(--color-paper)',
+				':hover': 'var(--color-paper-hover)',
+				':focus-visible': 'var(--color-paper-hover)',
+			},
+			fontWeight: 500,
+			color: 'var(--color-text-strong)',
+			// Three properties in the list, so every other list is three long: a transition's lists
+			// are read per property, and one value against three is not the same computed style as
+			// three. The shorthand this replaced said as much by saying nothing -- it gave each of
+			// its three items the initial curve and the initial delay.
+			//
+			// Reduced motion is the same suppression the row used to write as `transition: none`,
+			// which is four longhands rather than one: the shorthand also returns the duration, the
+			// curve and the delay to their initial values.
+			transitionProperty: {
+				default: 'background-color, border-color, color',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '200ms, 200ms, 200ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'ease, ease, ease',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+			transitionDelay: {
+				default: '0s, 0s, 0s',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+		},
+		/**
+		 * The like pill's figures.
+		 *
+		 * The count is the one thing here that changes while the reader is looking at it, and
+		 * Inter's proportional digits are not the same width: `1` is 6.6px against `4`'s 10.5px. A
+		 * like the reader just gave would resize its own pill and shift the two beside it. Tabular
+		 * figures give every digit the widest one's advance, so the width answers only to how many
+		 * digits there are -- a change that has a reason the reader can see. It is a feature of this
+		 * same font, not a monospace face: only the digits take the fixed advance and the word
+		 * beside them is untouched.
+		 */
+		likeFigures: {
+			fontVariantNumeric: 'tabular-nums',
+		},
+		/**
+		 * One run of a label that was split into three.
+		 *
+		 * `pre` because it was split at a space: the prefix ends on one and the suffix opens on one,
+		 * and a collapsed space is a run that measures narrower than it draws.
+		 */
+		copyRun: {
+			whiteSpace: 'pre',
+		},
+		/** The short label, shown until the pill opens. */
+		shortCopy: {
+			whiteSpace: 'nowrap',
+			opacity: 1,
+			// Reduced motion is the same suppression the block used to write as `transition: none`,
+			// which is four longhands rather than one: the shorthand also returns the duration, the
+			// curve and the delay to their initial values.
+			transitionProperty: {
+				default: 'opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '120ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: 'ease',
+			transitionDelay: {
+				default: '80ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+		},
+		/**
+		 * The full label, which is what the pill widens to show.
+		 *
+		 * Only its resting end is here. What it opens to is written against `data-expanded` on the
+		 * pill above it, which is an ancestor, and the width it opens within is the block's.
+		 */
+		longCopy: {
+			whiteSpace: 'nowrap',
+			opacity: 0,
+			transitionProperty: {
+				default: 'opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '140ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: 'ease',
+			transitionDelay: '0s',
+		},
+	});
+</script>
+
 <script lang="ts">
 	import Coffee from '@lucide/svelte/icons/coffee';
 	import Heart from '@lucide/svelte/icons/heart';
@@ -224,31 +357,28 @@
 	{@const parts = splitCopy(short, long)}
 	{#if parts}
 		<span class="copy segmented" aria-hidden="true">
-			<span class="prefix-mask reveal-mask"><span>{parts.prefix}</span></span>
-			<span class="shared">{parts.shared}</span>
-			<span class="suffix-mask reveal-mask"><span>{parts.suffix}</span></span>
+			<span class="prefix-mask reveal-mask"
+				><span class={stylex.attrs(styles.copyRun).class}>{parts.prefix}</span></span
+			>
+			<span class="shared {stylex.attrs(styles.copyRun).class}">{parts.shared}</span>
+			<span class="suffix-mask reveal-mask"
+				><span class={stylex.attrs(styles.copyRun).class}>{parts.suffix}</span></span
+			>
 		</span>
 	{:else}
 		<span class="copy fallback" aria-hidden="true">
-			<span class="short">{short}</span>
-			<span class="long">{long}</span>
+			<span class="short {stylex.attrs(styles.shortCopy).class}">{short}</span>
+			<span class="long {stylex.attrs(styles.longCopy).class}">{long}</span>
 		</span>
 	{/if}
 {/snippet}
 
 <section aria-labelledby="support-heading" class="mt-16">
-	<h2 id="support-heading" class="font-medium text-text-strong">
+	<h2 id="support-heading" class={stylex.attrs(styles.heading).class}>
 		{m['support.heading']({}, { locale })}
 	</h2>
 
 	<div class="mt-3 flex flex-wrap items-center gap-1.5">
-		<!-- `tabular-nums` because the count is the one thing here that changes while the reader is
-		     looking at it, and Inter's proportional digits are not the same width: `1` is 6.6px
-		     against `4`'s 10.5px. A like the reader just gave would resize its own pill and shift
-		     the two beside it. Tabular figures give every digit the widest one's advance, so the
-		     width answers only to how many digits there are -- a change that has a reason the
-		     reader can see. It is a feature of this same font, not a monospace face: only the
-		     digits take the fixed advance and `likes` beside them is untouched. -->
 		<button
 			type="button"
 			aria-pressed={liked}
@@ -262,7 +392,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action like focus-ring tabular-nums"
+			class="action like focus-ring {stylex.attrs(styles.action, styles.likeFigures).class}"
 		>
 			<Heart class="icon" fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
 			{@render copy(formattedCount, m['support.like']({ count: formattedCount }, { locale }))}
@@ -284,7 +414,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring"
+			class="action focus-ring {stylex.attrs(styles.action).class}"
 		>
 			<Star class="icon" aria-hidden="true" />
 			{@render copy(favourShort, favourLabel)}
@@ -299,7 +429,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring"
+			class="action focus-ring {stylex.attrs(styles.action).class}"
 		>
 			<Coffee class="icon" aria-hidden="true" />
 			{@render copy(
@@ -311,25 +441,16 @@
 </section>
 
 <style>
+	/* The pill in geometry only: where each part is and how large. What it looks like, and what
+	   it does under a pointer, is the visual layer's and sits at the head of this file. See
+	   spec/architecture/css.md. */
 	.action {
-		/* Two of the three are buttons and the third is a link, so without this the row draws two
-		   arrows and one hand for three controls that do the same kind of thing. */
-		cursor: pointer;
 		display: inline-flex;
 		height: 2.25rem;
 		flex-shrink: 0;
 		align-items: center;
 		overflow: hidden;
-		border: 0.0625rem solid var(--color-border);
-		border-radius: 624.9375rem;
-		background: var(--color-paper);
 		padding-inline: 0.75rem;
-		font-weight: 500;
-		color: var(--color-text-strong);
-		transition:
-			background-color 200ms,
-			border-color 200ms,
-			color 200ms;
 	}
 
 	.action :global(.icon) {
@@ -358,7 +479,6 @@
 	.shared {
 		display: block;
 		width: max-content;
-		white-space: pre;
 	}
 
 	.fallback {
@@ -368,24 +488,11 @@
 	.fallback > span {
 		grid-area: 1 / 1;
 		justify-self: start;
-		white-space: nowrap;
-	}
-
-	.short {
-		opacity: 1;
-		transition: opacity 120ms ease 80ms;
 	}
 
 	.long {
 		max-width: 0;
 		overflow: hidden;
-		opacity: 0;
-		transition: opacity 140ms ease;
-	}
-
-	.action:is(:hover, :focus-visible) {
-		border-color: var(--color-border-strong);
-		background: var(--color-paper-hover);
 	}
 
 	:global(.action[data-expanded='true']) .short {
@@ -403,13 +510,5 @@
 		border-color: transparent;
 		background: var(--color-ink);
 		color: var(--color-page);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.action,
-		.short,
-		.long {
-			transition: none;
-		}
 	}
 </style>
