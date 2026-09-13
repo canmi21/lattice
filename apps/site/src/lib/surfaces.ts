@@ -70,6 +70,39 @@ export const surfaces = stylex.create({
 	blockFrame: { ...paper, borderRadius: radius.xl },
 
 	/**
+	 * Bordered paper that answers a pointer: the repository card, the tweet card and the support
+	 * pill each darken the border and the ground together on hover and on focus.
+	 *
+	 * **The rem hairline is what all three carry, not a ruling that they should.** It is
+	 * `hairlineRem` here against `paper`'s `hairlinePx`, with no exception on either side, so this
+	 * is not that surface with states added: the two draw their border in different units and part
+	 * company the moment a reader enlarges text. Whether they should be one hairline is open, and
+	 * composing this onto `paper` to find out would set the border twice and let the second win
+	 * silently. See spec/todo.md.
+	 *
+	 * `:hover` is bare, with no `(hover: hover)` around it, because a bare one is what the rules
+	 * these replaced were written as. Sameness first; see spec/architecture/css.md.
+	 *
+	 * The transition the three run is not here and cannot be: its reduced-motion branch travels
+	 * with a default, and the cards name two properties where the pill names three. Nor is the
+	 * radius, which is `radius.xl` on the cards and a pill on the pill.
+	 */
+	interactive: {
+		borderWidth: border.hairlineRem,
+		borderStyle: 'solid',
+		borderColor: {
+			default: 'var(--color-border)',
+			':hover': 'var(--color-border-strong)',
+			':focus-visible': 'var(--color-border-strong)',
+		},
+		backgroundColor: {
+			default: 'var(--color-paper)',
+			':hover': 'var(--color-paper-hover)',
+			':focus-visible': 'var(--color-paper-hover)',
+		},
+	},
+
+	/**
 	 * What a heading is made of, which on this site is two declarations and no size.
 	 *
 	 * Thin for a group, and admitted on identity rather than on length: twelve keys write exactly

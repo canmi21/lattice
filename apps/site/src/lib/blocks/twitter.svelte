@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
@@ -19,19 +20,7 @@
 		 * value, so neither ranks above the other. Sameness first; see spec/architecture/css.md.
 		 */
 		card: {
-			borderWidth: border.hairlineRem,
-			borderStyle: 'solid',
-			borderColor: {
-				default: 'var(--color-border)',
-				':hover': 'var(--color-border-strong)',
-				':focus-visible': 'var(--color-border-strong)',
-			},
 			borderRadius: radius.xl,
-			backgroundColor: {
-				default: 'var(--color-paper)',
-				':hover': 'var(--color-paper-hover)',
-				':focus-visible': 'var(--color-paper-hover)',
-			},
 			color: 'inherit',
 			textDecorationLine: 'none',
 			// Two properties in the list, so the duration and the curve are stated twice: a
@@ -105,7 +94,7 @@
 	{href}
 	target="_blank"
 	rel="noopener"
-	class="tweet-card group focus-ring {stylex.attrs(styles.card).class}"
+	class="tweet-card group focus-ring {stylex.attrs(surfaces.interactive, styles.card).class}"
 >
 	<header class="header {stylex.attrs(styles.header).class}">
 		<SocialIcon name="twitter" class="size-4" />

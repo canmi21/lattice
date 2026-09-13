@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, weight } from '$lib/vocabulary.stylex.ts';
+	import { weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
@@ -20,21 +20,7 @@
 			// under the rule in spec/architecture/css.md: it moves nothing, it says what the element
 			// is to a pointer.
 			cursor: 'pointer',
-			borderWidth: border.hairlineRem,
-			borderStyle: 'solid',
-			borderColor: {
-				default: 'var(--color-border)',
-				// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
-				// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
-				':hover': 'var(--color-border-strong)',
-				':focus-visible': 'var(--color-border-strong)',
-			},
 			borderRadius: '624.9375rem',
-			backgroundColor: {
-				default: 'var(--color-paper)',
-				':hover': 'var(--color-paper-hover)',
-				':focus-visible': 'var(--color-paper-hover)',
-			},
 			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
 			// Three properties in the list, so every other list is three long: a transition's lists
@@ -390,7 +376,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action like focus-ring {stylex.attrs(styles.action, styles.likeFigures).class}"
+			class="action like focus-ring {stylex.attrs(surfaces.interactive, styles.action, styles.likeFigures).class}"
 		>
 			<Heart class="icon" fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
 			{@render copy(formattedCount, m['support.like']({ count: formattedCount }, { locale }))}
@@ -412,7 +398,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring {stylex.attrs(styles.action).class}"
+			class="action focus-ring {stylex.attrs(surfaces.interactive, styles.action).class}"
 		>
 			<Star class="icon" aria-hidden="true" />
 			{@render copy(favourShort, favourLabel)}
@@ -427,7 +413,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring {stylex.attrs(styles.action).class}"
+			class="action focus-ring {stylex.attrs(surfaces.interactive, styles.action).class}"
 		>
 			<Coffee class="icon" aria-hidden="true" />
 			{@render copy(
