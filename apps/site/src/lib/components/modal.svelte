@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
+	import { easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
@@ -25,10 +25,6 @@
 		 */
 		surface: {
 			borderRadius: radius.lg,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
 		},
 		/** The optional mark, quiet beside the title it stands next to. */
@@ -100,6 +96,7 @@
 		<Dialog.Overlay class="modal-overlay fixed inset-0 z-50" />
 		<Dialog.Content
 			class="modal-content fixed top-1/2 left-1/2 z-50 w-[min(26rem,calc(100vw-3rem))] p-5 shadow-sm {stylex.attrs(
+				surfaces.paper,
 				styles.surface,
 			).class}"
 		>

@@ -27,10 +27,37 @@ import { border, radius, weight } from '$lib/vocabulary.stylex.ts';
  * that has drifted from what it describes is worse than the literal it replaced, because a literal
  * cannot lie.
  */
+/**
+ * The four declarations of a bordered paper surface, which eight components draw.
+ *
+ * Kept out of `stylex.create` so `blockFrame` below is visibly the same thing with a corner rather
+ * than a second spelling of it. The radius is not among them because no two of the eight agree on
+ * one: `md` on the menu and the popover, `lg` on the modal, `xl` on the three block frames and the
+ * search panel, `full` on the newsletter's pill.
+ *
+ * `borderStyle` is stated rather than omitted. The markup these came from wrote Tailwind's
+ * `border`, which sets the style through `--tw-border-style`, registered with `solid` as its
+ * initial value, so the edge computed to solid and leaving it out here would not keep it there.
+ *
+ * `hairlinePx` is what makes the cargo and tokei tooltips not members. They draw a paper ground
+ * with the `hairlineRem` spelling, and the two are one length at the default root size and at no
+ * other. See spec/todo.md.
+ */
+const paper = {
+	backgroundColor: 'var(--color-paper)',
+	borderWidth: border.hairlinePx,
+	borderStyle: 'solid',
+	borderColor: 'var(--color-border)',
+};
+
 export const surfaces = stylex.create({
+	paper,
+
 	/**
 	 * The frame a full-width block draws around itself: the code block, the Mermaid figure and the
 	 * quadrant.
+	 *
+	 * It is `paper` with a corner, written as the spread so that the two cannot part company.
 	 *
 	 * The three did not arrive at these five separately. At the commit before the migration all
 	 * three carried the one Tailwind string `overflow-hidden rounded-xl border border-border
@@ -40,13 +67,7 @@ export const surfaces = stylex.create({
 	 * the page is not a block in an article, and the corner they agree on today is the only thing
 	 * they share.
 	 */
-	blockFrame: {
-		borderRadius: radius.xl,
-		borderWidth: border.hairlinePx,
-		borderStyle: 'solid',
-		borderColor: 'var(--color-border)',
-		backgroundColor: 'var(--color-paper)',
-	},
+	blockFrame: { ...paper, borderRadius: radius.xl },
 
 	/**
 	 * What a heading is made of, which on this site is two declarations and no size.

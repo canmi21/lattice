@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, line, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the popover surface. Every colour is the token variable `libs/tokens`
@@ -21,10 +22,6 @@
 		/** The floating surface itself: its edge, its ground and the type it holds. */
 		surface: {
 			borderRadius: radius.md,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
 			fontSize: text.px14,
 			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
 			// rather than read: that variable is emitted only for the utilities that name it, so
@@ -79,7 +76,7 @@
 		{onInteractOutside}
 		{onOpenAutoFocus}
 		{onCloseAutoFocus}
-		class="popover-content z-40 overflow-hidden shadow-sm {stylex.attrs(styles.surface).class}"
+		class="popover-content z-40 overflow-hidden shadow-sm {stylex.attrs(surfaces.paper, styles.surface).class}"
 	>
 		{@render children()}
 	</Popover.Content>

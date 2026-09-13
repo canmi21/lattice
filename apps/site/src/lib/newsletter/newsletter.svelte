@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable
@@ -28,10 +28,6 @@
 			// The clamp to half the box is the browser's, so the radius is stated as the unbounded
 			// length Tailwind's `rounded-full` is rather than as a number.
 			borderRadius: radius.full,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
 			// Stated rather than left to `auto`, which draws an I-beam wherever it lands on text.
 			// The only text here in the confirmed state is the masked address, and selecting that
 			// yields a row of bullets rather than an address -- an invitation to copy something
@@ -360,6 +356,7 @@ otherwise need. See spec/engagement.md. -->
 		something to jump between. -->
 		<div
 			class="pill focus-input-shell mt-4 flex items-center gap-2 p-1.5 pl-5 {stylex.attrs(
+				surfaces.paper,
 				styles.pill,
 			).class}"
 			role={shown ? 'status' : undefined}

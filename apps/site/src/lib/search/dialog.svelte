@@ -27,10 +27,6 @@
 		/** The floating panel: its edge, its ground and the ink everything inside inherits. */
 		panel: {
 			borderRadius: radius.xl,
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
 		},
 		/**
@@ -360,6 +356,7 @@
 		<Dialog.Overlay class="search-overlay fixed inset-0 z-60" />
 		<Dialog.Content
 			class="search-panel fixed top-[12vh] left-1/2 z-60 flex max-h-[70vh] w-[min(38rem,calc(100vw-2rem))] flex-col overflow-hidden shadow-lg {stylex.attrs(
+				surfaces.paper,
 				styles.panel,
 			).class}"
 		>

@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`
@@ -24,12 +25,6 @@
 		surface: {
 			// 0.375rem is the `--radius-md` behind `rounded-md`.
 			borderRadius: radius.md,
-			// `border` writes its style through `--tw-border-style`, which is registered with
-			// `solid` as its initial value, so the edge computes to one pixel of solid.
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			backgroundColor: 'var(--color-paper)',
 		},
 	});
 </script>
@@ -70,7 +65,7 @@
 		sideOffset={8}
 		collisionPadding={EDGE_PADDING}
 		loop
-		class="menu-content z-30 min-w-36 overflow-hidden shadow-sm {stylex.attrs(styles.surface).class}"
+		class="menu-content z-30 min-w-36 overflow-hidden shadow-sm {stylex.attrs(surfaces.paper, styles.surface).class}"
 	>
 		{@render children()}
 	</DropdownMenu.Content>
