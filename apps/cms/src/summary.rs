@@ -317,6 +317,13 @@ fn pending(contents: &Path, force: bool) -> std::io::Result<(Vec<Article>, usize
 			let Ok(source) = std::fs::read_to_string(&path) else {
 				continue;
 			};
+			// A draft is not paid work: the summary is written from prose that is still being
+			// edited, so it would be bought and then be wrong. Unlike `cms i18n` and `cms tn`
+			// there is no way to name one here, because this command takes no article argument --
+			// so a draft gets its summary when it stops being a draft.
+			if crate::document::is_draft(&source) {
+				continue;
+			}
 			let fields = crate::document::fields_of(&source, &path)?;
 			let Some(lang) = lang_of(&fields) else {
 				continue;

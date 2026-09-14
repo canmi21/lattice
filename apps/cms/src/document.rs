@@ -107,6 +107,35 @@ pub fn fields(text: &str) -> Result<Fields, Malformed> {
 	)
 }
 
+/// Whether the frontmatter marks this article as unpublished.
+///
+/// **Not through [`fields`], which is where the first version of this went wrong.** That returns
+/// the *text* fields and drops everything else, and `draft: true` is a YAML boolean -- so every
+/// draft read as published, and the home card counted two articles nobody can open. A flag is not
+/// text, so it is read off the frontmatter directly.
+///
+/// The string form is accepted too. Both spellings mean the same thing to a person writing one by
+/// hand, and the difference between them is a quoting rule nobody should have to know.
+///
+/// A file that is not a document, or whose frontmatter is not YAML, is not a draft. Being
+/// unreadable is a fault for `cms check` to report; answering "draft" here would quietly remove a
+/// broken article from every sweep instead, which is the opposite of reporting it.
+///
+/// The site decides the same thing in `buildArticles`, and the two agree on the spelling.
+pub fn is_draft(text: &str) -> bool {
+	let Ok(Document { frontmatter: Some(frontmatter), .. }) = split(text) else {
+		return false;
+	};
+	let Ok(value) = serde_yaml_ng::from_str::<serde_yaml_ng::Value>(frontmatter) else {
+		return false;
+	};
+	match value.get("draft") {
+		Some(serde_yaml_ng::Value::Bool(flag)) => *flag,
+		Some(serde_yaml_ng::Value::String(text)) => text.trim() == "true",
+		_ => false,
+	}
+}
+
 /// `fields`, with the article named in whatever goes wrong.
 ///
 /// The error type carries no path on purpose, and every caller that reads a file has one, so this
@@ -134,6 +163,19 @@ impl<'a> Document<'a> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn a_draft_flag_is_read_as_the_boolean_it_is_written_as() {
+		// The failure this test exists for: `fields` keeps text fields and drops the rest, so
+		// reading the flag through it made every draft look published.
+		assert!(is_draft("---\nlang: en\ndraft: true\n---\n\nBody\n"));
+		assert!(is_draft("---\nlang: en\ndraft: \"true\"\n---\n\nBody\n"));
+		assert!(!is_draft("---\nlang: en\ndraft: false\n---\n\nBody\n"));
+		assert!(!is_draft("---\nlang: en\n---\n\nBody\n"));
+		// Unreadable is a fault to report, not a reason to vanish from every sweep.
+		assert!(!is_draft("Body with no frontmatter at all\n"));
+		assert!(!is_draft("---\nnot: [valid yaml\n---\n\nBody\n"));
+	}
 
 	#[test]
 	fn a_file_without_frontmatter_is_all_body() {

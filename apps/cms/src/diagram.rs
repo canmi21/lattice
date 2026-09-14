@@ -213,6 +213,12 @@ pub fn collect(contents: &Path) -> std::io::Result<Vec<Drawing>> {
 		let Ok(source) = std::fs::read_to_string(&article) else {
 			continue;
 		};
+		// A draft's drawings are not owed yet. A drawing that also appears in a published article
+		// is still found there -- these are collected by id and deduplicated -- so skipping the
+		// draft loses nothing that anybody can currently read.
+		if crate::document::is_draft(&source) {
+			continue;
+		}
 		let Ok(segments) = segment::split(&source) else {
 			continue;
 		};

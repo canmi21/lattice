@@ -12,6 +12,8 @@ export type ArticleListing = {
 		subtitle: string | null;
 		modified: string | null;
 		lang: string;
+		/** `draft: true` in the frontmatter. Listed, but owed by nobody: the paid commands skip it. */
+		draft: boolean;
 		segments: number;
 		translated: number;
 		wanted: number;

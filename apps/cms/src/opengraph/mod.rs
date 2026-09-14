@@ -342,7 +342,7 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 		let Ok(text) = std::fs::read_to_string(&path) else {
 			continue;
 		};
-		if is_draft(&text) {
+		if crate::document::is_draft(&text) {
 			continue;
 		}
 		// A file that cannot be split is skipped rather than fatal, the same as one that cannot be
@@ -376,47 +376,6 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 	}
 
 	Ok(Census { articles: counted, words, languages: locale::VIEWS.len() })
-}
-
-/// Whether the frontmatter marks this article as unpublished.
-///
-/// Read here rather than through a shared helper because this is the only place in the Rust half
-/// that has ever needed to know. The site decides the same thing in `buildArticles`, and the two
-/// agree on the spelling: `draft: true`.
-///
-/// Not through `document::fields`, which is where the first version of this went wrong. That
-/// returns the *text* fields and drops everything else, and `draft: true` is a YAML boolean --
-/// so every article read as published and the card counted two nobody can open. A flag is not
-/// text, so it is read off the frontmatter directly. The string form is accepted as well: both
-/// spellings mean the same thing to a person writing one by hand.
-fn is_draft(text: &str) -> bool {
-	let Ok(crate::document::Document { frontmatter: Some(frontmatter), .. }) =
-		crate::document::split(text)
-	else {
-		return false;
-	};
-	let Ok(value) = serde_yaml_ng::from_str::<serde_yaml_ng::Value>(frontmatter) else {
-		return false;
-	};
-	match value.get("draft") {
-		Some(serde_yaml_ng::Value::Bool(flag)) => *flag,
-		Some(serde_yaml_ng::Value::String(text)) => text.trim() == "true",
-		_ => false,
-	}
-}
-
-#[cfg(test)]
-mod census_tests {
-	#[test]
-	fn a_draft_flag_is_read_as_the_boolean_it_is_written_as() {
-		// The failure this test exists for: `document::fields` keeps text fields and drops the
-		// rest, so reading the flag through it made every draft look published.
-		assert!(super::is_draft("---\nlang: en\ndraft: true\n---\n\nBody\n"));
-		assert!(super::is_draft("---\nlang: en\ndraft: \"true\"\n---\n\nBody\n"));
-		assert!(!super::is_draft("---\nlang: en\ndraft: false\n---\n\nBody\n"));
-		assert!(!super::is_draft("---\nlang: en\n---\n\nBody\n"));
-		assert!(!super::is_draft("Body with no frontmatter at all\n"));
-	}
 }
 
 /// The home card, once per view, worded by that view's own catalog.

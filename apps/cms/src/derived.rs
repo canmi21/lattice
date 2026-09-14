@@ -104,8 +104,14 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 		.count();
 
 	let listing = articles::listing_at(repository)?;
-	let translated: usize = listing.articles.iter().map(|article| article.translated).sum();
-	let translatable: usize = listing.articles.iter().map(|article| article.wanted).sum();
+	// Drafts are listed by `cms articles` and owed by nobody. This report answers "what is still
+	// outstanding", and the paid commands leave a draft alone, so counting one here would show a
+	// debt no command will ever pay -- `cms i18n` would run, report nothing done, and the number
+	// would not move.
+	let owed: Vec<&articles::Article> =
+		listing.articles.iter().filter(|article| !article.draft).collect();
+	let translated: usize = owed.iter().map(|article| article.translated).sum();
+	let translatable: usize = owed.iter().map(|article| article.wanted).sum();
 	// One description per drawing per locale, the same shape the summaries are counted in. A
 	// drawing carried by two articles is one drawing here, because one description serves both.
 	let drawings = diagram::collect(&repository.join("contents"))?;
@@ -121,9 +127,8 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 		})
 		.sum();
 
-	let summaries_wanted = listing.articles.len() * listing.locales.len();
-	let summaries_missing: usize =
-		listing.articles.iter().map(|article| article.summary_gaps.len()).sum();
+	let summaries_wanted = owed.len() * listing.locales.len();
+	let summaries_missing: usize = owed.iter().map(|article| article.summary_gaps.len()).sum();
 
 	Ok(Report {
 		classes: vec![

@@ -6,8 +6,9 @@
 mod args;
 
 use crate::{
-	alt, articles, captions, check, classify, clip, derived, diagram, embed, favicon, gc, i18n,
-	image, licenses, locale, opengraph, overview, paths, port, refs, summary, task, twitter, video,
+	alt, articles, captions, check, classify, clip, derived, diagram, document, embed, favicon, gc,
+	i18n, image, licenses, locale, opengraph, overview, paths, port, refs, summary, task, twitter,
+	video,
 };
 use anyhow::Context as _;
 use args::{Cli, Command, ModelArgs, TwitterCommand};
@@ -641,6 +642,14 @@ fn translate_articles(args: I18nArgs<'_>) -> anyhow::Result<ExitCode> {
 	if outcome.orphans > 0 {
 		eprintln!("note  {} stale segments left by edits", outcome.orphans);
 	}
+	// Said out loud, because a silent skip looks identical to a run that did nothing. Naming the
+	// article is how a person asks for one anyway, so the note names the way out as well.
+	if outcome.drafts > 0 {
+		eprintln!(
+			"note  {} draft(s) left alone; name one to translate it before publishing",
+			outcome.drafts
+		);
+	}
 	// Not a failure. The work done is kept, and running again after the reset picks up exactly
 	// where this stopped, because only missing segments are ever requested.
 	if let Some(reason) = &outcome.exhausted {
@@ -1184,7 +1193,13 @@ fn scan_notes(
 	// pay to learn the same nothing twice.
 	let wanted: Vec<std::path::PathBuf> = if only.is_empty() {
 		match refs::markdown_under(&contents) {
-			Ok(all) => all,
+			// Drafts leave the sweep. Scanning one costs a model call and records that it was
+			// read, and the text it was read from is going to change again -- the same argument
+			// `cms i18n` makes, and the same escape: naming an article still reaches it.
+			Ok(all) => all
+				.into_iter()
+				.filter(|path| std::fs::read_to_string(path).is_ok_and(|text| !document::is_draft(&text)))
+				.collect::<Vec<_>>(),
 			Err(error) => {
 				eprintln!("could not read {}: {error}", contents.display());
 				return Ok(ExitCode::FAILURE);

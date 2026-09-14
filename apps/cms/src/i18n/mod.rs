@@ -81,6 +81,9 @@ pub struct Outcome {
 	pub missing_locales: usize,
 	/// Segments another live run was translating, left to it.
 	pub claimed_elsewhere: usize,
+	/// Articles left alone because they are drafts. Counted rather than silently dropped: a
+	/// person who wrote one and ran this wants to be told why nothing happened to it.
+	pub drafts: usize,
 	/// Segments that turned out to be translated already once the claim was held -- work another
 	/// run finished between the list being built and this item being reached.
 	pub already_done: usize,
@@ -605,6 +608,27 @@ pub async fn run(
 		// never counts work it was never going to do. `refuse_page` below is the guard for this
 		// line being changed, not the mechanism it uses.
 		.filter(|path| refuse_page(path).is_ok())
+		// And so do drafts, for the same reason one line up and a different one of its own: a
+		// draft is going to be edited again, and every edit changes segment ids, so translating
+		// one buys eight locales of text that the next save throws away. Money, not minutes.
+		//
+		// Naming an article is still an explicit request and goes through. That is what `only`
+		// already means everywhere else here, and it is the escape for the case this would
+		// otherwise make impossible -- translating a piece, reading it over, and publishing the
+		// whole thing at once.
+		//
+		// An unreadable file stays in. Being unreadable is a fault for the loop below to report,
+		// and answering "draft" for it would remove it from the run instead of naming it.
+		.filter(|path| {
+			if !only.is_empty() {
+				return true;
+			}
+			let draft = std::fs::read_to_string(path).is_ok_and(|text| crate::document::is_draft(&text));
+			if draft {
+				outcome.drafts += 1;
+			}
+			!draft
+		})
 		.collect();
 
 	// One entry for the whole run, counted in articles. The per-article bars below count segments;

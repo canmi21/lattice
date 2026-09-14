@@ -31,6 +31,11 @@ pub struct Article {
 	pub modified: Option<String>,
 	/// The `lang` frontmatter. A file without one is a page, not an article, and is absent here.
 	pub lang: String,
+	/// Whether `draft: true`. Listed rather than filtered out: this is what the corpus holds, and
+	/// a draft is a real article somebody is writing. What changes is what is *owed* -- the paid
+	/// commands leave a draft alone and `cms derived` does not count it as work outstanding, so
+	/// this field is how that decision is visible from the listing instead of only from a skip.
+	pub draft: bool,
 	/// Translatable segments the article currently holds.
 	pub segments: usize,
 	/// (segment, locale) pairs that exist.
@@ -100,6 +105,7 @@ pub fn listing_at(repository: &Path) -> std::io::Result<Listing> {
 			continue;
 		};
 		let lang = lang.to_owned();
+		let draft = crate::document::is_draft(&source);
 		let source_locale = summary::source_locale(&lang);
 
 		let live = i18n::segment::translatable(&source).map_err(|error| {
@@ -149,6 +155,7 @@ pub fn listing_at(repository: &Path) -> std::io::Result<Listing> {
 			subtitle: summary::subtitle_of(&fields).map(str::to_owned),
 			modified: summary::modified_of(&fields).map(str::to_owned),
 			lang,
+			draft,
 			segments: live.len(),
 			translated: wanted.saturating_sub(absent),
 			wanted,
