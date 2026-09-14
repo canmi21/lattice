@@ -42,14 +42,19 @@ claim somebody makes, and `cms image --force` must not be able to take it away.
 published is labelled Apple: the Internet Archive is how the page can still be read, not who wrote
 it. Crediting the library for the book is the mistake the rule exists to prevent.
 
-**The label is the name the origin publishes under, in the script it publishes in.** One string
-rather than the per-locale map a description carries -- but not for the reason first written here,
-which was "English, because a publication is called the same thing in every language this site is
-written in". That holds for Apple and fails for the Chinese sitcom one of these clips is cut from,
-whose English title is a distributor's rendering and not its name. A proper noun is not prose: it
-is not translated, it is spelled the way its owner spells it, and that one spelling serves every
-language the page is read in. The field stays single and the constraint moves off the alphabet and
-onto the source.
+**The label is the name the origin publishes under, verbatim, in the language it publishes in
+first.** It is recorded rather than composed, so the workspace rule that file content is English
+does not reach it -- and this field is what produced that exception; see the workspace
+`spec/voice.md`. The reason first written here was "English, because a publication is called the
+same thing in every language this site is written in", which holds for Apple and fails for the
+Chinese sitcom one of these clips is cut from, whose English title is a distributor's rendering and
+not its name. Rendering a proper noun does not make the file more English, it makes the record less
+true, and the record is the whole reason the field exists.
+
+One string rather than the per-locale map a description carries, for the same reason: a name is not
+translated, so one spelling serves every language the page is read in. An origin leading in two
+languages is taken at the one it leads with, never at the one the reader happens to speak. The
+description of the thing is still English and still translated like any other description.
 
 **A source can name something inside this repository, as `cid://{blake3}`.** A video's poster frame
 came from the video, and that is as real a provenance as a URL. The asset id and not a variant's:
