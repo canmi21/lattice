@@ -258,8 +258,16 @@ fn resize(image: &DynamicImage, target: Size) -> DynamicImage {
 	if target.width == image.width() && target.height == image.height() {
 		return image.clone();
 	}
+	// The resizer matches the source's pixel type against the destination's, and the destination
+	// below is RGBA8. A PNG saved without an alpha channel decodes as RGB8 -- most screenshots
+	// are -- and the resize then fails, so this used to fall through to returning the original at
+	// full size. That is worse than an error: `placeholder` asks for a hundred pixels on the long
+	// edge and hands whatever comes back to thumbhash, which asserts on anything larger, so a
+	// screenshot without alpha panicked the import from three frames away. Converting first makes
+	// the two agree, and the fallbacks below stay for a caller that can live with the original.
+	let source = DynamicImage::ImageRgba8(image.to_rgba8());
 	let mut destination = FirImage::new(target.width, target.height, PixelType::U8x4);
-	if Resizer::new().resize(image, &mut destination, &ResizeOptions::new()).is_err() {
+	if Resizer::new().resize(&source, &mut destination, &ResizeOptions::new()).is_err() {
 		return image.clone();
 	}
 	image::RgbaImage::from_raw(target.width, target.height, destination.into_vec())
