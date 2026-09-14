@@ -53,13 +53,16 @@ use crate::image::manifest::Caption;
 use crate::image::{cid, store};
 use std::path::Path;
 
-/// The one type a caption track is ever stored as, spelled twice because two things ask.
+/// What a caption track is here, in the two spellings something asks for.
 ///
-/// `caption_path` takes an extension so it matches its two siblings, which need one -- an image
-/// has more than one format and the CDN reads the extension as the request. A caption does not,
-/// so the argument only ever takes this value and is therefore somewhere a wrong one could go:
-/// `caption_path(p, cid, "mp4")` compiles and writes a path nobody will ever look for. Naming it
-/// here keeps the literal in one place and next to the mime it has to agree with.
+/// A caption is only ever WebVTT -- a `<track>` element takes one format and there is no second
+/// one to choose between -- which is why `store::caption_path` fixes the extension itself rather
+/// than taking an argument that could only ever hold one value.
+///
+/// The consequence is that the extension is spelled in two files with nothing between them but
+/// agreement: `.vtt` in the path the store builds, `text/vtt` in the record written here. So
+/// `EXTENSION` is the claim this module makes about the other one, and the test at the bottom is
+/// what checks it rather than a literal that would restate the store's own line.
 const EXTENSION: &str = "vtt";
 const MIME: &str = "text/vtt";
 
@@ -154,7 +157,7 @@ pub fn publish(
 
 	let bytes = text.as_bytes();
 	let id = cid(bytes);
-	store::write(&store::caption_path(public, &id, EXTENSION), bytes).map_err(Error::Write)?;
+	store::write(&store::caption_path(public, &id), bytes).map_err(Error::Write)?;
 
 	let caption = Caption {
 		mime: MIME.to_string(),
@@ -525,8 +528,11 @@ mod tests {
 		let (id, caption) =
 			publish(TRACK, window(), "en", None, public).expect("publish").expect("cues");
 
-		let stored = store::caption_path(public, &id, "vtt");
+		let stored = store::caption_path(public, &id);
 		assert!(stored.is_file());
+		// The store fixes the extension and this module fixes the mime, in two files that never
+		// consult each other. This is the only thing holding the two halves of "WebVTT" together.
+		assert_eq!(stored.extension().and_then(|value| value.to_str()), Some(EXTENSION));
 		let bytes = std::fs::read(&stored).expect("stored track");
 		// The key is the hash of the cut file, not of the track it came from.
 		assert_eq!(id, cid(&bytes));
