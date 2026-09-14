@@ -208,10 +208,7 @@ fn published(public: &Path, merged: &Merged, media: Option<&Media>) -> bool {
 	let Some(video) = media.and_then(Media::video) else {
 		return false;
 	};
-	let rungs = video
-		.variants
-		.keys()
-		.all(|cid| store::video_path(public, cid).is_file());
+	let rungs = video.variants.keys().all(|cid| store::video_path(public, cid).is_file());
 	rungs && poster_published(public, merged, &video.poster)
 }
 
@@ -250,7 +247,10 @@ mod tests {
 
 	#[test]
 	fn a_resolved_name_is_the_id_and_the_one_format() {
-		assert_eq!(resolved_name("44b6081deaf0242ca3bf83d62a3b6c95"), "44b6081deaf0242ca3bf83d62a3b6c95.mp4");
+		assert_eq!(
+			resolved_name("44b6081deaf0242ca3bf83d62a3b6c95"),
+			"44b6081deaf0242ca3bf83d62a3b6c95.mp4"
+		);
 	}
 
 	#[test]
@@ -259,12 +259,21 @@ mod tests {
 		// every pixel and must not take it with them, which is the rule `data/media.yaml` exists
 		// to enforce.
 		let mut authored = media::Media::default();
-		authored.media.insert("poster".to_owned(), media::Entry {
-			source: Some(media::Source { url: "https://apple.com".to_owned(), label: Some("Apple".to_owned()) }),
-			..media::Entry::default()
-		});
+		authored.media.insert(
+			"poster".to_owned(),
+			media::Entry {
+				source: Some(media::Source {
+					url: "https://example.invalid/newsroom".to_owned(),
+					label: Some("Apple".to_owned()),
+				}),
+				..media::Entry::default()
+			},
+		);
 		assert!(!note_poster_source(&mut authored, "poster", "clip"));
-		assert_eq!(authored.media["poster"].source.as_ref().expect("kept").url, "https://apple.com");
+		assert_eq!(
+			authored.media["poster"].source.as_ref().expect("kept").url,
+			"https://example.invalid/newsroom"
+		);
 	}
 
 	#[test]
