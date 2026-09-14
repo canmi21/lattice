@@ -232,7 +232,7 @@ fn published(public: &Path, image: Option<&Image>) -> bool {
 		return false;
 	};
 	image.variants.iter().all(|(cid, record)| {
-		store::image_path(public, cid, crate::extension::for_variant(&record.mime)).is_file()
+		store::variant_path(public, cid, crate::extension::for_variant(&record.mime)).is_file()
 	})
 }
 

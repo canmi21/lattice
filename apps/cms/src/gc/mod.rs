@@ -270,7 +270,7 @@ mod tests {
 
 		let public = root.join("public");
 		for (cid, variant) in [(&kept, &kept_variant), (&dropped, &dropped_variant)] {
-			let object = crate::image::store::image_path(&public, variant, "avif");
+			let object = crate::image::store::variant_path(&public, variant, "avif");
 			crate::image::store::write(&object, b"bytes").expect("write");
 			crate::image::store::write(&crate::image::store::meta_path(&public, cid), b"{}")
 				.expect("write");
@@ -392,12 +392,12 @@ mod tests {
 		use crate::image::store;
 
 		let public = root.join("public");
-		store::write(&store::video_path(&public, &rung, "mp4"), b"bytes").expect("rung");
-		store::write(&store::caption_path(&public, &track, "vtt"), b"WEBVTT").expect("track");
-		store::write(&store::image_path(&public, &poster_variant, "avif"), b"bytes")
+		store::write(&store::video_path(&public, &rung), b"bytes").expect("rung");
+		store::write(&store::caption_path(&public, &track), b"WEBVTT").expect("track");
+		store::write(&store::variant_path(&public, &poster_variant, "avif"), b"bytes")
 			.expect("poster variant");
 		let orphan = "ffffffffffffffffffffffffffffffff";
-		store::write(&store::image_path(&public, orphan, "avif"), b"x").expect("orphan");
+		store::write(&store::variant_path(&public, orphan, "avif"), b"x").expect("orphan");
 		for cid in [&clip, &poster] {
 			store::write(&store::meta_path(&public, cid), b"{}").expect("record");
 		}
