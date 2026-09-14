@@ -13,10 +13,6 @@
 	 * own, and where that module should live is the question spec/todo.md is already holding.
 	 */
 	const styles = stylex.create({
-		page: {
-			backgroundColor: 'var(--color-page)',
-			color: 'var(--color-text)',
-		},
 		backLink: {
 			fontSize: text.px15,
 			color: {
@@ -115,7 +111,7 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen {stylex.attrs(styles.page).class}">
+<main class="min-h-screen {stylex.attrs(surfaces.page).class}">
 	<article class="mx-auto max-w-180 px-6 py-24">
 		<nav aria-label={m['licenses.breadcrumb']({}, { locale })}>
 			<a

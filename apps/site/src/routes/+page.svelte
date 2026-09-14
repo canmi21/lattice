@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, duration, easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -30,8 +31,6 @@
 		 * spec/architecture/css.md: it moves nothing, it says what the element is to a pointer.
 		 */
 		page: {
-			backgroundColor: 'var(--color-page)',
-			color: 'var(--color-text)',
 			WebkitUserSelect: 'none',
 			userSelect: 'none',
 		},
@@ -190,7 +189,7 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen {stylex.attrs(styles.page).class}">
+<main class="min-h-screen {stylex.attrs(surfaces.page, styles.page).class}">
 	<!-- Less air on a phone at both ends, where 6rem is most of what the reader can see before
 	     scrolling. The foot takes two thirds of what the head does: the space above opens the page
 	     and the space below only ends it. -->

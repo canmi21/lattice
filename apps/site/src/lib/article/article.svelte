@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, leading, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -23,10 +24,6 @@
 	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
 	 */
 	const styles = stylex.create({
-		page: {
-			backgroundColor: 'var(--color-page)',
-			color: 'var(--color-text)',
-		},
 		/**
 		 * The apparatus around the article, not the article. A drag that starts on a heading in
 		 * the table of contents or on the way back should not come away with the navigation; the
@@ -401,7 +398,7 @@
 	{@html ldJson(article)}
 </svelte:head>
 
-<main class="min-h-screen {stylex.attrs(styles.page).class}">
+<main class="min-h-screen {stylex.attrs(surfaces.page).class}">
 	<!-- One rail, one box. It is fit-content, so the browser sizes it to the entries without
 	     anything having to measure them -- see spec/styling.md. -->
 	<div class="article-rail {stylex.attrs(styles.apparatus).class}">

@@ -52,6 +52,22 @@ const paper = {
 };
 
 export const surfaces = stylex.create({
+	/**
+	 * The ground every route stands on: the page's own colour and the ink that inherits from it
+	 * into everything the route renders.
+	 *
+	 * Seven components write these two, and in five of them they are the whole style object, which
+	 * makes this the largest single duplication the visual layer had left.
+	 *
+	 * One declaration on `body` would be the better repair and is deliberately not taken here: it
+	 * would move which element carries the colour, and that is a rendering change rather than a
+	 * merge of two definitions that already agree. See spec/todo.md.
+	 */
+	page: {
+		backgroundColor: 'var(--color-page)',
+		color: 'var(--color-text)',
+	},
+
 	paper,
 
 	/**
