@@ -959,6 +959,71 @@ media:
     - npm
     - web-navigation
   6264d3f4d385043c2d839ff8f92d1a72:
+    description:
+      de-DE:
+        text: Ein polierter Produktfilm beginnt mit engen, sich wandelnden Nahaufnahmen des runden Gitters des Mac Pro. Hände heben seine beiden Metallgriffe, dann erscheint ein voll hochstehender Mac Pro aufrecht vor einem hellgrauen Hintergrund. Ein Text bezeichnet „Jony Ive“ als „Chief Design Officer“ und gefolgt von dem zentrierten Satz „praktisch unbegrenzte Möglichkeiten“. Der Computer blendet in ein fast weißes Endbild über.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:42.602092Z
+        seconds: 3.419767084
+        tokens: 11792
+        review: false
+      en-US:
+        text: A polished product film begins with tight, shifting close-ups of the Mac Pro’s circular lattice. Hands lift its two metal handles, then a full-height Mac Pro appears upright against a pale gray background. Text identifies “Jony Ive” as “Chief Design Officer,” followed by the centered phrase “virtually unlimited possibilities.” The computer fades into an almost-white final frame.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T05:52:51.573877Z
+        seconds: 0.0
+        tokens: 21101
+        review: false
+      es-ES:
+        text: Una película de producto pulida comienza con primeros planos cerrados y cambiantes de la celosía circular del Mac Pro. Manos levantan sus dos asas metálicas, luego aparece un Mac Pro de altura completa en posición vertical contra un fondo gris pálido. El texto identifica a “Jony Ive” como “Chief Design Officer”, seguido de la frase centrada “posibilidades prácticamente ilimitadas”. El ordenador se desvanece en un fotograma final casi blanco.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:53.648613Z
+        seconds: 3.948596917
+        tokens: 12164
+        review: false
+      fr-FR:
+        text: Un film produit poli commence par des gros plans serrés et changeants du treillis circulaire du Mac Pro. Des mains soulèvent ses deux poignées métalliques, puis un Mac Pro en taille réelle apparaît debout sur un fond gris pâle. Le texte identifie « Jony Ive » comme « Chief Design Officer », suivi de la phrase centrée « possibilités pratiquement illimitées ». L’ordinateur s’estompe dans un dernier
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:50.621801Z
+        seconds: 3.013633375
+        tokens: 11808
+        review: false
+      ja-JP:
+        text: 光沢のある製品映像は、Mac Proの円形格子の緊密で動くクローズアップから始まります。手が2つの金属ハンドルを持ち上げ、次に全高のMac Proが淡い灰色の背景に立って現れます。テキストは「Jony Ive」を「チーフ・デザイン・オフィサー」と表示し、続いて中央に「ほぼ無限の可能性」と示されます。コンピュータはほぼ白い最終フレームへとフェードアウト
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:37.904632Z
+        seconds: 4.684063334
+        tokens: 11955
+        review: false
+      ko-KR:
+        text: 광택이 나는 제품 영상은 맥 프로의 원형 격자를 밀접하고 이동하는 클로즈업으로 시작합니다. 손이 두 개의 금속 손잡이를 들어 올리면, 전체 높이의 맥 프로가 연한 회색 배경에 직립해 나타납니다. 텍스트는 “Jony Ive”를 “Chief Design Officer”로 표시하고, 이어 중앙에 “사실상 무한한 가능성”이라는 문구가 배치됩니다. 컴퓨터는 거의 흰색인 최종 프레임으로 서서히 사라집니다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:46.03547Z
+        seconds: 4.572856
+        tokens: 12050
+        review: false
+      zh-CN:
+        text: 一段精致的产品宣传片以紧凑、动态的特写镜头聚焦于 Mac Pro 的圆形格栅开场。双手抬起其两个金属手柄，随后一台全尺寸的 Mac Pro 竖立于淡灰色背景前出现。文字将 “Jony Ive” 标识为 “首席设计官”，随后居中出现短语 “几乎无限的可能”。电脑画面淡出至几乎全白的最终
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:33.378911Z
+        seconds: 4.5121618340000005
+        tokens: 11828
+        review: false
+      zh-TW:
+        text: 一段精緻的產品影片以緊湊、變換的特寫鏡頭開始，聚焦於 Mac Pro 的圓形格柵。雙手抬起它的兩個金屬把手，接著全尺寸的 Mac Pro 直立於淡灰色背景前。文字將「Jony Ive」標示為「首席設計官」，隨後居中顯示「幾乎無限的可能性」。電腦最後淡出至接近純白的畫
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:53:57.6096Z
+        seconds: 3.5260905
+        tokens: 11857
+        review: false
     source:
       url: https://web.archive.org/web/20190603223643/https://www.youtube.com/watch?v=wl4Hg23RQHQ
       label: Apple
@@ -2365,6 +2430,71 @@ media:
     - printed-circuit-board
     - usb-c
   cd09df7945f22065fd0995f8f8207e55:
+    description:
+      de-DE:
+        text: Filmisches Präsentationsmaterial eröffnet über einem geschwungenen Campusgebäude und den beiden Tunnel­eingängen mit dem Hinweis „ONLY“. Im Inneren schreitet eine einsame Gestalt durch einen kargen Glas‑und‑Steinkorridor; eine Nahaufnahme folgt seinen polierten Schuhen. Ein Brillenträger erscheint im Schatten, dann weitet die Sicht, um ihn beim Durchqueren einer gläsernen Lounge zu zeigen. Der Clip endet hell, mit einem weiteren Mann in einem burgunderfarbenen Pullover, der die Kamera neben weitreichenden Fenstern mit Blick auf die gestalteten Gartenanlagen
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:09.988176Z
+        seconds: 3.181728125
+        tokens: 11904
+        review: false
+      en-US:
+        text: Cinematic presentation footage opens above a curving campus building and twin tunnel entrances marked “ONLY.” Inside, a lone figure walks through a stark glass-and-stone corridor; a close-up follows his polished shoes. A glasses-wearing man appears in shadow, then the view widens to him crossing a glass-walled lounge. The clip ends brightly with another man in a burgundy sweater addressing camera beside sweeping windows overlooking landscaped grounds.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T05:53:13.312586Z
+        seconds: 0.0
+        tokens: 20965
+        review: false
+      es-ES:
+        text: Una secuencia cinematográfica se abre sobre un edificio curvo del campus y dos entradas de túnel marcadas “ONLY”. En el interior, una figura solitaria camina por un corredor austero de vidrio y piedra; un primer plano sigue sus zapatos pulidos. Un hombre con gafas aparece en la sombra, luego la vista se amplía a él cruzando un salón con paredes de vidrio. El clip termina con luz brillante mostrando a otro hombre con un suéter burdeos dirigiéndose a la cámara junto a ventanales que ofrecen vistas a los jardines ajardinados.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:19.585372Z
+        seconds: 3.012322625
+        tokens: 11909
+        review: false
+      fr-FR:
+        text: Des images de présentation cinématographique s’ouvrent au-dessus d’un bâtiment universitaire incurvé et de deux entrées de tunnel jumelées marquées « ONLY ». À l’intérieur, une silhouette solitaire marche dans un couloir austère en verre et en pierre ; un gros plan suit ses chaussures polies. Un homme portant des lunettes apparaît dans l’ombre, puis la vue s’élargit à son passage à travers un salon aux parois de verre. Le clip se termine en luminosité avec un autre homme en pull bordeaux s’adressant à la caméra, à côté de vastes fenêtres donnant sur un jardin paysager.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:16.609105Z
+        seconds: 2.964918417
+        tokens: 11945
+        review: false
+      ja-JP:
+        text: シネマティックなプレゼンテーション映像は、曲線を描くキャンパスの建物と「ONLY」と書かれた双子のトンネル入口の上方から始まります。内部では、孤独な人物が白く鋭いガラスと石の廊下を歩き、クローズアップで磨かれた靴が映ります。眼鏡をかけた男性が影の中に現れ、続いてカメラは彼がガラス壁のラウンジを横切る様子を広く映します。クリップは、バーガンディのセーターを着た別の男性が、手入れされた庭園を見渡す大きな窓の横でカメラに向かって話すシーンで明るく終わります。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:04.403521Z
+        seconds: 5.570909292
+        tokens: 12239
+        review: false
+      ko-KR:
+        text: 시네마틱 프레젠테이션 영상은 곡선형 캠퍼스 건물 위와 “ONLY” 표시가 된 쌍둥이 터널 입구 위에서 시작된다. 내부에서는 한 인물이 차갑고 유리와 돌로 된 복도를 걸으며, 클로즈업으로 그의 광택 나는 신발이 비춰진다. 안경을 쓴 남자가 그림자 속에 등장하고, 시야가 확대되어 그가 유리벽 라운지를 가로지르는 모습이 보여진다. 영상은 넓은 창을 통해 조경된 경내를 내려다보는 풍경 옆에서 와인색 스웨터를 입은 다른 남자가 카메라에 말걸며 밝게 마무리된다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:13.183895Z
+        seconds: 3.412399958
+        tokens: 11962
+        review: false
+      zh-CN:
+        text: 电影式的演示画面先从一座弧形的校园建筑上方以及标有“ONLY”的双隧道入口处打开。内部，一位独行者在简洁的玻璃石材走廊中行走；镜头特写他的光亮鞋子。一个戴眼镜的男子出现在阴影中，随后画面拉宽，显示他穿过玻璃墙的休息室。片段在明亮的结尾处结束，另一位身穿酒红色毛衣的男子在俯瞰绿化庭院的落地窗旁对着摄像机说话
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:01.149336Z
+        seconds: 3.239884833
+        tokens: 11896
+        review: false
+      zh-TW:
+        text: 影片以彎曲的校園建築以及標有「ONLY」的雙隧道入口為開場畫面。進入內部後，一名孤身人物走過簡潔的玻璃與石材走廊；鏡頭特寫他的擦亮鞋面。戴眼鏡的男子在陰影中出現，隨後畫面拉寬，看到他穿過玻璃圍牆的休息區。片段在明亮的結尾處，另一位身穿酒紅色毛衣的男子站在俯瞰園林景觀的寬闊落地窗旁，對著鏡頭說話。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:22.610231Z
+        seconds: 4.351905042
+        tokens: 12104
+        review: false
     source:
       url: https://podcasts.apple.com/us/podcast/apple-event-september-9/id1473854035?i=1000788729530
       label: Apple
@@ -2372,6 +2502,71 @@ media:
       from: 138.0
       to: 162.0
   cda77856d388c1fb733042c25b943569:
+    description:
+      de-DE:
+        text: 'Eine inszenierte Sitcom‑Szene in einer bunten Wohnung: Eine Frau betritt den Raum, trägt einen langen weißen Smartphone‑Karton und konfrontiert einen jungen Mann, der an einem Laptop arbeitet. Chinesische Untertitel identifizieren ihn als „Zeng Xiaoxians Handy“; er beharrt: „Ich bin Guangu’s Sohn.“ Sie untersucht das Telefon, sagt, es müsse Nuolans sein, und fragt: „Wie benutzt man dieses iPhone 18?“ Er nimmt es ihr'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:33.486126Z
+        seconds: 2.866167833
+        tokens: 11912
+        review: false
+      en-US:
+        text: 'A scripted sitcom scene in a colorful apartment: a woman enters carrying a long white smartphone box and confronts a young man working on a laptop. Chinese subtitles identify it as “Zeng Xiaoxian’s phone”; he insists, “I’m Guangu’s son.” She examines the phone, says it must be Nuolan’s, and asks, “How do you use this iPhone 18?” He takes it from her.'
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T05:53:13.324902Z
+        seconds: 0.0
+        tokens: 20465
+        review: false
+      es-ES:
+        text: 'Una escena de comedia escrita en un apartamento colorido: una mujer entra llevando una caja larga y blanca de smartphone y se enfrenta a un joven que trabaja en un portátil. Los subtítulos en chino lo identifican como “el teléfono de Zeng Xiaoxian”; él insiste, “Soy hijo de Guangu”. Ella examina el teléfono, dice que debe ser de Nuolan y pregunta, “¿Cómo se usa este iPhone 18?” Él se lo quita.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:42.324417Z
+        seconds: 2.6483825
+        tokens: 11827
+        review: false
+      fr-FR:
+        text: 'Une scène de sitcom scénarisée dans un appartement coloré : une femme entre en portant une longue boîte blanche de smartphone et confronte un jeune homme qui travaille sur un ordinateur portable. Les sous‑titres chinois l’identifient comme le « téléphone de Zeng Xiaoxian » ; il insiste : « Je suis le fils de Guangu. » Elle examine le téléphone, dit qu’il doit appartenir à Nuolan et demande : « Comment utilisez‑vous cet iPhone 18 ? »'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:39.688593Z
+        seconds: 2.6216740830000003
+        tokens: 11742
+        review: false
+      ja-JP:
+        text: カラフルなアパートでの脚本化されたシットコムのシーン：女性が長い白いスマートフォンの箱を持って入ってきて、ラップトップで作業中の若い男性に向かい合う。中国語字幕では「Zeng Xiaoxianの電話」と示され、彼は「僕はGuanguの息子だ」と主張する。彼女は電話を検査し、「きっとNuolanのものだ」と言い、「このiPhone 18はどう使うのですか？」と尋ねる。彼はそれを彼女から受け取
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:29.688284Z
+        seconds: 3.788979541
+        tokens: 12154
+        review: false
+      ko-KR:
+        text: '다채로운 아파트에서 촬영된 시트콤 장면: 여성이 긴 흰색 스마트폰 상자를 들고 들어와 노트북을 작업 중인 젊은 남성을 마주한다. 중국어 자막은 이를 “Zeng Xiaoxian의 전화”라고 밝히고, 그는 “나는 Guangu의 아들이다”라고 주장한다. 그녀는 전화를 검사하며 이것은 Nuolan의 것이라고 말하고, “이 iPhone 18은 어떻게 쓰나요?”라고 묻는다. 그는 그녀에게서 전화를 받아'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:36.365955Z
+        seconds: 3.31099675
+        tokens: 11909
+        review: false
+      zh-CN:
+        text: 一段在彩色公寓里的剧本式情景喜剧：一名女子提着长长的白色手机盒子走进来，面对正在用笔记本电脑工作的年轻男子。中文字幕标注这是“曾晓贤的手机”；他坚持说：“我是观古的儿子。”她检查手机，表示一定是诺兰的，并问：“这部 iPhone 18 怎么用？”他从她手中接过手机。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:26.975619Z
+        seconds: 2.699921959
+        tokens: 11819
+        review: false
+      zh-TW:
+        text: 在色彩繽紛的公寓裡，劇本化的情景喜劇場景：一位女士手提長長的白色手機盒子走進來，對正使用筆電的年輕男子發起挑戰。中文字幕顯示「曾曉賢的手機」；他堅稱「我是關谷的兒子」。她檢查手機，說一定是諾蘭的，並問「這個 iPhone 18 要怎麼用？」他把手機從她手中拿
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T05:54:44.986576Z
+        seconds: 3.8838121660000002
+        tokens: 11968
+        review: false
     excerpt:
       from: 2340.0
       to: 2365.0

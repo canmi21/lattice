@@ -320,18 +320,20 @@ the same fact with no trace of which was used.
 `cms video` imports: probe, ladder, encode, publish, poster, record, and the article's reference
 rewritten. `refs::scan` reads `::video`. `cms gc` keeps a clip's rungs, its tracks, its poster and
 the poster's own variants. The site renders a clip, chooses a rung at hydration and falls back to
-the poster and a notice. `cms captions` cuts a track to a clip and attaches it. Frames sample and
-the prompt is written.
+the poster and a notice. `cms captions` cuts a track to a clip and attaches it. `cms clip` samples
+the frames, writes the prompt, asks, and records the answer where a picture's description goes, so
+`cms locale` carries it into every language with no branch of its own.
 
-**One command is missing: the one that asks for a clip's description.** `frames::prepare` returns
-the frames and the prompt, and `runner::ask_vision_many` can be handed a series, so both halves
-exist and neither is reachable from the CLI. It is not a branch in `cms alt`: that command hands a
-runner one file and asks it to look, which is what a picture is, and the note in `alt::pending`
-says so. It is a command of its own beside `cms diagram`, which is the same shape -- one operation,
-one subject, one prompt.
+The CLI is complete. What is not built is the software-decode path -- see the decision above -- and
+nothing on the front end reads a caption track yet.
 
-Until it lands, a clip has no description, and the fallback is not nothing: the poster is an
-ordinary image asset and `cms alt` has already described it in eight languages.
+Measured over the three clips here on the first real batch: 60, 60 and 75 words asked for, 62k
+tokens in, three answers that read the burnt-in text rather than restating the background. The
+guard paragraph held -- the Mac Pro film came back with "Jony Ive", "Chief Design Officer" and
+"virtually unlimited possibilities" quoted off the frames, not with "Apple's Mac Pro film". One
+answer identified a clip this repository had mislabelled in its own head: the keynote joke is a
+scripted sitcom scene with Chinese subtitles, not anything Apple published, which is why that clip
+carries an excerpt and no source.
 
 ## Open
 
@@ -343,9 +345,10 @@ thing to measure on the day it is. Estimating it would be worthless.
 
 **What the sampling interval lets through.** Measured on the three real clips it is 2.57s, 3.43s
 and 3.12s between frames, and anything on screen for less than that can be missed silently. The
-observable failure is a description that comes back having missed a title card, and it is worth
-watching for on the first real batch. Same class as the software-decode number: nobody has taken it,
-and it decides whether the frames were enough.
+first real batch caught every title card there was to catch -- two names and a tagline off the Mac
+Pro film, a road marking off the event clip, two lines of Chinese subtitle off the third -- so on
+this evidence the interval is not obviously too wide. Three clips is not a measurement, and none of
+them cuts fast. It stays open until something with a rapid montage has been through it.
 
 **Whether a caption track is part of what the runner is shown.** It is text, it is already cut to
 the excerpt, and for a clip whose substance is narration it carries more than the frames do. It is
