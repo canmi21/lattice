@@ -23,8 +23,9 @@ Those four, settled here so nobody has to settle them again:
 
 - **`cursor`, `pointer-events` and `user-select` are visual.** None of them moves anything; each
   says what the element is to a pointer, which is appearance in the sense that matters -- the
-  reader learns it by looking. `quiet-control` in `utilities.css` already writes `cursor` beside
-  colour and weight, which is the same answer arrived at before there was a rule.
+  reader learns it by looking. The quiet control's class in `utilities.css` already wrote `cursor`
+  beside colour and a transition, which is the same answer arrived at before there was a rule; it
+  is `surfaces.quietControl` now and still writes it there.
 - **`visibility` is layout**, and it is the one that looks like the exception. It is chosen against
   `display` precisely for what it does to the box: the newsletter's ghost label is
   `visibility: hidden` rather than `display: none` because a removed box measures nothing and this
@@ -75,10 +76,10 @@ layered one. The order in a `class` attribute decides nothing.
 ### There is a fourth participant, and it sits above the visual layer
 
 The table above is the three layers this arrangement names. It is not the whole of what writes CSS
-here. **Nineteen of the thirty selectors in `utilities.css` sit outside every `@layer`**, including
-`.spring-underline`, `.article-link`, `.jump-target` and `.article-rail`, while eleven sit inside
-`base` or `components`. Nothing says which a given rule should be, and an unlayered rule outranks
-every layered one -- so most of the named vocabulary beats StyleX.
+here. **Nineteen of the twenty-seven selectors in `utilities.css` sit outside every `@layer`**,
+including `.spring-underline`, `.article-link`, `.jump-target` and `.article-rail`, while eight
+sit inside `base` or `components`. Nothing says which a given rule should be, and an unlayered
+rule outranks every layered one -- so most of the named vocabulary beats StyleX.
 
 Measured on the newsletter's unsubscribe control, which carries `focus-link spring-underline` and
 carried `transition-colors duration-200` beside them: the element reports

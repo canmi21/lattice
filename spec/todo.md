@@ -15,9 +15,20 @@ Anyone finishing a component adds what they found. Nobody works an entry as part
 ## The named layer in CSS is the visual layer, written before there was one
 
 `utilities.css` and [`libs/primitives/style.css`](../libs/primitives/src/style.css) hold a
-vocabulary of named surfaces -- `focus-link`, `spring-underline`, `article-link`, `quiet-control`,
-`pill`, `value`, `jump-target`, `selectable`. Measured across the site's markup, 426 of 1601 class
-tokens are these rather than Tailwind utilities, which is the vocabulary announcing itself.
+vocabulary of named surfaces -- `focus-link`, `spring-underline`, `article-link`, `pill`, `value`,
+`jump-target`, `selectable`. Measured across the site's markup before any of them moved, 426 of
+1601 class tokens were these rather than Tailwind utilities, which is the vocabulary announcing
+itself.
+
+**One of them has been taken, and which half went where is the part to be exact about.**
+`quiet-control` is now `surfaces.quietControl` and the class is deleted. It went first because its
+users had already measured the defect this entry describes: seven components kept it and the ones
+that needed a variant wrote its declarations out instead, a class being the one kind of name that
+cannot be specialised. It was also a mixed rule, so the move split it -- the appearance to the
+recipe, and the box, the alignment, the padding and the negative inline margin to Tailwind
+utilities at each of the seven call sites. Nothing else moved with it. The remaining names in
+`utilities.css` stand, and `libs/primitives` is untouched and still deferred, for the reason below
+rather than for want of a spelling.
 
 `libs/primitives` is the interesting half. It is CSS rather than TypeScript for one reason: a
 Svelte application and a plain-TypeScript application both consume it, and CSS was the only thing
@@ -813,8 +824,11 @@ of the two it meant, and neither layer knows the other wrote it.
 
 **One instance, verified by reading the markup and the style object together. No sweep was run**,
 and the sweep is the part worth doing: the same shape is available anywhere a component carries
-`focus-ring`, `focus-link` or `quiet-control` and writes a radius, a colour or a transition of its
-own. What the count would be is not known here.
+`focus-ring` or `focus-link` and writes a radius, a colour or a transition of its own. What the
+count would be is not known here. `quiet-control` was the third name in that list and is a recipe
+now, where the same shape is not a redundancy but a merge: a component restating one of the
+recipe's properties replaces its whole value for that property, which is a thing to get right
+rather than to remove.
 
 ## The border strengthens when a control is engaged, and the site spells that two ways
 
@@ -862,7 +876,7 @@ nobody has looked at yet.
 
 [architecture/css.md](architecture/css.md) admits a value to the vocabulary at three components,
 and the count is taken over the thirty-five `stylex.create` blocks. The named surfaces are not all
-in those blocks. [utilities.css](../apps/site/src/styles/utilities.css) holds sixteen classes,
+in those blocks. [utilities.css](../apps/site/src/styles/utilities.css) holds fifteen classes,
 [`libs/primitives`](../libs/primitives/src/style.css) holds eight across eleven selectors, and
 `app.css` holds four more -- `.pill-metrics`, `.pill`, `.value` and `.value-cell` -- so a surface
 can have two instances in the visual layer, sit below the bar, and already be written a third time
@@ -874,11 +888,11 @@ accounting error. Measured on `app.css`: it opens with four imports,
 [utilities.css](../apps/site/src/styles/utilities.css) fourth, and neither is inside an `@layer`.
 `utilities.css` layers part of itself and `libs/primitives` layers none of itself, so every rule in
 the second is unlayered and, by [architecture/css.md](architecture/css.md)'s count, nineteen of the
-thirty selectors in the first are too -- and an unlayered rule outranks every layered one. That is
-the fourth participant that file already records for `utilities.css`, now confirmed by measurement
-for `libs/primitives` rather than inferred from the import form. So a surface named in the visual
-layer and also written in one of those two is not merely counted twice: on an element carrying
-both, the copy that renders is the one the count did not see.
+twenty-seven selectors in the first are too -- and an unlayered rule outranks every layered one.
+That is the fourth participant that file already records for `utilities.css`, now confirmed by
+measurement for `libs/primitives` rather than inferred from the import form. So a surface named
+in the visual layer and also written in one of those two is not merely counted twice: on an
+element carrying both, the copy that renders is the one the count did not see.
 
 Three cases, measured. **The dashed leader** is `border-top: 1px dashed var(--color-border-strong)`
 in `.article-preview-leader::before` and the same three declarations in `leader` on two licence
@@ -1008,3 +1022,42 @@ What deciding it costs is that capture plus a reading of what still needs the pa
 homepage is the one that would not simply lose its key -- it carries `user-select` in the same
 object for a reason spec/architecture/css.md records -- so the answer is not uniform even if the
 colour moves.
+
+## The vocabulary counts components and a recipe is not one
+
+[architecture/css.md](architecture/css.md) admits a value to the vocabulary at three components.
+`0.125rem` as a `border-radius` is written in two of them --
+[cargo.svelte](../apps/site/src/lib/blocks/cargo/cargo.svelte) and
+[tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte), the second twice -- and now in
+[`surfaces.quietControl`](../apps/site/src/lib/surfaces.ts) as well, which is a third file and not
+a third component. It is Tailwind's `--radius-xs`, the one step of that scale
+[`vocabulary.stylex.ts`](../apps/site/src/lib/vocabulary.stylex.ts) does not name, and the reason
+it does not is that it was below the bar on the day the scale was written.
+
+Whether a recipe counts toward the bar is the question, and it is not the same question as whether
+this particular value should be named. A recipe is where a value goes to be written once, so
+counting it as a site lets one extraction push a value over a threshold whose whole purpose is to
+count how many places arrived at it independently. Counting it as nothing leaves a value sitting
+in the vocabulary's own neighbourhood as a literal. The answer applies to every recipe written
+after this one, which is why it is here rather than settled in passing by whoever writes the next.
+
+## A recipe's other half is a convention and nothing checks that a call site kept it
+
+`surfaces.quietControl` is the visual half of what was one CSS rule. The other half -- `-mx-1
+inline-flex items-center px-1 py-0.5` -- is Tailwind utilities that each of the seven call sites
+carries in its own markup, because that half is layout and the markup is where layout lives. The
+split is what [architecture/css.md](architecture/css.md) requires and the halves are in the right
+places.
+
+What went with it is that the rule could not be half-applied and the recipe can. Composing
+`surfaces.quietControl` and forgetting the utilities gives a control the right colours in the
+wrong box, and nothing says so: the recipe is a valid style object on its own, so the compiler is
+content, and the stylesheet is unchanged either way because those utilities were already emitted
+for some other element on the page. Every gate this repository has is blind to it.
+
+This is the first surface whose two halves live in two layers, so it is the first time the
+question arises. It arises again for every mixed rule still in `utilities.css`, and the answers
+available
+are not obviously equal: a comment on the recipe, a second export holding the class string, or the
+recognition that a surface wanting both halves is one a component should be rather than one a
+markup string composes.

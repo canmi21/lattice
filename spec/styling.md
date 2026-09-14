@@ -1361,12 +1361,29 @@ affordance instead of being the only indication that the text is a link.
 
 ### Quiet metadata controls share one surface
 
-Compact icon-and-label controls in metadata rows use the shared `quiet-control` class. At rest
-they are soft text with no surface. Hover and keyboard focus strengthen the text **and** add the
-`paper-hover` background; changing only the ink leaves too little feedback for a padded button,
-while a permanent surface would make secondary actions compete with the content. The article
-summary disclosure is the reference control, and language selection and licence-page actions use
-the same geometry and states rather than copying its utility list.
+Compact icon-and-label controls in metadata rows draw one shared surface. At rest they are soft
+text with no ground. Hover and keyboard focus strengthen the text **and** add the `paper-hover`
+background; changing only the ink leaves too little feedback for a padded button, while a
+permanent surface would make secondary actions compete with the content. The article summary
+disclosure is the reference control, and language selection and licence-page actions take the
+same geometry and states rather than copying its utility list.
+
+The surface is `surfaces.quietControl`, a StyleX recipe. It was the `quiet-control` class in
+[utilities.css](../apps/site/src/styles/utilities.css) until it stopped being able to hold its own
+users, and that is the argument for the move rather than a preference between two spellings. **A
+class cannot be specialised.** A control wanting this surface with one difference has to win a
+cascade fight whose outcome depends on which plugin appends its stylesheet last, so every control
+that needed a variant abandoned the name and wrote the declarations out -- which is to say the
+vocabulary decayed exactly where it was most needed. Seven controls kept the class, and they are
+the ones that wanted it unchanged: the four licence routes add a font size, the language
+switcher and the theme toggle add nothing at all, and the article's summary disclosure adds only
+what it does while there is nothing to disclose. A recipe composes, so the name survives being
+specialised. See [architecture/css.md](architecture/css.md).
+
+Only the appearance is in the recipe. The geometry -- the inline-flex box, the centred items, the
+padding, and the negative inline margin that lets a padded control keep its ink aligned with the
+unpadded text beside it -- is layout, and it is Tailwind utilities on each of the seven controls.
+The class was a mixed rule and the two halves went to the two layers that own them.
 
 The visible focus outline stays on a `focus-link-inner` child, matching the text-and-icon shape
 inside the padded hit area. A Lucide icon in this row is `0.875rem`, and a Lucide icon in the
