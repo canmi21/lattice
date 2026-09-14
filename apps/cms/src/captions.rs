@@ -53,6 +53,16 @@ use crate::image::manifest::Caption;
 use crate::image::{cid, store};
 use std::path::Path;
 
+/// The one type a caption track is ever stored as, spelled twice because two things ask.
+///
+/// `caption_path` takes an extension so it matches its two siblings, which need one -- an image
+/// has more than one format and the CDN reads the extension as the request. A caption does not,
+/// so the argument only ever takes this value and is therefore somewhere a wrong one could go:
+/// `caption_path(p, cid, "mp4")` compiles and writes a path nobody will ever look for. Naming it
+/// here keeps the literal in one place and next to the mime it has to agree with.
+const EXTENSION: &str = "vtt";
+const MIME: &str = "text/vtt";
+
 /// The range of the original the clip was cut from, in seconds.
 #[derive(Debug, Clone, Copy)]
 pub struct Window {
@@ -144,10 +154,10 @@ pub fn publish(
 
 	let bytes = text.as_bytes();
 	let id = cid(bytes);
-	store::write(&store::caption_path(public, &id, "vtt"), bytes).map_err(Error::Write)?;
+	store::write(&store::caption_path(public, &id, EXTENSION), bytes).map_err(Error::Write)?;
 
 	let caption = Caption {
-		mime: "text/vtt".to_string(),
+		mime: MIME.to_string(),
 		language: language.to_string(),
 		kind: kind.as_str().to_string(),
 		bytes: bytes.len() as u64,
