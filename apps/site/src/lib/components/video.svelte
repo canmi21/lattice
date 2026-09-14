@@ -187,9 +187,14 @@
 	 */
 	const style = $derived(
 		[
-			preview && `background-image:url(${preview})`,
-			preview && 'background-size:cover',
-			preview && 'background-position:center',
+			// Dropped in web fullscreen rather than overridden there. This is an inline style and
+			// an inline style beats any selector, so the stylesheet cannot take it back without
+			// `!important` -- and the placeholder showing through the letterbox bars is exactly
+			// what that mode asked for black instead of. Nothing is uncovered in an article, which
+			// is why it only ever showed there.
+			!filling && preview && `background-image:url(${preview})`,
+			!filling && preview && 'background-size:cover',
+			!filling && preview && 'background-position:center',
 			ratio && `aspect-ratio:${ratio}`,
 		]
 			.filter(Boolean)
@@ -323,11 +328,15 @@
 		object-fit: cover;
 	}
 
-	/* Web fullscreen: the frame fills the viewport without the Fullscreen API, so the browser's
-	   own chrome stays. No player library has this -- it is a page mode rather than a media one --
-	   and it is the reader who wants the clip large without leaving the page behind.
+	/* Web fullscreen: the frame becomes the window, and the window becomes black.
 	   
-	   Driven by an attribute the controls write, not by a class. A scoped `:has(.player-filling)`
+	   Opaque rather than translucent, and covering everything rather than sitting in the article:
+	   the point of the mode is that nothing but the clip is on screen, and a page showing through
+	   even faintly is the thing it exists to remove. The browser's own chrome stays, which is the
+	   whole difference from the button beside it. No player library has this -- it is a page mode
+	   rather than a media one.
+	   
+	   Driven by an attribute this file's own markup writes. A scoped `:has(.player-filling)`
 	   cannot match across a component boundary: Svelte rewrites both halves of the selector into
 	   this file's scope, and that class carries the child's. An attribute belongs to neither. */
 	.video-frame[data-filling='true'] {
@@ -345,12 +354,19 @@
 		background: oklch(0 0 0);
 	}
 
-	/* The picture keeps its shape inside the filled frame rather than being cropped to the
-	   viewport's, which is the one place `cover` would take the sides off a clip. */
+	/* The clip is fitted, never stretched: it grows until one axis meets the window and stops, so
+	   a 16:9 clip in a 16:9 window fills both and anything else fills one and is bordered by black
+	   on the other. Both axes go back to `auto` so the file's own ratio decides, and the declared
+	   `aspect-ratio` -- which shapes the box in an article -- has no business here, where the box
+	   is the window.
+	   
+	   The box is the window and `contain` fits the picture inside it, rather than the box being
+	   sized to the picture. `max-width`/`max-height` on an auto-sized element only ever constrain,
+	   never grow: measured, a 640x360 clip stayed 640x360 in the middle of a 1088x1043 window. */
 	.video-frame[data-filling='true'] .video-surface {
-		height: auto;
-		max-height: 100%;
-		object-fit: contain;
+		width: 100%;
+		height: 100%;
 		aspect-ratio: auto;
+		object-fit: contain;
 	}
 </style>

@@ -160,14 +160,48 @@
 	let boost = $state(false);
 	let chosen = $state<string | undefined>(undefined);
 	let menu = $state(false);
-	/** Escape leaves web fullscreen, the way it leaves the real thing. */
+	/**
+	 * What web fullscreen does to the page behind it.
+	 *
+	 * The page is held still rather than merely covered. `overflow: hidden` on the document is
+	 * what stops it, and the scrollbar it removes is paid back as padding so the layout underneath
+	 * does not jump sideways at the moment the black comes down -- which is visible even under an
+	 * opaque cover, because the cover is fixed and the page is not.
+	 *
+	 * **A scroll gesture leaves.** Locking the page and then ignoring the wheel would leave a
+	 * reader pushing against something that does not move and does not say why; taking it as
+	 * "out" is the reading that matches what the gesture means. Escape leaves too, the way it
+	 * leaves the real thing, and so does the button.
+	 *
+	 * `wheel` and `touchmove` are both passive: nothing here calls `preventDefault`, because the
+	 * document is already locked and there is nothing left to prevent.
+	 */
 	$effect(() => {
 		if (!filling) return;
+		const { body, documentElement: root } = document;
+		const gutter = window.innerWidth - root.clientWidth;
+		const overflow = body.style.overflow;
+		const padding = body.style.paddingInlineEnd;
+		body.style.overflow = 'hidden';
+		if (gutter > 0) body.style.paddingInlineEnd = `${gutter}px`;
+
+		const leave = () => {
+			filling = false;
+		};
 		const onKey = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') filling = false;
+			if (event.key === 'Escape') leave();
 		};
 		window.addEventListener('keydown', onKey);
-		return () => window.removeEventListener('keydown', onKey);
+		window.addEventListener('wheel', leave, { passive: true });
+		window.addEventListener('touchmove', leave, { passive: true });
+
+		return () => {
+			body.style.overflow = overflow;
+			body.style.paddingInlineEnd = padding;
+			window.removeEventListener('keydown', onKey);
+			window.removeEventListener('wheel', leave);
+			window.removeEventListener('touchmove', leave);
+		};
 	});
 
 	/** Whether this page started the clip itself, which is what must not happen twice. */
@@ -521,7 +555,7 @@
 
 		<button
 			type="button"
-			class="player-button"
+			class="player-button player-fill"
 			class:player-on={filling}
 			onclick={() => (filling = !filling)}
 			aria-pressed={filling}
@@ -858,6 +892,23 @@
 
 	.player-menu-item.player-on {
 		color: var(--player-ink);
+	}
+
+	/**
+	 * Web fullscreen is offered only once the article column has stopped growing.
+	 *
+	 * `.article-column` caps at 720px, so at any width below that the column is already as wide as
+	 * the window and filling it gains a reader nothing -- the clip is the same size either way,
+	 * and a control that does nothing visible is worse than one that is not there. Withheld in CSS
+	 * rather than in script so it is right on the first frame and follows a window being dragged.
+	 *
+	 * The screen-fullscreen button beside it is not withheld: leaving the browser behind is worth
+	 * something at every width, and on a phone it is the only one of the two that is.
+	 */
+	@media (max-width: 45rem) {
+		.player-fill {
+			display: none;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
