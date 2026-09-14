@@ -41,6 +41,7 @@
 		"mdast-util-to-string": "^4.0.0",
 		"mermaid": "^11.17.2",
 		"motion": "^13.2.0",
+		"phosphor-svelte": "^3.1.0",
 		"remark-directive": "^4.0.0",
 		"remark-frontmatter": "^5.0.0",
 		"remark-gfm": "^4.0.1",

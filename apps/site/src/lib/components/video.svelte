@@ -85,6 +85,8 @@
 
 	let el = $state<HTMLVideoElement>();
 	let frame = $state<HTMLElement>();
+	/** Web fullscreen. Held here because this is the element that changes shape. */
+	let filling = $state(false);
 	const describedBy = $props.id();
 
 	/**
@@ -202,7 +204,11 @@
 		affordance is positioned against, and `overflow-hidden` is what keeps the video's corners
 		inside the frame's now that the border is the frame's rather than the element's.
 	-->
-	<div bind:this={frame} class="video-frame relative overflow-hidden {stylex.attrs(styles.frame).class}">
+	<div
+		bind:this={frame}
+		class="video-frame relative overflow-hidden {stylex.attrs(styles.frame).class}"
+		data-filling={filling || undefined}
+	>
 	<!--
 		`block`, for `picture.svelte`'s reason: a replaced inline box discards the vertical margins
 		its neighbours are spaced with, and both this element and the notice under it are spaced
@@ -250,7 +256,7 @@
 	</video>
 
 		{#if driven && el && frame && support !== 'none'}
-			<Controls video={el} {frame} {rungs} {gain} {locale} />
+			<Controls video={el} {frame} {rungs} {gain} bind:filling {locale} />
 		{/if}
 	</div>
 
@@ -319,15 +325,32 @@
 
 	/* Web fullscreen: the frame fills the viewport without the Fullscreen API, so the browser's
 	   own chrome stays. No player library has this -- it is a page mode rather than a media one --
-	   and it is the reader who wants the clip large without leaving the page behind. */
-	.video-frame:has(.player-filling) {
+	   and it is the reader who wants the clip large without leaving the page behind.
+	   
+	   Driven by an attribute the controls write, not by a class. A scoped `:has(.player-filling)`
+	   cannot match across a component boundary: Svelte rewrites both halves of the selector into
+	   this file's scope, and that class carries the child's. An attribute belongs to neither. */
+	.video-frame[data-filling='true'] {
 		position: fixed;
 		inset: 0;
+		/* The article's own block rhythm, which a fixed box still honours: `inset: 0` pins both
+		   edges and the margin is then taken out of the height between them. Measured, the frame
+		   came up eight pixels short and the page showed through the bottom of it. */
+		margin: 0;
 		z-index: 60;
-		border-radius: 0;
-		border: 0;
 		display: grid;
 		place-items: center;
+		border: 0;
+		border-radius: 0;
 		background: oklch(0 0 0);
+	}
+
+	/* The picture keeps its shape inside the filled frame rather than being cropped to the
+	   viewport's, which is the one place `cover` would take the sides off a clip. */
+	.video-frame[data-filling='true'] .video-surface {
+		height: auto;
+		max-height: 100%;
+		object-fit: contain;
+		aspect-ratio: auto;
 	}
 </style>

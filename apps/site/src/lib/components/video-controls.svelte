@@ -43,15 +43,24 @@
 	} from '@videojs/core/dom';
 	import { HTMLVideoAdapter } from '@videojs/media/dom';
 	import { combine, createStore } from '@videojs/store';
-	import Captions from '@lucide/svelte/icons/captions';
-	import Maximize from '@lucide/svelte/icons/maximize';
-	import Minimize from '@lucide/svelte/icons/minimize';
-	import Pause from '@lucide/svelte/icons/pause';
-	import PictureInPicture from '@lucide/svelte/icons/picture-in-picture-2';
-	import Play from '@lucide/svelte/icons/play';
-	import Settings from '@lucide/svelte/icons/settings';
-	import Volume from '@lucide/svelte/icons/volume-2';
-	import VolumeOff from '@lucide/svelte/icons/volume-x';
+	// Phosphor here and Lucide everywhere else, which is a deliberate split rather than drift.
+	// The rest of this site's icons sit in prose at text size and next to words; a player's sit
+	// on a picture at 16px with no label, and Phosphor's heavier, rounder strokes hold up there
+	// where Lucide's thin geometry starts to disappear. The two never meet: no component outside
+	// this one imports from `phosphor-svelte`.
+	//
+	// The `*Icon` names, not the bare ones -- `CornersOut` and its siblings are deprecated
+	// aliases and say so in their own types.
+	import ClosedCaptioningIcon from 'phosphor-svelte/lib/ClosedCaptioningIcon';
+	import CornersInIcon from 'phosphor-svelte/lib/CornersInIcon';
+	import CornersOutIcon from 'phosphor-svelte/lib/CornersOutIcon';
+	import FrameCornersIcon from 'phosphor-svelte/lib/FrameCornersIcon';
+	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
+	import PauseIcon from 'phosphor-svelte/lib/PauseIcon';
+	import PictureInPictureIcon from 'phosphor-svelte/lib/PictureInPictureIcon';
+	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
+	import SpeakerHighIcon from 'phosphor-svelte/lib/SpeakerHighIcon';
+	import SpeakerSimpleXIcon from 'phosphor-svelte/lib/SpeakerSimpleXIcon';
 	import { recall, remember } from '$lib/client/state';
 	import type { VideoRung } from '$lib/content/build/assets.ts';
 	import type { LocaleCode } from '$lib/locale';
@@ -62,6 +71,7 @@
 		frame,
 		rungs,
 		gain: levelling = 1,
+		filling = $bindable(false),
 		locale,
 	}: {
 		video: HTMLVideoElement;
@@ -75,6 +85,19 @@
 		 * they asked for, and this is what full means for this clip.
 		 */
 		gain?: number;
+		/**
+		 * Web fullscreen: the frame fills the viewport in CSS, without asking the Fullscreen API.
+		 *
+		 * Owned by `video.svelte` and bound here, rather than held in this component and written
+		 * onto the frame from script. The frame is the thing that changes shape, so the state
+		 * belongs to the file that draws it -- and a mode set from a child by `setAttribute` is a
+		 * selector Svelte prunes as unused, because nothing in that file's markup ever says it.
+		 *
+		 * It is the mode a reader wants when they want the clip large without leaving the page:
+		 * the browser's own chrome stays, which is the whole difference from the button beside it.
+		 * No player library offers it, because it is a page mode rather than a media one.
+		 */
+		filling?: boolean;
 		locale: LocaleCode;
 	} = $props();
 
@@ -137,8 +160,16 @@
 	let boost = $state(false);
 	let chosen = $state<string | undefined>(undefined);
 	let menu = $state(false);
-	/** Web fullscreen: the frame fills the viewport in CSS, without the Fullscreen API. */
-	let filling = $state(false);
+	/** Escape leaves web fullscreen, the way it leaves the real thing. */
+	$effect(() => {
+		if (!filling) return;
+		const onKey = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') filling = false;
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
+
 	/** Whether this page started the clip itself, which is what must not happen twice. */
 	let auto = $state(false);
 	let gain: GainNode | undefined;
@@ -349,11 +380,11 @@
 -->
 {#if view.paused && !auto}
 	<button type="button" onclick={toggle} aria-label={label} class="player-cover">
-		<Play class="player-cover-glyph" aria-hidden="true" />
+		<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
 	</button>
 {/if}
 
-<div class="player-chrome" class:player-chrome-shown={shown} class:player-filling={filling}>
+<div class="player-chrome" class:player-chrome-shown={shown}>
 	<div class="player-scrub">
 		<div class="player-track">
 			<div class="player-loaded" style="width:{loaded}%"></div>
@@ -375,8 +406,8 @@
 
 	<div class="player-row">
 		<button type="button" class="player-button" onclick={toggle} aria-label={label} title={label}>
-			{#if view.paused}<Play class="player-glyph player-glyph-play" aria-hidden="true" />
-			{:else}<Pause class="player-glyph" aria-hidden="true" />{/if}
+			{#if view.paused}<PlayIcon class="player-glyph player-glyph-play" weight="fill" aria-hidden="true" />
+			{:else}<PauseIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
 		</button>
 
 		<div class="player-volume">
@@ -387,8 +418,8 @@
 				aria-label={m['video.mute']({}, { locale })}
 				title={m['video.mute']({}, { locale })}
 			>
-				{#if view.muted || volume === 0}<VolumeOff class="player-glyph" aria-hidden="true" />
-				{:else}<Volume class="player-glyph" aria-hidden="true" />{/if}
+				{#if view.muted || volume === 0}<SpeakerSimpleXIcon class="player-glyph" aria-hidden="true" />
+				{:else}<SpeakerHighIcon class="player-glyph" aria-hidden="true" />{/if}
 			</button>
 			<input
 				type="range"
@@ -417,7 +448,7 @@
 				aria-label={m['video.captions']({}, { locale })}
 				title={m['video.captions']({}, { locale })}
 			>
-				<Captions class="player-glyph" aria-hidden="true" />
+				<ClosedCaptioningIcon class="player-glyph" aria-hidden="true" />
 			</button>
 		{/if}
 
@@ -431,7 +462,7 @@
 				aria-label={m['video.settings']({}, { locale })}
 				title={m['video.settings']({}, { locale })}
 			>
-				<Settings class="player-glyph" aria-hidden="true" />
+				<GearSixIcon class="player-glyph" aria-hidden="true" />
 			</button>
 			{#if menu}
 				<div class="player-menu">
@@ -484,7 +515,7 @@
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
 			>
-				<PictureInPicture class="player-glyph" aria-hidden="true" />
+				<PictureInPictureIcon class="player-glyph" aria-hidden="true" />
 			</button>
 		{/if}
 
@@ -497,7 +528,10 @@
 			aria-label={m['video.fill']({}, { locale })}
 			title={m['video.fill']({}, { locale })}
 		>
-			<Maximize class="player-glyph" aria-hidden="true" />
+			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
+			     still around it. The other button below leaves the browser behind entirely, and the
+			     two must not look alike -- they are different destinations, not two sizes of one. -->
+			<FrameCornersIcon class="player-glyph" aria-hidden="true" />
 		</button>
 
 		<button
@@ -511,8 +545,8 @@
 				? m['video.exit-fullscreen']({}, { locale })
 				: m['video.fullscreen']({}, { locale })}
 		>
-			{#if view.fullscreen}<Minimize class="player-glyph" aria-hidden="true" />
-			{:else}<Maximize class="player-glyph" aria-hidden="true" />{/if}
+			{#if view.fullscreen}<CornersInIcon class="player-glyph" aria-hidden="true" />
+			{:else}<CornersOutIcon class="player-glyph" aria-hidden="true" />{/if}
 		</button>
 	</div>
 </div>
