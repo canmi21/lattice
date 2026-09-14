@@ -69,6 +69,15 @@ pub struct Entry {
 	/// so renaming a tag for readers never touches the images that carry it.
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
 	pub tags: Vec<String>,
+	/// Where the picture came from, as a claim the author makes rather than a fact in the file.
+	///
+	/// Nothing here is derivable, which is the test that puts it in this file rather than the
+	/// manifest. EXIF says what a sensor did and a screenshot of a web page has none; an image
+	/// that has been through an editor carries nothing true about its origin either. So this
+	/// sits beside the description, under the same protection: `cms image --force` rebuilds
+	/// every pixel and must not take it with them.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub source: Option<Source>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -76,6 +85,22 @@ pub struct Media {
 	pub version: u32,
 	#[serde(default)]
 	pub media: BTreeMap<String, Entry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Source {
+	/// Where to go to reach it, which may be an archive rather than the original address.
+	pub url: String,
+	/// What to call the origin, in English, untranslated.
+	///
+	/// One string rather than the per-locale map a description carries, because this names a
+	/// publication and a publication is called the same thing in every language this site is
+	/// written in.
+	///
+	/// **It names the origin, not the route.** A `web.archive.org` address for a page Apple
+	/// published is labelled Apple: the Internet Archive is how the page can still be reached,
+	/// not who put it there. Labelling it otherwise would credit the library for the book.
+	pub label: String,
 }
 
 impl Default for Media {
