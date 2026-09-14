@@ -10,6 +10,7 @@
 //! domain type that derives a clap trait has learned about the command line. See
 //! spec/architecture/cms.md.
 
+use crate::captions::Kind;
 use crate::i18n::runner::Runner;
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
@@ -68,6 +69,10 @@ impl ModelArgs {
 	pub fn overrides(&self, runner: Runner) -> Result<Option<String>, String> {
 		crate::i18n::runner::model_override(runner, self.model_id.as_deref(), self.effort.as_deref())
 	}
+}
+
+fn parse_kind(name: &str) -> Result<Kind, String> {
+	Kind::parse(name).ok_or_else(|| format!("expected {}", Kind::CHOICES))
 }
 
 fn parse_runner(name: &str) -> Result<Runner, String> {
@@ -143,6 +148,26 @@ pub enum Command {
 		/// Files to import ahead of the article that will use them
 		#[arg(value_name = "FILE")]
 		files: Vec<PathBuf>,
+	},
+
+	/// Cut a caption track to a clip already imported, and attach it
+	Captions {
+		/// The clip: its content id, `{cid}.mp4`, or the original's name under `data/video`
+		#[arg(value_name = "CLIP")]
+		clip: String,
+		/// The WebVTT track covering the original the clip was cut from
+		#[arg(value_name = "TRACK")]
+		track: PathBuf,
+		/// BCP 47. Nothing in a WebVTT file says what language it is in, so it has to be told
+		#[arg(long, value_name = "TAG")]
+		language: String,
+		/// What the track is: captions, subtitles or descriptions. Read off the track when it can
+		/// be, which is only when the track writes a sound down
+		#[arg(long, value_name = "KIND", value_parser = parse_kind)]
+		kind: Option<Kind>,
+		/// Replace a track already attached for this language and kind
+		#[arg(long)]
+		force: bool,
 	},
 
 	/// Render an OpenGraph card per page per language
@@ -418,6 +443,23 @@ mod tests {
 			Command::I18n { locale, .. } => assert_eq!(locale, ["zh-CN", "ja-JP"]),
 			other => panic!("expected i18n, got {other:?}"),
 		}
+	}
+
+	#[test]
+	fn an_unknown_track_kind_names_the_three_that_exist() {
+		// The wrong one here is silently wrong for the reader it exists for: someone deaf takes a
+		// track labelled captions, gets subtitles, and is told nothing.
+		let error = Cli::try_parse_from(["cms", "captions", "clip", "a.vtt", "--language", "en", "--kind", "cc"])
+			.expect_err("an unknown kind is refused")
+			.to_string();
+		assert!(error.contains("descriptions"), "the error lists what is accepted");
+	}
+
+	#[test]
+	fn a_caption_import_has_to_say_what_language_it_is_in() {
+		// Nothing in a WebVTT file says, and the wrong answer puts a track in a menu under a name
+		// it does not belong to.
+		assert!(Cli::try_parse_from(["cms", "captions", "clip", "a.vtt"]).is_err());
 	}
 
 	#[test]

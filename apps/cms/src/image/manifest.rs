@@ -75,6 +75,15 @@ impl Media {
 		}
 	}
 
+	/// The same, to be written to. `cms captions` attaches a track to a clip already published,
+	/// which is the one operation that changes a record without deriving anything.
+	pub fn video_mut(&mut self) -> Option<&mut Video> {
+		match &mut self.body {
+			Body::Video(video) => Some(video),
+			Body::Image(_) => None,
+		}
+	}
+
 	/// What `type` says on disk, for a report that has to name the kind without matching on it.
 	pub fn kind(&self) -> &'static str {
 		match &self.body {

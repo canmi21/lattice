@@ -6,8 +6,8 @@
 mod args;
 
 use crate::{
-	alt, articles, check, classify, derived, diagram, embed, favicon, gc, i18n, image, licenses,
-	locale, opengraph, overview, paths, port, refs, summary, task, twitter, video,
+	alt, articles, captions, check, classify, derived, diagram, embed, favicon, gc, i18n, image,
+	licenses, locale, opengraph, overview, paths, port, refs, summary, task, twitter, video,
 };
 use anyhow::Context as _;
 use args::{Cli, Command, ModelArgs, TwitterCommand};
@@ -58,6 +58,9 @@ fn dispatch(command: Command) -> anyhow::Result<ExitCode> {
 		Command::Favicon { force, domains } => fetch_favicons(force, &domains),
 		Command::Image { force, original, files } => process_images(force, original, &files),
 		Command::Video { force, files } => process_videos(force, &files),
+		Command::Captions { clip, track, language, kind, force } => {
+			attach_captions(&clip, &track, &language, kind, force)
+		}
 		Command::Og { force } => render_cards(force),
 		Command::Alt { model, force, limit } => describe_images(&model, force, limit),
 		Command::Tag { model, force, limit } => classify_images(&model, force, limit),
@@ -1000,6 +1003,48 @@ fn process_videos(force: bool, files: &[std::path::PathBuf]) -> anyhow::Result<E
 	);
 
 	if outcome.failed.is_empty() { Ok(ExitCode::SUCCESS) } else { Ok(ExitCode::FAILURE) }
+}
+
+/// `cms captions`: one track, one clip, and a length that has to agree.
+///
+/// Not folded into `cms video` because a clip and its track do not arrive on the same day, and
+/// often the track never arrives at all. See the note at the top of [`captions::run`].
+fn attach_captions(
+	clip: &str,
+	track: &std::path::Path,
+	language: &str,
+	kind: Option<captions::Kind>,
+	force: bool,
+) -> anyhow::Result<ExitCode> {
+	let root = paths::repo_root()?;
+	let public = root.join("data").join("public");
+
+	let options = captions::run::Options { language, kind, force };
+	let outcome = captions::run::run(&root, &public, clip, track, &options)?;
+
+	if let Some(replaced) = &outcome.replaced {
+		println!("replaced {replaced}");
+	}
+	// Coverage is reported rather than judged: people stop talking, so a window with a gap in it
+	// is ordinary, and only the person who chose the window can say whether this gap is.
+	println!(
+		"{} {} attached to {}: {} cues over {:.1}s of {:.1}s, {} bytes, as {}",
+		outcome.kind.as_str(),
+		options.language,
+		outcome.clip,
+		outcome.summary.cues,
+		outcome.summary.covered,
+		outcome.duration,
+		outcome.bytes,
+		outcome.track,
+	);
+	// The last line, and the only check for the thing no rule can reach: whether these words
+	// belong to this clip. Nothing in a WebVTT file says which recording it transcribes, so this
+	// is read by the person who typed the command or it is not read at all.
+	if let Some(opening) = &outcome.summary.opening {
+		println!("opens  {opening}");
+	}
+	Ok(ExitCode::SUCCESS)
 }
 
 /// The `cms tn` command: which passages a translation will have to keep and explain.

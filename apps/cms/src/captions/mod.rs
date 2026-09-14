@@ -49,6 +49,8 @@
 //! played by `<video>` does not have -- Apple's track carries `MPEGTS:900000`, ten seconds, and
 //! a player that honoured it against a clip would be ten seconds out.
 
+pub mod run;
+
 use crate::image::manifest::Caption;
 use crate::image::{cid, store};
 use std::path::Path;
@@ -100,6 +102,21 @@ pub enum Kind {
 }
 
 impl Kind {
+	/// The three words `<track kind>` takes, and nothing else.
+	///
+	/// Not `#[derive(ValueEnum)]`: this is a domain type and the command line is one of two
+	/// adapters over it. See spec/architecture/cms.md.
+	pub fn parse(name: &str) -> Option<Self> {
+		match name.trim().to_ascii_lowercase().as_str() {
+			"captions" => Some(Self::Captions),
+			"subtitles" => Some(Self::Subtitles),
+			"descriptions" => Some(Self::Descriptions),
+			_ => None,
+		}
+	}
+
+	pub const CHOICES: &'static str = "captions, subtitles or descriptions";
+
 	pub fn as_str(self) -> &'static str {
 		match self {
 			Self::Captions => "captions",
@@ -245,6 +262,58 @@ pub fn cut(vtt: &str, window: Window) -> Result<Option<String>, Error> {
 	}
 
 	Ok((cues > 0).then_some(out))
+}
+
+/// What a cut file amounts to, for the person who asked for it.
+#[derive(Debug, PartialEq)]
+pub struct Summary {
+	pub cues: usize,
+	/// Seconds of the clip with a cue on screen.
+	pub covered: f64,
+	/// The first cue's text, on one line.
+	pub opening: Option<String>,
+}
+
+/// Read a cut file back for reporting. Nothing here is enforced.
+///
+/// The coverage is a union, not a sum. Cues overlap in a track written for two speakers, and
+/// adding them would report more coverage than the clip has room for.
+///
+/// `opening` exists because of the one thing this module cannot check. A WebVTT file carries no
+/// account of which recording it transcribes, so a track for the wrong video, cut to a window of
+/// the right length, passes every test there is -- see the note in [`run`]. Printing the first
+/// line it will put on screen is what makes that visible to the person who typed the command, and
+/// it is the only check for it that exists.
+pub fn summarise(vtt: &str) -> Summary {
+	let text = normalise(vtt);
+	let mut spans: Vec<(f64, f64)> = Vec::new();
+	let mut opening = None;
+	for block in blocks(&text).iter().skip(1) {
+		let Some(at) = block.iter().position(|line| line.contains("-->")) else { continue };
+		let Some(&timing) = block.get(at) else { continue };
+		let Ok((start, end, _)) = parse_timing(timing) else { continue };
+		if opening.is_none() {
+			let text = block.iter().skip(at + 1).copied().collect::<Vec<_>>().join(" ");
+			let text = text.trim();
+			if !text.is_empty() {
+				opening = Some(text.to_owned());
+			}
+		}
+		spans.push((start, end));
+	}
+
+	let cues = spans.len();
+	spans.sort_by(|left, right| left.0.total_cmp(&right.0));
+	let mut covered = 0.0;
+	let mut reached = f64::NEG_INFINITY;
+	for (start, end) in spans {
+		let from = start.max(reached);
+		if end > from {
+			covered += end - from;
+			reached = end;
+		}
+	}
+	Summary { cues, covered, opening }
 }
 
 /// The one thing a WebVTT file can be read to say about itself.
@@ -469,6 +538,33 @@ mod tests {
 		assert!(out.starts_with("WEBVTT\n"));
 		assert_eq!(out.matches("-->").count(), 3);
 		assert!(!out.contains('\r'));
+	}
+
+	#[test]
+	fn a_summary_counts_the_cues_and_quotes_the_first_of_them() {
+		let out = cut(TRACK, window()).expect("cut").expect("cues");
+		let summary = summarise(&out);
+		assert_eq!(summary.cues, 3);
+		// 0.335 + 1.835 + 2.611, and none of the three overlap.
+		assert!((summary.covered - 4.781).abs() < 0.001, "{summary:?}");
+		// Both lines of the cue, joined: it is quoted so a person can see whether the words
+		// belong to the clip, which is the one thing no test can answer.
+		assert_eq!(
+			summary.opening.as_deref(),
+			Some("A car drives down the highway, then it disappears into a tunnel.")
+		);
+	}
+
+	#[test]
+	fn coverage_does_not_count_a_second_speaker_twice() {
+		// Two cues on screen at once is how a track writes an interruption. Adding them would
+		// report more coverage than the clip has room for.
+		let both = "WEBVTT\n\n\
+			00:00:00.000 --> 00:00:04.000\nYou want a great opening scene?\n\n\
+			00:00:02.000 --> 00:00:06.000\nHere's one.\n";
+		let summary = summarise(both);
+		assert_eq!(summary.cues, 2);
+		assert_eq!(summary.covered, 6.0);
 	}
 
 	#[test]

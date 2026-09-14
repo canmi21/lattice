@@ -287,12 +287,41 @@ unsigned, so a negative one loses the cue or the file, and zero is the accurate 
 the cue *is* on screen at the instant the clip begins. The end clamps to the clip's length for the
 inverse reason.
 
+### The pairing is checked by arithmetic, and the arithmetic is not about the track
+
+`cms captions <clip> <track.vtt> --language <tag>` is a command of its own rather than a branch of
+the import, because a clip and its track do not arrive on the same day and often the track never
+arrives at all. Two of the three clips here have none.
+
+It refuses on two things. **The excerpt and the clip must be the same length**: `excerpt` in
+`data/media.yaml` was written by a person and `duration` in the manifest was measured by ffprobe,
+nothing derives one from the other, so agreement is evidence and disagreement is proof that one of
+the two describes something else -- and cutting against a window that is out by a second puts every
+cue on screen a second early, which looks like working software. The tolerance is 0.25s, which is
+two frames at thirty and an order of magnitude under any mispairing; measured over the three clips
+the real gap is 0.000s, 0.024s and 0.051s. **And the track must say something during the window**,
+because an empty cut over twenty-four seconds of a keynote is a wrong file rather than a silent
+passage.
+
+**Neither of those is a check on the track.** A WebVTT file carries no account of which recording
+it transcribes, so a track for a different video, handed to a clip whose excerpt is a window that
+track happens to have cues in, passes both -- demonstrated on this repository's own material, where
+Apple's event track attaches cleanly to the Mac Pro film. There is no stricter rule to reach for:
+the fact a rule would need is not in the file. What exists instead is the opening line, printed
+back quoted beside the clip it went onto, and read by the person who typed the command. `[LIGHTER
+SPARKS]` under the Mac Pro film is not subtle.
+
+The window has one home. There are no `--from` and `--to` flags: the cut file cannot record where
+it came from, `excerpt` is the one written account of it, and a flag would be a second place to put
+the same fact with no trace of which was used.
+
 ## What is wired and what is not
 
 `cms video` imports: probe, ladder, encode, publish, poster, record, and the article's reference
 rewritten. `refs::scan` reads `::video`. `cms gc` keeps a clip's rungs, its tracks, its poster and
 the poster's own variants. The site renders a clip, chooses a rung at hydration and falls back to
-the poster and a notice. Captions cut and store. Frames sample and the prompt is written.
+the poster and a notice. `cms captions` cuts a track to a clip and attaches it. Frames sample and
+the prompt is written.
 
 **One command is missing: the one that asks for a clip's description.** `frames::prepare` returns
 the frames and the prompt, and `runner::ask_vision_many` can be handed a series, so both halves
