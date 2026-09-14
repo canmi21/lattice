@@ -1,4 +1,4 @@
-version: 1
+version: 2
 media:
   0e0624f079e617e53ed474ccd98a947b:
     description:
@@ -519,6 +519,9 @@ media:
     - typeless
     - macos
     - web-navigation
+  3d9e11cbe0aaddf693318b4f060bbdf3:
+    source:
+      url: cid://6264d3f4d385043c2d839ff8f92d1a72
   3f34360a5eb3c9ec303ca1035cc2453b:
     category: screenshot
     description:
@@ -1629,6 +1632,9 @@ media:
     source:
       url: https://parents.simonandschuster.com/9781451648553
       label: Simon & Schuster
+  99409e5e479c488d67a8210794da75c0:
+    source:
+      url: cid://cda77856d388c1fb733042c25b943569
   a2b472ee8c494d39f18e8cb06f5ec684:
     category: photograph
     description:
@@ -2499,6 +2505,9 @@ media:
     source:
       url: https://www.cnet.com/videos/the-day-tim-cook-replaced-steve-jobs-the-iphone-4s-launch-cnet-archives/
       label: CNET
+  d6d766ea189a7c341a291e3626da2476:
+    source:
+      url: cid://cd09df7945f22065fd0995f8f8207e55
   d95819761cd2d03787a9ff5d58905017:
     category: artwork
     description:

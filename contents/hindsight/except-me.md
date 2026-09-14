@@ -68,9 +68,7 @@ https://web.archive.org/web/20150910154005id_/http://images.apple.com/v/iphone-6
 
 Then came the joke. Make the screen a little longer. Make it a little thinner. Make the battery a little bigger. Make the features a little better. Give the chip a new name, and do the whole thing again next year.
 
-https://www.youtube.com/watch?v=Mgh-yQlJHnM
-
-[39:00–39:29]
+::video{src="cda77856d388c1fb733042c25b943569.mp4"}
 
 The joke worked because it was close to true. From the 5s to the 6 Plus to the 7, the iPhone went three generations without a meaningful change in shape, and sales began to slide.
 
@@ -188,7 +186,7 @@ That may be the whole reason. It was the first time function won an argument wit
 
 He left that year. The Mac Pro film is the last thing he narrated for Apple.
 
-https://web.archive.org/web/20190603223643/https://www.youtube.com/watch?v=wl4Hg23RQHQ
+::video{src="6264d3f4d385043c2d839ff8f92d1a72.mp4"}
 
 2019 is the low point of Cook's tenure, and the reasons stack up neatly. Half the design team had gone, and then Ive went. The categories looked finished. The hardware story had shrunk back down to thinner, and lighter, and a new name for the chip.
 
@@ -204,4 +202,4 @@ If design is no longer the moat, what is?
 
 The answer turned out to be almost entirely invisible.
 
-https://podcasts.apple.com/us/podcast/apple-event-september-9/id1473854035?i=1000788729530
+::video{src="cd09df7945f22065fd0995f8f8207e55.mp4"}

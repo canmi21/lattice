@@ -22,6 +22,15 @@ static LINKCARD: LazyLock<Regex> =
 static IMAGE_DIRECTIVE: LazyLock<Regex> =
 	LazyLock::new(|| Regex::new(r"::image\{([^}]*)\}").expect("static pattern"));
 
+/// A clip an article embeds, read for its `src` alone.
+///
+/// It pushes into the same list a picture does, and that is deliberate rather than lazy: what a
+/// scan answers is "which asset does this article ask for", and the kind of the asset is the
+/// manifest's to say. Two lists would make every consumer choose between them before it could
+/// ask the question, and `cms gc` would have to be told about the second or sweep a clip away.
+static VIDEO_DIRECTIVE: LazyLock<Regex> =
+	LazyLock::new(|| Regex::new(r"::video\{([^}]*)\}").expect("static pattern"));
+
 /// One `name="value"` pair inside a directive.
 static ATTRIBUTE: LazyLock<Regex> =
 	LazyLock::new(|| Regex::new(r#"(\w+)="([^"]*)""#).expect("static pattern"));
@@ -158,6 +167,12 @@ fn collect(file: &Path, text: &str, into: &mut Scan) {
 	// only the src. Missing it would be worse than cosmetic: an asset referenced solely by a
 	// cropped directive would look unreferenced, and `cms gc` would delete it.
 	for directive in IMAGE_DIRECTIVE.captures_iter(text) {
+		if let Some((_, src)) = attributes(&directive[1]).iter().find(|(key, _)| key == "src") {
+			push_image(file, src, into);
+		}
+	}
+
+	for directive in VIDEO_DIRECTIVE.captures_iter(text) {
 		if let Some((_, src)) = attributes(&directive[1]).iter().find(|(key, _)| key == "src") {
 			push_image(file, src, into);
 		}
