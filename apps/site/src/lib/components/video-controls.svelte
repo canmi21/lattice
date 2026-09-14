@@ -467,8 +467,8 @@
 				aria-label={m['video.mute']({}, { locale })}
 				title={m['video.mute']({}, { locale })}
 			>
-				{#if view.muted || volume === 0}<SpeakerSimpleXIcon class="player-glyph" aria-hidden="true" />
-				{:else}<SpeakerHighIcon class="player-glyph" aria-hidden="true" />{/if}
+				{#if view.muted || volume === 0}<SpeakerSimpleXIcon class="player-glyph" weight="fill" aria-hidden="true" />
+				{:else}<SpeakerHighIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
 			</button>
 			<input
 				type="range"
@@ -497,7 +497,7 @@
 				aria-label={m['video.captions']({}, { locale })}
 				title={m['video.captions']({}, { locale })}
 			>
-				<ClosedCaptioningIcon class="player-glyph" aria-hidden="true" />
+				<ClosedCaptioningIcon class="player-glyph" weight="fill" aria-hidden="true" />
 			</button>
 		{/if}
 
@@ -511,7 +511,7 @@
 				aria-label={m['video.settings']({}, { locale })}
 				title={m['video.settings']({}, { locale })}
 			>
-				<GearSixIcon class="player-glyph" aria-hidden="true" />
+				<GearSixIcon class="player-glyph" weight="fill" aria-hidden="true" />
 			</button>
 			{#if menu}
 				<div class="player-menu">
@@ -564,7 +564,7 @@
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
 			>
-				<PictureInPictureIcon class="player-glyph" aria-hidden="true" />
+				<PictureInPictureIcon class="player-glyph" weight="fill" aria-hidden="true" />
 			</button>
 		{/if}
 
@@ -583,7 +583,7 @@
 			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
 			     still around it. The other button below leaves the browser behind entirely, and the
 			     two must not look alike -- they are different destinations, not two sizes of one. -->
-			<FrameCornersIcon class="player-glyph" aria-hidden="true" />
+			<FrameCornersIcon class="player-glyph" weight="fill" aria-hidden="true" />
 		</button>
 
 		<button
@@ -597,8 +597,8 @@
 				? m['video.exit-fullscreen']({}, { locale })
 				: m['video.fullscreen']({}, { locale })}
 		>
-			{#if view.fullscreen}<CornersInIcon class="player-glyph" aria-hidden="true" />
-			{:else}<CornersOutIcon class="player-glyph" aria-hidden="true" />{/if}
+			{#if view.fullscreen}<CornersInIcon class="player-glyph" weight="fill" aria-hidden="true" />
+			{:else}<CornersOutIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
 		</button>
 	</div>
 </div>
