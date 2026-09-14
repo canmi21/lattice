@@ -118,6 +118,20 @@
 	"support.sponsor": "Un café para seguir creando",
 	"support.sponsor-short": "Un café",
 	"theme.switch": "Cambiar el tema",
+	"video.boost": "Amplificación",
+	"video.captions": "Subtítulos",
+	"video.exit-fullscreen": "Salir de pantalla completa",
+	"video.fill": "Llenar la ventana",
+	"video.fullscreen": "Pantalla completa",
+	"video.mute": "Silenciar",
+	"video.pause": "Pausa",
+	"video.pip": "Imagen en imagen",
+	"video.play": "Reproducir",
+	"video.quality": "Calidad",
+	"video.seek": "Buscar",
+	"video.settings": "Ajustes",
 	"video.source": "Ver el original en {name}",
-	"video.unsupported": "Tu navegador no puede reproducir este formato."
+	"video.speed": "Velocidad",
+	"video.unsupported": "Tu navegador no puede reproducir este formato.",
+	"video.volume": "Volumen"
 }

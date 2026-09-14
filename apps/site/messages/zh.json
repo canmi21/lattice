@@ -118,6 +118,20 @@
 	"support.sponsor": "请我喝杯 Coffee",
 	"support.sponsor-short": "Coffee",
 	"theme.switch": "切换主题",
+	"video.boost": "增益",
+	"video.captions": "字幕",
+	"video.exit-fullscreen": "退出全屏",
+	"video.fill": "网页全屏",
+	"video.fullscreen": "全屏",
+	"video.mute": "静音",
+	"video.pause": "暂停",
+	"video.pip": "画中画",
+	"video.play": "播放",
+	"video.quality": "清晰度",
+	"video.seek": "跳转",
+	"video.settings": "设置",
 	"video.source": "在 {name} 看原始视频",
-	"video.unsupported": "你的浏览器无法播放这个格式。"
+	"video.speed": "倍速",
+	"video.unsupported": "你的浏览器无法播放这个格式。",
+	"video.volume": "音量"
 }

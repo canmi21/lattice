@@ -118,6 +118,20 @@
 	"support.sponsor": "Spendier mir einen Kaffee",
 	"support.sponsor-short": "Kaffee",
 	"theme.switch": "Design wechseln",
+	"video.boost": "Verstärkung",
+	"video.captions": "Untertitel",
+	"video.exit-fullscreen": "Vollbild beenden",
+	"video.fill": "Fenster füllen",
+	"video.fullscreen": "Vollbild",
+	"video.mute": "Stumm",
+	"video.pause": "Pause",
+	"video.pip": "Bild im Bild",
+	"video.play": "Abspielen",
+	"video.quality": "Qualität",
+	"video.seek": "Suchen",
+	"video.settings": "Einstellungen",
 	"video.source": "Das Original bei {name} ansehen",
-	"video.unsupported": "Dein Browser kann dieses Format nicht abspielen."
+	"video.speed": "Geschwindigkeit",
+	"video.unsupported": "Dein Browser kann dieses Format nicht abspielen.",
+	"video.volume": "Lautstärke"
 }

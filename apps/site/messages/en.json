@@ -118,6 +118,20 @@
 	"support.sponsor": "Sponsor my next coffee",
 	"support.sponsor-short": "Sponsor",
 	"theme.switch": "Switch theme",
+	"video.boost": "Boost",
+	"video.captions": "Captions",
+	"video.exit-fullscreen": "Exit full screen",
+	"video.fill": "Fill the window",
+	"video.fullscreen": "Full screen",
+	"video.mute": "Mute",
+	"video.pause": "Pause",
+	"video.pip": "Picture in picture",
+	"video.play": "Play",
+	"video.quality": "Quality",
+	"video.seek": "Seek",
+	"video.settings": "Settings",
 	"video.source": "Watch the original at {name}",
-	"video.unsupported": "Your browser cannot play this format."
+	"video.speed": "Speed",
+	"video.unsupported": "Your browser cannot play this format.",
+	"video.volume": "Volume"
 }

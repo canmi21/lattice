@@ -118,6 +118,20 @@
 	"support.sponsor": "コーヒーを一杯おごる",
 	"support.sponsor-short": "コーヒー",
 	"theme.switch": "テーマを切り替える",
+	"video.boost": "ブースト",
+	"video.captions": "字幕",
+	"video.exit-fullscreen": "全画面表示を終了",
+	"video.fill": "ウィンドウに合わせる",
+	"video.fullscreen": "全画面表示",
+	"video.mute": "ミュート",
+	"video.pause": "一時停止",
+	"video.pip": "ピクチャ・イン・ピクチャ",
+	"video.play": "再生",
+	"video.quality": "画質",
+	"video.seek": "シーク",
+	"video.settings": "設定",
 	"video.source": "{name} でオリジナルを見る",
-	"video.unsupported": "お使いのブラウザはこの形式を再生できません。"
+	"video.speed": "再生速度",
+	"video.unsupported": "お使いのブラウザはこの形式を再生できません。",
+	"video.volume": "音量"
 }

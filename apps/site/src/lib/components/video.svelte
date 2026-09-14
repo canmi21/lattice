@@ -38,6 +38,8 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls } from '@canmi/urls';
+	import { onMount } from 'svelte';
+	import Controls from './video-controls.svelte';
 	import { surfaces } from '$lib/surfaces.ts';
 	import type { VideoRung, VideoTrack } from '$lib/content/build/assets.ts';
 	import type { LocaleCode } from '$lib/locale';
@@ -53,6 +55,7 @@
 		captions,
 		description,
 		source,
+		ratio = '16 / 9',
 		locale,
 	}: {
 		/** The reference the article wrote. Only an unresolved clip is addressed by it. */
@@ -65,12 +68,35 @@
 		captions?: VideoTrack[];
 		description?: string;
 		source?: { url: string; label?: string };
+		/**
+		 * The shape of the window, as a CSS `aspect-ratio`. `picture.svelte` calls the same thing
+		 * `crop` and leaves it absent to mean "whatever the file is"; a clip defaults to 16:9
+		 * instead, because that is what every clip this site embeds already is and because a
+		 * player's chrome is laid out against a box rather than against a file. A clip that is not
+		 * 16:9 declares its own here; one that does not is cropped to fit, the same as a picture.
+		 */
+		ratio?: string;
 		/** The view being rendered. Passed rather than read: see spec/locale.md. */
 		locale: LocaleCode;
 	} = $props();
 
 	let el = $state<HTMLVideoElement>();
+	let frame = $state<HTMLElement>();
 	const describedBy = $props.id();
+
+	/**
+	 * Whether this page is driving the element itself.
+	 *
+	 * False on the server and until `onMount`, which is not caution -- it is the contract. The
+	 * element carries `controls` for exactly as long as nothing else can work them, so a reader
+	 * with no script, or one who reaches the clip before hydration, gets a player rather than a
+	 * picture that does nothing. Swapping the two at mount is the only ordering where neither
+	 * reader is left without a way to press play.
+	 */
+	let driven = $state(false);
+	onMount(() => {
+		driven = true;
+	});
 
 	/**
 	 * What this browser can do with the clip.
@@ -155,13 +181,25 @@
 	 * sitting in the prose for as long as the poster takes.
 	 */
 	const style = $derived(
-		preview
-			? `background-image:url(${preview});background-size:cover;background-position:center`
-			: undefined,
+		[
+			preview && `background-image:url(${preview})`,
+			preview && 'background-size:cover',
+			preview && 'background-position:center',
+			ratio && `aspect-ratio:${ratio}`,
+		]
+			.filter(Boolean)
+			.join(';') || undefined,
 	);
 </script>
 
 <div class="space-y-2">
+	<!--
+		One frame around the picture and the bar, which is the shape `code-block` already draws: a
+		body and a hairline-divided row of controls inside one border. `relative` is what the play
+		affordance is positioned against, and `overflow-hidden` is what keeps the video's corners
+		inside the frame's now that the border is the frame's rather than the element's.
+	-->
+	<div bind:this={frame} class="video-frame relative overflow-hidden {stylex.attrs(styles.frame).class}">
 	<!--
 		`block`, for `picture.svelte`'s reason: a replaced inline box discards the vertical margins
 		its neighbours are spaced with, and both this element and the notice under it are spaced
@@ -183,14 +221,15 @@
 	     the clip has, written by the loop below, and the compiler can only see a static one) -->
 	<video
 		bind:this={el}
-		class="block w-full {stylex.attrs(styles.frame).class}"
+		class="video-surface block w-full"
+		onclick={() => driven && (el?.paused ? void el.play() : el?.pause())}
 		src={resolved ? undefined : fallback}
 		{poster}
 		{width}
 		{height}
 		{style}
 		preload="metadata"
-		controls
+		controls={!driven}
 		playsinline
 		crossorigin="anonymous"
 		aria-describedby={description ? describedBy : undefined}
@@ -206,6 +245,22 @@
 			<track src={track.src} kind={track.kind} srclang={track.language} />
 		{/each}
 	</video>
+
+		{#if driven && el && frame && support !== 'none'}
+			<Controls video={el} {frame} {rungs} {locale} />
+		{/if}
+	</div>
+
+<style>
+	/* The window is the declared shape and the picture fills it, which is `picture.svelte`'s
+	   `crop` applied to a clip: the box is the layout and the file bends to it. */
+	.video-surface {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+</style>
 
 	{#if support === 'none'}
 		<!--
@@ -248,3 +303,28 @@
 		<span id={describedBy} class="sr-only">{description}</span>
 	{/if}
 </div>
+
+<style>
+	/* The window is the declared shape and the picture fills it, which is `picture.svelte`'s
+	   `crop` applied to a clip: the box is the layout and the file bends to it. */
+	.video-surface {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* Web fullscreen: the frame fills the viewport without the Fullscreen API, so the browser's
+	   own chrome stays. No player library has this -- it is a page mode rather than a media one --
+	   and it is the reader who wants the clip large without leaving the page behind. */
+	.video-frame:has(.player-filling) {
+		position: fixed;
+		inset: 0;
+		z-index: 60;
+		border-radius: 0;
+		border: 0;
+		display: grid;
+		place-items: center;
+		background: oklch(0 0 0);
+	}
+</style>

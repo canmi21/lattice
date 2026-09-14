@@ -118,6 +118,20 @@
 	"support.sponsor": "請我喝杯咖啡",
 	"support.sponsor-short": "咖啡",
 	"theme.switch": "切換主題",
+	"video.boost": "增益",
+	"video.captions": "字幕",
+	"video.exit-fullscreen": "結束全螢幕",
+	"video.fill": "網頁全螢幕",
+	"video.fullscreen": "全螢幕",
+	"video.mute": "靜音",
+	"video.pause": "暫停",
+	"video.pip": "子母畫面",
+	"video.play": "播放",
+	"video.quality": "畫質",
+	"video.seek": "跳轉",
+	"video.settings": "設定",
 	"video.source": "在 {name} 看原始影片",
-	"video.unsupported": "你的瀏覽器無法播放這個格式。"
+	"video.speed": "倍速",
+	"video.unsupported": "你的瀏覽器無法播放這個格式。",
+	"video.volume": "音量"
 }

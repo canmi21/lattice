@@ -118,6 +118,20 @@
 	"support.sponsor": "커피 한 잔으로 응원하기",
 	"support.sponsor-short": "커피 한 잔",
 	"theme.switch": "테마 전환",
+	"video.boost": "부스트",
+	"video.captions": "자막",
+	"video.exit-fullscreen": "전체 화면 종료",
+	"video.fill": "창에 맞추기",
+	"video.fullscreen": "전체 화면",
+	"video.mute": "음소거",
+	"video.pause": "일시정지",
+	"video.pip": "화면 속 화면",
+	"video.play": "재생",
+	"video.quality": "화질",
+	"video.seek": "탐색",
+	"video.settings": "설정",
 	"video.source": "{name}에서 원본 보기",
-	"video.unsupported": "이 브라우저에서는 이 형식을 재생할 수 없어요."
+	"video.speed": "재생 속도",
+	"video.unsupported": "이 브라우저에서는 이 형식을 재생할 수 없어요.",
+	"video.volume": "음량"
 }

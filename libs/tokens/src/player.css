@@ -1,0 +1,48 @@
+/* The player's own colours, which are the one set on this site that does not follow the theme.
+ *
+ * Everything in `colors.css` is a page colour: it has a light value and a dark one because it is
+ * read against the page, and the reader decides which. These are read against a *video frame* --
+ * a surface this site does not choose, cannot know, and which changes twenty-four times a second.
+ * A control tinted for a light page disappears over a bright sky; one tinted for a dark page
+ * disappears over a night interior. So the player does not ask what theme the page is in. It
+ * brings its own ground, the way every native player does.
+ *
+ * The scheme is the one macOS and IINA arrive at from the same constraint: white ink at less than
+ * full opacity, floating on a dark translucent plate that is blurred so the frame behind it reads
+ * as texture rather than as detail. Two things carry it over content that is bright enough to
+ * swallow white:
+ *
+ *   - `--player-veil`, a gradient laid under the controls rather than a solid bar. It is dark at
+ *     the bottom edge and nothing at the top, so it darkens what the controls sit on without
+ *     putting a band across the picture.
+ *   - `--player-shadow` on the ink itself, which is what keeps a white glyph legible in the worst
+ *     case the veil does not cover -- a white title card filling the frame.
+ *
+ * Values are `oklch` with an alpha, like the rest of the tokens, and are deliberately not derived
+ * from any `--color-*`: a derivation would re-introduce the theme this file exists to escape.
+ */
+
+:root {
+	/* Ink. `strong` is a control at rest, `dim` is a secondary one -- the clock, an inactive
+	   toggle -- and `faint` is a track a slider has not filled yet. */
+	--player-ink: oklch(1 0 0 / 0.92);
+	--player-ink-dim: oklch(1 0 0 / 0.62);
+	--player-ink-faint: oklch(1 0 0 / 0.3);
+
+	/* The plate a floating control group sits on, and the blur behind it. */
+	--player-plate: oklch(0.22 0 0 / 0.42);
+	--player-plate-strong: oklch(0.18 0 0 / 0.66);
+	--player-blur: 24px;
+
+	/* A control under a pointer or a key. No colour shift, only more light: on an unknown
+	   backdrop a hue would be a second variable nobody can predict. */
+	--player-wash: oklch(1 0 0 / 0.16);
+
+	/* The gradient under the control row. Transparent at the top so no edge is drawn across the
+	   picture, and dark enough at the bottom to hold white ink over a bright frame. */
+	--player-veil: linear-gradient(to top, oklch(0 0 0 / 0.55), oklch(0 0 0 / 0.28) 42%, transparent);
+
+	/* Cast on the ink rather than on the plate, so a glyph survives the case the veil cannot
+	   reach: a frame that is white from edge to edge. */
+	--player-shadow: 0 1px 2px oklch(0 0 0 / 0.55);
+}
