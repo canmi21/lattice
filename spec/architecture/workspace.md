@@ -20,7 +20,7 @@ repos/      Applications published on their own. Each is a separate repository, 
 ```
 
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
-subjects: [data.md](data.md), [media.md](media.md),
+subjects: [data.md](data.md), [media.md](media.md), [video.md](video.md),
 [fonts.md](fonts.md) and [delivery.md](delivery.md).
 
 ## One name, one thing

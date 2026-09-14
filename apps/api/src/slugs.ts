@@ -8,6 +8,7 @@ export const ARTICLE_SLUGS: ReadonlySet<string> = new Set([
 	'architecture/observation-to-lowering',
 	'architecture/why-you-need-ssr',
 	'development/rust-cargo-cranelift-tuning',
+	'hindsight/except-me',
 	'milestone/less-is-more',
 	'mirror/friends-come-in-phases',
 	'mirror/less-than-an-hour',

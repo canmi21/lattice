@@ -30,6 +30,34 @@ produces what is actually useful: what kind of image it is, what it contains, an
 evidence of. `--limit` exists because each call costs real money, and finding out the prompt
 is wrong should be cheap.
 
+## Where a picture came from is a claim, and it can point inward
+
+`source` sits beside the description in `data/media.yaml`, holding a `url` and an English `label`.
+It is there rather than in the manifest for the reason that separates the two files: nothing here
+can be rebuilt. EXIF describes what a sensor did and a screenshot of a web page has none; a picture
+that has been through an editor carries nothing true about its origin either. So a source is a
+claim somebody makes, and `cms image --force` must not be able to take it away.
+
+**The label names the origin, not the route.** An `web.archive.org` address for a page Apple
+published is labelled Apple: the Internet Archive is how the page can still be read, not who wrote
+it. Crediting the library for the book is the mistake the rule exists to prevent.
+
+One string rather than the per-locale map a description carries, because a publication is called
+the same thing in every language this site is written in.
+
+**A source can name something inside this repository, as `cid://{blake3}`.** A video's poster frame
+came from the video, and that is as real a provenance as a URL. The asset id and not a variant's:
+the frame came from the picture, not from the 1080p rendition of it, and a rung's id can change
+when a ladder does. No extension either -- an extension is how a request asks for one
+representation, and the CDN treats it as exactly that, so putting one here would say the frame came
+from the mp4 rather than from the video.
+
+**`label` is omitted when the scheme is `cid://`.** The target can be resolved and named by the
+system, and a hand-typed name for something the system already knows is a name nothing checks.
+Following the reference reaches the target's own source, so a poster's provenance resolves through
+its video to whoever published it, without the outer name being retyped and without the two ever
+disagreeing.
+
 ## The description is baked in beside the placeholder
 
 The build inlines an image's description the same way it inlines its thumbhash: both belong to
