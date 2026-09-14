@@ -53,9 +53,12 @@ pub struct Frame {
 
 /// The frames of one clip, alive for as long as this value is.
 ///
-/// Only the first frame is kept -- it becomes the poster, stored as an ordinary image asset --
-/// and the rest exist for the length of one call. Dropping is what makes that true when the
-/// call fails as well as when it succeeds.
+/// Every one of them exists for the length of one call, and dropping is what makes that true
+/// when the call fails as well as when it succeeds. **None of them is the poster.** `cms video`
+/// extracts that separately and hands it to the image import, where it becomes an ordinary asset
+/// with its own id, rungs and description -- see spec/architecture/video.md. Taking it from here
+/// instead would leave two extractors for one frame, free to disagree about scaling or colour,
+/// with whichever ran last deciding.
 #[derive(Debug)]
 pub struct Frames {
 	directory: PathBuf,
@@ -265,6 +268,10 @@ pub fn prompt(frames: &[Frame], clip: Clip, context: &Context) -> String {
 		.collect::<Vec<_>>()
 		.join("\n");
 
+	// Saying that nothing between the frames was sampled is the second guard in this prompt, and
+	// it defends against the same thing the context paragraph does: fluent text containing
+	// nothing seen. A model handed eight stills out of a film narrates the cuts between them,
+	// and every word of that is invention that reads exactly like observation.
 	let mut text = format!(
 		"Read these {count} still frames and describe the video they came from, for someone who \
 		 cannot watch it. They are evenly spaced across {length} of footage, first frame to last, \
@@ -427,6 +434,9 @@ mod tests {
 	fn a_clip_with_no_context_is_asked_about_plainly() {
 		let frames = vec![Frame { at: 0.0, path: PathBuf::from("/tmp/f/frame-01.jpg") }];
 		let text = prompt(&frames, Clip { duration: 18.0, frame_rate: 30.0 }, &Context::default());
+		// The other guard is unconditional: there is no context to restate here, but there are
+		// still gaps between the frames for a model to narrate.
+		assert!(text.contains("nothing between them was sampled"));
 		// Nothing to guard against, so no paragraph guarding against it.
 		assert!(!text.contains("background for reference only"));
 		assert!(text.contains("About 60 words"));
