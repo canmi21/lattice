@@ -2,12 +2,14 @@
 //! See spec/architecture/cms.md.
 
 mod alt;
+mod captions;
 mod check;
 mod classify;
 mod diagram;
 mod embed;
 mod extension;
 pub mod favicon;
+mod frames;
 pub mod gc;
 mod i18n;
 pub mod image;
@@ -22,6 +24,7 @@ mod summary;
 mod tags;
 pub mod twitter;
 pub mod urls;
+pub mod video;
 
 pub mod articles;
 pub mod cli;
