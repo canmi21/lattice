@@ -162,7 +162,11 @@ fn timestamps(clip: Clip) -> Vec<f64> {
 	// from the frame before that a duration off by a fraction of a frame does not take that one
 	// instead. Measured against a 24.024s clip whose last frame starts at 23.9906.
 	let last = (clip.duration - 1.25 * interval(clip)).max(0.0);
-	if wanted <= 1 || last <= 0.0 {
+	// A clip no longer than a single frame is a single frame, whatever the budget asked for, and
+	// the same branch catches a probe that reported nothing: a duration of zero or NaN clamps to
+	// here rather than dividing by it. Nothing else needs guarding -- `count` never returns fewer
+	// than four, so the division below always has a divisor.
+	if last <= 0.0 {
 		return vec![0.0];
 	}
 	(0..wanted).map(|index| last * index as f64 / (wanted - 1) as f64).collect()
