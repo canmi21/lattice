@@ -8,7 +8,8 @@ import image from './image';
 import github from './github';
 import license from './license';
 import opengraph from './opengraph';
-import { type Bindings, read, toResponse } from '@canmi/store';
+import { OBJECTS, type Bindings, read, toResponse } from '@canmi/store';
+import { stored } from './stored';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -56,11 +57,24 @@ app.get('/robots.txt', (c) => {
 	return c.text(robotsTxt({ disallow: [''] }));
 });
 
+// Every content-addressed kind in `OBJECTS` is reachable, and this is the one place that says
+// how. Three have logic of their own: `image` decodes and re-encodes, `license` also answers for
+// a named aggregate, and `meta` is not served from here at all -- apps/api reads it. The rest are
+// the same lookup, so they are mounted from the table rather than written out, which is what
+// stops a new kind from being added to the store and quietly having no route. `index.test.ts`
+// fails if one is.
 app.route('/favicon', favicon);
 app.route('/image', image);
 app.route('/github', github);
 app.route('/license', license);
 app.route('/opengraph', opengraph);
+export const PLAIN_OBJECTS = ['captions', 'video'] as const;
+for (const prefix of PLAIN_OBJECTS) {
+	const extension = OBJECTS[prefix].extension;
+	// `satisfies` cannot say this: the table allows a null extension and these entries do not
+	// have one. Asserted rather than assumed, so moving `image` into this list fails here.
+	if (extension) app.route(`/${prefix}`, stored(prefix, extension));
+}
 
 // Everything else is a direct key lookup: fonts, the site's own icons, whatever else lands in
 // data/public. The path is the key, because the bucket mirrors that directory exactly.

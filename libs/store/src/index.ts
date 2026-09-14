@@ -99,39 +99,66 @@ export function isContentId(value: string): boolean {
 }
 
 /**
- * Where an object lives, by kind.
+ * Where an object lives, by kind. **The one declaration of the bucket's layout.**
  *
- * The layout is a fact about the bucket, so it belongs to the module that reads the bucket
- * rather than to each caller. It was written out three times -- apps/cms writes it, apps/cdn
- * reads it, apps/api reads it -- and the three had to agree on something none of them stated:
- * which prefixes fan out and which do not.
+ * The layout is a fact about the bucket, so it belongs to the module that reads the bucket rather
+ * than to each caller. It was written out three times -- apps/cms writes it, apps/cdn reads it,
+ * apps/api reads it -- and the three had to agree about something none of them stated: which
+ * prefixes fan out and which do not.
  *
- * **Only `image` and `license` fan out.** The two-level split exists for a filesystem mirror,
- * where one directory holding every object eventually stops being openable; R2 has no
- * directories and does not care either way. So it is applied where the count is unbounded and
- * skipped where a record is written once per asset -- `meta` is flat, and reading it as though
- * it were fanned is a 404 that looks like a missing asset.
+ * It is a table rather than a function per kind because the per-kind form drifts, and did.
+ * Adding clips meant an entry here, a key builder, a route and a line in the fallback's comment;
+ * three of the four were written and the key builder was not, so four rung URLs answered 404
+ * while the files sat on disk -- the request fell through to the worker's direct-key lookup,
+ * which reads the path as written, and asked for `video/{cid}.mp4` where `video/{ab}/{cd}/{cid}
+ * .mp4` is stored. A new kind is now one line, and the tests below fail until it has a route.
+ *
+ * **`fanned` follows whether the count is unbounded.** The two-level split exists for a
+ * filesystem mirror, where one directory holding every object eventually stops being openable;
+ * R2 has no directories and does not care either way. So `meta` is flat -- one record per asset
+ * rather than one per format -- and reading it as though it were fanned is a 404 that looks like
+ * a missing asset.
+ *
+ * **`extension` is the single format a kind stores, or `null` where a caller must name one.**
+ * Only `image` is null: one picture is published as several formats and the request says which.
  *
  * Never published. A caller asks for `{cid}.{ext}` and the prefix and the split are put back on
- * here; putting them in a URL would make the bucket's layout an interface nobody could change.
+ * here; putting them in a URL would make this table an interface nobody could change.
+ *
+ * Mirrored by `OBJECTS` in apps/cms, which writes what this reads. A test holds the two together.
  */
-export function imageKey(cid: string, extension: string): string {
-	return fanned('image', cid, extension);
+export const OBJECTS = {
+	captions: { fanned: true, extension: 'vtt' },
+	image: { fanned: true, extension: null },
+	license: { fanned: true, extension: 'txt' },
+	meta: { fanned: false, extension: 'json' },
+	video: { fanned: true, extension: 'mp4' },
+} as const satisfies Record<string, { fanned: boolean; extension: string | null }>;
+
+/** A kind of object the bucket holds, addressed by content id. */
+export type ObjectPrefix = keyof typeof OBJECTS;
+
+/** Every kind, for callers that have to cover all of them -- the CDN's routing, and its test. */
+export const OBJECT_PREFIXES = Object.keys(OBJECTS) as ObjectPrefix[];
+
+/**
+ * The key one content-addressed object is stored under.
+ *
+ * `extension` is required for a kind that stores several formats and ignored for a kind that
+ * stores one, which keeps the format out of every call site that could only ever pass the same
+ * value. Asking for a format from a single-format kind is not an error worth a type: the answer
+ * is the same either way and the table is what decides it.
+ */
+export function objectKey(prefix: ObjectPrefix, cid: string, extension?: string): string {
+	const kind = OBJECTS[prefix];
+	const suffix = kind.extension ?? extension;
+	if (!suffix) {
+		throw new Error(`${prefix} stores several formats: name one`);
+	}
+	const path = kind.fanned ? `${cid.slice(0, 2)}/${cid.slice(2, 4)}/${cid}` : cid;
+	return `${prefix}/${path}.${suffix}`;
 }
 
-/** Licence texts are stored the same way, and are always plain text. */
-export function licenseKey(cid: string): string {
-	return fanned('license', cid, 'txt');
-}
-
-/** The record `cms image` writes beside the variants. Flat: one per asset, not per format. */
-export function metaKey(cid: string): string {
-	return `meta/${cid}.json`;
-}
-
-function fanned(prefix: string, cid: string, extension: string): string {
-	return `${prefix}/${cid.slice(0, 2)}/${cid.slice(2, 4)}/${cid}.${extension}`;
-}
 
 /**
  * Every extension apps/cms will write an icon under, in the order a lookup should try them.
@@ -168,6 +195,10 @@ export function contentTypeFor(key: string): string {
 			return 'image/jpeg';
 		case 'ico':
 			return 'image/x-icon';
+		case 'mp4':
+			return 'video/mp4';
+		case 'vtt':
+			return 'text/vtt';
 		case 'woff2':
 			return 'font/woff2';
 		case 'json':

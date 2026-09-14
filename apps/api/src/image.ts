@@ -1,4 +1,4 @@
-import { isContentId, metaKey, read } from '@canmi/store';
+import { isContentId, objectKey, read } from '@canmi/store';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 
@@ -22,7 +22,7 @@ image.get('/:cid', async (c) => {
 		return c.json({ error: 'not a content id' }, 400);
 	}
 
-	const found = await read(c.env, metaKey(cid));
+	const found = await read(c.env, objectKey('meta', cid));
 	if (!found) {
 		return c.json({ error: 'not found' }, 404);
 	}

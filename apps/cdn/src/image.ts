@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { imageKey, read, toResponse, type Bindings } from '@canmi/store';
+import { objectKey, read, toResponse, type Bindings } from '@canmi/store';
 import { FOREVER } from './cache';
 import { canonicalSpelling, parseName, validatorFor } from './key';
 import { DECODABLE, type Decodable, type Encodable, isEncodable, transcode } from './transcode';
@@ -57,7 +57,7 @@ image.get('/:name', async (c) => {
 
 	// A flat-colour original is stored as PNG rather than AVIF, so either may be a direct hit
 	// and neither can be assumed to be the stored one.
-	const stored = await read(c.env, imageKey(cid, extension));
+	const stored = await read(c.env, objectKey('image', cid, extension));
 	if (stored) {
 		return finish(toResponse(stored), cid, extension);
 	}
@@ -101,7 +101,7 @@ async function findStored(
 	cid: string,
 ): Promise<{ bytes: Promise<ArrayBuffer>; format: Decodable } | null> {
 	for (const format of DECODABLE) {
-		const found = await read(env, imageKey(cid, format));
+		const found = await read(env, objectKey('image', cid, format));
 		if (found) {
 			return { bytes: new Response(found.body).arrayBuffer(), format };
 		}

@@ -1,0 +1,58 @@
+import { Hono } from 'hono';
+import { objectKey, read, toResponse, type Bindings, type ObjectPrefix } from '@canmi/store';
+import { FOREVER } from './cache';
+import { parseName, validatorFor } from './key';
+
+/**
+ * Serving a content-addressed kind that stores one format and needs nothing done to it.
+ *
+ * `video` and `captions` are both this: a caller names the object by its content id alone, the
+ * key it is stored under is put together from `OBJECTS`, and the bytes go back as they are. There
+ * is nothing to transcode -- a rung was encoded by `cms video` at a size the ladder chose, and a
+ * caption track is the one format a `<track>` element takes -- so this is a lookup and a
+ * validator, and no more.
+ *
+ * A factory rather than two files, because two files would be two places for the same five lines
+ * to drift apart. `image` keeps its own route because it decodes and re-encodes; `license` keeps
+ * its own because it also answers for a named aggregate that is not addressed by content at all.
+ */
+export function stored(prefix: ObjectPrefix, extension: string) {
+	const route = new Hono<{ Bindings: Bindings }>();
+
+	route.get('/:name', async (c) => {
+		const parsed = parseName(c.req.param('name'));
+		if (!parsed || parsed.extension !== extension) {
+			return c.json({ error: 'not a content id' }, 400);
+		}
+		const { cid } = parsed;
+
+		// Answered before the bucket is touched, exactly as the image and licence routes do: the
+		// id is a hash of the bytes, so a client holding this tag holds these bytes, and reading
+		// the object to confirm it would only prove what the URL already stated.
+		const tag = validatorFor(cid, extension);
+		if (c.req.header('If-None-Match') === tag) {
+			return new Response(null, { status: 304, headers: { ETag: tag } });
+		}
+
+		const found = await read(c.env, objectKey(prefix, cid));
+		if (!found) {
+			return c.json({ error: 'not found' }, 404);
+		}
+
+		const response = toResponse(found);
+		const headers = new Headers(response.headers);
+		// Overwritten rather than deferred to, so the tag agrees with what the 304 above compares
+		// against instead of with whatever R2 supplies for the stored object.
+		headers.set('ETag', tag);
+		headers.set('Cache-Control', FOREVER);
+		// **No `Accept-Ranges`, deliberately.** A player seeks by asking for a byte range, and
+		// this route does not serve one: `read` fetches the whole object and hands back its body,
+		// so a ranged request gets 200 and the entire rung. Advertising the capability would be a
+		// claim the next person debugging a seek would believe. Serving it means a range on
+		// `read`, `Content-Range` and 416 on both backends, and a rung small enough that nobody
+		// has needed it yet -- so it is written down here rather than half-built.
+		return new Response(response.body, { status: response.status, headers });
+	});
+
+	return route;
+}

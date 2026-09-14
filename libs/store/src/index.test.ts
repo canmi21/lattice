@@ -5,10 +5,9 @@ import { fileURLToPath } from 'node:url';
 import {
 	type Bindings,
 	contentTypeFor,
-	imageKey,
 	isContentId,
-	licenseKey,
-	metaKey,
+	OBJECTS,
+	objectKey,
 	read,
 	STORED_FORMATS,
 } from './index';
@@ -78,13 +77,24 @@ describe('where an object lives', () => {
 	/**
 	 * The split that exists for a filesystem mirror rather than for R2, which has no directories.
 	 * Two characters, then two more, then the whole id again -- matching what apps/cms writes.
+	 *
+	 * Driven off the table rather than written out per kind, because a kind written out is a kind
+	 * that can be added to the table and never tested. Adding a row here fails until it is listed.
 	 */
-	it('fans an image out over two levels', () => {
-		expect(imageKey(CID, 'avif')).toBe(`image/44/b6/${CID}.avif`);
+	it.each([
+		['captions', `captions/44/b6/${CID}.vtt`, undefined],
+		['image', `image/44/b6/${CID}.avif`, 'avif'],
+		['license', `license/44/b6/${CID}.txt`, undefined],
+		['meta', `meta/${CID}.json`, undefined],
+		['video', `video/44/b6/${CID}.mp4`, undefined],
+	] as const)('puts %s at the key apps/cms writes', (prefix, expected, extension) => {
+		expect(objectKey(prefix, CID, extension)).toBe(expected);
 	});
 
-	it('fans a licence text the same way', () => {
-		expect(licenseKey(CID)).toBe(`license/44/b6/${CID}.txt`);
+	it('covers every kind the table declares', () => {
+		// The list above is written out so the expected keys are literals a person can read. This
+		// is what stops it from falling behind the table it is testing.
+		expect(Object.keys(OBJECTS)).toEqual(['captions', 'image', 'license', 'meta', 'video']);
 	});
 
 	/**
@@ -94,7 +104,18 @@ describe('where an object lives', () => {
 	 * this and none of them said it.
 	 */
 	it('leaves a record flat, because there is one per asset', () => {
-		expect(metaKey(CID)).toBe(`meta/${CID}.json`);
+		expect(OBJECTS.meta.fanned).toBe(false);
+		expect(objectKey('meta', CID)).toBe(`meta/${CID}.json`);
+	});
+
+	/**
+	 * The one kind that publishes several formats, and therefore the one whose caller has to say
+	 * which. Asking without one is a mistake worth a throw rather than a key that resolves to
+	 * `undefined` and 404s somewhere else.
+	 */
+	it('refuses to guess a format for the kind that has more than one', () => {
+		expect(() => objectKey('image', CID)).toThrow(/several formats/);
+		expect(objectKey('video', CID, 'webm')).toBe(`video/44/b6/${CID}.mp4`);
 	});
 
 	it('accepts an id of the shape apps/cms writes, and nothing else', () => {
@@ -104,6 +125,31 @@ describe('where an object lives', () => {
 		expect(isContentId(`${CID}00`)).toBe(false);
 		expect(isContentId('../../etc/passwd')).toBe(false);
 	});
+});
+
+/**
+ * The two declarations of the layout, held together.
+ *
+ * apps/cms writes what the workers read, so the tables have to agree about every prefix, its
+ * fanout and its format. They did not: clips were given a path on the writing side and no key on
+ * the reading side, and four rung URLs answered 404 while the files sat on disk. This is the test
+ * that fails instead.
+ */
+it('declares the same layout apps/cms writes', () => {
+	const source = readFileSync(
+		fileURLToPath(new URL('../../../apps/cms/src/image/store.rs', import.meta.url).href),
+		'utf8',
+	);
+	const declaration = /pub const OBJECTS: \[\(&str, bool, &str\); \d+\] = \[([\s\S]*?)\];/.exec(source);
+	expect(declaration, 'OBJECTS moved or changed shape in apps/cms').not.toBeNull();
+
+	const authoritative = [...declaration![1]!.matchAll(/\("([a-z0-9]+)",\s*(true|false),\s*"([a-z0-9]*)"\)/g)].map(
+		([, prefix, fanned, extension]) => [prefix, fanned === 'true', extension || null] as const,
+	);
+	const here = Object.entries(OBJECTS).map(
+		([prefix, kind]) => [prefix, kind.fanned, kind.extension] as const,
+	);
+	expect(here).toEqual(authoritative);
 });
 
 /**

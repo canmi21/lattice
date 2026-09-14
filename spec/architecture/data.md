@@ -202,6 +202,27 @@ the one thing that cannot be reorganised later. The licence texts leaked it for 
 as they had no route of their own and fell through to the direct-key handler; adding one was the
 fix, not changing where the bytes live.
 
+**The layout is declared once per language and the two are held together by a test.** `OBJECTS`
+in `libs/store` is the table the workers read from; `OBJECTS` in `apps/cms/src/image/store.rs` is
+the table the writer writes from; a test in `libs/store` parses the second and compares. Each row
+is a prefix, whether its keys fan out, and the single format it stores -- empty for `image`, the
+one kind published in several formats, where the request says which.
+
+It became a table after the per-kind form drifted. Clips arrived as a path on the writing side,
+URLs on the site, and nothing on the reading side: no key builder and no route, so requests fell
+through to the direct-key handler, which reads the path as written and asked for
+`video/{cid}.mp4` where `video/{ab}/{cd}/{cid}.mp4` is stored. Four rung URLs answered 404 with
+the files sitting on disk, and nothing anywhere reported a fault -- the page simply did not play.
+A second test now walks every row and fails until that kind is routed, so the next one cannot be
+added silently.
+
+**A kind that stores one format and needs nothing done to it is routed from the table rather than
+written out.** `video` and `captions` are both that: a lookup, a validator and the bytes. `image`
+keeps a route of its own because it decodes and re-encodes, and `license` because it also answers
+for a named aggregate that is not addressed by content at all. Ranges are not served -- a seek
+gets the whole rung, which works and is wasteful, and the route says so instead of advertising
+`Accept-Ranges` it does not honour.
+
 The relationships -- which variants belong to which asset, their sizes and formats -- live in
 the manifest, not in the key layout. The store answers "give me these bytes"; the manifest
 answers "which bytes do I want". Deriving one from the other would mean encoding relationships

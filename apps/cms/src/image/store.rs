@@ -9,51 +9,86 @@ use std::path::{Path, PathBuf};
 /// How many hex characters each level of the key fans out on.
 const FAN: usize = 2;
 
-/// `image/{ab}/{cd}/{cid}.{ext}` under the published root: a picture, or a video's poster frame.
+/// **The one declaration of the bucket's layout, on this side.**
 ///
-/// The two levels buy nothing on R2, which has no directory to overflow. They exist so the
-/// same bytes can be moved to an object store that does care, without rewriting every key --
-/// and the CDN hides them anyway, since a request names only the cid.
+/// Each entry is a prefix, whether its keys fan out, and the single format it stores -- empty
+/// where a caller must name one. `OBJECTS` in libs/store is the same table for the workers that
+/// read what this writes, and a test there reads this declaration to hold the two in step.
+///
+/// A table rather than a constant per function because the per-function form drifts, and did:
+/// clips got a path here and no key on the reading side, so four rung URLs answered 404 while the
+/// files sat on disk.
+///
+/// **`fanned` follows whether the count is unbounded.** The two levels buy nothing on R2, which
+/// has no directory to overflow; they exist so the same bytes can move to an object store that
+/// does care without rewriting every key, and the CDN hides them anyway since a request names
+/// only the cid. `meta` is flat -- one record per asset rather than one per format -- and reading
+/// it as though it were fanned is a 404 that looks like a missing asset.
 ///
 /// **A prefix names what kind of object it is and the cid names the object, and nothing in a key
 /// says what an object belongs to.** A caption does not live under the video it captions and a
 /// poster does not live under the video it posters: a content id is about itself, and the same
-/// bytes reached from two articles are one object either way. Where things belong together is
-/// the record's job. See spec/architecture/video.md.
-pub fn variant_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {
-	let (first, second) = fanout(cid);
-	public_root.join("image").join(first).join(second).join(format!("{cid}.{extension}"))
+/// bytes reached from two articles are one object either way. Where things belong together is the
+/// record's job. See spec/architecture/video.md.
+pub const OBJECTS: [(&str, bool, &str); 5] = [
+	("captions", true, "vtt"),
+	("image", true, ""),
+	("license", true, "txt"),
+	("meta", false, "json"),
+	("video", true, "mp4"),
+];
+
+/// The path one object is stored at, from the table alone.
+fn object_path(public_root: &Path, prefix: &str, cid: &str, extension: &str) -> PathBuf {
+	let (_, fanned, fixed) = OBJECTS
+		.iter()
+		.find(|(name, _, _)| *name == prefix)
+		.copied()
+		.expect("every prefix used here is declared in OBJECTS");
+	let extension = if fixed.is_empty() { extension } else { fixed };
+	let name = format!("{cid}.{extension}");
+	let root = public_root.join(prefix);
+	if fanned {
+		let (first, second) = fanout(cid);
+		root.join(first).join(second).join(name)
+	} else {
+		root.join(name)
+	}
 }
 
-/// `video/{ab}/{cd}/{cid}.mp4` under the published root: one rung of a clip's ladder.
+/// `image/{ab}/{cd}/{cid}.{ext}`: a picture, or a video's poster frame.
+///
+/// The one kind that takes an extension, because one picture is published as several formats and
+/// the request says which.
+pub fn variant_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {
+	object_path(public_root, "image", cid, extension)
+}
+
+/// `video/{ab}/{cd}/{cid}.mp4`: one rung of a clip's ladder.
 ///
 /// No extension to pass, unlike a picture. There is one codec in one container and the reason
 /// is measured rather than stylistic -- AV1 in MP4 with `faststart`, because that is the only
 /// path to the hardware decoder Apple devices need. A second spelling here would be a format
 /// this repository does not publish. See spec/architecture/video.md.
 pub fn video_path(public_root: &Path, cid: &str) -> PathBuf {
-	let (first, second) = fanout(cid);
-	public_root.join("video").join(first).join(second).join(format!("{cid}.mp4"))
+	object_path(public_root, "video", cid, "")
 }
 
-/// `captions/{ab}/{cd}/{cid}.vtt` under the published root: one text track.
+/// `captions/{ab}/{cd}/{cid}.vtt`: one text track.
 ///
 /// WebVTT and nothing else, for the same reason `video_path` fixes its own: a `<track>` element
 /// takes one format and there is no second one to choose between.
 pub fn caption_path(public_root: &Path, cid: &str) -> PathBuf {
-	let (first, second) = fanout(cid);
-	public_root.join("captions").join(first).join(second).join(format!("{cid}.vtt"))
+	object_path(public_root, "captions", cid, "")
 }
 
-/// `meta/{blake3}.json` under the published root.
+/// `meta/{blake3}.json`: the record written beside an asset's bytes.
 ///
-/// Flat rather than fanned out: metadata is looked up by exact id and never listed, and
-/// keeping it out of the object trees means a sync of one does not walk the other. It is
-/// separated by kind rather than by hash because `meta/` holds the record for every kind of
-/// asset -- a picture's and a clip's alike -- while `image/`, `video/` and `captions/` each
-/// hold one kind of bytes.
+/// Flat, and separated by kind rather than by hash because `meta/` holds the record for every
+/// kind of asset -- a picture's and a clip's alike -- while `image/`, `video/` and `captions/`
+/// each hold one kind of bytes.
 pub fn meta_path(public_root: &Path, blake3: &str) -> PathBuf {
-	public_root.join("meta").join(format!("{blake3}.json"))
+	object_path(public_root, "meta", blake3, "")
 }
 
 /// The two fanout segments of a content id.

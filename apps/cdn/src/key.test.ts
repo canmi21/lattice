@@ -1,4 +1,3 @@
-import { imageKey, licenseKey } from '@canmi/store';
 import { describe, expect, it } from 'vitest';
 import { canonicalSpelling, cardKeys, parseName, validatorFor } from './key';
 
@@ -14,38 +13,6 @@ describe('validatorFor', () => {
 		expect(validatorFor('44b6081deaf0242ca3bf83d62a3b6c95', 'avif')).toBe(
 			'"44b6081deaf0242ca3bf83d62a3b6c95.avif"',
 		);
-	});
-});
-
-describe('imageKey', () => {
-	it('fans out over the first four characters', () => {
-		expect(imageKey('44b6081deaf0242ca3bf83d62a3b6c95', 'avif')).toBe(
-			'image/44/b6/44b6081deaf0242ca3bf83d62a3b6c95.avif',
-		);
-	});
-
-	it('matches the layout apps/cms writes', () => {
-		// Two spellings of one scheme is one more than can be kept in step, so this is the
-		// test that fails if either side moves.
-		const key = imageKey('abcdef0123456789abcdef0123456789', 'png');
-		expect(key.split('/').slice(0, 3)).toEqual(['image', 'ab', 'cd']);
-		expect(key.split('/').pop()).toBe('abcdef0123456789abcdef0123456789.png');
-	});
-});
-
-describe('licenseKey', () => {
-	it('fans out the same way, under its own prefix', () => {
-		expect(licenseKey('7ed218d2928b1ff56267b33a04541b5f')).toBe(
-			'license/7e/d2/7ed218d2928b1ff56267b33a04541b5f.txt',
-		);
-	});
-
-	// The point of the route is that this key is never a URL. If the two ever diverge the
-	// worker stops finding what apps/cms wrote, which is the failure this pins down.
-	it('matches the layout apps/cms writes', () => {
-		const key = licenseKey('abcdef0123456789abcdef0123456789');
-		expect(key.split('/').slice(0, 3)).toEqual(['license', 'ab', 'cd']);
-		expect(key.split('/').pop()).toBe('abcdef0123456789abcdef0123456789.txt');
 	});
 });
 
