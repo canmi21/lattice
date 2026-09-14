@@ -163,18 +163,23 @@
 	/**
 	 * What web fullscreen does to the page behind it.
 	 *
-	 * The page is held still rather than merely covered. `overflow: hidden` on the document is
-	 * what stops it, and the scrollbar it removes is paid back as padding so the layout underneath
-	 * does not jump sideways at the moment the black comes down -- which is visible even under an
-	 * opaque cover, because the cover is fixed and the page is not.
+	 * **The scroll is swallowed, not redirected.** There is nothing to scroll while the mode is on
+	 * and no gesture leaves it: a wheel or a drag simply does nothing, which is what a mode that
+	 * has taken over the window should do. Leaving is Escape or the button, both of which are
+	 * deliberate. An earlier version took a scroll as "out", and that is wrong for the same reason
+	 * it is wrong in a native player -- a reader nudging the wheel while watching did not ask to
+	 * be put back in the article.
 	 *
-	 * **A scroll gesture leaves.** Locking the page and then ignoring the wheel would leave a
-	 * reader pushing against something that does not move and does not say why; taking it as
-	 * "out" is the reading that matches what the gesture means. Escape leaves too, the way it
-	 * leaves the real thing, and so does the button.
+	 * Three things hold it. `overflow: hidden` on the document stops the page; the scrollbar that
+	 * removes is paid back as padding so the layout underneath does not jump sideways; and
+	 * `touchmove` is cancelled so a phone does not rubber-band the page behind the black. The
+	 * chrome is exempt, because dragging the scrubber or the volume is a touchmove too and
+	 * cancelling it would make both unusable with a finger.
 	 *
-	 * `wheel` and `touchmove` are both passive: nothing here calls `preventDefault`, because the
-	 * document is already locked and there is nothing left to prevent.
+	 * The article comes back where it was. `overflow: hidden` keeps the offset in the engines
+	 * measured here, but it is not promised anywhere, and a reader returned to the top of a long
+	 * article has lost their place for a reason they cannot see -- so it is recorded on the way in
+	 * and put back on the way out.
 	 */
 	$effect(() => {
 		if (!filling) return;
@@ -185,24 +190,34 @@
 		body.style.overflow = 'hidden';
 		if (gutter > 0) body.style.paddingInlineEnd = `${gutter}px`;
 
-		const leave = () => {
-			filling = false;
-		};
 		const onKey = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') leave();
+			if (event.key === 'Escape') filling = false;
+		};
+		const swallow = (event: TouchEvent) => {
+			if ((event.target as Element | null)?.closest('.player-chrome')) return;
+			event.preventDefault();
 		};
 		window.addEventListener('keydown', onKey);
-		window.addEventListener('wheel', leave, { passive: true });
-		window.addEventListener('touchmove', leave, { passive: true });
+		document.addEventListener('touchmove', swallow, { passive: false });
 
 		return () => {
 			body.style.overflow = overflow;
 			body.style.paddingInlineEnd = padding;
 			window.removeEventListener('keydown', onKey);
-			window.removeEventListener('wheel', leave);
-			window.removeEventListener('touchmove', leave);
+			document.removeEventListener('touchmove', swallow);
+			window.scrollTo({ top: restore, behavior: 'instant' });
 		};
 	});
+
+	/**
+	 * Where the article was before the frame left the flow.
+	 *
+	 * Recorded by whoever turns the mode on, not by the effect that follows. By the time an effect
+	 * runs the frame is already `fixed`, the document is that much shorter, and the browser has
+	 * clamped the scroll to the new height -- measured, 11883 became 11581 before a line of this
+	 * ran, and restoring to it put the reader three hundred pixels from where they were.
+	 */
+	let restore = 0;
 
 	/** Whether this page started the clip itself, which is what must not happen twice. */
 	let auto = $state(false);
@@ -557,7 +572,10 @@
 			type="button"
 			class="player-button player-fill"
 			class:player-on={filling}
-			onclick={() => (filling = !filling)}
+			onclick={() => {
+				if (!filling) restore = window.scrollY;
+				filling = !filling;
+			}}
 			aria-pressed={filling}
 			aria-label={m['video.fill']({}, { locale })}
 			title={m['video.fill']({}, { locale })}
