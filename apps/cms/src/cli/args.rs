@@ -135,6 +135,16 @@ pub enum Command {
 		files: Vec<PathBuf>,
 	},
 
+	/// Encode what the articles reference into AV1 rungs, then rewrite them
+	Video {
+		/// Encode again even where the rungs are already published
+		#[arg(long)]
+		force: bool,
+		/// Files to import ahead of the article that will use them
+		#[arg(value_name = "FILE")]
+		files: Vec<PathBuf>,
+	},
+
 	/// Render an OpenGraph card per page per language
 	Og {
 		/// Render again rather than skipping what is current

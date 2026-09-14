@@ -7,7 +7,7 @@ mod args;
 
 use crate::{
 	alt, articles, check, classify, derived, diagram, embed, favicon, gc, i18n, image, licenses,
-	locale, opengraph, overview, paths, port, refs, summary, task, twitter,
+	locale, opengraph, overview, paths, port, refs, summary, task, twitter, video,
 };
 use anyhow::Context as _;
 use args::{Cli, Command, ModelArgs, TwitterCommand};
@@ -57,6 +57,7 @@ fn dispatch(command: Command) -> anyhow::Result<ExitCode> {
 		Command::Licenses => collect_licenses(),
 		Command::Favicon { force, domains } => fetch_favicons(force, &domains),
 		Command::Image { force, original, files } => process_images(force, original, &files),
+		Command::Video { force, files } => process_videos(force, &files),
 		Command::Og { force } => render_cards(force),
 		Command::Alt { model, force, limit } => describe_images(&model, force, limit),
 		Command::Tag { model, force, limit } => classify_images(&model, force, limit),
@@ -958,6 +959,44 @@ fn process_images(
 		outcome.skipped,
 		outcome.failed.len(),
 		outcome.rewritten
+	);
+
+	if outcome.failed.is_empty() { Ok(ExitCode::SUCCESS) } else { Ok(ExitCode::FAILURE) }
+}
+
+/// The `cms video` command: what the articles reference, encoded and published.
+///
+/// The same shape as `process_images` and deliberately not folded into it. The two commands read
+/// one manifest and write one published tree, but they answer different questions -- what to
+/// re-derive, what a rung is, what an extension means -- and the one place they were briefly
+/// shared produced a clip looked for at `image/{cid}.avif`. See spec/architecture/video.md.
+fn process_videos(force: bool, files: &[std::path::PathBuf]) -> anyhow::Result<ExitCode> {
+	let only = files.to_vec();
+
+	let root = paths::repo_root()?;
+	let originals = root.join("data").join("video");
+	let public = root.join("data").join("public");
+	let articles = root.join("contents");
+
+	let options = video::run::Options { force, only: &only };
+	let outcome =
+		video::run::run(&root, &originals, &public, &articles, &options).context("could not write")?;
+
+	for (path, error) in &outcome.failed {
+		eprintln!("fail  {}: {error}", path.display());
+	}
+	// Reported, not fatal, for the reason `cms image` reports rather than stops: an article may
+	// be written before its clip is dropped in.
+	for value in &outcome.missing {
+		eprintln!("warn  no original for {value}");
+	}
+	println!(
+		"{} encoded, {} unchanged, {} failed, {} references rewritten, {} posters sourced",
+		outcome.processed,
+		outcome.skipped,
+		outcome.failed.len(),
+		outcome.rewritten,
+		outcome.sourced
 	);
 
 	if outcome.failed.is_empty() { Ok(ExitCode::SUCCESS) } else { Ok(ExitCode::FAILURE) }
