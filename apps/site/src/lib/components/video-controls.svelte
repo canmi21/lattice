@@ -137,7 +137,6 @@
 	 * drag where the cost of being too loud is a closed tab.
 	 */
 	const DEFAULT_VOLUME = 0.5;
-	const HOVERS = '(hover: hover)';
 
 	let view = $state({
 		paused: true,
@@ -219,8 +218,6 @@
 	 */
 	let restore = 0;
 
-	/** Whether this page started the clip itself, which is what must not happen twice. */
-	let auto = $state(false);
 	let gain: GainNode | undefined;
 
 	$effect(() => {
@@ -272,56 +269,182 @@
 	});
 
 	/**
-	 * Muted autoplay, and the rules it follows.
+	 * What a clip is at any moment, and it is three things rather than two.
 	 *
-	 * A clip in prose starts itself once, silently, when the reader shows an interest: a pointer
-	 * entering it on a device that has one, or -- on a device that does not -- the first finger
-	 * drag of the page while the clip is on screen. A drag rather than a tap, because a tap is a
-	 * decision the reader has not made yet and a long press is the platform's own menu.
+	 * ```
+	 *  sleeping  -- looks exactly like a picture. No chrome, nothing moving. A touch device also
+	 *               draws a play button here, because it has no way to discover the clip by
+	 *               pointing at it; a pointer device draws nothing, because it does.
+	 *       |
+	 *       |  a pointer arrives, or a finger presses and wanders
+	 *       v
+	 * previewing -- playing, silent, still no chrome. The picture moves and that is the whole
+	 *               invitation: a reader who wanted a picture has lost nothing, and a reader who
+	 *               wanted a clip now knows there is one.
+	 *       |
+	 *       |  a click, which is the first gesture an engine will accept sound on
+	 *       v
+	 *    awake   -- sound on at the reader's own level, chrome available, and playback carries on
+	 *               through the transition. The click woke the sound; it did not ask for a pause.
+	 * ```
 	 *
-	 * After that it plays for as long as it is on screen and pauses when it leaves. Scrolling back
-	 * does not restart it: the trigger has to happen again. That is what separates "I glanced at
-	 * this" from "this follows me down the page".
+	 * The order matters and is the reason for three states rather than two. Chrome appearing on
+	 * hover would answer a question the reader has not asked yet, and a clip that started with
+	 * sound would answer it far too loudly. Each step is the smallest thing that can follow from
+	 * what the reader just did.
 	 *
-	 * **Muted is a browser rule, not a volume.** No engine will start a clip with sound without a
-	 * gesture, so this starts muted -- and `unmute` sets `muted` false and nothing else, because
-	 * the reader's level was never changed. Zeroing the stored volume to mute would throw away the
-	 * setting they chose the last time they were here.
+	 * **There is no way back to `sleeping`.** Once a reader has told this clip they want it, the
+	 * page does not take that back on them -- leaving with the pointer keeps it playing, and
+	 * scrolling it off screen pauses without forgetting.
 	 */
-	function start() {
-		if (auto || !player) return;
-		auto = true;
+	type Stage = 'sleeping' | 'previewing' | 'awake';
+	let stage = $state<Stage>('sleeping');
+
+	/**
+	 * Whether this device has a pointer that can rest on something without pressing it.
+	 *
+	 * The whole split below hangs on this one query and not on a screen width: a touch laptop and
+	 * a phone want the same answer, and a narrow window on a desktop wants the other one.
+	 */
+	const HOVERS = '(hover: hover)';
+	let hovers = $state(true);
+	$effect(() => {
+		const query = window.matchMedia(HOVERS);
+		hovers = query.matches;
+		const sync = () => (hovers = query.matches);
+		query.addEventListener('change', sync);
+		return () => query.removeEventListener('change', sync);
+	});
+
+	/** Silent play, which is the only kind an engine allows before a gesture. */
+	function preview() {
+		if (stage !== 'sleeping' || !player) return;
+		stage = 'previewing';
 		video.muted = true;
 		void (player.play as () => void)?.();
 	}
 
+	/**
+	 * The gesture that buys sound, and it buys nothing else.
+	 *
+	 * Playback is not touched here. A reader who clicks a clip that is already running silently
+	 * asked for the sound, not for a pause -- pausing would answer a question nobody asked and
+	 * cost them the second they clicked on. The level comes back from where it was left; muting
+	 * never wrote to it, so there is nothing to recover.
+	 */
+	function wake() {
+		stage = 'awake';
+		video.muted = false;
+		applyVolume();
+		if (video.paused) void (player?.play as () => void)?.();
+	}
+
+	/**
+	 * Waking a clip on a touch device, and keeping it on screen.
+	 *
+	 * Two things start a preview. A pointer arriving is one. The other is a finger pressing the
+	 * clip and wandering -- far enough that the platform drops its long-press menu, not far enough
+	 * to be a tap, and never lifting into one. That state is reachable and it is the closest thing
+	 * a touch device has to hovering.
+	 *
+	 * Once previewing, it runs until it leaves the screen. Coming back does not restart it: the
+	 * pause is a pause and the reader decides what happens next.
+	 */
 	$effect(() => {
-		let visible = false;
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				visible = Boolean(entry?.isIntersecting);
-				// Paused rather than stopped: the position is kept, so a reader who comes back and
-				// presses play finds the clip where they left it.
-				if (!visible && auto && !video.paused) (player?.pause as () => void)?.();
+				if (entry?.isIntersecting) return;
+				// Paused rather than stopped, so a reader who returns finds it where they left it.
+				if (stage !== 'sleeping' && !video.paused) (player?.pause as () => void)?.();
 			},
 			{ threshold: 0.35 },
 		);
 		observer.observe(frame);
 
-		const hovers = window.matchMedia(HOVERS).matches;
-		const onEnter = () => start();
-		const onDrag = () => {
-			if (visible) start();
+		const onEnter = () => {
+			over = true;
+			preview();
 		};
-		if (hovers) frame.addEventListener('pointerenter', onEnter);
-		else window.addEventListener('touchmove', onDrag, { passive: true });
+		const onLeave = () => {
+			over = false;
+		};
+		let down: { x: number; y: number } | null = null;
+		const onStart = (event: TouchEvent) => {
+			const touch = event.touches[0];
+			down = touch ? { x: touch.clientX, y: touch.clientY } : null;
+		};
+		const onMove = (event: TouchEvent) => {
+			const touch = event.touches[0];
+			if (!down || !touch) return;
+			// Four pixels: past what a still finger drifts, short of what the platform reads as a
+			// drag. Enough to say the finger is on the clip and moving rather than tapping it.
+			const moved = Math.hypot(touch.clientX - down.x, touch.clientY - down.y) > 4;
+			if (moved) preview();
+		};
+		const onEnd = () => {
+			down = null;
+		};
+
+		if (hovers) {
+			frame.addEventListener('pointerenter', onEnter);
+			frame.addEventListener('pointerleave', onLeave);
+		} else {
+			frame.addEventListener('touchstart', onStart, { passive: true });
+			frame.addEventListener('touchmove', onMove, { passive: true });
+			frame.addEventListener('touchend', onEnd, { passive: true });
+		}
 
 		return () => {
 			observer.disconnect();
 			frame.removeEventListener('pointerenter', onEnter);
-			window.removeEventListener('touchmove', onDrag);
+			frame.removeEventListener('pointerleave', onLeave);
+			frame.removeEventListener('touchstart', onStart);
+			frame.removeEventListener('touchmove', onMove);
+			frame.removeEventListener('touchend', onEnd);
 		};
 	});
+
+	/**
+	 * What the picture does when it is pressed, which is not the same question on the two devices.
+	 *
+	 * **With a pointer** there is one gesture and it means whatever the stage has left for it: the
+	 * first click wakes the sound, and every click after that is play and pause. Chrome follows
+	 * the pointer, so it needs no gesture of its own.
+	 *
+	 * **Without one** there are two, because the chrome cannot follow anything. A single tap shows
+	 * the chrome and the next one hides it again; a double tap plays and pauses. That costs the
+	 * single tap a wait -- it cannot act until it knows a second one is not coming -- which is why
+	 * it is given to the cheap, reversible action and the double tap keeps the expensive one.
+	 */
+	let showChrome = $state(false);
+	let pending: ReturnType<typeof setTimeout> | undefined;
+	/** Whether a pointer is on the frame, which is what "hover shows the chrome" actually means. */
+	let over = $state(false);
+
+	export function press() {
+		if (stage !== 'awake') {
+			wake();
+			showChrome = true;
+			return;
+		}
+		if (hovers) {
+			if (video.paused) void (player?.play as () => void)?.();
+			else (player?.pause as () => void)?.();
+			return;
+		}
+		if (pending) {
+			clearTimeout(pending);
+			pending = undefined;
+			if (video.paused) void (player?.play as () => void)?.();
+			else (player?.pause as () => void)?.();
+			return;
+		}
+		// 280ms is the window every platform uses for a double tap, give or take.
+		pending = setTimeout(() => {
+			pending = undefined;
+			showChrome = !showChrome;
+		}, 280);
+	}
 
 	/**
 	 * The level, and the ceiling a reader may raise.
@@ -417,7 +540,26 @@
 	const played = $derived(view.duration ? (view.currentTime / view.duration) * 100 : 0);
 	const loaded = $derived(view.duration ? (view.buffered / view.duration) * 100 : 0);
 	/** Shown while paused, while a pointer is on it, and whenever the store says the reader is. */
-	const shown = $derived(view.paused || view.active || menu);
+	/**
+	 * Whether the chrome is on screen, which is a different question on the two devices.
+	 *
+	 * `sleeping` and `previewing` never show it: a clip that looks like a picture has no controls,
+	 * and one running silently is an invitation rather than a player. Only `awake` has chrome at
+	 * all, and only because the reader asked for it.
+	 *
+	 * Once awake, a pointer device follows the pointer: the chrome is there while the pointer is
+	 * on the frame and gone when it leaves, which is what "hover shows it" means and is a fact
+	 * about where the pointer is rather than about how recently it moved. `userActive` refines
+	 * that -- a pointer resting still over a playing clip lets the chrome fade, the way a native
+	 * player does -- and a paused clip keeps its controls, because a reader who stopped it is
+	 * looking at them.
+	 *
+	 * A touch device has no pointer to follow, so it follows the taps counted in `press`.
+	 */
+	const shown = $derived(
+		stage === 'awake' &&
+			(hovers ? (over && (view.active || view.paused)) || menu : showChrome || menu),
+	);
 	const label = $derived(
 		view.paused ? m['video.play']({}, { locale }) : m['video.pause']({}, { locale }),
 	);
@@ -427,8 +569,23 @@
 	The cover, and the only thing that ever covers the picture. A plate rather than a bare glyph,
 	because on a frame this site does not choose a glyph alone has nothing to sit against.
 -->
-{#if view.paused && !auto}
-	<button type="button" onclick={toggle} aria-label={label} class="player-cover">
+<!--
+	The cover, and the only thing that ever covers the picture.
+
+	Drawn on a touch device and not on a pointer one, which is the asymmetry the whole interaction
+	rests on. A pointer discovers the clip by arriving at it -- the picture starts moving and that
+	is the invitation. A finger cannot arrive anywhere, so a clip with nothing on it is a picture
+	as far as anyone can tell, and the button is the only thing that says otherwise.
+
+	It goes as soon as it has been used, because from then on the clip has said what it is.
+-->
+{#if !hovers && stage === 'sleeping'}
+	<button
+		type="button"
+		onclick={press}
+		aria-label={m['video.play']({}, { locale })}
+		class="player-cover"
+	>
 		<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
 	</button>
 {/if}

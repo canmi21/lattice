@@ -87,6 +87,14 @@
 	let frame = $state<HTMLElement>();
 	/** Web fullscreen. Held here because this is the element that changes shape. */
 	let filling = $state(false);
+	/**
+	 * The chrome, so the picture can hand a press to it.
+	 *
+	 * The picture is this file's element and the meaning of pressing it belongs to the controls --
+	 * it is the first click that buys sound, then play and pause with a pointer, and a tap that
+	 * shows the chrome with a finger. One implementation of that, reached from both.
+	 */
+	let controls = $state<ReturnType<typeof Controls> | undefined>();
 	const describedBy = $props.id();
 
 	/**
@@ -236,7 +244,7 @@
 	<video
 		bind:this={el}
 		class="video-surface block w-full"
-		onclick={() => driven && (el?.paused ? void el.play() : el?.pause())}
+		onclick={() => controls?.press()}
 		src={resolved ? undefined : fallback}
 		{poster}
 		{width}
@@ -261,7 +269,7 @@
 	</video>
 
 		{#if driven && el && frame && support !== 'none'}
-			<Controls video={el} {frame} {rungs} {gain} bind:filling {locale} />
+			<Controls bind:this={controls} video={el} {frame} {rungs} {gain} bind:filling {locale} />
 		{/if}
 	</div>
 
