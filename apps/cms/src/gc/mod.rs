@@ -15,6 +15,7 @@
 
 pub mod segments;
 
+use crate::image::manifest::{Body, Media};
 use crate::image::run::{MERGED, load};
 use crate::licenses;
 use crate::refs;
@@ -39,20 +40,49 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 	// An article names the original; the objects on disk are its variants and its record. The
 	// manifest is the only thing that connects the two, so a cid missing from it keeps nothing
 	// alive -- which is correct, because the site could not resolve it either.
+	//
+	// A clip reaches further than a picture. Its rungs and its text tracks are named the same
+	// way, and its poster is a whole asset of its own that no article ever names -- only the
+	// clip's record does. Without following that one hop the poster would be swept on the first
+	// run, and the poster is the entire fallback for a device that cannot decode the video.
 	let mut keep: BTreeSet<String> = wanted.clone();
+	let mut posters: Vec<String> = Vec::new();
 	for cid in &wanted {
-		if let Some(media) = merged.media.get(cid) {
-			keep.extend(media.variants.keys().cloned());
+		match merged.media.get(cid).map(|media| &media.body) {
+			Some(Body::Image(image)) => keep.extend(image.variants.keys().cloned()),
+			Some(Body::Video(video)) => {
+				keep.extend(video.variants.keys().cloned());
+				keep.extend(video.captions.keys().cloned());
+				keep.insert(video.poster.clone());
+				posters.push(video.poster.clone());
+			}
+			None => {}
+		}
+	}
+	for poster in posters {
+		if let Some(image) = merged.media.get(&poster).and_then(Media::image) {
+			keep.extend(image.variants.keys().cloned());
 		}
 	}
 
+	// A poster's entry stays in the manifest for the same reason its bytes stay on disk: the
+	// clip's record points at it, and a record naming an entry that is gone is the one failure
+	// this sweep must not create.
 	let mut sweep = Sweep {
-		entries: merged.media.keys().filter(|cid| !wanted.contains(*cid)).cloned().collect(),
+		entries: merged
+			.media
+			.keys()
+			.filter(|cid| !wanted.contains(*cid) && !keep.contains(*cid))
+			.cloned()
+			.collect(),
 		..Sweep::default()
 	};
 
-	for path in
-		files_under(&public.join("image"))?.into_iter().chain(files_under(&public.join("meta"))?)
+	for path in files_under(&public.join("image"))?
+		.into_iter()
+		.chain(files_under(&public.join("video"))?)
+		.chain(files_under(&public.join("captions"))?)
+		.chain(files_under(&public.join("meta"))?)
 	{
 		if !keep.contains(&stem_of(&path)) {
 			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
@@ -169,7 +199,7 @@ fn directories_under(directory: &Path) -> std::io::Result<Vec<PathBuf>> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::image::manifest::{Media, Merged, Source, VariantRecord};
+	use crate::image::manifest::{Body, Image, Media, Merged, Source, VariantRecord};
 	use std::collections::BTreeMap;
 
 	/// A directory that removes itself, however the test ends.
@@ -188,20 +218,21 @@ mod tests {
 			VariantRecord { mime: "image/avif".into(), width: 640, height: 360, quality: 0.68, bytes: 1 },
 		);
 		Media {
-			kind: "image".into(),
 			created: "2026-07-31T00:00:00Z".into(),
 			updated: "2026-07-31T00:00:00Z".into(),
 			blake3: String::new(),
-			thumbhash: String::new(),
-			source: Source {
-				mime: "image/png".into(),
-				width: 640,
-				height: 360,
-				ratio: "16:9".into(),
-				bytes: 1,
-			},
-			metadata: None,
-			variants,
+			body: Body::Image(Image {
+				thumbhash: String::new(),
+				source: Source {
+					mime: "image/png".into(),
+					width: 640,
+					height: 360,
+					ratio: "16:9".into(),
+					bytes: 1,
+				},
+				metadata: None,
+				variants,
+			}),
 		}
 	}
 
@@ -239,7 +270,7 @@ mod tests {
 
 		let public = root.join("public");
 		for (cid, variant) in [(&kept, &kept_variant), (&dropped, &dropped_variant)] {
-			let object = crate::image::store::variant_path(&public, variant, "avif");
+			let object = crate::image::store::image_path(&public, variant, "avif");
 			crate::image::store::write(&object, b"bytes").expect("write");
 			crate::image::store::write(&crate::image::store::meta_path(&public, cid), b"{}")
 				.expect("write");
@@ -281,6 +312,106 @@ mod tests {
 		for path in &sweep.orphans {
 			assert!(path.exists(), "planning removed {}", path.display());
 		}
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn a_clip_keeps_its_rungs_its_tracks_and_the_poster_nothing_else_names() {
+		// The poster is the whole fallback for a device that cannot decode AV1, and no article
+		// ever names it -- only the clip's record does. Sweeping by references alone takes it on
+		// the first run, and takes its own variants and record with it.
+		use crate::image::manifest::{Caption, Video, VideoSource, VideoVariant};
+
+		let temporary = temp();
+		let root = temporary.path().to_path_buf();
+		let clip = "44b6081deaf0242ca3bf83d62a3b6c95".to_owned();
+		let poster = "12faaa76365814de1195d6bdf1e5ba05".to_owned();
+		let rung = "cccccccccccccccccccccccccccccccc".to_owned();
+		let track = "dddddddddddddddddddddddddddddddd".to_owned();
+		let poster_variant = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".to_owned();
+
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+		std::fs::write(root.join("contents/a.md"), format!("![]({clip}.avif)")).expect("write");
+
+		let mut assets = BTreeMap::new();
+		assets.insert(poster.clone(), media(&poster_variant));
+		assets.insert(
+			clip.clone(),
+			Media {
+				created: "2026-09-14T00:00:00Z".into(),
+				updated: "2026-09-14T00:00:00Z".into(),
+				blake3: clip.clone(),
+				body: Body::Video(Video {
+					source: VideoSource {
+						mime: "video/mp4".into(),
+						width: 1920,
+						height: 1080,
+						ratio: "16:9".into(),
+						bytes: 1,
+						duration: 1.0,
+						frame_rate: 30.0,
+						frames: 30,
+						audio: false,
+					},
+					poster: poster.clone(),
+					variants: BTreeMap::from([(
+						rung.clone(),
+						VideoVariant {
+							mime: "video/mp4".into(),
+							width: 1920,
+							height: 1080,
+							bytes: 1,
+							codec: "av01.0.05M.08".into(),
+						},
+					)]),
+					captions: BTreeMap::from([(
+						track.clone(),
+						Caption {
+							mime: "text/vtt".into(),
+							language: "en".into(),
+							kind: "captions".into(),
+							bytes: 1,
+						},
+					)]),
+				}),
+			},
+		);
+		crate::image::store::write(
+			&root.join(MERGED),
+			serde_json::to_string(&Merged {
+				version: crate::image::manifest::VERSION,
+				created: "2026-09-14T00:00:00Z".into(),
+				updated: "2026-09-14T00:00:00Z".into(),
+				media: assets,
+			})
+			.expect("json")
+			.as_bytes(),
+		)
+		.expect("write");
+
+		use crate::image::store;
+
+		let public = root.join("public");
+		store::write(&store::video_path(&public, &rung, "mp4"), b"bytes").expect("rung");
+		store::write(&store::caption_path(&public, &track, "vtt"), b"WEBVTT").expect("track");
+		store::write(&store::image_path(&public, &poster_variant, "avif"), b"bytes")
+			.expect("poster variant");
+		let orphan = "ffffffffffffffffffffffffffffffff";
+		store::write(&store::image_path(&public, orphan, "avif"), b"x").expect("orphan");
+		for cid in [&clip, &poster] {
+			store::write(&store::meta_path(&public, cid), b"{}").expect("record");
+		}
+
+		let sweep = plan(&root, &public, &root.join("contents")).expect("plan");
+		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
+		assert!(!names.contains(&rung), "swept a live rung");
+		assert!(!names.contains(&track), "swept a live caption");
+		assert!(!names.contains(&poster), "swept the poster's record");
+		assert!(!names.contains(&poster_variant), "swept the poster's own variant");
+		assert_eq!(names, vec!["ffffffffffffffffffffffffffffffff"]);
+		// The poster is reachable only through the clip, so its manifest entry has to survive
+		// the same hop its bytes did.
+		assert!(sweep.entries.is_empty(), "{:?}", sweep.entries);
 		std::fs::remove_dir_all(&root).ok();
 	}
 

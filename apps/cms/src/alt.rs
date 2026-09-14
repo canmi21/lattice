@@ -103,9 +103,16 @@ fn pending(
 	originals: &Path,
 	force: bool,
 ) -> (Vec<(String, PathBuf)>, Vec<String>) {
+	// Pictures only, and not because a clip needs no description -- it does. This command hands
+	// a runner one file and asks it to look, which is what a picture is; a clip is described
+	// from frames this repository chooses and a word budget, and that is a different command
+	// asking a different question. See spec/architecture/video.md. Left out of the count rather
+	// than skipped, because a clip is not work this command owes and never finished.
 	let wanted: Vec<&String> = merged
 		.media
-		.keys()
+		.iter()
+		.filter(|(_, media)| media.image().is_some())
+		.map(|(cid, _)| cid)
 		.filter(|cid| {
 			force || described.media.get(*cid).is_none_or(|entry| entry.description.is_empty())
 		})
@@ -363,20 +370,21 @@ mod tests {
 	/// A manifest record with no description yet, which is what makes it a candidate.
 	fn described_media() -> crate::image::manifest::Media {
 		crate::image::manifest::Media {
-			kind: "image".into(),
 			created: "2026-08-01T00:00:00Z".into(),
 			updated: "2026-08-01T00:00:00Z".into(),
 			blake3: String::new(),
-			thumbhash: String::new(),
-			source: crate::image::manifest::Source {
-				mime: "image/png".into(),
-				width: 10,
-				height: 10,
-				ratio: "1:1".into(),
-				bytes: 1,
-			},
-			metadata: None,
-			variants: BTreeMap::new(),
+			body: crate::image::manifest::Body::Image(crate::image::manifest::Image {
+				thumbhash: String::new(),
+				source: crate::image::manifest::Source {
+					mime: "image/png".into(),
+					width: 10,
+					height: 10,
+					ratio: "1:1".into(),
+					bytes: 1,
+				},
+				metadata: None,
+				variants: BTreeMap::new(),
+			}),
 		}
 	}
 
@@ -388,6 +396,45 @@ mod tests {
 		// losing this line would silently downgrade every alt written afterwards.
 		assert!(text.contains("cannot see it"));
 		assert!(text.contains("not a list"));
+	}
+
+	#[test]
+	fn a_clip_is_not_something_this_command_can_look_at() {
+		// A runner is handed one file and asked to look. That is what a picture is; a clip is
+		// described from frames chosen here and a word budget, by a different command. Left out
+		// of the list rather than counted as skipped, because it was never this command's work.
+		let clip = crate::image::manifest::Media {
+			created: "2026-09-14T00:00:00Z".into(),
+			updated: "2026-09-14T00:00:00Z".into(),
+			blake3: "aa11".into(),
+			body: crate::image::manifest::Body::Video(crate::image::manifest::Video {
+				source: crate::image::manifest::VideoSource {
+					mime: "video/mp4".into(),
+					width: 1920,
+					height: 1080,
+					ratio: "16:9".into(),
+					bytes: 1,
+					duration: 1.0,
+					frame_rate: 30.0,
+					frames: 30,
+					audio: false,
+				},
+				poster: "bb22".into(),
+				variants: BTreeMap::new(),
+				captions: BTreeMap::new(),
+			}),
+		};
+		let merged = Merged {
+			version: crate::image::manifest::VERSION,
+			created: crate::image::manifest::now(),
+			updated: crate::image::manifest::now(),
+			media: BTreeMap::from([("aa11".to_owned(), clip)]),
+		};
+		let (todo, unreadable) =
+			pending(&merged, &crate::media::Media::default(), Path::new("/nonexistent"), false);
+		assert!(todo.is_empty());
+		// Not unreadable either: there is no original this command failed to find.
+		assert!(unreadable.is_empty());
 	}
 
 	#[test]

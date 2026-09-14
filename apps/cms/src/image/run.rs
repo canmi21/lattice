@@ -6,7 +6,7 @@
 //! reference rewritten to what it became. Rewriting is what records that the work is done, so
 //! the state lives in the article rather than in a log beside it.
 
-use super::manifest::{self, Media, Merged};
+use super::manifest::{self, Image, Media, Merged};
 use super::{mime_of, store};
 use crate::refs::{self, Scan};
 use std::collections::BTreeMap;
@@ -81,9 +81,10 @@ pub fn run(
 
 		let id = super::cid(&bytes);
 		let previous = merged.media.get(&id);
-		let keep = options.keep_original || previous.is_some_and(keeps_full_frame);
+		let picture = previous.and_then(Media::image);
+		let keep = options.keep_original || picture.is_some_and(keeps_full_frame);
 
-		if !options.force && previous.is_some() && published(public, previous) {
+		if !options.force && previous.is_some() && published(public, picture) {
 			outcome.skipped += 1;
 			if let Some(target) = reference.as_deref() {
 				note(&mut rewrites, target, &id, previous);
@@ -111,7 +112,8 @@ pub fn run(
 		let Some((cid, _)) = image.resolved() else {
 			continue;
 		};
-		if let Some(name) = merged.media.get(cid).and_then(|media| resolved_name(cid, media))
+		if let Some(name) =
+			merged.media.get(cid).and_then(Media::image).and_then(|picture| resolved_name(cid, picture))
 			&& name != image.value
 		{
 			rewrites.insert(image.value.clone(), name);
@@ -160,8 +162,16 @@ fn wanted(
 
 	// A finished reference whose variants are gone -- swept, or never published on this
 	// machine. The original is found by hashing, because the id is the hash.
-	let unpublished: Vec<String> =
-		scan.cids().into_iter().filter(|cid| !published(public, merged.media.get(cid))).collect();
+	//
+	// A cid the manifest already knows to be a clip is left out rather than reported missing.
+	// Its rungs are under `video/` and its original is not in `data/image`, so asking this
+	// command about it would answer "not derived yet" on every run, for ever.
+	let unpublished: Vec<String> = scan
+		.cids()
+		.into_iter()
+		.filter(|cid| !merged.media.get(cid).is_some_and(|media| media.video().is_some()))
+		.filter(|cid| !published(public, merged.media.get(cid).and_then(Media::image)))
+		.collect();
 	if !unpublished.is_empty() {
 		let by_id = originals_by_id(originals);
 		for cid in unpublished {
@@ -203,23 +213,26 @@ fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
 /// exist only because the CLI is the one way an image enters. Once the desktop app derives on
 /// insert there is no original to re-derive from and nothing left to infer, and the question
 /// becomes a metadata version migration instead. Revisit when the app owns image insertion.
-fn keeps_full_frame(media: &Media) -> bool {
-	let source = super::ladder::Size::new(media.source.width, media.source.height);
-	media.variants.values().any(|record| {
+fn keeps_full_frame(image: &Image) -> bool {
+	let source = super::ladder::Size::new(image.source.width, image.source.height);
+	image.variants.values().any(|record| {
 		super::ladder::Size::new(record.width, record.height).long_edge() == source.long_edge()
 	}) && source.long_edge() > super::ladder::CAP
 }
 
-/// Whether every variant a record claims is actually on disk.
+/// Whether every variant a picture claims is actually on disk.
 ///
 /// The manifest alone is not evidence: after a sweep it still lists assets whose bytes are
 /// gone, and trusting it would leave articles pointing at nothing.
-fn published(public: &Path, media: Option<&Media>) -> bool {
-	let Some(media) = media else {
+///
+/// A picture rather than a record, because this decides whether to re-derive and this command
+/// only derives pictures. A clip's rungs are asked about by `cms video`, against `video/`.
+fn published(public: &Path, image: Option<&Image>) -> bool {
+	let Some(image) = image else {
 		return false;
 	};
-	media.variants.iter().all(|(cid, record)| {
-		store::variant_path(public, cid, crate::extension::for_variant(&record.mime)).is_file()
+	image.variants.iter().all(|(cid, record)| {
+		store::image_path(public, cid, crate::extension::for_variant(&record.mime)).is_file()
 	})
 }
 
@@ -227,8 +240,11 @@ fn published(public: &Path, media: Option<&Media>) -> bool {
 ///
 /// The largest variant decides the extension. It is the one an article without a srcset falls
 /// back to, and every rung of a ladder shares its format.
-fn resolved_name(cid: &str, media: &Media) -> Option<String> {
-	let extension = media
+/// A picture rather than a record: `extension::for_variant` answers AVIF for anything it does
+/// not know, so handing it a clip's `video/mp4` would rewrite an article to name a file that
+/// was never written. Rewriting a video reference belongs to the command that publishes one.
+fn resolved_name(cid: &str, image: &Image) -> Option<String> {
+	let extension = image
 		.variants
 		.values()
 		.max_by_key(|record| record.width)
@@ -242,7 +258,7 @@ fn note(
 	cid: &str,
 	media: Option<&Media>,
 ) {
-	if let Some(name) = media.and_then(|media| resolved_name(cid, media)) {
+	if let Some(name) = media.and_then(Media::image).and_then(|image| resolved_name(cid, image)) {
 		rewrites.insert(reference.to_owned(), name);
 	}
 }
@@ -439,8 +455,8 @@ mod tests {
 		std::fs::remove_dir_all(&root).ok();
 	}
 
-	/// A record whose published rungs are `sizes`, derived from a `width` x `height` source.
-	fn derived(width: u32, height: u32, sizes: &[(u32, u32)]) -> manifest::Media {
+	/// A picture whose published rungs are `sizes`, derived from a `width` x `height` source.
+	fn derived(width: u32, height: u32, sizes: &[(u32, u32)]) -> Image {
 		let mut variants = BTreeMap::new();
 		for (index, (w, h)) in sizes.iter().enumerate() {
 			variants.insert(
@@ -454,11 +470,7 @@ mod tests {
 				},
 			);
 		}
-		manifest::Media {
-			kind: "image".into(),
-			created: "2026-07-31T00:00:00Z".into(),
-			updated: "2026-07-31T00:00:00Z".into(),
-			blake3: String::new(),
+		Image {
 			thumbhash: String::new(),
 			source: manifest::Source {
 				mime: "image/png".into(),
@@ -469,6 +481,16 @@ mod tests {
 			},
 			metadata: None,
 			variants,
+		}
+	}
+
+	/// The same picture wrapped in the envelope, for the callers that take a whole record.
+	fn record(cid: &str, image: Image) -> manifest::Media {
+		manifest::Media {
+			created: "2026-07-31T00:00:00Z".into(),
+			updated: "2026-07-31T00:00:00Z".into(),
+			blake3: cid.into(),
+			body: manifest::Body::Image(image),
 		}
 	}
 
@@ -524,11 +546,7 @@ mod tests {
 				bytes: 2,
 			},
 		);
-		let media = manifest::Media {
-			kind: "image".into(),
-			created: "2026-07-31T00:00:00Z".into(),
-			updated: "2026-07-31T00:00:00Z".into(),
-			blake3: "44b6081deaf0242ca3bf83d62a3b6c95".into(),
+		let picture = Image {
 			thumbhash: String::new(),
 			source: manifest::Source {
 				mime: "image/png".into(),
@@ -542,9 +560,41 @@ mod tests {
 		};
 
 		assert_eq!(
-			resolved_name("44b6081deaf0242ca3bf83d62a3b6c95", &media).as_deref(),
+			resolved_name("44b6081deaf0242ca3bf83d62a3b6c95", &picture).as_deref(),
 			Some("44b6081deaf0242ca3bf83d62a3b6c95.png")
 		);
+	}
+
+	#[test]
+	fn a_clip_is_not_a_reference_this_command_can_answer_for() {
+		// `extension::for_variant` answers AVIF for anything it does not recognise, so a clip
+		// reaching `resolved_name` would rewrite an article to name a `.avif` nobody wrote. The
+		// accessor is where it stops, and the record's kind is the only thing that knows.
+		let clip = manifest::Media {
+			created: "2026-09-14T00:00:00Z".into(),
+			updated: "2026-09-14T00:00:00Z".into(),
+			blake3: "aa11".into(),
+			body: manifest::Body::Video(manifest::Video {
+				source: manifest::VideoSource {
+					mime: "video/mp4".into(),
+					width: 1920,
+					height: 1080,
+					ratio: "16:9".into(),
+					bytes: 1,
+					duration: 1.0,
+					frame_rate: 30.0,
+					frames: 30,
+					audio: false,
+				},
+				poster: "bb22".into(),
+				variants: BTreeMap::new(),
+				captions: BTreeMap::new(),
+			}),
+		};
+		assert!(clip.image().is_none());
+		let mut rewrites = BTreeMap::new();
+		note(&mut rewrites, "clip.mp4", "aa11", Some(&clip));
+		assert!(rewrites.is_empty());
 	}
 
 	#[test]
@@ -557,22 +607,21 @@ mod tests {
 		std::fs::create_dir_all(&articles).expect("articles");
 
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";
-		let media = manifest::Media {
-			kind: "image".into(),
-			created: "2026-07-31T00:00:00Z".into(),
-			updated: "2026-07-31T00:00:00Z".into(),
-			blake3: cid.into(),
-			thumbhash: "hash".into(),
-			source: manifest::Source {
-				mime: "image/png".into(),
-				width: 1,
-				height: 1,
-				ratio: "1:1".into(),
-				bytes: 1,
+		let media = record(
+			cid,
+			Image {
+				thumbhash: "hash".into(),
+				source: manifest::Source {
+					mime: "image/png".into(),
+					width: 1,
+					height: 1,
+					ratio: "1:1".into(),
+					bytes: 1,
+				},
+				metadata: None,
+				variants: BTreeMap::new(),
 			},
-			metadata: None,
-			variants: BTreeMap::new(),
-		};
+		);
 		let merged = Merged {
 			version: manifest::VERSION,
 			created: "2026-07-31T00:00:00Z".into(),

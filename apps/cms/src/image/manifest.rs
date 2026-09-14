@@ -24,7 +24,10 @@ use std::path::Path;
 ///    article that happens to reference it.
 /// 3. `description` moves out to `data/media.yaml`, `preview` and `original` are dropped, and
 ///    what the camera recorded arrives as `metadata`.
-pub const VERSION: u32 = 3;
+/// 4. `type` stops being a label and becomes the discriminant: a record is an envelope plus one
+///    body per kind, so a video is shaped for video rather than being a picture's shape with the
+///    picture fields left empty. See spec/architecture/video.md.
+pub const VERSION: u32 = 4;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Document {
@@ -32,16 +35,70 @@ pub struct Document {
 	pub media: Media,
 }
 
+/// What every asset has, whatever it is made of.
+///
+/// The envelope carries identity and time; the body carries the kind. Splitting them is the
+/// point of version 4: a video under the picture's shape has to put something in `thumbhash`,
+/// and both the poster's hash and an empty string are untrue. Absent is the honest answer, and
+/// only a per-kind body can give it -- which also makes asking a video for its thumbhash a
+/// compile error rather than a field that reads empty.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Media {
-	#[serde(rename = "type")]
-	pub kind: String,
 	/// ISO 8601 in UTC. Not local time: a record that means a different instant depending on
 	/// where it is read is not a record.
 	pub created: String,
 	pub updated: String,
 	/// The original's content id, and the identity of the asset.
 	pub blake3: String,
+	/// Flattened, so `type` and the body's fields stay siblings at the top of the record
+	/// exactly where they were before the split. That is what lets version 3 load unchanged.
+	#[serde(flatten)]
+	pub body: Body,
+}
+
+impl Media {
+	/// The picture this record is, or nothing when it is not one.
+	///
+	/// Every caller that only makes sense for a picture goes through here, so the place a
+	/// video is turned away is a visible line rather than an empty string further down.
+	pub fn image(&self) -> Option<&Image> {
+		match &self.body {
+			Body::Image(image) => Some(image),
+			Body::Video(_) => None,
+		}
+	}
+
+	pub fn video(&self) -> Option<&Video> {
+		match &self.body {
+			Body::Video(video) => Some(video),
+			Body::Image(_) => None,
+		}
+	}
+
+	/// What `type` says on disk, for a report that has to name the kind without matching on it.
+	pub fn kind(&self) -> &'static str {
+		match &self.body {
+			Body::Image(_) => "image",
+			Body::Video(_) => "video",
+		}
+	}
+}
+
+/// One shape per kind, tagged by the field that already named the kind.
+///
+/// Internally tagged rather than adjacent or external, because `type` was the first field of
+/// every record written since version 1 and a discriminant that moves would make every one of
+/// them unreadable for the sake of a serde default.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum Body {
+	Image(Image),
+	Video(Video),
+}
+
+/// A picture: exactly what version 3 held, minus the fields the envelope took.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Image {
 	/// Base64 thumbhash: the compact canonical placeholder.
 	///
 	/// The only form kept. A decoded copy used to sit beside it, which was the same picture
@@ -59,6 +116,69 @@ pub struct Media {
 	/// Keyed by each variant's own content id, exactly as the asset is keyed by the
 	/// original's. Every stored object is addressed the same way.
 	pub variants: BTreeMap<String, VariantRecord>,
+}
+
+/// A clip: one codec, one container, and the numbers a player needs before it can start.
+///
+/// No thumbhash and no `metadata`. The placeholder a reader sees is the poster, which is an
+/// ordinary image asset with its own record; there is no camera account of a cut excerpt to
+/// keep. See spec/architecture/video.md.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Video {
+	pub source: VideoSource,
+	/// Content id of the poster frame, which is an image asset in its own right rather than a
+	/// field of this one. It is the fallback a device without a decoder is left with, so it has
+	/// to be an `<img>` a browser paints with no script.
+	pub poster: String,
+	pub variants: BTreeMap<String, VideoVariant>,
+	/// Keyed by each track's own content id, like everything else stored here. Empty is the
+	/// common case and writes nothing.
+	#[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+	pub captions: BTreeMap<String, Caption>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct VideoSource {
+	pub mime: String,
+	pub width: u32,
+	pub height: u32,
+	/// Reduced by the greatest common divisor, exactly as a picture's is.
+	pub ratio: String,
+	pub bytes: u64,
+	/// Seconds.
+	pub duration: f64,
+	#[serde(rename = "frameRate")]
+	pub frame_rate: f64,
+	/// The denominator of the progress bar the software-decode path shows. Without it that bar
+	/// cannot be honest, which is the whole reason a frame count is stored at all.
+	pub frames: u64,
+	pub audio: bool,
+}
+
+/// One rung of the ladder.
+///
+/// `quality` does not carry over from a picture: it is a 0..1 the image encoder was handed, and
+/// a video's CRF is not the same quantity under another name. What a `<source>` element has to
+/// be told is the full codec string, so that is what is kept instead.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct VideoVariant {
+	pub mime: String,
+	pub width: u32,
+	pub height: u32,
+	pub bytes: u64,
+	/// The whole string, `av01.0.05M.08` rather than `av01`. A partial one tells a browser
+	/// nothing it can decide on.
+	pub codec: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Caption {
+	pub mime: String,
+	/// BCP 47, `en`.
+	pub language: String,
+	/// `captions`, `subtitles` or `descriptions`: what the `<track>` element is told.
+	pub kind: String,
+	pub bytes: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -109,6 +229,14 @@ pub struct Merged {
 /// Staleness belongs to each sidecar rather than to this aggregate version. The aggregate may
 /// have been upgraded before every guarded write completed; using it as a one-shot gate then
 /// makes the unfinished writes permanently invisible on every later run.
+///
+/// Version 4 needs no transform of its own. Splitting the record into an envelope and a
+/// flattened body left every field of a picture exactly where version 3 wrote it, and `type`
+/// was already there to be read as the discriminant, so the whole of the migration is the
+/// number and the sidecar rewrite that follows from it -- confirmed against the 39 records in
+/// `data/metadata.json`, which load and round-trip byte for byte. A later shape that cannot
+/// be read as it stands gets a branch here rather than a `#[serde(alias)]`: an alias is a
+/// migration that never finishes, carried by every reader forever.
 pub fn migrate(merged: &mut Merged, public: &Path) -> Vec<String> {
 	merged.version = merged.version.max(VERSION);
 	merged
@@ -159,24 +287,25 @@ pub fn media_for(
 ) -> Media {
 	let timestamp = now();
 	Media {
-		kind: "image".to_owned(),
 		created: created.unwrap_or(&timestamp).to_owned(),
 		updated: timestamp,
 		blake3: derived.cid.clone(),
-		thumbhash: STANDARD.encode(&derived.thumb),
-		source: Source {
-			mime: source_mime.to_owned(),
-			width: derived.width,
-			height: derived.height,
-			ratio: ratio_of(derived.width, derived.height),
-			bytes: source_bytes,
-		},
-		metadata,
-		variants: derived
-			.variants
-			.iter()
-			.map(|variant| (variant.cid.clone(), record(variant)))
-			.collect(),
+		body: Body::Image(Image {
+			thumbhash: STANDARD.encode(&derived.thumb),
+			source: Source {
+				mime: source_mime.to_owned(),
+				width: derived.width,
+				height: derived.height,
+				ratio: ratio_of(derived.width, derived.height),
+				bytes: source_bytes,
+			},
+			metadata,
+			variants: derived
+				.variants
+				.iter()
+				.map(|variant| (variant.cid.clone(), record(variant)))
+				.collect(),
+		}),
 	}
 }
 
@@ -215,26 +344,162 @@ mod tests {
 		let document = Document {
 			version: VERSION,
 			media: Media {
-				kind: "image".into(),
 				created: "2026-07-30T13:14:52Z".into(),
 				updated: "2026-07-30T13:14:52Z".into(),
 				blake3: "44b6081deaf0242ca3bf83d62a3b6c95".into(),
-				thumbhash: "1QcSHQRnh493".into(),
-				source: Source {
-					mime: "image/png".into(),
-					width: 2356,
-					height: 1204,
-					ratio: ratio_of(2356, 1204),
-					bytes: 6_612_480,
-				},
-				metadata: None,
-				variants: BTreeMap::new(),
+				body: Body::Image(Image {
+					thumbhash: "1QcSHQRnh493".into(),
+					source: Source {
+						mime: "image/png".into(),
+						width: 2356,
+						height: 1204,
+						ratio: ratio_of(2356, 1204),
+						bytes: 6_612_480,
+					},
+					metadata: None,
+					variants: BTreeMap::new(),
+				}),
 			},
 		};
 		let text = serde_json::to_string(&document).expect("serialise");
 		assert_eq!(serde_json::from_str::<Document>(&text).expect("deserialise"), document);
 		// `type` is a keyword in Rust and a field name in the document; the rename has to
-		// survive both directions.
+		// survive both directions, and it is now the discriminant rather than a label.
 		assert!(text.contains("\"type\":\"image\""));
+	}
+
+	#[test]
+	fn a_video_round_trips_through_json() {
+		let document = Document {
+			version: VERSION,
+			media: Media {
+				created: "2026-09-14T00:00:00Z".into(),
+				updated: "2026-09-14T00:00:00Z".into(),
+				blake3: "aa11bb22cc33dd44ee55ff6677889900".into(),
+				body: Body::Video(Video {
+					source: VideoSource {
+						mime: "video/mp4".into(),
+						width: 1920,
+						height: 1080,
+						ratio: ratio_of(1920, 1080),
+						bytes: 4_112_384,
+						duration: 25.5,
+						frame_rate: 30.0,
+						frames: 765,
+						audio: true,
+					},
+					poster: "bb22cc33dd44ee55ff66778899001122".into(),
+					variants: BTreeMap::from([(
+						"cc33dd44ee55ff667788990011223344".to_owned(),
+						VideoVariant {
+							mime: "video/mp4".into(),
+							width: 1920,
+							height: 1080,
+							bytes: 4_000_000,
+							codec: "av01.0.05M.08".into(),
+						},
+					)]),
+					captions: BTreeMap::new(),
+				}),
+			},
+		};
+		let text = serde_json::to_string(&document).expect("serialise");
+		assert_eq!(serde_json::from_str::<Document>(&text).expect("deserialise"), document);
+		assert!(text.contains("\"type\":\"video\""));
+		// A player is handed camelCase; the field is snake_case because Rust is.
+		assert!(text.contains("\"frameRate\":30.0"), "{text}");
+		// Nothing says what a video lacks. An empty caption map writes nothing at all, and
+		// there is no thumbhash key to be empty.
+		assert!(!text.contains("captions"), "{text}");
+		assert!(!text.contains("thumbhash"), "{text}");
+	}
+
+	/// One record copied verbatim out of `data/metadata.json` at version 3.
+	///
+	/// The migration's whole claim is that this loads without a transform, so the evidence is a
+	/// real record rather than one written to fit. The full file -- 39 of these -- was loaded and
+	/// re-serialised field for field before the split landed.
+	const VERSION_THREE_RECORD: &str = r#"{
+		"type": "image",
+		"created": "2026-09-14T02:55:32.15685Z",
+		"updated": "2026-09-14T02:55:32.15685Z",
+		"blake3": "0e0624f079e617e53ed474ccd98a947b",
+		"thumbhash": "+vcJBYCIh5iIh3ePhkeHcoiIj4f4",
+		"source": {
+			"mime": "image/png",
+			"width": 1960,
+			"height": 1274,
+			"ratio": "20:13",
+			"bytes": 477086
+		},
+		"metadata": { "color_space": "sRGB" },
+		"variants": {
+			"20805a43fdc2119f1aa8fae25c0ff8e1": {
+				"mime": "image/avif",
+				"width": 640,
+				"height": 416,
+				"quality": 0.68,
+				"bytes": 2253
+			}
+		}
+	}"#;
+
+	#[test]
+	fn a_version_three_record_loads_without_a_migration() {
+		// The split into an envelope and a flattened body left every field where it was, which
+		// is the only reason version 4 needs no transform. If this ever fails, `migrate` grows a
+		// branch -- not a `#[serde(alias)]`, which would carry the old shape forever.
+		let media: Media = serde_json::from_str(VERSION_THREE_RECORD).expect("a v3 record");
+		let image = media.image().expect("a v3 record is a picture");
+		assert_eq!(media.blake3, "0e0624f079e617e53ed474ccd98a947b");
+		assert_eq!(image.thumbhash, "+vcJBYCIh5iIh3ePhkeHcoiIj4f4");
+		assert_eq!(image.source.width, 1960);
+		assert_eq!(image.variants.len(), 1);
+		assert_eq!(media.kind(), "image");
+	}
+
+	#[test]
+	fn a_version_three_record_survives_being_written_back() {
+		// `cms image` rewrites every sidecar on the version bump, so what it writes has to be
+		// the same document it read. Compared as JSON rather than as text: `type` is written
+		// after `blake3` now that it comes from the flattened body, and key order is not
+		// content.
+		let media: Media = serde_json::from_str(VERSION_THREE_RECORD).expect("a v3 record");
+		let written = serde_json::to_string(&media).expect("serialise");
+		assert_eq!(
+			serde_json::from_str::<serde_json::Value>(&written).expect("value"),
+			serde_json::from_str::<serde_json::Value>(VERSION_THREE_RECORD).expect("value"),
+		);
+	}
+
+	#[test]
+	fn asking_a_video_for_a_picture_answers_nothing() {
+		// The accessor is the whole guard: a caller that only makes sense for a picture cannot
+		// reach a thumbhash through it, so a video is turned away at a visible line instead of
+		// being served an empty string.
+		let media = Media {
+			created: "2026-09-14T00:00:00Z".into(),
+			updated: "2026-09-14T00:00:00Z".into(),
+			blake3: "aa11".into(),
+			body: Body::Video(Video {
+				source: VideoSource {
+					mime: "video/mp4".into(),
+					width: 1280,
+					height: 720,
+					ratio: "16:9".into(),
+					bytes: 1,
+					duration: 1.0,
+					frame_rate: 30.0,
+					frames: 30,
+					audio: false,
+				},
+				poster: "bb22".into(),
+				variants: BTreeMap::new(),
+				captions: BTreeMap::new(),
+			}),
+		};
+		assert!(media.image().is_none());
+		assert!(media.video().is_some());
+		assert_eq!(media.kind(), "video");
 	}
 }

@@ -13,7 +13,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-pub const VERSION: u32 = 1;
+/// Bumped when the shape changes, so a reader can tell rather than guess.
+///
+/// 1. The original shape.
+/// 2. An entry may carry `excerpt`, and a `source` may name an asset in this repository rather
+///    than a page elsewhere, which is the one case with nothing to label.
+pub const VERSION: u32 = 2;
 
 /// What kind of image this is.
 ///
@@ -78,6 +83,19 @@ pub struct Entry {
 	/// every pixel and must not take it with them.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub source: Option<Source>,
+	/// The range of the original a clip was cut from, in seconds.
+	///
+	/// Nothing in the cut file records that its twenty-five seconds began at 39:00, and no tool
+	/// can recover it, which is the test that puts it in this file. A picture has no use for it.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub excerpt: Option<Excerpt>,
+}
+
+/// Where in the original a clip begins and ends, in seconds from its start.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Excerpt {
+	pub from: f64,
+	pub to: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -100,7 +118,12 @@ pub struct Source {
 	/// **It names the origin, not the route.** A `web.archive.org` address for a page Apple
 	/// published is labelled Apple: the Internet Archive is how the page can still be reached,
 	/// not who put it there. Labelling it otherwise would credit the library for the book.
-	pub label: String,
+	///
+	/// Absent for a `cid://` url, and only for that. A source pointing inward -- a poster naming
+	/// the clip it was taken from -- has no publication to credit: the origin is an asset in
+	/// this repository, which the id already names. Every other source has one and owes it.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub label: Option<String>,
 }
 
 impl Default for Media {
@@ -124,8 +147,13 @@ pub fn load(path: &Path) -> std::io::Result<Media> {
 		Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Media::default()),
 		Err(error) => return Err(error),
 	};
-	serde_yaml_ng::from_str(&text)
-		.map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))
+	let mut media: Media = serde_yaml_ng::from_str(&text)
+		.map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
+	// Every field added since version 1 is optional, so a file written under the old number is
+	// already a valid file under the new one and the only migration is saying so. Left unsaid,
+	// the constant above would describe a shape nothing on disk ever claims.
+	media.version = media.version.max(VERSION);
+	Ok(media)
 }
 
 pub fn save(path: &Path, media: &Media) -> std::io::Result<()> {
@@ -194,6 +222,32 @@ mod tests {
 		// empty tag list and a null category to say it has neither.
 		let text = serde_yaml_ng::to_string(&Entry::default()).expect("yaml");
 		assert_eq!(text.trim(), "{}");
+	}
+
+	#[test]
+	fn a_source_that_points_inward_has_no_publication_to_credit() {
+		// A poster's origin is the clip it was cut from, which the id already names. Every other
+		// source names somebody else's page and owes them the label.
+		let inward = Source { url: "cid://44b6081deaf0242ca3bf83d62a3b6c95".into(), label: None };
+		let text = serde_yaml_ng::to_string(&inward).expect("yaml");
+		assert!(!text.contains("label"), "{text}");
+		assert_eq!(serde_yaml_ng::from_str::<Source>(&text).expect("round trip"), inward);
+
+		// The shape a picture has carried since version 1 still reads.
+		let outward: Source =
+			serde_yaml_ng::from_str("url: https://example.com/a\nlabel: Example\n").expect("yaml");
+		assert_eq!(outward.label.as_deref(), Some("Example"));
+	}
+
+	#[test]
+	fn an_excerpt_says_where_in_the_original_a_clip_began() {
+		// Twenty-five seconds cut from 39:00 records nothing about 39:00, and no tool can
+		// recover it -- which is the test for what belongs in this file rather than the manifest.
+		let entry: Entry =
+			serde_yaml_ng::from_str("excerpt:\n  from: 2340.0\n  to: 2365.0\n").expect("yaml");
+		assert_eq!(entry.excerpt, Some(Excerpt { from: 2340.0, to: 2365.0 }));
+		// A picture has no use for it and writes nothing.
+		assert!(!serde_yaml_ng::to_string(&Entry::default()).expect("yaml").contains("excerpt"));
 	}
 
 	#[test]

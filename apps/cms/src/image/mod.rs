@@ -186,7 +186,7 @@ pub fn derive_for(
 /// Write a completed derivation. No decoding or record decisions happen here.
 pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
 	for variant in &prepared.derived.variants {
-		let target = store::variant_path(public, &variant.cid, variant.format.extension());
+		let target = store::image_path(public, &variant.cid, variant.format.extension());
 		store::write(&target, &variant.bytes).map_err(Error::Write)?;
 	}
 
@@ -412,7 +412,7 @@ mod tests {
 
 		write_derived(&public, &prepared).expect("write derivation");
 		for variant in &prepared.derived.variants {
-			assert!(store::variant_path(&public, &variant.cid, variant.format.extension()).is_file());
+			assert!(store::image_path(&public, &variant.cid, variant.format.extension()).is_file());
 		}
 		let document: manifest::Document = serde_json::from_str(
 			&std::fs::read_to_string(store::meta_path(&public, &prepared.derived.cid)).expect("record"),
@@ -435,10 +435,11 @@ mod tests {
 		assert_eq!(id, cid(&original));
 		let merged = run::load(&root.join(run::MERGED)).expect("merged");
 		let media = merged.media.get(&id).expect("merged record");
+		let picture = media.image().expect("a stored picture is a picture");
 		assert!(store::meta_path(&root.join("data/public"), &id).is_file());
-		for (variant, record) in &media.variants {
+		for (variant, record) in &picture.variants {
 			assert!(
-				store::variant_path(
+				store::image_path(
 					&root.join("data/public"),
 					variant,
 					record.mime.strip_prefix("image/").expect("image mime"),

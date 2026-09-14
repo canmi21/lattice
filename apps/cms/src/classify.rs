@@ -208,14 +208,20 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 	let registry_path = tags::path_for(repo);
 	let mut registry = tags::load(&registry_path)?;
 
-	let wanted: Vec<String> = merged
-		.media
-		.keys()
-		.filter(|cid| needs_classification(described.media.get(*cid), &registry, force))
-		.cloned()
+	// Pictures only. Every category this command can answer with -- photograph, screenshot,
+	// diagram, document, artwork -- is a kind of picture, and the runner is asked to look at one
+	// file. A clip fits none of them and is not asked about here. See spec/architecture/video.md.
+	let pictures: Vec<&String> =
+		merged.media.iter().filter(|(_, media)| media.image().is_some()).map(|(cid, _)| cid).collect();
+	let wanted: Vec<String> = pictures
+		.iter()
+		.filter(|cid| needs_classification(described.media.get(**cid), &registry, force))
+		.map(|cid| (*cid).clone())
 		.collect();
 
-	let mut outcome = Outcome { skipped: merged.media.len() - wanted.len(), ..Outcome::default() };
+	// Counted against the pictures rather than the whole manifest: a clip was never in scope, so
+	// reporting it as skipped would say this command had finished work it never began.
+	let mut outcome = Outcome { skipped: pictures.len() - wanted.len(), ..Outcome::default() };
 	if wanted.is_empty() {
 		return Ok(outcome);
 	}
@@ -411,20 +417,21 @@ mod tests {
 
 	fn bare_media() -> crate::image::manifest::Media {
 		crate::image::manifest::Media {
-			kind: "image".into(),
 			created: "2026-08-01T00:00:00Z".into(),
 			updated: "2026-08-01T00:00:00Z".into(),
 			blake3: String::new(),
-			thumbhash: String::new(),
-			source: crate::image::manifest::Source {
-				mime: "image/png".into(),
-				width: 10,
-				height: 10,
-				ratio: "1:1".into(),
-				bytes: 1,
-			},
-			metadata: None,
-			variants: BTreeMap::new(),
+			body: crate::image::manifest::Body::Image(crate::image::manifest::Image {
+				thumbhash: String::new(),
+				source: crate::image::manifest::Source {
+					mime: "image/png".into(),
+					width: 10,
+					height: 10,
+					ratio: "1:1".into(),
+					bytes: 1,
+				},
+				metadata: None,
+				variants: BTreeMap::new(),
+			}),
 		}
 	}
 
