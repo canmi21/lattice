@@ -210,7 +210,7 @@ impl std::fmt::Display for Refusal {
 }
 
 pub async fn ask(runner: Runner, prompt: &str, model: &str) -> Result<Answer, Refusal> {
-	dispatch(runner, prompt, model, None).await
+	dispatch(runner, prompt, model, &[]).await
 }
 
 /// Ask a runner about an image, attaching the bytes when its CLI supports that directly.
@@ -220,21 +220,41 @@ pub async fn ask_vision(
 	model: &str,
 	image: &Path,
 ) -> Result<Answer, Refusal> {
-	dispatch(runner, prompt, model, Some(image)).await
+	dispatch(runner, prompt, model, std::slice::from_ref(&image)).await
+}
+
+/// The same, for a question about several pictures at once.
+///
+/// A clip is described from frames rather than from the file, so the question is about a series
+/// and the order is part of it -- see spec/architecture/video.md. Runners differ in whether they
+/// can be handed more than one, and the ones that cannot are refused here rather than silently
+/// shown the first, which would answer a different question and look like an answer.
+pub async fn ask_vision_many(
+	runner: Runner,
+	prompt: &str,
+	model: &str,
+	images: &[&Path],
+) -> Result<Answer, Refusal> {
+	dispatch(runner, prompt, model, images).await
 }
 
 async fn dispatch(
 	runner: Runner,
 	prompt: &str,
 	model: &str,
-	image: Option<&Path>,
+	images: &[&Path],
 ) -> Result<Answer, Refusal> {
 	match runner {
 		Runner::Claude => claude(prompt, model).await,
 		Runner::Gemini | Runner::GptOss => agy(prompt, model).await,
-		Runner::Codex => codex(prompt, model, image).await,
+		Runner::Codex => codex(prompt, model, images).await,
 		Runner::Cursor => cursor(prompt, model).await,
-		Runner::Grok => grok(prompt, model, image).await,
+		// One picture only. Rather than show it the first of a series and let the answer read as
+		// though it saw them all, say so.
+		Runner::Grok if images.len() > 1 => Err(Refusal::Failed(
+			"grok takes one picture; pick a runner that can be handed a series".to_owned(),
+		)),
+		Runner::Grok => grok(prompt, model, images.first().copied()).await,
 	}
 }
 
@@ -363,7 +383,7 @@ fn split_effort(model: &str) -> (&str, Option<&str>) {
 ///
 /// Separated from the call so the shape can be asserted. The prompt's position here is load
 /// bearing and the way it breaks is silent -- see the terminator below.
-fn codex_args(prompt: &str, model: &str, image: Option<&Path>) -> Vec<OsString> {
+fn codex_args(prompt: &str, model: &str, images: &[&Path]) -> Vec<OsString> {
 	let mut args: Vec<OsString> = ["exec", "--ephemeral", "--sandbox", "read-only", "--model"]
 		.iter()
 		.map(OsString::from)
@@ -376,9 +396,18 @@ fn codex_args(prompt: &str, model: &str, image: Option<&Path>) -> Vec<OsString> 
 		args.push(format!("model_reasoning_effort={effort}").into());
 	}
 	args.push("--json".into());
-	if let Some(image) = image {
+	if !images.is_empty() {
+		// `--image` takes a comma-separated list. Measured: repeated flags and space-separated
+		// values were not tried, this form was, and a series arrives in the order written.
 		args.push("--image".into());
-		args.push(image.into());
+		let mut joined = OsString::new();
+		for (index, image) in images.iter().enumerate() {
+			if index > 0 {
+				joined.push(",");
+			}
+			joined.push(image.as_os_str());
+		}
+		args.push(joined);
 	}
 	// `--image` takes `<FILE>...`, so without this the prompt is read as a second file. Codex
 	// then finds no positional argument, falls back to a stdin that `output()` has already
@@ -388,9 +417,9 @@ fn codex_args(prompt: &str, model: &str, image: Option<&Path>) -> Vec<OsString> 
 	args
 }
 
-async fn codex(prompt: &str, model: &str, image: Option<&Path>) -> Result<Answer, Refusal> {
+async fn codex(prompt: &str, model: &str, images: &[&Path]) -> Result<Answer, Refusal> {
 	let output = tokio::process::Command::new("codex")
-		.args(codex_args(prompt, model, image))
+		.args(codex_args(prompt, model, images))
 		.output()
 		.await
 		.map_err(|error| Refusal::Failed(format!("could not run codex: {error}")))?;
@@ -693,13 +722,13 @@ mod tests {
 		// file, and codex went looking for the prompt on a closed stdin -- reporting that
 		// nothing arrived there rather than that a flag had eaten it. Every image tagged in one
 		// run failed identically before this was found.
-		let args = codex_args("describe this", "gpt-5.6-terra-medium", Some(Path::new("/a.png")));
+		let args = codex_args("describe this", "gpt-5.6-terra-medium", &[Path::new("/a.png")]);
 		let end = &args[args.len() - 2..];
 		assert_eq!(end, ["--", "describe this"]);
 
 		// The terminator holds with no image too, where a prompt beginning with a dash would
 		// otherwise be read as a flag.
-		let bare = codex_args("--not-a-flag", "gpt-5.6-terra-medium", None);
+		let bare = codex_args("--not-a-flag", "gpt-5.6-terra-medium", &[]);
 		assert_eq!(&bare[bare.len() - 2..], ["--", "--not-a-flag"]);
 		assert!(!bare.contains(&OsString::from("--image")));
 	}
@@ -714,7 +743,7 @@ mod tests {
 		assert_eq!(split_effort("gpt-5.6-sol"), ("gpt-5.6-sol", None));
 		assert_eq!(split_effort("gpt-5.6-sol-xhigh"), ("gpt-5.6-sol", Some("xhigh")));
 
-		let args = codex_args("hi", "gpt-5.6-terra-medium", None);
+		let args = codex_args("hi", "gpt-5.6-terra-medium", &[]);
 		assert!(args.contains(&OsString::from("gpt-5.6-terra")));
 		assert!(args.contains(&OsString::from("model_reasoning_effort=medium")));
 		assert!(!args.contains(&OsString::from("gpt-5.6-terra-medium")));
@@ -730,7 +759,7 @@ mod tests {
 		assert!(model_override(Runner::GptOss, Some("gpt-5.6-sol"), None).is_err());
 		assert!(model_override(Runner::Codex, None, Some("xhigh")).is_err());
 
-		let args = codex_args("translate", "gpt-5.6-sol-xhigh", None);
+		let args = codex_args("translate", "gpt-5.6-sol-xhigh", &[]);
 		assert!(args.contains(&OsString::from("gpt-5.6-sol")));
 		assert!(args.contains(&OsString::from("model_reasoning_effort=xhigh")));
 	}
