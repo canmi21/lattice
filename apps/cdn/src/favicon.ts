@@ -1,5 +1,12 @@
 import { Hono } from 'hono';
-import { type Bindings, findOne, read, toResponse } from '@canmi/store';
+import {
+	findOne,
+	isUnsatisfiable,
+	read,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+} from '@canmi/store';
 
 /**
  * Serving favicons that the local CMS already fetched and synced.
@@ -56,18 +63,28 @@ favicon.get('/:domain', async (c) => {
 	// `??` short-circuits, so the second variant is only looked up when the first is absent.
 	// That ordering is the whole point -- fetching both in parallel would cost two bucket
 	// requests on every hit to save latency on the rarer miss.
-	const found = (await lookup(c.env, domain, first)) ?? (await lookup(c.env, domain, second));
+	const range = c.req.header('Range');
+	const found =
+		(await lookup(c.env, domain, first, range)) ?? (await lookup(c.env, domain, second, range));
 
 	if (!found) {
 		return c.json({ error: 'not found' }, 404);
 	}
+	if (isUnsatisfiable(found)) {
+		return unsatisfiableResponse(found.total);
+	}
 	return toResponse(found);
 });
 
-async function lookup(env: Bindings, domain: string, variant: string | undefined) {
+async function lookup(
+	env: Bindings,
+	domain: string,
+	variant: string | undefined,
+	range: string | undefined,
+) {
 	if (!variant) return null;
 	const key = await findOne(env, `favicon/${domain}/${variant}.`);
-	return key ? read(env, key) : null;
+	return key ? read(env, key, range) : null;
 }
 
 export default favicon;

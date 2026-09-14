@@ -6,10 +6,12 @@ import {
 	type Bindings,
 	contentTypeFor,
 	isContentId,
+	isUnsatisfiable,
 	OBJECTS,
 	objectKey,
 	read,
 	STORED_FORMATS,
+	toResponse,
 } from './index';
 
 /** Enough of an R2 bucket to answer one key. */
@@ -124,6 +126,83 @@ describe('where an object lives', () => {
 		expect(isContentId(CID.slice(0, 31))).toBe(false);
 		expect(isContentId(`${CID}00`)).toBe(false);
 		expect(isContentId('../../etc/passwd')).toBe(false);
+	});
+});
+
+describe('a range request', () => {
+	const BYTES = 'abcdefghij';
+
+	function bucket() {
+		return {
+			PUBLIC: {
+				head: async () => ({ size: BYTES.length }),
+				get: async (_key: string, options?: { range?: { offset: number; length: number } }) => {
+					const part = options?.range
+						? BYTES.slice(options.range.offset, options.range.offset + options.range.length)
+						: BYTES;
+					return { body: new Response(part).body, httpMetadata: {}, httpEtag: '"e"' };
+				},
+			},
+		} as never;
+	}
+
+	async function served(range: string | null) {
+		const found = await read(bucket(), 'video/ab/cd/x.mp4', range);
+		if (found === null) throw new Error('absent');
+		if (isUnsatisfiable(found)) return { status: 416, total: found.total, body: '' };
+		const response = toResponse(found);
+		return {
+			status: response.status,
+			contentRange: response.headers.get('Content-Range'),
+			body: await response.text(),
+		};
+	}
+
+	it('serves the three shapes the grammar allows', async () => {
+		// `a-b`, `a-` to the end, and `-n` counted back from it. A player uses all three: the
+		// last one is how it reads an MP4's index without fetching the file.
+		expect(await served('bytes=2-4')).toMatchObject({ status: 206, body: 'cde' });
+		expect(await served('bytes=7-')).toMatchObject({ status: 206, body: 'hij' });
+		expect(await served('bytes=-3')).toMatchObject({ status: 206, body: 'hij' });
+	});
+
+	it('reports what it served and how long the whole object is', async () => {
+		expect((await served('bytes=2-4')).contentRange).toBe('bytes 2-4/10');
+		expect((await served('bytes=-3')).contentRange).toBe('bytes 7-9/10');
+	});
+
+	it('clamps an end past the last byte rather than refusing it', async () => {
+		// A client that asks for more than there is has asked a satisfiable question about the
+		// part that exists, which is what a resumed download does at the tail of a file.
+		expect(await served('bytes=8-99')).toMatchObject({ status: 206, body: 'ij' });
+		expect(await served('bytes=-99')).toMatchObject({ status: 206, body: BYTES });
+	});
+
+	it('refuses a start past the end, with the size', async () => {
+		expect(await served('bytes=10-')).toMatchObject({ status: 416, total: 10 });
+		expect(await served('bytes=99-100')).toMatchObject({ status: 416, total: 10 });
+		// `-0` is well formed and asks for the last nothing, which names no byte either.
+		expect(await served('bytes=-0')).toMatchObject({ status: 416, total: 10 });
+	});
+
+	it('serves the whole object for anything it does not implement', async () => {
+		// A recipient that does not understand a range request answers with the whole
+		// representation, which is what every one of these is: a unit that is not bytes, the
+		// multipart form nothing here asks for, a backwards range, and plain nonsense.
+		for (const header of ['items=0-1', 'bytes=0-1,5-6', 'bytes=5-2', 'bytes=x-y', 'nonsense']) {
+			expect(await served(header), header).toMatchObject({ status: 200, body: BYTES });
+		}
+	});
+
+	it('is a whole object when nothing asks for a range', async () => {
+		expect(await served(null)).toMatchObject({ status: 200, body: BYTES });
+	});
+
+	it('advertises that it takes them, on every object', async () => {
+		// The header is what tells a client it may ask at all. It goes on whole responses too,
+		// which is where a player reads it before it ever sends a Range.
+		const found = await read(bucket(), 'video/ab/cd/x.mp4');
+		expect(toResponse(found!).headers.get('Accept-Ranges')).toBe('bytes');
 	});
 });
 

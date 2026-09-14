@@ -1,5 +1,12 @@
 import { Hono } from 'hono';
-import { objectKey, read, toResponse, type Bindings } from '@canmi/store';
+import {
+	isUnsatisfiable,
+	objectKey,
+	read,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+} from '@canmi/store';
 import { FOREVER } from './cache';
 import { canonicalSpelling, parseName, validatorFor } from './key';
 import { DECODABLE, type Decodable, type Encodable, isEncodable, transcode } from './transcode';
@@ -57,7 +64,10 @@ image.get('/:name', async (c) => {
 
 	// A flat-colour original is stored as PNG rather than AVIF, so either may be a direct hit
 	// and neither can be assumed to be the stored one.
-	const stored = await read(c.env, objectKey('image', cid, extension));
+	const stored = await read(c.env, objectKey('image', cid, extension), c.req.header('Range'));
+	if (isUnsatisfiable(stored)) {
+		return unsatisfiableResponse(stored.total);
+	}
 	if (stored) {
 		return finish(toResponse(stored), cid, extension);
 	}

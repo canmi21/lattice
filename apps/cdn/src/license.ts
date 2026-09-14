@@ -1,5 +1,12 @@
 import { Hono } from 'hono';
-import { objectKey, read, toResponse, type Bindings } from '@canmi/store';
+import {
+	isUnsatisfiable,
+	objectKey,
+	read,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+} from '@canmi/store';
 import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
 
@@ -23,7 +30,8 @@ license.get('/:name', async (c) => {
 	const name = c.req.param('name');
 
 	if (name === FULL) {
-		const found = await read(c.env, `license/${FULL}`);
+		const found = await read(c.env, `license/${FULL}`, c.req.header('Range'));
+		if (isUnsatisfiable(found)) return unsatisfiableResponse(found.total);
 		// Left to the cache middleware rather than stamped: the aggregate is rewritten whenever
 		// the dependency tree moves, so its name promises nothing about its bytes.
 		return found ? toResponse(found) : c.json({ error: 'not found' }, 404);
@@ -42,9 +50,12 @@ license.get('/:name', async (c) => {
 		return new Response(null, { status: 304, headers: { ETag: tag } });
 	}
 
-	const stored = await read(c.env, objectKey('license', cid));
+	const stored = await read(c.env, objectKey('license', cid), c.req.header('Range'));
 	if (!stored) {
 		return c.json({ error: 'not found' }, 404);
+	}
+	if (isUnsatisfiable(stored)) {
+		return unsatisfiableResponse(stored.total);
 	}
 
 	const response = toResponse(stored);

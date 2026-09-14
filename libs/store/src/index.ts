@@ -29,34 +29,153 @@ export type Found = {
 	body: ReadableStream;
 	contentType: string;
 	etag?: string;
+	/** What was served, when a range was asked for and satisfied. Absent for a whole object. */
+	partial?: { offset: number; length: number; total: number };
 };
 
-export async function read(env: Bindings, key: string): Promise<Found | null> {
-	if (env.PUBLIC) return readFromBucket(env.PUBLIC, key);
-	if (env.ASSETS) return readFromAssets(env.ASSETS, key);
+/**
+ * A range that names nothing inside the object.
+ *
+ * Its own result rather than a null, because the two mean opposite things to a caller: a missing
+ * object is 404 and a range past the end of a present one is 416, and 416 has to report the size
+ * so the client can ask again. Answering 404 for the second would send a browser looking for a
+ * file it already found.
+ */
+export type Unsatisfiable = { unsatisfiable: true; total: number };
+
+export function isUnsatisfiable(value: Found | Unsatisfiable | null): value is Unsatisfiable {
+	return value !== null && 'unsatisfiable' in value;
+}
+
+/**
+ * Read an object, or the part of one a `Range` header asks for.
+ *
+ * **The worker is where ranges are served, not the bucket.** Nothing reaches R2 or the asset
+ * fetcher directly -- every object goes through a route here -- so the range is resolved on the
+ * way past: pushed down to the backend, which reads only what was asked for, and reported back
+ * as `partial` for [`toResponse`] to turn into a 206. An object already in the bucket needs no
+ * re-upload for this, because none of it depends on what was stored alongside the bytes.
+ *
+ * `range` is the header verbatim. Parsing it here keeps the one grammar in one place, and a
+ * header that cannot be parsed is ignored rather than refused -- RFC 9110 says a recipient that
+ * does not understand a range request serves the whole representation, and a broken header is a
+ * client bug that a whole file answers correctly.
+ *
+ * **One range only.** `bytes=0-9,20-29` is legal and answered with a multipart body that nothing
+ * in this repository's traffic asks for; it is served whole instead, which is the other thing the
+ * specification allows.
+ */
+export async function read(env: Bindings, key: string): Promise<Found | null>;
+export async function read(
+	env: Bindings,
+	key: string,
+	range: string | null | undefined,
+): Promise<Found | Unsatisfiable | null>;
+export async function read(
+	env: Bindings,
+	key: string,
+	range?: string | null,
+): Promise<Found | Unsatisfiable | null> {
+	const wanted = range ? parseRange(range) : null;
+	if (env.PUBLIC) return readFromBucket(env.PUBLIC, key, wanted);
+	if (env.ASSETS) return readFromAssets(env.ASSETS, key, wanted);
 	throw new Error('no store bound: expected PUBLIC in production or ASSETS under wrangler dev');
 }
 
-async function readFromBucket(bucket: R2Bucket, key: string): Promise<Found | null> {
-	const object = await bucket.get(key);
+/** One range, in the two shapes the grammar allows, resolved against a size the reader knows. */
+type Wanted = { offset: number; end: number | null } | { suffix: number };
+
+/**
+ * `bytes=a-b`, `bytes=a-` and `bytes=-n`, or null for anything else.
+ *
+ * Null covers a unit that is not `bytes`, a list of ranges, and a header that is simply
+ * malformed. All three are served whole, which is what a recipient is allowed to do and what a
+ * client asking for something this does not implement should get.
+ */
+function parseRange(header: string): Wanted | null {
+	const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+	if (!match) return null;
+	const [, from, to] = match;
+	// `bytes=-` names neither a start nor a length and is malformed. `bytes=-0` is well formed
+	// and asks for the last zero bytes, which is a range naming no byte -- `resolve` says so,
+	// once it knows the size, and the answer is 416 rather than an empty 206.
+	if (from === '') return to === '' ? null : { suffix: Number(to) };
+	const offset = Number(from);
+	if (to === '') return { offset, end: null };
+	const end = Number(to);
+	// Backwards is malformed rather than empty, and is served whole for the same reason.
+	return end < offset ? null : { offset, end };
+}
+
+/** Resolve a wanted range against the object's real size. */
+function resolve(wanted: Wanted, total: number): { offset: number; length: number } | null {
+	if ('suffix' in wanted) {
+		const length = Math.min(wanted.suffix, total);
+		return length === 0 ? null : { offset: total - length, length };
+	}
+	if (wanted.offset >= total) return null;
+	const end = wanted.end === null ? total - 1 : Math.min(wanted.end, total - 1);
+	return { offset: wanted.offset, length: end - wanted.offset + 1 };
+}
+
+async function readFromBucket(
+	bucket: R2Bucket,
+	key: string,
+	wanted: Wanted | null,
+): Promise<Found | Unsatisfiable | null> {
+	if (!wanted) {
+		const object = await bucket.get(key);
+		if (!object?.body) return null;
+		return {
+			body: object.body,
+			contentType: object.httpMetadata?.contentType ?? contentTypeFor(key),
+			etag: object.httpEtag,
+		};
+	}
+
+	// Two reads rather than one, and the first is a head: R2 resolves a range itself, but a range
+	// past the end of an object is a 416 that has to report the size, and only the head knows it.
+	// A head costs no bytes.
+	const head = await bucket.head(key);
+	if (!head) return null;
+	const resolved = resolve(wanted, head.size);
+	if (!resolved) return { unsatisfiable: true, total: head.size };
+
+	const object = await bucket.get(key, { range: resolved });
 	if (!object?.body) return null;
 	return {
 		body: object.body,
 		contentType: object.httpMetadata?.contentType ?? contentTypeFor(key),
 		etag: object.httpEtag,
+		partial: { ...resolved, total: head.size },
 	};
 }
 
-async function readFromAssets(assets: Fetcher, key: string): Promise<Found | null> {
+async function readFromAssets(
+	assets: Fetcher,
+	key: string,
+	wanted: Wanted | null,
+): Promise<Found | Unsatisfiable | null> {
 	// The host is ignored by the assets fetcher; only the path matters.
 	const response = await assets.fetch(`${ASSET_ORIGIN}/${key}`);
 	if (!response.ok || !response.body) return null;
+	const contentType = response.headers.get('content-type') ?? contentTypeFor(key);
+	// No validator, deliberately. Measured: wrangler's asset fetcher sends no ETag of its own,
+	// and synthesising one here would let a browser hold a file that is being edited on disk.
+	// Development should always answer with what the tree currently says.
+	if (!wanted) return { body: response.body, contentType };
+
+	// Sliced here rather than asked for, because the asset fetcher serves whole files and this
+	// path only exists under `wrangler dev`. The bytes are already local and the point is that
+	// development answers a ranged request exactly as production does, not that it saves a read.
+	const whole = new Uint8Array(await response.arrayBuffer());
+	const resolved = resolve(wanted, whole.byteLength);
+	if (!resolved) return { unsatisfiable: true, total: whole.byteLength };
+	const part = whole.subarray(resolved.offset, resolved.offset + resolved.length);
 	return {
-		body: response.body,
-		contentType: response.headers.get('content-type') ?? contentTypeFor(key),
-		// No validator, deliberately. Measured: wrangler's asset fetcher sends no ETag of its
-		// own, and synthesising one here would let a browser hold a file that is being edited
-		// on disk. Development should always answer with what the tree currently says.
+		body: new Response(part).body as ReadableStream,
+		contentType,
+		partial: { ...resolved, total: whole.byteLength },
 	};
 }
 
@@ -169,11 +288,36 @@ export function objectKey(prefix: ObjectPrefix, cid: string, extension?: string)
  */
 export const STORED_FORMATS = ['svg', 'png', 'jpeg', 'ico'] as const;
 
-/** A stored object as an HTTP response, with ETag only when the store supplied one. */
+/**
+ * A stored object as an HTTP response, with ETag only when the store supplied one.
+ *
+ * `Accept-Ranges` on every one of them, because every object here is served through a route that
+ * can answer a range -- a player seeking, a `<video>` element probing for duration, a resumed
+ * download. The header is what tells a client it may ask; without it a browser fetches whole
+ * files to read a byte near the end of them.
+ */
 export function toResponse(found: Found): Response {
-	const headers = new Headers({ 'Content-Type': found.contentType });
+	const headers = new Headers({ 'Content-Type': found.contentType, 'Accept-Ranges': 'bytes' });
 	if (found.etag) headers.set('ETag', found.etag);
-	return new Response(found.body, { headers });
+	if (!found.partial) return new Response(found.body, { headers });
+
+	const { offset, length, total } = found.partial;
+	headers.set('Content-Range', `bytes ${offset}-${offset + length - 1}/${total}`);
+	headers.set('Content-Length', String(length));
+	return new Response(found.body, { status: 206, headers });
+}
+
+/**
+ * The answer to a range that names nothing inside the object.
+ *
+ * 416 carries the size so the client can ask again knowing it, which is the whole reason this is
+ * not a 404: the object is there, the question was wrong.
+ */
+export function unsatisfiableResponse(total: number): Response {
+	return new Response(null, {
+		status: 416,
+		headers: { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' },
+	});
 }
 
 /**

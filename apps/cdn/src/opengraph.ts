@@ -1,5 +1,11 @@
 import { Hono } from 'hono';
-import { type Bindings, read, toResponse } from '@canmi/store';
+import {
+	isUnsatisfiable,
+	read,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+} from '@canmi/store';
 import { WEEKLY } from './cache';
 import { cardKeys } from './key';
 
@@ -28,10 +34,14 @@ opengraph.get('/*', async (c) => {
 	// in the wrong language says more about the page than a blank rectangle does; but reading
 	// both at once would spend a second bucket round trip on every request that hits the first.
 	const [asked, fallback] = keys;
+	const range = c.req.header('Range');
 	const found =
-		(asked && (await read(c.env, asked))) || (fallback && (await read(c.env, fallback)));
+		(asked && (await read(c.env, asked, range))) || (fallback && (await read(c.env, fallback, range)));
 	if (!found) {
 		return c.json({ error: 'not found' }, 404);
+	}
+	if (isUnsatisfiable(found)) {
+		return unsatisfiableResponse(found.total);
 	}
 
 	// `?lang=` is part of the URL, so caches already key on it; nothing needs a `Vary` here.

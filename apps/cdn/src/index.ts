@@ -8,7 +8,14 @@ import image from './image';
 import github from './github';
 import license from './license';
 import opengraph from './opengraph';
-import { OBJECTS, type Bindings, read, toResponse } from '@canmi/store';
+import {
+	OBJECTS,
+	isUnsatisfiable,
+	read,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+} from '@canmi/store';
 import { stored } from './stored';
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -83,9 +90,12 @@ app.get('/*', async (c) => {
 	if (!key || key.includes('..')) {
 		return c.json({ error: 'not found' }, 404);
 	}
-	const found = await read(c.env, key);
+	const found = await read(c.env, key, c.req.header('Range'));
 	if (!found) {
 		return c.json({ error: 'not found' }, 404);
+	}
+	if (isUnsatisfiable(found)) {
+		return unsatisfiableResponse(found.total);
 	}
 	return toResponse(found);
 });

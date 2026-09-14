@@ -219,9 +219,26 @@ added silently.
 **A kind that stores one format and needs nothing done to it is routed from the table rather than
 written out.** `video` and `captions` are both that: a lookup, a validator and the bytes. `image`
 keeps a route of its own because it decodes and re-encodes, and `license` because it also answers
-for a named aggregate that is not addressed by content at all. Ranges are not served -- a seek
-gets the whole rung, which works and is wasteful, and the route says so instead of advertising
-`Accept-Ranges` it does not honour.
+for a named aggregate that is not addressed by content at all.
+
+**Every object here answers a range, and the worker is what answers it.** Nothing reaches R2 or a
+third-party host directly -- each one goes through a route -- so the range is resolved on the way
+past rather than depending on anything stored with the bytes: an object already in the bucket
+needs no re-upload for this. The bucket is read as the virtual filesystem it is, `get` with an
+offset and a length, so a seek reads what it asked for and not the file around it. The GitHub
+proxy forwards the header upstream and passes 206 back, and fetches the whole asset behind a
+ranged miss so the requests after it find it at the edge.
+
+The grammar is parsed in one place, in `libs/store`, and it is the part of this with a
+specification to obey. `bytes=a-b`, `bytes=a-` and `bytes=-n` are served; an end past the last
+byte clamps, which is what a resumed download does at the tail of a file; a start past the end is
+416 carrying the size, which is a different answer from 404 because the object is there and the
+question was wrong. Anything else -- a unit that is not `bytes`, the multipart form nothing here
+asks for, a backwards or malformed range -- is served whole, which RFC 9110 allows a recipient
+that does not implement it to do.
+
+`Accept-Ranges` goes on every response, including whole ones, because that is where a player reads
+it before it ever sends a `Range`.
 
 The relationships -- which variants belong to which asset, their sizes and formats -- live in
 the manifest, not in the key layout. The store answers "give me these bytes"; the manifest

@@ -1,5 +1,13 @@
 import { Hono } from 'hono';
-import { objectKey, read, toResponse, type Bindings, type ObjectPrefix } from '@canmi/store';
+import {
+	isUnsatisfiable,
+	objectKey,
+	read,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+	type ObjectPrefix,
+} from '@canmi/store';
 import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
 
@@ -34,9 +42,14 @@ export function stored(prefix: ObjectPrefix, extension: string) {
 			return new Response(null, { status: 304, headers: { ETag: tag } });
 		}
 
-		const found = await read(c.env, objectKey(prefix, cid));
+		const found = await read(c.env, objectKey(prefix, cid), c.req.header('Range'));
 		if (!found) {
 			return c.json({ error: 'not found' }, 404);
+		}
+		// The object is there and the question was wrong, which is a different answer from 404:
+		// 416 carries the size so the client can ask again knowing it.
+		if (isUnsatisfiable(found)) {
+			return unsatisfiableResponse(found.total);
 		}
 
 		const response = toResponse(found);
@@ -45,12 +58,10 @@ export function stored(prefix: ObjectPrefix, extension: string) {
 		// against instead of with whatever R2 supplies for the stored object.
 		headers.set('ETag', tag);
 		headers.set('Cache-Control', FOREVER);
-		// **No `Accept-Ranges`, deliberately.** A player seeks by asking for a byte range, and
-		// this route does not serve one: `read` fetches the whole object and hands back its body,
-		// so a ranged request gets 200 and the entire rung. Advertising the capability would be a
-		// claim the next person debugging a seek would believe. Serving it means a range on
-		// `read`, `Content-Range` and 416 on both backends, and a rung small enough that nobody
-		// has needed it yet -- so it is written down here rather than half-built.
+		// `Accept-Ranges`, `Content-Range` and the 206 come from `toResponse`, which is where
+		// every object in this worker gets them. A clip is the reason they matter: a player seeks
+		// by asking for a byte range, and without them a browser fetches the whole rung to start
+		// in the middle of it.
 		return new Response(response.body, { status: response.status, headers });
 	});
 

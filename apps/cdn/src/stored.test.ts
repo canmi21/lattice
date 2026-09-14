@@ -5,14 +5,21 @@ import { stored } from './stored';
 
 const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
 
-/** A bucket holding exactly the keys named and nothing else. */
+const BYTES = 'stored bytes for the range tests';
+
+/** A bucket holding exactly the keys named, each with the same body, and nothing else. */
 function bucketWith(keys: string[]) {
+	const held = (key: string) => keys.includes(key);
 	return {
 		PUBLIC: {
-			get: async (key: string) =>
-				keys.includes(key)
-					? { body: new Response('stored').body, httpMetadata: {}, httpEtag: '"e"' }
-					: null,
+			head: async (key: string) => (held(key) ? { size: BYTES.length } : null),
+			get: async (key: string, options?: { range?: { offset: number; length: number } }) => {
+				if (!held(key)) return null;
+				const part = options?.range
+					? BYTES.slice(options.range.offset, options.range.offset + options.range.length)
+					: BYTES;
+				return { body: new Response(part).body, httpMetadata: {}, httpEtag: '"e"' };
+			},
 		},
 	} as never;
 }
@@ -59,10 +66,35 @@ describe('a kind that stores one format', () => {
 		);
 		expect(response.status).toBe(200);
 		expect(response.headers.get('Content-Type')).toBe('video/mp4');
-		// Held rather than assumed: ranges are not served, so the header that promises them must
-		// not be sent. A seek gets the whole rung, which works and is wasteful; believing the
-		// header would make it look like it did not.
-		expect(response.headers.get('Accept-Ranges')).toBeNull();
+		// What tells a player it may seek. Without it a browser fetches a whole rung to read a
+		// byte near the end of it.
+		expect(response.headers.get('Accept-Ranges')).toBe('bytes');
+	});
+
+	it('serves the bytes a player asks for, as 206', async () => {
+		const response = await route.request(
+			`/${CID}.mp4`,
+			{ headers: { Range: 'bytes=7-12' } },
+			bucketWith([objectKey('video', CID)]),
+		);
+		expect(response.status).toBe(206);
+		expect(response.headers.get('Content-Range')).toBe(`bytes 7-12/${BYTES.length}`);
+		expect(await response.text()).toBe(BYTES.slice(7, 13));
+		// The validator is the object's, not the range's: a client holding it holds these bytes
+		// whichever part of them it asked for.
+		expect(response.headers.get('ETag')).toBe(`"${CID}.mp4"`);
+	});
+
+	it('answers 416 for a range past the end, and says how long the object is', async () => {
+		// Not 404. The object is there and the question was wrong, and the size is what lets the
+		// client ask again -- a 404 would send it looking for a file it had already found.
+		const response = await route.request(
+			`/${CID}.mp4`,
+			{ headers: { Range: 'bytes=9999-' } },
+			bucketWith([objectKey('video', CID)]),
+		);
+		expect(response.status).toBe(416);
+		expect(response.headers.get('Content-Range')).toBe(`bytes */${BYTES.length}`);
 	});
 
 	it('answers a matching validator without touching the bucket', async () => {
