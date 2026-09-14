@@ -1,3 +1,27 @@
+<script module lang="ts">
+	/**
+	 * Whether a reader has given this page permission to make noise.
+	 *
+	 * Module scope, so it is one fact for every clip on the page rather than one per clip. That is
+	 * the point: the permission is the reader's and it was given to the *page*, not to the clip
+	 * that happened to collect it. An engine takes the same view -- once a reader has clicked
+	 * anywhere, `play()` with sound is allowed anywhere -- so a second clip that kept asking for
+	 * silence would be obeying a rule nobody has.
+	 *
+	 * What it changes is only the first moment. A reader who has already unmuted one clip and then
+	 * points at the next one gets it with sound, because they have said once already what they
+	 * wanted and being asked again is the thing that annoys. A reader who has not gets silence, as
+	 * they must.
+	 *
+	 * It does not grant chrome. Sound is a permission and the chrome is a request -- every clip
+	 * still waits for a click of its own before it shows any.
+	 *
+	 * Never reset. There is no gesture that means "I withdraw consent to hear things", and
+	 * muting a clip is not it.
+	 */
+	let unlocked = $state(false);
+</script>
+
 <script lang="ts">
 	/**
 	 * The chrome a clip is driven by, bound to Video.js v10's headless core.
@@ -316,11 +340,20 @@
 		return () => query.removeEventListener('change', sync);
 	});
 
-	/** Silent play, which is the only kind an engine allows before a gesture. */
+	/**
+	 * Start a preview, silent or not depending on what the reader has already allowed.
+	 *
+	 * Silent is the only kind an engine permits before a gesture, and silent is also the only
+	 * polite kind: a page that starts talking at somebody who has not asked is the behaviour every
+	 * reader has learned to dread. Once they have asked once -- by unmuting any clip here -- the
+	 * next one they point at comes with sound, because making them ask again for something they
+	 * have already said is the other half of the same rudeness.
+	 */
 	function preview() {
 		if (stage !== 'sleeping' || !player) return;
 		stage = 'previewing';
-		video.muted = true;
+		video.muted = !unlocked;
+		if (unlocked) applyVolume();
 		void (player.play as () => void)?.();
 	}
 
@@ -334,6 +367,7 @@
 	 */
 	function wake() {
 		stage = 'awake';
+		unlocked = true;
 		video.muted = false;
 		applyVolume();
 		if (video.paused) void (player?.play as () => void)?.();
@@ -347,8 +381,13 @@
 	 * to be a tap, and never lifting into one. That state is reachable and it is the closest thing
 	 * a touch device has to hovering.
 	 *
-	 * Once previewing, it runs until it leaves the screen. Coming back does not restart it: the
-	 * pause is a pause and the reader decides what happens next.
+	 * **A touch preview is not held by anything, and that is the one place the two devices part.**
+	 * A pointer can leave a clip while the reader stays on the page, so a pointer leaving means
+	 * something and stops the preview. A finger lifting means nothing of the kind -- it is how
+	 * every gesture on a touch device ends -- so a preview there runs until the clip leaves the
+	 * screen, which is the only signal that says the reader has moved on.
+	 *
+	 * Coming back does not restart it either way: the pause is a pause and the reader decides.
 	 */
 	$effect(() => {
 		const observer = new IntersectionObserver(
@@ -363,10 +402,22 @@
 
 		const onEnter = () => {
 			over = true;
-			preview();
+			if (stage === 'sleeping') preview();
+			// Back on the clip it left: pick up from where the pointer left off rather than from
+			// the beginning. The position was kept precisely so this would be a resumption.
+			else if (stage === 'previewing' && video.paused) void (player?.play as () => void)?.();
 		};
 		const onLeave = () => {
 			over = false;
+			// **A preview lasts as long as the pointer does.** It was never asked for -- it started
+			// because a pointer happened to arrive -- so it has no business continuing once that
+			// is no longer true, and a page where three clips play on in three places the reader
+			// is not looking is the thing this is avoiding. Paused, not stopped: the position is
+			// what makes coming back a resumption rather than a restart.
+			//
+			// Only a preview. An `awake` clip was asked for and keeps playing wherever the pointer
+			// goes, which is the difference the click buys.
+			if (stage === 'previewing' && !video.paused) (player?.pause as () => void)?.();
 		};
 		let down: { x: number; y: number } | null = null;
 		const onStart = (event: TouchEvent) => {
