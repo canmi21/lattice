@@ -47,6 +47,7 @@ struct Stream {
 	nb_read_packets: Option<String>,
 	nb_read_frames: Option<String>,
 	duration: Option<String>,
+	codec_name: Option<String>,
 	profile: Option<String>,
 	level: Option<i64>,
 	pix_fmt: Option<String>,
@@ -100,16 +101,23 @@ pub fn probe(path: &Path) -> Result<Probe, Error> {
 
 /// The full codec string a `<source>` element has to be told, read back off the encoded rung.
 ///
+/// **Every track in the container, comma separated**, which is what RFC 6381 means by the
+/// `codecs` parameter: `av01.0.08M.08,mp4a.40.2` and not the picture alone. A browser reads the
+/// whole list to decide whether it can play the file, so a list naming only the video is a claim
+/// about half of it -- benign today, because everything that decodes AV1 decodes AAC too, and a
+/// claim nothing checks is the kind that goes wrong unnoticed.
+///
 /// Read rather than predicted. The level is chosen by the encoder from the resolution and the
 /// frame rate against a table of limits, and a hand-written copy of that table is a second
 /// implementation of the one thing here a browser acts on -- it either decodes the file or it
 /// shows nothing. The tier is the one part not read: `tier=0` is passed to the encoder, so Main
 /// is what was asked for rather than what was guessed.
 pub fn codec_string(path: &Path) -> Result<String, Error> {
-	let output = read(&["-select_streams", "v:0", "-show_streams"], path)?;
+	let output = read(&["-show_streams"], path)?;
 	let video = output
 		.streams
-		.first()
+		.iter()
+		.find(|stream| stream.codec_type == "video")
 		.ok_or_else(|| Error::NoVideoStream(path.to_path_buf()))?;
 	let profile = match video.profile.as_deref() {
 		Some("High") => 1,
@@ -117,8 +125,27 @@ pub fn codec_string(path: &Path) -> Result<String, Error> {
 		_ => 0,
 	};
 	let level = video.level.unwrap_or_default().max(0);
-	let depth = if video.pix_fmt.as_deref().is_some_and(|format| format.contains("10")) { 10 } else { 8 };
-	Ok(format!("av01.{profile}.{level:02}M.{depth:02}"))
+	let depth =
+		if video.pix_fmt.as_deref().is_some_and(|format| format.contains("10")) { 10 } else { 8 };
+	let mut codecs = vec![format!("av01.{profile}.{level:02}M.{depth:02}")];
+	codecs.extend(output.streams.iter().find(|stream| stream.codec_type == "audio").and_then(audio));
+	Ok(codecs.join(","))
+}
+
+/// The MPEG-4 audio object type as RFC 6381 spells it, read rather than assumed for the same
+/// reason the video level is. `-c:a aac` gets AAC-LC out of ffmpeg's own encoder, which is
+/// `mp4a.40.2`; the high-efficiency profiles carry different numbers, and a browser handed the
+/// wrong one refuses a file it can in fact play.
+fn audio(stream: &Stream) -> Option<String> {
+	if stream.codec_name.as_deref() != Some("aac") {
+		return None;
+	}
+	let object_type = match stream.profile.as_deref() {
+		Some("HE-AAC") => 5,
+		Some("HE-AACv2") => 29,
+		_ => 2,
+	};
+	Some(format!("mp4a.40.{object_type}"))
 }
 
 /// The exact number of frames, in three readings from cheapest to dearest.
@@ -197,7 +224,10 @@ mod tests {
 	#[test]
 	fn a_quarter_turn_swaps_the_axes_whichever_way_it_turns() {
 		let turned = |degrees: f64| {
-			quarter_turned(&Stream { side_data_list: vec![SideData { rotation: Some(degrees) }], ..Stream::default() })
+			quarter_turned(&Stream {
+				side_data_list: vec![SideData { rotation: Some(degrees) }],
+				..Stream::default()
+			})
 		};
 		assert!(turned(90.0));
 		assert!(turned(-90.0));
@@ -205,6 +235,24 @@ mod tests {
 		assert!(!turned(180.0));
 		assert!(!turned(0.0));
 		assert!(!quarter_turned(&Stream::default()));
+	}
+
+	#[test]
+	fn a_source_is_told_about_every_track_in_the_container() {
+		// RFC 6381's codecs parameter lists them all. Naming only the video is a claim about half
+		// the file, and the half left out is the one that would make a browser refuse.
+		let aac = |profile: Option<&str>| {
+			audio(&Stream {
+				codec_name: Some("aac".to_owned()),
+				profile: profile.map(str::to_owned),
+				..Stream::default()
+			})
+		};
+		assert_eq!(aac(Some("LC")).as_deref(), Some("mp4a.40.2"));
+		assert_eq!(aac(Some("HE-AAC")).as_deref(), Some("mp4a.40.5"));
+		assert_eq!(aac(Some("HE-AACv2")).as_deref(), Some("mp4a.40.29"));
+		// A track that is not AAC is left out rather than guessed at.
+		assert_eq!(audio(&Stream::default()), None);
 	}
 
 	#[test]
