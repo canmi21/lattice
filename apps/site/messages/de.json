@@ -16,7 +16,7 @@
 	"card.licenses": "Die Open-Source-Arbeit hinter dieser Site",
 	"card.more_licenses": "+{count} Lizenzen",
 	"card.packages": "{count} Pakete",
-	"card.stats": "{articles} Beiträge · {characters} Zeichen · in {languages} Sprachen",
+	"card.stats": "{articles} Beiträge · {words} Wörter · in {languages} Sprachen",
 	"card.under_license": "{count} Pakete stehen unter diesen Bedingungen",
 	"code.copied": "Code kopiert",
 	"code.copy": "Code kopieren",

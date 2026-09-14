@@ -668,10 +668,12 @@ dependencies = [
  "tiny-skia",
  "tokio",
  "tzf-rs",
+ "unicode-blocks",
  "unicode-width",
  "ureq",
  "url",
  "webp",
+ "words-count",
 ]
 
 [[package]]
@@ -5751,6 +5753,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c1cb5db39152898a79168971543b1cb5020dff7fe43c8dc468b0885f5e29df5"
 
 [[package]]
+name = "unicode-blocks"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "328edfd6d0bb91a22e592bed3a3b54c7b1f5c92a517f5a7aca24a2caef10c363"
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6600,6 +6608,15 @@ name = "wit-bindgen"
 version = "0.57.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
+
+[[package]]
+name = "words-count"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bf0825fe71354af5ef3e0e9a8b0efb7c50ac1ada487e95e0ec91447cf8ce6e5"
+dependencies = [
+ "unicode-blocks",
+]
 
 [[package]]
 name = "writeable"

@@ -16,7 +16,7 @@
 	"card.licenses": "El trabajo de código abierto tras este sitio",
 	"card.more_licenses": "+{count} licencias",
 	"card.packages": "{count} paquetes",
-	"card.stats": "{articles} artículos · {characters} caracteres · en {languages} idiomas",
+	"card.stats": "{articles} artículos · {words} palabras · en {languages} idiomas",
 	"card.under_license": "{count} paquetes usan estos términos",
 	"code.copied": "Código copiado",
 	"code.copy": "Copiar código",

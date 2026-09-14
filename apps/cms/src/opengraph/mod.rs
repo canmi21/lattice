@@ -289,22 +289,50 @@ fn article_jobs(
 /// The home page's card, which is a page rather than an article and has its own slug.
 pub const HOME_SLUG: &str = "homepage";
 
-/// What the site amounts to, counted once and shown on every view of the home card.
+/// What the site amounts to, counted once per view because each view serves different text.
 ///
-/// Characters rather than words, and the source text rather than each translation. A word is
-/// not a unit CJK has, so counting them would produce a number that means something different
-/// depending on which article it came from; a character is the same thing everywhere. The
-/// source is counted for all nine views because the number describes the site, not the
-/// translation somebody happens to be reading.
+/// ## Words, and whose definition of a word
+///
+/// The unit is a word processor's: Han and kana once per character, everything else once per
+/// whitespace-delimited run, which is what "字数" means in Chinese and what Word, WPS and Google
+/// Docs all report. See [`crate::words`] for the measurement that chose it and the one
+/// classification this repository corrects.
+///
+/// This replaced a character count whose stated reason -- a word is not a unit CJK has -- was
+/// true and led somewhere wrong. Counting characters does not remove the problem, it moves it:
+/// measured over this corpus a character was worth 1.23 units in a Chinese article and 4.78 in an
+/// English one, so the number silently favoured whichever articles happened to be in English by
+/// nearly four to one.
+///
+/// ## Per view, because the card is drawn per view
+///
+/// The old rule counted the source text for all nine cards, on the argument that the number
+/// describes the site rather than the translation being read. That survives only while the unit
+/// is script-blind. Once it is words, an English card carrying a Chinese article's 字数 is
+/// stating something false about the text an English reader would actually get, so each view
+/// counts what it serves: the translation for that view where there is one, and the source where
+/// there is not -- which is exactly what the page renders, untranslated segments included.
+///
+/// ## Prose, and only what a visitor can reach
+///
+/// A code block is not writing, and neither is a directive or a thematic break. What separates
+/// them is decided once, by `segment::Kind::translatable`, which already answers this question
+/// for the translator -- so this reads that rather than stripping markdown a second time and
+/// drifting from it. Frontmatter is left out: a title is metadata here.
+///
+/// Drafts are left out too. `buildArticles` excludes them from a production build, so counting
+/// them advertises writing nobody can open.
 pub struct Census {
 	pub articles: usize,
-	pub characters: usize,
+	/// Words per view code. `locale::VIEWS` is the set of keys, and every one of them is present.
+	pub words: BTreeMap<&'static str, usize>,
 	pub languages: usize,
 }
 
 pub fn census(articles: &Path) -> Result<Census, String> {
 	let mut counted = 0;
-	let mut characters = 0;
+	let mut words: BTreeMap<&'static str, usize> =
+		locale::VIEWS.iter().map(|view| (view.code, 0usize)).collect();
 
 	for path in crate::refs::markdown_under(articles).map_err(|e| e.to_string())? {
 		// The bio page is content, not an article, and the pages do not list it as one either.
@@ -314,12 +342,81 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 		let Ok(text) = std::fs::read_to_string(&path) else {
 			continue;
 		};
-		let body = crate::document::split(&text).map_or(text.as_str(), |document| document.body);
+		if is_draft(&text) {
+			continue;
+		}
+		// A file that cannot be split is skipped rather than fatal, the same as one that cannot be
+		// read: the card is a summary of the corpus and one malformed article is `cms check`'s
+		// business, not a reason to render no cards at all.
+		let Ok(segments) = crate::i18n::segment::split(&text) else {
+			continue;
+		};
+		let sidecar = crate::i18n::store::load(&crate::i18n::store::path_for(&path))
+			.map_err(|error| format!("{}: {error}", path.display()))?;
 		counted += 1;
-		characters += body.chars().filter(|c| !c.is_whitespace()).count();
+
+		for view in &locale::VIEWS {
+			let mut total = 0;
+			for segment in &segments {
+				if segment.region != crate::i18n::segment::Region::Body || !segment.kind.translatable() {
+					continue;
+				}
+				// Summed per segment rather than joined and counted once: a block boundary is
+				// never inside a word, so the two agree, and this allocates nothing.
+				let text = view
+					.tag
+					.and_then(|tag| sidecar.segments.get(&segment.id)?.get(tag))
+					.map_or(segment.source.as_str(), |translation| translation.text.as_str());
+				total += crate::words::count(text);
+			}
+			if let Some(entry) = words.get_mut(view.code) {
+				*entry += total;
+			}
+		}
 	}
 
-	Ok(Census { articles: counted, characters, languages: locale::VIEWS.len() })
+	Ok(Census { articles: counted, words, languages: locale::VIEWS.len() })
+}
+
+/// Whether the frontmatter marks this article as unpublished.
+///
+/// Read here rather than through a shared helper because this is the only place in the Rust half
+/// that has ever needed to know. The site decides the same thing in `buildArticles`, and the two
+/// agree on the spelling: `draft: true`.
+///
+/// Not through `document::fields`, which is where the first version of this went wrong. That
+/// returns the *text* fields and drops everything else, and `draft: true` is a YAML boolean --
+/// so every article read as published and the card counted two nobody can open. A flag is not
+/// text, so it is read off the frontmatter directly. The string form is accepted as well: both
+/// spellings mean the same thing to a person writing one by hand.
+fn is_draft(text: &str) -> bool {
+	let Ok(crate::document::Document { frontmatter: Some(frontmatter), .. }) =
+		crate::document::split(text)
+	else {
+		return false;
+	};
+	let Ok(value) = serde_yaml_ng::from_str::<serde_yaml_ng::Value>(frontmatter) else {
+		return false;
+	};
+	match value.get("draft") {
+		Some(serde_yaml_ng::Value::Bool(flag)) => *flag,
+		Some(serde_yaml_ng::Value::String(text)) => text.trim() == "true",
+		_ => false,
+	}
+}
+
+#[cfg(test)]
+mod census_tests {
+	#[test]
+	fn a_draft_flag_is_read_as_the_boolean_it_is_written_as() {
+		// The failure this test exists for: `document::fields` keeps text fields and drops the
+		// rest, so reading the flag through it made every draft look published.
+		assert!(super::is_draft("---\nlang: en\ndraft: true\n---\n\nBody\n"));
+		assert!(super::is_draft("---\nlang: en\ndraft: \"true\"\n---\n\nBody\n"));
+		assert!(!super::is_draft("---\nlang: en\ndraft: false\n---\n\nBody\n"));
+		assert!(!super::is_draft("---\nlang: en\n---\n\nBody\n"));
+		assert!(!super::is_draft("Body with no frontmatter at all\n"));
+	}
 }
 
 /// The home card, once per view, worded by that view's own catalog.
@@ -338,7 +435,7 @@ fn home_jobs(
 					template,
 					&[
 						("articles", &census.articles.to_string()),
-						("characters", &messages::compact(census.characters)),
+						("words", &messages::compact(census.words.get(view.code).copied().unwrap_or(0))),
 						("languages", &census.languages.to_string()),
 					],
 				)

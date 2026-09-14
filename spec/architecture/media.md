@@ -200,10 +200,37 @@ template read as one card with a field swapped.
 The name and role come from `site.config.yaml`, which is where the page reads them from, and
 are not translated: a name is a name, and the job title is one of the things this site leaves
 in English. The counts beside them are worded by the same message catalogs the pages use, so a
-card and a page never phrase the same fact differently, and they are **characters rather than
-words** -- a word is not a unit CJK has, and one number that means different things depending
-on which article it came from is worse than no number. The source text is counted for every
-view, because the number describes the site rather than the translation being read.
+card and a page never phrase the same fact differently.
+
+**The count is words, in a word processor's sense, and the definition is borrowed rather than
+invented.** Han and kana count once per character, everything else once per whitespace-delimited
+run, and the two are summed -- which is what Word, WPS and Google Docs all report and what 字数
+means in Chinese. The rule this replaced was characters, on the argument that a word is not a unit
+CJK has. That argument is true and the conclusion drawn from it was not: counting characters does
+not remove the mismatch, it moves it. Measured over this corpus a character was worth 1.23 units
+in a Chinese article and 4.78 in an English one, so the number quietly favoured whichever articles
+happened to be in English by nearly four to one.
+
+**Each view counts what that view serves.** The old rule counted the source text for all nine
+cards, on the argument that the number describes the site rather than the translation being read.
+That holds only while the unit is script-blind. Once it is words, an English card carrying a
+Chinese article's 字数 is stating something false about the text an English reader would actually
+get -- so a view counts its own translation where there is one and the source where there is not,
+which is exactly what the page renders. The nine cards now carry nine different numbers.
+
+**Prose only, and only what a visitor can open.** A code block is not writing, and neither is a
+directive or a thematic break; what separates them is decided once by `segment::Kind::translatable`,
+which already answers that question for the translator, so the count reads it rather than stripping
+markdown a second time and drifting from it. Frontmatter is left out -- a title is metadata here.
+Drafts are left out too, because `buildArticles` excludes them from a production build and
+advertising writing nobody can open is a lie in the other direction. Before all three fixes the
+card said 8 articles and 141,344 characters; it now says 6 and, in English, 23k words.
+
+The counting itself is `words-count`'s rather than this repository's, chosen by running five
+candidates against one table of cases instead of reading their descriptions -- which are
+identical, while their answers are not. The one thing added on top is that Hangul is not Han:
+Korean is written with spaces, so a word processor counts it like Latin, and the crate's
+`is_cjk` disagrees. See `apps/cms/src/words.rs`, where the table is the specification.
 
 The address is drawn opposite the site name across the top, because the other free corner is
 the bottom-left and that one belongs to X. It lives in `site.config.yaml` rather than in

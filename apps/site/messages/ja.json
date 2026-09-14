@@ -16,7 +16,7 @@
 	"card.licenses": "このサイトを支えるオープンソース",
 	"card.more_licenses": "+{count} ライセンス",
 	"card.packages": "{count} パッケージ",
-	"card.stats": "{articles} 本の記事 · {characters} 文字 · {languages} 言語で公開",
+	"card.stats": "{articles} 本の記事 · {words} 文字 · {languages} 言語で公開",
 	"card.under_license": "{count} パッケージがこの条項です",
 	"code.copied": "コードをコピーしました",
 	"code.copy": "コードをコピー",

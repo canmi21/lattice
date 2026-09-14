@@ -82,6 +82,8 @@ anyhow = "1.0.104"
 # approximate by hand, since it is the Hangul and full-width ranges that a hand-rolled guess gets
 # wrong, exactly where this is asked. See spec/i18n.md.
 unicode-width = "0.2.2"
+words-count = "0.1"
+unicode-blocks = "0.1"
 
 [dev-dependencies]
 # Temporary directories for tests. The hand-rolled alternative -- `std::env::temp_dir()` joined

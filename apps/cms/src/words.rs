@@ -1,0 +1,123 @@
+//! How much writing a piece of text is, counted the way a word processor counts.
+//!
+//! The rule is not this repository's and should not be. Word, WPS and Google Docs agree on one
+//! convention -- a run of Han or kana counts once per character, everything else once per
+//! whitespace-delimited run -- and "字数" in Chinese means exactly that hybrid, not a character
+//! count. A rule many people already recognise beats a more defensible one nobody does, so the
+//! counting is `words-count`'s and only the classification below is ours.
+//!
+//! ## What was measured before this crate was picked
+//!
+//! Five candidates, one table of cases, run rather than read about. Every one of them describes
+//! itself the same way and they disagree, which is why the table at the bottom of this file is
+//! the specification and this paragraph is only the reason for it.
+//!
+//! - `words-count` (this one) was right on 8 of 9, missing only Korean.
+//! - `unicode-segmentation` splits hyphens and gives `state-of-the-art` four words, and counts
+//!   katakana as one; UAX #29 has no dictionary, which makes Han right by accident and kana wrong.
+//! - npm `word-count`, the most downloaded of any of them, tests `charCodeAt(0) >= 0x4e00` --
+//!   and hiragana is U+3040, CJK extension A is U+3400, katakana is not in its pattern at all --
+//!   so a Japanese sentence comes back as one word or zero.
+//! - npm `words-count` handles every script and shreds identifiers: `AV1` is two, `1080p` is two,
+//!   `av01.0.04M.08,mp4a.40.2` is eight. Unusable for a site whose prose is full of them.
+//! - `Intl.Segmenter` and `charabia` do dictionary segmentation, which is linguistically right and
+//!   conventionally wrong: 爱情公寓是一部情景喜剧 comes back as six words where every word
+//!   processor on earth says eleven.
+//!
+//! ## Hangul is corrected before the crate sees it, and that is the whole of what we add
+//!
+//! Korean is written with spaces between words, so a word processor counts it like Latin and not
+//! like Han -- Word does nothing special for Korean at all. `unicode_blocks::is_cjk` disagrees and
+//! answers true for Hangul, and `words-count` offers no way to say otherwise, so its Korean count
+//! is roughly three times what it should be: measured on this corpus, 49,918 against 17,410.
+//!
+//! The fix is to change what the crate is looking at rather than to reimplement what it does.
+//! Every Hangul character becomes one ASCII letter before counting, which leaves the spacing --
+//! the only thing that carries meaning here -- exactly where it was. Dashes, punctuation, Han,
+//! kana and Latin runs all stay the crate's problem.
+//!
+//! Searched for the alternative first: there is no Korean word-count crate, because Korean word
+//! counting is not an algorithm. The nearest thing, `charabia`, segments morphemes -- 13 where
+//! 어절 says 7 -- and carries a dictionary of tens of megabytes to do it.
+
+/// Whether a character is Hangul, in every block Korean is actually written in.
+///
+/// Syllables are what modern Korean text is; the jamo blocks are the decomposed forms, which
+/// arrive from input methods and from normalisation and read as ordinary text.
+fn is_hangul(value: char) -> bool {
+	unicode_blocks::find_unicode_block(value).is_some_and(|block| {
+		block == unicode_blocks::HANGUL_SYLLABLES
+			|| block == unicode_blocks::HANGUL_JAMO
+			|| block == unicode_blocks::HANGUL_COMPATIBILITY_JAMO
+			|| block == unicode_blocks::HANGUL_JAMO_EXTENDED_A
+			|| block == unicode_blocks::HANGUL_JAMO_EXTENDED_B
+	})
+}
+
+/// How many words this text is.
+///
+/// One allocation per call, and only when the text holds Hangul: everything else goes to the
+/// crate untouched.
+pub fn count(text: &str) -> usize {
+	if text.chars().any(is_hangul) {
+		// `x` rather than a space: a space would join the words on either side of a syllable and
+		// undercount, and any ordinary letter is something the crate already counts by spacing.
+		let latinised: String =
+			text.chars().map(|value| if is_hangul(value) { 'x' } else { value }).collect();
+		return words_count::count(&latinised).words;
+	}
+	words_count::count(text).words
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	/// The specification, as cases rather than prose.
+	///
+	/// Every candidate library describes itself in the same sentence and then disagrees with the
+	/// others, so what this module promises is this table and not a description of an algorithm.
+	/// A replacement for the crate underneath is free to arrive; it has to pass these.
+	#[test]
+	fn counts_the_way_a_word_processor_counts() {
+		let cases: [(&str, usize); 14] = [
+			// Latin: whitespace-delimited, and an identifier is one word however it is spelled.
+			// This is the half the Japanese-correct alternatives get wrong.
+			("AV1 encodes at 1080p", 4),
+			("blake3 and gpt-5.6-terra-medium", 3),
+			("av01.0.04M.08,mp4a.40.2", 1),
+			("a well-known state-of-the-art result", 4),
+			("Hello, world! Isn't it nice?", 5),
+			// Han: one per character. Six is what a dictionary segmenter says and no word
+			// processor does.
+			("爱情公寓是一部情景喜剧", 11),
+			// Mixed, which is what this corpus actually is: 这是 + StyleX + 的 + atomic +
+			// class + 机制.
+			("这是 StyleX 的 atomic class 机制", 8),
+			// Kana, both of them, and a run of either is per character rather than per run.
+			("これはにほんごのぶんです", 12),
+			("コンピューター", 7),
+			("日本語のテキストです", 10),
+			// Hangul: spaced, so counted by spacing. The crate alone says 8, 21 and 7.
+			("한국어 문장 입니다", 3),
+			("안녕하세요 저는 오늘 새로운 기사를 읽고 있습니다", 7),
+			("AV1 코덱은 1080p 까지", 4),
+			("", 0),
+		];
+		for (text, want) in cases {
+			assert_eq!(count(text), want, "{text}");
+		}
+	}
+
+	#[test]
+	fn hangul_is_not_treated_as_han_and_han_still_is() {
+		// The one classification this module changes, stated directly rather than only through
+		// the table: if a later version of the crate fixes this itself, this is the test that
+		// says the workaround is still doing something.
+		assert!(is_hangul('한'));
+		assert!(is_hangul('ᄀ'));
+		assert!(!is_hangul('爱'));
+		assert!(!is_hangul('あ'));
+		assert!(!is_hangul('A'));
+	}
+}

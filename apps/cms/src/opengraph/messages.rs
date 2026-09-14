@@ -106,7 +106,7 @@ mod tests {
 			// picture. The slots are the other half of that contract: a message that loses one
 			// renders without the number it was supposed to carry.
 			for (key, slots) in [
-				("card.stats", ["{articles}", "{characters}", "{languages}"].as_slice()),
+				("card.stats", ["{articles}", "{words}", "{languages}"].as_slice()),
 				("card.languages", ["{count}"].as_slice()),
 				("card.packages", ["{count}"].as_slice()),
 				("card.more_licenses", ["{count}"].as_slice()),

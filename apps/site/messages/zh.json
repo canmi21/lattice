@@ -16,7 +16,7 @@
 	"card.licenses": "构成这个站点的开源作品",
 	"card.more_licenses": "+{count} 种协议",
 	"card.packages": "{count} 个软件包",
-	"card.stats": "{articles} 篇文章 · {characters} 字 · 提供 {languages} 种语言",
+	"card.stats": "{articles} 篇文章 · {words} 字 · 提供 {languages} 种语言",
 	"card.under_license": "{count} 个软件包采用这些条款",
 	"code.copied": "代码已复制",
 	"code.copy": "复制代码",
