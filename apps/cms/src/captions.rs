@@ -104,6 +104,17 @@ pub enum Error {
 	Timing(String),
 	#[error("an excerpt from {from}s to {to}s is not a window")]
 	Window { from: f64, to: f64 },
+	/// No default, and this is the reason rather than strictness for its own sake.
+	///
+	/// `kind` is what a reader picks a track by, and the reader picking by it is the one a wrong
+	/// value costs most: someone deaf takes a track labelled `captions`, gets subtitles, loses
+	/// every sound the film makes, and is told nothing -- the track plays, so nothing anywhere
+	/// reports a fault. Guessing here buys one less argument at a call site and pays for it in
+	/// silent, unreportable wrongness for the person the field exists for.
+	///
+	/// So the value has to come from somewhere that knows. `infer_kind` knows only when a track
+	/// transcribes a sound; everything else has to be told. Meeting this as a compile error
+	/// asking for a value is the intended experience.
 	#[error("nothing in this track says whether it captions, subtitles or describes; pass the kind")]
 	UnknownKind,
 	#[error("could not write: {0}")]
@@ -225,12 +236,12 @@ pub fn cut(vtt: &str, window: Window) -> Result<Option<String>, Error> {
 
 /// The one thing a WebVTT file can be read to say about itself.
 ///
-/// Only a captions track transcribes what is not speech, so a cue whose whole payload is an
-/// upper-case bracketed run -- `[EXPLOSION]`, `(door slams)` in the houses that use parentheses
-/// -- is a track written for someone who cannot hear it. That inference runs one way only.
-/// Its absence separates nothing: a subtitle track, a descriptions track, and a captions track
-/// for a clip with no notable sound are the same file. Descriptions in particular are invisible
-/// to any test -- narration of what is on screen reads exactly like dialogue, and this very
+/// Only a captions track transcribes what is not speech, so a payload line that is nothing but
+/// an upper-case bracketed run -- `[EXPLOSION]`, `(DOOR SLAMS)` in the houses that use
+/// parentheses -- is a track written for someone who cannot hear it. That inference runs one way
+/// only. Its absence separates nothing: a subtitle track, a descriptions track, and a captions
+/// track for a clip with no notable sound are the same file. Descriptions in particular are
+/// invisible to any test -- narration of what is on screen reads exactly like dialogue, and this
 /// track's "A car drives down the highway, then it disappears into a tunnel" is a man describing
 /// a film he is pitching, in dialogue, in a track that is not descriptions at all.
 ///
@@ -259,6 +270,11 @@ pub fn infer_kind(vtt: &str) -> Option<Kind> {
 ///
 /// Whole-line only. Inline markers exist, but so do bracketed asides inside dialogue, and
 /// missing one only means this asks to be told -- which is the safe direction to be wrong in.
+///
+/// The upper case is doing real work, not tidying. This track writes speaker labels the same
+/// way -- `[Woman:]` and `[Siri:]`, each on a line of its own -- and a speaker label is not a
+/// sound: subtitles carry them too, so reading one as evidence of captions would answer a
+/// question this cannot actually see. Mixed case is the whole of what separates the two.
 fn transcribes_a_sound(line: &str) -> bool {
 	let line = line.trim();
 	line
@@ -469,6 +485,17 @@ mod tests {
 	fn does_not_read_a_bracketed_aside_inside_a_line_as_a_sound() {
 		let aside = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHe went to [REDACTED] and back.\n";
 		assert_eq!(infer_kind(aside), None);
+	}
+
+	#[test]
+	fn does_not_read_a_speaker_label_as_a_sound() {
+		// This track writes speaker labels exactly as it writes sounds -- bracketed, on a line of
+		// their own -- and only the case tells them apart. Subtitles carry speaker labels too, so
+		// reading `[Woman:]` as evidence of captions would answer a question this cannot see.
+		let labelled = "WEBVTT\n\n\
+			00:09:22.860 --> 00:09:24.795\n[Woman:]\nSiri, what did mom mention\n\n\
+			00:09:52.322 --> 00:09:55.592\n[Siri:] Adding it to your list.\n";
+		assert_eq!(infer_kind(labelled), None);
 	}
 
 	#[test]
