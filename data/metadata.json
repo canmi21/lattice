@@ -1,7 +1,7 @@
 {
   "version": 3,
   "created": "2026-08-01T22:12:59.501555Z",
-  "updated": "2026-09-14T05:14:04.537144Z",
+  "updated": "2026-09-14T05:44:00.649199Z",
   "media": {
     "0e0624f079e617e53ed474ccd98a947b": {
       "created": "2026-09-14T02:55:32.15685Z",
@@ -1535,6 +1535,14 @@
           "height": 1080,
           "bytes": 3157289,
           "codec": "av01.0.08M.08,mp4a.40.2"
+        }
+      },
+      "captions": {
+        "a653dd681bf681300531ce63445a5ebc": {
+          "mime": "text/vtt",
+          "language": "en",
+          "kind": "captions",
+          "bytes": 1025
         }
       }
     },

@@ -958,6 +958,13 @@ media:
     - next-js
     - npm
     - web-navigation
+  6264d3f4d385043c2d839ff8f92d1a72:
+    source:
+      url: https://web.archive.org/web/20190603223643/https://www.youtube.com/watch?v=wl4Hg23RQHQ
+      label: Apple
+    excerpt:
+      from: 0.0
+      to: 18.0
   6da637a66b48711354532477ac3f2014:
     category: artwork
     description:
@@ -2357,6 +2364,17 @@ media:
     - anime-avatar
     - printed-circuit-board
     - usb-c
+  cd09df7945f22065fd0995f8f8207e55:
+    source:
+      url: https://podcasts.apple.com/us/podcast/apple-event-september-9/id1473854035?i=1000788729530
+      label: Apple
+    excerpt:
+      from: 138.0
+      to: 162.0
+  cda77856d388c1fb733042c25b943569:
+    excerpt:
+      from: 2340.0
+      to: 2365.0
   ce6115b517f4858113b6aa4a061322aa:
     category: screenshot
     description:
