@@ -454,6 +454,32 @@ because class names were exactly what was supposed to change; here the atomic cl
 that must not change and the readable name is the part that must. Safe both times for the same
 reason: the excluded thing is named and measured rather than waved past.
 
+### What the two gates could not see, and what it cost to look
+
+Six elements the server never renders were outside the class-attribute gate by construction: the
+modal's surface and title, the search panel and its group title, the menu surface and the popover
+surface. They were covered by capturing the two addresses that carry them, at every width, theme and
+locale, with each floating surface driven open. Sixty page snapshots and 290 states, against the
+tree before the extraction: **no difference anywhere**, on the pages and on all six surfaces.
+
+Scoping it to two addresses rather than thirteen is the part worth defending. Once the stylesheet is
+byte-identical and no atomic class has moved on any of 10655 server-rendered elements, a capture of
+a server-rendered element cannot find anything: same rules, same classes, same computed style. The
+capture's whole remaining job was the elements the second gate is blind to, and those live on two
+pages. The first two attempts at this were sized by habit rather than by that argument, and cost
+twenty-five minutes of machine time for nothing.
+
+**One thing nearly read as a regression and was the instrument.** The popover surface -- the
+translator's note -- was defined in the harness but listed on no page, so it had never once been
+opened; it was added before the baseline was taken. The first comparison then reported 3508
+differences in the interaction states, concentrated on the table of contents. A control settled it:
+two captures of *the same, unchanged tree*, differing only in whether the popover was in the page's
+surface list, produce those same 3508 differences. So **a state capture is only comparable to
+another taken with an identical surface list.** Each state is a delta from a rest that is
+re-measured before every surface, so adding one surface moves what the states around it record. The
+number is not noise -- both captures are internally deterministic -- it is the instrument having
+been changed between them.
+
 ### The merge unit is the property, not the property and its condition
 
 A conditional value is indivisible. A recipe cannot supply the condition while the component
