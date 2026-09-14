@@ -117,5 +117,7 @@
 	"support.new-tab": "在新标签页中打开",
 	"support.sponsor": "请我喝杯 Coffee",
 	"support.sponsor-short": "Coffee",
-	"theme.switch": "切换主题"
+	"theme.switch": "切换主题",
+	"video.source": "在 {name} 看原始视频",
+	"video.unsupported": "你的浏览器无法播放这个格式。"
 }

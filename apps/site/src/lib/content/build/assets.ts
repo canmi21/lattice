@@ -6,6 +6,10 @@
  * without the images being present in the repository or a single request being made to
  * discover their dimensions.
  *
+ * A video is resolved here too, by the same id out of the same manifest. What differs is the
+ * record's shape rather than the question: `type` is the discriminant, and a video's rungs, its
+ * poster and its text tracks come back where a picture's variants and thumbhash would.
+ *
  * A diagram is resolved here too. It is not an asset -- an article carries its source inline --
  * but it is the same shape of question, asked of the same kind of record: what does this picture
  * say, in this view's language.
@@ -29,6 +33,19 @@ export const EXTENSION: Record<string, string> = {
 	'image/jpeg': 'jpeg',
 };
 
+/**
+ * What a published rung and a published text track are called.
+ *
+ * Apart from `EXTENSION` above rather than folded into it: that table is held to `apps/cms`'s
+ * `for_variant` by a test that reads only its `image/*` arms, and these two are not variants of a
+ * picture. One format each, which is spec/architecture/video.md's whole point -- AV1 in MP4,
+ * and WebVTT beside it.
+ */
+export const MEDIA_EXTENSION: Record<string, string> = {
+	'video/mp4': 'mp4',
+	'text/vtt': 'vtt',
+};
+
 export type Resolved = {
 	src: string;
 	srcset: string;
@@ -49,19 +66,62 @@ export type Resolved = {
 	description?: string;
 };
 
+/**
+ * A picture's record, as `data/metadata.json` holds it.
+ *
+ * Only the fields the markup needs are declared. The record carries EXIF, byte counts and the
+ * quality each variant was encoded at, and none of them reaches a page.
+ */
+type ImageRecord = {
+	type: 'image';
+	thumbhash: string;
+	source: { width: number; height: number; ratio: string };
+	variants: Record<string, { mime: string; width: number }>;
+};
+
+/**
+ * A clip's record, which is a different shape rather than a picture's with holes in it.
+ *
+ * `duration`, `frameRate`, `frames` and `audio` are on the record and deliberately not here.
+ * Nothing renders them today: the frame count is the denominator of the progress bar the
+ * software-decode path would show, and that path is decided and not built. See
+ * spec/architecture/video.md.
+ */
+type VideoRecord = {
+	type: 'video';
+	source: { width: number; height: number; ratio: string };
+	/** The content id of the poster frame, which is an ordinary image asset with its own record. */
+	poster: string;
+	variants: Record<string, { mime: string; width: number; height: number; codec: string }>;
+	captions?: Record<string, { mime: string; language: string; kind: CaptionKind }>;
+};
+
+/**
+ * What a text track is. HTML's own set, narrowed to the three a clip here can carry.
+ *
+ * Trusted off the record rather than checked, the same way a `mime` is trusted to index the
+ * tables above: apps/cms writes this field from a closed set, and a fourth value arriving here
+ * is a change on that side to make deliberately rather than something to repair on this one.
+ */
+export type CaptionKind = 'captions' | 'subtitles' | 'descriptions';
+
 export type AssetManifest = {
-	media: Record<
-		string,
-		{
-			thumbhash: string;
-			source: { width: number; height: number; ratio: string };
-			variants: Record<string, { mime: string; width: number }>;
-		}
-	>;
+	media: Record<string, ImageRecord | VideoRecord>;
 };
 
 export type MediaManifest = {
-	media: Record<string, { description?: Record<string, { text: string }> }>;
+	media: Record<
+		string,
+		{
+			description?: Record<string, { text: string }>;
+			/**
+			 * Where the asset came from, as a person wrote it. A claim rather than a derivation,
+			 * which is why it is in `media.yaml` and not in the manifest -- see
+			 * spec/architecture/media.md. It is what the unsupported-format notice links to.
+			 */
+			source?: { url: string; label?: string };
+		}
+	>;
 };
 
 /** Strip any extension an article wrote, leaving the content id. */
@@ -76,6 +136,19 @@ function idOf(reference: string): string {
 
 function url(cdnUrl: string, cid: string, mime: string): string {
 	return `${cdnUrl}/image/${cid}.${EXTENSION[mime] ?? 'avif'}`;
+}
+
+/**
+ * Where a published rung or track is asked for: a prefix naming what kind of object it is, the
+ * content id, and the extension that says which representation is wanted.
+ *
+ * Flat, with no fanout. The bucket keys carry two levels of it and the URL does not: one names
+ * what the reader wants and the worker decides where to read from. See
+ * spec/architecture/media.md.
+ */
+function published(cdnUrl: string, prefix: string, cid: string, mime: string): string {
+	const extension = MEDIA_EXTENSION[mime];
+	return extension ? `${cdnUrl}/${prefix}/${cid}.${extension}` : `${cdnUrl}/${prefix}/${cid}`;
 }
 
 /**
@@ -142,7 +215,9 @@ export function createAssetResolver(
 	return (reference) => {
 		const id = idOf(reference);
 		const asset = assets.media[id];
-		if (!asset) return null;
+		// A clip named where a picture belongs resolves to nothing rather than to a broken
+		// `srcset`, and the caller falls back the same way it does for an id nobody has imported.
+		if (!asset || asset.type === 'video') return null;
 
 		const variants = Object.entries(asset.variants).toSorted(([, a], [, b]) => a.width - b.width);
 		const largest = variants.at(-1);
@@ -160,6 +235,98 @@ export function createAssetResolver(
 			// media.yaml owns these translations independently from article segments. Selecting the
 			// matching value here makes each compiled view carry its own accessible fallback text.
 			description: media.media[id]?.description?.[descriptionLocale]?.text,
+		};
+	};
+}
+
+/**
+ * One published rung: the bytes, and the exact string a `<source>` is chosen by.
+ *
+ * The dimensions travel with it because they are the only thing the chooser at hydration has to
+ * decide on -- `<source>` is selected by `type` and never by size, so nothing in the markup can
+ * express what `srcset` expresses for a picture. See the component.
+ */
+export type VideoRung = { src: string; type: string; width: number; height: number };
+
+/** One published text track, described by what the record says it is rather than by a label. */
+export type VideoTrack = { src: string; kind: CaptionKind; language: string };
+
+export type ResolvedVideo = {
+	/** Every rung, smallest first. That order is the markup's, and the component argues for it. */
+	rungs: VideoRung[];
+	/** The original's dimensions, which is the box to reserve before anything is fetched. */
+	width: number;
+	height: number;
+	/** The poster image asset's own rendition. Absent for a poster nobody has imported. */
+	poster?: string;
+	/** The poster's placeholder, painted under it while it arrives. */
+	preview?: string;
+	captions: VideoTrack[];
+	/**
+	 * What the clip shows, from `media.yaml`, in this view's language.
+	 *
+	 * The clip's own, written by `cms describe` from frames this repository chose. Not the
+	 * poster's, which describes one frame and has nowhere to go: `poster` is an attribute, not an
+	 * element, and it takes no alternative text. See spec/architecture/video.md.
+	 */
+	description?: string;
+	/** Where the clip came from. The unsupported-format notice is the only thing that reads it. */
+	source?: { url: string; label?: string };
+};
+
+/**
+ * Resolving a `::video` reference into everything the markup needs.
+ *
+ * The poster goes back through the image resolver rather than being addressed directly, because
+ * a poster is an ordinary picture with its own id, its own rungs and its own placeholder --
+ * spec/architecture/video.md's reason for storing it as one. Anything true of a picture here is
+ * therefore true of a poster without being said twice.
+ */
+export function createVideoResolver(
+	assets: AssetManifest,
+	media: MediaManifest,
+	previews: ReadonlyMap<string, string>,
+	/** Which CDN the markup should name; see createAssetResolver. */
+	cdnUrl: string,
+	descriptionLocale = 'en-US',
+): (reference: string) => ResolvedVideo | null {
+	const resolvePoster = createAssetResolver(assets, media, previews, cdnUrl, descriptionLocale);
+	return (reference) => {
+		const id = idOf(reference);
+		const asset = assets.media[id];
+		if (asset?.type !== 'video') return null;
+
+		const poster = resolvePoster(asset.poster);
+		const entry = media.media[id];
+		return {
+			// By height, because a tier is one axis: a vertical clip sorted by width snaps to the
+			// wrong order. See spec/architecture/video.md.
+			rungs: Object.entries(asset.variants)
+				.toSorted(([, a], [, b]) => a.height - b.height)
+				.map(([cid, variant]) => ({
+					src: published(cdnUrl, 'video', cid, variant.mime),
+					// The full codec string, not the bare container type. `<source>` is selected on
+					// this alone, so `video/mp4` would claim every browser can play the file and
+					// hand AV1 to one that cannot; with the codec named, a browser that cannot
+					// decode it rejects the source itself and fetches nothing.
+					type: `${variant.mime}; codecs="${variant.codec}"`,
+					width: variant.width,
+					height: variant.height,
+				})),
+			width: asset.source.width,
+			height: asset.source.height,
+			// The largest rendition. `poster` takes one URL and has no `srcset`, so one has to be
+			// chosen here rather than by the browser, and the largest is the only one that is
+			// never enlarged -- an AVIF still costs tens of kilobytes at any of them.
+			poster: poster?.src,
+			preview: poster?.preview,
+			captions: Object.entries(asset.captions ?? {}).map(([cid, caption]) => ({
+				src: published(cdnUrl, 'captions', cid, caption.mime),
+				kind: caption.kind,
+				language: caption.language,
+			})),
+			description: entry?.description?.[descriptionLocale]?.text,
+			source: entry?.source,
 		};
 	};
 }

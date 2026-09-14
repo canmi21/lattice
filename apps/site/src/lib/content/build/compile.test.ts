@@ -738,3 +738,74 @@ it('leaves an undescribed diagram saying exactly what it said before', async () 
 	expect(canvas?.description).toBeUndefined();
 	expect(compiled.feed).toContain('[Diagram: Test — view at /article]');
 });
+
+/**
+ * `::video` names an asset the way `::image` does, and the block carries what the resolver found.
+ *
+ * The reference keeps its extension into the block on purpose: an article can name a clip nothing
+ * has imported yet, and the component addresses the CDN with it rather than the page failing to
+ * build. That is the same bargain a picture strikes.
+ */
+it('resolves ::video by the same reference an image uses, and survives one that resolves to nothing', async () => {
+	const source = [
+		'---',
+		'title: Test',
+		'lang: en-US',
+		'---',
+		'',
+		'::video{src="clip.mp4"}',
+		'',
+		'::video{src="missing.mp4"}',
+		'',
+	].join('\n');
+	const compiled = await compile(source, '/article', {
+		newTabNote: 'opens in new tab',
+		resolveAsset: () => null,
+		resolveVideo: (reference) =>
+			reference === 'clip.mp4'
+				? {
+						rungs: [
+							{
+								src: 'https://cdn.example/video/a.mp4',
+								type: 'video/mp4; codecs="av01.0.05M.08"',
+								width: 1920,
+								height: 1080,
+							},
+						],
+						width: 1920,
+						height: 1080,
+						poster: 'https://cdn.example/image/p.avif',
+						captions: [],
+						description: 'A hand turns the machine over.',
+					}
+				: null,
+		highlight: async () => '',
+	});
+
+	const clips = compiled.blocks.filter((block) => block.type === 'video');
+	expect(clips).toHaveLength(2);
+	expect(clips[0]).toMatchObject({
+		src: 'clip.mp4',
+		poster: 'https://cdn.example/image/p.avif',
+		description: 'A hand turns the machine over.',
+	});
+	expect(clips[1]).toEqual({ type: 'video', src: 'missing.mp4' });
+
+	// Neither target can play anything, so both name the poster and say where the clip is. The
+	// clip's own description is the poster's text there -- it is the only sentence either target
+	// has about what is in the frame.
+	expect(compiled.feed).toContain('<img src="https://cdn.example/image/p.avif"');
+	expect(compiled.feed).toContain('watch at /article');
+	expect(compiled.markdown).toContain('> [video — /article]');
+	expect(compiled.text).toContain('A hand turns the machine over.');
+});
+
+it('refuses a ::video that names nothing', async () => {
+	await expect(
+		compile('---\ntitle: Test\nlang: en-US\n---\n\n::video\n', '/article', {
+			newTabNote: 'opens in new tab',
+			resolveAsset: () => null,
+			highlight: async () => '',
+		}),
+	).rejects.toThrow('video requires a non-empty src attribute');
+});

@@ -1,4 +1,5 @@
 import type { LocaleCode } from '../locale/index.ts';
+import type { VideoRung, VideoTrack } from './build/assets.ts';
 
 export type ArticleMeta = {
 	title: string;
@@ -117,6 +118,30 @@ export type Block =
 			align?: string;
 			preview?: string;
 			srcset?: string;
+	  }
+	| {
+			type: 'video';
+			/**
+			 * The reference the article wrote, extension and all.
+			 *
+			 * Kept beside the resolved fields for the reason an image keeps it: an article can name
+			 * a clip nothing has imported yet, and that should cost a fallback rather than a build.
+			 */
+			src: string;
+			/** Every published rung, smallest first. Absent for a reference nothing resolved. */
+			rungs?: VideoRung[];
+			/** The original's dimensions, which reserve the box before anything is fetched. */
+			width?: number;
+			height?: number;
+			/** The poster image asset's own rendition, which is what `<video poster>` names. */
+			poster?: string;
+			/** The poster's placeholder, painted under it while it arrives. */
+			preview?: string;
+			captions?: VideoTrack[];
+			/** What the clip shows. Offered as a description, never as the element's name. */
+			description?: string;
+			/** Where the clip came from, which is what the unsupported-format notice links to. */
+			source?: { url: string; label?: string };
 	  };
 
 /**

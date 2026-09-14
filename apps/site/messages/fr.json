@@ -117,5 +117,7 @@
 	"support.new-tab": "s’ouvre dans un nouvel onglet",
 	"support.sponsor": "Un café pour continuer à créer",
 	"support.sponsor-short": "Un café",
-	"theme.switch": "Changer de thème"
+	"theme.switch": "Changer de thème",
+	"video.source": "Voir l’original sur {name}",
+	"video.unsupported": "Votre navigateur ne peut pas lire ce format."
 }

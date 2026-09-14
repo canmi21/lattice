@@ -9,7 +9,7 @@ import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-import type { Resolved } from './assets.ts';
+import type { Resolved, ResolvedVideo } from './assets.ts';
 import { assertLanguageTag } from '../../locale/index.ts';
 import type {
 	Block,
@@ -574,6 +574,14 @@ export type CompileContext = {
 	 * directive throws instead of degrading -- unlike an embed, nothing has to be fetched first.
 	 */
 	articles?: Record<string, ArticleReference>;
+	/**
+	 * What a `::video` reference resolves to, in this view's language.
+	 *
+	 * Optional where `resolveAsset` is required, because a caller that compiles no video needs no
+	 * manifest to hand over: an absent resolver reads exactly like a reference nothing has
+	 * imported, which is a state the block already has to render.
+	 */
+	resolveVideo?: (reference: string) => ResolvedVideo | null;
 	/** External facts captured before the site build, so rendering never fetches them. */
 	embeds?: {
 		crates: Record<string, CrateRecord>;
@@ -734,6 +742,7 @@ export async function compile(
 	{
 		newTabNote,
 		resolveAsset,
+		resolveVideo,
 		describeDiagram,
 		articles,
 		highlight,
@@ -948,6 +957,37 @@ export async function compile(
 			feed.push(`<p><img src="${absolute}" alt="${escapeHtml(alt)}" /></p>`);
 			md.push(`![${alt}](${absolute})`);
 			if (alt) text.push(alt);
+			continue;
+		}
+
+		// `::video` names an asset exactly as `::image` does -- a content id with an extension the
+		// resolver throws away -- and is looked up by that id in the same manifest. One way to
+		// name an asset, because a second convention for the same job is the thing to avoid; what
+		// differs is the record it finds, and the resolver owns that difference.
+		//
+		// No `ratio` or `align`. Those exist because a picture is cropped by default, and the
+		// argument for cropping -- making a row of images agree -- has nothing to say about a
+		// clip: the poster and the frames after it are one shape, and holding back part of the
+		// picture for the whole of a playback is not presentation, it is a different video.
+		if (node.type === 'leafDirective' && node.name === 'video') {
+			const source = sourceFile ?? url;
+			const attrs = (node.attributes ?? {}) as DirectiveAttrs;
+			const src = requiredDirectiveAttribute(attrs, 'src', 'video', source);
+			const resolved = resolveVideo?.(src) ?? null;
+			blocks.push({ type: 'video', src, ...(resolved ?? {}) });
+
+			// Neither target can play anything, so both get the poster -- a real still of the clip,
+			// with the clip's own description as its text -- and a line saying where it plays. The
+			// same answer `::mermaid` gets, and for the same reason: a block that cannot survive
+			// the trip says what it is and where it is rather than disappearing.
+			const described = resolved?.description ?? '';
+			const poster = resolved?.poster;
+			feed.push(
+				`<p>${poster ? `<img src="${poster}" alt="${escapeHtml(described)}" /> ` : ''}` +
+					`<em>[Video — watch at ${url}]</em></p>`,
+			);
+			md.push(`${poster ? `![${described}](${poster})\n\n` : ''}> [video — ${url}]`);
+			if (described) text.push(described);
 			continue;
 		}
 

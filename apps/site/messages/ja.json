@@ -117,5 +117,7 @@
 	"support.new-tab": "新しいタブで開きます",
 	"support.sponsor": "コーヒーを一杯おごる",
 	"support.sponsor-short": "コーヒー",
-	"theme.switch": "テーマを切り替える"
+	"theme.switch": "テーマを切り替える",
+	"video.source": "{name} でオリジナルを見る",
+	"video.unsupported": "お使いのブラウザはこの形式を再生できません。"
 }

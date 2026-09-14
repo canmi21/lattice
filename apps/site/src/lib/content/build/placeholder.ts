@@ -69,7 +69,10 @@ export async function buildPreviews(assets: AssetManifest): Promise<Map<string, 
 
 	const previews = new Map<string, string>();
 	for (const asset of Object.values(assets.media)) {
-		if (!asset.thumbhash || previews.has(asset.thumbhash)) continue;
+		// Pictures only. A clip has no thumbhash of its own and needs none: what stands in for it
+		// while the poster loads is the poster's, and a poster is an ordinary image asset with a
+		// record of its own already in this loop. See spec/architecture/video.md.
+		if (asset.type !== 'image' || !asset.thumbhash || previews.has(asset.thumbhash)) continue;
 		let preview = encoded.get(asset.thumbhash);
 		if (preview === undefined) {
 			const bytes = Uint8Array.from(atob(asset.thumbhash), (c) => c.charCodeAt(0));

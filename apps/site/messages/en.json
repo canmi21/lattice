@@ -117,5 +117,7 @@
 	"support.new-tab": "opens in new tab",
 	"support.sponsor": "Sponsor my next coffee",
 	"support.sponsor-short": "Sponsor",
-	"theme.switch": "Switch theme"
+	"theme.switch": "Switch theme",
+	"video.source": "Watch the original at {name}",
+	"video.unsupported": "Your browser cannot play this format."
 }

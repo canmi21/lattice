@@ -5,6 +5,7 @@ import { parse as parseYaml } from 'yaml';
 import {
 	createAssetResolver,
 	createDiagramResolver,
+	createVideoResolver,
 	type AssetManifest,
 	type DiagramStore,
 	type MediaManifest,
@@ -371,6 +372,7 @@ export async function buildArticles(
 			// eight is available in that one too. Reading the original meant hearing the pictures
 			// described in a language the article never used.
 			resolveAsset: createAssetResolver(assets, media, previews, paths.cdnUrl, originLocale),
+			resolveVideo: createVideoResolver(assets, media, previews, paths.cdnUrl, originLocale),
 			describeDiagram: createDiagramResolver(drawings, originLocale),
 			articles: references.mw,
 			highlight,
@@ -387,6 +389,13 @@ export async function buildArticles(
 							? await compile(raws[code], url, {
 									newTabNote: notes[code],
 									resolveAsset: createAssetResolver(
+										assets,
+										media,
+										previews,
+										paths.cdnUrl,
+										PUBLIC_LANGUAGE[code],
+									),
+									resolveVideo: createVideoResolver(
 										assets,
 										media,
 										previews,

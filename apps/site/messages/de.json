@@ -117,5 +117,7 @@
 	"support.new-tab": "öffnet in neuem Tab",
 	"support.sponsor": "Spendier mir einen Kaffee",
 	"support.sponsor-short": "Kaffee",
-	"theme.switch": "Design wechseln"
+	"theme.switch": "Design wechseln",
+	"video.source": "Das Original bei {name} ansehen",
+	"video.unsupported": "Dein Browser kann dieses Format nicht abspielen."
 }

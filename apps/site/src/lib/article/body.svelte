@@ -67,6 +67,7 @@
 	import SvgCanvas from '$lib/blocks/svg-canvas.svelte';
 	import Tokei from '$lib/blocks/tokei/tokei.svelte';
 	import Twitter from '$lib/blocks/twitter.svelte';
+	import Video from '$lib/components/video.svelte';
 	import { jumpTo, movesThisPage, targetOf } from '$lib/client/jump';
 	import { flashOnArrival } from './note-flash';
 	import { revealNoteBeforeJump } from './note-reveal';
@@ -226,6 +227,19 @@
 				crop={block.crop}
 				align={block.align}
 			/>
+		{:else if block.type === 'video'}
+			<Video
+				{locale}
+				src={block.src}
+				rungs={block.rungs}
+				width={block.width}
+				height={block.height}
+				poster={block.poster}
+				preview={block.preview}
+				captions={block.captions}
+				description={block.description}
+				source={block.source}
+			/>
 		{:else if block.type === 'linkcard'}
 			<LinkCard
 				{locale}
@@ -296,7 +310,9 @@
 				<X class="size-3.5" aria-hidden="true" />
 			</button>
 		</div>
-		<p id="translator-note-description" class="px-3 py-2 {stylex.attrs(styles.noteBody).class}">{note}</p>
+		<p id="translator-note-description" class="px-3 py-2 {stylex.attrs(styles.noteBody).class}">
+			{note}
+		</p>
 	</PopoverContent>
 </Popover.Root>
 

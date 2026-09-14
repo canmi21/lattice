@@ -117,5 +117,7 @@
 	"support.new-tab": "se abre en una pestaña nueva",
 	"support.sponsor": "Un café para seguir creando",
 	"support.sponsor-short": "Un café",
-	"theme.switch": "Cambiar el tema"
+	"theme.switch": "Cambiar el tema",
+	"video.source": "Ver el original en {name}",
+	"video.unsupported": "Tu navegador no puede reproducir este formato."
 }
