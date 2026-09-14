@@ -65,6 +65,9 @@ pub struct Outcome {
 	pub rendered: usize,
 	pub skipped: usize,
 	pub failed: Vec<(String, String)>,
+	/// Cards deleted because nothing asks for them any more -- an article that became a draft,
+	/// was renamed, or was removed. See [`sweep`].
+	pub removed: usize,
 }
 
 /// One article, reduced to what the card shows.
@@ -605,9 +608,42 @@ pub fn render_all(
 		}
 	}
 
+	// The record already forgets a card that is no longer produced; this is the other half, which
+	// it did not have. Without it an article that becomes a draft, gets renamed or is deleted
+	// leaves nine pictures of itself in `data/public`, and they deploy, and the path is guessable.
+	outcome.removed = sweep(public, &record, &next);
+
 	manifest::save(&manifest_path, &next)
 		.map_err(|error| format!("could not write the card record: {error}"))?;
 	Ok(outcome)
+}
+
+/// Delete the cards the previous record holds and this run no longer wants.
+///
+/// Driven by the record rather than by walking `data/public`, which is what keeps it from being a
+/// second garbage collector: it can only ever remove a file this command wrote and named. A key
+/// it cannot account for is left alone -- the record is a JSON file somebody may have edited, and
+/// a path escaping the published root is a reason to stop rather than a reason to delete.
+///
+/// A failed delete is not reported. The file is not referenced any more either way, and failing a
+/// card run over a leftover would be the tail wagging the dog; the next run tries again, because
+/// the key stays in the record it reads.
+fn sweep(public: &Path, previous: &manifest::Manifest, next: &manifest::Manifest) -> usize {
+	let mut removed = 0;
+	for key in previous.cards.keys() {
+		if next.cards.contains_key(key) {
+			continue;
+		}
+		let relative = Path::new(key);
+		if relative.is_absolute() || relative.components().any(|part| part.as_os_str() == "..") {
+			continue;
+		}
+		let target = public.join(relative);
+		if target.is_file() && std::fs::remove_file(&target).is_ok() {
+			removed += 1;
+		}
+	}
+	removed
 }
 
 /// Render every card the site needs, in every view.
@@ -626,6 +662,13 @@ pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<O
 		// The bio page gets the home card rather than an article one, so it is not an article
 		// here either.
 		if path.file_stem().and_then(|name| name.to_str()) == Some(HOME_SLUG) {
+			continue;
+		}
+		// A draft has no card. It has no production URL for one to be the picture of, and a card
+		// is a public object: rendered, deployed to the CDN and fetchable by anyone who guesses
+		// the path, which is a way to publish a piece nobody has decided to publish. The card
+		// arrives when `draft` goes, along with everything else `cms og` draws from the article.
+		if std::fs::read_to_string(&path).is_ok_and(|text| crate::document::is_draft(&text)) {
 			continue;
 		}
 		let Some(article) = article_of(articles, &path) else {

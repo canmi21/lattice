@@ -785,9 +785,10 @@ fn render_cards(force: bool) -> anyhow::Result<ExitCode> {
 		eprintln!("fail  {slug}: {error}");
 	}
 	println!(
-		"{} rendered, {} already present, {} failed",
+		"{} rendered, {} already present, {} removed, {} failed",
 		outcome.rendered,
 		outcome.skipped,
+		outcome.removed,
 		outcome.failed.len()
 	);
 	if outcome.failed.is_empty() { Ok(ExitCode::SUCCESS) } else { Ok(ExitCode::FAILURE) }

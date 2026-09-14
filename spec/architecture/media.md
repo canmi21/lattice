@@ -253,6 +253,20 @@ somebody else serves, and a local command should not need the network to draw a 
 without it still renders every card, with that one lacking a portrait rather than the command
 refusing to run.
 
+**A draft gets no card, and a card nothing asks for is deleted.** A draft has no production URL
+for a card to be the picture of, and a card is a public object -- rendered, deployed to the CDN,
+and fetchable by anyone who guesses the path -- so drawing one publishes a piece nobody decided to
+publish. `cms og` skips drafts on the same flag [i18n.md](../i18n.md) uses to keep them out of the
+paid sweeps.
+
+Skipping alone would have left the pictures behind. The card record was already rebuilt rather
+than merged, so it forgets a card that is no longer produced, but the file stayed on disk and
+deployed anyway -- nine of them per article that becomes a draft, is renamed, or is deleted. The
+sweep is driven by that record rather than by walking `data/public`, which is what keeps it from
+being a second garbage collector: it can only remove a file this command wrote and named, and a
+key it cannot account for is left alone, because the record is a file somebody may have edited and
+a path escaping the published root is a reason to stop rather than a reason to delete.
+
 **A card is redrawn when its inputs move, not when its file is missing.** `cms og` records a
 hash of everything each card was drawn from in `data/build/opengraph.json` and redraws the ones
 whose hash has changed. The older test -- skip anything already on disk -- was always slightly
