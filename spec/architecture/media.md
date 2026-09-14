@@ -42,8 +42,14 @@ claim somebody makes, and `cms image --force` must not be able to take it away.
 published is labelled Apple: the Internet Archive is how the page can still be read, not who wrote
 it. Crediting the library for the book is the mistake the rule exists to prevent.
 
-One string rather than the per-locale map a description carries, because a publication is called
-the same thing in every language this site is written in.
+**The label is the name the origin publishes under, in the script it publishes in.** One string
+rather than the per-locale map a description carries -- but not for the reason first written here,
+which was "English, because a publication is called the same thing in every language this site is
+written in". That holds for Apple and fails for the Chinese sitcom one of these clips is cut from,
+whose English title is a distributor's rendering and not its name. A proper noun is not prose: it
+is not translated, it is spelled the way its owner spells it, and that one spelling serves every
+language the page is read in. The field stays single and the constraint moves off the alphabet and
+onto the source.
 
 **A source can name something inside this repository, as `cid://{blake3}`.** A video's poster frame
 came from the video, and that is as real a provenance as a URL. The asset id and not a variant's:

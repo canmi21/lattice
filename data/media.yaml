@@ -2567,6 +2567,9 @@ media:
         seconds: 3.8838121660000002
         tokens: 11968
         review: false
+    source:
+      url: https://www.youtube.com/watch?v=Mgh-yQlJHnM
+      label: 爱情公寓
     excerpt:
       from: 2340.0
       to: 2365.0

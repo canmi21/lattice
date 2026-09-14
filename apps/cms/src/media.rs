@@ -109,11 +109,15 @@ pub struct Media {
 pub struct Source {
 	/// Where to go to reach it, which may be an archive rather than the original address.
 	pub url: String,
-	/// What to call the origin, in English, untranslated.
+	/// What to call the origin: the name it publishes under, in the script it publishes in.
 	///
-	/// One string rather than the per-locale map a description carries, because this names a
-	/// publication and a publication is called the same thing in every language this site is
-	/// written in.
+	/// One string rather than the per-locale map a description carries -- but not for the reason
+	/// first written here, which was "English, because a publication is called the same thing in
+	/// every language this site is written in". That holds for Apple and fails for the Chinese
+	/// sitcom one of these clips is cut from, whose English title is a distributor's rendering and
+	/// not its name. A proper noun is not prose: it is not translated, it is spelled the way its
+	/// owner spells it, and that one spelling serves every language the page is read in. So the
+	/// field stays single and the constraint moves off the alphabet and onto the source.
 	///
 	/// **It names the origin, not the route.** A `web.archive.org` address for a page Apple
 	/// published is labelled Apple: the Internet Archive is how the page can still be reached,
