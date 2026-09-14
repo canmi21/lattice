@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "articles": {
     "architecture/compile-time-rendering.md": [
       {
@@ -3287,5 +3287,106 @@
         "region": "body"
       }
     ]
+  },
+  "words": {
+    "architecture/compile-time-rendering.md": {
+      "de": 4883,
+      "en": 4896,
+      "es": 5504,
+      "fr": 5675,
+      "ja": 13197,
+      "ko": 3758,
+      "mw": 7918,
+      "tw": 8460,
+      "zh": 8585
+    },
+    "architecture/observation-to-lowering.md": {
+      "de": 7469,
+      "en": 7882,
+      "es": 8511,
+      "fr": 8576,
+      "ja": 17665,
+      "ko": 6059,
+      "mw": 10870,
+      "tw": 12279,
+      "zh": 12235
+    },
+    "architecture/why-you-need-ssr.md": {
+      "de": 347,
+      "en": 347,
+      "es": 347,
+      "fr": 347,
+      "ja": 347,
+      "ko": 347,
+      "mw": 347,
+      "tw": 347,
+      "zh": 347
+    },
+    "development/rust-cargo-cranelift-tuning.md": {
+      "de": 3477,
+      "en": 3513,
+      "es": 4087,
+      "fr": 4151,
+      "ja": 9350,
+      "ko": 2731,
+      "mw": 5368,
+      "tw": 6226,
+      "zh": 6131
+    },
+    "hindsight/except-me.md": {
+      "de": 1856,
+      "en": 1856,
+      "es": 1856,
+      "fr": 1856,
+      "ja": 1856,
+      "ko": 1856,
+      "mw": 1856,
+      "tw": 1856,
+      "zh": 1856
+    },
+    "homepage.md": {
+      "de": 78,
+      "en": 78,
+      "es": 78,
+      "fr": 78,
+      "ja": 78,
+      "ko": 78,
+      "mw": 78,
+      "tw": 78,
+      "zh": 78
+    },
+    "milestone/less-is-more.md": {
+      "de": 2139,
+      "en": 2108,
+      "es": 2236,
+      "fr": 2436,
+      "ja": 5078,
+      "ko": 1560,
+      "mw": 2589,
+      "tw": 3280,
+      "zh": 3402
+    },
+    "mirror/friends-come-in-phases.md": {
+      "de": 1846,
+      "en": 1868,
+      "es": 1965,
+      "fr": 2082,
+      "ja": 4550,
+      "ko": 1424,
+      "mw": 2517,
+      "tw": 3106,
+      "zh": 3063
+    },
+    "mirror/less-than-an-hour.md": {
+      "de": 3243,
+      "en": 3250,
+      "es": 3364,
+      "fr": 3498,
+      "ja": 7114,
+      "ko": 2216,
+      "mw": 4216,
+      "tw": 4727,
+      "zh": 4796
+    }
   }
 }

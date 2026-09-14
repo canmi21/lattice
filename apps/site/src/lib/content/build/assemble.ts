@@ -21,6 +21,18 @@ export type SegmentSpan = {
 export type SegmentLayout = {
 	version: number;
 	articles: Record<string, SegmentSpan[]>;
+	/**
+	 * How long each article is, per view, in words. Keyed by the same article path `articles` is,
+	 * then by view code.
+	 *
+	 * Counted by `cms segments` and not here, because the rule has to be one rule. What a word is
+	 * across scripts is not obvious -- a run of Han counts per character, a run of Latin per
+	 * whitespace-delimited word, and Hangul goes with Latin rather than with Han -- and a second
+	 * implementation in TypeScript would be a second answer. That is how the article page came to
+	 * disagree with the card it advertises: the page was counting characters of everything on it,
+	 * image descriptions included. See `apps/cms/src/words.rs`, whose test table is the rule.
+	 */
+	words: Record<string, Record<string, number>>;
 };
 
 /** FNV-1a over source bytes: a drift detector, not a content address. */

@@ -202,6 +202,18 @@ are not translated: a name is a name, and the job title is one of the things thi
 in English. The counts beside them are worded by the same message catalogs the pages use, so a
 card and a page never phrase the same fact differently.
 
+**The article page draws the same number, from the same function.** It used to compute its own:
+`view.text` with the whitespace removed, in characters. `view.text` is every readable string on
+the page -- the prose, but also each picture's description, each linkcard's title, each diagram's
+caption, each embedded post -- so a 9,102-character article reported 14,870, and 38% of what it
+claimed was components rather than writing. Those are not the article. What counts is body prose
+and what is inside it: inline code and quotations stay, because they are in the sentence.
+
+The count is recorded by `cms segments` into `data/build/segments.json`, which the site build
+already requires and already reads per article, and the site reads it rather than counting. One
+rule, one implementation. A second one in TypeScript is exactly how the page and the card came to
+disagree, and what a word is across scripts is not obvious enough to be worth answering twice.
+
 **The count is words, in a word processor's sense, and the definition is borrowed rather than
 invented.** Han and kana count once per character, everything else once per whitespace-delimited
 run, and the two are summed -- which is what Word, WPS and Google Docs all report and what 字数
@@ -218,14 +230,15 @@ Chinese article's 字数 is stating something false about the text an English re
 get -- so a view counts its own translation where there is one and the source where there is not,
 which is exactly what the page renders.
 
-**The ninth view is counted in English, and that is not an exception to the rule but the rule
-applied.** `mw` is the source view and the card a bare link resolves to, so it is the default
-social card for the whole site. It has no translation to look up, and the obvious reading --
-count the source, since that is what the view serves -- puts the original defect straight back:
-five Chinese articles and one English one summed is Han characters added to English words, which
-is not a quantity of anything. Counting it in English is what makes the sentence true, because
-`mw.json` is English copy and "N words" written in English has to mean English words. The two
-move together: translating that catalogue means changing the locale the source view counts in.
+**The ninth view is recorded honestly and the card overrides it, and those are different
+questions.** `mw` serves the source article, so that is what it is counted from: for one article
+the hybrid is coherent, and a reader of that page sees exactly those words. The home card is where
+it breaks, because the card sums every article -- five in Chinese and one in English added
+together is Han characters plus English words, not a quantity of anything -- and `mw` is also the
+card a bare link resolves to, the default social card for the site. So that one card carries the
+English figure instead, because `mw.json` is English copy and "N words" written in English has to
+mean English words. The two move together: translating that catalogue means changing which view's
+figure the source card prints.
 
 **Prose only, and only what a visitor can open.** A code block is not writing, and neither is a
 directive or a thematic break; what separates them is decided once by `segment::Kind::translatable`,

@@ -57,7 +57,7 @@ import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '../
 import { highlight } from './highlight.ts';
 import { buildPreviews } from './placeholder.ts';
 
-const SEGMENT_LAYOUT_VERSION = 4;
+const SEGMENT_LAYOUT_VERSION = 5;
 
 type SummarySidecar = { summary?: Record<string, { text?: string; provider?: string }> };
 
@@ -428,6 +428,10 @@ export async function buildArticles(
 						blocks: view.blocks,
 						text: view.text,
 						feed: view.feed,
+						// Read rather than counted; see `SegmentLayout.words`. Zero for a file the
+						// layout has no entry for, which `translatedRaws` has already refused above,
+						// so it is a shape the type needs rather than a case that happens.
+						words: layout.words?.[`${path}.md`]?.[code] ?? 0,
 						code,
 						languageTag: languageTag(code, sourceLanguage),
 						canonical: canonical[code],

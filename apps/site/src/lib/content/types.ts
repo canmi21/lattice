@@ -191,6 +191,15 @@ export type Compiled = {
 
 export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'feed' | 'text'> & {
 	code: LocaleCode;
+	/**
+	 * How long the article is in this view, in words.
+	 *
+	 * Body prose and what is inside it. Not `text`, which is every readable string on the page --
+	 * a picture's description, a linkcard's title, a diagram's caption, an embedded post -- and
+	 * which this used to be measured from, in characters, making a 9,102-character article read
+	 * as 14,870. Those are components; a reader asking how long an article is does not mean them.
+	 */
+	words: number;
 	languageTag: string;
 	canonical: string;
 	/** False when this locale is showing the complete source article as a safe fallback. */

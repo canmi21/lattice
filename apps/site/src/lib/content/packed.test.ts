@@ -29,6 +29,7 @@ describe('packed virtual content', () => {
 			views[code] = {
 				...source,
 				code,
+				words: 2,
 				languageTag: 'en-US',
 				canonical: url,
 				translationAvailable: code === 'mw',

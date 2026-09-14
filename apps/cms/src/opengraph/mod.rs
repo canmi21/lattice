@@ -292,12 +292,12 @@ fn article_jobs(
 /// The home page's card, which is a page rather than an article and has its own slug.
 pub const HOME_SLUG: &str = "homepage";
 
-/// The locale the source view's word count is taken in.
+/// The view whose figure the source view's card carries.
 ///
 /// Tied to the language `mw.json` is written in rather than to anything structural, because that
 /// is what makes the number readable: the card says "words" in English, so the figure beside it
 /// has to be English words. See the note on [`Census`].
-const SOURCE_VIEW_COUNTED_AS: &str = "en-US";
+const SOURCE_VIEW_COUNTED_AS_CODE: &str = "en";
 
 /// What the site amounts to, counted once per view because each view serves different text.
 ///
@@ -370,35 +370,34 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 		if crate::document::is_draft(&text) {
 			continue;
 		}
-		// A file that cannot be split is skipped rather than fatal, the same as one that cannot be
-		// read: the card is a summary of the corpus and one malformed article is `cms check`'s
-		// business, not a reason to render no cards at all.
-		let Ok(segments) = crate::i18n::segment::split(&text) else {
-			continue;
-		};
-		let sidecar = crate::i18n::store::load(&crate::i18n::store::path_for(&path))
+		let sidecar = crate::i18n::store::load_checked(&crate::i18n::store::path_for(&path))
 			.map_err(|error| format!("{}: {error}", path.display()))?;
+		// The one function this number comes from anywhere, so a card and the page it advertises
+		// can never disagree about how long an article is. An article that will not split comes
+		// back empty and is skipped rather than fatal, the same as one that cannot be read: the
+		// card summarises the corpus, and one malformed article is `cms check`'s business.
+		let per_view = crate::i18n::layout::words_per_view(&text, sidecar.as_ref());
+		if per_view.is_empty() {
+			continue;
+		}
 		counted += 1;
-
-		for view in &locale::VIEWS {
-			// `None` is the source view, counted in the language its card is worded in. See above.
-			let tag = view.tag.or(Some(SOURCE_VIEW_COUNTED_AS));
-			let mut total = 0;
-			for segment in &segments {
-				if segment.region != crate::i18n::segment::Region::Body || !segment.kind.translatable() {
-					continue;
-				}
-				// Summed per segment rather than joined and counted once: a block boundary is
-				// never inside a word, so the two agree, and this allocates nothing.
-				let text = tag
-					.and_then(|tag| sidecar.segments.get(&segment.id)?.get(tag))
-					.map_or(segment.source.as_str(), |translation| translation.text.as_str());
-				total += crate::words::count(text);
-			}
-			if let Some(entry) = words.get_mut(view.code) {
+		for (code, total) in &per_view {
+			if let Some(entry) = words.get_mut(code.as_str()) {
 				*entry += total;
 			}
 		}
+	}
+
+	// The source view's total, replaced rather than summed. `words_per_view` gives `mw` the
+	// source text, which is right for the article page -- that view serves the source, and a
+	// reader of it sees exactly those words. It is wrong here, where every article is added
+	// together: five in Chinese and one in English summed is Han characters plus English words,
+	// not a quantity of anything. This card is worded in English, so it carries the English
+	// figure. See the note on `Census`.
+	if let Some(english) = words.get(SOURCE_VIEW_COUNTED_AS_CODE).copied()
+		&& let Some(entry) = words.get_mut(locale::SOURCE)
+	{
+		*entry = english;
 	}
 
 	Ok(Census { articles: counted, words, languages: locale::VIEWS.len() })

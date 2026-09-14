@@ -208,7 +208,7 @@
 		meta,
 		phoneTitle,
 		toc,
-		chars,
+		words,
 		summary,
 		locale,
 		notes = [],
@@ -221,7 +221,8 @@
 		 *  does not. Decided in the build; see $lib/content/build/width.ts. */
 		phoneTitle: string;
 		toc: TocEntry[];
-		chars: number;
+		/** How long the article is in the view being read. Body prose only -- see ArticleView. */
+		words: number;
 		/** The selected locale, or its English fallback. Absent only when neither exists. */
 		summary?: ArticleSummary;
 		locale: ArticleLocale;
@@ -455,11 +456,11 @@
 					<time class="selectable" datetime={meta.created}>{date}</time>
 					<span
 						class="inline-flex items-center gap-1"
-						title="{chars} characters"
-						aria-label="{chars.toLocaleString('en-US')} characters"
+						title="{words.toLocaleString('en-US')} words"
+						aria-label="{words.toLocaleString('en-US')} words"
 					>
 						<Type class="size-3.5" aria-hidden="true" />
-						{formatCompact(chars)}
+						{formatCompact(words)}
 					</span>
 					<!-- Absent until the count arrives, rather than held open at a guessed width.
 					     The server cannot know this number -- see spec/engagement.md -- and the

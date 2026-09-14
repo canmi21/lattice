@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const article = getArticle(params.path);
 	if (!article) error(404, 'Not found');
 	const view = article.views[locals.locale?.code ?? 'mw'];
-	const chars = view.text.replace(/\s/g, '').length;
 	return {
 		// The article's own path, not the requested one: it is what the read counter is keyed
 		// by on the API side, and the two lists have to name the same thing.
@@ -21,7 +20,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		toc: view.toc,
 		blocks: view.blocks,
 		summary: view.summary,
-		chars,
+		words: view.words,
 		locale: {
 			code: view.code,
 			languageTag: view.languageTag,

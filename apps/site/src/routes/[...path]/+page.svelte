@@ -18,7 +18,7 @@
 	meta={data.meta}
 	phoneTitle={data.phoneTitle}
 	toc={data.toc}
-	chars={data.chars}
+	words={data.words}
 	summary={data.summary}
 	locale={data.locale}
 	{notes}

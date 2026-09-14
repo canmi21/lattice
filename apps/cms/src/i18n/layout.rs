@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 pub const FILE: &str = "data/build/segments.json";
-pub const VERSION: u8 = 4;
+pub const VERSION: u8 = 5;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Span {
@@ -31,6 +31,19 @@ pub struct Span {
 pub struct Layout {
 	pub version: u8,
 	pub articles: BTreeMap<String, Vec<Span>>,
+	/// How long each article is, per view, in words -- the figure the article page draws beside
+	/// its date and the home card sums.
+	///
+	/// Recorded here rather than counted by the site because the rule has to be one rule. What a
+	/// word is across scripts took five libraries and a table of cases to settle (see
+	/// [`crate::words`]), and a second implementation in TypeScript would be a second answer --
+	/// which is exactly how the page came to disagree with the card in the first place. The site
+	/// already requires this file and already reads it per article, so this costs it a lookup.
+	///
+	/// Keyed by view code, the same nine `cms og` draws. A separate map rather than a field on
+	/// each article's entry, so the array of spans keeps the shape every existing reader expects.
+	#[serde(default)]
+	pub words: BTreeMap<String, BTreeMap<String, usize>>,
 }
 
 pub fn path_for(root: &Path) -> PathBuf {
@@ -40,14 +53,16 @@ pub fn path_for(root: &Path) -> PathBuf {
 pub fn build(root: &Path) -> std::io::Result<Layout> {
 	let contents = root.join("contents");
 	let mut articles = BTreeMap::new();
+	let mut words = BTreeMap::new();
 	for path in crate::refs::markdown_under(&contents)? {
 		let article = std::fs::read_to_string(&path)?;
 		let live = super::segment::translatable(&article).map_err(|error| {
 			std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{}: {error}", path.display()))
 		})?;
 		let sidecar_path = super::store::path_for(&path);
-		if let Some(sidecar) = super::store::load_checked(&sidecar_path)? {
-			super::validate::sidecar(&sidecar_path, &live, &sidecar)?;
+		let sidecar = super::store::load_checked(&sidecar_path)?;
+		if let Some(sidecar) = &sidecar {
+			super::validate::sidecar(&sidecar_path, &live, sidecar)?;
 		}
 		let relative = path
 			.strip_prefix(&contents)
@@ -86,9 +101,52 @@ pub fn build(root: &Path) -> std::io::Result<Layout> {
 				}
 			})
 			.collect();
+		words.insert(relative.clone(), words_per_view(&article, sidecar.as_ref()));
 		articles.insert(relative, spans);
 	}
-	Ok(Layout { version: VERSION, articles })
+	Ok(Layout { version: VERSION, articles, words })
+}
+
+/// The prose of one article counted once per view, in the language that view serves.
+///
+/// **Body prose and what is inside it, and nothing else.** A code block is not writing; neither is
+/// a directive, a thematic break, or any of the objects a directive stands for -- a picture's
+/// description, a linkcard's title, a diagram's caption, an embedded post. Those are components,
+/// and a reader counting the length of an article does not mean them. Inline code and quotations
+/// stay: they are inside the sentence, and a word processor would count them. What decides it is
+/// `segment::Kind::translatable` over body spans, which already answers this question for the
+/// translator, so there is no second list of what counts.
+///
+/// A view with no translation for a segment gets the source, because that is what the page
+/// renders there.
+pub fn words_per_view(
+	article: &str,
+	sidecar: Option<&super::store::Sidecar>,
+) -> BTreeMap<String, usize> {
+	let Ok(segments) = super::segment::split(article) else {
+		return BTreeMap::new();
+	};
+	let mut counts = BTreeMap::new();
+	for view in &crate::opengraph::locale::VIEWS {
+		// `mw` has no tag and counts the source, because the source is what that view serves. Its
+		// number is a hybrid of Han characters and Latin words, which is coherent for one article
+		// -- the incoherence only appears when articles in different languages are summed, and
+		// that is the home card's problem rather than this file's. `opengraph::census` makes its
+		// own choice there, and says why.
+		let tag = view.tag;
+		let mut total = 0;
+		for segment in &segments {
+			if segment.region != super::segment::Region::Body || !segment.kind.translatable() {
+				continue;
+			}
+			let text = tag
+				.and_then(|tag| sidecar?.segments.get(&segment.id)?.get(tag))
+				.map_or(segment.source.as_str(), |translation| translation.text.as_str());
+			total += crate::words::count(text);
+		}
+		counts.insert(view.code.to_owned(), total);
+	}
+	counts
 }
 
 /// FNV-1a over the exact source bytes. This detects stale offsets; it is not an address.

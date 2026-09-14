@@ -111,7 +111,7 @@ it('falls back the whole view when any live body translation is missing', () => 
 				second: { 'en-US': { text: 'Second translated.' } },
 			},
 		},
-		{ version: 3, articles: { 'example.md': spans } },
+		{ version: 3, articles: { 'example.md': spans }, words: {} },
 	);
 
 	expect(result.translationAvailable.de).toBe(false);
