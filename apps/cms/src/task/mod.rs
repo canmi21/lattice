@@ -151,6 +151,16 @@ pub const CATALOG: &[Spec] = &[
 		after: &["image"],
 	},
 	Spec {
+		id: "clip",
+		name: "Describe clips",
+		detail: "Ask a model to describe every video, from stills this repository samples.",
+		paid: true,
+		items: Items::Many("content id"),
+		reads: &[Record::Articles, Record::Media],
+		writes: &[Record::Media],
+		after: &[],
+	},
+	Spec {
 		id: "tag",
 		name: "Classify images",
 		detail: "Give each picture a category and tags.",
@@ -208,7 +218,7 @@ pub const CATALOG: &[Spec] = &[
 		items: Items::Many("record and locale"),
 		reads: &[Record::Media, Record::Tags, Record::Summaries, Record::Diagrams],
 		writes: &[Record::Media, Record::Tags, Record::Summaries, Record::Diagrams],
-		after: &["alt", "tag", "summary", "diagram"],
+		after: &["alt", "clip", "tag", "summary", "diagram"],
 	},
 	Spec {
 		id: "embed",

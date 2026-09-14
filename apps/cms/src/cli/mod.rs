@@ -6,8 +6,8 @@
 mod args;
 
 use crate::{
-	alt, articles, captions, check, classify, derived, diagram, embed, favicon, gc, i18n, image,
-	licenses, locale, opengraph, overview, paths, port, refs, summary, task, twitter, video,
+	alt, articles, captions, check, classify, clip, derived, diagram, embed, favicon, gc, i18n,
+	image, licenses, locale, opengraph, overview, paths, port, refs, summary, task, twitter, video,
 };
 use anyhow::Context as _;
 use args::{Cli, Command, ModelArgs, TwitterCommand};
@@ -64,6 +64,7 @@ fn dispatch(command: Command) -> anyhow::Result<ExitCode> {
 		Command::Og { force } => render_cards(force),
 		Command::Alt { model, force, limit } => describe_images(&model, force, limit),
 		Command::Tag { model, force, limit } => classify_images(&model, force, limit),
+		Command::Clip { model, force, limit } => describe_clips(&model, force, limit),
 		Command::Diagram { model, force, limit } => describe_diagrams(&model, force, limit),
 		Command::Summary { model, force, limit } => summarise_articles(&model, force, limit),
 		Command::I18n { model, force, check, frontmatter, limit, parallel, locale, articles } => {
@@ -508,6 +509,83 @@ fn describe_images(
 		);
 	}
 	if outcome.failed.is_empty() { Ok(ExitCode::SUCCESS) } else { Ok(ExitCode::FAILURE) }
+}
+
+/// `cms clip`: the same question as `cms alt`, asked about a series of stills.
+///
+/// A separate command rather than a flag, because it is a different question: the frames, the
+/// budget and the guard against answering from context are all specific to a clip. See
+/// spec/architecture/video.md.
+fn describe_clips(
+	model: &ModelArgs,
+	force: bool,
+	limit: Option<usize>,
+) -> anyhow::Result<ExitCode> {
+	let runner = model.runner(i18n::runner::DEFAULT_VISION);
+	let model_override = model.overrides(runner).map_err(anyhow::Error::msg)?;
+
+	let root = paths::repo_root()?;
+	let originals = root.join("data").join("video");
+	let articles = root.join("contents");
+	let merged = match image::run::load(&root.join(image::run::MERGED)) {
+		Ok(merged) => merged,
+		Err(error) => {
+			eprintln!("could not read {}: {error}", image::run::MERGED);
+			return Ok(ExitCode::FAILURE);
+		}
+	};
+
+	let runtime = tokio::runtime::Runtime::new().context("could not start a runtime")?;
+	let outcome = match runtime.block_on(clip::run(clip::Options {
+		repository: &root,
+		runner,
+		model_override,
+		merged: &merged,
+		originals: &originals,
+		articles: &articles,
+		force,
+		limit,
+		shell: task::registry::Shell::Cli,
+		sink: Box::new(task::progress::Terminal::new()),
+	})) {
+		Ok(outcome) => outcome,
+		Err(error) => {
+			eprintln!("{error}");
+			return Ok(ExitCode::FAILURE);
+		}
+	};
+
+	for (cid, error) in &outcome.failed {
+		eprintln!("fail  {cid}: {error}");
+	}
+	// Reported rather than fatal, as it is for a picture: a clip whose original is gone still
+	// plays, it just cannot be sampled again. A rung would decode, but the frames are read for
+	// text and a re-encode of a re-encode is not what to read it from.
+	for cid in &outcome.unreadable {
+		eprintln!("warn  no original on hand for {cid}");
+	}
+	if outcome.claimed_elsewhere > 0 {
+		eprintln!("note  {} left to a run already describing them", outcome.claimed_elsewhere);
+	}
+
+	println!(
+		"{} described, {} already had one, {} left by --limit, {} failed",
+		outcome.described,
+		outcome.skipped,
+		outcome.deferred,
+		outcome.failed.len()
+	);
+	if outcome.described > 0 {
+		let spent = outcome.spent;
+		println!(
+			"{} words asked for, {} tokens in, {} out, ${:.4}",
+			outcome.words,
+			spent.total_in(),
+			spent.output,
+			spent.usd
+		);
+	}
+	Ok(if outcome.failed.is_empty() { ExitCode::SUCCESS } else { ExitCode::FAILURE })
 }
 
 /// Translate every article segment that has no translation yet.

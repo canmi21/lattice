@@ -5,6 +5,7 @@ mod alt;
 mod captions;
 mod check;
 mod classify;
+mod clip;
 mod diagram;
 mod embed;
 mod extension;

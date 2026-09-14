@@ -65,12 +65,6 @@ pub struct Frames {
 	pub frames: Vec<Frame>,
 }
 
-impl Frames {
-	pub fn directory(&self) -> &Path {
-		&self.directory
-	}
-}
-
 impl Drop for Frames {
 	fn drop(&mut self) {
 		let _ = std::fs::remove_dir_all(&self.directory);

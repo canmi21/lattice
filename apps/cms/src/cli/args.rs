@@ -201,6 +201,18 @@ pub enum Command {
 		limit: Option<usize>,
 	},
 
+	/// Describe each clip from frames this repository samples
+	Clip {
+		#[command(flatten)]
+		model: ModelArgs,
+		/// Redo what is already recorded rather than skipping it
+		#[arg(long)]
+		force: bool,
+		/// Stop after this many, so a prompt can be tried cheaply
+		#[arg(long, value_name = "N", value_parser = positive)]
+		limit: Option<usize>,
+	},
+
 	/// Describe each diagram an article carries as source
 	Diagram {
 		#[command(flatten)]
@@ -449,9 +461,10 @@ mod tests {
 	fn an_unknown_track_kind_names_the_three_that_exist() {
 		// The wrong one here is silently wrong for the reader it exists for: someone deaf takes a
 		// track labelled captions, gets subtitles, and is told nothing.
-		let error = Cli::try_parse_from(["cms", "captions", "clip", "a.vtt", "--language", "en", "--kind", "cc"])
-			.expect_err("an unknown kind is refused")
-			.to_string();
+		let error =
+			Cli::try_parse_from(["cms", "captions", "clip", "a.vtt", "--language", "en", "--kind", "cc"])
+				.expect_err("an unknown kind is refused")
+				.to_string();
 		assert!(error.contains("descriptions"), "the error lists what is accepted");
 	}
 

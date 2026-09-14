@@ -55,17 +55,17 @@ use crate::image::manifest::Caption;
 use crate::image::{cid, store};
 use std::path::Path;
 
-/// What a caption track is here, in the two spellings something asks for.
+/// What a caption track is, in the one spelling a record carries.
 ///
 /// A caption is only ever WebVTT -- a `<track>` element takes one format and there is no second
 /// one to choose between -- which is why `store::caption_path` fixes the extension itself rather
 /// than taking an argument that could only ever hold one value.
 ///
-/// The consequence is that the extension is spelled in two files with nothing between them but
-/// agreement: `.vtt` in the path the store builds, `text/vtt` in the record written here. So
-/// `EXTENSION` is the claim this module makes about the other one, and the test at the bottom is
-/// what checks it rather than a literal that would restate the store's own line.
-const EXTENSION: &str = "vtt";
+/// The consequence is that the format is spelled in two files with nothing between them but
+/// agreement: `.vtt` in the path the store builds, `text/vtt` in the record written here. The
+/// test at the bottom is what holds the two halves together; `EXTENSION` beside it is the claim
+/// this module makes about the store, and it lives there because nothing outside a test has any
+/// reason to name it.
 const MIME: &str = "text/vtt";
 
 /// The range of the original the clip was cut from, in seconds.
@@ -436,6 +436,9 @@ fn stamp(millis: u64) -> String {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	/// What `store::caption_path` must end a stored track with. See the note beside `MIME`.
+	const EXTENSION: &str = "vtt";
 
 	/// The shape of the track this was built against, cut down to what each test needs: an
 	/// `X-TIMESTAMP-MAP` header, cue settings on every line, a sound written down, and the cue
