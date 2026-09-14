@@ -84,8 +84,10 @@ where
 	I: IntoIterator<Item = S>,
 	S: AsRef<OsStr>,
 {
-	let output =
-		Command::new(name).args(arguments).output().map_err(|source| Error::Spawn { tool: name, source })?;
+	let output = Command::new(name)
+		.args(arguments)
+		.output()
+		.map_err(|source| Error::Spawn { tool: name, source })?;
 	if !output.status.success() {
 		return Err(Error::Tool {
 			tool: name,
@@ -162,13 +164,16 @@ pub fn derive_for(
 			variants: rungs
 				.iter()
 				.map(|rung| {
-					(rung.cid.clone(), VideoVariant {
-						mime: encode::MIME.to_owned(),
-						width: rung.width,
-						height: rung.height,
-						bytes: rung.bytes.len() as u64,
-						codec: rung.codec.clone(),
-					})
+					(
+						rung.cid.clone(),
+						VideoVariant {
+							mime: encode::MIME.to_owned(),
+							width: rung.width,
+							height: rung.height,
+							bytes: rung.bytes.len() as u64,
+							codec: rung.codec.clone(),
+						},
+					)
 				})
 				.collect(),
 			// Carried over for the same reason the timestamp is, and it matters more: a track was
@@ -213,8 +218,7 @@ pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
 
 	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
 	let json = serde_json::to_string_pretty(&document).map_err(Error::Serialize)?;
-	store::write(&store::meta_path(public, &prepared.cid), json.as_bytes())
-		.map_err(Error::Write)
+	store::write(&store::meta_path(public, &prepared.cid), json.as_bytes()).map_err(Error::Write)
 }
 
 /// Derive and publish one clip, preserving its first-seen timestamp when it already exists.

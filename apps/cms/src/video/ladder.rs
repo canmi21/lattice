@@ -49,7 +49,11 @@ pub fn ladder(source: Size) -> Vec<Size> {
 		// 720p and publish nothing at the size the pivot exists to guarantee.
 		vec![PIVOT]
 	} else {
-		TIERS.into_iter().filter(|&tier| tier < height).max().map_or_else(|| vec![height], |below| vec![below])
+		TIERS
+			.into_iter()
+			.filter(|&tier| tier < height)
+			.max()
+			.map_or_else(|| vec![height], |below| vec![below])
 	};
 	tiers.into_iter().map(|tier| scaled_to_height(source, tier)).collect()
 }
