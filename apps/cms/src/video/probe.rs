@@ -7,6 +7,7 @@
 
 use super::{Error, tool};
 use serde::Deserialize;
+use std::ffi::OsStr;
 use std::path::Path;
 
 /// Everything the record needs about the original, and nothing derived from it.
@@ -152,8 +153,8 @@ fn count(value: Option<&str>) -> Option<u64> {
 }
 
 fn read(arguments: &[&str], path: &Path) -> Result<Output, Error> {
-	let mut all: Vec<&std::ffi::OsStr> = vec!["-v".as_ref(), "error".as_ref(), "-of".as_ref(), "json".as_ref()];
-	all.extend(arguments.iter().map(AsRef::as_ref));
+	let mut all: Vec<&OsStr> = ["-v", "error", "-of", "json"].map(OsStr::new).to_vec();
+	all.extend(arguments.iter().copied().map(OsStr::new));
 	all.push(path.as_os_str());
 	serde_json::from_slice(&tool("ffprobe", all)?).map_err(Error::Unreadable)
 }

@@ -75,14 +75,16 @@ pub fn rung(
 		arguments.push(format!("scale={}:{}:flags=lanczos", target.width, target.height).into());
 	}
 
-	let keyframes = (KEYFRAME_SECONDS * frame_rate).round().max(1.0) as u64;
+	let crf = CRF.to_string();
+	let preset = PRESET.to_string();
+	let keyframes = ((KEYFRAME_SECONDS * frame_rate).round().max(1.0) as u64).to_string();
 	for argument in [
 		"-c:v",
 		ENCODER,
 		"-crf",
-		&CRF.to_string(),
+		crf.as_str(),
 		"-preset",
-		&PRESET.to_string(),
+		preset.as_str(),
 		"-pix_fmt",
 		"yuv420p",
 		// Pinned so the codec string's tier is known by construction rather than read back from
@@ -90,7 +92,7 @@ pub fn rung(
 		"-svtav1-params",
 		"tier=0",
 		"-g",
-		&keyframes.to_string(),
+		keyframes.as_str(),
 	] {
 		arguments.push(argument.into());
 	}
