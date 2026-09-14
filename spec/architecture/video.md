@@ -36,7 +36,17 @@ difference to a reader than any codec choice, and it is not a quality decision.
 
 ## What a device without a hardware decoder gets
 
-Three branches, decided once at hydration:
+**Today: a notice, and nothing else.** The `<video>` fails to decode, the poster frame stays where
+it is, and the reader is told the format is not supported with a link to the source page. That is
+the whole of what is built.
+
+The three-branch arrangement below is decided rather than speculative, and it is deferred. It is
+written here rather than in a ticket because the reason it is not built is a judgement about
+priority, and a judgement that leaves no trace gets re-argued from nothing.
+
+### Decided, not built
+
+Detection is one line and reliable, so the branch is cheap to add whenever it is wanted:
 
 ```js
 const av1 = MediaSource.isTypeSupported('video/mp4; codecs="av01.0.05M.08"');
@@ -49,21 +59,28 @@ decode and encode pass to save an expense that is already near zero.
 
 **No hardware decode, but WebCodecs.** Decode ahead of time rather than in real time. Software AV1
 decode does not hold 30fps on the devices that need it, and a stuttering picture is a worse failure
-than a wait: so the reader gets a progress bar, the clip is decoded with a WASM decoder and
-re-encoded through the platform's own H.264 encoder -- the expensive half is hardware -- and the
-result is cached against the asset's content id so the wait happens once per device rather than once
-per visit. Frames cannot be kept decoded: one 1080p frame is 8.3MB and twenty-five seconds is 6.2GB,
-so the pipeline is per-frame, decode then encode then discard.
+than a wait: the reader gets a progress bar, the clip is decoded with a WASM decoder and re-encoded
+through the platform's own H.264 encoder -- the expensive half is hardware -- and the result is
+cached against the asset's content id, so the wait happens once per device rather than once per
+visit. Frames cannot be kept decoded: one 1080p frame is 8.3MB and twenty-five seconds is 6.2GB, so
+the pipeline is per-frame, decode then encode then discard. The progress bar's denominator is why
+the manifest stores a frame count.
 
-**Neither.** The poster frame and a link to the source page. Small, and it has to exist: AV1 at
-79.26% and WebCodecs at 89.83% are not nested, so there are readers with neither.
+**Neither.** The poster frame and a link to the source page, which is what ships today for both
+non-native cases.
 
 **The choice to publish one encoding rather than two is deliberate and it is a storage decision.**
-An H.264 rendition beside the AV1 one would cost about 3.5MB per clip and remove the second and
-third branches entirely, and it was declined in favour of not storing it. What that spends is the
-reader's battery and about forty seconds, once, on a minority of devices. Revisit it if this site
-ever carries many long videos rather than a few short excerpts, because the storage argument is the
-whole of the case and it scales against the decision.
+An H.264 rendition beside the AV1 one would cost about 3.5MB per clip and remove both branches
+entirely, and it was declined in favour of not storing it. What that spends is the reader's battery
+and about forty seconds, once, on a minority of devices. Revisit it if this site ever carries many
+long videos rather than a few short excerpts, because the storage argument is the whole of the case
+and it scales against the decision.
+
+**What holds the deferral in place** is that AV1 is 79.26% with hardware decoders behind most of
+the rest, the videos here are short excerpts rather than the substance of an article, and the
+branch costs a WASM decoder, a JS muxer, a cache layer and a progress UI. It stops holding if a
+video ever carries an argument a reader must see, or if the measurement below comes back saying the
+wait is short.
 
 ## The ladder, and the measurement that sets it
 
@@ -232,10 +249,10 @@ of the instruction, and it is the one part of this prompt that is not negotiable
 ## Open
 
 **What a software decoder actually manages, measured on a device that needs one.** It is the only
-number in this file nobody has taken, and it decides two things at once: how long the progress bar
-is, and whether a source that publishes a single 1080p rung leaves that path with something it
-cannot finish. Estimating it would be worthless. Measure it on hardware without an AV1 decoder as
-soon as there is a component to run.
+number in this file nobody has taken, and it decides two things at once: how long a progress bar
+would be, and whether a source that publishes a single 1080p rung would leave that path with
+something it cannot finish. It is not blocking while the branch is unbuilt, and it is the first
+thing to measure on the day it is. Estimating it would be worthless.
 
 **Whether the captions cut for an excerpt are shifted at import or at render.** The cues that
 overlap a window are a filter and a subtraction, and either place works. Storing them already
