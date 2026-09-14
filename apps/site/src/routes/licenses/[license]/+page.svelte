@@ -129,7 +129,10 @@
 					href={data.spdxHref}
 					target="_blank"
 					rel="noopener"
-					class="quiet-control {stylex.attrs(styles.actionLink).class}"
+					class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+						surfaces.quietControl,
+						styles.actionLink,
+					).class}"
 				>
 					<span class="focus-link-inner inline-flex items-center gap-1.5">
 						<ExternalLink class="size-3.5" aria-hidden="true" />

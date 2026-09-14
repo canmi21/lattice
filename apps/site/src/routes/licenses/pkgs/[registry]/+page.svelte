@@ -44,7 +44,7 @@
 			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
-		/** The link out to the registry itself. `quiet-control` draws the rest of it. */
+		/** The link out to the registry itself. `surfaces.quietControl` draws the rest of it. */
 		actionLink: {
 			fontSize: text.px15,
 		},
@@ -121,7 +121,10 @@
 					href={data.registry.href}
 					target="_blank"
 					rel="noopener"
-					class="quiet-control {stylex.attrs(styles.actionLink).class}"
+					class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+						surfaces.quietControl,
+						styles.actionLink,
+					).class}"
 				>
 					<span class="focus-link-inner inline-flex items-center gap-1.5">
 						<ExternalLink class="size-3.5" aria-hidden="true" />

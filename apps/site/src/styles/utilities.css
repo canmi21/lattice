@@ -31,29 +31,6 @@
 		user-select: text;
 	}
 
-	.quiet-control {
-		display: inline-flex;
-		margin-inline: -0.25rem;
-		cursor: pointer;
-		align-items: center;
-		border-radius: 0.125rem;
-		padding: 0.125rem 0.25rem;
-		color: var(--color-text-soft);
-		transition:
-			color 200ms,
-			background-color 200ms;
-	}
-
-	.quiet-control:hover,
-	.quiet-control:focus-visible {
-		background-color: var(--color-paper-hover);
-		color: var(--color-text-strong);
-	}
-
-	.quiet-control:focus-visible {
-		outline: none;
-	}
-
 	:where(.focus-ring, .focus-ring-inner, .focus-ring-within) {
 		border-radius: 0.25rem;
 	}

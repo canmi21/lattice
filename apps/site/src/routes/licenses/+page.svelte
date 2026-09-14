@@ -1,7 +1,16 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, easing, family, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
+	import {
+		border,
+		duration,
+		easing,
+		family,
+		line,
+		radius,
+		text,
+		transition,
+	} from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the licence directory. Every colour is the token variable `libs/tokens`
@@ -206,7 +215,13 @@
 		</p>
 
 		<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">
-			<a href="/licenses/pkgs" class="quiet-control {stylex.attrs(styles.actionLink).class}">
+			<a
+				href="/licenses/pkgs"
+				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+					surfaces.quietControl,
+					styles.actionLink,
+				).class}"
+			>
 				<span class="focus-link-inner inline-flex items-center gap-1.5">
 					<FolderOpen class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.packages']({}, { locale })}</span>
@@ -215,7 +230,10 @@
 			<a
 				href="/licenses.txt"
 				data-sveltekit-reload
-				class="quiet-control {stylex.attrs(styles.actionLink).class}"
+				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+					surfaces.quietControl,
+					styles.actionLink,
+				).class}"
 			>
 				<span class="focus-link-inner inline-flex items-center gap-1.5">
 					<FileText class="size-3.5" aria-hidden="true" />
@@ -225,7 +243,10 @@
 			<a
 				href="/licenses/full.txt"
 				data-sveltekit-reload
-				class="quiet-control {stylex.attrs(styles.actionLink).class}"
+				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+					surfaces.quietControl,
+					styles.actionLink,
+				).class}"
 			>
 				<span class="focus-link-inner inline-flex items-center gap-1.5">
 					<Scale class="size-3.5" aria-hidden="true" />

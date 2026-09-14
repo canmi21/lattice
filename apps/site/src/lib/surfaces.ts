@@ -120,6 +120,67 @@ export const surfaces = stylex.create({
 	},
 
 	/**
+	 * The compact icon-and-label control a metadata row is made of: the article's summary
+	 * disclosure, the language switcher's trigger, the theme toggle and the four licence route
+	 * actions. Soft ink on no ground at rest, strong ink on `paper-hover` under a pointer or a
+	 * keyboard. [styling.md](../../../spec/styling.md) argues the treatment.
+	 *
+	 * It was `.quiet-control` in `utilities.css` until it stopped being able to hold its own
+	 * users, and that is the argument for a recipe rather than a class. A class cannot be
+	 * specialised: a control wanting this surface with one difference has to win a cascade fight
+	 * whose outcome depends on which plugin appends its stylesheet last, so the controls that
+	 * needed a variant left the name behind and wrote the declarations out. Seven kept the class
+	 * and added a font size; the ones that differed did not. A recipe composes, so the name
+	 * survives being specialised.
+	 *
+	 * **The class was a mixed rule and only half of it is here.** `display`, `align-items`, the
+	 * negative inline margin and the padding are layout under the test in
+	 * spec/architecture/css.md, and they are Tailwind utilities on each of the seven call sites:
+	 * `-mx-1 inline-flex items-center px-1 py-0.5`. A component composing this surface has to
+	 * carry them too, and nothing checks that it did.
+	 *
+	 * `:hover` is bare, with no `(hover: hover)` around it, because a bare one is what the class
+	 * wrote. Sameness first; see spec/architecture/css.md.
+	 *
+	 * Two properties in the transition's list, so every other list is two long, for the reason
+	 * support.svelte's row states at length: a transition's lists are read per property, and one
+	 * value against two is not the same computed style as two. `transition: color 200ms,
+	 * background-color 200ms` gave each of its two items the initial curve and the initial delay.
+	 *
+	 * The three outline longhands are the same reading of the same kind of shorthand. `outline:
+	 * none` returned the width and the colour to their initial values as well as the style, and
+	 * measured on a focused licence action they are `medium` and `currentcolor` rather than the
+	 * `0.125rem` and the accent that `:focus-visible` in the base layer declares. Writing only
+	 * the style would leave that ring's width and colour standing underneath a `none` -- nothing
+	 * drawn, and two computed properties changed. The ring itself belongs to the
+	 * `focus-link-inner` child, which draws it around the text and the icon rather than around
+	 * the padded hit area.
+	 */
+	quietControl: {
+		// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
+		// element is to a pointer.
+		cursor: 'pointer',
+		borderRadius: '0.125rem',
+		color: {
+			default: 'var(--color-text-soft)',
+			':hover': 'var(--color-text-strong)',
+			':focus-visible': 'var(--color-text-strong)',
+		},
+		backgroundColor: {
+			default: null,
+			':hover': 'var(--color-paper-hover)',
+			':focus-visible': 'var(--color-paper-hover)',
+		},
+		transitionProperty: 'color, background-color',
+		transitionDuration: '200ms, 200ms',
+		transitionTimingFunction: 'ease, ease',
+		transitionDelay: '0s, 0s',
+		outlineStyle: { default: null, ':focus-visible': 'none' },
+		outlineWidth: { default: null, ':focus-visible': 'medium' },
+		outlineColor: { default: null, ':focus-visible': 'currentColor' },
+	},
+
+	/**
 	 * The interface's own type step: fourteen pixels with the line that step computes to.
 	 *
 	 * Six components take it -- a code block's title bar, a link card's title, the placeholder, a

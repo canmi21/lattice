@@ -1,7 +1,16 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, easing, family, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
+	import {
+		border,
+		duration,
+		easing,
+		family,
+		line,
+		radius,
+		text,
+		transition,
+	} from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -256,7 +265,10 @@
 				<a
 					href={data.textHref}
 					data-sveltekit-reload
-					class="quiet-control {stylex.attrs(styles.noticeLink).class}"
+					class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+						surfaces.quietControl,
+						styles.noticeLink,
+					).class}"
 				>
 					<span class="focus-link-inner inline-flex items-center gap-1.5">
 						<FileText class="size-3.5" aria-hidden="true" />
@@ -277,10 +289,7 @@
 		-->
 		<div class="mt-16 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4">
 			<section aria-labelledby="package-metadata" class="col-span-2 grid grid-cols-subgrid">
-				<h2
-					id="package-metadata"
-					class="col-span-2 mb-4 {stylex.attrs(surfaces.heading).class}"
-				>
+				<h2 id="package-metadata" class="col-span-2 mb-4 {stylex.attrs(surfaces.heading).class}">
 					{m['licenses.package']({}, { locale })}
 				</h2>
 				<dl class="col-span-2 grid grid-cols-subgrid gap-y-3 {stylex.attrs(styles.records).class}">

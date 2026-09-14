@@ -60,28 +60,43 @@
 			color: 'var(--color-text-soft)',
 		},
 		/**
-		 * The disclosure while there is nothing to disclose. All four values are conditional on
-		 * `:disabled` and two of them on the pointer being over it as well -- which Tailwind
-		 * already wrote as one conjunction rather than as two conditions to be ranked, so there
-		 * is nothing here for the layers to disagree about.
+		 * The disclosure while there is nothing to disclose, composed onto the surface it draws
+		 * the rest of the time.
 		 *
-		 * `quiet-control` draws the resting and hovered surface from `utilities.css`, inside
-		 * `@layer components`. Tailwind's `utilities` beat that layer and so do StyleX's, so
-		 * these still win the pair they are here to neutralise.
+		 * The disabled half is what this style is for: an `opacity` and a `cursor` on
+		 * `:disabled`, and on a pointer that can actually hover, the surface's own hover answer
+		 * taken back. Tailwind already wrote that last pair as one conjunction rather than as two
+		 * conditions to be ranked, so there is nothing here for the layers to disagree about.
+		 *
+		 * The rest of it restates `surfaces.quietControl`'s `cursor`, `backgroundColor` and
+		 * `color` unchanged, and that is not duplication to be tidied away. **The merge unit is
+		 * the property**: a second object naming a property replaces the first's whole value for
+		 * it, conditions included, so a `cursor` carrying only `:disabled` would take the resting
+		 * `pointer` off the control -- and the stylesheet would still hold both rules, so nothing
+		 * that reads the stylesheet could tell. See spec/architecture/css.md.
+		 *
+		 * The suppression still outranks the hover it suppresses. StyleX doubles the class on a
+		 * rule this deep, `.x.x:disabled:hover` inside `@media (hover: hover)` against a plain
+		 * `.x:hover`, so it wins on specificity inside one layer rather than by being written
+		 * second. Measured through the build's own Babel plugin at the pinned version.
 		 */
 		summaryTrigger: {
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
 			// the element is to a pointer.
-			cursor: { default: null, ':disabled': 'not-allowed' },
+			cursor: { default: 'pointer', ':disabled': 'not-allowed' },
 			opacity: { default: null, ':disabled': 0.45 },
 			backgroundColor: {
 				default: null,
+				':hover': 'var(--color-paper-hover)',
+				':focus-visible': 'var(--color-paper-hover)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
 				// variant does and what keeps the suppression from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':disabled:hover': 'transparent' },
 			},
 			color: {
-				default: null,
+				default: 'var(--color-text-soft)',
+				':hover': 'var(--color-text-strong)',
+				':focus-visible': 'var(--color-text-strong)',
 				'@media (hover: hover)': {
 					default: null,
 					':disabled:hover': 'var(--color-text-soft)',
@@ -478,7 +493,10 @@
 						onclick={() => {
 							if (summary) summaryOpen = !summaryOpen;
 						}}
-						class="quiet-control {stylex.attrs(styles.summaryTrigger).class}"
+						class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+							surfaces.quietControl,
+							styles.summaryTrigger,
+						).class}"
 					>
 						<span class="focus-link-inner inline-flex items-center gap-1">
 							<Sparkles class="size-3.5" aria-hidden="true" />
@@ -552,11 +570,7 @@
 			<Footnotes {notes} locale={locale.code} />
 			<!-- Closer than the article's own gap: the notes are small, quiet apparatus, and the
 			     distance that reads as a pause after prose reads as a hole after them. -->
-			<Newsletter
-				offer
-				locale={locale.code}
-				class="mt-8 pt-12 {stylex.attrs(styles.tail).class}"
-			/>
+			<Newsletter offer locale={locale.code} class="mt-8 pt-12 {stylex.attrs(styles.tail).class}" />
 		{:else}
 			<Newsletter
 				offer

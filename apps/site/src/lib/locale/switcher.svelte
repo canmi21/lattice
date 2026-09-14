@@ -254,7 +254,7 @@
 >
 	<DropdownMenu.Trigger
 		aria-label={m['language.switcher']({ name: label }, { locale: code })}
-		class="quiet-control"
+		class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(surfaces.quietControl).class}"
 	>
 		<span class="focus-link-inner inline-flex items-center gap-1">
 			<CurrentMark class={markSize} aria-hidden="true" />

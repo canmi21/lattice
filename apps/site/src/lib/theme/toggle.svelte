@@ -1,3 +1,8 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
+</script>
+
 <script lang="ts">
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
@@ -55,7 +60,7 @@
 	onclick={toggle}
 	aria-label={m['theme.switch']({}, { locale })}
 	aria-pressed={theme === 'dark'}
-	class="quiet-control"
+	class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(surfaces.quietControl).class}"
 >
 	<span class="dial focus-link-inner" class:turning={pressed}>
 		<Sun class="size-3.5" data-shown={theme === 'light'} aria-hidden="true" />
