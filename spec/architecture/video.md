@@ -226,10 +226,27 @@ apart:
 | 20m | 167 | 21 |
 | cap | 200 | 25 |
 
-`words = clamp(60 * log10(1 + seconds / 2), 20, 200)`, and `frames = clamp(words / 8, 4, 25)`. The
-cap is the part that matters; the curve only reaches it smoothly. **The shift from detailed to
-overall is not asked for; it is what a budget does.** Twenty words about two seconds describes what
-is on the screen, and two hundred about twenty minutes cannot be anything but a summary.
+`words = clamp(60 * log10(1 + seconds / 2), 20, 200)`, then `frames = clamp(words / 8, 4, 25)` from
+the **rounded** word count -- 25s gives 67.8 words raw, and 67.8/8 rounds to 8 where 68/8 rounds to
+9. The table is what a person reads, so the formula follows it.
+
+**The frame count is not a budget. It is a sampling probability for short events, and that is why
+the ratio is a floor rather than a ceiling.** Eight frames over eighteen seconds is one every 2.57
+seconds, so anything on screen for less than that is a coin flip. Measured on the Mac Pro clip: the
+only sentence of English in the film, a title card, was caught by exactly one frame of the eight.
+One fewer and it is gone, and nothing reports the loss -- what comes back is a fluent description of
+a metal object, which is the same failure the prompt's two guards exist for, arriving through a
+third door.
+
+**The redundancy that looks like waste is the same mechanism and must not be trimmed.** On that clip
+frames 1 and 2 are both lattice close-ups and frames 5 and 6 both hold the same title card: four of
+eight carrying two pieces of information. That is what a fixed grid over uneven content produces,
+and the grid is what catches the one-off. Cutting the ratio to a twelfth drops the 18s clip to five
+frames at 4.5s spacing and the title card's odds from roughly 58% to 33%.
+
+Raising it is not free either: ten frames against the same sixty words is six words each, and a
+description written six words at a time is a list. Revisit only on the observable failure -- a
+description that comes back having missed a title card.
 
 Frames go out at 768 on the long edge. Enough to read text burnt into a picture -- one of these
 clips ends on a title card -- and far below what any of them is stored at.
@@ -246,6 +263,47 @@ tell it from one that watched. So the prompt says in as many words that the cont
 for reference and that what is wanted is what happens in the frames. The distinction is the whole
 of the instruction, and it is the one part of this prompt that is not negotiable.
 
+## A caption track is cut to the clip and shifted onto its timeline
+
+The cues that overlap an excerpt window are kept -- overlap, not "start inside", because a cue
+running from 2:16 to 2:20 is on screen when a clip starting at 2:18 begins -- and their timestamps
+are moved onto the clip's own timeline at import.
+
+**The two options were not symmetric and that is what decided it.** Storing them on the original's
+timeline reads like the conservative choice: the correspondence survives and every consumer
+subtracts. But one of the two consumers cannot subtract. A `<track>` element hands its source to the
+user agent's own text-track engine and there is no offset attribute and no hook between them, so
+"every consumer subtracts" means shipping a WebVTT parser to the browser to undo arithmetic this
+machine can do once -- and when that script does not run the reader does not lose captions, which
+announces itself, they get captions displaced by two minutes and eighteen seconds, which looks like
+working software.
+
+What is given up is that a stored track no longer says where in the original it came from. `excerpt`
+in `data/media.yaml` is that offset, so the original timing is an addition away, and the two must
+now agree -- change the window and the track is re-cut, exactly as the rungs are re-encoded.
+
+A cue straddling the window's start clamps to zero rather than being dropped: WebVTT timestamps are
+unsigned, so a negative one loses the cue or the file, and zero is the accurate statement anyway --
+the cue *is* on screen at the instant the clip begins. The end clamps to the clip's length for the
+inverse reason.
+
+## What is wired and what is not
+
+`cms video` imports: probe, ladder, encode, publish, poster, record, and the article's reference
+rewritten. `refs::scan` reads `::video`. `cms gc` keeps a clip's rungs, its tracks, its poster and
+the poster's own variants. The site renders a clip, chooses a rung at hydration and falls back to
+the poster and a notice. Captions cut and store. Frames sample and the prompt is written.
+
+**One command is missing: the one that asks for a clip's description.** `frames::prepare` returns
+the frames and the prompt, and `runner::ask_vision_many` can be handed a series, so both halves
+exist and neither is reachable from the CLI. It is not a branch in `cms alt`: that command hands a
+runner one file and asks it to look, which is what a picture is, and the note in `alt::pending`
+says so. It is a command of its own beside `cms diagram`, which is the same shape -- one operation,
+one subject, one prompt.
+
+Until it lands, a clip has no description, and the fallback is not nothing: the poster is an
+ordinary image asset and `cms alt` has already described it in eight languages.
+
 ## Open
 
 **What a software decoder actually manages, measured on a device that needs one.** It is the only
@@ -254,11 +312,11 @@ would be, and whether a source that publishes a single 1080p rung would leave th
 something it cannot finish. It is not blocking while the branch is unbuilt, and it is the first
 thing to measure on the day it is. Estimating it would be worthless.
 
-**Whether the captions cut for an excerpt are shifted at import or at render.** The cues that
-overlap a window are a filter and a subtraction, and either place works. Storing them already
-shifted makes the file self-contained and makes the stored track disagree with the original's
-timeline; storing them unshifted keeps the correspondence and makes every consumer do the same
-arithmetic.
+**What the sampling interval lets through.** Measured on the three real clips it is 2.57s, 3.43s
+and 3.12s between frames, and anything on screen for less than that can be missed silently. The
+observable failure is a description that comes back having missed a title card, and it is worth
+watching for on the first real batch. Same class as the software-decode number: nobody has taken it,
+and it decides whether the frames were enough.
 
 **Whether a caption track is part of what the runner is shown.** It is text, it is already cut to
 the excerpt, and for a clip whose substance is narration it carries more than the frames do. It is
