@@ -135,6 +135,13 @@ export type Block =
 			height?: number;
 			/** The poster image asset's own rendition, which is what `<video poster>` names. */
 			poster?: string;
+			/**
+			 * What every sample of this clip is multiplied by, so two clips play at one level.
+			 *
+			 * Computed in the build from the loudness and true peak apps/cms measured. `1` for a
+			 * clip nothing has measured, which plays as it always did. See `assets.ts`.
+			 */
+			gain?: number;
 			/** The poster's placeholder, painted under it while it arrives. */
 			preview?: string;
 			captions?: VideoTrack[];

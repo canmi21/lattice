@@ -55,6 +55,7 @@
 		captions,
 		description,
 		source,
+		gain = 1,
 		ratio = '16 / 9',
 		locale,
 	}: {
@@ -68,6 +69,8 @@
 		captions?: VideoTrack[];
 		description?: string;
 		source?: { url: string; label?: string };
+		/** What every sample is multiplied by, so two clips play at one level. See `assets.ts`. */
+		gain?: number;
 		/**
 		 * The shape of the window, as a CSS `aspect-ratio`. `picture.svelte` calls the same thing
 		 * `crop` and leaves it absent to mean "whatever the file is"; a clip defaults to 16:9
@@ -247,7 +250,7 @@
 	</video>
 
 		{#if driven && el && frame && support !== 'none'}
-			<Controls video={el} {frame} {rungs} {locale} />
+			<Controls video={el} {frame} {rungs} {gain} {locale} />
 		{/if}
 	</div>
 

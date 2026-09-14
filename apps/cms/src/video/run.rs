@@ -28,6 +28,8 @@ pub struct Outcome {
 	pub missing: Vec<String>,
 	/// Posters given a `cid://` source in `data/media.yaml` because they had none.
 	pub sourced: usize,
+	/// Clips already published that gained a loudness measurement without being re-encoded.
+	pub levelled: usize,
 }
 
 pub struct Options<'a> {
@@ -97,6 +99,13 @@ pub fn run(
 		}
 	}
 
+	// Loudness is measured in a pass of its own, over the manifest rather than over what is being
+	// encoded. `wanted` answers "what needs deriving", and a clip that is already published needs
+	// nothing derived -- which is exactly the clip this has to reach: the measurement is a fact
+	// about bytes that already exist, it changes none of them, and re-encoding a 4K clip to learn
+	// how loud it is would spend minutes producing pixels that are already correct.
+	outcome.levelled = level_all(&mut merged, originals);
+
 	merged.updated = manifest::now();
 	let json = serde_json::to_string_pretty(&merged)
 		.map_err(|error| std::io::Error::other(error.to_string()))?;
@@ -109,6 +118,42 @@ pub fn run(
 	// filename would leave a later run no way to repair it. See spec/tasks.md.
 	outcome.rewritten = rewrite_references(articles, &rewrites)?;
 	Ok(outcome)
+}
+
+/// Measure every published clip that has audio and no loudness recorded.
+///
+/// Skips a clip whose record already carries one, one with no audio to measure, and one whose
+/// original is not on this machine. A measurement that fails is passed over rather than reported:
+/// the site falls back to playing the clip unlevelled, which is what it did before this existed,
+/// and one unreadable soundtrack is not a reason to fail an import.
+fn level_all(merged: &mut Merged, originals: &Path) -> usize {
+	let wanted: Vec<String> = merged
+		.media
+		.iter()
+		.filter(|(_, media)| {
+			media.video().is_some_and(|video| video.source.audio && video.source.loudness.is_none())
+		})
+		.map(|(cid, _)| cid.clone())
+		.collect();
+	if wanted.is_empty() {
+		return 0;
+	}
+
+	let by_id = originals_by_id(originals);
+	let mut measured = 0;
+	for cid in wanted {
+		let Some(path) = by_id.get(&cid) else { continue };
+		let Ok(Some(level)) = super::loudness::loudness(path, true) else {
+			continue;
+		};
+		let Some(record) = merged.media.get_mut(&cid) else { continue };
+		let manifest::Body::Video(video) = &mut record.body else { continue };
+		video.source.loudness = Some(level.integrated);
+		video.source.peak = Some(level.peak);
+		record.updated = manifest::now();
+		measured += 1;
+	}
+	measured
 }
 
 /// Give a poster the provenance the clip already has, once.

@@ -239,6 +239,7 @@
 				captions={block.captions}
 				description={block.description}
 				source={block.source}
+				gain={block.gain}
 			/>
 		{:else if block.type === 'linkcard'}
 			<LinkCard

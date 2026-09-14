@@ -777,6 +777,7 @@ it('resolves ::video by the same reference an image uses, and survives one that 
 						poster: 'https://cdn.example/image/p.avif',
 						captions: [],
 						description: 'A hand turns the machine over.',
+						gain: 1,
 					}
 				: null,
 		highlight: async () => '',

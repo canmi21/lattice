@@ -315,6 +315,43 @@ The window has one home. There are no `--from` and `--to` flags: the cut file ca
 it came from, `excerpt` is the one written account of it, and a flag would be a second place to put
 the same fact with no trace of which was used.
 
+## Every clip plays at one level, and the peak is what caps it
+
+Two numbers are measured at import and stored on the record: **integrated loudness** in LUFS and
+**true peak** in dBTP, both from EBU R128 by way of ffmpeg's `loudnorm`. The gain a clip is played
+at is the smaller of what the loudness asks for and what the peak allows -- measured over the
+three clips here, one wants 1.93 to reach the target and is held to 1.81 by its own peak, which is
+the ceiling doing exactly its job.
+
+**Loudness, not peak, sets the target.** Peak alignment puts the loudest single sample of every
+clip in the same place, which makes a clip with one door slam and quiet dialogue quiet throughout.
+LUFS is K-weighted and gated -- built to agree with what an ear calls equally loud -- and is not an
+arithmetic average.
+
+**This is normalisation, not compression, and the distinction is the whole point.** One constant
+multiplies the whole clip, so every peak and every valley moves by the same decibel and the
+dynamic range is exactly what it was. Pushing loud parts down to a ceiling and leaving quiet parts
+alone is a limiter, and a limiter is the thing that changes how a recording sounds. What sounds
+like the cautious option -- "set a maximum and push down what exceeds it" -- is the one that
+alters the recording; the one that sounds like averaging is the one that does not.
+
+**Nothing is re-encoded.** The numbers are stored and the gain is applied at playback, because the
+bytes are the content id: every rung, every article reference and every object in the bucket is
+addressed by it. A number in a record can also be re-tuned later, which a baked-in gain cannot. It
+also means the measurement can be backfilled -- `cms video` measures a published clip that has
+none without deriving a single pixel again.
+
+The target is -18 LUFS with a -1 dBTP ceiling. -18 sits near the loud end of this corpus rather
+than the quiet end: a target below every clip would attenuate all of them and leave the site
+playing under its own headroom. So a quiet clip is raised, which is why a ceiling is needed at
+all, and why `video.volume` -- capped at 1 -- is not always enough. A `GainNode` covers the rest,
+built only from a click, because a context created without a gesture starts suspended and a
+suspended context after `createMediaElementSource` is not quiet but silent.
+
+The reader's own level multiplies this, starts at half, and persists in `localStorage["state"]`
+under `video.volume`. There is no way to read the system volume and there will not be: an
+element's volume is its own gain, and the operating system's mixer is downstream of it.
+
 ## What is wired and what is not
 
 `cms video` imports: probe, ladder, encode, publish, poster, record, and the article's reference

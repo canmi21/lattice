@@ -356,6 +356,8 @@ mod tests {
 						frame_rate: 30.0,
 						frames: 30,
 						audio: false,
+						loudness: None,
+						peak: None,
 					},
 					poster: poster.clone(),
 					variants: BTreeMap::from([(

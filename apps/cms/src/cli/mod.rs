@@ -1081,6 +1081,9 @@ fn process_videos(force: bool, files: &[std::path::PathBuf]) -> anyhow::Result<E
 	for value in &outcome.missing {
 		eprintln!("warn  no original for {value}");
 	}
+	if outcome.levelled > 0 {
+		println!("{} clip(s) measured for loudness without re-encoding", outcome.levelled);
+	}
 	println!(
 		"{} encoded, {} unchanged, {} failed, {} references rewritten, {} posters sourced",
 		outcome.processed,

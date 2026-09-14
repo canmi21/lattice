@@ -418,6 +418,8 @@ mod tests {
 					frame_rate: 30.0,
 					frames: 30,
 					audio: false,
+					loudness: None,
+					peak: None,
 				},
 				poster: "bb22".into(),
 				variants: BTreeMap::new(),

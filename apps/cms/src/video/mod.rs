@@ -10,6 +10,7 @@
 
 pub mod encode;
 pub mod ladder;
+pub mod loudness;
 pub mod probe;
 pub mod run;
 
@@ -141,6 +142,10 @@ pub fn derive_for(
 	}
 
 	let poster = poster(source, known)?;
+	// Measured off the original rather than off a rung: the ladder re-encodes the same soundtrack
+	// into every one of them, so they all answer the same, and the original is the one file that
+	// is certainly there.
+	let level = loudness::loudness(source, probe.audio)?;
 	let timestamp = manifest::now();
 	let previous = known.get(&id).and_then(Media::video);
 	let media = Media {
@@ -159,6 +164,8 @@ pub fn derive_for(
 				frame_rate: probe.frame_rate,
 				frames: probe.frames,
 				audio: probe.audio,
+				loudness: level.map(|level| level.integrated),
+				peak: level.map(|level| level.peak),
 			},
 			poster: poster.media.blake3.clone(),
 			variants: rungs

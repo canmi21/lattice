@@ -75,7 +75,14 @@ export type Resolved = {
 type ImageRecord = {
 	type: 'image';
 	thumbhash: string;
-	source: { width: number; height: number; ratio: string };
+	source: {
+		width: number;
+		height: number;
+		ratio: string;
+		/** Integrated loudness in LUFS and true peak in dBTP, when apps/cms has measured them. */
+		loudness?: number;
+		peak?: number;
+	};
 	variants: Record<string, { mime: string; width: number }>;
 };
 
@@ -89,7 +96,14 @@ type ImageRecord = {
  */
 type VideoRecord = {
 	type: 'video';
-	source: { width: number; height: number; ratio: string };
+	source: {
+		width: number;
+		height: number;
+		ratio: string;
+		/** Integrated loudness in LUFS and true peak in dBTP, when apps/cms has measured them. */
+		loudness?: number;
+		peak?: number;
+	};
 	/** The content id of the poster frame, which is an ordinary image asset with its own record. */
 	poster: string;
 	variants: Record<string, { mime: string; width: number; height: number; codec: string }>;
@@ -272,7 +286,48 @@ export type ResolvedVideo = {
 	description?: string;
 	/** Where the clip came from. The unsupported-format notice is the only thing that reads it. */
 	source?: { url: string; label?: string };
+	/**
+	 * The constant every sample of this clip is multiplied by, so two clips play at one level.
+	 *
+	 * Computed here rather than in the player because it is arithmetic over two stored numbers and
+	 * has no reason to run in a browser. It is a single gain: every peak and every valley moves by
+	 * the same decibel, so the dynamic range is exactly what it was. Pushing loud parts down to a
+	 * ceiling and leaving quiet parts alone is a limiter, and a limiter is what changes how a
+	 * recording sounds -- this does not do it.
+	 *
+	 * `1` for a clip with nothing measured, which plays as it always did.
+	 */
+	gain: number;
 };
+
+/**
+ * The level every clip is brought to, in LUFS, and the ceiling no clip may pass, in dBTP.
+ *
+ * The target is near the loud end of what this corpus holds rather than at the quiet end, because
+ * a target below every clip would attenuate all of them and leave the whole site playing under
+ * its own headroom. It means a quiet clip is raised rather than only loud ones lowered, which is
+ * what the ceiling is for.
+ *
+ * `-1` dBTP rather than `0`: a sample at full scale is not the loudest a signal reaches, since
+ * the waveform between two samples can go higher, and the decoder that reconstructs it clips
+ * where the samples did not. A decibel of headroom is the usual allowance.
+ */
+const LOUDNESS_TARGET = -18;
+const PEAK_CEILING = -1;
+
+/**
+ * How much to multiply a clip by: what the loudness asks for, capped by what the peak allows.
+ *
+ * Both are decibel differences turned into ratios. The smaller wins, so a quiet clip climbs
+ * towards the target and stops at the point where its loudest instant would distort -- measured
+ * on this corpus, one clip wants 1.93 and is held to 1.81 by its own peak.
+ */
+function levelling(source: VideoRecord['source']): number {
+	if (source.loudness === undefined || source.peak === undefined) return 1;
+	const byLoudness = 10 ** ((LOUDNESS_TARGET - source.loudness) / 20);
+	const byPeak = 10 ** ((PEAK_CEILING - source.peak) / 20);
+	return Math.min(byLoudness, byPeak);
+}
 
 /**
  * Resolving a `::video` reference into everything the markup needs.
@@ -327,6 +382,7 @@ export function createVideoResolver(
 			})),
 			description: entry?.description?.[descriptionLocale]?.text,
 			source: entry?.source,
+			gain: levelling(asset.source),
 		};
 	};
 }

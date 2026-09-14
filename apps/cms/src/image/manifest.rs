@@ -162,6 +162,19 @@ pub struct VideoSource {
 	/// cannot be honest, which is the whole reason a frame count is stored at all.
 	pub frames: u64,
 	pub audio: bool,
+	/// Integrated loudness in LUFS, and the true peak in dBTP, as EBU R128 measures them.
+	///
+	/// Two numbers so every clip can be played at one level: the difference between the loudness
+	/// and a chosen target is the gain that makes two clips match, and the peak is the ceiling
+	/// that gain must respect or a raised clip distorts at its loudest instant.
+	///
+	/// Absent for a clip with no audio, and absent for one imported before this was measured --
+	/// which is why they are optional rather than zero. Zero is full scale and would read as the
+	/// loudest possible clip. See `video::loudness`.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub loudness: Option<f64>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub peak: Option<f64>,
 }
 
 /// One rung of the ladder.
@@ -396,6 +409,8 @@ mod tests {
 						frame_rate: 30.0,
 						frames: 765,
 						audio: true,
+						loudness: None,
+						peak: None,
 					},
 					poster: "bb22cc33dd44ee55ff66778899001122".into(),
 					variants: BTreeMap::from([(
@@ -501,6 +516,8 @@ mod tests {
 					frame_rate: 30.0,
 					frames: 30,
 					audio: false,
+					loudness: None,
+					peak: None,
 				},
 				poster: "bb22".into(),
 				variants: BTreeMap::new(),

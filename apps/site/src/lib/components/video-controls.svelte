@@ -61,11 +61,20 @@
 		video,
 		frame,
 		rungs,
+		gain: levelling = 1,
 		locale,
 	}: {
 		video: HTMLVideoElement;
 		frame: HTMLElement;
 		rungs?: VideoRung[];
+		/**
+		 * The clip's own levelling, so this one plays at the same loudness as every other.
+		 *
+		 * Measured at import and computed in the build; see `assets.ts`. It multiplies the
+		 * reader's level rather than replacing it -- the slider still says what fraction of full
+		 * they asked for, and this is what full means for this clip.
+		 */
+		gain?: number;
 		locale: LocaleCode;
 	} = $props();
 
@@ -238,21 +247,39 @@
 	 * The level, and the ceiling a reader may raise.
 	 *
 	 * `video.volume` is capped at 1, so anything above it needs a `GainNode` -- and therefore
-	 * `crossorigin`, which the element already carries. The graph is built once and only when the
-	 * louder ceiling is asked for, because `createMediaElementSource` takes the element's audio
-	 * over for good and there is no way to hand it back.
+	 * `crossorigin`, which the element already carries. The graph is built once and only when it
+	 * is needed, because `createMediaElementSource` takes the element's audio over for good and
+	 * there is no way to hand it back.
+	 *
+	 * Two things can push past the cap. The reader's own ceiling, which is the flag below, and a
+	 * clip quiet enough that its levelling is above one -- measured, one of the three here is,
+	 * and at half volume it still lands under the cap, so the graph is built for the reader who
+	 * turns that clip up rather than for everyone.
 	 */
 	function applyVolume() {
-		const wanted = boost ? volume * 2 : volume;
+		const wanted = (boost ? volume * 2 : volume) * levelling;
 		if (wanted <= 1) {
 			video.volume = wanted;
 			if (gain) gain.gain.value = 1;
 			return;
 		}
 		if (!gain) {
-			const context = new AudioContext();
-			gain = context.createGain();
-			context.createMediaElementSource(video).connect(gain).connect(context.destination);
+			// **Only ever from a click.** Every caller of this is one -- the volume slider, the
+			// mute button, a quality change -- and that matters more than it looks: a context
+			// created without a gesture starts suspended, and once `createMediaElementSource` has
+			// taken the element's audio a suspended context is not quiet, it is silent. `resume`
+			// is the belt to that brace.
+			//
+			// A browser with no `AudioContext` keeps the cap instead of losing its sound.
+			try {
+				const context = new AudioContext();
+				gain = context.createGain();
+				context.createMediaElementSource(video).connect(gain).connect(context.destination);
+				void context.resume();
+			} catch {
+				video.volume = 1;
+				return;
+			}
 		}
 		video.volume = 1;
 		gain.gain.value = wanted;

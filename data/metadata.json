@@ -1,7 +1,7 @@
 {
   "version": 3,
   "created": "2026-08-01T22:12:59.501555Z",
-  "updated": "2026-09-14T05:44:00.649199Z",
+  "updated": "2026-09-14T22:35:02.251998Z",
   "media": {
     "0e0624f079e617e53ed474ccd98a947b": {
       "created": "2026-09-14T02:55:32.15685Z",
@@ -512,7 +512,7 @@
     },
     "6264d3f4d385043c2d839ff8f92d1a72": {
       "created": "2026-09-14T05:14:04.536178Z",
-      "updated": "2026-09-14T05:14:04.536178Z",
+      "updated": "2026-09-14T22:34:51.727387Z",
       "blake3": "6264d3f4d385043c2d839ff8f92d1a72",
       "type": "video",
       "source": {
@@ -524,7 +524,9 @@
         "duration": 18.051385,
         "frameRate": 29.97,
         "frames": 541,
-        "audio": true
+        "audio": true,
+        "loudness": -17.45,
+        "peak": -2.01
       },
       "poster": "3d9e11cbe0aaddf693318b4f060bbdf3",
       "variants": {
@@ -1506,7 +1508,7 @@
     },
     "cd09df7945f22065fd0995f8f8207e55": {
       "created": "2026-09-14T05:14:02.007815Z",
-      "updated": "2026-09-14T05:14:02.007815Z",
+      "updated": "2026-09-14T22:34:53.642484Z",
       "blake3": "cd09df7945f22065fd0995f8f8207e55",
       "type": "video",
       "source": {
@@ -1518,7 +1520,9 @@
         "duration": 24.024,
         "frameRate": 29.97002997002997,
         "frames": 720,
-        "audio": true
+        "audio": true,
+        "loudness": -17.6,
+        "peak": -2.15
       },
       "poster": "d6d766ea189a7c341a291e3626da2476",
       "variants": {
@@ -1548,7 +1552,7 @@
     },
     "cda77856d388c1fb733042c25b943569": {
       "created": "2026-09-14T05:14:03.143612Z",
-      "updated": "2026-09-14T05:14:03.143612Z",
+      "updated": "2026-09-14T22:34:54.422116Z",
       "blake3": "cda77856d388c1fb733042c25b943569",
       "type": "video",
       "source": {
@@ -1560,7 +1564,9 @@
         "duration": 25.0,
         "frameRate": 25.0,
         "frames": 625,
-        "audio": true
+        "audio": true,
+        "loudness": -23.73,
+        "peak": -6.16
       },
       "poster": "99409e5e479c488d67a8210794da75c0",
       "variants": {
