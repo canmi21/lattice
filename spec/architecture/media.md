@@ -216,7 +216,16 @@ cards, on the argument that the number describes the site rather than the transl
 That holds only while the unit is script-blind. Once it is words, an English card carrying a
 Chinese article's 字数 is stating something false about the text an English reader would actually
 get -- so a view counts its own translation where there is one and the source where there is not,
-which is exactly what the page renders. The nine cards now carry nine different numbers.
+which is exactly what the page renders.
+
+**The ninth view is counted in English, and that is not an exception to the rule but the rule
+applied.** `mw` is the source view and the card a bare link resolves to, so it is the default
+social card for the whole site. It has no translation to look up, and the obvious reading --
+count the source, since that is what the view serves -- puts the original defect straight back:
+five Chinese articles and one English one summed is Han characters added to English words, which
+is not a quantity of anything. Counting it in English is what makes the sentence true, because
+`mw.json` is English copy and "N words" written in English has to mean English words. The two
+move together: translating that catalogue means changing the locale the source view counts in.
 
 **Prose only, and only what a visitor can open.** A code block is not writing, and neither is a
 directive or a thematic break; what separates them is decided once by `segment::Kind::translatable`,

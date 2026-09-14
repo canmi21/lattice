@@ -289,6 +289,13 @@ fn article_jobs(
 /// The home page's card, which is a page rather than an article and has its own slug.
 pub const HOME_SLUG: &str = "homepage";
 
+/// The locale the source view's word count is taken in.
+///
+/// Tied to the language `mw.json` is written in rather than to anything structural, because that
+/// is what makes the number readable: the card says "words" in English, so the figure beside it
+/// has to be English words. See the note on [`Census`].
+const SOURCE_VIEW_COUNTED_AS: &str = "en-US";
+
 /// What the site amounts to, counted once per view because each view serves different text.
 ///
 /// ## Words, and whose definition of a word
@@ -312,6 +319,21 @@ pub const HOME_SLUG: &str = "homepage";
 /// stating something false about the text an English reader would actually get, so each view
 /// counts what it serves: the translation for that view where there is one, and the source where
 /// there is not -- which is exactly what the page renders, untranslated segments included.
+///
+/// ## The source view is counted in English, because the source is not a language
+///
+/// `mw` is the ninth view and the one a bare link resolves to, so its card is the default social
+/// card for the whole site. It has no translation to look up, and the obvious reading -- count the
+/// source, since that is what the view serves -- puts back exactly the defect this replaced.
+/// Five Chinese articles and one English one summed into a single figure is Han characters added
+/// to English words: not a quantity of anything, and a number whose meaning depends on which
+/// article contributed it.
+///
+/// So it is counted as English, because that is the language the card is written in. `mw.json`
+/// is English copy -- "6 articles · N words · available in 9 languages" -- and a sentence in
+/// English saying "words" has to mean English words or it means nothing. The two move together:
+/// translating `mw.json` into something else would mean changing the tag below to match, which is
+/// the one thing about this that a later reader has to know.
 ///
 /// ## Prose, and only what a visitor can reach
 ///
@@ -356,6 +378,8 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 		counted += 1;
 
 		for view in &locale::VIEWS {
+			// `None` is the source view, counted in the language its card is worded in. See above.
+			let tag = view.tag.or(Some(SOURCE_VIEW_COUNTED_AS));
 			let mut total = 0;
 			for segment in &segments {
 				if segment.region != crate::i18n::segment::Region::Body || !segment.kind.translatable() {
@@ -363,8 +387,7 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 				}
 				// Summed per segment rather than joined and counted once: a block boundary is
 				// never inside a word, so the two agree, and this allocates nothing.
-				let text = view
-					.tag
+				let text = tag
 					.and_then(|tag| sidecar.segments.get(&segment.id)?.get(tag))
 					.map_or(segment.source.as_str(), |translation| translation.text.as_str());
 				total += crate::words::count(text);
