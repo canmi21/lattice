@@ -138,6 +138,14 @@ tags:
         seconds: 3.60099975
         tokens: 27215
         review: false
+  apple:
+    kind: technical
+    display: Apple
+    meaning: consumer electronics company
+  apple-watch:
+    kind: technical
+    display: Apple Watch
+    meaning: Apple smartwatch product line
   automobile:
     kind: ordinary
     source: Automobile
@@ -352,6 +360,75 @@ tags:
         at: 2026-08-29T23:12:22.144897Z
         seconds: 3.750208417
         tokens: 27224
+        review: false
+  charging-case:
+    kind: ordinary
+    source: Charging Case
+    meaning: protective battery case for wireless earbuds
+    display:
+      de-DE:
+        text: Ladecase
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
+        review: false
+      en-US:
+        text: Charging Case
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:24:33.70163Z
+        seconds: 5.015256334
+        tokens: 18948
+        review: false
+      es-ES:
+        text: Estuche de carga
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
+        review: false
+      fr-FR:
+        text: Étui de charge
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
+        review: false
+      ja-JP:
+        text: 充電ケース
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
+        review: false
+      ko-KR:
+        text: 충전 케이스
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
+        review: false
+      zh-CN:
+        text: 充电盒
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
+        review: false
+      zh-TW:
+        text: 充
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:39.476204Z
+        seconds: 5.518611416
+        tokens: 12296
         review: false
   chinese-graffiti:
     kind: ordinary
@@ -706,6 +783,75 @@ tags:
     kind: technical
     display: Cranelift
     meaning: compiler backend
+  ebook:
+    kind: ordinary
+    source: eBook
+    meaning: digital book edition format
+    display:
+      de-DE:
+        text: E‑Book
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
+      en-US:
+        text: eBook
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:23:51.719209Z
+        seconds: 5.055178042
+        tokens: 20416
+        review: false
+      es-ES:
+        text: Libro digital
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
+      fr-FR:
+        text: Livre numérique
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
+      ja-JP:
+        text: 電子書籍
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
+      ko-KR:
+        text: 전자책
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
+      zh-CN:
+        text: 电子书
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
+      zh-TW:
+        text: 電子
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:44.999988Z
+        seconds: 4.866847541
+        tokens: 12209
+        review: false
   esim:
     kind: technical
     display: eSIM
@@ -998,6 +1144,18 @@ tags:
     kind: technical
     display: Hexo
     meaning: blog framework and static site generator
+  ios:
+    kind: technical
+    display: iOS
+    meaning: Apple mobile operating system
+  iphone:
+    kind: technical
+    display: iPhone
+    meaning: Apple smartphone product line
+  iphone-5c:
+    kind: technical
+    display: iPhone 5c
+    meaning: Apple smartphone model
   landing-page:
     kind: ordinary
     source: Landing Page
@@ -1209,6 +1367,10 @@ tags:
     kind: technical
     display: LLVM lld
     meaning: LLVM project's linker
+  mac-pro:
+    kind: technical
+    display: Mac Pro
+    meaning: Apple professional desktop computer
   macos:
     kind: technical
     display: macOS
@@ -1793,6 +1955,10 @@ tags:
     kind: technical
     display: SIM Card
     meaning: subscriber identity module card for mobile service
+  simon-schuster:
+    kind: technical
+    display: Simon & Schuster
+    meaning: book publishing company
   sky:
     kind: ordinary
     source: Sky
@@ -1861,6 +2027,213 @@ tags:
         at: 2026-08-29T23:13:38.262652Z
         seconds: 3.055890416
         tokens: 27181
+        review: false
+  smartphone:
+    kind: ordinary
+    source: Smartphone
+    meaning: handheld mobile computing device
+    display:
+      de-DE:
+        text: Smartphone
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+      en-US:
+        text: Smartphone
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:24:27.300957Z
+        seconds: 6.383272417
+        tokens: 20489
+        review: false
+      es-ES:
+        text: Teléfono inteligente
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+      fr-FR:
+        text: Smartphone
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+      ja-JP:
+        text: スマートフォン
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+      ko-KR:
+        text: 스마트폰
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+      zh-CN:
+        text: 智能手机
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+      zh-TW:
+        text: 智慧型手機
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:49.87497Z
+        seconds: 4.338731833
+        tokens: 12280
+        review: false
+  smartwatch:
+    kind: ordinary
+    source: Smartwatch
+    meaning: wrist-worn digital device with watch functions
+    display:
+      de-DE:
+        text: Smartwatch
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+      en-US:
+        text: Smartwatch
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:23:33.951413Z
+        seconds: 5.271738958
+        tokens: 19753
+        review: false
+      es-ES:
+        text: Reloj inteligente
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+      fr-FR:
+        text: Montre connectée
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+      ja-JP:
+        text: スマートウォッチ
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+      ko-KR:
+        text: 스마트워치
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+      zh-CN:
+        text: 智能手表
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+      zh-TW:
+        text: 智慧手
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:54.219928Z
+        seconds: 4.759701459
+        tokens: 12341
+        review: false
+  steve-jobs:
+    kind: ordinary
+    source: Steve Jobs
+    meaning: Apple co-founder presenting the original iPhone
+    display:
+      de-DE:
+        text: Steve Jobs
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
+        review: false
+      en-US:
+        text: Steve Jobs
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:23:39.24002Z
+        seconds: 7.854052833
+        tokens: 20492
+        review: false
+      es-ES:
+        text: Steve Jobs
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
+        review: false
+      fr-FR:
+        text: Steve Jobs
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
+        review: false
+      ja-JP:
+        text: スティーブ・ジョブズ
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
+        review: false
+      ko-KR:
+        text: 스티브 잡스
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
+        review: false
+      zh-CN:
+        text: 史蒂夫·乔布斯
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
+        review: false
+      zh-TW:
+        text: 史蒂夫·喬布
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:24:58.989602Z
+        seconds: 5.626053083
+        tokens: 12208
         review: false
   streetlight:
     kind: ordinary
@@ -1931,6 +2304,10 @@ tags:
         seconds: 3.465137
         tokens: 27200
         review: false
+  taptic-engine:
+    kind: technical
+    display: Taptic Engine
+    meaning: Apple haptic feedback actuator
   token-usage:
     kind: ordinary
     source: Token Usage
@@ -2150,6 +2527,75 @@ tags:
     kind: technical
     display: Vercel
     meaning: cloud platform for web deployment and developer tools
+  walter-isaacson:
+    kind: ordinary
+    source: Walter Isaacson
+    meaning: author credited on the book page
+    display:
+      de-DE:
+        text: Walter Isaacson
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
+      en-US:
+        text: Walter Isaacson
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:23:51.719209Z
+        seconds: 5.055178042
+        tokens: 20416
+        review: false
+      es-ES:
+        text: Walter Isaacson
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
+      fr-FR:
+        text: Walter Isaacson
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
+      ja-JP:
+        text: ウォルター・アイザックソン
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
+      ko-KR:
+        text: 월터 아이작슨
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
+      zh-CN:
+        text: 沃尔特·艾萨克森
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
+      zh-TW:
+        text: 沃爾特·艾
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:04.625835Z
+        seconds: 4.366971875
+        tokens: 12307
+        review: false
   wasmtime:
     kind: technical
     display: Wasmtime
@@ -2291,6 +2737,75 @@ tags:
         at: 2026-08-29T23:13:58.322248Z
         seconds: 3.441728708
         tokens: 27211
+        review: false
+  wireless-earbuds:
+    kind: ordinary
+    source: Wireless Earbuds
+    meaning: small cordless in-ear audio devices
+    display:
+      de-DE:
+        text: Kabellose Ohrhörer
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
+        review: false
+      en-US:
+        text: Wireless Earbuds
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:24:33.70163Z
+        seconds: 5.015256334
+        tokens: 18948
+        review: false
+      es-ES:
+        text: Auriculares inalámbricos
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
+        review: false
+      fr-FR:
+        text: Écouteurs sans fil
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
+        review: false
+      ja-JP:
+        text: ワイヤレスイヤホン
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
+        review: false
+      ko-KR:
+        text: 무선 이어버드
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
+        review: false
+      zh-CN:
+        text: 无线耳塞
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
+        review: false
+      zh-TW:
+        text: 無線
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:09.002284Z
+        seconds: 5.109739917
+        tokens: 12389
         review: false
   wooden-decking:
     kind: ordinary

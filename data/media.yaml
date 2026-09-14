@@ -1,5 +1,74 @@
 version: 1
 media:
+  0e0624f079e617e53ed474ccd98a947b:
+    description:
+      de-DE:
+        text: Ein Nahaufnahme‑Produktfoto zeigt den unteren hinteren Rand eines silbernen Desktop‑Monitors vor einem weißen Hintergrund. Ein langer Lüftungsgitter, ein USB‑C‑Anschluss und ein HDMI‑Anschluss sind am Rücken sichtbar, zusammen mit dem rechten Ständer des Bildschirms und einem kleinen Fuß darunter; es scheint die physische Konnektivität und das Hardware‑Design des Monitors zu dokumentieren.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:19.900757Z
+        seconds: 3.203632917
+        tokens: 11784
+        review: false
+      en-US:
+        text: A close-up product photograph shows the lower rear edge of a silver desktop monitor against a white background. A long ventilation grille, USB‑C port, and HDMI port are visible along the back, with the screen’s right-side stand and a small foot beneath; it appears to document the monitor’s physical connectivity and hardware design.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:29.620278Z
+        seconds: 0.0
+        tokens: 19470
+        review: false
+      es-ES:
+        text: Una fotografía de producto en primer plano muestra el borde posterior inferior de un monitor de escritorio plateado contra un fondo blanco. Una larga rejilla de ventilación, un puerto USB‑C y un puerto HDMI son visibles a lo largo de la parte trasera, con el soporte del lado derecho de la pantalla y un pequeño pedal debajo; parece documentar la conectividad física y el diseño de hardware del monitor.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:29.999448Z
+        seconds: 2.8557955
+        tokens: 11758
+        review: false
+      fr-FR:
+        text: Une photographie rapprochée d’un produit montre le bord arrière inférieur d’un moniteur de bureau argenté sur fond blanc. Une longue grille de ventilation, un port USB‑C et un port HDMI sont visibles à l’arrière, avec le support du côté droit de l’écran et un petit pied en dessous ; il semble documenter la connectivité physique et la conception matérielle du mon
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:27.133807Z
+        seconds: 2.855080542
+        tokens: 11739
+        review: false
+      ja-JP:
+        text: 白い背景に銀色のデスクトップモニターの下部後端がクローズアップされた商品写真です。背面には長い通気格子、USB‑Cポート、HDMIポートが見え、画面の右側スタンドと下部に小さな足が配置されています。モニターの物理的な接続性とハードウェア設計を示すものと思われます。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:16.746059Z
+        seconds: 3.148933209
+        tokens: 11787
+        review: false
+      ko-KR:
+        text: 가까이 촬영한 제품 사진은 흰색 배경에 은색 데스크톱 모니터의 뒤쪽 하단 가장자리를 보여줍니다. 긴 환기 그릴, USB‑C 포트, HDMI 포트가 뒤쪽에 보이며, 화면 오른쪽 받침대와 그 아래 작은 받침이 있습니다; 이는 모니터의 물리적 연결 및 하드웨어 디자인을 기록한 것으로 보입니다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:23.110932Z
+        seconds: 4.014906167
+        tokens: 11887
+        review: false
+      zh-CN:
+        text: 近距离产品照片展示了一台银色台式显示器的后下缘，背景为白色。背面可见一条长通风格栅、USB‑C 接口和 HDMI 接口，右侧支架及其下方的一个小脚也能看到；图片旨在记录显示器的物理连接方式和硬
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:14.121807Z
+        seconds: 2.613528958
+        tokens: 11574
+        review: false
+      zh-TW:
+        text: 一張特寫產品照片顯示銀色桌上型螢幕的後下緣，背景為白色。長形散熱格柵、USB‑C 埠與 HDMI 埠在背面可見，螢幕右側的支架與其下方的腳座也出現在畫面中；看起來是在記錄螢幕的實體連接埠與硬體設計。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:32.865892Z
+        seconds: 3.002701125
+        tokens: 11849
+        review: false
+    source:
+      url: https://www.apple.com/newsroom/2021/10/apple-unveils-game-changing-macbook-pro/
+      label: Apple Newsroom
   12faaa76365814de1195d6bdf1e5ba05:
     category: screenshot
     description:
@@ -72,6 +141,149 @@ media:
     - npm
     - blog-framework
     - web-navigation
+  148eafdca3f111eb70a55331ceb96b97:
+    description:
+      de-DE:
+        text: Werbe‑Produkt‑Zusammenstellung, die einen Apple TV zeigt, der den Titelscreen „FOUNTAIN OF YOUTH“ streamt, neben einem MacBook, iPad, iPhone und Apple Watch. Die Geräte zeigen Apple‑artige Startbildschirme und Widgets vor einem weißen Hintergrund, betonen die geräteübergreifende Kontinuität und suggerieren, dass die Serie im gesamten Apple‑Geräte‑Ökosystem verfügbar ist.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:44.716111Z
+        seconds: 3.453137
+        tokens: 11810
+        review: false
+      en-US:
+        text: Promotional product composite showing an Apple TV streaming a “FOUNTAIN OF YOUTH” title screen alongside a MacBook, iPad, iPhone, and Apple Watch. The devices display Apple-style home screens and widgets against a white background, emphasizing cross-device continuity and suggesting the show is available throughout Apple’s device ecosystem.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:30.968083Z
+        seconds: 0.0
+        tokens: 19119
+        review: false
+      es-ES:
+        text: Composición promocional de producto que muestra un Apple TV transmitiendo la pantalla de título “FOUNTAIN OF YOUTH” junto a un MacBook, iPad, iPhone y Apple Watch. Los dispositivos exhiben pantallas de inicio y widgets al estilo de Apple sobre un fondo blanco, resaltando la continuidad entre dispositivos y sugiriendo que la serie está disponible en todo el ecosistema de dispositivos de Apple.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:54.871756Z
+        seconds: 3.202243125
+        tokens: 11872
+        review: false
+      fr-FR:
+        text: Produit promotionnel composite montrant un Apple TV diffusant l’écran titre « FOUNTAIN OF YOUTH » à côté d’un MacBook, d’un iPad, d’un iPhone et d’une Apple Watch. Les appareils affichent des écrans d’accueil et des widgets à la Apple sur fond blanc, soulignant la continuité entre les appareils et suggérant que la série est disponible sur l’ensemble de l’écosystème Apple
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:51.363376Z
+        seconds: 3.501848791
+        tokens: 11602
+        review: false
+      ja-JP:
+        text: Apple TV が「FOUNTAIN OF YOUTH」のタイトル画面を配信し、隣に MacBook、iPad、iPhone、Apple Watch が配置されたプロモーション製品の合成画像。デバイスは白背景に Apple らしいホーム画面とウィジェットを表示し、デバイス間の連続性を強調し、番組が Apple のデバイスエコシステム全体で利用可能であることを示唆しています
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:41.503514Z
+        seconds: 3.201612167
+        tokens: 11781
+        review: false
+      ko-KR:
+        text: Apple TV가 “FOUNTAIN OF YOUTH” 제목 화면을 스트리밍하고 옆에 MacBook, iPad, iPhone, Apple Watch가 함께 표시된 홍보용 제품 합성 이미지입니다. 이 기기들은 흰색 배경에 Apple 스타일의 홈 화면과 위젯을 표시하여 기기 간 연속성을 강조하고, 해당 프로그램이 Apple의 모든 기기에서 이용 가능함을 암
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:48.174944Z
+        seconds: 3.178271833
+        tokens: 11760
+        review: false
+      zh-CN:
+        text: 宣传产品组合展示了 Apple TV 正在播放《青春之泉》标题画面，旁边还有 MacBook、iPad、iPhone 和 Apple Watch。这些设备在白色背景下显示 Apple 风格的主屏幕和小组件，凸显跨设备连贯性，暗示该节目在整个 Apple 设备生态系统中均可观看
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:35.879246Z
+        seconds: 5.617835208
+        tokens: 11747
+        review: false
+      zh-TW:
+        text: 宣傳產品合成圖，展示 Apple TV 正播放「FOUNTAIN OF YOUTH」標題畫面，旁邊擺放 MacBook、iPad、iPhone 與 Apple Watch。這些裝置在白色背景下顯示蘋果風格的主畫面和小工具，強調跨裝置的連續性，暗示該節目可在蘋果全系列設備上觀看
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:25:58.084569Z
+        seconds: 3.1973119580000002
+        tokens: 11841
+        review: false
+    source:
+      url: https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/
+      label: Apple Newsroom
+  181da036230de994a607f5fef0d03cb9:
+    category: artwork
+    description:
+      de-DE:
+        text: Ein Produktfoto zeigt die Rückseite und die untere Kante eines space‑gray iPhone 6s vor einem schlichten weißen Hintergrund. Das Telefon ist diagonal ausgerichtet, wobei seine einzelne Rückkamera, das Apple‑Logo, die Antennenbänder, die Seitentasten, der Lightning‑Anschluss, die Lautsprecherlöcher und die Aufschrift „iPhone S“ unter weicher Studiobeleuchtung sichtbar sind.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:07.690088Z
+        seconds: 2.986314375
+        tokens: 11688
+        review: false
+      en-US:
+        text: A product photograph shows the back and lower edge of a space-gray iPhone 6s on a plain white background. The phone is angled diagonally, with its single rear camera, Apple logo, antenna bands, side buttons, Lightning port, speaker holes, and “iPhone S” marking visible under soft studio lighting.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:30.973471Z
+        seconds: 0.0
+        tokens: 19258
+        review: false
+      es-ES:
+        text: Una fotografía de producto muestra la parte trasera y el borde inferior de un iPhone 6s gris espacial sobre un fondo blanco liso. El teléfono está inclinado diagonalmente, con su cámara trasera única, el logotipo de Apple, las bandas de antena, los botones laterales, el puerto Lightning, los orificios del altavoz y la inscripción “iPhone S” visibles bajo una suave iluminación de estudio.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:18.109951Z
+        seconds: 2.810330917
+        tokens: 11743
+        review: false
+      fr-FR:
+        text: Une photo produit montre l'arrière et le bord inférieur d'un iPhone 6s gris sidéral sur un fond blanc uni. Le téléphone est incliné en diagonale, sa caméra arrière unique, le logo Apple, les bandes d'antenne, les boutons latéraux, le port Lightning, les ouvertures du haut-parleur et le marquage « iPhone S » étant visibles sous un éclairage doux de studio.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:14.663527Z
+        seconds: 3.435472625
+        tokens: 11780
+        review: false
+      ja-JP:
+        text: 製品写真は、白い無地の背景に置かれたスペースグレーのiPhone 6sの背面と下端を示しています。電話は斜めに傾けられ、単一の背面カメラ、Appleロゴ、アンテナバンド、側面ボタン、Lightningポート、スピーカーホール、そしてソフトなスタジオ照明の下で見える「iPhone S」マークが確認できます。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:04.399001Z
+        seconds: 3.279759375
+        tokens: 11817
+        review: false
+      ko-KR:
+        text: 제품 사진은 단순한 흰색 배경에 놓인 스페이스 그레이 iPhone 6s의 뒷면과 하단 가장자를 보여줍니다. 전화기는 대각선으로 기울어져 있으며, 단일 후면 카메라, Apple 로고, 안테나 밴드, 측면 버튼, 라이트닝 포트, 스피커 구멍, 그리고 부드러운 스튜디오 조명 아래에서 보이는 “iPhone S” 표기가 보입니다.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:10.685732Z
+        seconds: 3.966713708
+        tokens: 11974
+        review: false
+      zh-CN:
+        text: 产品照片展示了一部太空灰 iPhone 6s 的背面和下缘，背景为纯白。手机呈对角倾斜，可见其单摄后置镜头、Apple 标志、天线条、侧边按钮、Lightning 接口、扬声器孔以及在柔和工作室灯光下可见的 “iPhone S” 标
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:01.291079Z
+        seconds: 3.096826
+        tokens: 11765
+        review: false
+      zh-TW:
+        text: 產品照片顯示一部太空灰 iPhone 6s 的背面與下緣，置於純白背景上。手機斜向擺放，可見其單一後置鏡頭、Apple 標誌、天線帶、側鍵、Lightning 端口、揚聲器孔，以及在柔和工作室燈光下可見的「iPhone S」標
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:20.93131Z
+        seconds: 3.274545167
+        tokens: 11839
+        review: false
+    tags:
+    - apple
+    - iphone
+    - usb-c
+    source:
+      url: https://web.archive.org/web/20150910154005id_/http://images.apple.com/v/iphone-6s/a/overview/hero_spacegray_xlarge_2x.png
+      label: Apple
   18dc4b33f21890aa9042955b67ac346d:
     category: screenshot
     description:
@@ -143,6 +355,75 @@ media:
     - esim
     - sim-card
     - cellular-network
+  1c77835df9adb398aef1941422b92695:
+    description:
+      de-DE:
+        text: Produktfoto eines goldenen MacBook Air, aus verschiedenen Blickwinkeln vor einem weißen Hintergrund aufgenommen. Die größte Ansicht zeigt die schwarze Tastatur und das große Trackpad von oben, während kleinere Ansichten das geschlossene Seitenprofil, die vordere Kante und ein teilweise geöffnetes, fast senkrecht stehendes Notebook zeigen. Das Bild wirkt wie werbliche Nachweisführung für das dünne, leichte Design und die goldene Oberfläche des L
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:30.956875Z
+        seconds: 2.83780825
+        tokens: 11583
+        review: false
+      en-US:
+        text: Product photograph of a gold MacBook Air shown from several angles against a white background. The largest view looks down at its black keyboard and large trackpad, while smaller views show the closed side profile, the front edge, and a partially open laptop standing nearly upright. The image appears to be promotional evidence of the laptop’s thin, lightweight design and gold finish.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:30.978603Z
+        seconds: 0.0
+        tokens: 19264
+        review: false
+      es-ES:
+        text: Fotografía de producto de una MacBook Air dorada mostrada desde varios ángulos sobre un fondo blanco. La vista más grande muestra el teclado negro y el gran panel táctil, mientras que las vistas más pequeñas presentan el perfil lateral cerrado, el borde frontal y una laptop parcialmente abierta en posición casi vertical. La imagen parece ser evidencia promocional del diseño delgado, ligero y del acabado dorado del portátil.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:39.606914Z
+        seconds: 3.070728791
+        tokens: 11817
+        review: false
+      fr-FR:
+        text: Photographie produit d'un MacBook Air doré présenté sous plusieurs angles sur fond blanc. La vue principale montre le clavier noir et le grand pavé tactile vus de haut, tandis que les vues plus petites affichent le profil latéral fermé, le bord avant et un ordinateur portable partiellement ouvert, presque à la verticale. L'image semble être une preuve promotionnelle du design fin, léger et de la finition dorée de l’app
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:36.719699Z
+        seconds: 2.877076875
+        tokens: 11786
+        review: false
+      ja-JP:
+        text: 白い背景に金色のMacBook Airが複数の角度から撮影された製品写真です。最大のビューでは黒いキーボードと大きなトラックパッドを俯瞰し、他の小さいビューでは閉じた側面、前端、そしてほぼ垂直に立てかけられた半開きのラップトップが示されています。この画像は、ラップトップの薄く軽量なデザインと金色の仕上げを宣伝する証拠のように見えます。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:27.035288Z
+        seconds: 3.912588292
+        tokens: 12072
+        review: false
+      ko-KR:
+        text: 흰색 배경에 금색 맥북 에어가 여러 각도에서 촬영된 제품 사진입니다. 가장 큰 화면에서는 검은색 키보드와 큰 트랙패드를 내려다보며, 작은 화면들에서는 닫힌 측면 프로필, 앞쪽 가장자리, 그리고 거의 수직으로 서 있는 반쯤 열린 노트북을 보여줍니다. 이 이미지는 노트북의 얇고 가벼운 디자인과 금색 마감의 홍보 증거처럼 보입니다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:33.806037Z
+        seconds: 2.905289458
+        tokens: 11842
+        review: false
+      zh-CN:
+        text: 产品照片展示了一款金色的 MacBook Air，在白色背景下从多个角度拍摄。最大视图俯视其黑色键盘和大尺寸触控板，较小视图显示合上的侧面轮廓、前沿以及几乎竖立的半开机身。该图像似乎是展示笔记本薄且轻巧的设计以及金色外观的宣传证据
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:24.217006Z
+        seconds: 2.807170625
+        tokens: 11783
+        review: false
+      zh-TW:
+        text: 產品照片展示金色的 MacBook Air，從多個角度在白色背景前拍攝。最大視圖俯視其黑色鍵盤和大型觸控板，而較小的視圖則顯示關閉的側面輪廓、前緣以及幾乎直立的半開機身。此圖片似乎是筆記型電腦薄型、輕量設計及金色外觀的宣傳證據
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:42.688571Z
+        seconds: 3.014112583
+        tokens: 11837
+        review: false
+    source:
+      url: https://web.archive.org/web/20150414005150id_/http://www.apple.com/macbook/design/
+      label: Apple
   2722532798307eb9c03d89e2343c2cda:
     category: screenshot
     description:
@@ -310,6 +591,81 @@ media:
     - bytecode-alliance
     - wasmtime
     - rust
+  4306a064284c581dc88a2c494e77f8f4:
+    category: document
+    description:
+      de-DE:
+        text: 'Ein Screenshot eines Werbeprodukts zeigt links eine ausgehöhlte Apple Watch, bei der das beschriftete „TAPTIC ENGINE“ sichtbar ist, und rechts großen Text: „Wir haben einen Weg gefunden, der Technologie einen menschlicheren Touch zu geben. Wortwörtlich.“ Der begleitende Text erklärt, dass das Taptic Engine Handgelenk‑Vibrationen für Alarme, Benachrichtigungen und Tastbefehle liefert, sowie subtile Audiosignale und intime Apple‑Watch‑Kommunikation wie sanfte Vibrationen oder das Senden eines Herzschlags.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:52.752158Z
+        seconds: 3.220471
+        tokens: 11869
+        review: false
+      en-US:
+        text: 'A promotional product screenshot pairs a cutaway Apple Watch on the left, exposing a labeled “TAPTIC ENGINE,” with large text on the right: “We found a way to give technology a more human touch. Literally.” Supporting copy explains that the Taptic Engine provides wrist taps for alerts, notifications, and presses, plus subtle audio cues and intimate Apple Watch communication such as gentle taps or sending a heartbeat.'
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:36.440229Z
+        seconds: 0.0
+        tokens: 18403
+        review: false
+      es-ES:
+        text: 'Una captura de pantalla promocional del producto muestra un Apple Watch seccionado a la izquierda, revelando una etiqueta “MOTOR TÁPTICO”, y a la derecha un texto grande: “Hemos encontrado una forma de darle a la tecnología un toque más humano. Literalmente.” El texto de apoyo explica que el Motor Táctico proporciona pulsaciones en la muñeca para alertas, notificaciones y pulsaciones, además de sutiles indicaciones de audio y una comunicación íntima del Apple Watch, como toques suaves o el envío de un latido del corazón'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:02.934173Z
+        seconds: 2.96894525
+        tokens: 11909
+        review: false
+      fr-FR:
+        text: 'Une capture d''écran promotionnelle du produit montre, à gauche, une Apple Watch découpée révélant le « MOTEUR TAPTIC », et, à droite, un texte en gros caractères : « Nous avons trouvé un moyen de donner à la technologie une touche plus humaine. Littéralement. ». Le texte d’accompagnement explique que le moteur Taptic fournit des tapotements au poignet pour les alertes, les notifications et les pressions, ainsi que des indices audio subtils et une communication intime de l’Apple Watch, comme de légers tapotements ou l’envoi d’un battement de'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:00.045895Z
+        seconds: 2.8792720000000003
+        tokens: 11939
+        review: false
+      ja-JP:
+        text: プロモーション用製品のスクリーンショットでは、左側にカットアウェイされたApple Watchが表示され、「TAPTIC ENGINE」とラベル付けされた内部が見え、右側には大きな文字で「私たちは技術により人間らしいタッチを与える方法を見つけました。文字通りです」と書かれています。補足のコピーでは、Taptic Engineがアラートや通知、プレスに対して手首にタップを提供し、さらに微妙な音声キューや、優しいタップや心拍の送信といった親密なApple Watchのコミュニケーションを実現すると説明されています。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:49.143549Z
+        seconds: 3.5999230840000003
+        tokens: 11939
+        review: false
+      ko-KR:
+        text: 프로모션 제품 스크린샷은 왼쪽에 절단된 애플 워치를 보여 주며, “TAPTIC ENGINE”이라는 라벨이 표시되어 있습니다. 오른쪽에는 큰 글씨로 “우리는 기술에 더 인간적인 감각을 부여하는 방법을 찾았습니다. 문자 그대로.” 라는 문구가 적혀 있습니다. 보조 문구는 Taptic Engine이 알림, 알림 및 눌림을 위한 손목 탭을 제공하고, 미묘한 오디오 신호와 부드러운 탭 혹은 심장박동 전송과 같은 친밀한 애플 워치 커뮤니케이션을 제공한다는 내용입니다.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:55.983079Z
+        seconds: 4.051295416
+        tokens: 12152
+        review: false
+      zh-CN:
+        text: 宣传产品的截图左侧是一款剖面显示的 Apple Watch，暴露出标有 “TAPTIC ENGINE” 的部件，右侧则有大字：“我们找到了让技术拥有更人性化触感的方法。真的。”配套文字说明 Taptic Engine 可以通过手腕轻敲来实现提醒、通知和按压，还提供细微的音频提示以及亲密的 Apple Watch 通信方式，例如轻轻敲击或发送心跳。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:26:45.713935Z
+        seconds: 3.423562167
+        tokens: 11856
+        review: false
+      zh-TW:
+        text: 此宣傳產品截圖左側展示一部剖面式的 Apple Watch，裸露出標示為「TAPTIC ENGINE」的部件；右側則以大字呈現：「我們找到了讓科技更具人性觸感的方法。真的。」說明文字指出，Taptic Engine 能為警示、通知與按壓提供手腕敲擊，並伴隨細微音效，讓 Apple Watch 之間的交流更為親密，如柔和的敲擊或傳送心跳聲
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:05.914495Z
+        seconds: 3.227587125
+        tokens: 11956
+        review: false
+    tags:
+    - apple
+    - apple-watch
+    - taptic-engine
+    - smartwatch
+    source:
+      url: https://web.archive.org/web/20150309213711/http://www.apple.com/watch/technology/
+      label: Apple
   4a1d25650b1262d916f6571208a32764:
     category: screenshot
     description:
@@ -454,6 +810,80 @@ media:
     - cargo
     - command-line-interface
     - compilation
+  52835c03630e87eecf5653c5c99dc008:
+    category: photograph
+    description:
+      de-DE:
+        text: Ein Foto zeigt Steve Jobs auf der Bühne, wie er das ursprüngliche iPhone hochhält, dessen kleiner Bildschirm ein Raster von App‑Symbolen anzeigt. Er trägt einen schwarzen Mock‑Rollkragenpullover und eine Brille vor einem dunklen Hintergrund, dominiert von einem großen, unscharfen Apple‑Logo, das von hellem Präsentationslicht beleuchtet wird. Es scheint die öffentliche Einführung des ersten iPhone durch Apple zu dokument
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:15.426849Z
+        seconds: 3.393131458
+        tokens: 11952
+        review: false
+      en-US:
+        text: A photograph captures Steve Jobs onstage holding up the original iPhone, its small screen displaying a grid of app icons. He wears a black mock turtleneck and glasses against a dark backdrop dominated by a large blurred Apple logo, lit by bright presentation lighting. It appears to document Apple’s public introduction of the first iPhone.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:38.103795Z
+        seconds: 0.0
+        tokens: 18967
+        review: false
+      es-ES:
+        text: Una fotografía muestra a Steve Jobs en el escenario levantando el iPhone original, cuya pequeña pantalla muestra una cuadrícula de iconos de aplicaciones. Lleva un suéter negro estilo mock turtleneck y gafas sobre un fondo oscuro dominado por un gran logotipo de Apple desenfocado, iluminado por una luz brillante de presentación. Parece documentar la presentación pública del primer iPhone por parte de Apple
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:24.751368Z
+        seconds: 3.014677417
+        tokens: 11749
+        review: false
+      fr-FR:
+        text: Une photographie montre Steve Jobs sur scène levant le premier iPhone, son petit écran affichant une grille d’icônes d’applications. Il porte un col roulé noir factice et des lunettes, devant un décor sombre dominé par un grand logo Apple flou, éclairé par une lumière de présentation vive. Elle semble documenter l’introduction publique d’Apple du premier iPhone
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:22.259177Z
+        seconds: 2.480919542
+        tokens: 11673
+        review: false
+      ja-JP:
+        text: 写真には、スティーブ・ジョブズがステージ上で初代iPhoneを持ち上げている様子が写っています。小さな画面にはアプリアイコンのグリッドが表示されています。彼は黒い擬似タートルネックとメガネを着用し、暗い背景には大きくぼかされたAppleロゴがあり、明るいプレゼンテーション照明で照らされています。これは、Appleが初代iPhoneを公に発表した様子を記録したものと思われます。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:12.111705Z
+        seconds: 3.303849042
+        tokens: 11834
+        review: false
+      ko-KR:
+        text: 사진에는 스티브 잡스가 무대에서 원래의 아이폰을 들어 올리고, 작은 화면에 앱 아이콘 격자가 표시된 모습이 담겨 있다. 그는 검은색 모조 터틀넥과 안경을 착용하고, 크게 흐릿한 애플 로고가 지배하는 어두운 배경 앞에서 밝은 프레젠테이션 조명으로 비추어져 있다. 이는 애플이 첫 아이폰을 공개적으로 소개한 순간을 기록한 것으로 보인다.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:18.828082Z
+        seconds: 3.419441209
+        tokens: 11807
+        review: false
+      zh-CN:
+        text: 一张照片捕捉到史蒂夫·乔布斯在舞台上举起原始 iPhone，手机小屏幕上显示着网格排列的应用图标。他身穿黑色仿高领毛衣，戴着眼镜，背景是暗色的、被大幅模糊的苹果标志，现场灯光明亮。该图似乎记录了苹果首次公开发布 iPhone 的场
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:09.153192Z
+        seconds: 2.94741775
+        tokens: 11798
+        review: false
+      zh-TW:
+        text: 一張照片捕捉到史蒂夫·喬布斯在舞台上舉起原版 iPhone，手機小螢幕上顯示著一排應用程式圖示。 他身穿黑色仿高領衫，戴著眼鏡，背景為暗色，中心有一個模糊的大型蘋果標誌，受亮麗的演示燈光照亮。 這張照片似乎記錄了蘋果首次公開推出 iPhone 的時刻。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:27.772453Z
+        seconds: 2.878506291
+        tokens: 11818
+        review: false
+    tags:
+    - apple
+    - iphone
+    - steve-jobs
+    source:
+      url: https://www.wired.com/story/iphone-history-dogfight/
+      label: Wired
   5c33f853b73251e594e7c0eaca0a5709:
     category: screenshot
     description:
@@ -907,6 +1337,80 @@ media:
     - vercel
     - web-navigation
     - landing-page
+  8b5c00c5682e593968de91a04fd3fd2d:
+    category: photograph
+    description:
+      de-DE:
+        text: Ein Bühnenfoto zeigt Steve Jobs in einem schwarzen Rollkragenpullover und Jeans, der nach unten auf einen offenen silbernen Apple‑Laptop schaut, während er einen großen manila‑farbenen Geschäftsumschlag hält. Er steht vor einem nahezu schwarzen Hintergrund mit tiefblau‑violetten Vorhängen, beleuchtet von einem fokussierten Bühnenlicht; das Bild scheint Apples berühmte Vorführung zu dokumentieren, bei der ein Laptop in einen Umschlag passte.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:37.46686Z
+        seconds: 2.85627
+        tokens: 11776
+        review: false
+      en-US:
+        text: A stage photograph captures Steve Jobs in a black turtleneck and jeans, looking down at an open silver Apple laptop while holding a large manila interoffice envelope. He stands against a nearly black background with deep blue-purple curtains, lit by a focused stage light; it appears to document Apple’s famous demonstration of a laptop fitting inside an envelope.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:38.110213Z
+        seconds: 0.0
+        tokens: 18222
+        review: false
+      es-ES:
+        text: Una fotografía escénica muestra a Steve Jobs con un suéter negro de cuello alto y vaqueros, mirando hacia abajo una laptop plateada de Apple abierta mientras sostiene un gran sobre interno de manila. Está de pie contra un fondo casi negro con cortinas azul profundo‑púrpura, iluminado por una luz escénica enfocada; parece documentar la famosa demostración de Apple de un portátil que cabe dentro de un sobre.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:46.242183Z
+        seconds: 2.811319292
+        tokens: 11787
+        review: false
+      fr-FR:
+        text: Une photographie de scène montre Steve Jobs en col roulé noir et jean, regardant vers le bas un ordinateur portable Apple argenté ouvert tout en tenant une grande enveloppe interservices en manila. Il se tient devant un fond presque noir avec des rideaux bleu‑violet profond, éclairé par une lumière de scène focalisée ; cela semble documenter la célèbre démonstration d’Apple d’un ordinateur portable tenant dans une enveloppe
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:43.482954Z
+        seconds: 2.753120625
+        tokens: 11841
+        review: false
+      ja-JP:
+        text: ステージの写真には、黒いタートルネックとジーンズを着たスティーブ・ジョブズが写っており、銀色の開いたAppleノートパソコンを見下ろしながら、大きなマニラ製の社内封筒を持っている。彼はほぼ黒い背景に、濃い青紫のカーテンが掛かり、スポットライトで照らされて立っている。この写真は、ノートパソコンが封筒に入るというAppleの有名なデモンストレーションを記録したものと思われる。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:34.543744Z
+        seconds: 2.9170350000000003
+        tokens: 11886
+        review: false
+      ko-KR:
+        text: 무대 사진에는 검은색 터틀넥과 청바지를 입은 스티브 잡스가 은색 애플 노트북을 열어 놓은 채 큰 마닐라 사내용 봉투를 들고 아래를 바라보고 있다. 그는 거의 검은 배경에 짙은 청보라색 커튼 앞에 서 있으며, 집중된 무대 조명에 비춰진다; 이는 노트북이 봉투 안에 들어가는 애플의 유명한 시연을 기록한 것으로
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:40.329235Z
+        seconds: 3.14753475
+        tokens: 11803
+        review: false
+      zh-CN:
+        text: 一张舞台照片捕捉到身穿黑色高领毛衣和牛仔裤的史蒂夫·乔布斯，他低头注视打开的银色苹果笔记本电脑，手里握着一个大的牛皮纸内部信封。他站在几乎全黑的背景前，背后是深蓝紫色的窗帘，聚光灯照射下；这似乎记录了苹果著名的笔记本电脑装入信封的演示。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:30.658099Z
+        seconds: 3.877262959
+        tokens: 11822
+        review: false
+      zh-TW:
+        text: 一張舞台照片捕捉到史蒂夫·喬布斯身穿黑色高領毛衣和牛仔褲，低頭看著一台打開的銀色 Apple 筆記本電腦，同時手持一個大型牛皮紙辦公信封。他站在幾乎全黑的背景前，背景有深藍紫色的窗簾，光線由聚焦的舞台燈照亮；畫面似乎在紀錄 Apple 那次著名的示範，展示筆記本電腦可以放入信封內
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:49.05961Z
+        seconds: 2.751697584
+        tokens: 11631
+        review: false
+    tags:
+    - steve-jobs
+    - laptop
+    - apple
+    source:
+      url: https://www.macrumors.com/2023/01/15/macbook-air-turns-15/
+      label: MacRumors
   8d32cfe9437f0bba72819263799a99ca:
     category: photograph
     description:
@@ -1050,6 +1554,81 @@ media:
     - river
     - waterfront
     - railing
+  91b5741d129e27d79f2e717ab31d022c:
+    category: screenshot
+    description:
+      de-DE:
+        text: 'Screenshot einer Simon & Schuster E‑Book‑Seite mit dem Titel „Excerpt 4“ aus einem Buch von Walter Isaacson, zeigt einen langen Abschnitt, der Jony Ives Intelligenz, Produktvision und operative Autorität bei Apple lobt. Die letzten Zeilen sind hellgelb hervorgehoben: Steve Jobs sagt, dass Ive mehr operative Macht habe als jeder andere bei Apple, außer ihm, und dass niemand Ive sagen könne, was er zu tun habe. In der rechten Seitenleiste steht ein E‑Book‑Preis von 16,99 $ und Schaltflächen für die Händler Amazon Kindle, Apple Books, Barnes & Noble, BAM!, Bookshop und'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:58.906645Z
+        seconds: 3.356523625
+        tokens: 12012
+        review: false
+      en-US:
+        text: 'Screenshot of a Simon & Schuster ebook page featuring “Excerpt 4” from a Walter Isaacson book, with a large passage praising Jony Ive’s intelligence, product vision, and operational authority at Apple. The final lines are highlighted in pale yellow: Steve Jobs says Ive has more operational power than anyone at Apple except him and that no one can tell Ive what to do. A right sidebar lists an ebook price of $16.99 and retailer buttons for Amazon Kindle, Apple Books, Barnes & Noble, BAM!, Bookshop, and Google Play.'
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:38.122177Z
+        seconds: 0.0
+        tokens: 19012
+        review: false
+      es-ES:
+        text: 'Captura de pantalla de una página de ebook de Simon & Schuster con “Extracto 4” de un libro de Walter Isaacson, que incluye un extenso pasaje elogiando la inteligencia, visión de producto y autoridad operativa de Jony Ive en Apple. Las últimas líneas están resaltadas en amarillo pálido: Steve Jobs dice que Ive tiene más poder operativo que cualquier otro en Apple, excepto él, y que nadie puede decirle a Ive qué hacer. Una barra lateral derecha muestra el precio del ebook de $16.99 y botones de minoristas para Amazon Kindle, Apple Books, Barnes & Noble, BAM!, Bookshop y Google Play.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:08.19114Z
+        seconds: 2.517171375
+        tokens: 11680
+        review: false
+      fr-FR:
+        text: 'Capture d’écran d’une page d’ebook de Simon & Schuster présentant « Extrait 4 » d’un livre de Walter Isaacson, contenant un long passage qui loue l’intelligence, la vision produit et l’autorité opérationnelle de Jony Ive chez Apple. Les lignes finales sont surlignées en jaune pâle : Steve Jobs affirme qu’Ive possède plus de pouvoir opérationnel que quiconque chez Apple, sauf lui, et que personne ne peut dire à Ive ce qu’il doit faire. Une barre latérale droite indique le prix de l’ebook à 16,99 $ et propose des boutons de vente pour Amazon Kindle, Apple Books, Barnes & Noble, BAM !, Bookshop et Google Play.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:05.275298Z
+        seconds: 2.909560709
+        tokens: 11993
+        review: false
+      ja-JP:
+        text: Simon & Schuster の電子書籍ページのスクリーンショットで、Walter Isaacson の本から「Excerpt 4」が掲載されており、Jony Ive の知性、製品ビジョン、Apple における運営権限を称賛する大きな文章があります。最後の行は薄い黄色でハイライトされており、Steve Jobs は Ive が自分以外で Apple で最も大きな運営権を持ち、誰も Ive に何をすべきか指示できないと述べています。右側のサイドバーには電子書籍の価格 $16.99 と、Amazon Kindle、Apple Books、Barnes & Noble、BAM!、Bookshop、Google Play の販売ボタンが一覧されています。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:55.352189Z
+        seconds: 3.5477334579999997
+        tokens: 12094
+        review: false
+      ko-KR:
+        text: Simon & Schuster 전자책 페이지의 스크린샷으로, Walter Isaacson 책의 “Excerpt 4”가 포함되어 있으며, Jony Ive의 지능, 제품 비전, 그리고 Apple에서의 운영 권한을 찬양하는 큰 글귀가 있다. 마지막 문장은 연한 노란색으로 강조되어 있는데, Steve Jobs가 Ive는 자신을 제외하고 Apple에서 가장 큰 운영 권한을 가지고 있으며 아무도 Ive에게 무엇을 하라고 지시할 수 없다고 말한다. 오른쪽 사이드바에는 전자책 가격 $16.99와 Amazon Kindle, Apple Books, Barnes & Noble, BAM!, Bookshop, Google Play의 소매업체 버튼이 나열되어 있다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:02.269165Z
+        seconds: 2.999936042
+        tokens: 11974
+        review: false
+      zh-CN:
+        text: Simon & Schuster 电子书页面的截图，展示了沃尔特·艾萨克森书中的“摘录 4”，其中有一大段文字赞扬乔尼·艾夫的智慧、产品愿景以及在 Apple 的运营权威。最后几行以淡黄色高亮显示：史蒂夫·乔布斯说艾夫在 Apple 拥有除他本人之外最强的运营权力，且没有人能指挥艾夫的行动。右侧栏显示电子书价格为 $16.99，并提供 Amazon Kindle、Apple Books、Barnes & Noble、BAM!、Bookshop 和 Google Play 的零售按钮。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:27:51.817533Z
+        seconds: 3.527706167
+        tokens: 12009
+        review: false
+      zh-TW:
+        text: Simon & Schuster 電子書頁面的截圖，顯示 Walter Isaacson 著作中的「Excerpt 4」，其中有一段大篇幅讚揚 Jony Ive 的智慧、產品願景以及在 Apple 的營運權威。最後幾句以淡黃色標示：Steve Jobs 說 Ive 在 Apple 的營運權力僅次於他本人，且沒有人能告訴 Ive 該做什麼。右側側欄列出電子書價格 $16.99，並有 Amazon Kindle、Apple Books、Barnes & Noble、BAM!、Bookshop 以及 Google Play 的零售商按鈕。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:10.714533Z
+        seconds: 3.768287084
+        tokens: 11983
+        review: false
+    tags:
+    - apple
+    - simon-schuster
+    - walter-isaacson
+    - ebook
+    source:
+      url: https://parents.simonandschuster.com/9781451648553
+      label: Simon & Schuster
   a2b472ee8c494d39f18e8cb06f5ec684:
     category: photograph
     description:
@@ -1337,6 +1916,80 @@ media:
     - command-line-interface
     - token-usage
     - usage-cost
+  aecdaad11c3a4a2e31877f7dcae8c4e1:
+    category: artwork
+    description:
+      de-DE:
+        text: Ein klares Produkt‑Render‑Diagramm zeigt einen silbernen Apple Mac Pro‑Turm von vorne links und mit entferntem Gehäuse rechts. Die Vorderseite hat das charakteristische Raster aus runden Lüftungsöffnungen und polierten Tragegriffen, während die freigelegte Seite eine große schwarze Logikplatine, Prozessor‑Module, Erweiterungssteckplätze, Anschlüsse und Kühlkomponenten zeigt. Vor einem schlichten weißen Hintergrund dokumentiert es das äußere Design und die interne Hardware‑Anordnung des Mac Pro.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:21.86168Z
+        seconds: 3.298225084
+        tokens: 11858
+        review: false
+      en-US:
+        text: A clean product-render diagram shows a silver Apple Mac Pro tower from the front at left and with its outer shell removed at right. The front has the distinctive grid of circular ventilation holes and polished carry handles, while the exposed side reveals a large black logic board, processor modules, expansion slots, ports, and cooling components. Against a plain white background, it appears to document the Mac Pro’s exterior design and internal hardware layout.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:43.377909Z
+        seconds: 0.0
+        tokens: 18492
+        review: false
+      es-ES:
+        text: Un diagrama de renderizado de producto limpio muestra una torre Apple Mac Pro plateada vista desde el frente a la izquierda y con su carcasa exterior retirada a la derecha. El frente tiene la característica rejilla de agujeros circulares de ventilación y asas pulidas, mientras que el lado expuesto revela una gran placa lógica negra, módulos de procesador, ranuras de expansión, puertos y componentes de refrigeración. Sobre un fondo blanco liso, parece documentar el diseño exterior del Mac Pro y la disposición del hardware interno
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:31.768015Z
+        seconds: 3.406978667
+        tokens: 11910
+        review: false
+      fr-FR:
+        text: Un diagramme de rendu produit épuré montre une tour Apple Mac Pro argentée vue de face à gauche et avec sa coque extérieure retirée à droite. La face avant présente la grille distinctive de trous de ventilation circulaires et les poignées de transport polies, tandis que le côté exposé révèle une grande carte logique noire, des modules de processeur, des slots d’extension, des ports et des composants de refroidissement. Sur fond blanc uni, il semble documenter le design extérieur du Mac Pro et la disposition interne du matériel
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:28.66151Z
+        seconds: 3.094203459
+        tokens: 11864
+        review: false
+      ja-JP:
+        text: クリーンな製品レンダーダイアグラムでは、左側に前面から見た銀色のApple Mac Proタワーが、右側には外装が取り外された状態で示されています。前面には円形の通気孔が格子状に配置され、研磨された持ち手が特徴的です。一方、露出した側面には大型の黒いロジックボード、プロセッサモジュール、拡張スロット、ポート、冷却コンポーネントが見えます。シンプルな白い背景に対し、Mac Proの外観デザインと内部ハードウェアのレイアウトを文書化したように見えます。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:17.650082Z
+        seconds: 4.202681375
+        tokens: 11964
+        review: false
+      ko-KR:
+        text: 깨끗한 제품 렌더링 다이어그램에는 왼쪽에 앞면이 보이는 은색 Apple Mac Pro 타워와 오른쪽에 외부 쉘이 제거된 모습이 표시됩니다. 앞면에는 원형 통풍구가 격자 형태로 배열된 특징적인 디자인과 광택이 나는 운반 손잡이가 있으며, 노출된 측면에서는 큰 검은색 로직 보드, 프로세서 모듈, 확장 슬롯, 포트 및 냉각 부품이 드러납니다. 단색 흰색 배경을 배경으로 하여 Mac Pro의 외관 디자인과 내부 하드웨어 배치를 문서화한 것으로 보입니다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:25.172005Z
+        seconds: 3.477944666
+        tokens: 11910
+        review: false
+      zh-CN:
+        text: 一个简洁的产品渲染图展示了左侧正面的银色 Apple Mac Pro 塔式机箱，右侧则展示了拆除外壳后的内部。正面具备独特的圆形通风孔网格和抛光的携带手柄，而露出的侧面显露出大型黑色逻辑板、处理器模块、扩展槽、端口和散热组件。置于纯白背景下，图像旨在展示 Mac Pro 的外观设计和内部硬件布局
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:14.489669Z
+        seconds: 3.150203417
+        tokens: 11786
+        review: false
+      zh-TW:
+        text: 一幅乾淨的產品渲染圖展示了左側從前方看到的銀色 Apple Mac Pro 主機塔，以及右側去除外殼的樣子。正面具有獨特的圓形通風孔格柵和拋光的提手，而暴露的側面則顯示出大型黑色主板、處理器模組、擴充槽、埠口與散熱元件。圖像以純白背景為底，彷彿紀錄了 Mac Pro 的外觀設計與內部硬體佈局
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:35.186403Z
+        seconds: 3.492437208
+        tokens: 11915
+        review: false
+    tags:
+    - apple
+    - mac-pro
+    - printed-circuit-board
+    source:
+      url: https://www.apple.com/newsroom/2019/06/apple-unveils-powerful-all-new-mac-pro-and-groundbreaking-pro-display-xdr/
+      label: Apple Newsroom
   b5951446d4de92d1b15b929938562f02:
     category: photograph
   c4297c3fd885b805484659786e1fb561:
@@ -1484,6 +2137,75 @@ media:
     - railing
     - streetlight
     - algae
+  c89ca3ea4b02c6a8a0c626a76a1a1682:
+    description:
+      de-DE:
+        text: Ein Produktfotografie zeigt ein geöffnetes MacBook, das mittig vor einem einfarbigen weißen Hintergrund platziert ist. Der Bildschirm ist vollständig schwarz und nicht beleuchtet, während das schlanke, dunkelgraue Gehäuse, die Webcam und das „MacBook“-Etikett am unteren Displayrahmen sichtbar sind
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:44.396273Z
+        seconds: 2.43561225
+        tokens: 11535
+        review: false
+      en-US:
+        text: A product-style photograph shows an open MacBook centered against a plain white background. Its screen is entirely black and unlit, with the slim dark-gray laptop body, webcam, and “MacBook” label visible along the lower display bezel.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:44.093473Z
+        seconds: 0.0
+        tokens: 18402
+        review: false
+      es-ES:
+        text: Una fotografía de estilo publicitario muestra un MacBook abierto centrado contra un fondo blanco liso. Su pantalla está completamente negra y sin iluminar, con el delgado cuerpo del portátil en gris oscuro, la cámara web y la etiqueta “MacBook” visibles a lo largo del bisel inferior de
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:53.223447Z
+        seconds: 4.264420041
+        tokens: 11914
+        review: false
+      fr-FR:
+        text: Une photo de type produit montre un MacBook ouvert, centré sur un fond blanc uni. Son écran est entièrement noir et éteint, avec le boîtier mince gris foncé, la webcam et l'étiquette « MacBook » visibles le long de la bordure inférieure de l'écran
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:50.382315Z
+        seconds: 2.831018583
+        tokens: 11697
+        review: false
+      ja-JP:
+        text: 製品写真では、開いたMacBookが真っ白な背景に中央に配置されています。画面は全く光らず真っ黒で、細く暗灰色の本体、ウェブカメラ、そして下部のディスプレイベゼルに「MacBook」のラベルが見
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:41.28648Z
+        seconds: 3.103575209
+        tokens: 11695
+        review: false
+      ko-KR:
+        text: 제품 스타일의 사진은 흰색 배경에 중앙에 놓인 열린 맥북을 보여준다. 화면은 완전히 검정색이고 불이 꺼져 있으며, 슬림한 다크 그레이 노트북 본체, 웹캠, 그리고 하단 디스플레이 베젤을 따라 보이는 “MacBook” 라벨이 보인다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:46.843531Z
+        seconds: 3.531592792
+        tokens: 11739
+        review: false
+      zh-CN:
+        text: 产品风格的照片展示了一台打开的MacBook，居中放置在纯白背景上。屏幕全黑未点亮，纤薄的深灰色机身、摄像头以及显示屏下边框上的“MacBook”标签可
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:38.687383Z
+        seconds: 2.590814292
+        tokens: 11657
+        review: false
+      zh-TW:
+        text: 一張產品風格的照片顯示一部打開的 MacBook 置於純白背景中央。螢幕全黑且未亮起，可見纖薄的深灰色機身、網路攝影機，以及位於下方顯示框邊緣的 “MacBook” 標
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:28:57.498168Z
+        seconds: 2.946209833
+        tokens: 11720
+        review: false
+    source:
+      url: https://web.archive.org/web/20150414005150id_/http://www.apple.com/macbook/design/
+      label: Apple
   cbc260f16e936f977570f8fb391f48e2:
     category: screenshot
     description:
@@ -1629,6 +2351,228 @@ media:
     - anime-avatar
     - printed-circuit-board
     - usb-c
+  ce6115b517f4858113b6aa4a061322aa:
+    category: screenshot
+    description:
+      de-DE:
+        text: Ein Screenshot einer Produktseite, der die Apple Watch Edition bewirbt. Oben rechts steht die Überschrift „WATCH EDITION“ neben einem Text, der acht elegante Apple‑Watch‑Designs mit 18‑Karat‑Goldgehäusen, Saphirkristall‑Displays und speziell entworfenen Armbändern beschreibt, sowie einem blauen „Watch the Gold film“-Abspiellink. Die untere Hälfte wird von einer Nahaufnahme einer seitlichen Ansicht eines polierten goldenen Watch‑Gehäuses dominiert, mit seiner Digital Crown, Seitentaste und einem dunkelblauen Lederarmband vor einem hellgrauen Hintergrund
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:08.710223Z
+        seconds: 3.673475875
+        tokens: 11964
+        review: false
+      en-US:
+        text: A product-page screenshot promoting the Apple Watch Edition. At upper right, the “WATCH EDITION” heading accompanies copy describing eight elegant Apple Watch designs with 18-karat gold cases, sapphire crystal displays, and specially designed bands, plus a blue “Watch the Gold film” play link. The lower half is dominated by a close-up side view of a polished gold watch case with its digital crown, side button, and a dark blue leather band against a pale gray background.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:45.205609Z
+        seconds: 0.0
+        tokens: 19260
+        review: false
+      es-ES:
+        text: Una captura de pantalla de una página de producto promocionando el Apple Watch Edition. En la esquina superior derecha, el encabezado “WATCH EDITION” acompaña un texto que describe ocho elegantes diseños de Apple Watch con cajas de oro de 18 quilates, pantallas de cristal zafiro y bandas especialmente diseñadas, además de un enlace de reproducción azul “Watch the Gold film”. La mitad inferior está dominada por una vista lateral en primer plano de una caja de reloj pulida en oro con su corona digital, botón lateral y una banda de cuero azul oscuro sobre un fondo gris claro
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:21.176096Z
+        seconds: 2.552083583
+        tokens: 11652
+        review: false
+      fr-FR:
+        text: Une capture d’écran de page produit faisant la promotion de l’Apple Watch Edition. En haut à droite, le titre « WATCH EDITION » est accompagné d’un texte décrivant huit modèles élégants d’Apple Watch avec des boîtiers en or 18 carats, des écrans en cristal de saphir et des bracelets spécialement conçus, ainsi qu’un lien bleu « Watch the Gold film ». La moitié inférieure est dominée par une vue latérale en gros plan d’un boîtier de montre poli en or, avec sa couronne digitale, son bouton latéral et un bracelet en cuir bleu foncé sur un fond gris pâle.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:16.050859Z
+        seconds: 5.118124458
+        tokens: 11972
+        review: false
+      ja-JP:
+        text: Apple Watch Edition を宣伝する製品ページのスクリーンショットです。右上には「WATCH EDITION」の見出しがあり、18カラットの金ケース、サファイアクリスタルディスプレイ、特別設計のバンドを備えた8つのエレガントな Apple Watch デザインについての説明文と、青色の「Watch the Gold film」再生リンクが添えられています。下部は、磨き上げられた金色のケースの側面をクローズアップした画像が中心で、デジタルクラウン、サイドボタン、そして淡い灰色の背景に対して濃紺のレザーバンドが映し出されています。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:04.013051Z
+        seconds: 4.687439584
+        tokens: 11983
+        review: false
+      ko-KR:
+        text: Apple Watch Edition을 홍보하는 제품 페이지 스크린샷. 오른쪽 상단에 “WATCH EDITION”이라는 헤드라인과 함께 18캐럿 골드 케이스, 사파이어 크리스탈 디스플레이, 특별히 설계된 밴드가 포함된 여덟 가지 우아한 Apple Watch 디자인을 설명하는 문구와 파란색 “Watch the Gold film” 재생 링크가 있다. 하단 절반은 연한 회색 배경에 디지털 크라운, 측면 버튼, 그리고 어두운 파란색 가죽 밴드가 달린 광택 있는 금색 시계 케이스의 측면 클로즈업이 차지하고 있다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:12.391263Z
+        seconds: 3.652817792
+        tokens: 11945
+        review: false
+      zh-CN:
+        text: 一张宣传 Apple Watch Edition 的产品页面截图。在右上角，“WATCH EDITION”标题伴随文字，描述八款优雅的 Apple Watch 设计，配备 18 克拉金表壳、蓝宝石水晶显示屏和专门设计的表带，并有一个蓝色的“观看 Gold 影片”播放链接。下半部分以近距离侧视抛光金色表壳为主，展示数字表冠、侧按钮以及置于淡灰色背景上的深蓝色皮表带。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:00.456433Z
+        seconds: 3.548842666
+        tokens: 11935
+        review: false
+      zh-TW:
+        text: 一張產品頁面的截圖，宣傳 Apple Watch Edition。右上角的「WATCH EDITION」標題附有文字，說明八款優雅的 Apple Watch 設計，採用 18 克拉金錶殼、藍寶石水晶顯示屏和特製錶帶，另有藍色的「Watch the Gold 影片」播放連結。下半部以特寫側面視角呈現拋光金錶殼，顯示數位表冠、側按鈕，搭配深藍色皮質錶帶，背景為淡灰色
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:23.735447Z
+        seconds: 4.017511958
+        tokens: 11937
+        review: false
+    tags:
+    - apple
+    - apple-watch
+    - smartwatch
+    source:
+      url: https://web.archive.org/web/20150309223102/http://www.apple.com/watch/apple-watch-edition/
+      label: Apple
+  d4186e9b053d6e972d2480b545e0a4da:
+    category: screenshot
+    description:
+      de-DE:
+        text: 'Ein Screenshot aus einer Apple‑Keynote zeigt drei iPhone 4S‑Geräte auf einer dunklen Bühnenfolie: eines mit dem Startbildschirm, eines mit einer Siri‑Kalender‑Erinnerungsoberfläche und eines mit einem Fotobildschirm. Tim Cook steht rechts neben einer groß projizierten iPhone‑Anzeige, mit einem „APPLE“-Label in der oberen rechten Ecke, und scheint die Funktionen des Telefons zu präsentieren'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:34.128678Z
+        seconds: 2.673818541
+        tokens: 11781
+        review: false
+      en-US:
+        text: 'A screenshot from an Apple keynote shows three iPhone 4S devices on a dark stage slide: one with the home screen, one displaying a Siri calendar-reminder interface, and one showing a photo screen. Tim Cook stands at the right beside a large projected iPhone interface, with an “APPLE” label in the upper-right corner, appearing to present the phone’s features.'
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:45.275599Z
+        seconds: 0.0
+        tokens: 19239
+        review: false
+      es-ES:
+        text: 'Una captura de pantalla de una presentación de Apple muestra tres dispositivos iPhone 4S en una diapositiva de escenario oscuro: uno con la pantalla de inicio, otro mostrando la interfaz de recordatorio de calendario de Siri y uno más con la pantalla de fotos. Tim Cook está a la derecha, junto a una gran interfaz de iPhone proyectada, con la etiqueta “APPLE” en la esquina superior derecha, pareciendo presentar las características del teléfono.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:43.17937Z
+        seconds: 3.245169334
+        tokens: 11867
+        review: false
+      fr-FR:
+        text: 'Une capture d’écran d’une présentation Apple montre trois iPhone 4S sur une diapositive sombre : l’un avec l’écran d’accueil, un autre affichant une interface de rappel de calendrier Siri, et le troisième affichant l’écran photo. Tim Cook se tient à droite, à côté d’une grande interface iPhone projetée, avec le libellé « APPLE » dans le coin supérieur droit, semblant présenter les fonctionnalités du téléphone.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:40.044817Z
+        seconds: 3.124214875
+        tokens: 11805
+        review: false
+      ja-JP:
+        text: Appleのキーノートのスクリーンショットでは、暗いステージスライドに3台のiPhone 4Sが置かれている。一台はホーム画面、もう一台はSiriのカレンダー‑リマインダー画面、そしてもう一台は写真画面を表示している。ティム・クックは右側に立ち、大きく投影されたiPhoneのインターフェイスの横にいて、右上に「APPLE」のラベルがあり、電話の機能を紹介しているようだ。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:30.529094Z
+        seconds: 3.592737042
+        tokens: 11791
+        review: false
+      ko-KR:
+        text: 'Apple 기조연설의 스크린샷에는 어두운 무대 슬라이드에 iPhone 4S 세 대가 보여진다: 하나는 홈 화면, 하나는 Siri 일정‑리마인더 인터페이스, 또 하나는 사진 화면을 보여준다. Tim Cook은 오른쪽에 서서 큰 투사된 iPhone 인터페이스 옆에 서 있으며, 오른쪽 상단에 “APPLE” 라벨이 있어 전화기의 기능을 소개하는 듯하다.'
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:36.81441Z
+        seconds: 3.217880708
+        tokens: 11829
+        review: false
+      zh-CN:
+        text: 一张来自苹果主题演讲的截图显示在暗色舞台幻灯片上放置了三部 iPhone 4S：一部显示主屏幕，一部显示 Siri 的日历提醒界面，另一部显示照片屏幕。Tim Cook 站在右侧，旁边有一个大型投影的 iPhone 界面，右上角有“APPLE”标签，似乎在展示这款手机的功能
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:27.759882Z
+        seconds: 2.7626762080000002
+        tokens: 11823
+        review: false
+      zh-TW:
+        text: 一張來自 Apple keynote 的螢幕截圖顯示三部 iPhone 4S 置於暗色舞台投影片上：一部顯示主畫面，一部呈現 Siri 行事曆提醒介面，另一部顯示相片畫面。Tim Cook 站在右側，站在大型投影的 iPhone 介面旁，右上角有「APPLE」標籤，似乎在介紹手機的功能
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:46.432674Z
+        seconds: 3.082410625
+        tokens: 11832
+        review: false
+    tags:
+    - apple
+    - iphone
+    - steve-jobs
+    source:
+      url: https://www.cnet.com/videos/the-day-tim-cook-replaced-steve-jobs-the-iphone-4s-launch-cnet-archives/
+      label: CNET
+  d95819761cd2d03787a9ff5d58905017:
+    category: artwork
+    description:
+      de-DE:
+        text: Produktwerbegrafik für das iPhone 5c mit dem Apple‑Logo und dem Aufdruck „iPhone 5c“ auf weißem Hintergrund. Fünf aufrechte Telefone in Grün, Blau, Gelb, Pink und Weiß werden gezeigt, die die farbigen Kunststoffhüllen und Seitentasten betonen; zwei zeigen teilweise Frontbildschirme und das weiße Telefon zeigt die Rückseite mit dem Apple‑Logo.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:56.943777Z
+        seconds: 3.557581416
+        tokens: 11785
+        review: false
+      en-US:
+        text: Product promotional graphic for the iPhone 5c, with Apple’s logo and “iPhone 5c” printed across a white background. Five upright phones are shown in green, blue, yellow, pink, and white, emphasizing the colorful plastic cases and side buttons; two show partial front screens and the white phone shows its back with the Apple logo.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:49.49742Z
+        seconds: 0.0
+        tokens: 19235
+        review: false
+      es-ES:
+        text: Gráfico promocional del producto para el iPhone 5c, con el logotipo de Apple y la inscripción “iPhone 5c” sobre un fondo blanco. Se muestran cinco teléfonos verticales en verde, azul, amarillo, rosa y blanco, destacando las carcasas de plástico coloridas y los botones laterales; dos presentan parte frontal de la pantalla y el teléfono blanco muestra su parte trasera con el logotipo de Apple.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:06.859686Z
+        seconds: 3.10896475
+        tokens: 11761
+        review: false
+      fr-FR:
+        text: Graphique promotionnel du produit pour l'iPhone 5c, avec le logo d’Apple et « iPhone 5c » imprimés sur un fond blanc. Cinq téléphones verticaux sont montrés en vert, bleu, jaune, rose et blanc, mettant en avant les coques en plastique colorées et les boutons latéraux ; deux affichent partiellement leurs écrans avant et le téléphone blanc montre son dos avec le logo
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:03.958953Z
+        seconds: 2.892550875
+        tokens: 11697
+        review: false
+      ja-JP:
+        text: iPhone 5cの製品プロモーション画像で、白い背景にAppleのロゴと「iPhone 5c」の文字が印刷されています。緑、青、黄色、ピンク、白の5台の縦向きの電話が表示され、カラフルなプラスチックケースと側面ボタンが強調されています。2台は前面画面の一部が見え、白い電話は背面にAppleロゴが見えます
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:52.912124Z
+        seconds: 4.022303
+        tokens: 11824
+        review: false
+      ko-KR:
+        text: iPhone 5c에 대한 제품 홍보 그래픽으로, 흰색 배경에 Apple 로고와 “iPhone 5c”가 인쇄되어 있습니다. 초록색, 파란색, 노란색, 분홍색, 흰색 다섯 대의 세로형 폰이 표시되어 컬러 플라스틱 케이스와 측면 버튼을 강조하며, 두 대는 앞 화면이 일부 보이고 흰색 폰은 뒤면에 Apple 로고가 나타납니다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:00.511321Z
+        seconds: 3.437076541
+        tokens: 11844
+        review: false
+      zh-CN:
+        text: iPhone 5c 的产品宣传图，白色背景上印有苹果标志和“iPhone 5c”。图中展示了五部竖立的手机，颜色分别为绿色、蓝色、黄色、粉色和白色，突出彩色塑料外壳和侧边按钮；其中两部显示了部分正面屏幕，白色手机展示了背面的苹果标志。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:29:49.521665Z
+        seconds: 3.380646583
+        tokens: 11850
+        review: false
+      zh-TW:
+        text: 產品宣傳圖，展示 iPhone 5c，白色背景上印有蘋果標誌和「iPhone 5c」字樣。圖中呈立姿的五支手機分別為綠色、藍色、黃色、粉色和白色，突顯彩色塑膠外殼與側邊按鈕；其中兩支顯示部分前螢幕，白色手機則展示背面的蘋果標
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:09.978044Z
+        seconds: 3.07255875
+        tokens: 11862
+        review: false
+    tags:
+    - iphone
+    - apple
+    - iphone-5c
+    source:
+      url: https://www.macrumors.com/2022/10/08/iphone-5c-obsolete-next-month/
+      label: MacRumors
   ec38a5d85298b5e0d5b8acc1591097c2:
     category: photograph
     description:
@@ -1701,6 +2645,154 @@ media:
     - shrub
     - tree
     - pergola
+  f04a630871b46cc55111ffe1264891e9:
+    category: artwork
+    description:
+      de-DE:
+        text: Eine Werbegrafik zeigt ein weißes iPhone, das den iOS 7‑Startbildschirm anzeigt, schräg vor einem sauberen weißen Hintergrund. Großer Text links lautet „iOS 7“ und „Das mobile Betriebssystem aus einer völlig neuen Perspektive.“ Sie wirbt für Apples iOS 7‑Neugestaltung und betont die farbenfrohen App‑Symbole sowie das schlanke Handy‑Design.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:19.118353Z
+        seconds: 2.754215583
+        tokens: 11774
+        review: false
+      en-US:
+        text: A promotional product graphic shows a white iPhone displaying the iOS 7 home screen, angled across a clean white background. Large text at left reads “iOS 7” and “The mobile OS from a whole new perspective.” It appears to advertise Apple’s iOS 7 redesign, emphasizing its colorful app icons and slim phone hardware.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:49.504616Z
+        seconds: 0.0
+        tokens: 18956
+        review: false
+      es-ES:
+        text: Un gráfico promocional muestra un iPhone blanco con la pantalla de inicio de iOS 7, inclinado sobre un fondo blanco limpio. En el lado izquierdo, un texto grande dice “iOS 7” y “El sistema operativo móvil desde una perspectiva totalmente nueva”. Parece anunciar el rediseño de iOS 7 de Apple, enfatizando sus coloridos íconos de aplicaciones y el hardware delgado del
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:26.865652Z
+        seconds: 2.528264083
+        tokens: 11577
+        review: false
+      fr-FR:
+        text: Un graphique promotionnel montre un iPhone blanc affichant l'écran d'accueil d'iOS 7, incliné sur un fond blanc épuré. Un texte en gros caractères à gauche indique « iOS 7 » et « Le système d'exploitation mobile d'une toute nouvelle perspective. ». Il semble faire la promotion de la refonte d'iOS 7 d'Apple, en soulignant ses icônes d'application colorées et le design fin du téléphone
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:24.388311Z
+        seconds: 2.464107375
+        tokens: 11591
+        review: false
+      ja-JP:
+        text: 白い iPhone が iOS 7 のホーム画面を表示し、清潔な白い背景に斜めに配置されています。左側の大きな文字は「iOS 7」と「全く新しい視点からのモバイル OS」と書かれています。これは Apple の iOS 7 のリデザインを宣伝するもので、カラフルなアプリアイコンとスリムな本体ハードウェアを強調しています。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:15.790963Z
+        seconds: 3.315711
+        tokens: 11807
+        review: false
+      ko-KR:
+        text: 화이트 아이폰에 iOS 7 홈 화면이 표시된 홍보 이미지가 깔끔한 흰 배경에 기울어져 있습니다. 왼쪽에 큰 텍스트로 “iOS 7”과 “전혀 새로운 관점에서 바라본 모바일 OS.”가 적혀 있습니다. 이는 Apple의 iOS 7 재디자인을 광고하며, 다채로운 앱 아이콘과 슬림한 폰 하드웨어를 강조합니다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:21.884819Z
+        seconds: 2.492445833
+        tokens: 11578
+        review: false
+      zh-CN:
+        text: 一张宣传产品图片展示了一部白色 iPhone，屏幕上显示 iOS 7 主屏幕，斜放在干净的白色背景上。左侧的大字写着 “iOS 7” 与 “从全新视角呈现的移动操作系统”。这似乎是在宣传 Apple 的 iOS 7 全面 redesign，强调其多彩的应用图标和轻薄的手机硬件。
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:13.062349Z
+        seconds: 2.71916625
+        tokens: 11584
+        review: false
+      zh-TW:
+        text: 一張宣傳產品圖形展示了一部白色 iPhone，螢幕顯示 iOS 7 主畫面，斜放於乾淨的白色背景上。左側的大字寫著「iOS 7」以及「全新視角的行動作業系統」。此圖似乎在宣傳 Apple 的 iOS 7 重新設計，強調其多彩的應用程式圖示與纖薄的手機硬體
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:29.403205Z
+        seconds: 3.3834005830000002
+        tokens: 11800
+        review: false
+    tags:
+    - iphone
+    - ios
+    - smartphone
+    source:
+      url: https://web.archive.org/web/20130612003638/http://www.apple.com/ios/ios7/
+      label: Apple
+  f60c583c98fad33c0821a8ec87daa101:
+    category: artwork
+    description:
+      de-DE:
+        text: Ein Produktfoto zeigt ein Paar glänzender weißer kabelloser Ohrhörer, die teilweise aus einem offenen weißen Ladecase heraus schweben, vor einem schlichten elfenbeinfarbenen Hintergrund. Weiches, gleichmäßiges Studiolicht betont die glatten Kunststoffoberflächen, Lautsprechergitter und kleinen schwarzen Sensordetails; es wirkt wie ein Werbebild für Apple‑ähnliche AirPods.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:38.162862Z
+        seconds: 2.6854178749999997
+        tokens: 11745
+        review: false
+      en-US:
+        text: A product photograph shows a pair of glossy white wireless earbuds floating partly out of an open white charging case against a plain off-white background. Soft, even studio lighting emphasizes the smooth plastic surfaces, speaker grilles, and small black sensor details; it appears to be promotional product imagery for Apple-style AirPods.
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-14T03:22:50.004334Z
+        seconds: 0.0
+        tokens: 17367
+        review: false
+      es-ES:
+        text: Una fotografía de producto muestra un par de auriculares inalámbricos blancos y brillantes flotando parcialmente fuera de una funda de carga blanca abierta sobre un fondo liso de color off‑white. Una iluminación suave y uniforme de estudio resalta las superficies plásticas lisas, las rejillas de los altavoces y los pequeños detalles de sensor negros; parece ser una imagen promocional de producto al estilo de los Air
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:49.729186Z
+        seconds: 3.2958095
+        tokens: 11770
+        review: false
+      fr-FR:
+        text: Une photo de produit montre une paire d'écouteurs sans fil blanc brillant flottant en partie hors d'un boîtier de charge blanc ouvert sur un fond uni blanc cassé. Un éclairage doux et uniforme en studio met en valeur les surfaces plastiques lisses, les grilles des haut-parleurs et les petits détails noirs des capteurs ; il s'agit apparemment d'une image promotionnelle de produit au style des AirPods d'Apple.
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:46.218707Z
+        seconds: 3.49876975
+        tokens: 11943
+        review: false
+      ja-JP:
+        text: 製品写真は、光沢のある白いワイヤレスイヤホンが、開いた白い充電ケースから少し浮き上がっている様子を、オフホワイトのシンプルな背景に映し出しています。柔らかく均一なスタジオ照明が、滑らかなプラスチック表面、スピーカーメッシュ、そして小さな黒いセンサーのディテールを強調しています。AppleスタイルのAirPodsのようなプロモーション用製品画像です
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:35.166012Z
+        seconds: 2.990030708
+        tokens: 11603
+        review: false
+      ko-KR:
+        text: 제품 사진에는 광택이 나는 흰색 무선 이어버드 한 쌍이 열린 흰색 충전 케이스에서 부분적으로 떠 있는 모습이 보이며, 배경은 단순한 오프 화이트 색상이다. 부드럽고 고른 스튜디오 조명이 매끄러운 플라스틱 표면, 스피커 그릴, 작은 검은색 센서 디테일을 강조한다; 이는 Apple 스타일 AirPods의 홍보용 제품 이미지로 보인다
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:40.855641Z
+        seconds: 5.350368666
+        tokens: 11798
+        review: false
+      zh-CN:
+        text: 产品照片展示了一对光亮的白色无线耳塞，漂浮在打开的白色充电盒部分外侧，背景为淡米色。柔和均匀的工作室灯光突显了光滑的塑料表面、扬声器网格和小巧的黑色传感器细节；看起来像是针对 Apple 风格 AirPods 的宣传产品图片
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:32.797821Z
+        seconds: 2.35847275
+        tokens: 11565
+        review: false
+      zh-TW:
+        text: 產品照片顯示一對光亮的白色無線耳塞，部分漂浮在打開的白色充電盒外，背景為純淨的米白色。柔和均勻的工作室燈光突顯了光滑的塑膠表面、喇叭格柵以及小巧的黑色感測器細節；看起來像是蘋果風格 AirPods 的宣傳商品影像
+        provider: openai
+        model: gpt-oss-120b-medium
+        at: 2026-09-14T03:30:53.036004Z
+        seconds: 3.301994917
+        tokens: 11792
+        review: false
+    tags:
+    - apple
+    - wireless-earbuds
+    - charging-case
+    source:
+      url: https://www.apple.com/newsroom/2016/09/apple-reinvents-the-wireless-headphones-with-airpods/
+      label: Apple Newsroom
   ff309d022981d9168fca9e5e9b7291e4:
     category: photograph
     description:
