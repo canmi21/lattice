@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, leading, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
@@ -57,12 +57,6 @@
 			textTransform: 'uppercase',
 		},
 		meta: {
-			fontSize: text.px14,
-			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
-			// 0.875)`: StyleX evaluates a calc at compile time and keeps five decimals, and
-			// 1.42857 against 14px lands short of the 1.25rem the ratio means. See
-			// spec/architecture/css.md.
-			lineHeight: leading.px20,
 			color: 'var(--color-text-soft)',
 		},
 		/**
@@ -439,6 +433,7 @@
 				<div
 					class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 {stylex.attrs(
 						styles.apparatus,
+						surfaces.uiText,
 						styles.meta,
 					).class}"
 				>

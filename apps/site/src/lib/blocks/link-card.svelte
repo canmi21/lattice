@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, easing, leading, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
+	import { duration, easing, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
@@ -43,11 +44,6 @@
 		},
 		/** The title over the cover. */
 		title: {
-			fontSize: text.px14,
-			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
-			// 0.875)`: StyleX evaluates a calc and keeps five decimals, and 1.42857 against 14px
-			// lands at 19.99998 rather than at 20. See spec/architecture/css.md.
-			lineHeight: leading.px20,
 			fontWeight: weight.medium,
 		},
 	});
@@ -186,7 +182,7 @@
 	<div class="absolute right-12 bottom-3 left-3 flex items-center gap-2">
 		<img src={faviconSrc} alt="" aria-hidden="true" loading="lazy" class="h-4 w-4 shrink-0" />
 		<span
-			class="truncate {stylex.attrs(styles.title).class} {tone === 'dark'
+			class="truncate {stylex.attrs(surfaces.uiText, styles.title).class} {tone === 'dark'
 				? 'text-black'
 				: 'text-white'}"
 		>

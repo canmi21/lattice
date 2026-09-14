@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, easing, leading, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, easing, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
@@ -23,13 +23,6 @@
 		titleFace: {
 			borderColor: 'var(--color-border)',
 			backgroundColor: 'var(--color-paper-hover)',
-			fontSize: text.px14,
-			// The line as a length rather than as the ratio `text-sm` writes it, `calc(1.25 /
-			// 0.875)`, which is the same 1.25rem and cannot be written that way here: StyleX
-			// evaluates a calc and keeps five decimals, and 1.42857 against 14px lands at
-			// 19.99998, which Chrome floors to the 1/64px below. Measured: the title lost
-			// 0.0156px of height and every element under it on the page moved with it.
-			lineHeight: leading.px20,
 			fontWeight: weight.medium,
 		},
 		titleLabel: {
@@ -405,6 +398,7 @@
 				<button
 					type="button"
 					class="code-title flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left {stylex.attrs(
+						surfaces.uiText,
 						styles.titleFace,
 						styles.titleControl,
 						dividerVisible && styles.divider,
@@ -425,7 +419,7 @@
 				</button>
 			{:else}
 				<div
-					class="px-4 py-2.5 {stylex.attrs(styles.titleFace, styles.titleLabel, styles.divider)
+					class="px-4 py-2.5 {stylex.attrs(surfaces.uiText, styles.titleFace, styles.titleLabel, styles.divider)
 						.class}"
 				>
 					{title}

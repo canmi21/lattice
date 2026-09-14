@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
-import { border, radius, weight } from '$lib/vocabulary.stylex.ts';
+import { border, leading, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 /**
  * The declaration groups the visual layer repeats, each with one name.
@@ -117,6 +117,28 @@ export const surfaces = stylex.create({
 			':hover': 'var(--color-paper-hover)',
 			':focus-visible': 'var(--color-paper-hover)',
 		},
+	},
+
+	/**
+	 * The interface's own type step: fourteen pixels with the line that step computes to.
+	 *
+	 * Six components take it -- a code block's title bar, a link card's title, the placeholder, a
+	 * locale row, the article's metadata line and the home link. The seven other sites of
+	 * `text.px14` all override the line on purpose, for prose, for code or for a display message,
+	 * so it is the pair that marks interface text rather than the size on its own.
+	 *
+	 * The line is a length rather than the ratio `text-sm` writes. `calc(1.25 / 0.875)` does not
+	 * terminate, StyleX evaluates a calc at compile time and keeps five decimals, and 1.42857
+	 * against 14px lands at 19.99998, which Chrome floors to the 1/64th of a pixel below. Measured
+	 * on the code block's title, which lost 0.0156px of height and moved every element under it on
+	 * the page with it. See spec/architecture/css.md.
+	 *
+	 * `leading.px20` has no site that is not one of these six. It exists because this step needs a
+	 * line, which is what makes the two a unit rather than two names that happen to co-occur.
+	 */
+	uiText: {
+		fontSize: text.px14,
+		lineHeight: leading.px20,
 	},
 
 	/**
