@@ -116,6 +116,58 @@ One consequence to watch rather than pre-solve: a source at exactly 1080p publis
 software path has only the heaviest rung to take. If a measured wait turns out to be intolerable the
 answer is another rung below it, not a change to the playback logic.
 
+## A clip is a picture, then a silent picture, then a player
+
+The player has three stages and they are not decoration: each one is a different answer to "what
+is this thing", and the reader moves through them by doing something. `sleeping` looks like a
+picture and has no controls. `previewing` is running silently and is an invitation rather than a
+player, so it still has no controls. `awake` is a player, and only a reader's own click gets
+there, because only a click can buy sound from a browser.
+
+**Sound is the page's, not the clip's.** Once a reader has clicked one clip, every other clip on
+the page plays with sound the moment it is previewed, because the question the click answered --
+does this reader want to hear this page -- was never about one clip. What a second clip still
+withholds is the chrome: that needs its own click, because it is the difference between watching
+and operating.
+
+### On a pointer device
+
+A pointer discovers a clip by arriving at it. Arriving starts silent playback and takes the cover
+away, because the picture moving is a better invitation than a button on it. Leaving pauses and
+keeps the position, so coming back resumes rather than restarts, and the cover comes back with it.
+None of this raises the chrome; a click does that.
+
+Once awake, **the chrome follows the pointer and nothing else** -- there while it is on the frame,
+gone when it leaves. It does not fade on an idle timer. That is a native player's rule and a
+native player fills the screen; this one is a box in a column of prose that the reader is
+deliberately pointing at, and a scrubber that vanishes under a resting pointer has to be summoned
+back by wiggling it.
+
+**The cover is a guest whenever the row is there, and the only control when it is not.** With the
+pointer on the frame there is a whole row along the bottom, so the disc over the middle of the
+picture comes up for the two seconds after a state change, holds while the pointer is on it, and
+otherwise gets out of the way -- paused included, because a reader who paused with the pointer on
+the frame has the row in front of them. With the pointer off the frame the row is gone and a still
+frame says nothing about being resumable, so the disc stays. That is also the moment it is most
+wanted, since leaving is what paused the clip.
+
+The countdown is the cover's own. The store has an idle flag and it resets on any movement inside
+the container, so a reader whose pointer wanders across the picture -- which is what watching looks
+like -- kept pulling the Pause button back into the middle of it.
+
+**Before the first click the cover shows one face.** The clip underneath starts and stops in that
+stage, and reading `paused` directly meant the glyph reported it: the triangle became two bars for
+the length of the fade and then went, a pause button flashing on a clip nobody had started. The
+state is not the cover's to report until there is something to report.
+
+### On a touch device
+
+A finger cannot arrive anywhere, so a clip with nothing on it is a picture as far as anyone can
+tell, and the cover is the only thing that says otherwise. It is the invitation and nothing else:
+a permanent play control in the middle would fight the double tap. A press that wanders slightly
+is this device's hover, and unlike a pointer leaving, lifting the finger does not pause -- only
+leaving the viewport does. A single tap summons the chrome; a double tap plays and pauses.
+
 ## The no-script player lives in `<noscript>`, and nobody else ever sees it
 
 A clip has to work without this site's script: a reader with scripting off, or one who presses

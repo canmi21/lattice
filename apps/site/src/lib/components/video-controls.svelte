@@ -645,13 +645,18 @@
 	 * from then on the picture is moving and the movement is the better sign. `over` rather than
 	 * the stage, so it comes straight back when the pointer leaves.
 	 *
-	 * After the reader has clicked it is the play control, and a control reports state rather than
-	 * inviting. This one is over the middle of the picture rather than out of the way at the
-	 * bottom, so it is the one that keeps `userActive`: a clip playing under a resting pointer
-	 * clears its own middle after a few seconds while the row along the bottom stays. And it
-	 * outlasts both whenever the clip is paused, including with the pointer nowhere near, because
-	 * a paused frame says nothing about being resumable and the reader who stopped it is the one
-	 * most likely to come back.
+	 * After the reader has clicked it is the play control, and where the pointer is decides which
+	 * of two things it is.
+	 *
+	 * With the pointer on the frame there is a whole row of controls along the bottom and this one
+	 * is sitting over the middle of the picture, so it is a guest: it comes up for the moment a
+	 * state changes, holds while the pointer is on it, and otherwise gets out of the way. That
+	 * includes paused, which used to keep it up outright -- but a reader who paused with the
+	 * pointer on the frame has the row in front of them and does not need the picture covered too.
+	 *
+	 * With the pointer off the frame the row is gone, and a paused still frame with nothing on it
+	 * says nothing about being resumable. So this is the only thing left and it stays, which is
+	 * also the moment it is most wanted: leaving is what paused the clip.
 	 *
 	 * On a touch device it is still only the invitation. There is no hover to replace it with, and
 	 * a permanent target in the middle of the picture would fight the double tap that pauses.
@@ -659,7 +664,7 @@
 	const covered = $derived(
 		hovers
 			? stage === 'awake'
-				? view.paused || onCover || lingering
+				? !over || onCover || lingering
 				: !over
 			: stage === 'sleeping',
 	);
