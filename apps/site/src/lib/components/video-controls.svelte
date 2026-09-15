@@ -487,6 +487,17 @@
 		if (stage !== 'awake') {
 			wake();
 			showChrome = true;
+			// The click that buys sound is the one moment the whole interface should answer: the
+			// row along the bottom and the disc in the middle together, so the reader sees the
+			// picture become a player rather than only a strip at the bottom growing controls.
+			// `hold` rather than anything sticky, so it is an announcement and then the ordinary
+			// rules -- the disc counts itself down from here like any other state change.
+			//
+			// It needs saying because the usual trigger does not fire here. A pointer arriving
+			// already started the silent preview, so the clip is running before and after the
+			// click and `paused` never changes; without this the click showed the row and left
+			// the middle of the picture empty.
+			hold();
 			return;
 		}
 		if (hovers) {
