@@ -654,6 +654,26 @@
 				: !over
 			: stage === 'sleeping',
 	);
+
+	/**
+	 * What the cover is drawn as, which is not the same question as whether the clip is running.
+	 *
+	 * Before the first click the cover is an invitation and an invitation has one face. The clip
+	 * underneath does start and stop in that stage -- a pointer arriving begins the silent preview
+	 * and a pointer leaving ends it -- and reading `paused` directly meant the glyph reported it:
+	 * arriving, the triangle became two bars for the length of the fade and then went, so the
+	 * reader saw a pause button flash on a clip they had not started. The fade is 200ms and that
+	 * is long enough to be seen rather than felt.
+	 *
+	 * Ordering the two would not fix it either, because the cover is not always leaving when the
+	 * state changes. The state simply is not the cover's to report yet. Once the reader has
+	 * clicked it becomes the play control and reports honestly, which is the point at which there
+	 * is something to report.
+	 */
+	const coverRunning = $derived(stage === 'awake' && !view.paused);
+	const coverLabel = $derived(
+		coverRunning ? m['video.pause']({}, { locale }) : m['video.play']({}, { locale }),
+	);
 </script>
 
 <!--
@@ -683,13 +703,13 @@
 			event.stopPropagation();
 			press();
 		}}
-		aria-label={label}
-		title={label}
+		aria-label={coverLabel}
+		title={coverLabel}
 		class="player-cover"
 		class:player-cover-shown={covered}
 	>
-		{#if view.paused}<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
-		{:else}<PauseIcon class="player-cover-pause" weight="fill" aria-hidden="true" />{/if}
+		{#if coverRunning}<PauseIcon class="player-cover-pause" weight="fill" aria-hidden="true" />
+		{:else}<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />{/if}
 	</button>
 {/if}
 
