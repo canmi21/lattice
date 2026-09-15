@@ -187,7 +187,6 @@
 		pipAvailable: false,
 		captions: false,
 		hasCaptions: false,
-		active: true,
 	});
 
 	let player = $state<Record<string, unknown> | null>(null);
@@ -290,7 +289,6 @@
 				pipAvailable: store.pipAvailability !== 'unavailable',
 				captions: Boolean(store.subtitlesShowing),
 				hasCaptions: (store.textTrackList?.length ?? 0) > 0,
-				active: Boolean(store.userActive ?? true),
 			};
 		};
 		const stop = store.subscribe(pull);
@@ -650,7 +648,7 @@
 	const covered = $derived(
 		hovers
 			? stage === 'awake'
-				? view.paused || (over && view.active)
+				? view.paused || onCover || lingering
 				: !over
 			: stage === 'sleeping',
 	);
@@ -671,6 +669,58 @@
 	 * is something to report.
 	 */
 	const coverRunning = $derived(stage === 'awake' && !view.paused);
+
+	/**
+	 * How long the cover stays up after the clip starts running, when nothing is pointing at it.
+	 *
+	 * It is showing a Pause button over the middle of the picture, which is worth a moment and not
+	 * worth a minute: long enough to read the state that just changed, short enough that a clip
+	 * playing to a still pointer is unobstructed.
+	 */
+	const COVER_LINGER = 2000;
+
+	/** Whether the pointer is on the cover itself, which is not the same as being on the frame. */
+	let onCover = $state(false);
+	/** Whether the countdown started by the last state change is still running. */
+	let lingering = $state(false);
+	let linger: ReturnType<typeof setTimeout> | undefined;
+
+	/**
+	 * Restart the countdown.
+	 *
+	 * The store has an idle flag of its own and it is the wrong clock for this. `userActive`
+	 * resets on any movement inside the container, so a pointer wandering across the picture --
+	 * which is what a reader watching a clip does -- kept bringing the Pause button back into the
+	 * middle of it. The cover is one 64px disc and the only movement that should concern it is
+	 * movement on the disc.
+	 */
+	function hold() {
+		lingering = true;
+		clearTimeout(linger);
+		linger = setTimeout(() => {
+			lingering = false;
+		}, COVER_LINGER);
+	}
+
+	/**
+	 * A state change is the one thing worth putting the cover back up for, and the countdown
+	 * decides how long for. Paused keeps it up outright, so this matters on the way to running.
+	 *
+	 * The comparison is the whole rule. `pull` replaces `view` wholesale on every notification the
+	 * store sends, and a playing clip sends them several times a second, so an effect that merely
+	 * reads `view.paused` runs on all of them -- which restarted the countdown continuously and
+	 * left the cover up forever. What is wanted is the transition, not the value.
+	 */
+	let wasPaused = true;
+	$effect(() => {
+		const paused = view.paused;
+		if (paused === wasPaused) return;
+		wasPaused = paused;
+		if (stage !== 'awake') return;
+		hold();
+	});
+
+	$effect(() => () => clearTimeout(linger));
 	const coverLabel = $derived(
 		coverRunning ? m['video.pause']({}, { locale }) : m['video.play']({}, { locale }),
 	);
@@ -705,6 +755,13 @@
 		}}
 		aria-label={coverLabel}
 		title={coverLabel}
+		onpointerenter={() => (onCover = true)}
+		onpointerleave={() => {
+			onCover = false;
+			// Leaving is where the countdown starts, so the disc outlives the pointer by the same
+			// moment it would have had if the pointer had never arrived.
+			hold();
+		}}
 		class="player-cover"
 		class:player-cover-shown={covered}
 	>
