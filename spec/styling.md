@@ -1184,6 +1184,48 @@ in a column of prose, and this is the view that exists to get past the column. W
 the drawn size, `sizes: 100vw` is what keeps a photograph on a wide window sharp: the browser is
 being told the truth about how large it is about to be painted, and picks its source accordingly.
 
+## The player brings its own colours, because it cannot know what is behind them
+
+Every colour in `colors.css` is a page colour: it has a light value and a dark one because it is
+read against the page, and the reader picks which. A player's controls are read against a *video
+frame* -- a surface this site does not choose, cannot know, and which changes twenty-four times a
+second. A control tinted for a light page disappears over a bright sky; one tinted for a dark page
+disappears over a night interior. So the player does not ask what theme the page is in. It brings
+its own ground, the way every native player does, and `libs/tokens/src/player.css` is deliberately
+not derived from any `--color-*` -- a derivation would re-introduce the theme the file exists to
+escape. What the player *does* take from the page is the focus ring, and only that: see below.
+
+The scheme is the one macOS and IINA arrive at from the same constraint. White ink at less than
+full opacity, floating on a dark translucent plate, blurred so the frame behind reads as texture
+rather than as detail. Two things carry it over content bright enough to swallow white:
+
+- **`--player-veil` is a gradient laid under the controls, not a solid bar.** Dark at the bottom
+  edge and nothing at the top, so it darkens what the controls sit on without drawing a band
+  across the picture.
+- **`--player-shadow` is cast on the ink itself**, not on the plate, which is what keeps a white
+  glyph legible in the case the veil cannot reach: a title card filling the frame.
+
+**The disc in the middle is glass, and the row along the bottom is a plate.** The difference is
+what is behind them. The row sits on the bottom strip of a frame and is mostly ink; the disc is
+64px of surface over the middle of the picture, and what it covers is worth seeing. So it takes
+less of its own colour, more blur, and the saturation push that stops a blurred frame going grey
+-- blur alone averages colour towards nothing, which is why every native vibrancy effect pairs the
+two. At `0.45` the frame behind reads at 55%, against the plate's 34%. Alpha is the share of the
+disc's own colour, so **more of it is less glass, not more**.
+
+**A control lights up rather than growing a plate under it.** Hover and keyboard focus used to put
+a rounded translucent rectangle behind each 16px glyph, on a row that already sits on its own
+veil: a plate on a plate, and a bigger visual event than the state it reports. Dim ink to full ink
+is the whole signal, which is what a native player does. The settings menu keeps its wash, because
+there the highlighted surface *is* the row rather than an ornament on it.
+
+**The cover's glyph is sized against the disc, not against its own box.** At 1.5rem the triangle
+was 30% of the diameter and the disc read as the bigger object; at 1.875rem it is 38%, which is
+where a native play button sits.
+
+What the player's controls *do*, and when each of them is on screen, is in
+[architecture/video.md](architecture/video.md).
+
 ## The player's glyphs are Phosphor, at two weights, plus three this repository draws
 
 Icons on this site come from Lucide and mingcute through `unplugin-icons`, and the player's do

@@ -118,8 +118,10 @@ answer is another rung below it, not a change to the playback logic.
 
 ## A clip is a picture, then a silent picture, then a player
 
-The player has three stages and they are not decoration: each one is a different answer to "what
-is this thing", and the reader moves through them by doing something. `sleeping` looks like a
+What the controls look like, and why they take none of their colours from the page, is in
+[styling.md](../styling.md) -- this section is what they do. The player has three stages
+and they are not decoration: each one is a different answer to "what is this thing", and the
+reader moves through them by doing something. `sleeping` looks like a
 picture and has no controls. `previewing` is running silently and is an invitation rather than a
 player, so it still has no controls. `awake` is a player, and only a reader's own click gets
 there, because only a click can buy sound from a browser.
@@ -160,6 +162,54 @@ stage, and reading `paused` directly meant the glyph reported it: the triangle b
 the length of the fade and then went, a pause button flashing on a clip nobody had started. The
 state is not the cover's to report until there is something to report.
 
+### On a touch device
+
+A finger cannot arrive anywhere, so a clip with nothing on it is a picture as far as anyone can
+tell, and the cover is the only thing that says otherwise. It is the invitation and nothing else:
+a permanent play control in the middle would fight the double tap. A press that wanders slightly
+is this device's hover, and unlike a pointer leaving, lifting the finger does not pause -- only
+leaving the viewport does. A single tap summons the chrome; a double tap plays and pauses.
+
+### Filling the window is a page mode, not a media one
+
+Two buttons sit next to each other and they are different destinations rather than two sizes of
+one, which is why they carry different glyphs. The Fullscreen API leaves the browser behind. The
+other fills the window with the browser's own chrome still around it, which no player library
+offers because it is not something a media element can do: the frame becomes a fixed black box
+over the page.
+
+**It is offered only where it would change anything.** The article column caps at 720px, so below
+that the column is already as wide as the window and filling it gains a reader nothing -- the clip
+is the same size either way, and a control that does nothing visible is worse than one that is not
+there. Withheld in CSS rather than in script, so it is right on the first frame and follows a
+window being dragged. The screen-fullscreen button beside it is never withheld: leaving the
+browser is worth something at every width, and on a phone it is the only one of the two that is.
+
+**The mode eats the scroll rather than exiting on it.** There is nothing to scroll, so a wheel or
+a swipe does nothing at all and the page behind does not move. Leaving restores the position the
+reader was at, captured when the button was pressed rather than inside the effect that runs after
+-- by then the frame is already `fixed`, the document is that much shorter, and the browser has
+clamped the number being saved.
+
+**The clip is fitted and never stretched**, growing until one axis meets the window and stopping,
+so anything that is not the window's shape is bordered by black on the other. Both fullscreens
+paint the same way -- no border, no corner, black ground -- and they arrive by different routes,
+one an attribute this file's own markup writes and the other the Fullscreen API promoting the same
+element. Written apart, only the attribute turned the frame off, and a light theme drew a
+two-pixel grey rectangle around the picture in full screen. `:fullscreen` sits alone in its
+selector list and not beside a prefixed spelling, because an unknown selector in a list
+invalidates the whole rule.
+
+The attribute is not decoration either. A scoped `:has(.player-filling)` cannot cross a component
+boundary -- Svelte rewrites both halves of the selector into one file's scope and the class
+carries the child's -- so the state belongs to the file that draws the frame.
+
+## What the page ships before the player is alive
+
+A clip is in the document long before anything can work it, and two different readers are inside
+that window: the one whose bundle has not landed yet, and the one who has no bundle at all. They
+want opposite things and the page used to give them both the same thing.
+
 ### The chrome is rendered from the first frame, not from hydration
 
 The controls component used to be withheld until the clip and its frame were bound, which is
@@ -178,24 +228,17 @@ the first sampled frame, and not one change across 576 of them.
 What still gates it is `support`. A browser that refused every source gets the notice instead,
 because a player drawn over a clip that will not decode is a lie.
 
-### On a touch device
+### The no-script player lives in `<noscript>`, and nobody else ever sees it
 
-A finger cannot arrive anywhere, so a clip with nothing on it is a picture as far as anyone can
-tell, and the cover is the only thing that says otherwise. It is the invitation and nothing else:
-a permanent play control in the middle would fight the double tap. A press that wanders slightly
-is this device's hover, and unlike a pointer leaving, lifting the finger does not pause -- only
-leaving the viewport does. A single tap summons the chrome; a double tap plays and pauses.
-
-## The no-script player lives in `<noscript>`, and nobody else ever sees it
-
-A clip has to work without this site's script: a reader with scripting off, or one who presses
-play before the bundle lands, should get a player rather than a picture that does nothing. The
+The other reader in that window is the one who will never get a bundle, and a clip has to work for
+them too: scripting off should still mean a player rather than a picture that does nothing. The
 element therefore used to be served with `controls`, which `onMount` then took off.
 
 That showed the fallback to the wrong audience. Every reader watched the browser's own control bar
 for as long as hydration took -- measured at 247ms and 21 painted frames on a warm local load, and
 longer over a network -- so the thing that exists for readers without script was being paid for by
-the readers who have it.
+the readers who have it. The section above is what the waiting reader gets instead, and it is not
+the same thing: a disc that will work in a moment, rather than a second player that will vanish.
 
 `<noscript>` is the exact tool for that split, and the split is the whole point. **With scripting
 enabled a browser does not parse `<noscript>` contents as markup at all**: they are raw text, so
