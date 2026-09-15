@@ -60,6 +60,14 @@
 		outline-offset: 0;
 	}
 
+	/* The other half of `focus-ring-inner`: a control that hands its outline to a child does not
+	   also draw one itself. Without this the base-layer backstop still fires on the parent and the
+	   control wears two rings, one around the hit area and one around the icon inside it. This is
+	   the narrow case spec/styling.md allows suppression for -- the position is already marked. */
+	:focus-visible:has(> .focus-ring-inner) {
+		outline: none;
+	}
+
 	/* A text link's corner exists only to shape the outline, so it arrives with the outline. Left on
 	   at rest it would also clip the background, and a radius sized for a focus outline is twice the
 	   height of the underline stroke below: the corner arc cuts about 0.25rem off the bottom of each

@@ -1345,6 +1345,20 @@ The shared focus utilities in
 placement so components do not redraw the same geometry locally. Controls with a visible border
 may recolour that border instead when adding an outline would duplicate the edge.
 
+**A control that hands its outline to a child stops drawing its own.** The base-layer backstop
+below fires on anything focused, so without that suppression the control wears two rings: one
+around the hit area and one around the icon inside it. It belongs to `focus-ring-inner` rather
+than to the call sites, and it is the narrow case suppression is for -- the position is already
+marked, by the child.
+
+How much padding is hit target rather than control is a question worth measuring rather than
+eyeballing, because the icon set is rarely the answer. The player's buttons are 30px around a 16px
+glyph, and on the landscape box glyphs the ink is about 10.5px tall, so a ring on the button stood
+9.3px clear of anything drawn -- against 6px for the section-link copy, which is 24px around the
+same 16px box. Phosphor was suspected and was not the cause: its bold glyphs fill 84-91% of their
+viewBox where mingcute's fill 67-75%, so they sit tighter in their box than the rest of the site's.
+The 7px on each side was the hit target, and the outline belongs inside it.
+
 No control shows the browser's own focus indicator. Chrome draws that as a two-tone ring, a light
 contrast edge paired with its blue, which reads as a stray white border against these surfaces, and
 it reaches anything that takes focus without opting into one of the utilities above -- a menu panel

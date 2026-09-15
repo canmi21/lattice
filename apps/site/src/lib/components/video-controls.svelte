@@ -675,21 +675,21 @@
 	</div>
 
 	<div class="player-row">
-		<button type="button" class="player-button focus-ring" onclick={toggle} aria-label={label} title={label}>
-			{#if view.paused}<PlayIcon class="player-glyph player-glyph-play" weight="fill" aria-hidden="true" />
-			{:else}<PauseIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
+		<button type="button" class="player-button" onclick={toggle} aria-label={label} title={label}>
+			{#if view.paused}<PlayIcon class="player-glyph player-glyph-play focus-ring-inner" weight="fill" aria-hidden="true" />
+			{:else}<PauseIcon class="player-glyph focus-ring-inner" weight="fill" aria-hidden="true" />{/if}
 		</button>
 
 		<div class="player-volume">
 			<button
 				type="button"
-				class="player-button focus-ring"
+				class="player-button"
 				onclick={unmute}
 				aria-label={m['video.mute']({}, { locale })}
 				title={m['video.mute']({}, { locale })}
 			>
-				{#if view.muted || volume === 0}<SpeakerSimpleXIcon class="player-glyph" weight="fill" aria-hidden="true" />
-				{:else}<SpeakerHighIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
+				{#if view.muted || volume === 0}<SpeakerSimpleXIcon class="player-glyph focus-ring-inner" weight="fill" aria-hidden="true" />
+				{:else}<SpeakerHighIcon class="player-glyph focus-ring-inner" weight="fill" aria-hidden="true" />{/if}
 			</button>
 			<input
 				type="range"
@@ -711,28 +711,28 @@
 		{#if view.hasCaptions}
 			<button
 				type="button"
-				class="player-button focus-ring"
+				class="player-button"
 				class:player-on={view.captions}
 				onclick={() => (player?.toggleSubtitles as () => void)?.()}
 				aria-pressed={view.captions}
 				aria-label={m['video.captions']({}, { locale })}
 				title={m['video.captions']({}, { locale })}
 			>
-				<ClosedCaptioningIcon class="player-glyph" weight="bold" aria-hidden="true" />
+				<ClosedCaptioningIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />
 			</button>
 		{/if}
 
 		<div class="player-menu-holder">
 			<button
 				type="button"
-				class="player-button focus-ring"
+				class="player-button"
 				class:player-on={menu}
 				onclick={() => (menu = !menu)}
 				aria-expanded={menu}
 				aria-label={m['video.settings']({}, { locale })}
 				title={m['video.settings']({}, { locale })}
 			>
-				<GearSixIcon class="player-glyph" weight="bold" aria-hidden="true" />
+				<GearSixIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />
 			</button>
 			{#if menu}
 				<div class="player-menu">
@@ -780,18 +780,18 @@
 		{#if view.pipAvailable}
 			<button
 				type="button"
-				class="player-button focus-ring"
+				class="player-button"
 				onclick={() => (player?.togglePictureInPicture as () => void)?.()}
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
 			>
-				<PictureInPictureIcon class="player-glyph" weight="bold" aria-hidden="true" />
+				<PictureInPictureIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />
 			</button>
 		{/if}
 
 		<button
 			type="button"
-			class="player-button player-fill focus-ring"
+			class="player-button player-fill"
 			class:player-on={filling}
 			onclick={() => {
 				if (!filling) restore = window.scrollY;
@@ -804,13 +804,13 @@
 			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
 			     still around it. The other button below leaves the browser behind entirely, and the
 			     two must not look alike -- they are different destinations, not two sizes of one. -->
-			{#if filling}<FrameCornersInIcon class="player-glyph" aria-hidden="true" />
-			{:else}<FrameCornersIcon class="player-glyph" weight="bold" aria-hidden="true" />{/if}
+			{#if filling}<FrameCornersInIcon class="player-glyph focus-ring-inner" aria-hidden="true" />
+			{:else}<FrameCornersIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />{/if}
 		</button>
 
 		<button
 			type="button"
-			class="player-button focus-ring"
+			class="player-button"
 			onclick={() => (player?.toggleFullscreen as () => void)?.()}
 			aria-label={view.fullscreen
 				? m['video.exit-fullscreen']({}, { locale })
@@ -819,19 +819,32 @@
 				? m['video.exit-fullscreen']({}, { locale })
 				: m['video.fullscreen']({}, { locale })}
 		>
-			{#if view.fullscreen}<CornersInWideIcon class="player-glyph" aria-hidden="true" />
-			{:else}<CornersOutWideIcon class="player-glyph" aria-hidden="true" />{/if}
+			{#if view.fullscreen}<CornersInWideIcon class="player-glyph focus-ring-inner" aria-hidden="true" />
+			{:else}<CornersOutWideIcon class="player-glyph focus-ring-inner" aria-hidden="true" />{/if}
 		</button>
 	</div>
 </div>
 
 <style>
-	/* Every control here carries `focus-ring`, which is the site's keyboard indicator and not this
-	   component's: the accent outline, flush, suppressed when the tracker knows the last input was
-	   a pointer, and with its colour stated at rest so nothing interpolates into it. A base-layer
-	   rule would have drawn the same outline anyway, but that rule is the backstop for a control
-	   nobody gave a utility to, and reaching it silently is not the same as opting in -- the ring
-	   is the one part of this player that is deliberately the page's and not its own.
+	/* Every control here opts into the site's keyboard indicator by name, which is the one part of
+	   this player deliberately the page's and not its own: the accent outline, flush, suppressed
+	   when the tracker knows the last input was a pointer, and with its colour stated at rest so
+	   nothing interpolates into it. A base-layer rule would have drawn the same outline anyway,
+	   but that rule is the backstop for a control nobody gave a utility to, and reaching it
+	   silently is not the same as opting in.
+
+	   Which utility depends on what the control's visible edge is. The cover is a circle, the
+	   menu rows are rows, and a range input's track is the width it occupies, so those take
+	   `focus-ring` on themselves. A button in the row is 30px around a 16px glyph, and the 7px on
+	   each side is hit target rather than control: the thing a reader sees and is being pointed at
+	   is the glyph. So those hand the outline to the glyph with `focus-ring-inner`.
+
+	   Measured before the change, on the landscape box glyphs -- captions, picture-in-picture, the
+	   two frames -- the ink is about 10.5px tall inside a 16px box inside a 30px button, so the
+	   ring stood 9.3px clear of anything drawn. The site's other icon button, the section-link
+	   copy, is 24px around the same 16px box and stands 6px clear. Phosphor was not the cause:
+	   its bold glyphs fill 84-91% of their viewBox where mingcute's fill 67-75%, so they sit
+	   tighter in their box than the rest of the site's, not looser. It was the hit target.
 	   See spec/styling.md and styles/utilities.css. */
 
 	/* The cover: a circle of the same plate the row uses, so the two read as one material. */
