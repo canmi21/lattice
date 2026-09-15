@@ -214,6 +214,33 @@ The attribute is not decoration either. A scoped `:has(.player-filling)` cannot 
 boundary -- Svelte rewrites both halves of the selector into one file's scope and the class
 carries the child's -- so the state belongs to the file that draws the frame.
 
+### A reload finds a clip where the tab left it
+
+A reader who reloads mid-article should not have to find their place again, and that is the whole
+of what is restored: **a position, never a stage and never playback**. Sound is bought with a
+click and a reload has not been clicked, so a restored clip is a picture again until the reader
+arrives at it. This is not a new rule -- it is the one a pointer leaving already follows, and a
+reload is a longer leave.
+
+The position lives in the `tab` record, which is `sessionStorage`, because it is a fact about this
+sitting: see [engagement.md](../engagement.md).
+
+**It is applied at the first `play`, not on load.** `preload="metadata"` means the clip itself has
+not been fetched, and writing `currentTime` on a clip nobody has played asks the CDN for a range
+around that offset -- three clips in an article would be three wasted requests on every page view
+for a reader who watches none of them. Waiting costs nothing and is the first moment being right
+about the position matters. Measured after a reload: `currentTime` still 0 with the record holding
+9.82, and 10.63 a second after the pointer arrived.
+
+Every path to playback goes through one function for the same reason a position is worth restoring
+at all: one restored on some paths and not others is worse than one restored on none.
+
+**It is kept where it stops changing, not while it changes.** `timeupdate` fires four times a
+second and every write is a read, a parse, an edit and a stringify of the whole record. Pausing
+and leaving the page are the two moments the number is worth keeping, and `pagehide` is the one
+that catches a reload -- which is the case this exists for. A clip that reached its end drops its
+entry rather than storing the duration, because a finished clip starts again.
+
 ## What the page ships before the player is alive
 
 A clip is in the document long before anything can work it, and two different readers are inside

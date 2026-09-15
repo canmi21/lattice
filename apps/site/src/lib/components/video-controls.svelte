@@ -98,7 +98,8 @@
 	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
 	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';
 	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
-	import { recall, remember } from '$lib/client/state';
+	import { keepPosition, positionOf } from '$lib/client/progress';
+	import { reader } from '$lib/client/state';
 	import type { VideoRung } from '$lib/content/build/assets.ts';
 	import type { LocaleCode } from '$lib/locale';
 	import * as m from '$lib/paraglide/messages';
@@ -106,6 +107,7 @@
 	let {
 		video,
 		frame,
+		clip,
 		rungs,
 		gain: levelling = 1,
 		filling = $bindable(false),
@@ -127,6 +129,15 @@
 		 */
 		video?: HTMLVideoElement;
 		frame?: HTMLElement;
+		/**
+		 * What the article calls this clip, which is what its position is filed under.
+		 *
+		 * The reference and not a rung's URL: the chooser picks a different rung on a different
+		 * screen and the settings menu swaps rungs mid-play, so a URL would lose the position
+		 * exactly where it matters most. It is `{cid}.mp4` today and the map does not care which
+		 * spelling it is, only that it is the same one every time. See `client/progress.ts`.
+		 */
+		clip: string;
 		rungs?: VideoRung[];
 		/**
 		 * The clip's own levelling, so this one plays at the same loudness as every other.
@@ -271,8 +282,8 @@
 	let gain: GainNode | undefined;
 
 	$effect(() => {
-		volume = recall(localStorage, VOLUME_KEY, DEFAULT_VOLUME);
-		boost = recall(localStorage, BOOST_KEY, false);
+		volume = reader.recall(localStorage, VOLUME_KEY, DEFAULT_VOLUME);
+		boost = reader.recall(localStorage, BOOST_KEY, false);
 	});
 
 	$effect(() => {
@@ -367,6 +378,67 @@
 	});
 
 	/**
+	 * Where this clip was when the tab last saw it, applied at the last possible moment.
+	 *
+	 * Read once and spent once. It is deliberately not written to `currentTime` on load:
+	 * `preload="metadata"` means the clip itself has not been fetched, and seeking a clip that
+	 * nobody has played yet asks the CDN for a range around that offset -- three clips in an
+	 * article would be three wasted requests on every page view for a reader who watches none of
+	 * them. So it waits for the first `play`, which is the first moment it costs anything to be
+	 * right about.
+	 */
+	let restored: number | undefined;
+	$effect(() => {
+		restored = positionOf(sessionStorage, clip);
+	});
+
+	/**
+	 * Play, putting the clip back where the tab left it first.
+	 *
+	 * Every path to playback goes through here rather than calling the store directly, because a
+	 * position restored on some of them and not others is worse than one restored on none.
+	 */
+	function start(): void {
+		const at = restored;
+		restored = undefined;
+		if (at !== undefined && video) {
+			// Before metadata there is no duration to seek within, so the seek waits for it. A
+			// clip that never reports metadata simply starts at the beginning.
+			if (video.readyState >= HTMLMediaElement.HAVE_METADATA) video.currentTime = at;
+			else video.addEventListener('loadedmetadata', () => void (video.currentTime = at), {
+				once: true,
+			});
+		}
+		void (player?.play as () => void)?.();
+	}
+
+	/**
+	 * Record where the clip has got to, or forget it.
+	 *
+	 * Called where the position stops changing rather than while it changes. `timeupdate` fires
+	 * four times a second and every write is a read, a parse, an edit and a stringify of the whole
+	 * record; pausing and leaving the page are the two moments the number is worth keeping, and
+	 * `pagehide` is the one that catches a reload, which is the case this exists for.
+	 */
+	function keep(): void {
+		if (!video || !clip) return;
+		keepPosition(sessionStorage, clip, video.currentTime, video.duration);
+	}
+
+	$effect(() => {
+		if (!video) return;
+		const element = video;
+		element.addEventListener('pause', keep);
+		element.addEventListener('ended', keep);
+		window.addEventListener('pagehide', keep);
+		return () => {
+			element.removeEventListener('pause', keep);
+			element.removeEventListener('ended', keep);
+			window.removeEventListener('pagehide', keep);
+		};
+	});
+
+	/**
 	 * Start a preview, silent or not depending on what the reader has already allowed.
 	 *
 	 * Silent is the only kind an engine permits before a gesture, and silent is also the only
@@ -380,7 +452,7 @@
 		stage = 'previewing';
 		video.muted = !unlocked;
 		if (unlocked) applyVolume();
-		void (player.play as () => void)?.();
+		start();
 	}
 
 	/**
@@ -397,7 +469,7 @@
 		unlocked = true;
 		video.muted = false;
 		applyVolume();
-		if (video.paused) void (player?.play as () => void)?.();
+		if (video.paused) start();
 	}
 
 	/**
@@ -437,7 +509,7 @@
 			if (stage === 'sleeping') preview();
 			// Back on the clip it left: pick up from where the pointer left off rather than from
 			// the beginning. The position was kept precisely so this would be a resumption.
-			else if (stage === 'previewing' && video.paused) void (player?.play as () => void)?.();
+			else if (stage === 'previewing' && video.paused) start();
 		};
 		const onLeave = () => {
 			over = false;
@@ -527,14 +599,14 @@
 			return;
 		}
 		if (hovers) {
-			if (video.paused) void (player?.play as () => void)?.();
+			if (video.paused) start();
 			else (player?.pause as () => void)?.();
 			return;
 		}
 		if (pending) {
 			clearTimeout(pending);
 			pending = undefined;
-			if (video.paused) void (player?.play as () => void)?.();
+			if (video.paused) start();
 			else (player?.pause as () => void)?.();
 			return;
 		}
@@ -590,7 +662,7 @@
 
 	function setVolume(next: number) {
 		volume = next;
-		remember(localStorage, VOLUME_KEY, next);
+		reader.remember(localStorage, VOLUME_KEY, next);
 		applyVolume();
 		if (next > 0 && video.muted) video.muted = false;
 	}
@@ -603,7 +675,7 @@
 	}
 
 	function toggle() {
-		if (view.paused) void (player?.play as () => void)?.();
+		if (view.paused) start();
 		else (player?.pause as () => void)?.();
 	}
 
@@ -962,7 +1034,7 @@
 						class:player-on={boost}
 						onclick={() => {
 							boost = !boost;
-							remember(localStorage, BOOST_KEY, boost);
+							reader.remember(localStorage, BOOST_KEY, boost);
 							applyVolume();
 						}}
 					>

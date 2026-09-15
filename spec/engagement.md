@@ -257,7 +257,7 @@ not reconstructible; they were seeded once as a data migration and the `views:` 
 removed from the markdown. That edit did not touch `lastmod`, because nothing about the articles
 changed.
 
-## What this site remembers about a reader is one record
+## What this site remembers is two records and one mechanism
 
 `localStorage["state"]` holds the site's own small facts about the reader. `cache` belongs to
 TanStack Query and `email` to the newsletter; each is somebody else's record with its own lifetime
@@ -287,13 +287,45 @@ build understands are still readable inside it. Discarding it would throw away f
 merely has no opinion about. A record that is not an object, or carries no usable version, is
 replaced, because nothing in it can be placed.
 
-**Per-tab facts stay out of it.** `sessionStorage["support.preferred"]` says this tab did the
-thing, not that the reader did; it describes a visit rather than a person, and the record is what
-a later build will sync between devices. `sessionStorage["trail"]` is the same kind of fact for
-the same reason -- see [styling.md](styling.md).
+**Per-tab facts stay out of it, and have a record of their own.** `sessionStorage["state"]` is the
+same container with the same mechanism, and the difference is whose fact it is: the `reader`
+record is what is true of the person, the `tab` record is what is true of this sitting. A clip's
+position belongs to the sitting -- coming back tomorrow to a twenty-five second clip that starts
+at 0:18 is a surprise rather than a courtesy -- and the storage area is what says so. So does
+`support.preferred`, which is in both: the reader has a preference, and this tab has already acted
+on it.
+
+**The two share everything except what cannot be shared:** the key, the version, and the
+migrations. Two records hold different facts and will version independently, and a step written
+for one running against the other is the failure the whole mechanism exists to prevent. Both are
+called `state`, because the storage area already says which record it is.
+
+`sessionStorage["trail"]` stays outside both. It is the same kind of fact, but it carries its own
+self-validating shape and its own module, and moving it would be churn with nothing on the other
+side of it -- see [styling.md](styling.md).
+
+**A collection is the exception to flat and dotted.** `video.at` is one key holding a map from
+clip reference to position, because its keys are not names this repository chooses: they are
+whatever the articles refer to. The rule is about names, not about depth, and one fact whose shape
+is a map is not a group of facts that wanted a prefix. It also makes the collection readable and
+clearable in one go, where a scatter of `video.at.<reference>` would not be.
+
+**A fallback describes the kind of thing wanted, not just its `typeof`.** That was enough while
+every fact was a boolean, a number or a string, and stopped being enough the moment one was a map:
+`typeof null` and `typeof []` are both `'object'`, so a record holding either would have handed it
+back as if it were the map and the first read off it would have thrown. Inside a collection the
+check is per value, because the container can only answer whether the record holds a map at all --
+what is in it came from an older build, another tab's idea of the key, or a reader with a console.
+
+**The collection is not capped, and that is a decision rather than an omission.** No eviction was
+decided when every fact was small and fixed; this is the first whose *number* of entries is not. A
+reference and a number is about 45 bytes, so a thousand clips is 45KB against a quota measured in
+megabytes, and a tab session is short. The premise changed and the answer did not.
 
 The store is passed in rather than reached for, the way `readTrail` takes one, so the tests hand
-over a plain object and no global is installed to reach this.
+over a plain object and no global is installed to reach this. The record and the store are named
+separately at every call site for the same reason: in production they always pair, and a test is
+the place where they do not.
 
 ## Engagement data is a persisted client query
 

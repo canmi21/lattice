@@ -120,7 +120,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import Star from '@lucide/svelte/icons/star';
 	import { animate } from 'motion';
-	import { recall, remember } from '$lib/client/state';
+	import { reader, tab } from '$lib/client/state';
 	import { remFromMeasuredPixels } from '$lib/client/units';
 	import { createEngagementQuery, createLikeMutation } from '$lib/engagement/engagement.svelte';
 	import { PUBLIC_LANGUAGE, type LocaleCode } from '$lib/locale';
@@ -178,8 +178,9 @@
 	 * and comes back to the tab -- or reloads, or navigates and returns -- would otherwise find a
 	 * different control where they just pressed one, which reads as the page having changed its
 	 * mind. Within the tab that did it, the pill stays where it was. That one is a bare
-	 * `sessionStorage` key and deliberately not part of the record: it describes the tab rather
-	 * than the reader, and the record is what a later build syncs between their devices.
+	 * key in the `tab` record and deliberately not in the `reader` one: it describes the tab
+	 * rather than the reader, and the reader's record is what a later build syncs between their
+	 * devices.
 	 *
 	 * The server has neither store, so it renders Google -- right for every first-time reader,
 	 * which is everyone it can see -- and a returning reader's pill changes after hydration. Both
@@ -190,8 +191,8 @@
 
 	$effect(() => {
 		try {
-			const thisTab = sessionStorage.getItem(PREFERRED) !== null;
-			asksForStar = !thisTab && recall(localStorage, PREFERRED, false);
+			const thisTab = tab.recall(sessionStorage, PREFERRED, false);
+			asksForStar = !thisTab && reader.recall(localStorage, PREFERRED, false);
 		} catch {
 			// Private browsing, or storage the reader has turned off. The default already stands.
 		}
@@ -208,14 +209,11 @@
 
 	/** Both stores, because each answers a different question about the same click. */
 	function recordPreferred() {
-		remember(localStorage, PREFERRED, true);
-		try {
-			// Not part of the record: this one is about the tab, not about the reader, and the
-			// record is what a later build will sync between their devices.
-			sessionStorage.setItem(PREFERRED, '1');
-		} catch {
-			// Nothing to record into. The slot simply goes on asking, which is the old behaviour.
-		}
+		reader.remember(localStorage, PREFERRED, true);
+		// The same name in the other record, because the two answer different questions about one
+		// click: the reader has a preference, and this tab has already acted on it. It used to be
+		// a loose `sessionStorage` key, which is the scatter `state.ts` exists to prevent.
+		tab.remember(sessionStorage, PREFERRED, true);
 	}
 
 	const engagement = createEngagementQuery();

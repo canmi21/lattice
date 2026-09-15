@@ -359,7 +359,7 @@
 			instead, and a player drawn over a clip that will not decode is a lie.
 		-->
 		{#if support !== 'none'}
-			<Controls bind:this={controls} video={el} {frame} {rungs} {gain} bind:filling {locale} />
+			<Controls bind:this={controls} video={el} {frame} clip={src} {rungs} {gain} bind:filling {locale} />
 		{/if}
 	</div>
 
