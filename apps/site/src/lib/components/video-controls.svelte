@@ -648,7 +648,7 @@
 		type="button"
 		onclick={press}
 		aria-label={m['video.play']({}, { locale })}
-		class="player-cover"
+		class="player-cover focus-ring"
 	>
 		<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
 	</button>
@@ -662,7 +662,7 @@
 		</div>
 		<input
 			type="range"
-			class="player-seek"
+			class="player-seek focus-ring"
 			min="0"
 			max={view.duration || 1}
 			step="0.01"
@@ -675,7 +675,7 @@
 	</div>
 
 	<div class="player-row">
-		<button type="button" class="player-button" onclick={toggle} aria-label={label} title={label}>
+		<button type="button" class="player-button focus-ring" onclick={toggle} aria-label={label} title={label}>
 			{#if view.paused}<PlayIcon class="player-glyph player-glyph-play" weight="fill" aria-hidden="true" />
 			{:else}<PauseIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
 		</button>
@@ -683,7 +683,7 @@
 		<div class="player-volume">
 			<button
 				type="button"
-				class="player-button"
+				class="player-button focus-ring"
 				onclick={unmute}
 				aria-label={m['video.mute']({}, { locale })}
 				title={m['video.mute']({}, { locale })}
@@ -693,7 +693,7 @@
 			</button>
 			<input
 				type="range"
-				class="player-level"
+				class="player-level focus-ring"
 				min="0"
 				max="1"
 				step="0.01"
@@ -711,7 +711,7 @@
 		{#if view.hasCaptions}
 			<button
 				type="button"
-				class="player-button"
+				class="player-button focus-ring"
 				class:player-on={view.captions}
 				onclick={() => (player?.toggleSubtitles as () => void)?.()}
 				aria-pressed={view.captions}
@@ -725,7 +725,7 @@
 		<div class="player-menu-holder">
 			<button
 				type="button"
-				class="player-button"
+				class="player-button focus-ring"
 				class:player-on={menu}
 				onclick={() => (menu = !menu)}
 				aria-expanded={menu}
@@ -741,7 +741,7 @@
 						{#each rungs as rung (rung.src)}
 							<button
 								type="button"
-								class="player-menu-item"
+								class="player-menu-item focus-ring"
 								class:player-on={chosen === rung.src}
 								onclick={() => quality(rung.src)}
 							>
@@ -753,7 +753,7 @@
 					{#each [0.5, 1, 1.25, 1.5, 2] as rate (rate)}
 						<button
 							type="button"
-							class="player-menu-item"
+							class="player-menu-item focus-ring"
 							class:player-on={view.rate === rate}
 							onclick={() => (player?.setPlaybackRate as (value: number) => void)?.(rate)}
 						>
@@ -763,7 +763,7 @@
 					<p class="player-menu-title">{m['video.boost']({}, { locale })}</p>
 					<button
 						type="button"
-						class="player-menu-item"
+						class="player-menu-item focus-ring"
 						class:player-on={boost}
 						onclick={() => {
 							boost = !boost;
@@ -780,7 +780,7 @@
 		{#if view.pipAvailable}
 			<button
 				type="button"
-				class="player-button"
+				class="player-button focus-ring"
 				onclick={() => (player?.togglePictureInPicture as () => void)?.()}
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
@@ -791,7 +791,7 @@
 
 		<button
 			type="button"
-			class="player-button player-fill"
+			class="player-button player-fill focus-ring"
 			class:player-on={filling}
 			onclick={() => {
 				if (!filling) restore = window.scrollY;
@@ -810,7 +810,7 @@
 
 		<button
 			type="button"
-			class="player-button"
+			class="player-button focus-ring"
 			onclick={() => (player?.toggleFullscreen as () => void)?.()}
 			aria-label={view.fullscreen
 				? m['video.exit-fullscreen']({}, { locale })
@@ -826,6 +826,14 @@
 </div>
 
 <style>
+	/* Every control here carries `focus-ring`, which is the site's keyboard indicator and not this
+	   component's: the accent outline, flush, suppressed when the tracker knows the last input was
+	   a pointer, and with its colour stated at rest so nothing interpolates into it. A base-layer
+	   rule would have drawn the same outline anyway, but that rule is the backstop for a control
+	   nobody gave a utility to, and reaching it silently is not the same as opting in -- the ring
+	   is the one part of this player that is deliberately the page's and not its own.
+	   See spec/styling.md and styles/utilities.css. */
+
 	/* The cover: a circle of the same plate the row uses, so the two read as one material. */
 	.player-cover {
 		position: absolute;
@@ -872,7 +880,20 @@
 		transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
-	.player-chrome-shown {
+	/* A hidden row is still a tab stop, so it also has to be able to show itself.
+
+	   `opacity: 0` hides the chrome and leaves every button focusable, and until this rule the
+	   result was a two-pixel accent rectangle drawn on the picture with nothing inside it: the
+	   ring was doing its job and the control it pointed at was invisible. Nobody saw it before the
+	   plate came off the buttons, because the plate was equally invisible.
+
+	   `:has(:focus-visible)` rather than `:focus-within`, which would also match a click and pin
+	   the row open after a press -- Chrome does not match `:focus-visible` on a mouse-clicked
+	   button. And rather than `html[data-focus-source='kbd']`, which is the spelling
+	   spec/styling.md warns against: written as a keyboard requirement it fails silent when the
+	   tracker is absent, and silent here means a focused control nobody can see. */
+	.player-chrome-shown,
+	.player-chrome:has(:focus-visible) {
 		opacity: 1;
 		pointer-events: auto;
 	}
@@ -898,15 +919,20 @@
 		cursor: pointer;
 		color: var(--player-ink-dim);
 		background: transparent;
-		transition:
-			color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-			background-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+		transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
+	/* Hover lights the glyph and draws nothing behind it.
+
+	   A plate under each control was the first spelling and it was wrong twice over. The row
+	   already sits on `--player-veil`, so a second translucent surface inside it is a plate on a
+	   plate; and a rounded rectangle appearing behind a 16px glyph is a bigger visual event than
+	   the state it reports. `--player-ink-dim` to `--player-ink` is the whole signal, which is
+	   what a native player does. The wash stays for the menu, where a highlighted row is the
+	   convention and the surface is the row rather than an ornament on it. */
 	.player-button:hover,
 	.player-button:focus-visible {
 		color: var(--player-ink);
-		background: var(--player-wash);
 	}
 
 	.player-button.player-on {
