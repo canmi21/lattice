@@ -603,7 +603,6 @@
 
 	const played = $derived(view.duration ? (view.currentTime / view.duration) * 100 : 0);
 	const loaded = $derived(view.duration ? (view.buffered / view.duration) * 100 : 0);
-	/** Shown while paused, while a pointer is on it, and whenever the store says the reader is. */
 	/**
 	 * Whether the chrome is on screen, which is a different question on the two devices.
 	 *
@@ -611,18 +610,17 @@
 	 * and one running silently is an invitation rather than a player. Only `awake` has chrome at
 	 * all, and only because the reader asked for it.
 	 *
-	 * Once awake, a pointer device follows the pointer: the chrome is there while the pointer is
-	 * on the frame and gone when it leaves, which is what "hover shows it" means and is a fact
-	 * about where the pointer is rather than about how recently it moved. `userActive` refines
-	 * that -- a pointer resting still over a playing clip lets the chrome fade, the way a native
-	 * player does -- and a paused clip keeps its controls, because a reader who stopped it is
-	 * looking at them.
+	 * Once awake, a pointer device follows the pointer and nothing else: the chrome is there while
+	 * the pointer is on the frame and gone when it leaves. It used to fade on `userActive` too,
+	 * the way a native player's does, and that is the wrong borrowing -- a native player fills the
+	 * screen and its chrome is the only thing between the reader and the picture, where this one
+	 * is a 672px box in a column of prose that the reader is deliberately pointing at. A scrubber
+	 * that disappears under a resting pointer has to be summoned back by wiggling it.
 	 *
 	 * A touch device has no pointer to follow, so it follows the taps counted in `press`.
 	 */
 	const shown = $derived(
-		stage === 'awake' &&
-			(hovers ? (over && (view.active || view.paused)) || menu : showChrome || menu),
+		stage === 'awake' && (hovers ? over || menu : showChrome || menu),
 	);
 	const label = $derived(
 		view.paused ? m['video.play']({}, { locale }) : m['video.pause']({}, { locale }),
@@ -639,16 +637,22 @@
 	 * the stage, so it comes straight back when the pointer leaves.
 	 *
 	 * After the reader has clicked it is the play control, and a control reports state rather than
-	 * inviting. It follows the chrome, so a clip playing to nobody loses it along with everything
-	 * else a few seconds in -- and it outlasts the chrome whenever the clip is paused, including
-	 * with the pointer nowhere near, because a paused frame says nothing about being resumable and
-	 * the reader who stopped it is the one most likely to come back.
+	 * inviting. This one is over the middle of the picture rather than out of the way at the
+	 * bottom, so it is the one that keeps `userActive`: a clip playing under a resting pointer
+	 * clears its own middle after a few seconds while the row along the bottom stays. And it
+	 * outlasts both whenever the clip is paused, including with the pointer nowhere near, because
+	 * a paused frame says nothing about being resumable and the reader who stopped it is the one
+	 * most likely to come back.
 	 *
 	 * On a touch device it is still only the invitation. There is no hover to replace it with, and
 	 * a permanent target in the middle of the picture would fight the double tap that pauses.
 	 */
 	const covered = $derived(
-		hovers ? (stage === 'awake' ? view.paused || shown : !over) : stage === 'sleeping',
+		hovers
+			? stage === 'awake'
+				? view.paused || (over && view.active)
+				: !over
+			: stage === 'sleeping',
 	);
 </script>
 
