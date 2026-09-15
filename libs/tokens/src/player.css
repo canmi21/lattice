@@ -34,6 +34,18 @@
 	--player-plate-strong: oklch(0.18 0 0 / 0.66);
 	--player-blur: 24px;
 
+	/* The cover's disc, which is the one surface with a whole frame behind it rather than the
+	   bottom strip of one, and the only one big enough for what is behind it to be worth seeing.
+	   So it is glass rather than a plate: less of its own colour, more blur, and the saturation
+	   push that stops a blurred frame going grey -- the recipe every native vibrancy effect uses,
+	   because blur alone averages colour towards nothing.
+	
+	   At 0.45 the frame behind reads at 55% against `--player-plate-strong`'s 34%. Alpha is the
+	   share of the disc's own colour, so more of it is less glass, not more. */
+	--player-glass: oklch(0.2 0 0 / 0.45);
+	--player-glass-blur: 32px;
+	--player-glass-saturate: 180%;
+
 	/* A control under a pointer or a key. No colour shift, only more light: on an unknown
 	   backdrop a hue would be a second variable nobody can predict. */
 	--player-wash: oklch(1 0 0 / 0.16);

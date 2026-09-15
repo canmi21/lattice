@@ -922,9 +922,9 @@
 		border-radius: calc(infinity * 1px);
 		cursor: pointer;
 		color: var(--player-ink);
-		background: var(--player-plate-strong);
-		backdrop-filter: blur(var(--player-blur));
-		-webkit-backdrop-filter: blur(var(--player-blur));
+		background: var(--player-glass);
+		backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
+		-webkit-backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
 		/* Hidden by default and faded in, on the chrome's curve and duration, because after the
 		   first click the two leave together: a clip playing to nobody drops its whole interface
 		   at once rather than in two steps. */
@@ -947,22 +947,25 @@
 		transform: scale(1.05);
 	}
 
-	/* Optical centring, not geometric. A triangle carries its mass behind its point, so the box it
-	   is drawn in sits left of where the eye puts the shape. A twentieth of the glyph closes it --
-	   the same correction every native play button makes. */
-	.player-cover :global(.player-cover-glyph) {
-		width: 1.5rem;
-		height: 1.5rem;
-		translate: 0.075rem 0;
-		fill: currentColor;
-		filter: drop-shadow(var(--player-shadow));
-	}
+	/* Optical centring, which Phosphor has already done and this file used to do again.
 
-	/* Two bars are symmetric about their own centre, so the correction above is not only
-	   unnecessary here, it would put the pause off centre by the amount the play needs. */
+	   A triangle carries its mass behind its point, so a box drawn around it sits right of where
+	   the eye puts the shape, and something has to move. Measured by sampling the outline and
+	   taking the area centroid off the shoelace: `Play` at fill weight has its bounding box at x
+	   64..240, centre 152, and its centroid at 127.65 -- so the set drew the path 24 units off its
+	   own box on purpose, and the centroid is already on the viewBox's centre line. `Pause` is two
+	   equal bars at 40..108 and 148..216, symmetric about 128, and needs nothing.
+
+	   The `translate` that used to be here was therefore a correction on top of a correction, and
+	   pushed the triangle a pixel and a bit past centre. Both glyphs are now placed by the grid
+	   and nothing else. The rule stays, with the numbers in it, because "no offset" is a result
+	   here and not an omission. */
+	.player-cover :global(.player-cover-glyph),
 	.player-cover :global(.player-cover-pause) {
-		width: 1.5rem;
-		height: 1.5rem;
+		/* Against the 4rem disc this is a triangle 38% of the diameter tall, which is where a
+		   native play button sits. At 1.5rem it was 30% and the disc read as the bigger object. */
+		width: 1.875rem;
+		height: 1.875rem;
 		fill: currentColor;
 		filter: drop-shadow(var(--player-shadow));
 	}
@@ -1044,8 +1047,9 @@
 		filter: drop-shadow(var(--player-shadow));
 	}
 
+	/* The same glyph in the row, and the same finding: Phosphor's `Play` is already centred on its
+	   mass, so the offset that used to be here was a second correction. See the cover's rule. */
 	.player-button :global(.player-glyph-play) {
-		translate: 0.05rem 0;
 		fill: currentColor;
 	}
 
@@ -1241,9 +1245,9 @@
 		min-width: 7rem;
 		padding: 0.25rem;
 		border-radius: 0.625rem;
-		background: var(--player-plate-strong);
-		backdrop-filter: blur(var(--player-blur));
-		-webkit-backdrop-filter: blur(var(--player-blur));
+		background: var(--player-glass);
+		backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
+		-webkit-backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
 		text-align: start;
 	}
 

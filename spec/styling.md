@@ -1250,6 +1250,17 @@ canvas. Measured after: stroke 1.500px against the neighbours' 1.500px, ink 12.4
 the glyph. It is turned off in the same rule; a presentation attribute on that rect is not
 something a consumer of the component can reach.
 
+**Check whether the set has already corrected something before correcting it.** A triangle carries
+its mass behind its point, so a box drawn around a play glyph sits right of where the eye puts the
+shape, and this site nudged its play glyphs left to compensate. Phosphor had already done it:
+sampling the outline and taking the area centroid off the shoelace puts `Play` at fill weight with
+its bounding box at x 64..240, centre 152, and its centroid at 127.65 -- the path is drawn 24
+units off its own box on purpose, and the centroid is already on the viewBox's centre line.
+`Pause` is two equal bars at 40..108 and 148..216, symmetric about 128. So the nudge was a
+correction on top of a correction and pushed the triangle past centre; both glyphs are now placed
+by the grid and nothing else, measured at 0.04px from the disc's centre. The rules stay in the
+stylesheet with the numbers in them, because "no offset" is a result and not an omission.
+
 ## A quadrant groups claims without inventing scores
 
 A categorical comparison uses a `:::quadrant` container with `::quadrant-item` children. The
