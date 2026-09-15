@@ -88,6 +88,27 @@
 	/** Web fullscreen. Held here because this is the element that changes shape. */
 	let filling = $state(false);
 	/**
+	 * Real fullscreen, watched for the same reason `filling` is held here: this is the element the
+	 * Fullscreen API promotes, and both modes have to take the same things off it.
+	 *
+	 * Read from the API rather than from the button, because the button is not the only way out.
+	 * Escape leaves, the browser's own chrome leaves, and a second element entering fullscreen
+	 * takes this one out of it.
+	 */
+	let screened = $state(false);
+	$effect(() => {
+		const box = frame;
+		if (!box) return;
+		const sync = () => {
+			screened = document.fullscreenElement === box;
+		};
+		document.addEventListener('fullscreenchange', sync);
+		sync();
+		return () => document.removeEventListener('fullscreenchange', sync);
+	});
+	/** Either fullscreen: the frame is the window, whichever window it is. */
+	const bare = $derived(filling || screened);
+	/**
 	 * The chrome, so the picture can hand a press to it.
 	 *
 	 * The picture is this file's element and the meaning of pressing it belongs to the controls --
@@ -195,14 +216,18 @@
 	 */
 	const style = $derived(
 		[
-			// Dropped in web fullscreen rather than overridden there. This is an inline style and
-			// an inline style beats any selector, so the stylesheet cannot take it back without
-			// `!important` -- and the placeholder showing through the letterbox bars is exactly
-			// what that mode asked for black instead of. Nothing is uncovered in an article, which
-			// is why it only ever showed there.
-			!filling && preview && `background-image:url(${preview})`,
-			!filling && preview && 'background-size:cover',
-			!filling && preview && 'background-position:center',
+			// Dropped in either fullscreen rather than overridden there. This is an inline style
+			// and an inline style beats any selector, so the stylesheet cannot take it back
+			// without `!important` -- and the placeholder showing through the letterbox bars is
+			// exactly what both modes asked for black instead of. Nothing is uncovered in an
+			// article, which is why it only ever showed in one of the three.
+			//
+			// It was `filling` alone for a while, so web fullscreen had black bars and real
+			// fullscreen had a blurred still in them. Measured on a 16:9 clip in a 1400x1000
+			// window, the bars read (30, 25, 24) at the top and (8, 6, 3) at the bottom.
+			!bare && preview && `background-image:url(${preview})`,
+			!bare && preview && 'background-size:cover',
+			!bare && preview && 'background-position:center',
 			ratio && `aspect-ratio:${ratio}`,
 		]
 			.filter(Boolean)
@@ -336,14 +361,36 @@
 		object-fit: cover;
 	}
 
-	/* Web fullscreen: the frame becomes the window, and the window becomes black.
-	   
-	   Opaque rather than translucent, and covering everything rather than sitting in the article:
-	   the point of the mode is that nothing but the clip is on screen, and a page showing through
-	   even faintly is the thing it exists to remove. The browser's own chrome stays, which is the
-	   whole difference from the button beside it. No player library has this -- it is a page mode
-	   rather than a media one.
-	   
+	/* Both fullscreens: whatever the frame looks like in an article, it stops looking like it.
+
+	   The two modes arrive by different routes -- one is an attribute this file's markup writes,
+	   the other is the Fullscreen API promoting the same element -- and they were written apart,
+	   so for a while only the attribute turned the frame off. In a dark theme nothing showed,
+	   because the border is dark there too. In a light one, going full screen drew a two-pixel
+	   grey rectangle around the picture, which is the frame doing in front of a black screen
+	   exactly what it is meant to do in a column of prose.
+
+	   `:fullscreen` is on its own here and not in a list with `:-webkit-full-screen`. Every engine
+	   this site supports takes the unprefixed one, and an unknown selector in a list invalidates
+	   the whole rule -- which is how the scrubber once painted in neither engine. */
+	.video-frame[data-filling='true'],
+	.video-frame:fullscreen {
+		display: grid;
+		place-items: center;
+		border: 0;
+		border-radius: 0;
+		/* Also the letterbox. The frame's ground is `paper`, so without this a clip that does not
+		   match the screen's shape is bordered by the page's colour on two sides. */
+		background: oklch(0 0 0);
+	}
+
+	/* Web fullscreen only: the frame becomes the window, since nothing else is going to move it.
+
+	   Opaque and covering everything rather than sitting in the article: the point of the mode is
+	   that nothing but the clip is on screen, and a page showing through even faintly is the thing
+	   it exists to remove. The browser's own chrome stays, which is the whole difference from the
+	   button beside it. No player library has this -- it is a page mode rather than a media one.
+
 	   Driven by an attribute this file's own markup writes. A scoped `:has(.player-filling)`
 	   cannot match across a component boundary: Svelte rewrites both halves of the selector into
 	   this file's scope, and that class carries the child's. An attribute belongs to neither. */
@@ -355,11 +402,6 @@
 		   came up eight pixels short and the page showed through the bottom of it. */
 		margin: 0;
 		z-index: 60;
-		display: grid;
-		place-items: center;
-		border: 0;
-		border-radius: 0;
-		background: oklch(0 0 0);
 	}
 
 	/* The clip is fitted, never stretched: it grows until one axis meets the window and stops, so
@@ -371,7 +413,8 @@
 	   The box is the window and `contain` fits the picture inside it, rather than the box being
 	   sized to the picture. `max-width`/`max-height` on an auto-sized element only ever constrain,
 	   never grow: measured, a 640x360 clip stayed 640x360 in the middle of a 1088x1043 window. */
-	.video-frame[data-filling='true'] .video-surface {
+	.video-frame[data-filling='true'] .video-surface,
+	.video-frame:fullscreen .video-surface {
 		width: 100%;
 		height: 100%;
 		aspect-ratio: auto;
