@@ -685,7 +685,7 @@
 		}}
 		aria-label={label}
 		title={label}
-		class="player-cover focus-ring"
+		class="player-cover"
 		class:player-cover-shown={covered}
 	>
 		{#if view.paused}<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
@@ -945,6 +945,44 @@
 	.player-cover:focus-visible {
 		opacity: 1;
 		pointer-events: auto;
+	}
+
+	/* The cover's ring is drawn on the glyph and follows its actual shape, not a box around it.
+
+	   Everywhere else on this site the ring is a rectangle, because everywhere else the control is
+	   one. This control is a 64px disc holding a 30px glyph, and neither of the two rectangles is
+	   the thing being pointed at: the disc is the plate the glyph sits on, and a box around the
+	   glyph is 30px of which nine tenths is empty in one corner or another. So the outline becomes
+	   an actual stroke on the path -- two closed rings around the pause bars, one around the
+	   triangle, nothing around the disc.
+
+	   `paint-order: stroke fill` is what makes it read as an outline rather than a thickening: the
+	   stroke goes down first and the fill covers its inner half, so a stroke of 2w shows w outside
+	   the shape. w is the site's 0.125rem, so the stroke is 0.25rem, which at this glyph's scale
+	   -- 30px drawn from a 256 canvas -- is 42.67 user units.
+
+	   The glyph is a component's element, so this reaches it through `:global`, and the stroke
+	   inherits down to the path from the svg. Phosphor's transparent sizing rect would inherit it
+	   too, which is why it is turned off, exactly as the cog's weight correction has to. */
+	.player-cover:focus-visible {
+		outline: none;
+	}
+
+	.player-cover:focus-visible :global(svg) {
+		stroke: var(--color-accent);
+		stroke-width: 42.67px;
+		stroke-linejoin: round;
+		paint-order: stroke fill;
+	}
+
+	.player-cover :global(svg rect) {
+		stroke: none;
+	}
+
+	/* The site's rule, restated because it is drawn on the glyph rather than on the focused
+	   element and the utilities' suppression matches the focused element. */
+	:global(html[data-focus-source='pointer']) .player-cover:focus-visible :global(svg) {
+		stroke: none;
 	}
 
 	.player-cover:hover {

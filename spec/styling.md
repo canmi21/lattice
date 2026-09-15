@@ -1383,6 +1383,20 @@ The shared focus utilities in
 placement so components do not redraw the same geometry locally. Controls with a visible border
 may recolour that border instead when adding an outline would duplicate the edge.
 
+**Where the control is not a rectangle, the ring is not one either.** The ring is a rectangle
+everywhere on this site because everywhere else the control is, and the two places in the player
+where it is not are worth the exception. A slider is 16px of hit area around a 3px bar, so the
+ring goes on the bar -- the sibling element that draws the seek track, and the shadow
+pseudo-element that draws the volume one, one rule per engine. The cover is a 64px disc holding a
+30px glyph, and neither rectangle is the thing being pointed at, so the outline becomes an actual
+stroke on the path: two closed rings around the pause bars, one around the triangle, nothing
+around the disc. `paint-order: stroke fill` is what makes a stroke read as an outline rather than
+as a thickening -- the fill covers its inner half, so a stroke of 2w shows w outside the shape.
+
+Each of these restates the pointer suppression locally, because the utilities' version matches the
+focused element and these rules draw on something else. That is the cost of leaving the utilities,
+and it is why they are the only two.
+
 **A control that hands its outline to a child stops drawing its own.** The base-layer backstop
 below fires on anything focused, so without that suppression the control wears two rings: one
 around the hit area and one around the icon inside it. It belongs to `focus-ring-inner` rather
