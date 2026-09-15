@@ -116,6 +116,29 @@ One consequence to watch rather than pre-solve: a source at exactly 1080p publis
 software path has only the heaviest rung to take. If a measured wait turns out to be intolerable the
 answer is another rung below it, not a change to the playback logic.
 
+## The no-script player lives in `<noscript>`, and nobody else ever sees it
+
+A clip has to work without this site's script: a reader with scripting off, or one who presses
+play before the bundle lands, should get a player rather than a picture that does nothing. The
+element therefore used to be served with `controls`, which `onMount` then took off.
+
+That showed the fallback to the wrong audience. Every reader watched the browser's own control bar
+for as long as hydration took -- measured at 247ms and 21 painted frames on a warm local load, and
+longer over a network -- so the thing that exists for readers without script was being paid for by
+the readers who have it.
+
+`<noscript>` is the exact tool for that split, and the split is the whole point. **With scripting
+enabled a browser does not parse `<noscript>` contents as markup at all**: they are raw text, so
+there is no element, no request, and nothing to paint. With scripting disabled they are the only
+copy. So the fallback is kept and the flash is removed, rather than one being traded for the
+other. Measured after: zero frames.
+
+The two copies must not both show, so the block carries a one-line `<style>` hiding the scripted
+element, which is marked `data-script-only`. It matches on that attribute rather than on the
+class because a `<style>` written into markup is not the compiler's and carries no scope hash.
+It repeats once per clip, at 568 bytes for the whole block, which is the price of the fallback
+being self-contained where the element it replaces is.
+
 ## What is stored, and where
 
 The split is [media.md](media.md)'s: what a tool can rebuild from the original goes in the manifest,

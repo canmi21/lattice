@@ -276,7 +276,7 @@
 		{height}
 		{style}
 		preload="metadata"
-		controls={!driven}
+		data-script-only
 		playsinline
 		crossorigin="anonymous"
 		aria-describedby={description ? describedBy : undefined}
@@ -292,6 +292,51 @@
 			<track src={track.src} kind={track.kind} srclang={track.language} />
 		{/each}
 	</video>
+
+	<!--
+		The player a reader with no script gets, and the reason the element above no longer carries
+		`controls`.
+
+		It used to. The element was served with `controls` and `onMount` took them off, so every
+		reader watched the browser's own control bar for as long as hydration took -- measured at
+		247ms and 21 painted frames on a warm local load, and longer over a network. The bar was
+		there to be a fallback and it was being shown to the one audience that does not need it.
+
+		`<noscript>` is the exact tool for that split. With scripting enabled the browser does not
+		parse its contents as markup at all -- they are raw text, so there is no element, no
+		request and nothing to paint -- and with scripting disabled they are the only copy that
+		exists. So the flash goes and the fallback stays, rather than one being traded for the
+		other.
+
+		The `<style>` is how the two stop overlapping: without it a reader with no script would see
+		this one and the inert one above it. It repeats once per clip, which is a few dozen bytes
+		and the price of the block being self-contained; the rule is idempotent and a second copy
+		costs nothing but its own length. It cannot be Svelte-scoped -- a `<style>` written into
+		markup is not the compiler's -- so it matches on the attribute instead of on the class.
+	-->
+	<noscript>
+		<style>video[data-script-only]{display:none}</style>
+		<video
+			class="video-surface block w-full"
+			src={resolved ? undefined : fallback}
+			{poster}
+			{width}
+			{height}
+			style={ratio ? `aspect-ratio:${ratio}` : undefined}
+			preload="metadata"
+			controls
+			playsinline
+			crossorigin="anonymous"
+			aria-describedby={description ? describedBy : undefined}
+		>
+			{#each rungs ?? [] as rung (rung.src)}
+				<source src={rung.src} type={rung.type} />
+			{/each}
+			{#each captions ?? [] as track (track.src)}
+				<track src={track.src} kind={track.kind} srclang={track.language} />
+			{/each}
+		</video>
+	</noscript>
 
 		{#if driven && el && frame && support !== 'none'}
 			<Controls bind:this={controls} video={el} {frame} {rungs} {gain} bind:filling {locale} />
