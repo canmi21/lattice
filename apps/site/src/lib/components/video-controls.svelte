@@ -778,20 +778,21 @@
 					one in the row.
 
 					A diameter is comparable to a rectangle at the number between the rectangle's
-					two, which here is 192. The cog's own mean is 224, so the drawing wants to come
-					down to six sevenths, and it does that by growing the canvas under it rather
-					than by shrinking the element: 256 * 7/6 is 298.67, centred, and props are
-					spread after `viewBox` in Phosphor's generated components so this replaces
-					theirs. The element stays 16 by 16, which is what the focus ring is on, so the
-					ring is identical to every other one in the row and only the ink moved.
+					two, so the drawing comes down by growing the canvas under it rather than by
+					shrinking the element. The element stays 16 by 16, which is what the focus ring
+					is on, so the ring is identical to every other one in the row. Props are spread
+					after `viewBox` in Phosphor's generated components, so this replaces theirs.
 
-					Measured after: 12.43 by 11.57, mean 12.0, against the neighbours' 13.5 by
-					10.5, mean 12.0.
+					Shrinking a drawing shrinks its strokes with it, which the first version of
+					this did and it showed: a cog the right size drawn in a lighter hand than the
+					six glyphs beside it. The stroke is put back in `.player-glyph-cog`, and the
+					two corrections are solved together rather than in sequence, because each
+					changes what the other needs. See spec/styling.md for the arithmetic.
 				-->
 				<GearSixIcon
-					class="player-glyph focus-ring-inner"
+					class="player-glyph player-glyph-cog focus-ring-inner"
 					weight="bold"
-					viewBox="-21.33 -21.33 298.67 298.67"
+					viewBox="-24.38 -24.38 304.76 304.76"
 					aria-hidden="true"
 				/>
 			</button>
@@ -1046,6 +1047,26 @@
 	.player-button :global(.player-glyph-play) {
 		translate: 0.05rem 0;
 		fill: currentColor;
+	}
+
+	/* The other half of the cog's optical correction, which the markup explains the reason for.
+	
+	   A filled path has no stroke to thicken, so the weight comes back as an actual stroke laid
+	   along the outline it already has: `stroke-width` of w units adds w to the apparent thickness
+	   and w/2 to every edge. Solving the pair -- stroke back to 1.5px, mean diameter still 12.0px
+	   -- gives w = 4.571 and a 304.76 canvas, which is the `viewBox` in the markup.
+	
+	   `stroke` inherits, and Phosphor's transparent sizing rect would inherit it too and draw a
+	   square around the glyph. It is turned off here rather than avoided, because a presentation
+	   attribute on that rect is not something this file can reach. */
+	.player-button :global(.player-glyph-cog) {
+		stroke: currentColor;
+		stroke-width: 4.571px;
+		stroke-linejoin: round;
+	}
+
+	.player-button :global(.player-glyph-cog rect) {
+		stroke: none;
 	}
 
 	.player-clock {

@@ -1228,15 +1228,27 @@ glyph in the control row is landscape -- 216 units wide and 168 tall in a 256 bo
 by 10.5 at the 16px they render -- and a cog has one number where a rectangle has two. Phosphor
 draws `GearSix` at 232 by 216, so at the same nominal size its diameter is wider than their width
 and a third again their height, and it reads as the big one in the row. A diameter is comparable
-to a rectangle at the number between the rectangle's two, which is 192 here, so the cog comes down
-to six sevenths of what Phosphor draws.
+to a rectangle at the number between the rectangle's two, which is 192 here.
 
 It comes down by growing the canvas under it and not by shrinking the element: the `viewBox` is
 replaced with a larger one centred on the same point, which every Phosphor component accepts
 because props are spread after it. The element stays 16 by 16, so **the focus ring is unchanged**
 -- the ring is the site's and belongs to the control, and an optical correction to the drawing
-inside it must not move it. Measured after: 12.43 by 11.57 against the neighbours' 13.5 by 10.5,
-both a mean of 12.0.
+inside it must not move it.
+
+**Shrinking a drawing shrinks its strokes, and a glyph in a row is read by its weight before its
+size.** The first version of this correction stopped at the canvas and the result was a cog the
+right size drawn in a lighter hand than the six glyphs beside it. A filled path has no stroke to
+thicken, so the weight is put back as an actual stroke laid along the outline the fill already
+has: `stroke-width` of w user units adds w to the apparent thickness, and w/2 to every edge -- so
+it changes the size too, and the two corrections have to be solved together rather than in
+sequence. Wanting a 1.5px stroke and a 12.0px mean diameter at once gives w = 4.571 on a 304.76
+canvas. Measured after: stroke 1.500px against the neighbours' 1.500px, ink 12.42 by 11.58 against
+13.5 by 10.5, both a mean of 12.0.
+
+`stroke` inherits, so Phosphor's transparent sizing rect inherits it too and draws a square around
+the glyph. It is turned off in the same rule; a presentation attribute on that rect is not
+something a consumer of the component can reach.
 
 ## A quadrant groups claims without inventing scores
 
