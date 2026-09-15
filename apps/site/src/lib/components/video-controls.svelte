@@ -701,7 +701,7 @@
 		</div>
 		<input
 			type="range"
-			class="player-seek focus-ring"
+			class="player-seek"
 			min="0"
 			max={view.duration || 1}
 			step="0.01"
@@ -732,7 +732,7 @@
 			</button>
 			<input
 				type="range"
-				class="player-level focus-ring"
+				class="player-level"
 				min="0"
 				max="1"
 				step="0.01"
@@ -1125,6 +1125,68 @@
 		appearance: none;
 		background: transparent;
 		cursor: pointer;
+	}
+
+	/* Both sliders hand their ring to the bar a reader can actually see.
+
+	   An input here is 16px tall and the bar inside it is 3px, the rest being the hit area a thumb
+	   needs, so a ring on the input stands five pixels clear of anything drawn and reads as a box
+	   floating on the picture. This is the same call `focus-ring-inner` makes for the icon buttons
+	   and the same one the table of contents makes for its collapsed bars, and neither utility
+	   reaches here: an `<input>` has no children to hand the ring to, and the element that draws
+	   the seek bar is its sibling rather than its ancestor. So the two placements are written out
+	   below -- a sibling for one, a shadow pseudo-element for the other -- and they are the whole
+	   of what is local. The colour, the width and the offset are still the site's.
+
+	   Stated at rest as well, which is the rule for any value a state introduces: nothing here
+	   transitions `outline-color` today, and the next person to add a transition should not have
+	   to know that. */
+	.player-track,
+	.player-seek,
+	.player-level {
+		outline-color: var(--color-accent);
+	}
+
+	/* The input keeps the focus and gives up the drawing, which is the narrow case
+	   spec/styling.md allows suppression for: something else marks the position. */
+	.player-seek:focus-visible,
+	.player-level:focus-visible {
+		outline: none;
+	}
+
+	.player-scrub:has(.player-seek:focus-visible) .player-track {
+		outline: 0.125rem solid var(--color-accent);
+		outline-offset: 0;
+	}
+
+	/* One engine per rule, never a list: a selector list holding a pseudo-element the engine does
+	   not know invalidates the whole rule, in both engines. */
+	.player-level:focus-visible::-webkit-slider-runnable-track {
+		outline: 0.125rem solid var(--color-accent);
+		outline-offset: 0;
+	}
+
+	.player-level:focus-visible::-moz-range-track {
+		outline: 0.125rem solid var(--color-accent);
+		outline-offset: 0;
+	}
+
+	/* The utilities' pointer suppression matches the focused element, and these three rules draw
+	   on something else, so it cannot reach them. Same shape, written out: a positively known
+	   pointer takes the outline away, an absent attribute leaves it alone. */
+	:global(html[data-focus-source='pointer'])
+		.player-scrub:has(.player-seek:focus-visible)
+		.player-track {
+		outline: none;
+	}
+
+	:global(html[data-focus-source='pointer'])
+		.player-level:focus-visible::-webkit-slider-runnable-track {
+		outline: none;
+	}
+
+	:global(html[data-focus-source='pointer']) .player-level:focus-visible::-moz-range-track {
+		outline: none;
 	}
 
 	.player-seek {
