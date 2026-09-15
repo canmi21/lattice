@@ -111,8 +111,22 @@
 		filling = $bindable(false),
 		locale,
 	}: {
-		video: HTMLVideoElement;
-		frame: HTMLElement;
+		/**
+		 * The clip and the box around it, once there are any.
+		 *
+		 * Undefined on the server and for the first client render, which is the point of their
+		 * being optional. This component used to be withheld until both were bound, so the cover
+		 * -- the one part of it a reader sees before they touch anything -- did not exist until
+		 * hydration and then appeared at full opacity: measured, nothing until 400ms and then a
+		 * disc, against a first paint at 88ms. Rendering from the start means the server writes
+		 * the same disc the client keeps, and there is nothing to appear.
+		 *
+		 * Everything that touches either one is an effect or a handler, so nothing runs until
+		 * there is something to run against. The guards say so at each of them rather than being
+		 * implied by a gate in the parent.
+		 */
+		video?: HTMLVideoElement;
+		frame?: HTMLElement;
 		rungs?: VideoRung[];
 		/**
 		 * The clip's own levelling, so this one plays at the same loudness as every other.
@@ -267,6 +281,7 @@
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			any
 		>;
+		if (!video || !frame) return;
 		const adapter = new HTMLVideoAdapter();
 		const released = adapter.attach(video);
 		const detach = store.attach({ media: adapter, container: frame });
@@ -361,7 +376,7 @@
 	 * have already said is the other half of the same rudeness.
 	 */
 	function preview() {
-		if (stage !== 'sleeping' || !player) return;
+		if (stage !== 'sleeping' || !player || !video) return;
 		stage = 'previewing';
 		video.muted = !unlocked;
 		if (unlocked) applyVolume();
@@ -377,6 +392,7 @@
 	 * never wrote to it, so there is nothing to recover.
 	 */
 	function wake() {
+		if (!video) return;
 		stage = 'awake';
 		unlocked = true;
 		video.muted = false;
@@ -401,6 +417,7 @@
 	 * Coming back does not restart it either way: the pause is a pause and the reader decides.
 	 */
 	$effect(() => {
+		if (!video || !frame) return;
 		const observer = new IntersectionObserver(
 			([entry]) => {
 				if (entry?.isIntersecting) return;
@@ -484,6 +501,7 @@
 	let over = $state(false);
 
 	export function press() {
+		if (!video) return;
 		if (stage !== 'awake') {
 			wake();
 			showChrome = true;
@@ -533,6 +551,7 @@
 	 * turns that clip up rather than for everyone.
 	 */
 	function applyVolume() {
+		if (!video) return;
 		const wanted = (boost ? volume * 2 : volume) * levelling;
 		if (wanted <= 1) {
 			video.volume = wanted;
@@ -570,6 +589,7 @@
 
 	/** One click, and the level the reader already chose comes back. */
 	function unmute() {
+		if (!video) return;
 		video.muted = !video.muted;
 		applyVolume();
 	}
@@ -592,6 +612,7 @@
 	 * keyframe, which is why this is the one control that interrupts what it is doing.
 	 */
 	function quality(src: string) {
+		if (!video) return;
 		const at = video.currentTime;
 		const playing = !video.paused;
 		chosen = src;

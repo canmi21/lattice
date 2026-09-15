@@ -160,6 +160,24 @@ stage, and reading `paused` directly meant the glyph reported it: the triangle b
 the length of the fade and then went, a pause button flashing on a clip nobody had started. The
 state is not the cover's to report until there is something to report.
 
+### The chrome is rendered from the first frame, not from hydration
+
+The controls component used to be withheld until the clip and its frame were bound, which is
+after hydration. That is fine for the row along the bottom, which nobody sees until they point at
+it, and wrong for the cover: it is the one part a reader sees before they touch anything, so it
+did not exist and then appeared at full opacity. Measured, nothing until 400ms against a first
+paint at 88ms.
+
+So the component renders from the start and its two element props are optional -- **the clip and
+its frame, once there are any**. Everything that touches either is an effect or a handler, so
+nothing runs until there is something to run against, and each guard says so at its own site
+rather than being implied by a gate in the parent. The server writes the same disc the client
+keeps, so there is nothing to appear, and nothing to press either. Measured after: present from
+the first sampled frame, and not one change across 576 of them.
+
+What still gates it is `support`. A browser that refused every source gets the notice instead,
+because a player drawn over a clip that will not decode is a lie.
+
 ### On a touch device
 
 A finger cannot arrive anywhere, so a clip with nothing on it is a picture as far as anyone can

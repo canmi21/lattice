@@ -346,7 +346,19 @@
 		</video>
 	</noscript>
 
-		{#if driven && el && frame && support !== 'none'}
+		<!--
+			Rendered from the first frame rather than once the elements are bound, which is what
+			the cover needs: it is the one part of the chrome a reader sees before they touch
+			anything, and withholding the component until hydration meant it did not exist and
+			then appeared at full opacity. Measured: nothing until 400ms against a first paint at
+			88ms. Now the server writes the same disc the client keeps, so there is nothing to
+			appear -- and nothing to press either, because until `video` is bound every handler
+			inside returns early.
+
+			`support` still gates it. A browser that refused every source gets the notice below
+			instead, and a player drawn over a clip that will not decode is a lie.
+		-->
+		{#if support !== 'none'}
 			<Controls bind:this={controls} video={el} {frame} {rungs} {gain} bind:filling {locale} />
 		{/if}
 	</div>
