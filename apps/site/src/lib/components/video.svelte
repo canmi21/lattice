@@ -313,9 +313,17 @@
 		and the price of the block being self-contained; the rule is idempotent and a second copy
 		costs nothing but its own length. It cannot be Svelte-scoped -- a `<style>` written into
 		markup is not the compiler's -- so it matches on the attribute instead of on the class.
+
+		It names the frame as well, and that is not for readability. Svelte's scoped rules are
+		unlayered, so `.video-surface.svelte-hash { display: block }` is an ordinary author rule at
+		two classes, and `video[data-script-only]` is one class and one element: it loses, and the
+		first version of this block showed a reader with no script both copies stacked. Measured in
+		a sandboxed frame with scripting off -- which is the condition `<noscript>` is defined
+		against -- six `<video>` elements where three were wanted. Adding the frame makes it two
+		classes and an element, which is the smallest thing that wins without `!important`.
 	-->
 	<noscript>
-		<style>video[data-script-only]{display:none}</style>
+		<style>.video-frame video[data-script-only]{display:none}</style>
 		<video
 			class="video-surface block w-full"
 			src={resolved ? undefined : fallback}

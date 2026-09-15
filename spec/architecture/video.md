@@ -188,8 +188,21 @@ other. Measured after: zero frames.
 The two copies must not both show, so the block carries a one-line `<style>` hiding the scripted
 element, which is marked `data-script-only`. It matches on that attribute rather than on the
 class because a `<style>` written into markup is not the compiler's and carries no scope hash.
-It repeats once per clip, at 568 bytes for the whole block, which is the price of the fallback
-being self-contained where the element it replaces is.
+It repeats once per clip, which is the price of the fallback being self-contained where the
+element it replaces is.
+
+**It also names the frame, and that is a cascade fact rather than a readability one.** Svelte's
+scoped rules are unlayered, so `.video-surface.svelte-hash { display: block }` is an ordinary
+author rule at two classes; `video[data-script-only]` is one class and one element and loses to
+it. Naming the frame makes it two classes and an element, which is the smallest thing that wins
+without `!important`.
+
+**A fallback nobody can reach is a fallback nobody has tested.** This one shipped broken -- both
+copies stacked -- and the markup, the served HTML and the scripting-enabled half all looked
+correct, because none of them is the thing that was wrong. The condition `<noscript>` is defined
+against is *scripting disabled*, and a sandboxed iframe without `allow-scripts` is exactly that:
+give it `allow-same-origin` as well and the result can be read back. Six `<video>` elements where
+three were wanted, and then three.
 
 ## What is stored, and where
 
