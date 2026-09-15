@@ -430,6 +430,10 @@
 
 		const onEnter = () => {
 			over = true;
+			// Arriving is not a reason to take the disc away that instant. The row comes up on the
+			// same movement, and two things changing in opposite directions in one frame reads as
+			// a flinch; the countdown lets the one that is leaving leave on its own.
+			hold();
 			if (stage === 'sleeping') preview();
 			// Back on the clip it left: pick up from where the pointer left off rather than from
 			// the beginning. The position was kept precisely so this would be a resumption.
@@ -446,6 +450,10 @@
 			// Only a preview. An `awake` clip was asked for and keeps playing wherever the pointer
 			// goes, which is the difference the click buys.
 			if (stage === 'previewing' && !video.paused) (player?.pause as () => void)?.();
+			// The row goes at once and the disc does not, because from here the disc is the only
+			// control there is. How long it stays is `covered`'s question, not this one's: a
+			// clip still running takes the countdown, a paused one is kept.
+			hold();
 		};
 		let down: { x: number; y: number } | null = null;
 		const onStart = (event: TouchEvent) => {
@@ -675,9 +683,16 @@
 	 * includes paused, which used to keep it up outright -- but a reader who paused with the
 	 * pointer on the frame has the row in front of them and does not need the picture covered too.
 	 *
-	 * With the pointer off the frame the row is gone, and a paused still frame with nothing on it
-	 * says nothing about being resumable. So this is the only thing left and it stays, which is
-	 * also the moment it is most wanted: leaving is what paused the clip.
+	 * With the pointer off the frame the row is gone and this is the only control there is, so
+	 * what it does depends on whether there is anything to do. A clip still running -- and an
+	 * awake one does keep running, since only a preview ends with the pointer -- needs nothing
+	 * from the reader, and takes the countdown like any other state. A paused still frame with
+	 * nothing on it says nothing about being resumable, so there it stays, indefinitely.
+	 *
+	 * Both edges are countdowns rather than switches. Arriving does not clear the middle of the
+	 * picture in the same frame the row appears in, because two things changing in opposite
+	 * directions at once reads as a flinch; leaving does not clear it at all while the clip is
+	 * running. Each edge restarts the timer and lets the answer settle a moment later.
 	 *
 	 * On a touch device it is still only the invitation. There is no hover to replace it with, and
 	 * a permanent target in the middle of the picture would fight the double tap that pauses.
@@ -685,7 +700,7 @@
 	const covered = $derived(
 		hovers
 			? stage === 'awake'
-				? !over || onCover || lingering
+				? onCover || lingering || (!over && view.paused)
 				: !over
 			: stage === 'sleeping',
 	);

@@ -149,9 +149,19 @@ back by wiggling it.
 pointer on the frame there is a whole row along the bottom, so the disc over the middle of the
 picture comes up for the two seconds after a state change, holds while the pointer is on it, and
 otherwise gets out of the way -- paused included, because a reader who paused with the pointer on
-the frame has the row in front of them. With the pointer off the frame the row is gone and a still
-frame says nothing about being resumable, so the disc stays. That is also the moment it is most
-wanted, since leaving is what paused the clip.
+the frame has the row in front of them.
+
+With the pointer off the frame the row is gone and the disc is the only control there is, so what
+it does depends on whether there is anything to do. A clip still running -- and an awake one does
+keep running, since only a preview ends with the pointer -- needs nothing from the reader and
+takes the countdown like any other state. A paused still frame with nothing on it says nothing
+about being resumable, so there the disc stays, indefinitely.
+
+**Both edges are countdowns rather than switches.** Arriving does not clear the middle of the
+picture in the same frame the row appears in: two things changing in opposite directions at once
+reads as a flinch, so the disc leaves on its own a moment later. Leaving does not clear it at all
+while the clip is running. Measured across an arrival: the row at 0.82 opacity by 108ms with the
+disc still at 1, and the disc gone at 2191ms.
 
 The countdown is the cover's own. The store has an idle flag and it resets on any movement inside
 the container, so a reader whose pointer wanders across the picture -- which is what watching looks
