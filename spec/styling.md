@@ -1223,6 +1223,21 @@ small, which is the signal Phosphor's pair uses too.
 These take Phosphor's props and default them the same way, minus `weight`: they are drawn at bold
 and nothing else, and a prop offering five more weights would be five lies.
 
+**A round glyph in a row of rectangles is sized against them, not against its box.** Every other
+glyph in the control row is landscape -- 216 units wide and 168 tall in a 256 box, which is 13.5
+by 10.5 at the 16px they render -- and a cog has one number where a rectangle has two. Phosphor
+draws `GearSix` at 232 by 216, so at the same nominal size its diameter is wider than their width
+and a third again their height, and it reads as the big one in the row. A diameter is comparable
+to a rectangle at the number between the rectangle's two, which is 192 here, so the cog comes down
+to six sevenths of what Phosphor draws.
+
+It comes down by growing the canvas under it and not by shrinking the element: the `viewBox` is
+replaced with a larger one centred on the same point, which every Phosphor component accepts
+because props are spread after it. The element stays 16 by 16, so **the focus ring is unchanged**
+-- the ring is the site's and belongs to the control, and an optical correction to the drawing
+inside it must not move it. Measured after: 12.43 by 11.57 against the neighbours' 13.5 by 10.5,
+both a mean of 12.0.
+
 ## A quadrant groups claims without inventing scores
 
 A categorical comparison uses a `:::quadrant` container with `::quadrant-item` children. The

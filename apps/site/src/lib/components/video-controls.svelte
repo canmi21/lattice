@@ -627,30 +627,65 @@
 	const label = $derived(
 		view.paused ? m['video.play']({}, { locale }) : m['video.pause']({}, { locale }),
 	);
+
+	/**
+	 * Whether the cover is asking to be seen. Whether it exists at all is the markup's question.
+	 *
+	 * Three answers, because the cover is answering three different questions.
+	 *
+	 * Before the reader has clicked, on a pointer device, it is the sign on a still picture -- so
+	 * it is there while the pointer is elsewhere and gone the moment the pointer arrives, because
+	 * from then on the picture is moving and the movement is the better sign. `over` rather than
+	 * the stage, so it comes straight back when the pointer leaves.
+	 *
+	 * After the reader has clicked it is the play control, and a control reports state rather than
+	 * inviting. It follows the chrome, so a clip playing to nobody loses it along with everything
+	 * else a few seconds in -- and it outlasts the chrome whenever the clip is paused, including
+	 * with the pointer nowhere near, because a paused frame says nothing about being resumable and
+	 * the reader who stopped it is the one most likely to come back.
+	 *
+	 * On a touch device it is still only the invitation. There is no hover to replace it with, and
+	 * a permanent target in the middle of the picture would fight the double tap that pauses.
+	 */
+	const covered = $derived(
+		hovers ? (stage === 'awake' ? view.paused || shown : !over) : stage === 'sleeping',
+	);
 </script>
 
 <!--
 	The cover, and the only thing that ever covers the picture. A plate rather than a bare glyph,
 	because on a frame this site does not choose a glyph alone has nothing to sit against.
--->
-<!--
-	The cover, and the only thing that ever covers the picture.
 
-	Drawn on a touch device and not on a pointer one, which is the asymmetry the whole interaction
-	rests on. A pointer discovers the clip by arriving at it -- the picture starts moving and that
-	is the invitation. A finger cannot arrive anywhere, so a clip with nothing on it is a picture
-	as far as anyone can tell, and the button is the only thing that says otherwise.
+	It answers the same question on both kinds of device and the question is asked at opposite
+	ends of the interaction, which is why the condition is not one expression.
 
-	It goes as soon as it has been used, because from then on the clip has said what it is.
+	A finger cannot arrive anywhere, so before a touch reader has touched it a clip with nothing on
+	it is a picture as far as anyone can tell, and this is the only thing that says otherwise. It
+	goes as soon as it has been used, because from then on the clip has said what it is.
+
+	A pointer discovers the clip by arriving at it -- the picture starts moving, and that is the
+	invitation, so there is nothing for a cover to say while the clip is asleep or previewing. The
+	question comes back at the far end. Once the reader has clicked, the clip is a player rather
+	than a picture, and a paused player with the chrome faded out is a still frame again with
+	nothing anywhere saying it can be resumed. So the cover returns and stays: not while the
+	pointer is over the frame, which is what the row already covers, but whenever it is paused.
 -->
-{#if !hovers && stage === 'sleeping'}
+{#if hovers || stage === 'sleeping'}
 	<button
 		type="button"
-		onclick={press}
-		aria-label={m['video.play']({}, { locale })}
+		onclick={(event) => {
+			// The frame carries the same `press` for a click anywhere on the picture, so without
+			// this the cover's own click runs it twice and the two cancel out: play, then pause.
+			event.stopPropagation();
+			press();
+		}}
+		aria-label={label}
+		title={label}
 		class="player-cover focus-ring"
+		class:player-cover-shown={covered}
 	>
-		<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
+		{#if view.paused}<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />
+		{:else}<PauseIcon class="player-cover-pause" weight="fill" aria-hidden="true" />{/if}
 	</button>
 {/if}
 
@@ -732,7 +767,33 @@
 				aria-label={m['video.settings']({}, { locale })}
 				title={m['video.settings']({}, { locale })}
 			>
-				<GearSixIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />
+				<!--
+					The one glyph in the row that is round, sized by eye rather than by its box.
+
+					Every other glyph here is a landscape rectangle: measured off their paths, the
+					neighbours are 216 units wide and 168 tall in a 256 box, which is 13.5 by 10.5
+					at the 16px they render. A cog has one number instead of two, and Phosphor
+					draws `GearSix` at 232 by 216 -- so at the same nominal size its diameter is
+					wider than their width and a third again their height, and it reads as the big
+					one in the row.
+
+					A diameter is comparable to a rectangle at the number between the rectangle's
+					two, which here is 192. The cog's own mean is 224, so the drawing wants to come
+					down to six sevenths, and it does that by growing the canvas under it rather
+					than by shrinking the element: 256 * 7/6 is 298.67, centred, and props are
+					spread after `viewBox` in Phosphor's generated components so this replaces
+					theirs. The element stays 16 by 16, which is what the focus ring is on, so the
+					ring is identical to every other one in the row and only the ink moved.
+
+					Measured after: 12.43 by 11.57, mean 12.0, against the neighbours' 13.5 by
+					10.5, mean 12.0.
+				-->
+				<GearSixIcon
+					class="player-glyph focus-ring-inner"
+					weight="bold"
+					viewBox="-21.33 -21.33 298.67 298.67"
+					aria-hidden="true"
+				/>
 			</button>
 			{#if menu}
 				<div class="player-menu">
@@ -863,7 +924,22 @@
 		background: var(--player-plate-strong);
 		backdrop-filter: blur(var(--player-blur));
 		-webkit-backdrop-filter: blur(var(--player-blur));
-		transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+		/* Hidden by default and faded in, on the chrome's curve and duration, because after the
+		   first click the two leave together: a clip playing to nobody drops its whole interface
+		   at once rather than in two steps. */
+		opacity: 0;
+		pointer-events: none;
+		transition:
+			opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+			transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	/* `:focus-visible` for the reason the chrome has it: an invisible button is still a tab stop,
+	   and a focus ring drawn on a control nobody can see is worse than no ring. */
+	.player-cover-shown,
+	.player-cover:focus-visible {
+		opacity: 1;
+		pointer-events: auto;
 	}
 
 	.player-cover:hover {
@@ -877,6 +953,15 @@
 		width: 1.5rem;
 		height: 1.5rem;
 		translate: 0.075rem 0;
+		fill: currentColor;
+		filter: drop-shadow(var(--player-shadow));
+	}
+
+	/* Two bars are symmetric about their own centre, so the correction above is not only
+	   unnecessary here, it would put the pause off centre by the amount the play needs. */
+	.player-cover :global(.player-cover-pause) {
+		width: 1.5rem;
+		height: 1.5rem;
 		fill: currentColor;
 		filter: drop-shadow(var(--player-shadow));
 	}
