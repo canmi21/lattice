@@ -75,9 +75,18 @@
 	//
 	// The `*Icon` names, not the bare ones -- `CornersOut` and its siblings are deprecated
 	// aliases and say so in their own types.
+	//
+	// Every glyph is `weight="fill"` except the boxes. `ClosedCaptioning`, `FrameCorners`,
+	// `PictureInPicture` and `GearSix` all carry their meaning in an opening rather than in a mass
+	// -- a frame is the hole inside it, a cog is the hole at its centre -- and filling them hands
+	// back a rounded blob that says none of caption, window, window-within-window or settings.
+	// Those are `bold`, the heaviest weight that keeps the opening.
+	//
+	// Three of the boxes are not Phosphor's at all, because Phosphor does not draw them: the
+	// landscape corner pair and the frame's exit state. They live in `./video-glyphs`, are drawn
+	// in the same hand, and take the same props minus `weight` -- bold is the only weight they
+	// have.
 	import ClosedCaptioningIcon from 'phosphor-svelte/lib/ClosedCaptioningIcon';
-	import CornersInIcon from 'phosphor-svelte/lib/CornersInIcon';
-	import CornersOutIcon from 'phosphor-svelte/lib/CornersOutIcon';
 	import FrameCornersIcon from 'phosphor-svelte/lib/FrameCornersIcon';
 	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
 	import PauseIcon from 'phosphor-svelte/lib/PauseIcon';
@@ -85,6 +94,10 @@
 	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
 	import SpeakerHighIcon from 'phosphor-svelte/lib/SpeakerHighIcon';
 	import SpeakerSimpleXIcon from 'phosphor-svelte/lib/SpeakerSimpleXIcon';
+	// Three shapes Phosphor does not draw, in Phosphor's hand. See `video-glyphs/glyph.svelte`.
+	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
+	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';
+	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
 	import { recall, remember } from '$lib/client/state';
 	import type { VideoRung } from '$lib/content/build/assets.ts';
 	import type { LocaleCode } from '$lib/locale';
@@ -705,7 +718,7 @@
 				aria-label={m['video.captions']({}, { locale })}
 				title={m['video.captions']({}, { locale })}
 			>
-				<ClosedCaptioningIcon class="player-glyph" weight="fill" aria-hidden="true" />
+				<ClosedCaptioningIcon class="player-glyph" weight="bold" aria-hidden="true" />
 			</button>
 		{/if}
 
@@ -719,7 +732,7 @@
 				aria-label={m['video.settings']({}, { locale })}
 				title={m['video.settings']({}, { locale })}
 			>
-				<GearSixIcon class="player-glyph" weight="fill" aria-hidden="true" />
+				<GearSixIcon class="player-glyph" weight="bold" aria-hidden="true" />
 			</button>
 			{#if menu}
 				<div class="player-menu">
@@ -772,7 +785,7 @@
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
 			>
-				<PictureInPictureIcon class="player-glyph" weight="fill" aria-hidden="true" />
+				<PictureInPictureIcon class="player-glyph" weight="bold" aria-hidden="true" />
 			</button>
 		{/if}
 
@@ -791,7 +804,8 @@
 			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
 			     still around it. The other button below leaves the browser behind entirely, and the
 			     two must not look alike -- they are different destinations, not two sizes of one. -->
-			<FrameCornersIcon class="player-glyph" weight="fill" aria-hidden="true" />
+			{#if filling}<FrameCornersInIcon class="player-glyph" aria-hidden="true" />
+			{:else}<FrameCornersIcon class="player-glyph" weight="bold" aria-hidden="true" />{/if}
 		</button>
 
 		<button
@@ -805,8 +819,8 @@
 				? m['video.exit-fullscreen']({}, { locale })
 				: m['video.fullscreen']({}, { locale })}
 		>
-			{#if view.fullscreen}<CornersInIcon class="player-glyph" weight="fill" aria-hidden="true" />
-			{:else}<CornersOutIcon class="player-glyph" weight="fill" aria-hidden="true" />{/if}
+			{#if view.fullscreen}<CornersInWideIcon class="player-glyph" aria-hidden="true" />
+			{:else}<CornersOutWideIcon class="player-glyph" aria-hidden="true" />{/if}
 		</button>
 	</div>
 </div>

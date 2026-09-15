@@ -1184,6 +1184,45 @@ in a column of prose, and this is the view that exists to get past the column. W
 the drawn size, `sizes: 100vw` is what keeps a photograph on a wide window sharp: the browser is
 being told the truth about how large it is about to be painted, and picks its source accordingly.
 
+## The player's glyphs are Phosphor, at two weights, plus three this repository draws
+
+Icons on this site come from Lucide and mingcute through `unplugin-icons`, and the player's do
+not. The rest sit in prose at text size with a word beside them; a player's sit on a picture at
+16px with nothing to read them against, and Phosphor's heavier, rounder strokes hold up where
+Lucide's thin geometry starts to disappear. The two never meet -- no component outside
+`video-controls.svelte` and its `video-glyphs/` directory imports from `phosphor-svelte`.
+
+**Fill for a mass, bold for an opening.** Phosphor's `fill` is not "the same drawing, heavier": it
+is a second drawing in which the outline is filled and most of the negative space inside is gone.
+So which weight a glyph takes follows from where its meaning lives. Play, pause and the speaker
+are masses and take `fill`. The boxes -- captions, picture-in-picture, the window frame, and the
+cog -- are openings, and filling them returns a rounded blob that says none of caption, window,
+window-within-window or settings. Those take `bold`, the heaviest weight that keeps the hole.
+
+**Three shapes the set does not have live in `apps/site/src/lib/components/video-glyphs/`.**
+Phosphor's `CornersOut` and `CornersIn` mark the corners of a *square*, which is right for a
+generic expand and wrong in a row where captions, picture-in-picture and the frame are all
+landscape; and `FrameCorners` is drawn only in its enter state, with no partner for leaving. So
+the landscape corner pair and the frame's exit state are drawn here, in Phosphor's hand and from
+Phosphor's own parts -- the brackets are its brackets at 24 thick, 52 long and 12 radius, and the
+frame is its frame unaltered. Only where each mark sits has changed.
+
+The rectangle is not invented either. At bold Phosphor draws no two of its boxes alike:
+`ClosedCaptioning` is 12..244 x 44..212, `PictureInPicture` 20..236 x 44..212, `FrameCorners`
+20..236 x 36..220. Two of the three share each axis, and the box they agree on is
+`PictureInPicture` exactly.
+
+**An enter state and its exit occupy the same footprint.** Phosphor's own pair does not:
+`CornersIn`'s brackets are 60 long against `CornersOut`'s 52, on a 160 square against a 184, so
+the glyph changes size as well as direction. Two icons sitting apart in a set can do that; one
+button whose label toggles cannot, because a footprint that moves reads as the row twitching under
+the press. Here each mark is turned 180 degrees where it stands, and what carries the meaning is
+where the elbows end up -- out at the rectangle's corners for large, in toward the middle for
+small, which is the signal Phosphor's pair uses too.
+
+These take Phosphor's props and default them the same way, minus `weight`: they are drawn at bold
+and nothing else, and a prop offering five more weights would be five lies.
+
 ## A quadrant groups claims without inventing scores
 
 A categorical comparison uses a `:::quadrant` container with `::quadrant-item` children. The
