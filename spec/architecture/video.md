@@ -180,6 +180,30 @@ a permanent play control in the middle would fight the double tap. A press that 
 is this device's hover, and unlike a pointer leaving, lifting the finger does not pause -- only
 leaving the viewport does. A single tap summons the chrome; a double tap plays and pauses.
 
+### A clip playing elsewhere leaves the frame it left on
+
+An element in picture-in-picture paints nothing where it stands. The browser puts its own
+placeholder there -- a black box with a line of text -- and while the poster was still an
+attribute it painted that over the poster, so a clip twelve seconds into another window was
+represented here by a dimmed still of its first frame. Neither the black nor the first frame is
+what left.
+
+So the frame it leaves on is copied into a canvas at `enterpictureinpicture`, and the canvas
+stands in for it: same box, same crop, nothing moves when one replaces the other. **Grey and
+dimmed, because it is a picture of the clip and not the clip** -- the live one is in the other
+window, and a full-colour still would be claiming otherwise. It sits above the element rather than
+inside it, because the browser's placeholder is shadow content and no selector reaches it.
+
+The canvas is always in the DOM rather than conditional on the state, because the state and the
+drawing arrive in the wrong order: the frame is available at `enterpictureinpicture`, and a canvas
+mounted by that same state would not exist yet. Tainting does not matter -- it is displayed, never
+read back, and a cross-origin draw only blocks `getImageData` and `toDataURL`.
+
+**And it can be pressed to bring the clip back.** The disc returns wearing the
+picture-in-picture glyph, and so does the picture behind it: while a clip is playing somewhere
+else, pressing it can only mean one thing. The play disc is withheld for the same reason -- two
+discs on one picture is one more than there is anything to press.
+
 ### Filling the window is a page mode, not a media one
 
 Two buttons sit next to each other and they are different destinations rather than two sizes of

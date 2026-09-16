@@ -121,6 +121,7 @@
 	"video.boost": "Amplification",
 	"video.captions": "Sous-titres",
 	"video.exit-fullscreen": "Quitter le plein écran",
+	"video.exit-pip": "Quitter l’image dans l’image",
 	"video.fill": "Remplir la fenêtre",
 	"video.fullscreen": "Plein écran",
 	"video.mute": "Muet",

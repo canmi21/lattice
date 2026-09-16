@@ -121,6 +121,7 @@
 	"video.boost": "부스트",
 	"video.captions": "자막",
 	"video.exit-fullscreen": "전체 화면 종료",
+	"video.exit-pip": "화면 속 화면 종료",
 	"video.fill": "창에 맞추기",
 	"video.fullscreen": "전체 화면",
 	"video.mute": "음소거",

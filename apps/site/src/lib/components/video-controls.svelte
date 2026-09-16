@@ -393,6 +393,49 @@
 	});
 
 	/**
+	 * The frame the clip was on when it left for the picture-in-picture window.
+	 *
+	 * An element in picture-in-picture paints nothing where it stands: the browser puts its own
+	 * placeholder there, a black box with a line of text, and until the poster was dropped it
+	 * painted that over the poster -- so the reader was shown a still of the first frame, dimmed,
+	 * for a clip that was twelve seconds in somewhere else. Neither the black nor the first frame
+	 * is what left.
+	 *
+	 * So the moment it leaves, the frame it leaves on is copied into a canvas, and the canvas is
+	 * what stands in for it. Drawn from the element rather than from the poster, which is the
+	 * whole point: it is the picture that was actually there. Grey, because it is not the live
+	 * one -- the live one is in the other window, and a full-colour still would claim otherwise.
+	 *
+	 * The canvas is always in the DOM rather than conditional on the state, because the state and
+	 * the drawing arrive in the wrong order: `enterpictureinpicture` is where the frame is still
+	 * available, and a canvas mounted by that same state would not exist yet.
+	 */
+	let still = $state<HTMLCanvasElement>();
+
+	$effect(() => {
+		const element = video;
+		const canvas = still;
+		if (!element || !canvas) return;
+		const capture = () => {
+			// Tainting is not a concern: the canvas is displayed, never read back, and drawing
+			// from a cross-origin element only blocks `getImageData` and `toDataURL`.
+			canvas.width = element.videoWidth || 16;
+			canvas.height = element.videoHeight || 9;
+			canvas.getContext('2d')?.drawImage(element, 0, 0, canvas.width, canvas.height);
+		};
+		element.addEventListener('enterpictureinpicture', capture);
+		return () => element.removeEventListener('enterpictureinpicture', capture);
+	});
+
+	/** Bring the clip back from the other window, which is the one thing the still is good for. */
+	function returnHere(): void {
+		void document.exitPictureInPicture?.().catch(() => {
+			// The window was closed from its own control between the press and this call. The
+			// state will catch up on `leavepictureinpicture` either way.
+		});
+	}
+
+	/**
 	 * A seek small enough to land inside the first frame, and large enough to be a seek.
 	 *
 	 * Assigning the position the element already reports is not a seek and decodes nothing, so a
@@ -619,6 +662,8 @@
 
 	export function press() {
 		if (!video) return;
+		// While it is playing somewhere else, pressing the picture can only mean one thing.
+		if (view.pip) return void returnHere();
 		if (stage !== 'awake') {
 			wake();
 			showChrome = true;
@@ -807,11 +852,14 @@
 	 * a permanent target in the middle of the picture would fight the double tap that pauses.
 	 */
 	const covered = $derived(
-		hovers
-			? stage === 'awake'
-				? onCover || lingering || (!over && view.paused)
-				: !over
-			: stage === 'sleeping',
+		// Never while the clip is elsewhere, whatever stage it left in. The still has its own
+		// control and two discs on one picture is one more than there is anything to press.
+		!view.pip &&
+			(hovers
+				? stage === 'awake'
+					? onCover || lingering || (!over && view.paused)
+					: !over
+				: stage === 'sleeping'),
 	);
 
 	/**
@@ -905,6 +953,30 @@
 	nothing anywhere saying it can be resumed. So the cover returns and stays: not while the
 	pointer is over the frame, which is what the row already covers, but whenever it is paused.
 -->
+<!--
+	What stands where the clip stands while the clip is somewhere else.
+
+	Always in the DOM, because the frame has to be copied at `enterpictureinpicture` and a canvas
+	conditional on the state would not exist until after it. Shown only while the state says so.
+-->
+<canvas bind:this={still} class="player-still" class:player-still-shown={view.pip} aria-hidden="true"
+></canvas>
+
+{#if view.pip}
+	<button
+		type="button"
+		onclick={(event) => {
+			event.stopPropagation();
+			returnHere();
+		}}
+		aria-label={m['video.exit-pip']({}, { locale })}
+		title={m['video.exit-pip']({}, { locale })}
+		class="player-cover player-cover-shown"
+	>
+		<PictureInPictureIcon class="player-cover-glyph" weight="bold" aria-hidden="true" />
+	</button>
+{/if}
+
 {#if hovers || stage === 'sleeping'}
 	<button
 		type="button"
@@ -1248,6 +1320,28 @@
 		height: 1.875rem;
 		fill: currentColor;
 		filter: drop-shadow(var(--player-shadow));
+	}
+
+	/* The still, filling the frame exactly as the element it stands in for does -- same box, same
+	   crop -- so nothing moves when one replaces the other.
+
+	   Grey and slightly dimmed, which is the whole message: this is a picture of the clip and not
+	   the clip. Above the element rather than instead of it, because the browser paints its own
+	   placeholder inside the element and there is no selector that reaches it. */
+	.player-still {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		filter: grayscale(1) brightness(0.55);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.player-still-shown {
+		opacity: 1;
 	}
 
 	/* The chrome: a veil with the controls on it, over the bottom of the frame, taking no height
