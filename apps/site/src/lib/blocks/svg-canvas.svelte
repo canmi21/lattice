@@ -15,34 +15,23 @@
 		description?: string;
 	} = $props();
 
-	// Safe boundary. When the browser HTML-parses a string, certain HTML start tags
-	// inside SVG foreign content ("breakout" elements: span, div, p, b, comments…)
-	// make the parser close the <svg> and resume HTML parsing, so a diagram that
-	// embeds HTML-looking markup would truncate and spill into the page. Instead of
-	// dropping that markup, we TRANSLATE it: escape its angle brackets to entities so
-	// it renders as the literal text the author typed and can never break out. Real
-	// SVG elements aren't in the breakout set, so structure is untouched; the markup
-	// you write shows up verbatim. <foreignObject> is left intact (HTML is a valid,
-	// self-contained integration point there). Breakout set per the HTML standard.
+	// Safe boundary: certain HTML start tags inside SVG foreign content (span, div, p, b,
+	// comments...) make the browser's HTML parser close the outer <svg> and resume HTML parsing,
+	// so embedded HTML-looking markup would truncate the diagram and spill into the page. This
+	// translates such markup instead of dropping it -- escaping angle brackets so it renders as
+	// the literal text the author typed -- since real SVG elements sit outside this breakout set
+	// (per the HTML standard), and <foreignObject> is left intact as a valid HTML integration point.
 	const BREAKOUT_TAG =
 		/<\/?(?:b|big|blockquote|body|br|center|code|dd|div|dl|dt|em|embed|h[1-6]|head|hr|i|img|li|listing|menu|meta|nobr|ol|p|pre|ruby|s|small|span|strong|strike|sub|sup|table|tt|u|ul|font)\b[^>]*>/gi;
 	const COMMENT = /<!--[\s\S]*?-->/g;
 	const FOREIGN_OBJECT = /<foreignObject\b[^>]*>[\s\S]*?<\/foreignObject>/gi;
 
-	// An inline handler in a diagram can only call a global, and this app defines none: every
-	// module scope is its own. So it is a ReferenceError parked in the corpus, waiting for the
-	// first reader to click. `sendPrompt` was exactly that -- nine nodes in one article, throwing
-	// for everyone who touched them, invisible until Sentry saw a phone do it.
-	//
-	// Dropped rather than escaped, which is the opposite of what BREAKOUT_TAG does, because the
-	// two carry different things. A breakout tag is markup the author meant a reader to SEE, so
-	// it is translated into the literal text they typed. A handler is markup the author meant to
-	// RUN; there is no text in it to preserve, and leaving it visible would only publish the
-	// broken call. Styling stays untouched, so a `.node` keeps its hover and simply does nothing
-	// of its own when clicked.
-	//
-	// Scoped to start tags rather than the whole string: a diagram is free to print `onclick=`
-	// as ordinary label text, and that is prose, not a handler.
+	// An inline handler in a diagram can only call a global; this app defines none, so it is a
+	// ReferenceError waiting for a click -- `sendPrompt` did exactly that, nine nodes throwing in
+	// one article until Sentry caught it. Dropped rather than escaped: a breakout tag is markup
+	// meant to be SEEN, so it is translated; a handler is markup meant to RUN, so there is no
+	// text worth preserving. Scoped to start tags only, so a diagram may print `onclick=` as
+	// ordinary label prose.
 	const START_TAG = /<[a-z][^>]*>/gi;
 	const EVENT_HANDLER = /\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 

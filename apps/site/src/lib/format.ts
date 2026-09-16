@@ -9,15 +9,10 @@ import { PUBLIC_LANGUAGE, type LocaleCode } from './locale/index.ts';
  */
 
 /**
- * The tag `Intl` should be given for a view.
- *
- * The source view has no language of its own, so it borrows English -- it is the article's own
- * words, and the numbers around them still have to be grouped somehow.
- *
- * Derived from `PUBLIC_LANGUAGE` rather than restated. The licence pages carried their own
- * version of this, four times, spelling `tw` out as a special case and passing everything else
- * through bare; it produced identical output, which is exactly why nobody noticed there were two
- * rules for one question.
+ * The tag `Intl` should be given for a view. The source view has no language of its own, so it
+ * borrows English for the numbers around its untranslated words. Derived from `PUBLIC_LANGUAGE`
+ * rather than restated: the licence pages carried their own copy, four times, spelling `tw` out
+ * as a special case -- it produced identical output, which is why nobody noticed the duplication.
  */
 export function intlLocale(locale: LocaleCode): string {
 	return locale === 'mw' ? PUBLIC_LANGUAGE.en : PUBLIC_LANGUAGE[locale];
@@ -43,15 +38,10 @@ export function shortDate(value: string | number | Date): string {
 }
 
 /**
- * A count shortened to fit a stat row or a chart axis: `950`, `1.5k`, `16k`, `2.3M`.
- *
- * Lowercase `k` and uppercase `M`, which is what SI writes and therefore the only pair that is
- * not a house style somebody has to remember. The two copies this replaces had picked opposite
- * conventions.
- *
- * **One decimal below ten thousand and none above it.** Past that the tenth is noise -- nobody
- * reads the `.5` in `15.5k` -- and the shorter label is worth more on an axis, which is where
- * these numbers mostly appear.
+ * A count shortened to fit a stat row or a chart axis: `950`, `1.5k`, `16k`, `2.3M`. Lowercase
+ * `k` and uppercase `M`, which is what SI writes rather than a house style to remember -- the two
+ * copies this replaces had picked opposite conventions. One decimal below ten thousand and none
+ * above it: past that the tenth is noise, and the shorter label is worth more on an axis.
  */
 export function compactCount(value: number): string {
 	if (value >= 1_000_000) return `${trim(value / 1_000_000)}M`;

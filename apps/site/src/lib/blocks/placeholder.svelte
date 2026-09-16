@@ -5,14 +5,11 @@
 
 	/**
 	 * The visual half of the placeholder a block falls back to. Every colour is the token
-	 * variable `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md.
+	 * variable `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
-	 * The file keeps no scoped block: what is left in the markup is the box's padding and the
-	 * step between metadata rows, which is layout and is where layout belongs.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The file keeps no scoped block: the box's padding and the step between metadata rows are
+	 * layout, and stay in the markup where layout belongs. See spec/architecture/css.md, "A
+	 * comment in the module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		/** The dashed box. Its type is set once here and both rows inside it read down from it. */

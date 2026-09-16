@@ -13,16 +13,9 @@
 	let { locale }: { locale: LocaleCode } = $props();
 
 	/**
-	 * What is painted, not what was stored.
-	 *
-	 * The inline script in `app.html` has already put the class on `<html>` before this component
-	 * exists, cookie or no cookie, so the document is the one place both a returning reader and a
-	 * first-time one are described correctly. See @canmi/theme.
-	 *
-	 * The server cannot render this: it knows the cookie but not the system preference a first
-	 * visit resolves from. So the button starts on the theme the page is already wearing, which
-	 * the effect below reads once mounted; until then it renders neither icon rather than guessing
-	 * one and swapping it a frame later.
+	 * What is painted, not what was stored: the button reads the class `app.html`'s pre-paint
+	 * script already put on `<html>`, once mounted, and renders neither icon until then. See
+	 * spec/styling.md, "The theme control is a button, not a menu".
 	 */
 	let theme = $state<Theme | undefined>();
 

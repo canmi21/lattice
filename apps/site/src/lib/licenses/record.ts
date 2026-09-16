@@ -175,27 +175,11 @@ export function routeTable(record: LicenseRecord): Map<string, string> {
 }
 
 /**
- * The distinct licences an SPDX expression names, in the order it names them.
- *
- * A package offering `MIT OR Apache-2.0` is under both as far as finding it goes -- somebody
- * looking for what is Apache-licensed here wants it in that list -- so the expression is
- * flattened to its leaves and the package is filed under each. Which of them actually applies
- * is a choice the reader makes, and the unflattened expression stays on the row so the choice
- * is never hidden behind the grouping.
- *
- * `AND` flattens the same way while meaning the opposite: a conjunction has to be satisfied in
- * full rather than picked from. Both still put the package in both lists, which is what the
- * grouping is for; the expression beside it is what says which kind it is.
- *
- * Four things this must not do, each of them present in the current tree:
- *
- * - split `Apache-2.0 WITH LLVM-exception`, which is one licence and not two
- * - split `FSL-1.1-MIT` or `MIT-0`, whose identifiers merely contain a shorter one
- * - read the `or` inside `LGPL-2.1-or-later` as the operator, which is why matching is done on
- *   whole tokens and case-sensitively, the way SPDX writes its operators
- * - keep the parentheses of `(MIT OR Apache-2.0) AND NCSA` attached to an identifier
- *
- * `/` is Cargo's deprecated spelling of `OR` and is treated as one. Nothing else uses it.
+ * The distinct licences an SPDX expression names, in the order it names them, so a package under
+ * `MIT OR Apache-2.0` is filed under both. See spec/architecture/data.md, "A dependency's licence
+ * is an asset like any other", for why it flattens this way and the tree's test cases for how an
+ * expression can go wrong (`WITH`, `FSL-1.1-MIT`/`MIT-0`, `-or-later`, nested parentheses).
+ * `/` is Cargo's deprecated spelling of `OR` and is treated as one.
  */
 export function licenseTerms(expression: string): string[] {
 	const tokens = expression

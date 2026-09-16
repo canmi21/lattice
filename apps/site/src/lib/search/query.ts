@@ -56,20 +56,8 @@ export function markup(value: string | undefined, fallback: string): string {
 const HAN = /\p{Script=Han}/u;
 
 /**
- * Whether a query is worth a request yet.
- *
- * The usual rule is "at least two characters", and it is half wrong for this corpus. A single
- * Latin letter is noise -- `a` matches nearly everything and means nearly nothing -- but a
- * single Han character is a word: `渲`, `锈` and `码` are each a real thing to look for. Holding
- * Chinese to the Latin rule would cost a reader of the language this site is mostly written in
- * one search every time they used it.
- *
- * Kana and Hangul stay on the two-character rule rather than joining Han. A lone `の` is a
- * particle and a lone `이` usually is one too -- they are those scripts' equivalent of `a`, not
- * of `渲`. So the test is the script, not merely "is it CJK".
- *
- * Counted in code points rather than UTF-16 units, so a character outside the basic plane is one
- * character here as it is to the person who typed it.
+ * Whether a query is worth a request yet: Han passes at one character, everything else waits
+ * for two. See spec/search.md, "One Han character is a query; one Latin letter is not".
  */
 export function worthSearching(query: string): boolean {
 	const characters = [...query];
@@ -80,20 +68,10 @@ export function worthSearching(query: string): boolean {
 export type SearchGroup = { path: string; title: string; sections: SearchHit[] };
 
 /**
- * Collapse a flat result list into one entry per article.
- *
- * A record is a section, so an article whose subject is the query matches in many of them and
- * the raw list is the same title repeated down the panel -- which spends the reader's attention
- * on a fact they learned from the first row. Grouping says the title once and lets the sections
- * under it be the thing being chosen between.
- *
- * Order is relevance order: a group takes the position of its best section, and sections keep
- * theirs within it. Nothing is re-scored here, because the service already did that and a second
- * opinion computed from a truncated list would be a worse one.
- *
- * Both caps exist to keep the panel a glance rather than a page. They discard the tail of a long
- * answer on purpose: a reader who needs the fourth section of the sixth article is not being
- * served by a longer list, they are being served by a better query.
+ * Collapse a flat result list into one entry per article, in relevance order and re-scoring
+ * nothing. The two caps below are their own numbers; see spec/search.md, "An article is named
+ * once, and its sections are what is chosen between" for why grouping exists and why they cut
+ * where they do.
  */
 export function groupHits(hits: SearchHit[], maxGroups = 5, maxPerGroup = 3): SearchGroup[] {
 	const groups: SearchGroup[] = [];

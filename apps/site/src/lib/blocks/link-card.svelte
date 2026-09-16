@@ -5,15 +5,8 @@
 
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
-	 * Two colours here are not the token layer's -- the title and the arrow are black or white
-	 * against the cover, and `libs/tokens` declares neither -- so they stay in the markup; the
-	 * reason is in spec/todo.md. See spec/architecture/css.md.
-	 *
-	 * So does the brightness the cover takes under a pointer, which is a `group-hover:` and
-	 * cannot be split from the `group` on the anchor above it, and the arrow's blend mode, which
-	 * is carried only when no tone is given: `stylex.attrs()` omits `class` altogether when every
-	 * style handed to it is switched off, and merging that into an attribute writes the word
-	 * `undefined`. Both are in spec/todo.md.
+	 * The title/arrow colour and the cover's hover brightness and blend mode are exceptions, not
+	 * the token layer's or not expressible here -- see spec/todo.md. See spec/architecture/css.md.
 	 *
 	 * The scoped block at the foot of this file holds the other half of the focus treatment. It
 	 * recolours the cover's own border, and `Picture` renders that image, so there is no element
@@ -61,12 +54,9 @@
 	 * What this card is, plus everything its cover is -- which it takes as `Source` rather than
 	 * listing again, and forwards untouched.
 	 *
-	 * `::linkcard{favicon=...}` is not here and never was reachable. That attribute is an
-	 * instruction to `cms favicon`, which resolves it into the domain's own slot under
-	 * `data/public/favicon`; the compiler drops it, so no block ever carried it and no prop could
-	 * receive it. By the time a page renders the answer is already at `/favicon/{domain}`, and
-	 * reading the attribute again would send the browser to somebody else's origin for a copy
-	 * this site holds.
+	 * `::linkcard{favicon=...}` is not here and never was reachable: the compiler drops it, so no
+	 * prop could receive it. See spec/architecture/data.md for where the collector sends it and
+	 * why the page always draws `/favicon/{domain}` instead.
 	 */
 	type Props = Source & {
 		/** The view being rendered. Passed rather than read: see spec/locale.md. */
@@ -148,20 +138,9 @@
 </script>
 
 <!--
-	The cover keeps `alt=""` deliberately, and this is the one decision here worth arguing.
-
-	Everything inside an anchor becomes part of the link's accessible name. Putting an
-	800-character description there would make the link announce as the whole screenshot before
-	saying where it goes, and a reader tabbing through links would have to sit through it every
-	time. A link's name should identify its destination and stop.
-
-	So the description is offered as a *description* instead: `aria-describedby` points at the
-	hidden text below, which a screen reader announces after the name and lets the reader skip.
-	The content is available without being in the way.
-
-	The name itself gains the domain and the new-tab warning. "Hexo: A fast, simple & powerful
-	blog framework" never said it went to hexo.io -- the favicon carries that visually and is
-	`aria-hidden`, so without this the destination was sighted-only.
+	The cover keeps `alt=""` deliberately, and the name below carries the domain and the new-tab
+	warning instead. See spec/architecture/media.md, "A link's name says where it goes; everything
+	else is a description".
 -->
 <a
 	href={url}

@@ -4,21 +4,12 @@
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
-	 * `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
-	 * The two whites in the block below are the exception and they did not move. They ink a
-	 * label sitting on a treemap tile whose ground is the language's own colour, so they answer
-	 * to the chart's palette rather than to the site's -- and a colour that no token declares is
-	 * one this layer cannot state without becoming the second place a colour lives. Recorded in
-	 * spec/todo.md, beside the two the link card kept for the same reason.
-	 *
-	 * What stays in the block at the foot of this file is geometry, and every rule that reaches
-	 * an element through something a class cannot say: a descendant of the legend, of the
-	 * summary or of the nested row; the table's own elements; and the tooltip grid's even
-	 * children, which are counted rather than named. `shadow-sm` stays in the markup for the
-	 * reason spec/todo.md records: Tailwind composes a shadow through five private variables and
-	 * sets a sixth, and neither writing those nor dropping them is this migration's to choose.
+	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo.md, "Tokei draws
+	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip
+	 * (spec/todo.md, "A shadow is one utility, two declarations and four variables the visual
+	 * layer cannot restate"). The block at the foot otherwise holds geometry and unclassable rules.
 	 */
 	const styles = stylex.create({
 		/** A treemap tile's language name, over the tile's own colour. */

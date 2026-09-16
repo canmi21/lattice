@@ -3,13 +3,11 @@
 
 	/**
 	 * The visual half of the support page's links. Every colour is the token variable
-	 * `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
-	 * `focus-link` stays in the markup beside these. It is the site's named vocabulary rather
-	 * than a utility, and it sits in Tailwind's `components` layer, which both the utility this
-	 * replaces and this style outrank -- so the line it declares loses here exactly as it lost
-	 * before. See spec/todo.md on where that vocabulary should live.
+	 * `focus-link` stays in the markup beside these: it is the site's named vocabulary, which
+	 * both the utility this replaces and this style already outrank. See spec/todo.md, "The
+	 * named layer in CSS is the visual layer, written before there was one".
 	 */
 	const styles = stylex.create({
 		link: {

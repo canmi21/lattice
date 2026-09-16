@@ -5,13 +5,12 @@
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file keeps the card's geometry and the corner arrow's
-	 * reveal. The reveal stays whole: the arrow's resting opacity has its other value in
-	 * `.tweet-card:hover .corner`, which reads an ancestor's state and cannot be said from here,
-	 * so the motion between the two and the reduced-motion rule suppressing it stay beside the
-	 * value they are about. Each transition sits with the values it animates.
+	 * The scoped block at the foot keeps the card's geometry and the corner arrow's reveal whole:
+	 * the arrow's other opacity lives in `.tweet-card:hover .corner`, an ancestor selector this
+	 * layer cannot write, so the motion between the two and the reduced-motion rule suppressing
+	 * it stay beside the value they animate.
 	 */
 	const styles = stylex.create({
 		/**

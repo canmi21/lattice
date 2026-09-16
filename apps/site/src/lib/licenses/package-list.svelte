@@ -4,15 +4,12 @@
 
 	/**
 	 * The visual half of a package list. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares. See spec/architecture/css.md.
 	 *
-	 * The row is the licence directory's row with a second column in it, and the three
-	 * declarations that make it a row are that file's character for character. They are written
-	 * out rather than shared: a visual constant with two consumers wants a module of its own, and
-	 * where that module should live is the question spec/todo.md is already holding.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The row is the licence directory's row with a second column, its three declarations copied
+	 * character for character rather than shared -- where a module for the shared constant should
+	 * live is the question spec/todo.md is already holding. See spec/architecture/css.md, "A
+	 * comment in the module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		/** One row of the list: a package, its version, and what it is licensed under. */

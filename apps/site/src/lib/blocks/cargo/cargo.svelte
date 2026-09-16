@@ -4,25 +4,12 @@
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
-	 * `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
-	 * Two colours are literals and stay literals. The ink on a treemap tile is white against a
-	 * fill the palette chose, and the tile fills themselves are `palette.css` -- a component-local
-	 * mirror that spec/styling.md argues for and that this layer does not own. Nothing about
-	 * either changes here; a migration moves where a declaration is written, never what it says.
-	 *
-	 * The scoped block at the foot of this file comes out smaller and still mixed, which is the
-	 * intended stopping point. What stays is geometry, plus every rule that has to reach an
-	 * element through something other than a class on it: the chart's `svg`, the focus stroke on
-	 * a tile's first rect, the links inside the footer, the table's own elements, and the value
-	 * column picked out by position.
-	 *
-	 * `shadow-sm` stays in the markup on the tooltip. Tailwind writes a shadow as two
-	 * declarations in one rule, the real shadows into `--tw-shadow` and a `box-shadow` composing
-	 * that with four ring variables it registers with `@property`, so the computed shadow is six
-	 * layers and four of them are transparent. The member that cannot follow the value into this
-	 * layer is the registration, which no component can write. See spec/todo.md.
+	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a component-local
+	 * mirror this layer does not own (spec/styling.md), plus `shadow-sm` on the tooltip
+	 * (spec/todo.md, "A shadow is one utility, two declarations and four variables the visual
+	 * layer cannot restate"). The block at the foot otherwise holds geometry and unclassable rules.
 	 */
 	const styles = stylex.create({
 		/** A tile's crate name, over whichever palette colour the tile drew. */

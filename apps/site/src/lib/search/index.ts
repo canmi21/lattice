@@ -16,16 +16,13 @@ const INDEX = site.algolia.index;
 const client = liteClient(site.algolia.appId, site.algolia.searchKey);
 
 /**
- * Search one locale.
- *
- * The locale is a filter rather than a separate index, so the caller passes the view the reader
- * is already on and gets back only that language.
+ * Search one locale: the locale is a filter rather than a separate index, so the caller passes
+ * the view the reader is already on and gets back only that language.
  *
  * There is no cancellation here because the client offers none -- its `RequestOptions` carries
- * timeouts and headers and no `AbortSignal`. That costs less than it sounds: the request has
- * already left, so aborting would refund no part of the monthly budget and save only the
- * parsing. What actually has to be right is the ordering, and the caller enforces that by
- * discarding an answer that is no longer the newest.
+ * timeouts and no `AbortSignal`. That costs little: the request has already left, so aborting
+ * would save only the parsing. What has to be right is the ordering, which the caller enforces
+ * by discarding an answer that is no longer the newest.
  */
 export async function search(query: string, locale: LocaleCode): Promise<SearchHit[]> {
 	const { results } = await client.search<SearchHit>({

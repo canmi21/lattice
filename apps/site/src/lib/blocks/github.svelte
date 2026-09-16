@@ -5,16 +5,12 @@
 
 	/**
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file is not a leftover of the migration. What is left
-	 * in it is geometry -- where each part of the card sits and how large it is -- plus the
-	 * corner glyph's reveal, which is gated on the card's own hover and reaches a descendant.
-	 * That is an ancestor, and an ancestor is what the visual layer cannot see without a marker
-	 * nobody owns yet, so the resting opacity stays with the hovered one. See spec/todo.md.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block at the foot holds geometry, plus the corner glyph's reveal: gated on the
+	 * card's hover but reaching a descendant the visual layer cannot see without a marker nobody
+	 * owns yet (spec/todo.md). See spec/architecture/css.md, "A comment in the module script
+	 * cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		/** The card itself, which is the link. Its box stays in the block below. */

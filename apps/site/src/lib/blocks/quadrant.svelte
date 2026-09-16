@@ -5,14 +5,10 @@
 
 	/**
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares. See spec/architecture/css.md.
 	 *
-	 * The block at the foot of this file is the figure's geometry, and it stays: a plot laid out
-	 * in one grid area over another, two axes placed against it, and four cells whose flow is
-	 * chosen by the `data-position` each carries. What went with it are the two arrowheads. Each
-	 * is a pseudo-element with no size of its own, drawn entirely out of borders on a zero box,
-	 * so its widths are the shape rather than a frame around one -- and `content` cannot leave
-	 * the rule that brings the element into existence at all.
+	 * The block at the foot is the figure's geometry, including the two axis arrowheads: see
+	 * spec/todo.md, "An arrowhead is a shape made of borders, and the test cannot cut it in half".
 	 */
 	const styles = stylex.create({
 		/** The plotting ground. The ink is set once here and inherits into everything below. */
@@ -129,15 +125,9 @@
 	);
 </script>
 
-<!-- One picture with one name, and the name is the derived reading -- which is the only part of
-     this figure that exists in the reader's language. The title and the labels are the author's
-     and a directive is not translated, so naming the figure after its title would announce it in
-     the source language and then describe it in the reader's. The reading opens by saying what
-     the figure is called, so nothing is lost by not saying it twice.
-
-     Without a reading it falls back to the pair it always had: the title as the name and the
-     sentences assembled below as the description, both in the source language. See
-     spec/styling.md. -->
+<!-- The figure is named by the derived reading, not by its title, and falls back to the title
+     plus the assembled sentences when no reading exists yet. See spec/styling.md, "The picture
+     and the control that opens it are siblings". -->
 <figure
 	class="quadrant-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
 	role="img"

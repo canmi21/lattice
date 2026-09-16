@@ -5,18 +5,12 @@
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file is not a leftover of the migration. Shiki writes
-	 * the preformatted element and the spans inside it, and a style reaches an element only
-	 * through a class on that element, so nothing that styles Shiki's markup can be said here.
-	 * What stays beside it is geometry, and the resting frame of the copy control's reveal,
-	 * which is gated by a variant class and a copy state that both sit on an ancestor of what
-	 * they style.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else.
-	 * Measured with the style element's own name: oxfmt then deletes the whole instance script
-	 * below, silently and with a zero exit status.
+	 * The scoped block at the foot styles what StyleX cannot reach: Shiki's own preformatted
+	 * element and spans, plus the copy control's resting reveal frame, gated by a variant class
+	 * and a copy state that both sit on an ancestor of what they style. See spec/architecture/css.md,
+	 * "A comment in the module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		// Shared by the two titles, which differ only in whether the title is a control.

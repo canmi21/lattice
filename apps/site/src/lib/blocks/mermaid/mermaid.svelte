@@ -4,14 +4,13 @@
 	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
-	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable
+	 * `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
-	 * Nothing here reaches the diagram. Mermaid writes the SVG and its own palette is a
-	 * component-local mirror in palette.css, kept where it is for the reason spec/styling.md gives.
-	 * What is left in the block at the foot of this file is the frame's geometry, the two keyframes
-	 * -- Svelte rewrites a keyframe's name and nothing outside that block can name it -- and the
-	 * resting opacity one of them interpolates from.
+	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
+	 * component-local mirror in palette.css (see spec/styling.md). The scoped block at the foot
+	 * holds the frame's geometry, the two keyframes -- unnameable outside it, since Svelte
+	 * rewrites a keyframe's name -- and the resting opacity one of them interpolates from.
 	 */
 	const styles = stylex.create({
 		/** The scrolling area inside it, which repeats the frame's corner so the clip agrees. */

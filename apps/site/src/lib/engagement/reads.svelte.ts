@@ -15,15 +15,11 @@ const apiUrl = pageUrls(dev).api;
 /**
  * The article's read count, counting this visit as one of them.
  *
- * A query rather than a mutation, even though the request has an effect. What the page wants
- * is the number, and the number is what has to survive a reload -- mutations are deliberately
- * never persisted, so a count written from one would be gone by the next visit. As a query it
- * lands in the same `localStorage["cache"]` container everything else uses, which is what lets
- * a returning reader see the previous number immediately instead of an empty space.
- *
- * Counting is therefore tied to the query firing, so refetch triggers are turned off: a read
- * is somebody opening the article, not somebody coming back to the tab. The server holds the
- * same line from its side at one count per IP per article per minute.
+ * A query rather than a mutation, even though the request has an effect: mutations are never
+ * persisted, and the number has to survive a reload, so it lands in the same query cache as
+ * everything else instead. Counting is tied to the query firing, so refetch triggers are turned
+ * off -- a read is opening the article, not returning to the tab. See spec/engagement.md for the
+ * server's own deduplication.
  */
 export function createReadsQuery(slug: () => string) {
 	return createQuery(() => ({

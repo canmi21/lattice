@@ -5,23 +5,12 @@
 
 	/**
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file keeps its whole length, and none of it is a
-	 * leftover. The overlay and the panel are surfaces Bits UI portals out of this component's
-	 * tree, the match marks come from `markup` rather than from any element here, the keyframe
-	 * carries a name only Svelte can resolve, and the browser's own clear button on a search
-	 * field is reached through a pseudo-element no class can sit on. What is left beside them is
-	 * the body's overflow, which is geometry.
-	 *
-	 * `shadow-lg` stays in the markup with them, and it is the one thing here that looks like it
-	 * should have moved. Tailwind writes a shadow as two declarations in one rule: the real
-	 * shadows into `--tw-shadow`, and a `box-shadow` composing that with four ring variables it
-	 * registers with `@property` and an initial value of `0 0 #0000`. The computed shadow is
-	 * therefore six layers, four of them transparent, and a `boxShadow` here holding only the
-	 * two real ones renders identically and computes differently. The pair is written as a unit
-	 * by something else, and the member that cannot move is the registration, so the set stays
-	 * whole where it is. Recorded in spec/todo.md.
+	 * The scoped block at the foot keeps its whole length: the overlay and panel are portalled out
+	 * of reach (spec/todo.md, "A portalled surface is out of Svelte's reach and not out of the
+	 * visual layer's"), and `shadow-lg` cannot follow its `@property` registration into this
+	 * layer -- see spec/todo.md for why the shadow utility stays whole.
 	 */
 	const styles = stylex.create({
 		/** The floating panel: its edge, its ground and the ink everything inside inherits. */
@@ -306,11 +295,10 @@
 	 * Carry the body from the height it has to the height its new contents want.
 	 *
 	 * The target is measured by letting the layout settle it -- `auto` for one synchronous read,
-	 * with the panel's own max-height doing the clamping through flex -- rather than by taking
-	 * `scrollHeight` the way a disclosure does. A list of forty hits wants far more room than the
-	 * panel will ever give it, and the number to animate to is the one the panel would have
-	 * arrived at anyway. Reading it this way also means the header and footer are never written
-	 * down here as a figure to subtract and keep in step.
+	 * clamped by the panel's own max-height through flex -- rather than by taking `scrollHeight`
+	 * the way a disclosure does. A list of forty hits wants more room than the panel will ever
+	 * give it, and this way the header and footer are never written down here as a figure to
+	 * subtract and keep in step.
 	 */
 	function resizeBody(from: number) {
 		if (!bodyEl) return;
@@ -412,7 +400,7 @@
 											>
 												{#if hit.heading}
 													<span class="block truncate {stylex.attrs(styles.hitHeading).class}">
-														<!-- Escaped in `markup`; the only tags here are the ones it inserted. -->
+														<!-- Escaped in `markup`; only its own tags survive. -->
 														{@html markup(hit._highlightResult?.heading?.value, hit.heading)}
 													</span>
 												{/if}

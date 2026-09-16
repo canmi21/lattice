@@ -1,29 +1,19 @@
-import * as stylex from '@stylexjs/stylex';
-
 /**
- * The values the visual layer repeats, each with one name.
+ * The values the visual layer repeats, each with one name, already written character for
+ * character by three or more components -- a value only two share stays a literal. Two spellings
+ * of one idea keep two names: they part company outside the default root size. See spec/todo.md.
  *
- * Only what three or more components already wrote character for character is here. A value two
- * components share stays a literal in both: a name used twice is a name two people have to learn
- * for nothing. Nothing in this file is a new value, a rounded value or a merged one -- where the
- * site has two spellings of one idea it has two names below, because the spellings are not the
- * same length at every root size and choosing between them is not a rename. See spec/todo.md.
+ * `defineConsts`, never `defineVars`: a var group rewrites every reading declaration into a
+ * `var()`, where a const inlines and leaves the declaration as written; only the hashed class
+ * name changes. See spec/architecture/css.md.
  *
- * **`defineConsts`, never `defineVars`.** A var group emits a custom property and rewrites every
- * declaration reading it into a `var()`, which changes the stylesheet; a const is inlined and the
- * declaration comes back the same. What does change is the class name, because StyleX hashes it
- * from the declaration as written -- `font-size:var(--<consthash>)` rather than the literal -- and
- * substitutes the value afterwards. See spec/architecture/css.md.
- *
- * **The filename is the compiler's, not this repository's.** `defineConsts` refuses to hash a
- * module whose name does not end `.stylex` or `.stylex.const`, and an import written any other
- * way is not resolved at all -- which is why the alias is stated in `vite.config.ts`.
- *
- * **A key that does not exist here is not an error there.** The importing file receives a proxy
- * that answers any string, so a typo compiles to a `var()` nothing declares and the browser drops
- * the declaration without a word from the compiler or the console. `tsc` is the only thing that
- * catches it.
+ * The `.stylex`/`.stylex.const` filename is the compiler's own requirement (`vite.config.ts`
+ * states the alias), and a key not defined here is not an error here: the importing file gets a
+ * proxy resolving any string, so a typo becomes a `var()` nothing declares and the browser drops
+ * silently -- only `tsc` catches it.
  */
+
+import * as stylex from '@stylexjs/stylex';
 
 /**
  * Tailwind's radius scale, which is where all five of these came from -- `--radius-sm` through
