@@ -144,10 +144,22 @@ description = "Regenerate the Rust mirror of the URL map from libs/urls"
 # so skipping this step means the mirror changes shape after it is generated.
 run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
 
+# What `mise run publish press` runs, and the one verb the workspace refuses to let mean
+# everything -- see spec/architecture/repos.md there. For this project publishing is the corpus
+# rather than a release: compile every view into `data/public`, then mirror.
+#
+# Dry by default because `sync` is, and the two halves must not disagree about that. `--live`
+# passes through to the mirror; the compile writes only into `data/` either way and is safe to
+# repeat, since an object whose bytes are unchanged has the same name and is skipped.
+[tasks.publish]
+description = "Compile the corpus into publishable objects and mirror them: `publish press [--live]`"
+run = ["node apps/site/scripts/publish.ts", ".mise/tasks/sync"]
+
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"
-# Reads the live sitemap, so it wants a deployed site rather than a dev server -- run it after
-# deploy-site, not before. `--dry` prints what would go and touches nothing.
+# Reads the live sitemap, so it wants a published corpus rather than a dev server -- run it
+# after `publish`, not after a deploy: a deploy no longer moves an article. `--dry` prints what
+# would go and touches nothing. See spec/indexing.md.
 run = "node apps/site/scripts/indexnow.ts"
 
 [tasks.search]

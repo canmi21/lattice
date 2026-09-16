@@ -17,6 +17,11 @@ set -euo pipefail
 # `sync` rather than `copy`: the bucket is a mirror, so deleting locally has to delete
 # remotely. That also makes a wrong SOURCE path destructive -- hence the guard below and the
 # dry run by default.
+#
+# The content-addressed prefixes are the exception and are copied. Deleting one would remove an
+# object that a root still in somebody's cache is naming, five minutes after it stopped being
+# current; a sweep removes them later, when nothing can still ask. See
+# spec/architecture/artifacts.md, "Publication is ordered, and deletion is not part of it".
 
 SOURCE="$(cd "$(dirname "$0")/../.." && pwd)/data/public"
 REMOTE="${R2_REMOTE:-}"
@@ -43,8 +48,33 @@ fi
 # empty array under `set -u` is an unbound variable and aborts the script. Which meant `--live`
 # -- the one branch that empties the array -- had never run on this machine, while the dry run
 # it defaults to worked perfectly and hid it.
-rclone sync "$SOURCE" "$REMOTE" \
-	--filter-from "$(dirname "$0")/sync.filter" \
-	--track-renames \
-	--progress \
-	${MODE[@]+"${MODE[@]}"}
+
+# The prefixes are read from the contract rather than written here a second time. A list that
+# drifts from ARTIFACT_TYPES would silently start deleting a type nobody added to this file.
+CONTRACT="$(cd "$(dirname "$0")/../.." && pwd)/libs/artifacts/src/index.ts"
+read -r ROOT TYPES <<<"$(node --input-type=module -e \
+	"import { ARTIFACT_TYPES, ROOT_KEY } from '$CONTRACT';
+	 console.log(ROOT_KEY, ARTIFACT_TYPES.join(' '))")"
+
+# One filter list per phase, never --include beside --exclude: rclone parses those two in an
+# indeterminate order and says so. Rules are first-match-wins, so the junk list goes first.
+JUNK=(--filter-from "$(dirname "$0")/sync.filter")
+
+ONLY_IMMUTABLE=("${JUNK[@]}")
+NOT_IMMUTABLE=("${JUNK[@]}" --filter "- /$ROOT")
+for type in $TYPES; do
+	ONLY_IMMUTABLE+=(--filter "+ /$type/**")
+	NOT_IMMUTABLE+=(--filter "- /$type/**")
+done
+ONLY_IMMUTABLE+=(--filter "- *")
+
+COMMON=(--progress ${MODE[@]+"${MODE[@]}"})
+
+# Three transfers in one order, and the order is the whole of it. An object named by its own hash
+# has to be readable before a root names it: a root that arrives first produces a 404 that is then
+# held for five minutes on a key that becomes valid a second later. Each step exits non-zero on a
+# failed transfer and `set -e` stops the next one, which is what makes the ordering a guarantee
+# rather than a hope.
+rclone copy "$SOURCE" "$REMOTE" "${ONLY_IMMUTABLE[@]}" "${COMMON[@]}"
+rclone sync "$SOURCE" "$REMOTE" "${NOT_IMMUTABLE[@]}" --track-renames "${COMMON[@]}"
+rclone copy "$SOURCE/$(dirname "$ROOT")" "$REMOTE/$(dirname "$ROOT")" "${JUNK[@]}" "${COMMON[@]}"
