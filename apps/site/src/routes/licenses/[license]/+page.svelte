@@ -7,11 +7,9 @@
 	 * The visual half of one licence's page. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * The page is the third of the licence surface's directory pages and writes the same trail,
-	 * the same heading and the same tabular count as the two above it, so those styles say what
-	 * their styles say, name for name. They are written out rather than shared: a visual
-	 * constant with two consumers wants a module of its own, and where that module should live
-	 * is the question spec/todo.md is already holding.
+	 * Third of the licence surface's directory pages, writing the same trail, heading and tabular
+	 * count as the two above it, name for name. Written out rather than shared -- where a module
+	 * for this should live is the question spec/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		backLink: {

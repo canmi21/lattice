@@ -10,14 +10,11 @@ export const prerender = false;
 /**
  * The whole attribution notice: every package, with every license text in full.
  *
- * This is the artefact the permissive licenses actually ask for -- the copyright notices and
- * permission texts of everything being distributed, in one fetch. It is assembled by
- * `cms licenses` and published as a single object, because building it here would mean the
- * Worker fetching several hundred objects to concatenate them on every request.
- *
- * Buffered rather than streamed. It is a few megabytes and it is answered from the edge cache
- * almost every time; a hand-assembled stream to prepend one line would be the more delicate
- * code for no gain a reader could notice.
+ * Assembled by `cms licenses` and published as a single object -- see spec/architecture/data.md,
+ * "A dependency's licence is an asset like any other", for why it is an aggregate rather than
+ * built per request. Buffered rather than streamed here: a few megabytes, answered from the edge
+ * cache almost every time, and a hand-assembled stream to prepend one line buys nothing a reader
+ * could notice.
  */
 export const GET: RequestHandler = async () => {
 	const upstream = await fetch(fullUrl(pageUrls(dev).cdn));

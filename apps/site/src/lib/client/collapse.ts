@@ -2,18 +2,12 @@
  * The one way a disclosure opens and closes on this site.
  *
  * Animating to `height: auto` is not possible, so the height is animated between two measured
- * numbers and handed back to `auto` at rest -- a panel that stayed pinned to a measured height
- * would stop following its own content when the window resizes or a font finishes loading.
+ * numbers and handed back to `auto` at rest -- a panel pinned to a measured height would stop
+ * following its content on resize or a late font.
  *
- * Shared rather than copied. A second disclosure with the same spring written out again is two
- * numbers to keep in step and no way to tell, later, whether they were meant to be equal or
- * merely happen to be. The code block was first; the collected notes are the second, and the
- * pair is what moved this out here.
- *
- * The search panel is the third and the one that is not a disclosure: nothing is pressed, the
- * results simply become other results and the box carries itself between the two heights. Its
- * target is measured differently for that reason -- see spec/search.md -- but the gesture is the
- * same one, so the spring is too.
+ * Shared rather than copied: two disclosures with the same spring written out twice are two
+ * numbers to keep in step with no way to tell later whether they were meant to be equal. The
+ * search panel uses the same spring for a different measurement -- see spec/search.md.
  */
 
 import { NEGLIGIBLE_PIXELS, pressMotion, prefersReducedMotion } from '@canmi/motion';
@@ -39,19 +33,11 @@ export { prefersReducedMotion };
 /**
  * Drive `element`'s height from where it is to `targetPixels`, calling `onSettle` when it lands.
  *
- * Returns the control to stop it, or nothing when no animation was needed -- reduced motion, or
- * a distance too small to see. In both of those cases `onSettle` has already run, so a caller
- * never has to ask which of the two happened.
- *
- * `onSettle` is handed the control that finished, and nothing when the landing was immediate.
- * A stopped animation is not guaranteed to stay silent, so a caller that has since started
- * another compares before acting: settling the wrong one would pin the panel to a height the
- * move it interrupted was travelling to.
- *
- * `onFrame` sees each height on its way, for anything that has to move in step with the panel
- * rather than merely after it. It is called with the same value the element is given, so a
- * caller can derive its own progress from the distance already covered and stay on the spring's
- * curve instead of guessing one.
+ * Returns the control to stop it, or nothing when no animation ran (reduced motion, or too small
+ * a distance to see) -- `onSettle` has already run either way, so a caller need not ask which.
+ * `onSettle` gets the control that finished, since a stopped animation is not guaranteed silent
+ * and a caller with a newer one running compares before acting on it. `onFrame` gets each height
+ * in transit, for anything that must track the panel rather than react once it lands.
  */
 export function animateHeight(
 	element: HTMLElement,

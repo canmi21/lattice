@@ -7,19 +7,11 @@ export const prerender = true;
 /**
  * The IndexNow ownership proof: `/<key>.txt`, containing that key and nothing else.
  *
- * **The path is derived from the config rather than written as a directory name.** The key is a
- * value in `site.config.yaml`, and a folder named after it would be a second copy that no test
- * compares -- rotate the key and the file would still be served under the old name, which fails
- * as a 403 on every submission and says nothing about why. A dynamic segment checked against the
- * config cannot drift: one edit moves both the address and the contents.
- *
- * A search engine fetches this on **every** submission, not once. There is no verification step
- * that completes; the file is the proof and has to stay up for as long as the key is in use. See
- * spec/indexing.md.
+ * Why the path is a dynamic segment checked against the config rather than a directory named
+ * after the key -- see spec/indexing.md, "The path is derived from the key, never written twice".
  *
  * Prerendered to exactly one entry. Any other `<something>.txt` is not this file and must not
- * answer as if it were -- the static routes beside this one (`robots.txt`, `llms.txt`,
- * `licenses.txt`) take precedence on their own names, and nothing else is claimed.
+ * answer as if it were -- `robots.txt`, `llms.txt` and `licenses.txt` take precedence on names.
  */
 export const entries: EntryGenerator = () => [{ key: site.indexnow }];
 

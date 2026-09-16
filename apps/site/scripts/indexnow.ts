@@ -75,17 +75,9 @@ function fingerprint(paths: string[]): string {
 /**
  * The source files behind one address, or nothing if it is not announced.
  *
- * **Not the sitemap's `lastmod`.** That is a display value the author owns -- there are edits
- * where the date shown to a reader should deliberately stay put -- so reading it here would tie
- * "tell the search engines" to a decision about what a page claims about itself. It is also
- * wrong in both directions: a rebuilt but unchanged page carries a fresh build timestamp and
- * would be announced for nothing, while an article whose translations were rewritten keeps its
- * old frontmatter date and would never be announced at all.
- *
- * **Not the file's mtime either.** That was the first instinct and does not survive: mtime is
- * recorded by neither jj nor git, so a fresh clone dates every file to the checkout and the next
- * run announces the whole site. A content hash is what actually answers the question, and it is
- * the primitive segment ids and asset ids already use.
+ * Why this hashes content rather than reading the sitemap's `lastmod` or the file's mtime, and
+ * why the licence directories return nothing -- see spec/indexing.md, "What changed is decided
+ * by a content hash, not by a date".
  */
 function sources(path: string, articles: string[]): string[] | undefined {
 	// `split` always yields a first element; the fallback is what says so to the checker.
@@ -114,14 +106,10 @@ function sources(path: string, articles: string[]): string[] | undefined {
 /**
  * Every address in the live sitemap.
  *
- * Fetched over HTTP rather than read from the build, because the sitemap route is generated per
- * request -- its `changefreq` and `priority` reflect staleness at crawl time -- so there is no
- * build artifact to read. What is live is also what a search engine would see, which is the
- * thing being reconciled.
- *
- * Parsed with a regex rather than an XML library. The document is emitted by a route in this
- * repository a few lines away, one `<url>` per line group, and a dependency to re-read a shape
- * we ourselves wrote would be a dependency to keep current for no gain.
+ * Fetched over HTTP rather than read from the build -- see spec/indexing.md, "The sitemap is
+ * read over HTTP, from production". Parsed with a regex rather than an XML library: the document
+ * is emitted by a route in this repository a few lines away, one `<url>` per line group, and a
+ * dependency to re-read a shape we ourselves wrote would be a dependency for no gain.
  */
 async function addresses(): Promise<string[]> {
 	const response = await fetch(`${SITE}/sitemap.xml`);

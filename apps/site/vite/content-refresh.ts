@@ -25,7 +25,7 @@ export function contentRefreshQueue(refresh: (segments: boolean) => Promise<void
 					dirty = false;
 					const refreshSegments = needsSegments;
 					needsSegments = false;
-					// oxlint-disable-next-line no-await-in-loop -- an event during a refresh needs a later pass
+					// oxlint-disable-next-line no-await-in-loop -- an event mid-refresh needs a later pass
 					await refresh(refreshSegments);
 				} while (dirty);
 			};

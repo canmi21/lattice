@@ -7,11 +7,9 @@
 	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * The page is a sibling of the two directories above it and writes the same trail, the same
-	 * header and the same quiet control, so several of these say what a style there says, name
-	 * for name. They are written out rather than shared: a visual constant with two consumers
-	 * wants a module of its own, and where that module should live is the question
-	 * spec/todo.md is already holding.
+	 * A sibling of the two directories above it, writing the same trail, header and quiet
+	 * control, name for name. Written out rather than shared -- where a module for this should
+	 * live is the question spec/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		backLink: {

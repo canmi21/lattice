@@ -64,14 +64,9 @@ function credentials(): Credentials {
 /**
  * The sections of one view, each anchored at the heading it falls under.
  *
- * Sections rather than whole articles for two reasons. A record has a size ceiling that a long
- * article passes on its own, and a result that lands on the paragraph answering the query is
- * worth more than one that lands at the top of the page.
- *
- * The boundaries come from `blocks`, which carries each heading's slug, while the words come
- * from `text`, which the compiler already renders with advanced expressions collapsed to empty.
- * Neither is re-derived: taking the text from the blocks would mean reimplementing the plain
- * text renderer, and taking the slugs from the text would mean guessing at them.
+ * Why sections rather than whole articles, and why boundaries come from `blocks` while words
+ * come from `text` rather than re-deriving either -- see spec/search.md, "A record is a section
+ * of a view, and its address is already computed".
  */
 function sections(view: ArticleView): { anchor: string; heading: string; text: string }[] {
 	const headings = view.blocks
@@ -138,12 +133,9 @@ function chunk(
 /**
  * What a record is built from, hashed.
  *
- * The hash is over the record's own content, not over the files behind it. `indexnow.ts` hashes
- * the sources because it has no way to see what it sent; here the thing being compared is
- * present, so comparing it directly is both simpler and stricter. It also sidesteps a cost that
- * hashing sources would carry: the translation sidecar is one file for eight locales, so a
- * source hash moves for all eight when one of them is rewritten, and eight-ninths of the
- * resulting push would be identical bytes.
+ * Over the record's own content, not the files behind it -- see spec/search.md, "The fingerprint
+ * is over the record, not over its sources", for why that is both simpler and stricter than
+ * `indexnow.ts`'s approach.
  */
 function fingerprint(record: Omit<Record, 'fingerprint'>): string {
 	const hash = createHash('sha256');

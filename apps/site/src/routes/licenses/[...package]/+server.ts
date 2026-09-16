@@ -9,9 +9,9 @@ export const prerender = false;
 /**
  * One package: what it is, who wrote it, and the license text it shipped.
  *
- * The path is the purl with its scheme and escaping removed -- `/licenses/npm/@sveltejs/kit@2.0.0.txt`
- * -- so a package name that contains a slash needs no encoding of its own. The rest parameter
- * is what makes that work, and is the same shape the article routes use for the same reason.
+ * The path is the purl with its scheme and escaping removed, e.g.
+ * `/licenses/npm/@sveltejs/kit@2.0.0.txt`, so a package name with a slash needs no encoding of
+ * its own. The rest parameter is what makes that work, the same shape the article routes use.
  */
 export const GET: RequestHandler = async ({ params }) => {
 	const route = params.package.replace(/\.txt$/, '');

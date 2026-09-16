@@ -21,10 +21,7 @@ function oneline(value: string): string {
 // each link as [name](url) with a short note. Site collects the homepage,
 // sitemap and feed; Writing lists every article as title -> clean markdown with
 // the subtitle. See https://llmstxt.org/.
-// Deliberately not locale-aware, unlike every other route here. A model reads any language,
-// and the pages this file points at negotiate on their own, so varying it buys a dimension
-// its own readers never use -- they send no cookie -- while costing prerendering and the
-// shared cache. Serving one language keeps it a static file.
+// Deliberately not locale-aware -- see spec/locale.md for why this is one of the exceptions.
 export const GET: RequestHandler = async () => {
 	const web = URLS.apps.production.site;
 	const articles = await getArticles();

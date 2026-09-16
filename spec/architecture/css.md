@@ -226,6 +226,17 @@ this arrangement was arrived at.
 **Nothing tests this.** Getting it wrong fails the build, by name, with a line number. A loud
 failure needs no test; it needs the comment that is beside the line.
 
+### The module resolution is stated rather than defaulted, because it is what makes `$lib` reachable
+
+StyleX resolves an import itself, at compile time, and understands neither SvelteKit's aliases nor
+a `rootDir` other than the working directory it happened to be started from. Left to the default it
+silently declines to resolve `$lib/vocabulary.stylex.ts` and every component importing it fails the
+build with `nonStaticValue`.
+
+`unstable_moduleResolution` in [vite.config.ts](../../apps/site/vite.config.ts) states both: `commonJS`
+resolution with `aliases: { '$lib/*': ['/ROOT/src/lib/*'] }`. `/ROOT/` is StyleX's own marker for a
+path under `rootDir`, which is set to this app rather than the workspace.
+
 ## Colour is never retyped
 
 A StyleX declaration names a colour by reading the custom property `libs/tokens` already declares

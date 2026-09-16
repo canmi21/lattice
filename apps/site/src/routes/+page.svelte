@@ -13,22 +13,12 @@
 	 */
 	const styles = stylex.create({
 		/**
-		 * The page ground, and the selection policy that used to be this file's whole `<style>`
-		 * block.
+		 * The page ground, and its selection policy.
 		 *
-		 * The page is prose in a few places and controls everywhere else, and a drag that starts
-		 * on a card or a button should not sweep up a date, a count and a label with it. So
-		 * selection is off here and the parts that are sentences turn it back on for themselves,
-		 * with `.selectable` in styles/utilities.css -- including the ones inside components this
-		 * page only composes.
-		 *
-		 * Off by default rather than named per control, because the controls outnumber the prose
-		 * and that list grows every time one is added. The prose does not.
-		 *
-		 * `-webkit-` is carried because Safari only dropped the prefix in 17 and the floor in
-		 * spec/compat.md is 16. StyleX prefixes nothing on its own, so the rule this replaced
-		 * wrote both and so does this. `user-select` is visual under
-		 * spec/architecture/css.md: it moves nothing, it says what the element is to a pointer.
+		 * Off by default, since the page is mostly controls and a drag on a card or button should
+		 * not sweep up a date or label with it; the sentences turn it back on with `.selectable`
+		 * (styles/utilities.css). `-webkit-` stays because the floor in spec/compat.md is Safari
+		 * 16, which still needs the prefix. `user-select` is visual -- spec/architecture/css.md.
 		 */
 		page: {
 			WebkitUserSelect: 'none',
@@ -216,15 +206,10 @@
 			<PageBody blocks={data.bio} locale={data.locale.code} />
 		</div>
 
-		<!-- Below the bio, not beside the name, because the bio is the one thing on this page the
-		     switcher never changes: it is identity copy, rendered from the source in every view
-		     (see spec/i18n.md). A language control sitting above text that will not move reads as
-		     broken the first time somebody uses it. Here it sits where its effect starts, and is
-		     still well inside the first screen at every width the site supports.
-
-		     No heading and no rule. This is page furniture rather than a section, and the
-		     preference it writes is the site's, not this page's -- a divider across the column
-		     would say the opposite. -->
+		<!-- Below the bio, not beside the name: the bio is identity copy that never changes with the
+		     switcher, so a control sitting above text it does not move would read as broken. No
+		     heading and no rule -- this is page furniture, not a section, and the preference it
+		     writes is the site's, not this page's. -->
 		<div class="mt-8 flex flex-wrap items-center gap-4 {stylex.attrs(styles.switcherRow).class}">
 			<LanguageSwitcher code={data.locale.code} />
 		</div>

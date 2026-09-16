@@ -33,18 +33,10 @@ const staticEntries: Entry[] = [
 /**
  * The licence surface, down to the directories and no further.
  *
- * The line is drawn at the individual package. A directory answers a question somebody asks --
- * what is Apache-licensed here, what comes from crates.io -- while one package page answers a
- * question nobody searches for and there are several hundred of them, which would make the
- * dependency tree the bulk of this site's sitemap. Package pages stay `noindex, follow`: still
- * walked, so the links out of them count, never entered on their own.
- *
- * Derived from the record rather than written out. The set of licence terms is whatever the
- * tree currently resolves to, so a hand-kept list would silently miss the page created by the
- * twenty-sixth licence to appear.
- *
- * The build time is the right lastmod for all of them: the record is baked into the bundle, so
- * a rebuild is exactly when any of these pages last changed.
+ * Why the line is drawn at the directory and not the package, and why the entries are derived
+ * from the record rather than written out -- see spec/architecture/data.md, "The sitemap enters
+ * the licence directories and stops there". The build time is the right `lastmod` for all of
+ * them: the record is baked into the bundle, so a rebuild is exactly when they last changed.
  */
 function licenseEntries(): Entry[] {
 	const site = URLS.apps.production.site;

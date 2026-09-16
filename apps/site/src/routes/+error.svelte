@@ -4,13 +4,12 @@
 
 	/**
 	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares, so nothing here can change one. See spec/architecture/css.md. No scoped block:
+	 * two elements, both the component's own, so a class on each reaches everything there is.
 	 *
-	 * The page has no scoped block and needs none: two elements, both of them the component's own,
-	 * so a class on each reaches everything there is to reach.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * No tag in angle brackets may appear anywhere in this block, comments included -- see
+	 * spec/architecture/css.md, "A comment in the module script cannot write a tag in angle
+	 * brackets".
 	 */
 	const styles = stylex.create({
 		/** The status number, and the rule between it and the sentence beside it. */

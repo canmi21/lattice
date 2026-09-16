@@ -73,20 +73,9 @@ const commitHash = (() => {
 const buildTime = new Date().toISOString();
 
 // The syntax floor, and the only place it is written down. `browserslist` in package.json says
-// which browsers the emitted JavaScript has to parse on, and esbuild compiles down to it here.
-//
-// It is set to the line the compatibility canary rescues to, and that is not a coincidence:
-// `compatibility.ts` loads core-js for a browser without `Array.prototype.toSorted`, which is
-// Chrome 110, Firefox 115 and Safari 16.0. A rescue only happens if the browser could parse the
-// code doing the rescuing, so a target above that line would hand those readers a bundle that
-// dies before the check runs. The two floors agree by construction. See spec/compat.md.
-//
-// Stated rather than left to Vite's default, which is a baseline of somebody else's choosing and
-// moves under a major -- it was chrome111, edge111, firefox114, safari16.4 when this was written.
-//
-// Floors, never a relative query like `> 0.5%`. A relative query is resolved against
-// caniuse-lite, so the compiled output would change on an unrelated dependency update and a
-// rebuild of the same commit would not be the same bytes.
+// which browsers the emitted JavaScript has to parse on, esbuild compiles down to it here, and
+// it deliberately matches the compatibility canary's line -- see spec/compat.md, "The syntax
+// floor is set to the same line, deliberately".
 const BROWSERSLIST: string[] = JSON.parse(
 	readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
 ).browserslist;
@@ -103,24 +92,10 @@ const esbuildTarget = BROWSERSLIST.map((query) => {
 /**
  * Whether this build sends its source maps to Sentry.
  *
- * Two conditions, not one. The credential has to be there, and the skip must not be set --
- * because locally it *is* there. mise decrypts it out of `secrets.json` on entering the
- * directory, so a local production build was uploading maps for a worker nobody deploys.
- *
- * The skip lives in `mise.toml`, which is the point: CI does not read that file, so it is on
- * every machine that has the repository and on none that builds it for real. Neither side
- * configures anything to get the behaviour it wants -- see spec/architecture/workspace.md.
- *
- * **The answer drives `autoUploadSourceMaps`, not just the token.** Withholding the credential
- * is not enough: the plugin reads `SENTRY_AUTH_TOKEN` from the environment itself when the
- * option is undefined, so a build that passed it nothing still uploaded. That was measured, not
- * assumed.
- *
- * In CI a missing credential is still fatal. That build is going to be deployed, and skipping
- * the upload silently means every stack trace it ever produces is minified, discovered weeks
- * later while trying to read an error that no longer maps to any source. The check sits after
- * the skip so that setting both is a deliberate quiet build rather than a contradiction that
- * throws.
+ * Why the skip lives in `mise.toml` and drives `autoUploadSourceMaps` rather than merely
+ * withholding the credential -- see spec/architecture/data.md, "A CI build must be able to
+ * build from git alone". In CI a missing credential is fatal instead of silently skipped: that
+ * build is deployed, and a silent skip would minify every stack trace it later produces.
  */
 function uploadsSourceMaps(): boolean {
 	// Any non-empty value enables it, so `SENTRY_SKIP_UPLOAD= pnpm run build` is how one local
@@ -318,32 +293,11 @@ export default defineConfig(async ({ command, mode }) => {
 			}),
 			sveltekit(),
 			{
-				// The visual layer. StyleX compiles `stylex.create` into atomic classes and appends
-				// its stylesheet after Tailwind's, which is what puts its cascade layers above
-				// Tailwind's utilities and below Svelte's unlayered scoped rules. That ordering is
-				// the arrangement the site depends on; a test holds it, because nothing here or
-				// upstream promises it. See spec/architecture/css.md.
-				//
-				// **`enforce: undefined` is load-bearing and must not be tidied away.** The plugin
-				// declares `enforce: 'pre'`, which hoists it above the Svelte compiler wherever it
-				// sits in this array; its Babel pass then receives an uncompiled `.svelte` file and
-				// parses it as JSX, which fails with `SyntaxError: Unexpected token, expected "}"`
-				// pointing at the first style object. Deleting the field is the only thing that
-				// puts it back after `sveltekit()`, where it belongs -- the transform has to run on
-				// the JavaScript the Svelte compiler produced. Measured three ways, all failing:
-				// before `sveltekit()`, which is what StyleX's own documentation recommends;
-				// last in the array without this override; and first of all.
-				//
-				// StyleX's advice to keep the plugin ahead of the framework exists to preserve
-				// React's Fast Refresh. For Svelte it is exactly inverted.
-				//
-				// **The module resolution is stated rather than defaulted, and it is what makes
-				// `$lib/vocabulary.stylex.ts` reachable.** StyleX resolves an import itself, at
-				// compile time, and understands neither SvelteKit's aliases nor a `rootDir` other
-				// than the working directory it happened to be started from. Left to the default
-				// it silently declines to resolve the vocabulary and every component importing it
-				// fails the build with `nonStaticValue`. `/ROOT/` is StyleX's own marker for a
-				// path under `rootDir`, which is this app rather than the workspace.
+				// The visual layer, appended after Tailwind's so its cascade layers land above
+				// Tailwind's utilities and below Svelte's scoped rules -- see spec/architecture/css.md,
+				// "The build order is the opposite of what StyleX documents", for why `enforce:
+				// undefined` is load-bearing and why the module resolution below is stated rather
+				// than defaulted.
 				...stylex({
 					useCSSLayers: true,
 					aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
@@ -421,15 +375,11 @@ export default defineConfig(async ({ command, mode }) => {
 			// what `localhost` resolves to first on this machine.
 			host: '::',
 			// The other two workers, reached through this one. The prefix is stripped on the way
-			// out, so each worker sees the paths it actually serves and needs no knowledge of
-			// this. Both the prefix and the target come from libs/urls, which is where every
-			// address in this repository is declared -- and where the reasoning lives for why
-			// development collapses three origins into one and production does not.
-			//
-			// The target is the same address anything else would use to reach these two, so it is
-			// the same function. It was its own, resolving to `127.0.0.1` on the grounds that one
-			// hop should stay on one stack; the hop never varied by the family a request arrived
-			// on, and both workers bind both stacks.
+			// out, so each worker sees only the paths it actually serves. Both the prefix and the
+			// target come from libs/urls, the one place every address here is declared and where
+			// the reasoning lives for why development collapses three origins into one. The target
+			// is the same function anything else uses to reach these two workers, not a resolver
+			// of its own -- the hop never varied by the family a request arrived on.
 			proxy: Object.fromEntries(
 				Object.entries(DEVELOPMENT_PROXY_PATHS).map(([app, prefix]) => [
 					prefix,

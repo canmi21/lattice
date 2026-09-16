@@ -1,46 +1,11 @@
 /**
  * The two records this site keeps in the browser, and the one mechanism behind both.
  *
- * `cache` belongs to TanStack Query and `email` to the newsletter; both are somebody else's
- * record with its own lifetime. What was left was the site's own small facts, and the first of
- * them arrived as a loose key of its own. A second would have arrived the same way, and a
- * tenth -- which is how a reader's storage ends up a scatter of names nothing owns and nothing
- * can move together. The persisted query cache showed the shape to take instead: one container,
- * edited in place.
- *
- * Kept deliberately simpler than that cache. There is no eviction, no staleness and no
- * serialisation beyond `JSON`, because none of these facts expire and all of them are small.
- *
- * **There are two records because there are two lifetimes**, and the difference is whose fact it
- * is. `reader` is what is true of the person and belongs in `localStorage`: their volume, whether
- * they have been sent to Google. `tab` is what is true of this sitting and belongs in
- * `sessionStorage`: where each clip had got to. A clip's position is not a fact about a reader --
- * coming back tomorrow to a twenty-five second clip that starts at 0:18 is a surprise, not a
- * courtesy -- and the storage area is what says so.
- *
- * They share everything except the three things that cannot be shared: the key, the version, and
- * the migrations. Two records hold different facts and will version independently, and a step
- * written for one running against the other is the failure the whole mechanism exists to avoid.
- * Both are called `state`, because the storage area already says which record it is.
- *
- * **Keys are flat and dotted**, the way the message catalogue's are: `support.preferred`, not a
- * `support` object with a `preferred` field inside it. Nesting buys grouping that the dot already
- * expresses, and costs every reader and writer a walk down a path that may not exist yet. A
- * component simple enough to hold one fact names it after the component and stops.
- *
- * A *collection* is the exception, and `video.at` is the first one: its keys are clip references that
- * nothing here knows at the time of writing, so it is one fact whose shape is a map rather than a
- * group of facts that wanted a prefix. The rule is about names, not about depth.
- *
- * **The store is passed in**, the way `readTrail` takes one: the browser's is the only one in
- * production and a test has no business installing a global to reach this. The record and the
- * store are named separately at every call site for the same reason -- in production they always
- * pair, and a test is the place where they do not. See spec/styling.md.
- *
- * **The version is an integer and only ever goes up.** It is here from the first write rather
- * than added when it is first needed, because a record without one cannot be migrated later: the
- * code that would migrate it has no way to know what it is looking at. Three hundred versions
- * from now it is still an integer, and the cost of starting today is this paragraph.
+ * Why there are two records, why keys are flat and dotted, why `video.at` is the exception to
+ * that, why the version is an integer from the first write, why a record from a newer version is
+ * left alone, and why the store is passed in rather than reached for -- all covered in
+ * spec/engagement.md, "What this site remembers is two records and one mechanism". This file is
+ * the mechanism itself.
  */
 
 export type State = { version: number; [key: string]: unknown };
@@ -75,7 +40,7 @@ function alike(value: unknown, fallback: unknown): boolean {
 export interface Container {
 	/** The shape `remember` produces. Raise it in the same commit that adds the step to reach it. */
 	readonly version: number;
-	/** What is stored under `key`, or `fallback` where nothing is, or the kind is not what was asked. */
+	/** What is stored under `key`, or `fallback` where there is none, or its kind does not match. */
 	recall<T>(storage: Store, key: string, fallback: T): T;
 	/** Store `value` under `key`, migrating whatever is already there on the way past. */
 	remember(storage: Store, key: string, value: unknown): void;

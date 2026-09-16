@@ -41,16 +41,9 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
 /**
  * A request for a document rather than a page.
  *
- * Every server endpoint here is named with an extension -- `/atom.xml`, `/sitemap.xml`,
- * `/robots.txt`, `/llms.txt`, `/licenses.txt`, `/licenses/full.txt` and the per-package texts
- * under it -- and no page is. That convention is what this reads, so the rule can be stated
- * the way it is actually meant: pages negotiate, documents resolve their own language or have
- * none.
- *
- * Written as an exception list rather than a list of pages because being multilingual is what
- * a page here *is*. A page missing from a list of pages serves the original to everybody and
- * says nothing about it, which is the failure that goes unnoticed; a document missing from
- * this one merely negotiates when it did not need to.
+ * Why a document is recognised by having an extension, why that is written as the exception
+ * rather than a list of pages, and the routes this test has to carve out on top of it -- see
+ * spec/locale.md, "Every page negotiates; the exceptions are documents".
  */
 const DOCUMENT_PATH = /\.[^./]+$/;
 
@@ -111,17 +104,11 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 /**
  * Move the encoding declaration to the front of `<head>`.
  *
- * It lands second, not first: `sequence` nests handlers, so the one listed earliest transforms
- * last, and Sentry has to be listed first. Its trace tag therefore ends up ahead of this no
- * matter where the hoist runs. Reordering the sequence to win that would put error capture
- * inside the page handler to satisfy a lint.
- *
- * Second is enough. The standard asks for the declaration inside the first 1024 bytes; this
- * brings it from 629 to 386, and the one tag preceding it is ASCII hex that no decoder can
- * read two ways. In development Sentry is off entirely, so there it does land first.
- *
- * Nothing about this is explained in app.html: a comment there would be copied into every page
- * ever served, which is a strange place to keep notes for whoever edits the handler.
+ * Lands second, not first: `sequence` nests handlers so the earliest-listed transforms last, and
+ * Sentry has to be listed first, so its trace tag always precedes this. Second is enough --
+ * the standard asks for the declaration inside the first 1024 bytes, and this brings it from 629
+ * to 386, preceded only by ASCII hex no decoder can read two ways. Not noted in app.html, since a
+ * comment there would be copied into every page ever served.
  */
 function hoistCharset(html: string): string {
 	const charset = /\s*<meta charset="[^"]*"\s*\/?>/i.exec(html);
@@ -132,18 +119,10 @@ function hoistCharset(html: string): string {
 /**
  * The headers every response carries, set here and nowhere else.
  *
- * `Referrer-Policy: origin-when-cross-origin`: a request inside the site carries the full URL,
- * and one to another site carries the origin alone -- a site linked from an article learns that
- * the link came from here and not which article, which is the most it should know and the least
- * the author wants it told. Every link out is deliberately `noopener` without `noreferrer` for
- * the same reason: the attribute would silence a policy set to speak.
- *
- * `X-Frame-Options: SAMEORIGIN` keeps the pages out of another site's frame, and
- * `X-Content-Type-Options: nosniff` keeps a browser from guessing a type the response did not
- * state. All three were once added by a zone setting at Cloudflare that nothing here knew about,
- * which overwrote whatever the worker sent; that setting is off, and the repository is the one
- * place these are read. Listed before the markdown handler, which returns without resolving, so
- * its responses carry them too. See spec/referrer.md.
+ * Why `Referrer-Policy` is `origin-when-cross-origin` and every link out is `noopener` without
+ * `noreferrer`, and why all three headers are set in the repository rather than at the edge --
+ * see spec/referrer.md. Listed before the markdown handler, which returns without resolving, so
+ * its responses carry them too.
  */
 const SECURITY_HEADERS: ReadonlyArray<readonly [string, string]> = [
 	['Referrer-Policy', 'origin-when-cross-origin'],

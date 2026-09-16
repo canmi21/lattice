@@ -1,23 +1,9 @@
 /**
  * Hold the order of the three layers that write CSS for this site.
  *
- * Tailwind writes layout, StyleX writes the visual vocabulary, and a Svelte `<style>` block
- * writes whatever needs a selector neither of the other two can reach. When two of them set the
- * same property on one element, which wins is decided by cascade layers, and the answer has to be
- * scoped over StyleX over Tailwind. See spec/architecture/css.md.
- *
- * **That order is a product of emission order, not a promise either vendor makes.** Tailwind
- * declares its layers first, StyleX appends its own after them into the same stylesheet, and
- * Svelte's scoped rules are unlayered and therefore outrank every layer. Nothing errors if that
- * changes: some properties simply start being answered from the other layer, which is invisible in
- * a diff and invisible in a build. So it is measured here rather than remembered.
- *
- * **What is asserted is who wins, never what a layer is called.** `utilities` is Tailwind's name
- * and `priority2` is StyleX's, and both belong to their owner to rename. A StyleX layer is found
- * by the atomic classes inside it rather than by its name; only Tailwind's `utilities` is named,
- * because a rename there fails this loudly and a rename is a thing to be stopped by.
- *
- * Reads the built stylesheets, so it runs after a production build.
+ * Why this has to be measured rather than promised, and why it asserts relative order never
+ * layer names -- see spec/architecture/css.md, "The precedence is measured, and it is not
+ * promised". Reads the built stylesheets, so it runs after a production build.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';

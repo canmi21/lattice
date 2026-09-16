@@ -66,27 +66,9 @@
 	/**
 	 * StyleX's development stylesheet, linked behind a declaration of the layers above it.
 	 *
-	 * A build appends the visual layer's CSS to the asset Vite already emits, after Tailwind's,
-	 * and that emission order is what puts its cascade layers above Tailwind's utilities. The dev
-	 * server has no such asset: the plugin serves the sheet at `/virtual:stylex.css` and its hot
-	 * updates behind a runtime module.
-	 *
-	 * **Two wrong answers were measured before this one, and they fail in opposite directions.**
-	 * A bare `<link>` inverts the cascade: in development Tailwind arrives through the module
-	 * graph as injected styles rather than as a link, so the link is the first thing in the
-	 * document to declare a layer, and layer order is fixed by first declaration. Dropping the
-	 * link and importing only the runtime avoids that and arrives too late -- measured on an
-	 * article, the sheet landed at 709ms while the table of contents had already sized its bars
-	 * at 571ms, against a heading Tailwind's `h2 { font-weight: inherit }` reset had left at 400.
-	 * Everything on this site that measures rendered text at hydration reads that.
-	 *
-	 * So the layer order is declared first, in a stylesheet of its own that carries no rules, and
-	 * the sheet is linked after it. Tailwind names these layers itself and re-declaring them
-	 * changes nothing; what it buys is that `priority1` can no longer be the first layer the
-	 * document has seen. The visual layer is then present before hydration and outranked by
-	 * nothing, which is the build's arrangement reached a different way.
-	 *
-	 * See spec/architecture/css.md.
+	 * Why a bare `<link>` here inverts the cascade, why dropping it for the runtime module alone
+	 * arrives too late, and the measurements behind both -- see spec/architecture/css.md, "In
+	 * development the visual layer arrives with its runtime, and must not be linked".
 	 */
 	const DEV_STYLEX =
 		'<style>@layer properties, theme, base, components, utilities;</style>' +
@@ -102,13 +84,10 @@
 	 * Record the reading trail, for every page rather than only articles.
 	 *
 	 * The Back control lives on an article, but the step it has to remember is often taken
-	 * somewhere else -- the homepage, a licence page -- and a page that declined to record
-	 * itself would be a hole the next article's Back link falls into. Recording is one write of
-	 * a short array, so there is nothing to save by being selective about it.
-	 *
-	 * `afterNavigate` covers the client navigations and the first load alike; on the first load
-	 * `from` is null, which is exactly the case `advance` reads as "trust the record only if it
-	 * claims this page". See $lib/article/trail.ts.
+	 * elsewhere -- the homepage, a licence page -- and a page that skipped recording would be a
+	 * hole the next article's Back link falls into. `afterNavigate` covers the client navigations
+	 * and the first load alike; on the first load `from` is null, which `advance` reads as "trust
+	 * the record only if it claims this page". See $lib/article/trail.ts.
 	 */
 	afterNavigate(({ from, to }) => {
 		if (!to) return;
