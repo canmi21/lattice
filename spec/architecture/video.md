@@ -264,6 +264,18 @@ for what the plate was said to add above and below, and the plate adds nothing -
 at 16px and 12px at 30px, which pushed every centred caption that much below the middle of its
 bar.
 
+**Sideways, the plate is padded with text, because a cue cannot be padded with CSS.** WebVTT
+publishes the properties that reach a cue and `padding` is not among them: `padding: 0 0.5em` in
+the stylesheet, served to a fresh navigation, left the plate the same 443.0px it is without it. So
+a fixed space sits on each side of every line -- fixed rather than ordinary because only U+0020
+and the tabs and newlines beside it collapse, and a collapsing one is dropped at exactly the two
+positions it is wanted in. It is a fraction of the em, so it grows with the caption, and it adds
+no height. The reachable widths are the characters themselves: 4px a side for the thin space this
+takes, against 8 for the no-break space, 7 for the four-per-em and 2 for the hair. A width between
+them means setting the pad in its own cue class and scaling it with `font-size`, which is worth
+doing the day the exact number matters. The wrapping is then decided on the padded line, since the
+plate is what has to fit across the picture.
+
 Measured in the window-filling mode, which is the same fitted picture and the same code as a full
 screen. At 900x900 the bar is 196.9 against a caption of 57.4, so the caption is centred in it:
 69.8px of black above the block and 69.7 below. At 1000x730 the bar is 83.8 against a caption of

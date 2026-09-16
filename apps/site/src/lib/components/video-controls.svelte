@@ -578,6 +578,28 @@
 	 * the 13.2 the percentage gave, and every other shape gets that same gap in proportion.
 	 */
 	const CUE_CLEAR = 0.8;
+	/**
+	 * What stands in for the plate's horizontal padding, on each side of every line.
+	 *
+	 * The plate is painted to the text box and `::cue` cannot be padded: WebVTT publishes the
+	 * properties that reach a cue and `padding` is not among them, so Chrome drops it. Measured
+	 * against a real load rather than assumed -- `padding: 0 0.5em` in the stylesheet, a fresh
+	 * navigation, and a plate 443.0px wide both with it and without it, to the tenth of a pixel.
+	 *
+	 * So the padding is made of text, which is the one part of a cue this file already owns. It has
+	 * to be a space CSS will not collapse, or it is dropped at exactly the two positions it is
+	 * wanted in; only U+0020 and the tabs and newlines beside it collapse, so any of the fixed
+	 * spaces will do and the choice is a width. Being a fraction of the em it grows with the
+	 * caption, the way `CUE_CLEAR` does, and it adds no height because a space has none to add.
+	 *
+	 * The width is as fine as it gets, rather than as fine as one would like. Measured off the
+	 * painted plate at 28px, the no-break space gave 8px a side and the thin space gives 4; the
+	 * next steps either way are the hair space at 2 and the four-per-em at 7, which is barely
+	 * less than the 8 that was too much. So this is the one rung below too-generous, and a value
+	 * between the rungs would mean setting the pad in its own cue class and scaling it by
+	 * `font-size` -- worth doing the day the exact number matters, and not before.
+	 */
+	const CUE_PAD = '\u2009';
 	/** A caption reads at a size taken from the picture, between these two. */
 	const CUE_MIN = 14;
 	const CUE_MAX = 30;
@@ -688,7 +710,15 @@
 		ruler ??= document.createElement('canvas').getContext('2d');
 		const face = getComputedStyle(element).fontFamily;
 		if (ruler) ruler.font = `${size}px ${face}`;
-		const measure = (value: string) => ruler?.measureText(value).width ?? 0;
+		// Every measurement is of the padded line, because the padding is part of the plate and the
+		// plate is what has to fit across the picture. Both halves of a break gain the same amount,
+		// so the balance the break is chosen on is unaffected and only the thresholds move.
+		const measure = (value: string) => ruler?.measureText(CUE_PAD + value + CUE_PAD).width ?? 0;
+		const padded = (value: string) =>
+			value
+				.split('\n')
+				.map((row) => CUE_PAD + row + CUE_PAD)
+				.join('\n');
 
 		for (const track of element.textTracks) {
 			for (const cue of track.cues ?? []) {
@@ -701,8 +731,9 @@
 				const original = written.get(cue) ?? '';
 				const joined = original.replaceAll('\n', ' ').replaceAll(/\s+/g, ' ').trim();
 				if (!ruler || !joined) continue;
-				(cue as VTTCue).text =
-					measure(joined) <= across * CUE_KEEP ? joined : breakAt(joined, measure, across);
+				(cue as VTTCue).text = padded(
+					measure(joined) <= across * CUE_KEEP ? joined : breakAt(joined, measure, across),
+				);
 			}
 		}
 	}
