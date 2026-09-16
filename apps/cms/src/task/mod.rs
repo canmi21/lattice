@@ -38,10 +38,19 @@ pub enum Record {
 	Segments,
 	/// Crate and repository facts the articles embed.
 	Embeds,
+	/// `data/metadata.json`: the merged record of every published asset.
+	///
+	/// The only link from a content id to the objects on disk, so a task that publishes bytes
+	/// writes this too, and the sweep rewrites it as it drops what it deletes.
+	Manifest,
 	/// `data/public/image/**`.
 	PublicImage,
 	/// `data/public/video/**`: the encoded rungs, not the poster, which is an image.
 	PublicVideo,
+	/// `data/public/captions/**`: one cut WebVTT track per file.
+	PublicCaptions,
+	/// `data/public/meta/**`: the sidecar beside each published asset, whatever kind it is.
+	PublicMeta,
 	/// `data/public/favicon/**`.
 	PublicFavicon,
 	/// `data/public/opengraph/**`.
@@ -106,11 +115,12 @@ pub const CATALOG: &[Spec] = &[
 		detail: "Import what the articles reference, derive variants, then rewrite the references.",
 		paid: false,
 		items: Items::Many("image reference"),
-		reads: &[Record::Articles],
+		reads: &[Record::Articles, Record::Manifest],
 		// One of the two tasks that edit article text, `video` being the other. Everything
 		// reading `Articles` is downstream of it, which is why so many entries below name it in
-		// `after`.
-		writes: &[Record::Articles, Record::PublicImage],
+		// `after`. `PublicMeta` and `Manifest` are the record beside the bytes and the index over
+		// all of them, both rewritten for every picture derived.
+		writes: &[Record::Articles, Record::PublicImage, Record::PublicMeta, Record::Manifest],
 		after: &[],
 	},
 	Spec {
@@ -119,11 +129,18 @@ pub const CATALOG: &[Spec] = &[
 		detail: "Encode what the articles reference into a ladder, then rewrite the references.",
 		paid: false,
 		items: Items::Many("video reference"),
-		reads: &[Record::Articles, Record::Media],
+		reads: &[Record::Articles, Record::Media, Record::Manifest],
 		// `Media` because a poster with no source is given the clip's, and the whole of
 		// `data/media.yaml` is rewritten to record it -- so a description landing mid-run would
 		// be lost. `PublicImage` is the poster's own variants, which are pictures like any other.
-		writes: &[Record::Articles, Record::PublicVideo, Record::PublicImage, Record::Media],
+		writes: &[
+			Record::Articles,
+			Record::PublicVideo,
+			Record::PublicImage,
+			Record::PublicMeta,
+			Record::Media,
+			Record::Manifest,
+		],
 		after: &[],
 	},
 	Spec {
@@ -262,16 +279,23 @@ pub const CATALOG: &[Spec] = &[
 		detail: "Drop published assets no article asks for.",
 		paid: false,
 		items: Items::Many("published asset"),
-		reads: &[Record::Articles],
+		reads: &[Record::Articles, Record::Manifest],
 		// Deleting is writing. It is listed last and depends on everything that publishes,
 		// because running it before those have caught up removes what they were about to claim.
+		// Every tree the sweep walks is named here, and `Translations` is the second sweep behind
+		// `--segments`: a tree this list forgets is one nothing can be held away from it.
 		writes: &[
 			Record::PublicImage,
 			Record::PublicVideo,
+			Record::PublicCaptions,
+			Record::PublicMeta,
 			Record::PublicFavicon,
 			Record::PublicOpengraph,
+			Record::PublicLicense,
+			Record::Manifest,
+			Record::Translations,
 		],
-		after: &["image", "video", "favicon", "og"],
+		after: &["image", "video", "favicon", "og", "licenses", "i18n"],
 	},
 ];
 
@@ -394,6 +418,37 @@ mod tests {
 			.map(|spec| spec.id)
 			.collect();
 		assert_eq!(writers, vec!["image", "video"]);
+	}
+
+	/// Deleting is writing, so anything the sweep can remove is something it has to come after.
+	///
+	/// Stated as an invariant rather than as a list, because the pairs that were missing --
+	/// `licenses` and `i18n` -- were missing exactly because nobody re-read the list after adding
+	/// a tree to the sweep. See spec/tasks.md, "A published tree has one record".
+	#[test]
+	fn the_sweep_comes_after_everything_whose_output_it_can_delete() {
+		let gc = find("gc").expect("gc");
+		for spec in CATALOG.iter().filter(|spec| spec.id != "gc") {
+			if spec.conflicts_with(gc) {
+				assert!(
+					gc.after.contains(&spec.id),
+					"gc can delete what {} writes but does not come after it",
+					spec.id
+				);
+			}
+		}
+	}
+
+	/// The three the survey found: a licence text, a caption track and a translation entry are all
+	/// published bytes the sweep removes, and none of the three could be seen from the catalogue.
+	#[test]
+	fn the_sweep_contends_with_the_runs_that_publish_what_it_removes() {
+		let gc = find("gc").expect("gc");
+		for id in ["licenses", "i18n", "video"] {
+			let spec = find(id).expect("spec");
+			assert!(gc.conflicts_with(spec), "gc does not contend with {id}");
+			assert!(spec.conflicts_with(gc), "{id} does not contend with gc");
+		}
 	}
 
 	/// The race the entry was added to make visible: both rewrite `contents/**/*.md`, and while

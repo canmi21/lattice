@@ -42,8 +42,55 @@ set of tracks to fan out over -- a clip and its track do not arrive on the same 
 track never arrives. `cms invalidate` takes a selection of segments, locales or matched text; it
 refuses an empty one and prints rather than deletes until `--live`, so the whole command is a
 person narrowing something and then confirming it. `cms twitter` takes a query and prints the
-answer. None is schedulable, none contends over a record, and none is resumable: a catalogue entry
-for any of them would describe a run nobody can start from the catalogue.
+answer. None is schedulable and none is resumable: a catalogue entry for any of them would describe
+a run nobody can start from the catalogue. The clause that used to stand here, that none of them
+contends over a record, was wrong about `cms captions`; the next section records why, and what the
+correction would cost.
+
+## A published tree has one record, and the sweep declares every one of them
+
+`cms gc` walks `data/public/image`, `video`, `captions`, `meta`, `favicon` and `license`, rewrites
+`data/metadata.json` without the entries it drops, and behind `--segments` drops translations for
+paragraphs an article no longer contains. Each of those is a record, and the rule over them has
+three parts.
+
+**One tree, one record.** `data/public/captions/**` is `PublicCaptions` and nothing else names it.
+A second name for one store is two locks guarding half a thing each.
+
+**A task declares every record it writes**, including the ones it rewrites on the way past. The
+merged manifest and the sidecar under `meta/` are written for every asset published, so `Manifest`
+and `PublicMeta` belong to `cms image` and `cms video` as much as `PublicImage` does. That is the
+rule `cms video` and `data/media.yaml` state below, reaching the published side of the tree.
+
+**The sweep comes after everything whose output it can delete.** That is tested as an invariant over
+the catalogue rather than kept as a list, because the list is what went stale: `licenses` and `i18n`
+were both missing from `gc`'s `after`, and both were missing because a tree was added to the sweep
+without the catalogue being re-read.
+
+Why it is worth stating: `Spec::conflicts_with` intersects `writes` and nothing else. A publisher
+that does not declare what it writes is invisible to the only mechanism that would keep it from
+running beside the sweep. The cost is not a crash -- `cms gc --live` removes a track `cms captions`
+has just published and the manifest still points at, and neither run reports anything wrong.
+
+### Two gaps are recorded rather than closed
+
+`cms captions` writes `PublicCaptions`, `PublicMeta` and `Manifest`, and it has no catalogue entry.
+What keeps it out still holds -- it cannot be described without the clip and track somebody names --
+but that means nothing can see that it and `cms gc` contend. Giving it an entry means deciding
+whether a command a person runs with two arguments belongs in a list of things a schedule fires,
+which is a decision about the catalogue rather than about records.
+
+`data/public/opengraph/**` has a record and no sweep. `cms og` draws one card per page per language,
+nothing walks that tree, and a renamed page therefore leaves its card behind for good: the failure
+the comment in [gc/mod.rs](../apps/cms/src/gc/mod.rs) names, where a tree nothing sweeps reports
+clean while it grows. `gc` declares `PublicOpengraph` today, which is honest about the intent and
+wrong about the behaviour. Sweeping it needs a decision about what a card is reachable from -- the
+route list, `data/build/opengraph.json`, or the articles -- which is a change to how the sweep
+decides what is referenced, not a record.
+
+Two build records are deliberately left without one. `data/build/licenses.json` and
+`data/build/opengraph.json` each have exactly one writer, and the sweep only reads the first, so
+neither can be contended over. A record for a store one task owns would name a lock nobody takes.
 
 ## Computing and writing are separate concerns
 

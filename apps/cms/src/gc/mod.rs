@@ -75,7 +75,8 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 	// Every tree that holds content-addressed bytes, and the list has to stay complete. `video/`
 	// and `captions/` were not walked before this, which is the quietest way for a store to leak:
 	// a tree nothing sweeps has no orphans by definition, so it reports clean while it grows, and
-	// nobody looks until it is large. A fourth prefix in `store` is a fifth line here.
+	// nobody looks until it is large. A fourth prefix in `store` is a fifth line here, and a
+	// record named in this task's `writes`: what is swept and what is declared are one list.
 	for path in files_under(&public.join("image"))?
 		.into_iter()
 		.chain(files_under(&public.join("video"))?)
