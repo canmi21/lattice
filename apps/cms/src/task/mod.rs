@@ -1,20 +1,9 @@
 //! What long-running work exists, declared in one place.
 //!
-//! Every operation that takes more than an instant is described here and nowhere else. The point
-//! is that something can ask the question -- how many are there, which ones cost money, what does
-//! this one touch -- without importing thirteen modules and reading their argument parsing. A GUI
-//! listing tasks, a scheduler ordering them and a person running `cms tasks` all read this slice.
-//!
-//! This is data. Nothing here runs anything, and adding a task to the catalogue does not make it
-//! runnable; it makes it *known*. Keeping the two apart is what lets the catalogue be complete
-//! before the runner exists, which is the state this module ships in.
-//!
-//! ## What is not here
-//!
-//! Ordering. `after` records which tasks must have run first, because that fact belongs beside
-//! the task rather than inside whatever eventually schedules them -- but nothing reads it yet and
-//! no scheduler exists. Declaring it now means the scheduler can be written without reopening
-//! thirteen operations to ask what they depend on.
+//! Every operation that takes more than an instant is described here and nowhere else: data,
+//! not execution, so the catalogue can be complete before a runner exists. See spec/tasks.md,
+//! "The catalogue is data, and it is complete before the runner" for why, and for what is
+//! deliberately absent from it.
 
 pub mod claim;
 pub mod progress;
@@ -271,15 +260,11 @@ pub fn find(id: &str) -> Option<&'static Spec> {
 
 /// Publish a run and hand back the progress it reports through.
 ///
-/// One call rather than three, because the three belong together and the interesting failure is
-/// forgetting one of them. An operation that built its own bar and skipped `registry::publish`
-/// still looked finished to whoever started it while being invisible to `cms runs`, to the
-/// desktop Activity view, and to the next process asking whether this task was already running.
-/// Four of them had drifted into exactly that shape. Made unavailable by construction here: the
-/// bar cannot be obtained without the run being published first.
-///
-/// Published before any work, so a second process asking during the first item gets yes rather
-/// than a gap. See spec/tasks.md.
+/// One call rather than three: skipping `registry::publish` left a run invisible to `cms runs`
+/// and the desktop Activity view even though it looked finished to whoever started it -- four
+/// operations had drifted into that shape. The bar cannot be obtained without the run being
+/// published first, so the mistake is unavailable by construction, and published before any
+/// work so a second process asking mid-run gets yes rather than a gap. See spec/tasks.md.
 pub fn start(
 	repository: &std::path::Path,
 	task: &str,

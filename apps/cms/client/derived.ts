@@ -60,8 +60,9 @@ function renderClass(entry: Class, runs: readonly TaskRun[], startTask: StartTas
 	state.textContent = short === 0 ? 'Complete' : `${short} outstanding`;
 	footer.appendChild(state);
 
-	// Only migrated free tasks become controls. Paid tasks stay as text until a warning flow exists,
-	// and known-but-unmigrated tasks stay as text until they can use the substrate. See spec/tasks.md.
+	// Only migrated free tasks become controls. Paid tasks stay as text until a warning flow
+	// exists, and known-but-unmigrated tasks stay as text until they can use the substrate.
+	// See spec/tasks.md.
 	if (entry.action !== null && short > 0) {
 		const command =
 			entry.action === 'favicon' && !entry.paid

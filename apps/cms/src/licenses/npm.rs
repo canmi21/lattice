@@ -56,17 +56,11 @@ struct Declared {
 
 /// Every third-party package in the production closure of the Worker apps, deduplicated.
 ///
-/// Workspace libraries are excluded. pnpm links them, so their version reads `link:../..`,
-/// which is both the reliable marker and the accurate statement: they are this project, not
-/// something it credits.
-///
-/// Packages resolved for another platform are excluded too, and this is the reason the result
-/// is a list rather than a count of what pnpm printed. A tree contains every optional binary
-/// for every operating system -- `lightningcss-win32-x64-msvc`, `@sentry/cli-linux-arm` -- and
-/// only the one matching this machine is ever installed. The rest have no directory to read,
-/// have never been built with, and are not in any Worker bundle. Reporting them as declaring
-/// no licence would be false, and the count of genuinely undeclared packages is a number that
-/// has to stay small enough to act on.
+/// Workspace libraries are excluded: pnpm links them, so their version reads `link:../..`,
+/// which is both the reliable marker and the accurate statement -- they are this project, not
+/// something it credits. Packages resolved for another platform are excluded too; see
+/// spec/architecture/data.md for why the result is a list rather than a count of what pnpm
+/// printed.
 pub fn collect(repo: &Path) -> Result<Vec<Found>, String> {
 	let mut packages: BTreeMap<String, Found> = BTreeMap::new();
 

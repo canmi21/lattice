@@ -153,15 +153,8 @@ let watchingViewport = false;
 /**
  * Fills the recent list with as many articles as the window has room for.
  *
- * The count is measured rather than chosen: a fixed number is either a short list on a tall
- * window or a scrollbar on a short one, and which of the two it is depends on the machine. So
- * every article the snapshot carries is laid out and the ones that overflow are taken back,
- * leaving the page exactly full. The exit to the library is placed before the trimming rather
- * than after it, because it occupies the room the last row would otherwise be measured into.
- *
- * One article always stays. A window too short for even that is a window nothing can be fitted
- * to, and an empty section under a heading reads as "no articles" rather than as "no room" -- so
- * the page scrolls, which is the honest failure of the two.
+ * The count is measured against the window rather than chosen, and one row always survives the
+ * trimming. See spec/architecture/cms.md, "The CMS has two shells and one home" for why.
  *
  * A hidden page has no geometry to read, so this stands aside for one -- `main.ts` calls it again
  * when the Overview comes back.

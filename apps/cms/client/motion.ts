@@ -32,13 +32,10 @@ const travelling = new WeakMap<HTMLElement, Control[]>();
 /**
  * Put `indicator` under `active`, travelling from wherever it currently is.
  *
- * The bar is driven by its centre, not its left edge. Its centre crosses the strip on one curve
- * while its width adapts on another, over one duration, so the two start and land together --
- * the bar moves and resizes at once rather than sliding and then correcting its length. Left and
- * width are derived from that pair on each frame, never animated directly.
- *
- * The first placement is silent: there is no previous tab to travel from, and a bar sweeping in
- * from the left edge on load reads as a loading animation rather than as a position.
+ * Driven by its centre, not its left edge, on its own curve from the width's; the first
+ * placement is silent, since a bar sweeping in on load reads as loading rather than as a
+ * position. See spec/architecture/cms.md, "It travels on its own gesture, not the one panels
+ * open with" for why.
  */
 export function slideIndicator(indicator: HTMLElement, active: HTMLElement): void {
 	if (indicator.parentElement === null) return;
@@ -109,15 +106,12 @@ function getTranslateX(element: HTMLElement): number {
 /**
  * Open or close `panel`, animating between two measured heights.
  *
- * `height: auto` cannot be animated, so the natural height is measured by briefly setting it and
- * reading back, then handed to `auto` once the panel has arrived -- a panel pinned to a measured
- * number would stop following its own content when the window resizes. The same reasoning, and
- * the same spring, as the site's disclosures.
+ * `height: auto` cannot be animated, so the natural height is measured briefly, then handed back
+ * to `auto` once arrived -- pinning to a number would stop it following its own content on
+ * resize. Same spring as the site's disclosures.
  *
- * Interruptible by construction: the running animation for this panel is stopped before another
- * starts, and the new one departs from wherever the old one had reached rather than from the
- * state it was travelling to. Clicking a header twice quickly reverses the motion instead of
- * queueing a second one.
+ * Interruptible: a running animation stops before the next starts and departs from where the old
+ * one had reached, so a fast double click reverses it rather than queueing.
  */
 export function animateHeight(panel: HTMLElement, expanded: boolean): void {
 	running.get(panel)?.stop();
@@ -177,14 +171,10 @@ function visibleBudget(panel: HTMLElement): number {
 /**
  * Let a control resize itself, rather than jump, when what it says changes.
  *
- * The width is measured before and after `change` runs, so the caller only has to describe the new
- * content and never has to know how wide it will be. The element is pinned to where it was, driven
- * to where it is going, and then released back to `auto` -- pinning it permanently would stop it
- * following its own text at a different zoom or font size.
- *
- * Lifted from the site's support actions, which have done this since before there was anywhere to
- * share it from. What they add on top -- revealing masked copy in step with the width -- stays
- * theirs; what is common is measure, pin, travel, release.
+ * The width is measured before and after `change` runs, so the caller only has to describe the
+ * new content: pinned to where it was, driven to where it is going, then released back to `auto`
+ * so it keeps following its own text at a different zoom or font size. Lifted from the site's
+ * support actions, which do the same measure, pin, travel, release.
  */
 export function animateWidth(element: HTMLElement, change: () => void): void {
 	const from = element.getBoundingClientRect().width;

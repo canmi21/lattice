@@ -3,6 +3,21 @@
 `draft: true` in an article's frontmatter withholds it from production. Absent means published,
 so an article says nothing to be ordinary and one word to be held back.
 
+## The flag is read directly, never through a text-field reader
+
+`draft` is a YAML boolean, not text, and a reader that only returns text fields drops it --
+`cms document::fields` did exactly that, so every draft read as published and the home card
+counted articles nobody could open. The fix is to read the frontmatter's own value, not go
+through a text-only accessor.
+
+**The two readers disagree about the quoted form, and today the CMS is the lenient one.**
+`cms document::is_draft` accepts `draft: "true"` as well as `draft: true`; the site's
+`buildArticles` tests `=== true` and publishes the quoted one. So an article written that way is
+a draft to the CMS and a published page on the site, which is the failure this flag exists to
+prevent. Whether the answer is to make the site lenient or the CMS strict is open -- what is not
+open is that one flag cannot mean two things. Recorded rather than fixed because it was found
+during a comment pass, and a comment pass does not change behaviour.
+
 ## A production build drops them; every other build keeps them
 
 The discriminator is the site build's mode, the same one that picks between the production and

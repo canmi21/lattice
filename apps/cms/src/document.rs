@@ -53,15 +53,12 @@ pub struct Document<'a> {
 
 /// Split a file into its frontmatter and its prose.
 ///
-/// **A file with no frontmatter is a document whose body is all of it.** That is the reading the
-/// character counters already used, and the one that lets a page without metadata still be read
-/// as prose.
+/// **A file with no frontmatter is a document whose body is all of it**, the reading the
+/// character counters already used, so a page without metadata is still read as prose.
 ///
-/// **A fence that never closes is an error, not a document without frontmatter.** The two are
-/// indistinguishable by shape and opposite in meaning: one is a file that declares nothing, the
-/// other is a file whose declarations were swallowed. Reading the second as the first is how an
-/// article silently loses its title, which is the failure this module exists to stop. Nothing in
-/// `contents/` relies on the lenient reading -- checked when this was written.
+/// **A fence that never closes is an error, not a document without frontmatter.** The two look
+/// alike and mean opposite things, and reading a swallowed declaration as "declares nothing" is
+/// how an article silently loses its title.
 pub fn split(text: &str) -> Result<Document<'_>, Malformed> {
 	let Some(rest) = text.strip_prefix("---\n") else {
 		return Ok(Document { frontmatter: None, frontmatter_start: 0, body: text, body_start: 0 });
@@ -81,15 +78,12 @@ pub fn split(text: &str) -> Result<Document<'_>, Malformed> {
 
 /// Every text field the frontmatter declares, keyed by name.
 ///
-/// Read once for the whole block rather than once per key. The version this replaced parsed the
-/// YAML again for every field asked for, so reading an article's `lang`, `title` and `subtitle`
-/// parsed the same six lines three times -- and swallowed a parse failure into "no such field",
-/// which made a broken article indistinguishable from a page that declares nothing. `cms
-/// articles` skipped those silently.
+/// Read once for the whole block rather than once per key: parsing per field parsed the same
+/// YAML repeatedly and swallowed a failure into "no such field", making a broken article
+/// indistinguishable from one declaring nothing -- `cms articles` skipped those silently.
 ///
-/// Non-text values are dropped rather than refused. A frontmatter key holding a list or a date is
-/// legitimate and simply not something a caller asking for text wants; the one place that must
-/// insist on text is the translator, which says so itself.
+/// Non-text values are dropped rather than refused: only the translator must insist on text,
+/// and says so itself.
 pub fn fields(text: &str) -> Result<Fields, Malformed> {
 	let Some(frontmatter) = split(text)?.frontmatter else {
 		return Ok(Fields::new());
@@ -109,19 +103,12 @@ pub fn fields(text: &str) -> Result<Fields, Malformed> {
 
 /// Whether the frontmatter marks this article as unpublished.
 ///
-/// **Not through [`fields`], which is where the first version of this went wrong.** That returns
-/// the *text* fields and drops everything else, and `draft: true` is a YAML boolean -- so every
-/// draft read as published, and the home card counted two articles nobody can open. A flag is not
-/// text, so it is read off the frontmatter directly.
-///
-/// The string form is accepted too. Both spellings mean the same thing to a person writing one by
-/// hand, and the difference between them is a quoting rule nobody should have to know.
+/// Read off the frontmatter directly, not through [`fields`]: see spec/drafts.md, "The flag is
+/// read directly, never through a text-field reader".
 ///
 /// A file that is not a document, or whose frontmatter is not YAML, is not a draft. Being
-/// unreadable is a fault for `cms check` to report; answering "draft" here would quietly remove a
-/// broken article from every sweep instead, which is the opposite of reporting it.
-///
-/// The site decides the same thing in `buildArticles`, and the two agree on the spelling.
+/// unreadable is a fault for `cms check` to report; answering "draft" here would quietly remove
+/// it from every sweep instead, which is the opposite of reporting it.
 pub fn is_draft(text: &str) -> bool {
 	let Ok(Document { frontmatter: Some(frontmatter), .. }) = split(text) else {
 		return false;

@@ -92,7 +92,9 @@ function clearError(): void {
 	requiredElement<HTMLElement>(root(), '[data-segments-error]').hidden = true;
 }
 
-/** Every row in reading order: the ones the article lost first, since they are why anyone sweeps. */
+/**
+ * Every row in reading order: the ones the article lost first, since they are why anyone sweeps.
+ */
 function allRows(): SegmentRow[] {
 	if (outline === null) return [];
 	return [...outline.rows.filter((row) => row.stale), ...outline.rows.filter((row) => !row.stale)];

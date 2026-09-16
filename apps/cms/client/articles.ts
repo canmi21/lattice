@@ -525,13 +525,10 @@ function drawViewControls(root: HTMLElement): void {
 /**
  * The sort control, which is also where a column sort is undone.
  *
- * A column heading takes the ordering, so the button above stops naming a menu choice and says the
- * ordering came from elsewhere. That leaves no way back except pressing the same heading twice
- * more, which is a route somebody has to already know. Under the pointer it becomes the reset --
- * the one place the state is displayed is the place to offer its undo.
- *
- * The label changes width when it does, so the change goes through `animateWidth`: the control is
- * measured, pinned, driven and released rather than snapping between two sizes.
+ * A column heading takes the ordering, so the button stops naming a menu choice and says where
+ * the ordering came from -- the only way back is pressing the same heading twice more. Under the
+ * pointer it becomes that reset, since the place a state is displayed is the place to undo it.
+ * The label's width changes then, so it goes through `animateWidth` rather than snapping.
  */
 function paintSortControl(root: HTMLElement): void {
 	const control = requiredElement<HTMLButtonElement>(root, '[data-menu="sort"]');

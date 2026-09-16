@@ -4,20 +4,11 @@
 //! than one because they are asked at different moments and cost different amounts: the listing
 //! is drawn for every article at once, and this is drawn for the one somebody opened.
 //!
-//! ## Two shapes, because a stale segment has no source
-//!
-//! A live segment can be shown by its own prose -- the paragraph is in the article, and the
-//! translations are what it became. A stale one cannot: its paragraph was edited away, so the only
-//! text that still exists anywhere is the translation itself. Nothing here can put the two side by
-//! side, and an interface that offered a before-and-after would be inventing the before. So a
-//! stale segment carries a preview of what it says and a live one carries its source.
-//!
-//! ## Bodies are not sent until they are asked for
-//!
-//! The largest sidecar here is 609 KB across 1128 translations. Sending all of it to draw a list
-//! of a hundred and forty rows spends the whole file to render the first line of each. [outline]
-//! carries what a row needs and [detail] carries one segment's translations, which is the
-//! granularity the interface opens at anyway.
+//! A live segment carries its source paragraph beside its translations; a stale one carries only
+//! a preview, because its paragraph was edited away and nothing here can show a before that no
+//! longer exists. [outline] carries what a row needs and [detail] carries one segment's
+//! translations, fetched only when it is opened: see spec/architecture/cms.md, "Bodies are
+//! fetched when they are opened, in two steps" for the size that makes that split worth it.
 
 use serde::Serialize;
 use std::path::Path;

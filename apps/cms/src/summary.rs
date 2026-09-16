@@ -261,11 +261,6 @@ fn body_of(source: &str) -> &str {
 	}
 }
 
-/// A string field from the frontmatter block, if the file opens with one.
-///
-/// One parser rather than one per field: the second caller is where a copy starts disagreeing
-/// with the first about what counts as frontmatter, and the answer to that question decides
-/// whether a file is an article at all.
 /// The `lang` an article declares, if it declares one.
 ///
 /// The presence of this key is what separates an article from a page: a page has no language to

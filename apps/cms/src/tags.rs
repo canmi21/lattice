@@ -78,8 +78,8 @@ pub fn path_for(repo: &Path) -> PathBuf {
 /// The tag registry, empty when the repository has none yet.
 ///
 /// A parse failure is an error, never an empty registry: every writer loads the whole file,
-/// edits a few entries and saves it back, so reading a broken one as empty would replace a vocabulary a person curated
-/// with nothing. Same rule as the sidecar and the image manifest.
+/// edits a few entries and saves it back, so reading a broken one as empty would replace a
+/// vocabulary a person curated with nothing. Same rule as the sidecar and the image manifest.
 pub fn load(path: &Path) -> std::io::Result<Registry> {
 	let text = match std::fs::read_to_string(path) {
 		Ok(text) => text,

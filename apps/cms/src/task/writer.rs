@@ -1,21 +1,9 @@
 //! The one place a record store is written.
 //!
 //! Workers compute in parallel and never write. Each finishes an item, hands over the mutation it
-//! produced, and takes the next one. This applies them, one at a time. See spec/tasks.md.
-//!
-//! ## Two different races, two different answers
-//!
-//! **Inside a process**, the queue is the answer: one thread owns the store, so no two workers can
-//! interleave a read-modify-write of the same file however many of them finish at once.
-//!
-//! **Between processes**, the queue says nothing -- the desktop client, a command in a terminal
-//! and eventually the schedule are separate programs with separate queues. So applying takes an
-//! exclusive lock on the record, held for that one apply. This is the lock the design is willing
-//! to block on, because it is held for a file write rather than for a model call: microseconds
-//! against minutes, which is the whole reason contention was moved off the compute path.
-//!
-//! A mutation is flushed as it is applied rather than batched to the end of a run. What is being
-//! protected is paid output, and the write is cheap next to the call that produced the value.
+//! produced, and takes the next one; this applies them, one at a time, taking a short exclusive
+//! lock per record to cover the other processes the in-process queue says nothing about. See
+//! spec/tasks.md, "Computing and writing are separate concerns".
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;

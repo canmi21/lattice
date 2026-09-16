@@ -873,16 +873,11 @@ fn check_assets() -> anyhow::Result<ExitCode> {
 	Ok(ExitCode::SUCCESS)
 }
 
-/// Drop everything in `data/public` that no article asks for.
+/// Drop translations for paragraphs an article no longer has.
 ///
-/// Translations for paragraphs an article no longer has.
-///
-/// A separate sweep from the one below rather than part of it, because they collect unrelated
-/// rubbish and a person asking about one is not asking about the other. `cms gc` on its own still
-/// means exactly what it always meant. See spec/architecture/cms.md.
-///
-/// Scoped by `--article`, which is the same operation the desktop client calls with the rows
-/// somebody ticked.
+/// A separate sweep from `collect_garbage` below rather than part of it: the two collect
+/// unrelated rubbish, and a person asking about one is not asking about the other. Scoped by
+/// `--article`, the same operation the desktop client calls with the rows somebody ticked.
 fn collect_segments(live: bool, scope: &[String]) -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 	let contents = root.join("contents");
@@ -954,14 +949,8 @@ fn collect_garbage(live: bool) -> anyhow::Result<ExitCode> {
 
 /// Collect the licence of everything the deployables are built out of.
 ///
-/// Runs locally and nowhere else. The crate half reads the cargo registry cache, which no CI
-/// container has and no Rust toolchain on the site's build image would populate, so the record
-/// has to be produced here and committed. That settles the npm half too: one command, one
-/// record, one diff to review, rather than half the answer arriving at build time.
-///
-/// A package that declares no licence at all fails the run. It is the one finding that needs a
-/// person -- everything else the record can state plainly -- and a report that scrolls past is
-/// how a dependency with no terms ends up shipped.
+/// See spec/architecture/data.md, "A dependency's licence is an asset like any other" for why
+/// this runs locally rather than in CI, and why a package with no declared licence fails it.
 fn collect_licenses() -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 	let public = root.join("data").join("public");
@@ -1138,20 +1127,13 @@ fn attach_captions(
 	Ok(ExitCode::SUCCESS)
 }
 
-/// The `cms tn` command: which passages a translation will have to keep and explain.
+/// The `cms tn` command: which passages a translation must keep and explain, judged from the
+/// whole article rather than one block at a time -- block-at-a-time missed every note, on four
+/// articles, until this was split out. See spec/i18n.md.
 ///
-/// Whether a passage needs a note depends on whether the rest of the article already carries
-/// its meaning, which is a judgement about the whole text. Translation happens one block at a
-/// time and structurally cannot make it -- four articles produced no notes at all until this
-/// was split out. So a strong model reads the article whole, and what it finds is reviewed
-/// before it steers anything. See spec/i18n.md.
-///
-/// FIXME: this is the operation, not an adapter for one. spec/architecture/cms.md gives every CMS
-/// capability one in-process application operation with a CLI and a GUI adapter over it, and the
-/// work below -- argument handling aside -- belongs beside the module it drives rather than in
-/// this file. It is left here deliberately rather than exempted in the spec: moving it is the
-/// same edit as putting it under the task substrate, and both wait on the desktop shell reaching
-/// the point where it offers this command. Whoever gets there first should do the two together.
+/// FIXME: this is the operation, not an adapter for one, contrary to spec/architecture/cms.md's
+/// one-operation-plus-two-adapters rule. It stays here until the desktop shell offers `cms tn`,
+/// when it moves in the same edit as the GUI adapter.
 fn scan_notes(
 	model: &ModelArgs,
 	force: bool,
@@ -1316,16 +1298,12 @@ fn scan_notes(
 
 /// The `cms embed` command: the crate trees and repository facts the articles show.
 ///
-/// Fetched here rather than in the browser, so a page renders from a checkout with no proxy
-/// route, no request per reader and no key. Both records rebuild from what git already holds,
-/// which is what puts them under `data/build/`. See spec/architecture/cms.md.
+/// See spec/architecture/data.md, "A CI build must be able to build from git alone" for why this
+/// is fetched here rather than in the browser and stored under `data/build/`.
 ///
-/// FIXME: this is the operation, not an adapter for one. spec/architecture/cms.md gives every CMS
-/// capability one in-process application operation with a CLI and a GUI adapter over it, and the
-/// work below -- argument handling aside -- belongs beside the module it drives rather than in
-/// this file. It is left here deliberately rather than exempted in the spec: moving it is the
-/// same edit as putting it under the task substrate, and both wait on the desktop shell reaching
-/// the point where it offers this command. Whoever gets there first should do the two together.
+/// FIXME: this is the operation, not an adapter for one, contrary to spec/architecture/cms.md's
+/// one-operation-plus-two-adapters rule. It stays here until the desktop shell offers `cms
+/// embed`, when it moves in the same edit as the GUI adapter.
 fn fetch_embeds(force: bool) -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 

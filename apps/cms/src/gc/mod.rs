@@ -1,12 +1,7 @@
 //! The `cms gc` command: dropping what no article asks for any more.
 //!
-//! Kept apart from every other command and never run as a side effect. Deriving an image and
-//! deleting one are opposite risks: the first can be repeated until it is right, the second
-//! is only safe because `data/image` still holds the originals and `cms image` can rebuild
-//! from a content id alone. That safety is a property of this repository, not of the
-//! algorithm, so the deletion waits to be asked for. See spec/architecture/data.md.
-//!
-//! Dry by default, like `mise run sync`, and for the same reason: the output is the review.
+//! Dry by default and never run as a side effect. See spec/architecture/data.md, "Deletion is
+//! the one thing that never happens as a side effect".
 //!
 //! **Two sweeps live here and they collect different rubbish.** This module drops published bytes
 //! nothing references; [segments] drops translations for paragraphs an article no longer contains.
@@ -37,14 +32,13 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 	let merged = load(&repo.join(MERGED))?;
 	let wanted = scan.cids();
 
-	// An article names the original; the objects on disk are its variants and its record. The
-	// manifest is the only thing that connects the two, so a cid missing from it keeps nothing
-	// alive -- which is correct, because the site could not resolve it either.
+	// An article names the original; the manifest is the only link from it to the objects on
+	// disk, so a cid missing from the manifest keeps nothing alive -- correct, since the site
+	// could not resolve it either.
 	//
-	// A clip reaches further than a picture. Its rungs and its text tracks are named the same
-	// way, and its poster is a whole asset of its own that no article ever names -- only the
-	// clip's record does. Without following that one hop the poster would be swept on the first
-	// run, and the poster is the entire fallback for a device that cannot decode the video.
+	// A clip's poster is a whole asset the article never names, only the clip's record does --
+	// skipping that hop would sweep it on the first run, though it is the entire fallback for a
+	// device that cannot decode the video.
 	let mut keep: BTreeSet<String> = wanted.clone();
 	let mut posters: Vec<String> = Vec::new();
 	for cid in &wanted {

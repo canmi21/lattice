@@ -1,16 +1,8 @@
 //! The `cms licenses` command: who wrote what the deployables are built out of.
 //!
-//! Two registries answer the same question in different shapes, so the record normalises both
-//! onto Package URL (purl) rather than inventing an identity scheme. purl is what SPDX and
-//! CycloneDX already key an SBOM by, which means its escaping rules and its registry
-//! vocabulary are somebody else's settled problem instead of ours.
-//!
-//! The texts themselves are content addressed and published like any other asset -- the
-//! registry never appears in a path. Package coordinates are not one shape across registries
-//! (`@scope/name`, `group:artifact`, a whole module URL), and encoding them into keys means
-//! inventing an escaping scheme that can never be changed afterwards. Addressing the bytes
-//! sidesteps all of it, and deduplicates for free: several hundred crates ship the same
-//! Apache-2.0 text byte for byte. See spec/architecture/data.md on content addressing.
+//! Two registries answer the same question in different shapes; packages are identified by purl
+//! and the licence texts are content addressed like any other asset. See spec/architecture/data.md,
+//! "A dependency's licence is an asset like any other" for why.
 
 pub mod cargo;
 pub mod npm;

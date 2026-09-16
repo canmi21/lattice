@@ -1,14 +1,9 @@
 //! Translations for paragraphs an article no longer contains.
 //!
-//! A segment id comes from the paragraph's canonical form, so editing a paragraph gives it a new
-//! id. The next translation run fills that new id, and the old one keeps its entries -- one per
-//! locale, each with the provider, model and token count that produced it. Nothing reads them
-//! again and nothing removed them, so a file grew by eight entries every time a typo was fixed.
-//!
-//! They were kept on purpose: [i18n::store::orphans] says a corrected typo leaves a translation
-//! that is still almost right and worth reading before it goes. That remains true and is exactly
-//! why this is a separate, asked-for sweep rather than something a translation run does on its way
-//! past -- the same reasoning the asset sweep next door is built on.
+//! A segment id comes from the paragraph's canonical form, so an edit gives it a new id and the
+//! old one's entries are never read again -- a file grew by eight of them per typo fix before
+//! this existed. Kept on purpose rather than dropped by the translation run itself: see
+//! [i18n::store::orphans] for why, and why this is instead a separate, asked-for sweep.
 //!
 //! **Scoped, unlike the asset sweep.** The command line asks about the whole corpus; the desktop
 //! client asks about the article somebody is looking at, or the several they ticked. The operation

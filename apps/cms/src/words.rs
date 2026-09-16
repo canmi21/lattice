@@ -1,44 +1,15 @@
 //! How much writing a piece of text is, counted the way a word processor counts.
 //!
-//! The rule is not this repository's and should not be. Word, WPS and Google Docs agree on one
-//! convention -- a run of Han or kana counts once per character, everything else once per
-//! whitespace-delimited run -- and "字数" in Chinese means exactly that hybrid, not a character
-//! count. A rule many people already recognise beats a more defensible one nobody does, so the
-//! counting is `words-count`'s and only the classification below is ours.
+//! The convention -- Han and kana count once per character, everything else once per
+//! whitespace-delimited run -- is not ours to invent. `words-count` implements it and won an
+//! empirical run-off against four other crates against this file's own test table, right on 8 of
+//! 9 cases where the dictionary segmenters and byte-range scripts each got a script wrong. Only
+//! the Hangul correction below is ours.
 //!
-//! ## What was measured before this crate was picked
-//!
-//! Five candidates, one table of cases, run rather than read about. Every one of them describes
-//! itself the same way and they disagree, which is why the table at the bottom of this file is
-//! the specification and this paragraph is only the reason for it.
-//!
-//! - `words-count` (this one) was right on 8 of 9, missing only Korean.
-//! - `unicode-segmentation` splits hyphens and gives `state-of-the-art` four words, and counts
-//!   katakana as one; UAX #29 has no dictionary, which makes Han right by accident and kana wrong.
-//! - npm `word-count`, the most downloaded of any of them, tests `charCodeAt(0) >= 0x4e00` --
-//!   and hiragana is U+3040, CJK extension A is U+3400, katakana is not in its pattern at all --
-//!   so a Japanese sentence comes back as one word or zero.
-//! - npm `words-count` handles every script and shreds identifiers: `AV1` is two, `1080p` is two,
-//!   `av01.0.04M.08,mp4a.40.2` is eight. Unusable for a site whose prose is full of them.
-//! - `Intl.Segmenter` and `charabia` do dictionary segmentation, which is linguistically right and
-//!   conventionally wrong: 爱情公寓是一部情景喜剧 comes back as six words where every word
-//!   processor on earth says eleven.
-//!
-//! ## Hangul is corrected before the crate sees it, and that is the whole of what we add
-//!
-//! Korean is written with spaces between words, so a word processor counts it like Latin and not
-//! like Han -- Word does nothing special for Korean at all. `unicode_blocks::is_cjk` disagrees and
-//! answers true for Hangul, and `words-count` offers no way to say otherwise, so its Korean count
-//! is roughly three times what it should be: measured on this corpus, 49,918 against 17,410.
-//!
-//! The fix is to change what the crate is looking at rather than to reimplement what it does.
-//! Every Hangul character becomes one ASCII letter before counting, which leaves the spacing --
-//! the only thing that carries meaning here -- exactly where it was. Dashes, punctuation, Han,
-//! kana and Latin runs all stay the crate's problem.
-//!
-//! Searched for the alternative first: there is no Korean word-count crate, because Korean word
-//! counting is not an algorithm. The nearest thing, `charabia`, segments morphemes -- 13 where
-//! 어절 says 7 -- and carries a dictionary of tens of megabytes to do it.
+//! `unicode_blocks::is_cjk` wrongly treats Hangul as Han, which is spaced like Latin, so the raw
+//! crate's Korean count ran roughly three times too high -- 49,918 against a true 17,410 on this
+//! corpus. Every Hangul character becomes one ASCII letter before counting, which leaves the
+//! spacing intact; no Korean word-count crate exists to use instead.
 
 /// Whether a character is Hangul, in every block Korean is actually written in.
 ///

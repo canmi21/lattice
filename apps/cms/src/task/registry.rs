@@ -1,19 +1,10 @@
 //! What is running right now, readable by anything on the machine.
 //!
-//! A run publishes an entry when it starts, updates its progress as it goes, and the entry ceases
-//! to be live the moment the process holding it stops existing. Any other process -- a second
-//! desktop window, a command typed in a terminal, the schedule -- reads the directory to find out
-//! what is already happening before deciding whether to start anything. See spec/tasks.md.
-//!
-//! ## Reading never takes a lock it could keep
-//!
-//! Liveness is tested by trying the entry's lock and immediately releasing it. Succeeding means
-//! the writer is gone. Reading the registry therefore cannot block on a live run, cannot make one
-//! wait, and cannot leave anything behind if the reader dies mid-listing.
-//!
-//! The consequence worth stating: an entry's *contents* can be stale by the age of the last
-//! update, so progress is a hint. Its *existence under a held lock* is not a hint -- that is the
-//! only fact here, and it is the one callers are supposed to branch on.
+//! A run publishes an entry when it starts and updates its progress as it goes; any other process
+//! reads the directory to find out what is already happening before deciding whether to start
+//! anything. Liveness is tested by trying the entry's lock and releasing it, never by a written
+//! status, so reading never blocks on a live run. See spec/tasks.md, "Liveness is a held lock,
+//! never a written status".
 
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};

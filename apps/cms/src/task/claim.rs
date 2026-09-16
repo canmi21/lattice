@@ -1,19 +1,10 @@
 //! Who is already doing this piece of work.
 //!
 //! Claims are per item -- a content id, an article, a (segment, locale) pair -- and atomic across
-//! processes. A claimed item is skipped, never waited for: waiting is an ordering, ordering is the
-//! scheduler's job, and there is no scheduler. See spec/tasks.md.
-//!
-//! ## Why a lock and not a status
-//!
-//! A claim that records "taken" as a written value survives the process that wrote it. `SIGKILL`,
-//! a panic or a power cut then leaves an item claimed forever, every later run skips it, and the
-//! only repair is somebody deleting files and guessing whether that was safe.
-//!
-//! So the file carries the metadata and an exclusive lock on it carries the fact. A claimant holds
-//! the lock for as long as it works; anyone else takes the claim by taking the lock, and taking it
-//! successfully *means* the previous holder is gone. The kernel drops the lock when a process
-//! dies, however it dies, which is why this needs no heartbeat, no timeout and no daemon.
+//! processes. A claimed item is skipped, never waited for. The fact of holding a claim is an
+//! exclusive lock on the file, not a written status, so a claimant killed outright still frees it
+//! the moment the kernel drops the lock. See spec/tasks.md, "Contention is resolved per item, and
+//! the loser does not wait".
 
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
