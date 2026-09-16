@@ -6,13 +6,11 @@
  * without the images being present in the repository or a single request being made to
  * discover their dimensions.
  *
- * A video is resolved here too, by the same id out of the same manifest. What differs is the
- * record's shape rather than the question: `type` is the discriminant, and a video's rungs, its
- * poster and its text tracks come back where a picture's variants and thumbhash would.
- *
- * A diagram is resolved here too. It is not an asset -- an article carries its source inline --
- * but it is the same shape of question, asked of the same kind of record: what does this picture
- * say, in this view's language.
+ * A video comes out of the same manifest by the same id, with `type` as the discriminant: its
+ * rungs, poster and text tracks come back where a picture's variants and thumbhash would. A
+ * diagram is resolved here too and is not an asset at all -- an article carries its source
+ * inline -- but the question is the same one, asked of the same kind of record: what does this
+ * picture say, in this view's language.
  */
 
 import { sourceFingerprint } from './assemble.ts';
@@ -190,10 +188,9 @@ export type DiagramStore = {
 /**
  * What a diagram says, in the view being compiled, by the block that draws it.
  *
- * The argument is the block's source exactly as the article holds it, which is what the caller
- * takes from the node's own position. A fence could have been found by its payload and a
- * directive could not: a directive has no `value` to hand over, only children a parser has
- * already taken apart. One rule for both, and it is the one the CMS writes.
+ * The argument is the block's source exactly as the article holds it. A fence could have been
+ * found by its payload and a directive could not -- a directive has no `value` to hand over,
+ * only children a parser has already taken apart -- so both are keyed the way the CMS writes.
  *
  * The locale is the same choice the asset resolver makes and for the same reason: a diagram on
  * the original view is described beside prose in the article's own language.
@@ -289,13 +286,11 @@ export type ResolvedVideo = {
 	/**
 	 * The constant every sample of this clip is multiplied by, so two clips play at one level.
 	 *
-	 * Computed here rather than in the player because it is arithmetic over two stored numbers and
-	 * has no reason to run in a browser. It is a single gain: every peak and every valley moves by
-	 * the same decibel, so the dynamic range is exactly what it was. Pushing loud parts down to a
-	 * ceiling and leaving quiet parts alone is a limiter, and a limiter is what changes how a
-	 * recording sounds -- this does not do it.
+	 * Computed here rather than in the player: arithmetic over two stored numbers, with no reason
+	 * to run in a browser. `1` for a clip with nothing measured, which plays as it always did.
 	 *
-	 * `1` for a clip with nothing measured, which plays as it always did.
+	 * See spec/architecture/video.md, "Every clip plays at one level, and the peak is what caps
+	 * it", for why one constant gain rather than a limiter.
 	 */
 	gain: number;
 };
@@ -303,14 +298,12 @@ export type ResolvedVideo = {
 /**
  * The level every clip is brought to, in LUFS, and the ceiling no clip may pass, in dBTP.
  *
- * The target is near the loud end of what this corpus holds rather than at the quiet end, because
- * a target below every clip would attenuate all of them and leave the whole site playing under
- * its own headroom. It means a quiet clip is raised rather than only loud ones lowered, which is
- * what the ceiling is for.
- *
  * `-1` dBTP rather than `0`: a sample at full scale is not the loudest a signal reaches, since
  * the waveform between two samples can go higher, and the decoder that reconstructs it clips
  * where the samples did not. A decibel of headroom is the usual allowance.
+ *
+ * See spec/architecture/video.md, "Every clip plays at one level, and the peak is what caps it",
+ * for why the target sits at the loud end of the corpus.
  */
 const LOUDNESS_TARGET = -18;
 const PEAK_CEILING = -1;

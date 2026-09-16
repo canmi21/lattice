@@ -2,14 +2,15 @@
 #MISE description="Check that references resolve and that URLs live in one place"
 """Validate how this repo refers to things: to its own files, and to hosts.
 
-Three checks, all chosen because they are objective rather than stylistic:
+Four checks, all chosen because they are objective rather than stylistic:
 
 1. A markdown link in a doc points at a file that exists.
 2. A `spec/**/*.md` cited from code exists.
-3. No URL the running system resolves is written outside `libs/urls`.
+3. A section name quoted beside such a citation, in code or in another doc, exists in it.
+4. No URL the running system resolves is written outside `libs/urls`.
 
-The first two break silently on rename -- nothing fails, the reader just follows a dead path.
-The third is the enforcement half of the single-source rule in spec/architecture.md, which was
+The first three break silently on rename -- nothing fails, the reader just follows a dead path.
+The last is the enforcement half of the single-source rule in spec/architecture.md, which was
 prose-only until this check existed, and prose-only rules are followed until the first time
 somebody is in a hurry.
 
@@ -59,7 +60,23 @@ SKIP_DIRS = {"data", "contents"}
 SKIP_FILES = {"pnpm-lock.yaml"}
 
 MD_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
-SPEC_REF = re.compile(r"spec/[a-z0-9-]+(?:/[a-z0-9-]+)*\.md")
+DOC_PATH = r"[a-z0-9-]+(?:/[a-z0-9-]+)*\.md"
+SPEC_REF = re.compile(rf"spec/{DOC_PATH}")
+# A citation may name a section: `spec/x.md, "Name"` or `spec/x.md ("Name")`. The quote need not
+# sit against it -- the gap here runs from two characters to forty-six -- but it may not cross a
+# full stop or a semicolon, or a sentence quoting something else is read as this one's anchor.
+ANCHOR = r'[^".;\n]{0,60}?"(?P<anchor>[^"]{6,160})"'
+CODE_ANCHOR = re.compile(rf"(?P<target>spec/{DOC_PATH}){ANCHOR}")
+# A doc cites by markdown link or by bare path, and either may be relative to the citing file.
+DOC_ANCHOR = re.compile(rf"(?:\[[^\]]*\]\()?(?P<target>(?:\.\./)*{DOC_PATH})\)?{ANCHOR}")
+# An anchor may wrap, so continuation lines fold away before matching. `///` and `//!` come
+# before `//`: the shorter alternative matches first and leaves a stray slash inside the quote,
+# which reads as a break in an anchor that is intact.
+COMMENT_WRAP = re.compile(r"\n[ \t]*(?:\*|///|//!|//)?[ \t]*")
+# Prose carries no comment markers, and a `*` opening a line is emphasis rather than one.
+PROSE_WRAP = re.compile(r"\n\s*")
+SPACES = re.compile(r"\s+")
+NOT_WORD = re.compile(r"[^a-z0-9 ]")
 # The backslash ends a match so `url=\"https://a.example\"` inside a Rust format string reads
 # as the address alone, not the address plus its escape.
 URL = re.compile(r"https?://[^\s\"'`)\],;\\]+")
@@ -198,8 +215,8 @@ def pair_graph() -> dict[str, list[str]]:
 	return graph
 
 
-def spec_exists(spec: str) -> bool:
-	"""Whether a cited spec file is reachable from here.
+def locate(spec: str) -> pathlib.Path | None:
+	"""Where a cited spec file is, or None when nothing from here up holds it.
 
 	Rules that follow the author rather than this project live in the workspace above, so a
 	citation of `spec/code.md` resolves one directory up. Walk rather than hardcode the depth:
@@ -210,10 +227,60 @@ def spec_exists(spec: str) -> bool:
 	directory = ROOT
 	while True:
 		if (directory / spec).exists():
-			return True
+			return directory / spec
 		if directory.parent == directory:
-			return False
+			return None
 		directory = directory.parent
+
+
+BODIES: dict[pathlib.Path, str] = {}
+
+
+def flatten(text: str) -> str:
+	"""Text reduced to its lowercase words, every other character becoming a space.
+
+	Applied to the heading's file and to the anchor alike, so a heading spelling a name in
+	backticks or separating a clause with an em dash still matches the citation quoting it.
+	"""
+	return NOT_WORD.sub(" ", SPACES.sub(" ", text).lower()).strip()
+
+
+def flattened(path: pathlib.Path | None) -> str | None:
+	"""One file flattened and kept, or None when it is not there."""
+	if path is None or not path.is_file():
+		return None
+	if path not in BODIES:
+		BODIES[path] = flatten(read(path))
+	return BODIES[path]
+
+
+def dead_anchors() -> tuple[list[str], int]:
+	"""Section names quoted from code or from another doc that the named file no longer holds.
+
+	The citation check one level down: a file existing does not mean the section named inside it
+	still does, so a heading is part of the interface and renaming one has references to update.
+
+	Read raw rather than through `without_code`. An anchor quotes its heading verbatim, inline
+	code and all, and blanking that inside the quote destroys the very text being matched.
+
+	A target that is not there is somebody else's failure -- the checks above -- and in a doc it
+	is usually not a citation at all but one of the invented names the rules use as examples.
+	"""
+	dead: list[str] = []
+	seen = 0
+	sources = [(path, CODE_ANCHOR, COMMENT_WRAP) for path in code_files()]
+	sources += [(doc, DOC_ANCHOR, PROSE_WRAP) for doc in docs()]
+	for path, pattern, wrap in sources:
+		for match in pattern.finditer(wrap.sub(" ", read(path))):
+			cited = match.group("target")
+			target = locate(cited) if cited.startswith("spec/") else path.parent / cited
+			body = flattened(target)
+			if body is None:
+				continue
+			seen += 1
+			if flatten(match.group("anchor")) not in body:
+				dead.append(f'{path.relative_to(ROOT)} -> {cited} ("{match.group("anchor")}")')
+	return dead, seen
 
 
 def main() -> int:
@@ -223,13 +290,16 @@ def main() -> int:
 		print(json.dumps(graph))
 		return 0
 
+	dead, anchors = dead_anchors()
+
 	problems = [f"dead link: {d}" for d in dead_doc_links()]
 	problems += [
 		f"missing spec cited by {cited}: {spec}"
 		for spec, cited in sorted(graph.items())
-		if not spec_exists(spec)
+		if not locate(spec)
 		for cited in [", ".join(cited)]
 	]
+	problems += [f"missing section: {d}" for d in dead]
 	problems += [
 		f"URL outside {URL_HOMES[0]}: {u}  (declare it there, or make it a comment if it is a"
 		f" citation -- see spec/architecture.md)"
@@ -243,7 +313,10 @@ def main() -> int:
 		return 1
 
 	linked = sum(len(v) for v in graph.values())
-	print(f"references OK: {len(docs())} docs, {linked} code -> spec citations, URLs single-sourced")
+	print(
+		f"references OK: {len(docs())} docs, {linked} code -> spec citations, "
+		f"{anchors} quoted sections, URLs single-sourced"
+	)
 	return 0
 
 

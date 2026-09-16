@@ -168,6 +168,7 @@ depends = [
 	"lint",
 	"test",
 	"refs",
+	"comments",
 	"lint-rust",
 	"test-rust",
 ]

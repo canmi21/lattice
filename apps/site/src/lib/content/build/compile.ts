@@ -139,13 +139,12 @@ function styleClasses(attrs: DirectiveAttrs): string[] {
 	// the desktop composition a fourth line with an orphan on it.
 	if ('narrow' in attrs) classes.push('sm:hidden');
 	// A run that takes a line of its own on a narrow screen and stays in the sentence on a wide
-	// one. `display: block` rather than a `<br>`, so the break is a property of the run rather
-	// than an element whose only job is to be hidden half the time.
+	// one. `display: block` rather than a `<br>`: the break is a property of the run, not an
+	// element whose only job is to be hidden half the time.
 	//
-	// Mark the run *before* the break, never the run after it. A `:link` rendered inside another
+	// Mark the run *before* the break, never the one after it. A `:link` nested inside another
 	// directive stops being a top-level node, and the page renders those live for their icons --
-	// nested, they come back as plain anchors, and the accessible new-tab note comes back as the
-	// source file's path.
+	// nested, it comes back a plain anchor with the source file's path as its new-tab note.
 	if ('ownline' in attrs) classes.push('max-sm:block');
 	// Space above a run that has taken a line of its own, so it reads as a new paragraph rather
 	// than a stray break. The number is the gap the bio already puts between its paragraphs;
@@ -158,16 +157,12 @@ function styleClasses(attrs: DirectiveAttrs): string[] {
 /**
  * Number every `:fn` in one top-level node and collect what it says.
  *
- * A separate pass rather than work done while rendering, because a node is rendered more than
- * once -- the page and the feed each ask for it -- and a counter advanced inside the renderer
- * would count the same note twice. The number is written onto the directive so every target
- * afterwards reads the same one instead of deriving it again.
+ * A separate pass, not work done while rendering: a node is rendered more than once and a
+ * counter advanced inside the renderer would count the same note twice.
  *
- * The note's text lives in an attribute, which cannot hold a straight quote: the directive
- * syntax has no escape for one, so the parser drops the whole attribute and leaves a directive
- * that says nothing. That is indistinguishable from a typo at a glance, so it fails the build
- * here rather than rendering an empty marker. `validate.rs` refuses the same shape coming back
- * from a translation.
+ * A straight quote in the note text fails the build here rather than rendering an empty marker.
+ * The directive syntax has no escape for one, so the parser drops the whole attribute and leaves
+ * a directive saying nothing -- indistinguishable from a typo. `validate.rs` refuses it too.
  */
 function numberNotes(node: Nodes, notes: ArticleNote[], source: string): number[] {
 	const numbers: number[] = [];
@@ -482,13 +477,11 @@ function imageOf(node: RootContent): MdImage | null {
  * What an image is described as, preferring what the article said.
  *
  * The manifest's description belongs to the picture and is written once, so a directive that
- * says nothing still gets one -- including articles written before any description existed,
- * which pick it up on the next build. Writing `alt` overrides it for one page's context, and
- * an explicit `alt=""` means decorative and is honoured.
+ * says nothing still gets one -- including articles written before any description existed.
+ * Writing `alt` overrides it for one page's context, and `alt=""` means decorative.
  *
- * There used to be a second rule here for markdown images, which cannot express "decorative"
- * at all: `![](x)` parses to an empty alt meaning only "unwritten". Local images all go
- * through the directive now, so that distinction has nothing left to describe.
+ * Markdown images had a second rule here, because `![](x)` parses to an empty alt meaning only
+ * "unwritten" and cannot express "decorative" at all. They all go through the directive now.
  */
 function altFor(written: string | null | undefined, resolved: Resolved | null): string {
 	if (written != null) return written;
@@ -609,14 +602,12 @@ export type CompileContext = {
 /**
  * The frontmatter keys `cms i18n` translates.
  *
- * A copy: the authority is `TRANSLATABLE_FRONTMATTER` in apps/cms/src/i18n/segment.rs, which is
- * what actually decides which keys become segments. It is repeated here rather than derived
- * because a site-only CI build has no Rust toolchain to ask -- see spec/architecture/data.md --
- * and held to the original by a test rather than by anybody remembering.
+ * A copy. The authority is `TRANSLATABLE_FRONTMATTER` in apps/cms/src/i18n/segment.rs; it is
+ * repeated because a site-only CI build has no Rust toolchain to ask -- see
+ * spec/architecture/data.md -- and held to the original by a test rather than by memory.
  *
- * What drift would cost: this list is what rejects a translator's note in a key that has nowhere
- * to render one. A key Rust translates and this list omits gets translated with the note left in
- * it, and the marker reaches the page as text.
+ * What drift costs: a key Rust translates and this list omits gets translated with the
+ * translator's note left in it, and the marker reaches the page as text.
  */
 export const TRANSLATABLE_FRONTMATTER = ['title', 'subtitle', 'description'] as const;
 
@@ -973,15 +964,13 @@ export async function compile(
 			continue;
 		}
 
-		// `::video` names an asset exactly as `::image` does -- a content id with an extension the
-		// resolver throws away -- and is looked up by that id in the same manifest. One way to
-		// name an asset, because a second convention for the same job is the thing to avoid; what
-		// differs is the record it finds, and the resolver owns that difference.
+		// `::video` names an asset exactly as `::image` does -- a content id whose extension the
+		// resolver throws away -- and is looked up in the same manifest. One way to name an asset;
+		// what differs is the record it finds, and the resolver owns that difference.
 		//
-		// No `ratio` or `align`. Those exist because a picture is cropped by default, and the
-		// argument for cropping -- making a row of images agree -- has nothing to say about a
-		// clip: the poster and the frames after it are one shape, and holding back part of the
-		// picture for the whole of a playback is not presentation, it is a different video.
+		// No `ratio` or `align`. Cropping exists to make a row of images agree, which has nothing
+		// to say about a clip: the poster and the frames after it are one shape, and holding back
+		// part of the picture for a whole playback is a different video, not a presentation of it.
 		if (node.type === 'leafDirective' && node.name === 'video') {
 			const source = sourceFile ?? url;
 			const attrs = (node.attributes ?? {}) as DirectiveAttrs;

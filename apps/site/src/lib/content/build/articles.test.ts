@@ -26,9 +26,8 @@ function paths() {
 /**
  * One build of the real corpus, shared by everything below that needs the published set.
  *
- * Compiling every article is the expensive part of this file, and it was being paid three times:
- * once here and twice by the draft suite. Two of those asked the same question. The remaining
- * second build is the one that cannot be shared, because its whole point is the other policy.
+ * Compiling every article is the expensive part of this file and was being paid three times.
+ * The one remaining second build cannot be shared, because its whole point is the other policy.
  *
  * `beforeAll` carries its own timeout because the default is five seconds and this is a real
  * compile of the whole corpus -- it fits alone and does not fit beside a Rust build, which is

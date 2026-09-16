@@ -7,21 +7,12 @@ import type { AssetManifest } from './assets.ts';
 /**
  * The inline placeholders, all of them, encoded once at build time.
  *
- * Lives under `server/` because it reaches for `node:fs` to load its codec, which no browser
- * bundle may contain. What it produces is inlined into prerendered HTML, so a reader receives
- * the result and never this.
+ * Under `server/` because the codec arrives through `node:fs`, which no browser bundle may
+ * contain. Every hash in the manifest is encoded in one pass rather than on demand, which is
+ * what lets `resolve` in $lib/assets stay synchronous inside a markdown walk.
  *
- * Every hash in the manifest is encoded in one build pass rather than on demand. The codec is
- * asynchronous and `resolve` in $lib/assets is called from the middle of a markdown walk;
- * doing this before compilation lets that stay synchronous, instead of turning every caller
- * async to await a lookup that was going to be needed anyway.
- *
- * The manifest carries only the thumbhash. A decoded copy used to sit beside it -- the same
- * picture written twice -- and deriving it here keeps one source of truth, but only because
- * the derivation turned out to be as good as what it replaced. thumbhash's own
- * `thumbHashToDataURL` writes an uncompressed PNG at 3.3KB, twenty times the 167-byte WebP it
- * stood in for; the same pixels through libwebp come to 144 bytes. A derivation being
- * possible is not the same as it being free, and this one had to be measured.
+ * The manifest carries only the thumbhash. The decoded copy this replaced was a 167-byte WebP
+ * and deriving it here comes to 144 -- see spec/architecture/video.md for why WebP at all.
  */
 /**
  * Quality for an image roughly 32 pixels on its long edge.
