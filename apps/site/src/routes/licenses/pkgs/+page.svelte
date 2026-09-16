@@ -1,7 +1,16 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, easing, family, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
+	import {
+		border,
+		duration,
+		easing,
+		family,
+		line,
+		radius,
+		text,
+		transition,
+	} from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the registry directory. Every colour is the token variable `libs/tokens`

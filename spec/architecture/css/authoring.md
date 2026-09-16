@@ -35,7 +35,10 @@ A Svelte `<style>` block cannot compose a StyleX style. CSS has no mixin, Svelte
 `composes`, and writing one emits it verbatim as a declaration the browser discards:
 
 ```css
-.card-composed.svelte-16dnk2j{composes:visual;padding:3px}
+.card-composed.svelte-16dnk2j {
+	composes: visual;
+	padding: 3px;
+}
 ```
 
 No build error, no console warning, no styles. The structural reason is the build order in
@@ -67,7 +70,7 @@ repository can know, which is the argument for treating it as neither settled no
 recorded in [todo.md](../../todo.md) and no migration has relied on it.
 
 What stands regardless is the narrower fact. `stylex.when.*` takes an attribute selector only to
-describe an *ancestor* or a *sibling*, so a component varying on **its own** data attribute has no
+describe an _ancestor_ or a _sibling_, so a component varying on **its own** data attribute has no
 supported spelling, and every migration that met one left the rule in the selector layer.
 
 **The general lesson is not about attributes.** This section first said such a rule had no spelling

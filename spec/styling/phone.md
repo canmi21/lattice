@@ -260,16 +260,16 @@ German and promoted Spanish, whose `Resumen` has nothing shorter behind it, so t
 goes from 8px to 6px below `sm`. Measured on a 390pt iPhone, where the column is 342px rather than
 354 and everything is 12px tighter than the first device suggested:
 
-| view       | slack at 342px | slack at 354px |
-| ---------- | -------------- | -------------- |
-| Spanish    | ~0             | 9              |
-| original   | ~0             | 12             |
-| English    | 2              | 14             |
-| French     | 6              | 18             |
-| German     | 13             | 25             |
-| Chinese    | 31             | 43             |
-| Japanese   | 46             | 58             |
-| Korean     | 54             | 66             |
+| view     | slack at 342px | slack at 354px |
+| -------- | -------------- | -------------- |
+| Spanish  | ~0             | 9              |
+| original | ~0             | 12             |
+| English  | 2              | 14             |
+| French   | 6              | 18             |
+| German   | 13             | 25             |
+| Chinese  | 31             | 43             |
+| Japanese | 46             | 58             |
+| Korean   | 54             | 66             |
 
 All nine views are one line on both, which is the shape this row now has everywhere rather than
 one it reaches in some languages. Spanish and the original view are the ones with nothing to

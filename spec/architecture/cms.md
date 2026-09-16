@@ -312,7 +312,7 @@ reporting and nothing to refuse a second copy of beyond the lock it already take
 menu entry today, called synchronously, and the listing is read back afterwards because the numbers
 it changed are on screen. Drawing a progress bar for it would describe something nobody can watch.
 
-An action that *is* a task stays drawn and visibly inert until the operation moves below both
+An action that _is_ a task stays drawn and visibly inert until the operation moves below both
 shells -- the affordance exists so the page has its final shape, and it is unmistakably not
 pressable so it cannot be the half of a run mechanism that lies.
 
@@ -359,7 +359,7 @@ contrast as well had left the controls quieter than the rows they act on.
 **A control that shows a state offers the way out of it.** When a column heading takes the
 ordering, the button above stops naming a menu choice and says the ordering came from elsewhere --
 which leaves no route back except pressing that heading twice more, a route somebody has to
-already know. Under the pointer it becomes the reset instead, and the press then *is* the reset:
+already know. Under the pointer it becomes the reset instead, and the press then _is_ the reset:
 opening the menu underneath would answer a different question from the one the button is currently
 asking.
 
@@ -449,7 +449,7 @@ exists anywhere. **No before-and-after is possible and none is offered** -- an i
 one would be inventing the before, and reaching for git to recover it fails the moment articles
 stop living there.
 
-That is also what the page is *for* when nothing is stale: it is where a segment's full content
+That is also what the page is _for_ when nothing is stale: it is where a segment's full content
 can be found. It is the only surface that can answer "what does this article actually say in
 Korean", and it does.
 

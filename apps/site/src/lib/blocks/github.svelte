@@ -125,7 +125,8 @@
 	class="repo-card group focus-ring {stylex.attrs(surfaces.interactive, styles.card).class}"
 >
 	<div class="header">
-		<span class="name {stylex.attrs(styles.name).class}">{title || repositoryName(displayName)}</span
+		<span class="name {stylex.attrs(styles.name).class}"
+			>{title || repositoryName(displayName)}</span
 		>
 		<span class="fullname {stylex.attrs(styles.fullname).class}">{repo.full_name}</span>
 	</div>

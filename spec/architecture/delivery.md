@@ -81,7 +81,7 @@ the reader is already looking at. So the first picture gets `loading="eager"` an
 
 **One, not the first few.** Priority is a ranking, and a ranking with no bottom has no top: hinting
 three pictures mostly reorders them against each other. The hint is worth having because it says
-*this one before everything else on the page*, which stops being true the moment it is shared.
+_this one before everything else on the page_, which stops being true the moment it is shared.
 
 **It is withheld unless the picture is near the top.** Counted in blocks -- the first three --
 because blocks are what exists at build time. Pixels would be the right unit and are not available:

@@ -219,12 +219,14 @@ it('declares the same layout apps/cms writes', () => {
 		fileURLToPath(new URL('../../../apps/cms/src/image/store.rs', import.meta.url).href),
 		'utf8',
 	);
-	const declaration = /pub const OBJECTS: \[\(&str, bool, &str\); \d+\] = \[([\s\S]*?)\];/.exec(source);
+	const declaration = /pub const OBJECTS: \[\(&str, bool, &str\); \d+\] = \[([\s\S]*?)\];/.exec(
+		source,
+	);
 	expect(declaration, 'OBJECTS moved or changed shape in apps/cms').not.toBeNull();
 
-	const authoritative = [...declaration![1]!.matchAll(/\("([a-z0-9]+)",\s*(true|false),\s*"([a-z0-9]*)"\)/g)].map(
-		([, prefix, fanned, extension]) => [prefix, fanned === 'true', extension || null] as const,
-	);
+	const authoritative = [
+		...declaration![1]!.matchAll(/\("([a-z0-9]+)",\s*(true|false),\s*"([a-z0-9]*)"\)/g),
+	].map(([, prefix, fanned, extension]) => [prefix, fanned === 'true', extension || null] as const);
 	const here = Object.entries(OBJECTS).map(
 		([prefix, kind]) => [prefix, kind.fanned, kind.extension] as const,
 	);

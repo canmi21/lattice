@@ -397,7 +397,8 @@ function groupEntries(name: string, articles: Article[]): Action[] {
 	const ticked = articles.filter((article) => selected.has(article.path));
 	const considered = ticked.length > 0 ? ticked : articles;
 	const covered = considered.filter(sweepable);
-	const scope = ticked.length > 0 ? `${considered.length} ticked` : `${considered.length} in ${name}`;
+	const scope =
+		ticked.length > 0 ? `${considered.length} ticked` : `${considered.length} in ${name}`;
 	const segments = covered.reduce((total, article) => total + article.orphans, 0);
 
 	// Short enough not to wrap, and it still says which of the two things it would do. What it
@@ -584,9 +585,7 @@ function draw(): void {
 			else existing.push(article);
 		}
 		for (const [section, articles] of sections) {
-			list.appendChild(
-				renderGroup(`section:${section}`, label(section), 'section', articles),
-			);
+			list.appendChild(renderGroup(`section:${section}`, label(section), 'section', articles));
 		}
 		return;
 	}

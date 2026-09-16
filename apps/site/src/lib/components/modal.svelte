@@ -104,7 +104,8 @@
 						{@render icon()}
 					</span>
 				{/if}
-				<Dialog.Title class="min-w-0 flex-1 {stylex.attrs(surfaces.heading).class}">{title}</Dialog.Title
+				<Dialog.Title class="min-w-0 flex-1 {stylex.attrs(surfaces.heading).class}"
+					>{title}</Dialog.Title
 				>
 				<Dialog.Close
 					aria-label={closeLabel}

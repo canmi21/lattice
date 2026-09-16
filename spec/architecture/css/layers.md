@@ -11,9 +11,9 @@ recorded there.
 
 | Layer            | Owns                                                  | Written in            |
 | ---------------- | ----------------------------------------------------- | --------------------- |
-| Tailwind         | layout: flow, box, spacing, alignment, size, position  | the markup            |
-| StyleX           | visual: colour, type, border, radius, shadow, motion   | TypeScript            |
-| Svelte `<style>` | the selector: whatever the other two cannot address    | the component's block |
+| Tailwind         | layout: flow, box, spacing, alignment, size, position | the markup            |
+| StyleX           | visual: colour, type, border, radius, shadow, motion  | TypeScript            |
+| Svelte `<style>` | the selector: whatever the other two cannot address   | the component's block |
 
 **The lists are examples; the test is the rule.** Ask what the declaration decides. If it decides
 where the element is or how large, it is layout and stays in the markup. If it decides how the
@@ -64,11 +64,11 @@ capabilities, and a declaration usually has exactly one place it can go.
 
 Measured in Chrome against a build and a dev server, both giving the same answer:
 
-| On one element                | Wins             |
-| ----------------------------- | ---------------- |
-| Svelte scoped against StyleX  | Svelte scoped    |
-| Svelte scoped against Tailwind | Svelte scoped   |
-| StyleX against Tailwind       | StyleX           |
+| On one element                 | Wins          |
+| ------------------------------ | ------------- |
+| Svelte scoped against StyleX   | Svelte scoped |
+| Svelte scoped against Tailwind | Svelte scoped |
+| StyleX against Tailwind        | StyleX        |
 
 The mechanism is cascade layers and the order they are declared in. Tailwind emits `theme`, `base`,
 `components` and `utilities`; StyleX appends `priority1`, `priority2` and `priority3` after them in
@@ -128,7 +128,7 @@ In a browser the three layers are readable off a single element, which is the fa
 "where does this come from" without opening a file. On the homepage's `<main>`:
 
 ```html
-<main class="min-h-screen page__styles.page x1jkd24u xiuzu7u x1winvzj x87ps6o">
+<main class="min-h-screen page__styles.page x1jkd24u xiuzu7u x1winvzj x87ps6o"></main>
 ```
 
 `min-h-screen` is Tailwind and says where the element is and how large. The `x`-prefixed names are
@@ -181,7 +181,7 @@ plugins: [
 		}),
 		enforce: undefined,
 	},
-]
+];
 ```
 
 This snippet used to spell the call `stylex.vite(...)`, and that is a correction: there is no such
@@ -238,8 +238,10 @@ So the layout declares the layer order first, in a stylesheet carrying no rules,
 after it:
 
 ```html
-<style>@layer properties, theme, base, components, utilities;</style>
-<link rel="stylesheet" href="/virtual:stylex.css">
+<style>
+	@layer properties, theme, base, components, utilities;
+</style>
+<link rel="stylesheet" href="/virtual:stylex.css" />
 ```
 
 Tailwind names those layers itself and re-declaring them changes nothing; what it buys is that

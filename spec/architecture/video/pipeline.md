@@ -12,12 +12,12 @@ AV1 in MP4, `faststart`, and no second encoding of the same picture.
 
 Measured on 2026-09-14, from caniuse:
 
-| format | full support | partial | notes |
-| ------ | -----------: | ------: | ----- |
-| H.264  | 96.68% | 0 | universal, and twice the bytes for the same picture |
-| WebM container | 95.30% | 0.95% | Safari included, minus alpha |
-| AV1    | 79.26% | 15.02% | the partial is Apple, hardware decoders only |
-| HEVC   | 17.51% | 74.81% | eight separate conditions, and a patent pool |
+| format         | full support | partial | notes                                               |
+| -------------- | -----------: | ------: | --------------------------------------------------- |
+| H.264          |       96.68% |       0 | universal, and twice the bytes for the same picture |
+| WebM container |       95.30% |   0.95% | Safari included, minus alpha                        |
+| AV1            |       79.26% |  15.02% | the partial is Apple, hardware decoders only        |
+| HEVC           |       17.51% |  74.81% | eight separate conditions, and a patent pool        |
 
 **The percentages are not comparable and reading them as a ranking is the mistake to avoid.** AV1's
 partial is one condition -- Apple devices with a hardware decoder, and no software fallback behind
@@ -53,7 +53,7 @@ minutes per rung -- and this runs over a whole library on one laptop.
 
 CRF 32, measured on the 25-second 360p clip against the source with libvmaf:
 
-| crf | bytes | vmaf  |
+| crf | bytes |  vmaf |
 | --: | ----: | ----: |
 |  26 | 1.52M | 97.30 |
 |  30 | 1.22M | 96.86 |
@@ -82,7 +82,7 @@ Detection is one line and reliable, so the branch is cheap to add whenever it is
 
 ```js
 const av1 = MediaSource.isTypeSupported('video/mp4; codecs="av01.0.05M.08"');
-const wc  = typeof VideoEncoder !== 'undefined';
+const wc = typeof VideoEncoder !== 'undefined';
 ```
 
 **Hardware decode.** Play it. There is nothing to optimise: a hardware decoder is fixed-function
@@ -118,11 +118,11 @@ wait is short.
 
 **1080p is the dividing line.**
 
-| source | published |
-| ------ | --------- |
-| above 1080p | two rungs: 1080p, and the larger of 2K or 1440p / 4K that it fits; above 4K is forced down to 4K |
-| exactly 1080p | one rung |
-| below 1080p | one rung, at the nearest standard tier *below* it; a source under the lowest tier is its own rung |
+| source        | published                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| above 1080p   | two rungs: 1080p, and the larger of 2K or 1440p / 4K that it fits; above 4K is forced down to 4K  |
+| exactly 1080p | one rung                                                                                          |
+| below 1080p   | one rung, at the nearest standard tier _below_ it; a source under the lowest tier is its own rung |
 
 Tiers are named by height -- 360, 480, 720, 1080, 1440, 2160 -- because a tier has to be one axis or
 a vertical video snaps to the wrong one. Scaling preserves the aspect ratio; nothing is forced onto a
@@ -255,16 +255,15 @@ apart:
 
 | duration | words | frames |
 | -------- | ----: | -----: |
-| 2s | 20 | 4 |
-| 18s | 60 | 8 |
-| 25s | 68 | 9 |
-| 3m | 118 | 15 |
-| 20m | 167 | 21 |
-| cap | 200 | 25 |
+| 2s       |    20 |      4 |
+| 18s      |    60 |      8 |
+| 25s      |    68 |      9 |
+| 3m       |   118 |     15 |
+| 20m      |   167 |     21 |
+| cap      |   200 |     25 |
 
 `words = clamp(60 * log10(1 + seconds / 2), 20, 200)`, then `frames = clamp(words / 8, 4, 25)` from
-the **rounded** word count -- 25s gives 67.8 words raw, and 67.8/8 rounds to 8 where 68/8 rounds to
-9. The table is what a person reads, so the formula follows it.
+the **rounded** word count -- 25s gives 67.8 words raw, and 67.8/8 rounds to 8 where 68/8 rounds to 9. The table is what a person reads, so the formula follows it.
 
 **The frame count is not a budget. It is a sampling probability for short events, and that is why
 the ratio is a floor rather than a ceiling.** Eight frames over eighteen seconds is one every 2.57

@@ -169,8 +169,9 @@
 							{#each quadrantItems as item}
 								<div class="quadrant-box {stylex.attrs(styles.box).class}">
 									<div class="quadrant-item">
-										<span class="quadrant-title {stylex.attrs(surfaces.heading, styles.itemTitle).class}"
-											>{item.title}</span
+										<span
+											class="quadrant-title {stylex.attrs(surfaces.heading, styles.itemTitle)
+												.class}">{item.title}</span
 										>
 										{#if item.note}<span class="quadrant-note {stylex.attrs(styles.itemNote).class}"
 												>{item.note}</span

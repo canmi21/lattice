@@ -253,7 +253,9 @@ function drawRoster(): void {
 		// still the twelfth when it is the only one listed. A stale one has no place to number.
 		const place = row.stale ? '' : String(live.indexOf(row) + 1);
 		line.appendChild(element('span', 'roster-index', place));
-		line.appendChild(element('span', 'roster-text', plain(row.source ?? row.preview ?? '(no text)')));
+		line.appendChild(
+			element('span', 'roster-text', plain(row.source ?? row.preview ?? '(no text)')),
+		);
 		if (row.stale) line.appendChild(element('span', 'roster-tag', 'stale'));
 		line.addEventListener('click', () => select(row.id));
 		roster.appendChild(line);
@@ -393,7 +395,8 @@ function drawStudy(): void {
 
 /** What an empty view means, for the one reading it. */
 function emptyText(): string {
-	if (view === 'stale') return 'Nothing stale. Every translation here belongs to a paragraph the article still has.';
+	if (view === 'stale')
+		return 'Nothing stale. Every translation here belongs to a paragraph the article still has.';
 	if (view === 'missing') {
 		return language === null
 			? 'Every paragraph is translated in every language.'

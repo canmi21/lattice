@@ -147,7 +147,7 @@ belonged would have passed. The spring underline is drawn as a background, and
 `background-size`, `-position` and `-repeat` were absent.
 
 **The shape of the mistake generalises past the names.** The list was written from the properties a
-migration was expected to move, while what a migration is *allowed* to move is decided by the test
+migration was expected to move, while what a migration is _allowed_ to move is decided by the test
 in [layers.md](layers.md) -- which already says of its own lists that the lists are examples
 and the test is the rule. A list and a test drift the first time somebody applies the test
 honestly. So the list is maintained against what the site declares rather than against what anyone
@@ -168,7 +168,7 @@ should not be: they read the variables `sequence.ts` supplies. An audit like tha
 each time, which is the cost of freezing durations so that two runs agree.
 
 **What the gate cannot see, a text comparison mostly can, and it costs seconds.** Three of the holes
-above are holes in a *rendered* comparison and not in the source, so they were closed by comparing
+above are holes in a _rendered_ comparison and not in the source, so they were closed by comparing
 the two trees as text instead. Every property name declared in a component's old scoped block was
 required to have a home in its new one, counting a longhand as covering the shorthand it came from;
 every at-rule condition present before was required to still be present; and every component that

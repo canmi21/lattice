@@ -1,7 +1,7 @@
 # The video player's own surface
 
 The one place on the site whose colours do not answer to the page theme, and the one icon set that
-is not the site's. What the controls *do*, and when each of them is on screen, is
+is not the site's. What the controls _do_, and when each of them is on screen, is
 [architecture/video/player.md](../architecture/video/player.md). Which of the three systems writing CSS is
 entitled to say each decision here, and what happens where two of them say the same thing, is
 [architecture/css/layers.md](../architecture/css/layers.md).
@@ -9,13 +9,13 @@ entitled to say each decision here, and what happens where two of them say the s
 ## The player brings its own colours, because it cannot know what is behind them
 
 Every colour in `colors.css` is a page colour: it has a light value and a dark one because it is
-read against the page, and the reader picks which. A player's controls are read against a *video
-frame* -- a surface this site does not choose, cannot know, and which changes twenty-four times a
+read against the page, and the reader picks which. A player's controls are read against a _video
+frame_ -- a surface this site does not choose, cannot know, and which changes twenty-four times a
 second. A control tinted for a light page disappears over a bright sky; one tinted for a dark page
 disappears over a night interior. So the player does not ask what theme the page is in. It brings
 its own ground, the way every native player does, and `libs/tokens/src/player.css` is deliberately
 not derived from any `--color-*` -- a derivation would re-introduce the theme the file exists to
-escape. What the player *does* take from the page is the focus ring, and only that:
+escape. What the player _does_ take from the page is the focus ring, and only that:
 see [focus.md](focus.md).
 
 The scheme is the one macOS and IINA arrive at from the same constraint. White ink at less than
@@ -40,13 +40,13 @@ disc's own colour, so **more of it is less glass, not more**.
 a rounded translucent rectangle behind each 16px glyph, on a row that already sits on its own
 veil: a plate on a plate, and a bigger visual event than the state it reports. Dim ink to full ink
 is the whole signal, which is what a native player does. The settings menu keeps its wash, because
-there the highlighted surface *is* the row rather than an ornament on it.
+there the highlighted surface _is_ the row rather than an ornament on it.
 
 **The cover's glyph is sized against the disc, not against its own box.** At 1.5rem the triangle
 was 30% of the diameter and the disc read as the bigger object; at 1.875rem it is 38%, which is
 where a native play button sits.
 
-What the player's controls *do*, and when each of them is on screen, is in
+What the player's controls _do_, and when each of them is on screen, is in
 [architecture/video/player.md](../architecture/video/player.md).
 
 ## The player's glyphs are Phosphor, at two weights, plus three this repository draws
@@ -65,7 +65,7 @@ cog -- are openings, and filling them returns a rounded blob that says none of c
 window-within-window or settings. Those take `bold`, the heaviest weight that keeps the hole.
 
 **Three shapes the set does not have live in `apps/site/src/lib/components/video-glyphs/`.**
-Phosphor's `CornersOut` and `CornersIn` mark the corners of a *square*, which is right for a
+Phosphor's `CornersOut` and `CornersIn` mark the corners of a _square_, which is right for a
 generic expand and wrong in a row where captions, picture-in-picture and the frame are all
 landscape; and `FrameCorners` is drawn only in its enter state, with no partner for leaving. So
 the landscape corner pair and the frame's exit state are drawn here, in Phosphor's hand and from

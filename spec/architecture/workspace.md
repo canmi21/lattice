@@ -130,7 +130,7 @@ tree which of the two was the layer. It is `components/picture.svelte` now, and 
 downward.
 
 Nothing was extracted to do it, because there was nothing left to extract. The layer existed; it
-was the filing that hid it. The counterpart is the rule above: had it *not* already been shared,
+was the filing that hid it. The counterpart is the rule above: had it _not_ already been shared,
 moving it first would have been the guess this threshold exists to prevent.
 
 Feature directories compose those primitives and keep their own state, copy and specialised

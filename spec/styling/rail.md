@@ -49,15 +49,15 @@ It stops at 6rem, the same length the article column's top padding stops at. Pas
 both are capped the page has one outer breathing room and spends it twice, down the side and above
 the title. The whole sequence, in pixels:
 
-| window | region | left margin | gap to text | branch |
-| ------ | ------ | ----------- | ----------- | ------ |
+| window | region | left margin | gap to text | branch     |
+| ------ | ------ | ----------- | ----------- | ---------- |
 | 1088   | 208    | 48          | 24          | two-thirds |
 | 1120   | 224    | 59          | 29          | two-thirds |
-| 1200   | 264    | 64          | 64          | hold |
-| 1280   | 304    | 84          | 84          | even |
-| 1360   | 344    | 96          | 112         | capped |
-| 1600   | 464    | 96          | 232         | capped |
-| 2560   | 944    | 96          | 712         | capped |
+| 1200   | 264    | 64          | 64          | hold       |
+| 1280   | 304    | 84          | 84          | even       |
+| 1360   | 344    | 96          | 112         | capped     |
+| 1600   | 464    | 96          | 232         | capped     |
+| 2560   | 944    | 96          | 712         | capped     |
 
 Monotonic and continuous throughout, and every branch of it is one CSS expression.
 
@@ -67,10 +67,10 @@ sideways -- 21px, at the width that switched. A flat hold between them joins the
 `2/3 s` reaches the hold and again where `s/2` does, which makes the margin continuous at every
 width and puts no second breakpoint in a file that already warns about the one it has. Measured:
 
-| window | spare | left margin | gap to text | glyph from window |
-| ------ | ----- | ----------- | ----------- | ----------------- |
-| iPad mini, 1133px  | 95px  | 63px | 32px | 43px |
-| 11-inch iPad, 1210px | 133px | 67px | 66px | 47px |
+| window               | spare | left margin | gap to text | glyph from window |
+| -------------------- | ----- | ----------- | ----------- | ----------------- |
+| iPad mini, 1133px    | 95px  | 63px        | 32px        | 43px              |
+| 11-inch iPad, 1210px | 133px | 67px        | 66px        | 47px              |
 
 The mini takes the two-thirds branch and the 11-inch the even one, which is the pair `--rail-hold`
 was chosen against.
@@ -167,7 +167,7 @@ push every entry right by the width of a decoration.
 
 **Nothing inside narrows it either, which is what makes the width mean one thing.** No element
 between the box and a label's text carries padding, a border or a narrower cap, so `--rail-width`
-is the box *and* the measure a label's text is given: all 136px of it, with the indicator and the
+is the box _and_ the measure a label's text is given: all 136px of it, with the indicator and the
 return glyph outside. That is why `ONE_LINE` above can be read off the declaration rather than
 off the layout, and it is the part worth not re-measuring -- measured at every window width the
 rail is drawn at, the label's content box is 136px on the nose.

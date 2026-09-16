@@ -1,7 +1,16 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, easing, line, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import {
+		border,
+		duration,
+		easing,
+		line,
+		radius,
+		text,
+		transition,
+		weight,
+	} from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
@@ -57,7 +66,10 @@
 				default: 'transform, translate, scale, rotate',
 				'@media (prefers-reduced-motion: reduce)': 'none',
 			},
-			transitionDuration: { default: duration.base, '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionDuration: {
+				default: duration.base,
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
 			transitionTimingFunction: {
 				default: easing.inOut,
 				'@media (prefers-reduced-motion: reduce)': 'ease',
@@ -387,7 +399,9 @@
 
 <div class="codeblock relative">
 	{#if title}
-		<div class="code-frame focus-ring-within overflow-hidden {stylex.attrs(surfaces.blockFrame).class}">
+		<div
+			class="code-frame focus-ring-within overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
+		>
 			{#if canCollapse}
 				<button
 					type="button"
@@ -413,8 +427,12 @@
 				</button>
 			{:else}
 				<div
-					class="px-4 py-2.5 {stylex.attrs(surfaces.uiText, styles.titleFace, styles.titleLabel, styles.divider)
-						.class}"
+					class="px-4 py-2.5 {stylex.attrs(
+						surfaces.uiText,
+						styles.titleFace,
+						styles.titleLabel,
+						styles.divider,
+					).class}"
 				>
 					{title}
 				</div>

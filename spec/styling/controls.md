@@ -17,7 +17,7 @@ in `utilities.css`, which a script asking `matchMedia` for `68rem` would have qu
 
 **This one is decided in script, and the rule about CSS choosing does not apply to it.** A panel is
 not in the document until it is opened, so there is no server render for the choice to survive and
-no first frame to be wrong. What there is instead is a frame to be wrong *after*: the alignment is
+no first frame to be wrong. What there is instead is a frame to be wrong _after_: the alignment is
 settled in the open handler, before the panel mounts, because an effect running after it has
 mounted would position it against one edge and then move it in view.
 

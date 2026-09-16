@@ -189,7 +189,7 @@ there is nothing else, which now means when the element has errored.
 **The blur is made the way every other blur on this site is made.** A small copy of a photograph
 is a small photograph: stretched back across a 668px frame it reads as a picture out of focus,
 which is what the first version of this looked like and is not what the pictures look like. Their
-placeholder is a *thumbhash* decoded back to pixels -- a handful of coefficients with the rest
+placeholder is a _thumbhash_ decoded back to pixels -- a handful of coefficients with the rest
 thrown away -- so it is a field of colour that was never pretending to be in focus. A clip's frame
 is an image like any other, so it takes the same route: sampled, hashed with `rgbaToThumbHash`,
 decoded with `thumbHashToRGBA`, and encoded through the canvas at the build's own quality.
@@ -233,7 +233,7 @@ and a blank frame is a broken page.
 
 **The choice is made before anything is painted, and it takes a script to make it.** There is no
 declarative way: `sessionStorage` is a JavaScript API, and no media query, attribute selector or
-server negotiation can read it. What can be chosen is *when* -- an inline `<head>` script, running
+server negotiation can read it. What can be chosen is _when_ -- an inline `<head>` script, running
 synchronously before the parser reaches the first `<video>`, is as early as any decision about a
 document can be made, and it is the same ground the theme script already stands on. Reading the
 record during hydration instead meant a returning reader saw the thumbhash first and their own
@@ -248,7 +248,7 @@ reader with no record needs nothing to have run.
 **The selector names the frame and not the `<video>`, and a custom property is why.** The ground is
 drawn on the box the element sits in -- it has to be, because a held element is transparent and
 takes its own background with it -- and a custom property inherits downwards and only downwards. A
-`--clip-ground` set on the `<video>` is set on a *descendant* of the one box that reads it, so the
+`--clip-ground` set on the `<video>` is set on a _descendant_ of the one box that reads it, so the
 frame's `var(--clip-ground, <thumbhash>)` took the fallback every time and a returning reader was
 shown a blur of the opening frame after all. Measured on a clip left at two seconds: 999 characters
 of remembered still in the record, the same 999 characters computed as `--clip-ground` on the
@@ -269,7 +269,7 @@ own, which is not the same as trusted -- a value that can put arbitrary text ins
 
 Measured on the box that reads it: the frame's `background-image` sampled at 250.8ms with zero
 paint entries recorded, against a first paint at 272ms, and its value the 1027-character still from
-the record rather than any of the three thumbhashes the server sent. Sampling the *value* rather
+the record rather than any of the three thumbhashes the server sent. Sampling the _value_ rather
 than the box was what let this look right while it was wrong -- `--clip-ground` had always been set
 on time, on an element nothing asked.
 
@@ -287,7 +287,7 @@ not a seek and decodes nothing. Every source is seeked exactly once, tracked rat
 and the count resets when a rung swap calls `load()` and throws the decoded frame away.
 
 **`readyState` does not mean a frame has been painted, and reading it as if it did is what broke
-this.** `HAVE_CURRENT_DATA` and above say the *data* for the current position is available.
+this.** `HAVE_CURRENT_DATA` and above say the _data_ for the current position is available.
 Measured on a clip sitting at `readyState` 4 -- enough data for the whole thing -- with
 `totalVideoFrames` still 0: nothing had been decoded, so the guard skipped the seek, so nothing
 ever was. The poster came off an element painting nothing and what showed through was the
@@ -375,6 +375,6 @@ without `!important`.
 **A fallback nobody can reach is a fallback nobody has tested.** This one shipped broken -- both
 copies stacked -- and the markup, the served HTML and the scripting-enabled half all looked
 correct, because none of them is the thing that was wrong. The condition `<noscript>` is defined
-against is *scripting disabled*, and a sandboxed iframe without `allow-scripts` is exactly that:
+against is _scripting disabled_, and a sandboxed iframe without `allow-scripts` is exactly that:
 give it `allow-same-origin` as well and the result can be read back. Six `<video>` elements where
 three were wanted, and then three.

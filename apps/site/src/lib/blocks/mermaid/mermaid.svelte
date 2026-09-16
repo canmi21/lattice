@@ -105,7 +105,10 @@
 	});
 </script>
 
-<div bind:this={root} class="mermaid-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}">
+<div
+	bind:this={root}
+	class="mermaid-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
+>
 	<div
 		class="mermaid-stage focus-ring-within relative overflow-x-auto p-5 {stylex.attrs(styles.stage)
 			.class}"
@@ -120,11 +123,7 @@
 
 			     Mermaid sanitises tracked diagram source in strict mode before returning this SVG.
 			     Stated rather than suppressed; see spec/lint-format.md. -->
-			<div
-				class="mermaid-result"
-				role={description ? 'img' : undefined}
-				aria-label={description}
-			>
+			<div class="mermaid-result" role={description ? 'img' : undefined} aria-label={description}>
 				{@html svg}
 			</div>
 		{:else if failed}

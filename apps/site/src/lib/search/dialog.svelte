@@ -382,7 +382,12 @@
 							<li class="mb-1 last:mb-0">
 								<!-- The title once, for the whole group. Repeating it on every section spent a line
 								     each time telling the reader something the first line already told them. -->
-								<p class="truncate px-2.5 pt-2 pb-1 {stylex.attrs(surfaces.heading, styles.groupTitle).class}">
+								<p
+									class="truncate px-2.5 pt-2 pb-1 {stylex.attrs(
+										surfaces.heading,
+										styles.groupTitle,
+									).class}"
+								>
 									{group.title}
 								</p>
 								<ul>
@@ -404,9 +409,7 @@
 														{@html markup(hit._highlightResult?.heading?.value, hit.heading)}
 													</span>
 												{/if}
-												<span
-													class="block line-clamp-2 {stylex.attrs(styles.hitSnippet).class}"
-												>
+												<span class="block line-clamp-2 {stylex.attrs(styles.hitSnippet).class}">
 													{@html markup(hit._snippetResult?.text?.value, hit.text.slice(0, 160))}
 												</span>
 											</button>

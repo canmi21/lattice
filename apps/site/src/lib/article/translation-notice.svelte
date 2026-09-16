@@ -101,7 +101,10 @@
 
 	const unavailableShort = $derived(
 		fillSlot(
-			m['notice.unavailable.short']({ language: requestedLanguage, source: SLOT }, { locale: code }),
+			m['notice.unavailable.short'](
+				{ language: requestedLanguage, source: SLOT },
+				{ locale: code },
+			),
 			SLOT,
 			shown,
 		),
@@ -177,11 +180,7 @@
 			</ParaglideMessage>
 		</p>
 		<p class="sm:hidden">
-			<ParaglideMessage
-				message={messageShort}
-				inputs={{ language }}
-				options={{ locale: code }}
-			>
+			<ParaglideMessage message={messageShort} inputs={{ language }} options={{ locale: code }}>
 				{#snippet link({ children })}
 					<a
 						href={originalHref}

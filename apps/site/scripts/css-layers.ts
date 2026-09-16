@@ -160,8 +160,8 @@ function main(): number {
 		const { order, selectors } = place(readFileSync(path, 'utf8'));
 
 		const tailwind = order.indexOf(TAILWIND_UTILITIES);
-		const stylex = order.filter(
-			(layer) => (selectors.get(layer) ?? []).some((sel) => STYLEX_CLASS.test(sel)),
+		const stylex = order.filter((layer) =>
+			(selectors.get(layer) ?? []).some((sel) => STYLEX_CLASS.test(sel)),
 		);
 		if (tailwind !== -1) sawTailwind = true;
 		if (stylex.length > 0) sawStylex = true;

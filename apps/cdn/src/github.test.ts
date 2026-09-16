@@ -27,7 +27,16 @@ describe('releaseLife', () => {
 	});
 
 	it('holds a moving tag for five minutes and a failure for one', () => {
-		for (const tag of ['nightly', 'weekly', 'monthly', 'stable', 'beta', 'dev', 'canary', 'latest']) {
+		for (const tag of [
+			'nightly',
+			'weekly',
+			'monthly',
+			'stable',
+			'beta',
+			'dev',
+			'canary',
+			'latest',
+		]) {
 			expect(releaseLife(tag)).toEqual({
 				hit: 'public, max-age=300',
 				miss: 'public, max-age=60',

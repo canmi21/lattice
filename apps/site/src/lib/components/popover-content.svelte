@@ -68,7 +68,10 @@
 		{onInteractOutside}
 		{onOpenAutoFocus}
 		{onCloseAutoFocus}
-		class="popover-content z-40 overflow-hidden shadow-sm {stylex.attrs(surfaces.paper, styles.surface).class}"
+		class="popover-content z-40 overflow-hidden shadow-sm {stylex.attrs(
+			surfaces.paper,
+			styles.surface,
+		).class}"
 	>
 		{@render children()}
 	</Popover.Content>

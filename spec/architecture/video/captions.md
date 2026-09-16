@@ -15,7 +15,7 @@ not choose and which changes twenty-four times a second.
 **Whether it breaks is decided here, not in the file.** The files arrive already broken, and they
 are broken for a column narrower than most of the places they are shown: a caption that would sit
 comfortably across two thirds of the picture was cut in half anyway. So the break in the file is
-treated as a suggestion about *where* rather than an instruction to break at all.
+treated as a suggestion about _where_ rather than an instruction to break at all.
 
 One number decides whether. A caption that fits within 90% of the picture's width stays on one
 line however the file was written; above that it breaks. Measured on a 672px picture, all nine
@@ -29,7 +29,7 @@ break that leaves the two lines most nearly equal puts it after "highway," inste
 Punctuation is worth a nudge rather than a veto: a clause boundary is a better place to stop than
 an arbitrary word boundary, but not at the cost of two lines that do not match.
 
-The width measured against is the *picture's*, not the element's: in full screen the bars are part
+The width measured against is the _picture's_, not the element's: in full screen the bars are part
 of the element and no part of what a caption has to fit across. The originals are kept, because
 every recompute rewrites the text and without them the second pass would be measuring the first
 pass's answer.
@@ -50,7 +50,7 @@ fit in it, and the caption goes over the picture instead.
 **A caption on the picture is held off its bottom edge, by an amount taken from the caption rather
 than from the box.** The same gap under a caption twice the size looks half as big, so the
 clearance is 0.8 of the size the caption is set at -- 12.8px under a 16px caption in an article,
-24px under the 30px one a full screen gets. What it replaces is 3.5% of the *element*, which was a
+24px under the 30px one a full screen gets. What it replaces is 3.5% of the _element_, which was a
 different quantity in every shape: 13.2px in an article, 8.8px on a phone, 35px in a
 thousand-pixel window, and exactly nothing where the picture was fitted and the bar too shallow,
 since there the caption was drawn at the picture's own bottom edge and its descenders were cut off
@@ -151,7 +151,7 @@ now agree -- change the window and the track is re-cut, exactly as the rungs are
 
 A cue straddling the window's start clamps to zero rather than being dropped: WebVTT timestamps are
 unsigned, so a negative one loses the cue or the file, and zero is the accurate statement anyway --
-the cue *is* on screen at the instant the clip begins. The end clamps to the clip's length for the
+the cue _is_ on screen at the instant the clip begins. The end clamps to the clip's length for the
 inverse reason.
 
 ### The pairing is checked by arithmetic, and the arithmetic is not about the track

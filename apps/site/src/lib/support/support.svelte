@@ -344,7 +344,11 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action like focus-ring {stylex.attrs(surfaces.interactive, styles.action, styles.likeFigures).class}"
+			class="action like focus-ring {stylex.attrs(
+				surfaces.interactive,
+				styles.action,
+				styles.likeFigures,
+			).class}"
 		>
 			<Heart class="icon" fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
 			{@render copy(formattedCount, m['support.like']({ count: formattedCount }, { locale }))}

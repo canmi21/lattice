@@ -57,11 +57,7 @@ describe('a kind that stores one format', () => {
 	const route = stored('video', 'mp4');
 
 	it('serves the object under its fanned-out key', async () => {
-		const response = await route.request(
-			`/${CID}.mp4`,
-			{},
-			bucketWith([objectKey('video', CID)]),
-		);
+		const response = await route.request(`/${CID}.mp4`, {}, bucketWith([objectKey('video', CID)]));
 		expect(response.status).toBe(200);
 		expect(response.headers.get('Content-Type')).toBe('video/mp4');
 		// What tells a player it may seek. Without it a browser fetches a whole rung to read a

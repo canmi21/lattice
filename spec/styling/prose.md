@@ -79,7 +79,7 @@ unhyphenated column is ragged on every screenful, and hyphenating collapses it. 
 the end of a line and the right edge, as a share of the column, and the count of lines standing
 more than an eighth short:
 
-| view    | gap, filled | gap, hyphenated | loose lines, filled | loose lines, hyphenated | of |
+| view    | gap, filled | gap, hyphenated | loose lines, filled | loose lines, hyphenated | of  |
 | ------- | ----------- | --------------- | ------------------- | ----------------------- | --- |
 | German  | 9.7%        | 4.5%            | 215                 | 7                       | 776 |
 | English | 7.5%        | 4.7%            | 120                 | 23                      | 624 |

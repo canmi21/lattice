@@ -329,15 +329,18 @@ homepage and the tweet block both render. It also asks whether a path's own desc
 the site at all -- `fill-rule` is closer to the artwork than to the interface -- which is the
 question [`libs/svg-canvas`](../libs/svg-canvas/src/style.css) above is already holding.
 
-
 ## A shadow is one utility, two declarations and four variables the visual layer cannot restate
 
 Tailwind 4.3.3 compiles `shadow-lg` to a rule holding two declarations, not one:
 
 ```css
 .shadow-lg {
-	--tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-	box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	--tw-shadow:
+		0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)),
+		0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+	box-shadow:
+		var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow),
+		var(--tw-ring-shadow), var(--tw-shadow);
 }
 ```
 
@@ -496,7 +499,7 @@ of its values in the selector layer.
 The entry above on floating surfaces says Bits UI portals them out of the component tree and they
 are therefore reached with `:global`. Migrating
 [preview.svelte](../apps/site/src/lib/components/preview.svelte) sharpens that: the portal is what
-puts them out of the *selector* layer's reach, and it puts them out of nothing else.
+puts them out of the _selector_ layer's reach, and it puts them out of nothing else.
 
 The component writes `class="preview-ground fixed inset-0 z-50"` on `Dialog.Overlay`, and Bits UI
 puts that string on the element it renders in the portal. Svelte does not add its scoping class to
@@ -750,7 +753,7 @@ Nine style objects, across eight components, write the same three lines against
 keyword or a zero, so a name would replace a word a reader already knows with a word they would
 have to look up, and `0s` is the value least worth a lookup on the site.
 
-The repetition is real anyway, and it is not of a value. What repeats is a *set*: three
+The repetition is real anyway, and it is not of a value. What repeats is a _set_: three
 declarations that say one thing, which is that this element does not animate for a reader who
 asked for that. The three do not always travel together: counted across the same blocks the
 property appears twelve times, the duration fourteen and the curve nine, and

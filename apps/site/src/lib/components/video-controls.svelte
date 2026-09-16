@@ -604,9 +604,10 @@
 		const element = video;
 		if (!element) return;
 		if (element.readyState >= HTMLMediaElement.HAVE_METADATA) element.currentTime = at;
-		else element.addEventListener('loadedmetadata', () => void (element.currentTime = at), {
-			once: true,
-		});
+		else
+			element.addEventListener('loadedmetadata', () => void (element.currentTime = at), {
+				once: true,
+			});
 	}
 
 	/**
@@ -677,7 +678,6 @@
 			document.removeEventListener('visibilitychange', keepOnHide);
 		};
 	});
-
 
 	/**
 	 * Start a preview, silent or not depending on what the reader has already allowed.
@@ -924,9 +924,7 @@
 	 * pointer device", for why it does not also fade on an idle timer the way a native player's
 	 * does.
 	 */
-	const shown = $derived(
-		stage === 'awake' && (hovers ? over || menu : showChrome || menu),
-	);
+	const shown = $derived(stage === 'awake' && (hovers ? over || menu : showChrome || menu));
 	const label = $derived(
 		view.paused ? m['video.play']({}, { locale }) : m['video.pause']({}, { locale }),
 	);
@@ -1020,7 +1018,11 @@
 	Always in the DOM, because the frame has to be copied at `enterpictureinpicture` and a canvas
 	conditional on the state would not exist until after it. Shown only while the state says so.
 -->
-<canvas bind:this={still} class="player-still" class:player-still-shown={view.pip} aria-hidden="true"
+<canvas
+	bind:this={still}
+	class="player-still"
+	class:player-still-shown={view.pip}
+	aria-hidden="true"
 ></canvas>
 
 {#if view.pip}
@@ -1086,8 +1088,16 @@
 
 	<div class="player-row">
 		<button type="button" class="player-button" onclick={toggle} aria-label={label} title={label}>
-			{#if view.paused}<PlayIcon class="player-glyph player-glyph-play focus-ring-inner" weight="fill" aria-hidden="true" />
-			{:else}<PauseIcon class="player-glyph focus-ring-inner" weight="fill" aria-hidden="true" />{/if}
+			{#if view.paused}<PlayIcon
+					class="player-glyph player-glyph-play focus-ring-inner"
+					weight="fill"
+					aria-hidden="true"
+				/>
+			{:else}<PauseIcon
+					class="player-glyph focus-ring-inner"
+					weight="fill"
+					aria-hidden="true"
+				/>{/if}
 		</button>
 
 		<div class="player-volume">
@@ -1098,8 +1108,16 @@
 				aria-label={m['video.mute']({}, { locale })}
 				title={m['video.mute']({}, { locale })}
 			>
-				{#if view.muted || volume === 0}<SpeakerSimpleXIcon class="player-glyph focus-ring-inner" weight="fill" aria-hidden="true" />
-				{:else}<SpeakerHighIcon class="player-glyph focus-ring-inner" weight="fill" aria-hidden="true" />{/if}
+				{#if view.muted || volume === 0}<SpeakerSimpleXIcon
+						class="player-glyph focus-ring-inner"
+						weight="fill"
+						aria-hidden="true"
+					/>
+				{:else}<SpeakerHighIcon
+						class="player-glyph focus-ring-inner"
+						weight="fill"
+						aria-hidden="true"
+					/>{/if}
 			</button>
 			<input
 				type="range"
@@ -1134,7 +1152,11 @@
 				aria-label={m['video.captions']({}, { locale })}
 				title={m['video.captions']({}, { locale })}
 			>
-				<ClosedCaptioningIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />
+				<ClosedCaptioningIcon
+					class="player-glyph focus-ring-inner"
+					weight="bold"
+					aria-hidden="true"
+				/>
 			</button>
 		{/if}
 
@@ -1213,7 +1235,11 @@
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
 			>
-				<PictureInPictureIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />
+				<PictureInPictureIcon
+					class="player-glyph focus-ring-inner"
+					weight="bold"
+					aria-hidden="true"
+				/>
 			</button>
 		{/if}
 
@@ -1233,7 +1259,11 @@
 			     still around it. The other button below leaves the browser behind entirely, and the
 			     two must not look alike -- they are different destinations, not two sizes of one. -->
 			{#if filling}<FrameCornersInIcon class="player-glyph focus-ring-inner" aria-hidden="true" />
-			{:else}<FrameCornersIcon class="player-glyph focus-ring-inner" weight="bold" aria-hidden="true" />{/if}
+			{:else}<FrameCornersIcon
+					class="player-glyph focus-ring-inner"
+					weight="bold"
+					aria-hidden="true"
+				/>{/if}
 		</button>
 
 		<button
@@ -1247,7 +1277,10 @@
 				? m['video.exit-fullscreen']({}, { locale })
 				: m['video.fullscreen']({}, { locale })}
 		>
-			{#if view.fullscreen}<CornersInWideIcon class="player-glyph focus-ring-inner" aria-hidden="true" />
+			{#if view.fullscreen}<CornersInWideIcon
+					class="player-glyph focus-ring-inner"
+					aria-hidden="true"
+				/>
 			{:else}<CornersOutWideIcon class="player-glyph focus-ring-inner" aria-hidden="true" />{/if}
 		</button>
 	</div>

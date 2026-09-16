@@ -245,7 +245,6 @@ export function objectKey(prefix: ObjectPrefix, cid: string, extension?: string)
 	return `${prefix}/${path}.${suffix}`;
 }
 
-
 /**
  * Every extension apps/cms will write an icon under, in the order a lookup should try them.
  *

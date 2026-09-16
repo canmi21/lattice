@@ -35,7 +35,8 @@ opengraph.get('/*', async (c) => {
 	const [asked, fallback] = keys;
 	const range = c.req.header('Range');
 	const found =
-		(asked && (await read(c.env, asked, range))) || (fallback && (await read(c.env, fallback, range)));
+		(asked && (await read(c.env, asked, range))) ||
+		(fallback && (await read(c.env, fallback, range)));
 	if (!found) {
 		return c.json({ error: 'not found' }, 404);
 	}

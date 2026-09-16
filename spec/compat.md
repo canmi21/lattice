@@ -3,10 +3,10 @@
 A browser can fail this site in two unrelated ways, and conflating them is what made the first
 attempt at this wrong. Keep them apart:
 
-| | What decides it | Failure looks like |
-| ---------------- | ------------------------------ | -------------------------------- |
-| **Syntax floor** | `build.target`, i.e. esbuild | The bundle does not parse. Nothing runs, including any code meant to help. |
-| **API floor** | Which built-ins the code calls | The bundle runs and throws when it reaches the missing method. |
+|                  | What decides it                | Failure looks like                                                         |
+| ---------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| **Syntax floor** | `build.target`, i.e. esbuild   | The bundle does not parse. Nothing runs, including any code meant to help. |
+| **API floor**    | Which built-ins the code calls | The bundle runs and throws when it reaches the missing method.             |
 
 **A build target lowers syntax and supplies no runtime built-ins.** That is why a target of
 `chrome111` does not mean "runs on Chrome 111" -- it means "the syntax parses there". Nothing in
@@ -29,12 +29,12 @@ answering it.
 
 Being generous is free here because the import is dynamic. Measured on the built client:
 
-| | |
-| ------------------------------------ | ----------------------------------------- |
-| Check compiled into the eager entry | 174 bytes, dynamic import included |
+|                                       |                                                               |
+| ------------------------------------- | ------------------------------------------------------------- |
+| Check compiled into the eager entry   | 174 bytes, dynamic import included                            |
 | core-js in the entry's static closure | none. 38 eager chunks, 1187.5 KB, and core-js in none of them |
-| What a current browser fetches | nothing |
-| What a browser below the line fetches | 87.1 KB gzipped, once, before hydration |
+| What a current browser fetches        | nothing                                                       |
+| What a browser below the line fetches | 87.1 KB gzipped, once, before hydration                       |
 
 The closure is the measurement that matters and text search cannot give it: `manifest.json`'s
 `imports` are the static edges, `dynamicImports` are not, so grepping chunks for a core-js marker
@@ -110,7 +110,7 @@ Computing the intersection needs a tool that reads call sites, and `usage-global
 information, so a bare `.map()` is charged to `Iterator` as well as to `Array`.
 
 **core-js's version numbers do not mean what they appear to mean.** They record the version from
-which core-js considers a native implementation *fully spec-correct*, not the version that first
+which core-js considers a native implementation _fully spec-correct_, not the version that first
 shipped the feature. Measured against features whose age is not in doubt:
 
 ```

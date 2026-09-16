@@ -23,7 +23,11 @@ function bucketWith(keys: string[]) {
 
 describe('a request spelling jpeg as jpg', () => {
 	it('is redirected permanently to the canonical spelling', async () => {
-		const response = await image.request(`/${CID}.jpg`, {}, bucketWith([objectKey('image', CID, 'avif')]));
+		const response = await image.request(
+			`/${CID}.jpg`,
+			{},
+			bucketWith([objectKey('image', CID, 'avif')]),
+		);
 
 		expect(response.status).toBe(301);
 		expect(response.headers.get('Location')).toBe(`/image/${CID}.jpeg`);
@@ -42,7 +46,11 @@ describe('a request spelling jpeg as jpg', () => {
 
 	/** A flat-colour asset is stored as PNG, so the lookup has to try every stored format. */
 	it('finds the id whichever format it was published as', async () => {
-		const response = await image.request(`/${CID}.jpg`, {}, bucketWith([objectKey('image', CID, 'png')]));
+		const response = await image.request(
+			`/${CID}.jpg`,
+			{},
+			bucketWith([objectKey('image', CID, 'png')]),
+		);
 
 		expect(response.status).toBe(301);
 	});

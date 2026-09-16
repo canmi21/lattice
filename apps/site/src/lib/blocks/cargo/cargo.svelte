@@ -356,8 +356,8 @@
 		</div>
 		<div class="footer-right {stylex.attrs(styles.footerRight).class}">
 			{#if features > 0}<span
-					><span class="muted {stylex.attrs(styles.muted).class}">Features</span> <b>{features}</b
-					></span
+					><span class="muted {stylex.attrs(styles.muted).class}">Features</span>
+					<b>{features}</b></span
 				>{/if}
 			<span
 				><span class="muted {stylex.attrs(styles.muted).class}">Deps</span>

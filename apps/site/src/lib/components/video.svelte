@@ -321,7 +321,7 @@
 		data-clip={src}
 		data-filling={filling || undefined}
 	>
-	<!--
+		<!--
 		`block`, for `picture.svelte`'s reason: a replaced inline box discards the vertical margins
 		its neighbours are spaced with, and Tailwind's reset only says so by default. `crossorigin`
 		is load-bearing, not decoration -- the tracks come from the CDN and a `<track>` that is not
@@ -329,66 +329,70 @@
 		see spec/architecture/video/pipeline.md ("Why 1080 and not 720") for why that rung is not a
 		compromise for the column it covers.
 	-->
-	<!-- svelte-ignore a11y_media_has_caption (the tracks are the record's: there are as many as
+		<!-- svelte-ignore a11y_media_has_caption (the tracks are the record's: there are as many as
 	     the clip has, written by the loop below, and the compiler can only see a static one) -->
-	<video
-		bind:this={el}
-		class="video-surface block w-full"
-		onclick={() => controls?.press()}
-		src={resolved ? undefined : fallback}
-		data-settled={settled || undefined}
-		poster={broken ? poster : undefined}
-		{width}
-		{height}
-		{style}
-		preload="metadata"
-		data-script-only
-		playsinline
-		crossorigin="anonymous"
-		aria-describedby={description ? describedBy : undefined}
-		onerror={onError}
-	>
-		{#each rungs ?? [] as rung (rung.src)}
-			<source src={rung.src} type={rung.type} />
-		{/each}
-		{#each captions ?? [] as track (track.src)}
-			<!-- One per entry, so a clip with no tracks shows none. No `label`: a track is named by
+		<video
+			bind:this={el}
+			class="video-surface block w-full"
+			onclick={() => controls?.press()}
+			src={resolved ? undefined : fallback}
+			data-settled={settled || undefined}
+			poster={broken ? poster : undefined}
+			{width}
+			{height}
+			{style}
+			preload="metadata"
+			data-script-only
+			playsinline
+			crossorigin="anonymous"
+			aria-describedby={description ? describedBy : undefined}
+			onerror={onError}
+		>
+			{#each rungs ?? [] as rung (rung.src)}
+				<source src={rung.src} type={rung.type} />
+			{/each}
+			{#each captions ?? [] as track (track.src)}
+				<!-- One per entry, so a clip with no tracks shows none. No `label`: a track is named by
 			     its kind and its language because that is what the record carries, and a label
 			     invented here would be a name nothing checks. -->
-			<track src={track.src} kind={track.kind} srclang={track.language} />
-		{/each}
-	</video>
+				<track src={track.src} kind={track.kind} srclang={track.language} />
+			{/each}
+		</video>
 
-	<!--
+		<!--
 		The player a reader with no script gets. It used to be the element above, served with
 		`controls` and stripped by `onMount`, which showed the browser's own control bar to every
 		reader for as long as hydration took. See spec/architecture/video/player.md ("The no-script
 		player lives in `<noscript>`") for why that flash is gone, why the inline `<style>` matches on
 		`data-script-only` rather than a class, and why it names the frame as well as the element.
 	-->
-	<noscript>
-		<style>.video-frame video[data-script-only]{display:none}</style>
-		<video
-			class="video-surface block w-full"
-			src={resolved ? undefined : fallback}
-			{poster}
-			{width}
-			{height}
-			style={ratio ? `aspect-ratio:${ratio}` : undefined}
-			preload="metadata"
-			controls
-			playsinline
-			crossorigin="anonymous"
-			aria-describedby={description ? describedBy : undefined}
-		>
-			{#each rungs ?? [] as rung (rung.src)}
-				<source src={rung.src} type={rung.type} />
-			{/each}
-			{#each captions ?? [] as track (track.src)}
-				<track src={track.src} kind={track.kind} srclang={track.language} />
-			{/each}
-		</video>
-	</noscript>
+		<noscript>
+			<style>
+				.video-frame video[data-script-only] {
+					display: none;
+				}
+			</style>
+			<video
+				class="video-surface block w-full"
+				src={resolved ? undefined : fallback}
+				{poster}
+				{width}
+				{height}
+				style={ratio ? `aspect-ratio:${ratio}` : undefined}
+				preload="metadata"
+				controls
+				playsinline
+				crossorigin="anonymous"
+				aria-describedby={description ? describedBy : undefined}
+			>
+				{#each rungs ?? [] as rung (rung.src)}
+					<source src={rung.src} type={rung.type} />
+				{/each}
+				{#each captions ?? [] as track (track.src)}
+					<track src={track.src} kind={track.kind} srclang={track.language} />
+				{/each}
+			</video>
+		</noscript>
 
 		<!--
 			Rendered from the first frame rather than once the elements are bound -- see
@@ -398,7 +402,16 @@
 			that will not decode is a lie.
 		-->
 		{#if support !== 'none'}
-			<Controls bind:this={controls} video={el} {frame} clip={src} {rungs} {gain} bind:filling {locale} />
+			<Controls
+				bind:this={controls}
+				video={el}
+				{frame}
+				clip={src}
+				{rungs}
+				{gain}
+				bind:filling
+				{locale}
+			/>
 		{/if}
 	</div>
 

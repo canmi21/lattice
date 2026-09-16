@@ -20,7 +20,7 @@ layer. Naming 24 values across 33 components left all 187 rules and every declar
 identical.
 
 **What does move is the class name, and expecting otherwise wasted an afternoon.** StyleX hashes an
-atomic class from the declaration *as written*, and under `commonJS` module resolution an imported
+atomic class from the declaration _as written_, and under `commonJS` module resolution an imported
 constant arrives at `stylex.create` as `var(--<consthash>)`, with the value substituted later when
 the stylesheet is assembled. So `.x6i6fhv{border-radius:.375rem}` becomes
 `.x13k99{border-radius:.375rem}`: same declaration, different name. 32 of 187 rules were renamed
@@ -34,7 +34,9 @@ inlines the literal, which would keep the hash. It cannot be used. `evaluateImpo
 own parse with
 
 ```js
-if (!ast || ast.errors || !t.isNode(ast)) { deopt(bindingPath, state, IMPORT_FILE_PARSING_ERROR); }
+if (!ast || ast.errors || !t.isNode(ast)) {
+	deopt(bindingPath, state, IMPORT_FILE_PARSING_ERROR);
+}
 ```
 
 and `@babel/core`'s `parseSync` returns `errors: []` on a clean parse, which is truthy. The guard
@@ -136,7 +138,7 @@ twenty-five minutes of machine time for nothing.
 translator's note -- was defined in the harness but listed on no page, so it had never once been
 opened; it was added before the baseline was taken. The first comparison then reported 3508
 differences in the interaction states, concentrated on the table of contents. A control settled it:
-two captures of *the same, unchanged tree*, differing only in whether the popover was in the page's
+two captures of _the same, unchanged tree_, differing only in whether the popover was in the page's
 surface list, produce those same 3508 differences. So **a state capture is only comparable to
 another taken with an identical surface list.** Each state is a delta from a rest that is
 re-measured before every surface, so adding one surface moves what the states around it record. The

@@ -53,7 +53,10 @@
 		sideOffset={8}
 		collisionPadding={EDGE_PADDING}
 		loop
-		class="menu-content z-30 min-w-36 overflow-hidden shadow-sm {stylex.attrs(surfaces.paper, styles.surface).class}"
+		class="menu-content z-30 min-w-36 overflow-hidden shadow-sm {stylex.attrs(
+			surfaces.paper,
+			styles.surface,
+		).class}"
 	>
 		{@render children()}
 	</DropdownMenu.Content>

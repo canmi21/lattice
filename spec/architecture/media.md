@@ -429,7 +429,7 @@ the ratio reads as "the usual one", not as "leave it alone". It takes `ratio` an
 and the shared helpers name whichever directive rejected the value.
 
 That this was missing was not a decision, it was a place the rule never reached: the default
-lives in the compiler's `::image` branch, while the card only borrowed the *component* -- whose
+lives in the compiler's `::image` branch, while the card only borrowed the _component_ -- whose
 contract is that an absent crop shows the whole image, because `![]()` depends on it. Covers are
 screenshots, so they arrive at whatever shape a window happened to be. The ten in this corpus
 ran from 1.52 to 1.96, which is a column of cards at ten heights.
