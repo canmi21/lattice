@@ -273,13 +273,26 @@ ground underneath instead -- and a blur gives nothing away, because it is the sa
 colours whichever encoder made it. The poster becomes what a poster is: the thing on screen when
 there is nothing else, which now means when the element has errored.
 
+**The blur is made the way every other blur on this site is made.** A small copy of a photograph
+is a small photograph: stretched back across a 668px frame it reads as a picture out of focus,
+which is what the first version of this looked like and is not what the pictures look like. Their
+placeholder is a *thumbhash* decoded back to pixels -- a handful of coefficients with the rest
+thrown away -- so it is a field of colour that was never pretending to be in focus. A clip's frame
+is an image like any other, so it takes the same route: sampled, hashed with `rgbaToThumbHash`,
+decoded with `thumbHashToRGBA`, and encoded through the canvas at the build's own quality.
+Measured as mean neighbour difference, a captured frame reads 3.49 against 0.95 to 11.14 for the
+build's own previews -- the same class of picture, which is the whole claim.
+
+WebP through the canvas rather than `thumbHashToDataURL`, which writes an uncompressed PNG: the
+build measured that at 3.3KB against a 144-byte WebP of the same pixels.
+
 **The blur is a picture of where the clip actually is.** `preview` is the build's thumbhash, which
 is a picture of the first frame: right for a clip nobody has moved, wrong for one the tab left at
-fourteen seconds, and the blurred ground is the only thing on screen for that moment. So a pause
-keeps a thirty-two pixel WebP of the frame it paused on beside the position, about a kilobyte, and
-a reload blurs that instead. It is drawn from a canvas rather than encoded as a thumbhash, which
-reaches the same place without carrying an encoder into the bundle, and it is optional: a tainted
-canvas returns nothing and the thumbhash is there underneath. The clips are served with
+fourteen seconds, and the blurred ground is the only thing on screen for that moment. So the record
+keeps a hash of the frame it was on beside the position, and a reload blurs that instead. It is
+optional: a tainted canvas returns nothing and the poster's own thumbhash is there underneath.
+Tainting matters more than it used to, because reading the pixels back is now part of the route --
+drawing into a tainted canvas is allowed and `getImageData` is not. The clips are served with
 `Access-Control-Allow-Origin` and asked for with `crossorigin`, so in practice it is clean.
 
 **A clip the tab remembers does not show itself until the frame is the right one.** Choosing the

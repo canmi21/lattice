@@ -22,19 +22,27 @@
  * the answer did not, and this paragraph is the difference.
  */
 
+import { rgbaToThumbHash, thumbHashToRGBA } from 'thumbhash';
 import { tab, type Store } from './state';
 
 const KEY = 'video.at';
 
 /**
- * How wide the remembered still is drawn.
+ * How wide the frame is sampled before it is hashed.
  *
- * It is never looked at directly: it is stretched across the frame as a blurred ground while the
- * clip decodes, so what matters is the block of colour and not the detail. Thirty-two pixels of
- * WebP is about a kilobyte, which is the size of a thumbhash's ambition and reached without
- * carrying an encoder into the bundle.
+ * `rgbaToThumbHash` takes at most a hundred pixels on a side and keeps a handful of coefficients,
+ * so this only has to be large enough that each region averages to the right colour.
  */
-const STILL_WIDTH = 32;
+const HASH_WIDTH = 64;
+
+/**
+ * Quality for the encode, which is the build's own number.
+ *
+ * Higher is wasted on a picture that has already discarded everything but an impression of colour
+ * and shape, and this only has to avoid adding artefacts of its own. See
+ * `content/build/placeholder.ts`, where the same number encodes the same kind of picture.
+ */
+const STILL_QUALITY = 0.7;
 
 /**
  * Below this there is nothing worth resuming.
@@ -91,17 +99,41 @@ export function positionOf(storage: Store, clip: string): Place | undefined {
  * `Access-Control-Allow-Origin` and the element asks for them with `crossorigin`, so in practice
  * it is clean -- but a deployment that stopped sending the header would turn every pause into an
  * exception, and the blurred ground has a perfectly good fallback in the poster's own thumbhash.
+ *
+ * Tainting matters more than it used to. Drawing into a tainted canvas is allowed and only
+ * reading back is not, and this now reads back: `getImageData` is how the pixels reach the hash.
+ * The failure is the same either way, which is why it is the same `catch`.
  */
 export function stillOf(element: HTMLVideoElement): string | undefined {
 	const width = element.videoWidth;
 	const height = element.videoHeight;
 	if (!width || !height) return undefined;
 	try {
-		const canvas = document.createElement('canvas');
-		canvas.width = STILL_WIDTH;
-		canvas.height = Math.max(1, Math.round((STILL_WIDTH * height) / width));
-		canvas.getContext('2d')?.drawImage(element, 0, 0, canvas.width, canvas.height);
-		return canvas.toDataURL('image/webp', 0.7);
+		const sampled = document.createElement('canvas');
+		sampled.width = HASH_WIDTH;
+		sampled.height = Math.max(1, Math.round((HASH_WIDTH * height) / width));
+		const source = sampled.getContext('2d');
+		if (!source) return undefined;
+		source.drawImage(element, 0, 0, sampled.width, sampled.height);
+		const pixels = source.getImageData(0, 0, sampled.width, sampled.height);
+
+		// The round trip is the point, not a formality. A small copy of a photograph is a small
+		// photograph: stretched back across a 668px frame it reads as a picture out of focus,
+		// which is exactly what this looked like. A thumbhash keeps a handful of coefficients and
+		// throws the rest away, so what comes back is a field of colour that was never pretending
+		// to be in focus -- and that is the appearance every picture on this site already has,
+		// because they are placed the same way. See `content/build/placeholder.ts`.
+		const hash = rgbaToThumbHash(pixels.width, pixels.height, pixels.data);
+		const { w, h, rgba } = thumbHashToRGBA(hash);
+		const out = document.createElement('canvas');
+		out.width = w;
+		out.height = h;
+		const target = out.getContext('2d');
+		if (!target) return undefined;
+		target.putImageData(new ImageData(new Uint8ClampedArray(rgba), w, h), 0, 0);
+		// WebP through the canvas rather than `thumbHashToDataURL`, which writes an uncompressed
+		// PNG: the build measured that at 3.3KB against a 144-byte WebP of the same pixels.
+		return out.toDataURL('image/webp', STILL_QUALITY);
 	} catch {
 		return undefined;
 	}
