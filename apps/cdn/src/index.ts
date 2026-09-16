@@ -1,7 +1,9 @@
+import { ARTIFACT_TYPES } from '@canmi/artifacts';
 import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { artifact } from './artifact';
 import { BRIEFLY, cacheControl } from './cache';
 import favicon from './favicon';
 import image from './image';
@@ -41,7 +43,7 @@ app.get('/', (c) => {
 //
 // A per-agent block would mean guessing which crawlers parse which decade of the format,
 // forever, over something mild. So the policy stops being clever: everything is fetchable,
-// cached briefly (unlike the week an unhashed path gets) so a correction takes minutes.
+// cached briefly -- like every name without a hash in it -- so a correction takes minutes.
 app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', BRIEFLY);
 	return c.text(robotsTxt({ disallow: [''] }));
@@ -64,6 +66,13 @@ for (const prefix of PLAIN_OBJECTS) {
 	// `satisfies` cannot say this: the table allows a null extension and these entries do not
 	// have one. Asserted rather than assumed, so moving `image` into this list fails here.
 	if (extension) app.route(`/${prefix}`, stored(prefix, extension));
+}
+
+// The published corpus, mounted from `ARTIFACT_TYPES` for the reason the table above is: a type
+// added to @canmi/artifacts must not be able to arrive with no route to reach it by. Each is the
+// same lookup -- the path is already the key -- and none of them names a lifetime.
+for (const type of ARTIFACT_TYPES) {
+	app.route(`/${type}`, artifact(type));
 }
 
 // Everything else is a direct key lookup: fonts, the site's own icons, whatever else lands in

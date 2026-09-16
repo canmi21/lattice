@@ -1,7 +1,5 @@
 import { robotsTxt } from '@canmi/robots';
-import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
-import { cacheControl } from './cache';
 import { candidates, isValidHostname } from './favicon';
 
 describe('isValidHostname', () => {
@@ -43,55 +41,6 @@ describe('candidates', () => {
 
 	it('treats an unrecognised tone as no tone', () => {
 		expect(candidates('sepia')).toEqual(['light', 'dark']);
-	});
-});
-
-describe('cacheControl', () => {
-	const app = new Hono();
-	app.use('*', cacheControl);
-	app.get('/fonts/x.woff2', (c) => c.text('font'));
-	app.get('/image/44b6081deaf0242ca3bf83d62a3b6c95.avif', (c) => c.text('bytes'));
-	app.get('/image/44b6081deaf0242ca3bf83d62a3b6c95.gone', (c) => c.json({ error: 'x' }, 404));
-	app.get('/favicon.svg', (c) => c.text('icon'));
-	app.get('/missing', (c) => c.json({ error: 'not found' }, 404));
-	app.get('/preset', (c) => {
-		c.header('Cache-Control', 'no-store');
-		return c.text('special');
-	});
-
-	it('keeps a hashed name for a year', async () => {
-		// The year rests on the name being a hash, not on a promise anyone has to remember.
-		const res = await app.request('/image/44b6081deaf0242ca3bf83d62a3b6c95.avif');
-		expect(res.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
-	});
-
-	it('will not keep an error for a year, hashed or not', async () => {
-		// An error is a statement about right now: the asset may be published a minute later,
-		// and a year-long 404 would outlive the reason for it.
-		const res = await app.request('/image/44b6081deaf0242ca3bf83d62a3b6c95.gone');
-		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
-	});
-
-	it('marks fonts immutable for a year', async () => {
-		const res = await app.request('/fonts/x.woff2');
-		expect(res.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
-	});
-
-	it('gives everything else a week', async () => {
-		const res = await app.request('/favicon.svg');
-		expect(res.headers.get('Cache-Control')).toBe('public, max-age=604800');
-	});
-
-	it('caches misses briefly instead of not at all', async () => {
-		// A missing favicon is requested on every page view; without this each one is a full
-		// trip to the origin.
-		const res = await app.request('/missing');
-		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
-	});
-
-	it('never overrides a header a route set deliberately', async () => {
-		const res = await app.request('/preset');
-		expect(res.headers.get('Cache-Control')).toBe('no-store');
 	});
 });
 

@@ -1,9 +1,10 @@
+import { HASH_PATTERN } from '@canmi/artifacts';
 import type { MiddlewareHandler } from 'hono';
 
 /** One year. The longest value browsers honour, and what `immutable` implies. */
 const IMMUTABLE = 31_536_000;
 const WEEK = 604_800;
-const ERROR = 300;
+const BRIEF = 300;
 
 /**
  * What a hashed name earns. Exported because a route that caches its own response has to
@@ -11,58 +12,58 @@ const ERROR = 300;
  */
 export const FOREVER = `public, max-age=${IMMUTABLE}, immutable`;
 
-/** Cached briefly rather than not at all; see the reasoning at the use below. */
-export const BRIEFLY = `public, max-age=${ERROR}`;
+/** Everything the year does not reach: a name whose bytes may change, and every error. */
+export const BRIEFLY = `public, max-age=${BRIEF}`;
 
 /**
- * What a name without a hash in it earns.
+ * What an OpenGraph card earns, and nothing else.
  *
- * An OpenGraph card is addressed by the slug of the page it belongs to, so editing a title
- * rewrites the bytes under an unchanged URL. A week is the accepted staleness and is also how
- * long X holds a card, so a shorter value would only cost fetches without shortening the wait.
+ * A card is addressed by the slug of the page it belongs to, so editing a title rewrites the
+ * bytes under an unchanged URL. A week is the accepted staleness and is also how long X holds a
+ * card, so a shorter value would only cost fetches without shortening the wait. That route
+ * stamps it rather than deriving it here, because this middleware reads shapes, not reasons.
  */
 export const WEEKLY = `public, max-age=${WEEK}`;
 
 /**
- * A path whose last segment is a content hash, so its bytes cannot change under that name.
+ * Whether the path's last segment is a content hash, which is the whole basis for the year.
  *
- * This is the whole basis for the year: an observation about the URL rather than a promise
- * anyone has to keep. Changing the bytes changes the hash and therefore the URL.
+ * One predicate over two shapes that are one shape from here: an artifact key,
+ * `/content/{hash}.json`, and an asset the bucket fans out, `/image/{cid}.avif`, both end in
+ * `{hash}.{ext}`. So a new object type inherits its lifetime from the shape of its own name and
+ * costs no cache decision -- see spec/architecture/artifacts.md, "The key says what may cache it".
  */
-const HASHED = /\/[0-9a-f]{32}\.[a-z0-9]+$/;
+export function isContentAddressed(path: string): boolean {
+	const name = path.slice(path.lastIndexOf('/') + 1);
+	const dot = name.indexOf('.');
+	if (dot <= 0) return false;
+	return HASH_PATTERN.test(name.slice(0, dot)) && /^[a-z0-9]+$/.test(name.slice(dot + 1));
+}
 
 /**
- * Paths kept forever without a hash to justify it.
+ * Kept forever without a hash to justify it: a name, plus the promise that earns it.
  *
- * Font filenames carry no content hash, which makes this a promise rather than an
- * observation: re-subsetting a font has to produce a new filename, or everyone holding a
- * cached copy keeps the old one for a year. Inherited from the `_headers` file the old
- * static-assets deployment used. See spec/architecture/delivery.md.
+ * A Latin font filename carries no content hash, so a year on `IoskeleyMono-Regular-latin.woff2`
+ * is a promise that re-subsetting produces a new filename rather than an observation about the
+ * bytes. Inherited from the `_headers` file the old static-assets deployment used. See
+ * spec/architecture/artifacts.md, "There is one exception, and it carries a promise".
  */
-const IMMUTABLE_PREFIXES = ['/fonts/'];
+const PROMISED = ['/fonts/'];
 
 export const cacheControl: MiddlewareHandler = async (c, next) => {
 	await next();
 	if (c.res.headers.has('Cache-Control')) return;
 
 	const path = new URL(c.req.url).pathname;
+	// The long life is conditional on a 2xx. A 404 on a hashed name means the object was not
+	// uploaded or has been swept, and neither is a fact worth keeping for a year -- it is also
+	// why publication uploads everything before it writes the root.
 	const ok = c.res.status >= 200 && c.res.status < 300;
-
-	let value: string;
-	if (ok && (HASHED.test(path) || IMMUTABLE_PREFIXES.some((prefix) => path.startsWith(prefix)))) {
-		value = FOREVER;
-	} else if (ok) {
-		value = `public, max-age=${WEEK}`;
-	} else {
-		// Errors are cached briefly rather than not at all: a missing favicon is requested on
-		// every page view, and without this each one is a full trip to the origin. Briefly,
-		// because unlike a hashed hit an error is a statement about right now -- the asset it
-		// refers to may be published a minute later.
-		value = BRIEFLY;
-	}
+	const forever =
+		ok && (isContentAddressed(path) || PROMISED.some((prefix) => path.startsWith(prefix)));
 
 	const headers = new Headers(c.res.headers);
-	headers.set('Cache-Control', value);
+	headers.set('Cache-Control', forever ? FOREVER : BRIEFLY);
 	c.res = new Response(c.res.body, {
 		status: c.res.status,
 		statusText: c.res.statusText,
