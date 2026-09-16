@@ -645,6 +645,16 @@
 	.video-frame[data-filling='true'],
 	.video-frame:fullscreen {
 		display: grid;
+		/* One cell, the size of the frame, stated rather than left to grow. An `auto` track is
+		   circular for an item asking for `height: 100%`, so the item falls back to its own
+		   `aspect-ratio` and the track takes the height that comes out -- and an `auto` track is
+		   only stretched back to the container where there is free space to stretch it with. A
+		   window taller than the clip therefore worked and a window shorter than it did not:
+		   measured at 1400x420, a 16:9 clip laid out 1400x787.5 and `overflow` cut 367 pixels off
+		   it. Fitting was never the failure; the box the fitting happened in was the wrong shape.
+		   With the track definite the box is the window on both axes, `contain` letterboxes on
+		   whichever axis is loose, and the ratio is untouched either way. */
+		grid-template: 100% / 100%;
 		place-items: center;
 		border: 0;
 		border-radius: 0;
@@ -675,18 +685,21 @@
 
 	/* The clip is fitted, never stretched: it grows until one axis meets the window and stops, so
 	   a 16:9 clip in a 16:9 window fills both and anything else fills one and is bordered by black
-	   on the other. Both axes go back to `auto` so the file's own ratio decides, and the declared
-	   `aspect-ratio` -- which shapes the box in an article -- has no business here, where the box
-	   is the window.
-	   
+	   on the other.
+
 	   The box is the window and `contain` fits the picture inside it, rather than the box being
 	   sized to the picture. `max-width`/`max-height` on an auto-sized element only ever constrain,
-	   never grow: measured, a 640x360 clip stayed 640x360 in the middle of a 1088x1043 window. */
+	   never grow: measured, a 640x360 clip stayed 640x360 in the middle of a 1088x1043 window.
+
+	   Both percentages resolve because the frame states its one cell; see the rule above for what
+	   happens when they cannot. That is also what retires the clip's own `aspect-ratio`: it is
+	   written inline, from the file's dimensions, so no declaration here could ever have outranked
+	   it -- an `aspect-ratio: auto` sat here for exactly that reason and never once applied. A box
+	   with both axes definite ignores the ratio outright, which is the only thing that does. */
 	.video-frame[data-filling='true'] .video-surface,
 	.video-frame:fullscreen .video-surface {
 		width: 100%;
 		height: 100%;
-		aspect-ratio: auto;
 		object-fit: contain;
 	}
 </style>
