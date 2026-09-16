@@ -52,11 +52,10 @@ pub fn path_for(article: &Path) -> PathBuf {
 /// The sidecar beside an article, empty when the article has none yet.
 ///
 /// A missing sidecar is an untranslated article, which is ordinary. A sidecar that does not
-/// parse is not, and must never be read as an empty one: every locale would report as missing,
-/// `cms i18n` would buy the whole article again, and the save at the end would write the result
-/// over the file. This one is meant to be edited by hand -- see spec/i18n.md -- so a stray colon
-/// is the expected way to break it, and the translations and `review` flags underneath are what
-/// a silent overwrite would destroy.
+/// parse must never be read as an empty one: every locale would report missing, `cms i18n`
+/// would buy the whole article again, and the save at the end would overwrite the file. This
+/// one is hand-edited -- see spec/i18n.md, "A sidecar per article, holding every locale" -- so a
+/// stray colon is the expected way to break it, and a silent overwrite is what that destroys.
 pub fn load(path: &Path) -> std::io::Result<Sidecar> {
 	Ok(load_checked(path)?.unwrap_or_else(|| Sidecar { version: VERSION, segments: BTreeMap::new() }))
 }
@@ -90,15 +89,11 @@ pub fn orphans(sidecar: &Sidecar, live: &BTreeMap<String, super::segment::Segmen
 
 /// What still needs translating: every (segment, locale) with no entry, or with an outdated one.
 ///
-/// A recorded note request makes an existing translation outdated, because it was produced
-/// before anyone decided the phrase had to survive. Detected from the text rather than from a
-/// timestamp, which reads the same fact the instruction states instead of keeping a second
-/// record of when each was written and trusting the two to stay in step.
-///
-/// The note is what is looked for, and nothing else. The source wording is deliberately absent
-/// from a finished translation -- it lives inside the note, where a reader meets it by choice --
-/// so requiring the original phrase to appear would fail exactly the translations that got it
-/// right.
+/// A recorded note request makes an existing translation outdated. Detected by whether the note
+/// itself is present in the text rather than by a timestamp, which reads the fact the instruction
+/// states instead of trusting a second record to stay in step with it -- requiring the source
+/// phrase too would fail exactly the translations that correctly left it out of the prose. See
+/// spec/i18n.md, "Same-language views localise the article too".
 pub fn missing(
 	sidecar: &Sidecar,
 	live: &BTreeMap<String, super::segment::Segment>,

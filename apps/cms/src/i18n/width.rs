@@ -1,16 +1,10 @@
 //! How wide a heading will draw where it is read as navigation.
 //!
-//! A heading is also a label in the article's table of contents, and that rail is narrow. What
-//! decides whether it fits is not how many characters it has: a Han character occupies two
-//! columns where a Latin letter occupies one, so a count says a Chinese heading and a French one
-//! of the same length are the same size, and they differ by a factor of two. Measured against the
-//! rendered rail, one CJK glyph is 13px and the average Latin character 6.84px -- a ratio of 1.9,
-//! which is the East Asian Width table saying the same thing.
-//!
-//! This is the cheap true measure rather than the exact one. Real text shaping knows that `i` is
-//! narrower than `m`; it also needs the font, which the CMS does not have and should not grow a
-//! reason to load. The two-to-one split is where nearly all the error is, and it is the half a
-//! table can settle. See spec/i18n.md.
+//! A heading is also a label in the article's table of contents, whose rail is narrow, so what
+//! decides whether it fits is columns rather than characters: a Han character occupies two where
+//! a Latin one occupies one. This is the cheap true measure rather than the exact one -- real
+//! text shaping also needs a font, which the CMS has no other reason to load. See spec/i18n.md,
+//! "A section heading is also a label, and the rail is narrow", for the measured ratio.
 
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
@@ -24,25 +18,11 @@ pub const CLAMP: usize = ONE_LINE * 2;
 
 /// What a string draws to, in pixels, at the 16px type the card list and the article title use.
 ///
-/// Columns are the right unit for the table of contents, where the type is one size and the rail
-/// one width. They are the wrong unit here, because these budgets come from three different places
-/// in the layout and a column is not the same number of pixels in every script. Measured in the
-/// rendered page at 16px: a Han character or a kana draws exactly 16.00px, a Hangul syllable
-/// 13.84, full-width punctuation 12.57, and a Latin character averages 7.72 over the real corpus
-/// with the widest single string reaching 8.55.
-///
-/// Han and kana draw a full square and Hangul draws 13.84 of one, so those two are constants.
-/// Latin is a table, because a blunt average there is not a small error: `i` advances 3.88px and
-/// `W` 16.14, and a single figure chosen safely above both charges an ordinary sentence about a
-/// tenth more than it draws. That tenth is not free -- it is a tenth of every budget, taken from
-/// the copy -- and it is what left Spanish with three pixels of room on a line that needed four.
-///
-/// The advances are measured, not looked up in the font file: each character is drawn twenty
-/// times on a canvas at the size and weight a card title uses -- the heavier of the two faces
-/// these budgets cover -- and the run divided by twenty, which is the
-/// shaped advance rather than the nominal one. Against whole strings the sum lands within 3px of
-/// what the browser renders, and always above it -- kerning only ever brings real text in
-/// narrower than the sum of its advances, so the estimate errs the one way it may.
+/// Columns are the right unit for the table of contents; they are wrong here, since these
+/// budgets span three layout places and a column is not a fixed number of pixels across scripts.
+/// Han, kana and Hangul are near-constant, measured at 16.00px, 16.00px and 13.84px; full-width
+/// punctuation measures 12.57px. Latin is a measured table rather than an average -- see
+/// spec/i18n.md, "A Latin character is measured, not averaged".
 pub const PX_WIDE: f32 = 16.0;
 pub const PX_HANGUL: f32 = 14.0;
 /// A character outside the table, which for the nine locales here means none of them.
@@ -235,29 +215,21 @@ pub fn raw(text: &str) -> usize {
 
 /// How much wider than its source a translation may be before it is not a translation.
 ///
-/// A block cannot say several times more than the block it renders, so a reply that does is
-/// answering something else -- in practice the neighbouring context, which the request carries
-/// and the prompt forbids repeating. The failure is invisible to every other check: the markers
-/// are intact because a short source has none, the line count matches because both are one line,
-/// and the shape is valid. Only the size gives it away.
-///
-/// Four times plus forty columns. Measured over 2744 stored translations, the widest legitimate
-/// one runs 2.4 times its source, and short blocks need the constant -- `OR` is two columns and
-/// its German is four. Nine entries exceeded it, and all nine were the fault this describes:
-/// a two-column `OR` answered with five hundred, a horizontal rule with three hundred.
+/// Catches a reply answering the neighbouring context instead of the block: invisible to every
+/// other check, since a short source has no markers to lose and the shape stays valid. Four times
+/// plus forty columns, so a short block still gets room -- `OR` is two columns and its German is
+/// four. See spec/i18n.md, "A count the source fixes is worth more than a size that has to be
+/// judged", for the measured band and what this check cannot catch.
 pub const SIZE_FACTOR: usize = 4;
 pub const SIZE_ALLOWANCE: usize = 40;
 
 /// Where a title and a subtitle are drawn, and how much room each has.
 ///
 /// Measured in Safari on an iPhone 17 Pro simulator and an iPad mini at the article column's cap,
-/// not in an emulated viewport -- the two engines agree on geometry but disagree by 12% on
-/// Japanese, which falls to a different font in each. See spec/i18n.md.
-///
-/// The phone's card row spends 107px before any text: 48 of page padding, a 47px thumbnail and
-/// the 12px beside it. The title gives up 12 more for the leader's clearance and 97 for the date,
-/// which is the same English short form in every locale. The article page spends only the 48 and
-/// gives its title 85% of the 354px that leaves.
+/// not an emulated viewport -- the two engines disagree by 12% on Japanese, which falls to a
+/// different font in each. The phone's card row spends 107px before any text (48 padding, 47
+/// thumbnail, 12 beside it), 12 more for the leader and 97 for the date; the article page spends
+/// only the 48 and gives its title 85% of the 354px that leaves.
 pub mod budget {
 	/// A card title on a phone, where the row clips with an ellipsis.
 	pub const PHONE_TITLE: f32 = 186.0;

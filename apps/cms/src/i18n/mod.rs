@@ -124,21 +124,13 @@ pub fn selected_locales(values: &[String]) -> Result<Vec<&'static str>, String> 
 	)
 }
 
-/// Lines a block occupies, ignoring the blank ones a reply may pad with.
 /// The file name of a page. The homepage is the whole of that category today.
 const PAGE_FILE: &str = "homepage.md";
 
-/// Refuse a file that is a page rather than an article.
-///
-/// A page has no `lang`, so nothing here could translate it out of anything; and it is identity
-/// copy the site renders from the source in every view, so a sidecar for it would be text nobody
-/// reads. See spec/i18n.md.
-///
-/// **This is not how pages are excluded.** `run` drops them while it is still building the list,
-/// before a byte is read, and that is the path taken every time. This exists for the day somebody
-/// edits that filter: without it a page would flow into the run and quietly acquire translations,
-/// and the first sign of it would be a sidecar appearing in a diff. With it the run says which
-/// file arrived and where it should have been stopped.
+/// A backstop, not the filter: `run` already drops a page before a byte is read, so this exists
+/// only for the day that filter breaks, to say which file arrived and where it should have
+/// stopped rather than let a page quietly acquire a sidecar. See spec/i18n.md, "A page is not an
+/// article, and is not translated".
 fn refuse_page(path: &Path) -> Result<(), String> {
 	if path.file_name().is_some_and(|name| name == PAGE_FILE) {
 		return Err(format!(
@@ -149,6 +141,7 @@ fn refuse_page(path: &Path) -> Result<(), String> {
 	Ok(())
 }
 
+/// Lines a block occupies, ignoring the blank ones a reply may pad with.
 fn body_lines(text: &str) -> usize {
 	text.lines().filter(|line| !line.trim().is_empty()).count()
 }
@@ -608,17 +601,11 @@ pub async fn run(
 		// never counts work it was never going to do. `refuse_page` below is the guard for this
 		// line being changed, not the mechanism it uses.
 		.filter(|path| refuse_page(path).is_ok())
-		// And so do drafts, for the same reason one line up and a different one of its own: a
-		// draft is going to be edited again, and every edit changes segment ids, so translating
-		// one buys eight locales of text that the next save throws away. Money, not minutes.
-		//
-		// Naming an article is still an explicit request and goes through. That is what `only`
-		// already means everywhere else here, and it is the escape for the case this would
-		// otherwise make impossible -- translating a piece, reading it over, and publishing the
-		// whole thing at once.
-		//
-		// An unreadable file stays in. Being unreadable is a fault for the loop below to report,
-		// and answering "draft" for it would remove it from the run instead of naming it.
+		// And so do drafts: every edit changes segment ids, so translating one buys eight locales
+		// the next save throws away. Naming an article is still an explicit request and goes
+		// through, same as `only` everywhere else here. An unreadable file stays in -- that fault
+		// is for the loop below to report, not for this filter to hide. See spec/i18n.md, "A
+		// draft is written, not owed".
 		.filter(|path| {
 			if !only.is_empty() {
 				return true;
@@ -760,20 +747,10 @@ pub async fn run(
 			continue;
 		}
 
-		// Order for context comes from the article, which is the only place it lives. Two things
-		// this list is not: it is not `live`, and it is not the whole article.
-		//
-		// Not `live`, because that one is filtered to what gets translated -- so a code fence or a
-		// figure between two paragraphs was invisible here and the "neighbouring paragraph" was
-		// whatever prose lay beyond it. Every block is a neighbour now; `context_of` folds the
-		// unreadable ones down to a word.
-		//
-		// Not the whole article, because `live` also carries the frontmatter title, subtitle and
-		// description, and they sort ahead of the body by line. That made the article's own
-		// description the "previous paragraph" of its first body block -- a dense, self-contained
-		// summary presented to the model as the thing this paragraph follows on from. It came back
-		// translated in its place. Metadata is not prose that leads anywhere, so it takes no
-		// context and gives none. See spec/i18n.md.
+		// Order for context comes from the article, not `live`: filtering to translatable blocks
+		// first made a code fence or figure invisible and promoted whatever prose lay beyond it,
+		// and made a frontmatter field the "previous paragraph" of the first body block. See
+		// spec/i18n.md, "The context is fenced too, because it is also article prose".
 		let ordered: Vec<Segment> = segment::split(&article)
 			.map_err(|error| {
 				std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{}: {error}", path.display()))
@@ -1035,14 +1012,10 @@ pub async fn run(
 					}
 					outcome.tokens += tokens;
 					outcome.usd += usd;
-					// Written the moment it arrives. Every segment cost real money, and keeping a
-					// run's worth in memory means one interrupt throws all of it away -- which is
-					// exactly what happened the first time this ran for real.
-					//
-					// Through the writer, so the sidecar is never open in two places: a second CMS
-					// translating a different segment of this same article would otherwise read,
-					// change and write the file underneath this one, and one of the two paid
-					// results would vanish. The lock is held for the write alone.
+					// Written the moment it arrives, not batched: an interrupt with a run's worth
+					// of paid segments still in memory throws all of it away -- it happened once.
+					// Through the writer so the sidecar is never open in two places, since a
+					// second CMS on this article would otherwise clobber one of the two results.
 					sidecar.version = store::VERSION;
 					{
 						let path = sidecar_path.clone();

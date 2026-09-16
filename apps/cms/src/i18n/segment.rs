@@ -189,18 +189,11 @@ pub fn mask(source: &str) -> Masked {
 	Masked { text, slots }
 }
 
-/// What a neighbouring block looks like when it is shown as context.
-///
-/// Two things this is not: it is not the block's source, and it is not translatable material. A
-/// neighbour is in the request so the sentence being translated has somewhere to lead; it is
-/// never the answer. So it arrives folded rather than whole.
-///
-/// A block with nothing to read -- code, a directive, a rule -- collapses to a word saying what
-/// sits there, because its bytes would be the longest and most confident-looking passage in the
-/// request while carrying no meaning the translator needs. Prose keeps its words but loses its
-/// inline code to a placeholder that cannot be restored, which is the point: the masked block is
-/// the only text in the request whose markers map back to anything, so text copied from here
-/// arrives carrying a marker that resolves to nothing and is refused. See spec/i18n.md.
+/// What a neighbouring block looks like when it is shown as context: folded, never whole, and
+/// never translatable material. A block with nothing to read collapses to a word saying what
+/// sits there; prose keeps its words but loses its inline code to a placeholder that cannot be
+/// restored, so text copied from here is refused as a marker resolving to nothing. See
+/// spec/i18n.md, "The context is fenced too, because it is also article prose".
 pub const CONTEXT_CODE: &str = "⟦code⟧";
 
 pub fn context_of(segment: &Segment) -> String {
@@ -349,14 +342,10 @@ fn frontmatter_segments(
 		});
 	}
 
-	// A phone card clips the title and the subtitle, so each also has a short form. Neither is
-	// written in the article: they are asked for, and they exist here so the rest of the pipeline
-	// -- what is missing, what is claimed, what is stored -- can treat them like any other block.
-	//
-	// The source of a short form is the full form, which is what has to be read to write one. Its
-	// id is that text under a namespace, so the two never collide and editing the title moves both
-	// of them at once. The byte range is the full form's, which is what the build artifact
-	// fingerprints: a short title goes stale exactly when the title it shortens is edited.
+	// A phone card clips the title and the subtitle, so each also has a short form, never written
+	// in the article but modelled here as a segment so the rest of the pipeline treats it like any
+	// other block. Its source is the full form under a namespaced id, so the two never collide and
+	// its byte range is the full form's -- a short title goes stale exactly when its title does.
 	let shorts: Vec<Segment> = segments
 		.iter()
 		.filter_map(|segment| {

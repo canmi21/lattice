@@ -1,23 +1,11 @@
-//! Report-only checks on stored translations: the note policies that shape cannot enforce.
+//! Report-only checks on stored translations: the note policies that shape cannot enforce, plus
+//! a length check. See spec/i18n.md, "An author's note continues from its words, in every
+//! locale" and "A translation that runs far longer or shorter than its source is reported" for
+//! what each policy is and why none of them are a hard gate.
 //!
-//! Two policies live here, both from spec/i18n.md. An author's note (`:fn`) shows its words and
-//! its explanation together at the end of the article as one continuous statement, so an
-//! explanation that restates the words reads the word twice. A translator's note (`:tn`) wraps
-//! the translated words -- never the source script carried into the sentence -- and quotes the
-//! original span, verbatim, inside the note.
-//!
-//! A third is length: a translation that runs far longer or shorter than its source in a language
-//! where that is unusual. See spec/i18n.md.
-//!
-//! All of them are soft: a target grammar can force a restatement, a same-script locale can carry
-//! the original legitimately, and a dense source legitimately expands. So nothing here rejects or
-//! re-asks; `cms i18n --check` prints the findings and a person judges them. A hard gate would
-//! fail exactly the defensible minority the policies allow for.
-//!
-//! What this module is for is triage rather than judgement. A review that would otherwise read
-//! every string reads the handful named here, and the rest have been cleared by something that
-//! measures faster than a person looks. So a finding that turns out to be fine is the module
-//! working, and thresholds tuned until nothing is reported have turned it off.
+//! Triage, not judgement: `cms i18n --check` prints findings for a person to read, on the
+//! premise that a check tuned until nothing is reported has stopped working rather than found a
+//! clean corpus.
 
 use super::segment::{Display, Kind, Region};
 use super::tn;
@@ -99,16 +87,11 @@ pub fn of(
 	let finding =
 		|reason: String| Finding { segment: segment_id.to_owned(), locale: locale.to_owned(), reason };
 
-	// A section heading is also a rail label. Two lines are allowed and `validate` refuses only
-	// what gets cut off, so the interesting band -- wider than a line, still readable -- is
-	// reported here with the source beside it, because whether a language could have said it
-	// shorter is the judgement a person makes and a threshold cannot.
-	//
-	// A subsection is never listed in the rail, so no width can be wrong for it and nothing here
-	// is a rule it broke. It is still worth saying when one runs very long: it is read in the
-	// prose, where the source headings are short, and a translation several times their length is
-	// usually the translator explaining the section rather than naming it. Reported at the clamp
-	// -- twice a rail line -- so only the genuinely long ones are mentioned.
+	// Two lines is a legitimate outcome for a section heading; `validate` refuses only what gets
+	// cut off. This reports the band in between, with the source beside it, since only a person
+	// can judge whether the language could have said it shorter. A subsection is never in the
+	// rail, so it is reported only past the clamp, as a reading judgement rather than a fit. See
+	// spec/i18n.md, "A section heading is also a label, and the rail is narrow".
 	if kind == Kind::Heading {
 		let columns = width::of(translation);
 		match width::level(source) {
@@ -179,16 +162,10 @@ pub fn of(
 			}
 		}
 	}
-	// The note quotes the original span verbatim, in its original script; a reader who has
-	// never seen the source meets the original word only here.
-	//
-	// Checked against the longest run of the phrase a note could actually contain, which for
-	// almost every phrase is the whole of it. A straight double quote is the exception: the
-	// directive's attribute has no escape for one, so a phrase carrying it -- `"清"字`, the author
-	// quoting a single character -- can never be reproduced verbatim, and comparing it literally
-	// reported all eight locales of a segment whose notes cite the character correctly. A
-	// permanent false positive on a report a person reads is worse than no report: it hides the
-	// findings that are real.
+	// The note quotes the original span verbatim; checked against the stretches of the phrase a
+	// note is actually able to hold, split at a straight quote the directive's attribute has no
+	// escape for -- else a phrase like `"清"字` fails every locale that quoted it correctly. See
+	// spec/i18n.md, "A phrase can be unquotable, and the audit must not report that forever".
 	if let Some(entry) = glosses {
 		for span in &entry.spans {
 			let quoted =
@@ -202,42 +179,21 @@ pub fn of(
 	findings
 }
 
-/// Below this many columns a same-language pair may legitimately differ by half.
-///
-/// The two views of one language are free to diverge in exactly the way this check looks for --
-/// one leaves a six-character fragment alone while the other spells it into a sentence. On a
-/// short block that is a style difference and says nothing; on a long one there is no wording
-/// choice that halves a paragraph, so the short blocks are simply not asked about. Measured over
-/// the corpus, every divergence under this width was benign and the one above it was a block
-/// answered with its neighbour's text.
+/// Below this many columns a same-language pair may legitimately differ by half -- one view can
+/// leave a fragment alone while the other spells it out. Measured: every divergence under this
+/// width was benign in the corpus. See spec/i18n.md, "Two views of one language are each other's
+/// control".
 const PAIR_FLOOR: usize = 60;
 
 /// How far apart two views of one language may run before it is worth a person's eye.
 const PAIR_RATIO: f64 = 0.75;
 
-/// Findings that only exist when the locales of one segment are read together.
+/// Whether a stored display field (title, subtitle) still fits its fixed-width slot.
 ///
-/// Every other check here reads one translation on its own, which is why the block whose zh-TW
-/// answer was its neighbour's paragraph passed all of them: it was well-formed, the right
-/// length for a paragraph, and carried every marker it was given. What it was not was the same
-/// length as its own zh-CN sibling -- and two views of one language, translated from one source,
-/// have no reason to differ by half. The sibling is the only yardstick that noticed.
-///
-/// Report-only, like everything else in this file: the pair is a signal, not a rule. See
-/// spec/i18n.md.
-/// Whether a stored piece of display metadata still earns its place.
-///
-/// Title and subtitle are drawn in a fixed width and clipped there, so a translation that does
-/// not fit is not a judgement call the way a note policy is -- the reader loses the end of it.
-/// This is still report-only, because what happens next is a deletion and a paid re-run, and
-/// both belong to a person. `cms i18n --check` prints these; removing the entries is what makes
-/// the runner ask again.
-///
-/// The test is `target`, not `budget`. A full form sitting exactly on its budget is one source
-/// edit away from not fitting -- the longest title in the corpus draws 503px against a 504px cap
-/// -- so a fifth is held back from it. A short form is written to its budget instead: it is the
-/// last fallback there is, and holding room back from it would shorten a line that has already
-/// given up most of the sentence. See spec/i18n.md.
+/// Report-only: fixing this means deleting the entry and re-running the translation, which is a
+/// person's call. Compares against `target`, not `budget` -- a fifth of headroom is held back
+/// from a full form since it sits one edit from overflowing; a short form, already the last
+/// fallback, is written to its budget. See spec/i18n.md, "A budget is a ceiling, not a target".
 pub fn display(segment_id: &str, locale: &str, translation: &str, field: Display) -> Vec<Finding> {
 	let drawn = width::pixels(translation);
 	if drawn <= field.target() {
@@ -257,14 +213,10 @@ pub fn display(segment_id: &str, locale: &str, translation: &str, field: Display
 
 /// How much wider than its source a translation usually comes out, per locale and region.
 ///
-/// Measured across the corpus as the median of `pixels(translation) / pixels(source)`: 2848
-/// pairs over 356 segments. German runs nearly a third longer than the source in frontmatter and
-/// three quarters longer in body prose; Chinese runs shorter than its source in both. Without
-/// these a single band would flag every German string and no Chinese one.
-///
-/// The two regions are listed apart because they do not agree -- body prose expands more than a
-/// title does, and by different amounts per language. An unrecorded locale takes 1.0 and is then
-/// judged only against its siblings, which is the weaker half of the test but never a wrong one.
+/// Median of `pixels(translation) / pixels(source)` across the corpus, frontmatter and body kept
+/// separate since they expand at different rates. An unrecorded locale takes 1.0 and is then
+/// judged only against its siblings. See spec/i18n.md, "A translation that runs far longer or
+/// shorter than its source is reported".
 fn expansion(region: Region, locale: &str) -> f32 {
 	match (region, locale) {
 		(Region::Frontmatter, "de-DE") => 1.29,
@@ -309,24 +261,11 @@ const ALONE_LONG: f32 = 2.2;
 const APART_SHORT: f32 = 0.4;
 const APART_LONG: f32 = 2.2;
 
-/// Report a translation whose length disagrees with what its siblings made of the same source.
-///
-/// Each locale's width is divided by what that locale usually spends, which leaves a number that
-/// should be about the same for all of them. The centre is their median rather than a constant,
-/// so an article written in a language the corpus has little of moves every sibling together and
-/// cancels out; what survives is one locale disagreeing with seven.
-///
-/// Two tests, and a translation is reported if either fires, because each covers the other's
-/// blind spot. Against its own language's habit, one locale can be judged alone -- which is what
-/// sees a whole row drifting together. Against its siblings, the judgement is free of any
-/// constant -- which is what survives a source language the table was not measured on.
-///
-/// This exists because `display` compares a frontmatter field against its own budget and never
-/// against the source, so a translation that invented a clause the source does not have passed
-/// every check there was. It is still a backstop and not a gate: the case that prompted it had
-/// seven of eight locales padded by about the same amount, which moved the sibling centre with
-/// them and left only the absolute half to notice. One flag on a segment is the point -- it is
-/// read by a person, who then reads all eight. See spec/i18n.md.
+/// Report a translation whose length disagrees with what its own language usually spends, or
+/// with what its siblings made of the same source -- two tests, since each is blind to what the
+/// other catches. This is `display`'s backstop for body prose, which has no fixed-width budget
+/// to compare against. See spec/i18n.md, "A translation that runs far longer or shorter than its
+/// source is reported".
 pub fn lengths(
 	segment_id: &str,
 	source: &str,
@@ -382,6 +321,9 @@ pub fn lengths(
 		.collect()
 }
 
+/// Findings from comparing locales of one segment: a check `validate` cannot make since it looks
+/// at a single locale in isolation. See spec/i18n.md, "Two views of one language are each other's
+/// control".
 pub fn across_locales(segment_id: &str, source: &str, texts: &[(&str, &str)]) -> Vec<Finding> {
 	let mut findings = Vec::new();
 	if width::raw(source) < PAIR_FLOOR {

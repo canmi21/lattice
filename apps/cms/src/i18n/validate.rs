@@ -57,24 +57,19 @@ impl fmt::Display for Error {
 
 /// Whether a translation is a plausible size for the block it translates.
 ///
-/// See `width::SIZE_FACTOR` for the numbers and what they are drawn from. This is deliberately
-/// generous: it is not a style rule about length, it is the last check that catches a reply which
-/// translated the wrong block -- the neighbouring paragraph carried in the request as context.
-/// Nothing else sees that. A short source has no code markers to lose, one line against one line
-/// passes the line count, and the shape is perfectly valid; the answer is simply about something
-/// else, and its size is the only trace.
+/// Deliberately generous: not a style rule about length but the last check that catches a reply
+/// answering the neighbouring context instead, which nothing else here can see. See
+/// spec/i18n.md, "A count the source fixes is worth more than a size that has to be judged".
 pub fn size_plausible(source: &str, text: &str) -> bool {
 	width::raw(text) <= width::raw(source) * width::SIZE_FACTOR + width::SIZE_ALLOWANCE
 }
 
 /// Whether the translation carries exactly the author's notes its source does.
 ///
-/// `:fn` is the author's, never the translator's -- a model has `:tn` for its own remarks -- so
-/// the count is fixed by the source and is not a matter of judgement. That makes it the one
-/// cheap invariant that catches a reply about a different block: measured over 2744 stored
-/// translations it never fired on a correct one, and it named every locale of the block whose
-/// answer was its neighbour's. Size could not: the neighbour was twice the source, and twice is
-/// what an ordinary German paragraph does. See spec/i18n.md.
+/// `:fn` is the author's, so the count is fixed by the source and not a judgement call -- the one
+/// cheap invariant that catches a reply about a different block where size cannot, since a
+/// neighbour of ordinary length passes a size check outright. See spec/i18n.md, "A count the
+/// source fixes is worth more than a size that has to be judged".
 pub fn author_notes_preserved(source: &str, text: &str) -> bool {
 	source.matches(":fn[").count() == text.matches(":fn[").count()
 }
@@ -91,14 +86,11 @@ pub fn markers_resolved(text: &str) -> bool {
 
 /// Whether a note directive is separated from the words around it as that script requires.
 ///
-/// The source can write `请求时的:fn[模型]` because Han script does not space its words. Copied
-/// into a language that does, the same shape renders `Modeloen la petición` -- one word that
-/// exists in no language, produced without any rule being broken on the way. The reply passed
-/// shape, the marker came back, and the sentence is wrong.
-///
-/// The test is the character, not the locale: a directive needs air when what it touches is a
-/// narrow letter or digit. A wide glyph does not space its words, and punctuation -- the `l'` of
-/// French elision, a hyphen, an opening `¿` -- is already a boundary the eye reads.
+/// The source may write a directive flush against Han script, which does not space words;
+/// carried into a language that does, the identical shape renders one word that exists in no
+/// language. The test is the character, not the locale: a directive needs air only against a
+/// narrow letter or digit, since a wide glyph does not space words and punctuation is already a
+/// boundary. See spec/i18n.md, "A directive needs the spacing its own script uses".
 pub fn spacing_intact(text: &str) -> bool {
 	let needs_space = |c: char| c.is_alphanumeric() && UnicodeWidthChar::width(c) == Some(1);
 	for name in [":fn[", ":tn["] {
@@ -124,16 +116,11 @@ pub fn spacing_intact(text: &str) -> bool {
 
 /// Whether a body section heading still fits the rail it becomes a navigation label in.
 ///
-/// **Only a section is bound by this.** A subsection is not listed in the rail at all, so the
-/// rail's width says nothing about it; its length is a question about the prose, answered by the
-/// prompt and reported by `audit`, not refused here. See spec/styling.md.
-///
-/// For a section, only the clamp is refused, not the one-line budget. A heading occupying two
-/// lines is a legitimate outcome -- some languages cannot say it shorter, and the rail is built
-/// for it -- so rejecting that would buy the same answer again and eventually take a worse one.
-/// Past two lines the end is not shown at all, which is a loss rather than a judgement, and a
-/// loss is what this boundary is for. Everything between the two is reported by `audit` for a
-/// person. See spec/i18n.md.
+/// Only a section is bound by this -- a subsection is not in the rail, so its length is a prose
+/// question for `audit`, not refused here. Only the clamp is refused, not the one-line budget:
+/// two lines is a legitimate outcome the rail is built for, and rejecting it would eventually
+/// buy a worse answer. See spec/i18n.md, "A section heading is also a label, and the rail is
+/// narrow".
 pub fn heading_fits(kind: Kind, region: Region, level: Option<usize>, text: &str) -> bool {
 	kind != Kind::Heading
 		|| region != Region::Body
@@ -181,25 +168,20 @@ fn well_formed(text: &str, name: &str) -> bool {
 
 /// Whether every `:fn` is one complete `:fn[words]{is="explanation"}` directive.
 ///
-/// The same shape as a translator's note, and checked for the same reason: an ASCII quote cannot
-/// appear inside the explanation because the directive syntax has no escape for one, and a note
-/// whose text was eaten by one still parses -- as words with a marker that says nothing.
-///
-/// The site refuses it when it compiles the source. This is the other end: an author's note
-/// travels inside its paragraph to be translated, so a model can hand back a directive the author
-/// never wrote.
+/// The same shape as a translator's note and checked for the same reason: an eaten quote still
+/// parses, as words with a marker that says nothing. The site refuses this at compile time for
+/// the source; this is the other end, since an author's note travels through translation and a
+/// model can hand back a directive the author never wrote.
 pub fn author_notes_well_formed(text: &str) -> bool {
 	well_formed(text, ":fn")
 }
 
 /// The checks that read a translation against its source, whether or not code is masked in it.
 ///
-/// **`markers_resolved` is deliberately not among them.** A fresh reply is validated before its
-/// markers are put back, so at that point it is *supposed* to be full of `⟦tk:N⟧`; running the
-/// check here refused every block containing inline code, which cost a whole article's worth of
-/// paid requests before the message -- the generic `no locale survived` -- gave any hint why.
-/// The marker check belongs where the text is final: after `restore` in the reply path, and on
-/// stored text in `sidecar` below.
+/// `markers_resolved` is deliberately not among them: a fresh reply is validated before its
+/// markers are restored, so it is *supposed* to be full of them here -- checking it cost a whole
+/// article's paid requests before the generic failure gave any hint why. That check belongs
+/// where the text is final: after `restore`, and on stored text in `sidecar` below.
 pub fn translation(region: Region, source: &str, text: &str) -> Result<(), Error> {
 	if region == Region::Frontmatter && text.contains(":tn") {
 		return Err(Error::TranslatorNoteInFrontmatter);
@@ -216,41 +198,26 @@ pub fn translation(region: Region, source: &str, text: &str) -> Result<(), Error
 	Ok(())
 }
 
-/// Whether a drawn field fits the place it is drawn in.
-///
-/// Unlike everything else here, this is not a question about the shape of the reply. The text can
-/// be a perfect translation and still be refused, because a title wider than the column is clipped
-/// and the reader loses the end of it. `width::pixels` is an estimate and deliberately a generous
-/// one; a field that fails this is one no reasonable rendering would fit.
-///
-/// The budget, not the fifth held back. `HEADROOM` is the rule for what is already stored and
-/// whether it earns another look; this is the rule for what may be stored at all, and refusing a
-/// fresh answer for sitting in the last fifth would spend a retry on a line that fits.
 /// Dashes long enough to join clauses. A hyphen is left alone: it builds words rather than
 /// splicing sentences, and German and French need it to.
 const JOINING_DASHES: [char; 4] = ['\u{2014}', '\u{2013}', '\u{2012}', '\u{FF0D}'];
 
-/// `source` is the article's own title and subtitle together, because the two license one
-/// another; see the dash rule below.
+/// Whether a drawn field fits the place it is drawn in, and whether it borrowed a dash the
+/// source never spent.
+///
+/// The budget here, not the fifth held back by `HEADROOM` -- that rule is for whether stored text
+/// earns another look, this is for what may be stored at all. `source` is the article's own title
+/// and subtitle together, since the two license one another's dash. See spec/i18n.md, "A budget
+/// is a ceiling, not a target" and "A translation may not borrow a dash the author never spent".
 pub fn display(field: Display, text: &str, source: &str) -> Result<(), Error> {
 	let drawn = width::pixels(text);
 	let budget = field.budget();
 	if drawn > budget {
 		return Err(Error::OverBudget { drawn: drawn as u32, budget: budget as u32 });
 	}
-	// A dash is the author's punctuation to spend. It reads as voice, and a translator reaching
-	// for one where the source used a comma has written a line the author did not.
-	//
-	// The title and the subtitle are read as one, so they license one another: a dash anywhere in
-	// the source metadata opens it to every field, and a source with none closes it to all four.
-	// Pairing them field by field was stricter than the rule and stricter than it should be --
-	// a subtitle continues the title it sits under, and the register they are written in is one
-	// register.
-	//
-	// Scoping it to short forms was the other thing this got wrong. A length limit is what makes
-	// a dash tempting, which is true and is not the rule: what decides is whether the author
-	// spent one, not whether the translator was under pressure. Stated in the prompt as well; a
-	// check without one rejects work for a rule nobody was given.
+	// A dash is the author's to spend; the check treats title and subtitle as one field, since
+	// pairing them separately was stricter than the rule, and covers long forms too, since what
+	// decides is whether the author spent a dash, not whether the translator was under pressure.
 	if dashed(text) && !dashed(source) {
 		return Err(Error::BorrowedDash);
 	}

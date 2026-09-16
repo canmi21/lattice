@@ -32,16 +32,10 @@ pub struct Layout {
 	pub version: u8,
 	pub articles: BTreeMap<String, Vec<Span>>,
 	/// How long each article is, per view, in words -- the figure the article page draws beside
-	/// its date and the home card sums.
-	///
-	/// Recorded here rather than counted by the site because the rule has to be one rule. What a
-	/// word is across scripts took five libraries and a table of cases to settle (see
-	/// [`crate::words`]), and a second implementation in TypeScript would be a second answer --
-	/// which is exactly how the page came to disagree with the card in the first place. The site
-	/// already requires this file and already reads it per article, so this costs it a lookup.
-	///
-	/// Keyed by view code, the same nine `cms og` draws. A separate map rather than a field on
-	/// each article's entry, so the array of spans keeps the shape every existing reader expects.
+	/// its date and the home card sums. Recorded here, not counted by the site, so there is one
+	/// rule and one implementation; a separate map, keyed by view code, so the array of spans
+	/// keeps the shape every existing reader expects. See spec/architecture/media.md, "A card is
+	/// named by its slug, and that is the exception".
 	#[serde(default)]
 	pub words: BTreeMap<String, BTreeMap<String, usize>>,
 }
@@ -109,16 +103,11 @@ pub fn build(root: &Path) -> std::io::Result<Layout> {
 
 /// The prose of one article counted once per view, in the language that view serves.
 ///
-/// **Body prose and what is inside it, and nothing else.** A code block is not writing; neither is
-/// a directive, a thematic break, or any of the objects a directive stands for -- a picture's
-/// description, a linkcard's title, a diagram's caption, an embedded post. Those are components,
-/// and a reader counting the length of an article does not mean them. Inline code and quotations
-/// stay: they are inside the sentence, and a word processor would count them. What decides it is
-/// `segment::Kind::translatable` over body spans, which already answers this question for the
-/// translator, so there is no second list of what counts.
-///
-/// A view with no translation for a segment gets the source, because that is what the page
-/// renders there.
+/// Body prose and what is inside it, nothing else: a code block, a directive, or an object a
+/// directive stands for is a component rather than writing. `segment::Kind::translatable` over
+/// body spans decides it, the same test the translator uses. A view with no translation for a
+/// segment gets the source, since that is what the page renders there. See
+/// spec/architecture/media.md, "A card is named by its slug, and that is the exception".
 pub fn words_per_view(
 	article: &str,
 	sidecar: Option<&super::store::Sidecar>,

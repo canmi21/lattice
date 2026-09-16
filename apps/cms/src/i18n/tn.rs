@@ -1,18 +1,12 @@
 //! `data/tn.yaml`: which passages a translator has to gloss, and roughly how.
 //!
-//! Whether a passage needs a note is a judgement about the whole article -- does the text
-//! around it already make the meaning recoverable? -- while translation happens one block at a
-//! time. A per-block model cannot see that, which is why four articles produced no notes at all
-//! however the rule was worded. So the judgement is made separately, by a model that reads the
-//! article whole, and recorded here for the translator to obey.
+//! Whether a passage needs a note is a judgement about the whole article, made by a model that
+//! reads it whole rather than one block at a time -- a per-block model produced no notes at all,
+//! however the rule was worded. The judgement is recorded here for the translator to obey.
 //!
-//! Keyed by segment id, so a request expires exactly when its paragraph changes. That is the
-//! same property that makes a translation go stale, arriving for free rather than as a rule
-//! somebody has to remember.
-//!
-//! Not under `data/build/`. That directory holds records rebuildable from what git already has;
-//! this one costs a paid request and a person's agreement, which puts it beside `media.yaml`
-//! and `tags.yaml`. See spec/architecture/data.md.
+//! Keyed by segment id, so a request expires exactly when its paragraph changes, the same
+//! property that stales a translation. Not under `data/build/`: this costs a paid request and a
+//! person's agreement, like `media.yaml` and `tags.yaml`. See spec/architecture/data.md.
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -41,14 +35,9 @@ pub struct Entry {
 
 /// One article's scan.
 ///
-/// Grouped by article rather than kept as one flat map of segment ids, for a reason the flat
-/// shape could not express: an article scanned and found to need nothing leaves no segments
-/// behind, and is then indistinguishable from one never scanned at all. The record of having
-/// looked has to exist separately from what was found.
-///
-/// Provenance sits here rather than on each finding, because one scan reads one article once.
-/// Repeating it per segment would store the same four values as many times as the article has
-/// suggestions, and invite them to disagree.
+/// Grouped by article, not a flat map of segment ids: a scan that found nothing still has to be
+/// distinguishable from an article never scanned. Provenance sits here rather than per finding,
+/// since one scan reads one article once and repeating it per segment invites disagreement.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Article {
 	pub provider: String,
@@ -117,15 +106,10 @@ pub fn save(path: &Path, table: &Table) -> std::io::Result<()> {
 
 /// The rule a flagged block adds to its translation prompt.
 ///
-/// The note attaches to the translation, never to a retained original. A translation is expected
-/// to be wholly in its own language, and fluent prose has nowhere to put a foreign clause: an
-/// earlier version asked for the source wording to be kept verbatim and produced German
-/// paragraphs ending in Chinese sentences. The original belongs inside the note, where a reader
-/// meets it only if they want to.
-///
-/// The guidance below is given to the model as findings, not as copy. It was written in whatever
-/// language the scan ran in, for a machine, about a source a reader of the target language has
-/// not seen -- reproducing it verbatim would put an internal memo on the page.
+/// The note attaches to the translation, not a retained original -- an earlier version asked to
+/// keep the source wording verbatim and produced German paragraphs ending in Chinese sentences.
+/// Guidance below is written for the model, in whatever language the scan ran in; reproducing it
+/// verbatim would put an internal memo on the page. See spec/i18n.md, "Translator's notes".
 pub fn rule(entry: &Entry) -> String {
 	let mut rule = String::from(
 		"- Some wording in this block carries an effect that does not survive localisation, \
@@ -211,15 +195,10 @@ fn scan_prompt(article: &str) -> String {
 
 /// The longest span worth keeping in the original, in characters.
 ///
-/// A note holds one word in place and footnotes it; the sentence around it is still translated.
-/// Past a few characters the thing being kept is a clause, and keeping a clause does not
-/// annotate a translation -- it cancels it, leaving a German page with a Chinese sentence in the
-/// middle of it. Measured on the first run: `果果`, `摆烂了` and `MUSL 厨` read well, while
-/// `从 Next.js 13 鸽到 Next.js 16` and `只剩下一个"清"字可以形容` left whole clauses untranslated
-/// in all eight languages.
-///
-/// A limit rather than only an instruction, because the instruction is advice to a model and
-/// this is the property the output has to have.
+/// Past a few characters the thing kept is a clause, not a word, and keeping a clause cancels the
+/// translation rather than annotating it. Measured on the first run: short phrases like `果果` or
+/// `摆烂了` read well; a clause-length span left whole clauses untranslated in all eight languages.
+/// A limit rather than only an instruction, since this is a property the output must have.
 const LONGEST_SPAN: usize = 8;
 const LONGEST_GUIDANCE: usize = 180;
 
@@ -241,13 +220,10 @@ pub fn parse_scan(reply: &str) -> Vec<Gloss> {
 
 /// Whether every occurrence of `phrase` in `source` sits inside an `:fn` note's `is` attribute.
 ///
-/// A phrase there needs no translator's note: the author's note is already an explanation
-/// channel, and its translation simply renders an equivalent expression. Worse than needless, a
-/// note there is impossible -- `:tn` cannot nest inside the attribute, since the straight quote
-/// that would open it ends the attribute instead -- so recording one wedges the segment: every
-/// answer either omits the demanded note or breaks the directive's shape, and the run buys the
-/// same refusal forever. Found that way: `脱裤子放屁` lived inside an `:fn` explanation, and
-/// three model attempts correctly declined to do the impossible.
+/// A phrase there needs no translator's note -- the author's note already explains it -- and
+/// recording one is worse than needless: `:tn` cannot nest inside the attribute, since the quote
+/// that would open it ends the attribute instead, so every answer either omits the note or
+/// breaks shape. See spec/i18n.md, "An author's note continues from its words, in every locale".
 fn only_inside_note_attributes(source: &str, phrase: &str) -> bool {
 	let mut inside: Vec<(usize, usize)> = Vec::new();
 	let mut rest = 0;

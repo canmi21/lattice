@@ -160,14 +160,10 @@ pub fn build_for(
 		 with characters they cannot read and no gloss is worse than a brief note. At most one \
 		 per block, and none where the surrounding sentence already makes the meaning plain."
 	};
-	// Only for blocks that carry one: every rule a prompt states is one the model weighs
-	// against all the others, and most blocks have no author's note to spend that weight on.
-	//
-	// The spacing half used to be told to headings alone, because that is where the fault was
-	// first seen. `validate` refuses it everywhere, though, so a prose block carrying a note was
-	// being rejected for a rule it had never been given -- three paid attempts and an article's
-	// longest paragraph left unbought. A check that rejects needs a prompt line to match, which
-	// is the converse of the rule that a prompt line needs a check. See spec/i18n.md.
+	// Only for blocks that carry one: most blocks have no author's note to spend a prompt rule's
+	// weight on. The spacing half used to be heading-only, since that is where the fault was
+	// first seen, but `validate` refuses it everywhere -- a check needs a matching prompt line.
+	// See spec/i18n.md, "A directive needs the spacing its own script uses".
 	let author_notes = if segment.region == Region::Body && segment.source.contains(":fn[") {
 		"\n- `:fn[words]{is=\"explanation\"}` is the author's own note. Translate the words as \
 		 part of their sentence and keep the directive shape exactly. At the end of the article \
@@ -188,16 +184,11 @@ pub fn build_for(
 	} else {
 		""
 	};
-	// The rail is narrow and the source headings were written to fit it. What makes a translated
-	// one overrun is not the target language being wordy -- it is a translator trying to make the
-	// heading say the whole section, which the section itself is about to do. So the budget is
-	// stated as a width the model can picture, anchored to the source it can see, and the reason
-	// it is allowed to drop detail is stated too.
-	//
-	// A subsection is told the second half and not the first. It never appears in the rail, so
-	// there is no width it has to fit and quoting one would be a fiction; what still applies is
-	// that its own section is about to explain it. Saying otherwise would spend the model's
-	// attention on a constraint that does not exist. See spec/i18n.md.
+	// The budget is stated as a width the model can picture, anchored to the source it can see,
+	// since overrun is a translator trying to make the heading say the whole section rather than
+	// the language being wordy. A subsection gets the naming half only -- it is never in the
+	// rail, so quoting a width for it would be a fiction. See spec/i18n.md, "A section heading is
+	// also a label, and the rail is narrow".
 	let navigation = if segment.kind == Kind::Heading && segment.region == Region::Body {
 		let source_columns = super::width::of(&segment.source);
 		let recognise = "The heading only has to let a reader recognise the section. It does not \
@@ -297,16 +288,11 @@ pub fn field_marker(locale: &str, field: Display) -> String {
 
 /// One article's display metadata, asked for in a single request.
 ///
-/// The four fields are separate segments and separate stored entries, and they are still asked
-/// for together. A subtitle is read directly under its title and has to complete it rather than
-/// repeat it; a short form has to say the same thing as the full one in a third of the room. None
-/// of that can be judged by a model shown one field at a time, and asking four times would buy
-/// four answers written in ignorance of each other.
-///
-/// So the request carries every field the article has -- the ones already stored as context, the
-/// missing ones as the work -- and the reply names each by locale and field. What is already
-/// stored is what met its budget: an entry that did not is deleted first, which is what puts it
-/// back in the missing list. See spec/i18n.md.
+/// The four fields are separate segments and separate stored entries, but still asked for
+/// together: a subtitle has to complete its title rather than repeat it, which a model shown one
+/// field at a time cannot judge. The request carries every field the article has -- stored ones
+/// as context, missing ones as the work -- and an entry that did not meet its budget is deleted
+/// first, which puts it back in the missing list.
 #[expect(clippy::too_many_arguments, reason = "one request's inputs, each named")]
 pub fn build_display(
 	title: &str,
