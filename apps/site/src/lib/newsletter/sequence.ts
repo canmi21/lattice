@@ -37,7 +37,7 @@ export const SEQUENCE_TOTAL = 2100;
  * they are trying to go is the one place a long transition turns hostile.
  */
 export const REVERSE = {
-	/** The line under the pill leaving the way it came, and the control that was just used with it. */
+	/** The line under the pill leaving the way it came, with the control just used beside it. */
 	undo: { at: 0, for: 250 },
 	/**
 	 * The address dissolving. It is the longest stage of the four and it does not sweep: coming in

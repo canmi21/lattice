@@ -23,14 +23,12 @@
 			borderRadius: '624.9375rem',
 			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
-			// Three properties in the list, so every other list is three long: a transition's lists
-			// are read per property, and one value against three is not the same computed style as
-			// three. The shorthand this replaced said as much by saying nothing -- it gave each of
-			// its three items the initial curve and the initial delay.
+			// Three properties in the list, so every other list matches: a transition's lists are
+			// read per property, and one value against three is not the same computed style as three.
 			//
-			// Reduced motion is the same suppression the row used to write as `transition: none`,
-			// which is four longhands rather than one: the shorthand also returns the duration, the
-			// curve and the delay to their initial values.
+			// Reduced motion is the same suppression the row used to write as `transition: none` --
+			// four longhands rather than one, since the shorthand also returns duration, curve and
+			// delay to their initial values.
 			transitionProperty: {
 				default: 'background-color, border-color, color',
 				'@media (prefers-reduced-motion: reduce)': 'none',
@@ -49,15 +47,8 @@
 			},
 		},
 		/**
-		 * The like pill's figures.
-		 *
-		 * The count is the one thing here that changes while the reader is looking at it, and
-		 * Inter's proportional digits are not the same width: `1` is 6.6px against `4`'s 10.5px. A
-		 * like the reader just gave would resize its own pill and shift the two beside it. Tabular
-		 * figures give every digit the widest one's advance, so the width answers only to how many
-		 * digits there are -- a change that has a reason the reader can see. It is a feature of this
-		 * same font, not a monospace face: only the digits take the fixed advance and the word
-		 * beside them is untouched.
+		 * The like pill's figures: tabular, so a changing count does not resize the pill and shift
+		 * its neighbours. See spec/styling.md, "A number's treatment follows the role it plays".
 		 */
 		likeFigures: {
 			fontVariantNumeric: 'tabular-nums',
@@ -128,18 +119,11 @@
 	import { intlLocale } from '$lib/format';
 
 	/**
-	 * Expanding answers to whether the pointer can hover, not to how wide the window is.
-	 *
-	 * A touch screen has no hover, but a tap synthesises `mouseenter` -- so the pill would grow
-	 * under the finger that meant to press it, and then sit expanded with no pointer to leave and
-	 * take it back. Reading it costs a press either way; growing first only moves the target.
-	 *
-	 * Width was the wrong question. An iPad is wider than any breakpoint this site draws and still
-	 * has nothing that hovers, so a width guard was open on the one device class it was written
-	 * for. This asks the capability directly, which is also why it needs no copy of a breakpoint.
-	 *
-	 * Queried live rather than once, so a tablet that is given a trackpad finds the other answer.
-	 * See spec/styling.md.
+	 * Expanding answers to whether the pointer can hover, not to how wide the window is -- a tap
+	 * synthesises `mouseenter`, and a width guard was open on the one device class, an iPad, it was
+	 * meant to catch. Queried live rather than once, so a tablet given a trackpad finds the other
+	 * answer. See spec/styling.md, "The reveal answers to whether the pointer can hover, not to how
+	 * wide the window is".
 	 */
 	const HOVERS = '(hover: hover)';
 
@@ -166,25 +150,11 @@
 	} = $props();
 
 	/**
-	 * Which favour this row asks for, in the one slot that asks for one.
-	 *
-	 * Asking the same reader for the same thing on every visit is asking nothing: once they have
-	 * set the source preference there is nothing left to set, and the pill goes on offering it.
-	 * So the slot moves on. `support.preferred` in the reader's state record -- see
-	 * `client/state.ts` -- says this reader has been sent to Google at some point, and from their
-	 * next visit the slot asks for a star instead.
-	 *
-	 * `sessionStorage["preferred"]` is what keeps it from moving under them. A reader who clicks
-	 * and comes back to the tab -- or reloads, or navigates and returns -- would otherwise find a
-	 * different control where they just pressed one, which reads as the page having changed its
-	 * mind. Within the tab that did it, the pill stays where it was. That one is a bare
-	 * key in the `tab` record and deliberately not in the `reader` one: it describes the tab
-	 * rather than the reader, and the reader's record is what a later build syncs between their
-	 * devices.
-	 *
-	 * The server has neither store, so it renders Google -- right for every first-time reader,
-	 * which is everyone it can see -- and a returning reader's pill changes after hydration. Both
-	 * short forms are a six-letter brand name, so what moves is the label and not the row.
+	 * Which favour this row asks for, in the one slot that asks for one. Two stores decide it --
+	 * see spec/styling.md, "Compact action rails reveal detail on demand" -- and share this one
+	 * key, `PREFERRED`, across the `reader` and `tab` records in `client/state.ts` so the two
+	 * never drift. Both short forms are a six-letter brand name, so what moves is the label and
+	 * not the row.
 	 */
 	const PREFERRED = 'support.preferred';
 	let asksForStar = $state(false);

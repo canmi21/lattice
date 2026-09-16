@@ -3,16 +3,9 @@ export const LOCALE_CODES = ['mw', 'de', 'en', 'es', 'fr', 'ja', 'ko', 'zh', 'tw
 export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 /**
- * The language this site's own copy is written in.
- *
- * Not a fallback for a missing article language -- it is the answer for everything that is not an
- * article. A page's prose, the homepage bio, and every string `mw` renders are English by rule
- * (see spec/locale.md), and the worker already tells browsers so: `<html lang>` on `/` and on
- * `/licenses` reads `en-US`.
- *
- * Stated once because two places assert it. The document says it to a crawler and the language
- * switcher says it to a reader, and for a while they disagreed -- the switcher offered `Original`
- * with nothing in brackets, on a page whose own tag named a language perfectly well.
+ * The language this site's own copy is written in -- not a fallback for a missing article
+ * language. See spec/locale.md, "A page names the site's own language, which is what its tag
+ * already says".
  */
 export const SITE_LANGUAGE = 'en-US';
 

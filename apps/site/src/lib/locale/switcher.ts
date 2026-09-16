@@ -24,22 +24,9 @@ export const LANGUAGE_ENDONYMS = Object.fromEntries(
 ) as Record<TranslationCode, string>;
 
 /**
- * How large each mark reads, measured rather than assumed.
- *
- * Each glyph is rasterised at a 16px box and its painted pixels counted, which gives how far the
- * ink reaches and how much of it there is inside that reach. The figure below is
- * `sqrt(extent * sqrt(mass))`: reach, corrected by weight. Both terms scale with the box, so the
- * figure does too, and the height a mark wants is a ratio rather than a second measurement.
- *
- * Mingcute does not fill its viewBox alike across this set, so one shared `h-4` shipped four
- * sizes spanning 15.5%. `translate-line` and `translate-2-line` reach 12.00px of ink where
- * `translate-2-ai-line` and `world-2-line` reach 13.38px, and the lighter of the two pairs is
- * lighter again in mass -- so the English, Spanish and Simplified rows read smallest, in a column
- * the eye compares by scanning straight down it.
- *
- * Reach alone is the wrong thing to equalise. Bringing a narrow mark up to the widest reach scales
- * its strokes with it, and it arrives as the heaviest mark in the menu; weight alone
- * under-corrects for the same reason in reverse. See spec/styling.md.
+ * How large each mark reads, measured rather than assumed: `sqrt(extent * sqrt(mass))`, reach
+ * corrected by weight. See spec/styling.md, "An icon set is sized by the ink it carries, not by
+ * one class for all of it", for the derivation and the measured spread it corrects.
  */
 const MARK_OPTICAL = {
 	translate: 9.68,
@@ -51,34 +38,16 @@ const MARK_OPTICAL = {
 export type MarkName = keyof typeof MARK_OPTICAL;
 
 /**
- * Marks that are one drawing, and are therefore sized as one.
- *
- * `translate-2-line` and `translate-2-ai-line` are the same glyph: rasterised together at a 16px
- * box they share 53.36px² of ink, the plain one has 0.86px² of its own -- an antialiased edge --
- * and the whole of the other's extra 14.2px² sits in the top-right corner, which is the sparkle
- * and nothing else.
- *
- * An ornament is ink, so it counts toward the figure above, and measuring the two apart hands the
- * plain one a smaller number and a larger scale. The letterform they share then arrives at two
- * sizes on rows that sit next to each other, which is the one comparison this whole correction
- * exists to make come out right. So the ornament does not get to vote: the plain mark is sized by
- * its sibling's measurement, and the drawing renders identically in both rows.
- *
- * This is the exception, not the rule. Two marks belong here only when they are one drawing that
- * differs by a decoration; four glyphs that merely resemble each other are still measured apart.
+ * Marks that are one drawing, and are therefore sized as one: an ornament does not vote on size.
+ * See spec/styling.md, "An icon set is sized by the ink it carries, not by one class for all of
+ * it", for why `translate-2-line` and `translate-2-ai-line` qualify and others do not.
  */
 const MARK_DRAWING = new Map<MarkName, MarkName>([['translate-simplified', 'translate-ai']]);
 
 /**
- * One optical size for the whole control, taken from the compass on the closed trigger.
- *
- * That mark is the one size this control was already right at, and it is a correction of its own
- * -- `size-3.75` rather than the row's `size-3.5`, for reasons recorded in switcher.svelte. So the
- * menu is brought to it rather than the other way round.
- *
- * It also settles the trigger, which was not one size but two: the compass reads 10.68 and the
- * mark that replaces it when the view is not the reader's own read between 9.40 and 10.86, so the
- * same slot changed size by up to 12% according to which language was being read.
+ * One optical size for the whole control, taken from the compass on the closed trigger -- itself
+ * a correction, `size-3.75` rather than the row's `size-3.5`. See spec/styling.md, "An icon set is
+ * sized by the ink it carries, not by one class for all of it".
  */
 const MARK_OPTICAL_TARGET = 10.68;
 
@@ -101,15 +70,11 @@ export function markHeightRem(mark: MarkName): number {
 }
 
 /**
- * Two orders, chosen by what the reader's own language is rather than by the view.
+ * Two orders, chosen by the reader's own language rather than the view, so the sequence settles
+ * once per reader rather than reshuffling as they move between views.
  *
- * Names never change; only their sequence does, and it settles once per reader rather than
- * shifting as they move between views. Someone reading in Japanese should not have to walk past
- * four European languages to reach Chinese, and someone reading in French should not have to do
- * the reverse.
- *
- * Written out rather than derived from the endonym table, because there are now two of them and
- * an implicit order cannot express two. Both must name all eight; the tests hold them to it.
+ * Written out rather than derived from the endonym table: there are now two orders and an implicit
+ * one cannot express two. Both must name all eight; the tests hold them to it.
  */
 const ORDER_CJK = ['en', 'zh', 'tw', 'ja', 'ko', 'de', 'fr', 'es'] as const;
 const ORDER_LATIN = ['en', 'es', 'fr', 'ja', 'zh', 'tw', 'ko', 'de'] as const;
@@ -131,7 +96,7 @@ export function orderFor(preferred: LocaleCode): readonly TranslationCode[] {
  */
 const COMPACT_SCRIPT = new Set<LocaleCode>(['zh', 'tw', 'ja', 'ko']);
 
-/** Subtags that mark a Chinese tag as Traditional. Script wins; the regions are the legacy spelling. */
+/** Subtags marking a Chinese tag Traditional. Script wins; regions are the legacy spelling. */
 function isTraditional(subtags: string[]): boolean {
 	return subtags.some((part) => part === 'hant' || ['tw', 'hk', 'mo'].includes(part));
 }
@@ -189,16 +154,10 @@ export type LabelOptions = { region?: boolean };
 /**
  * A language named the way the closed switcher names it: its own name, and its region.
  *
- * Separate from `triggerLabel` because the notice above an article wants the same phrase without
- * the original view's special cases -- it is naming a language, not reporting where the reader
- * is standing.
- *
- * **`region: false` is for a caller that has measured its room and not found enough.** The region
- * is a qualifier rather than the name, and among the eight published views it qualifies nothing:
- * their endonyms already differ from one another, `简体中文` from `繁體中文` included. What it
- * earns its place on is the original view's fallback, where there is no endonym to show and the
- * region is the whole identifier -- so that case ignores this option, in `triggerLabel`. See
- * spec/locale.md.
+ * Kept apart from `triggerLabel` so the notice above an article can reuse the phrase without the
+ * original view's special cases. `region: false` is for a caller with room to spare -- among the
+ * eight views the region qualifies nothing since their endonyms already differ; only the original
+ * view's fallback in `triggerLabel` needs it. See spec/locale.md.
  */
 export function publishedLabel(
 	code: TranslationCode,
@@ -208,22 +167,13 @@ export function publishedLabel(
 }
 
 /**
- * What the control says while it is closed: the language being read, written as its own readers
- * write it, and the region that tells two publications of one language apart.
+ * What the control says while it is closed: the language being read, its own name plus the region
+ * that tells two publications of one language apart -- never the internal `?lang=` code.
  *
- * **The region, not the `?lang=` code.** `zh` and `tw` are one language published in two places,
- * and `CN` / `TW` is what separates them -- the answer `Original (CN)` has always given. The
- * internal codes stay out of the interface; see spec/locale.md for why they are ours alone.
- *
- * On the original view it names the language the article is written in rather than the word
- * `Original`. The trigger answers what is being read, and the row inside the menu is where the
- * state gets named -- so the two say different things on purpose. An article written in a
- * language this site publishes no view of keeps `Original (XX)`: there is no endonym to show it
- * and no region that would mean anything.
- *
- * A page is not a case of its own. Its prose is the site's own copy, which `SITE_LANGUAGE` names
- * and `<html lang>` already declares, so the caller hands that over and this reads it like any
- * other source language.
+ * The original view names the article's language rather than the word `Original`; a page hands
+ * over `SITE_LANGUAGE` and is read like any other source. See spec/locale.md, "The closed control
+ * names a language; the menu names the choices" and "A page names the site's own language, which
+ * is what its tag already says".
  */
 export function triggerLabel(
 	currentCode: LocaleCode,
@@ -288,17 +238,10 @@ export function sourceLanguageName(sourceLanguage: string, currentCode: LocaleCo
 /**
  * The eight, then the original last, as one entry among them rather than a section of its own.
  *
- * `mw` is labelled in whichever language is being read rather than in the article's own, because
- * it names a state and not a language. The endonyms above stay fixed for the opposite reason.
- *
- * The qualifier in `Original (CN)` names the language of the thing being read, and a page has one
- * as surely as an article does: its prose is the site's own copy, in `SITE_LANGUAGE`, which is
- * what `<html lang>` has always said about it. The row used to read `Original` alone there, which
- * was the switcher declining to name a language the document beside it was naming.
- *
- * The row stays on every page for a separate reason: the choice is written to one site-wide
- * cookie, and preferring the original is a different answer from preferring English the moment
- * the reader opens an article.
+ * `mw` is labelled in whichever language is being read, because it names a state rather than a
+ * language; the row stays on every page since the choice is one site-wide cookie, and preferring
+ * the original differs from preferring English the moment an article opens. See spec/locale.md,
+ * "A page names the site's own language, which is what its tag already says".
  */
 export function languageChoices(
 	currentCode: LocaleCode,

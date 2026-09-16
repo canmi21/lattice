@@ -7,12 +7,9 @@
 	 * The visual half of the language switcher. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * Two things stayed in the markup that look like they belong here. The row's highlight and
-	 * the mark's ink beside it are gated on `data-highlighted`, which Bits UI writes on the row,
-	 * and StyleX addresses an element by pseudo-class or at-rule rather than by attribute. The
-	 * mark's pair is the harder half: its resting colour and its highlighted one cannot be
-	 * split across layers, because StyleX outranks Tailwind's utilities and a resting colour
-	 * here would win over the `group-data-` variant left behind. Recorded in spec/todo.md.
+	 * The row's highlight and the mark's pair stay in the markup, gated on `data-highlighted`:
+	 * StyleX addresses only pseudo-classes and at-rules, and here it would also outrank the
+	 * `group-data-` variant left behind. Recorded in spec/todo.md.
 	 */
 	const styles = stylex.create({
 		/** The trigger's caret, which turns to face the panel that is about to open. */
@@ -83,11 +80,9 @@
 	// The language of the thing being read. An article passes its own; a page passes nothing and
 	// takes the site's, which is what its `<html lang>` already declares. See languageChoices.
 	//
-	// `phoneRegion` is opt-out rather than a width this component measures for itself: only the
-	// caller knows what else is in its row. The article's metadata row is the one that has run
-	// out of room; every other place this control appears keeps the region at every width.
-	// `framed` says this control is one the page pushes to a frame rather than one sitting in a
-	// row's flow. Only the article's metadata row does that, and only where the rail is absent.
+	// `phoneRegion` is opt-out per caller rather than a measured width: only the article's metadata
+	// row has run out of room. `framed` marks a control pushed to the article's right frame rather
+	// than sitting in a row's flow, which only that same row does, and only where the rail is absent.
 	let {
 		code,
 		sourceLanguage = SITE_LANGUAGE,
@@ -104,15 +99,11 @@
 	/**
 	 * Which of the trigger's edges the panel lines up with.
 	 *
-	 * A control sitting in a row's flow opens from its left edge, which is where the eye already
-	 * is. A control pushed to the article's right frame opens from its right, so the panel and the
-	 * thing that summoned it share an edge instead of the panel hanging inward from a control that
-	 * is itself against the frame.
+	 * A control in a row's flow opens from its left edge; one pushed to the article's right frame
+	 * opens from its right, so the panel shares an edge with what summoned it.
 	 *
-	 * The condition is the rail's, read off whether the rail is rendered rather than from a width,
-	 * so the breakpoint stays the one number in `utilities.css`. Read when the menu opens rather
-	 * than up front: the panel does not exist until then, so unlike the title or the notice there
-	 * is no server render for this choice to survive and no first frame to correct.
+	 * Read off whether the rail is rendered, so the breakpoint stays the one number in
+	 * `utilities.css`, and read only when the menu opens since there is no server render to survive.
 	 */
 	let align = $state<'start' | 'end'>('start');
 
@@ -188,12 +179,9 @@
 	/**
 	 * The same answer for a row that has no space for the qualifier.
 	 *
-	 * Both readings are rendered and CSS picks one, rather than a media query read in script: the
-	 * choice has to survive the server render, and a control that corrects its own label on the
-	 * first frame is worse than one that is a few pixels wide. Equal to `label` unless the caller
-	 * opted out, in which case the markup carries one string twice and costs bytes rather than a
-	 * wrong first frame -- the shape the title and the newsletter pitch already take. See
-	 * spec/styling.md.
+	 * Both readings render and CSS picks one, rather than a media query read in script: the choice
+	 * has to survive the server render, so a correction on the first frame is worse than a few
+	 * extra bytes. Equal to `label` unless the caller opted out. See spec/styling.md.
 	 */
 	const phoneLabel = $derived(
 		phoneRegion ? label : triggerLabel(code, sourceLanguage, { region: false }),
@@ -215,17 +203,9 @@
 	/**
 	 * The one slot that holds either icon set, so the one place their difference is spelled out.
 	 *
-	 * Iconify marks are set by height with an automatic width, and every Lucide glyph in the
-	 * metadata row this sits in is `size-3.5`. The compass was a step under that, on the grounds
-	 * that a larger Lucide glyph lifted the row -- measured at 3.25, 3.5 and 4, the row is 24rem
-	 * high at all three and nothing moves. That reason is gone.
-	 *
-	 * What is left is the glyph's own shape, and it is the reason this is not simply `size-3.5`.
-	 * Lucide does not fill its box consistently: at the same 14px, `Type` inks 10.5px and
-	 * `Sparkles` 12.8px. The compass inks 12.8px there too, but it reaches its box on every side
-	 * because it is a circle, and a circle that reaches its box reads smaller than a glyph that
-	 * only reaches it at the corners. So it is set one step above the row's Lucide size -- about
-	 * 7%, which is the usual correction for a round mark among angular ones.
+	 * `size-3.75` rather than the row's `size-3.5`: a circle that reaches its box on every side
+	 * reads smaller than an angular glyph that only reaches it at the corners. See spec/styling.md,
+	 * "An icon set is sized by the ink it carries, not by one class for all of it".
 	 */
 	const COMPASS_SIZE = 'size-3.75';
 

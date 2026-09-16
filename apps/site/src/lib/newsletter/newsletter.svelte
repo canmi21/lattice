@@ -4,23 +4,16 @@
 	import { duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
-	 * The visual half of the subscription surface. Every colour is the token variable
-	 * `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md.
+	 * The visual half of the subscription surface. Every colour is the token variable `libs/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file is not a leftover of the migration. It keeps the
-	 * eight keyframes and every class that names one, because Svelte rewrites a keyframe to a
-	 * scoped name and an `animation-name` written anywhere else would point at nothing; it keeps
-	 * the geometry, which is the overhang both the pill and the row are pulled by and the two
-	 * grids that stack a cell; and it keeps `--pill-height`, which is declared on the section and
-	 * read back down through `app.css`. A migration moves a declaration between layers and never
-	 * changes how a value is arrived at. See spec/todo.md.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block at the foot of this file keeps the eight keyframes and their names, the
+	 * `--pill-overhang` geometry, and `--pill-height`, read back down through `app.css` -- a
+	 * migration moves a declaration between layers and never changes how a value is arrived at. See
+	 * spec/todo.md, and spec/architecture/css.md for what this block's own comments must not do.
 	 */
 	const styles = stylex.create({
-		/** Both readings of the pitch. Which one is shown is a width question and stays in the markup. */
+		/** Both readings of the pitch; which one shows is a width question, kept in the markup. */
 		pitch: {
 			color: 'var(--color-text-soft)',
 		},
@@ -70,14 +63,9 @@
 			backgroundColor: 'var(--color-ink)',
 			fontWeight: weight.medium,
 			color: 'var(--color-page)',
-			// Two conditions land on this one property and they overlap: Chrome matches `:hover`
-			// on a disabled button, and the pointer is very likely still on the one just pressed.
-			// The two layers arbitrate that differently and the arbitration is not ours to pick.
-			// Tailwind emits its `hover:` block before its `disabled:` rule, so the dimmer of the
-			// two wins; StyleX sorts `:hover` after `:disabled` and keeps doing so whatever order
-			// they are written in here, and inside the hover query as well -- measured twice, 0.85
-			// where it had been 0.6. So the hovered value says out loud the condition Tailwind's
-			// ordering left implicit, and the two are then mutually exclusive rather than ranked.
+			// `:hover` and `:disabled` can both match here, and the layers rank them differently.
+			// See spec/architecture/css.md, "Two conditions that can both be true are made
+			// exclusive, never ranked", for why the hover condition is spelled out below.
 			opacity: {
 				default: null,
 				':disabled': 0.6,
@@ -94,14 +82,13 @@
 			color: 'var(--color-text-soft)',
 		},
 		/**
-		 * The hidden labels that decide the cell's width. They carry the button's own type, not
-		 * the row's: this row is a size smaller and a weight lighter, and either difference makes
-		 * the reserved cell narrower than the thing it is standing in for.
+		 * The hidden labels that decide the cell's width carry the button's own type, not the
+		 * row's: this row is a size smaller and lighter, and either difference would narrow the
+		 * reserved cell.
 		 *
-		 * The line stays a ratio, which is what `text-base` writes it as: `calc(1.5 / 1)` is 1.5
-		 * exactly, and the rule against ratios in spec/architecture/css.md is about the ones whose
-		 * decimal expansion does not stop. What reserves the width -- `visibility` and the refusal
-		 * to wrap -- is layout and stays below.
+		 * The line stays a ratio -- `calc(1.5 / 1)` is exactly 1.5, so the rule in
+		 * spec/architecture/css.md against ratios that never terminate does not apply. What
+		 * reserves the width is layout, below.
 		 */
 		ghost: {
 			fontSize: '1rem',
@@ -117,14 +104,12 @@
 				':focus-visible': 'var(--color-text-strong)',
 			},
 			opacity: { default: null, ':disabled': 0.6 },
-			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
-			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
-			// is the computed value and dropping them changes it.
-			//
-			// Measured, none of these three reaches the element: `.spring-underline` is unlayered
-			// and already owns `transition`, so this control's colour has never faded. Carried
-			// across unchanged, because a migration moves what the markup said rather than what it
-			// achieved, and recorded in spec/todo.md.
+			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included --
+			// dropping them changes the computed value even though nothing here sets a gradient.
+			// None of the three actually reaches the element, since `.spring-underline` is
+			// unlayered and already owns `transition`; see spec/architecture/css.md, "There is a
+			// fourth participant, and it sits above the visual layer". Carried across unchanged
+			// on purpose, and recorded in spec/todo.md.
 			transitionProperty: transition.colors,
 			transitionDuration: duration.base,
 			transitionTimingFunction: easing.inOut,
@@ -197,14 +182,11 @@
 	/**
 	 * Whether an offered section has been put on the page.
 	 *
-	 * **It is set once, at mount, and nothing ever clears it.** Deriving presence from the record
-	 * instead would delete the section at the moment somebody subscribed inside it -- 2.1 seconds
-	 * of confirmation playing inside an element that is removing itself. Latched, subscribing here
-	 * keeps everything it put on screen, the pill and the control that undoes it alike, until the
-	 * page is left; the next article is the first one to omit the section.
-	 *
-	 * That is the line the confirmation copy already sits on. What the reader just did lasts one
-	 * visit, and what they are is what the next load reads.
+	 * **Set once, at mount, and nothing ever clears it.** Deriving presence from the record instead
+	 * would delete the section the moment somebody subscribed inside it -- 2.1 seconds of
+	 * confirmation playing inside an element that is removing itself. Latched, subscribing keeps
+	 * everything on screen until the page is left; the confirmation copy already sits on that line:
+	 * what the reader just did lasts one visit, and what they are is what the next load reads.
 	 */
 	let appended = $state(false);
 	const present = $derived(!offer || appended);
@@ -336,14 +318,12 @@ otherwise need. See spec/engagement.md. -->
 			{m['newsletter.heading']({}, { locale })}
 		</h2>
 
-		<!-- Two readings of one pitch, chosen by width. A phone gets the shorter one, which is the
-		     same invitation in fewer sentences rather than a different offer -- the long version
-		     runs to six lines there in English and five in German, which is a paragraph to read
-		     before reaching the field it is asking you to fill in.
+		<!-- Two readings of one pitch, chosen by width. A phone gets the shorter one -- the same
+		     invitation in fewer sentences, since the long version runs to five or six lines there.
 
 		     Both are in the markup and one is `display: none`, so a screen reader is read exactly
-		     one of them. The bio does this with markers inside its markdown; a message has no
-		     markdown to mark, so the choice is made here. See spec/styling.md. -->
+		     one of them. The bio does this with markers inside its markdown; a message has none,
+		     so the choice is made here. See spec/styling.md. -->
 		<p class="selectable hidden sm:block {stylex.attrs(styles.pitch).class}">
 			{m['newsletter.pitch']({}, { locale })}
 		</p>
@@ -465,8 +445,7 @@ otherwise need. See spec/engagement.md. -->
 				     this font renders them, and it moves with the language. Measuring it would mean
 				     painting at one position and shifting after hydration, which is the failure
 				     styling.md records for the rail. So the cell reserves the width the same way the
-				     button does -- by laying both labels out and hiding them -- and the control
-				     centres inside whatever that comes to. -->
+				     button does, and the control centres inside it. -->
 				<span class="under-chip shrink-0">
 					<span class="ghost px-4 {stylex.attrs(styles.ghost).class}" aria-hidden="true"
 						>{@render label(true)}</span
@@ -669,7 +648,7 @@ otherwise need. See spec/engagement.md. -->
 	/* The button does not fade in with the rest: it is the shape the chip has just finished warming
 	   back into, arriving at the same ink it was handed, and fading it would blink the one element
 	   that was continuous across the swap. It springs instead -- the moment it can be pressed again
-	   is worth marking, and scale carries that without touching the colour that made it continuous. */
+	   is worth marking; scale carries that without touching the colour that stayed continuous. */
 	.reviving {
 		animation: revive var(--back-form-for) var(--ease-spring) both;
 	}
