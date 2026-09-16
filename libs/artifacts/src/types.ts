@@ -1,5 +1,12 @@
-import type { LocaleCode } from '../locale/index.ts';
-import type { VideoRung, VideoTrack } from './build/assets.ts';
+import type { LocaleCode } from '@canmi/locales';
+
+/** Which of the three things a text track is. WebVTT's own vocabulary, not ours. */
+export type CaptionKind = 'captions' | 'subtitles' | 'descriptions';
+
+export type VideoRung = { src: string; type: string; width: number; height: number };
+
+/** One published text track, described by what the record says it is rather than by a label. */
+export type VideoTrack = { src: string; kind: CaptionKind; language: string };
 
 export type ArticleMeta = {
 	title: string;

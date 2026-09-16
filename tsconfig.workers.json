@@ -33,7 +33,9 @@
 		"apps/api/*.d.ts",
 		"apps/cdn/src/**/*.ts",
 		"apps/cdn/*.d.ts",
-		"libs/store/src/**/*.ts"
+		"libs/store/src/**/*.ts",
+		// Types and schemas only, so it carries no runtime globals and is safe in both programs.
+		"libs/artifacts/src/**/*.ts"
 	],
 	"exclude": ["**/node_modules", "**/dist", "**/build"]
 }

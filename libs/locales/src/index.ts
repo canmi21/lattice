@@ -38,3 +38,14 @@ export const ENDONYM = {
 export function endonym(tag: string): string {
 	return (ENDONYM as Record<string, string>)[tag] ?? tag;
 }
+
+/**
+ * The codes the corpus keys a view by, and `mw` for the article's own language.
+ *
+ * The short internal spelling of the same set [[LOCALE_TAGS]] names in BCP-47. It moved here for
+ * the reason those did: a third consumer appeared -- `@canmi/artifacts`, which types a published
+ * view -- and a vocabulary two packages spell out separately is a vocabulary that drifts.
+ */
+export const LOCALE_CODES = ['mw', 'de', 'en', 'es', 'fr', 'ja', 'ko', 'zh', 'tw'] as const;
+
+export type LocaleCode = (typeof LOCALE_CODES)[number];

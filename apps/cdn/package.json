@@ -8,6 +8,7 @@
 		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
 	},
 	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
 		"@canmi/robots": "workspace:*",
 		"@canmi/store": "workspace:*",
 		"@canmi/urls": "workspace:*",

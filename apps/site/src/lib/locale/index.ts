@@ -1,4 +1,5 @@
-export const LOCALE_CODES = ['mw', 'de', 'en', 'es', 'fr', 'ja', 'ko', 'zh', 'tw'] as const;
+import { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
+export { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
 
 export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
@@ -8,8 +9,6 @@ export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
  * tag already says".
  */
 export const SITE_LANGUAGE = 'en-US';
-
-export type LocaleCode = (typeof LOCALE_CODES)[number];
 
 export const PUBLIC_LANGUAGE = {
 	de: 'de-DE',

@@ -1,0 +1,13 @@
+{
+	"name": "@canmi/artifacts",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./types": "./src/types.ts"
+	},
+	"dependencies": {
+		"@canmi/locales": "workspace:*",
+		"valibot": "^1.5.0"
+	}
+}
