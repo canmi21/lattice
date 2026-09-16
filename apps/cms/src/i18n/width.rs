@@ -9,13 +9,13 @@
 
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-/// Columns the rail fits on one line, derived from a cap of 192px at 13px type: fourteen Han
-/// characters or twenty-eight Latin ones. The rail's own width is `--rail-width` in
-/// apps/site/src/styles/utilities.css, argued in spec/styling/rail.md, "The rail's box is one
-/// declared width". **That declaration is 8.5rem, which is 136px, and this derivation has not been
-/// reconciled with it** -- at the declared width the budget is generous, so the audit warns late.
-/// Open: the number wants measuring against the rendered rail rather than either record.
-pub const ONE_LINE: usize = 28;
+/// Columns the rail fits on one line, and it follows `--rail-width` rather than standing on its
+/// own: a label is given that width entire, since nothing between the box and the text takes any
+/// of it. At today's 8.5rem -- 136px of 13px type -- ten Han characters fit against nineteen
+/// Latin ones, and the smaller is the budget. Measured in the rendered rail, where nineteen is
+/// the widest no corpus label wraps at. Move that declaration and move this; see
+/// spec/styling/rail.md, "The rail's box is one declared width".
+pub const ONE_LINE: usize = 19;
 
 /// Two lines, where the label is clamped. Past this the end of the heading is not shown at all,
 /// which is the one outcome that is a loss rather than a judgement -- see `validate`.

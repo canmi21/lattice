@@ -259,17 +259,20 @@ the obstacle.
 **Width is columns, not characters.** A Han character occupies two where a Latin letter occupies
 one, so a count calls a Chinese heading and a French one of the same length equal when they
 differ by a factor of two. Unicode's East Asian Width table settles it, and the rendered rail
-agrees: one Han glyph is 13px against an average Latin 6.84px, a ratio of 1.9. This is the cheap
-true measure rather than the exact one -- real shaping knows `i` from `m`, and needs a font the
-CMS has no other reason to load.
+agrees: one Han glyph is 13px against an average Latin 6.84px, a ratio of 1.9. **Re-measured on
+2026-09-16** over the 496 section-heading translations the corpus holds, drawn in the label's own
+font: 6.80px a Latin column, 6.89px in the two heaviest locales, so the figure held. This is the
+cheap true measure rather than the exact one -- real shaping knows `i` from `m`, and needs a font
+the CMS has no other reason to load.
 
 The layout supplies the numbers, and it supplies them from another language. The rail's width is
 declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css) and argued in
 [styling/rail.md](../styling/rail.md) under "The rail's box is one declared width"; what this file's
-rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/cms/src/i18n/width.rs). The rail caps at
-192px of 13px type there, so one line is 28 columns and the two-line clamp is 56. Read against the
-declaration those figures do not agree; the disagreement is described where the width is argued,
-and is open rather than settled.
+rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/cms/src/i18n/width.rs). A label is given
+the rail's whole 136px at 13px type, which holds ten Han characters or nineteen Latin ones, so one
+line is 19 columns and the two-line clamp is 38. Both are measured in the rendered rail: nineteen
+is the widest a label goes without wrapping anywhere in the corpus, and three of the nine that
+reach twenty do wrap.
 
 **Three bands, and only the last is refused** -- for a section heading. Under one line is the target. Two lines are a
 legitimate outcome, and the rail is built for them, so `audit` reports that band and a person

@@ -119,11 +119,12 @@ declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utiliti
 here, and turned into a column budget across the language boundary by `ONE_LINE` in
 [width.rs](../../apps/cms/src/i18n/width.rs), which the CMS holds a translated heading to and which
 [i18n/segments.md](../i18n/segments.md) explains under "A section heading is also a label, and the rail is narrow".
-Each record is internally consistent and they disagree only when read together: this section and
-the declaration say 8.5rem, while the Rust constant derives its 28 columns from a 192px cap.
-Which of them is right is open and is not settled here. What each record now does is name its
-siblings, so the next reader sees them at once rather than one at a time -- which is how the
-width was wrong in two places for a long time without anyone noticing.
+That budget is **19 columns**, and it is measured in the rendered rail rather than computed from
+this width: a label is given the whole 136px, since nothing in the box takes any of it, and at the
+13px the entries draw at ten Han characters fit -- twenty columns -- against nineteen Latin ones,
+so the smaller is the budget. It held 28 for a long time, from a 192px cap belonging to no rail
+the site ever drew, and each record now names its siblings so the next such number is seen beside
+what it is derived from rather than one record at a time.
 
 **A wrapped entry gets two comparable lines**, through `text-wrap: balance` on the label. Left to
 fill and spill, the break lands wherever the width runs out -- `Independencia de la` over `UI` put
@@ -163,6 +164,13 @@ indicator is absolutely positioned, which is what lets the indicator and the ret
 outside its left edge as ornaments. Both are tuned to that edge: the icon is translated left of it
 so the word the control carries lines up with the entries, and a box drawn around either would
 push every entry right by the width of a decoration.
+
+**Nothing inside narrows it either, which is what makes the width mean one thing.** No element
+between the box and a label's text carries padding, a border or a narrower cap, so `--rail-width`
+is the box *and* the measure a label's text is given: all 136px of it, with the indicator and the
+return glyph outside. That is why `ONE_LINE` above can be read off the declaration rather than
+off the layout, and it is the part worth not re-measuring -- measured at every window width the
+rail is drawn at, the label's content box is 136px on the nose.
 
 The breakpoint that decides whether the rail appears at all is derived from this width by hand --
 `8.5rem + 2 * 1.5rem` of clearance beside each side of a 45rem article -- because a media query
