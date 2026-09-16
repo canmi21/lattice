@@ -268,12 +268,23 @@ cover` crops the two differently, so the first frame of playback arrives with a 
 shift: two pictures of the same instant, one of them slightly wrong.
 
 So the poster does what a poster is for -- something to show while there is nothing better -- and
-goes the moment the element can paint its own pixels. What produces those pixels is a seek, which
-is why the restore above happens on the same signal: a clip the tab left at fourteen seconds is
-showing its first frame until something moves it, so **a stored position always seeks, and only a
-clip with nowhere in particular to be is satisfied by whatever is already decoded**. A clip with
-no stored position is nudged a ten-thousandth of a second, because assigning the position the
-element already reports is not a seek and decodes nothing.
+goes the moment the element has painted a frame of its own. What produces one is a seek, which is
+why the restore above happens on the same signal: a clip the tab left at fourteen seconds is
+showing its first frame until something moves it, and a clip with nowhere in particular to be is
+nudged a ten-thousandth of a second, because assigning the position the element already reports is
+not a seek and decodes nothing. Every source is seeked exactly once, tracked rather than inferred,
+and the count resets when a rung swap calls `load()` and throws the decoded frame away.
+
+**`readyState` does not mean a frame has been painted, and reading it as if it did is what broke
+this.** `HAVE_CURRENT_DATA` and above say the *data* for the current position is available.
+Measured on a clip sitting at `readyState` 4 -- enough data for the whole thing -- with
+`totalVideoFrames` still 0: nothing had been decoded, so the guard skipped the seek, so nothing
+ever was. The poster came off an element painting nothing and what showed through was the
+thumbhash beneath it, a blurred sixteen-pixel placeholder stretched across the frame.
+
+`requestVideoFrameCallback` is the signal that a frame reached the compositor, and it is the one
+used where it exists. Firefox does not have it, so `seeked` carries the same claim there: the seek
+is unconditional, and a completed seek has by definition put a frame up.
 
 The attribute comes back on `emptied` and `error`, the two ways a decoded frame stops being true:
 a source swap, or a clip that has stopped working.

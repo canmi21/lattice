@@ -412,6 +412,27 @@
 	 */
 	let still = $state<HTMLCanvasElement>();
 
+	/**
+	 * Whether this source has already been asked for a frame.
+	 *
+	 * Reset when the element takes a new one -- a rung swap calls `load()`, which throws away
+	 * whatever was decoded -- so the replacement is asked for a frame of its own.
+	 */
+	let primed = false;
+	$effect(() => {
+		const element = video;
+		if (!element) return;
+		const again = () => {
+			primed = false;
+		};
+		element.addEventListener('emptied', again);
+		element.addEventListener('loadstart', again);
+		return () => {
+			element.removeEventListener('emptied', again);
+			element.removeEventListener('loadstart', again);
+		};
+	});
+
 	$effect(() => {
 		const element = video;
 		const canvas = still;
@@ -460,16 +481,33 @@
 	 * and therefore the point at which the frame has to be the right one.
 	 */
 	function prime(): void {
-		if (!video) return;
+		if (!video || primed) return;
+		// Once per source, tracked rather than inferred. It used to ask `readyState` whether a
+		// frame was already there, and `readyState` does not answer that question: measured at 4
+		// -- enough data for the whole clip -- with `totalVideoFrames` still 0, so it skipped the
+		// seek, nothing ever decoded, and the thumbhash showed through the poster's absence.
+		primed = true;
 		const at = restored ?? 0;
-		// Having *a* frame is not having the right one. A clip the tab left at 14s is showing its
-		// first frame until something seeks it, so a stored position always seeks; only a clip
-		// with nowhere in particular to be can be satisfied by whatever is already decoded.
-		if (at === 0 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return;
 		// Spent here rather than at `start`: the position has been applied, and applying it twice
 		// would seek a clip the reader has just pressed play on.
 		restored = undefined;
-		video.currentTime = at > 0 ? at : NUDGE;
+		seekTo(at > 0 ? at : NUDGE);
+	}
+
+	/**
+	 * Seek, waiting for metadata if there is not yet a timeline to seek within.
+	 *
+	 * Assigning `currentTime` before metadata sets a default start position instead of seeking,
+	 * which lands in the right place but never fires `seeked` -- and `seeked` is what tells
+	 * `video.svelte` a frame has been put up.
+	 */
+	function seekTo(at: number): void {
+		const element = video;
+		if (!element) return;
+		if (element.readyState >= HTMLMediaElement.HAVE_METADATA) element.currentTime = at;
+		else element.addEventListener('loadedmetadata', () => void (element.currentTime = at), {
+			once: true,
+		});
 	}
 
 	/**
@@ -481,14 +519,7 @@
 	function start(): void {
 		const at = restored;
 		restored = undefined;
-		if (at !== undefined && video) {
-			// Before metadata there is no duration to seek within, so the seek waits for it. A
-			// clip that never reports metadata simply starts at the beginning.
-			if (video.readyState >= HTMLMediaElement.HAVE_METADATA) video.currentTime = at;
-			else video.addEventListener('loadedmetadata', () => void (video.currentTime = at), {
-				once: true,
-			});
-		}
+		if (at !== undefined) seekTo(at);
 		void (player?.play as () => void)?.();
 	}
 

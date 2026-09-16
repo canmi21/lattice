@@ -101,22 +101,43 @@
 	 * Reset on `emptied` and `error`, which are the two ways a decoded frame stops being true --
 	 * a source swap, or a clip that has stopped working. The poster is the fallback again from
 	 * there.
+	 *
+	 * **`readyState` is the wrong signal and this used to use it.** `HAVE_CURRENT_DATA` and above
+	 * say the *data* for the current position is available, not that anything has been decoded and
+	 * put on screen: measured on a clip sitting at `readyState` 4, `totalVideoFrames` was 0. The
+	 * poster came off an element that was painting nothing, so what showed through was the
+	 * thumbhash underneath it -- a blurred sixteen-pixel placeholder stretched across the frame,
+	 * which is exactly what it looked like.
+	 *
+	 * `requestVideoFrameCallback` is the signal that means a frame reached the compositor, and it
+	 * is the one used where it exists. Firefox does not have it, so `seeked` carries the same
+	 * claim there: `prime` in the controls always issues a seek, and a completed seek has by
+	 * definition put a frame up.
 	 */
 	let framed = $state(false);
 	$effect(() => {
 		const element = el;
 		if (!element) return;
-		const check = () => {
-			framed = element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+		let pending: number | undefined;
+		const painted = () => {
+			framed = true;
 		};
-		const shown = ['loadeddata', 'seeked', 'canplay'];
-		const lost = ['emptied', 'error'];
-		for (const event of shown) element.addEventListener(event, check);
-		for (const event of lost) element.addEventListener(event, check);
-		check();
+		const watch = () => {
+			pending = element.requestVideoFrameCallback?.(painted);
+		};
+		const lost = () => {
+			framed = false;
+			watch();
+		};
+		element.addEventListener('seeked', painted);
+		element.addEventListener('emptied', lost);
+		element.addEventListener('error', lost);
+		watch();
 		return () => {
-			for (const event of shown) element.removeEventListener(event, check);
-			for (const event of lost) element.removeEventListener(event, check);
+			if (pending !== undefined) element.cancelVideoFrameCallback?.(pending);
+			element.removeEventListener('seeked', painted);
+			element.removeEventListener('emptied', lost);
+			element.removeEventListener('error', lost);
 		};
 	});
 	let frame = $state<HTMLElement>();
