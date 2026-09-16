@@ -98,7 +98,7 @@
 	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
 	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';
 	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
-	import { keepPosition, positionOf } from '$lib/client/progress';
+	import { keepPosition, positionOf, stillOf } from '$lib/client/progress';
 	import { reader } from '$lib/client/state';
 	import type { VideoRung } from '$lib/content/build/assets.ts';
 	import type { LocaleCode } from '$lib/locale';
@@ -389,7 +389,7 @@
 	 */
 	let restored: number | undefined;
 	$effect(() => {
-		restored = positionOf(sessionStorage, clip);
+		restored = positionOf(sessionStorage, clip)?.at;
 	});
 
 	/**
@@ -533,7 +533,10 @@
 	 */
 	function keep(): void {
 		if (!video || !clip) return;
-		keepPosition(sessionStorage, clip, video.currentTime, video.duration);
+		// The picture goes with the number. A reload that puts the clip back at fourteen seconds
+		// and blurs the *first* frame behind it while it decodes is showing the wrong place, and
+		// the blurred ground is the one thing on screen for that moment.
+		keepPosition(sessionStorage, clip, video.currentTime, video.duration, stillOf(video));
 	}
 
 	$effect(() => {

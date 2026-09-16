@@ -146,4 +146,24 @@ function container(key: string, version: number, migrations: Migration[]): Conta
 export const reader = container('state', 1, []);
 
 /** What is true of this sitting. Pair it with `sessionStorage`. */
-export const tab = container('state', 1, []);
+export const tab = container('state', 2, [
+	/**
+	 * 1 to 2: `video.at` went from a position to a position and a picture of it.
+	 *
+	 * The old shape would have expired on its own -- it only ever lives for one tab -- so this is
+	 * not a step anybody needed. It is the step that proves the mechanism works before there is a
+	 * record worth losing, which is the only time that can be checked cheaply.
+	 */
+	(state) => {
+		const map = state['video.at'];
+		if (typeof map !== 'object' || map === null || Array.isArray(map)) {
+			delete state['video.at'];
+			return;
+		}
+		const carried: Record<string, unknown> = {};
+		for (const [clip, at] of Object.entries(map as Record<string, unknown>)) {
+			if (typeof at === 'number' && Number.isFinite(at) && at > 0) carried[clip] = { at };
+		}
+		state['video.at'] = carried;
+	},
+]);

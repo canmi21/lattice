@@ -37,6 +37,7 @@
 
 <script lang="ts">
 	import { dev } from '$app/environment';
+	import { positionOf } from '$lib/client/progress';
 	import { pageUrls } from '@canmi/urls';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
@@ -86,8 +87,53 @@
 	let el = $state<HTMLVideoElement>();
 
 	/**
-	 * Whether the element has a frame of its own to show, which is when the poster stops being
-	 * wanted.
+	 * Whether the element has given up, which is the only time the poster is wanted.
+	 *
+	 * The poster is cut from this very clip and it still does not match it: encoded separately, it
+	 * lands a shade off on colour, and where its pixel dimensions differ from the rung being
+	 * played `object-fit: cover` crops the two differently. It was showing that near-miss to every
+	 * reader and then cutting to the real thing, for a picture nobody had asked to see twice.
+	 *
+	 * So it stops being the thing on screen and becomes the thing on screen *when there is nothing
+	 * else* -- which is what a poster is. What fills the wait instead is the blurred ground
+	 * underneath, and a blur has no near-miss to give away: it is the same handful of colours
+	 * whichever encoder made it.
+	 */
+	let broken = $state(false);
+	$effect(() => {
+		const element = el;
+		if (!element) return;
+		const failed = () => (broken = true);
+		const again = () => (broken = false);
+		element.addEventListener('error', failed);
+		element.addEventListener('loadstart', again);
+		return () => {
+			element.removeEventListener('error', failed);
+			element.removeEventListener('loadstart', again);
+		};
+	});
+
+	/**
+	 * The blurred ground, which is the whole appearance of a clip until it decodes a frame.
+	 *
+	 * `preview` is the build's thumbhash, a picture of the first frame. That is right for a clip
+	 * nobody has moved and wrong for one the tab left at fourteen seconds, so where the record has
+	 * a still of where it actually was, that is used instead.
+	 *
+	 * Read after mount, because `sessionStorage` does not exist on the server. The served page
+	 * therefore carries the thumbhash, and a returning reader's swaps to their own frame during
+	 * hydration -- one blur replacing another behind a picture that is about to cover both.
+	 */
+	let remembered = $state<string | undefined>();
+	$effect(() => {
+		remembered = positionOf(sessionStorage, src)?.still;
+	});
+
+	/**
+	 * Whether the element has a frame of its own to show.
+	 *
+	 * Kept because the ground has to come back when a frame is lost, not because the poster
+	 * depends on it any more.
 	 *
 	 * The poster is cut from this very clip and it still does not match it: encoded separately, it
 	 * lands a shade off on colour, and where its pixel dimensions differ from the rung being
@@ -270,6 +316,9 @@
 	 * box from `width` and `height`, so without this there is a bordered rectangle of page colour
 	 * sitting in the prose for as long as the poster takes.
 	 */
+	/** The remembered frame where there is one, and the build's thumbhash where there is not. */
+	const ground = $derived(remembered ?? preview);
+
 	const style = $derived(
 		[
 			// Dropped in either fullscreen rather than overridden there. This is an inline style
@@ -281,9 +330,9 @@
 			// It was `filling` alone for a while, so web fullscreen had black bars and real
 			// fullscreen had a blurred still in them. Measured on a 16:9 clip in a 1400x1000
 			// window, the bars read (30, 25, 24) at the top and (8, 6, 3) at the bottom.
-			!bare && preview && `background-image:url(${preview})`,
-			!bare && preview && 'background-size:cover',
-			!bare && preview && 'background-position:center',
+			!bare && ground && `background-image:url(${ground})`,
+			!bare && ground && 'background-size:cover',
+			!bare && ground && 'background-position:center',
 			ratio && `aspect-ratio:${ratio}`,
 		]
 			.filter(Boolean)
@@ -327,7 +376,7 @@
 		class="video-surface block w-full"
 		onclick={() => controls?.press()}
 		src={resolved ? undefined : fallback}
-		poster={framed ? undefined : poster}
+		poster={broken ? poster : undefined}
 		{width}
 		{height}
 		{style}

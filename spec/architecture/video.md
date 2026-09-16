@@ -260,12 +260,31 @@ who reaches one sees the right picture before they touch it.
 Every path to playback still goes through one function for the same reason a position is worth
 restoring at all: one restored on some paths and not others is worse than one restored on none.
 
-### The poster is a fallback, and a clip that can paint uses its own pixels
+### The poster is a fallback, and the wait is a blur
 
 The poster is cut from the clip and it still does not match it. Encoded separately it lands a
 shade off on colour, and where its pixel dimensions differ from the rung being played `object-fit:
 cover` crops the two differently, so the first frame of playback arrives with a small visible
 shift: two pictures of the same instant, one of them slightly wrong.
+
+The answer is not to show it better but to stop showing it. **A near-miss is only visible because
+something sharp is being replaced by something else sharp**, so what fills the wait is the blurred
+ground underneath instead -- and a blur gives nothing away, because it is the same handful of
+colours whichever encoder made it. The poster becomes what a poster is: the thing on screen when
+there is nothing else, which now means when the element has errored.
+
+**The blur is a picture of where the clip actually is.** `preview` is the build's thumbhash, which
+is a picture of the first frame: right for a clip nobody has moved, wrong for one the tab left at
+fourteen seconds, and the blurred ground is the only thing on screen for that moment. So a pause
+keeps a thirty-two pixel WebP of the frame it paused on beside the position, about a kilobyte, and
+a reload blurs that instead. It is drawn from a canvas rather than encoded as a thumbhash, which
+reaches the same place without carrying an encoder into the bundle, and it is optional: a tainted
+canvas returns nothing and the thumbhash is there underneath. The clips are served with
+`Access-Control-Allow-Origin` and asked for with `crossorigin`, so in practice it is clean.
+
+Reading the record needs `sessionStorage`, which the server does not have, so the served page
+carries the thumbhash and a returning reader's swaps to their own frame during hydration: one blur
+replacing another behind a picture that is about to cover both.
 
 So the poster does what a poster is for -- something to show while there is nothing better -- and
 goes the moment the element has painted a frame of its own. What produces one is a seek, which is
