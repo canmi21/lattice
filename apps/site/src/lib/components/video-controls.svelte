@@ -393,6 +393,43 @@
 	});
 
 	/**
+	 * A seek small enough to land inside the first frame, and large enough to be a seek.
+	 *
+	 * Assigning the position the element already reports is not a seek and decodes nothing, so a
+	 * clip that has never moved needs a number that is not zero. A ten-thousandth of a second is
+	 * inside frame zero at any frame rate anyone ships.
+	 */
+	const NUDGE = 0.0001;
+
+	/**
+	 * Decode one frame, so the element has something of its own to show.
+	 *
+	 * The poster is cut from this clip and still does not match it -- see `video.svelte` -- so the
+	 * element is asked for the real thing as soon as the reader is anywhere near it. A seek is
+	 * what asks: the browser fetches a range around that offset, decodes, and paints it, and the
+	 * poster stops being used because there is now a frame.
+	 *
+	 * **Tied to the viewport, which is the whole cost control.** This is a range request per clip,
+	 * so it is spent on clips a reader has actually scrolled to and on no others. It also revises
+	 * a decision from the commit that added restoring: that waited for the first `play`, on the
+	 * grounds that a clip nobody watches should cost nothing. It still costs nothing; "nobody
+	 * watches" is now "nobody scrolls to", which is the point at which a reader can see the clip
+	 * and therefore the point at which the frame has to be the right one.
+	 */
+	function prime(): void {
+		if (!video) return;
+		const at = restored ?? 0;
+		// Having *a* frame is not having the right one. A clip the tab left at 14s is showing its
+		// first frame until something seeks it, so a stored position always seeks; only a clip
+		// with nowhere in particular to be can be satisfied by whatever is already decoded.
+		if (at === 0 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return;
+		// Spent here rather than at `start`: the position has been applied, and applying it twice
+		// would seek a clip the reader has just pressed play on.
+		restored = undefined;
+		video.currentTime = at > 0 ? at : NUDGE;
+	}
+
+	/**
 	 * Play, putting the clip back where the tab left it first.
 	 *
 	 * Every path to playback goes through here rather than calling the store directly, because a
@@ -492,7 +529,7 @@
 		if (!video || !frame) return;
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				if (entry?.isIntersecting) return;
+				if (entry?.isIntersecting) return void prime();
 				// Paused rather than stopped, so a reader who returns finds it where they left it.
 				if (stage !== 'sleeping' && !video.paused) (player?.pause as () => void)?.();
 			},

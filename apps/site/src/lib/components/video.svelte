@@ -84,6 +84,41 @@
 	} = $props();
 
 	let el = $state<HTMLVideoElement>();
+
+	/**
+	 * Whether the element has a frame of its own to show, which is when the poster stops being
+	 * wanted.
+	 *
+	 * The poster is cut from this very clip and it still does not match it: encoded separately, it
+	 * lands a shade off on colour, and where its pixel dimensions differ from the rung being
+	 * played `object-fit: cover` crops the two differently, so the first frame of playback arrives
+	 * with a small visible shift. Two pictures of the same instant, one of them slightly wrong.
+	 *
+	 * So the poster goes back to being what it was always for: something to show while there is
+	 * nothing better. The moment the element can paint its own pixels it does, and the reader
+	 * never sees the seam because there is no longer anything to cut between.
+	 *
+	 * Reset on `emptied` and `error`, which are the two ways a decoded frame stops being true --
+	 * a source swap, or a clip that has stopped working. The poster is the fallback again from
+	 * there.
+	 */
+	let framed = $state(false);
+	$effect(() => {
+		const element = el;
+		if (!element) return;
+		const check = () => {
+			framed = element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+		};
+		const shown = ['loadeddata', 'seeked', 'canplay'];
+		const lost = ['emptied', 'error'];
+		for (const event of shown) element.addEventListener(event, check);
+		for (const event of lost) element.addEventListener(event, check);
+		check();
+		return () => {
+			for (const event of shown) element.removeEventListener(event, check);
+			for (const event of lost) element.removeEventListener(event, check);
+		};
+	});
 	let frame = $state<HTMLElement>();
 	/** Web fullscreen. Held here because this is the element that changes shape. */
 	let filling = $state(false);
@@ -271,7 +306,7 @@
 		class="video-surface block w-full"
 		onclick={() => controls?.press()}
 		src={resolved ? undefined : fallback}
-		{poster}
+		poster={framed ? undefined : poster}
 		{width}
 		{height}
 		{style}

@@ -225,15 +225,34 @@ reload is a longer leave.
 The position lives in the `tab` record, which is `sessionStorage`, because it is a fact about this
 sitting: see [engagement.md](../engagement.md).
 
-**It is applied at the first `play`, not on load.** `preload="metadata"` means the clip itself has
-not been fetched, and writing `currentTime` on a clip nobody has played asks the CDN for a range
-around that offset -- three clips in an article would be three wasted requests on every page view
-for a reader who watches none of them. Waiting costs nothing and is the first moment being right
-about the position matters. Measured after a reload: `currentTime` still 0 with the record holding
-9.82, and 10.63 a second after the pointer arrived.
+**It is applied when the clip comes into view, not on load and not at the first `play`.** On load
+would be wrong because `preload="metadata"` means the clip has not been fetched, and writing
+`currentTime` asks the CDN for a range around that offset: three clips in an article would be
+three requests on every page view for a reader who scrolls past all of them. At the first `play`
+would be wrong for the reason below -- by then the reader has already been looking at the wrong
+frame. The viewport is where the two meet: nobody pays for a clip they never reach, and everybody
+who reaches one sees the right picture before they touch it.
 
-Every path to playback goes through one function for the same reason a position is worth restoring
-at all: one restored on some paths and not others is worse than one restored on none.
+Every path to playback still goes through one function for the same reason a position is worth
+restoring at all: one restored on some paths and not others is worse than one restored on none.
+
+### The poster is a fallback, and a clip that can paint uses its own pixels
+
+The poster is cut from the clip and it still does not match it. Encoded separately it lands a
+shade off on colour, and where its pixel dimensions differ from the rung being played `object-fit:
+cover` crops the two differently, so the first frame of playback arrives with a small visible
+shift: two pictures of the same instant, one of them slightly wrong.
+
+So the poster does what a poster is for -- something to show while there is nothing better -- and
+goes the moment the element can paint its own pixels. What produces those pixels is a seek, which
+is why the restore above happens on the same signal: a clip the tab left at fourteen seconds is
+showing its first frame until something moves it, so **a stored position always seeks, and only a
+clip with nowhere in particular to be is satisfied by whatever is already decoded**. A clip with
+no stored position is nudged a ten-thousandth of a second, because assigning the position the
+element already reports is not a seek and decodes nothing.
+
+The attribute comes back on `emptied` and `error`, the two ways a decoded frame stops being true:
+a source swap, or a clip that has stopped working.
 
 **It is kept where it stops changing, not while it changes.** `timeupdate` fires four times a
 second and every write is a read, a parse, an edit and a stringify of the whole record. Pausing
