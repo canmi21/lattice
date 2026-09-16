@@ -1662,7 +1662,8 @@ the coefficient if it overshoots, and `0` is the uncompensated box.
 `rounded-full`, because that utility clamps the radius to half the height and CSS cannot see the
 result. The newsletter pill shares this derivation rather than repeating it: `newsletter.svelte`
 derives its own row geometry from the same `--pill-radius` and `--pill-overhang`, so a second copy
-of the coefficient would drift from the first the moment either radius changed.
+of the coefficient would drift from the first the moment either radius changed. `app.css` only
+computes the variable; each consumer then pulls whichever sides actually touch its own column.
 
 ## The subscription surface closes both reading paths
 

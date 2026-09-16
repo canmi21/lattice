@@ -21,13 +21,17 @@ _encoder_ is deliberately absent: 1.1MB compressed against 332KB for the decoder
 ## The extension asks for a format
 
 Only AVIF is stored. `/image/{cid}.avif` is served straight from the bucket; any other
-extension is a request to convert that same object, which the worker satisfies through
-Cloudflare's image transformations.
+extension is a request to convert that same object, which the worker satisfies itself: the
+decode-and-re-encode path in `transcode.ts` described above, not Cloudflare's image
+transformations, which the previous section already ruled out for not being able to read AVIF
+at all. This corrects an earlier version of this section, which reasoned about that pipeline's
+per-image conversion counting; the worker has never called it.
 
-Cloudflare counts a conversion once per image regardless of how many formats it ends up
-serving, so the whole fallback chain costs one transformation rather than a second and third
-copy of the library. Storage would be nearly free either way -- what a stored fallback really
-costs is the sync, the derive time, and a second thing to keep consistent.
+The conversion instead costs one decode and one encode per requested format, held in the edge
+cache afterward so it is paid once per colo rather than once per reader -- the same accounting
+the section above gives for the AVIF-to-storage-format case, now applied to AVIF-to-fallback.
+Storage would be nearly free either way -- what a stored fallback really costs is the sync, the
+derive time, and a second thing to keep consistent.
 
 No `?format=` parameter, because the extension already says which format is wanted and two
 spellings of one request fragment the cache key.

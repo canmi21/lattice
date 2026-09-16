@@ -235,7 +235,9 @@ build with `nonStaticValue`.
 
 `unstable_moduleResolution` in [vite.config.ts](../../apps/site/vite.config.ts) states both: `commonJS`
 resolution with `aliases: { '$lib/*': ['/ROOT/src/lib/*'] }`. `/ROOT/` is StyleX's own marker for a
-path under `rootDir`, which is set to this app rather than the workspace.
+path under `rootDir`, which is set to this app rather than the workspace. The other setting this
+option takes, and why it is not the one configured here, is under "The option that would have
+preserved the hash has never worked".
 
 ## Colour is never retyped
 
@@ -436,8 +438,7 @@ institution.
 **A video clip does not draw `blockFrame`.** Its neighbour in a column of prose is almost always
 a picture, so it takes `picture.svelte`'s 2px edge and 1rem corner instead -- two media boxes with
 different corners next to each other would read as a mistake in a way a figure and a code block
-never do. Whether the site should have one answer for both is a question about `blockFrame`'s
-users, not about the clip alone.
+never do.
 
 **Extraction is free in a way the vocabulary step was not.** A class is hashed from the declaration
 as written, and the hash does not depend on which module wrote it, so moving a group into

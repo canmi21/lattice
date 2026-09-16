@@ -1066,6 +1066,15 @@ are not obviously equal: a comment on the recipe, a second export holding the cl
 recognition that a surface wanting both halves is one a component should be rather than one a
 markup string composes.
 
+## Whether a clip and a picture should draw one frame is a question about `blockFrame`'s users
+
+[architecture/css.md](architecture/css.md) records why a video clip takes `picture.svelte`'s 2px
+edge and 1rem corner rather than [`surfaces.blockFrame`](../apps/site/src/lib/surfaces.ts)'s
+hairline and `radius.xl`: its neighbour in a column of prose is almost always a picture, and two
+different corners side by side would read as a mistake. Left open is whether the site should have
+one answer for both media boxes instead of two, which is a question about who else draws
+`blockFrame` rather than about the clip alone.
+
 ## A total function answers for input it does not know, and is wrong instead of failing
 
 [`extension::for_variant`](../apps/cms/src/extension.rs) maps a mime type to the extension a

@@ -268,10 +268,9 @@ pub fn republish(public: &Path, cid: &str, media: &Media) -> std::io::Result<()>
 
 /// The merged manifest, fresh and empty when the repository has none yet.
 ///
-/// `data/metadata.json` is committed, a whole site build resolves its images out of it, and the
-/// descriptions in it were paid for one model call at a time. Every writer here loads it,
-/// removes or adds a few entries, and saves the whole document back, so reading an unparseable
-/// file as an empty one would not degrade -- it would replace the manifest with four fields.
+/// `data/metadata.json` is committed and a whole site build resolves its images out of it.
+/// A parse failure is an error rather than an empty manifest. See spec/architecture/data.md,
+/// "A broken sidecar is an error, never an empty one".
 pub fn load(path: &Path) -> std::io::Result<Merged> {
 	let text = match std::fs::read_to_string(path) {
 		Ok(text) => text,

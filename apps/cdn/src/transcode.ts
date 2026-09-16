@@ -13,14 +13,13 @@ import encodeWebp, { init as initWebpEncode } from '@jsquash/webp/encode';
 import WEBP_ENC_WASM from '@jsquash/webp/codec/enc/webp_enc.wasm';
 
 /**
- * Re-encoding a stored image into another format, here rather than at the edge.
+ * Re-encoding a stored image into another format, here rather than at the edge -- the pipeline
+ * cannot read the stored format at all, see spec/architecture/delivery.md, "Formats are
+ * produced here, not at the edge", for the measurement -- so the worker decodes and re-encodes
+ * itself, which removes the plan tier, the monthly quota and the dimension ceiling too.
  *
- * Cloudflare's image pipeline cannot read the format these are stored in -- see
- * spec/architecture/delivery.md for the measurement -- so the worker decodes and re-encodes
- * itself instead, which removes the plan tier, the monthly quota and the dimension ceiling too.
- *
- * Only decoders for what is actually stored, and only encoders for what is actually asked for;
- * the AVIF encoder is deliberately absent, for the size trade the same section gives.
+ * Only decoders for what is stored, only encoders for what is asked for; that same section
+ * gives the size trade behind leaving the AVIF encoder out.
  */
 
 /**

@@ -3,18 +3,21 @@
 //! The convention -- Han and kana count once per character, everything else once per
 //! whitespace-delimited run -- is not ours to invent. `words-count` won an empirical run-off
 //! against four other crates on this file's own test table, right on 8 of 9 cases and missing
-//! only Korean; two of the rejections were specific to this site, per spec/architecture/media.md,
-//! "Two of the four rejected candidates lost for reasons specific to this site".
+//! only Korean; two of the rejections were specific to this site, argued beside `count` below.
 //!
 //! `unicode_blocks::is_cjk` wrongly treats Hangul as Han, which is spaced like Latin, so the raw
 //! crate's Korean count ran roughly three times too high -- 49,918 against a true 17,410 on this
 //! corpus. Every Hangul character becomes one ASCII letter before counting, which leaves the
-//! spacing intact; no Korean word-count crate exists to use instead.
+//! spacing intact.
 
 /// Whether a character is Hangul, in every block Korean is actually written in.
 ///
 /// Syllables are what modern Korean text is; the jamo blocks are the decomposed forms, which
 /// arrive from input methods and from normalisation and read as ordinary text.
+///
+/// No Korean word-count crate exists to use instead: `charabia` segments morphemes rather than
+/// counting 어절, returning 13 where a word processor says 7, and carries a dictionary of tens
+/// of megabytes for it. `Intl.Segmenter` and `unicode-segmentation` fare no better.
 fn is_hangul(value: char) -> bool {
 	unicode_blocks::find_unicode_block(value).is_some_and(|block| {
 		block == unicode_blocks::HANGUL_SYLLABLES
@@ -24,6 +27,12 @@ fn is_hangul(value: char) -> bool {
 			|| block == unicode_blocks::HANGUL_JAMO_EXTENDED_B
 	})
 }
+
+// Not the npm package of the same name: that one is among the four rejected candidates, and
+// shreds identifiers -- `av01.0.04M.08,mp4a.40.2` counts as eight -- of exactly the shape this
+// site's prose is full of. Dictionary segmentation, one of the other three, returns six for
+// 爱情公寓是一部情景喜剧 where a word processor says eleven: a segmenter counts phrases, not
+// the characters a reader of Chinese would count. The remaining two rejections were ordinary.
 
 /// How many words this text is.
 ///

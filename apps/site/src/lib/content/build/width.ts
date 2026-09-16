@@ -23,7 +23,7 @@ const PX_UNKNOWN = 10;
 /**
  * The advance of each Latin character at 16px, measured in the rendered page.
  *
- * A table rather than an average, because `i` advances 3.88px and `W` 16.14 and a single figure
+ * A table rather than an average, because `i` advances 4.03px and `W` 16.40 and a single figure
  * chosen safely above both charges an ordinary sentence about a tenth more than it draws. Grouped
  * by width so the shape of the font is readable: the narrow uprights together, the round
  * lowercase together, the wide capitals together.

@@ -49,9 +49,8 @@ pub fn sidecar_for(article: &Path) -> PathBuf {
 
 /// An article's summary sidecar, empty when it has none yet.
 ///
-/// A parse failure is an error rather than an empty sidecar, for the reason the translation
-/// sidecar has the same rule: the summaries in it were paid for and every save rewrites the whole
-/// file, so reading a broken one as empty erases what it could not read.
+/// A parse failure is an error rather than an empty sidecar. See spec/architecture/data.md,
+/// "A broken sidecar is an error, never an empty one".
 pub fn load(path: &Path) -> std::io::Result<Sidecar> {
 	let text = match std::fs::read_to_string(path) {
 		Ok(text) => text,

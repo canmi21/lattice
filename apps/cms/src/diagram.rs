@@ -112,9 +112,8 @@ pub fn store_path(repository: &Path) -> PathBuf {
 
 /// The store, empty when the repository has none yet.
 ///
-/// A parse failure is an error rather than an empty store, for the reason `media` has the same
-/// rule: every description in it was paid for and every save rewrites the whole file, so reading
-/// a broken one as empty erases what it could not read.
+/// A parse failure is an error rather than an empty store. See spec/architecture/data.md,
+/// "A broken sidecar is an error, never an empty one".
 pub fn load(path: &Path) -> std::io::Result<Store> {
 	let text = match std::fs::read_to_string(path) {
 		Ok(text) => text,

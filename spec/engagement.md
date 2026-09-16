@@ -321,8 +321,10 @@ what is in it came from an older build, another tab's idea of the key, or a read
 decided when every fact was small and fixed; this is the first whose *number* of entries is not. An
 entry also carries a still, measured at 999 characters (see [video.md](architecture/video.md), "The
 selector names the frame and not the `<video>`"), so one entry is about a kilobyte and a thousand
-clips is about a megabyte against a quota measured in megabytes, and a tab session is short. The
-premise changed and the answer did not.
+clips is about a megabyte -- a single-digit fraction of a quota measured in megabytes, not the
+negligible fraction of it an earlier, byte-sized estimate of the entry once suggested. What still
+makes that fraction affordable is that a thousand clips is not a session's worth: a tab is short,
+and the number of distinct clips a reader can open in one sitting is nowhere near the corpus.
 
 The store is passed in rather than reached for, the way `readTrail` takes one, so the tests hand
 over a plain object and no global is installed to reach this. The record and the store are named
