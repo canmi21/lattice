@@ -572,6 +572,29 @@
 </div>
 
 <style>
+	/* Captions, in the page's own voice.
+
+	   `font-family: inherit` is the whole of the type decision. The body's stack already names a
+	   Latin face and then a CJK one, and a browser picks per glyph, so a caption in either script
+	   is set the way the prose around it is -- there is nothing to choose here that has not
+	   already been chosen once.
+
+	   The rest is the player's palette rather than the page's, for the player's reason: a caption
+	   is read against a video frame, which this site does not choose and which changes twenty-four
+	   times a second. White ink on a dark plate is what every native renderer settles on from the
+	   same constraint. See `libs/tokens/src/player.css`.
+
+	   `--cue-size` is measured rather than declared, because a caption is read at whatever size
+	   the picture happens to be: the same clip is 376px tall in an article and fills a screen in
+	   full screen. The controls set it; see `placeCaptions` there. */
+	.video-surface::cue {
+		font-family: inherit;
+		font-size: var(--cue-size, 1rem);
+		line-height: 1.35;
+		color: var(--player-ink);
+		background: var(--player-plate-strong);
+	}
+
 	/* The window is the declared shape and the picture fills it, which is `picture.svelte`'s
 	   `crop` applied to a clip: the box is the layout and the file bends to it. */
 	.video-surface {

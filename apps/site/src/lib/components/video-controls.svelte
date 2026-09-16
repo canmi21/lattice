@@ -514,6 +514,95 @@
 	}
 
 	/**
+	 * Where captions sit, decided when the shape changes and at no other time.
+	 *
+	 * In an article there is nothing to decide. The frame is 16:9 and the picture is cropped to
+	 * fill it, so there are no bars and a caption along the bottom of the picture is a caption
+	 * along the bottom of the box. Full screen is where it matters: the picture is fitted rather
+	 * than cropped, so a window that is not the clip's shape leaves black above and below, and a
+	 * caption drawn at the bottom of the *picture* covers picture that did not need covering.
+	 *
+	 * **So the bar is measured, and it gets the caption if it can hold one.** Centred in it, where
+	 * it obscures nothing at all. Where the bar is too shallow the caption goes back to the bottom
+	 * of the picture, because half a caption hanging off a bar is worse than one over the image.
+	 *
+	 * Cues are positioned against the *element* box rather than the picture, which is what makes
+	 * any of this reachable: `line` as a percentage of a box that includes the bars can put a cue
+	 * in them. The files already say `line:96.5%,end`, so `lineAlign` is `end` and `line` names
+	 * the bottom edge of the cue box -- which is the edge worth naming, since it is the one that
+	 * has to clear the picture.
+	 *
+	 * **Recomputed on shape, never on cues.** A caption is one line or two and nobody knows which
+	 * until it arrives; measuring each one would move every caption to a slightly different place
+	 * and read as jitter. So the height allowed for is the worst case, two lines, and the answer
+	 * is recomputed only when the shape it was computed from changes: the window resizing, and
+	 * either full screen being entered or left.
+	 */
+	const CUE_LINES = 2;
+	/** The face's height against its em box, plus what the plate adds above and below. */
+	const CUE_BLOCK = 1.35 * CUE_LINES + 0.4;
+	/** A caption reads at a size taken from the picture, between these two. */
+	const CUE_MIN = 14;
+	const CUE_MAX = 30;
+	const CUE_SCALE = 0.042;
+	/** What the files say, and what a box with no bars goes back to. */
+	const CUE_LINE_DEFAULT = 96.5;
+
+	function placeCaptions(): void {
+		const element = video;
+		if (!element) return;
+		const box = element.getBoundingClientRect();
+		if (!box.height || !element.videoWidth || !element.videoHeight) return;
+
+		const shown = Math.min(box.height, (box.width * element.videoHeight) / element.videoWidth);
+		const size = Math.min(CUE_MAX, Math.max(CUE_MIN, shown * CUE_SCALE));
+		element.style.setProperty('--cue-size', `${Math.round(size)}px`);
+
+		// `cover` fills the box, so the picture is the box and there is nothing to move out of.
+		const fitted = getComputedStyle(element).objectFit === 'contain';
+		const bar = fitted ? (box.height - shown) / 2 : 0;
+		const block = size * CUE_BLOCK;
+		let bottom: number;
+		if (bar >= block) {
+			// Centred in the bar: half the leftover above the caption, half below.
+			bottom = box.height - (bar - block) / 2;
+		} else {
+			bottom = fitted ? box.height - bar : box.height * (CUE_LINE_DEFAULT / 100);
+		}
+		const line = Math.min(100, Math.max(0, (bottom / box.height) * 100));
+
+		for (const track of element.textTracks) {
+			for (const cue of track.cues ?? []) {
+				cue.snapToLines = false;
+				// Assigned before `line`, because `line` is validated against it.
+				if ('lineAlign' in cue) (cue as VTTCue).lineAlign = 'end';
+				cue.line = line;
+			}
+		}
+	}
+
+	$effect(() => {
+		const element = video;
+		if (!element) return;
+		// The shape, and only the shape. `filling` and `view.fullscreen` are read so this reruns
+		// when either changes; the resize listener covers the window itself.
+		void filling;
+		void view.fullscreen;
+		void view.hasCaptions;
+		placeCaptions();
+		const again = () => placeCaptions();
+		window.addEventListener('resize', again);
+		// Cues do not exist until the track has loaded, and a track loads once.
+		for (const node of element.querySelectorAll('track')) node.addEventListener('load', again);
+		document.addEventListener('fullscreenchange', again);
+		return () => {
+			window.removeEventListener('resize', again);
+			for (const node of element.querySelectorAll('track')) node.removeEventListener('load', again);
+			document.removeEventListener('fullscreenchange', again);
+		};
+	});
+
+	/**
 	 * A seek small enough to land inside the first frame, and large enough to be a seek.
 	 *
 	 * Assigning the position the element already reports is not a seek and decodes nothing, so a

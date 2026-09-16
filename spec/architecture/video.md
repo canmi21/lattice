@@ -204,6 +204,39 @@ picture-in-picture glyph, and so does the picture behind it: while a clip is pla
 else, pressing it can only mean one thing. The play disc is withheld for the same reason -- two
 discs on one picture is one more than there is anything to press.
 
+### A caption is set in the page's voice and placed in the black
+
+**The type is the prose's, and that is the whole of the decision.** The body's stack already names
+a Latin face and then a CJK one, and a browser picks per glyph, so `font-family: inherit` sets a
+caption in either script the way the paragraph above it is set. The colours are the player's
+rather than the page's, for the player's reason: a caption is read against a frame this site does
+not choose and which changes twenty-four times a second.
+
+**Where it sits is a question only full screen asks.** In an article the frame is 16:9 and the
+picture is cropped to fill it, so there are no bars and the bottom of the picture is the bottom of
+the box. Full screen fits rather than crops, so a window that is not the clip's shape leaves black
+above and below -- and a caption drawn at the bottom of the picture covers picture that did not
+need covering.
+
+So the bar is measured, and it gets the caption if it can hold one: centred in it, obscuring
+nothing. Where the bar is too shallow the caption goes back to the bottom of the picture, because
+half a caption hanging off a bar is worse than one over the image. Measured on a 1100 window: at
+1043 tall the bar is 212 against a caption block of 81, and the cue's bottom edge moves from 96.5%
+to 93.69% -- 977px, clear of a picture ending at 831. At 740 tall the bar is 61, too shallow, and
+the edge lands at 679, exactly the bottom of the picture.
+
+This is reachable at all because **cues are positioned against the element box rather than the
+picture**: `line` as a percentage of a box that includes the bars can put a cue inside them. The
+files already say `line:96.5%,end`, so `lineAlign` is `end` and `line` names the bottom edge of
+the cue box, which is the edge that has to clear the picture.
+
+**It is recomputed on shape and never on cues.** A caption is one line or two and nobody knows
+which until it arrives, so measuring each one would put every caption in a slightly different
+place and read as jitter. The height allowed for is the worst case, two lines, and the answer is
+recomputed only when the shape it was computed from changes: the window resizing, and either full
+screen being entered or left. Measured across ten samples spanning several one- and two-line cues,
+the line stayed at a single value and moved only on leaving full screen.
+
 ### Captions are a fact about the reader, not about the clip
 
 A reader who turns captions on has said something about themselves -- a quiet carriage, an accent
