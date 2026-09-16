@@ -118,8 +118,8 @@ pub fn is_draft(text: &str) -> bool {
 	};
 	match value.get("draft") {
 		Some(serde_yaml_ng::Value::Bool(flag)) => *flag,
-		// Lenient here, strict on the site: spec/drafts.md, "The flag is read directly, never
-		// through a text-field reader" (the disagreement, still open).
+		// The quoted spelling is a draft in both readers. Strict would publish it, and publishing
+		// a draft is the failure the flag exists to prevent. See spec/drafts.md.
 		Some(serde_yaml_ng::Value::String(text)) => text.trim() == "true",
 		_ => false,
 	}

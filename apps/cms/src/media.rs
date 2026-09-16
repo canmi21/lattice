@@ -41,10 +41,8 @@ pub enum Category {
 	Artwork,
 }
 
-/// Not yet read by anything: the command that asks a model to classify an image is the
-/// next step, and this is the list it will be given. Kept whole so that step is a caller to
-/// write rather than a taxonomy to argue about twice.
-#[allow(dead_code)]
+/// The names `cms tag` shows a model, and the reader for what it answers with -- see
+/// `classify.rs`. Kept whole so the taxonomy is argued here and not again at that call.
 impl Category {
 	pub fn parse(name: &str) -> Option<Self> {
 		match name.trim().to_ascii_lowercase().as_str() {

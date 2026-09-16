@@ -19,7 +19,8 @@ use serde::Serialize;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Record {
-	/// `contents/**/*.md`. Rewritten only by `image`, which replaces reference paths in place.
+	/// `contents/**/*.md`. Rewritten by the two import commands, `image` and `video`, each
+	/// replacing reference paths in place.
 	Articles,
 	/// `contents/**/*.i18n.yaml`.
 	Translations,
@@ -39,6 +40,8 @@ pub enum Record {
 	Embeds,
 	/// `data/public/image/**`.
 	PublicImage,
+	/// `data/public/video/**`: the encoded rungs, not the poster, which is an image.
+	PublicVideo,
 	/// `data/public/favicon/**`.
 	PublicFavicon,
 	/// `data/public/opengraph/**`.
@@ -93,9 +96,9 @@ impl Spec {
 
 /// Every long-running operation, in no significant order.
 ///
-/// `overview`, `articles`, `derived`, `check` and `port` are absent on purpose: they read and
-/// return, and calling them tasks would put five entries in every list that can never be waited
-/// on, watched, or scheduled.
+/// `overview`, `articles`, `derived`, `check`, `port`, `tasks` and `runs` are absent on purpose:
+/// they read and return, and calling them tasks would put seven entries in every list that can
+/// never be waited on, watched, or scheduled.
 pub const CATALOG: &[Spec] = &[
 	Spec {
 		id: "image",
@@ -104,9 +107,23 @@ pub const CATALOG: &[Spec] = &[
 		paid: false,
 		items: Items::Many("image reference"),
 		reads: &[Record::Articles],
-		// The only task that edits article text. Everything reading `Articles` is downstream of
-		// it, which is why so many entries below name it in `after`.
+		// One of the two tasks that edit article text, `video` being the other. Everything
+		// reading `Articles` is downstream of it, which is why so many entries below name it in
+		// `after`.
 		writes: &[Record::Articles, Record::PublicImage],
+		after: &[],
+	},
+	Spec {
+		id: "video",
+		name: "Encode clips",
+		detail: "Encode what the articles reference into a ladder, then rewrite the references.",
+		paid: false,
+		items: Items::Many("video reference"),
+		reads: &[Record::Articles, Record::Media],
+		// `Media` because a poster with no source is given the clip's, and the whole of
+		// `data/media.yaml` is rewritten to record it -- so a description landing mid-run would
+		// be lost. `PublicImage` is the poster's own variants, which are pictures like any other.
+		writes: &[Record::Articles, Record::PublicVideo, Record::PublicImage, Record::Media],
 		after: &[],
 	},
 	Spec {
@@ -248,8 +265,13 @@ pub const CATALOG: &[Spec] = &[
 		reads: &[Record::Articles],
 		// Deleting is writing. It is listed last and depends on everything that publishes,
 		// because running it before those have caught up removes what they were about to claim.
-		writes: &[Record::PublicImage, Record::PublicFavicon, Record::PublicOpengraph],
-		after: &["image", "favicon", "og"],
+		writes: &[
+			Record::PublicImage,
+			Record::PublicVideo,
+			Record::PublicFavicon,
+			Record::PublicOpengraph,
+		],
+		after: &["image", "video", "favicon", "og"],
 	},
 ];
 
@@ -361,13 +383,26 @@ mod tests {
 		assert!(!favicon.conflicts_with(i18n));
 	}
 
+	/// Rewriting article text is confined to the two import commands, and to those alone: each
+	/// turns a name an author typed into the content id it became. A third writer of `Articles`
+	/// is a compatibility path nobody argued for. See spec/tasks.md.
 	#[test]
-	fn only_deriving_images_rewrites_article_text() {
+	fn only_the_import_commands_rewrite_article_text() {
 		let writers: Vec<&str> = CATALOG
 			.iter()
 			.filter(|spec| spec.writes.contains(&Record::Articles))
 			.map(|spec| spec.id)
 			.collect();
-		assert_eq!(writers, vec!["image"]);
+		assert_eq!(writers, vec!["image", "video"]);
+	}
+
+	/// The race the entry was added to make visible: both rewrite `contents/**/*.md`, and while
+	/// `video` had no entry the mechanism that keeps them apart could not see it.
+	#[test]
+	fn the_two_import_commands_contend_over_article_text() {
+		let image = find("image").expect("image");
+		let video = find("video").expect("video");
+		assert!(image.conflicts_with(video));
+		assert!(video.conflicts_with(image));
 	}
 }

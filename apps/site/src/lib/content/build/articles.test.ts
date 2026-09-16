@@ -3,6 +3,7 @@ import { URLS } from '@canmi/urls';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildArticles, summaryFor, translatedRaws } from './articles';
 import { sourceFingerprint, type SegmentSpan } from './assemble';
+import { articleFrontmatter } from './compile';
 
 const ROOT = new URL('../../../../../../', import.meta.url);
 
@@ -149,4 +150,19 @@ describe('drafts', () => {
 		);
 		expect(withoutDrafts.articles.every((article) => article.meta.draft !== true)).toBe(true);
 	}, 60_000);
+
+	// The bug this covers: the site tested `=== true` while `cms document::is_draft` accepted the
+	// quoted spelling, so `draft: "true"` was a draft to the CMS and a published page here --
+	// the one direction the flag exists to prevent. Read against the frontmatter reader rather
+	// than the corpus, because the corpus has no article written that way and should not gain one
+	// to hold a test up. See spec/drafts.md.
+	it.each(['true', '"true"', "'true'", '" true "'])('withholds an article written %s', (flag) => {
+		const raw = `---\nlang: en-US\ntitle: A\ndraft: ${flag}\n---\n\nBody.\n`;
+		expect(articleFrontmatter(raw, 'test.md').draft).toBe(true);
+	});
+
+	it.each(['false', '"false"', '"yes"'])('publishes an article written %s', (flag) => {
+		const raw = `---\nlang: en-US\ntitle: A\ndraft: ${flag}\n---\n\nBody.\n`;
+		expect(articleFrontmatter(raw, 'test.md').draft).toBe(false);
+	});
 });

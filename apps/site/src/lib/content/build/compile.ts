@@ -544,7 +544,20 @@ function cropAlign(
 export function articleFrontmatter(raw: string, file: string): ArticleMeta {
 	const front = (parser.parse(raw) as Root).children.find((node) => node.type === 'yaml');
 	if (!front) throw new Error(`missing frontmatter: ${file}`);
-	return parseYaml(front.value) as ArticleMeta;
+	return readFrontmatter(front.value);
+}
+
+/**
+ * The frontmatter as YAML, with `draft` reduced to the boolean the type promises.
+ *
+ * `draft: "true"` is a draft, as `cms document::is_draft` has always read it. Lenient rather
+ * than strict in both readers because the strict reading publishes the quoted spelling, which
+ * is the one failure the flag exists to prevent. See spec/drafts.md.
+ */
+function readFrontmatter(yaml: string): ArticleMeta {
+	const { draft, ...rest } = parseYaml(yaml) as Omit<ArticleMeta, 'draft'> & { draft?: unknown };
+	if (draft === undefined) return rest;
+	return { ...rest, draft: typeof draft === 'string' ? draft.trim() === 'true' : draft === true };
 }
 
 export type CompileContext = {
@@ -762,7 +775,7 @@ export async function compile(
 
 	for (const node of tree.children) {
 		if (node.type === 'yaml') {
-			meta = parseYaml(node.value) as ArticleMeta;
+			meta = readFrontmatter(node.value);
 			if (sourceFile) assertLanguageTag(meta?.lang, sourceFile);
 			assertFrontmatterHasNoTranslatorNotes(meta ?? {}, sourceFile ?? url);
 			continue;

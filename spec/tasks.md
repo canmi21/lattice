@@ -12,11 +12,8 @@ what it writes, and which tasks must have run first. Nothing there runs anything
 
 Splitting the description from the execution is what lets the catalogue be finished first. A GUI
 listing what exists, a scheduler ordering it, and a person asking how much a full run would cost
-are all answerable now, against fifteen entries, rather than after fifteen operations have been
+are all answerable now, against sixteen entries, rather than after sixteen operations have been
 rewritten. Adding an entry makes a task **known**, not runnable.
-
-The fifteen are not yet all of them. `cms video` is a long-running operation with no entry -- see
-"Rewriting article text is a compatibility path, not the design" below for what its absence costs.
 
 Reads and writes name **records**, not paths. Two tasks contend when they mutate the same records,
 and stating it that way leaves the file layout free to move without the catalogue following it.
@@ -136,30 +133,23 @@ observe that would change the answer.
 
 ## Rewriting article text is a compatibility path, not the design
 
-`cms image` is the only _catalogued_ task that edits `contents/**/*.md`, and a test asserts that.
-It does so because an author wrote a temporary filename -- `![](shot.png)` -- and the reference has
-to become the content id once the picture is derived. Every other task reading `Articles` declares
-`after: ["image"]` largely to stay clear of that rewrite.
+**The two import commands edit `contents/**/*.md`, and nothing else does.** `cms image` and
+`cms video` each do it because an author wrote a temporary filename -- `![](shot.png)`,
+`![](take-3.mov)` -- and the reference has to become the content id once the asset is derived;
+[video/run.rs](../apps/cms/src/video/run.rs) calls the same `rewrite_references` `cms image` does.
+A test asserts the pair, and a third writer of `Articles` would fail it. Every other task reading
+`Articles` declares `after: ["image"]` largely to stay clear of that rewrite.
 
-**`cms video` is a second editor of those files, and the catalogue cannot see it.** The word
-_catalogued_ above is a correction: this section read as though one command touched article text,
-and [video/run.rs](../apps/cms/src/video/run.rs) calls the same `rewrite_references` for the same
-reason, turning a clip's temporary name into its content id. The test still passes because it
-walks `CATALOG`, and `cms video` has no entry there.
+`cms video` had no entry for a while, and the cost was not cosmetic. `Spec::conflicts_with` answers
+whether two operations may be offered together by intersecting their `writes`, so an uncatalogued
+writer of `Articles` was invisible to the only mechanism that would keep it from running beside
+`cms image` -- the contention this file exists to describe.
 
-That absence is not cosmetic. `Spec::conflicts_with` answers whether two operations may be offered
-together by intersecting their `writes`, so an uncatalogued writer of `Articles` is invisible to
-the only mechanism that would keep it from running beside `cms image` -- the contention this file
-exists to describe. Everything else in this section holds for `cms video` as written: it is a run a
-person starts, it belongs to authoring by hand rather than to an editor, and it publishes its bytes
-before it rewrites.
-
-Fixing it is a code change and this only records that it is owed. The entry would write `Articles`,
-`PublicImage` for the poster's variants, and a third record for the published rungs under
-`data/public/video/**` -- `Record` has no `PublicVideo`, so the record has to be added before the
-entry can be written. Adding the entry also makes the assertion above false as it stands, and the
-test has to become what this section actually means: that rewriting article text is confined to the
-two import commands, not that it is confined to one.
+Its entry writes `Articles`, `PublicVideo` for the published rungs under `data/public/video/**`,
+`PublicImage` for the poster's variants, and `Media`. The last one is easy to miss: giving a poster
+with no source the clip's rewrites the whole of `data/media.yaml`, so `cms alt` finishing mid-run
+would be overwritten. A record a task rewrites wholesale is a record it writes, whether or not the
+run had anything of its own to put there.
 
 **It exists only because there is no editor yet.** An editor that derives a picture at the moment
 it is inserted -- store it, then write the content id into the article -- produces an article that

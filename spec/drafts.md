@@ -10,13 +10,19 @@ so an article says nothing to be ordinary and one word to be held back.
 counted articles nobody could open. The fix is to read the frontmatter's own value, not go
 through a text-only accessor.
 
-**The two readers disagree about the quoted form, and today the CMS is the lenient one.**
-`cms document::is_draft` accepts `draft: "true"` as well as `draft: true`; the site's
-`buildArticles` tests `=== true` and publishes the quoted one. So an article written that way is
-a draft to the CMS and a published page on the site, which is the failure this flag exists to
-prevent. Whether the answer is to make the site lenient or the CMS strict is open -- what is not
-open is that one flag cannot mean two things. Recorded rather than fixed because it was found
-during a comment pass, and a comment pass does not change behaviour.
+**Both readers accept the quoted form, and both trim it.** `draft: "true"` is a draft to
+`cms document::is_draft` and to the site, which normalises the flag once in
+[compile.ts](../apps/site/src/lib/content/build/compile.ts)'s frontmatter reader rather than at
+each place that asks -- so `articleFrontmatter(...).draft` is the boolean the type promises and a
+caller testing `=== true` is right without knowing any of this.
+
+**Lenient in both, rather than strict in both**, because the two directions fail differently. The
+strict reading publishes an article somebody wrote `draft: "true"` on, and publishing a draft is
+the single failure this flag exists to prevent; the lenient reading at worst withholds an article
+whose author typed the quotes and meant them, which they find the moment they look for it. The
+readers disagreed for a while -- the CMS lenient, the site strict -- which is the shape the
+workspace's `code.md` warns about under two readings of one format: nothing was wrong, something
+was merely different, and the difference was a draft on the public site.
 
 ## A production build drops them; every other build keeps them
 

@@ -50,6 +50,7 @@ fn name_of(record: Record) -> &'static str {
 		Record::Segments => "segments",
 		Record::Embeds => "embeds",
 		Record::PublicImage => "public-image",
+		Record::PublicVideo => "public-video",
 		Record::PublicFavicon => "public-favicon",
 		Record::PublicOpengraph => "public-opengraph",
 		Record::PublicLicense => "public-license",
