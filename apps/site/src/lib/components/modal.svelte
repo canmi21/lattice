@@ -5,16 +5,12 @@
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares, so nothing here can change one. See spec/architecture/css.md, including for why
+	 * this comment may not write a tag in angle brackets.
 	 *
-	 * The scoped block at the foot of this file is not a leftover of the migration. Bits UI
-	 * portals the overlay and the surface out of the component tree, so every rule down there is
-	 * `:global` and reaches an element this component does not render -- which is the one thing
-	 * the visual layer cannot do. The two data attributes it keys off are the library's, written
-	 * on those same elements while they are arriving and leaving.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block at the foot of this file is `:global` because Bits UI portals the overlay
+	 * and the surface out of the component tree, reaching them by the library's own data
+	 * attributes rather than anything this component could put a class on.
 	 */
 	const styles = stylex.create({
 		/**

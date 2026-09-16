@@ -1,16 +1,10 @@
 <script module lang="ts">
 	/**
-	 * Everything the build resolved about one image: which bytes, how large they are, and how
-	 * this site frames them.
-	 *
-	 * Declared here because every caller forwards it verbatim and none of them reads it. Written
-	 * out a second time in a caller, it is a list that has to be kept in step with this one by
-	 * hand -- and it had already started to drift: two of these carried a comment here and a
-	 * different comment in the link card, for the same field.
-	 *
-	 * `alt` is not in it. What an image is called depends on where it is used: a cover inside a
-	 * link takes `alt=""`, because the anchor names itself and the picture would otherwise be
-	 * read out as part of that name. See the link card's own note.
+	 * Everything the build resolved about one image: which bytes, how large they are, and how this
+	 * site frames them. Declared here because every caller forwards it verbatim and none reads it
+	 * -- written out again per caller it drifts, as two already had for the same field. `alt` is
+	 * not in it: what an image is called depends on where it is used, so a cover inside a link
+	 * takes `alt=""` there instead. See the link card's own note.
 	 */
 	export type Source = {
 		src: string;

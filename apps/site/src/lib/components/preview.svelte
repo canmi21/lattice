@@ -5,13 +5,10 @@
 	/**
 	 * The visual half of the three elements this component renders itself. Every colour is the
 	 * token variable `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md.
-	 *
-	 * Most of this component's appearance is not here and cannot be. The ground, the stage and the
-	 * close are portalled out of the tree by Bits UI and are reached with `:global` in the block at
-	 * the foot of this file, which is also where the ground's literal black stays: that colour is
-	 * a decision argued in spec/styling.md rather than a palette entry, and the close is chrome on
-	 * a layer that is always dark for the same reason.
+	 * spec/architecture/css.md. Most of the rest is not here and cannot be: the ground, the stage
+	 * and the close are portalled out of the tree by Bits UI and reached with `:global` in the
+	 * block at the foot of this file, which is also where the ground's literal black stays -- a
+	 * decision argued in spec/styling.md rather than a palette entry.
 	 */
 	const styles = stylex.create({
 		frame: {
@@ -21,17 +18,12 @@
 			cursor: 'zoom-in',
 		},
 		/**
-		 * The control over the picture, with no chrome of its own and out of the pointer's way.
-		 *
-		 * Hit-testing it would put an element between the pointer and the drawing, and a node that
-		 * cannot be hovered is the thing this arrangement was built to avoid. Focusable is
-		 * unaffected by `pointer-events`, which is visual under the rule in
-		 * spec/architecture/css.md.
-		 *
-		 * The border is written as three longhands rather than as the `border: 0` it replaces,
-		 * because the shorthand also returned the style to its initial `none` -- and Tailwind's
-		 * preflight declares `border: 0 solid` on everything, so leaving the style out would let
-		 * `solid` stand where `none` stood before.
+		 * The control over the picture, with no chrome of its own and out of the pointer's way --
+		 * hit-testing it would put an element between the pointer and the drawing, which this
+		 * arrangement exists to avoid. `pointer-events` does not affect focusability, and is
+		 * visual under spec/architecture/css.md's rule. Written as three longhands rather than
+		 * `border: 0`, because that shorthand also resets `border-style` to `none`, and Tailwind's
+		 * preflight had it at `solid` already.
 		 */
 		openControl: {
 			borderWidth: '0',
@@ -114,12 +106,10 @@
 	let open = $state(false);
 
 	/**
-	 * How far a pointer may travel between press and release and still have been a tap.
-	 *
-	 * Any press on the ground dismisses, so without this a drag that ended over the picture --
-	 * a swipe, a selection, a pointer that was put down and thought about -- would dismiss on
-	 * release. Primary pointer only: a pinch puts a second one down elsewhere and lifts it a few
-	 * pixels from where it landed, which is a tap by every measure except intent.
+	 * How far a pointer may travel between press and release and still have been a tap. Any press
+	 * on the ground dismisses, so without this a drag that ended over the picture would dismiss on
+	 * release too. Primary pointer only: a pinch puts a second one down elsewhere and lifts it a
+	 * few pixels from where it landed, which is a tap by every measure except intent.
 	 */
 	const TAP_SLOP = 8;
 	let pressed: { x: number; y: number } | undefined;
@@ -138,17 +128,12 @@
 	}
 </script>
 
-<!-- The picture and the control that opens it are siblings, not one inside the other, and that
-     is the whole point of the arrangement. A button flattens what is inside it: put the drawing
-     in one and its own reading is gone, and the button's name becomes whatever the drawing's
-     labels happen to spell. Put the button over the drawing instead and the pointer hits the
-     button rather than the nodes, which takes their hover away.
-
-     So neither. The picture says what it is, the button says what pressing does, and the frame
-     around them takes the press. See spec/styling.md.
-
-     The two rules waived below are the same waiver twice: the keyboard path is the button inside
-     this element, and neither rule can see it from here. -->
+<!-- The picture and the control that opens it are siblings, not one inside the other: a button
+     flattens what is inside it, losing the drawing's own reading, and putting the button over the
+     drawing instead takes the pointer away from the nodes' own hover. So neither -- the picture
+     says what it is, the button says what pressing does, and the frame around them takes the
+     press. See spec/styling.md. The two rules waived below are the same waiver twice: the
+     keyboard path is the button inside this element, and neither rule can see it from here. -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div

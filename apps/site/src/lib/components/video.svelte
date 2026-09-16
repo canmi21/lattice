@@ -3,21 +3,12 @@
 	import { border, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
-	 * The visual half of a clip, which is a frame and the notice that can appear under it.
+	 * The visual half of a clip: a frame, and the notice under it when nothing else is on screen.
 	 *
-	 * The frame is `picture.svelte`'s, value for value -- a 2px edge and a 1rem corner -- rather
-	 * than `surfaces.blockFrame`, which is the hairline and `radius.xl` that the code block, the
-	 * Mermaid figure and the quadrant draw. A clip's neighbour in a column of prose is almost
-	 * always a picture, and two media boxes with different corners next to each other read as a
-	 * mistake in a way a figure and a code block do not. Whether the site should have one answer
-	 * for both is a question about those five, not about this one. See spec/architecture/css.md.
-	 *
-	 * The ground is `paper` rather than nothing, because this box is visible before anything has
-	 * been decoded: a poster that has not arrived and a clip that will never play both leave it
-	 * empty, and an empty bordered box is the page's own colour unless it is told otherwise.
-	 *
-	 * Kept out of `stylex.create` so the notice is visibly the same frame with softer ink in it
-	 * rather than a second spelling of one, which is how `surfaces.ts` writes the same idea.
+	 * `picture.svelte`'s border values, not `surfaces.blockFrame` -- see spec/architecture/css.md
+	 * for why a clip's frame differs from the code block's. The ground is `paper` because the box
+	 * is visible before anything decodes. Kept out of `stylex.create` so the notice reads as the
+	 * same frame with softer ink, not a second spelling of one.
 	 */
 	const frame = {
 		borderWidth: border.doublePx,
@@ -89,15 +80,9 @@
 	/**
 	 * Whether the element has given up, which is the only time the poster is wanted.
 	 *
-	 * The poster is cut from this very clip and it still does not match it: encoded separately, it
-	 * lands a shade off on colour, and where its pixel dimensions differ from the rung being
-	 * played `object-fit: cover` crops the two differently. It was showing that near-miss to every
-	 * reader and then cutting to the real thing, for a picture nobody had asked to see twice.
-	 *
-	 * So it stops being the thing on screen and becomes the thing on screen *when there is nothing
-	 * else* -- which is what a poster is. What fills the wait instead is the blurred ground
-	 * underneath, and a blur has no near-miss to give away: it is the same handful of colours
-	 * whichever encoder made it.
+	 * The poster never quite matches the clip it was cut from -- see spec/architecture/video.md
+	 * ("The poster is a fallback, and the wait is a blur") for why -- so it shows only once there
+	 * is nothing else; the blurred ground fills the wait until then.
 	 */
 	let broken = $state(false);
 	$effect(() => {
@@ -114,32 +99,12 @@
 	});
 
 	/**
-	 * Whether the picture on screen is the one that was asked for.
-	 *
-	 * Until it is, the element is transparent and the blurred ground behind it shows through. This
-	 * is not about being slow to paint, it is about painting the *wrong* thing: left alone, an
-	 * element with metadata decodes and presents frame zero on its own, and the seek to the
-	 * remembered position then replaces it in front of the reader. Measured, frame zero at 100ms
-	 * against a first paint at 80ms and the remembered frame not until 315ms -- a quarter of a
-	 * second of exactly the cover the blur exists to avoid showing.
-	 *
-	 * Seeking earlier does not fix it. With the clip in cache the element decodes frame zero
-	 * before hydration has run at all, so script cannot win that race; what script can do is
-	 * decline to show the result.
-	 *
-	 * **Media events, not `requestVideoFrameCallback`.** The frame callback is the more precise
-	 * signal and it is the wrong one here, because it fires when a frame is presented for
-	 * composition and a fully transparent element is not in a hurry to be composited. Measured,
-	 * that turned a clip ready at 100ms into one revealed at 407ms: the thing being waited for was
-	 * waiting on the thing doing the waiting. `loadeddata` and `seeked` are answers about the
-	 * element rather than about the screen, and they arrive whether or not anyone can see it.
-	 *
-	 * Asked synchronously before anything is subscribed to, because by the time this runs the
-	 * answer may already be yes and an effect that only listens waits for an event that has been
-	 * and gone.
-	 *
-	 * The deadline is the backstop. A clip that never reaches its position has to end up visible
-	 * rather than invisible: a wrong frame is a blemish, a blank frame is a broken page.
+	 * Whether the picture on screen is the one asked for. Until then the element stays transparent
+	 * behind the blurred ground -- left alone it decodes frame zero first and the seek to a
+	 * remembered position replaces it in front of the reader. See spec/architecture/video.md for
+	 * the measurements and for why media events are used rather than `requestVideoFrameCallback`.
+	 * Checked synchronously up front, since the answer may already be yes; the deadline is the
+	 * backstop, because a wrong frame is a blemish and a blank one is a broken page.
 	 */
 	const SETTLE_WITHIN = 0.5;
 	const SETTLE_DEADLINE = 2000;
@@ -170,35 +135,11 @@
 	});
 
 	/**
-	 * Whether the element has a frame of its own to show.
-	 *
-	 * Kept because the ground has to come back when a frame is lost, not because the poster
-	 * depends on it any more.
-	 *
-	 * The poster is cut from this very clip and it still does not match it: encoded separately, it
-	 * lands a shade off on colour, and where its pixel dimensions differ from the rung being
-	 * played `object-fit: cover` crops the two differently, so the first frame of playback arrives
-	 * with a small visible shift. Two pictures of the same instant, one of them slightly wrong.
-	 *
-	 * So the poster goes back to being what it was always for: something to show while there is
-	 * nothing better. The moment the element can paint its own pixels it does, and the reader
-	 * never sees the seam because there is no longer anything to cut between.
-	 *
-	 * Reset on `emptied` and `error`, which are the two ways a decoded frame stops being true --
-	 * a source swap, or a clip that has stopped working. The poster is the fallback again from
-	 * there.
-	 *
-	 * **`readyState` is the wrong signal and this used to use it.** `HAVE_CURRENT_DATA` and above
-	 * say the *data* for the current position is available, not that anything has been decoded and
-	 * put on screen: measured on a clip sitting at `readyState` 4, `totalVideoFrames` was 0. The
-	 * poster came off an element that was painting nothing, so what showed through was the
-	 * thumbhash underneath it -- a blurred sixteen-pixel placeholder stretched across the frame,
-	 * which is exactly what it looked like.
-	 *
-	 * `requestVideoFrameCallback` is the signal that means a frame reached the compositor, and it
-	 * is the one used where it exists. Firefox does not have it, so `seeked` carries the same
-	 * claim there: `prime` in the controls always issues a seek, and a completed seek has by
-	 * definition put a frame up.
+	 * Whether the element has a frame of its own to show. Kept so the ground can come back when a
+	 * frame is lost, reset on `emptied` and `error`. See spec/architecture/video.md ("`readyState`
+	 * does not mean a frame has been painted...") for why this does not read `readyState`, and for
+	 * why `requestVideoFrameCallback` is used where it exists and `seeked` stands in for it in
+	 * Firefox, which lacks it.
 	 */
 	let framed = $state(false);
 	$effect(() => {
@@ -275,16 +216,10 @@
 	});
 
 	/**
-	 * What this browser can do with the clip.
-	 *
-	 * `'unknown'` is not ignorance, it is the state the page is served in: nothing has run, and
-	 * the markup has to be right anyway. It resolves once, at hydration.
-	 *
-	 * Three values today and the fourth is already written down. spec/architecture/video.md's
-	 * middle branch -- no hardware decoder, but WebCodecs -- decodes the clip ahead of time and
-	 * would be a `'transcode'` here, answering the same two questions this already answers: what
-	 * the element shows, and which rung is worth fetching. It is deferred deliberately and is not
-	 * begun; what this shape buys is that beginning it moves nothing that exists.
+	 * What this browser can do with the clip. `'unknown'` is the state the page is served in --
+	 * nothing has run yet, and the markup has to be right anyway -- and it resolves once, at
+	 * hydration. A fourth value, `'transcode'`, is already designed for the deferred WebCodecs
+	 * branch; see spec/architecture/video.md for why it is not built yet.
 	 */
 	let support = $state<'unknown' | 'native' | 'none'>('unknown');
 
@@ -350,40 +285,12 @@
 	const origin = $derived(source ? (source.label ?? new URL(source.url).hostname) : undefined);
 
 	/**
-	 * The blurred ground, on the frame rather than on the element that sits in it.
-	 *
-	 * It used to be the element's own background, which stopped working the moment the element
-	 * needed to be held back: a transparent `<video>` takes its background with it. On the frame
-	 * it stays put while the picture in front of it fades in. It is also what keeps a bordered
-	 * rectangle of page colour out of the prose: a clip reserves its box from `width` and
-	 * `height`, so there is a hole sitting there for as long as nothing has been decoded.
-	 *
-	 * `--clip-ground` is set before anything paints, by the inline script in `app.html`, for any
-	 * clip this tab has a still of -- so a returning reader's first paint is a picture of where
-	 * they left it rather than of the first frame. The thumbhash is the `var()` fallback, which is
-	 * where a reader with no record lands. See `client/ground.ts`.
-	 *
-	 * **That is why `data-clip` is on the frame below rather than on the `<video>`.** A custom
-	 * property inherits downwards and only downwards, so one set on the element is invisible to the
-	 * box around it: with the attribute on the `<video>`, this declaration resolved to the
-	 * thumbhash for every reader, remembered clip or not. Measured on a clip left at two seconds,
-	 * the record held a 999-character still, `--clip-ground` computed on the `<video>` was that
-	 * still, and the frame's `background-image` was the 194-character build thumbhash -- a blur of
-	 * the opening frame, which is the one picture this path exists to not show. The `<video>` needs
-	 * `--clip-hold` and inherits it from the frame, which is the direction that works.
-	 *
-	 * Emitted whether or not there is a thumbhash to fall back to. A clip whose build produced no
-	 * `preview` can still be one the tab remembers, and an absent `--clip-ground` with no fallback
-	 * leaves the declaration invalid at computed-value time, which paints nothing -- the same
-	 * nothing as not writing it.
-	 *
-	 * Withheld in either full screen, where the letterbox bars are meant to be black and a blurred
-	 * still in them is the thing that mode asked for black instead of. It was `filling` alone for a
-	 * while, so web fullscreen had black bars and real fullscreen had a blurred still in them:
-	 * measured on a 16:9 clip in a 1400x1000 window, the bars read (30, 25, 24) at the top and
-	 * (8, 6, 3) at the bottom. Inline, so the stylesheet could not take it back without
-	 * `!important`; not emitting it is simpler than overriding it, and a value existing is not the
-	 * same as the ground being wanted.
+	 * The blurred ground, on the frame rather than on the element -- a transparent `<video>` takes
+	 * its own background with it, which is why `data-clip` below is on the frame. See
+	 * spec/architecture/video.md ("The choice is made before anything is painted" and "The
+	 * selector names the frame") for `--clip-ground`, `app.html`'s script, and the measurements.
+	 * Withheld in either full screen, where the bars are meant to be black; inline, so the
+	 * stylesheet cannot take it back without `!important`.
 	 */
 	const ground = $derived(
 		bare
@@ -414,20 +321,11 @@
 	>
 	<!--
 		`block`, for `picture.svelte`'s reason: a replaced inline box discards the vertical margins
-		its neighbours are spaced with, and both this element and the notice under it are spaced
-		that way. Tailwind's reset already says so for `video`; it is stated because this depends
-		on the default rather than merely inheriting it.
-
-		`crossorigin` is not optional decoration. The text tracks come from the CDN, which is a
-		different origin, and a `<track>` that is not CORS-fetched never loads at all.
-
-		The sources are smallest first, which is the pre-hydration answer and is a real choice.
-		A reader with no script, or one who presses play before hydration, gets the first source
-		the browser can decode -- and above 1080p the ladder publishes exactly two rungs, the
-		1080p one and a larger tier that exists for the full-screen view. The column is 48rem, so
-		1080p covers it at two times the pixel ratio with room to spare: the smaller rung is not a
-		compromise here, it is the rung the column was measured for, and the larger one is what the
-		chooser reaches for when a display turns out to want it. See spec/architecture/video.md.
+		its neighbours are spaced with, and Tailwind's reset only says so by default. `crossorigin`
+		is load-bearing, not decoration -- the tracks come from the CDN and a `<track>` that is not
+		CORS-fetched never loads. The sources are smallest first, which is the pre-hydration answer:
+		see spec/architecture/video.md ("Why 1080 and not 720") for why that rung is not a
+		compromise for the column it covers.
 	-->
 	<!-- svelte-ignore a11y_media_has_caption (the tracks are the record's: there are as many as
 	     the clip has, written by the loop below, and the compiler can only see a static one) -->
@@ -460,33 +358,11 @@
 	</video>
 
 	<!--
-		The player a reader with no script gets, and the reason the element above no longer carries
-		`controls`.
-
-		It used to. The element was served with `controls` and `onMount` took them off, so every
-		reader watched the browser's own control bar for as long as hydration took -- measured at
-		247ms and 21 painted frames on a warm local load, and longer over a network. The bar was
-		there to be a fallback and it was being shown to the one audience that does not need it.
-
-		`<noscript>` is the exact tool for that split. With scripting enabled the browser does not
-		parse its contents as markup at all -- they are raw text, so there is no element, no
-		request and nothing to paint -- and with scripting disabled they are the only copy that
-		exists. So the flash goes and the fallback stays, rather than one being traded for the
-		other.
-
-		The `<style>` is how the two stop overlapping: without it a reader with no script would see
-		this one and the inert one above it. It repeats once per clip, which is a few dozen bytes
-		and the price of the block being self-contained; the rule is idempotent and a second copy
-		costs nothing but its own length. It cannot be Svelte-scoped -- a `<style>` written into
-		markup is not the compiler's -- so it matches on the attribute instead of on the class.
-
-		It names the frame as well, and that is not for readability. Svelte's scoped rules are
-		unlayered, so `.video-surface.svelte-hash { display: block }` is an ordinary author rule at
-		two classes, and `video[data-script-only]` is one class and one element: it loses, and the
-		first version of this block showed a reader with no script both copies stacked. Measured in
-		a sandboxed frame with scripting off -- which is the condition `<noscript>` is defined
-		against -- six `<video>` elements where three were wanted. Adding the frame makes it two
-		classes and an element, which is the smallest thing that wins without `!important`.
+		The player a reader with no script gets. It used to be the element above, served with
+		`controls` and stripped by `onMount`, which showed the browser's own control bar to every
+		reader for as long as hydration took. See spec/architecture/video.md ("The no-script player
+		lives in `<noscript>`") for why that flash is gone, why the inline `<style>` matches on
+		`data-script-only` rather than a class, and why it names the frame as well as the element.
 	-->
 	<noscript>
 		<style>.video-frame video[data-script-only]{display:none}</style>
@@ -513,16 +389,11 @@
 	</noscript>
 
 		<!--
-			Rendered from the first frame rather than once the elements are bound, which is what
-			the cover needs: it is the one part of the chrome a reader sees before they touch
-			anything, and withholding the component until hydration meant it did not exist and
-			then appeared at full opacity. Measured: nothing until 400ms against a first paint at
-			88ms. Now the server writes the same disc the client keeps, so there is nothing to
-			appear -- and nothing to press either, because until `video` is bound every handler
-			inside returns early.
-
-			`support` still gates it. A browser that refused every source gets the notice below
-			instead, and a player drawn over a clip that will not decode is a lie.
+			Rendered from the first frame rather than once the elements are bound -- see
+			spec/architecture/video.md ("The chrome is rendered from the first frame") for the
+			measurement behind why the cover cannot wait for hydration. `support` still gates it: a
+			browser that refused every source gets the notice below, and a player drawn over a clip
+			that will not decode is a lie.
 		-->
 		{#if support !== 'none'}
 			<Controls bind:this={controls} video={el} {frame} clip={src} {rungs} {gain} bind:filling {locale} />
@@ -556,37 +427,23 @@
 
 	{#if description}
 		<!--
-			The clip's own description, offered as a description rather than as a name.
-
-			A `<video>` has no name of its own to carry it -- no title, no destination -- and making
-			this one would put a paragraph in front of every reader who reaches the element with a
-			keyboard, which is the argument the link card makes at length. `aria-describedby` is
-			announced after the name and can be skipped.
-
-			The poster's description is deliberately not here. `poster` is an attribute and takes no
-			alternative text, so there is nowhere to put it, and a second telling of the same
-			seconds is what spec/architecture/media.md says not to write.
+			The clip's own description, offered as a description rather than as a name: a `<video>`
+			has no name of its own to carry it, and making one would put a paragraph in front of
+			every reader who reaches the element with a keyboard. `aria-describedby` is announced
+			after the name and can be skipped. The poster's description is deliberately not here --
+			`poster` takes no alternative text, and spec/architecture/media.md says not to tell the
+			same seconds twice.
 		-->
 		<span id={describedBy} class="sr-only">{description}</span>
 	{/if}
 </div>
 
 <style>
-	/* Captions, in the page's own voice.
-
-	   `font-family: inherit` is the whole of the type decision. The body's stack already names a
-	   Latin face and then a CJK one, and a browser picks per glyph, so a caption in either script
-	   is set the way the prose around it is -- there is nothing to choose here that has not
-	   already been chosen once.
-
-	   The rest is the player's palette rather than the page's, for the player's reason: a caption
-	   is read against a video frame, which this site does not choose and which changes twenty-four
-	   times a second. White ink on a dark plate is what every native renderer settles on from the
-	   same constraint. See `libs/tokens/src/player.css`.
-
-	   `--cue-size` is measured rather than declared, because a caption is read at whatever size
-	   the picture happens to be: the same clip is 376px tall in an article and fills a screen in
-	   full screen. The controls set it; see `placeCaptions` there. */
+	/* Captions, in the page's own voice: `font-family: inherit` picks a Latin or CJK glyph the way
+	   the prose around it would. The rest is the player's palette, not the page's, because a
+	   caption is read against a video frame this site does not choose -- see
+	   `libs/tokens/src/player.css`. `--cue-size` is measured rather than declared, since a caption
+	   is read at whatever size the picture happens to be; the controls set it in `placeCaptions`. */
 	.video-surface::cue {
 		font-family: inherit;
 		font-size: var(--cue-size, 1rem);
@@ -606,16 +463,10 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		/* Held back until the frame on screen is the one that was asked for, with the blurred
-		   ground on the frame behind showing through in the meantime. The fade is short enough to
-		   read as the blur sharpening rather than as two pictures.
-		
-		   Only a clip this tab remembers is held, and the head script is what says so by setting
-		   `--clip-hold` on the frame, from where it inherits down to here. Defaulting to held in
-		   this rule and releasing from the component would make every reader wait for hydration:
-		   measured, a decoded frame at 68ms against hydration finishing at 335ms on a long
-		   article. A clip with nothing remembered has no wrong frame to show and is never held.
-		   See `client/ground.ts`. */
+		/* Held back until the frame on screen is the one asked for, with the blurred ground behind
+		   it showing through. Only a clip this tab remembers is held, via `--clip-hold` set on the
+		   frame by the head script -- see spec/architecture/video.md ("Only a remembered clip is
+		   held") for why defaulting to held here would cost every reader a wait for hydration. */
 		opacity: var(--clip-hold, 1);
 		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
 	}
@@ -630,30 +481,20 @@
 		}
 	}
 
-	/* Both fullscreens: whatever the frame looks like in an article, it stops looking like it.
-
-	   The two modes arrive by different routes -- one is an attribute this file's markup writes,
-	   the other is the Fullscreen API promoting the same element -- and they were written apart,
-	   so for a while only the attribute turned the frame off. In a dark theme nothing showed,
-	   because the border is dark there too. In a light one, going full screen drew a two-pixel
-	   grey rectangle around the picture, which is the frame doing in front of a black screen
-	   exactly what it is meant to do in a column of prose.
-
-	   `:fullscreen` is on its own here and not in a list with `:-webkit-full-screen`. Every engine
-	   this site supports takes the unprefixed one, and an unknown selector in a list invalidates
-	   the whole rule -- which is how the scrubber once painted in neither engine. */
+	/* Both fullscreens: whatever the frame looks like in an article, it stops looking like it. The
+	   two modes arrive by different routes -- an attribute this file writes, and the Fullscreen
+	   API promoting the same element -- and written apart, only the attribute used to turn the
+	   frame off; see spec/architecture/video.md ("The clip is fitted and never stretched") for the
+	   two-pixel grey rectangle that gave it away. `:fullscreen` stands alone rather than in a list
+	   with a prefixed spelling, because an unknown selector in a list invalidates the whole rule. */
 	.video-frame[data-filling='true'],
 	.video-frame:fullscreen {
 		display: grid;
-		/* One cell, the size of the frame, stated rather than left to grow. An `auto` track is
-		   circular for an item asking for `height: 100%`, so the item falls back to its own
-		   `aspect-ratio` and the track takes the height that comes out -- and an `auto` track is
-		   only stretched back to the container where there is free space to stretch it with. A
-		   window taller than the clip therefore worked and a window shorter than it did not:
-		   measured at 1400x420, a 16:9 clip laid out 1400x787.5 and `overflow` cut 367 pixels off
-		   it. Fitting was never the failure; the box the fitting happened in was the wrong shape.
-		   With the track definite the box is the window on both axes, `contain` letterboxes on
-		   whichever axis is loose, and the ratio is untouched either way. */
+		/* One cell, the size of the frame, stated rather than left to grow: an `auto` track is
+		   circular for an item asking for `height: 100%`, so it fell back to the clip's own
+		   `aspect-ratio` and stretched only as far as the window had free space -- measured at
+		   1400x420, a 16:9 clip laid out 1400x787.5 and `overflow` cut 367 pixels off it. With the
+		   track definite the box is the window on both axes and `contain` letterboxes the rest. */
 		grid-template: 100% / 100%;
 		place-items: center;
 		border: 0;
@@ -663,16 +504,11 @@
 		background: oklch(0 0 0);
 	}
 
-	/* Web fullscreen only: the frame becomes the window, since nothing else is going to move it.
-
-	   Opaque and covering everything rather than sitting in the article: the point of the mode is
-	   that nothing but the clip is on screen, and a page showing through even faintly is the thing
-	   it exists to remove. The browser's own chrome stays, which is the whole difference from the
-	   button beside it. No player library has this -- it is a page mode rather than a media one.
-
-	   Driven by an attribute this file's own markup writes. A scoped `:has(.player-filling)`
-	   cannot match across a component boundary: Svelte rewrites both halves of the selector into
-	   this file's scope, and that class carries the child's. An attribute belongs to neither. */
+	/* Web fullscreen only: the frame becomes the window. Opaque and covering everything, because
+	   the point of the mode is that nothing but the clip is on screen and the browser's own chrome
+	   stays -- the whole difference from the button beside it; no player library has this since it
+	   is a page mode rather than a media one. Driven by an attribute rather than a scoped
+	   `:has(.player-filling)`, which cannot match across the component boundary this crosses. */
 	.video-frame[data-filling='true'] {
 		position: fixed;
 		inset: 0;
@@ -683,19 +519,11 @@
 		z-index: 60;
 	}
 
-	/* The clip is fitted, never stretched: it grows until one axis meets the window and stops, so
-	   a 16:9 clip in a 16:9 window fills both and anything else fills one and is bordered by black
-	   on the other.
-
-	   The box is the window and `contain` fits the picture inside it, rather than the box being
-	   sized to the picture. `max-width`/`max-height` on an auto-sized element only ever constrain,
-	   never grow: measured, a 640x360 clip stayed 640x360 in the middle of a 1088x1043 window.
-
-	   Both percentages resolve because the frame states its one cell; see the rule above for what
-	   happens when they cannot. That is also what retires the clip's own `aspect-ratio`: it is
-	   written inline, from the file's dimensions, so no declaration here could ever have outranked
-	   it -- an `aspect-ratio: auto` sat here for exactly that reason and never once applied. A box
-	   with both axes definite ignores the ratio outright, which is the only thing that does. */
+	/* The clip is fitted, never stretched, and bordered by black on the axis it does not fill. The
+	   box is sized to the window rather than to the picture -- `max-width`/`max-height` on an
+	   auto-sized element only ever constrain, never grow: measured, a 640x360 clip stayed 640x360
+	   in a 1088x1043 window. `contain` fits the picture inside the sized box, which also retires
+	   the clip's own inline `aspect-ratio`: a box with both axes definite ignores it outright. */
 	.video-frame[data-filling='true'] .video-surface,
 	.video-frame:fullscreen .video-surface {
 		width: 100%;

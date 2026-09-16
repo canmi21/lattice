@@ -5,20 +5,12 @@
 
 	/**
 	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css.md, including
+	 * for why this comment may not write a tag in angle brackets.
 	 *
-	 * The scoped block at the foot of this file is not a leftover of the migration. Bits UI
-	 * portals this surface out of the component tree, which is why those rules are `:global`,
-	 * and the two they gate are reached through data attributes the library writes rather than
-	 * through anything this component could put a class on.
-	 *
-	 * `shadow-sm` stays in the markup beside the layout. It is not one declaration: Tailwind puts
-	 * the real shadows in `--tw-shadow` and points `box-shadow` at five variables, four of them
-	 * registered as transparent by an `@property` rule no component can write. That registration
-	 * is the member of the set which cannot follow, so the set stays whole.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block at the foot of this file reaches what Bits UI portals out of the tree,
+	 * through data attributes the library writes. `shadow-sm` stays in the markup because it is
+	 * five variables, four of them registered by an `@property` rule no component can write.
 	 */
 	const styles = stylex.create({
 		/** The panel itself: a bordered sheet of paper. Its shadow is still the markup's. */
@@ -45,15 +37,11 @@
 	} = $props();
 
 	/**
-	 * How close this surface may come to the window's edge, in pixels.
-	 *
-	 * The page's own gutter, so a menu pushed back by a collision stops where the article's text
-	 * stops rather than a hair from the glass. The library's default is 8px, which is invisible on
-	 * a laptop -- nothing there is near an edge -- and on a phone puts the whole panel against the
-	 * side of the screen while the column beside it holds a 1.5rem margin. See spec/styling.md.
-	 *
-	 * A number rather than the token, because the library measures in pixels and cannot read a
-	 * custom property. It agrees with the article column's `px-6` by hand.
+	 * How close this surface may come to the window's edge, in pixels: the page's own gutter, so a
+	 * menu pushed back by a collision stops where the article's text stops. The library's default
+	 * of 8px is invisible on a laptop and puts a phone's panel against the screen's edge -- see
+	 * spec/styling.md. A number rather than the token because the library cannot read a custom
+	 * property; it agrees with the article column's `px-6` by hand.
 	 */
 	const EDGE_PADDING = 24;
 </script>

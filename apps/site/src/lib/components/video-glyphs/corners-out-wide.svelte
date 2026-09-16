@@ -1,18 +1,16 @@
 <!--
 	CornersOut, redrawn around a landscape rectangle.
 
-	Phosphor's `CornersOut` marks the corners of a square, which is right for a generic expand and
-	wrong here: this button is one of four boxes in the control row, and the other three --
-	`ClosedCaptioning`, `PictureInPicture`, `FrameCorners` -- are all landscape. A square among
-	them reads as a different kind of thing, and what this one means is a video going full screen.
+	Phosphor's `CornersOut` marks the corners of a square, right for a generic expand and wrong
+	here: this button sits among three other landscape boxes in the control row --
+	`ClosedCaptioning`, `PictureInPicture`, `FrameCorners` -- and a square among them reads as a
+	different kind of thing, where what this one means is a video going full screen.
 
-	The rectangle is the one those three agree on most. At bold Phosphor draws no two of its boxes
-	alike: `ClosedCaptioning` is 12..244 x 44..212, `PictureInPicture` 20..236 x 44..212 and
-	`FrameCorners` 20..236 x 36..220. Two of the three use x 20..236 and two use y 44..212, which
-	is `PictureInPicture` exactly, so that is the box -- 216 x 168, centred on the canvas.
-
-	The brackets are Phosphor's own, unaltered: 24 thick, 52 long, 12 radius, elbow at the corner
-	with both arms running inward. Only where they sit has changed.
+	The rectangle is the one those three agree on most: at bold, Phosphor draws no two of its boxes
+	alike, and two of the three use x 20..236 and two use y 44..212, which is `PictureInPicture`
+	exactly -- 216 x 168, centred on the canvas. The brackets are Phosphor's own, unaltered: 24
+	thick, 52 long, 12 radius, elbow at the corner with both arms running inward. Only where they
+	sit has changed.
 -->
 <script lang="ts">
 	import type { GlyphProps } from './shared';

@@ -242,6 +242,14 @@ The Cargo and Mermaid palettes stay where they are. Both are component-local mir
 a reason written down in [styling.md](../styling.md), and neither is part of the interface
 vocabulary this layer owns.
 
+## A comment in the module script cannot write a tag in angle brackets
+
+Not a JSX-like tag, not one quoted inside a code span, not one in a URL -- anywhere in the module
+script's own comments. oxfmt reads that as the start of markup, mis-parses the rest of the block,
+and deletes the whole instance script below it: silently, with no error, and a zero exit status.
+The visual half of a component sits in the module script precisely because it holds no markup, so
+this rule costs it nothing to keep and is the one thing the module script's comments must not do.
+
 ## StyleX cannot be reached from a stylesheet
 
 A Svelte `<style>` block cannot compose a StyleX style. CSS has no mixin, Svelte implements no

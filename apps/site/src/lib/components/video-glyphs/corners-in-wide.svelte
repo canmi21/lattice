@@ -2,16 +2,15 @@
 	CornersIn, on the same landscape rectangle [[corners-out-wide]] uses, and its exact pair.
 
 	Phosphor's `CornersIn` is not a turned `CornersOut`: its brackets are 60 long against the
-	other's 52 and its footprint is 160 square against 184, so the two glyphs change size as well
-	as direction. That is fine for two icons sitting apart in a set and wrong for one button whose
-	label toggles, where a footprint that moves reads as the row twitching.
+	other's 52 and its footprint is 160 square against 184, changing size as well as direction --
+	fine for two icons apart in a set, wrong for one button whose label toggles, where a moving
+	footprint reads as the row twitching.
 
 	So this is the same four brackets in the same four places, each turned 180 degrees where it
-	stands. The footprint is identical to the out state to the pixel, and what carries the meaning
-	is where the elbows are: out puts them at the rectangle's corners and points the arms inward,
-	in puts them toward the middle and lets the arms run back out. The reader learns the
-	destination from the elbows, which is the same thing Phosphor's own pair does, only without
-	the resize.
+	stands, footprint identical to the out state to the pixel. What carries the meaning is the
+	elbows: out puts them at the rectangle's corners with arms pointed inward, in puts them toward
+	the middle with arms running back out -- the same thing Phosphor's own pair does, without the
+	resize.
 -->
 <script lang="ts">
 	import type { GlyphProps } from './shared';
