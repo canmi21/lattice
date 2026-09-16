@@ -892,8 +892,11 @@ the poster and a notice. `cms captions` cuts a track to a clip and attaches it. 
 the frames, writes the prompt, asks, and records the answer where a picture's description goes, so
 `cms locale` carries it into every language with no branch of its own.
 
-The CLI is complete. What is not built is the software-decode path -- see the decision above -- and
-nothing on the front end reads a caption track yet.
+The CLI is complete. What is not built is the software-decode path -- see the decision above. This
+sentence also said nothing on the front end read a caption track, which is a correction: it does,
+and the two caption sections in this file describe what it does. `video.svelte` renders a `<track>`
+per entry and styles `::cue`; `video-controls.svelte` holds the site-wide `video.captions`
+preference, drives the track list from it, and places the cues against the letterbox.
 
 Measured over the three clips here on the first real batch: 60, 60 and 75 words asked for, 62k
 tokens in, three answers that read the burnt-in text rather than restating the background. The

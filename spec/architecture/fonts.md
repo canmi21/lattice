@@ -23,8 +23,15 @@ answer to what a family is and where its stylesheet lives.
 An application may independently need a full face at runtime. `cms og` renders arbitrary titles
 with LXGW WenKai and therefore loads that one full TTF by path; a web subset cannot answer for a
 character it does not contain. That runtime dependency is why the 24MB file stays. No other
-published family gets a retained full face merely because this one has two roles. The split
-chunks total 12MB across the set, and no reader ever wants more than a fraction of it.
+published family gets a retained full face merely because this one has two roles. LXGW's own
+split chunks come to 12.5MB against it, and no reader ever wants more than a fraction of that.
+
+**That figure is one family's, not the set's, and saying so is a correction.** It was taken from
+a comment in `wenkai.css` and written here as a total, which was true only while LXGW was the one
+CJK family. `data/fonts.json` now declares three as `frequency-chunks` -- lxgw-wenkai, klee-one
+and tang-guo-wei-de-xia-tian -- and every published chunk under `data/public/fonts` totals
+18.5MB, of which those three are 18MB and the Latin faces and the monospace are the rest. Byte
+figures in this file are binary: 12.5MB is 12.53 MiB, and the retained face is 24.39 MiB.
 
 ## Latin and CJK use different slicing strategies
 
@@ -48,8 +55,10 @@ selectable-font list from disagreeing with the published faces.
 
 The stylesheets live in `libs/fonts`, apart from the colour tokens. They are a different kind
 of fact -- what a family is and where its files are, rather than what the site looks like --
-and the CJK sheet alone is 75KB gzipped, which nothing should import until the site actually
-sets that family.
+and a CJK sheet is large enough that nothing should import one until the site actually sets that
+family. `wenkai.css` gzips to 75KB, `klee-one.css` to 28KB and `tang-guo-wei-de-xia-tian.css` to
+22KB: 125KB for the three. This read "the CJK sheet alone", singular, which is a correction --
+there are three of them, and 75KB was always LXGW's number rather than the group's.
 
 ## Only the regular cut of the monospace face is reachable, and the rest stay
 

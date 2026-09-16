@@ -162,8 +162,25 @@ disappearing from most of the site is looking at the layering working, not at so
 ## The build order is the opposite of what StyleX documents
 
 ```ts
-plugins: [tailwindcss(), sveltekit(), { ...stylex.vite({ useCSSLayers: true }), enforce: undefined }]
+import stylex from '@stylexjs/unplugin/vite';
+
+plugins: [
+	tailwindcss(),
+	sveltekit(),
+	{
+		...stylex({
+			useCSSLayers: true,
+			aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
+			unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+		}),
+		enforce: undefined,
+	},
+]
 ```
+
+This snippet used to spell the call `stylex.vite(...)`, and that is a correction: there is no such
+member. The plugin is the default export of `@stylexjs/unplugin/vite` and is called directly. The
+order the snippet has always illustrated is the order the file has.
 
 `enforce: undefined` is load-bearing. `@stylexjs/unplugin` declares `enforce: 'pre'`, which hoists
 it above the Svelte compiler wherever it sits in the array, and its Babel pass then receives an
@@ -238,11 +255,13 @@ a `rootDir` other than the working directory it happened to be started from. Lef
 silently declines to resolve `$lib/vocabulary.stylex.ts` and every component importing it fails the
 build with `nonStaticValue`.
 
-`unstable_moduleResolution` in [vite.config.ts](../../apps/site/vite.config.ts) states both: `commonJS`
-resolution with `aliases: { '$lib/*': ['/ROOT/src/lib/*'] }`. `/ROOT/` is StyleX's own marker for a
-path under `rootDir`, which is set to this app rather than the workspace. The other setting this
-option takes, and why it is not the one configured here, is under "The option that would have
-preserved the hash has never worked".
+The plugin call in [vite.config.ts](../../apps/site/vite.config.ts) states both, in two options
+side by side: `unstable_moduleResolution: { type: 'commonJS', rootDir: SITE }` and
+`aliases: { '$lib/*': ['/ROOT/src/lib/*'] }`. This read as though `aliases` were a field of
+`unstable_moduleResolution`, which is a correction -- it is a sibling of it, a top-level option of
+the plugin. `/ROOT/` is StyleX's own marker for a path under `rootDir`, which is set to this app
+rather than the workspace. The other setting this option takes, and why it is not the one
+configured here, is under "The option that would have preserved the hash has never worked".
 
 ## Colour is never retyped
 

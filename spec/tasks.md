@@ -15,6 +15,9 @@ listing what exists, a scheduler ordering it, and a person asking how much a ful
 are all answerable now, against fifteen entries, rather than after fifteen operations have been
 rewritten. Adding an entry makes a task **known**, not runnable.
 
+The fifteen are not yet all of them. `cms video` is a long-running operation with no entry -- see
+"Rewriting article text is a compatibility path, not the design" below for what its absence costs.
+
 Reads and writes name **records**, not paths. Two tasks contend when they mutate the same records,
 and stating it that way leaves the file layout free to move without the catalogue following it.
 
@@ -24,12 +27,26 @@ unused: an edge naming a task that does not exist would otherwise stay invisible
 deadlocked or silently skipped work, long after anyone remembers writing it. Declaring edges early
 is only safe because the test holds them.
 
-Instant reads -- `overview`, `articles`, `derived`, `check`, `port`, `tasks` and `runs` -- are
-deliberately absent. Listing them would put seven entries in every task view that can never be
-watched, waited on, or scheduled. The last two were missing from this list and belong in it for
-exactly the reason the others do: `cms tasks` prints the catalogue and `cms runs` prints the
-registry, both dispatched in [cli/mod.rs](../apps/cms/src/cli/mod.rs) and neither an operation
-anything could schedule.
+Two kinds of subcommand are deliberately absent, and until now this section named only the first.
+Adding the second is a correction: the rule accounted for seven of the exemptions and there are
+ten, which left three commands belonging to neither list.
+
+**Instant reads** -- `overview`, `articles`, `derived`, `check`, `port`, `tasks` and `runs`.
+Listing them would put seven entries in every task view that can never be watched, waited on, or
+scheduled. The last two were missing from this list and belong in it for exactly the reason the
+others do: `cms tasks` prints the catalogue and `cms runs` prints the registry, both dispatched in
+[cli/mod.rs](../apps/cms/src/cli/mod.rs) and neither an operation anything could schedule.
+
+**Hand-run operations whose input is a person's argument** -- `captions`, `invalidate` and
+`twitter`. These are not instant and two of them are not reads, so the first exemption never
+covered them; what keeps them out is that none can be described without the argument somebody
+supplies at the moment of running. `cms captions` takes a clip and a track path, and there is no
+set of tracks to fan out over -- a clip and its track do not arrive on the same day, and often the
+track never arrives. `cms invalidate` takes a selection of segments, locales or matched text; it
+refuses an empty one and prints rather than deletes until `--live`, so the whole command is a
+person narrowing something and then confirming it. `cms twitter` takes a query and prints the
+answer. None is schedulable, none contends over a record, and none is resumable: a catalogue entry
+for any of them would describe a run nobody can start from the catalogue.
 
 ## Computing and writing are separate concerns
 
@@ -119,10 +136,30 @@ observe that would change the answer.
 
 ## Rewriting article text is a compatibility path, not the design
 
-`cms image` is the only task that edits `contents/**/*.md`, and a test asserts that. It does so
-because an author wrote a temporary filename -- `![](shot.png)` -- and the reference has to become
-the content id once the picture is derived. Every other task reading `Articles` declares
+`cms image` is the only _catalogued_ task that edits `contents/**/*.md`, and a test asserts that.
+It does so because an author wrote a temporary filename -- `![](shot.png)` -- and the reference has
+to become the content id once the picture is derived. Every other task reading `Articles` declares
 `after: ["image"]` largely to stay clear of that rewrite.
+
+**`cms video` is a second editor of those files, and the catalogue cannot see it.** The word
+_catalogued_ above is a correction: this section read as though one command touched article text,
+and [video/run.rs](../apps/cms/src/video/run.rs) calls the same `rewrite_references` for the same
+reason, turning a clip's temporary name into its content id. The test still passes because it
+walks `CATALOG`, and `cms video` has no entry there.
+
+That absence is not cosmetic. `Spec::conflicts_with` answers whether two operations may be offered
+together by intersecting their `writes`, so an uncatalogued writer of `Articles` is invisible to
+the only mechanism that would keep it from running beside `cms image` -- the contention this file
+exists to describe. Everything else in this section holds for `cms video` as written: it is a run a
+person starts, it belongs to authoring by hand rather than to an editor, and it publishes its bytes
+before it rewrites.
+
+Fixing it is a code change and this only records that it is owed. The entry would write `Articles`,
+`PublicImage` for the poster's variants, and a third record for the published rungs under
+`data/public/video/**` -- `Record` has no `PublicVideo`, so the record has to be added before the
+entry can be written. Adding the entry also makes the assertion above false as it stands, and the
+test has to become what this section actually means: that rewriting article text is confined to the
+two import commands, not that it is confined to one.
 
 **It exists only because there is no editor yet.** An editor that derives a picture at the moment
 it is inserted -- store it, then write the content id into the article -- produces an article that

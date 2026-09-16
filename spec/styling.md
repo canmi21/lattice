@@ -427,9 +427,12 @@ divides a heading from prose in the first place. Enlarging the section to make r
 the restraint the whole scale is built on. Space is the remaining signal, and the honest one:
 sitting nearer says _this belongs to what is above it_, which is exactly the relation.
 
-**Only sections are listed in the table of contents.** The rail is 192px wide and collapses to
-a column of bars -- a way to reach a section rather than an outline of the article. A subsection
-is reached by arriving at its parent and reading on.
+**Only sections are listed in the table of contents.** The rail is 8.5rem wide -- 136px at the
+default root size -- and collapses to a column of bars: a way to reach a section rather than an
+outline of the article. A subsection is reached by arriving at its parent and reading on. The
+figure here read 192px, which is a correction: `--rail-width` in
+[utilities.css](../apps/site/src/styles/utilities.css) declares `8.5rem`, and "The rail's box is
+one declared width" above said so while this sentence said otherwise.
 
 The two rules hold each other up, and neither works alone. Filtering the rail while the two
 levels look identical would make the listing look incomplete: a reader who cannot see that a

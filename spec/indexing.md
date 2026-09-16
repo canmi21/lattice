@@ -81,6 +81,21 @@ translated addresses and leaves the source one alone. The sidecar is hashed whol
 per locale -- reading one locale out of it would teach this script the sidecar's shape to buy a
 distinction that only matters on the days translations change anyway.
 
+**`/` reads every article.** The home page is a list of them, so it changes when any one of them
+does, and its fingerprint is taken over every article's source file -- the sources alone, no
+summaries and no sidecars. The rule above says what an article's own views read and said nothing
+about the home route; [indexnow.ts](../apps/site/scripts/indexnow.ts) settled it, and this
+records the answer rather than changing it.
+
+Two things the page reads are outside that hash, and nothing here says whether either was
+decided or merely not reached. `+page.server.ts` renders the prose of `contents/homepage.md`,
+which no fingerprint takes, so rewriting the bio announces nothing. And it renders each article
+through `views[code]`, so the titles on it are translated ones, while the fingerprint is taken
+over the sources only. Rewriting translations therefore announces the translated articles and
+leaves `/` alone. The sitemap carries a single home address with no query on it, so the
+translated-view distinction the rule above draws for an article has no home entry to apply to
+yet; `sources()` would hand any query variant of `/` the same fingerprint if one appeared.
+
 Paths, not URLs: the record describes one site, and storing the origin on every row would repeat
 one string a few hundred times. It is machine-written JSON in `data/`, not hand-edited YAML,
 because nothing about it is a judgement a person makes.
@@ -92,6 +107,12 @@ build's. Announcing them would mean announcing thirty URLs on every deploy.
 `--seed` records what is live without announcing it, for when the engines already hold these
 URLs but this record does not agree -- a submission made by hand, or a change to how the
 fingerprint is computed, which makes every page look new while none of them is.
+
+`--dry` is the other half of that pair and went unwritten here. It prints the changed addresses
+and stops: nothing is sent and the record is left alone, so a run answers "what would this
+announce" without spending the answer. The two differ in what they keep -- `--seed` writes the
+record and sends nothing, `--dry` sends nothing and writes nothing -- and between them every
+part of a run can be exercised without the engines hearing about it.
 
 **Written only after the request is accepted.** Recording first would let a failed submission
 look sent, and the next run would skip exactly the URLs that never arrived.

@@ -62,11 +62,17 @@ proposals nothing here writes.
 syntax floor is written, and [vite.config.ts](../apps/site/vite.config.ts) derives esbuild's
 `build.target` from it.
 
-It names Chrome 110, Firefox 115 and Safari 16.0 -- the canary's line. **A rescue only happens if
-the browser could parse the code doing the rescuing.** A target above that line hands exactly the
-readers this mechanism exists for a bundle that dies before the check runs, and core-js sitting in
-a chunk they never reach helps nobody. The two floors agree by construction rather than by
-somebody remembering to keep them in step.
+It names Chrome 110, Edge 110, Firefox 115 and Safari 16.0 -- the canary's line. This listed three
+and the file declares four, which is a correction, though only of the enumeration: **Edge is not a
+fourth line.** Edge 110 is Chromium 110, so it is the Chrome entry stated a second time under the
+name browserslist matches on -- browserslist keys on the browser, not the engine, and an unnamed
+Edge is an unconstrained one. The canary section above names three because three engines shipped
+`toSorted`; this list names four because four browsers have to be told about it.
+
+**A rescue only happens if the browser could parse the code doing the rescuing.** A target above
+that line hands exactly the readers this mechanism exists for a bundle that dies before the check
+runs, and core-js sitting in a chunk they never reach helps nobody. The two floors agree by
+construction rather than by somebody remembering to keep them in step.
 
 Stated rather than left to Vite's default, which is a baseline of somebody else's choosing and can
 move under a major -- it was `chrome111, edge111, firefox114, safari16.4` when this was written,

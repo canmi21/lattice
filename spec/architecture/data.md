@@ -434,10 +434,15 @@ the bytes sit in that checkout's `data/` and every process reads them there.
 
 **A reader finds the directory by walking up for it, not by being told where it is.** Each
 command looks for `data/public` above its working directory and joins its own paths onto the
-parent of what it finds -- [paths.rs](../../apps/cms/src/paths.rs) is the Rust side of that.
-A compile-time path would bake in whichever machine built the binary, and an environment
+repository root the marker sits in -- [paths.rs](../../apps/cms/src/paths.rs) is the Rust side of
+that. A compile-time path would bake in whichever machine built the binary, and an environment
 variable would be one more thing to set correctly before any command works. Walking up means a
 command run from anywhere inside the tree reaches the same bytes.
+
+This read "the parent of what it finds", and that is a correction: the parent of `data/public` is
+`data/`, which nothing joins onto. `repo_root()` takes the grandparent, and the root is what a
+command wants because the article tree, the originals and the published tree are siblings under
+it -- one that knew only `data/public` could not read the articles deciding what belongs there.
 
 **Writing is the CMS's and the sync task's** -- the CMS because it is a machine-wide singleton
 on its pinned port, the sync because a mirror with two sources is not a mirror. The port is
