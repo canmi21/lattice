@@ -548,6 +548,82 @@
 	/** What the files say, and what a box with no bars goes back to. */
 	const CUE_LINE_DEFAULT = 96.5;
 
+	/**
+	 * How much of the picture a caption may fill before it is worth breaking, and how full the
+	 * first line is aimed at when it is.
+	 *
+	 * The files arrive already broken, and they are broken for a column narrower than most of the
+	 * places they are shown: a caption that would sit comfortably across two thirds of the picture
+	 * is cut in half anyway. So the break in the file is treated as a suggestion about *where*
+	 * rather than an instruction to break at all.
+	 *
+	 * `KEEP` is the only thing that decides whether. A caption that fits within it stays on one
+	 * line however the file was written. Above it the caption breaks, and `FILL` is what the first
+	 * line aims at -- short of `KEEP`, so that a break leaves a visibly unfinished first line
+	 * rather than one that looks like it only just failed.
+	 */
+	const CUE_KEEP = 0.9;
+	const CUE_FILL = 0.8;
+	/** What stopping at a clause is worth, against how unequal it leaves the two lines. */
+	const CUE_NUDGE = 0.08;
+
+	/**
+	 * What the files say, kept so that re-measuring is idempotent.
+	 *
+	 * Every recompute rewrites `text`, so without the original the second pass would be measuring
+	 * the first pass's answer and the caption would drift a word at a time.
+	 */
+	const written = new WeakMap<TextTrackCue, string>();
+
+	/** One canvas for every measurement this component ever makes. */
+	let ruler: CanvasRenderingContext2D | null | undefined;
+
+	/**
+	 * Where to break a caption that has to break, which is a separate question from whether.
+	 *
+	 * Candidates are the places a reader would accept a break: after punctuation, and at a space.
+	 *
+	 * **The two lines are balanced rather than the first one filled.** Filling the first line is
+	 * the obvious rule and it is wrong: it strands whatever is left. Measured on a 452px picture,
+	 * it broke "A car drives down the highway, then it disappears into a tunnel." at 358 and 61,
+	 * leaving a second line of two words -- the shape a caption should never take, and the reason
+	 * a stranded word was called out as expensive in the first place. Choosing the break that
+	 * makes the two lines most nearly equal puts it after "highway," instead, at 190 and 229.
+	 *
+	 * Punctuation is worth a nudge rather than a veto: a clause boundary is a better place to stop
+	 * than an arbitrary word boundary, but not at the cost of two lines that do not match.
+	 *
+	 * Where nothing leaves both lines under `FILL` -- one very long word, or a script that does
+	 * not space -- the shortest first line under `KEEP` is taken instead, and failing that the
+	 * text is left whole for the browser to break as it sees fit.
+	 */
+	function breakAt(text: string, measure: (value: string) => number, width: number): string {
+		const candidates: { at: number; punctuated: boolean }[] = [];
+		for (let i = 1; i < text.length; i++) {
+			const before = text[i - 1] ?? '';
+			const here = text[i] ?? '';
+			const punctuated = /[,.;:!?—、。，；：！？]/.test(before);
+			if (punctuated || here === ' ') candidates.push({ at: i, punctuated });
+		}
+		const scored = candidates
+			.map((c) => ({ ...c, head: text.slice(0, c.at).trim(), tail: text.slice(c.at).trim() }))
+			.filter((c) => c.head && c.tail)
+			.map((c) => ({ ...c, size: measure(c.head) }));
+		const weighed = scored
+			.map((c) => ({ ...c, rest: measure(c.tail) }))
+			.filter((c) => c.size <= width * CUE_FILL && c.rest <= width * CUE_FILL)
+			.map((c) => ({
+				...c,
+				// Lower is better: how unequal the two lines are, less a nudge for stopping at a
+				// clause rather than mid-sentence.
+				cost: Math.abs(c.size - c.rest) - (c.punctuated ? width * CUE_NUDGE : 0),
+			}));
+		const chosen =
+			weighed.sort((a, b) => a.cost - b.cost)[0] ??
+			scored.filter((c) => c.size <= width * CUE_KEEP).sort((a, b) => a.size - b.size)[0];
+		return chosen ? [chosen.head, chosen.tail].join('\n') : text;
+	}
+
 	function placeCaptions(): void {
 		const element = video;
 		if (!element) return;
@@ -571,12 +647,27 @@
 		}
 		const line = Math.min(100, Math.max(0, (bottom / box.height) * 100));
 
+		// The picture's own width, not the box's: in full screen the bars are part of the element
+		// and no part of what a caption has to fit across.
+		const across = Math.min(box.width, (box.height * element.videoWidth) / element.videoHeight);
+		ruler ??= document.createElement('canvas').getContext('2d');
+		const face = getComputedStyle(element).fontFamily;
+		if (ruler) ruler.font = `${size}px ${face}`;
+		const measure = (value: string) => ruler?.measureText(value).width ?? 0;
+
 		for (const track of element.textTracks) {
 			for (const cue of track.cues ?? []) {
 				cue.snapToLines = false;
 				// Assigned before `line`, because `line` is validated against it.
 				if ('lineAlign' in cue) (cue as VTTCue).lineAlign = 'end';
 				cue.line = line;
+
+				if (!written.has(cue)) written.set(cue, (cue as VTTCue).text);
+				const original = written.get(cue) ?? '';
+				const joined = original.replaceAll('\n', ' ').replaceAll(/\s+/g, ' ').trim();
+				if (!ruler || !joined) continue;
+				(cue as VTTCue).text =
+					measure(joined) <= across * CUE_KEEP ? joined : breakAt(joined, measure, across);
 			}
 		}
 	}

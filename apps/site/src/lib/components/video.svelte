@@ -593,6 +593,10 @@
 		line-height: 1.35;
 		color: var(--player-ink);
 		background: var(--player-plate-strong);
+		/* Half of what the browser draws by itself, which read as a lozenge rather than as a plate
+		   behind a line of text. Enough of a corner to say the shape is deliberate, not enough to
+		   become the shape. */
+		border-radius: 0.1875rem;
 	}
 
 	/* The window is the declared shape and the picture fills it, which is `picture.svelte`'s

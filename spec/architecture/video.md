@@ -212,6 +212,28 @@ caption in either script the way the paragraph above it is set. The colours are 
 rather than the page's, for the player's reason: a caption is read against a frame this site does
 not choose and which changes twenty-four times a second.
 
+**Whether it breaks is decided here, not in the file.** The files arrive already broken, and they
+are broken for a column narrower than most of the places they are shown: a caption that would sit
+comfortably across two thirds of the picture was cut in half anyway. So the break in the file is
+treated as a suggestion about *where* rather than an instruction to break at all.
+
+One number decides whether. A caption that fits within 90% of the picture's width stays on one
+line however the file was written; above that it breaks. Measured on a 672px picture, all nine
+cues of a clip came back to one line, at 122 to 479 against a threshold of 605.
+
+**Where it breaks is a separate question, and the answer is balance rather than fill.** Filling the
+first line is the obvious rule and it is wrong: it strands whatever is left. Measured on a 452px
+picture, filling broke "A car drives down the highway, then it disappears into a tunnel." at 358
+and 61 -- a second line of two words, which is the shape a caption should never take. Choosing the
+break that leaves the two lines most nearly equal puts it after "highway," instead, at 208 and 207.
+Punctuation is worth a nudge rather than a veto: a clause boundary is a better place to stop than
+an arbitrary word boundary, but not at the cost of two lines that do not match.
+
+The width measured against is the *picture's*, not the element's: in full screen the bars are part
+of the element and no part of what a caption has to fit across. The originals are kept, because
+every recompute rewrites the text and without them the second pass would be measuring the first
+pass's answer.
+
 **Where it sits is a question only full screen asks.** In an article the frame is 16:9 and the
 picture is cropped to fill it, so there are no bars and the bottom of the picture is the bottom of
 the box. Full screen fits rather than crops, so a window that is not the clip's shape leaves black
