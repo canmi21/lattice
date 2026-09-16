@@ -34,6 +34,15 @@ and nothing else. What the container does decide is whether playback can begin b
 arrived, which is `faststart` -- the index at the front rather than the back. That is a bigger
 difference to a reader than any codec choice, and it is not a quality decision.
 
+**`cms video::probe::codec_string` names every track, not the picture alone**, because RFC
+6381's `codecs` parameter is a claim about the whole container and a browser reads the whole
+list to decide whether it can play the file. Naming only the video would be a claim about half
+of it -- and it is a claim about the device population above, not about the function, which is
+why it lives here rather than as a doc comment: it is benign today because everything that
+decodes AV1 also decodes AAC, the direction that would turn it into a bug is a device that
+decodes one and not the other, and nothing in this repository checks that the pairing still
+holds.
+
 ## The encoder and the quality are chosen by measurement too
 
 `libsvtav1`, not `libaom-av1` -- and on the machine this runs on, not a choice at all: the ffmpeg

@@ -1,10 +1,10 @@
 //! How much writing a piece of text is, counted the way a word processor counts.
 //!
 //! The convention -- Han and kana count once per character, everything else once per
-//! whitespace-delimited run -- is not ours to invent. `words-count` implements it and won an
-//! empirical run-off against four other crates against this file's own test table, right on 8 of
-//! 9 cases where the dictionary segmenters and byte-range scripts each got a script wrong. Only
-//! the Hangul correction below is ours.
+//! whitespace-delimited run -- is not ours to invent. `words-count` won an empirical run-off
+//! against four other crates on this file's own test table, right on 8 of 9 cases and missing
+//! only Korean; two of the rejections were specific to this site, per spec/architecture/media.md,
+//! "Two of the four rejected candidates lost for reasons specific to this site".
 //!
 //! `unicode_blocks::is_cjk` wrongly treats Hangul as Han, which is spaced like Latin, so the raw
 //! crate's Korean count ran roughly three times too high -- 49,918 against a true 17,410 on this

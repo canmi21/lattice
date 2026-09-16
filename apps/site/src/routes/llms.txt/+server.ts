@@ -21,7 +21,8 @@ function oneline(value: string): string {
 // each link as [name](url) with a short note. Site collects the homepage,
 // sitemap and feed; Writing lists every article as title -> clean markdown with
 // the subtitle. See https://llmstxt.org/.
-// Deliberately not locale-aware -- see spec/locale.md for why this is one of the exceptions.
+// Deliberately not locale-aware -- see spec/locale.md, "Every page negotiates; the exceptions
+// are documents", for why this is one of the exceptions.
 export const GET: RequestHandler = async () => {
 	const web = URLS.apps.production.site;
 	const articles = await getArticles();

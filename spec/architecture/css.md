@@ -522,6 +522,15 @@ across seven components and is a set rather than a value, which is exactly the s
 says to name. It cannot be named. The three declarations only travel with a default, and the nine
 sites have nine different defaults.
 
+### An omitted longhand is not its initial value when a shorthand registered it
+
+`surfaces.ts`'s `paper` states `borderStyle: 'solid'` rather than leaving it out. The markup it
+replaced wrote Tailwind's `border`, which sets the style through `--tw-border-style`, a custom
+property registered with `solid` as its initial value -- so the edge computed to solid only because
+that registration supplied it, not because `solid` is CSS's own default for the longhand. Leaving
+`borderStyle` out here would drop the property that was doing the work and would not keep the edge
+solid.
+
 ## One stylesheet for every route
 
 StyleX aggregates every route's styles into the entry stylesheet. Measured with a second route: a

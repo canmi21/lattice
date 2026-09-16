@@ -21,7 +21,7 @@ use std::path::Path;
 /// `description`; 3 `description` moves to `data/media.yaml`, `preview` and `original` are
 /// dropped, and camera data arrives as `metadata`; 4 `type` becomes a discriminant, so each
 /// kind gets its own body rather than a picture's shape with unused fields. See
-/// spec/architecture/video.md for why a kind needs its own shape.
+/// spec/architecture/video.md, "The record is one shape per kind, not one shape with holes".
 pub const VERSION: u32 = 4;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -235,11 +235,11 @@ pub struct Merged {
 
 /// Bring a manifest read from disk up to the current shape and find stale per-asset records.
 ///
-/// `#[serde(default)]` fields are already correct on load; only the version number needs an
-/// explicit bump. Staleness is judged per sidecar, not by this aggregate version, since it can
-/// advance before every guarded write finishes, and a one-shot gate would hide those forever.
-/// Version 4 needs no transform of its own; a shape that cannot be read as-is gets a branch
-/// here, never `#[serde(alias)]`, which is a migration that never finishes.
+/// `#[serde(default)]` fields are already correct on load; only the version number needs a
+/// bump. Staleness is per sidecar, not this aggregate version -- it can advance before a
+/// guarded write finishes, which would hide staleness forever as a one-shot gate. Version 4
+/// needs no transform: checked, not reasoned, per spec/architecture/media.md, "The manifest has
+/// versions, and only one is current". Unreadable shapes get a branch here, never an alias.
 pub fn migrate(merged: &mut Merged, public: &Path) -> Vec<String> {
 	merged.version = merged.version.max(VERSION);
 	merged

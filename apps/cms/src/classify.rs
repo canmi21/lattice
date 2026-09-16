@@ -255,7 +255,8 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 	let progress = crate::task::start(repo, "tag", shell, todo.len() as u64, sink)?;
 
 	// Registry first, then the assets naming it: written the other way round, an asset points at
-	// a tag that has not landed. See spec/tasks.md for why the order is what carries this.
+	// a tag that has not landed. See spec/tasks.md, "A task writing several records applies
+	// them in dependency order", for why the order is what carries this.
 	let tag_writer = writer::Writer::start(repo, Record::Tags)?;
 	let media_writer = writer::Writer::start(repo, Record::Media)?;
 

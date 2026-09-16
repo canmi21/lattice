@@ -15,7 +15,8 @@ import { parseName, validatorFor } from './key';
  *
  * The same shape as the image route and for the same reason: a caller names the object by its
  * content id alone, and the fanned-out key it is stored under is put together here -- see
- * spec/architecture/data.md for why the bucket's layout must not leak into a link.
+ * spec/architecture/data.md, "Assets are addressed by their content", for why the bucket's
+ * layout must not leak into a link.
  *
  * Nothing is transcoded -- a licence is bytes served exactly as the package shipped them.
  */

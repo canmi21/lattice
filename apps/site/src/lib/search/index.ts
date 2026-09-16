@@ -3,7 +3,10 @@ import { site } from '$lib/site';
 import type { LocaleCode } from '$lib/locale/index.ts';
 import { MARK_CLOSE, MARK_OPEN, type SearchHit } from './query.ts';
 
-/** The index every locale shares; see spec/search.md for why it is one and not nine. */
+/**
+ * The index every locale shares; see spec/search.md, "One index, and the locale is a filter",
+ * for why it is one and not nine.
+ */
 const INDEX = site.algolia.index;
 
 /**

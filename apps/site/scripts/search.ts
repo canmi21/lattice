@@ -27,7 +27,8 @@ type SiteConfig = { algolia?: { appId?: string; index?: string } };
 const config = parseYaml(await readFile(CONFIG, 'utf8')) as SiteConfig;
 
 /**
- * One index holds every locale; see spec/search.md for why the languages are not declared.
+ * One index holds every locale; see spec/search.md, "One index, and the locale is a filter",
+ * for why the languages are not declared.
  *
  * Read from the site config rather than written here, because the browser client needs the same
  * name and a second copy of it would only ever be discovered by a search that quietly returns

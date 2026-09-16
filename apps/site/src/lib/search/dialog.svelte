@@ -7,10 +7,10 @@
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
 	 * already declares. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot keeps its whole length: the overlay and panel are portalled out
+	 * The scoped block at the foot keeps its whole length: overlay and panel are portalled out
 	 * of reach (spec/todo.md, "A portalled surface is out of Svelte's reach and not out of the
-	 * visual layer's"), and `shadow-lg` cannot follow its `@property` registration into this
-	 * layer -- see spec/todo.md for why the shadow utility stays whole.
+	 * visual layer's"), and so does `shadow-lg`'s own variables (spec/todo.md, "A shadow is one
+	 * utility, two declarations and four variables the visual layer cannot restate").
 	 */
 	const styles = stylex.create({
 		/** The floating panel: its edge, its ground and the ink everything inside inherits. */

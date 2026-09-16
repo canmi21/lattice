@@ -118,6 +118,8 @@ pub fn is_draft(text: &str) -> bool {
 	};
 	match value.get("draft") {
 		Some(serde_yaml_ng::Value::Bool(flag)) => *flag,
+		// Lenient here, strict on the site: spec/drafts.md, "The flag is read directly, never
+		// through a text-field reader" (the disagreement, still open).
 		Some(serde_yaml_ng::Value::String(text)) => text.trim() == "true",
 		_ => false,
 	}

@@ -254,6 +254,13 @@ identical, while their answers are not. The one thing added on top is that Hangu
 Korean is written with spaces, so a word processor counts it like Latin, and the crate's
 `is_cjk` disagrees. See `apps/cms/src/words.rs`, where the table is the specification.
 
+**Two of the four rejected candidates lost for reasons specific to this site.** npm
+`words-count` shreds identifiers: `av01.0.04M.08,mp4a.40.2` counts as eight, and this site's
+prose is full of exactly that shape of token. Dictionary segmentation returns six for
+爱情公寓是一部情景喜剧, where a word processor says eleven -- a segmenter counts phrases, not
+the characters a reader of Chinese would count. The other two rejections were ordinary and
+carry no site-specific lesson.
+
 The address is drawn opposite the site name across the top, because the other free corner is
 the bottom-left and that one belongs to X. It lives in `site.config.yaml` rather than in
 `libs/urls`, and the distinction is real: what is drawn there is a label a person reads off a
@@ -377,6 +384,12 @@ shapes is how a format stops having a current version at all.
 A migration republishes records from the merged manifest rather than re-deriving. The pixels
 did not change; only the record did, and spending minutes of AV1 encoding to alter a field
 would be paying for an answer already on disk.
+
+**Version 4 is the one exception, and it was checked rather than reasoned.** Its "no transform
+needed" was verified against the 39 records in `data/metadata.json` at the time: every one
+loaded and round-tripped byte for byte through the version-4 shape. Every other version's claim
+here is reasoning about the shape; this is the only one a corpus was run against, which is what
+the next migration should match before trusting its own precedent by reasoning alone.
 
 ## Cropping is presentation, so the browser does it
 

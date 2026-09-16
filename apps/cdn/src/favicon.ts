@@ -12,7 +12,8 @@ import {
  * Serving favicons that the local CMS already fetched and synced.
  *
  * This worker never fetches from another site and never writes to the bucket -- see
- * spec/architecture/data.md for why the mirror only runs one way.
+ * spec/architecture/data.md, "The local directory is the source of truth, not a cache of
+ * one", for why the mirror only runs one way.
  *
  * A miss is a 404, not a placeholder. The caller knows what it wants to draw when a site has
  * no icon, and an image response would deny it the chance to decide.

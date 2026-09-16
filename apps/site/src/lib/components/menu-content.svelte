@@ -5,8 +5,8 @@
 
 	/**
 	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md, including
-	 * for why this comment may not write a tag in angle brackets.
+	 * already declares, so nothing here can change one -- see spec/architecture/css.md, "A
+	 * comment in the module script cannot write a tag in angle brackets", for why this one may not.
 	 *
 	 * The scoped block at the foot of this file reaches what Bits UI portals out of the tree,
 	 * through data attributes the library writes. `shadow-sm` stays in the markup because it is

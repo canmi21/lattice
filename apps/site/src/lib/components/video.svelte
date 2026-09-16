@@ -99,12 +99,12 @@
 	});
 
 	/**
-	 * Whether the picture on screen is the one asked for. Until then the element stays transparent
-	 * behind the blurred ground -- left alone it decodes frame zero first and the seek to a
-	 * remembered position replaces it in front of the reader. See spec/architecture/video.md for
-	 * the measurements and for why media events are used rather than `requestVideoFrameCallback`.
-	 * Checked synchronously up front, since the answer may already be yes; the deadline is the
-	 * backstop, because a wrong frame is a blemish and a blank one is a broken page.
+	 * Whether the picture on screen is the one asked for. Until then the element stays
+	 * transparent behind the blurred ground -- left alone it decodes frame zero first and the
+	 * seek to a remembered position replaces it. See spec/architecture/video.md, "The poster is
+	 * a fallback, and the wait is a blur", for the measurements and why media events are used
+	 * over `requestVideoFrameCallback`. Checked synchronously up front, since the answer may
+	 * already be yes; the deadline is the backstop, a wrong frame a blemish, a blank one broken.
 	 */
 	const SETTLE_WITHIN = 0.5;
 	const SETTLE_DEADLINE = 2000;
@@ -219,7 +219,7 @@
 	 * What this browser can do with the clip. `'unknown'` is the state the page is served in --
 	 * nothing has run yet, and the markup has to be right anyway -- and it resolves once, at
 	 * hydration. A fourth value, `'transcode'`, is already designed for the deferred WebCodecs
-	 * branch; see spec/architecture/video.md for why it is not built yet.
+	 * branch; see spec/architecture/video.md, "Decided, not built", for why it is not built yet.
 	 */
 	let support = $state<'unknown' | 'native' | 'none'>('unknown');
 

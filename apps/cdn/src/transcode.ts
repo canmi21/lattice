@@ -74,8 +74,8 @@ const readyWebpEncode = once(() => initWebpEncode(WEBP_ENC_WASM));
 /**
  * What a stored object can be, and what a request can ask to be given.
  *
- * `jpg` is deliberately not a member -- see spec/architecture/delivery.md for why one spelling
- * stays one. The route redirects it instead.
+ * `jpg` is deliberately not a member -- see spec/architecture/delivery.md, "The extension asks
+ * for a format", for why one spelling stays one. The route redirects it instead.
  *
  * There is no AVIF encoder, only the decoder, for the size trade the same section gives.
  */

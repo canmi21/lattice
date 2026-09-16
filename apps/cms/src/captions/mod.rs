@@ -190,6 +190,8 @@ pub fn cut(vtt: &str, window: Window) -> Result<Option<String>, Error> {
 		}
 		let from = millis((start - window.from).max(0.0));
 		let to = millis((end - window.from).min(window.length()));
+		// Clamped to nothing: only a rounded millisecond fell inside the window, never on
+		// screen long enough to read, and WebVTT requires an end strictly after its start.
 		if to <= from {
 			continue;
 		}

@@ -14,9 +14,9 @@ import { border, leading, radius, text, weight } from '$lib/vocabulary.stylex.ts
  * The four declarations of a bordered paper surface, which eight components draw. Kept out of
  * `stylex.create` so `blockFrame` below is visibly the same thing with a corner. The radius is
  * not among them: no two of the eight agree on one. `borderStyle` is stated rather than omitted
- * -- see spec/architecture/css.md, "What the gate cannot see", on why an omitted property is not
- * the same as its initial value. `hairlinePx` is what excludes the cargo and tokei tooltips,
- * which draw the same ground with `hairlineRem`. See spec/todo.md.
+ * -- see spec/architecture/css.md, "An omitted longhand is not its initial value when a shorthand
+ * registered it". `hairlinePx` is what excludes the cargo and tokei tooltips, which draw the
+ * same ground with `hairlineRem`. See spec/todo.md.
  */
 const paper = {
 	backgroundColor: 'var(--color-paper)',
@@ -77,9 +77,9 @@ export const surfaces = stylex.create({
 	 * The compact icon-and-label control a metadata row is made of. See spec/styling.md, "Quiet
 	 * metadata controls share one surface" (why this replaced the `.quiet-control` class) and
 	 * spec/todo.md, "A recipe's other half is a convention and nothing checks that a call site
-	 * kept it" (why only the appearance is here). `:hover` is bare, matching the rules it replaced
-	 * (sameness first, spec/architecture/css.md). The outline's three longhands -- `medium`,
-	 * `currentcolor`, `0.125rem` -- restate what `outline: none` would otherwise reset.
+	 * kept it" (why only the appearance is here). `:hover` is bare (sameness first,
+	 * spec/architecture/css.md). `outline: none` also resets width and colour, to `medium`/
+	 * `currentcolor` rather than the `0.125rem` accent base-layer `:focus-visible` sets.
 	 */
 	quietControl: {
 		// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
@@ -96,6 +96,8 @@ export const surfaces = stylex.create({
 			':hover': 'var(--color-paper-hover)',
 			':focus-visible': 'var(--color-paper-hover)',
 		},
+		// Doubled because two properties transition: spec/todo.md, "A `transition` shorthand
+		// sets five lists and the migrated form writes three".
 		transitionProperty: 'color, background-color',
 		transitionDuration: '200ms, 200ms',
 		transitionTimingFunction: 'ease, ease',
