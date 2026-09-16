@@ -54,12 +54,12 @@ data/**
 # re-sent, which is the one thing that protocol asks us not to do. It has to travel with the
 # repository or a fresh clone announces the whole site. See spec/indexing.md.
 !data/indexnow.json
-# Under data/build/ the test is whether a CI build reads the file. These five are named by the
-# site's Vite config or its content build, and a site-only CI job has no Rust toolchain to
-# regenerate them. data/build/opengraph.json is absent on purpose: only `cms og` reads it, to
-# skip cards it has already drawn, so losing it costs a slow rerun rather than a build. See
-# spec/architecture.md.
-!data/build/segments.json
+# Under data/build/ the test is whether the file can be regenerated losslessly and for free.
+# These four cannot: crates, repos and twitter are fetched from a network that may have moved on
+# -- twitter holds snapshots of posts that can be deleted -- and licenses.json is read by the
+# site's build rather than by publishing. segments.json is absent because `cms segments` rebuilds
+# it from the corpus in seconds, and opengraph.json because only `cms og` reads it, to skip cards
+# it has already drawn. See spec/architecture/data.md, "What `data/` keeps out of git".
 !data/build/crates.json
 !data/build/repos.json
 !data/build/twitter.json

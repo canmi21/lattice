@@ -153,7 +153,14 @@ run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
 # repeat, since an object whose bytes are unchanged has the same name and is skipped.
 [tasks.publish]
 description = "Compile the corpus into publishable objects and mirror them: `publish press [--live]`"
-run = ["node apps/site/scripts/publish.ts", ".mise/tasks/sync"]
+# `cms segments` first, because the layout it writes is no longer in git -- it rebuilds from the
+# corpus in seconds, and a view spliced from a stale one is wrong in a way nothing reports. See
+# spec/i18n/segments.md.
+run = [
+	"cargo run -q -p cms -- segments",
+	"node apps/site/scripts/publish.ts",
+	".mise/tasks/sync",
+]
 
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"

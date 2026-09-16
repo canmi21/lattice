@@ -5,12 +5,13 @@
  * when its own code changes, and the corpus is published on its own schedule from here.
  * See spec/architecture/artifacts.md.
  */
-import { mkdir, stat, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { mkdir, readdir, readlink, stat, symlink, unlink, writeFile } from 'node:fs/promises';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { blake3 } from '@noble/hashes/blake3.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import {
+	ARTIFACT_TYPES,
 	ARTIFACT_VERSION,
 	artifactKey,
 	ROOT_KEY,
@@ -225,6 +226,32 @@ const [published, drafted, pageBuild] = await Promise.all([
 	buildPages({ contents: INPUTS.contents, messages: INPUTS.messages, segments: INPUTS.segments }),
 ]);
 
+/**
+ * Point the draft tree at the published assets it does not hold, so one directory covers both.
+ *
+ * Anything at the top of `data/public` that publishing did not write is an asset prefix, which is
+ * why no prefix is named here. See spec/architecture/artifacts.md, "Drafts leave the corpus at
+ * publication, not at build".
+ */
+async function linkAssets(publicDir: string, draftDir: string): Promise<string[]> {
+	const owned = new Set([
+		...ARTIFACT_TYPES.map((type) => type.split('/')[0]),
+		ROOT_KEY.split('/')[0],
+	]);
+	const linked: string[] = [];
+	for (const entry of await readdir(publicDir, { withFileTypes: true })) {
+		if (!entry.isDirectory() || owned.has(entry.name)) continue;
+		const link = join(draftDir, entry.name);
+		const target = join(relative(draftDir, publicDir), entry.name);
+		const current = await readlink(link).catch(() => undefined);
+		if (current === target) continue;
+		if (current !== undefined) await unlink(link);
+		await symlink(target, link);
+		linked.push(entry.name);
+	}
+	return linked;
+}
+
 // A draft is compiled like anything else and kept out of the public tree by the corpus it was
 // compiled from, not by a filter here. See spec/architecture/artifacts.md, "Drafts leave the
 // corpus at publication, not at build".
@@ -246,3 +273,9 @@ for (const { name, dir, articles } of trees) {
 			`(${bytes.toLocaleString('en-US')} bytes), ${present} already present`,
 	);
 }
+
+const linked = await linkAssets(
+	fileURLToPath(new URL('data/public/', ROOT)),
+	fileURLToPath(new URL('data/draft/', ROOT)),
+);
+if (linked.length > 0) console.log(`draft: linked ${linked.join(', ')} from the published tree`);

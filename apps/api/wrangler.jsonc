@@ -101,8 +101,12 @@
 					"simple": { "limit": 1, "period": 60 },
 				},
 			],
+			// data/draft, not data/public: it holds the same corpus plus the drafts, and symlinks
+			// to the published assets the publish step writes for it. One directory covering both
+			// trees is what `wrangler dev` allows, since it binds exactly one. A reader never sees
+			// this tree -- rclone is pointed at data/public and cannot reach it.
 			"assets": {
-				"directory": "../../data/public",
+				"directory": "../../data/draft",
 				"binding": "ASSETS",
 				"run_worker_first": true,
 			},
