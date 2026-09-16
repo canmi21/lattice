@@ -55,10 +55,13 @@ export const cacheControl: MiddlewareHandler = async (c, next) => {
 	if (c.res.headers.has('Cache-Control')) return;
 
 	const path = new URL(c.req.url).pathname;
-	// The long life is conditional on a 2xx. A 404 on a hashed name means the object was not
-	// uploaded or has been swept, and neither is a fact worth keeping for a year -- it is also
-	// why publication uploads everything before it writes the root.
-	const ok = c.res.status >= 200 && c.res.status < 300;
+	// The long life is conditional on the answer having one. A 404 on a hashed name means the
+	// object was not uploaded or has been swept, and neither is a fact worth keeping for a year --
+	// it is also why publication uploads everything before it writes the root.
+	//
+	// A 304 is not an error and is counted: its headers replace the stored response's, so five
+	// minutes there would cut a year-old copy down on every revalidation.
+	const ok = (c.res.status >= 200 && c.res.status < 300) || c.res.status === 304;
 	const forever =
 		ok && (isContentAddressed(path) || PROMISED.some((prefix) => path.startsWith(prefix)));
 

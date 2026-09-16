@@ -127,9 +127,12 @@ holds. **One family keeps a long life without a hash: the Latin subsets above**,
 promise that re-subsetting produces a new filename. It is the only entry on that list, and a key
 wanting to join it has to arrive with its own promise.
 
-The `2xx` condition is the half that is easy to omit. A `404` on a content-addressed key means
-the object was not uploaded or has been swept, and holding that for a year would outlive the
-mistake by a very long way. See [artifacts.md](artifacts.md), "The key says what may cache it".
+The condition on the status is the half that is easy to omit, and easy to state too narrowly. A
+`404` on a content-addressed key means the object was not uploaded or has been swept, and holding
+that for a year would outlive the mistake by a very long way -- but a `304` is a successful
+revalidation whose headers replace the ones already stored, so giving it five minutes shortens the
+copy it was confirming. Failures get the five minutes; `2xx` and `304` keep the year. See
+[artifacts.md](artifacts.md), "The key says what may cache it".
 
 **This shortened three things that were not content-addressed and had been getting a week**:
 `/favicon/{domain}`, `/license/full.txt`, and the assets under `data/public` that no named route

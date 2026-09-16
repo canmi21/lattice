@@ -34,9 +34,15 @@ The classifier is the rule. Nothing is looked up in a table and no new object ty
 remember to ask for a policy: it gets the right one from the shape of its own name. The test
 that this is working is that adding a type is a one-line change with no cache decision in it.
 
-**The long life is conditional on a `2xx`.** A `404` on a content-addressed key means the object
-was not uploaded or has been swept, and neither is a fact worth keeping for a year. Every
-non-success is five minutes, whatever the key looks like.
+**The long life is conditional on the answer having one.** A `404` on a content-addressed key
+means the object was not uploaded or has been swept, and neither is a fact worth keeping for a
+year. Every failure is five minutes, whatever the key looks like.
+
+**A `304` is not a failure, and reading the condition as "2xx" got that wrong.** A revalidation's
+headers replace the stored response's, so five minutes on a `304` cuts a year-old copy down to
+five every time a client checks it -- the exact opposite of what the answer means. Measured: a
+conditional request for a content object came back `304, max-age=300`. It now comes back with the
+year, and a `416` or a `404` still comes back with five minutes.
 
 That cuts both ways and it is why publication has an order: a root that names an object nobody
 uploaded yet produces a `404` that is then held for five minutes on a key that becomes valid a

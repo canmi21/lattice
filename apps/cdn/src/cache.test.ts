@@ -78,6 +78,8 @@ describe('cacheControl', () => {
 	app.get('/favicon/example.com', (c) => c.text('icon'));
 	app.get('/license/full.txt', (c) => c.text('aggregate'));
 	app.get('/missing', (c) => c.json({ error: 'not found' }, 404));
+	app.get(`/video/${HASH}.mp4`, (c) => c.body(null, 304));
+	app.get('/favicon/stale.com', (c) => c.body(null, 304));
 	app.get('/preset', (c) => {
 		c.header('Cache-Control', 'no-store');
 		return c.text('special');
@@ -101,6 +103,14 @@ describe('cacheControl', () => {
 		expect(await policy(`/image/${HASH}.gone`)).toBe(MINUTES);
 		expect(await policy('/content/missing.json')).toBe(MINUTES);
 		expect(await policy('/missing')).toBe(MINUTES);
+	});
+
+	it('keeps a revalidated object for a year, because a 304 is not an error', async () => {
+		// A 304's headers replace the stored response's, so five minutes here would cut a
+		// year-old copy down to five on every revalidation -- the opposite of what it means.
+		expect(await policy(`/video/${HASH}.mp4`)).toBe(YEAR);
+		// And a name without a hash is still five minutes when it revalidates.
+		expect(await policy('/favicon/stale.com')).toBe(MINUTES);
 	});
 
 	it('does not demote the fonts the promise covers', async () => {
