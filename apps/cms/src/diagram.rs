@@ -332,6 +332,7 @@ struct Generated {
 /// prose. This asks for prose about a fenced source, and a model that just read a fence closes
 /// with the fence it read: every reply measured here opened with the output boundary and ended
 /// with the source one, or slipped it in before that -- so either boundary closes the answer.
+/// The opening one still guards injection -- spec/i18n.md, "Not the open-weight text model".
 fn described(reply: &str, output: &str, source: &str) -> Option<String> {
 	let after = reply.split_once(output)?.1;
 	let end =

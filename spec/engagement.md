@@ -318,9 +318,11 @@ check is per value, because the container can only answer whether the record hol
 what is in it came from an older build, another tab's idea of the key, or a reader with a console.
 
 **The collection is not capped, and that is a decision rather than an omission.** No eviction was
-decided when every fact was small and fixed; this is the first whose *number* of entries is not. A
-reference and a number is about 45 bytes, so a thousand clips is 45KB against a quota measured in
-megabytes, and a tab session is short. The premise changed and the answer did not.
+decided when every fact was small and fixed; this is the first whose *number* of entries is not. An
+entry also carries a still, measured at 999 characters (see [video.md](architecture/video.md), "The
+selector names the frame and not the `<video>`"), so one entry is about a kilobyte and a thousand
+clips is about a megabyte against a quota measured in megabytes, and a tab session is short. The
+premise changed and the answer did not.
 
 The store is passed in rather than reached for, the way `readTrail` takes one, so the tests hand
 over a plain object and no global is installed to reach this. The record and the store are named

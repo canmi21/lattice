@@ -5,10 +5,11 @@
 	/**
 	 * The visual half of a clip: a frame, and the notice under it when nothing else is on screen.
 	 *
-	 * `picture.svelte`'s border values, not `surfaces.blockFrame` -- see spec/architecture/css.md
-	 * for why a clip's frame differs from the code block's. The ground is `paper` because the box
-	 * is visible before anything decodes. Kept out of `stylex.create` so the notice reads as the
-	 * same frame with softer ink, not a second spelling of one.
+	 * `picture.svelte`'s border values, not `surfaces.blockFrame` -- see spec/architecture/css.md,
+	 * "A repeated group gets one name too, and that one is free", for why a clip's frame differs
+	 * from the code block's. The ground is `paper` because the box is visible before anything
+	 * decodes. Kept out of `stylex.create` so the notice reads as the same frame with softer ink,
+	 * not a second spelling of one.
 	 */
 	const frame = {
 		borderWidth: border.doublePx,

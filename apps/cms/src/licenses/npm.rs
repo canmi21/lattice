@@ -59,8 +59,8 @@ struct Declared {
 /// Workspace libraries are excluded: pnpm links them, so their version reads `link:../..`,
 /// which is both the reliable marker and the accurate statement -- they are this project, not
 /// something it credits. Packages resolved for another platform are excluded too; see
-/// spec/architecture/data.md for why the result is a list rather than a count of what pnpm
-/// printed.
+/// spec/architecture/data.md, "A dependency's licence is an asset like any other", for why an
+/// excluded package is not a package declaring nothing.
 pub fn collect(repo: &Path) -> Result<Vec<Found>, String> {
 	let mut packages: BTreeMap<String, Found> = BTreeMap::new();
 

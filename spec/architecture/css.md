@@ -433,6 +433,12 @@ three components, and on one more: the components have to be unrelated. Two file
 because one was copied from the other is a copy, and naming it turns an accident into an
 institution.
 
+**A video clip does not draw `blockFrame`.** Its neighbour in a column of prose is almost always
+a picture, so it takes `picture.svelte`'s 2px edge and 1rem corner instead -- two media boxes with
+different corners next to each other would read as a mistake in a way a figure and a code block
+never do. Whether the site should have one answer for both is a question about `blockFrame`'s
+users, not about the clip alone.
+
 **Extraction is free in a way the vocabulary step was not.** A class is hashed from the declaration
 as written, and the hash does not depend on which module wrote it, so moving a group into
 `surfaces.ts` emits the same class it emitted from inside the component. Measured across the four

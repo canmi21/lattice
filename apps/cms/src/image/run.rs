@@ -203,7 +203,7 @@ fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
 /// on the long edge, per `Size::long_edge`, or a tall image loses an already-published rung.
 ///
 /// FIXME: spec/architecture/media.md says this belongs on the record, not inferred -- deferred
-/// until the desktop app derives on insert, leaving no original to re-derive from.
+/// until the desktop app derives on insert, leaving no original -- then a metadata migration.
 fn keeps_full_frame(image: &Image) -> bool {
 	let source = super::ladder::Size::new(image.source.width, image.source.height);
 	image.variants.values().any(|record| {

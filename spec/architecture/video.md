@@ -839,7 +839,8 @@ track happens to have cues in, passes both -- demonstrated on this repository's 
 Apple's event track attaches cleanly to the Mac Pro film. There is no stricter rule to reach for:
 the fact a rule would need is not in the file. What exists instead is the opening line, printed
 back quoted beside the clip it went onto, and read by the person who typed the command. `[LIGHTER
-SPARKS]` under the Mac Pro film is not subtle.
+SPARKS]` under the Mac Pro film is not subtle. The language is not checked either, for the same
+reason the pairing is not, which is why `--language` is required and never inferred.
 
 The window has one home. There are no `--from` and `--to` flags: the cut file cannot record where
 it came from, `excerpt` is the one written account of it, and a flag would be a second place to put

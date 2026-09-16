@@ -20,13 +20,13 @@ import { stored } from './stored';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Any origin may read: everything served here is already public, so an allowlist blocked
-// only embedding, which is what a CDN is for. Methods stay read-only, so this grants nothing
-// beyond a GET.
+// Any origin may read: everything served here is public, so an allowlist blocked only embedding,
+// which is what a CDN is for. Methods stay read-only, granting nothing beyond a GET.
 //
 // `allowHeaders` is absent for the same reason: naming headers means guessing which ones an
 // embedder sends (`Range` among them) and breaking the rest, where a reflected preflight
 // grants nothing anyway without credentials to reach. The API stays origin-restricted instead.
+// A scanner flagging the reflected preflight has found a pattern, not a hole.
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
 app.use('*', cacheControl);
 
