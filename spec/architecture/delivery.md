@@ -20,12 +20,19 @@ _encoder_ is deliberately absent: 1.1MB compressed against 332KB for the decoder
 
 ## The extension asks for a format
 
-Only AVIF is stored. `/image/{cid}.avif` is served straight from the bucket; any other
-extension is a request to convert that same object, which the worker satisfies itself: the
-decode-and-re-encode path in `transcode.ts` described above, not Cloudflare's image
-transformations, which the previous section already ruled out for not being able to read AVIF
-at all. This corrects an earlier version of this section, which reasoned about that pipeline's
-per-image conversion counting; the worker has never called it.
+**AVIF is the usual storage format, not the only one.** This section said only AVIF is stored
+and that was wrong: `cms image` writes a flat-colour original as PNG, because lossy coding is
+the wrong tool for it -- [data.md](data.md) records the same fact from the article's side, in
+the rule that an asset stored as PNG must not be referenced as AVIF. So `/image/{cid}.avif` and
+`/image/{cid}.png` may each be a direct hit from the bucket, and the worker probes every
+decodable format for the stored object rather than assuming which one it is. Asking for an AVIF
+that was never written is how a flat-colour asset became a 404 instead of a conversion.
+
+An extension that is not the stored one is a request to convert that same object, which the
+worker satisfies itself: the decode-and-re-encode path in `transcode.ts` described above, not
+Cloudflare's image transformations, which the previous section already ruled out for not being
+able to read AVIF at all. That also corrects an earlier version of this section, which reasoned
+about that pipeline's per-image conversion counting; the worker has never called it.
 
 The conversion instead costs one decode and one encode per requested format, held in the edge
 cache afterward so it is paid once per colo rather than once per reader -- the same accounting
@@ -53,12 +60,18 @@ catch them, which would have made every JPEG this repository serves pay a hop me
 else's typo -- invisible from either side alone, since the CDN and the article each looked right.
 A test on each side now holds the two spellings together.
 
-The extension also caps the exposure: only a size that was derived exists as an object, so nobody
-can burn the monthly transformation quota by asking for arbitrary dimensions.
+The extension also caps the exposure, and that argument stands on its own: only a size that was
+derived exists as an object, so nobody can invent dimensions and make the worker encode whatever
+they ask for. The reachable set is the stored ids crossed with the three encodable extensions,
+and each answer is held at the edge once produced.
 
-The failure mode to remember is that exceeding the quota does not degrade -- new conversions
-return an error while already-cached ones keep serving. That is why the request path a browser
-takes by default is the stored AVIF, and conversion is only ever the fallback.
+**What it was capping exposure to is the part that was wrong.** This passage reasoned about a
+monthly transformation quota and about a failure mode where exceeding it returns an error on new
+conversions while already-cached ones keep serving. Both belong to the Cloudflare design the
+first section of this file abandoned. A worker that decodes and re-encodes itself has no
+per-image allowance to exceed: what a conversion costs is CPU in the worker, paid once per colo.
+The preference that reasoning produced survives on the cheaper ground -- the request path a
+browser takes by default is the stored object, and conversion is only ever the fallback.
 
 ## Exactly one picture in an article is given a priority hint
 

@@ -510,12 +510,14 @@ two.
 ## An attribute condition is one `:is()` away from the visual layer after all
 
 The entry above measures that StyleX's conditions are pseudo-classes, pseudo-elements and at-rules,
-and concludes that an attribute-conditioned value has nowhere in the visual layer to go.
-[architecture/css.md](architecture/css.md) has since said the same in stronger words -- "the shape
-has no spelling in the visual layer at all" -- and quoted the type that is supposed to settle it,
-`` `:${string}` ``. That type is exactly the hole: StyleX rejects a key by what it opens with
-rather than by what it contains, and `:is([data-highlighted])` opens with a colon. Compiled through
-the same Babel plugin the build uses:
+and concludes that an attribute-conditioned value has nowhere in the visual layer to go. This entry
+opened by quoting a stronger sentence that has since been retracted, so the quote is withdrawn from
+here too. [architecture/css.md](architecture/css.md) now calls the impossibility
+"a true observation about the type generalised one step past what had been tested", and carries the
+same compiled rule this entry does. The type in question, `` `:${string}` ``, is exactly the hole:
+StyleX rejects a key by what it opens with rather than by what it contains, and
+`:is([data-highlighted])` opens with a colon. Compiled through the same Babel plugin the build
+uses:
 
 ```css
 .xbhnonm:is([data-highlighted]) {
@@ -535,9 +537,9 @@ the visual layer says an attribute and the same spelling is used everywhere. Whi
 the sentence in [architecture/css.md](architecture/css.md) has to change with it: a rule stated as
 an impossibility is the one kind a reader never re-measures.
 
-That sentence has since been changed, before any of the three was chosen. It now carries the
-counterexample, the emitted rule, and the admission that the impossibility was a true observation
-about the type generalised one step past what had been tested. The choice above is still open.
+That sentence was changed before any of the three was chosen, which is the convergence the top of
+this entry now records: each file carries the counterexample and cites the other. The choice above
+is still open, and this entry stays with it.
 
 ## Tokei draws from a palette of its own, and it is the third one
 

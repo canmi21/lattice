@@ -73,8 +73,15 @@ before.
 
 ## A hash in the name buys a year
 
-Cache lifetime follows one rule everywhere: **a name carrying a content hash is cached for a
-year and marked `immutable`, but only on a 2xx. Anything else is cached for five minutes.**
+Cache lifetime follows three tiers: **a name carrying a content hash, or any path under
+`/fonts/`, is cached for a year and marked `immutable`, but only on a 2xx. Any other 2xx is
+cached for a week. Only a non-2xx gets five minutes.**
+
+This section previously named two tiers and sent everything unhashed to the five minutes. That
+was wrong about the middle one, and it contradicted [media.md](media.md), which has stated the
+week correctly all along: a name with no hash in it can be rewritten under the same URL, so a
+week is the accepted staleness for it rather than a year. `cache.ts` is the account being
+corrected to.
 
 HTML is the one thing that is not cached at all, because its body varies by the reader's
 locale cookie. See [locale.md](../locale.md).
@@ -86,9 +93,10 @@ such as `IoskeleyMono-Regular-latin.woff2` is readable and stable, so re-subsett
 a new filename or every reader keeps the old bytes for a year.
 
 Errors get five minutes rather than nothing. A missing favicon is requested on every page
-view, and without any caching each one is a full trip to the origin. Five rather than a year
-because an error is a statement about right now -- the asset it refers to may be published a
-minute later, and a year-long 404 would outlive its own reason.
+view, and without any caching each one is a full trip to the origin. Five minutes rather than
+either tier above because an error is a statement about right now -- the asset it refers to may
+be published a minute later, and a 404 held for a week, let alone a year, would outlive its own
+reason.
 
 A route that stores its own response has to stamp the header before storing it, which is
 earlier than the middleware runs. So the value is one exported constant that both use, rather

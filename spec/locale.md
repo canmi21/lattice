@@ -499,8 +499,14 @@ article from the same fate.
 Comparing translatable spans separates the cases cleanly. When this rule was measured, the
 locale sharing an article's language scored 0.947 to 1.000 -- same-language views were then
 verbatim copies -- while every other locale scored 0.719 or below, and nothing landed between.
-The homepage is the useful check: it is written in English, so `en` scored 1.000 and deferred
-while `zh` scored 0.495 — the rule follows the article rather than assuming Chinese.
+The homepage was the useful check while it was translated: written in English, `en` scored 1.000
+and deferred while `zh` scored 0.495, so the rule follows the article rather than assuming
+Chinese. **That is history and not a standing control.** `contents/homepage.md` carries no
+`.i18n.yaml` sidecar where the seven articles do, and the English-source side went unmeasured
+when the homepage stopped being translated -- which is what
+[indexing.test.ts](../apps/site/src/lib/content/build/indexing.test.ts) records, and what this
+passage went on offering in the present tense after it had stopped being true. The measurement
+stands as the reason the rule is written the way it is; nothing checks it today.
 
 Since [i18n.md](i18n.md) made same-language views genuine localisations, the corpus's zh views
 measure 0.570 to 0.682: still far above every real translation, no longer above the threshold.

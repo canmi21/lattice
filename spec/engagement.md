@@ -277,9 +277,12 @@ hold one fact names the key after the component and stops.
 
 **The version is an integer, and it is there from the first write.** `MIGRATIONS[0]` takes a
 record at version 1 to version 2, and a step edits in place and may assume every earlier one has
-run. The list is empty today, which is exactly when the mechanism is cheapest to introduce: a
-record written without a version cannot be migrated later, because the code that would migrate it
-has no way to know what it is looking at. Three hundred versions from now it is still an integer.
+run. It was introduced while both lists were empty, which is exactly when the mechanism is
+cheapest: a record written without a version cannot be migrated later, because the code that
+would migrate it has no way to know what it is looking at. This section said the lists are empty
+today and they no longer are -- the reader's record is still at version 1 with no steps, while
+the per-tab record below is at version 2 with one, carrying `video.at` from a position to a
+position and a picture of it. Three hundred versions from now it is still an integer.
 
 **A record from a later version is left alone rather than reset.** That is a reader whose other
 device runs a newer build -- the case cloud sync exists to make ordinary -- and the keys this

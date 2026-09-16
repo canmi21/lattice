@@ -422,29 +422,28 @@ rest as declaring nothing would be false, and would bury the handful that genuin
 ## The bytes belong to the machine, and one checkout holds them
 
 `data/` is machine-level, not checkout-level. It is the local truth R2 mirrors and the thing a
-backup is taken of, and a machine has one of it: the base workspace's -- see
-[toolchain.md](../toolchain.md), "Parallel workspaces". An overlay workspace holds no bytes
-of its own. `mise run workspace add` links every path under `data/` that git does not carry
-back into the base, entry by entry where a directory mixes tracked records with untracked
-bytes, so a checkout of records plus links reads exactly like the base. Deleting an overlay
-loses nothing, and the backup story does not change because a second directory appeared.
+backup is taken of, and a machine has one of it: the one checkout's.
 
-**An overlay reads `data/`; it never writes it.** Writing is the CMS's and the sync task's,
-and both run from the base -- the CMS because it is a machine-wide singleton on its pinned
-port, the sync because a mirror with two sources is not a mirror. An overlay that changes CDN
-or CMS code still sees the real bytes through the links, which is what makes the change
-testable there; producing new bytes is a base job.
+**This section is a correction.** It described base and overlay workspaces, an
+`mise run workspace add` that linked every untracked path under `data/` back into a base, and
+the records those two checkouts could disagree about. None of that exists. There is no
+`workspace` task, and the second-checkout arrangement it served is gone -- see
+[toolchain.md](../toolchain.md), "Dev ports are pinned", which records the removal and what
+survived it. Nothing replaced the linking, because with one checkout there is nothing to link:
+the bytes sit in that checkout's `data/` and every process reads them there.
 
-Records are the one place the two workspaces can disagree, and it is safe in the direction it
-happens: an overlay that adds an image writes its record and, through the link, its bytes into
-the shared tree, so another workspace briefly holds bytes it has no record for -- unused, and
-harmless. The reverse, a record without bytes, is what a per-checkout copy would produce and
-the links prevent.
+**A reader finds the directory by walking up for it, not by being told where it is.** Each
+command looks for `data/public` above its working directory and joins its own paths onto the
+parent of what it finds -- [paths.rs](../../apps/cms/src/paths.rs) is the Rust side of that.
+A compile-time path would bake in whichever machine built the binary, and an environment
+variable would be one more thing to set correctly before any command works. Walking up means a
+command run from anywhere inside the tree reaches the same bytes.
 
-Pointing every reader at a `DATA_ROOT` environment variable instead of linking was
-considered and left. It would move every `data/` path in two languages for a benefit that only
-appears with a second workspace, and the links deliver the same sharing with no code touched.
-It stays the option to take if the link step ever proves brittle.
+**Writing is the CMS's and the sync task's** -- the CMS because it is a machine-wide singleton
+on its pinned port, the sync because a mirror with two sources is not a mirror. The port is
+what holds the first of those: a second CMS collides on `CMS_PORT` rather than quietly writing
+`data/` alongside the first. That is the same protection the overlay rule above was written
+for, obtained from the operating system instead of from a directory layout.
 
 ## What happens to an asset after it is stored
 

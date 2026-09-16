@@ -12,7 +12,7 @@ what it writes, and which tasks must have run first. Nothing there runs anything
 
 Splitting the description from the execution is what lets the catalogue be finished first. A GUI
 listing what exists, a scheduler ordering it, and a person asking how much a full run would cost
-are all answerable now, against thirteen entries, rather than after thirteen operations have been
+are all answerable now, against fifteen entries, rather than after fifteen operations have been
 rewritten. Adding an entry makes a task **known**, not runnable.
 
 Reads and writes name **records**, not paths. Two tasks contend when they mutate the same records,
@@ -24,9 +24,12 @@ unused: an edge naming a task that does not exist would otherwise stay invisible
 deadlocked or silently skipped work, long after anyone remembers writing it. Declaring edges early
 is only safe because the test holds them.
 
-Instant reads -- `overview`, `articles`, `derived`, `check`, `port` -- are deliberately absent.
-Listing them would put five entries in every task view that can never be watched, waited on, or
-scheduled.
+Instant reads -- `overview`, `articles`, `derived`, `check`, `port`, `tasks` and `runs` -- are
+deliberately absent. Listing them would put seven entries in every task view that can never be
+watched, waited on, or scheduled. The last two were missing from this list and belong in it for
+exactly the reason the others do: `cms tasks` prints the catalogue and `cms runs` prints the
+registry, both dispatched in [cli/mod.rs](../apps/cms/src/cli/mod.rs) and neither an operation
+anything could schedule.
 
 ## Computing and writing are separate concerns
 

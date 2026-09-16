@@ -27,6 +27,14 @@ filter hook, so the only control was whether the tag rendered at all, and it was
 here that had to be kept out of a dev page rather than told to stay quiet on one. That is not
 why it was removed, but it is why it never fitted.
 
+**The umami tag carries a second attribute, and this file had never recorded it.**
+`data-exclude="/@/*"` keeps the site's internal namespace out of the count -- the same prefix
+[robots.txt](../apps/site/src/routes/robots.txt/+server.ts) disallows, for the same reason: `/@/`
+is not the published site, and a request under it is not a reader arriving at an article. It is
+listed here rather than in the table because it is not a development switch: it holds in
+production too, and a dev session is already silent by the row above. The code settled this and
+the rules are only now catching up with it.
+
 **For OpenPanel, `filter` is the only option that does this.** `send()` consults it before the
 queue check and resolves immediately when it returns false, so the payload is dropped rather
 than held. `disabled` looks like the same thing and is not -- it queues events and flushes the

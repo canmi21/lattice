@@ -76,10 +76,12 @@ layered one. The order in a `class` attribute decides nothing.
 ### There is a fourth participant, and it sits above the visual layer
 
 The table above is the three layers this arrangement names. It is not the whole of what writes CSS
-here. **Nineteen of the twenty-seven selectors in `utilities.css` sit outside every `@layer`**,
-including `.spring-underline`, `.article-link`, `.jump-target` and `.article-rail`, while eight
-sit inside `base` or `components`. Nothing says which a given rule should be, and an unlayered
-rule outranks every layered one -- so most of the named vocabulary beats StyleX.
+here. **Nineteen of the twenty-eight selectors in `utilities.css` sit outside every `@layer`**,
+including `.spring-underline`, `.article-link`, `.jump-target` and `.article-rail`, while nine
+sit inside `base` or `components`. The totals were counted again and were one out on each side of
+the layer boundary; the nineteen and the four names are as they were. Nothing says which a given
+rule should be, and an unlayered rule outranks every layered one -- so most of the named vocabulary
+beats StyleX.
 
 Measured on the newsletter's unsubscribe control, which carries `focus-link spring-underline` and
 carried `transition-colors duration-200` beside them: the element reports
@@ -145,9 +147,12 @@ stamps one only on an element some scoped rule in that component matches, and th
 `<style>` block was a single `main { }` rule whose contents were visual and moved. No rule, no
 stamp.
 
-This did not happen everywhere and the number says why: 22 of 43 components still carry a `<style>`
-block, down from 24. The migration moved the visual half and left layout and everything needing a
-selector where it was, so the blocks shrank rather than vanished.
+This did not happen everywhere and the number says why: 24 of the 39 components under
+`src/lib` still carry a `<style>` block, and 25 of the 48 counting `src/routes` as well. The
+figure here read 22 of 43, down from 24, and named no denominator -- recounted, neither half of
+it holds, and which tree is being counted is now said. The migration moved the visual half and
+left layout and everything needing a selector where it was, so the blocks shrank rather than
+vanished.
 
 The useful consequence is a signal that did not exist before. **A `svelte-` class on an element now
 means that element genuinely needed a selector**, because that is the only thing left in the third
@@ -428,9 +433,12 @@ kind of value, not the feature.
 ## A repeated group gets one name too, and that one is free
 
 [`surfaces.ts`](../../apps/site/src/lib/surfaces.ts) holds the declaration groups several
-components draw: `paper`, the bordered ground; `blockFrame`, which is `paper` at `radius.xl` and is
-written that way; `interactive`, the eight declarations a card answers a pointer with; and
-`heading`, the ink and weight a title takes. A group earns a name on the same bar a value does,
+components draw. There are seven, where this list named four: `page`, the ground every route
+stands on and the ink that inherits from it; `paper`, the bordered ground; `blockFrame`, which is
+`paper` at `radius.xl` and is written that way; `interactive`, the eight declarations a card
+answers a pointer with; `quietControl`, the compact icon-and-label control a metadata row is made
+of; `uiText`, the interface's own type step and the line that step computes to; and `heading`, the
+ink and weight a title takes. A group earns a name on the same bar a value does,
 three components, and on one more: the components have to be unrelated. Two files sharing a block
 because one was copied from the other is a copy, and naming it turns an accident into an
 institution.
@@ -443,7 +451,8 @@ never do.
 **Extraction is free in a way the vocabulary step was not.** A class is hashed from the declaration
 as written, and the hash does not depend on which module wrote it, so moving a group into
 `surfaces.ts` emits the same class it emitted from inside the component. Measured across the four
-extractions: 187 rules before and after, byte-identical including selectors. The vocabulary step
+extractions there were then, against the seven the list above now names: 187 rules before and
+after, byte-identical including selectors. The vocabulary step
 renamed 32 of those 187 because a constant reaches `create` as `var(--<consthash>)` and the hash is
 taken over that; a recipe carries the literal itself, so nothing moves.
 
