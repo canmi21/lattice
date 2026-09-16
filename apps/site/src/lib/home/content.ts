@@ -1,4 +1,4 @@
-import type { PageBlock, Page } from '../content/types';
+import type { PageBlock, PublishedPage } from '@canmi/artifacts';
 import type { LocaleCode } from '../locale/index';
 import * as m from '../paraglide/messages';
 
@@ -9,13 +9,22 @@ export type HomepageContent = {
 	writing: string;
 };
 
-export function homepageContent(page: Page, code: LocaleCode): HomepageContent {
-	const view = page.views[code];
+/**
+ * The homepage's own copy, read off whichever view was fetched.
+ *
+ * The bio is identity copy and stays in its English source form in every view; it used to be
+ * read from `mw` explicitly, which is no longer needed because the build compiles a page once
+ * and files it under every locale. See buildPages in $lib/content/build/articles.ts. A homepage
+ * the root does not name costs a bare article list rather than an error.
+ */
+export function homepageContent(
+	page: PublishedPage | undefined,
+	code: LocaleCode,
+): HomepageContent {
 	return {
-		title: view.meta.title ?? 'Canmi',
-		description: view.meta.description ?? '',
-		// The bio is identity copy, not an article view. It deliberately remains English.
-		bio: page.views.mw.blocks,
+		title: page?.meta.title ?? 'Canmi',
+		description: page?.meta.description ?? '',
+		bio: page?.blocks ?? [],
 		writing: m['nav.writing']({}, { locale: code }),
 	};
 }

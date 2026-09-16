@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { ARTIFACT_VERSION, type PublishedPage } from '@canmi/artifacts';
 import { homepageContent } from '../../home/content';
 import { buildPages } from './articles';
 
@@ -16,7 +17,15 @@ describe('standalone page locale views', () => {
 		expect(homepage).toBeDefined();
 		if (!homepage) throw new Error('missing homepage');
 
-		const japanese = homepageContent(homepage, 'ja');
+		// What publish.ts writes for the Japanese view: a page carries no locale of its own, so
+		// this is the same object every other locale names.
+		const published: PublishedPage = {
+			version: ARTIFACT_VERSION,
+			slug: homepage.path,
+			...homepage.views.ja,
+		};
+
+		const japanese = homepageContent(published, 'ja');
 		expect(JSON.stringify(japanese.bio)).toContain('I build things.');
 		expect(JSON.stringify(japanese.bio)).not.toContain('私はものを作ります。');
 		expect(japanese.writing).toBe('記事');

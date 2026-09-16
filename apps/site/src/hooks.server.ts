@@ -2,19 +2,20 @@ import { building, dev } from '$app/environment';
 import { themeScript } from '@canmi/theme';
 import { URLS } from '@canmi/urls';
 import { handleErrorWithSentry, initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { articleRailScript } from '$lib/article/rail';
 import { articleHashScript } from '$lib/article/toc';
 import { videoGroundScript } from '$lib/client/ground';
-import { getArticle, getPage } from '$lib/content';
 import {
 	LANGUAGE_COOKIE_MAX_AGE,
 	languageTag,
+	type LocaleCode,
 	privateHtml,
 	resolveLocale,
 	SITE_LANGUAGE,
 } from '$lib/locale';
+import { publishedMarkdown, publishedMetadata } from '$lib/published';
 import { registerServerStrategy } from '$lib/locale/paraglide';
 
 registerServerStrategy();
@@ -24,10 +25,9 @@ registerServerStrategy();
 const markdownHandle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 	if (pathname.endsWith('.md')) {
-		const slug = pathname.slice(1, -3);
-		const markdown = (await getArticle(slug))?.markdown ?? getPage(slug)?.markdown;
+		const markdown = await publishedMarkdown(event.fetch, pathname.slice(1, -3));
 		if (markdown) {
-			return new Response(markdown, {
+			return new Response(markdown.body, {
 				headers: {
 					'Content-Type': 'text/markdown; charset=utf-8',
 					'Cache-Control': 'public, max-age=300, s-maxage=300',
@@ -47,6 +47,24 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
  */
 const DOCUMENT_PATH = /\.[^./]+$/;
 
+/** The route every page that is not one of this site's own fixed addresses resolves to. */
+const PAGE_ROUTE = '/[...path]';
+
+/**
+ * The public language tag of the view about to be served.
+ *
+ * Only `mw` has to be asked for: it means the article's own language, which now travels in the
+ * published view rather than in a corpus compiled into this Worker. The answer is the same one
+ * the page load is about to ask for, so the two share one request. See spec/locale/addressing.md,
+ * "`mw` is the article's language, not a language".
+ */
+async function resolvedTag(event: RequestEvent, code: LocaleCode): Promise<string> {
+	if (code !== 'mw' || event.route.id !== PAGE_ROUTE) return languageTag(code, SITE_LANGUAGE);
+	const slug = event.url.pathname.replace(/^\//, '').replace(/\/$/, '');
+	const found = await publishedMetadata(event.fetch, slug, 'mw').catch(() => undefined);
+	return found?.languageTag ?? SITE_LANGUAGE;
+}
+
 const pageHandle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 	// The homepage renders at /, but its source is contents/homepage.md, so the
@@ -54,14 +72,14 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 	if (pathname === '/homepage') {
 		return new Response(null, { status: 302, headers: { location: '/' } });
 	}
-	const path = pathname.replace(/^\//, '').replace(/\/$/, '');
-	const article = getArticle(path);
 	// Browser-facing HTML negotiates from every reader preference, which is every page. The
-	// article lookup comes first so a slug that happens to carry a dot is still a page.
-	// Package versions contain dots while the route still serves HTML. The explicit browser
-	// namespace wins over the extension convention before the generic document test runs.
+	// catch-all route is what the article lookup used to be here, so a slug that happens to carry
+	// a dot is still a page. Package versions contain dots while the route still serves HTML. The
+	// explicit browser namespace wins over the extension convention before the generic document
+	// test runs.
+	const isPage = event.route.id === PAGE_ROUTE;
 	const localeAware =
-		pathname.startsWith('/licenses/pkgs/') || article != null || !DOCUMENT_PATH.test(pathname);
+		pathname.startsWith('/licenses/pkgs/') || isPage || !DOCUMENT_PATH.test(pathname);
 	if (localeAware && !building) {
 		const cookie = event.cookies.get('language');
 		const code = resolveLocale({
@@ -69,10 +87,7 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 			cookie,
 			acceptLanguage: event.request.headers.get('accept-language'),
 		});
-		event.locals.locale = {
-			code,
-			languageTag: languageTag(code, article?.meta.lang ?? SITE_LANGUAGE),
-		};
+		event.locals.locale = { code, languageTag: await resolvedTag(event, code) };
 		// Rewrite even an unchanged value so cookies created before client-side switching was
 		// introduced lose HttpOnly and become writable by the language controls.
 		event.cookies.set('language', code, {
@@ -93,7 +108,7 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 					.replace('%language.code%', event.locals.locale?.code ?? 'mw')
 					.replace('%theme.class%', theme === 'dark' ? 'dark' : '')
 					.replace('%theme.script%', themeScript)
-					.replace('%article.hash.script%', article ? articleHashScript : '')
+					.replace('%article.hash.script%', isPage ? articleHashScript : '')
 					.replace('%video.ground.script%', videoGroundScript)
 					.replace('%article.rail.script%', articleRailScript),
 			),

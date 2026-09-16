@@ -1,6 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { isAbsolute, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEVELOPMENT_PORTS, DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls } from '@canmi/urls';
 import { sentrySvelteKit } from '@sentry/sveltekit';
@@ -9,39 +7,13 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import Icons from 'unplugin-icons/vite';
-import { execFile, execFileSync } from 'node:child_process';
-import { promisify } from 'node:util';
-import { defineConfig, type UserConfig, type ViteDevServer } from 'vite';
+import { execFileSync } from 'node:child_process';
+import { defineConfig, type UserConfig } from 'vite';
 import { parse as parseYaml } from 'yaml';
-import { buildArticles, buildPages } from './src/lib/content/build/articles.ts';
-import type { Article, Page } from './src/lib/content/types.ts';
-import { packArticles, packPages } from './src/lib/content/packed.ts';
-import { contentRefreshQueue } from './vite/content-refresh.ts';
 
-const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const SITE = fileURLToPath(new URL('.', import.meta.url));
 const SITE_CONFIG = fileURLToPath(new URL('./site.config.yaml', import.meta.url));
-const CONTENTS = fileURLToPath(new URL('../../contents', import.meta.url));
-const ASSETS = fileURLToPath(new URL('../../data/metadata.json', import.meta.url));
-const MEDIA = fileURLToPath(new URL('../../data/media.yaml', import.meta.url));
-const DIAGRAMS = fileURLToPath(new URL('../../data/diagram.json', import.meta.url));
-const SEGMENTS = fileURLToPath(new URL('../../data/build/segments.json', import.meta.url));
-const MESSAGES = fileURLToPath(new URL('./messages', import.meta.url));
-const CRATES = fileURLToPath(new URL('../../data/build/crates.json', import.meta.url));
-const REPOS = fileURLToPath(new URL('../../data/build/repos.json', import.meta.url));
-const TWEETS = fileURLToPath(new URL('../../data/build/twitter.json', import.meta.url));
 const LICENSES = fileURLToPath(new URL('../../data/build/licenses.json', import.meta.url));
-const execFileAsync = promisify(execFile);
-
-function articleMarkdown(path: string): boolean {
-	const fromContents = relative(CONTENTS, path);
-	return !fromContents.startsWith('..') && !isAbsolute(fromContents) && path.endsWith('.md');
-}
-
-function messageCatalog(path: string): boolean {
-	const fromMessages = relative(MESSAGES, path);
-	return !fromMessages.startsWith('..') && !isAbsolute(fromMessages) && path.endsWith('.json');
-}
 
 // Built-in 301s, kept out of site.config.yaml because they are product behaviour rather than
 // configuration: feed aliases and the favicon redirect to the CDN.
@@ -93,9 +65,9 @@ const esbuildTarget = BROWSERSLIST.map((query) => {
  * Whether this build sends its source maps to Sentry.
  *
  * Why the skip lives in `mise.toml` and drives `autoUploadSourceMaps` rather than merely
- * withholding the credential -- see spec/architecture/data.md, "A CI build must be able to
- * build from git alone". In CI a missing credential is fatal instead of silently skipped: that
- * build is deployed, and a silent skip would minify every stack trace it later produces.
+ * withholding the credential -- see spec/architecture/data.md, "A CI build compiles the site,
+ * and no longer compiles the corpus". In CI a missing credential is fatal instead of silently
+ * skipped: that build is deployed, and a silent skip would minify every stack trace it produces.
  */
 function uploadsSourceMaps(): boolean {
 	// Any non-empty value enables it, so `SENTRY_SKIP_UPLOAD= pnpm run build` is how one local
@@ -113,78 +85,15 @@ function uploadsSourceMaps(): boolean {
 	return Boolean(token);
 }
 
-export default defineConfig(async ({ command, mode }) => {
-	// The page-facing map, because all three readers of it below end up in a document: the asset
-	// URLs compiled into the corpus, the redirect targets a browser follows, and the font
-	// stylesheet's `__CDN_URL__`. In development those must be the proxied paths, or a page opened
-	// from another device asks that device for its own fonts. See libs/urls.
+export default defineConfig(({ mode }) => {
+	// The page-facing map, because both readers of it below end up in a document: the redirect
+	// targets a browser follows, and the font stylesheet's `__CDN_URL__`. In development those
+	// must be the proxied paths, or a page opened from another device asks that device for its
+	// own fonts. See libs/urls.
 	const urls = pageUrls(mode !== 'production');
 	// Asked once. It can throw, and a predicate that throws should do so at a point in the build
 	// somebody can place, rather than from inside a plugin's option list.
 	const uploadSourceMaps = uploadsSourceMaps();
-	const articleInputs = new Set<string>();
-	let generatedSegmentsMtime: number | undefined;
-	let activeSegmentSync: Promise<void> | undefined;
-	let devServer: ViteDevServer | undefined;
-	const syncSegments = async (): Promise<void> => {
-		const before = await stat(SEGMENTS).then(
-			({ mtimeMs }) => mtimeMs,
-			() => undefined,
-		);
-		const running = execFileAsync('cargo', ['run', '-q', '-p', 'cms', '--', 'segments'], {
-			cwd: ROOT,
-		}).then(async () => {
-			const after = await stat(SEGMENTS).then(({ mtimeMs }) => mtimeMs);
-			if (after !== before) generatedSegmentsMtime = after;
-		});
-		activeSegmentSync = running;
-		try {
-			await running;
-		} finally {
-			if (activeSegmentSync === running) activeSegmentSync = undefined;
-		}
-	};
-	if (command === 'serve') await syncSegments();
-
-	const compileContent = async () => {
-		const [articleBuild, pageBuild] = await Promise.all([
-			buildArticles(
-				{
-					contents: CONTENTS,
-					cdnUrl: urls.cdn,
-					messages: MESSAGES,
-					assets: ASSETS,
-					media: MEDIA,
-					diagrams: DIAGRAMS,
-					segments: SEGMENTS,
-					crates: CRATES,
-					repos: REPOS,
-					tweets: TWEETS,
-				},
-				// The same discriminator the URLs above are picked by, for the same reason: what
-				// this build is for. `vite build --mode development` therefore keeps drafts, which
-				// is the one way to see one inside a real build.
-				{ drafts: mode !== 'production' },
-			),
-			buildPages({ contents: CONTENTS, messages: MESSAGES, segments: SEGMENTS }),
-		]);
-		articleInputs.clear();
-		for (const file of new Set([...articleBuild.files, ...pageBuild.files])) {
-			articleInputs.add(file);
-		}
-		return { articleBuild, pageBuild };
-	};
-
-	type RuntimeArticles = {
-		replaceContent: (articles: Article[], pages: Page[]) => void;
-	};
-	const refreshContent = contentRefreshQueue(async (segments) => {
-		if (segments) await syncSegments();
-		const { articleBuild, pageBuild } = await compileContent();
-		if (!devServer) return;
-		const runtime = (await devServer.ssrLoadModule('virtual:articles')) as RuntimeArticles;
-		runtime.replaceContent(articleBuild.articles, pageBuild.pages);
-	});
 	return {
 		plugins: [
 			tailwindcss(),
@@ -202,80 +111,6 @@ export default defineConfig(async ({ command, mode }) => {
 			// Iconify sets compiled to Svelte components at build time, so a set contributes only
 			// the icons actually imported rather than a runtime font or sprite sheet.
 			Icons({ compiler: 'svelte' }),
-			{
-				// Content sources and sidecars are build inputs, not Worker work. Compile every
-				// browser-facing view here and serialize the lookup tables into the server bundle.
-				// Development replaces one stable runtime snapshot instead. See spec/i18n/segments.md.
-				name: 'virtual-articles',
-				configureServer(server) {
-					devServer = server;
-					// Watch inputs directly without registering them as dependencies of the virtual
-					// module. Vite invalidates dependencies before hotUpdate can replace the stable
-					// snapshot, which would retain another full SSR generation. See spec/i18n/segments.md.
-					server.watcher.add([
-						CONTENTS,
-						MESSAGES,
-						ASSETS,
-						MEDIA,
-						DIAGRAMS,
-						SEGMENTS,
-						CRATES,
-						REPOS,
-						TWEETS,
-					]);
-				},
-				resolveId(id: string) {
-					return id === 'virtual:articles' ? '\0virtual:articles' : null;
-				},
-				async load(id: string) {
-					if (id !== '\0virtual:articles') return null;
-					if (activeSegmentSync) await activeSegmentSync;
-					const { articleBuild, pageBuild } = await compileContent();
-					if (command === 'build') {
-						for (const file of new Set([...articleBuild.files, ...pageBuild.files])) {
-							this.addWatchFile(file);
-						}
-					}
-					return [
-						`import { unpackArticles, unpackPages } from '$lib/content/packed.ts';`,
-						`import { contentSnapshot } from '$lib/content/snapshot.ts';`,
-						`const articles = unpackArticles(${JSON.stringify(packArticles(articleBuild.articles))});`,
-						`const pages = unpackPages(${JSON.stringify(packPages(pageBuild.pages))});`,
-						`export let content = contentSnapshot(articles, pages);`,
-						`export function replaceContent(articles, pages) { content = contentSnapshot(articles, pages); }`,
-					].join('\n');
-				},
-				async hotUpdate(options) {
-					const markdown = articleMarkdown(options.file);
-					if (options.file === SEGMENTS) {
-						const pending = refreshContent.active();
-						if (pending) await pending;
-						const mtime = await stat(SEGMENTS).then(({ mtimeMs }) => mtimeMs);
-						// The Markdown event already owns this refresh. Swallow its derived write.
-						if (mtime === generatedSegmentsMtime) return [];
-					} else if (
-						!markdown &&
-						!messageCatalog(options.file) &&
-						!articleInputs.has(options.file)
-					) {
-						return;
-					}
-					// The browser has no content module to update. Its reload is sent only after the
-					// server has atomically replaced the current snapshot.
-					if (this.environment.name === 'client') return [];
-					if (this.environment.name !== 'ssr') return;
-					const request = refreshContent.request(markdown);
-					await request.settled;
-					if (request.leader) {
-						options.server.environments.client.hot.send({
-							type: 'full-reload',
-							path: '*',
-							triggeredBy: options.file,
-						});
-					}
-					return [];
-				},
-			},
 			sentrySvelteKit({
 				org: 'canmi',
 				project: 'canmi',
@@ -306,9 +141,10 @@ export default defineConfig(async ({ command, mode }) => {
 				enforce: undefined,
 			},
 			{
-				// The merged redirect map, baked into a virtual module. The prerendered
-				// [...path] route emits redirect() responses that each adapter translates to
-				// its own format, so none of this is tied to Cloudflare. Server-only.
+				// The merged redirect map, baked into a virtual module. The [...path] route emits
+				// redirect() responses that each adapter translates to its own format, so none of
+				// this is tied to Cloudflare. It reaches the browser too, since that route's load
+				// is universal: four legacy paths are cheaper to ship than a click that 404s.
 				name: 'virtual-redirects',
 				resolveId(id: string) {
 					return id === 'virtual:redirects' ? '\0virtual:redirects' : null;
@@ -425,7 +261,5 @@ export default defineConfig(async ({ command, mode }) => {
 			'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
 			'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
 		},
-		// The function is async for the probe above, and a promise loses the contextual typing
-		// that kept 'hidden' and 'hex' literal; this puts it back.
 	} satisfies UserConfig;
 });

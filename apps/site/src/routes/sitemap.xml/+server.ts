@@ -1,12 +1,8 @@
 import { URLS } from '@canmi/urls';
-import { getArticles } from '$lib/content';
-import { sitemapViews } from '$lib/content/sitemap';
-import type { Alternate } from '$lib/content/types';
+import type { Alternate } from '@canmi/artifacts/types';
 import { licenseDirectory, packageRows } from '$lib/licenses/directory';
+import { publishedSitemap } from '$lib/published';
 import type { RequestHandler } from './$types';
-
-// Generated per request so changefreq/priority reflect staleness at crawl time,
-// not at build time.
 
 type Entry = {
 	loc: string;
@@ -19,24 +15,27 @@ type Entry = {
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 
-// Non-article routes have no modification time of their own, so the build
-// timestamp (baked via Vite define) stands in for "last changed".
-const staticEntries: Entry[] = [
-	{
-		loc: `${URLS.apps.production.site}/`,
-		lastmod: import.meta.env.VITE_BUILD_TIME,
-		changefreq: 'daily',
-		priority: '1.0',
-	},
-];
+// The landing page has no modification time of its own; what it lists is the corpus, so the
+// root's own timestamp is when it last changed. The build time stands in only when the API
+// answered nothing at all.
+function staticEntries(generated: string): Entry[] {
+	return [
+		{
+			loc: `${URLS.apps.production.site}/`,
+			lastmod: generated,
+			changefreq: 'daily',
+			priority: '1.0',
+		},
+	];
+}
 
 /**
  * The licence surface, down to the directories and no further.
  *
  * Why the line is drawn at the directory and not the package, and why the entries are derived
  * from the record rather than written out -- see spec/architecture/data.md, "The sitemap enters
- * the licence directories and stops there". The build time is the right `lastmod` for all of
- * them: the record is baked into the bundle, so a rebuild is exactly when they last changed.
+ * the licence directories and stops there". The build time, not the root's: this record is still
+ * baked into the bundle, so a rebuild is still exactly when these last changed.
  */
 function licenseEntries(): Entry[] {
 	const site = URLS.apps.production.site;
@@ -74,23 +73,25 @@ function priority(ageMs: number): string {
 	return '0.5';
 }
 
-export const GET: RequestHandler = async () => {
+// Still assembled rather than published: it needs only paths and dates, which the API already
+// carries, and its changefreq is a function of the time of the request rather than of the
+// corpus. See spec/architecture/artifacts.md, "Which objects exist".
+export const GET: RequestHandler = async ({ fetch }) => {
 	const now = Date.now();
-	// getArticles() is already publish-date desc, the order we want here.
-	const articles = await getArticles();
+	const published = await publishedSitemap(fetch);
 
 	const entries: Entry[] = [
-		...staticEntries,
+		...staticEntries(published?.generated ?? import.meta.env.VITE_BUILD_TIME),
 		...licenseEntries(),
-		...articles.flatMap((article) => {
-			const ageMs = now - Date.parse(article.meta.lastmod);
-			return sitemapViews(article).map(({ loc, alternates }) => ({
+		...(published?.views ?? []).map(({ loc, lastmod, alternates }) => {
+			const ageMs = now - Date.parse(lastmod);
+			return {
 				loc,
-				lastmod: article.meta.lastmod,
+				lastmod,
 				changefreq: changefreq(ageMs),
 				priority: priority(ageMs),
 				alternates,
-			}));
+			};
 		}),
 	];
 
