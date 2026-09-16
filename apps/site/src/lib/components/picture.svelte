@@ -43,6 +43,7 @@
 		align,
 		locale,
 		enlarges = false,
+		eager = false,
 		el = $bindable(),
 	}: Source & {
 		alt?: string;
@@ -55,6 +56,13 @@
 		 * answer, so it takes this one. See spec/styling.md.
 		 */
 		enlarges?: boolean;
+		/**
+		 * Whether this picture is one the reader is waiting for.
+		 *
+		 * Set on the first few media in an article and on nothing else. See `article/body.svelte`
+		 * for which, and why the count is of media rather than of images.
+		 */
+		eager?: boolean;
 		/** Needed only to name the control, so only a picture that has one asks for it. */
 		locale?: LocaleCode;
 		el?: HTMLImageElement;
@@ -121,7 +129,8 @@
 			{alt}
 			{width}
 			{height}
-			loading="lazy"
+			loading={eager ? 'eager' : 'lazy'}
+			fetchpriority={eager ? 'high' : undefined}
 			decoding="async"
 			crossorigin="anonymous"
 			class="block w-full object-cover"

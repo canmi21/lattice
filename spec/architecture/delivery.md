@@ -56,6 +56,34 @@ The failure mode to remember is that exceeding the quota does not degrade -- new
 return an error while already-cached ones keep serving. That is why the request path a browser
 takes by default is the stored AVIF, and conversion is only ever the fallback.
 
+## Exactly one picture in an article is given a priority hint
+
+Every image on the page is `loading="lazy"`, which is right for the thirtieth and wrong for the one
+the reader is already looking at. So the first picture gets `loading="eager"` and
+`fetchpriority="high"`, and nothing else does.
+
+**One, not the first few.** Priority is a ranking, and a ranking with no bottom has no top: hinting
+three pictures mostly reorders them against each other. The hint is worth having because it says
+*this one before everything else on the page*, which stops being true the moment it is shared.
+
+**It is withheld unless the picture is near the top.** Counted in blocks -- the first three --
+because blocks are what exists at build time. Pixels would be the right unit and are not available:
+the hint has to be in the served HTML and where the fold falls depends on a viewport the server has
+never seen. A picture within the first few blocks is above it on almost any screen; one further
+down is a guess in both directions, and a wrong high priority costs more than a missing one.
+
+**A clip cannot be hinted at all.** `fetchpriority` is defined for `img`, `link`, `script` and
+`iframe`; a media element's own fetches are not covered by it, and a `fetchpriority` on `<video>`
+is an attribute the browser ignores. `preload="metadata"` is the whole of what a clip's loading can
+be told, and it already says the right thing.
+
+**The three tiers above it are already in the right order and are not adjustable.** A stylesheet
+in `<head>` is render-blocking and therefore in the browser's highest priority class before anyone
+asks; the article's prose is not a resource at all but the document itself, arriving first by
+definition -- measured at 277KB of HTML for a long article with the body inline; and the component
+code is `modulepreload`, which is already below both. There is nothing to raise and nothing worth
+lowering.
+
 ## Caching is the worker's job now
 
 The old CDN served these files through a static-assets binding and set their cache policy in

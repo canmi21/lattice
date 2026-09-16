@@ -177,6 +177,31 @@
 		trigger = undefined;
 		note = '';
 	}
+	/**
+	 * How far into an article a picture can be and still be worth a priority hint.
+	 *
+	 * Counted in blocks, because blocks are what exists here. Pixels would be the right unit and
+	 * are not available: the hint has to be in the served HTML, and where the fold falls depends
+	 * on a viewport the server has never seen. A picture within the first few blocks is above it
+	 * on almost any screen; one further down is a guess in both directions.
+	 */
+	const ABOVE_THE_FOLD = 3;
+
+	/**
+	 * The one picture worth telling the browser about, or nothing.
+	 *
+	 * Exactly one. Every image on the page is `loading="lazy"`, which is right for the thirtieth
+	 * and wrong for the one the reader is already looking at -- and a hint on everything is a hint
+	 * on nothing, because priority is a ranking and a ranking with no bottom has no top.
+	 *
+	 * Clips are not candidates. `fetchpriority` is defined for `img`, `link`, `script` and
+	 * `iframe`, and a media element's own fetches are not covered by it, so there is no hint to
+	 * give one. `preload="metadata"` is the whole of what a clip's loading can be told.
+	 */
+	const lead = $derived.by(() => {
+		const at = blocks.findIndex((block) => block.type === 'image');
+		return at >= 0 && at < ABOVE_THE_FOLD ? at : -1;
+	});
 </script>
 
 <div use:noteEvents class="article-content space-y-4">
@@ -226,6 +251,7 @@
 				srcset={block.srcset}
 				crop={block.crop}
 				align={block.align}
+				eager={i === lead}
 			/>
 		{:else if block.type === 'video'}
 			<Video
