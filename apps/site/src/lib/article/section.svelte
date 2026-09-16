@@ -3,22 +3,12 @@
 	import { duration, easing, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
-	 * The heading, as the anchor button's `when.ancestor` sees it.
-	 *
-	 * The button appears while the pointer is anywhere over the heading, which is a fact about an
-	 * ancestor rather than anything the button can see about itself. Both halves of that -- the
-	 * resting opacity and the hovered one -- have to sit in the same layer: StyleX outranks
-	 * Tailwind's utilities, so a resting `opacity: 0` here would win over a `group-hover:` left
-	 * behind in the markup and the control would never appear. See spec/architecture/css.md.
-	 *
-	 * The default marker rather than a named one. `stylex.defineMarker()` needs a build
-	 * configuration this file cannot add on its own, and the default compiles to a single class
-	 * every caller shares -- so nesting two of these would cross the wires. Recorded in
-	 * spec/todo.md; nothing else on the site uses a marker yet.
-	 *
-	 * `when.ancestor` is called without it. Its marker argument is optional and defaults to this
-	 * same one, and passing it explicitly does not type check: the parameter is branded for a
-	 * `defineMarker()` symbol and the default marker is branded as itself.
+	 * The heading, as the anchor button's `when.ancestor` sees it. See spec/todo.md, "Ancestor
+	 * state reaches the visual layer only through a marker nobody owns", for why both the resting
+	 * and hovered opacity have to sit here and why this uses the default marker rather than a
+	 * named one. `when.ancestor` is called without an explicit marker: the parameter is branded
+	 * for a `defineMarker()` symbol and the default marker is branded as itself, so passing it
+	 * would not type check.
 	 */
 	const heading = stylex.defaultMarker();
 
@@ -80,13 +70,9 @@
 	}
 </script>
 
-<!-- A subsection is the same size, weight and colour as a section, and sits closer to what comes
-     before it. The type scale is already spent -- 16px title, 15px heading, 14px prose, one step
-     apart and separated by weight rather than size -- so there is no smaller step to give a third
-     level without flattening the first two. Space is the signal instead, and the honest one:
-     sitting nearer says "this belongs to what is above", which is exactly the relation. It also
-     earns the rail's filtering -- a reader who can see that a heading is a subsection reads a
-     table of contents that lists only sections as complete, not as missing something. -->
+<!-- A subsection matches a section's size, weight and colour and sits closer to what precedes
+     it: see spec/styling.md, "A subsection is nearer, and for that reason unlisted", for why
+     space rather than size carries the distinction and why only sections are in the rail. -->
 <svelte:element
 	this={`h${depth}`}
 	id={slug}

@@ -16,18 +16,8 @@ export function railTop(viewportHeight: number, railHeight: number, articleBotto
 /**
  * Where the return control rests, measured from the top of the viewport.
  *
- * **Level with the article's title**, which is where it belongs: the two are the first things on
- * the page, and a control floating above its heading reads as attached to nothing. It rises only
- * when something is actually in its way -- a table of contents tall with entries, or one opened
- * under the cursor. `clearance` is what "in its way" means: half the control, plus the gap it
- * keeps from the entries below it.
- *
- * The rule used to put the control in the middle of the band above the table of contents whether
- * or not that band had room to spare, which sat it 12px above the title on an ordinary article.
- *
- * Below twice the clearance there is no room left to keep, and the control takes the middle of
- * whatever band remains rather than being pushed off the top edge. The two expressions are equal
- * at exactly that height, so the control slides between them instead of jumping.
+ * See spec/styling.md, "The return control rests level with the title", for why it sits there,
+ * what `clearance` means, and why the two expressions below meet exactly where they do.
  */
 export function homeRestingCenter(
 	restingCenter: number,

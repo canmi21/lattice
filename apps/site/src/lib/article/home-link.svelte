@@ -7,13 +7,10 @@
 	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file is untouched by the migration and is not a
-	 * leftover of it. Both rules in it are placement -- where the slot sits in the rail box and
-	 * how far the glyph hangs outside the rail's text -- and the second reads a length declared
-	 * on an ancestor, which is a derivation a migration does not get to change.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block at the foot of this file is placement, not a migration leftover: where the
+	 * slot sits in the rail box, and how far the glyph hangs outside the rail's text, the latter
+	 * reading a length declared on an ancestor. See spec/architecture/css.md, "A comment in the
+	 * module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
 		/** A full-width strip the rail lays out; the control inside it takes its events back. */
@@ -65,15 +62,12 @@
 	let { locale }: { locale: LocaleCode } = $props();
 
 	/**
-	 * Where this control goes, which the server cannot know.
+	 * Where this control goes, which the server cannot know: the trail lives in the reader's
+	 * tab, so the markup ships the homepage and is corrected after hydration. The label does not
+	 * move either way, so nothing reflows when it changes.
 	 *
-	 * The trail lives in the reader's tab, so the markup ships the homepage -- correct for a
-	 * reader who arrived here directly, which is everyone the server can see -- and the answer is
-	 * corrected after hydration for the reader who walked in from somewhere. The label does not
-	 * move either way, so nothing about the page reflows when it changes.
-	 *
-	 * Read after each navigation rather than once: this component survives client navigation
-	 * between articles, and the trail it read on mount belongs to the article it was mounted on.
+	 * Read after each navigation, not once: this component survives client navigation between
+	 * articles, and the trail read on mount belongs to the article it was mounted on.
 	 */
 	let href = $state('/');
 

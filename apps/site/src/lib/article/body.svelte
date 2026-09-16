@@ -3,14 +3,13 @@
 	import { border, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
-	 * The visual half of the translator's note, which is the only surface this component draws
-	 * itself. Every colour is the token variable `libs/tokens` already declares, so nothing here
-	 * can change one. See spec/architecture/css.md.
+	 * The visual half of the translator's note, the only surface this component draws itself.
+	 * Every colour is the token variable `libs/tokens` already declares, so nothing here can
+	 * change one. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file does not shrink. Every rule in it reaches
+	 * The scoped block at the foot of this file does not shrink: every rule in it reaches
 	 * `.tn-trigger`, a control the markdown compiler wrote into the prose, and a style reaches an
-	 * element only through a class on that element -- so none of it can be said here however
-	 * visual it is.
+	 * element only through a class on that element.
 	 */
 	const styles = stylex.create({
 		/** The note's header row, which carries the ink its icon and label inherit. */
@@ -188,15 +187,13 @@
 	const ABOVE_THE_FOLD = 3;
 
 	/**
-	 * The one picture worth telling the browser about, or nothing.
+	 * The one picture worth telling the browser about, or nothing. Every image is otherwise
+	 * `loading="lazy"`, and a priority hint on everything is a hint on nothing -- a ranking with
+	 * no bottom has no top.
 	 *
-	 * Exactly one. Every image on the page is `loading="lazy"`, which is right for the thirtieth
-	 * and wrong for the one the reader is already looking at -- and a hint on everything is a hint
-	 * on nothing, because priority is a ranking and a ranking with no bottom has no top.
-	 *
-	 * Clips are not candidates. `fetchpriority` is defined for `img`, `link`, `script` and
-	 * `iframe`, and a media element's own fetches are not covered by it, so there is no hint to
-	 * give one. `preload="metadata"` is the whole of what a clip's loading can be told.
+	 * Clips are not candidates: `fetchpriority` is defined for `img`, `link`, `script` and
+	 * `iframe`, and a media element's own fetches are not covered by it. `preload="metadata"` is
+	 * the whole of what a clip's loading can be told.
 	 */
 	const lead = $derived.by(() => {
 		const at = blocks.findIndex((block) => block.type === 'image');

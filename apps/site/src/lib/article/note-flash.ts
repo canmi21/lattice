@@ -1,22 +1,12 @@
 /**
  * The brief selection-coloured light a note jump lands with, in either direction.
  *
- * Arriving in the right scroll band is not the same as knowing what was arrived at: the noted
- * words may sit anywhere in their line, and a note is one small line among its siblings. The
- * URL never carries the move (spec/styling.md), so `:target` cannot say -- this does.
- *
- * The light is painted as its own translucent layer above the text, not as a background on
- * it. A background sits under the element's children, and any child that brings its own --
- * an inline code span is the ordinary case -- swallows the light exactly where it lands.
- * Painting on top cannot be covered by anything the content grows later, and the selection
- * colour already carries alpha in both themes, so the words stay readable through it. One
- * box per rendered line fragment, read off `getClientRects()` at the moment of arrival, so
- * the geometry is the text's own; boxes sit in document coordinates and stay glued to the
- * words under any further scrolling. A reflow mid-fade would strand them, but the fade is
- * two seconds long and a resize inside it is nobody's reading flow.
- *
- * One flash at a time, module-wide: the two directions share the reader's attention, so a
- * new jump takes the light with it.
+ * See spec/styling.md, "The walk back from a note lights the words it lands on", for why arrival
+ * needs its own signal (the URL never carries the move) and why the light is a painted layer
+ * rather than a background. One box per rendered line fragment, read off `getClientRects()` at
+ * arrival, in document coordinates so the boxes stay glued to the words under further scrolling.
+ * One flash at a time, module-wide: the two directions share the reader's attention, so a new
+ * jump takes the light with it.
  */
 
 /** As long as the fade, plus a beat: the overlay must outlive what it plays. */
@@ -86,14 +76,10 @@ function paint(target: HTMLElement, corners: FlashCorners): HTMLDivElement {
 /**
  * Light `target` once the scroll that is carrying it settles.
  *
- * On arrival, not on departure: a long article's smooth scroll outlasts the fade, which
- * would play to an empty viewport. The browser's smooth-scroll duration is internal and
- * per-engine, so it cannot be computed up front, and Safari has no `scrollend` -- arrival is
- * read off the geometry instead: the target in the viewport and its position unchanged for a
- * frame, which is the scroll settling on it. Per-frame, so the light starts the frame the
- * move ends, with a cap so a scroll interrupted mid-flight still ends the wait. The timer
- * owns removal because reduced motion runs no fade and fires no finish event; one mechanism
- * for both -- under reduced motion the light appears whole and leaves whole.
+ * On arrival, not on departure -- a long article's smooth scroll outlasts the fade otherwise.
+ * The duration is internal and per-engine and Safari has no `scrollend`, so arrival is read off
+ * geometry instead: in the viewport and unchanged for a frame, capped so an interrupted scroll
+ * still ends the wait. The timer owns removal, since reduced motion fires no finish event.
  */
 export function flashOnArrival(target: HTMLElement, corners: FlashCorners): void {
 	clear();

@@ -1,19 +1,13 @@
 /**
  * Where a reader has been in this tab, so the article's Back control knows what "back" means.
  *
- * The site links articles to each other -- a `::article` card, a link in prose -- and every one
- * of them navigates in place. So Back cannot mean "home": a reader three articles deep who is
- * sent to the homepage loses the thread they were following. It has to mean one step up the way
- * they came.
+ * Every link between articles navigates in place, so Back cannot mean "home" -- a reader three
+ * deep sent to the homepage loses the thread. It means one step up the way they came, which the
+ * browser's own history does not track: its previous entry may be an anchor jump, a locale
+ * switch, or somebody else's site, none of which is a step in a reading trail.
  *
- * The browser's own history is not that. Its previous entry may be an anchor jump inside this
- * article, a locale switch, or a page on somebody else's site, none of which is a step in a
- * reading trail. What is wanted is the sequence of articles, and nothing but the trail itself
- * records it.
- *
- * `sessionStorage` is the right shelf for it because its lifetime is the question's lifetime: one
- * tab, surviving reloads, gone when the tab closes. Two tabs on the same site are two readers as
- * far as this is concerned, and they get two trails.
+ * `sessionStorage` fits the lifetime: one tab, surviving reloads, gone when the tab closes. Two
+ * tabs on the same site are two readers and get two trails.
  */
 
 export const TRAIL_KEY = 'trail';

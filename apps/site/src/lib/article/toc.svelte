@@ -91,24 +91,19 @@
 	/**
 	 * How far apart neighbouring entries must be drawn.
 	 *
-	 * One step, which is the smallest move that separates them at all. Two was tried and is too
-	 * much: with headings as evenly sized as these, requiring two steps between neighbours leaves
-	 * only differences of two or three, so the column can do nothing but alternate -- and two
-	 * headings that are genuinely the same length get drawn three steps apart, which is the
-	 * thumbnail inventing a difference rather than reporting one. At one step they are told
-	 * apart and stay nearly equal, which is what they are.
+	 * One step, the smallest move that separates them at all. Two was tried and is too much:
+	 * with headings this evenly sized, it leaves only differences of two or three steps, so the
+	 * column can only alternate -- and two headings of genuinely the same length get drawn three
+	 * steps apart, inventing a difference rather than reporting one.
 	 */
 	const MIN_ADJACENT_STEP = 1;
 	/**
 	 * Where the shortest bar sits when every entry cleared it anyway.
 	 *
-	 * An article whose headings are all long has no short bar to anchor the column, and the whole
-	 * rail then reads as uniformly heavy -- the scale is being spent at the top of its range while
-	 * the bottom of it goes unused. Sliding the column down until its shortest entry rests here
-	 * puts the range back in use without touching a single relationship inside it.
-	 *
-	 * Three rather than one: the shortest bar in such an article is still a long heading, and
-	 * dropping it to the floor would say otherwise.
+	 * An article whose headings are all long has no short bar to anchor the column, so the rail
+	 * reads as uniformly heavy -- the scale spent at the top of its range, the bottom unused.
+	 * Sliding the column down until its shortest entry rests here puts the range back in use.
+	 * Three rather than one: the shortest bar in such an article is still a long heading.
 	 */
 	const RESTING_STEP = 3;
 	const BAR_HEIGHT = 4;
@@ -204,16 +199,9 @@
 	/**
 	 * How the rail will lay this entry out: how many lines it takes, and how wide it draws.
 	 *
-	 * The bars are a thumbnail of the list, so an entry has to contribute the shape it will
-	 * actually have. Measured collapsed, a heading that wraps still reported its single-line
-	 * width -- the longest bar in the rail belonged to the one entry that is not a long line at
-	 * all, and being the longest it set the scale everything else was divided by, flattening the
-	 * rest into dots. Reading the wrapped width as two half-lines is what makes the thumbnail
-	 * resemble the paragraph it stands for.
-	 *
-	 * Measured in the label's own font rather than the heading's: the wrap happens in the rail,
-	 * at the rail's size, and the two fonts are not proportional to each other. Clamped at two,
-	 * as the label itself is.
+	 * See spec/styling.md, "An entry that wraps contributes half its width per line", for why a
+	 * wrapping heading must not report its single-line width. Measured in the label's own font
+	 * rather than the heading's, since the two are not proportional and the wrap happens here.
 	 */
 	function labelMetrics(
 		text: string,
@@ -247,26 +235,14 @@
 	/**
 	 * Bar widths, in tenths of the longest heading.
 	 *
-	 * Exact widths turned out to say less than they cost. What a reader takes from the collapsed
-	 * rail is roughly how long each entry is and where the list rises and falls, and a tenth is
-	 * finer than that reading -- below it the differences are noise dressed as precision. Ten
-	 * steps of the longest heading, floored at one so an entry always draws something.
-	 *
-	 * Scaled against the longest rather than between the shortest and the longest: the second
-	 * spends the whole range on whatever spread the article happens to have, so two headings of
-	 * six and seven characters would be drawn a third of the rail apart. Against the longest, a
-	 * bar is the fraction of the longest heading that this one is, which is what it looks like
-	 * it means.
+	 * See spec/styling.md, "Collapsed, the bars are a thumbnail of the list", for why a tenth is
+	 * the right grain and why the scale is the longest heading rather than the shortest-to-longest
+	 * spread.
 	 */
 	function steppedBars(widths: number[], texts: string[], ceiling: number): number[] {
 		if (widths.length === 0) return [];
-		// A bar may never be wider than the widest label. The rail's box is `fit-content` around
-		// its entries, sized for them at full expansion -- see spec/styling.md -- and that holds
-		// only while the text is the widest thing in it. In an article whose headings are all
-		// short it is not: the longest label in two of them ran to 52px against a 64px bar, so the
-		// bars set the width, and hydrating them from their served 2rem to their real length
-		// widened the box under a control that is centred on it. The rail sat still and `Back`
-		// slid 6px left, over the whole length of the bar animation.
+		// A bar may never be wider than the widest label -- see spec/styling.md, "A bar may never
+		// be wider than the widest label".
 		const longest = Math.min(MAX_BAR_WIDTH, ceiling > 0 ? ceiling : MAX_BAR_WIDTH);
 		const max = Math.max(...widths);
 		if (max < 1) return widths.map(() => longest / 2);
@@ -274,22 +250,10 @@
 		const steps = widths.map((w) => Math.min(STEPS, Math.max(1, Math.round((w / max) * STEPS))));
 
 		// Bring the peaks down until no entry stands more than `MAX_ADJACENT_STEP` above a
-		// neighbour. Two passes, forward and back, are what makes the constraint hold in both
-		// directions at once.
-		//
-		// Down rather than up, which would satisfy the same constraint by raising everything
-		// around the outlier instead. The two are not equivalent: one entry that towers over its
-		// neighbours is the thing that reads badly, and the fix is to pull *it* back, not to
-		// stretch the rest of the column toward it. Raising them spends the top of the scale on
-		// an article that has nothing that long in it, and leaves the whole rail longer than the
-		// headings warrant.
-		//
-		// So the tenth step is not something every article reaches. It is there for a heading
-		// long enough to earn it against the company it keeps -- and an outlier, by being an
-		// outlier, does not.
-		//
-		// An entry is only ever pulled toward its neighbours, never levelled with them, so it
-		// stays the longest thing in its stretch.
+		// neighbour. Two passes, forward and back, make the constraint hold both ways. Down
+		// rather than up, and only ever toward a neighbour, never levelled with it -- see
+		// spec/styling.md, "No entry stands more than three steps above a neighbour, and the
+		// outlier comes down".
 		const flatten = (from: number[]): number[] => {
 			const out: number[] = [];
 			for (const step of from) {
@@ -300,18 +264,10 @@
 		};
 		const shaved = flatten(flatten(steps).reverse()).reverse();
 
-		// Then the other half of the same idea: two neighbours on the same step read as one mark
-		// repeated rather than as two entries, so they are separated by a single step -- toward
-		// whichever side they were already nearer, so the move follows the lengths themselves.
-		//
-		// Both constraints are applied in one pass rather than one after the other. Run
-		// separately, the second undoes the first: pushing entries apart opens gaps wider than
-		// the limit, and shaving those closed lands them back on top of each other.
-		//
-		// A tie -- exactly between the two ends -- is broken by the heading's own text, so the
-		// same heading always goes the same way and two different ones in the same position do
-		// not. Anything derived from the index would make every article break its ties
-		// identically, which is a pattern rather than a choice.
+		// The other half of the same idea: two neighbours on the same step are separated by one,
+		// toward whichever side they were already nearer. Both constraints run in one pass --
+		// applied separately, the second would undo the first. See spec/styling.md, "Two
+		// neighbours on the same step are separated by one step", including the tie-break rule.
 		const settled: number[] = [];
 		shaved.forEach((step, index) => {
 			const previous = settled.at(-1);
@@ -878,24 +834,11 @@
 		line-clamp: 2;
 	}
 
-	/* A script whose spaces mean something breaks at them first.
-
-	   `overflow-wrap: anywhere`, which is now in the visual layer at the head of this file, lets a
-	   break land between any two characters -- for Han usually right, and here not: an entry like
-	   `不使用 JS 运行时的代价` came out as `不使用 JS 运` over `行时的代价`, splitting a word to fill
-	   three more characters, when the author had already written the boundary as a space.
-	   `keep-all` prefers that space, giving `不使用 JS` over `运行时的代价`. That declaration stays
-	   the floor -- a Han run with no space in it still breaks wherever it must, which is what it
-	   did before. The floor and this override now sit in two layers, because the override is
-	   reached through `:lang` and the visual layer reaches an element only through a class on it.
-	   See spec/styling.md and spec/todo.md.
-
-	   Japanese is excluded and the measurement is why. Its spaces are not boundaries in the same
-	   sense, so `keep-all` only removes the break opportunities it has: `Web フレームワークだけで
-	   はない` came apart into four lines, one of them a single kana. Korean is included on the
-	   script's own terms rather than on a case seen here, the same terms the article prose takes
-	   `keep-all` on: no entry in the corpus wraps in Korean yet, and the first one that does would
-	   otherwise split mid-eojeol. */
+	/* A script whose spaces mean something breaks at them first -- see spec/styling.md, "Balance
+	   evens the lines; it does not choose where the break may land, and for Han that is the part
+	   that matters" and "Japanese is excluded, and the measurement is the argument". The floor
+	   and this override sit in two layers because the override is reached through `:lang` and
+	   the visual layer reaches an element only through a class on it. See spec/todo.md. */
 	[data-toc-text]:lang(zh),
 	[data-toc-text]:lang(ko) {
 		word-break: keep-all;

@@ -7,28 +7,20 @@
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
 	 * declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file is not a leftover of the migration. It keeps the
-	 * geometry of the section and of the fold, including `--peek-height`, which the script reads
-	 * back and the mask below is drawn against; it keeps the two `:global` rules reaching the
-	 * marker, which the visual layer cannot address at all; it keeps the fold's mask and its
-	 * heights, which are keyed on a data attribute no class can stand in for; and it keeps the
-	 * note's link colour, whose hovered value is reached
-	 * only through the note above it. That is an ancestor, and an ancestor is what the visual
-	 * layer cannot see without a marker nobody owns yet. See spec/todo.md.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block below keeps the section's and fold's geometry, the `:global` marker rules,
+	 * and the note-link's hovered colour -- see spec/todo.md, "Ancestor state reaches the visual
+	 * layer only through a marker nobody owns". See spec/architecture/css.md, "A comment in the
+	 * module script cannot write a tag in angle brackets", for why this block must not.
 	 */
 	const styles = stylex.create({
 		/**
 		 * The article's ending boundary, worn by the notes when they exist and by the newsletter
 		 * otherwise -- see article.svelte. Dashed because what follows an article is offered
-		 * rather than fenced off; the plain rule below the notes is then only a separator between
-		 * two offerings.
+		 * rather than fenced off; the plain rule below the notes then only separates two offerings.
 		 *
-		 * Top longhands rather than the whole-box shorthands the article shell writes it with:
-		 * `border-top` left the other three edges at the reset's own width and style, and a
-		 * whole-box `border-style` would dash three edges that are not drawn.
+		 * Top longhands rather than the whole-box shorthands the article shell uses: `border-top`
+		 * left the other three edges at the reset's own width and style, and a whole-box
+		 * `border-style` would dash three edges that are not drawn.
 		 */
 		notes: {
 			borderTopWidth: border.hairlineRem,
@@ -36,30 +28,24 @@
 			borderTopColor: 'var(--color-border)',
 		},
 		/**
-		 * Small and quiet, the way a note at the foot of a page is: it is there to be stepped
-		 * over and come back to, not read on the way past. Both were tried the other way -- set
-		 * at the article's size and colour, the section competed with the prose above it for the
-		 * same attention.
+		 * Small and quiet, the way a note at the foot of a page is: stepped over and come back
+		 * to, not read on the way past. Set at the article's own size and colour, the section
+		 * competed with the prose above it for the same attention.
 		 *
-		 * The first attempt at quiet was grey and small with nothing to catch on, which read as
-		 * somebody else's apparatus. What makes it work now is the phrase: it holds the article's
-		 * own colour, so each note has one strong point to find it by and can be soft everywhere
-		 * else.
+		 * Grey and small alone read as somebody else's apparatus. What makes it work is the
+		 * phrase holding the article's own colour, giving each note one strong point to find it
+		 * by while the rest stays soft.
 		 */
 		note: {
 			fontSize: text.px11,
 			lineHeight: 1.6,
 			color: 'var(--color-text-soft)',
-			// `balance` rather than `pretty`, which is the opposite of what the shape of the text
-			// suggests -- a note is a sentence, and the prose elsewhere on this site uses
-			// `pretty`. Measured on the Spanish view, `pretty` did nothing at all: every line of
-			// every note came out identical to plain filling, because it only intervenes when the
-			// last line is down to about one word, and these end on a quarter of a line instead.
-			// Balance closed all four of the short endings. The rule follows the measurement
-			// rather than the category.
+			// `balance` over the categorically-right `pretty` -- measured, not reasoned; see
+			// spec/styling.md, "A wrapped note is balanced, and that was measured rather than
+			// reasoned".
 			//
-			// Declared on the note rather than on the line inside it, because this is the block
-			// that establishes the lines; the span within it establishes none of its own.
+			// Declared on the note rather than the line inside it: this is the block that
+			// establishes the lines, and the span within it establishes none of its own.
 			textWrap: 'balance',
 		},
 		/**
@@ -235,23 +221,8 @@
 	/**
 	 * Move the page in step with the fold, when closing it would otherwise drag the page along.
 	 *
-	 * Closing shortens the document. A reader near the end is then above a bottom that no longer
-	 * exists, so the browser pulls them up to the new one -- correctly, and at the worst possible
-	 * moment: the pull starts partway through the animation, the instant the document becomes
-	 * shorter than the current scroll position, and it arrives as up to 50px in a single frame
-	 * after a stretch of no movement at all. Measured on the article with thirty-three notes.
-	 * That discontinuity is what reads as a lurch; the movement itself is unavoidable, because
-	 * the reader is looking at the notes that are being folded away.
-	 *
-	 * So the movement is taken over and spent on the same curve as the height. Progress is read
-	 * from the distance the panel has actually covered rather than from a clock, which keeps the
-	 * scroll on the spring instead of on a second easing that would only agree with it by luck.
-	 *
-	 * Opening needs none of this: a longer document never forces the page to move.
-	 *
-	 * The reader wins any argument. Scrolling during the animation leaves the position away from
-	 * where this last put it, and that is taken as the reader steering -- the carry stands down
-	 * for the rest of the move rather than fighting for the wheel.
+	 * See spec/styling.md, "Closing the fold carries the page with it", for why this is needed
+	 * and the measurement behind it.
 	 */
 	function scrollCarry(from: number, to: number): ((height: number) => void) | undefined {
 		const shrink = from - to;
@@ -283,13 +254,11 @@
 	/**
 	 * Open the fold for a note the reader is about to be carried to, without playing it.
 	 *
-	 * Called before the scroll is asked for, and that is the whole of the timing.
-	 * `scrollIntoView` resolves its destination at the moment it is called, so a fold opening
-	 * afterwards pushes the note below the position the scroll is already travelling to and the
-	 * reader lands short. Opening first is also what keeps it unseen: the section is still below
-	 * the fold, so the height changes where nobody is looking and the reader arrives at a
-	 * section that was simply already open. Animating it would be the visible version of the
-	 * same thing, and slower than the scroll it is racing.
+	 * Called before the scroll is asked for: `scrollIntoView` resolves its destination at that
+	 * moment, so opening afterwards pushes the note past where the scroll is already headed.
+	 * Opening first also keeps it unseen -- the section is still below the fold, so the height
+	 * changes where nobody is looking -- and unanimated, since animating it would be the visible
+	 * version of the same thing and slower than the scroll it is racing.
 	 */
 	function reveal(target: Element): boolean {
 		if (!collapsible || expanded || !foldEl?.contains(target)) return false;
@@ -386,18 +355,12 @@
 
 {#snippet entry(note: ArticleNote)}
 	<li id="note-{note.number}" class="jump-target note {stylex.attrs(styles.note).class}">
-		<!-- The words first, so a note names what it is about instead of asking the reader
-		     to hold the sentence they left in their head. Then the same superscript the
-		     marker in the prose is, which makes the two one thing seen twice -- hidden
-		     from a screen reader, which is already being told the ordinal by the list.
-
-		     The explanation is the way back, not just the arrow at its end: an icon-sized
-		     target at the end of a wrapped line asks for aim this size of text does not
-		     deserve. The phrase and its number stay outside the link -- they are the
-		     note's address, not its content, and the address is what the walk returns to.
-		     The link's accessible name stays the explanation itself -- an aria-label would
-		     replace it -- and the purpose rides after it as words only a screen reader
-		     gets. -->
+		<!-- Words, marker, then link: see spec/styling.md, "A note names its words first, then
+		     its number, then what it says" and "The number is the same superscript that marked
+		     it in the prose", for the ordering and why the marker is hidden from a screen reader.
+		     The phrase and number stay outside the link -- they are the note's address, not its
+		     content -- and the link's accessible name stays the explanation itself, with the
+		     purpose after it as words only a screen reader gets. -->
 		<span class="note-line"
 			><span class="note-phrase {stylex.attrs(styles.phrase).class}">{note.phrase}</span><sup
 				class="note-marker"
@@ -453,13 +416,8 @@
 	   rest, so an open fold still follows its own content when the window changes. */
 	.notes-fold {
 		--peek-height: 1.75rem;
-		/* Positioned so that clipping actually holds. `overflow: hidden` does not clip an
-		   absolutely positioned descendant whose containing block is further up, and every note
-		   carries one: the way back's purpose, written for a screen reader as an `.sr-only` span,
-		   which that utility takes out of flow with `position: absolute`. Folded, twenty-eight of
-		   them escaped the clip and stood at their unclipped positions, adding a screen of empty
-		   document below the page and a scrollbar to match. The height of the fold had nothing to
-		   do with it, which is what made it look inexplicable. */
+		/* Positioned so the clip actually holds -- see spec/styling.md, "A fold that clips has
+		   to be positioned". */
 		position: relative;
 		overflow: hidden;
 		height: var(--peek-height);
@@ -508,30 +466,25 @@
 		margin-inline-end: 0.3rem;
 	}
 
-	/* The link is the explanation: it inherits the note's quiet colour and brightens whole
-	   under the pointer, so hovering anywhere on those words says they are the control. The
-	   phrase and number ahead of it sit outside and keep their resting look.
+	/* The link is the explanation: it inherits the note's quiet colour and brightens whole under
+	   the pointer, so hovering anywhere on those words says they are the control. The phrase and
+	   number ahead of it sit outside and keep their resting look.
 
-	   The resting colour stays here rather than in the visual layer, and the transition between
-	   the two goes with it: the brightened value is reached through the note above, which is an
-	   ancestor, and an ancestor is what the visual layer cannot see without a marker nobody owns
-	   yet. Half a pair in each layer is what the code block's reveal refused for the same reason.
-	   See spec/todo.md. */
+	   The resting colour and its transition stay here rather than in the visual layer: the
+	   brightened value is reached through this ancestor -- see spec/todo.md, "Ancestor state
+	   reaches the visual layer only through a marker nobody owns". */
 	.note-link {
 		color: inherit;
 		transition: color 200ms ease-out;
 	}
 
-	/* Hover is read from the note, not from the link. A link is an inline box: it wraps into one
-	   box per line, and the leading between two of those belongs to neither, so a pointer
-	   crossing a wrapped note fell through the gap and the note went out mid-read. What the
-	   reader is pointing at is the note, which is a block and has no gaps in it.
+	/* Hover is read from the note, not the link: a link is an inline box, wrapping into one box
+	   per line with a gap between them neither owns, so a pointer crossing a wrapped note fell
+	   through it and the note went dark mid-read. The note is a block and has no such gap.
 
-	   Not fixed by making the line an inline-block, which would also close the gap: the landing
-	   light reads `getClientRects()` to slice itself across the wrap, and one block box would
-	   collapse that back into a single rectangle. See note-flash.ts.
-
-	   Focus stays on the link, because focus is where the keyboard actually is. */
+	   Not fixed by an inline-block line either: note-flash.ts reads `getClientRects()` to slice
+	   the landing light across the wrap, and one block box would collapse that back to one
+	   rectangle. Focus stays on the link, since focus is where the keyboard actually is. */
 	.note:hover .note-link,
 	.note-link:focus-visible {
 		color: var(--color-text-strong);

@@ -36,13 +36,8 @@
 		<!-- Title shares its line with the dotted leader and date, so the leader
 		starts at the title's end rather than the (often longer) subtitle below. -->
 		<div class="article-preview-heading">
-			<!-- Both forms are in the document and CSS chooses, so the choice survives the server
-			     render. Rendering one of them would mean deciding at build time what a reader's
-			     screen is, and the row would be wrong for the first frame at every width. Where
-			     no short form was written the two strings are equal, which costs the reader
-			     nothing and one duplicated word in the markup.
-			     Only one is ever read aloud: the other is hidden from the accessibility tree by
-			     `display: none`, which is what these variants compile to. -->
+			<!-- Both forms in the document, CSS choosing between them: see spec/styling.md,
+			     "A phone is shown the title that fits, not the title cut short". -->
 			<h3 class="selectable article-preview-title max-sm:hidden">{title}</h3>
 			<h3 class="selectable article-preview-title sm:hidden">{shortTitle}</h3>
 			<div class="article-preview-leader"></div>

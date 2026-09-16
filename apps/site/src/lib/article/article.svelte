@@ -7,32 +7,17 @@
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * The scoped block at the foot of this file is the largest on the site and almost none of it
-	 * is a leftover of the migration. The markdown compiler writes the prose -- the emphasis, the
-	 * strikethrough, the rules, the quotations, the inline code, the note markers and the
-	 * spoilers -- and a style reaches an element only through a class on that element, so nothing
-	 * that styles compiled prose can be said here. That the site's prose typography is therefore
-	 * unreachable from the layer that owns typography is a finding rather than a consequence, and
-	 * it is in spec/todo.md: answering it means deciding what the content pipeline emits, which is
-	 * not a decision a migration takes.
-	 *
-	 * What is left beside them is geometry -- the draft mark's box, and the grid whose row the
-	 * summary animates -- and one keyframe, which is named by a selector reaching that same
-	 * compiled prose and so has nowhere else to be.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
+	 * a little geometry beside it -- see spec/todo.md, "The article body's typography reaches
+	 * elements no component renders". See spec/architecture/css.md, "A comment in the module
+	 * script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
 		/**
-		 * The apparatus around the article, not the article. A drag that starts on a heading in
-		 * the table of contents or on the way back should not come away with the navigation; the
-		 * same goes for the counts and controls under the title.
-		 *
-		 * Carried by both boxes rather than switched off for the whole page, because on this page
-		 * the prose is most of what there is. The body and everything in it -- including its own
-		 * controls -- is left alone deliberately: somebody quoting a passage is the reason this
-		 * page exists. Visual under the rule in spec/architecture/css.md: it moves nothing, it
+		 * The apparatus around the article, not the article: a drag started on a heading in the
+		 * table of contents, or on the way back, should not come away with the navigation. The
+		 * body and its own controls are left alone deliberately -- quoting a passage is the
+		 * reason this page exists. Visual under spec/architecture/css.md: it moves nothing, it
 		 * says what the element is to a pointer.
 		 */
 		apparatus: {
@@ -60,25 +45,13 @@
 			color: 'var(--color-text-soft)',
 		},
 		/**
-		 * The disclosure while there is nothing to disclose, composed onto the surface it draws
-		 * the rest of the time.
+		 * The disclosure while there is nothing to disclose: `opacity` and `cursor` on
+		 * `:disabled`, and the surface's own hover answer taken back where a pointer can hover.
 		 *
-		 * The disabled half is what this style is for: an `opacity` and a `cursor` on
-		 * `:disabled`, and on a pointer that can actually hover, the surface's own hover answer
-		 * taken back. Tailwind already wrote that last pair as one conjunction rather than as two
-		 * conditions to be ranked, so there is nothing here for the layers to disagree about.
-		 *
-		 * The rest of it restates `surfaces.quietControl`'s `cursor`, `backgroundColor` and
-		 * `color` unchanged, and that is not duplication to be tidied away. **The merge unit is
-		 * the property**: a second object naming a property replaces the first's whole value for
-		 * it, conditions included, so a `cursor` carrying only `:disabled` would take the resting
-		 * `pointer` off the control -- and the stylesheet would still hold both rules, so nothing
-		 * that reads the stylesheet could tell. See spec/architecture/css.md.
-		 *
-		 * The suppression still outranks the hover it suppresses. StyleX doubles the class on a
-		 * rule this deep, `.x.x:disabled:hover` inside `@media (hover: hover)` against a plain
-		 * `.x:hover`, so it wins on specificity inside one layer rather than by being written
-		 * second. Measured through the build's own Babel plugin at the pinned version.
+		 * Repeats `surfaces.quietControl`'s `cursor`, `backgroundColor` and `color` rather than
+		 * composing past them -- see spec/architecture/css.md, "The merge unit is the property,
+		 * not the property and its condition". The suppression still outranks that hover: StyleX
+		 * doubles the class this deep, `.x.x:disabled:hover` against a plain `.x:hover`.
 		 */
 		summaryTrigger: {
 			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
@@ -105,13 +78,12 @@
 		},
 		/**
 		 * The summary's opening, which is motion and belongs here; the two rows it runs between
-		 * are `grid-template-rows` and stay below, one of them behind an attribute selector on
-		 * this same element that no class can stand in for. A transition whose endpoints are in
-		 * the other layer is the split code-block.svelte already makes for its copy icons.
+		 * are `grid-template-rows` and stay below, one behind an attribute selector this same
+		 * element has no class to stand in for -- the same split code-block.svelte makes for its
+		 * copy icons.
 		 *
-		 * Reduced motion is the same suppression the block used to write as `transition: none`,
-		 * which is four longhands rather than one: the shorthand also returns the duration and
-		 * the curve to their initial values.
+		 * Reduced motion replaces the block's old `transition: none`: the shorthand also resets
+		 * duration and curve, which the four longhands here must do explicitly.
 		 */
 		summaryShell: {
 			transitionProperty: {
@@ -425,13 +397,8 @@
 				     serve the few that are drafts, and the side rail measures this very box to place the
 				     return control -- so a published article renders exactly the markup it did before,
 				     because the branch below produces nothing at all. See spec/drafts.md. -->
-				<!-- Two headings, one shown. The article column gives a title 85% of its width on a
-				     phone, and a title past that is replaced by the short form rather than wrapped:
-				     a short title is a phrase written for the room, a wrapped one is a full title
-				     that ran out of it. Where the full title fits, the two strings are equal.
-				     Both are in the document and CSS chooses, so the choice survives the server
-				     render and the first frame is never the wrong one. `display: none` keeps the
-				     unshown one out of the accessibility tree, so only one is ever announced. -->
+				<!-- Two headings, one shown: see spec/styling.md, "A phone is shown the title
+				     that fits, not the title cut short", for why and how CSS picks between them. -->
 				<h1 class="max-sm:hidden {stylex.attrs(styles.title).class}">
 					{meta.title}{#if meta.draft}<span
 							class="draft-mark {stylex.attrs(styles.draftMark).class}"
@@ -648,13 +615,10 @@
 		}
 	}
 
-	/* The walk back from a note lands mid-page, where the noted words may sit anywhere in
-	   their line; this is the moment's answer to "returned to where?". The light itself is an
-	   overlay drawn by note-flash.ts -- painted above the text, since a background would sit
-	   under any child that brings its own, an inline code span being the ordinary case. What
-	   remains here is the marker's number tinting alongside, keyed off the class the flash
-	   sets on the words. Under reduced motion the tint simply is, and the class's removal
-	   ends it: the information is kept, the animation is not. See spec/styling.md. */
+	/* The marker's own tint for a walk back, keyed off the class note-flash.ts sets on the noted
+	   words -- see spec/styling.md, "The walk back from a note lights the words it lands on",
+	   for the overlay itself. Under reduced motion the tint simply is: the information is kept,
+	   the animation is not. */
 	.article-body :global(.note-return + .note-marker .note-marker-link),
 	.article-body :global(.note-marker.note-return .note-marker-link) {
 		animation: note-return-marker 1.8s ease-out both;

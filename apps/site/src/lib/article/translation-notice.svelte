@@ -6,14 +6,10 @@
 	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css.md.
 	 *
-	 * This file has no scoped block left, which is not the usual outcome. The one it had held the
-	 * wash and the tint mixed from it, and both are visual and reach nothing but the element this
-	 * component renders, so both came here. The knob came with the colour rather than staying
-	 * behind: a custom property resolves against the element it is declared on, and StyleX writes
-	 * one verbatim into an atomic class that lands on the same element as the mix reading it.
-	 *
-	 * Nothing in this block may write a tag in angle brackets, in a comment or anywhere else:
-	 * oxfmt then deletes the whole instance script below, silently and with a zero exit status.
+	 * This file has no scoped block left: its wash and the tint mixed from it were both visual
+	 * and reached only this element, and the custom property moved with the colour since it
+	 * resolves against the element it lands on. See spec/architecture/css.md, "A comment in the
+	 * module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
 		/**
