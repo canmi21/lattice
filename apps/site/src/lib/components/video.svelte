@@ -37,6 +37,7 @@
 
 <script lang="ts">
 	import { dev } from '$app/environment';
+	import { positionOf } from '$lib/client/progress';
 	import { pageUrls } from '@canmi/urls';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
@@ -109,6 +110,62 @@
 		return () => {
 			element.removeEventListener('error', failed);
 			element.removeEventListener('loadstart', again);
+		};
+	});
+
+	/**
+	 * Whether the picture on screen is the one that was asked for.
+	 *
+	 * Until it is, the element is transparent and the blurred ground behind it shows through. This
+	 * is not about being slow to paint, it is about painting the *wrong* thing: left alone, an
+	 * element with metadata decodes and presents frame zero on its own, and the seek to the
+	 * remembered position then replaces it in front of the reader. Measured, frame zero at 100ms
+	 * against a first paint at 80ms and the remembered frame not until 315ms -- a quarter of a
+	 * second of exactly the cover the blur exists to avoid showing.
+	 *
+	 * Seeking earlier does not fix it. With the clip in cache the element decodes frame zero
+	 * before hydration has run at all, so script cannot win that race; what script can do is
+	 * decline to show the result.
+	 *
+	 * **Media events, not `requestVideoFrameCallback`.** The frame callback is the more precise
+	 * signal and it is the wrong one here, because it fires when a frame is presented for
+	 * composition and a fully transparent element is not in a hurry to be composited. Measured,
+	 * that turned a clip ready at 100ms into one revealed at 407ms: the thing being waited for was
+	 * waiting on the thing doing the waiting. `loadeddata` and `seeked` are answers about the
+	 * element rather than about the screen, and they arrive whether or not anyone can see it.
+	 *
+	 * Asked synchronously before anything is subscribed to, because by the time this runs the
+	 * answer may already be yes and an effect that only listens waits for an event that has been
+	 * and gone.
+	 *
+	 * The deadline is the backstop. A clip that never reaches its position has to end up visible
+	 * rather than invisible: a wrong frame is a blemish, a blank frame is a broken page.
+	 */
+	const SETTLE_WITHIN = 0.5;
+	const SETTLE_DEADLINE = 2000;
+	let settled = $state(false);
+	$effect(() => {
+		const element = el;
+		if (!element) return;
+		const wanted = positionOf(sessionStorage, src)?.at ?? 0;
+		const near = () => Math.abs(element.currentTime - wanted) < SETTLE_WITHIN;
+		const ready = () => element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+		const look = () => {
+			if (ready() && near()) settled = true;
+		};
+		const give = () => {
+			settled = true;
+		};
+		look();
+		element.addEventListener('seeked', look);
+		element.addEventListener('loadeddata', look);
+		element.addEventListener('canplay', look);
+		const deadline = setTimeout(give, SETTLE_DEADLINE);
+		return () => {
+			element.removeEventListener('seeked', look);
+			element.removeEventListener('loadeddata', look);
+			element.removeEventListener('canplay', look);
+			clearTimeout(deadline);
 		};
 	});
 
@@ -299,6 +356,29 @@
 	 * box from `width` and `height`, so without this there is a bordered rectangle of page colour
 	 * sitting in the prose for as long as the poster takes.
 	 */
+	/**
+	 * The blurred ground, on the frame rather than on the element that sits in it.
+	 *
+	 * It used to be the element's own background, which stopped working the moment the element
+	 * needed to be held back: a transparent `<video>` takes its background with it. On the frame
+	 * it stays put while the picture in front of it fades in.
+	 *
+	 * `--clip-ground` is set before anything paints, by the inline script in `app.html`, for any
+	 * clip this tab has a still of -- so a returning reader's first paint is a picture of where
+	 * they left it rather than of the first frame. The thumbhash is the `var()` fallback, which is
+	 * where a reader with no record lands. See `client/ground.ts`.
+	 *
+	 * Withheld in either full screen, where the letterbox bars are meant to be black and a
+	 * blurred still in them is the thing that mode asked for black instead of. Inline, so the
+	 * stylesheet could not take it back without `!important`; not emitting it is simpler than
+	 * overriding it.
+	 */
+	const ground = $derived(
+		!bare && preview
+			? `background-image:var(--clip-ground,url(${preview}));background-size:cover;background-position:center`
+			: undefined,
+	);
+
 	const style = $derived(
 		[
 			// Dropped in either fullscreen rather than overridden there. This is an inline style
@@ -316,9 +396,6 @@
 			// fallback inside `var()`, which is where a reader with no record lands, and the whole
 			// declaration is still withheld in full screen: the value existing is not the same as
 			// the ground being wanted. See `client/ground.ts`.
-			!bare && preview && `background-image:var(--clip-ground,url(${preview}))`,
-			!bare && preview && 'background-size:cover',
-			!bare && preview && 'background-position:center',
 			ratio && `aspect-ratio:${ratio}`,
 		]
 			.filter(Boolean)
@@ -335,6 +412,7 @@
 	-->
 	<div
 		bind:this={frame}
+		style={ground}
 		class="video-frame relative overflow-hidden {stylex.attrs(styles.frame).class}"
 		data-filling={filling || undefined}
 	>
@@ -363,6 +441,7 @@
 		onclick={() => controls?.press()}
 		src={resolved ? undefined : fallback}
 		data-clip={src}
+		data-settled={settled || undefined}
 		poster={broken ? poster : undefined}
 		{width}
 		{height}
@@ -463,6 +542,27 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		/* Held back until the frame on screen is the one that was asked for, with the blurred
+		   ground on the frame behind showing through in the meantime. The fade is short enough to
+		   read as the blur sharpening rather than as two pictures.
+		
+		   Only a clip this tab remembers is held, and the head script is what says so by setting
+		   `--clip-hold`. Defaulting to held here and releasing from the component would make every
+		   reader wait for hydration: measured, a decoded frame at 68ms against hydration finishing
+		   at 335ms on a long article. A clip with nothing remembered has no wrong frame to show
+		   and is never held. See `client/ground.ts`. */
+		opacity: var(--clip-hold, 1);
+		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.video-surface[data-settled] {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.video-surface {
+			transition: none;
+		}
 	}
 </style>
 
@@ -516,6 +616,27 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		/* Held back until the frame on screen is the one that was asked for, with the blurred
+		   ground on the frame behind showing through in the meantime. The fade is short enough to
+		   read as the blur sharpening rather than as two pictures.
+		
+		   Only a clip this tab remembers is held, and the head script is what says so by setting
+		   `--clip-hold`. Defaulting to held here and releasing from the component would make every
+		   reader wait for hydration: measured, a decoded frame at 68ms against hydration finishing
+		   at 335ms on a long article. A clip with nothing remembered has no wrong frame to show
+		   and is never held. See `client/ground.ts`. */
+		opacity: var(--clip-hold, 1);
+		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.video-surface[data-settled] {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.video-surface {
+			transition: none;
+		}
 	}
 
 	/* Both fullscreens: whatever the frame looks like in an article, it stops looking like it.

@@ -25,7 +25,7 @@ const record = (map: unknown) => JSON.stringify({ version: 2, 'video.at': map })
 describe('the ground chosen before anything paints', () => {
 	it('names the clip and carries its still', () => {
 		expect(run(record({ [CLIP]: { at: 12, still: STILL } }))).toBe(
-			`video[data-clip="${CLIP}"]{--clip-ground:url("${STILL}")}`,
+			`video[data-clip="${CLIP}"]{--clip-ground:url("${STILL}");--clip-hold:0}`,
 		);
 	});
 

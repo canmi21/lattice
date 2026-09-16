@@ -15,6 +15,18 @@
  * before the first paint -- the same ground the theme script stands on, and as early as any
  * decision about a document can be made.
  *
+ * It emits two values per remembered clip. `--clip-ground` is the picture to blur behind it, and
+ * `--clip-hold` says that element must not show itself until something says the frame is the right
+ * one -- because a clip this tab has watched is about to be seeked, and the frame it paints in the
+ * meantime is the cover the blur was put there to avoid.
+ *
+ * **Holding is declared here rather than defaulted in the stylesheet**, and that is the whole
+ * reason this part is in the head script. Holding every clip by default and releasing them from a
+ * component means every reader waits for hydration to see a picture: measured, a fresh clip has a
+ * decoded frame at 68ms and hydration on a long article finishes at 335ms, so defaulting to held
+ * cost five times the wait in order to fix a case that reader does not have. A clip with nothing
+ * remembered is never held, and is on screen as soon as it decodes, with no script involved.
+ *
  * It emits values, not appearance. Each entry becomes a `--clip-ground` on a selector matching
  * that clip, and whether anything is drawn with it stays `video.svelte`'s business -- which is
  * what keeps the blur from reappearing behind the letterbox bars in full screen, where the
@@ -25,4 +37,4 @@
  * can put arbitrary text inside a selector or a `url()` is a value that can write arbitrary CSS,
  * and "it got there through our own code" is an argument about today.
  */
-export const videoGroundScript = `(function(){try{var r=sessionStorage.getItem("state");if(!r)return;var m=JSON.parse(r)["video.at"];if(!m||typeof m!=="object")return;var o="";for(var k in m){var s=m[k]&&m[k].still;if(typeof s!=="string")continue;if(!/^[A-Za-z0-9._-]+$/.test(k))continue;if(!/^data:image\\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(s))continue;o+='video[data-clip="'+k+'"]{--clip-ground:url("'+s+'")}'}if(!o)return;var e=document.createElement("style");e.textContent=o;document.head.appendChild(e)}catch(e){}})()`;
+export const videoGroundScript = `(function(){try{var r=sessionStorage.getItem("state");if(!r)return;var m=JSON.parse(r)["video.at"];if(!m||typeof m!=="object")return;var o="";for(var k in m){var s=m[k]&&m[k].still;if(typeof s!=="string")continue;if(!/^[A-Za-z0-9._-]+$/.test(k))continue;if(!/^data:image\\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(s))continue;o+='video[data-clip="'+k+'"]{--clip-ground:url("'+s+'");--clip-hold:0}'}if(!o)return;var e=document.createElement("style");e.textContent=o;document.head.appendChild(e)}catch(e){}})()`;

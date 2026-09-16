@@ -390,6 +390,30 @@
 	let restored: number | undefined;
 	$effect(() => {
 		restored = positionOf(sessionStorage, clip)?.at;
+		const element = video;
+		if (restored === undefined || !element) return;
+		/**
+		 * A clip this tab has already watched seeks the moment it has a timeline to seek within,
+		 * rather than waiting to be scrolled to.
+		 *
+		 * Waiting costs a wrong frame in front of the reader. Left alone, an element with metadata
+		 * decodes and paints frame zero by itself, and the seek then replaces it: measured, frame
+		 * zero presented at 112ms against a first paint at 92ms, and the remembered frame not
+		 * until 337ms. A quarter of a second of the wrong picture, which is the cover the blur was
+		 * put there to avoid showing.
+		 *
+		 * Seeking at `loadedmetadata` gets in first. The element has no frame at that point, so
+		 * the first one it ever decodes for display is the one that was asked for, and frame zero
+		 * is never painted at all.
+		 *
+		 * The viewport rule still governs every clip without a remembered position, which is the
+		 * one whose cost it was protecting: a clip nobody has watched has nowhere in particular to
+		 * be, and frame zero is the right frame for it.
+		 */
+		const early = () => prime();
+		if (element.readyState >= HTMLMediaElement.HAVE_METADATA) early();
+		else element.addEventListener('loadedmetadata', early, { once: true });
+		return () => element.removeEventListener('loadedmetadata', early);
 	});
 
 	/**

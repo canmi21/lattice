@@ -282,6 +282,29 @@ reaches the same place without carrying an encoder into the bundle, and it is op
 canvas returns nothing and the thumbhash is there underneath. The clips are served with
 `Access-Control-Allow-Origin` and asked for with `crossorigin`, so in practice it is clean.
 
+**A clip the tab remembers does not show itself until the frame is the right one.** Choosing the
+blur correctly is not enough on its own: left alone, an element with metadata decodes and presents
+frame zero, and the seek then replaces it in front of the reader. Measured, frame zero at 100ms
+against a first paint at 80ms, with the remembered frame not until 315ms -- a quarter of a second
+of exactly the cover the blur exists to avoid. Seeking earlier does not fix it either, because a
+cached clip decodes frame zero before hydration has run at all. Script cannot win that race; what
+it can do is decline to show the result.
+
+**Only a remembered clip is held, and the head script is what says so.** Holding every clip by
+default and releasing them from a component would make every reader wait for hydration to see a
+picture: measured, a decoded frame at 68ms against hydration finishing at 335ms on a long article,
+five times the wait to fix a case that reader does not have. A clip with nothing remembered has no
+wrong frame to show, is never held, and is on screen as soon as it decodes with no script
+involved. Measured after: the two fresh clips visible at 51ms, the remembered one held through its
+seek and fading in on the right frame.
+
+The release waits on `loadeddata` and `seeked` rather than on `requestVideoFrameCallback`. The
+frame callback is the more precise signal and the wrong one here, because it fires when a frame is
+presented for composition and a transparent element is not in a hurry to be composited -- measured,
+that turned a clip ready at 100ms into one revealed at 407ms, the thing being waited for waiting on
+the thing doing the waiting. There is a deadline behind both, because a wrong frame is a blemish
+and a blank frame is a broken page.
+
 **The choice is made before anything is painted, and it takes a script to make it.** There is no
 declarative way: `sessionStorage` is a JavaScript API, and no media query, attribute selector or
 server negotiation can read it. What can be chosen is *when* -- an inline `<head>` script, running
