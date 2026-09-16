@@ -116,6 +116,24 @@ One consequence to watch rather than pre-solve: a source at exactly 1080p publis
 software path has only the heaviest rung to take. If a measured wait turns out to be intolerable the
 answer is another rung below it, not a change to the playback logic.
 
+## The chrome is built on `@videojs/core`'s headless store, not its skin
+
+The engine is still the `<video>` element. Between it and the markup in `video-controls.svelte`
+sits `@videojs/core`, a state store plus a set of control cores that ships no CSS at all -- every
+stylesheet in that project lives in `@videojs/react`, an opt-in skin nothing here imports. What it
+gives instead is the tedious half: playback state that follows the element rather than guessing,
+fullscreen and picture-in-picture across engines, and text-track modes. Measured at 8.9kB gzipped
+for the eleven features the component names, against 10.1kB for the fifteen in the preset.
+
+The component binds to `@videojs/core/dom`, the vanilla layer, rather than to the project's custom
+elements: `<media-play-button>` and its siblings are web components with a shadow root, which none
+of Tailwind, StyleX or a scoped `<style>` can reach into. Rendering the markup by hand keeps all
+three styling layers working.
+
+**`attach` is the step, not the constructor.** `new HTMLVideoAdapter(video)` compiles, returns an
+adapter and attaches nothing: measured, the clip played while `store.currentTime` stayed at zero
+and `subscribe` fired not once.
+
 ## A clip is a picture, then a silent picture, then a player
 
 What the controls look like, and why they take none of their colours from the page, is in
