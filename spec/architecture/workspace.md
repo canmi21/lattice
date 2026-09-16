@@ -10,14 +10,19 @@ library earns after it stabilises, not a precondition for using it.
 ## Layout
 
 ```
-spec/       Rules. Start at CLAUDE.md, which indexes this directory.
+spec/       Rules, this project's own. Entered from the workspace's CLAUDE.md one directory
+            up; this repository deliberately carries none of its own.
 libs/       Libraries, any language.
 apps/       Deployable things, any language.
 contents/   Articles. Tracked, because prose is revised and wants diffs.
 data/       Assets and the records describing them. Bytes stay out of git; records go in.
-repos/      Applications published on their own. Each is a separate repository, ignored
-            here and cloned into place -- see repos.md.
 ```
+
+Two lines of that block are a correction. They used to say `spec/` was indexed by a `CLAUDE.md`
+here and to name a `repos/` directory below it, which described the earlier arrangement -- one
+project at the root with the rest nested inside it. That was abandoned: press is a project
+cloned into the workspace's own `repos/`, a sibling of the others, and `repos/` and the entry
+point both belong one directory up.
 
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
 subjects: [data.md](data.md), [media.md](media.md), [video.md](video.md),

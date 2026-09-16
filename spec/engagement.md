@@ -275,7 +275,7 @@ object with a `preferred` inside it. Nesting buys grouping the dot already expre
 every reader and writer a walk down a path that may not exist yet. A component simple enough to
 hold one fact names the key after the component and stops.
 
-**The version is an integer, and it is there from the first write.** `MIGRATIONS[0]` takes a
+**The version is an integer, and it is there from the first write.** `migrations[0]` takes a
 record at version 1 to version 2, and a step edits in place and may assume every earlier one has
 run. It was introduced while both lists were empty, which is exactly when the mechanism is
 cheapest: a record written without a version cannot be migrated later, because the code that

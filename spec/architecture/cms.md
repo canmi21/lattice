@@ -455,9 +455,11 @@ Korean", and it does.
 
 **Bodies are fetched when they are opened, in two steps.** The outline carries what a row needs --
 id, one line of text, how many locales hold it -- and a segment's renderings are fetched when that
-segment is opened. The largest sidecar here is 609 KB across 1128 translations, so sending it whole
-to draw a list of a hundred and forty rows would spend the entire file rendering each row's first
-line.
+segment is opened. The largest sidecar here measured 612 KB across 1144 translations at the time,
+so sending it whole to draw a list of a hundred and forty-odd rows would spend the entire file
+rendering each row's first line. The figure is dated on purpose: it was carried in the present
+tense and had drifted, and the argument does not turn on it -- a corpus that only grows makes the
+two-step fetch more necessary, never less.
 
 **A stale segment can be dropped on its own.** The article-level sweep remains, and the panel adds
 the row-level one: tick the ones to go, or drop the group. The command takes the ids it is given
@@ -500,8 +502,10 @@ Theme behaviour is shared separately from its colour values. `@canmi/tokens` rem
 follows that system query live, while the public site can still honour its explicit `theme` cookie.
 
 The WebView is one application shell with a persistent left sidebar. Its top-level destinations are
-Overview, Articles, Media, Automations and Activity: content and resources are things to manage,
-while scheduled work and its history are separate views of what the CMS does to them. Individual
+Overview, Articles, Segments, Media, Derived, Automations and Activity: content and resources are
+things to manage, while scheduled work and its history are separate views of what the CMS does to
+them. Segments and Derived were missing from this list, which contradicted the two sections below
+that describe them. Individual
 CLI commands do not become navigation destinations. They become tasks inside Automations, with
 their runs reported by Activity, so adding another operation does not make the application's
 information architecture wider.

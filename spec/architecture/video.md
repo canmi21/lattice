@@ -161,6 +161,12 @@ gives instead is the tedious half: playback state that follows the element rathe
 fullscreen and picture-in-picture across engines, and text-track modes. Measured at 8.9kB gzipped
 for the eleven features the component names, against 10.1kB for the fifteen in the preset.
 
+**It is three packages, not one.** This section used to hand the whole stack to `@videojs/core`,
+which is loose rather than wrong: the component imports the eleven features from
+`@videojs/core/dom`, `HTMLVideoAdapter` from `@videojs/media/dom`, and `createStore` from
+`@videojs/store`. The core supplies the feature set, media supplies the adapter that binds one to
+a `<video>` element, and the store is the state container the other two are assembled into.
+
 The component binds to `@videojs/core/dom`, the vanilla layer, rather than to the project's custom
 elements: `<media-play-button>` and its siblings are web components with a shadow root, which none
 of Tailwind, StyleX or a scoped `<style>` can reach into. Rendering the markup by hand keeps all

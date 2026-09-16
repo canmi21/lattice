@@ -151,6 +151,14 @@ sitemap that stops listing a page says nothing, is simply the other half of the 
 `objectID` the remote holds and the corpus no longer produces is deleted. A stale record in a
 search index does not decay quietly like an unannounced URL; it keeps being returned.
 
+`--dry` exists here and went unwritten, which the sentence above made worse: saying `--seed` has
+no equivalent, and saying nothing about its sibling, read as though neither flag were here. It
+prints the same run -- the corpus counts, the largest record's size, and the `objectID`s it would
+write and delete -- and then stops, sending nothing. It also prints the first changed record in
+full, because the counts say how much would be sent and nothing about whether it is right, and
+the address and the anchor are what a reader lands on. There is no local state for it to protect:
+the fingerprints live on the remote, so a run that sends nothing has written nothing anywhere.
+
 ## It runs after the deploy, and it is not part of `sync`
 
 The index describes what the site serves, so it is aligned once the site serves it -- the same

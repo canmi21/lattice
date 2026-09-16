@@ -18,7 +18,7 @@ those are not a property of stylesheets. The rules above hold whatever the langu
 
 ## The named layer in CSS is the visual layer, written before there was one
 
-`utilities.css` and [`libs/primitives/style.css`](../libs/primitives/src/style.css) hold a
+`utilities.css` and [`libs/primitives/src/style.css`](../libs/primitives/src/style.css) hold a
 vocabulary of named surfaces -- `focus-link`, `spring-underline`, `article-link`, `pill`, `value`,
 `jump-target`, `selectable`. Measured across the site's markup before any of them moved, 426 of
 1601 class tokens were these rather than Tailwind utilities, which is the vocabulary announcing
