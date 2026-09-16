@@ -1126,3 +1126,32 @@ that wants it -- which is every image path, so the change is small in edits and 
 asserts. Both readings leave `image/`, `video/` and `captions/` needing a mime-to-extension answer
 each; only the second makes a caller say which tree it is asking about. Neither is worth doing
 while the video commands are still landing, because the call sites are what would move.
+
+## The licence surface is eight addresses and one baked record
+
+`/licenses`, `/licenses/{spdx}`, `/licenses/pkgs`, `/licenses/pkgs/{registry}`,
+`/licenses/pkgs/{registry}/{package}`, `/licenses/{registry}/{name}@{version}.txt`,
+`/licenses/full.txt` and `/licenses.txt` are eight public addresses across thirteen route files.
+Nothing else this site serves spends that much of its URL space on one subject, and the subject is
+a dependency list.
+
+Behind them, the `virtual-licenses` plugin in [vite.config.ts](../apps/site/vite.config.ts) bakes
+`data/build/licenses.json` into the server bundle. Measured on a production build: 482KB raw and
+71.7KB gzipped, the largest chunk the Worker carries after the corpus itself -- ahead of
+`index-server.js` at 40.6KB and `surfaces.js` at 36.5KB. Only the metadata travels; the licence
+texts are already published objects the CDN serves.
+
+What makes it a finding rather than a preference is that the record sits on the wrong side of a
+line this repository is in the middle of drawing. It is derived from the lockfile by a pure
+function, so nothing is lost by regenerating it, which is the test that sends a generated record
+out of git and into R2. It is also the only such record with a consumer at request time. So the
+classification reaches it, and the answer it gives -- publish it as an artifact and fetch it like
+any other -- is an answer about a surface nobody has decided to keep.
+
+**What deciding it would cost.** The intent is two or three addresses rather than eight, and which
+ones is open: a single page carrying the directory inline, or a page plus the text endpoints that
+exist for machines rather than readers. Whatever survives decides what the record has to be, which
+is why it is held out of the move rather than carried through it and rebuilt afterwards. The cost
+of waiting is that `data/build/licenses.json` stays in git while every other pure derivation
+leaves; the cost of not waiting is migrating a payload onto a surface that is about to lose most
+of it.
