@@ -114,6 +114,37 @@ promises that the bytes at that name never change, so re-subsetting the font req
 filename. CJK chunks already carry content hashes and need no such promise. Whatever replaces
 `_headers` has to preserve both cases rather than pretending all font names have one shape.
 
+### And the policy is derived from the key, not decided per route
+
+That trap generalises, and it is now the worker's one cache rule: **a content-addressed key
+answered `2xx` gets a year and `immutable`; everything else gets five minutes.** Nothing is
+looked up in a table, so a new object type arrives with the right policy and no decision to
+remember.
+
+The paragraph above is the same statement made twice about fonts -- hashed CJK chunks need no
+promise, unhashed Latin names do -- and this is that observation applied to every key the bucket
+holds. **One family keeps a long life without a hash: the Latin subsets above**, on the written
+promise that re-subsetting produces a new filename. It is the only entry on that list, and a key
+wanting to join it has to arrive with its own promise.
+
+The `2xx` condition is the half that is easy to omit. A `404` on a content-addressed key means
+the object was not uploaded or has been swept, and holding that for a year would outlive the
+mistake by a very long way. See [artifacts.md](artifacts.md), "The key says what may cache it".
+
+**This shortened three things that were not content-addressed and had been getting a week**:
+`/favicon/{domain}`, `/license/full.txt`, and the assets under `data/public` that no named route
+claims. The week was inherited from the `_headers` era and had never been argued for any of them
+individually.
+
+Five minutes is the right number for the same reason the API's answers get five minutes: these
+are published bytes, and the whole point of the arrangement above is that **publication has one
+delay rather than a different one per resource**. A favicon a week stale while an article is five
+minutes stale is two answers to one question. What it costs is a revalidation per colo per five
+minutes on files that are small and rarely asked for.
+
+A route that genuinely needs longer says so itself, with its reason, which is what
+[opengraph.ts](../../apps/cdn/src/opengraph.ts) already does and why its week survives this.
+
 ## Release assets are proxied, for one account
 
 `/github/release/{repo}/{tag}/{asset}` serves a file attached to a GitHub release, fetched live

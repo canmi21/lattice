@@ -311,34 +311,23 @@ or lag behind the existing motion path.
 Rust is the only implementation of those block boundaries and hashes. `cms segments` writes
 the ordered translatable segment ids and their source byte ranges to
 `data/build/segments.json`; `cms i18n` refreshes the same record before making any paid
-request. The site assembles its views from that committed record and never splits or hashes an
-article itself. This keeps a site-only CI build self-contained while making a stale record fail
-the CMS regression test instead of silently turning every translation lookup into a miss.
-The dev server watches the content directory as well as every known build input, because a
-translation or summary sidecar may not exist when its virtual article module first loads.
-Generated prose must become visible without restarting the dev server.
+request. The publish step assembles the views from that committed record and never splits or
+hashes an article itself, which makes a stale record fail the CMS regression test instead of
+silently turning every translation lookup into a miss.
 
-In development, a Markdown change refreshes the segment layout with the Rust implementation
-before replacing the site's current compiled-content snapshot. Saves arriving in one burst are
-coalesced, and the resulting layout-file event is consumed by the same update rather than
-refreshing twice. The replacement is atomic: a request sees the complete old snapshot or the
-complete new one, never new source paired with an old segment layout. This removes the stale-layout
-window without duplicating segmentation in TypeScript; CI and production builds continue to
-consume the committed record without Rust.
+**Everything this section used to say about a virtual module is gone with the module.** The site
+no longer compiles the corpus at build time, so there is no multi-megabyte ESM module to evaluate,
+no development snapshot to replace atomically, and no deployed bundle whose size argues for
+de-duplicating a locale payload. Those were real problems and each was solved; they were all
+consequences of compiling the corpus into the Worker. See
+[architecture/artifacts.md](../architecture/artifacts.md).
 
-The data-bearing virtual module is evaluated once in development. Later content updates replace
-its exported snapshot in place and reload the browser without invalidating the module. Repeatedly
-evaluating a multi-megabyte ESM module lets the SSR runner retain old module generations until a
-long editing session exhausts its heap; increasing the heap would only postpone the same failure.
-Content inputs therefore enter the file watcher directly rather than becoming dependencies of the
-virtual module: Vite invalidates dependencies before a plugin's update hook runs, which is already
-too late to preserve that module generation.
-
-The initial virtual module stores each distinct compiled locale payload once and reconstructs the
-locale lookup with shared references. A missing translation points back to the source payload
-rather than serializing the same blocks again for every locale. Source fallback is semantically
-one view; letting JSON expand it into nine copies needlessly enlarges both the deployed bundle and
-the one development module generation that remains.
+Two of them were worth keeping as facts rather than as mechanisms. De-duplication is now free and
+total: a view whose bytes are identical to another's has the same hash and is one object, so a
+locale falling back to the source costs nothing anywhere. And the ordering that update needed --
+refresh the layout with Rust before compiling against it -- is the publish step's ordering now,
+for the same reason it was the dev server's: a view spliced from a stale layout is wrong in a way
+nothing reports.
 
 The segment layout is a derived build record, not the translation sidecar. It carries only an
 id, the start and end byte offset, a source fingerprint, and whether the span belongs to

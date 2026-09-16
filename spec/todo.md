@@ -1158,3 +1158,77 @@ is why it is held out of the move rather than carried through it and rebuilt aft
 of waiting is that `data/build/licenses.json` stays in git while every other pure derivation
 leaves; the cost of not waiting is migrating a payload onto a surface that is about to lose most
 of it.
+
+## The compiler still lives in the application that stopped using it
+
+`apps/site/src/lib/content/build/` is 2,900 lines that turn markdown into blocks: `compile.ts`
+alone is 1,210, with `articles.ts`, `assets.ts`, `assemble.ts`, `width.ts` and `highlight.ts`
+beside it. After the move to published objects, nothing in the site's Worker or its browser
+bundle imports any of it. Its only caller is `apps/site/scripts/publish.ts`.
+
+So it sits in an application that does not use it, under a path that says it is part of one.
+Nothing misbehaves: `scripts/` is not bundled, the code is unchanged, and `tsconfig.scripts.json`
+checks it where it stands. It is a name that has stopped describing its contents.
+
+Where it should go is the open part, and the candidates are not equivalent.
+[architecture/cms.md](architecture/cms.md) says content operations belong below both of the CMS's
+shells, which would make this the CMS's -- but the CMS is Rust, and
+[i18n/segments.md](i18n/segments.md) refuses to reimplement remark's canonical form in a second
+language, so the CMS would be reaching it by subprocess. A package of its own under `libs/` is the
+other candidate and is cheap, and it would make the publish step a consumer like any other rather
+than the owner by accident.
+
+**What deciding it would cost.** The move itself is mechanical -- one directory, one caller, and
+the type surface already left for `libs/artifacts`. What it settles is whether the CMS owns
+compilation, which is a question about the CMS's boundary rather than about this directory, and
+answering it in passing while moving files is exactly how a boundary gets decided by whoever was
+holding the mouse. Not worth doing during the migration that created the situation, because the
+publish step is what would move.
+
+## Publishing is a mise task and cannot become a CMS button
+
+[architecture/cms.md](architecture/cms.md) draws the line plainly: a view that has found
+outstanding work shows the command that closes it, and that command becomes a button only once
+the operation has moved below both shells and the task substrate can report its progress and
+refuse a second copy. `publish` is `mise run publish press` and lives below neither shell, so the
+CMS may name it and may not run it.
+
+It is exactly the class that rule was written for. It runs for as long as the corpus takes to
+compile, it writes into `data/` and then across the network, and two copies racing over one tree
+is the failure the substrate exists to refuse. It differs from the paid sweeps in only one way:
+it spends time rather than money, which makes an accidental second run cheaper, not safe.
+
+**What deciding it would cost.** Moving it means an in-process application operation in Rust with
+a TypeScript compile behind it, which is the subprocess boundary
+[i18n/segments.md](i18n/segments.md) already accepts in the other direction and cms.md has not
+ruled on in this one. The entry above, on where the compiler lives, is the same question arriving
+from the other side -- and answering either one first mostly decides the other. Neither is worth
+taking while the publish path is still new enough that its shape may move.
+
+## A draft is published to a tree nothing reads
+
+`mise run publish` writes the whole corpus twice: once into `data/public/` without drafts, and
+once into `data/draft/` with them, each with its own root. The second tree is correct and
+complete. Nothing opens it.
+
+A Worker cannot read a host directory -- workerd's `node:fs` is virtual, which
+[libs/store](../libs/store/src/index.ts) records as verified -- so development reaches the local
+tree through `wrangler dev`'s assets binding, and that binding names one directory. Both the API
+and the CDN point theirs at `data/public`. So an author can compile a draft and has nowhere to
+look at it, where `vite dev` used to render one.
+
+Pointing both at `data/draft` instead does not work, and the reason is worth writing down because
+it is the obvious fix: the draft tree holds every published object but none of the assets -- no
+images, no fonts, no favicons, since those are not artifacts and are only ever written under
+`data/public`. Development would render drafts with every picture missing.
+
+**What deciding it would cost.** The shapes are a second binding and a fallback inside
+[libs/store](../libs/store/src/index.ts)'s `read`, which is small but puts a development-only
+branch in the one module both Workers reach the bucket through; or a union of the two directories
+assembled at publish time, which keeps the Workers ignorant and costs a third tree to keep
+consistent; or moving development off the assets binding entirely. The first is probably right
+and it is not obvious, which is why it is here rather than done.
+
+Separately and underneath it: the edit loop is now `edit, publish, refresh` where it was `edit,
+refresh`. A `--watch` on publish is the answer and nobody has needed it yet, because nobody has
+lived with this for a day.

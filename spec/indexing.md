@@ -6,8 +6,8 @@ for what is allowed into it. This file is the push side -- IndexNow, which notif
 participating engines that something moved rather than waiting for them to notice. Searching
 this site's own corpus is [search.md](search.md), which runs beside this one and shares its
 ordering, but answers a reader here rather than announcing an address elsewhere. Neither side
-ever sees a draft: [drafts.md](drafts.md) drops those before the corpus both of these read is
-built, so there is no address to announce and no record to index.
+ever sees a draft: [drafts.md](drafts.md) keeps those out of the tree that is published, so
+there is no address to announce and no record to index.
 
 ## The key is published, because the protocol requires publishing it
 
@@ -126,4 +126,11 @@ worth building when a page is actually withdrawn rather than in advance of one.
 The sitemap route is generated per request so that `changefreq` and `priority` describe
 staleness at crawl time. There is no build artifact to read, and what is live is what an engine
 would see, which is the thing being reconciled. `mise run indexnow` therefore belongs after
-`mise run deploy-site`, never before it.
+`mise run publish`, never before it.
+
+**It used to belong after `mise run deploy-site`, and the change is not a rename.** A deploy no
+longer moves an article, so waiting for one would be waiting for the wrong event -- and a publish
+is now the frequent one while a deploy is rare. What the ordering is really waiting for is
+unchanged: the address has to answer before anyone is told about it. That is publication plus the
+API's five minutes, not a deploy. See
+[architecture/artifacts.md](architecture/artifacts.md).

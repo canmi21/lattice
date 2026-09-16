@@ -45,16 +45,52 @@ The split is there to keep the top of `data/` readable. Everything directly unde
 something a person curates and may be asked about; `data/build/` is output, and it may grow a
 file whenever a consumer needs one without that growth being a question.
 
-**Which of them git keeps is decided by one question: does a CI build read it?** A site-only CI
-build must not need a Rust toolchain to produce its own inputs, so everything it reads is
-committed -- `segments.json`, `crates.json`, `repos.json`, `twitter.json` and `licenses.json`,
-each named by the site's Vite config or its content build. A file only the tool that wrote it ever
-reads is a cache, not a build input, and stays out: `opengraph.json` records which cards are current so
-`cms og` can skip them, and losing it costs one slow rerun rather than a broken build.
+**Which of them git keeps was once decided by one question -- does a CI build read it? -- and
+that question no longer has an answer.** No CI build reads any of them; the corpus is compiled
+here and published as objects. See [artifacts.md](artifacts.md); the section below says what
+replaced the requirement.
 
-The question is deliberately about the consumer rather than about how the file was produced.
-Both kinds are generated, both are text, and a rule phrased on "is it derived" would have to
-decide the same case twice.
+Two questions decide it now, and they are asked in order.
+
+**Can it be regenerated losslessly, without spending money and without asking the network?** If
+it can, git keeps nothing by holding it: `segments.json` is minutes of CPU and `licenses.json`
+is a function of the lockfile. Those leave.
+
+The question is deliberately not "was it generated", which was the shape that misled. Three
+kinds of generated file answer it differently and only the first is free:
+
+|                                     | Example                                       | Regenerating costs           |
+| ----------------------------------- | --------------------------------------------- | ---------------------------- |
+| A pure derivation                   | `segments.json`, `licenses.json`              | CPU, and nothing else        |
+| A paid derivation                   | `metadata.json`, `media.yaml`, `diagram.json` | a model call per entry       |
+| A snapshot of somebody else's world | `twitter.json`                                | **it cannot be regenerated** |
+
+`twitter.json` is the one that settles the rule's shape. It holds the tweets `::twitter` renders,
+and a deleted tweet is gone -- so it is an archive wearing a generated file's clothes, and a rule
+that read "generated, therefore droppable" would have thrown it away for 403 bytes.
+
+**And if it stays out of git: does anything read it at request time?** If it does, it is
+published as an object and reaches its consumer that way. If it does not, it is an intermediate
+the publish step wrote for itself and it belongs nowhere -- not in git, and not in the bucket
+either. `data/build/` is where those live and `opengraph.json` is the standing example: it
+records which cards are current so `cms og` can skip them, and losing it costs one slow rerun.
+
+That second question exists to stop the bucket becoming the place every generated file goes
+merely because it left git. R2 holds what somebody will ask for.
+
+### What stays in git, and until when
+
+`contents/**.md` and the translation sidecars beside them stay, along with every paid derivation
+and every snapshot above. The reasoning is not that they are small, though they are -- 225KB of
+articles and 1.8MB of translations -- it is that nothing else is holding them: a mistaken `cms
+invalidate` is one `jj undo` away only while git has them, and the translations it would delete
+were paid for and read by a person who set `review: true`.
+
+**This is pinned to a condition rather than settled.** When an online editor exists and writing
+stops going through a file on this machine, that write path has to answer backup and history
+itself, and once it does the reason to hold any of this here is gone. The condition and the
+other decision waiting on it are recorded together in [artifacts.md](artifacts.md), "What
+happens when writing moves online".
 
 The rule was first written as "`data/` is never in git", which held until it needed several
 exceptions. Those exceptions mean the line was drawn around the wrong thing: the directory
@@ -84,6 +120,13 @@ harmless one, the structure should make the loud one the only option.
 The mirror uses `sync`, not `copy`, so deleting locally deletes remotely. That makes a wrong
 source path destructive, which is why the task refuses to run without an explicit destination
 and dry-runs unless told `--live`.
+
+**Except for the content-addressed prefixes, which are copied rather than synced.** An object
+named by its own hash is never rewritten, so there is nothing for `sync` to update -- what it
+would do is delete the objects a root still in somebody's cache is naming, five minutes after
+they stopped being current. Copying leaves them, and a sweep removes them later when it can be
+shown nothing can still ask. [artifacts.md](artifacts.md) has the arithmetic; this file already
+had the principle, in "Deletion is the one thing that never happens as a side effect".
 
 ## Assets are prepared locally, never in CI
 
@@ -149,25 +192,20 @@ empty set: reading a broken file as empty and saving it back would replace hand-
 paid-for content -- descriptions, alt text, a model call per image -- with nothing, and nothing
 would say so.
 
-## A CI build must be able to build from git alone
+## A CI build compiles the site, and no longer compiles the corpus
 
-The site builds from `data/metadata.json`, `data/media.yaml`, `data/diagram.json`, the records
-under `data/build/`, `contents/` and `site.config.yaml` -- all committed -- and never reads
-untracked asset bytes.
-The merged image manifest carries every dimension, srcset and placeholder, the article segment
-record carries the CMS-derived ids and byte ranges, `cms embed` writes repository and crate
-facts for author-written `::github` and `::cargo` directives, and `twitter.json` holds the tweet
-snapshots referenced by `::twitter`. The site watches those generated records as first-class
-build inputs. It never fetches widget data in the browser or Worker, so
-a checkout renders the complete article with neither asset bytes, network access nor a Rust
-toolchain present.
+**This section required a CI build to be able to compile every article from git alone, and that
+requirement is gone rather than relaxed.** The site does not compile articles at all now: it
+reads published objects at request time, and what produces them runs here, on the machine that
+holds the originals. See [artifacts.md](artifacts.md).
 
-The consequence is a rule: **CI compiles, it never derives.** No `cms` command runs there.
-`cms image` would write into a `data/` that vanishes with the container, and it could not read
-the originals in any case.
+So the records that used to be committed _because a CI build read them_ -- the merged image
+manifest, the segment layout, the embed and tweet records -- are read by the publish step
+instead, which is local and has the whole of `data/` in front of it. Which of them stay in git
+is now decided by the two questions above rather than by what a container can reach.
 
-Two things a CI build needs that a local one gets for free, so both are pinned rather than
-resolved:
+What survives is the half that was never about content. CI builds the site's own code, and two
+things it needs that a local build gets for free stay pinned rather than resolved:
 
 - `packageManager` and `.node-version`, because `mise.toml` does not apply outside this
   machine and the lockfile is only readable by a pnpm new enough to know its format.

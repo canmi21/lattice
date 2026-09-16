@@ -24,26 +24,33 @@ readers disagreed for a while -- the CMS lenient, the site strict -- which is th
 workspace's `code.md` warns about under two readings of one format: nothing was wrong, something
 was merely different, and the difference was a draft on the public site.
 
-## A production build drops them; every other build keeps them
+## Publication drops them; the local tree keeps them
 
-The discriminator is the site build's mode, the same one that picks between the production and
-development URL maps. `vite build` is production and compiles a corpus with no drafts in it;
-`vite dev` and `vite build --mode development` compile one with them, which is the only way to
-look at a draft.
+**The discriminator used to be the site build's mode, and there is no site build of the corpus
+any more.** It is now which tree an object is written into: a draft's objects and a draft root go
+to `data/draft/`, which [architecture/data.md](architecture/data.md) says never leaves this
+machine, and the root written into `data/public` does not name them.
 
-Dropping happens in [articles.ts](../apps/site/src/lib/content/build/articles.ts), before the
-article is compiled, so there is one place to read and no list of consumers to keep in step. The
-homepage listing, the sitemap, the Atom feed, `/llms.txt` and the per-article markdown all read
-the same compiled corpus, and a draft is simply not in it. Filtering the result instead would
-leave every one of those a place the omission could be forgotten.
+That moves the boundary onto the one the mirror already enforces, which is the stronger place for
+it. Before, a draft was absent because a parameter said so and every consumer read a corpus built
+under that parameter; now it is absent because the bytes are in a directory `rclone` is not
+pointed at. A forgotten filter published a draft; a forgotten filter now publishes nothing,
+because there is nothing there to publish. See
+[architecture/artifacts.md](architecture/artifacts.md), "Drafts leave the corpus at publication,
+not at build".
 
-**The build takes its policy from the caller, and the parameter is required.** A caller that
-forgets to decide is a type error; a default would be a draft quietly shipped. The two callers
-answer from what they are for -- the site build from its mode, and
-[search.ts](../apps/site/scripts/search.ts) from the fact that the index it writes is
+Dropping still happens in [articles.ts](../apps/site/src/lib/content/build/articles.ts), before
+the article is compiled, so there is one place to read and no list of consumers to keep in step.
+The homepage listing, the sitemap, the Atom feed, `/llms.txt` and the per-article markdown all
+resolve through the root, and a draft is simply not in the one the site reads.
+
+**The compile still takes its policy from the caller, and the parameter is still required.** A
+caller that forgets to decide is a type error; a default would be a draft quietly shipped. The
+callers answer from what they are for -- the publish step runs the compile twice, once per tree,
+and [search.ts](../apps/site/scripts/search.ts) from the fact that the index it writes is
 production's and has no other version.
 
-**An `::article` card naming a draft fails the production build.** The card resolves against the
+**An `::article` card naming a draft fails the publish.** The card resolves against the
 same reference map the corpus is built from, and a path missing from it already throws. That is
 the report worth having: two articles written to ship together, one of which is not ready, is a
 thing to be told about before deploying rather than after.

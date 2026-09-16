@@ -1,7 +1,7 @@
 # Searching the corpus
 
 `mise run search` reconciles an Algolia index with what this site actually serves. It is the
-third of three things that happen after a deploy, and the only one a reader interacts with:
+third of three things that happen after a publish, and the only one a reader interacts with:
 [indexing.md](indexing.md) tells other people's search engines what moved, this one answers
 queries typed into this site.
 
@@ -159,18 +159,19 @@ full, because the counts say how much would be sent and nothing about whether it
 the address and the anchor are what a reader lands on. There is no local state for it to protect:
 the fingerprints live on the remote, so a run that sends nothing has written nothing anywhere.
 
-## It runs after the deploy, and it is not part of `sync`
+## It runs after the publish, and it is not part of `sync`
 
 The index describes what the site serves, so it is aligned once the site serves it -- the same
 ordering [indexing.md](indexing.md) states for IndexNow, for the same reason. A record pointing
 at an address that is not live yet, or holding text the site no longer has, is wrong in a way
-nothing reports.
+nothing reports. The event it waits for is a publish rather than a deploy, for the reason that
+file gives: a deploy stopped being what moves an article.
 
-`sync` is the wrong host for it twice over. It runs _before_ a deploy, because assets have to
-exist before the page referencing them ships. And its safety is structural: rclone is pointed
-at `data/public` and can physically see nothing else, which is what makes it fail closed.
-Publishing something with a different scope from inside that command retires that argument,
-and its `--dry-run` default would then cover one of the two publications rather than both.
+`sync` is the wrong host for it twice over. It is a transfer, and its safety is structural:
+rclone is pointed at `data/public` and can physically see nothing else, which is what makes it
+fail closed. Publishing something with a different scope from inside that command retires that
+argument, and its `--dry-run` default would then cover one of the two publications rather than
+both.
 
 ## The write key never leaves this machine
 

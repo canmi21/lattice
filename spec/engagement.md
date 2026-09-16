@@ -239,13 +239,20 @@ one `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` statement, so concurrent re
 handed the same number and an article's first read is the row's creation rather than a case of
 its own.
 
-**Which slugs exist is compiled into the Worker, not learned from requests.** The API is built
-from the repository the markdown lives in, so `scripts/slugs.ts` walks `contents/` at build time
-and emits the list; an unrecognised slug is a `404` and never reaches the database. The generated
-module is committed, because the workspace type check, lint and test tasks run from the root and
-never pass through this package's build -- a test regenerates the list and fails if it has gone
-stale. Site and API are separate Workers Builds off the same commit, so a newly published article
-is briefly unknown to the API. It is a few minutes, and it heals itself.
+**Which slugs exist is read from the published root, not learned from requests.** An
+unrecognised slug is a `404` and never reaches the database. The list comes from the same object
+that tells the site what exists, so the two cannot disagree about which articles there are.
+
+**This used to be a module compiled into the Worker**, walked out of `contents/` at build time by
+`scripts/slugs.ts` and committed so the root-level checks could read it without a build. That
+arrangement is gone with the build it depended on: publishing an article no longer deploys
+anything, so a generated list would have gone stale with nothing to regenerate it. What it bought
+-- a slug validated without a round trip -- survives, because the root is parsed once per isolate
+and cached. What it cost was a deploy of this Worker per article, and that is what was wrong with
+it. See [architecture/artifacts.md](architecture/artifacts.md).
+
+A newly published article is still briefly unknown here, for a different and smaller reason: the
+root is cached, so the window is the cache rather than a deploy. It heals itself.
 
 Deduplication is one Cloudflare rate limit of one count per IP per article per minute, with the
 wider per-IP engagement allowance above it to bound somebody walking every slug in turn. **Being

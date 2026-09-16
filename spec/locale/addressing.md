@@ -56,6 +56,24 @@ Server-only discovery routes do not inherit this negotiation. The sitemap publis
 indexable view at once. Atom selects from `lang` alone, because each query-specific feed is a
 shared-cache resource and neither a cookie nor `Accept-Language` is part of its address.
 
+### Locale is not negotiated twice
+
+Selection runs on the server, once, and the client is told the answer. It never runs a
+negotiation of its own -- not after hydration, and not when it navigates without touching the
+server at all.
+
+That mattered less when every page came from the server. Now a navigation after hydration is the
+browser asking the API and the CDN directly ([architecture/artifacts.md](../architecture/artifacts.md)),
+so the client holds a locale and could plausibly re-derive one. It must not. Two implementations
+of this negotiation -- one reading a cookie and `Accept-Language` in a Worker, one reading
+`document.cookie` in a browser -- would be two readings of one input, and
+[the workspace code.md](../../../../spec/code.md) names that shape as a defect waiting for the
+first input that separates them.
+
+The resolved code reaches the client as page data and is carried from there. Changing language
+still writes the cookie and reloads, which is the client choosing an input and the server
+deciding again; nothing about that changes.
+
 ### Every page negotiates; the exceptions are documents
 
 Being multilingual is what a page here is, so nothing has to opt in. What
