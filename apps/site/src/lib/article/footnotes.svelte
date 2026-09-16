@@ -41,7 +41,7 @@
 			lineHeight: 1.6,
 			color: 'var(--color-text-soft)',
 			// `balance` over the categorically-right `pretty` -- measured, not reasoned; see
-			// spec/styling.md, "A wrapped note is balanced, and that was measured rather than
+			// spec/styling/notes.md, "A wrapped note is balanced, and that was measured rather than
 			// reasoned".
 			//
 			// Declared on the note rather than the line inside it: this is the block that
@@ -221,7 +221,7 @@
 	/**
 	 * Move the page in step with the fold, when closing it would otherwise drag the page along.
 	 *
-	 * See spec/styling.md, "Closing the fold carries the page with it", for why this is needed
+	 * See spec/styling/notes.md, "Closing the fold carries the page with it", for why this is needed
 	 * and the measurement behind it.
 	 */
 	function scrollCarry(from: number, to: number): ((height: number) => void) | undefined {
@@ -280,7 +280,7 @@
 		if (!movesThisPage(event)) return;
 		const destination = targetOf(event.currentTarget);
 		if (!destination) return;
-		// The move is not an address: see spec/styling.md.
+		// The move is not an address: see spec/styling/notes.md.
 		event.preventDefault();
 		jumpTo(destination);
 		// Light the words the reader is returning to. A marker in a heading has no wrapped
@@ -295,7 +295,7 @@
 <!-- Apparatus about the article, not part of it: this renders after the article closes, under
      the dashed rule that is the article's ending boundary, so the rail and the table of contents
      never measure it. The notes stay smaller than the prose they came from; the heading above
-     them speaks at the page's shared section-name size. See spec/styling.md. -->
+     them speaks at the page's shared section-name size. See spec/styling/notes.md. -->
 <section
 	aria-label={m['article.notes']({}, { locale })}
 	class="notes {stylex.attrs(styles.notes).class}"
@@ -355,7 +355,7 @@
 
 {#snippet entry(note: ArticleNote)}
 	<li id="note-{note.number}" class="jump-target note {stylex.attrs(styles.note).class}">
-		<!-- Words, marker, then link: see spec/styling.md, "A note names its words first, then
+		<!-- Words, marker, then link: see spec/styling/notes.md, "A note names its words first, then
 		     its number, then what it says" and "The number is the same superscript that marked
 		     it in the prose", for the ordering and why the marker is hidden from a screen reader.
 		     The phrase and number stay outside the link -- they are the note's address, not its
@@ -416,7 +416,7 @@
 	   rest, so an open fold still follows its own content when the window changes. */
 	.notes-fold {
 		--peek-height: 1.75rem;
-		/* Positioned so the clip actually holds -- see spec/styling.md, "A fold that clips has
+		/* Positioned so the clip actually holds -- see spec/styling/notes.md, "A fold that clips has
 		   to be positioned". */
 		position: relative;
 		overflow: hidden;

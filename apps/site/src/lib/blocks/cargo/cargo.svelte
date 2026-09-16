@@ -7,7 +7,7 @@
 	 * `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a component-local
-	 * mirror this layer does not own (spec/styling.md), plus `shadow-sm` on the tooltip
+	 * mirror this layer does not own (spec/styling/controls.md), plus `shadow-sm` on the tooltip
 	 * (spec/todo.md, "A shadow is one utility, two declarations and four variables the visual
 	 * layer cannot restate"). The block at the foot otherwise holds geometry and unclassable rules.
 	 */

@@ -15,7 +15,7 @@
 	/**
 	 * What is painted, not what was stored: the button reads the class `app.html`'s pre-paint
 	 * script already put on `<html>`, once mounted, and renders neither icon until then. See
-	 * spec/styling.md, "The theme control is a button, not a menu".
+	 * spec/styling/controls.md, "The theme control is a button, not a menu".
 	 */
 	let theme = $state<Theme | undefined>();
 

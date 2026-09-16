@@ -181,7 +181,7 @@
 	 *
 	 * Both readings render and CSS picks one, rather than a media query read in script: the choice
 	 * has to survive the server render, so a correction on the first frame is worse than a few
-	 * extra bytes. Equal to `label` unless the caller opted out. See spec/styling.md.
+	 * extra bytes. Equal to `label` unless the caller opted out. See spec/styling/phone.md.
 	 */
 	const phoneLabel = $derived(
 		phoneRegion ? label : triggerLabel(code, sourceLanguage, { region: false }),
@@ -204,8 +204,9 @@
 	 * The one slot that holds either icon set, so the one place their difference is spelled out.
 	 *
 	 * `size-3.75` rather than the row's `size-3.5`: a circle that reaches its box on every side
-	 * reads smaller than an angular glyph that only reaches it at the corners. See spec/styling.md,
-	 * "An icon set is sized by the ink it carries, not by one class for all of it".
+	 * reads smaller than an angular glyph that only reaches it at the corners. See
+	 * spec/styling/focus.md, "An icon set is sized by the ink it carries, not by one class for
+	 * all of it".
 	 */
 	const COMPASS_SIZE = 'size-3.75';
 

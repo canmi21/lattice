@@ -36,8 +36,8 @@
 	} from '@videojs/core/dom';
 	import { HTMLVideoAdapter } from '@videojs/media/dom';
 	import { combine, createStore } from '@videojs/store';
-	// Phosphor here and Lucide everywhere else -- see spec/styling.md, "The player's glyphs are
-	// Phosphor, at two weights, plus three this repository draws", for the fill-vs-bold rule and
+	// Phosphor here and Lucide everywhere else -- see spec/styling/player.md, "The player's glyphs
+	// are Phosphor, at two weights, plus three this repository draws", for the fill-vs-bold rule and
 	// the reasoning behind the split. `*Icon` names, not the bare ones: `CornersOut` and its
 	// siblings are deprecated aliases and say so in their own types. The three shapes Phosphor
 	// does not draw -- the landscape corner pair and the frame's exit state -- live in
@@ -1151,7 +1151,7 @@
 				<!--
 					The one round glyph in a row of rectangles, brought down to match them by
 					growing the canvas under it rather than shrinking the element -- so the focus
-					ring, on the 16x16 element, is unchanged. See spec/styling.md, "The player's
+					ring, on the 16x16 element, is unchanged. See spec/styling/player.md, "The player's
 					glyphs are Phosphor, at two weights, plus three this repository draws", for
 					the arithmetic and why the stroke in `.player-glyph-cog` is solved with it.
 				-->
@@ -1258,7 +1258,7 @@
 	   flush, suppressed on a pointer. Which utility depends on the control's visible edge: a
 	   circle or a row's own width takes `focus-ring`; a 30px button around a 16px glyph hands the
 	   outline to the glyph with `focus-ring-inner`, since the 7px around it is hit target rather
-	   than control. See spec/styling.md and styles/utilities.css for the measurement. */
+	   than control. See spec/styling/focus.md and styles/utilities.css for the measurement. */
 
 	/* The cover: a circle of the same plate the row uses, so the two read as one material. */
 	.player-cover {
@@ -1296,8 +1296,9 @@
 
 	/* The cover's ring is drawn on the glyph and follows its actual shape, not a box around it --
 	   neither the 64px disc nor a box around the 30px glyph is the thing being pointed at. `w` is
-	   the site's 0.125rem stroke width, at this glyph's scale 42.67 user units. See spec/styling.md
-	   for why the ring is an exception here and how `paint-order` makes a stroke read as one. */
+	   the site's 0.125rem stroke width, at this glyph's scale 42.67 user units. See
+	   spec/styling/focus.md for why the ring is an exception here and how `paint-order` makes a
+	   stroke read as one. */
 	.player-cover:focus-visible {
 		outline: none;
 	}
@@ -1325,7 +1326,8 @@
 
 	/* No offset: Phosphor already centres `Play` on its mass (centroid 127.65 against a viewBox
 	   centre of 128) and `Pause` needs none either, so the `translate` that used to be here was a
-	   correction on top of a correction. See spec/styling.md -- this is a result, not an omission. */
+	   correction on top of a correction. See spec/styling/player.md -- this is a result, not an
+	   omission. */
 	.player-cover :global(.player-cover-glyph),
 	.player-cover :global(.player-cover-pause) {
 		/* Against the 4rem disc this is a triangle 38% of the diameter tall, which is where a
@@ -1372,7 +1374,7 @@
 
 	/* A hidden row is still a tab stop, so it also has to show itself: `:has(:focus-visible)`
 	   rather than `:focus-within`, which would also pin the row open after a mouse click. Not
-	   `html[data-focus-source='kbd']` either -- see spec/styling.md, "`:focus-visible` is the
+	   `html[data-focus-source='kbd']` either -- see spec/styling/focus.md, "`:focus-visible` is the
 	   browser's guess, and the site keeps its own answer", for why that spelling fails silent
 	   when the tracker is absent. */
 	.player-chrome-shown,
@@ -1431,7 +1433,7 @@
 
 	/* The other half of the cog's optical correction, solved together with the markup's `viewBox`:
 	   a filled path has no stroke to thicken, so the weight comes back as an actual stroke of
-	   4.571 units. See spec/styling.md for the arithmetic. `stroke` inherits, so Phosphor's
+	   4.571 units. See spec/styling/player.md for the arithmetic. `stroke` inherits, so Phosphor's
 	   transparent sizing rect is turned off below rather than left to draw a square around it. */
 	.player-button :global(.player-glyph-cog) {
 		stroke: currentColor;
@@ -1497,7 +1499,7 @@
 	   `focus-ring-inner` makes elsewhere -- but neither utility reaches an `<input>`, whose bar is
 	   a sibling or a shadow pseudo-element rather than a descendant, so the two placements are
 	   written out below by hand. Stated at rest too, since nothing here transitions
-	   `outline-color` yet. See spec/styling.md for the measurement. */
+	   `outline-color` yet. See spec/styling/focus.md for the measurement. */
 	.player-track,
 	.player-seek,
 	.player-level {
@@ -1505,7 +1507,7 @@
 	}
 
 	/* The input keeps the focus and gives up the drawing, which is the narrow case
-	   spec/styling.md allows suppression for: something else marks the position. */
+	   spec/styling/focus.md allows suppression for: something else marks the position. */
 	.player-seek:focus-visible,
 	.player-level:focus-visible {
 		outline: none;

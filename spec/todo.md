@@ -50,9 +50,9 @@ shape at component scale.
 
 It works, it is readable, and it is the pattern the visual layer is least able to hold: StyleX's
 model is that everything on an element comes from a class on that element. The question this file
-is holding is not whether the arithmetic is right -- [styling.md](styling.md) argues each number at
-length -- but whether the derivation belongs in the selector layer, in the visual layer as a
-composed style, or somewhere it currently is not.
+is holding is not whether the arithmetic is right -- [styling/lengths.md](styling/lengths.md) argues
+each number at length -- but whether the derivation belongs in the selector layer, in the visual
+layer as a composed style, or somewhere it currently is not.
 
 ## The article body's typography reaches elements no component renders
 
@@ -506,11 +506,11 @@ of these surfaces -- the ground, the stage and the close -- without a selector o
 
 It was not taken, and the reasons are worth recording because they are not the portal. The ground's
 `#000` and the close's wash and hairline are literals rather than tokens, argued as such in
-[styling.md](styling.md), so moving them would put the site's only unthemed colours into the layer
-whose one structural guarantee is that a colour is a token variable. And every one of those rules
-has a second half conditioned on a data attribute, which is the entry above: the transitions would
-move and the opacities they animate could not. Three rules split across two layers, for nothing
-gained.
+[styling/blocks.md](styling/blocks.md), so moving them would put the site's only unthemed colours
+into the layer whose one structural guarantee is that a colour is a token variable. And every one of
+those rules has a second half conditioned on a data attribute, which is the entry above: the
+transitions would move and the opacities they animate could not. Three rules split across two
+layers, for nothing gained.
 
 So the decision here is downstream of the other two rather than its own. What is new is only that
 the constraint on these surfaces has been misattributed: they are unreachable by one layer, not by
@@ -553,7 +553,8 @@ is still open, and this entry stays with it.
 ## Tokei draws from a palette of its own, and it is the third one
 
 [architecture/css.md](architecture/css.md) exempts two component-local palettes from the rule that
-a colour is the token layer's -- Cargo's and Mermaid's -- and [styling.md](styling.md) argues both.
+a colour is the token layer's -- Cargo's and Mermaid's -- argued in
+[styling/controls.md](styling/controls.md) and [styling/blocks.md](styling/blocks.md).
 [tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte) has a third that neither file names:
 a colour per language from `langColor`, three hexes in `FUNCTION_COLORS` for code, comments and
 blanks, two `rgba()` literals inline on the tile's completion bar, and two whites inking a tile's
@@ -801,8 +802,8 @@ rule conditioned on language and on width. `.article-content` sets `wrap` at res
 measured rather than omitted: in WebKit at 354px `pretty` adds lines in every language, eleven in
 German and forty-two in Japanese, and roughly doubles the mean right-hand gap everywhere; on
 Japanese it takes that gap from 1.6% to 7.9% and the loose lines from 1 to 58.
-[styling.md](styling.md) argues each of those numbers, and the comment beside the rule calls the
-narrow column the correction a phone forced.
+[styling/prose.md](styling/prose.md) argues each of those numbers, and the comment beside the rule
+calls the narrow column the correction a phone forced.
 
 Four licence pages answer the same property with no condition at all. `summary` in
 `routes/licenses/[license]`, `routes/licenses/pkgs`, `routes/licenses/pkgs/[registry]` and
@@ -859,8 +860,8 @@ value on the element itself -- `borderColor` from `var(--color-border)` to
 Neither is wrong and the two are not interchangeable. The `:has()` form is the only one available
 to it, because the focused element and the bordered element are different elements and a StyleX
 condition reaches neither from the other. It also answers `:focus` rather than `:focus-visible` on
-purpose -- [styling.md](styling.md) argues that a pointer focus should match the shell while only a
-keyboard adds the ring -- so the two differ in what they answer as well as in how.
+purpose -- [styling/focus.md](styling/focus.md) argues that a pointer focus should match the shell
+while only a keyboard adds the ring -- so the two differ in what they answer as well as in how.
 
 What is unrecorded is that one idea has two spellings and nothing says which applies when. Deciding
 it is either a rule that an element bordering itself writes the conditional value while an element

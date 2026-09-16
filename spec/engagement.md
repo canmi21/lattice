@@ -178,7 +178,7 @@ remove.
 
 This is a clip rather than the measured masks the Support rail uses. That geometry depends on the
 rendered width of two labels and cannot be written down in advance; this one is always the whole
-box, which puts it on the CSS side of the rule in [styling.md](styling.md).
+box, which puts it on the CSS side of the rule in [styling/controls.md](styling/controls.md).
 
 ### One row under the pill, in every state
 
@@ -305,7 +305,7 @@ called `state`, because the storage area already says which record it is.
 
 `sessionStorage["trail"]` stays outside both. It is the same kind of fact, but it carries its own
 self-validating shape and its own module, and moving it would be churn with nothing on the other
-side of it -- see [styling.md](styling.md).
+side of it -- see [styling/rail.md](styling/rail.md).
 
 **A collection is the exception to flat and dotted.** `video.at` is one key holding a map from
 clip reference to position, because its keys are not names this repository chooses: they are

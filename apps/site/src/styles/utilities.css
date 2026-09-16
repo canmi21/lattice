@@ -4,7 +4,7 @@
    focus without opting into a utility, such as a menu panel that focuses itself as it opens. This
    replaces that ring rather than removing it: a control nobody gave a focus utility stays visible
    to the keyboard instead of going silent. Sitting in the base layer lets every rule below win.
-   See spec/styling.md. */
+   See spec/styling/focus.md. */
 @layer base {
 	:focus-visible {
 		outline: 0.125rem solid var(--color-accent);
@@ -15,7 +15,8 @@
 /* Keyboard focus belongs to the control's visible shape. The direct variant follows the
    focusable box; the inner and within variants move the same outline to a representative child
    or ancestor when the hit area and visible control are different. Keeping this in the components
-   layer lets each control's rounded utility own its actual silhouette. See spec/styling.md. */
+   layer lets each control's rounded utility own its actual silhouette. See
+   spec/styling/focus.md. */
 @layer components {
 	/* Prose, in a page that has switched selection off. A component marks which of its parts are
 	   sentences; whether a drag should sweep controls up too is the page's call, so this does
@@ -35,7 +36,7 @@
 	/* Stated at rest, not only inside `:focus-visible` -- an outline's colour is `currentColor`
 	   until named, and Tailwind v4 put `outline-color` into `transition-colors`, which nearly
 	   every control here carries for its hover. Left unnamed, the ring fades in from the
-	   element's own text colour instead of snapping to the accent. See spec/styling.md, "The
+	   element's own text colour instead of snapping to the accent. See spec/styling/focus.md, "The
 	   ring's colour is declared at rest, or it fades in from the text". */
 	:where(.focus-ring, .focus-ring-inner, .focus-ring-within, .focus-link, .focus-link-inner) {
 		outline-color: var(--color-accent);
@@ -58,7 +59,8 @@
 	/* The other half of `focus-ring-inner`: a control that hands its outline to a child does not
 	   also draw one itself. Without this the base-layer backstop still fires on the parent and the
 	   control wears two rings, one around the hit area and one around the icon inside it. This is
-	   the narrow case spec/styling.md allows suppression for -- the position is already marked. */
+	   the narrow case spec/styling/focus.md allows suppression for -- the position is already
+	   marked. */
 	:focus-visible:has(> .focus-ring-inner) {
 		outline: none;
 	}
@@ -66,7 +68,7 @@
 	/* A text link's corner exists only to shape the outline, so it arrives with the outline. Left on
 	   at rest it would also clip the background, and a radius sized for a focus outline is twice the
 	   height of the underline stroke below: the corner arc cuts about 0.25rem off the bottom of each
-	   end and nothing off the top, bowing a straight line into a lens. See spec/styling.md. */
+	   end and nothing off the top, bowing a straight line into a lens. See spec/styling/focus.md. */
 	.focus-link:focus-visible,
 	:focus-visible > .focus-link-inner {
 		border-radius: 0.25rem;
@@ -76,8 +78,8 @@
 	   to its trigger as it closes is the case here -- so a known pointer input takes the outline
 	   away instead of trusting the pseudo-class. Written as suppression, not a keyboard requirement,
 	   so the failure mode with the attribute absent is showing a ring once too often, never hiding
-	   one from a keyboard user. See spec/styling.md, "`:focus-visible` is the browser's guess, and
-	   the site keeps its own answer". */
+	   one from a keyboard user. See spec/styling/focus.md, "`:focus-visible` is the browser's guess,
+	   and the site keeps its own answer". */
 	html[data-focus-source='pointer'] :focus-visible,
 	html[data-focus-source='pointer'] :focus-visible > .focus-ring-inner,
 	html[data-focus-source='pointer'] :focus-visible > .focus-link-inner,
@@ -88,11 +90,11 @@
 
 /* The column running down the left of an article -- the table of contents and the return control
    -- is one rail, so its horizontal geometry lives here once and both consume it; each keeps only
-   its own vertical placement. See spec/styling.md, "The article is centred; the rail adapts to
+   its own vertical placement. See spec/styling/rail.md, "The article is centred; the rail adapts to
    the region beside it". */
 :root {
 	/* The rail's width -- the same on every article and in every language, and the width at which
-	   its entries wrap. Argued in spec/styling.md, "The rail's box is one declared width", and
+	   its entries wrap. Argued in spec/styling/rail.md, "The rail's box is one declared width", and
 	   depended on across the language boundary by `ONE_LINE` in apps/cms/src/i18n/width.rs, which
 	   turns this width into the column budget a translated heading is held to. */
 	--rail-width: 8.5rem;
@@ -101,15 +103,15 @@
 	   changes what the CMS will accept. */
 	--rail-column: 45rem;
 	/* The blank region the rail lives in: window edge to the article's first letter, not to the
-	   column's frame -- the frame is not a thing anybody sees. See spec/styling.md, "The article is
-	   centred; the rail adapts to the region beside it". */
+	   column's frame -- the frame is not a thing anybody sees. See spec/styling/rail.md, "The article
+	   is centred; the rail adapts to the region beside it". */
 	--rail-region: calc((100% - var(--rail-column)) / 2 + var(--page-gutter));
 	/* Clearance the rail needs on each side of itself before it is shown at all. */
 	--rail-edge: 1.5rem;
 	/* Where the rail's left margin stops growing and the gap to the article takes every further
 	   pixel instead, so a rail never drifts toward the text on a wide window -- capped on the
-	   margin rather than the centre line, which used to make the gap too wide. See spec/styling.md,
-	   "The article is centred; the rail adapts to the region beside it". */
+	   margin rather than the centre line, which used to make the gap too wide. See
+	   spec/styling/rail.md, "The article is centred; the rail adapts to the region beside it". */
 	--rail-left-max: 6rem;
 	/* How far the return control's glyph hangs outside the rail's text. Its label aligns with the
 	   entries and only the glyph sits outside, so this is an ornament's overhang rather than part
@@ -139,8 +141,8 @@
 
 /* The column running down the left of an article -- the table of contents and the return control
    -- is one rail, and it is one box, so they cannot disagree about where its left edge is. See
-   spec/styling.md, "The rail's box is one declared width" for why it is a declared 8.5rem rather
-   than measured or sized to its entries. */
+   spec/styling/rail.md, "The rail's box is one declared width" for why it is a declared 8.5rem
+   rather than measured or sized to its entries. */
 .article-rail {
 	display: none;
 	position: fixed;
@@ -162,8 +164,8 @@
 	/* The space above the title is the space beside it: the distance from the window's edge to the
 	   first letter, measured on the side and applied to the top, so it grows past the column's cap
 	   exactly as the side gutter does and settles before the rail appears at 68rem. See
-	   spec/styling.md, "The space above the title is the space beside it". Change `--rail-column`
-	   or the 6rem and check the cap still lands below 68rem. */
+	   spec/styling/rail.md, "The space above the title is the space beside it". Change
+	   `--rail-column` or the 6rem and check the cap still lands below 68rem. */
 	padding-top: clamp(
 		var(--page-gutter),
 		var(--page-gutter) + (100% - var(--rail-column)) / 2,
@@ -173,14 +175,15 @@
 
 /* Shown only where the region holds the rail with its clearance on both sides -- absent rather
    than squeezed narrow, since a media query can read neither `--rail-width` nor the measured box.
-   The breakpoint is deliberately conservative; see spec/styling.md, "Absent rather than squeezed".
-   Change `--rail-width` or `--rail-edge` above and check this number still agrees by hand. */
+   The breakpoint is deliberately conservative; see spec/styling/rail.md, "Absent rather than
+   squeezed". Change `--rail-width` or `--rail-edge` above and check this number still agrees by
+   hand. */
 /* The language control takes the article's right frame wherever the rail is absent, and rejoins
    the metadata row's flow wherever the rail is there. The question is not how wide the window is
    but whether the table of contents is on screen: with the rail the page already has a column of
    navigation down one side and a second right-aligned control opposite it is one anchor too many,
    while without it this is the only control on the row a reader reaches for rather than reads, and
-   the frame is where a reader looks for one. See spec/styling.md. */
+   the frame is where a reader looks for one. See spec/styling/phone.md. */
 .meta-language {
 	margin-inline-start: auto;
 }
@@ -202,7 +205,7 @@
 /* Where an in-page jump puts its target: below the top of the viewport rather than against it, and
    as a viewport share on the target itself rather than arithmetic on whatever is doing the
    jumping. The article ToC keeps its own offset instead -- an exception with a reason, not a
-   second rule. See spec/styling.md, "A jump lands below the top edge, not against it". */
+   second rule. See spec/styling/notes.md, "A jump lands below the top edge, not against it". */
 .jump-target {
 	scroll-margin-top: 15vh;
 }
@@ -284,7 +287,7 @@
 }
 
 /* Text inputs match their bordered shell on pointer focus and add the blue keyboard outline only
-   when navigation, rather than a click, put the caret there. See spec/styling.md. */
+   when navigation, rather than a click, put the caret there. See spec/styling/focus.md. */
 .focus-input {
 	outline: none;
 }
@@ -301,7 +304,7 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 /* The article's line-breaking policy, pinned per language rather than left to the browser's
    default -- which is what every value below was until this was written. `:lang()` rather than a
    locale code, so the rule reaches `<html lang>`'s resolved language including the `mw` view's
-   per-article one. See spec/styling.md, "Where a line ends is declared per language", and
+   per-article one. See spec/styling/prose.md, "Where a line ends is declared per language", and
    spec/locale.md for the `mw` case. */
 .article-content {
 	text-wrap: wrap;
@@ -317,7 +320,7 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    measured in real WebKit on an iPhone (German's mean gap 9.7% to 4.5%, loose lines 215 to 7 of
    776). `text-wrap: pretty` is deliberately absent here -- it is free in Chrome but not WebKit,
    where at this width it adds lines in every language and roughly doubles the right-hand gap. See
-   spec/styling.md, "Two rule sets, because the trade reverses with the column". */
+   spec/styling/prose.md, "Two rule sets, because the trade reverses with the column". */
 .article-content:lang(en),
 .article-content:lang(de),
 .article-content:lang(es),
@@ -329,7 +332,8 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    already tight, so the trade reverses: `pretty` costs no lines here and clears most stranded
    final lines. `balance` is rejected at both widths -- it pays across the whole paragraph rather
    than at its end -- and neither property reaches CJK, where WebKit's `pretty` is not the no-op
-   Chrome's is. See spec/styling.md, "Two rule sets, because the trade reverses with the column". */
+   Chrome's is. See spec/styling/prose.md, "Two rule sets, because the trade reverses with the
+   column". */
 @media (min-width: 45rem) {
 	.article-content:lang(en),
 	.article-content:lang(de),
@@ -343,7 +347,7 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 /* Japanese forbids certain characters at the head of a line -- small kana, the long vowel mark,
    closing punctuation -- and `auto` does not enforce it. Measured over the same article, `strict`
    removed all twelve violations and cost no lines at all: 328 either way. Eight of the twelve
-   were a line opening on `ー`. See spec/styling.md. */
+   were a line opening on `ー`. See spec/styling/prose.md. */
 .article-content:lang(ja) {
 	line-break: strict;
 }
@@ -351,7 +355,7 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 /* Korean's default breaks mid-eojeol, splitting a word 110 times across 262 lines in the measured
    article; `keep-all` removes every one for eight extra lines. Chinese gets nothing beyond the
    shared block above -- `strict` measured identically to `auto` there, so there is nothing to pin.
-   See spec/styling.md, "Where a line ends is declared per language". */
+   See spec/styling/prose.md, "Where a line ends is declared per language". */
 .article-content:lang(ko) {
 	word-break: keep-all;
 }

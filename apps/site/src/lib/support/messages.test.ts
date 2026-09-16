@@ -19,7 +19,7 @@ describe('support action copy', () => {
 			expect(messages['support.sponsor']).toContain(messages['support.sponsor-short']);
 			// The slot that asks for a Google preference asks for a star once it has been used,
 			// and the reveal it animates is the same one: the short label has to be a substring
-			// of the long for both of the favours it carries. See spec/styling.md.
+			// of the long for both of the favours it carries. See spec/styling/controls.md.
 			expect(messages['support.github']).toContain(messages['support.github-short']);
 		});
 	}

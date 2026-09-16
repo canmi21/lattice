@@ -118,7 +118,7 @@
 		},
 		/**
 		 * The rule the subscription invitation opens on. It belongs to this placement rather than
-		 * to the newsletter -- see spec/styling.md -- so it arrives through that component's
+		 * to the newsletter -- see spec/styling/controls.md -- so it arrives through that component's
 		 * `class` prop, which lands on a section carrying no visual layer of its own.
 		 */
 		tail: {
@@ -258,7 +258,7 @@
 	 * A wrapped line can stop short by a word or several CJK glyphs, and CSS exposes no value for
 	 * that ink width. Pretext applies the browser's line-breaking rules to exact canvas metrics;
 	 * the mark stays in flow and measurement only supplies the inset wrapping cannot express.
-	 * See spec/styling.md.
+	 * See spec/styling/lengths.md.
 	 */
 	function alignSummaryProvider(node: HTMLParagraphElement) {
 		let frame = 0;
@@ -382,13 +382,13 @@
 
 <main class="min-h-screen {stylex.attrs(surfaces.page).class}">
 	<!-- One rail, one box. It is fit-content, so the browser sizes it to the entries without
-	     anything having to measure them -- see spec/styling.md. -->
+	     anything having to measure them -- see spec/styling/rail.md. -->
 	<div class="article-rail {stylex.attrs(styles.apparatus).class}">
 		<Toc {toc} />
 		<HomeLink locale={locale.code} />
 	</div>
 	<!-- The top is computed from the column's own side gutter and lives in `.article-column`; see
-	     spec/styling.md. The bottom keeps its 6rem at every width, because the space under the
+	     spec/styling/rail.md. The bottom keeps its 6rem at every width, because the space under the
 	     footer competes with nothing. -->
 	<div class="article-column px-6 pb-24">
 		<article>
@@ -397,7 +397,7 @@
 				     serve the few that are drafts, and the side rail measures this very box to place the
 				     return control -- so a published article renders exactly the markup it did before,
 				     because the branch below produces nothing at all. See spec/drafts.md. -->
-				<!-- Two headings, one shown: see spec/styling.md, "A phone is shown the title
+				<!-- Two headings, one shown: see spec/styling/phone.md, "A phone is shown the title
 				     that fits, not the title cut short", for why and how CSS picks between them. -->
 				<h1 class="max-sm:hidden {stylex.attrs(styles.title).class}">
 					{meta.title}{#if meta.draft}<span
@@ -438,7 +438,7 @@
 						<!-- Absent below `sm` as well, and that is a second decision. The row is four
 						     controls and a date, which is one line on a laptop and two on a phone; the
 						     read count is the only one a reader never acts on, so it is the one that
-						     goes. See spec/styling.md. -->
+						     goes. See spec/styling/phone.md. -->
 						<span
 							class="inline-flex items-center gap-1 max-sm:hidden"
 							title="{readCount} reads"
@@ -533,7 +533,7 @@
 		     it sits on the notes section, which is about the article rather than part of it --
 		     which is also why the rail and the table of contents never see the notes. The plain
 		     rule between the notes and the newsletter then only separates two offerings.
-		     See spec/styling.md. -->
+		     See spec/styling/notes.md. -->
 		{#if notes.length > 0}
 			<Footnotes {notes} locale={locale.code} />
 			<!-- Closer than the article's own gap: the notes are small, quiet apparatus, and the
@@ -588,7 +588,7 @@
 	   around it: a reader following the sentence should be able to pass over it, and a reader
 	   looking for it should find it without hunting. Global because prose markers arrive as
 	   compiled HTML while a heading's are written by section.svelte -- one appearance, two
-	   origins. See spec/styling.md. */
+	   origins. See spec/styling/notes.md. */
 	.article-body :global(.note-marker) {
 		/* Relative, so one ratio serves both places a marker appears: beside prose it lands where
 		   the absolute 0.6875rem used to, and in the smaller notes below it shrinks with them. */
@@ -616,7 +616,7 @@
 	}
 
 	/* The marker's own tint for a walk back, keyed off the class note-flash.ts sets on the noted
-	   words -- see spec/styling.md, "The walk back from a note lights the words it lands on",
+	   words -- see spec/styling/notes.md, "The walk back from a note lights the words it lands on",
 	   for the overlay itself. Under reduced motion the tint simply is: the information is kept,
 	   the animation is not. */
 	.article-body :global(.note-return + .note-marker .note-marker-link),
@@ -649,7 +649,7 @@
 	   while hovered or focused, restored when the reader moves away. `:focus`, not
 	   `:focus-visible` -- a tap's focus is the only reveal a touch screen has, and revealing is
 	   the element's whole job, unlike the ring, which stays keyboard-only via .focus-link.
-	   See spec/styling.md. */
+	   See spec/styling/notes.md. */
 	.article-body :global(.spoiler) {
 		border-radius: 0.25rem;
 		cursor: pointer;
@@ -668,7 +668,7 @@
 		}
 	}
 
-	/* A quoted source is a prose inset, not an authored callout. See spec/styling.md. */
+	/* A quoted source is a prose inset, not an authored callout. See spec/styling/prose.md. */
 	.article-body :global(blockquote) {
 		padding: 1rem 1.125rem 1rem 1.375rem;
 		border-left: 0.125rem solid var(--color-border-strong);

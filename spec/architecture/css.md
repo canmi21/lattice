@@ -1,9 +1,10 @@
 # The three layers of a style
 
 Three systems write CSS for the site, and each owns one kind of declaration. Which declaration
-belongs where is the subject of this file. What the declarations themselves say -- why a rail is
-8.5rem, why Korean takes `word-break: keep-all` -- is [styling.md](../styling.md)'s, and nothing
-here overrides a decision recorded there.
+belongs where is the subject of this file. What the declarations themselves say is the `styling/`
+directory's -- why a rail is 8.5rem is [styling/rail.md](../styling/rail.md), why Korean takes
+`word-break: keep-all` is [styling/prose.md](../styling/prose.md) -- and nothing here overrides a
+decision recorded there.
 
 ## Each layer owns one kind of declaration
 
@@ -280,7 +281,8 @@ because it is the same variable it was before. What a migration can get wrong is
 retyped, which is geometry, and geometry is what the migration's diff polices.
 
 The Cargo and Mermaid palettes stay where they are. Both are component-local mirrors that exist for
-a reason written down in [styling.md](../styling.md), and neither is part of the interface
+a reason written down in [styling/controls.md](../styling/controls.md) and
+[styling/blocks.md](../styling/blocks.md), and neither is part of the interface
 vocabulary this layer owns.
 
 ## A comment in the module script cannot write a tag in angle brackets
@@ -669,8 +671,8 @@ card, the Cargo widget and Tokei; `friends-come-in-phases` is the only article w
 
 Two dimensions are not optional. **A translated view renders components the source view has none
 of** -- the translation notice, and a translator's note, which appears in no `.md` file because it
-lives in a sidecar. And the widths that matter are the ones [styling.md](../styling.md) already
-identifies as behaviour boundaries rather than a round number picked here.
+lives in a sidecar. And the widths that matter are the ones [styling/rail.md](../styling/rail.md)
+already identifies as behaviour boundaries rather than a round number picked here.
 
 ### What the gate cannot see
 

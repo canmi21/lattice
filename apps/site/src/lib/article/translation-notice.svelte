@@ -149,7 +149,7 @@
 	 *
 	 * Both readings are rendered and CSS picks one, the shape the newsletter pitch uses and for
 	 * the same reason: the choice has to survive the server render, and a media query is not
-	 * something the server can see. See spec/styling.md.
+	 * something the server can see. See spec/styling/phone.md.
 	 */
 	const messageShort = $derived(
 		kind === 'script'

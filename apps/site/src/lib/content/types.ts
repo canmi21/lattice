@@ -218,7 +218,7 @@ export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'feed' | 't
 	 * The title the article page shows on a phone: `meta.title` where it fits the column, and
 	 * `short.title` where it does not. Decided here rather than in the browser -- the answer is a
 	 * property of the string, so it cannot change between renders, and computing it at runtime
-	 * would mean the first frame guessing. See spec/styling.md.
+	 * would mean the first frame guessing. See spec/styling/phone.md.
 	 */
 	phoneTitle: string;
 	/**
@@ -300,7 +300,7 @@ export type InlineSegment =
 			newTab: boolean;
 			/** `wide` / `narrow` from the directive, as the classes that act on them. A link is the
 			 *  one run that cannot be wrapped in `:t` -- nested, it stops being a link -- so it
-			 *  carries its own width the way a `:t` run carries one. See spec/styling.md. */
+			 *  carries its own width the way a `:t` run carries one. See spec/styling/phone.md. */
 			width?: string;
 	  };
 

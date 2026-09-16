@@ -199,7 +199,7 @@
 	/**
 	 * How the rail will lay this entry out: how many lines it takes, and how wide it draws.
 	 *
-	 * See spec/styling.md, "An entry that wraps contributes half its width per line", for why a
+	 * See spec/styling/rail.md, "An entry that wraps contributes half its width per line", for why a
 	 * wrapping heading must not report its single-line width. Measured in the label's own font
 	 * rather than the heading's, since the two are not proportional and the wrap happens here.
 	 */
@@ -235,13 +235,13 @@
 	/**
 	 * Bar widths, in tenths of the longest heading.
 	 *
-	 * See spec/styling.md, "Collapsed, the bars are a thumbnail of the list", for why a tenth is
+	 * See spec/styling/rail.md, "Collapsed, the bars are a thumbnail of the list", for why a tenth is
 	 * the right grain and why the scale is the longest heading rather than the shortest-to-longest
 	 * spread.
 	 */
 	function steppedBars(widths: number[], texts: string[], ceiling: number): number[] {
 		if (widths.length === 0) return [];
-		// A bar may never be wider than the widest label -- see spec/styling.md, "A bar may never
+		// A bar may never be wider than the widest label -- see spec/styling/rail.md, "A bar may never
 		// be wider than the widest label".
 		const longest = Math.min(MAX_BAR_WIDTH, ceiling > 0 ? ceiling : MAX_BAR_WIDTH);
 		const max = Math.max(...widths);
@@ -252,7 +252,7 @@
 		// Bring the peaks down until no entry stands more than `MAX_ADJACENT_STEP` above a
 		// neighbour. Two passes, forward and back, make the constraint hold both ways. Down
 		// rather than up, and only ever toward a neighbour, never levelled with it -- see
-		// spec/styling.md, "No entry stands more than three steps above a neighbour, and the
+		// spec/styling/rail.md, "No entry stands more than three steps above a neighbour, and the
 		// outlier comes down".
 		const flatten = (from: number[]): number[] => {
 			const out: number[] = [];
@@ -266,7 +266,7 @@
 
 		// The other half of the same idea: two neighbours on the same step are separated by one,
 		// toward whichever side they were already nearer. Both constraints run in one pass --
-		// applied separately, the second would undo the first. See spec/styling.md, "Two
+		// applied separately, the second would undo the first. See spec/styling/rail.md, "Two
 		// neighbours on the same step are separated by one step", including the tie-break rule.
 		const settled: number[] = [];
 		shaved.forEach((step, index) => {
@@ -459,7 +459,7 @@
 
 		// Only on a fresh navigation. A reload keeps the position the reader had scrolled to,
 		// which is the browser's own behaviour and what somebody reloading halfway down a page
-		// wants; taking over both alike is what throws that away. See spec/styling.md.
+		// wants; taking over both alike is what throws that away. See spec/styling/notes.md.
 		const interceptedHash = window.canmiArticleInitialHash;
 		const initialHash = interceptedHash ?? window.location.hash.slice(1);
 		const nav = performance.getEntriesByType('navigation')[0] as
@@ -834,7 +834,7 @@
 		line-clamp: 2;
 	}
 
-	/* A script whose spaces mean something breaks at them first -- see spec/styling.md, "Balance
+	/* A script whose spaces mean something breaks at them first -- see spec/styling/rail.md, "Balance
 	   evens the lines; it does not choose where the break may land, and for Han that is the part
 	   that matters" and "Japanese is excluded, and the measurement is the argument". The floor
 	   and this override sit in two layers because the override is reached through `:lang` and

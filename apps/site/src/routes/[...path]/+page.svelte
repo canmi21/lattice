@@ -7,7 +7,7 @@
 
 	// Collected notes leave the block stream here: they render after the article's closing
 	// rule rather than inside the body, because they are apparatus about the article, not part
-	// of it. See spec/styling.md.
+	// of it. See spec/styling/notes.md.
 	const notes = $derived(
 		data.blocks.flatMap((block) => (block.type === 'footnotes' ? block.notes : [])),
 	);

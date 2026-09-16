@@ -10,8 +10,8 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 /// Columns the rail fits on one line, derived from a cap of 192px at 13px type: fourteen Han
 /// characters or twenty-eight Latin ones. The rail's own width is `--rail-width` in
-/// apps/site/src/styles/utilities.css, argued in spec/styling.md, "The rail's box is one declared
-/// width". **That declaration is 8.5rem, which is 136px, and this derivation has not been
+/// apps/site/src/styles/utilities.css, argued in spec/styling/rail.md, "The rail's box is one
+/// declared width". **That declaration is 8.5rem, which is 136px, and this derivation has not been
 /// reconciled with it** -- at the declared width the budget is generous, so the audit warns late.
 /// Open: the number wants measuring against the rendered rail rather than either record.
 pub const ONE_LINE: usize = 28;
@@ -158,7 +158,7 @@ pub fn characters(budget: f32, locale: &str) -> usize {
 /// The heading level of a source block, or `None` if it is not a heading.
 ///
 /// Only a level-2 heading is listed in the rail, so only it is bound by the rail's width -- see
-/// spec/styling.md. A subsection is reached by arriving at its parent, and how long its own
+/// spec/styling/rail.md. A subsection is reached by arriving at its parent, and how long its own
 /// heading runs is a question about the prose, not about a column 8.5rem wide.
 pub fn level(source: &str) -> Option<usize> {
 	let marks = source.trim_start().chars().take_while(|c| *c == '#').count();

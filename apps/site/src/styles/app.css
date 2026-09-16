@@ -9,7 +9,7 @@
 
 /* One spring, sampled once. `motion`'s generator produced these points and the browser composites
    them for free; running the library at paint time would spend JavaScript per frame on a curve
-   that is already known. See spec/styling.md.
+   that is already known. See spec/styling/controls.md.
 
    Every consumer that wants this physics reads it from here. Pasting the points a second time is
    how two animations that were meant to feel identical start drifting apart. */
@@ -36,8 +36,8 @@
 }
 
 /* Optical width compensation for a `rounded-full` control, shared with newsletter.svelte rather
-   than derived a second time. See spec/styling.md, "A pill's rounded cap is optically pulled in,
-   so the box is pulled out to match" for the derivation and the coefficient below.
+   than derived a second time. See spec/styling/lengths.md, "A pill's rounded cap is optically
+   pulled in, so the box is pulled out to match" for the derivation and the coefficient below.
 
    Set `--pill-height` on the element or an ancestor -- the radius has to be pinned rather than
    read back, because `rounded-full` clamps to half the height and CSS cannot see the result. */

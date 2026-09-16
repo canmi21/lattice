@@ -81,7 +81,7 @@
 
 <!-- The whole drawn area is the control, because there is nothing else in it to press: the
      handlers a diagram may have carried are stripped above, so a node's hover is decoration and
-     the press belongs to the diagram as a whole. See spec/styling.md. -->
+     the press belongs to the diagram as a whole. See spec/styling/blocks.md. -->
 <Preview
 	label={m['diagram.enlarge']({}, { locale })}
 	title={m['diagram.title']({}, { locale })}

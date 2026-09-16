@@ -47,7 +47,7 @@
 		 * Off by default, and the default is the one that matters: a cover inside a link card is
 		 * already inside an anchor, and a button there would be both invalid markup and a second
 		 * answer to a press that already has one. A picture in an article body has no other
-		 * answer, so it takes this one. See spec/styling.md.
+		 * answer, so it takes this one. See spec/styling/blocks.md.
 		 */
 		enlarges?: boolean;
 		/**
@@ -108,7 +108,7 @@
 <!-- `block`, because `picture` is inline in the browser's own stylesheet and a non-replaced
      inline box discards its vertical margins. The article column spaces its blocks with a
      `margin-block-end` on each of them, so an inline one silently kept the gap above it -- which
-     belongs to the paragraph before -- and lost the gap below. See spec/styling.md. -->
+     belongs to the paragraph before -- and lost the gap below. See spec/styling/lengths.md. -->
 {#snippet frame(sizes: string, framing: string | undefined, shaped: boolean)}
 	<picture class="block">
 		{#if srcset}

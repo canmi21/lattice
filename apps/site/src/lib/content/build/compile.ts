@@ -261,7 +261,7 @@ function proseHtml(node: RootContent, newTabNote: string): string {
 				// at the end can name what it is about. The words get a span of their own -- no
 				// resting style, purely so the walk back from a note has something to light up:
 				// the marker's number is too small to catch an eye landing mid-page.
-				// See spec/styling.md.
+				// See spec/styling/notes.md.
 				if (directive.name === 'fn') {
 					const number = noteNumber(directive);
 					return [
@@ -350,7 +350,7 @@ function proseHtml(node: RootContent, newTabNote: string): string {
 				// (hover or focus lifts the blur) so nothing here is live. The text stays real
 				// underneath -- selectable, translated, read by assistive technology -- because
 				// the fog is a display choice, not redaction. tabindex gives keyboards and taps
-				// a way to ask on screens that never hover. See spec/styling.md.
+				// a way to ask on screens that never hover. See spec/styling/notes.md.
 				if (directive.name === 'spoiler') {
 					return {
 						type: 'element',
@@ -799,7 +799,7 @@ export async function compile(
 			// a column of bars, which makes it a way to reach a section rather than an outline of
 			// the article; a subsection is reached by arriving at its parent and reading on. Its
 			// anchor still exists and still resolves -- what is filtered is the listing, not the
-			// address. See spec/styling.md.
+			// address. See spec/styling/rail.md.
 			if (node.depth === 2) toc.push({ slug, text: heading, depth: node.depth });
 			feed.push(
 				`<h${node.depth} id="${slug}">${escapeHtml(heading)}${marks
@@ -814,7 +814,7 @@ export async function compile(
 		if (node.type === 'code') {
 			const lang = node.lang ?? 'text';
 			// Mermaid is still authored as an ordinary fenced block, but its source becomes a
-			// client-rendered diagram rather than highlighted code. See spec/styling.md.
+			// client-rendered diagram rather than highlighted code. See spec/styling/blocks.md.
 			if (lang.toLowerCase() === 'mermaid') {
 				const ratio = mermaidRatio(node.meta, sourceFile ?? url);
 				const description = describeDiagram?.(blockSource(raw, node));

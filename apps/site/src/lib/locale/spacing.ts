@@ -15,8 +15,8 @@ const LATIN_END = /[A-Za-z0-9]$/;
  * Put a space where a Latin run meets a CJK letter, in text assembled at runtime.
  *
  * Authored copy already carries these; only text this site builds needs it, since nobody typed
- * one there. See spec/styling.md, "Latin inside CJK is spaced with a real space", for why this is
- * a real space rather than `text-autospace`.
+ * one there. See spec/styling/prose.md, "Latin inside CJK is spaced with a real space", for why
+ * this is a real space rather than `text-autospace`.
  */
 export function spaceScriptBoundaries(parts: readonly string[]): string[] {
 	return parts.map((part, index) => {

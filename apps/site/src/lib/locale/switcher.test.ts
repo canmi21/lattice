@@ -265,7 +265,7 @@ describe('the closed switcher', () => {
 	it('drops the region for a caller with no room, and keeps every endonym distinct without it', () => {
 		// The article's metadata row asks for this; nothing else does. It is safe to ask for
 		// because the region qualifies nothing among the published views -- the eight names below
-		// are already eight different strings. See spec/styling.md.
+		// are already eight different strings. See spec/styling/phone.md.
 		const labels = (['zh', 'tw', 'en', 'ja', 'ko', 'de', 'fr', 'es'] as const).map((code) =>
 			triggerLabel(code, 'zh', { region: false }),
 		);

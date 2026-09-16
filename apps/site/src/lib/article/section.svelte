@@ -71,7 +71,7 @@
 </script>
 
 <!-- A subsection matches a section's size, weight and colour and sits closer to what precedes
-     it: see spec/styling.md, "A subsection is nearer, and for that reason unlisted", for why
+     it: see spec/styling/rail.md, "A subsection is nearer, and for that reason unlisted", for why
      space rather than size carries the distinction and why only sections are in the rail. -->
 <svelte:element
 	this={`h${depth}`}
@@ -94,7 +94,8 @@
 	</button>
 	{@render children()}
 	<!-- After the words rather than above them: a heading's note belongs to the heading, and a
-	     marker floating off the cap line reads as belonging to the page. See spec/styling.md. -->
+	     marker floating off the cap line reads as belonging to the page. See
+	     spec/styling/notes.md. -->
 	{#each notes as number (number)}<sup class="note-marker"
 			><a id="marker-{number}" href="#note-{number}" class="note-marker-link focus-link jump-target"
 				>{number}</a

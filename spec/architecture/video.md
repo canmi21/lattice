@@ -179,8 +179,8 @@ and `subscribe` fired not once.
 ## A clip is a picture, then a silent picture, then a player
 
 What the controls look like, and why they take none of their colours from the page, is in
-[styling.md](../styling.md) -- this section is what they do. The player has three stages
-and they are not decoration: each one is a different answer to "what is this thing", and the
+[styling/player.md](../styling/player.md) -- this section is what they do. The player has three
+stages and they are not decoration: each one is a different answer to "what is this thing", and the
 reader moves through them by doing something. `sleeping` looks like a
 picture and has no controls. `previewing` is running silently and is an invitation rather than a
 player, so it still has no controls. `awake` is a player, and only a reader's own click gets

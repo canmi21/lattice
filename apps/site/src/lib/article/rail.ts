@@ -16,7 +16,7 @@ export function railTop(viewportHeight: number, railHeight: number, articleBotto
 /**
  * Where the return control rests, measured from the top of the viewport.
  *
- * See spec/styling.md, "The return control rests level with the title", for why it sits there,
+ * See spec/styling/rail.md, "The return control rests level with the title", for why it sits there,
  * what `clearance` means, and why the two expressions below meet exactly where they do.
  */
 export function homeRestingCenter(

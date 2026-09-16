@@ -139,7 +139,7 @@
 		if (!link || !movesThisPage(event)) return;
 		const destination = targetOf(link);
 		if (!destination) return;
-		// The move is not an address: see spec/styling.md.
+		// The move is not an address: see spec/styling/notes.md.
 		event.preventDefault();
 		// Before the scroll, never after: a note behind the fold has to really be where it is
 		// going to be by the time `scrollIntoView` resolves its destination. See note-reveal.ts.
@@ -281,7 +281,7 @@
 			/>
 		{:else if block.type === 'article'}
 			<!-- The homepage's row, unchanged, and navigating in place like every other link
-			     here -- the reader's way back is the trail, see spec/styling.md. Its thumbnail
+			     here -- the reader's way back is the trail, see spec/styling/rail.md. Its thumbnail
 			     keeps the baked first frame rather than the content-derived shape the homepage
 			     animates to: that shape is normalised across a whole list, and one card in a body
 			     has no list to be measured against. See $lib/article/list.svelte. -->

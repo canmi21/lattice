@@ -25,8 +25,8 @@ export const LANGUAGE_ENDONYMS = Object.fromEntries(
 
 /**
  * How large each mark reads, measured rather than assumed: `sqrt(extent * sqrt(mass))`, reach
- * corrected by weight. See spec/styling.md, "An icon set is sized by the ink it carries, not by
- * one class for all of it", for the derivation and the measured spread it corrects.
+ * corrected by weight. See spec/styling/focus.md, "An icon set is sized by the ink it carries, not
+ * by one class for all of it", for the derivation and the measured spread it corrects.
  */
 const MARK_OPTICAL = {
 	translate: 9.68,
@@ -39,15 +39,15 @@ export type MarkName = keyof typeof MARK_OPTICAL;
 
 /**
  * Marks that are one drawing, and are therefore sized as one: an ornament does not vote on size.
- * See spec/styling.md, "An icon set is sized by the ink it carries, not by one class for all of
- * it", for why `translate-2-line` and `translate-2-ai-line` qualify and others do not.
+ * See spec/styling/focus.md, "An icon set is sized by the ink it carries, not by one class for all
+ * of it", for why `translate-2-line` and `translate-2-ai-line` qualify and others do not.
  */
 const MARK_DRAWING = new Map<MarkName, MarkName>([['translate-simplified', 'translate-ai']]);
 
 /**
  * One optical size for the whole control, taken from the compass on the closed trigger -- itself
- * a correction, `size-3.75` rather than the row's `size-3.5`. See spec/styling.md, "An icon set is
- * sized by the ink it carries, not by one class for all of it".
+ * a correction, `size-3.75` rather than the row's `size-3.5`. See spec/styling/focus.md, "An icon
+ * set is sized by the ink it carries, not by one class for all of it".
  */
 const MARK_OPTICAL_TARGET = 10.68;
 

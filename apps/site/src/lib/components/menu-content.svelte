@@ -40,8 +40,8 @@
 	 * How close this surface may come to the window's edge, in pixels: the page's own gutter, so a
 	 * menu pushed back by a collision stops where the article's text stops. The library's default
 	 * of 8px is invisible on a laptop and puts a phone's panel against the screen's edge -- see
-	 * spec/styling.md. A number rather than the token because the library cannot read a custom
-	 * property; it agrees with the article column's `px-6` by hand.
+	 * spec/styling/controls.md. A number rather than the token because the library cannot read a
+	 * custom property; it agrees with the article column's `px-6` by hand.
 	 */
 	const EDGE_PADDING = 24;
 </script>

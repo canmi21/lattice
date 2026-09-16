@@ -323,7 +323,7 @@ otherwise need. See spec/engagement.md. -->
 
 		     Both are in the markup and one is `display: none`, so a screen reader is read exactly
 		     one of them. The bio does this with markers inside its markdown; a message has none,
-		     so the choice is made here. See spec/styling.md. -->
+		     so the choice is made here. See spec/styling/phone.md. -->
 		<p class="selectable hidden sm:block {stylex.attrs(styles.pitch).class}">
 			{m['newsletter.pitch']({}, { locale })}
 		</p>
@@ -444,7 +444,7 @@ otherwise need. See spec/engagement.md. -->
 				     That width is not a number anybody can write: it is the wider of two labels as
 				     this font renders them, and it moves with the language. Measuring it would mean
 				     painting at one position and shifting after hydration, which is the failure
-				     styling.md records for the rail. So the cell reserves the width the same way the
+				     spec/styling/rail.md records. So the cell reserves the width the same way the
 				     button does, and the control centres inside it. -->
 				<span class="under-chip shrink-0">
 					<span class="ghost px-4 {stylex.attrs(styles.ghost).class}" aria-hidden="true"
@@ -668,7 +668,7 @@ otherwise need. See spec/engagement.md. -->
 
 	/* Uncovered left to right, so the address reads as being redacted in place. A clip needs no
 	   measurement, unlike the Support rail's masks: that geometry depends on the rendered width of
-	   two labels, and this one is always the whole box. See spec/styling.md. */
+	   two labels, and this one is always the whole box. See spec/styling/controls.md. */
 	/* Not the spring. A spring is a settle: it spends 97% of the distance in the first half and
 	   leaves the rest of the stage with nothing visibly happening. This sweep is meant to be
 	   watched across its whole duration, so it eases in and out instead. */

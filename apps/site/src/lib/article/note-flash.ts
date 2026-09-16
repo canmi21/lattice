@@ -1,10 +1,10 @@
 /**
  * The brief selection-coloured light a note jump lands with, in either direction.
  *
- * See spec/styling.md, "The walk back from a note lights the words it lands on", for why arrival
- * needs its own signal (the URL never carries the move) and why the light is a painted layer
- * rather than a background. One box per rendered line fragment, read off `getClientRects()` at
- * arrival, in document coordinates so the boxes stay glued to the words under further scrolling.
+ * See spec/styling/notes.md, "The walk back from a note lights the words it lands on", for why
+ * arrival needs its own signal (the URL never carries the move) and why the light is a painted
+ * layer rather than a background. One box per rendered line fragment, read off `getClientRects()`
+ * at arrival, in document coordinates so the boxes stay glued to the words under further scrolling.
  * One flash at a time, module-wide: the two directions share the reader's attention, so a new
  * jump takes the light with it.
  */

@@ -8,7 +8,7 @@
 	 * spec/architecture/css.md. Most of the rest is not here and cannot be: the ground, the stage
 	 * and the close are portalled out of the tree by Bits UI and reached with `:global` in the
 	 * block at the foot of this file, which is also where the ground's literal black stays -- a
-	 * decision argued in spec/styling.md rather than a palette entry.
+	 * decision argued in spec/styling/blocks.md rather than a palette entry.
 	 */
 	const styles = stylex.create({
 		frame: {
@@ -96,7 +96,7 @@
 		 * what the picture is. A photograph has `alt`; a diagram is a subtree of `text` nodes and
 		 * needs `role="img"` to become one thing with one reading. It is declared here so that a
 		 * caller with a description and a caller without are the same shape, and so this note has
-		 * somewhere to live. See spec/styling.md.
+		 * somewhere to live. See spec/styling/blocks.md.
 		 */
 		description?: string;
 		inline: Snippet;
@@ -132,7 +132,7 @@
      flattens what is inside it, losing the drawing's own reading, and putting the button over the
      drawing instead takes the pointer away from the nodes' own hover. So neither -- the picture
      says what it is, the button says what pressing does, and the frame around them takes the
-     press. See spec/styling.md. The two rules waived below are the same waiver twice: the
+     press. See spec/styling/blocks.md. The two rules waived below are the same waiver twice: the
      keyboard path is the button inside this element, and neither rule can see it from here. -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -197,7 +197,7 @@
 	   near-white and a warm near-black, and a picture read against either of them is being read
 	   against the site rather than on its own. This is the one surface here that does not follow
 	   the theme, which is why its colour is written as a literal and not taken from the palette.
-	   See spec/styling.md. */
+	   See spec/styling/blocks.md. */
 	:global(.preview-ground) {
 		background: #000;
 		transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -216,7 +216,7 @@
 	   edges when it is the wider of the two, and its top and bottom when it is the taller. There
 	   is no third term. Nothing here is allowed to hold the picture off an edge -- not a gutter,
 	   not a corner radius, not a frame, and not a ceiling on how large it may be drawn. Whatever
-	   the window has, the picture takes. See spec/styling.md. */
+	   the window has, the picture takes. See spec/styling/blocks.md. */
 	.preview-figure.preview-measured {
 		aspect-ratio: var(--picture-width) / var(--picture-height);
 		width: min(100vw, calc(100dvh * var(--picture-width) / var(--picture-height)));

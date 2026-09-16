@@ -2,8 +2,8 @@
  * Authored lengths and measured ones, kept apart.
  *
  * Geometry read from the DOM comes back in CSS pixels, and anything written back to a style is
- * divided by the live root size and serialised as rem -- see spec/styling.md. Two applications
- * now animate lengths, which is what moved these out of the site.
+ * divided by the live root size and serialised as rem -- see spec/styling/lengths.md. Two
+ * applications now animate lengths, which is what moved these out of the site.
  */
 
 export const DEFAULT_PIXELS_PER_REM = 16;

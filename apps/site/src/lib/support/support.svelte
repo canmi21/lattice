@@ -48,7 +48,7 @@
 		},
 		/**
 		 * The like pill's figures: tabular, so a changing count does not resize the pill and shift
-		 * its neighbours. See spec/styling.md, "A number's treatment follows the role it plays".
+		 * its neighbours. See spec/styling/prose.md, "A number's treatment follows the role it plays".
 		 */
 		likeFigures: {
 			fontVariantNumeric: 'tabular-nums',
@@ -122,8 +122,8 @@
 	 * Expanding answers to whether the pointer can hover, not to how wide the window is -- a tap
 	 * synthesises `mouseenter`, and a width guard was open on the one device class, an iPad, it was
 	 * meant to catch. Queried live rather than once, so a tablet given a trackpad finds the other
-	 * answer. See spec/styling.md, "The reveal answers to whether the pointer can hover, not to how
-	 * wide the window is".
+	 * answer. See spec/styling/controls.md, "The reveal answers to whether the pointer can hover, not
+	 * to how wide the window is".
 	 */
 	const HOVERS = '(hover: hover)';
 
@@ -151,8 +151,8 @@
 
 	/**
 	 * Which favour this row asks for, in the one slot that asks for one. Two stores decide it --
-	 * see spec/styling.md, "Compact action rails reveal detail on demand" -- and share this one
-	 * key, `PREFERRED`, across the `reader` and `tab` records in `client/state.ts` so the two
+	 * see spec/styling/controls.md, "Compact action rails reveal detail on demand" -- and share this
+	 * one key, `PREFERRED`, across the `reader` and `tab` records in `client/state.ts` so the two
 	 * never drift. Both short forms are a six-letter brand name, so what moves is the label and
 	 * not the row.
 	 */

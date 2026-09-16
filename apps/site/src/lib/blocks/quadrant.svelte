@@ -126,8 +126,8 @@
 </script>
 
 <!-- The figure is named by the derived reading, not by its title, and falls back to the title
-     plus the assembled sentences when no reading exists yet. See spec/styling.md, "The picture
-     and the control that opens it are siblings". -->
+     plus the assembled sentences when no reading exists yet. See spec/styling/blocks.md, "The
+     picture and the control that opens it are siblings". -->
 <figure
 	class="quadrant-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
 	role="img"

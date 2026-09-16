@@ -1,7 +1,7 @@
 /*
  * Mermaid's theme engine accepts hex colours only. These are the sRGB mirrors of the
  * interface colours in @canmi/tokens; they stay together here because Mermaid is the sole
- * consumer and must never make the ordinary site palette abandon OKLCH. See spec/styling.md.
+ * consumer and must never make the ordinary site palette abandon OKLCH. See spec/styling/blocks.md.
  */
 .mermaid-block {
 	--mermaid-page: #fbfbfb;

@@ -8,8 +8,8 @@
 	 * `libs/tokens` already declares. See spec/architecture/css.md.
 	 *
 	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
-	 * component-local mirror in palette.css (see spec/styling.md). The scoped block at the foot
-	 * holds the frame's geometry, the two keyframes -- unnameable outside it, since Svelte
+	 * component-local mirror in palette.css (see spec/styling/blocks.md). The scoped block at the
+	 * foot holds the frame's geometry, the two keyframes -- unnameable outside it, since Svelte
 	 * rewrites a keyframe's name -- and the resting opacity one of them interpolates from.
 	 */
 	const styles = stylex.create({

@@ -74,7 +74,7 @@ export const surfaces = stylex.create({
 	},
 
 	/**
-	 * The compact icon-and-label control a metadata row is made of. See spec/styling.md, "Quiet
+	 * The compact icon-and-label control a metadata row is made of. See spec/styling/focus.md, "Quiet
 	 * metadata controls share one surface" (why this replaced the `.quiet-control` class) and
 	 * spec/todo.md, "A recipe's other half is a convention and nothing checks that a call site
 	 * kept it" (why only the appearance is here). `:hover` is bare (sameness first,

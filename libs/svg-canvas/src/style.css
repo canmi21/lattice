@@ -103,7 +103,8 @@
 }
 
 /* Every diagram is one control -- pressing any part of it opens the enlarged view -- so the
- * cursor is declared once by the host that owns that press, not per node. See spec/styling.md. */
+ * cursor is declared once by the host that owns that press, not per node. See
+ * spec/styling/blocks.md. */
 .svg-canvas svg {
 	display: block;
 }
