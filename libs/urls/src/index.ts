@@ -14,15 +14,9 @@ export type DevelopmentUrls = Readonly<Record<AppName, string>>;
 /**
  * Where the API and the CDN are reached *from a page* in development: through the site.
  *
- * The site's dev server proxies these two prefixes to the two workers, so a page carries no host
- * of its own for them. That is what lets a phone on the same network open the site by its LAN
- * address and have every request go back to the address it was loaded from -- `localhost` on that
- * phone is the phone. It also covers what the browser never asks for directly: fonts, avatars and
- * the OpenGraph card are rendered into the HTML by the worker, so an absolute `localhost` there is
- * already wrong before any script runs.
- *
- * Production has three domains and no proxy. Only development collapses them, and only because
- * in development they are three processes on one machine. See spec/toolchain.md.
+ * A page carries no host of its own for either prefix -- see spec/toolchain.md, "They bind
+ * every interface, and the other two are reached through the site", for why that is what
+ * makes the site work from a phone on the same network.
  */
 export const DEVELOPMENT_PROXY_PATHS = { api: '/api', cdn: '/cdn' } as const;
 
@@ -169,14 +163,10 @@ export function pickUrls(isDev: boolean): UrlMap {
 /**
  * The same map as `pickUrls`, as a page served by the site should ask for it.
  *
- * Two consumers want opposite things from the development entry, which is why there are two
- * functions. A worker wants origins: the API's CORS list names the site, and its redirects to the
- * site and the CDN have to be addresses somebody can follow. A page wants paths, because the host
- * it should ask is whichever one it was opened from -- `localhost` is only right when that host
- * is this machine, and the whole point of the proxy is that it need not be.
- *
- * Identical to `pickUrls` in production, where the three are three domains and nothing is
- * proxied. See spec/toolchain.md.
+ * Two functions because two consumers want opposite things from the development entry: a
+ * worker wants origins it can put in a CORS list or a redirect, while a page wants paths, since
+ * the host it should ask is whichever one it was opened from and need not be `localhost`.
+ * Identical to `pickUrls` in production, where nothing is proxied.
  */
 export function pageUrls(isDev: boolean): UrlMap {
 	return isDev ? { ...URLS.apps.development, ...DEVELOPMENT_PROXY_PATHS } : URLS.apps.production;
@@ -185,29 +175,23 @@ export function pageUrls(isDev: boolean): UrlMap {
 /**
  * The address the CMS dev server binds to, and is therefore reached at.
  *
- * The one place here a literal is right, and it is right because of what it binds rather than in
- * spite of it. Local development is `localhost` (spec/toolchain.md), but a listen address is a
- * separate question: this server binds a single address on purpose, so that a desktop app's dev
- * server is not on the network, and Node binds exactly one address when given a name. `localhost`
- * resolves to `::1` first on macOS, which nothing is listening on -- so the URL has to name the
- * address that was bound rather than a name that can resolve past it.
+ * A literal rather than `localhost`, because binding is a separate question from addressing:
+ * this server binds one address on purpose so a desktop app's dev server stays off the
+ * network, and `localhost` resolves to `::1` first on macOS, which nothing listens on.
  *
- * A bare hostname rather than a URL, because the two consumers want different shapes: a Vite
- * `server.host` takes the host alone, while the Tauri dev URL wants an origin from `loopbackUrl`.
+ * A bare hostname rather than a URL, because Vite's `server.host` takes the host alone while
+ * the Tauri dev URL wants an origin from `loopbackUrl`.
  */
 export const LOOPBACK_HOST = '127.0.0.1';
 
 /**
  * The hostnames that mean this machine.
  *
- * `[::1]` in brackets, which is the form every caller here has: `URL.hostname` normalises each
- * spelling of the IPv6 loopback to that one, and a `Host` header brackets it too. The bare form
- * sits beside it for a caller that takes a host apart itself. Without them a request that arrived
- * over IPv6 -- which it can, since the site binds `::` -- was read as production and answered
- * with production addresses.
+ * `[::1]` in brackets is the form `URL.hostname` normalises every IPv6 loopback spelling to,
+ * and a `Host` header brackets it too; the bare form covers a caller that takes a host apart
+ * itself. Without both, a request arriving over IPv6 -- the site binds `::` -- read as production.
  *
- * The IPv4 literal is `LOOPBACK_HOST` because it is the same address, not because recognising a
- * host and binding one are the same job.
+ * `LOOPBACK_HOST` covers IPv4: the same address, not the same job as recognising one.
  */
 const DEV_HOSTS: ReadonlySet<string> = new Set(['localhost', LOOPBACK_HOST, '[::1]', '::1']);
 

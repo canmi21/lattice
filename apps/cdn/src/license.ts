@@ -14,12 +14,10 @@ import { parseName, validatorFor } from './key';
  * Serving the licence texts `cms licenses` publishes.
  *
  * The same shape as the image route and for the same reason: a caller names the object by its
- * content id alone, and the fanned-out key it is stored under is put together here. Before
- * this route existed the site linked the storage key verbatim, which made the bucket's layout
- * a public interface. See spec/architecture/data.md.
+ * content id alone, and the fanned-out key it is stored under is put together here -- see
+ * spec/architecture/data.md for why the bucket's layout must not leak into a link.
  *
- * Nothing is transcoded -- a licence is bytes that must be served exactly as the package
- * shipped them -- so this is a lookup and a validator, and no more.
+ * Nothing is transcoded -- a licence is bytes served exactly as the package shipped them.
  */
 const license = new Hono<{ Bindings: Bindings }>();
 

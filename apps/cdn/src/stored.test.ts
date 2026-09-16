@@ -27,14 +27,12 @@ function bucketWith(keys: string[]) {
 /**
  * The failure this whole file is here for.
  *
- * `video` and `captions` were declared, written by apps/cms, resolved into URLs by apps/site, and
- * had no route -- so a request fell through to the worker's direct-key lookup, which reads the
- * path as written and asked the bucket for `video/{cid}.mp4` where `video/{ab}/{cd}/{cid}.mp4` is
- * stored. Four rung URLs answered 404 with the files sitting on disk. Nothing failed; a page just
- * did not play.
+ * `video` and `captions` were declared and written but had no route, so a request fell
+ * through to the direct-key lookup and asked for `video/{cid}.mp4` where
+ * `video/{ab}/{cd}/{cid}.mp4` is stored -- four rung URLs answered 404 with the files on disk.
  *
- * So the test is not "does the video route work" but "is every kind the store declares actually
- * reachable". A new kind added to `OBJECTS` fails here until somebody routes it.
+ * So the test is not "does video work" but "is every kind the store declares reachable" -- a
+ * new kind added to `OBJECTS` fails here until somebody routes it.
  */
 describe('every content-addressed kind is reachable', () => {
 	/** Kinds this worker does not serve, and why. Anything else must have a route. */

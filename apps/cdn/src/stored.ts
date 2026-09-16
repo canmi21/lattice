@@ -14,15 +14,12 @@ import { parseName, validatorFor } from './key';
 /**
  * Serving a content-addressed kind that stores one format and needs nothing done to it.
  *
- * `video` and `captions` are both this: a caller names the object by its content id alone, the
- * key it is stored under is put together from `OBJECTS`, and the bytes go back as they are. There
- * is nothing to transcode -- a rung was encoded by `cms video` at a size the ladder chose, and a
- * caption track is the one format a `<track>` element takes -- so this is a lookup and a
- * validator, and no more.
+ * `video` and `captions` are both this: the key is put together from `OBJECTS` and the bytes
+ * go back as they are -- a rung was already encoded by `cms video` at the size the ladder
+ * chose, and a caption track is the one format a `<track>` element takes.
  *
- * A factory rather than two files, because two files would be two places for the same five lines
- * to drift apart. `image` keeps its own route because it decodes and re-encodes; `license` keeps
- * its own because it also answers for a named aggregate that is not addressed by content at all.
+ * A factory rather than two files, so the same five lines cannot drift apart between them.
+ * `image` and `license` keep routes of their own because each does something more.
  */
 export function stored(prefix: ObjectPrefix, extension: string) {
 	const route = new Hono<{ Bindings: Bindings }>();

@@ -24,12 +24,10 @@ const image = new Hono<{ Bindings: Bindings }>();
 /**
  * What a re-encoded response is served as.
  *
- * Keyed by `Encodable` rather than by string, so the table is complete by construction. Typed
- * loosely it was not: indexing it returned `string | undefined`, and the missing case was
- * answered with a fallback of `image/jpeg` -- a wrong answer, silently, for bytes that were not
- * JPEG. Nothing could reach it, because the guard below narrows the extension first, so the
- * fallback existed only to quiet the checker that was right. Adding a format without its MIME
- * type is now a compile error instead.
+ * Keyed by `Encodable`, not by string, so the table is complete by construction. Typed loosely
+ * before, an indexed lookup returned `string | undefined` and the missing case silently fell
+ * back to `image/jpeg` -- wrong for anything that was not JPEG. Adding a format without its
+ * MIME type is now a compile error instead.
  */
 const TYPES: Record<Encodable, string> = {
 	webp: 'image/webp',

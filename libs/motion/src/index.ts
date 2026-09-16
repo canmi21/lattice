@@ -31,33 +31,25 @@ const MAX_SECONDS = 0.45;
 export const NEGLIGIBLE_PIXELS = 0.5;
 
 /**
- * CSS's own `ease`, which is the flattest of the curves that still starts promptly.
+ * CSS's own `ease`, which is the flattest curve that still starts promptly.
  *
- * The curve decides how much of a move lands in its worst frame, and that is what "smooth" means
- * at 60fps. Over the reference fold, measured as peak movement in a single frame against the
- * 13.7px a linear ramp would use: the ease-out quintic this replaces put 56.8px in its first frame
- * -- a third of the whole distance in 16ms, which is the graininess it was reporting rather than
- * any dropped frame. This curve peaks at 30.6px and opens with 11.1, so it is 46% flatter at the
- * top and still moves visibly on the first frame after the press.
- *
- * Curves that start at rest are flatter still and were rejected on that: two frames of stillness
- * after a click reads as the control not having heard it.
+ * Measured as peak movement in the worst 16ms frame over the reference fold: a linear ramp
+ * gives 13.7px, the ease-out quintic this replaces gave 56.8px -- a third of the distance in
+ * one frame, reported as graininess rather than a dropped frame. This curve peaks at 30.6px
+ * and opens at 11.1, 46% flatter at the top and still visible on the first frame. A curve
+ * starting at rest is flatter still, and was rejected: stillness reads as unheard.
  */
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
 /**
  * How long a surface takes to travel a distance.
  *
- * **Not a constant speed, and that is the correction.** A fixed spring was worse -- it settles in
- * about the same time whatever it covers, so a short move was a slow one, measured at 0.19 pixels
- * a millisecond against 0.40 for a long one. But dividing by a constant speed overshoots the other
- * way: it makes a small panel finish in a tenth of a second, which reads as a flash rather than a
- * movement. Neither is how the eye reads travel.
+ * Not a constant speed: a fixed spring settles in about the same time regardless of distance
+ * (0.19px/ms for a short move against 0.40 for a long one), while a constant speed instead
+ * makes a small panel finish in a tenth of a second, a flash rather than a movement.
  *
- * So the time grows with the square root of the distance. A move four times as long takes twice as
- * long, not four times: short ones get proportionally more time than their size, long ones less,
- * and the anchor above is untouched. Against the constant speed it replaces, at the same anchor:
- * 86px goes from 108ms to 154ms, and 600px from 750ms to 408ms.
+ * So time grows with the square root of distance: four times as far takes twice as long, not
+ * four times. Against it: 86px goes 108ms to 154ms, 600px goes 750ms to 408ms.
  */
 export function pressMotion(distancePixels: number): {
 	duration: number;
@@ -70,19 +62,11 @@ export function pressMotion(distancePixels: number): {
 /**
  * The two curves an indicator travels on, and they describe different things.
  *
- * A bar crossing a strip is not a box growing, and one curve cannot say what it does. What it has
- * is a **centre** that moves and a **width** that adapts, and those are separate facts: the centre
- * is where the bar is, the width is how much of the label under it is covered. Driving offset and
- * width together conflates them into a rectangle redrawn at successive positions -- correct, and
- * inert.
- *
- * So the centre is animated on `CENTRE` and the width on `WIDTH`, over one duration, starting and
- * landing together. The bar reads as an object that moves and resizes at once rather than one that
- * is being retyped.
- *
- * `CENTRE` leaves decisively and settles, because the movement is the gesture. `WIDTH` is the
- * flatter of the two: a resize that raced the movement would look like the bar snapping to its new
- * size before it arrived, and one that lagged would leave it the wrong length at rest for a frame.
+ * A bar crossing a strip has a centre that moves and a width that adapts; driving both on one
+ * curve conflates them into a rectangle redrawn at successive positions -- correct, and inert.
+ * `CENTRE` and `WIDTH` run separately over one duration instead, so the bar reads as moving and
+ * resizing at once: `CENTRE` leaves decisively, `WIDTH` flatter so it neither snaps ahead nor
+ * lags at the wrong length.
  */
 const CENTRE = [0.32, 0.72, 0.24, 1] as const;
 const WIDTH = [0.4, 0, 0.2, 1] as const;
@@ -117,15 +101,12 @@ export function travelMotion(distancePixels: number): {
 /**
  * A control resizing because its content changed.
  *
- * A spring here where a panel gets a tween, and the overshoot is the reason rather than an
- * oversight: a button that swaps its label is a thing being pushed out or pulled in, and a little
- * give at the end is what makes it read as elastic instead of as a box being retyped. The site's
- * support actions have used this shape since before there was a module to keep it in -- stiffness
- * 420 against damping 28 is a damping ratio near 0.74, so it passes its target and comes back.
+ * A spring here where a panel gets a tween, and the overshoot is deliberate: a swapped label
+ * is a thing pushed or pulled, and a little give at the end reads as elastic. Stiffness 420
+ * against damping 28 is a ratio near 0.74, so it overshoots and comes back.
  *
- * The rest thresholds are stated in pixels because the value being animated is a width. Left at
- * the library's defaults of 0.01 they hold a spring open while it covers a hundredth of a pixel,
- * which is what made a fold feel slow enough to be worth measuring.
+ * Rest thresholds are in pixels, since the animated value is a width: the library's own
+ * default of 0.01 held a spring open over a hundredth of a pixel, slow enough to measure.
  */
 export function contentMotion(): {
 	type: 'spring';

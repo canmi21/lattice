@@ -13,12 +13,11 @@ import { cardKeys } from './key';
  * Serving OpenGraph cards, one view per language.
  *
  * The address is the page's own path with `?lang=` on it -- `/opengraph/development/x.png?lang=ja`
- * -- and the view is a directory in the bucket. Same separation as everywhere else here: the URL
- * says what the reader wants, the key says where the bytes are, and the second is free to move.
- * See spec/architecture/data.md.
+ * -- and the view is a directory in the bucket, kept apart from the URL for the reason
+ * spec/architecture/data.md gives for every key here.
  *
- * A card is named by its slug rather than by a hash of its bytes, so unlike the licence texts
- * these cannot be immutable. The lifetime is a week, which is also how long X holds a card.
+ * A card is named by its slug rather than a hash, so unlike the licence texts these cannot be
+ * immutable. The lifetime is a week, which is also how long X holds a card.
  */
 const opengraph = new Hono<{ Bindings: Bindings }>();
 

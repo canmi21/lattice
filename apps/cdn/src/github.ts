@@ -105,7 +105,7 @@ export function isGitHubHost(hostname: string): boolean {
 	return hostname === 'github.com' || hostname.endsWith('.githubusercontent.com');
 }
 
-/** Headers carried through from the object store; the rest describe its connection, not the file. */
+/** Headers carried through from the store; the rest describe its connection, not the file. */
 const CARRIED = ['Content-Type', 'Content-Length', 'Content-Disposition', 'ETag', 'Last-Modified'];
 
 /** The most the edge cache will hold as one object. */

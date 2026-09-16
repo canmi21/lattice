@@ -5,14 +5,12 @@ import type { Bindings } from './bindings';
 /**
  * `GET /image/{cid}` -- what is known about an asset.
  *
- * The same id that names bytes on the CDN names a record here, so a caller holding one
- * content id can ask either question without a second lookup to translate between them. The
- * record is written by `cms image` and published alongside the variants; this reads it back
- * verbatim rather than assembling anything, so there is one description of an asset and not
- * two that can disagree. See spec/architecture/media.md.
+ * The same id names bytes on the CDN and a record here, so one content id answers both
+ * questions without translation between them. Written by `cms image`, published alongside the
+ * variants, and read back verbatim -- one description of an asset, not two that can disagree.
  *
- * Reading goes through the same store as the CDN, so `mise run dev-api` answers from
- * `data/public` instead of needing `--remote` to reach a bucket only production writes.
+ * Reads through the same store as the CDN, so `mise run dev-api` answers from `data/public`
+ * without needing `--remote` to reach a bucket only production writes.
  */
 const image = new Hono<{ Bindings: Bindings }>();
 

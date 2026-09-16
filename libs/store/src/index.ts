@@ -3,13 +3,11 @@ import type { Fetcher, R2Bucket } from '@cloudflare/workers-types';
 /**
  * Reading the bytes behind a key, from whichever store this deployment has.
  *
- * Production has the R2 bucket that mirrors `data/public`. Development has `data/public`
- * itself, handed over by `wrangler dev --assets`, because the local tree is the source of
- * truth and dev should read the source rather than a copy of it. A worker cannot open the
- * directory itself -- workerd's `node:fs` is a virtual filesystem and cannot see host paths
- * (verified), so the runtime has to pass it in.
- *
- * Everything above this module works in keys and knows nothing about which one answered.
+ * Production reads the R2 bucket that mirrors `data/public`; development reads `data/public`
+ * itself, handed over by `wrangler dev --assets` because the local tree is the source of truth.
+ * A worker cannot open that directory itself -- workerd's `node:fs` is virtual and cannot see
+ * host paths (verified) -- so the runtime passes it in. Everything above this module works in
+ * keys and knows nothing about which one answered.
  */
 
 /**
@@ -50,20 +48,9 @@ export function isUnsatisfiable(value: Found | Unsatisfiable | null): value is U
 /**
  * Read an object, or the part of one a `Range` header asks for.
  *
- * **The worker is where ranges are served, not the bucket.** Nothing reaches R2 or the asset
- * fetcher directly -- every object goes through a route here -- so the range is resolved on the
- * way past: pushed down to the backend, which reads only what was asked for, and reported back
- * as `partial` for [`toResponse`] to turn into a 206. An object already in the bucket needs no
- * re-upload for this, because none of it depends on what was stored alongside the bytes.
- *
- * `range` is the header verbatim. Parsing it here keeps the one grammar in one place, and a
- * header that cannot be parsed is ignored rather than refused -- RFC 9110 says a recipient that
- * does not understand a range request serves the whole representation, and a broken header is a
- * client bug that a whole file answers correctly.
- *
- * **One range only.** `bytes=0-9,20-29` is legal and answered with a multipart body that nothing
- * in this repository's traffic asks for; it is served whole instead, which is the other thing the
- * specification allows.
+ * `range` is the header verbatim, parsed here in the one place with a grammar to obey -- see
+ * spec/architecture/data.md, "Assets are addressed by their content", for why the worker
+ * resolves it rather than the bucket, and what an unparseable or multipart request gets instead.
  */
 export async function read(env: Bindings, key: string): Promise<Found | null>;
 export async function read(
@@ -218,33 +205,13 @@ export function isContentId(value: string): boolean {
 }
 
 /**
- * Where an object lives, by kind. **The one declaration of the bucket's layout.**
+ * Where an object lives, by kind. The one declaration of the bucket's layout -- see
+ * spec/architecture/data.md, "Assets are addressed by their content", for why it is a table.
  *
- * The layout is a fact about the bucket, so it belongs to the module that reads the bucket rather
- * than to each caller. It was written out three times -- apps/cms writes it, apps/cdn reads it,
- * apps/api reads it -- and the three had to agree about something none of them stated: which
- * prefixes fan out and which do not.
- *
- * It is a table rather than a function per kind because the per-kind form drifts, and did.
- * Adding clips meant an entry here, a key builder, a route and a line in the fallback's comment;
- * three of the four were written and the key builder was not, so four rung URLs answered 404
- * while the files sat on disk -- the request fell through to the worker's direct-key lookup,
- * which reads the path as written, and asked for `video/{cid}.mp4` where `video/{ab}/{cd}/{cid}
- * .mp4` is stored. A new kind is now one line, and the tests below fail until it has a route.
- *
- * **`fanned` follows whether the count is unbounded.** The two-level split exists for a
- * filesystem mirror, where one directory holding every object eventually stops being openable;
- * R2 has no directories and does not care either way. So `meta` is flat -- one record per asset
- * rather than one per format -- and reading it as though it were fanned is a 404 that looks like
- * a missing asset.
- *
- * **`extension` is the single format a kind stores, or `null` where a caller must name one.**
- * Only `image` is null: one picture is published as several formats and the request says which.
- *
- * Never published. A caller asks for `{cid}.{ext}` and the prefix and the split are put back on
- * here; putting them in a URL would make this table an interface nobody could change.
- *
- * Mirrored by `OBJECTS` in apps/cms, which writes what this reads. A test holds the two together.
+ * `fanned` is false only for `meta` (one record per asset, not per format); `extension` is
+ * `null` only for `image`, whose request names the format. Never published -- a caller asks for
+ * `{cid}.{ext}` and the split is put back on here; `OBJECTS` in apps/cms mirrors it, held
+ * together by a test.
  */
 export const OBJECTS = {
 	captions: { fanned: true, extension: 'vtt' },

@@ -15,16 +15,12 @@ import WEBP_ENC_WASM from '@jsquash/webp/codec/enc/webp_enc.wasm';
 /**
  * Re-encoding a stored image into another format, here rather than at the edge.
  *
- * Cloudflare's image transformations cannot read AVIF unless the zone is Enterprise, and even
- * then the source is capped at 1200px while these variants go to 1920 -- so the format we
- * chose to store is the one format that pipeline cannot open. Measured: an AVIF source
- * returns `ERROR 9520: Original image has unsupported format` while the same request against
- * a PNG source succeeds. Doing it in the worker removes the plan tier, the monthly quota and
- * the dimension ceiling in one move. See spec/architecture/delivery.md.
+ * Cloudflare's image pipeline cannot read the format these are stored in -- see
+ * spec/architecture/delivery.md for the measurement -- so the worker decodes and re-encodes
+ * itself instead, which removes the plan tier, the monthly quota and the dimension ceiling too.
  *
- * Only decoders for what is actually stored, and only encoders for what is actually asked
- * for. The AVIF *encoder* is deliberately absent: it is 1.1MB compressed against 332KB for
- * the decoder, and apps/cms already produces AVIF locally where the time is free.
+ * Only decoders for what is actually stored, and only encoders for what is actually asked for;
+ * the AVIF encoder is deliberately absent, for the size trade the same section gives.
  */
 
 /**
@@ -78,15 +74,10 @@ const readyWebpEncode = once(() => initWebpEncode(WEBP_ENC_WASM));
 /**
  * What a stored object can be, and what a request can ask to be given.
  *
- * `jpg` is deliberately not here. It is not a format, it is JPEG spelled for an eight-character
- * filename limit that stopped mattering decades ago -- the same history that leaves `yml` beside
- * `yaml`. Carried as a member it would put a format that does not exist into the type, make every
- * table list one MIME twice, and split the cache in two: `cid.jpg` and `cid.jpeg` are separate
- * validators and separate edge entries holding identical bytes. The route redirects it instead.
+ * `jpg` is deliberately not a member -- see spec/architecture/delivery.md for why one spelling
+ * stays one. The route redirects it instead.
  *
- * There is no AVIF encoder, only the decoder. Measured, the encoder is 1.1MB compressed against
- * 332KB for the decoder, which is most of a Worker's whole budget spent producing what apps/cms
- * already produces locally where the time costs nothing.
+ * There is no AVIF encoder, only the decoder, for the size trade the same section gives.
  */
 export const DECODABLE = ['avif', 'png'] as const;
 export const ENCODABLE = ['webp', 'jpeg', 'png'] as const;

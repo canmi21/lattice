@@ -20,20 +20,13 @@ import { stored } from './stored';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Any origin may read from the CDN. Everything it serves is already public -- an allowlist
-// only decided which page could draw a picture anyone can fetch by URL, so it protected
-// nothing and broke embedding, which is what a CDN is for. The methods stay read-only, so
-// "any origin" grants exactly what a GET already grants.
+// Any origin may read: everything served here is already public, so an allowlist blocked
+// only embedding, which is what a CDN is for. Methods stay read-only, so this grants nothing
+// beyond a GET.
 //
-// `allowHeaders` is absent by the same argument rather than by oversight. Without it a
-// preflight reflects whatever was asked for, which grants nothing where there are no
-// credentials to reach -- `*` and credentials cannot be combined at all. Naming headers
-// instead means guessing which ones an embedder sends, `Range` among them, and breaking the
-// ones guessed wrong. A scanner flagging the reflection has found a real pattern on a
-// credentialed origin and nothing here.
-//
-// The API is the opposite and stays restricted: it answers about state, and there the origin
-// is the difference between a reader and a caller.
+// `allowHeaders` is absent for the same reason: naming headers means guessing which ones an
+// embedder sends (`Range` among them) and breaking the rest, where a reflected preflight
+// grants nothing anyway without credentials to reach. The API stays origin-restricted instead.
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
 app.use('*', cacheControl);
 
@@ -42,23 +35,13 @@ app.get('/', (c) => {
 	return c.redirect(`${urls.site}/?ref=cdn`, 302);
 });
 
-// Nothing here is disallowed, and the previous two attempts explain why.
+// Nothing here is disallowed. `Disallow: /` blocked OpenGraph cards too, and adding
+// `Allow: /opengraph/` did not fix it for X: Twitterbot implements the original 1994
+// robots.txt draft, which has no `Allow` and never sees the exception.
 //
-// `Disallow: /` was right in principle -- a CDN has nothing worth indexing, and its URLs in
-// search results compete with the pages that embed them. But OpenGraph cards have to be
-// fetched by crawlers, so an exception was added as `Allow: /opengraph/`, and X still refused
-// it. Twitterbot implements the original 1994 robots.txt draft, which has no `Allow` at all:
-// it reads the disallow, never sees the exception, and skips the image.
-//
-// A per-agent block would work, but it would mean guessing which crawlers parse which decade
-// of the format and revisiting that list forever. The thing being protected was mild -- some
-// image URLs ranking on their own -- and the bandwidth is not ours to ration. So the policy
-// stops being clever: everything is fetchable, and the file exists to say so rather than to
-// leave crawlers guessing.
-//
-// Served with a short life of its own. The default for an unhashed path here is a week, which
-// is far too long for the file that says what a crawler may do -- a policy correction should
-// circulate in minutes.
+// A per-agent block would mean guessing which crawlers parse which decade of the format,
+// forever, over something mild. So the policy stops being clever: everything is fetchable,
+// cached briefly (unlike the week an unhashed path gets) so a correction takes minutes.
 app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', BRIEFLY);
 	return c.text(robotsTxt({ disallow: [''] }));
