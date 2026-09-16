@@ -2,8 +2,8 @@
    to draw. Chrome renders its default as a two-tone ring, a light contrast edge paired with its
    blue, which reads as a stray white border against these surfaces; it reaches anything that takes
    focus without opting into a utility, such as a menu panel that focuses itself as it opens. This
-   replaces that ring rather than removing it: a control nobody gave a focus utility stays visible to
-   the keyboard instead of going silent. Sitting in the base layer lets every rule below win.
+   replaces that ring rather than removing it: a control nobody gave a focus utility stays visible
+   to the keyboard instead of going silent. Sitting in the base layer lets every rule below win.
    See spec/styling.md. */
 @layer base {
 	:focus-visible {
@@ -17,12 +17,9 @@
    or ancestor when the hit area and visible control are different. Keeping this in the components
    layer lets each control's rounded utility own its actual silhouette. See spec/styling.md. */
 @layer components {
-	/* Prose, in a page that has switched selection off.
-
-	   A component knows which of its parts are sentences and which are controls; a page knows
-	   whether it wants a drag to sweep the controls up. So the marking lives with the content and
-	   the policy lives with the page, and on a page that never restricts selection this does
-	   nothing at all.
+	/* Prose, in a page that has switched selection off. A component marks which of its parts are
+	   sentences; whether a drag should sweep controls up too is the page's call, so this does
+	   nothing on a page that never restricts selection.
 
 	   `-webkit-` is carried because Safari only dropped the prefix in 17 and the floor here is 16.
 	   Applied to the element itself, so it wins over a `none` inherited from any ancestor. */
@@ -35,13 +32,11 @@
 		border-radius: 0.25rem;
 	}
 
-	/* The outline's colour is stated at rest, where no outline is drawn, so that focusing one
-	   changes only its width. Without this the colour is `currentColor` until the rule below
-	   names the accent -- and Tailwind v4 put `outline-color` into `transition-colors`, which
-	   nearly every control here carries for its hover. The ring therefore faded in from the
-	   element's own text colour: a pale flash before the blue on anything light-on-dark, over
-	   whatever duration the hover happened to use. Declaring it here leaves nothing to
-	   interpolate. See spec/styling.md. */
+	/* Stated at rest, not only inside `:focus-visible` -- an outline's colour is `currentColor`
+	   until named, and Tailwind v4 put `outline-color` into `transition-colors`, which nearly
+	   every control here carries for its hover. Left unnamed, the ring fades in from the
+	   element's own text colour instead of snapping to the accent. See spec/styling.md, "The
+	   ring's colour is declared at rest, or it fades in from the text". */
 	:where(.focus-ring, .focus-ring-inner, .focus-ring-within, .focus-link, .focus-link-inner) {
 		outline-color: var(--color-accent);
 	}
@@ -77,15 +72,12 @@
 		border-radius: 0.25rem;
 	}
 
-	/* `:focus-visible` is the browser's guess at intent, and the guess is unreliable for focus a
-	   script moved -- a menu handing focus back to its trigger as it closes is the case here. Get it
-	   wrong on a phone and a keyboard affordance is drawn for somebody with no keyboard. The tracker
-	   already records what the last input actually was, so a known pointer takes the outline away.
-
-	   Written as suppression rather than as a keyboard requirement, which is the part that matters:
-	   with the attribute absent -- no input yet, or the tracker never installed -- this rule does
-	   not apply and plain `:focus-visible` stands. It can therefore show a ring once too often and
-	   can never leave a keyboard user with no indicator at all. See spec/styling.md. */
+	/* `:focus-visible` is an unreliable guess for focus a script moved -- a menu handing focus back
+	   to its trigger as it closes is the case here -- so a known pointer input takes the outline
+	   away instead of trusting the pseudo-class. Written as suppression, not a keyboard requirement,
+	   so the failure mode with the attribute absent is showing a ring once too often, never hiding
+	   one from a keyboard user. See spec/styling.md, "`:focus-visible` is the browser's guess, and
+	   the site keeps its own answer". */
 	html[data-focus-source='pointer'] :focus-visible,
 	html[data-focus-source='pointer'] :focus-visible > .focus-ring-inner,
 	html[data-focus-source='pointer'] :focus-visible > .focus-link-inner,
@@ -95,41 +87,24 @@
 }
 
 /* The column running down the left of an article -- the table of contents and the return control
-   -- is one rail, so its horizontal geometry is written here once and both consume it. Each keeps
-   its own vertical placement, which is the part that actually differs. The two used to carry
-   identical copies of this arithmetic, which is the shape a pair of numbers takes just before
-   they stop agreeing. See spec/styling.md.
-
-   The article's width is what everything else yields to: it is centred and fixed, the rail lives
-   in what is left, and nothing here can push it. */
+   -- is one rail, so its horizontal geometry lives here once and both consume it; each keeps only
+   its own vertical placement. See spec/styling.md, "The article is centred; the rail adapts to
+   the region beside it". */
 :root {
 	/* The rail's width -- the same on every article and in every language, and the width at which
 	   its entries wrap. */
 	--rail-width: 8.5rem;
 	--rail-column: 45rem;
-	/* The blank region the rail lives in: window edge to the article's first letter. The article is
-	   centred on the window, so the region on the other side of it is the same width and is left
-	   empty.
-
-	   To the letter rather than to the column's frame, because the frame is not a thing anybody
-	   sees. Measured against the frame, the rail sat 35px from the window and 60px from the text
-	   on an iPad -- a gap that reads as lopsided because the eye has nothing to measure the 36px
-	   of column padding against. The page gutter belongs to the region on this side just as it
-	   does on the other. */
+	/* The blank region the rail lives in: window edge to the article's first letter, not to the
+	   column's frame -- the frame is not a thing anybody sees. See spec/styling.md, "The article is
+	   centred; the rail adapts to the region beside it". */
 	--rail-region: calc((100% - var(--rail-column)) / 2 + var(--page-gutter));
 	/* Clearance the rail needs on each side of itself before it is shown at all. */
 	--rail-edge: 1.5rem;
-	/* Where the rail stops drifting inward. Past this its left margin holds still and the space on
-	   its right takes every further pixel, which is what keeps a rail read from the corner of the
-	   eye beside the window rather than halfway to the text.
-
-	   On the margin rather than on the centre line, which is where this cap used to sit. That was
-	   right while the box was `fit-content` and its width was the browser's answer; the box is
-	   `--rail-width` now, so the two say the same thing and the margin is the one the eye reads.
-
-	   6rem, the same length the article column's top padding stops at. Past the width where both
-	   are capped the page has one outer breathing room and spends it once, down the side and above
-	   the title. */
+	/* Where the rail's left margin stops growing and the gap to the article takes every further
+	   pixel instead, so a rail never drifts toward the text on a wide window -- capped on the
+	   margin rather than the centre line, which used to make the gap too wide. See spec/styling.md,
+	   "The article is centred; the rail adapts to the region beside it". */
 	--rail-left-max: 6rem;
 	/* How far the return control's glyph hangs outside the rail's text. Its label aligns with the
 	   entries and only the glyph sits outside, so this is an ornament's overhang rather than part
@@ -158,20 +133,9 @@
 }
 
 /* The column running down the left of an article -- the table of contents and the return control
-   -- is one rail, and it is one box, so they cannot disagree about where its left edge is.
-
-   The box is one declared width, so it is the same box on every article, in every language, and
-   in the first frame the server sends. Two earlier versions each paid for not being: one
-   published a measured width as a custom property and jumped at hydration, the next sized the
-   box to its entries and moved whenever the entries did -- switching one article between
-   languages took the widest entry from 48px of Korean to 104px of German and slid the return
-   control 28px across the page. The control is a fixed part of the page and has no business
-   tracking the length of a heading. The width is 8.5rem because the source headings reach 8.34
-   and stop; a translation longer than that wraps, which is what the second line is for.
-
-   Nothing inside can widen it. The return control is taken out of flow and the active indicator is
-   absolute, so neither can widen the box -- which is what lets the indicator and the return icon
-   sit outside its left edge as ornaments rather than as content. See spec/styling.md. */
+   -- is one rail, and it is one box, so they cannot disagree about where its left edge is. See
+   spec/styling.md, "The rail's box is one declared width" for why it is a declared 8.5rem rather
+   than measured or sized to its entries. */
 .article-rail {
 	display: none;
 	position: fixed;
@@ -191,19 +155,10 @@
 	margin-inline: auto;
 	max-width: var(--rail-column);
 	/* The space above the title is the space beside it: the distance from the window's edge to the
-	   first letter, measured on the side and applied to the top.
-
-	   Below the column's cap that distance is the page gutter and nothing else, so a phone gets
-	   1.5rem and the text sits the same distance from three edges. Past the cap the column stops
-	   growing and the window's extra width becomes margin, so the distance grows with it and the
-	   heading is pushed down by exactly what has opened up beside it. There is no breakpoint in
-	   this and no script: one expression, continuous through every width.
-
-	   It stops at 6rem, which is what the top was before any of this and what the bottom still is.
-	   The cap is reached at 54rem -- fourteen rem before the rail appears at 68 -- so by the time
-	   the page grows its table of contents the heading has already settled where it used to be,
-	   and the arrival of the rail moves nothing. That ordering is the whole reason the two stages
-	   meet without a step. Change `--rail-column` or the 6rem and check it still holds. */
+	   first letter, measured on the side and applied to the top, so it grows past the column's cap
+	   exactly as the side gutter does and settles before the rail appears at 68rem. See
+	   spec/styling.md, "The space above the title is the space beside it". Change `--rail-column`
+	   or the 6rem and check the cap still lands below 68rem. */
 	padding-top: clamp(
 		var(--page-gutter),
 		var(--page-gutter) + (100% - var(--rail-column)) / 2,
@@ -211,13 +166,10 @@
 	);
 }
 
-/* Shown only where the region holds the rail at its cap with its clearance on both sides:
-   8.5rem + 2 * 1.5rem beside each side of a 45rem article. One declared width for every article
-   now, so this is no longer a test of whether the widest possible rail would fit -- it is the
-   rail. Below it the rail is absent rather than squeezed: a table of contents narrowed until
-   its entries wrap to three lines is not a smaller version of itself, and pressed against the
-   window edge it reads as something that fell off the page. A media query cannot ask a custom
-   property, so this number agrees with the ones above by hand; change one and check this. */
+/* Shown only where the region holds the rail with its clearance on both sides -- absent rather
+   than squeezed narrow, since a media query can read neither `--rail-width` nor the measured box.
+   The breakpoint is deliberately conservative; see spec/styling.md, "Absent rather than squeezed".
+   Change `--rail-width` or `--rail-edge` above and check this number still agrees by hand. */
 /* The language control takes the article's right frame wherever the rail is absent, and rejoins
    the metadata row's flow wherever the rail is there. The question is not how wide the window is
    but whether the table of contents is on screen: with the rail the page already has a column of
@@ -242,23 +194,10 @@
 	}
 }
 
-/* Where an in-page jump puts its target: below the top of the viewport, not against it.
-
-   A heading flush with the top edge reads as the end of what came before rather than the start
-   of what follows, and leaves the reader's eye at the one place on screen it does not naturally
-   rest. Holding a margin above it puts the section in the band people actually read from, and
-   keeps the preceding line visible so the jump is legible as a move rather than a page swap.
-
-   Viewport-relative rather than a fixed length, because the thing being reserved is a share of
-   what the reader can see. A constant that reads as a tenth of a laptop window is a fifteenth
-   of a tall monitor and a third of a phone in landscape. See spec/styling.md.
-
-   Applied to the target rather than computed by whatever is doing the jumping, so a native hash
-   jump and a scripted `scrollIntoView` land in the same place without agreeing on anything.
-
-   The article ToC is not on this. Its offset was measured against its own indicator, which
-   tracks the heading it points at, and a share of the viewport is not what that geometry was
-   tuned to. */
+/* Where an in-page jump puts its target: below the top of the viewport rather than against it, and
+   as a viewport share on the target itself rather than arithmetic on whatever is doing the
+   jumping. The article ToC keeps its own offset instead -- an exception with a reason, not a
+   second rule. See spec/styling.md, "A jump lands below the top edge, not against it". */
 .jump-target {
 	scroll-margin-top: 15vh;
 }
@@ -354,21 +293,11 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 	outline-offset: 0;
 }
 
-/* The article's line-breaking policy, declared per language rather than left to the browser.
-
-   Every value below was the browser's own default until it was written down, so pinning them
-   changes nothing today -- which is the point. These are the properties a UA is still free to
-   move, and two of them have moved recently: `text-spacing-trim` and `text-autospace` govern how
-   a CJK line treats punctuation and the seam between Han and Latin, and a change to either would
-   reshape every Chinese, Japanese and Korean paragraph on the site without anything here being
-   edited. `no-autospace` is the value this corpus needs rather than the one it happens to have:
-   Latin inside CJK is spaced with a real space the author typed, so a browser inserting its own
-   would be spacing it twice. See spec/styling.md.
-
-   The selector is `:lang()`, not a locale code, because `<html lang>` already carries the
-   resolved language -- including for the `mw` view, whose language is the article's own and
-   differs per article. A policy keyed to the language reaches that view without knowing it
-   exists. See spec/locale.md. */
+/* The article's line-breaking policy, pinned per language rather than left to the browser's
+   default -- which is what every value below was until this was written. `:lang()` rather than a
+   locale code, so the rule reaches `<html lang>`'s resolved language including the `mw` view's
+   per-article one. See spec/styling.md, "Where a line ends is declared per language", and
+   spec/locale.md for the `mw` case. */
 .article-content {
 	text-wrap: wrap;
 	hyphens: manual;
@@ -379,23 +308,11 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 	text-autospace: no-autospace;
 }
 
-/* A language that breaks between words is given a tight right edge first, and tidy final lines
-   only where the column is wide enough to afford them. The two are in tension, and which one
-   costs more depends entirely on how wide the column is.
-
-   Narrow is the base case, so hyphenation is the base rule. Measured in real WebKit on an iPhone,
-   where the column is 354px: hyphenating German took the mean right-hand gap from 9.7% of the
-   column to 4.5% and the lines standing more than an eighth short from 215 to 7, out of 776.
-   Spanish went 191 to 10, English 120 to 23, French 180 to 37. At that width an unhyphenated
-   column is visibly ragged on every screenful, and the price -- a handful of paragraphs whose
-   last line is shorter -- is paid once per paragraph rather than once per line.
-
-   `text-wrap: pretty` is deliberately absent here, and this is the correction the phone forced.
-   It was adopted on Chrome's implementation, where it is free. WebKit's is not: at 354px it adds
-   lines in every language, eleven in German and forty-two in Japanese, and it roughly doubles the
-   right-hand gap everywhere -- German 9.7% to 12.8%, with the loose lines going 215 to 400. What
-   it buys is real, the short final lines it was bought for, but on a narrow column it pays for
-   them with every other line on the screen. See spec/styling.md. */
+/* Narrow is the base case: `hyphens: auto` buys the tight right edge a column this width needs,
+   measured in real WebKit on an iPhone (German's mean gap 9.7% to 4.5%, loose lines 215 to 7 of
+   776). `text-wrap: pretty` is deliberately absent here -- it is free in Chrome but not WebKit,
+   where at this width it adds lines in every language and roughly doubles the right-hand gap. See
+   spec/styling.md, "Two rule sets, because the trade reverses with the column". */
 .article-content:lang(en),
 .article-content:lang(de),
 .article-content:lang(es),
@@ -403,21 +320,11 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 	hyphens: auto;
 }
 
-/* Above the width at which the article column stops growing -- `--rail-column`, so the column is
-   the measure it was designed at rather than whatever the window left it -- the trade reverses.
-   The right edge is already tight at 672px, German sitting at a 4.6% mean gap unaided, so
-   hyphenation has little left to win and `pretty` has little left to spend: measured in the same
-   engine at that width it costs no lines at all and takes the short final lines from 10 to 2 in
-   German and 9 to 0 in English.
-
-   `balance` is rejected at both widths. It clears final lines as well as `pretty` does, but it
-   pays for them across the whole paragraph rather than at its end: at 672px it took English from
-   two loose lines to eighty-six. It stays on titles, where a balanced block is the point.
-
-   Neither property reaches Chinese, Japanese or Korean, and that is not an oversight. `pretty` in
-   WebKit is not the no-op for CJK that it is in Chrome -- on Japanese it took the mean gap from
-   1.6% to 7.9% and the loose lines from 1 to 58, for final lines those scripts barely have a
-   problem with. See spec/styling.md. */
+/* Above `--rail-column`, the column is at the measure it was designed at and the right edge is
+   already tight, so the trade reverses: `pretty` costs no lines here and clears most stranded
+   final lines. `balance` is rejected at both widths -- it pays across the whole paragraph rather
+   than at its end -- and neither property reaches CJK, where WebKit's `pretty` is not the no-op
+   Chrome's is. See spec/styling.md, "Two rule sets, because the trade reverses with the column". */
 @media (min-width: 45rem) {
 	.article-content:lang(en),
 	.article-content:lang(de),
@@ -436,15 +343,10 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 	line-break: strict;
 }
 
-/* Korean is written with spaces but the default treats it as breakable between any two syllables,
-   so words split mid-eojeol. Measured over the same article, the default broke inside a word 110
-   times across 262 lines; `keep-all` removes every one for eight extra lines, a three percent
-   column. That is the trade this site takes: the reader's word stays whole.
-
-   Chinese needs none of this and gets none. Both scripts break between almost any two characters,
-   and `strict` was measured against `auto` on the Simplified and Traditional views: identical
-   line counts and no line opening on punctuation under either, so the default already enforces
-   the rule and there is nothing to pin beyond the block above. See spec/styling.md. */
+/* Korean's default breaks mid-eojeol, splitting a word 110 times across 262 lines in the measured
+   article; `keep-all` removes every one for eight extra lines. Chinese gets nothing beyond the
+   shared block above -- `strict` measured identically to `auto` there, so there is nothing to pin.
+   See spec/styling.md, "Where a line ends is declared per language". */
 .article-content:lang(ko) {
 	word-break: keep-all;
 }

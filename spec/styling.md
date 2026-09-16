@@ -1649,6 +1649,21 @@ the start edge and rounded corners only where the slip is free. This is enough s
 quoted instruction scannable without giving it the visual weight of an interactive card or a
 warning. Multiple paragraphs keep a small internal gap so the slip remains one quotation.
 
+## A pill's rounded cap is optically pulled in, so the box is pulled out to match
+
+A pill's edge, averaged down its own height, sits `(1 - pi/4)r` inside its box: the two rounded
+caps remove exactly that much of the area a flush rectangle would cover, so a `rounded-full`
+control reads as narrower than its declared width. `--pill-overhang` in
+[app.css](../apps/site/src/styles/app.css) pulls the box out by `0.2146` of the radius to
+compensate, so the pill reads as the width of its text column rather than as an indent -- lower
+the coefficient if it overshoots, and `0` is the uncompensated box.
+
+`--pill-height` has to be set on the element or an ancestor rather than read back from
+`rounded-full`, because that utility clamps the radius to half the height and CSS cannot see the
+result. The newsletter pill shares this derivation rather than repeating it: `newsletter.svelte`
+derives its own row geometry from the same `--pill-radius` and `--pill-overhang`, so a second copy
+of the coefficient would drift from the first the moment either radius changed.
+
 ## The subscription surface closes both reading paths
 
 The same Newsletter component appears on the homepage and after the body of every article.

@@ -35,18 +35,12 @@
 	);
 }
 
-/* Optical width compensation for a `rounded-full` control, shared because two components now
-   depend on the same coefficient and a second copy would drift from the first.
-
-   A pill's edge, averaged down its own height, sits (1 - pi/4)r inside its box: the two caps
-   remove exactly that much of the area a flush rectangle would cover. Pulling the box out by the
-   same amount makes it read as the width of the text column rather than as an indent. Lower the
-   coefficient if it overshoots; 0 is the uncompensated box.
+/* Optical width compensation for a `rounded-full` control, shared with newsletter.svelte rather
+   than derived a second time. See spec/styling.md, "A pill's rounded cap is optically pulled in,
+   so the box is pulled out to match" for the derivation and the coefficient below.
 
    Set `--pill-height` on the element or an ancestor -- the radius has to be pinned rather than
-   read back, because `rounded-full` clamps to half the height and CSS cannot see the result. Each
-   consumer then pulls whichever sides actually touch the column, which is a layout question and
-   stays local. */
+   read back, because `rounded-full` clamps to half the height and CSS cannot see the result. */
 /* Two selectors, one block: on the pill itself, and on an ancestor that has to hand the same
    numbers to something beside it. A row under a pill lines up with what is inside the pill, and
    the overhang is part of that arithmetic -- deriving it a second time would put the coefficient
@@ -61,17 +55,13 @@
 	height: var(--pill-height);
 }
 
-/* A boxed counter in running text. The component owns how many cells there are and how wide they
-   are; the box and its alignment stay here with the other page-level primitives.
+/* A boxed counter in running text; the component owns cell count and width, this file owns the
+   box and its alignment.
 
-   Digits sit wholly above the baseline, so a box aligned by baseline lands about 0.08em below the
-   ink centre of the text around it. Measured on this page that centre is 0.370em above the
-   baseline for Latin and 0.360em for CJK, so one shift serves both scripts and a per-script
-	calibration would be arguing over 0.009375rem. Only CJK makes the error visible: its ink block is
-   taller and denser, so there is something solid to judge the box against.
-
-   Transform rather than vertical-align, which grows the line box and drags the baseline along with
-   the boxes, cancelling most of its own correction. */
+   Digits sit above the baseline, so baseline alignment lands ~0.08em below the surrounding ink
+   centre (measured 0.370em for Latin, 0.360em for CJK -- close enough to share one shift).
+   Transform rather than vertical-align, which grows the line box and drags the baseline with it,
+   cancelling most of its own correction. */
 .value {
 	display: inline-flex;
 	transform: translateY(-0.08em);
