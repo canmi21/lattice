@@ -5,12 +5,39 @@ import { convertV4MiniflareOptions, Miniflare } from 'miniflare';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import app from './app';
 import type { Bindings } from './bindings';
-import { ARTICLE_SLUGS } from './slugs';
+import { forgetRoot } from './root';
 
 const MIGRATIONS = fileURLToPath(new URL('../drizzle', import.meta.url).href);
 const IP_ONE = '203.0.113.10';
 const IP_TWO = '2001:db8::20';
 const allow: RateLimit = { limit: async () => ({ success: true }) };
+
+const SLUG = 'architecture/compile-time-rendering';
+
+/** Enough of a root for the read counter to recognise one slug and refuse every other. */
+const ROOT = {
+	version: 1,
+	generated: '2026-01-02T00:00:00.000Z',
+	articles: [
+		{
+			path: SLUG,
+			url: `${URLS.apps.production.site}/${SLUG}`,
+			markdown: 'b'.repeat(32),
+			alternates: [],
+			canonicalUrls: [`${URLS.apps.production.site}/${SLUG}`],
+			views: {},
+		},
+	],
+	pages: {},
+	feeds: {},
+	llms: 'c'.repeat(32),
+};
+
+// `read` takes whichever store is bound, so a fetcher answering with the root is the whole of
+// what these routes need from one. See libs/store.
+const store = {
+	fetch: async () => new Response(JSON.stringify(ROOT)),
+} as unknown as Bindings['ASSETS'];
 
 let miniflare: Miniflare;
 let database: Awaited<ReturnType<Miniflare['getD1Database']>>;
@@ -47,6 +74,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+	forgetRoot();
 	await database.batch([
 		database.prepare('DELETE FROM newsletter_subscriptions'),
 		database.prepare('DELETE FROM likes'),
@@ -164,7 +192,7 @@ describe('likes and engagement state', () => {
 });
 
 describe('article reads', () => {
-	const slug = [...ARTICLE_SLUGS][0] as string;
+	const slug = SLUG;
 
 	it('counts from the first read and answers with the running total', async () => {
 		const first = await api('/read', { method: 'POST', ip: IP_ONE, body: { slug } });
@@ -243,6 +271,7 @@ async function api(
 	overrides: Partial<Bindings> = {},
 ): Promise<Response> {
 	const bindings = {
+		ASSETS: store,
 		DATABASE: database as unknown as Bindings['DATABASE'],
 		ENGAGEMENT_RATE_LIMITER: allow,
 		NEWSLETTER_RATE_LIMITER: allow,

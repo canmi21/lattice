@@ -53,6 +53,14 @@ describe('CORS', () => {
 		expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull();
 	});
 
+	// SvelteKit simulates CORS inside `load` and throws on an answer with no header, so the
+	// site's own server rendering is the request that arrives without an `Origin` at all.
+	it('answers a request that sent no origin', async () => {
+		const res = await app.fetch(new Request(prod));
+		expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+		expect(res.headers.get('Vary')).toContain('Origin');
+	});
+
 	it('does not allow an unknown origin', async () => {
 		// The list is an allowlist; anything not on it gets no header at all, which is what
 		// makes a browser refuse the response.

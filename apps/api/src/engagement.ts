@@ -4,8 +4,8 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Bindings } from './bindings';
 import { canonicalEmail } from './email';
+import { findArticle, rootOf } from './root';
 import { articleReads, likes, newsletterSubscriptions } from './schema';
-import { ARTICLE_SLUGS } from './slugs';
 
 const MAX_BODY_SIZE = 1_024;
 const CANCEL_TOKEN = /^[0-9a-f]{32}$/;
@@ -140,8 +140,8 @@ engagement.put('/like', JSON_LIMIT, async (c) => {
  * `development/rust-cargo-cranelift-tuning` -- and a route pattern that has to encode one is a
  * worse contract than the JSON body every other mutation here already uses.
  *
- * Which slugs exist is compiled in, so the database never learns a slug from a request and
- * cannot be filled with rows for paths that do not name an article.
+ * Which slugs exist comes from the published root, so the database never learns a slug from a
+ * request, and a new article no longer needs a deploy of this worker to be countable.
  */
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
@@ -152,7 +152,7 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 
 	const body = await readObject(c.req.raw);
 	const slug = body?.slug;
-	if (typeof slug !== 'string' || !ARTICLE_SLUGS.has(slug)) {
+	if (typeof slug !== 'string' || !findArticle(await rootOf(c.env), slug)) {
 		return c.json({ error: 'unknown_article' }, 404, NO_STORE);
 	}
 

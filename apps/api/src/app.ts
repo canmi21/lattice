@@ -3,6 +3,7 @@ import { URLS, isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Bindings } from './bindings';
+import corpus from './corpus';
 import engagement from './engagement';
 import image from './image';
 
@@ -25,14 +26,24 @@ const ORIGINS = new Set([
 	URLS.internal.link,
 ]);
 
+/**
+ * The list and nothing else -- except a request that sent no `Origin` at all.
+ *
+ * Any loopback origin used to be allowed too, for a second checkout of this repository that ran
+ * the site on a shifted port; there is no second checkout now. A request with no `Origin` is not
+ * a browser asking, so `*` grants it nothing -- but SvelteKit simulates CORS inside `load` and
+ * throws without it, which is how the site reaches this API while rendering. `Vary: Origin` is
+ * on every answer, so no cache serves one of these to the other.
+ */
+function allowOrigin(origin: string): string | null {
+	if (!origin) return '*';
+	return ORIGINS.has(origin) ? origin : null;
+}
+
 app.use(
 	'*',
 	cors({
-		// The list and nothing else. It used to accept any loopback origin as well, because a
-		// second checkout of this repository ran the site on a shifted port and still called
-		// this API; there is no second checkout now, and the one development origin is in the
-		// list above. Anything else gets no header.
-		origin: (origin) => (ORIGINS.has(origin) ? origin : null),
+		origin: allowOrigin,
 		allowMethods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowHeaders: ['Content-Type'],
 		maxAge: 86_400,
@@ -54,10 +65,23 @@ app.get('/', (c) => {
 });
 
 app.route('/image', image);
+app.route('/', corpus);
 app.route('/', engagement);
 
 // An API has nothing to index, and its URLs surfacing in search results would compete with
 // the pages that call it.
 app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
+
+/**
+ * A failure is JSON and is never stored, however far up it was thrown.
+ *
+ * Five minutes on "the API failed" would turn a blip into an outage -- see
+ * spec/architecture/artifacts.md. Logged rather than reported: the error reporter wraps this
+ * app from index.ts and cannot see what is handled here.
+ */
+app.onError((error, c) => {
+	console.error(error);
+	return c.json({ error: 'unavailable' }, 500, { 'Cache-Control': 'no-store' });
+});
 
 export default app;
