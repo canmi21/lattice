@@ -58,6 +58,19 @@ is previewed and the count carries over the day it is published. A slug the API 
 an article with no public address costs a row nobody can reach; regenerating the list at
 publication time, and losing what preview recorded, costs more.
 
+**Its pictures and clips are derived and published like anybody else's.** `cms image` and
+`cms video` do not ask whether an article is a draft, and `gc` keeps what a draft references,
+because a draft references it. So the bytes reach the CDN before the article does, and the day it
+is published there is nothing left to wait for -- which matters most for a clip, where the wait
+would be minutes of AV1 encoding.
+
+**The difference from a card is guessability, not publicness.** A card is `opengraph/{view}/{slug}.png`
+and anyone holding the slug can write the address, which is why a draft gets none. A rung or a
+variant is addressed by the hash of its own bytes: there is no address to derive from the article,
+and the space is not one anything can walk -- the CDN rate-limits, so a client working through even
+a sliver of it is stopped long before it arrives anywhere. Published bytes with no address anybody
+can reach are not a leak; a guessable address for a piece nobody decided to publish is.
+
 ## In preview it is marked, and only there
 
 A draft renders as itself -- same layout, same apparatus -- with one label beside the title, so a
