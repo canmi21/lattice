@@ -37,7 +37,6 @@
 
 <script lang="ts">
 	import { dev } from '$app/environment';
-	import { positionOf } from '$lib/client/progress';
 	import { pageUrls } from '@canmi/urls';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
@@ -111,22 +110,6 @@
 			element.removeEventListener('error', failed);
 			element.removeEventListener('loadstart', again);
 		};
-	});
-
-	/**
-	 * The blurred ground, which is the whole appearance of a clip until it decodes a frame.
-	 *
-	 * `preview` is the build's thumbhash, a picture of the first frame. That is right for a clip
-	 * nobody has moved and wrong for one the tab left at fourteen seconds, so where the record has
-	 * a still of where it actually was, that is used instead.
-	 *
-	 * Read after mount, because `sessionStorage` does not exist on the server. The served page
-	 * therefore carries the thumbhash, and a returning reader's swaps to their own frame during
-	 * hydration -- one blur replacing another behind a picture that is about to cover both.
-	 */
-	let remembered = $state<string | undefined>();
-	$effect(() => {
-		remembered = positionOf(sessionStorage, src)?.still;
 	});
 
 	/**
@@ -316,9 +299,6 @@
 	 * box from `width` and `height`, so without this there is a bordered rectangle of page colour
 	 * sitting in the prose for as long as the poster takes.
 	 */
-	/** The remembered frame where there is one, and the build's thumbhash where there is not. */
-	const ground = $derived(remembered ?? preview);
-
 	const style = $derived(
 		[
 			// Dropped in either fullscreen rather than overridden there. This is an inline style
@@ -330,9 +310,15 @@
 			// It was `filling` alone for a while, so web fullscreen had black bars and real
 			// fullscreen had a blurred still in them. Measured on a 16:9 clip in a 1400x1000
 			// window, the bars read (30, 25, 24) at the top and (8, 6, 3) at the bottom.
-			!bare && ground && `background-image:url(${ground})`,
-			!bare && ground && 'background-size:cover',
-			!bare && ground && 'background-position:center',
+			// `--clip-ground` is set before anything paints, by the inline script in `app.html`, for
+			// any clip this tab has a still of -- so a returning reader's first paint is already a
+			// picture of where they left it rather than of the first frame. The thumbhash is the
+			// fallback inside `var()`, which is where a reader with no record lands, and the whole
+			// declaration is still withheld in full screen: the value existing is not the same as
+			// the ground being wanted. See `client/ground.ts`.
+			!bare && preview && `background-image:var(--clip-ground,url(${preview}))`,
+			!bare && preview && 'background-size:cover',
+			!bare && preview && 'background-position:center',
 			ratio && `aspect-ratio:${ratio}`,
 		]
 			.filter(Boolean)
@@ -376,6 +362,7 @@
 		class="video-surface block w-full"
 		onclick={() => controls?.press()}
 		src={resolved ? undefined : fallback}
+		data-clip={src}
 		poster={broken ? poster : undefined}
 		{width}
 		{height}

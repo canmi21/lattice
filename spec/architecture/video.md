@@ -282,9 +282,27 @@ reaches the same place without carrying an encoder into the bundle, and it is op
 canvas returns nothing and the thumbhash is there underneath. The clips are served with
 `Access-Control-Allow-Origin` and asked for with `crossorigin`, so in practice it is clean.
 
-Reading the record needs `sessionStorage`, which the server does not have, so the served page
-carries the thumbhash and a returning reader's swaps to their own frame during hydration: one blur
-replacing another behind a picture that is about to cover both.
+**The choice is made before anything is painted, and it takes a script to make it.** There is no
+declarative way: `sessionStorage` is a JavaScript API, and no media query, attribute selector or
+server negotiation can read it. What can be chosen is *when* -- an inline `<head>` script, running
+synchronously before the parser reaches the first `<video>`, is as early as any decision about a
+document can be made, and it is the same ground the theme script already stands on. Reading the
+record during hydration instead meant a returning reader saw the thumbhash first and their own
+frame a moment later: one blur replacing another, in aid of hiding a swap.
+
+**The script emits values, not appearance.** Each remembered clip becomes a `--clip-ground` on a
+selector matching it, and whether anything is drawn with that stays the component's business --
+which is what keeps the blur from returning behind the letterbox bars in full screen, where the
+component deliberately draws no ground at all. The thumbhash lives in the `var()` fallback, so a
+reader with no record needs nothing to have run.
+
+Both halves of every entry are whitelisted before they reach the stylesheet: the clip name against
+`[A-Za-z0-9._-]`, the still against a base64 data URI. The record is same-origin and the reader's
+own, which is not the same as trusted -- a value that can put arbitrary text inside a selector or a
+`url()` can write arbitrary CSS, and "our own code put it there" is an argument about today.
+
+Measured: `--clip-ground` set at 59ms with zero paint entries recorded, against a first paint at
+84ms, and its value none of the three thumbhashes the server sent.
 
 So the poster does what a poster is for -- something to show while there is nothing better -- and
 goes the moment the element has painted a frame of its own. What produces one is a seek, which is
