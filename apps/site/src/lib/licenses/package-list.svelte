@@ -4,12 +4,12 @@
 
 	/**
 	 * The visual half of a package list. Every colour is the token variable `libs/tokens` already
-	 * declares. See spec/architecture/css.md.
+	 * declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The row is the licence directory's row with a second column, its three declarations copied
 	 * character for character rather than shared -- where a module for the shared constant should
-	 * live is the question spec/todo.md is already holding. See spec/architecture/css.md, "A
-	 * comment in the module script cannot write a tag in angle brackets".
+	 * live is the question spec/todo.md is already holding. See spec/architecture/css/authoring.md,
+	 * "A comment in the module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		/** One row of the list: a package, its version, and what it is licensed under. */

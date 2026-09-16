@@ -43,7 +43,7 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
  *
  * Why a document is recognised by having an extension, why that is written as the exception
  * rather than a list of pages, and the routes this test has to carve out on top of it -- see
- * spec/locale.md, "Every page negotiates; the exceptions are documents".
+ * spec/locale/addressing.md, "Every page negotiates; the exceptions are documents".
  */
 const DOCUMENT_PATH = /\.[^./]+$/;
 

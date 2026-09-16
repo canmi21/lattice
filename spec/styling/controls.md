@@ -2,7 +2,7 @@
 
 Where a panel opens, what a rail offers, and when an animation is allowed to cost a frame. Which
 of the three systems writing CSS is entitled to say each decision here, and what happens where two
-of them say the same thing, is [architecture/css.md](../architecture/css.md).
+of them say the same thing, is [architecture/css/layers.md](../architecture/css/layers.md).
 
 ## A menu opens from the edge its trigger is anchored to
 

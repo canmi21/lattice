@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * What is left in the block at the foot of this file is the reveal's geometry -- the masks, the
 	 * grid the fallback stacks in, the widths the script animates -- and the states the pill's own
@@ -17,8 +17,8 @@
 		action: {
 			// Two of the three are buttons and the third is a link, so without this the row draws
 			// two arrows and one hand for three controls that do the same kind of thing. Visual
-			// under the rule in spec/architecture/css.md: it moves nothing, it says what the element
-			// is to a pointer.
+			// under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
+			// element is to a pointer.
 			cursor: 'pointer',
 			borderRadius: '624.9375rem',
 			fontWeight: weight.medium,
@@ -395,7 +395,7 @@
 <style>
 	/* The pill in geometry only: where each part is and how large. What it looks like, and what
 	   it does under a pointer, is the visual layer's and sits at the head of this file. See
-	   spec/architecture/css.md. */
+	   spec/architecture/css/layers.md. */
 	.action {
 		display: inline-flex;
 		height: 2.25rem;

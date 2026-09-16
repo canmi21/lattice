@@ -6,7 +6,7 @@
 //!
 //! Claude reports the model that actually ran; the others do not, so what was asked for is what
 //! gets recorded. That is a weaker fact and it is worth knowing which one you have. See
-//! spec/i18n.md.
+//! spec/i18n/runners.md.
 
 use super::model;
 use super::segment::Kind;
@@ -226,9 +226,9 @@ pub async fn ask_vision(
 /// The same, for a question about several pictures at once.
 ///
 /// A clip is described from frames rather than from the file, so the question is about a series
-/// and the order is part of it -- see spec/architecture/video.md. Runners differ in whether they
-/// can be handed more than one, and the ones that cannot are refused here rather than silently
-/// shown the first, which would answer a different question and look like an answer.
+/// and the order is part of it -- see spec/architecture/video/pipeline.md. Runners differ in
+/// whether they can be handed more than one, and the ones that cannot are refused here rather than
+/// silently shown the first, which would answer a different question and look like an answer.
 pub async fn ask_vision_many(
 	runner: Runner,
 	prompt: &str,

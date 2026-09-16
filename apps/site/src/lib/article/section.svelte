@@ -18,7 +18,7 @@
 			fontWeight: 600,
 		},
 		anchor: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
 			opacity: {

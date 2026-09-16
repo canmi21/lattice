@@ -67,7 +67,7 @@
 	 * StyleX's development stylesheet, linked behind a declaration of the layers above it.
 	 *
 	 * Why a bare `<link>` here inverts the cascade, why dropping it for the runtime module alone
-	 * arrives too late, and the measurements behind both -- see spec/architecture/css.md, "In
+	 * arrives too late, and the measurements behind both -- see spec/architecture/css/layers.md, "In
 	 * development the visual layer arrives with its runtime, and must not be linked".
 	 */
 	const DEV_STYLEX =

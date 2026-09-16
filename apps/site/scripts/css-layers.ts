@@ -2,7 +2,7 @@
  * Hold the order of the three layers that write CSS for this site.
  *
  * Why this has to be measured rather than promised, and why it asserts relative order never
- * layer names -- see spec/architecture/css.md, "The precedence is measured, and it is not
+ * layer names -- see spec/architecture/css/layers.md, "The precedence is measured, and it is not
  * promised". Reads the built stylesheets, so it runs after a production build.
  */
 

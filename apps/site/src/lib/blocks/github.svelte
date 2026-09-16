@@ -5,12 +5,12 @@
 
 	/**
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
-	 * already declares. See spec/architecture/css.md.
+	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot holds geometry, plus the corner glyph's reveal: gated on the
 	 * card's hover but reaching a descendant the visual layer cannot see without a marker nobody
-	 * owns yet (spec/todo.md). See spec/architecture/css.md, "A comment in the module script
-	 * cannot write a tag in angle brackets".
+	 * owns yet (spec/todo.md). See spec/architecture/css/authoring.md, "A comment in the module
+	 * script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		/** The card itself, which is the link. Its box stays in the block below. */
@@ -247,7 +247,7 @@
 
 	/* `white-space` is the width being reserved rather than how the text looks: an icon and the
 	   number beside it are one item and stay on one line. Layout, for the reason the newsletter's
-	   ghost label is. See spec/architecture/css.md. */
+	   ghost label is. See spec/architecture/css/layers.md. */
 	.meta-item {
 		display: inline-flex;
 		align-items: center;

@@ -4,7 +4,7 @@
 	/**
 	 * The visual half of the social glyphs. Ten `<svg>` branches carry one declaration between
 	 * them and it is the same one on each, so there is one style here rather than ten.
-	 * See spec/architecture/css.md.
+	 * See spec/architecture/css/extraction.md.
 	 */
 	const styles = stylex.create({
 		/**

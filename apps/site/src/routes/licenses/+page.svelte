@@ -14,7 +14,7 @@
 
 	/**
 	 * The visual half of the licence directory. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The page is the package page's sibling -- a trail, a header, a row of quiet controls and a
 	 * list -- and several of these say what a style there says. They are written out rather than

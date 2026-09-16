@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
-	 * declares. See spec/architecture/css.md.
+	 * declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps the card's geometry and the corner arrow's reveal whole:
 	 * the arrow's other opacity lives in `.tweet-card:hover .corner`, an ancestor selector this
@@ -16,7 +16,8 @@
 		/**
 		 * The card itself. `:hover` is bare, with no `(hover: hover)` around it, because a bare
 		 * one is what the rule this replaced was written as; the two conditions carry the same
-		 * value, so neither ranks above the other. Sameness first; see spec/architecture/css.md.
+		 * value, so neither ranks above the other. Sameness first; see
+		 * spec/architecture/css/migration.md.
 		 */
 		card: {
 			borderRadius: radius.xl,
@@ -153,7 +154,7 @@
 
 <style>
 	/* Geometry, and the corner arrow's reveal. What the card looks like is the visual layer's and
-	   sits at the head of this file. See spec/architecture/css.md. */
+	   sits at the head of this file. See spec/architecture/css/layers.md. */
 	.tweet-card {
 		position: relative;
 		display: flex;

@@ -3,7 +3,7 @@
 //! The codes here are the site's internal ones, because they are what `?lang=` carries and
 //! therefore what a stored card has to be keyed by. They are deliberately not BCP-47 tags: two
 //! of them (`mw`, `tw`) are not, and conflating the two vocabularies is the mistake
-//! spec/locale.md exists to prevent.
+//! spec/locale/addressing.md exists to prevent.
 //!
 //! `mw` is the source view -- the article in its own mixed language -- and has no translation
 //! to look up. It is also what a request with no `?lang=` resolves to, so it is rendered first

@@ -5,12 +5,12 @@
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
-	 * declares. See spec/architecture/css.md.
+	 * declares. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot styles what StyleX cannot reach: Shiki's own preformatted
-	 * element and spans, plus the copy control's resting reveal frame, gated by a variant class
-	 * and a copy state that both sit on an ancestor of what they style. See spec/architecture/css.md,
-	 * "A comment in the module script cannot write a tag in angle brackets".
+	 * The scoped block at the foot styles what StyleX cannot reach: Shiki's own preformatted element
+	 * and spans, plus the copy control's reveal frame, gated by a variant class and a copy state on
+	 * an ancestor of what they style. See spec/architecture/css/authoring.md, "A comment in the
+	 * module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
 		// Shared by the two titles, which differ only in whether the title is a control.
@@ -23,7 +23,7 @@
 			color: 'var(--color-text)',
 		},
 		titleControl: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
 			color: {
@@ -64,7 +64,7 @@
 			},
 		},
 		// Turning to face the other way is not a move: the box is where it was, and the glyph is
-		// the disclosure's state rather than its position. See spec/architecture/css.md.
+		// the disclosure's state rather than its position. See spec/architecture/css/layers.md.
 		chevronFlipped: {
 			rotate: '180deg',
 		},
@@ -80,7 +80,7 @@
 			lineHeight: 1,
 			letterSpacing: '0.05em',
 			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
-			// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
+			// rule this replaced was written as. Sameness first; see spec/architecture/css/migration.md.
 			color: {
 				default: 'var(--color-text-soft)',
 				':hover': 'var(--color-text-strong)',
@@ -460,14 +460,14 @@
 
 	/* Shiki's <pre> takes focus, while the shared within utility draws on this box. The title
 	   suppresses its own outline from the visual layer, which cannot reach in here: this element
-	   is Shiki's rather than the component's. See spec/architecture/css.md. */
+	   is Shiki's rather than the component's. See spec/architecture/css/authoring.md. */
 	.codeblock :global(pre:focus-visible) {
 		outline: none;
 	}
 
 	/* The copy control and the collapse, in geometry only: where each part is and how large.
 	   What they look like is the visual layer's and sits at the head of this file. See
-	   spec/architecture/css.md. */
+	   spec/architecture/css/layers.md. */
 	.code-copy {
 		position: absolute;
 		top: 0.5rem;

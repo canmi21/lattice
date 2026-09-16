@@ -2,7 +2,7 @@
 
 Code, diagrams, pictures and cards -- what a body carries that is not a paragraph. Which of the
 three systems writing CSS is entitled to say each decision here, and what happens where two of
-them say the same thing, is [architecture/css.md](../architecture/css.md).
+them say the same thing, is [architecture/css/layers.md](../architecture/css/layers.md).
 
 ## A code language keeps its own name
 
@@ -180,7 +180,7 @@ from where it landed, which is a tap by every measure except intent.
 
 A drawing arrives as a subtree of `text` nodes in the order a renderer emitted them, which is a
 word list and not a reading. It should reach a screen reader as one thing with one name, and the
-name should be what `cms diagram` derived -- see [i18n.md](../i18n.md). So the canvas carries
+name should be what `cms diagram` derived -- see [i18n/request.md](../i18n/request.md). So the canvas carries
 `role="img"` and the description as its label, and the whole subtree under it collapses to that
 one node. Measured on the accessibility tree of an article: where there were a dozen loose strings
 there is now one image, and one button beside it.
@@ -284,7 +284,7 @@ diagram and uses only shared interface tokens; it has no data-visualisation pale
 page receives static HTML and CSS; the figure adds no client-side renderer or component-local runtime.
 Feed, Markdown and plain-text targets lower the figure to a readable list of axis-region labels and
 items instead of dropping its meaning. Directive attributes remain structural and therefore follow
-the existing non-translatable directive rule in [i18n.md](../i18n.md). The boundary is implemented in
+the existing non-translatable directive rule in [i18n/segments.md](../i18n/segments.md). The boundary is implemented in
 [quadrant.svelte](../../apps/site/src/lib/blocks/quadrant.svelte).
 
 ### A name that is two words is held together

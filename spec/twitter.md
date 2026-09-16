@@ -29,7 +29,7 @@ when the wording shifts. The model is asked to call the tool and report the resu
 format we specify, so that churn costs a prompt change rather than a parser change.
 
 The format is the line-anchored convention already used for translations; see
-[i18n.md](i18n.md). Post text is worse than prose -- emoji, URLs, code, unbalanced
+[i18n/request.md](i18n/request.md). Post text is worse than prose -- emoji, URLs, code, unbalanced
 brackets -- which is why JSON is even less appropriate here than it was there. `⟦` and
 `⟧` are U+27E6 and U+27E7; [segment.rs](../apps/cms/src/i18n/segment.rs) explains the
 choice. The sentinels stay defined there; this module imports them.

@@ -5,18 +5,18 @@ import { border, leading, radius, text, weight } from '$lib/vocabulary.stylex.ts
  * The declaration groups the visual layer repeats, each with one name -- `vocabulary.stylex.ts`
  * names the values, this names the sets built from them, at the same three-component threshold.
  * A group holds whole properties only, never a conditional branch over a default that differs
- * per site -- see spec/architecture/css.md, "The merge unit is the property, not the property and
- * its condition". A key's spelling is not part of the stylesheet, so a drifted name is cheap to
- * fix and easy to leave wrong.
+ * per site -- see spec/architecture/css/extraction.md, "The merge unit is the property, not the
+ * property and its condition". A key's spelling is not part of the stylesheet, so a drifted name is
+ * cheap to fix and easy to leave wrong.
  */
 
 /**
  * The four declarations of a bordered paper surface, which eight components draw. Kept out of
  * `stylex.create` so `blockFrame` below is visibly the same thing with a corner. The radius is
  * not among them: no two of the eight agree on one. `borderStyle` is stated rather than omitted
- * -- see spec/architecture/css.md, "An omitted longhand is not its initial value when a shorthand
- * registered it". `hairlinePx` is what excludes the cargo and tokei tooltips, which draw the
- * same ground with `hairlineRem`. See spec/todo.md.
+ * -- see spec/architecture/css/extraction.md, "An omitted longhand is not its initial value when a
+ * shorthand registered it". `hairlinePx` is what excludes the cargo and tokei tooltips, which draw
+ * the same ground with `hairlineRem`. See spec/todo.md.
  */
 const paper = {
 	backgroundColor: 'var(--color-paper)',
@@ -51,12 +51,12 @@ export const surfaces = stylex.create({
 	blockFrame: { ...paper, borderRadius: radius.xl },
 
 	/**
-	 * Bordered paper that answers a pointer: the repository card, the tweet card and the support
-	 * pill each darken the border and the ground on hover and focus. The `hairlineRem` here is not
-	 * a ruling against `paper`'s `hairlinePx` -- see spec/todo.md, "Two named surfaces disagree
-	 * about what a hairline is, and each is internally consistent". `:hover` is bare, with no
-	 * `(hover: hover)`, matching the rules it replaced (sameness first; spec/architecture/css.md).
-	 * The transition and the radius are not here: neither is common to all three sites.
+	 * Bordered paper that answers a pointer: the repository card, the tweet card and the support pill
+	 * each darken the border and the ground on hover and focus. The `hairlineRem` is not a ruling
+	 * against `paper`'s `hairlinePx` -- see spec/todo.md, "Two named surfaces disagree about what a
+	 * hairline is, and each is internally consistent". `:hover` is bare, with no `(hover: hover)`,
+	 * matching the rules it replaced (sameness first; spec/architecture/css/migration.md). The
+	 * transition and the radius are not here: neither is common to all three.
 	 */
 	interactive: {
 		borderWidth: border.hairlineRem,
@@ -78,11 +78,11 @@ export const surfaces = stylex.create({
 	 * metadata controls share one surface" (why this replaced the `.quiet-control` class) and
 	 * spec/todo.md, "A recipe's other half is a convention and nothing checks that a call site
 	 * kept it" (why only the appearance is here). `:hover` is bare (sameness first,
-	 * spec/architecture/css.md). `outline: none` also resets width and colour, to `medium`/
+	 * spec/architecture/css/migration.md). `outline: none` also resets width and colour, to `medium`/
 	 * `currentcolor` rather than the `0.125rem` accent base-layer `:focus-visible` sets.
 	 */
 	quietControl: {
-		// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
+		// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
 		// element is to a pointer.
 		cursor: 'pointer',
 		borderRadius: '0.125rem',
@@ -112,8 +112,8 @@ export const surfaces = stylex.create({
 	 * components take the pair; the other sites of `text.px14` override the line on purpose, so
 	 * it is the pair that marks interface text. The line is a length rather than `text-sm`'s
 	 * ratio, which does not terminate and rounds to a shorter element -- see
-	 * spec/architecture/css.md, "A ratio that does not terminate cannot be written as a ratio".
-	 * `leading.px20` has no site that is not one of these six.
+	 * spec/architecture/css/authoring.md, "A ratio that does not terminate cannot be written as a
+	 * ratio". `leading.px20` has no site that is not one of these six.
 	 */
 	uiText: {
 		fontSize: text.px14,

@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
-	 * already declares. See spec/architecture/css.md.
+	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps its whole length: overlay and panel are portalled out
 	 * of reach (spec/todo.md, "A portalled surface is out of Svelte's reach and not out of the

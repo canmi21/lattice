@@ -60,7 +60,7 @@ pub fn plan(contents: &Path, scope: &[String]) -> std::io::Result<Sweep> {
 		}
 		let source = std::fs::read_to_string(&path)?;
 		// A file with no `lang` is a page rather than an article and has no sidecar to sweep --
-		// the same test `cms i18n` and the listing apply. See spec/i18n.md.
+		// the same test `cms i18n` and the listing apply. See spec/i18n/copy.md.
 		let fields = crate::document::fields_of(&source, &path)?;
 		if crate::summary::lang_of(&fields).is_none() {
 			continue;

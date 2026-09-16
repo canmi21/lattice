@@ -322,7 +322,7 @@ what is in it came from an older build, another tab's idea of the key, or a read
 
 **The collection is not capped, and that is a decision rather than an omission.** No eviction was
 decided when every fact was small and fixed; this is the first whose *number* of entries is not. An
-entry also carries a still, measured at 999 characters (see [video.md](architecture/video.md), "The
+entry also carries a still, measured at 999 characters (see [video/player.md](architecture/video/player.md), "The
 selector names the frame and not the `<video>`"), so one entry is about a kilobyte and a thousand
 clips is about a megabyte -- a single-digit fraction of a quota measured in megabytes, not the
 negligible fraction of it an earlier, byte-sized estimate of the entry once suggested. What still

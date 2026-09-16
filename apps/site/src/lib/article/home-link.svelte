@@ -5,12 +5,12 @@
 
 	/**
 	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file is placement, not a migration leftover: where the
 	 * slot sits in the rail box, and how far the glyph hangs outside the rail's text, the latter
-	 * reading a length declared on an ancestor. See spec/architecture/css.md, "A comment in the
-	 * module script cannot write a tag in angle brackets", for why this block itself must not.
+	 * reading a length declared on an ancestor. See spec/architecture/css/authoring.md, "A comment in
+	 * the module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
 		/** A full-width strip the rail lays out; the control inside it takes its events back. */
@@ -18,7 +18,7 @@
 			pointerEvents: 'none',
 		},
 		link: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			pointerEvents: 'auto',
 			// `focus-link` sets the same 1.25rem line on this element from the components layer, and

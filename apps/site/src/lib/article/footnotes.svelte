@@ -5,12 +5,12 @@
 
 	/**
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block below keeps the section's and fold's geometry, the `:global` marker rules,
 	 * and the note-link's hovered colour -- see spec/todo.md, "Ancestor state reaches the visual
-	 * layer only through a marker nobody owns". See spec/architecture/css.md, "A comment in the
-	 * module script cannot write a tag in angle brackets", for why this block must not.
+	 * layer only through a marker nobody owns". See spec/architecture/css/authoring.md, "A comment in
+	 * the module script cannot write a tag in angle brackets", for why this block must not.
 	 */
 	const styles = stylex.create({
 		/**
@@ -64,13 +64,13 @@
 			// this element from the components layer exactly as the scoped rule did.
 			lineHeight: 1.6,
 			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
-			// rule this replaced was written as. Sameness first; see spec/architecture/css.md.
+			// rule this replaced was written as. Sameness first; see spec/architecture/css/migration.md.
 			color: {
 				default: 'var(--color-text-soft)',
 				':hover': 'var(--color-text-strong)',
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
 			// Reduced motion is the same suppression the control used to write as `transition:
@@ -98,7 +98,7 @@
 		 * Turning to face the other way is not a move: the box is where it was, and the glyph is
 		 * the disclosure's state rather than its position. Written as a `transform` rather than
 		 * as the `rotate` property, which is what the rule it replaces said and is a different
-		 * computed property. See spec/architecture/css.md.
+		 * computed property. See spec/architecture/css/migration.md.
 		 */
 		chevronUp: {
 			transform: 'rotate(180deg)',
@@ -146,7 +146,8 @@
 	import type { ArticleNote } from '$lib/content/types';
 	import type { LocaleCode } from '$lib/locale';
 
-	/** `locale` is the view being rendered. Passed rather than read: see spec/locale.md. */
+	/** `locale` is the view being rendered. Passed rather than read: see
+	 *  spec/locale/addressing.md. */
 	let { notes, locale }: { notes: ArticleNote[]; locale: LocaleCode } = $props();
 
 	/**

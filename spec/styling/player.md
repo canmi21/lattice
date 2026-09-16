@@ -2,9 +2,9 @@
 
 The one place on the site whose colours do not answer to the page theme, and the one icon set that
 is not the site's. What the controls *do*, and when each of them is on screen, is
-[architecture/video.md](../architecture/video.md). Which of the three systems writing CSS is
+[architecture/video/player.md](../architecture/video/player.md). Which of the three systems writing CSS is
 entitled to say each decision here, and what happens where two of them say the same thing, is
-[architecture/css.md](../architecture/css.md).
+[architecture/css/layers.md](../architecture/css/layers.md).
 
 ## The player brings its own colours, because it cannot know what is behind them
 
@@ -47,7 +47,7 @@ was 30% of the diameter and the disc read as the bigger object; at 1.875rem it i
 where a native play button sits.
 
 What the player's controls *do*, and when each of them is on screen, is in
-[architecture/video.md](../architecture/video.md).
+[architecture/video/player.md](../architecture/video/player.md).
 
 ## The player's glyphs are Phosphor, at two weights, plus three this repository draws
 

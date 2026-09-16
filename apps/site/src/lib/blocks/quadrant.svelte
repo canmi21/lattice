@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
-	 * already declares. See spec/architecture/css.md.
+	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The block at the foot is the figure's geometry, including the two axis arrowheads: see
 	 * spec/todo.md, "An arrowhead is a shape made of borders, and the test cannot cut it in half".
@@ -23,7 +23,7 @@
 			color: 'var(--color-text-soft)',
 			whiteSpace: 'nowrap',
 		},
-		// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
+		// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
 		// element is to a pointer.
 		verticalAxis: {
 			pointerEvents: 'none',
@@ -111,7 +111,7 @@
 	 * the author's and stay in the source language -- a directive is not translated -- so in a
 	 * German view this is an English sentence with English nouns in it, which is not a smaller
 	 * version of a description. What replaces it is `reading`: prose about the figure, derived
-	 * once and carried into every locale. See spec/i18n.md.
+	 * once and carried into every locale. See spec/i18n/request.md.
 	 */
 	let assembled = $derived(
 		[

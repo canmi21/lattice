@@ -5,9 +5,9 @@
 
 	/**
 	 * The visual half of the popover surface. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md. The block at
-	 * the foot of this file is `:global` because Bits UI portals this surface out of the component
-	 * tree, where a scoped rule cannot reach it. `shadow-sm` stayed in the markup: Tailwind
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md. The
+	 * block at the foot of this file is `:global` because Bits UI portals this surface out of the
+	 * component tree, where a scoped rule cannot reach it. `shadow-sm` stayed in the markup: Tailwind
 	 * composes it through private variables no component can write. See spec/todo.md.
 	 */
 	const styles = stylex.create({

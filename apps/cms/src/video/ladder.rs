@@ -5,7 +5,7 @@
 //! differently: a picture gets every tier it can fill and chooses among them with `srcset`,
 //! while `<video>` picks a `<source>` by type and never by size, so a chooser runs at
 //! hydration and the ladder it chooses from is one or two rungs rather than all of them. The
-//! `Size` both work in is shared; the rule is not. See spec/architecture/video.md.
+//! `Size` both work in is shared; the rule is not. See spec/architecture/video/pipeline.md.
 
 use crate::image::ladder::Size;
 
@@ -23,8 +23,8 @@ pub const PIVOT: u32 = 1080;
 pub const CAP: u32 = 2160;
 
 /// The sizes to produce for a clip, smallest first: two rungs above the pivot, one at or below
-/// it. See spec/architecture/video.md, "The ladder, and the measurement that sets it", for the
-/// shape of the table and why letterboxing is never cropped out.
+/// it. See spec/architecture/video/pipeline.md, "The ladder, and the measurement that sets it", for
+/// the shape of the table and why letterboxing is never cropped out.
 pub fn ladder(source: Size) -> Vec<Size> {
 	let height = source.height;
 	let tiers: Vec<u32> = if height > PIVOT {

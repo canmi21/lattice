@@ -4,17 +4,18 @@
 
 	/**
 	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * This file has no scoped block left: its wash and the tint mixed from it were both visual
 	 * and reached only this element, and the custom property moved with the colour since it
-	 * resolves against the element it lands on. See spec/architecture/css.md, "A comment in the
-	 * module script cannot write a tag in angle brackets", for why this block itself must not.
+	 * resolves against the element it lands on. See spec/architecture/css/authoring.md, "A comment in
+	 * the module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
 		/**
 		 * Square on the left so the bar reads as an edge rather than a lozenge, and soft ink
-		 * because this belongs to the metadata row above it, not to the article. See spec/locale.md.
+		 * because this belongs to the metadata row above it, not to the article. See
+		 * spec/locale/views.md.
 		 */
 		notice: {
 			// The one knob. Flat across the whole strip; past roughly 20% the tint stops reading as
@@ -36,7 +37,7 @@
 			borderColor: 'var(--color-blue-ink)',
 			fontSize: text.px14,
 			// The line as `leading-snug` writes it. 1.375 terminates, so it stays a ratio; the rule
-			// in spec/architecture/css.md is about the expansions that do not.
+			// in spec/architecture/css/authoring.md is about the expansions that do not.
 			lineHeight: line.snug,
 			color: 'var(--color-text-soft)',
 		},
@@ -73,7 +74,7 @@
 	const originalHref = $derived(contentLanguageHref('mw', page.url));
 	const source = $derived(sourceCode(sourceLanguage));
 	// The folded name, not the endonym: this sits inside a sentence, and `中文 (简体)版本` puts a
-	// bracket between the language and the noun it qualifies. See spec/locale.md.
+	// bracket between the language and the noun it qualifies. See spec/locale/interface.md.
 	const requestedLanguage = $derived(languageName(code));
 
 	/**
@@ -126,7 +127,7 @@
 	 * Which of the three things this view is, to the article.
 	 *
 	 * Script sibling is tested first: a Simplified article read at `tw` is also not the same
-	 * code, and would otherwise be announced as a translation. See spec/locale.md.
+	 * code, and would otherwise be announced as a translation. See spec/locale/views.md.
 	 */
 	const kind = $derived(
 		(code === 'zh' && source === 'tw') || (code === 'tw' && source === 'zh')

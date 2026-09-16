@@ -5,7 +5,7 @@
 //! from its length, and a paragraph of background it must not answer with. Three different
 //! questions in one function would be three sets of flags nobody could keep straight, and
 //! `alt::pending` already leaves clips out for exactly this reason. Same shape as `cms diagram`:
-//! one operation, one subject, one prompt. See spec/architecture/video.md.
+//! one operation, one subject, one prompt. See spec/architecture/video/pipeline.md.
 //!
 //! The description is stored where a picture's is -- `description` in `data/media.yaml`, under the
 //! source locale -- so `cms locale` carries it into every language with no branch of its own, and

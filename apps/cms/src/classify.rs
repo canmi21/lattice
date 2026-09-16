@@ -210,7 +210,8 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 
 	// Pictures only. Every category this command can answer with -- photograph, screenshot,
 	// diagram, document, artwork -- is a kind of picture, and the runner is asked to look at one
-	// file. A clip fits none of them and is not asked about here. See spec/architecture/video.md.
+	// file. A clip fits none of them and is not asked about here. See
+	// spec/architecture/video/pipeline.md.
 	let pictures: Vec<&String> =
 		merged.media.iter().filter(|(_, media)| media.image().is_some()).map(|(cid, _)| cid).collect();
 	let wanted: Vec<String> = pictures

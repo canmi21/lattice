@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md.
+	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The two link styles below say the same thing twice at two sizes. They are written out
 	 * rather than shared: a visual constant with two consumers wants a module of its own, and
@@ -18,7 +18,7 @@
 		 * Off by default, since the page is mostly controls and a drag on a card or button should
 		 * not sweep up a date or label with it; the sentences turn it back on with `.selectable`
 		 * (styles/utilities.css). `-webkit-` stays because the floor in spec/compat.md is Safari
-		 * 16, which still needs the prefix. `user-select` is visual -- spec/architecture/css.md.
+		 * 16, which still needs the prefix. `user-select` is visual -- spec/architecture/css/layers.md.
 		 */
 		page: {
 			WebkitUserSelect: 'none',
@@ -117,7 +117,7 @@
 	// box to read optically equal.
 	const base = 'h-4 w-4';
 	// `document` keeps server-only resources out of the client page router.
-	// See spec/locale.md#server-only-documents-leave-the-page-router.
+	// See spec/locale/addressing.md#server-only-documents-leave-the-page-router.
 	const links = [
 		{ name: 'github', label: 'GitHub', href: githubProfileUrl, size: base },
 		...(site.author.twitter

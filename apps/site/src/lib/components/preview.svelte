@@ -5,23 +5,23 @@
 	/**
 	 * The visual half of the three elements this component renders itself. Every colour is the
 	 * token variable `libs/tokens` already declares, so nothing here can change one. See
-	 * spec/architecture/css.md. Most of the rest is not here and cannot be: the ground, the stage
-	 * and the close are portalled out of the tree by Bits UI and reached with `:global` in the
+	 * spec/architecture/css/authoring.md. Most of the rest is not here and cannot be: the ground, the
+	 * stage and the close are portalled out of the tree by Bits UI and reached with `:global` in the
 	 * block at the foot of this file, which is also where the ground's literal black stays -- a
 	 * decision argued in spec/styling/blocks.md rather than a palette entry.
 	 */
 	const styles = stylex.create({
 		frame: {
 			// One cursor over the whole of it, because every part of it does the one thing. Visual
-			// under the rule in spec/architecture/css.md: it moves nothing, it says what the element
-			// is to a pointer.
+			// under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
+			// element is to a pointer.
 			cursor: 'zoom-in',
 		},
 		/**
 		 * The control over the picture, with no chrome of its own and out of the pointer's way --
 		 * hit-testing it would put an element between the pointer and the drawing, which this
 		 * arrangement exists to avoid. `pointer-events` does not affect focusability, and is
-		 * visual under spec/architecture/css.md's rule. Written as three longhands rather than
+		 * visual under spec/architecture/css/layers.md's rule. Written as three longhands rather than
 		 * `border: 0`, because that shorthand also resets `border-style` to `none`, and Tailwind's
 		 * preflight had it at `solid` already.
 		 */

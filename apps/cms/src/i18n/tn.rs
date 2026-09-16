@@ -109,7 +109,7 @@ pub fn save(path: &Path, table: &Table) -> std::io::Result<()> {
 /// The note attaches to the translation, not a retained original -- an earlier version asked to
 /// keep the source wording verbatim and produced German paragraphs ending in Chinese sentences.
 /// Guidance below is written for the model, in whatever language the scan ran in; reproducing it
-/// verbatim would put an internal memo on the page. See spec/i18n.md, "Translator's notes".
+/// verbatim would put an internal memo on the page. See spec/i18n/prose.md, "Translator's notes".
 pub fn rule(entry: &Entry) -> String {
 	let mut rule = String::from(
 		"- Some wording in this block carries an effect that does not survive localisation, \
@@ -223,7 +223,8 @@ pub fn parse_scan(reply: &str) -> Vec<Gloss> {
 /// A phrase there needs no translator's note -- the author's note already explains it -- and
 /// recording one is worse than needless: `:tn` cannot nest inside the attribute, since the quote
 /// that would open it ends the attribute instead, so every answer either omits the note or
-/// breaks shape. See spec/i18n.md, "An author's note continues from its words, in every locale".
+/// breaks shape. See spec/i18n/segments.md, "An author's note continues from its words, in
+/// every locale".
 fn only_inside_note_attributes(source: &str, phrase: &str) -> bool {
 	let mut inside: Vec<(usize, usize)> = Vec::new();
 	let mut rest = 0;

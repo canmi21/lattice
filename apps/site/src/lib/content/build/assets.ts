@@ -36,8 +36,8 @@ export const EXTENSION: Record<string, string> = {
  *
  * Apart from `EXTENSION` above rather than folded into it: that table is held to `apps/cms`'s
  * `for_variant` by a test that reads only its `image/*` arms, and these two are not variants of a
- * picture. One format each, which is spec/architecture/video.md's whole point -- AV1 in MP4,
- * and WebVTT beside it.
+ * picture. One format each, which is spec/architecture/video/pipeline.md's whole point -- AV1 in
+ * MP4, and WebVTT beside it.
  */
 export const MEDIA_EXTENSION: Record<string, string> = {
 	'video/mp4': 'mp4',
@@ -90,7 +90,7 @@ type ImageRecord = {
  * `duration`, `frameRate`, `frames` and `audio` are on the record and deliberately not here.
  * Nothing renders them today: the frame count is the denominator of the progress bar the
  * software-decode path would show, and that path is decided and not built. See
- * spec/architecture/video.md.
+ * spec/architecture/video/pipeline.md.
  */
 type VideoRecord = {
 	type: 'video';
@@ -278,7 +278,7 @@ export type ResolvedVideo = {
 	 *
 	 * The clip's own, written by `cms describe` from frames this repository chose. Not the
 	 * poster's, which describes one frame and has nowhere to go: `poster` is an attribute, not an
-	 * element, and it takes no alternative text. See spec/architecture/video.md.
+	 * element, and it takes no alternative text. See spec/architecture/video/pipeline.md.
 	 */
 	description?: string;
 	/** Where the clip came from. The unsupported-format notice is the only thing that reads it. */
@@ -289,8 +289,8 @@ export type ResolvedVideo = {
 	 * Computed here rather than in the player: arithmetic over two stored numbers, with no reason
 	 * to run in a browser. `1` for a clip with nothing measured, which plays as it always did.
 	 *
-	 * See spec/architecture/video.md, "Every clip plays at one level, and the peak is what caps
-	 * it", for why one constant gain rather than a limiter.
+	 * See spec/architecture/video/pipeline.md, "Every clip plays at one level, and the peak is what
+	 * caps it", for why one constant gain rather than a limiter.
 	 */
 	gain: number;
 };
@@ -302,8 +302,8 @@ export type ResolvedVideo = {
  * the waveform between two samples can go higher, and the decoder that reconstructs it clips
  * where the samples did not. A decibel of headroom is the usual allowance.
  *
- * See spec/architecture/video.md, "Every clip plays at one level, and the peak is what caps it",
- * for why the target sits at the loud end of the corpus.
+ * See spec/architecture/video/pipeline.md, "Every clip plays at one level, and the peak is what
+ * caps it", for why the target sits at the loud end of the corpus.
  */
 const LOUDNESS_TARGET = -18;
 const PEAK_CEILING = -1;
@@ -327,8 +327,8 @@ function levelling(source: VideoRecord['source']): number {
  *
  * The poster goes back through the image resolver rather than being addressed directly, because
  * a poster is an ordinary picture with its own id, its own rungs and its own placeholder --
- * spec/architecture/video.md's reason for storing it as one. Anything true of a picture here is
- * therefore true of a poster without being said twice.
+ * spec/architecture/video/pipeline.md's reason for storing it as one. Anything true of a picture
+ * here is therefore true of a poster without being said twice.
  */
 export function createVideoResolver(
 	assets: AssetManifest,
@@ -348,7 +348,7 @@ export function createVideoResolver(
 		const entry = media.media[id];
 		return {
 			// By height, because a tier is one axis: a vertical clip sorted by width snaps to the
-			// wrong order. See spec/architecture/video.md.
+			// wrong order. See spec/architecture/video/pipeline.md.
 			rungs: Object.entries(asset.variants)
 				.toSorted(([, a], [, b]) => a.height - b.height)
 				.map(([cid, variant]) => ({

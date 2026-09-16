@@ -3,7 +3,7 @@
 The table of contents, the return control, and the region between the window's edge and the
 article's first letter. Which of the three systems writing CSS is entitled to say each decision
 here, and what happens where two of them say the same thing, is
-[architecture/css.md](../architecture/css.md).
+[architecture/css/layers.md](../architecture/css/layers.md).
 
 ## The article is centred; the rail adapts to the region beside it
 
@@ -118,7 +118,7 @@ not move.
 declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css), argued
 here, and turned into a column budget across the language boundary by `ONE_LINE` in
 [width.rs](../../apps/cms/src/i18n/width.rs), which the CMS holds a translated heading to and which
-[i18n.md](../i18n.md) explains under "A section heading is also a label, and the rail is narrow".
+[i18n/segments.md](../i18n/segments.md) explains under "A section heading is also a label, and the rail is narrow".
 Each record is internally consistent and they disagree only when read together: this section and
 the declaration say 8.5rem, while the Rust constant derives its 28 columns from a 192px cap.
 Which of them is right is open and is not settled here. What each record now does is name its
@@ -333,7 +333,7 @@ for a screen reader, which is told the nesting either way.
 
 **What is filtered is the listing, not the address.** Both levels are anchored, both resolve,
 and a link to a subsection works exactly as before. Demoting a heading is therefore reversible
-in the reader's terms even though it changes the segment id -- see [i18n.md](../i18n.md) on
+in the reader's terms even though it changes the segment id -- see [i18n/segments.md](../i18n/segments.md) on
 migrating the translations rather than rebuying them.
 
 Which headings may be demoted is a question about the article, not about the rail: a subsection

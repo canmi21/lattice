@@ -6,11 +6,11 @@
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
 	 * The title/arrow colour and the cover's hover brightness and blend mode are exceptions, not
-	 * the token layer's or not expressible here -- see spec/todo.md. See spec/architecture/css.md.
+	 * the token layer's or not expressible here -- see spec/todo.md. See
+	 * spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot of this file holds the other half of the focus treatment. It
-	 * recolours the cover's own border, and `Picture` renders that image, so there is no element
-	 * of ours to put a class on.
+	 * The scoped block at the foot holds the other half of the focus treatment: it recolours the
+	 * cover's own border, which `Picture` renders, so there is no element of ours to put a class on.
 	 */
 	const styles = stylex.create({
 		/**
@@ -59,7 +59,7 @@
 	 * why the page always draws `/favicon/{domain}` instead.
 	 */
 	type Props = Source & {
-		/** The view being rendered. Passed rather than read: see spec/locale.md. */
+		/** The view being rendered. Passed rather than read: see spec/locale/addressing.md. */
 		locale: LocaleCode;
 		url: string;
 		title: string;
@@ -188,7 +188,7 @@
 
 	The ring's own half of that is a StyleX style at the head of this file, which is where a
 	declaration on an element the component renders belongs. This half stays because `Picture`
-	renders the image and nothing of ours is on it. See spec/architecture/css.md. */
+	renders the image and nothing of ours is on it. See spec/architecture/css/authoring.md. */
 	a:focus-visible .card-media :global(img) {
 		border-color: var(--color-accent);
 	}

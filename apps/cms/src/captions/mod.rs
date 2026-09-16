@@ -1,9 +1,9 @@
 //! A caption track cut to an excerpt, and stored like every other object.
 //!
 //! Cues are shifted onto the clip's own timeline rather than kept on the original's, and a
-//! straddling cue clamps rather than drops. See spec/architecture/video.md, "A caption track is
-//! cut to the clip and shifted onto its timeline", for why -- the browser's `<track>` element
-//! cannot subtract, so shifting once here beats parsing WebVTT in every reader.
+//! straddling cue clamps rather than drops. See spec/architecture/video/captions.md, "A caption
+//! track is cut to the clip and shifted onto its timeline", for why -- the browser's `<track>`
+//! element cannot subtract, so shifting once here beats parsing WebVTT in every reader.
 //!
 //! Everything but the timing line is copied verbatim, cue settings included -- re-deriving
 //! `position`, `line` and `align` would invent a layout already stated. `NOTE` comments are
@@ -234,7 +234,7 @@ pub struct Summary {
 /// The coverage is a union, not a sum: cues overlap in a track written for two speakers, and
 /// adding them would report more coverage than the clip has room for. `opening` exists because
 /// this module cannot check which recording a track transcribes -- see
-/// spec/architecture/video.md, "Neither of those is a check on the track", and [`run`].
+/// spec/architecture/video/captions.md, "Neither of those is a check on the track", and [`run`].
 pub fn summarise(vtt: &str) -> Summary {
 	let text = normalise(vtt);
 	let mut spans: Vec<(f64, f64)> = Vec::new();

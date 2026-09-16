@@ -3,7 +3,7 @@
 //! Two things here are defensive rather than merely tidy. The source is fenced between two
 //! copies of a random string so that prose cannot be read as instruction, and the reply is
 //! line-anchored rather than JSON so that one malformed language costs one language. See
-//! spec/i18n.md.
+//! spec/i18n/request.md.
 
 use super::segment::{CLOSE, Display, Kind, OPEN, Region, Segment};
 use super::width;
@@ -122,7 +122,7 @@ pub fn build_for(
 	// because the marked one is full of code placeholders. Answering the neighbour instead of the
 	// block was the result, and no output check can tell the two apart once the neighbour is the
 	// same shape and length. So the context gets a fence of its own, derived from the same random
-	// string, and each side is named. See spec/i18n.md.
+	// string, and each side is named. See spec/i18n/request.md.
 	let context_fence = format!("{fence}CONTEXT");
 	let context = match (before, after) {
 		(None, None) => String::new(),
@@ -163,7 +163,7 @@ pub fn build_for(
 	// Only for blocks that carry one: most blocks have no author's note to spend a prompt rule's
 	// weight on. The spacing half used to be heading-only, since that is where the fault was
 	// first seen, but `validate` refuses it everywhere -- a check needs a matching prompt line.
-	// See spec/i18n.md, "A directive needs the spacing its own script uses".
+	// See spec/i18n/segments.md, "A directive needs the spacing its own script uses".
 	let author_notes = if segment.region == Region::Body && segment.source.contains(":fn[") {
 		"\n- `:fn[words]{is=\"explanation\"}` is the author's own note. Translate the words as \
 		 part of their sentence and keep the directive shape exactly. At the end of the article \
@@ -187,8 +187,8 @@ pub fn build_for(
 	// The budget is stated as a width the model can picture, anchored to the source it can see,
 	// since overrun is a translator trying to make the heading say the whole section rather than
 	// the language being wordy. A subsection gets the naming half only -- it is never in the
-	// rail, so quoting a width for it would be a fiction. See spec/i18n.md, "A section heading is
-	// also a label, and the rail is narrow".
+	// rail, so quoting a width for it would be a fiction. See spec/i18n/segments.md, "A section
+	// heading is also a label, and the rail is narrow".
 	let navigation = if segment.kind == Kind::Heading && segment.region == Region::Body {
 		let source_columns = super::width::of(&segment.source);
 		let recognise = "The heading only has to let a reader recognise the section. It does not \
@@ -232,7 +232,7 @@ pub fn build_for(
 	};
 
 	// An entry exists because a person chose to record it: `cms tn` prints and only writes when
-	// asked, so the review happened before the file did. See spec/i18n.md.
+	// asked, so the review happened before the file did. See spec/i18n/prose.md.
 	let notes = if segment.region == Region::Body {
 		gloss.map(super::tn::rule).unwrap_or_default()
 	} else {
@@ -690,7 +690,7 @@ mod tests {
 	fn the_source_locale_is_never_requested() {
 		// The article is not a translation of itself, so there is no slot for it to fill.
 		// `mw` is the code the site serves the original under; it is a routing name, not a
-		// locale, and it must never become one here. See spec/locale.md.
+		// locale, and it must never become one here. See spec/locale/addressing.md.
 		assert!(!LOCALES.contains(&"mw"));
 		assert_eq!(LOCALES.len(), 8);
 		let _ = segment::OPEN;

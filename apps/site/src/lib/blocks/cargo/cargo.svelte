@@ -4,7 +4,7 @@
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a component-local
 	 * mirror this layer does not own (spec/styling/controls.md), plus `shadow-sm` on the tooltip
@@ -17,7 +17,7 @@
 			fill: 'white',
 			fontSize: text.px11,
 			fontWeight: weight.medium,
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer. The anchor underneath takes the hover.
 			pointerEvents: 'none',
 		},
@@ -45,7 +45,7 @@
 		},
 		footerRight: {
 			fontSize: text.px12,
-			// Typography rather than geometry under spec/architecture/css.md, which reads
+			// Typography rather than geometry under spec/architecture/css/layers.md, which reads
 			// `white-space` as deciding how the text looks where `overflow` decides how large the
 			// box is. The same call is made on the table's name column below.
 			whiteSpace: 'nowrap',

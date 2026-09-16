@@ -72,7 +72,7 @@ cloned into the workspace's own `repos/`, a sibling of the others, and `repos/` 
 point both belong one directory up.
 
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
-subjects: [data.md](data.md), [media.md](media.md), [video.md](video.md),
+subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
 [fonts.md](fonts.md) and [delivery.md](delivery.md).
 
 ## One name, one thing
@@ -110,7 +110,7 @@ library rather than reinstating it everywhere.
 Bits UI is the site's headless behavior layer. It owns the difficult, reusable interaction
 contracts -- focus management, keyboard navigation, dismissal and floating placement -- while
 the site's tokens and local classes continue to own site-only visible decisions. Which system
-writes which of those is [css.md](css.md).
+writes which of those is [css/](css/).
 Importing a styled component kit on top would create a second design system, so project primitives
 under `apps/site/src/lib/components/` expose the small set of surfaces the site alone repeats.
 

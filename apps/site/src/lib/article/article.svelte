@@ -5,19 +5,19 @@
 
 	/**
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
 	 * a little geometry beside it -- see spec/todo.md, "The article body's typography reaches
-	 * elements no component renders". See spec/architecture/css.md, "A comment in the module
-	 * script cannot write a tag in angle brackets", for why this block itself must not.
+	 * elements no component renders". See spec/architecture/css/authoring.md, "A comment in the
+	 * module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
 		/**
 		 * The apparatus around the article, not the article: a drag started on a heading in the
 		 * table of contents, or on the way back, should not come away with the navigation. The
 		 * body and its own controls are left alone deliberately -- quoting a passage is the
-		 * reason this page exists. Visual under spec/architecture/css.md: it moves nothing, it
+		 * reason this page exists. Visual under spec/architecture/css/layers.md: it moves nothing, it
 		 * says what the element is to a pointer.
 		 */
 		apparatus: {
@@ -49,12 +49,12 @@
 		 * `:disabled`, and the surface's own hover answer taken back where a pointer can hover.
 		 *
 		 * Repeats `surfaces.quietControl`'s `cursor`, `backgroundColor` and `color` rather than
-		 * composing past them -- see spec/architecture/css.md, "The merge unit is the property,
-		 * not the property and its condition". The suppression still outranks that hover: StyleX
-		 * doubles the class this deep, `.x.x:disabled:hover` against a plain `.x:hover`.
+		 * composing past them -- see spec/architecture/css/extraction.md, "The merge unit is the
+		 * property, not the property and its condition". The suppression still outranks that hover:
+		 * StyleX doubles the class this deep, `.x.x:disabled:hover` against a plain `.x:hover`.
 		 */
 		summaryTrigger: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: { default: 'pointer', ':disabled': 'not-allowed' },
 			opacity: { default: null, ':disabled': 0.45 },

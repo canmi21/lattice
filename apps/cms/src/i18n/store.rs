@@ -52,10 +52,10 @@ pub fn path_for(article: &Path) -> PathBuf {
 /// The sidecar beside an article, empty when the article has none yet.
 ///
 /// A missing sidecar is an untranslated article, which is ordinary. A sidecar that does not
-/// parse must never be read as an empty one: every locale would report missing, `cms i18n`
-/// would buy the whole article again, and the save at the end would overwrite the file. This
-/// one is hand-edited -- see spec/i18n.md, "A sidecar per article, holding every locale" -- so a
-/// stray colon is the expected way to break it, and a silent overwrite is what that destroys.
+/// parse must never be read as an empty one: every locale would report missing, `cms i18n` would
+/// buy the whole article again, and the save at the end would overwrite the file. This one is
+/// hand-edited -- see spec/i18n/segments.md, "A sidecar per article, holding every locale" -- so
+/// a stray colon is the expected way to break it, and a silent overwrite destroys it.
 pub fn load(path: &Path) -> std::io::Result<Sidecar> {
 	Ok(load_checked(path)?.unwrap_or_else(|| Sidecar { version: VERSION, segments: BTreeMap::new() }))
 }
@@ -93,7 +93,7 @@ pub fn orphans(sidecar: &Sidecar, live: &BTreeMap<String, super::segment::Segmen
 /// itself is present in the text rather than by a timestamp, which reads the fact the instruction
 /// states instead of trusting a second record to stay in step with it -- requiring the source
 /// phrase too would fail exactly the translations that correctly left it out of the prose. See
-/// spec/i18n.md, "Same-language views localise the article too".
+/// spec/i18n/prose.md, "Same-language views localise the article too".
 pub fn missing(
 	sidecar: &Sidecar,
 	live: &BTreeMap<String, super::segment::Segment>,
@@ -328,7 +328,7 @@ mod tests {
 	fn a_broken_sidecar_is_an_error_rather_than_an_empty_one() {
 		// The whole point of the checked read. Treated as empty, every locale reports missing,
 		// `cms i18n` buys the article again, and the save at the end writes over the file a
-		// person was hand-editing when they left the colon out. See spec/i18n.md.
+		// person was hand-editing when they left the colon out. See spec/i18n/segments.md.
 		let temporary = tempfile::tempdir().expect("temp");
 		let path = temporary.path().join("sidecar.i18n.yaml");
 		std::fs::write(&path, "segments: [this is not a map\n").expect("write");

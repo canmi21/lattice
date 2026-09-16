@@ -5,7 +5,7 @@
 //!
 //! The tool's own text is not parsed: its shape is undocumented and a parser tied to it
 //! breaks when the wording shifts. The model is asked for this format instead. See spec/twitter.md.
-//! The sentinels live with the first format that used them; see spec/i18n.md.
+//! The sentinels live with the first format that used them; see spec/i18n/request.md.
 
 use crate::i18n::prompt::boundary;
 use crate::i18n::segment::{CLOSE, OPEN};
@@ -280,7 +280,7 @@ fn post_format(score: bool, parent: bool) -> String {
 ///
 /// Scanning for marker lines rather than parsing a structure. A JSON reply carrying post
 /// text full of quotes and newlines fails as a whole; here a malformed field costs one
-/// field. See spec/i18n.md.
+/// field. See spec/i18n/request.md.
 pub fn fields(reply: &str) -> Vec<Field> {
 	let mut found = Vec::new();
 	let mut current: Option<String> = None;

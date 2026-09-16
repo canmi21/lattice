@@ -157,7 +157,7 @@ export type LabelOptions = { region?: boolean };
  * Kept apart from `triggerLabel` so the notice above an article can reuse the phrase without the
  * original view's special cases. `region: false` is for a caller with room to spare -- among the
  * eight views the region qualifies nothing since their endonyms already differ; only the original
- * view's fallback in `triggerLabel` needs it. See spec/locale.md.
+ * view's fallback in `triggerLabel` needs it. See spec/locale/interface.md.
  */
 export function publishedLabel(
 	code: TranslationCode,
@@ -171,9 +171,9 @@ export function publishedLabel(
  * that tells two publications of one language apart -- never the internal `?lang=` code.
  *
  * The original view names the article's language rather than the word `Original`; a page hands
- * over `SITE_LANGUAGE` and is read like any other source. See spec/locale.md, "The closed control
- * names a language; the menu names the choices" and "A page names the site's own language, which
- * is what its tag already says".
+ * over `SITE_LANGUAGE` and is read like any other source. See spec/locale/interface.md, "The closed
+ * control names a language; the menu names the choices" and "A page names the site's own language,
+ * which is what its tag already says".
  */
 export function triggerLabel(
 	currentCode: LocaleCode,
@@ -196,7 +196,7 @@ export function triggerLabel(
  * covering both scripts, which names neither. Chinese is the only language here whose display
  * name splits by script, and every interface language already spells that split out (`简体中文`,
  * `Simplified Chinese`, `簡体中国語`, `중국어(간체)`), so the script is added to the tag rather than
- * eight names being written by hand. See spec/locale.md.
+ * eight names being written by hand. See spec/locale/interface.md.
  */
 function displayTag(sourceLanguage: string): string {
 	const [primary = sourceLanguage, ...rest] = sourceLanguage.toLowerCase().split('-');
@@ -240,8 +240,9 @@ export function sourceLanguageName(sourceLanguage: string, currentCode: LocaleCo
  *
  * `mw` is labelled in whichever language is being read, because it names a state rather than a
  * language; the row stays on every page since the choice is one site-wide cookie, and preferring
- * the original differs from preferring English the moment an article opens. See spec/locale.md,
- * "A page names the site's own language, which is what its tag already says".
+ * the original differs from preferring English the moment an article opens. See
+ * spec/locale/interface.md, "A page names the site's own language, which is what its tag already
+ * says".
  */
 export function languageChoices(
 	currentCode: LocaleCode,

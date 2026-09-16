@@ -6,7 +6,7 @@
 //! assets rather than one -- the rungs, and a poster frame that is an ordinary image asset with
 //! its own id, its own AVIF rungs and its own description. The poster is the whole of what a
 //! device that cannot decode AV1 is left with, so it is stored rather than extracted on demand:
-//! demand is exactly the moment there is no decoder. See spec/architecture/video.md.
+//! demand is exactly the moment there is no decoder. See spec/architecture/video/pipeline.md.
 
 pub mod encode;
 pub mod ladder;

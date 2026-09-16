@@ -516,7 +516,7 @@ fn describe_images(
 ///
 /// A separate command rather than a flag, because it is a different question: the frames, the
 /// budget and the guard against answering from context are all specific to a clip. See
-/// spec/architecture/video.md.
+/// spec/architecture/video/pipeline.md.
 fn describe_clips(
 	model: &ModelArgs,
 	force: bool,
@@ -655,7 +655,7 @@ fn translate_articles(args: I18nArgs<'_>) -> anyhow::Result<ExitCode> {
 	if let Some(reason) = &outcome.exhausted {
 		println!("stopped: {reason}");
 	}
-	// Policy findings, not failures: spec/i18n.md's note policies are soft, so these are for a
+	// Policy findings, not failures: spec/i18n/prose.md's note policies are soft, so these are for a
 	// person to judge, and the exit code ignores them.
 	for (article, finding) in &outcome.audit {
 		println!(
@@ -1049,7 +1049,8 @@ fn process_images(
 /// The same shape as `process_images` and deliberately not folded into it. The two commands read
 /// one manifest and write one published tree, but they answer different questions -- what to
 /// re-derive, what a rung is, what an extension means -- and the one place they were briefly
-/// shared produced a clip looked for at `image/{cid}.avif`. See spec/architecture/video.md.
+/// shared produced a clip looked for at `image/{cid}.avif`. See
+/// spec/architecture/video/pipeline.md.
 fn process_videos(force: bool, files: &[std::path::PathBuf]) -> anyhow::Result<ExitCode> {
 	let only = files.to_vec();
 
@@ -1129,7 +1130,7 @@ fn attach_captions(
 
 /// The `cms tn` command: which passages a translation must keep and explain, judged from the
 /// whole article rather than one block at a time -- block-at-a-time missed every note, on four
-/// articles, until this was split out. See spec/i18n.md.
+/// articles, until this was split out. See spec/i18n/prose.md.
 ///
 /// FIXME: this is the operation, not an adapter for one, contrary to spec/architecture/cms.md's
 /// one-operation-plus-two-adapters rule. It stays here until the desktop shell offers `cms tn`,

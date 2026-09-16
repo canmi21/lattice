@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of the language switcher. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The row's highlight and the mark's pair stay in the markup, gated on `data-highlighted`:
 	 * StyleX addresses only pseudo-classes and at-rules, and here it would also outrank the
@@ -28,13 +28,13 @@
 			transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
 		},
 		// Turning to face the other way is not a move: the box is where it was, and the glyph is
-		// the disclosure's state rather than its position. See spec/architecture/css.md.
+		// the disclosure's state rather than its position. See spec/architecture/css/layers.md.
 		caretClosed: {
 			rotate: '180deg',
 		},
 		/** One row of the menu. */
 		option: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
 			whiteSpace: 'nowrap',

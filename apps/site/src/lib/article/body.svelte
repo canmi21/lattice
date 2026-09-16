@@ -5,7 +5,7 @@
 	/**
 	 * The visual half of the translator's note, the only surface this component draws itself.
 	 * Every colour is the token variable `libs/tokens` already declares, so nothing here can
-	 * change one. See spec/architecture/css.md.
+	 * change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file does not shrink: every rule in it reaches
 	 * `.tn-trigger`, a control the markdown compiler wrote into the prose, and a style reaches an
@@ -20,12 +20,12 @@
 			fontSize: text.px12,
 			// The line as a length rather than as the ratio `text-xs` writes it, `calc(1 / 0.75)`,
 			// which is the same 1rem and cannot be written that way here: StyleX evaluates a calc
-			// and keeps five decimals. See spec/architecture/css.md.
+			// and keeps five decimals. See spec/architecture/css/authoring.md.
 			lineHeight: '1rem',
 			fontWeight: weight.medium,
 		},
 		noteClose: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			cursor: 'pointer',
 			borderRadius: radius.sm,

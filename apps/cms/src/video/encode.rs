@@ -3,7 +3,7 @@
 //! AV1 in MP4 with `faststart`, and no second encoding of the same picture. A browser that
 //! cannot decode the format shows nothing, which is why the format is chosen against measured
 //! support rather than convenience, and why an H.264 rendition beside this one was declined --
-//! it is a storage decision and the argument is written out in spec/architecture/video.md.
+//! it is a storage decision and the argument is written out in spec/architecture/video/pipeline.md.
 
 use super::{Error, tool};
 use crate::image::ladder::Size;
@@ -15,12 +15,12 @@ pub const EXTENSION: &str = "mp4";
 pub const MIME: &str = "video/mp4";
 
 /// `libsvtav1`, and on this machine it is also the only choice: the ffmpeg build here has
-/// `--enable-libsvtav1` and no libaom. See spec/architecture/video.md, "The encoder and the
-/// quality are chosen by measurement too", for why it would still be the pick if libaom were
+/// `--enable-libsvtav1` and no libaom. See spec/architecture/video/pipeline.md, "The encoder and
+/// the quality are chosen by measurement too", for why it would still be the pick if libaom were
 /// present.
 const ENCODER: &str = "libsvtav1";
 
-/// See spec/architecture/video.md, "The encoder and the quality are chosen by measurement
+/// See spec/architecture/video/pipeline.md, "The encoder and the quality are chosen by measurement
 /// too", for the VMAF-versus-bytes table this was measured against.
 const CRF: u8 = 32;
 

@@ -93,7 +93,7 @@ week is the accepted staleness for it rather than a year. `cache.ts` is the acco
 corrected to.
 
 HTML is the one thing that is not cached at all, because its body varies by the reader's
-locale cookie. See [locale.md](../locale.md).
+locale cookie. See [locale/addressing.md](../locale/addressing.md).
 
 The year is an observation, not a promise. Changing the bytes changes the hash and therefore
 the URL, so a hashed name cannot come to mean anything else and nobody has to remember to bust

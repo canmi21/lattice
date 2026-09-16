@@ -3,7 +3,7 @@
 	 * Whether a reader has given this page permission to make noise, for every clip at once.
 	 *
 	 * Module scope rather than per-clip state, and never reset -- there is no gesture that means
-	 * "withdraw consent to hear things". See spec/architecture/video.md, "A clip is a picture,
+	 * "withdraw consent to hear things". See spec/architecture/video/player.md, "A clip is a picture,
 	 * then a silent picture, then a player", for why sound is the page's to grant and why
 	 * granting it does not also grant chrome.
 	 */
@@ -14,11 +14,11 @@
 	/**
 	 * The chrome a clip is driven by, bound to Video.js v10's headless core rather than its skin.
 	 *
-	 * See spec/architecture/video.md, "The chrome is built on `@videojs/core`'s headless store,
-	 * not its skin", for why `@videojs/core/dom` and not the preset or custom elements, and for
-	 * the `attach` trap. Every colour is a `--player-*` token, the one that does not follow the
-	 * theme -- see `libs/tokens/src/player.css` for why -- and the rest is a scoped `<style>`
-	 * because most of it addresses slider pseudo-elements no utility or StyleX object can name.
+	 * See spec/architecture/video/player.md, "The chrome is built on `@videojs/core`'s headless
+	 * store, not its skin", for why `@videojs/core/dom` and not the preset or custom elements, and
+	 * for the `attach` trap. Every colour is a `--player-*` token, the one that does not follow the
+	 * theme -- see `libs/tokens/src/player.css` for why -- and the rest is a scoped `<style>` because
+	 * most of it addresses slider pseudo-elements no utility or StyleX object can name.
 	 */
 	import {
 		bufferFeature,
@@ -98,7 +98,7 @@
 		/**
 		 * Web fullscreen: the frame fills the viewport in CSS, without asking the Fullscreen API.
 		 * Owned by `video.svelte` and bound here rather than held locally -- see
-		 * spec/architecture/video.md, "Filling the window is a page mode, not a media one", for
+		 * spec/architecture/video/player.md, "Filling the window is a page mode, not a media one", for
 		 * why the state belongs to the file that draws the frame and how this mode differs from
 		 * the button beside it.
 		 */
@@ -177,7 +177,7 @@
 	let menu = $state(false);
 	/**
 	 * What web fullscreen does to the page behind it: scroll swallowed, not redirected -- see
-	 * spec/architecture/video.md, "Filling the window is a page mode, not a media one". Three
+	 * spec/architecture/video/player.md, "Filling the window is a page mode, not a media one". Three
 	 * things hold it: `overflow: hidden`, the scrollbar gutter paid back as padding, and
 	 * `touchmove` cancelled except over the chrome, which needs it to drag the scrubber and volume.
 	 */
@@ -211,7 +211,7 @@
 
 	/**
 	 * Where the article was before the frame left the flow, recorded by whoever turns the mode
-	 * on -- see spec/architecture/video.md, "Filling the window is a page mode, not a media
+	 * on -- see spec/architecture/video/player.md, "Filling the window is a page mode, not a media
 	 * one", for why not the effect that follows. Measured: 11883 became 11581 before a line ran.
 	 */
 	let restore = 0;
@@ -226,9 +226,9 @@
 
 	/**
 	 * Put the reader's answer to this clip, once this clip is in a position to be asked -- a clip
-	 * with no tracks does not use the value at all. See spec/architecture/video.md, "Captions
-	 * are a fact about the reader, not about the clip". `toggleSubtitles` rather than a setter is
-	 * what the store offers; the guard above makes calling it idempotent.
+	 * with no tracks does not use the value at all. See spec/architecture/video/captions.md,
+	 * "Captions are a fact about the reader, not about the clip". `toggleSubtitles` rather than a
+	 * setter is what the store offers; the guard above makes calling it idempotent.
 	 */
 	$effect(() => {
 		if (!view.hasCaptions || !player) return;
@@ -281,7 +281,7 @@
 
 	/**
 	 * What a clip is at any moment: `sleeping`, `previewing`, `awake` -- see
-	 * spec/architecture/video.md, "A clip is a picture, then a silent picture, then a player",
+	 * spec/architecture/video/player.md, "A clip is a picture, then a silent picture, then a player",
 	 * for what each stage means and why there is no way back to `sleeping` once a reader has
 	 * told a clip they want it.
 	 */
@@ -306,8 +306,8 @@
 
 	/**
 	 * Where this clip was when the tab last saw it, applied at the last possible moment -- read
-	 * once and spent once. See spec/architecture/video.md, "A reload finds a clip where the tab
-	 * left it", for why it waits for the viewport rather than load or the first `play`.
+	 * once and spent once. See spec/architecture/video/player.md, "A reload finds a clip where the
+	 * tab left it", for why it waits for the viewport rather than load or the first `play`.
 	 */
 	let restored: number | undefined;
 	$effect(() => {
@@ -318,7 +318,7 @@
 		 * A clip this tab has already watched seeks at `loadedmetadata`, before the element
 		 * decodes its own frame -- narrowing the frame-zero flash, not closing it: a cached clip
 		 * can decode frame zero before hydration runs, a race script cannot win. What actually
-		 * hides it is the transparency hold; see spec/architecture/video.md, "A clip the tab
+		 * hides it is the transparency hold; see spec/architecture/video/player.md, "A clip the tab
 		 * remembers does not show itself until the frame is the right one" for the measured
 		 * 100ms/80ms/315ms. Clips with no remembered position still wait, per `prime` below.
 		 */
@@ -331,7 +331,7 @@
 	/**
 	 * The frame the clip was on when it left for the picture-in-picture window, captured into a
 	 * canvas because the browser's own placeholder paints nothing (and painted the poster before
-	 * that was dropped). See spec/architecture/video.md, "A clip playing elsewhere leaves the
+	 * that was dropped). See spec/architecture/video/player.md, "A clip playing elsewhere leaves the
 	 * frame it left on", for why grey and dimmed, and why the canvas is always in the DOM rather
 	 * than conditional on state.
 	 */
@@ -384,17 +384,17 @@
 	/**
 	 * Where captions sit, decided when the shape changes and at no other time.
 	 *
-	 * See spec/architecture/video.md, "A caption is set in the page's voice and placed in the
-	 * black", for the whole account: why a bar only gets the caption once it is comfortably
-	 * taller than one (`CUE_ROOM`), why cues are positioned against the element box rather than
-	 * the picture, and why the answer is recomputed on shape rather than on cues.
+	 * See spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in
+	 * the black", for the whole account: why a bar only gets the caption once it is comfortably
+	 * taller than one (`CUE_ROOM`), why cues are positioned against the element box rather than the
+	 * picture, and why the answer is recomputed on shape rather than on cues.
 	 */
 	const CUE_LINES = 2;
 	/**
 	 * The caption's own height, in multiples of its size: 1.35 is `::cue`'s line-height in
 	 * `video.svelte`, and the plate is painted to exactly that box, nothing added around it. See
-	 * spec/architecture/video.md, "A caption is set in the page's voice and placed in the black",
-	 * for the measurement against a real caption.
+	 * spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in the
+	 * black", for the measurement against a real caption.
 	 */
 	const CUE_BLOCK = 1.35 * CUE_LINES;
 	/**
@@ -410,16 +410,16 @@
 	/**
 	 * How far above the picture's bottom edge a caption sits, in multiples of the caption's own
 	 * size -- the same gap looks half as big under a caption twice the size. At 0.8 the article
-	 * keeps its old 13.2px gap, 12.8px. See spec/architecture/video.md, "A caption is set in the
-	 * page's voice and placed in the black", for what this replaced.
+	 * keeps its old 13.2px gap, 12.8px. See spec/architecture/video/captions.md, "A caption is set in
+	 * the page's voice and placed in the black", for what this replaced.
 	 */
 	const CUE_CLEAR = 0.8;
 	/**
 	 * What stands in for the plate's horizontal padding: `::cue` cannot be padded, so a
 	 * non-collapsing space sits on each side of every line instead. Thin space gives 4px a side,
 	 * the finest available short of a class of its own scaled by `font-size` -- see
-	 * spec/architecture/video.md, "A caption is set in the page's voice and placed in the black",
-	 * for the measurement and the alternatives it beat.
+	 * spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in the
+	 * black", for the measurement and the alternatives it beat.
 	 */
 	const CUE_PAD = '\u2009';
 	/** A caption reads at a size taken from the picture, between these two. */
@@ -431,7 +431,7 @@
 	 * How much of the picture a caption may fill before it is worth breaking (`KEEP`), and how
 	 * full the first line aims to be when it does break (`FILL`, short of `KEEP` on purpose). The
 	 * file's own break point is a suggestion about where, not about whether -- see
-	 * spec/architecture/video.md, "A caption is set in the page's voice and placed in the
+	 * spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in the
 	 * black", for why and for the measurement.
 	 */
 	const CUE_KEEP = 0.9;
@@ -453,10 +453,10 @@
 	/**
 	 * Where to break a caption that has to break, which is a separate question from whether.
 	 * Candidates are the places a reader would accept one: after punctuation, and at a space.
-	 * **Balanced rather than first-line-filled** -- see spec/architecture/video.md, "A caption is
-	 * set in the page's voice and placed in the black", for why filling strands a word. Failing
-	 * `FILL` entirely, the shortest first line under `KEEP` is taken instead, and failing that
-	 * the text is left whole.
+	 * **Balanced rather than first-line-filled** -- see spec/architecture/video/captions.md, "A
+	 * caption is set in the page's voice and placed in the black", for why filling strands a word.
+	 * Failing `FILL` entirely, the shortest first line under `KEEP` is taken instead, and failing
+	 * that the text is left whole.
 	 */
 	function breakAt(text: string, measure: (value: string) => number, width: number): string {
 		const candidates: { at: number; punctuated: boolean }[] = [];
@@ -576,7 +576,7 @@
 	 * Decode one frame, so the element has something of its own to show, once the reader is
 	 * anywhere near it. Tied to the viewport rather than the first `play`, which is the whole cost
 	 * control: a range request per clip, spent only on clips a reader has actually scrolled to.
-	 * See spec/architecture/video.md, "The poster is a fallback, and the wait is a blur", for
+	 * See spec/architecture/video/player.md, "The poster is a fallback, and the wait is a blur", for
 	 * why the poster alone is not enough.
 	 */
 	function prime(): void {
@@ -639,7 +639,7 @@
 	/**
 	 * How long the remembered frame is allowed to be out of date while a clip is running -- kept
 	 * on `timeupdate` rather than an interval, since it fires only during playback and needs
-	 * nothing unwound. See spec/architecture/video.md, "The poster is a fallback, and the wait
+	 * nothing unwound. See spec/architecture/video/player.md, "The poster is a fallback, and the wait
 	 * is a blur", for why it also runs while playing (not only at `pause`/`ended`/`pagehide`)
 	 * and for the cost measurement behind the two seconds.
 	 */
@@ -716,7 +716,7 @@
 	/**
 	 * Waking a clip on a touch device, and keeping it on screen: a finger pressing and wandering
 	 * -- far enough to drop the platform's long-press menu, never lifting into a tap -- is this
-	 * device's closest thing to hovering. See spec/architecture/video.md, "On a touch device",
+	 * device's closest thing to hovering. See spec/architecture/video/player.md, "On a touch device",
 	 * for why lifting does not pause, unlike a pointer leaving.
 	 */
 	$effect(() => {
@@ -920,7 +920,7 @@
 	/**
 	 * Whether the chrome is on screen: never in `sleeping` or `previewing`, and only `awake` shows
 	 * it since only a click asked for it. A pointer device follows the pointer and nothing else; a
-	 * touch device follows the taps counted in `press`. See spec/architecture/video.md, "On a
+	 * touch device follows the taps counted in `press`. See spec/architecture/video/player.md, "On a
 	 * pointer device", for why it does not also fade on an idle timer the way a native player's
 	 * does.
 	 */
@@ -934,7 +934,7 @@
 	/**
 	 * Whether the cover is asking to be seen -- three answers, because it answers three different
 	 * questions: the invitation before a click, a guest over the row once awake, and the only
-	 * control when the pointer is off the frame. See spec/architecture/video.md, "On a pointer
+	 * control when the pointer is off the frame. See spec/architecture/video/player.md, "On a pointer
 	 * device", for each one and for why both edges are countdowns rather than switches.
 	 */
 	const covered = $derived(
@@ -952,7 +952,7 @@
 	 * What the cover is drawn as, which is not the same as whether the clip is running. Before the
 	 * first click it always shows the invitation -- reading `paused` directly flashed a pause
 	 * button on a clip nobody had started, since the state is not the cover's to report yet. See
-	 * spec/architecture/video.md.
+	 * spec/architecture/video/player.md.
 	 */
 	const coverRunning = $derived(stage === 'awake' && !view.paused);
 
@@ -1011,8 +1011,8 @@
 <!--
 	The cover, the only thing that ever covers the picture -- a plate rather than a bare glyph,
 	because a frame this site does not choose gives a glyph nothing to sit against. What `covered`
-	means differs by device and by stage; see spec/architecture/video.md, and `covered`'s own doc
-	above for the derivation.
+	means differs by device and by stage; see spec/architecture/video/player.md, and `covered`'s
+	own doc above for the derivation.
 -->
 <!--
 	What stands where the clip stands while the clip is somewhere else.
@@ -1710,7 +1710,7 @@
 
 	/**
 	 * Web fullscreen is offered only once `.article-column`'s 720px cap has been reached, in CSS
-	 * rather than script so it is right on the first frame. See spec/architecture/video.md,
+	 * rather than script so it is right on the first frame. See spec/architecture/video/player.md,
 	 * "Filling the window is a page mode, not a media one", for why the screen-fullscreen button
 	 * beside it is never withheld.
 	 */

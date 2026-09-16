@@ -9,9 +9,9 @@ import { LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '../../locale/ind
 // translations, and a fixture written to sit on one side of it would prove nothing.
 //
 // Nothing in the corpus sits above it any more. Same-language views scored 0.947 to 1.000 as
-// verbatim copies; since they became genuine localisations -- spec/i18n.md, "Same-language views
-// localise the article too" -- the zh views here measure 0.570 to 0.682 and the fold rule stops
-// applying, the outcome spec/locale.md anticipates for mixed originals. Above it is unmeasured.
+// verbatim copies; since they became genuine localisations -- spec/i18n/prose.md, "Same-language
+// views localise the article too" -- the zh views measure 0.570 to 0.682 and the fold rule stops
+// applying, the outcome spec/locale/views.md anticipates. Above it is unmeasured.
 const ARTICLES: { path: string; source: Exclude<LocaleCode, 'mw'> }[] = [
 	{ path: 'architecture/compile-time-rendering', source: 'zh' },
 	{ path: 'development/rust-cargo-cranelift-tuning', source: 'zh' },

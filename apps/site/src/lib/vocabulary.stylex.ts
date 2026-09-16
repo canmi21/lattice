@@ -5,7 +5,7 @@
  *
  * `defineConsts`, never `defineVars`: a var group rewrites every reading declaration into a
  * `var()`, where a const inlines and leaves the declaration as written; only the hashed class
- * name changes. See spec/architecture/css.md.
+ * name changes. See spec/architecture/css/extraction.md.
  *
  * The `.stylex`/`.stylex.const` filename is the compiler's own requirement (`vite.config.ts`
  * states the alias), and a key not defined here is not an error here: the importing file gets a
@@ -61,7 +61,8 @@ export const line = stylex.defineConsts({
  *
  * Every one of its six sites sits directly under `text.px14`, because it is the line that step
  * computes to and the ratio that would say so, `calc(1.25 / 0.875)`, does not terminate. So the
- * name is the length, on the same footing as the type ladder. See spec/architecture/css.md.
+ * name is the length, on the same footing as the type ladder. See
+ * spec/architecture/css/authoring.md.
  */
 export const leading = stylex.defineConsts({
 	px20: '1.25rem',

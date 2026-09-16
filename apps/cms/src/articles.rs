@@ -99,7 +99,7 @@ pub fn listing_at(repository: &Path) -> std::io::Result<Listing> {
 		let source = std::fs::read_to_string(&path)?;
 		// The same test `cms summary` and `cms i18n` apply: no `lang`, no language to translate
 		// out of, so the file is a page rather than an article. The homepage is the standing
-		// example. See spec/i18n.md.
+		// example. See spec/i18n/copy.md.
 		let fields = crate::document::fields_of(&source, &path)?;
 		let Some(lang) = summary::lang_of(&fields) else {
 			continue;

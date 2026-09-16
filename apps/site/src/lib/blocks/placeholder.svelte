@@ -5,10 +5,10 @@
 
 	/**
 	 * The visual half of the placeholder a block falls back to. Every colour is the token
-	 * variable `libs/tokens` already declares. See spec/architecture/css.md.
+	 * variable `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The file keeps no scoped block: the box's padding and the step between metadata rows are
-	 * layout, and stay in the markup where layout belongs. See spec/architecture/css.md, "A
+	 * layout, and stay in the markup where layout belongs. See spec/architecture/css/authoring.md, "A
 	 * comment in the module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({

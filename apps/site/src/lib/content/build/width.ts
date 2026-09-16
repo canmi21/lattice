@@ -10,7 +10,7 @@
  *
  * What holds the two together is the corpus below rather than good intentions. Both sides are
  * tested against the same ten strings measured in the rendered page, and a constant edited on one
- * side turns the other side's tests red on the next run. See spec/i18n.md.
+ * side turns the other side's tests red on the next run. See spec/i18n/prose.md.
  */
 
 /** A Han character or a kana, which draw a full square. */

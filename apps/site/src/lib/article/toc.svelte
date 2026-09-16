@@ -4,7 +4,7 @@
 
 	/**
 	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * Nothing here draws a bar's width or the indicator's height. Those are measured and written
 	 * inline by the script below, an inline style outranks every layer, and this one only says
@@ -22,8 +22,8 @@
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		entry: {
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what the
-			// element is to a pointer.
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
+			// the element is to a pointer.
 			cursor: 'pointer',
 			// The ring belongs to one of the two wrappers inside, which `focus-ring-inner` draws
 			// around the bar while the column is collapsed and around the label once it is not.
@@ -824,7 +824,7 @@
 	   these four declarations together and one of them is a `display`, so the set stays where the
 	   member that cannot move is; spec/todo.md is already holding the question of a compound
 	   utility that straddles the boundary. What the label looks like is the visual layer's and
-	   sits at the head of this file. See spec/architecture/css.md. */
+	   sits at the head of this file. See spec/architecture/css/layers.md. */
 	[data-toc-text] {
 		display: -webkit-box;
 		max-width: 100%;

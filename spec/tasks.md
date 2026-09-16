@@ -173,7 +173,7 @@ repair the article. The same rule holds when an editor stores one image before i
 
 ## The editor's canonical round trip stays idempotent by test
 
-[i18n.md](i18n.md) takes a segment id from a block's canonical form and stores articles already
+[i18n/segments.md](i18n/segments.md) takes a segment id from a block's canonical form and stores articles already
 normalised. Opening and saving a canonical article therefore leaves it byte-identical, but that is
 now an idempotence check rather than a promise to preserve an imported spelling. The file is a
 projection of the canonical form, and the editor writes whatever the normaliser produces.

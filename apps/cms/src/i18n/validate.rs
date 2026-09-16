@@ -59,7 +59,8 @@ impl fmt::Display for Error {
 ///
 /// Deliberately generous: not a style rule about length but the last check that catches a reply
 /// answering the neighbouring context instead, which nothing else here can see. See
-/// spec/i18n.md, "A count the source fixes is worth more than a size that has to be judged".
+/// spec/i18n/request.md, "A count the source fixes is worth more than a size that has to be
+/// judged".
 pub fn size_plausible(source: &str, text: &str) -> bool {
 	width::raw(text) <= width::raw(source) * width::SIZE_FACTOR + width::SIZE_ALLOWANCE
 }
@@ -68,8 +69,8 @@ pub fn size_plausible(source: &str, text: &str) -> bool {
 ///
 /// `:fn` is the author's, so the count is fixed by the source and not a judgement call -- the one
 /// cheap invariant that catches a reply about a different block where size cannot, since a
-/// neighbour of ordinary length passes a size check outright. See spec/i18n.md, "A count the
-/// source fixes is worth more than a size that has to be judged".
+/// neighbour of ordinary length passes a size check outright. See spec/i18n/request.md, "A
+/// count the source fixes is worth more than a size that has to be judged".
 pub fn author_notes_preserved(source: &str, text: &str) -> bool {
 	source.matches(":fn[").count() == text.matches(":fn[").count()
 }
@@ -90,7 +91,7 @@ pub fn markers_resolved(text: &str) -> bool {
 /// carried into a language that does, the identical shape renders one word that exists in no
 /// language. The test is the character, not the locale: a directive needs air only against a
 /// narrow letter or digit, since a wide glyph does not space words and punctuation is already a
-/// boundary. See spec/i18n.md, "A directive needs the spacing its own script uses".
+/// boundary. See spec/i18n/segments.md, "A directive needs the spacing its own script uses".
 pub fn spacing_intact(text: &str) -> bool {
 	let needs_space = |c: char| c.is_alphanumeric() && UnicodeWidthChar::width(c) == Some(1);
 	for name in [":fn[", ":tn["] {
@@ -119,8 +120,8 @@ pub fn spacing_intact(text: &str) -> bool {
 /// Only a section is bound by this -- a subsection is not in the rail, so its length is a prose
 /// question for `audit`, not refused here. Only the clamp is refused, not the one-line budget:
 /// two lines is a legitimate outcome the rail is built for, and rejecting it would eventually
-/// buy a worse answer. See spec/i18n.md, "A section heading is also a label, and the rail is
-/// narrow".
+/// buy a worse answer. See spec/i18n/segments.md, "A section heading is also a label, and the
+/// rail is narrow".
 pub fn heading_fits(kind: Kind, region: Region, level: Option<usize>, text: &str) -> bool {
 	kind != Kind::Heading
 		|| region != Region::Body
@@ -206,9 +207,9 @@ const JOINING_DASHES: [char; 4] = ['\u{2014}', '\u{2013}', '\u{2012}', '\u{FF0D}
 /// source never spent.
 ///
 /// The budget here, not the fifth held back by `HEADROOM` -- that rule is for whether stored text
-/// earns another look, this is for what may be stored at all. `source` is the article's own title
-/// and subtitle together, since the two license one another's dash. See spec/i18n.md, "A budget
-/// is a ceiling, not a target" and "A translation may not borrow a dash the author never spent".
+/// earns another look, this is for what may be stored at all. `source` is the title and subtitle
+/// together, since the two license one another's dash. See spec/i18n/prose.md, "A budget is a
+/// ceiling, not a target" and "A translation may not borrow a dash the author never spent".
 pub fn display(field: Display, text: &str, source: &str) -> Result<(), Error> {
 	let drawn = width::pixels(text);
 	let budget = field.budget();

@@ -3,8 +3,9 @@
 //! A heading is also a label in the article's table of contents, whose rail is narrow, so what
 //! decides whether it fits is columns rather than characters: a Han character occupies two where
 //! a Latin one occupies one. This is the cheap true measure rather than the exact one -- real
-//! text shaping also needs a font, which the CMS has no other reason to load. See spec/i18n.md,
-//! "A section heading is also a label, and the rail is narrow", for the measured ratio.
+//! text shaping also needs a font, which the CMS has no other reason to load. See
+//! spec/i18n/segments.md, "A section heading is also a label, and the rail is narrow", for the
+//! measured ratio.
 
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
@@ -26,7 +27,7 @@ pub const CLAMP: usize = ONE_LINE * 2;
 /// budgets span three layout places and a column is not a fixed number of pixels across scripts.
 /// Han, kana and Hangul are near-constant, measured at 16.00px, 16.00px and 13.84px; full-width
 /// punctuation measures 12.57px. Latin is a measured table rather than an average -- see
-/// spec/i18n.md, "A Latin character is measured, not averaged".
+/// spec/i18n/prose.md, "A Latin character is measured, not averaged".
 pub const PX_WIDE: f32 = 16.0;
 pub const PX_HANGUL: f32 = 14.0;
 /// A character outside the table, which for the nine locales here means none of them.
@@ -222,8 +223,8 @@ pub fn raw(text: &str) -> usize {
 /// Catches a reply answering the neighbouring context instead of the block: invisible to every
 /// other check, since a short source has no markers to lose and the shape stays valid. Four times
 /// plus forty columns, so a short block still gets room -- `OR` is two columns and its German is
-/// four. See spec/i18n.md, "A count the source fixes is worth more than a size that has to be
-/// judged", for the measured band and what this check cannot catch.
+/// four. See spec/i18n/request.md, "A count the source fixes is worth more than a size that has
+/// to be judged", for the measured band and what this check cannot catch.
 pub const SIZE_FACTOR: usize = 4;
 pub const SIZE_ALLOWANCE: usize = 40;
 

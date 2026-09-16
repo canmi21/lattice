@@ -2,7 +2,7 @@
 
 Where a line may end, what its figures do, and the two marks that interrupt it. Which of the three
 systems writing CSS is entitled to say each decision here, and what happens where two of them say
-the same thing, is [architecture/css.md](../architecture/css.md).
+the same thing, is [architecture/css/layers.md](../architecture/css/layers.md).
 
 ## A number's treatment follows the role it plays
 
@@ -49,7 +49,7 @@ the Simplified Chinese view before any of this: `text-wrap: wrap`, `hyphens: man
 
 **The policy is keyed on `:lang()`, never on a locale code.** `<html lang>` already carries the
 resolved language, and for the `mw` view that language is the article's own rather than a fixed
-one -- see [locale.md](../locale.md). A rule written against the language reaches that view without
+one -- see [locale/addressing.md](../locale/addressing.md). A rule written against the language reaches that view without
 having to know it exists, and it reaches the bare tags a frontmatter `lang` supplies (`zh`, `en`)
 as well as the full ones the eight translations carry (`zh-CN`, `en-US`).
 

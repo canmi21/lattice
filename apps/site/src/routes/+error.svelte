@@ -4,11 +4,11 @@
 
 	/**
 	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css.md. No scoped block:
-	 * two elements, both the component's own, so a class on each reaches everything there is.
+	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md. No scoped
+	 * block: two elements, both the component's own, so a class on each reaches everything there is.
 	 *
 	 * No tag in angle brackets may appear anywhere in this block, comments included -- see
-	 * spec/architecture/css.md, "A comment in the module script cannot write a tag in angle
+	 * spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag in angle
 	 * brackets".
 	 */
 	const styles = stylex.create({
@@ -45,7 +45,7 @@
 	import type { LocaleCode } from '$lib/locale';
 
 	// The view being rendered, read off what the server stamped. An error page still answers in
-	// the language the reader asked for. See spec/locale.md.
+	// the language the reader asked for. See spec/locale/addressing.md.
 	const locale = $derived((page.data.locale?.code ?? 'mw') as LocaleCode);
 
 	// Left in English on purpose. These are the protocol's own names for its statuses, printed

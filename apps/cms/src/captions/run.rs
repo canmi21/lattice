@@ -2,11 +2,11 @@
 //!
 //! Separate from `cms video` because the two arrive on different days -- a clip is cut on
 //! import, its track downloaded, written or bought later, and two of the three clips here have
-//! none at all. See spec/architecture/video.md, "The pairing is checked by arithmetic, and the
-//! arithmetic is not about the track", for what the excerpt-length and non-empty-cut checks
-//! catch, and "Neither of those is a check on the track" for why the track's own identity cannot
-//! be checked at all and why `--language` is required rather than inferred. See "The window has
-//! one home" for the `--from`/`--to` flags.
+//! none at all. See spec/architecture/video/captions.md, "The pairing is checked by arithmetic, and
+//! the arithmetic is not about the track", for what the excerpt-length and non-empty-cut checks
+//! catch, and "Neither of those is a check on the track" for why the track's own identity cannot be
+//! checked at all and why `--language` is required rather than inferred. See "The window has one
+//! home" for the `--from`/`--to` flags.
 
 use super::{Kind, Window};
 use crate::image::manifest::{Caption, Media, Merged};

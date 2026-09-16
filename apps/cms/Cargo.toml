@@ -80,7 +80,7 @@ anyhow = "1.0.104"
 # How wide a heading will draw, which decides whether it fits the table of contents on one line.
 # The rule is Unicode's East Asian Width table, not a character count -- and not something to
 # approximate by hand, since it is the Hangul and full-width ranges that a hand-rolled guess gets
-# wrong, exactly where this is asked. See spec/i18n.md.
+# wrong, exactly where this is asked. See spec/i18n/segments.md.
 unicode-width = "0.2.2"
 words-count = "0.1"
 unicode-blocks = "0.1"

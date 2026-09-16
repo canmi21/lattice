@@ -13,7 +13,7 @@ export const STRATEGY = 'custom-negotiated';
  * itself; the last of those is content-dependent and no library strategy can see it. Rather
  * than approximate that with `cookie` plus `preferredLanguage` and have two negotiations
  * disagree in the cases that matter, the strategy array holds this alone -- no built-in
- * fallback -- and the answer is read back off the request. See spec/locale.md.
+ * fallback -- and the answer is read back off the request. See spec/locale/addressing.md.
  */
 export function registerServerStrategy(): void {
 	defineCustomServerStrategy(STRATEGY, {

@@ -66,7 +66,7 @@ type SummarySidecar = { summary?: Record<string, { text?: string; provider?: str
  *
  * Frontmatter writes the short form; every locale-addressed record here uses the public tag.
  * Traditional Chinese is matched by script before the language falls through -- the same rule
- * `cms summary` applies on the other side of the file. See spec/i18n.md.
+ * `cms summary` applies on the other side of the file. See spec/i18n/copy.md.
  */
 function sourceLocale(lang: string): string {
 	const [primary = lang, ...rest] = lang.toLowerCase().split('-');
@@ -495,7 +495,7 @@ export async function buildPages(
 		// copy, its bio was always rendered from `mw` whatever the view, and the eight
 		// translations sitting beside it were never read by anything. Keeping them meant a
 		// sidecar the build could not start without, holding text nobody would ever see.
-		// See spec/i18n.md.
+		// See spec/i18n/copy.md.
 		const compiled = Object.fromEntries(LOCALE_CODES.map((code) => [code, source])) as Record<
 			LocaleCode,
 			CompiledPage

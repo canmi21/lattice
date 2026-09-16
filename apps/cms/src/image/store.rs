@@ -12,7 +12,7 @@ const FAN: usize = 2;
 /// **The one declaration of the bucket's layout, on this side.** The twin of `OBJECTS` in
 /// `libs/store`, kept in sync by a test there. See spec/architecture/data.md, "The layout is
 /// declared once per language and the two are held together by a test", and
-/// spec/architecture/video.md, "A prefix names what kind of object it is", for the table's
+/// spec/architecture/video/pipeline.md, "A prefix names what kind of object it is", for the table's
 /// shape and the trap it replaced.
 pub const OBJECTS: [(&str, bool, &str); 5] = [
 	("captions", true, "vtt"),
@@ -53,7 +53,7 @@ pub fn variant_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {
 /// No extension to pass, unlike a picture. There is one codec in one container and the reason
 /// is measured rather than stylistic -- AV1 in MP4 with `faststart`, because that is the only
 /// path to the hardware decoder Apple devices need. A second spelling here would be a format
-/// this repository does not publish. See spec/architecture/video.md.
+/// this repository does not publish. See spec/architecture/video/pipeline.md.
 pub fn video_path(public_root: &Path, cid: &str) -> PathBuf {
 	object_path(public_root, "video", cid, "")
 }

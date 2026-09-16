@@ -2,7 +2,7 @@
 //!
 //! The runner is handed frames and a word budget, never the video and never a shell. That is a
 //! boundary decision rather than a belief about how a model should watch, and it costs something:
-//! prescribing the sampling prescribes how the model sees. See spec/architecture/video.md.
+//! prescribing the sampling prescribes how the model sees. See spec/architecture/video/pipeline.md.
 //!
 //! Nothing here asks anybody anything. This module decides how many frames, which frames, how
 //! large, and what to say alongside them; `alt` makes the call.
@@ -125,7 +125,7 @@ pub enum Error {
 /// The cap is the part that matters and the curve only reaches it smoothly. The shift from
 /// detailed to overall is not asked for anywhere; it is what a budget does. Twenty words about
 /// two seconds describes what is on the screen, and two hundred about twenty minutes cannot be
-/// anything but a summary. See spec/architecture/video.md for the table this reproduces.
+/// anything but a summary. See spec/architecture/video/pipeline.md for the table this reproduces.
 pub fn words(seconds: f64) -> u32 {
 	let curve = 60.0 * (1.0 + seconds.max(0.0) / 2.0).log10();
 	curve.clamp(20.0, 200.0).round() as u32
@@ -293,9 +293,9 @@ pub fn prompt(frames: &[Frame], clip: Clip, context: &Context) -> String {
 			text.push_str(&format!("  Appears in the article \"{article}\"\n"));
 		}
 		// This paragraph is the one part of the prompt that is not negotiable, and the one most
-		// likely to be cut by whoever next decides it is too long. See spec/architecture/video.md,
-		// "What the runner is told about the video, and the sentence that has to be in the
-		// prompt", for why.
+		// likely to be cut by whoever next decides it is too long. See
+		// spec/architecture/video/pipeline.md, "What the runner is told about the video, and the
+		// sentence that has to be in the prompt", for why.
 		text.push_str(
 			"\nThat is background for reference only, and it is not the answer. Do not describe \
 			 the clip by restating it: naming the film, the event, the company or the article \
@@ -343,7 +343,8 @@ fn clock(seconds: f64) -> String {
 mod tests {
 	use super::*;
 
-	/// The table in spec/architecture/video.md, which is the contract rather than the formula.
+	/// The table in spec/architecture/video/pipeline.md, which is the contract rather than the
+	/// formula.
 	///
 	/// Arithmetic with boundaries is the one thing here worth a test and the one thing nobody
 	/// would notice going wrong: a budget off by a frame produces a description that reads fine.

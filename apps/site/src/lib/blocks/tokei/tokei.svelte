@@ -4,7 +4,7 @@
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo.md, "Tokei draws
 	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip
@@ -16,7 +16,7 @@
 		tileName: {
 			fontSize: text.px12,
 			fontWeight: weight.medium,
-			// Visual under the rule in spec/architecture/css.md: it moves nothing, it says what
+			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
 			// the element is to a pointer.
 			pointerEvents: 'none',
 		},

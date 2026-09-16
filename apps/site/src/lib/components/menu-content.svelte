@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one -- see spec/architecture/css.md, "A
+	 * already declares, so nothing here can change one -- see spec/architecture/css/authoring.md, "A
 	 * comment in the module script cannot write a tag in angle brackets", for why this one may not.
 	 *
 	 * The scoped block at the foot of this file reaches what Bits UI portals out of the tree,

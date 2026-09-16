@@ -4,8 +4,8 @@ export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 /**
  * The language this site's own copy is written in -- not a fallback for a missing article
- * language. See spec/locale.md, "A page names the site's own language, which is what its tag
- * already says".
+ * language. See spec/locale/interface.md, "A page names the site's own language, which is what its
+ * tag already says".
  */
 export const SITE_LANGUAGE = 'en-US';
 
@@ -104,7 +104,7 @@ export type LocaleInputs = {
  * Paraglide's `baseLocale` is `mw` as well, and the two are still separate decisions that
  * happen to agree. This one picks the view a reader is given; that one supplies a string the
  * chosen view is missing. Changing either does not imply changing the other.
- * See spec/locale.md.
+ * See spec/locale/addressing.md.
  */
 export function resolveLocale(inputs: LocaleInputs): LocaleCode {
 	return (

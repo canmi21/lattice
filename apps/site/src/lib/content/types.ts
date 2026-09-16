@@ -162,7 +162,7 @@ export type ArticleReference = {
 	subtitle: string;
 	created: string;
 	/** What a phone card shows instead, where the row clips. Falls back to the full form for a
-	 *  view the CMS has not written one for. See spec/i18n.md. */
+	 *  view the CMS has not written one for. See spec/i18n/prose.md. */
 	shortTitle: string;
 	shortSubtitle: string;
 };
@@ -212,7 +212,7 @@ export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'feed' | 't
 	/** False when this locale is showing the complete source article as a safe fallback. */
 	translationAvailable: boolean;
 	/** The title and subtitle a phone card shows instead of `meta`'s, where the row clips. Falls
-	 *  back to the full form for a view the CMS has not written one for. See spec/i18n.md. */
+	 *  back to the full form for a view the CMS has not written one for. See spec/i18n/prose.md. */
 	short: { title: string; subtitle: string };
 	/**
 	 * The title the article page shows on a phone: `meta.title` where it fits the column, and

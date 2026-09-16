@@ -2,7 +2,7 @@
 //!
 //! Segment by segment, with every missing locale in one request, because a paragraph edited on
 //! its own should cost one call while a partial repair should never repay for finished work. See
-//! spec/i18n.md.
+//! spec/i18n/request.md.
 
 pub mod audit;
 pub mod invalidate;
@@ -129,13 +129,13 @@ const PAGE_FILE: &str = "homepage.md";
 
 /// A backstop, not the filter: `run` already drops a page before a byte is read, so this exists
 /// only for the day that filter breaks, to say which file arrived and where it should have
-/// stopped rather than let a page quietly acquire a sidecar. See spec/i18n.md, "A page is not an
-/// article, and is not translated".
+/// stopped rather than let a page quietly acquire a sidecar. See spec/i18n/copy.md, "A page is
+/// not an article, and is not translated".
 fn refuse_page(path: &Path) -> Result<(), String> {
 	if path.file_name().is_some_and(|name| name == PAGE_FILE) {
 		return Err(format!(
 			"{PAGE_FILE} is a page, not an article, and is never translated. It reached the run \
-			 anyway, which means the filter in `run` no longer holds. See spec/i18n.md."
+			 anyway, which means the filter in `run` no longer holds. See spec/i18n/copy.md."
 		));
 	}
 	Ok(())
@@ -604,7 +604,7 @@ pub async fn run(
 		// And so do drafts: every edit changes segment ids, so translating one buys eight locales
 		// the next save throws away. Naming an article is still an explicit request and goes
 		// through, same as `only` everywhere else here. An unreadable file stays in -- that fault
-		// is for the loop below to report, not for this filter to hide. See spec/i18n.md, "A
+		// is for the loop below to report, not for this filter to hide. See spec/i18n/segments.md, "A
 		// draft is written, not owed".
 		.filter(|path| {
 			if !only.is_empty() {
@@ -645,7 +645,7 @@ pub async fn run(
 		// A page is not an article and is never translated. The test is the same one `cms
 		// summary` applies: no `lang` frontmatter, no language to translate out of. The homepage
 		// is the standing example -- it is identity copy, rendered from the source in every
-		// view, and translations of it were only ever dead weight. See spec/i18n.md.
+		// view, and translations of it were only ever dead weight. See spec/i18n/copy.md.
 		let fields = crate::document::fields_of(&article, &path)?;
 		let Some(lang) = crate::summary::lang_of(&fields) else {
 			continue;
@@ -688,7 +688,7 @@ pub async fn run(
 						}
 						// Frontmatter never reaches `across_locales` below, and a field measured
 						// only against its own budget is how a translation that answered a wider
-						// question than the source asked got through. See spec/i18n.md.
+						// question than the source asked got through. See spec/i18n/prose.md.
 						let together: Vec<(&str, &str)> = locales
 							.iter()
 							.map(|(locale, translation)| (locale.as_str(), translation.text.as_str()))
@@ -750,7 +750,7 @@ pub async fn run(
 		// Order for context comes from the article, not `live`: filtering to translatable blocks
 		// first made a code fence or figure invisible and promoted whatever prose lay beyond it,
 		// and made a frontmatter field the "previous paragraph" of the first body block. See
-		// spec/i18n.md, "The context is fenced too, because it is also article prose".
+		// spec/i18n/request.md, "The context is fenced too, because it is also article prose".
 		let ordered: Vec<Segment> = segment::split(&article)
 			.map_err(|error| {
 				std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{}: {error}", path.display()))
@@ -1064,7 +1064,7 @@ mod tests {
 		// failing somewhere further in.
 		let refused = refuse_page(Path::new("contents/homepage.md")).unwrap_err();
 		assert!(refused.contains(PAGE_FILE), "{refused}");
-		assert!(refused.contains("spec/i18n.md"), "{refused}");
+		assert!(refused.contains("spec/i18n/copy.md"), "{refused}");
 
 		assert!(refuse_page(Path::new("contents/architecture/homepage.md")).is_err());
 		assert!(refuse_page(Path::new("contents/milestone/less-is-more.md")).is_ok());

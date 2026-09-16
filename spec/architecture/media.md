@@ -22,7 +22,7 @@ needs different wording for its own context overrides it; nothing else has to sa
 
 `cms alt` fills them by handing the work to a local agent CLI rather than to an API. The
 default is `gpt-5.6-terra-medium` through Codex. How each runner is shown the file is
-in [i18n.md](../i18n.md). There is no API request to assemble and no key to hold.
+in [i18n/runners.md](../i18n/runners.md). There is no API request to assemble and no key to hold.
 
 The framing in the prompt is the instruction that matters. "Describe this image" produces a
 caption -- a label naming the subject. Asking for what someone who cannot see it would need
@@ -154,7 +154,7 @@ and is never translated. An ordinary name records a disambiguated English source
 short semantic meaning, and its translated display forms. Its `en-US` form comes from the same
 vision answer that creates the tag and retains that answer's provenance. The meaning is not
 copy: it is the stable contract that lets both the tagging model and the translator decide
-which concept the identifier denotes. See [i18n.md](../i18n.md) for how those labels are
+which concept the identifier denotes. See [i18n/copy.md](../i18n/copy.md) for how those labels are
 translated and cased.
 
 Both answers come from one request, because they are one look at one picture. Asking
@@ -271,7 +271,7 @@ refusing to run.
 **A draft gets no card, and a card nothing asks for is deleted.** A draft has no production URL
 for a card to be the picture of, and a card is a public object -- rendered, deployed to the CDN,
 and fetchable by anyone who guesses the path -- so drawing one publishes a piece nobody decided to
-publish. `cms og` skips drafts on the same flag [i18n.md](../i18n.md) uses to keep them out of the
+publish. `cms og` skips drafts on the same flag [i18n/segments.md](../i18n/segments.md) uses to keep them out of the
 paid sweeps.
 
 Skipping alone would have left the pictures behind. The card record was already rebuilt rather

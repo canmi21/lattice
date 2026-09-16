@@ -8,7 +8,7 @@
 //!
 //! Byte offsets are part of what this returns, not an extra. Translations are spliced back into
 //! the file by range, so a consumer that knows where the frontmatter *is* cannot be served by one
-//! that only knows what it says. See spec/i18n.md.
+//! that only knows what it says. See spec/i18n/segments.md.
 
 use std::collections::BTreeMap;
 

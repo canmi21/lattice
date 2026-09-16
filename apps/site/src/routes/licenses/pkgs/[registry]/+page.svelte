@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * A sibling of the two directories above it, writing the same trail, header and quiet
 	 * control, name for name. Written out rather than shared -- where a module for this should

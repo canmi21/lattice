@@ -191,10 +191,10 @@ export default defineConfig(async ({ command, mode }) => {
 			// One strategy, no built-in fallback: locale negotiation stays in the worker and
 			// Paraglide is told the answer. `url` is deliberately absent -- a locale never appears
 			// in a path here, so there is nothing to delocalize and no `reroute` hook.
-			// See spec/locale.md.
+			// See spec/locale/addressing.md.
 			paraglideVitePlugin({
 				// The SDK refuses any project path not ending in `.inlang`, so the whole name is
-				// the suffix. See spec/locale.md.
+				// the suffix. See spec/locale/interface.md.
 				project: './.inlang',
 				outdir: './src/lib/paraglide',
 				strategy: ['custom-negotiated'],
@@ -205,13 +205,13 @@ export default defineConfig(async ({ command, mode }) => {
 			{
 				// Content sources and sidecars are build inputs, not Worker work. Compile every
 				// browser-facing view here and serialize the lookup tables into the server bundle.
-				// Development replaces one stable runtime snapshot instead. See spec/i18n.md.
+				// Development replaces one stable runtime snapshot instead. See spec/i18n/segments.md.
 				name: 'virtual-articles',
 				configureServer(server) {
 					devServer = server;
 					// Watch inputs directly without registering them as dependencies of the virtual
 					// module. Vite invalidates dependencies before hotUpdate can replace the stable
-					// snapshot, which would retain another full SSR generation. See spec/i18n.md.
+					// snapshot, which would retain another full SSR generation. See spec/i18n/segments.md.
 					server.watcher.add([
 						CONTENTS,
 						MESSAGES,
@@ -294,10 +294,10 @@ export default defineConfig(async ({ command, mode }) => {
 			sveltekit(),
 			{
 				// The visual layer, appended after Tailwind's so its cascade layers land above
-				// Tailwind's utilities and below Svelte's scoped rules -- see spec/architecture/css.md,
-				// "The build order is the opposite of what StyleX documents", for why `enforce:
-				// undefined` is load-bearing and why the module resolution below is stated rather
-				// than defaulted.
+				// Tailwind's utilities and below Svelte's scoped rules -- see
+				// spec/architecture/css/layers.md, "The build order is the opposite of what StyleX
+				// documents", for why `enforce: undefined` is load-bearing and why the module resolution
+				// below is stated rather than defaulted.
 				...stylex({
 					useCSSLayers: true,
 					aliases: { '$lib/*': ['/ROOT/src/lib/*'] },

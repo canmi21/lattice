@@ -2,7 +2,7 @@
 
 How a number in this repository is arrived at, and what a box has to be for a length to reach it.
 Which of the three systems writing CSS is entitled to say each decision here, and what happens
-where two of them say the same thing, is [architecture/css.md](../architecture/css.md).
+where two of them say the same thing, is [architecture/css/layers.md](../architecture/css/layers.md).
 
 ## Browser lengths are authored in rem
 

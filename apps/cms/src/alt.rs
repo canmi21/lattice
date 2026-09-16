@@ -106,8 +106,8 @@ fn pending(
 	// Pictures only, and not because a clip needs no description -- it does. This command hands
 	// a runner one file and asks it to look, which is what a picture is; a clip is described
 	// from frames this repository chooses and a word budget, and that is a different command
-	// asking a different question. See spec/architecture/video.md. Left out of the count rather
-	// than skipped, because a clip is not work this command owes and never finished.
+	// asking a different question. See spec/architecture/video/pipeline.md. Left out of the count
+	// rather than skipped, because a clip is not work this command owes and never finished.
 	let wanted: Vec<&String> = merged
 		.media
 		.iter()

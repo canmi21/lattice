@@ -3,7 +3,7 @@
 One source, two compositions: which words a phone gets, which controls it keeps, and how the copy
 is written to a shape rather than a length. Which of the three systems writing CSS is entitled to
 say each decision here, and what happens where two of them say the same thing, is
-[architecture/css.md](../architecture/css.md).
+[architecture/css/layers.md](../architecture/css/layers.md).
 
 ## The homepage carries the content-language control, below the bio
 
@@ -11,7 +11,7 @@ Content language is a setting for the whole site, and the homepage is where some
 without having come to read one particular thing. It carries the switcher on its own quiet row.
 
 **Below the bio rather than beside the name.** The bio is identity copy and is rendered from the
-source in every view -- see [i18n.md](../i18n.md). A switcher placed above it would be a control
+source in every view -- see [i18n/copy.md](../i18n/copy.md). A switcher placed above it would be a control
 whose first use appears to do nothing, which is the worst thing a preference control can look
 like. Under the bio it sits exactly where its effect begins. Measured, that costs no findability:
 the row lands around 330px on a wide window and 380px on a narrow one, well inside the first
@@ -160,7 +160,7 @@ tuned against that, and an article written in a language with a much shorter or 
 sit slightly off the shape rather than break it -- the sentence is written so the slack falls on
 the second line.
 
-**`mw` takes Chinese here, against the default.** [locale.md](../locale.md) says a message added to
+**`mw` takes Chinese here, against the default.** [locale/addressing.md](../locale/addressing.md) says a message added to
 `mw` takes the English wording, and that rule is about messages nobody has an opinion about yet.
 These four are not: the owner already wrote the long forms in Chinese, and a short form is the
 same sentence for a narrower box. Pairing an English short with a Chinese long would swap language

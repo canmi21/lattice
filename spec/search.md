@@ -7,7 +7,7 @@ queries typed into this site.
 
 ## One index, and the locale is a filter
 
-An article has nine views ([locale.md](locale.md)), and a reader is only ever in one of them.
+An article has nine views ([locale/addressing.md](locale/addressing.md)), and a reader is only ever in one of them.
 Every record carries its internal locale code, every query filters on exactly one, and that is
 the whole of it. Nine independent searches out of one index. A reader in `zh` never sees a `tw`
 result.
@@ -65,7 +65,7 @@ translate them.
 That retires a trap this repository had already documented once. `LOCALE_CODES` is
 character-for-character identical to Algolia's ISO 639-1 codes in seven of nine places, which
 would make an identity mapping look correct while being silently wrong twice: **`tw` is Twi, a
-language of Ghana**, as [locale.md](locale.md) records in another context, and Algolia has no
+language of Ghana**, as [locale/addressing.md](locale/addressing.md) records in another context, and Algolia has no
 `zh-Hant` to map Traditional Chinese onto in any case. A table plus a test holding it against
 `LOCALE_CODES` was the plan. Sending nothing is better than mapping correctly.
 

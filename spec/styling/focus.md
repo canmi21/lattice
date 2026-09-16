@@ -2,7 +2,7 @@
 
 Where the ring goes, what colour it is at rest, and the compact controls it most often lands on.
 Which of the three systems writing CSS is entitled to say each decision here, and what happens
-where two of them say the same thing, is [architecture/css.md](../architecture/css.md).
+where two of them say the same thing, is [architecture/css/layers.md](../architecture/css/layers.md).
 
 ## Keyboard focus follows the visible control
 
@@ -118,7 +118,7 @@ vocabulary decayed exactly where it was most needed. Seven controls kept the cla
 the ones that wanted it unchanged: the four licence routes add a font size, the language
 switcher and the theme toggle add nothing at all, and the article's summary disclosure adds only
 what it does while there is nothing to disclose. A recipe composes, so the name survives being
-specialised. See [architecture/css.md](../architecture/css.md).
+specialised. See [architecture/css/extraction.md](../architecture/css/extraction.md).
 
 Only the appearance is in the recipe. The geometry -- the inline-flex box, the centred items, the
 padding, and the negative inline margin that lets a padded control keep its ink aligned with the

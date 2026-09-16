@@ -5,12 +5,12 @@
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css.md.
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file keeps the eight keyframes and their names, the
 	 * `--pill-overhang` geometry, and `--pill-height`, read back down through `app.css` -- a
 	 * migration moves a declaration between layers and never changes how a value is arrived at. See
-	 * spec/todo.md, and spec/architecture/css.md for what this block's own comments must not do.
+	 * spec/todo.md, and spec/architecture/css/authoring.md for what these comments must not do.
 	 */
 	const styles = stylex.create({
 		/** Both readings of the pitch; which one shows is a width question, kept in the markup. */
@@ -64,7 +64,7 @@
 			fontWeight: weight.medium,
 			color: 'var(--color-page)',
 			// `:hover` and `:disabled` can both match here, and the layers rank them differently.
-			// See spec/architecture/css.md, "Two conditions that can both be true are made
+			// See spec/architecture/css/authoring.md, "Two conditions that can both be true are made
 			// exclusive, never ranked", for why the hover condition is spelled out below.
 			opacity: {
 				default: null,
@@ -87,7 +87,7 @@
 		 * reserved cell.
 		 *
 		 * The line stays a ratio -- `calc(1.5 / 1)` is exactly 1.5, so the rule in
-		 * spec/architecture/css.md against ratios that never terminate does not apply. What
+		 * spec/architecture/css/authoring.md against ratios that never terminate does not apply. What
 		 * reserves the width is layout, below.
 		 */
 		ghost: {
@@ -107,7 +107,7 @@
 			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included --
 			// dropping them changes the computed value even though nothing here sets a gradient.
 			// None of the three actually reaches the element, since `.spring-underline` is
-			// unlayered and already owns `transition`; see spec/architecture/css.md, "There is a
+			// unlayered and already owns `transition`; see spec/architecture/css/layers.md, "There is a
 			// fourth participant, and it sits above the visual layer". Carried across unchanged
 			// on purpose, and recorded in spec/todo.md.
 			transitionProperty: transition.colors,
@@ -484,7 +484,7 @@ otherwise need. See spec/engagement.md. -->
 	/* The two halves of the pointer's account that need an ancestor to find their element. What
 	   the pill and the chip say about themselves is a class on each of them and sits at the head
 	   of this file; a field and a button are reached through the pill they are inside, which is
-	   the one thing the visual layer cannot do. See spec/architecture/css.md. */
+	   the one thing the visual layer cannot do. See spec/architecture/css/authoring.md. */
 	.pill input {
 		cursor: text;
 	}
@@ -516,9 +516,10 @@ otherwise need. See spec/engagement.md. -->
 	}
 
 	/* It reserves width and paints nothing, and both of these are how large the box is rather than
-	   what it looks like. `visibility` rather than `display` for the reason spec/architecture/css.md
-	   names this element for: a removed box measures nothing. `white-space` for the same reason
-	   one step along -- the width being reserved is the width of two labels that do not wrap.
+	   what it looks like. `visibility` rather than `display` for the reason
+	   spec/architecture/css/layers.md names this element for: a removed box measures nothing.
+	   `white-space` for the same reason one step along -- the width being reserved is the width of
+	   two labels that do not wrap.
 	   The type they are set in is the visual half and sits at the head of this file. */
 	.ghost {
 		visibility: hidden;

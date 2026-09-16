@@ -3,7 +3,7 @@
 
 	/**
 	 * The visual half of the support page's links. Every colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * `focus-link` stays in the markup beside these: it is the site's named vocabulary, which
 	 * both the utility this replaces and this style already outrank. See spec/todo.md, "The
@@ -29,7 +29,8 @@
 	import type { PageBlock } from '$lib/content/types';
 	import type { LocaleCode } from '$lib/locale';
 
-	/** `locale` is the view being rendered. Passed rather than read: see spec/locale.md. */
+	/** `locale` is the view being rendered. Passed rather than read: see
+	 *  spec/locale/addressing.md. */
 	let { blocks, locale }: { blocks: PageBlock[]; locale: LocaleCode } = $props();
 </script>
 

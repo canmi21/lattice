@@ -7,7 +7,7 @@
 //!
 //! Not the description: that one is sized for a search result and reads as a label, while this
 //! is read by somebody standing in front of the article deciding whether to spend twenty minutes
-//! on it. See spec/i18n.md.
+//! on it. See spec/i18n/copy.md.
 
 use crate::document::Fields;
 use crate::i18n::runner::{self, Refusal, Runner};
@@ -263,7 +263,7 @@ fn body_of(source: &str) -> &str {
 /// The `lang` an article declares, if it declares one.
 ///
 /// The presence of this key is what separates an article from a page: a page has no language to
-/// translate out of, so it is neither summarised nor translated. See spec/i18n.md.
+/// translate out of, so it is neither summarised nor translated. See spec/i18n/copy.md.
 pub fn lang_of(fields: &Fields) -> Option<&str> {
 	fields.get("lang").map(String::as_str)
 }

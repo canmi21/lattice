@@ -3,7 +3,7 @@
 //! A segment is a markdown block, and its id is the hash of its canonical text. That is the whole
 //! synchronisation mechanism: edit a paragraph and only that paragraph's id changes, so only
 //! its translations go stale. Move a paragraph and nothing changes at all, because order lives
-//! in the article and never in the sidecar. See spec/i18n.md.
+//! in the article and never in the sidecar. See spec/i18n/segments.md.
 
 use crate::document::{self, Malformed};
 use std::collections::BTreeMap;
@@ -90,7 +90,7 @@ pub enum Kind {
 	/// reaches this classifier looking like a very short paragraph. There is no natural language
 	/// in `---` to translate, and asking for one buys a coin flip: the model either echoes it or
 	/// narrates about it, and a narration fails validation and is asked for again until the
-	/// attempts run out. See spec/i18n.md.
+	/// attempts run out. See spec/i18n/request.md.
 	Rule,
 }
 
@@ -193,7 +193,7 @@ pub fn mask(source: &str) -> Masked {
 /// never translatable material. A block with nothing to read collapses to a word saying what
 /// sits there; prose keeps its words but loses its inline code to a placeholder that cannot be
 /// restored, so text copied from here is refused as a marker resolving to nothing. See
-/// spec/i18n.md, "The context is fenced too, because it is also article prose".
+/// spec/i18n/request.md, "The context is fenced too, because it is also article prose".
 pub const CONTEXT_CODE: &str = "⟦code⟧";
 
 pub fn context_of(segment: &Segment) -> String {
@@ -216,7 +216,7 @@ pub fn context_of(segment: &Segment) -> String {
 ///
 /// The TypeScript write path makes the article canonical before Rust sees it. Reimplementing
 /// remark here would create a second canonical form instead of strengthening the first. See
-/// spec/i18n.md.
+/// spec/i18n/segments.md.
 pub fn id_of(source: &str) -> String {
 	crate::image::cid(source.as_bytes())
 }
@@ -374,7 +374,7 @@ fn frontmatter_segments(
 /// Recognised positively rather than by what is left over. The classifier above is otherwise a
 /// chain ending in "anything else is prose", and that ending is what sent `---` to a translator
 /// in the first place; a new structural spelling should have to be named here to be understood,
-/// not fall through by default. See spec/i18n.md.
+/// not fall through by default. See spec/i18n/request.md.
 fn is_thematic_break(trimmed: &str) -> bool {
 	if trimmed.lines().count() != 1 {
 		return false;

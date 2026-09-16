@@ -5,7 +5,7 @@
 
 	/**
 	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css.md.
+	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
 	 * component-local mirror in palette.css (see spec/styling/blocks.md). The scoped block at the
@@ -167,7 +167,7 @@
 
 	/* The opacity is here because the keyframe below reads it as its own start, and the keyframe
 	   is here because Svelte rewrites its name and no other layer can spell it. See
-	   spec/architecture/css.md and spec/todo.md. */
+	   spec/architecture/css/layers.md and spec/todo.md. */
 	.mermaid-placeholder {
 		position: absolute;
 		inset: 1.25rem;
@@ -189,7 +189,7 @@
 	}
 
 	/* The translate is placement: it is what centres the box on the line, and the box moves if
-	   it goes. See spec/architecture/css.md. */
+	   it goes. See spec/architecture/css/layers.md. */
 	.mermaid-node {
 		position: absolute;
 		top: 50%;

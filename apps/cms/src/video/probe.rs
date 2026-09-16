@@ -103,9 +103,9 @@ pub fn probe(path: &Path) -> Result<Probe, Error> {
 ///
 /// Every track in the container, comma separated, per RFC 6381's `codecs` parameter --
 /// `av01.0.08M.08,mp4a.40.2`, not the picture alone. Why naming every track is safe today is
-/// spec/architecture/video.md, "One codec, chosen against measured support". Read rather than
-/// predicted: the level comes from the encoder's own table of resolution/frame-rate limits, and
-/// `tier=0` is passed in rather than guessed, so Main is what was asked for.
+/// spec/architecture/video/pipeline.md, "One codec, chosen against measured support". Read rather
+/// than predicted: the level comes from the encoder's own table of resolution/frame-rate limits,
+/// and `tier=0` is passed in rather than guessed, so Main is what was asked for.
 pub fn codec_string(path: &Path) -> Result<String, Error> {
 	let output = read(&["-show_streams"], path)?;
 	let video = output

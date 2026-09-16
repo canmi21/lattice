@@ -305,7 +305,7 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    default -- which is what every value below was until this was written. `:lang()` rather than a
    locale code, so the rule reaches `<html lang>`'s resolved language including the `mw` view's
    per-article one. See spec/styling/prose.md, "Where a line ends is declared per language", and
-   spec/locale.md for the `mw` case. */
+   spec/locale/addressing.md for the `mw` case. */
 .article-content {
 	text-wrap: wrap;
 	hyphens: manual;

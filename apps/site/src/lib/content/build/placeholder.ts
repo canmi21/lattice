@@ -12,7 +12,7 @@ import type { AssetManifest } from './assets.ts';
  * what lets `resolve` in $lib/assets stay synchronous inside a markdown walk.
  *
  * The manifest carries only the thumbhash. The decoded copy this replaced was a 167-byte WebP
- * and deriving it here comes to 144 -- see spec/architecture/video.md for why WebP at all.
+ * and deriving it here comes to 144 -- see spec/architecture/video/player.md for why WebP at all.
  */
 /**
  * Quality for an image roughly 32 pixels on its long edge.
@@ -62,7 +62,7 @@ export async function buildPreviews(assets: AssetManifest): Promise<Map<string, 
 	for (const asset of Object.values(assets.media)) {
 		// Pictures only. A clip has no thumbhash of its own and needs none: what stands in for it
 		// while the poster loads is the poster's, and a poster is an ordinary image asset with a
-		// record of its own already in this loop. See spec/architecture/video.md.
+		// record of its own already in this loop. See spec/architecture/video/pipeline.md.
 		if (asset.type !== 'image' || !asset.thumbhash || previews.has(asset.thumbhash)) continue;
 		let preview = encoded.get(asset.thumbhash);
 		if (preview === undefined) {

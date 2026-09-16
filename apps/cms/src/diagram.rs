@@ -2,7 +2,7 @@
 //!
 //! A Mermaid or `svg-canvas` fence draws a picture the corpus stores as source, unreadable by
 //! everything downstream until it is described the way an image is -- from the source rather
-//! than pixels, which is closer to `summary` than to `alt`. See spec/i18n.md, "A diagram
+//! than pixels, which is closer to `summary` than to `alt`. See spec/i18n/request.md, "A diagram
 //! written as source is described, not translated", for why, and for why the description is
 //! keyed by the block's hash rather than by the article carrying it.
 
@@ -329,9 +329,9 @@ struct Generated {
 ///
 /// `prompt::bounded_reply` wants the output boundary on both sides, right for prose about
 /// prose. This asks for prose about a fenced source, and a model that just read a fence closes
-/// with the fence it read: every reply measured here opened with the output boundary and ended
-/// with the source one, or slipped it in before that -- so either boundary closes the answer.
-/// The opening one still guards injection -- spec/i18n.md, "Not the open-weight text model".
+/// with the fence it read: every measured reply opened with the output boundary and ended with
+/// the source one, or slipped it in before that -- so either boundary closes the answer. The
+/// opening one still guards injection -- spec/i18n/request.md, "Not the open-weight text model".
 fn described(reply: &str, output: &str, source: &str) -> Option<String> {
 	let after = reply.split_once(output)?.1;
 	let end =

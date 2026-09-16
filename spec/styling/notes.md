@@ -3,7 +3,7 @@
 Moving a reader inside one document without giving them an address, and the two marks in prose
 that send them: the collected note and the spoiler. Which of the three systems writing CSS is
 entitled to say each decision here, and what happens where two of them say the same thing, is
-[architecture/css.md](../architecture/css.md).
+[architecture/css/layers.md](../architecture/css/layers.md).
 
 ## An in-page jump scrolls without becoming an address
 
@@ -66,7 +66,7 @@ geometry that was tuned. An exception with a reason is not a second rule.
 
 `:fn{is="..."}` marks the word it follows and sends what it says to the end of the article, where
 the notes are collected in order with a way back to each marker. It is the numbered note of a
-book, not the popover a translator leaves -- that is [`:tn`](../i18n.md), which explains a phrase in
+book, not the popover a translator leaves -- that is [`:tn`](../i18n/prose.md), which explains a phrase in
 place and is written by a machine rather than by hand.
 
 **The note travels with the text it explains, not with a label.** GFM's footnote is the other

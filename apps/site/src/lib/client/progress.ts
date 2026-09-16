@@ -1,7 +1,7 @@
 /**
  * Where each clip had got to, for the length of one tab.
  *
- * Restores a position, never a stage and never playback -- see spec/architecture/video.md,
+ * Restores a position, never a stage and never playback -- see spec/architecture/video/player.md,
  * "A reload finds a clip where the tab left it".
  *
  * Lives in the `tab` record in `sessionStorage` (see `state.ts`), as one key holding a map rather
