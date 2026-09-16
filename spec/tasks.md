@@ -12,8 +12,8 @@ what it writes, and which tasks must have run first. Nothing there runs anything
 
 Splitting the description from the execution is what lets the catalogue be finished first. A GUI
 listing what exists, a scheduler ordering it, and a person asking how much a full run would cost
-are all answerable now, against sixteen entries, rather than after sixteen operations have been
-rewritten. Adding an entry makes a task **known**, not runnable.
+are all answerable now, against seventeen entries, rather than after seventeen operations have
+been rewritten. Adding an entry makes a task **known**, not runnable.
 
 Reads and writes name **records**, not paths. Two tasks contend when they mutate the same records,
 and stating it that way leaves the file layout free to move without the catalogue following it.
@@ -24,34 +24,37 @@ unused: an edge naming a task that does not exist would otherwise stay invisible
 deadlocked or silently skipped work, long after anyone remembers writing it. Declaring edges early
 is only safe because the test holds them.
 
-Two kinds of subcommand are deliberately absent, and until now this section named only the first.
-Adding the second is a correction: the rule accounted for seven of the exemptions and there are
-ten, which left three commands belonging to neither list.
+**One kind of subcommand is deliberately absent, and it is decided by what the command leaves
+behind rather than by how it is invoked.** A second category stood here -- hand-run operations
+whose input is a person's argument, covering `captions`, `invalidate` and `twitter` -- and it did
+not survive its own test. Taking an argument was the only thing those three shared, and `cms
+captions` is catalogued now while still taking two of them.
 
-**Instant reads** -- `overview`, `articles`, `derived`, `check`, `port`, `tasks` and `runs`.
-Listing them would put seven entries in every task view that can never be watched, waited on, or
-scheduled. The last two were missing from this list and belong in it for exactly the reason the
-others do: `cms tasks` prints the catalogue and `cms runs` prints the registry, both dispatched in
-[cli/mod.rs](../apps/cms/src/cli/mod.rs) and neither an operation anything could schedule.
+**Commands that write no record** -- `overview`, `articles`, `derived`, `check`, `port`, `tasks`,
+`runs` and `twitter`. Listing them would put eight entries in every task view that can never be
+watched, waited on, or scheduled, and none of them can collide with anything: `conflicts_with`
+intersects `writes`, and theirs is empty. This list was called "instant reads", which was never
+true of `cms twitter` -- it waits on somebody else's network and is the slowest read here. Being
+instant was not the reason and never had been; writing nothing is.
 
-**Hand-run operations whose input is a person's argument** -- `captions`, `invalidate` and
-`twitter`. These are not instant and two of them are not reads, so the first exemption never
-covered them; what keeps them out is that none can be described without the argument somebody
-supplies at the moment of running. `cms captions` takes a clip and a track path, and there is no
-set of tracks to fan out over -- a clip and its track do not arrive on the same day, and often the
-track never arrives. `cms invalidate` takes a selection of segments, locales or matched text; it
-refuses an empty one and prints rather than deletes until `--live`, so the whole command is a
-person narrowing something and then confirming it. `cms twitter` takes a query and prints the
-answer. None is schedulable and none is resumable: a catalogue entry for any of them would describe
-a run nobody can start from the catalogue. The clause that used to stand here, that none of them
-contends over a record, was wrong about `cms captions`; the next section records why, and what the
-correction would cost.
+That leaves the rule the rest of the commands are held to: **a command that takes more than an
+instant and writes a record is catalogued, whatever it takes on the command line.** `cms captions`
+is where that was settled. It takes a clip and a track path, so there is no set of tracks to fan
+out over -- a clip and its track do not arrive on the same day, and often the track never arrives
+-- but it writes `PublicCaptions`, `PublicMeta` and `Manifest`, and the sweep writes all three.
+Its entry is `Items::Whole`: one clip and one track is a unit that cannot be divided, so a second
+runner can only stand aside, which is the same shape `segments` and `licenses` have and not the
+per-item fan-out `image` and `video` need. `after` names `video`, because the clip has to be in
+the library and the excerpt the track is cut to is written into `data/media.yaml` by that import.
+
+`cms invalidate` is the one command the corrected rule leaves without a home; the section below
+records it rather than closing it.
 
 ## A published tree has one record, and the sweep declares every one of them
 
-`cms gc` walks `data/public/image`, `video`, `captions`, `meta`, `favicon` and `license`, rewrites
-`data/metadata.json` without the entries it drops, and behind `--segments` drops translations for
-paragraphs an article no longer contains. Each of those is a record, and the rule over them has
+`cms gc` walks `data/public/image`, `video`, `captions`, `meta`, `favicon`, `license` and
+`opengraph`, rewrites `data/metadata.json` without the entries it drops, and behind `--segments`
+drops translations for paragraphs an article no longer contains. Each of those is a record, and the rule over them has
 three parts.
 
 **One tree, one record.** `data/public/captions/**` is `PublicCaptions` and nothing else names it.
@@ -69,24 +72,21 @@ without the catalogue being re-read.
 
 Why it is worth stating: `Spec::conflicts_with` intersects `writes` and nothing else. A publisher
 that does not declare what it writes is invisible to the only mechanism that would keep it from
-running beside the sweep. The cost is not a crash -- `cms gc --live` removes a track `cms captions`
-has just published and the manifest still points at, and neither run reports anything wrong.
+running beside the sweep. The cost is not a crash -- while `cms captions` had no entry, `cms gc
+--live` could remove a track it had just published and the manifest still pointed at, and neither
+run would report anything wrong.
 
-### Two gaps are recorded rather than closed
+### One gap is recorded rather than closed
 
-`cms captions` writes `PublicCaptions`, `PublicMeta` and `Manifest`, and it has no catalogue entry.
-What keeps it out still holds -- it cannot be described without the clip and track somebody names --
-but that means nothing can see that it and `cms gc` contend. Giving it an entry means deciding
-whether a command a person runs with two arguments belongs in a list of things a schedule fires,
-which is a decision about the catalogue rather than about records.
+The two that stood here are closed. `cms captions` has a catalogue entry, so the mechanism can see
+that it and `cms gc` contend over three records; `data/public/opengraph/**` is swept, and what a
+card is reachable from is settled in [architecture/media.md](architecture/media.md).
 
-`data/public/opengraph/**` has a record and no sweep. `cms og` draws one card per page per language,
-nothing walks that tree, and a renamed page therefore leaves its card behind for good: the failure
-the comment in [gc/mod.rs](../apps/cms/src/gc/mod.rs) names, where a tree nothing sweeps reports
-clean while it grows. `gc` declares `PublicOpengraph` today, which is honest about the intent and
-wrong about the behaviour. Sweeping it needs a decision about what a card is reachable from -- the
-route list, `data/build/opengraph.json`, or the articles -- which is a change to how the sweep
-decides what is referenced, not a record.
+`cms invalidate` is what the corrected exemption leaves behind. It writes `Translations` -- the
+same record `cms i18n` writes and `cms gc --segments` deletes from -- and it has no entry, so the
+one mechanism that would keep it from running beside either of them cannot see it. Every ground
+that took `cms captions` into the catalogue holds here word for word, and the only thing still
+keeping it out is that nobody has decided it. That decision is the reader's, not this file's.
 
 Two build records are deliberately left without one. `data/build/licenses.json` and
 `data/build/opengraph.json` each have exactly one writer, and the sweep only reads the first, so

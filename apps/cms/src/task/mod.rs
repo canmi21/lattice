@@ -144,6 +144,20 @@ pub const CATALOG: &[Spec] = &[
 		after: &[],
 	},
 	Spec {
+		id: "captions",
+		name: "Attach a caption track",
+		detail: "Cut one subtitle track to a clip's excerpt and record it against that clip.",
+		paid: false,
+		// `Whole` rather than `Many`: a person names one clip and one track, so a run is a single
+		// indivisible unit and a second runner can only stand aside. Catalogued in spite of taking
+		// arguments, because `PublicCaptions`, `PublicMeta` and `Manifest` are all written by the
+		// sweep as well, and nothing could see that while it had no entry. See spec/tasks.md.
+		items: Items::Whole,
+		reads: &[Record::Media, Record::Manifest],
+		writes: &[Record::PublicCaptions, Record::PublicMeta, Record::Manifest],
+		after: &["video"],
+	},
+	Spec {
 		id: "favicon",
 		name: "Collect favicons",
 		detail: "Fetch the icon each linkcard draws, one per site an article links to.",
@@ -295,7 +309,7 @@ pub const CATALOG: &[Spec] = &[
 			Record::Manifest,
 			Record::Translations,
 		],
-		after: &["image", "video", "favicon", "og", "licenses", "i18n"],
+		after: &["image", "video", "captions", "favicon", "og", "licenses", "i18n"],
 	},
 ];
 

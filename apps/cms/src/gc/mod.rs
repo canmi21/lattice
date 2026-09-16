@@ -13,6 +13,7 @@ pub mod segments;
 use crate::image::manifest::{Body, Media};
 use crate::image::run::{MERGED, load};
 use crate::licenses;
+use crate::opengraph;
 use crate::refs;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -122,6 +123,21 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 			continue;
 		}
 		if !live.contains(&stem_of(&path)) {
+			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
+			sweep.orphans.push(path);
+		}
+	}
+
+	// Cards are named by slug rather than by content id, so nothing above can keep one alive:
+	// no article ever writes `opengraph/ja/a-thing.png` down. The live set is what `cms og` would
+	// draw -- every non-draft article, the home page and the licence routes, in every view --
+	// asked of that module rather than restated here, so the two cannot disagree about a slug.
+	// `cms og` sweeps its own record; this is the tree behind it, where a card the record lost
+	// track of would otherwise stay for good. See spec/architecture/media.md.
+	let cards = opengraph::wanted(repo, articles)?;
+	for path in files_under(&public.join("opengraph"))? {
+		let key = path.strip_prefix(public).unwrap_or(&path).to_string_lossy().into_owned();
+		if !cards.contains(&key) {
 			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
 			sweep.orphans.push(path);
 		}
@@ -413,6 +429,31 @@ mod tests {
 		// The poster is reachable only through the clip, so its manifest entry has to survive
 		// the same hop its bytes did.
 		assert!(sweep.entries.is_empty(), "{:?}", sweep.entries);
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn sweeps_a_card_no_page_asks_for_any_more() {
+		// A card is named by its slug, so nothing content-addressed keeps it alive and the live set
+		// is the pages themselves. `cms og` removes only what its own record still names, which is
+		// what leaves a card the record lost track of -- or one a draft used to have -- for good.
+		let temporary = temp();
+		let root = temporary.path().to_path_buf();
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+		std::fs::write(root.join("contents/kept.md"), "---\ntitle: Kept\n---\n\nbody\n")
+			.expect("write");
+		std::fs::write(root.join("contents/hidden.md"), "---\ntitle: Hidden\ndraft: true\n---\n")
+			.expect("write");
+
+		let public = root.join("public");
+		for slug in ["kept", "hidden", "gone"] {
+			let card = crate::opengraph::card_path(&public, "mw", slug);
+			crate::image::store::write(&card, b"png").expect("write");
+		}
+
+		let sweep = plan(&root, &public, &root.join("contents")).expect("plan");
+		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
+		assert_eq!(names, vec!["gone", "hidden"]);
 		std::fs::remove_dir_all(&root).ok();
 	}
 

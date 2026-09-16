@@ -282,6 +282,23 @@ being a second garbage collector: it can only remove a file this command wrote a
 key it cannot account for is left alone, because the record is a file somebody may have edited and
 a path escaping the published root is a reason to stop rather than a reason to delete.
 
+**`cms gc` sweeps the tree that record cannot see.** Being driven by the record is what keeps
+`cms og`'s own sweep from being a second garbage collector, and it is also its limit: a key the
+record never held, or one it lost when the file was deleted or its version bumped -- `load` reads
+any other shape as no record at all -- names a card nothing will ever remove. So
+`data/public/opengraph/**` is walked by `cms gc` like every other published tree, and anything
+under it the site does not ask for goes, which is what the sweep means everywhere else too.
+
+**The live set is derived from the corpus rather than from `data/build/opengraph.json`.** A card is
+keyed by `{view}/{slug}.png`, and the live slugs are exactly the ones `cms og` would draw: every
+article that is not a draft, is not the bio page, and has a title; the home page; and every licence
+route in `data/build/licenses.json` -- crossed with the nine views. `cms gc` asks the `opengraph`
+module for that set rather than restating it, and both sides build the path through `card_path`, so
+a change to which pages get cards moves the sweep with it instead of leaving it to be discovered.
+Keying the sweep on the card record instead would have taken the whole tree in exactly the case the
+record was lost, and deleting a card a page still links to is far worse than leaving one behind:
+both are silent, and only the second repairs itself on the next run.
+
 **A card is redrawn when its inputs move, not when its file is missing.** `cms og` records a
 hash of everything each card was drawn from in `data/build/opengraph.json` and redraws the ones
 whose hash has changed. The older test -- skip anything already on disk -- was always slightly

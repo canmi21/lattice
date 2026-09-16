@@ -21,7 +21,7 @@ use cosmic_text::fontdb;
 use layout::{Avatar, Card, Home};
 use rayon::prelude::*;
 use serde::Deserialize;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 /// Where the author's portrait lives.
@@ -407,12 +407,8 @@ fn route_jobs(
 	config: &SiteConfig,
 	catalogs: &BTreeMap<&'static str, BTreeMap<String, String>>,
 ) -> Vec<Job> {
-	let Some(record) = routes::load(&routes::record_path(repo)) else {
-		return Vec::new();
-	};
-
 	let mut jobs = Vec::new();
-	for route in routes::directories(&record).into_iter().chain(routes::packages(&record)) {
+	for route in live_routes(repo) {
 		for view in locale::VIEWS {
 			let catalog = messages::for_view(catalogs, view.code);
 			let (title, subtitle, section, badge) = routes::worded(&route, catalog);
@@ -596,6 +592,62 @@ fn sweep(public: &Path, previous: &manifest::Manifest, next: &manifest::Manifest
 	removed
 }
 
+/// Every article that gets a card, with the file it was read from.
+///
+/// Three filters decide it, and the sweep in [crate::gc] applies the same three or it deletes a
+/// card a reader can still fetch: the bio page gets the home card rather than an article one, a
+/// draft has no production URL for a card to be the picture of -- and a card is public, deployed
+/// and guessable, so drawing one publishes a piece nobody decided to publish -- and an article
+/// with no title cannot be drawn at all. See spec/architecture/media.md.
+fn live_articles(articles: &Path) -> std::io::Result<Vec<(PathBuf, Article)>> {
+	let mut found = Vec::new();
+	for path in crate::refs::markdown_under(articles)? {
+		if path.file_stem().and_then(|name| name.to_str()) == Some(HOME_SLUG) {
+			continue;
+		}
+		if std::fs::read_to_string(&path).is_ok_and(|text| crate::document::is_draft(&text)) {
+			continue;
+		}
+		if let Some(article) = article_of(articles, &path) {
+			found.push((path, article));
+		}
+	}
+	Ok(found)
+}
+
+/// Every route that gets a card, or none at all when there is no licence record.
+///
+/// The record is read here rather than passed in: these cards exist only if it does, and a tree
+/// with no licence record simply has no licence pages to advertise.
+fn live_routes(repo: &Path) -> Vec<routes::Route> {
+	routes::load(&routes::record_path(repo))
+		.map(|record| {
+			routes::directories(&record).into_iter().chain(routes::packages(&record)).collect()
+		})
+		.unwrap_or_default()
+}
+
+/// Where every card the site still asks for sits below the published root.
+///
+/// Derived from the corpus rather than from `data/build/opengraph.json`: that record says what
+/// the last run wrote and reads as empty when it is missing or of another version, so a sweep
+/// trusting it would take the whole tree exactly when the record was lost. Built through
+/// [card_path], so the published layout stays decided in one place.
+pub fn wanted(repo: &Path, articles: &Path) -> std::io::Result<BTreeSet<String>> {
+	let mut slugs: Vec<String> =
+		live_articles(articles)?.into_iter().map(|(_, article)| article.slug).collect();
+	slugs.push(HOME_SLUG.to_owned());
+	slugs.extend(live_routes(repo).into_iter().map(|route| route.slug));
+
+	let mut wanted = BTreeSet::new();
+	for view in &locale::VIEWS {
+		for slug in &slugs {
+			wanted.insert(card_path(Path::new(""), view.code, slug).to_string_lossy().into_owned());
+		}
+	}
+	Ok(wanted)
+}
+
 /// Render every card the site needs, in every view.
 pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<Outcome, String> {
 	let text = std::fs::read_to_string(config_path(repo))
@@ -608,22 +660,7 @@ pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<O
 	let catalogs = messages::load_all(repo);
 
 	let mut jobs = Vec::new();
-	for path in crate::refs::markdown_under(articles).map_err(|e| e.to_string())? {
-		// The bio page gets the home card rather than an article one, so it is not an article
-		// here either.
-		if path.file_stem().and_then(|name| name.to_str()) == Some(HOME_SLUG) {
-			continue;
-		}
-		// A draft has no card. It has no production URL for one to be the picture of, and a card
-		// is a public object: rendered, deployed to the CDN and fetchable by anyone who guesses
-		// the path, which is a way to publish a piece nobody has decided to publish. The card
-		// arrives when `draft` goes, along with everything else `cms og` draws from the article.
-		if std::fs::read_to_string(&path).is_ok_and(|text| crate::document::is_draft(&text)) {
-			continue;
-		}
-		let Some(article) = article_of(articles, &path) else {
-			continue;
-		};
+	for (path, article) in live_articles(articles).map_err(|e| e.to_string())? {
 		jobs.extend(
 			article_jobs(public, &config, &catalogs, &path, &article).map_err(|e| e.to_string())?,
 		);

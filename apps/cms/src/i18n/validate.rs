@@ -475,10 +475,7 @@ mod tests {
 		// `mw` is the article itself and writes nothing, but the eight views that do are all
 		// judged against the article's own metadata rather than against each other.
 		let pair = "外面的世界\n宅太久了，难得出去走走吧";
-		assert_eq!(
-			display(Display::ShortTitle, "Out\u{2014}at last", pair),
-			Err(Error::BorrowedDash),
-		);
+		assert_eq!(display(Display::ShortTitle, "Out\u{2014}at last", pair), Err(Error::BorrowedDash),);
 	}
 
 	#[test]
