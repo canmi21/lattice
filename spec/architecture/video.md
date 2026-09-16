@@ -240,17 +240,50 @@ the box. Full screen fits rather than crops, so a window that is not the clip's 
 above and below -- and a caption drawn at the bottom of the picture covers picture that did not
 need covering.
 
-So the bar is measured, and it gets the caption if it can hold one: centred in it, obscuring
-nothing. Where the bar is too shallow the caption goes back to the bottom of the picture, because
-half a caption hanging off a bar is worse than one over the image. Measured on a 1100 window: at
-1043 tall the bar is 212 against a caption block of 81, and the cue's bottom edge moves from 96.5%
-to 93.69% -- 977px, clear of a picture ending at 831. At 740 tall the bar is 61, too shallow, and
-the edge lands at 679, exactly the bottom of the picture.
+So the bar is measured, and it gets the caption only if it is **half again as tall as one**.
+Holding the caption is not the test and never was: a bar the exact height of a caption puts it
+against both edges at once, which reads as an accident rather than as a placement. At one and a
+half the leftover is half a caption, a quarter of one above it and a quarter below, and that is
+the least that looks deliberate. Below that ratio the bar is refused even though the caption would
+fit in it, and the caption goes over the picture instead.
+
+**A caption on the picture is held off its bottom edge, by an amount taken from the caption rather
+than from the box.** The same gap under a caption twice the size looks half as big, so the
+clearance is 0.8 of the size the caption is set at -- 12.8px under a 16px caption in an article,
+24px under the 30px one a full screen gets. What it replaces is 3.5% of the *element*, which was a
+different quantity in every shape: 13.2px in an article, 8.8px on a phone, 35px in a
+thousand-pixel window, and exactly nothing where the picture was fitted and the bar too shallow,
+since there the caption was drawn at the picture's own bottom edge and its descenders were cut off
+by the letterbox.
+
+**The caption's height is its line boxes and nothing else.** The plate is painted to exactly that
+box rather than around it: measured on a 668px frame at 16px, a one-line plate runs 653.0 to
+675.0, 22px against the 21.6 the 1.35 line-height asks for; on a 448px frame at 14px a two-line
+plate runs 530.5 to 568.5, 38px against 37.8. The figure used to carry an extra 0.4 of the size
+for what the plate was said to add above and below, and the plate adds nothing -- 6px of fiction
+at 16px and 12px at 30px, which pushed every centred caption that much below the middle of its
+bar.
+
+Measured in the window-filling mode, which is the same fitted picture and the same code as a full
+screen. At 900x900 the bar is 196.9 against a caption of 57.4, so the caption is centred in it:
+69.8px of black above the block and 69.7 below. At 1000x730 the bar is 83.8 against a caption of
+63.8 -- enough to hold one, not half again -- so it is refused, where before the caption sat in it
+with 5.3px of black under its descenders; it now sits on the picture, 18.9px above an image ending
+at 646.3. At 1200x800 the bar is 62.5 and never had a chance; the caption's bottom edge moves from
+737.5, which was the picture's own bottom edge, to 714.8. In an article nothing moves: 96.5% was
+13.2px of clearance and 0.8 of a 16px caption is 12.8.
 
 This is reachable at all because **cues are positioned against the element box rather than the
 picture**: `line` as a percentage of a box that includes the bars can put a cue inside them. The
 files already say `line:96.5%,end`, so `lineAlign` is `end` and `line` names the bottom edge of
-the cue box, which is the edge that has to clear the picture.
+the cue box, which is the edge that has to clear the picture. **The file is the only thing that
+says so in Chrome**, which parses the `end` out of the cue and then does not expose `lineAlign` on
+the object at all -- `'lineAlign' in cue` is false there, so the assignment that sets it is for
+the engines that do have it and a track written without `,end` would be placed by its top edge.
+
+It is also the file that stands when nothing can be measured. A clip whose metadata has not
+arrived has no picture to measure a bar against, so the computation declines to run and
+`line:96.5%` is what the reader gets.
 
 **It is recomputed on shape and never on cues.** A caption is one line or two and nobody knows
 which until it arrives, so measuring each one would put every caption in a slightly different
@@ -258,6 +291,15 @@ place and read as jitter. The height allowed for is the worst case, two lines, a
 recomputed only when the shape it was computed from changes: the window resizing, and either full
 screen being entered or left. Measured across ten samples spanning several one- and two-line cues,
 the line stayed at a single value and moved only on leaving full screen.
+
+That worst case is also what the bar is measured against, and what is centred in it, and the two
+follow from each other: a fixed bottom edge cannot centre a one-line caption and a two-line one at
+the same time, and the one that is centred has to be the one the space was reserved for. So a
+caption that turns out to be a single line hangs at the bottom of its reserve -- half a line, 14px
+at the size a 900px-tall window gives -- below the middle of the bar. The alternative is to centre
+one line and let a second grow upwards, which puts a two-line caption against the picture's bottom
+edge in the narrowest bar this rule accepts; reserving the worst case is the error that falls on
+the common case rather than on the awkward one, and it is bounded by half a line either way.
 
 ### Captions are a fact about the reader, not about the clip
 

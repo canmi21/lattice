@@ -522,9 +522,13 @@
 	 * than cropped, so a window that is not the clip's shape leaves black above and below, and a
 	 * caption drawn at the bottom of the *picture* covers picture that did not need covering.
 	 *
-	 * **So the bar is measured, and it gets the caption if it can hold one.** Centred in it, where
-	 * it obscures nothing at all. Where the bar is too shallow the caption goes back to the bottom
-	 * of the picture, because half a caption hanging off a bar is worse than one over the image.
+	 * **So the bar is measured, and it gets the caption only if it is comfortably bigger than
+	 * one.** Fitting is not the test: a bar the size of the caption holds it the way a shelf holds
+	 * a book that is exactly as tall, which is to say with the caption jammed against both edges
+	 * and reading as an accident. `CUE_ROOM` is how much bigger than the caption the bar has to
+	 * be before it is worth using at all, and the caption is then centred in it, obscuring
+	 * nothing. Anything shallower than that does not get the caption even though the caption
+	 * would technically fit, and it goes over the picture instead.
 	 *
 	 * Cues are positioned against the *element* box rather than the picture, which is what makes
 	 * any of this reachable: `line` as a percentage of a box that includes the bars can put a cue
@@ -536,17 +540,48 @@
 	 * until it arrives; measuring each one would move every caption to a slightly different place
 	 * and read as jitter. So the height allowed for is the worst case, two lines, and the answer
 	 * is recomputed only when the shape it was computed from changes: the window resizing, and
-	 * either full screen being entered or left.
+	 * either full screen being entered or left. Within one shape that worst case does not move,
+	 * which is what makes it something the bar can be measured against.
 	 */
 	const CUE_LINES = 2;
-	/** The face's height against its em box, plus what the plate adds above and below. */
-	const CUE_BLOCK = 1.35 * CUE_LINES + 0.4;
+	/**
+	 * The caption's own height, in multiples of the size it is set at.
+	 *
+	 * It is the line boxes and nothing else: 1.35 is the `line-height` `video.svelte` gives
+	 * `::cue`, and the plate is painted to exactly that box rather than around it. Measured on a
+	 * 668px frame at 16px, a one-line plate is 653.0 to 675.0 -- 22px against the 21.6 the
+	 * line-height asks for -- and on a 448px frame at 14px a two-line plate is 530.5 to 568.5,
+	 * 38px against 37.8. This used to carry an extra 0.4 for what the plate was said to add above
+	 * and below, and the plate adds nothing; the allowance was 6px of fiction at 16px and 12px at
+	 * 30px, and it pushed every centred caption that much below the middle of the bar.
+	 */
+	const CUE_BLOCK = 1.35 * CUE_LINES;
+	/**
+	 * How much taller than the caption a bar has to be before the caption is put in it.
+	 *
+	 * A bar that merely fits the caption is not a place to put one. At 1.5 the leftover is half a
+	 * caption, a quarter of one above and a quarter below, which is the least that reads as a
+	 * caption sitting in a bar rather than filling it. Measured on a 1000x730 window before this
+	 * existed: a bar of 83.8 took a caption block of 73.2 and left 5.3px of black under the
+	 * descenders, which is the failure this number is against.
+	 */
+	const CUE_ROOM = 1.5;
+	/**
+	 * How far above the picture's bottom edge a caption sits when it is on the picture.
+	 *
+	 * Also in multiples of the caption's size, because that is what the gap is read against: the
+	 * same gap under a caption twice the size looks half as much. The old rule was 3.5% of the
+	 * *element*, which is a different quantity in every shape -- 13.2px in an article, 35px in a
+	 * 1000px-tall window, and exactly 0 where the picture was fitted and the bar too shallow,
+	 * where the caption was drawn flush with the bottom of the picture and its descenders were
+	 * cut by the letterbox. At 0.8 the article keeps the gap it has always had, 12.8px against
+	 * the 13.2 the percentage gave, and every other shape gets that same gap in proportion.
+	 */
+	const CUE_CLEAR = 0.8;
 	/** A caption reads at a size taken from the picture, between these two. */
 	const CUE_MIN = 14;
 	const CUE_MAX = 30;
 	const CUE_SCALE = 0.042;
-	/** What the files say, and what a box with no bars goes back to. */
-	const CUE_LINE_DEFAULT = 96.5;
 
 	/**
 	 * How much of the picture a caption may fill before it is worth breaking, and how full the
@@ -638,13 +673,13 @@
 		const fitted = getComputedStyle(element).objectFit === 'contain';
 		const bar = fitted ? (box.height - shown) / 2 : 0;
 		const block = size * CUE_BLOCK;
-		let bottom: number;
-		if (bar >= block) {
-			// Centred in the bar: half the leftover above the caption, half below.
-			bottom = box.height - (bar - block) / 2;
-		} else {
-			bottom = fitted ? box.height - bar : box.height * (CUE_LINE_DEFAULT / 100);
-		}
+		// One expression for both places a caption can go, because the bar being absent and the
+		// bar being too shallow want the same answer: the bottom of the picture, held off it.
+		const bottom =
+			bar >= block * CUE_ROOM
+				? // Centred in the bar: half the leftover above the caption, half below.
+					box.height - (bar - block) / 2
+				: box.height - bar - size * CUE_CLEAR;
 		const line = Math.min(100, Math.max(0, (bottom / box.height) * 100));
 
 		// The picture's own width, not the box's: in full screen the bars are part of the element
