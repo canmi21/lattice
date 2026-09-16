@@ -204,6 +204,23 @@ picture-in-picture glyph, and so does the picture behind it: while a clip is pla
 else, pressing it can only mean one thing. The play disc is withheld for the same reason -- two
 discs on one picture is one more than there is anything to press.
 
+### Captions are a fact about the reader, not about the clip
+
+A reader who turns captions on has said something about themselves -- a quiet carriage, an accent
+they find hard, or simply that they read faster than they listen -- and none of it is a fact about
+whichever clip they happened to be watching. So there is one answer for the whole site, in the
+`reader` record, alongside their volume.
+
+**A clip with no tracks is not an answer.** It cannot show captions, so the store reports them as
+not showing, and a preference that mirrored the store would be turned off by every silent diagram
+and title card on the page: the reader says "on" once and has it taken away by a clip that was
+never able to honour it. So the preference is written only by the button and read only where there
+are tracks to read it onto. A clip without them does not use the value and leaves it exactly as it
+was, and the next clip that has them comes up with captions already on.
+
+That also gives one path onto the clip rather than two. Whether the answer arrives as a press now
+or out of the record at load, the same effect puts it there.
+
 ### Filling the window is a page mode, not a media one
 
 Two buttons sit next to each other and they are different destinations rather than two sizes of

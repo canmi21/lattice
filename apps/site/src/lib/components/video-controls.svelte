@@ -191,6 +191,18 @@
 	const BOOST_KEY = 'video.boost';
 
 	/**
+	 * Whether this reader wants captions, everywhere, until they say otherwise.
+	 *
+	 * One answer for the whole site rather than one per clip. A reader who turns captions on has
+	 * told you something about themselves -- they are in a quiet carriage, or the accent is hard,
+	 * or they simply read faster than they listen -- and none of that is a fact about the clip
+	 * they happened to be watching when they said it. In the `reader` record for the same reason:
+	 * it belongs to the person, not to the sitting.
+	 */
+	const CAPTIONS_KEY = 'video.captions';
+	let wantsCaptions = $state(false);
+
+	/**
 	 * Half, and it is a decision rather than a default.
 	 *
 	 * Every clip is levelled to the same target, so 1.0 is a calibrated level and starting there
@@ -284,6 +296,27 @@
 	$effect(() => {
 		volume = reader.recall(localStorage, VOLUME_KEY, DEFAULT_VOLUME);
 		boost = reader.recall(localStorage, BOOST_KEY, false);
+		wantsCaptions = reader.recall(localStorage, CAPTIONS_KEY, false);
+	});
+
+	/**
+	 * Put the reader's answer to this clip, once this clip is in a position to be asked.
+	 *
+	 * **A clip with no tracks is not an answer.** It cannot show captions, so the store reports
+	 * them as not showing, and a preference that mirrored the store would be turned off by every
+	 * silent diagram and title card on the page -- the reader would have said "on" once and had it
+	 * taken away by a clip that was never able to honour it. So the preference is only ever
+	 * written by the button below, and only ever read here, where there is something to read it
+	 * onto. A clip without tracks simply does not use the value, and leaves it exactly as it was
+	 * for the next clip that can.
+	 *
+	 * `toggleSubtitles` rather than a setter, because that is what the store offers; the guard is
+	 * what makes calling it idempotent.
+	 */
+	$effect(() => {
+		if (!view.hasCaptions || !player) return;
+		if (view.captions === wantsCaptions) return;
+		(player.toggleSubtitles as () => void)?.();
 	});
 
 	$effect(() => {
@@ -1163,7 +1196,13 @@
 				type="button"
 				class="player-button"
 				class:player-on={view.captions}
-				onclick={() => (player?.toggleSubtitles as () => void)?.()}
+				onclick={() => {
+					// The reader's answer, and the only thing that writes it. The store is told by
+					// the effect above rather than from here, so there is one path onto the clip
+					// whether the answer arrives by a press now or out of the record at load.
+					wantsCaptions = !wantsCaptions;
+					reader.remember(localStorage, CAPTIONS_KEY, wantsCaptions);
+				}}
 				aria-pressed={view.captions}
 				aria-label={m['video.captions']({}, { locale })}
 				title={m['video.captions']({}, { locale })}
