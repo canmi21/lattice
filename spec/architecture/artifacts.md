@@ -125,10 +125,16 @@ An author is meant to see drafts and a reader is not, which the mirror already e
 under `data/draft/` is ever transferred. This replaces the old arrangement, where a production
 build dropped drafts before compiling them -- there is no site build to drop them in any more.
 
-**Reading the draft tree back is not built yet.** A Worker reaches the local tree through
-`wrangler dev`'s assets binding, and that binding is one directory, so development currently sees
-`data/public` and a draft has no page. The objects are written and correct; nothing reads them.
-[todo.md](../todo.md) carries what deciding it would cost.
+**Development reads the draft tree, and it is the only tree it reads.** `wrangler dev` binds one
+directory, so the draft tree is made to be the complete one: it holds the same corpus plus the
+drafts, and publishing links the published asset prefixes into it -- images, fonts, favicons and
+the rest, which are not artifacts and are only ever written under `data/public`. The asset server
+follows a symlink, which is what lets one binding cover two trees.
+
+The links are derived rather than listed: anything at the top of `data/public` that publishing did
+not write is an asset prefix, so a new one needs no edit anywhere. A reader still cannot reach any
+of it, for the reason that has not changed -- `rclone` is pointed at `data/public` and cannot see
+`data/draft` at all.
 
 ## The API is the only thing that changes
 

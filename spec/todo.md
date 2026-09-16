@@ -1204,31 +1204,3 @@ a TypeScript compile behind it, which is the subprocess boundary
 ruled on in this one. The entry above, on where the compiler lives, is the same question arriving
 from the other side -- and answering either one first mostly decides the other. Neither is worth
 taking while the publish path is still new enough that its shape may move.
-
-## A draft is published to a tree nothing reads
-
-`mise run publish` writes the whole corpus twice: once into `data/public/` without drafts, and
-once into `data/draft/` with them, each with its own root. The second tree is correct and
-complete. Nothing opens it.
-
-A Worker cannot read a host directory -- workerd's `node:fs` is virtual, which
-[libs/store](../libs/store/src/index.ts) records as verified -- so development reaches the local
-tree through `wrangler dev`'s assets binding, and that binding names one directory. Both the API
-and the CDN point theirs at `data/public`. So an author can compile a draft and has nowhere to
-look at it, where `vite dev` used to render one.
-
-Pointing both at `data/draft` instead does not work, and the reason is worth writing down because
-it is the obvious fix: the draft tree holds every published object but none of the assets -- no
-images, no fonts, no favicons, since those are not artifacts and are only ever written under
-`data/public`. Development would render drafts with every picture missing.
-
-**What deciding it would cost.** The shapes are a second binding and a fallback inside
-[libs/store](../libs/store/src/index.ts)'s `read`, which is small but puts a development-only
-branch in the one module both Workers reach the bucket through; or a union of the two directories
-assembled at publish time, which keeps the Workers ignorant and costs a third tree to keep
-consistent; or moving development off the assets binding entirely. The first is probably right
-and it is not obvious, which is why it is here rather than done.
-
-Separately and underneath it: the edit loop is now `edit, publish, refresh` where it was `edit,
-refresh`. A `--watch` on publish is the answer and nobody has needed it yet, because nobody has
-lived with this for a day.
