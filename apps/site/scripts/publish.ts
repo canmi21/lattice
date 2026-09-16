@@ -240,7 +240,9 @@ async function linkAssets(publicDir: string, draftDir: string): Promise<string[]
 	]);
 	const linked: string[] = [];
 	for (const entry of await readdir(publicDir, { withFileTypes: true })) {
-		if (!entry.isDirectory() || owned.has(entry.name)) continue;
+		// Files as well as directories: the favicons and the BIMI mark sit at the top of the
+		// bucket rather than under a prefix, and linking only directories left them 404 in dev.
+		if (entry.name.startsWith('.') || owned.has(entry.name)) continue;
 		const link = join(draftDir, entry.name);
 		const target = join(relative(draftDir, publicDir), entry.name);
 		const current = await readlink(link).catch(() => undefined);
