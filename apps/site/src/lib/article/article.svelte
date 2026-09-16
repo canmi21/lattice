@@ -153,7 +153,7 @@
 		ArticleNote,
 		ArticleSummary,
 		TocEntry,
-	} from '$lib/content/types';
+	} from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';

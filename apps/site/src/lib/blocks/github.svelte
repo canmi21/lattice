@@ -83,7 +83,7 @@
 	import Scale from '@lucide/svelte/icons/scale';
 	import Star from '@lucide/svelte/icons/star';
 	import { URLS } from '@canmi/urls';
-	import type { CardAlign, RepoRecord } from '$lib/content/types';
+	import type { CardAlign, RepoRecord } from '@canmi/artifacts/types';
 	import { langColor } from './tokei/tokei';
 	import { compactCount, shortDate } from '$lib/format';
 

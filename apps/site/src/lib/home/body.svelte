@@ -26,7 +26,7 @@
 <script lang="ts">
 	import Icon from './icons.svelte';
 	import * as m from '$lib/paraglide/messages';
-	import type { PageBlock } from '$lib/content/types';
+	import type { PageBlock } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 
 	/** `locale` is the view being rendered. Passed rather than read: see

@@ -72,7 +72,7 @@
 		remFromDefaultPixels,
 		remFromMeasuredPixels,
 	} from '$lib/client/units';
-	import type { TocEntry } from '$lib/content/types';
+	import type { TocEntry } from '@canmi/artifacts/types';
 	import { railEndOffset } from './rail';
 	import { scheduleInitialHashJump } from './toc';
 
@@ -780,7 +780,7 @@
 				aria-current={i === activeIndex ? 'location' : undefined}
 				title={entry.text}
 				onclick={() => jumpToSection(entry.el, i)}
-				class="block max-w-full py-[0.1875rem] text-left {stylex.attrs(styles.entry).class}"
+				class="block max-w-full py-0.75 text-left {stylex.attrs(styles.entry).class}"
 			>
 				<!-- Bar and text each sit in a full-opacity ring host: the inner span carries
 				the opacity animation, so drawing the focus ring on the wrapper keeps it crisp

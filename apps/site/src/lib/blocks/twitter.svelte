@@ -80,7 +80,7 @@
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@canmi/urls';
-	import type { TweetRecord } from '$lib/content/types';
+	import type { TweetRecord } from '@canmi/artifacts/types';
 	import { compactCount, shortDate } from '$lib/format';
 	import SocialIcon from '$lib/home/icons.svelte';
 

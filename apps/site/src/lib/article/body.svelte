@@ -75,7 +75,7 @@
 	import Info from '@lucide/svelte/icons/info';
 	import X from '@lucide/svelte/icons/x';
 	import { Popover } from 'bits-ui';
-	import type { Block } from '$lib/content/types';
+	import type { Block } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';

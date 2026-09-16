@@ -12,6 +12,7 @@
  * inline -- but the question is the same one, asked of the same kind of record: what does this
  * picture say, in this view's language.
  */
+import type { CaptionKind, VideoRung, VideoTrack } from '@canmi/artifacts/types';
 
 import { sourceFingerprint } from './assemble.ts';
 
@@ -115,7 +116,6 @@ type VideoRecord = {
  * tables above: apps/cms writes this field from a closed set, and a fourth value arriving here
  * is a change on that side to make deliberately rather than something to repair on this one.
  */
-export type CaptionKind = 'captions' | 'subtitles' | 'descriptions';
 
 export type AssetManifest = {
 	media: Record<string, ImageRecord | VideoRecord>;
@@ -257,10 +257,6 @@ export function createAssetResolver(
  * decide on -- `<source>` is selected by `type` and never by size, so nothing in the markup can
  * express what `srcset` expresses for a picture. See the component.
  */
-export type VideoRung = { src: string; type: string; width: number; height: number };
-
-/** One published text track, described by what the record says it is rather than by a label. */
-export type VideoTrack = { src: string; kind: CaptionKind; language: string };
 
 export type ResolvedVideo = {
 	/** Every rung, smallest first. That order is the markup's, and the component argues for it. */

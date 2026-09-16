@@ -34,7 +34,7 @@
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
 	import { surfaces } from '$lib/surfaces.ts';
-	import type { VideoRung, VideoTrack } from '$lib/content/build/assets.ts';
+	import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import * as m from '$lib/paraglide/messages';
 

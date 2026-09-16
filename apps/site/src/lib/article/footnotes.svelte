@@ -149,7 +149,7 @@
 	import { onDestroy } from 'svelte';
 	import { flashOnArrival } from './note-flash';
 	import { offerNoteReveal } from './note-reveal';
-	import type { ArticleNote } from '$lib/content/types';
+	import type { ArticleNote } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 
 	/** `locale` is the view being rendered. Passed rather than read: see

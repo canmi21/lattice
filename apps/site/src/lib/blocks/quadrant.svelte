@@ -69,7 +69,7 @@
 </script>
 
 <script lang="ts">
-	import type { QuadrantDirection, QuadrantItem, QuadrantPosition } from '$lib/content/types';
+	import type { QuadrantDirection, QuadrantItem, QuadrantPosition } from '@canmi/artifacts/types';
 
 	let {
 		title,

@@ -52,7 +52,7 @@ import type {
 	PageView,
 	RepoRecord,
 	TweetRecord,
-} from '../types.ts';
+} from '@canmi/artifacts/types';
 import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '../../locale/index.ts';
 import { highlight } from './highlight.ts';
 import { buildPreviews } from './placeholder.ts';

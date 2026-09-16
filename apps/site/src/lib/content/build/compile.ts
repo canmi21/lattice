@@ -30,7 +30,7 @@ import type {
 	ArticleMeta,
 	ArticleNote,
 	ArticleReference,
-} from '../types.ts';
+} from '@canmi/artifacts/types';
 import { languageLabel } from './highlight.ts';
 import type { ContainerDirective, LeafDirective, TextDirective } from 'mdast-util-directive';
 

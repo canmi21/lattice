@@ -108,7 +108,7 @@
 	import { remFromMeasuredPixels } from '$lib/client/units';
 	import { URLS } from '@canmi/urls';
 	import { langColor, parseTokei, type LangStat } from './tokei';
-	import type { TokeiView } from '$lib/content/types';
+	import type { TokeiView } from '@canmi/artifacts/types';
 	import { compactCount } from '$lib/format';
 
 	let {

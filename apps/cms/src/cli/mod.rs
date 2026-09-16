@@ -1299,8 +1299,8 @@ fn scan_notes(
 
 /// The `cms embed` command: the crate trees and repository facts the articles show.
 ///
-/// See spec/architecture/data.md, "A CI build must be able to build from git alone" for why this
-/// is fetched here rather than in the browser and stored under `data/build/`.
+/// See spec/architecture/data.md, "A CI build compiles the site, and no longer compiles the
+/// corpus" for why this is fetched here rather than in the browser and stored under `data/build/`.
 ///
 /// FIXME: this is the operation, not an adapter for one, contrary to spec/architecture/cms.md's
 /// one-operation-plus-two-adapters rule. It stays here until the desktop shell offers `cms
