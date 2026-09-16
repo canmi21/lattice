@@ -9,27 +9,11 @@ use std::path::{Path, PathBuf};
 /// How many hex characters each level of the key fans out on.
 const FAN: usize = 2;
 
-/// **The one declaration of the bucket's layout, on this side.**
-///
-/// Each entry is a prefix, whether its keys fan out, and the single format it stores -- empty
-/// where a caller must name one. `OBJECTS` in libs/store is the same table for the workers that
-/// read what this writes, and a test there reads this declaration to hold the two in step.
-///
-/// A table rather than a constant per function because the per-function form drifts, and did:
-/// clips got a path here and no key on the reading side, so four rung URLs answered 404 while the
-/// files sat on disk.
-///
-/// **`fanned` follows whether the count is unbounded.** The two levels buy nothing on R2, which
-/// has no directory to overflow; they exist so the same bytes can move to an object store that
-/// does care without rewriting every key, and the CDN hides them anyway since a request names
-/// only the cid. `meta` is flat -- one record per asset rather than one per format -- and reading
-/// it as though it were fanned is a 404 that looks like a missing asset.
-///
-/// **A prefix names what kind of object it is and the cid names the object, and nothing in a key
-/// says what an object belongs to.** A caption does not live under the video it captions and a
-/// poster does not live under the video it posters: a content id is about itself, and the same
-/// bytes reached from two articles are one object either way. Where things belong together is the
-/// record's job. See spec/architecture/video.md.
+/// **The one declaration of the bucket's layout, on this side.** The twin of `OBJECTS` in
+/// `libs/store`, kept in sync by a test there. See spec/architecture/data.md, "The layout is
+/// declared once per language and the two are held together by a test", and
+/// spec/architecture/video.md, "A prefix names what kind of object it is", for the table's
+/// shape and the trap it replaced.
 pub const OBJECTS: [(&str, bool, &str); 5] = [
 	("captions", true, "vtt"),
 	("image", true, ""),

@@ -14,30 +14,14 @@ use std::path::Path;
 pub const EXTENSION: &str = "mp4";
 pub const MIME: &str = "video/mp4";
 
-/// `libsvtav1`, and on this machine it is also the only choice.
-///
-/// The two AV1 encoders differ by an order of magnitude in speed for the same picture, and the
-/// ffmpeg here is built with `--enable-libsvtav1` and no libaom, so `libaom-av1` would fail at
-/// the spawn rather than run slowly. It would still be the wrong pick if it were present:
-/// measured on the 24-second 4K clip this was written against, SVT-AV1 at preset 6 produced
-/// both rungs in twenty seconds, and libaom at a comparable quality is minutes per rung. This
-/// runs over a whole library on one laptop.
+/// `libsvtav1`, and on this machine it is also the only choice: the ffmpeg build here has
+/// `--enable-libsvtav1` and no libaom. See spec/architecture/video.md, "The encoder and the
+/// quality are chosen by measurement too", for why it would still be the pick if libaom were
+/// present.
 const ENCODER: &str = "libsvtav1";
 
-/// Measured on the 25-second 360p clip, against the source with libvmaf:
-///
-/// | crf | bytes | vmaf  |
-/// | --: | ----: | ----: |
-/// |  26 | 1.52M | 97.30 |
-/// |  30 | 1.22M | 96.86 |
-/// |  32 | 1.06M | 96.50 |
-/// |  34 | 0.95M | 96.16 |
-/// |  38 | 0.75M | 95.22 |
-///
-/// The curve is flat because the sources are already H.264 excerpts rather than masters, so
-/// what is being encoded has been through a codec once. 26 buys 0.8 VMAF for 43% more bytes
-/// and every reader pays those bytes; below 32 the loss starts showing on the title cards two
-/// of these clips end on, which is the same failure mode the AVIF quality was chosen against.
+/// See spec/architecture/video.md, "The encoder and the quality are chosen by measurement
+/// too", for the VMAF-versus-bytes table this was measured against.
 const CRF: u8 = 32;
 
 /// SVT-AV1's speed dial, 0 slowest to 13. 6 is the middle and the encoder's own default for

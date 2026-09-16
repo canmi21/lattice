@@ -17,16 +17,11 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 /// Bumped when the shape changes, so a reader can tell rather than guess. The first change
-/// without one is the one that corrupts silently.
-///
-/// 1. The original shape.
-/// 2. Assets carry a `description`, so alt text travels with the image rather than with each
-///    article that happens to reference it.
-/// 3. `description` moves out to `data/media.yaml`, `preview` and `original` are dropped, and
-///    what the camera recorded arrives as `metadata`.
-/// 4. `type` stops being a label and becomes the discriminant: a record is an envelope plus one
-///    body per kind, so a video is shaped for video rather than being a picture's shape with the
-///    picture fields left empty. See spec/architecture/video.md.
+/// without one is the one that corrupts silently: 1 the original shape; 2 assets gain a
+/// `description`; 3 `description` moves to `data/media.yaml`, `preview` and `original` are
+/// dropped, and camera data arrives as `metadata`; 4 `type` becomes a discriminant, so each
+/// kind gets its own body rather than a picture's shape with unused fields. See
+/// spec/architecture/video.md for why a kind needs its own shape.
 pub const VERSION: u32 = 4;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -162,15 +157,11 @@ pub struct VideoSource {
 	/// cannot be honest, which is the whole reason a frame count is stored at all.
 	pub frames: u64,
 	pub audio: bool,
-	/// Integrated loudness in LUFS, and the true peak in dBTP, as EBU R128 measures them.
+	/// Integrated loudness (LUFS) and true peak (dBTP), from EBU R128. See
+	/// spec/architecture/video.md, "Loudness, not peak, sets the target", for the gain formula.
 	///
-	/// Two numbers so every clip can be played at one level: the difference between the loudness
-	/// and a chosen target is the gain that makes two clips match, and the peak is the ceiling
-	/// that gain must respect or a raised clip distorts at its loudest instant.
-	///
-	/// Absent for a clip with no audio, and absent for one imported before this was measured --
-	/// which is why they are optional rather than zero. Zero is full scale and would read as the
-	/// loudest possible clip. See `video::loudness`.
+	/// Absent for a clip with no audio, or one imported before this was measured -- optional
+	/// rather than zero, since zero would read as the loudest possible clip.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub loudness: Option<f64>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
@@ -244,21 +235,11 @@ pub struct Merged {
 
 /// Bring a manifest read from disk up to the current shape and find stale per-asset records.
 ///
-/// A field added with `#[serde(default)]` is already correct by the time this runs -- the
-/// version number is the part that has to be said out loud, because the next migration needs
-/// to know where it is starting from.
-///
-/// Staleness belongs to each sidecar rather than to this aggregate version. The aggregate may
-/// have been upgraded before every guarded write completed; using it as a one-shot gate then
-/// makes the unfinished writes permanently invisible on every later run.
-///
-/// Version 4 needs no transform of its own. Splitting the record into an envelope and a
-/// flattened body left every field of a picture exactly where version 3 wrote it, and `type`
-/// was already there to be read as the discriminant, so the whole of the migration is the
-/// number and the sidecar rewrite that follows from it -- confirmed against the 39 records in
-/// `data/metadata.json`, which load and round-trip byte for byte. A later shape that cannot
-/// be read as it stands gets a branch here rather than a `#[serde(alias)]`: an alias is a
-/// migration that never finishes, carried by every reader forever.
+/// `#[serde(default)]` fields are already correct on load; only the version number needs an
+/// explicit bump. Staleness is judged per sidecar, not by this aggregate version, since it can
+/// advance before every guarded write finishes, and a one-shot gate would hide those forever.
+/// Version 4 needs no transform of its own; a shape that cannot be read as-is gets a branch
+/// here, never `#[serde(alias)]`, which is a migration that never finishes.
 pub fn migrate(merged: &mut Merged, public: &Path) -> Vec<String> {
 	merged.version = merged.version.max(VERSION);
 	merged

@@ -127,10 +127,9 @@ const DOMAIN_ALPHA: f32 = 0.24;
 /// A circle rather than the square GitHub serves, because that is how the page shows it and a
 /// card that framed it differently would read as a different person's site.
 ///
-/// The edge is smoothed by coverage rather than by a rasteriser: a pixel one unit inside the
-/// radius is opaque, one unit outside is skipped, and the band between them fades. That is a
-/// subtraction per pixel against pulling in a path renderer for the one shape here that is not
-/// a rectangle.
+/// Edges are smoothed by coverage, not a rasteriser: a pixel one unit inside the radius is
+/// opaque, one outside is skipped, and the band between fades -- one subtraction per pixel
+/// against pulling in a path renderer for the one shape here that is not a rectangle.
 fn draw_avatar(pixmap: &mut PixmapMut<'_>, avatar: &Avatar, at: (f32, f32), size: f32) {
 	let radius = size / 2.0;
 	let side = size.round() as i32;

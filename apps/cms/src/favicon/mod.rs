@@ -92,14 +92,9 @@ pub fn stored(root: &Path, domain: &str, tone: Option<&str>) -> Option<PathBuf> 
 	})
 }
 
-/// Store one named icon as this domain's, taking the article's word for where it lives.
-///
-/// Used when a linkcard names its own icon: the site being linked to may have no usable
-/// favicon, or the author may want the avatar rather than the site mark. Resolving it into the
-/// domain's own slot is what lets the page go on rendering `/favicon/{domain}` and the article
-/// go on carrying the source URL, with neither needing to know about the other.
-/// `tone` is the shade the article said this icon *is*. Naming one stores it there alone;
-/// naming none means the icon is simply the site's, and it goes under both.
+/// Store one named icon as this domain's, taking the article's word for where it lives. See
+/// spec/architecture/data.md, "Articles decide which assets exist", for why this is never
+/// rewritten and how `tone` interacts with the domain's slot.
 pub fn store_named(
 	root: &Path,
 	domain: &str,
@@ -158,14 +153,10 @@ pub fn fetch_for(root: &Path, domain: &str, force: bool) -> Result<Option<Icons>
 		return Err(Error::NotResolved);
 	}
 
-	// A site that publishes one icon publishes it for every context: the browser draws that
-	// same file on light and dark chrome alike, and an icon meant for only one of them is
-	// something a site has to go out of its way to declare. Storing it under both tones
-	// records that rather than guessing at it -- the worker never substitutes, so otherwise a
-	// card asking for the dark icon of a single-icon site gets nothing at all.
-	//
-	// Measured: remix.run and www.typeless.com both publish exactly one, and remix.run's is an
-	// SVG carrying its own opaque backdrop, which is what makes it legible either way.
+	// A site that publishes one icon publishes it under both tones instead of one. See
+	// spec/architecture/data.md, "Articles decide which assets exist", for why the worker never
+	// substitutes. Measured: remix.run and www.typeless.com both publish exactly one, and
+	// remix.run's is an SVG carrying its own opaque backdrop, legible either way.
 	let single = variants.len() == 1;
 
 	let mut files = Vec::new();
@@ -246,12 +237,11 @@ fn resolve(domain: &str) -> Vec<(Tone, fetch::Fetched)> {
 
 /// The `-dark` neighbour of an icon URL, by convention.
 ///
-/// Surveyed sites almost never declare `media="(prefers-color-scheme: dark)"` on a link, yet
-/// plenty ship two icons and swap them with JavaScript -- GitHub serves `favicon.svg` and
-/// `favicon-dark.svg` and picks between them in script, which no amount of parsing the markup
-/// will reveal. Guessing the neighbour costs one request that usually 404s, and the result is
-/// only kept when it exists *and* differs from the light icon, so a server that answers 200
-/// for everything cannot produce a bogus variant.
+/// Surveyed sites rarely declare `media="(prefers-color-scheme: dark)"` on a link, yet plenty
+/// ship two icons and swap them with JavaScript -- GitHub serves `favicon.svg` and
+/// `favicon-dark.svg`, picked in script, which no amount of parsing the markup reveals.
+/// Guessing costs one request that usually 404s, and is kept only when it exists and differs
+/// from the light icon, so a server answering 200 for everything cannot produce a bogus variant.
 fn dark_sibling(url: &str) -> Option<String> {
 	let (head, extension) = url.rsplit_once('.')?;
 	if extension.is_empty() || extension.contains('/') || extension.len() > 5 {

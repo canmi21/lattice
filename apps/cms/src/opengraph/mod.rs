@@ -300,53 +300,10 @@ pub const HOME_SLUG: &str = "homepage";
 const SOURCE_VIEW_COUNTED_AS_CODE: &str = "en";
 
 /// What the site amounts to, counted once per view because each view serves different text.
-///
-/// ## Words, and whose definition of a word
-///
-/// The unit is a word processor's: Han and kana once per character, everything else once per
-/// whitespace-delimited run, which is what "字数" means in Chinese and what Word, WPS and Google
-/// Docs all report. See [`crate::words`] for the measurement that chose it and the one
-/// classification this repository corrects.
-///
-/// This replaced a character count whose stated reason -- a word is not a unit CJK has -- was
-/// true and led somewhere wrong. Counting characters does not remove the problem, it moves it:
-/// measured over this corpus a character was worth 1.23 units in a Chinese article and 4.78 in an
-/// English one, so the number silently favoured whichever articles happened to be in English by
-/// nearly four to one.
-///
-/// ## Per view, because the card is drawn per view
-///
-/// The old rule counted the source text for all nine cards, on the argument that the number
-/// describes the site rather than the translation being read. That survives only while the unit
-/// is script-blind. Once it is words, an English card carrying a Chinese article's 字数 is
-/// stating something false about the text an English reader would actually get, so each view
-/// counts what it serves: the translation for that view where there is one, and the source where
-/// there is not -- which is exactly what the page renders, untranslated segments included.
-///
-/// ## The source view is counted in English, because the source is not a language
-///
-/// `mw` is the ninth view and the one a bare link resolves to, so its card is the default social
-/// card for the whole site. It has no translation to look up, and the obvious reading -- count the
-/// source, since that is what the view serves -- puts back exactly the defect this replaced.
-/// Five Chinese articles and one English one summed into a single figure is Han characters added
-/// to English words: not a quantity of anything, and a number whose meaning depends on which
-/// article contributed it.
-///
-/// So it is counted as English, because that is the language the card is written in. `mw.json`
-/// is English copy -- "6 articles · N words · available in 9 languages" -- and a sentence in
-/// English saying "words" has to mean English words or it means nothing. The two move together:
-/// translating `mw.json` into something else would mean changing the tag below to match, which is
-/// the one thing about this that a later reader has to know.
-///
-/// ## Prose, and only what a visitor can reach
-///
-/// A code block is not writing, and neither is a directive or a thematic break. What separates
-/// them is decided once, by `segment::Kind::translatable`, which already answers this question
-/// for the translator -- so this reads that rather than stripping markdown a second time and
-/// drifting from it. Frontmatter is left out: a title is metadata here.
-///
-/// Drafts are left out too. `buildArticles` excludes them from a production build, so counting
-/// them advertises writing nobody can open.
+/// See spec/architecture/media.md, "The article page draws the same number, from the same
+/// function", for why the unit is a word processor's word rather than a character, why each
+/// view counts its own translation rather than the source, why `mw` (the source view) counts
+/// as English, and why frontmatter and drafts are excluded.
 pub struct Census {
 	pub articles: usize,
 	/// Words per view code. `locale::VIEWS` is the set of keys, and every one of them is present.
@@ -496,11 +453,8 @@ struct Planned {
 	hash: String,
 }
 
-/// Draw every card whose inputs have moved, in parallel.
-///
-/// Staleness is "drawn from different inputs", not "the file is missing". The older test was
-/// already wrong -- an edited title left the old card in place until somebody remembered
-/// `--force` -- and a read count on the card turns that from a rare case into the usual one.
+/// Draw every card whose inputs have moved, in parallel. See spec/architecture/media.md, "A
+/// card is redrawn when its inputs move, not when its file is missing", for why.
 ///
 /// `map_init` rather than a shared font system: shaping needs `&mut FontSystem`, so the choice
 /// is one per thread or a lock every glyph goes through. One per thread costs a font parse per
@@ -617,16 +571,13 @@ pub fn render_all(
 	Ok(outcome)
 }
 
-/// Delete the cards the previous record holds and this run no longer wants.
+/// Delete the cards the previous record holds and this run no longer wants. See
+/// spec/architecture/media.md, "A draft gets no card, and a card nothing asks for is deleted",
+/// for why this is driven by the record rather than by walking `data/public`.
 ///
-/// Driven by the record rather than by walking `data/public`, which is what keeps it from being a
-/// second garbage collector: it can only ever remove a file this command wrote and named. A key
-/// it cannot account for is left alone -- the record is a JSON file somebody may have edited, and
-/// a path escaping the published root is a reason to stop rather than a reason to delete.
-///
-/// A failed delete is not reported. The file is not referenced any more either way, and failing a
-/// card run over a leftover would be the tail wagging the dog; the next run tries again, because
-/// the key stays in the record it reads.
+/// A failed delete is not reported. The file is not referenced any more either way, and failing
+/// a card run over a leftover would be the tail wagging the dog; the next run tries again,
+/// because the key stays in the record it reads.
 fn sweep(public: &Path, previous: &manifest::Manifest, next: &manifest::Manifest) -> usize {
 	let mut removed = 0;
 	for key in previous.cards.keys() {

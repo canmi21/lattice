@@ -109,28 +109,11 @@ pub struct Media {
 pub struct Source {
 	/// Where to go to reach it, which may be an archive rather than the original address.
 	pub url: String,
-	/// The name the origin publishes under, verbatim, in the language it publishes in first.
-	///
-	/// Not English -- recorded, not composed. The workspace `spec/voice.md` is where that rule
-	/// lives and this is the field that produced it: the reason first written here was "English,
-	/// because a publication is called the same thing in every language this site is written in",
-	/// which holds for Apple and fails for the Chinese sitcom one of these clips is cut from,
-	/// whose English title is a distributor's rendering and not its name. Rendering a proper noun
-	/// does not make the file more English, it makes the record less true, and the record is the
-	/// whole reason the field exists.
-	///
-	/// One string rather than the per-locale map a description carries, for the same reason: a
-	/// name is not translated, so one spelling serves every language the page is read in. An
-	/// origin leading in two languages is taken at the one it leads with, never at the one the
-	/// reader happens to speak.
-	///
-	/// **It names the origin, not the route.** A `web.archive.org` address for a page Apple
-	/// published is labelled Apple: the Internet Archive is how the page can still be reached,
-	/// not who put it there. Labelling it otherwise would credit the library for the book.
-	///
-	/// Absent for a `cid://` url, and only for that. A source pointing inward -- a poster naming
-	/// the clip it was taken from -- has no publication to credit: the origin is an asset in
-	/// this repository, which the id already names. Every other source has one and owes it.
+	/// The name the origin publishes under, verbatim, in the language it publishes in first. See
+	/// spec/architecture/media.md, "Where a picture came from is a claim, and it can point
+	/// inward", for why it is recorded rather than composed, one string rather than a
+	/// per-locale map, why it names the origin and not the route, and why it is absent for a
+	/// `cid://` url.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub label: Option<String>,
 }
@@ -145,11 +128,9 @@ pub fn path_for(repo: &Path) -> PathBuf {
 	repo.join("data").join("media.yaml")
 }
 
-/// The descriptions and categories held against each asset, empty when the repository has none yet.
-///
-/// A parse failure is an error, never an empty set: every writer loads the whole file,
-/// edits a few entries and saves it back, so reading a broken one as empty would replace descriptions bought one model call at a time
-/// with nothing. Same rule as the sidecar and the image manifest.
+/// The descriptions and categories held against each asset, empty when the repository has none
+/// yet. See spec/architecture/data.md, "A broken sidecar is an error, never an empty one", for
+/// why a parse failure on load is an error rather than an empty set.
 pub fn load(path: &Path) -> std::io::Result<Media> {
 	let text = match std::fs::read_to_string(path) {
 		Ok(text) => text,
@@ -171,15 +152,10 @@ pub fn save(path: &Path, media: &Media) -> std::io::Result<()> {
 	crate::image::store::write(path, text.as_bytes())
 }
 
-/// A tag as it may be written: lower case, digits and hyphens.
-///
-/// Constrained because a tag is an identifier that happens to be readable. `TypeScript`,
-/// `typescript` and `type-script` would otherwise be three tags for one thing, and no amount
-/// of care at the point of writing prevents that forever. What a reader sees comes from the
-/// registry, where it may be capitalised, branded or translated freely.
-///
-/// Enforced once tagging exists; written now because the constraint is the reason the shape
-/// works, not a detail of whoever gets round to calling it.
+/// A tag as it may be written: lower case, digits and hyphens. See spec/architecture/media.md,
+/// "A category is closed; a tag is not", for why the constraint exists. Enforced once tagging
+/// exists; written now because the constraint is the reason the shape works, not a detail of
+/// whoever gets round to calling it.
 #[allow(dead_code)]
 pub fn is_valid_tag(name: &str) -> bool {
 	!name.is_empty()

@@ -22,16 +22,9 @@ pub const PIVOT: u32 = 1080;
 /// already two and a half times what the column can show and exists for full-screen only.
 pub const CAP: u32 = 2160;
 
-/// The sizes to produce for a clip, smallest first.
-///
-/// Above the pivot, two rungs: 1080p and the larger standard tier the source fits, capped.
-/// At it, one. Below it, one at the nearest standard tier *below* the source -- a source that
-/// has nothing below it is its own rung, re-encoded rather than resized. Aspect ratio is
-/// preserved and nothing is ever upscaled.
-///
-/// Letterboxing is not cropped out. One of the clips this was written against is 1280x720
-/// with a 1280x320 picture inside it, and that is the film's framing rather than a defect, so
-/// the ladder reads the file's dimensions and nothing else.
+/// The sizes to produce for a clip, smallest first: two rungs above the pivot, one at or below
+/// it. See spec/architecture/video.md, "The ladder, and the measurement that sets it", for the
+/// shape of the table and why letterboxing is never cropped out.
 pub fn ladder(source: Size) -> Vec<Size> {
 	let height = source.height;
 	let tiers: Vec<u32> = if height > PIVOT {

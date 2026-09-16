@@ -1,43 +1,11 @@
 //! The `cms captions` command: a track cut to a clip already in the library, and attached to it.
 //!
-//! Separate from `cms video` because the two are not available at the same time. A clip is cut
-//! and imported the day the article needs it; the track for it is downloaded, or written, or
-//! bought, afterwards -- and for two of the three clips in this repository there is no track at
-//! all and there may never be. Folding this into the import would make every re-encode wait on
-//! words that are not coming.
-//!
-//! ## Two things are checked, and only one of them is arithmetic
-//!
-//! **The window and the clip must be the same length.** `excerpt` in `data/media.yaml` says which
-//! passage of the original the clip holds; `duration` in the manifest is what ffprobe measured off
-//! the file. Nothing derives one from the other -- a person wrote the first and a tool measured the
-//! second -- so agreeing is evidence and disagreeing is proof. Disagreeing means either the excerpt
-//! names a passage this file is not, or this file is not the clip the excerpt was written for, and
-//! under both the cut lands on the wrong words: cues shifted by the difference, on screen, looking
-//! like working software. That is the check worth having before anything is written.
-//!
-//! **The track must say something during the window.** A track whose cues all fall outside it
-//! produces an empty cut, and an empty cut is not a silent excerpt when the excerpt is
-//! twenty-four seconds of a keynote -- it is the wrong file. `cut` already answers `None` there,
-//! and this turns that into a refusal rather than a successful run that attached nothing.
-//!
-//! **What no check here can reach.** A WebVTT file carries no account of which recording it
-//! transcribes -- not the title, not the duration, not a hash of anything. So a track for a
-//! different video, handed to a clip whose excerpt happens to be a window that track has cues in,
-//! passes everything above: the arithmetic was never about the track. That is not a gap to be
-//! closed by a stricter rule, it is the absence of the fact a rule would need. What it gets
-//! instead is the opening line printed back, quoted, next to the clip it went onto -- the one
-//! reading of the words that exists, done by the person who typed the command.
-//!
-//! The language is not checked either, for the same reason, which is why `--language` is required
-//! and never inferred.
-//!
-//! ## The window has one home
-//!
-//! There are no `--from` and `--to` flags. The window lives in `data/media.yaml` and only there,
-//! because the cut file cannot record where it came from and the excerpt is the one written
-//! account of it -- see spec/architecture/video.md. A flag would be a second place to put the same
-//! fact, and the run that used the flag would leave no trace of which window it used.
+//! Separate from `cms video` because the two arrive on different days -- a clip is cut on
+//! import, its track downloaded, written or bought later, and two of the three clips here have
+//! none at all. See spec/architecture/video.md, "The pairing is checked by arithmetic, and the
+//! arithmetic is not about the track", for what the excerpt-length and non-empty-cut checks
+//! catch, why the track's own identity cannot be checked at all, and why `--language` is
+//! required rather than inferred. See "The window has one home" for the `--from`/`--to` flags.
 
 use super::{Kind, Window};
 use crate::image::manifest::{Caption, Media, Merged};

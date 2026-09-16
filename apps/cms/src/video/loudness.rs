@@ -1,32 +1,10 @@
 //! How loud a clip is, measured once so every clip can be played at the same level.
 //!
-//! ## Loudness sets the target and the true peak caps it
-//!
-//! Two numbers, because one of them cannot do the job alone.
-//!
-//! **Integrated loudness** is EBU R128's, in LUFS: K-weighted and gated, built to agree with what
-//! an ear calls equally loud. It is not an arithmetic average -- the weighting follows the ear's
-//! frequency response and the gate drops silence, which is what stops a clip with long pauses
-//! from reading as quiet. It answers "how loud is this", and the difference between it and a
-//! chosen target is the gain that makes two clips match.
-//!
-//! **True peak** is the highest sample the signal actually reaches, in dBTP, and it is the ceiling
-//! that gain has to respect. Raising a quiet clip to the target can push its loudest instant past
-//! full scale, which clips -- audibly, and unfixably. So the applied gain is the smaller of what
-//! the loudness asks for and what the peak allows, and a clip that cannot reach the target lands
-//! under it instead of distorting.
-//!
-//! ## What this is not
-//!
-//! **Not compression.** One constant multiplies the whole clip, so every peak and every valley
-//! moves by the same decibel and the dynamic range is exactly what it was. Pushing the loud parts
-//! down to a ceiling and leaving the quiet parts alone is a limiter, and a limiter is the thing
-//! that changes how a recording sounds. This does not do it.
-//!
-//! **Not a re-encode.** The numbers are stored and the gain is applied at playback. Re-encoding
-//! would change the bytes, and the bytes are the content id: every rung, every article reference
-//! and every object in the bucket is addressed by it. A number in a record can also be re-tuned
-//! later, which a baked-in gain cannot.
+//! Integrated loudness (LUFS) and true peak (dBTP), both from EBU R128 via ffmpeg's `loudnorm`.
+//! Stored, never baked in by re-encoding -- the bytes are the content id. See
+//! spec/architecture/video.md, "Every clip plays at one level, and the peak is what caps it",
+//! for why loudness rather than peak sets the target, why this is normalisation and not
+//! compression, and how the gain is applied at playback.
 
 use super::{Error, tool};
 use serde::Deserialize;

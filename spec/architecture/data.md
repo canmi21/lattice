@@ -141,6 +141,14 @@ deleting one changes what R2 serves on the next sync. It is recoverable in pract
 originals are still in `data/image` and a content id is enough to rebuild from -- but that is
 a fact about this repository rather than a property of the command, so it waits to be asked.
 
+## A broken sidecar is an error, never an empty one
+
+`data/media.yaml`, the image manifest and their sidecars are each loaded whole, edited a few
+entries at a time, and saved back. A parse failure on load is therefore an error rather than an
+empty set: reading a broken file as empty and saving it back would replace hand-written and
+paid-for content -- descriptions, alt text, a model call per image -- with nothing, and nothing
+would say so.
+
 ## A CI build must be able to build from git alone
 
 The site builds from `data/metadata.json`, `data/media.yaml`, `data/diagram.json`, the records

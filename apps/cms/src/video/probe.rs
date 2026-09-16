@@ -101,17 +101,11 @@ pub fn probe(path: &Path) -> Result<Probe, Error> {
 
 /// The full codec string a `<source>` element has to be told, read back off the encoded rung.
 ///
-/// **Every track in the container, comma separated**, which is what RFC 6381 means by the
-/// `codecs` parameter: `av01.0.08M.08,mp4a.40.2` and not the picture alone. A browser reads the
-/// whole list to decide whether it can play the file, so a list naming only the video is a claim
-/// about half of it -- benign today, because everything that decodes AV1 decodes AAC too, and a
-/// claim nothing checks is the kind that goes wrong unnoticed.
-///
-/// Read rather than predicted. The level is chosen by the encoder from the resolution and the
-/// frame rate against a table of limits, and a hand-written copy of that table is a second
-/// implementation of the one thing here a browser acts on -- it either decodes the file or it
-/// shows nothing. The tier is the one part not read: `tier=0` is passed to the encoder, so Main
-/// is what was asked for rather than what was guessed.
+/// Every track in the container, comma separated, per RFC 6381's `codecs` parameter --
+/// `av01.0.08M.08,mp4a.40.2`, not the picture alone, since a browser reads the whole list to
+/// decide whether it can play the file. Read rather than predicted: the level comes from the
+/// encoder's own table of resolution/frame-rate limits, and `tier=0` is passed in rather than
+/// guessed, so Main is what was asked for.
 pub fn codec_string(path: &Path) -> Result<String, Error> {
 	let output = read(&["-show_streams"], path)?;
 	let video = output
@@ -150,15 +144,11 @@ fn audio(stream: &Stream) -> Option<String> {
 
 /// The exact number of frames, in three readings from cheapest to dearest.
 ///
-/// **Never `duration * rate` rounded.** This is the denominator of the progress bar the
-/// software-decode path shows, and a bar that finishes at 98% or runs past its end is worse
-/// than no bar: the reader is told the wait is over when it is not. Variable frame rate,
-/// a duration rounded to the container's timebase and a trailing partial second each break
-/// the multiplication, and none of them announce it.
-///
-/// `nb_frames` is what an MP4 already indexed and costs nothing. `-count_packets` demuxes but
-/// does not decode, which is what a container with no index needs. `-count_frames` decodes
-/// every frame and is the last resort, for a stream whose packets and frames differ.
+/// Never `duration * rate` rounded: it is the progress bar's denominator, and variable frame
+/// rate, a timebase-rounded duration or a trailing partial second each break the multiplication
+/// without announcing it. `nb_frames` is what an MP4 already indexed, free; `-count_packets`
+/// demuxes without decoding, for a container with no index; `-count_frames` decodes every frame
+/// and is the last resort, for a stream whose packets and frames differ.
 fn frames(path: &Path, video: &Stream) -> Result<u64, Error> {
 	if let Some(count) = count(video.nb_frames.as_deref()) {
 		return Ok(count);

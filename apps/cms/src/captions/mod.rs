@@ -1,53 +1,15 @@
 //! A caption track cut to an excerpt, and stored like every other object.
 //!
-//! Cutting is a filter and a subtraction. The filter keeps every cue that is on screen during
-//! the window rather than every cue that begins inside it. At 2:18 of the September 2026 event
-//! the line that began at 2:13.697 is still up; a clip that opens there and drops that cue drops
-//! exactly the sentence the reader is hearing as the picture arrives.
+//! Cues are shifted onto the clip's own timeline rather than kept on the original's, and a
+//! straddling cue clamps rather than drops. See spec/architecture/video.md, "A caption track is
+//! cut to the clip and shifted onto its timeline", for why -- the browser's `<track>` element
+//! cannot subtract, so shifting once here beats parsing WebVTT in every reader.
 //!
-//! ## The cues are stored shifted, and the browser is the reason
-//!
-//! spec/architecture/video.md leaves this open: shifted, so the file stands alone against the
-//! clip, or on the original's timeline, so the correspondence survives and every consumer
-//! subtracts. Shifted -- because the consumer that matters cannot subtract. A `<track>` element
-//! hands its `src` to the user agent's own text-track engine, and between the two there is no
-//! offset attribute and no hook. A track left on the original's timeline could only be rendered
-//! by fetching it with script, parsing WebVTT in the browser and rebuilding it cue by cue as a
-//! `TextTrack` -- a parser shipped to a reader to undo arithmetic this machine could do once,
-//! against spec/architecture/delivery.md's whole argument about payload. And a reader whose
-//! script did not run would not lose captions, which announces itself; they would get captions
-//! displaced by two minutes and eighteen seconds, which does not.
-//!
-//! What that gives up is the correspondence: a stored track no longer says where in the original
-//! it came from. It is given up only in this file. `excerpt: { from, to }` in `data/media.yaml`
-//! is that offset, written by the person who chose the window, so the original timing is an
-//! addition away rather than a guess -- and the excerpt is already the one fact about a clip that
-//! nothing can recover from the cut file, which is why it is authored there. The real cost is
-//! that the two now have to agree: change the window and the track must be cut again, exactly as
-//! the video rungs must be encoded again, so it adds no coupling that was not already there.
-//!
-//! ## A cue straddling the start is clamped, and that is the true statement
-//!
-//! Subtracting the window's start from a cue that began before it gives a negative time, and
-//! WebVTT has no such thing -- the timestamp grammar is unsigned, so a parser drops the cue or
-//! the file. So the choice is between dropping the line and clamping it to zero, and clamping is
-//! not a repair, it is the accurate reading: the cue *is* on screen at the instant the clip
-//! begins. Zero says so. The end is clamped to the clip's length for the same reason inverted --
-//! a cue must not claim time the file does not have.
-//!
-//! Clamping can leave a cue with nothing left, when only a rounded millisecond of it fell inside
-//! the window. That one is dropped: a line on screen for under a millisecond was never read, and
-//! WebVTT requires an end strictly after its start.
-//!
-//! ## What is carried through and what is not
-//!
-//! Everything but the timing line is copied verbatim, cue settings included. `position`, `line`
-//! and `align` are what lift a caption clear of the player's chrome, and re-deriving them would
-//! be inventing a layout the track already states. Two things are deliberately not carried:
-//! `NOTE` comments, which are about a track this file is no longer, and the header's
-//! `X-TIMESTAMP-MAP`, which aligns cues to an MPEG-TS presentation clock that a standalone file
-//! played by `<video>` does not have -- Apple's track carries `MPEGTS:900000`, ten seconds, and
-//! a player that honoured it against a clip would be ten seconds out.
+//! Everything but the timing line is copied verbatim, cue settings included -- re-deriving
+//! `position`, `line` and `align` would invent a layout already stated. `NOTE` comments are
+//! dropped, since they describe a track this file is no longer; so is the header's
+//! `X-TIMESTAMP-MAP`, which aligns cues to an MPEG-TS clock a standalone file lacks -- Apple's
+//! track carries `MPEGTS:900000`, ten seconds, a player that honoured it would run that far out.
 
 pub mod run;
 
@@ -57,15 +19,10 @@ use std::path::Path;
 
 /// What a caption track is, in the one spelling a record carries.
 ///
-/// A caption is only ever WebVTT -- a `<track>` element takes one format and there is no second
-/// one to choose between -- which is why `store::caption_path` fixes the extension itself rather
-/// than taking an argument that could only ever hold one value.
-///
-/// The consequence is that the format is spelled in two files with nothing between them but
-/// agreement: `.vtt` in the path the store builds, `text/vtt` in the record written here. The
-/// test at the bottom is what holds the two halves together; `EXTENSION` beside it is the claim
-/// this module makes about the store, and it lives there because nothing outside a test has any
-/// reason to name it.
+/// Only ever WebVTT -- a `<track>` element takes one format, so `store::caption_path` fixes the
+/// extension itself rather than taking an argument that could only hold one value. The format is
+/// spelled in two places with nothing between them but agreement: `.vtt` in the path the store
+/// builds, `text/vtt` in the record written here. The test at the bottom holds the two in step.
 const MIME: &str = "text/vtt";
 
 /// The range of the original the clip was cut from, in seconds.
@@ -137,14 +94,10 @@ pub enum Error {
 	/// No default, and this is the reason rather than strictness for its own sake.
 	///
 	/// `kind` is what a reader picks a track by, and the reader picking by it is the one a wrong
-	/// value costs most: someone deaf takes a track labelled `captions`, gets subtitles, loses
-	/// every sound the film makes, and is told nothing -- the track plays, so nothing anywhere
-	/// reports a fault. Guessing here buys one less argument at a call site and pays for it in
-	/// silent, unreportable wrongness for the person the field exists for.
-	///
-	/// So the value has to come from somewhere that knows. `infer_kind` knows only when a track
-	/// transcribes a sound; everything else has to be told. Meeting this as a compile error
-	/// asking for a value is the intended experience.
+	/// value costs most: someone deaf takes a track labelled `captions`, gets subtitles, loses every
+	/// sound the film makes, and is told nothing -- the track plays, so nothing reports a fault.
+	/// `infer_kind` only knows when a track transcribes sound; everything else has to be told, and
+	/// meeting that as a compile error asking for a value is the intended experience.
 	#[error("nothing in this track says whether it captions, subtitles or describes; pass the kind")]
 	UnknownKind,
 	#[error("could not write: {0}")]
@@ -276,14 +229,10 @@ pub struct Summary {
 
 /// Read a cut file back for reporting. Nothing here is enforced.
 ///
-/// The coverage is a union, not a sum. Cues overlap in a track written for two speakers, and
-/// adding them would report more coverage than the clip has room for.
-///
-/// `opening` exists because of the one thing this module cannot check. A WebVTT file carries no
-/// account of which recording it transcribes, so a track for the wrong video, cut to a window of
-/// the right length, passes every test there is -- see the note in [`run`]. Printing the first
-/// line it will put on screen is what makes that visible to the person who typed the command, and
-/// it is the only check for it that exists.
+/// The coverage is a union, not a sum: cues overlap in a track written for two speakers, and
+/// adding them would report more coverage than the clip has room for. `opening` exists because
+/// this module cannot check which recording a track transcribes -- see
+/// spec/architecture/video.md, "Neither of those is a check on the track", and [`run`].
 pub fn summarise(vtt: &str) -> Summary {
 	let text = normalise(vtt);
 	let mut spans: Vec<(f64, f64)> = Vec::new();
@@ -318,21 +267,11 @@ pub fn summarise(vtt: &str) -> Summary {
 
 /// The one thing a WebVTT file can be read to say about itself.
 ///
-/// Only a captions track transcribes what is not speech, so a payload line that is nothing but
-/// an upper-case bracketed run -- `[EXPLOSION]`, `(DOOR SLAMS)` in the houses that use
-/// parentheses -- is a track written for someone who cannot hear it. That inference runs one way
-/// only. Its absence separates nothing: a subtitle track, a descriptions track, and a captions
-/// track for a clip with no notable sound are the same file. Descriptions in particular are
-/// invisible to any test -- narration of what is on screen reads exactly like dialogue, and this
-/// track's "A car drives down the highway, then it disappears into a tunnel" is a man describing
-/// a film he is pitching, in dialogue, in a track that is not descriptions at all.
-///
-/// So silence here is not a default. `publish` turns it into `UnknownKind` and asks, because
-/// `kind` is what a reader picks a track by: a deaf reader who takes a track labelled captions
-/// and gets subtitles loses every sound the film makes, and is not told.
-///
-/// Read from the whole track rather than from the cut, because the kind belongs to the track. An
-/// excerpt of a captions track that happens to hold no sound cue is still captions.
+/// A payload line that is nothing but an upper-case bracketed run -- `[EXPLOSION]`, or
+/// `(DOOR SLAMS)` in the houses that use parentheses -- is captions, since only a captions
+/// track transcribes non-speech. The inference runs one way only: its absence proves nothing,
+/// since a descriptions track's narration reads exactly like dialogue. Read from the whole
+/// track, not the cut -- the kind belongs to the track, not to an excerpt of it.
 pub fn infer_kind(vtt: &str) -> Option<Kind> {
 	let text = normalise(vtt);
 	for block in blocks(&text).iter().skip(1) {
@@ -350,13 +289,11 @@ pub fn infer_kind(vtt: &str) -> Option<Kind> {
 
 /// Whether a payload line is a sound written down rather than a line spoken.
 ///
-/// Whole-line only. Inline markers exist, but so do bracketed asides inside dialogue, and
-/// missing one only means this asks to be told -- which is the safe direction to be wrong in.
-///
-/// The upper case is doing real work, not tidying. This track writes speaker labels the same
-/// way -- `[Woman:]` and `[Siri:]`, each on a line of its own -- and a speaker label is not a
-/// sound: subtitles carry them too, so reading one as evidence of captions would answer a
-/// question this cannot actually see. Mixed case is the whole of what separates the two.
+/// Whole-line only: inline markers exist, but so do bracketed asides inside dialogue, and
+/// missing one only means this asks to be told -- the safe direction to be wrong in. The upper
+/// case does real work: this track writes speaker labels the same way -- `[Woman:]`, `[Siri:]`
+/// -- and a label is not a sound, so reading one as captions evidence would answer a question
+/// this cannot see. Mixed case is the whole of what separates the two.
 fn transcribes_a_sound(line: &str) -> bool {
 	let line = line.trim();
 	line

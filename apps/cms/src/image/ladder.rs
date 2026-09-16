@@ -42,19 +42,10 @@ fn scale(value: u32, factor: f64) -> u32 {
 	(f64::from(value) * factor).round() as u32
 }
 
-/// The sizes to produce for an image, largest last.
-///
-/// Every tier the original can fill without being enlarged. Upscaling is never done: it
-/// invents detail and costs bytes to carry it.
-///
-/// An image smaller than the lowest tier yields exactly one size -- its own -- so it is
-/// re-encoded rather than resized. There is nothing to gain from a 200px image at 640px.
-///
-/// An image that outgrows the largest tier is capped there, because no layout on the site
-/// asks for more and the pixels above the cap are paid for by every reader. `keep_original`
-/// overrides that for the images where the detail is the point -- a photograph rather than a
-/// screenshot of some text. It adds one more rung at the original resolution, still AVIF and
-/// still lossy, so "original" here means the full frame rather than the original file.
+/// The sizes to produce for an image, largest last: every tier the original can fill without
+/// being enlarged, plus the original itself when it is at or under the cap, or when
+/// `keep_original` asks for it. See spec/architecture/media.md, "Variants stop where the layout
+/// does", for why the cap exists and why upscaling never happens.
 pub fn ladder(original: Size, keep_original: bool) -> Vec<Size> {
 	let long = original.long_edge();
 	let mut sizes: Vec<Size> = TIERS

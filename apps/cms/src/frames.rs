@@ -54,11 +54,9 @@ pub struct Frame {
 /// The frames of one clip, alive for as long as this value is.
 ///
 /// Every one of them exists for the length of one call, and dropping is what makes that true
-/// when the call fails as well as when it succeeds. **None of them is the poster.** `cms video`
-/// extracts that separately and hands it to the image import, where it becomes an ordinary asset
-/// with its own id, rungs and description -- see spec/architecture/video.md. Taking it from here
-/// instead would leave two extractors for one frame, free to disagree about scaling or colour,
-/// with whichever ran last deciding.
+/// when the call fails as well as when it succeeds. **None of them is the poster** -- `cms
+/// video` extracts that separately (see `video::poster`), so this never becomes a second
+/// extractor free to disagree with it about scaling or colour.
 #[derive(Debug)]
 pub struct Frames {
 	directory: PathBuf,
@@ -294,13 +292,10 @@ pub fn prompt(frames: &[Frame], clip: Clip, context: &Context) -> String {
 		if let Some(article) = &context.article {
 			text.push_str(&format!("  Appears in the article \"{article}\"\n"));
 		}
-		// The paragraph below is the one part of this prompt that is not negotiable, and the
-		// one most likely to be cut by whoever next decides the prompt is too long. Context is
-		// given because withholding it produces a description of a cheese grater where a Mac Pro
-		// stood. Given without this, a model answers with the context instead of the frames --
-		// the failure that looks most like success, because "this is Apple's Mac Pro film" is
-		// not wrong, contains no observation, and nothing downstream can tell it apart from an
-		// answer that watched. See spec/architecture/video.md.
+		// This paragraph is the one part of the prompt that is not negotiable, and the one most
+		// likely to be cut by whoever next decides it is too long. See spec/architecture/video.md,
+		// "What the runner is told about the video, and the sentence that has to be in the
+		// prompt", for why.
 		text.push_str(
 			"\nThat is background for reference only, and it is not the answer. Do not describe \
 			 the clip by restating it: naming the film, the event, the company or the article \

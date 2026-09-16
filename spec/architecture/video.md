@@ -34,6 +34,29 @@ and nothing else. What the container does decide is whether playback can begin b
 arrived, which is `faststart` -- the index at the front rather than the back. That is a bigger
 difference to a reader than any codec choice, and it is not a quality decision.
 
+## The encoder and the quality are chosen by measurement too
+
+`libsvtav1`, not `libaom-av1` -- and on the machine this runs on, not a choice at all: the ffmpeg
+build here has `--enable-libsvtav1` and no libaom, so libaom would fail at the spawn. It would
+still be the wrong pick if it were present: on the 24-second 4K clip this was written against,
+SVT-AV1 at preset 6 produced both rungs in twenty seconds, and libaom at comparable quality took
+minutes per rung -- and this runs over a whole library on one laptop.
+
+CRF 32, measured on the 25-second 360p clip against the source with libvmaf:
+
+| crf | bytes | vmaf  |
+| --: | ----: | ----: |
+|  26 | 1.52M | 97.30 |
+|  30 | 1.22M | 96.86 |
+|  32 | 1.06M | 96.50 |
+|  34 | 0.95M | 96.16 |
+|  38 | 0.75M | 95.22 |
+
+The curve is flat because the sources are already H.264 excerpts rather than masters -- what is
+being encoded has been through a codec once. 26 buys 0.8 VMAF for 43% more bytes and every reader
+pays those bytes; below 32 the loss starts showing on the title cards two of these clips end on,
+the same failure mode the AVIF quality was chosen against.
+
 ## What a device without a hardware decoder gets
 
 **Today: a notice, and nothing else.** The `<video>` fails to decode, the poster frame stays where
@@ -115,6 +138,10 @@ already uses.
 One consequence to watch rather than pre-solve: a source at exactly 1080p publishes one rung, so the
 software path has only the heaviest rung to take. If a measured wait turns out to be intolerable the
 answer is another rung below it, not a change to the playback logic.
+
+**Letterboxing is not cropped out.** One of the clips this was written against is 1280x720 with a
+1280x320 picture inside it, and that is the film's framing rather than a defect, so the ladder
+reads the file's dimensions and nothing else.
 
 ## The chrome is built on `@videojs/core`'s headless store, not its skin
 

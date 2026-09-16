@@ -88,17 +88,9 @@ impl std::error::Error for Error {
 	}
 }
 
-/// Decode whatever was handed over.
-///
-/// The `image` crate covers everything but HEIC, which is HEVC inside a HEIF container --
-/// the same container AVIF uses with a different codec inside, so support for one says
-/// nothing about the other. That path goes through a pure-Rust decoder rather than bindings
-/// to libheif: this runs on one machine and in CI, and a system library is a thing to install
-/// in both. Measured at 249ms for a 4032x2268 frame, which is nothing against the AV1 encode
-/// that follows.
-///
-/// Only the primary image. An iPhone HEIC may also carry a depth map, gain map and the frames
-/// of a live photo; none of those are wanted yet.
+/// Decode whatever was handed over. HEIC goes through a pure-Rust decoder rather than libheif
+/// bindings, and only the primary image is taken. See spec/architecture/media.md, "Where a
+/// photograph was taken is worked out offline", for why.
 fn load(original: &[u8]) -> Result<DynamicImage, Error> {
 	if is_heic(original) {
 		let out = heic::DecoderConfig::new()
@@ -258,13 +250,12 @@ fn resize(image: &DynamicImage, target: Size) -> DynamicImage {
 	if target.width == image.width() && target.height == image.height() {
 		return image.clone();
 	}
-	// The resizer matches the source's pixel type against the destination's, and the destination
+	// The resizer requires the source and destination pixel types to match, and the destination
 	// below is RGBA8. A PNG saved without an alpha channel decodes as RGB8 -- most screenshots
-	// are -- and the resize then fails, so this used to fall through to returning the original at
-	// full size. That is worse than an error: `placeholder` asks for a hundred pixels on the long
-	// edge and hands whatever comes back to thumbhash, which asserts on anything larger, so a
-	// screenshot without alpha panicked the import from three frames away. Converting first makes
-	// the two agree, and the fallbacks below stay for a caller that can live with the original.
+	// are -- so without converting first, a resize failure used to fall through to the original at
+	// full size; `placeholder` then handed that to thumbhash at up to 100px, which asserts on
+	// anything larger, so an alpha-less screenshot panicked the import three frames away.
+	// Converting first fixes the common case; the fallback below stays for anything it still misses.
 	let source = DynamicImage::ImageRgba8(image.to_rgba8());
 	let mut destination = FirImage::new(target.width, target.height, PixelType::U8x4);
 	if Resizer::new().resize(&source, &mut destination, &ResizeOptions::new()).is_err() {
@@ -275,15 +266,10 @@ fn resize(image: &DynamicImage, target: Size) -> DynamicImage {
 		.unwrap_or_else(|| image.clone())
 }
 
-/// The thumbhash and a tiny image decoded from it.
-///
-/// Both are kept: the hash is the compact canonical form, and the decoded image is what gets
-/// inlined into an article so a page paints its placeholder with no request, no decoder
-/// script, and no dependence on JavaScript having run.
 /// The compact hash a page paints before any image arrives.
 ///
-/// Only the hash. It used to also return a decoded, re-encoded copy for inlining, which the
-/// site build now produces from this -- one picture, one stored form.
+/// Only the hash: it used to also return a decoded, re-encoded copy for inlining, which the
+/// site build now produces from this instead -- one picture, one stored form.
 fn placeholder(image: &DynamicImage) -> Result<Vec<u8>, Error> {
 	// thumbhash reads a small input by design; anything larger is wasted work.
 	let small = resize(image, Size::new(image.width(), image.height()).scaled_to_long_edge(100));

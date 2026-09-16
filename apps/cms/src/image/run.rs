@@ -197,22 +197,13 @@ fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
 		.collect()
 }
 
-/// Whether a published record was derived with the full frame kept.
+/// Whether a published record was derived with the full frame kept, inferred from the rungs
+/// rather than read off the record: a rung at exactly the source's long edge can only exist if
+/// the full frame was kept, and below the cap the top rung is the source either way. Measured
+/// on the long edge, per `Size::long_edge`, or a tall image loses an already-published rung.
 ///
-/// The published variants already answer this: a rung at exactly the source's long edge can only
-/// exist because the full frame was kept. Below the cap the top rung is the source either way,
-/// so there is nothing to infer and nothing that could be inferred wrong.
-///
-/// Measured on the long edge, never on width, for the reason `ladder` gives: a portrait
-/// photograph is not a small image, it is a tall one. Asking whether the width cleared the cap
-/// answered no for every tall image, and re-deriving then dropped a full-frame rung that was
-/// already published.
-///
-/// FIXME: this infers a choice spec/architecture/data.md says is recorded on the record. Recording it
-/// is deliberately not done yet -- the input directory, and the retained originals it implies,
-/// exist only because the CLI is the one way an image enters. Once the desktop app derives on
-/// insert there is no original to re-derive from and nothing left to infer, and the question
-/// becomes a metadata version migration instead. Revisit when the app owns image insertion.
+/// FIXME: spec/architecture/media.md says this belongs on the record, not inferred -- deferred
+/// until the desktop app derives on insert, leaving no original to re-derive from.
 fn keeps_full_frame(image: &Image) -> bool {
 	let source = super::ladder::Size::new(image.source.width, image.source.height);
 	image.variants.values().any(|record| {

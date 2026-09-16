@@ -1,18 +1,10 @@
 //! The `cms diagram` command: describing a drawing that is written as text.
 //!
-//! An `svg-canvas` or `mermaid` fence is a picture the corpus stores as source. Nothing else in
-//! the pipeline can read it: the block is `Kind::Code`, so it is never translated and never
-//! reaches a reader who cannot see it, never reaches the search index, and reaches the
-//! translator of the paragraph beside it as the words "a code block, not shown".
-//!
-//! So it is described, the way an image is. The difference is where the description comes from:
-//! an image is described from its pixels and needs a model that can see, while a diagram is
-//! described from the source that draws it, which is text. That makes this closer to `summary`
-//! than to `alt`, and it is why the two do not share a command.
-//!
-//! The description belongs to the drawing rather than to any article carrying it, so it is keyed
-//! by the hash of the block -- the segment id, which is already what addresses that block
-//! everywhere else -- and one drawing used twice is described once. See spec/i18n.md.
+//! A Mermaid or `svg-canvas` fence draws a picture the corpus stores as source, unreadable by
+//! everything downstream until it is described the way an image is -- from the source rather
+//! than pixels, which is closer to `summary` than to `alt`. See spec/i18n.md, "A diagram
+//! written as source is described, not translated", for why, and for why the description is
+//! keyed by the block's hash rather than by the article carrying it.
 
 use crate::i18n::runner::{self, Refusal, Runner};
 use crate::i18n::segment::{self, Kind as SegmentKind};
@@ -336,15 +328,10 @@ struct Generated {
 
 /// The description between the boundaries, taking either one as the closing mark.
 ///
-/// `prompt::bounded_reply` wants the output boundary on both sides, and is right to for a reply
-/// that is prose about prose. This asks for prose about a fenced source, and a model that has
-/// just read a fence closes with the fence it read: every reply measured here opened with the
-/// output boundary and ended with the source one, or slipped the source one in before it.
-///
-/// The opening mark is the one that matters, and it is still required. It is what says the text
-/// after it is the model's answer rather than something the source persuaded it to write. Which
-/// mark ends the answer says nothing about where the answer came from, so the first of either
-/// closes it.
+/// `prompt::bounded_reply` wants the output boundary on both sides, right for prose about
+/// prose. This asks for prose about a fenced source, and a model that just read a fence closes
+/// with the fence it read: every reply measured here opened with the output boundary and ended
+/// with the source one, or slipped it in before that -- so either boundary closes the answer.
 fn described(reply: &str, output: &str, source: &str) -> Option<String> {
 	let after = reply.split_once(output)?.1;
 	let end =
