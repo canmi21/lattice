@@ -550,17 +550,55 @@
 	/**
 	 * Record where the clip has got to, or forget it.
 	 *
-	 * Called where the position stops changing rather than while it changes. `timeupdate` fires
-	 * four times a second and every write is a read, a parse, an edit and a stringify of the whole
-	 * record; pausing and leaving the page are the two moments the number is worth keeping, and
-	 * `pagehide` is the one that catches a reload, which is the case this exists for.
+	 * The picture goes with the number, and that is the point of taking one at all: a reload that
+	 * puts the clip back at fourteen seconds and blurs the *first* frame behind it while it
+	 * decodes is showing the wrong place, and the blurred ground is the one thing on screen for
+	 * that moment.
 	 */
 	function keep(): void {
 		if (!video || !clip) return;
-		// The picture goes with the number. A reload that puts the clip back at fourteen seconds
-		// and blurs the *first* frame behind it while it decodes is showing the wrong place, and
-		// the blurred ground is the one thing on screen for that moment.
+		kept = performance.now();
 		keepPosition(sessionStorage, clip, video.currentTime, video.duration, stillOf(video));
+	}
+
+	/**
+	 * How long the remembered frame is allowed to be out of date while a clip is running.
+	 *
+	 * **The record used to be written only where the position stopped changing** -- `pause`,
+	 * `ended`, `pagehide` -- on the argument that a number is worth keeping when it settles. That
+	 * was an argument about a number, and the entry is now a number and a picture of it. A clip
+	 * whose tab is discarded, whose device sleeps, or that is closed by anything that does not get
+	 * as far as `pagehide` leaves either a frame from wherever it was last paused or, for a clip
+	 * played straight through from the start, nothing at all.
+	 *
+	 * So it is also kept while it runs. `timeupdate` is the clock rather than an interval of this
+	 * file's own: it fires only during playback, stops on its own at every pause, seek and stall,
+	 * and needs nothing unwound. At roughly four a second it is far more often than this wants,
+	 * so it is thinned to one keep every two seconds of wall clock.
+	 *
+	 * **Two seconds, because the still is what costs something.** Measured on a 1080p clip in this
+	 * article: the canvas draw and `toDataURL` are 1.59ms, and the read, parse, edit and stringify
+	 * of the whole record are 0.01ms -- the storage write, which is what the old comment here
+	 * worried about, is a rounding error next to the picture. Every `timeupdate` would be 6.4ms in
+	 * every second of playback; one in eight is 0.8ms, which is under a tenth of a frame's budget
+	 * and buys a remembered picture that is never more than two seconds stale.
+	 */
+	const KEEP_EVERY = 2000;
+	let kept = 0;
+	function keepWhileRunning(): void {
+		if (performance.now() - kept < KEEP_EVERY) return;
+		keep();
+	}
+
+	/**
+	 * The last moment a phone reliably gives anybody.
+	 *
+	 * `pagehide` catches a reload and a deliberate close, and on a mobile browser it is not
+	 * guaranteed to run before a backgrounded tab is thrown away. Going hidden is, and it is also
+	 * exactly when a reader who switches away should have their place taken down.
+	 */
+	function keepOnHide(): void {
+		if (document.visibilityState === 'hidden') keep();
 	}
 
 	$effect(() => {
@@ -568,13 +606,18 @@
 		const element = video;
 		element.addEventListener('pause', keep);
 		element.addEventListener('ended', keep);
+		element.addEventListener('timeupdate', keepWhileRunning);
 		window.addEventListener('pagehide', keep);
+		document.addEventListener('visibilitychange', keepOnHide);
 		return () => {
 			element.removeEventListener('pause', keep);
 			element.removeEventListener('ended', keep);
+			element.removeEventListener('timeupdate', keepWhileRunning);
 			window.removeEventListener('pagehide', keep);
+			document.removeEventListener('visibilitychange', keepOnHide);
 		};
 	});
+
 
 	/**
 	 * Start a preview, silent or not depending on what the reader has already allowed.

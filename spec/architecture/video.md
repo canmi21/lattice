@@ -319,13 +319,38 @@ which is what keeps the blur from returning behind the letterbox bars in full sc
 component deliberately draws no ground at all. The thumbhash lives in the `var()` fallback, so a
 reader with no record needs nothing to have run.
 
+**The selector names the frame and not the `<video>`, and a custom property is why.** The ground is
+drawn on the box the element sits in -- it has to be, because a held element is transparent and
+takes its own background with it -- and a custom property inherits downwards and only downwards. A
+`--clip-ground` set on the `<video>` is set on a *descendant* of the one box that reads it, so the
+frame's `var(--clip-ground, <thumbhash>)` took the fallback every time and a returning reader was
+shown a blur of the opening frame after all. Measured on a clip left at two seconds: 999 characters
+of remembered still in the record, the same 999 characters computed as `--clip-ground` on the
+`<video>`, and a 194-character build thumbhash computed as the frame's `background-image`. The
+element still needs `--clip-hold`, and inherits it from the frame, which is the direction that
+works. The clip's name therefore sits on the frame as `data-clip`, and the selector is the bare
+attribute rather than an element and an attribute.
+
+Two values are produced and they are read by two different boxes, so a change to either half has to
+be walked from where it is written to where it is finally used. Checking the head script alone
+would have shown a correct value for the right clip; checking the stylesheet alone would have shown
+a correct `var()` with a fallback. Both ends were right and the path between them was not.
+
 Both halves of every entry are whitelisted before they reach the stylesheet: the clip name against
 `[A-Za-z0-9._-]`, the still against a base64 data URI. The record is same-origin and the reader's
 own, which is not the same as trusted -- a value that can put arbitrary text inside a selector or a
 `url()` can write arbitrary CSS, and "our own code put it there" is an argument about today.
 
-Measured: `--clip-ground` set at 59ms with zero paint entries recorded, against a first paint at
-84ms, and its value none of the three thumbhashes the server sent.
+Measured on the box that reads it: the frame's `background-image` sampled at 250.8ms with zero
+paint entries recorded, against a first paint at 272ms, and its value the 1027-character still from
+the record rather than any of the three thumbhashes the server sent. Sampling the *value* rather
+than the box was what let this look right while it was wrong -- `--clip-ground` had always been set
+on time, on an element nothing asked.
+
+Measured against the picture as well, since the point of the blur is that it is a blur of
+somewhere: the mean colour of a clip left at 21.98 seconds, its remembered still, and the build
+thumbhash are (137, 141, 131), (139, 145, 135) and (49, 70, 63). Six apart against a hundred and
+thirty-two.
 
 So the poster does what a poster is for -- something to show while there is nothing better -- and
 goes the moment the element has painted a frame of its own. What produces one is a seek, which is
@@ -349,11 +374,23 @@ is unconditional, and a completed seek has by definition put a frame up.
 The attribute comes back on `emptied` and `error`, the two ways a decoded frame stops being true:
 a source swap, or a clip that has stopped working.
 
-**It is kept where it stops changing, not while it changes.** `timeupdate` fires four times a
-second and every write is a read, a parse, an edit and a stringify of the whole record. Pausing
-and leaving the page are the two moments the number is worth keeping, and `pagehide` is the one
-that catches a reload -- which is the case this exists for. A clip that reached its end drops its
-entry rather than storing the duration, because a finished clip starts again.
+**It is kept while the clip runs, not only where it stops.** Pausing, ending and leaving the page
+are still kept the moment they happen, and `pagehide` is the one that catches a reload -- but those
+three were chosen when the entry was a number, and it is now a number and a picture of it. A tab
+that is discarded, a device that sleeps, a phone that never reaches `pagehide` at all: each of
+those leaves the picture from wherever the clip was last paused, or, for a clip played straight
+through from the start, no picture at all. So `timeupdate` is used as a clock -- it fires only
+during playback and stops on its own, with nothing to unwind -- thinned to one keep every two
+seconds of wall clock.
+
+**The still is the cost, not the write, and that is the opposite of what this used to say.**
+Measured on a 1080p clip: the canvas draw and `toDataURL` together are 1.59ms, and the read, parse,
+edit and stringify of the whole record are 0.01ms. `timeupdate`'s own four a second would be 6.4ms
+in every second of playback; one in eight is 0.8ms, and buys a remembered picture that is never
+more than two seconds out of date.
+
+A clip that reached its end drops its entry rather than storing the duration, because a finished
+clip starts again.
 
 ## What the page ships before the player is alive
 

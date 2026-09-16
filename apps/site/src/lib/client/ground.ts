@@ -32,9 +32,20 @@
  * what keeps the blur from reappearing behind the letterbox bars in full screen, where the
  * component deliberately draws no ground at all.
  *
+ * **The selector names the frame, not the `<video>`, and getting that wrong is what broke this.**
+ * A custom property inherits downwards and only downwards. The ground is drawn on the frame the
+ * element sits in -- it has to be, because a held element is transparent and takes its own
+ * background with it -- so a `--clip-ground` set on the `<video>` is set on a descendant of the
+ * one box that reads it, and the frame's `var(--clip-ground, <thumbhash>)` took the fallback every
+ * time. Measured on a clip the tab remembered at two seconds: the still in the record was 999
+ * characters, the `--clip-ground` computed on the `<video>` was that same still, and the
+ * `background-image` computed on the frame was the 194-character build thumbhash -- the opening
+ * frame, which is the one picture this whole path exists to not show. `video.svelte` carries
+ * `data-clip` on the frame for that reason, and the `<video>` inherits both values from it.
+ *
  * Both halves of every entry are checked against a whitelist before they reach the stylesheet.
  * The record is same-origin and the reader's own, which is not the same as trusted: a value that
  * can put arbitrary text inside a selector or a `url()` is a value that can write arbitrary CSS,
  * and "it got there through our own code" is an argument about today.
  */
-export const videoGroundScript = `(function(){try{var r=sessionStorage.getItem("state");if(!r)return;var m=JSON.parse(r)["video.at"];if(!m||typeof m!=="object")return;var o="";for(var k in m){var s=m[k]&&m[k].still;if(typeof s!=="string")continue;if(!/^[A-Za-z0-9._-]+$/.test(k))continue;if(!/^data:image\\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(s))continue;o+='video[data-clip="'+k+'"]{--clip-ground:url("'+s+'");--clip-hold:0}'}if(!o)return;var e=document.createElement("style");e.textContent=o;document.head.appendChild(e)}catch(e){}})()`;
+export const videoGroundScript = `(function(){try{var r=sessionStorage.getItem("state");if(!r)return;var m=JSON.parse(r)["video.at"];if(!m||typeof m!=="object")return;var o="";for(var k in m){var s=m[k]&&m[k].still;if(typeof s!=="string")continue;if(!/^[A-Za-z0-9._-]+$/.test(k))continue;if(!/^data:image\\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(s))continue;o+='[data-clip="'+k+'"]{--clip-ground:url("'+s+'");--clip-hold:0}'}if(!o)return;var e=document.createElement("style");e.textContent=o;document.head.appendChild(e)}catch(e){}})()`;

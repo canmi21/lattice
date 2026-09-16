@@ -350,57 +350,52 @@
 	const origin = $derived(source ? (source.label ?? new URL(source.url).hostname) : undefined);
 
 	/**
-	 * The poster's placeholder, painted under it while it arrives.
-	 *
-	 * The same two-line trick `picture.svelte` uses, and it matters more here: a clip reserves its
-	 * box from `width` and `height`, so without this there is a bordered rectangle of page colour
-	 * sitting in the prose for as long as the poster takes.
-	 */
-	/**
 	 * The blurred ground, on the frame rather than on the element that sits in it.
 	 *
 	 * It used to be the element's own background, which stopped working the moment the element
 	 * needed to be held back: a transparent `<video>` takes its background with it. On the frame
-	 * it stays put while the picture in front of it fades in.
+	 * it stays put while the picture in front of it fades in. It is also what keeps a bordered
+	 * rectangle of page colour out of the prose: a clip reserves its box from `width` and
+	 * `height`, so there is a hole sitting there for as long as nothing has been decoded.
 	 *
 	 * `--clip-ground` is set before anything paints, by the inline script in `app.html`, for any
 	 * clip this tab has a still of -- so a returning reader's first paint is a picture of where
 	 * they left it rather than of the first frame. The thumbhash is the `var()` fallback, which is
 	 * where a reader with no record lands. See `client/ground.ts`.
 	 *
-	 * Withheld in either full screen, where the letterbox bars are meant to be black and a
-	 * blurred still in them is the thing that mode asked for black instead of. Inline, so the
-	 * stylesheet could not take it back without `!important`; not emitting it is simpler than
-	 * overriding it.
+	 * **That is why `data-clip` is on the frame below rather than on the `<video>`.** A custom
+	 * property inherits downwards and only downwards, so one set on the element is invisible to the
+	 * box around it: with the attribute on the `<video>`, this declaration resolved to the
+	 * thumbhash for every reader, remembered clip or not. Measured on a clip left at two seconds,
+	 * the record held a 999-character still, `--clip-ground` computed on the `<video>` was that
+	 * still, and the frame's `background-image` was the 194-character build thumbhash -- a blur of
+	 * the opening frame, which is the one picture this path exists to not show. The `<video>` needs
+	 * `--clip-hold` and inherits it from the frame, which is the direction that works.
+	 *
+	 * Emitted whether or not there is a thumbhash to fall back to. A clip whose build produced no
+	 * `preview` can still be one the tab remembers, and an absent `--clip-ground` with no fallback
+	 * leaves the declaration invalid at computed-value time, which paints nothing -- the same
+	 * nothing as not writing it.
+	 *
+	 * Withheld in either full screen, where the letterbox bars are meant to be black and a blurred
+	 * still in them is the thing that mode asked for black instead of. It was `filling` alone for a
+	 * while, so web fullscreen had black bars and real fullscreen had a blurred still in them:
+	 * measured on a 16:9 clip in a 1400x1000 window, the bars read (30, 25, 24) at the top and
+	 * (8, 6, 3) at the bottom. Inline, so the stylesheet could not take it back without
+	 * `!important`; not emitting it is simpler than overriding it, and a value existing is not the
+	 * same as the ground being wanted.
 	 */
 	const ground = $derived(
-		!bare && preview
-			? `background-image:var(--clip-ground,url(${preview}));background-size:cover;background-position:center`
-			: undefined,
+		bare
+			? undefined
+			: `background-image:var(--clip-ground${preview ? `,url(${preview})` : ''});background-size:cover;background-position:center`,
 	);
 
-	const style = $derived(
-		[
-			// Dropped in either fullscreen rather than overridden there. This is an inline style
-			// and an inline style beats any selector, so the stylesheet cannot take it back
-			// without `!important` -- and the placeholder showing through the letterbox bars is
-			// exactly what both modes asked for black instead of. Nothing is uncovered in an
-			// article, which is why it only ever showed in one of the three.
-			//
-			// It was `filling` alone for a while, so web fullscreen had black bars and real
-			// fullscreen had a blurred still in them. Measured on a 16:9 clip in a 1400x1000
-			// window, the bars read (30, 25, 24) at the top and (8, 6, 3) at the bottom.
-			// `--clip-ground` is set before anything paints, by the inline script in `app.html`, for
-			// any clip this tab has a still of -- so a returning reader's first paint is already a
-			// picture of where they left it rather than of the first frame. The thumbhash is the
-			// fallback inside `var()`, which is where a reader with no record lands, and the whole
-			// declaration is still withheld in full screen: the value existing is not the same as
-			// the ground being wanted. See `client/ground.ts`.
-			ratio && `aspect-ratio:${ratio}`,
-		]
-			.filter(Boolean)
-			.join(';') || undefined,
-	);
+	// The shape of the window, on the element rather than on the frame: the frame is sized by the
+	// column, and the picture is what has to keep its proportions inside it. Both fullscreens put
+	// it back to `auto` from the stylesheet, where the box is the window and the file's own shape
+	// is what decides.
+	const style = $derived(ratio ? `aspect-ratio:${ratio}` : undefined);
 </script>
 
 <div class="space-y-2">
@@ -414,6 +409,7 @@
 		bind:this={frame}
 		style={ground}
 		class="video-frame relative overflow-hidden {stylex.attrs(styles.frame).class}"
+		data-clip={src}
 		data-filling={filling || undefined}
 	>
 	<!--
@@ -440,7 +436,6 @@
 		class="video-surface block w-full"
 		onclick={() => controls?.press()}
 		src={resolved ? undefined : fallback}
-		data-clip={src}
 		data-settled={settled || undefined}
 		poster={broken ? poster : undefined}
 		{width}
@@ -534,38 +529,6 @@
 		{/if}
 	</div>
 
-<style>
-	/* The window is the declared shape and the picture fills it, which is `picture.svelte`'s
-	   `crop` applied to a clip: the box is the layout and the file bends to it. */
-	.video-surface {
-		display: block;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		/* Held back until the frame on screen is the one that was asked for, with the blurred
-		   ground on the frame behind showing through in the meantime. The fade is short enough to
-		   read as the blur sharpening rather than as two pictures.
-		
-		   Only a clip this tab remembers is held, and the head script is what says so by setting
-		   `--clip-hold`. Defaulting to held here and releasing from the component would make every
-		   reader wait for hydration: measured, a decoded frame at 68ms against hydration finishing
-		   at 335ms on a long article. A clip with nothing remembered has no wrong frame to show
-		   and is never held. See `client/ground.ts`. */
-		opacity: var(--clip-hold, 1);
-		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.video-surface[data-settled] {
-		opacity: 1;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.video-surface {
-			transition: none;
-		}
-	}
-</style>
-
 	{#if support === 'none'}
 		<!--
 			What a device without a decoder gets, and it is the whole of what is built: the poster
@@ -621,10 +584,11 @@
 		   read as the blur sharpening rather than as two pictures.
 		
 		   Only a clip this tab remembers is held, and the head script is what says so by setting
-		   `--clip-hold`. Defaulting to held here and releasing from the component would make every
-		   reader wait for hydration: measured, a decoded frame at 68ms against hydration finishing
-		   at 335ms on a long article. A clip with nothing remembered has no wrong frame to show
-		   and is never held. See `client/ground.ts`. */
+		   `--clip-hold` on the frame, from where it inherits down to here. Defaulting to held in
+		   this rule and releasing from the component would make every reader wait for hydration:
+		   measured, a decoded frame at 68ms against hydration finishing at 335ms on a long
+		   article. A clip with nothing remembered has no wrong frame to show and is never held.
+		   See `client/ground.ts`. */
 		opacity: var(--clip-hold, 1);
 		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
 	}

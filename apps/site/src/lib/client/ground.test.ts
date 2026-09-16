@@ -24,8 +24,11 @@ const record = (map: unknown) => JSON.stringify({ version: 2, 'video.at': map })
 
 describe('the ground chosen before anything paints', () => {
 	it('names the clip and carries its still', () => {
+		// The attribute alone, with no element in front of it. `video.svelte` puts `data-clip` on
+		// the frame, because the frame is what draws the ground and a custom property set on the
+		// `<video>` inside it never reaches its own parent. Naming `video` here was the bug.
 		expect(run(record({ [CLIP]: { at: 12, still: STILL } }))).toBe(
-			`video[data-clip="${CLIP}"]{--clip-ground:url("${STILL}");--clip-hold:0}`,
+			`[data-clip="${CLIP}"]{--clip-ground:url("${STILL}");--clip-hold:0}`,
 		);
 	});
 
@@ -45,7 +48,7 @@ describe('the ground chosen before anything paints', () => {
 	it('refuses a clip name that could close the selector', () => {
 		// The record is same-origin and the reader's own, which is not the same as trusted: a name
 		// that reaches the stylesheet unchecked is a name that can write rules of its own.
-		const attack = `x"]{}body{display:none}video[data-clip="y`;
+		const attack = `x"]{}body{display:none}[data-clip="y`;
 		expect(run(record({ [attack]: { at: 1, still: STILL } }))).toBe('');
 	});
 
@@ -63,6 +66,6 @@ describe('the ground chosen before anything paints', () => {
 	it('emits one rule per clip the tab remembers', () => {
 		const other = 'aaaa1111bbbb2222cccc3333dddd4444.mp4';
 		const out = run(record({ [CLIP]: { at: 1, still: STILL }, [other]: { at: 2, still: STILL } }));
-		expect(out.match(/video\[data-clip=/g)).toHaveLength(2);
+		expect(out.match(/\[data-clip=/g)).toHaveLength(2);
 	});
 });
