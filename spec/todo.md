@@ -56,7 +56,7 @@ composed style, or somewhere it currently is not.
 
 ## The article body's typography reaches elements no component renders
 
-61 of the 351 rules in Svelte `<style>` blocks are `:global`, and the largest group is
+61 of the 351 rules in Svelte `<style>` blocks were `:global` at the time, and the largest group is
 [article.svelte](../apps/site/src/lib/article/article.svelte) and
 [body.svelte](../apps/site/src/lib/article/body.svelte) styling prose the markdown compiler
 produced: `strong`, `s`, `hr`, `blockquote`, `pre`, `code`, `picture`, `img`, `.shiki span`.
@@ -175,9 +175,9 @@ first one large enough to show what is left: `position`, `top`, `right`, `z-inde
 `display`s, four widths, three `overflow`s and a `height`, most of which needs no selector to
 reach the element it styles.
 
-Measured across the site: 203 of the 327 rules in the 25 `<style>` blocks name nothing but a
-class on an element the component itself renders, and 329 of the declarations inside them are
-layout. Under [architecture/css.md](architecture/css.md) that is the markup's, written as
+Measured across the site at the time: 203 of the 327 rules in the 25 `<style>` blocks named
+nothing but a class on an element the component itself renders, and 329 of the declarations inside
+them were layout. Under [architecture/css.md](architecture/css.md) that is the markup's, written as
 utilities on the element, and it is sitting in the one layer that exists to hold what the other
 two cannot address.
 

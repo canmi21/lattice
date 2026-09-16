@@ -92,8 +92,13 @@
    the region beside it". */
 :root {
 	/* The rail's width -- the same on every article and in every language, and the width at which
-	   its entries wrap. */
+	   its entries wrap. Argued in spec/styling.md, "The rail's box is one declared width", and
+	   depended on across the language boundary by `ONE_LINE` in apps/cms/src/i18n/width.rs, which
+	   turns this width into the column budget a translated heading is held to. */
 	--rail-width: 8.5rem;
+	/* The article column's cap. `budget::DESKTOP_TITLE` and `DESKTOP_SUBTITLE` in
+	   apps/cms/src/i18n/width.rs derive a translated title's room from this width, so changing it
+	   changes what the CMS will accept. */
 	--rail-column: 45rem;
 	/* The blank region the rail lives in: window edge to the article's first letter, not to the
 	   column's frame -- the frame is not a thing anybody sees. See spec/styling.md, "The article is

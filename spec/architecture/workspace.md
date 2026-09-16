@@ -1,11 +1,58 @@
 # The shape of the workspace
 
-## What this repo is
+## What this repository is
 
-One folder holding most of what its owner writes, across every language, so that an agent
-working in this directory can scan it, cross-reference it, and reuse it without anything
-being published first. Source-level reuse is the point. Publishing a package is something a
-library earns after it stabilises, not a precondition for using it.
+press is one project of several and its own repository, cloned into the workspace's `repos/` as a
+sibling of the others. It holds the site, the two Workers beside it, the desktop CMS that edits
+it, the corpus they serve, and the libraries those share. Nothing else, and the absences are as
+much of the description as the contents: there is no `.editorconfig`, no `rustfmt.toml`, no
+`.oxlintrc.json`, no agent hook and no `CLAUDE.md` anywhere below this root. Every one of those
+exists once, one directory up, and is found by walking up from wherever a tool starts -- so a file
+here is formatted, linted and checked by configuration it carries no copy of. The toolchain works
+the same way: node, rust, pnpm, jj and oxlint are declared in the workspace's `[tools]`, and this
+repository's `mise.toml` adds only `rclone`, the one tool nothing above it needs.
+
+Which questions that arrangement settles -- where a rule lives, why nothing is a submodule, why a
+project cloned on its own has no formatter, why work begins above rather than here -- belongs to
+the workspace's `CLAUDE.md` and its `architecture/repos.md`. Cited by name rather than linked: a
+relative path across the repository boundary resolves only while this project happens to be
+nested, and a name reads correctly either way.
+
+**This section is a correction.** It used to open "one folder holding most of what its owner
+writes, across every language", which described the arrangement that was abandoned -- one project
+at the root with the rest nested inside it -- and stopped being true when press was demoted to a
+sibling. The layout block below was corrected first; this rested on the same premise and was
+left standing.
+
+What was true in it, and stays, is the half that never needed the folder to hold everything.
+**Source-level reuse is the point inside this repository.** A library under `libs/` is consumed by
+this repository's own applications without being built or published first, which is what
+"Libraries export source" below is arguing; publishing is something a library earns after it
+stabilises, not a precondition for a second consumer here. What it is not is an argument for
+keeping unrelated projects in one tree, and it never was.
+
+The word "workspace" in this file's title is the pnpm and Cargo one -- `pnpm-workspace.yaml` and
+the `[workspace]` in `Cargo.toml` at this root, which is what makes `libs/` and `apps/` resolve to
+each other. The directory above is a different thing wearing the same word.
+
+### A figure in `spec/` is dated, or it is checked
+
+Numbers appear throughout these documents and two kinds of them are kept true by opposite means.
+
+**A figure describing a state that changes on its own is dated.** How large the corpus is, how far
+a migration has got, how many components still do something -- nothing holds these still, and
+writing one in the present tense promises that every change to the thing comes back and updates
+the sentence. That does not happen and will not. Dated, the figure stops being a claim that rots
+and becomes what it always was: a mark of how far something had got when somebody last counted.
+The spelling is "measured ... at the time", as [media.md](media.md) uses for its 39 records and
+[cms.md](cms.md) for its largest sidecar.
+
+**A figure that is a value the code uses is not dated.** A constant, a threshold, a declared width
+-- these have to match the code exactly, and the answer to one drifting is a check, not a hedge.
+Dating such a number would excuse the disagreement it exists to catch.
+
+The test is what keeps the number true. If the only thing that would is somebody noticing, date
+it.
 
 ## Layout
 

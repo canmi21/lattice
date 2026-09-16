@@ -97,8 +97,8 @@ than anything that reads as an error.
 ## A record is a section of a view, and its address is already computed
 
 One record per (article path, locale, section), with `objectID` those three joined so that
-re-pushing overwrites rather than accumulating. Six articles across nine locales currently make
-770 records.
+re-pushing overwrites rather than accumulating. Six articles across nine locales made 770 records
+at the time.
 
 Sections rather than whole views, for two reasons that happen to agree. A record has a size
 ceiling a long article passes on its own, and a result that lands on the paragraph answering
@@ -310,9 +310,11 @@ the markup this site put there.
 
 ## What the corpus costs, and which limit binds first
 
-Six articles across nine locales are 770 records. The multiplier is the sectioning, not the
-locales: 54 views become 711 sections, and the byte ceiling adds the last 59. Fourteen records
-per view on average, seven at the least and twenty-seven at the most.
+Six articles across nine locales made 770 records at the time. The multiplier is the sectioning,
+not the locales: 54 views became 711 sections, and the byte ceiling added the last 59. Fourteen
+records per view on average, seven at the least and twenty-seven at the most. What the projection
+below rests on is the shape, which a larger corpus keeps; the counts themselves move with
+`contents/`.
 
 Projected at that shape, a hundred articles are roughly 12,800 records and two hundred are
 roughly 25,700, against a free tier that includes 50,000. **The record count is not the limit

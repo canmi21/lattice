@@ -234,6 +234,17 @@ The cost is accepted rather than hidden: an article with short headings no longe
 so its entries sit left of centre with space to their right. That space buys a control that does
 not move.
 
+**The number lives in more than one place, and nothing but a pointer connects them.** It is
+declared as `--rail-width` in [utilities.css](../apps/site/src/styles/utilities.css), argued
+here, and turned into a column budget across the language boundary by `ONE_LINE` in
+[width.rs](../apps/cms/src/i18n/width.rs), which the CMS holds a translated heading to and which
+[i18n.md](i18n.md) explains under "A section heading is also a label, and the rail is narrow".
+Each record is internally consistent and they disagree only when read together: this section and
+the declaration say 8.5rem, while the Rust constant derives its 28 columns from a 192px cap.
+Which of them is right is open and is not settled here. What each record now does is name its
+siblings, so the next reader sees them at once rather than one at a time -- which is how the
+width was wrong in two places for a long time without anyone noticing.
+
 **A wrapped entry gets two comparable lines**, through `text-wrap: balance` on the label. Left to
 fill and spill, the break lands wherever the width runs out -- `Independencia de la` over `UI` put
 nineteen characters above two, which reads as a mistake rather than as a wrapped label. Balance is

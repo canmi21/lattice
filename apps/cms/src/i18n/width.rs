@@ -8,8 +8,12 @@
 
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-/// Columns the rail fits on one line: its cap is 192px at 13px type, so fourteen Han characters
-/// or twenty-eight Latin ones. A number about the layout, kept beside the rule that reads it.
+/// Columns the rail fits on one line, derived from a cap of 192px at 13px type: fourteen Han
+/// characters or twenty-eight Latin ones. The rail's own width is `--rail-width` in
+/// apps/site/src/styles/utilities.css, argued in spec/styling.md, "The rail's box is one declared
+/// width". **That declaration is 8.5rem, which is 136px, and this derivation has not been
+/// reconciled with it** -- at the declared width the budget is generous, so the audit warns late.
+/// Open: the number wants measuring against the rendered rail rather than either record.
 pub const ONE_LINE: usize = 28;
 
 /// Two lines, where the label is clamped. Past this the end of the heading is not shown at all,
@@ -245,6 +249,8 @@ pub mod budget {
 	/// always fits, rather than being allowed to wrap to a second line.
 	pub const ARTICLE_TITLE: f32 = 300.0;
 	/// A card title once the article column is at its 45rem cap, which is every window past 768px.
+	/// That cap is `--rail-column` in apps/site/src/styles/utilities.css; this figure and the
+	/// subtitle below are derived from it by hand, and nothing checks that they still follow it.
 	pub const DESKTOP_TITLE: f32 = 504.0;
 	/// A card subtitle at that same cap.
 	pub const DESKTOP_SUBTITLE: f32 = 613.0;

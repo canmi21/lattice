@@ -274,5 +274,11 @@ is the same directory, and two checkouts are independent because they are.
 answer above was that somebody looking at the directory could no longer tell which repository it
 served. An item key -- an article path with slashes in it, a segment id and a locale -- also
 cannot be a file name, but nothing needs to recover it _from_ the name: the key is written inside
-the file, so `cms claims` and a person reading the directory both get the readable answer. The
-hash costs no legibility there, which is the only thing it cost above.
+the file, so opening one answers the question the name cannot, and anything reading the directory
+gets the same answer by opening them. The hash costs no legibility there, which is the only thing
+it cost above.
+
+That sentence used to name a `cms claims` command. There is no such subcommand and there never
+was -- it was written as an illustration of who would read the directory and read as a description
+of something that existed. The argument does not need it: what carries it is the key being inside
+the file, which is true of any reader at all.

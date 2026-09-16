@@ -246,7 +246,8 @@ which already answers that question for the translator, so the count reads it ra
 markdown a second time and drifting from it. Frontmatter is left out -- a title is metadata here.
 Drafts are left out too, because `buildArticles` excludes them from a production build and
 advertising writing nobody can open is a lie in the other direction. Before all three fixes the
-card said 8 articles and 141,344 characters; it now says 6 and, in English, 23k words.
+card said 8 articles and 141,344 characters; after them it said 6 and, in English, 23k words at
+the time.
 
 The counting itself is the `words-count` crate's rather than this repository's, chosen by
 running five candidates against one table of cases instead of reading their descriptions --
