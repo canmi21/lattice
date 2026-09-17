@@ -245,6 +245,18 @@ bytes at an existing name never change. A content-addressed key cannot denote di
 than it did before, because changing the bytes changes the key. Re-encoding at a new quality
 produces a new object rather than a redefinition of an old one.
 
+**An asset's identity is not an address.** The original's hash names the asset in
+`data/metadata.json` and in an article's `![](id)`, and that original is never published: what
+reaches the bucket is the variants derived from it. So a link built from the authored id points
+at bytes no bucket has, and the resolver's output -- the largest variant -- is the only thing
+safe to write into markup.
+
+The page never noticed, because the resolver rewrites its `src` and `srcset` on the way into a
+block. The feed and the `.md` endpoints did not, and every image in both was a 404 for as long
+as they existed: 14 of 14 in each view, confirmed against the CDN. Both now name what the
+resolver found and fall back to the authored reference only when it found nothing, which is the
+same fallback a block takes for an asset nobody has imported yet.
+
 **The key is not the URL.** Objects are stored fanned out over the first four characters of the
 id -- `{kind}/{ab}/{cd}/{cid}.{ext}` -- and that split exists for a filesystem mirror, which has
 a directory that overflows. R2 has no directories to overflow at all. So the fanout is a storage
