@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { DEVELOPMENT_PORTS, URLS, loopbackUrl } from '@canmi/urls';
 import { describe, expect, it } from 'vitest';
 import app from './app';
 
@@ -50,6 +50,22 @@ describe('CORS', () => {
 	it('does not allow a loopback origin on an unlisted port', async () => {
 		const other = 'http://localhost:26611';
 		const res = await app.fetch(new Request(dev, { headers: { Origin: other } }));
+		expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull();
+	});
+
+	// One machine, two spellings. The list names `localhost`; browsing the development site at
+	// 127.0.0.1 answered with no header at all and the homepage 500ed, while the same page
+	// worked by name. See `allowOrigin`.
+	it('allows the development site by IP as well as by name', async () => {
+		const byIp = loopbackUrl(DEVELOPMENT_PORTS.site);
+		const res = await app.fetch(new Request(dev, { headers: { Origin: byIp } }));
+		expect(res.headers.get('Access-Control-Allow-Origin')).toBe(byIp);
+	});
+
+	// And only in development: production's list is exactly the list.
+	it('refuses that same origin when the request arrived in production', async () => {
+		const byIp = loopbackUrl(DEVELOPMENT_PORTS.site);
+		const res = await app.fetch(new Request(prod, { headers: { Origin: byIp } }));
 		expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull();
 	});
 
