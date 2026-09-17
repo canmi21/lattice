@@ -170,6 +170,54 @@ the whole design's latency rests on.
 | `GET /media?cid=`          | what is known about one asset                            |
 | `POST /batch`              | every question asked about many things; see below        |
 
+### A slug is the identity and the path is the address
+
+**A slug is unique across the whole corpus, whatever directory holds it.** `friends-come-in-phases`
+names one article for as long as it exists; `mirror/friends-come-in-phases` is where it currently
+lives. One is what it is, the other is where to find it, and only the second can change.
+
+That is what the API asks with: `?slug=` takes the identity and nothing else. Passing the
+directory too would be a second copy of a derivable fact, and the API would then have to decide
+what to do when the two disagree -- a failure mode bought for nothing, since the answer names the
+real path anyway.
+
+**Three rules make the identity usable as an address, and all three are refused at build time**,
+before a single article is compiled -- a corpus that breaks one of them produces artifacts that
+are wrong rather than absent, and wrong silently.
+
+- **Lowercase letters and hyphens, and at least one hyphen.** No dots, because a dot is how this
+  site tells a document from a page. The hyphen is what reserves every single word for the site's
+  own router: `/{name}` with no hyphen cannot be an article, so it is a `404` without asking the
+  corpus at all.
+- **No two articles share one.** Two that did would resolve to whichever the lookup reached first.
+- **None may be a name the router already answers for.** The router is asked first and always
+  wins, so an article behind one of its names is an article nobody can reach. The reserved list is
+  read from the route directory rather than written down, so a route added tomorrow is compared
+  against the corpus tomorrow.
+
+**The read counter is keyed by the slug**, which is the same decision seen from the other side. It
+used to be keyed by the path, so recategorising an article opened a fresh row at zero and orphaned
+everything it had earned -- six rows carried between 340 and 9,795 reads when this was written.
+Identity is what a count should hang from; an address is not.
+
+### Reaching an article by name
+
+The site accepts both shapes and serves neither: it redirects, so which address is the real one is
+answered by the server rather than guessed by a crawler. Serving the article at every address it
+answers to, with a `canonical` pointing elsewhere, is the duplicate-content shape.
+
+| Asked for           | Answer                           |
+| ------------------- | -------------------------------- |
+| `/{wrong}/{slug}`   | `301` to the real path           |
+| `/{slug}`           | `302` to the real path           |
+| `/{name}` no hyphen | `404`, without asking the corpus |
+
+**The two codes differ for a reason worth keeping.** Two segments whose second is a known slug is
+unambiguously an article at a stale address, and that shape will never be anything else, so the
+redirect is permanent. A single segment is the site's own namespace -- `licenses` is there now and
+more will be -- and a `301` is cached by browsers approximately for ever, so using one would spend
+an address this site may want later and be unable to take it back.
+
 ### A question asks with a query; a list asks with a body
 
 **Nothing about a question lives in the path.** A single lookup is a `GET` whose identifiers are
