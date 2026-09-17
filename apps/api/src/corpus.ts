@@ -7,13 +7,10 @@ import type {
 	ViewAnswer,
 } from '@canmi/artifacts';
 import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
-import { inArray } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { Hono, type Context } from 'hono';
 import type { Bindings } from './bindings';
 import { failure, success } from './respond';
 import { findArticle, rootOf } from './root';
-import { articleReads } from './schema';
 
 /**
  * What is published right now, derived from the root and nothing else.
@@ -58,14 +55,12 @@ corpus.get('/view/:slug{.+}', async (c) => {
 	// The article's own path rather than the one that was asked for, because it is what the
 	// consumer checks the fetched object's envelope against and keys the read counter by. The
 	// markdown hash is not here: it has its own route, and a fact appears in exactly one answer.
-	const { locale: language, metrics, ...rest } = view;
-	const reads = await readsFor(c.env, [article.path]);
+	const { locale: language, ...rest } = view;
 	const answer = {
 		...rest,
 		slug: article.path,
 		url: article.url,
 		locale: { ...language, code: locale },
-		metrics: { ...metrics, reads: reads.get(article.path) ?? 0 },
 	};
 	return success(c, answer satisfies ViewAnswer, ANSWERED);
 });
@@ -96,20 +91,9 @@ corpus.get('/home', async (c) => {
 		if (view) listed.push({ article, view });
 	}
 
-	// One query for the whole listing rather than one per row: a homepage that costs N round
-	// trips to the database is a homepage that gets slower as the corpus grows.
-	const reads = await readsFor(
-		c.env,
-		listed.map(({ article }) => article.path),
-	);
 	const articles: HomeAnswer['articles'] = listed.map(({ article, view }) => {
-		const { locale: _language, metrics, ...rest } = view;
-		return {
-			...rest,
-			slug: article.path,
-			url: article.url,
-			metrics: { ...metrics, reads: reads.get(article.path) ?? 0 },
-		};
+		const { locale: _language, ...rest } = view;
+		return { ...rest, slug: article.path, url: article.url };
 	});
 
 	const answer = {
@@ -183,21 +167,6 @@ function languageTagOf(root: Root, locale: LocaleCode): string {
 		if (tag) return tag;
 	}
 	return SITE_LANGUAGE;
-}
-
-/**
- * How often each article has been read, in one query.
- *
- * D1 rather than the root, because a visitor writes this and the mirror is one-way -- see
- * spec/architecture/data.md. An article nobody has opened has no row, which is zero.
- */
-async function readsFor(env: Bindings, slugs: string[]): Promise<Map<string, number>> {
-	if (slugs.length === 0) return new Map();
-	const rows = await drizzle(env.DATABASE)
-		.select({ slug: articleReads.slug, count: articleReads.count })
-		.from(articleReads)
-		.where(inArray(articleReads.slug, slugs));
-	return new Map(rows.map((row) => [row.slug, row.count]));
 }
 
 export default corpus;

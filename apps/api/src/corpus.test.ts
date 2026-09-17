@@ -105,8 +105,7 @@ describe('GET /view/:slug', () => {
 			objects: { content: 'b'.repeat(32) },
 			meta: { title: 'Title', short: { title: 'Short' } },
 			dates: { created: '2026-01-01T00:00:00.000Z' },
-			// Read from D1 rather than the root, and zero for an article nobody has opened.
-			metrics: { words: 900, reads: 0 },
+			metrics: { words: 900 },
 			preview: { paragraphs: ['The opening.'] },
 		});
 	});
@@ -125,27 +124,6 @@ describe('GET /view/:slug', () => {
 	it('refuses a locale it does not know rather than falling back to one it does', async () => {
 		const res = await get('/view/architecture/one?lang=xx');
 		expect(res.status).toBe(400);
-	});
-
-	it('carries the read count from D1, for one article and for the listing', async () => {
-		await database
-			.prepare('INSERT INTO article_reads (slug, count) VALUES (?, ?)')
-			.bind('architecture/one', 42)
-			.run();
-
-		const one = await payload<{ metrics: { reads: number } }>(
-			await get('/view/architecture/one?lang=en'),
-		);
-		expect(one.metrics.reads).toBe(42);
-
-		// And the listing takes them in one query, so a homepage does not cost a round trip per row.
-		const home = await payload<{ articles: { slug: string; metrics: { reads: number } }[] }>(
-			await get('/home?lang=en'),
-		);
-		expect(Object.fromEntries(home.articles.map((a) => [a.slug, a.metrics.reads]))).toEqual({
-			'architecture/one': 42,
-			'mirror/two': 0,
-		});
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See

@@ -1,9 +1,9 @@
-import { and, count, eq, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Bindings } from './bindings';
-import type { ApiResponse } from '@canmi/artifacts';
+import type { ApiResponse, ReadsAnswer } from '@canmi/artifacts';
 import { failure, success } from './respond';
 import { canonicalEmail } from './email';
 import { findArticle, rootOf } from './root';
@@ -142,6 +142,39 @@ engagement.put('/like', JSON_LIMIT, async (c) => {
  * Which slugs exist comes from the published root, so the database never learns a slug from a
  * request, and a new article no longer needs a deploy of this worker to be countable.
  */
+/**
+ * How often each of several articles has been read, without counting a read.
+ *
+ * A list is a body, so this is a batch entry with `{ slugs: [...] }` rather than a parameter
+ * repeated in a URL. `read-counts` and not `reads`, because `/read` sits beside it and records
+ * one: two routes a letter apart where only one has an effect is a name waiting to be called by
+ * mistake. A slug naming no article is dropped, so one bad entry does not cost the answer.
+ */
+engagement.post('/read-counts', JSON_LIMIT, async (c) => {
+	const ip = clientIp(c.req.raw);
+	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
+	if (!(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
+
+	const body = await readObject(c.req.raw);
+	const asked = body?.slugs;
+	if (!Array.isArray(asked) || asked.some((slug) => typeof slug !== 'string')) {
+		return failure(c, 400, 'invalid_slugs', NO_STORE);
+	}
+
+	const root = await rootOf(c.env);
+	const known = [...new Set(asked as string[])].filter((slug) => findArticle(root, slug));
+	if (known.length === 0) return success(c, { reads: {} } satisfies ReadsAnswer, NO_STORE);
+
+	const rows = await drizzle(c.env.DATABASE)
+		.select({ slug: articleReads.slug, count: articleReads.count })
+		.from(articleReads)
+		.where(inArray(articleReads.slug, known));
+	const counted = new Map(rows.map((row) => [row.slug, row.count]));
+	// An article nobody has opened has no row, which is zero rather than absent.
+	const answer = { reads: Object.fromEntries(known.map((slug) => [slug, counted.get(slug) ?? 0])) };
+	return success(c, answer satisfies ReadsAnswer, NO_STORE);
+});
+
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);

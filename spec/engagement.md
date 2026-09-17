@@ -254,6 +254,18 @@ it. See [architecture/artifacts.md](architecture/artifacts.md).
 A newly published article is still briefly unknown here, for a different and smaller reason: the
 root is cached, so the window is the cache rather than a deploy. It heals itself.
 
+**Asking is not reading, and it is a different route.** `POST /read-counts` answers a count per
+slug for a list of them and records nothing. A list is a body, so it is a batch entry rather than
+a parameter repeated in a URL, and it is `read-counts` rather than `reads` because `/read` sits
+beside it and has an effect -- two routes a letter apart where only one writes is a name waiting
+to be called by mistake.
+
+It is not cached, for the reason everything else here is not: a counter is a statement about right
+now. That is also why the count does not travel with an article's metadata, which is cached for
+five minutes per locale -- nine snapshots of one number that could disagree. A slug naming no
+article is dropped from the answer rather than refusing it, so one bad entry in a listing does not
+cost the rest.
+
 Deduplication is one Cloudflare rate limit of one count per IP per article per minute, with the
 wider per-IP engagement allowance above it to bound somebody walking every slug in turn. **Being
 deduplicated is answered with the current count, not with `429`.** The page still needs the number

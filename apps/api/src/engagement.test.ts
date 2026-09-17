@@ -21,8 +21,10 @@ const IP_TWO = '2001:db8::20';
 const allow: RateLimit = { limit: async () => ({ success: true }) };
 
 const SLUG = 'architecture/compile-time-rendering';
+/** A second published article, so a batch can hold one that has been read and one that has not. */
+const UNREAD_SLUG = 'mirror/friends-come-in-phases';
 
-/** Enough of a root for the read counter to recognise one slug and refuse every other. */
+/** Enough of a root for the read counter to recognise these two slugs and refuse every other. */
 const ROOT = {
 	version: 1,
 	generated: '2026-01-02T00:00:00.000Z',
@@ -33,6 +35,14 @@ const ROOT = {
 			markdown: 'b'.repeat(32),
 			alternates: [],
 			canonical_urls: [`${URLS.apps.production.site}/${SLUG}`],
+			views: {},
+		},
+		{
+			path: UNREAD_SLUG,
+			url: `${URLS.apps.production.site}/${UNREAD_SLUG}`,
+			markdown: 'd'.repeat(32),
+			alternates: [],
+			canonical_urls: [`${URLS.apps.production.site}/${UNREAD_SLUG}`],
 			views: {},
 		},
 	],
@@ -169,6 +179,44 @@ describe('likes and engagement state', () => {
 		const deny: RateLimit = { limit: async () => ({ success: false }) };
 		const response = await api('/engagement', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny });
 		expect(response.status).toBe(429);
+	});
+});
+
+describe('read counts', () => {
+	it('answers a count per slug, in one query, and drops a slug that names no article', async () => {
+		await database
+			.prepare('INSERT INTO article_reads (slug, count) VALUES (?, ?)')
+			.bind(SLUG, 42)
+			.run();
+
+		const response = await api('/read-counts', {
+			method: 'POST',
+			ip: IP_ONE,
+			body: { slugs: [SLUG, UNREAD_SLUG, 'made/up'] },
+		});
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Cache-Control')).toBe('no-store');
+		// Zero for an article nobody has opened, and nothing at all for one that does not exist.
+		expect(await payload(response)).toEqual({
+			reads: { [SLUG]: 42, [UNREAD_SLUG]: 0 },
+		});
+	});
+
+	it('counts nothing, because asking is not reading', async () => {
+		await api('/read-counts', { method: 'POST', ip: IP_ONE, body: { slugs: [SLUG] } });
+		const rows = await database
+			.prepare('SELECT count(*) as rows FROM article_reads')
+			.all<{ rows: number }>();
+		expect(rows.results[0]?.rows).toBe(0);
+	});
+
+	it('refuses a body that is not a list of slugs', async () => {
+		const response = await api('/read-counts', {
+			method: 'POST',
+			ip: IP_ONE,
+			body: { slugs: 'architecture/one' },
+		});
+		expect(response.status).toBe(400);
 	});
 });
 

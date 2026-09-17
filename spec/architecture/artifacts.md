@@ -173,10 +173,12 @@ list to find it. Flat, this was thirteen keys with `content` beside `title` and 
 `language_tag`. The groups are the same ones the root stores, so an answer is mostly a projection
 of it.
 
-**`metrics.reads` is the exception, and comes from D1.** A visitor writes that count, so it is
-cloud-authoritative and cannot be in a mirrored record -- see [data.md](data.md). The listing
-takes every row's count in one query rather than one per row, because a homepage that costs a
-round trip per article gets slower as the corpus grows.
+**A read count is not here at all, and the reason is worth the paragraph.** It was carried inside
+`/view` for an afternoon, which gave one counter nine cached snapshots of itself -- one per locale
+-- that could disagree by five minutes, so a reader changing language watched the number move for
+no reason. A count and a view have different freshness: one is written by every visitor, the other
+changes when somebody publishes. It lives in [engagement.md](../engagement.md)'s API, on a route
+of its own, with no locale in it.
 
 `/markdown/{slug}` takes no locale, because `<url>.md` serves the source whatever view asked for
 it, and it resolves against articles and standalone pages alike -- a page's markdown hash is

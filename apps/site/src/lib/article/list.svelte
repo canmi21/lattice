@@ -18,7 +18,6 @@
 			meta: ViewMeta;
 			created: string;
 			path: string;
-			reads: number;
 			paragraphs: string[];
 		}[];
 		heading: string;

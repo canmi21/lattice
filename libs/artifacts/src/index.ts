@@ -161,11 +161,10 @@ export type RootView = v.InferOutput<typeof RootViewSchema>;
  * article was asked for, and how many times it has been read. The count lives in D1 because a
  * visitor writes it -- see spec/architecture/data.md on which store owns what.
  */
-export type ViewAnswer = Omit<RootView, 'locale' | 'metrics'> & {
+export type ViewAnswer = Omit<RootView, 'locale'> & {
 	slug: string;
 	url: string;
 	locale: RootView['locale'] & { code: LocaleCode };
-	metrics: RootView['metrics'] & { reads: number };
 };
 
 /**
@@ -177,12 +176,11 @@ export type ViewAnswer = Omit<RootView, 'locale' | 'metrics'> & {
 export type HomeAnswer = {
 	locale: { code: LocaleCode; language_tag: string };
 	page: { objects: { content: string } } | null;
-	articles: (Omit<RootView, 'locale' | 'metrics'> & {
-		slug: string;
-		url: string;
-		metrics: RootView['metrics'] & { reads: number };
-	})[];
+	articles: (Omit<RootView, 'locale'> & { slug: string; url: string })[];
 };
+
+/** Read counts by slug, for every slug asked for that names an article. */
+export type ReadsAnswer = { reads: Record<string, number> };
 
 export type SitemapAnswer = {
 	/** When the root was written, which is the lastmod for a route carrying no date of its own. */

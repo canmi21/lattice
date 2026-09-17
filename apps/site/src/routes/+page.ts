@@ -16,7 +16,6 @@ export const load: PageLoad = async ({ url, fetch, parent }) => {
 			meta: article.meta,
 			created: article.dates.created,
 			path: article.slug,
-			reads: article.metrics.reads,
 			paragraphs: article.preview.paragraphs,
 		})),
 		locale: { code: locale.code },
