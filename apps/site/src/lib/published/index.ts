@@ -56,7 +56,7 @@ export function publishedMetadata(
 	slug: string,
 	locale: LocaleCode,
 ): Promise<ViewAnswer | undefined> {
-	return answer<ViewAnswer>(fetch, api(`/view/${locale}/${slug}`));
+	return answer<ViewAnswer>(fetch, api(`/view/${slug}?lang=${locale}`));
 }
 
 export async function publishedView(
@@ -66,7 +66,9 @@ export async function publishedView(
 ): Promise<PublishedView | undefined> {
 	const found = await publishedMetadata(fetch, slug, locale);
 	if (!found) return undefined;
-	const view = (await (await object(fetch, 'content', found.content)).json()) as PublishedView;
+	const view = (await (
+		await object(fetch, 'content', found.objects.content)
+	).json()) as PublishedView;
 	// Against the path the API answered with, not the one that was asked for: that is the one
 	// the object declares, and the two disagreeing is what this check is here to catch.
 	readEnvelope(view, found.slug, locale);
@@ -85,10 +87,10 @@ export async function publishedHome(
 	fetch: Fetch,
 	locale: LocaleCode,
 ): Promise<{ articles: HomeAnswer['articles']; page: PublishedPage | undefined }> {
-	const found = await answer<HomeAnswer>(fetch, api(`/home/${locale}`));
+	const found = await answer<HomeAnswer>(fetch, api(`/home?lang=${locale}`));
 	if (!found) throw new Error(`the API names no homepage for ${locale}`);
 	const page = found.page
-		? await publishedPageView(fetch, found.page.content, HOME_SLUG)
+		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)
 		: undefined;
 	return { articles: found.articles, page };
 }
@@ -108,7 +110,7 @@ async function publishedDocument(
 }
 
 export function publishedFeed(fetch: Fetch, locale: LocaleCode): Promise<Response | undefined> {
-	return publishedDocument(fetch, 'feed', `/feed/${locale}`);
+	return publishedDocument(fetch, 'feed', `/feed?lang=${locale}`);
 }
 
 export function publishedLlms(fetch: Fetch): Promise<Response | undefined> {

@@ -18,17 +18,8 @@ export const load: PageLoad = async ({ params, url, fetch, parent }) => {
 		// by on the API side, and the two lists have to name the same thing.
 		slug: view.slug,
 		meta: view.meta,
-		phone_title: view.phone_title,
-		toc: view.toc,
-		blocks: view.blocks,
-		summary: view.summary,
-		words: view.words,
-		locale: {
-			code: view.locale,
-			language_tag: view.language_tag,
-			canonical: view.canonical,
-			alternates: view.alternates,
-			translation_available: view.translation_available,
-		},
+		body: view.body,
+		metrics: view.metrics,
+		locale: { code: view.locale, ...view.language },
 	};
 };

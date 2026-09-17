@@ -9,19 +9,19 @@
 	// rule rather than inside the body, because they are apparatus about the article, not part
 	// of it. See spec/styling/notes.md.
 	const notes = $derived(
-		data.blocks.flatMap((block) => (block.type === 'footnotes' ? block.notes : [])),
+		data.body.blocks.flatMap((block) => (block.type === 'footnotes' ? block.notes : [])),
 	);
 </script>
 
 <Article
 	slug={data.slug}
 	meta={data.meta}
-	phone_title={data.phone_title}
-	toc={data.toc}
-	words={data.words}
-	summary={data.summary}
+	phone_title={data.body.phone_title}
+	toc={data.body.toc}
+	words={data.metrics.words}
+	summary={data.body.summary}
 	locale={data.locale}
 	{notes}
 >
-	<ArticleBody blocks={data.blocks} locale={data.locale.code} />
+	<ArticleBody blocks={data.body.blocks} locale={data.locale.code} />
 </Article>

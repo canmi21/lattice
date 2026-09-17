@@ -1,4 +1,5 @@
 <script module lang="ts">
+	import type { ViewMeta } from '@canmi/artifacts';
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
 </script>
@@ -14,12 +15,10 @@
 		heading,
 	}: {
 		articles: {
-			title: string;
-			subtitle: string;
-			short_title: string;
-			short_subtitle: string;
+			meta: ViewMeta;
 			created: string;
 			path: string;
+			reads: number;
 			paragraphs: string[];
 		}[];
 		heading: string;
@@ -89,7 +88,7 @@
 			const font = fontOf(listEl?.querySelector('p') ?? document.body);
 			const natural = (t: string) => measureNaturalWidth(prepareWithSegments(t, font));
 
-			const titleW = articles.map((a) => natural(a.title));
+			const titleW = articles.map((a) => natural(a.meta.title));
 			const tLo = Math.min(...titleW);
 			const tHi = Math.max(...titleW);
 			const bodyW = articles.map((a) => clauses(a.paragraphs).map(natural));
@@ -160,10 +159,10 @@
 	<div>
 		{#each articles as article (article.path)}
 			<ArticleCard
-				title={article.title}
-				subtitle={article.subtitle}
-				short_title={article.short_title}
-				short_subtitle={article.short_subtitle}
+				title={article.meta.title}
+				subtitle={article.meta.subtitle}
+				short_title={article.meta.short.title}
+				short_subtitle={article.meta.short.subtitle}
 				created={article.created}
 				path={article.path}
 			/>

@@ -13,13 +13,11 @@ export const load: PageLoad = async ({ url, fetch, parent }) => {
 	const home = await orReload(url, publishedHome(fetch, locale.code));
 	return {
 		articles: home.articles.map((article) => ({
-			title: article.title,
-			subtitle: article.subtitle,
-			short_title: article.short_title,
-			short_subtitle: article.short_subtitle,
-			created: article.created,
-			path: article.path,
-			paragraphs: article.paragraphs,
+			meta: article.meta,
+			created: article.dates.created,
+			path: article.slug,
+			reads: article.metrics.reads,
+			paragraphs: article.preview.paragraphs,
 		})),
 		locale: { code: locale.code },
 		...homepageContent(home.page, locale.code),

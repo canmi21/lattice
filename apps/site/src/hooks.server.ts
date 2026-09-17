@@ -62,7 +62,7 @@ async function resolvedTag(event: RequestEvent, code: LocaleCode): Promise<strin
 	if (code !== 'mw' || event.route.id !== PAGE_ROUTE) return languageTag(code, SITE_LANGUAGE);
 	const slug = event.url.pathname.replace(/^\//, '').replace(/\/$/, '');
 	const found = await publishedMetadata(event.fetch, slug, 'mw').catch(() => undefined);
-	return found?.language_tag ?? SITE_LANGUAGE;
+	return found?.locale.language_tag ?? SITE_LANGUAGE;
 }
 
 const pageHandle: Handle = async ({ event, resolve }) => {

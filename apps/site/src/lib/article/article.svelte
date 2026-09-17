@@ -169,10 +169,10 @@
 
 	type ArticleLocale = {
 		code: LocaleCode;
-		language_tag: string;
+		tag: string;
 		canonical: string;
 		alternates: Alternate[];
-		translation_available: boolean;
+		translated: boolean;
 	};
 
 	let {
@@ -236,7 +236,7 @@
 	const card = $derived(cardUrl(urls.cdn, page.url.pathname, locale.code));
 
 	$effect(() => {
-		document.documentElement.lang = locale.language_tag;
+		document.documentElement.lang = locale.tag;
 	});
 
 	/**
@@ -342,7 +342,7 @@
 		image: card,
 		datePublished: meta.created,
 		dateModified: meta.lastmod,
-		inLanguage: locale.language_tag,
+		inLanguage: locale.tag,
 		mainEntityOfPage: locale.canonical,
 		author: { '@type': 'Person', name: site.author.name },
 	});
@@ -360,7 +360,7 @@
 	<meta property="og:title" content={meta.title} />
 	<meta property="og:description" content={meta.description} />
 	<meta property="og:url" content={locale.canonical} />
-	<meta property="og:locale" content={locale.language_tag} />
+	<meta property="og:locale" content={locale.tag} />
 	<meta property="og:image" content={card} />
 	<!-- Stated because a crawler that reserves the box before fetching draws it right. -->
 	<meta property="og:image:width" content={CARD_WIDTH} />
@@ -487,7 +487,7 @@
 					<TranslationNotice
 						code={locale.code}
 						sourceLanguage={meta.lang}
-						available={locale.translation_available}
+						available={locale.translated}
 					/>
 				{/if}
 				{#if summary}
