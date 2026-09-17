@@ -148,9 +148,9 @@ describe('GET /source', () => {
 	});
 });
 
-describe('GET /home', () => {
+describe('GET /homepage', () => {
 	it('lists the locale views newest first, with the homepage page', async () => {
-		const res = await get('/home?lang=en');
+		const res = await get('/homepage?lang=en');
 		expect(res.status).toBe(200);
 		const body = await payload<{
 			locale: { code: string; language_tag: string };
@@ -167,7 +167,7 @@ describe('GET /home', () => {
 
 	// Nothing stands in for a view this locale does not have, here or on /view.
 	it('drops an article this locale cannot show, and answers no page at all', async () => {
-		const res = await get('/home?lang=ja');
+		const res = await get('/homepage?lang=ja');
 		const body = await payload<{ page: unknown; articles: { slug: string }[] }>(res);
 		expect(body.articles.map((article) => article.slug)).toEqual(['architecture/one']);
 		expect(body.page).toBeNull();
@@ -273,7 +273,7 @@ describe('the feed', () => {
 // became an outage, so it is the one answer here that is never stored.
 describe('a root that cannot be read', () => {
 	it('fails rather than reporting an empty corpus, and is not cached', async () => {
-		const res = await get('/home?lang=en', {
+		const res = await get('/homepage?lang=en', {
 			fetch: async () => new Response('nope', { status: 404 }),
 		});
 		expect(res.status).toBe(500);

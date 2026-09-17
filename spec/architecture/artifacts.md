@@ -160,15 +160,15 @@ the CDN by hash and cached for a year.
 five-minute cache by the number of values it takes, and the hit rate on these answers is what
 the whole design's latency rests on.
 
-| Route                      | Answers                                                            |
-| -------------------------- | ------------------------------------------------------------------ |
-| `GET /article?slug=&lang=` | one view's metadata and its `content` hash                         |
-| `GET /source?slug=`        | the `markdown` hash, for `<url>.md`                                |
-| `GET /home?lang=`          | the article list the homepage renders, and the homepage's own page |
-| `GET /sitemap`             | every indexable view's path, date and alternates                   |
-| `GET /feed?lang=`          | one locale's entries: metadata and a `content` hash each           |
-| `GET /media?cid=`          | what is known about one asset                                      |
-| `POST /batch`              | every question asked about many things; see below                  |
+| Route                      | Answers                                                  |
+| -------------------------- | -------------------------------------------------------- |
+| `GET /article?slug=&lang=` | one view's metadata and its `content` hash               |
+| `GET /source?slug=`        | the `markdown` hash, for `<url>.md`                      |
+| `GET /homepage?lang=`      | the article list it renders, and its own compiled page   |
+| `GET /sitemap`             | every indexable view's path, date and alternates         |
+| `GET /feed?lang=`          | one locale's entries: metadata and a `content` hash each |
+| `GET /media?cid=`          | what is known about one asset                            |
+| `POST /batch`              | every question asked about many things; see below        |
 
 ### A question asks with a query; a list asks with a body
 

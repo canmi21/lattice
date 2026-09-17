@@ -195,7 +195,7 @@ export async function publishedHome(
 	fetch: Fetch,
 	locale: LocaleCode,
 ): Promise<{ articles: HomeAnswer['articles']; page: PublishedPage | undefined }> {
-	const found = await answer<HomeAnswer>(fetch, api(`/home?lang=${locale}`));
+	const found = await answer<HomeAnswer>(fetch, api(`/homepage?lang=${locale}`));
 	if (!found) throw new Error(`the API names no homepage for ${locale}`);
 	const page = found.page
 		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)

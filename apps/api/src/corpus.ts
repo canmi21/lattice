@@ -92,7 +92,7 @@ corpus.get('/source', async (c) => {
 	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
 });
 
-corpus.get('/home', async (c) => {
+corpus.get('/homepage', async (c) => {
 	const locale = askedLocale(c);
 	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
