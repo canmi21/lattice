@@ -110,4 +110,13 @@ async function reads(
 	};
 }
 
+/**
+ * Any other method on this path, answered as the method problem it is.
+ *
+ * Registered after the POST, so it catches what that one did not. A bare 404 is what hono gives
+ * for a path it knows under another method, and it is the least useful answer available: typing
+ * this URL into a browser is the first thing anyone does, and a GET is what a browser sends.
+ */
+batch.all('/batch', (c) => failure(c, 405, 'batch_takes_post', { ...NO_STORE, Allow: 'POST' }));
+
 export default batch;

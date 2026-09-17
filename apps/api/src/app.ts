@@ -82,6 +82,17 @@ app.route('/', engagement);
 app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
 
 /**
+ * A route that does not exist says so in the envelope, like every other refusal.
+ *
+ * Without this, hono answers `text/plain` and a caller parsing JSON gets a syntax error instead of
+ * a message -- which is what asking for `GET /batch` looked like, that route being POST-only. The
+ * envelope is the whole point of having one: a consumer reads one shape whether the refusal came
+ * from a handler or from never reaching one. Five minutes, because which routes exist changes when
+ * this worker is deployed and not before. See spec/architecture/artifacts.md.
+ */
+app.notFound((c) => failure(c, 404, 'no_such_route', { 'Cache-Control': 'public, max-age=300' }));
+
+/**
  * A failure is JSON and is never stored, however far up it was thrown.
  *
  * Five minutes on "the API failed" would turn a blip into an outage -- see

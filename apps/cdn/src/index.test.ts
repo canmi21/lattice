@@ -1,5 +1,6 @@
 import { robotsTxt } from '@canmi/robots';
 import { describe, expect, it } from 'vitest';
+import app from './index';
 import { candidates, isValidHostname } from './favicon';
 
 describe('isValidHostname', () => {
@@ -60,5 +61,26 @@ describe('robots policy', () => {
 
 	it('still answers, rather than 404ing and leaving it open to interpretation', () => {
 		expect(text).toContain('User-agent: *');
+	});
+});
+
+/**
+ * This worker refuses in the envelope too, including when nothing of ours refused.
+ *
+ * A success here is the object's own bytes and is not wrapped -- an image is an image. Everything
+ * else takes the shape the API takes, so a caller reads one thing whichever worker said no. The
+ * gap was hono's own 404: `text/plain`, which a caller parsing JSON reads as a syntax error.
+ */
+describe('a refusal nothing handled', () => {
+	it('wraps a method the bucket cannot answer, and holds it briefly at most', async () => {
+		const res = await app.fetch(
+			new Request('https://cdn.example/anything', { method: 'POST' }),
+			{} as never,
+		);
+		expect(res.status).toBe(404);
+		expect(res.headers.get('Content-Type')).toContain('application/json');
+		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_route' });
+		// The lifetime is the cache middleware's, derived from the response rather than restated.
+		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
 	});
 });

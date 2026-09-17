@@ -196,6 +196,31 @@ describe('GET /sitemap', () => {
 	});
 });
 
+/**
+ * The envelope is the point of having one, so nothing may answer outside it.
+ *
+ * A handler's refusal was wrapped from the start; hono's own was not, and the gap only showed in
+ * production -- `GET /batch` answered `text/plain` `404 Not Found`, which a caller parsing JSON
+ * reads as a syntax error rather than a message. See spec/architecture/artifacts.md.
+ */
+describe('a refusal nothing handled', () => {
+	it('wraps a route that does not exist, and caches it as a miss', async () => {
+		const res = await get('/nonexistent');
+		expect(res.status).toBe(404);
+		expect(res.headers.get('Content-Type')).toContain('application/json');
+		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_route' });
+		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
+	});
+
+	// The first thing anyone does with a URL is open it in a browser, and a browser sends GET.
+	it('tells a GET on the batch route which method it takes', async () => {
+		const res = await get('/batch');
+		expect(res.status).toBe(405);
+		expect(res.headers.get('Allow')).toBe('POST');
+		expect(await res.json()).toEqual({ status: 'error', message: 'batch_takes_post' });
+	});
+});
+
 describe('POST /batch', () => {
 	// One route for every question asked about many things, discriminated by `type`. A language
 	// menu is one slug and many locales; a homepage warming its list is the other way round, and

@@ -195,6 +195,28 @@ fallback to another view. It stays the one variant dimension either way.
 into a query would take away the thing that decides how long it may be held. The rule above is
 about questions; the CDN serves addresses. See [delivery.md](delivery.md).
 
+### A refusal nobody handled is still a refusal
+
+**Every non-2xx either worker answers is the envelope**, including the ones no handler of ours
+produced. A route that does not exist, a method a route does not take, an error thrown past
+everything: hono answers those itself, in `text/plain`, and a caller parsing JSON reads that as a
+syntax error rather than as a message.
+
+It was wrong in production before it was noticed, which is the part worth keeping. Every refusal a
+handler wrote was wrapped from the first day, so the rule looked kept -- and `GET /batch`, a route
+that exists only for `POST`, answered `404 Not Found` as plain text. The failure mode of a
+half-applied rule is that the applied half makes it look finished.
+
+So both workers carry a `notFound` and an `onError`, and the lifetimes stay what they already
+were: a miss is held for five minutes, because which routes exist changes when a worker is
+deployed and not before, while a `500` is `no-store` -- a 404 is a fact about the service and a
+500 is a fact about this moment.
+
+**A method is answered as a method problem.** `GET` on a `POST`-only route is `405` with `Allow`,
+not `404`. Typing a URL into a browser is the first thing anyone does with one, and a browser
+sends `GET`; being told the route does not exist, when it does, is the least useful true answer
+available.
+
 ### One batch entry point
 
 `POST /batch`, and the body's `type` says which question. Every batchable question used to get a

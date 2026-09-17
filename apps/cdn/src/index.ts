@@ -93,4 +93,29 @@ app.get('/*', async (c) => {
 	return toResponse(found);
 });
 
+/**
+ * A request this worker has no route for, said in the envelope every refusal here uses.
+ *
+ * The `GET /*` above catches every readable path, so what reaches this is a method the bucket
+ * cannot answer -- a POST, a PUT. Hono's own answer is `text/plain`, which is the one shape a
+ * caller reading JSON cannot read. The lifetime is the middleware's: a non-2xx is held for five
+ * minutes at most, and that rule is derived from the response rather than restated here. See
+ * spec/architecture/delivery.md.
+ */
+app.notFound((c) => failure(c, 404, 'no_such_route'));
+
+/**
+ * A failure is JSON and is never stored, however far up it was thrown.
+ *
+ * `no-store` rather than the five minutes a miss gets: a 404 is a fact about the bucket and a 500
+ * is a fact about this moment, and caching the second turns a blip into an outage. The same
+ * asymmetry the API keeps. See spec/architecture/artifacts.md.
+ */
+app.onError((error, c) => {
+	console.error(error);
+	const response = failure(c, 500, 'unavailable');
+	response.headers.set('Cache-Control', 'no-store');
+	return response;
+});
+
 export default app;
