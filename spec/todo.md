@@ -1151,6 +1151,12 @@ out of git and into R2. It is also the only such record with a consumer at reque
 classification reaches it, and the answer it gives -- publish it as an artifact and fetch it like
 any other -- is an answer about a surface nobody has decided to keep.
 
+**One piece has already been taken, and it was the expensive one.** The surface had an OpenGraph
+card per licence, per registry and per package, in each of the nine views: 6804 files and 518 MiB,
+87% of everything the bucket held. Those are gone and the routes are not -- see
+[architecture/media.md](architecture/media.md), "The licence routes have no card". It narrows
+nothing about the addresses; it stops an undecided surface from being the largest thing published.
+
 **What deciding it would cost.** The intent is two or three addresses rather than eight, and which
 ones is open: a single page carrying the directory inline, or a page plus the text endpoints that
 exist for machines rather than readers. Whatever survives decides what the record has to be, which

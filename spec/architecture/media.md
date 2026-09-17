@@ -291,8 +291,8 @@ under it the site does not ask for goes, which is what the sweep means everywher
 
 **The live set is derived from the corpus rather than from `data/build/opengraph.json`.** A card is
 keyed by `{view}/{slug}.png`, and the live slugs are exactly the ones `cms og` would draw: every
-article that is not a draft, is not the bio page, and has a title; the home page; and every licence
-route in `data/build/licenses.json` -- crossed with the nine views. `cms gc` asks the `opengraph`
+article that is not a draft, is not the bio page, and has a title; and the home page -- crossed
+with the nine views. `cms gc` asks the `opengraph`
 module for that set rather than restating it, and both sides build the path through `card_path`, so
 a change to which pages get cards moves the sweep with it instead of leaving it to be discovered.
 Keying the sweep on the card record instead would have taken the whole tree in exactly the case the
@@ -316,37 +316,17 @@ shape in each of the nine -- saying how many other languages this article exists
 "and this many more" without a word for it, which is why the line stays short enough to read at
 thumbnail size and identical in form across scripts that share no vocabulary.
 
-**The licence routes get cards too, drawn by the article template.** A title, a line under it
-and two lines in the corner is already the shape those pages need, so a fourth layout would be
-a second thing to keep in step for no difference a reader could see. What varies is what fills
-the slots, and that is a template's job.
+**The licence routes have no card, and the routes stay.** They had one: the article template
+drew a card per licence, per registry and per package, in each of the nine views. That is
+6804 files and 518 MiB -- 87% of everything the bucket held, for a surface whose future is
+still open. Articles and the home page keep theirs.
 
-Their facts come from the licence record and their words from the message catalogs the pages
-read, because copy written into the generator would give the site a second voice -- one that
-agrees with the first only until somebody edits one of them. What a card says is deliberately
-**not** the page's meta description: that is written for a search result, where nothing sits
-above it, so it repeats the name the card already shows in large type directly above the line.
-The same distinction the article card makes between `subtitle` and `description`.
-
-A registry card carries no count badge. The only thing left to say in that corner is how many
-other registries exist, which is one, and the catalogs have no plural machinery to say it with;
-a badge that reads `+1 registries` is worse than an empty corner. Where a count does fit, it is
-the `+N` form the article cards use -- `+24 licenses` -- which says "and this many more" without
-a word for it and keeps its shape across scripts that share no vocabulary.
-
-**Every package page gets its own card.** The dependency tree runs to several hundred packages --
-[licenses.json](../../data/build/licenses.json) is the count -- and there are nine views, so this
-accepts a card file per package per view, tens of thousands of published bytes each, rather than
-collapsing packages into one generic card that does not identify the shared page. The manifest
-makes that cost incremental: the full set is paid once, then only a package whose inputs moved is
-redrawn.
-
-Package facts stay literal in every view: its name and description, version, registry display
-name and SPDX expression identify the same release whatever language surrounds them. The
-description occupies the subtitle rather than borrowing the page's meta description, which
-would repeat the package name already drawn above it. An absent description leaves that line
-empty, and an absent declared licence leaves an empty badge; inventing English copy for either
-would turn missing package metadata into a translated claim the package never made.
+The cost is what decided it rather than the design being wrong: a card per package per view was
+a defensible trade while the bucket held nothing else, and it stopped being one once the corpus
+moved in beside it. The pages still render, still carry `og:title` and `og:description`, and a
+crawler that wants a picture gets none rather than a wrong one. What to do with the licence
+surface at all is [todo.md](../todo.md)'s, and a decision there is what would bring cards back
+or retire the question.
 
 A view with no card falls back to the source view rather than to a 404. Translation arrives
 per segment and per article, so a missing card is a normal intermediate state; a card in the
