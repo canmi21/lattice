@@ -24,6 +24,29 @@ therefore have D1 edit access. The fallback API `deploy` command independently a
 migrations immediately before uploading the Worker. Local development applies local migrations
 before starting Wrangler, whose default local D1 implementation is Miniflare.
 
+### Schema before code is right until the migration changes a key
+
+Applying migrations first is correct for anything additive. A widened schema is one the running
+code simply does not use yet, so the window between the two is a window in which nothing is wrong.
+
+**A migration that changes what an existing key means has no such window.** For as long as the old
+code is live it reads and writes the old key against rows that no longer carry it -- and it does not
+fail, which is the whole difficulty. A lookup misses, and the code does the reasonable thing with a
+miss: it opens a fresh row. One record becomes two, the new one plausible and small, and nothing
+reports it.
+
+So such a migration is written to **fold rather than to skip**, and it is written to be safe to run
+again. Skipping a collision is only correct if nothing can create one after the statement runs, and
+the deploy order guarantees the opposite. Folding, plus a second run once the new code is live, is
+what actually finishes the change -- and the second run is part of the change, not a repair.
+
+Rehearse both runs against the live rows before either, and check the total rather than the rows:
+a fold that preserves every count moves them and invents none.
+
+This is recorded because it was measured. Keying the read counter by slug instead of by path
+stranded six rows over the fifty-four minutes between the migration and the code that wanted it,
+and a `0003` that skipped collisions could not have mopped them up on a second run.
+
 ## Newsletter identity is the email address
 
 The API trims and lowercases an address, then removes the first `+` and everything after it in the
