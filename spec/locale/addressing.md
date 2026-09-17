@@ -112,6 +112,24 @@ The licence page shows both halves at once. The page negotiates like any other, 
 `/licenses.txt`, `/licenses/full.txt` and the per-package routes beside it do not: a licence is
 not translated, and a translated one would be a different licence.
 
+### `<html lang>` belongs to the layout, and says what the server would say
+
+One attribute, one owner. It used to be an effect inside the article component, so an article kept
+it true across a language switch and every other page kept claiming whatever the server had
+written: the homepage said `en-US` while showing Japanese, silently, to a screen reader and to
+whatever picks hyphenation and fallback fonts.
+
+The rule it follows is the server's own, in `resolvedTag`. **An article's `mw` is the article's
+language and travels in its view; every other `mw` is the site's**, which is `en-US`. The homepage
+is the case that names the choice: its bio prose is not English, but a page object carries no
+language of its own, so what it would report instead would be a guess dressed as a fact. The site
+language is the honest answer until a page can say what it is written in.
+
+So the client predicts the server's next answer rather than holding a second opinion about it --
+the same shape as the cookie write in `chooseLocale`. Confirmed in one page lifetime with no
+navigation: an article's source view reads `zh`, taking Japanese reads `ja-JP`, the notice's way
+back reads `zh` again, and a client-side navigation to the homepage -- still `mw` -- reads `en-US`.
+
 **Not negotiating is what makes a document shared-cacheable, and that is the point of it.** A
 page picks its language from a cookie, so two readers asking for one URL get two answers and only
 the reader's own browser may keep either. A document takes `?lang=` or nothing: the URL is the

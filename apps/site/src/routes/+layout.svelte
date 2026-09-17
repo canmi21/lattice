@@ -10,7 +10,7 @@
 	import { installFocusSourceTracker } from '$lib/client/focus-source';
 	import { followPointerKind, warmWhatThePointerRests } from '$lib/client/warm.svelte';
 	import SearchDialog from '$lib/search/dialog.svelte';
-	import { localeUrl } from '$lib/locale';
+	import { languageTag, localeUrl, SITE_LANGUAGE } from '$lib/locale';
 	import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 	import { site } from '$lib/site';
 	import '../styles/app.css';
@@ -31,6 +31,21 @@
 	// $lib/client/warm.svelte.
 	$effect(() => followPointerKind());
 	$effect(() => warmWhatThePointerRests(() => locale?.code ?? 'mw'));
+
+	/**
+	 * The document's language, kept true after a switch that never reloads.
+	 *
+	 * The same answer `resolvedTag` in hooks.server.ts gives, by the same rule: an article's `mw`
+	 * is its own language and travels in its view, every other `mw` is the site's. Here rather
+	 * than in the article, which is where it was and why every other page kept claiming whatever
+	 * the server wrote. See spec/locale/addressing.md.
+	 */
+	const languageOfDocument = $derived(
+		articleLocale?.tag ?? languageTag(locale?.code ?? 'mw', SITE_LANGUAGE),
+	);
+	$effect(() => {
+		document.documentElement.lang = languageOfDocument;
+	});
 	/**
 	 * One robots directive per page, emitted in one place.
 	 *

@@ -236,10 +236,6 @@
 	 */
 	const card = $derived(cardUrl(urls.cdn, page.url.pathname, locale.code));
 
-	$effect(() => {
-		document.documentElement.lang = locale.tag;
-	});
-
 	/**
 	 * A JSON-LD block, safe to drop into markup.
 	 *
