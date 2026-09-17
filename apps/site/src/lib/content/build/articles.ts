@@ -1,3 +1,4 @@
+import { refuseBadSlugs, reservedNames } from './slugs.ts';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { URLS } from '@canmi/urls';
@@ -118,6 +119,8 @@ type BuildPaths = {
 	media: string;
 	diagrams: string;
 	segments: string;
+	/** The site's own route directory, so a slug cannot be given a name the router answers for. */
+	routes: string;
 	crates: string;
 	repos: string;
 	tweets: string;
@@ -254,6 +257,9 @@ export async function buildArticles(
 	{ drafts }: DraftPolicy,
 ): Promise<{ articles: Article[]; files: string[] }> {
 	const files = await articleFiles(paths.contents);
+	// First, and before anything is read: a corpus that cannot be addressed by name compiles into
+	// artifacts that are wrong rather than missing. See ./slugs.ts.
+	refuseBadSlugs(files, await reservedNames(paths.routes));
 	const notes = await newTabNotes(paths.messages);
 	const assets = JSON.parse(await readFile(paths.assets, 'utf8')) as AssetManifest;
 	const media = (parseYaml(await readFile(paths.media, 'utf8')) ?? { media: {} }) as MediaManifest;

@@ -271,6 +271,7 @@ const { articles } = await buildArticles(
 		media: fileURLToPath(new URL('data/media.yaml', ROOT)),
 		diagrams: fileURLToPath(new URL('data/diagram.json', ROOT)),
 		segments: fileURLToPath(new URL('data/build/segments.json', ROOT)),
+		routes: fileURLToPath(new URL('apps/site/src/routes', ROOT)),
 		crates: fileURLToPath(new URL('data/build/crates.json', ROOT)),
 		repos: fileURLToPath(new URL('data/build/repos.json', ROOT)),
 		tweets: fileURLToPath(new URL('data/build/twitter.json', ROOT)),
