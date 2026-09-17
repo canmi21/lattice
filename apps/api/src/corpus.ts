@@ -6,6 +6,7 @@ import type {
 	RootView,
 	SitemapAnswer,
 	ViewAnswer,
+	ViewsAnswer,
 } from '@canmi/artifacts';
 import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
 import { Hono, type Context } from 'hono';
@@ -42,6 +43,14 @@ const MISSED = { 'Cache-Control': 'public, max-age=300' } as const;
  */
 const ANSWERED = { 'Cache-Control': 'public, max-age=300, stale-if-error=10800' } as const;
 
+/**
+ * What a batch earns, which is nothing an edge can hold.
+ *
+ * A POST is not a cacheable request, and pretending otherwise would put a header on an answer no
+ * shared cache will ever read. The caller memoises what it asked for; see the site's cache.ts.
+ */
+const NO_STORE = { 'Cache-Control': 'no-store' } as const;
+
 /** The only standalone page there is; see libs/artifacts, `PublishedPage`. */
 const HOMEPAGE = 'homepage';
 
@@ -64,6 +73,39 @@ corpus.get('/view/:slug{.+}', async (c) => {
 		locale: { ...language, code: locale },
 	};
 	return success(c, answer satisfies ViewAnswer, ANSWERED);
+});
+
+/**
+ * Several of one article's views, for a consumer about to need one of them.
+ *
+ * A POST because the question is a list, the same shape `/read-counts` takes and for the same
+ * reason: a batch belongs in a body rather than repeated in a URL. It costs the five-minute cache,
+ * which is the trade -- a warm is answered once and then lives in the caller's own memo, so the
+ * edge would be holding a copy nobody asks for twice.
+ */
+corpus.post('/views', async (c) => {
+	const asked = await c.req.json().catch(() => undefined);
+	const slug = (asked as { slug?: unknown } | undefined)?.slug;
+	const locales = (asked as { locales?: unknown } | undefined)?.locales;
+	if (typeof slug !== 'string' || !Array.isArray(locales)) {
+		return failure(c, 400, 'expected_slug_and_locales', NO_STORE);
+	}
+
+	const article = findArticle(await rootOf(c.env), slug);
+	if (!article) return failure(c, 404, 'not_found', NO_STORE);
+
+	const views: ViewsAnswer['views'] = {};
+	for (const asking of locales) {
+		if (!(LOCALE_CODES as readonly unknown[]).includes(asking)) continue;
+		const code = asking as LocaleCode;
+		const view = article.views[code];
+		if (!view) continue;
+		const { locale: language, ...rest } = view;
+		views[code] = { ...rest, locale: { ...language, code } };
+	}
+
+	const answer = { slug: article.path, url: article.url, views };
+	return success(c, answer satisfies ViewsAnswer, NO_STORE);
 });
 
 /**

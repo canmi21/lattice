@@ -197,6 +197,19 @@ export type FeedAnswer = {
 	}[];
 };
 
+/**
+ * Several of one article's views at once, for a consumer about to need one of them.
+ *
+ * `slug` and `url` are named once rather than on every view, which is the only reason this is not
+ * a list of `/view` answers. A locale the article has no view in is absent, so asking for nine and
+ * receiving four is the answer rather than four errors.
+ */
+export type ViewsAnswer = {
+	slug: string;
+	url: string;
+	views: Partial<Record<LocaleCode, Omit<ViewAnswer, 'slug' | 'url'>>>;
+};
+
 /** Read counts by slug, for every slug asked for that names an article. */
 export type ReadsAnswer = { reads: Record<string, number> };
 

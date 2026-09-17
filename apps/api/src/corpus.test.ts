@@ -5,7 +5,7 @@ import app from './app';
 import type { Bindings } from './bindings';
 import { standUpDatabase } from './d1.harness';
 import { forgetRoot } from './root';
-import { unwrap, type FeedAnswer } from '@canmi/artifacts';
+import { unwrap, type FeedAnswer, type ViewsAnswer } from '@canmi/artifacts';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
@@ -196,6 +196,40 @@ describe('GET /sitemap', () => {
 	});
 });
 
+describe('POST /views', () => {
+	// The warming entry point: one question about several views, so a menu of nine languages is
+	// one request rather than nine. See spec/engagement.md.
+	it('answers the views it has, names slug and url once, and drops what it does not', async () => {
+		const answered = await payload<ViewsAnswer>(
+			await get('/views', {
+				method: 'POST',
+				body: { slug: 'architecture/one', locales: ['en', 'ja', 'ko', 'nonsense'] },
+			}),
+		);
+		expect(answered.slug).toBe('architecture/one');
+		expect(answered.url).toBe(`${SITE}/architecture/one`);
+		// `ko` is a locale this article has no view in, and `nonsense` is not a locale at all.
+		expect(Object.keys(answered.views).sort()).toEqual(['en', 'ja']);
+		expect(answered.views.ja).toMatchObject({
+			objects: { content: 'c'.repeat(32) },
+			locale: { code: 'ja', language_tag: 'ja-JP' },
+		});
+		// Named once at the top, so a view does not repeat them.
+		expect(answered.views.ja).not.toHaveProperty('slug');
+	});
+
+	it('refuses a body that is not a slug and a list, and 404s an article it has not got', async () => {
+		expect(
+			(await get('/views', { method: 'POST', body: { slug: 'architecture/one' } })).status,
+		).toBe(400);
+		const missing = await get('/views', {
+			method: 'POST',
+			body: { slug: 'made/up', locales: ['en'] },
+		});
+		expect(missing.status).toBe(404);
+	});
+});
+
 describe('the feed', () => {
 	// Entries and not a document: the feed is assembled by whoever asked, out of objects this
 	// answer names. See spec/architecture/artifacts.md, "Which objects exist".
@@ -249,12 +283,25 @@ afterAll(async () => {
 	await miniflare.dispose();
 });
 
-async function get(path: string, store?: { fetch: () => Promise<Response> }): Promise<Response> {
+type Asked = {
+	fetch?: () => Promise<Response>;
+	method?: string;
+	body?: Record<string, unknown>;
+};
+
+async function get(path: string, asked: Asked = {}): Promise<Response> {
 	const bindings = {
-		ASSETS: (store ?? {
-			fetch: async () => new Response(JSON.stringify(ROOT)),
-		}) as unknown as Bindings['ASSETS'],
+		ASSETS: {
+			fetch: asked.fetch ?? (async () => new Response(JSON.stringify(ROOT))),
+		} as unknown as Bindings['ASSETS'],
 		DATABASE: database as unknown as Bindings['DATABASE'],
 	} as Bindings;
-	return app.fetch(new Request(`${URLS.apps.production.api}${path}`), bindings);
+	return app.fetch(
+		new Request(`${URLS.apps.production.api}${path}`, {
+			method: asked.method,
+			headers: asked.body ? { 'Content-Type': 'application/json' } : undefined,
+			body: asked.body ? JSON.stringify(asked.body) : undefined,
+		}),
+		bindings,
+	);
 }
