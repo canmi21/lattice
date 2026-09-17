@@ -98,8 +98,7 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
-	import { pageUrls, URLS } from '@canmi/urls';
+	import { URLS } from '@canmi/urls';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
@@ -108,7 +107,6 @@
 	import { localeUrl } from '$lib/locale';
 	import { spaceScriptBoundaries } from '$lib/locale/spacing';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
 	import * as m from '$lib/paraglide/messages';
 	import type { PageData } from './$types';
 	import { compactCount, intlLocale } from '$lib/format';
@@ -118,9 +116,7 @@
 	const title = $derived(m['licenses.title']({}, { locale }));
 	const description = $derived(m['licenses.description']({}, { locale }));
 	const slug = 'licenses';
-	const cdn = pageUrls(dev).cdn;
 	const canonical = $derived(localeUrl(`${URLS.apps.production.site}/${slug}`, locale));
-	const card = $derived(cardUrl(cdn, slug, locale));
 	const numberLocale = $derived(intlLocale(locale));
 	const count = $derived(new Intl.NumberFormat(numberLocale).format(data.total));
 	const registryParts = $derived.by(() => {
@@ -148,11 +144,6 @@
 	<meta property="og:title" content={title} />
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonical} />
-	<meta property="og:image" content={card} />
-	<meta property="og:image:width" content={CARD_WIDTH} />
-	<meta property="og:image:height" content={CARD_HEIGHT} />
-	<meta property="og:image:alt" content={title} />
-	<meta name="twitter:card" content="summary_large_image" />
 	<!--
 		No robots meta: the directory pages of the licence surface are indexable, which is what
 		app.html already says by default. Only one page here departs from it, and that is the

@@ -84,12 +84,10 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
-	import { pageUrls, URLS } from '@canmi/urls';
+	import { URLS } from '@canmi/urls';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { localeUrl } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
 	import * as m from '$lib/paraglide/messages';
 	import type { PageData } from './$types';
 	import { compactCount, intlLocale } from '$lib/format';
@@ -101,9 +99,7 @@
 	const title = $derived(m['licenses.packages']({}, { locale }));
 	const description = $derived(m['licenses.packages_description']({ count }, { locale }));
 	const slug = 'licenses/pkgs';
-	const cdn = pageUrls(dev).cdn;
 	const canonical = $derived(localeUrl(`${URLS.apps.production.site}/${slug}`, locale));
-	const card = $derived(cardUrl(cdn, slug, locale));
 </script>
 
 <svelte:head>
@@ -113,11 +109,6 @@
 	<meta property="og:title" content={title} />
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonical} />
-	<meta property="og:image" content={card} />
-	<meta property="og:image:width" content={CARD_WIDTH} />
-	<meta property="og:image:height" content={CARD_HEIGHT} />
-	<meta property="og:image:alt" content={title} />
-	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 <main class="min-h-screen {stylex.attrs(surfaces.page).class}">

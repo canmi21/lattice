@@ -172,7 +172,6 @@
 	import { localeUrl } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { githubAvatar, textUrl } from '$lib/licenses';
-	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
 	import * as m from '$lib/paraglide/messages';
 	import type { PageData } from './$types';
 
@@ -191,7 +190,6 @@
 		`licenses/pkgs/${data.coordinates.registry}/${data.coordinates.name}@${data.coordinates.version}`,
 	);
 	const canonical = $derived(localeUrl(`${URLS.apps.production.site}/${slug}`, locale));
-	const card = $derived(cardUrl(cdn, slug, locale));
 
 	// A single licence whose identifier is the whole SPDX expression renders as one link; a
 	// compound expression keeps the plain expression with separate links to its terms.
@@ -226,11 +224,6 @@
 	<meta property="og:title" content={title} />
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonical} />
-	<meta property="og:image" content={card} />
-	<meta property="og:image:width" content={CARD_WIDTH} />
-	<meta property="og:image:height" content={CARD_HEIGHT} />
-	<meta property="og:image:alt" content={title} />
-	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 <main class="min-h-screen {stylex.attrs(surfaces.page).class}">
