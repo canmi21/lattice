@@ -3,12 +3,7 @@ export { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
 
 export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-/**
- * The language this site's own copy is written in -- not a fallback for a missing article
- * language. See spec/locale/interface.md, "A page names the site's own language, which is what its
- * tag already says".
- */
-export const SITE_LANGUAGE = 'en-US';
+export { SITE_LANGUAGE } from '@canmi/locales';
 
 export const PUBLIC_LANGUAGE = {
 	de: 'de-DE',

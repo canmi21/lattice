@@ -49,3 +49,10 @@ export function endonym(tag: string): string {
 export const LOCALE_CODES = ['mw', 'de', 'en', 'es', 'fr', 'ja', 'ko', 'zh', 'tw'] as const;
 
 export type LocaleCode = (typeof LOCALE_CODES)[number];
+
+/**
+ * The language this site's own copy is written in -- not a fallback for a missing article
+ * language. It moved here when the API needed to name a locale no article carries a view of,
+ * which is the third consumer this table has collected. See press's spec/locale/interface.md.
+ */
+export const SITE_LANGUAGE = 'en-US';
