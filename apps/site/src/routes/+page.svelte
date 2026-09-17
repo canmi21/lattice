@@ -130,7 +130,7 @@
 	 */
 	$effect(() => {
 		warmListed(
-			data.articles.map(({ path }) => path),
+			data.articles.map(({ slug }) => slug),
 			data.locale.code,
 		);
 	});

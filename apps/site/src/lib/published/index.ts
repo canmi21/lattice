@@ -110,7 +110,7 @@ export async function askBatch<T extends BatchRequest>(
 
 /** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */
 function viewUrl(slug: string, locale: LocaleCode): string {
-	// Both identifiers in the query, and the slug encoded because it carries slashes. See
+	// Both identifiers in the query, and the identity alone in `slug` -- never the path. See
 	// spec/architecture/artifacts.md, "A question asks with a query; a list asks with a body".
 	return api(`/article?slug=${encodeURIComponent(slug)}&lang=${locale}`);
 }
@@ -146,7 +146,12 @@ const lookupView = createBatcher<ViewAnswer>({
 						Promise.all(
 							Object.entries(article.views).map(async ([code, view]) => {
 								const locale = code as LocaleCode;
-								const whole = { ...view, slug: answered, url: article.url } satisfies ViewAnswer;
+								const whole = {
+									...view,
+									slug: answered,
+									path: article.path,
+									url: article.url,
+								} satisfies ViewAnswer;
 								found.set(`${answered}${SEPARATOR}${locale}`, whole);
 								await rememberAnswer(viewUrl(answered, locale), whole);
 								// The object, so the swap that follows renders rather than downloads.
@@ -167,20 +172,31 @@ export async function warmView(slug: string, locale: LocaleCode): Promise<void> 
 	await lookupView(`${slug}${SEPARATOR}${locale}`);
 }
 
+/**
+ * One article, and where it lives.
+ *
+ * The path comes back with the view because the question could not carry it: `?slug=` takes the
+ * identity alone, so the answer is the only thing that knows whether the address in the browser's
+ * bar is the real one. A caller that renders without checking serves the article at every address
+ * that reaches it, which is the duplicate-content shape. See spec/architecture/artifacts.md,
+ * "Reaching an article by name".
+ */
+export type FoundArticle = { path: string; view: PublishedView };
+
 export async function publishedView(
 	fetch: Fetch,
 	slug: string,
 	locale: LocaleCode,
-): Promise<PublishedView | undefined> {
+): Promise<FoundArticle | undefined> {
 	const found = await publishedMetadata(fetch, slug, locale);
 	if (!found) return undefined;
 	const view = (await (
 		await object(fetch, 'content', found.objects.content)
 	).json()) as PublishedView;
-	// Against the path the API answered with, not the one that was asked for: that is the one
+	// Against the identity the API answered with, not the one that was asked for: that is the one
 	// the object declares, and the two disagreeing is what this check is here to catch.
 	readEnvelope(view, found.slug, locale);
-	return view;
+	return { path: found.path, view };
 }
 
 /** A page's envelope names no locale, so it is checked without one. See libs/artifacts. */
@@ -247,12 +263,16 @@ function feedBases(url: string, locale: LocaleCode) {
  * One lookup and no locale in it: the route spans both kinds of thing, and a `.md` endpoint
  * returns the source exactly as written. See spec/architecture/artifacts.md.
  */
-export async function publishedMarkdown(fetch: Fetch, slug: string): Promise<Response | undefined> {
+export async function publishedMarkdown(
+	fetch: Fetch,
+	slug: string,
+): Promise<{ path: string; body: Response } | undefined> {
 	const found = await answer<DocumentAnswer>(
 		fetch,
 		api(`/source?slug=${encodeURIComponent(slug)}`),
 	);
-	return found ? object(fetch, 'markdown', found.hash) : undefined;
+	if (!found) return undefined;
+	return { path: found.path, body: await object(fetch, 'markdown', found.hash) };
 }
 
 /**

@@ -15,10 +15,14 @@ export const load: PageLoad = async ({ url, fetch, parent, depends }) => {
 	const code = currentLocale(locale.code);
 	const home = await orReload(url, publishedHome(fetch, code));
 	return {
+		// Both halves of the article's name: the path is what a card links to, the slug is what
+		// every question about it asks with. See spec/architecture/artifacts.md, "A slug is the
+		// identity and the path is the address".
 		articles: home.articles.map((article) => ({
 			meta: article.meta,
 			created: article.dates.created,
-			path: article.slug,
+			slug: article.slug,
+			path: article.path,
 			paragraphs: article.preview.paragraphs,
 		})),
 		locale: { code },

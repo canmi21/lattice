@@ -25,9 +25,21 @@ registerServerStrategy();
 const markdownHandle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 	if (pathname.endsWith('.md')) {
-		const markdown = await publishedMarkdown(event.fetch, pathname.slice(1, -3));
-		if (markdown) {
-			return new Response(markdown.body, {
+		// The identity, which is the last segment: `/mirror/a-b.md` and `/homepage.md` alike.
+		const asked = pathname.slice(1, -3);
+		const found = await publishedMarkdown(event.fetch, identityIn(asked));
+		if (found) {
+			// A document is redirected on the same terms a page is, because a source served at
+			// every address that reaches it is the same duplicate-content shape. See
+			// spec/architecture/artifacts.md, "Reaching an article by name".
+			if (found.path !== asked) {
+				const permanent = asked.includes('/');
+				return new Response(null, {
+					status: permanent ? 301 : 302,
+					headers: { Location: `/${found.path}.md` },
+				});
+			}
+			return new Response(found.body.body, {
 				headers: {
 					'Content-Type': 'text/markdown; charset=utf-8',
 					'Cache-Control': 'public, max-age=300, s-maxage=300',
@@ -47,6 +59,18 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
  */
 const DOCUMENT_PATH = /\.[^./]+$/;
 
+/**
+ * The identity in an address: its last segment.
+ *
+ * Every question about an article asks by slug alone -- a slug is unique whatever directory holds
+ * it, so the directory is the address and never part of the name. A standalone page has no
+ * directory, so the same test returns the page itself. See spec/architecture/artifacts.md,
+ * "A slug is the identity and the path is the address".
+ */
+function identityIn(path: string): string {
+	return path.replace(/^\/+|\/+$/g, '').split('/').at(-1) ?? '';
+}
+
 /** The route every page that is not one of this site's own fixed addresses resolves to. */
 const PAGE_ROUTE = '/[...path]';
 
@@ -60,8 +84,9 @@ const PAGE_ROUTE = '/[...path]';
  */
 async function resolvedTag(event: RequestEvent, code: LocaleCode): Promise<string> {
 	if (code !== 'mw' || event.route.id !== PAGE_ROUTE) return languageTag(code, SITE_LANGUAGE);
-	const slug = event.url.pathname.replace(/^\//, '').replace(/\/$/, '');
-	const found = await publishedMetadata(event.fetch, slug, 'mw').catch(() => undefined);
+	const found = await publishedMetadata(event.fetch, identityIn(event.url.pathname), 'mw').catch(
+		() => undefined,
+	);
 	return found?.locale.language_tag ?? SITE_LANGUAGE;
 }
 

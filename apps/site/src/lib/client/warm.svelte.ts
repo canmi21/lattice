@@ -85,19 +85,19 @@ export async function warmArticle(
 
 	void warmReads(slug);
 	try {
-		const view = await publishedView(fetch, slug, locale);
-		if (view && withImage) warmFirstImage(view.body.blocks);
+		const found = await publishedView(fetch, slug, locale);
+		if (found && withImage) warmFirstImage(found.view.body.blocks);
 	} catch {
 		// The navigation will ask again, and it is the one the reader is waiting on.
 	}
 }
 
 /**
- * Which article a link points at, or nothing when it points at something else.
+ * Which article a link points at, as the identity everything downstream asks with.
  *
- * A document has an extension and an article does not -- the same test `hooks.server.ts` makes,
- * for the same reason: it reads the distinction the addresses already carry rather than keeping a
- * list beside them. See spec/locale/addressing.md.
+ * A document has an extension and an article does not -- the same test `hooks.server.ts` makes.
+ * The last segment is the slug, and a name with no hyphen is one of this site's own routes. See
+ * spec/locale/addressing.md and spec/architecture/artifacts.md.
  */
 function articleAt(anchor: HTMLAnchorElement): string | undefined {
 	if (anchor.target === '_blank' || anchor.hasAttribute('download')) return undefined;
@@ -105,7 +105,9 @@ function articleAt(anchor: HTMLAnchorElement): string | undefined {
 	if (here.origin !== window.location.origin) return undefined;
 	const path = here.pathname.replace(/^\/+|\/+$/g, '');
 	if (path === '' || path.includes('.') || path.startsWith('licenses')) return undefined;
-	return path === window.location.pathname.replace(/^\/+|\/+$/g, '') ? undefined : path;
+	if (path === window.location.pathname.replace(/^\/+|\/+$/g, '')) return undefined;
+	const slug = path.split('/').at(-1) ?? '';
+	return slug.includes('-') ? slug : undefined;
 }
 
 /**
