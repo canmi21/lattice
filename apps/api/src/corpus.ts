@@ -1,9 +1,19 @@
-import type { DocumentAnswer, HomeAnswer, Root, SitemapAnswer, ViewAnswer } from '@canmi/artifacts';
-import { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
-import { Hono } from 'hono';
+import type {
+	DocumentAnswer,
+	HomeAnswer,
+	Root,
+	RootView,
+	SitemapAnswer,
+	ViewAnswer,
+} from '@canmi/artifacts';
+import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
+import { inArray } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/d1';
+import { Hono, type Context } from 'hono';
 import type { Bindings } from './bindings';
 import { failure, success } from './respond';
 import { findArticle, rootOf } from './root';
+import { articleReads } from './schema';
 
 /**
  * What is published right now, derived from the root and nothing else.
@@ -37,8 +47,8 @@ const ANSWERED = { 'Cache-Control': 'public, max-age=300, stale-if-error=10800' 
 /** The only standalone page there is; see libs/artifacts, `PublishedPage`. */
 const HOMEPAGE = 'homepage';
 
-corpus.get('/view/:locale/:slug{.+}', async (c) => {
-	const locale = localeOf(c.req.param('locale'));
+corpus.get('/view/:slug{.+}', async (c) => {
+	const locale = askedLocale(c);
 	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
 	const article = findArticle(await rootOf(c.env), c.req.param('slug'));
@@ -47,9 +57,16 @@ corpus.get('/view/:locale/:slug{.+}', async (c) => {
 
 	// The article's own path rather than the one that was asked for, because it is what the
 	// consumer checks the fetched object's envelope against and keys the read counter by. The
-	// markdown hash is not here: it has the route below, and a fact appears in exactly one
-	// answer. See spec/architecture/artifacts.md.
-	const answer = { ...view, slug: article.path, locale };
+	// markdown hash is not here: it has its own route, and a fact appears in exactly one answer.
+	const { locale: language, metrics, ...rest } = view;
+	const reads = await readsFor(c.env, [article.path]);
+	const answer = {
+		...rest,
+		slug: article.path,
+		url: article.url,
+		locale: { ...language, code: locale },
+		metrics: { ...metrics, reads: reads.get(article.path) ?? 0 },
+	};
 	return success(c, answer satisfies ViewAnswer, ANSWERED);
 });
 
@@ -68,22 +85,41 @@ corpus.get('/markdown/:slug{.+}', async (c) => {
 	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
 });
 
-corpus.get('/home/:locale', async (c) => {
-	const locale = localeOf(c.req.param('locale'));
+corpus.get('/home', async (c) => {
+	const locale = askedLocale(c);
 	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
 	const root = await rootOf(c.env);
-	const articles: HomeAnswer['articles'] = [];
+	const listed: { article: Root['articles'][number]; view: RootView }[] = [];
 	for (const article of root.articles) {
 		const view = article.views[locale];
-		if (view) articles.push({ ...view, path: article.path });
+		if (view) listed.push({ article, view });
 	}
 
+	// One query for the whole listing rather than one per row: a homepage that costs N round
+	// trips to the database is a homepage that gets slower as the corpus grows.
+	const reads = await readsFor(
+		c.env,
+		listed.map(({ article }) => article.path),
+	);
+	const articles: HomeAnswer['articles'] = listed.map(({ article, view }) => {
+		const { locale: _language, metrics, ...rest } = view;
+		return {
+			...rest,
+			slug: article.path,
+			url: article.url,
+			metrics: { ...metrics, reads: reads.get(article.path) ?? 0 },
+		};
+	});
+
 	const answer = {
+		locale: { code: locale, language_tag: languageTagOf(root, locale) },
+		page: homepage(root, locale),
 		// Sorted here rather than trusted from the root, so the order the homepage renders in is
 		// a property of this route.
-		articles: articles.toSorted((a, b) => Date.parse(b.created) - Date.parse(a.created)),
-		page: homepage(root, locale),
+		articles: articles.toSorted(
+			(a, b) => Date.parse(b.dates.created) - Date.parse(a.dates.created),
+		),
 	};
 	return success(c, answer satisfies HomeAnswer, ANSWERED);
 });
@@ -93,7 +129,7 @@ corpus.get('/sitemap', async (c) => {
 	const views = root.articles.flatMap((article) => {
 		// The source view dates the article: every translation is of the same file, so `mw` is the
 		// one that moves when it does.
-		const lastmod = article.views.mw?.lastmod;
+		const lastmod = article.views.mw?.dates.lastmod;
 		if (!lastmod) return [];
 		return article.canonical_urls.map((loc) => ({ loc, lastmod, alternates: article.alternates }));
 	});
@@ -101,8 +137,8 @@ corpus.get('/sitemap', async (c) => {
 	return success(c, answer satisfies SitemapAnswer, ANSWERED);
 });
 
-corpus.get('/feed/:locale', async (c) => {
-	const locale = localeOf(c.req.param('locale'));
+corpus.get('/feed', async (c) => {
+	const locale = askedLocale(c);
 	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
 	const hash = (await rootOf(c.env)).feeds[locale];
@@ -123,12 +159,45 @@ corpus.get('/llms', async (c) =>
  */
 function homepage(root: Root, locale: LocaleCode): HomeAnswer['page'] {
 	const content = root.pages[HOMEPAGE]?.views[locale]?.content;
-	return content ? { content } : null;
+	return content ? { objects: { content } } : null;
 }
 
-/** A locale the corpus keys a view by, or nothing -- never a fallback to another one. */
-function localeOf(value: string): LocaleCode | undefined {
-	return (LOCALE_CODES as readonly string[]).includes(value) ? (value as LocaleCode) : undefined;
+/**
+ * Which view was asked for: `?lang=`, and the source when nothing was asked.
+ *
+ * A query parameter rather than a path segment, because that is how this site already asks --
+ * `spec/locale/addressing.md` gives `lang` as a reader's first preference source and `llms.txt`
+ * documents it for machines. One spelling reaches the site and the API. Absent means `mw`, the
+ * same answer a bare URL gives; an unknown value is a 400 and never a fallback to another view.
+ */
+function askedLocale(c: Context): LocaleCode | undefined {
+	const asked = c.req.query('lang');
+	if (asked === undefined || asked === '') return 'mw';
+	return (LOCALE_CODES as readonly string[]).includes(asked) ? (asked as LocaleCode) : undefined;
+}
+
+/** The tag this locale's views carry, taken from the first that has one. */
+function languageTagOf(root: Root, locale: LocaleCode): string {
+	for (const article of root.articles) {
+		const tag = article.views[locale]?.locale.language_tag;
+		if (tag) return tag;
+	}
+	return SITE_LANGUAGE;
+}
+
+/**
+ * How often each article has been read, in one query.
+ *
+ * D1 rather than the root, because a visitor writes this and the mirror is one-way -- see
+ * spec/architecture/data.md. An article nobody has opened has no row, which is zero.
+ */
+async function readsFor(env: Bindings, slugs: string[]): Promise<Map<string, number>> {
+	if (slugs.length === 0) return new Map();
+	const rows = await drizzle(env.DATABASE)
+		.select({ slug: articleReads.slug, count: articleReads.count })
+		.from(articleReads)
+		.where(inArray(articleReads.slug, slugs));
+	return new Map(rows.map((row) => [row.slug, row.count]));
 }
 
 export default corpus;

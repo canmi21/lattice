@@ -1,7 +1,6 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { URLS } from '@canmi/urls';
-import { convertV4MiniflareOptions, Miniflare } from 'miniflare';
+import { Miniflare } from 'miniflare';
+import { standUpDatabase } from './d1.harness';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import app from './app';
 import type { Bindings } from './bindings';
@@ -17,7 +16,6 @@ async function payload<T = unknown>(response: Response): Promise<T> {
 	return unwrap<T>(await response.json(), response.url || 'test');
 }
 
-const MIGRATIONS = fileURLToPath(new URL('../drizzle', import.meta.url).href);
 const IP_ONE = '203.0.113.10';
 const IP_TWO = '2001:db8::20';
 const allow: RateLimit = { limit: async () => ({ success: true }) };
@@ -53,34 +51,7 @@ let miniflare: Miniflare;
 let database: Awaited<ReturnType<Miniflare['getD1Database']>>;
 
 beforeAll(async () => {
-	// Miniflare 5 replaced the flat options object with one that mirrors wrangler's config, and
-	// ships `convertV4MiniflareOptions` to bridge the two. Taken rather than rewritten by hand:
-	// this harness wants a D1 and nothing else, and the new shape carries a worker config whose
-	// every other field would be noise here.
-	//
-	// The version is not a choice made here. wrangler depends on it, so pnpm resolves one copy and
-	// this harness runs the same runtime `wrangler dev` does.
-	miniflare = new Miniflare(
-		convertV4MiniflareOptions({
-			compatibilityDate: '2026-07-29',
-			modules: true,
-			script: 'export default { fetch() { return new Response("unused") } }',
-			d1Databases: ['DATABASE'],
-		}),
-	);
-	database = await miniflare.getD1Database('DATABASE');
-	const migrationNames = (await readdir(MIGRATIONS))
-		.filter((migrationName) => migrationName.endsWith('.sql'))
-		.toSorted();
-	const migrations = await Promise.all(
-		migrationNames.map((migrationName) => readFile(`${MIGRATIONS}/${migrationName}`, 'utf8')),
-	);
-	for (const sql of migrations) {
-		for (const statement of sql.split('--> statement-breakpoint')) {
-			// oxlint-disable-next-line no-await-in-loop -- later statements depend on earlier DDL
-			if (statement.trim()) await database.prepare(statement).run();
-		}
-	}
+	({ miniflare, database } = await standUpDatabase());
 });
 
 beforeEach(async () => {

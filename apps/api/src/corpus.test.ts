@@ -1,7 +1,9 @@
 import { URLS } from '@canmi/urls';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { Miniflare } from 'miniflare';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import app from './app';
 import type { Bindings } from './bindings';
+import { standUpDatabase } from './d1.harness';
 import { forgetRoot } from './root';
 import { unwrap } from '@canmi/artifacts';
 
@@ -16,22 +18,33 @@ async function payload<T = unknown>(response: Response): Promise<T> {
 
 const SITE = URLS.apps.production.site;
 
-function view(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+type ViewOverrides = {
+	content?: string;
+	language_tag?: string;
+	created?: string;
+	lastmod?: string;
+};
+
+function view(overrides: ViewOverrides = {}): Record<string, unknown> {
 	return {
-		content: '0'.repeat(32),
-		title: 'Title',
-		subtitle: 'Subtitle',
-		description: 'Description',
-		short_title: 'Short',
-		short_subtitle: 'Shorter',
-		created: '2026-01-01T00:00:00.000Z',
-		lastmod: '2026-01-02T00:00:00.000Z',
-		language_tag: 'en-US',
-		canonical: `${SITE}/architecture/one`,
-		translation_available: true,
-		words: 900,
-		paragraphs: ['The opening.'],
-		...overrides,
+		objects: { content: overrides.content ?? '0'.repeat(32) },
+		locale: {
+			language_tag: overrides.language_tag ?? 'en-US',
+			canonical: `${SITE}/architecture/one`,
+			translated: true,
+		},
+		meta: {
+			title: 'Title',
+			subtitle: 'Subtitle',
+			description: 'Description',
+			short: { title: 'Short', subtitle: 'Shorter' },
+		},
+		dates: {
+			created: overrides.created ?? '2026-01-01T00:00:00.000Z',
+			lastmod: overrides.lastmod ?? '2026-01-02T00:00:00.000Z',
+		},
+		metrics: { words: 900 },
+		preview: { paragraphs: ['The opening.'] },
 	};
 }
 
@@ -75,44 +88,72 @@ const ROOT = {
 	llms: 'f'.repeat(32),
 };
 
-beforeEach(() => {
+beforeEach(async () => {
 	forgetRoot();
+	await database.prepare('DELETE FROM article_reads').run();
 });
 
-describe('GET /view/:locale/:slug', () => {
+describe('GET /view/:slug', () => {
 	it('answers with the view, its hashes and five minutes', async () => {
-		const res = await get('/view/en/architecture/one');
+		const res = await get('/view/architecture/one?lang=en');
 		expect(res.status).toBe(200);
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300, stale-if-error=10800');
 		expect(await payload(res)).toMatchObject({
 			slug: 'architecture/one',
-			locale: 'en',
-			content: 'b'.repeat(32),
-			title: 'Title',
-			paragraphs: ['The opening.'],
+			url: `${SITE}/architecture/one`,
+			locale: { code: 'en', language_tag: 'en-US', translated: true },
+			objects: { content: 'b'.repeat(32) },
+			meta: { title: 'Title', short: { title: 'Short' } },
+			dates: { created: '2026-01-01T00:00:00.000Z' },
+			// Read from D1 rather than the root, and zero for an article nobody has opened.
+			metrics: { words: 900, reads: 0 },
+			preview: { paragraphs: ['The opening.'] },
 		});
 	});
 
 	// Five minutes on a miss too, but no `stale-if-error`: a 404 is not an error worth serving
 	// stale. See spec/architecture/artifacts.md.
 	it('caches a miss as long as an answer, without offering it stale', async () => {
-		const unknown = await get('/view/en/made/up');
+		const unknown = await get('/view/made/up?lang=en');
 		expect(unknown.status).toBe(404);
 		expect(unknown.headers.get('Cache-Control')).toBe('public, max-age=300');
 
-		const untranslated = await get('/view/ja/mirror/two');
+		const untranslated = await get('/view/mirror/two?lang=ja');
 		expect(untranslated.status).toBe(404);
 	});
 
 	it('refuses a locale it does not know rather than falling back to one it does', async () => {
-		const res = await get('/view/xx/architecture/one');
+		const res = await get('/view/architecture/one?lang=xx');
 		expect(res.status).toBe(400);
+	});
+
+	it('carries the read count from D1, for one article and for the listing', async () => {
+		await database
+			.prepare('INSERT INTO article_reads (slug, count) VALUES (?, ?)')
+			.bind('architecture/one', 42)
+			.run();
+
+		const one = await payload<{ metrics: { reads: number } }>(
+			await get('/view/architecture/one?lang=en'),
+		);
+		expect(one.metrics.reads).toBe(42);
+
+		// And the listing takes them in one query, so a homepage does not cost a round trip per row.
+		const home = await payload<{ articles: { slug: string; metrics: { reads: number } }[] }>(
+			await get('/home?lang=en'),
+		);
+		expect(Object.fromEntries(home.articles.map((a) => [a.slug, a.metrics.reads]))).toEqual({
+			'architecture/one': 42,
+			'mirror/two': 0,
+		});
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
 	// spec/architecture/artifacts.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
-		expect(await payload(await get('/view/en/architecture/one'))).not.toHaveProperty('markdown');
+		expect(await payload(await get('/view/architecture/one?lang=en'))).not.toHaveProperty(
+			'markdown',
+		);
 	});
 });
 
@@ -131,26 +172,28 @@ describe('GET /markdown/:slug', () => {
 	});
 });
 
-describe('GET /home/:locale', () => {
+describe('GET /home', () => {
 	it('lists the locale views newest first, with the homepage page', async () => {
-		const res = await get('/home/en');
+		const res = await get('/home?lang=en');
 		expect(res.status).toBe(200);
 		const body = await payload<{
-			page: { content: string };
-			articles: { path: string; content: string }[];
+			locale: { code: string; language_tag: string };
+			page: { objects: { content: string } };
+			articles: { slug: string }[];
 		}>(res);
-		expect(body.articles.map((article) => article.path)).toEqual([
+		expect(body.locale).toEqual({ code: 'en', language_tag: 'en-US' });
+		expect(body.articles.map((article) => article.slug)).toEqual([
 			'mirror/two',
 			'architecture/one',
 		]);
-		expect(body.page).toEqual({ content: 'd'.repeat(32) });
+		expect(body.page).toEqual({ objects: { content: 'd'.repeat(32) } });
 	});
 
 	// Nothing stands in for a view this locale does not have, here or on /view.
 	it('drops an article this locale cannot show, and answers no page at all', async () => {
-		const res = await get('/home/ja');
-		const body = await payload<{ page: unknown; articles: { path: string }[] }>(res);
-		expect(body.articles.map((article) => article.path)).toEqual(['architecture/one']);
+		const res = await get('/home?lang=ja');
+		const body = await payload<{ page: unknown; articles: { slug: string }[] }>(res);
+		expect(body.articles.map((article) => article.slug)).toEqual(['architecture/one']);
 		expect(body.page).toBeNull();
 	});
 });
@@ -179,8 +222,8 @@ describe('GET /sitemap', () => {
 
 describe('the whole-corpus documents', () => {
 	it('names the locale feed, and refuses a locale with none', async () => {
-		expect(await payload(await get('/feed/en'))).toEqual({ hash: 'e'.repeat(32) });
-		expect((await get('/feed/ja')).status).toBe(404);
+		expect(await payload(await get('/feed?lang=en'))).toEqual({ hash: 'e'.repeat(32) });
+		expect((await get('/feed?lang=ja')).status).toBe(404);
 	});
 
 	it('names llms.txt', async () => {
@@ -192,7 +235,9 @@ describe('the whole-corpus documents', () => {
 // became an outage, so it is the one answer here that is never stored.
 describe('a root that cannot be read', () => {
 	it('fails rather than reporting an empty corpus, and is not cached', async () => {
-		const res = await get('/home/en', { fetch: async () => new Response('nope', { status: 404 }) });
+		const res = await get('/home?lang=en', {
+			fetch: async () => new Response('nope', { status: 404 }),
+		});
 		expect(res.status).toBe(500);
 		expect(res.headers.get('Cache-Control')).toBe('no-store');
 	});
@@ -205,11 +250,26 @@ describe('a root that cannot be read', () => {
 	});
 });
 
+let miniflare: Miniflare;
+let database: Awaited<ReturnType<Miniflare['getD1Database']>>;
+
+// A real D1, because the article answers now carry a read count and a stub would only prove the
+// route reads something. See spec/architecture/data.md on why the count lives here and not in the
+// root: a visitor writes it, and the mirror runs one way.
+beforeAll(async () => {
+	({ miniflare, database } = await standUpDatabase());
+});
+
+afterAll(async () => {
+	await miniflare.dispose();
+});
+
 async function get(path: string, store?: { fetch: () => Promise<Response> }): Promise<Response> {
 	const bindings = {
 		ASSETS: (store ?? {
 			fetch: async () => new Response(JSON.stringify(ROOT)),
 		}) as unknown as Bindings['ASSETS'],
+		DATABASE: database as unknown as Bindings['DATABASE'],
 	} as Bindings;
 	return app.fetch(new Request(`${URLS.apps.production.api}${path}`), bindings);
 }
