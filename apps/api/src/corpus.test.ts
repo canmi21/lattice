@@ -30,7 +30,7 @@ function view(overrides: ViewOverrides = {}): Record<string, unknown> {
 		objects: { content: overrides.content ?? '0'.repeat(32) },
 		locale: {
 			language_tag: overrides.language_tag ?? 'en-US',
-			canonical: `${SITE}/architecture/one`,
+			canonical: `${SITE}/architecture/the-first`,
 			translated: true,
 		},
 		meta: {
@@ -55,11 +55,12 @@ const ROOT = {
 	generated: '2026-01-03T00:00:00.000Z',
 	articles: [
 		{
-			path: 'architecture/one',
-			url: `${SITE}/architecture/one`,
+			slug: 'the-first',
+			path: 'architecture/the-first',
+			url: `${SITE}/architecture/the-first`,
 			markdown: '1'.repeat(32),
-			alternates: [{ code: 'ja', language_tag: 'ja-JP', href: `${SITE}/ja/architecture/one` }],
-			canonical_urls: [`${SITE}/architecture/one`, `${SITE}/ja/architecture/one`],
+			alternates: [{ code: 'ja', language_tag: 'ja-JP', href: `${SITE}/ja/architecture/the-first` }],
+			canonical_urls: [`${SITE}/architecture/the-first`, `${SITE}/ja/architecture/the-first`],
 			views: {
 				mw: view({ content: 'a'.repeat(32) }),
 				en: view({ content: 'b'.repeat(32) }),
@@ -67,11 +68,12 @@ const ROOT = {
 			},
 		},
 		{
-			path: 'mirror/two',
-			url: `${SITE}/mirror/two`,
+			slug: 'the-second',
+			path: 'mirror/the-second',
+			url: `${SITE}/mirror/the-second`,
 			markdown: '2'.repeat(32),
 			alternates: [],
-			canonical_urls: [`${SITE}/mirror/two`],
+			canonical_urls: [`${SITE}/mirror/the-second`],
 			views: {
 				mw: view({ created: '2026-02-01T00:00:00.000Z', lastmod: '2026-02-02T00:00:00.000Z' }),
 				en: view({ created: '2026-02-01T00:00:00.000Z', lastmod: '2026-02-02T00:00:00.000Z' }),
@@ -93,12 +95,15 @@ beforeEach(async () => {
 
 describe('GET /view/:slug', () => {
 	it('answers with the view, its hashes and five minutes', async () => {
-		const res = await get('/article?slug=architecture/one&lang=en');
+		const res = await get('/article?slug=the-first&lang=en');
 		expect(res.status).toBe(200);
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300, stale-if-error=10800');
 		expect(await payload(res)).toMatchObject({
-			slug: 'architecture/one',
-			url: `${SITE}/architecture/one`,
+			// The question carried the identity; the answer carries both, so a caller holding a
+			// stale address learns the real one instead of a 404.
+			slug: 'the-first',
+			path: 'architecture/the-first',
+			url: `${SITE}/architecture/the-first`,
 			locale: { code: 'en', language_tag: 'en-US', translated: true },
 			objects: { content: 'b'.repeat(32) },
 			meta: { title: 'Title', short: { title: 'Short' } },
@@ -115,19 +120,19 @@ describe('GET /view/:slug', () => {
 		expect(unknown.status).toBe(404);
 		expect(unknown.headers.get('Cache-Control')).toBe('public, max-age=300');
 
-		const untranslated = await get('/article?slug=mirror/two&lang=ja');
+		const untranslated = await get('/article?slug=the-second&lang=ja');
 		expect(untranslated.status).toBe(404);
 	});
 
 	it('refuses a locale it does not know rather than falling back to one it does', async () => {
-		const res = await get('/article?slug=architecture/one&lang=xx');
+		const res = await get('/article?slug=the-first&lang=xx');
 		expect(res.status).toBe(400);
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
 	// spec/architecture/artifacts.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
-		expect(await payload(await get('/article?slug=architecture/one&lang=en'))).not.toHaveProperty(
+		expect(await payload(await get('/article?slug=the-first&lang=en'))).not.toHaveProperty(
 			'markdown',
 		);
 	});
@@ -135,10 +140,15 @@ describe('GET /view/:slug', () => {
 
 describe('GET /source', () => {
 	it('answers for an article and for a standalone page alike', async () => {
-		expect(await payload(await get('/source?slug=architecture/one'))).toEqual({
+		expect(await payload(await get('/source?slug=the-first'))).toEqual({
 			hash: '1'.repeat(32),
+			path: 'architecture/the-first',
 		});
-		expect(await payload(await get('/source?slug=homepage'))).toEqual({ hash: '3'.repeat(32) });
+		// A page has no directory, so its identity is already its address.
+		expect(await payload(await get('/source?slug=homepage'))).toEqual({
+			hash: '3'.repeat(32),
+			path: 'homepage',
+		});
 	});
 
 	it('caches a miss for five minutes, without offering it stale', async () => {
@@ -155,12 +165,13 @@ describe('GET /homepage', () => {
 		const body = await payload<{
 			locale: { code: string; language_tag: string };
 			page: { objects: { content: string } };
-			articles: { slug: string }[];
+			articles: { slug: string; path: string }[];
 		}>(res);
 		expect(body.locale).toEqual({ code: 'en', language_tag: 'en-US' });
-		expect(body.articles.map((article) => article.slug)).toEqual([
-			'mirror/two',
-			'architecture/one',
+		expect(body.articles.map((article) => article.slug)).toEqual(['the-second', 'the-first']);
+		expect(body.articles.map((article) => article.path)).toEqual([
+			'mirror/the-second',
+			'architecture/the-first',
 		]);
 		expect(body.page).toEqual({ objects: { content: 'd'.repeat(32) } });
 	});
@@ -169,7 +180,7 @@ describe('GET /homepage', () => {
 	it('drops an article this locale cannot show, and answers no page at all', async () => {
 		const res = await get('/homepage?lang=ja');
 		const body = await payload<{ page: unknown; articles: { slug: string }[] }>(res);
-		expect(body.articles.map((article) => article.slug)).toEqual(['architecture/one']);
+		expect(body.articles.map((article) => article.slug)).toEqual(['the-first']);
 		expect(body.page).toBeNull();
 	});
 });
@@ -181,16 +192,16 @@ describe('GET /sitemap', () => {
 			generated: ROOT.generated,
 			views: [
 				{
-					loc: `${SITE}/architecture/one`,
+					loc: `${SITE}/architecture/the-first`,
 					lastmod: '2026-01-02T00:00:00.000Z',
 					alternates: ROOT.articles[0]?.alternates,
 				},
 				{
-					loc: `${SITE}/ja/architecture/one`,
+					loc: `${SITE}/ja/architecture/the-first`,
 					lastmod: '2026-01-02T00:00:00.000Z',
 					alternates: ROOT.articles[0]?.alternates,
 				},
-				{ loc: `${SITE}/mirror/two`, lastmod: '2026-02-02T00:00:00.000Z', alternates: [] },
+				{ loc: `${SITE}/mirror/the-second`, lastmod: '2026-02-02T00:00:00.000Z', alternates: [] },
 			],
 		});
 	});
@@ -231,27 +242,30 @@ describe('POST /batch', () => {
 				method: 'POST',
 				body: {
 					type: 'articles',
-					slugs: ['architecture/one', 'mirror/two', 'made/up'],
+					slugs: ['the-first', 'the-second', 'made-up'],
 					locales: ['en', 'ja'],
 				},
 			}),
 		);
 		expect(answered.type).toBe('articles');
-		// `made/up` names no article, so it is absent rather than an error.
-		expect(Object.keys(answered.articles).toSorted()).toEqual(['architecture/one', 'mirror/two']);
-		expect(answered.articles['architecture/one']?.url).toBe(`${SITE}/architecture/one`);
-		// `mirror/two` has no Japanese view, so that locale is absent from it alone.
-		expect(Object.keys(answered.articles['architecture/one']?.views ?? {}).toSorted()).toEqual([
+		// `made-up` names no article, so it is absent rather than an error.
+		expect(Object.keys(answered.articles).toSorted()).toEqual(['the-first', 'the-second']);
+		expect(answered.articles['the-first']?.url).toBe(`${SITE}/architecture/the-first`);
+		// `the-second` has no Japanese view, so that locale is absent from it alone.
+		expect(Object.keys(answered.articles['the-first']?.views ?? {}).toSorted()).toEqual([
 			'en',
 			'ja',
 		]);
-		expect(Object.keys(answered.articles['mirror/two']?.views ?? {})).toEqual(['en']);
-		expect(answered.articles['architecture/one']?.views.ja).toMatchObject({
+		expect(Object.keys(answered.articles['the-second']?.views ?? {})).toEqual(['en']);
+		expect(answered.articles['the-first']?.views.ja).toMatchObject({
 			objects: { content: 'c'.repeat(32) },
 			locale: { code: 'ja', language_tag: 'ja-JP' },
 		});
-		// Named once above the views, so a view does not repeat it.
-		expect(answered.articles['architecture/one']?.views.ja).not.toHaveProperty('slug');
+		// The address is named once above the views, and the identity is the key it is filed under,
+		// so neither is repeated inside one.
+		expect(answered.articles['the-first']?.path).toBe('architecture/the-first');
+		expect(answered.articles['the-first']?.views.ja).not.toHaveProperty('slug');
+		expect(answered.articles['the-first']?.views.ja).not.toHaveProperty('path');
 	});
 
 	it('refuses a body whose type it cannot read, and one that names no type at all', async () => {
@@ -259,7 +273,7 @@ describe('POST /batch', () => {
 			{ type: 'articles', slugs: 'not-a-list', locales: ['en'] },
 			{ type: 'reads' },
 			{ type: 'nonsense', slugs: [] },
-			{ slugs: ['architecture/one'] },
+			{ slugs: ['the-first'] },
 		]) {
 			expect((await get('/batch', { method: 'POST', body })).status).toBe(400);
 		}
@@ -268,7 +282,7 @@ describe('POST /batch', () => {
 	it('refuses a locale that is not one, rather than dropping it quietly', async () => {
 		const res = await get('/batch', {
 			method: 'POST',
-			body: { type: 'articles', slugs: ['architecture/one'], locales: ['en', 'nonsense'] },
+			body: { type: 'articles', slugs: ['the-first'], locales: ['en', 'nonsense'] },
 		});
 		expect(res.status).toBe(400);
 	});
@@ -280,10 +294,10 @@ describe('the feed', () => {
 	it('lists what one locale has, newest change first, and nothing for a locale with none', async () => {
 		const answered = await payload<FeedAnswer>(await get('/feed?lang=en'));
 		expect(answered.locale).toEqual({ code: 'en' });
-		// Not the root's order: `mirror/two` is second there and changed later, so it leads.
-		expect(answered.entries.map((entry) => entry.slug)).toEqual(['mirror/two', 'architecture/one']);
+		// Not the root's order: `mirror/the-second` is second there and changed later, so it leads.
+		expect(answered.entries.map((entry) => entry.slug)).toEqual(['the-second', 'the-first']);
 		expect(answered.entries[1]).toMatchObject({
-			url: `${SITE}/architecture/one`,
+			url: `${SITE}/architecture/the-first`,
 			objects: { content: 'b'.repeat(32) },
 			locale: { language_tag: 'en-US', translated: true },
 			meta: { title: 'Title', description: 'Description' },

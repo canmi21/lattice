@@ -20,9 +20,13 @@ const IP_ONE = '203.0.113.10';
 const IP_TWO = '2001:db8::20';
 const allow: RateLimit = { limit: async () => ({ success: true }) };
 
-const SLUG = 'architecture/compile-time-rendering';
+// The counter is keyed by identity, so the directory these two sit in is deliberately not the
+// thing being asked with. See spec/architecture/artifacts.md.
+const SLUG = 'compile-time-rendering';
+const PATH = `architecture/${SLUG}`;
 /** A second published article, so a batch can hold one that has been read and one that has not. */
-const UNREAD_SLUG = 'mirror/friends-come-in-phases';
+const UNREAD_SLUG = 'friends-come-in-phases';
+const UNREAD_PATH = `mirror/${UNREAD_SLUG}`;
 
 /** Enough of a root for the read counter to recognise these two slugs and refuse every other. */
 const ROOT = {
@@ -30,19 +34,21 @@ const ROOT = {
 	generated: '2026-01-02T00:00:00.000Z',
 	articles: [
 		{
-			path: SLUG,
-			url: `${URLS.apps.production.site}/${SLUG}`,
+			slug: SLUG,
+			path: PATH,
+			url: `${URLS.apps.production.site}/${PATH}`,
 			markdown: 'b'.repeat(32),
 			alternates: [],
-			canonical_urls: [`${URLS.apps.production.site}/${SLUG}`],
+			canonical_urls: [`${URLS.apps.production.site}/${PATH}`],
 			views: {},
 		},
 		{
-			path: UNREAD_SLUG,
-			url: `${URLS.apps.production.site}/${UNREAD_SLUG}`,
+			slug: UNREAD_SLUG,
+			path: UNREAD_PATH,
+			url: `${URLS.apps.production.site}/${UNREAD_PATH}`,
 			markdown: 'd'.repeat(32),
 			alternates: [],
-			canonical_urls: [`${URLS.apps.production.site}/${UNREAD_SLUG}`],
+			canonical_urls: [`${URLS.apps.production.site}/${UNREAD_PATH}`],
 			views: {},
 		},
 	],

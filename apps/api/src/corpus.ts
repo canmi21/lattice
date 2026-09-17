@@ -50,8 +50,10 @@ const HOMEPAGE = 'homepage';
  *
  * Both identifiers are query parameters, which is the rule here rather than this route's taste: a
  * single lookup asks with a query and a batch asks with a body, so nothing about a question lives
- * in the path. A slug carries slashes and arrives percent-encoded, which is the cost of that
- * consistency and is worth it. See spec/architecture/artifacts.md.
+ * in the path. See spec/architecture/artifacts.md.
+ *
+ * `slug` takes the identity and nothing else -- one segment, no directory. The answer names the
+ * path, so a caller that had only a stale address gets the real one back rather than a 404.
  */
 corpus.get('/article', async (c) => {
 	const locale = askedLocale(c);
@@ -63,13 +65,15 @@ corpus.get('/article', async (c) => {
 	const view = article?.views[locale];
 	if (!article || !view) return failure(c, 404, 'not_found', MISSED);
 
-	// The article's own path rather than the one that was asked for, because it is what the
-	// consumer checks the fetched object's envelope against and keys the read counter by. The
-	// markdown hash is not here: it has its own route, and a fact appears in exactly one answer.
+	// Both halves, because the question only carried one. `slug` is what the consumer checks the
+	// fetched object's envelope against and keys the read counter by; `path` is what it compares
+	// the address in the browser's bar against, and redirects to when the two differ. The markdown
+	// hash is not here: it has its own route, and a fact appears in exactly one answer.
 	const { locale: language, ...rest } = view;
 	const answer = {
 		...rest,
-		slug: article.path,
+		slug: article.slug,
+		path: article.path,
 		url: article.url,
 		locale: { ...language, code: locale },
 	};
@@ -87,9 +91,11 @@ corpus.get('/source', async (c) => {
 	const root = await rootOf(c.env);
 	const slug = c.req.query('slug');
 	if (!slug) return failure(c, 400, 'expected_slug', MISSED);
-	const hash = findArticle(root, slug)?.markdown ?? root.pages[slug]?.markdown;
+	// A page has no directory, so its identity is already its address.
+	const article = findArticle(root, slug);
+	const hash = article?.markdown ?? root.pages[slug]?.markdown;
 	if (!hash) return failure(c, 404, 'not_found', MISSED);
-	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
+	return success(c, { hash, path: article?.path ?? slug } satisfies DocumentAnswer, ANSWERED);
 });
 
 corpus.get('/homepage', async (c) => {
@@ -105,7 +111,7 @@ corpus.get('/homepage', async (c) => {
 
 	const articles: HomeAnswer['articles'] = listed.map(({ article, view }) => {
 		const { locale: _language, ...rest } = view;
-		return { ...rest, slug: article.path, url: article.url };
+		return { ...rest, slug: article.slug, path: article.path, url: article.url };
 	});
 
 	const answer = {
@@ -149,7 +155,8 @@ corpus.get('/feed', async (c) => {
 		const view = article.views[locale];
 		if (!view) continue;
 		entries.push({
-			slug: article.path,
+			// The identity, because this is checked against the object's envelope and nothing else.
+			slug: article.slug,
 			url: article.url,
 			objects: view.objects,
 			locale: view.locale,

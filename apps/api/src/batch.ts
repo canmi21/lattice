@@ -78,9 +78,10 @@ async function articles(
 			const { locale: language, ...rest } = view;
 			views[code] = { ...rest, locale: { ...language, code } };
 		}
-		// The article's own path, not the one that was asked for: it is what the consumer checks
-		// the fetched object's envelope against.
-		found[article.path] = { url: article.url, views };
+		// Filed under the identity, which is what was asked with -- an answer keyed by address
+		// could not be matched back to the question. The path rides along for the consumer that
+		// needs to know where this lives.
+		found[article.slug] = { path: article.path, url: article.url, views };
 	}
 	return { type: 'articles', articles: found };
 }
