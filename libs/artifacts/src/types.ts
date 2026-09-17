@@ -212,12 +212,11 @@ export type Compiled = {
 	meta: ArticleMeta;
 	toc: TocEntry[];
 	blocks: Block[];
-	feed: string;
 	markdown: string;
 	text: string;
 };
 
-export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'feed' | 'text'> & {
+export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'text'> & {
 	code: LocaleCode;
 	/**
 	 * How long the article is in this view, in words.

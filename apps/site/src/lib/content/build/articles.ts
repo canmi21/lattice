@@ -427,7 +427,6 @@ export async function buildArticles(
 						toc: view.toc,
 						blocks: view.blocks,
 						text: view.text,
-						feed: view.feed,
 						// Read rather than counted; see `SegmentLayout.words`. Zero for a file the
 						// layout has no entry for, which `translatedRaws` has already refused above,
 						// so it is a shape the type needs rather than a case that happens.
