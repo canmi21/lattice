@@ -182,8 +182,11 @@ pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
 		store::write(&target, &variant.bytes).map_err(Error::Write)?;
 	}
 
+	// Minified, unlike the merged manifest beside it: this record is served rather than read in a
+	// diff, and `GET /media` is a byte pipe that cannot reshape it on the way out. See
+	// spec/architecture/media.md, "A published record is minified; a committed one is not".
 	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
-	let json = serde_json::to_string_pretty(&document).map_err(Error::Serialize)?;
+	let json = serde_json::to_string(&document).map_err(Error::Serialize)?;
 	store::write(&store::meta_path(public, &prepared.derived.cid), json.as_bytes())
 		.map_err(Error::Write)
 }

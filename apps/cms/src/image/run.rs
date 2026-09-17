@@ -260,8 +260,9 @@ fn note(
 /// single pixel. Re-deriving to publish a changed field would spend minutes producing bytes
 /// that are already correct.
 pub fn republish(public: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
+	// Minified, for the reason `image::write_derived` gives.
 	let document = manifest::Document { version: manifest::VERSION, media: media.clone() };
-	let json = serde_json::to_string_pretty(&document)
+	let json = serde_json::to_string(&document)
 		.map_err(|error| std::io::Error::other(error.to_string()))?;
 	store::write(&store::meta_path(public, cid), json.as_bytes())
 }
@@ -653,6 +654,9 @@ mod tests {
 		assert_eq!(document.version, manifest::VERSION);
 		assert_eq!(document.media, media);
 		assert!(!rewritten.contains("preview"));
+		// The fixture above was written pretty on purpose: a published record is minified whatever
+		// the one it replaced looked like, because `GET /media` serves these bytes verbatim.
+		assert!(!rewritten.contains('\n'));
 		assert!(!public.join("image").exists());
 		std::fs::remove_dir_all(&root).ok();
 	}

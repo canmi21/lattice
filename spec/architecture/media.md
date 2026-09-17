@@ -383,6 +383,23 @@ loaded and round-tripped byte for byte through the version-4 shape. Every other 
 here was reasoning about the shape; this is the only one a corpus was run against, which is what
 the next migration should match before trusting its own precedent by reasoning alone.
 
+## A published record is minified; a committed one is not
+
+`data/metadata.json` is read in diffs, so it is written pretty and gets a trailing newline. The
+per-asset records under `data/public/meta/` are served, so they are minified. Both hold the same
+shape and the difference is only whitespace, which is why it has to be stated rather than inferred
+from either file.
+
+**Where the formatting is decided is not a preference here, it is the only place it can be
+decided.** `GET /media` returns the stored object's body as it stands -- it never parses, and it
+echoes the store's ETag, which is computed over those exact bytes. Reshaping a record on the way
+out would mean buffering and re-serialising it on every cache miss, and would make the ETag
+describe bytes nobody was sent.
+
+The records published before this rule was written were minified in place. Their key is the
+asset's content id rather than a hash of the record, so rewriting one changes no address, orphans
+nothing, and needs no republication of anything that points at it.
+
 ## Cropping is presentation, so the browser does it
 
 `::image{src=...}` is how an article names one of its own images. It crops to 16:9, centred,

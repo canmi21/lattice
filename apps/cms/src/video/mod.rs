@@ -223,8 +223,9 @@ pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
 	}
 	image::write_derived(public, &prepared.poster).map_err(Error::Poster)?;
 
+	// Minified, for the reason `image::write_derived` gives.
 	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
-	let json = serde_json::to_string_pretty(&document).map_err(Error::Serialize)?;
+	let json = serde_json::to_string(&document).map_err(Error::Serialize)?;
 	store::write(&store::meta_path(public, &prepared.cid), json.as_bytes()).map_err(Error::Write)
 }
 
