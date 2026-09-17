@@ -11,6 +11,7 @@ import { browser, dev } from '$app/environment';
 import {
 	artifactKey,
 	feedHtml,
+	unwrap,
 	readEnvelope,
 	readPageEnvelope,
 	type ArtifactType,
@@ -21,13 +22,15 @@ import {
 	type PublishedView,
 	type SitemapAnswer,
 	type ViewAnswer,
+	type ViewsAnswer,
 } from '@canmi/artifacts';
 import { pageUrls, pickUrls, URLS } from '@canmi/urls';
 import type { FeedEntry } from '$lib/documents/feed';
 import { noticeHtml } from '$lib/documents/notice';
-import type { LocaleCode } from '$lib/locale';
+import { LOCALE_CODES, type LocaleCode } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
-import { answer } from './cache.ts';
+import { createBatcher } from '$lib/engagement/batch';
+import { answer, rememberAnswer } from './cache.ts';
 
 type Fetch = typeof fetch;
 
@@ -60,7 +63,66 @@ export function publishedMetadata(
 	slug: string,
 	locale: LocaleCode,
 ): Promise<ViewAnswer | undefined> {
-	return answer<ViewAnswer>(fetch, api(`/view/${slug}?lang=${locale}`));
+	return answer<ViewAnswer>(fetch, viewUrl(slug, locale));
+}
+
+/** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */
+function viewUrl(slug: string, locale: LocaleCode): string {
+	return api(`/view/${slug}?lang=${locale}`);
+}
+
+/**
+ * Warming several of one article's views with one question.
+ *
+ * The key carries both halves because the batcher deals in strings and two articles can be in
+ * flight at once; `run` groups back by slug. Each answer is written under the URL `/view` would
+ * have used, and its content object is fetched beside it -- the object is the large half, and
+ * fetching it here is what makes taking the language instant rather than merely quick.
+ */
+const SEPARATOR = '\u0000';
+
+const lookupView = createBatcher<ViewAnswer>({
+	// Longer than the read-count window: a pointer travelling down a menu of nine languages moves
+	// slower than one crossing a list of cards, and a batch of one helps nobody.
+	window: 90,
+	limit: LOCALE_CODES.length,
+	run: async (keys) => {
+		const bySlug = new Map<string, LocaleCode[]>();
+		for (const key of keys) {
+			const [slug = '', locale = ''] = key.split(SEPARATOR);
+			bySlug.set(slug, [...(bySlug.get(slug) ?? []), locale as LocaleCode]);
+		}
+
+		const found = new Map<string, ViewAnswer>();
+		await Promise.all(
+			[...bySlug].map(async ([slug, locales]) => {
+				const response = await fetch(api('/views'), {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ slug, locales }),
+				});
+				if (!response.ok) throw new Error(`/views answered ${response.status}`);
+				const batch = unwrap<ViewsAnswer>(await response.json(), response.url);
+				await Promise.all(
+					Object.entries(batch.views).map(async ([code, view]) => {
+						const locale = code as LocaleCode;
+						const whole = { ...view, slug: batch.slug, url: batch.url } satisfies ViewAnswer;
+						found.set(`${slug}${SEPARATOR}${locale}`, whole);
+						await rememberAnswer(viewUrl(slug, locale), whole);
+						// The object, so the swap that follows is a render rather than a download.
+						await object(fetch, 'content', whole.objects.content).catch(() => undefined);
+					}),
+				);
+			}),
+		);
+		return found;
+	},
+});
+
+/** Fetch one view ahead of being asked for it, together with anything else asked for nearby. */
+export async function warmView(slug: string, locale: LocaleCode): Promise<void> {
+	if (!browser) return;
+	await lookupView(`${slug}${SEPARATOR}${locale}`);
 }
 
 export async function publishedView(

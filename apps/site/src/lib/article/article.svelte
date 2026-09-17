@@ -156,7 +156,7 @@
 	} from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import { publishedView } from '$lib/published';
+	import { warmView } from '$lib/published';
 	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
 	import Footnotes from './footnotes.svelte';
@@ -481,7 +481,7 @@
 							sourceLanguage={meta.lang}
 							phoneRegion={false}
 							framed
-							prefetch={(next) => publishedView(fetch, slug, next)}
+							prefetch={(next) => warmView(slug, next)}
 						/>
 					</span>
 				</div>
@@ -490,7 +490,7 @@
 						code={locale.code}
 						sourceLanguage={meta.lang}
 						available={locale.translated}
-						prefetch={(next) => publishedView(fetch, slug, next)}
+						prefetch={(next) => warmView(slug, next)}
 					/>
 				{/if}
 				{#if summary}

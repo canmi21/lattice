@@ -79,6 +79,20 @@ async function store(url: string, body: string): Promise<void> {
 }
 
 /**
+ * Put an answer the site already holds where `answer` will find it.
+ *
+ * A batch gets back something no single-answer URL was used to fetch. Writing each piece under the
+ * URL it would have come from is what makes a warm worth anything: the fetch it was meant to save
+ * never happens. The envelope goes back on, because a stale copy has to be opened by the same code
+ * that opens a fresh one.
+ */
+export async function rememberAnswer<T>(url: string, payload: T): Promise<void> {
+	const body = JSON.stringify({ status: 'success', data: payload });
+	remember(url, body);
+	await store(url, body);
+}
+
+/**
  * One API answer: fresh from upstream, or stale from a cache when upstream will not answer.
  *
  * `undefined` is "no such thing", which a 404 says and which is an ordinary event rather than a

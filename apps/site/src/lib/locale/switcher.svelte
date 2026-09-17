@@ -158,6 +158,12 @@
 		};
 	}
 
+	/**
+	 * Ask for one language's article ahead of a click.
+	 *
+	 * Deduplicated here as well as by the batcher: this remembers for the life of the menu, while
+	 * the batcher only collapses what happens inside one window.
+	 */
 	function warm(next: LocaleCode): Promise<unknown> | undefined {
 		if (!prefetch || next === code) return undefined;
 		const started = warmed.get(next);
@@ -315,6 +321,11 @@
 		// Settled before the panel exists rather than after it has mounted, or the first frame is
 		// positioned against the other edge and corrects itself in view.
 		if (next) align = alignFor();
+		// Opening the menu is the only thing a touch device says before it decides, so it is the
+		// only moment there is to fetch on. Every choice at once, which the batcher behind
+		// `prefetch` turns into one request. A pointer device has already warmed what it hovered
+		// and is left alone. See spec/engagement.md.
+		if (next && !hoverable) for (const choice of choices) warm(choice.code);
 		open = next;
 	}}
 >
