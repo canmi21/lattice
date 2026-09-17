@@ -35,8 +35,22 @@ see [interface.md](interface.md), and do not read either as implying the other.
 The query parameter wins outright and **also writes the cookie**, so following a language URL
 once is choosing it from then on rather than making a one-off override. The browser's language
 controls use the other entrance to the same state: they write the closed locale code into that
-cookie and reload the current document. The server still performs the same negotiation on the
-new request; the client chooses an input, never the rendered view.
+cookie. The server still performs the same negotiation on the next document request; the client
+chooses an input, never the rendered view.
+
+**After hydration that takes effect without a document load, and it is still one negotiation.**
+The cookie is written, the page re-runs its own universal load, and what it shows is exactly what
+the server would have resolved from that cookie -- a prediction, not a second negotiation. What
+makes it possible is that the interface's whole vocabulary is already in the browser: every
+message call names its locale explicitly, from page data, so no catalogue is fetched and no
+runtime state is switched. The article is one request, which is what the published corpus made
+cheap. See [architecture/artifacts.md](../architecture/artifacts.md).
+
+**Nothing moves until the article is in hand.** Not the interface, not the menu. The page reads
+its locale out of page data and page data changes only when the load has finished, so the swap is
+atomic without being coordinated -- which is the same requirement the full reload used to meet,
+and the reason that reload existed. A pointer that can hover starts the fetch when it reaches a
+row, so by the time it is clicked there is usually nothing to wait for.
 
 Selection runs in the worker on the request, before any HTML is rendered. Every input already
 arrives there, and choosing after first paint would make a page render in one language and then
