@@ -650,7 +650,6 @@ dependencies = [
  "indicatif",
  "jiff",
  "kamadak-exif",
- "percent-encoding",
  "rand 0.10.2",
  "ravif",
  "rayon",

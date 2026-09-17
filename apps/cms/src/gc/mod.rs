@@ -134,7 +134,7 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 	// asked of that module rather than restated here, so the two cannot disagree about a slug.
 	// `cms og` sweeps its own record; this is the tree behind it, where a card the record lost
 	// track of would otherwise stay for good. See spec/architecture/media.md.
-	let cards = opengraph::wanted(repo, articles)?;
+	let cards = opengraph::wanted(articles)?;
 	for path in files_under(&public.join("opengraph"))? {
 		let key = path.strip_prefix(public).unwrap_or(&path).to_string_lossy().into_owned();
 		if !cards.contains(&key) {
