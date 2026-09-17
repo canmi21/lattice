@@ -8,6 +8,7 @@
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '$lib/article/trail';
 	import { installFocusSourceTracker } from '$lib/client/focus-source';
+	import { followPointerKind, warmWhatThePointerRests } from '$lib/client/warm.svelte';
 	import SearchDialog from '$lib/search/dialog.svelte';
 	import { localeUrl } from '$lib/locale';
 	import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
@@ -24,6 +25,12 @@
 		articleLocale?.canonical ?? `${URLS.apps.production.site}${page.url.pathname}`,
 	);
 	const feed = $derived(localeUrl('/atom.xml', locale?.code ?? 'mw'));
+
+	// Both once, for the whole site: the pointer's kind, and a listener that warms whatever it
+	// rests on. Here rather than per page because a link to an article is not only a card -- see
+	// $lib/client/warm.svelte.
+	$effect(() => followPointerKind());
+	$effect(() => warmWhatThePointerRests(() => locale?.code ?? 'mw'));
 	/**
 	 * One robots directive per page, emitted in one place.
 	 *

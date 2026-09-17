@@ -105,6 +105,7 @@
 	import Icon from '$lib/home/icons.svelte';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { localeUrl } from '$lib/locale';
+	import { warmListed } from '$lib/client/warm.svelte';
 	import { publishedHome } from '$lib/published';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
 	import { CARD_HEIGHT, CARD_WIDTH, HOME_SLUG, cardUrl } from '$lib/opengraph';
@@ -119,6 +120,20 @@
 	const cdnUrl = pageUrls(dev).cdn;
 	const avatarSrc = imgsrc(`github:avatar:${site.author.githubId}@192`, { cdnUrl });
 	const card = $derived(cardUrl(cdnUrl, HOME_SLUG, data.locale.code));
+
+	/**
+	 * A device with no pointer never says which article interests it, so the list it is shown
+	 * is warmed whole. `warmListed` decides that; a pointer device leaves here having done nothing.
+	 *
+	 * TODO: this list shows every article there is and wants folding. It warms what is on screen,
+	 * so it follows that change rather than needing to be found again. See spec/todo.md.
+	 */
+	$effect(() => {
+		warmListed(
+			data.articles.map(({ path }) => path),
+			data.locale.code,
+		);
+	});
 	const githubProfileUrl = `${URLS.external.github.web}/${site.author.github}`;
 	const googleSourceUrl = new URL(URLS.external.google.sourcePreferences);
 	googleSourceUrl.searchParams.set('q', URLS.apps.production.site);
