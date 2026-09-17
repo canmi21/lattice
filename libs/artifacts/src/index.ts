@@ -14,6 +14,7 @@ export type * from './types.ts';
 export * from './api.ts';
 export * from './feed.ts';
 export * from './engagement.ts';
+export * from './batch.ts';
 
 /**
  * The shape every published object declares.
@@ -196,19 +197,6 @@ export type FeedAnswer = {
 		meta: { title: string; description: string };
 		dates: { created: string; lastmod: string };
 	}[];
-};
-
-/**
- * Several of one article's views at once, for a consumer about to need one of them.
- *
- * `slug` and `url` are named once rather than on every view, which is the only reason this is not
- * a list of `/view` answers. A locale the article has no view in is absent, so asking for nine and
- * receiving four is the answer rather than four errors.
- */
-export type ViewsAnswer = {
-	slug: string;
-	url: string;
-	views: Partial<Record<LocaleCode, Omit<ViewAnswer, 'slug' | 'url'>>>;
 };
 
 export type SitemapAnswer = {

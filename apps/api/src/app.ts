@@ -3,6 +3,7 @@ import { DEVELOPMENT_PORTS, URLS, isDevHost, pickUrls } from '@canmi/urls';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import type { Bindings } from './bindings';
+import batch from './batch';
 import corpus from './corpus';
 import engagement from './engagement';
 import { failure } from './respond';
@@ -71,8 +72,9 @@ app.get('/', (c) => {
 	return c.redirect(`${urls.site}/?ref=api`, 302);
 });
 
-app.route('/image', image);
+app.route('/', image);
 app.route('/', corpus);
+app.route('/', batch);
 app.route('/', engagement);
 
 // An API has nothing to index, and its URLs surfacing in search results would compete with
