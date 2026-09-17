@@ -104,6 +104,7 @@
 	import PageBody from '$lib/home/body.svelte';
 	import Icon from '$lib/home/icons.svelte';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
+	import { localeUrl } from '$lib/locale';
 	import { publishedHome } from '$lib/published';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
 	import { CARD_HEIGHT, CARD_WIDTH, HOME_SLUG, cardUrl } from '$lib/opengraph';
@@ -127,7 +128,10 @@
 	const base = 'h-4 w-4';
 	// `document` keeps server-only resources out of the client page router.
 	// See spec/locale/addressing.md#server-only-documents-leave-the-page-router.
-	const links = [
+	//
+	// Derived, not built once: the feed is the one entry here that names a language, and taking
+	// one no longer reloads the page.
+	const links = $derived([
 		{ name: 'github', label: 'GitHub', href: githubProfileUrl, size: base },
 		...(site.author.twitter
 			? ([
@@ -165,8 +169,16 @@
 			size: base,
 		},
 		{ name: 'moe', label: 'Travellings Moe', href: URLS.external.webring.moe, size: base },
-		{ name: 'rss', label: 'RSS feed', href: '/atom.xml', size: base, document: true },
-	] as const;
+		// The feed a reader subscribes to is the one they are reading, so it carries the view they
+		// are in. The source view keeps the bare address, which is what `localeUrl` is for.
+		{
+			name: 'rss',
+			label: 'RSS feed',
+			href: localeUrl('/atom.xml', data.locale.code),
+			size: base,
+			document: true,
+		},
+	] as const);
 </script>
 
 <svelte:head>
