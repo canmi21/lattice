@@ -50,7 +50,14 @@ function api(path: string): string {
 	return `${upstream().api}${path}`;
 }
 
-/** An immutable object, whose long life is the CDN's own header and needs nothing from here. */
+/**
+ * An immutable object, whose long life is the CDN's own header and needs nothing from here.
+ *
+ * The one fetch on this side deliberately outside the query cache. A content-addressed key cannot
+ * denote different bytes, so the browser's own HTTP cache already holds it for a year and a second
+ * copy in `localStorage` would be the same bytes twice. What the query layer is for is answers
+ * that go stale. See spec/architecture/artifacts.md, "The key says what may cache it".
+ */
 async function object(fetch: Fetch, type: ArtifactType, hash: string): Promise<Response> {
 	const key = artifactKey(type, hash);
 	const response = await fetch(`${upstream().cdn}/${key}`);
