@@ -1,5 +1,6 @@
 import type {
 	DocumentAnswer,
+	FeedAnswer,
 	HomeAnswer,
 	Root,
 	RootView,
@@ -121,18 +122,37 @@ corpus.get('/sitemap', async (c) => {
 	return success(c, answer satisfies SitemapAnswer, ANSWERED);
 });
 
+/**
+ * What the feed for one locale is made of, rather than the feed itself.
+ *
+ * Newest first by when the article last changed, which is the order an Atom document declares in
+ * its own `updated` and the one a reader sees. Sorted here for the reason the homepage's order is
+ * sorted here: it is a property of the answer, not something a consumer is trusted to redo.
+ */
 corpus.get('/feed', async (c) => {
 	const locale = askedLocale(c);
 	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
-	const hash = (await rootOf(c.env)).feeds[locale];
-	if (!hash) return failure(c, 404, 'not_found', MISSED);
-	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
-});
+	const entries: FeedAnswer['entries'] = [];
+	for (const article of (await rootOf(c.env)).articles) {
+		const view = article.views[locale];
+		if (!view) continue;
+		entries.push({
+			slug: article.path,
+			url: article.url,
+			objects: view.objects,
+			locale: view.locale,
+			meta: { title: view.meta.title, description: view.meta.description },
+			dates: view.dates,
+		});
+	}
 
-corpus.get('/llms', async (c) =>
-	success(c, { hash: (await rootOf(c.env)).llms } satisfies DocumentAnswer, ANSWERED),
-);
+	const answer = {
+		locale: { code: locale },
+		entries: entries.toSorted((a, b) => Date.parse(b.dates.lastmod) - Date.parse(a.dates.lastmod)),
+	};
+	return success(c, answer satisfies FeedAnswer, ANSWERED);
+});
 
 /**
  * The homepage as this locale's view, and no second fetch for the bio.

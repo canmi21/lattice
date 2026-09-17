@@ -1,5 +1,5 @@
 /**
- * Serving the published corpus: a compiled view, an article's source, a locale's feed, llms.txt.
+ * Serving the published corpus: a compiled view, a standalone page, and an article's source.
  *
  * The path is the key -- `/{type}/{hash}.{ext}` is exactly what the bucket holds -- so nothing
  * here builds one, and nothing here stamps a lifetime either: the policy falls out of the shape
@@ -32,8 +32,6 @@ const TYPES: Record<ArtifactType, string> = {
 	content: 'application/json',
 	page: 'application/json',
 	markdown: 'text/markdown; charset=utf-8',
-	feed: 'application/atom+xml; charset=utf-8',
-	llms: 'text/plain; charset=utf-8',
 };
 
 export function artifact(type: ArtifactType) {

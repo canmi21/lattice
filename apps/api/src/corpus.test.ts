@@ -5,7 +5,7 @@ import app from './app';
 import type { Bindings } from './bindings';
 import { standUpDatabase } from './d1.harness';
 import { forgetRoot } from './root';
-import { unwrap } from '@canmi/artifacts';
+import { unwrap, type FeedAnswer } from '@canmi/artifacts';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
@@ -74,7 +74,7 @@ const ROOT = {
 			canonical_urls: [`${SITE}/mirror/two`],
 			views: {
 				mw: view({ created: '2026-02-01T00:00:00.000Z', lastmod: '2026-02-02T00:00:00.000Z' }),
-				en: view({ created: '2026-02-01T00:00:00.000Z' }),
+				en: view({ created: '2026-02-01T00:00:00.000Z', lastmod: '2026-02-02T00:00:00.000Z' }),
 			},
 		},
 	],
@@ -84,8 +84,6 @@ const ROOT = {
 			views: { mw: { content: '4'.repeat(32) }, en: { content: 'd'.repeat(32) } },
 		},
 	},
-	feeds: { en: 'e'.repeat(32) },
-	llms: 'f'.repeat(32),
 };
 
 beforeEach(async () => {
@@ -198,14 +196,23 @@ describe('GET /sitemap', () => {
 	});
 });
 
-describe('the whole-corpus documents', () => {
-	it('names the locale feed, and refuses a locale with none', async () => {
-		expect(await payload(await get('/feed?lang=en'))).toEqual({ hash: 'e'.repeat(32) });
-		expect((await get('/feed?lang=ja')).status).toBe(404);
-	});
+describe('the feed', () => {
+	// Entries and not a document: the feed is assembled by whoever asked, out of objects this
+	// answer names. See spec/architecture/artifacts.md, "Which objects exist".
+	it('lists what one locale has, newest change first, and nothing for a locale with none', async () => {
+		const answered = await payload<FeedAnswer>(await get('/feed?lang=en'));
+		expect(answered.locale).toEqual({ code: 'en' });
+		// Not the root's order: `mirror/two` is second there and changed later, so it leads.
+		expect(answered.entries.map((entry) => entry.slug)).toEqual(['mirror/two', 'architecture/one']);
+		expect(answered.entries[1]).toMatchObject({
+			url: `${SITE}/architecture/one`,
+			objects: { content: 'b'.repeat(32) },
+			locale: { language_tag: 'en-US', translated: true },
+			meta: { title: 'Title', description: 'Description' },
+		});
 
-	it('names llms.txt', async () => {
-		expect(await payload(await get('/llms'))).toEqual({ hash: 'f'.repeat(32) });
+		// A locale no article has a view in is an empty feed, not a 404: the site still exists.
+		expect((await payload<FeedAnswer>(await get('/feed?lang=ko'))).entries).toEqual([]);
 	});
 });
 
@@ -222,7 +229,7 @@ describe('a root that cannot be read', () => {
 
 	it('fails on a root it cannot parse', async () => {
 		const stale = { ...ROOT, version: 0 };
-		const res = await get('/llms', { fetch: async () => new Response(JSON.stringify(stale)) });
+		const res = await get('/sitemap', { fetch: async () => new Response(JSON.stringify(stale)) });
 		expect(res.status).toBe(500);
 		expect(res.headers.get('Cache-Control')).toBe('no-store');
 	});

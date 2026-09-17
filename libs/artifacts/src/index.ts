@@ -25,15 +25,13 @@ export const ARTIFACT_VERSION = 1;
 /** BLAKE3 truncated to 128 bits, as the bucket spells it. See spec/architecture/artifacts.md. */
 export const HASH_PATTERN = /^[0-9a-f]{32}$/;
 
-export const ARTIFACT_TYPES = ['content', 'page', 'markdown', 'feed', 'llms'] as const;
+export const ARTIFACT_TYPES = ['content', 'page', 'markdown'] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
 const EXTENSION = {
 	content: 'json',
 	page: 'json',
 	markdown: 'md',
-	feed: 'xml',
-	llms: 'txt',
 } as const satisfies Record<ArtifactType, string>;
 
 /** The one object in the bucket whose name outlives its bytes. */
@@ -139,8 +137,6 @@ export const RootSchema = v.object({
 		v.string(),
 		v.object({ markdown: hash, views: byLocale(v.object({ content: hash })) }),
 	),
-	feeds: byLocale(hash),
-	llms: hash,
 });
 
 export type ViewMeta = v.InferOutput<typeof ViewMetaSchema>;
@@ -180,6 +176,26 @@ export type HomeAnswer = {
 	articles: (Omit<RootView, 'locale'> & { slug: string; url: string })[];
 };
 
+/**
+ * What a feed is built out of: metadata and a hash per entry, never the document.
+ *
+ * `locale` stays per entry rather than moving to the top the way the homepage's does, because an
+ * untranslated article is served as the source view and carries the source's language tag --
+ * which is what decides whether the feed declares one language or `mul`. See
+ * spec/architecture/artifacts.md, "Which objects exist".
+ */
+export type FeedAnswer = {
+	locale: { code: LocaleCode };
+	entries: {
+		slug: string;
+		url: string;
+		objects: { content: string };
+		locale: RootView['locale'];
+		meta: { title: string; description: string };
+		dates: { created: string; lastmod: string };
+	}[];
+};
+
 /** Read counts by slug, for every slug asked for that names an article. */
 export type ReadsAnswer = { reads: Record<string, number> };
 
@@ -189,7 +205,7 @@ export type SitemapAnswer = {
 	views: { loc: string; lastmod: string; alternates: Alternate[] }[];
 };
 
-/** `/markdown/{slug}`, `/feed/{locale}` and `/llms` alike: one hash, so one name and not three. */
+/** `/markdown/{slug}`: the one answer left that is a hash and nothing else. */
 export type DocumentAnswer = { hash: string };
 
 /**
