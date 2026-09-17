@@ -5,7 +5,7 @@ import app from './app';
 import type { Bindings } from './bindings';
 import { standUpDatabase } from './d1.harness';
 import { forgetRoot } from './root';
-import { unwrap, type FeedAnswer, type ViewsAnswer } from '@canmi/artifacts';
+import { unwrap, type BatchAnswerOf, type FeedAnswer } from '@canmi/artifacts';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
@@ -93,7 +93,7 @@ beforeEach(async () => {
 
 describe('GET /view/:slug', () => {
 	it('answers with the view, its hashes and five minutes', async () => {
-		const res = await get('/view/architecture/one?lang=en');
+		const res = await get('/article?slug=architecture/one&lang=en');
 		expect(res.status).toBe(200);
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300, stale-if-error=10800');
 		expect(await payload(res)).toMatchObject({
@@ -111,38 +111,38 @@ describe('GET /view/:slug', () => {
 	// Five minutes on a miss too, but no `stale-if-error`: a 404 is not an error worth serving
 	// stale. See spec/architecture/artifacts.md.
 	it('caches a miss as long as an answer, without offering it stale', async () => {
-		const unknown = await get('/view/made/up?lang=en');
+		const unknown = await get('/article?slug=made/up&lang=en');
 		expect(unknown.status).toBe(404);
 		expect(unknown.headers.get('Cache-Control')).toBe('public, max-age=300');
 
-		const untranslated = await get('/view/mirror/two?lang=ja');
+		const untranslated = await get('/article?slug=mirror/two&lang=ja');
 		expect(untranslated.status).toBe(404);
 	});
 
 	it('refuses a locale it does not know rather than falling back to one it does', async () => {
-		const res = await get('/view/architecture/one?lang=xx');
+		const res = await get('/article?slug=architecture/one&lang=xx');
 		expect(res.status).toBe(400);
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
 	// spec/architecture/artifacts.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
-		expect(await payload(await get('/view/architecture/one?lang=en'))).not.toHaveProperty(
+		expect(await payload(await get('/article?slug=architecture/one&lang=en'))).not.toHaveProperty(
 			'markdown',
 		);
 	});
 });
 
-describe('GET /markdown/:slug', () => {
+describe('GET /source', () => {
 	it('answers for an article and for a standalone page alike', async () => {
-		expect(await payload(await get('/markdown/architecture/one'))).toEqual({
+		expect(await payload(await get('/source?slug=architecture/one'))).toEqual({
 			hash: '1'.repeat(32),
 		});
-		expect(await payload(await get('/markdown/homepage'))).toEqual({ hash: '3'.repeat(32) });
+		expect(await payload(await get('/source?slug=homepage'))).toEqual({ hash: '3'.repeat(32) });
 	});
 
 	it('caches a miss for five minutes, without offering it stale', async () => {
-		const res = await get('/markdown/made/up');
+		const res = await get('/source?slug=made/up');
 		expect(res.status).toBe(404);
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
 	});
@@ -196,37 +196,56 @@ describe('GET /sitemap', () => {
 	});
 });
 
-describe('POST /views', () => {
-	// The warming entry point: one question about several views, so a menu of nine languages is
-	// one request rather than nine. See spec/engagement.md.
-	it('answers the views it has, names slug and url once, and drops what it does not', async () => {
-		const answered = await payload<ViewsAnswer>(
-			await get('/views', {
+describe('POST /batch', () => {
+	// One route for every question asked about many things, discriminated by `type`. A language
+	// menu is one slug and many locales; a homepage warming its list is the other way round, and
+	// this is one question. See spec/architecture/artifacts.md, "One batch entry point".
+	it('answers the cross product, names each article once, and leaves out what it has not', async () => {
+		const answered = await payload<BatchAnswerOf<'articles'>>(
+			await get('/batch', {
 				method: 'POST',
-				body: { slug: 'architecture/one', locales: ['en', 'ja', 'ko', 'nonsense'] },
+				body: {
+					type: 'articles',
+					slugs: ['architecture/one', 'mirror/two', 'made/up'],
+					locales: ['en', 'ja'],
+				},
 			}),
 		);
-		expect(answered.slug).toBe('architecture/one');
-		expect(answered.url).toBe(`${SITE}/architecture/one`);
-		// `ko` is a locale this article has no view in, and `nonsense` is not a locale at all.
-		expect(Object.keys(answered.views).sort()).toEqual(['en', 'ja']);
-		expect(answered.views.ja).toMatchObject({
+		expect(answered.type).toBe('articles');
+		// `made/up` names no article, so it is absent rather than an error.
+		expect(Object.keys(answered.articles).toSorted()).toEqual(['architecture/one', 'mirror/two']);
+		expect(answered.articles['architecture/one']?.url).toBe(`${SITE}/architecture/one`);
+		// `mirror/two` has no Japanese view, so that locale is absent from it alone.
+		expect(Object.keys(answered.articles['architecture/one']?.views ?? {}).toSorted()).toEqual([
+			'en',
+			'ja',
+		]);
+		expect(Object.keys(answered.articles['mirror/two']?.views ?? {})).toEqual(['en']);
+		expect(answered.articles['architecture/one']?.views.ja).toMatchObject({
 			objects: { content: 'c'.repeat(32) },
 			locale: { code: 'ja', language_tag: 'ja-JP' },
 		});
-		// Named once at the top, so a view does not repeat them.
-		expect(answered.views.ja).not.toHaveProperty('slug');
+		// Named once above the views, so a view does not repeat it.
+		expect(answered.articles['architecture/one']?.views.ja).not.toHaveProperty('slug');
 	});
 
-	it('refuses a body that is not a slug and a list, and 404s an article it has not got', async () => {
-		expect(
-			(await get('/views', { method: 'POST', body: { slug: 'architecture/one' } })).status,
-		).toBe(400);
-		const missing = await get('/views', {
+	it('refuses a body whose type it cannot read, and one that names no type at all', async () => {
+		for (const body of [
+			{ type: 'articles', slugs: 'not-a-list', locales: ['en'] },
+			{ type: 'reads' },
+			{ type: 'nonsense', slugs: [] },
+			{ slugs: ['architecture/one'] },
+		]) {
+			expect((await get('/batch', { method: 'POST', body })).status).toBe(400);
+		}
+	});
+
+	it('refuses a locale that is not one, rather than dropping it quietly', async () => {
+		const res = await get('/batch', {
 			method: 'POST',
-			body: { slug: 'made/up', locales: ['en'] },
+			body: { type: 'articles', slugs: ['architecture/one'], locales: ['en', 'nonsense'] },
 		});
-		expect(missing.status).toBe(404);
+		expect(res.status).toBe(400);
 	});
 });
 

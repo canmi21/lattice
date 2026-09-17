@@ -4,7 +4,7 @@ import type { Bindings } from './bindings';
 import { failure } from './respond';
 
 /**
- * `GET /image/{cid}` -- what is known about an asset.
+ * `GET /media?cid=` -- what is known about an asset.
  *
  * The same id names bytes on the CDN and a record here, so one content id answers both
  * questions without translation between them. Written by `cms image`, published alongside the
@@ -15,8 +15,8 @@ import { failure } from './respond';
  */
 const image = new Hono<{ Bindings: Bindings }>();
 
-image.get('/:cid', async (c) => {
-	const cid = c.req.param('cid').toLowerCase();
+image.get('/media', async (c) => {
+	const cid = (c.req.query('cid') ?? '').toLowerCase();
 	if (!isContentId(cid)) {
 		return failure(c, 400, 'not_a_content_id', {});
 	}

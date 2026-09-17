@@ -161,12 +161,12 @@ describe('likes and engagement state', () => {
 		expect(counts.headers.get('Cache-Control')).toBe('public, max-age=300');
 		expect(await payload(counts)).toEqual({ subscriber_count: 0, like_count: 2 });
 
-		const mine = await api('/liked', { ip: IP_ONE });
+		const mine = await api('/like', { ip: IP_ONE });
 		expect(mine.headers.get('Cache-Control')).toBe('private, no-cache');
 		expect(await payload(mine)).toEqual({ liked: true });
 		// The same question from another address is a different answer, which is why it is not
 		// shared and never rendered on the server.
-		expect(await payload(await api('/liked', { ip: '198.51.100.7' }))).toEqual({ liked: false });
+		expect(await payload(await api('/like', { ip: '198.51.100.7' }))).toEqual({ liked: false });
 
 		const removed = await api('/like', { method: 'PUT', ip: IP_ONE, body: { liked: false } });
 		expect(await payload(removed)).toEqual({ liked: false, like_count: 1 });
@@ -189,7 +189,7 @@ describe('likes and engagement state', () => {
 		expect((await api('/stats', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
 			429,
 		);
-		expect((await api('/liked', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
+		expect((await api('/like', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
 			429,
 		);
 	});
@@ -218,21 +218,24 @@ describe('read counts', () => {
 			.bind(SLUG, 42)
 			.run();
 
-		const response = await api('/read-counts', {
+		const response = await api('/batch', {
 			method: 'POST',
 			ip: IP_ONE,
-			body: { slugs: [SLUG, UNREAD_SLUG, 'made/up'] },
+			body: { type: 'reads', slugs: [SLUG, UNREAD_SLUG, 'made/up'] },
 		});
 		expect(response.status).toBe(200);
 		expect(response.headers.get('Cache-Control')).toBe('no-store');
 		// Zero for an article nobody has opened, and nothing at all for one that does not exist.
+		// The type comes back with the answer, so one batcher serving several questions can tell
+		// what it is holding without remembering what it sent.
 		expect(await payload(response)).toEqual({
+			type: 'reads',
 			reads: { [SLUG]: 42, [UNREAD_SLUG]: 0 },
 		});
 	});
 
 	it('counts nothing, because asking is not reading', async () => {
-		await api('/read-counts', { method: 'POST', ip: IP_ONE, body: { slugs: [SLUG] } });
+		await api('/batch', { method: 'POST', ip: IP_ONE, body: { type: 'reads', slugs: [SLUG] } });
 		const rows = await database
 			.prepare('SELECT count(*) as rows FROM article_reads')
 			.all<{ rows: number }>();
@@ -240,10 +243,10 @@ describe('read counts', () => {
 	});
 
 	it('refuses a body that is not a list of slugs', async () => {
-		const response = await api('/read-counts', {
+		const response = await api('/batch', {
 			method: 'POST',
 			ip: IP_ONE,
-			body: { slugs: 'architecture/one' },
+			body: { type: 'reads', slugs: 'architecture/one' },
 		});
 		expect(response.status).toBe(400);
 	});

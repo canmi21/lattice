@@ -6,7 +6,6 @@ import type {
 	RootView,
 	SitemapAnswer,
 	ViewAnswer,
-	ViewsAnswer,
 } from '@canmi/artifacts';
 import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
 import { Hono, type Context } from 'hono';
@@ -43,22 +42,24 @@ const MISSED = { 'Cache-Control': 'public, max-age=300' } as const;
  */
 const ANSWERED = { 'Cache-Control': 'public, max-age=300, stale-if-error=10800' } as const;
 
-/**
- * What a batch earns, which is nothing an edge can hold.
- *
- * A POST is not a cacheable request, and pretending otherwise would put a header on an answer no
- * shared cache will ever read. The caller memoises what it asked for; see the site's cache.ts.
- */
-const NO_STORE = { 'Cache-Control': 'no-store' } as const;
-
 /** The only standalone page there is; see libs/artifacts, `PublishedPage`. */
 const HOMEPAGE = 'homepage';
 
-corpus.get('/view/:slug{.+}', async (c) => {
+/**
+ * One article, in one language.
+ *
+ * Both identifiers are query parameters, which is the rule here rather than this route's taste: a
+ * single lookup asks with a query and a batch asks with a body, so nothing about a question lives
+ * in the path. A slug carries slashes and arrives percent-encoded, which is the cost of that
+ * consistency and is worth it. See spec/architecture/artifacts.md.
+ */
+corpus.get('/article', async (c) => {
 	const locale = askedLocale(c);
 	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
+	const slug = c.req.query('slug');
+	if (!slug) return failure(c, 400, 'expected_slug', MISSED);
 
-	const article = findArticle(await rootOf(c.env), c.req.param('slug'));
+	const article = findArticle(await rootOf(c.env), slug);
 	const view = article?.views[locale];
 	if (!article || !view) return failure(c, 404, 'not_found', MISSED);
 
@@ -76,48 +77,16 @@ corpus.get('/view/:slug{.+}', async (c) => {
 });
 
 /**
- * Several of one article's views, for a consumer about to need one of them.
- *
- * A POST because the question is a list, the same shape `/read-counts` takes and for the same
- * reason: a batch belongs in a body rather than repeated in a URL. It costs the five-minute cache,
- * which is the trade -- a warm is answered once and then lives in the caller's own memo, so the
- * edge would be holding a copy nobody asks for twice.
- */
-corpus.post('/views', async (c) => {
-	const asked = await c.req.json().catch(() => undefined);
-	const slug = (asked as { slug?: unknown } | undefined)?.slug;
-	const locales = (asked as { locales?: unknown } | undefined)?.locales;
-	if (typeof slug !== 'string' || !Array.isArray(locales)) {
-		return failure(c, 400, 'expected_slug_and_locales', NO_STORE);
-	}
-
-	const article = findArticle(await rootOf(c.env), slug);
-	if (!article) return failure(c, 404, 'not_found', NO_STORE);
-
-	const views: ViewsAnswer['views'] = {};
-	for (const asking of locales) {
-		if (!(LOCALE_CODES as readonly unknown[]).includes(asking)) continue;
-		const code = asking as LocaleCode;
-		const view = article.views[code];
-		if (!view) continue;
-		const { locale: language, ...rest } = view;
-		views[code] = { ...rest, locale: { ...language, code } };
-	}
-
-	const answer = { slug: article.path, url: article.url, views };
-	return success(c, answer satisfies ViewsAnswer, NO_STORE);
-});
-
-/**
  * The source `<url>.md` serves, for an article and for a standalone page alike.
  *
  * No locale, because the source is what was written whichever view asked for it -- so this has
  * no variant dimension and caches best, which is what pays for a sixth route. It is also the
  * only place a page's markdown hash is named.
  */
-corpus.get('/markdown/:slug{.+}', async (c) => {
+corpus.get('/source', async (c) => {
 	const root = await rootOf(c.env);
-	const slug = c.req.param('slug');
+	const slug = c.req.query('slug');
+	if (!slug) return failure(c, 400, 'expected_slug', MISSED);
 	const hash = findArticle(root, slug)?.markdown ?? root.pages[slug]?.markdown;
 	if (!hash) return failure(c, 404, 'not_found', MISSED);
 	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
