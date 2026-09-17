@@ -58,6 +58,37 @@ with the translation again, silently, for exactly the reader it exists for. The 
 bare address because its handler switches the view before the browser goes anywhere, and the
 `?lang=mw` form is only its no-JavaScript fallback. A feed is that fallback, always.
 
+### A link without a router names its view; a link with one does not
+
+The rule the notice's link is one case of. **Every internal link in a feed or a `.md` document
+carries `?lang=`, the source view's `mw` included. Every internal link on a page carries none.**
+
+What decides it is whether anything will correct the address afterwards. A page's navigation is
+the client router's: it keeps the view the reader is in, so a card showing a Japanese title
+reaches the Japanese article without the markup saying so, and writing the language in would be a
+second copy of a fact the router already holds. A feed has no router and no second chance. A bare
+address there is resolved by the server against whatever the reader's cookie happens to hold,
+which for a sentence they just read in Japanese may be any of nine answers -- including the right
+one, which is what makes it hard to notice.
+
+So the feed's renderer rewrites the prose HTML it shares with the page, an `::article` card names
+the view it was rendered for, and the markdown target names `mw` because the document is the
+source. Three things are left alone: an address outside this site, a bare `#fragment`, which
+points inside the entry, and a link that already names a language.
+
+### Every navigation inside the site is the router's
+
+Once hydrated, nothing on this site replaces the document on purpose. The reader stays in one
+page for the whole visit, and the two things that used to break that were both language changes:
+the switcher menu, and the notice's way back to the original. Both now fetch the view and call
+the same `chooseLocale`, so there is one way to change language rather than two.
+
+Two full navigations remain and both are deliberate. A server-only document -- `atom.xml`,
+`sitemap.xml`, a licence text -- carries `data-sveltekit-reload`, because it is not a page and
+the router has nothing to render. And `orReload` turns a failed fetch in the browser into a
+document navigation, because the server path still works and the alternative is a click that does
+nothing.
+
 ### Two states, because a reader may already speak the article's language
 
 A Chinese article read at `zh` is neither the original nor a translation in the ordinary sense.
