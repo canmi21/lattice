@@ -4,14 +4,13 @@
 	import { page } from '$app/state';
 	import { URLS, pageUrls } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-	import { QueryClient } from '@tanstack/svelte-query';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '$lib/article/trail';
 	import { installFocusSourceTracker } from '$lib/client/focus-source';
 	import { followPointerKind, warmWhatThePointerRests } from '$lib/client/warm.svelte';
 	import SearchDialog from '$lib/search/dialog.svelte';
 	import { languageTag, localeUrl, SITE_LANGUAGE } from '$lib/locale';
-	import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
+	import { queryClient, QUERY_CACHE_MAX_AGE } from '$lib/query';
 	import { site } from '$lib/site';
 	import '../styles/app.css';
 	import '@canmi/fonts/mono.css';
@@ -60,14 +59,10 @@
 			? page.data.robots
 			: 'index, follow',
 	);
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: {
-				staleTime: QUERY_STALE_TIME,
-				gcTime: QUERY_CACHE_MAX_AGE,
-			},
-		},
-	});
+	// The same client a universal load reaches for, not a second one beside it: a corpus answer
+	// fetched during navigation and a counter fetched by a component belong in one cache, held for
+	// one window. See $lib/query.
+	const client = queryClient();
 	const persister = createSyncStoragePersister({
 		storage: browser ? localStorage : undefined,
 		key: 'cache',
@@ -217,7 +212,7 @@
 	></script>
 </svelte:head>
 
-<PersistQueryClientProvider client={queryClient} {persistOptions}>
+<PersistQueryClientProvider {client} {persistOptions}>
 	{@render children()}
 	<!-- Mounted once for the whole site rather than per page: the binding that opens it is global,
 	     so a page that forgot to include it would be a hole in a site-wide shortcut. It renders

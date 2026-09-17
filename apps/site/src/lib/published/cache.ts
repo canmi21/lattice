@@ -7,7 +7,9 @@
  * See spec/architecture/artifacts.md, "The site keeps serving when the API does not".
  */
 
+import { browser } from '$app/environment';
 import { unwrap } from '@canmi/artifacts';
+import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
 type Fetch = typeof fetch;
 
@@ -31,6 +33,9 @@ const STAMP = 'x-published-at';
 const MEMO_LIMIT = 64;
 
 const memo = new Map<string, Held>();
+
+/** Stored where a body would be, so "no such thing" is cached rather than asked again. */
+const MISSING = '\u0000missing';
 
 /** The colo cache, which only a Worker has: a browser's `caches` carries no `default`. */
 function colo(): Cache | undefined {
@@ -88,8 +93,51 @@ async function store(url: string, body: string): Promise<void> {
  */
 export async function rememberAnswer<T>(url: string, payload: T): Promise<void> {
 	const body = JSON.stringify({ status: 'success', data: payload });
+	// Into whichever cache `answer` would read from, which is not the same one on both sides.
+	if (browser) {
+		queryClient().setQueryData(['api', url], body);
+		return;
+	}
 	remember(url, body);
 	await store(url, body);
+}
+
+/**
+ * The browser's half: the same five minutes, held by the one cache everything else uses.
+ *
+ * `fetchQuery` is what the memo below does by hand -- serve what is fresh, share one request
+ * between two callers -- except this cache is also the components', survives a reload, and can be
+ * looked at. The memo stays for the Worker, which has no client and wants the colo cache. Stale
+ * on failure is kept by hand: `fetchQuery` throws rather than hand back what it still holds.
+ */
+async function throughQuery<T>(
+	fetch: Fetch,
+	url: string,
+	opened: (body: string) => T,
+): Promise<T | undefined> {
+	const client = queryClient();
+	const queryKey = ['api', url];
+	try {
+		const body = await client.fetchQuery({
+			queryKey,
+			queryFn: async () => {
+				const response = await fetch(url);
+				// A 404 is an answer, so it is stored as one rather than thrown: throwing would
+				// reach the stale copy and the document-navigation fallback, neither of which is
+				// what "no such thing" means.
+				if (response.status === 404) return MISSING;
+				if (!response.ok) throw new Error(`${url} answered ${response.status}`);
+				return response.text();
+			},
+			staleTime: QUERY_STALE_TIME,
+			gcTime: QUERY_CACHE_MAX_AGE,
+		});
+		return body === MISSING ? undefined : opened(body);
+	} catch (failure) {
+		const held = client.getQueryData<string>(queryKey);
+		if (held !== undefined && held !== MISSING) return opened(held);
+		throw failure;
+	}
 }
 
 /**
@@ -103,6 +151,7 @@ export async function answer<T>(fetch: Fetch, url: string): Promise<T | undefine
 	// route defines and never sees `status`. What is cached is the whole body, envelope included,
 	// so a stale copy is opened by the same code that opened the fresh one.
 	const opened = (body: string): T => unwrap<T>(JSON.parse(body), url);
+	if (browser) return throughQuery<T>(fetch, url, opened);
 	const previous = await held(url);
 	const age = previous ? Date.now() - previous.at : Number.POSITIVE_INFINITY;
 	if (previous && age < FRESH_MS) return opened(previous.body);
