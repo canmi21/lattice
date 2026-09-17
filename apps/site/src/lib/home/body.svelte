@@ -47,11 +47,11 @@
 						href={seg.href}
 						class="focus-link inline-flex items-center gap-1 align-middle {stylex.attrs(styles.link)
 							.class} {seg.width ?? ''}"
-						{...seg.newTab ? { target: '_blank', rel: 'noopener' } : {}}
+						{...seg.new_tab ? { target: '_blank', rel: 'noopener' } : {}}
 					>
 						{#if seg.icon}<Icon name={seg.icon} />{/if}
 						<span class={stylex.attrs(styles.label).class}>{seg.label}</span>
-						{#if seg.newTab}<span class="sr-only">
+						{#if seg.new_tab}<span class="sr-only">
 								({m['support.new-tab']({}, { locale })})</span
 							>{/if}
 					</a>

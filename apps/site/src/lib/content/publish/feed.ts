@@ -26,7 +26,7 @@ export function buildFeed(articles: Article[], code: LocaleCode, site: SiteFacts
 				summary: view.meta.description,
 				content: view.feed,
 				links: [{ href: view.canonical }],
-				lang: view.languageTag,
+				lang: view.language_tag,
 			};
 		})
 		.toSorted((a, b) => b.updated.getTime() - a.updated.getTime());

@@ -167,14 +167,14 @@ export function translatedRaws(
 ): {
 	raws: Record<LocaleCode, string>;
 	translatable: Record<LocaleCode, string>;
-	translationAvailable: Record<LocaleCode, boolean>;
+	translation_available: Record<LocaleCode, boolean>;
 	short: Record<LocaleCode, { title?: string; subtitle?: string }>;
 } {
 	const spans = layout.articles[article];
 	if (!spans) throw new Error(`${file}: missing from data/build/segments.json`);
 	const raws = { mw: raw } as Record<LocaleCode, string>;
 	const translatable = {} as Record<LocaleCode, string>;
-	const translationAvailable = { mw: true } as Record<LocaleCode, boolean>;
+	const translation_available = { mw: true } as Record<LocaleCode, boolean>;
 	// A short form is asked for rather than written, so it is not in the article and never
 	// reaches `assemble`. It is read straight out of the sidecar by the id its display span
 	// carries. Absent is the ordinary case for a view nobody has run the CMS for yet, and the
@@ -191,23 +191,23 @@ export function translatedRaws(
 			// paragraphs would look complete while changing language halfway through the article.
 			raws[code] = raw;
 			translatable[code] = assembled.translatable.source;
-			translationAvailable[code] = false;
+			translation_available[code] = false;
 		} else {
 			raws[code] = assembled.raw;
 			translatable[code] = assembled.translatable.translated;
-			translationAvailable[code] = true;
+			translation_available[code] = true;
 		}
 		translatable.mw = assembled.translatable.source;
 		// A view that fell back to the source article takes the source's title and subtitle with
 		// it, so its short forms have to fall back too. Otherwise a card reads `Untitled` above a
 		// German `Ohne Titel`: one string from the article, the other from the sidecar, and the
 		// gate that decided the first never saw the second.
-		short[code] = translationAvailable[code] ? shortForms(shortSpans, sidecar, locale) : {};
+		short[code] = translation_available[code] ? shortForms(shortSpans, sidecar, locale) : {};
 	}
 	// The source view reads whatever was written for the language the article is in; there is no
 	// separate entry for it, and the full forms stand where there is none.
 	short.mw = {};
-	return { raws, translatable, translationAvailable, short };
+	return { raws, translatable, translation_available, short };
 }
 
 /** The short title and subtitle a view has, by the ids their display spans carry. */
@@ -235,7 +235,7 @@ type Prepared = {
 	summaries: Record<string, ArticleSummary>;
 	raws: Record<LocaleCode, string>;
 	translatable: Record<LocaleCode, string>;
-	translationAvailable: Record<LocaleCode, boolean>;
+	translation_available: Record<LocaleCode, boolean>;
 	short: Record<LocaleCode, { title?: string; subtitle?: string }>;
 };
 
@@ -322,7 +322,7 @@ export async function buildArticles(
 		// The original's own locale, read off the frontmatter before anything is compiled --
 		// `compile` reports it, but the resolver below needs it to run at all.
 		const originLocale = sourceLocale(/^lang:\s*(\S+)/m.exec(raw)?.[1] ?? 'en-US');
-		const { raws, translatable, translationAvailable, short } = translatedRaws(
+		const { raws, translatable, translation_available, short } = translatedRaws(
 			file,
 			`${path}.md`,
 			raw,
@@ -337,8 +337,8 @@ export async function buildArticles(
 				title,
 				subtitle,
 				created,
-				shortTitle: short[code].title ?? title,
-				shortSubtitle: short[code].subtitle ?? subtitle,
+				short_title: short[code].title ?? title,
+				short_subtitle: short[code].subtitle ?? subtitle,
 			};
 		}
 		prepared.push({
@@ -349,7 +349,7 @@ export async function buildArticles(
 			summaries,
 			raws,
 			translatable,
-			translationAvailable,
+			translation_available,
 			short,
 		});
 	}
@@ -362,7 +362,7 @@ export async function buildArticles(
 		summaries,
 		raws,
 		translatable,
-		translationAvailable,
+		translation_available,
 		short,
 	} of prepared) {
 		const source = await compile(raws.mw, url, {
@@ -385,7 +385,7 @@ export async function buildArticles(
 				await Promise.all(
 					(Object.keys(PUBLIC_LANGUAGE) as Exclude<LocaleCode, 'mw'>[]).map(async (code) => [
 						code,
-						translationAvailable[code]
+						translation_available[code]
 							? await compile(raws[code], url, {
 									newTabNote: notes[code],
 									resolveAsset: createAssetResolver(
@@ -415,7 +415,7 @@ export async function buildArticles(
 		} as Record<LocaleCode, Awaited<ReturnType<typeof compile>>>;
 
 		const sourceLanguage = compiled.mw.meta.lang;
-		const { canonical, canonicalUrls, alternates } = indexingMetadata(url, translatable);
+		const { canonical, canonical_urls, alternates } = indexingMetadata(url, translatable);
 		const views = Object.fromEntries(
 			LOCALE_CODES.map((code) => {
 				const view = compiled[code];
@@ -433,9 +433,9 @@ export async function buildArticles(
 						// so it is a shape the type needs rather than a case that happens.
 						words: layout.words?.[`${path}.md`]?.[code] ?? 0,
 						code,
-						languageTag: languageTag(code, sourceLanguage),
+						language_tag: languageTag(code, sourceLanguage),
 						canonical: canonical[code],
-						translationAvailable: translationAvailable[code],
+						translation_available: translation_available[code],
 						short: {
 							title: short[code]?.title ?? view.meta.title,
 							subtitle: short[code]?.subtitle ?? view.meta.subtitle,
@@ -444,7 +444,7 @@ export async function buildArticles(
 						// that fits is shown whole; one that does not is replaced rather than
 						// wrapped, because a short title is a phrase written for this and a
 						// wrapped one is a full title that ran out of room.
-						phoneTitle: fits(view.meta.title, ARTICLE_TITLE_BUDGET)
+						phone_title: fits(view.meta.title, ARTICLE_TITLE_BUDGET)
 							? view.meta.title
 							: (short[code]?.title ?? view.meta.title),
 						// `mw` takes the summary written in the article's own language rather
@@ -455,7 +455,7 @@ export async function buildArticles(
 				];
 			}),
 		) as Record<LocaleCode, ArticleView>;
-		articles.push({ ...compiled.mw, path, url, views, canonicalUrls, alternates });
+		articles.push({ ...compiled.mw, path, url, views, canonical_urls, alternates });
 	}
 
 	return {

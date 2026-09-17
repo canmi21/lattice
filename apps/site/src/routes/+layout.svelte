@@ -157,7 +157,7 @@
 	<link rel="canonical" href={canonical} />
 	<meta name="robots" content={robots} />
 	{#each articleLocale?.alternates ?? [] as alternate (alternate.code)}
-		<link rel="alternate" hreflang={alternate.languageTag} href={alternate.href} />
+		<link rel="alternate" hreflang={alternate.language_tag} href={alternate.href} />
 	{/each}
 	<!-- Site-wide, so it sits here rather than being repeated by every page that has a card. -->
 	<meta property="og:site_name" content={site.name} />

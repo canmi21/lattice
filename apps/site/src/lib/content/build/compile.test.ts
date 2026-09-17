@@ -26,7 +26,7 @@ it('keeps an email link working when its visible label is translated', () => {
 		icon: 'email',
 		href: 'mailto:t@ffoni.com',
 		label: 'メール',
-		newTab: false,
+		new_tab: false,
 	});
 });
 
@@ -190,7 +190,7 @@ lang: en-US
 			expect.objectContaining({ type: 'tokei', title: 'Language statistics', view: 'bar' }),
 			expect.objectContaining({
 				type: 'github',
-				gitRef: 'abc123',
+				git_ref: 'abc123',
 				title: 'Seam',
 				align: 'right',
 			}),
@@ -404,19 +404,19 @@ const fixed = true;
 				type: 'code',
 				title: 'Reference',
 				collapsible: true,
-				defaultExpanded: true,
+				default_expanded: true,
 			}),
 			expect.objectContaining({
 				type: 'code',
 				title: 'Closed',
 				collapsible: true,
-				defaultExpanded: false,
+				default_expanded: false,
 			}),
 			expect.objectContaining({
 				type: 'code',
 				title: 'Fixed',
 				collapsible: false,
-				defaultExpanded: true,
+				default_expanded: true,
 			}),
 		]),
 	);
@@ -470,8 +470,8 @@ it('draws an ::article card from the target article rather than from the directi
 					title: 'Rendering as a Protocol',
 					subtitle: 'UI should be described, not executed.',
 					created: '2026-04-13T19:18:28.488Z',
-					shortTitle: 'Rendering as a Protocol',
-					shortSubtitle: 'Described, not executed.',
+					short_title: 'Rendering as a Protocol',
+					short_subtitle: 'Described, not executed.',
 				},
 			},
 			highlight: async () => '',
@@ -486,8 +486,8 @@ it('draws an ::article card from the target article rather than from the directi
 		subtitle: 'UI should be described, not executed.',
 		created: '2026-04-13T19:18:28.488Z',
 		// The card is the homepage's row, so it carries what that row needs on a phone too.
-		shortTitle: 'Rendering as a Protocol',
-		shortSubtitle: 'Described, not executed.',
+		short_title: 'Rendering as a Protocol',
+		short_subtitle: 'Described, not executed.',
 	});
 	// The feed and /llms.txt targets name the article too; neither runs a layout, so a card
 	// there is a link that says what it points at.

@@ -6,7 +6,7 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			locale?: { code: LocaleCode; languageTag: string };
+			locale?: { code: LocaleCode; language_tag: string };
 		}
 		// interface PageData {}
 		// interface PageState {}

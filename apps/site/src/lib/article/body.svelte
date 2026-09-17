@@ -214,7 +214,7 @@
 				label={block.label}
 				title={block.title}
 				collapsible={block.collapsible}
-				defaultExpanded={block.defaultExpanded}
+				default_expanded={block.default_expanded}
 				copyLabel={m['code.copy']({}, { locale })}
 				copiedLabel={m['code.copied']({}, { locale })}
 				copyFailedLabel={m['code.copy-failed']({}, { locale })}
@@ -288,8 +288,8 @@
 			<ArticleCard
 				title={block.title}
 				subtitle={block.subtitle}
-				shortTitle={block.shortTitle}
-				shortSubtitle={block.shortSubtitle}
+				short_title={block.short_title}
+				short_subtitle={block.short_subtitle}
 				created={block.created}
 				path={block.path}
 			/>
@@ -304,7 +304,7 @@
 		{:else if block.type === 'twitter'}
 			<Twitter tweet={block.tweet} />
 		{:else if block.type === 'github'}
-			<GitHub repo={block.repo} gitRef={block.gitRef} title={block.title} align={block.align} />
+			<GitHub repo={block.repo} git_ref={block.git_ref} title={block.title} align={block.align} />
 		{/if}
 	{/each}
 </div>

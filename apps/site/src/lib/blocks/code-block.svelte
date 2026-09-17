@@ -139,7 +139,7 @@
 		label?: string;
 		title?: string;
 		collapsible?: boolean;
-		defaultExpanded?: boolean;
+		default_expanded?: boolean;
 		copyLabel: string;
 		copiedLabel: string;
 		copyFailedLabel: string;
@@ -150,7 +150,7 @@
 		label,
 		title,
 		collapsible,
-		defaultExpanded = true,
+		default_expanded = true,
 		copyLabel,
 		copiedLabel,
 		copyFailedLabel,
@@ -172,7 +172,7 @@
 	const instanceId = $props.id();
 	const panelId = `${instanceId}-panel`;
 	// This prop is an initial state, not a command that reopens a disclosure after interaction.
-	const initiallyExpanded = untrack(() => !title || collapsible === false || defaultExpanded);
+	const initiallyExpanded = untrack(() => !title || collapsible === false || default_expanded);
 	let expanded = $state(initiallyExpanded);
 	let phase = $state<CollapsePhase>(initiallyExpanded ? 'expanded' : 'collapsed');
 	let collapseEl = $state<HTMLElement>();

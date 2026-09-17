@@ -101,7 +101,7 @@ export const GET: RequestHandler = async ({ fetch }) => {
 				`\t\t<loc>${e.loc}</loc>`,
 				...(e.alternates ?? []).map(
 					(alternate) =>
-						`\t\t<xhtml:link rel="alternate" hreflang="${alternate.languageTag}" href="${alternate.href}" />`,
+						`\t\t<xhtml:link rel="alternate" hreflang="${alternate.language_tag}" href="${alternate.href}" />`,
 				),
 				`\t\t<lastmod>${e.lastmod}</lastmod>`,
 				`\t\t<changefreq>${e.changefreq}</changefreq>`,

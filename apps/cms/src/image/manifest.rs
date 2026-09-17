@@ -151,7 +151,6 @@ pub struct VideoSource {
 	pub bytes: u64,
 	/// Seconds.
 	pub duration: f64,
-	#[serde(rename = "frameRate")]
 	pub frame_rate: f64,
 	/// The denominator of the progress bar the software-decode path shows. Without it that bar
 	/// cannot be honest, which is the whole reason a frame count is stored at all.
@@ -413,7 +412,7 @@ mod tests {
 		assert_eq!(serde_json::from_str::<Document>(&text).expect("deserialise"), document);
 		assert!(text.contains("\"type\":\"video\""));
 		// A player is handed camelCase; the field is snake_case because Rust is.
-		assert!(text.contains("\"frameRate\":30.0"), "{text}");
+		assert!(text.contains("\"frame_rate\":30.0"), "{text}");
 		// Nothing says what a video lacks. An empty caption map writes nothing at all, and
 		// there is no thumbhash key to be empty.
 		assert!(!text.contains("captions"), "{text}");

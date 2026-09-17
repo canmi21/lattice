@@ -47,7 +47,7 @@ export type Block =
 			label?: string;
 			title?: string;
 			collapsible?: boolean;
-			defaultExpanded?: boolean;
+			default_expanded?: boolean;
 			html: string;
 			code: string;
 	  }
@@ -80,7 +80,7 @@ export type Block =
 	| {
 			type: 'github';
 			repo: RepoRecord;
-			gitRef?: string;
+			git_ref?: string;
 			title?: string;
 			align: CardAlign;
 	  }
@@ -170,8 +170,8 @@ export type ArticleReference = {
 	created: string;
 	/** What a phone card shows instead, where the row clips. Falls back to the full form for a
 	 *  view the CMS has not written one for. See spec/i18n/prose.md. */
-	shortTitle: string;
-	shortSubtitle: string;
+	short_title: string;
+	short_subtitle: string;
 };
 
 /**
@@ -214,10 +214,10 @@ export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'feed' | 't
 	 * as 14,870. Those are components; a reader asking how long an article is does not mean them.
 	 */
 	words: number;
-	languageTag: string;
+	language_tag: string;
 	canonical: string;
 	/** False when this locale is showing the complete source article as a safe fallback. */
-	translationAvailable: boolean;
+	translation_available: boolean;
 	/** The title and subtitle a phone card shows instead of `meta`'s, where the row clips. Falls
 	 *  back to the full form for a view the CMS has not written one for. See spec/i18n/prose.md. */
 	short: { title: string; subtitle: string };
@@ -227,7 +227,7 @@ export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'feed' | 't
 	 * property of the string, so it cannot change between renders, and computing it at runtime
 	 * would mean the first frame guessing. See spec/styling/phone.md.
 	 */
-	phoneTitle: string;
+	phone_title: string;
 	/**
 	 * What the article is about, withholding what it concludes. Written by `cms summary` into a
 	 * sidecar rather than into the article, so it is absent until that has been run.
@@ -283,7 +283,7 @@ export type TweetRecord = {
 
 export type Alternate = {
 	code: Exclude<LocaleCode, 'mw'> | 'x-default';
-	languageTag: string;
+	language_tag: string;
 	href: string;
 };
 
@@ -291,7 +291,7 @@ export type Article = Compiled & {
 	path: string;
 	url: string;
 	views: Record<LocaleCode, ArticleView>;
-	canonicalUrls: string[];
+	canonical_urls: string[];
 	alternates: Alternate[];
 };
 
@@ -304,7 +304,7 @@ export type InlineSegment =
 			icon?: 'twitter' | 'github' | 'email';
 			href: string;
 			label: string;
-			newTab: boolean;
+			new_tab: boolean;
 			/** `wide` / `narrow` from the directive, as the classes that act on them. A link is the
 			 *  one run that cannot be wrapped in `:t` -- nested, it stops being a link -- so it
 			 *  carries its own width the way a `:t` run carries one. See spec/styling/phone.md. */

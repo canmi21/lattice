@@ -8,7 +8,7 @@ export const CANONICAL_SIMILARITY_THRESHOLD = 0.9;
 export function indexingMetadata(
 	url: string,
 	content: Readonly<Record<LocaleCode, string>>,
-): { canonical: Record<LocaleCode, string>; canonicalUrls: string[]; alternates: Alternate[] } {
+): { canonical: Record<LocaleCode, string>; canonical_urls: string[]; alternates: Alternate[] } {
 	const canonical = Object.fromEntries(
 		LOCALE_CODES.map((code) => [
 			code,
@@ -20,12 +20,12 @@ export function indexingMetadata(
 
 	return {
 		canonical,
-		canonicalUrls: [...new Set(LOCALE_CODES.map((code) => canonical[code]))],
+		canonical_urls: [...new Set(LOCALE_CODES.map((code) => canonical[code]))],
 		alternates: [
 			...(Object.entries(PUBLIC_LANGUAGE) as [Exclude<LocaleCode, 'mw'>, string][]).map(
-				([code, languageTag]) => ({ code, languageTag, href: canonical[code] }),
+				([code, tag]) => ({ code, language_tag: tag, href: canonical[code] }),
 			),
-			{ code: 'x-default', languageTag: 'x-default', href: url },
+			{ code: 'x-default', language_tag: 'x-default', href: url },
 		],
 	};
 }

@@ -95,7 +95,7 @@ corpus.get('/sitemap', async (c) => {
 		// one that moves when it does.
 		const lastmod = article.views.mw?.lastmod;
 		if (!lastmod) return [];
-		return article.canonicalUrls.map((loc) => ({ loc, lastmod, alternates: article.alternates }));
+		return article.canonical_urls.map((loc) => ({ loc, lastmod, alternates: article.alternates }));
 	});
 	const answer = { generated: root.generated, views };
 	return success(c, answer satisfies SitemapAnswer, ANSWERED);

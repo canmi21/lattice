@@ -114,10 +114,10 @@ it('falls back the whole view when any live body translation is missing', () => 
 		{ version: 3, articles: { 'example.md': spans }, words: {} },
 	);
 
-	expect(result.translationAvailable.de).toBe(false);
+	expect(result.translation_available.de).toBe(false);
 	expect(result.raws.de).toBe(raw);
 	expect(result.translatable.de).toBe(result.translatable.mw);
-	expect(result.translationAvailable.en).toBe(true);
+	expect(result.translation_available.en).toBe(true);
 	expect(result.raws.en).toContain('First translated.\n\nSecond translated.');
 });
 

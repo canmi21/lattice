@@ -9,5 +9,5 @@ import type { LayoutServerLoad } from './$types';
  * on the server. See spec/locale/addressing.md, "Locale is not negotiated twice".
  */
 export const load: LayoutServerLoad = ({ locals }) => ({
-	locale: locals.locale ?? { code: 'mw' as const, languageTag: SITE_LANGUAGE },
+	locale: locals.locale ?? { code: 'mw' as const, language_tag: SITE_LANGUAGE },
 });

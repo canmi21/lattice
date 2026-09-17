@@ -34,7 +34,7 @@ const ROOT = {
 			url: `${URLS.apps.production.site}/${SLUG}`,
 			markdown: 'b'.repeat(32),
 			alternates: [],
-			canonicalUrls: [`${URLS.apps.production.site}/${SLUG}`],
+			canonical_urls: [`${URLS.apps.production.site}/${SLUG}`],
 			views: {},
 		},
 	],

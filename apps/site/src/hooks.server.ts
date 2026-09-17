@@ -62,7 +62,7 @@ async function resolvedTag(event: RequestEvent, code: LocaleCode): Promise<strin
 	if (code !== 'mw' || event.route.id !== PAGE_ROUTE) return languageTag(code, SITE_LANGUAGE);
 	const slug = event.url.pathname.replace(/^\//, '').replace(/\/$/, '');
 	const found = await publishedMetadata(event.fetch, slug, 'mw').catch(() => undefined);
-	return found?.languageTag ?? SITE_LANGUAGE;
+	return found?.language_tag ?? SITE_LANGUAGE;
 }
 
 const pageHandle: Handle = async ({ event, resolve }) => {
@@ -87,7 +87,7 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 			cookie,
 			acceptLanguage: event.request.headers.get('accept-language'),
 		});
-		event.locals.locale = { code, languageTag: await resolvedTag(event, code) };
+		event.locals.locale = { code, language_tag: await resolvedTag(event, code) };
 		// Rewrite even an unchanged value so cookies created before client-side switching was
 		// introduced lose HttpOnly and become writable by the language controls.
 		event.cookies.set('language', code, {
@@ -102,7 +102,7 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 		transformPageChunk: ({ html }) =>
 			hoistCharset(
 				html
-					.replace('%language.tag%', event.locals.locale?.languageTag ?? 'en-US')
+					.replace('%language.tag%', event.locals.locale?.language_tag ?? 'en-US')
 					// The internal code for the client-side Paraglide strategy. The rendered
 					// document is the authoritative result of the worker's full negotiation.
 					.replace('%language.code%', event.locals.locale?.code ?? 'mw')

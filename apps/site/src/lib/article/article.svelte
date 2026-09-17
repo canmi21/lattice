@@ -169,16 +169,16 @@
 
 	type ArticleLocale = {
 		code: LocaleCode;
-		languageTag: string;
+		language_tag: string;
 		canonical: string;
 		alternates: Alternate[];
-		translationAvailable: boolean;
+		translation_available: boolean;
 	};
 
 	let {
 		slug,
 		meta,
-		phoneTitle,
+		phone_title,
 		toc,
 		words,
 		summary,
@@ -191,7 +191,7 @@
 		meta: ArticleMeta;
 		/** The title a phone sees: `meta.title` where it fits the column, the short one where it
 		 *  does not. Decided in the build; see $lib/content/build/width.ts. */
-		phoneTitle: string;
+		phone_title: string;
 		toc: TocEntry[];
 		/** How long the article is in the view being read. Body prose only -- see ArticleView. */
 		words: number;
@@ -236,7 +236,7 @@
 	const card = $derived(cardUrl(urls.cdn, page.url.pathname, locale.code));
 
 	$effect(() => {
-		document.documentElement.lang = locale.languageTag;
+		document.documentElement.lang = locale.language_tag;
 	});
 
 	/**
@@ -342,7 +342,7 @@
 		image: card,
 		datePublished: meta.created,
 		dateModified: meta.lastmod,
-		inLanguage: locale.languageTag,
+		inLanguage: locale.language_tag,
 		mainEntityOfPage: locale.canonical,
 		author: { '@type': 'Person', name: site.author.name },
 	});
@@ -360,7 +360,7 @@
 	<meta property="og:title" content={meta.title} />
 	<meta property="og:description" content={meta.description} />
 	<meta property="og:url" content={locale.canonical} />
-	<meta property="og:locale" content={locale.languageTag} />
+	<meta property="og:locale" content={locale.language_tag} />
 	<meta property="og:image" content={card} />
 	<!-- Stated because a crawler that reserves the box before fetching draws it right. -->
 	<meta property="og:image:width" content={CARD_WIDTH} />
@@ -407,7 +407,7 @@
 						</span>{/if}
 				</h1>
 				<h1 class="sm:hidden {stylex.attrs(styles.title).class}">
-					{phoneTitle}{#if meta.draft}<span
+					{phone_title}{#if meta.draft}<span
 							class="draft-mark {stylex.attrs(styles.draftMark).class}"
 						>
 							{m['article.draft']({}, { locale: locale.code })}
@@ -487,7 +487,7 @@
 					<TranslationNotice
 						code={locale.code}
 						sourceLanguage={meta.lang}
-						available={locale.translationAvailable}
+						available={locale.translation_available}
 					/>
 				{/if}
 				{#if summary}

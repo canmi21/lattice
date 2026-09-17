@@ -74,7 +74,7 @@ describe('indexing metadata', () => {
 		expect(indexing.canonical.mw).toBe('/article');
 		expect(indexing.canonical.zh).toBe('/article?lang=zh');
 		expect(indexing.canonical.en).toBe('/article?lang=en');
-		expect(indexing.canonicalUrls).toEqual([
+		expect(indexing.canonical_urls).toEqual([
 			...new Set(LOCALE_CODES.map((code) => indexing.canonical[code])),
 		]);
 		expect(indexing.alternates).toHaveLength(Object.keys(PUBLIC_LANGUAGE).length + 1);
@@ -82,11 +82,11 @@ describe('indexing metadata', () => {
 		for (const code of Object.keys(PUBLIC_LANGUAGE) as Exclude<LocaleCode, 'mw'>[]) {
 			const alternate = indexing.alternates.find((entry) => entry.code === code);
 			expect(alternate?.href).toBe(indexing.canonical[code]);
-			expect(alternate?.languageTag).toBe(PUBLIC_LANGUAGE[code]);
+			expect(alternate?.language_tag).toBe(PUBLIC_LANGUAGE[code]);
 		}
 		expect(indexing.alternates.at(-1)).toEqual({
 			code: 'x-default',
-			languageTag: 'x-default',
+			language_tag: 'x-default',
 			href: '/article',
 		});
 	});

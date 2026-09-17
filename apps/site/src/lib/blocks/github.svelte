@@ -89,19 +89,19 @@
 
 	let {
 		repo,
-		gitRef,
+		git_ref,
 		title,
 		align = 'center',
 	}: {
 		repo: RepoRecord;
-		gitRef?: string;
+		git_ref?: string;
 		title?: string;
 		align?: CardAlign;
 	} = $props();
 
 	const href = $derived(
-		gitRef
-			? `${URLS.external.github.web}/${repo.full_name}/tree/${gitRef}`
+		git_ref
+			? `${URLS.external.github.web}/${repo.full_name}/tree/${git_ref}`
 			: `${URLS.external.github.web}/${repo.full_name}`,
 	);
 	const displayName = $derived(title || repo.full_name.split('/').at(-1) || repo.full_name);
@@ -131,10 +131,10 @@
 		<span class="fullname {stylex.attrs(styles.fullname).class}">{repo.full_name}</span>
 	</div>
 
-	{#if gitRef}
+	{#if git_ref}
 		<span class="ref {stylex.attrs(styles.ref).class}">
 			<GitCommitHorizontal class="size-3" strokeWidth={2} aria-hidden="true" />
-			{gitRef.slice(0, 7)}
+			{git_ref.slice(0, 7)}
 		</span>
 	{/if}
 

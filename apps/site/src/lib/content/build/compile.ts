@@ -88,15 +88,15 @@ type SocialPlatform = 'twitter' | 'github' | 'email';
 
 const SOCIAL: Record<
 	SocialPlatform,
-	{ href: (handle: string) => string; follow?: (handle: string) => string; newTab: boolean }
+	{ href: (handle: string) => string; follow?: (handle: string) => string; new_tab: boolean }
 > = {
 	twitter: {
 		href: (h) => `${URLS.external.social.twitter}/${h}`,
 		follow: (h) => `${URLS.external.social.twitterIntent}?screen_name=${h}`,
-		newTab: true,
+		new_tab: true,
 	},
-	github: { href: (h) => `${URLS.external.github.web}/${h}`, newTab: true },
-	email: { href: (h) => `mailto:${h}`, newTab: false },
+	github: { href: (h) => `${URLS.external.github.web}/${h}`, new_tab: true },
+	email: { href: (h) => `mailto:${h}`, new_tab: false },
 };
 
 // `:link[Twitter]{to=canmi21}` resolves to the profile; add the `follow` flag for
@@ -104,7 +104,7 @@ const SOCIAL: Record<
 function resolveLink(
 	label: string,
 	attrs: DirectiveAttrs,
-): { href: string; newTab: boolean; platform?: SocialPlatform } {
+): { href: string; new_tab: boolean; platform?: SocialPlatform } {
 	const handle = attrs.to ?? '';
 	const named = label.toLowerCase();
 	const platform =
@@ -113,10 +113,10 @@ function resolveLink(
 			: /^[^@\s]+@[^@\s]+$/u.test(handle)
 				? ('email' as const)
 				: undefined;
-	if (!platform) return { href: handle, newTab: false };
+	if (!platform) return { href: handle, new_tab: false };
 	const target = SOCIAL[platform];
 	const href = target.follow && 'follow' in attrs ? target.follow(handle) : target.href(handle);
-	return { href, newTab: target.newTab, platform };
+	return { href, new_tab: target.new_tab, platform };
 }
 
 // `:t` attributes -> utility classes. font/color carry token names (libs/tokens);
@@ -226,8 +226,8 @@ function proseHtml(node: RootContent, newTabNote: string): string {
 				const attrs = (directive.attributes ?? {}) as DirectiveAttrs;
 				const children = state.all(directive);
 				if (directive.name === 'link') {
-					const { href, newTab } = resolveLink(mdastToString(directive), attrs);
-					if (newTab) {
+					const { href, new_tab } = resolveLink(mdastToString(directive), attrs);
+					if (new_tab) {
 						children.push({
 							type: 'element',
 							tagName: 'span',
@@ -246,7 +246,7 @@ function proseHtml(node: RootContent, newTabNote: string): string {
 							// `rel="noopener,noreferrer"`, a single unrecognised token. `noreferrer` is
 							// gone on purpose -- the site's referrer policy sends the origin to a site
 							// it links to, and this attribute would silence that. See spec/referrer.md.
-							...(newTab ? { target: '_blank', rel: ['noopener'] } : {}),
+							...(new_tab ? { target: '_blank', rel: ['noopener'] } : {}),
 						},
 						children,
 					};
@@ -622,7 +622,7 @@ function codeMeta(value: string | null | undefined): Record<string, string> {
 function codePresentation(
 	value: string | null | undefined,
 	source: string,
-): { title?: string; collapsible?: boolean; defaultExpanded?: boolean } {
+): { title?: string; collapsible?: boolean; default_expanded?: boolean } {
 	const props = codeMeta(value);
 	const title = props.title?.trim() || undefined;
 	const rawCollapsible = props.collapsible;
@@ -640,11 +640,11 @@ function codePresentation(
 
 	if (!title) return {};
 	const collapsible = rawCollapsible !== 'false';
-	const defaultExpanded = rawDefault !== 'collapsed';
-	if (!collapsible && !defaultExpanded) {
+	const default_expanded = rawDefault !== 'collapsed';
+	if (!collapsible && !default_expanded) {
 		throw new Error(`${source}: a code fence cannot be fixed open and default collapsed`);
 	}
-	return { title, collapsible, defaultExpanded };
+	return { title, collapsible, default_expanded };
 }
 
 function mermaidRatio(value: string | null | undefined, source: string): number | undefined {
@@ -1014,12 +1014,12 @@ export async function compile(
 		if (node.type === 'leafDirective' && node.name === 'github') {
 			const name = node.attributes?.repo ?? '';
 			const repo = embeds?.repos[name];
-			const gitRef = node.attributes?.ref ?? undefined;
+			const git_ref = node.attributes?.ref ?? undefined;
 			if (repo) {
 				blocks.push({
 					type: 'github',
 					repo,
-					gitRef,
+					git_ref,
 					title: node.attributes?.title ?? undefined,
 					align: cardAlign(node.attributes?.align),
 				});
@@ -1151,7 +1151,7 @@ function inlineSegments(node: Paragraph, newTabNote: string): InlineSegment[] {
 			flush();
 			const attrs = (child.attributes ?? {}) as DirectiveAttrs;
 			const label = mdastToString(child);
-			const { href, newTab, platform } = resolveLink(label, attrs);
+			const { href, new_tab, platform } = resolveLink(label, attrs);
 			// Both spellings are variants, and a variant sorts after a plain utility. The `:t`
 			// markers above can say `hidden sm:inline` because a span has no display utility to
 			// argue with; a link is `inline-flex` for its icon, and `hidden` is the same kind of
@@ -1165,7 +1165,7 @@ function inlineSegments(node: Paragraph, newTabNote: string): InlineSegment[] {
 				icon: platform,
 				href,
 				label,
-				newTab,
+				new_tab,
 				...(width ? { width } : {}),
 			});
 		} else {

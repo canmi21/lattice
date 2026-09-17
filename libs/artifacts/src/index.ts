@@ -75,13 +75,13 @@ export const RootViewSchema = v.object({
 	title: v.string(),
 	subtitle: v.string(),
 	description: v.string(),
-	shortTitle: v.string(),
-	shortSubtitle: v.string(),
+	short_title: v.string(),
+	short_subtitle: v.string(),
 	created: v.string(),
 	lastmod: v.string(),
-	languageTag: v.string(),
+	language_tag: v.string(),
 	canonical: v.string(),
-	translationAvailable: v.boolean(),
+	translation_available: v.boolean(),
 	words: v.number(),
 	// The opening prose the homepage card draws its body bars from. Carried here so listing every
 	// article costs one request rather than one per article; it is the only body text the root holds.
@@ -104,8 +104,10 @@ export const RootArticleSchema = v.object({
 	path: v.string(),
 	url: v.string(),
 	markdown: hash,
-	alternates: v.array(v.object({ code: alternateCode, languageTag: v.string(), href: v.string() })),
-	canonicalUrls: v.array(v.string()),
+	alternates: v.array(
+		v.object({ code: alternateCode, language_tag: v.string(), href: v.string() }),
+	),
+	canonical_urls: v.array(v.string()),
 	views: byLocale(RootViewSchema),
 });
 
@@ -194,14 +196,14 @@ export type PublishedView = {
 	slug: string;
 	locale: LocaleCode;
 	meta: ArticleMeta;
-	phoneTitle: string;
+	phone_title: string;
 	toc: TocEntry[];
 	blocks: Block[];
 	summary?: ArticleSummary;
 	words: number;
-	languageTag: string;
+	language_tag: string;
 	canonical: string;
-	translationAvailable: boolean;
+	translation_available: boolean;
 	alternates: Alternate[];
 };
 
