@@ -104,6 +104,7 @@
 	import PageBody from '$lib/home/body.svelte';
 	import Icon from '$lib/home/icons.svelte';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
+	import { publishedHome } from '$lib/published';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
 	import { CARD_HEIGHT, CARD_WIDTH, HOME_SLUG, cardUrl } from '$lib/opengraph';
 	import * as m from '$lib/paraglide/messages';
@@ -219,7 +220,7 @@
 		     heading and no rule -- this is page furniture, not a section, and the preference it
 		     writes is the site's, not this page's. -->
 		<div class="mt-8 flex flex-wrap items-center gap-4 {stylex.attrs(styles.switcherRow).class}">
-			<LanguageSwitcher code={data.locale.code} />
+			<LanguageSwitcher code={data.locale.code} prefetch={(next) => publishedHome(fetch, next)} />
 		</div>
 
 		<ArticleList articles={data.articles} heading={data.writing} />
