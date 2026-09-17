@@ -155,8 +155,9 @@ export type RootView = v.InferOutput<typeof RootViewSchema>;
  * One article, as the API answers for it.
  *
  * The root's view grouped as it is stored, plus the two things only a request can supply: which
- * article was asked for, and how many times it has been read. The count lives in D1 because a
- * visitor writes it -- see spec/architecture/data.md on which store owns what.
+ * article was asked for. No read count: a counter is written by every visitor and a view is not,
+ * so carrying it here gave one number nine cached copies of itself. See
+ * spec/architecture/artifacts.md, "A read count is not here at all".
  */
 export type ViewAnswer = Omit<RootView, 'locale'> & {
 	slug: string;

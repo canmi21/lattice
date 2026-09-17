@@ -162,7 +162,7 @@ the whole design's latency rests on.
 
 | Route                | Answers                                                            |
 | -------------------- | ------------------------------------------------------------------ |
-| `/view/{slug}?lang=` | one view's metadata, its `content` hash and its read count         |
+| `/view/{slug}?lang=` | one view's metadata and its `content` hash                         |
 | `/markdown/{slug}`   | the `markdown` hash, for `<url>.md`                                |
 | `/home?lang=`        | the article list the homepage renders, and the homepage's own page |
 | `/sitemap`           | every indexable view's path, date and alternates                   |
