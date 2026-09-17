@@ -15,26 +15,48 @@ export type Reads = {
 
 const apiUrl = pageUrls(dev).api;
 
+/** Which articles this tab has already counted, so a refresh never counts a second time. */
+const counted = new Set<string>();
+
 /**
- * The article's read count, counting this visit as one of them.
+ * The read count, counted once and then watched.
  *
- * A query rather than a mutation, even though the request has an effect: mutations are never
- * persisted, and the number has to survive a reload, so it lands in the same query cache as
- * everything else instead. Counting is tied to the query firing, so refetch triggers are turned
- * off -- a read is opening the article, not returning to the tab. See spec/engagement.md for the
- * server's own deduplication.
+ * The first ask records the visit, every ask after it only looks up -- which is what lets this
+ * refresh on a timer at all, since the query used to be `/read` and any refetch would have made
+ * one reader into several. Focus and reconnect stay off, because returning to a tab is not opening
+ * the article; the interval is the one trigger. See spec/engagement.md.
  */
 export function createReadsQuery(slug: () => string) {
 	return createQuery(() => ({
 		queryKey: [READS_QUERY_KEY, slug()],
-		queryFn: () => countRead(slug()),
+		queryFn: () => readsOf(slug()),
 		enabled: browser,
 		staleTime: QUERY_STALE_TIME,
 		gcTime: QUERY_CACHE_MAX_AGE,
+		// The same five minutes the answer is fresh for, so the timer asks exactly when the cached
+		// copy stops being worth serving rather than on a cadence of its own.
+		refetchInterval: QUERY_STALE_TIME,
+		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 		retry: 1,
 	}));
+}
+
+/**
+ * The count, recording the visit on the first ask and only looking it up afterwards.
+ *
+ * Exported because that split is the whole behaviour and is otherwise reachable only by waiting
+ * out the refetch interval.
+ */
+export async function readsOf(slug: string): Promise<Reads> {
+	if (!counted.has(slug)) {
+		counted.add(slug);
+		return countRead(slug);
+	}
+	const warm = warmedReads(slug);
+	const count = (await lookupReads(slug)) ?? warm ?? 0;
+	return { slug, read_count: count };
 }
 
 async function countRead(slug: string): Promise<Reads> {
