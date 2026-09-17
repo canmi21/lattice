@@ -12,6 +12,7 @@ import type {
 
 export type * from './types.ts';
 export * from './api.ts';
+export * from './feed.ts';
 
 /**
  * The shape every published object declares.

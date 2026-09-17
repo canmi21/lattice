@@ -451,11 +451,26 @@ it('leaves an unfetched tweet visible as a directive placeholder', async () => {
 		},
 	);
 
+	// `pending` is what separates this from the stub an author writes with ::placeholder. The two
+	// had one shape, and the feed is where that showed: this one says nothing there, because what
+	// it would say is that `cms embed` has not run.
 	expect(compiled.blocks).toContainEqual({
 		type: 'placeholder',
 		kind: 'twitter',
 		meta: { tweet: '2088060180290302397' },
+		pending: true,
 	});
+	expect(compiled.feed).toBe('');
+});
+
+it('shows an authored ::placeholder in the feed, and a pending embed not at all', async () => {
+	const compiled = await compile(
+		'---\ntitle: Test\nlang: en-US\n---\n\n::placeholder{kind="chart" note="later"}\n\n::cargo{crate="nothing"}\n',
+		'/article',
+		{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
+	);
+
+	expect(compiled.feed).toBe('<pre>::chart\nnote = "later"</pre>');
 });
 
 it('draws an ::article card from the target article rather than from the directive', async () => {
@@ -681,6 +696,10 @@ it('names the published rendition in the feed and the markdown, not the authored
 	const resolved = {
 		src: 'https://cdn.example/image/rendition.avif',
 		srcset: 'https://cdn.example/image/rendition.avif 640w',
+		width: 100,
+		height: 100,
+		ratio: '1:1',
+		preview: '',
 	};
 	const compiled = await compile(
 		'---\ntitle: Test\nlang: en-US\n---\n\n::image{src="original.avif" alt="A"}\n\n![B](original.avif)\n',

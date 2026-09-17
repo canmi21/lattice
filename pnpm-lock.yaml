@@ -521,6 +521,9 @@ importers:
       '@canmi/locales':
         specifier: workspace:*
         version: link:../locales
+      '@canmi/urls':
+        specifier: workspace:*
+        version: link:../urls
       valibot:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)

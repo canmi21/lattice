@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"@canmi/locales": "workspace:*",
+		"@canmi/urls": "workspace:*",
 		"valibot": "^1.5.0"
 	}
 }

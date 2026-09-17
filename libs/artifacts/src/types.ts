@@ -103,7 +103,21 @@ export type Block =
 	  }
 	| ({ type: 'article'; path: string } & ArticleReference)
 	| { type: 'footnotes'; notes: ArticleNote[] }
-	| { type: 'placeholder'; kind: string; meta: Record<string, string> }
+	| {
+			type: 'placeholder';
+			kind: string;
+			meta: Record<string, string>;
+			/**
+			 * An embed named but not yet fetched, as opposed to a stub the author wrote.
+			 *
+			 * The two had one shape and meant different things, which a consumer could not tell
+			 * apart: `::cargo` whose record `cms embed` has not filled in still says which crate
+			 * the article meant, while `::placeholder` is the author asking for a gap. The feed is
+			 * where it showed -- one of them belongs in a document a reader subscribes to and the
+			 * other does not.
+			 */
+			pending?: true;
+	  }
 	| {
 			type: 'image';
 			src: string;

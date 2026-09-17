@@ -1,3 +1,4 @@
+import { feedHtml } from '@canmi/artifacts';
 import { URLS } from '@canmi/urls';
 import { toHtml } from 'hast-util-to-html';
 import { toHast, type Handler } from 'mdast-util-to-hast';
@@ -452,17 +453,6 @@ function blockSource(raw: string, node: RootContent): string {
 	return raw.slice(start.offset, end.offset);
 }
 
-/**
- * What a feed says about a drawing it cannot show.
- *
- * The title is the fence's own when it has one and the article's otherwise, which in this corpus
- * means the article's: no fence carries meta. So a described diagram says what it draws, and an
- * undescribed one says only that it is there, which is all it ever said.
- */
-function diagramFeed(title: string, description: string | undefined, url: string): string {
-	return `<p><em>[Diagram: ${escapeHtml(description ?? title)} — view at ${url}]</em></p>`;
-}
-
 function diagramMarkdown(title: string, description: string | undefined, url: string): string {
 	return `> [diagram: ${description ?? title} — ${url}]`;
 }
@@ -758,7 +748,6 @@ export async function compile(
 	let meta: ArticleMeta | undefined;
 	const blocks: Block[] = [];
 	const toc: TocEntry[] = [];
-	const feed: string[] = [];
 	const md: string[] = [];
 	const text: string[] = [];
 	// Numbered by where they are written, across the whole article rather than per block.
@@ -792,11 +781,6 @@ export async function compile(
 			// anchor still exists and still resolves -- what is filtered is the listing, not the
 			// address. See spec/styling/rail.md.
 			if (node.depth === 2) toc.push({ slug, text: heading, depth: node.depth });
-			feed.push(
-				`<h${node.depth} id="${slug}">${escapeHtml(heading)}${marks
-					.map((number) => `<sup>${number}</sup>`)
-					.join('')}</h${node.depth}>`,
-			);
 			md.push(`${'#'.repeat(node.depth)} ${heading}${superscripts}`);
 			text.push(heading);
 			continue;
@@ -817,11 +801,6 @@ export async function compile(
 				});
 				// A feed reader gets what the diagram says, because it cannot run Mermaid; a
 				// Markdown reader keeps the fence, because that one it can.
-				feed.push(
-					description
-						? diagramFeed('diagram', description, url)
-						: `<pre><code class="language-mermaid">${escapeHtml(node.value)}</code></pre>`,
-				);
 				md.push('```mermaid\n' + node.value + '\n```');
 				if (description) text.push(description);
 				continue;
@@ -833,7 +812,6 @@ export async function compile(
 				const props = codeMeta(node.meta);
 				const title = props.title || meta?.title || 'code statistics';
 				blocks.push({ type: 'tokei', source: node.value, title, view: tokeiView(props.view) });
-				feed.push(`<pre>${escapeHtml(node.value)}</pre>`);
 				md.push('```\n' + node.value + '\n```');
 				continue;
 			}
@@ -841,7 +819,6 @@ export async function compile(
 				const title = node.meta?.trim() || meta?.title || 'diagram';
 				const description = describeDiagram?.(blockSource(raw, node));
 				blocks.push({ type: 'svgCanvas', svg: node.value, title, description });
-				feed.push(diagramFeed(title, description, url));
 				md.push(diagramMarkdown(title, description, url));
 				// The one place a diagram reaches the search index. Without a description the
 				// drawing is invisible to it, which is what the description is for.
@@ -856,7 +833,6 @@ export async function compile(
 				html: await highlight(node.value, lang),
 				code: node.value,
 			});
-			feed.push(`<pre><code>${escapeHtml(node.value)}</code></pre>`);
 			md.push(`\`\`\`${lang}\n${node.value}\n\`\`\``);
 			continue;
 		}
@@ -869,9 +845,6 @@ export async function compile(
 				const note = item.note ? ` — ${escapeHtml(item.note)}` : '';
 				return `<li><strong>${escapeHtml(item.title)}</strong>${note} <small>(${escapeHtml(quadrantRegion(item, quadrant.axes))})</small></li>`;
 			});
-			feed.push(
-				`<figure><figcaption><strong>${escapeHtml(quadrant.title)}</strong>${quadrant.description ? ` — ${escapeHtml(quadrant.description)}` : ''}</figcaption><ul>${entries.join('')}</ul></figure>`,
-			);
 			md.push(
 				[
 					`> [quadrant: ${quadrant.title}]`,
@@ -914,7 +887,6 @@ export async function compile(
 			// placeholder. Resolving here rather than in the component keeps the manifest --
 			// every base64 preview in it -- out of the client bundle.
 			blocks.push({ type: 'linkcard', ...card, crop, align, ...resolveAsset(card.src) });
-			feed.push(`<p><a href="${card.url}">${escapeHtml(card.title)}</a></p>`);
 			md.push(`[${card.title}](${card.url})`);
 			continue;
 		}
@@ -934,9 +906,6 @@ export async function compile(
 			}
 			const href = `${URLS.apps.production.site}/${target}`;
 			blocks.push({ type: 'article', path: target, ...reference });
-			feed.push(
-				`<p><a href="${href}">${escapeHtml(reference.title)}</a> — ${escapeHtml(reference.subtitle)}</p>`,
-			);
 			md.push(`[${reference.title}](${href}) — ${reference.subtitle}`);
 			text.push(`${reference.title}\n${reference.subtitle}`);
 			continue;
@@ -961,7 +930,6 @@ export async function compile(
 			// The crop does not survive into the feed or the markdown target, and should not:
 			// neither runs a layout, and a crop is how a page shows an image rather than
 			// anything the image says.
-			feed.push(`<p><img src="${absolute}" alt="${escapeHtml(alt)}" /></p>`);
 			md.push(`![${alt}](${absolute})`);
 			if (alt) text.push(alt);
 			continue;
@@ -987,10 +955,6 @@ export async function compile(
 			// the trip says what it is and where it is rather than disappearing.
 			const described = resolved?.description ?? '';
 			const poster = resolved?.poster;
-			feed.push(
-				`<p>${poster ? `<img src="${poster}" alt="${escapeHtml(described)}" /> ` : ''}` +
-					`<em>[Video — watch at ${url}]</em></p>`,
-			);
 			md.push(`${poster ? `![${described}](${poster})\n\n` : ''}> [video — ${url}]`);
 			if (described) text.push(described);
 			continue;
@@ -1001,15 +965,12 @@ export async function compile(
 			const crate = embeds?.crates[name];
 			if (crate) {
 				blocks.push({ type: 'cargo', crate, view: cargoView(node.attributes?.view) });
-				feed.push(
-					`<p><em>[crate: ${escapeHtml(crate.name)} ${escapeHtml(crate.version)}]</em></p>`,
-				);
 				md.push(`> [crate: ${crate.name} ${crate.version}]`);
 				continue;
 			}
 			// Named but not fetched. The article keeps saying which crate it meant, so `cms embed`
 			// can fill it in later without anyone editing prose to ask again.
-			blocks.push({ type: 'placeholder', kind: 'cargo', meta: { crate: name } });
+			blocks.push({ type: 'placeholder', kind: 'cargo', meta: { crate: name }, pending: true });
 			md.push(`> [crate: ${name}]`);
 			continue;
 		}
@@ -1026,11 +987,10 @@ export async function compile(
 					title: node.attributes?.title ?? undefined,
 					align: cardAlign(node.attributes?.align),
 				});
-				feed.push(`<p><em>[repository: ${escapeHtml(repo.full_name)}]</em></p>`);
 				md.push(`> [repository: ${repo.full_name}]`);
 				continue;
 			}
-			blocks.push({ type: 'placeholder', kind: 'github', meta: { repo: name } });
+			blocks.push({ type: 'placeholder', kind: 'github', meta: { repo: name }, pending: true });
 			md.push(`> [repository: ${name}]`);
 			continue;
 		}
@@ -1041,18 +1001,13 @@ export async function compile(
 			if (tweet) {
 				const href = `${URLS.external.social.twitter}/${tweet.author}/status/${tweet.id}`;
 				blocks.push({ type: 'twitter', tweet });
-				feed.push(
-					`<blockquote><p>${escapeHtml(tweet.text).replaceAll('\n', '<br />')}</p>` +
-						`<footer><a href="${href}">@${escapeHtml(tweet.author)} on Twitter</a></footer>` +
-						'</blockquote>',
-				);
 				md.push(
 					`> ${tweet.text.replaceAll('\n', '\n> ')}\n>\n> — [@${tweet.author} on Twitter](${href})`,
 				);
 				text.push(tweet.text);
 				continue;
 			}
-			blocks.push({ type: 'placeholder', kind: 'twitter', meta: { tweet: id } });
+			blocks.push({ type: 'placeholder', kind: 'twitter', meta: { tweet: id }, pending: true });
 			md.push(`> [tweet: ${id}]`);
 			continue;
 		}
@@ -1068,11 +1023,6 @@ export async function compile(
 				.map(([k, v]) => ` ${k}="${v}"`)
 				.join('');
 			blocks.push({ type: 'placeholder', kind: label, meta: placeholderMeta });
-			feed.push(
-				`<pre>::${escapeHtml(label)}${Object.entries(placeholderMeta)
-					.map(([k, v]) => `\n${k} = "${escapeHtml(v)}"`)
-					.join('')}</pre>`,
-			);
 			md.push(`> [placeholder ::${label}${metaText}]`);
 			continue;
 		}
@@ -1086,7 +1036,6 @@ export async function compile(
 			const absolute = resolved?.src ?? `${IMAGE_CDN}${image.url}`;
 			const alt = altFor(image.alt, resolved);
 			blocks.push({ type: 'image', src: image.url, alt, ...resolved });
-			feed.push(`<p><img src="${absolute}" alt="${escapeHtml(alt)}" /></p>`);
 			md.push(`![${alt}](${absolute})`);
 			if (alt) text.push(alt);
 			continue;
@@ -1094,7 +1043,6 @@ export async function compile(
 
 		numberNotes(node, notes, sourceFile ?? url);
 		blocks.push({ type: 'prose', html: proseHtml(node, newTabNote) });
-		feed.push(proseHtml(node, newTabNote));
 		md.push(proseMarkdown(node));
 		const plain = mdastToString(node).trim();
 		if (plain) text.push(plain);
@@ -1102,14 +1050,6 @@ export async function compile(
 
 	if (notes.length > 0) {
 		blocks.push({ type: 'footnotes', notes });
-		feed.push(
-			`<ol>${notes
-				.map(
-					({ number, phrase, text: said }) =>
-						`<li id="note-${number}"><strong>${escapeHtml(phrase)}</strong> ${escapeHtml(said)}</li>`,
-				)
-				.join('')}</ol>`,
-		);
 		// The definition carries only what the note says. The phrase is already beside the marker
 		// in the body, and a footnote that repeated the word it hangs off would read it twice.
 		md.push(notes.map(({ number, text: said }) => `[^${number}]: ${said}`).join('\n'));
@@ -1132,7 +1072,10 @@ export async function compile(
 		meta,
 		toc,
 		blocks,
-		feed: feed.join('\n'),
+		// Derived from the blocks rather than accumulated beside them: the feed says strictly
+		// less than a block carries, so keeping a second running list only let the two drift.
+		// It is the same function the Worker calls on a fetched object. See libs/artifacts.
+		feed: feedHtml(blocks, { site: URLS.apps.production.site, images: IMAGE_CDN, url }),
 		markdown: `---\n${frontmatter}---\n\n# ${meta.title}\n\n${meta.description}\n\n${md.join('\n\n')}\n`,
 		text: text.join('\n\n'),
 	};
