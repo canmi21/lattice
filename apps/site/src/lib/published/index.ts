@@ -10,17 +10,20 @@
 import { browser, dev } from '$app/environment';
 import {
 	artifactKey,
+	feedHtml,
 	readEnvelope,
 	readPageEnvelope,
 	type ArtifactType,
 	type DocumentAnswer,
+	type FeedAnswer,
 	type HomeAnswer,
 	type PublishedPage,
 	type PublishedView,
 	type SitemapAnswer,
 	type ViewAnswer,
 } from '@canmi/artifacts';
-import { pageUrls, pickUrls } from '@canmi/urls';
+import { pageUrls, pickUrls, URLS } from '@canmi/urls';
+import type { FeedEntry } from '$lib/documents/feed';
 import type { LocaleCode } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
 import { answer } from './cache.ts';
@@ -99,22 +102,34 @@ export function publishedSitemap(fetch: Fetch): Promise<SitemapAnswer | undefine
 	return answer<SitemapAnswer>(fetch, api('/sitemap'));
 }
 
-/** A whole-corpus document, produced rather than assembled. See spec/architecture/artifacts.md. */
-async function publishedDocument(
+/**
+ * Everything one locale's feed is built from: the API's entry list, each entry's body rendered
+ * from the content object it names.
+ *
+ * The objects are fetched together rather than in turn. They are immutable and a year old at the
+ * edge, so the cost of a cold assembly is one round trip rather than N, and the document itself
+ * is held for five minutes after that. See spec/architecture/artifacts.md.
+ */
+export async function publishedFeedEntries(
 	fetch: Fetch,
-	type: 'feed' | 'llms',
-	path: string,
-): Promise<Response | undefined> {
-	const found = await answer<DocumentAnswer>(fetch, api(path));
-	return found ? object(fetch, type, found.hash) : undefined;
+	locale: LocaleCode,
+): Promise<FeedEntry[] | undefined> {
+	const found = await answer<FeedAnswer>(fetch, api(`/feed?lang=${locale}`));
+	if (!found) return undefined;
+	return Promise.all(
+		found.entries.map(async (entry) => {
+			const view = (await (
+				await object(fetch, 'content', entry.objects.content)
+			).json()) as PublishedView;
+			readEnvelope(view, entry.slug, locale);
+			return { ...entry, html: feedHtml(view.body.blocks, feedBases(entry.url)) };
+		}),
+	);
 }
 
-export function publishedFeed(fetch: Fetch, locale: LocaleCode): Promise<Response | undefined> {
-	return publishedDocument(fetch, 'feed', `/feed?lang=${locale}`);
-}
-
-export function publishedLlms(fetch: Fetch): Promise<Response | undefined> {
-	return publishedDocument(fetch, 'llms', '/llms');
+/** Where the two absolute links a feed body writes are rooted, for whichever CDN is answering. */
+function feedBases(url: string) {
+	return { site: URLS.apps.production.site, images: `${upstream().cdn}/image/`, url };
 }
 
 /**

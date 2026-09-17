@@ -25,9 +25,6 @@ import {
 import type { Article, Page } from '@canmi/artifacts/types';
 import { URLS } from '@canmi/urls';
 import { buildArticles, buildPages } from '../src/lib/content/build/articles.ts';
-import { readSiteFacts, type SiteFacts } from '../src/lib/content/publish/config.ts';
-import { buildFeed } from '../src/lib/content/publish/feed.ts';
-import { buildLlms } from '../src/lib/content/publish/llms.ts';
 import { LOCALE_CODES } from '../src/lib/locale/index.ts';
 
 const ROOT = new URL('../../../', import.meta.url);
@@ -195,22 +192,12 @@ async function publishPage(tree: Tree, page: Page): Promise<Root['pages'][string
 	return { markdown: await tree.put('markdown', page.markdown), views };
 }
 
-async function publishCorpus(
-	dir: string,
-	articles: Article[],
-	pages: Page[],
-	site: SiteFacts,
-): Promise<Tally> {
+async function publishCorpus(dir: string, articles: Article[], pages: Page[]): Promise<Tally> {
 	const tree = new Tree(dir);
 	const rootArticles: RootArticle[] = [];
 	for (const article of articles) rootArticles.push(await publishArticle(tree, article));
 	const rootPages: Root['pages'] = {};
 	for (const page of pages) rootPages[page.path] = await publishPage(tree, page);
-	const feeds: Root['feeds'] = {};
-	for (const code of LOCALE_CODES) {
-		feeds[code] = await tree.put('feed', buildFeed(articles, code, site));
-	}
-	const llms = await tree.put('llms', buildLlms(articles, site));
 	// Last, and only once every object it names is on disk. A root that arrives first names
 	// objects that answer 404, and a 404 on a content-addressed key is the one answer this
 	// design cannot afford to have cached. See spec/architecture/artifacts.md.
@@ -219,13 +206,10 @@ async function publishCorpus(
 		generated: new Date().toISOString(),
 		articles: rootArticles,
 		pages: rootPages,
-		feeds,
-		llms,
 	});
 	return tree.tally;
 }
 
-const site = await readSiteFacts(fileURLToPath(new URL('site.config.yaml', SITE)));
 const [published, drafted, pageBuild] = await Promise.all([
 	buildArticles(INPUTS, { drafts: false }),
 	buildArticles(INPUTS, { drafts: true }),
@@ -273,7 +257,6 @@ for (const { name, dir, articles } of trees) {
 		fileURLToPath(dir),
 		articles,
 		pageBuild.pages,
-		site,
 	);
 	console.log(
 		`${name}: ${articles.length} articles, ${pageBuild.pages.length} pages, ` +

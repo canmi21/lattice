@@ -1,12 +1,13 @@
 /**
- * `llms.txt`, as published.
+ * `llms.txt`, assembled at request time.
  *
- * A whole-corpus document like the feed beside it, produced here for the same reason and served
- * by fetching it. See spec/architecture/artifacts.md, "Which objects exist".
+ * A whole-corpus document like the feed beside it, and it stopped being published for the same
+ * reason: every word of it is a projection of the root, which the API already answers with. This
+ * one needs no object at all -- the homepage answer is the whole input. See
+ * spec/architecture/artifacts.md, "Which objects exist".
  */
 import { URLS } from '@canmi/urls';
-import type { Article } from '@canmi/artifacts/types';
-import type { SiteFacts } from './config.ts';
+import type { HomeAnswer } from '@canmi/artifacts';
 
 // The site's nature, distinct from site.tagline (which is the RSS description).
 const DESCRIPTION =
@@ -26,9 +27,8 @@ function oneline(value: string): string {
 // the subtitle. See https://llmstxt.org/.
 // Deliberately not locale-aware -- see spec/locale/addressing.md, "Every page negotiates; the
 // exceptions are documents", for why this is one of the exceptions.
-export function buildLlms(articles: Article[], site: SiteFacts): string {
+export function buildLlms(articles: HomeAnswer['articles'], site: { name: string }): string {
 	const web = URLS.apps.production.site;
-	const code = 'mw' as const;
 	const body = [
 		`# ${site.name}`,
 		'',
@@ -44,10 +44,10 @@ export function buildLlms(articles: Article[], site: SiteFacts): string {
 		'',
 		'## Writing',
 		'',
-		...articles.map((article) => {
-			const meta = article.views[code].meta;
-			return `- [${meta.title}](${article.url}.md): ${oneline(meta.subtitle)}`;
-		}),
+		...articles.map(
+			(article) =>
+				`- [${article.meta.title}](${article.url}.md): ${oneline(article.meta.subtitle)}`,
+		),
 	].join('\n');
 	return `${body}\n`;
 }
