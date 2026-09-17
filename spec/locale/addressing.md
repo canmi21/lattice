@@ -112,6 +112,19 @@ The licence page shows both halves at once. The page negotiates like any other, 
 `/licenses.txt`, `/licenses/full.txt` and the per-package routes beside it do not: a licence is
 not translated, and a translated one would be a different licence.
 
+**Not negotiating is what makes a document shared-cacheable, and that is the point of it.** A
+page picks its language from a cookie, so two readers asking for one URL get two answers and only
+the reader's own browser may keep either. A document takes `?lang=` or nothing: the URL is the
+whole of the request, no header is read, no script runs, and an edge may hold one copy for
+everyone. So `atom.xml`, `sitemap.xml` and `llms.txt` carry `public, max-age=300, s-maxage=300`,
+where a page carries `private, no-store`.
+
+It has to be enforced rather than assumed, because the code that picks a locale is shared with
+the pages. `feedLocale` is where it is enforced for the feed, and it reads the search parameter
+and nothing else. Confirmed by asking for one URL twice, once with a `content-language` cookie
+and an `Accept-Language` that name a different language: the two answers hash the same, while
+changing `?lang=` changes them.
+
 ### Server-only documents leave the page router
 
 Links from an HTML page to Atom or the sitemap perform a full document navigation. They are

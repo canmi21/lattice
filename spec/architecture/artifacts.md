@@ -88,14 +88,22 @@ back when the file stops being small, and not before.
 | ---------- | ---------------------------------------------------- | ---------------- |
 | `content`  | One compiled view: meta, toc, blocks, summary, words | article x locale |
 | `markdown` | The article source, served at `<url>.md`             | article          |
-| `feed`     | One locale's whole Atom document                     | locale           |
-| `llms`     | `llms.txt`                                           | corpus           |
 
-`feed` and `llms` are whole-corpus documents and are produced rather than assembled. Building
-either from the root at request time would mean fetching every article's view to reach one
-field, which is the one shape this design must not have. The sitemap is the counter-example and
-stays assembled: it needs only paths and dates, which the root already carries, and its
-`changefreq` is a function of the time of the request.
+**Three types, and a whole-corpus document is not one of them.** `atom.xml`, `llms.txt` and
+`sitemap.xml` are assembled by the site's Worker out of the API's answer and, for the feed, the
+content objects that answer names.
+
+The feed was published for a while and it is the shape a content-addressed store is worst at:
+a document the size of the whole corpus, rewritten whenever any one article changes. Nine
+locales at a quarter-megabyte each, per edit, immutable and never swept -- a one-line fix to an
+image URL wrote 2.0 MB. What made it look necessary was the belief that a feed says something a
+block does not. It does not: `feedHtml` in libs/artifacts is the whole difference, and every
+field it reads is already in `content/{hash}.json`. `llms.txt` needs no object at all, being a
+projection of the root the homepage answer already carries.
+
+What a runtime document costs is one fetch per entry on a cold assembly. Those are immutable and
+a year old at the edge, and the document itself is held for five minutes, so it is paid once per
+five minutes rather than once per reader.
 
 ## Publication is ordered, and deletion is not part of it
 
@@ -158,8 +166,7 @@ the whole design's latency rests on.
 | `/markdown/{slug}`   | the `markdown` hash, for `<url>.md`                                |
 | `/home?lang=`        | the article list the homepage renders, and the homepage's own page |
 | `/sitemap`           | every indexable view's path, date and alternates                   |
-| `/feed?lang=`        | the `feed` hash                                                    |
-| `/llms`              | the `llms` hash                                                    |
+| `/feed?lang=`        | one locale's entries: metadata and a `content` hash each           |
 
 **The locale is a query parameter and never a path segment.** `?lang=` is how this site already
 asks -- [locale/addressing.md](../locale/addressing.md) gives it as a reader's first preference
