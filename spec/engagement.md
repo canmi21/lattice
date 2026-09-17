@@ -353,6 +353,50 @@ over a plain object and no global is installed to reach this. The record and the
 separately at every call site for the same reason: in production they always pair, and a test is
 the place where they do not.
 
+## What everyone sees is public; what you did is yours
+
+`GET /engagement` answered three things at once -- two counters and whether the asker had liked --
+so the whole answer was keyed by an address and none of it could be shared or rendered on the
+server. It is two routes now:
+
+| Route    | Answers                        | Lifetime              |
+| -------- | ------------------------------ | --------------------- |
+| `/stats` | subscriber count, like count   | `public, max-age=300` |
+| `/liked` | whether this address has liked | `private, no-cache`   |
+
+**What forced the split is not tidiness.** A page cached for one reader would have told the next
+one they had clicked something they had not, so as long as the two travelled together the counts
+could not be in the HTML. Now the server renders them and the heart is unmarked until the browser
+asks -- which is the honest order, because the mark is the only part of it that is nobody else's
+business. `/stats` is answered without a client address at all: a shared cache asking on
+everyone's behalf carries none of its own.
+
+### A counter that may be five minutes old is not refetched after a click
+
+The consequence, and it cost a wrong number before it was written down. A mutation used to
+invalidate the counter afterwards, which refetches `/stats` -- and `/stats` is public, so the
+browser answers from its own cache with a copy that is allowed to be five minutes behind the click
+that just happened. Measured: the cached answer said 0 while the API held 1, and the refetch
+overwrote the right number with the stale one.
+
+So a mutation's own reply is the last word. It carries the count the write produced, which is
+fresher than any cacheable GET can be by construction, and `onSuccess` writes it into both caches.
+Nothing is invalidated. The rule generalises: **do not revalidate against a cache that is allowed
+not to know yet.**
+
+### An answer is parsed, not assumed
+
+Every engagement answer has a valibot schema in [libs/artifacts](../libs/artifacts/src/engagement.ts),
+and both sides use the same one -- the Worker builds an answer satisfying the inferred type, the
+browser parses what arrives against the schema it was inferred from. It used to be a hand-written
+`typeof` beside each fetch: the same sentence six times, each only as current as whoever last
+edited the route, and none of it checking more than the field it happened to name.
+
+The corpus answers are not parsed this way and that is deliberate. They are checked by their
+envelope instead, which is what a content-addressed object needs and all it needs; nothing under
+engagement is content-addressed. See
+[architecture/artifacts.md](architecture/artifacts.md), "Validation is heavy where it is free".
+
 ## Engagement data is a persisted client query
 
 The site fetches engagement state in the browser from the standalone API origin. TanStack Query

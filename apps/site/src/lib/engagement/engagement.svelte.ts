@@ -1,5 +1,18 @@
 import { browser, dev } from '$app/environment';
-import { unwrap, type LikedAnswer, type StatsAnswer } from '@canmi/artifacts';
+import {
+	CancelAnswerSchema,
+	LikeAnswerSchema,
+	LikedAnswerSchema,
+	NewsletterAnswerSchema,
+	StatsAnswerSchema,
+	unwrap,
+	unwrapAs,
+	type CancelAnswer,
+	type LikeAnswer,
+	type LikedAnswer,
+	type NewsletterAnswer,
+	type StatsAnswer,
+} from '@canmi/artifacts';
 import { pageUrls } from '@canmi/urls';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
@@ -16,16 +29,6 @@ export const LIKED_QUERY_KEY = ['liked'] as const;
 
 export type Engagement = StatsAnswer;
 
-type NewsletterResult = {
-	email: string;
-	cancel_token?: string;
-	subscriber_count: number;
-};
-
-type CancelResult = {
-	subscriber_count?: number;
-};
-
 /** What the browser holds about its own subscription. See spec/engagement.md. */
 export type Subscription = {
 	email: string;
@@ -34,11 +37,6 @@ export type Subscription = {
 
 const SUBSCRIPTION_KEY = 'email';
 const CANCEL_TOKEN = /^[0-9a-f]{32}$/;
-
-type LikeResult = {
-	like_count: number;
-	liked: boolean;
-};
 
 const apiUrl = pageUrls(dev).api;
 
@@ -85,7 +83,7 @@ export function createLikedQuery() {
 
 export function createNewsletterMutation() {
 	const client = useQueryClient();
-	return createMutation<NewsletterResult, Error, string>(() => ({
+	return createMutation<NewsletterAnswer, Error, string>(() => ({
 		mutationFn: subscribe,
 		onSuccess: (result) => {
 			if (result.cancel_token) rememberSubscription(result.email, result.cancel_token);
@@ -99,7 +97,7 @@ export function createNewsletterMutation() {
 
 export function createCancelMutation() {
 	const client = useQueryClient();
-	return createMutation<CancelResult, Error, Subscription>(() => ({
+	return createMutation<CancelAnswer, Error, Subscription>(() => ({
 		mutationFn: cancel,
 		onSuccess: (result) => {
 			forgetSubscription();
@@ -109,7 +107,8 @@ export function createCancelMutation() {
 				like_count: current?.like_count ?? 0,
 			}));
 		},
-		onSettled: () => client.invalidateQueries({ queryKey: STATS_QUERY_KEY }),
+		// No invalidation, for the reason the like mutation gives: this reply carries the count,
+		// and the cached `/stats` is allowed to be five minutes behind it.
 	}));
 }
 
@@ -123,7 +122,7 @@ export function createCancelMutation() {
 export function createLikeMutation() {
 	const client = useQueryClient();
 	type Rollback = { stats?: StatsAnswer; liked?: LikedAnswer };
-	return createMutation<LikeResult, Error, boolean, Rollback>(() => ({
+	return createMutation<LikeAnswer, Error, boolean, Rollback>(() => ({
 		mutationFn: setLike,
 		onMutate: async (liked) => {
 			await Promise.all([
@@ -155,45 +154,34 @@ export function createLikeMutation() {
 			}));
 			client.setQueryData<LikedAnswer>(LIKED_QUERY_KEY, { liked: result.liked });
 		},
-		onSettled: () => {
-			void client.invalidateQueries({ queryKey: STATS_QUERY_KEY });
-			void client.invalidateQueries({ queryKey: LIKED_QUERY_KEY });
-		},
+		// Deliberately no invalidation. `/stats` is public and may be five minutes behind on
+		// purpose, so refetching after a click asks a cache that is allowed not to know about it
+		// -- measured: the browser served a count of 0 while the API held 1, and the refetch
+		// overwrote the right answer with the stale one. The mutation's own reply is the freshest
+		// thing there is about both, and `onSuccess` has already written it.
 	}));
 }
 
 async function fetchStats(): Promise<StatsAnswer> {
-	const result = await jsonResponse<StatsAnswer>(await fetch(`${apiUrl}/stats`));
-	if (!validCount(result.subscriber_count) || !validCount(result.like_count)) {
-		throw new Error('invalid stats response');
-	}
-	return result;
+	return answered(StatsAnswerSchema, await fetch(`${apiUrl}/stats`));
 }
 
 async function fetchLiked(): Promise<LikedAnswer> {
-	const result = await jsonResponse<LikedAnswer>(await fetch(`${apiUrl}/liked`));
-	if (typeof result.liked !== 'boolean') throw new Error('invalid liked response');
-	return result;
+	return answered(LikedAnswerSchema, await fetch(`${apiUrl}/liked`));
 }
 
-async function subscribe(email: string): Promise<NewsletterResult> {
-	const response = await fetch(`${apiUrl}/newsletter`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email }),
-	});
-	const result = await jsonResponse<NewsletterResult>(response);
-	if (
-		typeof result.email !== 'string' ||
-		!validCount(result.subscriber_count) ||
-		(result.cancel_token !== undefined && !CANCEL_TOKEN.test(result.cancel_token))
-	) {
-		throw new Error('invalid newsletter response');
-	}
-	return result;
+async function subscribe(email: string): Promise<NewsletterAnswer> {
+	return answered(
+		NewsletterAnswerSchema,
+		await fetch(`${apiUrl}/newsletter`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email }),
+		}),
+	);
 }
 
-async function cancel(subscription: Subscription): Promise<CancelResult> {
+async function cancel(subscription: Subscription): Promise<CancelAnswer> {
 	const response = await fetch(`${apiUrl}/newsletter`, {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
@@ -203,23 +191,18 @@ async function cancel(subscription: Subscription): Promise<CancelResult> {
 	// record is stale -- most likely cancelled from another browser -- and reporting an error
 	// would leave the reader looking at a subscription they cannot get rid of.
 	if (response.status === 404) return {};
-
-	const result = await jsonResponse<CancelResult>(response);
-	if (!validCount(result.subscriber_count)) throw new Error('invalid cancellation response');
-	return result;
+	return answered(CancelAnswerSchema, response);
 }
 
-async function setLike(liked: boolean): Promise<LikeResult> {
-	const response = await fetch(`${apiUrl}/like`, {
-		method: 'PUT',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ liked }),
-	});
-	const result = await jsonResponse<LikeResult>(response);
-	if (typeof result.liked !== 'boolean' || !validCount(result.like_count)) {
-		throw new Error('invalid like response');
-	}
-	return result;
+async function setLike(liked: boolean): Promise<LikeAnswer> {
+	return answered(
+		LikeAnswerSchema,
+		await fetch(`${apiUrl}/like`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ liked }),
+		}),
+	);
 }
 
 /**
@@ -233,8 +216,20 @@ export async function jsonResponse<T>(response: Response): Promise<T> {
 	return unwrap<T>(await response.json(), response.url);
 }
 
-function validCount(value: unknown): value is number {
-	return Number.isSafeInteger(value) && (value as number) >= 0;
+/**
+ * Opened, then parsed against the schema the Worker builds its answer to satisfy.
+ *
+ * Two steps and not one: the envelope says whether the call worked, and the schema says whether
+ * what came back is what this call asked for. Each used to be a hand-written `typeof` beside every
+ * fetch, which is the same sentence written six times and only as current as whoever last edited
+ * the route. See libs/artifacts/engagement.ts.
+ */
+async function answered<S extends Parameters<typeof unwrapAs>[0]>(
+	schema: S,
+	response: Response,
+): Promise<ReturnType<typeof unwrapAs<S>>> {
+	if (!response.ok) throw new Error(`engagement request failed with ${response.status}`);
+	return unwrapAs(schema, await response.json(), response.url);
 }
 
 function rememberSubscription(email: string, cancelToken: string): void {

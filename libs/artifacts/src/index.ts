@@ -13,6 +13,7 @@ import type {
 export type * from './types.ts';
 export * from './api.ts';
 export * from './feed.ts';
+export * from './engagement.ts';
 
 /**
  * The shape every published object declares.
@@ -209,20 +210,6 @@ export type ViewsAnswer = {
 	url: string;
 	views: Partial<Record<LocaleCode, Omit<ViewAnswer, 'slug' | 'url'>>>;
 };
-
-/**
- * The two public counters, which belong to the site rather than to whoever is asking.
- *
- * Separate from `LikedAnswer` so that this one may be shared-cached and rendered on the server.
- * See spec/engagement.md.
- */
-export type StatsAnswer = { subscriber_count: number; like_count: number };
-
-/** Whether this visitor has liked. Per address, so never shared and never server-rendered. */
-export type LikedAnswer = { liked: boolean };
-
-/** Read counts by slug, for every slug asked for that names an article. */
-export type ReadsAnswer = { reads: Record<string, number> };
 
 export type SitemapAnswer = {
 	/** When the root was written, which is the lastmod for a route carrying no date of its own. */

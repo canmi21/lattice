@@ -1,17 +1,13 @@
 import { browser, dev } from '$app/environment';
-import type { ReadsAnswer } from '@canmi/artifacts';
+import { ReadAnswerSchema, ReadsAnswerSchema, unwrapAs, type ReadAnswer } from '@canmi/artifacts';
 import { pageUrls } from '@canmi/urls';
 import { createQuery } from '@tanstack/svelte-query';
 import { createBatcher } from './batch';
-import { jsonResponse } from './engagement.svelte';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
 export const READS_QUERY_KEY = 'reads';
 
-export type Reads = {
-	slug: string;
-	read_count: number;
-};
+export type Reads = ReadAnswer;
 
 const apiUrl = pageUrls(dev).api;
 
@@ -65,12 +61,11 @@ async function countRead(slug: string): Promise<Reads> {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ slug }),
 	});
-	// The same opener the rest of engagement uses, so the envelope is read in one place and this
-	// function checks only what a read answer should contain.
-	const result = await jsonResponse<Reads>(response);
-	if (result.slug !== slug || !Number.isSafeInteger(result.read_count) || result.read_count < 0) {
-		throw new Error('invalid read response');
-	}
+	if (!response.ok) throw new Error(`read request failed with ${response.status}`);
+	// Parsed against the schema the Worker answers to, then checked for the one thing a schema
+	// cannot know: that this is the article that was asked about.
+	const result = unwrapAs(ReadAnswerSchema, await response.json(), response.url);
+	if (result.slug !== slug) throw new Error('read answer names another article');
 	return result;
 }
 
@@ -94,10 +89,9 @@ const lookupReads = createBatcher<number>({
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ slugs }),
 		});
-		const { reads } = await jsonResponse<ReadsAnswer>(response);
-		return new Map(
-			Object.entries(reads).filter(([, count]) => Number.isSafeInteger(count) && count >= 0),
-		);
+		if (!response.ok) throw new Error(`read-counts answered ${response.status}`);
+		const { reads } = unwrapAs(ReadsAnswerSchema, await response.json(), response.url);
+		return new Map(Object.entries(reads));
 	},
 });
 

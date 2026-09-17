@@ -5,6 +5,8 @@
  * asks what it returned -- and asks it once, rather than at every call site. What the envelope
  * carries is not standardised: `data` is whatever that route answers with.
  */
+import * as v from 'valibot';
+
 export type ApiResponse<T> = { status: 'success'; data: T } | { status: 'error'; message: string };
 
 /**
@@ -36,4 +38,20 @@ export function unwrap<T>(body: unknown, source: string): T {
 		throw new Error(`${source} answered an unknown status`);
 	}
 	return envelope.data;
+}
+
+/**
+ * Open the envelope, then check that what was inside is what this call asked for.
+ *
+ * Two steps and one function, because every caller wants both and wanted them in that order. The
+ * envelope says whether the call worked; the schema says whether the payload is the shape the
+ * route promised. Kept here rather than in each consumer so that valibot stays this library's
+ * dependency and not everyone's. See spec/json.md.
+ */
+export function unwrapAs<S extends v.GenericSchema>(
+	schema: S,
+	body: unknown,
+	source: string,
+): v.InferOutput<S> {
+	return v.parse(schema, unwrap<unknown>(body, source));
 }
