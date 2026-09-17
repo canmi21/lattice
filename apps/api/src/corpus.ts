@@ -2,6 +2,7 @@ import type { DocumentAnswer, HomeAnswer, Root, SitemapAnswer, ViewAnswer } from
 import { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
+import { failure, success } from './respond';
 import { findArticle, rootOf } from './root';
 
 /**
@@ -38,18 +39,18 @@ const HOMEPAGE = 'homepage';
 
 corpus.get('/view/:locale/:slug{.+}', async (c) => {
 	const locale = localeOf(c.req.param('locale'));
-	if (!locale) return c.json({ error: 'unknown_locale' }, 400, MISSED);
+	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
 	const article = findArticle(await rootOf(c.env), c.req.param('slug'));
 	const view = article?.views[locale];
-	if (!article || !view) return c.json({ error: 'not_found' }, 404, MISSED);
+	if (!article || !view) return failure(c, 404, 'not_found', MISSED);
 
 	// The article's own path rather than the one that was asked for, because it is what the
 	// consumer checks the fetched object's envelope against and keys the read counter by. The
 	// markdown hash is not here: it has the route below, and a fact appears in exactly one
 	// answer. See spec/architecture/artifacts.md.
 	const answer = { ...view, slug: article.path, locale };
-	return c.json(answer satisfies ViewAnswer, 200, ANSWERED);
+	return success(c, answer satisfies ViewAnswer, ANSWERED);
 });
 
 /**
@@ -63,13 +64,13 @@ corpus.get('/markdown/:slug{.+}', async (c) => {
 	const root = await rootOf(c.env);
 	const slug = c.req.param('slug');
 	const hash = findArticle(root, slug)?.markdown ?? root.pages[slug]?.markdown;
-	if (!hash) return c.json({ error: 'not_found' }, 404, MISSED);
-	return c.json({ hash } satisfies DocumentAnswer, 200, ANSWERED);
+	if (!hash) return failure(c, 404, 'not_found', MISSED);
+	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
 });
 
 corpus.get('/home/:locale', async (c) => {
 	const locale = localeOf(c.req.param('locale'));
-	if (!locale) return c.json({ error: 'unknown_locale' }, 400, MISSED);
+	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
 	const root = await rootOf(c.env);
 	const articles: HomeAnswer['articles'] = [];
@@ -84,7 +85,7 @@ corpus.get('/home/:locale', async (c) => {
 		articles: articles.toSorted((a, b) => Date.parse(b.created) - Date.parse(a.created)),
 		page: homepage(root, locale),
 	};
-	return c.json(answer satisfies HomeAnswer, 200, ANSWERED);
+	return success(c, answer satisfies HomeAnswer, ANSWERED);
 });
 
 corpus.get('/sitemap', async (c) => {
@@ -97,20 +98,20 @@ corpus.get('/sitemap', async (c) => {
 		return article.canonicalUrls.map((loc) => ({ loc, lastmod, alternates: article.alternates }));
 	});
 	const answer = { generated: root.generated, views };
-	return c.json(answer satisfies SitemapAnswer, 200, ANSWERED);
+	return success(c, answer satisfies SitemapAnswer, ANSWERED);
 });
 
 corpus.get('/feed/:locale', async (c) => {
 	const locale = localeOf(c.req.param('locale'));
-	if (!locale) return c.json({ error: 'unknown_locale' }, 400, MISSED);
+	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
 
 	const hash = (await rootOf(c.env)).feeds[locale];
-	if (!hash) return c.json({ error: 'not_found' }, 404, MISSED);
-	return c.json({ hash } satisfies DocumentAnswer, 200, ANSWERED);
+	if (!hash) return failure(c, 404, 'not_found', MISSED);
+	return success(c, { hash } satisfies DocumentAnswer, ANSWERED);
 });
 
 corpus.get('/llms', async (c) =>
-	c.json({ hash: (await rootOf(c.env)).llms } satisfies DocumentAnswer, 200, ANSWERED),
+	success(c, { hash: (await rootOf(c.env)).llms } satisfies DocumentAnswer, ANSWERED),
 );
 
 /**

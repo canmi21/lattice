@@ -3,6 +3,8 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Bindings } from './bindings';
+import type { ApiResponse } from '@canmi/artifacts';
+import { failure, success } from './respond';
 import { canonicalEmail } from './email';
 import { findArticle, rootOf } from './root';
 import { articleReads, likes, newsletterSubscriptions } from './schema';
@@ -12,14 +14,14 @@ const CANCEL_TOKEN = /^[0-9a-f]{32}$/;
 const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 const JSON_LIMIT = bodyLimit({
 	maxSize: MAX_BODY_SIZE,
-	onError: (c) => c.json({ error: 'body_too_large' }, 413, NO_STORE),
+	onError: (c) => failure(c, 413, 'body_too_large', NO_STORE),
 });
 
 const engagement = new Hono<{ Bindings: Bindings }>();
 
 engagement.get('/engagement', async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return c.json({ error: 'client_ip_unavailable' }, 400, NO_STORE);
+	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
 	if (!(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
 
 	const database = drizzle(c.env.DATABASE);
@@ -29,27 +31,23 @@ engagement.get('/engagement', async (c) => {
 		database.select({ ip: likes.ip }).from(likes).where(eq(likes.ip, ip)).limit(1),
 	]);
 
-	return c.json(
-		{
-			subscriber_count: subscriberCount,
-			like_count: likeCount,
-			liked: like.length === 1,
-		},
-		200,
+	return success(
+		c,
+		{ subscriber_count: subscriberCount, like_count: likeCount, liked: like.length === 1 },
 		{ 'Cache-Control': 'private, no-cache' },
 	);
 });
 
 engagement.post('/newsletter', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return c.json({ error: 'client_ip_unavailable' }, 400, NO_STORE);
+	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
 	if (!(await withinLimit(c.env.NEWSLETTER_RATE_LIMITER, ip))) {
 		return rateLimited();
 	}
 
 	const body = await readObject(c.req.raw);
 	const email = canonicalEmail(body?.email);
-	if (!email) return c.json({ error: 'invalid_email' }, 400, NO_STORE);
+	if (!email) return failure(c, 400, 'invalid_email', NO_STORE);
 
 	const cancelToken = randomToken();
 	const cancelTokenHash = await sha256(cancelToken);
@@ -67,18 +65,19 @@ engagement.post('/newsletter', JSON_LIMIT, async (c) => {
 	const subscriberCount = await rowCount(database, newsletterSubscriptions);
 
 	if (inserted.length === 0) {
-		return c.json({ email, subscriber_count: subscriberCount }, 200, NO_STORE);
+		return success(c, { email, subscriber_count: subscriberCount }, NO_STORE);
 	}
-	return c.json(
+	return success(
+		c,
 		{ email, cancel_token: cancelToken, subscriber_count: subscriberCount },
-		201,
 		NO_STORE,
+		201,
 	);
 });
 
 engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return c.json({ error: 'client_ip_unavailable' }, 400, NO_STORE);
+	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
 	if (!(await withinLimit(c.env.NEWSLETTER_RATE_LIMITER, ip))) {
 		return rateLimited();
 	}
@@ -87,7 +86,7 @@ engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 	const email = canonicalEmail(body?.email);
 	const token = body?.cancel_token;
 	if (!email || typeof token !== 'string' || !CANCEL_TOKEN.test(token)) {
-		return c.json({ error: 'invalid_cancellation' }, 400, NO_STORE);
+		return failure(c, 400, 'invalid_cancellation', NO_STORE);
 	}
 
 	const tokenHash = await sha256(token);
@@ -102,21 +101,21 @@ engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 		)
 		.returning({ email: newsletterSubscriptions.email });
 	if (deleted.length === 0) {
-		return c.json({ error: 'subscription_not_found' }, 404, NO_STORE);
+		return failure(c, 404, 'subscription_not_found', NO_STORE);
 	}
 
 	const subscriberCount = await rowCount(database, newsletterSubscriptions);
-	return c.json({ cancelled: true, subscriber_count: subscriberCount }, 200, NO_STORE);
+	return success(c, { cancelled: true, subscriber_count: subscriberCount }, NO_STORE);
 });
 
 engagement.put('/like', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return c.json({ error: 'client_ip_unavailable' }, 400, NO_STORE);
+	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
 	if (!(await withinLimit(c.env.LIKE_RATE_LIMITER, ip))) return rateLimited();
 
 	const body = await readObject(c.req.raw);
 	if (typeof body?.liked !== 'boolean') {
-		return c.json({ error: 'invalid_like' }, 400, NO_STORE);
+		return failure(c, 400, 'invalid_like', NO_STORE);
 	}
 
 	const database = drizzle(c.env.DATABASE);
@@ -130,7 +129,7 @@ engagement.put('/like', JSON_LIMIT, async (c) => {
 	}
 
 	const likeCount = await rowCount(database, likes);
-	return c.json({ liked: body.liked, like_count: likeCount }, 200, NO_STORE);
+	return success(c, { liked: body.liked, like_count: likeCount }, NO_STORE);
 });
 
 /**
@@ -145,7 +144,7 @@ engagement.put('/like', JSON_LIMIT, async (c) => {
  */
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return c.json({ error: 'client_ip_unavailable' }, 400, NO_STORE);
+	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
 	// The coarse per-IP allowance, shared with the state endpoint: this is a read that happens
 	// to leave a mark, and what it bounds is somebody walking every slug in turn.
 	if (!(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
@@ -153,7 +152,7 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 	const body = await readObject(c.req.raw);
 	const slug = body?.slug;
 	if (typeof slug !== 'string' || !findArticle(await rootOf(c.env), slug)) {
-		return c.json({ error: 'unknown_article' }, 404, NO_STORE);
+		return failure(c, 404, 'unknown_article', NO_STORE);
 	}
 
 	const database = drizzle(c.env.DATABASE);
@@ -167,7 +166,7 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 			.from(articleReads)
 			.where(eq(articleReads.slug, slug))
 			.limit(1);
-		return c.json({ slug, read_count: existing?.count ?? 0 }, 200, NO_STORE);
+		return success(c, { slug, read_count: existing?.count ?? 0 }, NO_STORE);
 	}
 
 	// Read and increment in one statement so two concurrent readers cannot land on the same
@@ -181,7 +180,7 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 		})
 		.returning({ count: articleReads.count });
 
-	return c.json({ slug, read_count: row?.count ?? 1 }, 200, NO_STORE);
+	return success(c, { slug, read_count: row?.count ?? 1 }, NO_STORE);
 });
 
 function clientIp(request: Request): string | undefined {
@@ -192,14 +191,13 @@ async function withinLimit(limiter: RateLimit, key: string): Promise<boolean> {
 	return (await limiter.limit({ key })).success;
 }
 
+// A bare Response rather than `failure`, because it is built without a Context -- the envelope is
+// still the one every other answer uses.
 function rateLimited(): Response {
-	return Response.json(
-		{ error: 'rate_limited' },
-		{
-			status: 429,
-			headers: { ...NO_STORE, 'Retry-After': '60' },
-		},
-	);
+	return Response.json({ status: 'error', message: 'rate_limited' } satisfies ApiResponse<never>, {
+		status: 429,
+		headers: { ...NO_STORE, 'Retry-After': '60' },
+	});
 }
 
 async function readObject(request: Request): Promise<Record<string, unknown> | undefined> {

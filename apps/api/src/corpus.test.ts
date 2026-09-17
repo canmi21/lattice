@@ -3,6 +3,16 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import app from './app';
 import type { Bindings } from './bindings';
 import { forgetRoot } from './root';
+import { unwrap } from '@canmi/artifacts';
+
+/**
+ * The payload inside an answer, so a test asserts what a route returns rather than the envelope
+ * every route shares. `unwrap` is the same one the site uses; a route that stops wrapping fails
+ * here first. See libs/artifacts, `ApiResponse`.
+ */
+async function payload<T = unknown>(response: Response): Promise<T> {
+	return unwrap<T>(await response.json(), response.url || 'test');
+}
 
 const SITE = URLS.apps.production.site;
 
@@ -74,7 +84,7 @@ describe('GET /view/:locale/:slug', () => {
 		const res = await get('/view/en/architecture/one');
 		expect(res.status).toBe(200);
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300, stale-if-error=10800');
-		expect(await res.json()).toMatchObject({
+		expect(await payload(res)).toMatchObject({
 			slug: 'architecture/one',
 			locale: 'en',
 			content: 'b'.repeat(32),
@@ -102,16 +112,16 @@ describe('GET /view/:locale/:slug', () => {
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
 	// spec/architecture/artifacts.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
-		expect(await (await get('/view/en/architecture/one')).json()).not.toHaveProperty('markdown');
+		expect(await payload(await get('/view/en/architecture/one'))).not.toHaveProperty('markdown');
 	});
 });
 
 describe('GET /markdown/:slug', () => {
 	it('answers for an article and for a standalone page alike', async () => {
-		expect(await (await get('/markdown/architecture/one')).json()).toEqual({
+		expect(await payload(await get('/markdown/architecture/one'))).toEqual({
 			hash: '1'.repeat(32),
 		});
-		expect(await (await get('/markdown/homepage')).json()).toEqual({ hash: '3'.repeat(32) });
+		expect(await payload(await get('/markdown/homepage'))).toEqual({ hash: '3'.repeat(32) });
 	});
 
 	it('caches a miss for five minutes, without offering it stale', async () => {
@@ -125,10 +135,10 @@ describe('GET /home/:locale', () => {
 	it('lists the locale views newest first, with the homepage page', async () => {
 		const res = await get('/home/en');
 		expect(res.status).toBe(200);
-		const body = await res.json<{
+		const body = await payload<{
 			page: { content: string };
 			articles: { path: string; content: string }[];
-		}>();
+		}>(res);
 		expect(body.articles.map((article) => article.path)).toEqual([
 			'mirror/two',
 			'architecture/one',
@@ -139,7 +149,7 @@ describe('GET /home/:locale', () => {
 	// Nothing stands in for a view this locale does not have, here or on /view.
 	it('drops an article this locale cannot show, and answers no page at all', async () => {
 		const res = await get('/home/ja');
-		const body = await res.json<{ page: unknown; articles: { path: string }[] }>();
+		const body = await payload<{ page: unknown; articles: { path: string }[] }>(res);
 		expect(body.articles.map((article) => article.path)).toEqual(['architecture/one']);
 		expect(body.page).toBeNull();
 	});
@@ -148,7 +158,7 @@ describe('GET /home/:locale', () => {
 describe('GET /sitemap', () => {
 	it('carries one entry per distinct address, dated by the source view', async () => {
 		const res = await get('/sitemap');
-		expect(await res.json()).toEqual({
+		expect(await payload(res)).toEqual({
 			generated: ROOT.generated,
 			views: [
 				{
@@ -169,12 +179,12 @@ describe('GET /sitemap', () => {
 
 describe('the whole-corpus documents', () => {
 	it('names the locale feed, and refuses a locale with none', async () => {
-		expect(await (await get('/feed/en')).json()).toEqual({ hash: 'e'.repeat(32) });
+		expect(await payload(await get('/feed/en'))).toEqual({ hash: 'e'.repeat(32) });
 		expect((await get('/feed/ja')).status).toBe(404);
 	});
 
 	it('names llms.txt', async () => {
-		expect(await (await get('/llms')).json()).toEqual({ hash: 'f'.repeat(32) });
+		expect(await payload(await get('/llms'))).toEqual({ hash: 'f'.repeat(32) });
 	});
 });
 

@@ -214,6 +214,13 @@ browser is already such a consumer.
 **A client fetch that fails falls back to a full document navigation.** The server path still
 works, so the recovery is to use it; without this the failure is a click that does nothing.
 
+**Every answer this API composes arrives in one envelope**, `{ status, data }` or
+`{ status, message }`, so a consumer asks whether the call worked before it asks what it returned
+-- and asks it in one place rather than at every call site. What the envelope carries is not
+standardised: `data` is whatever that route answers with, checked by whoever asked for it. A
+stored object streamed through this API is not composed by it and is not wrapped. The type and the
+one function that opens it are in `libs/artifacts`.
+
 **The server's own fetch is a cross-origin request with no `Origin`, and that combination has a
 trap in it.** SvelteKit's universal `load` simulates CORS on the server for a cross-origin
 response, refusing one whose `Access-Control-Allow-Origin` is neither `*` nor the page's origin --
@@ -221,6 +228,12 @@ while `event.fetch` sends no `Origin` header at all, so an allowlist keyed on th
 nothing. The API answers `200`, the render throws, and nothing says why. So a request arriving
 without an `Origin` is answered `*`: it is not a browser making a cross-origin request, and the
 header grants it nothing. Requests that do carry one are still matched against the list.
+
+**And in development the site's origin is not the one the list names.** `localhost` and
+`127.0.0.1` are one machine spelled two ways; the list holds the first, so browsing the site by IP
+produced an answer with no header and a `500` where the same page worked by name. Development
+accepts either spelling on the site's own port, gated on the host the request arrived at, so
+production's list is exactly the list.
 
 **Locale is not negotiated twice**, which this arrangement makes newly possible to get wrong and
 does not change. See [locale/addressing.md](../locale/addressing.md), "Locale is not negotiated

@@ -1,6 +1,7 @@
 import { isContentId, objectKey, read } from '@canmi/store';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
+import { failure } from './respond';
 
 /**
  * `GET /image/{cid}` -- what is known about an asset.
@@ -17,12 +18,12 @@ const image = new Hono<{ Bindings: Bindings }>();
 image.get('/:cid', async (c) => {
 	const cid = c.req.param('cid').toLowerCase();
 	if (!isContentId(cid)) {
-		return c.json({ error: 'not a content id' }, 400);
+		return failure(c, 400, 'not_a_content_id', {});
 	}
 
 	const found = await read(c.env, objectKey('meta', cid));
 	if (!found) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found', {});
 	}
 
 	const headers = new Headers({

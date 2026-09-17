@@ -6,6 +6,16 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import app from './app';
 import type { Bindings } from './bindings';
 import { forgetRoot } from './root';
+import { unwrap } from '@canmi/artifacts';
+
+/**
+ * The payload inside an answer, so a test asserts what a route returns rather than the envelope
+ * every route shares. `unwrap` is the same one the site uses; a route that stops wrapping fails
+ * here first. See libs/artifacts, `ApiResponse`.
+ */
+async function payload<T = unknown>(response: Response): Promise<T> {
+	return unwrap<T>(await response.json(), response.url || 'test');
+}
 
 const MIGRATIONS = fileURLToPath(new URL('../drizzle', import.meta.url).href);
 const IP_ONE = '203.0.113.10';
@@ -94,11 +104,11 @@ describe('newsletter', () => {
 			body: { email: ' Alice+notes@Example.com ' },
 		});
 		expect(first.status).toBe(201);
-		const created = await first.json<{
+		const created = await payload<{
 			email: string;
 			cancel_token: string;
 			subscriber_count: number;
-		}>();
+		}>(first);
 		expect(created).toMatchObject({ email: 'alice@example.com', subscriber_count: 1 });
 		expect(created.cancel_token).toMatch(/^[0-9a-f]{32}$/);
 
@@ -116,7 +126,7 @@ describe('newsletter', () => {
 			body: { email: 'alice+different@example.com' },
 		});
 		expect(duplicate.status).toBe(200);
-		expect(await duplicate.json()).toEqual({
+		expect(await payload(duplicate)).toEqual({
 			email: 'alice@example.com',
 			subscriber_count: 1,
 		});
@@ -129,13 +139,13 @@ describe('newsletter', () => {
 	});
 
 	it('cancels only with the capability token', async () => {
-		const created = await (
+		const created = await payload<{ cancel_token: string }>(
 			await api('/newsletter', {
 				method: 'POST',
 				ip: IP_ONE,
 				body: { email: 'reader@example.com' },
-			})
-		).json<{ cancel_token: string }>();
+			}),
+		);
 
 		const denied = await api('/newsletter', {
 			method: 'DELETE',
@@ -150,26 +160,26 @@ describe('newsletter', () => {
 			body: { email: 'READER+tag@example.com', cancel_token: created.cancel_token },
 		});
 		expect(cancelled.status).toBe(200);
-		expect(await cancelled.json()).toEqual({ cancelled: true, subscriber_count: 0 });
+		expect(await payload(cancelled)).toEqual({ cancelled: true, subscriber_count: 0 });
 	});
 });
 
 describe('likes and engagement state', () => {
 	it('allows one active like per raw IP and returns per-IP state', async () => {
 		const first = await api('/like', { method: 'PUT', ip: IP_ONE, body: { liked: true } });
-		expect(await first.json()).toEqual({ liked: true, like_count: 1 });
+		expect(await payload(first)).toEqual({ liked: true, like_count: 1 });
 
 		const repeated = await api('/like', { method: 'PUT', ip: IP_ONE, body: { liked: true } });
-		expect(await repeated.json()).toEqual({ liked: true, like_count: 1 });
+		expect(await payload(repeated)).toEqual({ liked: true, like_count: 1 });
 
 		const second = await api('/like', { method: 'PUT', ip: IP_TWO, body: { liked: true } });
-		expect(await second.json()).toEqual({ liked: true, like_count: 2 });
+		expect(await payload(second)).toEqual({ liked: true, like_count: 2 });
 
 		const state = await api('/engagement', { ip: IP_ONE });
-		expect(await state.json()).toEqual({ subscriber_count: 0, like_count: 2, liked: true });
+		expect(await payload(state)).toEqual({ subscriber_count: 0, like_count: 2, liked: true });
 
 		const removed = await api('/like', { method: 'PUT', ip: IP_ONE, body: { liked: false } });
-		expect(await removed.json()).toEqual({ liked: false, like_count: 1 });
+		expect(await payload(removed)).toEqual({ liked: false, like_count: 1 });
 	});
 
 	it('returns a retry hint when Cloudflare rejects a mutation', async () => {
@@ -181,7 +191,7 @@ describe('likes and engagement state', () => {
 		);
 		expect(response.status).toBe(429);
 		expect(response.headers.get('Retry-After')).toBe('60');
-		expect(await response.json()).toEqual({ error: 'rate_limited' });
+		expect(await response.json()).toEqual({ status: 'error', message: 'rate_limited' });
 	});
 
 	it('rate limits the read-heavy state endpoint separately', async () => {
@@ -197,10 +207,10 @@ describe('article reads', () => {
 	it('counts from the first read and answers with the running total', async () => {
 		const first = await api('/read', { method: 'POST', ip: IP_ONE, body: { slug } });
 		expect(first.status).toBe(200);
-		expect(await first.json()).toEqual({ slug, read_count: 1 });
+		expect(await payload(first)).toEqual({ slug, read_count: 1 });
 
 		const second = await api('/read', { method: 'POST', ip: IP_TWO, body: { slug } });
-		expect(await second.json()).toEqual({ slug, read_count: 2 });
+		expect(await payload(second)).toEqual({ slug, read_count: 2 });
 	});
 
 	it('refuses a slug that does not name an article', async () => {
@@ -210,7 +220,7 @@ describe('article reads', () => {
 			body: { slug: 'made/up' },
 		});
 		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ error: 'unknown_article' });
+		expect(await response.json()).toEqual({ status: 'error', message: 'unknown_article' });
 
 		const rows = await database
 			.prepare('SELECT COUNT(*) AS rows FROM article_reads')
@@ -230,7 +240,7 @@ describe('article reads', () => {
 			{ READ_RATE_LIMITER: deny },
 		);
 		expect(repeated.status).toBe(200);
-		expect(await repeated.json()).toEqual({ slug, read_count: 1 });
+		expect(await payload(repeated)).toEqual({ slug, read_count: 1 });
 	});
 
 	it('reports an unread article as zero rather than creating its row', async () => {
@@ -240,7 +250,7 @@ describe('article reads', () => {
 			{ method: 'POST', ip: IP_ONE, body: { slug } },
 			{ READ_RATE_LIMITER: deny },
 		);
-		expect(await response.json()).toEqual({ slug, read_count: 0 });
+		expect(await payload(response)).toEqual({ slug, read_count: 0 });
 
 		const rows = await database
 			.prepare('SELECT COUNT(*) AS rows FROM article_reads')

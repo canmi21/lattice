@@ -1,6 +1,7 @@
 import { browser, dev } from '$app/environment';
 import { pageUrls } from '@canmi/urls';
 import { createQuery } from '@tanstack/svelte-query';
+import { jsonResponse } from './engagement.svelte';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
 export const READS_QUERY_KEY = 'reads';
@@ -40,9 +41,9 @@ async function countRead(slug: string): Promise<Reads> {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ slug }),
 	});
-	if (!response.ok) throw new Error(`read request failed with ${response.status}`);
-
-	const result = (await response.json()) as Reads;
+	// The same opener the rest of engagement uses, so the envelope is read in one place and this
+	// function checks only what a read answer should contain.
+	const result = await jsonResponse<Reads>(response);
 	if (result.slug !== slug || !Number.isSafeInteger(result.read_count) || result.read_count < 0) {
 		throw new Error('invalid read response');
 	}

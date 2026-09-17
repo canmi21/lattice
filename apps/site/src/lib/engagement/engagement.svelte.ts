@@ -1,4 +1,5 @@
 import { browser, dev } from '$app/environment';
+import { unwrap } from '@canmi/artifacts';
 import { pageUrls } from '@canmi/urls';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
@@ -178,9 +179,15 @@ async function engagementResponse(response: Response): Promise<Engagement> {
 	return result;
 }
 
-async function jsonResponse<T>(response: Response): Promise<T> {
+/**
+ * The one place an engagement answer is opened.
+ *
+ * `unwrap` decides whether the call worked; every caller below checks only the shape of what it
+ * asked for. See libs/artifacts, `ApiResponse`.
+ */
+export async function jsonResponse<T>(response: Response): Promise<T> {
 	if (!response.ok) throw new Error(`engagement request failed with ${response.status}`);
-	return (await response.json()) as T;
+	return unwrap<T>(await response.json(), response.url);
 }
 
 function validCount(value: unknown): value is number {

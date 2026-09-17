@@ -7,6 +7,8 @@
  * See spec/architecture/artifacts.md, "The site keeps serving when the API does not".
  */
 
+import { unwrap } from '@canmi/artifacts';
+
 type Fetch = typeof fetch;
 
 type Held = { at: number; body: string };
@@ -83,9 +85,13 @@ async function store(url: string, body: string): Promise<void> {
  * failure. Anything else throws, and the caller decides what a failure costs.
  */
 export async function answer<T>(fetch: Fetch, url: string): Promise<T | undefined> {
+	// The envelope is opened here and nowhere else, so a caller receives the payload its own
+	// route defines and never sees `status`. What is cached is the whole body, envelope included,
+	// so a stale copy is opened by the same code that opened the fresh one.
+	const opened = (body: string): T => unwrap<T>(JSON.parse(body), url);
 	const previous = await held(url);
 	const age = previous ? Date.now() - previous.at : Number.POSITIVE_INFINITY;
-	if (previous && age < FRESH_MS) return JSON.parse(previous.body) as T;
+	if (previous && age < FRESH_MS) return opened(previous.body);
 	try {
 		const response = await fetch(url);
 		// Before the failure check on purpose. A 404 is an answer, so it must never reach a stale
@@ -95,9 +101,9 @@ export async function answer<T>(fetch: Fetch, url: string): Promise<T | undefine
 		const body = await response.text();
 		remember(url, body);
 		await store(url, body);
-		return JSON.parse(body) as T;
+		return opened(body);
 	} catch (failure) {
-		if (previous && age < STALE_MS) return JSON.parse(previous.body) as T;
+		if (previous && age < STALE_MS) return opened(previous.body);
 		throw failure;
 	}
 }
