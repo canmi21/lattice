@@ -1,7 +1,8 @@
 import { browser, dev } from '$app/environment';
-import { ReadAnswerSchema, ReadsAnswerSchema, unwrapAs, type ReadAnswer } from '@canmi/artifacts';
+import { ReadAnswerSchema, unwrapAs, type ReadAnswer } from '@canmi/artifacts';
 import { pageUrls } from '@canmi/urls';
 import { createQuery } from '@tanstack/svelte-query';
+import { askBatch } from '$lib/published';
 import { createBatcher } from './batch';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
@@ -72,9 +73,9 @@ async function countRead(slug: string): Promise<Reads> {
 /**
  * How many times an article has been read, without it counting as one.
  *
- * `/read-counts` and not `/read`: this is the lookup, and the other one is the visit. A card being
- * pointed at is not a reading of the article behind it, and a number that grew because a pointer
- * crossed a row would be a different number than the one it claims to be. See spec/engagement.md.
+ * The batch's `reads` question, not `/read`: this is the lookup and that is the visit. A card
+ * being pointed at is not a reading of the article behind it, and a number that grew because a
+ * pointer crossed a row would not be the number it claims to be. See spec/engagement.md.
  */
 const lookupReads = createBatcher<number>({
 	// Long enough that a pointer sweeping the list collapses into one request, short enough that
@@ -84,13 +85,7 @@ const lookupReads = createBatcher<number>({
 	// about a URL's length. The homepage lists fewer than this today; see the TODO there.
 	limit: 24,
 	run: async (slugs) => {
-		const response = await fetch(`${apiUrl}/read-counts`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ slugs }),
-		});
-		if (!response.ok) throw new Error(`read-counts answered ${response.status}`);
-		const { reads } = unwrapAs(ReadsAnswerSchema, await response.json(), response.url);
+		const { reads } = await askBatch({ type: 'reads', slugs });
 		return new Map(Object.entries(reads));
 	},
 });

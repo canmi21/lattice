@@ -22,8 +22,10 @@ import {
 	type PublishedView,
 	type SitemapAnswer,
 	type StatsAnswer,
+	type BatchAnswer,
+	type BatchAnswerOf,
+	type BatchRequest,
 	type ViewAnswer,
-	type ViewsAnswer,
 } from '@canmi/artifacts';
 import { pageUrls, pickUrls, URLS } from '@canmi/urls';
 import type { FeedEntry } from '$lib/documents/feed';
@@ -86,9 +88,31 @@ export function siteStats(fetch: Fetch): Promise<StatsAnswer | undefined> {
 	return answer<StatsAnswer>(fetch, api('/stats'));
 }
 
+/**
+ * The one batch entry point, asked and read in one place.
+ *
+ * `type` goes out and comes back, so the answer proves which question it answers rather than the
+ * caller remembering. See libs/artifacts, `BatchRequest`.
+ */
+export async function askBatch<T extends BatchRequest>(
+	asked: T,
+): Promise<BatchAnswerOf<T['type']>> {
+	const response = await fetch(api('/batch'), {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(asked),
+	});
+	if (!response.ok) throw new Error(`/batch answered ${response.status}`);
+	const answered = unwrap<BatchAnswer>(await response.json(), response.url);
+	if (answered.type !== asked.type) throw new Error(`/batch answered a ${answered.type} question`);
+	return answered as BatchAnswerOf<T['type']>;
+}
+
 /** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */
 function viewUrl(slug: string, locale: LocaleCode): string {
-	return api(`/view/${slug}?lang=${locale}`);
+	// Both identifiers in the query, and the slug encoded because it carries slashes. See
+	// spec/architecture/artifacts.md, "A question asks with a query; a list asks with a body".
+	return api(`/article?slug=${encodeURIComponent(slug)}&lang=${locale}`);
 }
 
 /**
@@ -116,22 +140,20 @@ const lookupView = createBatcher<ViewAnswer>({
 		const found = new Map<string, ViewAnswer>();
 		await Promise.all(
 			[...bySlug].map(async ([slug, locales]) => {
-				const response = await fetch(api('/views'), {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ slug, locales }),
-				});
-				if (!response.ok) throw new Error(`/views answered ${response.status}`);
-				const batch = unwrap<ViewsAnswer>(await response.json(), response.url);
+				const batch = await askBatch({ type: 'articles', slugs: [slug], locales });
 				await Promise.all(
-					Object.entries(batch.views).map(async ([code, view]) => {
-						const locale = code as LocaleCode;
-						const whole = { ...view, slug: batch.slug, url: batch.url } satisfies ViewAnswer;
-						found.set(`${slug}${SEPARATOR}${locale}`, whole);
-						await rememberAnswer(viewUrl(slug, locale), whole);
-						// The object, so the swap that follows is a render rather than a download.
-						await object(fetch, 'content', whole.objects.content).catch(() => undefined);
-					}),
+					Object.entries(batch.articles).map(async ([answered, article]) =>
+						Promise.all(
+							Object.entries(article.views).map(async ([code, view]) => {
+								const locale = code as LocaleCode;
+								const whole = { ...view, slug: answered, url: article.url } satisfies ViewAnswer;
+								found.set(`${answered}${SEPARATOR}${locale}`, whole);
+								await rememberAnswer(viewUrl(answered, locale), whole);
+								// The object, so the swap that follows renders rather than downloads.
+								await object(fetch, 'content', whole.objects.content).catch(() => undefined);
+							}),
+						),
+					),
 				);
 			}),
 		);
@@ -226,7 +248,10 @@ function feedBases(url: string, locale: LocaleCode) {
  * returns the source exactly as written. See spec/architecture/artifacts.md.
  */
 export async function publishedMarkdown(fetch: Fetch, slug: string): Promise<Response | undefined> {
-	const found = await answer<DocumentAnswer>(fetch, api(`/markdown/${slug}`));
+	const found = await answer<DocumentAnswer>(
+		fetch,
+		api(`/source?slug=${encodeURIComponent(slug)}`),
+	);
 	return found ? object(fetch, 'markdown', found.hash) : undefined;
 }
 

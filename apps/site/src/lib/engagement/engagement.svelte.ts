@@ -167,7 +167,7 @@ async function fetchStats(): Promise<StatsAnswer> {
 }
 
 async function fetchLiked(): Promise<LikedAnswer> {
-	return answered(LikedAnswerSchema, await fetch(`${apiUrl}/liked`));
+	return answered(LikedAnswerSchema, await fetch(`${apiUrl}/like`));
 }
 
 async function subscribe(email: string): Promise<NewsletterAnswer> {
