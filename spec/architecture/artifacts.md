@@ -152,18 +152,31 @@ the CDN by hash and cached for a year.
 five-minute cache by the number of values it takes, and the hit rate on these answers is what
 the whole design's latency rests on.
 
-| Route                   | Answers                                                            |
-| ----------------------- | ------------------------------------------------------------------ |
-| `/view/{locale}/{slug}` | one view's metadata and its `content` hash                         |
-| `/markdown/{slug}`      | the `markdown` hash, for `<url>.md`                                |
-| `/home/{locale}`        | the article list the homepage renders, and the homepage's own page |
-| `/sitemap`              | every indexable view's path, date and alternates                   |
-| `/feed/{locale}`        | the `feed` hash                                                    |
-| `/llms`                 | the `llms` hash                                                    |
+| Route                | Answers                                                            |
+| -------------------- | ------------------------------------------------------------------ |
+| `/view/{slug}?lang=` | one view's metadata, its `content` hash and its read count         |
+| `/markdown/{slug}`   | the `markdown` hash, for `<url>.md`                                |
+| `/home?lang=`        | the article list the homepage renders, and the homepage's own page |
+| `/sitemap`           | every indexable view's path, date and alternates                   |
+| `/feed?lang=`        | the `feed` hash                                                    |
+| `/llms`              | the `llms` hash                                                    |
 
-**The CDN answers in the same envelope when it refuses.** A success there is the object's own
-bytes and is never wrapped -- an image is an image -- but a `400`, a `404` and a `416` all carry
-`{ status, message }`, so a caller reads one shape whichever of the two workers said no.
+**The locale is a query parameter and never a path segment.** `?lang=` is how this site already
+asks -- [locale/addressing.md](../locale/addressing.md) gives it as a reader's first preference
+source and `llms.txt` documents it for machines -- so one spelling reaches the site and the API.
+Absent means `mw`, the same answer a bare URL gives; an unknown value is a `400` and never a
+fallback to another view. It stays the one variant dimension either way.
+
+**An answer is grouped, not flat.** `objects`, `locale`, `meta`, `dates`, `metrics`, `preview`:
+each group answers one question, and a reader looking for a title does not have to know the whole
+list to find it. Flat, this was thirteen keys with `content` beside `title` and `words` beside
+`language_tag`. The groups are the same ones the root stores, so an answer is mostly a projection
+of it.
+
+**`metrics.reads` is the exception, and comes from D1.** A visitor writes that count, so it is
+cloud-authoritative and cannot be in a mirrored record -- see [data.md](data.md). The listing
+takes every row's count in one query rather than one per row, because a homepage that costs a
+round trip per article gets slower as the corpus grows.
 
 `/markdown/{slug}` takes no locale, because `<url>.md` serves the source whatever view asked for
 it, and it resolves against articles and standalone pages alike -- a page's markdown hash is
