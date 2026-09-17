@@ -1,4 +1,3 @@
-import { feedHtml } from '@canmi/artifacts';
 import { URLS } from '@canmi/urls';
 import { toHtml } from 'hast-util-to-html';
 import { toHast, type Handler } from 'mdast-util-to-hast';
@@ -421,7 +420,16 @@ function proseMarkdown(node: RootContent): string {
 	// directive and throws on one it has not seen, so this path worked only for as long as every
 	// directive in the corpus happened to be reachable another way -- `:tn` was the first that
 	// was not, and it failed the whole page rather than the one node.
-	return stringifier.stringify({ type: 'root', children: lowerDirectives([node]) } as Root).trim();
+	const text = stringifier
+		.stringify({ type: 'root', children: lowerDirectives([node]) } as Root)
+		.trim();
+	// The document is the source view and nothing reading it will negotiate, so a link out of it
+	// names the source. Prose only: a fence is pushed separately and its contents are not ours to
+	// rewrite. The feed does the same to its own prose -- see libs/artifacts, `pinView`.
+	return text.replaceAll(
+		new RegExp(`\\]\\((${URLS.apps.production.site}/[^)\\s#]*)`, 'g'),
+		(whole, address: string) => (address.includes('?') ? whole : `](${address}?lang=mw`),
+	);
 }
 
 // `## Intro {#getting-started}` -> { text: 'Intro', slug: 'getting-started' }.
@@ -904,7 +912,10 @@ export async function compile(
 			if (!reference) {
 				throw new Error(`${source}: ::article path "${target}" does not name an article`);
 			}
-			const href = `${URLS.apps.production.site}/${target}`;
+			// `?lang=mw` spelled out. The markdown target is the source view and nothing in it
+			// will negotiate on a reader's behalf, so a link out of it names the source too --
+			// the same reason the feed's links name theirs. See spec/locale/views.md.
+			const href = `${URLS.apps.production.site}/${target}?lang=mw`;
 			blocks.push({ type: 'article', path: target, ...reference });
 			md.push(`[${reference.title}](${href}) — ${reference.subtitle}`);
 			text.push(`${reference.title}\n${reference.subtitle}`);
@@ -1072,10 +1083,6 @@ export async function compile(
 		meta,
 		toc,
 		blocks,
-		// Derived from the blocks rather than accumulated beside them: the feed says strictly
-		// less than a block carries, so keeping a second running list only let the two drift.
-		// It is the same function the Worker calls on a fetched object. See libs/artifacts.
-		feed: feedHtml(blocks, { site: URLS.apps.production.site, images: IMAGE_CDN, url }),
 		markdown: `---\n${frontmatter}---\n\n# ${meta.title}\n\n${meta.description}\n\n${md.join('\n\n')}\n`,
 		text: text.join('\n\n'),
 	};

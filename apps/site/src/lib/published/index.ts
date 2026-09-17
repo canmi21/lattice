@@ -126,15 +126,15 @@ export async function publishedFeedEntries(
 			// Above the article, as on the page. The original's address is the bare URL, which is
 			// what the source view is addressed by. See spec/locale/views.md.
 			const notice = noticeHtml(locale, view.meta.lang, view.language.translated, entry.url);
-			const body = feedHtml(view.body.blocks, feedBases(entry.url));
+			const body = feedHtml(view.body.blocks, feedBases(entry.url, locale));
 			return { ...entry, html: notice ? `${notice}\n${body}` : body };
 		}),
 	);
 }
 
-/** Where the two absolute links a feed body writes are rooted, for whichever CDN is answering. */
-function feedBases(url: string) {
-	return { site: URLS.apps.production.site, images: `${upstream().cdn}/image/`, url };
+/** Where the links a feed body writes are rooted, for whichever CDN is answering. */
+function feedBases(url: string, locale: LocaleCode) {
+	return { site: URLS.apps.production.site, images: `${upstream().cdn}/image/`, url, locale };
 }
 
 /**

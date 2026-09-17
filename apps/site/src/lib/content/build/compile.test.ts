@@ -1,5 +1,24 @@
+import { feedHtml } from '@canmi/artifacts';
+import type { Compiled } from '@canmi/artifacts/types';
+import { URLS } from '@canmi/urls';
 import { expect, it } from 'vitest';
 import { articleFrontmatter, compile, compilePage } from './compile';
+
+/**
+ * What a feed makes of this article, which the compiler no longer produces beside it.
+ *
+ * The feed is a projection of the blocks and is rendered where the view's locale is known, so
+ * these assertions call the same function the Worker does rather than reading a second field the
+ * compiler kept in step by hand. See libs/artifacts, `feedHtml`.
+ */
+function feedOf(compiled: Pick<Compiled, 'blocks'>): string {
+	return feedHtml(compiled.blocks, {
+		site: URLS.apps.production.site,
+		images: `${URLS.apps.production.cdn}/image/`,
+		url: '/article',
+		locale: 'mw',
+	});
+}
 
 it('rejects malformed source lang metadata with the article file named', async () => {
 	const raw = '---\ntitle: Test\nlang: zh_CN\n---\n\nBody.\n';
@@ -222,7 +241,7 @@ it('routes a Mermaid fence to the client renderer without highlighting it', asyn
 	);
 
 	expect(compiled.blocks).toContainEqual({ type: 'mermaid', source, ratio: 2.77366 });
-	expect(compiled.feed).toContain('<code class="language-mermaid">quadrantChart');
+	expect(feedOf(compiled)).toContain('<code class="language-mermaid">quadrantChart');
 	expect(compiled.markdown).toContain(`\`\`\`mermaid\n${source}\n\`\`\``);
 });
 
@@ -295,8 +314,8 @@ lang: en-US
 			{ at: 'top-right', title: 'Svelte', note: 'visible structure + reach' },
 		],
 	});
-	expect(compiled.feed).toContain('<strong>Solid</strong> — compiler-first');
-	expect(compiled.feed).toContain('<strong>Marko</strong>');
+	expect(feedOf(compiled)).toContain('<strong>Solid</strong> — compiler-first');
+	expect(feedOf(compiled)).toContain('<strong>Marko</strong>');
 	expect(compiled.markdown).toContain(
 		'> - More compile-time leverage / Smaller ecosystem: Solid — compiler-first',
 	);
@@ -460,7 +479,7 @@ it('leaves an unfetched tweet visible as a directive placeholder', async () => {
 		meta: { tweet: '2088060180290302397' },
 		pending: true,
 	});
-	expect(compiled.feed).toBe('');
+	expect(feedOf(compiled)).toBe('');
 });
 
 it('shows an authored ::placeholder in the feed, and a pending embed not at all', async () => {
@@ -470,7 +489,7 @@ it('shows an authored ::placeholder in the feed, and a pending embed not at all'
 		{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
 	);
 
-	expect(compiled.feed).toBe('<pre>::chart\nnote = "later"</pre>');
+	expect(feedOf(compiled)).toBe('<pre>::chart\nnote = "later"</pre>');
 });
 
 it('draws an ::article card from the target article rather than from the directive', async () => {
@@ -506,8 +525,52 @@ it('draws an ::article card from the target article rather than from the directi
 	});
 	// The feed and /llms.txt targets name the article too; neither runs a layout, so a card
 	// there is a link that says what it points at.
-	expect(compiled.feed).toContain('>Rendering as a Protocol</a>');
-	expect(compiled.markdown).toContain('[Rendering as a Protocol](');
+	//
+	// Both spell out the view, `mw` included. Neither will negotiate on a reader's behalf, and a
+	// bare address would be resolved against whatever language their cookie happens to hold --
+	// which for a card that just showed them a Japanese title is the wrong answer. The page links
+	// the bare address instead, because its router carries the view across the navigation.
+	expect(feedOf(compiled)).toContain('>Rendering as a Protocol</a>');
+	expect(feedOf(compiled)).toContain(
+		`<a href="${URLS.apps.production.site}/architecture/compile-time-rendering?lang=mw">`,
+	);
+	expect(compiled.markdown).toContain(
+		`[Rendering as a Protocol](${URLS.apps.production.site}/architecture/compile-time-rendering?lang=mw)`,
+	);
+});
+
+/**
+ * Every internal link in a feed or a `.md` document names a view, because neither has a router to
+ * carry one. A page links the bare address instead: its navigation keeps the view it was in, so
+ * writing the language into the markup would only be a second copy of it. See
+ * spec/locale/views.md.
+ */
+it('names the view on an internal link, and leaves a fragment and an outside address alone', async () => {
+	const site = URLS.apps.production.site;
+	const compiled = await compile(
+		[
+			'---',
+			'title: Test',
+			'lang: en-US',
+			'---',
+			'',
+			`Here is [one](${site}/architecture/one#section), [another](/mirror/two) and`,
+			'[somewhere else](https://example.com/page).',
+			'',
+		].join('\n'),
+		'/article',
+		{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
+	);
+
+	const feed = feedOf(compiled);
+	// The query goes before the fragment, which is the only order a browser reads.
+	expect(feed).toContain(`href="${site}/architecture/one?lang=mw#section"`);
+	expect(feed).toContain('href="/mirror/two?lang=mw"');
+	// Not ours to annotate, and rewriting it would change where a reader lands.
+	expect(feed).toContain('href="https://example.com/page"');
+
+	expect(compiled.markdown).toContain(`${site}/architecture/one?lang=mw#section`);
+	expect(compiled.markdown).toContain('https://example.com/page');
 });
 
 it('fails the build when an ::article path names no article', async () => {
@@ -680,7 +743,7 @@ it('addresses a ::image asset once, in the feed and in the markdown alike', asyn
 		{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
 	);
 
-	for (const target of [compiled.feed, compiled.markdown]) {
+	for (const target of [feedOf(compiled), compiled.markdown]) {
 		expect(target).toContain('/image/a.avif');
 		expect(target.match(/\/image\//g)).toHaveLength(1);
 	}
@@ -711,7 +774,7 @@ it('names the published rendition in the feed and the markdown, not the authored
 		},
 	);
 
-	for (const target of [compiled.feed, compiled.markdown]) {
+	for (const target of [feedOf(compiled), compiled.markdown]) {
 		expect(target).not.toContain('original.avif');
 		expect(target.match(/rendition\.avif/g)).toHaveLength(2);
 	}
@@ -776,11 +839,11 @@ it('carries a diagram description into the block, the feed and the search text',
 	// reading, which is the part a screen reader is given.
 	expect(matrix?.reading).toBe('One sits in the niche compiler region.');
 
-	expect(compiled.feed).toContain(
+	expect(feedOf(compiled)).toContain(
 		'[Diagram: A pipeline from source to binary. — view at /article]',
 	);
-	expect(compiled.feed).toContain('[Diagram: A goes to B. — view at /article]');
-	expect(compiled.feed).not.toContain('language-mermaid');
+	expect(feedOf(compiled)).toContain('[Diagram: A goes to B. — view at /article]');
+	expect(feedOf(compiled)).not.toContain('language-mermaid');
 	expect(compiled.markdown).toContain('> [diagram: A pipeline from source to binary. — /article]');
 	// The one target that keeps the source, because it is the one that can draw it.
 	expect(compiled.markdown).toContain('```mermaid\n' + mermaid + '\n```');
@@ -802,7 +865,7 @@ it('leaves an undescribed diagram saying exactly what it said before', async () 
 	);
 	const canvas = compiled.blocks.find((block) => block.type === 'svgCanvas');
 	expect(canvas?.description).toBeUndefined();
-	expect(compiled.feed).toContain('[Diagram: Test — view at /article]');
+	expect(feedOf(compiled)).toContain('[Diagram: Test — view at /article]');
 });
 
 /**
@@ -861,8 +924,8 @@ it('resolves ::video by the same reference an image uses, and survives one that 
 	// Neither target can play anything, so both name the poster and say where the clip is. The
 	// clip's own description is the poster's text there -- it is the only sentence either target
 	// has about what is in the frame.
-	expect(compiled.feed).toContain('<img src="https://cdn.example/image/p.avif"');
-	expect(compiled.feed).toContain('watch at /article');
+	expect(feedOf(compiled)).toContain('<img src="https://cdn.example/image/p.avif"');
+	expect(feedOf(compiled)).toContain('watch at /article');
 	expect(compiled.markdown).toContain('> [video — /article]');
 	expect(compiled.text).toContain('A hand turns the machine over.');
 });

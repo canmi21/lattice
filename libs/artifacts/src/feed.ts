@@ -11,6 +11,7 @@
  * compiler to keep emitting the same bytes, and the Worker to build a document out of objects it
  * fetched. See spec/architecture/artifacts.md, "Which objects exist".
  */
+import type { LocaleCode } from '@canmi/locales';
 import { URLS } from '@canmi/urls';
 import type { Block, QuadrantDirection, QuadrantItem } from './types.ts';
 
@@ -22,6 +23,15 @@ export type FeedBases = {
 	images: string;
 	/** The article's own URL, named by everything a feed cannot show in place. */
 	url: string;
+	/**
+	 * The view this document is, written into every link that stays on the site.
+	 *
+	 * Spelled out even for `mw`, where the bare address would do on a page. A bare URL negotiates
+	 * from the reader's cookie, and nothing in a feed will correct that afterwards -- so a card
+	 * showing a Japanese title has to name the Japanese view, and one in the source feed has to
+	 * name the source. See spec/locale/views.md.
+	 */
+	locale: LocaleCode;
 };
 
 /** Exported because a feed body is not only blocks: see the site's translation notice. */
@@ -62,6 +72,25 @@ function imageSource(src: string, images: string): string {
 }
 
 /**
+ * Name the view on every link that stays on this site.
+ *
+ * Prose is the page's own HTML, and a page links the bare address because its router carries the
+ * view across. A feed has no router, so a bare link resolves against whatever the reader's cookie
+ * holds. Left alone: an outside address, a bare fragment, and one that already names a language.
+ * See spec/locale/views.md.
+ */
+function pinView(html: string, { site, locale }: FeedBases): string {
+	return html.replaceAll(/href="([^"]*)"/g, (whole, href: string) => {
+		const internal = href.startsWith(`${site}/`) || href === site || href.startsWith('/');
+		if (!internal || /[?&]lang=/.test(href)) return whole;
+		const hash = href.indexOf('#');
+		const address = hash === -1 ? href : href.slice(0, hash);
+		const fragment = hash === -1 ? '' : href.slice(hash);
+		return `href="${address}${address.includes('?') ? '&' : '?'}lang=${locale}${fragment}"`;
+	});
+}
+
+/**
  * One block as feed HTML, or nothing where the feed has nothing to say.
  *
  * A pending embed is the only `nothing`, and it is the reason a placeholder carries `pending` at
@@ -71,7 +100,7 @@ function imageSource(src: string, images: string): string {
 export function blockFeedHtml(block: Block, bases: FeedBases): string | undefined {
 	switch (block.type) {
 		case 'prose':
-			return block.html;
+			return pinView(block.html, bases);
 		case 'heading': {
 			const marks = (block.notes ?? []).map((number) => `<sup>${number}</sup>`).join('');
 			return `<h${block.depth} id="${block.slug}">${escapeHtml(block.text)}${marks}</h${block.depth}>`;
@@ -99,7 +128,7 @@ export function blockFeedHtml(block: Block, bases: FeedBases): string | undefine
 		case 'linkcard':
 			return `<p><a href="${block.url}">${escapeHtml(block.title)}</a></p>`;
 		case 'article':
-			return `<p><a href="${bases.site}/${block.path}">${escapeHtml(block.title)}</a> — ${escapeHtml(block.subtitle)}</p>`;
+			return `<p><a href="${bases.site}/${block.path}?lang=${bases.locale}">${escapeHtml(block.title)}</a> — ${escapeHtml(block.subtitle)}</p>`;
 		case 'image':
 			return `<p><img src="${imageSource(block.src, bases.images)}" alt="${escapeHtml(block.alt)}" /></p>`;
 		case 'video': {
