@@ -156,8 +156,17 @@ describe('likes and engagement state', () => {
 		const second = await api('/like', { method: 'PUT', ip: IP_TWO, body: { liked: true } });
 		expect(await payload(second)).toEqual({ liked: true, like_count: 2 });
 
-		const state = await api('/engagement', { ip: IP_ONE });
-		expect(await payload(state)).toEqual({ subscriber_count: 0, like_count: 2, liked: true });
+		// Two answers now, because one belongs to the site and the other to whoever is asking.
+		const counts = await api('/stats', { ip: IP_ONE });
+		expect(counts.headers.get('Cache-Control')).toBe('public, max-age=300');
+		expect(await payload(counts)).toEqual({ subscriber_count: 0, like_count: 2 });
+
+		const mine = await api('/liked', { ip: IP_ONE });
+		expect(mine.headers.get('Cache-Control')).toBe('private, no-cache');
+		expect(await payload(mine)).toEqual({ liked: true });
+		// The same question from another address is a different answer, which is why it is not
+		// shared and never rendered on the server.
+		expect(await payload(await api('/liked', { ip: '198.51.100.7' }))).toEqual({ liked: false });
 
 		const removed = await api('/like', { method: 'PUT', ip: IP_ONE, body: { liked: false } });
 		expect(await payload(removed)).toEqual({ liked: false, like_count: 1 });
@@ -175,10 +184,30 @@ describe('likes and engagement state', () => {
 		expect(await response.json()).toEqual({ status: 'error', message: 'rate_limited' });
 	});
 
-	it('rate limits the read-heavy state endpoint separately', async () => {
+	it('rate limits the read-heavy state endpoints separately', async () => {
 		const deny: RateLimit = { limit: async () => ({ success: false }) };
-		const response = await api('/engagement', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny });
-		expect(response.status).toBe(429);
+		expect((await api('/stats', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
+			429,
+		);
+		expect((await api('/liked', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
+			429,
+		);
+	});
+
+	// The counters are about the site, so an unattributable request is answered rather than
+	// refused -- a shared cache asking on everyone's behalf carries no address of its own.
+	it('answers the counters without a client address, and refuses the personal one', async () => {
+		const anonymous = await app.fetch(
+			new Request(`${URLS.apps.production.api}/stats`, {
+				headers: { Origin: URLS.apps.production.site },
+			}),
+			{
+				DATABASE: database as unknown as Bindings['DATABASE'],
+				ENGAGEMENT_RATE_LIMITER: allow,
+			} as Bindings,
+		);
+		expect(anonymous.status).toBe(200);
+		expect(await payload(anonymous)).toEqual({ subscriber_count: 0, like_count: 0 });
 	});
 });
 

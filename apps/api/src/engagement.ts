@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Bindings } from './bindings';
-import type { ApiResponse, ReadsAnswer } from '@canmi/artifacts';
+import type { ApiResponse, LikedAnswer, ReadsAnswer, StatsAnswer } from '@canmi/artifacts';
 import { failure, success } from './respond';
 import { canonicalEmail } from './email';
 import { findArticle, rootOf } from './root';
@@ -19,23 +19,55 @@ const JSON_LIMIT = bodyLimit({
 
 const engagement = new Hono<{ Bindings: Bindings }>();
 
-engagement.get('/engagement', async (c) => {
+/**
+ * What everyone sees: how many have subscribed, and how many have liked.
+ *
+ * Two numbers about the site rather than about whoever is asking, so it is the one engagement
+ * answer a shared cache may hold -- and holding it is the point: the site renders these during
+ * SSR, which means asking on every first paint. Five minutes, the same as the corpus answers,
+ * because a counter that lags a reader's own click by a moment is corrected by the click itself.
+ *
+ * Splitting `liked` out is what made this possible at all. See spec/engagement.md.
+ */
+engagement.get('/stats', async (c) => {
+	const ip = clientIp(c.req.raw);
+	// Limited when there is an address to limit by, but answered without one: a cacheable public
+	// number is not something an unattributable request should be refused.
+	if (ip && !(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
+
+	const database = drizzle(c.env.DATABASE);
+	const [subscriberCount, likeCount] = await Promise.all([
+		rowCount(database, newsletterSubscriptions),
+		rowCount(database, likes),
+	]);
+
+	return success(
+		c,
+		{ subscriber_count: subscriberCount, like_count: likeCount } satisfies StatsAnswer,
+		{
+			'Cache-Control': 'public, max-age=300',
+		},
+	);
+});
+
+/**
+ * Whether the one asking has already liked, and nothing else.
+ *
+ * Answered per address, so it is never shared and never rendered on the server: a page cached for
+ * one reader would tell the next one they had clicked something they had not. The browser asks
+ * once it has hydrated, and the heart is unmarked until then.
+ */
+engagement.get('/liked', async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
 	if (!(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
 
 	const database = drizzle(c.env.DATABASE);
-	const [subscriberCount, likeCount, like] = await Promise.all([
-		rowCount(database, newsletterSubscriptions),
-		rowCount(database, likes),
-		database.select({ ip: likes.ip }).from(likes).where(eq(likes.ip, ip)).limit(1),
-	]);
+	const like = await database.select({ ip: likes.ip }).from(likes).where(eq(likes.ip, ip)).limit(1);
 
-	return success(
-		c,
-		{ subscriber_count: subscriberCount, like_count: likeCount, liked: like.length === 1 },
-		{ 'Cache-Control': 'private, no-cache' },
-	);
+	return success(c, { liked: like.length === 1 } satisfies LikedAnswer, {
+		'Cache-Control': 'private, no-cache',
+	});
 });
 
 engagement.post('/newsletter', JSON_LIMIT, async (c) => {
