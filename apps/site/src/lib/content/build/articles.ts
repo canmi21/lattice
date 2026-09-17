@@ -1,4 +1,4 @@
-import { refuseBadSlugs, reservedNames } from './slugs.ts';
+import { refuseBadSlugs, reservedNames, slugOf } from './slugs.ts';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { URLS } from '@canmi/urls';
@@ -460,7 +460,7 @@ export async function buildArticles(
 				];
 			}),
 		) as Record<LocaleCode, ArticleView>;
-		articles.push({ ...compiled.mw, path, url, views, canonical_urls, alternates });
+		articles.push({ ...compiled.mw, slug: slugOf(path), path, url, views, canonical_urls, alternates });
 	}
 
 	return {

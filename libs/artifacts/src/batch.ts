@@ -49,21 +49,23 @@ export type BatchType = BatchRequest['type'];
 /**
  * One article's views, named once each.
  *
- * `slug` and `url` sit above the views rather than inside every one, which is the only reason this
- * is not a list of `/article` answers.
+ * `path` and `url` sit above the views rather than inside every one, which is the only reason this
+ * is not a list of `/article` answers. The slug is not in here at all: it is the key this article
+ * is filed under, and repeating it inside would be the same fact twice.
  */
 export type BatchedArticle = {
+	path: string;
 	url: string;
-	views: Partial<Record<LocaleCode, Omit<ViewAnswer, 'slug' | 'url'>>>;
+	views: Partial<Record<LocaleCode, Omit<ViewAnswer, 'slug' | 'path' | 'url'>>>;
 };
 
 /**
  * What `/batch` answers, carrying back the `type` it was asked.
  *
  * Echoed rather than assumed: a consumer holding an answer can tell what it is an answer to
- * without remembering what it sent, which matters once one batcher serves several questions.
- * A slug the corpus does not name is absent rather than an error -- asking about ten and hearing
- * about eight is the answer.
+ * without remembering what it sent. A slug the corpus does not name is absent rather than an
+ * error. Both maps are keyed by slug, because an answer keyed by address could not be matched
+ * back to the question without the caller deriving one from the other.
  */
 export type BatchAnswer =
 	| { type: 'articles'; articles: Record<string, BatchedArticle> }

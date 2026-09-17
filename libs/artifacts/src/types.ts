@@ -301,6 +301,9 @@ export type Alternate = {
 };
 
 export type Article = Compiled & {
+	/** The identity: the last segment of the path, unique across the corpus. See build/slugs.ts. */
+	slug: string;
+	/** The address: the directory it currently sits in, plus that identity. */
 	path: string;
 	url: string;
 	views: Record<LocaleCode, ArticleView>;

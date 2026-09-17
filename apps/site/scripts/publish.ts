@@ -124,9 +124,10 @@ async function publishArticle(tree: Tree, article: Article): Promise<RootArticle
 		const view = article.views[code];
 		const published: PublishedView = {
 			version: ARTIFACT_VERSION,
-			// The article's own path, not a requested one: it is what the read counter is keyed
-			// by on the API side, and the two lists have to name the same thing.
-			slug: article.path,
+			// The identity, never the address. An object outlives the directory it was published
+			// from, so an envelope naming the path would fail its own check the first time this
+			// article was recategorised. See spec/architecture/artifacts.md.
+			slug: article.slug,
 			locale: code,
 			meta: view.meta,
 			language: {
@@ -162,6 +163,7 @@ async function publishArticle(tree: Tree, article: Article): Promise<RootArticle
 		} satisfies RootView;
 	}
 	return {
+		slug: article.slug,
 		path: article.path,
 		url: article.url,
 		markdown: await tree.put('markdown', article.markdown),

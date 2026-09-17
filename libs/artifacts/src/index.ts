@@ -121,6 +121,9 @@ const alternateCode = v.picklist([
 ] as Alternate['code'][]);
 
 export const RootArticleSchema = v.object({
+	/** The identity: unique across the corpus, and what every question asks with. */
+	slug: v.string(),
+	/** The address: where it currently lives, which is the only half that can change. */
 	path: v.string(),
 	url: v.string(),
 	markdown: hash,
@@ -162,7 +165,16 @@ export type RootView = v.InferOutput<typeof RootViewSchema>;
  * spec/architecture/artifacts.md, "A read count is not here at all".
  */
 export type ViewAnswer = Omit<RootView, 'locale'> & {
+	/** What was asked for: the identity, which is the only thing `?slug=` takes. */
 	slug: string;
+	/**
+	 * Where it lives, which the answer supplies because the question deliberately does not.
+	 *
+	 * This is what lets the site tell a canonical address from one that merely reaches the
+	 * article: `/{wrong}/{slug}` and `/{slug}` both resolve, and both are redirected here. See
+	 * spec/architecture/artifacts.md, "Reaching an article by name".
+	 */
+	path: string;
 	url: string;
 	locale: RootView['locale'] & { code: LocaleCode };
 };
@@ -176,7 +188,7 @@ export type ViewAnswer = Omit<RootView, 'locale'> & {
 export type HomeAnswer = {
 	locale: { code: LocaleCode; language_tag: string };
 	page: { objects: { content: string } } | null;
-	articles: (Omit<RootView, 'locale'> & { slug: string; url: string })[];
+	articles: (Omit<RootView, 'locale'> & { slug: string; path: string; url: string })[];
 };
 
 /**
@@ -205,15 +217,21 @@ export type SitemapAnswer = {
 	views: { loc: string; lastmod: string; alternates: Alternate[] }[];
 };
 
-/** `/markdown/{slug}`: the one answer left that is a hash and nothing else. */
-export type DocumentAnswer = { hash: string };
+/**
+ * `/source`: which object holds the written source, and where the thing it belongs to lives.
+ *
+ * The path is here for the same reason `ViewAnswer` carries one -- the question asked by identity,
+ * so only the answer can say whether the address it was asked at is the real one.
+ */
+export type DocumentAnswer = { hash: string; path: string };
 
 /**
  * What a consumer checks before trusting an object's body.
  *
- * Version, slug and locale only. The body is not revalidated at an edge: the producer is trusted
- * and what this catches is version skew between two things deployed at different times. See
- * spec/architecture/artifacts.md, "Validation is heavy where it is free and light where it is not".
+ * Version, slug and locale only -- the slug being the identity, never the path, because an object
+ * outlives the directory it was published from. The body is not revalidated at an edge: the
+ * producer is trusted and what this catches is version skew. See spec/architecture/artifacts.md,
+ * "Validation is heavy where it is free and light where it is not".
  */
 export const EnvelopeSchema = v.object({
 	version: v.literal(ARTIFACT_VERSION),
@@ -250,6 +268,7 @@ export function readEnvelope(value: unknown, slug: string, locale: LocaleCode): 
 /** One article view, as published. The load data the page renders from, and nothing besides. */
 export type PublishedView = {
 	version: typeof ARTIFACT_VERSION;
+	/** The identity, matching the envelope. Where the article lives is the root's to say. */
 	slug: string;
 	locale: LocaleCode;
 	/** The frontmatter, which already carries this article's dates and source language. */
