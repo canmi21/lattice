@@ -47,10 +47,16 @@ the source rather than as a 404 -- so without the notice a Japanese subscriber s
 English article with nothing saying why.
 
 Three differences from the page, each forced by what a feed is. There is no short reading,
-because a feed has one column and the reader's own client decides the width. The link is an
-ordinary absolute href to the source view rather than a cookie write, because nothing runs. And
-the locale is passed to the message rather than taken from the request: a document assembled for
-`?lang=` has no negotiated locale, and asking for one is an error rather than a wrong answer.
+because a feed has one column and the reader's own client decides the width. The locale is passed
+to the message rather than taken from the request: a document assembled for `?lang=` has no
+negotiated locale, and asking for one is an error rather than a wrong answer.
+
+**And the link spells out `?lang=mw`, where the page links the bare address.** That is not a
+detail. A bare URL negotiates from the reader's cookie, and the cookie of someone reading the
+Japanese feed says Japanese -- so the one link that means "show me the original" would answer
+with the translation again, silently, for exactly the reader it exists for. The page can link the
+bare address because its handler switches the view before the browser goes anywhere, and the
+`?lang=mw` form is only its no-JavaScript fallback. A feed is that fallback, always.
 
 ### Two states, because a reader may already speak the article's language
 

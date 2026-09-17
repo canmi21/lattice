@@ -76,9 +76,16 @@ export function noticeHtml(
 	code: LocaleCode,
 	sourceLanguage: string,
 	available: boolean,
-	originalUrl: string,
+	articleUrl: string,
 ): string | undefined {
 	if (code === 'mw') return undefined;
+
+	// `?lang=mw` spelled out, never the bare address. A bare URL negotiates from the reader's
+	// cookie, and this reader's cookie says the language they are trying to get out of -- so the
+	// one link that means "the original" would hand back the translation. The page can link the
+	// bare address because its handler switches the view before the browser goes anywhere; a feed
+	// has no handler. See spec/locale/views.md.
+	const original = `${articleUrl}?lang=mw`;
 
 	const source = sourceCode(sourceLanguage);
 	// The folded name, not the endonym: this sits inside a sentence, and `中文 (简体)版本` puts a
@@ -102,5 +109,5 @@ export function noticeHtml(
 				? m['notice.polished']
 				: m['notice.translated'];
 	const language = sourceLanguageName(sourceLanguage, code);
-	return `<p><em>${sentence(message, language, code, originalUrl)}</em></p>`;
+	return `<p><em>${sentence(message, language, code, original)}</em></p>`;
 }

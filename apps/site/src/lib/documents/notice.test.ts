@@ -8,14 +8,19 @@ it('says nothing on the source view, which is the one view that is not a version
 	expect(noticeHtml('mw', 'zh-CN', true, ORIGINAL)).toBeUndefined();
 });
 
+/**
+ * The link carries `?lang=mw` rather than the bare address, and that is the whole of its use. A
+ * bare URL negotiates from the cookie, which for a reader of the Japanese feed says Japanese --
+ * so the one link meaning "show me the original" would answer with the translation again.
+ */
 it('announces a translation in the reader’s own language, and links the original', () => {
 	const japanese = noticeHtml('ja', 'zh-CN', true, ORIGINAL);
 	expect(japanese).toContain('本記事は翻訳版です');
-	expect(japanese).toContain(`<a href="${ORIGINAL}">`);
+	expect(japanese).toContain(`<a href="${ORIGINAL}?lang=mw">`);
 
 	const german = noticeHtml('de', 'zh-CN', true, ORIGINAL);
 	expect(german).toContain('Dies ist eine Übersetzung');
-	expect(german).toContain(`<a href="${ORIGINAL}">`);
+	expect(german).toContain(`<a href="${ORIGINAL}?lang=mw">`);
 });
 
 /**
