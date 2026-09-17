@@ -160,19 +160,65 @@ the CDN by hash and cached for a year.
 five-minute cache by the number of values it takes, and the hit rate on these answers is what
 the whole design's latency rests on.
 
-| Route                | Answers                                                            |
-| -------------------- | ------------------------------------------------------------------ |
-| `/view/{slug}?lang=` | one view's metadata and its `content` hash                         |
-| `/markdown/{slug}`   | the `markdown` hash, for `<url>.md`                                |
-| `/home?lang=`        | the article list the homepage renders, and the homepage's own page |
-| `/sitemap`           | every indexable view's path, date and alternates                   |
-| `/feed?lang=`        | one locale's entries: metadata and a `content` hash each           |
+| Route                      | Answers                                                            |
+| -------------------------- | ------------------------------------------------------------------ |
+| `GET /article?slug=&lang=` | one view's metadata and its `content` hash                         |
+| `GET /source?slug=`        | the `markdown` hash, for `<url>.md`                                |
+| `GET /home?lang=`          | the article list the homepage renders, and the homepage's own page |
+| `GET /sitemap`             | every indexable view's path, date and alternates                   |
+| `GET /feed?lang=`          | one locale's entries: metadata and a `content` hash each           |
+| `GET /media?cid=`          | what is known about one asset                                      |
+| `POST /batch`              | every question asked about many things; see below                  |
+
+### A question asks with a query; a list asks with a body
+
+**Nothing about a question lives in the path.** A single lookup is a `GET` whose identifiers are
+all query parameters -- the slug as much as the locale -- and asking about many things at once is
+a `POST` carrying a list, because a list does not belong in a URL.
+
+It was not that before, and the inconsistency was invisible from inside: the locale had been
+argued into the query while `/view/{slug}` kept the slug in the path, so one question asked two
+ways at once. The rule is worth more than either spelling.
+
+The cost is that a slug carries slashes and arrives percent-encoded --
+`?slug=architecture%2Fcompile-time-rendering` reads worse than a path did. That is the price of a
+rule with no exceptions, and a rule with one exception is a rule nobody can apply without asking.
 
 **The locale is a query parameter and never a path segment.** `?lang=` is how this site already
 asks -- [locale/addressing.md](../locale/addressing.md) gives it as a reader's first preference
 source and `llms.txt` documents it for machines -- so one spelling reaches the site and the API.
 Absent means `mw`, the same answer a bare URL gives; an unknown value is a `400` and never a
 fallback to another view. It stays the one variant dimension either way.
+
+**The CDN is the exception, and it is not one.** There a path _is_ the key --
+`/{type}/{hash}.{ext}` -- and the whole cache policy is derived from its shape, so moving a hash
+into a query would take away the thing that decides how long it may be held. The rule above is
+about questions; the CDN serves addresses. See [delivery.md](delivery.md).
+
+### One batch entry point
+
+`POST /batch`, and the body's `type` says which question. Every batchable question used to get a
+route of its own -- `/views` beside `/article`, `/read-counts` beside `/read` -- which meant
+inventing a second name for something already named, and then living with names a letter apart
+where only one had an effect.
+
+```jsonc
+{ "type": "articles", "slugs": ["architecture/one"], "locales": ["ja", "de"] }
+{ "type": "reads",    "slugs": ["architecture/one", "mirror/two"] }
+```
+
+`articles` is one shape for two gestures: a language menu is one slug and many locales, a homepage
+warming its list is many slugs and one locale, and they are the same question. The answer carries
+its `type` back, so a consumer holding one can tell what it answers without remembering what it
+sent -- which starts to matter as soon as one batcher serves several questions.
+
+A slug the corpus does not name is **absent** from the answer rather than an error, because this
+is what a consumer asks before it knows which exist. A locale that is not a locale is a `400`: the
+first is a fact about the corpus, the second is a mistake in the question.
+
+Nothing here is cacheable, and that is the trade. A `POST` is not a cacheable request, so the
+caller memoises what it asked for -- which is what makes a batch a warming path rather than a
+serving one.
 
 **An answer is grouped, not flat.** `objects`, `locale`, `meta`, `dates`, `metrics`, `preview`:
 each group answers one question, and a reader looking for a title does not have to know the whole
@@ -181,18 +227,18 @@ list to find it. Flat, this was thirteen keys with `content` beside `title` and 
 of it.
 
 **A read count is not here at all, and the reason is worth the paragraph.** It was carried inside
-`/view` for an afternoon, which gave one counter nine cached snapshots of itself -- one per locale
+`/article` for an afternoon, which gave one counter nine cached snapshots of itself -- one per locale
 -- that could disagree by five minutes, so a reader changing language watched the number move for
 no reason. A count and a view have different freshness: one is written by every visitor, the other
 changes when somebody publishes. It lives in [engagement.md](../engagement.md)'s API, on a route
 of its own, with no locale in it.
 
-`/markdown/{slug}` takes no locale, because `<url>.md` serves the source whatever view asked for
+`/source` takes no locale, because `<url>.md` serves the source whatever view asked for
 it, and it resolves against articles and standalone pages alike -- a page's markdown hash is
 reachable nowhere else. Having no variant dimension at all makes it the best-cached answer here,
 and the whole design's latency rests on how often these answers are hits.
 
-**A fact appears in exactly one answer.** `/view` carries neither the markdown hash nor the
+**A fact appears in exactly one answer.** `/article` carries neither the markdown hash nor the
 alternates, though it once carried both: the first has the route above, and the second is already
 inside the `content` object the view names. Two answers holding one fact is the shape
 [the workspace code.md](../../../../spec/code.md) warns about, where the second reader is the one
