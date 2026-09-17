@@ -51,7 +51,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
-	import { contentLanguageCookie, type LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '$lib/locale';
+	import { chooseLocale } from '$lib/locale/current.svelte';
 	import {
 		contentLanguageHref,
 		languageName,
@@ -68,7 +69,26 @@
 		code,
 		sourceLanguage,
 		available,
-	}: { code: TranslationCode; sourceLanguage: string; available: boolean } = $props();
+		prefetch,
+	}: {
+		code: TranslationCode;
+		sourceLanguage: string;
+		available: boolean;
+		/** Fetches a view so the swap has something to swap to. See the switcher beside this. */
+		prefetch?: (next: LocaleCode) => Promise<unknown>;
+	} = $props();
+
+	let pending = $state(false);
+
+	// The pointer says the click was taken while the article is on its way, the same signal the
+	// switcher gives. There is nothing else to move: the sentence is about to stop existing.
+	$effect(() => {
+		if (!pending) return;
+		document.documentElement.style.cursor = 'progress';
+		return () => {
+			document.documentElement.style.cursor = '';
+		};
+	});
 
 	const language = $derived(sourceLanguageName(sourceLanguage, code));
 	const originalHref = $derived(contentLanguageHref('mw', page.url));
@@ -110,7 +130,15 @@
 		),
 	);
 
-	function showOriginal(event: MouseEvent) {
+	/**
+	 * Take the source view without leaving the page.
+	 *
+	 * The same swap the language menu makes; it used to be a cookie write and a reload. The
+	 * article is fetched first, so the notice does not vanish before what it announced has. The
+	 * `?lang=mw` href stays as the fallback it always was -- a modified click, or no JavaScript.
+	 * See spec/locale/views.md.
+	 */
+	async function showOriginal(event: MouseEvent) {
 		if (
 			event.defaultPrevented ||
 			event.button !== 0 ||
@@ -122,8 +150,12 @@
 			return;
 		}
 		event.preventDefault();
-		document.cookie = contentLanguageCookie('mw', window.location.protocol === 'https:');
-		window.location.reload();
+		pending = true;
+		// A failed fetch is not a reason to stay: the load this invalidates will ask again, and
+		// reaching the source view is what the reader asked for.
+		await prefetch?.('mw').catch(() => undefined);
+		await chooseLocale('mw');
+		pending = false;
 	}
 
 	/**

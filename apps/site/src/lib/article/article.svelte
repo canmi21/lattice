@@ -490,6 +490,7 @@
 						code={locale.code}
 						sourceLanguage={meta.lang}
 						available={locale.translated}
+						prefetch={(next) => publishedView(fetch, slug, next)}
 					/>
 				{/if}
 				{#if summary}
