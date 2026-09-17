@@ -7,6 +7,7 @@ import {
 	unsatisfiableResponse,
 	type Bindings,
 } from '@canmi/store';
+import { failure } from './respond';
 
 /**
  * Serving favicons that the local CMS already fetched and synced.
@@ -54,7 +55,7 @@ export function candidates(tone: string | undefined): readonly string[] {
 favicon.get('/:domain', async (c) => {
 	const domain = c.req.param('domain').toLowerCase();
 	if (!isValidHostname(domain)) {
-		return c.json({ error: 'invalid hostname' }, 400);
+		return failure(c, 400, 'invalid_hostname');
 	}
 
 	const [first, second] = candidates(c.req.query('tone'));
@@ -67,7 +68,7 @@ favicon.get('/:domain', async (c) => {
 		(await lookup(c.env, domain, first, range)) ?? (await lookup(c.env, domain, second, range));
 
 	if (!found) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 	if (isUnsatisfiable(found)) {
 		return unsatisfiableResponse(found.total);

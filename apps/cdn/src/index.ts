@@ -19,6 +19,7 @@ import {
 	type Bindings,
 } from '@canmi/store';
 import { stored } from './stored';
+import { failure } from './respond';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -80,11 +81,11 @@ for (const type of ARTIFACT_TYPES) {
 app.get('/*', async (c) => {
 	const key = new URL(c.req.url).pathname.replace(/^\/+/, '');
 	if (!key || key.includes('..')) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 	const found = await read(c.env, key, c.req.header('Range'));
 	if (!found) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 	if (isUnsatisfiable(found)) {
 		return unsatisfiableResponse(found.total);

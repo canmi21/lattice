@@ -6,6 +6,7 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
 		"@cloudflare/workers-types": "^5.20260911.1"
 	}
 }

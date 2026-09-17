@@ -21,6 +21,7 @@ import {
 } from '@canmi/store';
 import { Hono } from 'hono';
 import { validatorFor } from './key';
+import { failure } from './respond';
 
 /**
  * What each type is served as. Keyed by `ArtifactType`, so adding one without an answer is a
@@ -44,7 +45,7 @@ export function artifact(type: ArtifactType) {
 		// decorative in one place and load-bearing in another is eventually parsed by accident.
 		const parsed = parseArtifactKey(key);
 		if (!parsed) {
-			return c.json({ error: 'not an artifact' }, 400);
+			return failure(c, 400, 'not_an_artifact');
 		}
 
 		// Answered before the bucket is touched, exactly as the image and licence routes do: the
@@ -56,7 +57,7 @@ export function artifact(type: ArtifactType) {
 
 		const found = await read(c.env, key, c.req.header('Range'));
 		if (!found) {
-			return c.json({ error: 'not found' }, 404);
+			return failure(c, 404, 'not_found');
 		}
 		if (isUnsatisfiable(found)) {
 			return unsatisfiableResponse(found.total);

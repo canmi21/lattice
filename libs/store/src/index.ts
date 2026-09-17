@@ -1,3 +1,4 @@
+import type { ApiResponse } from '@canmi/artifacts';
 import type { Fetcher, R2Bucket } from '@cloudflare/workers-types';
 
 /**
@@ -280,10 +281,15 @@ export function toResponse(found: Found): Response {
  * not a 404: the object is there, the question was wrong.
  */
 export function unsatisfiableResponse(total: number): Response {
-	return new Response(null, {
-		status: 416,
-		headers: { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' },
-	});
+	// A 416 is a refusal, so it carries the envelope every refusal carries -- and `Content-Range`
+	// beside it, which is the part a client actually needs to ask again. See spec/json.md.
+	return Response.json(
+		{ status: 'error', message: 'range_not_satisfiable' } satisfies ApiResponse<never>,
+		{
+			status: 416,
+			headers: { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' },
+		},
+	);
 }
 
 /**

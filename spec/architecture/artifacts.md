@@ -161,6 +161,10 @@ the whole design's latency rests on.
 | `/feed/{locale}`        | the `feed` hash                                                    |
 | `/llms`                 | the `llms` hash                                                    |
 
+**The CDN answers in the same envelope when it refuses.** A success there is the object's own
+bytes and is never wrapped -- an image is an image -- but a `400`, a `404` and a `416` all carry
+`{ status, message }`, so a caller reads one shape whichever of the two workers said no.
+
 `/markdown/{slug}` takes no locale, because `<url>.md` serves the source whatever view asked for
 it, and it resolves against articles and standalone pages alike -- a page's markdown hash is
 reachable nowhere else. Having no variant dimension at all makes it the best-cached answer here,

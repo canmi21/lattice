@@ -10,6 +10,7 @@ import {
 } from '@canmi/store';
 import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
+import { failure } from './respond';
 
 /**
  * Serving a content-addressed kind that stores one format and needs nothing done to it.
@@ -27,7 +28,7 @@ export function stored(prefix: ObjectPrefix, extension: string) {
 	route.get('/:name', async (c) => {
 		const parsed = parseName(c.req.param('name'));
 		if (!parsed || parsed.extension !== extension) {
-			return c.json({ error: 'not a content id' }, 400);
+			return failure(c, 400, 'not_a_content_id');
 		}
 		const { cid } = parsed;
 
@@ -41,7 +42,7 @@ export function stored(prefix: ObjectPrefix, extension: string) {
 
 		const found = await read(c.env, objectKey(prefix, cid), c.req.header('Range'));
 		if (!found) {
-			return c.json({ error: 'not found' }, 404);
+			return failure(c, 404, 'not_found');
 		}
 		// The object is there and the question was wrong, which is a different answer from 404:
 		// 416 carries the size so the client can ask again knowing it.

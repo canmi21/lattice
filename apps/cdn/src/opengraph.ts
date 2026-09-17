@@ -8,6 +8,7 @@ import {
 } from '@canmi/store';
 import { WEEKLY } from './cache';
 import { cardKeys } from './key';
+import { failure } from './respond';
 
 /**
  * Serving OpenGraph cards, one view per language.
@@ -25,7 +26,7 @@ opengraph.get('/*', async (c) => {
 	const url = new URL(c.req.url);
 	const keys = cardKeys(url.pathname, url.searchParams.get('lang'));
 	if (!keys) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 
 	// The view asked for, then the source view -- in that order and not in parallel. A page
@@ -38,7 +39,7 @@ opengraph.get('/*', async (c) => {
 		(asked && (await read(c.env, asked, range))) ||
 		(fallback && (await read(c.env, fallback, range)));
 	if (!found) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 	if (isUnsatisfiable(found)) {
 		return unsatisfiableResponse(found.total);

@@ -9,6 +9,7 @@ import {
 } from '@canmi/store';
 import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
+import { failure } from './respond';
 
 /**
  * Serving the licence texts `cms licenses` publishes.
@@ -33,12 +34,12 @@ license.get('/:name', async (c) => {
 		if (isUnsatisfiable(found)) return unsatisfiableResponse(found.total);
 		// Left to the cache middleware rather than stamped: the aggregate is rewritten whenever
 		// the dependency tree moves, so its name promises nothing about its bytes.
-		return found ? toResponse(found) : c.json({ error: 'not found' }, 404);
+		return found ? toResponse(found) : failure(c, 404, 'not_found');
 	}
 
 	const parsed = parseName(name);
 	if (!parsed || parsed.extension !== 'txt') {
-		return c.json({ error: 'not a content id' }, 400);
+		return failure(c, 400, 'not_a_content_id');
 	}
 	const { cid } = parsed;
 
@@ -51,7 +52,7 @@ license.get('/:name', async (c) => {
 
 	const stored = await read(c.env, objectKey('license', cid), c.req.header('Range'));
 	if (!stored) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 	if (isUnsatisfiable(stored)) {
 		return unsatisfiableResponse(stored.total);

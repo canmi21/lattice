@@ -1,6 +1,7 @@
 import { GITHUB_OWNER, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
 import { BRIEFLY } from './cache';
+import { failure } from './respond';
 
 /**
  * Proxying GitHub: avatars, and the release assets of one account.
@@ -119,7 +120,7 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 
 	if (![repo, tag, asset].every(isReleaseName)) {
 		c.header('Cache-Control', life.miss);
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 
 	// The edge holds the whole file under the plain URL, and `match` answers a Range request
@@ -138,13 +139,13 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 
 	if (response === null || !isGitHubHost(new URL(response.url).hostname)) {
 		c.header('Cache-Control', life.miss);
-		return c.json({ error: 'upstream unavailable' }, 502);
+		return failure(c, 502, 'upstream_unavailable');
 	}
 	if (!response.ok && response.status !== 206) {
 		// A repository not under the account, a tag that was never cut, an asset not attached:
 		// GitHub says 404 to all three, and so does this.
 		c.header('Cache-Control', life.miss);
-		return c.json({ error: 'not found' }, response.status === 404 ? 404 : 502);
+		return failure(c, response.status === 404 ? 404 : 502, 'not_found');
 	}
 
 	const headers = new Headers();

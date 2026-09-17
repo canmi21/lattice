@@ -10,6 +10,7 @@ import {
 import { FOREVER } from './cache';
 import { canonicalSpelling, parseName, validatorFor } from './key';
 import { DECODABLE, type Decodable, type Encodable, isEncodable, transcode } from './transcode';
+import { failure } from './respond';
 
 /**
  * Serving content-addressed assets.
@@ -38,7 +39,7 @@ const TYPES: Record<Encodable, string> = {
 image.get('/:name', async (c) => {
 	const parsed = parseName(c.req.param('name'));
 	if (!parsed) {
-		return c.json({ error: 'not a content id' }, 400);
+		return failure(c, 400, 'not_a_content_id');
 	}
 	const { cid, extension } = parsed;
 
@@ -47,7 +48,7 @@ image.get('/:name', async (c) => {
 	const canonical = canonicalSpelling(extension);
 	if (canonical) {
 		if (!(await findStored(c.env, cid))) {
-			return c.json({ error: 'not found' }, 404);
+			return failure(c, 404, 'not_found');
 		}
 		return c.redirect(`/image/${cid}.${canonical}`, 301);
 	}
@@ -71,7 +72,7 @@ image.get('/:name', async (c) => {
 	}
 
 	if (!isEncodable(extension)) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 
 	const cache = caches.default;
@@ -82,7 +83,7 @@ image.get('/:name', async (c) => {
 
 	const source = await findStored(c.env, cid);
 	if (!source) {
-		return c.json({ error: 'not found' }, 404);
+		return failure(c, 404, 'not_found');
 	}
 
 	const bytes = await transcode(await source.bytes, source.format, extension);
