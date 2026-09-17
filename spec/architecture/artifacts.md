@@ -218,6 +218,13 @@ redirect is permanent. A single segment is the site's own namespace -- `licenses
 more will be -- and a `301` is cached by browsers approximately for ever, so using one would spend
 an address this site may want later and be unable to take it back.
 
+**`<url>.md` redirects on the same terms.** A source served at every address that reaches it is the
+same duplicate-content shape as a page served that way, and a rule with one exception is a rule
+nobody can apply without asking. So `/source` answers with the path as well as the hash, for the
+reason every other single lookup does: the question asked by identity, and only the answer knows
+whether the address it was asked at is the real one. A page has no directory, so its identity is
+already its address and it never redirects.
+
 ### A question asks with a query; a list asks with a body
 
 **Nothing about a question lives in the path.** A single lookup is a `GET` whose identifiers are
