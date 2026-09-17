@@ -74,7 +74,8 @@
 		type LanguageChoice,
 		type MarkName,
 	} from './switcher';
-	import { acceptedLocale, contentLanguageCookie, SITE_LANGUAGE, type LocaleCode } from './index';
+	import { acceptedLocale, SITE_LANGUAGE, type LocaleCode } from './index';
+	import { chooseLocale } from './current.svelte';
 	import * as m from '$lib/paraglide/messages';
 
 	// The language of the thing being read. An article passes its own; a page passes nothing and
@@ -88,12 +89,84 @@
 		sourceLanguage = SITE_LANGUAGE,
 		phoneRegion = true,
 		framed = false,
+		prefetch,
 	}: {
 		code: LocaleCode;
 		sourceLanguage?: string;
 		phoneRegion?: boolean;
 		framed?: boolean;
+		/**
+		 * Fetch what this page renders in another language, without showing it.
+		 *
+		 * Supplied by the page, because only the page knows what it reads. A page with nothing to
+		 * fetch -- the licence directory is not translated -- passes none and switches at once.
+		 */
+		prefetch?: (next: LocaleCode) => Promise<unknown>;
 	} = $props();
+
+	/**
+	 * A pointer that can hover, watched rather than read once.
+	 *
+	 * Prefetching on hover is only worth anything where hovering exists: a touch has no state
+	 * between "not here" and "chosen". A feature query rather than a user agent, and followed for
+	 * changes because a tablet gains and loses a trackpad without reloading the page.
+	 */
+	let hoverable = $state(false);
+	$effect(() => {
+		const query = window.matchMedia('(hover: hover) and (pointer: fine)');
+		hoverable = query.matches;
+		const follow = (event: MediaQueryListEvent) => {
+			hoverable = event.matches;
+		};
+		query.addEventListener('change', follow);
+		return () => query.removeEventListener('change', follow);
+	});
+
+	/** The language a click is waiting on, and nothing else about it moves while it waits. */
+	let pending = $state<LocaleCode | undefined>(undefined);
+	const warmed = new Map<LocaleCode, Promise<unknown>>();
+
+	/**
+	 * The platform's own word for "accepted, working", and no DOM at all.
+	 *
+	 * It reaches only pointer devices, which are the ones that hovered and so almost never wait.
+	 * The feedback that reaches a touch is the menu staying open, below.
+	 */
+	$effect(() => {
+		if (pending === undefined) return;
+		document.documentElement.style.cursor = 'progress';
+		return () => {
+			document.documentElement.style.cursor = '';
+		};
+	});
+
+	/**
+	 * Start fetching a language when the pointer reaches its row.
+	 *
+	 * On the label span rather than the row, because the row is the menu library's element and a
+	 * handler handed to it never reaches the DOM -- dispatched one and watched nothing happen.
+	 * An attachment rather than an event attribute because a listener is what this is: the span is
+	 * not interactive, and an `onpointerenter` on it would promise behaviour a reader cannot
+	 * trigger or perceive -- which is what svelte's own a11y check says when you try.
+	 */
+	function warmOnHover(next: LocaleCode) {
+		return (node: HTMLElement) => {
+			if (!hoverable || !prefetch) return;
+			const start = () => warm(next);
+			node.addEventListener('pointerenter', start);
+			return () => node.removeEventListener('pointerenter', start);
+		};
+	}
+
+	function warm(next: LocaleCode): Promise<unknown> | undefined {
+		if (!prefetch || next === code) return undefined;
+		const started = warmed.get(next);
+		if (started) return started;
+		// A failed prefetch is not a failure: the click asks again and answers for itself.
+		const attempt = prefetch(next).catch(() => undefined);
+		warmed.set(next, attempt);
+		return attempt;
+	}
 	let open = $state(false);
 
 	/**
@@ -212,15 +285,27 @@
 
 	const markSize = $derived(currentMark ? MARK_SIZE[currentMark] : COMPASS_SIZE);
 
-	function choose(nextCode: string) {
-		open = false;
+	/**
+	 * Take the language only once what it says is in hand.
+	 *
+	 * Nothing moves until then -- not the interface, not the article, not the menu -- because the
+	 * page reads its locale out of page data and that changes only when the load finishes. So the
+	 * swap is atomic without being coordinated, and a reader never watches the interface describe
+	 * an article that has not changed yet. See spec/locale/addressing.md.
+	 */
+	async function choose(nextCode: string) {
 		const choice = choices.find(({ code: choiceCode }) => choiceCode === nextCode);
-		if (!choice) return;
-		const navigated = selectContentLanguage(code, choice.code, (selectedCode) => {
-			document.cookie = contentLanguageCookie(selectedCode, window.location.protocol === 'https:');
-			window.location.reload();
-		});
-		if (!navigated) open = false;
+		if (!choice || !selectContentLanguage(code, choice.code, () => {})) {
+			open = false;
+			return;
+		}
+		pending = choice.code;
+		await warm(choice.code);
+		// A later choice took over while this one was in flight; that call finishes the work.
+		if (pending !== choice.code) return;
+		await chooseLocale(choice.code);
+		pending = undefined;
+		open = false;
 	}
 </script>
 
@@ -275,8 +360,9 @@
 							]} shrink-0 text-text-soft group-data-[highlighted]:text-text-strong"
 							aria-hidden="true"
 						/>
-						<span class="flex-1 {stylex.attrs(checked ? styles.rowStrong : styles.rowSoft).class}"
-							>{choice.name}</span
+						<span
+							class="flex-1 {stylex.attrs(checked ? styles.rowStrong : styles.rowSoft).class}"
+							{@attach warmOnHover(choice.code)}>{choice.name}</span
 						>
 						<!-- One marker at most: being the current view outranks being the browser's
 						     preference, and showing both on one row would say the same thing twice. -->

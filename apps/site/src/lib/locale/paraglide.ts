@@ -28,12 +28,11 @@ export function registerServerStrategy(): void {
 /**
  * The same answer on the client, read from the document the server just rendered.
  *
- * The server stamps its resolved code onto `<html data-locale>`, the same way it stamps the theme
- * class, and hydration is guaranteed to match it.
- *
- * `setLocale` is a no-op: switching content language reloads the full document so the article and
- * the interface change together, rather than only moving the interface to describe an article that
- * did not change.
+ * The server stamps its code onto `<html data-locale>` and `chooseLocale` re-stamps it. Nothing
+ * renders through this -- every message call passes an explicit locale from page data, which is
+ * what changes the interface with the article rather than ahead of it -- so it is the fallback
+ * for a call that does not, kept current so such a call is redundant and not a language behind.
+ * `setLocale` is a no-op: the choice is a cookie, a load and a re-render, all `chooseLocale`'s.
  */
 export function registerClientStrategy(): void {
 	defineCustomClientStrategy(STRATEGY, {
