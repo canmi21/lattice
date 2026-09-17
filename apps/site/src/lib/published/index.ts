@@ -21,6 +21,7 @@ import {
 	type PublishedPage,
 	type PublishedView,
 	type SitemapAnswer,
+	type StatsAnswer,
 	type ViewAnswer,
 	type ViewsAnswer,
 } from '@canmi/artifacts';
@@ -64,6 +65,18 @@ export function publishedMetadata(
 	locale: LocaleCode,
 ): Promise<ViewAnswer | undefined> {
 	return answer<ViewAnswer>(fetch, viewUrl(slug, locale));
+}
+
+/**
+ * The two public counters, cached the way every other five-minute answer here is.
+ *
+ * Engagement rather than corpus, and it lives here anyway: what decides where a fetch belongs is
+ * which cache it wants, and this one wants the one this module owns -- served during SSR, held
+ * for five minutes, and still answering from a stale copy when the API will not. See
+ * spec/engagement.md.
+ */
+export function siteStats(fetch: Fetch): Promise<StatsAnswer | undefined> {
+	return answer<StatsAnswer>(fetch, api('/stats'));
 }
 
 /** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */

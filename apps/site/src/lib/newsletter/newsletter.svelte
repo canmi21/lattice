@@ -1,4 +1,5 @@
 <script module lang="ts">
+	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
 	import { duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
@@ -122,7 +123,7 @@
 	import Counter from '$lib/components/counter.svelte';
 	import {
 		createCancelMutation,
-		createEngagementQuery,
+		createStatsQuery,
 		createNewsletterMutation,
 		readSubscription,
 		type Subscription,
@@ -156,7 +157,8 @@
 		offer?: boolean;
 	} = $props();
 
-	const engagement = createEngagementQuery();
+	// Rendered on the server, so the subscriber count is in the HTML rather than arriving after.
+	const engagement = createStatsQuery(() => page.data.stats);
 	const newsletter = createNewsletterMutation();
 	const cancellation = createCancelMutation();
 	const subscribers = $derived(engagement.data?.subscriber_count ?? 0);

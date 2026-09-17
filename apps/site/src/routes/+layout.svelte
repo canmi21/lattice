@@ -76,8 +76,15 @@
 		persister,
 		maxAge: QUERY_CACHE_MAX_AGE,
 		dehydrateOptions: {
-			shouldDehydrateQuery: (query: { state: { status: string } }) =>
-				query.state.status === 'success',
+			/**
+			 * Persisted unless the answer belongs to one visitor.
+			 *
+			 * `localStorage` outlives the address a personal answer was keyed by, so a restored
+			 * `liked` would mark a heart for whoever opens the browser next. A query says so with
+			 * `meta.persist: false`; without this check the flag was documentation.
+			 */
+			shouldDehydrateQuery: (query: { state: { status: string }; meta?: { persist?: boolean } }) =>
+				query.state.status === 'success' && query.meta?.persist !== false,
 			shouldDehydrateMutation: () => false,
 		},
 	};

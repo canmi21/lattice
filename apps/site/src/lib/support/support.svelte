@@ -113,7 +113,12 @@
 	import { animate } from 'motion';
 	import { reader, tab } from '$lib/client/state';
 	import { remFromMeasuredPixels } from '$lib/client/units';
-	import { createEngagementQuery, createLikeMutation } from '$lib/engagement/engagement.svelte';
+	import { page } from '$app/state';
+	import {
+		createLikedQuery,
+		createLikeMutation,
+		createStatsQuery,
+	} from '$lib/engagement/engagement.svelte';
 	import { PUBLIC_LANGUAGE, type LocaleCode } from '$lib/locale';
 	import * as m from '$lib/paraglide/messages';
 	import { intlLocale } from '$lib/format';
@@ -186,13 +191,22 @@
 		tab.remember(sessionStorage, PREFERRED, true);
 	}
 
-	const engagement = createEngagementQuery();
+	/**
+	 * The count comes from the page, the mark comes from the browser.
+	 *
+	 * Rendered on the server, so the number is in the HTML and the reader is not shown a zero that
+	 * corrects itself. Whether they have already liked cannot be: it is keyed by their address, and
+	 * a page cached for one reader would tell the next one they had clicked something. So the heart
+	 * is unmarked until the browser has asked. See spec/engagement.md.
+	 */
+	const stats = createStatsQuery(() => page.data.stats);
+	const mark = createLikedQuery();
 	const like = createLikeMutation();
-	const liked = $derived(engagement.data?.liked ?? false);
+	const liked = $derived(mark.data?.liked ?? false);
 	const actionAnimations = new WeakMap<HTMLElement, AnimationControl>();
 	const actionChromeWidths = new WeakMap<HTMLElement, number>();
 
-	const count = $derived(engagement.data?.like_count ?? 0);
+	const count = $derived(stats.data?.like_count ?? 0);
 	const numberLocale = $derived(intlLocale(locale));
 	const numberFormat = $derived(new Intl.NumberFormat(numberLocale));
 	const formattedCount = $derived(numberFormat.format(count));
