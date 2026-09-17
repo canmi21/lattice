@@ -24,7 +24,8 @@ export type FeedBases = {
 	url: string;
 };
 
-function escapeHtml(value: string): string {
+/** Exported because a feed body is not only blocks: see the site's translation notice. */
+export function escapeHtml(value: string): string {
 	return value
 		.replace(/&/g, '&amp;')
 		.replace(/</g, '&lt;')

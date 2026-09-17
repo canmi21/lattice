@@ -24,6 +24,7 @@ import {
 } from '@canmi/artifacts';
 import { pageUrls, pickUrls, URLS } from '@canmi/urls';
 import type { FeedEntry } from '$lib/documents/feed';
+import { noticeHtml } from '$lib/documents/notice';
 import type { LocaleCode } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
 import { answer } from './cache.ts';
@@ -122,7 +123,11 @@ export async function publishedFeedEntries(
 				await object(fetch, 'content', entry.objects.content)
 			).json()) as PublishedView;
 			readEnvelope(view, entry.slug, locale);
-			return { ...entry, html: feedHtml(view.body.blocks, feedBases(entry.url)) };
+			// Above the article, as on the page. The original's address is the bare URL, which is
+			// what the source view is addressed by. See spec/locale/views.md.
+			const notice = noticeHtml(locale, view.meta.lang, view.language.translated, entry.url);
+			const body = feedHtml(view.body.blocks, feedBases(entry.url));
+			return { ...entry, html: notice ? `${notice}\n${body}` : body };
 		}),
 	);
 }
