@@ -70,22 +70,41 @@ function byLocale<T extends v.GenericSchema>(value: T) {
 	return v.partial(v.object(Object.fromEntries(entries) as Record<LocaleCode, T>));
 }
 
-export const RootViewSchema = v.object({
-	content: hash,
+/**
+ * What an article says it is: the copy a page renders in its own right.
+ *
+ * `short` is the pair a phone card shows where the row clips, and it is a pair rather than two
+ * keys because it is one decision -- see spec/i18n/prose.md.
+ */
+export const ViewMetaSchema = v.object({
 	title: v.string(),
 	subtitle: v.string(),
 	description: v.string(),
-	short_title: v.string(),
-	short_subtitle: v.string(),
-	created: v.string(),
-	lastmod: v.string(),
-	language_tag: v.string(),
-	canonical: v.string(),
-	translation_available: v.boolean(),
-	words: v.number(),
+	short: v.object({ title: v.string(), subtitle: v.string() }),
+});
+
+/**
+ * One locale's view, grouped by what each group answers rather than laid out flat.
+ *
+ * Flat, this was thirteen keys where `title` sat beside `content` and `words` beside
+ * `language_tag`, and a reader had to know the whole list to find anything. Each group below
+ * answers one question: which objects carry it, which language it is, what it says, when it was
+ * written, how big it is, and what a listing shows of it.
+ */
+export const RootViewSchema = v.object({
+	objects: v.object({ content: hash }),
+	locale: v.object({
+		language_tag: v.string(),
+		canonical: v.string(),
+		/** False when this locale is showing the source article as a safe fallback. */
+		translated: v.boolean(),
+	}),
+	meta: ViewMetaSchema,
+	dates: v.object({ created: v.string(), lastmod: v.string() }),
+	metrics: v.object({ words: v.number() }),
 	// The opening prose the homepage card draws its body bars from. Carried here so listing every
 	// article costs one request rather than one per article; it is the only body text the root holds.
-	paragraphs: v.array(v.string()),
+	preview: v.object({ paragraphs: v.array(v.string()) }),
 });
 
 /**
@@ -123,6 +142,7 @@ export const RootSchema = v.object({
 	llms: hash,
 });
 
+export type ViewMeta = v.InferOutput<typeof ViewMetaSchema>;
 export type Root = v.InferOutput<typeof RootSchema>;
 export type RootArticle = v.InferOutput<typeof RootArticleSchema>;
 export type RootView = v.InferOutput<typeof RootViewSchema>;
@@ -134,12 +154,34 @@ export type RootView = v.InferOutput<typeof RootViewSchema>;
  * which is the line spec/architecture/artifacts.md draws under "Validation is heavy where it is
  * free". Two hand-written spellings of these disagreed six times in one afternoon, silently.
  */
-export type ViewAnswer = RootView & { slug: string; locale: LocaleCode };
+/**
+ * One article, as the API answers for it.
+ *
+ * The root's view grouped as it is stored, plus the two things only a request can supply: which
+ * article was asked for, and how many times it has been read. The count lives in D1 because a
+ * visitor writes it -- see spec/architecture/data.md on which store owns what.
+ */
+export type ViewAnswer = Omit<RootView, 'locale' | 'metrics'> & {
+	slug: string;
+	url: string;
+	locale: RootView['locale'] & { code: LocaleCode };
+	metrics: RootView['metrics'] & { reads: number };
+};
 
+/**
+ * The homepage: the articles it lists, and the compiled page its own copy comes from.
+ *
+ * The locale is named once at the top rather than on every row, because one request answers in
+ * one language and repeating it per article is the same fact N times.
+ */
 export type HomeAnswer = {
-	articles: (RootView & { path: string })[];
-	/** The homepage's own copy, or nothing where this locale has no view of it. */
-	page: { content: string } | null;
+	locale: { code: LocaleCode; language_tag: string };
+	page: { objects: { content: string } } | null;
+	articles: (Omit<RootView, 'locale' | 'metrics'> & {
+		slug: string;
+		url: string;
+		metrics: RootView['metrics'] & { reads: number };
+	})[];
 };
 
 export type SitemapAnswer = {
@@ -195,16 +237,23 @@ export type PublishedView = {
 	version: typeof ARTIFACT_VERSION;
 	slug: string;
 	locale: LocaleCode;
+	/** The frontmatter, which already carries this article's dates and source language. */
 	meta: ArticleMeta;
-	phone_title: string;
-	toc: TocEntry[];
-	blocks: Block[];
-	summary?: ArticleSummary;
-	words: number;
-	language_tag: string;
-	canonical: string;
-	translation_available: boolean;
-	alternates: Alternate[];
+	/** How this view is addressed and whether it is a translation at all. */
+	language: {
+		tag: string;
+		canonical: string;
+		translated: boolean;
+		alternates: Alternate[];
+	};
+	/** What the page draws. `phone_title` is display, decided at build; see spec/styling/phone.md. */
+	body: {
+		phone_title: string;
+		toc: TocEntry[];
+		blocks: Block[];
+		summary?: ArticleSummary;
+	};
+	metrics: { words: number };
 };
 
 /**
