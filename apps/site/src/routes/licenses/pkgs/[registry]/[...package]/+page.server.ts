@@ -1,3 +1,4 @@
+import { LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
 import { error } from '@sveltejs/kit';
 import { URLS } from '@canmi/urls';
 import {
@@ -53,7 +54,12 @@ function ordered(labels: string[], self: string): Node[] {
 		);
 }
 
-export const load: PageServerLoad = ({ params, locals }) => {
+export const load: PageServerLoad = ({ params, locals, depends }) => {
+	// Declared so that choosing a language re-runs this load. The directory is not translated, so
+	// there is nothing to fetch -- but the locale comes from the server's negotiation, and this is
+	// what lets that happen again from the cookie without a full document load.
+	depends(LOCALE_DEPENDENCY);
+
 	const found = packageForRoute(`${params.registry}/${params.package}`);
 	if (!found) error(404, 'Package not found');
 
