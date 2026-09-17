@@ -262,8 +262,8 @@ fn note(
 pub fn republish(public: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
 	// Minified, for the reason `image::write_derived` gives.
 	let document = manifest::Document { version: manifest::VERSION, media: media.clone() };
-	let json = serde_json::to_string(&document)
-		.map_err(|error| std::io::Error::other(error.to_string()))?;
+	let json =
+		serde_json::to_string(&document).map_err(|error| std::io::Error::other(error.to_string()))?;
 	store::write(&store::meta_path(public, cid), json.as_bytes())
 }
 
