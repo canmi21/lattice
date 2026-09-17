@@ -34,6 +34,24 @@ This notice is a state indicator rather than article content. Keeping it beside 
 makes its scope clear before the reader reaches the body, and blue is reserved here for the
 translated state rather than becoming a general article accent.
 
+### The feed carries the same sentence, and needed it more
+
+An entry in a translated feed opens with the notice, from the same messages and the same helpers
+the page uses. The feed was the one place a translation arrived unannounced, and it is the place
+where that costs most: a reader who follows a link chose the page, while a subscriber to
+`?lang=ja` is handed every article and is the least likely to notice the language changed under
+them.
+
+The case it exists for is the third one. An article a locale has no translation of is served as
+the source rather than as a 404 -- so without the notice a Japanese subscriber simply receives an
+English article with nothing saying why.
+
+Three differences from the page, each forced by what a feed is. There is no short reading,
+because a feed has one column and the reader's own client decides the width. The link is an
+ordinary absolute href to the source view rather than a cookie write, because nothing runs. And
+the locale is passed to the message rather than taken from the request: a document assembled for
+`?lang=` has no negotiated locale, and asking for one is an error rather than a wrong answer.
+
 ### Two states, because a reader may already speak the article's language
 
 A Chinese article read at `zh` is neither the original nor a translation in the ordinary sense.
