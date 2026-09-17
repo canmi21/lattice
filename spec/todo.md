@@ -1165,6 +1165,36 @@ of waiting is that `data/build/licenses.json` stays in git while every other pur
 leaves; the cost of not waiting is migrating a payload onto a surface that is about to lose most
 of it.
 
+## The site's non-page routes are SvelteKit's, and every other worker's are hono's
+
+`apps/api` and `apps/cdn` are hono. `apps/site` is not, and it serves eight `+server.ts` routes
+plus a handle that answers `<url>.md` before the router sees it:
+
+| Route                                                           | Answers                                     |
+| --------------------------------------------------------------- | ------------------------------------------- |
+| `/atom.xml`                                                     | the assembled feed                          |
+| `/sitemap.xml`                                                  | the assembled sitemap                       |
+| `/llms.txt`                                                     | the assembled index                         |
+| `/robots.txt`                                                   | a constant                                  |
+| `/{key}.txt`                                                    | the IndexNow key                            |
+| `/licenses.txt`, `/licenses/full.txt`, `/licenses/{...package}` | licence text                                |
+| `<url>.md`                                                      | an article's source, from `hooks.server.ts` |
+
+The intent is that a page stays SvelteKit's and everything else becomes one hono app mounted
+inside it, so that every non-HTML response this project serves is written the same way: one
+router, one `failure` helper, one place a cache header is decided. Today the site answers those
+questions in eight files and a handle, none of which share the helpers `apps/api` and `apps/cdn`
+already have.
+
+**What has to be decided before it can be done.** Where the hono app is mounted -- a catch-all
+`+server.ts` forwarding `event.request`, or `handle` in `hooks.server.ts` ahead of the router --
+and the two differ in what they can reach. Hono would not have `event.fetch`, which is what makes
+a same-origin subrequest work in SSR and what `$lib/published` takes as an argument, so that has
+to be passed in rather than imported. `<url>.md` is the awkward one: it is a suffix on every
+page's path rather than a route, so it is the case that decides whether the mount point can be a
+route at all. And whether the licence text routes survive the surface decision above is open, so
+there is no reason to move them first.
+
 ## The compiler still lives in the application that stopped using it
 
 `apps/site/src/lib/content/build/` is 2,900 lines that turn markdown into blocks: `compile.ts`
