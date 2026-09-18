@@ -50,6 +50,7 @@ const INPUTS = {
 	brand: fileURLToPath(new URL('data/brand', ROOT)),
 	icons: fileURLToPath(new URL('data/favicon', ROOT)),
 	notice: fileURLToPath(new URL('data/build/licenses-full.txt', ROOT)),
+	cards: fileURLToPath(new URL('data/build/opengraph.json', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
 	cdnUrl: URLS.apps.production.cdn,
 	messages: fileURLToPath(new URL('messages', SITE)),
@@ -156,7 +157,29 @@ function paragraphs(text: string): string[] {
 		.map((p) => p.slice(0, 140));
 }
 
-async function publishArticle(tree: Tree, article: Article): Promise<RootArticle> {
+/**
+ * The cards `cms og` drew, keyed by `{view}/{slug}` as its record keys them.
+ *
+ * Read rather than derived: a card is content-addressed now, so there is no address to build from
+ * a slug and the record is the only place its id is written. A view with no entry is a view
+ * published before its card was drawn, which is a state rather than a fault.
+ */
+async function drawnCards(): Promise<Record<string, string>> {
+	const record = JSON.parse(
+		await readFile(INPUTS.cards, 'utf8').catch(() => '{}'),
+	) as { cards?: Record<string, { cid?: string }> };
+	return Object.fromEntries(
+		Object.entries(record.cards ?? {})
+			.filter(([, card]) => typeof card.cid === 'string')
+			.map(([key, card]) => [key, card.cid as string]),
+	);
+}
+
+async function publishArticle(
+	tree: Tree,
+	article: Article,
+	cards: Record<string, string>,
+): Promise<RootArticle> {
 	const views: RootArticle['views'] = {};
 	for (const code of LOCALE_CODES) {
 		const view = article.views[code];
@@ -183,7 +206,10 @@ async function publishArticle(tree: Tree, article: Article): Promise<RootArticle
 			metrics: { words: view.words },
 		};
 		views[code] = {
-			objects: { content: await tree.put('content', JSON.stringify(published)) },
+			objects: {
+				content: await tree.put('content', JSON.stringify(published)),
+				card: cards[`${code}/${article.path}`],
+			},
 			locale: {
 				language_tag: view.language_tag,
 				canonical: view.canonical,
@@ -218,7 +244,11 @@ async function publishArticle(tree: Tree, article: Article): Promise<RootArticle
  * tell the copies apart, so the nine bodies are one body. The root names a hash per locale
  * because the API answers per locale; the tree writes the object once because it is one object.
  */
-async function publishPage(tree: Tree, page: Page): Promise<Root['pages'][string]> {
+async function publishPage(
+	tree: Tree,
+	page: Page,
+	cards: Record<string, string>,
+): Promise<Root['pages'][string]> {
 	const views: Root['pages'][string]['views'] = {};
 	for (const code of LOCALE_CODES) {
 		const view = page.views[code];
@@ -228,7 +258,10 @@ async function publishPage(tree: Tree, page: Page): Promise<Root['pages'][string
 			meta: view.meta,
 			blocks: view.blocks,
 		};
-		views[code] = { content: await tree.put('page', JSON.stringify(published)) };
+		views[code] = {
+			content: await tree.put('page', JSON.stringify(published)),
+			card: cards[`${code}/${page.path}`],
+		};
 	}
 	return { markdown: await tree.put('markdown', page.markdown), views };
 }
@@ -303,9 +336,10 @@ async function publishCorpus(
 ): Promise<Tally> {
 	const tree = new Tree(dir, metadata);
 	const rootArticles: RootArticle[] = [];
-	for (const article of articles) rootArticles.push(await publishArticle(tree, article));
+	const cards = await drawnCards();
+	for (const article of articles) rootArticles.push(await publishArticle(tree, article, cards));
 	const rootPages: Root['pages'] = {};
-	for (const page of pages) rootPages[page.path] = await publishPage(tree, page);
+	for (const page of pages) rootPages[page.path] = await publishPage(tree, page, cards);
 	// Last, and only once every object it names is on disk. A root that arrives first names
 	// objects that answer 404, and a 404 on a content-addressed key is the one answer this
 	// design cannot afford to have cached. See spec/architecture/artifacts.md.

@@ -55,12 +55,7 @@ pub struct Gap {
 pub fn report(repo: &Path, articles: &Path) -> std::io::Result<Vec<Gap>> {
 	let scan = refs::scan(articles)?;
 	let described = crate::media::load(&crate::media::path_for(repo))?;
-	Ok(gaps(
-		&scan,
-		&crate::paths::favicon_root(repo),
-		&crate::paths::metadata_root(repo),
-		&described,
-	))
+	Ok(gaps(&scan, &crate::paths::favicon_root(repo), &crate::paths::metadata_root(repo), &described))
 }
 
 fn gaps(scan: &Scan, icons: &Path, metadata: &Path, described: &crate::media::Media) -> Vec<Gap> {

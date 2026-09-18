@@ -40,6 +40,9 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 
 	const view = found.view;
 	return {
+		// Which card this view shows, from the answer rather than from the address: a card is a
+		// content-addressed object and there is nothing to derive one from a slug.
+		card: found.card,
 		// The identity, which is what the read counter is keyed by on the API side and what every
 		// further question about this article asks with.
 		slug: view.slug,

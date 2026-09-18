@@ -129,8 +129,8 @@ pub fn short_date(iso: &str) -> Option<String> {
 /// dropped as a unit, and so the fallback is one prefix substitution rather than a filename
 /// rewrite. Nothing outside this repository ever sees the layout -- a reader asks for
 /// `/opengraph/{slug}.png?lang=ja` and the CDN resolves it. See spec/architecture/media.md.
-pub fn card_path(public: &Path, view: &str, slug: &str) -> PathBuf {
-	public.join("opengraph").join(view).join(format!("{slug}.png"))
+pub fn card_key(view: &str, slug: &str) -> String {
+	format!("{view}/{slug}")
 }
 
 /// The translation of one frontmatter value, or `None` when this view has none.
@@ -165,7 +165,8 @@ fn load_fonts(repo: &Path) -> Result<FontSystem, String> {
 pub struct Job {
 	/// What names the card in a report, including its view: `ja development/a-thing`.
 	pub label: String,
-	pub target: PathBuf,
+	/// `{view}/{slug}`: what the record files this card under, not where its bytes land.
+	pub key: String,
 	pub site: String,
 	pub domain: String,
 	pub face: Face,
@@ -248,7 +249,7 @@ fn article_jobs(
 
 				Job {
 					label: format!("{} {}", view.code, article.slug),
-					target: card_path(public, view.code, &article.slug),
+					key: card_key(view.code, &article.slug),
 					site: config.name.clone(),
 					domain: config.domain.clone(),
 					face: Face::Article {
@@ -359,7 +360,7 @@ fn home_jobs(
 
 			Job {
 				label: format!("{} {HOME_SLUG}", view.code),
-				target: card_path(public, view.code, HOME_SLUG),
+				key: card_key(view.code, HOME_SLUG),
 				site: config.name.clone(),
 				domain: config.domain.clone(),
 				face: Face::Home {
@@ -419,21 +420,28 @@ pub fn render_all(
 	let planned: Vec<Planned> = jobs
 		.into_iter()
 		.map(|job| {
-			let key = manifest::key_for(public, &job.target);
 			let hash = job.inputs();
+			let key = job.key.clone();
 			Planned { job, key, hash }
 		})
 		.collect();
 
-	let (todo, current): (Vec<&Planned>, Vec<&Planned>) = planned.iter().partition(|planned| {
-		force || !planned.job.target.is_file() || record.cards.get(&planned.key) != Some(&planned.hash)
-	});
+	// A card is current when the record says these inputs drew it *and* the object it names is
+	// still on disk. Checking the object rather than a path derived from the slug is the half
+	// content addressing changes: there is no path to derive any more.
+	let (todo, current): (Vec<&Planned>, Vec<&Planned>) =
+		planned.iter().partition(|planned| match record.cards.get(&planned.key) {
+			Some(card) if !force && card.hash == planned.hash => {
+				!crate::image::store::variant_path(public, &card.cid, "png").is_file()
+			}
+			_ => true,
+		});
 
 	// Decoded once and shared: it is read-only pixels, and decoding it per thread would repeat
 	// the only part of this that is not text shaping.
 	let avatar = load_avatar(repo);
 
-	let results: Vec<Result<&Planned, (String, String)>> = todo
+	let results: Vec<Result<(&Planned, String), (String, String)>> = todo
 		.par_iter()
 		.map_init(
 			|| load_fonts(repo).expect("font already parsed once above"),
@@ -467,9 +475,13 @@ pub fn render_all(
 					),
 				};
 				let png = encode(&pixels).map_err(|error| (job.label.clone(), error))?;
-				crate::image::store::write(&job.target, &png)
+				// The card's own bytes decide its address, like every other object. Which means
+				// two views that happen to draw identically are one object, and a redrawn card
+				// never overwrites the one a reader may still be holding.
+				let cid = crate::image::cid(&png);
+				crate::image::store::write(&crate::image::store::variant_path(public, &cid, "png"), &png)
 					.map_err(|error| (job.label.clone(), error.to_string()))?;
-				Ok(*planned)
+				Ok((*planned, cid))
 			},
 		)
 		.collect();
@@ -478,15 +490,17 @@ pub fn render_all(
 	// it. A failed one is left out too, which is what makes the next run retry it.
 	let mut next = manifest::Manifest::default();
 	for planned in &current {
-		next.cards.insert(planned.key.clone(), planned.hash.clone());
+		if let Some(card) = record.cards.get(&planned.key) {
+			next.cards.insert(planned.key.clone(), card.clone());
+		}
 	}
 
 	let mut outcome = Outcome { skipped: current.len(), ..Outcome::default() };
 	for result in results {
 		match result {
-			Ok(planned) => {
+			Ok((planned, cid)) => {
 				outcome.rendered += 1;
-				next.cards.insert(planned.key.clone(), planned.hash.clone());
+				next.cards.insert(planned.key.clone(), manifest::Card { hash: planned.hash.clone(), cid });
 			}
 			Err(failure) => outcome.failed.push(failure),
 		}
@@ -510,16 +524,15 @@ pub fn render_all(
 /// a card run over a leftover would be the tail wagging the dog; the next run tries again,
 /// because the key stays in the record it reads.
 fn sweep(public: &Path, previous: &manifest::Manifest, next: &manifest::Manifest) -> usize {
+	// By content id, and only when nothing the new record keeps still names it: two views that
+	// drew identically share one object, so a key going away is not a reason to delete bytes.
+	let kept: BTreeSet<&str> = next.cards.values().map(|card| card.cid.as_str()).collect();
 	let mut removed = 0;
-	for key in previous.cards.keys() {
-		if next.cards.contains_key(key) {
+	for (key, card) in &previous.cards {
+		if next.cards.contains_key(key) || kept.contains(card.cid.as_str()) {
 			continue;
 		}
-		let relative = Path::new(key);
-		if relative.is_absolute() || relative.components().any(|part| part.as_os_str() == "..") {
-			continue;
-		}
-		let target = public.join(relative);
+		let target = crate::image::store::variant_path(public, &card.cid, "png");
 		if target.is_file() && std::fs::remove_file(&target).is_ok() {
 			removed += 1;
 		}
@@ -564,7 +577,7 @@ pub fn wanted(articles: &Path) -> std::io::Result<BTreeSet<String>> {
 	let mut wanted = BTreeSet::new();
 	for view in &locale::VIEWS {
 		for slug in &slugs {
-			wanted.insert(card_path(Path::new(""), view.code, slug).to_string_lossy().into_owned());
+			wanted.insert(card_key(view.code, slug));
 		}
 	}
 	Ok(wanted)
@@ -688,14 +701,10 @@ mod tests {
 	}
 
 	#[test]
-	fn a_card_is_published_under_its_view_where_the_article_sits() {
-		assert!(
-			card_path(Path::new("/p"), "mw", "development/a-thing")
-				.ends_with("opengraph/mw/development/a-thing.png")
-		);
-		assert!(
-			card_path(Path::new("/p"), "ja", "development/a-thing")
-				.ends_with("opengraph/ja/development/a-thing.png")
-		);
+	fn a_card_is_recorded_under_its_view_and_not_under_a_path() {
+		// The key files the card in `cms og`'s record; where its bytes land is decided by the
+		// bytes, like every other object. Nothing derives an address from a slug any more.
+		assert_eq!(card_key("mw", "development/a-thing"), "mw/development/a-thing");
+		assert_eq!(card_key("ja", "development/a-thing"), "ja/development/a-thing");
 	}
 }

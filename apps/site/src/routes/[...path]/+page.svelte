@@ -15,6 +15,7 @@
 
 <Article
 	slug={data.slug}
+	card={data.card}
 	meta={data.meta}
 	phone_title={data.body.phone_title}
 	toc={data.body.toc}

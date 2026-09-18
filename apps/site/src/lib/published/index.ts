@@ -182,7 +182,7 @@ export async function warmView(slug: string, locale: LocaleCode): Promise<void> 
  * that reaches it, which is the duplicate-content shape. See spec/architecture/artifacts.md,
  * "Reaching an article by name".
  */
-export type FoundArticle = { path: string; view: PublishedView };
+export type FoundArticle = { path: string; card?: string; view: PublishedView };
 
 export async function publishedView(
 	fetch: Fetch,
@@ -197,7 +197,7 @@ export async function publishedView(
 	// Against the identity the API answered with, not the one that was asked for: that is the one
 	// the object declares, and the two disagreeing is what this check is here to catch.
 	readEnvelope(view, found.slug, locale);
-	return { path: found.path, view };
+	return { path: found.path, card: found.objects.card, view };
 }
 
 /** A page's envelope names no locale, so it is checked without one. See libs/artifacts. */
@@ -211,13 +211,13 @@ async function publishedPageView(fetch: Fetch, hash: string, slug: string): Prom
 export async function publishedHome(
 	fetch: Fetch,
 	locale: LocaleCode,
-): Promise<{ articles: HomeAnswer['articles']; page: PublishedPage | undefined }> {
+): Promise<{ articles: HomeAnswer['articles']; card?: string; page: PublishedPage | undefined }> {
 	const found = await answer<HomeAnswer>(fetch, api(`/homepage?lang=${locale}`));
 	if (!found) throw new Error(`the API names no homepage for ${locale}`);
 	const page = found.page
 		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)
 		: undefined;
-	return { articles: found.articles, page };
+	return { articles: found.articles, card: found.page?.objects.card, page };
 }
 
 /**

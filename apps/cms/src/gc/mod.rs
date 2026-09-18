@@ -116,6 +116,20 @@ pub fn plan(
 	// over-keeping is the safe direction for a collector and under-keeping is data loss.
 	keep.extend(hashes_in_root(metadata));
 
+	// Cards are content-addressed too and share the flat space, but no article names one: they
+	// hang off `cms og`'s record. The live set is what that command would draw -- every non-draft
+	// article and the home page, in every view -- asked of it rather than restated, so the two
+	// cannot disagree about a slug. See spec/architecture/media.md.
+	let drawn = opengraph::manifest::load(&opengraph::manifest::path_for(repo));
+	let wanted_cards = opengraph::wanted(articles)?;
+	keep.extend(
+		drawn
+			.cards
+			.iter()
+			.filter(|(key, _)| wanted_cards.contains(*key))
+			.map(|(_, card)| card.cid.clone()),
+	);
+
 	// Licence texts are content-addressed too and share the flat space, but nothing in an article
 	// or the root reaches one: they hang off the dependency record instead. Without this every
 	// licence in the bucket reads as garbage.
@@ -166,21 +180,6 @@ pub fn plan(
 				.map(|meta| meta.len())
 				.sum::<u64>();
 			sweep.orphans.push(directory);
-		}
-	}
-
-	// Cards are named by slug rather than by content id, so nothing above can keep one alive:
-	// no article ever writes `opengraph/ja/a-thing.png` down. The live set is what `cms og` would
-	// draw -- every non-draft article, the home page and the licence routes, in every view --
-	// asked of that module rather than restated here, so the two cannot disagree about a slug.
-	// `cms og` sweeps its own record; this is the tree behind it, where a card the record lost
-	// track of would otherwise stay for good. See spec/architecture/media.md.
-	let cards = opengraph::wanted(articles)?;
-	for path in files_under(&public.join("opengraph"))? {
-		let key = path.strip_prefix(public).unwrap_or(&path).to_string_lossy().into_owned();
-		if !cards.contains(&key) {
-			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
-			sweep.orphans.push(path);
 		}
 	}
 
@@ -478,9 +477,9 @@ mod tests {
 
 	#[test]
 	fn sweeps_a_card_no_page_asks_for_any_more() {
-		// A card is named by its slug, so nothing content-addressed keeps it alive and the live set
-		// is the pages themselves. `cms og` removes only what its own record still names, which is
-		// what leaves a card the record lost track of -- or one a draft used to have -- for good.
+		// A card is content-addressed like everything else, so what keeps it alive is `cms og`'s
+		// record -- and only for a key the live set still wants. A card for a draft, or one whose
+		// page is gone, is bytes nothing reaches.
 		let temporary = temp();
 		let root = temporary.path().to_path_buf();
 		std::fs::create_dir_all(root.join("contents")).expect("dir");
@@ -490,14 +489,22 @@ mod tests {
 			.expect("write");
 
 		let public = root.join("public");
-		for slug in ["kept", "hidden", "gone"] {
-			let card = crate::opengraph::card_path(&public, "mw", slug);
-			crate::image::store::write(&card, b"png").expect("write");
+		let mut drawn = crate::opengraph::manifest::Manifest::default();
+		let cids = ["aa".repeat(16), "bb".repeat(16), "cc".repeat(16)];
+		for (slug, cid) in ["kept", "hidden", "gone"].iter().zip(&cids) {
+			crate::image::store::write(&crate::image::store::variant_path(&public, cid, "png"), b"png")
+				.expect("write");
+			drawn.cards.insert(
+				crate::opengraph::card_key("mw", slug),
+				crate::opengraph::manifest::Card { hash: "x".into(), cid: cid.clone() },
+			);
 		}
+		crate::opengraph::manifest::save(&crate::opengraph::manifest::path_for(&root), &drawn)
+			.expect("record");
 
 		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
-		assert_eq!(names, vec!["gone", "hidden"]);
+		assert_eq!(names, vec![cids[1].clone(), cids[2].clone()]);
 		std::fs::remove_dir_all(&root).ok();
 	}
 

@@ -25,6 +25,7 @@ export const load: PageLoad = async ({ url, fetch, parent, depends }) => {
 			path: article.path,
 			paragraphs: article.preview.paragraphs,
 		})),
+		card: home.card,
 		locale: { code },
 		...homepageContent(home.page, code),
 	};

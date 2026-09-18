@@ -108,7 +108,7 @@
 	import { warmListed } from '$lib/client/warm.svelte';
 	import { publishedHome } from '$lib/published';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
-	import { CARD_HEIGHT, CARD_WIDTH, HOME_SLUG, cardUrl } from '$lib/opengraph';
+	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
 	import * as m from '$lib/paraglide/messages';
 	import { site } from '$lib/site';
 	import Support from '$lib/support/support.svelte';
@@ -119,7 +119,7 @@
 
 	const cdnUrl = pageUrls(dev).cdn;
 	const avatarSrc = imgsrc(`github:avatar:${site.author.githubId}@192`, { cdnUrl });
-	const card = $derived(cardUrl(cdnUrl, HOME_SLUG, data.locale.code));
+	const card = $derived(cardUrl(cdnUrl, data.card));
 
 	/**
 	 * A device with no pointer never says which article interests it, so the list it is shown
@@ -208,10 +208,12 @@
 	<meta property="og:title" content={data.title} />
 	<meta property="og:description" content={data.description} />
 	<meta property="og:url" content={URLS.apps.production.site} />
-	<meta property="og:image" content={card} />
-	<meta property="og:image:width" content={CARD_WIDTH} />
-	<meta property="og:image:height" content={CARD_HEIGHT} />
-	<meta property="og:image:alt" content={data.title} />
+	{#if card}
+		<meta property="og:image" content={card} />
+		<meta property="og:image:width" content={CARD_WIDTH} />
+		<meta property="og:image:height" content={CARD_HEIGHT} />
+		<meta property="og:image:alt" content={data.title} />
+	{/if}
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 

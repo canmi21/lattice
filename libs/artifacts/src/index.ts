@@ -175,7 +175,9 @@ const hash = v.pipe(v.string(), v.regex(HASH_PATTERN));
  * written, how big it is, and what a listing shows of it.
  */
 export const RootViewSchema = v.object({
-	objects: v.object({ content: hash }),
+	// The card is optional because `cms og` runs on its own schedule: a view published before the
+	// card was drawn is a view with no card, not a broken one.
+	objects: v.object({ content: hash, card: v.optional(hash) }),
 	locale: v.object({
 		language_tag: v.string(),
 		canonical: v.string(),
@@ -240,7 +242,7 @@ export const RootSchema = v.object({
 	articles: v.array(RootArticleSchema),
 	pages: v.record(
 		v.string(),
-		v.object({ markdown: hash, views: byLocale(v.object({ content: hash })) }),
+		v.object({ markdown: hash, views: byLocale(v.object({ content: hash, card: v.optional(hash) })) }),
 	),
 });
 
@@ -287,7 +289,7 @@ export type ViewAnswer = Omit<RootView, 'locale'> & {
  */
 export type HomeAnswer = {
 	locale: { code: LocaleCode; language_tag: string };
-	page: { objects: { content: string } } | null;
+	page: { objects: { content: string; card?: string } } | null;
 	articles: (Omit<RootView, 'locale'> & { slug: string; path: string; url: string })[];
 };
 

@@ -350,6 +350,33 @@ format, forever. What was being protected was mild and the bandwidth is not ours
 the policy stops being clever. An empty `Disallow:` is the one spelling every parser agrees
 means "all of it".
 
+## A card is an object, and the answer says which one
+
+A card used to be addressed by the slug of the page it belonged to: `/opengraph/{slug}.png?lang=`,
+derivable from the route, with nothing storing a reference. That is what made it a week rather than
+a year -- **an edited title rewrote the bytes under an unchanged URL**, and everything holding that
+URL kept the old picture until it expired. X caches by URL, so a corrected title showed the old
+card for as long as X felt like.
+
+Now a card is published like every other object, under the hash of its own bytes, and the id rides
+in the answer the page already fetches. Three things follow, and the third is the one worth stating:
+
+- It keeps a year and `immutable`, because now that is true.
+- A redraw is a **new** object at a new address rather than an overwrite, so nothing holding the
+  old URL is holding a lie -- and a crawler that refetches the page finds a URL it has never seen,
+  which is what actually forces the refresh.
+- Two views that draw identically are one object. Sixty-three cards were sixty distinct files the
+  first time this was measured, and nothing had to be written to notice.
+
+**The card's id is in the answer rather than derived**, which is the rule the alias layer's charter
+gives: a card changes when the article changes, so it resolves at build time. Compare an external
+site's favicon, which changes on somebody else's schedule and therefore does not. See
+[delivery.md](delivery.md), "A name is resolved, never stored".
+
+`cms og` still decides what to draw from its own record -- the hash of everything a card was drawn
+from -- and that record now carries the content id beside it, because with no path to derive there
+is nowhere else the address is written.
+
 ## The title is sized to fit one line
 
 A card's title is shaped at 96px and stepped down until it occupies a single line, stopping at

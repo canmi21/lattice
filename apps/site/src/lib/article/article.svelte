@@ -178,6 +178,7 @@
 
 	let {
 		slug,
+		card: cardId,
 		meta,
 		phone_title,
 		toc,
@@ -187,8 +188,10 @@
 		notes = [],
 		children,
 	}: {
-		/** The article's path, which is what the read counter is keyed by. */
+		/** The article's identity, which is what the read counter is keyed by. */
 		slug: string;
+		/** The content id of this view's OpenGraph card, when one has been drawn. */
+		card?: string;
 		meta: ArticleMeta;
 		/** The title a phone sees: `meta.title` where it fits the column, the short one where it
 		 *  does not. Decided in the build; see $lib/content/build/width.ts. */
@@ -229,12 +232,12 @@
 	/**
 	 * The card for this article, at a URL nothing had to be told.
 	 *
-	 * `cms og` writes one card per article under the same path the article has, so the address
-	 * follows from the route and no reference is stored anywhere. The cost is that the name is
-	 * mutable -- an edited title reuses this URL -- which is why the CDN serves these for a
-	 * week rather than a year. See spec/architecture/media.md.
+	 * Named by the answer rather than derived from the route: a card is a content-addressed object
+	 * now, so an edited title draws a new one at a new address instead of overwriting this. That is
+	 * what lets it keep a year. A view published before its card was drawn simply has none.
+	 * See spec/architecture/media.md.
 	 */
-	const card = $derived(cardUrl(urls.cdn, page.url.pathname, locale.code));
+	const card = $derived(cardUrl(urls.cdn, cardId));
 
 	/**
 	 * A JSON-LD block, safe to drop into markup.
@@ -358,11 +361,15 @@
 	<meta property="og:description" content={meta.description} />
 	<meta property="og:url" content={locale.canonical} />
 	<meta property="og:locale" content={locale.tag} />
-	<meta property="og:image" content={card} />
-	<!-- Stated because a crawler that reserves the box before fetching draws it right. -->
-	<meta property="og:image:width" content={CARD_WIDTH} />
-	<meta property="og:image:height" content={CARD_HEIGHT} />
-	<meta property="og:image:alt" content={meta.title} />
+	<!-- Absent rather than empty when no card has been drawn yet: a crawler reading an empty
+	     og:image draws a broken box, where one reading none falls back to the page. -->
+	{#if card}
+		<meta property="og:image" content={card} />
+		<!-- Stated because a crawler that reserves the box before fetching draws it right. -->
+		<meta property="og:image:width" content={CARD_WIDTH} />
+		<meta property="og:image:height" content={CARD_HEIGHT} />
+		<meta property="og:image:alt" content={meta.title} />
+	{/if}
 	<meta property="article:published_time" content={meta.created} />
 
 	<!-- `summary_large_image` is what makes X render the card at full width rather than as a

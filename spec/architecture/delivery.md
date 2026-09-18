@@ -142,11 +142,12 @@ individually.
 Five minutes is the right number for the same reason the API's answers get five minutes: these
 are published bytes, and the whole point of the arrangement above is that **publication has one
 delay rather than a different one per resource**. A favicon a week stale while an article is five
-minutes stale is two answers to one question. What it costs is a revalidation per colo per five
-minutes on files that are small and rarely asked for.
+minutes stale is two answers to one question.
 
-A route that genuinely needs longer says so itself, with its reason, which is what
-[opengraph.ts](../../apps/cdn/src/opengraph.ts) already does and why its week survives this.
+**Every one of those three has since stopped needing the rule**, which is the better answer than
+tuning a number: the icons, the notice and the cards are all content-addressed now and all keep a
+year. What is left on five minutes is the addresses that name rather than identify -- the
+metadata bucket's root, and the refusals.
 
 ## The CDN expresses one kind of address
 

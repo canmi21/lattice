@@ -9,7 +9,6 @@ import { BRIEFLY, cacheControl } from './cache';
 import image from './image';
 import github from './github';
 import license from './license';
-import opengraph from './opengraph';
 import {
 	isUnsatisfiable,
 	read,
@@ -66,7 +65,6 @@ app.get('/robots.txt', (c) => {
 app.route('/image', image);
 app.route('/github', github);
 app.route('/license', license);
-app.route('/opengraph', opengraph);
 export const PLAIN_OBJECTS = ['captions', 'video'] as const;
 for (const type of PLAIN_OBJECTS) {
 	// One extension each, which is what makes them plain. Read off the table rather than written

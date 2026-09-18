@@ -15,14 +15,25 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-pub const VERSION: u32 = 2;
+pub const VERSION: u32 = 3;
+
+/// One drawn card: what it was drawn from, and the object it was published as.
+///
+/// Both, because they answer different questions. `hash` decides whether it still needs drawing;
+/// `cid` is where the bytes went, and it is the only place that address is written down -- a card
+/// is content-addressed like everything else now, so nothing can derive one from a slug.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Card {
+	pub hash: String,
+	pub cid: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Manifest {
 	pub version: u32,
-	/// Card path relative to the published root, to the hash of what drew it.
+	/// `{view}/{slug}`, to what drew the card and what it was published as.
 	#[serde(default)]
-	pub cards: BTreeMap<String, String>,
+	pub cards: BTreeMap<String, Card>,
 }
 
 impl Default for Manifest {

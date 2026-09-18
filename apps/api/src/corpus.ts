@@ -197,8 +197,8 @@ corpus.get('/feed', async (c) => {
  * missing article view is a 404 and not a fallback.
  */
 function homepage(root: Root, locale: LocaleCode): HomeAnswer['page'] {
-	const content = root.pages[HOMEPAGE]?.views[locale]?.content;
-	return content ? { objects: { content } } : null;
+	const view = root.pages[HOMEPAGE]?.views[locale];
+	return view ? { objects: { content: view.content, card: view.card } } : null;
 }
 
 /**

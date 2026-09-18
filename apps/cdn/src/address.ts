@@ -33,8 +33,6 @@ export const NAMED_PREFIXES = new Set([
 	// A subset is promised rather than hashed -- see "There is one exception, and it carries a
 	// promise" -- and the CJK chunks carry their own hash inside a family directory.
 	'fonts',
-	// Addressed by the slug of the page it belongs to rather than by content.
-	'opengraph',
 	// Proxied from a release rather than stored here at all.
 	'github',
 ]);
