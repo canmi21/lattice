@@ -7,9 +7,9 @@ import {
 	contentTypeFor,
 	isContentId,
 	isUnsatisfiable,
-	OBJECTS,
-	objectKey,
 	read,
+	recordKey,
+	storageKey,
 	STORED_FORMATS,
 	toResponse,
 } from './index';
@@ -21,7 +21,7 @@ function bucket(keys: Record<string, string>) {
 			key in keys
 				? { body: new Response(keys[key]).body, httpMetadata: {}, httpEtag: '"live"' }
 				: null,
-	} as unknown as NonNullable<Bindings['PUBLIC']>;
+	} as unknown as NonNullable<Bindings['STORE']>;
 }
 
 /** Enough of the assets fetcher to answer one path. */
@@ -37,7 +37,7 @@ function assets(paths: Record<string, string>) {
 describe('read', () => {
 	it('prefers the bucket when both are bound', async () => {
 		// Deploying with a stale assets binding must not quietly serve last week's file.
-		const env = { PUBLIC: bucket({ 'a.txt': 'bucket' }), ASSETS: assets({ 'a.txt': 'local' }) };
+		const env = { STORE: bucket({ 'a.txt': 'bucket' }), ASSETS: assets({ 'a.txt': 'local' }) };
 		const found = await read(env, 'a.txt');
 		expect(await new Response(found?.body).text()).toBe('bucket');
 	});
@@ -49,7 +49,7 @@ describe('read', () => {
 
 	it('reports a miss the same way from either store', async () => {
 		// Both workers turn null into a 404, so the two stores have to agree on what absent is.
-		expect(await read({ PUBLIC: bucket({}) }, 'gone.txt')).toBeNull();
+		expect(await read({ STORE: bucket({}) }, 'gone.txt')).toBeNull();
 		expect(await read({ ASSETS: assets({}) }, 'gone.txt')).toBeNull();
 	});
 
@@ -77,47 +77,38 @@ describe('where an object lives', () => {
 	const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
 
 	/**
-	 * The split that exists for a filesystem mirror rather than for R2, which has no directories.
-	 * Two characters, then two more, then the whole id again -- matching what apps/cms writes.
+	 * The content id and nothing else. A type directory here would be a second place the same
+	 * fact is written, and the CDN's `/{type}/` is where a reader gets one instead.
 	 *
-	 * Driven off the table rather than written out per kind, because a kind written out is a kind
-	 * that can be added to the table and never tested. Adding a row here fails until it is listed.
+	 * The split exists for a filesystem mirror rather than for R2, which has no directories: two
+	 * characters, then two more, then the whole id again -- matching what apps/cms writes.
 	 */
 	it.each([
-		['captions', `captions/44/b6/${CID}.vtt`, undefined],
-		['image', `image/44/b6/${CID}.avif`, 'avif'],
-		['license', `license/44/b6/${CID}.txt`, undefined],
-		['meta', `meta/${CID}.json`, undefined],
-		['video', `video/44/b6/${CID}.mp4`, undefined],
-	] as const)('puts %s at the key apps/cms writes', (prefix, expected, extension) => {
-		expect(objectKey(prefix, CID, extension)).toBe(expected);
-	});
-
-	it('covers every kind the table declares', () => {
-		// The list above is written out so the expected keys are literals a person can read. This
-		// is what stops it from falling behind the table it is testing.
-		expect(Object.keys(OBJECTS)).toEqual(['captions', 'image', 'license', 'meta', 'video']);
+		['avif', `44/b6/${CID}.avif`],
+		['vtt', `44/b6/${CID}.vtt`],
+		['mp4', `44/b6/${CID}.mp4`],
+		['txt', `44/b6/${CID}.txt`],
+		['json', `44/b6/${CID}.json`],
+	])('files a .%s under its id alone', (extension, expected) => {
+		expect(storageKey(CID, extension)).toBe(expected);
 	});
 
 	/**
-	 * The asymmetry this module exists to state. A record is written once per asset, so its
-	 * directory has a bound and the split buys nothing; reading it as though it were fanned is a
-	 * 404 that looks exactly like a missing asset. Three copies of the layout had to agree on
-	 * this and none of them said it.
+	 * Two formats of one picture differ only in their extension, which is the whole reason the
+	 * extension is kept: a bucket downloaded whole is still a directory of files that open.
 	 */
-	it('leaves a record flat, because there is one per asset', () => {
-		expect(OBJECTS.meta.fanned).toBe(false);
-		expect(objectKey('meta', CID)).toBe(`meta/${CID}.json`);
+	it('separates two formats of one id by extension alone', () => {
+		expect(storageKey(CID, 'avif')).not.toBe(storageKey(CID, 'png'));
+		expect(storageKey(CID, 'avif').slice(0, 6)).toBe(storageKey(CID, 'png').slice(0, 6));
 	});
 
 	/**
-	 * The one kind that publishes several formats, and therefore the one whose caller has to say
-	 * which. Asking without one is a mistake worth a throw rather than a key that resolves to
-	 * `undefined` and 404s somewhere else.
+	 * A record is named, not addressed by its own content, because the API rewrites it in place
+	 * when its asset is re-derived. It lives in the other bucket for exactly that reason -- a
+	 * mutable key among immutable ones earned a year of `immutable` it could not keep.
 	 */
-	it('refuses to guess a format for the kind that has more than one', () => {
-		expect(() => objectKey('image', CID)).toThrow(/several formats/);
-		expect(objectKey('video', CID, 'webm')).toBe(`video/44/b6/${CID}.mp4`);
+	it('keeps a record named, in the bucket the CDN cannot reach', () => {
+		expect(recordKey(CID)).toBe(`meta/${CID}.json`);
 	});
 
 	it('accepts an id of the shape apps/cms writes, and nothing else', () => {
@@ -134,7 +125,7 @@ describe('a range request', () => {
 
 	function bucket() {
 		return {
-			PUBLIC: {
+			STORE: {
 				head: async () => ({ size: BYTES.length }),
 				get: async (_key: string, options?: { range?: { offset: number; length: number } }) => {
 					const part = options?.range
@@ -209,28 +200,33 @@ describe('a range request', () => {
 /**
  * The two declarations of the layout, held together.
  *
- * apps/cms writes what the workers read, so the tables have to agree about every prefix, its
- * fanout and its format. They did not: clips were given a path on the writing side and no key on
- * the reading side, and four rung URLs answered 404 while the files sat on disk. This is the test
- * that fails instead.
+ * apps/cms writes what the workers read, so the two have to agree about where an object lands.
+ * They did not once: clips were given a path on the writing side and no key on the reading side,
+ * and four rung URLs answered 404 while the files sat on disk. This is the test that fails
+ * instead. Read off the Rust source rather than restated, so a change there has to come here.
  */
-it('declares the same layout apps/cms writes', () => {
+it('files an object exactly where apps/cms writes it', () => {
 	const source = readFileSync(
 		fileURLToPath(new URL('../../../apps/cms/src/image/store.rs', import.meta.url).href),
 		'utf8',
 	);
-	const declaration = /pub const OBJECTS: \[\(&str, bool, &str\); \d+\] = \[([\s\S]*?)\];/.exec(
-		source,
-	);
-	expect(declaration, 'OBJECTS moved or changed shape in apps/cms').not.toBeNull();
+	const body = /fn object_path\([^)]*\) -> PathBuf \{([\s\S]*?)\n\}/.exec(source);
+	expect(body, 'object_path moved or changed shape in apps/cms').not.toBeNull();
 
-	const authoritative = [
-		...declaration![1]!.matchAll(/\("([a-z0-9]+)",\s*(true|false),\s*"([a-z0-9]*)"\)/g),
-	].map(([, prefix, fanned, extension]) => [prefix, fanned === 'true', extension || null] as const);
-	const here = Object.entries(OBJECTS).map(
-		([prefix, kind]) => [prefix, kind.fanned, kind.extension] as const,
+	// Two fanout segments off the id, then `{cid}.{ext}`, and no prefix between the root and the
+	// first segment. A type directory reappearing on either side is what this catches.
+	expect(body![1]).toContain('let (first, second) = fanout(cid);');
+	expect(body![1]).toContain('public_root.join(first).join(second)');
+	expect(body![1]).toContain('format!("{cid}.{extension}")');
+	expect(storageKey('44b6081deaf0242ca3bf83d62a3b6c95', 'avif')).toBe(
+		`44/b6/44b6081deaf0242ca3bf83d62a3b6c95.avif`,
 	);
-	expect(here).toEqual(authoritative);
+
+	// A record is not an object and must not acquire the fan-out: it is named, and it lives in
+	// the metadata tree that this side reaches through `recordKey`.
+	const record = /fn meta_path\([^)]*\) -> PathBuf \{([\s\S]*?)\n\}/.exec(source);
+	expect(record, 'meta_path moved or changed shape in apps/cms').not.toBeNull();
+	expect(record![1]).toContain('.join("meta").join(format!("{blake3}.json"))');
 });
 
 /**

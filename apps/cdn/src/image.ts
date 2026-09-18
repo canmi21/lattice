@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import {
 	isUnsatisfiable,
-	objectKey,
+	storageKey,
 	read,
 	toResponse,
 	unsatisfiableResponse,
@@ -63,7 +63,7 @@ image.get('/:name', async (c) => {
 
 	// A flat-colour original is stored as PNG rather than AVIF, so either may be a direct hit
 	// and neither can be assumed to be the stored one.
-	const stored = await read(c.env, objectKey('image', cid, extension), c.req.header('Range'));
+	const stored = await read(c.env, storageKey(cid, extension), c.req.header('Range'));
 	if (isUnsatisfiable(stored)) {
 		return unsatisfiableResponse(stored.total);
 	}
@@ -110,7 +110,7 @@ async function findStored(
 	cid: string,
 ): Promise<{ bytes: Promise<ArrayBuffer>; format: Decodable } | null> {
 	for (const format of DECODABLE) {
-		const found = await read(env, objectKey('image', cid, format));
+		const found = await read(env, storageKey(cid, format));
 		if (found) {
 			return { bytes: new Response(found.body).arrayBuffer(), format };
 		}

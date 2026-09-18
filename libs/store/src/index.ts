@@ -1,4 +1,8 @@
 import type { ApiResponse } from '@canmi/artifacts';
+
+// Where an object lives is a fact about the bucket, and both the workers and the node publisher
+// need it -- so it is declared in the library that is safe in either program and re-exported here.
+export { recordKey, storageKey } from '@canmi/artifacts';
 import type { Fetcher, R2Bucket } from '@cloudflare/workers-types';
 
 /**
@@ -19,7 +23,7 @@ import type { Fetcher, R2Bucket } from '@cloudflare/workers-types';
 const ASSET_ORIGIN = 'https://assets.invalid';
 
 export type Bindings = {
-	PUBLIC?: R2Bucket;
+	STORE?: R2Bucket;
 	/** Present only under `wrangler dev --assets`; see the dev task in mise.toml. */
 	ASSETS?: Fetcher;
 };
@@ -65,9 +69,9 @@ export async function read(
 	range?: string | null,
 ): Promise<Found | Unsatisfiable | null> {
 	const wanted = range ? parseRange(range) : null;
-	if (env.PUBLIC) return readFromBucket(env.PUBLIC, key, wanted);
+	if (env.STORE) return readFromBucket(env.STORE, key, wanted);
 	if (env.ASSETS) return readFromAssets(env.ASSETS, key, wanted);
-	throw new Error('no store bound: expected PUBLIC in production or ASSETS under wrangler dev');
+	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
 }
 
 /** One range, in the two shapes the grammar allows, resolved against a size the reader knows. */
@@ -178,8 +182,8 @@ async function readFromAssets(
  * from it could not have been stored in the first place.
  */
 export async function findOne(env: Bindings, prefix: string): Promise<string | null> {
-	if (env.PUBLIC) {
-		const listed = await env.PUBLIC.list({ prefix, limit: 1 });
+	if (env.STORE) {
+		const listed = await env.STORE.list({ prefix, limit: 1 });
 		return listed.objects[0]?.key ?? null;
 	}
 	if (env.ASSETS) {
@@ -190,7 +194,7 @@ export async function findOne(env: Bindings, prefix: string): Promise<string | n
 		}
 		return null;
 	}
-	throw new Error('no store bound: expected PUBLIC in production or ASSETS under wrangler dev');
+	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
 }
 
 /**
@@ -203,47 +207,6 @@ const CONTENT_ID = /^[0-9a-f]{32}$/;
 
 export function isContentId(value: string): boolean {
 	return CONTENT_ID.test(value);
-}
-
-/**
- * Where an object lives, by kind. The one declaration of the bucket's layout -- see
- * spec/architecture/data.md, "Assets are addressed by their content", for why it is a table.
- *
- * `fanned` is false only for `meta` (one record per asset, not per format); `extension` is
- * `null` only for `image`, whose request names the format. Never published -- a caller asks for
- * `{cid}.{ext}` and the split is put back on here; `OBJECTS` in apps/cms mirrors it, held
- * together by a test.
- */
-export const OBJECTS = {
-	captions: { fanned: true, extension: 'vtt' },
-	image: { fanned: true, extension: null },
-	license: { fanned: true, extension: 'txt' },
-	meta: { fanned: false, extension: 'json' },
-	video: { fanned: true, extension: 'mp4' },
-} as const satisfies Record<string, { fanned: boolean; extension: string | null }>;
-
-/** A kind of object the bucket holds, addressed by content id. */
-export type ObjectPrefix = keyof typeof OBJECTS;
-
-/** Every kind, for callers that have to cover all of them -- the CDN's routing, and its test. */
-export const OBJECT_PREFIXES = Object.keys(OBJECTS) as ObjectPrefix[];
-
-/**
- * The key one content-addressed object is stored under.
- *
- * `extension` is required for a kind that stores several formats and ignored for a kind that
- * stores one, which keeps the format out of every call site that could only ever pass the same
- * value. Asking for a format from a single-format kind is not an error worth a type: the answer
- * is the same either way and the table is what decides it.
- */
-export function objectKey(prefix: ObjectPrefix, cid: string, extension?: string): string {
-	const kind = OBJECTS[prefix];
-	const suffix = kind.extension ?? extension;
-	if (!suffix) {
-		throw new Error(`${prefix} stores several formats: name one`);
-	}
-	const path = kind.fanned ? `${cid.slice(0, 2)}/${cid.slice(2, 4)}/${cid}` : cid;
-	return `${prefix}/${path}.${suffix}`;
 }
 
 /**

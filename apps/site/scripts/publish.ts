@@ -11,10 +11,10 @@ import { fileURLToPath } from 'node:url';
 import { blake3 } from '@noble/hashes/blake3.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import {
-	ARTIFACT_TYPES,
+	ARTIFACT_EXTENSIONS,
 	ARTIFACT_VERSION,
-	artifactKey,
 	ROOT_KEY,
+	storageKey,
 	type ArtifactType,
 	type PublishedPage,
 	type PublishedView,
@@ -53,21 +53,30 @@ const INPUTS = {
 
 type Tally = { written: number; present: number; bytes: number };
 
-/** One tree of objects on disk, addressed exactly as the bucket addresses them. */
+/**
+ * Two trees on disk, addressed exactly as the two buckets address them.
+ *
+ * Objects go in one and the root in the other, because they become separate buckets read by
+ * separate workers. See spec/architecture/data.md, "One bucket holds records and the other holds
+ * bytes".
+ */
 class Tree {
 	readonly #dir: string;
+	readonly #metadata: string;
 	readonly #made = new Set<string>();
 	readonly tally: Tally = { written: 0, present: 0, bytes: 0 };
 
-	constructor(dir: string) {
+	constructor(dir: string, metadata: string) {
 		this.#dir = dir;
+		this.#metadata = metadata;
 	}
 
 	/** Write one immutable object and answer the hash the root names it by. */
 	async put(type: ArtifactType, body: string): Promise<string> {
 		const bytes = Buffer.from(body, 'utf8');
 		const digest = bytesToHex(blake3(bytes, { dkLen: 16 }));
-		const file = join(this.#dir, artifactKey(type, digest));
+		// Stored by content id alone; the type only appears in the address the CDN serves it at.
+		const file = join(this.#dir, storageKey(digest, ARTIFACT_EXTENSIONS[type]));
 		// A content-addressed key cannot denote different bytes, so a file already there is this
 		// file. Nothing is compared and nothing is swept: see spec/architecture/artifacts.md,
 		// "Publication is ordered, and deletion is not part of it".
@@ -79,9 +88,9 @@ class Tree {
 		return digest;
 	}
 
-	/** Write the root, which is the one name in the tree whose bytes change under it. */
+	/** Write the root, which is the one name in either tree whose bytes change under it. */
 	async putRoot(root: Root): Promise<void> {
-		await this.#write(join(this.#dir, ROOT_KEY), Buffer.from(JSON.stringify(root), 'utf8'));
+		await this.#write(join(this.#metadata, ROOT_KEY), Buffer.from(JSON.stringify(root), 'utf8'));
 	}
 
 	async #exists(file: string): Promise<boolean> {
@@ -195,8 +204,13 @@ async function publishPage(tree: Tree, page: Page): Promise<Root['pages'][string
 	return { markdown: await tree.put('markdown', page.markdown), views };
 }
 
-async function publishCorpus(dir: string, articles: Article[], pages: Page[]): Promise<Tally> {
-	const tree = new Tree(dir);
+async function publishCorpus(
+	dir: string,
+	metadata: string,
+	articles: Article[],
+	pages: Page[],
+): Promise<Tally> {
+	const tree = new Tree(dir, metadata);
 	const rootArticles: RootArticle[] = [];
 	for (const article of articles) rootArticles.push(await publishArticle(tree, article));
 	const rootPages: Root['pages'] = {};
@@ -220,22 +234,52 @@ const [published, drafted, pageBuild] = await Promise.all([
 ]);
 
 /**
- * Point the draft tree at the published assets it does not hold, so one directory covers both.
+ * Point the draft tree at the published objects it does not hold, so one directory covers both.
  *
- * Anything at the top of `data/public` that publishing did not write is an asset prefix, which is
- * why no prefix is named here. See spec/architecture/artifacts.md, "Drafts leave the corpus at
- * publication, not at build".
+ * File by file rather than directory by directory. A flat content-addressed tree has no prefix to
+ * link: draft objects and published ones share the same fan-out directories, so linking `44/`
+ * would hide whatever the draft build wrote there. Two objects can never claim one name, which is
+ * what makes the file-level link safe. See spec/architecture/artifacts.md, "Drafts leave the
+ * corpus at publication, not at build".
  */
-async function linkAssets(publicDir: string, draftDir: string): Promise<string[]> {
-	const owned = new Set([
-		...ARTIFACT_TYPES.map((type) => type.split('/')[0]),
-		ROOT_KEY.split('/')[0],
-	]);
+async function linkObjects(publicDir: string, draftDir: string): Promise<number> {
+	let linked = 0;
+	for (const fan of await readdir(publicDir, { withFileTypes: true })) {
+		// Fan-out directories only. A named prefix beside them is linked whole by `linkNamed`,
+		// and walking into one here would build it out of real directories that cannot then be
+		// replaced by a link.
+		if (!fan.isDirectory() || !/^[0-9a-f]{2}$/.test(fan.name)) continue;
+		for (const inner of await readdir(join(publicDir, fan.name), { withFileTypes: true })) {
+			if (!inner.isDirectory()) continue;
+			const from = join(publicDir, fan.name, inner.name);
+			const into = join(draftDir, fan.name, inner.name);
+			await mkdir(into, { recursive: true });
+			for (const object of await readdir(from)) {
+				const link = join(into, object);
+				const target = join(relative(into, from), object);
+				if ((await readlink(link).catch(() => undefined)) === target) continue;
+				// A real file here is the draft build's own object under the same name, which
+				// content addressing says is the same bytes. Leave it.
+				if (await stat(link).then(() => true, () => false)) continue;
+				await symlink(target, link);
+				linked += 1;
+			}
+		}
+	}
+	return linked;
+}
+
+/**
+ * The named prefixes beside the objects: fonts, cards, icons and the site's own files.
+ *
+ * Still addressed by name rather than by content, so they keep a directory each and can be linked
+ * whole. Anything at the top of `data/public` that is not a fan-out directory is one of these.
+ */
+async function linkNamed(publicDir: string, draftDir: string): Promise<string[]> {
 	const linked: string[] = [];
 	for (const entry of await readdir(publicDir, { withFileTypes: true })) {
-		// Files as well as directories: the favicons and the BIMI mark sit at the top of the
-		// bucket rather than under a prefix, and linking only directories left them 404 in dev.
-		if (entry.name.startsWith('.') || owned.has(entry.name)) continue;
+		if (entry.name.startsWith('.')) continue;
+		if (entry.isDirectory() && /^[0-9a-f]{2}$/.test(entry.name)) continue;
 		const link = join(draftDir, entry.name);
 		const target = join(relative(draftDir, publicDir), entry.name);
 		const current = await readlink(link).catch(() => undefined);
@@ -247,17 +291,40 @@ async function linkAssets(publicDir: string, draftDir: string): Promise<string[]
 	return linked;
 }
 
+/** The records, which the draft tree never writes and can therefore link whole. */
+async function linkRecords(metadataDir: string, draftDir: string): Promise<void> {
+	const link = join(draftDir, 'meta');
+	const target = join(relative(draftDir, metadataDir), 'meta');
+	const current = await readlink(link).catch(() => undefined);
+	if (current === target) return;
+	if (current !== undefined) await unlink(link);
+	await mkdir(draftDir, { recursive: true });
+	await symlink(target, link);
+}
+
 // A draft is compiled like anything else and kept out of the public tree by the corpus it was
 // compiled from, not by a filter here. See spec/architecture/artifacts.md, "Drafts leave the
 // corpus at publication, not at build".
 const trees = [
-	{ name: 'public', dir: new URL('data/public/', ROOT), articles: published.articles },
-	{ name: 'draft', dir: new URL('data/draft/', ROOT), articles: drafted.articles },
+	{
+		name: 'public',
+		dir: new URL('data/public/', ROOT),
+		metadata: new URL('data/metadata/', ROOT),
+		articles: published.articles,
+	},
+	// One tree per bucket here too, so development binds the same two things production does.
+	{
+		name: 'draft',
+		dir: new URL('data/draft/objects/', ROOT),
+		metadata: new URL('data/draft/metadata/', ROOT),
+		articles: drafted.articles,
+	},
 ];
 
-for (const { name, dir, articles } of trees) {
+for (const { name, dir, metadata, articles } of trees) {
 	const { written, present, bytes } = await publishCorpus(
 		fileURLToPath(dir),
+		fileURLToPath(metadata),
 		articles,
 		pageBuild.pages,
 	);
@@ -268,8 +335,15 @@ for (const { name, dir, articles } of trees) {
 	);
 }
 
-const linked = await linkAssets(
-	fileURLToPath(new URL('data/public/', ROOT)),
-	fileURLToPath(new URL('data/draft/', ROOT)),
+const publicDir = fileURLToPath(new URL('data/public/', ROOT));
+const draftObjects = fileURLToPath(new URL('data/draft/objects/', ROOT));
+const objects = await linkObjects(publicDir, draftObjects);
+const named = await linkNamed(publicDir, draftObjects);
+await linkRecords(
+	fileURLToPath(new URL('data/metadata/', ROOT)),
+	fileURLToPath(new URL('data/draft/metadata/', ROOT)),
 );
-if (linked.length > 0) console.log(`draft: linked ${linked.join(', ')} from the published tree`);
+console.log(
+	`draft: linked ${objects} objects` +
+		`${named.length > 0 ? `, ${named.join(', ')}` : ''} and the records from the published tree`,
+);

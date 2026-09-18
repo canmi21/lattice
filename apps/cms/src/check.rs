@@ -55,10 +55,10 @@ pub struct Gap {
 pub fn report(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Vec<Gap>> {
 	let scan = refs::scan(articles)?;
 	let described = crate::media::load(&crate::media::path_for(repo))?;
-	Ok(gaps(&scan, public, &described))
+	Ok(gaps(&scan, public, &crate::paths::metadata_root(repo), &described))
 }
 
-fn gaps(scan: &Scan, public: &Path, described: &crate::media::Media) -> Vec<Gap> {
+fn gaps(scan: &Scan, public: &Path, metadata: &Path, described: &crate::media::Media) -> Vec<Gap> {
 	let mut found = Vec::new();
 
 	for image in scan.unresolved() {
@@ -71,7 +71,7 @@ fn gaps(scan: &Scan, public: &Path, described: &crate::media::Media) -> Vec<Gap>
 	}
 
 	for cid in scan.cids() {
-		if !image::store::meta_path(public, &cid).is_file() {
+		if !image::store::meta_path(metadata, &cid).is_file() {
 			found.push(Gap {
 				level: Level::Warn,
 				what: cid,
@@ -152,7 +152,7 @@ mod tests {
 		let root = temporary.path();
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";
 		article(&root, &format!("![]({cid}.avif)"));
-		let meta = image::store::meta_path(&root.join("public"), cid);
+		let meta = image::store::meta_path(&crate::paths::metadata_root(root), cid);
 		std::fs::create_dir_all(meta.parent().expect("parent")).expect("dir");
 		std::fs::write(&meta, b"{}").expect("write");
 

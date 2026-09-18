@@ -216,17 +216,17 @@ fn poster(source: &Path, known: &BTreeMap<String, Media>) -> Result<image::Prepa
 ///
 /// The poster goes through `image::write_derived` rather than a second image path: it is a
 /// picture, and a second way to publish one would be a second place to get alt text wrong.
-pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
+pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Result<(), Error> {
 	for rung in &prepared.rungs {
 		let target = store::video_path(public, &rung.cid);
 		store::write(&target, &rung.bytes).map_err(Error::Write)?;
 	}
-	image::write_derived(public, &prepared.poster).map_err(Error::Poster)?;
+	image::write_derived(public, metadata, &prepared.poster).map_err(Error::Poster)?;
 
 	// Minified, for the reason `image::write_derived` gives.
 	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
 	let json = serde_json::to_string(&document).map_err(Error::Serialize)?;
-	store::write(&store::meta_path(public, &prepared.cid), json.as_bytes()).map_err(Error::Write)
+	store::write(&store::meta_path(metadata, &prepared.cid), json.as_bytes()).map_err(Error::Write)
 }
 
 /// Derive and publish one clip, preserving its first-seen timestamp when it already exists.
@@ -234,10 +234,11 @@ pub fn publish(
 	source: &Path,
 	original: &[u8],
 	public: &Path,
+	metadata: &Path,
 	known: &BTreeMap<String, Media>,
 ) -> Result<Prepared, Error> {
 	let prepared = derive_for(source, original, known)?;
-	write_derived(public, &prepared)?;
+	write_derived(public, metadata, &prepared)?;
 	Ok(prepared)
 }
 

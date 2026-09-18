@@ -24,6 +24,21 @@ pub fn repo_root() -> Result<PathBuf, NotFound> {
 		.ok_or(NotFound)
 }
 
+/// The tree the CDN serves: content-addressed bytes and nothing else.
+pub fn objects_root(repo: &Path) -> PathBuf {
+	repo.join("data").join("public")
+}
+
+/// The tree the API reads: the published root and one record per asset.
+///
+/// A separate tree because it becomes a separate bucket, and that is a boundary rather than a
+/// tidy-up: these keys are names that get rewritten in place, and the CDN must not be able to
+/// reach them. See spec/architecture/data.md, "One bucket holds records and the other holds
+/// bytes".
+pub fn metadata_root(repo: &Path) -> PathBuf {
+	repo.join("data").join("metadata")
+}
+
 fn find_upwards(start: &Path) -> Option<PathBuf> {
 	start
 		.ancestors()

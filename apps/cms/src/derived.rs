@@ -94,7 +94,9 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 	let cids = scan.cids();
 	let described = media::load(&media::path_for(repository))?;
 
-	let published = cids.iter().filter(|cid| image::store::meta_path(&public, cid).is_file()).count();
+	let metadata = crate::paths::metadata_root(repository);
+	let published =
+		cids.iter().filter(|cid| image::store::meta_path(&metadata, cid).is_file()).count();
 	let descriptions = cids.iter().filter(|cid| !alt::wants_description(&described, cid)).count();
 
 	let icons = scan.icons();

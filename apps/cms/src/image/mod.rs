@@ -175,8 +175,11 @@ pub fn derive_for(
 	Ok(Prepared { derived, media })
 }
 
-/// Write a completed derivation. No decoding or record decisions happen here.
-pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
+/// Write a completed derivation: the variants into the objects tree, the record into the other.
+///
+/// Two roots rather than one, because they become two buckets. Both are `&Path` and the compiler
+/// cannot tell them apart, which is exactly why they are named and never derived from each other.
+pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Result<(), Error> {
 	for variant in &prepared.derived.variants {
 		let target = store::variant_path(public, &variant.cid, variant.format.extension());
 		store::write(&target, &variant.bytes).map_err(Error::Write)?;
@@ -187,7 +190,7 @@ pub fn write_derived(public: &Path, prepared: &Prepared) -> Result<(), Error> {
 	// spec/architecture/media.md, "A published record is minified; a committed one is not".
 	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
 	let json = serde_json::to_string(&document).map_err(Error::Serialize)?;
-	store::write(&store::meta_path(public, &prepared.derived.cid), json.as_bytes())
+	store::write(&store::meta_path(metadata, &prepared.derived.cid), json.as_bytes())
 		.map_err(Error::Write)
 }
 
@@ -196,13 +199,14 @@ pub fn publish(
 	original: &[u8],
 	source_mime: &str,
 	public: &Path,
+	metadata: &Path,
 	previous: Option<&Media>,
 	keep_original: bool,
 	gazetteer: Option<&geo::Gazetteer>,
 ) -> Result<Media, Error> {
 	let prepared = derive_for(original, source_mime, previous, keep_original, gazetteer)?;
 	let media = prepared.media.clone();
-	write_derived(public, &prepared)?;
+	write_derived(public, metadata, &prepared)?;
 	Ok(media)
 }
 
@@ -218,7 +222,8 @@ pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Resul
 	let media = publish(
 		&bytes,
 		mime_of(source),
-		&repository.join("data/public"),
+		&crate::paths::objects_root(repository),
+		&crate::paths::metadata_root(repository),
 		merged.media.get(&id),
 		keep_original,
 		geo::Gazetteer::open(repository).as_ref(),
@@ -399,12 +404,13 @@ mod tests {
 		assert_eq!(prepared.derived.cid, cid(&original));
 		assert_eq!(prepared.media.blake3, prepared.derived.cid);
 
-		write_derived(&public, &prepared).expect("write derivation");
+		let metadata = root.join("data/metadata");
+		write_derived(&public, &metadata, &prepared).expect("write derivation");
 		for variant in &prepared.derived.variants {
 			assert!(store::variant_path(&public, &variant.cid, variant.format.extension()).is_file());
 		}
 		let document: manifest::Document = serde_json::from_str(
-			&std::fs::read_to_string(store::meta_path(&public, &prepared.derived.cid)).expect("record"),
+			&std::fs::read_to_string(store::meta_path(&metadata, &prepared.derived.cid)).expect("record"),
 		)
 		.expect("document");
 		assert_eq!(document.media, prepared.media);
@@ -425,7 +431,7 @@ mod tests {
 		let merged = run::load(&root.join(run::MERGED)).expect("merged");
 		let media = merged.media.get(&id).expect("merged record");
 		let picture = media.image().expect("a stored picture is a picture");
-		assert!(store::meta_path(&root.join("data/public"), &id).is_file());
+		assert!(store::meta_path(&root.join("data/metadata"), &id).is_file());
 		for (variant, record) in &picture.variants {
 			assert!(
 				store::variant_path(

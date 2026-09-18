@@ -80,7 +80,8 @@ pub fn run(
 			continue;
 		}
 
-		let published = super::publish(&path, &bytes, public, &merged.media);
+		let published =
+			super::publish(&path, &bytes, public, &crate::paths::metadata_root(repo), &merged.media);
 		match published {
 			Ok(prepared) => {
 				if let Some(target) = reference.as_deref() {

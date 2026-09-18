@@ -5,13 +5,15 @@
 	// Must not exceed what the installed workerd supports, which lags the calendar.
 	"compatibility_date": "2026-07-29",
 	"compatibility_flags": ["nodejs_compat"],
-	// Read-only here: the API answers questions about assets and never writes one. The bucket
-	// is the same one the CDN serves, because a record and the bytes it describes are produced
-	// together and should not be able to drift apart.
+	// Records only, and read-only: the published root and one per asset. Not the bucket the CDN
+	// serves -- these are names the publisher rewrites in place, and a host that promises a year
+	// must not be able to reach one. The CDN has no credential for this bucket, which is a
+	// stronger statement than a route that declines to serve it. See spec/architecture/data.md,
+	// "One bucket holds records and the other holds bytes".
 	"r2_buckets": [
 		{
-			"binding": "PUBLIC",
-			"bucket_name": "public",
+			"binding": "STORE",
+			"bucket_name": "metadata",
 		},
 	],
 	"d1_databases": [
@@ -101,12 +103,11 @@
 					"simple": { "limit": 1, "period": 60 },
 				},
 			],
-			// data/draft, not data/public: it holds the same corpus plus the drafts, and symlinks
-			// to the published assets the publish step writes for it. One directory covering both
-			// trees is what `wrangler dev` allows, since it binds exactly one. A reader never sees
-			// this tree -- rclone is pointed at data/public and cannot reach it.
+			// The draft tree's metadata half: its own root, plus a link to the published records,
+			// which the draft build never writes. A reader never sees this tree -- rclone is
+			// pointed at the published trees and cannot reach it.
 			"assets": {
-				"directory": "../../data/draft",
+				"directory": "../../data/draft/metadata",
 				"binding": "ASSETS",
 				"run_worker_first": true,
 			},

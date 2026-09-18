@@ -49,6 +49,7 @@ pub fn run(
 	articles: &Path,
 	options: &Options<'_>,
 ) -> std::io::Result<Outcome> {
+	let metadata = &crate::paths::metadata_root(repo);
 	let merged_path = repo.join(MERGED);
 	let mut merged = load(&merged_path)?;
 	let mut outcome = Outcome::default();
@@ -60,9 +61,9 @@ pub fn run(
 	// Records published under an older shape are rewritten from the merged manifest, which
 	// already holds everything they contain. Re-deriving to fix a version number would spend
 	// minutes of CPU to produce identical pixels.
-	for cid in manifest::migrate(&mut merged, public) {
+	for cid in manifest::migrate(&mut merged, metadata) {
 		if let Some(media) = merged.media.get(&cid) {
-			republish(public, &cid, media)?;
+			republish(metadata, &cid, media)?;
 			outcome.migrated += 1;
 		}
 	}
@@ -92,7 +93,15 @@ pub fn run(
 			continue;
 		}
 
-		match super::publish(&bytes, mime_of(&path), public, previous, keep, gazetteer.as_ref()) {
+		match super::publish(
+			&bytes,
+			mime_of(&path),
+			public,
+			metadata,
+			previous,
+			keep,
+			gazetteer.as_ref(),
+		) {
 			Ok(media) => {
 				if let Some(target) = reference.as_deref() {
 					note(&mut rewrites, target, &id, Some(&media));
@@ -259,12 +268,12 @@ fn note(
 /// Used by the migration and by `cms alt`, both of which change a record without touching a
 /// single pixel. Re-deriving to publish a changed field would spend minutes producing bytes
 /// that are already correct.
-pub fn republish(public: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
+pub fn republish(metadata: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
 	// Minified, for the reason `image::write_derived` gives.
 	let document = manifest::Document { version: manifest::VERSION, media: media.clone() };
 	let json =
 		serde_json::to_string(&document).map_err(|error| std::io::Error::other(error.to_string()))?;
-	store::write(&store::meta_path(public, cid), json.as_bytes())
+	store::write(&store::meta_path(metadata, cid), json.as_bytes())
 }
 
 /// The merged manifest, fresh and empty when the repository has none yet.
@@ -595,6 +604,7 @@ mod tests {
 		let temporary = temp();
 		let root = temporary.path();
 		let public = root.join("public");
+		let metadata = crate::paths::metadata_root(root);
 		let articles = root.join("contents");
 		std::fs::create_dir_all(root.join("data")).expect("data");
 		std::fs::create_dir_all(&articles).expect("articles");
@@ -630,7 +640,7 @@ mod tests {
 			.expect("stale document");
 		stale["media"]["preview"] = "obsolete".into();
 		store::write(
-			&store::meta_path(&public, cid),
+			&store::meta_path(&metadata, cid),
 			serde_json::to_string_pretty(&stale).expect("stale json").as_bytes(),
 		)
 		.expect("write stale sidecar");
@@ -649,7 +659,7 @@ mod tests {
 		// directory exists for a pixel pipeline to read or write.
 		assert_eq!(outcome.migrated, 1);
 		assert_eq!(outcome.processed, 0);
-		let rewritten = std::fs::read_to_string(store::meta_path(&public, cid)).expect("sidecar");
+		let rewritten = std::fs::read_to_string(store::meta_path(&metadata, cid)).expect("sidecar");
 		let document: manifest::Document = serde_json::from_str(&rewritten).expect("document");
 		assert_eq!(document.version, manifest::VERSION);
 		assert_eq!(document.media, media);

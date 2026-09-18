@@ -18,6 +18,45 @@ use crate::refs;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+/// Every content id the published root mentions, read as text rather than against a schema.
+///
+/// The root is the site publisher's to shape, so a parser here would be a second declaration of
+/// it that can fall behind. A 32-character hex run is a content id wherever it appears, and
+/// keeping one too many costs a file while missing one costs an article.
+fn hashes_in_root(metadata: &Path) -> BTreeSet<String> {
+	let Ok(text) = std::fs::read_to_string(metadata.join("state/index.json")) else {
+		return BTreeSet::new();
+	};
+	let mut found = BTreeSet::new();
+	let bytes = text.as_bytes();
+	let mut start = 0;
+	for (index, byte) in bytes.iter().enumerate().chain(std::iter::once((bytes.len(), &b' '))) {
+		if byte.is_ascii_hexdigit() && byte.is_ascii_lowercase() || byte.is_ascii_digit() {
+			continue;
+		}
+		if index - start == 32 {
+			found.insert(text[start..index].to_owned());
+		}
+		start = index + 1;
+	}
+	found
+}
+
+/// Every file under a two-hex fan-out directory, which is exactly what `storageKey` writes.
+///
+/// A named prefix beside them -- `license/full.txt`, the cards, the fonts -- is not addressed by
+/// content and is swept, if at all, against whatever does name it.
+fn fanned_files(public: &Path) -> std::io::Result<Vec<PathBuf>> {
+	let mut found = Vec::new();
+	for directory in directories_under(public)? {
+		let name = directory.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+		if name.len() == 2 && name.bytes().all(|b| b.is_ascii_hexdigit()) {
+			found.extend(files_under(&directory)?);
+		}
+	}
+	Ok(found)
+}
+
 #[derive(Debug, Default)]
 pub struct Sweep {
 	/// Files no reachable asset claims.
@@ -27,8 +66,16 @@ pub struct Sweep {
 	pub bytes: u64,
 }
 
-/// Everything in `data/public` that nothing reachable from an article accounts for.
-pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Sweep> {
+/// Everything in the objects tree that nothing reachable from an article accounts for.
+///
+/// `metadata` is the other tree: the published root lives there, and every hash it names is what
+/// keeps the compiled corpus out of the orphan list.
+pub fn plan(
+	repo: &Path,
+	public: &Path,
+	metadata: &Path,
+	articles: &Path,
+) -> std::io::Result<Sweep> {
 	let scan = refs::scan(articles)?;
 	let merged = load(&repo.join(MERGED))?;
 	let wanted = scan.cids();
@@ -60,6 +107,24 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 		}
 	}
 
+	// Every hash the published root names, which is what stops this from deleting the corpus.
+	//
+	// The objects tree holds the compiled articles beside the assets now -- one flat space keyed
+	// by content id -- so a sweep that only knew about assets would walk past every article body
+	// and call it an orphan. Read as opaque text rather than against a schema: the root is written
+	// by the site's publisher and a parser here would be a second declaration of its shape, where
+	// over-keeping is the safe direction for a collector and under-keeping is data loss.
+	keep.extend(hashes_in_root(metadata));
+
+	// Licence texts are content-addressed too and share the flat space, but nothing in an article
+	// or the root reaches one: they hang off the dependency record instead. Without this every
+	// licence in the bucket reads as garbage.
+	let record: licenses::Record = std::fs::read(licenses::record_path(repo))
+		.ok()
+		.and_then(|bytes| serde_json::from_slice(&bytes).ok())
+		.unwrap_or_default();
+	keep.extend(licenses::referenced(&record));
+
 	// A poster's entry stays in the manifest for the same reason its bytes stay on disk: the
 	// clip's record points at it, and a record naming an entry that is gone is the one failure
 	// this sweep must not create.
@@ -73,17 +138,13 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 		..Sweep::default()
 	};
 
-	// Every tree that holds content-addressed bytes, and the list has to stay complete. `video/`
-	// and `captions/` were not walked before this, which is the quietest way for a store to leak:
-	// a tree nothing sweeps has no orphans by definition, so it reports clean while it grows, and
-	// nobody looks until it is large. A fourth prefix in `store` is a fifth line here, and a
-	// record named in this task's `writes`: what is swept and what is declared are one list.
-	for path in files_under(&public.join("image"))?
-		.into_iter()
-		.chain(files_under(&public.join("video"))?)
-		.chain(files_under(&public.join("captions"))?)
-		.chain(files_under(&public.join("meta"))?)
-	{
+	// The whole content-addressed space, which is now one flat tree rather than a prefix per kind.
+	// A two-hex directory at the top of the objects tree is a fan-out segment and nothing else is,
+	// so this walks exactly what `storageKey` writes and never a named prefix beside it. That
+	// replaced a list of trees to keep complete -- `video/` and `captions/` were missing from it,
+	// which is the quietest way for a store to leak: a tree nothing sweeps has no orphans by
+	// definition, so it reports clean while it grows.
+	for path in fanned_files(public)? {
 		if !keep.contains(&stem_of(&path)) {
 			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
 			sweep.orphans.push(path);
@@ -104,27 +165,6 @@ pub fn plan(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Swee
 				.map(|meta| meta.len())
 				.sum::<u64>();
 			sweep.orphans.push(directory);
-		}
-	}
-
-	// Licence texts are reachable from the dependency record rather than from an article, so
-	// they are swept against that instead. Without this the whole directory reads as garbage,
-	// because no article will ever name a licence.
-	//
-	// `full.txt` is named rather than content addressed and is rewritten on every run, so it
-	// is kept unconditionally -- there is no id for it to fall out of.
-	let record: licenses::Record = std::fs::read(licenses::record_path(repo))
-		.ok()
-		.and_then(|bytes| serde_json::from_slice(&bytes).ok())
-		.unwrap_or_default();
-	let live = licenses::referenced(&record);
-	for path in files_under(&public.join("license"))? {
-		if path.file_name().is_some_and(|name| name == "full.txt") {
-			continue;
-		}
-		if !live.contains(&stem_of(&path)) {
-			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
-			sweep.orphans.push(path);
 		}
 	}
 
@@ -296,7 +336,8 @@ mod tests {
 	#[test]
 	fn keeps_the_variants_of_a_referenced_asset() {
 		let (_temporary, root, kept_variant, dropped_variant) = scenario();
-		let sweep = plan(&root, &root.join("public"), &root.join("contents")).expect("plan");
+		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
+			.expect("plan");
 
 		let names: Vec<String> = sweep.orphans.iter().map(|p| stem_of(p)).collect();
 		assert!(!names.contains(&kept_variant), "swept a live variant");
@@ -309,7 +350,8 @@ mod tests {
 		// Leaving the record behind would make the manifest grow forever and would let a
 		// later reference resolve to variants that are no longer there.
 		let (_temporary, root, _, _) = scenario();
-		let sweep = plan(&root, &root.join("public"), &root.join("contents")).expect("plan");
+		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
+			.expect("plan");
 		assert_eq!(sweep.entries, vec!["12faaa76365814de1195d6bdf1e5ba05"]);
 
 		apply(&root, &sweep).expect("apply");
@@ -322,7 +364,8 @@ mod tests {
 	#[test]
 	fn planning_alone_deletes_nothing() {
 		let (_temporary, root, _, _) = scenario();
-		let sweep = plan(&root, &root.join("public"), &root.join("contents")).expect("plan");
+		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
+			.expect("plan");
 		assert!(!sweep.orphans.is_empty());
 		for path in &sweep.orphans {
 			assert!(path.exists(), "planning removed {}", path.display());
@@ -419,7 +462,7 @@ mod tests {
 			store::write(&store::meta_path(&public, cid), b"{}").expect("record");
 		}
 
-		let sweep = plan(&root, &public, &root.join("contents")).expect("plan");
+		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert!(!names.contains(&rung), "swept a live rung");
 		assert!(!names.contains(&track), "swept a live caption");
@@ -451,7 +494,7 @@ mod tests {
 			crate::image::store::write(&card, b"png").expect("write");
 		}
 
-		let sweep = plan(&root, &public, &root.join("contents")).expect("plan");
+		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert_eq!(names, vec!["gone", "hidden"]);
 		std::fs::remove_dir_all(&root).ok();
@@ -472,7 +515,7 @@ mod tests {
 			std::fs::write(directory.join("light.png"), b"icon").expect("write");
 		}
 
-		let sweep = plan(&root, &public, &root.join("contents")).expect("plan");
+		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
 		assert_eq!(sweep.orphans.len(), 1);
 		assert!(sweep.orphans[0].ends_with("gone.example"));
 		std::fs::remove_dir_all(&root).ok();

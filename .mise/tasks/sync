@@ -1,40 +1,50 @@
 #!/usr/bin/env bash
-#MISE description="Mirror data/public to the R2 bucket (dry run unless --live)"
+#MISE description="Mirror the published trees to their R2 buckets (dry run unless --live)"
 set -euo pipefail
 
 # The publication gate. Whether a file reaches the internet is decided here and nowhere else.
 #
-# What makes it fail closed is the SOURCE path, not the filter file: rclone is pointed at
-# data/public and can never see anything else under data/. A directory added later --
-# raw originals, exports, scratch -- is excluded because it was never in scope, with no rule
-# needed and none to forget. The filter only drops junk that lands inside data/public itself.
+# What makes it fail closed is the SOURCE path, not the filter file: rclone is pointed at the two
+# published trees and can never see anything else under data/. A directory added later -- raw
+# originals, exports, scratch -- is excluded because it was never in scope, with no rule needed and
+# none to forget. The filter only drops junk that lands inside a published tree itself.
 #
 # Structuring it this way rather than as "sync data/ minus a denylist" is deliberate. The two
-# failure modes are not symmetric: miss a denylist rule and a draft is published silently,
-# with nothing to notice; get this wrong and a file merely fails to appear, which shows up the
-# first time you look for it.
+# failure modes are not symmetric: miss a denylist rule and a draft is published silently, with
+# nothing to notice; get this wrong and a file merely fails to appear, which shows up the first
+# time you look for it.
 #
-# `sync` rather than `copy`: the bucket is a mirror, so deleting locally has to delete
-# remotely. That also makes a wrong SOURCE path destructive -- hence the guard below and the
-# dry run by default.
+# **Two trees and two buckets**, because the API reads one and the CDN serves the other and
+# neither should hold a credential for both. See spec/architecture/data.md, "One bucket holds
+# records and the other holds bytes".
 #
-# The content-addressed prefixes are the exception and are copied. Deleting one would remove an
+# `sync` rather than `copy`: a bucket is a mirror, so deleting locally has to delete remotely. That
+# also makes a wrong SOURCE path destructive -- hence the guards below and the dry run by default.
+#
+# The content-addressed objects are the exception and are copied. Deleting one would remove an
 # object that a root still in somebody's cache is naming, five minutes after it stopped being
 # current; a sweep removes them later, when nothing can still ask. See
 # spec/architecture/artifacts.md, "Publication is ordered, and deletion is not part of it".
 
-SOURCE="$(cd "$(dirname "$0")/../.." && pwd)/data/public"
-REMOTE="${R2_REMOTE:-}"
+BASE="$(cd "$(dirname "$0")/../.." && pwd)"
+OBJECTS="$BASE/data/public"
+METADATA="$BASE/data/metadata"
 
-if [ ! -d "$SOURCE" ]; then
-	echo "refusing to sync: $SOURCE does not exist" >&2
-	echo "an empty or wrong source would delete the entire bucket" >&2
-	exit 1
-fi
+for tree in "$OBJECTS" "$METADATA"; do
+	if [ ! -d "$tree" ]; then
+		echo "refusing to sync: $tree does not exist" >&2
+		echo "an empty or wrong source would delete the entire bucket" >&2
+		exit 1
+	fi
+done
 
-if [ -z "$REMOTE" ]; then
-	echo "set R2_REMOTE to the rclone destination, for example:" >&2
-	echo "  set -gx R2_REMOTE r2:my-bucket" >&2
+OBJECTS_REMOTE="${R2_OBJECTS_REMOTE:-${R2_REMOTE:-}}"
+METADATA_REMOTE="${R2_METADATA_REMOTE:-}"
+
+if [ -z "$OBJECTS_REMOTE" ] || [ -z "$METADATA_REMOTE" ]; then
+	echo "set both rclone destinations, for example:" >&2
+	echo "  set -gx R2_OBJECTS_REMOTE r2:public" >&2
+	echo "  set -gx R2_METADATA_REMOTE r2:metadata" >&2
 	echo "credentials belong in rclone's own config, never in this repo" >&2
 	exit 1
 fi
@@ -55,32 +65,25 @@ done
 # -- the one branch that empties the array -- had never run on this machine, while the dry run
 # it defaults to worked perfectly and hid it.
 
-# The prefixes are read from the contract rather than written here a second time. A list that
-# drifts from ARTIFACT_TYPES would silently start deleting a type nobody added to this file.
-CONTRACT="$(cd "$(dirname "$0")/../.." && pwd)/libs/artifacts/src/index.ts"
-read -r ROOT TYPES <<<"$(node --input-type=module -e \
-	"import { ARTIFACT_TYPES, ROOT_KEY } from '$CONTRACT';
-	 console.log(ROOT_KEY, ARTIFACT_TYPES.join(' '))")"
-
 # One filter list per phase, never --include beside --exclude: rclone parses those two in an
 # indeterminate order and says so. Rules are first-match-wins, so the junk list goes first.
 JUNK=(--filter-from "$(dirname "$0")/sync.filter")
 
-ONLY_IMMUTABLE=("${JUNK[@]}")
-NOT_IMMUTABLE=("${JUNK[@]}" --filter "- /$ROOT")
-for type in $TYPES; do
-	ONLY_IMMUTABLE+=(--filter "+ /$type/**")
-	NOT_IMMUTABLE+=(--filter "- /$type/**")
-done
-ONLY_IMMUTABLE+=(--filter "- *")
+# What may never be deleted is now recognised by its shape rather than by a list of prefixes: a
+# key under two hex fan-out segments is content-addressed, and nothing else in the tree is. The
+# list this replaced could drift from the types that existed and silently start deleting one.
+FAN='[0-9a-f][0-9a-f]'
+IMMUTABLE=("${JUNK[@]}" --filter "+ /$FAN/$FAN/**" --filter "- *")
+NAMED=("${JUNK[@]}" --filter "- /$FAN/$FAN/**")
 
 COMMON=(--progress ${MODE[@]+"${MODE[@]}"})
 
-# Three transfers in one order, and the order is the whole of it. An object named by its own hash
+# Four transfers in one order, and the order is the whole of it. An object named by its own hash
 # has to be readable before a root names it: a root that arrives first produces a 404 that is then
 # held for five minutes on a key that becomes valid a second later. Each step exits non-zero on a
 # failed transfer and `set -e` stops the next one, which is what makes the ordering a guarantee
-# rather than a hope.
-rclone copy "$SOURCE" "$REMOTE" "${ONLY_IMMUTABLE[@]}" "${COMMON[@]}"
-rclone sync "$SOURCE" "$REMOTE" "${NOT_IMMUTABLE[@]}" --track-renames "${COMMON[@]}"
-rclone copy "$SOURCE/$(dirname "$ROOT")" "$REMOTE/$(dirname "$ROOT")" "${JUNK[@]}" "${COMMON[@]}"
+# rather than a hope. The root goes last of all, and it is in the other bucket now.
+rclone copy "$OBJECTS" "$OBJECTS_REMOTE" "${IMMUTABLE[@]}" "${COMMON[@]}"
+rclone sync "$OBJECTS" "$OBJECTS_REMOTE" "${NAMED[@]}" --track-renames "${COMMON[@]}"
+rclone sync "$METADATA/meta" "$METADATA_REMOTE/meta" "${JUNK[@]}" --track-renames "${COMMON[@]}"
+rclone copy "$METADATA/state" "$METADATA_REMOTE/state" "${JUNK[@]}" "${COMMON[@]}"

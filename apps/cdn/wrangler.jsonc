@@ -7,11 +7,13 @@
 	"compatibility_date": "2026-07-29",
 	"compatibility_flags": ["nodejs_compat"],
 
-	// Everything this worker serves comes from here. The bucket mirrors data/public one to
-	// one, so a key is the same string as the path under data/public.
+	// Content-addressed bytes and nothing else. The records live in a bucket this worker has no
+	// credential for, which is what stops a key the publisher rewrites in place from being served
+	// with a year of `immutable`. See spec/architecture/data.md, "One bucket holds records and the
+	// other holds bytes".
 	"r2_buckets": [
 		{
-			"binding": "PUBLIC",
+			"binding": "STORE",
 			"bucket_name": "public",
 		},
 	],
@@ -43,7 +45,7 @@
 			// trees is what `wrangler dev` allows, since it binds exactly one. A reader never sees
 			// this tree -- rclone is pointed at data/public and cannot reach it.
 			"assets": {
-				"directory": "../../data/draft",
+				"directory": "../../data/draft/objects",
 				"binding": "ASSETS",
 				"run_worker_first": true,
 			},

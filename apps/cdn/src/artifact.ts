@@ -15,6 +15,7 @@ import { parseArtifactKey, type ArtifactType } from '@canmi/artifacts';
 import {
 	isUnsatisfiable,
 	read,
+	storageKey,
 	toResponse,
 	unsatisfiableResponse,
 	type Bindings,
@@ -53,7 +54,7 @@ export function artifact(type: ArtifactType) {
 			return new Response(null, { status: 304, headers: { ETag: tag } });
 		}
 
-		const found = await read(c.env, key, c.req.header('Range'));
+		const found = await read(c.env, storageKey(parsed.hash, parsed.ext), c.req.header('Range'));
 		if (!found) {
 			return failure(c, 404, 'not_found');
 		}

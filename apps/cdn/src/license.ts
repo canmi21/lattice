@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import {
 	isUnsatisfiable,
-	objectKey,
+	storageKey,
 	read,
 	toResponse,
 	unsatisfiableResponse,
@@ -50,7 +50,7 @@ license.get('/:name', async (c) => {
 		return new Response(null, { status: 304, headers: { ETag: tag } });
 	}
 
-	const stored = await read(c.env, objectKey('license', cid), c.req.header('Range'));
+	const stored = await read(c.env, storageKey(cid, 'txt'), c.req.header('Range'));
 	if (!stored) {
 		return failure(c, 404, 'not_found');
 	}

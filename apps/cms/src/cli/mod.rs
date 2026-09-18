@@ -914,7 +914,8 @@ fn collect_garbage(live: bool) -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 	let public = root.join("data").join("public");
 
-	let sweep = gc::plan(&root, &public, &root.join("contents")).context("could not plan")?;
+	let sweep = gc::plan(&root, &public, &paths::metadata_root(&root), &root.join("contents"))
+		.context("could not plan")?;
 
 	if sweep.orphans.is_empty() && sweep.entries.is_empty() {
 		println!("nothing to collect");

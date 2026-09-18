@@ -1,4 +1,4 @@
-import { ARTIFACT_TYPES } from '@canmi/artifacts';
+import { ARTIFACT_TYPES, PUBLIC_TYPES } from '@canmi/artifacts';
 import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
@@ -11,7 +11,6 @@ import github from './github';
 import license from './license';
 import opengraph from './opengraph';
 import {
-	OBJECTS,
 	isUnsatisfiable,
 	read,
 	toResponse,
@@ -50,23 +49,24 @@ app.get('/robots.txt', (c) => {
 	return c.text(robotsTxt({ disallow: [''] }));
 });
 
-// Every content-addressed kind in `OBJECTS` is reachable, and this is the one place that says
-// how. Three have logic of their own: `image` decodes and re-encodes, `license` also answers for
-// a named aggregate, and `meta` is not served from here at all -- apps/api reads it. The rest are
-// the same lookup, so they are mounted from the table rather than written out, which is what
-// stops a new kind from being added to the store and quietly having no route. `index.test.ts`
-// fails if one is.
+// Every type in `PUBLIC_TYPES` is reachable, and this is the one place that says how. Three have
+// logic of their own: `image` decodes and re-encodes, `license` also answers for a named
+// aggregate, and `opengraph` is addressed by slug rather than by hash. The rest are the same
+// lookup, so they are mounted from the table rather than written out, which is what stops a new
+// type from being added and quietly having no route. `index.test.ts` fails if one is.
 app.route('/favicon', favicon);
 app.route('/image', image);
 app.route('/github', github);
 app.route('/license', license);
 app.route('/opengraph', opengraph);
 export const PLAIN_OBJECTS = ['captions', 'video'] as const;
-for (const prefix of PLAIN_OBJECTS) {
-	const extension = OBJECTS[prefix].extension;
-	// `satisfies` cannot say this: the table allows a null extension and these entries do not
-	// have one. Asserted rather than assumed, so moving `image` into this list fails here.
-	if (extension) app.route(`/${prefix}`, stored(prefix, extension));
+for (const type of PLAIN_OBJECTS) {
+	// One extension each, which is what makes them plain. Read off the table rather than written
+	// here, so a second format arriving for either is a failure at this line and not a silent
+	// half-served type.
+	const [extension, ...rest] = PUBLIC_TYPES[type];
+	if (rest.length > 0) throw new Error(`${type} stores more than one format`);
+	app.route(`/${type}`, stored(type, extension));
 }
 
 // The published corpus, mounted from `ARTIFACT_TYPES` for the reason the table above is: a type

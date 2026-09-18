@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import {
 	isUnsatisfiable,
-	objectKey,
 	read,
+	storageKey,
 	toResponse,
 	unsatisfiableResponse,
 	type Bindings,
-	type ObjectPrefix,
 } from '@canmi/store';
+import type { PublicType } from '@canmi/artifacts';
 import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
 import { failure } from './respond';
@@ -15,14 +15,14 @@ import { failure } from './respond';
 /**
  * Serving a content-addressed kind that stores one format and needs nothing done to it.
  *
- * `video` and `captions` are both this: the key is put together from `OBJECTS` and the bytes
- * go back as they are -- a rung was already encoded by `cms video` at the size the ladder
- * chose, and a caption track is the one format a `<track>` element takes.
+ * `video` and `captions` are both this: the bytes go back as they are -- a rung was already
+ * encoded by `cms video` at the size the ladder chose, and a caption track is the one format a
+ * `<track>` element takes.
  *
  * A factory rather than two files, so the same five lines cannot drift apart between them.
  * `image` and `license` keep routes of their own because each does something more.
  */
-export function stored(prefix: ObjectPrefix, extension: string) {
+export function stored(_type: PublicType, extension: string) {
 	const route = new Hono<{ Bindings: Bindings }>();
 
 	route.get('/:name', async (c) => {
@@ -40,7 +40,7 @@ export function stored(prefix: ObjectPrefix, extension: string) {
 			return new Response(null, { status: 304, headers: { ETag: tag } });
 		}
 
-		const found = await read(c.env, objectKey(prefix, cid), c.req.header('Range'));
+		const found = await read(c.env, storageKey(cid, extension), c.req.header('Range'));
 		if (!found) {
 			return failure(c, 404, 'not_found');
 		}

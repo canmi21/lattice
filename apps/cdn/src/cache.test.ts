@@ -1,5 +1,5 @@
 import { ARTIFACT_TYPES, artifactKey } from '@canmi/artifacts';
-import { objectKey } from '@canmi/store';
+import { storageKey } from '@canmi/store';
 import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
 import { cacheControl, isContentAddressed } from './cache';
@@ -41,7 +41,7 @@ describe('isContentAddressed', () => {
 	// A request names the id alone; the bucket fans it out. Both spellings end in the hash, which
 	// is why one predicate covers the path and the key it resolves to.
 	it('recognises the fanned-out key as well as the path that asks for it', () => {
-		expect(isContentAddressed(path(objectKey('image', HASH, 'avif')))).toBe(true);
+		expect(isContentAddressed(path(storageKey(HASH, 'avif')))).toBe(true);
 	});
 
 	it('does not recognise the enumerated exceptions', () => {

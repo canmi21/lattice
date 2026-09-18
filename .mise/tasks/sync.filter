@@ -1,6 +1,6 @@
-# rclone filter for the data/public mirror. Read top to bottom; first match wins.
+# rclone filter for the published mirrors. Read top to bottom; first match wins.
 #
-# The source is already data/public, so this only has to drop the things that live
+# The sources are already the published trees, so this only has to drop the things that live
 # alongside real content: editor and OS leftovers, and the skeleton marker git needs.
 # Anything not matched here is published.
 

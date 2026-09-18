@@ -30,17 +30,95 @@ export const HASH_PATTERN = /^[0-9a-f]{32}$/;
 export const ARTIFACT_TYPES = ['content', 'page', 'markdown'] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
-const EXTENSION = {
+/** What each corpus artifact is spelled with, in the address and in the bucket alike. */
+export const ARTIFACT_EXTENSIONS = {
 	content: 'json',
 	page: 'json',
 	markdown: 'md',
 } as const satisfies Record<ArtifactType, string>;
 
+const EXTENSION = ARTIFACT_EXTENSIONS;
+
 /** The one object in the bucket whose name outlives its bytes. */
 export const ROOT_KEY = 'state/index.json';
 
+/**
+ * The address a published object is served at.
+ *
+ * `/{type}/{hash}.{ext}` -- not where it is stored. The bucket files everything by content id
+ * alone; the type is here because an address is read by people and a hash says nothing about
+ * what it is. See spec/architecture/data.md, "The bucket stores content ids; the CDN serves types".
+ */
 export function artifactKey(type: ArtifactType, hash: string): string {
 	return `${type}/${hash}.${EXTENSION[type]}`;
+}
+
+/**
+ * Where an object lives: its content id, fanned out, and nothing else.
+ *
+ * **The bucket's layout is not the CDN's URL.** A URL says `/{type}/{cid}.{ext}`; the bucket stores
+ * `{ab}/{cd}/{cid}.{ext}`, because the id already identifies it and a type directory would be a
+ * second place to write the same fact. The fan-out is for listing, and the extension is kept so a
+ * bucket downloaded whole is still files that open. See spec/architecture/data.md, "The bucket
+ * stores content ids; the CDN serves types".
+ */
+export function storageKey(cid: string, extension: string): string {
+	return `${cid.slice(0, 2)}/${cid.slice(2, 4)}/${cid}.${extension}`;
+}
+
+/**
+ * Where an asset's record lives, which is in the other bucket entirely.
+ *
+ * Named rather than content-addressed, because the API looks it up by the id of the asset it
+ * describes and rewrites it in place when that asset is re-derived. That is exactly what a
+ * content-addressed key may not do, which is why these two things are no longer neighbours. See
+ * spec/architecture/data.md, "One bucket holds records and the other holds bytes".
+ */
+export function recordKey(cid: string): string {
+	return `meta/${cid}.json`;
+}
+
+/**
+ * Every type a public address may name, and the extensions each may carry.
+ *
+ * One table over what used to be two: the corpus knew `content`, `page` and `markdown`, the
+ * bucket knew `image`, `video`, `captions` and `license`, and nothing knew all of them at once --
+ * so the CDN had two shapes of route for one shape of address. The type is decorative in the
+ * lookup and load-bearing in the reading, which is exactly why it has to be checked.
+ */
+export const PUBLIC_TYPES = {
+	captions: ['vtt'],
+	content: ['json'],
+	image: ['avif', 'webp', 'jpeg', 'png'],
+	license: ['txt'],
+	markdown: ['md'],
+	page: ['json'],
+	video: ['mp4'],
+} as const satisfies Record<string, readonly string[]>;
+
+export type PublicType = keyof typeof PUBLIC_TYPES;
+
+export const PUBLIC_TYPE_NAMES = Object.keys(PUBLIC_TYPES) as PublicType[];
+
+export function isPublicType(value: string): value is PublicType {
+	return Object.hasOwn(PUBLIC_TYPES, value);
+}
+
+/** Whether this type is allowed to be spelled with this extension. */
+export function typeCarries(type: PublicType, extension: string): boolean {
+	return (PUBLIC_TYPES[type] as readonly string[]).includes(extension);
+}
+
+/**
+ * The one type an extension names, when there is exactly one.
+ *
+ * What a wrong type in an address is corrected to. `json` names two -- a compiled view and a
+ * standalone page -- so an address carrying it is left alone rather than corrected to a guess;
+ * the envelope inside the object is what says which it really is.
+ */
+export function typeForExtension(extension: string): PublicType | undefined {
+	const found = PUBLIC_TYPE_NAMES.filter((type) => typeCarries(type, extension));
+	return found.length === 1 ? found[0] : undefined;
 }
 
 /**

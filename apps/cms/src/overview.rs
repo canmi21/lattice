@@ -153,11 +153,12 @@ fn snapshot_at(repository: &Path) -> std::io::Result<Snapshot> {
 
 	let scan = refs::scan(&contents)?;
 	let content_ids = scan.cids();
+	let metadata = crate::paths::metadata_root(repository);
 	let described = media::load(&media::path_for(repository))?;
 	let referenced = content_ids.len() + scan.unresolved().len();
 	let published = content_ids
 		.iter()
-		.filter(|content_id| image::store::meta_path(&public, content_id).is_file())
+		.filter(|content_id| image::store::meta_path(&metadata, content_id).is_file())
 		.count();
 	let descriptions =
 		content_ids.iter().filter(|content_id| !alt::wants_description(&described, content_id)).count();
@@ -209,7 +210,7 @@ mod tests {
 		.expect("article");
 		std::fs::write(root.join("contents/homepage.md"), "---\ntitle: Home\n---\n").expect("homepage");
 		let content_id = "44b6081deaf0242ca3bf83d62a3b6c95";
-		let record = image::store::meta_path(&root.join("data/public"), content_id);
+		let record = image::store::meta_path(&root.join("data/metadata"), content_id);
 		std::fs::create_dir_all(record.parent().expect("record parent")).expect("record directory");
 		std::fs::write(record, "{}").expect("record");
 

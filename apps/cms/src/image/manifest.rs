@@ -240,13 +240,13 @@ pub struct Merged {
 /// guarded write finishes, which would hide staleness forever as a one-shot gate. Version 4
 /// needs no transform: checked, not reasoned, per spec/architecture/media.md, "The manifest has
 /// versions, and only one is current". Unreadable shapes get a branch here, never an alias.
-pub fn migrate(merged: &mut Merged, public: &Path) -> Vec<String> {
+pub fn migrate(merged: &mut Merged, metadata: &Path) -> Vec<String> {
 	merged.version = merged.version.max(VERSION);
 	merged
 		.media
 		.keys()
 		.filter(|cid| {
-			let path = super::store::meta_path(public, cid);
+			let path = super::store::meta_path(metadata, cid);
 			std::fs::read_to_string(path)
 				.ok()
 				.and_then(|text| serde_json::from_str::<Document>(&text).ok())

@@ -1,4 +1,4 @@
-import { isContentId, objectKey, read } from '@canmi/store';
+import { isContentId, read, recordKey } from '@canmi/store';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 import { failure } from './respond';
@@ -21,7 +21,7 @@ image.get('/media', async (c) => {
 		return failure(c, 400, 'not_a_content_id', {});
 	}
 
-	const found = await read(c.env, objectKey('meta', cid));
+	const found = await read(c.env, recordKey(cid));
 	if (!found) {
 		return failure(c, 404, 'not_found', {});
 	}

@@ -257,33 +257,63 @@ as they existed: 14 of 14 in each view, confirmed against the CDN. Both now name
 resolver found and fall back to the authored reference only when it found nothing, which is the
 same fallback a block takes for an asset nobody has imported yet.
 
-**The key is not the URL.** Objects are stored fanned out over the first four characters of the
-id -- `{kind}/{ab}/{cd}/{cid}.{ext}` -- and that split exists for a filesystem mirror, which has
-a directory that overflows. R2 has no directories to overflow at all. So the fanout is a storage
-detail: a caller asks for `{cid}.{ext}` and the worker puts the prefix and the split back on.
-Spelling it into a link would publish the bucket's layout as an interface, and an interface is
-the one thing that cannot be reorganised later. The licence texts leaked it for exactly as long
-as they had no route of their own and fell through to the direct-key handler; adding one was the
-fix, not changing where the bytes live.
+### The bucket stores content ids; the CDN serves types
 
-**The layout is declared once per language and the two are held together by a test.** `OBJECTS`
-in `libs/store` is the table the workers read from; `OBJECTS` in `apps/cms/src/image/store.rs` is
-the table the writer writes from; a test in `libs/store` parses the second and compares. Each row
-is a prefix, whether its keys fan out, and the single format it stores -- empty for `image`, the
-one kind published in several formats, where the request says which.
+**The key is not the URL, and the two now say different things.** An object is stored at
+`{ab}/{cd}/{cid}.{ext}` -- the id, fanned out, and nothing else. It is served at
+`/{type}/{cid}.{ext}`.
 
-It became a table after the per-kind form drifted. Clips arrived as a path on the writing side,
-URLs on the site, and nothing on the reading side: no key builder and no route, so requests fell
-through to the direct-key handler, which reads the path as written and asked for
-`video/{cid}.mp4` where `video/{ab}/{cd}/{cid}.mp4` is stored. Four rung URLs answered 404 with
-the files sitting on disk, and nothing anywhere reported a fault -- the page simply did not play.
-A second test now walks every row and fails until that kind is routed, so the next one cannot be
-added silently.
+The type is in the URL because an address is read by people and a hash says nothing about what it
+is. It is *not* in the key because the id already identifies the object: a type directory in the
+bucket would be a second place to write a fact the id settles, and the two can then disagree. The
+fan-out exists for a filesystem mirror, which has directories that overflow; R2 has none. The
+extension is kept on both sides so that a bucket downloaded whole is still a directory of files
+that open.
 
-**A kind that stores one format and needs nothing done to it is routed from the table rather than
-written out.** `video` and `captions` are both that: a lookup, a validator and the bytes. `image`
-keeps a route of its own because it decodes and re-encodes, and `license` because it also answers
-for a named aggregate that is not addressed by content at all.
+So the type is **decorative in the lookup and load-bearing in the reading**, which is precisely
+why it is checked rather than ignored: an address that resolves under any type is an address with
+no canonical spelling. A type that cannot carry the extension is corrected with a `301` to the one
+that can. `json` names two types -- a compiled view and a standalone page -- so an address
+carrying it is served rather than guessed at; the envelope inside says which it really is.
+
+Spelling the storage key into a link would publish the bucket's layout as an interface, and an
+interface is the one thing that cannot be reorganised later. The licence texts leaked it for
+exactly as long as they had no route of their own; adding one was the fix.
+
+**The layout is declared once per language and the two are held together by a test.**
+`storageKey` in `libs/store` is what the workers read from, `object_path` in
+`apps/cms/src/image/store.rs` is what the writer writes from, and a test in `libs/store` parses
+the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
+the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
+404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
+
+**One table says which types exist**, `PUBLIC_TYPES` in `libs/artifacts`, and a test walks every
+row and fails until that type is routed, so the next one cannot be added silently. A type that
+stores one format and needs nothing done to it is routed from the table rather than written out:
+`video` and `captions` are both that. `image` keeps a route of its own because it decodes and
+re-encodes, and `license` because it also answers for a named aggregate.
+
+### One bucket holds records and the other holds bytes
+
+Two buckets, and the split is not about size -- the records are under half a percent of the bytes.
+It is about **which credentials can reach which**.
+
+| | holds | read by | keys |
+| --- | --- | --- | --- |
+| `metadata` | `state/index.json`, `meta/{cid}.json` | the API | names, rewritten in place |
+| `objects` | everything content-addressed | the CDN | content ids, never rewritten |
+
+They were one bucket, and the CDN's catch-all route served `meta/{cid}.json` to anyone who asked.
+Its name ends in a hash, so the cache policy read the shape and granted a year of `immutable` --
+to a record the API rewrites whenever an asset is re-derived. The comment above that route said
+`meta` was not served from there. It was.
+
+**An allowlist would have fixed that instance; the split fixes the category.** A prefix list is
+enforced by our code, and the next prefix added defaults to reachable. A binding is enforced by
+the platform: the CDN has no credential for the metadata bucket, so no route, bug or catch-all can
+reach it. The rule that follows is the writer's, not the URL's -- **a content-addressed key is
+computed from the bytes about to be written under it, never from an id that happens to be in
+hand**, which is the step `meta` skipped.
 
 **Every object here answers a range, and the worker is what answers it.** Nothing reaches R2 or a
 third-party host directly -- each one goes through a route -- so the range is resolved on the way

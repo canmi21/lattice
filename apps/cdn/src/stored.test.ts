@@ -1,5 +1,6 @@
-import { OBJECTS, objectKey, type ObjectPrefix } from '@canmi/store';
+import { storageKey } from '@canmi/store';
 import { describe, expect, it } from 'vitest';
+import { PUBLIC_TYPES, PUBLIC_TYPE_NAMES } from '@canmi/artifacts';
 import app, { PLAIN_OBJECTS } from './index';
 import { stored } from './stored';
 
@@ -11,7 +12,7 @@ const BYTES = 'stored bytes for the range tests';
 function bucketWith(keys: string[]) {
 	const held = (key: string) => keys.includes(key);
 	return {
-		PUBLIC: {
+		STORE: {
 			head: async (key: string) => (held(key) ? { size: BYTES.length } : null),
 			get: async (key: string, options?: { range?: { offset: number; length: number } }) => {
 				if (!held(key)) return null;
@@ -28,28 +29,27 @@ function bucketWith(keys: string[]) {
  * The failure this whole file is here for.
  *
  * `video` and `captions` were declared and written but had no route, so a request fell
- * through to the direct-key lookup and asked for `video/{cid}.mp4` where
- * `video/{ab}/{cd}/{cid}.mp4` is stored -- four rung URLs answered 404 with the files on disk.
+ * through to the direct-key lookup and asked for the wrong key -- four rung URLs answered 404
+ * with the files on disk.
  *
- * So the test is not "does video work" but "is every kind the store declares reachable" -- a
- * new kind added to `OBJECTS` fails here until somebody routes it.
+ * So the test is not "does video work" but "is every type the table declares reachable" -- a new
+ * type added to `PUBLIC_TYPES` fails here until somebody routes it.
  */
-describe('every content-addressed kind is reachable', () => {
-	/** Kinds this worker does not serve, and why. Anything else must have a route. */
-	const ELSEWHERE: Record<string, string> = {
-		// A record is read by apps/api, which answers questions about an asset rather than
-		// handing back its bytes. Serving it from here too would be two answers to one question.
-		meta: 'served by apps/api',
-	};
+describe('every public type is reachable', () => {
+	/** Types this worker answers for by a route of its own rather than by a key lookup. */
+	const ELSEWHERE = new Set<string>();
 
-	it.each(Object.keys(OBJECTS) as ObjectPrefix[])('routes %s', async (prefix) => {
-		if (ELSEWHERE[prefix]) return;
-		const extension = OBJECTS[prefix].extension ?? 'avif';
-		const key = objectKey(prefix, CID, extension);
-		const response = await app.request(`/${prefix}/${CID}.${extension}`, {}, bucketWith([key]));
-		// 404 is what the fallback answers when it looks the key up unfanned, so a pass here is
-		// the whole claim: the request reached a route that knows where the object lives.
-		expect(response.status, `/${prefix} has no route`).toBe(200);
+	it.each(PUBLIC_TYPE_NAMES)('routes %s', async (type) => {
+		if (ELSEWHERE.has(type)) return;
+		const extension = PUBLIC_TYPES[type][0];
+		const response = await app.request(
+			`/${type}/${CID}.${extension}`,
+			{},
+			bucketWith([storageKey(CID, extension)]),
+		);
+		// 404 is what the fallback answers when nothing knows where the object lives, so a pass
+		// here is the whole claim: the request reached a route that does.
+		expect(response.status, `/${type} has no route`).toBe(200);
 	});
 });
 
@@ -57,7 +57,7 @@ describe('a kind that stores one format', () => {
 	const route = stored('video', 'mp4');
 
 	it('serves the object under its fanned-out key', async () => {
-		const response = await route.request(`/${CID}.mp4`, {}, bucketWith([objectKey('video', CID)]));
+		const response = await route.request(`/${CID}.mp4`, {}, bucketWith([storageKey(CID, 'mp4')]));
 		expect(response.status).toBe(200);
 		expect(response.headers.get('Content-Type')).toBe('video/mp4');
 		// What tells a player it may seek. Without it a browser fetches a whole rung to read a
@@ -69,7 +69,7 @@ describe('a kind that stores one format', () => {
 		const response = await route.request(
 			`/${CID}.mp4`,
 			{ headers: { Range: 'bytes=7-12' } },
-			bucketWith([objectKey('video', CID)]),
+			bucketWith([storageKey(CID, 'mp4')]),
 		);
 		expect(response.status).toBe(206);
 		expect(response.headers.get('Content-Range')).toBe(`bytes 7-12/${BYTES.length}`);
@@ -85,7 +85,7 @@ describe('a kind that stores one format', () => {
 		const response = await route.request(
 			`/${CID}.mp4`,
 			{ headers: { Range: 'bytes=9999-' } },
-			bucketWith([objectKey('video', CID)]),
+			bucketWith([storageKey(CID, 'mp4')]),
 		);
 		expect(response.status).toBe(416);
 		expect(response.headers.get('Content-Range')).toBe(`bytes */${BYTES.length}`);
@@ -95,7 +95,7 @@ describe('a kind that stores one format', () => {
 		// The id is a hash of the bytes, so a client holding this tag holds these bytes. Reading
 		// the object to confirm it would only prove what the URL already stated.
 		const bucket = {
-			PUBLIC: {
+			STORE: {
 				get: async () => {
 					throw new Error('the bucket must not be read for a 304');
 				},
@@ -126,8 +126,8 @@ describe('the list index mounts from', () => {
 	it('holds only kinds that store a single format', () => {
 		// `stored` takes the extension from the table and has nothing to choose between. Moving
 		// `image` into this list would silently serve one format under every request.
-		for (const prefix of PLAIN_OBJECTS) {
-			expect(OBJECTS[prefix].extension, `${prefix} stores more than one format`).not.toBeNull();
+		for (const type of PLAIN_OBJECTS) {
+			expect(PUBLIC_TYPES[type], `${type} stores more than one format`).toHaveLength(1);
 		}
 	});
 });

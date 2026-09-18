@@ -1,4 +1,4 @@
-import { objectKey } from '@canmi/store';
+import { storageKey } from '@canmi/store';
 import { describe, expect, it } from 'vitest';
 import image from './image';
 
@@ -12,7 +12,7 @@ const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
  */
 function bucketWith(keys: string[]) {
 	return {
-		PUBLIC: {
+		STORE: {
 			get: async (key: string) =>
 				keys.includes(key)
 					? { body: new Response('stored').body, httpMetadata: {}, httpEtag: '"e"' }
@@ -26,7 +26,7 @@ describe('a request spelling jpeg as jpg', () => {
 		const response = await image.request(
 			`/${CID}.jpg`,
 			{},
-			bucketWith([objectKey('image', CID, 'avif')]),
+			bucketWith([storageKey(CID, 'avif')]),
 		);
 
 		expect(response.status).toBe(301);
@@ -49,7 +49,7 @@ describe('a request spelling jpeg as jpg', () => {
 		const response = await image.request(
 			`/${CID}.jpg`,
 			{},
-			bucketWith([objectKey('image', CID, 'png')]),
+			bucketWith([storageKey(CID, 'png')]),
 		);
 
 		expect(response.status).toBe(301);
