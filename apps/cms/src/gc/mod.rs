@@ -18,13 +18,13 @@ use crate::refs;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-/// Every content id the published root mentions, read as text rather than against a schema.
+/// Every content id one root mentions, read as text rather than against a schema.
 ///
 /// The root is the site publisher's to shape, so a parser here would be a second declaration of
 /// it that can fall behind. A 32-character hex run is a content id wherever it appears, and
 /// keeping one too many costs a file while missing one costs an article.
-fn hashes_in_root(metadata: &Path) -> BTreeSet<String> {
-	let Ok(text) = std::fs::read_to_string(metadata.join("state/index.json")) else {
+fn hashes_in_root(root: &Path) -> BTreeSet<String> {
+	let Ok(text) = std::fs::read_to_string(root.join("state/index.json")) else {
 		return BTreeSet::new();
 	};
 	let mut found = BTreeSet::new();
@@ -107,14 +107,15 @@ pub fn plan(
 		}
 	}
 
-	// Every hash the published root names, which is what stops this from deleting the corpus.
+	// Every hash either root names, which is what stops this from deleting the corpus.
 	//
-	// The objects tree holds the compiled articles beside the assets now -- one flat space keyed
-	// by content id -- so a sweep that only knew about assets would walk past every article body
-	// and call it an orphan. Read as opaque text rather than against a schema: the root is written
-	// by the site's publisher and a parser here would be a second declaration of its shape, where
-	// over-keeping is the safe direction for a collector and under-keeping is data loss.
+	// **Both roots, and the draft one is not optional.** A draft compiles into the same objects
+	// tree as everything else and only the draft root names it, so reading the published root
+	// alone would sweep every draft body on every run and the next publish would write it back.
+	// The objects tree holds compiled articles beside the assets, so a sweep that knew about
+	// assets alone would walk past every article body and call it an orphan.
 	keep.extend(hashes_in_root(metadata));
+	keep.extend(hashes_in_root(&crate::paths::draft_root(repo)));
 
 	// Cards are content-addressed too and share the flat space, but no article names one: they
 	// hang off `cms og`'s record. The live set is what that command would draw -- every non-draft
@@ -472,6 +473,30 @@ mod tests {
 		// The poster is reachable only through the clip, so its manifest entry has to survive
 		// the same hop its bytes did.
 		assert!(sweep.entries.is_empty(), "{:?}", sweep.entries);
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn a_draft_body_is_kept_by_the_root_only_the_draft_names_it() {
+		// A draft compiles into the same objects tree as everything else, and the published root
+		// does not name it. Reading that root alone would sweep every draft body on every run.
+		let temporary = temp();
+		let root = temporary.path().to_path_buf();
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+
+		let public = root.join("public");
+		let body = "ab".repeat(16);
+		crate::image::store::write(&crate::image::store::variant_path(&public, &body, "json"), b"{}")
+			.expect("write");
+
+		let state = crate::paths::draft_root(&root).join("state");
+		std::fs::create_dir_all(&state).expect("dir");
+		std::fs::write(state.join("index.json"), format!("{{\"content\":\"{body}\"}}"))
+			.expect("draft root");
+
+		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
+		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
+		assert!(!names.contains(&body), "swept a draft body the draft root names");
 		std::fs::remove_dir_all(&root).ok();
 	}
 

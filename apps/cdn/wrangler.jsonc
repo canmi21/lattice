@@ -40,12 +40,11 @@
 	// `max-age=0` where production serves a year. Measured: that is exactly what happened.
 	"env": {
 		"dev": {
-			// data/draft, not data/bucket/objects: it holds the same corpus plus the drafts, and
-			// symlinks to the published assets the publish step writes for it. One directory covering
-			// both trees is what `wrangler dev` allows, since it binds exactly one. A reader never
-			// sees this tree -- rclone is pointed inside data/bucket and cannot reach it.
+			// The objects tree itself, with no draft copy beside it: a draft's objects are in here
+			// like everything else, and what withholds one is the root the API reads rather than
+			// which directory its bytes sit in. See spec/drafts.md.
 			"assets": {
-				"directory": "../../data/draft/objects",
+				"directory": "../../data/bucket/objects",
 				"binding": "ASSETS",
 				"run_worker_first": true,
 			},

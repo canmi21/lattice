@@ -51,6 +51,14 @@ pub fn bucket_root(repo: &Path) -> PathBuf {
 	repo.join("data").join("bucket")
 }
 
+/// The draft corpus, which is one root and a link to the published records.
+///
+/// Never mirrored. A draft's objects are in the objects tree like everything else; what
+/// withholds one is that the published root does not name it. See spec/drafts.md.
+pub fn draft_root(repo: &Path) -> PathBuf {
+	repo.join("data").join("draft")
+}
+
 /// Icons fetched from other people's sites, which are a source rather than a published object.
 ///
 /// They used to sit inside the published tree, which stopped being a place for anything that is

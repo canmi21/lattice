@@ -286,14 +286,6 @@ async function publishBrand(tree: Tree): Promise<Root['assets']> {
 }
 
 /**
- * The icons `cms favicon` fetched from other people's sites, published like anything else.
- *
- * Named `favicon/{domain}/{tone}`, which is what a link card can construct from the domain it
- * already knows -- so this is request-time resolution rather than build-time. An icon changes on
- * its owner's schedule, and compiling its hash into a card would mean republishing every article
- * that mentions them the day they redraw it. See spec/architecture/delivery.md.
- */
-/**
  * The attribution notice, assembled by `cms licenses` and published as one object.
  *
  * A build product rather than an authored one, and rewritten whenever the dependency tree moves,
@@ -308,6 +300,14 @@ async function publishNotice(tree: Tree): Promise<Root['assets']> {
 	};
 }
 
+/**
+ * The icons `cms favicon` fetched from other people's sites, published like anything else.
+ *
+ * Named `favicon/{domain}/{tone}`, which is what a link card can construct from the domain it
+ * already knows -- so this is request-time resolution rather than build-time. An icon changes on
+ * its owner's schedule, and compiling its hash into a card would mean republishing every article
+ * that mentions them the day they redraw it. See spec/architecture/delivery.md.
+ */
 async function publishIcons(tree: Tree): Promise<Root['assets']> {
 	const assets: Root['assets'] = {};
 	const domains = await readdir(INPUTS.icons, { withFileTypes: true }).catch(() => []);
@@ -364,80 +364,12 @@ const [published, drafted, pageBuild] = await Promise.all([
 ]);
 
 /**
- * Point the draft tree at the published objects it does not hold, so one directory covers both.
+ * The one link left: the records, which the draft root names and the draft build never writes.
  *
- * File by file rather than directory by directory. A flat content-addressed tree has no prefix to
- * link: draft objects and published ones share the same fan-out directories, so linking `44/`
- * would hide whatever the draft build wrote there. Two objects can never claim one name, which is
- * what makes the file-level link safe. See spec/architecture/artifacts.md, "Drafts leave the
- * corpus at publication, not at build".
+ * `wrangler dev` binds exactly one directory, and the API needs both the draft root and the
+ * published records to answer. Nothing else is linked -- the objects are one tree now, and the
+ * draft root is the only file in this one.
  */
-async function linkObjects(publicDir: string, draftDir: string): Promise<number> {
-	let linked = 0;
-	for (const fan of await readdir(publicDir, { withFileTypes: true })) {
-		// Fan-out directories only. A named prefix beside them is linked whole by `linkNamed`,
-		// and walking into one here would build it out of real directories that cannot then be
-		// replaced by a link.
-		if (!fan.isDirectory() || !/^[0-9a-f]{2}$/.test(fan.name)) continue;
-		for (const inner of await readdir(join(publicDir, fan.name), { withFileTypes: true })) {
-			if (!inner.isDirectory()) continue;
-			const from = join(publicDir, fan.name, inner.name);
-			const into = join(draftDir, fan.name, inner.name);
-			await mkdir(into, { recursive: true });
-			for (const object of await readdir(from)) {
-				const link = join(into, object);
-				const target = join(relative(into, from), object);
-				if ((await readlink(link).catch(() => undefined)) === target) continue;
-				// A real file here is the draft build's own object under the same name, which
-				// content addressing says is the same bytes. Leave it.
-				if (await stat(link).then(() => true, () => false)) continue;
-				await symlink(target, link);
-				linked += 1;
-			}
-		}
-	}
-	return linked;
-}
-
-/**
- * The named prefixes beside the objects: fonts, cards, icons and the site's own files.
- *
- * Still addressed by name rather than by content, so they keep a directory each and can be linked
- * whole. Anything at the top of the objects tree that is not a fan-out directory is one of these.
- */
-async function linkNamed(publicDir: string, draftDir: string): Promise<string[]> {
-	const named = (await readdir(publicDir, { withFileTypes: true })).filter(
-		(entry) => !entry.name.startsWith('.') && !/^[0-9a-f]{2}$/.test(entry.name),
-	);
-
-	// A link whose target has gone is removed first. Nothing else would: publishing only ever
-	// adds, so a name that stops being published leaves a dangling link behind -- and `wrangler
-	// dev` refuses to start on one rather than skipping it, which takes the whole worker down.
-	const wanted = new Set(named.map((entry) => entry.name));
-	for (const entry of await readdir(draftDir, { withFileTypes: true })) {
-		if (!entry.isSymbolicLink() || wanted.has(entry.name)) continue;
-		const link = join(draftDir, entry.name);
-		const reaches = await stat(link).then(
-			() => true,
-			() => false,
-		);
-		if (!reaches) await unlink(link);
-	}
-
-	const linked: string[] = [];
-	for (const entry of named) {
-		const link = join(draftDir, entry.name);
-		const target = join(relative(draftDir, publicDir), entry.name);
-		const current = await readlink(link).catch(() => undefined);
-		if (current === target) continue;
-		if (current !== undefined) await unlink(link);
-		await symlink(target, link);
-		linked.push(entry.name);
-	}
-	return linked;
-}
-
-/** The records, which the draft tree never writes and can therefore link whole. */
 async function linkRecords(metadataDir: string, draftDir: string): Promise<void> {
 	const link = join(draftDir, 'meta');
 	const target = join(relative(draftDir, metadataDir), 'meta');
@@ -448,28 +380,22 @@ async function linkRecords(metadataDir: string, draftDir: string): Promise<void>
 	await symlink(target, link);
 }
 
-// A draft is compiled like anything else and kept out of the public tree by the corpus it was
-// compiled from, not by a filter here. See spec/architecture/artifacts.md, "Drafts leave the
-// corpus at publication, not at build".
-const trees = [
-	{
-		name: 'public',
-		dir: new URL('data/bucket/objects/', ROOT),
-		metadata: new URL('data/bucket/metadata/', ROOT),
-		articles: published.articles,
-	},
-	// One tree per bucket here too, so development binds the same two things production does.
-	{
-		name: 'draft',
-		dir: new URL('data/draft/objects/', ROOT),
-		metadata: new URL('data/draft/metadata/', ROOT),
-		articles: drafted.articles,
-	},
+/**
+ * One tree of objects, and a root per corpus.
+ *
+ * A draft compiles to a content-addressed object like anything else and lands in the same tree.
+ * What withholds it is that the published root does not name it, and the root is the one thing
+ * that turns a guessable slug into an id. See spec/drafts.md.
+ */
+const objectsDir = new URL('data/bucket/objects/', ROOT);
+const roots = [
+	{ name: 'public', metadata: new URL('data/bucket/metadata/', ROOT), articles: published.articles },
+	{ name: 'draft', metadata: new URL('data/draft/', ROOT), articles: drafted.articles },
 ];
 
-for (const { name, dir, metadata, articles } of trees) {
+for (const { name, metadata, articles } of roots) {
 	const { written, present, bytes } = await publishCorpus(
-		fileURLToPath(dir),
+		fileURLToPath(objectsDir),
 		fileURLToPath(metadata),
 		articles,
 		pageBuild.pages,
@@ -481,15 +407,8 @@ for (const { name, dir, metadata, articles } of trees) {
 	);
 }
 
-const publicDir = fileURLToPath(new URL('data/bucket/objects/', ROOT));
-const draftObjects = fileURLToPath(new URL('data/draft/objects/', ROOT));
-const objects = await linkObjects(publicDir, draftObjects);
-const named = await linkNamed(publicDir, draftObjects);
 await linkRecords(
 	fileURLToPath(new URL('data/bucket/metadata/', ROOT)),
-	fileURLToPath(new URL('data/draft/metadata/', ROOT)),
+	fileURLToPath(new URL('data/draft/', ROOT)),
 );
-console.log(
-	`draft: linked ${objects} objects` +
-		`${named.length > 0 ? `, ${named.join(', ')}` : ''} and the records from the published tree`,
-);
+console.log('draft: records linked from the published tree');

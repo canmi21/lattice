@@ -26,18 +26,29 @@ was merely different, and the difference was a draft on the public site.
 
 ## Publication drops them; the local tree keeps them
 
-**The discriminator used to be the site build's mode, and there is no site build of the corpus
-any more.** It is now which tree an object is written into: a draft's objects and a draft root go
-to `data/draft/`, which [architecture/data.md](architecture/data.md) says never leaves this
-machine, and the root written into `data/public` does not name them.
+**The discriminator is which root an article is written into**, and nothing else. A draft's
+objects go into the objects tree like every other article's; the root under `data/draft/` names
+them and the one under `data/bucket/metadata/` does not. Only the second is mirrored.
 
-That moves the boundary onto the one the mirror already enforces, which is the stronger place for
-it. Before, a draft was absent because a parameter said so and every consumer read a corpus built
-under that parameter; now it is absent because the bytes are in a directory `rclone` is not
-pointed at. A forgotten filter published a draft; a forgotten filter now publishes nothing,
-because there is nothing there to publish. See
+**Objects are not what is withheld, and were never what was withheld.**
+[refs.rs](../apps/cms/src/refs.rs) has never read the draft flag, so a draft's pictures and clips
+have always been derived into the published tree and mirrored with everything else. What kept them
+from a reader is that nothing hands out their content ids -- a 128-bit hash of the bytes is not
+something anyone reaches without being told it. Publishing the compiled body the same way makes
+one rule out of what was two.
+
+**What the root adds is a name somebody can guess.** A slug is human-readable and `findArticle`
+maps one to a content id, so a root naming a draft is a draft anybody can ask for by title. That
+is the thing worth withholding, and withholding it is stronger than filtering it: the production
+API is handed a root that does not contain drafts, so there is no filter in any endpoint to
+forget. The boundary stays the one the mirror already enforces -- `rclone` is pointed inside
+`data/bucket` and cannot see `data/draft`. See
 [architecture/artifacts.md](architecture/artifacts.md), "Drafts leave the corpus at publication,
 not at build".
+
+**`cms gc` reads both roots, and the second one is not optional.** A draft body is an object in
+the shared tree that only the draft root names, so a sweep reading the published root alone calls
+every draft an orphan, deletes it, and watches the next publish write it back.
 
 Dropping still happens in [articles.ts](../apps/site/src/lib/content/build/articles.ts), before
 the article is compiled, so there is one place to read and no list of consumers to keep in step.
@@ -46,7 +57,7 @@ resolve through the root, and a draft is simply not in the one the site reads.
 
 **The compile still takes its policy from the caller, and the parameter is still required.** A
 caller that forgets to decide is a type error; a default would be a draft quietly shipped. The
-callers answer from what they are for -- the publish step runs the compile twice, once per tree,
+callers answer from what they are for -- the publish step runs the compile twice, once per root,
 and [search.ts](../apps/site/scripts/search.ts) from the fact that the index it writes is
 production's and has no other version.
 

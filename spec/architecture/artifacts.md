@@ -131,24 +131,27 @@ name it -- five minutes plus a margin, so in practice a day.
 
 ## Drafts leave the corpus at publication, not at build
 
-A draft is compiled like anything else and its objects are written to `data/draft/`, which
-[data.md](data.md) says never leaves this machine. The root written into `data/public` does not
-name them; a second root under `data/draft/` does.
+A draft is compiled like anything else and its objects go into the **same** tree as everything
+else. What withholds it is that the published root does not name it; a second root, under
+`data/draft/` and never mirrored, does.
 
-An author is meant to see drafts and a reader is not, which the mirror already enforces: nothing
-under `data/draft/` is ever transferred. This replaces the old arrangement, where a production
-build dropped drafts before compiling them -- there is no site build to drop them in any more.
+**The object tree was never the boundary, and pretending it was hid that.** `refs::scan` has never
+read the draft flag, so a draft's pictures and clips have always been derived and mirrored like any
+other article's -- protected, in practice, by nobody knowing their content ids. Giving the compiled
+body the same protection makes the arrangement uniform instead of adding a new risk: a 128-bit hash
+of the bytes is not reachable without having been told it.
 
-**Development reads the draft tree, and it is the only tree it reads.** `wrangler dev` binds one
-directory, so the draft tree is made to be the complete one: it holds the same corpus plus the
-drafts, and publishing links the published asset prefixes into it -- images, fonts, favicons and
-the rest, which are not artifacts and are only ever written under `data/public`. The asset server
-follows a symlink, which is what lets one binding cover two trees.
+**The root is the one thing that turns a guessable name into an id**, which is why it is the thing
+that is withheld. A slug is human-readable and easy to guess; `findArticle` maps one to a content
+id. So the production API is given a root that does not contain drafts, rather than a root that
+does plus a filter -- a forgotten filter publishes a draft, and there is no filter to forget.
 
-The links are derived rather than listed: anything at the top of `data/public` that publishing did
-not write is an asset prefix, so a new one needs no edit anywhere. A reader still cannot reach any
-of it, for the reason that has not changed -- `rclone` is pointed at `data/public` and cannot see
-`data/draft` at all.
+That also keeps this boundary the one the mirror already enforces. `rclone` is pointed inside
+`data/bucket` and cannot see `data/draft` at all.
+
+**Development reads the draft root, and that is the whole of the difference.** `wrangler dev` binds
+one directory, so `data/draft/` holds the draft root and a single symlink to the published records;
+the CDN's dev binding is the objects tree itself. Nothing is copied and nothing is mirrored twice.
 
 ## The API is the only thing that changes
 
