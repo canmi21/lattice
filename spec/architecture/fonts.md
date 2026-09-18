@@ -9,7 +9,7 @@ chunks needs no input of its own. It may still name an input retained by a diffe
 owns their shared chunks. Keeping every original forever would turn a temporary build need into
 repository policy without buying the browser anything.
 
-The authored [font manifest](../../data/fonts.json) records that distinction. Ioskeley Mono has
+The authored [font manifest](../../data/record/fonts.json) records that distinction. Ioskeley Mono has
 eight prebuilt chunks and no retained input; that is a complete family, not a missing source.
 
 That manifest stays in `data/` because it is a curated asset record and the slicing pipeline must
@@ -28,7 +28,7 @@ split chunks come to 12.5MB against it, and no reader ever wants more than a fra
 
 **That figure is one family's, not the set's, and saying so is a correction.** It was taken from
 a comment in `wenkai.css` and written here as a total, which was true only while LXGW was the one
-CJK family. `data/fonts.json` now declares three as `frequency-chunks` -- lxgw-wenkai, klee-one
+CJK family. `data/record/fonts.json` now declares three as `frequency-chunks` -- lxgw-wenkai, klee-one
 and tang-guo-wei-de-xia-tian -- and every published chunk under `data/bucket/objects/fonts` totals
 18.5MB, of which those three are 18MB and the Latin faces and the monospace are the rest. Byte
 figures in this file are binary: 12.5MB is 12.53 MiB, and the retained face is 24.39 MiB.

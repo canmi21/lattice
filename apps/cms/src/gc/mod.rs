@@ -317,7 +317,7 @@ mod tests {
 			media: assets,
 		};
 		// Through the same writer production uses, which creates the parent. The manifest sits
-		// at `data/metadata.json` now, so a bare write lands in a directory that is not there.
+		// at `data/record/metadata.json` now, so a bare write lands in a directory that is not there.
 		crate::image::store::write(
 			&root.join(MERGED),
 			serde_json::to_string(&merged).expect("json").as_bytes(),

@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			? [
 					'',
 					'This package declares no license of its own. The expression above was read off',
-					'what it ships and recorded in data/licenses.yaml, with the evidence.',
+					'what it ships and recorded in data/record/licenses.yaml, with the evidence.',
 				]
 			: []),
 	].join('\n');

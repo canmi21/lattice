@@ -7,9 +7,9 @@
 //! `alt::pending` already leaves clips out for exactly this reason. Same shape as `cms diagram`:
 //! one operation, one subject, one prompt. See spec/architecture/video/pipeline.md.
 //!
-//! The description is stored where a picture's is -- `description` in `data/media.yaml`, under the
-//! source locale -- so `cms locale` carries it into every language with no branch of its own, and
-//! the site reads one field whatever the asset is.
+//! The description is stored where a picture's is -- `description` in `data/record/media.yaml`,
+//! under the source locale -- so `cms locale` carries it into every language with no branch of its
+//! own, and the site reads one field whatever the asset is.
 
 use crate::alt::{PARALLEL, SOURCE_LOCALE, Spend};
 use crate::frames::{self, Context, Excerpt};
@@ -120,9 +120,9 @@ fn titles(articles: &Path) -> BTreeMap<String, String> {
 /// What this repository already knows about one clip.
 ///
 /// Every field is authored or derived from something authored -- the publisher from
-/// `data/media.yaml`, the excerpt from the person who chose the window, the title from the article
-/// -- because none of it is in the file. `frames::prompt` is what stops the model answering with
-/// it instead of with the frames.
+/// `data/record/media.yaml`, the excerpt from the person who chose the window, the title from the
+/// article -- because none of it is in the file. `frames::prompt` is what stops the model
+/// answering with it instead of with the frames.
 fn context_for(cid: &str, authored: &media::Media, titles: &BTreeMap<String, String>) -> Context {
 	let entry = authored.media.get(cid);
 	Context {

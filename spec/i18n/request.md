@@ -44,7 +44,7 @@ than an exception to it: the source goes out, nothing comes back into the source
 
 **The description belongs to the drawing, not to an article carrying it.** It is keyed by the hash
 of the block -- the segment id, which is already what addresses that block everywhere else -- and
-kept in `data/diagram.json`, so one drawing used by two articles is described once and paid for
+kept in `data/record/diagram.json`, so one drawing used by two articles is described once and paid for
 once. The store is JSON where its neighbours are YAML. `media.yaml` and `tags.yaml` are files a
 person opens, edits a few entries in and saves back, and YAML is for them; this one is written by
 a command and read by a build, and the only field a person ever reaches into it for is `review`.

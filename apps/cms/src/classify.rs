@@ -392,7 +392,8 @@ mod tests {
 			updated: "2026-08-01T00:00:00Z".into(),
 			media: BTreeMap::from([(id.clone(), bare_media())]),
 		};
-		std::fs::create_dir_all(root.join("data")).expect("data");
+		std::fs::create_dir_all(root.join(crate::image::run::MERGED).parent().expect("record dir"))
+			.expect("record directory");
 		std::fs::write(
 			root.join(crate::image::run::MERGED),
 			serde_json::to_string(&manifest).expect("json"),

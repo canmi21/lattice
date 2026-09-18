@@ -66,7 +66,7 @@ export type Resolved = {
 };
 
 /**
- * A picture's record, as `data/metadata.json` holds it.
+ * A picture's record, as `data/record/metadata.json` holds it.
  *
  * Only the fields the markup needs are declared. The record carries EXIF, byte counts and the
  * quality each variant was encoded at, and none of them reaches a page.

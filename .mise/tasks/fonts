@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#MISE description="Build or check web-font chunks declared in data/fonts.json"
+#MISE description="Build or check web-font chunks declared in data/record/fonts.json"
 """Build web-font chunks without turning retained full faces into a requirement.
 
 The manifest makes the two independent roles of a full face visible: a disposable pipeline
@@ -20,7 +20,7 @@ import tempfile
 from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-MANIFEST = ROOT / "data/fonts.json"
+MANIFEST = ROOT / "data/record/fonts.json"
 PUBLIC = ROOT / "data/bucket/objects"
 RUNNER = pathlib.Path(__file__).with_name("font-split.mjs")
 HASHED_CHUNK = re.compile(r"[0-9a-f]{32}\.woff2")

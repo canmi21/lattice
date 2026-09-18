@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 /// Inside `data/` because it describes what is there, and tracked anyway because a build
 /// resolves every image from it without a byte of `data/` being present. It is the one file
 /// under that directory git keeps -- see .gitignore, which says why.
-pub const MERGED: &str = "data/metadata.json";
+pub const MERGED: &str = "data/record/metadata.json";
 
 #[derive(Debug, Default)]
 pub struct Outcome {
@@ -278,7 +278,7 @@ pub fn republish(metadata: &Path, cid: &str, media: &Media) -> std::io::Result<(
 
 /// The merged manifest, fresh and empty when the repository has none yet.
 ///
-/// `data/metadata.json` is committed and a whole site build resolves its images out of it.
+/// `data/record/metadata.json` is committed and a whole site build resolves its images out of it.
 /// A parse failure is an error rather than an empty manifest. See spec/architecture/data.md,
 /// "A broken sidecar is an error, never an empty one".
 pub fn load(path: &Path) -> std::io::Result<Merged> {
@@ -606,7 +606,8 @@ mod tests {
 		let public = root.join("public");
 		let metadata = crate::paths::metadata_root(root);
 		let articles = root.join("contents");
-		std::fs::create_dir_all(root.join("data")).expect("data");
+		std::fs::create_dir_all(root.join(MERGED).parent().expect("record dir"))
+			.expect("record directory");
 		std::fs::create_dir_all(&articles).expect("articles");
 
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";

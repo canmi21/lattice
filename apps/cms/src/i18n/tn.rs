@@ -1,4 +1,4 @@
-//! `data/tn.yaml`: which passages a translator has to gloss, and roughly how.
+//! `data/record/tn.yaml`: which passages a translator has to gloss, and roughly how.
 //!
 //! Whether a passage needs a note is a judgement about the whole article, made by a model that
 //! reads it whole rather than one block at a time -- a per-block model produced no notes at all,

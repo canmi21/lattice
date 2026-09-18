@@ -1293,7 +1293,7 @@ fn scan_notes(
 		println!("every article already read; pass --force to read one again");
 		return Ok(ExitCode::SUCCESS);
 	}
-	println!("{read} read, {suggested} suggestions in data/tn.yaml; delete any you disagree with");
+	println!("{read} read, {suggested} suggestions in data/record/tn.yaml; delete any you disagree with");
 	println!("{spent} tokens");
 	Ok(ExitCode::SUCCESS)
 }

@@ -1,4 +1,4 @@
-//! `data/tags.yaml`: what each tag is called.
+//! `data/record/tags.yaml`: what each tag is called.
 //!
 //! An image links to a raw name and nothing else. What a reader sees lives here, so renaming
 //! `terminal` to `Terminal` for English and `终端` for Chinese never touches a single image,

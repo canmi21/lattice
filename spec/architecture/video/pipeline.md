@@ -157,12 +157,12 @@ reads the file's dimensions and nothing else.
 The split is [media.md](../media.md)'s: what a tool can rebuild from the original goes in the manifest,
 what a person wrote cannot be rebuilt and goes beside the description.
 
-**Derived, in `data/metadata.json`:** duration, dimensions and ratio, the full codec string the
+**Derived, in `data/record/metadata.json`:** duration, dimensions and ratio, the full codec string the
 `<source>` element needs, frame rate, **frame count**, whether there is an audio track, byte size,
 and each rung keyed by its own content id. The frame count is not decoration: it is the denominator
 of the progress bar the software path shows, and without it the bar cannot be honest.
 
-**Authored, in `data/media.yaml`:** `source`, exactly as a picture carries it -- a `url` and an
+**Authored, in `data/record/media.yaml`:** `source`, exactly as a picture carries it -- a `url` and an
 English `label` naming the origin rather than the route. Plus two a picture has no use for:
 
 - `excerpt`, the range in the original the clip was cut from. Nothing in the cut file records that

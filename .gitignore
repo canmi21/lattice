@@ -37,23 +37,15 @@ data/**
 !data/**/
 !data/**/.gitkeep
 # An allowlist, not exceptions. What `data/` keeps out of git is bytes, not the directory:
-# photographs, derived variants, fonts and a geocoding database say nothing in a diff. These
-# are records -- builds consume them without the underlying bytes or local tools.
-!data/metadata.json
-!data/media.yaml
-!data/tags.yaml
-# What each diagram an article draws in source says, bought one model call at a time and keyed
-# by the hash of the block. JSON where its neighbours are YAML: nothing edits it by hand.
-!data/diagram.json
-!data/fonts.json
-# Authored, not derived: the licence a person worked out for a package that declared none.
-!data/licenses.yaml
-!data/tn.yaml
-# What has already been announced to the IndexNow participants. Not derived from anything in the
-# tree -- it is a record of requests that were made -- so losing it cannot be recomputed, only
-# re-sent, which is the one thing that protocol asks us not to do. It has to travel with the
-# repository or a fresh clone announces the whole site. See spec/indexing.md.
-!data/indexnow.json
+# photographs, derived variants, fonts and a geocoding database say nothing in a diff.
+#
+# `data/record/` is the other half: text a person curates or a tool regenerates, which a build
+# consumes without the underlying bytes or local tools. One rule rather than a filename per
+# record, because the list was the thing that drifted -- a record added without a line here is a
+# record that silently does not travel, and nobody finds out until a clone cannot build. What
+# each of them is, and why it is committed, is in spec/architecture/data.md.
+!data/record/**
+
 # The site's own brand marks: authored once, by hand, and regenerable by nobody. They were sitting
 # loose in the published tree and therefore in no clone but this machine's, which made "the bytes
 # belong to the machine" true of the one set that cannot be re-derived from anything. Small, and

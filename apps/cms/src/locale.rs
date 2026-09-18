@@ -749,7 +749,8 @@ mod tests {
 	/// same guarantee without the counter: uniqueness is the library's, not a name's.
 	fn temp() -> tempfile::TempDir {
 		let temporary = tempfile::tempdir().expect("temp");
-		std::fs::create_dir_all(temporary.path().join("data")).expect("temp data");
+		std::fs::create_dir_all(temporary.path().join(crate::image::run::MERGED).parent().expect("record dir"))
+			.expect("record directory");
 		temporary
 	}
 

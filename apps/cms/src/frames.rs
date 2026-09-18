@@ -81,7 +81,7 @@ pub struct Request {
 /// Where the clip sits in the original it was cut from, in seconds.
 ///
 /// Nothing in the cut file records that its twenty-five seconds began at 39:00, and no tool can
-/// recover it, so it is authored in `data/media.yaml` and passed through from there.
+/// recover it, so it is authored in `data/record/media.yaml` and passed through from there.
 #[derive(Debug, Clone, Copy)]
 pub struct Excerpt {
 	pub from: f64,
@@ -95,7 +95,7 @@ pub struct Excerpt {
 /// paragraph in [`prompt`] is there to stop.
 #[derive(Debug, Clone, Default)]
 pub struct Context {
-	/// `source.label` from `data/media.yaml`: who published the original, not how it is reached.
+	/// `source.label` from `data/record/media.yaml`: who published it, not how it is reached.
 	pub label: Option<String>,
 	pub excerpt: Option<Excerpt>,
 	/// The title of the article the clip appears in.

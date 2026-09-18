@@ -28,17 +28,17 @@ pub enum Record {
 	Summaries,
 	/// The translation-note table: phrases a translation has to gloss rather than render.
 	Notes,
-	/// `data/media.yaml`: descriptions and categories, which no command can rebuild.
+	/// `data/record/media.yaml`: descriptions and categories, which no command can rebuild.
 	Media,
-	/// `data/tags.yaml`.
+	/// `data/record/tags.yaml`.
 	Tags,
-	/// `data/diagram.json`: descriptions of the drawings articles carry as source.
+	/// `data/record/diagram.json`: descriptions of the drawings articles carry as source.
 	Diagrams,
 	/// `data/build/segments.json`.
 	Segments,
 	/// Crate and repository facts the articles embed.
 	Embeds,
-	/// `data/metadata.json`: the merged record of every published asset.
+	/// `data/record/metadata.json`: the merged record of every published asset.
 	///
 	/// The only link from a content id to the objects on disk, so a task that publishes bytes
 	/// writes this too, and the sweep rewrites it as it drops what it deletes.
@@ -131,7 +131,7 @@ pub const CATALOG: &[Spec] = &[
 		items: Items::Many("video reference"),
 		reads: &[Record::Articles, Record::Media, Record::Manifest],
 		// `Media` because a poster with no source is given the clip's, and the whole of
-		// `data/media.yaml` is rewritten to record it -- so a description landing mid-run would
+		// `data/record/media.yaml` is rewritten to record it -- so a description landing mid-run would
 		// be lost. `PublicImage` is the poster's own variants, which are pictures like any other.
 		writes: &[
 			Record::Articles,
@@ -405,7 +405,7 @@ mod tests {
 	}
 
 	/// The pair that motivated per-item claiming rather than per-file leases: both spend minutes
-	/// asking a model and both touch `data/media.yaml` for milliseconds at the end.
+	/// asking a model and both touch `data/record/media.yaml` for milliseconds at the end.
 	#[test]
 	fn describing_and_classifying_contend_over_the_same_record() {
 		let alt = find("alt").expect("alt");

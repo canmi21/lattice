@@ -32,7 +32,7 @@ export const GET: RequestHandler = () => {
 		'',
 		'Columns are tab separated: package, license, whether a text is published, authors.',
 		'A license marked "asserted" was not declared by the package; it was read off what the',
-		'package ships and recorded in data/licenses.yaml, with the evidence.',
+		'package ships and recorded in data/record/licenses.yaml, with the evidence.',
 		'',
 		...rows,
 	].join('\n');

@@ -37,7 +37,7 @@ What a translator is being asked for is the sentence, not the grouping separator
 
 ## A tag is translated from a meaning, not from its key
 
-An ordinary tag carries three distinct things in `data/tags.yaml`: its lower-case identifier,
+An ordinary tag carries three distinct things in `data/record/tags.yaml`: its lower-case identifier,
 an English source label, and a short semantic meaning. The identifier is an address, not prose.
 Sending it alone made `cellular` become the biological adjective even though the image showed
 mobile carrier settings; a model cannot recover context it was never given.
@@ -105,7 +105,7 @@ it will finish the thought the original deliberately left open.
 
 The test is the `lang` frontmatter: an article declares the language it was written in, a page
 does not. `cms i18n`, `cms summary`, and `cms tn` all skip anything without one, and the site
-compiles every view of a page from the source. A page is also absent from `data/tn.yaml`, not
+compiles every view of a page from the source. A page is also absent from `data/record/tn.yaml`, not
 recorded as an empty scan; the TN registry contains articles only.
 
 The homepage is the whole of that category today. Its bio was always rendered from `mw`

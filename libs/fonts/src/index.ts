@@ -1,4 +1,4 @@
-import manifest from '../../../data/fonts.json' with { type: 'json' };
+import manifest from '../../../data/record/fonts.json' with { type: 'json' };
 
 export interface FontFamily {
 	readonly id: string;

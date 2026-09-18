@@ -1,4 +1,4 @@
-//! `data/media.yaml`: what a picture is about, as opposed to what it is made of.
+//! `data/record/media.yaml`: what a picture is about, as opposed to what it is made of.
 //!
 //! The manifest beside it holds variants, dimensions and a thumbhash -- all of which `cms
 //! image` can rebuild from the original at any time. Nothing here can be rebuilt. A
@@ -166,7 +166,7 @@ pub fn is_valid_tag(name: &str) -> bool {
 mod tests {
 	#[test]
 	fn a_broken_media_file_is_an_error_rather_than_an_empty_one() {
-		// data/media.yaml holds descriptions bought one model call at a time, and every writer
+		// data/record/media.yaml holds descriptions bought one model call at a time, and every writer
 		// saves the whole file back. Read as empty, the next save erases the lot.
 		let temporary = tempfile::tempdir().expect("temp");
 		let path = temporary.path().join("media.yaml");

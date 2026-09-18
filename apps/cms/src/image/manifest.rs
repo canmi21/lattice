@@ -18,7 +18,7 @@ use std::path::Path;
 
 /// Bumped when the shape changes, so a reader can tell rather than guess. The first change
 /// without one is the one that corrupts silently: 1 the original shape; 2 assets gain a
-/// `description`; 3 `description` moves to `data/media.yaml`, `preview` and `original` are
+/// `description`; 3 `description` moves to `data/record/media.yaml`, `preview` and `original` are
 /// dropped, and camera data arrives as `metadata`; 4 `type` becomes a discriminant, so each kind
 /// gets its own body. See spec/architecture/video/pipeline.md, "The record is one shape per kind,
 /// not one shape with holes".
@@ -419,7 +419,7 @@ mod tests {
 		assert!(!text.contains("thumbhash"), "{text}");
 	}
 
-	/// One record copied verbatim out of `data/metadata.json` at version 3.
+	/// One record copied verbatim out of `data/record/metadata.json` at version 3.
 	///
 	/// The migration's whole claim is that this loads without a transform, so the evidence is a
 	/// real record rather than one written to fit. The full file -- 39 of these -- was loaded and

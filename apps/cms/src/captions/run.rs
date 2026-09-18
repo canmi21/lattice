@@ -56,7 +56,7 @@ pub enum Error {
 	#[error("`{0}` is a picture, not a clip")]
 	NotAVideo(String),
 	#[error(
-		"{clip} has no `excerpt` in data/media.yaml, and that is where the window lives; write \
+		"{clip} has no `excerpt` in data/record/media.yaml, and that is where the window lives; write \
 		 `excerpt: {{ from, to }}` in seconds of the original"
 	)]
 	NoExcerpt { clip: String },

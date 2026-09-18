@@ -26,7 +26,7 @@ pub struct Outcome {
 	/// Not an error: an article may be written before its clip is dropped in, and stopping the
 	/// run would leave every other clip unencoded for the sake of one that is late.
 	pub missing: Vec<String>,
-	/// Posters given a `cid://` source in `data/media.yaml` because they had none.
+	/// Posters given a `cid://` source in `data/record/media.yaml` because they had none.
 	pub sourced: usize,
 	/// Clips already published that gained a loudness measurement without being re-encoded.
 	pub levelled: usize,
@@ -302,7 +302,7 @@ mod tests {
 	#[test]
 	fn a_poster_keeps_a_source_somebody_wrote() {
 		// A source is a claim a person may have corrected by hand. Re-running the import rebuilds
-		// every pixel and must not take it with them, which is the rule `data/media.yaml` exists
+		// every pixel and must not take it with them, which is the rule `data/record/media.yaml` exists
 		// to enforce.
 		let mut authored = media::Media::default();
 		authored.media.insert(

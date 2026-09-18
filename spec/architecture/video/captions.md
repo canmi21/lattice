@@ -146,7 +146,7 @@ announces itself, they get captions displaced by two minutes and eighteen second
 working software.
 
 What is given up is that a stored track no longer says where in the original it came from. `excerpt`
-in `data/media.yaml` is that offset, so the original timing is an addition away, and the two must
+in `data/record/media.yaml` is that offset, so the original timing is an addition away, and the two must
 now agree -- change the window and the track is re-cut, exactly as the rungs are re-encoded.
 
 A cue straddling the window's start clamps to zero rather than being dropped: WebVTT timestamps are
@@ -161,7 +161,7 @@ the import, because a clip and its track do not arrive on the same day and often
 arrives at all. Two of the three clips here have none.
 
 It refuses on two things. **The excerpt and the clip must be the same length**: `excerpt` in
-`data/media.yaml` was written by a person and `duration` in the manifest was measured by ffprobe,
+`data/record/media.yaml` was written by a person and `duration` in the manifest was measured by ffprobe,
 nothing derives one from the other, so agreement is evidence and disagreement is proof that one of
 the two describes something else -- and cutting against a window that is out by a second puts every
 cue on screen a second early, which looks like working software. The tolerance is 0.25s, which is

@@ -34,11 +34,25 @@ also be a second, invisible way to reach the same bytes.
 
 ## What `data/` keeps out of git
 
-Not the directory -- the kind of thing. **Text that means something goes in; bytes and bulk
-stay out.** `data/metadata.json`, `data/media.yaml`, `data/tags.yaml` and
-`data/diagram.json` are records: a build resolves every image from the first without one image
-being present, and the rest hold descriptions that cost money and tags a person curates. Photographs, derived variants, fonts
-and a geocoding database are bytes, and no diff of them says anything.
+Not the directory -- the kind of thing. **Text that means something goes in; bytes and bulk stay
+out.** Photographs, derived variants, fonts and a geocoding database are bytes, and no diff of them
+says anything.
+
+The text lives in one place, `data/record/`, and every file in it is committed by a single
+`.gitignore` rule. That is deliberate: the rule used to be a filename per record, and a list is the
+thing that drifts -- a record added without its line silently does not travel, and nobody finds out
+until a clone cannot build. A directory cannot be forgotten the way a line can.
+
+| record | why it cannot be regenerated |
+| --- | --- |
+| `metadata.json` | the only link from a content id to its variants; a build resolves every image out of it with no image present |
+| `media.yaml` | descriptions bought one model call at a time, and a window a person chose |
+| `tags.yaml` | what each tag is called, in every language, curated |
+| `tn.yaml` | which passages a translator has to gloss |
+| `licenses.yaml` | the licence a person worked out for a package that declared none |
+| `fonts.json` | which families are split, and how |
+| `diagram.json` | what each diagram says, bought one model call at a time and keyed by block hash |
+| `indexnow.json` | what has already been announced; losing it cannot be recomputed, only re-sent, which is the one thing that protocol asks us not to do -- see [../indexing.md](../indexing.md) |
 
 ### Generated build inputs live under `data/build/`
 
@@ -198,7 +212,7 @@ a fact about this repository rather than a property of the command, so it waits 
 
 ## A broken sidecar is an error, never an empty one
 
-`data/media.yaml`, the image manifest and their sidecars are each loaded whole, edited a few
+`data/record/media.yaml`, the image manifest and their sidecars are each loaded whole, edited a few
 entries at a time, and saved back. A parse failure on load is therefore an error rather than an
 empty set: reading a broken file as empty and saving it back would replace hand-written and
 paid-for content -- descriptions, alt text, a model call per image -- with nothing, and nothing
@@ -252,7 +266,7 @@ than it did before, because changing the bytes changes the key. Re-encoding at a
 produces a new object rather than a redefinition of an old one.
 
 **An asset's identity is not an address.** The original's hash names the asset in
-`data/metadata.json` and in an article's `![](id)`, and that original is never published: what
+`data/record/metadata.json` and in an article's `![](id)`, and that original is never published: what
 reaches the bucket is the variants derived from it. So a link built from the authored id points
 at bytes no bucket has, and the resolver's output -- the largest variant -- is the only thing
 safe to write into markup.
@@ -411,7 +425,7 @@ cargo registry cache, which no CI container has -- so both halves are collected 
 into one reviewable diff, rather than half the answer arriving at build time.
 
 **A package that declares no licence fails the command.** It is the one finding in the record
-that needs a person, and `data/licenses.yaml` is where that person's answer goes, with the
+that needs a person, and `data/record/licenses.yaml` is where that person's answer goes, with the
 evidence beside it. An entry there only ever fills a gap, never overrides a package's own
 declaration, and the published record marks it as asserted rather than declared -- presenting
 a judgement as the package's own statement is the one dishonest thing this record could do.

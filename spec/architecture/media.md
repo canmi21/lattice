@@ -32,7 +32,7 @@ is wrong should be cheap.
 
 ## Where a picture came from is a claim, and it can point inward
 
-`source` sits beside the description in `data/media.yaml`, holding a `url` and an English `label`.
+`source` sits beside the description in `data/record/media.yaml`, holding a `url` and an English `label`.
 It is there rather than in the manifest for the reason that separates the two files: nothing here
 can be rebuilt. EXIF describes what a sensor did and a screenshot of a web page has none; a picture
 that has been through an editor carries nothing true about its origin either. So a source is a
@@ -149,7 +149,7 @@ needing an image to explain it, so an ambiguous word gets qualified -- `cellular
 the point -- `TypeScript`, `typescript` and `type-script` would otherwise be three tags for one
 thing, and one `mold` for two things would make a correct translation impossible.
 
-What a reader sees lives in `data/tags.yaml`. A technical name has one official display form
+What a reader sees lives in `data/record/tags.yaml`. A technical name has one official display form
 and is never translated. An ordinary name records a disambiguated English source label, a
 short semantic meaning, and its translated display forms. Its `en-US` form comes from the same
 vision answer that creates the tag and retains that answer's provenance. The meaning is not
@@ -396,7 +396,7 @@ it renders. Anything placed there is covered by somebody else's chrome.
 
 ## The manifest has versions, and only one is current
 
-`data/metadata.json` and every published record carry a version. Raising it means migrating the file
+`data/record/metadata.json` and every published record carry a version. Raising it means migrating the file
 in place and writing it back, never teaching the reader a second shape -- two readers for two
 shapes is how a format stops having a current version at all.
 
@@ -405,14 +405,14 @@ did not change; only the record did, and spending minutes of AV1 encoding to alt
 would be paying for an answer already on disk.
 
 **Version 4 is the one exception, and it was checked rather than reasoned.** Its "no transform
-needed" was verified against the 39 records in `data/metadata.json` at the time: every one
+needed" was verified against the 39 records in `data/record/metadata.json` at the time: every one
 loaded and round-tripped byte for byte through the version-4 shape. Every other version's claim
 here was reasoning about the shape; this is the only one a corpus was run against, which is what
 the next migration should match before trusting its own precedent by reasoning alone.
 
 ## A published record is minified; a committed one is not
 
-`data/metadata.json` is read in diffs, so it is written pretty and gets a trailing newline. The
+`data/record/metadata.json` is read in diffs, so it is written pretty and gets a trailing newline. The
 per-asset records under `data/public/meta/` are served, so they are minified. Both hold the same
 shape and the difference is only whitespace, which is why it has to be stated rather than inferred
 from either file.

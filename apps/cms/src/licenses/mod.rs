@@ -108,7 +108,7 @@ pub struct Package {
 	/// The SPDX expression, verbatim. Absent when nothing declares or asserts one.
 	#[serde(skip_serializing_if = "Option::is_none")]
 	pub spdx: Option<String>,
-	/// True when the expression came from `data/licenses.yaml` rather than from the package.
+	/// True when the expression came from `data/record/licenses.yaml` rather than from the package.
 	///
 	/// Carried into the record so the published page can say which it is. Presenting a
 	/// judgement as the package's own declaration would be the one dishonest thing this

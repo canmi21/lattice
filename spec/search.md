@@ -134,7 +134,7 @@ translation writes French records and nothing else.
 
 ## The state lives on the remote, because the remote can be read
 
-[indexing.md](indexing.md) keeps `data/indexnow.json` because IndexNow is write-only: it cannot
+[indexing.md](indexing.md) keeps `data/record/indexnow.json` because IndexNow is write-only: it cannot
 be asked what it already knows, so a local record is the only thing that can answer "what
 changed". Algolia can be browsed. That difference is worth taking, rather than copying the
 shape of the neighbouring task.

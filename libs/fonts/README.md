@@ -4,7 +4,7 @@ The [architecture spec](../../spec/architecture.md#latin-and-cjk-use-different-s
 owns the decisions behind disposable inputs, independent runtime dependencies, and the two
 slicing strategies. This is the runbook for applying them.
 
-[`data/fonts.json`](../../data/fonts.json) is the authored manifest for every published web-font
+[`data/record/fonts.json`](../../data/record/fonts.json) is the authored manifest for every published web-font
 family. It lives under `data/` because it is a curated, language-neutral asset record consumed by
 the Python pipeline. [`@canmi/fonts`](package.json) owns the consumer boundary: its root export
 imports that source and exposes `fontFamilies`, a typed list containing each family's id, display

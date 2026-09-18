@@ -45,7 +45,7 @@ out over -- a clip and its track do not arrive on the same day, and often the tr
 Its entry is `Items::Whole`: one clip and one track is a unit that cannot be divided, so a second
 runner can only stand aside, which is the same shape `segments` and `licenses` have and not the
 per-item fan-out `image` and `video` need. `after` names `video`, because the clip has to be in
-the library and the excerpt the track is cut to is written into `data/media.yaml` by that import.
+the library and the excerpt the track is cut to is written into `data/record/media.yaml` by that import.
 
 `cms invalidate` is the one command the corrected rule leaves without a home; the section below
 records it rather than closing it.
@@ -53,7 +53,7 @@ records it rather than closing it.
 ## A published tree has one record, and the sweep declares every one of them
 
 `cms gc` walks `data/public/image`, `video`, `captions`, `meta`, `favicon`, `license` and
-`opengraph`, rewrites `data/metadata.json` without the entries it drops, and behind `--segments`
+`opengraph`, rewrites `data/record/metadata.json` without the entries it drops, and behind `--segments`
 drops translations for paragraphs an article no longer contains. Each of those is a record, and the rule over them has
 three parts.
 
@@ -63,7 +63,7 @@ A second name for one store is two locks guarding half a thing each.
 **A task declares every record it writes**, including the ones it rewrites on the way past. The
 merged manifest and the sidecar under `meta/` are written for every asset published, so `Manifest`
 and `PublicMeta` belong to `cms image` and `cms video` as much as `PublicImage` does. That is the
-rule `cms video` and `data/media.yaml` state below, reaching the published side of the tree.
+rule `cms video` and `data/record/media.yaml` state below, reaching the published side of the tree.
 
 **The sweep comes after everything whose output it can delete.** That is tested as an invariant over
 the catalogue rather than kept as a list, because the list is what went stale: `licenses` and `i18n`
@@ -95,7 +95,7 @@ neither can be contended over. A record for a store one task owns would name a l
 ## Computing and writing are separate concerns
 
 **A task holds no lock while it thinks.** The expensive part of `cms alt` and `cms tag` is minutes
-of model calls; the part that touches `data/media.yaml` is milliseconds at the end. Leasing that
+of model calls; the part that touches `data/record/media.yaml` is milliseconds at the end. Leasing that
 file for the length of a run would serialise the two tasks over a critical section a ten-thousandth
 of its length, and serialise them at exactly the point where parallelism is worth the most.
 
@@ -194,7 +194,7 @@ writer of `Articles` was invisible to the only mechanism that would keep it from
 
 Its entry writes `Articles`, `PublicVideo` for the published rungs under `data/public/video/**`,
 `PublicImage` for the poster's variants, and `Media`. The last one is easy to miss: giving a poster
-with no source the clip's rewrites the whole of `data/media.yaml`, so `cms alt` finishing mid-run
+with no source the clip's rewrites the whole of `data/record/media.yaml`, so `cms alt` finishing mid-run
 would be overwritten. A record a task rewrites wholesale is a record it writes, whether or not the
 run had anything of its own to put there.
 

@@ -21,7 +21,7 @@ const ENDPOINT = URLS.external.indexnow;
 
 const CONFIG = fileURLToPath(new URL('../site.config.yaml', import.meta.url));
 const ROOT = new URL('../../../', import.meta.url);
-const RECORD = fileURLToPath(new URL('data/indexnow.json', ROOT));
+const RECORD = fileURLToPath(new URL('data/record/indexnow.json', ROOT));
 
 /** One request may carry 10,000 URLs. This site is nowhere near it; the cap is enforced anyway
  *  so that a future corpus splits into batches rather than being silently truncated. */
