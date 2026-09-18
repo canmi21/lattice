@@ -172,32 +172,6 @@ async function readFromAssets(
 }
 
 /**
- * The first key under `prefix`, or null.
- *
- * Used where the extension is not known ahead of time: a favicon is stored as whatever format
- * the site served, so the lookup is by directory rather than by exact name.
- *
- * The assets fetcher cannot list, so development probes the formats the CMS is able to write.
- * That list is short and closed -- see `extension_for` in apps/cms -- and a format missing
- * from it could not have been stored in the first place.
- */
-export async function findOne(env: Bindings, prefix: string): Promise<string | null> {
-	if (env.STORE) {
-		const listed = await env.STORE.list({ prefix, limit: 1 });
-		return listed.objects[0]?.key ?? null;
-	}
-	if (env.ASSETS) {
-		for (const extension of STORED_FORMATS) {
-			const key = `${prefix}${extension}`;
-			const response = await env.ASSETS.fetch(`${ASSET_ORIGIN}/${key}`);
-			if (response.ok) return key;
-		}
-		return null;
-	}
-	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
-}
-
-/**
  * What a content id looks like.
  *
  * BLAKE3 truncated to 128 bits, hex encoded. Checked before a key is built from one, because an
@@ -208,15 +182,6 @@ const CONTENT_ID = /^[0-9a-f]{32}$/;
 export function isContentId(value: string): boolean {
 	return CONTENT_ID.test(value);
 }
-
-/**
- * Every extension apps/cms will write an icon under, in the order a lookup should try them.
- *
- * Mirrors `ICON_EXTENSIONS` in apps/cms. `jpeg`, not `jpg`: the two name one format, and this
- * repository writes the long spelling everywhere so its own links never take the redirect the CDN
- * keeps for a hand-typed short one. A test holds the two lists together.
- */
-export const STORED_FORMATS = ['svg', 'png', 'jpeg', 'ico'] as const;
 
 /**
  * A stored object as an HTTP response, with ETag only when the store supplied one.

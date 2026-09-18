@@ -321,6 +321,21 @@ reach it. The rule that follows is the writer's, not the URL's -- **a content-ad
 computed from the bytes about to be written under it, never from an id that happens to be in
 hand**, which is the step `meta` skipped.
 
+### Nothing lists the objects bucket
+
+**An id is a capability, and a listing hands out every capability at once.** Everything that is
+withheld here is withheld by nobody knowing its content id -- a draft's body, a draft's pictures,
+any object whose root stopped naming it. That holds against guessing, because the id is 128 bits
+of BLAKE3 over the bytes. It does not survive one `list()`.
+
+So there is no listing anywhere a request can reach. `findOne` was the last one and went with the
+favicon lookup that needed it; a new one is a decision to make here first, not a convenience to
+reach for. The CDN has no route that answers for whatever happens to be in the bucket either --
+see [delivery.md](delivery.md), "The CDN expresses one kind of address".
+
+This is the reason a sweep is careful rather than clever: what keeps an object alive is being
+named, and nothing else can be asked what is there.
+
 **Every object here answers a range, and the worker is what answers it.** Nothing reaches R2 or a
 third-party host directly -- each one goes through a route -- so the range is resolved on the way
 past rather than depending on anything stored with the bytes: an object already in the bucket

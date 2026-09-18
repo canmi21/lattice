@@ -69,14 +69,6 @@ pub fn save(path: &Path, manifest: &Manifest) -> std::io::Result<()> {
 	std::fs::write(path, text)
 }
 
-/// The key a card is recorded under: its path below the published root.
-///
-/// Relative, so the record does not depend on where the repository is checked out -- an
-/// absolute path would make every card look new on another machine.
-pub fn key_for(public: &Path, target: &Path) -> String {
-	target.strip_prefix(public).unwrap_or(target).to_string_lossy().into_owned()
-}
-
 /// A hash of everything that decides what a card looks like.
 ///
 /// Fed as length-prefixed parts rather than concatenated, so a title ending in the text a
@@ -93,13 +85,6 @@ pub fn digest(parts: &[&str]) -> String {
 #[cfg(test)]
 mod tests {
 	use super::*;
-
-	#[test]
-	fn a_card_is_keyed_by_where_it_sits_below_the_root() {
-		let key =
-			key_for(Path::new("/repo/data/public"), Path::new("/repo/data/public/opengraph/ja/x.png"));
-		assert_eq!(key, "opengraph/ja/x.png");
-	}
 
 	#[test]
 	fn changing_any_input_changes_the_hash() {

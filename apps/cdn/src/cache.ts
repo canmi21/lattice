@@ -3,7 +3,6 @@ import type { MiddlewareHandler } from 'hono';
 
 /** One year. The longest value browsers honour, and what `immutable` implies. */
 const IMMUTABLE = 31_536_000;
-const WEEK = 604_800;
 const BRIEF = 300;
 
 /**
@@ -14,16 +13,6 @@ export const FOREVER = `public, max-age=${IMMUTABLE}, immutable`;
 
 /** Everything the year does not reach: a name whose bytes may change, and every error. */
 export const BRIEFLY = `public, max-age=${BRIEF}`;
-
-/**
- * What an OpenGraph card earns, and nothing else.
- *
- * A card is addressed by the slug of the page it belongs to, so editing a title rewrites the
- * bytes under an unchanged URL. A week is the accepted staleness and is also how long X holds a
- * card, so a shorter value would only cost fetches without shortening the wait. That route
- * stamps it rather than deriving it here, because this middleware reads shapes, not reasons.
- */
-export const WEEKLY = `public, max-age=${WEEK}`;
 
 /**
  * Whether the path's last segment is a content hash, which is the whole basis for the year.
