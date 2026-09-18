@@ -58,8 +58,7 @@ fn segment_sweep(articles: Vec<String>) -> Result<cms::gc::segments::Sweep, Stri
 fn sweep_segments(articles: Vec<String>) -> Result<usize, String> {
 	let repository = cms::paths::repo_root().map_err(|error| error.to_string())?;
 	let contents = repository.join("contents");
-	let sweep =
-		cms::gc::segments::plan(&contents, &articles).map_err(|error| error.to_string())?;
+	let sweep = cms::gc::segments::plan(&contents, &articles).map_err(|error| error.to_string())?;
 	cms::gc::segments::apply(&repository, &contents, &sweep).map_err(|error| error.to_string())
 }
 
@@ -86,9 +85,8 @@ fn segment_detail(article: String, id: String) -> Result<cms::segments::Detail, 
 fn drop_segments(article: String, ids: Vec<String>) -> Result<usize, String> {
 	let repository = cms::paths::repo_root().map_err(|error| error.to_string())?;
 	let contents = repository.join("contents");
-	let sweep = cms::gc::segments::Sweep {
-		articles: vec![cms::gc::segments::Stale { article, ids }],
-	};
+	let sweep =
+		cms::gc::segments::Sweep { articles: vec![cms::gc::segments::Stale { article, ids }] };
 	cms::gc::segments::apply(&repository, &contents, &sweep).map_err(|error| error.to_string())
 }
 
