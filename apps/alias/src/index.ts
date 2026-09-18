@@ -3,6 +3,7 @@ import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { failure } from './respond';
+import { resolve } from './resolve';
 
 /**
  * `aka` -- the layer that resolves a name and holds nothing.
@@ -35,6 +36,15 @@ app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', 'public, max-age=300');
 	return c.text(robotsTxt({ disallow: [''] }));
 });
+
+/**
+ * Every fixed name this site publishes, resolved by asking the API.
+ *
+ * One segment and no extension-less names: what reaches here is what a browser, a mail client or
+ * a crawler constructs on its own -- `/favicon.ico`, `/favicon.svg`, the BIMI mark. Anything the
+ * root does not name is a 404, so the list lives in the corpus rather than in this worker.
+ */
+app.get('/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.req.param('name')));
 
 app.notFound((c) => failure(c, 404, 'no_such_name'));
 

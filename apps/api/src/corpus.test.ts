@@ -52,6 +52,7 @@ function view(overrides: ViewOverrides = {}): Record<string, unknown> {
 // root's to be trusted for.
 const ROOT = {
 	version: 1,
+	assets: {},
 	generated: '2026-01-03T00:00:00.000Z',
 	articles: [
 		{

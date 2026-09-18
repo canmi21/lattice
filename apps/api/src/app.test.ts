@@ -20,13 +20,15 @@ describe('GET /', () => {
 });
 
 describe('GET /favicon.ico', () => {
-	it('points at the CDN for the matching environment', async () => {
+	// Permanent, and pointing at the layer that owns the name rather than at the bytes. What the
+	// name currently means is that layer's to answer, and it answers temporarily.
+	it('points at the alias layer for the matching environment', async () => {
 		const local = await app.fetch(new Request(`${dev}favicon.ico`));
 		expect(local.status).toBe(301);
-		expect(local.headers.get('Location')).toBe(`${URLS.apps.development.cdn}/favicon.ico`);
+		expect(local.headers.get('Location')).toBe(`${URLS.apps.development.alias}/favicon.ico`);
 
 		const remote = await app.fetch(new Request(`${prod}favicon.ico`));
-		expect(remote.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/favicon.ico`);
+		expect(remote.headers.get('Location')).toBe(`${URLS.apps.production.alias}/favicon.ico`);
 	});
 });
 

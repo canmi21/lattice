@@ -16,6 +16,10 @@
 	import '@canmi/fonts/mono.css';
 
 	const cdn = pageUrls(dev).cdn;
+	// The site's own marks are asked for by name, not by hash: the alias layer says what each one
+	// currently means, so the bytes keep a year and this markup never has to be republished when
+	// one is redrawn. See spec/architecture/delivery.md.
+	const aka = pageUrls(dev).alias;
 	const locale = $derived('locale' in page.data ? page.data.locale : undefined);
 	const articleLocale = $derived(
 		locale && 'canonical' in locale && 'alternates' in locale ? locale : undefined,
@@ -196,10 +200,11 @@
 	{@html ldJson(website)}
 	<link rel="alternate" type="application/atom+xml" href={feed} title={site.name} />
 	<link rel="llms" type="text/markdown" href="/llms.txt" />
-	<link rel="icon" type="image/png" sizes="96x96" href="{cdn}/favicon-96x96.png" />
-	<link rel="icon" type="image/png" sizes="512x512" href="{cdn}/favicon-512x512.png" />
-	<link rel="icon" type="image/svg+xml" sizes="any" href="{cdn}/favicon.svg" />
-	<link rel="apple-touch-icon" href="{cdn}/apple-touch-icon.png" />
+	<link rel="icon" type="image/png" sizes="96x96" href="{aka}/favicon-96x96.png" />
+	<link rel="icon" type="image/png" sizes="512x512" href="{aka}/favicon-512x512.png" />
+	<link rel="icon" type="image/svg+xml" sizes="any" href="{aka}/favicon.svg" />
+	<link rel="apple-touch-icon" href="{aka}/apple-touch-icon.png" />
+	<link rel="preconnect" href={aka} crossorigin="anonymous" />
 	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
 	     See spec/analytics.md. -->
 	<script

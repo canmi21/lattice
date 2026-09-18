@@ -58,11 +58,12 @@ app.use(
 	}),
 );
 
-// Browsers ask any origin they touch for /favicon.ico whether or not it serves pages. Sending
-// them to the CDN answers it once rather than logging a 404 on every visit.
+// Browsers ask any origin they touch for /favicon.ico whether or not it serves pages. The name is
+// permanent and the alias layer is where it lives, so this is a 301 -- what it currently resolves
+// to is that layer's to say, and it says so temporarily. See spec/architecture/delivery.md.
 app.get('/favicon.ico', (c) => {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	return c.redirect(`${urls.cdn}/favicon.ico`, 301);
+	return c.redirect(`${urls.alias}/favicon.ico`, 301);
 });
 
 // The API root is not a page. `ref` marks where the visitor came from, so the site can tell

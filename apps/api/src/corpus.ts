@@ -1,4 +1,5 @@
 import type {
+	AssetAnswer,
 	DocumentAnswer,
 	FeedAnswer,
 	HomeAnswer,
@@ -78,6 +79,22 @@ corpus.get('/article', async (c) => {
 		locale: { ...language, code: locale },
 	};
 	return success(c, answer satisfies ViewAnswer, ANSWERED);
+});
+
+/**
+ * What a fixed name currently means.
+ *
+ * The one question the alias layer asks. A name like `favicon.ico` is what a browser or a mail
+ * client is able to construct on its own, and this says which content-addressed object it stands
+ * for today -- so the bytes keep a year and the name keeps its meaning. See
+ * spec/architecture/delivery.md, "A name is resolved, never stored".
+ */
+corpus.get('/asset', async (c) => {
+	const name = c.req.query('name');
+	if (!name) return failure(c, 400, 'expected_name', MISSED);
+	const asset = (await rootOf(c.env)).assets[name];
+	if (!asset) return failure(c, 404, 'not_found', MISSED);
+	return success(c, { name, ...asset } satisfies AssetAnswer, ANSWERED);
 });
 
 /**

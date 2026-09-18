@@ -5,7 +5,16 @@
  * when its own code changes, and the corpus is published on its own schedule from here.
  * See spec/architecture/artifacts.md.
  */
-import { mkdir, readdir, readlink, stat, symlink, unlink, writeFile } from 'node:fs/promises';
+import {
+	mkdir,
+	readFile,
+	readdir,
+	readlink,
+	stat,
+	symlink,
+	unlink,
+	writeFile,
+} from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { blake3 } from '@noble/hashes/blake3.js';
@@ -38,6 +47,7 @@ const SITE = new URL('apps/site/', ROOT);
  * its own.
  */
 const INPUTS = {
+	brand: fileURLToPath(new URL('data/brand', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
 	cdnUrl: URLS.apps.production.cdn,
 	messages: fileURLToPath(new URL('messages', SITE)),
@@ -80,6 +90,23 @@ class Tree {
 		// A content-addressed key cannot denote different bytes, so a file already there is this
 		// file. Nothing is compared and nothing is swept: see spec/architecture/artifacts.md,
 		// "Publication is ordered, and deletion is not part of it".
+		if (await this.#exists(file)) {
+			this.tally.present += 1;
+			return digest;
+		}
+		await this.#write(file, bytes);
+		return digest;
+	}
+
+	/**
+	 * Write one immutable object that was already bytes, and answer the hash it is named by.
+	 *
+	 * The site's own marks arrive this way: authored files rather than compiled ones, but objects
+	 * in every other respect. Nothing about the bucket distinguishes them.
+	 */
+	async putBytes(bytes: Buffer, extension: string): Promise<string> {
+		const digest = bytesToHex(blake3(bytes, { dkLen: 16 }));
+		const file = join(this.#dir, storageKey(digest, extension));
 		if (await this.#exists(file)) {
 			this.tally.present += 1;
 			return digest;
@@ -204,6 +231,25 @@ async function publishPage(tree: Tree, page: Page): Promise<Root['pages'][string
 	return { markdown: await tree.put('markdown', page.markdown), views };
 }
 
+/**
+ * The site's own marks, published like any other object and named in the root.
+ *
+ * Authored rather than derived, so they live in `data/brand` and travel with the repository: a
+ * favicon nobody can regenerate was sitting loose in the published tree, which is to say on one
+ * machine. What a browser asks for is `/favicon.ico`, and the alias layer is what turns that name
+ * into the object named here. See spec/architecture/delivery.md.
+ */
+async function publishBrand(tree: Tree): Promise<Root['assets']> {
+	const assets: Root['assets'] = {};
+	for (const name of (await readdir(INPUTS.brand)).toSorted()) {
+		if (name.startsWith('.')) continue;
+		const extension = name.slice(name.lastIndexOf('.') + 1);
+		const bytes = await readFile(join(INPUTS.brand, name));
+		assets[name] = { type: 'image', cid: await tree.putBytes(bytes, extension), extension };
+	}
+	return assets;
+}
+
 async function publishCorpus(
 	dir: string,
 	metadata: string,
@@ -221,6 +267,7 @@ async function publishCorpus(
 	await tree.putRoot({
 		version: ARTIFACT_VERSION,
 		generated: new Date().toISOString(),
+		assets: await publishBrand(tree),
 		articles: rootArticles,
 		pages: rootPages,
 	});
@@ -276,10 +323,26 @@ async function linkObjects(publicDir: string, draftDir: string): Promise<number>
  * whole. Anything at the top of `data/public` that is not a fan-out directory is one of these.
  */
 async function linkNamed(publicDir: string, draftDir: string): Promise<string[]> {
+	const named = (await readdir(publicDir, { withFileTypes: true })).filter(
+		(entry) => !entry.name.startsWith('.') && !/^[0-9a-f]{2}$/.test(entry.name),
+	);
+
+	// A link whose target has gone is removed first. Nothing else would: publishing only ever
+	// adds, so a name that stops being published leaves a dangling link behind -- and `wrangler
+	// dev` refuses to start on one rather than skipping it, which takes the whole worker down.
+	const wanted = new Set(named.map((entry) => entry.name));
+	for (const entry of await readdir(draftDir, { withFileTypes: true })) {
+		if (!entry.isSymbolicLink() || wanted.has(entry.name)) continue;
+		const link = join(draftDir, entry.name);
+		const reaches = await stat(link).then(
+			() => true,
+			() => false,
+		);
+		if (!reaches) await unlink(link);
+	}
+
 	const linked: string[] = [];
-	for (const entry of await readdir(publicDir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.')) continue;
-		if (entry.isDirectory() && /^[0-9a-f]{2}$/.test(entry.name)) continue;
+	for (const entry of named) {
 		const link = join(draftDir, entry.name);
 		const target = join(relative(draftDir, publicDir), entry.name);
 		const current = await readlink(link).catch(() => undefined);

@@ -54,6 +54,12 @@ data/**
 # re-sent, which is the one thing that protocol asks us not to do. It has to travel with the
 # repository or a fresh clone announces the whole site. See spec/indexing.md.
 !data/indexnow.json
+# The site's own brand marks: authored once, by hand, and regenerable by nobody. They were sitting
+# loose in the published tree and therefore in no clone but this machine's, which made "the bytes
+# belong to the machine" true of the one set that cannot be re-derived from anything. Small, and
+# they change about never. See spec/architecture/data.md, "What stays in git, and until when".
+!data/brand/**
+
 # Under data/build/ the test is whether the file can be regenerated losslessly and for free.
 # These four cannot: crates, repos and twitter are fetched from a network that may have moved on
 # -- twitter holds snapshots of posts that can be deleted -- and licenses.json is read by the

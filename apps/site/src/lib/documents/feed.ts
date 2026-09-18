@@ -13,7 +13,8 @@ import type { FeedAnswer } from '@canmi/artifacts';
 import { localeUrl, type LocaleCode } from '$lib/locale';
 
 const SITE = URLS.apps.production.site;
-const RES = URLS.apps.production.cdn;
+/** The site's own marks are named rather than hashed, and the alias layer is where a name lives. */
+const AKA = URLS.apps.production.alias;
 
 /** The site identity a feed carries, which `site.config.yaml` is the one source of. */
 export type FeedSite = {
@@ -49,7 +50,7 @@ export function buildFeed(entries: readonly FeedEntry[], code: LocaleCode, site:
 		subtitle: site.tagline,
 		updated: prepared[0]?.updated ?? new Date(),
 		authors: [{ name: site.author.name, email: site.author.email }],
-		icon: `${RES}/favicon.svg`,
+		icon: `${AKA}/favicon.svg`,
 		links: [
 			{ href: feedUrl, rel: 'self' },
 			{ href: `${SITE}/`, rel: 'alternate' },

@@ -89,7 +89,9 @@ export function recordKey(cid: string): string {
 export const PUBLIC_TYPES = {
 	captions: ['vtt'],
 	content: ['json'],
-	image: ['avif', 'webp', 'jpeg', 'png'],
+	// `svg` and `ico` are stored and never derived: the site's own marks are authored in them
+	// and there is nothing to transcode. The rest are what a picture is published or re-encoded as.
+	image: ['avif', 'webp', 'jpeg', 'png', 'svg', 'ico'],
 	license: ['txt'],
 	markdown: ['md'],
 	page: ['json'],
@@ -140,7 +142,6 @@ export function parseArtifactKey(
 	return { type: type as ArtifactType, hash, ext };
 }
 
-const hash = v.pipe(v.string(), v.regex(HASH_PATTERN));
 
 // Every locale is optional: a corpus mid-translation has views the root cannot name yet, and a
 // required key would make that a parse failure rather than a fallback.
@@ -161,6 +162,9 @@ export const ViewMetaSchema = v.object({
 	description: v.string(),
 	short: v.object({ title: v.string(), subtitle: v.string() }),
 });
+
+/** A content id as every schema here spells one. */
+const hash = v.pipe(v.string(), v.regex(HASH_PATTERN));
 
 /**
  * One locale's view, grouped by what each group answers rather than laid out flat.
@@ -212,9 +216,27 @@ export const RootArticleSchema = v.object({
 	views: byLocale(RootViewSchema),
 });
 
+/**
+ * A fixed name, and the object it currently means.
+ *
+ * The site's own marks -- its icons, its BIMI mark -- are published like anything else, addressed
+ * by their content and cached for a year. What a reader or a mail client asks for is the name, so
+ * something has to turn one into the other, and this is what it reads. See
+ * spec/architecture/delivery.md, "A name is resolved, never stored".
+ */
+export const RootAssetSchema = v.object({
+	type: v.picklist(['image']),
+	cid: hash,
+	extension: v.string(),
+});
+
+export type RootAsset = v.InferOutput<typeof RootAssetSchema>;
+
 export const RootSchema = v.object({
 	version: v.literal(ARTIFACT_VERSION),
 	generated: v.string(),
+	/** Fixed names the alias layer resolves, keyed by the name as it is asked for. */
+	assets: v.record(v.string(), RootAssetSchema),
 	articles: v.array(RootArticleSchema),
 	pages: v.record(
 		v.string(),
@@ -288,6 +310,14 @@ export type FeedAnswer = {
 		dates: { created: string; lastmod: string };
 	}[];
 };
+
+/**
+ * `/asset?name=`: which object a fixed name stands for right now.
+ *
+ * The name is echoed so an answer can be read without remembering what was asked, which is what
+ * lets the alias layer pass one straight through to a redirect.
+ */
+export type AssetAnswer = RootAsset & { name: string };
 
 export type SitemapAnswer = {
 	/** When the root was written, which is the lastmod for a route carrying no date of its own. */

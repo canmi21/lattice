@@ -37,6 +37,13 @@ app.get('/', (c) => {
 	return c.redirect(`${urls.site}/?ref=cdn`, 302);
 });
 
+// A browser asks any origin it touches for this, and this one serves objects rather than pages.
+// The name is permanent and the alias layer is where it lives.
+app.get('/favicon.ico', (c) => {
+	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
+	return c.redirect(`${urls.alias}/favicon.ico`, 301);
+});
+
 // Nothing here is disallowed. `Disallow: /` blocked OpenGraph cards too, and adding
 // `Allow: /opengraph/` did not fix it for X: Twitterbot implements the original 1994
 // robots.txt draft, which has no `Allow` and never sees the exception.

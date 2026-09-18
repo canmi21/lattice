@@ -224,7 +224,7 @@ export default defineConfig(({ mode }) => {
 				Object.entries(DEVELOPMENT_PROXY_PATHS).map(([app, prefix]) => [
 					prefix,
 					{
-						target: developmentUrl(app as 'api' | 'cdn'),
+						target: developmentUrl(app as 'api' | 'alias' | 'cdn'),
 						changeOrigin: true,
 						rewrite: (path: string) => path.slice(prefix.length),
 					},

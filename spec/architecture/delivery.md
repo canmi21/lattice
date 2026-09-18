@@ -198,19 +198,26 @@ rather than merely followed.
 
 ### The whole chain, for a fixed asset
 
-A favicon is published as a content-addressed object like any other, and the name it used to live
-at becomes an entry here.
+The site's own marks are published as content-addressed objects like anything else. The published
+root names each one under the name a browser asks for, `/asset?name=` is the question the alias
+layer puts to the API, and the name a reader sees never changes.
 
 ```
-site/favicon.ico   301  aka/favicon.ico     a permanent name, and this is where it lives
-aka/favicon.ico    302  cdn/image/{cid}.ico what that name means right now
+site/favicon.ico   301  aka/favicon.ico      a permanent name, and this is where it lives
+aka/favicon.ico    302  cdn/image/{cid}.ico  what that name means right now
 cdn/image/{cid}.ico     the bytes, for a year
 ```
 
 The two redirects look like one too many and are not. **The `301` is about a name and the `302` is
 about a meaning**, and they have different lifetimes for that reason: where the entry lives never
-changes, what it currently points at does. Every host can mount the same permanent name, so a
-crawler that reaches any of them finds the same answer.
+changes, what it currently points at does. Every host mounts the same permanent name -- the site,
+the API and the CDN all answer `/favicon.ico` with the same `301` -- so a crawler that reaches any
+of them finds the same answer.
+
+**The marks themselves live in `data/brand` and travel with the repository.** They were loose in
+the published tree, which is to say on one machine: authored once by hand, regenerable by nobody,
+and in no clone. That is the one set `data/`'s "the bytes belong to the machine" rule must not
+cover.
 
 ## Release assets are proxied, for one account
 
