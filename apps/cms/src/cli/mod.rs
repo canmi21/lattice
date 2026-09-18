@@ -968,7 +968,7 @@ fn collect_licenses() -> anyhow::Result<ExitCode> {
 
 	let document = licenses::full_document(&public, &written.record)
 		.context("could not assemble the full notice")?;
-	if let Err(error) = image::store::write(&licenses::full_path(&public), document.as_bytes()) {
+	if let Err(error) = image::store::write(&licenses::full_path(&root), document.as_bytes()) {
 		eprintln!("could not write the full notice: {error}");
 		return Ok(ExitCode::FAILURE);
 	}

@@ -11,7 +11,6 @@ export {
 	HEADER,
 	TEXT_HEADERS,
 	coordinates,
-	fullUrl,
 	githubAvatar,
 	githubRepository,
 	licenseOf,

@@ -225,7 +225,7 @@ export const RootArticleSchema = v.object({
  * spec/architecture/delivery.md, "A name is resolved, never stored".
  */
 export const RootAssetSchema = v.object({
-	type: v.picklist(['image']),
+	type: v.picklist(PUBLIC_TYPE_NAMES),
 	cid: hash,
 	extension: v.string(),
 });

@@ -15,6 +15,7 @@ import {
 	readEnvelope,
 	readPageEnvelope,
 	type ArtifactType,
+	type AssetAnswer,
 	type DocumentAnswer,
 	type FeedAnswer,
 	type HomeAnswer,
@@ -217,6 +218,16 @@ export async function publishedHome(
 		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)
 		: undefined;
 	return { articles: found.articles, page };
+}
+
+/**
+ * What a fixed name currently stands for, cached like every other five-minute answer here.
+ *
+ * The same question the alias layer asks, put directly because this side already holds a fetch --
+ * one hop rather than two, and nothing on the rendering path depends on the layer that resolves.
+ */
+export function publishedAsset(fetch: Fetch, name: string): Promise<AssetAnswer | undefined> {
+	return answer<AssetAnswer>(fetch, api(`/asset?name=${encodeURIComponent(name)}`));
 }
 
 export function publishedSitemap(fetch: Fetch): Promise<SitemapAnswer | undefined> {

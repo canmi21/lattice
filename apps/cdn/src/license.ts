@@ -23,20 +23,8 @@ import { failure } from './respond';
  */
 const license = new Hono<{ Bindings: Bindings }>();
 
-/** The one object here that is named rather than addressed by its content. */
-const FULL = 'full.txt';
-
 license.get('/:name', async (c) => {
 	const name = c.req.param('name');
-
-	if (name === FULL) {
-		const found = await read(c.env, `license/${FULL}`, c.req.header('Range'));
-		if (isUnsatisfiable(found)) return unsatisfiableResponse(found.total);
-		// Left to the cache middleware rather than stamped: the aggregate is rewritten whenever
-		// the dependency tree moves, so its name promises nothing about its bytes.
-		return found ? toResponse(found) : failure(c, 404, 'not_found');
-	}
-
 	const parsed = parseName(name);
 	if (!parsed || parsed.extension !== 'txt') {
 		return failure(c, 400, 'not_a_content_id');

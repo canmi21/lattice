@@ -188,24 +188,23 @@ pub fn record_path(repo: &Path) -> PathBuf {
 	repo.join("data").join("build").join("licenses.json")
 }
 
-/// `license/{ab}/{cd}/{cid}.txt` under the published root.
+/// `{ab}/{cd}/{cid}.txt` in the objects tree, which is where every content-addressed thing lands.
 ///
-/// The same fanout the image store uses, for the same reason: R2 has no directory to
-/// overflow, but a filesystem mirror does, and the layout should not have to change if the
-/// bytes move.
+/// No prefix: the id already identifies it, and what kind of object it is belongs in the address
+/// the CDN serves rather than in the key. See spec/architecture/data.md, "The bucket stores
+/// content ids; the CDN serves types".
 pub fn text_path(public_root: &Path, cid: &str) -> PathBuf {
-	let first = cid.get(..2).unwrap_or(cid);
-	let second = cid.get(2..4).unwrap_or("");
-	public_root.join("license").join(first).join(second).join(format!("{cid}.txt"))
+	crate::image::store::variant_path(public_root, cid, "txt")
 }
 
-/// `license/full.txt` under the published root.
+/// `data/build/licenses-full.txt`: the aggregate, as a build product rather than a published one.
 ///
-/// Named rather than content addressed, like the OpenGraph cards: it is an aggregate that is
-/// rewritten whenever the dependency tree moves, and a reader asks for it by what it is. The
-/// alternative is a Worker fetching several hundred objects to concatenate them per request.
-pub fn full_path(public_root: &Path) -> PathBuf {
-	public_root.join("license").join("full.txt")
+/// It is rewritten whenever the dependency tree moves, which is exactly what a content-addressed
+/// key may not be -- so it is produced here and the publisher hashes it in, the same path the
+/// site's own marks take. The alternative to an aggregate at all is a Worker fetching several
+/// hundred objects to concatenate them per request.
+pub fn full_path(repo: &Path) -> PathBuf {
+	repo.join("data").join("build").join("licenses-full.txt")
 }
 
 /// Percent-encode one purl segment.

@@ -49,6 +49,7 @@ const SITE = new URL('apps/site/', ROOT);
 const INPUTS = {
 	brand: fileURLToPath(new URL('data/brand', ROOT)),
 	icons: fileURLToPath(new URL('data/favicon', ROOT)),
+	notice: fileURLToPath(new URL('data/build/licenses-full.txt', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
 	cdnUrl: URLS.apps.production.cdn,
 	messages: fileURLToPath(new URL('messages', SITE)),
@@ -259,6 +260,21 @@ async function publishBrand(tree: Tree): Promise<Root['assets']> {
  * its owner's schedule, and compiling its hash into a card would mean republishing every article
  * that mentions them the day they redraw it. See spec/architecture/delivery.md.
  */
+/**
+ * The attribution notice, assembled by `cms licenses` and published as one object.
+ *
+ * A build product rather than an authored one, and rewritten whenever the dependency tree moves,
+ * which is precisely what a content-addressed key may not be. So it is hashed in here, and the
+ * name is what anything asking for it uses.
+ */
+async function publishNotice(tree: Tree): Promise<Root['assets']> {
+	const bytes = await readFile(INPUTS.notice).catch(() => undefined);
+	if (!bytes) return {};
+	return {
+		'licenses.txt': { type: 'license', cid: await tree.putBytes(bytes, 'txt'), extension: 'txt' },
+	};
+}
+
 async function publishIcons(tree: Tree): Promise<Root['assets']> {
 	const assets: Root['assets'] = {};
 	const domains = await readdir(INPUTS.icons, { withFileTypes: true }).catch(() => []);
@@ -296,7 +312,11 @@ async function publishCorpus(
 	await tree.putRoot({
 		version: ARTIFACT_VERSION,
 		generated: new Date().toISOString(),
-		assets: { ...(await publishBrand(tree)), ...(await publishIcons(tree)) },
+		assets: {
+			...(await publishBrand(tree)),
+			...(await publishIcons(tree)),
+			...(await publishNotice(tree)),
+		},
 		articles: rootArticles,
 		pages: rootPages,
 	});

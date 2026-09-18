@@ -226,10 +226,6 @@ export function textUrl(cdn: string, cid: string): string {
 	return `${cdn}/license/${cid}.txt`;
 }
 
-export function fullUrl(cdn: string): string {
-	return `${cdn}/license/full.txt`;
-}
-
 /**
  * Plain text, never a page, and never negotiated by locale.
  *
