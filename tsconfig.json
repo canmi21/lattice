@@ -29,6 +29,7 @@
 		// worker, and importing it is enough to pull it into this program with the DOM in scope.
 		"libs/store",
 		"apps/api",
-		"apps/cdn"
+		"apps/cdn",
+		"apps/alias"
 	]
 }

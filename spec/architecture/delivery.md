@@ -148,6 +148,70 @@ minutes on files that are small and rarely asked for.
 A route that genuinely needs longer says so itself, with its reason, which is what
 [opengraph.ts](../../apps/cdn/src/opengraph.ts) already does and why its week survives this.
 
+## Three layers, and the dependency runs one way
+
+Four hosts answer, and three of them are a ladder.
+
+| | depends on | answers with |
+| --- | --- | --- |
+| `cdn` | nothing | bytes |
+| `api` | the metadata bucket | records |
+| `aka` | `api` | a redirect |
+| `site` | `api` + `cdn` | pages |
+
+**Nothing below reaches upward.** The CDN can serve every byte it holds with the API down, which is
+not a happy accident -- it is what content addressing buys, and asking the CDN to look anything up
+would spend it. So resolution cannot live there, and that is what the third host is for.
+
+`aka` is the worker's hostname and `alias` is what the code calls it: the binding says what the
+layer does, one name standing for another, and the host is the short form a reader sees.
+
+### A name is resolved, never stored
+
+This layer holds no bytes and no records. A request names something, it asks the API what that name
+means right now, and it redirects to the CDN. That is the whole of it, and the emptiness is the
+design: a layer that proxied bytes would be a second CDN with worse properties, and one that cached
+records would be a second API that can disagree with the first.
+
+**What belongs here is the resolution that cannot happen at build time.** An image an article owns
+changes when the article changes, so its address is compiled into the article and needs nobody. A
+favicon belongs to somebody else's site and changes on their schedule -- compiling that in would
+mean republishing every article that mentions them the day they change their icon. The rule is the
+asset's clock, not its kind: **resolve at build time what changes when the article changes, and at
+request time what changes on somebody else's schedule.**
+
+### Every answer is temporary, and the request decides which kind
+
+A permanent redirect from here would be a promise about bytes this layer does not hold. So the
+answer is always temporary, which leaves two codes, and what picks between them is whether the
+request carried input.
+
+| asked with | answered | because |
+| --- | --- | --- |
+| a path alone | `302` | there is nothing to preserve; a `GET` stays a `GET` |
+| a query | `307` | the query is the question, and the answer depends on it |
+| a body | `307` | a `302` is specified to let an agent discard it |
+
+**A path is not input.** It is the name being resolved, and it arrives at the CDN as a different
+name anyway. `?tone=dark` is input: it selects among several answers, so the request is preserved
+rather than merely followed.
+
+### The whole chain, for a fixed asset
+
+A favicon is published as a content-addressed object like any other, and the name it used to live
+at becomes an entry here.
+
+```
+site/favicon.ico   301  aka/favicon.ico     a permanent name, and this is where it lives
+aka/favicon.ico    302  cdn/image/{cid}.ico what that name means right now
+cdn/image/{cid}.ico     the bytes, for a year
+```
+
+The two redirects look like one too many and are not. **The `301` is about a name and the `302` is
+about a meaning**, and they have different lifetimes for that reason: where the entry lives never
+changes, what it currently points at does. Every host can mount the same permanent name, so a
+crawler that reaches any of them finds the same answer.
+
 ## Release assets are proxied, for one account
 
 `/github/release/{repo}/{tag}/{asset}` serves a file attached to a GitHub release, fetched live

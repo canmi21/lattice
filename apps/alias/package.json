@@ -1,0 +1,20 @@
+{
+	"name": "@canmi/alias",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy --env=\"\"",
+		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
+	},
+	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
+		"@canmi/robots": "workspace:*",
+		"@canmi/urls": "workspace:*",
+		"hono": "^4.13.7"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20260911.1",
+		"wrangler": "^4.131.1"
+	}
+}

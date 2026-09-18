@@ -127,6 +127,11 @@ description = "Run the CDN worker against data/public"
 dir = "apps/cdn"
 run = "pnpm run dev"
 
+[tasks.dev-alias]
+description = "Run the aka worker, which resolves names and stores nothing"
+dir = "apps/alias"
+run = "pnpm run dev"
+
 [tasks.dev-cms]
 description = "Run the CMS desktop client"
 dir = "apps/cms"

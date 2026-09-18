@@ -1,0 +1,36 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// `alias` in the code and `aka` on the wire: the binding says what the layer does and the
+	// host is the short form a reader sees. See spec/architecture/delivery.md.
+	"name": "aka",
+	"main": "src/index.ts",
+	// Must not exceed what the installed workerd supports, which lags the calendar. Setting
+	// this to "today" fails to start with a date mismatch rather than anything descriptive.
+	"compatibility_date": "2026-07-29",
+	"compatibility_flags": ["nodejs_compat"],
+
+	// No bucket, and that is the whole point. This layer holds neither bytes nor records: it
+	// asks the API what a name means and sends the caller to the CDN. See
+	// spec/architecture/delivery.md, "A name is resolved, never stored".
+
+	// No `env.dev`, unlike the other two: this worker binds nothing, so development and
+	// production differ in no way worth naming and `wrangler dev` reads the top level. Declaring
+	// an empty environment would only make wrangler refuse to guess between two identical ones.
+	//
+	// The port also appears in libs/urls as the development alias URL. wrangler cannot read a
+	// TypeScript library, so the number is written twice on purpose.
+	"dev": {
+		// Every interface, so a phone on the same network can reach this worker. The port is
+		// still the mutex a second copy collides on; see spec/toolchain.md.
+		"ip": "*",
+		"port": 26514,
+		"inspector_port": 26515,
+	},
+
+	"observability": { "logs": { "enabled": true } },
+	"placement": { "mode": "smart" },
+	// Custom domains only. Every generated hostname is another route to the same worker that
+	// nothing in front of the custom domain guards, and one nobody is watching.
+	"workers_dev": false,
+	"preview_urls": false,
+}

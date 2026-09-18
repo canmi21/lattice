@@ -1,5 +1,5 @@
 {
-	// The two Workers and the library only they use.
+	// The three Workers and the library only they use.
 	//
 	// No `dom`. workerd is not a browser, and pulling the DOM lib in beside
 	// `@cloudflare/workers-types` gives every shared runtime name two unrelated declarations --
@@ -33,6 +33,8 @@
 		"apps/api/*.d.ts",
 		"apps/cdn/src/**/*.ts",
 		"apps/cdn/*.d.ts",
+		"apps/alias/src/**/*.ts",
+		"apps/alias/*.d.ts",
 		"libs/store/src/**/*.ts",
 		// Types and schemas only, so it carries no runtime globals and is safe in both programs.
 		"libs/artifacts/src/**/*.ts"

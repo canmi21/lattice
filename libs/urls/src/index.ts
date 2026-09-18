@@ -6,7 +6,7 @@
  * app collides here rather than drifting to a free port, which is the cheapest mutex there is.
  * See spec/toolchain.md.
  */
-export const DEVELOPMENT_PORTS = { site: 26511, api: 26512, cdn: 26516 } as const;
+export const DEVELOPMENT_PORTS = { site: 26511, api: 26512, alias: 26514, cdn: 26516 } as const;
 
 export type AppName = keyof typeof DEVELOPMENT_PORTS;
 export type DevelopmentUrls = Readonly<Record<AppName, string>>;
@@ -18,7 +18,7 @@ export type DevelopmentUrls = Readonly<Record<AppName, string>>;
  * every interface, and the other two are reached through the site", for why that is what
  * makes the site work from a phone on the same network.
  */
-export const DEVELOPMENT_PROXY_PATHS = { api: '/api', cdn: '/cdn' } as const;
+export const DEVELOPMENT_PROXY_PATHS = { api: '/api', alias: '/aka', cdn: '/cdn' } as const;
 
 export function developmentUrl(app: AppName): string {
 	return `http://localhost:${DEVELOPMENT_PORTS[app]}`;
@@ -29,6 +29,7 @@ export function developmentUrls(): DevelopmentUrls {
 	return {
 		site: developmentUrl('site'),
 		api: developmentUrl('api'),
+		alias: developmentUrl('alias'),
 		cdn: developmentUrl('cdn'),
 	};
 }
@@ -51,6 +52,10 @@ export const URLS = {
 		production: {
 			site: 'https://canmi.net',
 			api: 'https://api.ffoni.com',
+			// `alias` is what the code calls this layer and `aka` is what it answers as. The
+			// binding names what it does -- one name standing for another -- and the host is the
+			// short form a reader sees. See spec/architecture/delivery.md.
+			alias: 'https://aka.ffoni.com',
 			cdn: 'https://cdn.ffoni.com',
 		},
 	},

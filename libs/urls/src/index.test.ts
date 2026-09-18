@@ -85,11 +85,12 @@ describe('development ports', () => {
 		expect(developmentUrls()).toEqual({
 			site: 'http://localhost:26511',
 			api: 'http://localhost:26512',
+			alias: 'http://localhost:26514',
 			cdn: 'http://localhost:26516',
 		});
 	});
 
-	// wrangler takes port + 1 for its inspector, so the two workers' inspectors must land on
+	// wrangler takes port + 1 for its inspector, so the three workers' inspectors must land on
 	// nothing else, and the CMS port must be clear of all of them: it is a machine-wide
 	// singleton, and a collision there is the mutex that stops a second copy writing data/.
 	it('keeps the ports clear of the inspector ports and of the CMS port', () => {
@@ -97,6 +98,7 @@ describe('development ports', () => {
 		const taken = [
 			...Object.values(DEVELOPMENT_PORTS),
 			DEVELOPMENT_PORTS.api + 1,
+			DEVELOPMENT_PORTS.alias + 1,
 			DEVELOPMENT_PORTS.cdn + 1,
 		];
 		expect(new Set(taken).size).toBe(taken.length);

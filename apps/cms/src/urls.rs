@@ -3,9 +3,11 @@
 
 pub const APPS_DEVELOPMENT_SITE: &str = "http://localhost:26511";
 pub const APPS_DEVELOPMENT_API: &str = "http://localhost:26512";
+pub const APPS_DEVELOPMENT_ALIAS: &str = "http://localhost:26514";
 pub const APPS_DEVELOPMENT_CDN: &str = "http://localhost:26516";
 pub const APPS_PRODUCTION_SITE: &str = "https://canmi.net";
 pub const APPS_PRODUCTION_API: &str = "https://api.ffoni.com";
+pub const APPS_PRODUCTION_ALIAS: &str = "https://aka.ffoni.com";
 pub const APPS_PRODUCTION_CDN: &str = "https://cdn.ffoni.com";
 pub const SOURCE: &str = "https://github.com/canmi21/press";
 pub const INTERNAL_APP: &str = "https://canmi.app";
