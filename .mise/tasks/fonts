@@ -21,7 +21,7 @@ from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "data/fonts.json"
-PUBLIC = ROOT / "data/public"
+PUBLIC = ROOT / "data/bucket/objects"
 RUNNER = pathlib.Path(__file__).with_name("font-split.mjs")
 HASHED_CHUNK = re.compile(r"[0-9a-f]{32}\.woff2")
 FONT_URL = re.compile(r"url\(['\"]?[^)'\"]*/([^/'\"]+\.woff2)['\"]?\)")
@@ -73,7 +73,7 @@ def published_url(family: dict[str, Any]) -> str:
 	try:
 		path = repo_path(family["output"]).relative_to(PUBLIC)
 	except ValueError as error:
-		raise ValueError(f"{family['id']}: output must be under data/public") from error
+		raise ValueError(f"{family['id']}: output must be under data/bucket/objects") from error
 	return f"/{path.as_posix()}"
 
 
@@ -112,7 +112,7 @@ def validate_family(family: dict[str, Any], require_published: bool = True) -> l
 	try:
 		output.relative_to(PUBLIC)
 	except ValueError:
-		problems.append(f"{label}: output must be under data/public")
+		problems.append(f"{label}: output must be under data/bucket/objects")
 	if require_published and not output.is_dir():
 		problems.append(f"{label}: output directory is missing: {output.relative_to(ROOT)}")
 	if require_published and not stylesheet.is_file():

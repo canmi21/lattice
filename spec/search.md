@@ -168,7 +168,7 @@ nothing reports. The event it waits for is a publish rather than a deploy, for t
 file gives: a deploy stopped being what moves an article.
 
 `sync` is the wrong host for it twice over. It is a transfer, and its safety is structural:
-rclone is pointed at `data/public` and can physically see nothing else, which is what makes it
+rclone is pointed inside `data/bucket` and can physically see nothing else, which is what makes it
 fail closed. Publishing something with a different scope from inside that command retires that
 argument, and its `--dry-run` default would then cover one of the two publications rather than
 both.

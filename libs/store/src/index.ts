@@ -8,8 +8,8 @@ import type { Fetcher, R2Bucket } from '@cloudflare/workers-types';
 /**
  * Reading the bytes behind a key, from whichever store this deployment has.
  *
- * Production reads the R2 bucket that mirrors `data/public`; development reads `data/public`
- * itself, handed over by `wrangler dev --assets` because the local tree is the source of truth.
+ * Production reads the R2 bucket a tree under `data/bucket` mirrors; development reads that
+ * tree itself, handed over by `wrangler dev --assets` because it is the source of truth.
  * A worker cannot open that directory itself -- workerd's `node:fs` is virtual and cannot see
  * host paths (verified) -- so the runtime passes it in. Everything above this module works in
  * keys and knows nothing about which one answered.

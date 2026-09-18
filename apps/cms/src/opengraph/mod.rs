@@ -55,7 +55,7 @@ pub fn config_path(repo: &Path) -> PathBuf {
 /// The family name inside the TTF, which is what the layout asks for by name.
 const FAMILY: &str = "LXGW WenKai";
 
-/// Where the full font lives. Not the split copy under `data/public/fonts`: a subset cannot
+/// Where the full font lives. Not the split copy the site publishes: a subset cannot
 /// answer for an arbitrary character, and a title may contain any.
 const FONT: &str = "data/fonts/LXGWWenKai-Regular.ttf";
 

@@ -396,7 +396,7 @@ mod tests {
 	fn deriving_prepares_the_record_without_writing_public_data() {
 		let temporary = temp();
 		let root = temporary.path();
-		let public = root.join("data/public");
+		let public = crate::paths::objects_root(root);
 		let original = photo(20, 12);
 		let prepared = derive_for(&original, "image/png", None, false, None).expect("derive for write");
 
@@ -404,7 +404,7 @@ mod tests {
 		assert_eq!(prepared.derived.cid, cid(&original));
 		assert_eq!(prepared.media.blake3, prepared.derived.cid);
 
-		let metadata = root.join("data/metadata");
+		let metadata = crate::paths::metadata_root(root);
 		write_derived(&public, &metadata, &prepared).expect("write derivation");
 		for variant in &prepared.derived.variants {
 			assert!(store::variant_path(&public, &variant.cid, variant.format.extension()).is_file());
@@ -431,11 +431,11 @@ mod tests {
 		let merged = run::load(&root.join(run::MERGED)).expect("merged");
 		let media = merged.media.get(&id).expect("merged record");
 		let picture = media.image().expect("a stored picture is a picture");
-		assert!(store::meta_path(&root.join("data/metadata"), &id).is_file());
+		assert!(store::meta_path(&crate::paths::metadata_root(root), &id).is_file());
 		for (variant, record) in &picture.variants {
 			assert!(
 				store::variant_path(
-					&root.join("data/public"),
+					&crate::paths::objects_root(root),
 					variant,
 					record.mime.strip_prefix("image/").expect("image mime"),
 				)

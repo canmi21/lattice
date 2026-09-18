@@ -843,7 +843,7 @@ fn classify_images(
 	if outcome.failed.is_empty() { Ok(ExitCode::SUCCESS) } else { Ok(ExitCode::FAILURE) }
 }
 
-/// Report what the articles reference and `data/public` cannot answer for.
+/// Report what the articles reference and the published trees cannot answer for.
 ///
 /// Always succeeds. This is a report, and a report that can fail a build is a gate wearing a
 /// report's name.

@@ -7,7 +7,7 @@
 	"compatibility_flags": ["nodejs_compat"],
 
 	// Written by the SvelteKit Cloudflare adapter: the prerendered pages and client bundle.
-	// Unrelated to data/public, which the CDN worker serves from R2.
+	// Unrelated to data/bucket/objects, which the CDN worker serves from R2.
 	"assets": {
 		"directory": ".svelte-kit/cloudflare",
 		"binding": "ASSETS",

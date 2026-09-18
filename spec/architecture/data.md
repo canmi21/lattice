@@ -7,14 +7,20 @@ so a fresh clone has somewhere to put things.
 
 ```
 data/
-  public/   mirrored to R2, 1:1 with the bucket layout
+  bucket/   the two R2 mirrors, and the only thing under here that leaves this machine
+    objects/    content-addressed bytes, served by the CDN
+    metadata/   the published root and one record per asset, read by the API
   draft/    never leaves this machine
   build/    generated records; see below for which of them git keeps
 ```
 
+**One parent over both mirrors, and that is the publication gate written as a path.** `rclone` is
+aimed inside `data/bucket` and can see nothing else under `data/`, so a directory added beside it
+is out of scope without a rule being written or remembered.
+
 **The local directory is the source of truth, not a cache of one.** It is R2 laid out as
 plain files, which is why local development reads it directly rather than emulating R2. The
-bucket is a mirror of `data/public`, and mirroring runs one way: local writes, the cloud
+buckets mirror the trees under `data/bucket`, and mirroring runs one way: local writes, the cloud
 follows. Nothing in the cloud writes back.
 
 That invariant is what keeps the sync trivial, and it is fragile -- a single worker that
@@ -114,8 +120,8 @@ never in it.
 
 ## Publication is a path, not a rule
 
-`mise run sync` mirrors `data/public` and nothing else. What makes that safe is the source
-path: rclone is pointed at `data/public` and cannot see the rest of `data/`. A directory added
+`mise run sync` mirrors the two trees under `data/bucket` and nothing else. What makes that safe
+is the source path: rclone is pointed at them and cannot see the rest of `data/`. A directory added
 later is excluded because it was never in scope -- no rule to write, none to forget.
 
 The alternative, syncing `data/` minus a denylist, fails in the worse direction. Miss a rule
@@ -137,7 +143,7 @@ had the principle, in "Deletion is the one thing that never happens as a side ef
 ## Assets are prepared locally, never in CI
 
 A local build fetches whatever it is missing -- remote favicons, image variants -- and writes
-it into `data/public` for the next sync. A CI build does neither; it compiles what is already
+it into `data/` for the next sync. A CI build does neither; it compiles what is already
 there.
 
 The split exists because CI has no writable source of truth. If it fetched, the result would
@@ -519,16 +525,19 @@ survived it. Nothing replaced the linking, because with one checkout there is no
 the bytes sit in that checkout's `data/` and every process reads them there.
 
 **A reader finds the directory by walking up for it, not by being told where it is.** Each
-command looks for `data/public` above its working directory and joins its own paths onto the
+command looks for `data/bucket` above its working directory and joins its own paths onto the
 repository root the marker sits in -- [paths.rs](../../apps/cms/src/paths.rs) is the Rust side of
 that. A compile-time path would bake in whichever machine built the binary, and an environment
 variable would be one more thing to set correctly before any command works. Walking up means a
 command run from anywhere inside the tree reaches the same bytes.
 
-This read "the parent of what it finds", and that is a correction: the parent of `data/public` is
+This read "the parent of what it finds", and that is a correction: the parent of `data/bucket` is
 `data/`, which nothing joins onto. `repo_root()` takes the grandparent, and the root is what a
-command wants because the article tree, the originals and the published tree are siblings under
-it -- one that knew only `data/public` could not read the articles deciding what belongs there.
+command wants because the article tree, the originals and the mirrors are siblings under it -- one
+that knew only where objects go could not read the articles deciding what belongs there.
+
+**The marker is the parent of both mirrors rather than one of them.** What is inside it has been
+relaid twice; that this repository publishes to buckets at all has not changed once.
 
 **Writing is the CMS's and the sync task's** -- the CMS because it is a machine-wide singleton
 on its pinned port, the sync because a mirror with two sources is not a mirror. The port is

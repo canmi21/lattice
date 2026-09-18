@@ -30,20 +30,20 @@
 		"inspector_port": 26517,
 	},
 
-	// Development reads data/public itself, because the local tree is the source of truth and
-	// dev should read the source rather than a copy. It lives under `env.dev` so that a plain
+	// Development reads the objects tree itself, because the local tree is the source of truth
+	// and dev should read the source rather than a copy. It lives under `env.dev` so that a plain
 	// `wrangler deploy` never sees it -- otherwise deploying would upload every photo in
-	// data/public alongside the worker, which is precisely what R2 exists to avoid.
+	// data/bucket/objects alongside the worker, which is precisely what R2 exists to avoid.
 	//
 	// `run_worker_first` matters more than it looks. Without it wrangler answers asset requests
 	// before the worker runs, so routing and cache headers are simply skipped and dev serves
 	// `max-age=0` where production serves a year. Measured: that is exactly what happened.
 	"env": {
 		"dev": {
-			// data/draft, not data/public: it holds the same corpus plus the drafts, and symlinks
-			// to the published assets the publish step writes for it. One directory covering both
-			// trees is what `wrangler dev` allows, since it binds exactly one. A reader never sees
-			// this tree -- rclone is pointed at data/public and cannot reach it.
+			// data/draft, not data/bucket/objects: it holds the same corpus plus the drafts, and
+			// symlinks to the published assets the publish step writes for it. One directory covering
+			// both trees is what `wrangler dev` allows, since it binds exactly one. A reader never
+			// sees this tree -- rclone is pointed inside data/bucket and cannot reach it.
 			"assets": {
 				"directory": "../../data/draft/objects",
 				"binding": "ASSETS",

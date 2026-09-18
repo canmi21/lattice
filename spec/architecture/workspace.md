@@ -201,7 +201,7 @@ two real uses instead of one real use and one imagined one.
 
 The counterpart matters as much: once the second consumer exists, extract rather than copy.
 `apps/api` read its metadata straight out of R2 while `apps/cdn` read the same bucket through
-a store that also knew how to read `data/public`, so the API had no local development at all
+a store that also knew how to read the local tree, so the API had no local development at all
 -- every lookup was a 404 until `--remote` reached a bucket that only production writes. The
 copy was not a duplicated function, it was a capability one side silently lacked.
 

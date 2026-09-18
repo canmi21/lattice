@@ -10,7 +10,7 @@ import { failure } from './respond';
  * questions without translation between them. Written by `cms image`, published alongside the
  * variants, and read back verbatim -- one description of an asset, not two that can disagree.
  *
- * Reads through the same store as the CDN, so `mise run dev-api` answers from `data/public`
+ * Reads through the same store as the CDN, so `mise run dev-api` answers from the local tree
  * without needing `--remote` to reach a bucket only production writes.
  */
 const image = new Hono<{ Bindings: Bindings }>();

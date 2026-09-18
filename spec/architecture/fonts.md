@@ -3,7 +3,7 @@
 ## A font pipeline input is disposable
 
 The font pipeline only moves in one direction: a full face under `data/fonts` is input, and web
-chunks under `data/public/fonts/{family}` are output. The input is useful only while somebody
+chunks under `data/bucket/objects/fonts/{family}` are output. The input is useful only while somebody
 may slice that face again. Once the chunks exist it may be deleted, and a family with prebuilt
 chunks needs no input of its own. It may still name an input retained by a different family that
 owns their shared chunks. Keeping every original forever would turn a temporary build need into
@@ -29,7 +29,7 @@ split chunks come to 12.5MB against it, and no reader ever wants more than a fra
 **That figure is one family's, not the set's, and saying so is a correction.** It was taken from
 a comment in `wenkai.css` and written here as a total, which was true only while LXGW was the one
 CJK family. `data/fonts.json` now declares three as `frequency-chunks` -- lxgw-wenkai, klee-one
-and tang-guo-wei-de-xia-tian -- and every published chunk under `data/public/fonts` totals
+and tang-guo-wei-de-xia-tian -- and every published chunk under `data/bucket/objects/fonts` totals
 18.5MB, of which those three are 18MB and the Latin faces and the monospace are the rest. Byte
 figures in this file are binary: 12.5MB is 12.53 MiB, and the retained face is 24.39 MiB.
 

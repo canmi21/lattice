@@ -27,8 +27,8 @@ set -euo pipefail
 # spec/architecture/artifacts.md, "Publication is ordered, and deletion is not part of it".
 
 BASE="$(cd "$(dirname "$0")/../.." && pwd)"
-OBJECTS="$BASE/data/public"
-METADATA="$BASE/data/metadata"
+OBJECTS="$BASE/data/bucket/objects"
+METADATA="$BASE/data/bucket/metadata"
 
 for tree in "$OBJECTS" "$METADATA"; do
 	if [ ! -d "$tree" ]; then
@@ -38,7 +38,7 @@ for tree in "$OBJECTS" "$METADATA"; do
 	fi
 done
 
-OBJECTS_REMOTE="${R2_OBJECTS_REMOTE:-${R2_REMOTE:-}}"
+OBJECTS_REMOTE="${R2_OBJECTS_REMOTE:-}"
 METADATA_REMOTE="${R2_METADATA_REMOTE:-}"
 
 if [ -z "$OBJECTS_REMOTE" ] || [ -z "$METADATA_REMOTE" ]; then

@@ -51,7 +51,7 @@ pub struct Gap {
 	pub action: Option<Action>,
 }
 
-/// Everything an article references that `data/public` cannot answer for.
+/// Everything an article references that the published trees cannot answer for.
 pub fn report(repo: &Path, articles: &Path) -> std::io::Result<Vec<Gap>> {
 	let scan = refs::scan(articles)?;
 	let described = crate::media::load(&crate::media::path_for(repo))?;

@@ -8,7 +8,7 @@ import { failure } from './respond';
  *
  * Unlike favicons both stay live fetches, because neither has a bounded set to prepare in
  * advance. Nothing here writes, so the mirror stays one-directional: the rule is that the cloud
- * never authors bytes in `data/public`, not that it never makes a request. See
+ * never authors bytes in the objects tree, not that it never makes a request. See
  * spec/architecture/data.md and, for the release proxy, spec/architecture/delivery.md.
  */
 const github = new Hono();

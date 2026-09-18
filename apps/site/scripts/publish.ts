@@ -403,7 +403,7 @@ async function linkObjects(publicDir: string, draftDir: string): Promise<number>
  * The named prefixes beside the objects: fonts, cards, icons and the site's own files.
  *
  * Still addressed by name rather than by content, so they keep a directory each and can be linked
- * whole. Anything at the top of `data/public` that is not a fan-out directory is one of these.
+ * whole. Anything at the top of the objects tree that is not a fan-out directory is one of these.
  */
 async function linkNamed(publicDir: string, draftDir: string): Promise<string[]> {
 	const named = (await readdir(publicDir, { withFileTypes: true })).filter(
@@ -454,8 +454,8 @@ async function linkRecords(metadataDir: string, draftDir: string): Promise<void>
 const trees = [
 	{
 		name: 'public',
-		dir: new URL('data/public/', ROOT),
-		metadata: new URL('data/metadata/', ROOT),
+		dir: new URL('data/bucket/objects/', ROOT),
+		metadata: new URL('data/bucket/metadata/', ROOT),
 		articles: published.articles,
 	},
 	// One tree per bucket here too, so development binds the same two things production does.
@@ -481,12 +481,12 @@ for (const { name, dir, metadata, articles } of trees) {
 	);
 }
 
-const publicDir = fileURLToPath(new URL('data/public/', ROOT));
+const publicDir = fileURLToPath(new URL('data/bucket/objects/', ROOT));
 const draftObjects = fileURLToPath(new URL('data/draft/objects/', ROOT));
 const objects = await linkObjects(publicDir, draftObjects);
 const named = await linkNamed(publicDir, draftObjects);
 await linkRecords(
-	fileURLToPath(new URL('data/metadata/', ROOT)),
+	fileURLToPath(new URL('data/bucket/metadata/', ROOT)),
 	fileURLToPath(new URL('data/draft/metadata/', ROOT)),
 );
 console.log(

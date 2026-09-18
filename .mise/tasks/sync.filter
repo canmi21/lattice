@@ -1,4 +1,4 @@
-# rclone filter for the published mirrors. Read top to bottom; first match wins.
+# rclone filter for the mirrors under data/bucket. Read top to bottom; first match wins.
 #
 # The sources are already the published trees, so this only has to drop the things that live
 # alongside real content: editor and OS leftovers, and the skeleton marker git needs.

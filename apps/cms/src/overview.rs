@@ -210,7 +210,7 @@ mod tests {
 		.expect("article");
 		std::fs::write(root.join("contents/homepage.md"), "---\ntitle: Home\n---\n").expect("homepage");
 		let content_id = "44b6081deaf0242ca3bf83d62a3b6c95";
-		let record = image::store::meta_path(&root.join("data/metadata"), content_id);
+		let record = image::store::meta_path(&crate::paths::metadata_root(root), content_id);
 		std::fs::create_dir_all(record.parent().expect("record parent")).expect("record directory");
 		std::fs::write(record, "{}").expect("record");
 
@@ -242,7 +242,7 @@ mod tests {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
 		std::fs::create_dir_all(root.join("contents/notes")).expect("contents");
-		std::fs::create_dir_all(root.join("data/public")).expect("public data");
+		std::fs::create_dir_all(crate::paths::objects_root(root)).expect("objects tree");
 		for (name, created, lastmod) in [
 			("First", "2026-08-01T00:00:00Z", None),
 			("Revised", "2026-08-02T00:00:00Z", Some("2026-08-05T00:00:00Z")),

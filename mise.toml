@@ -32,10 +32,13 @@ RCLONE_CONFIG_R2_TYPE = "s3"
 RCLONE_CONFIG_R2_PROVIDER = "Cloudflare"
 RCLONE_CONFIG_R2_REGION = "auto"
 
-# The bucket mirrors data/public, and is named `public` so the two paths read the same
-# segment for segment: data/public/favicon/x.svg <-> r2:public/favicon/x.svg. A different
-# name would add a translation step for a reader to get wrong.
-R2_REMOTE = "r2:public"
+# One remote per bucket, because there are two: the CDN reads content-addressed bytes and the
+# API reads records, and neither holds a credential for the other's. `mise run publish` fails
+# closed if either is unset rather than syncing half of a publication.
+#
+# These name the destination only. Credentials live in rclone's own config, never here.
+R2_OBJECTS_REMOTE = "r2:public"
+R2_METADATA_REMOTE = "r2:metadata"
 
 [tasks.test]
 description = "Run every test in the workspace"
@@ -105,7 +108,7 @@ description = "Deploy the CDN worker"
 dir = "apps/cdn"
 # `--env=""` names the top-level environment explicitly. Defining any environment at all makes
 # wrangler refuse to guess, and the one it would be guessing between here is production and
-# the dev config that mounts data/public as assets -- picking wrong would upload every file in
+# the dev config that mounts the objects tree as assets -- picking wrong would upload every file
 # it alongside the worker.
 run = 'pnpm exec wrangler deploy --env=""'
 
@@ -123,7 +126,7 @@ dir = "apps/site"
 run = "pnpm run dev"
 
 [tasks.dev-cdn]
-description = "Run the CDN worker against data/public"
+description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"
 run = "pnpm run dev"
 
@@ -151,7 +154,7 @@ run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
 
 # What `mise run publish press` runs, and the one verb the workspace refuses to let mean
 # everything -- see spec/architecture/repos.md there. For this project publishing is the corpus
-# rather than a release: compile every view into `data/public`, then mirror.
+# rather than a release: compile every view into `data/bucket`, then mirror.
 #
 # Dry by default because `sync` is, and the two halves must not disagree about that. `--live`
 # passes through to the mirror; the compile writes only into `data/` either way and is safe to

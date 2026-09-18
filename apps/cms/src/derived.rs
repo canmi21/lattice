@@ -137,7 +137,7 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 			Class::new(
 				"images",
 				"Images",
-				"Referenced pictures with a processed record in data/public.",
+				"Referenced pictures with a processed record in the metadata tree.",
 				published,
 				// An unresolved reference names a picture that was never imported, so it counts
 				// against the total rather than being absent from it -- otherwise importing one

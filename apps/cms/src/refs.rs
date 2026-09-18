@@ -1,6 +1,6 @@
 //! Reading the assets an article asks for.
 //!
-//! Every command that touches `data/public` starts here. What to derive, what to fetch, what
+//! Every command that touches the published trees starts here. What to derive, what to fetch, what
 //! is missing and what is no longer wanted are all answers to one question: which assets do
 //! the articles reference. Articles are the only authority -- something nothing links to is
 //! not an asset, it is a leftover. See spec/architecture/data.md.
@@ -99,7 +99,7 @@ pub struct Scan {
 }
 
 impl Scan {
-	/// Content ids the articles resolve to -- exactly the set worth keeping in `data/public`.
+	/// Content ids the articles resolve to -- exactly the set worth keeping in the objects tree.
 	pub fn cids(&self) -> BTreeSet<String> {
 		self.images.iter().filter_map(|image| image.resolved().map(|(cid, _)| cid.to_owned())).collect()
 	}
