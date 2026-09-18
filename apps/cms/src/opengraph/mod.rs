@@ -27,7 +27,7 @@ use std::path::{Path, PathBuf};
 ///
 /// Kept beside the font and for the same reason: it is bytes somebody else serves, so it is
 /// fetched into `data/` once rather than requested by a command that has to work offline.
-const AVATAR: &str = "data/avatar.png";
+const AVATAR: &str = "data/source/avatar.png";
 
 /// The identity the home card repeats, read from the file the pages read it from.
 #[derive(Debug, Deserialize)]
@@ -57,7 +57,7 @@ const FAMILY: &str = "LXGW WenKai";
 
 /// Where the full font lives. Not the split copy the site publishes: a subset cannot
 /// answer for an arbitrary character, and a title may contain any.
-const FONT: &str = "data/fonts/LXGWWenKai-Regular.ttf";
+const FONT: &str = "data/source/fonts/LXGWWenKai-Regular.ttf";
 
 #[derive(Debug, Default)]
 pub struct Outcome {
@@ -148,7 +148,7 @@ fn load_fonts(repo: &Path) -> Result<FontSystem, String> {
 	let path = repo.join(FONT);
 	if !path.is_file() {
 		return Err(format!(
-			"{} is missing -- the full font is not published, so fetch it into data/fonts",
+			"{} is missing -- the full font is not published, so fetch it into data/source/fonts",
 			path.display()
 		));
 	}

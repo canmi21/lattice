@@ -106,7 +106,7 @@ fn load(original: &[u8]) -> Result<DynamicImage, Error> {
 /// Whether this is HEIF carrying HEVC, by its `ftyp` brand.
 ///
 /// Read from the container rather than the filename: the extension is whatever the file was
-/// called when it arrived, and `data/image` holds files named by hash.
+/// called when it arrived, and `data/source/image` holds files named by hash.
 fn is_heic(bytes: &[u8]) -> bool {
 	if bytes.len() < 12 || &bytes[4..8] != b"ftyp" {
 		return false;

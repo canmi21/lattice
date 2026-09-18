@@ -1,6 +1,6 @@
 //! Turning a pair of coordinates into a place name, without asking anyone.
 //!
-//! GeoNames' `cities500` in `data/geo`, indexed once into an R-tree and searched for the
+//! GeoNames' `cities500` in `data/source/geo`, indexed once into an R-tree and searched for the
 //! nearest settlement. Offline on purpose: a reverse geocoding service would make importing a
 //! photograph depend on somebody else's uptime, their rate limit and their opinion about what
 //! we may do with the answer -- for a fact that never changes once written. See
@@ -92,7 +92,7 @@ pub struct Gazetteer {
 }
 
 /// Where the data lives, relative to the repository root.
-pub const DIRECTORY: &str = "data/geo";
+pub const DIRECTORY: &str = "data/source/geo";
 
 fn continent_of(code: &str) -> &'static str {
 	match code {

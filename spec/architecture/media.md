@@ -110,7 +110,7 @@ decoding. Orientation is the exception and must be read, or every derived image 
 turned.
 
 The address is the one part not in the file. It is looked up from the coordinates against
-GeoNames' `cities500` in `data/geo`, indexed into an R-tree, with the timezone from the
+GeoNames' `cities500` in `data/source/geo`, indexed into an R-tree, with the timezone from the
 polygon the point actually falls in rather than from the nearest town. Offline deliberately: a
 geocoding service would make importing a photograph depend on somebody else's uptime, rate
 limit and terms, for a fact that never changes once written.

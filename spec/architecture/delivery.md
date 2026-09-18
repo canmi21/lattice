@@ -244,11 +244,11 @@ changes, what it currently points at does. Every host mounts the same permanent 
 the API and the CDN all answer `/favicon.ico` with the same `301` -- so a crawler that reaches any
 of them finds the same answer.
 
-**The marks themselves live in `data/brand` and travel with the repository.** They were loose in
+**The marks themselves live in `data/source/brand` and travel with the repository.** They were loose in
 the published tree, which is to say on one machine: authored once by hand, regenerable by nobody,
 and in no clone. That is the one set `data/`'s "the bytes belong to the machine" rule must not
 cover. The icons `cms favicon` fetches from other sites travel for the same reason, in
-`data/favicon`: re-fetchable in principle, but only from a site that may have redrawn its icon
+`data/source/favicon`: re-fetchable in principle, but only from a site that may have redrawn its icon
 since, so a clone without them cannot reproduce what is published.
 
 ### Another site's icon is the case this layer exists for

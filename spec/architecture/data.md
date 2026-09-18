@@ -10,9 +10,16 @@ data/
   bucket/   the two R2 mirrors, and the only thing under here that leaves this machine
     objects/    content-addressed bytes, served by the CDN
     metadata/   the published root and one record per asset, read by the API
-  draft/    never leaves this machine
+  draft/    the draft root, and a link to the published records; never mirrored
+  record/   text a person curates, all of it committed
+  source/   the bytes nothing derives: originals, fonts, a geocoding database, the marks
   build/    generated records; see below for which of them git keeps
 ```
+
+Five directories, and each answers a different question: does it leave this machine, may it leave
+this machine, did a person write it, did anything derive it, did a tool make it. Nothing at the
+top of `data/` is a mixture of two of those, which is what makes each of the three lists below --
+git's, the sync's, the backup's -- readable without cross-referencing the others.
 
 **One parent over both mirrors, and that is the publication gate written as a path.** `rclone` is
 aimed inside `data/bucket` and can see nothing else under `data/`, so a directory added beside it
@@ -171,7 +178,7 @@ the build -- one missing image is not a reason to block a release.
 missing and what is no longer wanted are all answers to one question: which assets do the
 articles reference. Something nothing links to is not an asset, it is a leftover.
 
-An image reference is its own state. It either names a file -- looked for under `data/image`,
+An image reference is its own state. It either names a file -- looked for under `data/source/image`,
 where originals are kept and never published -- or it is `{cid}.{ext}`, a content id and the
 format that was actually produced. `cms image` turns the first into the second, and that
 rewrite is the record that the work is done. No log beside the article can drift from it,
@@ -207,7 +214,7 @@ where everything is urgent is a report nobody reads.
 Deletion is the one thing that never happens as a side effect. `cms gc` is dry by default and
 `mise run gc` only reports, because deriving an asset can be repeated until it is right while
 deleting one changes what R2 serves on the next sync. It is recoverable in practice -- the
-originals are still in `data/image` and a content id is enough to rebuild from -- but that is
+originals are still in `data/source/image` and a content id is enough to rebuild from -- but that is
 a fact about this repository rather than a property of the command, so it waits to be asked.
 
 ## A broken sidecar is an error, never an empty one

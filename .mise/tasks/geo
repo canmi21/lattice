@@ -12,7 +12,7 @@ set -euo pipefail
 # without removing the second copy. The same reasoning the dev ports are written twice under.
 # See spec/architecture.md.
 BASE="https://download.geonames.org/export/dump"
-TARGET="$(cd "$(dirname "$0")/../.." && pwd)/data/geo"
+TARGET="$(cd "$(dirname "$0")/../.." && pwd)/data/source/geo"
 
 mkdir -p "$TARGET"
 cd "$TARGET"

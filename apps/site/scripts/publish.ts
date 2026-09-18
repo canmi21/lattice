@@ -47,8 +47,8 @@ const SITE = new URL('apps/site/', ROOT);
  * its own.
  */
 const INPUTS = {
-	brand: fileURLToPath(new URL('data/brand', ROOT)),
-	icons: fileURLToPath(new URL('data/favicon', ROOT)),
+	brand: fileURLToPath(new URL('data/source/brand', ROOT)),
+	icons: fileURLToPath(new URL('data/source/favicon', ROOT)),
 	notice: fileURLToPath(new URL('data/build/licenses-full.txt', ROOT)),
 	cards: fileURLToPath(new URL('data/build/opengraph.json', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
@@ -269,9 +269,9 @@ async function publishPage(
 /**
  * The site's own marks, published like any other object and named in the root.
  *
- * Authored rather than derived, so they live in `data/brand` and travel with the repository: a
- * favicon nobody can regenerate was sitting loose in the published tree, which is to say on one
- * machine. What a browser asks for is `/favicon.ico`, and the alias layer is what turns that name
+ * Authored rather than derived, so they live in `data/source/brand` and travel with the
+ * repository: a favicon nobody can regenerate was sitting loose in the published tree, which is
+ * to say on one machine. A browser asks for `/favicon.ico`, and the alias layer turns that name
  * into the object named here. See spec/architecture/delivery.md.
  */
 async function publishBrand(tree: Tree): Promise<Root['assets']> {

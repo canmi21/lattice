@@ -158,7 +158,7 @@ mod tests {
 	fn an_already_collected_domain_is_skipped() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/favicon/example.com")).expect("dir");
+		std::fs::create_dir_all(crate::paths::favicon_root(root).join("example.com")).expect("dir");
 		let outcome = run(Options {
 			repository: &root,
 			wanted: &[wanted("example.com")],
@@ -179,7 +179,7 @@ mod tests {
 	fn an_item_claimed_elsewhere_is_left_alone() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/favicon/free.example")).expect("dir");
+		std::fs::create_dir_all(crate::paths::favicon_root(root).join("free.example")).expect("dir");
 		let held = claim::take(&root, "favicon", "taken.example").expect("claim");
 
 		let outcome = run(Options {
@@ -203,7 +203,7 @@ mod tests {
 	fn the_run_publishes_itself_and_cleans_up() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/favicon/example.com")).expect("dir");
+		std::fs::create_dir_all(crate::paths::favicon_root(root).join("example.com")).expect("dir");
 		assert!(registry::running(&root, "favicon").expect("before").is_none());
 		run(Options {
 			repository: &root,
@@ -224,7 +224,7 @@ mod tests {
 	fn an_item_finished_by_someone_else_is_dropped_after_claiming() {
 		let temporary = temp();
 		let root = temporary.path();
-		let collected = root.join("data/favicon/late.example");
+		let collected = crate::paths::favicon_root(root).join("late.example");
 		std::fs::create_dir_all(&collected).expect("dir");
 
 		let outcome = run(Options {
@@ -248,7 +248,7 @@ mod tests {
 	fn claims_do_not_outlive_the_item() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/favicon/example.com")).expect("dir");
+		std::fs::create_dir_all(crate::paths::favicon_root(root).join("example.com")).expect("dir");
 		run(Options {
 			repository: &root,
 			wanted: &[wanted("example.com")],

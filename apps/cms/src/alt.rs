@@ -96,7 +96,7 @@ pub struct Outcome {
 /// Which assets still need describing, paired with the original to look at.
 ///
 /// The originals are matched by hashing rather than by filename: the id *is* the hash, and
-/// `data/image` holds whatever names the files arrived under.
+/// `data/source/image` holds whatever names the files arrived under.
 fn pending(
 	merged: &Merged,
 	described: &media::Media,
@@ -331,7 +331,7 @@ mod tests {
 	async fn a_picture_another_run_claimed_is_not_described_again() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		let originals = root.join("data").join("image");
+		let originals = crate::paths::image_originals(root);
 		std::fs::create_dir_all(&originals).expect("originals");
 
 		let bytes = b"not really a png, but it hashes".to_vec();

@@ -447,7 +447,7 @@ fn describe_images(
 	let model_override = model.overrides(runner).map_err(anyhow::Error::msg)?;
 
 	let root = paths::repo_root()?;
-	let originals = root.join("data").join("image");
+	let originals = crate::paths::image_originals(&root);
 	let public = root.join("data").join("public");
 	let merged = match image::run::load(&root.join(image::run::MERGED)) {
 		Ok(merged) => merged,
@@ -526,7 +526,7 @@ fn describe_clips(
 	let model_override = model.overrides(runner).map_err(anyhow::Error::msg)?;
 
 	let root = paths::repo_root()?;
-	let originals = root.join("data").join("video");
+	let originals = crate::paths::video_originals(&root);
 	let articles = root.join("contents");
 	let merged = match image::run::load(&root.join(image::run::MERGED)) {
 		Ok(merged) => merged,
@@ -1017,7 +1017,7 @@ fn process_images(
 	let only = files.to_vec();
 
 	let root = paths::repo_root()?;
-	let originals = root.join("data").join("image");
+	let originals = crate::paths::image_originals(&root);
 	let public = root.join("data").join("public");
 	let articles = root.join("contents");
 
@@ -1056,7 +1056,7 @@ fn process_videos(force: bool, files: &[std::path::PathBuf]) -> anyhow::Result<E
 	let only = files.to_vec();
 
 	let root = paths::repo_root()?;
-	let originals = root.join("data").join("video");
+	let originals = crate::paths::video_originals(&root);
 	let public = root.join("data").join("public");
 	let articles = root.join("contents");
 

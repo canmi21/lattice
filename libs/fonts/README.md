@@ -78,7 +78,7 @@ inputs or published files.
 
 ## Add or update a family
 
-1. Put each full face needed for slicing under `data/fonts/`; do not fetch fonts in the task.
+1. Put each full face needed for slicing under `data/source/fonts/`; do not fetch fonts in the task.
 2. Add the family and its explicit strategy to the manifest. A generated face needs an `input`;
    a prebuilt face may set it to `null`.
 3. Run `mise run fonts <family>` and then `mise run fonts --check`.

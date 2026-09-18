@@ -2,7 +2,7 @@
 //!
 //! Articles drive this, not the contents of a directory. A reference is either finished --
 //! `{cid}.{ext}`, a content id and the format it resolved to -- or it still names a file, in
-//! which case that file is looked for under `data/image`, derived, published, and the
+//! which case that file is looked for under `data/source/image`, derived, published, and the
 //! reference rewritten to what it became. Rewriting is what records that the work is done, so
 //! the state lives in the article rather than in a log beside it.
 
@@ -27,7 +27,7 @@ pub struct Outcome {
 	/// Records rewritten because the manifest moved to a newer shape.
 	pub migrated: usize,
 	pub failed: Vec<(PathBuf, String)>,
-	/// References naming a file that is not under `data/image`.
+	/// References naming a file that is not under `data/source/image`.
 	///
 	/// Not an error: an article may be written before its picture is dropped in, and stopping
 	/// the run would leave every other image unprocessed for the sake of one that is late.
@@ -173,7 +173,7 @@ fn wanted(
 	// machine. The original is found by hashing, because the id is the hash.
 	//
 	// A cid the manifest already knows to be a clip is left out rather than reported missing.
-	// Its rungs are under `video/` and its original is not in `data/image`, so asking this
+	// Its rungs are under `video/` and its original is not in `data/source/image`, so asking this
 	// command about it would answer "not derived yet" on every run, for ever.
 	let unpublished: Vec<String> = scan
 		.cids()
@@ -648,7 +648,7 @@ mod tests {
 
 		let outcome = run(
 			&root,
-			&root.join("data/image"),
+			&root.join("data/source/image"),
 			&public,
 			&articles,
 			&Options { force: false, keep_original: false, only: &[] },

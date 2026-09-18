@@ -59,12 +59,30 @@ pub fn draft_root(repo: &Path) -> PathBuf {
 	repo.join("data").join("draft")
 }
 
+/// The bytes nothing derives: originals, fonts, a geocoding database, the site's own marks.
+///
+/// Every one of them is an input. What is published from here is hashed in by the publisher, so
+/// nothing under it is addressed by a reader. See spec/architecture/data.md.
+pub fn source_root(repo: &Path) -> PathBuf {
+	repo.join("data").join("source")
+}
+
+/// Pictures as they arrived, under whatever name they arrived with.
+pub fn image_originals(repo: &Path) -> PathBuf {
+	source_root(repo).join("image")
+}
+
+/// Clips as they arrived. The originals, never the encoded rungs.
+pub fn video_originals(repo: &Path) -> PathBuf {
+	source_root(repo).join("video")
+}
+
 /// Icons fetched from other people's sites, which are a source rather than a published object.
 ///
 /// They used to sit inside the published tree, which stopped being a place for anything that is
 /// not addressed by its own content. The publisher hashes them in; this is where they arrive.
 pub fn favicon_root(repo: &Path) -> PathBuf {
-	repo.join("data").join("favicon")
+	source_root(repo).join("favicon")
 }
 
 fn find_upwards(start: &Path) -> Option<PathBuf> {

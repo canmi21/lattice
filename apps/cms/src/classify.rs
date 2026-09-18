@@ -227,7 +227,7 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 		return Ok(outcome);
 	}
 
-	let by_id = originals_by_id(&repo.join("data").join("image"));
+	let by_id = originals_by_id(&crate::paths::image_originals(repo));
 	let mut todo: Vec<(String, PathBuf)> = Vec::new();
 	for cid in wanted {
 		match by_id.get(&cid) {
@@ -379,7 +379,7 @@ mod tests {
 	async fn a_picture_another_run_claimed_is_not_classified_again() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		let originals = root.join("data").join("image");
+		let originals = crate::paths::image_originals(root);
 		std::fs::create_dir_all(&originals).expect("originals");
 
 		let bytes = b"stand-in for an original".to_vec();

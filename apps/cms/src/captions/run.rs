@@ -87,7 +87,7 @@ pub enum Error {
 /// Cut one track to a clip's excerpt, store it, and record it against the clip.
 ///
 /// `clip` names the video: its content id, the id as an article writes it (`{cid}.mp4`), or the
-/// original's filename or path under `data/video`.
+/// original's filename or path under `data/source/video`.
 pub fn run(
 	repo: &Path,
 	public: &Path,
@@ -99,7 +99,7 @@ pub fn run(
 	let mut merged =
 		load(&merged_path).map_err(|source| Error::Read { path: merged_path.clone(), source })?;
 
-	let id = resolve(clip, &repo.join("data").join("video"), &merged)?;
+	let id = resolve(clip, &crate::paths::video_originals(repo), &merged)?;
 	let video = merged
 		.media
 		.get(&id)
@@ -204,8 +204,8 @@ fn displaced(
 /// The content id of the clip a person named, however they named it.
 ///
 /// Three spellings, because three are what is to hand: the id, the id as the article now writes
-/// it, and the original's name in `data/video`, which is the only one still legible after the
-/// import rewrote the article. A path is resolved by hashing it, which is the same operation the
+/// it, and the original's name in `data/source/video`, which is the only one still legible after
+/// the import rewrote the article. A path is resolved by hashing it, the same operation the
 /// import used to arrive at the id in the first place.
 fn resolve(clip: &str, originals: &Path, merged: &Merged) -> Result<String, Error> {
 	let is_video = |cid: &str| merged.media.get(cid).and_then(Media::video).is_some();

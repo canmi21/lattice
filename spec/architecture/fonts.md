@@ -2,7 +2,7 @@
 
 ## A font pipeline input is disposable
 
-The font pipeline only moves in one direction: a full face under `data/fonts` is input, and web
+The font pipeline only moves in one direction: a full face under `data/source/fonts` is input, and web
 chunks under `data/bucket/objects/fonts/{family}` are output. The input is useful only while somebody
 may slice that face again. Once the chunks exist it may be deleted, and a family with prebuilt
 chunks needs no input of its own. It may still name an input retained by a different family that

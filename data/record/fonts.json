@@ -51,12 +51,12 @@
 			"stylesheet": "libs/fonts/src/wenkai.css",
 			"stylesheetExport": "@canmi/fonts/wenkai.css",
 			"runtimeInput": {
-				"path": "data/fonts/LXGWWenKai-Regular.ttf",
+				"path": "data/source/fonts/LXGWWenKai-Regular.ttf",
 				"consumer": "apps/cms/src/opengraph/mod.rs"
 			},
 			"faces": [
 				{
-					"input": "data/fonts/LXGWWenKai-Regular.ttf",
+					"input": "data/source/fonts/LXGWWenKai-Regular.ttf",
 					"stem": "LXGWWenKai-Regular",
 					"style": "normal",
 					"weight": "400"
@@ -82,7 +82,7 @@
 			},
 			"faces": [
 				{
-					"input": "data/fonts/TangGuoWeiDeXiaTian-2-Regular.ttf",
+					"input": "data/source/fonts/TangGuoWeiDeXiaTian-2-Regular.ttf",
 					"internalName": "TGWDXT",
 					"stem": "TangGuoWeiDeXiaTian-2-Regular",
 					"style": "normal",
@@ -108,7 +108,7 @@
 			},
 			"faces": [
 				{
-					"input": "data/fonts/KleeOne-Regular.ttf",
+					"input": "data/source/fonts/KleeOne-Regular.ttf",
 					"local": ["Klee One"],
 					"stem": "KleeOne-Regular",
 					"style": "normal",
@@ -128,7 +128,7 @@
 			"runtimeInput": null,
 			"faces": [
 				{
-					"input": "data/fonts/Arimo-Regular.ttf",
+					"input": "data/source/fonts/Arimo-Regular.ttf",
 					"local": ["Arial", "Helvetica", "Arimo"],
 					"stem": "Arimo-Regular-v1",
 					"style": "normal",
@@ -149,7 +149,7 @@
 			"runtimeInput": null,
 			"faces": [
 				{
-					"input": "data/fonts/Arimo-Regular.ttf",
+					"input": "data/source/fonts/Arimo-Regular.ttf",
 					"local": ["Helvetica", "Arial", "Arimo"],
 					"stem": "Arimo-Regular-v1",
 					"style": "normal",
@@ -170,7 +170,7 @@
 			"runtimeInput": null,
 			"faces": [
 				{
-					"input": "data/fonts/Tinos-Regular.ttf",
+					"input": "data/source/fonts/Tinos-Regular.ttf",
 					"local": ["Times New Roman", "Tinos"],
 					"stem": "Tinos-Regular-v1",
 					"style": "normal",
@@ -191,7 +191,7 @@
 			"runtimeInput": null,
 			"faces": [
 				{
-					"input": "data/fonts/Gelasio-Regular.ttf",
+					"input": "data/source/fonts/Gelasio-Regular.ttf",
 					"local": ["Georgia", "Gelasio"],
 					"stem": "Gelasio-Regular-v1",
 					"style": "normal",

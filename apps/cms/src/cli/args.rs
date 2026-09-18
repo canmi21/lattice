@@ -152,7 +152,7 @@ pub enum Command {
 
 	/// Cut a caption track to a clip already imported, and attach it
 	Captions {
-		/// The clip: its content id, `{cid}.mp4`, or the original's name under `data/video`
+		/// The clip: its content id, `{cid}.mp4`, or the original's name under `data/source/video`
 		#[arg(value_name = "CLIP")]
 		clip: String,
 		/// The WebVTT track covering the original the clip was cut from

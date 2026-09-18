@@ -217,7 +217,7 @@ run = ["jj util gc", "git gc", "cargo run -q -p cms -- gc"]
 
 [tasks.gc-assets]
 description = "Delete the published assets that `gc` listed"
-# Separate because this is the irreversible half. Recoverable in practice -- data/image still
+# Separate because this is the irreversible half. Recoverable in practice -- data/source/image still
 # holds the originals and `cms image` rebuilds from a content id -- but only while that is
 # true, which is a fact about this repository rather than a guarantee of the command.
 run = "cargo run -q -p cms -- gc --live"

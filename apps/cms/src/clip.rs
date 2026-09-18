@@ -73,7 +73,7 @@ fn pending(
 }
 
 /// Content id of every original on hand. Hashed rather than matched by name, because the id *is*
-/// the hash and `data/video` holds whatever the files arrived called.
+/// the hash and `data/source/video` holds whatever the files arrived called.
 fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
 	let Ok(entries) = std::fs::read_dir(originals) else {
 		return BTreeMap::new();
@@ -179,7 +179,7 @@ pub struct Options<'a> {
 	pub runner: Runner,
 	pub model_override: Option<String>,
 	pub merged: &'a Merged,
-	/// `data/video`. The originals, not the rungs.
+	/// `data/source/video`. The originals, not the rungs.
 	pub originals: &'a Path,
 	pub articles: &'a Path,
 	pub force: bool,
