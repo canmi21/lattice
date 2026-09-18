@@ -135,9 +135,8 @@ copy it was confirming. Failures get the five minutes; `2xx` and `304` keep the 
 [artifacts.md](artifacts.md), "The key says what may cache it".
 
 **This shortened three things that were not content-addressed and had been getting a week**:
-`/favicon/{domain}`, `/license/full.txt`, and the assets under `data/public` that no named route
-claims. The week was inherited from the `_headers` era and had never been argued for any of them
-individually.
+`/favicon/{domain}`, `/license/full.txt`, and the assets no named route claimed. The week was
+inherited from the `_headers` era and had never been argued for any of them individually.
 
 Five minutes is the right number for the same reason the API's answers get five minutes: these
 are published bytes, and the whole point of the arrangement above is that **publication has one

@@ -1,4 +1,4 @@
-//! Resolving a site's favicons and storing them under `data/public/favicon/<domain>/`.
+//! Resolving a site's favicons and storing them under `data/source/favicon/<domain>/`.
 //!
 //! Everything here writes locally and nothing reaches R2; publishing is `mise run sync`'s
 //! job. There is no allowlist any more -- the worker no longer writes, so there is nothing to

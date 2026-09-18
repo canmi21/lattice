@@ -277,7 +277,7 @@ paid sweeps.
 Skipping alone would have left the pictures behind. The card record was already rebuilt rather
 than merged, so it forgets a card that is no longer produced, but the file stayed on disk and
 deployed anyway -- nine of them per article that becomes a draft, is renamed, or is deleted. The
-sweep is driven by that record rather than by walking `data/public`, which is what keeps it from
+sweep is driven by that record rather than by walking the objects tree, which is what keeps it from
 being a second garbage collector: it can only remove a file this command wrote and named, and a
 key it cannot account for is left alone, because the record is a file somebody may have edited and
 a path escaping the published root is a reason to stop rather than a reason to delete.
@@ -285,9 +285,9 @@ a path escaping the published root is a reason to stop rather than a reason to d
 **`cms gc` sweeps the tree that record cannot see.** Being driven by the record is what keeps
 `cms og`'s own sweep from being a second garbage collector, and it is also its limit: a key the
 record never held, or one it lost when the file was deleted or its version bumped -- `load` reads
-any other shape as no record at all -- names a card nothing will ever remove. So
-`data/public/opengraph/**` is walked by `cms gc` like every other published tree, and anything
-under it the site does not ask for goes, which is what the sweep means everywhere else too.
+any other shape as no record at all -- names a card nothing will ever remove. A card is a
+content-addressed object now, so `cms gc` reaches it by walking the one objects tree, and a card
+no live view accounts for goes -- which is what the sweep means everywhere else too.
 
 **The live set is derived from the corpus rather than from `data/build/opengraph.json`.** A card is
 keyed by `{view}/{slug}.png`, and the live slugs are exactly the ones `cms og` would draw: every
@@ -413,7 +413,7 @@ the next migration should match before trusting its own precedent by reasoning a
 ## A published record is minified; a committed one is not
 
 `data/record/metadata.json` is read in diffs, so it is written pretty and gets a trailing newline. The
-per-asset records under `data/public/meta/` are served, so they are minified. Both hold the same
+per-asset records under `data/bucket/metadata/meta/` are served, so they are minified. Both hold the same
 shape and the difference is only whitespace, which is why it has to be stated rather than inferred
 from either file.
 

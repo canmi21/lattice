@@ -103,6 +103,14 @@ dir = "apps/api"
 # The package command applies committed remote D1 migrations immediately before upload.
 run = "pnpm run deploy"
 
+[tasks.deploy-alias]
+description = "Deploy the aka worker, which resolves names and stores nothing"
+dir = "apps/alias"
+# `--env=""` for the same reason the CDN passes it, even though this worker declares no
+# environment: naming the top level explicitly means a dev environment added later cannot
+# change which one a bare deploy picks.
+run = 'pnpm exec wrangler deploy --env=""'
+
 [tasks.deploy-cdn]
 description = "Deploy the CDN worker"
 dir = "apps/cdn"

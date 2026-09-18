@@ -508,7 +508,7 @@ pub fn render_all(
 
 	// The record already forgets a card that is no longer produced; this is the other half, which
 	// it did not have. Without it an article that becomes a draft, gets renamed or is deleted
-	// leaves nine pictures of itself in `data/public`, and they deploy, and the path is guessable.
+	// leaves nine pictures of itself in the objects tree, and they deploy.
 	outcome.removed = sweep(public, &record, &next);
 
 	manifest::save(&manifest_path, &next)
@@ -518,7 +518,7 @@ pub fn render_all(
 
 /// Delete the cards the previous record holds and this run no longer wants. See
 /// spec/architecture/media.md, "A draft gets no card, and a card nothing asks for is deleted",
-/// for why this is driven by the record rather than by walking `data/public`.
+/// for why this is driven by the record rather than by walking the objects tree.
 ///
 /// A failed delete is not reported. The file is not referenced any more either way, and failing
 /// a card run over a leftover would be the tail wagging the dog; the next run tries again,

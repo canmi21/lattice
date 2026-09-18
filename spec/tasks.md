@@ -50,15 +50,23 @@ the library and the excerpt the track is cut to is written into `data/record/med
 `cms invalidate` is the one command the corrected rule leaves without a home; the section below
 records it rather than closing it.
 
-## A published tree has one record, and the sweep declares every one of them
+## A published kind has one record, and the sweep declares every one of them
 
-`cms gc` walks `data/public/image`, `video`, `captions`, `meta`, `favicon`, `license` and
-`opengraph`, rewrites `data/record/metadata.json` without the entries it drops, and behind `--segments`
-drops translations for paragraphs an article no longer contains. Each of those is a record, and the rule over them has
-three parts.
+`cms gc` walks the whole content-addressed space under `data/bucket/objects`, the fetched icons
+under `data/source/favicon`, rewrites `data/record/metadata.json` without the entries it drops, and
+behind `--segments` drops translations for paragraphs an article no longer contains. Each of those
+is a record, and the rule over them has three parts.
 
-**One tree, one record.** `data/public/captions/**` is `PublicCaptions` and nothing else names it.
-A second name for one store is two locks guarding half a thing each.
+**One kind, one record.** `PublicCaptions` names every caption track and nothing else names one. A
+second name for one store is two locks guarding half a thing each.
+
+**This used to read "one tree", and the trees are gone.** Objects are filed by content id alone
+now, so `PublicImage`, `PublicVideo`, `PublicCaptions`, `PublicOpengraph` and `PublicLicense` all
+denote the same directory. That is not a lock that stopped working, for two reasons worth stating
+because neither is obvious: two writers can only collide on a key when they are writing identical
+bytes, since the key *is* the hash of them; and the one task that deletes takes every record, so
+nothing writes beside a sweep. What the names partition is who writes what, not which directory
+they write into.
 
 **A task declares every record it writes**, including the ones it rewrites on the way past. The
 merged manifest and the sidecar under `meta/` are written for every asset published, so `Manifest`
@@ -79,8 +87,8 @@ run would report anything wrong.
 ### One gap is recorded rather than closed
 
 The two that stood here are closed. `cms captions` has a catalogue entry, so the mechanism can see
-that it and `cms gc` contend over three records; `data/public/opengraph/**` is swept, and what a
-card is reachable from is settled in [architecture/media.md](architecture/media.md).
+that it and `cms gc` contend over three records; a card is swept against the record that names it,
+which is settled in [architecture/media.md](architecture/media.md).
 
 `cms invalidate` is what the corrected exemption leaves behind. It writes `Translations` -- the
 same record `cms i18n` writes and `cms gc --segments` deletes from -- and it has no entry, so the
@@ -192,8 +200,8 @@ whether two operations may be offered together by intersecting their `writes`, s
 writer of `Articles` was invisible to the only mechanism that would keep it from running beside
 `cms image` -- the contention this file exists to describe.
 
-Its entry writes `Articles`, `PublicVideo` for the published rungs under `data/public/video/**`,
-`PublicImage` for the poster's variants, and `Media`. The last one is easy to miss: giving a poster
+Its entry writes `Articles`, `PublicVideo` for the published rungs, `PublicImage` for the
+poster's variants, and `Media`. The last one is easy to miss: giving a poster
 with no source the clip's rewrites the whole of `data/record/media.yaml`, so `cms alt` finishing mid-run
 would be overwritten. A record a task rewrites wholesale is a record it writes, whether or not the
 run had anything of its own to put there.

@@ -43,19 +43,24 @@ pub enum Record {
 	/// The only link from a content id to the objects on disk, so a task that publishes bytes
 	/// writes this too, and the sweep rewrites it as it drops what it deletes.
 	Manifest,
-	/// `data/public/image/**`.
+	/// Published pictures, including a clip's poster.
+	///
+	/// These five name a kind rather than a directory: objects are filed by content id alone, so
+	/// they all land in `data/bucket/objects`. Two writers can only meet on a key when they are
+	/// writing identical bytes, and the one task that deletes declares every record, so what these
+	/// partition is who writes what. See spec/tasks.md.
 	PublicImage,
-	/// `data/public/video/**`: the encoded rungs, not the poster, which is an image.
+	/// Published rungs. Not the poster, which is a picture like any other.
 	PublicVideo,
-	/// `data/public/captions/**`: one cut WebVTT track per file.
+	/// Published caption tracks, one cut WebVTT per object.
 	PublicCaptions,
-	/// `data/public/meta/**`: the sidecar beside each published asset, whatever kind it is.
+	/// `data/bucket/metadata/meta/**`: the record for each published asset, in the other tree.
 	PublicMeta,
-	/// `data/public/favicon/**`.
+	/// `data/source/favicon/**`: icons fetched from other people's sites, before publishing.
 	PublicFavicon,
-	/// `data/public/opengraph/**`.
+	/// Published OpenGraph cards.
 	PublicOpengraph,
-	/// `data/public/license/**`.
+	/// Published licence texts.
 	PublicLicense,
 }
 
@@ -438,7 +443,7 @@ mod tests {
 	///
 	/// Stated as an invariant rather than as a list, because the pairs that were missing --
 	/// `licenses` and `i18n` -- were missing exactly because nobody re-read the list after adding
-	/// a tree to the sweep. See spec/tasks.md, "A published tree has one record".
+	/// a kind to the sweep. See spec/tasks.md, "A published kind has one record".
 	#[test]
 	fn the_sweep_comes_after_everything_whose_output_it_can_delete() {
 		let gc = find("gc").expect("gc");
