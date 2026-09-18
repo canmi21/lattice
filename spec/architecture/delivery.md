@@ -148,6 +148,35 @@ minutes on files that are small and rarely asked for.
 A route that genuinely needs longer says so itself, with its reason, which is what
 [opengraph.ts](../../apps/cdn/src/opengraph.ts) already does and why its week survives this.
 
+## The CDN expresses one kind of address
+
+**It resolves nothing.** Its whole job is to hand back bytes and say how long they may be kept, and
+every route it has is a content-addressed one. Resolution moved to `aka` for the reason the ladder
+above gives: a lookup would spend the independence that makes this the layer everything else can
+lean on.
+
+So an address either parses as `/{type}/{cid}.{ext}` or it is not an address this host can express,
+and the refusals say which:
+
+| asked for | answered | because |
+| --- | --- | --- |
+| `/{type}/{cid}.{ext}`, in the bucket | `200` | a year, `immutable` |
+| `/{type}/{cid}.{ext}`, not in the bucket | `404` | never uploaded, or swept -- real and temporary |
+| a wrong `{type}` the extension settles | `301` | the id found it; the spelling was not canonical |
+| anything else | `400` | nothing could ever live there |
+
+**`400` and `404` are not interchangeable here.** A `404` on a hashed name is a fact about the
+bucket and a short-lived one; a single segment with no content id in it is a fact about the address
+and will never become true. Collapsing them would throw away the only signal that distinguishes a
+sweep from a typo.
+
+**The catch-all is gone**, and that is the structural half. A route that answers for whatever
+happens to be in the bucket is what served the records for as long as they lived there -- with a
+year of `immutable`, because their names ended in a hash. What this host holds is now declared:
+the public types, two names it mounts (`robots.txt`, which is a statement about this host, and
+`favicon.ico`, which redirects to the layer that owns it), and the font chunks, whose promise is
+written down. A prefix added tomorrow is unreachable until somebody says otherwise.
+
 ## Three layers, and the dependency runs one way
 
 Four hosts answer, and three of them are a ladder.

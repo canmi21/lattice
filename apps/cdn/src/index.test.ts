@@ -72,15 +72,26 @@ describe('robots policy', () => {
  * gap was hono's own 404: `text/plain`, which a caller parsing JSON reads as a syntax error.
  */
 describe('a refusal nothing handled', () => {
-	it('wraps a method the bucket cannot answer, and holds it briefly at most', async () => {
+	// A single segment that is not one of the names this host mounts cannot be an address here at
+	// all, so it is malformed rather than missing -- and that is decided before any route runs.
+	it('refuses an address this host cannot express, and holds it briefly at most', async () => {
 		const res = await app.fetch(
 			new Request('https://cdn.example/anything', { method: 'POST' }),
 			{} as never,
 		);
-		expect(res.status).toBe(404);
+		expect(res.status).toBe(400);
 		expect(res.headers.get('Content-Type')).toContain('application/json');
-		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_route' });
+		expect(await res.json()).toEqual({ status: 'error', message: 'not_an_address' });
 		// The lifetime is the cache middleware's, derived from the response rather than restated.
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
+	});
+
+	it('wraps a method a known address cannot answer', async () => {
+		const res = await app.fetch(
+			new Request('https://cdn.example/robots.txt', { method: 'POST' }),
+			{} as never,
+		);
+		expect(res.status).toBe(404);
+		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_route' });
 	});
 });

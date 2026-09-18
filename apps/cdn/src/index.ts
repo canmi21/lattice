@@ -3,6 +3,7 @@ import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { addressable } from './address';
 import { artifact } from './artifact';
 import { BRIEFLY, cacheControl } from './cache';
 import favicon from './favicon';
@@ -31,6 +32,8 @@ const app = new Hono<{ Bindings: Bindings }>();
 // A scanner flagging the reflected preflight has found a pattern, not a hole.
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
 app.use('*', cacheControl);
+// Before any route: what this host can express at all. See ./address.ts.
+app.use('*', addressable);
 
 app.get('/', (c) => {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
@@ -83,12 +86,18 @@ for (const type of ARTIFACT_TYPES) {
 	app.route(`/${type}`, artifact(type));
 }
 
-// Everything else is a direct key lookup: fonts, the site's own icons, whatever else lands in
-// data/public. The path is the key, because the bucket mirrors that directory exactly.
-app.get('/*', async (c) => {
+/**
+ * The font chunks, which are named rather than addressed by content.
+ *
+ * The one prefix left that earns a year without a hash to justify it, on the written promise that
+ * re-subsetting produces a new filename. Declared rather than reached through a catch-all: a
+ * catch-all is what served the records for as long as they shared this bucket, because it answers
+ * for whatever happens to be there rather than for what this host is meant to hold.
+ */
+app.get('/fonts/*', async (c) => {
 	const key = new URL(c.req.url).pathname.replace(/^\/+/, '');
-	if (!key || key.includes('..')) {
-		return failure(c, 404, 'not_found');
+	if (key.includes('..')) {
+		return failure(c, 400, 'not_an_address');
 	}
 	const found = await read(c.env, key, c.req.header('Range'));
 	if (!found) {
