@@ -163,7 +163,7 @@ fn snapshot_at(repository: &Path) -> std::io::Result<Snapshot> {
 	let descriptions =
 		content_ids.iter().filter(|content_id| !alt::wants_description(&described, content_id)).count();
 
-	let gaps: Vec<Gap> = check::report(repository, &public, &contents)?
+	let gaps: Vec<Gap> = check::report(repository, &contents)?
 		.into_iter()
 		.map(|gap| Gap {
 			level: match gap.level {

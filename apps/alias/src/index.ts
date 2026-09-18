@@ -3,7 +3,8 @@ import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { failure } from './respond';
-import { resolve } from './resolve';
+import { isValidHostname } from './hostname';
+import { resolve, tonesFor } from './resolve';
 
 /**
  * `aka` -- the layer that resolves a name and holds nothing.
@@ -44,7 +45,26 @@ app.get('/robots.txt', (c) => {
  * a crawler constructs on its own -- `/favicon.ico`, `/favicon.svg`, the BIMI mark. Anything the
  * root does not name is a 404, so the list lives in the corpus rather than in this worker.
  */
-app.get('/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.req.param('name')));
+app.get('/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, [c.req.param('name')]));
+
+/**
+ * Another site's icon, by the domain it belongs to.
+ *
+ * The domain stays in the address because that is what a link card can construct on its own, and
+ * because it is the half worth reading. What it means changes when that site redraws its icon --
+ * somebody else's schedule -- which is the whole reason this is resolved per request rather than
+ * compiled into every article that mentions them.
+ *
+ * `?tone=` selects, so a request carrying one is preserved with a `307` rather than followed.
+ */
+app.get('/favicon/:domain', async (c) => {
+	const domain = c.req.param('domain').toLowerCase();
+	if (!isValidHostname(domain)) return failure(c, 400, 'invalid_hostname');
+	return resolve(
+		c,
+		tonesFor(c.req.query('tone')).map((tone) => `favicon/${domain}/${tone}`),
+	);
+});
 
 app.notFound((c) => failure(c, 404, 'no_such_name'));
 

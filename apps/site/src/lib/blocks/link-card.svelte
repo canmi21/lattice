@@ -71,9 +71,12 @@
 
 	const describedBy = $props.id();
 
-	const cdnUrl = pageUrls(dev).cdn;
+	// The alias layer, not the CDN: an icon belongs to somebody else's site and changes on their
+	// schedule, so compiling its hash into this card would mean republishing every article that
+	// mentions them the day they redraw it. See spec/architecture/delivery.md.
+	const akaUrl = pageUrls(dev).alias;
 	const domain = $derived(new URL(url).hostname);
-	const faviconSrc = $derived(`${cdnUrl}/favicon/${domain}${tone ? `?tone=${tone}` : ''}`);
+	const faviconSrc = $derived(`${akaUrl}/favicon/${domain}${tone ? `?tone=${tone}` : ''}`);
 
 	let imgEl = $state<HTMLImageElement | undefined>();
 	let hoverTint = $state<'black' | 'white' | null>(null);

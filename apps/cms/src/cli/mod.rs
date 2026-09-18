@@ -850,7 +850,7 @@ fn classify_images(
 fn check_assets() -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 
-	let gaps = match check::report(&root, &root.join("data").join("public"), &root.join("contents")) {
+	let gaps = match check::report(&root, &root.join("contents")) {
 		Ok(gaps) => gaps,
 		Err(error) => {
 			eprintln!("could not read articles: {error}");

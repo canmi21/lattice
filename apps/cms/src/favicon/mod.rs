@@ -36,7 +36,7 @@ pub struct Icons {
 
 /// Write what a fetch produced. No network, and no decisions -- those were made during the fetch.
 pub fn write_fetched(root: &Path, domain: &str, icons: &Icons) -> Result<Stored, Error> {
-	let directory = root.join("favicon").join(domain);
+	let directory = root.join(domain);
 	std::fs::create_dir_all(&directory).map_err(Error::Write)?;
 	let mut written = Vec::new();
 	for (name, bytes) in &icons.files {
@@ -78,7 +78,7 @@ impl std::error::Error for Error {
 /// light surface, which is worse than the icon being absent. An unnamed tone takes whichever
 /// exists.
 pub fn stored(root: &Path, domain: &str, tone: Option<&str>) -> Option<PathBuf> {
-	let directory = root.join("favicon").join(domain);
+	let directory = root.join(domain);
 	let tones: &[&str] = match tone {
 		Some("dark") => &["dark"],
 		Some("light") => &["light"],
@@ -116,7 +116,7 @@ pub fn fetch_named(
 	tone: Option<&str>,
 	force: bool,
 ) -> Result<Option<Icons>, Error> {
-	if !force && root.join("favicon").join(domain).is_dir() {
+	if !force && root.join(domain).is_dir() {
 		return Ok(None);
 	}
 	let icon = fetch::bytes(source).ok_or(Error::NotResolved)?;
@@ -143,7 +143,7 @@ pub fn fetch_named(
 /// single reading of one page, so fetching that page three times would triple the load on
 /// somebody else's server to learn the same thing.
 pub fn fetch_for(root: &Path, domain: &str, force: bool) -> Result<Option<Icons>, Error> {
-	let directory = root.join("favicon").join(domain);
+	let directory = root.join(domain);
 	if !force && directory.is_dir() {
 		return Ok(None);
 	}

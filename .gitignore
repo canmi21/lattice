@@ -60,6 +60,11 @@ data/**
 # they change about never. See spec/architecture/data.md, "What stays in git, and until when".
 !data/brand/**
 
+# Icons fetched from other people's sites. Re-fetchable in principle, but only from a site that may
+# have redrawn or removed its icon since -- so a clone without them cannot reproduce what is
+# published, which is the test. Fifteen small files. See spec/architecture/delivery.md.
+!data/favicon/**
+
 # Under data/build/ the test is whether the file can be regenerated losslessly and for free.
 # These four cannot: crates, repos and twitter are fetched from a network that may have moved on
 # -- twitter holds snapshots of posts that can be deleted -- and licenses.json is read by the

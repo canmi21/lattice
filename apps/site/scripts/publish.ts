@@ -48,6 +48,7 @@ const SITE = new URL('apps/site/', ROOT);
  */
 const INPUTS = {
 	brand: fileURLToPath(new URL('data/brand', ROOT)),
+	icons: fileURLToPath(new URL('data/favicon', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
 	cdnUrl: URLS.apps.production.cdn,
 	messages: fileURLToPath(new URL('messages', SITE)),
@@ -250,6 +251,34 @@ async function publishBrand(tree: Tree): Promise<Root['assets']> {
 	return assets;
 }
 
+/**
+ * The icons `cms favicon` fetched from other people's sites, published like anything else.
+ *
+ * Named `favicon/{domain}/{tone}`, which is what a link card can construct from the domain it
+ * already knows -- so this is request-time resolution rather than build-time. An icon changes on
+ * its owner's schedule, and compiling its hash into a card would mean republishing every article
+ * that mentions them the day they redraw it. See spec/architecture/delivery.md.
+ */
+async function publishIcons(tree: Tree): Promise<Root['assets']> {
+	const assets: Root['assets'] = {};
+	const domains = await readdir(INPUTS.icons, { withFileTypes: true }).catch(() => []);
+	for (const domain of domains) {
+		if (!domain.isDirectory() || domain.name.startsWith('.')) continue;
+		for (const file of (await readdir(join(INPUTS.icons, domain.name))).toSorted()) {
+			if (file.startsWith('.')) continue;
+			const tone = file.slice(0, file.lastIndexOf('.'));
+			const extension = file.slice(file.lastIndexOf('.') + 1);
+			const bytes = await readFile(join(INPUTS.icons, domain.name, file));
+			assets[`favicon/${domain.name}/${tone}`] = {
+				type: 'image',
+				cid: await tree.putBytes(bytes, extension),
+				extension,
+			};
+		}
+	}
+	return assets;
+}
+
 async function publishCorpus(
 	dir: string,
 	metadata: string,
@@ -267,7 +296,7 @@ async function publishCorpus(
 	await tree.putRoot({
 		version: ARTIFACT_VERSION,
 		generated: new Date().toISOString(),
-		assets: await publishBrand(tree),
+		assets: { ...(await publishBrand(tree)), ...(await publishIcons(tree)) },
 		articles: rootArticles,
 		pages: rootPages,
 	});

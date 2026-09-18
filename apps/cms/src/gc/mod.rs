@@ -153,10 +153,11 @@ pub fn plan(
 
 	// Icons are swept by domain rather than by content: the directory existing is the record
 	// that the domain was checked, so removing one file inside it would claim the site was
-	// asked and had no icon.
+	// asked and had no icon. They are swept where they are fetched, not where they are published:
+	// the published copy is content-addressed and falls out of `keep` with everything else.
 	let wanted_domains: BTreeSet<String> =
 		scan.wanted().into_iter().map(|icon| icon.domain).collect();
-	for directory in directories_under(&public.join("favicon"))? {
+	for directory in directories_under(&crate::paths::favicon_root(repo))? {
 		let name = directory.file_name().and_then(|n| n.to_str()).unwrap_or_default().to_owned();
 		if !wanted_domains.contains(&name) {
 			sweep.bytes += files_under(&directory)?
@@ -510,7 +511,7 @@ mod tests {
 
 		let public = root.join("public");
 		for domain in ["kept.example", "gone.example"] {
-			let directory = public.join("favicon").join(domain);
+			let directory = crate::paths::favicon_root(&root).join(domain);
 			std::fs::create_dir_all(&directory).expect("dir");
 			std::fs::write(directory.join("light.png"), b"icon").expect("write");
 		}

@@ -52,13 +52,18 @@ pub struct Gap {
 }
 
 /// Everything an article references that `data/public` cannot answer for.
-pub fn report(repo: &Path, public: &Path, articles: &Path) -> std::io::Result<Vec<Gap>> {
+pub fn report(repo: &Path, articles: &Path) -> std::io::Result<Vec<Gap>> {
 	let scan = refs::scan(articles)?;
 	let described = crate::media::load(&crate::media::path_for(repo))?;
-	Ok(gaps(&scan, public, &crate::paths::metadata_root(repo), &described))
+	Ok(gaps(
+		&scan,
+		&crate::paths::favicon_root(repo),
+		&crate::paths::metadata_root(repo),
+		&described,
+	))
 }
 
-fn gaps(scan: &Scan, public: &Path, metadata: &Path, described: &crate::media::Media) -> Vec<Gap> {
+fn gaps(scan: &Scan, icons: &Path, metadata: &Path, described: &crate::media::Media) -> Vec<Gap> {
 	let mut found = Vec::new();
 
 	for image in scan.unresolved() {
@@ -95,7 +100,7 @@ fn gaps(scan: &Scan, public: &Path, metadata: &Path, described: &crate::media::M
 	}
 
 	for (domain, tone) in scan.icons() {
-		if favicon::stored(public, &domain, tone.as_deref()).is_none() {
+		if favicon::stored(icons, &domain, tone.as_deref()).is_none() {
 			let detail = match &tone {
 				Some(tone) => format!("no {tone} icon collected"),
 				None => "no icon collected".to_owned(),
@@ -137,7 +142,7 @@ mod tests {
 			::linkcard{url="https://a.example"}"#,
 		);
 
-		let found = report(&root, &root.join("public"), &root.join("contents")).expect("report");
+		let found = report(&root, &root.join("contents")).expect("report");
 		let image = found.iter().find(|gap| gap.what == "shot.png").expect("image");
 		let icon = found.iter().find(|gap| gap.what == "a.example").expect("icon");
 
@@ -158,7 +163,7 @@ mod tests {
 
 		// One gap remains and should: the bytes are published, but nothing has described them.
 		// That is what `cms alt` is for, and it is information rather than a hole in the page.
-		let found = report(&root, &root.join("public"), &root.join("contents")).expect("report");
+		let found = report(&root, &root.join("contents")).expect("report");
 		assert_eq!(found.len(), 1);
 		assert_eq!(found[0].level, Level::Info);
 		assert!(found[0].detail.contains("description"));
@@ -175,7 +180,7 @@ mod tests {
 
 		// Two now: the record is gone, and nothing has described the asset either. Only the
 		// first is a warning -- a missing record leaves a hole, a missing description does not.
-		let found = report(&root, &root.join("public"), &root.join("contents")).expect("report");
+		let found = report(&root, &root.join("contents")).expect("report");
 		assert_eq!(found.len(), 2);
 		assert_eq!(found.iter().filter(|gap| gap.level == Level::Warn).count(), 1);
 		std::fs::remove_dir_all(&root).ok();

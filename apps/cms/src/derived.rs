@@ -88,13 +88,13 @@ pub fn report() -> Result<Report, Error> {
 
 pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 	let contents = repository.join("contents");
-	let public = repository.join("data").join("public");
 
 	let scan = refs::scan(&contents)?;
 	let cids = scan.cids();
 	let described = media::load(&media::path_for(repository))?;
 
 	let metadata = crate::paths::metadata_root(repository);
+	let fetched = crate::paths::favicon_root(repository);
 	let published =
 		cids.iter().filter(|cid| image::store::meta_path(&metadata, cid).is_file()).count();
 	let descriptions = cids.iter().filter(|cid| !alt::wants_description(&described, cid)).count();
@@ -102,7 +102,7 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 	let icons = scan.icons();
 	let collected = icons
 		.iter()
-		.filter(|(domain, tone)| favicon::stored(&public, domain, tone.as_deref()).is_some())
+		.filter(|(domain, tone)| favicon::stored(&fetched, domain, tone.as_deref()).is_some())
 		.count();
 
 	let listing = articles::listing_at(repository)?;

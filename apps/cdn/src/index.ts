@@ -6,7 +6,6 @@ import { cors } from 'hono/cors';
 import { addressable } from './address';
 import { artifact } from './artifact';
 import { BRIEFLY, cacheControl } from './cache';
-import favicon from './favicon';
 import image from './image';
 import github from './github';
 import license from './license';
@@ -64,7 +63,6 @@ app.get('/robots.txt', (c) => {
 // aggregate, and `opengraph` is addressed by slug rather than by hash. The rest are the same
 // lookup, so they are mounted from the table rather than written out, which is what stops a new
 // type from being added and quietly having no route. `index.test.ts` fails if one is.
-app.route('/favicon', favicon);
 app.route('/image', image);
 app.route('/github', github);
 app.route('/license', license);

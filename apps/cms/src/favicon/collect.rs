@@ -49,7 +49,9 @@ pub fn from_articles(
 /// Collect every icon in `wanted` that this process can claim.
 pub fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 	let Options { repository, wanted, force, shell, sink } = options;
-	let public = repository.join("data").join("public");
+	// Icons are fetched from other people's sites: a source, not a published object. The
+	// publisher hashes them into the bucket. See spec/architecture/delivery.md.
+	let icon_root = crate::paths::favicon_root(repository);
 
 	let progress = crate::task::start(repository, "favicon", shell, wanted.len() as u64, sink)?;
 	let writer = writer::Writer::start(repository, Record::PublicFavicon)?;
@@ -76,7 +78,7 @@ pub fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 		// at the same time, not one run doing what another already finished. Measured with two
 		// concurrent processes over five domains: one was fetched twice without this. A forced
 		// run has nothing to re-read, since `--force` means redo it. See spec/tasks.md.
-		if !force && public.join("favicon").join(&domain).is_dir() {
+		if !force && icon_root.join(&domain).is_dir() {
 			outcome.skipped += 1;
 			progress.inc(1);
 			continue;
@@ -86,7 +88,7 @@ pub fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 		// record must not be held across it.
 		let fetched = match &icon.source {
 			Some(url) => {
-				match crate::favicon::fetch_named(&public, &domain, url, icon.tone.as_deref(), force) {
+				match crate::favicon::fetch_named(&icon_root, &domain, url, icon.tone.as_deref(), force) {
 					Ok(fetched) => fetched,
 					Err(error) => {
 						outcome.failed.push((domain, error.to_string()));
@@ -95,7 +97,7 @@ pub fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 					}
 				}
 			}
-			None => match crate::favicon::fetch_for(&public, &domain, force) {
+			None => match crate::favicon::fetch_for(&icon_root, &domain, force) {
 				Ok(fetched) => fetched,
 				Err(error) => {
 					outcome.failed.push((domain, error.to_string()));
@@ -111,10 +113,10 @@ pub fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 			continue;
 		};
 
-		let public_for_write = public.clone();
+		let root_for_write = icon_root.clone();
 		let domain_for_write = domain.clone();
 		let applied = writer.apply(move || {
-			crate::favicon::write_fetched(&public_for_write, &domain_for_write, &icons)
+			crate::favicon::write_fetched(&root_for_write, &domain_for_write, &icons)
 				.map(|_| ())
 				.map_err(std::io::Error::other)
 		});
@@ -156,7 +158,7 @@ mod tests {
 	fn an_already_collected_domain_is_skipped() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/public/favicon/example.com")).expect("dir");
+		std::fs::create_dir_all(root.join("data/favicon/example.com")).expect("dir");
 		let outcome = run(Options {
 			repository: &root,
 			wanted: &[wanted("example.com")],
@@ -177,7 +179,7 @@ mod tests {
 	fn an_item_claimed_elsewhere_is_left_alone() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/public/favicon/free.example")).expect("dir");
+		std::fs::create_dir_all(root.join("data/favicon/free.example")).expect("dir");
 		let held = claim::take(&root, "favicon", "taken.example").expect("claim");
 
 		let outcome = run(Options {
@@ -201,7 +203,7 @@ mod tests {
 	fn the_run_publishes_itself_and_cleans_up() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/public/favicon/example.com")).expect("dir");
+		std::fs::create_dir_all(root.join("data/favicon/example.com")).expect("dir");
 		assert!(registry::running(&root, "favicon").expect("before").is_none());
 		run(Options {
 			repository: &root,
@@ -222,7 +224,7 @@ mod tests {
 	fn an_item_finished_by_someone_else_is_dropped_after_claiming() {
 		let temporary = temp();
 		let root = temporary.path();
-		let collected = root.join("data/public/favicon/late.example");
+		let collected = root.join("data/favicon/late.example");
 		std::fs::create_dir_all(&collected).expect("dir");
 
 		let outcome = run(Options {
@@ -246,7 +248,7 @@ mod tests {
 	fn claims_do_not_outlive_the_item() {
 		let temporary = temp();
 		let root = temporary.path();
-		std::fs::create_dir_all(root.join("data/public/favicon/example.com")).expect("dir");
+		std::fs::create_dir_all(root.join("data/favicon/example.com")).expect("dir");
 		run(Options {
 			repository: &root,
 			wanted: &[wanted("example.com")],

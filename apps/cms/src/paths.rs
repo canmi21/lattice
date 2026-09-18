@@ -39,6 +39,14 @@ pub fn metadata_root(repo: &Path) -> PathBuf {
 	repo.join("data").join("metadata")
 }
 
+/// Icons fetched from other people's sites, which are a source rather than a published object.
+///
+/// They used to sit inside the published tree, which stopped being a place for anything that is
+/// not addressed by its own content. The publisher hashes them in; this is where they arrive.
+pub fn favicon_root(repo: &Path) -> PathBuf {
+	repo.join("data").join("favicon")
+}
+
 fn find_upwards(start: &Path) -> Option<PathBuf> {
 	start
 		.ancestors()

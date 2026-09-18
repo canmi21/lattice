@@ -246,7 +246,24 @@ of them finds the same answer.
 **The marks themselves live in `data/brand` and travel with the repository.** They were loose in
 the published tree, which is to say on one machine: authored once by hand, regenerable by nobody,
 and in no clone. That is the one set `data/`'s "the bytes belong to the machine" rule must not
-cover.
+cover. The icons `cms favicon` fetches from other sites travel for the same reason, in
+`data/favicon`: re-fetchable in principle, but only from a site that may have redrawn its icon
+since, so a clone without them cannot reproduce what is published.
+
+### Another site's icon is the case this layer exists for
+
+`aka/favicon/{domain}` keeps the domain in the address, because that is what a link card can
+construct from what it already knows and it is the half worth reading. What the name means changes
+when that site redraws its icon -- somebody else's schedule -- so compiling the hash into every
+card would mean republishing every article that mentions them on the day they do.
+
+`?tone=` selects among answers, so a request carrying one takes the `307`. **A named tone is that
+tone or nothing**: a caller that asked for dark and received light cannot tell it happened, and
+would draw a light icon on a dark surface believing it had the right one. With no tone named,
+either will do and light is tried first.
+
+Content addressing deduplicated them on the way in: a site whose light and dark icons are the same
+file now has one object, not two, without anything being written to notice that.
 
 ## Release assets are proxied, for one account
 
