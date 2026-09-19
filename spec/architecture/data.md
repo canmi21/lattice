@@ -383,7 +383,7 @@ of BLAKE3 over the bytes. It does not survive one `list()`.
 So there is no listing anywhere a request can reach. `findOne` was the last one and went with the
 favicon lookup that needed it; a new one is a decision to make here first, not a convenience to
 reach for. The CDN has no route that answers for whatever happens to be in the bucket either --
-see [delivery.md](delivery.md), "The CDN expresses one kind of address".
+see [delivery.md](delivery.md), "The CDN is four route groups and a refusal".
 
 This is the reason a sweep is careful rather than clever: what keeps an object alive is being
 named, and nothing else can be asked what is there.

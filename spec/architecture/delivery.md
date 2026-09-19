@@ -187,34 +187,61 @@ tuning a number: the icons, the notice and the cards are all content-addressed n
 year. What is left on five minutes is the addresses that name rather than identify -- the
 metadata bucket's root, and the refusals.
 
-## The CDN expresses one kind of address
+## The CDN is four route groups and a refusal
 
-**It resolves nothing.** Its whole job is to hand back bytes and say how long they may be kept, and
-every route it has is a content-addressed one. Resolution moved to `aka` for the reason the ladder
-above gives: a lookup would spend the independence that makes this the layer everything else can
-lean on.
+**It resolves nothing, and that is enforced by what is mounted rather than by what is declared.**
+Four groups reach a handler and everything else is a `400`:
 
-So an address either parses as `/{type}/{cid}.{ext}` or it is not an address this host can express,
-and the refusals say which:
-
-| asked for | answered | because |
+| group | what it does | outbound |
 | --- | --- | --- |
-| `/{type}/{cid}.{ext}`, in the bucket | `200` | a year, `immutable` |
-| `/{type}/{cid}.{ext}`, not in the bucket | `404` | never uploaded, or swept -- real and temporary |
-| a wrong `{type}` the extension settles | `301` | the id found it; the spelling was not canonical |
-| anything else | `400` | nothing could ever live there |
+| `/object/{cid}.{ext}` | hands back the bytes at that key | none |
+| `/derive/{cid}.{ext}.{ext}` | every conversion and every archive | none |
+| `/proxy/{vendor}/**` | a third party, live | **yes** |
+| `/` `/favicon.ico` `/robots.txt` | this host's own three answers | none |
+
+Beside them, `/github/**` answers `308` to `/proxy/github/**`, permanently, because the prefix
+moved and a reader holding the old one should stop holding it.
+
+**This replaced a route per object type.** `/image`, `/video`, `/captions`, `/content`, `/page`,
+`/markdown` and `/license` are gone, and with them the table that said which types existed, the
+`301` that corrected a mistyped one, and the test that failed when a type arrived unrouted. A type
+in the path answered a question the extension already answers, and the bucket never stored one.
 
 **`400` and `404` are not interchangeable here.** A `404` on a hashed name is a fact about the
-bucket and a short-lived one; a single segment with no content id in it is a fact about the address
+bucket and a short-lived one; a path that is not one of the four shapes is a fact about the address
 and will never become true. Collapsing them would throw away the only signal that distinguishes a
 sweep from a typo.
 
-**The catch-all is gone**, and that is the structural half. A route that answers for whatever
-happens to be in the bucket is what served the records for as long as they lived there -- with a
-year of `immutable`, because their names ended in a hash. What this host holds is now declared:
-the public types, two names it mounts (`robots.txt`, which is a statement about this host, and
-`favicon.ico`, which redirects to the layer that owns it), and the font chunks, whose promise is
-written down. A prefix added tomorrow is unreachable until somebody says otherwise.
+**The catch-all is back and it refuses**, which is the opposite of the one that was removed. That
+one answered for whatever happened to be in the bucket, which is how the records were served with a
+year of `immutable` for as long as they shared it. This one reaches nothing: a prefix added
+tomorrow is unreachable until somebody mounts it, and until then it is a refusal rather than a
+lookup.
+
+### What each lifetime is earned by
+
+One rule over the four groups, and it reads the answer rather than the route:
+
+| answered | kept | because |
+| --- | --- | --- |
+| `2xx` or `3xx`, a hash in the path | a year, `immutable` | the hash is the bytes |
+| `2xx` or `3xx`, no hash | an hour | what stands behind a name can move, but not on this site's clock |
+| anything else | five minutes | a refusal is a fact about now |
+
+Everything `public`. **A `3xx` keeps the year here, which no other host grants it**: a redirect
+elsewhere is a fact about this moment, and on `/derive` it is a function of the input and can no
+more change than the bytes can.
+
+Two answers sit outside the rule and say so. `/favicon.ico` keeps a year with no hash in it -- the
+one exception on this host, and it carries a promise: what moves is what the alias layer answers,
+and that keeps its own hour. And a `502` from anything that had to reach another host is
+`no-store`, because status alone cannot tell it from a `400` about a malformed address, and only
+one of the two is worth forgetting immediately.
+
+`/proxy` lost lifetimes of its own in the bargain. They said how fast somebody else's data moves --
+a rolling tag against a version, an avatar against a release -- which is a real fact, and not one
+worth a second rule. An avatar is now an hour stale rather than five minutes, and a `nightly`
+likewise.
 
 ## Three layers, and the dependency runs one way
 
@@ -222,17 +249,24 @@ Four hosts answer, and three of them are a ladder.
 
 | | depends on | answers with |
 | --- | --- | --- |
-| `cdn` | nothing | bytes |
+| `cdn` | nothing, except on `/proxy` | bytes |
 | `api` | the metadata bucket | records |
-| `aka` | `api` | a redirect |
+| `ill.li` | `api` | a redirect |
 | `site` | `api` + `cdn` | pages |
 
 **Nothing below reaches upward.** The CDN can serve every byte it holds with the API down, which is
 not a happy accident -- it is what content addressing buys, and asking the CDN to look anything up
 would spend it. So resolution cannot live there, and that is what the third host is for.
 
-`aka` is the worker's hostname and `alias` is what the code calls it: the binding says what the
-layer does, one name standing for another, and the host is the short form a reader sees.
+That claim is about the bytes and is narrower than it reads: `/proxy` reaches a third party by
+definition, and the day `/symlink` lived on the CDN it reached the API. Neither serves an object,
+so `/object` answering with everything else down has stayed true throughout -- but it is worth
+saying which half is guaranteed rather than leaving the sentence to carry more than it can.
+
+`ill.li` is the hostname and `alias` is what the code calls it: the binding says what the layer
+does, one name standing for another, and the host is the short form a reader sees. It was
+`aka.ffoni.com` and the domain was `internal.link`, serving nothing -- `link` said nothing either,
+because every URL is a link.
 
 ### What this layer lets a cache keep
 
@@ -298,9 +332,9 @@ root names each one under the name a browser asks for, `/asset?name=` is the que
 layer puts to the API, and the name a reader sees never changes.
 
 ```
-site/favicon.ico   301  aka/favicon.ico      a permanent name, and this is where it lives
-aka/favicon.ico    302  cdn/image/{cid}.ico  what that name means right now
-cdn/image/{cid}.ico     the bytes, for a year
+site/favicon.ico            301  ill.li/symlink/favicon.ico   a permanent name, and where it lives
+ill.li/symlink/favicon.ico  302  cdn/object/{cid}.ico         what that name means right now
+cdn/object/{cid}.ico             the bytes, for a year
 ```
 
 The two redirects look like one too many and are not. **The `301` is about a name and the `302` is
@@ -318,7 +352,7 @@ since, so a clone without them cannot reproduce what is published.
 
 ### Another site's icon is the case this layer exists for
 
-`aka/favicon/{domain}` keeps the domain in the address, because that is what a link card can
+`ill.li/favicon/{domain}` keeps the domain in the address, because that is what a link card can
 construct from what it already knows and it is the half worth reading. What the name means changes
 when that site redraws its icon -- somebody else's schedule -- so compiling the hash into every
 card would mean republishing every article that mentions them on the day they do.
