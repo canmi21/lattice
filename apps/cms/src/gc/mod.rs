@@ -479,12 +479,16 @@ mod tests {
 		)
 		.expect("write");
 
+		// Bytes in the objects tree, records in the other one and keyed by the rid the manifest
+		// entry carries. See spec/architecture/data.md, "One bucket holds records and the other
+		// holds bytes".
 		let public = root.join("public");
-		for (cid, variant) in [(&kept, &kept_variant), (&dropped, &dropped_variant)] {
+		let metadata = root.join("metadata");
+		for (variant, resource) in [(&kept_variant, "k0001"), (&dropped_variant, "k0002")] {
 			let object = crate::image::store::variant_path(&public, variant, "avif");
 			crate::image::store::write(&object, b"bytes").expect("write");
-			crate::image::store::write(&crate::image::store::meta_path(&public, cid), b"{}")
-				.expect("write");
+			let record = crate::image::store::meta_path(&metadata, resource);
+			crate::image::store::write(&record, b"{}").expect("write");
 		}
 		(temporary, root, kept_variant, dropped_variant)
 	}
@@ -566,21 +570,24 @@ mod tests {
 		use crate::image::store;
 
 		let public = root.join("public");
+		let metadata = root.join("metadata");
 		store::write(&store::video_path(&public, &rung), b"bytes").expect("rung");
 		store::write(&store::caption_path(&public, &track), b"WEBVTT").expect("track");
 		store::write(&store::variant_path(&public, &poster_variant, "avif"), b"bytes")
 			.expect("poster variant");
 		let orphan = "ffffffffffffffffffffffffffffffff";
 		store::write(&store::variant_path(&public, orphan, "avif"), b"x").expect("orphan");
-		for cid in [&clip, &poster] {
-			store::write(&store::meta_path(&public, cid), b"{}").expect("record");
+		// The clip's record and its cover's, in the metadata tree and keyed by rid. Neither is in
+		// the space this sweep walks, which is what keeps a record from being read as an orphan.
+		for resource in ["c0001", "f0001"] {
+			store::write(&store::meta_path(&metadata, resource), b"{}").expect("record");
 		}
 
-		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
+		let sweep = swept(&root, &public, &metadata, &root.join("contents"));
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert!(!names.contains(&rung), "swept a live rung");
 		assert!(!names.contains(&track), "swept a live caption");
-		assert!(!names.contains(&poster), "swept the cover's record");
+		assert!(!names.contains(&poster), "swept the cover's id");
 		assert!(!names.contains(&poster_variant), "swept the cover's own variant");
 		assert_eq!(names, vec!["ffffffffffffffffffffffffffffffff"]);
 		// The cover is reachable only through the clip, so its manifest entry has to survive

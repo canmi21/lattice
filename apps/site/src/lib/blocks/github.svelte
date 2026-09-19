@@ -246,9 +246,9 @@
 		gap: 0.6rem;
 	}
 
-	/* `white-space` is the width being reserved rather than how the text looks: an icon and the
-	   number beside it are one item and stay on one line. Layout, for the reason the newsletter's
-	   ghost label is. See spec/architecture/css/layers.md. */
+	/* An icon and the number beside it are one item and stay on one line. `white-space` is text
+	   behaviour, which spec/architecture/css/layers.md hands the frame by name; it is written here
+	   with the rest of this item's geometry, and moving it out is migration work. */
 	.meta-item {
 		display: inline-flex;
 		align-items: center;

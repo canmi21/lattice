@@ -16,9 +16,8 @@
 		/** One pill: the like, the favour and the sponsor all wear this. */
 		action: {
 			// Two of the three are buttons and the third is a link, so without this the row draws
-			// two arrows and one hand for three controls that do the same kind of thing. Visual
-			// under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
-			// element is to a pointer.
+			// two arrows and one hand for three controls that do the same kind of thing. `cursor`
+			// is this layer's by the enumeration in spec/architecture/css/layers.md.
 			cursor: 'pointer',
 			borderRadius: '624.9375rem',
 			fontWeight: weight.medium,
@@ -64,7 +63,6 @@
 		},
 		/** The short label, shown until the pill opens. */
 		shortCopy: {
-			whiteSpace: 'nowrap',
 			opacity: 1,
 			// Reduced motion is the same suppression the block used to write as `transition: none`,
 			// which is four longhands rather than one: the shorthand also returns the duration, the
@@ -90,7 +88,6 @@
 		 * pill above it, which is an ancestor, and the width it opens within is the block's.
 		 */
 		longCopy: {
-			whiteSpace: 'nowrap',
 			opacity: 0,
 			transitionProperty: {
 				default: 'opacity',
@@ -333,8 +330,8 @@
 		</span>
 	{:else}
 		<span class="copy fallback" aria-hidden="true">
-			<span class="short {stylex.attrs(styles.shortCopy).class}">{short}</span>
-			<span class="long {stylex.attrs(styles.longCopy).class}">{long}</span>
+			<span class="short whitespace-nowrap {stylex.attrs(styles.shortCopy).class}">{short}</span>
+			<span class="long whitespace-nowrap {stylex.attrs(styles.longCopy).class}">{long}</span>
 		</span>
 	{/if}
 {/snippet}

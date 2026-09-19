@@ -32,8 +32,8 @@
 			color: 'var(--color-text)',
 		},
 		titleControl: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md. The
+			// whole title row is one control and answers a pointer as one.
 			cursor: 'pointer',
 			color: {
 				default: 'var(--color-text)',
@@ -75,8 +75,9 @@
 				'@media (prefers-reduced-motion: reduce)': 'ease',
 			},
 		},
-		// Turning to face the other way is not a move: the box is where it was, and the glyph is
-		// the disclosure's state rather than its position. See spec/architecture/css/layers.md.
+		// Turning to face the other way is not a move, and that is no longer what decides it:
+		// `transform` splits by site under spec/architecture/css/layers.md, and a rotation on one
+		// element that belongs to no reused recipe is the frame's. Moving it is migration work.
 		chevronFlipped: {
 			rotate: '180deg',
 		},

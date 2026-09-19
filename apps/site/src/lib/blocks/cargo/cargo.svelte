@@ -17,14 +17,10 @@
 			fill: 'white',
 			fontSize: text.px11,
 			fontWeight: weight.medium,
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer. The anchor underneath takes the hover.
-			pointerEvents: 'none',
 		},
 		tileSize: {
 			fill: 'rgb(255 255 255 / 70%)',
 			fontSize: '0.5625rem',
-			pointerEvents: 'none',
 		},
 		/** The line shown in place of a chart when no dependency has a size. */
 		empty: {
@@ -45,10 +41,6 @@
 		},
 		footerRight: {
 			fontSize: text.px12,
-			// Typography rather than geometry under spec/architecture/css/layers.md, which reads
-			// `white-space` as deciding how the text looks where `overflow` decides how large the
-			// box is. The same call is made on the table's name column below.
-			whiteSpace: 'nowrap',
 		},
 		/** A label beside a figure, quieter than the figure it introduces. */
 		muted: {
@@ -66,8 +58,6 @@
 			color: 'var(--color-text)',
 			fontSize: text.px12,
 			lineHeight: 1.4,
-			// The tooltip follows the pointer, so it must never be under it.
-			pointerEvents: 'none',
 		},
 		tooltipTitle: {
 			fontWeight: weight.strong,
@@ -88,7 +78,6 @@
 		 */
 		nameCell: {
 			fontWeight: weight.medium,
-			whiteSpace: 'nowrap',
 		},
 		optional: {
 			color: 'var(--color-text-soft)',
@@ -186,7 +175,7 @@
 					<tbody>
 						{#each sorted as item (item.key)}
 							<tr>
-								<td class="name-cell {stylex.attrs(styles.nameCell).class}">
+								<td class="name-cell whitespace-nowrap {stylex.attrs(styles.nameCell).class}">
 									<span
 										class="crate-dot {stylex.attrs(styles.dot).class}"
 										style="background: {colors.get(item.dep.name) ?? '#888'}"
@@ -275,18 +264,20 @@
 									rx={Math.min(4, Math.min(tile.width, tile.height) * 0.3)}
 								/>
 							{/if}
+							<!-- The words on a tile are out of the pointer's way: the anchor underneath
+							     them is what takes the hover. -->
 							{#if tile.width > 58 && tile.height > 28}
 								<text
 									x={tile.x + 5}
 									y={tile.y + 15}
-									class="tile-name {stylex.attrs(styles.tileName).class}"
+									class="tile-name pointer-events-none {stylex.attrs(styles.tileName).class}"
 									clip-path="url(#{clipPrefix}-{index})">{tile.dep.name}</text
 								>
 								{#if tile.height > 38}
 									<text
 										x={tile.x + 5}
 										y={tile.y + 28}
-										class="tile-size {stylex.attrs(styles.tileSize).class}"
+										class="tile-size pointer-events-none {stylex.attrs(styles.tileSize).class}"
 										clip-path="url(#{clipPrefix}-{index})">{formatBytes(tile.dep.size ?? 0)}</text
 									>
 								{/if}
@@ -295,9 +286,10 @@
 					{/each}
 				</svg>
 
+				<!-- The tooltip follows the pointer, so it must never be under it. -->
 				{#if tip}
 					<div
-						class="tooltip shadow-sm {stylex.attrs(styles.tooltip).class}"
+						class="tooltip pointer-events-none shadow-sm {stylex.attrs(styles.tooltip).class}"
 						style="left: calc({remFromMeasuredPixels(
 							tip.x,
 						)} + 1rem); top: calc({remFromMeasuredPixels(tip.y)} + 1rem)"
@@ -354,7 +346,7 @@
 				</span>
 			{/each}
 		</div>
-		<div class="footer-right {stylex.attrs(styles.footerRight).class}">
+		<div class="footer-right whitespace-nowrap {stylex.attrs(styles.footerRight).class}">
 			{#if features > 0}<span
 					><span class="muted {stylex.attrs(styles.muted).class}">Features</span>
 					<b>{features}</b></span

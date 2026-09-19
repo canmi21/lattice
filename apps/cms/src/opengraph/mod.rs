@@ -1,10 +1,9 @@
 //! The `cms og` command: one card per page per language, rendered here and published as-is.
 //!
-//! Named by slug rather than by content id, which is the one place this repository does not
-//! content-address something. A card is not an asset an article references -- the page emits
-//! `/opengraph/{slug}.png` and nothing writes that URL down -- so there is no reference to
-//! rewrite and nothing to look an id up in. The cost is that the name is mutable, which is
-//! why these are cached for a week rather than a year. See spec/architecture/media.md.
+//! Content-addressed like everything else the corpus publishes: the bytes land at
+//! `/object/{cid}.png` and keep a year, so an edited title draws a new card at a new address
+//! rather than overwriting one. What is keyed by `{view}/{slug}` is the record this tool writes,
+//! which is how the next run finds the card a redraw replaces. See spec/architecture/media.md.
 //!
 //! PNG, not AVIF. Every other image here is stored AVIF, but the consumers of these are
 //! crawlers for X, Slack, Discord and the rest, and they do not read it.
@@ -123,12 +122,12 @@ pub fn short_date(iso: &str) -> Option<String> {
 	Some(stamp.strftime("%b %-d, %Y").to_string())
 }
 
-/// Where a card is published: one tree per view, each mirroring the article tree.
+/// How a card is keyed in this tool's own record: one namespace per view.
 ///
-/// The view is a directory rather than a suffix on the name so a locale can be synced or
-/// dropped as a unit, and so the fallback is one prefix substitution rather than a filename
-/// rewrite. Nothing outside this repository ever sees the layout -- a reader asks for
-/// `/opengraph/{slug}.png?lang=ja` and the CDN resolves it. See spec/architecture/media.md.
+/// The view is a segment rather than a suffix on the name so a locale can be dropped as a unit,
+/// and so the fallback is one prefix substitution rather than a filename rewrite. It is not an
+/// address: nothing outside this repository sees it, and a reader is given the card's content
+/// id instead. See spec/architecture/media.md.
 pub fn card_key(view: &str, slug: &str) -> String {
 	format!("{view}/{slug}")
 }

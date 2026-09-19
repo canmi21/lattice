@@ -16,14 +16,10 @@
 		tileName: {
 			fontSize: text.px12,
 			fontWeight: weight.medium,
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
-			pointerEvents: 'none',
 		},
 		/** Its line count, a step quieter on the same ground. */
 		tileSize: {
 			fontSize: text.px10,
-			pointerEvents: 'none',
 		},
 		/** One of the bar chart's horizontal rules. */
 		gridLine: {
@@ -58,7 +54,6 @@
 			color: 'var(--color-text)',
 			fontSize: text.px12,
 			lineHeight: 1.4,
-			pointerEvents: 'none',
 		},
 		tooltipDot: {
 			borderRadius: '0.125rem',
@@ -91,7 +86,6 @@
 		},
 		languageCell: {
 			fontWeight: weight.medium,
-			whiteSpace: 'nowrap',
 		},
 		languageDot: {
 			borderRadius: '0.125rem',
@@ -204,7 +198,10 @@
 						<tbody>
 							{#each sorted as stat (stat.lang)}
 								<tr>
-									<td class="language-cell {stylex.attrs(styles.languageCell).class}">
+									<td
+										class="language-cell whitespace-nowrap {stylex.attrs(styles.languageCell)
+											.class}"
+									>
 										<span
 											class="language-dot {stylex.attrs(styles.languageDot).class}"
 											style="background: {langColor(stat.lang)}"
@@ -378,13 +375,13 @@
 										<text
 											x={tile.x + 6}
 											y={tile.y + 16}
-											class="tile-name {stylex.attrs(styles.tileName).class}"
+											class="tile-name pointer-events-none {stylex.attrs(styles.tileName).class}"
 											clip-path="url(#{clipPrefix}-{index})">{tile.stat.lang}</text
 										>
 										{#if tile.height > 40}<text
 												x={tile.x + 6}
 												y={tile.y + 28}
-												class="tile-size {stylex.attrs(styles.tileSize).class}"
+												class="tile-size pointer-events-none {stylex.attrs(styles.tileSize).class}"
 												clip-path="url(#{clipPrefix}-{index})"
 												>{compactCount(tile.stat.lines)} lines</text
 											>{/if}
@@ -417,7 +414,7 @@
 						{@const commentPercent = percent(tip.stat.comments, tip.stat.lines)}
 						{@const blankPercent = Math.max(0, 100 - codePercent - commentPercent)}
 						<div
-							class="tooltip shadow-sm {stylex.attrs(styles.tooltip).class}"
+							class="tooltip pointer-events-none shadow-sm {stylex.attrs(styles.tooltip).class}"
 							style="left: calc({remFromMeasuredPixels(
 								tip.x,
 							)} + 1rem); top: calc({remFromMeasuredPixels(tip.y)} + 1rem)"

@@ -517,12 +517,11 @@ otherwise need. See spec/engagement.md. -->
 		grid-area: 1 / 1;
 	}
 
-	/* It reserves width and paints nothing, and both of these are how large the box is rather than
-	   what it looks like. `visibility` rather than `display` for the reason
+	/* It reserves width and paints nothing. `visibility` rather than `display` for the reason
 	   spec/architecture/css/layers.md names this element for: a removed box measures nothing.
 	   `white-space` for the same reason one step along -- the width being reserved is the width of
-	   two labels that do not wrap.
-	   The type they are set in is the visual half and sits at the head of this file. */
+	   two labels that do not wrap. The type they are set in is the visual half and sits at the
+	   head of this file. */
 	.ghost {
 		visibility: hidden;
 		white-space: nowrap;

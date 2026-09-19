@@ -108,17 +108,37 @@ mod tests {
 		assert_eq!(hostname("   "), None);
 	}
 
-	#[test]
-	fn rejects_malformed_labels() {
-		assert!(!is_fetchable("-lead.example.com"));
-		assert!(!is_fetchable("trail-.example.com"));
-		assert!(!is_fetchable("a..example.com"));
-	}
+	/// Every hostname the two ends of the pipeline have to answer the same way.
+	///
+	/// `/favicon/:domain` in apps/alias is the other end, and a name only one side takes is an
+	/// object in the bucket that is a 400 for ever, or a lookup that can never hit. This suite was
+	/// written twice by two people, neither reading the other; this is the one copy, and
+	/// apps/alias/src/hostname.test.ts reads it out of this file. Lowercase throughout, because
+	/// both callers lowercase before asking.
+	const SHARED: [(&str, bool); 15] = [
+		("example.com", true),
+		("blog.example.co.uk", true),
+		// Digits are only an address when all four labels are, so these are names.
+		("1.example.com", true),
+		("256.1.1.1", true),
+		("999.999.999.999", true),
+		("localhost", false),
+		("nodots", false),
+		("127.0.0.1", false),
+		("192.168.0.1", false),
+		("0.0.0.0", false),
+		("255.255.255.255", false),
+		("-lead.example.com", false),
+		("trail-.example.com", false),
+		("a..example.com", false),
+		("bad_underscore.com", false),
+	];
 
 	#[test]
-	fn keeps_a_hostname_that_merely_starts_with_digits() {
-		// 4-label all-numeric is an IP; this is not.
-		assert!(is_fetchable("1.example.com"));
+	fn takes_exactly_what_the_alias_worker_takes() {
+		for (host, fetchable) in SHARED {
+			assert_eq!(is_fetchable(host), fetchable, "{host}");
+		}
 	}
 
 	#[test]

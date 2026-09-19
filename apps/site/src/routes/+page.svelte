@@ -20,18 +20,6 @@
 	 * where that module should live is the question spec/todo.md is already holding.
 	 */
 	const styles = stylex.create({
-		/**
-		 * The page ground, and its selection policy.
-		 *
-		 * Off by default, since the page is mostly controls and a drag on a card or button should
-		 * not sweep up a date or label with it; the sentences turn it back on with `.selectable`
-		 * (styles/utilities.css). `-webkit-` stays because the floor in spec/compat.md is Safari
-		 * 16, which still needs the prefix. `user-select` is visual -- spec/architecture/css/layers.md.
-		 */
-		page: {
-			WebkitUserSelect: 'none',
-			userSelect: 'none',
-		},
 		avatar: {
 			// `rounded-full` is `calc(infinity * 1px)` rather than a large length, and the
 			// arithmetic is carried across unread: Chrome clamps it to a value a literal would
@@ -217,7 +205,11 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<main class="min-h-screen {stylex.attrs(surfaces.page, styles.page).class}">
+<!-- Selection off by default, since the page is mostly controls and a drag on a card or button
+     should not sweep up a date or label with it; the sentences turn it back on with `.selectable`
+     (styles/utilities.css). `select-none` carries the `-webkit-` prefix Safari 16 still needs,
+     which is the floor in spec/compat.md. -->
+<main class="min-h-screen select-none {stylex.attrs(surfaces.page).class}">
 	<!-- Less air on a phone at both ends, where 6rem is most of what the reader can see before
 	     scrolling. The foot takes two thirds of what the head does: the space above opens the page
 	     and the space below only ends it. -->

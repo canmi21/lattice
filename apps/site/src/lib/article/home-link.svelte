@@ -13,14 +13,7 @@
 	 * the module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
-		/** A full-width strip the rail lays out; the control inside it takes its events back. */
-		slot: {
-			pointerEvents: 'none',
-		},
 		link: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
-			pointerEvents: 'auto',
 			// `focus-link` sets the same 1.25rem line on this element from the components layer, and
 			// the visual layer outranks it exactly as `text-sm` did. See spec/todo.md.
 			color: {
@@ -298,13 +291,12 @@
 	}
 </script>
 
-<div
-	use:followToc={locale}
-	class="home-slot absolute flex w-full items-center {stylex.attrs(styles.slot).class}"
->
+<!-- A full-width strip the rail lays out, inert like the rail itself; the control inside it
+     takes its events back, so only the link is in the pointer's way. -->
+<div use:followToc={locale} class="home-slot pointer-events-none absolute flex w-full items-center">
 	<a
 		{href}
-		class="home-link focus-link inline-flex items-center gap-1.5 whitespace-nowrap {stylex.attrs(
+		class="home-link focus-link pointer-events-auto inline-flex items-center gap-1.5 whitespace-nowrap {stylex.attrs(
 			surfaces.uiText,
 			styles.link,
 		).class}"

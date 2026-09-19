@@ -294,6 +294,9 @@ function streamOf(bytes: Uint8Array): ReadableStream {
 export function contentTypeFor(key: string): string {
 	const extension = key.split('.').pop()?.toLowerCase() ?? '';
 	switch (extension) {
+		// What the ladder stores. Most of the bucket is this, and it had no arm here at all.
+		case 'avif':
+			return 'image/avif';
 		case 'svg':
 			return 'image/svg+xml';
 		case 'png':
@@ -313,6 +316,9 @@ export function contentTypeFor(key: string): string {
 			return 'application/json';
 		case 'txt':
 			return 'text/plain; charset=utf-8';
+		// The `markdown` artifact, which is what `<url>.md` serves.
+		case 'md':
+			return 'text/markdown; charset=utf-8';
 		default:
 			return 'application/octet-stream';
 	}

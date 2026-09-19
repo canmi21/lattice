@@ -44,14 +44,14 @@ pub fn caption_path(public_root: &Path, cid: &str) -> PathBuf {
 	object_path(public_root, cid, "vtt")
 }
 
-/// `meta/{blake3}.json`: an asset's record, which lives in the other tree entirely.
+/// `meta/{rid}.json`: an asset's record, which lives in the other tree entirely.
 ///
-/// Flat and named, because the API looks it up by the id of the asset it describes and rewrites
-/// it in place when that asset is re-derived -- which is the one thing a content-addressed key may
-/// not do. Takes the metadata root, not the object root. See spec/architecture/data.md, "One
-/// bucket holds records and the other holds bytes".
-pub fn meta_path(metadata_root: &Path, blake3: &str) -> PathBuf {
-	metadata_root.join("meta").join(format!("{blake3}.json"))
+/// Keyed by the resource's granted id and never by its content: the record is rewritten in place
+/// when its asset is re-derived, which is the one thing a content-addressed key may not do. Flat
+/// and named, because the API looks it up by that id. Takes the metadata root, not the object
+/// root. See spec/architecture/data.md, "One bucket holds records and the other holds bytes".
+pub fn meta_path(metadata_root: &Path, resource: &str) -> PathBuf {
+	metadata_root.join("meta").join(format!("{resource}.json"))
 }
 
 /// The two fanout segments of a content id.
@@ -120,8 +120,11 @@ mod tests {
 
 	#[test]
 	fn puts_metadata_outside_the_object_trees() {
-		let path = meta_path(Path::new("/pub"), "44b6081deaf0242ca3bf83d62a3b6c95");
-		assert_eq!(path, Path::new("/pub/meta/44b6081deaf0242ca3bf83d62a3b6c95.json"));
+		// The metadata root, not the object root, and a rid rather than a cid: five characters of
+		// base36 that the register granted. See spec/architecture/resource.md, "A rid is five
+		// characters of base36".
+		let path = meta_path(Path::new("/metadata"), "k7m2x");
+		assert_eq!(path, Path::new("/metadata/meta/k7m2x.json"));
 	}
 
 	#[test]

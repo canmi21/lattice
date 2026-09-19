@@ -18,8 +18,8 @@
 			fontWeight: 600,
 		},
 		anchor: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, and it
+			// is what a mark carrying no chrome of its own has to say instead.
 			cursor: 'pointer',
 			opacity: {
 				default: 0,

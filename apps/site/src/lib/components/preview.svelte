@@ -12,18 +12,14 @@
 	 */
 	const styles = stylex.create({
 		frame: {
-			// One cursor over the whole of it, because every part of it does the one thing. Visual
-			// under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
-			// element is to a pointer.
+			// One cursor over the whole of it, because every part of it does the one thing.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md.
 			cursor: 'zoom-in',
 		},
 		/**
-		 * The control over the picture, with no chrome of its own and out of the pointer's way --
-		 * hit-testing it would put an element between the pointer and the drawing, which this
-		 * arrangement exists to avoid. `pointer-events` does not affect focusability, and is
-		 * visual under spec/architecture/css/layers.md's rule. Written as three longhands rather than
-		 * `border: 0`, because that shorthand also resets `border-style` to `none`, and Tailwind's
-		 * preflight had it at `solid` already.
+		 * The control over the picture, with no chrome of its own. Written as three longhands
+		 * rather than `border: 0`, because that shorthand also resets `border-style` to `none`,
+		 * and Tailwind's preflight had it at `solid` already.
 		 */
 		openControl: {
 			borderWidth: '0',
@@ -31,7 +27,6 @@
 			borderColor: 'currentColor',
 			backgroundColor: 'transparent',
 			backgroundImage: 'none',
-			pointerEvents: 'none',
 		},
 		figure: {
 			// What a transparent picture keeps: the ground it was drawn against, which is the page's
@@ -144,10 +139,11 @@
 	{@render inline()}
 	<!-- Reachable by Tab and by nothing else. It has no handler of its own: the click a keyboard
 	     makes here is a real click and reaches the frame by bubbling, so there is one way in and
-	     no chance of two. `pointer-events: none` is what keeps it off the drawing. -->
+	     no chance of two. `pointer-events: none` is what keeps it off the drawing: hit-testing it
+	     would put an element between the pointer and the picture, and it costs no focusability. -->
 	<button
 		type="button"
-		class="preview-open focus-ring {stylex.attrs(styles.openControl).class}"
+		class="preview-open pointer-events-none focus-ring {stylex.attrs(styles.openControl).class}"
 		style:border-radius={radius}
 		aria-label={label}
 	></button>

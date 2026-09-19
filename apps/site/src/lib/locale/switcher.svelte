@@ -27,15 +27,16 @@
 			// this file is the last reader of would resolve to nothing once the class is gone.
 			transitionTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
 		},
-		// Turning to face the other way is not a move: the box is where it was, and the glyph is
-		// the disclosure's state rather than its position. See spec/architecture/css/layers.md.
+		// The same rotation the code block's chevron takes and the same answer under
+		// spec/architecture/css/layers.md: `transform` splits by site, and a one-off on one
+		// element is the frame's. Both stay here until the migration reaches them.
 		caretClosed: {
 			rotate: '180deg',
 		},
 		/** One row of the menu. */
 		option: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// A row is a choice and takes the hand. `cursor` is this layer's by the enumeration in
+			// spec/architecture/css/layers.md rather than by anything the property itself says.
 			cursor: 'pointer',
 			whiteSpace: 'nowrap',
 			// No ring on a row: the menu shows where the keyboard is with the highlight fill

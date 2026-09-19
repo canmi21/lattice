@@ -21,12 +21,6 @@
 			fontSize: text.px10,
 			lineHeight: 1.25,
 			color: 'var(--color-text-soft)',
-			whiteSpace: 'nowrap',
-		},
-		// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
-		// element is to a pointer.
-		verticalAxis: {
-			pointerEvents: 'none',
 		},
 		/**
 		 * The vertical axis, which is a border on a span with no width.
@@ -45,7 +39,6 @@
 			borderBlockStartWidth: border.hairlineRem,
 			borderBlockStartStyle: 'solid',
 			borderBlockStartColor: 'var(--color-border-strong)',
-			pointerEvents: 'none',
 		},
 		/** One plotted item's card. */
 		box: {
@@ -144,20 +137,25 @@
 	<div class="quadrant-scroll overflow-x-auto">
 		<div class="quadrant-stage {stylex.attrs(styles.stage).class}" aria-hidden="true">
 			<div class="quadrant-plot">
-				<div class="vertical-axis {stylex.attrs(styles.verticalAxis).class}">
-					<span class="axis-label axis-top {stylex.attrs(styles.axisLabel).class}"
+				<div class="vertical-axis pointer-events-none">
+					<span class="axis-label axis-top whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
 						>{visualAxis(axes.top)}</span
 					>
 					<span class="vertical-rule {stylex.attrs(styles.verticalRule).class}"></span>
-					<span class="axis-label axis-bottom {stylex.attrs(styles.axisLabel).class}"
+					<span
+						class="axis-label axis-bottom whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
 						>{visualAxis(axes.bottom)}</span
 					>
 				</div>
-				<div class="horizontal-axis {stylex.attrs(styles.horizontalAxis).class}">
-					<span class="axis-label axis-left {stylex.attrs(styles.axisLabel).class}"
+				<div
+					class="horizontal-axis pointer-events-none {stylex.attrs(styles.horizontalAxis).class}"
+				>
+					<span
+						class="axis-label axis-left whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
 						>{visualAxis(axes.left)}</span
 					>
-					<span class="axis-label axis-right {stylex.attrs(styles.axisLabel).class}"
+					<span
+						class="axis-label axis-right whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
 						>{visualAxis(axes.right)}</span
 					>
 				</div>

@@ -82,8 +82,9 @@ export const surfaces = stylex.create({
 	 * `currentcolor` rather than the `0.125rem` accent base-layer `:focus-visible` sets.
 	 */
 	quietControl: {
-		// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what the
-		// element is to a pointer.
+		// A member of this surface, which seven files apply: the cursor arrives with the colour,
+		// the radius and the transitions, or none of them does. See spec/architecture/css/layers.md,
+		// "A name alone is not a recipe".
 		cursor: 'pointer',
 		borderRadius: '0.125rem',
 		color: {

@@ -25,8 +25,8 @@
 			fontWeight: weight.medium,
 		},
 		noteClose: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, beside
+			// the radius and the two inks this control is otherwise made of.
 			cursor: 'pointer',
 			borderRadius: radius.sm,
 			color: {

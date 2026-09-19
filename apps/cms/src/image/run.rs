@@ -178,8 +178,9 @@ fn wanted(
 	// machine. The original is found by hashing, because the id is the hash.
 	//
 	// A cid the manifest already knows to be a clip is left out rather than reported missing.
-	// Its rungs are under `video/` and its original is not in `data/source/image`, so asking this
-	// command about it would answer "not derived yet" on every run, for ever.
+	// Its rungs are in the one object tree like everything else, `{ab}/{cd}/{cid}.{ext}`, and its
+	// original is not in `data/source/image` -- so asking this command about it would answer
+	// "not derived yet" on every run, for ever.
 	let unpublished: Vec<String> = scan
 		.cids()
 		.into_iter()

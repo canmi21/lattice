@@ -70,8 +70,8 @@
 				':hover': 'var(--color-text-strong)',
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md: the
+			// note opens on a press, and the hand is how the control says so.
 			cursor: 'pointer',
 			// Reduced motion is the same suppression the control used to write as `transition:
 			// none`, which is more than one longhand: the shorthand also returns the duration and

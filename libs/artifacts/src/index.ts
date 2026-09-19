@@ -56,7 +56,7 @@ export function artifactAddress(type: ArtifactType, hash: string): string {
 /**
  * Where an object lives: its content id, fanned out, and nothing else.
  *
- * **The bucket's layout is not the CDN's URL.** A URL says `/{type}/{cid}.{ext}`; the bucket stores
+ * **The bucket's layout is not the CDN's URL.** A URL says `/object/{cid}.{ext}`; the bucket stores
  * `{ab}/{cd}/{cid}.{ext}`, because the id already identifies it and a type directory would be a
  * second place to write the same fact. The fan-out is for listing, and the extension is kept so a
  * bucket downloaded whole is still files that open. See spec/architecture/data.md, "The

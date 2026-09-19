@@ -11,19 +11,14 @@
 	 * what the marks are made of.
 	 */
 	const styles = stylex.create({
-		/** The rail box, which takes the pointer back from the layer above it. */
-		nav: {
-			pointerEvents: 'auto',
-		},
 		/** The bar marking the entry being read. Its height and its offset are the animation's. */
 		indicator: {
-			pointerEvents: 'none',
 			borderRadius: radius.full,
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		entry: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, and
+			// the whole rail answers a pointer with one.
 			cursor: 'pointer',
 			// The ring belongs to one of the two wrappers inside, which `focus-ring-inner` draws
 			// around the bar while the column is collapsed and around the label once it is not.
@@ -757,6 +752,8 @@
 </script>
 
 {#if entries.length > 0}
+	<!-- The rail box takes the pointer back: the strip around it is inert so the column of text
+	     beside it stays reachable, and this is the part of the strip that is not. -->
 	<nav
 		bind:this={asideEl}
 		use:followArticleEnd
@@ -764,12 +761,11 @@
 		onmouseenter={handleEnter}
 		onmouseleave={handleLeave}
 		class:revealed={showText}
-		class="toc-nav relative w-full flex-col items-start overflow-visible {stylex.attrs(styles.nav)
-			.class}"
+		class="toc-nav pointer-events-auto relative w-full flex-col items-start overflow-visible"
 	>
 		<span
 			bind:this={indicatorEl}
-			class="absolute w-0.5 {stylex.attrs(styles.indicator).class}"
+			class="pointer-events-none absolute w-0.5 {stylex.attrs(styles.indicator).class}"
 			style="left: -0.5rem; top: 0; height: 0.75rem; opacity: 0"
 		></span>
 		{#each entries as entry, i (entry.slug)}

@@ -13,16 +13,6 @@
 	 * module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
 	const styles = stylex.create({
-		/**
-		 * The apparatus around the article, not the article: a drag started on a heading in the
-		 * table of contents, or on the way back, should not come away with the navigation. The
-		 * body and its own controls are left alone deliberately -- quoting a passage is the
-		 * reason this page exists. Visual under spec/architecture/css/layers.md: it moves nothing, it
-		 * says what the element is to a pointer.
-		 */
-		apparatus: {
-			userSelect: 'none',
-		},
 		title: {
 			color: 'var(--color-text-strong)',
 		},
@@ -54,8 +44,8 @@
 		 * StyleX doubles the class this deep, `.x.x:disabled:hover` against a plain `.x:hover`.
 		 */
 		summaryTrigger: {
-			// Visual under the rule in spec/architecture/css/layers.md: it moves nothing, it says what
-			// the element is to a pointer.
+			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, and
+			// it is the one thing here the disabled state still has to say.
 			cursor: { default: 'pointer', ':disabled': 'not-allowed' },
 			opacity: { default: null, ':disabled': 0.45 },
 			backgroundColor: {
@@ -386,8 +376,9 @@
 
 <main class="min-h-screen {stylex.attrs(surfaces.page).class}">
 	<!-- One rail, one box. It is fit-content, so the browser sizes it to the entries without
-	     anything having to measure them -- see spec/styling/rail.md. -->
-	<div class="article-rail {stylex.attrs(styles.apparatus).class}">
+	     anything having to measure them -- see spec/styling/rail.md. A drag started on a heading
+	     here should not come away with the navigation, so the apparatus does not select. -->
+	<div class="article-rail select-none">
 		<Toc {toc} />
 		<HomeLink locale={locale.code} />
 	</div>
@@ -417,9 +408,11 @@
 							{m['article.draft']({}, { locale: locale.code })}
 						</span>{/if}
 				</h1>
+				<!-- Apparatus rather than article, so it does not select either; the body and its own
+				     controls are left alone deliberately, and the dates inside take selection back
+				     with `.selectable`. Quoting a passage is the reason this page exists. -->
 				<div
-					class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 {stylex.attrs(
-						styles.apparatus,
+					class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 select-none {stylex.attrs(
 						surfaces.uiText,
 						styles.meta,
 					).class}"
