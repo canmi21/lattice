@@ -44,6 +44,31 @@ describe('the optimistic table', () => {
 });
 
 /**
+ * The account `apps/cms/src/image/exif.rs` flattens into a photograph and a screenshot alike.
+ *
+ * A layer with no home for a field strips it rather than refusing it, so the two sides drifting
+ * apart here costs data on the way past and reports nothing. Ten records carry these.
+ */
+describe('the exif account', () => {
+	it('keeps what a screenshot carries beside its scale', () => {
+		const r = parseResource({ ...base, type: 'media.image.screenshot',
+			layers: { media, image, screenshot: { version: 1, scale: 2, color_space: 'sRGB',
+				software: 'macOS 26.0', orientation: 1 } } });
+		expect(requireSegment(r, 'screenshot')).toMatchObject({
+			scale: 2, color_space: 'sRGB', software: 'macOS 26.0', orientation: 1,
+		});
+	});
+
+	it('keeps half a position rather than failing the record over the other half', () => {
+		// A file can carry a latitude and no longitude. Requiring the pair would refuse the whole
+		// record over a point nobody was going to plot.
+		const r = parseResource({ ...base, type: 'media.image.photo',
+			layers: { media, image, photo: { version: 1, location: { latitude: 35.6 } } } });
+		expect(requireSegment(r, 'photo').location).toEqual({ latitude: 35.6 });
+	});
+});
+
+/**
  * The ladder in spec/architecture/resource.md, "The image layer answers in four steps".
  *
  * Step two is the one worth holding: a caller asking whether a picture will do must get an

@@ -63,7 +63,7 @@ pub fn run(
 	// minutes of CPU to produce identical pixels.
 	for cid in manifest::migrate(&mut merged, metadata) {
 		if let Some(media) = merged.media.get(&cid) {
-			republish(metadata, &cid, media)?;
+			republish(repo, &cid, media)?;
 			outcome.migrated += 1;
 		}
 	}
@@ -271,7 +271,11 @@ fn note(
 /// Used by the migration and by `cms alt`, both of which change a record without touching a
 /// single pixel. Re-deriving to publish a changed field would spend minutes producing bytes
 /// that are already correct.
-pub fn republish(metadata: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
+///
+/// Finds the metadata tree itself rather than being handed one: a caller holding both passed the
+/// objects tree here for as long as the two were one bucket, and no type stopped it.
+pub fn republish(repo: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
+	let metadata = &crate::paths::metadata_root(repo);
 	// Minified, for the reason `image::write_derived` gives. The record is the document now --
 	// its envelope carries the version an outer wrapper used to hold twice.
 	let json =
