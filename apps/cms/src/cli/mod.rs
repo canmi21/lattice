@@ -448,7 +448,7 @@ fn describe_images(
 
 	let root = paths::repo_root()?;
 	let originals = crate::paths::image_originals(&root);
-	let public = root.join("data").join("public");
+	let public = paths::objects_root(&root);
 	let merged = match image::run::load(&root.join(image::run::MERGED)) {
 		Ok(merged) => merged,
 		Err(error) => {
@@ -773,7 +773,7 @@ fn render_cards(force: bool) -> anyhow::Result<ExitCode> {
 	// The site name, the author and their role all come from the file the pages read them
 	// from, so a card and the page it belongs to cannot introduce the site differently.
 	let outcome =
-		match opengraph::run(&root, &root.join("data").join("public"), &root.join("contents"), force) {
+		match opengraph::run(&root, &paths::objects_root(&root), &root.join("contents"), force) {
 			Ok(outcome) => outcome,
 			Err(error) => {
 				eprintln!("{error}");
@@ -912,13 +912,22 @@ fn collect_segments(live: bool, scope: &[String]) -> anyhow::Result<ExitCode> {
 /// Dry by default. The listing is the review, and `--live` is the answer to it.
 fn collect_garbage(live: bool) -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
-	let public = root.join("data").join("public");
+	let public = paths::objects_root(&root);
 
 	let sweep = gc::plan(&root, &public, &paths::metadata_root(&root), &root.join("contents"))
 		.context("could not plan")?;
 
 	if sweep.orphans.is_empty() && sweep.entries.is_empty() {
-		println!("nothing to collect");
+		// What was written down is reported, because a first run collects nothing by design and a
+		// bare "nothing to collect" would read as "nothing is unnamed" -- the two are different
+		// answers and only one of them means the next run will delete. See
+		// spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
+		match gc::pending(&root) {
+			0 => println!("nothing to collect"),
+			waiting => println!(
+				"nothing to collect yet -- {waiting} waiting out the hour before they can be"
+			),
+		}
 		return Ok(ExitCode::SUCCESS);
 	}
 
@@ -954,7 +963,7 @@ fn collect_garbage(live: bool) -> anyhow::Result<ExitCode> {
 /// this runs locally rather than in CI, and why a package with no declared licence fails it.
 fn collect_licenses() -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
-	let public = root.join("data").join("public");
+	let public = paths::objects_root(&root);
 
 	let mut found = licenses::npm::collect(&root).map_err(anyhow::Error::msg)?;
 	let npm = found.len();
@@ -1018,7 +1027,7 @@ fn process_images(
 
 	let root = paths::repo_root()?;
 	let originals = crate::paths::image_originals(&root);
-	let public = root.join("data").join("public");
+	let public = paths::objects_root(&root);
 	let articles = root.join("contents");
 
 	let options = image::run::Options { force, keep_original, only: &only };
@@ -1057,7 +1066,7 @@ fn process_videos(force: bool, files: &[std::path::PathBuf]) -> anyhow::Result<E
 
 	let root = paths::repo_root()?;
 	let originals = crate::paths::video_originals(&root);
-	let public = root.join("data").join("public");
+	let public = paths::objects_root(&root);
 	let articles = root.join("contents");
 
 	let options = video::run::Options { force, only: &only };
@@ -1099,7 +1108,7 @@ fn attach_captions(
 	force: bool,
 ) -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
-	let public = root.join("data").join("public");
+	let public = paths::objects_root(&root);
 
 	let options = captions::run::Options { language, kind, force };
 	let outcome = captions::run::run(&root, &public, clip, track, &options)?;

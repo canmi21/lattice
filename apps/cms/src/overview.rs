@@ -107,7 +107,7 @@ const RECENT_CEILING: usize = 24;
 
 fn snapshot_at(repository: &Path) -> std::io::Result<Snapshot> {
 	let contents = repository.join("contents");
-	let public = repository.join("data").join("public");
+	let public = crate::paths::objects_root(repository);
 	let article_paths = refs::markdown_under(&contents)?;
 	let mut article_count = 0;
 	let mut article_sections = BTreeMap::<String, usize>::new();
@@ -201,7 +201,7 @@ mod tests {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
 		std::fs::create_dir_all(root.join("contents")).expect("contents");
-		std::fs::create_dir_all(root.join("data").join("public")).expect("public");
+		std::fs::create_dir_all(crate::paths::objects_root(root)).expect("objects tree");
 		std::fs::create_dir_all(root.join("contents/notes")).expect("section");
 		std::fs::write(
 			root.join("contents/notes/article.md"),

@@ -55,6 +55,14 @@ pub fn record_path(repo: &Path) -> PathBuf {
 	repo.join("data").join("build").join("sweep.json")
 }
 
+/// How many ids are waiting out the delay, for a report that has to say so.
+///
+/// A run that collects nothing has two meanings -- nothing is unnamed, or nothing has been
+/// unnamed long enough -- and only the second says the next run will delete.
+pub fn pending(repo: &Path) -> usize {
+	load_record(&record_path(repo)).unnamed.len()
+}
+
 /// Read the record, treating anything unreadable or of another version as empty.
 ///
 /// Empty delays every deletion by one more cycle, which is the safe direction. The alternative is
@@ -361,6 +369,22 @@ mod tests {
 		tempfile::tempdir().expect("temp")
 	}
 
+	/// What a pair of runs an hour apart collects, which is what every test below is about.
+	///
+	/// The first run of a pair only records, so a test asking what gets swept has to be the
+	/// second one. Neither run deletes anything: `plan` is still pure that way.
+	fn swept(repo: &Path, public: &Path, metadata: &Path, articles: &Path) -> Sweep {
+		plan(repo, public, metadata, articles).expect("first plan");
+		let hour_passes = jiff::Timestamp::now() - DELAY - jiff::SignedDuration::from_secs(1);
+		let path = record_path(repo);
+		let mut record = load_record(&path);
+		for stamp in record.unnamed.values_mut() {
+			*stamp = hour_passes.to_string();
+		}
+		save_record(&path, &record).expect("record");
+		plan(repo, public, metadata, articles).expect("second plan")
+	}
+
 	fn media(variant: &str) -> Media {
 		let mut variants = BTreeMap::new();
 		variants.insert(
@@ -431,8 +455,7 @@ mod tests {
 	#[test]
 	fn keeps_the_variants_of_a_referenced_asset() {
 		let (_temporary, root, kept_variant, dropped_variant) = scenario();
-		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
-			.expect("plan");
+		let sweep = swept(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"));
 
 		let names: Vec<String> = sweep.orphans.iter().map(|p| stem_of(p)).collect();
 		assert!(!names.contains(&kept_variant), "swept a live variant");
@@ -445,8 +468,7 @@ mod tests {
 		// Leaving the record behind would make the manifest grow forever and would let a
 		// later reference resolve to variants that are no longer there.
 		let (_temporary, root, _, _) = scenario();
-		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
-			.expect("plan");
+		let sweep = swept(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"));
 		assert_eq!(sweep.entries, vec!["12faaa76365814de1195d6bdf1e5ba05"]);
 
 		apply(&root, &sweep).expect("apply");
@@ -459,8 +481,7 @@ mod tests {
 	#[test]
 	fn planning_alone_deletes_nothing() {
 		let (_temporary, root, _, _) = scenario();
-		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
-			.expect("plan");
+		let sweep = swept(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"));
 		assert!(!sweep.orphans.is_empty());
 		for path in &sweep.orphans {
 			assert!(path.exists(), "planning removed {}", path.display());
@@ -557,7 +578,7 @@ mod tests {
 			store::write(&store::meta_path(&public, cid), b"{}").expect("record");
 		}
 
-		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
+		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert!(!names.contains(&rung), "swept a live rung");
 		assert!(!names.contains(&track), "swept a live caption");
@@ -588,7 +609,7 @@ mod tests {
 		std::fs::write(state.join("index.json"), format!("{{\"content\":\"{body}\"}}"))
 			.expect("draft root");
 
-		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
+		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert!(!names.contains(&body), "swept a draft body the draft root names");
 		std::fs::remove_dir_all(&root).ok();
@@ -621,14 +642,70 @@ mod tests {
 		crate::opengraph::manifest::save(&crate::opengraph::manifest::path_for(&root), &drawn)
 			.expect("record");
 
-		let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
+		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert_eq!(names, vec![cids[1].clone(), cids[2].clone()]);
 		std::fs::remove_dir_all(&root).ok();
 	}
 
 	#[test]
+	fn the_first_run_collects_nothing_and_writes_down_what_it_found() {
+		// Deleting on sight would hand a reader whose root is five minutes old a 404 on a
+		// content-addressed key, which is the one answer this design cannot afford cached.
+		let (_temporary, root, _, dropped_variant) = scenario();
+		let sweep = plan(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"))
+			.expect("plan");
+		assert!(sweep.orphans.is_empty(), "{:?}", sweep.orphans);
+		assert!(sweep.entries.is_empty(), "{:?}", sweep.entries);
+
+		let record = load_record(&record_path(&root));
+		assert!(record.unnamed.contains_key(&dropped_variant), "{:?}", record.unnamed);
+		assert!(record.unnamed.contains_key("12faaa76365814de1195d6bdf1e5ba05"));
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn a_run_after_the_delay_collects_what_the_first_one_recorded() {
+		let (_temporary, root, _, dropped_variant) = scenario();
+		let sweep = swept(&root, &root.join("public"), &root.join("metadata"), &root.join("contents"));
+
+		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
+		assert!(names.contains(&dropped_variant), "{names:?}");
+		assert_eq!(sweep.entries, vec!["12faaa76365814de1195d6bdf1e5ba05"]);
+		assert!(sweep.bytes > 0);
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn an_object_named_again_leaves_the_record_and_is_never_collected() {
+		// Being named again has to clear the timer rather than be checked beside it: a stale
+		// entry from the run before would let the next one delete a file an article had started
+		// naming again, on the strength of an hour that ended when it came back.
+		let (_temporary, root, _, dropped_variant) = scenario();
+		let public = root.join("public");
+		let metadata = root.join("metadata");
+		let contents = root.join("contents");
+		let dropped = "12faaa76365814de1195d6bdf1e5ba05";
+
+		plan(&root, &public, &metadata, &contents).expect("plan");
+		assert!(load_record(&record_path(&root)).unnamed.contains_key(&dropped_variant));
+
+		std::fs::write(contents.join("a.md"), format!("![]({dropped}.avif)")).expect("write");
+		let sweep = plan(&root, &public, &metadata, &contents).expect("plan");
+		assert!(!load_record(&record_path(&root)).unnamed.contains_key(&dropped_variant));
+		assert!(sweep.orphans.is_empty(), "{:?}", sweep.orphans);
+
+		let later = swept(&root, &public, &metadata, &contents);
+		let names: Vec<String> = later.orphans.iter().map(|path| stem_of(path)).collect();
+		assert!(!names.contains(&dropped_variant), "collected a variant an article names again");
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
 	fn sweeps_an_icon_directory_no_article_links_to() {
+		// One run, deliberately: an icon directory is an input under `data/source/` and never a
+		// published key, so no reader's cached root can be naming it. The hour protects what the
+		// CDN may still be asked for, which this is not.
 		let temporary = temp();
 		let root = temporary.path();
 		std::fs::create_dir_all(root.join("contents")).expect("dir");
