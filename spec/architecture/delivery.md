@@ -195,6 +195,33 @@ would spend it. So resolution cannot live there, and that is what the third host
 `aka` is the worker's hostname and `alias` is what the code calls it: the binding says what the
 layer does, one name standing for another, and the host is the short form a reader sees.
 
+### What this layer lets a cache keep
+
+**Its answer is exactly as fresh as the answer behind it**, so a resolved redirect takes the life
+the API's `/asset` answer takes and not a number of its own. Any other value would be a second
+publication delay on one resource, which is the thing the ladder above exists to avoid.
+
+The refusals split on one question, and it is not success against failure:
+
+| answered | kept | because |
+| --- | --- | --- |
+| `302`/`307`, resolved | five minutes, `stale-if-error` | the life of the answer it wrapped |
+| `404`, no such name | five minutes | a fact about the corpus, true until the next publication |
+| `400`, malformed hostname | five minutes | a fact about the address; not worth a third number |
+| `502`, upstream unreachable | `no-store` | a fact about this moment |
+| `500` | `no-store` | the same |
+
+**`502` is the one that matters.** Every icon on a page comes through here, so a five-minute hold
+on one unreachable upstream is an outage rather than a blip -- the same asymmetry the CDN keeps
+between a `404` about its bucket and a `500` about its moment.
+
+`stale-if-error` only appears here. This is the one host that must reach another to answer at all,
+and a redirect it resolved earlier is a better answer during an outage than no answer -- the target
+is content-addressed, so a stale one is still the bytes somebody asked for.
+
+A middleware stamps the corpus lifetime on anything that named none, so a route added later cannot
+answer without one.
+
 ### A name is resolved, never stored
 
 This layer holds no bytes and no records. A request names something, it asks the API what that name

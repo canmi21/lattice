@@ -2,6 +2,7 @@ import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { cacheControl, NEVER, REFUSED } from './cache';
 import { failure } from './respond';
 import { isValidHostname } from './hostname';
 import { resolve, tonesFor } from './resolve';
@@ -20,6 +21,8 @@ const app = new Hono();
 // than bytes. Methods stay read-only on the layer itself; a preserved redirect carries whatever
 // the caller sent on to the CDN.
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
+// Before any route, so nothing can answer without a lifetime. See ./cache.ts.
+app.use('*', cacheControl);
 
 app.get('/', (c) => {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
@@ -34,7 +37,7 @@ app.get('/', (c) => {
  * public object, so nothing is disallowed.
  */
 app.get('/robots.txt', (c) => {
-	c.header('Cache-Control', 'public, max-age=300');
+	c.header('Cache-Control', REFUSED);
 	return c.text(robotsTxt({ disallow: [''] }));
 });
 
@@ -71,7 +74,7 @@ app.notFound((c) => failure(c, 404, 'no_such_name'));
 app.onError((error, c) => {
 	console.error(error);
 	const response = failure(c, 500, 'unavailable');
-	response.headers.set('Cache-Control', 'no-store');
+	response.headers.set('Cache-Control', NEVER);
 	return response;
 });
 
