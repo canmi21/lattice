@@ -142,6 +142,13 @@ This falls out of the same rule every layer follows -- declare your own minimum 
 the alternative, which is an `objects` map at the envelope holding entries whose meaning only a
 deeper layer can explain.
 
+**A layer binds content when the axis that selects between files is its own.** An image's variants
+differ by size, which `image` knows about, so they live there. An icon's two files differ by colour
+scheme, which only `icon` knows about -- so an icon binds its content at `icon` and leaves
+`image.variants` empty. Light and dark are not one picture at two sizes; they are two pictures, and
+putting them in a list that means "the same picture, smaller" would make every consumer of that
+list wrong about one of them.
+
 ## `source` and `origin` are different questions
 
 | | points at | answers |
@@ -176,7 +183,7 @@ Nine leaf types, two branches. Counts are this corpus at the time of writing.
 | `media.image.mark` | 1 | this site's own mark: one thing, six files |
 | `media.video.clip` | 3 | rungs and caption tracks |
 | `document.post` | 6 | source, nine locales, nine cards |
-| `document.page` | 1 | the same, without tags or dates |
+| `document` | 1 | a standalone page: the same, with no tags and no dates |
 | `document.notice` | 1 | the attribution text, rewritten whenever dependencies move |
 
 **What earns a rid is being one thing made of several files, or being referred to from more than
@@ -193,6 +200,11 @@ bytes that move whenever the dependency tree does -- and it is a resource.
 **A new layer is justified when it brings fields, not when it brings a name.** A screenshot has a
 scale and a photograph has a lens; that is a layer. If two kinds would hold the same fields and
 differ only in what they are called, they are a value in the layer above, not a layer.
+
+That rule costs a name here and is kept anyway: **a standalone page has nothing an article does
+not, so there is no `page` layer** -- it is `document` and stops. Something asking "is this an
+article" asks whether `post` is present and gets a positive answer either way, which is what the
+chain is for. A bare marker layer would have been a name pretending to be data.
 
 ## The image layer answers in four steps
 
