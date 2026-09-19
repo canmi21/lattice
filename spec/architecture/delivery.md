@@ -20,10 +20,11 @@ compressed against 332KB for the decoder -- and on `cms image` already producing
 where the time costs nothing. The first half was measured against the wrong number: the limit is
 64MiB uncompressed and nothing compressed, and the bundle carrying it is 5.7MB.
 
-The second half still holds, which is why the encoder is on `/derive` alone and `/image` still
-offers `webp`, `jpeg` and `png`. A flat-colour original stored as PNG has no AVIF to serve, and
-`/image/{cid}.avif` answering 404 for it is a fact about the bucket that a caller can act on.
-Adding the encoder there would have turned that 404 into a silent conversion on a live route.
+The second half still holds, and `/derive` is now the only route that converts anything, so the
+encoder has nowhere else it could be. `/object` hands back what is stored and refuses what is
+not: a flat-colour original written as PNG has no AVIF to serve, and `/object/{cid}.avif`
+answering 404 for it is a fact about the bucket that a caller can act on rather than a conversion
+happening quietly.
 
 ## Two routes, and what each will not do
 
@@ -60,10 +61,11 @@ input, and a clock in the bytes would make the same request return different arc
 **AVIF is the usual storage format, not the only one.** This section said only AVIF is stored
 and that was wrong: `cms image` writes a flat-colour original as PNG, because lossy coding is
 the wrong tool for it -- [data.md](data.md) records the same fact from the article's side, in
-the rule that an asset stored as PNG must not be referenced as AVIF. So `/image/{cid}.avif` and
-`/image/{cid}.png` may each be a direct hit from the bucket, and the worker probes every
-decodable format for the stored object rather than assuming which one it is. Asking for an AVIF
-that was never written is how a flat-colour asset became a 404 instead of a conversion.
+the rule that an asset stored as PNG must not be referenced as AVIF. So `/object/{cid}.avif` and
+`/object/{cid}.png` are each a direct hit or a refusal, and nothing probes for the other: the
+worker used to try every decodable format to find out which one was written, and `/derive` is
+told the source in full instead. Asking for an AVIF that was never written is a 404, which is
+what a caller needs to hear.
 
 An extension that is not the stored one is a request to convert that same object, which the
 worker satisfies itself: the decode-and-re-encode path in `transcode.ts` described above, not
@@ -84,18 +86,27 @@ spellings of one request fragment the cache key.
 for an eight-character filename limit that outlived the system that imposed it -- the history
 that leaves `yml` beside `yaml`. Carried as one, it would fragment exactly what the paragraph
 above refuses to fragment: two validators, two edge entries and two conversions over identical
-bytes. A request for it is answered with a permanent redirect to `.jpeg`, so a reader pays one
-extra hop once and their browser never asks again.
+bytes.
 
-The id is checked before that redirect is issued, and a missing one is answered `404` directly.
-Redirecting first would make a client spend two round trips to learn that nothing is there.
+**It is pinned in two places, and only one of them is a redirect.** Writing is narrow: `cms image`
+and `cms favicon` both name a published file `.jpeg`, while `mime_of` still accepts a `.jpg` on
+the way in, so the short spelling can never be a stored key. Reading is where the correction
+lives: `/derive/{cid}.avif.jpg` answers a permanent redirect to the `.jpeg` spelling, so a reader
+pays one hop once and their browser never asks again.
+
+**The source half needs no rule, which is the point of the first pin.**
+`/derive/{cid}.jpg.webp` looks up `{cid}.jpg`, which writing guarantees is not a key, so it is an
+ordinary `404`. Normalising there too would be worse than redundant: it would serve a JPEG's bytes
+under a key the bucket does not hold, and nothing would report it. `/object` corrects nothing
+either -- the extension is part of the key there, and a key names bytes or it does not.
 
 **Nothing here generates the short spelling**, which is what keeps that lookup off the ordinary
 path: `cms image` names a published file `.jpeg` and writes that name into the article, and the
-site's asset resolver builds the same one. Both spelled it `jpg` until the redirect existed to
+site's asset resolver builds the same one. Both spelled it `jpg` until the correction existed to
 catch them, which would have made every JPEG this repository serves pay a hop meant for somebody
 else's typo -- invisible from either side alone, since the CDN and the article each looked right.
-A test on each side now holds the two spellings together.
+A test on each side holds the two spellings together, and a third holds that a `.jpg` *source* is
+refused rather than quietly rewritten.
 
 The extension also caps the exposure, and that argument stands on its own: only a size that was
 derived exists as an object, so nobody can invent dimensions and make the worker encode whatever
@@ -174,7 +185,7 @@ copy it was confirming. Failures get the five minutes; `2xx` and `304` keep the 
 [artifacts.md](artifacts.md), "The key says what may cache it".
 
 **This shortened three things that were not content-addressed and had been getting a week**:
-`/favicon/{domain}`, `/license/full.txt`, and the assets no named route claimed. The week was
+`/favicon/{domain}`, the licence aggregate, and the assets no named route claimed. The week was
 inherited from the `_headers` era and had never been argued for any of them individually.
 
 Five minutes is the right number for the same reason the API's answers get five minutes: these
