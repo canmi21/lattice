@@ -783,6 +783,7 @@ fn from_legacy(
 		}
 	};
 	Ok(Media {
+		canonical: None,
 		version: VERSION,
 		resource,
 		namespace,
@@ -937,6 +938,7 @@ pub fn media_for(
 		leaf_of(&layers)
 	};
 	Media {
+		canonical: None,
 		version: VERSION,
 		resource: previous.map_or(resource, |media| media.resource),
 		namespace,
@@ -993,13 +995,7 @@ pub mod fixture {
 	///
 	/// The numbers a test cares about are set on the record it gets back, through `video_mut`.
 	/// Every clip here would otherwise take eleven source fields to say one thing about one.
-	pub fn clip(
-		resource: &str,
-		cid: &str,
-		cover: &str,
-		rungs: &[&str],
-		tracks: &[&str],
-	) -> Media {
+	pub fn clip(resource: &str, cid: &str, cover: &str, rungs: &[&str], tracks: &[&str]) -> Media {
 		let mut layers = Layers::of(layer::Media {
 			version: layer::Media::VERSION,
 			origin: vec![Origin { blake3: cid.to_owned(), mime: "video/mp4".into(), bytes: 1 }],
@@ -1048,6 +1044,7 @@ pub mod fixture {
 	/// The envelope around either.
 	fn record(resource: &str, namespace: Namespace, layers: Layers) -> Media {
 		Media {
+			canonical: None,
 			version: VERSION,
 			resource: ResourceId::parse(resource).expect("a rid"),
 			namespace,
@@ -1073,12 +1070,8 @@ mod tests {
 			   "updated": "2026-07-30T13:14:52Z", "media": {{ {records} }} }}"#
 		);
 		let unnamed: Unnamed = serde_json::from_str(&text).expect("a manifest");
-		let granted: BTreeMap<String, ResourceId> = unnamed
-			.media
-			.keys()
-			.enumerate()
-			.map(|(index, key)| (key.clone(), rid(index)))
-			.collect();
+		let granted: BTreeMap<String, ResourceId> =
+			unnamed.media.keys().enumerate().map(|(index, key)| (key.clone(), rid(index))).collect();
 		let named = |cid: &str| granted.get(cid).copied();
 		let media = unnamed
 			.media
@@ -1181,9 +1174,8 @@ mod tests {
 		// An id minted on the way in is different on every read, and the first thing to write one
 		// into an article would write a number the next process cannot resolve. So the shape
 		// without one stops here and `cms migrate` is the only reader of it.
-		let text = format!(
-			r#"{{ "version": 3, "created": "", "updated": "", "media": {{ {LEGACY_IMAGE} }} }}"#
-		);
+		let text =
+			format!(r#"{{ "version": 3, "created": "", "updated": "", "media": {{ {LEGACY_IMAGE} }} }}"#);
 		let error = serde_json::from_str::<Merged>(&text).expect_err("a refusal").to_string();
 		assert!(error.contains("cms migrate"), "{error}");
 	}

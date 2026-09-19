@@ -14,7 +14,7 @@ import { articleFrontmatter, compile, compilePage } from './compile';
 function feedOf(compiled: Pick<Compiled, 'blocks'>): string {
 	return feedHtml(compiled.blocks, {
 		site: URLS.apps.production.site,
-		images: `${URLS.apps.production.cdn}/image/`,
+		images: `${URLS.apps.production.cdn}/object/`,
 		url: '/article',
 		locale: 'mw',
 	});
@@ -739,11 +739,11 @@ it('crops a link card cover like ::image, defaults and overrides alike', async (
  */
 it('refuses an image reference nothing resolves, rather than addressing it anyway', async () => {
 	await expect(
-		compile(
-			'---\ntitle: Test\nlang: en-US\n---\n\n::image{src="a.avif" alt="A"}\n',
-			'/article',
-			{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
-		),
+		compile('---\ntitle: Test\nlang: en-US\n---\n\n::image{src="a.avif" alt="A"}\n', '/article', {
+			newTabNote: 'opens in new tab',
+			resolveAsset: () => null,
+			highlight: async () => '',
+		}),
 	).rejects.toThrow(/"a\.avif" names no published asset/);
 });
 
@@ -755,8 +755,8 @@ it('refuses an image reference nothing resolves, rather than addressing it anywa
  */
 it('names the published rendition in the feed and the markdown, not the authored id', async () => {
 	const resolved = {
-		src: 'https://cdn.example/image/rendition.avif',
-		srcset: 'https://cdn.example/image/rendition.avif 640w',
+		src: 'https://cdn.example/object/rendition.avif',
+		srcset: 'https://cdn.example/object/rendition.avif 640w',
 		width: 100,
 		height: 100,
 		ratio: '1:1',
@@ -893,7 +893,7 @@ it('resolves ::video by the same reference an image uses, and survives one that 
 				? {
 						rungs: [
 							{
-								src: 'https://cdn.example/video/a.mp4',
+								src: 'https://cdn.example/object/a.mp4',
 								type: 'video/mp4; codecs="av01.0.05M.08"',
 								width: 1920,
 								height: 1080,
@@ -901,7 +901,7 @@ it('resolves ::video by the same reference an image uses, and survives one that 
 						],
 						width: 1920,
 						height: 1080,
-						poster: 'https://cdn.example/image/p.avif',
+						poster: 'https://cdn.example/object/p.avif',
 						captions: [],
 						description: 'A hand turns the machine over.',
 						gain: 1,
@@ -914,7 +914,7 @@ it('resolves ::video by the same reference an image uses, and survives one that 
 	expect(clips).toHaveLength(2);
 	expect(clips[0]).toMatchObject({
 		src: 'clip.mp4',
-		poster: 'https://cdn.example/image/p.avif',
+		poster: 'https://cdn.example/object/p.avif',
 		description: 'A hand turns the machine over.',
 	});
 	expect(clips[1]).toEqual({ type: 'video', src: 'missing.mp4' });
@@ -922,7 +922,7 @@ it('resolves ::video by the same reference an image uses, and survives one that 
 	// Neither target can play anything, so both name the poster and say where the clip is. The
 	// clip's own description is the poster's text there -- it is the only sentence either target
 	// has about what is in the frame.
-	expect(feedOf(compiled)).toContain('<img src="https://cdn.example/image/p.avif"');
+	expect(feedOf(compiled)).toContain('<img src="https://cdn.example/object/p.avif"');
 	expect(feedOf(compiled)).toContain('watch at /article');
 	expect(compiled.markdown).toContain('> [video — /article]');
 	expect(compiled.text).toContain('A hand turns the machine over.');

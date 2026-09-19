@@ -9,7 +9,7 @@
 
 import { browser, dev } from '$app/environment';
 import {
-	artifactKey,
+	artifactAddress,
 	feedHtml,
 	unwrap,
 	readEnvelope,
@@ -62,9 +62,9 @@ function api(path: string): string {
  * that go stale. See spec/architecture/artifacts.md, "The key says what may cache it".
  */
 async function object(fetch: Fetch, type: ArtifactType, hash: string): Promise<Response> {
-	const key = artifactKey(type, hash);
-	const response = await fetch(`${upstream().cdn}/${key}`);
-	if (!response.ok) throw new Error(`${key} answered ${response.status}`);
+	const address = artifactAddress(type, hash);
+	const response = await fetch(`${upstream().cdn}/${address}`);
+	if (!response.ok) throw new Error(`${address} answered ${response.status}`);
 	return response;
 }
 
@@ -265,7 +265,7 @@ export async function publishedFeedEntries(
 
 /** Where the links a feed body writes are rooted, for whichever CDN is answering. */
 function feedBases(url: string, locale: LocaleCode) {
-	return { site: URLS.apps.production.site, images: `${upstream().cdn}/image/`, url, locale };
+	return { site: URLS.apps.production.site, images: `${upstream().cdn}/object/`, url, locale };
 }
 
 /**

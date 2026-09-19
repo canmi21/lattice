@@ -11,6 +11,7 @@
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
+		"@canmi/cache": "workspace:*",
 		"@canmi/fonts": "workspace:*",
 		"@canmi/imgsrc": "workspace:*",
 		"@canmi/locales": "workspace:*",

@@ -16,9 +16,9 @@ import {
  * The Rust function that names a published file, read out of its source.
  *
  * This table rebuilds a URL for a file `cms image` already named, so the two have to spell every
- * format the same way. Nothing connected them: both said `jpg` for a JPEG, and the CDN redirects
- * `.jpg` to `.jpeg` -- so agreeing was not enough, they had to agree on the spelling the CDN
- * serves directly. See spec/architecture/delivery.md.
+ * format the same way. Nothing connected them, and both said `jpg` for a JPEG. A redirect on the
+ * CDN used to catch that; `/object` forms a key from the name and reads it, so the disagreement
+ * is now a 404 and this is the only thing holding the two spellings together.
  */
 const ARM = /"(image\/[a-z+]+)" => (?:"([a-z0-9]+)"|(JPEG))/g;
 
@@ -240,13 +240,13 @@ it('returns the rungs smallest first, each naming its codec', () => {
 	const clip = videos()(CLIP);
 	expect(clip?.rungs).toEqual([
 		{
-			src: `https://cdn.example/video/${FILE.short}.mp4`,
+			src: `https://cdn.example/object/${FILE.short}.mp4`,
 			type: 'video/mp4; codecs="av01.0.05M.08"',
 			width: 1920,
 			height: 1080,
 		},
 		{
-			src: `https://cdn.example/video/${FILE.tall}.mp4`,
+			src: `https://cdn.example/object/${FILE.tall}.mp4`,
 			type: 'video/mp4; codecs="av01.0.13M.08"',
 			width: 3840,
 			height: 2160,
@@ -265,14 +265,14 @@ it('returns the rungs smallest first, each naming its codec', () => {
  */
 it('resolves the poster through the picture it is', () => {
 	const clip = videos()(CLIP);
-	expect(clip?.poster).toBe(`https://cdn.example/image/${FILE.large}.avif`);
+	expect(clip?.poster).toBe(`https://cdn.example/object/${FILE.large}.avif`);
 	expect(clip?.preview).toBe('data:image/webp;base64,PLACEHOLDER');
 });
 
 /** Flat URLs, and a track named by what the record says it is rather than by a label. */
 it('addresses a text track by its own id, and a clip without one carries none', () => {
 	expect(videos()(CLIP)?.captions).toEqual([
-		{ src: `https://cdn.example/captions/${FILE.spoken}.vtt`, kind: 'captions', language: 'en' },
+		{ src: `https://cdn.example/object/${FILE.spoken}.vtt`, kind: 'captions', language: 'en' },
 	]);
 	expect(videos()(SILENT)?.captions).toEqual([]);
 });
@@ -287,8 +287,8 @@ it('addresses a text track by its own id, and a clip without one carries none', 
 it('names every rung by its width, under the box the picture itself declares', () => {
 	const cover = pictures()(COVER);
 	expect(cover).toMatchObject({
-		src: `https://cdn.example/image/${FILE.large}.avif`,
-		srcset: `https://cdn.example/image/${FILE.small}.avif 640w, https://cdn.example/image/${FILE.large}.avif 1920w`,
+		src: `https://cdn.example/object/${FILE.large}.avif`,
+		srcset: `https://cdn.example/object/${FILE.small}.avif 640w, https://cdn.example/object/${FILE.large}.avif 1920w`,
 		width: 1920,
 		height: 1080,
 		ratio: '16:9',
@@ -304,9 +304,9 @@ it('names every rung by its width, under the box the picture itself declares', (
  * `apps/cms/src/refs.rs` answers on its side.
  */
 it('answers a reference by the rid that names the thing, or the cid it was imported as', () => {
-	expect(pictures()(COVER)?.src).toBe(`https://cdn.example/image/${FILE.large}.avif`);
+	expect(pictures()(COVER)?.src).toBe(`https://cdn.example/object/${FILE.large}.avif`);
 	expect(pictures()(`${IMPORTED.cover}.avif`)?.src).toBe(
-		`https://cdn.example/image/${FILE.large}.avif`,
+		`https://cdn.example/object/${FILE.large}.avif`,
 	);
 	// A file nobody has imported, which is what an article naming one gets until `cms image` runs.
 	expect(pictures()('shot.png')).toBeNull();

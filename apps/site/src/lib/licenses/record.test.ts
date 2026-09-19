@@ -266,7 +266,7 @@ describe('the record', () => {
 	// layout as part of every link, which is the thing the image route already avoids.
 	it('addresses a text by its content id alone, without the storage fanout', () => {
 		const cid = 'ad4a608d8ded9e7ead3dcad841f25be0';
-		expect(textUrl('https://cdn.example', cid)).toBe(`https://cdn.example/license/${cid}.txt`);
+		expect(textUrl('https://cdn.example', cid)).toBe(`https://cdn.example/object/${cid}.txt`);
 		expect(textUrl('https://cdn.example', cid)).not.toContain('/ad/4a/');
 	});
 

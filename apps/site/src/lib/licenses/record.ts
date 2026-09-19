@@ -218,12 +218,12 @@ export function licenseOf(entry: LicensePackage): string {
 /**
  * A licence text is addressed by its content id and nothing else.
  *
- * The bucket fans the id out into directories, and that split stays behind the CDN route the
- * way an image's does. A link is an interface; the layout an object happens to be stored under
- * is not one, and spelling it into a URL would freeze it. See spec/architecture/data.md.
+ * `/object` rather than a route naming what kind of thing this is: the id already identifies the
+ * bytes, and the bucket's fan-out stays behind the route either way. A link is an interface; the
+ * layout an object is stored under is not one. See spec/architecture/data.md.
  */
 export function textUrl(cdn: string, cid: string): string {
-	return `${cdn}/license/${cid}.txt`;
+	return `${cdn}/object/${cid}.txt`;
 }
 
 /**

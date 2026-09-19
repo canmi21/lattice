@@ -18,7 +18,7 @@ async function ask(path: string, init?: RequestInit): Promise<Response> {
 }
 
 /**
- * The names this host answers for beside the four groups, and what each promises.
+ * The names this host answers for beside the three groups, and what each promises.
  *
  * Three statements and a forwarding address: where the site is, where the icon's name lives,
  * what a crawler may take, and where the proxies moved to.
@@ -36,9 +36,10 @@ describe('the fixed names', () => {
 	it('sends the icon to the permanent name, and keeps that for a year', async () => {
 		const res = await ask('/favicon.ico');
 		expect(res.status).toBe(301);
-		expect(res.headers.get('Location')).toBe('/symlink/favicon.ico');
+		// The same answer all three hosts give, so a crawler reaching any of them finds one name.
+		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.alias}/symlink/favicon.ico`);
 		// The year is about the name, not the object: what moves when the mark is redrawn is
-		// what `/symlink` answers, and that keeps its own hour.
+		// what the alias layer answers, and that keeps its own five minutes.
 		expect(res.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
@@ -73,7 +74,7 @@ describe('where the proxies used to answer', () => {
 });
 
 /**
- * Everything outside the four groups, and `400` rather than `404`.
+ * Everything outside the three groups, and `400` rather than `404`.
  *
  * A `404` here is a fact about the bucket and becomes untrue the moment somebody publishes. An
  * address outside the groups is a fact about the address: there is no such route and there
@@ -104,6 +105,9 @@ describe('the catch-all', () => {
 		// The id is one segment. The fan-out it is stored under is the bucket's business.
 		expect((await ask(`/object/44/b6/${CID}.avif`)).status).toBe(400);
 		expect((await ask('/proxy/nobody/thing')).status).toBe(400);
+		// Resolution left this host with the rest of it: a name is the one thing the layer below
+		// the API must never have to ask about. See spec/architecture/delivery.md.
+		expect((await ask('/symlink/favicon.ico')).status).toBe(400);
 	});
 
 	it('refuses a method the bucket cannot answer, in the envelope every refusal uses', async () => {

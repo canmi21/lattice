@@ -27,7 +27,8 @@ export function isContentAddressed(path: string): boolean {
  * Two questions: whether the request was answered, and whether the address carries a hash. A
  * hashed address answered is the bytes themselves and keeps the year; a name answered keeps the
  * hour, because what it stands for may move while it does not; anything else is a fact about the
- * bucket or about this moment. A `3xx` counts as answered, here as on `/symlink`.
+ * bucket or about this moment. A `3xx` counts as answered: `/derive` redirects for an extension
+ * it has no work to do on, and that is as settled as the bytes it points at.
  */
 /**
  * Not stored at all, for an answer that is about this moment rather than about the corpus.
@@ -47,7 +48,7 @@ export function lifetimeFor(path: string, status: number): string {
 /**
  * The floor, so nothing leaves this host without a lifetime.
  *
- * Mounted over everything rather than over each group, because the rule above covers the four
+ * Mounted over everything rather than over each group, because the rule above covers the three
  * of them and a route added beside them is far likelier to want it than not. The two names that
  * sit outside it -- `/favicon.ico` and `/robots.txt` -- say so by stamping their own before this
  * runs, and a route that stores its own response at the edge asks `lifetimeFor` directly, since

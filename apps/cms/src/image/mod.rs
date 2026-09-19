@@ -166,14 +166,8 @@ pub fn derive_for(
 	{
 		found.address = gazetteer.lookup(lat, lon);
 	}
-	let media = manifest::media_for(
-		&derived,
-		source_mime,
-		original.len() as u64,
-		previous,
-		metadata,
-		resource,
-	);
+	let media =
+		manifest::media_for(&derived, source_mime, original.len() as u64, previous, metadata, resource);
 	Ok(Prepared { derived, media })
 }
 
@@ -206,8 +200,7 @@ pub fn publish(
 	gazetteer: Option<&geo::Gazetteer>,
 	resource: crate::resource::ResourceId,
 ) -> Result<Media, Error> {
-	let prepared =
-		derive_for(original, source_mime, previous, keep_original, gazetteer, resource)?;
+	let prepared = derive_for(original, source_mime, previous, keep_original, gazetteer, resource)?;
 	let media = prepared.media.clone();
 	write_derived(public, metadata, &prepared)?;
 	Ok(media)

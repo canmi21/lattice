@@ -7,17 +7,16 @@ import { cacheControl } from './cache';
 import github from './github';
 import object from './object';
 import derive from './derive';
-import symlink from './symlink';
 import type { Bindings } from '@canmi/store';
 import { failure } from './respond';
 
 /**
- * The CDN: four groups of address, and the handful of names a host has to answer for anyway.
+ * The CDN: three groups of address, and the handful of names a host has to answer for anyway.
  *
- * `/object` and `/derive` are content addressing, `/proxy` is somebody else's bytes fetched
- * live, and `/symlink` is a permanent name pointing at whichever object it currently means.
- * Nothing else is an address here -- a request outside the four is refused rather than looked
- * for. See spec/architecture/delivery.md, "The CDN expresses one kind of address".
+ * `/object` and `/derive` are content addressing and `/proxy` is somebody else's bytes fetched
+ * live. Nothing else is an address here -- a request outside the three is refused rather than
+ * looked for, and a name that has to be resolved belongs to the layer above, which is the one
+ * thing this host will not do. See spec/architecture/delivery.md.
  */
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -29,7 +28,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 // grants nothing anyway without credentials to reach. The API stays origin-restricted instead.
 // A scanner flagging the reflected preflight has found a pattern, not a hole.
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
-// One rule over the four groups, and the floor under everything else. See ./cache.ts.
+// One rule over the three groups, and the floor under everything else. See ./cache.ts.
 app.use('*', cacheControl);
 
 // Permanent: which host the site is reached at is not a thing that changes, so a browser that
@@ -42,13 +41,14 @@ app.get('/', (c) => {
 /**
  * A browser asks any origin it touches for this, and this one serves objects rather than pages.
  *
- * The year is honest because the target is the permanent name and not the object behind it:
- * what moves when the mark is redrawn is what `/symlink` answers, and that keeps its own hour.
- * Nothing to range over either -- a redirect has no body.
+ * The year is honest because the target is the permanent name and not the object behind it: what
+ * moves when the mark is redrawn is what the alias layer answers, and that keeps its own five
+ * minutes. Nothing to range over either -- a redirect has no body.
  */
 app.get('/favicon.ico', (c) => {
+	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
 	c.header('Cache-Control', UNCHANGING);
-	return c.redirect('/symlink/favicon.ico', 301);
+	return c.redirect(`${urls.alias}/symlink/favicon.ico`, 301);
 });
 
 // Nothing here is disallowed. `Disallow: /` blocked OpenGraph cards too, and adding
@@ -76,24 +76,23 @@ app.all('/github/*', (c) => {
 });
 
 /**
- * The four groups, and the whole of what this host expresses.
+ * The three groups, and the whole of what this host expresses.
  *
  * Two of them are content-addressed: `/object/{cid}.{ext}` is the lookup on its own, and
  * `/derive/{cid}.{ext}.{ext}` is that same lookup plus one conversion the caller spelled out in
- * full. `/proxy/{vendor}` is a live fetch from somebody else, and `/symlink/{name}` is a name
- * this site publishes, answered with where it currently points.
+ * full. `/proxy/{vendor}` is a live fetch from somebody else. None of the three asks anything
+ * anywhere what a name means, which is what lets this host answer with every other one down.
  */
 app.route('/object', object);
 app.route('/derive', derive);
 app.route('/proxy/github', github);
-app.route('/symlink', symlink);
 
 /**
  * Anything else, and `400` rather than `404` because the two say different things.
  *
  * A `404` from this host is a fact about the bucket -- the address was well formed and the
  * object was never uploaded or has been swept -- and it becomes untrue the moment somebody
- * publishes. An address outside the four groups is a fact about the address: there is no such
+ * publishes. An address outside the three groups is a fact about the address: there is no such
  * route, there never will be, and collapsing the two would throw away the only signal that
  * tells a sweep from a typo. Last, so it takes what nothing above claimed, methods included.
  */

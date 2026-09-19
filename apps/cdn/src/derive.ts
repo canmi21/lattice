@@ -38,6 +38,17 @@ const MAX_SOUGHT = MAX_PACKAGED / 2;
 /** The one target that is not an image format: the object as it is, in an archive. */
 const PACKAGED = 'zip';
 
+/**
+ * The one spelling this host corrects, and it corrects it on the target alone.
+ *
+ * `.jpg` is JPEG written for an eight-character filename limit that outlived the system that
+ * imposed it. Carried as a second format it would fragment the cache and the validators over
+ * identical bytes, so a request naming it is answered with the canonical spelling and a reader's
+ * browser never asks again. See spec/architecture/delivery.md.
+ */
+const SHORT_JPEG = 'jpg';
+const JPEG = 'jpeg';
+
 /** `{cid}.{from}.{to}`, or null for anything that is not exactly that. */
 export function parseDerivation(name: string): { cid: string; from: string; to: string } | null {
 	const [cid, from, to, ...rest] = name.toLowerCase().split('.');
@@ -62,6 +73,13 @@ derive.get('/:name', async (c) => {
 	const measured = await measureObject(c.env, cid, from);
 	if (measured === null) {
 		return failure(c, 404, 'not_found');
+	}
+
+	// The target alone, and never the source. A source spelled `jpg` is a key the bucket cannot
+	// hold -- apps/cms names every JPEG it writes `jpeg` -- so it is already the 404 above, and
+	// rewriting it here would read one object's bytes out from under a name nobody stored.
+	if (to === SHORT_JPEG) {
+		return c.redirect(`/derive/${cid}.${from}.${JPEG}`, 301);
 	}
 
 	// Nothing to derive, and the address already names where those bytes live. Permanent because

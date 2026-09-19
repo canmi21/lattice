@@ -278,7 +278,7 @@
 
 	// An article can name a clip nothing has imported yet. That should cost a placeholder rather
 	// than a build, so an unresolved reference still renders -- the same fallback a picture takes.
-	const fallback = $derived(`${pageUrls(dev).cdn}/video/${src}`);
+	const fallback = $derived(`${pageUrls(dev).cdn}/object/${src}`);
 	const resolved = $derived(Boolean(rungs?.length));
 
 	// The clip's origin, named by the label somebody wrote for it and by its host otherwise. A

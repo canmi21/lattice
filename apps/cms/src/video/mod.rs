@@ -207,6 +207,7 @@ pub fn derive_for(
 		excerpt: previous.and_then(|media| media.clip()).and_then(|clip| clip.excerpt.clone()),
 	});
 	let media = Media {
+		canonical: None,
 		version: manifest::VERSION,
 		resource,
 		namespace: crate::resource::Namespace::of(&["media", "video", "clip"]),

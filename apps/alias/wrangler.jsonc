@@ -1,8 +1,9 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	// `alias` in the code and `aka` on the wire: the binding says what the layer does and the
-	// host is the short form a reader sees. See spec/architecture/delivery.md.
-	"name": "aka",
+	// Named for what the layer does -- one name standing for another -- rather than for the
+	// domain it answers on, which is `ill.li` and is attached to this worker rather than
+	// declared by it. See spec/architecture/delivery.md.
+	"name": "alias",
 	"main": "src/index.ts",
 	// Must not exceed what the installed workerd supports, which lags the calendar. Setting
 	// this to "today" fails to start with a date mismatch rather than anything descriptive.

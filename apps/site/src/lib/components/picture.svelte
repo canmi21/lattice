@@ -62,20 +62,32 @@
 		el?: HTMLImageElement;
 	} = $props();
 
+	// The two CDN groups a srcset moves between: a stored object, and that object converted.
+	const OBJECT = '/object/';
+	const DERIVE = '/derive/';
+
 	// Sized against the article column, which is what actually bounds these.
 	const SIZES = '(max-width: 48rem) 100vw, 48rem';
 	// And against the window, in the view whose whole point is that the column is not the bound.
 	const FULL_SIZES = '100vw';
 
-	// Only AVIF is stored. Asking for any other extension is what tells the CDN to re-encode:
-	// the worker serves `.avif` straight from the bucket and decodes anything else itself,
-	// with WASM codecs. The extension already means "this format", so a query parameter would
-	// be a second way to say the same thing -- and one that fragments the cache key.
-	//
-	// These two fallbacks are only ever fetched by a browser that cannot read AVIF, and the
-	// result is cached at the edge under a name that carries a hash. See spec/architecture/media.md.
+	/**
+	 * The same pictures, asked for in a format a browser that cannot read AVIF can.
+	 *
+	 * `/object` hands back what is stored and nothing else, so a fallback cannot be a different
+	 * extension on the same address: it names `/derive/{cid}.avif.{to}`, which states the source
+	 * in full and asks for one conversion. Changing the extension alone used to work and now
+	 * 404s, which is the trade for a lookup that never probes. See spec/architecture/delivery.md.
+	 */
 	function asFormat(set: string | undefined, extension: string): string | undefined {
-		return set?.replaceAll('.avif ', `.${extension} `);
+		// Both halves or neither. Moving the prefix without adding the second extension names
+		// `/derive/{cid}.png`, which states one extension where that route needs two and is a 400
+		// -- and a flat-colour original is stored as PNG, so the miss is real rather than
+		// hypothetical. A source that is not AVIF has nothing to convert from here anyway.
+		if (!set?.includes('.avif ')) return undefined;
+		// Only ever fetched by a browser without AVIF, and held at the edge under a name carrying
+		// a hash, so the conversion is paid once per colo rather than once per reader.
+		return set.replaceAll(OBJECT, DERIVE).replaceAll('.avif ', `.avif.${extension} `);
 	}
 
 	const webp = $derived(asFormat(srcset, 'webp'));
@@ -99,7 +111,7 @@
 
 	// An article can name an image that has not been imported yet. That should cost a
 	// placeholder rather than a build, so an unresolved reference still renders.
-	const fallback = $derived(`${pageUrls(dev).cdn}/image/${src}`);
+	const fallback = $derived(`${pageUrls(dev).cdn}${OBJECT}${src}`);
 	// The `img` is what a browser understanding none of the sources falls back to, so it names
 	// the widest-supported format rather than the best one.
 	const largestJpeg = $derived(jpeg?.split(', ').pop()?.split(' ')[0] ?? fallback);

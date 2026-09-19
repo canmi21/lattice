@@ -8,17 +8,17 @@ const github = URLS.external.github;
 
 describe('imgsrc', () => {
 	describe('hash filename', () => {
-		it('rewrites bare filename to the production CDN image path', () => {
-			expect(imgsrc('abc123.png')).toBe(`${prodCdn}/image/abc123.png`);
+		it('rewrites bare filename to the production CDN object path', () => {
+			expect(imgsrc('abc123.png')).toBe(`${prodCdn}/object/abc123.png`);
 		});
 
 		it('rewrites a 64-char hex hash', () => {
 			const hash = '3f7dcc6f50caafa3667d680a0a5592ae6ca14440216c72b138606ae5465eac17';
-			expect(imgsrc(`${hash}.png`)).toBe(`${prodCdn}/image/${hash}.png`);
+			expect(imgsrc(`${hash}.png`)).toBe(`${prodCdn}/object/${hash}.png`);
 		});
 
 		it('uses the development CDN when requested', () => {
-			expect(imgsrc('abc123.png', { isDev: true })).toBe(`${devCdn}/image/abc123.png`);
+			expect(imgsrc('abc123.png', { isDev: true })).toBe(`${devCdn}/object/abc123.png`);
 		});
 	});
 

@@ -427,15 +427,14 @@ mod tests {
 		// Skipping it would rewrite the references that resolve and strand the ones that do not,
 		// in a corpus where a reference nothing resolves renders as a missing image nobody reports.
 		let (_temporary, root) = scenario();
-		std::fs::write(
-			root.join("contents/b.md"),
-			"![](ffffffffffffffffffffffffffffffff.avif)\n",
-		)
-		.expect("article");
+		std::fs::write(root.join("contents/b.md"), "![](ffffffffffffffffffffffffffffffff.avif)\n")
+			.expect("article");
 		let error = plan(&root, &root.join("contents")).expect_err("a refusal");
 		assert!(matches!(error, Error::Stranded(..)), "{error}");
 		// And nothing was written on the way to refusing.
-		assert!(std::fs::read_to_string(root.join(MERGED)).expect("manifest").contains("\"version\": 3"));
+		assert!(
+			std::fs::read_to_string(root.join(MERGED)).expect("manifest").contains("\"version\": 3")
+		);
 	}
 
 	#[test]

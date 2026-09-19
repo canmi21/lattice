@@ -24,7 +24,7 @@ export function imgsrc(input: string, opts: Options = {}): string {
 	if (input.startsWith(GITHUB_AVATAR_SCHEME)) return resolveGithubAvatar(input, cdnUrl);
 	if (input.startsWith(GITHUB_SCHEME)) return resolveGithubScheme(input);
 	if (hasWebScheme(input)) return rewriteIfKnown(input, cdnUrl);
-	return `${cdnUrl}/image/${input}`;
+	return `${cdnUrl}/object/${input}`;
 }
 
 // Match on hostname rather than origin: the input is whatever a user pasted, and an

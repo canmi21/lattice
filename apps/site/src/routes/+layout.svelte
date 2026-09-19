@@ -18,8 +18,9 @@
 	const cdn = pageUrls(dev).cdn;
 	// The site's own marks are asked for by name, not by hash: the alias layer says what each one
 	// currently means, so the bytes keep a year and this markup never has to be republished when
-	// one is redrawn. See spec/architecture/delivery.md.
-	const aka = pageUrls(dev).alias;
+	// one is redrawn. `/symlink` is where that layer keeps the names it answers for, the root
+	// being resource ids. See spec/architecture/delivery.md.
+	const marks = `${pageUrls(dev).alias}/symlink`;
 	const locale = $derived('locale' in page.data ? page.data.locale : undefined);
 	const articleLocale = $derived(
 		locale && 'canonical' in locale && 'alternates' in locale ? locale : undefined,
@@ -200,11 +201,11 @@
 	{@html ldJson(website)}
 	<link rel="alternate" type="application/atom+xml" href={feed} title={site.name} />
 	<link rel="llms" type="text/markdown" href="/llms.txt" />
-	<link rel="icon" type="image/png" sizes="96x96" href="{aka}/favicon-96x96.png" />
-	<link rel="icon" type="image/png" sizes="512x512" href="{aka}/favicon-512x512.png" />
-	<link rel="icon" type="image/svg+xml" sizes="any" href="{aka}/favicon.svg" />
-	<link rel="apple-touch-icon" href="{aka}/apple-touch-icon.png" />
-	<link rel="preconnect" href={aka} crossorigin="anonymous" />
+	<link rel="icon" type="image/png" sizes="96x96" href="{marks}/favicon-96x96.png" />
+	<link rel="icon" type="image/png" sizes="512x512" href="{marks}/favicon-512x512.png" />
+	<link rel="icon" type="image/svg+xml" sizes="any" href="{marks}/favicon.svg" />
+	<link rel="apple-touch-icon" href="{marks}/apple-touch-icon.png" />
+	<link rel="preconnect" href={pageUrls(dev).alias} crossorigin="anonymous" />
 	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
 	     See spec/analytics.md. -->
 	<script

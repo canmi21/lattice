@@ -18,7 +18,7 @@ export type DevelopmentUrls = Readonly<Record<AppName, string>>;
  * every interface, and the other two are reached through the site", for why that is what
  * makes the site work from a phone on the same network.
  */
-export const DEVELOPMENT_PROXY_PATHS = { api: '/api', alias: '/aka', cdn: '/cdn' } as const;
+export const DEVELOPMENT_PROXY_PATHS = { api: '/api', alias: '/alias', cdn: '/cdn' } as const;
 
 export function developmentUrl(app: AppName): string {
 	return `http://localhost:${DEVELOPMENT_PORTS[app]}`;
@@ -46,16 +46,30 @@ const development: DevelopmentUrls = developmentUrls();
  */
 export const GITHUB_OWNER = 'canmi21';
 
+/**
+ * The domains owned here, whichever of them a worker is bound to.
+ *
+ * `infra` is the apex api and cdn hang off. `alias` is the apex the alias layer answers on: the
+ * key names what the layer does -- one name standing for another -- where `link` named nothing,
+ * every URL being a link. The production map below reads it from here rather than spelling a
+ * second copy that could drift. `app` is owned and serves nothing yet.
+ */
+const INTERNAL = {
+	app: 'https://canmi.app',
+	infra: 'https://ffoni.com',
+	alias: 'https://ill.li',
+} as const;
+
 export const URLS = {
 	apps: {
 		development,
 		production: {
 			site: 'https://canmi.net',
 			api: 'https://api.ffoni.com',
-			// `alias` is what the code calls this layer and `aka` is what it answers as. The
-			// binding names what it does -- one name standing for another -- and the host is the
-			// short form a reader sees. See spec/architecture/delivery.md.
-			alias: 'https://aka.ffoni.com',
+			// An apex of its own rather than a label under `infra`, because here the address is
+			// the product: a resolved name is read aloud and typed, and `ill.li/k7m2x` is short
+			// enough to be either. See spec/architecture/delivery.md.
+			alias: INTERNAL.alias,
 			cdn: 'https://cdn.ffoni.com',
 		},
 	},
@@ -64,13 +78,8 @@ export const URLS = {
 	// the credits themselves -- so it is a published fact, not a convenience, and belongs
 	// beside the other URLs rather than written into a route.
 	source: `https://github.com/${GITHUB_OWNER}/press`,
-	// Domains owned here but not built here. `infra` is the apex that api and cdn hang off;
-	// `link` currently redirects to the site rather than serving content of its own.
-	internal: {
-		app: 'https://canmi.app',
-		infra: 'https://ffoni.com',
-		link: 'https://ill.li',
-	},
+	// The apexes, declared once above so the one a worker answers on cannot be spelled twice.
+	internal: INTERNAL,
 	external: {
 		github: {
 			web: 'https://github.com',

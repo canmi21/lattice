@@ -454,11 +454,8 @@ mod tests {
 
 	/// A picture whose published rungs are `sizes`, derived from a `width` x `height` source.
 	fn derived(width: u32, height: u32, sizes: &[(u32, u32)]) -> layer::Image {
-		let rungs: Vec<(String, u32, u32)> = sizes
-			.iter()
-			.enumerate()
-			.map(|(index, (w, h))| (format!("r{index}"), *w, *h))
-			.collect();
+		let rungs: Vec<(String, u32, u32)> =
+			sizes.iter().enumerate().map(|(index, (w, h))| (format!("r{index}"), *w, *h)).collect();
 		let variants: Vec<(&str, u32, u32)> =
 			rungs.iter().map(|(cid, w, h)| (cid.as_str(), *w, *h)).collect();
 		let media = manifest::fixture::picture("p0000", "source", (width, height), &variants);
@@ -499,7 +496,8 @@ mod tests {
 		// Which encoding the CDN serves is settled at compile time from the record. An extension
 		// in the source is the article claiming to know that months before the build decides, and
 		// it was the thing that had to be corrected whenever a picture was re-derived.
-		let picture = manifest::fixture::picture("k7m2x", "source", (1920, 1080), &[("r0", 1920, 1080)]);
+		let picture =
+			manifest::fixture::picture("k7m2x", "source", (1920, 1080), &[("r0", 1920, 1080)]);
 		let mut rewrites = BTreeMap::new();
 		note(&mut rewrites, "shot.png", Some(&picture));
 		assert_eq!(rewrites.get("shot.png").map(String::as_str), Some("k7m2x"));
@@ -597,4 +595,3 @@ mod tests {
 		}
 	}
 }
-

@@ -978,9 +978,9 @@ fn collect_garbage(live: bool) -> anyhow::Result<ExitCode> {
 		// spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
 		match gc::pending(&root) {
 			0 => println!("nothing to collect"),
-			waiting => println!(
-				"nothing to collect yet -- {waiting} waiting out the hour before they can be"
-			),
+			waiting => {
+				println!("nothing to collect yet -- {waiting} waiting out the hour before they can be")
+			}
 		}
 		return Ok(ExitCode::SUCCESS);
 	}
@@ -1356,7 +1356,9 @@ fn scan_notes(
 		println!("every article already read; pass --force to read one again");
 		return Ok(ExitCode::SUCCESS);
 	}
-	println!("{read} read, {suggested} suggestions in data/record/tn.yaml; delete any you disagree with");
+	println!(
+		"{read} read, {suggested} suggestions in data/record/tn.yaml; delete any you disagree with"
+	);
 	println!("{spent} tokens");
 	Ok(ExitCode::SUCCESS)
 }

@@ -24,7 +24,7 @@ export const GET: RequestHandler = async ({ fetch }) => {
 	// See spec/architecture/delivery.md.
 	const found = await publishedAsset(fetch, 'licenses.txt');
 	const upstream = found
-		? await fetch(`${pickUrls(dev).cdn}/${found.type}/${found.cid}.${found.extension}`)
+		? await fetch(`${pickUrls(dev).cdn}/object/${found.cid}.${found.extension}`)
 		: new Response(null, { status: 404 });
 	if (!upstream.ok) {
 		// The notice has not been synced to the bucket yet. A missing published object is a

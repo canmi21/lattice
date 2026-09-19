@@ -1,14 +1,15 @@
 //! What a stored file is called, given what is in it.
 //!
 //! One answer, because there were two and they disagreed. `cms image` named a JPEG `.jpeg` while
-//! `cms favicon` named one `.jpg`, and the CDN answers `.jpg` with a permanent redirect -- so
-//! half the tree was generating a name meant to be corrected. The two are the same format: `.jpg`
-//! is JPEG spelled for an eight-character filename limit that outlived the system that imposed
-//! it, the same history that leaves `yml` beside `yaml`. Same bytes, same decoder, one spelling.
+//! `cms favicon` named one `.jpg` -- the same format, spelled for an eight-character filename
+//! limit that outlived the system imposing it, the history that leaves `yml` beside `yaml`.
 //!
 //! Reading stays wide and only writing is narrow. `image::mime_of` still accepts a `.jpg` an
-//! author drags in, and the CDN still serves a request for either -- what this decides is the
-//! name *this repository* puts on a file. See spec/architecture/delivery.md.
+//! author drags in; what this decides is the name *this repository* puts on a file. That name is
+//! load-bearing: an object address forms a key from it and corrects nothing, so a file written
+//! under one spelling and linked under the other is a 404. Only a `/derive` target is corrected,
+//! that being a request for a format rather than a name for stored bytes. See
+//! spec/architecture/delivery.md.
 
 /// The extension for a derived image variant.
 ///
@@ -54,7 +55,7 @@ mod tests {
 	use super::*;
 
 	/// The disagreement this module exists to prevent. Both paths name a file the CDN then has
-	/// to serve, and a name it redirects instead is a hop this repository added to its own links.
+	/// to serve by that exact name, so a second spelling is not a hop -- it is a missing file.
 	#[test]
 	fn both_paths_spell_jpeg_the_same_way() {
 		assert_eq!(for_variant("image/jpeg"), "jpeg");

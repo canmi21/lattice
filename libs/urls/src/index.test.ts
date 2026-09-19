@@ -25,7 +25,7 @@ describe('URLS', () => {
 		expect(URLS.apps.production).toHaveProperty('cdn');
 		expect(URLS.internal).toHaveProperty('app');
 		expect(URLS.internal).toHaveProperty('infra');
-		expect(URLS.internal).toHaveProperty('link');
+		expect(URLS.internal).toHaveProperty('alias');
 		expect(URLS.external.github).toHaveProperty('cdn');
 		expect(URLS.external.google).toHaveProperty('sourcePreferences');
 		expect(URLS.external.social).toHaveProperty('telegram');

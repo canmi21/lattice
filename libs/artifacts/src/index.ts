@@ -45,12 +45,12 @@ export const ROOT_KEY = 'state/index.json';
 /**
  * The address a published object is served at.
  *
- * `/{type}/{hash}.{ext}` -- not where it is stored. The bucket files everything by content id
- * alone; the type is here because an address is read by people and a hash says nothing about
- * what it is. See spec/architecture/data.md, "The bucket stores content ids; the CDN serves types".
+ * `object/{hash}.{ext}` -- not where it is stored, and no longer naming what kind of thing it is
+ * either. The type survives as the one thing that decides the extension: a caller asks for a
+ * `content` object and the table below says that is spelled `json`.
  */
-export function artifactKey(type: ArtifactType, hash: string): string {
-	return `${type}/${hash}.${EXTENSION[type]}`;
+export function artifactAddress(type: ArtifactType, hash: string): string {
+	return `object/${hash}.${EXTENSION[type]}`;
 }
 
 /**
@@ -768,7 +768,16 @@ export function isLayerName(value: string): value is LayerName {
 }
 
 /**
- * Five fields and a container, which is the whole record.
+ * What a bare resource id means, written as a scheme rather than as an address.
+ *
+ * An absolute URL here would bake a hostname into every record, so changing one would mean
+ * rewriting all of them. A scheme is expanded by whoever answers, from `@canmi/urls`, which is
+ * the one place a hostname is declared. `libs/fonts` already does this with `__CDN_URL__`.
+ */
+export const CANONICAL_PATTERN = /^(?:cid:[0-9a-f]{32}\.[a-z0-9]+|slug:[a-z0-9][a-z0-9-]*)$/;
+
+/**
+ * Six fields and a container, which is the whole record.
  *
  * `layers` is read loosely here on purpose: the envelope's job is to find the layers and say how
  * old each one is, and which schema a layer is then read under is its segment's to decide. A
@@ -780,10 +789,30 @@ export const ResourceSchema = v.object({
 	type: namespace,
 	created: v.string(),
 	updated: v.string(),
+	// Optional because a resource declaring none is a refusal rather than a guess, and because
+	// nothing wrote one before this field existed.
+	canonical: v.optional(v.pipe(v.string(), v.regex(CANONICAL_PATTERN))),
 	layers: v.record(v.string(), v.looseObject(layered)),
 });
 
 export type Resource = v.InferOutput<typeof ResourceSchema>;
+
+/**
+ * A canonical scheme expanded against the hosts this deployment knows.
+ *
+ * `cid:` names an object and `slug:` names an article, and neither carries a hostname -- which is
+ * what lets a domain move without a record being touched. A slug needs no lookup: the site
+ * resolves a bare name to the article's real path itself.
+ */
+export function expandCanonical(
+	canonical: string,
+	hosts: { cdn: string; site: string },
+): string | undefined {
+	const object = canonical.startsWith('cid:') ? canonical.slice(4) : undefined;
+	if (object) return `${hosts.cdn}/object/${object}`;
+	const slug = canonical.startsWith('slug:') ? canonical.slice(5) : undefined;
+	return slug ? `${hosts.site}/${slug}` : undefined;
+}
 
 /** The segments of a type, in the order they narrow. `media.image.photo` is three claims. */
 export function parseType(type: string): string[] {

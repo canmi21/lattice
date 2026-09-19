@@ -229,7 +229,67 @@ pub struct Record<L> {
 	/// where it is read is not a record.
 	pub created: String,
 	pub updated: String,
+	/// What a bare resource id means, as a scheme rather than an address.
+	///
+	/// `cid:{cid}.{ext}` or `slug:{slug}`, expanded by whoever answers from the one place a
+	/// hostname is declared. An absolute URL here would put a domain in every record, so moving
+	/// one would mean rewriting all of them. Absent is a refusal rather than a guess.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub canonical: Option<Canonical>,
 	pub layers: L,
+}
+
+/// A canonical, which is one of two schemes and never an address.
+///
+/// Parsed rather than held as a string so that writing an absolute URL into one is a compile
+/// error here and not a surprise at the layer that expands it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Canonical {
+	/// The object a bare id should hand back: its content id and the extension it is stored under.
+	Object { cid: String, extension: String },
+	/// An article, by the identity the site resolves a bare name to without being told a path.
+	Slug(String),
+}
+
+impl fmt::Display for Canonical {
+	fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::Object { cid, extension } => write!(out, "cid:{cid}.{extension}"),
+			Self::Slug(slug) => write!(out, "slug:{slug}"),
+		}
+	}
+}
+
+impl std::str::FromStr for Canonical {
+	type Err = String;
+
+	fn from_str(text: &str) -> Result<Self, Self::Err> {
+		if let Some(rest) = text.strip_prefix("cid:") {
+			let (cid, extension) = rest.rsplit_once('.').ok_or("a cid canonical needs an extension")?;
+			if cid.len() != 32 || !cid.bytes().all(|b| b.is_ascii_hexdigit()) {
+				return Err(format!("`{cid}` is not a content id"));
+			}
+			let (cid, extension) = (cid.to_owned(), extension.to_owned());
+			return Ok(Self::Object { cid, extension });
+		}
+		match text.strip_prefix("slug:") {
+			Some(slug) if !slug.is_empty() => Ok(Self::Slug(slug.to_owned())),
+			_ => Err(format!("`{text}` is neither a cid nor a slug scheme")),
+		}
+	}
+}
+
+impl Serialize for Canonical {
+	fn serialize<S: serde::Serializer>(&self, out: S) -> Result<S::Ok, S::Error> {
+		out.serialize_str(&self.to_string())
+	}
+}
+
+impl<'de> Deserialize<'de> for Canonical {
+	fn deserialize<D: serde::Deserializer<'de>>(input: D) -> Result<Self, D::Error> {
+		let text = String::deserialize(input)?;
+		text.parse().map_err(serde::de::Error::custom)
+	}
 }
 
 /// A record whose layers have not been parsed.
@@ -303,6 +363,7 @@ mod tests {
 
 	fn envelope(namespace: &str, layers: &[(&str, u32)]) -> Opaque {
 		Opaque {
+			canonical: None,
 			version: 5,
 			resource: ResourceId::parse("k7m2x").expect("a rid"),
 			namespace: Namespace::parse(namespace).expect("a type"),
@@ -328,6 +389,23 @@ mod tests {
 		// panic, and the input is a file on disk rather than anything this crate wrote.
 		assert!(matches!(ResourceId::parse("日本語です"), Err(MalformedId::Alphabet(_))));
 		assert!(matches!(ResourceId::parse("日本"), Err(MalformedId::Length(2))));
+	}
+
+	#[test]
+	fn a_canonical_round_trips_and_refuses_an_address() {
+		// The two spellings have to match `CANONICAL_PATTERN` in libs/artifacts, because the
+		// record this writes is the record that schema reads. A URL is refused on both sides for
+		// the same reason: a hostname in a record is a hostname in every record.
+		let object: Canonical = "cid:44b6081deaf0242ca3bf83d62a3b6c95.avif".parse().expect("object");
+		assert_eq!(object.to_string(), "cid:44b6081deaf0242ca3bf83d62a3b6c95.avif");
+		let slug: Canonical = "slug:less-is-more".parse().expect("slug");
+		assert_eq!(slug.to_string(), "slug:less-is-more");
+
+		// An absolute address, which is the thing a scheme exists to keep out of a record.
+		assert!("https:%2F%2Fexample.invalid/x".replace("%2F", "/").parse::<Canonical>().is_err());
+		assert!("cid:notahash.avif".parse::<Canonical>().is_err());
+		assert!("cid:44b6081deaf0242ca3bf83d62a3b6c95".parse::<Canonical>().is_err());
+		assert!("slug:".parse::<Canonical>().is_err());
 	}
 
 	#[test]

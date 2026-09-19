@@ -104,7 +104,7 @@ dir = "apps/api"
 run = "pnpm run deploy"
 
 [tasks.deploy-alias]
-description = "Deploy the aka worker, which resolves names and stores nothing"
+description = "Deploy the alias worker, which resolves names and stores nothing"
 dir = "apps/alias"
 # `--env=""` for the same reason the CDN passes it, even though this worker declares no
 # environment: naming the top level explicitly means a dev environment added later cannot
@@ -139,7 +139,7 @@ dir = "apps/cdn"
 run = "pnpm run dev"
 
 [tasks.dev-alias]
-description = "Run the aka worker, which resolves names and stores nothing"
+description = "Run the alias worker, which resolves names and stores nothing"
 dir = "apps/alias"
 run = "pnpm run dev"
 

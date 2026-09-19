@@ -16,11 +16,11 @@ const YEAR = 'public, max-age=31536000, immutable';
 const HOUR = 'public, max-age=3600';
 const MINUTES = 'public, max-age=300';
 
-/** One address out of each of the four groups, which is what the rule has to cover. */
+/** One address out of each of the three groups, plus a name, which is what the rule covers. */
 const OBJECT = `/object/${HASH}.avif`;
 const DERIVED = `/derive/${HASH}.avif.webp`;
 const PROXIED = '/proxy/github/release/rdm/latest/rdm.dmg';
-const SYMLINK = '/symlink/favicon.svg';
+const MOVED = '/github/release/rdm/latest/rdm.dmg';
 
 describe('isContentAddressed', () => {
 	it('recognises both shapes a hashed address is written in', () => {
@@ -37,8 +37,8 @@ describe('isContentAddressed', () => {
 		expect(isContentAddressed(`/${storageKey(HASH, 'avif')}`)).toBe(true);
 	});
 
-	it('does not recognise a name, which is what the other two groups are', () => {
-		expect(isContentAddressed(SYMLINK)).toBe(false);
+	it('does not recognise a name, which is what every other address here is', () => {
+		expect(isContentAddressed(MOVED)).toBe(false);
 		expect(isContentAddressed(PROXIED)).toBe(false);
 		expect(isContentAddressed('/robots.txt')).toBe(false);
 		expect(isContentAddressed('/favicon.ico')).toBe(false);
@@ -53,11 +53,11 @@ describe('isContentAddressed', () => {
 });
 
 /**
- * The rule itself, over the four groups at once, which is the point of it being one rule.
+ * The rule itself, over every group at once, which is the point of it being one rule.
  *
  * Two questions -- was it answered, and does the address carry a hash -- and the same three
  * answers wherever they are asked. A group is not a row in a table here, which is what stops a
- * fifth one from arriving with a lifetime nobody chose.
+ * fourth one from arriving with a lifetime nobody chose.
  */
 describe('lifetimeFor', () => {
 	it('keeps a settled answer to a hashed address for a year', () => {
@@ -70,7 +70,7 @@ describe('lifetimeFor', () => {
 	it('keeps a settled answer to a name for an hour', () => {
 		// The name is permanent and what stands behind it is not, so the hour is about the
 		// target moving rather than about this answer being uncertain.
-		expect(lifetimeFor(SYMLINK, 302)).toBe(HOUR);
+		expect(lifetimeFor(MOVED, 308)).toBe(HOUR);
 		expect(lifetimeFor(PROXIED, 200)).toBe(HOUR);
 		expect(lifetimeFor(PROXIED, 206)).toBe(HOUR);
 		expect(lifetimeFor('/', 301)).toBe(HOUR);
@@ -83,7 +83,7 @@ describe('lifetimeFor', () => {
 		expect(lifetimeFor(DERIVED, 400)).toBe(MINUTES);
 		expect(lifetimeFor(DERIVED, 413)).toBe(MINUTES);
 		expect(lifetimeFor(OBJECT, 416)).toBe(MINUTES);
-		expect(lifetimeFor(SYMLINK, 404)).toBe(MINUTES);
+		expect(lifetimeFor(MOVED, 404)).toBe(MINUTES);
 		expect(lifetimeFor(PROXIED, 502)).toBe(MINUTES);
 	});
 });
@@ -92,7 +92,7 @@ describe('cacheControl', () => {
 	const app = new Hono();
 	app.use('*', cacheControl);
 	app.get(OBJECT, (c) => c.text('bytes'));
-	app.get(SYMLINK, (c) => c.redirect('/object/x.svg', 302));
+	app.get(MOVED, (c) => c.redirect(PROXIED, 308));
 	app.get('/missing', (c) => c.json({ error: 'not found' }, 404));
 	app.get('/preset', (c) => {
 		c.header('Cache-Control', 'no-store');
@@ -105,7 +105,7 @@ describe('cacheControl', () => {
 
 	it('stamps whatever the rule says, so nothing leaves here unstamped', async () => {
 		expect(await policy(OBJECT)).toBe(YEAR);
-		expect(await policy(SYMLINK)).toBe(HOUR);
+		expect(await policy(MOVED)).toBe(HOUR);
 		expect(await policy('/missing')).toBe(MINUTES);
 	});
 

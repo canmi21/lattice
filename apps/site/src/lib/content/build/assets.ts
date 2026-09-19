@@ -38,8 +38,9 @@ export const EXTENSION: Record<string, string> = {
 	'image/avif': 'avif',
 	'image/webp': 'webp',
 	'image/png': 'png',
-	// `jpeg`, matching what apps/cms names the file. The CDN redirects `.jpg` away, and a link
-	// built here should not be the thing taking that hop.
+	// `jpeg`, matching what apps/cms names the file. These are object addresses, and `/object`
+	// forms a key from the name rather than correcting it -- so a link built here spelling it
+	// `jpg` is a 404, not the hop `/derive` grants a target.
 	'image/jpeg': 'jpeg',
 };
 
@@ -162,20 +163,20 @@ function entryOf(
 }
 
 function url(cdnUrl: string, cid: string, mime: string): string {
-	return `${cdnUrl}/image/${cid}.${EXTENSION[mime] ?? 'avif'}`;
+	return `${cdnUrl}/object/${cid}.${EXTENSION[mime] ?? 'avif'}`;
 }
 
 /**
- * Where a published rung or track is asked for: a prefix naming what kind of object it is, the
- * content id, and the extension that says which representation is wanted.
+ * Where a published rung or track is asked for: the content id and the extension that says which
+ * representation is wanted, under `/object` like every other byte the CDN holds.
  *
- * Flat, with no fanout. The bucket keys carry two levels of it and the URL does not: one names
- * what the reader wants and the worker decides where to read from. See
- * spec/architecture/media.md.
+ * Flat, with no fanout and no kind. The bucket keys carry two levels of fanout and the URL does
+ * not, and what kind of thing this is was never the lookup's business -- the id identifies it and
+ * the extension says how to read it. See spec/architecture/media.md.
  */
-function published(cdnUrl: string, prefix: string, cid: string, mime: string): string {
+function published(cdnUrl: string, cid: string, mime: string): string {
 	const extension = MEDIA_EXTENSION[mime];
-	return extension ? `${cdnUrl}/${prefix}/${cid}.${extension}` : `${cdnUrl}/${prefix}/${cid}`;
+	return extension ? `${cdnUrl}/object/${cid}.${extension}` : `${cdnUrl}/object/${cid}`;
 }
 
 /**
@@ -382,7 +383,7 @@ export function createVideoResolver(
 			rungs: video.variants
 				.toSorted((a, b) => a.resolution.height - b.resolution.height)
 				.map((variant) => ({
-					src: published(cdnUrl, 'video', variant.content, variant.mime),
+					src: published(cdnUrl, variant.content, variant.mime),
 					// The full codec string, not the bare container type. `<source>` is selected on
 					// this alone, so `video/mp4` would claim every browser can play the file and
 					// hand AV1 to one that cannot; with the codec named, a browser that cannot
@@ -399,7 +400,7 @@ export function createVideoResolver(
 			poster: poster?.src,
 			preview: poster?.preview,
 			captions: video.tracks.map((track) => ({
-				src: published(cdnUrl, 'captions', track.content, track.mime),
+				src: published(cdnUrl, track.content, track.mime),
 				kind: track.kind,
 				language: track.language,
 			})),

@@ -87,6 +87,42 @@ describe('the source object comes first', () => {
 	});
 });
 
+/**
+ * One format is one extension, and the correction sits on the target because that is the only
+ * side a reader writes. `.jpg` is JPEG spelled for an eight-character filename limit that
+ * outlived the system imposing it; carried as a second format it would fragment the cache and
+ * the validators over identical bytes.
+ */
+describe('the short spelling of JPEG', () => {
+	// Asked of the mounted worker rather than of the route, because the lifetime is the half
+	// that matters here and the rule that stamps it lives above the group.
+	it('answers a `jpg` target with the canonical spelling of the same address', async () => {
+		const response = await app.request(`/derive/${CID}.avif.jpg`, {}, holding('avif'));
+		expect(response.status).toBe(301);
+		expect(response.headers.get('Location')).toBe(`/derive/${CID}.avif.jpeg`);
+		// A function of the address rather than a fact about now: these two spellings will
+		// always be one, so the hop is paid once and a browser never asks again.
+		expect(response.headers.get('Cache-Control')).toBe(YEAR);
+	});
+
+	/**
+	 * The one that would rot silently, which is why it is written down.
+	 *
+	 * A source is looked up rather than corrected. `apps/cms/src/extension.rs` names every JPEG
+	 * this repository writes `jpeg`, so `{cid}.jpg` is a key the bucket cannot hold and the
+	 * ordinary miss is the whole answer. Normalising here too would serve the jpeg's bytes under
+	 * a name that was never stored, and nothing would report it.
+	 */
+	it('leaves a `jpg` source alone, so it is the plain 404 a missing object is', async () => {
+		const response = await app.request(`/derive/${CID}.jpg.webp`, {}, holding('jpeg'));
+		expect(response.status).toBe(404);
+		expect(await response.json()).toEqual({ status: 'error', message: 'not_found' });
+		// Five minutes, because a 404 on a hashed address is a fact about the bucket rather than
+		// about the address -- the same life every other miss on this host takes.
+		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
+	});
+});
+
 describe('two extensions that are the same', () => {
 	it('redirects permanently to the object itself', async () => {
 		const response = await derive.request(`/${CID}.avif.avif`, {}, holding('avif'));

@@ -27,5 +27,5 @@ export const HOME_SLUG = 'homepage';
  * the old one stops being named rather than being overwritten. See spec/architecture/media.md.
  */
 export function cardUrl(cdn: string, card: string | undefined): string | undefined {
-	return card ? `${cdn}/image/${card}.png` : undefined;
+	return card ? `${cdn}/object/${card}.png` : undefined;
 }

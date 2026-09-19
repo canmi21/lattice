@@ -76,8 +76,9 @@ const readyWebpEncode = once(() => initWebpEncode(WEBP_ENC_WASM));
 /**
  * What a stored object can be.
  *
- * `jpg` is deliberately not a member -- see spec/architecture/delivery.md, "The extension asks
- * for a format", for why one spelling stays one.
+ * `jpg` is deliberately not a member, and a source is why: `/derive` looks one up rather than
+ * correcting it, and nothing here writes a `.jpg`, so `{cid}.jpg` is a miss and needs no entry.
+ * Only a target spelled that way is corrected. See spec/architecture/delivery.md.
  */
 export const DECODABLE = ['avif', 'png'] as const;
 

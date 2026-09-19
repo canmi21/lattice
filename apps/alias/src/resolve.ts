@@ -41,7 +41,10 @@ export async function resolve(c: Context, names: readonly string[]): Promise<Res
 		}
 
 		const asset = unwrap<AssetAnswer>(await asked.json(), asked.url);
-		const target = `${urls.cdn}/${asset.type}/${asset.cid}.${asset.extension}`;
+		// The id alone, under no type: `/object` is the whole of content addressing on that host
+		// and the only address there that promises bytes. What kind of thing this is stays in the
+		// record, where a reader can ask for it. See spec/architecture/delivery.md.
+		const target = `${urls.cdn}/object/${asset.cid}.${asset.extension}`;
 		const query = new URL(c.req.url).search;
 		const answer = c.redirect(target, redirectFor(c.req.method, query));
 		answer.headers.set('Cache-Control', RESOLVED);
