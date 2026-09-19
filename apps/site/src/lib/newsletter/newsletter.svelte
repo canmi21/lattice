@@ -20,7 +20,7 @@
 		},
 		pill: {
 			// The clamp to half the box is the browser's, so the radius is stated as the unbounded
-			// length Tailwind's `rounded-full` is rather than as a number.
+			// length Tailwind's pill corner is rather than as a number.
 			borderRadius: radius.full,
 		},
 		/**
@@ -94,7 +94,7 @@
 				':focus-visible': 'var(--color-text-strong)',
 			},
 			opacity: { default: null, ':disabled': 0.6 },
-			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included --
+			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included --
 			// dropping them changes the computed value even though nothing here sets a gradient.
 			// None of the three actually reaches the element, since `.spring-underline` is
 			// unlayered and already owns `transition`; see spec/architecture/css/layers.md, "There is a

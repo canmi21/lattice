@@ -21,7 +21,7 @@
 	 */
 	const styles = stylex.create({
 		avatar: {
-			// `rounded-full` is `calc(infinity * 1px)` rather than a large length, and the
+			// The pill corner is `calc(infinity * 1px)` rather than a large length, and the
 			// arithmetic is carried across unread: Chrome clamps it to a value a literal would
 			// have to guess at, and the measure of sameness is the computed one.
 			borderRadius: radius.full,
@@ -37,10 +37,10 @@
 		},
 		/** The bio, which is the one block of prose on the page. */
 		bio: {
-			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
-			// rather than read: that variable is emitted only for the utilities that name it, so
-			// reading it here would leave this line depending on a class somewhere else in the
-			// markup. The value terminates, so there is no arithmetic to round.
+			// The line is Tailwind's `--leading-relaxed`, and its value is written out rather
+			// than read: that variable is emitted only for the utilities that name it, so reading
+			// it here would leave this line depending on a class somewhere else in the markup.
+			// The value terminates, so there is no arithmetic to round.
 			lineHeight: line.relaxed,
 		},
 		/** The line holding the language switcher. Both declarations inherit into it. */
@@ -58,7 +58,7 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. Whether the visual layer should
 			// be naming another framework's private variables is in spec/todo.md.

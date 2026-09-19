@@ -18,9 +18,9 @@
 		},
 		noteLabel: {
 			fontSize: text.px12,
-			// The line as a length rather than as the ratio `text-xs` writes it, `calc(1 / 0.75)`,
-			// which is the same 1rem and cannot be written that way here: StyleX evaluates a calc
-			// and keeps five decimals. See spec/architecture/css/authoring.md.
+			// The line as a length rather than as the ratio the twelve-pixel step writes,
+			// `calc(1 / 0.75)`, the same 1rem and unwritable that way here: StyleX evaluates a
+			// calc and keeps five decimals. See spec/architecture/css/authoring.md.
 			lineHeight: '1rem',
 			fontWeight: weight.medium,
 		},
@@ -39,9 +39,10 @@
 			},
 		},
 		/**
-		 * The rule between the header and the note. `border-t` drew one edge and `border-border`
-		 * coloured all four, so the colour is written on all four here as well: the other three
-		 * are zero-width and invisible, and they are still what the element computes.
+		 * The rule between the header and the note. The top-edge utility drew one edge and
+		 * `border-border` coloured all four, so the colour is written on all four here as well:
+		 * the other three are zero-width and invisible, and they are still what the element
+		 * computes.
 		 */
 		noteBody: {
 			borderTopWidth: border.hairlinePx,

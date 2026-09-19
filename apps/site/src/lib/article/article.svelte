@@ -95,12 +95,12 @@
 		},
 		summaryPanel: {
 			borderLeftWidth: border.doublePx,
-			// `border-border-strong` colours all four edges and only one of them has width, so
+			// The strong border colour lands on all four edges and only one of them has width, so
 			// the shorthand is what keeps the computed style the same on the other three.
 			borderColor: 'var(--color-border-strong)',
 			fontSize: text.px14,
-			// `leading-relaxed` overrides the line `text-sm` would have set. It stays a ratio:
-			// 1.625 is exact, and the rule against ratios is about the ones whose decimal
+			// The relaxed line overrides the one the fourteen-pixel step would have set. It stays
+			// a ratio: 1.625 is exact, and the rule against ratios is about the ones whose decimal
 			// expansion does not stop.
 			lineHeight: line.relaxed,
 			color: 'var(--color-text-soft)',

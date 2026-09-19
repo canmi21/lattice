@@ -24,20 +24,20 @@
 			// The shorthand this replaces said a colour and nothing else: every other longhand it
 			// reset was already at its initial value, and no rule on this element sets one.
 			backgroundColor: 'color-mix(in oklab, var(--color-blue) var(--wash), transparent)',
-			// `rounded-r-md` is the two physical corners rather than the logical pair -- that is
-			// which pair Tailwind names it as -- and 0.375rem is the `--radius-md` behind it.
+			// Tailwind's right-side radius is the two physical corners rather than the logical
+			// pair -- that is which pair it names -- and 0.375rem is the `--radius-md` behind it.
 			borderTopRightRadius: radius.md,
 			borderBottomRightRadius: radius.md,
-			// `border-l-2` writes its style through `--tw-border-style`, which is registered with
-			// `solid` as its initial value, so the edge computes to two pixels of solid.
+			// The two-pixel left edge writes its style through `--tw-border-style`, which is
+			// registered with `solid` as its initial value, so the edge computes to two of solid.
 			borderLeftWidth: border.doublePx,
 			borderLeftStyle: 'solid',
-			// All four edges, three of which have no width to draw: `border-blue-ink` is the
-			// shorthand, and the computed style carries the colour on every side.
+			// All four edges, three of which have no width to draw: the border-colour utility is
+			// a shorthand, and the computed style carries the colour on every side.
 			borderColor: 'var(--color-blue-ink)',
 			fontSize: text.px14,
-			// The line as `leading-snug` writes it. 1.375 terminates, so it stays a ratio; the rule
-			// in spec/architecture/css/authoring.md is about the expansions that do not.
+			// The line as Tailwind's `--leading-snug` writes it. 1.375 terminates, so it stays a
+			// ratio; the rule in spec/architecture/css/authoring.md is about the ones that do not.
 			lineHeight: line.snug,
 			color: 'var(--color-text-soft)',
 		},

@@ -18,7 +18,7 @@
 	 *
 	 * Two of Tailwind's own theme variables are read differently and the difference is whether
 	 * anything outside a utility names them. `--font-mono` is also read by `.value-cell` in
-	 * app.css, so it survives however many `font-mono` classes leave the markup; `--leading-relaxed`
+	 * app.css, so it survives however many monospace classes leave the markup; `--leading-relaxed`
 	 * is named by nothing but its own utility, so its value is written out here instead.
 	 */
 	const styles = stylex.create({
@@ -65,7 +65,7 @@
 		},
 		avatar: {
 			// The clamp to half the box is the browser's, so the radius is stated as the
-			// unbounded length Tailwind's `rounded-full` is rather than as a number.
+			// unbounded length Tailwind's pill corner is rather than as a number.
 			borderRadius: radius.full,
 			backgroundColor: 'var(--color-paper)',
 		},

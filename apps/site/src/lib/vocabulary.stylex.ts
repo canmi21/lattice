@@ -17,7 +17,7 @@ import * as stylex from '@stylexjs/stylex';
 
 /**
  * Tailwind's radius scale, which is where all five of these came from -- `--radius-sm` through
- * `--radius-xl`, and `rounded-full`. `624.9375rem` is the site's other pill and is deliberately
+ * `--radius-xl`, and the pill. `624.9375rem` is the site's other pill and is deliberately
  * not here: it computes to a different number and it is the one value on the site that loses a
  * digit in serialisation. See spec/todo.md.
  */
@@ -32,8 +32,8 @@ export const radius = stylex.defineConsts({
 /**
  * The type ladder, named by its size in pixels at the default root.
  *
- * Six steps, one pixel apart, and only two of them are Tailwind's -- `text-xs` is `px12` and
- * `text-sm` is `px14`. A t-shirt ladder would therefore have had to give those two letters
+ * Six steps, one pixel apart, and only two of them are Tailwind's -- its `xs` step is `px12`
+ * and its `sm` step is `px14`. A t-shirt ladder would therefore have had to give those letters
  * meanings that disagree with the utilities the components' own comments still cite, so the
  * figure is the name and the unit stays `rem`.
  */
@@ -68,7 +68,7 @@ export const leading = stylex.defineConsts({
 	px20: '1.25rem',
 });
 
-/** `font-medium`, and the site's own step above it that no utility writes. */
+/** Tailwind's medium weight, and the site's own step above it that no utility writes. */
 export const weight = stylex.defineConsts({
 	medium: 500,
 	strong: 560,
@@ -87,7 +87,7 @@ export const border = stylex.defineConsts({
 	doublePx: '2px',
 });
 
-/** `duration-200`. No other duration on the site repeats across three components. */
+/** Tailwind's 200ms step. No other duration on the site repeats across three components. */
 export const duration = stylex.defineConsts({
 	base: '200ms',
 });
@@ -98,7 +98,7 @@ export const easing = stylex.defineConsts({
 });
 
 /**
- * What `transition-colors` compiles to, which is the longest string the site retypes.
+ * What Tailwind's colour transition compiles to, the longest string the site retypes.
  *
  * Three of the ten are Tailwind's private gradient variables and this site sets none of them.
  * They stay because the measure of a migration is the computed value, and whether they belong in

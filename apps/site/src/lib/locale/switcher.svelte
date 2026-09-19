@@ -14,9 +14,9 @@
 	const styles = stylex.create({
 		/** The trigger's caret, which turns to face the panel that is about to open. */
 		caret: {
-			// Tailwind's `transition-transform` names four properties, and `motion-reduce`
+			// Tailwind's transform transition names four properties, and `motion-reduce`
 			// suppresses the list rather than the shorthand: the duration and the curve below
-			// keep their values there, which is what `transition-none` did and did not do.
+			// keep their values there, which is what suppressing the whole of it did not do.
 			transitionProperty: {
 				default: 'transform, translate, scale, rotate',
 				'@media (prefers-reduced-motion: reduce)': 'none',

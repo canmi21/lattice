@@ -43,10 +43,10 @@ export const surfaces = stylex.create({
 	/**
 	 * The frame a full-width block draws around itself: the code block, the Mermaid figure and
 	 * the quadrant. `paper` with a corner, written as the spread so the two cannot part company --
-	 * all three carried the one Tailwind string `overflow-hidden rounded-xl border border-border
-	 * bg-paper` before the migration, so this is one decision translated three times. The search
-	 * panel's identical five are deliberately not this: a panel over the page is not a block in
-	 * an article, and the corner is the only thing they share today.
+	 * all three carried one Tailwind string before the migration, hidden overflow and the `xl`
+	 * corner over a `border-border` hairline on the paper ground, so this is one decision
+	 * translated three times. The search panel's identical five are deliberately not this: a panel
+	 * over the page is not a block in an article, and the corner is the only thing they share.
 	 */
 	blockFrame: { ...paper, borderRadius: radius.xl },
 
@@ -111,8 +111,8 @@ export const surfaces = stylex.create({
 	/**
 	 * The interface's own type step: fourteen pixels with the line that step computes to. Six
 	 * components take the pair; the other sites of `text.px14` override the line on purpose, so
-	 * it is the pair that marks interface text. The line is a length rather than `text-sm`'s
-	 * ratio, which does not terminate and rounds to a shorter element -- see
+	 * it is the pair that marks interface text. The line is a length rather than the ratio
+	 * Tailwind's fourteen-pixel step writes, which does not terminate and rounds short -- see
 	 * spec/architecture/css/authoring.md, "A ratio that does not terminate cannot be written as a
 	 * ratio". `leading.px20` has no site that is not one of these six.
 	 */

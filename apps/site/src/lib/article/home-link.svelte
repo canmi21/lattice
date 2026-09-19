@@ -15,7 +15,7 @@
 	const styles = stylex.create({
 		link: {
 			// `focus-link` sets the same 1.25rem line on this element from the components layer, and
-			// the visual layer outranks it exactly as `text-sm` did. See spec/todo.md.
+			// the visual layer outranks it exactly as the utility it replaced did. See spec/todo.md.
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -23,7 +23,7 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. See spec/todo.md.
 			transitionProperty: transition.colors,

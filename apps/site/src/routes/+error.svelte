@@ -14,8 +14,8 @@
 	const styles = stylex.create({
 		/** The status number, and the rule between it and the sentence beside it. */
 		status: {
-			// `border-r` writes its style through `--tw-border-style`, which is registered with
-			// `solid` as its initial value, so the edge computes to one pixel of solid.
+			// The right-edge utility writes its style through `--tw-border-style`, which is
+			// registered with `solid` as its initial value, so the edge computes to one of solid.
 			borderRightWidth: border.hairlinePx,
 			borderRightStyle: 'solid',
 			// All four edges, three of which have no width to draw: `border-border` is the
@@ -24,7 +24,7 @@
 			fontSize: '1.5rem',
 			// The line both halves are given, which is what puts the number and the sentence on one
 			// box however tall each would otherwise have been. Tailwind writes it as `--tw-leading`
-			// and `text-2xl` reads that variable rather than its own default, so the pair never
+			// and its `2xl` step reads that variable rather than its own default, so the pair never
 			// competed and the ratio `calc(2 / 1.5)` never reached the element.
 			lineHeight: '3.0625rem',
 			fontWeight: weight.medium,

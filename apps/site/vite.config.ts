@@ -137,6 +137,12 @@ export default defineConfig(({ mode }) => {
 					useCSSLayers: true,
 					aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
 					unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+					// Appending after Tailwind's CSS also means appending after Vite has minified
+					// it, so this layer used to ship its newlines while everything above it had
+					// none. The plugin already runs Lightning CSS over its own sheet before it
+					// appends; this is that pass being asked to compress as well, which is the
+					// one place to do it that leaves the order above untouched.
+					lightningcssOptions: { minify: true },
 				}),
 				enforce: undefined,
 			},

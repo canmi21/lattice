@@ -15,7 +15,7 @@
 	const styles = stylex.create({
 		/** The panel itself: a bordered sheet of paper. Its shadow is still the markup's. */
 		surface: {
-			// 0.375rem is the `--radius-md` behind `rounded-md`.
+			// 0.375rem is the `--radius-md` behind Tailwind's medium corner.
 			borderRadius: radius.md,
 		},
 	});

@@ -15,10 +15,10 @@
 		surface: {
 			borderRadius: radius.md,
 			fontSize: text.px14,
-			// `leading-relaxed` is Tailwind's `--leading-relaxed`, and its value is written out
-			// rather than read: that variable is emitted only for the utilities that name it, so
-			// reading it here would leave this line depending on a class somewhere else in the
-			// markup. The value terminates, so there is no arithmetic to round.
+			// The line is Tailwind's `--leading-relaxed`, and its value is written out rather
+			// than read: that variable is emitted only for the utilities that name it, so reading
+			// it here would leave this line depending on a class somewhere else in the markup.
+			// The value terminates, so there is no arithmetic to round.
 			lineHeight: line.relaxed,
 			color: 'var(--color-text)',
 		},

@@ -26,8 +26,8 @@
 			color: 'var(--color-text)',
 		},
 		/**
-		 * A metadata row, one step down from the box's own size. `text-xs` writes its line as
-		 * `calc(1 / 0.75)`, which is the same 1rem and cannot be written as that ratio here.
+		 * A metadata row, one step down from the box's own size. The twelve-pixel step writes its
+		 * line as `calc(1 / 0.75)`, the same 1rem, and it cannot be written as that ratio here.
 		 */
 		meta: {
 			fontSize: text.px12,

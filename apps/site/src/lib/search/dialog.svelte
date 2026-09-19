@@ -19,9 +19,9 @@
 			color: 'var(--color-text)',
 		},
 		/**
-		 * The field's row. `border-b` drew one edge and `border-border` coloured all four, so the
-		 * colour is written on all four here as well: the other three are zero-width and
-		 * invisible, and they are still what the element computes. Same for the footer below.
+		 * The field's row. The bottom-edge utility drew one edge and `border-border` coloured all
+		 * four, so the colour is written on all four here as well: the other three are zero-width
+		 * and invisible, and they are still what the element computes. Same for the footer below.
 		 */
 		field: {
 			borderBottomWidth: border.hairlinePx,
@@ -50,7 +50,7 @@
 		},
 		row: {
 			borderRadius: radius.md,
-			// The whole of `transition-colors`, the three `--tw-gradient-*` variables included.
+			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
 			// is the computed value and dropping them changes it. Whether the visual layer should
 			// be naming another framework's private variables is in spec/todo.md.
