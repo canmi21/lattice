@@ -29,6 +29,15 @@ export function isContentAddressed(path: string): boolean {
  * hour, because what it stands for may move while it does not; anything else is a fact about the
  * bucket or about this moment. A `3xx` counts as answered, here as on `/symlink`.
  */
+/**
+ * Not stored at all, for an answer that is about this moment rather than about the corpus.
+ *
+ * The rule below has no row for it because status alone cannot tell them apart: a 502 from a
+ * resolver and a 400 from a malformed address are both "not settled", and only one of them is
+ * worth forgetting immediately. A route that knows which it is stamps this over the rule.
+ */
+export const NEVER = 'no-store';
+
 export function lifetimeFor(path: string, status: number): string {
 	const settled = status >= 200 && status < 400;
 	if (!settled) return PUBLISHED;

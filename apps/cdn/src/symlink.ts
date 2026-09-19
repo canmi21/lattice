@@ -1,6 +1,7 @@
 import { unwrap, type AssetAnswer } from '@canmi/artifacts';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
+import { NEVER } from './cache';
 import { failure } from './respond';
 
 /**
@@ -30,7 +31,14 @@ symlink.get('/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', async (c) => {
 	// Not a name this site publishes, which is a fact about the corpus and true until the next
 	// publication -- the same short life every other refusal here takes.
 	if (asked.status === 404) return failure(c, 404, 'no_such_name');
-	if (!asked.ok) return failure(c, 502, 'upstream_unavailable');
+	// Never stored, unlike every other refusal here. This is a fact about this moment rather than
+	// about the corpus, and every permanent name on a page comes through this route -- holding one
+	// unreachable upstream for five minutes turns a blip into an outage.
+	if (!asked.ok) {
+		const refused = failure(c, 502, 'upstream_unavailable');
+		refused.headers.set('Cache-Control', NEVER);
+		return refused;
+	}
 
 	const asset = unwrap<AssetAnswer>(await asked.json(), asked.url);
 	return c.redirect(`/object/${asset.cid}.${asset.extension}`, 302);
