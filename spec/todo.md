@@ -294,10 +294,11 @@ style in a browser afterwards. A static snapshot has a second reason to miss it,
 nothing in the harness drags across an element.
 
 The finding is not that one name is missing from a list. It is that the list was written from the
-properties a migration was expected to move, while what a migration is allowed to move is decided
-by a test -- [architecture/css/layers.md](architecture/css/layers.md) says of its own lists that "the lists are
-examples; the test is the rule". A list and a test drift the first time somebody applies the test
-honestly.
+properties a migration was expected to move, while what a migration was allowed to move was decided
+by a test, and a list and a test drift the first time somebody applies the test honestly. That
+observation is now [architecture/css/layers.md](architecture/css/layers.md)'s own argument for
+giving the test up: the enumeration there is the rule, and the test is only how the enumeration
+grows.
 
 **The first of those has since been taken and the second is still open.** The list went from
 seventy-three properties to ninety-eight, audited against what the site actually declares rather

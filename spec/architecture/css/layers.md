@@ -91,12 +91,13 @@ this layer is the wrong answer regardless of what the declaration says.
 - the four `transition-*` longhands, `animation-*` where a class can reach the element
 - the type ramp: `font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family`,
   `font-variant-numeric`
-- `cursor`, and the rest of the settled rulings below
+- `cursor`, which reaches this layer through `surfaces.quietControl` rather than on its own
 
 **The frame** owns the one-offs: `display` and the flex and grid properties, `gap`, `margin`,
 `padding`, `width`, `height` and their `min-`/`max-` forms, `position` and `inset`, `z-index`,
-`align-*`, `justify-*`, `overflow`, `visibility`, and text behaviour -- `white-space`,
-`text-wrap`, `overflow-wrap`, `word-break`, `hyphens`, `text-overflow`.
+`align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`, `user-select`, and text
+behaviour -- `white-space`, `text-wrap`, `overflow-wrap`, `word-break`, `hyphens`,
+`text-overflow`.
 
 ### Typography splits, and the line runs through it rather than around it
 
@@ -155,15 +156,17 @@ adjective.
   cannot be reached by a class at all and is the escape hatch. A transform that is a member of a
   named surface goes with that surface. The old question -- whether deleting it moves anything
   while the page is at rest -- still predicts the answer in most cases and is no longer the test.
-- **`pointer-events` and `user-select` stay in the vocabulary, and this axis does not yet explain
-  why.** Both were settled as visual on the old reasoning: neither moves anything, each says what
-  the element is to a pointer. Membership does not obviously reproduce that. Most of their sites
-  are single-key StyleX objects holding one CSS keyword and nothing else, used once in the
-  component that declares them -- `pointerEvents: 'none'` alone in `home-link.svelte`'s `slot`,
+- **`pointer-events` and `user-select` are the frame, and this one is a reversal.** Both were
+  settled as the visual layer's on the old reasoning: neither moves anything, each says what the
+  element is to a pointer. Membership does not reproduce that, and the sites are what decide it.
+  Sixteen StyleX sites across nine components hold one of the two, and not one of them is in a
+  surface used more than once -- `pointerEvents: 'none'` alone in `home-link.svelte`'s `slot`,
   `pointerEvents: 'auto'` alone in `toc.svelte`'s `nav`, `userSelect: 'none'` alone in
-  `article.svelte`'s `apparatus` -- which is the shape of a frame declaration, not of a recipe
-  member. The ruling stands as it is, unchanged, and whether the axis should move it is a decision
-  that belongs to whoever owns the two properties rather than to this rewrite. It is open.
+  `article.svelte`'s `apparatus`. The sites that do sit beside other declarations are the ones
+  worth being careful about: `tileName` in `cargo.svelte` and `indicator` in `toc.svelte` are
+  named, and each is used once in the component that declares it. **A name alone is not a recipe.**
+  That is the distinction `cursor` passes -- `surfaces.quietControl` is applied in seven files --
+  and these two fail, and it is the only thing that ever made the three one ruling.
 
 ## The layers, and the argument for each of them
 

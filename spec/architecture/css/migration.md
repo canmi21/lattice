@@ -147,10 +147,10 @@ belonged would have passed. The spring underline is drawn as a background, and
 `background-size`, `-position` and `-repeat` were absent.
 
 **The shape of the mistake generalises past the names.** The list was written from the properties a
-migration was expected to move, while what a migration is _allowed_ to move is decided by the test
-in [layers.md](layers.md) -- which already says of its own lists that the lists are examples
-and the test is the rule. A list and a test drift the first time somebody applies the test
-honestly. So the list is maintained against what the site declares rather than against what anyone
+migration was expected to move, while what a migration was _allowed_ to move was decided by a test.
+A list and a test drift the first time somebody applies the test honestly, which is why
+[layers.md](layers.md) no longer keeps both: the enumeration there is the rule now, and the test is
+only how it grows. So the list is maintained against what the site declares rather than against what anyone
 expects to touch, and a migration that moves a property nobody has compared before says so.
 
 **No custom property is compared, so a utility's private variables leave with it unnoticed.**
