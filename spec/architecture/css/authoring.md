@@ -46,6 +46,40 @@ Nothing tests this. A dead rule costs bytes rather than correctness, and it is f
 found the first time: build, list what the `utilities` layer emitted, and subtract what the markup
 carries.
 
+### Most of it is not a comment at all, and that part is not worth fighting
+
+The twenty-four above were class names cited as class names, so rewriting them cost nothing. They
+are the smaller half. Measured at the same time: twenty-eight more utilities, thirty-two rules and
+4,590 bytes, emitted from text that is not a class name in any sense. `.table` from a `<table>` and
+from `view === 'table'`. `.filter` from a `.filter()` call. `.ring` from seventeen comments about
+focus rings. `.transform` from a Vite hook of that name. Every Tailwind utility whose name is also
+an ordinary English word, a CSS property, a CSS keyword or a common identifier is reachable this
+way, and this repository writes all four constantly.
+
+**Two of them are the cost of a good name.** `transition` and `border` are emitted because the
+design vocabulary is named after the CSS properties it holds, which is the right name for it and
+costs 538 bytes.
+
+**Whole-text scanning is how Tailwind 4 works and cannot be narrowed.** Read in 4.3.3: the scanner
+takes a base path, a glob and a negation flag, and returns a candidate string with a byte offset
+and nothing about the syntax around it, because it is a byte-level extractor rather than a parser.
+Neither `extract` nor `safelist` exists any more.
+
+So the only instrument left is `@source not inline(…)`, a deny-list, and it is refused here. It
+would have to hold `table`, `border`, `ring`, `shadow`, `filter`, `transition`, `outline`,
+`visible`, `static` and `inline` -- the ten most plausible things somebody types into a class
+attribute by hand -- and a denied name compiles to nothing with no error and no warning. A check
+could be written to make that loud, and then the check is one more thing to keep current.
+
+The arithmetic is what settles it rather than the taste. Of the 4,590, **2,134 comes from code
+nobody would rewrite** and is unreachable by any means but the deny-list; 701 would fall to
+rewriting prose, which is the whole of the cost refused above for fifteen per cent of the waste.
+Rewriting English was never going to buy most of the bytes.
+
+What the migration out of the escape hatch takes with it is a third thing again, and it is real:
+`backdrop-filter` alone is 569 bytes and four declarations. It is a side effect of moving
+declarations to the layer that owns them, not a reason to move them.
+
 ## StyleX cannot be reached from a stylesheet
 
 A Svelte `<style>` block cannot compose a StyleX style. CSS has no mixin, Svelte implements no
