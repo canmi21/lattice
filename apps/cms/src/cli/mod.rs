@@ -923,19 +923,24 @@ fn grant_resource_ids(live: bool) -> anyhow::Result<ExitCode> {
 	if plan.is_empty() {
 		// Successfully, because a corpus already migrated is the state this command exists to
 		// reach. Reporting it as a failure would make the second run of a pair look like a problem.
-		println!("every record already holds a resource id -- nothing to migrate");
+		println!("every record holds a resource id and says what it means -- nothing to migrate");
 		return Ok(ExitCode::SUCCESS);
 	}
 
 	for grant in &plan.grants {
 		println!("grant {} {}  {}", grant.resource, grant.kind, &grant.key[..grant.key.len().min(12)]);
 	}
+	for declared in &plan.declared {
+		println!("mean  {} {}", declared.resource, declared.canonical);
+	}
 	for (from, to) in &plan.rewrites {
 		println!("point {from} -> {to}");
 	}
 	println!(
-		"{} record(s), {} reference(s), {} sidecar(s) to move, {} picture(s) become frames",
+		"{} id(s), {} canonical(s), {} reference(s), {} sidecar(s) to move, {} picture(s) \
+		 become frames",
 		plan.grants.len(),
+		plan.declared.len(),
 		plan.rewrites.len(),
 		plan.sidecars.len(),
 		plan.frames.len()
@@ -947,7 +952,11 @@ fn grant_resource_ids(live: bool) -> anyhow::Result<ExitCode> {
 	}
 	match migrate::apply(&root, &articles, &plan) {
 		Ok(rewritten) => {
-			println!("granted {} ids, rewrote {rewritten} reference(s)", plan.grants.len());
+			println!(
+				"granted {} ids, declared {} canonical(s), rewrote {rewritten} reference(s)",
+				plan.grants.len(),
+				plan.declared.len()
+			);
 			// Rewriting a reference moves every byte after it, and the segment layout is a set of
 			// byte spans over these files. Said here because the alternative is finding out from a
 			// failing test, and a view spliced from a stale layout is wrong silently.

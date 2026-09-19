@@ -487,6 +487,23 @@ mod tests {
 	}
 
 	#[test]
+	fn a_canonical_survives_a_round_trip_and_absent_stays_absent() {
+		// Absent is a refusal rather than a guess, so it has to come back absent: a `null` on
+		// disk would be a third state for a reader to work out what to do with.
+		let mut record = envelope("media.image", &[("media", 1), ("image", 1)]);
+		let cid = "44b6081deaf0242ca3bf83d62a3b6c95".to_owned();
+		record.canonical = Some(Canonical::Object { cid, extension: "avif".into() });
+		let text = serde_json::to_string(&record).expect("serialise");
+		assert!(text.contains(r#""canonical":"cid:44b6081deaf0242ca3bf83d62a3b6c95.avif""#), "{text}");
+		assert_eq!(serde_json::from_str::<Opaque>(&text).expect("deserialise"), record);
+
+		record.canonical = None;
+		let bare = serde_json::to_string(&record).expect("serialise");
+		assert!(!bare.contains("canonical"), "{bare}");
+		assert_eq!(serde_json::from_str::<Opaque>(&bare).expect("deserialise"), record);
+	}
+
+	#[test]
 	fn an_envelope_round_trips_through_json() {
 		let record = envelope("media.image", &[("media", 1), ("image", 1)]);
 		let text = serde_json::to_string(&record).expect("serialise");

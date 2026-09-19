@@ -1,17 +1,17 @@
-//! The `cms migrate` command: granting every record in the corpus a resource id, once.
+//! The `cms migrate` command: filling in, once, what the records on disk cannot say themselves.
 //!
 //! One pass and one direction. It reads the manifest as it sits on disk, grants an id to every
 //! record, rewrites every article reference to name that id instead of an original's content id
 //! and a format, resolves each clip's poster into a `cover`, reclassifies those pictures as the
-//! frames they are, and moves each published record onto its new key. Dry by default, the way
-//! `cms gc` is: the listing is the review and `--live` is the answer to it. See
-//! spec/architecture/resource.md.
+//! frames they are, writes down what a bare id of each means, and moves each published record
+//! onto its new key. Dry by default, the way `cms gc` is: the listing is the review and `--live`
+//! is the answer to it. See spec/architecture/resource.md.
 
 use crate::image::manifest::{self, Media, Merged, Unnamed};
 use crate::image::run::MERGED;
 use crate::image::store;
 use crate::refs;
-use crate::resource::{self, ResourceId};
+use crate::resource::{self, Canonical, ResourceId};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -52,10 +52,25 @@ pub struct Grant {
 	pub kind: String,
 }
 
+/// One record gaining a canonical, for the same listing.
+///
+/// What a bare rid means had nowhere to come from until the field existed, so nothing wrote one
+/// and `/{rid}` refused every resource in the corpus. A record that already declares one keeps
+/// it: which rendition is best changes when the ladder is re-derived, and this pass derives
+/// nothing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Declared {
+	pub key: String,
+	pub resource: ResourceId,
+	pub canonical: Canonical,
+}
+
 /// Everything the pass would do, decided before any of it is written.
 #[derive(Debug)]
 pub struct Plan {
 	pub grants: Vec<Grant>,
+	/// What each record's bare id will mean, for the records that say nothing yet.
+	pub declared: Vec<Declared>,
 	/// What each article reference becomes: `{cid}.{ext}` to a bare rid.
 	pub rewrites: BTreeMap<String, String>,
 	/// Published records to move, from `meta/{cid}.json` to `meta/{rid}.json`.
@@ -69,10 +84,14 @@ pub struct Plan {
 impl Plan {
 	/// Nothing left to do, which is what a corpus already through the pass answers.
 	///
-	/// All three, not just the grants: a run interrupted partway leaves ids granted and articles
+	/// All four, not just the grants: a run interrupted partway leaves ids granted and articles
 	/// or records still to move, and a gate that asked only about ids would call that finished.
+	/// The corpus that has every id and no canonical is the same case one field later.
 	pub fn is_empty(&self) -> bool {
-		self.grants.is_empty() && self.rewrites.is_empty() && self.sidecars.is_empty()
+		self.grants.is_empty()
+			&& self.declared.is_empty()
+			&& self.rewrites.is_empty()
+			&& self.sidecars.is_empty()
 	}
 }
 
@@ -140,6 +159,20 @@ pub fn plan(repo: &Path, articles: &Path) -> Result<Plan, Error> {
 		}
 	}
 
+	// Filled here rather than by re-deriving, for the reason the ids were granted here: the
+	// records on disk cannot be rebuilt, because some of the originals are gone. A record that
+	// publishes nothing declares nothing and `/{rid}` refuses it, which is the honest answer.
+	let mut declared = Vec::new();
+	for (key, record) in &mut media {
+		if record.canonical.is_none() {
+			record.canonical = manifest::canonical_of(&record.layers);
+		}
+		let already = unnamed.media.get(key).is_some_and(Unnamed::declares);
+		if !already && let Some(canonical) = record.canonical.clone() {
+			declared.push(Declared { key: key.clone(), resource: record.resource, canonical });
+		}
+	}
+
 	let grants = granted
 		.iter()
 		.filter(|(key, _)| !held.contains(*key))
@@ -151,6 +184,7 @@ pub fn plan(repo: &Path, articles: &Path) -> Result<Plan, Error> {
 		.collect();
 	let mut plan = Plan {
 		grants,
+		declared,
 		frames,
 		rewrites: BTreeMap::new(),
 		sidecars: Vec::new(),
@@ -452,6 +486,67 @@ mod tests {
 		apply(&root, &root.join("contents"), &plan).expect("apply");
 		let article = std::fs::read_to_string(root.join("contents/b.md")).expect("article");
 		assert!(article.contains("not-imported-yet.png"), "{article}");
+	}
+
+	#[test]
+	fn every_record_is_told_what_its_bare_id_means() {
+		// Nothing wrote one before the field existed, so `/{rid}` refused every resource in the
+		// corpus. A picture answers with its largest variant and a clip with its largest rung.
+		let (_temporary, root) = scenario();
+		let plan = planned(&root);
+		assert_eq!(plan.declared.len(), 3);
+		assert_eq!(means(&plan, PICTURE), "cid:20805a43fdc2119f1aa8fae25c0ff8e1.avif");
+		assert_eq!(means(&plan, POSTER), "cid:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.avif");
+		assert_eq!(means(&plan, CLIP), "cid:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.mp4");
+		for declared in &plan.declared {
+			assert_eq!(plan.merged.media[&declared.key].canonical, Some(declared.canonical.clone()));
+		}
+	}
+
+	#[test]
+	fn a_corpus_that_only_lacks_canonicals_is_not_one_with_nothing_to_do() {
+		// The state the corpus is actually in: every id granted, every article rewritten, and no
+		// record saying what its bare id means. A gate that asked only about ids would pass it.
+		let (_temporary, root) = scenario();
+		let articles = root.join("contents");
+		apply(&root, &articles, &planned(&root)).expect("apply");
+		strip_canonicals(&root);
+
+		let plan = planned(&root);
+		assert!(!plan.is_empty());
+		assert!(plan.grants.is_empty(), "granted an id twice");
+		assert!(plan.rewrites.is_empty(), "rewrote a reference twice");
+		assert_eq!(plan.declared.len(), 3);
+		apply(&root, &articles, &plan).expect("apply");
+		assert!(planned(&root).is_empty());
+	}
+
+	#[test]
+	fn a_record_that_already_says_what_it_means_is_not_told_again() {
+		// Which rendition is best changes when the ladder is re-derived, and this pass derives
+		// nothing -- so a canonical on disk is an answer to keep rather than one to recompute.
+		let (_temporary, root) = scenario();
+		apply(&root, &root.join("contents"), &planned(&root)).expect("apply");
+		let plan = planned(&root);
+		assert!(plan.declared.is_empty());
+		assert_eq!(means(&plan, PICTURE), "cid:20805a43fdc2119f1aa8fae25c0ff8e1.avif");
+	}
+
+	/// What the plan says a record's bare id means, whether it is declaring it now or keeping it.
+	fn means(plan: &Plan, key: &str) -> String {
+		plan.merged.media[key].canonical.as_ref().expect("a canonical").to_string()
+	}
+
+	/// The manifest as it is on disk now: migrated, and written before this field existed.
+	fn strip_canonicals(root: &Path) {
+		let text = std::fs::read_to_string(root.join(MERGED)).expect("manifest");
+		let mut manifest: serde_json::Value = serde_json::from_str(&text).expect("json");
+		let media = manifest["media"].as_object_mut().expect("records");
+		for record in media.values_mut() {
+			record.as_object_mut().expect("a record").remove("canonical");
+		}
+		let json = serde_json::to_string_pretty(&manifest).expect("json");
+		store::write(&root.join(MERGED), json.as_bytes()).expect("manifest");
 	}
 
 	#[test]

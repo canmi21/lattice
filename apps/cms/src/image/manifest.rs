@@ -17,12 +17,12 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::BTreeMap;
 use std::path::Path;
 
-/// Bumped when the shape changes, so a reader can tell rather than guess. The first change
-/// without one is the one that corrupts silently: 1 the original shape; 2 assets gain a
-/// `description`; 3 `description` moves to `data/record/media.yaml`, `preview` and `original`
-/// are dropped, and camera data arrives as `metadata`; 4 `type` becomes a discriminant, so each
-/// kind gets its own body; 5 the record becomes a resource -- an allocated rid names it, `type`
-/// is a namespace and the body becomes `layers`. See spec/architecture/resource.md.
+/// Bumped when the shape changes, so a reader can tell rather than guess; the first change
+/// without one is the one that corrupts silently. 1 the original shape; 2 assets gain a
+/// `description`; 3 it moves to `data/record/media.yaml`, `preview` and `original` go, and
+/// camera data arrives as `metadata`; 4 `type` becomes a discriminant, each kind getting its own
+/// body; 5 the record becomes a resource -- a rid names it, `type` is a namespace and the body
+/// becomes `layers`. `canonical` joined 5 rather than making a 6: 5 has never been deployed.
 pub const VERSION: u32 = 5;
 
 /// One media resource's record: the envelope every resource has, with this crate's layers typed.
@@ -409,8 +409,6 @@ pub fn scalable(mime: &str) -> bool {
 /// `rank` is the whole of the rule, and the order of the tuple it returns is the order the
 /// tie-breaks apply in.
 struct Rendition<'a> {
-	/// Enough at any size, so it outranks every bitmap however many pixels that one has.
-	scalable: bool,
 	pixels: u64,
 	bytes: u64,
 	content: &'a str,
@@ -418,8 +416,8 @@ struct Rendition<'a> {
 }
 
 impl<'a> Rendition<'a> {
-	fn rank(&self) -> (bool, u64, u64, &'a str) {
-		(self.scalable, self.pixels, self.bytes, self.content)
+	fn rank(&self) -> (u64, u64, &'a str) {
+		(self.pixels, self.bytes, self.content)
 	}
 }
 
@@ -428,19 +426,21 @@ impl<'a> Rendition<'a> {
 /// Quality and not compatibility, deliberately -- `<picture>` answers compatibility on the site,
 /// and a short link should hand over the best thing there is. Ties break on bytes and then on
 /// the cid, so two runs over one record answer the same rather than whichever a map yielded
-/// first. A resource with nothing published declares nothing, and `/{rid}` refuses it.
+/// first. A resource with nothing to point at declares nothing, and `/{rid}` refuses it.
 pub fn canonical_of(layers: &Layers) -> Option<Canonical> {
-	let pictures = layers.image.iter().flat_map(|image| image.variants.iter()).map(|variant| {
-		Rendition {
-			scalable: scalable(&variant.mime),
-			pixels: variant.resolution.as_ref().map_or(0, Resolution::pixels),
-			bytes: variant.bytes,
-			content: &variant.content,
-			extension: crate::extension::for_variant(&variant.mime),
-		}
-	});
+	let pictures =
+		layers.image.iter().flat_map(|image| image.variants.iter()).filter_map(|variant| {
+			// A variant reporting no pixels is a vector, which this ladder does not publish --
+			// and which `for_variant` would name `.avif`. An address to a file nobody wrote is
+			// worse than the refusal a resource with nothing to point at already gets.
+			Some(Rendition {
+				pixels: variant.resolution.as_ref()?.pixels(),
+				bytes: variant.bytes,
+				content: &variant.content,
+				extension: crate::extension::for_variant(&variant.mime),
+			})
+		});
 	let rungs = layers.video.iter().flat_map(|video| video.variants.iter()).map(|rung| Rendition {
-		scalable: false,
 		pixels: rung.resolution.pixels(),
 		bytes: rung.bytes,
 		content: &rung.content,
@@ -674,6 +674,14 @@ impl Unnamed {
 		record.get("resource").is_some_and(serde_json::Value::is_string)
 	}
 
+	/// Whether it already says what a bare id of it means.
+	///
+	/// Asked of the unparsed record for the reason the one above is: what the migration fills in
+	/// is exactly what the typed record cannot tell it was missing.
+	pub fn declares(record: &serde_json::Value) -> bool {
+		record.get("canonical").is_some_and(serde_json::Value::is_string)
+	}
+
 	/// The content id a clip names its poster by, before that link is a rid.
 	///
 	/// Read off the unparsed record because the typed one no longer has anywhere to put it: the
@@ -837,7 +845,7 @@ fn from_legacy(
 		}
 	};
 	Ok(Media {
-		canonical: None,
+		canonical: canonical_of(&layers),
 		version: VERSION,
 		resource,
 		namespace,
@@ -907,11 +915,11 @@ fn leaf_of(layers: &Layers) -> Namespace {
 /// Find the records whose published document is not the shape this build writes.
 ///
 /// Staleness is per document rather than per manifest: the aggregate version can advance before
-/// a guarded write finishes, which would hide staleness forever as a one-shot gate. One that
-/// does not parse counts as stale, which is how every record written before this shape is found.
+/// a guarded write finishes and hide staleness forever. One that does not parse is stale, and so
+/// is one whose canonical disagrees -- that field joined 5 without moving it, so no number says.
 ///
-/// Looked for under the record's rid, because asking under the manifest's key would find nothing
-/// and write the whole metadata tree back under the cids `cms migrate` just moved it off.
+/// Looked for under the record's rid: the manifest's key would find nothing, and write the whole
+/// metadata tree back under the cids `cms migrate` just moved it off.
 pub fn migrate(merged: &Merged, metadata: &Path) -> Vec<String> {
 	merged
 		.media
@@ -921,7 +929,9 @@ pub fn migrate(merged: &Merged, metadata: &Path) -> Vec<String> {
 			std::fs::read_to_string(path)
 				.ok()
 				.and_then(|text| serde_json::from_str::<Media>(&text).ok())
-				.is_none_or(|document| document.version < VERSION)
+				.is_none_or(|document| {
+					document.version < VERSION || document.canonical != media.canonical
+				})
 		})
 		.map(|(key, _)| key.clone())
 		.collect()
@@ -992,7 +1002,7 @@ pub fn media_for(
 		leaf_of(&layers)
 	};
 	Media {
-		canonical: None,
+		canonical: canonical_of(&layers),
 		version: VERSION,
 		resource: previous.map_or(resource, |media| media.resource),
 		namespace,
@@ -1098,7 +1108,7 @@ pub mod fixture {
 	/// The envelope around either.
 	fn record(resource: &str, namespace: Namespace, layers: Layers) -> Media {
 		Media {
-			canonical: None,
+			canonical: canonical_of(&layers),
 			version: VERSION,
 			resource: ResourceId::parse(resource).expect("a rid"),
 			namespace,
@@ -1421,5 +1431,134 @@ mod tests {
 		let again = media_for(&derived, "image/png", 512, Some(&frame), None, rid(8));
 		assert_eq!(again.namespace.to_string(), "media.image.frame");
 		assert_eq!(again.layers.frame.map(|frame| frame.source), Some(clip));
+	}
+
+	/// Three cids in the order they sort, spelled the way `libs/artifacts` insists a canonical is.
+	const FIRST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+	const SECOND: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+	const THIRD: &str = "cccccccccccccccccccccccccccccccc";
+
+	/// A picture's layers, publishing one variant per `(cid, width, height, bytes)`.
+	fn published_as(variants: &[(&str, u32, u32, u64)]) -> Layers {
+		let mut layers =
+			Layers::of(layer::Media { version: layer::Media::VERSION, origin: Vec::new() });
+		layers.image = Some(layer::Image {
+			version: layer::Image::VERSION,
+			thumbhash: String::new(),
+			dimension: Dimension { width: 1920, height: 1248, aspect: "40:26".into() },
+			resolution: None,
+			variants: variants
+				.iter()
+				.map(|(content, width, height, bytes)| ImageVariant {
+					content: (*content).to_owned(),
+					mime: "image/avif".into(),
+					bytes: *bytes,
+					resolution: Some(Resolution { width: *width, height: *height }),
+					quality: None,
+				})
+				.collect(),
+		});
+		layers
+	}
+
+	/// What a bare id of these layers means, as it is spelled on disk.
+	fn means(layers: &Layers) -> String {
+		canonical_of(layers).expect("a canonical").to_string()
+	}
+
+	#[test]
+	fn a_bare_id_means_the_largest_variant_there_is() {
+		// Quality and not compatibility: `<picture>` answers compatibility on the site, and a
+		// short link should hand over the best thing there is.
+		let layers = published_as(&[
+			(THIRD, 640, 416, 2253),
+			(FIRST, 1920, 1248, 25733),
+			(SECOND, 1280, 832, 9102),
+		]);
+		assert_eq!(means(&layers), format!("cid:{FIRST}.avif"));
+	}
+
+	#[test]
+	fn two_variants_of_one_size_break_on_bytes_and_then_on_the_cid() {
+		// Stability is the whole point: two runs over one record have to answer the same, rather
+		// than whichever variant a map happened to yield first.
+		let bytes = published_as(&[(FIRST, 100, 100, 20), (SECOND, 100, 100, 10)]);
+		assert_eq!(means(&bytes), format!("cid:{FIRST}.avif"));
+		let cid = published_as(&[(FIRST, 100, 100, 10), (SECOND, 100, 100, 10)]);
+		assert_eq!(means(&cid), format!("cid:{SECOND}.avif"));
+		let reversed = published_as(&[(SECOND, 100, 100, 10), (FIRST, 100, 100, 10)]);
+		assert_eq!(means(&reversed), means(&cid));
+	}
+
+	#[test]
+	fn a_variant_is_named_the_way_the_file_holding_it_was() {
+		// The canonical is an address somebody fetches, so a second spelling of an extension is
+		// not a hop -- it is a missing file.
+		let mut layers = published_as(&[(FIRST, 100, 100, 10)]);
+		layers.image.as_mut().expect("a picture").variants[0].mime = "image/jpeg".into();
+		assert_eq!(means(&layers), format!("cid:{FIRST}.jpeg"));
+	}
+
+	#[test]
+	fn a_variant_reporting_no_pixels_is_not_an_address_to_hand_out() {
+		// A vector, which this ladder does not publish and whose name this side would have to
+		// guess. A short link that refuses is better than one that resolves to a missing file.
+		let mut layers = published_as(&[(FIRST, 100, 100, 10)]);
+		let vector = &mut layers.image.as_mut().expect("a picture").variants[0];
+		vector.mime = "image/svg+xml".into();
+		vector.resolution = None;
+		assert_eq!(canonical_of(&layers), None);
+	}
+
+	#[test]
+	fn a_resource_that_publishes_nothing_declares_nothing() {
+		// Inventing a canonical for a record with no object to point at would hand a reader an
+		// address to nothing, so the bare id is refused instead.
+		assert_eq!(canonical_of(&published_as(&[])), None);
+		let bare = Layers::of(layer::Media { version: layer::Media::VERSION, origin: Vec::new() });
+		assert_eq!(canonical_of(&bare), None);
+		let media = media_for(&derived_of("ab"), "image/png", 512, None, None, rid(9));
+		assert_eq!(media.canonical, None);
+	}
+
+	#[test]
+	fn a_clip_means_its_largest_rung_under_the_one_container_it_is_stored_in() {
+		// One codec in one container, so the extension is fixed rather than read off a mime that
+		// could only ever say the same thing.
+		let mut clip = fixture::clip("q4w8n", "ab", "k7m2x", &[FIRST, SECOND], &[]);
+		let rungs = &mut clip.layers.video.as_mut().expect("a clip").variants;
+		rungs[1].resolution = Resolution { width: 640, height: 360 };
+		assert_eq!(means(&clip.layers), format!("cid:{FIRST}.mp4"));
+	}
+
+	#[test]
+	fn a_published_record_that_does_not_say_what_it_means_is_stale() {
+		// The version number could not report this one: the field joined 5 without moving it, so
+		// what is on disk is compared on the field itself rather than on a number.
+		let temporary = tempfile::tempdir().expect("temp");
+		let metadata = temporary.path();
+		let merged = merged_of(LEGACY_IMAGE);
+		let media = merged.media.get(LEGACY_CID).expect("the record");
+		let path = crate::image::store::meta_path(metadata, media.resource.as_str());
+
+		let mut published = media.clone();
+		published.canonical = None;
+		let json = serde_json::to_string(&published).expect("json");
+		crate::image::store::write(&path, json.as_bytes()).expect("sidecar");
+		assert_eq!(migrate(&merged, metadata), vec![LEGACY_CID.to_owned()]);
+
+		let json = serde_json::to_string(media).expect("json");
+		crate::image::store::write(&path, json.as_bytes()).expect("sidecar");
+		assert!(migrate(&merged, metadata).is_empty());
+	}
+
+	#[test]
+	fn a_record_read_off_disk_gains_what_its_bare_id_means() {
+		// The real record, converted the way `cms migrate` converts it: one variant, so the
+		// largest is the only one, and the spelling is the one `libs/artifacts` validates.
+		let merged = merged_of(LEGACY_IMAGE);
+		let media = merged.media.get(LEGACY_CID).expect("the record");
+		let canonical = media.canonical.clone().expect("a canonical");
+		assert_eq!(canonical.to_string(), "cid:20805a43fdc2119f1aa8fae25c0ff8e1.avif");
 	}
 }
