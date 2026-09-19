@@ -1,4 +1,232 @@
 <script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import { duration, easing, radius, text } from '$lib/vocabulary.stylex.ts';
+
+	/**
+	 * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
+	 * read against the page and these against a video frame. See spec/styling/player.md, "The
+	 * player brings its own colours, because it cannot know what is behind them", and
+	 * spec/architecture/css/authoring.md, "Colour is never retyped".
+	 *
+	 * A transition naming two properties writes its lists doubled and as literals, the way
+	 * `surfaces.quietControl` does: spec/todo.md, "A `transition` shorthand sets five lists".
+	 */
+	const styles = stylex.create({
+		/**
+		 * The disc over the middle of the picture. `transform` is here rather than in the markup
+		 * because the frame cannot spell it: Tailwind 4 enlarges with the `scale` property, which
+		 * is a different declaration and a different computed value from this one. The three
+		 * `outline` longhands are `outline: none` written out, because an omitted longhand is not
+		 * its initial value -- measured, the shorthand leaves `currentColor` and `medium` behind
+		 * it. See spec/architecture/css/migration.md.
+		 */
+		cover: {
+			borderWidth: 0,
+			borderStyle: 'none',
+			borderRadius: radius.full,
+			color: 'var(--player-ink)',
+			backgroundColor: 'var(--player-glass)',
+			backdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+			WebkitBackdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+			// Hidden by default and faded in, on the chrome's curve and duration, because after the
+			// first click the two leave together: a clip playing to nobody drops its whole
+			// interface at once rather than in two steps. The `:focus-visible` branch is the
+			// invisible tab stop -- a ring drawn on a control nobody can see is worse than none.
+			opacity: { default: 0, ':focus-visible': 1 },
+			transform: { default: null, ':hover': 'scale(1.05)' },
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+			outlineWidth: { default: null, ':focus-visible': 'medium' },
+			outlineColor: { default: null, ':focus-visible': 'currentColor' },
+			transitionProperty: {
+				default: 'opacity, transform',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '200ms, 200ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.4, 0, 0.2, 1)',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+			transitionDelay: { default: '0s, 0s', '@media (prefers-reduced-motion: reduce)': '0s' },
+			// The fifth list the shorthand set. Two entries, because a `transition` naming two
+			// properties computes to two -- measured, `normal, normal` before and `normal` after
+			// when it was left off, which renders the same and is still a value that changed.
+			transitionBehavior: {
+				default: 'normal, normal',
+				'@media (prefers-reduced-motion: reduce)': 'normal',
+			},
+		},
+		/** The cover on screen, which the disc and the picture-in-picture return share. */
+		coverShown: { opacity: 1 },
+
+		/**
+		 * The still: grey and slightly dimmed, which is the whole message -- this is a picture of
+		 * the clip and not the clip. Its fade is not in the reduced-motion branch below and was
+		 * not before, so it is carried across as it stands.
+		 */
+		still: {
+			filter: 'grayscale(1) brightness(0.55)',
+			opacity: 0,
+			transitionProperty: 'opacity',
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
+			transitionDelay: '0s',
+		},
+		stillShown: { opacity: 1 },
+
+		/**
+		 * The veil under the control row, which is a gradient and therefore a background image
+		 * rather than a background colour. The row's other half of this pair -- the answer to a
+		 * focus inside it -- stays in the scoped block, where a relational selector can reach it.
+		 */
+		chrome: {
+			backgroundImage: 'var(--player-veil)',
+			opacity: 0,
+			transitionProperty: {
+				default: 'opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: duration.base,
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: easing.inOut,
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+			transitionDelay: { default: '0s', '@media (prefers-reduced-motion: reduce)': '0s' },
+		},
+		chromeShown: { opacity: 1 },
+
+		/** The ink the row hands down to everything in it. */
+		row: { color: 'var(--player-ink)' },
+
+		/**
+		 * A control in the row. Hover lights the glyph and draws nothing behind it -- a plate here
+		 * would be a plate on the row's own veil, and a bigger visual event than the state it
+		 * reports. The wash stays for the menu below, where a highlighted row is the surface
+		 * rather than an ornament.
+		 */
+		button: {
+			borderWidth: 0,
+			borderStyle: 'none',
+			borderRadius: radius.md,
+			color: {
+				default: 'var(--player-ink-dim)',
+				':hover': 'var(--player-ink)',
+				':focus-visible': 'var(--player-ink)',
+			},
+			backgroundColor: 'transparent',
+			transitionProperty: { default: 'color', '@media (prefers-reduced-motion: reduce)': 'none' },
+			transitionDuration: {
+				default: duration.base,
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: easing.inOut,
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+			transitionDelay: { default: '0s', '@media (prefers-reduced-motion: reduce)': '0s' },
+		},
+		/** A toggle reporting that it is on, which is full ink and nothing else. */
+		buttonOn: { color: 'var(--player-ink)' },
+
+		/** The elapsed and total time, in figures that do not shift width as they count. */
+		clock: {
+			fontSize: text.px11,
+			fontVariantNumeric: 'tabular-nums',
+			color: 'var(--player-ink-dim)',
+			textShadow: 'var(--player-shadow)',
+		},
+
+		/**
+		 * The scrubber's unfilled bar. Its `outlineColor` is stated at rest for the reason
+		 * spec/styling/focus.md gives: an outline's colour is `currentColor` until named, and the
+		 * ring this bar is handed would otherwise start from the row's ink.
+		 */
+		track: {
+			borderRadius: radius.full,
+			backgroundColor: 'var(--player-ink-faint)',
+			outlineColor: 'var(--color-accent)',
+		},
+		/** Both bars take the track's corner rather than restating it. */
+		bar: { borderRadius: 'inherit' },
+		loaded: { backgroundColor: 'var(--player-ink-dim)' },
+		played: { backgroundColor: 'var(--player-ink)' },
+
+		/**
+		 * What the two range inputs share: no ground of their own, and a ring they hand to the bar
+		 * a reader can actually see. The three `outline` longhands are `outline: none` written
+		 * out, the same as the cover's.
+		 */
+		slider: {
+			backgroundColor: 'transparent',
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+			outlineWidth: { default: null, ':focus-visible': 'medium' },
+			outlineColor: { default: 'var(--color-accent)', ':focus-visible': 'currentColor' },
+		},
+		/**
+		 * The volume slider, closed. The width it opens to lives in the scoped block with the
+		 * parent's hover, which no class can express.
+		 */
+		level: {
+			opacity: 0,
+			transitionProperty: {
+				default: 'width, opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '200ms, 200ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.4, 0, 0.2, 1)',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+			transitionDelay: { default: '0s, 0s', '@media (prefers-reduced-motion: reduce)': '0s' },
+			transitionBehavior: {
+				default: 'normal, normal',
+				'@media (prefers-reduced-motion: reduce)': 'normal',
+			},
+		},
+
+		/**
+		 * The settings menu stands away from the frame, so it carries the plate rather than the
+		 * veil. Its corner is a literal: 0.625rem is on no scale this repository names.
+		 */
+		menu: {
+			borderRadius: '0.625rem',
+			backgroundColor: 'var(--player-glass)',
+			backdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+			WebkitBackdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+		},
+		menuTitle: {
+			fontSize: text.px10,
+			letterSpacing: '0.02em',
+			color: 'var(--player-ink-faint)',
+		},
+		/** A row in the menu, where the highlight is the surface rather than an ornament on it. */
+		menuItem: {
+			borderWidth: 0,
+			borderStyle: 'none',
+			borderRadius: radius.md,
+			fontSize: text.px12,
+			color: {
+				default: 'var(--player-ink-dim)',
+				':hover': 'var(--player-ink)',
+				':focus-visible': 'var(--player-ink)',
+			},
+			backgroundColor: {
+				default: 'transparent',
+				':hover': 'var(--player-wash)',
+				':focus-visible': 'var(--player-wash)',
+			},
+		},
+		menuItemOn: { color: 'var(--player-ink)' },
+	});
+
 	/**
 	 * Whether a reader has given this page permission to make noise, for every clip at once.
 	 *
@@ -17,8 +245,8 @@
 	 * See spec/architecture/video/player.md, "The chrome is built on `@videojs/core`'s headless
 	 * store, not its skin", for why `@videojs/core/dom` and not the preset or custom elements, and
 	 * for the `attach` trap. Every colour is a `--player-*` token, the one that does not follow the
-	 * theme -- see `libs/tokens/src/player.css` for why -- and the rest is a scoped `<style>` because
-	 * most of it addresses slider pseudo-elements no utility or StyleX object can name.
+	 * theme -- see `libs/tokens/src/player.css` for why. The scoped block at the foot keeps 71 of
+	 * its 195 declarations, and every one of them is a selector no class can reach.
 	 */
 	import {
 		bufferFeature,
@@ -55,7 +283,7 @@
 	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
 	import { keepPosition, positionOf, stillOf } from '$lib/client/progress';
 	import { reader } from '$lib/client/state';
-	import type { VideoRung } from '$lib/content/build/assets.ts';
+	import type { VideoRung } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import * as m from '$lib/paraglide/messages';
 
@@ -244,7 +472,9 @@
 		>;
 		if (!video || !frame) return;
 		const adapter = new HTMLVideoAdapter();
-		const released = adapter.attach(video);
+		// `attach` returns nothing -- read in @videojs/media 10.0.0-rc.2, every path falls off the
+		// end -- so there is no release function to hold and the teardown below has none to call.
+		adapter.attach(video);
 		const detach = store.attach({ media: adapter, container: frame });
 		player = store;
 
@@ -273,7 +503,6 @@
 		return () => {
 			stop?.();
 			detach?.();
-			released?.();
 			store.destroy?.();
 			player = null;
 		};
@@ -526,10 +755,10 @@
 
 		for (const track of element.textTracks) {
 			for (const cue of track.cues ?? []) {
-				cue.snapToLines = false;
+				(cue as VTTCue).snapToLines = false;
 				// Assigned before `line`, because `line` is validated against it.
 				if ('lineAlign' in cue) (cue as VTTCue).lineAlign = 'end';
-				cue.line = line;
+				(cue as VTTCue).line = line;
 
 				if (!written.has(cue)) written.set(cue, (cue as VTTCue).text);
 				const original = written.get(cue) ?? '';
@@ -873,7 +1102,7 @@
 		volume = next;
 		reader.remember(localStorage, VOLUME_KEY, next);
 		applyVolume();
-		if (next > 0 && video.muted) video.muted = false;
+		if (next > 0 && video?.muted) video.muted = false;
 	}
 
 	/** One click, and the level the reader already chose comes back. */
@@ -929,6 +1158,12 @@
 		view.paused ? m['video.play']({}, { locale }) : m['video.pause']({}, { locale }),
 	);
 
+	/** Whether the pointer is on the cover itself, which is not the same as being on the frame. */
+	let onCover = $state(false);
+	/** Whether the countdown started by the last state change is still running. */
+	let lingering = $state(false);
+	let linger: ReturnType<typeof setTimeout> | undefined;
+
 	/**
 	 * Whether the cover is asking to be seen -- three answers, because it answers three different
 	 * questions: the invitation before a click, a guest over the row once awake, and the only
@@ -962,12 +1197,6 @@
 	 * playing to a still pointer is unobstructed.
 	 */
 	const COVER_LINGER = 2000;
-
-	/** Whether the pointer is on the cover itself, which is not the same as being on the frame. */
-	let onCover = $state(false);
-	/** Whether the countdown started by the last state change is still running. */
-	let lingering = $state(false);
-	let linger: ReturnType<typeof setTimeout> | undefined;
 
 	/**
 	 * Restart the countdown. Not the store's own `userActive`: that resets on any movement inside
@@ -1020,8 +1249,10 @@
 -->
 <canvas
 	bind:this={still}
-	class="player-still"
-	class:player-still-shown={view.pip}
+	class="pointer-events-none absolute inset-0 h-full w-full object-cover {stylex.attrs(
+		styles.still,
+		view.pip && styles.stillShown,
+	).class}"
 	aria-hidden="true"
 ></canvas>
 
@@ -1034,7 +1265,10 @@
 		}}
 		aria-label={m['video.exit-pip']({}, { locale })}
 		title={m['video.exit-pip']({}, { locale })}
-		class="player-cover player-cover-shown"
+		class="player-cover pointer-events-auto absolute inset-0 m-auto grid size-16 cursor-pointer place-items-center {stylex.attrs(
+			styles.cover,
+			styles.coverShown,
+		).class}"
 	>
 		<PictureInPictureIcon class="player-cover-glyph" weight="bold" aria-hidden="true" />
 	</button>
@@ -1058,23 +1292,39 @@
 			// moment it would have had if the pointer had never arrived.
 			hold();
 		}}
-		class="player-cover"
-		class:player-cover-shown={covered}
+		class="player-cover absolute inset-0 m-auto grid size-16 cursor-pointer place-items-center focus-visible:pointer-events-auto {covered
+			? 'pointer-events-auto'
+			: 'pointer-events-none'} {stylex.attrs(styles.cover, covered && styles.coverShown).class}"
 	>
 		{#if coverRunning}<PauseIcon class="player-cover-pause" weight="fill" aria-hidden="true" />
 		{:else}<PlayIcon class="player-cover-glyph" weight="fill" aria-hidden="true" />{/if}
 	</button>
 {/if}
 
-<div class="player-chrome" class:player-chrome-shown={shown}>
-	<div class="player-scrub">
-		<div class="player-track">
-			<div class="player-loaded" style="width:{loaded}%"></div>
-			<div class="player-played" style="width:{played}%"></div>
+<div
+	class="player-chrome absolute inset-x-0 top-auto bottom-0 px-2.5 pt-8 pb-2 {shown
+		? 'pointer-events-auto'
+		: 'pointer-events-none'} {stylex.attrs(styles.chrome, shown && styles.chromeShown).class}"
+>
+	<div class="player-scrub relative mx-1.5 flex h-4 items-center">
+		<div
+			class="player-track absolute inset-x-0 h-0.75 overflow-hidden {stylex.attrs(styles.track)
+				.class}"
+		>
+			<div
+				class="absolute inset-y-0 start-0 {stylex.attrs(styles.bar, styles.loaded).class}"
+				style="width:{loaded}%"
+			></div>
+			<div
+				class="absolute inset-y-0 start-0 {stylex.attrs(styles.bar, styles.played).class}"
+				style="width:{played}%"
+			></div>
 		</div>
 		<input
 			type="range"
-			class="player-seek"
+			class="player-seek relative m-0 h-4 w-full cursor-pointer appearance-none {stylex.attrs(
+				styles.slider,
+			).class}"
 			min="0"
 			max={view.duration || 1}
 			step="0.01"
@@ -1086,8 +1336,16 @@
 		/>
 	</div>
 
-	<div class="player-row">
-		<button type="button" class="player-button" onclick={toggle} aria-label={label} title={label}>
+	<div class="flex items-center gap-0.5 {stylex.attrs(styles.row).class}">
+		<button
+			type="button"
+			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+				styles.button,
+			).class}"
+			onclick={toggle}
+			aria-label={label}
+			title={label}
+		>
 			{#if view.paused}<PlayIcon
 					class="player-glyph player-glyph-play focus-ring-inner"
 					weight="fill"
@@ -1100,10 +1358,12 @@
 				/>{/if}
 		</button>
 
-		<div class="player-volume">
+		<div class="player-volume flex items-center">
 			<button
 				type="button"
-				class="player-button"
+				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					styles.button,
+				).class}"
 				onclick={unmute}
 				aria-label={m['video.mute']({}, { locale })}
 				title={m['video.mute']({}, { locale })}
@@ -1121,7 +1381,10 @@
 			</button>
 			<input
 				type="range"
-				class="player-level"
+				class="player-level h-4 w-0 cursor-pointer appearance-none {stylex.attrs(
+					styles.slider,
+					styles.level,
+				).class}"
 				min="0"
 				max="1"
 				step="0.01"
@@ -1132,15 +1395,19 @@
 			/>
 		</div>
 
-		<span class="player-clock">{clock(view.currentTime)} / {clock(view.duration)}</span>
+		<span class="ms-1.5 {stylex.attrs(styles.clock).class}"
+			>{clock(view.currentTime)} / {clock(view.duration)}</span
+		>
 
-		<span class="player-gap"></span>
+		<span class="flex-1"></span>
 
 		{#if view.hasCaptions}
 			<button
 				type="button"
-				class="player-button"
-				class:player-on={view.captions}
+				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					styles.button,
+					view.captions && styles.buttonOn,
+				).class}"
 				onclick={() => {
 					// The reader's answer, and the only thing that writes it. The store is told by
 					// the effect above rather than from here, so there is one path onto the clip
@@ -1160,11 +1427,13 @@
 			</button>
 		{/if}
 
-		<div class="player-menu-holder">
+		<div class="relative">
 			<button
 				type="button"
-				class="player-button"
-				class:player-on={menu}
+				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					styles.button,
+					menu && styles.buttonOn,
+				).class}"
 				onclick={() => (menu = !menu)}
 				aria-expanded={menu}
 				aria-label={m['video.settings']({}, { locale })}
@@ -1185,36 +1454,50 @@
 				/>
 			</button>
 			{#if menu}
-				<div class="player-menu">
+				<div
+					class="absolute end-0 bottom-9 min-w-28 p-1 text-start {stylex.attrs(styles.menu).class}"
+				>
 					{#if rungs && rungs.length > 1}
-						<p class="player-menu-title">{m['video.quality']({}, { locale })}</p>
+						<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
+							{m['video.quality']({}, { locale })}
+						</p>
 						{#each rungs as rung (rung.src)}
 							<button
 								type="button"
-								class="player-menu-item focus-ring"
-								class:player-on={chosen === rung.src}
+								class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
+									styles.menuItem,
+									chosen === rung.src && styles.menuItemOn,
+								).class}"
 								onclick={() => quality(rung.src)}
 							>
 								{rung.height}p
 							</button>
 						{/each}
 					{/if}
-					<p class="player-menu-title">{m['video.speed']({}, { locale })}</p>
+					<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
+						{m['video.speed']({}, { locale })}
+					</p>
 					{#each [0.5, 1, 1.25, 1.5, 2] as rate (rate)}
 						<button
 							type="button"
-							class="player-menu-item focus-ring"
-							class:player-on={view.rate === rate}
+							class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
+								styles.menuItem,
+								view.rate === rate && styles.menuItemOn,
+							).class}"
 							onclick={() => (player?.setPlaybackRate as (value: number) => void)?.(rate)}
 						>
 							{rate}&times;
 						</button>
 					{/each}
-					<p class="player-menu-title">{m['video.boost']({}, { locale })}</p>
+					<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
+						{m['video.boost']({}, { locale })}
+					</p>
 					<button
 						type="button"
-						class="player-menu-item focus-ring"
-						class:player-on={boost}
+						class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
+							styles.menuItem,
+							boost && styles.menuItemOn,
+						).class}"
 						onclick={() => {
 							boost = !boost;
 							reader.remember(localStorage, BOOST_KEY, boost);
@@ -1230,7 +1513,9 @@
 		{#if view.pipAvailable}
 			<button
 				type="button"
-				class="player-button"
+				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					styles.button,
+				).class}"
 				onclick={() => (player?.togglePictureInPicture as () => void)?.()}
 				aria-label={m['video.pip']({}, { locale })}
 				title={m['video.pip']({}, { locale })}
@@ -1243,10 +1528,20 @@
 			</button>
 		{/if}
 
+		<!--
+			Web fullscreen is offered only once `.article-column`'s 720px cap has been reached, in
+			CSS rather than script so it is right on the first frame. See
+			spec/architecture/video/player.md, "Filling the window is a page mode, not a media one".
+			The query is spelled out rather than taken from Tailwind's own maximum-width variant,
+			which compiles to a strictly-less-than comparison and would leave this control on
+			screen at exactly 45rem. Measured against the rule it replaces.
+		-->
 		<button
 			type="button"
-			class="player-button player-fill"
-			class:player-on={filling}
+			class="player-button inline-grid size-7.5 cursor-pointer place-items-center [@media(max-width:45rem)]:hidden {stylex.attrs(
+				styles.button,
+				filling && styles.buttonOn,
+			).class}"
 			onclick={() => {
 				if (!filling) restore = window.scrollY;
 				filling = !filling;
@@ -1268,7 +1563,9 @@
 
 		<button
 			type="button"
-			class="player-button"
+			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+				styles.button,
+			).class}"
 			onclick={() => (player?.toggleFullscreen as () => void)?.()}
 			aria-label={view.fullscreen
 				? m['video.exit-fullscreen']({}, { locale })
@@ -1287,55 +1584,25 @@
 </div>
 
 <style>
+	/* What is left here is what no class can reach, which is the whole of the escape hatch's job:
+	   spec/architecture/css/layers.md, "What each layer owns, by name". Three kinds of thing --
+	   the slider pseudo-elements the two range inputs are actually drawn from, the glyphs inside
+	   the icon components, and the rules whose condition is a relation rather than a state of the
+	   element itself. Everything else the block used to hold is in the vocabulary at the head of
+	   this file or in the markup's own classes. */
+
 	/* Every control here opts into the site's keyboard indicator by name -- the accent outline,
 	   flush, suppressed on a pointer. Which utility depends on the control's visible edge: a
 	   circle or a row's own width takes `focus-ring`; a 30px button around a 16px glyph hands the
 	   outline to the glyph with `focus-ring-inner`, since the 7px around it is hit target rather
 	   than control. See spec/styling/focus.md and styles/utilities.css for the measurement. */
 
-	/* The cover: a circle of the same plate the row uses, so the two read as one material. */
-	.player-cover {
-		position: absolute;
-		inset: 0;
-		margin: auto;
-		display: grid;
-		place-items: center;
-		width: 4rem;
-		height: 4rem;
-		border: 0;
-		border-radius: calc(infinity * 1px);
-		cursor: pointer;
-		color: var(--player-ink);
-		background: var(--player-glass);
-		backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
-		-webkit-backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
-		/* Hidden by default and faded in, on the chrome's curve and duration, because after the
-		   first click the two leave together: a clip playing to nobody drops its whole interface
-		   at once rather than in two steps. */
-		opacity: 0;
-		pointer-events: none;
-		transition:
-			opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
-			transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	/* `:focus-visible` for the reason the chrome has it: an invisible button is still a tab stop,
-	   and a focus ring drawn on a control nobody can see is worse than no ring. */
-	.player-cover-shown,
-	.player-cover:focus-visible {
-		opacity: 1;
-		pointer-events: auto;
-	}
-
 	/* The cover's ring is drawn on the glyph and follows its actual shape, not a box around it --
 	   neither the 64px disc nor a box around the 30px glyph is the thing being pointed at. `w` is
 	   the site's 0.125rem stroke width, at this glyph's scale 42.67 user units. See
 	   spec/styling/focus.md for why the ring is an exception here and how `paint-order` makes a
-	   stroke read as one. */
-	.player-cover:focus-visible {
-		outline: none;
-	}
-
+	   stroke read as one. The disc's own `outline: none` is in the vocabulary, on the element a
+	   class does reach. */
 	.player-cover:focus-visible :global(svg) {
 		stroke: var(--color-accent);
 		stroke-width: 42.67px;
@@ -1353,10 +1620,6 @@
 		stroke: none;
 	}
 
-	.player-cover:hover {
-		transform: scale(1.05);
-	}
-
 	/* No offset: Phosphor already centres `Play` on its mass (centroid 127.65 against a viewBox
 	   centre of 128) and `Pause` needs none either, so the `translate` that used to be here was a
 	   correction on top of a correction. See spec/styling/player.md -- this is a result, not an
@@ -1371,85 +1634,15 @@
 		filter: drop-shadow(var(--player-shadow));
 	}
 
-	/* The still, filling the frame exactly as the element it stands in for does -- same box, same
-	   crop -- so nothing moves when one replaces the other.
-
-	   Grey and slightly dimmed, which is the whole message: this is a picture of the clip and not
-	   the clip. Above the element rather than instead of it, because the browser paints its own
-	   placeholder inside the element and there is no selector that reaches it. */
-	.player-still {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		filter: grayscale(1) brightness(0.55);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.player-still-shown {
-		opacity: 1;
-	}
-
-	/* The chrome: a veil with the controls on it, over the bottom of the frame, taking no height
-	   from the picture. */
-	.player-chrome {
-		position: absolute;
-		inset: auto 0 0 0;
-		padding: 2rem 0.625rem 0.5rem;
-		background: var(--player-veil);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
 	/* A hidden row is still a tab stop, so it also has to show itself: `:has(:focus-visible)`
 	   rather than `:focus-within`, which would also pin the row open after a mouse click. Not
 	   `html[data-focus-source='kbd']` either -- see spec/styling/focus.md, "`:focus-visible` is the
-	   browser's guess, and the site keeps its own answer", for why that spelling fails silent
-	   when the tracker is absent. */
-	.player-chrome-shown,
+	   browser's guess, and the site keeps its own answer". Both declarations stay together because
+	   the condition is a relation to a descendant, which no class carries -- see
+	   spec/architecture/css/authoring.md, "An attribute selector is not a condition". */
 	.player-chrome:has(:focus-visible) {
 		opacity: 1;
 		pointer-events: auto;
-	}
-
-	.player-row {
-		display: flex;
-		align-items: center;
-		gap: 0.125rem;
-		color: var(--player-ink);
-	}
-
-	.player-gap {
-		flex: 1;
-	}
-
-	.player-button {
-		display: inline-grid;
-		place-items: center;
-		width: 1.875rem;
-		height: 1.875rem;
-		border: 0;
-		border-radius: 0.375rem;
-		cursor: pointer;
-		color: var(--player-ink-dim);
-		background: transparent;
-		transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	/* Hover lights the glyph and draws nothing behind it -- a plate here would be a plate on the
-	   row's own `--player-veil`, and a bigger visual event than the state it reports. The wash
-	   stays for the menu below, where a highlighted row is the surface rather than an ornament. */
-	.player-button:hover,
-	.player-button:focus-visible {
-		color: var(--player-ink);
-	}
-
-	.player-button.player-on {
-		color: var(--player-ink);
 	}
 
 	.player-button :global(.player-glyph) {
@@ -1478,74 +1671,11 @@
 		stroke: none;
 	}
 
-	.player-clock {
-		margin-inline-start: 0.375rem;
-		font-size: 0.6875rem;
-		font-variant-numeric: tabular-nums;
-		color: var(--player-ink-dim);
-		text-shadow: var(--player-shadow);
-	}
-
-	/* The scrubber: three stacked bars with a transparent input over them, because an input's own
-	   track cannot show a buffered range and an element behind it can. */
-	.player-scrub {
-		position: relative;
-		display: flex;
-		align-items: center;
-		height: 1rem;
-		margin-inline: 0.375rem;
-	}
-
-	.player-track {
-		position: absolute;
-		inset-inline: 0;
-		height: 0.1875rem;
-		border-radius: calc(infinity * 1px);
-		background: var(--player-ink-faint);
-		overflow: hidden;
-	}
-
-	.player-loaded,
-	.player-played {
-		position: absolute;
-		inset-block: 0;
-		inset-inline-start: 0;
-		border-radius: inherit;
-	}
-
-	.player-loaded {
-		background: var(--player-ink-dim);
-	}
-
-	.player-played {
-		background: var(--player-ink);
-	}
-
-	.player-seek,
-	.player-level {
-		appearance: none;
-		background: transparent;
-		cursor: pointer;
-	}
-
 	/* Both sliders hand their ring to the bar a reader can actually see, the same call
 	   `focus-ring-inner` makes elsewhere -- but neither utility reaches an `<input>`, whose bar is
 	   a sibling or a shadow pseudo-element rather than a descendant, so the two placements are
-	   written out below by hand. Stated at rest too, since nothing here transitions
-	   `outline-color` yet. See spec/styling/focus.md for the measurement. */
-	.player-track,
-	.player-seek,
-	.player-level {
-		outline-color: var(--color-accent);
-	}
-
-	/* The input keeps the focus and gives up the drawing, which is the narrow case
-	   spec/styling/focus.md allows suppression for: something else marks the position. */
-	.player-seek:focus-visible,
-	.player-level:focus-visible {
-		outline: none;
-	}
-
+	   written out below by hand. The colour they are stated in at rest is in the vocabulary, on
+	   the three elements a class reaches. See spec/styling/focus.md for the measurement. */
 	.player-scrub:has(.player-seek:focus-visible) .player-track {
 		outline: 0.125rem solid var(--color-accent);
 		outline-offset: 0;
@@ -1579,13 +1709,6 @@
 
 	:global(html[data-focus-source='pointer']) .player-level:focus-visible::-moz-range-track {
 		outline: none;
-	}
-
-	.player-seek {
-		position: relative;
-		width: 100%;
-		height: 1rem;
-		margin: 0;
 	}
 
 	/* One engine per rule, never a list: a selector list holding a pseudo-element the engine does
@@ -1633,21 +1756,8 @@
 		opacity: 1;
 	}
 
-	/* Volume: opens on hover, the way a native player's does. */
-	.player-volume {
-		display: flex;
-		align-items: center;
-	}
-
-	.player-level {
-		width: 0;
-		height: 1rem;
-		opacity: 0;
-		transition:
-			width 200ms cubic-bezier(0.4, 0, 0.2, 1),
-			opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
+	/* Volume: opens on hover, the way a native player's does. The width it opens to is here and
+	   the width it rests at is in the markup, because this one is conditioned on the parent. */
 	.player-volume:hover .player-level,
 	.player-level:focus-visible {
 		width: 4rem;
@@ -1689,76 +1799,5 @@
 		border: 0;
 		border-radius: calc(infinity * 1px);
 		background: var(--player-ink);
-	}
-
-	/* The menu stands away from the frame, so it carries the plate rather than the veil. */
-	.player-menu-holder {
-		position: relative;
-	}
-
-	.player-menu {
-		position: absolute;
-		inset-block-end: 2.25rem;
-		inset-inline-end: 0;
-		min-width: 7rem;
-		padding: 0.25rem;
-		border-radius: 0.625rem;
-		background: var(--player-glass);
-		backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
-		-webkit-backdrop-filter: blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate));
-		text-align: start;
-	}
-
-	.player-menu-title {
-		margin: 0;
-		padding: 0.25rem 0.5rem 0.125rem;
-		font-size: 0.625rem;
-		letter-spacing: 0.02em;
-		text-transform: uppercase;
-		color: var(--player-ink-faint);
-	}
-
-	.player-menu-item {
-		display: block;
-		width: 100%;
-		padding: 0.25rem 0.5rem;
-		border: 0;
-		border-radius: 0.375rem;
-		cursor: pointer;
-		text-align: start;
-		font-size: 0.75rem;
-		color: var(--player-ink-dim);
-		background: transparent;
-	}
-
-	.player-menu-item:hover,
-	.player-menu-item:focus-visible {
-		color: var(--player-ink);
-		background: var(--player-wash);
-	}
-
-	.player-menu-item.player-on {
-		color: var(--player-ink);
-	}
-
-	/**
-	 * Web fullscreen is offered only once `.article-column`'s 720px cap has been reached, in CSS
-	 * rather than script so it is right on the first frame. See spec/architecture/video/player.md,
-	 * "Filling the window is a page mode, not a media one", for why the screen-fullscreen button
-	 * beside it is never withheld.
-	 */
-	@media (max-width: 45rem) {
-		.player-fill {
-			display: none;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.player-cover,
-		.player-chrome,
-		.player-button,
-		.player-level {
-			transition: none;
-		}
 	}
 </style>
