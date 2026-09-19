@@ -1,1935 +1,3181 @@
 {
-  "version": 3,
+  "version": 5,
   "created": "2026-08-01T22:12:59.501555Z",
-  "updated": "2026-09-14T22:35:02.251998Z",
+  "updated": "2026-09-19T04:38:47.328371Z",
   "media": {
     "0e0624f079e617e53ed474ccd98a947b": {
+      "version": 5,
+      "resource": "od15v",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:32.15685Z",
       "updated": "2026-09-14T02:55:32.15685Z",
-      "blake3": "0e0624f079e617e53ed474ccd98a947b",
-      "type": "image",
-      "thumbhash": "+vcJBYCIh5iIh3ePhkeHcoiIj4f4",
-      "source": {
-        "mime": "image/png",
-        "width": 1960,
-        "height": 1274,
-        "ratio": "20:13",
-        "bytes": 477086
-      },
-      "metadata": {
-        "color_space": "sRGB"
-      },
-      "variants": {
-        "20805a43fdc2119f1aa8fae25c0ff8e1": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 416,
-          "quality": 0.68,
-          "bytes": 2253
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "0e0624f079e617e53ed474ccd98a947b",
+              "mime": "image/png",
+              "bytes": 477086
+            }
+          ]
         },
-        "62d988e502f2d38d936670dcee84672c": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 832,
-          "quality": 0.68,
-          "bytes": 9102
+        "image": {
+          "version": 1,
+          "thumbhash": "+vcJBYCIh5iIh3ePhkeHcoiIj4f4",
+          "dimension": {
+            "width": 1960,
+            "height": 1274,
+            "aspect": "20:13"
+          },
+          "resolution": {
+            "width": 1960,
+            "height": 1274
+          },
+          "variants": [
+            {
+              "content": "20805a43fdc2119f1aa8fae25c0ff8e1",
+              "mime": "image/avif",
+              "bytes": 2253,
+              "resolution": {
+                "width": 640,
+                "height": 416
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "62d988e502f2d38d936670dcee84672c",
+              "mime": "image/avif",
+              "bytes": 9102,
+              "resolution": {
+                "width": 1280,
+                "height": 832
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "fedbcfcac77cb7268299fcefd4d13048",
+              "mime": "image/avif",
+              "bytes": 25733,
+              "resolution": {
+                "width": 1920,
+                "height": 1248
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "fedbcfcac77cb7268299fcefd4d13048": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1248,
-          "quality": 0.68,
-          "bytes": 25733
+        "screenshot": {
+          "version": 1,
+          "color_space": "sRGB"
         }
       }
     },
     "12faaa76365814de1195d6bdf1e5ba05": {
+      "version": 5,
+      "resource": "9egbs",
+      "type": "media.image",
       "created": "2026-07-31T07:08:46.024963Z",
       "updated": "2026-07-31T20:21:56.232998Z",
-      "blake3": "12faaa76365814de1195d6bdf1e5ba05",
-      "type": "image",
-      "thumbhash": "yPcBBIA4mIeNeIeAfIqHcH0I5w==",
-      "source": {
-        "mime": "image/png",
-        "width": 1276,
-        "height": 706,
-        "ratio": "638:353",
-        "bytes": 79505
-      },
-      "variants": {
-        "453ac9e9c1a9bc49ca54a3371bdb09d8": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 354,
-          "quality": 0.68,
-          "bytes": 8939
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "12faaa76365814de1195d6bdf1e5ba05",
+              "mime": "image/png",
+              "bytes": 79505
+            }
+          ]
         },
-        "954d662f031fd678688ef5725761b8e8": {
-          "mime": "image/avif",
-          "width": 1276,
-          "height": 706,
-          "quality": 0.68,
-          "bytes": 22081
+        "image": {
+          "version": 1,
+          "thumbhash": "yPcBBIA4mIeNeIeAfIqHcH0I5w==",
+          "dimension": {
+            "width": 1276,
+            "height": 706,
+            "aspect": "638:353"
+          },
+          "resolution": {
+            "width": 1276,
+            "height": 706
+          },
+          "variants": [
+            {
+              "content": "453ac9e9c1a9bc49ca54a3371bdb09d8",
+              "mime": "image/avif",
+              "bytes": 8939,
+              "resolution": {
+                "width": 640,
+                "height": 354
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "954d662f031fd678688ef5725761b8e8",
+              "mime": "image/avif",
+              "bytes": 22081,
+              "resolution": {
+                "width": 1276,
+                "height": 706
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "148eafdca3f111eb70a55331ceb96b97": {
+      "version": 5,
+      "resource": "n31us",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:28.28226Z",
       "updated": "2026-09-14T02:55:28.28226Z",
-      "blake3": "148eafdca3f111eb70a55331ceb96b97",
-      "type": "image",
-      "thumbhash": "8PcRFIKlmXh5h4efdoSvbffKlQ==",
-      "source": {
-        "mime": "image/png",
-        "width": 1960,
-        "height": 1102,
-        "ratio": "980:551",
-        "bytes": 1467294
-      },
-      "metadata": {
-        "color_space": "sRGB"
-      },
-      "variants": {
-        "8bf6e0e822c0af77a447f0e233228b72": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 720,
-          "quality": 0.68,
-          "bytes": 48428
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "148eafdca3f111eb70a55331ceb96b97",
+              "mime": "image/png",
+              "bytes": 1467294
+            }
+          ]
         },
-        "b5a284d188978e25f86752a6e6dc86da": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1080,
-          "quality": 0.68,
-          "bytes": 82448
+        "image": {
+          "version": 1,
+          "thumbhash": "8PcRFIKlmXh5h4efdoSvbffKlQ==",
+          "dimension": {
+            "width": 1960,
+            "height": 1102,
+            "aspect": "980:551"
+          },
+          "resolution": {
+            "width": 1960,
+            "height": 1102
+          },
+          "variants": [
+            {
+              "content": "8bf6e0e822c0af77a447f0e233228b72",
+              "mime": "image/avif",
+              "bytes": 48428,
+              "resolution": {
+                "width": 1280,
+                "height": 720
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b5a284d188978e25f86752a6e6dc86da",
+              "mime": "image/avif",
+              "bytes": 82448,
+              "resolution": {
+                "width": 1920,
+                "height": 1080
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "f75860afc7a49e47091d4ffe244c6e7d",
+              "mime": "image/avif",
+              "bytes": 18213,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "f75860afc7a49e47091d4ffe244c6e7d": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 18213
+        "screenshot": {
+          "version": 1,
+          "color_space": "sRGB"
         }
       }
     },
     "181da036230de994a607f5fef0d03cb9": {
+      "version": 5,
+      "resource": "d00fk",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:25.020139Z",
       "updated": "2026-09-14T02:55:25.020139Z",
-      "blake3": "181da036230de994a607f5fef0d03cb9",
-      "type": "image",
-      "thumbhash": "+/cFBIDHmHdXqIiPdMjIZ4989g==",
-      "source": {
-        "mime": "image/png",
-        "width": 2346,
-        "height": 1310,
-        "ratio": "1173:655",
-        "bytes": 747725
-      },
-      "metadata": {},
-      "variants": {
-        "22b31d4cd3b1e07f3a82082a649eeb56": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1072,
-          "quality": 0.68,
-          "bytes": 10063
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "181da036230de994a607f5fef0d03cb9",
+              "mime": "image/png",
+              "bytes": 747725
+            }
+          ]
         },
-        "4248b155717c1b550e282619d967618d": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 715,
-          "quality": 0.68,
-          "bytes": 6255
+        "image": {
+          "version": 1,
+          "thumbhash": "+/cFBIDHmHdXqIiPdMjIZ4989g==",
+          "dimension": {
+            "width": 2346,
+            "height": 1310,
+            "aspect": "1173:655"
+          },
+          "resolution": {
+            "width": 2346,
+            "height": 1310
+          },
+          "variants": [
+            {
+              "content": "22b31d4cd3b1e07f3a82082a649eeb56",
+              "mime": "image/avif",
+              "bytes": 10063,
+              "resolution": {
+                "width": 1920,
+                "height": 1072
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "4248b155717c1b550e282619d967618d",
+              "mime": "image/avif",
+              "bytes": 6255,
+              "resolution": {
+                "width": 1280,
+                "height": 715
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "6205c331ff0c5894da0397615186e901",
+              "mime": "image/avif",
+              "bytes": 2762,
+              "resolution": {
+                "width": 640,
+                "height": 357
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "6205c331ff0c5894da0397615186e901": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 357,
-          "quality": 0.68,
-          "bytes": 2762
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "18dc4b33f21890aa9042955b67ac346d": {
+      "version": 5,
+      "resource": "zb9og",
+      "type": "media.image",
       "created": "2026-07-31T07:08:45.035035Z",
       "updated": "2026-07-31T20:09:37.394499Z",
-      "blake3": "18dc4b33f21890aa9042955b67ac346d",
-      "type": "image",
-      "thumbhash": "xvcFBIBqVleFiIhwiIZjzxn0Pg==",
-      "source": {
-        "mime": "image/png",
-        "width": 732,
-        "height": 450,
-        "ratio": "122:75",
-        "bytes": 63223
-      },
-      "variants": {
-        "4f54c76d3f8f75b6544b60f74c7e5d70": {
-          "mime": "image/avif",
-          "width": 732,
-          "height": 450,
-          "quality": 0.68,
-          "bytes": 8017
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "18dc4b33f21890aa9042955b67ac346d",
+              "mime": "image/png",
+              "bytes": 63223
+            }
+          ]
         },
-        "5bf0b0d247b9bc6defb6ec8a3d718944": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 393,
-          "quality": 0.68,
-          "bytes": 6180
+        "image": {
+          "version": 1,
+          "thumbhash": "xvcFBIBqVleFiIhwiIZjzxn0Pg==",
+          "dimension": {
+            "width": 732,
+            "height": 450,
+            "aspect": "122:75"
+          },
+          "resolution": {
+            "width": 732,
+            "height": 450
+          },
+          "variants": [
+            {
+              "content": "4f54c76d3f8f75b6544b60f74c7e5d70",
+              "mime": "image/avif",
+              "bytes": 8017,
+              "resolution": {
+                "width": 732,
+                "height": 450
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "5bf0b0d247b9bc6defb6ec8a3d718944",
+              "mime": "image/avif",
+              "bytes": 6180,
+              "resolution": {
+                "width": 640,
+                "height": 393
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "1c77835df9adb398aef1941422b92695": {
+      "version": 5,
+      "resource": "iu7iy",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:30.621462Z",
       "updated": "2026-09-14T02:55:30.621462Z",
-      "blake3": "1c77835df9adb398aef1941422b92695",
-      "type": "image",
-      "thumbhash": "dQgGDIK2mbgwe6dViZlpiZCVCA==",
-      "source": {
-        "mime": "image/png",
-        "width": 2172,
-        "height": 1214,
-        "ratio": "1086:607",
-        "bytes": 808400
-      },
-      "metadata": {},
-      "variants": {
-        "33b22b4f1d53d0fb58dfa61f0e7ac4af": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 358,
-          "quality": 0.68,
-          "bytes": 6793
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "1c77835df9adb398aef1941422b92695",
+              "mime": "image/png",
+              "bytes": 808400
+            }
+          ]
         },
-        "d5725defac0405422b0b7313ea8ba269": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1073,
-          "quality": 0.68,
-          "bytes": 25267
+        "image": {
+          "version": 1,
+          "thumbhash": "dQgGDIK2mbgwe6dViZlpiZCVCA==",
+          "dimension": {
+            "width": 2172,
+            "height": 1214,
+            "aspect": "1086:607"
+          },
+          "resolution": {
+            "width": 2172,
+            "height": 1214
+          },
+          "variants": [
+            {
+              "content": "33b22b4f1d53d0fb58dfa61f0e7ac4af",
+              "mime": "image/avif",
+              "bytes": 6793,
+              "resolution": {
+                "width": 640,
+                "height": 358
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "d5725defac0405422b0b7313ea8ba269",
+              "mime": "image/avif",
+              "bytes": 25267,
+              "resolution": {
+                "width": 1920,
+                "height": 1073
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "fd3e126e4bfe8433d91c04834dfc9a4f",
+              "mime": "image/avif",
+              "bytes": 15906,
+              "resolution": {
+                "width": 1280,
+                "height": 715
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "fd3e126e4bfe8433d91c04834dfc9a4f": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 715,
-          "quality": 0.68,
-          "bytes": 15906
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "2722532798307eb9c03d89e2343c2cda": {
+      "version": 5,
+      "resource": "l04tr",
+      "type": "media.image",
       "created": "2026-07-31T07:09:01.458831Z",
       "updated": "2026-07-31T20:16:43.086122Z",
-      "blake3": "2722532798307eb9c03d89e2343c2cda",
-      "type": "image",
-      "thumbhash": "PAgCBIDZateik2u8cMQwCgyjwA==",
-      "source": {
-        "mime": "image/png",
-        "width": 1276,
-        "height": 706,
-        "ratio": "638:353",
-        "bytes": 66938
-      },
-      "variants": {
-        "994d007381f04c8b9baa9412b350c1a6": {
-          "mime": "image/avif",
-          "width": 1276,
-          "height": 706,
-          "quality": 0.68,
-          "bytes": 19166
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "2722532798307eb9c03d89e2343c2cda",
+              "mime": "image/png",
+              "bytes": 66938
+            }
+          ]
         },
-        "e088d56f21788b023b546469a3f98137": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 354,
-          "quality": 0.68,
-          "bytes": 7961
+        "image": {
+          "version": 1,
+          "thumbhash": "PAgCBIDZateik2u8cMQwCgyjwA==",
+          "dimension": {
+            "width": 1276,
+            "height": 706,
+            "aspect": "638:353"
+          },
+          "resolution": {
+            "width": 1276,
+            "height": 706
+          },
+          "variants": [
+            {
+              "content": "994d007381f04c8b9baa9412b350c1a6",
+              "mime": "image/avif",
+              "bytes": 19166,
+              "resolution": {
+                "width": 1276,
+                "height": 706
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "e088d56f21788b023b546469a3f98137",
+              "mime": "image/avif",
+              "bytes": 7961,
+              "resolution": {
+                "width": 640,
+                "height": 354
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "3d9e11cbe0aaddf693318b4f060bbdf3": {
+      "version": 5,
+      "resource": "jccm2",
+      "type": "media.image.frame",
       "created": "2026-09-14T05:14:04.536162Z",
       "updated": "2026-09-14T05:14:04.536162Z",
-      "blake3": "3d9e11cbe0aaddf693318b4f060bbdf3",
-      "type": "image",
-      "thumbhash": "zQcOBICJh4d3iHhgh4ikiL9lBw==",
-      "source": {
-        "mime": "image/png",
-        "width": 1280,
-        "height": 720,
-        "ratio": "16:9",
-        "bytes": 226776
-      },
-      "variants": {
-        "6d922eccfff88c983f046301a91066fd": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 10110
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "3d9e11cbe0aaddf693318b4f060bbdf3",
+              "mime": "image/png",
+              "bytes": 226776
+            }
+          ]
         },
-        "8f03677c02ed340e2dcbc490342feced": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 720,
-          "quality": 0.68,
-          "bytes": 19668
+        "image": {
+          "version": 1,
+          "thumbhash": "zQcOBICJh4d3iHhgh4ikiL9lBw==",
+          "dimension": {
+            "width": 1280,
+            "height": 720,
+            "aspect": "16:9"
+          },
+          "resolution": {
+            "width": 1280,
+            "height": 720
+          },
+          "variants": [
+            {
+              "content": "6d922eccfff88c983f046301a91066fd",
+              "mime": "image/avif",
+              "bytes": 10110,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "8f03677c02ed340e2dcbc490342feced",
+              "mime": "image/avif",
+              "bytes": 19668,
+              "resolution": {
+                "width": 1280,
+                "height": 720
+              },
+              "quality": 0.68
+            }
+          ]
+        },
+        "frame": {
+          "version": 1,
+          "source": "jqd8t"
         }
       }
     },
     "3f34360a5eb3c9ec303ca1035cc2453b": {
+      "version": 5,
+      "resource": "glsik",
+      "type": "media.image",
       "created": "2026-07-31T07:08:16.888864Z",
       "updated": "2026-07-31T20:16:43.086169Z",
-      "blake3": "3f34360a5eb3c9ec303ca1035cc2453b",
-      "type": "image",
-      "thumbhash": "/PcFBICDp6h5dod/dnaFkGQKSw==",
-      "source": {
-        "mime": "image/png",
-        "width": 1352,
-        "height": 750,
-        "ratio": "676:375",
-        "bytes": 162487
-      },
-      "variants": {
-        "c9f5dc6c7325e4aa0af70038d7420144": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 710,
-          "quality": 0.68,
-          "bytes": 73731
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "3f34360a5eb3c9ec303ca1035cc2453b",
+              "mime": "image/png",
+              "bytes": 162487
+            }
+          ]
         },
-        "cd3992ce15d610da4df1b5f107bd059c": {
-          "mime": "image/avif",
-          "width": 1352,
-          "height": 750,
-          "quality": 0.68,
-          "bytes": 80371
-        },
-        "f5519432688464daf055d3d1241fff2a": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 355,
-          "quality": 0.68,
-          "bytes": 30377
+        "image": {
+          "version": 1,
+          "thumbhash": "/PcFBICDp6h5dod/dnaFkGQKSw==",
+          "dimension": {
+            "width": 1352,
+            "height": 750,
+            "aspect": "676:375"
+          },
+          "resolution": {
+            "width": 1352,
+            "height": 750
+          },
+          "variants": [
+            {
+              "content": "c9f5dc6c7325e4aa0af70038d7420144",
+              "mime": "image/avif",
+              "bytes": 73731,
+              "resolution": {
+                "width": 1280,
+                "height": 710
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "cd3992ce15d610da4df1b5f107bd059c",
+              "mime": "image/avif",
+              "bytes": 80371,
+              "resolution": {
+                "width": 1352,
+                "height": 750
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "f5519432688464daf055d3d1241fff2a",
+              "mime": "image/avif",
+              "bytes": 30377,
+              "resolution": {
+                "width": 640,
+                "height": 355
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "4306a064284c581dc88a2c494e77f8f4": {
+      "version": 5,
+      "resource": "ufs64",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:34.684647Z",
       "updated": "2026-09-14T02:55:34.684647Z",
-      "blake3": "4306a064284c581dc88a2c494e77f8f4",
-      "type": "image",
-      "thumbhash": "9PcJBICA/YyJeHasaHdwdwJmFg==",
-      "source": {
-        "mime": "image/png",
-        "width": 1672,
-        "height": 938,
-        "ratio": "836:469",
-        "bytes": 403366
-      },
-      "metadata": {},
-      "variants": {
-        "7890118bf414bb9e79047374d885d7e7": {
-          "mime": "image/avif",
-          "width": 1672,
-          "height": 938,
-          "quality": 0.68,
-          "bytes": 55591
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "4306a064284c581dc88a2c494e77f8f4",
+              "mime": "image/png",
+              "bytes": 403366
+            }
+          ]
         },
-        "88f7f18426354335eea4294bb0990d32": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 718,
-          "quality": 0.68,
-          "bytes": 39392
+        "image": {
+          "version": 1,
+          "thumbhash": "9PcJBICA/YyJeHasaHdwdwJmFg==",
+          "dimension": {
+            "width": 1672,
+            "height": 938,
+            "aspect": "836:469"
+          },
+          "resolution": {
+            "width": 1672,
+            "height": 938
+          },
+          "variants": [
+            {
+              "content": "7890118bf414bb9e79047374d885d7e7",
+              "mime": "image/avif",
+              "bytes": 55591,
+              "resolution": {
+                "width": 1672,
+                "height": 938
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "88f7f18426354335eea4294bb0990d32",
+              "mime": "image/avif",
+              "bytes": 39392,
+              "resolution": {
+                "width": 1280,
+                "height": 718
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b175e2e04c744c16e93ab384699a7a8b",
+              "mime": "image/avif",
+              "bytes": 15516,
+              "resolution": {
+                "width": 640,
+                "height": 359
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "b175e2e04c744c16e93ab384699a7a8b": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 359,
-          "quality": 0.68,
-          "bytes": 15516
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "4a1d25650b1262d916f6571208a32764": {
+      "version": 5,
+      "resource": "3gpxd",
+      "type": "media.image",
       "created": "2026-07-31T07:09:14.861506Z",
       "updated": "2026-07-31T20:16:43.08617Z",
-      "blake3": "4a1d25650b1262d916f6571208a32764",
-      "type": "image",
-      "thumbhash": "ywcGBICCDGyHeHjAR3mDhiBpCA==",
-      "source": {
-        "mime": "image/png",
-        "width": 2356,
-        "height": 1204,
-        "ratio": "589:301",
-        "bytes": 1505579
-      },
-      "variants": {
-        "ce54bb42041ad5dfcaa189fd61fc9f71": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 654,
-          "quality": 0.68,
-          "bytes": 18980
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "4a1d25650b1262d916f6571208a32764",
+              "mime": "image/png",
+              "bytes": 1505579
+            }
+          ]
         },
-        "e01e8df52cc63a06a2dd86206608dd34": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 327,
-          "quality": 0.68,
-          "bytes": 7700
-        },
-        "eebc752aa0cf7b5cf94a736488e6454e": {
-          "mime": "image/avif",
-          "width": 2356,
-          "height": 1204,
-          "quality": 0.68,
-          "bytes": 38177
-        },
-        "f1f1d6e39e085ec5e6a7d66c97b00e3c": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 981,
-          "quality": 0.68,
-          "bytes": 29975
+        "image": {
+          "version": 1,
+          "thumbhash": "ywcGBICCDGyHeHjAR3mDhiBpCA==",
+          "dimension": {
+            "width": 2356,
+            "height": 1204,
+            "aspect": "589:301"
+          },
+          "resolution": {
+            "width": 2356,
+            "height": 1204
+          },
+          "variants": [
+            {
+              "content": "ce54bb42041ad5dfcaa189fd61fc9f71",
+              "mime": "image/avif",
+              "bytes": 18980,
+              "resolution": {
+                "width": 1280,
+                "height": 654
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "e01e8df52cc63a06a2dd86206608dd34",
+              "mime": "image/avif",
+              "bytes": 7700,
+              "resolution": {
+                "width": 640,
+                "height": 327
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "eebc752aa0cf7b5cf94a736488e6454e",
+              "mime": "image/avif",
+              "bytes": 38177,
+              "resolution": {
+                "width": 2356,
+                "height": 1204
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "f1f1d6e39e085ec5e6a7d66c97b00e3c",
+              "mime": "image/avif",
+              "bytes": 29975,
+              "resolution": {
+                "width": 1920,
+                "height": 981
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "5104d3b6f735fbe76558681b4d37e8ce": {
+      "version": 5,
+      "resource": "rtm62",
+      "type": "media.image",
       "created": "2026-07-31T07:08:38.102946Z",
       "updated": "2026-07-31T20:16:43.086172Z",
-      "blake3": "5104d3b6f735fbe76558681b4d37e8ce",
-      "type": "image",
-      "thumbhash": "xPcFBICfaWWGenh9hnsQiQiBeA==",
-      "source": {
-        "mime": "image/png",
-        "width": 1992,
-        "height": 1116,
-        "ratio": "166:93",
-        "bytes": 371024
-      },
-      "variants": {
-        "2fb3e70a014a8e7dc56108ab72128df4": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 359,
-          "quality": 0.68,
-          "bytes": 30501
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "5104d3b6f735fbe76558681b4d37e8ce",
+              "mime": "image/png",
+              "bytes": 371024
+            }
+          ]
         },
-        "4e1816c5cda3ff1d5e02f25552e945bc": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1076,
-          "quality": 0.68,
-          "bytes": 134178
-        },
-        "7179ec92982779b79df50261a716abaa": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 717,
-          "quality": 0.68,
-          "bytes": 85879
-        },
-        "71aa2631cd4c616d2ecca6e510cf06f4": {
-          "mime": "image/avif",
-          "width": 1992,
-          "height": 1116,
-          "quality": 0.68,
-          "bytes": 153160
+        "image": {
+          "version": 1,
+          "thumbhash": "xPcFBICfaWWGenh9hnsQiQiBeA==",
+          "dimension": {
+            "width": 1992,
+            "height": 1116,
+            "aspect": "166:93"
+          },
+          "resolution": {
+            "width": 1992,
+            "height": 1116
+          },
+          "variants": [
+            {
+              "content": "2fb3e70a014a8e7dc56108ab72128df4",
+              "mime": "image/avif",
+              "bytes": 30501,
+              "resolution": {
+                "width": 640,
+                "height": 359
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "4e1816c5cda3ff1d5e02f25552e945bc",
+              "mime": "image/avif",
+              "bytes": 134178,
+              "resolution": {
+                "width": 1920,
+                "height": 1076
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "7179ec92982779b79df50261a716abaa",
+              "mime": "image/avif",
+              "bytes": 85879,
+              "resolution": {
+                "width": 1280,
+                "height": 717
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "71aa2631cd4c616d2ecca6e510cf06f4",
+              "mime": "image/avif",
+              "bytes": 153160,
+              "resolution": {
+                "width": 1992,
+                "height": 1116
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "52835c03630e87eecf5653c5c99dc008": {
+      "version": 5,
+      "resource": "wu7th",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:21.904926Z",
       "updated": "2026-09-14T02:55:21.904926Z",
-      "blake3": "52835c03630e87eecf5653c5c99dc008",
-      "type": "image",
-      "thumbhash": "IAgODIICSWuSiFdwqIVvcvEXJg==",
-      "source": {
-        "mime": "image/png",
-        "width": 1940,
-        "height": 1082,
-        "ratio": "970:541",
-        "bytes": 1910628
-      },
-      "metadata": {},
-      "variants": {
-        "5304a99c5db6b7208b396b9a9d25ac4a": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 714,
-          "quality": 0.68,
-          "bytes": 20506
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "52835c03630e87eecf5653c5c99dc008",
+              "mime": "image/png",
+              "bytes": 1910628
+            }
+          ]
         },
-        "5503d852f121c5266a08a9fcf88dc4ca": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1071,
-          "quality": 0.68,
-          "bytes": 34073
+        "image": {
+          "version": 1,
+          "thumbhash": "IAgODIICSWuSiFdwqIVvcvEXJg==",
+          "dimension": {
+            "width": 1940,
+            "height": 1082,
+            "aspect": "970:541"
+          },
+          "resolution": {
+            "width": 1940,
+            "height": 1082
+          },
+          "variants": [
+            {
+              "content": "5304a99c5db6b7208b396b9a9d25ac4a",
+              "mime": "image/avif",
+              "bytes": 20506,
+              "resolution": {
+                "width": 1280,
+                "height": 714
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "5503d852f121c5266a08a9fcf88dc4ca",
+              "mime": "image/avif",
+              "bytes": 34073,
+              "resolution": {
+                "width": 1920,
+                "height": 1071
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "eb67a662f73d0f9131ded8aafe3d23f6",
+              "mime": "image/avif",
+              "bytes": 8698,
+              "resolution": {
+                "width": 640,
+                "height": 357
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "eb67a662f73d0f9131ded8aafe3d23f6": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 357,
-          "quality": 0.68,
-          "bytes": 8698
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "5c33f853b73251e594e7c0eaca0a5709": {
+      "version": 5,
+      "resource": "qtqim",
+      "type": "media.image",
       "created": "2026-07-31T07:08:18.933532Z",
       "updated": "2026-07-31T20:16:43.086173Z",
-      "blake3": "5c33f853b73251e594e7c0eaca0a5709",
-      "type": "image",
-      "thumbhash": "AggCBIAHlWpui1VifXUAAAAAAA==",
-      "source": {
-        "mime": "image/png",
-        "width": 1278,
-        "height": 712,
-        "ratio": "639:356",
-        "bytes": 76898
-      },
-      "variants": {
-        "940b33cbc888007bf301d6fee6109a09": {
-          "mime": "image/png",
-          "width": 1278,
-          "height": 712,
-          "quality": 1.0,
-          "bytes": 121185
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "5c33f853b73251e594e7c0eaca0a5709",
+              "mime": "image/png",
+              "bytes": 76898
+            }
+          ]
         },
-        "ce8ccf7ff632ac0011a0d8e10dcebbf4": {
-          "mime": "image/png",
-          "width": 640,
-          "height": 357,
-          "quality": 1.0,
-          "bytes": 76602
+        "image": {
+          "version": 1,
+          "thumbhash": "AggCBIAHlWpui1VifXUAAAAAAA==",
+          "dimension": {
+            "width": 1278,
+            "height": 712,
+            "aspect": "639:356"
+          },
+          "resolution": {
+            "width": 1278,
+            "height": 712
+          },
+          "variants": [
+            {
+              "content": "940b33cbc888007bf301d6fee6109a09",
+              "mime": "image/png",
+              "bytes": 121185,
+              "resolution": {
+                "width": 1278,
+                "height": 712
+              },
+              "quality": 1.0
+            },
+            {
+              "content": "ce8ccf7ff632ac0011a0d8e10dcebbf4",
+              "mime": "image/png",
+              "bytes": 76602,
+              "resolution": {
+                "width": 640,
+                "height": 357
+              },
+              "quality": 1.0
+            }
+          ]
         }
       }
     },
     "6264d3f4d385043c2d839ff8f92d1a72": {
+      "version": 5,
+      "resource": "jqd8t",
+      "type": "media.video.clip",
       "created": "2026-09-14T05:14:04.536178Z",
       "updated": "2026-09-14T22:34:51.727387Z",
-      "blake3": "6264d3f4d385043c2d839ff8f92d1a72",
-      "type": "video",
-      "source": {
-        "mime": "video/mp4",
-        "width": 1280,
-        "height": 720,
-        "ratio": "16:9",
-        "bytes": 674291,
-        "duration": 18.051385,
-        "frame_rate": 29.97,
-        "frames": 541,
-        "audio": true,
-        "loudness": -17.45,
-        "peak": -2.01
-      },
-      "poster": "3d9e11cbe0aaddf693318b4f060bbdf3",
-      "variants": {
-        "32e7dfde423c03f535d6e67900583d36": {
-          "mime": "video/mp4",
-          "width": 854,
-          "height": 480,
-          "bytes": 552538,
-          "codec": "av01.0.04M.08,mp4a.40.2"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "6264d3f4d385043c2d839ff8f92d1a72",
+              "mime": "video/mp4",
+              "bytes": 674291
+            }
+          ]
+        },
+        "video": {
+          "version": 1,
+          "source": {
+            "mime": "video/mp4",
+            "width": 1280,
+            "height": 720,
+            "aspect": "16:9",
+            "bytes": 674291,
+            "duration": 18.051385,
+            "frame_rate": 29.97,
+            "frames": 541,
+            "audio": true,
+            "loudness": -17.45,
+            "peak": -2.01
+          },
+          "cover": "jccm2",
+          "variants": [
+            {
+              "content": "32e7dfde423c03f535d6e67900583d36",
+              "mime": "video/mp4",
+              "bytes": 552538,
+              "resolution": {
+                "width": 854,
+                "height": 480
+              },
+              "codec": "av01.0.04M.08,mp4a.40.2"
+            }
+          ],
+          "tracks": []
+        },
+        "clip": {
+          "version": 1
         }
       }
     },
     "6da637a66b48711354532477ac3f2014": {
+      "version": 5,
+      "resource": "ag6ah",
+      "type": "media.image.screenshot",
       "created": "2026-07-31T07:08:07.490003Z",
       "updated": "2026-08-01T22:20:52.07249Z",
-      "blake3": "6da637a66b48711354532477ac3f2014",
-      "type": "image",
-      "thumbhash": "PggCBYDuoedap4d/lmW5hQRpOqCm",
-      "source": {
-        "mime": "image/png",
-        "width": 1340,
-        "height": 882,
-        "ratio": "670:441",
-        "bytes": 194346
-      },
-      "metadata": {},
-      "variants": {
-        "11aff4751923d2b584f49f59c1f9e61b": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 843,
-          "quality": 0.68,
-          "bytes": 27079
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "6da637a66b48711354532477ac3f2014",
+              "mime": "image/png",
+              "bytes": 194346
+            }
+          ]
         },
-        "6cff4e039ad180a712870d3748696afd": {
-          "mime": "image/avif",
-          "width": 1340,
-          "height": 882,
-          "quality": 0.68,
-          "bytes": 30865
+        "image": {
+          "version": 1,
+          "thumbhash": "PggCBYDuoedap4d/lmW5hQRpOqCm",
+          "dimension": {
+            "width": 1340,
+            "height": 882,
+            "aspect": "670:441"
+          },
+          "resolution": {
+            "width": 1340,
+            "height": 882
+          },
+          "variants": [
+            {
+              "content": "11aff4751923d2b584f49f59c1f9e61b",
+              "mime": "image/avif",
+              "bytes": 27079,
+              "resolution": {
+                "width": 1280,
+                "height": 843
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "6cff4e039ad180a712870d3748696afd",
+              "mime": "image/avif",
+              "bytes": 30865,
+              "resolution": {
+                "width": 1340,
+                "height": 882
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "94ef06fc04d964674ca15e7c2328bb6a",
+              "mime": "image/avif",
+              "bytes": 9142,
+              "resolution": {
+                "width": 640,
+                "height": 421
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "94ef06fc04d964674ca15e7c2328bb6a": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 421,
-          "quality": 0.68,
-          "bytes": 9142
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "7c112d031538b0ee7baeea1524fc5de5": {
+      "version": 5,
+      "resource": "arda8",
+      "type": "media.image.photo",
       "created": "2026-08-02T04:47:35.14414Z",
       "updated": "2026-08-02T04:47:35.14414Z",
-      "blake3": "7c112d031538b0ee7baeea1524fc5de5",
-      "type": "image",
-      "thumbhash": "oxgGBYCOp5biaabxVnclQG+glwho",
-      "source": {
-        "mime": "image/heic",
-        "width": 5712,
-        "height": 4284,
-        "ratio": "4:3",
-        "bytes": 7427296
-      },
-      "metadata": {
-        "captured": "2026-04-04T15:36:27.288+08:00",
-        "camera": {
-          "model": "iPhone 17 Pro",
-          "manufacturer": "Apple"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "7c112d031538b0ee7baeea1524fc5de5",
+              "mime": "image/heic",
+              "bytes": 7427296
+            }
+          ]
         },
-        "lens": {
-          "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
-          "manufacturer": "Apple",
-          "focal_length": 6.76,
-          "focal_length_35mm": 24,
-          "f_number": 1.78
+        "image": {
+          "version": 1,
+          "thumbhash": "oxgGBYCOp5biaabxVnclQG+glwho",
+          "dimension": {
+            "width": 5712,
+            "height": 4284,
+            "aspect": "4:3"
+          },
+          "resolution": {
+            "width": 5712,
+            "height": 4284
+          },
+          "variants": [
+            {
+              "content": "1a6d7ae13f707bb26fbed9401d1c239d",
+              "mime": "image/avif",
+              "bytes": 284319,
+              "resolution": {
+                "width": 1280,
+                "height": 960
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "882358601ecf295f1a1bd728bd2d5f9e",
+              "mime": "image/avif",
+              "bytes": 3113805,
+              "resolution": {
+                "width": 5712,
+                "height": 4284
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "d8c264209d6c564ad657afecdf47441a",
+              "mime": "image/avif",
+              "bytes": 640008,
+              "resolution": {
+                "width": 1920,
+                "height": 1440
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "da792a98953635c8f8023024c3e685e0",
+              "mime": "image/avif",
+              "bytes": 66961,
+              "resolution": {
+                "width": 640,
+                "height": 480
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "exposure": {
-          "time": "1/1437",
-          "iso": 80,
-          "bias_ev": 0.0,
-          "mode": "auto exposure",
-          "program": "normal program",
-          "metering": "pattern",
-          "white_balance": "auto white balance",
-          "flash": false
-        },
-        "location": {
-          "latitude": 28.7065,
-          "longitude": 115.8987,
-          "altitude": 25.27,
-          "accuracy": 4.07,
-          "direction": 206.01
-        },
-        "address": {
-          "continent": "Asia",
-          "country": "China",
-          "country_code": "CN",
-          "region": "Jiangxi",
-          "subregion": "Nanchang Shi",
-          "city": "Yangzizhou",
-          "postal_code": "330000",
-          "timezone": "Asia/Shanghai"
-        },
-        "software": "26.4",
-        "color_space": "uncalibrated",
-        "orientation": 1
-      },
-      "variants": {
-        "1a6d7ae13f707bb26fbed9401d1c239d": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 960,
-          "quality": 0.68,
-          "bytes": 284319
-        },
-        "882358601ecf295f1a1bd728bd2d5f9e": {
-          "mime": "image/avif",
-          "width": 5712,
-          "height": 4284,
-          "quality": 0.68,
-          "bytes": 3113805
-        },
-        "d8c264209d6c564ad657afecdf47441a": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1440,
-          "quality": 0.68,
-          "bytes": 640008
-        },
-        "da792a98953635c8f8023024c3e685e0": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 480,
-          "quality": 0.68,
-          "bytes": 66961
+        "photo": {
+          "version": 1,
+          "captured": "2026-04-04T15:36:27.288+08:00",
+          "camera": {
+            "model": "iPhone 17 Pro",
+            "manufacturer": "Apple"
+          },
+          "lens": {
+            "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
+            "manufacturer": "Apple",
+            "focal_length": 6.76,
+            "focal_length_35mm": 24,
+            "f_number": 1.78
+          },
+          "exposure": {
+            "time": "1/1437",
+            "iso": 80,
+            "bias_ev": 0.0,
+            "mode": "auto exposure",
+            "program": "normal program",
+            "metering": "pattern",
+            "white_balance": "auto white balance",
+            "flash": false
+          },
+          "location": {
+            "latitude": 28.7065,
+            "longitude": 115.8987,
+            "altitude": 25.27,
+            "accuracy": 4.07,
+            "direction": 206.01
+          },
+          "address": {
+            "continent": "Asia",
+            "country": "China",
+            "country_code": "CN",
+            "region": "Jiangxi",
+            "subregion": "Nanchang Shi",
+            "city": "Yangzizhou",
+            "postal_code": "330000",
+            "timezone": "Asia/Shanghai"
+          },
+          "software": "26.4",
+          "color_space": "uncalibrated",
+          "orientation": 1
         }
       }
     },
     "7d3a80a688fa627e4f3577f69b320867": {
+      "version": 5,
+      "resource": "vingc",
+      "type": "media.image",
       "created": "2026-07-31T07:09:02.238104Z",
       "updated": "2026-07-31T20:16:43.086174Z",
-      "blake3": "7d3a80a688fa627e4f3577f69b320867",
-      "type": "image",
-      "thumbhash": "PAgGBIL5ZvZ7dnd8loLApCdECQ==",
-      "source": {
-        "mime": "image/png",
-        "width": 1068,
-        "height": 656,
-        "ratio": "267:164",
-        "bytes": 37710
-      },
-      "variants": {
-        "8d8ecdd7e001ef6894c77301c8012ca0": {
-          "mime": "image/png",
-          "width": 640,
-          "height": 393,
-          "quality": 1.0,
-          "bytes": 55691
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "7d3a80a688fa627e4f3577f69b320867",
+              "mime": "image/png",
+              "bytes": 37710
+            }
+          ]
         },
-        "b28e02888c7215fab56686b3d3ca285b": {
-          "mime": "image/png",
-          "width": 1068,
-          "height": 656,
-          "quality": 1.0,
-          "bytes": 63527
+        "image": {
+          "version": 1,
+          "thumbhash": "PAgGBIL5ZvZ7dnd8loLApCdECQ==",
+          "dimension": {
+            "width": 1068,
+            "height": 656,
+            "aspect": "267:164"
+          },
+          "resolution": {
+            "width": 1068,
+            "height": 656
+          },
+          "variants": [
+            {
+              "content": "8d8ecdd7e001ef6894c77301c8012ca0",
+              "mime": "image/png",
+              "bytes": 55691,
+              "resolution": {
+                "width": 640,
+                "height": 393
+              },
+              "quality": 1.0
+            },
+            {
+              "content": "b28e02888c7215fab56686b3d3ca285b",
+              "mime": "image/png",
+              "bytes": 63527,
+              "resolution": {
+                "width": 1068,
+                "height": 656
+              },
+              "quality": 1.0
+            }
+          ]
         }
       }
     },
     "7ff802c270a8b05f42e77ff401fe5475": {
+      "version": 5,
+      "resource": "o7gq0",
+      "type": "media.image.photo",
       "created": "2026-08-02T04:47:54.995999Z",
       "updated": "2026-08-02T04:47:54.995999Z",
-      "blake3": "7ff802c270a8b05f42e77ff401fe5475",
-      "type": "image",
-      "thumbhash": "GAgGBYAIZXdvdneGiRiIc4lykEcI",
-      "source": {
-        "mime": "image/heic",
-        "width": 5712,
-        "height": 4284,
-        "ratio": "4:3",
-        "bytes": 2898820
-      },
-      "metadata": {
-        "captured": "2026-04-04T16:06:58.019+08:00",
-        "camera": {
-          "model": "iPhone 17 Pro",
-          "manufacturer": "Apple"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "7ff802c270a8b05f42e77ff401fe5475",
+              "mime": "image/heic",
+              "bytes": 2898820
+            }
+          ]
         },
-        "lens": {
-          "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
-          "manufacturer": "Apple",
-          "focal_length": 6.76,
-          "focal_length_35mm": 24,
-          "f_number": 1.78
+        "image": {
+          "version": 1,
+          "thumbhash": "GAgGBYAIZXdvdneGiRiIc4lykEcI",
+          "dimension": {
+            "width": 5712,
+            "height": 4284,
+            "aspect": "4:3"
+          },
+          "resolution": {
+            "width": 5712,
+            "height": 4284
+          },
+          "variants": [
+            {
+              "content": "619e9337dd4b2cf82e206a69f2ddf45f",
+              "mime": "image/avif",
+              "bytes": 80016,
+              "resolution": {
+                "width": 1920,
+                "height": 1440
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "8144bce297c6d6d88f825f8fa2a8914f",
+              "mime": "image/avif",
+              "bytes": 12679,
+              "resolution": {
+                "width": 640,
+                "height": 480
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "89b220776383d317d5689faece23ea4f",
+              "mime": "image/avif",
+              "bytes": 42019,
+              "resolution": {
+                "width": 1280,
+                "height": 960
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "a0102500a8e7382540d281a3d438cf0a",
+              "mime": "image/avif",
+              "bytes": 416266,
+              "resolution": {
+                "width": 5712,
+                "height": 4284
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "exposure": {
-          "time": "1/33",
-          "iso": 1000,
-          "bias_ev": 0.0,
-          "mode": "auto exposure",
-          "program": "normal program",
-          "metering": "spot",
-          "white_balance": "auto white balance",
-          "flash": false
-        },
-        "location": {
-          "latitude": 28.7037,
-          "longitude": 115.8966,
-          "altitude": 25.6,
-          "accuracy": 50.38,
-          "direction": 213.37
-        },
-        "address": {
-          "continent": "Asia",
-          "country": "China",
-          "country_code": "CN",
-          "region": "Jiangxi",
-          "subregion": "Nanchang Shi",
-          "city": "Yangzizhou",
-          "postal_code": "330000",
-          "timezone": "Asia/Shanghai"
-        },
-        "software": "26.4",
-        "color_space": "uncalibrated",
-        "orientation": 1
-      },
-      "variants": {
-        "619e9337dd4b2cf82e206a69f2ddf45f": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1440,
-          "quality": 0.68,
-          "bytes": 80016
-        },
-        "8144bce297c6d6d88f825f8fa2a8914f": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 480,
-          "quality": 0.68,
-          "bytes": 12679
-        },
-        "89b220776383d317d5689faece23ea4f": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 960,
-          "quality": 0.68,
-          "bytes": 42019
-        },
-        "a0102500a8e7382540d281a3d438cf0a": {
-          "mime": "image/avif",
-          "width": 5712,
-          "height": 4284,
-          "quality": 0.68,
-          "bytes": 416266
+        "photo": {
+          "version": 1,
+          "captured": "2026-04-04T16:06:58.019+08:00",
+          "camera": {
+            "model": "iPhone 17 Pro",
+            "manufacturer": "Apple"
+          },
+          "lens": {
+            "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
+            "manufacturer": "Apple",
+            "focal_length": 6.76,
+            "focal_length_35mm": 24,
+            "f_number": 1.78
+          },
+          "exposure": {
+            "time": "1/33",
+            "iso": 1000,
+            "bias_ev": 0.0,
+            "mode": "auto exposure",
+            "program": "normal program",
+            "metering": "spot",
+            "white_balance": "auto white balance",
+            "flash": false
+          },
+          "location": {
+            "latitude": 28.7037,
+            "longitude": 115.8966,
+            "altitude": 25.6,
+            "accuracy": 50.38,
+            "direction": 213.37
+          },
+          "address": {
+            "continent": "Asia",
+            "country": "China",
+            "country_code": "CN",
+            "region": "Jiangxi",
+            "subregion": "Nanchang Shi",
+            "city": "Yangzizhou",
+            "postal_code": "330000",
+            "timezone": "Asia/Shanghai"
+          },
+          "software": "26.4",
+          "color_space": "uncalibrated",
+          "orientation": 1
         }
       }
     },
     "8acf126a993024efcb5d4db159659d40": {
+      "version": 5,
+      "resource": "u3ljq",
+      "type": "media.image",
       "created": "2026-07-31T07:08:25.817905Z",
       "updated": "2026-07-31T20:16:43.086175Z",
-      "blake3": "8acf126a993024efcb5d4db159659d40",
-      "type": "image",
-      "thumbhash": "BQgGDIQIlol0eXh1jHpg1wVHrQ==",
-      "source": {
-        "mime": "image/png",
-        "width": 1276,
-        "height": 714,
-        "ratio": "638:357",
-        "bytes": 619149
-      },
-      "variants": {
-        "89749fa22f8ec6600fd3af0f285c70dc": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 358,
-          "quality": 0.68,
-          "bytes": 14001
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "8acf126a993024efcb5d4db159659d40",
+              "mime": "image/png",
+              "bytes": 619149
+            }
+          ]
         },
-        "df34ad0f1e18b374dbc65bbab5f80df8": {
-          "mime": "image/avif",
-          "width": 1276,
-          "height": 714,
-          "quality": 0.68,
-          "bytes": 52935
+        "image": {
+          "version": 1,
+          "thumbhash": "BQgGDIQIlol0eXh1jHpg1wVHrQ==",
+          "dimension": {
+            "width": 1276,
+            "height": 714,
+            "aspect": "638:357"
+          },
+          "resolution": {
+            "width": 1276,
+            "height": 714
+          },
+          "variants": [
+            {
+              "content": "89749fa22f8ec6600fd3af0f285c70dc",
+              "mime": "image/avif",
+              "bytes": 14001,
+              "resolution": {
+                "width": 640,
+                "height": 358
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "df34ad0f1e18b374dbc65bbab5f80df8",
+              "mime": "image/avif",
+              "bytes": 52935,
+              "resolution": {
+                "width": 1276,
+                "height": 714
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "8b5c00c5682e593968de91a04fd3fd2d": {
+      "version": 5,
+      "resource": "ape8k",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:37.352254Z",
       "updated": "2026-09-14T02:55:37.352254Z",
-      "blake3": "8b5c00c5682e593968de91a04fd3fd2d",
-      "type": "image",
-      "thumbhash": "xfcJDIAGy2SGeIiGaXn+bISQXA==",
-      "source": {
-        "mime": "image/png",
-        "width": 1600,
-        "height": 900,
-        "ratio": "16:9",
-        "bytes": 874112
-      },
-      "metadata": {
-        "color_space": "sRGB"
-      },
-      "variants": {
-        "555a8f6dab7db2275b79c1091eb8ba1a": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 720,
-          "quality": 0.68,
-          "bytes": 16316
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "8b5c00c5682e593968de91a04fd3fd2d",
+              "mime": "image/png",
+              "bytes": 874112
+            }
+          ]
         },
-        "6b654fe6bc9c9d842881a49c5b02e78d": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 6296
+        "image": {
+          "version": 1,
+          "thumbhash": "xfcJDIAGy2SGeIiGaXn+bISQXA==",
+          "dimension": {
+            "width": 1600,
+            "height": 900,
+            "aspect": "16:9"
+          },
+          "resolution": {
+            "width": 1600,
+            "height": 900
+          },
+          "variants": [
+            {
+              "content": "555a8f6dab7db2275b79c1091eb8ba1a",
+              "mime": "image/avif",
+              "bytes": 16316,
+              "resolution": {
+                "width": 1280,
+                "height": 720
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "6b654fe6bc9c9d842881a49c5b02e78d",
+              "mime": "image/avif",
+              "bytes": 6296,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "ebcc9c32c3cacb82564a02831a4d6167",
+              "mime": "image/avif",
+              "bytes": 24071,
+              "resolution": {
+                "width": 1600,
+                "height": 900
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "ebcc9c32c3cacb82564a02831a4d6167": {
-          "mime": "image/avif",
-          "width": 1600,
-          "height": 900,
-          "quality": 0.68,
-          "bytes": 24071
+        "screenshot": {
+          "version": 1,
+          "color_space": "sRGB"
         }
       }
     },
     "8d32cfe9437f0bba72819263799a99ca": {
+      "version": 5,
+      "resource": "ct7wo",
+      "type": "media.image",
       "created": "2026-07-31T07:08:53.021527Z",
       "updated": "2026-07-31T20:16:43.086176Z",
-      "blake3": "8d32cfe9437f0bba72819263799a99ca",
-      "type": "image",
-      "thumbhash": "XegFDIJPiYZ8d4dnmYiSf/kDVg==",
-      "source": {
-        "mime": "image/png",
-        "width": 2112,
-        "height": 1176,
-        "ratio": "88:49",
-        "bytes": 6584874
-      },
-      "variants": {
-        "196dbe58f1ae4e99945ef5eca03a1b75": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 713,
-          "quality": 0.68,
-          "bytes": 256047
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "8d32cfe9437f0bba72819263799a99ca",
+              "mime": "image/png",
+              "bytes": 6584874
+            }
+          ]
         },
-        "b81f889d074c0f19113c266791ab0014": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1069,
-          "quality": 0.68,
-          "bytes": 505665
-        },
-        "bdf8387468547fa42282650dae0717f1": {
-          "mime": "image/avif",
-          "width": 2112,
-          "height": 1176,
-          "quality": 0.68,
-          "bytes": 618462
-        },
-        "dbbf7a1783e5b225e20c048ece6850cb": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 356,
-          "quality": 0.68,
-          "bytes": 63004
+        "image": {
+          "version": 1,
+          "thumbhash": "XegFDIJPiYZ8d4dnmYiSf/kDVg==",
+          "dimension": {
+            "width": 2112,
+            "height": 1176,
+            "aspect": "88:49"
+          },
+          "resolution": {
+            "width": 2112,
+            "height": 1176
+          },
+          "variants": [
+            {
+              "content": "196dbe58f1ae4e99945ef5eca03a1b75",
+              "mime": "image/avif",
+              "bytes": 256047,
+              "resolution": {
+                "width": 1280,
+                "height": 713
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b81f889d074c0f19113c266791ab0014",
+              "mime": "image/avif",
+              "bytes": 505665,
+              "resolution": {
+                "width": 1920,
+                "height": 1069
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "bdf8387468547fa42282650dae0717f1",
+              "mime": "image/avif",
+              "bytes": 618462,
+              "resolution": {
+                "width": 2112,
+                "height": 1176
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "dbbf7a1783e5b225e20c048ece6850cb",
+              "mime": "image/avif",
+              "bytes": 63004,
+              "resolution": {
+                "width": 640,
+                "height": 356
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "8fd9a29b8367e6beba6b7901e794ca3a": {
+      "version": 5,
+      "resource": "uzu9o",
+      "type": "media.image.photo",
       "created": "2026-08-02T04:48:31.553161Z",
       "updated": "2026-08-02T04:48:31.553161Z",
-      "blake3": "8fd9a29b8367e6beba6b7901e794ca3a",
-      "type": "image",
-      "thumbhash": "IwgSFIKJlXd/h4d6h5d5gHkHeA==",
-      "source": {
-        "mime": "image/heic",
-        "width": 5712,
-        "height": 3213,
-        "ratio": "16:9",
-        "bytes": 1086280
-      },
-      "metadata": {
-        "captured": "2026-04-04T15:16:40.333+08:00",
-        "camera": {
-          "model": "iPhone 17 Pro",
-          "manufacturer": "Apple"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "8fd9a29b8367e6beba6b7901e794ca3a",
+              "mime": "image/heic",
+              "bytes": 1086280
+            }
+          ]
         },
-        "lens": {
-          "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
-          "manufacturer": "Apple",
-          "focal_length": 6.76,
-          "focal_length_35mm": 24,
-          "f_number": 1.78
+        "image": {
+          "version": 1,
+          "thumbhash": "IwgSFIKJlXd/h4d6h5d5gHkHeA==",
+          "dimension": {
+            "width": 5712,
+            "height": 3213,
+            "aspect": "16:9"
+          },
+          "resolution": {
+            "width": 5712,
+            "height": 3213
+          },
+          "variants": [
+            {
+              "content": "27753f1eb86c142d19cd8dbe07db6fd7",
+              "mime": "image/avif",
+              "bytes": 176449,
+              "resolution": {
+                "width": 5712,
+                "height": 3213
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "328c61df0e47ffeff852326133a40286",
+              "mime": "image/avif",
+              "bytes": 24480,
+              "resolution": {
+                "width": 1280,
+                "height": 720
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "d30f10437ce65ae0714e32638e474908",
+              "mime": "image/avif",
+              "bytes": 45815,
+              "resolution": {
+                "width": 1920,
+                "height": 1080
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "dc0e74808d74e8747b19179ba0ec8713",
+              "mime": "image/avif",
+              "bytes": 7591,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "exposure": {
-          "time": "1/6711",
-          "iso": 80,
-          "bias_ev": 0.0,
-          "mode": "auto exposure",
-          "program": "normal program",
-          "metering": "pattern",
-          "white_balance": "auto white balance",
-          "flash": false
-        },
-        "location": {
-          "latitude": 28.7061,
-          "longitude": 115.8968,
-          "altitude": 20.87,
-          "accuracy": 4.75,
-          "direction": 2.94
-        },
-        "address": {
-          "continent": "Asia",
-          "country": "China",
-          "country_code": "CN",
-          "region": "Jiangxi",
-          "subregion": "Nanchang Shi",
-          "city": "Yangzizhou",
-          "postal_code": "330000",
-          "timezone": "Asia/Shanghai"
-        },
-        "software": "26.4",
-        "color_space": "uncalibrated",
-        "orientation": 1
-      },
-      "variants": {
-        "27753f1eb86c142d19cd8dbe07db6fd7": {
-          "mime": "image/avif",
-          "width": 5712,
-          "height": 3213,
-          "quality": 0.68,
-          "bytes": 176449
-        },
-        "328c61df0e47ffeff852326133a40286": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 720,
-          "quality": 0.68,
-          "bytes": 24480
-        },
-        "d30f10437ce65ae0714e32638e474908": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1080,
-          "quality": 0.68,
-          "bytes": 45815
-        },
-        "dc0e74808d74e8747b19179ba0ec8713": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 7591
+        "photo": {
+          "version": 1,
+          "captured": "2026-04-04T15:16:40.333+08:00",
+          "camera": {
+            "model": "iPhone 17 Pro",
+            "manufacturer": "Apple"
+          },
+          "lens": {
+            "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
+            "manufacturer": "Apple",
+            "focal_length": 6.76,
+            "focal_length_35mm": 24,
+            "f_number": 1.78
+          },
+          "exposure": {
+            "time": "1/6711",
+            "iso": 80,
+            "bias_ev": 0.0,
+            "mode": "auto exposure",
+            "program": "normal program",
+            "metering": "pattern",
+            "white_balance": "auto white balance",
+            "flash": false
+          },
+          "location": {
+            "latitude": 28.7061,
+            "longitude": 115.8968,
+            "altitude": 20.87,
+            "accuracy": 4.75,
+            "direction": 2.94
+          },
+          "address": {
+            "continent": "Asia",
+            "country": "China",
+            "country_code": "CN",
+            "region": "Jiangxi",
+            "subregion": "Nanchang Shi",
+            "city": "Yangzizhou",
+            "postal_code": "330000",
+            "timezone": "Asia/Shanghai"
+          },
+          "software": "26.4",
+          "color_space": "uncalibrated",
+          "orientation": 1
         }
       }
     },
     "91b5741d129e27d79f2e717ab31d022c": {
+      "version": 5,
+      "resource": "en9ee",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:23.332745Z",
       "updated": "2026-09-14T02:55:23.332745Z",
-      "blake3": "91b5741d129e27d79f2e717ab31d022c",
-      "type": "image",
-      "thumbhash": "OwgGBICUiZh4d3iPdmM+QPMCQw==",
-      "source": {
-        "mime": "image/png",
-        "width": 1940,
-        "height": 1084,
-        "ratio": "485:271",
-        "bytes": 379408
-      },
-      "metadata": {},
-      "variants": {
-        "80c9d9c0e3ce0ea8df9f60a8dd04a541": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 358,
-          "quality": 0.68,
-          "bytes": 27010
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "91b5741d129e27d79f2e717ab31d022c",
+              "mime": "image/png",
+              "bytes": 379408
+            }
+          ]
         },
-        "8cc9c22dbd18767e4885882ea06c42e2": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 715,
-          "quality": 0.68,
-          "bytes": 66162
+        "image": {
+          "version": 1,
+          "thumbhash": "OwgGBICUiZh4d3iPdmM+QPMCQw==",
+          "dimension": {
+            "width": 1940,
+            "height": 1084,
+            "aspect": "485:271"
+          },
+          "resolution": {
+            "width": 1940,
+            "height": 1084
+          },
+          "variants": [
+            {
+              "content": "80c9d9c0e3ce0ea8df9f60a8dd04a541",
+              "mime": "image/avif",
+              "bytes": 27010,
+              "resolution": {
+                "width": 640,
+                "height": 358
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "8cc9c22dbd18767e4885882ea06c42e2",
+              "mime": "image/avif",
+              "bytes": 66162,
+              "resolution": {
+                "width": 1280,
+                "height": 715
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "abd5361ecfeebc3ab229a7d3e42a1894",
+              "mime": "image/avif",
+              "bytes": 94924,
+              "resolution": {
+                "width": 1920,
+                "height": 1073
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "abd5361ecfeebc3ab229a7d3e42a1894": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1073,
-          "quality": 0.68,
-          "bytes": 94924
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "99409e5e479c488d67a8210794da75c0": {
+      "version": 5,
+      "resource": "q7q97",
+      "type": "media.image.frame",
       "created": "2026-09-14T05:14:03.143595Z",
       "updated": "2026-09-14T05:14:03.143595Z",
-      "blake3": "99409e5e479c488d67a8210794da75c0",
-      "type": "image",
-      "thumbhash": "UBgKDILQImeIh3iGd3f1h7iPiA==",
-      "source": {
-        "mime": "image/png",
-        "width": 640,
-        "height": 360,
-        "ratio": "16:9",
-        "bytes": 133704
-      },
-      "variants": {
-        "1bb9a144ca1fd7e19dbadbc1c64dd0bd": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 7548
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "99409e5e479c488d67a8210794da75c0",
+              "mime": "image/png",
+              "bytes": 133704
+            }
+          ]
+        },
+        "image": {
+          "version": 1,
+          "thumbhash": "UBgKDILQImeIh3iGd3f1h7iPiA==",
+          "dimension": {
+            "width": 640,
+            "height": 360,
+            "aspect": "16:9"
+          },
+          "resolution": {
+            "width": 640,
+            "height": 360
+          },
+          "variants": [
+            {
+              "content": "1bb9a144ca1fd7e19dbadbc1c64dd0bd",
+              "mime": "image/avif",
+              "bytes": 7548,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            }
+          ]
+        },
+        "frame": {
+          "version": 1,
+          "source": "9o44c"
         }
       }
     },
     "a2b472ee8c494d39f18e8cb06f5ec684": {
+      "version": 5,
+      "resource": "qusvn",
+      "type": "media.image.photo",
       "created": "2026-08-02T04:48:16.855481Z",
       "updated": "2026-08-02T04:48:16.855481Z",
-      "blake3": "a2b472ee8c494d39f18e8cb06f5ec684",
-      "type": "image",
-      "thumbhash": "VggGDQIHhXdvxsZZeGNpl1hwdAWo",
-      "source": {
-        "mime": "image/heic",
-        "width": 4284,
-        "height": 5712,
-        "ratio": "3:4",
-        "bytes": 5928413
-      },
-      "metadata": {
-        "captured": "2026-04-04T15:36:08.675+08:00",
-        "camera": {
-          "model": "iPhone 17 Pro",
-          "manufacturer": "Apple"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "a2b472ee8c494d39f18e8cb06f5ec684",
+              "mime": "image/heic",
+              "bytes": 5928413
+            }
+          ]
         },
-        "lens": {
-          "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
-          "manufacturer": "Apple",
-          "focal_length": 6.76,
-          "focal_length_35mm": 24,
-          "f_number": 1.78
+        "image": {
+          "version": 1,
+          "thumbhash": "VggGDQIHhXdvxsZZeGNpl1hwdAWo",
+          "dimension": {
+            "width": 4284,
+            "height": 5712,
+            "aspect": "3:4"
+          },
+          "resolution": {
+            "width": 4284,
+            "height": 5712
+          },
+          "variants": [
+            {
+              "content": "26e983061c5b79499c07d75264d04002",
+              "mime": "image/avif",
+              "bytes": 484215,
+              "resolution": {
+                "width": 1440,
+                "height": 1920
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "3fd15a6edcec17cb9c18eec89e73c23c",
+              "mime": "image/avif",
+              "bytes": 229670,
+              "resolution": {
+                "width": 960,
+                "height": 1280
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "7e53b12298947baea0099a21b8f3fc9e",
+              "mime": "image/avif",
+              "bytes": 57627,
+              "resolution": {
+                "width": 480,
+                "height": 640
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "ade3b84d0b2359c0db0eaf4e688ce701",
+              "mime": "image/avif",
+              "bytes": 2269861,
+              "resolution": {
+                "width": 4284,
+                "height": 5712
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "exposure": {
-          "time": "1/2703",
-          "iso": 80,
-          "bias_ev": 0.0,
-          "mode": "auto exposure",
-          "program": "normal program",
-          "metering": "spot",
-          "white_balance": "auto white balance",
-          "flash": false
-        },
-        "location": {
-          "latitude": 28.7066,
-          "longitude": 115.8988,
-          "altitude": 22.44,
-          "accuracy": 4.75,
-          "direction": 235.69
-        },
-        "address": {
-          "continent": "Asia",
-          "country": "China",
-          "country_code": "CN",
-          "region": "Jiangxi",
-          "subregion": "Nanchang Shi",
-          "city": "Yangzizhou",
-          "postal_code": "330000",
-          "timezone": "Asia/Shanghai"
-        },
-        "software": "26.4",
-        "color_space": "uncalibrated",
-        "orientation": 6
-      },
-      "variants": {
-        "26e983061c5b79499c07d75264d04002": {
-          "mime": "image/avif",
-          "width": 1440,
-          "height": 1920,
-          "quality": 0.68,
-          "bytes": 484215
-        },
-        "3fd15a6edcec17cb9c18eec89e73c23c": {
-          "mime": "image/avif",
-          "width": 960,
-          "height": 1280,
-          "quality": 0.68,
-          "bytes": 229670
-        },
-        "7e53b12298947baea0099a21b8f3fc9e": {
-          "mime": "image/avif",
-          "width": 480,
-          "height": 640,
-          "quality": 0.68,
-          "bytes": 57627
-        },
-        "ade3b84d0b2359c0db0eaf4e688ce701": {
-          "mime": "image/avif",
-          "width": 4284,
-          "height": 5712,
-          "quality": 0.68,
-          "bytes": 2269861
+        "photo": {
+          "version": 1,
+          "captured": "2026-04-04T15:36:08.675+08:00",
+          "camera": {
+            "model": "iPhone 17 Pro",
+            "manufacturer": "Apple"
+          },
+          "lens": {
+            "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
+            "manufacturer": "Apple",
+            "focal_length": 6.76,
+            "focal_length_35mm": 24,
+            "f_number": 1.78
+          },
+          "exposure": {
+            "time": "1/2703",
+            "iso": 80,
+            "bias_ev": 0.0,
+            "mode": "auto exposure",
+            "program": "normal program",
+            "metering": "spot",
+            "white_balance": "auto white balance",
+            "flash": false
+          },
+          "location": {
+            "latitude": 28.7066,
+            "longitude": 115.8988,
+            "altitude": 22.44,
+            "accuracy": 4.75,
+            "direction": 235.69
+          },
+          "address": {
+            "continent": "Asia",
+            "country": "China",
+            "country_code": "CN",
+            "region": "Jiangxi",
+            "subregion": "Nanchang Shi",
+            "city": "Yangzizhou",
+            "postal_code": "330000",
+            "timezone": "Asia/Shanghai"
+          },
+          "software": "26.4",
+          "color_space": "uncalibrated",
+          "orientation": 6
         }
       }
     },
     "a46df6030a9b1ba3f0af95e1a2196850": {
+      "version": 5,
+      "resource": "gylhx",
+      "type": "media.image",
       "created": "2026-07-31T07:09:16.086626Z",
       "updated": "2026-07-31T20:16:43.086177Z",
-      "blake3": "a46df6030a9b1ba3f0af95e1a2196850",
-      "type": "image",
-      "thumbhash": "2AgGFICXipcVl4mfZKhwrgdY0w==",
-      "source": {
-        "mime": "image/png",
-        "width": 1278,
-        "height": 706,
-        "ratio": "639:353",
-        "bytes": 2357729
-      },
-      "variants": {
-        "9e8fa0537094d4442bed2a3fb590b2e9": {
-          "mime": "image/avif",
-          "width": 1278,
-          "height": 706,
-          "quality": 0.68,
-          "bytes": 230406
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "a46df6030a9b1ba3f0af95e1a2196850",
+              "mime": "image/png",
+              "bytes": 2357729
+            }
+          ]
         },
-        "e8967cad8b8633056cd9b52ce6f224b2": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 354,
-          "quality": 0.68,
-          "bytes": 60406
+        "image": {
+          "version": 1,
+          "thumbhash": "2AgGFICXipcVl4mfZKhwrgdY0w==",
+          "dimension": {
+            "width": 1278,
+            "height": 706,
+            "aspect": "639:353"
+          },
+          "resolution": {
+            "width": 1278,
+            "height": 706
+          },
+          "variants": [
+            {
+              "content": "9e8fa0537094d4442bed2a3fb590b2e9",
+              "mime": "image/avif",
+              "bytes": 230406,
+              "resolution": {
+                "width": 1278,
+                "height": 706
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "e8967cad8b8633056cd9b52ce6f224b2",
+              "mime": "image/avif",
+              "bytes": 60406,
+              "resolution": {
+                "width": 640,
+                "height": 354
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "a853e69c33ee2c50ed9125ff947b2d49": {
+      "version": 5,
+      "resource": "pf8of",
+      "type": "media.image",
       "created": "2026-07-31T07:09:17.290358Z",
       "updated": "2026-07-31T20:16:43.086178Z",
-      "blake3": "a853e69c33ee2c50ed9125ff947b2d49",
-      "type": "image",
-      "thumbhash": "YPsGDIIGpkdibXZleGb5l53PmQ==",
-      "source": {
-        "mime": "image/png",
-        "width": 1272,
-        "height": 712,
-        "ratio": "159:89",
-        "bytes": 878081
-      },
-      "variants": {
-        "027e6d27ac5f40dd55d172ef14fbe795": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 358,
-          "quality": 0.68,
-          "bytes": 15004
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "a853e69c33ee2c50ed9125ff947b2d49",
+              "mime": "image/png",
+              "bytes": 878081
+            }
+          ]
         },
-        "f4bb4c7fd4012e55bcc1b51ed849079f": {
-          "mime": "image/avif",
-          "width": 1272,
-          "height": 712,
-          "quality": 0.68,
-          "bytes": 51134
+        "image": {
+          "version": 1,
+          "thumbhash": "YPsGDIIGpkdibXZleGb5l53PmQ==",
+          "dimension": {
+            "width": 1272,
+            "height": 712,
+            "aspect": "159:89"
+          },
+          "resolution": {
+            "width": 1272,
+            "height": 712
+          },
+          "variants": [
+            {
+              "content": "027e6d27ac5f40dd55d172ef14fbe795",
+              "mime": "image/avif",
+              "bytes": 15004,
+              "resolution": {
+                "width": 640,
+                "height": 358
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "f4bb4c7fd4012e55bcc1b51ed849079f",
+              "mime": "image/avif",
+              "bytes": 51134,
+              "resolution": {
+                "width": 1272,
+                "height": 712
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "a904d61e5006b602f7c6efd236911d78": {
+      "version": 5,
+      "resource": "s48p8",
+      "type": "media.image",
       "created": "2026-07-31T07:09:00.494314Z",
       "updated": "2026-07-31T20:16:43.086179Z",
-      "blake3": "a904d61e5006b602f7c6efd236911d78",
-      "type": "image",
-      "thumbhash": "w/cBBICsWUWMeHiGd393iH8IGA==",
-      "source": {
-        "mime": "image/png",
-        "width": 1940,
-        "height": 1180,
-        "ratio": "97:59",
-        "bytes": 236273
-      },
-      "variants": {
-        "60e6e9a51528ccf4b96ab1fe46f49f09": {
-          "mime": "image/avif",
-          "width": 1940,
-          "height": 1180,
-          "quality": 0.68,
-          "bytes": 108472
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "a904d61e5006b602f7c6efd236911d78",
+              "mime": "image/png",
+              "bytes": 236273
+            }
+          ]
         },
-        "a563a59c9bfd226cdf348ba17269c116": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1168,
-          "quality": 0.68,
-          "bytes": 100211
-        },
-        "b4eb366d4f7d849bac165a05def62592": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 779,
-          "quality": 0.68,
-          "bytes": 62841
-        },
-        "cb0b9c5fd6b13fb4122a652d38ca0da6": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 389,
-          "quality": 0.68,
-          "bytes": 26902
+        "image": {
+          "version": 1,
+          "thumbhash": "w/cBBICsWUWMeHiGd393iH8IGA==",
+          "dimension": {
+            "width": 1940,
+            "height": 1180,
+            "aspect": "97:59"
+          },
+          "resolution": {
+            "width": 1940,
+            "height": 1180
+          },
+          "variants": [
+            {
+              "content": "60e6e9a51528ccf4b96ab1fe46f49f09",
+              "mime": "image/avif",
+              "bytes": 108472,
+              "resolution": {
+                "width": 1940,
+                "height": 1180
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "a563a59c9bfd226cdf348ba17269c116",
+              "mime": "image/avif",
+              "bytes": 100211,
+              "resolution": {
+                "width": 1920,
+                "height": 1168
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b4eb366d4f7d849bac165a05def62592",
+              "mime": "image/avif",
+              "bytes": 62841,
+              "resolution": {
+                "width": 1280,
+                "height": 779
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "cb0b9c5fd6b13fb4122a652d38ca0da6",
+              "mime": "image/avif",
+              "bytes": 26902,
+              "resolution": {
+                "width": 640,
+                "height": 389
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "aecdaad11c3a4a2e31877f7dcae8c4e1": {
+      "version": 5,
+      "resource": "3ea5x",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:38.251746Z",
       "updated": "2026-09-14T02:55:38.251746Z",
-      "blake3": "aecdaad11c3a4a2e31877f7dcae8c4e1",
-      "type": "image",
-      "thumbhash": "8fcNBIDK0nt4h3dvpYeUhz9s+A==",
-      "source": {
-        "mime": "image/png",
-        "width": 1728,
-        "height": 970,
-        "ratio": "864:485",
-        "bytes": 817772
-      },
-      "metadata": {},
-      "variants": {
-        "17a6ed4539dbb2d1d4bd1548fe0f2526": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 359,
-          "quality": 0.68,
-          "bytes": 12195
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "aecdaad11c3a4a2e31877f7dcae8c4e1",
+              "mime": "image/png",
+              "bytes": 817772
+            }
+          ]
         },
-        "972de82fb8dbcb81cf129af098e664e7": {
-          "mime": "image/avif",
-          "width": 1728,
-          "height": 970,
-          "quality": 0.68,
-          "bytes": 56116
+        "image": {
+          "version": 1,
+          "thumbhash": "8fcNBIDK0nt4h3dvpYeUhz9s+A==",
+          "dimension": {
+            "width": 1728,
+            "height": 970,
+            "aspect": "864:485"
+          },
+          "resolution": {
+            "width": 1728,
+            "height": 970
+          },
+          "variants": [
+            {
+              "content": "17a6ed4539dbb2d1d4bd1548fe0f2526",
+              "mime": "image/avif",
+              "bytes": 12195,
+              "resolution": {
+                "width": 640,
+                "height": 359
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "972de82fb8dbcb81cf129af098e664e7",
+              "mime": "image/avif",
+              "bytes": 56116,
+              "resolution": {
+                "width": 1728,
+                "height": 970
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "9ff260bd2031d92839644e151eec44af",
+              "mime": "image/avif",
+              "bytes": 35512,
+              "resolution": {
+                "width": 1280,
+                "height": 719
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "9ff260bd2031d92839644e151eec44af": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 719,
-          "quality": 0.68,
-          "bytes": 35512
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "c4297c3fd885b805484659786e1fb561": {
+      "version": 5,
+      "resource": "4tev3",
+      "type": "media.image",
       "created": "2026-07-31T07:08:54.080758Z",
       "updated": "2026-07-31T20:16:43.086179Z",
-      "blake3": "c4297c3fd885b805484659786e1fb561",
-      "type": "image",
-      "thumbhash": "7PcNBICmuJiPhnWXd2BYcIgChw==",
-      "source": {
-        "mime": "image/png",
-        "width": 1274,
-        "height": 706,
-        "ratio": "637:353",
-        "bytes": 417887
-      },
-      "variants": {
-        "ad4a608d8ded9e7ead3dcad841f25be0": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 355,
-          "quality": 0.68,
-          "bytes": 10793
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "c4297c3fd885b805484659786e1fb561",
+              "mime": "image/png",
+              "bytes": 417887
+            }
+          ]
         },
-        "b4a5ed8c96ed7aa8ecd526744173d962": {
-          "mime": "image/avif",
-          "width": 1274,
-          "height": 706,
-          "quality": 0.68,
-          "bytes": 30153
+        "image": {
+          "version": 1,
+          "thumbhash": "7PcNBICmuJiPhnWXd2BYcIgChw==",
+          "dimension": {
+            "width": 1274,
+            "height": 706,
+            "aspect": "637:353"
+          },
+          "resolution": {
+            "width": 1274,
+            "height": 706
+          },
+          "variants": [
+            {
+              "content": "ad4a608d8ded9e7ead3dcad841f25be0",
+              "mime": "image/avif",
+              "bytes": 10793,
+              "resolution": {
+                "width": 640,
+                "height": 355
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b4a5ed8c96ed7aa8ecd526744173d962",
+              "mime": "image/avif",
+              "bytes": 30153,
+              "resolution": {
+                "width": 1274,
+                "height": 706
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "c59b29dec6d015ea19363ac47f43c36e": {
+      "version": 5,
+      "resource": "zixbe",
+      "type": "media.image.photo",
       "created": "2026-08-02T04:46:50.910918Z",
       "updated": "2026-08-02T04:46:50.910918Z",
-      "blake3": "c59b29dec6d015ea19363ac47f43c36e",
-      "type": "image",
-      "thumbhash": "IPgRDICKd3ePd4eId3l4gIYJWA==",
-      "source": {
-        "mime": "image/heic",
-        "width": 5712,
-        "height": 3213,
-        "ratio": "16:9",
-        "bytes": 2011577
-      },
-      "metadata": {
-        "captured": "2026-04-04T15:18:14.337+08:00",
-        "camera": {
-          "model": "iPhone 17 Pro",
-          "manufacturer": "Apple"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "c59b29dec6d015ea19363ac47f43c36e",
+              "mime": "image/heic",
+              "bytes": 2011577
+            }
+          ]
         },
-        "lens": {
-          "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
-          "manufacturer": "Apple",
-          "focal_length": 6.76,
-          "focal_length_35mm": 24,
-          "f_number": 1.78
+        "image": {
+          "version": 1,
+          "thumbhash": "IPgRDICKd3ePd4eId3l4gIYJWA==",
+          "dimension": {
+            "width": 5712,
+            "height": 3213,
+            "aspect": "16:9"
+          },
+          "resolution": {
+            "width": 5712,
+            "height": 3213
+          },
+          "variants": [
+            {
+              "content": "27c66163edd80b110e80c6087baa0249",
+              "mime": "image/avif",
+              "bytes": 55645,
+              "resolution": {
+                "width": 1280,
+                "height": 720
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "6bfc669ac235a79132ec94146dd3e2fd",
+              "mime": "image/avif",
+              "bytes": 13548,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "726b0fa8b37e04d640b0ebd06b4bc2c4",
+              "mime": "image/avif",
+              "bytes": 129445,
+              "resolution": {
+                "width": 1920,
+                "height": 1080
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "824b345e8660464e8f7cbc6167f1242b",
+              "mime": "image/avif",
+              "bytes": 630660,
+              "resolution": {
+                "width": 5712,
+                "height": 3213
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "exposure": {
-          "time": "1/7353",
-          "iso": 80,
-          "bias_ev": 0.0,
-          "mode": "auto exposure",
-          "program": "normal program",
-          "metering": "pattern",
-          "white_balance": "auto white balance",
-          "flash": false
-        },
-        "location": {
-          "latitude": 28.7065,
-          "longitude": 115.8976,
-          "altitude": 23.25,
-          "accuracy": 8.29,
-          "direction": 309.77
-        },
-        "address": {
-          "continent": "Asia",
-          "country": "China",
-          "country_code": "CN",
-          "region": "Jiangxi",
-          "subregion": "Nanchang Shi",
-          "city": "Yangzizhou",
-          "postal_code": "330000",
-          "timezone": "Asia/Shanghai"
-        },
-        "software": "26.4",
-        "color_space": "uncalibrated",
-        "orientation": 1
-      },
-      "variants": {
-        "27c66163edd80b110e80c6087baa0249": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 720,
-          "quality": 0.68,
-          "bytes": 55645
-        },
-        "6bfc669ac235a79132ec94146dd3e2fd": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 13548
-        },
-        "726b0fa8b37e04d640b0ebd06b4bc2c4": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1080,
-          "quality": 0.68,
-          "bytes": 129445
-        },
-        "824b345e8660464e8f7cbc6167f1242b": {
-          "mime": "image/avif",
-          "width": 5712,
-          "height": 3213,
-          "quality": 0.68,
-          "bytes": 630660
+        "photo": {
+          "version": 1,
+          "captured": "2026-04-04T15:18:14.337+08:00",
+          "camera": {
+            "model": "iPhone 17 Pro",
+            "manufacturer": "Apple"
+          },
+          "lens": {
+            "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
+            "manufacturer": "Apple",
+            "focal_length": 6.76,
+            "focal_length_35mm": 24,
+            "f_number": 1.78
+          },
+          "exposure": {
+            "time": "1/7353",
+            "iso": 80,
+            "bias_ev": 0.0,
+            "mode": "auto exposure",
+            "program": "normal program",
+            "metering": "pattern",
+            "white_balance": "auto white balance",
+            "flash": false
+          },
+          "location": {
+            "latitude": 28.7065,
+            "longitude": 115.8976,
+            "altitude": 23.25,
+            "accuracy": 8.29,
+            "direction": 309.77
+          },
+          "address": {
+            "continent": "Asia",
+            "country": "China",
+            "country_code": "CN",
+            "region": "Jiangxi",
+            "subregion": "Nanchang Shi",
+            "city": "Yangzizhou",
+            "postal_code": "330000",
+            "timezone": "Asia/Shanghai"
+          },
+          "software": "26.4",
+          "color_space": "uncalibrated",
+          "orientation": 1
         }
       }
     },
     "c89ca3ea4b02c6a8a0c626a76a1a1682": {
+      "version": 5,
+      "resource": "5u6pl",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:29.079463Z",
       "updated": "2026-09-14T02:55:29.079463Z",
-      "blake3": "c89ca3ea4b02c6a8a0c626a76a1a1682",
-      "type": "image",
-      "thumbhash": "5/cdBID4l1d3iHd9hYjYjwNtlg==",
-      "source": {
-        "mime": "image/png",
-        "width": 1712,
-        "height": 956,
-        "ratio": "428:239",
-        "bytes": 84632
-      },
-      "metadata": {},
-      "variants": {
-        "0d5a4f27caed55b32db222e55b5d33a2": {
-          "mime": "image/avif",
-          "width": 1712,
-          "height": 956,
-          "quality": 0.68,
-          "bytes": 4226
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "c89ca3ea4b02c6a8a0c626a76a1a1682",
+              "mime": "image/png",
+              "bytes": 84632
+            }
+          ]
         },
-        "331f3f7b34efd227d9087597606c2d9a": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 715,
-          "quality": 0.68,
-          "bytes": 2851
+        "image": {
+          "version": 1,
+          "thumbhash": "5/cdBID4l1d3iHd9hYjYjwNtlg==",
+          "dimension": {
+            "width": 1712,
+            "height": 956,
+            "aspect": "428:239"
+          },
+          "resolution": {
+            "width": 1712,
+            "height": 956
+          },
+          "variants": [
+            {
+              "content": "0d5a4f27caed55b32db222e55b5d33a2",
+              "mime": "image/avif",
+              "bytes": 4226,
+              "resolution": {
+                "width": 1712,
+                "height": 956
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "331f3f7b34efd227d9087597606c2d9a",
+              "mime": "image/avif",
+              "bytes": 2851,
+              "resolution": {
+                "width": 1280,
+                "height": 715
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "e10bd0f7663abedc1184419f77fe3f6a",
+              "mime": "image/avif",
+              "bytes": 1246,
+              "resolution": {
+                "width": 640,
+                "height": 357
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "e10bd0f7663abedc1184419f77fe3f6a": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 357,
-          "quality": 0.68,
-          "bytes": 1246
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "cbc260f16e936f977570f8fb391f48e2": {
+      "version": 5,
+      "resource": "au053",
+      "type": "media.image",
       "created": "2026-07-31T07:08:24.519146Z",
       "updated": "2026-07-31T20:16:43.08618Z",
-      "blake3": "cbc260f16e936f977570f8fb391f48e2",
-      "type": "image",
-      "thumbhash": "xPcFBICPaWWGenh8h3sgiQiBeA==",
-      "source": {
-        "mime": "image/png",
-        "width": 1992,
-        "height": 1116,
-        "ratio": "166:93",
-        "bytes": 371673
-      },
-      "variants": {
-        "24dff89e29a9ada1144545c4bd0f1139": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 359,
-          "quality": 0.68,
-          "bytes": 31058
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "cbc260f16e936f977570f8fb391f48e2",
+              "mime": "image/png",
+              "bytes": 371673
+            }
+          ]
         },
-        "7934026c5998131c7170f66ee229c065": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 717,
-          "quality": 0.68,
-          "bytes": 87605
-        },
-        "d4174a005f96a5920327f097ce67d090": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1076,
-          "quality": 0.68,
-          "bytes": 137179
-        },
-        "e8b530aa153a78f1cdea3d2980f80ecd": {
-          "mime": "image/avif",
-          "width": 1992,
-          "height": 1116,
-          "quality": 0.68,
-          "bytes": 156672
+        "image": {
+          "version": 1,
+          "thumbhash": "xPcFBICPaWWGenh8h3sgiQiBeA==",
+          "dimension": {
+            "width": 1992,
+            "height": 1116,
+            "aspect": "166:93"
+          },
+          "resolution": {
+            "width": 1992,
+            "height": 1116
+          },
+          "variants": [
+            {
+              "content": "24dff89e29a9ada1144545c4bd0f1139",
+              "mime": "image/avif",
+              "bytes": 31058,
+              "resolution": {
+                "width": 640,
+                "height": 359
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "7934026c5998131c7170f66ee229c065",
+              "mime": "image/avif",
+              "bytes": 87605,
+              "resolution": {
+                "width": 1280,
+                "height": 717
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "d4174a005f96a5920327f097ce67d090",
+              "mime": "image/avif",
+              "bytes": 137179,
+              "resolution": {
+                "width": 1920,
+                "height": 1076
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "e8b530aa153a78f1cdea3d2980f80ecd",
+              "mime": "image/avif",
+              "bytes": 156672,
+              "resolution": {
+                "width": 1992,
+                "height": 1116
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "ccab92399398f1642024732cc1097abe": {
+      "version": 5,
+      "resource": "imwn8",
+      "type": "media.image",
       "created": "2026-07-31T07:08:17.941643Z",
       "updated": "2026-07-31T20:16:43.08618Z",
-      "blake3": "ccab92399398f1642024732cc1097abe",
-      "type": "image",
-      "thumbhash": "N/gFBICFdbUgVIcbcVhnmrB/6Q==",
-      "source": {
-        "mime": "image/png",
-        "width": 1276,
-        "height": 710,
-        "ratio": "638:355",
-        "bytes": 362129
-      },
-      "variants": {
-        "04b86c0895d716b7f562562bf80a6a54": {
-          "mime": "image/avif",
-          "width": 1276,
-          "height": 710,
-          "quality": 0.68,
-          "bytes": 26294
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "ccab92399398f1642024732cc1097abe",
+              "mime": "image/png",
+              "bytes": 362129
+            }
+          ]
         },
-        "15424e4a0fa613eb56d37cbaad2269d2": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 356,
-          "quality": 0.68,
-          "bytes": 9108
+        "image": {
+          "version": 1,
+          "thumbhash": "N/gFBICFdbUgVIcbcVhnmrB/6Q==",
+          "dimension": {
+            "width": 1276,
+            "height": 710,
+            "aspect": "638:355"
+          },
+          "resolution": {
+            "width": 1276,
+            "height": 710
+          },
+          "variants": [
+            {
+              "content": "04b86c0895d716b7f562562bf80a6a54",
+              "mime": "image/avif",
+              "bytes": 26294,
+              "resolution": {
+                "width": 1276,
+                "height": 710
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "15424e4a0fa613eb56d37cbaad2269d2",
+              "mime": "image/avif",
+              "bytes": 9108,
+              "resolution": {
+                "width": 640,
+                "height": 356
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     },
     "cd09df7945f22065fd0995f8f8207e55": {
+      "version": 5,
+      "resource": "xfufq",
+      "type": "media.video.clip",
       "created": "2026-09-14T05:14:02.007815Z",
       "updated": "2026-09-14T22:34:53.642484Z",
-      "blake3": "cd09df7945f22065fd0995f8f8207e55",
-      "type": "video",
-      "source": {
-        "mime": "video/mp4",
-        "width": 3840,
-        "height": 2160,
-        "ratio": "16:9",
-        "bytes": 48459300,
-        "duration": 24.024,
-        "frame_rate": 29.97002997002997,
-        "frames": 720,
-        "audio": true,
-        "loudness": -17.6,
-        "peak": -2.15
-      },
-      "poster": "d6d766ea189a7c341a291e3626da2476",
-      "variants": {
-        "10b90410324e5aee22415776b0f89e0d": {
-          "mime": "video/mp4",
-          "width": 3840,
-          "height": 2160,
-          "bytes": 6875025,
-          "codec": "av01.0.12M.08,mp4a.40.2"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "cd09df7945f22065fd0995f8f8207e55",
+              "mime": "video/mp4",
+              "bytes": 48459300
+            }
+          ]
         },
-        "74757bfadadfcf1ba4a1c233779d029f": {
-          "mime": "video/mp4",
-          "width": 1920,
-          "height": 1080,
-          "bytes": 3157289,
-          "codec": "av01.0.08M.08,mp4a.40.2"
-        }
-      },
-      "captions": {
-        "a653dd681bf681300531ce63445a5ebc": {
-          "mime": "text/vtt",
-          "language": "en",
-          "kind": "captions",
-          "bytes": 1025
+        "video": {
+          "version": 1,
+          "source": {
+            "mime": "video/mp4",
+            "width": 3840,
+            "height": 2160,
+            "aspect": "16:9",
+            "bytes": 48459300,
+            "duration": 24.024,
+            "frame_rate": 29.97002997002997,
+            "frames": 720,
+            "audio": true,
+            "loudness": -17.6,
+            "peak": -2.15
+          },
+          "cover": "0s6b5",
+          "variants": [
+            {
+              "content": "10b90410324e5aee22415776b0f89e0d",
+              "mime": "video/mp4",
+              "bytes": 6875025,
+              "resolution": {
+                "width": 3840,
+                "height": 2160
+              },
+              "codec": "av01.0.12M.08,mp4a.40.2"
+            },
+            {
+              "content": "74757bfadadfcf1ba4a1c233779d029f",
+              "mime": "video/mp4",
+              "bytes": 3157289,
+              "resolution": {
+                "width": 1920,
+                "height": 1080
+              },
+              "codec": "av01.0.08M.08,mp4a.40.2"
+            }
+          ],
+          "tracks": [
+            {
+              "content": "a653dd681bf681300531ce63445a5ebc",
+              "mime": "text/vtt",
+              "language": "en",
+              "kind": "captions",
+              "bytes": 1025
+            }
+          ]
+        },
+        "clip": {
+          "version": 1
         }
       }
     },
     "cda77856d388c1fb733042c25b943569": {
+      "version": 5,
+      "resource": "9o44c",
+      "type": "media.video.clip",
       "created": "2026-09-14T05:14:03.143612Z",
       "updated": "2026-09-14T22:34:54.422116Z",
-      "blake3": "cda77856d388c1fb733042c25b943569",
-      "type": "video",
-      "source": {
-        "mime": "video/mp4",
-        "width": 640,
-        "height": 360,
-        "ratio": "16:9",
-        "bytes": 2024391,
-        "duration": 25.0,
-        "frame_rate": 25.0,
-        "frames": 625,
-        "audio": true,
-        "loudness": -23.73,
-        "peak": -6.16
-      },
-      "poster": "99409e5e479c488d67a8210794da75c0",
-      "variants": {
-        "766abd9d564851362536c6db951e3ce7": {
-          "mime": "video/mp4",
-          "width": 640,
-          "height": 360,
-          "bytes": 1614045,
-          "codec": "av01.0.01M.08,mp4a.40.2"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "cda77856d388c1fb733042c25b943569",
+              "mime": "video/mp4",
+              "bytes": 2024391
+            }
+          ]
+        },
+        "video": {
+          "version": 1,
+          "source": {
+            "mime": "video/mp4",
+            "width": 640,
+            "height": 360,
+            "aspect": "16:9",
+            "bytes": 2024391,
+            "duration": 25.0,
+            "frame_rate": 25.0,
+            "frames": 625,
+            "audio": true,
+            "loudness": -23.73,
+            "peak": -6.16
+          },
+          "cover": "q7q97",
+          "variants": [
+            {
+              "content": "766abd9d564851362536c6db951e3ce7",
+              "mime": "video/mp4",
+              "bytes": 1614045,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "codec": "av01.0.01M.08,mp4a.40.2"
+            }
+          ],
+          "tracks": []
+        },
+        "clip": {
+          "version": 1
         }
       }
     },
     "ce6115b517f4858113b6aa4a061322aa": {
+      "version": 5,
+      "resource": "ah5rw",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:33.843869Z",
       "updated": "2026-09-14T02:55:33.843869Z",
-      "blake3": "ce6115b517f4858113b6aa4a061322aa",
-      "type": "image",
-      "thumbhash": "NggGDICheHjOd3i7WCCPQvIoJA==",
-      "source": {
-        "mime": "image/png",
-        "width": 2258,
-        "height": 1266,
-        "ratio": "1129:633",
-        "bytes": 572235
-      },
-      "metadata": {},
-      "variants": {
-        "0ae1703c96bda47873ba43af5cd2504b": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1076,
-          "quality": 0.68,
-          "bytes": 44173
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "ce6115b517f4858113b6aa4a061322aa",
+              "mime": "image/png",
+              "bytes": 572235
+            }
+          ]
         },
-        "b9a8d6430451780abaeb9beffb6ca99f": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 718,
-          "quality": 0.68,
-          "bytes": 30267
+        "image": {
+          "version": 1,
+          "thumbhash": "NggGDICheHjOd3i7WCCPQvIoJA==",
+          "dimension": {
+            "width": 2258,
+            "height": 1266,
+            "aspect": "1129:633"
+          },
+          "resolution": {
+            "width": 2258,
+            "height": 1266
+          },
+          "variants": [
+            {
+              "content": "0ae1703c96bda47873ba43af5cd2504b",
+              "mime": "image/avif",
+              "bytes": 44173,
+              "resolution": {
+                "width": 1920,
+                "height": 1076
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b9a8d6430451780abaeb9beffb6ca99f",
+              "mime": "image/avif",
+              "bytes": 30267,
+              "resolution": {
+                "width": 1280,
+                "height": 718
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "e26bfc58de19fa11ee51561a55b68939",
+              "mime": "image/avif",
+              "bytes": 11203,
+              "resolution": {
+                "width": 640,
+                "height": 359
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "e26bfc58de19fa11ee51561a55b68939": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 359,
-          "quality": 0.68,
-          "bytes": 11203
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "d4186e9b053d6e972d2480b545e0a4da": {
+      "version": 5,
+      "resource": "tnyxn",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:20.545315Z",
       "updated": "2026-09-14T02:55:20.545315Z",
-      "blake3": "d4186e9b053d6e972d2480b545e0a4da",
-      "type": "image",
-      "thumbhash": "0PcJDIAcUntTeIaAqoUFrYpwvA==",
-      "source": {
-        "mime": "image/png",
-        "width": 2918,
-        "height": 1620,
-        "ratio": "1459:810",
-        "bytes": 2021321
-      },
-      "metadata": {},
-      "variants": {
-        "3a368ba720d1ddb6a0e603743754775f": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 711,
-          "quality": 0.68,
-          "bytes": 21031
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "d4186e9b053d6e972d2480b545e0a4da",
+              "mime": "image/png",
+              "bytes": 2021321
+            }
+          ]
         },
-        "94fe4ee4bd026578e917979e081a014c": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1066,
-          "quality": 0.68,
-          "bytes": 32201
+        "image": {
+          "version": 1,
+          "thumbhash": "0PcJDIAcUntTeIaAqoUFrYpwvA==",
+          "dimension": {
+            "width": 2918,
+            "height": 1620,
+            "aspect": "1459:810"
+          },
+          "resolution": {
+            "width": 2918,
+            "height": 1620
+          },
+          "variants": [
+            {
+              "content": "3a368ba720d1ddb6a0e603743754775f",
+              "mime": "image/avif",
+              "bytes": 21031,
+              "resolution": {
+                "width": 1280,
+                "height": 711
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "94fe4ee4bd026578e917979e081a014c",
+              "mime": "image/avif",
+              "bytes": 32201,
+              "resolution": {
+                "width": 1920,
+                "height": 1066
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "a5e347da797478011bfe54cedf4ec664",
+              "mime": "image/avif",
+              "bytes": 10504,
+              "resolution": {
+                "width": 640,
+                "height": 355
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "a5e347da797478011bfe54cedf4ec664": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 355,
-          "quality": 0.68,
-          "bytes": 10504
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "d6d766ea189a7c341a291e3626da2476": {
+      "version": 5,
+      "resource": "0s6b5",
+      "type": "media.image.frame",
       "created": "2026-09-14T05:14:02.007694Z",
       "updated": "2026-09-14T05:14:02.007694Z",
-      "blake3": "d6d766ea189a7c341a291e3626da2476",
-      "type": "image",
-      "thumbhash": "z9cJFIJchniPiHd+d2yYZDBJCQ==",
-      "source": {
-        "mime": "image/png",
-        "width": 3840,
-        "height": 2160,
-        "ratio": "16:9",
-        "bytes": 6003027
-      },
-      "variants": {
-        "4b233f3b6034fb967e7040bd0c44433b": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 360,
-          "quality": 0.68,
-          "bytes": 15249
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "d6d766ea189a7c341a291e3626da2476",
+              "mime": "image/png",
+              "bytes": 6003027
+            }
+          ]
         },
-        "6310dda60581eac49e2f43ce147ea7da": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1080,
-          "quality": 0.68,
-          "bytes": 69334
+        "image": {
+          "version": 1,
+          "thumbhash": "z9cJFIJchniPiHd+d2yYZDBJCQ==",
+          "dimension": {
+            "width": 3840,
+            "height": 2160,
+            "aspect": "16:9"
+          },
+          "resolution": {
+            "width": 3840,
+            "height": 2160
+          },
+          "variants": [
+            {
+              "content": "4b233f3b6034fb967e7040bd0c44433b",
+              "mime": "image/avif",
+              "bytes": 15249,
+              "resolution": {
+                "width": 640,
+                "height": 360
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "6310dda60581eac49e2f43ce147ea7da",
+              "mime": "image/avif",
+              "bytes": 69334,
+              "resolution": {
+                "width": 1920,
+                "height": 1080
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "7ba6816d30c9a8f658cf4ee5e1030f97",
+              "mime": "image/avif",
+              "bytes": 41029,
+              "resolution": {
+                "width": 1280,
+                "height": 720
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "7ba6816d30c9a8f658cf4ee5e1030f97": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 720,
-          "quality": 0.68,
-          "bytes": 41029
+        "frame": {
+          "version": 1,
+          "source": "xfufq"
         }
       }
     },
     "d95819761cd2d03787a9ff5d58905017": {
+      "version": 5,
+      "resource": "t3o5m",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:36.561722Z",
       "updated": "2026-09-14T02:55:36.561722Z",
-      "blake3": "d95819761cd2d03787a9ff5d58905017",
-      "type": "image",
-      "thumbhash": "dwgGDITz6nyfhlWcd4cYcASEew==",
-      "source": {
-        "mime": "image/png",
-        "width": 2448,
-        "height": 1366,
-        "ratio": "1224:683",
-        "bytes": 1506397
-      },
-      "metadata": {},
-      "variants": {
-        "4ea80af8c9905181393a3c1a4854c17b": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 714,
-          "quality": 0.68,
-          "bytes": 17869
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "d95819761cd2d03787a9ff5d58905017",
+              "mime": "image/png",
+              "bytes": 1506397
+            }
+          ]
         },
-        "52537bb99eb66c0b497c2bfde032d0c7": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1071,
-          "quality": 0.68,
-          "bytes": 25475
+        "image": {
+          "version": 1,
+          "thumbhash": "dwgGDITz6nyfhlWcd4cYcASEew==",
+          "dimension": {
+            "width": 2448,
+            "height": 1366,
+            "aspect": "1224:683"
+          },
+          "resolution": {
+            "width": 2448,
+            "height": 1366
+          },
+          "variants": [
+            {
+              "content": "4ea80af8c9905181393a3c1a4854c17b",
+              "mime": "image/avif",
+              "bytes": 17869,
+              "resolution": {
+                "width": 1280,
+                "height": 714
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "52537bb99eb66c0b497c2bfde032d0c7",
+              "mime": "image/avif",
+              "bytes": 25475,
+              "resolution": {
+                "width": 1920,
+                "height": 1071
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "ea75592b28db92db162a91575fa6abf1",
+              "mime": "image/avif",
+              "bytes": 8783,
+              "resolution": {
+                "width": 640,
+                "height": 357
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "ea75592b28db92db162a91575fa6abf1": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 357,
-          "quality": 0.68,
-          "bytes": 8783
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "ec38a5d85298b5e0d5b8acc1591097c2": {
+      "version": 5,
+      "resource": "l1bac",
+      "type": "media.image.photo",
       "created": "2026-08-02T04:47:13.18364Z",
       "updated": "2026-08-02T04:47:13.18364Z",
-      "blake3": "ec38a5d85298b5e0d5b8acc1591097c2",
-      "type": "image",
-      "thumbhash": "HQgKDQI3aT2m96fZdXhpd71ycAaI",
-      "source": {
-        "mime": "image/heic",
-        "width": 4284,
-        "height": 5712,
-        "ratio": "3:4",
-        "bytes": 6144566
-      },
-      "metadata": {
-        "captured": "2026-04-04T15:35:43.204+08:00",
-        "camera": {
-          "model": "iPhone 17 Pro",
-          "manufacturer": "Apple"
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "ec38a5d85298b5e0d5b8acc1591097c2",
+              "mime": "image/heic",
+              "bytes": 6144566
+            }
+          ]
         },
-        "lens": {
-          "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
-          "manufacturer": "Apple",
-          "focal_length": 6.76,
-          "focal_length_35mm": 24,
-          "f_number": 1.78
+        "image": {
+          "version": 1,
+          "thumbhash": "HQgKDQI3aT2m96fZdXhpd71ycAaI",
+          "dimension": {
+            "width": 4284,
+            "height": 5712,
+            "aspect": "3:4"
+          },
+          "resolution": {
+            "width": 4284,
+            "height": 5712
+          },
+          "variants": [
+            {
+              "content": "2b2cbc1618a81040a761e883c7f9d2fd",
+              "mime": "image/avif",
+              "bytes": 2669413,
+              "resolution": {
+                "width": 4284,
+                "height": 5712
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "596e978fe9f3390689accf1d6149b302",
+              "mime": "image/avif",
+              "bytes": 56498,
+              "resolution": {
+                "width": 480,
+                "height": 640
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "9df71c6a5bbe8da96b0f8914419f2188",
+              "mime": "image/avif",
+              "bytes": 555847,
+              "resolution": {
+                "width": 1440,
+                "height": 1920
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "f3b668acf04246880a06428fc5ec0a30",
+              "mime": "image/avif",
+              "bytes": 249846,
+              "resolution": {
+                "width": 960,
+                "height": 1280
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "exposure": {
-          "time": "1/3021",
-          "iso": 100,
-          "bias_ev": 0.0,
-          "mode": "auto exposure",
-          "program": "normal program",
-          "metering": "spot",
-          "white_balance": "auto white balance",
-          "flash": false
-        },
-        "location": {
-          "latitude": 28.7068,
-          "longitude": 115.899,
-          "altitude": 23.65,
-          "accuracy": 8.63,
-          "direction": 222.38
-        },
-        "address": {
-          "continent": "Asia",
-          "country": "China",
-          "country_code": "CN",
-          "region": "Jiangxi",
-          "subregion": "Nanchang Shi",
-          "city": "Yangzizhou",
-          "postal_code": "330000",
-          "timezone": "Asia/Shanghai"
-        },
-        "software": "26.4",
-        "color_space": "uncalibrated",
-        "orientation": 6
-      },
-      "variants": {
-        "2b2cbc1618a81040a761e883c7f9d2fd": {
-          "mime": "image/avif",
-          "width": 4284,
-          "height": 5712,
-          "quality": 0.68,
-          "bytes": 2669413
-        },
-        "596e978fe9f3390689accf1d6149b302": {
-          "mime": "image/avif",
-          "width": 480,
-          "height": 640,
-          "quality": 0.68,
-          "bytes": 56498
-        },
-        "9df71c6a5bbe8da96b0f8914419f2188": {
-          "mime": "image/avif",
-          "width": 1440,
-          "height": 1920,
-          "quality": 0.68,
-          "bytes": 555847
-        },
-        "f3b668acf04246880a06428fc5ec0a30": {
-          "mime": "image/avif",
-          "width": 960,
-          "height": 1280,
-          "quality": 0.68,
-          "bytes": 249846
+        "photo": {
+          "version": 1,
+          "captured": "2026-04-04T15:35:43.204+08:00",
+          "camera": {
+            "model": "iPhone 17 Pro",
+            "manufacturer": "Apple"
+          },
+          "lens": {
+            "model": "iPhone 17 Pro back triple camera 6.765mm f/1.78",
+            "manufacturer": "Apple",
+            "focal_length": 6.76,
+            "focal_length_35mm": 24,
+            "f_number": 1.78
+          },
+          "exposure": {
+            "time": "1/3021",
+            "iso": 100,
+            "bias_ev": 0.0,
+            "mode": "auto exposure",
+            "program": "normal program",
+            "metering": "spot",
+            "white_balance": "auto white balance",
+            "flash": false
+          },
+          "location": {
+            "latitude": 28.7068,
+            "longitude": 115.899,
+            "altitude": 23.65,
+            "accuracy": 8.63,
+            "direction": 222.38
+          },
+          "address": {
+            "continent": "Asia",
+            "country": "China",
+            "country_code": "CN",
+            "region": "Jiangxi",
+            "subregion": "Nanchang Shi",
+            "city": "Yangzizhou",
+            "postal_code": "330000",
+            "timezone": "Asia/Shanghai"
+          },
+          "software": "26.4",
+          "color_space": "uncalibrated",
+          "orientation": 6
         }
       }
     },
     "f04a630871b46cc55111ffe1264891e9": {
+      "version": 5,
+      "resource": "wl696",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:26.765698Z",
       "updated": "2026-09-14T02:55:26.765698Z",
-      "blake3": "f04a630871b46cc55111ffe1264891e9",
-      "type": "image",
-      "thumbhash": "+vcFDILqdJeIZYpfpGjqiL9t+Q==",
-      "source": {
-        "mime": "image/png",
-        "width": 1942,
-        "height": 1084,
-        "ratio": "971:542",
-        "bytes": 944867
-      },
-      "metadata": {},
-      "variants": {
-        "35184c3c88cd2cda826423bd0b954532": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 357,
-          "quality": 0.68,
-          "bytes": 15174
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "f04a630871b46cc55111ffe1264891e9",
+              "mime": "image/png",
+              "bytes": 944867
+            }
+          ]
         },
-        "48036d4654c1a4848dad752fcb62af4c": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 714,
-          "quality": 0.68,
-          "bytes": 33378
+        "image": {
+          "version": 1,
+          "thumbhash": "+vcFDILqdJeIZYpfpGjqiL9t+Q==",
+          "dimension": {
+            "width": 1942,
+            "height": 1084,
+            "aspect": "971:542"
+          },
+          "resolution": {
+            "width": 1942,
+            "height": 1084
+          },
+          "variants": [
+            {
+              "content": "35184c3c88cd2cda826423bd0b954532",
+              "mime": "image/avif",
+              "bytes": 15174,
+              "resolution": {
+                "width": 640,
+                "height": 357
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "48036d4654c1a4848dad752fcb62af4c",
+              "mime": "image/avif",
+              "bytes": 33378,
+              "resolution": {
+                "width": 1280,
+                "height": 714
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "7d7cb6efea1446dc811a501191c141de",
+              "mime": "image/avif",
+              "bytes": 48229,
+              "resolution": {
+                "width": 1920,
+                "height": 1072
+              },
+              "quality": 0.68
+            }
+          ]
         },
-        "7d7cb6efea1446dc811a501191c141de": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1072,
-          "quality": 0.68,
-          "bytes": 48229
+        "screenshot": {
+          "version": 1
         }
       }
     },
     "f60c583c98fad33c0821a8ec87daa101": {
+      "version": 5,
+      "resource": "wr1jr",
+      "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:25.301959Z",
       "updated": "2026-09-14T02:55:25.301959Z",
-      "blake3": "f60c583c98fad33c0821a8ec87daa101",
-      "type": "image",
-      "thumbhash": "/QcCBID3aYaWWYaMdGj2h6xwJw==",
-      "source": {
-        "mime": "image/png",
-        "width": 1142,
-        "height": 644,
-        "ratio": "571:322",
-        "bytes": 129045
-      },
-      "metadata": {
-        "color_space": "sRGB"
-      },
-      "variants": {
-        "9cd001cb35dc4ed92768e93db839585e": {
-          "mime": "image/avif",
-          "width": 1142,
-          "height": 644,
-          "quality": 0.68,
-          "bytes": 5687
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "f60c583c98fad33c0821a8ec87daa101",
+              "mime": "image/png",
+              "bytes": 129045
+            }
+          ]
         },
-        "b808ac2e36771049f41ceaf996a2112f": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 361,
-          "quality": 0.68,
-          "bytes": 2715
+        "image": {
+          "version": 1,
+          "thumbhash": "/QcCBID3aYaWWYaMdGj2h6xwJw==",
+          "dimension": {
+            "width": 1142,
+            "height": 644,
+            "aspect": "571:322"
+          },
+          "resolution": {
+            "width": 1142,
+            "height": 644
+          },
+          "variants": [
+            {
+              "content": "9cd001cb35dc4ed92768e93db839585e",
+              "mime": "image/avif",
+              "bytes": 5687,
+              "resolution": {
+                "width": 1142,
+                "height": 644
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "b808ac2e36771049f41ceaf996a2112f",
+              "mime": "image/avif",
+              "bytes": 2715,
+              "resolution": {
+                "width": 640,
+                "height": 361
+              },
+              "quality": 0.68
+            }
+          ]
+        },
+        "screenshot": {
+          "version": 1,
+          "color_space": "sRGB"
         }
       }
     },
     "ff309d022981d9168fca9e5e9b7291e4": {
+      "version": 5,
+      "resource": "ntwet",
+      "type": "media.image",
       "created": "2026-07-31T07:09:08.636245Z",
       "updated": "2026-07-31T20:16:43.086182Z",
-      "blake3": "ff309d022981d9168fca9e5e9b7291e4",
-      "type": "image",
-      "thumbhash": "o/cNDIB/aXh1iHd4eHf6ZLNPRg==",
-      "source": {
-        "mime": "image/png",
-        "width": 2100,
-        "height": 1168,
-        "ratio": "525:292",
-        "bytes": 2381302
-      },
-      "variants": {
-        "412b7cec1962d1dfbd1fd384265d990c": {
-          "mime": "image/avif",
-          "width": 1280,
-          "height": 712,
-          "quality": 0.68,
-          "bytes": 31086
+      "layers": {
+        "media": {
+          "version": 1,
+          "origin": [
+            {
+              "blake3": "ff309d022981d9168fca9e5e9b7291e4",
+              "mime": "image/png",
+              "bytes": 2381302
+            }
+          ]
         },
-        "5785337f669f007822b4e5bd2019690f": {
-          "mime": "image/avif",
-          "width": 1920,
-          "height": 1068,
-          "quality": 0.68,
-          "bytes": 52364
-        },
-        "5d4ed8348afeef617b3dc6f8e0b85f40": {
-          "mime": "image/avif",
-          "width": 640,
-          "height": 356,
-          "quality": 0.68,
-          "bytes": 11635
-        },
-        "fef2f87ce0d55159371000f0d936a469": {
-          "mime": "image/avif",
-          "width": 2100,
-          "height": 1168,
-          "quality": 0.68,
-          "bytes": 59320
+        "image": {
+          "version": 1,
+          "thumbhash": "o/cNDIB/aXh1iHd4eHf6ZLNPRg==",
+          "dimension": {
+            "width": 2100,
+            "height": 1168,
+            "aspect": "525:292"
+          },
+          "resolution": {
+            "width": 2100,
+            "height": 1168
+          },
+          "variants": [
+            {
+              "content": "412b7cec1962d1dfbd1fd384265d990c",
+              "mime": "image/avif",
+              "bytes": 31086,
+              "resolution": {
+                "width": 1280,
+                "height": 712
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "5785337f669f007822b4e5bd2019690f",
+              "mime": "image/avif",
+              "bytes": 52364,
+              "resolution": {
+                "width": 1920,
+                "height": 1068
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "5d4ed8348afeef617b3dc6f8e0b85f40",
+              "mime": "image/avif",
+              "bytes": 11635,
+              "resolution": {
+                "width": 640,
+                "height": 356
+              },
+              "quality": 0.68
+            },
+            {
+              "content": "fef2f87ce0d55159371000f0d936a469",
+              "mime": "image/avif",
+              "bytes": 59320,
+              "resolution": {
+                "width": 2100,
+                "height": 1168
+              },
+              "quality": 0.68
+            }
+          ]
         }
       }
     }

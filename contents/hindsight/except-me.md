@@ -12,13 +12,13 @@ lastmod: 2026-09-14T02:52:19Z
 
 On October 4, 2011, Tim Cook walked onto a stage in Cupertino as the chief executive of Apple for the first time. The product in his hands was the iPhone 4S.
 
-::image{src="d4186e9b053d6e972d2480b545e0a4da.avif"}
+::image{src="tnyxn"}
 
 Steve Jobs died the following day.
 
 It is hard to imagine a worse opening. The 4S was a fine phone and a dull keynote, but a dull keynote was never the problem. The problem was the man holding it.
 
-::image{src="52835c03630e87eecf5653c5c99dc008.avif"}
+::image{src="wu7th"}
 
 Steve Jobs holds up an Apple iPhone at the MacWorld Conference in San Francisco on January 9, 2007.  https://www.wired.com/story/iphone-history-dogfight/
 
@@ -34,7 +34,7 @@ It was the wrong question.
 
 In the authorized biography that reached stores later that same month, Jobs described the arrangement he had built around Jony Ive. Apart from Jobs himself, nobody at Apple carried more weight. Nobody could tell Ive what to do, and nobody could tell him to stay out of it. "That's the way I set it up."
 
-::image{src="91b5741d129e27d79f2e717ab31d022c.avif"}
+::image{src="en9ee"}
 
 > He's not just a designer. That's why he works directly for me. He has more operational power
 > than anyone else at Apple except me. There's no one who can tell him what to do, or to butt
@@ -62,17 +62,17 @@ The surface of those years looked bad, and it is worth being honest about how ba
 
 The iPhone 5 was the first iPhone widely understood as Cook's. The uninterrupted glass back Jobs had insisted on gave way to aluminum with two antenna bands laid across it, which read as a seam rather than a surface. The screen grew taller. Every change served a function and none of them served the look of the thing, and under Jobs the order had usually run the other way.
 
-::image{src="181da036230de994a607f5fef0d03cb9.avif"}
+::image{src="d00fk"}
 
 https://web.archive.org/web/20150910154005id_/http://images.apple.com/v/iphone-6s/a/overview/hero_spacegray_xlarge_2x.png
 
 Then came the joke. Make the screen a little longer. Make it a little thinner. Make the battery a little bigger. Make the features a little better. Give the chip a new name, and do the whole thing again next year.
 
-::video{src="cda77856d388c1fb733042c25b943569.mp4"}
+::video{src="9o44c"}
 
 The joke worked because it was close to true. From the 5s to the 6 Plus to the 7, the iPhone went three generations without a meaningful change in shape, and sales began to slide.
 
-::image{src="f60c583c98fad33c0821a8ec87daa101.avif"}
+::image{src="wr1jr"}
 
 https://www.apple.com/newsroom/2016/09/apple-reinvents-the-wireless-headphones-with-airpods/
 
@@ -88,13 +88,13 @@ The surface was hiding things.
 
 The 5s, the generation everyone found most boring, was the first phone with a 64-bit architecture. Almost nobody treated that as news. What it was actually for is the subject of the next essay.
 
-::image{src="f04a630871b46cc55111ffe1264891e9.avif"}
+::image{src="wl696"}
 
 https://web.archive.org/web/20130612003638/http://www.apple.com/ios/ios7/
 
 The same year brought flat design, and people hated it. Cheap. Ugly. Unfinished. Before long, Android skins across China were shipping something that looked a great deal like it, and flatness became the default taste of the decade. The same script ran again in 2025 with Liquid Glass, line for line.
 
-::image{src="148eafdca3f111eb70a55331ceb96b97.avif"}
+::image{src="n31us"}
 
 https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/
 
@@ -108,13 +108,13 @@ An absent veto, it turns out, is not automatically a loss. The pendulum simply h
 
 Then it swung.
 
-::image{src="c89ca3ea4b02c6a8a0c626a76a1a1682.avif"}
+::image{src="5u6pl"}
 
 https://web.archive.org/web/20150414005150id_/http://www.apple.com/macbook/design/
 
 The 2015 MacBook carried no qualifier in its name. Not Air, not Pro. Just MacBook. It was 3.5 millimeters at its thinnest point, it weighed under a kilogram, and it was the most beautiful laptop anyone had made.
 
-::image{src="1c77835df9adb398aef1941422b92695.avif"}
+::image{src="iu7iy"}
 
 https://web.archive.org/web/20150414005150id_/http://www.apple.com/macbook/design/
 
@@ -122,7 +122,7 @@ It was also the least usable. Not slow for professional work, which would have b
 
 And there was one port. In 2015 USB-C was genuinely ahead of its time; a machine with nothing else on it still reads as modern today. The problem was the count. A MacBook Air needs two before it can charge and hold a single accessory at once, which is roughly the minimum definition of a laptop. The Pro eventually took HDMI and the SD slot back.
 
-::image{src="0e0624f079e617e53ed474ccd98a947b.avif"}
+::image{src="od15v"}
 
 https://www.apple.com/newsroom/2021/10/apple-unveils-game-changing-macbook-pro/
 
@@ -134,13 +134,13 @@ To be fair, the design was not the only culprit. Intel had nothing that could de
 
 The first Apple Watch is the same story in a different case. It arrived in the autumn of 2014 as an object of fashion rather than a tool. The functions were thin. It told you the time. If you wanted the timer, you waited tens of seconds for it to open. Apple sold a version in 18-karat gold at a price that made sense to nobody, and in hindsight the positioning was simply wrong.
 
-::image{src="ce6115b517f4858113b6aa4a061322aa.avif"}
+::image{src="ah5rw"}
 
 https://web.archive.org/web/20150309223102/http://www.apple.com/watch/apple-watch-edition/
 
 It is also true that fitting hardware that precise into a case that small was very difficult, that Apple managed it, and that the category did not exist before they made it.
 
-::image{src="4306a064284c581dc88a2c494e77f8f4.avif"}
+::image{src="ufs64"}
 
 https://web.archive.org/web/20150309213711/http://www.apple.com/watch/technology/
 
@@ -154,7 +154,7 @@ Because the thing that decides between them was gone.
 
 You can reduce Apple's design language to three words. Curves. Color. Extremity. Through the 2000s those three carried the company somewhere nobody else could follow, and it is not hard to see why.
 
-::image{src="d95819761cd2d03787a9ff5d58905017.avif"}
+::image{src="t3o5m"}
 
 https://www.macrumors.com/2022/10/08/iphone-5c-obsolete-next-month/
 
@@ -166,7 +166,7 @@ Leave one designer alone with absolute authority and the pursuit of curves, colo
 
 There is a fair version of this comparison, and it is worth making. Jobs chased an extreme too. The first MacBook Air came out of a manila envelope, and the price of that machine was absurdly expensive CNC milling. That bill landed on Apple. The butterfly keyboard's bill landed on the people who bought one.
 
-::image{src="8b5c00c5682e593968de91a04fd3fd2d.avif"}
+::image{src="ape8k"}
 
 https://www.macrumors.com/2023/01/15/macbook-air-turns-15/
 
@@ -178,7 +178,7 @@ Ive's story ends on the Mac Pro, the one everybody calls the cheese grater.
 
 It is his last piece of pure conviction, and it is also the first time the conviction had to bend. The machine was expensive to build and awkward to justify, and the exterior holds up, but it had to be a working tool before it was anything else. Something you could open, fill, and cool.
 
-::image{src="aecdaad11c3a4a2e31877f7dcae8c4e1.avif"}
+::image{src="3ea5x"}
 
 https://www.apple.com/newsroom/2019/06/apple-unveils-powerful-all-new-mac-pro-and-groundbreaking-pro-display-xdr/
 
@@ -186,7 +186,7 @@ That may be the whole reason. It was the first time function won an argument wit
 
 He left that year. The Mac Pro film is the last thing he narrated for Apple.
 
-::video{src="6264d3f4d385043c2d839ff8f92d1a72.mp4"}
+::video{src="jqd8t"}
 
 2019 is the low point of Cook's tenure, and the reasons stack up neatly. Half the design team had gone, and then Ive went. The categories looked finished. The hardware story had shrunk back down to thinner, and lighter, and a new name for the chip.
 
@@ -202,4 +202,4 @@ If design is no longer the moat, what is?
 
 The answer turned out to be almost entirely invisible.
 
-::video{src="cd09df7945f22065fd0995f8f8207e55.mp4"}
+::video{src="xfufq"}
