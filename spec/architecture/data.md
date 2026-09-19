@@ -229,6 +229,14 @@ Severity carries the difference. A missing image leaves a visible hole, so it is
 missing icon leaves a linkcard that still reads correctly, so it is information. A report
 where everything is urgent is a report nobody reads.
 
+**A compile is not a report, and refuses.** The same missing picture that `cms check` mentions
+fails the build that would publish it: a reference nothing resolves used to become the authored
+id under the CDN's origin, which is a guaranteed 404 that reads as a working link everywhere it
+is inspected -- in a feed most of all, where nobody checks it afterwards. The line is what the
+command is for rather than how bad the fact is. A report that gates teaches everyone to skip it;
+a publication that guesses ships the guess. See [../drafts.md](../drafts.md), where an `::article`
+card naming a draft fails the publish for the same reason.
+
 Deletion is the one thing that never happens as a side effect. `cms gc` is dry by default and
 `mise run gc` only reports, because deriving an asset can be repeated until it is right while
 deleting one changes what R2 serves on the next sync. It is recoverable in practice -- the

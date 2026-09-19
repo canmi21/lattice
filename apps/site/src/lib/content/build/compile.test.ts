@@ -730,30 +730,28 @@ it('crops a link card cover like ::image, defaults and overrides alike', async (
 });
 
 /**
- * The feed and the markdown endpoint address an asset the same way a page does, and for months
- * they did not: `::image` joined a base that already ended in `/image/` to another `/image/`,
- * so every directive-cropped image in both targets pointed at `/image//image/{cid}`, which the
- * CDN answers with a 404. Asserted as one occurrence rather than as the whole URL, because what
- * broke was a join and not a spelling.
+ * A reference nothing answers for fails the compile rather than becoming a URL.
+ *
+ * It used to become the authored reference under the CDN's origin, which is a guaranteed 404 and
+ * reads as a working link wherever it is inspected -- in a feed most of all, where nobody looks.
+ * That fallback is also how a base ending in `/image/` was once joined to another, so this
+ * replaces the test that guarded the join: there is no join left to get wrong.
  */
-it('addresses a ::image asset once, in the feed and in the markdown alike', async () => {
-	const compiled = await compile(
-		'---\ntitle: Test\nlang: en-US\n---\n\n::image{src="a.avif" alt="A"}\n',
-		'/article',
-		{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
-	);
-
-	for (const target of [feedOf(compiled), compiled.markdown]) {
-		expect(target).toContain('/image/a.avif');
-		expect(target.match(/\/image\//g)).toHaveLength(1);
-	}
+it('refuses an image reference nothing resolves, rather than addressing it anyway', async () => {
+	await expect(
+		compile(
+			'---\ntitle: Test\nlang: en-US\n---\n\n::image{src="a.avif" alt="A"}\n',
+			'/article',
+			{ newTabNote: 'opens in new tab', resolveAsset: () => null, highlight: async () => '' },
+		),
+	).rejects.toThrow(/"a\.avif" names no published asset/);
 });
 
 /**
  * Only renditions are published; the id an author writes names the original, which the bucket
  * never receives. The page survived that because the resolver rewrites its `src` and `srcset`,
  * and the feed and the markdown did not -- every image in both was a 404. So both targets name
- * what the resolver found, and fall back to the authored reference only when it found nothing.
+ * what the resolver found, and a reference it did not find fails the compile.
  */
 it('names the published rendition in the feed and the markdown, not the authored id', async () => {
 	const resolved = {

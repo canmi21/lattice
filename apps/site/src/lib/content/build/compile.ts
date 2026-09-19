@@ -49,7 +49,6 @@ import type { Heading, Image as MdImage, Nodes, Paragraph, Root, RootContent } f
 
 // Feed and markdown targets need absolute image URLs, and they must resolve the same way the
 // rendered page does. Both now read the host from libs/urls rather than each spelling it out.
-const IMAGE_CDN = `${URLS.apps.production.cdn}/image/`;
 
 const parser = unified()
 	.use(remarkParse)
@@ -551,6 +550,18 @@ function readFrontmatter(yaml: string): ArticleMeta {
 	return { ...rest, draft: typeof draft === 'string' ? draft.trim() === 'true' : draft === true };
 }
 
+/**
+ * A reference nothing answered for, which fails the compile rather than becoming a URL.
+ *
+ * The fallback published the authored reference under the CDN's origin, which is a guaranteed
+ * 404 in a feed and reads as a working link wherever it is inspected. `cms check` reports a
+ * missing asset and exits zero because a report may not be a gate; a compile is not a report.
+ * See spec/architecture/data.md, "Missing assets are reported, never fatal".
+ */
+function unresolved(reference: string, source: string): never {
+	throw new Error(`${source}: "${reference}" names no published asset -- import it first`);
+}
+
 export type CompileContext = {
 	/**
 	 * What a screen reader is told about a link that opens elsewhere, in this view's language.
@@ -932,9 +943,9 @@ export async function compile(
 			const align = cropAlign(attrs.align, url, 'image');
 			const resolved = resolveAsset(src);
 			// The published rendition, not the id the author wrote: only renditions are stored,
-			// so naming the original gives a feed reader a 404. The authored reference stands in
-			// when nothing resolved, which is the same fallback the block takes.
-			const absolute = resolved?.src ?? `${IMAGE_CDN}${src}`;
+			// so naming the original gives a feed reader a 404. Nothing resolving is a refusal
+			// rather than a guess -- see `unresolved`.
+			const absolute = resolved?.src ?? unresolved(src, sourceFile ?? url);
 			const alt = altFor(attrs.alt, resolved);
 
 			blocks.push({ type: 'image', src, alt, crop, align, ...resolved });
@@ -1044,7 +1055,7 @@ export async function compile(
 			// both are read by things that will not run a layout. It is the largest published
 			// rendition for the reason above: the authored id names bytes the bucket never got.
 			const resolved = resolveAsset(image.url);
-			const absolute = resolved?.src ?? `${IMAGE_CDN}${image.url}`;
+			const absolute = resolved?.src ?? unresolved(image.url, sourceFile ?? url);
 			const alt = altFor(image.alt, resolved);
 			blocks.push({ type: 'image', src: image.url, alt, ...resolved });
 			md.push(`![${alt}](${absolute})`);
