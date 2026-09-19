@@ -161,8 +161,10 @@ fn fonts_named(repo: &Path, published: &[PathBuf]) -> std::io::Result<BTreeSet<S
 	let Ok(text) = std::fs::read_to_string(&path) else {
 		let woff2 = |p: &PathBuf| p.extension().and_then(|e| e.to_str()) == Some("woff2");
 		if published.iter().any(woff2) {
-			let missing = format!("{} does not exist and chunks are published -- {advice}", path.display());
-			return Err(std::io::Error::other(missing));
+			let path = path.display();
+			return Err(std::io::Error::other(format!(
+				"{path} does not exist and chunks are published -- {advice}"
+			)));
 		}
 		return Ok(BTreeSet::new());
 	};
@@ -290,14 +292,8 @@ pub fn plan(
 	let unnamed_entries: Vec<String> =
 		merged.media.keys().filter(|key| !reached.contains(*key)).cloned().collect();
 
-	// The whole content-addressed space, which is now one flat tree rather than a prefix per kind.
-	// A two-hex directory at the top of the objects tree is a fan-out segment and nothing else is,
-	// so this walks exactly what `storageKey` writes and never a named prefix beside it. That
-	// replaced a list of trees to keep complete -- `video/` and `captions/` were missing from it,
-	// which is the quietest way for a store to leak: a tree nothing sweeps has no orphans by
-	// definition, so it reports clean while it grows.
 	let unnamed_files: Vec<PathBuf> =
-		fanned_files(public)?.into_iter().filter(|path| !keep.contains(&stem_of(path))).collect();
+		fanned.into_iter().filter(|path| !keep.contains(&stem_of(path))).collect();
 
 	// Nothing above knows when an object stopped being named, only that nothing names it now, so
 	// this run writes that down and collects what an earlier run wrote down an hour ago. The new
@@ -595,30 +591,59 @@ mod tests {
 	}
 
 	#[test]
-	fn a_font_chunk_is_kept_by_the_stylesheet_that_names_it() {
-		// A chunk is in no article, no manifest and no root -- the stylesheet a browser reads
-		// before fetching it is the only thing that names one, so without this every one of them
-		// reads as garbage an hour after it lands.
+	fn keeps_a_font_chunk_the_published_record_names() {
+		// A chunk is reached from no article, no manifest and no root, so the font pipeline's
+		// record is the whole of what keeps it. Without that keep-set every published chunk is
+		// offered for deletion an hour later -- and the faces with no retained input cannot be
+		// sliced again, so those bytes would be gone for good.
 		let temporary = temp();
 		let root = temporary.path().to_path_buf();
 		std::fs::create_dir_all(root.join("contents")).expect("dir");
-		let sheets = root.join("libs").join("fonts").join("src");
-		std::fs::create_dir_all(&sheets).expect("dir");
 
 		let public = root.join("public");
 		let named = "ab".repeat(16);
-		let orphan = "cd".repeat(16);
-		for cid in [&named, &orphan] {
-			crate::image::store::write(&crate::image::store::variant_path(&public, cid, "woff2"), b"f")
-				.expect("write");
+		let superseded = "cd".repeat(16);
+		for cid in [&named, &superseded] {
+			let path = crate::image::store::variant_path(&public, cid, "woff2");
+			crate::image::store::write(&path, b"woff2").expect("write");
 		}
-		std::fs::write(sheets.join("one.css"), format!("src:url('/object/{named}.woff2')"))
-			.expect("stylesheet");
+		let record = Fonts {
+			version: FONTS_VERSION,
+			families: BTreeMap::from([("mono".to_owned(), vec![named.clone()])]),
+		};
+		crate::image::store::write(
+			&fonts_path(&root),
+			serde_json::to_string(&record).expect("json").as_bytes(),
+		)
+		.expect("record");
 
 		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
-		assert!(!names.contains(&named), "swept a chunk a stylesheet names");
-		assert!(names.contains(&orphan), "kept a chunk nothing names");
+		assert!(!names.contains(&named), "swept a chunk the record names");
+		// The other one is what a re-slice leaves behind, and it is garbage for exactly the
+		// reason the first is not: the record stopped naming it.
+		assert_eq!(names, vec![superseded]);
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn refuses_to_sweep_published_chunks_with_no_record_of_them() {
+		// `data/build/` is not in git, so a checkout that has never run the font pipeline has no
+		// record -- and reading that as "nothing is named" is how every chunk in the bucket ends
+		// up in one report as garbage. Absent with nothing published is still an empty set.
+		let temporary = temp();
+		let root = temporary.path().to_path_buf();
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+		let public = root.join("public");
+
+		let metadata = root.join("metadata");
+		let contents = root.join("contents");
+		assert!(plan(&root, &public, &metadata, &contents).is_ok());
+
+		let path = crate::image::store::variant_path(&public, &"ab".repeat(16), "woff2");
+		crate::image::store::write(&path, b"woff2").expect("write");
+		let refused = plan(&root, &public, &metadata, &contents);
+		assert!(refused.is_err(), "swept font chunks with no record of them");
 		std::fs::remove_dir_all(&root).ok();
 	}
 
