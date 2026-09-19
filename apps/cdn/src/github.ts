@@ -1,6 +1,6 @@
-import { PUBLISHED } from '@canmi/cache';
 import { GITHUB_OWNER, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
+import { lifetimeFor } from './cache';
 import { failure } from './respond';
 
 /**
@@ -33,51 +33,6 @@ github.get('/avatar/:idOrName', async (c) => {
 });
 
 // ---- Release assets -----------------------------------------------------------------------------
-
-/**
- * Tags that name a moving target rather than a version.
- *
- * A release under one of these is rewritten in place -- a nightly is republished every night
- * under the same tag -- so what its asset held an hour ago is a different file. Those are held
- * for minutes; a version tag names bytes that will not change and is held for an hour. `latest`
- * is GitHub's own alias for the newest non-prerelease and moves for the same reason.
- */
-export const ROLLING_TAGS: ReadonlySet<string> = new Set([
-	'nightly',
-	'weekly',
-	'monthly',
-	'stable',
-	'beta',
-	'dev',
-	'canary',
-	'latest',
-]);
-
-/** How long a fetched asset is kept, and how long a failure to fetch one is. */
-export type Life = { readonly hit: string; readonly miss: string };
-
-/**
- * Three numbers about somebody else's release cadence, and none of them this site's.
- *
- * `FIVE_MINUTES` has the publication delay's value and is not the publication delay: it says how
- * fast a rolling tag moves, which is a fact about GitHub. Taking it from `@canmi/cache` would
- * collapse two facts into one and tie a nightly's freshness to when this site last published.
- */
-const HOUR = 3_600;
-const FIVE_MINUTES = 300;
-const MINUTE = 60;
-
-export function releaseLife(tag: string): Life {
-	if (ROLLING_TAGS.has(tag)) {
-		return {
-			hit: `public, max-age=${FIVE_MINUTES}`,
-			miss: `public, max-age=${MINUTE}`,
-		};
-	}
-	// The miss is the exception, and it always was: a fetch that failed says nothing about how
-	// fast the tag moves, so it takes this host's ordinary short life rather than a fourth number.
-	return { hit: `public, max-age=${HOUR}`, miss: PUBLISHED };
-}
 
 /**
  * What GitHub itself allows in a repository name, a tag and an asset filename, and nothing that
@@ -125,10 +80,8 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 	const repo = c.req.param('repo');
 	const tag = c.req.param('tag');
 	const asset = c.req.param('asset');
-	const life = releaseLife(tag);
 
 	if (![repo, tag, asset].every(isReleaseName)) {
-		c.header('Cache-Control', life.miss);
 		return failure(c, 404, 'not_found');
 	}
 
@@ -139,6 +92,10 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 	const cached = await cache?.match(c.req.raw);
 	if (cached) return cached;
 
+	// Asked rather than restated, and asked here because the copy this route puts at the edge is
+	// stored before the middleware that stamps an answer can reach it -- an entry carrying no
+	// lifetime is one the edge decides for itself. A proxied file is a name, so it keeps the hour.
+	const life = lifetimeFor(new URL(c.req.url).pathname, 200);
 	const upstream = releaseUpstream(repo, tag, asset);
 	const range = c.req.header('Range');
 	const response = await fetch(upstream, {
@@ -147,13 +104,11 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 	}).catch(() => null);
 
 	if (response === null || !isGitHubHost(new URL(response.url).hostname)) {
-		c.header('Cache-Control', life.miss);
 		return failure(c, 502, 'upstream_unavailable');
 	}
 	if (!response.ok && response.status !== 206) {
 		// A repository not under the account, a tag that was never cut, an asset not attached:
 		// GitHub says 404 to all three, and so does this.
-		c.header('Cache-Control', life.miss);
 		return failure(c, response.status === 404 ? 404 : 502, 'not_found');
 	}
 
@@ -163,7 +118,7 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 		if (value !== null) headers.set(name, value);
 	}
 	headers.set('Accept-Ranges', 'bytes');
-	headers.set('Cache-Control', life.hit);
+	headers.set('Cache-Control', life);
 	if (response.status === 206) {
 		const contentRange = response.headers.get('Content-Range');
 		if (contentRange !== null) headers.set('Content-Range', contentRange);
@@ -187,7 +142,7 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 						if (value !== null) stored.set(name, value);
 					}
 					stored.set('Accept-Ranges', 'bytes');
-					stored.set('Cache-Control', life.hit);
+					stored.set('Cache-Control', life);
 					return cache.put(key, new Response(whole.body, { headers: stored }));
 				}),
 			);

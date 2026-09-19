@@ -298,12 +298,26 @@ describe('a range over a derived artifact', () => {
 
 	// The cap is halved for a range because that path holds the archive and then a copy of the
 	// slice, where the streaming one holds neither. A source between the two is served whole
-	// and refused a range, which is a cue to ask again without one.
-	it('refuses to seek into an archive it would have streamed', async () => {
+	// and refused a range, and the refusal says which of the two caps it hit -- otherwise a
+	// client is told an object it could have had whole is too large to package.
+	it('refuses to seek into an archive it would have streamed, and says so', async () => {
 		const bucket = bucketWith({ [storageKey(CID, 'mp4')]: { size: 40 * 1024 * 1024 } });
 		const whole = await derive.request(`/${CID}.mp4.zip`, {}, bucket);
 		expect(whole.status).toBe(200);
 
+		const sought = await derive.request(
+			`/${CID}.mp4.zip`,
+			{ headers: { Range: 'bytes=0-15' } },
+			bucket,
+		);
+		expect(sought.status).toBe(413);
+		expect(await sought.json()).toEqual({ status: 'error', message: 'too_large_to_seek' });
+	});
+
+	// Past the streaming cap, where the plain request would have been refused too: the range is
+	// not what the answer turns on, so it is the other message.
+	it('keeps the other message for a source no request could package', async () => {
+		const bucket = bucketWith({ [storageKey(CID, 'mp4')]: { size: 60 * 1024 * 1024 } });
 		const sought = await derive.request(
 			`/${CID}.mp4.zip`,
 			{ headers: { Range: 'bytes=0-15' } },
@@ -332,30 +346,30 @@ describe('anything else', () => {
 });
 
 /**
- * The rule these two routes keep and the middleware above them does not.
+ * What the one rule says about an address carrying a hash and two extensions.
  *
  * A `3xx` from here is a fact about the address -- the two extensions were the same -- and can
- * no more change than the bytes can, so it earns the year rather than the five minutes the
- * floor gives a redirect. The literal strings are the point: a change to @canmi/cache's values
- * has to be seen rather than pass.
+ * no more change than the bytes can, so it earns the year a redirect elsewhere does not. The
+ * literal strings are the point: a change to @canmi/cache's values has to be seen rather than
+ * pass.
  */
 describe('what a derived answer may be kept for', () => {
 	it('keeps a 2xx for a year', async () => {
-		const response = await derive.request(`/${CID}.avif.zip`, {}, holding('avif'));
+		const response = await app.request(`/derive/${CID}.avif.zip`, {}, holding('avif'));
 		expect(response.status).toBe(200);
 		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
 	it('keeps a 3xx for a year too, which is where this parts company', async () => {
-		const response = await derive.request(`/${CID}.avif.avif`, {}, holding('avif'));
+		const response = await app.request(`/derive/${CID}.avif.avif`, {}, holding('avif'));
 		expect(response.status).toBe(301);
 		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
 	// A 206 is a 2xx, and the bytes behind it are as settled as the whole answer they came from.
 	it('keeps a 206 for a year, which is the half a status check is easy to lose', async () => {
-		const response = await derive.request(
-			`/${CID}.avif.zip`,
+		const response = await app.request(
+			`/derive/${CID}.avif.zip`,
 			{ headers: { Range: 'bytes=0-15' } },
 			holding('avif'),
 		);
@@ -364,16 +378,16 @@ describe('what a derived answer may be kept for', () => {
 	});
 
 	it('holds a refusal for five minutes', async () => {
-		const missing = await derive.request(`/${CID}.avif.webp`, {}, bucketWith({}));
+		const missing = await app.request(`/derive/${CID}.avif.webp`, {}, bucketWith({}));
 		expect(missing.status).toBe(404);
 		expect(missing.headers.get('Cache-Control')).toBe(MINUTES);
 
-		const malformed = await derive.request(`/${CID}.avif.exe`, {}, holding('avif'));
+		const malformed = await app.request(`/derive/${CID}.avif.exe`, {}, holding('avif'));
 		expect(malformed.status).toBe(400);
 		expect(malformed.headers.get('Cache-Control')).toBe(MINUTES);
 
-		const unsatisfiable = await derive.request(
-			`/${CID}.avif.zip`,
+		const unsatisfiable = await app.request(
+			`/derive/${CID}.avif.zip`,
 			{ headers: { Range: 'bytes=99999-' } },
 			holding('avif'),
 		);
@@ -394,8 +408,8 @@ describe('the lookup is a call, never a request', () => {
 	});
 });
 
-describe('the address middleware lets it through', () => {
-	it('reaches the route rather than being refused for carrying two extensions', async () => {
+describe('the group as the worker mounts it', () => {
+	it('reaches the route rather than falling into the catch-all', async () => {
 		const response = await app.request(`/derive/${CID}.avif.avif`, {}, holding('avif'));
 		expect(response.status).toBe(301);
 	});

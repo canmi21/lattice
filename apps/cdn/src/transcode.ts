@@ -20,8 +20,8 @@ import WEBP_ENC_WASM from '@jsquash/webp/codec/enc/webp_enc.wasm';
  * produced here, not at the edge", for the measurement -- so the worker decodes and re-encodes
  * itself, which removes the plan tier, the monthly quota and the dimension ceiling too.
  *
- * Only decoders for what is stored, encoders for what is asked for -- `/image` still offers no
- * AVIF, for the size trade there; `/derive` names its source, so it may ask, and this carries one.
+ * Decoders for what is stored, encoders for what can be asked for. `/derive` is the one route
+ * that asks, and it names its source rather than probing, so every encoder here is reachable.
  */
 
 /**
@@ -74,28 +74,17 @@ const readyAvifEncode = once(() => initAvifEncode(AVIF_ENC_WASM));
 const readyWebpEncode = once(() => initWebpEncode(WEBP_ENC_WASM));
 
 /**
- * What a stored object can be, and what a request can ask to be given.
+ * What a stored object can be.
  *
  * `jpg` is deliberately not a member -- see spec/architecture/delivery.md, "The extension asks
- * for a format", for why one spelling stays one. The route redirects it instead.
- *
- * `ENCODABLE` is what `/image` offers and deliberately leaves AVIF out, for the size trade the
- * same section gives: a browser reaching that route for a fallback already cannot read AVIF.
+ * for a format", for why one spelling stays one.
  */
 export const DECODABLE = ['avif', 'png'] as const;
-export const ENCODABLE = ['webp', 'jpeg', 'png'] as const;
 
-/**
- * What `/derive` may be asked to produce, which is every encoder this worker carries.
- *
- * A superset of `ENCODABLE` by one entry, and the entry is the point: `/derive` is told the
- * source format rather than probing for it, so asking it for AVIF is asking for a conversion
- * nobody could have reached through `/image`, where AVIF is what the source usually already is.
- */
+/** What `/derive` may be asked to produce, which is every encoder this worker carries. */
 export const DERIVABLE = ['webp', 'jpeg', 'png', 'avif'] as const;
 
 export type Decodable = (typeof DECODABLE)[number];
-export type Encodable = (typeof ENCODABLE)[number];
 export type Derivable = (typeof DERIVABLE)[number];
 
 /**
@@ -116,9 +105,9 @@ export const MEDIA_TYPES: Record<Derivable, string> = {
 /**
  * Quality for the fallback formats.
  *
- * These are only ever served to a browser that cannot read AVIF, so they are a compatibility
- * path rather than the one being optimised. High enough that the fallback is not visibly
- * worse than the image everyone else gets.
+ * These are mostly served to a browser that cannot read AVIF, so they are a compatibility path
+ * rather than the one being optimised. High enough that the fallback is not visibly worse than
+ * the image everyone else gets.
  */
 const QUALITY = 80;
 
@@ -127,10 +116,6 @@ const AVIF_QUALITY = 50;
 
 export function isDecodable(extension: string): extension is Decodable {
 	return (DECODABLE as readonly string[]).includes(extension);
-}
-
-export function isEncodable(extension: string): extension is Encodable {
-	return (ENCODABLE as readonly string[]).includes(extension);
 }
 
 export function isDerivable(extension: string): extension is Derivable {

@@ -41,7 +41,6 @@ describe('an object named by its id alone', () => {
 		);
 		expect(response.status).toBe(200);
 		expect(await response.text()).toBe(BYTES);
-		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
 	// No table of types to consult: the extension is part of the key and nothing else.
@@ -70,8 +69,8 @@ describe('an object named by its id alone', () => {
 				},
 			},
 		} as never;
-		const response = await object.request(
-			`/${CID}.avif`,
+		const response = await app.request(
+			`/object/${CID}.avif`,
 			{ headers: { 'If-None-Match': `"${CID}.avif"` } },
 			bucket,
 		);
@@ -80,7 +79,7 @@ describe('an object named by its id alone', () => {
 	});
 
 	it('is 404 when the object is absent, and holds that briefly', async () => {
-		const response = await object.request(`/${CID}.avif`, {}, bucketWith([]));
+		const response = await app.request(`/object/${CID}.avif`, {}, bucketWith([]));
 		expect(response.status).toBe(404);
 		expect(await response.json()).toEqual({ status: 'error', message: 'not_found' });
 		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
@@ -92,14 +91,15 @@ describe('an object named by its id alone', () => {
 		// A name with no extension, and one with an empty one: neither is a key.
 		expect((await object.request(`/${CID}`, {}, bucket)).status).toBe(400);
 		expect((await object.request(`/${CID}.`, {}, bucket)).status).toBe(400);
-		const response = await object.request(`/${CID}.a-b`, {}, bucket);
+		const response = await app.request(`/object/${CID}.a-b`, {}, bucket);
 		expect(response.status).toBe(400);
 		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
 	});
 });
 
-describe('the address middleware lets it through', () => {
-	// The prefix is not a public type, so without an exemption this never reaches the route.
+describe('the group as the worker mounts it', () => {
+	// The lifetime is the worker's one rule rather than anything this route states, so it is
+	// only true of the mounted group -- which is what a reader reaches.
 	it('reaches the route rather than being refused as an address', async () => {
 		const response = await app.request(
 			`/object/${CID}.avif`,
@@ -107,6 +107,7 @@ describe('the address middleware lets it through', () => {
 			bucketWith([storageKey(CID, 'avif')]),
 		);
 		expect(response.status).toBe(200);
+		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
 	// Every font chunk is one of these now, Latin subsets included, and `/fonts/` is gone. What a
@@ -122,7 +123,8 @@ describe('the address middleware lets it through', () => {
 		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
-	// The id is one segment. The fan-out it is stored under is the bucket's business.
+	// The id is one segment. The fan-out it is stored under is the bucket's business, and an
+	// address spelling it falls past the group into the catch-all.
 	it('still refuses an address carrying the storage layout', async () => {
 		const response = await app.request(`/object/44/b6/${CID}.avif`, {}, bucketWith([]));
 		expect(response.status).toBe(400);

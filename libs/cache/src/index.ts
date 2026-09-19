@@ -18,6 +18,9 @@ export const PUBLICATION_DELAY = 300;
 /** One year, in seconds: the longest a browser honours, and what `immutable` already implies. */
 const UNCHANGING_LIFE = 31_536_000;
 
+/** One hour, in seconds. The middle number, for an address that names rather than identifies. */
+const NAMED_LIFE = 3_600;
+
 /**
  * Three hours, in seconds, for a caller that decides its answer is worth serving stale.
  *
@@ -37,6 +40,16 @@ export const WHILE_UNREACHABLE = 10_800;
  * a number of its own would be a second publication delay.
  */
 export const PUBLISHED = `public, max-age=${PUBLICATION_DELAY}`;
+
+/**
+ * What an answer keeps when its address names something rather than identifying it.
+ *
+ * Between the other two: what stands behind the name can change, but not on this site's
+ * publication clock -- a permanent shortcut whose target moves, somebody else's file fetched
+ * live. An hour is long enough to be worth an edge entry and short enough that a change lands
+ * the same day.
+ */
+export const NAMED = `public, max-age=${NAMED_LIFE}`;
 
 /**
  * What a key whose bytes cannot change earns.

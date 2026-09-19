@@ -1,86 +1,99 @@
-import { ARTIFACT_TYPES, artifactKey } from '@canmi/artifacts';
 import { storageKey } from '@canmi/store';
 import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
-import { cacheControl, isContentAddressed } from './cache';
+import { cacheControl, isContentAddressed, lifetimeFor } from './cache';
 
 const HASH = '44b6081deaf0242ca3bf83d62a3b6c95';
+
+/**
+ * The three lifetimes, written out rather than imported.
+ *
+ * Every expectation here is a literal, because this file exists to catch one of them changing
+ * and a test that composed its expectation the way the source does would agree with whatever
+ * the source became.
+ */
 const YEAR = 'public, max-age=31536000, immutable';
+const HOUR = 'public, max-age=3600';
 const MINUTES = 'public, max-age=300';
 
-/** A font chunk, and the family-directory name one used to have before it became an object. */
-const FONT = `/object/${HASH}.woff2`;
-const NAMED_FONT = '/fonts/ioskeley-mono/IoskeleyMono-Regular-latin.woff2';
-
-/** A request path, from a bucket key. The two differ by a leading slash and nothing else. */
-function path(key: string): string {
-	return `/${key}`;
-}
+/** One address out of each of the four groups, which is what the rule has to cover. */
+const OBJECT = `/object/${HASH}.avif`;
+const DERIVED = `/derive/${HASH}.avif.webp`;
+const PROXIED = '/proxy/github/release/rdm/latest/rdm.dmg';
+const SYMLINK = '/symlink/favicon.svg';
 
 describe('isContentAddressed', () => {
-	// The point of the predicate: every artifact type answers yes without being named here, so
-	// adding one to @canmi/artifacts carries no cache decision with it.
-	it('recognises every artifact type', () => {
-		for (const type of ARTIFACT_TYPES) {
-			expect(isContentAddressed(path(artifactKey(type, HASH)))).toBe(true);
-		}
-	});
-
-	// The same predicate, the other shape. A variant is content-addressed today and the year it
-	// already has must survive the policy being derived rather than decided per route.
-	it('recognises the assets this worker already served', () => {
-		expect(isContentAddressed(`/image/${HASH}.avif`)).toBe(true);
-		expect(isContentAddressed(`/image/${HASH}.webp`)).toBe(true);
-		expect(isContentAddressed(`/captions/${HASH}.vtt`)).toBe(true);
-		expect(isContentAddressed(`/video/${HASH}.mp4`)).toBe(true);
-		expect(isContentAddressed(`/license/${HASH}.txt`)).toBe(true);
-		// Every font chunk, Latin and CJK alike, is an object now and needs no promise.
-		expect(isContentAddressed(FONT)).toBe(true);
+	it('recognises both shapes a hashed address is written in', () => {
+		expect(isContentAddressed(OBJECT)).toBe(true);
+		// Two extensions and still nothing open: the hash names the source and the pair names
+		// the conversion, so the answer is a function of the address either way.
+		expect(isContentAddressed(DERIVED)).toBe(true);
+		expect(isContentAddressed(`/derive/${HASH}.avif.zip`)).toBe(true);
 	});
 
 	// A request names the id alone; the bucket fans it out. Both spellings end in the hash, which
 	// is why one predicate covers the path and the key it resolves to.
 	it('recognises the fanned-out key as well as the path that asks for it', () => {
-		expect(isContentAddressed(path(storageKey(HASH, 'avif')))).toBe(true);
+		expect(isContentAddressed(`/${storageKey(HASH, 'avif')}`)).toBe(true);
 	});
 
-	it('does not recognise a name that once carried a promise instead of a hash', () => {
-		// The Latin subsets were the one entry on the list of exceptions, and the list is gone
-		// with them: their year rested on nobody re-subsetting under the same filename.
-		expect(isContentAddressed(NAMED_FONT)).toBe(false);
-		expect(isContentAddressed('/favicon/example.com')).toBe(false);
-	});
-
-	it('does not recognise a name that merely sits beside hashed ones', () => {
-		expect(isContentAddressed('/license/full.txt')).toBe(false);
-		expect(isContentAddressed('/opengraph/development/thing.png')).toBe(false);
+	it('does not recognise a name, which is what the other two groups are', () => {
+		expect(isContentAddressed(SYMLINK)).toBe(false);
+		expect(isContentAddressed(PROXIED)).toBe(false);
 		expect(isContentAddressed('/robots.txt')).toBe(false);
+		expect(isContentAddressed('/favicon.ico')).toBe(false);
 	});
 
 	it('holds the hash to its exact spelling', () => {
-		expect(isContentAddressed(`/image/${HASH.slice(1)}.avif`)).toBe(false);
-		expect(isContentAddressed(`/image/${HASH}f.avif`)).toBe(false);
-		expect(isContentAddressed(`/image/${HASH.toUpperCase()}.avif`)).toBe(false);
-		expect(isContentAddressed(`/image/${HASH}`)).toBe(false);
+		expect(isContentAddressed(`/object/${HASH.slice(1)}.avif`)).toBe(false);
+		expect(isContentAddressed(`/object/${HASH}f.avif`)).toBe(false);
+		expect(isContentAddressed(`/object/${HASH.toUpperCase()}.avif`)).toBe(false);
+		expect(isContentAddressed(`/object/${HASH}`)).toBe(false);
+	});
+});
+
+/**
+ * The rule itself, over the four groups at once, which is the point of it being one rule.
+ *
+ * Two questions -- was it answered, and does the address carry a hash -- and the same three
+ * answers wherever they are asked. A group is not a row in a table here, which is what stops a
+ * fifth one from arriving with a lifetime nobody chose.
+ */
+describe('lifetimeFor', () => {
+	it('keeps a settled answer to a hashed address for a year', () => {
+		for (const status of [200, 206, 301, 304]) {
+			expect(lifetimeFor(OBJECT, status)).toBe(YEAR);
+			expect(lifetimeFor(DERIVED, status)).toBe(YEAR);
+		}
+	});
+
+	it('keeps a settled answer to a name for an hour', () => {
+		// The name is permanent and what stands behind it is not, so the hour is about the
+		// target moving rather than about this answer being uncertain.
+		expect(lifetimeFor(SYMLINK, 302)).toBe(HOUR);
+		expect(lifetimeFor(PROXIED, 200)).toBe(HOUR);
+		expect(lifetimeFor(PROXIED, 206)).toBe(HOUR);
+		expect(lifetimeFor('/', 301)).toBe(HOUR);
+	});
+
+	it('will not keep a failure, hashed or not', () => {
+		// A 404 on a hashed address means the object was not uploaded or has been swept, and the
+		// key becomes valid a second later. A year of that would outlive the mistake by a lot.
+		expect(lifetimeFor(OBJECT, 404)).toBe(MINUTES);
+		expect(lifetimeFor(DERIVED, 400)).toBe(MINUTES);
+		expect(lifetimeFor(DERIVED, 413)).toBe(MINUTES);
+		expect(lifetimeFor(OBJECT, 416)).toBe(MINUTES);
+		expect(lifetimeFor(SYMLINK, 404)).toBe(MINUTES);
+		expect(lifetimeFor(PROXIED, 502)).toBe(MINUTES);
 	});
 });
 
 describe('cacheControl', () => {
 	const app = new Hono();
 	app.use('*', cacheControl);
-	for (const type of ARTIFACT_TYPES) {
-		app.get(path(artifactKey(type, HASH)), (c) => c.text('object'));
-	}
-	app.get('/content/missing.json', (c) => c.json({ error: 'x' }, 404));
-	app.get(`/image/${HASH}.avif`, (c) => c.text('bytes'));
-	app.get(`/image/${HASH}.gone`, (c) => c.json({ error: 'x' }, 404));
-	app.get(FONT, (c) => c.text('chunk'));
-	app.get(NAMED_FONT, (c) => c.text('font'));
-	app.get('/favicon/example.com', (c) => c.text('icon'));
-	app.get('/license/full.txt', (c) => c.text('aggregate'));
+	app.get(OBJECT, (c) => c.text('bytes'));
+	app.get(SYMLINK, (c) => c.redirect('/object/x.svg', 302));
 	app.get('/missing', (c) => c.json({ error: 'not found' }, 404));
-	app.get(`/video/${HASH}.mp4`, (c) => c.body(null, 304));
-	app.get('/favicon/stale.com', (c) => c.body(null, 304));
 	app.get('/preset', (c) => {
 		c.header('Cache-Control', 'no-store');
 		return c.text('special');
@@ -90,46 +103,15 @@ describe('cacheControl', () => {
 		return (await app.request(url)).headers.get('Cache-Control');
 	}
 
-	it('keeps every content-addressed answer for a year', async () => {
-		// The year rests on the name being a hash, not on a promise anyone has to remember.
-		for (const type of ARTIFACT_TYPES) {
-			expect(await policy(path(artifactKey(type, HASH)))).toBe(YEAR);
-		}
-		expect(await policy(`/image/${HASH}.avif`)).toBe(YEAR);
-	});
-
-	it('will not keep an error for a year, hashed or not', async () => {
-		// An error is a statement about right now: a 404 on a hashed name means the object was
-		// not uploaded or has been swept, and the key becomes valid a second later.
-		expect(await policy(`/image/${HASH}.gone`)).toBe(MINUTES);
-		expect(await policy('/content/missing.json')).toBe(MINUTES);
+	it('stamps whatever the rule says, so nothing leaves here unstamped', async () => {
+		expect(await policy(OBJECT)).toBe(YEAR);
+		expect(await policy(SYMLINK)).toBe(HOUR);
 		expect(await policy('/missing')).toBe(MINUTES);
 	});
 
-	it('keeps a revalidated object for a year, because a 304 is not an error', async () => {
-		// A 304's headers replace the stored response's, so five minutes here would cut a
-		// year-old copy down to five on every revalidation -- the opposite of what it means.
-		expect(await policy(`/video/${HASH}.mp4`)).toBe(YEAR);
-		// And a name without a hash is still five minutes when it revalidates.
-		expect(await policy('/favicon/stale.com')).toBe(MINUTES);
-	});
-
-	it('keeps a font chunk for a year on the same terms as everything else', async () => {
-		// The year the fonts already had, now earned by the shape of the name rather than by a
-		// promise. Losing it re-fetches the face on every visit, which is what this guards.
-		expect(await policy(FONT)).toBe(YEAR);
-		// And the family-directory name it used to have earns nothing, because nothing serves it.
-		expect(await policy(NAMED_FONT)).toBe(MINUTES);
-	});
-
-	it('gives everything else five minutes', async () => {
-		// A favicon is refetched and may legitimately change; the licence aggregate is rewritten
-		// whenever the dependency tree moves. Neither name promises anything about its bytes.
-		expect(await policy('/favicon/example.com')).toBe(MINUTES);
-		expect(await policy('/license/full.txt')).toBe(MINUTES);
-	});
-
 	it('never overrides a header a route set deliberately', async () => {
+		// Which is how `/favicon.ico` keeps its year and `/robots.txt` its five minutes: both
+		// are statements this host makes rather than answers the rule above can classify.
 		expect(await policy('/preset')).toBe('no-store');
 	});
 });

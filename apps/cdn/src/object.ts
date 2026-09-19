@@ -1,8 +1,16 @@
-import { Hono } from 'hono';
-import { measure, read, storageKey, type Bindings, type Found, type Measured } from '@canmi/store';
-import { objectCache } from './cache';
-import { parseName } from './key';
-import { serveObject } from './stored';
+import { Hono, type Context } from 'hono';
+import {
+	isUnsatisfiable,
+	measure,
+	read,
+	storageKey,
+	toResponse,
+	unsatisfiableResponse,
+	type Bindings,
+	type Found,
+	type Measured,
+} from '@canmi/store';
+import { parseName, validatorFor } from './key';
 import { failure } from './respond';
 
 /**
@@ -10,8 +18,7 @@ import { failure } from './respond';
  *
  * A pure lookup and nothing else: the id and the extension form the storage key, the bytes go
  * back. Nothing is resolved, nothing is synthesised, and nothing is fetched -- which is what
- * makes this the one address the rest of the worker can call rather than request. The type in
- * `/{type}/{cid}.{ext}` is decorative in the lookup and is simply absent here; see
+ * makes this the one address the rest of the worker can call rather than request. See
  * spec/architecture/data.md, "The bucket stores content ids; the CDN serves types".
  */
 const object = new Hono<{ Bindings: Bindings }>();
@@ -47,7 +54,47 @@ export function isExtension(value: string): boolean {
 	return EXTENSION.test(value);
 }
 
-object.use('*', objectCache);
+/**
+ * Hand back the object an id and an extension name, ranges and validator included.
+ *
+ * A function rather than the body of the route below because the lookup is the interesting half
+ * and the routing is not: one place holds the range and the 304 handling, which is how neither
+ * of them ends up answering a seek with the whole file.
+ */
+export async function serveObject(
+	c: Context<{ Bindings: Bindings }>,
+	cid: string,
+	extension: string,
+): Promise<Response> {
+	// Answered before the bucket is touched: the id is a hash of the bytes, so a client holding
+	// this tag holds these bytes, and reading the object to confirm it would only prove what the
+	// URL already stated. The tag is free here for the same reason -- the hash is the identity.
+	const tag = validatorFor(cid, extension);
+	if (c.req.header('If-None-Match') === tag) {
+		return new Response(null, { status: 304, headers: { ETag: tag } });
+	}
+
+	const found = await read(c.env, storageKey(cid, extension), c.req.header('Range'));
+	if (!found) {
+		return failure(c, 404, 'not_found');
+	}
+	// The object is there and the question was wrong, which is a different answer from 404:
+	// 416 carries the size so the client can ask again knowing it.
+	if (isUnsatisfiable(found)) {
+		return unsatisfiableResponse(found.total);
+	}
+
+	const response = toResponse(found);
+	const headers = new Headers(response.headers);
+	// Overwritten rather than deferred to, so the tag agrees with what the 304 above compares
+	// against instead of with whatever R2 supplies for the stored object.
+	headers.set('ETag', tag);
+	// `Accept-Ranges`, `Content-Range` and the 206 come from `toResponse`, which is where
+	// every object in this worker gets them. A clip is the reason they matter: a player seeks
+	// by asking for a byte range, and without them a browser fetches the whole rung to start
+	// in the middle of it.
+	return new Response(response.body, { status: response.status, headers });
+}
 
 object.get('/:name', async (c) => {
 	const parsed = parseName(c.req.param('name'));

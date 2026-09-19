@@ -1,21 +1,24 @@
-import { ARTIFACT_TYPES, PUBLIC_TYPES } from '@canmi/artifacts';
-import { PUBLISHED } from '@canmi/cache';
+import { PUBLISHED, UNCHANGING } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { addressable } from './address';
-import { artifact } from './artifact';
 import { cacheControl } from './cache';
-import image from './image';
 import github from './github';
-import license from './license';
 import object from './object';
 import derive from './derive';
+import symlink from './symlink';
 import type { Bindings } from '@canmi/store';
-import { stored } from './stored';
 import { failure } from './respond';
 
+/**
+ * The CDN: four groups of address, and the handful of names a host has to answer for anyway.
+ *
+ * `/object` and `/derive` are content addressing, `/proxy` is somebody else's bytes fetched
+ * live, and `/symlink` is a permanent name pointing at whichever object it currently means.
+ * Nothing else is an address here -- a request outside the four is refused rather than looked
+ * for. See spec/architecture/delivery.md, "The CDN expresses one kind of address".
+ */
 const app = new Hono<{ Bindings: Bindings }>();
 
 // Any origin may read: everything served here is public, so an allowlist blocked only embedding,
@@ -26,20 +29,26 @@ const app = new Hono<{ Bindings: Bindings }>();
 // grants nothing anyway without credentials to reach. The API stays origin-restricted instead.
 // A scanner flagging the reflected preflight has found a pattern, not a hole.
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
+// One rule over the four groups, and the floor under everything else. See ./cache.ts.
 app.use('*', cacheControl);
-// Before any route: what this host can express at all. See ./address.ts.
-app.use('*', addressable);
 
+// Permanent: which host the site is reached at is not a thing that changes, so a browser that
+// learns this once need never ask again.
 app.get('/', (c) => {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	return c.redirect(`${urls.site}/?ref=cdn`, 302);
+	return c.redirect(`${urls.site}/?ref=cdn`, 301);
 });
 
-// A browser asks any origin it touches for this, and this one serves objects rather than pages.
-// The name is permanent and the alias layer is where it lives.
+/**
+ * A browser asks any origin it touches for this, and this one serves objects rather than pages.
+ *
+ * The year is honest because the target is the permanent name and not the object behind it:
+ * what moves when the mark is redrawn is what `/symlink` answers, and that keeps its own hour.
+ * Nothing to range over either -- a redirect has no body.
+ */
 app.get('/favicon.ico', (c) => {
-	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	return c.redirect(`${urls.alias}/favicon.ico`, 301);
+	c.header('Cache-Control', UNCHANGING);
+	return c.redirect('/symlink/favicon.ico', 301);
 });
 
 // Nothing here is disallowed. `Disallow: /` blocked OpenGraph cards too, and adding
@@ -47,59 +56,48 @@ app.get('/favicon.ico', (c) => {
 // robots.txt draft, which has no `Allow` and never sees the exception.
 //
 // A per-agent block would mean guessing which crawlers parse which decade of the format,
-// forever, over something mild. So the policy stops being clever: everything is fetchable,
-// cached briefly -- like every name without a hash in it -- so a correction takes minutes.
+// forever, over something mild. So everything is fetchable, and cached briefly.
+//
+// Not a symlink: a robots policy is a statement about the host serving it, and these differ.
 app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', PUBLISHED);
 	return c.text(robotsTxt({ disallow: [''] }));
 });
 
-// Every type in `PUBLIC_TYPES` is reachable, and this is the one place that says how. Three have
-// logic of their own: `image` decodes and re-encodes, `license` also answers for a named
-// aggregate, and `opengraph` is addressed by slug rather than by hash. The rest are the same
-// lookup, so they are mounted from the table rather than written out, which is what stops a new
-// type from being added and quietly having no route. `index.test.ts` fails if one is.
-app.route('/image', image);
-app.route('/github', github);
-app.route('/license', license);
-export const PLAIN_OBJECTS = ['captions', 'video'] as const;
-for (const type of PLAIN_OBJECTS) {
-	// One extension each, which is what makes them plain. Read off the table rather than written
-	// here, so a second format arriving for either is a failure at this line and not a silent
-	// half-served type.
-	const [extension, ...rest] = PUBLIC_TYPES[type];
-	if (rest.length > 0) throw new Error(`${type} stores more than one format`);
-	app.route(`/${type}`, stored(type, extension));
-}
-
-// The published corpus, mounted from `ARTIFACT_TYPES` for the reason the table above is: a type
-// added to @canmi/artifacts must not be able to arrive with no route to reach it by. Each is the
-// same lookup -- the path is already the key -- and none of them names a lifetime.
-for (const type of ARTIFACT_TYPES) {
-	app.route(`/${type}`, artifact(type));
-}
+/**
+ * Where the proxies used to answer, kept as a redirect rather than as a second spelling.
+ *
+ * Permanent and method-preserving: the path moved under `/proxy` and will not move back, and a
+ * 308 is the one code that says so without inviting a client to turn its request into a `GET`.
+ */
+app.all('/github/*', (c) => {
+	const url = new URL(c.req.url);
+	return c.redirect(`/proxy${url.pathname}${url.search}`, 308);
+});
 
 /**
- * Two addresses that name an object without naming a type, and neither resolves anything.
+ * The four groups, and the whole of what this host expresses.
  *
- * `/object/{cid}.{ext}` is the lookup on its own, and `/derive/{cid}.{ext}.{ext}` is that same
- * lookup plus one conversion the caller spelled out in full. They keep a cache rule of their own
- * -- a `3xx` earns the year here, because a redirect either of them issues is a function of the
- * address -- which is why each mounts `objectCache` itself rather than taking the floor above.
+ * Two of them are content-addressed: `/object/{cid}.{ext}` is the lookup on its own, and
+ * `/derive/{cid}.{ext}.{ext}` is that same lookup plus one conversion the caller spelled out in
+ * full. `/proxy/{vendor}` is a live fetch from somebody else, and `/symlink/{name}` is a name
+ * this site publishes, answered with where it currently points.
  */
 app.route('/object', object);
 app.route('/derive', derive);
+app.route('/proxy/github', github);
+app.route('/symlink', symlink);
 
 /**
- * A request this worker has no route for, said in the envelope every refusal here uses.
+ * Anything else, and `400` rather than `404` because the two say different things.
  *
- * The `GET /*` above catches every readable path, so what reaches this is a method the bucket
- * cannot answer -- a POST, a PUT. Hono's own answer is `text/plain`, which is the one shape a
- * caller reading JSON cannot read. The lifetime is the middleware's: a non-2xx is held for five
- * minutes at most, and that rule is derived from the response rather than restated here. See
- * spec/architecture/delivery.md.
+ * A `404` from this host is a fact about the bucket -- the address was well formed and the
+ * object was never uploaded or has been swept -- and it becomes untrue the moment somebody
+ * publishes. An address outside the four groups is a fact about the address: there is no such
+ * route, there never will be, and collapsing the two would throw away the only signal that
+ * tells a sweep from a typo. Last, so it takes what nothing above claimed, methods included.
  */
-app.notFound((c) => failure(c, 404, 'no_such_route'));
+app.all('*', (c) => failure(c, 400, 'not_an_address'));
 
 /**
  * A failure is JSON and is never stored, however far up it was thrown.

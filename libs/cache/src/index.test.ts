@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PUBLICATION_DELAY, PUBLISHED, UNCHANGING, WHILE_UNREACHABLE } from './index';
+import { NAMED, PUBLICATION_DELAY, PUBLISHED, UNCHANGING, WHILE_UNREACHABLE } from './index';
 
 /**
  * The bytes, written out rather than recomposed.
@@ -16,6 +16,10 @@ describe('lifetimes', () => {
 
 	it('holds a key whose bytes cannot change for a year', () => {
 		expect(UNCHANGING).toBe('public, max-age=31536000, immutable');
+	});
+
+	it('holds a name whose target may move for an hour, and never marks one immutable', () => {
+		expect(NAMED).toBe('public, max-age=3600');
 	});
 
 	// Composed by the caller rather than exported composed, because offering a stale answer is a

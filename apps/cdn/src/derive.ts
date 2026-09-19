@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { isContentId, rangedResponse, toResponse, type Bindings } from '@canmi/store';
-import { objectCache } from './cache';
 import { findObject, isExtension, measureObject } from './object';
 import { failure } from './respond';
 import { MEDIA_TYPES, isDecodable, isDerivable, transcode } from './transcode';
@@ -11,8 +10,8 @@ import { zipOne, zipWhole } from './zip';
  *
  * `/derive/{cid}.{ext}.{ext}` is the source's extension and then the target's, so
  * `{cid}.avif.webp` is "the object stored as `{cid}.avif`, given to me as webp". It is
- * deliberately dumb: it never searches for the source the way `/image` probes for one, because
- * it was told which object it is, and it never reaches this host over the network to fetch it --
+ * deliberately dumb: it never searches for a source, because it was told which object it is,
+ * and it never reaches this host over the network to fetch it --
  * see `findObject`, which is the same lookup `/object` performs, called rather than requested.
  */
 const derive = new Hono<{ Bindings: Bindings }>();
@@ -47,8 +46,6 @@ export function parseDerivation(name: string): { cid: string; from: string; to: 
 	if (!isContentId(cid) || !isExtension(from) || !isExtension(to)) return null;
 	return { cid, from, to };
 }
-
-derive.use('*', objectCache);
 
 derive.get('/:name', async (c) => {
 	const parsed = parseDerivation(c.req.param('name'));
@@ -89,8 +86,14 @@ derive.get('/:name', async (c) => {
 	}
 
 	if (to === PACKAGED) {
-		if (measured.size > (range ? MAX_SOUGHT : MAX_PACKAGED)) {
+		if (measured.size > MAX_PACKAGED) {
 			return failure(c, 413, 'too_large_to_package');
+		}
+		// A different refusal, because it is a different fact: this one would have been answered
+		// whole. A client told the object is too large to package learns nothing it can act on,
+		// where one told it is too large to seek into knows to ask again without the header.
+		if (range && measured.size > MAX_SOUGHT) {
+			return failure(c, 413, 'too_large_to_seek');
 		}
 		const source = await findObject(c.env, cid, from);
 		if (!source) {

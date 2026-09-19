@@ -1,6 +1,11 @@
 import { GITHUB_OWNER, URLS } from '@canmi/urls';
-import { describe, expect, it } from 'vitest';
-import { isGitHubHost, isReleaseName, releaseLife, releaseUpstream } from './github';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import app from './index';
+import { isGitHubHost, isReleaseName, releaseUpstream } from './github';
+
+// A literal rather than an interpolation, for the reference check. Never resolved: the one test
+// below that reaches upstream answers its own fetch.
+const HOST = 'https://cdn.example';
 
 describe('releaseUpstream', () => {
 	it('fetches from the one account, and nowhere in the URL says which', () => {
@@ -15,37 +20,6 @@ describe('releaseUpstream', () => {
 		expect(releaseUpstream('age', 'latest', 'age').pathname).toBe(
 			`/${GITHUB_OWNER}/age/releases/latest/download/age`,
 		);
-	});
-});
-
-describe('releaseLife', () => {
-	it('holds a version for an hour and a failure for five minutes', () => {
-		expect(releaseLife('v1.1.5')).toEqual({
-			hit: 'public, max-age=3600',
-			miss: 'public, max-age=300',
-		});
-	});
-
-	it('holds a moving tag for five minutes and a failure for one', () => {
-		for (const tag of [
-			'nightly',
-			'weekly',
-			'monthly',
-			'stable',
-			'beta',
-			'dev',
-			'canary',
-			'latest',
-		]) {
-			expect(releaseLife(tag)).toEqual({
-				hit: 'public, max-age=300',
-				miss: 'public, max-age=60',
-			});
-		}
-	});
-
-	it('reads the tag exactly: a capitalised Nightly is a version as far as this is concerned', () => {
-		expect(releaseLife('Nightly').hit).toBe('public, max-age=3600');
 	});
 });
 
@@ -72,5 +46,40 @@ describe('isGitHubHost', () => {
 		expect(isGitHubHost('objects.githubusercontent.com')).toBe(true);
 		expect(isGitHubHost('evil.example')).toBe(false);
 		expect(isGitHubHost('githubusercontent.com.evil.example')).toBe(false);
+	});
+});
+
+/**
+ * The lifetimes this route used to keep, and no longer does.
+ *
+ * Three numbers about somebody else's release cadence are gone: a proxied file is a name like
+ * any other here, so it takes the hour every name takes and five minutes when it fails. An
+ * avatar is up to an hour stale rather than five minutes, which is the cost of one rule.
+ */
+describe('the group as the worker mounts it', () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	async function ask(path: string): Promise<Response> {
+		return app.fetch(new Request(HOST + path), {} as never);
+	}
+
+	it('keeps a proxied answer for an hour, having no hash to promise more with', async () => {
+		vi.spyOn(globalThis, 'fetch').mockImplementation(
+			async () => new Response('bytes', { headers: { 'Content-Type': 'image/png' } }),
+		);
+		const res = await ask('/proxy/github/avatar/canmi21');
+		expect(res.status).toBe(200);
+		expect(res.headers.get('Cache-Control')).toBe('public, max-age=3600');
+	});
+
+	it('holds a refusal for five minutes, the way every other group does', async () => {
+		// Refused on the name, so nothing upstream is asked -- a fetch here would be the bug.
+		const fetching = vi.spyOn(globalThis, 'fetch');
+		const res = await ask('/proxy/github/release/a..b/v1/thing.zip');
+		expect(res.status).toBe(404);
+		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
+		expect(fetching).not.toHaveBeenCalled();
 	});
 });

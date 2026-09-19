@@ -1,69 +1,55 @@
 import { HASH_PATTERN } from '@canmi/artifacts';
-import { PUBLISHED, UNCHANGING } from '@canmi/cache';
+import { NAMED, PUBLISHED, UNCHANGING } from '@canmi/cache';
 import type { MiddlewareHandler } from 'hono';
+
+/** What may follow the hash: one extension, or the two a derivation names. */
+const EXTENSIONS = /^[a-z0-9]+(\.[a-z0-9]+)*$/;
 
 /**
  * Whether the path's last segment is a content hash, which is the whole basis for the year.
  *
- * One predicate over two shapes that are one shape from here: an artifact key,
- * `/content/{hash}.json`, and an asset the bucket fans out, `/image/{cid}.avif`, both end in
- * `{hash}.{ext}`. So a new object type inherits its lifetime from the shape of its own name and
- * costs no cache decision -- see spec/architecture/artifacts.md, "The key says what may cache it".
+ * One predicate over every address this host expresses: `/object/{cid}.{ext}` and
+ * `/derive/{cid}.{ext}.{ext}` both end in a hashed name and nothing else here does -- two
+ * extensions being as settled as one, since the hash names the source and the pair names the
+ * conversion. So a group added later costs no cache decision of its own. See
+ * spec/architecture/artifacts.md, "The key says what may cache it".
  */
 export function isContentAddressed(path: string): boolean {
 	const name = path.slice(path.lastIndexOf('/') + 1);
 	const dot = name.indexOf('.');
 	if (dot <= 0) return false;
-	return HASH_PATTERN.test(name.slice(0, dot)) && /^[a-z0-9]+$/.test(name.slice(dot + 1));
+	return HASH_PATTERN.test(name.slice(0, dot)) && EXTENSIONS.test(name.slice(dot + 1));
 }
 
 /**
- * The floor: this worker's one cache rule, derived from the key rather than looked up.
+ * The one rule, written once and asked rather than repeated.
  *
- * A route that stores its own response stamps `UNCHANGING` itself, which it has to do before
- * the response is put in the cache and therefore earlier than this runs. Everything else
- * arrives here unstamped and is decided by the shape of the name it was asked for -- with no
- * list of exceptions beside it any more, now that the font chunks are content-addressed too.
+ * Two questions: whether the request was answered, and whether the address carries a hash. A
+ * hashed address answered is the bytes themselves and keeps the year; a name answered keeps the
+ * hour, because what it stands for may move while it does not; anything else is a fact about the
+ * bucket or about this moment. A `3xx` counts as answered, here as on `/symlink`.
+ */
+export function lifetimeFor(path: string, status: number): string {
+	const settled = status >= 200 && status < 400;
+	if (!settled) return PUBLISHED;
+	return isContentAddressed(path) ? UNCHANGING : NAMED;
+}
+
+/**
+ * The floor, so nothing leaves this host without a lifetime.
+ *
+ * Mounted over everything rather than over each group, because the rule above covers the four
+ * of them and a route added beside them is far likelier to want it than not. The two names that
+ * sit outside it -- `/favicon.ico` and `/robots.txt` -- say so by stamping their own before this
+ * runs, and a route that stores its own response at the edge asks `lifetimeFor` directly, since
+ * the copy it puts there exists before this can reach it.
  */
 export const cacheControl: MiddlewareHandler = async (c, next) => {
 	await next();
 	if (c.res.headers.has('Cache-Control')) return;
 
-	const path = new URL(c.req.url).pathname;
-	// The long life is conditional on the answer having one. A 404 on a hashed name means the
-	// object was not uploaded or has been swept, and neither is a fact worth keeping for a year --
-	// it is also why publication uploads everything before it writes the root.
-	//
-	// A 304 is not an error and is counted: its headers replace the stored response's, so five
-	// minutes there would cut a year-old copy down on every revalidation.
-	const ok = (c.res.status >= 200 && c.res.status < 300) || c.res.status === 304;
-	const unchanging = ok && isContentAddressed(path);
-
 	const headers = new Headers(c.res.headers);
-	headers.set('Cache-Control', unchanging ? UNCHANGING : PUBLISHED);
-	c.res = new Response(c.res.body, {
-		status: c.res.status,
-		statusText: c.res.statusText,
-		headers,
-	});
-};
-
-/**
- * The same rule for the two routes whose whole answer is settled by the address.
- *
- * `/object` and `/derive` part company with the floor above on one status class: a `3xx` here
- * earns the year too. A `/derive` redirect is a function of the input -- the two extensions were
- * the same -- so it can no more change than the bytes can, and five minutes would make a client
- * re-ask a question already written in the URL. Everything else is a fact about the bucket or
- * about this moment and keeps the short life. See spec/architecture/delivery.md.
- */
-export const objectCache: MiddlewareHandler = async (c, next) => {
-	await next();
-	if (c.res.headers.has('Cache-Control')) return;
-
-	const settled = c.res.status >= 200 && c.res.status < 400;
-	const headers = new Headers(c.res.headers);
-	headers.set('Cache-Control', settled ? UNCHANGING : PUBLISHED);
+	headers.set('Cache-Control', lifetimeFor(new URL(c.req.url).pathname, c.res.status));
 	c.res = new Response(c.res.body, {
 		status: c.res.status,
 		statusText: c.res.statusText,

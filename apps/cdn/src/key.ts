@@ -21,17 +21,6 @@ export function parseName(name: string): { cid: string; extension: string } | nu
 	return isContentId(cid) ? { cid, extension } : null;
 }
 
-/**
- * The spelling a request should have used, or `null` when it already has it.
- *
- * `jpg` normalises to `jpeg` at the door rather than downstream, because it is a fact about how
- * a name is written, not about what can be decoded -- see spec/architecture/delivery.md, "The
- * extension asks for a format", for why one spelling stays one.
- */
-export function canonicalSpelling(extension: string): string | null {
-	return extension === 'jpg' ? 'jpeg' : null;
-}
-
 /** One id serves several formats, so the format is part of what the tag identifies. */
 export function validatorFor(cid: string, extension: string): string {
 	return `"${cid}.${extension}"`;
