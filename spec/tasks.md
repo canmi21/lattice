@@ -73,6 +73,12 @@ merged manifest and the sidecar under `meta/` are written for every asset publis
 and `PublicMeta` belong to `cms image` and `cms video` as much as `PublicImage` does. That is the
 rule `cms video` and `data/record/media.yaml` state below, reaching the published side of the tree.
 
+**The sweep runs twice before it deletes anything.** `cms gc` records what it found unnamed and
+when; a later run deletes only what has been unnamed for an hour, because a root cached five
+minutes ago may still name it. The pending list is a record like any other and is declared as one.
+See [architecture/artifacts.md](architecture/artifacts.md), "An object is swept an hour after
+nothing names it".
+
 **The sweep comes after everything whose output it can delete.** That is tested as an invariant over
 the catalogue rather than kept as a list, because the list is what went stale: `licenses` and `i18n`
 were both missing from `gc`'s `after`, and both were missing because a tree was added to the sweep

@@ -1,5 +1,9 @@
 # Where bytes and records live
 
+What a *thing* is, as opposed to what a run of bytes is, is [resource.md](resource.md): the
+resource id, the layered record, and the catalogue of what earns one. This file is where both
+kinds of thing are kept.
+
 Git holds code. `data/` holds everything else -- photos, fetched favicons, drafts -- and the
 bytes of it are never committed; the records describing them are, by the allowlist described in
 [what `data/` keeps out of git](#what-data-keeps-out-of-git). The skeleton is tracked either way,
@@ -162,12 +166,18 @@ The mirror uses `sync`, not `copy`, so deleting locally deletes remotely. That m
 source path destructive, which is why the task refuses to run without an explicit destination
 and dry-runs unless told `--live`.
 
-**Except for the content-addressed prefixes, which are copied rather than synced.** An object
-named by its own hash is never rewritten, so there is nothing for `sync` to update -- what it
-would do is delete the objects a root still in somebody's cache is naming, five minutes after
-they stopped being current. Copying leaves them, and a sweep removes them later when it can be
-shown nothing can still ask. [artifacts.md](artifacts.md) has the arithmetic; this file already
-had the principle, in "Deletion is the one thing that never happens as a side effect".
+**Every tree is mirrored, content-addressed ones included.** What is here goes up; what is not
+here comes down. A mirror that keeps what the source dropped is not a mirror, and the divergence
+is invisible -- nothing reports it, and it grows.
+
+The content-addressed prefixes used to be copied rather than synced, on the reasoning that
+deleting one would remove an object a root still in somebody's cache is naming. **That reasoning
+was right and was being applied in the wrong place.** The window it protects against is real, but
+it is a property of *when a sweep may delete*, not of what a mirror may transfer -- and putting it
+in the mirror meant the local tree and the bucket disagreed forever, while the sweep deleted with
+no delay at all. The delay now lives in the sweep, which is the only thing that knows when an
+object stopped being named: see [artifacts.md](artifacts.md), "An object is swept an hour after
+nothing names it". The mirror simply mirrors.
 
 ## Assets are prepared locally, never in CI
 

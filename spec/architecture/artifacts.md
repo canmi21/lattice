@@ -2,8 +2,9 @@
 
 The corpus is compiled here and published as objects. The site reads them at request time and
 is rebuilt only when its own code changes. What the objects hold is
-[data.md](data.md); how a reader reaches one is [delivery.md](delivery.md); this file is the
-shape they are addressed by and the rules that fall out of it.
+[data.md](data.md); how a reader reaches one is [delivery.md](delivery.md); what a *thing* is as
+opposed to a run of bytes is [resource.md](resource.md); this file is the shape they are addressed
+by and the rules that fall out of it.
 
 ## One mutable root, and everything else immutable
 
@@ -125,9 +126,32 @@ as a side effect" -- applied to a prefix where it is load-bearing rather than me
 The root is written with `sync` like everything else. It is one file and it is meant to be
 replaced.
 
-A sweep is `cms gc`'s existing shape: dry by default, listing what nothing references. It has
-one new constraint, which is that an object may only be swept once no cached root can still
-name it -- five minutes plus a margin, so in practice a day.
+A sweep is `cms gc`'s existing shape: dry by default, listing what nothing references.
+
+### An object is swept an hour after nothing names it
+
+**Not when it is found unnamed -- an hour after it became unnamed**, and the difference is the
+whole of it. A root is cached for five minutes, so for five minutes after a republish there are
+readers holding a root that names objects the new one does not. Deleting on sight makes those
+readers ask the CDN for keys that were valid when they were handed them, and a `404` on a
+content-addressed key is the one answer this design cannot afford to have cached.
+
+An hour is five minutes plus a margin large enough that nothing has to be precise about clocks,
+and small enough that a sweep run twice in an afternoon still collects.
+
+**A sweep cannot know when an object stopped being named, so the first run writes it down.**
+`cms gc` records what it found unnamed and when, and deletes on a later run only what has been
+unnamed for the hour. That makes the first run of a pair a no-op by construction, which is also
+what `--dry` already showed, so the shape of the command does not change.
+
+The record of pending deletions is regenerable by waiting: losing it costs one more cycle and
+nothing else, so it lives under `data/build/` with the other things a tool can rebuild.
+
+**This is also what lets the mirror be a mirror.** The delay used to live in `mise run sync`,
+which copied content-addressed objects instead of syncing them so the bucket would keep what the
+local tree had dropped. That protected the same window from the wrong side: the bucket then
+diverged from the local tree permanently, and the sweep still deleted with no delay at all. See
+[data.md](data.md), "Publication is a path, not a rule".
 
 ## Drafts leave the corpus at publication, not at build
 

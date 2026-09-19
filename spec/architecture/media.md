@@ -1,5 +1,8 @@
 # Images and the records that describe them
 
+What the record *is* -- the two ids, the layered shape, the catalogue of what earns one -- is
+[resource.md](resource.md). This file is what the pipeline does to get there.
+
 ## Variants stop where the layout does
 
 An image is published at 640, 1280 and 1920 on its long edge, and no further. Nothing on the
