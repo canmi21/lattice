@@ -21,6 +21,7 @@ mod opengraph;
 pub mod paths;
 mod port;
 mod refs;
+pub mod resource;
 mod summary;
 mod tags;
 pub mod twitter;
