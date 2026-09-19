@@ -35,10 +35,6 @@
 		},
 		/** One row of the menu. */
 		option: {
-			// A row is a choice and takes the hand. `cursor` is this layer's by the enumeration in
-			// spec/architecture/css/layers.md rather than by anything the property itself says.
-			cursor: 'pointer',
-			whiteSpace: 'nowrap',
 			// No ring on a row: the menu shows where the keyboard is with the highlight fill
 			// Bits UI drives through `data-highlighted`, and a second marker would say it twice.
 			outlineStyle: 'none',
@@ -354,13 +350,15 @@
 			{#each choices as choice (choice.code)}
 				{@const mark = markFor(choice)}
 				{@const Mark = MARK_ICON[mark]}
+				<!-- A row is a choice rather than a native option, so the hand has to be said; and a
+				     language name is one thing to read, never broken across two lines. -->
 				<DropdownMenu.RadioItem
 					data-language-option
 					value={choice.code}
 					aria-label={!choice.current && choice.code === preferred
 						? `${choice.name}, your browser's preference`
 						: undefined}
-					class="group flex w-full items-center gap-2 px-2 py-1 text-left data-[highlighted]:bg-paper-hover {stylex.attrs(
+					class="group flex w-full cursor-pointer items-center gap-2 px-2 py-1 text-left whitespace-nowrap data-[highlighted]:bg-paper-hover {stylex.attrs(
 						surfaces.uiText,
 						styles.option,
 					).class}"

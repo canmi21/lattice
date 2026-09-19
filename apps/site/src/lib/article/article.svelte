@@ -44,8 +44,12 @@
 		 * StyleX doubles the class this deep, `.x.x:disabled:hover` against a plain `.x:hover`.
 		 */
 		summaryTrigger: {
-			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, and
-			// it is the one thing here the disabled state still has to say.
+			// The one `cursor` left in this layer that is not a surface's own declaration, and it
+			// is here because it overrides one. `surfaces.quietControl` is on this element and
+			// brings `cursor: pointer`, so a `cursor-not-allowed` written in the markup would be
+			// outranked by that surface rather than replace it -- the frame loses to the
+			// vocabulary. Every other per-component `cursor` moved to the markup; see
+			// spec/architecture/css/layers.md.
 			cursor: { default: 'pointer', ':disabled': 'not-allowed' },
 			opacity: { default: null, ':disabled': 0.45 },
 			backgroundColor: {

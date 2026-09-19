@@ -91,7 +91,17 @@ this layer is the wrong answer regardless of what the declaration says.
 - the four `transition-*` longhands, `animation-*` where a class can reach the element
 - the type ramp: `font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family`,
   `font-variant-numeric`
-- `cursor`, which reaches this layer through `surfaces.quietControl` rather than on its own
+- `cursor`, but only where it arrives inside a reused surface. Like `transform` below, it splits
+  by site rather than by property: `surfaces.quietControl` carries one and seven files apply that
+  surface, so that declaration is a member and belongs here. A `cursor` written as a
+  per-component key, used once in the component that declares it, is not a member of anything and
+  is the frame. **Meeting one in StyleX that is not in a surface, move it to the markup** --
+  `cursor-pointer`, `cursor-zoom-in`, `cursor-not-allowed`, `cursor-default` -- and delete the
+  comment beside it, which will be citing this list for the wrong half of the split. The one
+  exception is not an exception to the axis but to the move: a key that *overrides* a surface's
+  own `cursor` on an element that also carries that surface cannot go down a layer, because the
+  surface would then outrank it. `summaryTrigger` in
+  [article.svelte](../../../apps/site/src/lib/article/article.svelte) is the only such site.
 
 **The frame** owns the one-offs: `display` and the flex and grid properties, `gap`, `margin`,
 `padding`, `width`, `height` and their `min-`/`max-` forms, `position` and `inset`, `z-index`,
@@ -118,17 +128,20 @@ why it is 1.4, which makes it vocabulary that has not been given its name yet, n
 local fact about one element's content, and it describes itself where it is written. Nothing is
 looked up, nothing drifts, and nobody needs a name to read it.
 
-Two things already in the tree point at this line from opposite sides, and both are errors of the
-same kind:
+Two things pointed at this line from opposite sides, and both were errors of the same kind:
 
 - `font-variant-numeric: tabular-nums` is written as a Tailwind class in the markup at three places
   in [github.svelte](../../../apps/site/src/lib/blocks/github.svelte) -- a ramp member in the frame.
-- `white-space: nowrap` is written in StyleX in
+  Still there.
+- `white-space: nowrap` was written in StyleX in
   [cargo.svelte](../../../apps/site/src/lib/blocks/cargo/cargo.svelte),
   [tokei.svelte](../../../apps/site/src/lib/blocks/tokei/tokei.svelte),
-  [quadrant.svelte](../../../apps/site/src/lib/blocks/quadrant.svelte) and
-  [support.svelte](../../../apps/site/src/lib/support/support.svelte) -- text behaviour in the
-  vocabulary.
+  [quadrant.svelte](../../../apps/site/src/lib/blocks/quadrant.svelte),
+  [support.svelte](../../../apps/site/src/lib/support/support.svelte) and
+  [switcher.svelte](../../../apps/site/src/lib/locale/switcher.svelte) -- text behaviour in the
+  vocabulary. **This list said four and there were five**, which is the enumeration being caught
+  at being wrong, exactly the way the section above says a list can be. All five have since moved
+  to the markup and the `white-space` still in StyleX is a different value at every site.
 
 They are mirror images across one line, which is the strongest evidence available that the line is
 in the right place: it is the line both mistakes are mistakes about. Moving either is work for a
@@ -139,13 +152,19 @@ migration and not for this file.
 None of these changes answer. What changes is the reason, and the reasons were carrying the old
 adjective.
 
-- **`cursor` is the vocabulary because it is a member.** It travels inside
-  `surfaces.quietControl`, beside that surface's colour, radius and transitions, and it is there
-  for the same reason they are: the quiet control is one named thing used in several places, and
-  you get all of it or none of it. The old reason -- that a cursor is appearance because the reader
-  learns it by looking -- was an adjective doing the work, and it happened to arrive at the right
-  answer. The `.quiet-control` class in `utilities.css` had already written `cursor` beside colour
-  and a transition before there was any rule, which is the membership answer reached by instinct.
+- **`cursor` splits by site, and only one of its sites was the vocabulary.** The declaration
+  inside `surfaces.quietControl` is a member: it travels beside that surface's colour, radius and
+  transitions, the quiet control is one named thing seven files apply, and you get all of it or
+  none of it. The `.quiet-control` class in `utilities.css` had already written `cursor` beside
+  colour and a transition before there was any rule, which is the membership answer reached by
+  instinct. Twelve other declarations were in StyleX on the same reasoning and did not earn it --
+  `titleControl` and `copy` in `code-block.svelte`, `option` in `switcher.svelte`, `frame` in
+  `preview.svelte`, `action` in `support.svelte`, `toggle` in `footnotes.svelte`, `anchor` in
+  `section.svelte`, `entry` in `toc.svelte`, `noteClose` in `body.svelte`, `pill` and `chip` in
+  `newsletter.svelte`, and `summaryTrigger` in `article.svelte` -- each a per-component key used
+  once in the component that declares it. Eleven moved to the markup. The old reason -- that a
+  cursor is appearance because the reader learns it by looking -- was an adjective doing the work,
+  and it arrived at the right answer for one site in thirteen.
 - **`visibility` is the frame, and it is no longer the awkward one.** The newsletter's ghost label
   takes `visibility: hidden` rather than `display: none` because a removed box measures nothing and
   this one exists to reserve a width. Under the old axis that needed a paragraph explaining why a

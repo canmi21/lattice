@@ -25,9 +25,6 @@
 			fontWeight: weight.medium,
 		},
 		noteClose: {
-			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, beside
-			// the radius and the two inks this control is otherwise made of.
-			cursor: 'pointer',
 			borderRadius: radius.sm,
 			color: {
 				default: 'var(--color-text-soft)',
@@ -328,7 +325,7 @@
 			<button
 				type="button"
 				onclick={() => closeNote(true)}
-				class="focus-ring -m-1 p-1 {stylex.attrs(styles.noteClose).class}"
+				class="focus-ring -m-1 cursor-pointer p-1 {stylex.attrs(styles.noteClose).class}"
 				aria-label={m['article.translator-note.close']({}, { locale })}
 			>
 				<X class="size-3.5" aria-hidden="true" />

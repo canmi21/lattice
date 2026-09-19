@@ -22,12 +22,6 @@
 			// The clamp to half the box is the browser's, so the radius is stated as the unbounded
 			// length Tailwind's `rounded-full` is rather than as a number.
 			borderRadius: radius.full,
-			// Stated rather than left to `auto`, which draws an I-beam wherever it lands on text.
-			// The only text here in the confirmed state is the masked address, and selecting that
-			// yields a row of bullets rather than an address -- an invitation to copy something
-			// that is not there. The field re-asserts what a field is, from the block below,
-			// where a rule that reaches a descendant has to live.
-			cursor: 'default',
 		},
 		/**
 		 * One ink for both halves of the swap. They share a grid cell and show the same address,
@@ -48,11 +42,6 @@
 			// and now restates them from the other layer. See spec/todo.md.
 			backgroundColor: 'var(--color-paper-hover)',
 			color: 'var(--color-text-soft)',
-			// It keeps the button's shape on purpose -- that is what makes the swap read as one
-			// control settling rather than a second one appearing -- and the shape is the problem:
-			// a pill in the place a pill was just pressed invites a second press. There is nothing
-			// left to submit, so the pointer says so before the click happens.
-			cursor: 'not-allowed',
 		},
 		field: {
 			backgroundColor: 'transparent',
@@ -335,9 +324,13 @@ otherwise need. See spec/engagement.md. -->
 
 		<!-- One pill across both states. The box, its border and the button's place never move; only
 		what sits in them is replaced, which is what leaves the swap something to animate rather than
-		something to jump between. -->
+		something to jump between.
+
+		The cursor is stated rather than left to `auto`, which draws an I-beam over the masked
+		address -- selecting a row of bullets invites copying something that is not there. The field
+		re-asserts what a field is, from the block below. -->
 		<div
-			class="pill focus-input-shell mt-4 flex items-center gap-2 p-1.5 pl-5 {stylex.attrs(
+			class="pill focus-input-shell mt-4 flex cursor-default items-center gap-2 p-1.5 pl-5 {stylex.attrs(
 				surfaces.paper,
 				styles.pill,
 			).class}"
@@ -362,9 +355,12 @@ otherwise need. See spec/engagement.md. -->
 				<!-- The button's surface stays and its copy states the outcome, so the shape the reader
 				just used becomes the label for what it did. It is inert -- there is nothing left to
 				submit -- and it is the pill's whole accessible content, the masked address being of no
-				use read aloud. -->
+				use read aloud. Keeping the shape is also what invites a second press -- a pill in the
+				place a pill was just pressed -- so the pointer refuses one before the click happens. -->
 				<span
-					class="chip flex h-full shrink-0 items-center px-4 {stylex.attrs(styles.chip).class}"
+					class="chip flex h-full shrink-0 cursor-not-allowed items-center px-4 {stylex.attrs(
+						styles.chip,
+					).class}"
 					class:cooling={entering}
 					class:warming={stage === 'reverting'}
 				>
@@ -484,9 +480,9 @@ otherwise need. See spec/engagement.md. -->
 	}
 
 	/* The two halves of the pointer's account that need an ancestor to find their element. What
-	   the pill and the chip say about themselves is a class on each of them and sits at the head
-	   of this file; a field and a button are reached through the pill they are inside, which is
-	   the one thing the visual layer cannot do. See spec/architecture/css/authoring.md. */
+	   the pill and the chip say about themselves is a Tailwind class on each of them, in the
+	   markup; a field and a button are reached through the pill they are inside, which is the one
+	   thing neither of the other two layers can do. See spec/architecture/css/authoring.md. */
 	.pill input {
 		cursor: text;
 	}

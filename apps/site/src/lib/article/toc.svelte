@@ -17,9 +17,6 @@
 			backgroundColor: 'var(--color-text-soft)',
 		},
 		entry: {
-			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, and
-			// the whole rail answers a pointer with one.
-			cursor: 'pointer',
 			// The ring belongs to one of the two wrappers inside, which `focus-ring-inner` draws
 			// around the bar while the column is collapsed and around the label once it is not.
 			outlineStyle: { default: null, ':focus-visible': 'none' },
@@ -776,7 +773,7 @@
 				aria-current={i === activeIndex ? 'location' : undefined}
 				title={entry.text}
 				onclick={() => jumpToSection(entry.el, i)}
-				class="block max-w-full py-0.75 text-left {stylex.attrs(styles.entry).class}"
+				class="block max-w-full cursor-pointer py-0.75 text-left {stylex.attrs(styles.entry).class}"
 			>
 				<!-- Bar and text each sit in a full-opacity ring host: the inner span carries
 				the opacity animation, so drawing the focus ring on the wrapper keeps it crisp

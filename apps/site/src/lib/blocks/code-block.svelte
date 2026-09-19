@@ -32,9 +32,6 @@
 			color: 'var(--color-text)',
 		},
 		titleControl: {
-			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md. The
-			// whole title row is one control and answers a pointer as one.
-			cursor: 'pointer',
 			color: {
 				default: 'var(--color-text)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -87,7 +84,6 @@
 			lineHeight: line.snug,
 		},
 		copy: {
-			cursor: 'pointer',
 			borderRadius: radius.sm,
 			fontSize: text.px12,
 			lineHeight: 1,
@@ -358,7 +354,7 @@
 	{#if code !== undefined}
 		<button
 			type="button"
-			class="code-copy focus-ring {stylex.attrs(styles.copy).class}"
+			class="code-copy focus-ring cursor-pointer {stylex.attrs(styles.copy).class}"
 			class:code-copy-unlabelled={!hasLanguageLabel}
 			data-copy-state={copyState}
 			aria-label={copyActionLabel}
@@ -404,9 +400,11 @@
 			class="code-frame focus-ring-within overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
 		>
 			{#if canCollapse}
+				<!-- The whole row is the control, so the hand covers all of it rather than the
+				     chevron alone. -->
 				<button
 					type="button"
-					class="code-title flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left {stylex.attrs(
+					class="code-title flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-left {stylex.attrs(
 						surfaces.uiText,
 						styles.titleFace,
 						styles.titleControl,

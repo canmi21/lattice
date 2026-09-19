@@ -15,10 +15,6 @@
 	const styles = stylex.create({
 		/** One pill: the like, the favour and the sponsor all wear this. */
 		action: {
-			// Two of the three are buttons and the third is a link, so without this the row draws
-			// two arrows and one hand for three controls that do the same kind of thing. `cursor`
-			// is this layer's by the enumeration in spec/architecture/css/layers.md.
-			cursor: 'pointer',
 			borderRadius: '624.9375rem',
 			fontWeight: weight.medium,
 			color: 'var(--color-text-strong)',
@@ -341,6 +337,8 @@
 		{m['support.heading']({}, { locale })}
 	</h2>
 
+	<!-- Two of the three are buttons and the third is a link, so without the hand said on each the
+	     row draws two arrows and one hand for three controls that do the same kind of thing. -->
 	<div class="mt-3 flex flex-wrap items-center gap-1.5">
 		<button
 			type="button"
@@ -355,7 +353,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action like focus-ring {stylex.attrs(
+			class="action like focus-ring cursor-pointer {stylex.attrs(
 				surfaces.interactive,
 				styles.action,
 				styles.likeFigures,
@@ -381,7 +379,8 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring {stylex.attrs(surfaces.interactive, styles.action).class}"
+			class="action focus-ring cursor-pointer {stylex.attrs(surfaces.interactive, styles.action)
+				.class}"
 		>
 			<Star class="icon" aria-hidden="true" />
 			{@render copy(favourShort, favourLabel)}
@@ -396,7 +395,8 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring {stylex.attrs(surfaces.interactive, styles.action).class}"
+			class="action focus-ring cursor-pointer {stylex.attrs(surfaces.interactive, styles.action)
+				.class}"
 		>
 			<Coffee class="icon" aria-hidden="true" />
 			{@render copy(

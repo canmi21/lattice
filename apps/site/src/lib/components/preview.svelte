@@ -11,11 +11,6 @@
 	 * decision argued in spec/styling/blocks.md rather than a palette entry.
 	 */
 	const styles = stylex.create({
-		frame: {
-			// One cursor over the whole of it, because every part of it does the one thing.
-			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md.
-			cursor: 'zoom-in',
-		},
 		/**
 		 * The control over the picture, with no chrome of its own. Written as three longhands
 		 * rather than `border: 0`, because that shorthand also resets `border-style` to `none`,
@@ -129,10 +124,11 @@
      says what it is, the button says what pressing does, and the frame around them takes the
      press. See spec/styling/blocks.md. The two rules waived below are the same waiver twice: the
      keyboard path is the button inside this element, and neither rule can see it from here. -->
+<!-- One cursor over the whole of it, because every part of it does the one thing. -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="preview-frame {stylex.attrs(styles.frame).class}"
+	class="preview-frame cursor-zoom-in"
 	style:border-radius={radius}
 	onclick={() => (open = true)}
 >

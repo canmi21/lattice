@@ -18,9 +18,6 @@
 			fontWeight: 600,
 		},
 		anchor: {
-			// `cursor` is this layer's by the enumeration in spec/architecture/css/layers.md, and it
-			// is what a mark carrying no chrome of its own has to say instead.
-			cursor: 'pointer',
 			opacity: {
 				default: 0,
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -80,11 +77,12 @@
 	class:mt-12={depth === 2}
 	class:mt-8={depth !== 2}
 >
+	<!-- A mark carrying no chrome of its own has nothing else to say it is a control. -->
 	<button
 		type="button"
 		aria-label="Copy link to section"
 		onclick={copyHash}
-		class="absolute top-1/2 -left-7 hidden -translate-y-1/2 py-1 pr-2 pl-1 lg:block {stylex.attrs(
+		class="absolute top-1/2 -left-7 hidden cursor-pointer -translate-y-1/2 py-1 pr-2 pl-1 lg:block {stylex.attrs(
 			styles.anchor,
 		).class}"
 	>
