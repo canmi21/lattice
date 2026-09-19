@@ -152,16 +152,21 @@ fn snapshot_at(repository: &Path) -> std::io::Result<Snapshot> {
 	recent_articles.truncate(RECENT_CEILING);
 
 	let scan = refs::scan(&contents)?;
-	let content_ids = scan.cids();
 	let metadata = crate::paths::metadata_root(repository);
 	let described = media::load(&media::path_for(repository))?;
-	let referenced = content_ids.len() + scan.unresolved().len();
-	let published = content_ids
+	// Resolved through the manifest for the reason `cms derived` does it: a reference names a
+	// resource, and only the record says where its published document went and what key the
+	// descriptions are filed under.
+	let merged = image::run::load(&repository.join(image::run::MERGED))?;
+	let records: Vec<(&str, &crate::image::manifest::Media)> =
+		scan.targets().iter().filter_map(|target| merged.resolve(target)).collect();
+	let referenced = records.len() + scan.unresolved().len();
+	let published = records
 		.iter()
-		.filter(|content_id| image::store::meta_path(&metadata, content_id).is_file())
+		.filter(|(_, media)| image::store::meta_path(&metadata, media.resource.as_str()).is_file())
 		.count();
 	let descriptions =
-		content_ids.iter().filter(|content_id| !alt::wants_description(&described, content_id)).count();
+		records.iter().filter(|(key, _)| !alt::wants_description(&described, key)).count();
 
 	let gaps: Vec<Gap> = check::report(repository, &contents)?
 		.into_iter()
@@ -209,8 +214,24 @@ mod tests {
 		)
 		.expect("article");
 		std::fs::write(root.join("contents/homepage.md"), "---\ntitle: Home\n---\n").expect("homepage");
+		// The manifest is what turns the article's reference into a record, and the published
+		// document sits under the rid that record carries rather than under the article's words.
 		let content_id = "44b6081deaf0242ca3bf83d62a3b6c95";
-		let record = image::store::meta_path(&crate::paths::metadata_root(root), content_id);
+		let merged = crate::image::manifest::Merged {
+			version: crate::image::manifest::VERSION,
+			created: "2026-09-14T00:00:00Z".into(),
+			updated: "2026-09-14T00:00:00Z".into(),
+			media: std::collections::BTreeMap::from([(
+				content_id.to_owned(),
+				crate::image::manifest::fixture::picture("k7m2x", content_id, (10, 10), &[]),
+			)]),
+		};
+		image::store::write(
+			&root.join(image::run::MERGED),
+			serde_json::to_string(&merged).expect("json").as_bytes(),
+		)
+		.expect("manifest");
+		let record = image::store::meta_path(&crate::paths::metadata_root(root), "k7m2x");
 		std::fs::create_dir_all(record.parent().expect("record parent")).expect("record directory");
 		std::fs::write(record, "{}").expect("record");
 

@@ -94,15 +94,18 @@ fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
 /// One walk of the corpus rather than one per clip. A clip in no article gets no title, which is
 /// correct: the context is what the repository knows, and it knows nothing about where a file
 /// imported ahead of its article will land.
-fn titles(articles: &Path) -> BTreeMap<String, String> {
+fn titles(articles: &Path, merged: &Merged) -> BTreeMap<String, String> {
 	let Ok(scan) = crate::refs::scan(articles) else {
 		return BTreeMap::new();
 	};
 	let mut found = BTreeMap::new();
 	let mut read: BTreeMap<PathBuf, Option<String>> = BTreeMap::new();
 	for reference in &scan.images {
-		let Some((cid, extension)) = reference.resolved() else { continue };
-		if extension != crate::video::encode::EXTENSION {
+		// The record says what is a clip. A rid carries no extension to read a kind off, which is
+		// the point of it: the article names a thing and the manifest says what kind of thing.
+		let Some(target) = reference.target() else { continue };
+		let Some((cid, media)) = merged.resolve(&target) else { continue };
+		if media.video().is_none() {
 			continue;
 		}
 		let title = read.entry(reference.file.clone()).or_insert_with(|| {
@@ -218,7 +221,7 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 		..Outcome::default()
 	};
 
-	let titles = titles(articles);
+	let titles = titles(articles, merged);
 	let progress = crate::task::start(repository, "clip", shell, todo.len() as u64, sink)?;
 	let writer = writer::Writer::start(repository, Record::Media)?;
 
@@ -316,7 +319,7 @@ mod tests {
 	use super::*;
 
 	fn clip_record() -> crate::image::manifest::Media {
-		let mut media = crate::image::manifest::fixture::clip("", "poster", &[], &[]);
+		let mut media = crate::image::manifest::fixture::clip("c0000", "", "p0000", &[], &[]);
 		// The three numbers this command reads off a record: it samples frames across the length
 		// and sizes the word budget from it, so a one-second silent default would test nothing.
 		let video = media.video_mut().expect("a clip");
@@ -424,6 +427,6 @@ mod tests {
 	}
 
 	fn picture_record() -> crate::image::manifest::Media {
-		crate::image::manifest::fixture::picture("", (10, 10), &[])
+		crate::image::manifest::fixture::picture("p0000", "", (10, 10), &[])
 	}
 }

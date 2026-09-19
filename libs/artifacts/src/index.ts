@@ -67,15 +67,15 @@ export function storageKey(cid: string, extension: string): string {
 }
 
 /**
- * Where an asset's record lives, which is in the other bucket entirely.
+ * Where a resource's record lives, which is in the other bucket entirely.
  *
- * Named rather than content-addressed, because the API looks it up by the id of the asset it
- * describes and rewrites it in place when that asset is re-derived. That is exactly what a
- * content-addressed key may not do, which is why these two things are no longer neighbours. See
- * spec/architecture/data.md, "One bucket holds records and the other holds bytes".
+ * **Keyed by the rid and never by a cid.** A key ending in a hash reads as content-addressed,
+ * and the cache policy read the shape and granted a year -- to a record rewritten whenever its
+ * asset is re-derived. That is the confusion spec/architecture/resource.md exists to end. See
+ * also spec/architecture/data.md, "One bucket holds records and the other holds bytes".
  */
-export function recordKey(cid: string): string {
-	return `meta/${cid}.json`;
+export function recordKey(resource: string): string {
+	return `meta/${resource}.json`;
 }
 
 /**

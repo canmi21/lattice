@@ -141,7 +141,7 @@ pub fn derive_for(
 		});
 	}
 
-	let poster = poster(source, known)?;
+	let mut poster = poster(source, known)?;
 	// Measured off the original rather than off a rung: the ladder re-encodes the same soundtrack
 	// into every one of them, so they all answer the same, and the original is the one file that
 	// is certainly there.
@@ -149,6 +149,15 @@ pub fn derive_for(
 	let timestamp = manifest::now();
 	let previous = known.get(&id);
 	let held = previous.and_then(Media::video);
+	// The poster's id is already granted and is not yet in the manifest, so it goes into the
+	// register before the clip's is drawn. Allocating both against the same register would let
+	// one clip's two records collide, which is the one collision allocation exists to prevent.
+	let mut register = manifest::register(known);
+	register.insert(poster.media.resource);
+	let resource = manifest::resource_for(previous, &register);
+	// A frame is a frame because its `source` names the clip it was cut from, so this can only be
+	// said once both ids exist. A poster that already answers to a deeper segment keeps it.
+	poster.media.cut_from(resource, None);
 	let origin = manifest::Origin {
 		blake3: id.clone(),
 		mime: mime_of(source).to_owned(),
@@ -177,10 +186,7 @@ pub fn derive_for(
 			loudness: level.map(|level| level.integrated),
 			peak: level.map(|level| level.peak),
 		},
-		// No rid to point with until the migration grants them, so the poster is named by the one
-		// id that exists today. See the FIXME at the top of `image::manifest`.
-		cover: held.and_then(|video| video.cover),
-		poster: Some(poster.derived.cid.clone()),
+		cover: poster.media.resource,
 		variants: rungs
 			.iter()
 			.map(|rung| VideoVariant {
@@ -202,7 +208,7 @@ pub fn derive_for(
 	});
 	let media = Media {
 		version: manifest::VERSION,
-		resource: previous.and_then(|media| media.resource),
+		resource,
 		namespace: crate::resource::Namespace::of(&["media", "video", "clip"]),
 		// Carried over, so re-running does not rewrite the day the clip first appeared.
 		created: previous.map_or_else(|| timestamp.clone(), |media| media.created.clone()),
@@ -222,8 +228,10 @@ pub fn derive_for(
 fn poster(source: &Path, known: &BTreeMap<String, Media>) -> Result<image::Prepared, Error> {
 	let frame = encode::first_frame(source)?;
 	let derived = image::derive(&frame, false).map_err(Error::Poster)?;
+	let previous = known.get(&derived.cid);
+	let resource = manifest::resource_for(previous, &manifest::register(known));
 	let media =
-		manifest::media_for(&derived, "image/png", frame.len() as u64, known.get(&derived.cid), None);
+		manifest::media_for(&derived, "image/png", frame.len() as u64, previous, None, resource);
 	Ok(image::Prepared { derived, media })
 }
 
@@ -238,9 +246,11 @@ pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Res
 	}
 	image::write_derived(public, metadata, &prepared.poster).map_err(Error::Poster)?;
 
-	// Minified, for the reason `image::write_derived` gives.
+	// Minified, for the reason `image::write_derived` gives. Keyed by the rid, which is what the
+	// API is asked for: a cid names bytes, and this document is rewritten in place.
 	let json = serde_json::to_string(&prepared.media).map_err(Error::Serialize)?;
-	store::write(&store::meta_path(metadata, &prepared.cid), json.as_bytes()).map_err(Error::Write)
+	store::write(&store::meta_path(metadata, prepared.media.resource.as_str()), json.as_bytes())
+		.map_err(Error::Write)
 }
 
 /// Derive and publish one clip, preserving its first-seen timestamp when it already exists.

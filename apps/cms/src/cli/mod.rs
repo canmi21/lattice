@@ -7,8 +7,8 @@ mod args;
 
 use crate::{
 	alt, articles, captions, check, classify, clip, derived, diagram, document, embed, favicon, gc,
-	i18n, image, licenses, locale, opengraph, overview, paths, port, refs, summary, task, twitter,
-	video,
+	i18n, image, licenses, locale, migrate, opengraph, overview, paths, port, refs, summary, task,
+	twitter, video,
 };
 use anyhow::Context as _;
 use args::{Cli, Command, ModelArgs, TwitterCommand};
@@ -95,6 +95,7 @@ fn dispatch(command: Command) -> anyhow::Result<ExitCode> {
 				&articles,
 			)
 		}
+		Command::Migrate { live } => grant_resource_ids(live),
 		Command::Gc { live, segments, article } => {
 			if segments || !article.is_empty() {
 				collect_segments(live, &article)
@@ -904,6 +905,53 @@ fn collect_segments(live: bool, scope: &[String]) -> anyhow::Result<ExitCode> {
 		}
 		Err(error) => {
 			eprintln!("could not delete: {error}");
+			Ok(ExitCode::FAILURE)
+		}
+	}
+}
+
+/// `cms migrate`: the one pass that grants resource ids, dry by default.
+///
+/// Dry the same way `cms gc` is, and for a sharper reason: this rewrites the committed manifest
+/// and every article that names an asset, and neither can be regenerated. The listing is the
+/// review and `--live` is the answer to it.
+fn grant_resource_ids(live: bool) -> anyhow::Result<ExitCode> {
+	let root = paths::repo_root()?;
+	let articles = root.join("contents");
+	let plan = migrate::plan(&root, &articles).context("could not plan")?;
+
+	if plan.is_empty() {
+		// Successfully, because a corpus already migrated is the state this command exists to
+		// reach. Reporting it as a failure would make the second run of a pair look like a problem.
+		println!("every record already holds a resource id -- nothing to migrate");
+		return Ok(ExitCode::SUCCESS);
+	}
+
+	for grant in &plan.grants {
+		println!("grant {} {}  {}", grant.resource, grant.kind, &grant.key[..grant.key.len().min(12)]);
+	}
+	for (from, to) in &plan.rewrites {
+		println!("point {from} -> {to}");
+	}
+	println!(
+		"{} record(s), {} reference(s), {} sidecar(s) to move, {} picture(s) become frames",
+		plan.grants.len(),
+		plan.rewrites.len(),
+		plan.sidecars.len(),
+		plan.frames.len()
+	);
+
+	if !live {
+		println!("dry run -- pass --live to write");
+		return Ok(ExitCode::SUCCESS);
+	}
+	match migrate::apply(&root, &articles, &plan) {
+		Ok(rewritten) => {
+			println!("granted {} ids, rewrote {rewritten} reference(s)", plan.grants.len());
+			Ok(ExitCode::SUCCESS)
+		}
+		Err(error) => {
+			eprintln!("could not migrate: {error}");
 			Ok(ExitCode::FAILURE)
 		}
 	}

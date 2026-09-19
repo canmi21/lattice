@@ -214,13 +214,14 @@ impl Layered for BTreeMap<String, Layer> {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Record<L> {
 	pub version: u32,
-	/// The id this thing is known by, absent until the migration has granted it one.
+	/// The id this thing is known by.
 	///
 	/// Granted once and written back, never derived on read: an id minted while loading differs
 	/// between two runs, and an identity that changes every time the file is read is not one. So
-	/// nothing on a load path calls `allocate`, and a record that has none says so.
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub resource: Option<ResourceId>,
+	/// nothing on a load path calls `allocate`. Not optional, because the schema in
+	/// `libs/artifacts` is not: a record without one is a record from before `cms migrate`, and
+	/// that command reads the shape without it so nothing else has to.
+	pub resource: ResourceId,
 	/// `type` on disk; a keyword here.
 	#[serde(rename = "type")]
 	pub namespace: Namespace,
@@ -303,7 +304,7 @@ mod tests {
 	fn envelope(namespace: &str, layers: &[(&str, u32)]) -> Opaque {
 		Opaque {
 			version: 5,
-			resource: Some(ResourceId::parse("k7m2x").expect("a rid")),
+			resource: ResourceId::parse("k7m2x").expect("a rid"),
 			namespace: Namespace::parse(namespace).expect("a type"),
 			created: "2026-09-14T02:55:32.15685Z".into(),
 			updated: "2026-09-14T02:55:32.15685Z".into(),

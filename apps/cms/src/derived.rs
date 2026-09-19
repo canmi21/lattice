@@ -90,14 +90,27 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 	let contents = repository.join("contents");
 
 	let scan = refs::scan(&contents)?;
-	let cids = scan.cids();
 	let described = media::load(&media::path_for(repository))?;
+	// A reference names a resource, so what it is counted against is the record the manifest
+	// holds under that id -- the published document is keyed by the rid and the description by
+	// the manifest's own key, and only the record knows both.
+	let merged = image::run::load(&repository.join(image::run::MERGED))?;
+	let records: Vec<&crate::image::manifest::Media> =
+		scan.targets().iter().filter_map(|target| merged.resolve(target)).map(|(_, m)| m).collect();
+	let referenced_count = records.len();
 
 	let metadata = crate::paths::metadata_root(repository);
 	let fetched = crate::paths::favicon_root(repository);
-	let published =
-		cids.iter().filter(|cid| image::store::meta_path(&metadata, cid).is_file()).count();
-	let descriptions = cids.iter().filter(|cid| !alt::wants_description(&described, cid)).count();
+	let published = records
+		.iter()
+		.filter(|media| image::store::meta_path(&metadata, media.resource.as_str()).is_file())
+		.count();
+	let descriptions = scan
+		.targets()
+		.iter()
+		.filter_map(|target| merged.resolve(target))
+		.filter(|(key, _)| !alt::wants_description(&described, key))
+		.count();
 
 	let icons = scan.icons();
 	let collected = icons
@@ -142,7 +155,7 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 				// An unresolved reference names a picture that was never imported, so it counts
 				// against the total rather than being absent from it -- otherwise importing one
 				// would make the figure go down.
-				cids.len() + scan.unresolved().len(),
+				referenced_count + scan.unresolved().len(),
 				Some("image"),
 				false,
 			),
@@ -151,7 +164,7 @@ pub fn report_at(repository: &Path) -> std::io::Result<Report> {
 				"Descriptions",
 				"Accessible descriptions, written once per picture and inherited by every use.",
 				descriptions,
-				cids.len(),
+				referenced_count,
 				Some("alt"),
 				true,
 			),

@@ -6,7 +6,7 @@
 //! encoded, published, and the reference rewritten to what it became. Rewriting is what records
 //! that the work is done, so the state lives in the article rather than in a log beside it.
 
-use super::{encode, is_video};
+use super::is_video;
 use crate::image::manifest::{self, Media, Merged};
 use crate::image::run::{MERGED, load, rewrite_references};
 use crate::image::store;
@@ -74,8 +74,8 @@ pub fn run(
 		let id = crate::image::cid(&bytes);
 		if !options.force && published(public, &merged, merged.media.get(&id)) {
 			outcome.skipped += 1;
-			if let Some(target) = reference.as_deref() {
-				rewrites.insert(target.to_owned(), resolved_name(&id));
+			if let Some((target, media)) = reference.as_deref().zip(merged.media.get(&id)) {
+				rewrites.insert(target.to_owned(), media.resource.to_string());
 			}
 			continue;
 		}
@@ -85,7 +85,7 @@ pub fn run(
 		match published {
 			Ok(prepared) => {
 				if let Some(target) = reference.as_deref() {
-					rewrites.insert(target.to_owned(), resolved_name(&id));
+					rewrites.insert(target.to_owned(), prepared.media.resource.to_string());
 				}
 				// The poster is a second asset with a record of its own, not a field of the clip.
 				let poster = prepared.poster.derived.cid.clone();
@@ -207,7 +207,7 @@ fn wanted(
 
 	// A finished reference whose rungs are gone -- swept, or never published on this machine.
 	// The original is found by hashing, because the id is the hash.
-	let unpublished: Vec<String> = resolved(scan)
+	let unpublished: Vec<String> = clips(scan, merged)
 		.into_iter()
 		.filter(|cid| !published(public, merged, merged.media.get(cid)))
 		.collect();
@@ -224,14 +224,18 @@ fn wanted(
 	found
 }
 
-/// The content ids of every clip an article has already resolved.
-fn resolved(scan: &Scan) -> BTreeSet<String> {
+/// The manifest keys of every clip an article has already resolved.
+///
+/// The record says what is a clip, rather than the reference: a rid carries no extension to read
+/// a kind off, which is the point of it -- the article names a thing and the manifest says what
+/// kind of thing it is.
+fn clips(scan: &Scan, merged: &Merged) -> BTreeSet<String> {
 	scan
-		.images
+		.targets()
 		.iter()
-		.filter_map(|image| image.resolved())
-		.filter(|(_, extension)| *extension == encode::EXTENSION)
-		.map(|(cid, _)| cid.to_owned())
+		.filter_map(|target| merged.resolve(target))
+		.filter(|(_, media)| media.video().is_some())
+		.map(|(key, _)| key.to_owned())
 		.collect()
 }
 
@@ -255,24 +259,18 @@ fn published(public: &Path, merged: &Merged, media: Option<&Media>) -> bool {
 		return false;
 	};
 	let rungs = video.variants.iter().all(|rung| store::video_path(public, &rung.content).is_file());
-	// A clip whose record cannot name its poster has lost the fallback whether or not the bytes
-	// are still there, so it counts as unpublished and the next run writes the link again.
-	rungs && video.poster.as_deref().is_some_and(|poster| poster_published(public, merged, poster))
+	// A clip whose cover resolves to nothing has lost the fallback whether or not bytes are still
+	// there, so it counts as unpublished and the next run writes the link again.
+	rungs && cover_published(public, merged, video.cover)
 }
 
-fn poster_published(public: &Path, merged: &Merged, poster: &str) -> bool {
-	merged.media.get(poster).and_then(Media::image).is_some_and(|image| {
+fn cover_published(public: &Path, merged: &Merged, cover: crate::resource::ResourceId) -> bool {
+	merged.by_resource(cover).map(|(_, media)| media).and_then(Media::image).is_some_and(|image| {
 		image.variants.iter().all(|variant| {
 			let extension = crate::extension::for_variant(&variant.mime);
 			store::variant_path(public, &variant.content, extension).is_file()
 		})
 	})
-}
-
-/// What an article should call this clip. One codec and one container, so unlike a picture
-/// there is nothing to look up: the extension is the only one a rung is ever written under.
-fn resolved_name(cid: &str) -> String {
-	format!("{cid}.{}", encode::EXTENSION)
 }
 
 fn sources(directory: &Path) -> std::io::Result<Vec<PathBuf>> {
@@ -293,14 +291,6 @@ fn sources(directory: &Path) -> std::io::Result<Vec<PathBuf>> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-
-	#[test]
-	fn a_resolved_name_is_the_id_and_the_one_format() {
-		assert_eq!(
-			resolved_name("44b6081deaf0242ca3bf83d62a3b6c95"),
-			"44b6081deaf0242ca3bf83d62a3b6c95.mp4"
-		);
-	}
 
 	#[test]
 	fn a_poster_keeps_a_source_somebody_wrote() {

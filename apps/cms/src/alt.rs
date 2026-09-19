@@ -369,7 +369,7 @@ mod tests {
 
 	/// A manifest record with no description yet, which is what makes it a candidate.
 	fn described_media() -> crate::image::manifest::Media {
-		crate::image::manifest::fixture::picture("", (10, 10), &[])
+		crate::image::manifest::fixture::picture("p0000", "", (10, 10), &[])
 	}
 
 	#[test]
@@ -387,7 +387,7 @@ mod tests {
 		// A runner is handed one file and asked to look. That is what a picture is; a clip is
 		// described from frames chosen here and a word budget, by a different command. Left out
 		// of the list rather than counted as skipped, because it was never this command's work.
-		let clip = crate::image::manifest::fixture::clip("aa11", "bb22", &[], &[]);
+		let clip = crate::image::manifest::fixture::clip("c0000", "aa11", "p0000", &[], &[]);
 		let merged = Merged {
 			version: crate::image::manifest::VERSION,
 			created: crate::image::manifest::now(),
@@ -421,6 +421,7 @@ mod tests {
 					1,
 					None,
 					None,
+					crate::resource::ResourceId::parse("p0000").expect("a rid"),
 				),
 			)]),
 		};

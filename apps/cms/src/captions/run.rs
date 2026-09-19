@@ -175,7 +175,7 @@ pub fn run(
 	// The sidecar first: it is what a build reads for one asset, and the merged manifest is the
 	// aggregate. A crash between the two leaves the sidecar ahead, which the next run overwrites
 	// from the manifest, rather than a manifest claiming a track the sidecar has never heard of.
-	republish(repo, &id, &media).map_err(Error::Write)?;
+	republish(repo, &media).map_err(Error::Write)?;
 	merged.updated = manifest::now();
 	let json = serde_json::to_string_pretty(&merged)
 		.map_err(|error| Error::Write(std::io::Error::other(error.to_string())))?;

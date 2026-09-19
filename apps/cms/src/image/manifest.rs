@@ -25,11 +25,6 @@ use std::path::Path;
 /// is a namespace and the body becomes `layers`. See spec/architecture/resource.md.
 pub const VERSION: u32 = 5;
 
-// FIXME: everything written here before the migration round lacks `resource`, and a clip lacks
-// `cover`, both of which `libs/artifacts` requires -- no rid exists until the command that grants
-// them has run and written them back, and inventing one on the way past would settle an identity
-// by coin toss. The legacy cid beside each field is what holds the link until then.
-
 /// One media resource's record: the envelope every resource has, with this crate's layers typed.
 pub type Media = resource::Record<Layers>;
 
@@ -195,13 +190,9 @@ pub mod layer {
 		/// The poster frame, a resource of its own because it is referred to from two places --
 		/// and an ordinary picture with its own ladder and its own description.
 		///
-		/// Absent until rids are granted, which is the place `poster` holds meanwhile.
-		#[serde(default, skip_serializing_if = "Option::is_none")]
-		pub cover: Option<ResourceId>,
-		/// The poster's own content id, which is all there is to point with before rids exist.
-		/// The migration resolves it into `cover` and drops it.
-		#[serde(default, skip_serializing_if = "Option::is_none")]
-		pub poster: Option<String>,
+		/// A rid and never a cid, which is what makes the frame's `source` and this point at each
+		/// other. Anything walking the two carries a visited set; the cycle is by design.
+		pub cover: ResourceId,
 		pub variants: Vec<VideoVariant>,
 		pub tracks: Vec<Track>,
 	}
@@ -415,13 +406,41 @@ pub struct Merged {
 	pub version: u32,
 	pub created: String,
 	pub updated: String,
-	/// Keyed by the original's content id, which is the conflation
-	/// spec/architecture/resource.md exists to end -- and which stands until the migration grants
-	/// rids and re-keys this. Re-keying it here would mean minting an id on every read.
+	/// Keyed by the original's content id.
+	///
+	/// The key outlived the conflation spec/architecture/resource.md exists to end, and it is the
+	/// last place a cid names a thing rather than bytes. It stays for now because re-keying is a
+	/// change to every command that imports, describes or classifies one, and `resource` on each
+	/// record is already the identity -- `by_resource` is how anything reached by a rid finds one.
 	pub media: BTreeMap<String, Media>,
 }
 
 impl Merged {
+	/// The record known by this id, under the key it is filed by.
+	///
+	/// A scan rather than a lookup, for as long as the key above is a cid. Forty-five records and
+	/// a handful of callers, so the alternative -- a second index to keep in step with the first
+	/// -- would cost more than it saves.
+	pub fn by_resource(&self, resource: ResourceId) -> Option<(&str, &Media)> {
+		self
+			.media
+			.iter()
+			.find(|(_, media)| media.resource == resource)
+			.map(|(key, media)| (key.as_str(), media))
+	}
+
+	/// The record an article reference names, whichever of the two ids it names it by.
+	///
+	/// Both forms are answered because both exist in the corpus during a migration round, and a
+	/// sweep that could only read one of them would offer everything the other names for deletion.
+	pub fn resolve(&self, target: &crate::refs::Target) -> Option<(&str, &Media)> {
+		match target {
+			crate::refs::Target::Resource(resource) => self.by_resource(*resource),
+			crate::refs::Target::Content(cid) => {
+				self.media.get_key_value(*cid).map(|(key, media)| (key.as_str(), media))
+			}
+		}
+	}
 	/// The record these bytes were imported as, under whatever key it is filed by.
 	///
 	/// The one question a cid still answers about a resource, and the reason it is a search
@@ -455,11 +474,12 @@ struct Wire {
 }
 
 impl Wire {
-	/// Read a manifest of any shape this tool has written, and hand back the current one.
+	/// Read a manifest every record of which has been granted an id, and refuse one that has not.
 	///
-	/// Deterministic, and it allocates nothing: a record with no rid keeps none. An id minted
-	/// while loading differs between two runs, and an identity that changes every time the file
-	/// is read is not one. `cms migrate` grants them once and writes them back.
+	/// Deterministic, and it allocates nothing. An id minted while loading differs between two
+	/// runs, and an identity that changes every time the file is read is not one -- so the shape
+	/// without one is read by `cms migrate` and by nothing else, and every command here loads a
+	/// corpus that has been through it.
 	fn into_merged(self) -> Result<Merged, String> {
 		let mut media = BTreeMap::new();
 		for (key, value) in self.media {
@@ -467,16 +487,12 @@ impl Wire {
 			// the committed manifest reads `"version": 3` while its records are already the
 			// version 4 shape, because that number is only rewritten when a run finishes.
 			// Correcting it there would not change a record, and would break this loader.
-			let record = if value.get("layers").is_some() {
-				let record: Media =
-					serde_json::from_value(value).map_err(|error| format!("`{key}`: {error}"))?;
-				record.validate().map_err(|error| format!("`{key}`: {error}"))?;
-				record
-			} else {
-				let record: legacy::Media =
-					serde_json::from_value(value).map_err(|error| format!("`{key}`: {error}"))?;
-				from_legacy(record)
-			};
+			if value.get("layers").is_none() || value.get("resource").is_none() {
+				return Err(format!("`{key}` has no resource id -- run `cms migrate` first"));
+			}
+			let record: Media =
+				serde_json::from_value(value).map_err(|error| format!("`{key}`: {error}"))?;
+			record.validate().map_err(|error| format!("`{key}`: {error}"))?;
 			media.insert(key, record);
 		}
 
@@ -582,13 +598,98 @@ mod legacy {
 	}
 }
 
+/// The manifest as it sits on disk with its records unread.
+///
+/// What `cms migrate` reads and what nothing else does. A record that predates the migration has
+/// no id, `Merged` will not hold one, and inventing one on the way past would settle an identity
+/// by coin toss -- so the shape without an id stops here, where a command that grants ids is the
+/// only reader.
+#[derive(Debug, Deserialize)]
+pub struct Unnamed {
+	#[serde(default)]
+	pub created: String,
+	#[serde(default)]
+	pub updated: String,
+	#[serde(default, alias = "assets")]
+	pub media: serde_json::Map<String, serde_json::Value>,
+}
+
+impl Unnamed {
+	/// Whether this record already carries the id the migration grants.
+	pub fn is_named(record: &serde_json::Value) -> bool {
+		record.get("resource").is_some_and(serde_json::Value::is_string)
+	}
+
+	/// The content id a clip names its poster by, before that link is a rid.
+	///
+	/// Read off the unparsed record because the typed one no longer has anywhere to put it: the
+	/// field exists to be resolved away, and this is the last reader of it.
+	pub fn poster(record: &serde_json::Value) -> Option<&str> {
+		let legacy = record.get("poster");
+		let layered = record.pointer("/layers/video/poster");
+		legacy.or(layered).and_then(serde_json::Value::as_str)
+	}
+}
+
+/// Read a manifest of any shape this tool has written, records left unparsed.
+pub fn read_unnamed(path: &Path) -> std::io::Result<Unnamed> {
+	let text = match std::fs::read_to_string(path) {
+		Ok(text) => text,
+		Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+			return Ok(Unnamed { created: now(), updated: now(), media: serde_json::Map::new() });
+		}
+		Err(error) => return Err(error),
+	};
+	serde_json::from_str(&text)
+		.map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))
+}
+
+/// Bring one record of any shape this tool has written up to the current one, under a granted id.
+///
+/// `named` answers what another record in the same manifest is called, which is the one thing a
+/// conversion cannot work out alone: a clip's cover is a resource and the file names it by the
+/// poster's content id, so resolving it needs the whole grant rather than this record.
+pub fn adopt(
+	record: serde_json::Value,
+	resource: ResourceId,
+	named: &dyn Fn(&str) -> Option<ResourceId>,
+) -> Result<Media, String> {
+	if record.get("layers").is_none() {
+		let legacy: legacy::Media = serde_json::from_value(record).map_err(|e| e.to_string())?;
+		return from_legacy(legacy, resource, named);
+	}
+	// Already layered but not yet named: written by a build that had this shape and no command to
+	// grant ids. The two fields the migration adds are put in before it parses, because the typed
+	// record has no room for their absence.
+	let mut value = record;
+	value["resource"] = serde_json::Value::String(resource.to_string());
+	if let Some(video) = value.pointer_mut("/layers/video")
+		&& video.get("cover").is_none()
+	{
+		let poster = video.get("poster").and_then(serde_json::Value::as_str).unwrap_or_default();
+		let cover = named(poster).ok_or_else(|| format!("nothing in the manifest holds {poster}"))?;
+		video["cover"] = serde_json::Value::String(cover.to_string());
+	}
+	if let Some(video) = value.pointer_mut("/layers/video").and_then(serde_json::Value::as_object_mut)
+	{
+		video.remove("poster");
+	}
+	let parsed: Media = serde_json::from_value(value).map_err(|error| error.to_string())?;
+	parsed.validate().map_err(|error| error.to_string())?;
+	Ok(parsed)
+}
+
 /// Bring one record written before resources up to the shape they have.
 ///
 /// Every field it held has a home and none is dropped: `blake3` and the two facts about the
 /// original become the one entry in `origin`, and what `type` discriminated on becomes the chain
-/// that says the same thing in more detail. What it cannot do is name another resource, which is
-/// why no poster becomes a frame here: that needs rids, and the migration has them.
-fn from_legacy(record: legacy::Media) -> Media {
+/// that says the same thing in more detail. A clip's poster cid becomes its `cover` here, which
+/// is the one field that needs to know what the rest of the manifest is called.
+fn from_legacy(
+	record: legacy::Media,
+	resource: ResourceId,
+	named: &dyn Fn(&str) -> Option<ResourceId>,
+) -> Result<Media, String> {
 	let cid = record.blake3;
 	let (namespace, layers) = match record.body {
 		legacy::Body::Image(image) => {
@@ -621,6 +722,8 @@ fn from_legacy(record: legacy::Media) -> Media {
 			(leaf_of(&layers), layers)
 		}
 		legacy::Body::Video(video) => {
+			let cover = named(&video.poster)
+				.ok_or_else(|| format!("nothing in the manifest holds {}", video.poster))?;
 			let layers = Layers {
 				media: layer::Media {
 					version: layer::Media::VERSION,
@@ -649,8 +752,7 @@ fn from_legacy(record: legacy::Media) -> Media {
 						loudness: video.source.loudness,
 						peak: video.source.peak,
 					},
-					cover: None,
-					poster: Some(video.poster),
+					cover,
 					variants: video
 						.variants
 						.into_iter()
@@ -680,16 +782,30 @@ fn from_legacy(record: legacy::Media) -> Media {
 			(Namespace::of(&["media", "video", "clip"]), layers)
 		}
 	};
-	Media {
+	Ok(Media {
 		version: VERSION,
-		// Nothing grants one here. A record that has never been migrated holds no rid, and that
-		// absence is the honest answer until `cms migrate` writes one.
-		resource: None,
+		resource,
 		namespace,
 		created: record.created,
 		updated: record.updated,
 		layers,
-	}
+	})
+}
+
+/// Every id this manifest has handed out, which is the register an allocation is checked against.
+pub fn register(known: &BTreeMap<String, Media>) -> std::collections::BTreeSet<ResourceId> {
+	known.values().map(|media| media.resource).collect()
+}
+
+/// The id a record already answers to, or a new one the register does not hold.
+///
+/// Re-deriving a picture must not rename it: every article naming the old id would be pointing at
+/// nothing, and an identity that changes when the pixels are re-encoded is not an identity.
+pub fn resource_for(
+	previous: Option<&Media>,
+	register: &std::collections::BTreeSet<ResourceId>,
+) -> ResourceId {
+	previous.map_or_else(|| resource::allocate(register), |media| media.resource)
 }
 
 /// Sort one picture's camera account into the layer that answers for it.
@@ -738,18 +854,21 @@ fn leaf_of(layers: &Layers) -> Namespace {
 /// Staleness is per document rather than per manifest: the aggregate version can advance before
 /// a guarded write finishes, which would hide staleness forever as a one-shot gate. One that
 /// does not parse counts as stale, which is how every record written before this shape is found.
+///
+/// Looked for under the record's rid, because asking under the manifest's key would find nothing
+/// and write the whole metadata tree back under the cids `cms migrate` just moved it off.
 pub fn migrate(merged: &Merged, metadata: &Path) -> Vec<String> {
 	merged
 		.media
-		.keys()
-		.filter(|cid| {
-			let path = super::store::meta_path(metadata, cid);
+		.iter()
+		.filter(|(_, media)| {
+			let path = super::store::meta_path(metadata, media.resource.as_str());
 			std::fs::read_to_string(path)
 				.ok()
 				.and_then(|text| serde_json::from_str::<Media>(&text).ok())
 				.is_none_or(|document| document.version < VERSION)
 		})
-		.cloned()
+		.map(|(key, _)| key.clone())
 		.collect()
 }
 
@@ -780,13 +899,14 @@ fn published(variant: &Variant) -> ImageVariant {
 ///
 /// A record that already exists keeps its rid, its `created` and whatever it was cut from, and
 /// its origins are added to rather than replaced -- re-deriving gives one thing another original,
-/// not a second thing. A new one carries no rid: only the migration grants those.
+/// not a second thing. The caller grants the id, because the register is the manifest it holds.
 pub fn media_for(
 	derived: &Derived,
 	source_mime: &str,
 	source_bytes: u64,
 	previous: Option<&Media>,
 	metadata: Option<exif::Metadata>,
+	resource: ResourceId,
 ) -> Media {
 	let timestamp = now();
 	let origin =
@@ -818,7 +938,7 @@ pub fn media_for(
 	};
 	Media {
 		version: VERSION,
-		resource: previous.and_then(|media| media.resource),
+		resource: previous.map_or(resource, |media| media.resource),
 		namespace,
 		created: previous.map_or_else(|| timestamp.clone(), |media| media.created.clone()),
 		updated: timestamp,
@@ -836,7 +956,15 @@ pub mod fixture {
 	use super::*;
 
 	/// A picture made from `cid`, published as one AVIF variant per `(content, width, height)`.
-	pub fn picture(cid: &str, dimension: (u32, u32), variants: &[(&str, u32, u32)]) -> Media {
+	///
+	/// The rid is the caller's to choose rather than allocated here: a test that has two records
+	/// usually cares that one names the other, and an id it did not pick is one it cannot name.
+	pub fn picture(
+		resource: &str,
+		cid: &str,
+		dimension: (u32, u32),
+		variants: &[(&str, u32, u32)],
+	) -> Media {
 		let (width, height) = dimension;
 		let mut layers = Layers::of(layer::Media {
 			version: layer::Media::VERSION,
@@ -858,14 +986,20 @@ pub mod fixture {
 				})
 				.collect(),
 		});
-		record(Namespace::of(&["media", "image"]), layers)
+		record(resource, Namespace::of(&["media", "image"]), layers)
 	}
 
-	/// A clip made from `cid`: 1080p, silent, one second, naming the poster cut from it.
+	/// A clip made from `cid`: 1080p, silent, one second, covered by the frame `cover` names.
 	///
 	/// The numbers a test cares about are set on the record it gets back, through `video_mut`.
 	/// Every clip here would otherwise take eleven source fields to say one thing about one.
-	pub fn clip(cid: &str, poster: &str, rungs: &[&str], tracks: &[&str]) -> Media {
+	pub fn clip(
+		resource: &str,
+		cid: &str,
+		cover: &str,
+		rungs: &[&str],
+		tracks: &[&str],
+	) -> Media {
 		let mut layers = Layers::of(layer::Media {
 			version: layer::Media::VERSION,
 			origin: vec![Origin { blake3: cid.to_owned(), mime: "video/mp4".into(), bytes: 1 }],
@@ -885,8 +1019,7 @@ pub mod fixture {
 				loudness: None,
 				peak: None,
 			},
-			cover: None,
-			poster: Some(poster.to_owned()),
+			cover: ResourceId::parse(cover).expect("a rid"),
 			variants: rungs
 				.iter()
 				.map(|content| VideoVariant {
@@ -909,14 +1042,14 @@ pub mod fixture {
 				.collect(),
 		});
 		layers.clip = Some(layer::Clip { version: layer::Clip::VERSION, excerpt: None });
-		record(Namespace::of(&["media", "video", "clip"]), layers)
+		record(resource, Namespace::of(&["media", "video", "clip"]), layers)
 	}
 
-	/// The envelope around either: no rid, because nothing but the migration grants one.
-	fn record(namespace: Namespace, layers: Layers) -> Media {
+	/// The envelope around either.
+	fn record(resource: &str, namespace: Namespace, layers: Layers) -> Media {
 		Media {
 			version: VERSION,
-			resource: None,
+			resource: ResourceId::parse(resource).expect("a rid"),
 			namespace,
 			created: "2026-09-14T00:00:00Z".into(),
 			updated: "2026-09-14T00:00:00Z".into(),
@@ -929,12 +1062,42 @@ pub mod fixture {
 mod tests {
 	use super::*;
 
+	/// The legacy records below, converted the way `cms migrate` converts them.
+	///
+	/// `Merged` refuses this shape now -- a record with no id does not load -- so a fixture in it
+	/// goes through the one conversion that grants one. The ids are handed out in key order rather
+	/// than allocated, so a test may name the rid a record will answer to.
 	fn merged_of(records: &str) -> Merged {
 		let text = format!(
 			r#"{{ "version": 3, "created": "2026-07-30T13:14:52Z",
 			   "updated": "2026-07-30T13:14:52Z", "media": {{ {records} }} }}"#
 		);
-		serde_json::from_str(&text).expect("a manifest")
+		let unnamed: Unnamed = serde_json::from_str(&text).expect("a manifest");
+		let granted: BTreeMap<String, ResourceId> = unnamed
+			.media
+			.keys()
+			.enumerate()
+			.map(|(index, key)| (key.clone(), rid(index)))
+			.collect();
+		let named = |cid: &str| granted.get(cid).copied();
+		let media = unnamed
+			.media
+			.into_iter()
+			.map(|(key, record)| {
+				let adopted = adopt(record, granted[&key], &named).expect("a record");
+				(key, adopted)
+			})
+			.collect();
+		Merged {
+			version: VERSION,
+			created: "2026-07-30T13:14:52Z".into(),
+			updated: "2026-07-30T13:14:52Z".into(),
+			media,
+		}
+	}
+
+	fn rid(index: usize) -> ResourceId {
+		ResourceId::parse(&format!("k{index:04}")).expect("a rid")
 	}
 
 	fn derived_of(cid: &str) -> Derived {
@@ -1014,14 +1177,22 @@ mod tests {
 	}
 
 	#[test]
-	fn reading_a_pre_resource_file_grants_no_id_and_says_so() {
+	fn a_record_with_no_id_does_not_load_and_the_error_says_what_to_run() {
 		// An id minted on the way in is different on every read, and the first thing to write one
-		// into an article would write a number the next process cannot resolve.
-		let merged = merged_of(LEGACY_IMAGE);
-		let media = merged.media.get(LEGACY_CID).expect("one record");
-		assert_eq!(media.resource, None);
-		// And it is the same manifest twice, which is the property that absence buys.
-		assert_eq!(merged_of(LEGACY_IMAGE), merged);
+		// into an article would write a number the next process cannot resolve. So the shape
+		// without one stops here and `cms migrate` is the only reader of it.
+		let text = format!(
+			r#"{{ "version": 3, "created": "", "updated": "", "media": {{ {LEGACY_IMAGE} }} }}"#
+		);
+		let error = serde_json::from_str::<Merged>(&text).expect_err("a refusal").to_string();
+		assert!(error.contains("cms migrate"), "{error}");
+	}
+
+	#[test]
+	fn converting_a_record_twice_gives_the_same_record() {
+		// Deterministic, which is the property that granting the id outside this file buys: the
+		// conversion allocates nothing, so two reads of one file cannot disagree about identity.
+		assert_eq!(merged_of(LEGACY_IMAGE), merged_of(LEGACY_IMAGE));
 	}
 
 	#[test]
@@ -1081,14 +1252,14 @@ mod tests {
 	#[test]
 	fn a_clip_keeps_its_rungs_its_tracks_and_what_its_cover_is() {
 		// A track was cut to this excerpt by hand or bought from a model, and nothing here can
-		// rebuild one. The poster is the same kind of loss in waiting: there is no rid to point
-		// with yet, so the cid it pointed with is what survives until the migration resolves it.
+		// rebuild one. The cover is the field the poster cid became: the conversion resolves it
+		// against the rest of the manifest, because a resource is named by a rid and never a hash.
 		let merged = merged_of(&format!("{LEGACY_CLIP}, {LEGACY_IMAGE}"));
 		let media = merged.media.get("aa11bb22cc33dd44ee55ff6677889900").expect("a clip");
+		let poster = merged.media.get(LEGACY_CID).expect("the poster");
 		let video = media.video().expect("a video layer");
 		assert_eq!(media.namespace.to_string(), "media.video.clip");
-		assert_eq!(video.cover, None);
-		assert_eq!(video.poster.as_deref(), Some(LEGACY_CID));
+		assert_eq!(video.cover, poster.resource);
 		assert_eq!(video.variants.len(), 1);
 		assert_eq!(video.variants[0].resolution, Resolution { width: 1920, height: 1080 });
 		assert_eq!(video.tracks.len(), 1);
@@ -1101,9 +1272,10 @@ mod tests {
 	}
 
 	#[test]
-	fn a_poster_is_still_an_ordinary_picture_until_the_migration_runs() {
-		// Classifying it as a frame means naming the clip, and naming anything means rids. A
-		// wrong leaf is worse than a missing one, so it keeps the short chain.
+	fn a_poster_is_still_an_ordinary_picture_until_the_migration_classifies_it() {
+		// Reading a record is not the place a thing is reclassified. `cms migrate` makes one pass
+		// over the whole manifest and says which pictures are frames; a loader that guessed would
+		// answer differently depending on which records it had reached.
 		let merged = merged_of(&format!("{LEGACY_CLIP}, {LEGACY_IMAGE}"));
 		let poster = merged.media.get(LEGACY_CID).expect("the poster");
 		assert_eq!(poster.namespace.to_string(), "media.image.screenshot");
@@ -1139,9 +1311,8 @@ mod tests {
 		assert_eq!(&serde_json::from_str::<Media>(&text).expect("deserialise"), media);
 		assert!(text.contains(r#""type":"media.image.screenshot""#), "{text}");
 		assert!(text.contains(r#""version":5"#), "{text}");
-		// Nothing says what a record lacks: no rid it has not been granted, no video layers, and
-		// no key holding a null.
-		assert!(!text.contains("resource"), "{text}");
+		assert!(text.contains(r#""resource":"k0000""#), "{text}");
+		// Nothing says what a record lacks: no video layers, and no key holding a null.
 		assert!(!text.contains("clip"), "{text}");
 		assert!(!text.contains("null"), "{text}");
 	}
@@ -1150,7 +1321,7 @@ mod tests {
 	fn a_record_that_holds_a_rid_keeps_it_through_a_round_trip() {
 		let merged = merged_of(LEGACY_IMAGE);
 		let mut media = merged.media.values().next().expect("one record").clone();
-		media.resource = Some(ResourceId::parse("k7m2x").expect("a rid"));
+		media.resource = ResourceId::parse("k7m2x").expect("a rid");
 		let text = serde_json::to_string(&media).expect("serialise");
 		assert!(text.contains(r#""resource":"k7m2x""#), "{text}");
 		assert_eq!(serde_json::from_str::<Media>(&text).expect("deserialise"), media);
@@ -1171,9 +1342,9 @@ mod tests {
 		// whole reason identity is granted rather than derived from the bytes.
 		let merged = merged_of(LEGACY_IMAGE);
 		let mut previous = merged.media.values().next().expect("one record").clone();
-		previous.resource = Some(ResourceId::parse("k7m2x").expect("a rid"));
+		previous.resource = ResourceId::parse("k7m2x").expect("a rid");
 		let derived = derived_of("ff00ff00ff00ff00ff00ff00ff00ff00");
-		let media = media_for(&derived, "image/png", 5, Some(&previous), None);
+		let media = media_for(&derived, "image/png", 5, Some(&previous), None, rid(9));
 		assert_eq!(media.resource, previous.resource);
 		assert_eq!(media.created, previous.created);
 		let origins: Vec<&str> =
@@ -1186,8 +1357,8 @@ mod tests {
 		// Absent is the answer: a caller that asks and receives nothing has learned the thing is
 		// scalable, with no second field to consult.
 		let derived = derived_of("ab");
-		let vector = media_for(&derived, "image/svg+xml", 512, None, None);
-		let bitmap = media_for(&derived, "image/png", 512, None, None);
+		let vector = media_for(&derived, "image/svg+xml", 512, None, None, rid(9));
+		let bitmap = media_for(&derived, "image/png", 512, None, None, rid(9));
 		assert_eq!(vector.image().and_then(|image| image.resolution.clone()), None);
 		assert_eq!(
 			bitmap.image().and_then(|image| image.resolution.clone()),
@@ -1199,9 +1370,9 @@ mod tests {
 	fn a_frame_stays_a_frame_when_its_pixels_are_derived_again() {
 		let clip = ResourceId::parse("q4w8n").expect("a rid");
 		let derived = derived_of("ab");
-		let mut frame = media_for(&derived, "image/png", 512, None, None);
+		let mut frame = media_for(&derived, "image/png", 512, None, None, rid(9));
 		assert!(frame.cut_from(clip, Some(1.5)));
-		let again = media_for(&derived, "image/png", 512, Some(&frame), None);
+		let again = media_for(&derived, "image/png", 512, Some(&frame), None, rid(8));
 		assert_eq!(again.namespace.to_string(), "media.image.frame");
 		assert_eq!(again.layers.frame.map(|frame| frame.source), Some(clip));
 	}

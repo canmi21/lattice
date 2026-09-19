@@ -105,9 +105,12 @@ describe('where an object lives', () => {
 	 * A record is named, not addressed by its own content, because the API rewrites it in place
 	 * when its asset is re-derived. It lives in the other bucket for exactly that reason -- a
 	 * mutable key among immutable ones earned a year of `immutable` it could not keep.
+	 *
+	 * The name is the rid, which is what stops the key ending in a hash and reading as though it
+	 * were addressed by its content.
 	 */
-	it('keeps a record named, in the bucket the CDN cannot reach', () => {
-		expect(recordKey(CID)).toBe(`meta/${CID}.json`);
+	it('keeps a record named by its resource id, in the bucket the CDN cannot reach', () => {
+		expect(recordKey('k7m2x')).toBe('meta/k7m2x.json');
 	});
 
 	it('accepts an id of the shape apps/cms writes, and nothing else', () => {

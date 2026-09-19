@@ -152,6 +152,7 @@ pub fn derive_for(
 	previous: Option<&Media>,
 	keep_original: bool,
 	gazetteer: Option<&geo::Gazetteer>,
+	resource: crate::resource::ResourceId,
 ) -> Result<Prepared, Error> {
 	let derived = derive(original, keep_original)?;
 	// Read once, at import. The published variants are stripped, so this is the only place the
@@ -165,8 +166,14 @@ pub fn derive_for(
 	{
 		found.address = gazetteer.lookup(lat, lon);
 	}
-	let media =
-		manifest::media_for(&derived, source_mime, original.len() as u64, previous, metadata);
+	let media = manifest::media_for(
+		&derived,
+		source_mime,
+		original.len() as u64,
+		previous,
+		metadata,
+		resource,
+	);
 	Ok(Prepared { derived, media })
 }
 
@@ -184,7 +191,7 @@ pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Res
 	// diff, and `GET /media` is a byte pipe that cannot reshape it on the way out. See
 	// spec/architecture/media.md, "A published record is minified; a committed one is not".
 	let json = serde_json::to_string(&prepared.media).map_err(Error::Serialize)?;
-	store::write(&store::meta_path(metadata, &prepared.derived.cid), json.as_bytes())
+	store::write(&store::meta_path(metadata, prepared.media.resource.as_str()), json.as_bytes())
 		.map_err(Error::Write)
 }
 
@@ -197,14 +204,19 @@ pub fn publish(
 	previous: Option<&Media>,
 	keep_original: bool,
 	gazetteer: Option<&geo::Gazetteer>,
+	resource: crate::resource::ResourceId,
 ) -> Result<Media, Error> {
-	let prepared = derive_for(original, source_mime, previous, keep_original, gazetteer)?;
+	let prepared =
+		derive_for(original, source_mime, previous, keep_original, gazetteer, resource)?;
 	let media = prepared.media.clone();
 	write_derived(public, metadata, &prepared)?;
 	Ok(media)
 }
 
-/// Derive and store one source synchronously, returning the content id an editor should insert.
+/// Derive and store one source synchronously, returning the id an editor should insert.
+///
+/// The rid, because that is what an article names. A cid still addresses every published byte and
+/// still keys the manifest; neither is what goes into a sentence.
 pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Result<String, Error> {
 	let bytes = std::fs::read(source).map_err(Error::Read)?;
 	let id = cid(&bytes);
@@ -213,6 +225,7 @@ pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Resul
 
 	// The returned id may be inserted into an article immediately. Published bytes and records
 	// must exist first so a crash can only leave an unreferenced image. See spec/tasks.md.
+	let resource = manifest::resource_for(merged.media.get(&id), &manifest::register(&merged.media));
 	let media = publish(
 		&bytes,
 		mime_of(source),
@@ -221,13 +234,17 @@ pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Resul
 		merged.media.get(&id),
 		keep_original,
 		geo::Gazetteer::open(repository).as_ref(),
+		resource,
 	)?;
-	merged.media.insert(id.clone(), media);
+	// The rid, because that is what an article names now. The cid is still the manifest's key and
+	// still the address of every published byte; neither is what goes into a sentence.
+	let named = media.resource.to_string();
+	merged.media.insert(id, media);
 	merged.updated = manifest::now();
 	let json = serde_json::to_string_pretty(&merged).map_err(Error::Serialize)?;
 	store::write(&merged_path, format!("{json}\n").as_bytes()).map_err(Error::Write)?;
 
-	Ok(id)
+	Ok(named)
 }
 
 pub(crate) fn mime_of(path: &Path) -> &'static str {
@@ -283,6 +300,11 @@ fn placeholder(image: &DynamicImage) -> Result<Vec<u8>, Error> {
 mod tests {
 	use super::*;
 	use image::{Rgba, RgbaImage};
+
+	/// A fixed id, because nothing here is about which one allocation hands out.
+	fn rid() -> crate::resource::ResourceId {
+		crate::resource::ResourceId::parse("k7m2x").expect("a rid")
+	}
 
 	/// A directory that removes itself, however the test ends.
 	///
@@ -392,7 +414,8 @@ mod tests {
 		let root = temporary.path();
 		let public = crate::paths::objects_root(root);
 		let original = photo(20, 12);
-		let prepared = derive_for(&original, "image/png", None, false, None).expect("derive for write");
+		let prepared =
+			derive_for(&original, "image/png", None, false, None, rid()).expect("derive for write");
 
 		assert!(!public.exists());
 		assert_eq!(prepared.derived.cid, cid(&original));
@@ -404,7 +427,8 @@ mod tests {
 			assert!(store::variant_path(&public, &variant.cid, variant.format.extension()).is_file());
 		}
 		let document: Media = serde_json::from_str(
-			&std::fs::read_to_string(store::meta_path(&metadata, &prepared.derived.cid)).expect("record"),
+			&std::fs::read_to_string(store::meta_path(&metadata, prepared.media.resource.as_str()))
+				.expect("record"),
 		)
 		.expect("document");
 		assert_eq!(document, prepared.media);
@@ -419,13 +443,15 @@ mod tests {
 		let original = photo(20, 12);
 		std::fs::write(&source, &original).expect("source");
 
-		let id = store_one(&root, &source, false).expect("store one");
+		// The rid, which is what an editor inserts: an article names a thing, and the cid that
+		// still keys the manifest names the bytes it happens to have been made from.
+		let named = store_one(&root, &source, false).expect("store one");
 
-		assert_eq!(id, cid(&original));
 		let merged = run::load(&root.join(run::MERGED)).expect("merged");
-		let media = merged.media.get(&id).expect("merged record");
+		let media = merged.media.get(&cid(&original)).expect("merged record");
+		assert_eq!(named, media.resource.to_string());
 		let picture = media.image().expect("a stored picture is a picture");
-		assert!(store::meta_path(&crate::paths::metadata_root(root), &id).is_file());
+		assert!(store::meta_path(&crate::paths::metadata_root(root), &named).is_file());
 		for variant in &picture.variants {
 			assert!(
 				store::variant_path(

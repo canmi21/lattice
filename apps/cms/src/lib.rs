@@ -17,6 +17,7 @@ pub mod image;
 mod licenses;
 mod locale;
 mod media;
+mod migrate;
 mod opengraph;
 pub mod paths;
 mod port;

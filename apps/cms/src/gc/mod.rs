@@ -10,7 +10,6 @@
 
 pub mod segments;
 
-use crate::image::manifest::Media;
 use crate::image::run::{MERGED, load};
 use crate::licenses;
 use crate::opengraph;
@@ -156,19 +155,34 @@ pub fn plan(
 ) -> std::io::Result<Sweep> {
 	let scan = refs::scan(articles)?;
 	let merged = load(&repo.join(MERGED))?;
-	let wanted = scan.cids();
 
-	// An article names the original; the manifest is the only link from it to the objects on
-	// disk, so a cid missing from the manifest keeps nothing alive -- correct, since the site
-	// could not resolve it either.
+	// Which manifest entries an article reaches. A reference names a resource by its rid; the
+	// manifest is the only link from that to the objects on disk, so one it does not hold keeps
+	// nothing alive -- correct, since the site could not resolve it either.
 	//
-	// A clip's poster is a whole asset the article never names, only the clip's record does --
-	// skipping that hop would sweep it on the first run, though it is the entire fallback for a
-	// device that cannot decode the video.
-	let mut keep: BTreeSet<String> = wanted.clone();
-	let mut posters: Vec<String> = Vec::new();
-	for cid in &wanted {
-		let Some(media) = merged.media.get(cid) else { continue };
+	// A clip's cover is a whole asset no article ever names; only the clip's record does. That
+	// hop went through `video.poster`, a cid, and resolved nothing the moment the field became
+	// `cover` -- an hour later this would have offered three published pictures for deletion.
+	let mut reached: BTreeSet<String> = BTreeSet::new();
+	for target in scan.targets() {
+		if let Some((key, _)) = merged.resolve(&target) {
+			reached.insert(key.to_owned());
+		}
+	}
+	let covers: Vec<crate::resource::ResourceId> = reached
+		.iter()
+		.filter_map(|key| merged.media.get(key))
+		.filter_map(|media| media.video().map(|video| video.cover))
+		.collect();
+	for cover in covers {
+		if let Some((key, _)) = merged.by_resource(cover) {
+			reached.insert(key.to_owned());
+		}
+	}
+
+	let mut keep: BTreeSet<String> = reached.clone();
+	for key in &reached {
+		let Some(media) = merged.media.get(key) else { continue };
 		// Asked layer by layer rather than by kind: a record is whatever layers it carries, and a
 		// clip's picture layers, were it ever to grow them, are content this has to keep too.
 		if let Some(image) = media.image() {
@@ -177,15 +191,6 @@ pub fn plan(
 		if let Some(video) = media.video() {
 			keep.extend(video.variants.iter().map(|rung| rung.content.clone()));
 			keep.extend(video.tracks.iter().map(|track| track.content.clone()));
-			if let Some(poster) = video.poster.clone() {
-				keep.insert(poster.clone());
-				posters.push(poster);
-			}
-		}
-	}
-	for poster in posters {
-		if let Some(image) = merged.media.get(&poster).and_then(Media::image) {
-			keep.extend(image.variants.iter().map(|variant| variant.content.clone()));
 		}
 	}
 
@@ -222,15 +227,11 @@ pub fn plan(
 		.unwrap_or_default();
 	keep.extend(licenses::referenced(&record));
 
-	// A poster's entry stays in the manifest for the same reason its bytes stay on disk: the
+	// A cover's entry stays in the manifest for the same reason its bytes stay on disk: the
 	// clip's record points at it, and a record naming an entry that is gone is the one failure
-	// this sweep must not create.
-	let unnamed_entries: Vec<String> = merged
-		.media
-		.keys()
-		.filter(|cid| !wanted.contains(*cid) && !keep.contains(*cid))
-		.cloned()
-		.collect();
+	// this sweep must not create. `reached` already followed that hop, so this is one test.
+	let unnamed_entries: Vec<String> =
+		merged.media.keys().filter(|key| !reached.contains(*key)).cloned().collect();
 
 	// The whole content-addressed space, which is now one flat tree rather than a prefix per kind.
 	// A two-hex directory at the top of the objects tree is a fan-out segment and nothing else is,
@@ -389,14 +390,15 @@ mod tests {
 		plan(repo, public, metadata, articles).expect("second plan")
 	}
 
-	fn media(variant: &str) -> Media {
-		fixture::picture("", (640, 360), &[(variant, 640, 360)])
+	fn media(resource: &str, variant: &str) -> Media {
+		fixture::picture(resource, "", (640, 360), &[(variant, 640, 360)])
 	}
 
 	/// A repository with one referenced asset and one abandoned one.
 	///
-	/// The guard comes back with the paths: it owns the directory, so dropping it here would
-	/// delete everything the caller is about to look at.
+	/// The article names the kept asset by its rid, which is what an article says since the
+	/// migration. The guard comes back with the paths: it owns the directory, so dropping it here
+	/// would delete everything the caller is about to look at.
 	fn scenario() -> (tempfile::TempDir, PathBuf, String, String) {
 		let temporary = temp();
 		let root = temporary.path().to_path_buf();
@@ -406,11 +408,11 @@ mod tests {
 		let dropped_variant = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned();
 
 		std::fs::create_dir_all(root.join("contents")).expect("dir");
-		std::fs::write(root.join("contents/a.md"), format!("![]({kept}.avif)")).expect("write");
+		std::fs::write(root.join("contents/a.md"), "![](k0001)").expect("write");
 
 		let mut assets = BTreeMap::new();
-		assets.insert(kept.clone(), media(&kept_variant));
-		assets.insert(dropped.clone(), media(&dropped_variant));
+		assets.insert(kept.clone(), media("k0001", &kept_variant));
+		assets.insert(dropped.clone(), media("k0002", &dropped_variant));
 		let merged = Merged {
 			version: 1,
 			created: "2026-07-31T00:00:00Z".into(),
@@ -473,10 +475,14 @@ mod tests {
 	}
 
 	#[test]
-	fn a_clip_keeps_its_rungs_its_tracks_and_the_poster_nothing_else_names() {
-		// The poster is the whole fallback for a device that cannot decode AV1, and no article
-		// ever names it -- only the clip's record does. Sweeping by references alone takes it on
-		// the first run, and takes its own variants and record with it.
+	fn a_clip_keeps_its_rungs_its_tracks_and_the_cover_nothing_else_names() {
+		// The cover is the whole fallback for a device that cannot decode AV1, and no article ever
+		// names it -- only the clip's record does. Sweeping by references alone takes it on the
+		// first run, and takes its own variants and record with it.
+		//
+		// It is reached by following `cover`, a rid. The hop used to go through `video.poster`, a
+		// cid, and the moment that field was replaced the hop resolved nothing and this sweep
+		// would have offered three published pictures for deletion an hour later.
 
 		let temporary = temp();
 		let root = temporary.path().to_path_buf();
@@ -487,11 +493,11 @@ mod tests {
 		let poster_variant = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".to_owned();
 
 		std::fs::create_dir_all(root.join("contents")).expect("dir");
-		std::fs::write(root.join("contents/a.md"), format!("![]({clip}.avif)")).expect("write");
+		std::fs::write(root.join("contents/a.md"), "::video{src=\"c0001\"}").expect("write");
 
 		let mut assets = BTreeMap::new();
-		assets.insert(poster.clone(), media(&poster_variant));
-		assets.insert(clip.clone(), fixture::clip(&clip, &poster, &[&rung], &[&track]));
+		assets.insert(poster.clone(), media("f0001", &poster_variant));
+		assets.insert(clip.clone(), fixture::clip("c0001", &clip, "f0001", &[&rung], &[&track]));
 		crate::image::store::write(
 			&root.join(MERGED),
 			serde_json::to_string(&Merged {
@@ -522,10 +528,10 @@ mod tests {
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 		assert!(!names.contains(&rung), "swept a live rung");
 		assert!(!names.contains(&track), "swept a live caption");
-		assert!(!names.contains(&poster), "swept the poster's record");
-		assert!(!names.contains(&poster_variant), "swept the poster's own variant");
+		assert!(!names.contains(&poster), "swept the cover's record");
+		assert!(!names.contains(&poster_variant), "swept the cover's own variant");
 		assert_eq!(names, vec!["ffffffffffffffffffffffffffffffff"]);
-		// The poster is reachable only through the clip, so its manifest entry has to survive
+		// The cover is reachable only through the clip, so its manifest entry has to survive
 		// the same hop its bytes did.
 		assert!(sweep.entries.is_empty(), "{:?}", sweep.entries);
 		std::fs::remove_dir_all(&root).ok();

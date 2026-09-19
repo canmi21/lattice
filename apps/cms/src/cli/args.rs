@@ -315,6 +315,13 @@ pub enum Command {
 		articles: Vec<PathBuf>,
 	},
 
+	/// Grant every record a resource id, once, and point the articles at it
+	Migrate {
+		/// Actually write. Without it the grants are printed and nothing is touched.
+		#[arg(long)]
+		live: bool,
+	},
+
 	/// Drop published assets no article asks for
 	Gc {
 		/// Actually delete. Without it the sweep is printed and nothing is touched.

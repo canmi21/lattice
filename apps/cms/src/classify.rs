@@ -419,7 +419,7 @@ mod tests {
 	}
 
 	fn bare_media() -> crate::image::manifest::Media {
-		crate::image::manifest::fixture::picture("", (10, 10), &[])
+		crate::image::manifest::fixture::picture("p0000", "", (10, 10), &[])
 	}
 
 	fn registry() -> tags::Registry {

@@ -55,10 +55,25 @@ pub struct Gap {
 pub fn report(repo: &Path, articles: &Path) -> std::io::Result<Vec<Gap>> {
 	let scan = refs::scan(articles)?;
 	let described = crate::media::load(&crate::media::path_for(repo))?;
-	Ok(gaps(&scan, &crate::paths::favicon_root(repo), &crate::paths::metadata_root(repo), &described))
+	// A reference names a resource; the manifest is what turns that into the record and the key
+	// everything else here is filed by. Without it this could only count references.
+	let merged = image::run::load(&repo.join(image::run::MERGED))?;
+	Ok(gaps(
+		&scan,
+		&merged,
+		&crate::paths::favicon_root(repo),
+		&crate::paths::metadata_root(repo),
+		&described,
+	))
 }
 
-fn gaps(scan: &Scan, icons: &Path, metadata: &Path, described: &crate::media::Media) -> Vec<Gap> {
+fn gaps(
+	scan: &Scan,
+	merged: &crate::image::manifest::Merged,
+	icons: &Path,
+	metadata: &Path,
+	described: &crate::media::Media,
+) -> Vec<Gap> {
 	let mut found = Vec::new();
 
 	for image in scan.unresolved() {
@@ -70,24 +85,34 @@ fn gaps(scan: &Scan, icons: &Path, metadata: &Path, described: &crate::media::Me
 		});
 	}
 
-	for cid in scan.cids() {
-		if !image::store::meta_path(metadata, &cid).is_file() {
+	// Reported under what the article writes, which is what somebody would search the corpus
+	// for. A reference the manifest cannot resolve has no record and no description either, so
+	// it is one gap rather than two.
+	for reference in &scan.images {
+		let Some(target) = reference.target() else { continue };
+		let Some((key, media)) = merged.resolve(&target) else {
 			found.push(Gap {
 				level: Level::Warn,
-				what: cid,
+				what: reference.value.clone(),
+				detail: "nothing in the manifest holds this".to_owned(),
+				action: Some(Action::Image),
+			});
+			continue;
+		};
+		if !image::store::meta_path(metadata, media.resource.as_str()).is_file() {
+			found.push(Gap {
+				level: Level::Warn,
+				what: reference.value.clone(),
 				detail: "referenced but not published".to_owned(),
 				action: Some(Action::Image),
 			});
 		}
-	}
-
-	// An image with no description is served correctly and read badly. That is a gap in what
-	// the page says rather than in what it can show, so it sits below a missing image.
-	for cid in scan.cids() {
-		if crate::alt::wants_description(described, &cid) {
+		// An image with no description is served correctly and read badly. That is a gap in what
+		// the page says rather than in what it can show, so it sits below a missing image.
+		if crate::alt::wants_description(described, key) {
 			found.push(Gap {
 				level: Level::Info,
-				what: cid,
+				what: reference.value.clone(),
 				detail: "no description".to_owned(),
 				action: Some(Action::Alt),
 			});
@@ -125,6 +150,43 @@ mod tests {
 		std::fs::write(root.join("contents/a.md"), text).expect("write");
 	}
 
+	/// A manifest holding one picture, keyed by `cid` and answering to `resource`.
+	///
+	/// Without one every reference reads as something the manifest does not hold, which is a
+	/// different gap from the ones these tests are about.
+	fn manifest(root: &Path, resource: &str, cid: &str) {
+		let merged = crate::image::manifest::Merged {
+			version: crate::image::manifest::VERSION,
+			created: "2026-09-14T00:00:00Z".into(),
+			updated: "2026-09-14T00:00:00Z".into(),
+			media: std::collections::BTreeMap::from([(
+				cid.to_owned(),
+				crate::image::manifest::fixture::picture(resource, cid, (10, 10), &[]),
+			)]),
+		};
+		image::store::write(
+			&root.join(image::run::MERGED),
+			serde_json::to_string(&merged).expect("json").as_bytes(),
+		)
+		.expect("write");
+	}
+
+	#[test]
+	fn a_reference_the_manifest_does_not_hold_is_reported_rather_than_passed_over() {
+		// The likeliest way to see this is an article written by hand against an id that was
+		// never granted. Silence here is a missing image nobody reports.
+		let temporary = temp();
+		let root = temporary.path();
+		article(&root, "![](k7m2x)");
+		manifest(&root, "00000", "44b6081deaf0242ca3bf83d62a3b6c95");
+
+		let found = report(&root, &root.join("contents")).expect("report");
+		assert_eq!(found.len(), 1);
+		assert_eq!(found[0].level, Level::Warn);
+		assert!(found[0].detail.contains("manifest"), "{:?}", found[0]);
+		std::fs::remove_dir_all(&root).ok();
+	}
+
 	#[test]
 	fn a_missing_image_outranks_a_missing_icon() {
 		// One leaves a hole in the page and the other does not, so they must not be reported
@@ -151,8 +213,9 @@ mod tests {
 		let temporary = temp();
 		let root = temporary.path();
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";
-		article(&root, &format!("![]({cid}.avif)"));
-		let meta = image::store::meta_path(&crate::paths::metadata_root(root), cid);
+		article(&root, "![](k7m2x)");
+		manifest(&root, "k7m2x", cid);
+		let meta = image::store::meta_path(&crate::paths::metadata_root(root), "k7m2x");
 		std::fs::create_dir_all(meta.parent().expect("parent")).expect("dir");
 		std::fs::write(&meta, b"{}").expect("write");
 
@@ -171,7 +234,8 @@ mod tests {
 		// looks exactly like this, which is the reason to notice it.
 		let temporary = temp();
 		let root = temporary.path();
-		article(&root, "![](44b6081deaf0242ca3bf83d62a3b6c95.avif)");
+		article(&root, "![](k7m2x)");
+		manifest(&root, "k7m2x", "44b6081deaf0242ca3bf83d62a3b6c95");
 
 		// Two now: the record is gone, and nothing has described the asset either. Only the
 		// first is a warning -- a missing record leaves a hole, a missing description does not.

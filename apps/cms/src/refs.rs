@@ -5,6 +5,7 @@
 //! the articles reference. Articles are the only authority -- something nothing links to is
 //! not an asset, it is a leftover. See spec/architecture/data.md.
 
+use crate::resource::ResourceId;
 use regex::Regex;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -39,6 +40,17 @@ static ATTRIBUTE: LazyLock<Regex> =
 static RESOLVED: LazyLock<Regex> =
 	LazyLock::new(|| Regex::new(r"^([0-9a-f]{32})\.([a-z0-9]+)$").expect("static pattern"));
 
+/// What a finished reference names.
+///
+/// Two forms, because a corpus has both for exactly as long as a migration round takes: an
+/// article names a resource by its rid now, and named an original's cid and a format before. A
+/// caller asking what a reference points at gets the answer without learning which era wrote it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Target<'a> {
+	Resource(ResourceId),
+	Content(&'a str),
+}
+
 /// An image an article names, exactly as it was written.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ImageRef {
@@ -47,9 +59,22 @@ pub struct ImageRef {
 }
 
 impl ImageRef {
-	/// The content id and format, when this reference has already been processed.
+	/// The content id and format, when this reference names one the old way.
 	pub fn resolved(&self) -> Option<(&str, &str)> {
 		resolved(&self.value)
+	}
+
+	/// The resource id, when this reference names one.
+	pub fn resource(&self) -> Option<ResourceId> {
+		resource(&self.value)
+	}
+
+	/// What this reference points at, or nothing when it still names a file to be imported.
+	pub fn target(&self) -> Option<Target<'_>> {
+		self
+			.resource()
+			.map(Target::Resource)
+			.or_else(|| self.resolved().map(|(cid, _)| Target::Content(cid)))
 	}
 }
 
@@ -76,6 +101,16 @@ pub fn resolved(value: &str) -> Option<(&str, &str)> {
 	Some((cid, extension))
 }
 
+/// The resource a reference names, when it names one.
+///
+/// **No extension is what says this is a rid rather than a filename.** Which format gets served
+/// is the build's decision now, so a finished reference carries nothing about it -- and a file
+/// waiting to be imported is named by a person, who writes `shot.png` and not five characters of
+/// base36. See spec/architecture/resource.md, "Two ids".
+pub fn resource(value: &str) -> Option<ResourceId> {
+	ResourceId::parse(value).ok()
+}
+
 /// Whether a reference points somewhere this repository does not own.
 fn is_external(value: &str) -> bool {
 	let lowered = value.to_ascii_lowercase();
@@ -99,20 +134,27 @@ pub struct Scan {
 }
 
 impl Scan {
-	/// Content ids the articles resolve to -- exactly the set worth keeping in the objects tree.
+	/// Content ids the articles resolve to, for the references written before rids existed.
 	pub fn cids(&self) -> BTreeSet<String> {
 		self.images.iter().filter_map(|image| image.resolved().map(|(cid, _)| cid.to_owned())).collect()
 	}
 
-	/// References that still name a file rather than a content id, deduplicated.
+	/// Everything the articles point at, whichever way each reference spells it.
+	pub fn targets(&self) -> BTreeSet<Target<'_>> {
+		self.images.iter().filter_map(ImageRef::target).collect()
+	}
+
+	/// References that still name a file rather than something stored, deduplicated.
 	///
-	/// The same picture used in three articles is one thing to derive, not three.
+	/// The same picture used in three articles is one thing to derive, not three. A rid counts as
+	/// finished for the same reason a `{cid}.{ext}` does -- missing that would send every
+	/// migrated reference back to `cms image` as a filename to look for and never find.
 	pub fn unresolved(&self) -> Vec<&ImageRef> {
 		let mut seen = BTreeSet::new();
 		self
 			.images
 			.iter()
-			.filter(|image| image.resolved().is_none())
+			.filter(|image| image.target().is_none())
 			.filter(|image| seen.insert(image.value.as_str()))
 			.collect()
 	}

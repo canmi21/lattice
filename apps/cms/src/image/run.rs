@@ -63,7 +63,7 @@ pub fn run(
 	// minutes of CPU to produce identical pixels.
 	for cid in manifest::migrate(&mut merged, metadata) {
 		if let Some(media) = merged.media.get(&cid) {
-			republish(repo, &cid, media)?;
+			republish(repo, media)?;
 			outcome.migrated += 1;
 		}
 	}
@@ -88,11 +88,15 @@ pub fn run(
 		if !options.force && previous.is_some() && published(public, picture) {
 			outcome.skipped += 1;
 			if let Some(target) = reference.as_deref() {
-				note(&mut rewrites, target, &id, previous);
+				note(&mut rewrites, target, previous);
 			}
 			continue;
 		}
 
+		// Drawn against the manifest as it stands this moment, which already holds everything
+		// earlier iterations inserted. A register read once before the loop would let the second
+		// new picture of a run be granted the first one's id.
+		let resource = manifest::resource_for(previous, &manifest::register(&merged.media));
 		match super::publish(
 			&bytes,
 			mime_of(&path),
@@ -101,10 +105,11 @@ pub fn run(
 			previous,
 			keep,
 			gazetteer.as_ref(),
+			resource,
 		) {
 			Ok(media) => {
 				if let Some(target) = reference.as_deref() {
-					note(&mut rewrites, target, &id, Some(&media));
+					note(&mut rewrites, target, Some(&media));
 				}
 				merged.media.insert(id, media);
 				outcome.processed += 1;
@@ -113,19 +118,19 @@ pub fn run(
 		}
 	}
 
-	// A finished reference can still name the wrong format: an article written when the
-	// pipeline stored PNG, or an asset re-derived into something else since. The extension is
-	// a claim about what the CDN will serve, so it is corrected from the manifest without
-	// deriving anything.
+	// A reference written before rids existed still names an original's cid and a format. It is
+	// corrected to the id the record answers to, without deriving anything: which format the CDN
+	// serves is the build's decision now, so an extension in the source is a claim the article is
+	// in no position to make. `cms migrate` does this for the corpus in one pass; this is the same
+	// correction for one article written by hand since.
 	for image in &scan.images {
 		let Some((cid, _)) = image.resolved() else {
 			continue;
 		};
-		if let Some(name) =
-			merged.media.get(cid).and_then(Media::image).and_then(|picture| resolved_name(cid, picture))
-			&& name != image.value
+		if let Some(media) = merged.media.get(cid)
+			&& media.image().is_some()
 		{
-			rewrites.insert(image.value.clone(), name);
+			rewrites.insert(image.value.clone(), media.resource.to_string());
 		}
 	}
 
@@ -239,30 +244,14 @@ fn published(public: &Path, image: Option<&layer::Image>) -> bool {
 	})
 }
 
-/// What an article should call this asset: its content id and the format it resolved to.
+/// What an article should call this asset: the id it was granted, and nothing else.
 ///
-/// The largest variant decides the extension. It is the one an article without a srcset falls
-/// back to, and every rung of a ladder shares its format.
-/// A picture rather than a record: `extension::for_variant` answers AVIF for anything it does
-/// not know, so handing it a clip's `video/mp4` would rewrite an article to name a file that
-/// was never written. Rewriting a video reference belongs to the command that publishes one.
-fn resolved_name(cid: &str, image: &layer::Image) -> Option<String> {
-	let extension = image
-		.variants
-		.iter()
-		.max_by_key(|variant| variant.resolution.as_ref().map_or(0, |pixels| pixels.width))
-		.map(|variant| crate::extension::for_variant(&variant.mime))?;
-	Some(format!("{cid}.{extension}"))
-}
-
-fn note(
-	rewrites: &mut BTreeMap<String, String>,
-	reference: &str,
-	cid: &str,
-	media: Option<&Media>,
-) {
-	if let Some(name) = media.and_then(Media::image).and_then(|image| resolved_name(cid, image)) {
-		rewrites.insert(reference.to_owned(), name);
+/// No extension, because which format the CDN serves is settled at compile time from the record
+/// rather than by the article. A picture rather than a record: only `cms video` knows what a clip
+/// is called, and answering here for one would rewrite an article to name a picture nobody wrote.
+fn note(rewrites: &mut BTreeMap<String, String>, reference: &str, media: Option<&Media>) {
+	if let Some(media) = media.filter(|media| media.image().is_some()) {
+		rewrites.insert(reference.to_owned(), media.resource.to_string());
 	}
 }
 
@@ -274,13 +263,14 @@ fn note(
 ///
 /// Finds the metadata tree itself rather than being handed one: a caller holding both passed the
 /// objects tree here for as long as the two were one bucket, and no type stopped it.
-pub fn republish(repo: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
+pub fn republish(repo: &Path, media: &Media) -> std::io::Result<()> {
 	let metadata = &crate::paths::metadata_root(repo);
 	// Minified, for the reason `image::write_derived` gives. The record is the document now --
-	// its envelope carries the version an outer wrapper used to hold twice.
+	// its envelope carries the version an outer wrapper used to hold twice. Keyed by the rid it
+	// carries rather than by anything a caller passes, so there is one answer to where it goes.
 	let json =
 		serde_json::to_string(media).map_err(|error| std::io::Error::other(error.to_string()))?;
-	store::write(&store::meta_path(metadata, cid), json.as_bytes())
+	store::write(&store::meta_path(metadata, media.resource.as_str()), json.as_bytes())
 }
 
 /// The merged manifest, fresh and empty when the repository has none yet.
@@ -471,7 +461,7 @@ mod tests {
 			.collect();
 		let variants: Vec<(&str, u32, u32)> =
 			rungs.iter().map(|(cid, w, h)| (cid.as_str(), *w, *h)).collect();
-		let media = manifest::fixture::picture("source", (width, height), &variants);
+		let media = manifest::fixture::picture("p0000", "source", (width, height), &variants);
 		media.image().expect("a picture").clone()
 	}
 
@@ -505,27 +495,24 @@ mod tests {
 	}
 
 	#[test]
-	fn the_largest_variant_decides_the_extension() {
-		// The format of the biggest rung, not of the first one read: an article without a srcset
-		// falls back to that file, so naming it by any other rung's extension names a 404.
-		let mut picture = derived(1920, 1080, &[(640, 360), (1920, 1080)]);
-		picture.variants[1].mime = "image/png".into();
-
-		assert_eq!(
-			resolved_name("44b6081deaf0242ca3bf83d62a3b6c95", &picture).as_deref(),
-			Some("44b6081deaf0242ca3bf83d62a3b6c95.png")
-		)
+	fn a_reference_is_rewritten_to_the_id_and_carries_no_format() {
+		// Which encoding the CDN serves is settled at compile time from the record. An extension
+		// in the source is the article claiming to know that months before the build decides, and
+		// it was the thing that had to be corrected whenever a picture was re-derived.
+		let picture = manifest::fixture::picture("k7m2x", "source", (1920, 1080), &[("r0", 1920, 1080)]);
+		let mut rewrites = BTreeMap::new();
+		note(&mut rewrites, "shot.png", Some(&picture));
+		assert_eq!(rewrites.get("shot.png").map(String::as_str), Some("k7m2x"));
 	}
 
 	#[test]
 	fn a_clip_is_not_a_reference_this_command_can_answer_for() {
-		// `extension::for_variant` answers AVIF for anything it does not recognise, so a clip
-		// reaching `resolved_name` would rewrite an article to name a `.avif` nobody wrote. The
-		// accessor is where it stops, and the record's kind is the only thing that knows.
-		let clip = manifest::fixture::clip("aa11", "bb22", &[], &[]);
+		// Rewriting a clip's reference belongs to the command that publishes one. The accessor is
+		// where it stops, and the record's kind is the only thing that knows.
+		let clip = manifest::fixture::clip("c0000", "aa11", "p0000", &[], &[]);
 		assert!(clip.image().is_none());
 		let mut rewrites = BTreeMap::new();
-		note(&mut rewrites, "clip.mp4", "aa11", Some(&clip));
+		note(&mut rewrites, "clip.mp4", Some(&clip));
 		assert!(rewrites.is_empty());
 	}
 
@@ -541,7 +528,7 @@ mod tests {
 		std::fs::create_dir_all(&articles).expect("articles");
 
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";
-		let media = manifest::fixture::picture(cid, (1, 1), &[]);
+		let media = manifest::fixture::picture("p0000", cid, (1, 1), &[]);
 		let merged = Merged {
 			version: manifest::VERSION,
 			created: "2026-07-31T00:00:00Z".into(),
@@ -558,8 +545,10 @@ mod tests {
 		let mut stale = serde_json::to_value(media.clone()).expect("stale document");
 		stale["version"] = 2.into();
 		stale["preview"] = "obsolete".into();
+		// Under the rid, which is where the document lives: keyed by the cid it would not be found
+		// at all, and this test would prove nothing about staleness.
 		store::write(
-			&store::meta_path(&metadata, cid),
+			&store::meta_path(&metadata, media.resource.as_str()),
 			serde_json::to_string_pretty(&stale).expect("stale json").as_bytes(),
 		)
 		.expect("write stale sidecar");
@@ -578,7 +567,8 @@ mod tests {
 		// directory exists for a pixel pipeline to read or write.
 		assert_eq!(outcome.migrated, 1);
 		assert_eq!(outcome.processed, 0);
-		let rewritten = std::fs::read_to_string(store::meta_path(&metadata, cid)).expect("sidecar");
+		let rewritten = std::fs::read_to_string(store::meta_path(&metadata, media.resource.as_str()))
+			.expect("sidecar");
 		let document: manifest::Media = serde_json::from_str(&rewritten).expect("document");
 		assert_eq!(document.version, manifest::VERSION);
 		assert_eq!(document, media);
@@ -591,15 +581,20 @@ mod tests {
 	}
 
 	#[test]
-	fn the_committed_manifest_still_loads_whatever_shape_it_is_written_in() {
-		// The real file, not a fixture. It is version 3 on disk and cannot be regenerated -- the
-		// originals live outside git and some are gone -- so converting rather than refusing is
-		// the whole reason the legacy shape is kept, and a fixture cannot make that claim.
+	fn the_committed_manifest_is_refused_here_until_it_has_been_migrated() {
+		// The real file, not a fixture. It cannot be regenerated -- the originals live outside git
+		// and some are gone -- so what is asserted is that this loader either reads it or says
+		// exactly what to run, and never quietly hands back a record with an invented identity.
+		// `migrate::tests` is where the shape without ids is read.
 		let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(MERGED);
-		let merged = load(&path).expect("the committed manifest");
-		assert!(!merged.media.is_empty());
-		assert!(merged.media.values().any(|media| media.video().is_some()));
-		assert!(merged.media.values().all(|media| media.validate().is_ok()));
+		match load(&path) {
+			Ok(merged) => {
+				assert!(!merged.media.is_empty());
+				assert!(merged.media.values().any(|media| media.video().is_some()));
+				assert!(merged.media.values().all(|media| media.validate().is_ok()));
+			}
+			Err(error) => assert!(error.to_string().contains("cms migrate"), "{error}"),
+		}
 	}
 }
 
