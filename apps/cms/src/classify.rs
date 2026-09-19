@@ -419,23 +419,7 @@ mod tests {
 	}
 
 	fn bare_media() -> crate::image::manifest::Media {
-		crate::image::manifest::Media {
-			created: "2026-08-01T00:00:00Z".into(),
-			updated: "2026-08-01T00:00:00Z".into(),
-			blake3: String::new(),
-			body: crate::image::manifest::Body::Image(crate::image::manifest::Image {
-				thumbhash: String::new(),
-				source: crate::image::manifest::Source {
-					mime: "image/png".into(),
-					width: 10,
-					height: 10,
-					ratio: "1:1".into(),
-					bytes: 1,
-				},
-				metadata: None,
-				variants: BTreeMap::new(),
-			}),
-		}
+		crate::image::manifest::fixture::picture("", (10, 10), &[])
 	}
 
 	fn registry() -> tags::Registry {

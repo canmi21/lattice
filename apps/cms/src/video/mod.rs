@@ -16,7 +16,7 @@ pub mod run;
 
 use crate::image::ladder::Size;
 use crate::image::{self, manifest, store};
-use manifest::{Body, Media, Video, VideoSource, VideoVariant};
+use manifest::{Layers, Media, Resolution, VideoSource, VideoVariant, layer};
 use probe::Probe;
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
@@ -147,47 +147,67 @@ pub fn derive_for(
 	// is certainly there.
 	let level = loudness::loudness(source, probe.audio)?;
 	let timestamp = manifest::now();
-	let previous = known.get(&id).and_then(Media::video);
-	let media = Media {
-		// Carried over, so re-running does not rewrite the day the clip first appeared.
-		created: known.get(&id).map_or_else(|| timestamp.clone(), |media| media.created.clone()),
-		updated: timestamp,
+	let previous = known.get(&id);
+	let held = previous.and_then(Media::video);
+	let origin = manifest::Origin {
 		blake3: id.clone(),
-		body: Body::Video(Video {
-			source: VideoSource {
-				mime: mime_of(source).to_owned(),
-				width: probe.width,
-				height: probe.height,
-				ratio: manifest::ratio_of(probe.width, probe.height),
-				bytes: original.len() as u64,
-				duration: probe.duration,
-				frame_rate: probe.frame_rate,
-				frames: probe.frames,
-				audio: probe.audio,
-				loudness: level.map(|level| level.integrated),
-				peak: level.map(|level| level.peak),
-			},
-			poster: poster.media.blake3.clone(),
-			variants: rungs
-				.iter()
-				.map(|rung| {
-					(
-						rung.cid.clone(),
-						VideoVariant {
-							mime: encode::MIME.to_owned(),
-							width: rung.width,
-							height: rung.height,
-							bytes: rung.bytes.len() as u64,
-							codec: rung.codec.clone(),
-						},
-					)
-				})
-				.collect(),
-			// Carried over for the same reason the timestamp is, and it matters more: a track was
-			// cut to this excerpt by hand or bought from a model, and nothing here can rebuild it.
-			// Re-encoding the pixels must not take the words with it.
-			captions: previous.map(|video| video.captions.clone()).unwrap_or_default(),
-		}),
+		mime: mime_of(source).to_owned(),
+		bytes: original.len() as u64,
+	};
+	// Added to rather than replaced, for the reason a picture's origins are: re-encoding gives one
+	// clip another original, not a second clip.
+	let mut origins: Vec<manifest::Origin> =
+		previous.map(|media| media.layers.media.origin.clone()).unwrap_or_default();
+	if !origins.iter().any(|held| held.blake3 == origin.blake3) {
+		origins.push(origin);
+	}
+	let mut layers = Layers::of(layer::Media { version: layer::Media::VERSION, origin: origins });
+	layers.video = Some(layer::Video {
+		version: layer::Video::VERSION,
+		source: VideoSource {
+			mime: mime_of(source).to_owned(),
+			width: probe.width,
+			height: probe.height,
+			aspect: manifest::ratio_of(probe.width, probe.height),
+			bytes: original.len() as u64,
+			duration: probe.duration,
+			frame_rate: probe.frame_rate,
+			frames: probe.frames,
+			audio: probe.audio,
+			loudness: level.map(|level| level.integrated),
+			peak: level.map(|level| level.peak),
+		},
+		// No rid to point with until the migration grants them, so the poster is named by the one
+		// id that exists today. See the FIXME at the top of `image::manifest`.
+		cover: held.and_then(|video| video.cover),
+		poster: Some(poster.derived.cid.clone()),
+		variants: rungs
+			.iter()
+			.map(|rung| VideoVariant {
+				content: rung.cid.clone(),
+				mime: encode::MIME.to_owned(),
+				bytes: rung.bytes.len() as u64,
+				resolution: Resolution { width: rung.width, height: rung.height },
+				codec: rung.codec.clone(),
+			})
+			.collect(),
+		// Carried over for the same reason the timestamp is, and it matters more: a track was cut
+		// to this excerpt by hand or bought from a model, and nothing here can rebuild it.
+		// Re-encoding the pixels must not take the words with it.
+		tracks: held.map(|video| video.tracks.clone()).unwrap_or_default(),
+	});
+	layers.clip = Some(layer::Clip {
+		version: layer::Clip::VERSION,
+		excerpt: previous.and_then(|media| media.clip()).and_then(|clip| clip.excerpt.clone()),
+	});
+	let media = Media {
+		version: manifest::VERSION,
+		resource: previous.and_then(|media| media.resource),
+		namespace: crate::resource::Namespace::of(&["media", "video", "clip"]),
+		// Carried over, so re-running does not rewrite the day the clip first appeared.
+		created: previous.map_or_else(|| timestamp.clone(), |media| media.created.clone()),
+		updated: timestamp,
+		layers,
 	};
 
 	Ok(Prepared { cid: id, probe, rungs, media, poster })
@@ -202,13 +222,8 @@ pub fn derive_for(
 fn poster(source: &Path, known: &BTreeMap<String, Media>) -> Result<image::Prepared, Error> {
 	let frame = encode::first_frame(source)?;
 	let derived = image::derive(&frame, false).map_err(Error::Poster)?;
-	let media = manifest::media_for(
-		&derived,
-		"image/png",
-		frame.len() as u64,
-		known.get(&derived.cid).map(|media| media.created.as_str()),
-		None,
-	);
+	let media =
+		manifest::media_for(&derived, "image/png", frame.len() as u64, known.get(&derived.cid), None);
 	Ok(image::Prepared { derived, media })
 }
 
@@ -224,8 +239,7 @@ pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Res
 	image::write_derived(public, metadata, &prepared.poster).map_err(Error::Poster)?;
 
 	// Minified, for the reason `image::write_derived` gives.
-	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
-	let json = serde_json::to_string(&document).map_err(Error::Serialize)?;
+	let json = serde_json::to_string(&prepared.media).map_err(Error::Serialize)?;
 	store::write(&store::meta_path(metadata, &prepared.cid), json.as_bytes()).map_err(Error::Write)
 }
 

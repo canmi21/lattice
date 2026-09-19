@@ -369,23 +369,7 @@ mod tests {
 
 	/// A manifest record with no description yet, which is what makes it a candidate.
 	fn described_media() -> crate::image::manifest::Media {
-		crate::image::manifest::Media {
-			created: "2026-08-01T00:00:00Z".into(),
-			updated: "2026-08-01T00:00:00Z".into(),
-			blake3: String::new(),
-			body: crate::image::manifest::Body::Image(crate::image::manifest::Image {
-				thumbhash: String::new(),
-				source: crate::image::manifest::Source {
-					mime: "image/png".into(),
-					width: 10,
-					height: 10,
-					ratio: "1:1".into(),
-					bytes: 1,
-				},
-				metadata: None,
-				variants: BTreeMap::new(),
-			}),
-		}
+		crate::image::manifest::fixture::picture("", (10, 10), &[])
 	}
 
 	#[test]
@@ -403,29 +387,7 @@ mod tests {
 		// A runner is handed one file and asked to look. That is what a picture is; a clip is
 		// described from frames chosen here and a word budget, by a different command. Left out
 		// of the list rather than counted as skipped, because it was never this command's work.
-		let clip = crate::image::manifest::Media {
-			created: "2026-09-14T00:00:00Z".into(),
-			updated: "2026-09-14T00:00:00Z".into(),
-			blake3: "aa11".into(),
-			body: crate::image::manifest::Body::Video(crate::image::manifest::Video {
-				source: crate::image::manifest::VideoSource {
-					mime: "video/mp4".into(),
-					width: 1920,
-					height: 1080,
-					ratio: "16:9".into(),
-					bytes: 1,
-					duration: 1.0,
-					frame_rate: 30.0,
-					frames: 30,
-					audio: false,
-					loudness: None,
-					peak: None,
-				},
-				poster: "bb22".into(),
-				variants: BTreeMap::new(),
-				captions: BTreeMap::new(),
-			}),
-		};
+		let clip = crate::image::manifest::fixture::clip("aa11", "bb22", &[], &[]);
 		let merged = Merged {
 			version: crate::image::manifest::VERSION,
 			created: crate::image::manifest::now(),

@@ -13,7 +13,7 @@
 
 pub mod run;
 
-use crate::image::manifest::Caption;
+use crate::image::manifest::Track;
 use crate::image::{cid, store};
 use std::path::Path;
 
@@ -106,9 +106,9 @@ pub enum Error {
 
 /// Cut one track to a window, store it, and describe it for the video's record.
 ///
-/// The returned pair is the cut file's own content id and the `Caption` to insert under it in
-/// `Video::captions`. `None` means no cue is on screen during the window -- a silent excerpt --
-/// and nothing is written, because a track with no cues renders exactly as no track does.
+/// What comes back is the `Track` to add to `Video::tracks`, carrying the cut file's own content
+/// id. `None` means no cue is on screen during the window -- a silent excerpt -- and nothing is
+/// written, because a track with no cues renders exactly as no track does.
 ///
 /// Reading the file is the caller's: this is handed text so it can be tested without one.
 pub fn publish(
@@ -117,7 +117,7 @@ pub fn publish(
 	language: &str,
 	kind: Option<Kind>,
 	public: &Path,
-) -> Result<Option<(String, Caption)>, Error> {
+) -> Result<Option<Track>, Error> {
 	// Settled before anything is cut or written, so an untellable kind costs an object nobody
 	// can name rather than being discovered after the bytes are on disk.
 	let kind = kind.or_else(|| infer_kind(vtt)).ok_or(Error::UnknownKind)?;
@@ -129,13 +129,13 @@ pub fn publish(
 	let id = cid(bytes);
 	store::write(&store::caption_path(public, &id), bytes).map_err(Error::Write)?;
 
-	let caption = Caption {
+	Ok(Some(Track {
+		content: id,
 		mime: MIME.to_string(),
 		language: language.to_string(),
 		kind: kind.as_str().to_string(),
 		bytes: bytes.len() as u64,
-	};
-	Ok(Some((id, caption)))
+	}))
 }
 
 /// The cues on screen during the window, on the clip's own timeline.
@@ -563,22 +563,22 @@ mod tests {
 	fn stores_the_cut_under_its_own_content_id_and_records_it() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let public = temporary.path();
-		let (id, caption) =
-			publish(TRACK, window(), "en", None, public).expect("publish").expect("cues");
+		let track = publish(TRACK, window(), "en", None, public).expect("publish").expect("cues");
+		let id = &track.content;
 
-		let stored = store::caption_path(public, &id);
+		let stored = store::caption_path(public, id);
 		assert!(stored.is_file());
 		// The store fixes the extension and this module fixes the mime, in two files that never
 		// consult each other. This is the only thing holding the two halves of "WebVTT" together.
 		assert_eq!(stored.extension().and_then(|value| value.to_str()), Some(EXTENSION));
 		let bytes = std::fs::read(&stored).expect("stored track");
 		// The key is the hash of the cut file, not of the track it came from.
-		assert_eq!(id, cid(&bytes));
-		assert_ne!(id, cid(TRACK.as_bytes()));
-		assert_eq!(caption.bytes, bytes.len() as u64);
-		assert_eq!(caption.mime, "text/vtt");
-		assert_eq!(caption.language, "en");
-		assert_eq!(caption.kind, "captions");
+		assert_eq!(id, &cid(&bytes));
+		assert_ne!(id, &cid(TRACK.as_bytes()));
+		assert_eq!(track.bytes, bytes.len() as u64);
+		assert_eq!(track.mime, "text/vtt");
+		assert_eq!(track.language, "en");
+		assert_eq!(track.kind, "captions");
 	}
 
 	#[test]
@@ -586,9 +586,9 @@ mod tests {
 		// A descriptions track leaves no trace of being one, so what it is told is the only
 		// thing that can be right.
 		let temporary = tempfile::tempdir().expect("temp");
-		let (_, caption) = publish(TRACK, window(), "en", Some(Kind::Descriptions), temporary.path())
+		let track = publish(TRACK, window(), "en", Some(Kind::Descriptions), temporary.path())
 			.expect("publish")
 			.expect("cues");
-		assert_eq!(caption.kind, "descriptions");
+		assert_eq!(track.kind, "descriptions");
 	}
 }

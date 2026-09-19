@@ -88,7 +88,7 @@ pub fn run(
 					rewrites.insert(target.to_owned(), resolved_name(&id));
 				}
 				// The poster is a second asset with a record of its own, not a field of the clip.
-				let poster = prepared.poster.media.blake3.clone();
+				let poster = prepared.poster.derived.cid.clone();
 				merged.media.insert(poster.clone(), prepared.poster.media.clone());
 				merged.media.insert(id.clone(), prepared.media.clone());
 				if note_poster_source(&mut authored, &poster, &id) {
@@ -148,7 +148,7 @@ fn level_all(merged: &mut Merged, originals: &Path) -> usize {
 			continue;
 		};
 		let Some(record) = merged.media.get_mut(&cid) else { continue };
-		let manifest::Body::Video(video) = &mut record.body else { continue };
+		let Some(video) = record.video_mut() else { continue };
 		video.source.loudness = Some(level.integrated);
 		video.source.peak = Some(level.peak);
 		record.updated = manifest::now();
@@ -254,14 +254,17 @@ fn published(public: &Path, merged: &Merged, media: Option<&Media>) -> bool {
 	let Some(video) = media.and_then(Media::video) else {
 		return false;
 	};
-	let rungs = video.variants.keys().all(|cid| store::video_path(public, cid).is_file());
-	rungs && poster_published(public, merged, &video.poster)
+	let rungs = video.variants.iter().all(|rung| store::video_path(public, &rung.content).is_file());
+	// A clip whose record cannot name its poster has lost the fallback whether or not the bytes
+	// are still there, so it counts as unpublished and the next run writes the link again.
+	rungs && video.poster.as_deref().is_some_and(|poster| poster_published(public, merged, poster))
 }
 
 fn poster_published(public: &Path, merged: &Merged, poster: &str) -> bool {
 	merged.media.get(poster).and_then(Media::image).is_some_and(|image| {
-		image.variants.iter().all(|(cid, record)| {
-			store::variant_path(public, cid, crate::extension::for_variant(&record.mime)).is_file()
+		image.variants.iter().all(|variant| {
+			let extension = crate::extension::for_variant(&variant.mime);
+			store::variant_path(public, &variant.content, extension).is_file()
 		})
 	})
 }

@@ -9,7 +9,7 @@
 //! home" for the `--from`/`--to` flags.
 
 use super::{Kind, Window};
-use crate::image::manifest::{Caption, Media, Merged};
+use crate::image::manifest::{Media, Merged, Track};
 use crate::image::run::{MERGED, load, republish};
 use crate::image::{self, manifest};
 use crate::media;
@@ -139,7 +139,7 @@ pub fn run(
 	let summary = super::summarise(&text);
 	let arriving = image::cid(text.as_bytes());
 
-	let replaced = displaced(&video.captions, options.language, kind, &arriving);
+	let replaced = displaced(&video.tracks, options.language, kind, &arriving);
 	if let Some(existing) = &replaced
 		&& !options.force
 	{
@@ -150,11 +150,11 @@ pub fn run(
 		});
 	}
 
-	let Some((stored, caption)) = super::publish(&vtt, window, options.language, Some(kind), public)?
-	else {
+	let Some(track) = super::publish(&vtt, window, options.language, Some(kind), public)? else {
 		return Err(Error::Silent);
 	};
-	let bytes = caption.bytes;
+	let stored = track.content.clone();
+	let bytes = track.bytes;
 
 	let record = merged
 		.media
@@ -164,9 +164,12 @@ pub fn run(
 	if let Some(existing) = &replaced {
 		// The bytes stay where they are. `cms gc` is what sweeps an object no record points at,
 		// and it is the one place that decides whether something is still wanted.
-		record.captions.remove(existing);
+		record.tracks.retain(|held| &held.content != existing);
 	}
-	record.captions.insert(stored.clone(), caption);
+	// Replaced in place rather than appended twice: re-importing the same file is the same track,
+	// and two entries with one content id would offer a reader the same words under two names.
+	record.tracks.retain(|held| held.content != stored);
+	record.tracks.push(track);
 
 	let media = merged.media.get(&id).cloned().ok_or_else(|| Error::NotAVideo(clip.to_owned()))?;
 	// The sidecar first: it is what a build reads for one asset, and the merged manifest is the
@@ -187,18 +190,13 @@ pub fn run(
 /// menu: two entries reading "English (captions)" is a choice a reader cannot make. A track with
 /// the same content id is not a rival -- it is this one, imported again -- so re-running is
 /// idempotent and needs no flag.
-fn displaced(
-	captions: &std::collections::BTreeMap<String, Caption>,
-	language: &str,
-	kind: Kind,
-	arriving: &str,
-) -> Option<String> {
-	captions
+fn displaced(tracks: &[Track], language: &str, kind: Kind, arriving: &str) -> Option<String> {
+	tracks
 		.iter()
-		.find(|(cid, caption)| {
-			caption.language == language && caption.kind == kind.as_str() && cid.as_str() != arriving
+		.find(|track| {
+			track.language == language && track.kind == kind.as_str() && track.content != arriving
 		})
-		.map(|(cid, _)| cid.clone())
+		.map(|track| track.content.clone())
 }
 
 /// The content id of the clip a person named, however they named it.
@@ -234,10 +232,10 @@ fn resolve(clip: &str, originals: &Path, merged: &Merged) -> Result<String, Erro
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use std::collections::BTreeMap;
 
-	fn caption(language: &str, kind: &str) -> Caption {
-		Caption {
+	fn track(content: &str, language: &str, kind: &str) -> Track {
+		Track {
+			content: content.to_owned(),
 			mime: "text/vtt".to_owned(),
 			language: language.to_owned(),
 			kind: kind.to_owned(),
@@ -248,25 +246,22 @@ mod tests {
 	#[test]
 	fn a_track_for_a_language_and_kind_already_attached_is_displaced_rather_than_added() {
 		// Two entries reading "English (captions)" is a choice a reader cannot make.
-		let mut captions = BTreeMap::new();
-		captions.insert("old".to_owned(), caption("en", "captions"));
-		assert_eq!(displaced(&captions, "en", Kind::Captions, "new"), Some("old".to_owned()));
+		let tracks = [track("old", "en", "captions")];
+		assert_eq!(displaced(&tracks, "en", Kind::Captions, "new"), Some("old".to_owned()));
 	}
 
 	#[test]
 	fn a_second_language_and_a_second_kind_stand_beside_it() {
-		let mut captions = BTreeMap::new();
-		captions.insert("old".to_owned(), caption("en", "captions"));
-		assert_eq!(displaced(&captions, "fr", Kind::Captions, "new"), None);
-		assert_eq!(displaced(&captions, "en", Kind::Subtitles, "new"), None);
+		let tracks = [track("old", "en", "captions")];
+		assert_eq!(displaced(&tracks, "fr", Kind::Captions, "new"), None);
+		assert_eq!(displaced(&tracks, "en", Kind::Subtitles, "new"), None);
 	}
 
 	#[test]
 	fn importing_the_same_track_again_displaces_nothing() {
 		// Same window, same file, same bytes, same id. Nothing has changed and no flag should be
 		// needed to say so.
-		let mut captions = BTreeMap::new();
-		captions.insert("same".to_owned(), caption("en", "captions"));
-		assert_eq!(displaced(&captions, "en", Kind::Captions, "same"), None);
+		let tracks = [track("same", "en", "captions")];
+		assert_eq!(displaced(&tracks, "en", Kind::Captions, "same"), None);
 	}
 }

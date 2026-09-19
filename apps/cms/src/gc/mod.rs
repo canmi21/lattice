@@ -10,7 +10,7 @@
 
 pub mod segments;
 
-use crate::image::manifest::{Body, Media};
+use crate::image::manifest::Media;
 use crate::image::run::{MERGED, load};
 use crate::licenses;
 use crate::opengraph;
@@ -168,20 +168,24 @@ pub fn plan(
 	let mut keep: BTreeSet<String> = wanted.clone();
 	let mut posters: Vec<String> = Vec::new();
 	for cid in &wanted {
-		match merged.media.get(cid).map(|media| &media.body) {
-			Some(Body::Image(image)) => keep.extend(image.variants.keys().cloned()),
-			Some(Body::Video(video)) => {
-				keep.extend(video.variants.keys().cloned());
-				keep.extend(video.captions.keys().cloned());
-				keep.insert(video.poster.clone());
-				posters.push(video.poster.clone());
+		let Some(media) = merged.media.get(cid) else { continue };
+		// Asked layer by layer rather than by kind: a record is whatever layers it carries, and a
+		// clip's picture layers, were it ever to grow them, are content this has to keep too.
+		if let Some(image) = media.image() {
+			keep.extend(image.variants.iter().map(|variant| variant.content.clone()));
+		}
+		if let Some(video) = media.video() {
+			keep.extend(video.variants.iter().map(|rung| rung.content.clone()));
+			keep.extend(video.tracks.iter().map(|track| track.content.clone()));
+			if let Some(poster) = video.poster.clone() {
+				keep.insert(poster.clone());
+				posters.push(poster);
 			}
-			None => {}
 		}
 	}
 	for poster in posters {
 		if let Some(image) = merged.media.get(&poster).and_then(Media::image) {
-			keep.extend(image.variants.keys().cloned());
+			keep.extend(image.variants.iter().map(|variant| variant.content.clone()));
 		}
 	}
 
@@ -357,7 +361,7 @@ fn directories_under(directory: &Path) -> std::io::Result<Vec<PathBuf>> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::image::manifest::{Body, Image, Media, Merged, Source, VariantRecord};
+	use crate::image::manifest::{Media, Merged, fixture};
 	use std::collections::BTreeMap;
 
 	/// A directory that removes itself, however the test ends.
@@ -386,28 +390,7 @@ mod tests {
 	}
 
 	fn media(variant: &str) -> Media {
-		let mut variants = BTreeMap::new();
-		variants.insert(
-			variant.to_owned(),
-			VariantRecord { mime: "image/avif".into(), width: 640, height: 360, quality: 0.68, bytes: 1 },
-		);
-		Media {
-			created: "2026-07-31T00:00:00Z".into(),
-			updated: "2026-07-31T00:00:00Z".into(),
-			blake3: String::new(),
-			body: Body::Image(Image {
-				thumbhash: String::new(),
-				source: Source {
-					mime: "image/png".into(),
-					width: 640,
-					height: 360,
-					ratio: "16:9".into(),
-					bytes: 1,
-				},
-				metadata: None,
-				variants,
-			}),
-		}
+		fixture::picture("", (640, 360), &[(variant, 640, 360)])
 	}
 
 	/// A repository with one referenced asset and one abandoned one.
@@ -494,7 +477,6 @@ mod tests {
 		// The poster is the whole fallback for a device that cannot decode AV1, and no article
 		// ever names it -- only the clip's record does. Sweeping by references alone takes it on
 		// the first run, and takes its own variants and record with it.
-		use crate::image::manifest::{Caption, Video, VideoSource, VideoVariant};
 
 		let temporary = temp();
 		let root = temporary.path().to_path_buf();
@@ -509,49 +491,7 @@ mod tests {
 
 		let mut assets = BTreeMap::new();
 		assets.insert(poster.clone(), media(&poster_variant));
-		assets.insert(
-			clip.clone(),
-			Media {
-				created: "2026-09-14T00:00:00Z".into(),
-				updated: "2026-09-14T00:00:00Z".into(),
-				blake3: clip.clone(),
-				body: Body::Video(Video {
-					source: VideoSource {
-						mime: "video/mp4".into(),
-						width: 1920,
-						height: 1080,
-						ratio: "16:9".into(),
-						bytes: 1,
-						duration: 1.0,
-						frame_rate: 30.0,
-						frames: 30,
-						audio: false,
-						loudness: None,
-						peak: None,
-					},
-					poster: poster.clone(),
-					variants: BTreeMap::from([(
-						rung.clone(),
-						VideoVariant {
-							mime: "video/mp4".into(),
-							width: 1920,
-							height: 1080,
-							bytes: 1,
-							codec: "av01.0.05M.08".into(),
-						},
-					)]),
-					captions: BTreeMap::from([(
-						track.clone(),
-						Caption {
-							mime: "text/vtt".into(),
-							language: "en".into(),
-							kind: "captions".into(),
-							bytes: 1,
-						},
-					)]),
-				}),
-			},
-		);
+		assets.insert(clip.clone(), fixture::clip(&clip, &poster, &[&rung], &[&track]));
 		crate::image::store::write(
 			&root.join(MERGED),
 			serde_json::to_string(&Merged {

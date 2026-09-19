@@ -165,13 +165,8 @@ pub fn derive_for(
 	{
 		found.address = gazetteer.lookup(lat, lon);
 	}
-	let media = manifest::media_for(
-		&derived,
-		source_mime,
-		original.len() as u64,
-		previous.map(|media| media.created.as_str()),
-		metadata,
-	);
+	let media =
+		manifest::media_for(&derived, source_mime, original.len() as u64, previous, metadata);
 	Ok(Prepared { derived, media })
 }
 
@@ -188,8 +183,7 @@ pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Res
 	// Minified, unlike the merged manifest beside it: this record is served rather than read in a
 	// diff, and `GET /media` is a byte pipe that cannot reshape it on the way out. See
 	// spec/architecture/media.md, "A published record is minified; a committed one is not".
-	let document = manifest::Document { version: manifest::VERSION, media: prepared.media.clone() };
-	let json = serde_json::to_string(&document).map_err(Error::Serialize)?;
+	let json = serde_json::to_string(&prepared.media).map_err(Error::Serialize)?;
 	store::write(&store::meta_path(metadata, &prepared.derived.cid), json.as_bytes())
 		.map_err(Error::Write)
 }
@@ -402,18 +396,18 @@ mod tests {
 
 		assert!(!public.exists());
 		assert_eq!(prepared.derived.cid, cid(&original));
-		assert_eq!(prepared.media.blake3, prepared.derived.cid);
+		assert_eq!(prepared.media.origin_cid(), Some(prepared.derived.cid.as_str()));
 
 		let metadata = crate::paths::metadata_root(root);
 		write_derived(&public, &metadata, &prepared).expect("write derivation");
 		for variant in &prepared.derived.variants {
 			assert!(store::variant_path(&public, &variant.cid, variant.format.extension()).is_file());
 		}
-		let document: manifest::Document = serde_json::from_str(
+		let document: Media = serde_json::from_str(
 			&std::fs::read_to_string(store::meta_path(&metadata, &prepared.derived.cid)).expect("record"),
 		)
 		.expect("document");
-		assert_eq!(document.media, prepared.media);
+		assert_eq!(document, prepared.media);
 		std::fs::remove_dir_all(root).ok();
 	}
 
@@ -432,12 +426,12 @@ mod tests {
 		let media = merged.media.get(&id).expect("merged record");
 		let picture = media.image().expect("a stored picture is a picture");
 		assert!(store::meta_path(&crate::paths::metadata_root(root), &id).is_file());
-		for (variant, record) in &picture.variants {
+		for variant in &picture.variants {
 			assert!(
 				store::variant_path(
 					&crate::paths::objects_root(root),
-					variant,
-					record.mime.strip_prefix("image/").expect("image mime"),
+					&variant.content,
+					variant.mime.strip_prefix("image/").expect("image mime"),
 				)
 				.is_file()
 			);

@@ -314,32 +314,16 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::image::manifest::{Body, Video, VideoSource};
 
 	fn clip_record() -> crate::image::manifest::Media {
-		crate::image::manifest::Media {
-			created: "2026-09-01T00:00:00Z".into(),
-			updated: "2026-09-01T00:00:00Z".into(),
-			blake3: String::new(),
-			body: Body::Video(Video {
-				source: VideoSource {
-					mime: "video/mp4".into(),
-					width: 1920,
-					height: 1080,
-					ratio: "16:9".into(),
-					bytes: 1,
-					duration: 24.0,
-					frame_rate: 30.0,
-					frames: 720,
-					audio: true,
-					loudness: None,
-					peak: None,
-				},
-				poster: "poster".into(),
-				variants: BTreeMap::new(),
-				captions: BTreeMap::new(),
-			}),
-		}
+		let mut media = crate::image::manifest::fixture::clip("", "poster", &[], &[]);
+		// The three numbers this command reads off a record: it samples frames across the length
+		// and sizes the word budget from it, so a one-second silent default would test nothing.
+		let video = media.video_mut().expect("a clip");
+		video.source.duration = 24.0;
+		video.source.frames = 720;
+		video.source.audio = true;
+		media
 	}
 
 	fn merged_with(cid: &str) -> Merged {
@@ -440,22 +424,6 @@ mod tests {
 	}
 
 	fn picture_record() -> crate::image::manifest::Media {
-		crate::image::manifest::Media {
-			created: "2026-09-01T00:00:00Z".into(),
-			updated: "2026-09-01T00:00:00Z".into(),
-			blake3: String::new(),
-			body: Body::Image(crate::image::manifest::Image {
-				thumbhash: String::new(),
-				source: crate::image::manifest::Source {
-					mime: "image/png".into(),
-					width: 10,
-					height: 10,
-					ratio: "1:1".into(),
-					bytes: 1,
-				},
-				metadata: None,
-				variants: BTreeMap::new(),
-			}),
-		}
+		crate::image::manifest::fixture::picture("", (10, 10), &[])
 	}
 }

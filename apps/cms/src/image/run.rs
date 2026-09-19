@@ -6,7 +6,7 @@
 //! reference rewritten to what it became. Rewriting is what records that the work is done, so
 //! the state lives in the article rather than in a log beside it.
 
-use super::manifest::{self, Image, Media, Merged};
+use super::manifest::{self, Media, Merged, layer};
 use super::{mime_of, store};
 use crate::refs::{self, Scan};
 use std::collections::BTreeMap;
@@ -213,10 +213,12 @@ fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
 ///
 /// FIXME: spec/architecture/media.md says this belongs on the record, not inferred -- deferred
 /// until the desktop app derives on insert, leaving no original -- then a metadata migration.
-fn keeps_full_frame(image: &Image) -> bool {
-	let source = super::ladder::Size::new(image.source.width, image.source.height);
-	image.variants.values().any(|record| {
-		super::ladder::Size::new(record.width, record.height).long_edge() == source.long_edge()
+fn keeps_full_frame(image: &layer::Image) -> bool {
+	let source = super::ladder::Size::new(image.dimension.width, image.dimension.height);
+	// A vector reports no pixels, so no variant of one can match a long edge. That is the right
+	// answer rather than a gap: there is no full frame to keep when every size is the same file.
+	image.variants.iter().filter_map(|variant| variant.resolution.as_ref()).any(|pixels| {
+		super::ladder::Size::new(pixels.width, pixels.height).long_edge() == source.long_edge()
 	}) && source.long_edge() > super::ladder::CAP
 }
 
@@ -227,12 +229,13 @@ fn keeps_full_frame(image: &Image) -> bool {
 ///
 /// A picture rather than a record, because this decides whether to re-derive and this command
 /// only derives pictures. A clip's rungs are asked about by `cms video`, against `video/`.
-fn published(public: &Path, image: Option<&Image>) -> bool {
+fn published(public: &Path, image: Option<&layer::Image>) -> bool {
 	let Some(image) = image else {
 		return false;
 	};
-	image.variants.iter().all(|(cid, record)| {
-		store::variant_path(public, cid, crate::extension::for_variant(&record.mime)).is_file()
+	image.variants.iter().all(|variant| {
+		let extension = crate::extension::for_variant(&variant.mime);
+		store::variant_path(public, &variant.content, extension).is_file()
 	})
 }
 
@@ -243,12 +246,12 @@ fn published(public: &Path, image: Option<&Image>) -> bool {
 /// A picture rather than a record: `extension::for_variant` answers AVIF for anything it does
 /// not know, so handing it a clip's `video/mp4` would rewrite an article to name a file that
 /// was never written. Rewriting a video reference belongs to the command that publishes one.
-fn resolved_name(cid: &str, image: &Image) -> Option<String> {
+fn resolved_name(cid: &str, image: &layer::Image) -> Option<String> {
 	let extension = image
 		.variants
-		.values()
-		.max_by_key(|record| record.width)
-		.map(|record| crate::extension::for_variant(&record.mime))?;
+		.iter()
+		.max_by_key(|variant| variant.resolution.as_ref().map_or(0, |pixels| pixels.width))
+		.map(|variant| crate::extension::for_variant(&variant.mime))?;
 	Some(format!("{cid}.{extension}"))
 }
 
@@ -269,10 +272,10 @@ fn note(
 /// single pixel. Re-deriving to publish a changed field would spend minutes producing bytes
 /// that are already correct.
 pub fn republish(metadata: &Path, cid: &str, media: &Media) -> std::io::Result<()> {
-	// Minified, for the reason `image::write_derived` gives.
-	let document = manifest::Document { version: manifest::VERSION, media: media.clone() };
+	// Minified, for the reason `image::write_derived` gives. The record is the document now --
+	// its envelope carries the version an outer wrapper used to hold twice.
 	let json =
-		serde_json::to_string(&document).map_err(|error| std::io::Error::other(error.to_string()))?;
+		serde_json::to_string(media).map_err(|error| std::io::Error::other(error.to_string()))?;
 	store::write(&store::meta_path(metadata, cid), json.as_bytes())
 }
 
@@ -456,42 +459,16 @@ mod tests {
 	}
 
 	/// A picture whose published rungs are `sizes`, derived from a `width` x `height` source.
-	fn derived(width: u32, height: u32, sizes: &[(u32, u32)]) -> Image {
-		let mut variants = BTreeMap::new();
-		for (index, (w, h)) in sizes.iter().enumerate() {
-			variants.insert(
-				format!("r{index}"),
-				manifest::VariantRecord {
-					mime: "image/avif".into(),
-					width: *w,
-					height: *h,
-					quality: 0.68,
-					bytes: 1,
-				},
-			);
-		}
-		Image {
-			thumbhash: String::new(),
-			source: manifest::Source {
-				mime: "image/png".into(),
-				width,
-				height,
-				ratio: "x".into(),
-				bytes: 1,
-			},
-			metadata: None,
-			variants,
-		}
-	}
-
-	/// The same picture wrapped in the envelope, for the callers that take a whole record.
-	fn record(cid: &str, image: Image) -> manifest::Media {
-		manifest::Media {
-			created: "2026-07-31T00:00:00Z".into(),
-			updated: "2026-07-31T00:00:00Z".into(),
-			blake3: cid.into(),
-			body: manifest::Body::Image(image),
-		}
+	fn derived(width: u32, height: u32, sizes: &[(u32, u32)]) -> layer::Image {
+		let rungs: Vec<(String, u32, u32)> = sizes
+			.iter()
+			.enumerate()
+			.map(|(index, (w, h))| (format!("r{index}"), *w, *h))
+			.collect();
+		let variants: Vec<(&str, u32, u32)> =
+			rungs.iter().map(|(cid, w, h)| (cid.as_str(), *w, *h)).collect();
+		let media = manifest::fixture::picture("source", (width, height), &variants);
+		media.image().expect("a picture").clone()
 	}
 
 	#[test]
@@ -525,44 +502,15 @@ mod tests {
 
 	#[test]
 	fn the_largest_variant_decides_the_extension() {
-		let mut variants = BTreeMap::new();
-		variants.insert(
-			"small".to_owned(),
-			manifest::VariantRecord {
-				mime: "image/avif".into(),
-				width: 640,
-				height: 360,
-				quality: 0.68,
-				bytes: 1,
-			},
-		);
-		variants.insert(
-			"large".to_owned(),
-			manifest::VariantRecord {
-				mime: "image/png".into(),
-				width: 1920,
-				height: 1080,
-				quality: 1.0,
-				bytes: 2,
-			},
-		);
-		let picture = Image {
-			thumbhash: String::new(),
-			source: manifest::Source {
-				mime: "image/png".into(),
-				width: 1920,
-				height: 1080,
-				ratio: "16:9".into(),
-				bytes: 3,
-			},
-			metadata: None,
-			variants,
-		};
+		// The format of the biggest rung, not of the first one read: an article without a srcset
+		// falls back to that file, so naming it by any other rung's extension names a 404.
+		let mut picture = derived(1920, 1080, &[(640, 360), (1920, 1080)]);
+		picture.variants[1].mime = "image/png".into();
 
 		assert_eq!(
 			resolved_name("44b6081deaf0242ca3bf83d62a3b6c95", &picture).as_deref(),
 			Some("44b6081deaf0242ca3bf83d62a3b6c95.png")
-		);
+		)
 	}
 
 	#[test]
@@ -570,29 +518,7 @@ mod tests {
 		// `extension::for_variant` answers AVIF for anything it does not recognise, so a clip
 		// reaching `resolved_name` would rewrite an article to name a `.avif` nobody wrote. The
 		// accessor is where it stops, and the record's kind is the only thing that knows.
-		let clip = manifest::Media {
-			created: "2026-09-14T00:00:00Z".into(),
-			updated: "2026-09-14T00:00:00Z".into(),
-			blake3: "aa11".into(),
-			body: manifest::Body::Video(manifest::Video {
-				source: manifest::VideoSource {
-					mime: "video/mp4".into(),
-					width: 1920,
-					height: 1080,
-					ratio: "16:9".into(),
-					bytes: 1,
-					duration: 1.0,
-					frame_rate: 30.0,
-					frames: 30,
-					audio: false,
-					loudness: None,
-					peak: None,
-				},
-				poster: "bb22".into(),
-				variants: BTreeMap::new(),
-				captions: BTreeMap::new(),
-			}),
-		};
+		let clip = manifest::fixture::clip("aa11", "bb22", &[], &[]);
 		assert!(clip.image().is_none());
 		let mut rewrites = BTreeMap::new();
 		note(&mut rewrites, "clip.mp4", "aa11", Some(&clip));
@@ -611,21 +537,7 @@ mod tests {
 		std::fs::create_dir_all(&articles).expect("articles");
 
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";
-		let media = record(
-			cid,
-			Image {
-				thumbhash: "hash".into(),
-				source: manifest::Source {
-					mime: "image/png".into(),
-					width: 1,
-					height: 1,
-					ratio: "1:1".into(),
-					bytes: 1,
-				},
-				metadata: None,
-				variants: BTreeMap::new(),
-			},
-		);
+		let media = manifest::fixture::picture(cid, (1, 1), &[]);
 		let merged = Merged {
 			version: manifest::VERSION,
 			created: "2026-07-31T00:00:00Z".into(),
@@ -637,9 +549,11 @@ mod tests {
 			serde_json::to_string_pretty(&merged).expect("merged").as_bytes(),
 		)
 		.expect("write merged");
-		let mut stale = serde_json::to_value(manifest::Document { version: 2, media: media.clone() })
-			.expect("stale document");
-		stale["media"]["preview"] = "obsolete".into();
+		// A record in the shape version 2 published, which is what makes the sidecar stale. The
+		// published document is the record itself now, so the version it carries is the envelope's.
+		let mut stale = serde_json::to_value(media.clone()).expect("stale document");
+		stale["version"] = 2.into();
+		stale["preview"] = "obsolete".into();
 		store::write(
 			&store::meta_path(&metadata, cid),
 			serde_json::to_string_pretty(&stale).expect("stale json").as_bytes(),
@@ -661,9 +575,9 @@ mod tests {
 		assert_eq!(outcome.migrated, 1);
 		assert_eq!(outcome.processed, 0);
 		let rewritten = std::fs::read_to_string(store::meta_path(&metadata, cid)).expect("sidecar");
-		let document: manifest::Document = serde_json::from_str(&rewritten).expect("document");
+		let document: manifest::Media = serde_json::from_str(&rewritten).expect("document");
 		assert_eq!(document.version, manifest::VERSION);
-		assert_eq!(document.media, media);
+		assert_eq!(document, media);
 		assert!(!rewritten.contains("preview"));
 		// The fixture above was written pretty on purpose: a published record is minified whatever
 		// the one it replaced looked like, because `GET /media` serves these bytes verbatim.
@@ -671,4 +585,17 @@ mod tests {
 		assert!(!public.join("image").exists());
 		std::fs::remove_dir_all(&root).ok();
 	}
+
+	#[test]
+	fn the_committed_manifest_still_loads_whatever_shape_it_is_written_in() {
+		// The real file, not a fixture. It is version 3 on disk and cannot be regenerated -- the
+		// originals live outside git and some are gone -- so converting rather than refusing is
+		// the whole reason the legacy shape is kept, and a fixture cannot make that claim.
+		let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").join(MERGED);
+		let merged = load(&path).expect("the committed manifest");
+		assert!(!merged.media.is_empty());
+		assert!(merged.media.values().any(|media| media.video().is_some()));
+		assert!(merged.media.values().all(|media| media.validate().is_ok()));
+	}
 }
+
