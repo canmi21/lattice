@@ -6,7 +6,7 @@ const base = {
 };
 const media = { version: 1, origin: [{ blake3: 'a'.repeat(32), mime: 'image/png', bytes: 1 }] };
 const image = {
-	version: 1, dimension: { width: 10, height: 10, aspect: '1:1' },
+	version: 1, thumbhash: 'AQ==', dimension: { width: 10, height: 10, aspect: '1:1' },
 	resolution: { width: 10, height: 10 }, variants: [],
 };
 
@@ -51,7 +51,7 @@ describe('the optimistic table', () => {
  */
 describe('the image ladder', () => {
 	const raster = {
-		version: 1, dimension: { width: 1920, height: 1080, aspect: '16:9' },
+		version: 1, thumbhash: 'AQ==', dimension: { width: 1920, height: 1080, aspect: '16:9' },
 		resolution: { width: 1920, height: 1080 },
 		variants: [
 			{ content: 'a'.repeat(32), mime: 'image/avif', bytes: 10, resolution: { width: 640, height: 360 } },
@@ -60,7 +60,7 @@ describe('the image ladder', () => {
 	};
 	// No `resolution`, which is how a vector says so -- there is no second field to consult.
 	const vector = {
-		version: 1, dimension: { width: 512, height: 512, aspect: '1:1' },
+		version: 1, thumbhash: 'AQ==', dimension: { width: 512, height: 512, aspect: '1:1' },
 		variants: [{ content: 'c'.repeat(32), mime: 'image/svg+xml', bytes: 30 }],
 	};
 

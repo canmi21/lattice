@@ -495,6 +495,11 @@ export const ImageVariantSchema = v.object({
  */
 export const ImageLayerSchema = v.object({
 	...layered,
+	/**
+	 * Base64 thumbhash: the compact canonical placeholder, and the only form kept. The site build
+	 * decodes it once and inlines the result, so a reader sees the picture before it arrives.
+	 */
+	thumbhash: v.string(),
 	dimension: v.object({ width: v.number(), height: v.number(), aspect: v.string() }),
 	resolution: v.optional(v.object({ width: v.number(), height: v.number() })),
 	variants: v.array(ImageVariantSchema),
@@ -503,13 +508,14 @@ export const ImageLayerSchema = v.object({
 /**
  * What a sensor did, which is worked out once at import and never again.
  *
- * Every field is optional and nothing here is trusted about the file: EXIF reports 4032x3024 for
- * a frame that is 4032x2268 on disk, so dimensions come from decoding and this describes only the
- * exposure. `address` is not in the file at all -- it is looked up offline from `location`. See
- * spec/architecture/media.md, "Where a photograph was taken is worked out offline".
+ * Every field is optional and nothing here is trusted about the file: dimensions come from
+ * decoding, and `address` is not in the file at all -- it is looked up offline from `location`.
+ * See spec/architecture/media.md, "Where a photograph was taken is worked out offline".
+ *
+ * Spread into two layers rather than named as one, because `apps/cms/src/image/exif.rs` is
+ * flattened into both and a wrapper here would be a key the Rust side never writes.
  */
-export const PhotoLayerSchema = v.object({
-	...layered,
+const exif = {
 	captured: v.optional(v.string()),
 	camera: v.optional(
 		v.object({ model: v.optional(v.string()), manufacturer: v.optional(v.string()) }),
@@ -539,8 +545,10 @@ export const PhotoLayerSchema = v.object({
 	),
 	location: v.optional(
 		v.object({
-			latitude: v.number(),
-			longitude: v.number(),
+			// Optional, both of them: a file can carry a latitude and no longitude, and requiring
+			// the pair would fail the whole record over half a position nobody was going to plot.
+			latitude: v.optional(v.number()),
+			longitude: v.optional(v.number()),
 			altitude: v.optional(v.number()),
 			accuracy: v.optional(v.number()),
 			direction: v.optional(v.number()),
@@ -554,21 +562,32 @@ export const PhotoLayerSchema = v.object({
 			region: v.optional(v.string()),
 			subregion: v.optional(v.string()),
 			city: v.optional(v.string()),
+			district: v.optional(v.string()),
 			postal_code: v.optional(v.string()),
 			timezone: v.optional(v.string()),
 		}),
 	),
-});
+	software: v.optional(v.string()),
+	color_space: v.optional(v.string()),
+	/** Read and honoured on the way in: ignoring it turns every derived image. */
+	orientation: v.optional(v.number()),
+} as const;
+
+/** A camera pointed at the world, which is the whole of what this layer brings. */
+export const PhotoLayerSchema = v.object({ ...layered, ...exif });
 
 /**
  * A capture of a screen, which is what a picture with no camera turns out to be.
  *
  * The scale is what earns this its own layer: a screenshot is taken at a device pixel ratio, and
- * without it nothing can say whether a 2560px capture is a wide screen or a retina one.
+ * without it nothing can say whether a 2560px capture is a wide screen or a retina one. The rest
+ * is the same account a photograph carries -- ten records here hold `color_space` and `software`,
+ * and a layer with no home for them would drop them on the way past.
  */
 export const ScreenshotLayerSchema = v.object({
 	...layered,
 	scale: v.optional(v.number()),
+	...exif,
 });
 
 /**
@@ -695,15 +714,6 @@ export const PostLayerSchema = v.object({
 });
 
 /**
- * A standalone page, which is a document and nothing besides.
- *
- * It brings no fields, which by the layer rule argues it should not exist -- it is kept because a
- * consumer asking "is this an article" has to be able to get a no, and the absent `post` segment
- * is not an answer a short chain can be told apart from.
- */
-export const PageLayerSchema = v.object({ ...layered });
-
-/**
  * The attribution text, which is the one document nobody writes.
  *
  * Rewritten whenever the dependency tree moves, so when it was last derived is the fact that
@@ -733,7 +743,6 @@ export const LAYERS = {
 	clip: { version: 1, schema: ClipLayerSchema },
 	document: { version: 1, schema: DocumentLayerSchema },
 	post: { version: 1, schema: PostLayerSchema },
-	page: { version: 1, schema: PageLayerSchema },
 	notice: { version: 1, schema: NoticeLayerSchema },
 } as const;
 
@@ -752,7 +761,6 @@ export type VideoLayer = v.InferOutput<typeof VideoLayerSchema>;
 export type ClipLayer = v.InferOutput<typeof ClipLayerSchema>;
 export type DocumentLayer = v.InferOutput<typeof DocumentLayerSchema>;
 export type PostLayer = v.InferOutput<typeof PostLayerSchema>;
-export type PageLayer = v.InferOutput<typeof PageLayerSchema>;
 export type NoticeLayer = v.InferOutput<typeof NoticeLayerSchema>;
 
 export function isLayerName(value: string): value is LayerName {

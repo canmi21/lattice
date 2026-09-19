@@ -186,6 +186,11 @@ Nine leaf types, two branches. Counts are this corpus at the time of writing.
 | `document` | 1 | a standalone page: the same, with no tags and no dates |
 | `document.notice` | 1 | the attribution text, rewritten whenever dependencies move |
 
+**A classification that needs a rid cannot happen before rids exist.** A frame is a frame because
+its `source` names the clip it was cut from, and that is a rid -- so a pre-migration corpus has no
+frames, only pictures that will become frames. The same pass that grants the ids is the one that
+can say so, which is why the counts above describe the corpus after migration and not during it.
+
 **What earns a rid is being one thing made of several files, or being referred to from more than
 one place.** A caption track is neither: it is a file belonging to one clip, and it binds under
 that clip. The nine locale bodies of an article are the same -- they are what the article is made
