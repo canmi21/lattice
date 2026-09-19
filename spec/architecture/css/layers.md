@@ -336,6 +336,7 @@ plugins: [
 			useCSSLayers: true,
 			aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
 			unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+			lightningcssOptions: { minify: true },
 		}),
 		enforce: undefined,
 	},
@@ -345,6 +346,14 @@ plugins: [
 This snippet used to spell the call `stylex.vite(...)`, and that is a correction: there is no such
 member. The plugin is the default export of `@stylexjs/unplugin/vite` and is called directly. The
 order the snippet has always illustrated is the order the file has.
+
+`lightningcssOptions` is the price of that order, paid back. Appending last also means appending
+after Vite's minify pass, so this layer shipped its indentation and its newlines while everything
+above it had none -- 10,610 bytes of the 52,310 the page carried. The plugin already runs Lightning
+CSS over its own sheet on the way out, without asking it to compress; the option asks. Measured,
+the sheet drops to 7,661 bytes and its rules are unchanged: minifying the old output again produces
+the new output byte for byte. Nothing about the order moves, which is the whole reason it is done
+here rather than in a pass of our own after the plugin.
 
 `enforce: undefined` is load-bearing. `@stylexjs/unplugin` declares `enforce: 'pre'`, which hoists
 it above the Svelte compiler wherever it sits in the array, and its Babel pass then receives an

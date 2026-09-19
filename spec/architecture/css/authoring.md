@@ -29,6 +29,23 @@ and deletes the whole instance script below it: silently, with no error, and a z
 The visual half of a component sits in the module script precisely because it holds no markup, so
 this rule costs it nothing to keep and is the one thing the module script's comments must not do.
 
+## A comment that names a utility compiles that utility
+
+Tailwind reads the raw bytes of every file under `apps/site`, so a class name written in a comment
+produces a rule exactly as if an element carried it. Backticks are bytes like any other and stop
+nothing. Measured at the time: twenty-four utilities in the built stylesheet that no element on the
+site carries, 2,336 bytes of them, every one from prose explaining what the vocabulary replaced.
+
+So the rule is about spelling, never about saying less. Name the theme variable behind the utility
+-- `--leading-relaxed` rather than the class that reads it -- or name the constant that replaced it,
+or describe it. What may not happen is a comment being deleted to silence the scanner: the reasoning
+is why these comments exist and the scanner is a build detail. A name that is genuinely load-bearing
+stays, and it is cheaper to keep a handful of those than to damage the prose around them.
+
+Nothing tests this. A dead rule costs bytes rather than correctness, and it is found the way it was
+found the first time: build, list what the `utilities` layer emitted, and subtract what the markup
+carries.
+
 ## StyleX cannot be reached from a stylesheet
 
 A Svelte `<style>` block cannot compose a StyleX style. CSS has no mixin, Svelte implements no
