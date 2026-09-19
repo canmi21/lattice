@@ -56,18 +56,24 @@ they are looking at. It is still matched strictly rather than ignored -- `/{type
 and nothing looser -- because a segment that is decorative in one place and load-bearing in
 another is the kind of thing that is eventually parsed by accident.
 
-### There is one exception, and it carries a promise
+### There are no exceptions left
 
-**Latin font subsets.** `IoskeleyMono-Regular-latin.woff2` is a stable name served for a year,
-which is a promise that re-subsetting produces a new filename. The promise is written in
-[delivery.md](delivery.md) and is the reason the name may keep its long life.
+This section used to hold one. **Latin font subsets** were served under stable names for a year,
+on the promise that re-subsetting would produce a new filename -- and 510 of the 524 published
+chunks never needed it, because the CJK splitter had been naming its output by content hash all
+along. The promise covered fourteen files and explained an exception for all of them.
 
-That is the whole list. An exception is a name plus the promise that justifies it, and a key
-wanting a long life without a hash has to arrive with one.
+Every chunk is now an object like any other, addressed `/object/{cid}.woff2`, and the year it
+keeps is the year the shape of its name earns. Re-subsetting writes a different object at a
+different address instead of overwriting a promised name, which is what the promise was asking
+everyone to remember not to do.
 
-`/favicon/{domain}` is deliberately not on it. It is not content-addressed, it is refetched and
-may legitimately change, and so it takes the five minutes the rule gives everything else -- which
-is the default rather than a decision about favicons.
+An exception is a name plus the promise that justifies it. There is no list; a key wanting a long
+life without a hash has to arrive with one, and none currently does.
+
+`/favicon/{domain}` was already not on it. It is not content-addressed, it is refetched and may
+legitimately change, so it takes the five minutes the rule gives everything else -- the default
+rather than a decision about favicons.
 
 ## The mutable root
 

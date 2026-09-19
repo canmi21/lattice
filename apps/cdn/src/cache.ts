@@ -18,21 +18,12 @@ export function isContentAddressed(path: string): boolean {
 }
 
 /**
- * Kept forever without a hash to justify it: a name, plus the promise that earns it.
- *
- * A Latin font filename carries no content hash, so a year on `IoskeleyMono-Regular-latin.woff2`
- * is a promise that re-subsetting produces a new filename rather than an observation about the
- * bytes. Inherited from the `_headers` file the old static-assets deployment used. See
- * spec/architecture/artifacts.md, "There is one exception, and it carries a promise".
- */
-const PROMISED = ['/fonts/'];
-
-/**
  * The floor: this worker's one cache rule, derived from the key rather than looked up.
  *
  * A route that stores its own response stamps `UNCHANGING` itself, which it has to do before
  * the response is put in the cache and therefore earlier than this runs. Everything else
- * arrives here unstamped and is decided by the shape of the name it was asked for.
+ * arrives here unstamped and is decided by the shape of the name it was asked for -- with no
+ * list of exceptions beside it any more, now that the font chunks are content-addressed too.
  */
 export const cacheControl: MiddlewareHandler = async (c, next) => {
 	await next();
@@ -46,8 +37,7 @@ export const cacheControl: MiddlewareHandler = async (c, next) => {
 	// A 304 is not an error and is counted: its headers replace the stored response's, so five
 	// minutes there would cut a year-old copy down on every revalidation.
 	const ok = (c.res.status >= 200 && c.res.status < 300) || c.res.status === 304;
-	const unchanging =
-		ok && (isContentAddressed(path) || PROMISED.some((prefix) => path.startsWith(prefix)));
+	const unchanging = ok && isContentAddressed(path);
 
 	const headers = new Headers(c.res.headers);
 	headers.set('Cache-Control', unchanging ? UNCHANGING : PUBLISHED);

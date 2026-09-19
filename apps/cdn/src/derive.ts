@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
-import { isContentId, type Bindings } from '@canmi/store';
+import { isContentId, rangedResponse, toResponse, type Bindings } from '@canmi/store';
 import { objectCache } from './cache';
 import { findObject, isExtension, measureObject } from './object';
 import { failure } from './respond';
 import { MEDIA_TYPES, isDecodable, isDerivable, transcode } from './transcode';
-import { zipOne } from './zip';
+import { zipOne, zipWhole } from './zip';
 
 /**
  * Handing back a stored object as something else, named in full by the caller.
@@ -26,6 +26,16 @@ const derive = new Hono<{ Bindings: Bindings }>();
  */
 const MAX_PACKAGED = 50 * 1024 * 1024;
 
+/**
+ * The same cap halved, for a request that named a range, because that one cannot stream.
+ *
+ * A range is answered from the whole archive, which has to exist before a byte of it can be
+ * chosen: the archive is one buffer of the source plus 120 bytes, and the slice handed to the
+ * response is a second copy of at most the same size. So the peak is twice what is allowed
+ * rather than nothing, and half of the streaming cap puts it back at the 50 MB that one passes.
+ */
+const MAX_SOUGHT = MAX_PACKAGED / 2;
+
 /** The one target that is not an image format: the object as it is, in an archive. */
 const PACKAGED = 'zip';
 
@@ -46,13 +56,14 @@ derive.get('/:name', async (c) => {
 		return failure(c, 400, 'not_an_address');
 	}
 	const { cid, from, to } = parsed;
+	const range = c.req.header('Range');
 
 	// The source comes first, and this is a head rather than a read: whether the object is there
 	// and how large it is are one question, and the package below has to answer on the size
 	// before a byte is in memory. Absent is 404 -- never uploaded, or swept, which is a real and
 	// temporary fact and the only thing separating a sweep from a typo.
-	const size = await measureObject(c.env, cid, from);
-	if (size === null) {
+	const measured = await measureObject(c.env, cid, from);
+	if (measured === null) {
 		return failure(c, 404, 'not_found');
 	}
 
@@ -72,11 +83,13 @@ derive.get('/:name', async (c) => {
 			return failure(c, 404, 'not_found');
 		}
 		const bytes = await transcode(await new Response(source.body).arrayBuffer(), from, to);
-		return new Response(bytes, { headers: { 'Content-Type': MEDIA_TYPES[to] } });
+		// The whole image, then the range out of it. Transcoding a slice would answer with bytes
+		// that are not part of any image, and a client cannot tell that from the ones it asked for.
+		return rangedResponse(new Uint8Array(bytes), MEDIA_TYPES[to], range);
 	}
 
 	if (to === PACKAGED) {
-		if (size > MAX_PACKAGED) {
+		if (measured.size > (range ? MAX_SOUGHT : MAX_PACKAGED)) {
 			return failure(c, 413, 'too_large_to_package');
 		}
 		const source = await findObject(c.env, cid, from);
@@ -84,10 +97,14 @@ derive.get('/:name', async (c) => {
 			return failure(c, 404, 'not_found');
 		}
 		// Named inside the archive as the object is named outside it, so unpacking gives back
-		// the file the address asked for rather than something called after this route.
-		return new Response(zipOne(`${cid}.${from}`, size, source.body), {
-			headers: { 'Content-Type': 'application/zip' },
-		});
+		// the file the address asked for rather than something called after this route. The
+		// timestamp is when those bytes were uploaded, which is the one true thing this has to
+		// say about them -- `unzip -l` printed a fixed epoch before, which said nothing.
+		const entry = { name: `${cid}.${from}`, size: measured.size, uploaded: measured.uploaded };
+		if (!range) {
+			return toResponse({ body: zipOne(entry, source.body), contentType: 'application/zip' });
+		}
+		return rangedResponse(await zipWhole(entry, source.body), 'application/zip', range);
 	}
 
 	// A target nobody here can produce. The shape parsed and the source is there, and still

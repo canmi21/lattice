@@ -3,6 +3,7 @@
 	"private": true,
 	"type": "module",
 	"devDependencies": {
+		"@noble/hashes": "^2.4.0",
 		"@typescript/native": "npm:typescript@^7.0.2",
 		"cn-font-split": "7.4.3",
 		"oxfmt": "^0.68.0",

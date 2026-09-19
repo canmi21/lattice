@@ -145,11 +145,14 @@ a `_headers` file: `/fonts/*` for one year, `immutable`. That file has no equiva
 worker reads from R2, so the policy has to be reasserted in worker code or it is silently lost
 -- the assets keep working while being re-fetched on every visit.
 
-The trap inside the old policy is worth keeping in view. Latin font filenames carry no content
-hash: `IoskeleyMono-Regular-latin.woff2` is a stable name. Declaring it `immutable` for a year
-promises that the bytes at that name never change, so re-subsetting the font requires a new
-filename. CJK chunks already carry content hashes and need no such promise. Whatever replaces
-`_headers` has to preserve both cases rather than pretending all font names have one shape.
+The trap inside the old policy was worth keeping in view for as long as it existed. Latin font
+filenames carried no content hash -- `IoskeleyMono-Regular-latin.woff2` was a stable name -- so
+declaring it `immutable` for a year promised that re-subsetting would produce a new filename,
+while the CJK chunks beside it already carried hashes and needed no promise at all. Two shapes
+under one prefix, and the policy had to keep both in mind.
+
+**Every chunk is a content-addressed object now**, so the trap is gone rather than handled: there
+is one shape, and the year it keeps is the year its name earns.
 
 ### And the policy is derived from the key, not decided per route
 
@@ -158,11 +161,10 @@ answered `2xx` gets a year and `immutable`; everything else gets five minutes.**
 looked up in a table, so a new object type arrives with the right policy and no decision to
 remember.
 
-The paragraph above is the same statement made twice about fonts -- hashed CJK chunks need no
-promise, unhashed Latin names do -- and this is that observation applied to every key the bucket
-holds. **One family keeps a long life without a hash: the Latin subsets above**, on the written
-promise that re-subsetting produces a new filename. It is the only entry on that list, and a key
-wanting to join it has to arrive with its own promise.
+The paragraph above was once the same statement made twice about fonts, and this is that
+observation applied to every key the bucket holds. **Nothing keeps a long life without a hash any
+more.** The Latin subsets were the only entry on that list and they joined the rest; a key wanting
+to rejoin it has to arrive with its own written promise, and there is nothing to copy from.
 
 The condition on the status is the half that is easy to omit, and easy to state too narrowly. A
 `404` on a content-addressed key means the object was not uploaded or has been swept, and holding

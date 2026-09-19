@@ -28,11 +28,13 @@ import { failure } from './respond';
  */
 export const ROOT_NAMES = new Set(['favicon.ico', 'robots.txt']);
 
-/** Multi-segment prefixes whose keys are names rather than content ids, and why each still is. */
+/**
+ * Multi-segment prefixes whose keys are names rather than content ids, and why each still is.
+ *
+ * `fonts` was the other one, and it is gone: every chunk is an object addressed by the hash of
+ * its own bytes, so there is nothing left for a name to promise.
+ */
 export const NAMED_PREFIXES = new Set([
-	// A subset is promised rather than hashed -- see "There is one exception, and it carries a
-	// promise" -- and the CJK chunks carry their own hash inside a family directory.
-	'fonts',
 	// Proxied from a release rather than stored here at all.
 	'github',
 ]);

@@ -26,13 +26,17 @@ vi.mock('./transcode', async (importOriginal) => {
 	};
 });
 
+/** When the object in `holding` below was uploaded, which is what the archive has to carry. */
+const UPLOADED = new Date(Date.UTC(2026, 2, 14, 15, 9, 26));
+
 /** A bucket holding exactly the entries named, with a size that need not match the body. */
-function bucketWith(held: Record<string, { body?: string; size?: number }>) {
+function bucketWith(held: Record<string, { body?: string; size?: number; uploaded?: Date }>) {
 	return {
 		STORE: {
 			head: async (key: string) => {
 				const entry = held[key];
-				return entry ? { size: entry.size ?? (entry.body ?? '').length } : null;
+				if (!entry) return null;
+				return { size: entry.size ?? (entry.body ?? '').length, uploaded: entry.uploaded };
 			},
 			get: async (key: string) => {
 				const entry = held[key];
@@ -45,7 +49,13 @@ function bucketWith(held: Record<string, { body?: string; size?: number }>) {
 
 /** The usual case: one stored object, holding the bytes above. */
 function holding(extension: string) {
-	return bucketWith({ [storageKey(CID, extension)]: { body: BYTES } });
+	return bucketWith({ [storageKey(CID, extension)]: { body: BYTES, uploaded: UPLOADED } });
+}
+
+/** The whole archive for `holding`, read once so a range can be checked against it. */
+async function wholeArchive() {
+	const response = await derive.request(`/${CID}.avif.zip`, {}, holding('avif'));
+	return new Uint8Array(await response.arrayBuffer());
 }
 
 describe('the source object comes first', () => {
@@ -172,6 +182,138 @@ describe('the object in an archive', () => {
 	});
 });
 
+describe('the archive says when the bytes arrived', () => {
+	/** The DOS fields the format writes, from whichever of the two records is passed in. */
+	function stamp(archive: Uint8Array, at: number) {
+		const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
+		return { time: view.getUint16(at + 10, true), date: view.getUint16(at + 12, true) };
+	}
+
+	// 2026-03-14 15:09:26 UTC, as DOS spells it: the hour, the minute and half the seconds in
+	// one field, and the years since 1980, the month and the day in the other.
+	const TIME = (15 << 11) | (9 << 5) | (26 >> 1);
+	const DATE = ((2026 - 1980) << 9) | (3 << 5) | 14;
+
+	it('carries the upload time of the object rather than the 1980 epoch', async () => {
+		const archive = await wholeArchive();
+		expect(stamp(archive, 0)).toEqual({ time: TIME, date: DATE });
+	});
+
+	it('writes the same stamp into the central directory, which is what unzip -l reads', async () => {
+		const archive = await wholeArchive();
+		const central = 30 + `${CID}.avif`.length + BYTES.length + 16;
+		// Two fields further along than the local header, so the offsets are not the same.
+		expect(stamp(archive, central + 2)).toEqual({ time: TIME, date: DATE });
+	});
+
+	it('falls back to the epoch where the store kept no date', async () => {
+		const bucket = bucketWith({ [storageKey(CID, 'avif')]: { body: BYTES } });
+		const response = await derive.request(`/${CID}.avif.zip`, {}, bucket);
+		const archive = new Uint8Array(await response.arrayBuffer());
+		expect(stamp(archive, 0)).toEqual({ time: 0, date: 0x0021 });
+	});
+});
+
+/**
+ * A range is answered out of the finished artifact, never out of a partial derivation.
+ *
+ * Zipping or transcoding a slice would hand back bytes that belong to no archive and no image,
+ * and a client asking for the middle of a file cannot tell that from the bytes it wanted. So the
+ * whole thing is produced and then cut, which is why the ranged path buffers and the plain one
+ * still streams.
+ */
+describe('a range over a derived artifact', () => {
+	it('tells a client it may ask, on a whole answer of either kind', async () => {
+		const packaged = await derive.request(`/${CID}.avif.zip`, {}, holding('avif'));
+		expect(packaged.status).toBe(200);
+		expect(packaged.headers.get('Accept-Ranges')).toBe('bytes');
+
+		const image = await derive.request(`/${CID}.avif.webp`, {}, holding('avif'));
+		expect(image.status).toBe(200);
+		expect(image.headers.get('Accept-Ranges')).toBe('bytes');
+	});
+
+	it('serves the bytes of the archive a client asked for, as 206', async () => {
+		const archive = await wholeArchive();
+		const response = await derive.request(
+			`/${CID}.avif.zip`,
+			{ headers: { Range: 'bytes=10-41' } },
+			holding('avif'),
+		);
+		expect(response.status).toBe(206);
+		expect(response.headers.get('Content-Range')).toBe(`bytes 10-41/${archive.length}`);
+		expect(new Uint8Array(await response.arrayBuffer())).toEqual(archive.subarray(10, 42));
+	});
+
+	it('serves the tail, where a reader looks for the directory', async () => {
+		const archive = await wholeArchive();
+		const response = await derive.request(
+			`/${CID}.avif.zip`,
+			{ headers: { Range: 'bytes=-22' } },
+			holding('avif'),
+		);
+		expect(response.status).toBe(206);
+		const from = archive.length - 22;
+		expect(response.headers.get('Content-Range')).toBe(
+			`bytes ${from}-${archive.length - 1}/${archive.length}`,
+		);
+		expect(new Uint8Array(await response.arrayBuffer())).toEqual(archive.subarray(from));
+	});
+
+	it('serves the bytes of a transcode a client asked for, as 206', async () => {
+		const whole = new TextEncoder().encode('re-encoded');
+		const response = await derive.request(
+			`/${CID}.avif.webp`,
+			{ headers: { Range: 'bytes=3-6' } },
+			holding('avif'),
+		);
+		expect(response.status).toBe(206);
+		expect(response.headers.get('Content-Type')).toBe('image/webp');
+		expect(response.headers.get('Content-Range')).toBe(`bytes 3-6/${whole.length}`);
+		expect(await response.text()).toBe('enco');
+	});
+
+	// Not 404. The artifact was produced and the question was wrong, and the size is what lets
+	// the client ask again -- a 404 would send it looking for something it had already found.
+	it('answers 416 for a range past the end, and says how long the archive is', async () => {
+		const archive = await wholeArchive();
+		const response = await derive.request(
+			`/${CID}.avif.zip`,
+			{ headers: { Range: 'bytes=99999-' } },
+			holding('avif'),
+		);
+		expect(response.status).toBe(416);
+		expect(response.headers.get('Content-Range')).toBe(`bytes */${archive.length}`);
+	});
+
+	it('answers 416 for a range past the end of a transcode too', async () => {
+		const response = await derive.request(
+			`/${CID}.avif.webp`,
+			{ headers: { Range: 'bytes=99999-' } },
+			holding('avif'),
+		);
+		expect(response.status).toBe(416);
+		expect(response.headers.get('Content-Range')).toBe('bytes */10');
+	});
+
+	// The cap is halved for a range because that path holds the archive and then a copy of the
+	// slice, where the streaming one holds neither. A source between the two is served whole
+	// and refused a range, which is a cue to ask again without one.
+	it('refuses to seek into an archive it would have streamed', async () => {
+		const bucket = bucketWith({ [storageKey(CID, 'mp4')]: { size: 40 * 1024 * 1024 } });
+		const whole = await derive.request(`/${CID}.mp4.zip`, {}, bucket);
+		expect(whole.status).toBe(200);
+
+		const sought = await derive.request(
+			`/${CID}.mp4.zip`,
+			{ headers: { Range: 'bytes=0-15' } },
+			bucket,
+		);
+		expect(sought.status).toBe(413);
+		expect(await sought.json()).toEqual({ status: 'error', message: 'too_large_to_package' });
+	});
+});
+
 describe('anything else', () => {
 	it('refuses a target nobody can produce', async () => {
 		const response = await derive.request(`/${CID}.avif.exe`, {}, holding('avif'));
@@ -210,6 +352,17 @@ describe('what a derived answer may be kept for', () => {
 		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
+	// A 206 is a 2xx, and the bytes behind it are as settled as the whole answer they came from.
+	it('keeps a 206 for a year, which is the half a status check is easy to lose', async () => {
+		const response = await derive.request(
+			`/${CID}.avif.zip`,
+			{ headers: { Range: 'bytes=0-15' } },
+			holding('avif'),
+		);
+		expect(response.status).toBe(206);
+		expect(response.headers.get('Cache-Control')).toBe(YEAR);
+	});
+
 	it('holds a refusal for five minutes', async () => {
 		const missing = await derive.request(`/${CID}.avif.webp`, {}, bucketWith({}));
 		expect(missing.status).toBe(404);
@@ -218,6 +371,14 @@ describe('what a derived answer may be kept for', () => {
 		const malformed = await derive.request(`/${CID}.avif.exe`, {}, holding('avif'));
 		expect(malformed.status).toBe(400);
 		expect(malformed.headers.get('Cache-Control')).toBe(MINUTES);
+
+		const unsatisfiable = await derive.request(
+			`/${CID}.avif.zip`,
+			{ headers: { Range: 'bytes=99999-' } },
+			holding('avif'),
+		);
+		expect(unsatisfiable.status).toBe(416);
+		expect(unsatisfiable.headers.get('Cache-Control')).toBe(MINUTES);
 	});
 });
 

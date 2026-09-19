@@ -28,43 +28,67 @@ mise run fonts lxgw-wenkai
 mise run fonts --all
 ```
 
-The check validates the manifest against every published directory and stylesheet, then performs
-a one-glyph smoke slice through the same `cn-font-split` Node FFI module used by a build. A green
-check therefore proves that the platform core loads and produces WOFF2 output.
+Publish chunks that already exist as bytes, without slicing anything again:
 
-The build writes to a sibling temporary directory and replaces a family's published directory
-only after `cn-font-split` succeeds. `cn-font-split` is an exact root `devDependency` because the
-task imports its Node module. Its allowed install script installs the platform core under
-`node_modules`; `mise run fonts --check` exercises that native path, so a missing or unloadable
-core fails the check rather than producing a misleading inventory-only success.
+```sh
+mise run fonts --adopt ioskeley-mono
+mise run fonts --adopt --all
+```
+
+Every chunk is an object: named by the content id of its own bytes, filed in the shared fan-out
+tree under `data/bucket/objects`, and addressed `/object/{cid}.woff2`. No family has a directory
+of its own, so its stylesheet is the record of which chunks it has -- which it already was for the
+hundreds a CJK face publishes. Adoption is how a chunk that was never sliced here becomes an
+object: it reads the bytes a stylesheet's own URLs point at, publishes them, and rewrites the URLs.
+A family with no retained input can be published no other way, and no family's bytes change.
+
+The check validates the manifest against every stylesheet and everything the stylesheets name,
+then performs a one-glyph smoke slice through the same `cn-font-split` Node FFI module used by a
+build. A green check therefore proves that the platform core loads and produces WOFF2 output. It
+recomputes every published chunk's content id, which is what keeps a name and its bytes together
+now that no name is promised.
+
+The build slices into a temporary directory and publishes only after `cn-font-split` succeeds;
+objects are written before the stylesheet that names them, for the reason the corpus writes its
+root last. `cn-font-split` is an exact root `devDependency` because the task imports its Node
+module, and `@noble/hashes` is a root `devDependency` for the same reason:
+`.mise/tasks/content-id.mjs` computes the same BLAKE3-128 id `apps/site/scripts/publish.ts` names
+an object by. cn-font-split's
+allowed install script installs the platform core under `node_modules`; `mise run fonts --check`
+exercises that native path, so a missing or unloadable core fails the check rather than producing
+a misleading inventory-only success.
 
 The splitter is not byte-reproducible across runs: the same input and options can change one or
-more content-hashed chunk names. Do not casually rebuild an already-published family. Generate it
-in a temporary directory and compare its chunk-name fingerprint and formatted stylesheet first;
-atomic publication prevents partial output, but it does not prevent cache-URL churn from a
-successful re-slice.
+more chunks, and a changed chunk is a new object at a new address. Do not casually rebuild an
+already-published family. Generate it in a temporary directory and compare its chunk fingerprint
+and formatted stylesheet first; publishing an object can never damage one already there, but it
+does not prevent cache-URL churn from a successful re-slice, and the chunks nothing names any
+more are left in the tree for the sweep to find.
 
 ## Manifest entries
 
 Use `named-subsets` for a small Latin-script face. List each face's `stem`, `style`, `weight`,
 `input`, and writing-system `subsets`. Optional `local` names are tried in order before the web
-font. The pipeline emits `{stem}-{subset}.woff2` and the matching `unicode-range` declarations.
+font. The pipeline slices one chunk per subset and writes the matching `unicode-range`
+declarations. The `stem` names the slice while it is being cut and never reaches a URL.
 
 Every selectable name gets its own family entry, combined with its `generic` fallback; the typed
 consumer export exposes those as a complete stack. A compatibility family keeps the proprietary
 name at that boundary while its faces name the local sources, redistributable inputs, and output
-stems that can satisfy the pick. When two entries publish exactly the same face, subsets, and stems,
-they may share an `output` directory; generated stylesheet URLs follow that path rather than the
-family id. See the [family-choice rule](../../spec/architecture.md#latin-and-cjk-use-different-slicing-strategies).
+stems that can satisfy the pick. When two entries publish exactly the same face, subsets, and
+stems, the second sets `chunksFrom` to the first's id: identical bytes are already one object, and
+what the field adds is that they are meant to stay one, so re-slicing the source rewrites both
+stylesheets. See the [family-choice rule](../../spec/architecture.md#latin-and-cjk-use-different-slicing-strategies).
 
-Use `frequency-chunks` for a large CJK face. It accepts one face and emits 32-character
-content-hashed chunk names plus its generated stylesheet.
+Use `frequency-chunks` for a large CJK face. It accepts one face and emits hundreds of chunks by
+`unicode-range`, plus its generated stylesheet.
 
-Set `chunks` to `prebuilt` when output is complete and the family has no build of its own: either
-its input is no longer retained or another family publishes the shared chunks. The build command
-then reports the family as complete. A shared entry may still name the common input to record which
-face supplies it. Set `runtimeInput` only when application code independently opens a full face,
-and name that consumer beside it. Set it to `null` when the full face is a pipeline input only.
+Set `chunks` to `prebuilt` when output is complete and the family has no build of its own: its
+input is no longer retained. The build command then reports the family as complete, and `--adopt`
+is the only thing that can still publish it. A shared entry sets `chunksFrom` instead and may
+still name the common input to record which face supplies it. Set `runtimeInput` only when
+application code independently opens a full face, and name that consumer beside it. Set it to
+`null` when the full face is a pipeline input only.
 
 Current generated CJK families are LXGW WenKai and 糖果味的夏天. The latter uses the internal
 family name `TGWDXT` and covers 7,864 codepoints: 6,864 CJK, 95 Latin, 83 hiragana, and 86
@@ -81,11 +105,12 @@ inputs or published files.
 1. Put each full face needed for slicing under `data/source/fonts/`; do not fetch fonts in the task.
 2. Add the family and its explicit strategy to the manifest. A generated face needs an `input`;
    a prebuilt face may set it to `null`.
-3. Run `mise run fonts <family>` and then `mise run fonts --check`.
+3. Run `mise run fonts <family>` and then `mise run fonts --check`. A family whose chunks already
+   exist as bytes takes `mise run fonts --adopt <family>` instead.
 4. Apply the input-retention decision recorded in the
    [architecture spec](../../spec/architecture.md#a-font-pipeline-input-is-disposable).
 
-Named Latin chunks have stable cache URLs. Rebuilding identical bytes is harmless, but if slicing
-would change bytes at an existing name the task refuses publication. Change the face `stem` so an
-updated slice gets new filenames; reusing a published name would leave readers on the old bytes for
-a year.
+Rebuilding identical bytes is harmless: they are the same object, published to the same address,
+and nothing is overwritten. Slicing that changes the bytes produces a different object at a
+different address instead of replacing anything, so no reader is ever left holding stale bytes and
+no face `stem` has to be versioned to say so.

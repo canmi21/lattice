@@ -12,13 +12,7 @@ import github from './github';
 import license from './license';
 import object from './object';
 import derive from './derive';
-import {
-	isUnsatisfiable,
-	read,
-	toResponse,
-	unsatisfiableResponse,
-	type Bindings,
-} from '@canmi/store';
+import type { Bindings } from '@canmi/store';
 import { stored } from './stored';
 import { failure } from './respond';
 
@@ -95,29 +89,6 @@ for (const type of ARTIFACT_TYPES) {
  */
 app.route('/object', object);
 app.route('/derive', derive);
-
-/**
- * The font chunks, which are named rather than addressed by content.
- *
- * The one prefix left that earns a year without a hash to justify it, on the written promise that
- * re-subsetting produces a new filename. Declared rather than reached through a catch-all: a
- * catch-all is what served the records for as long as they shared this bucket, because it answers
- * for whatever happens to be there rather than for what this host is meant to hold.
- */
-app.get('/fonts/*', async (c) => {
-	const key = new URL(c.req.url).pathname.replace(/^\/+/, '');
-	if (key.includes('..')) {
-		return failure(c, 400, 'not_an_address');
-	}
-	const found = await read(c.env, key, c.req.header('Range'));
-	if (!found) {
-		return failure(c, 404, 'not_found');
-	}
-	if (isUnsatisfiable(found)) {
-		return unsatisfiableResponse(found.total);
-	}
-	return toResponse(found);
-});
 
 /**
  * A request this worker has no route for, said in the envelope every refusal here uses.

@@ -39,6 +39,14 @@ describe('what this host can express', () => {
 		expect((await ask(`/nonsense/${CID}.json`)).status).toBe(400);
 	});
 
+	// `/fonts/` was the last prefix whose keys were names, and a chunk is an object now. Kept as
+	// a test rather than dropped with the route: the family directory is what every published
+	// stylesheet pointed at until today, so a stale one has to fail loudly rather than 404.
+	it('refuses the font prefix it used to answer for', async () => {
+		expect((await ask('/fonts/ioskeley-mono/IoskeleyMono-Regular-latin.woff2')).status).toBe(400);
+		expect((await ask(`/fonts/${CID}.woff2`)).status).toBe(400);
+	});
+
 	it('refuses a name that is not a content id', async () => {
 		const res = await ask('/content/not-a-hash.json');
 		expect(res.status).toBe(400);

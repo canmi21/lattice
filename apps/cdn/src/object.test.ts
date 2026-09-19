@@ -109,6 +109,19 @@ describe('the address middleware lets it through', () => {
 		expect(response.status).toBe(200);
 	});
 
+	// Every font chunk is one of these now, Latin subsets included, and `/fonts/` is gone. What a
+	// reader ever fetches a face through is this address answering a woff2 like anything else.
+	it('serves a font chunk, which has no route of its own any more', async () => {
+		const response = await app.request(
+			`/object/${CID}.woff2`,
+			{},
+			bucketWith([storageKey(CID, 'woff2')]),
+		);
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Content-Type')).toBe('font/woff2');
+		expect(response.headers.get('Cache-Control')).toBe(YEAR);
+	});
+
 	// The id is one segment. The fan-out it is stored under is the bucket's business.
 	it('still refuses an address carrying the storage layout', async () => {
 		const response = await app.request(`/object/44/b6/${CID}.avif`, {}, bucketWith([]));

@@ -2,8 +2,8 @@
 
 ## A font pipeline input is disposable
 
-The font pipeline only moves in one direction: a full face under `data/source/fonts` is input, and web
-chunks under `data/bucket/objects/fonts/{family}` are output. The input is useful only while somebody
+The font pipeline only moves in one direction: a full face under `data/source/fonts` is input, and
+web chunks are output, published as objects like everything else the corpus holds. The input is useful only while somebody
 may slice that face again. Once the chunks exist it may be deleted, and a family with prebuilt
 chunks needs no input of its own. It may still name an input retained by a different family that
 owns their shared chunks. Keeping every original forever would turn a temporary build need into
@@ -37,9 +37,14 @@ figures in this file are binary: 12.5MB is 12.53 MiB, and the retained face is 2
 
 Latin faces are a few hundred kilobytes and are split into the handful of named writing-system
 subsets Google Fonts uses -- `latin`, `latin-ext`, and the other groups a face publishes. Their
-readable filenames are stable cache interfaces. CJK faces are tens of megabytes, so they are
+readable filenames were stable cache interfaces. CJK faces are tens of megabytes, so they are
 split by character frequency into hundreds of `unicode-range` chunks: common characters arrive
 first, and content hashes name the output because no person benefits from reading those names.
+
+**Every chunk is named that way now, Latin included.** The readable names were the last keys on
+this site keeping a year without a hash, and what they cost was a promise somebody had to
+remember: that re-subsetting writes a new filename rather than new bytes under an old one. A
+content id makes that true instead of asking for it.
 
 The strategy is explicit in the manifest rather than inferred from glyph coverage. Coverage says
 what a face contains, but not whether its existing readable URLs are a compatibility promise;
@@ -82,9 +87,9 @@ before.
 
 ## A hash in the name buys a year
 
-Cache lifetime follows three tiers: **a name carrying a content hash, or any path under
-`/fonts/`, is cached for a year and marked `immutable`, but only on a 2xx. Any other 2xx is
-cached for a week. Only a non-2xx gets five minutes.**
+Cache lifetime needs no tier of its own here any more: a chunk is an object, so it earns what
+every object earns -- **a year and `immutable` on a 2xx, five minutes on anything else.** There is
+no `/fonts/` prefix and no week in between.
 
 This section previously named two tiers and sent everything unhashed to the five minutes. That
 was wrong about the middle one, and it contradicted [media.md](media.md), which has stated the

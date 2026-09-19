@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { read, sizeOf, storageKey, type Bindings, type Found } from '@canmi/store';
+import { measure, read, storageKey, type Bindings, type Found, type Measured } from '@canmi/store';
 import { objectCache } from './cache';
 import { parseName } from './key';
 import { serveObject } from './stored';
@@ -30,13 +30,16 @@ export function findObject(env: Bindings, cid: string, extension: string): Promi
 	return read(env, storageKey(cid, extension));
 }
 
-/** The same lookup asking only whether the object is there, and how large. See `findObject`. */
+/**
+ * The same lookup asking only what a head reports: whether the object is there, how large it is,
+ * and when it arrived. Null is absent. See `findObject`.
+ */
 export function measureObject(
 	env: Bindings,
 	cid: string,
 	extension: string,
-): Promise<number | null> {
-	return sizeOf(env, storageKey(cid, extension));
+): Promise<Measured | null> {
+	return measure(env, storageKey(cid, extension));
 }
 
 /** Whether a string is spelled the way an object's extension is. */

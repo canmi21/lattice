@@ -6,10 +6,10 @@
 			"generic": "monospace",
 			"strategy": "named-subsets",
 			"chunks": "prebuilt",
-			"output": "data/bucket/objects/fonts/ioskeley-mono",
 			"stylesheet": "libs/fonts/src/mono.css",
 			"stylesheetExport": "@canmi/fonts/mono.css",
 			"runtimeInput": null,
+			"chunksFrom": null,
 			"faces": [
 				{
 					"input": null,
@@ -47,13 +47,13 @@
 			"generic": "cursive",
 			"strategy": "frequency-chunks",
 			"chunks": "generated",
-			"output": "data/bucket/objects/fonts/lxgw-wenkai",
 			"stylesheet": "libs/fonts/src/wenkai.css",
 			"stylesheetExport": "@canmi/fonts/wenkai.css",
 			"runtimeInput": {
 				"path": "data/source/fonts/LXGWWenKai-Regular.ttf",
 				"consumer": "apps/cms/src/opengraph/mod.rs"
 			},
+			"chunksFrom": null,
 			"faces": [
 				{
 					"input": "data/source/fonts/LXGWWenKai-Regular.ttf",
@@ -69,10 +69,10 @@
 			"generic": "cursive",
 			"strategy": "frequency-chunks",
 			"chunks": "generated",
-			"output": "data/bucket/objects/fonts/tang-guo-wei-de-xia-tian",
 			"stylesheet": "libs/fonts/src/tang-guo-wei-de-xia-tian.css",
 			"stylesheetExport": "@canmi/fonts/tang-guo-wei-de-xia-tian.css",
 			"runtimeInput": null,
+			"chunksFrom": null,
 			"coverage": {
 				"total": 7864,
 				"cjk": 6864,
@@ -96,10 +96,10 @@
 			"generic": "cursive",
 			"strategy": "frequency-chunks",
 			"chunks": "generated",
-			"output": "data/bucket/objects/fonts/klee-one",
 			"stylesheet": "libs/fonts/src/klee-one.css",
 			"stylesheetExport": "@canmi/fonts/klee-one.css",
 			"runtimeInput": null,
+			"chunksFrom": null,
 			"coverage": {
 				"total": 10178,
 				"cjk": 7917,
@@ -122,10 +122,10 @@
 			"generic": "sans-serif",
 			"strategy": "named-subsets",
 			"chunks": "generated",
-			"output": "data/bucket/objects/fonts/arial",
 			"stylesheet": "libs/fonts/src/arial.css",
 			"stylesheetExport": "@canmi/fonts/arial.css",
 			"runtimeInput": null,
+			"chunksFrom": null,
 			"faces": [
 				{
 					"input": "data/source/fonts/Arimo-Regular.ttf",
@@ -143,10 +143,10 @@
 			"generic": "sans-serif",
 			"strategy": "named-subsets",
 			"chunks": "prebuilt",
-			"output": "data/bucket/objects/fonts/arial",
 			"stylesheet": "libs/fonts/src/helvetica.css",
 			"stylesheetExport": "@canmi/fonts/helvetica.css",
 			"runtimeInput": null,
+			"chunksFrom": "arial",
 			"faces": [
 				{
 					"input": "data/source/fonts/Arimo-Regular.ttf",
@@ -164,10 +164,10 @@
 			"generic": "serif",
 			"strategy": "named-subsets",
 			"chunks": "generated",
-			"output": "data/bucket/objects/fonts/times-new-roman",
 			"stylesheet": "libs/fonts/src/times-new-roman.css",
 			"stylesheetExport": "@canmi/fonts/times-new-roman.css",
 			"runtimeInput": null,
+			"chunksFrom": null,
 			"faces": [
 				{
 					"input": "data/source/fonts/Tinos-Regular.ttf",
@@ -185,10 +185,10 @@
 			"generic": "serif",
 			"strategy": "named-subsets",
 			"chunks": "generated",
-			"output": "data/bucket/objects/fonts/georgia",
 			"stylesheet": "libs/fonts/src/georgia.css",
 			"stylesheetExport": "@canmi/fonts/georgia.css",
 			"runtimeInput": null,
+			"chunksFrom": null,
 			"faces": [
 				{
 					"input": "data/source/fonts/Gelasio-Regular.ttf",

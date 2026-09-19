@@ -8,9 +8,9 @@ const HASH = '44b6081deaf0242ca3bf83d62a3b6c95';
 const YEAR = 'public, max-age=31536000, immutable';
 const MINUTES = 'public, max-age=300';
 
-/** The two font shapes, as the bucket spells them: one promised by name, one hashed. */
-const LATIN = '/fonts/ioskeley-mono/IoskeleyMono-Regular-latin.woff2';
-const CJK = `/fonts/lxgw-wenkai/${HASH}.woff2`;
+/** A font chunk, and the family-directory name one used to have before it became an object. */
+const FONT = `/object/${HASH}.woff2`;
+const NAMED_FONT = '/fonts/ioskeley-mono/IoskeleyMono-Regular-latin.woff2';
 
 /** A request path, from a bucket key. The two differ by a leading slash and nothing else. */
 function path(key: string): string {
@@ -34,8 +34,8 @@ describe('isContentAddressed', () => {
 		expect(isContentAddressed(`/captions/${HASH}.vtt`)).toBe(true);
 		expect(isContentAddressed(`/video/${HASH}.mp4`)).toBe(true);
 		expect(isContentAddressed(`/license/${HASH}.txt`)).toBe(true);
-		// A CJK chunk is named by its hash and needs no promise; only the Latin subsets do.
-		expect(isContentAddressed(CJK)).toBe(true);
+		// Every font chunk, Latin and CJK alike, is an object now and needs no promise.
+		expect(isContentAddressed(FONT)).toBe(true);
 	});
 
 	// A request names the id alone; the bucket fans it out. Both spellings end in the hash, which
@@ -44,9 +44,10 @@ describe('isContentAddressed', () => {
 		expect(isContentAddressed(path(storageKey(HASH, 'avif')))).toBe(true);
 	});
 
-	it('does not recognise the enumerated exceptions', () => {
-		// A Latin subset is a promise, not an observation, and is kept by name rather than shape.
-		expect(isContentAddressed(LATIN)).toBe(false);
+	it('does not recognise a name that once carried a promise instead of a hash', () => {
+		// The Latin subsets were the one entry on the list of exceptions, and the list is gone
+		// with them: their year rested on nobody re-subsetting under the same filename.
+		expect(isContentAddressed(NAMED_FONT)).toBe(false);
 		expect(isContentAddressed('/favicon/example.com')).toBe(false);
 	});
 
@@ -73,8 +74,8 @@ describe('cacheControl', () => {
 	app.get('/content/missing.json', (c) => c.json({ error: 'x' }, 404));
 	app.get(`/image/${HASH}.avif`, (c) => c.text('bytes'));
 	app.get(`/image/${HASH}.gone`, (c) => c.json({ error: 'x' }, 404));
-	app.get(LATIN, (c) => c.text('font'));
-	app.get(CJK, (c) => c.text('chunk'));
+	app.get(FONT, (c) => c.text('chunk'));
+	app.get(NAMED_FONT, (c) => c.text('font'));
 	app.get('/favicon/example.com', (c) => c.text('icon'));
 	app.get('/license/full.txt', (c) => c.text('aggregate'));
 	app.get('/missing', (c) => c.json({ error: 'not found' }, 404));
@@ -113,11 +114,12 @@ describe('cacheControl', () => {
 		expect(await policy('/favicon/stale.com')).toBe(MINUTES);
 	});
 
-	it('does not demote the fonts the promise covers', async () => {
-		// The likeliest way to get this wrong: a Latin subset carries no hash, so a classifier
-		// reading shapes alone drops it to five minutes and re-fetches the font on every visit.
-		expect(await policy(LATIN)).toBe(YEAR);
-		expect(await policy(CJK)).toBe(YEAR);
+	it('keeps a font chunk for a year on the same terms as everything else', async () => {
+		// The year the fonts already had, now earned by the shape of the name rather than by a
+		// promise. Losing it re-fetches the face on every visit, which is what this guards.
+		expect(await policy(FONT)).toBe(YEAR);
+		// And the family-directory name it used to have earns nothing, because nothing serves it.
+		expect(await policy(NAMED_FONT)).toBe(MINUTES);
 	});
 
 	it('gives everything else five minutes', async () => {
