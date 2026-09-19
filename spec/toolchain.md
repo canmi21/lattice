@@ -87,9 +87,9 @@ only reach this machine over the network. The port is still the mutex above -- w
 that somebody else on the same network can also reach a dev API, which writes the local D1 and
 never the deployed one.
 
-**In development the API and the CDN answer under the site, at `/api` and `/cdn`.** The site's dev
-server proxies both, stripping the prefix, so each worker still sees the paths it serves and knows
-nothing about the arrangement. Production has three domains and no proxy; only development
+**In development the API, the alias layer and the CDN answer under the site, at `/api`, `/alias`
+and `/cdn`.** The site's dev server proxies all three, stripping the prefix, so each worker still
+sees the paths it serves and knows nothing about the arrangement. Production has three domains and no proxy; only development
 collapses them, and only because there they are three processes on one machine.
 
 That is what makes a phone work, and a runtime fix would not have. Fonts, avatars and the

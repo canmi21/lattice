@@ -29,7 +29,7 @@ split chunks come to 12.5MB against it, and no reader ever wants more than a fra
 **That figure is one family's, not the set's, and saying so is a correction.** It was taken from
 a comment in `wenkai.css` and written here as a total, which was true only while LXGW was the one
 CJK family. `data/record/fonts.json` now declares three as `frequency-chunks` -- lxgw-wenkai, klee-one
-and tang-guo-wei-de-xia-tian -- and every published chunk under `data/bucket/objects/fonts` totals
+and tang-guo-wei-de-xia-tian -- and every published chunk in `data/bucket/objects` totals
 18.5MB, of which those three are 18MB and the Latin faces and the monospace are the rest. Byte
 figures in this file are binary: 12.5MB is 12.53 MiB, and the retained face is 24.39 MiB.
 
@@ -88,23 +88,23 @@ before.
 ## A hash in the name buys a year
 
 Cache lifetime needs no tier of its own here any more: a chunk is an object, so it earns what
-every object earns -- **a year and `immutable` on a 2xx, five minutes on anything else.** There is
-no `/fonts/` prefix and no week in between.
+every object earns -- **a year and `immutable`, because its key carries a hash and its answer is
+settled.** There is no `/fonts/` prefix and nothing in between for a font to fall into.
 
-This section previously named two tiers and sent everything unhashed to the five minutes. That
-was wrong about the middle one, and it contradicted [media.md](media.md), which has stated the
-week correctly all along: a name with no hash in it can be rewritten under the same URL, so a
-week is the accepted staleness for it rather than a year. `cache.ts` is the account being
-corrected to.
+This section has now been wrong twice, and the second time is the one worth keeping. It first
+named two tiers and sent everything unhashed to five minutes; the correction to that named a week,
+which no constant in `libs/cache` has ever held. There are three tiers -- a year for a hashed key,
+an hour for a key that only names, five minutes for anything that is not a settled answer -- and a
+font chunk meets only the first. `libs/cache` is the account being corrected to, and `cache.ts`
+reads from it rather than restating it.
 
 HTML is the one thing that is not cached at all, because its body varies by the reader's
 locale cookie. See [locale/addressing.md](../locale/addressing.md).
 
 The year is an observation, not a promise. Changing the bytes changes the hash and therefore
 the URL, so a hashed name cannot come to mean anything else and nobody has to remember to bust
-it. CJK font chunks work that way too. Latin subset names are the deliberate exception: a name
-such as `IoskeleyMono-Regular-latin.woff2` is readable and stable, so re-subsetting must publish
-a new filename or every reader keeps the old bytes for a year.
+it. Every chunk works that way, CJK and Latin alike: the readable Latin subset names were the
+last keys on this site keeping a year without a hash, and they went with the rest.
 
 Errors get five minutes rather than nothing. A missing favicon is requested on every page
 view, and without any caching each one is a full trip to the origin. Five minutes rather than

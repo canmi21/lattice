@@ -187,37 +187,41 @@ A last frame is not stored. Playback ends on it, and nothing renders it.
 ## What the objects are called
 
 ```
-image/{ab}/{cd}/{cid}.avif      a picture, or a video's poster frame
-video/{ab}/{cd}/{cid}.mp4       one rung
-captions/{ab}/{cd}/{cid}.vtt    one text track
-meta/{blake3}.json              the record
+{ab}/{cd}/{cid}.avif      a picture, or a video's poster frame
+{ab}/{cd}/{cid}.mp4       one rung
+{ab}/{cd}/{cid}.vtt       one text track
 ```
 
-**A prefix names what kind of object it is and the cid names the object, and nothing in a key says
-what an object belongs to.** A caption does not live under the video it captions, and a poster does
-not live under the video it posters: a content id is about itself and nothing else, and the same
-bytes reached from two articles are one object either way. Where things belong together is the
-record's job, which is the only place the relationship is written and therefore the only place it
-can go wrong.
+**Nothing in a key says what kind of object it is, and nothing says what an object belongs to.**
+The prefix that once named the kind went with the route that read it: the extension is the only
+thing separating a rung from a track, and the id already identifies both. A caption does not live
+under the video it captions, and a poster does not live under the video it posters: a content id is
+about itself and nothing else, and the same bytes reached from two articles are one object either
+way. Where things belong together is the record's job, which is the only place the relationship is
+written and therefore the only place it can go wrong.
+
+The record is not in this list, and that is what the second bucket is for. It is keyed by the
+resource's granted id -- `meta/{rid}.json` -- rather than by a hash of anything, because it is
+rewritten in place every time its asset is re-derived, which is the one thing a content-addressed
+key may not do. See [../resource.md](../resource.md).
 
 The two fanout levels are [media.md](../media.md)'s and exist for the same reason.
 
-## The record is one shape per kind, not one shape with holes
+## The record is layered, and `type` says which layers are there
 
-`type` is already the first field of every record, and it becomes the discriminant rather than a
-label: a video's record is shaped for video rather than a picture's shape with video fields added
-and picture fields left empty.
+`type` is a dot namespace rather than a discriminant -- `media.video.clip`, `media.image.photo` --
+and each segment it declares brings a layer carrying a version of its own. Measured on the corpus
+as it stands, a clip is `clip, media, video` and a photograph is `image, media, photo`: the media
+layer is the one every resource has, and the rest are what its own type asked for.
 
-```
-the envelope   version, blake3, created, updated
-  type: image  thumbhash, exif, source{w,h,ratio,bytes}, variants{quality}
-  type: video  duration, frameRate, frames, audio, poster,
-               source{w,h,ratio,bytes}, variants{codec}, captions
-```
+The gain is unchanged from the shape this replaced, and it is why the argument survived the move:
+neither kind has to explain what it lacks. A video under the picture's shape has to put something
+in `thumbhash` -- the poster's, or an empty string -- and both are untrue. Absent is the honest
+answer, and a layer that is simply not declared gives it.
 
-The gain is not fewer fields, it is that neither kind has to explain what it lacks. A video under
-the picture's shape has to put something in `thumbhash` -- the poster's, or an empty string -- and
-both are untrue. Absent is the honest answer and only a per-kind shape can give it.
+What each layer holds, what happens to a record naming a layer this repository does not know, and
+why the version did not move when the record became layered are [../resource.md](../resource.md)'s.
+Nothing here restates them.
 
 `quality` does not carry over: it is a 0..1 the image encoder was given, and a video's CRF is not
 the same quantity under a different name. `variants` carries the full codec string instead, because
@@ -319,8 +323,7 @@ like the cautious option -- "set a maximum and push down what exceeds it" -- is 
 alters the recording; the one that sounds like averaging is the one that does not.
 
 **Nothing is re-encoded.** The numbers are stored and the gain is applied at playback, because the
-bytes are the content id: every rung, every article reference and every object in the bucket is
-addressed by it. A number in a record can also be re-tuned later, which a baked-in gain cannot. It
+bytes are the content id: every rung and every object in the bucket is addressed by it. A number in a record can also be re-tuned later, which a baked-in gain cannot. It
 also means the measurement can be backfilled -- `cms video` measures a published clip that has
 none without deriving a single pixel again.
 

@@ -173,24 +173,19 @@ others.
 A malformed tag is dropped, never repaired. Turning `shell terminal` into `shell-terminal`
 invents a name nobody chose, which then competes with `terminal` forever.
 
-## A card is named by its slug, and that is the exception
+## A card is drawn once per view, and the record says which
 
-Every other published asset is named by a hash of its bytes. An OpenGraph card is not:
-`cms og` writes `opengraph/{slug}.png`, mirroring the article tree, and the page emits that
-URL from its own route. Nothing stores a reference, so there is nothing to rewrite and no id
-to look up -- the address follows from where the article sits.
+A card was once the single published asset not named by a hash of its bytes: `cms og` wrote
+`opengraph/{slug}.png`, the page emitted that URL from its own route, and the mutable name was
+priced at a week rather than a year. None of that survived. A card is an object like every other,
+and "A card is an object, and the answer says which one" below is where that is written out.
 
-The cost is that the name is mutable, and the cache rule already prices it: no hash means a
-week rather than a year, which is also what X caches a card for. An edited title takes that
-long to circulate, and that is the accepted trade rather than an oversight.
-
-**A card is rendered once per view, and asked for by `?lang=`.** A page served in Japanese that
-advertises a Chinese card is telling a reader one thing and a crawler another, so the nine
-views each get their own card, with the title and subtitle the sidecar already holds for that
-locale. The address is the page's own slug plus the same `?lang=` that selects the page --
-`/opengraph/{slug}.png?lang=ja` -- while the bytes are stored under `opengraph/{view}/{slug}.png`.
-That is the key-is-not-the-URL rule again: one parameter names what the reader wants and the
-worker decides where to read from.
+**What survived is the per-view split, which was never about the address.** A page served in
+Japanese that advertises a Chinese card is telling a reader one thing and a crawler another, so
+the nine views each get their own card, with the title and subtitle the sidecar already holds for
+that locale. Nine views means nine objects, and the article's own answer carries the id of the one
+for the view being served -- so nothing is derived from the slug and no parameter selects
+anything.
 
 **The home card is a different card, not an article card with the site's name in it.** An
 article card answers "what does this page say"; the home card answers "whose site is this", so
@@ -427,8 +422,8 @@ out would mean buffering and re-serialising it on every cache miss, and would ma
 describe bytes nobody was sent.
 
 The records published before this rule was written were minified in place. Their key is the
-asset's content id rather than a hash of the record, so rewriting one changes no address, orphans
-nothing, and needs no republication of anything that points at it.
+resource's granted id rather than a hash of the record, so rewriting one changes no address,
+orphans nothing, and needs no republication of anything that points at it.
 
 ## Cropping is presentation, so the browser does it
 

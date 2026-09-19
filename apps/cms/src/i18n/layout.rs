@@ -35,7 +35,7 @@ pub struct Layout {
 	/// its date and the home card sums. Recorded here, not counted by the site, so there is one
 	/// rule and one implementation; a separate map, keyed by view code, so the array of spans
 	/// keeps the shape every existing reader expects. See spec/architecture/media.md, "A card is
-	/// named by its slug, and that is the exception".
+	/// drawn once per view, and the record says which".
 	#[serde(default)]
 	pub words: BTreeMap<String, BTreeMap<String, usize>>,
 }
@@ -107,7 +107,7 @@ pub fn build(root: &Path) -> std::io::Result<Layout> {
 /// directive stands for is a component rather than writing. `segment::Kind::translatable` over
 /// body spans decides it, the same test the translator uses. A view with no translation for a
 /// segment gets the source, since that is what the page renders there. See
-/// spec/architecture/media.md, "A card is named by its slug, and that is the exception".
+/// spec/architecture/media.md, "A card is drawn once per view, and the record says which".
 pub fn words_per_view(
 	article: &str,
 	sidecar: Option<&super::store::Sidecar>,

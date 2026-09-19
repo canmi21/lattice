@@ -1109,8 +1109,9 @@ It has already produced one bug of exactly that shape. `published()` in
 [`image/run.rs`](../apps/cms/src/image/run.rs) was written as
 `variant_path(public, cid, extension::for_variant(&record.mime)).is_file()`, which is correct for
 every picture. Copied into the video command unchanged -- the natural thing to do, because it
-reads as a general question about a record -- it asks whether `image/{ab}/{cd}/{cid}.avif` exists
-for a rung that lives at `video/{ab}/{cd}/{cid}.mp4`. It answers false on every run, and the
+reads as a general question about a record -- it asks whether `{ab}/{cd}/{cid}.avif` exists for a
+rung that lives at `{ab}/{cd}/{cid}.mp4`, one tree and one id apart only by extension. It answers
+false on every run, and the
 command re-encodes a clip that is already on disk. Nothing raises, nothing logs, and the only
 symptom is that a run which should be a no-op takes minutes.
 
@@ -1126,9 +1127,10 @@ variant and video should never have reached it, so the fix is at the call sites 
 is fine. The wider reading is that a total function over an open input set is the defect, and
 `for_variant` should return `Option<&'static str>` with the AVIF default moved to the one caller
 that wants it -- which is every image path, so the change is small in edits and large in what it
-asserts. Both readings leave `image/`, `video/` and `captions/` needing a mime-to-extension answer
-each; only the second makes a caller say which tree it is asking about. Neither is worth doing
-while the video commands are still landing, because the call sites are what would move.
+asserts. Both readings leave a picture, a rung and a track needing a mime-to-extension answer
+each, and there is no longer a tree in the key to tell them apart -- the extension is the whole of
+it. Neither is worth doing while the video commands are still landing, because the call sites are
+what would move.
 
 ## The homepage lists every article, and will not be able to for long
 

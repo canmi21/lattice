@@ -56,13 +56,6 @@ That cuts both ways and it is why publication has an order: a root that names an
 uploaded yet produces a `404` that is then held for five minutes on a key that becomes valid a
 second later. See "Publication is ordered" below.
 
-### The type segment is for people
-
-A machine needs only the hash; `/{type}/` exists so a person listing the bucket can see what
-they are looking at. It is still matched strictly rather than ignored -- `/{type}/{hash}.{ext}`
-and nothing looser -- because a segment that is decorative in one place and load-bearing in
-another is the kind of thing that is eventually parsed by accident.
-
 ### There is one exception again, and it carries a promise
 
 This section used to hold one. **Latin font subsets** were served under stable names for a year,
@@ -78,15 +71,16 @@ everyone to remember not to do.
 An exception is a name plus the promise that justifies it, and there is exactly one:
 **`/favicon.ico`**, which keeps a year with no hash in it. The promise is that what moves is not
 that address but what the alias layer answers for the permanent name behind it, and that keeps its
-own hour. A browser asks every origin it touches for this name whatever the markup says, so the
+own five minutes. A browser asks every origin it touches for this name whatever the markup says, so the
 address itself is as fixed as anything here gets.
 
 Any other address wanting a long life without a hash has to arrive with its own promise. The list
 is one long and was empty an hour before this was written, which is the rate it should grow at.
 
-`/favicon/{domain}` was already not on it. It is not content-addressed, it is refetched and may
-legitimately change, so it takes the five minutes the rule gives everything else -- the default
-rather than a decision about favicons.
+`/favicon/{domain}` was already not on it, and it is not this rule's to give a life to either: it
+is an alias-layer route rather than a CDN one, so it takes that host's default of five minutes. An
+answer there is exactly as fresh as the `/asset` answer behind it, which is the honest length for
+something refetched from a site nobody here controls.
 
 ## The mutable root
 
@@ -222,7 +216,7 @@ the whole design's latency rests on.
 | `GET /homepage?lang=`      | the article list it renders, and its own compiled page   |
 | `GET /sitemap`             | every indexable view's path, date and alternates         |
 | `GET /feed?lang=`          | one locale's entries: metadata and a `content` hash each |
-| `GET /media?cid=`          | what is known about one asset                            |
+| `GET /media?rid=`          | what is known about one resource                          |
 | `POST /batch`              | every question asked about many things; see below        |
 
 ### A slug is the identity and the path is the address
@@ -301,7 +295,7 @@ Absent means `mw`, the same answer a bare URL gives; an unknown value is a `400`
 fallback to another view. It stays the one variant dimension either way.
 
 **The CDN is the exception, and it is not one.** There a path _is_ the key --
-`/{type}/{hash}.{ext}` -- and the whole cache policy is derived from its shape, so moving a hash
+`/object/{cid}.{ext}` -- and the whole cache policy is derived from its shape, so moving a hash
 into a query would take away the thing that decides how long it may be held. The rule above is
 about questions; the CDN serves addresses. See [delivery.md](delivery.md).
 

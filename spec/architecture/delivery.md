@@ -72,8 +72,9 @@ input, and a clock in the bytes would make the same request return different arc
 
 **AVIF is the usual storage format, not the only one.** This section said only AVIF is stored
 and that was wrong: `cms image` writes a flat-colour original as PNG, because lossy coding is
-the wrong tool for it -- [data.md](data.md) records the same fact from the article's side, in
-the rule that an asset stored as PNG must not be referenced as AVIF. So `/object/{cid}.avif` and
+the wrong tool for it. An article cannot get this wrong from its side, because a reference names
+a resource id and carries no format at all -- which format the CDN serves is settled at compile
+time from the record. So `/object/{cid}.avif` and
 `/object/{cid}.png` are each a direct hit or a refusal, and nothing probes for the other: the
 worker used to try every decodable format to find out which one was written, and `/derive` is
 told the source in full instead. Asking for an AVIF that was never written is a 404, which is
@@ -179,10 +180,11 @@ is one shape, and the year it keeps is the year its name earns.
 
 ### And the policy is derived from the key, not decided per route
 
-That trap generalises, and it is now the worker's one cache rule: **a content-addressed key
-answered `2xx` gets a year and `immutable`; everything else gets five minutes.** Nothing is
-looked up in a table, so a new object type arrives with the right policy and no decision to
-remember.
+That trap generalises, and it is now the worker's one cache rule, which has three rows and no
+exceptions: **a settled answer -- `2xx` or `3xx` -- keeps a year and `immutable` if its key carries
+a hash and an hour if it does not; anything that is not a settled answer keeps five minutes.**
+Nothing is looked up in a table, so a new object type arrives with the right policy and no decision
+to remember.
 
 The paragraph above was once the same statement made twice about fonts, and this is that
 observation applied to every key the bucket holds. **Nothing keeps a long life without a hash any
@@ -207,8 +209,9 @@ minutes stale is two answers to one question.
 
 **Every one of those three has since stopped needing the rule**, which is the better answer than
 tuning a number: the icons, the notice and the cards are all content-addressed now and all keep a
-year. What is left on five minutes is the addresses that name rather than identify -- the
-metadata bucket's root, and the refusals.
+year. An address that names rather than identifies keeps the hour that the middle row of the rule
+above gives it -- the metadata bucket's root, and anything proxied. What is left on five minutes is
+the refusals, and everything else that is not a settled answer.
 
 ## The CDN is four route groups and a refusal
 
@@ -264,7 +267,7 @@ more change than the bytes can.
 
 Two answers sit outside the rule and say so. `/favicon.ico` keeps a year with no hash in it -- the
 one exception on this host, and it carries a promise: what moves is what the alias layer answers,
-and that keeps its own hour. And a `502` from anything that had to reach another host is
+and that keeps its own five minutes. And a `502` from anything that had to reach another host is
 `no-store`, because status alone cannot tell it from a `400` about a malformed address, and only
 one of the two is worth forgetting immediately.
 
@@ -397,8 +400,9 @@ file now has one object, not two, without anything being written to notice that.
 
 ## Release assets are proxied, for one account
 
-`/github/release/{repo}/{tag}/{asset}` serves a file attached to a GitHub release, fetched live
-from `github.com/{owner}/{repo}/releases/download/{tag}/{asset}` and held at the edge. `latest`
+`/proxy/github/release/{repo}/{tag}/{asset}` serves a file attached to a GitHub release, fetched
+live from `github.com/{owner}/{repo}/releases/download/{tag}/{asset}` and held at the edge. The
+older `/github/*` spelling is a method-preserving `308` to it and nothing more. `latest`
 as the tag takes GitHub's own alias for the newest non-prerelease. jsDelivr already serves a
 repository's files at a tag, a branch or a commit, so those are not proxied here; a release
 asset is the one thing it does not carry.
@@ -408,13 +412,11 @@ in the CDN's path to name another, which is how "only my repositories" is enforc
 checked. A repository the account does not have, a tag that was never cut and an asset that was
 never attached are all one answer from GitHub, 404, and the proxy says the same.
 
-**A moving tag is held for minutes; a version for an hour.** `nightly`, `weekly`, `monthly`,
-`stable`, `beta`, `dev`, `canary` and `latest`, in lowercase, name a release that is rewritten in
-place, so what their assets held an hour ago is a different file: a hit is kept five minutes and
-a miss one. Any other tag is read as a version, whose bytes will not change: an hour, and five
-minutes for a miss, which is the CDN's usual life for an error. The list is exact -- `Nightly`
-is a version as far as this is concerned -- because guessing at case would be guessing at
-intent.
+**A proxied file is a name, so it keeps the hour**, whatever its tag says. There was once a list
+of moving tags here -- `nightly`, `latest` and six others -- held for five minutes while a version
+took an hour. `/proxy` gave that up when the policy moved into the key, and the cost was accepted
+rather than overlooked: an avatar and a `nightly` are each an hour stale now instead of five
+minutes. A miss takes the CDN's usual five minutes, like every other refusal.
 
 **A ranged download is answered from one upstream fetch.** The whole file is stored at the edge
 under its plain URL, and the cache answers a `Range` request out of it with a 206, so a client

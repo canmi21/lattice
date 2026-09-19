@@ -196,7 +196,7 @@ observe that would change the answer.
 
 **The two import commands edit `contents/**/*.md`, and nothing else does.** `cms image` and
 `cms video` each do it because an author wrote a temporary filename -- `![](shot.png)`,
-`![](take-3.mov)` -- and the reference has to become the content id once the asset is derived;
+`![](take-3.mov)` -- and the reference has to become the resource id once the asset is derived;
 [video/run.rs](../apps/cms/src/video/run.rs) calls the same `rewrite_references` `cms image` does.
 A test asserts the pair, and a third writer of `Articles` would fail it. Every other task reading
 `Articles` declares `after: ["image"]` largely to stay clear of that rewrite.

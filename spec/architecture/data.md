@@ -197,11 +197,13 @@ missing and what is no longer wanted are all answers to one question: which asse
 articles reference. Something nothing links to is not an asset, it is a leftover.
 
 An image reference is its own state. It either names a file -- looked for under `data/source/image`,
-where originals are kept and never published -- or it is `{cid}.{ext}`, a content id and the
-format that was actually produced. `cms image` turns the first into the second, and that
-rewrite is the record that the work is done. No log beside the article can drift from it,
-because there is no log. The extension is corrected on later runs too: it is a claim about
-what the CDN will serve, and an asset stored as PNG must not be referenced as AVIF.
+where originals are kept and never published -- or it is a resource id, the five characters the
+record answers to. `cms image` turns the first into the second, and that rewrite is the record
+that the work is done. No log beside the article can drift from it, because there is no log.
+**A reference carries no extension at all.** Which format the CDN serves is settled at compile
+time from the record, so a format written into the source would be a claim the article is in no
+position to make -- and a reference written before rids existed, naming a cid and a format, is
+corrected to the granted id on a later run.
 
 A linkcard's `favicon` attribute is the opposite -- an instruction to the collector, naming
 where a site's icon should come from when its own is not wanted. `cms favicon` resolves it
@@ -339,12 +341,6 @@ the second and compares. It replaced a pair of tables that had drifted: clips ar
 the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
 404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
 
-**One table says which types exist**, `PUBLIC_TYPES` in `libs/artifacts`, and a test walks every
-row and fails until that type is routed, so the next one cannot be added silently. A type that
-stores one format and needs nothing done to it is routed from the table rather than written out:
-`video` and `captions` are both that. `image` keeps a route of its own because it decodes and
-re-encodes, and `license` because it also answers for a named aggregate.
-
 ### One bucket holds records and the other holds bytes
 
 Two buckets, and the split is not about size -- the records are under half a percent of the bytes.
@@ -352,7 +348,7 @@ It is about **which credentials can reach which**.
 
 | | holds | read by | keys |
 | --- | --- | --- | --- |
-| `metadata` | `state/index.json`, `meta/{cid}.json` | the API | names, rewritten in place |
+| `metadata` | `state/index.json`, `meta/{rid}.json` | the API | names, rewritten in place |
 | `objects` | everything content-addressed | the CDN | content ids, never rewritten |
 
 **Each is named for what it holds.** The first was `public`, chosen when one local path matched
@@ -437,8 +433,8 @@ SBOM by: `pkg:npm/%40sveltejs/kit@2.0.0`, `pkg:cargo/serde@1.0.219`. Two registr
 same question in different shapes, and adopting the settled vocabulary avoids inventing an
 identity scheme whose escaping rules would then be ours to regret.
 
-**The texts are content addressed**, stored under `license/{ab}/{cd}/{cid}.txt` and served as
-`/license/{cid}.txt`, exactly like an image and with the fanout hidden the same way. The
+**The texts are content addressed**, stored under `{ab}/{cd}/{cid}.txt` and served as
+`/object/{cid}.txt`, exactly like an image and by exactly the same route. The
 registry, the package and the version appear nowhere in a key. That is the rule
 above applied rather than an exception to it: package coordinates are not one shape across
 registries -- a scoped npm name carries a slash, a Maven coordinate a colon, a Go module a
@@ -451,10 +447,12 @@ Texts are published exactly as they were shipped. Normalising line endings would
 better and would also mean publishing a licence its author did not write, which is not a trade
 available on a legal text.
 
-`license/full.txt` is the exception that proves the layout: one aggregate holding every notice
-in full, named rather than content addressed, like an OpenGraph card. It is what the permissive
-licences actually ask for -- reproducible in one fetch -- and assembling it per request would
-mean a Worker fetching several hundred objects.
+The aggregate is not an exception to any of this, and it used to be. One object holds every notice
+in full -- built as `data/build/licenses-full.txt` and published content-addressed like everything
+else, then reached by the permanent name `licenses.txt` through the alias layer's `/symlink`. It is
+what the permissive licences actually ask for -- reproducible in one fetch -- and assembling it per
+request would mean a Worker fetching several hundred objects. The name it is reached by moves; the
+bytes it resolves to never do.
 
 Only `data/build/licenses.json` is committed; the texts are published bytes and stay out of
 git like every other asset. The record is produced locally because the crate half reads the

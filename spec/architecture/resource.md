@@ -54,7 +54,8 @@ lock that table already has. No new machinery. See [../tasks.md](../tasks.md).
 is consulted at allocation, where it costs one comparison. Changing a rid afterwards is a breaking
 change, which is the reason to spend the comparison now.
 
-**A rid is never in a public address.** The CDN serves `/{type}/{cid}.{ext}` and nothing else, so
+**A rid is never in a public address.** The CDN serves `/object/{cid}.{ext}` and
+`/derive/{cid}.{ext}.{ext}` and nothing else, so
 everything content addressing buys -- a year, `immutable`, no invalidation -- is untouched by any
 of this. A rid is resolved to cids before a reader is told anything.
 

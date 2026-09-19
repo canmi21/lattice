@@ -82,8 +82,10 @@ because a draft references it. So the bytes reach the CDN before the article doe
 is published there is nothing left to wait for -- which matters most for a clip, where the wait
 would be minutes of AV1 encoding.
 
-**The difference from a card is guessability, not publicness.** A card is `opengraph/{view}/{slug}.png`
-and anyone holding the slug can write the address, which is why a draft gets none. A rung or a
+**The difference from a card is what an address is drawn for, not publicness.** A card exists to
+be handed to a crawler, so drawing one for a draft would be preparing a public answer about
+something nobody decided to publish -- which is why a draft gets none, and the reason survives the
+cards becoming content-addressed rather than depending on it. A rung or a
 variant is addressed by the hash of its own bytes: there is no address to derive from the article,
 and the space is not one anything can walk -- the CDN rate-limits, so a client working through even
 a sliver of it is stopped long before it arrives anywhere. Published bytes with no address anybody
