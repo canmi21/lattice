@@ -1,18 +1,29 @@
 /**
  * Resolving an image reference into everything the markup needs, at build time.
  *
- * Articles reference an image by the content id of its original. The manifest holds the
- * variants derived from it, so the page can carry an exact `srcset` and its own placeholder
- * without the images being present in the repository or a single request being made to
- * discover their dimensions.
+ * An article names a resource and the manifest holds what was derived from it, so a page can
+ * carry an exact `srcset` and its own placeholder without the images being present in the
+ * repository or a single request being made to discover their dimensions.
  *
- * A video comes out of the same manifest by the same id, with `type` as the discriminant: its
- * rungs, poster and text tracks come back where a picture's variants and thumbhash would. A
- * diagram is resolved here too and is not an asset at all -- an article carries its source
- * inline -- but the question is the same one, asked of the same kind of record: what does this
- * picture say, in this view's language.
+ * Which kind of thing a reference found is the record's own chain to say: a picture answers
+ * under `image` and a clip under `video`, and each resolver here refuses the other's kind
+ * rather than half-reading it. A diagram is resolved here too and is not an asset at all -- an
+ * article carries its source inline -- but the question is the same one: what does this picture
+ * say, in this view's language.
  */
-import type { CaptionKind, VideoRung, VideoTrack } from '@canmi/artifacts/types';
+import {
+	aspect,
+	best,
+	height,
+	isResourceId,
+	parseResource,
+	requireSegment,
+	width,
+	type ImageLayer,
+	type ParsedResource,
+	type VideoLayer,
+} from '@canmi/artifacts';
+import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
 
 import { sourceFingerprint } from './assemble.ts';
 
@@ -66,60 +77,42 @@ export type Resolved = {
 };
 
 /**
- * A picture's record, as `data/record/metadata.json` holds it.
+ * Every record this build could read, under both of the ids one is asked for by.
  *
- * Only the fields the markup needs are declared. The record carries EXIF, byte counts and the
- * quality each variant was encoded at, and none of them reaches a page.
+ * Two maps built in one pass rather than a scan per lookup. A rid names the thing and an
+ * original's cid names bytes it was made from; nothing converts one into the other, so both are
+ * indexed and the reference decides which is consulted. See spec/architecture/resource.md.
  */
-type ImageRecord = {
-	type: 'image';
-	thumbhash: string;
-	source: {
-		width: number;
-		height: number;
-		ratio: string;
-		/** Integrated loudness in LUFS and true peak in dBTP, when apps/cms has measured them. */
-		loudness?: number;
-		peak?: number;
-	};
-	variants: Record<string, { mime: string; width: number }>;
+export type AssetLibrary = {
+	byResource: Map<string, ParsedResource>;
+	byOrigin: Map<string, ParsedResource>;
 };
 
 /**
- * A clip's record, which is a different shape rather than a picture's with holes in it.
+ * Read `data/record/metadata.json` into that library, refusing the shape from before the ids.
  *
- * `duration`, `frameRate`, `frames` and `audio` are on the record and deliberately not here.
- * Nothing renders them today: the frame count is the denominator of the progress bar the
- * software-decode path would show, and that path is decided and not built. See
- * spec/architecture/video/pipeline.md.
+ * The refusal is the point: a record with no `layers` is a manifest that has not been through
+ * `cms migrate`, and reading it optimistically would resolve every picture to nothing -- which
+ * is how a whole corpus of missing images arrives with nobody told. The twin of the loader in
+ * `apps/cms/src/image/manifest.rs`, which refuses the same shape in the same words.
  */
-type VideoRecord = {
-	type: 'video';
-	source: {
-		width: number;
-		height: number;
-		ratio: string;
-		/** Integrated loudness in LUFS and true peak in dBTP, when apps/cms has measured them. */
-		loudness?: number;
-		peak?: number;
-	};
-	/** The content id of the poster frame, which is an ordinary image asset with its own record. */
-	poster: string;
-	variants: Record<string, { mime: string; width: number; height: number; codec: string }>;
-	captions?: Record<string, { mime: string; language: string; kind: CaptionKind }>;
-};
-
-/**
- * What a text track is. HTML's own set, narrowed to the three a clip here can carry.
- *
- * Trusted off the record rather than checked, the same way a `mime` is trusted to index the
- * tables above: apps/cms writes this field from a closed set, and a fourth value arriving here
- * is a change on that side to make deliberately rather than something to repair on this one.
- */
-
-export type AssetManifest = {
-	media: Record<string, ImageRecord | VideoRecord>;
-};
+export function readAssets(manifest: unknown): AssetLibrary {
+	const { media = {} } = (manifest ?? {}) as { media?: Record<string, unknown> };
+	const library: AssetLibrary = { byResource: new Map(), byOrigin: new Map() };
+	for (const [key, record] of Object.entries(media)) {
+		if (typeof record !== 'object' || record === null || !('layers' in record)) {
+			throw new Error(`\`${key}\` has no resource id -- run \`cms migrate\` first`);
+		}
+		const asset = parseResource(record);
+		library.byResource.set(asset.resource, asset);
+		// Every original rather than the newest alone: re-scanning a subject adds one to the
+		// list, and an article written before that scan still names the cid it was imported as.
+		for (const origin of requireSegment(asset, 'media').origin) {
+			library.byOrigin.set(origin.blake3, asset);
+		}
+	}
+	return library;
+}
 
 export type MediaManifest = {
 	media: Record<
@@ -136,14 +129,36 @@ export type MediaManifest = {
 	>;
 };
 
-/** Strip any extension an article wrote, leaving the content id. */
-function idOf(reference: string): string {
-	return (
-		reference
-			.split('/')
-			.pop()
-			?.replace(/\.[a-z0-9]+$/i, '') ?? reference
-	);
+/**
+ * A reference that has been through the pipeline, in both the forms a corpus holds.
+ *
+ * `{cid}.{ext}` is what an article named before the ids, and that cid is an original's. A rid
+ * carries no extension at all, which is what says it is one: which format gets served is the
+ * build's decision now. The twin of `resolved` and `resource` in `apps/cms/src/refs.rs`, which
+ * answers the same two forms for the commands on that side.
+ */
+const RESOLVED = /^([0-9a-f]{32})\.[a-z0-9]+$/;
+
+function found(library: AssetLibrary, reference: string): ParsedResource | undefined {
+	const value = reference.split('/').pop() ?? reference;
+	if (isResourceId(value)) return library.byResource.get(value);
+	const cid = RESOLVED.exec(value)?.[1];
+	return cid ? library.byOrigin.get(cid) : undefined;
+}
+
+/**
+ * What `media.yaml` says about a resource, in the view being compiled.
+ *
+ * Found by the original's cid and not by the rid: that file is authored beside the record and
+ * is still filed the way it always was, which `origin_cid` in `apps/cms/src/image/manifest.rs`
+ * is the same lookup for on that side.
+ */
+function entryOf(
+	asset: ParsedResource,
+	media: MediaManifest,
+): MediaManifest['media'][string] | undefined {
+	const cid = requireSegment(asset, 'media').origin.at(-1)?.blake3;
+	return cid ? media.media[cid] : undefined;
 }
 
 function url(cdnUrl: string, cid: string, mime: string): string {
@@ -164,12 +179,19 @@ function published(cdnUrl: string, prefix: string, cid: string, mime: string): s
 }
 
 /**
- * The variants of an image, ordered by width, as a `srcset` plus the largest as `src`.
+ * The variants a `srcset` can name, smallest first.
  *
- * Returns null for a reference the manifest does not know, which is what happens to an
- * article written before its image was imported. The caller falls back to a plain `img` so
- * the page still renders rather than failing the build.
+ * Only the ones with pixels, because a `w` descriptor is a pixel count and a vector has none to
+ * state -- it is the `src`, and one file that serves every width needs no candidates beside it.
+ * Which mimes those are is the image layer's to know and never this file's; see
+ * spec/architecture/resource.md, "The image layer answers in four steps".
  */
+function rungs(image: ImageLayer): { content: string; mime: string; width: number }[] {
+	return image.variants
+		.flatMap((file) => (file.resolution ? [{ ...file, width: file.resolution.width }] : []))
+		.toSorted((a, b) => a.width - b.width);
+}
+
 /**
  * Every diagram the CMS has described, keyed by the checksum of the source that draws it.
  *
@@ -208,8 +230,16 @@ export function createDiagramResolver(
 	return (source) => byFingerprint.get(sourceFingerprint(encoder.encode(source)));
 }
 
+/**
+ * Everything the markup needs about a picture, or null for a reference nothing resolves.
+ *
+ * Null is what an article written before its image was imported gets, and the caller falls back
+ * to a plain `img` so the page still renders rather than failing the build. A clip named where
+ * a picture belongs gets the same answer: the chain says which kind of thing was found, and
+ * half-reading the other kind is what produced a broken `srcset` rather than a fallback.
+ */
 export function createAssetResolver(
-	assets: AssetManifest,
+	assets: AssetLibrary,
 	media: MediaManifest,
 	previews: ReadonlyMap<string, string>,
 	/**
@@ -224,28 +254,30 @@ export function createAssetResolver(
 	descriptionLocale = 'en-US',
 ): (reference: string) => Resolved | null {
 	return (reference) => {
-		const id = idOf(reference);
-		const asset = assets.media[id];
-		// A clip named where a picture belongs resolves to nothing rather than to a broken
-		// `srcset`, and the caller falls back the same way it does for an id nobody has imported.
-		if (!asset || asset.type === 'video') return null;
+		const asset = found(assets, reference);
+		const image = asset?.layers.image;
+		if (!asset || !image) return null;
 
-		const variants = Object.entries(asset.variants).toSorted(([, a], [, b]) => a.width - b.width);
-		const largest = variants.at(-1);
-		if (!largest) return null;
+		// The file to serve at the picture's own size, which is the largest rung that is never
+		// enlarged -- asked of the layer rather than worked out here, so nothing in this file has
+		// to know which mimes scale. A picture with no variants derived yet has no answer.
+		const file = best(image, width(image));
+		if (!file) return null;
 
 		return {
-			src: url(cdnUrl, largest[0], largest[1].mime),
-			srcset: variants.map(([cid, v]) => `${url(cdnUrl, cid, v.mime)} ${v.width}w`).join(', '),
-			// The original's dimensions, not the largest variant's: they share a ratio, and this is
-			// what the browser needs to reserve the right box before anything loads.
-			width: asset.source.width,
-			height: asset.source.height,
-			ratio: asset.source.ratio,
-			preview: previews.get(asset.thumbhash) ?? '',
+			src: url(cdnUrl, file.content, file.mime),
+			srcset: rungs(image)
+				.map((rung) => `${url(cdnUrl, rung.content, rung.mime)} ${rung.width}w`)
+				.join(', '),
+			// The intrinsic box, not the chosen variant's: they share an aspect, and this is what
+			// the browser needs to reserve the right space before anything loads.
+			width: width(image),
+			height: height(image),
+			ratio: aspect(image),
+			preview: previews.get(image.thumbhash) ?? '',
 			// media.yaml owns these translations independently from article segments. Selecting the
 			// matching value here makes each compiled view carry its own accessible fallback text.
-			description: media.media[id]?.description?.[descriptionLocale]?.text,
+			description: entryOf(asset, media)?.description?.[descriptionLocale]?.text,
 		};
 	};
 }
@@ -311,7 +343,7 @@ const PEAK_CEILING = -1;
  * towards the target and stops at the point where its loudest instant would distort -- measured
  * on this corpus, one clip wants 1.93 and is held to 1.81 by its own peak.
  */
-function levelling(source: VideoRecord['source']): number {
+function levelling(source: VideoLayer['source']): number {
 	if (source.loudness === undefined || source.peak === undefined) return 1;
 	const byLoudness = 10 ** ((LOUDNESS_TARGET - source.loudness) / 20);
 	const byPeak = 10 ** ((PEAK_CEILING - source.peak) / 20);
@@ -327,7 +359,7 @@ function levelling(source: VideoRecord['source']): number {
  * here is therefore true of a poster without being said twice.
  */
 export function createVideoResolver(
-	assets: AssetManifest,
+	assets: AssetLibrary,
 	media: MediaManifest,
 	previews: ReadonlyMap<string, string>,
 	/** Which CDN the markup should name; see createAssetResolver. */
@@ -336,42 +368,44 @@ export function createVideoResolver(
 ): (reference: string) => ResolvedVideo | null {
 	const resolvePoster = createAssetResolver(assets, media, previews, cdnUrl, descriptionLocale);
 	return (reference) => {
-		const id = idOf(reference);
-		const asset = assets.media[id];
-		if (asset?.type !== 'video') return null;
+		const asset = found(assets, reference);
+		const video = asset?.layers.video;
+		if (!asset || !video) return null;
 
-		const poster = resolvePoster(asset.poster);
-		const entry = media.media[id];
+		// A rid, which is what makes this a reference like any other: the cover is a resource of
+		// its own, and the resolver above answers it without being told it is a poster.
+		const poster = resolvePoster(video.cover);
+		const entry = entryOf(asset, media);
 		return {
 			// By height, because a tier is one axis: a vertical clip sorted by width snaps to the
 			// wrong order. See spec/architecture/video/pipeline.md.
-			rungs: Object.entries(asset.variants)
-				.toSorted(([, a], [, b]) => a.height - b.height)
-				.map(([cid, variant]) => ({
-					src: published(cdnUrl, 'video', cid, variant.mime),
+			rungs: video.variants
+				.toSorted((a, b) => a.resolution.height - b.resolution.height)
+				.map((variant) => ({
+					src: published(cdnUrl, 'video', variant.content, variant.mime),
 					// The full codec string, not the bare container type. `<source>` is selected on
 					// this alone, so `video/mp4` would claim every browser can play the file and
 					// hand AV1 to one that cannot; with the codec named, a browser that cannot
 					// decode it rejects the source itself and fetches nothing.
 					type: `${variant.mime}; codecs="${variant.codec}"`,
-					width: variant.width,
-					height: variant.height,
+					width: variant.resolution.width,
+					height: variant.resolution.height,
 				})),
-			width: asset.source.width,
-			height: asset.source.height,
+			width: video.source.width,
+			height: video.source.height,
 			// The largest rendition. `poster` takes one URL and has no `srcset`, so one has to be
 			// chosen here rather than by the browser, and the largest is the only one that is
 			// never enlarged -- an AVIF still costs tens of kilobytes at any of them.
 			poster: poster?.src,
 			preview: poster?.preview,
-			captions: Object.entries(asset.captions ?? {}).map(([cid, caption]) => ({
-				src: published(cdnUrl, 'captions', cid, caption.mime),
-				kind: caption.kind,
-				language: caption.language,
+			captions: video.tracks.map((track) => ({
+				src: published(cdnUrl, 'captions', track.content, track.mime),
+				kind: track.kind,
+				language: track.language,
 			})),
 			description: entry?.description?.[descriptionLocale]?.text,
 			source: entry?.source,
-			gain: levelling(asset.source),
+			gain: levelling(video.source),
 		};
 	};
 }

@@ -2,12 +2,13 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { sourceFingerprint } from './assemble';
+import { aspect, best, width } from '@canmi/artifacts';
 import {
 	createAssetResolver,
 	createDiagramResolver,
 	createVideoResolver,
 	EXTENSION,
-	type AssetManifest,
+	readAssets,
 	type MediaManifest,
 } from './assets';
 
@@ -76,44 +77,141 @@ it('finds a diagram by the checksum the CMS wrote, over the block source it fing
 });
 
 /**
- * A clip and the picture that posters it, as the manifest holds the pair.
+ * A clip, the picture that posters it, and the two ids each of them answers to.
  *
- * The rungs are written largest first on purpose: the order the markup needs is the resolver's
+ * Two, because a record has two: the rid names the thing and an article spells it, and the cid
+ * beneath names the bytes it was imported from, which is what `media.yaml` is still keyed by.
+ * The rungs are written largest first on purpose -- the order the markup needs is the resolver's
  * decision, not the record's, and a fixture that already agreed with it would prove nothing.
  */
-const LIBRARY = {
+const COVER = 'k7m2x';
+const CLIP = 'q3f8d';
+const SILENT = 'w4n1c';
+const IMPORTED = { cover: 'a'.repeat(32), clip: 'b'.repeat(32), silent: 'c'.repeat(32) };
+const FILE = {
+	small: '1'.repeat(32),
+	large: '2'.repeat(32),
+	tall: '3'.repeat(32),
+	short: '4'.repeat(32),
+	only: '5'.repeat(32),
+	spoken: '6'.repeat(32),
+};
+const WHEN = '2026-09-14T02:55:32.15685Z';
+
+function record(resource: string, type: string, layers: Record<string, unknown>) {
+	return { version: 5, resource, type, created: WHEN, updated: WHEN, layers };
+}
+
+function imported(blake3: string, mime: string) {
+	return { version: 1, origin: [{ blake3, mime, bytes: 1000 }] };
+}
+
+const LIBRARY = readAssets({
+	version: 5,
 	media: {
-		poster: {
-			type: 'image',
-			thumbhash: 'AAAA',
-			source: { width: 1920, height: 1080, ratio: '16:9' },
-			variants: {
-				small: { mime: 'image/avif', width: 640 },
-				large: { mime: 'image/avif', width: 1920 },
+		[IMPORTED.cover]: record(COVER, 'media.image.frame', {
+			media: imported(IMPORTED.cover, 'image/png'),
+			image: {
+				version: 1,
+				thumbhash: 'AAAA',
+				dimension: { width: 1920, height: 1080, aspect: '16:9' },
+				resolution: { width: 1920, height: 1080 },
+				variants: [
+					{
+						content: FILE.large,
+						mime: 'image/avif',
+						bytes: 400,
+						resolution: { width: 1920, height: 1080 },
+					},
+					{
+						content: FILE.small,
+						mime: 'image/avif',
+						bytes: 100,
+						resolution: { width: 640, height: 360 },
+					},
+				],
 			},
-		},
-		clip: {
-			type: 'video',
-			source: { width: 3840, height: 2160, ratio: '16:9' },
-			poster: 'poster',
-			variants: {
-				tall: { mime: 'video/mp4', width: 3840, height: 2160, codec: 'av01.0.13M.08' },
-				short: { mime: 'video/mp4', width: 1920, height: 1080, codec: 'av01.0.05M.08' },
+			frame: { version: 1, source: CLIP },
+		}),
+		[IMPORTED.clip]: record(CLIP, 'media.video.clip', {
+			media: imported(IMPORTED.clip, 'video/quicktime'),
+			video: {
+				version: 1,
+				source: {
+					mime: 'video/quicktime',
+					width: 3840,
+					height: 2160,
+					aspect: '16:9',
+					bytes: 5000,
+					duration: 4,
+					frame_rate: 30,
+					frames: 120,
+					audio: true,
+				},
+				cover: COVER,
+				variants: [
+					{
+						content: FILE.tall,
+						mime: 'video/mp4',
+						bytes: 5000,
+						resolution: { width: 3840, height: 2160 },
+						codec: 'av01.0.13M.08',
+					},
+					{
+						content: FILE.short,
+						mime: 'video/mp4',
+						bytes: 2000,
+						resolution: { width: 1920, height: 1080 },
+						codec: 'av01.0.05M.08',
+					},
+				],
+				tracks: [
+					{
+						content: FILE.spoken,
+						mime: 'text/vtt',
+						language: 'en',
+						kind: 'captions',
+						bytes: 40,
+					},
+				],
 			},
-			captions: { spoken: { mime: 'text/vtt', language: 'en', kind: 'captions' } },
-		},
-		silent: {
-			type: 'video',
-			source: { width: 1280, height: 720, ratio: '16:9' },
-			poster: 'poster',
-			variants: { only: { mime: 'video/mp4', width: 854, height: 480, codec: 'av01.0.04M.08' } },
-		},
+			clip: { version: 1 },
+		}),
+		[IMPORTED.silent]: record(SILENT, 'media.video.clip', {
+			media: imported(IMPORTED.silent, 'video/quicktime'),
+			video: {
+				version: 1,
+				source: {
+					mime: 'video/quicktime',
+					width: 1280,
+					height: 720,
+					aspect: '16:9',
+					bytes: 900,
+					duration: 2,
+					frame_rate: 30,
+					frames: 60,
+					audio: false,
+				},
+				cover: COVER,
+				variants: [
+					{
+						content: FILE.only,
+						mime: 'video/mp4',
+						bytes: 900,
+						resolution: { width: 854, height: 480 },
+						codec: 'av01.0.04M.08',
+					},
+				],
+				tracks: [],
+			},
+			clip: { version: 1 },
+		}),
 	},
-} satisfies AssetManifest;
+});
 
 const SAID = {
 	media: {
-		clip: {
+		[IMPORTED.clip]: {
 			description: { 'en-US': { text: 'A hand turns the machine over.' } },
 			source: { url: 'https://example.com/film', label: 'Example' },
 		},
@@ -126,6 +224,10 @@ function videos(locale = 'en-US') {
 	return createVideoResolver(LIBRARY, SAID, PREVIEWS, 'https://cdn.example', locale);
 }
 
+function pictures(locale = 'en-US') {
+	return createAssetResolver(LIBRARY, SAID, PREVIEWS, 'https://cdn.example', locale);
+}
+
 /**
  * The two things a `<source>` cannot work out for itself.
  *
@@ -135,16 +237,16 @@ function videos(locale = 'en-US') {
  * pre-hydration answer: smallest first, which is the rung the article column was measured for.
  */
 it('returns the rungs smallest first, each naming its codec', () => {
-	const clip = videos()('clip.mp4');
+	const clip = videos()(CLIP);
 	expect(clip?.rungs).toEqual([
 		{
-			src: 'https://cdn.example/video/short.mp4',
+			src: `https://cdn.example/video/${FILE.short}.mp4`,
 			type: 'video/mp4; codecs="av01.0.05M.08"',
 			width: 1920,
 			height: 1080,
 		},
 		{
-			src: 'https://cdn.example/video/tall.mp4',
+			src: `https://cdn.example/video/${FILE.tall}.mp4`,
 			type: 'video/mp4; codecs="av01.0.13M.08"',
 			width: 3840,
 			height: 2160,
@@ -157,51 +259,128 @@ it('returns the rungs smallest first, each naming its codec', () => {
 /**
  * A poster is an ordinary picture, and this is what saying so buys.
  *
- * It goes back through the image resolver rather than being addressed directly, so its rendition
- * and its placeholder are the ones every other reference to it would get. `poster` takes one URL
- * and has no `srcset`, so the largest is chosen here -- the only one that is never enlarged.
+ * `cover` is a rid, so it goes back through the image resolver as any other reference does and
+ * its rendition and placeholder are the ones every reference to it would get. `poster` takes one
+ * URL and has no `srcset`, so the file is chosen here -- the one that is never enlarged.
  */
 it('resolves the poster through the picture it is', () => {
-	const clip = videos()('clip.mp4');
-	expect(clip?.poster).toBe('https://cdn.example/image/large.avif');
+	const clip = videos()(CLIP);
+	expect(clip?.poster).toBe(`https://cdn.example/image/${FILE.large}.avif`);
 	expect(clip?.preview).toBe('data:image/webp;base64,PLACEHOLDER');
 });
 
 /** Flat URLs, and a track named by what the record says it is rather than by a label. */
 it('addresses a text track by its own id, and a clip without one carries none', () => {
-	expect(videos()('clip.mp4')?.captions).toEqual([
-		{ src: 'https://cdn.example/captions/spoken.vtt', kind: 'captions', language: 'en' },
+	expect(videos()(CLIP)?.captions).toEqual([
+		{ src: `https://cdn.example/captions/${FILE.spoken}.vtt`, kind: 'captions', language: 'en' },
 	]);
-	expect(videos()('silent.mp4')?.captions).toEqual([]);
+	expect(videos()(SILENT)?.captions).toEqual([]);
+});
+
+/**
+ * The intrinsic box and every rung under it, which is what the markup reserves space with.
+ *
+ * The widths come off each variant's own resolution and the box off the layer's `dimension`, and
+ * they are different facts: the picture is what the page lays out for, the variants are what it
+ * may be served as, and the largest of those is no more the box than the smallest is.
+ */
+it('names every rung by its width, under the box the picture itself declares', () => {
+	const cover = pictures()(COVER);
+	expect(cover).toMatchObject({
+		src: `https://cdn.example/image/${FILE.large}.avif`,
+		srcset: `https://cdn.example/image/${FILE.small}.avif 640w, https://cdn.example/image/${FILE.large}.avif 1920w`,
+		width: 1920,
+		height: 1080,
+		ratio: '16:9',
+	});
+});
+
+/**
+ * Both ways an article spells a finished reference, because a corpus holds both.
+ *
+ * A rid is what it names after `cms migrate` and `{cid}.{ext}` is what it named before, and that
+ * cid is an original's rather than the resource's. Reading only one of them would strand every
+ * reference the other way round for as long as a migration round takes -- the same two forms
+ * `apps/cms/src/refs.rs` answers on its side.
+ */
+it('answers a reference by the rid that names the thing, or the cid it was imported as', () => {
+	expect(pictures()(COVER)?.src).toBe(`https://cdn.example/image/${FILE.large}.avif`);
+	expect(pictures()(`${IMPORTED.cover}.avif`)?.src).toBe(
+		`https://cdn.example/image/${FILE.large}.avif`,
+	);
+	// A file nobody has imported, which is what an article naming one gets until `cms image` runs.
+	expect(pictures()('shot.png')).toBeNull();
 });
 
 /**
  * What the notice reads from, and the language it reads in.
  *
  * The description is the clip's own, written from frames; the source is the claim somebody made
- * about where it came from, which lives in `media.yaml` because nothing can rebuild it.
+ * about where it came from, which lives in `media.yaml` because nothing can rebuild it. Found
+ * under the original's cid, which is how that file is keyed on both sides.
  */
 it('takes the description and the source from media.yaml, in the view being compiled', () => {
-	expect(videos()('clip.mp4')?.description).toBe('A hand turns the machine over.');
-	expect(videos()('clip.mp4')?.source).toEqual({
+	expect(videos()(CLIP)?.description).toBe('A hand turns the machine over.');
+	expect(videos()(CLIP)?.source).toEqual({
 		url: 'https://example.com/film',
 		label: 'Example',
 	});
 	// Nobody has translated it, so the view falls back to nothing rather than to English. The
 	// caller's fallback is a video with no description, which is a state it already renders.
-	expect(videos('ko-KR')('clip.mp4')?.description).toBeUndefined();
+	expect(videos('ko-KR')(CLIP)?.description).toBeUndefined();
 });
 
 /**
- * `type` is the discriminant rather than a label, and this is the failure it prevents.
+ * The chain is the discriminant rather than a label, and this is the failure it prevents.
  *
- * A clip named where a picture belongs used to be a record with no `variants` worth reading; each
- * resolver now refuses the other's kind outright, and the caller falls back exactly as it does for
- * an id nobody has imported.
+ * A clip named where a picture belongs used to be a record with no variants worth reading; each
+ * resolver asks for the layer it needs and refuses the other's kind outright, so the caller falls
+ * back exactly as it does for an id nobody has imported.
  */
 it('refuses the other kind of record rather than half-reading it', () => {
-	expect(videos()('poster.avif')).toBeNull();
-	const pictures = createAssetResolver(LIBRARY, SAID, PREVIEWS, 'https://cdn.example');
-	expect(pictures('clip.mp4')).toBeNull();
-	expect(pictures('poster.avif')?.src).toBe('https://cdn.example/image/large.avif');
+	expect(videos()(COVER)).toBeNull();
+	expect(pictures()(CLIP)).toBeNull();
+});
+
+/**
+ * The manifest this site is actually built from, read by the schemas that will read it.
+ *
+ * The real file and never a fixture: what drifted apart was the shape this build declares and
+ * the shape on disk, and a fixture asserting the two agree only checks itself. Both sides of the
+ * migration are accepted and neither is a shrug -- before it the refusal has to name the command
+ * to run, after it every record has to answer what the markup asks. `apps/cms/src/image/run.rs`
+ * holds the same file to the loader on the other side.
+ */
+it('reads the committed manifest, whichever side of the migration it is on', () => {
+	const file = fileURLToPath(
+		new URL('../../../../../../data/record/metadata.json', import.meta.url),
+	);
+	const manifest = JSON.parse(readFileSync(file, 'utf8')) as { media: Record<string, object> };
+	const records = Object.values(manifest.media);
+	expect(records.length).toBeGreaterThan(0);
+
+	// All or none. `cms migrate` writes the whole manifest before it rewrites anything else, so a
+	// file holding both shapes is a run that died partway rather than a state to be tolerant of.
+	const migrated = records.filter((record) => 'layers' in record);
+	if (migrated.length === 0) {
+		expect(() => readAssets(manifest)).toThrow('cms migrate');
+		return;
+	}
+	expect(migrated).toHaveLength(records.length);
+
+	const library = readAssets(manifest);
+	expect(library.byResource.size).toBe(records.length);
+	for (const asset of library.byResource.values()) {
+		const image = asset.layers.image;
+		// Every question the markup asks of a picture, asked of every picture in the corpus: a
+		// file to serve, and a box to reserve before it arrives.
+		if (image) {
+			expect(best(image, width(image)), `${asset.resource} has nothing to serve`).toBeDefined();
+			expect(aspect(image), `${asset.resource} has no aspect`).toMatch(/^\d+:\d+$/);
+		}
+		// A cover is a rid, and the picture it names is in this same file. A cover that resolved
+		// to nothing would be a clip rendering with no poster and nothing reported.
+		const cover = asset.layers.video?.cover;
+		if (cover) expect(library.byResource.get(cover)?.layers.image, cover).toBeDefined();
+	}
 });

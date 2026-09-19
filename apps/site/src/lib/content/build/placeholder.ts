@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import encode, { init } from '@jsquash/webp/encode.js';
 import { thumbHashToRGBA } from 'thumbhash';
-import type { AssetManifest } from './assets.ts';
+import type { AssetLibrary } from './assets.ts';
 
 /**
  * The inline placeholders, all of them, encoded once at build time.
@@ -55,27 +55,28 @@ function ready(): Promise<void> {
  */
 const encoded = new Map<string, string>();
 
-export async function buildPreviews(assets: AssetManifest): Promise<Map<string, string>> {
+export async function buildPreviews(assets: AssetLibrary): Promise<Map<string, string>> {
 	await ready();
 
 	const previews = new Map<string, string>();
-	for (const asset of Object.values(assets.media)) {
-		// Pictures only. A clip has no thumbhash of its own and needs none: what stands in for it
-		// while the poster loads is the poster's, and a poster is an ordinary image asset with a
-		// record of its own already in this loop. See spec/architecture/video/pipeline.md.
-		if (asset.type !== 'image' || !asset.thumbhash || previews.has(asset.thumbhash)) continue;
-		let preview = encoded.get(asset.thumbhash);
+	for (const asset of assets.byResource.values()) {
+		// Pictures only, which is the `image` layer being there at all. A clip carries no
+		// thumbhash and needs none: what stands in for it while the poster loads is the poster's,
+		// and a poster is an ordinary picture already in this loop.
+		const thumbhash = asset.layers.image?.thumbhash;
+		if (!thumbhash || previews.has(thumbhash)) continue;
+		let preview = encoded.get(thumbhash);
 		if (preview === undefined) {
-			const bytes = Uint8Array.from(atob(asset.thumbhash), (c) => c.charCodeAt(0));
+			const bytes = Uint8Array.from(atob(thumbhash), (c) => c.charCodeAt(0));
 			const { w, h, rgba } = thumbHashToRGBA(bytes);
 			const webp = await encode(
 				{ data: new Uint8ClampedArray(rgba), width: w, height: h, colorSpace: 'srgb' },
 				{ quality: QUALITY },
 			);
 			preview = `data:image/webp;base64,${Buffer.from(webp).toString('base64')}`;
-			encoded.set(asset.thumbhash, preview);
+			encoded.set(thumbhash, preview);
 		}
-		previews.set(asset.thumbhash, preview);
+		previews.set(thumbhash, preview);
 	}
 	return previews;
 }

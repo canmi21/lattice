@@ -1,14 +1,15 @@
-import { isContentId, read, recordKey } from '@canmi/store';
+import { isResourceId } from '@canmi/artifacts';
+import { read, recordKey } from '@canmi/store';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 import { failure } from './respond';
 
 /**
- * `GET /media?cid=` -- what is known about an asset.
+ * `GET /media?rid=` -- what is known about a resource.
  *
- * The same id names bytes on the CDN and a record here, so one content id answers both
- * questions without translation between them. Written by `cms image`, published alongside the
- * variants, and read back verbatim -- one description of an asset, not two that can disagree.
+ * **Asked by resource id and never by a content id.** A cid names what the CDN serves; this
+ * record says what the thing is, survives a re-derive and is rewritten in place, so it is asked
+ * for by the id granted to the thing. See spec/architecture/resource.md, "Two ids".
  *
  * Reads through the same store as the CDN, so `mise run dev-api` answers from the local tree
  * without needing `--remote` to reach a bucket only production writes.
@@ -16,12 +17,12 @@ import { failure } from './respond';
 const image = new Hono<{ Bindings: Bindings }>();
 
 image.get('/media', async (c) => {
-	const cid = (c.req.query('cid') ?? '').toLowerCase();
-	if (!isContentId(cid)) {
-		return failure(c, 400, 'not_a_content_id', {});
+	const rid = (c.req.query('rid') ?? '').toLowerCase();
+	if (!isResourceId(rid)) {
+		return failure(c, 400, 'not_a_resource_id', {});
 	}
 
-	const found = await read(c.env, recordKey(cid));
+	const found = await read(c.env, recordKey(rid));
 	if (!found) {
 		return failure(c, 404, 'not_found', {});
 	}

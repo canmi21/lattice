@@ -7,7 +7,7 @@ import {
 	createAssetResolver,
 	createDiagramResolver,
 	createVideoResolver,
-	type AssetManifest,
+	readAssets,
 	type DiagramStore,
 	type MediaManifest,
 } from './assets.ts';
@@ -261,7 +261,7 @@ export async function buildArticles(
 	// artifacts that are wrong rather than missing. See ./slugs.ts.
 	refuseBadSlugs(files, await reservedNames(paths.routes));
 	const notes = await newTabNotes(paths.messages);
-	const assets = JSON.parse(await readFile(paths.assets, 'utf8')) as AssetManifest;
+	const assets = readAssets(JSON.parse(await readFile(paths.assets, 'utf8')));
 	const media = (parseYaml(await readFile(paths.media, 'utf8')) ?? { media: {} }) as MediaManifest;
 	// Absent until `cms diagram` has been run, which is a state the build has to survive: every
 	// consumer of a description falls back to what it said without one.
