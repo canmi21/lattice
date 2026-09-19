@@ -118,15 +118,24 @@ fn hashes_in_root(root: &Path) -> BTreeSet<String> {
 
 /// Every file under a two-hex fan-out directory, which is exactly what `storageKey` writes.
 ///
-/// A named prefix beside them -- `license/full.txt`, the cards, the fonts -- is not addressed by
-/// content and is swept, if at all, against whatever does name it.
+/// **Anything else at the objects root is refused rather than stepped over.** Everything here is
+/// content-addressed at `{ab}/{cd}/{cid}.{ext}`, so a directory that is not a fan-out segment is
+/// a shape this does not understand, and skipping it means nothing ever sweeps what is inside.
+/// A collector that cannot account for the whole tree must not go on to delete part of it. A file
+/// never reaches the test -- `directories_under` offers none -- so a `.DS_Store` fails no run.
 fn fanned_files(public: &Path) -> std::io::Result<Vec<PathBuf>> {
 	let mut found = Vec::new();
 	for directory in directories_under(public)? {
 		let name = directory.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-		if name.len() == 2 && name.bytes().all(|b| b.is_ascii_hexdigit()) {
-			found.extend(files_under(&directory)?);
+		if name.len() != 2 || !name.bytes().all(|b| b.is_ascii_hexdigit()) {
+			let shape = "every object is stored at {ab}/{cd}/{cid}.{ext}";
+			let advice = "move what is under it into the fan-out, or move it out of the objects tree";
+			return Err(std::io::Error::other(format!(
+				"{} is not a fan-out segment -- {shape}, so {advice}, then run `cms gc` again",
+				directory.display()
+			)));
 		}
+		found.extend(files_under(&directory)?);
 	}
 	Ok(found)
 }
@@ -650,6 +659,42 @@ mod tests {
 		crate::image::store::write(&path, b"woff2").expect("write");
 		let refused = plan(&root, &public, &metadata, &contents);
 		assert!(refused.is_err(), "swept font chunks with no record of them");
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn refuses_a_directory_at_the_objects_root_that_is_not_a_fan_out_segment() {
+		// Everything in the objects tree is content-addressed, so a named prefix beside the
+		// segments is the tree in a shape this does not understand. Stepping over it would mean
+		// nothing ever sweeps what is inside, for ever -- and a collector that cannot account for
+		// the whole tree must not go on to delete part of it.
+		let temporary = temp();
+		let root = temporary.path().to_path_buf();
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+
+		let public = root.join("public");
+		let metadata = root.join("metadata");
+		let contents = root.join("contents");
+		let body = "ab".repeat(16);
+		crate::image::store::write(&crate::image::store::variant_path(&public, &body, "json"), b"{}")
+			.expect("write");
+		assert!(
+			plan(&root, &public, &metadata, &contents).is_ok(),
+			"a tree of nothing but fan-out was refused"
+		);
+
+		// Files beside the segments are not directories and never reach the name test, which is
+		// what keeps a `.DS_Store` in a mirrored bucket from failing every run.
+		std::fs::write(public.join(".DS_Store"), b"finder").expect("write");
+		std::fs::write(public.join(".gitkeep"), b"").expect("write");
+		assert!(plan(&root, &public, &metadata, &contents).is_ok(), "a stray file refused a run");
+
+		std::fs::create_dir_all(public.join("license")).expect("dir");
+		std::fs::write(public.join("license/full.txt"), b"notice").expect("write");
+		let refused = plan(&root, &public, &metadata, &contents).expect_err("swept past `license`");
+		let said = refused.to_string();
+		assert!(said.contains("license"), "the error does not name the directory: {said}");
+		assert!(said.contains("fan-out segment"), "the error does not say what is wrong: {said}");
 		std::fs::remove_dir_all(&root).ok();
 	}
 

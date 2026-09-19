@@ -79,51 +79,6 @@ export function recordKey(resource: string): string {
 }
 
 /**
- * Every type a public address may name, and the extensions each may carry.
- *
- * One table over what used to be two: the corpus knew `content`, `page` and `markdown`, the
- * bucket knew `image`, `video`, `captions` and `license`, and nothing knew all of them at once --
- * so the CDN had two shapes of route for one shape of address. The type is decorative in the
- * lookup and load-bearing in the reading, which is exactly why it has to be checked.
- */
-export const PUBLIC_TYPES = {
-	captions: ['vtt'],
-	content: ['json'],
-	// `svg` and `ico` are stored and never derived: the site's own marks are authored in them
-	// and there is nothing to transcode. The rest are what a picture is published or re-encoded as.
-	image: ['avif', 'webp', 'jpeg', 'png', 'svg', 'ico'],
-	license: ['txt'],
-	markdown: ['md'],
-	page: ['json'],
-	video: ['mp4'],
-} as const satisfies Record<string, readonly string[]>;
-
-export type PublicType = keyof typeof PUBLIC_TYPES;
-
-export const PUBLIC_TYPE_NAMES = Object.keys(PUBLIC_TYPES) as PublicType[];
-
-export function isPublicType(value: string): value is PublicType {
-	return Object.hasOwn(PUBLIC_TYPES, value);
-}
-
-/** Whether this type is allowed to be spelled with this extension. */
-export function typeCarries(type: PublicType, extension: string): boolean {
-	return (PUBLIC_TYPES[type] as readonly string[]).includes(extension);
-}
-
-/**
- * The one type an extension names, when there is exactly one.
- *
- * What a wrong type in an address is corrected to. `json` names two -- a compiled view and a
- * standalone page -- so an address carrying it is left alone rather than corrected to a guess;
- * the envelope inside the object is what says which it really is.
- */
-export function typeForExtension(extension: string): PublicType | undefined {
-	const found = PUBLIC_TYPE_NAMES.filter((type) => typeCarries(type, extension));
-	return found.length === 1 ? found[0] : undefined;
-}
-
-/**
  * The classifier the cache policy is derived from, rather than a table of key prefixes.
  *
  * A key that parses is content-addressed and may be held forever; one that does not is not, and
@@ -226,7 +181,6 @@ export const RootArticleSchema = v.object({
  * spec/architecture/delivery.md, "A name is resolved, never stored".
  */
 export const RootAssetSchema = v.object({
-	type: v.picklist(PUBLIC_TYPE_NAMES),
 	cid: hash,
 	extension: v.string(),
 });

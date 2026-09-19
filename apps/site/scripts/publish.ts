@@ -165,9 +165,9 @@ function paragraphs(text: string): string[] {
  * published before its card was drawn, which is a state rather than a fault.
  */
 async function drawnCards(): Promise<Record<string, string>> {
-	const record = JSON.parse(
-		await readFile(INPUTS.cards, 'utf8').catch(() => '{}'),
-	) as { cards?: Record<string, { cid?: string }> };
+	const record = JSON.parse(await readFile(INPUTS.cards, 'utf8').catch(() => '{}')) as {
+		cards?: Record<string, { cid?: string }>;
+	};
 	return Object.fromEntries(
 		Object.entries(record.cards ?? {})
 			.filter(([, card]) => typeof card.cid === 'string')
@@ -280,7 +280,7 @@ async function publishBrand(tree: Tree): Promise<Root['assets']> {
 		if (name.startsWith('.')) continue;
 		const extension = name.slice(name.lastIndexOf('.') + 1);
 		const bytes = await readFile(join(INPUTS.brand, name));
-		assets[name] = { type: 'image', cid: await tree.putBytes(bytes, extension), extension };
+		assets[name] = { cid: await tree.putBytes(bytes, extension), extension };
 	}
 	return assets;
 }
@@ -296,7 +296,7 @@ async function publishNotice(tree: Tree): Promise<Root['assets']> {
 	const bytes = await readFile(INPUTS.notice).catch(() => undefined);
 	if (!bytes) return {};
 	return {
-		'licenses.txt': { type: 'license', cid: await tree.putBytes(bytes, 'txt'), extension: 'txt' },
+		'licenses.txt': { cid: await tree.putBytes(bytes, 'txt'), extension: 'txt' },
 	};
 }
 
@@ -319,7 +319,6 @@ async function publishIcons(tree: Tree): Promise<Root['assets']> {
 			const extension = file.slice(file.lastIndexOf('.') + 1);
 			const bytes = await readFile(join(INPUTS.icons, domain.name, file));
 			assets[`favicon/${domain.name}/${tone}`] = {
-				type: 'image',
 				cid: await tree.putBytes(bytes, extension),
 				extension,
 			};
@@ -389,7 +388,11 @@ async function linkRecords(metadataDir: string, draftDir: string): Promise<void>
  */
 const objectsDir = new URL('data/bucket/objects/', ROOT);
 const roots = [
-	{ name: 'public', metadata: new URL('data/bucket/metadata/', ROOT), articles: published.articles },
+	{
+		name: 'public',
+		metadata: new URL('data/bucket/metadata/', ROOT),
+		articles: published.articles,
+	},
 	{ name: 'draft', metadata: new URL('data/bucket/draft/', ROOT), articles: drafted.articles },
 ];
 
