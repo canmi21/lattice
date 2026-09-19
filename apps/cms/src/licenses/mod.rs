@@ -190,9 +190,9 @@ pub fn record_path(repo: &Path) -> PathBuf {
 
 /// `{ab}/{cd}/{cid}.txt` in the objects tree, which is where every content-addressed thing lands.
 ///
-/// No prefix: the id already identifies it, and what kind of object it is belongs in the address
-/// the CDN serves rather than in the key. See spec/architecture/data.md, "The bucket stores
-/// content ids; the CDN serves types".
+/// No prefix: the id already identifies it, and the address a reader is given carries the same id
+/// and nothing else. See spec/architecture/data.md, "The bucket stores content ids, and so does
+/// the address".
 pub fn text_path(public_root: &Path, cid: &str) -> PathBuf {
 	crate::image::store::variant_path(public_root, cid, "txt")
 }

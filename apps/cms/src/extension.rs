@@ -47,6 +47,10 @@ pub fn for_icon(content_type: &str) -> Option<&'static str> {
 /// Every extension an icon can be stored under, in the order a lookup should try them.
 pub const ICON_EXTENSIONS: [&str; 4] = ["svg", "png", JPEG, "ico"];
 
+/// What a rung of a clip's ladder is stored under. No function, because there is nothing to
+/// decide: one codec in one container, so a second spelling would name a file nobody wrote.
+pub const VIDEO: &str = "mp4";
+
 /// The spelling, written once so the two functions above cannot drift apart on it.
 const JPEG: &str = "jpeg";
 

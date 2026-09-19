@@ -59,8 +59,8 @@ export function artifactAddress(type: ArtifactType, hash: string): string {
  * **The bucket's layout is not the CDN's URL.** A URL says `/{type}/{cid}.{ext}`; the bucket stores
  * `{ab}/{cd}/{cid}.{ext}`, because the id already identifies it and a type directory would be a
  * second place to write the same fact. The fan-out is for listing, and the extension is kept so a
- * bucket downloaded whole is still files that open. See spec/architecture/data.md, "The bucket
- * stores content ids; the CDN serves types".
+ * bucket downloaded whole is still files that open. See spec/architecture/data.md, "The
+ * bucket stores content ids, and so does the address".
  */
 export function storageKey(cid: string, extension: string): string {
 	return `${cid.slice(0, 2)}/${cid.slice(2, 4)}/${cid}.${extension}`;

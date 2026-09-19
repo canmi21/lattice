@@ -10,7 +10,7 @@
 //! that separates them, so a change here is a change there. See spec/architecture/resource.md.
 
 use super::{Derived, Variant, exif};
-use crate::resource::{self, Layered, Namespace, ResourceId};
+use crate::resource::{self, Canonical, Layered, Namespace, ResourceId};
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -257,6 +257,14 @@ pub struct Resolution {
 	pub height: u32,
 }
 
+impl Resolution {
+	/// Widened before multiplying: two `u32` sides overflow one, and a canonical chosen off a
+	/// wrapped product would name the smallest file of the set.
+	pub fn pixels(&self) -> u64 {
+		u64::from(self.width) * u64::from(self.height)
+	}
+}
+
 /// One published encoding of a picture.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ImageVariant {
@@ -394,6 +402,52 @@ impl Media {
 /// is. See spec/architecture/resource.md, "The image layer answers in four steps".
 pub fn scalable(mime: &str) -> bool {
 	matches!(mime, "image/svg+xml")
+}
+
+/// One published file, seen as the facts that order it against its siblings.
+///
+/// `rank` is the whole of the rule, and the order of the tuple it returns is the order the
+/// tie-breaks apply in.
+struct Rendition<'a> {
+	/// Enough at any size, so it outranks every bitmap however many pixels that one has.
+	scalable: bool,
+	pixels: u64,
+	bytes: u64,
+	content: &'a str,
+	extension: &'a str,
+}
+
+impl<'a> Rendition<'a> {
+	fn rank(&self) -> (bool, u64, u64, &'a str) {
+		(self.scalable, self.pixels, self.bytes, self.content)
+	}
+}
+
+/// What a bare resource id means: the largest rendition this resource publishes.
+///
+/// Quality and not compatibility, deliberately -- `<picture>` answers compatibility on the site,
+/// and a short link should hand over the best thing there is. Ties break on bytes and then on
+/// the cid, so two runs over one record answer the same rather than whichever a map yielded
+/// first. A resource with nothing published declares nothing, and `/{rid}` refuses it.
+pub fn canonical_of(layers: &Layers) -> Option<Canonical> {
+	let pictures = layers.image.iter().flat_map(|image| image.variants.iter()).map(|variant| {
+		Rendition {
+			scalable: scalable(&variant.mime),
+			pixels: variant.resolution.as_ref().map_or(0, Resolution::pixels),
+			bytes: variant.bytes,
+			content: &variant.content,
+			extension: crate::extension::for_variant(&variant.mime),
+		}
+	});
+	let rungs = layers.video.iter().flat_map(|video| video.variants.iter()).map(|rung| Rendition {
+		scalable: false,
+		pixels: rung.resolution.pixels(),
+		bytes: rung.bytes,
+		content: &rung.content,
+		extension: crate::extension::VIDEO,
+	});
+	let best = pictures.chain(rungs).max_by(|left, right| left.rank().cmp(&right.rank()))?;
+	Some(Canonical::Object { cid: best.content.to_owned(), extension: best.extension.to_owned() })
 }
 
 /// Every resource, merged. This is the file that gets committed.

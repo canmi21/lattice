@@ -19,7 +19,7 @@ import { failure } from './respond';
  * A pure lookup and nothing else: the id and the extension form the storage key, the bytes go
  * back. Nothing is resolved, nothing is synthesised, and nothing is fetched -- which is what
  * makes this the one address the rest of the worker can call rather than request. See
- * spec/architecture/data.md, "The bucket stores content ids; the CDN serves types".
+ * spec/architecture/data.md, "The bucket stores content ids, and so does the address".
  */
 const object = new Hono<{ Bindings: Bindings }>();
 

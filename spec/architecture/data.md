@@ -310,24 +310,23 @@ as they existed: 14 of 14 in each view, confirmed against the CDN. Both now name
 resolver found and fall back to the authored reference only when it found nothing, which is the
 same fallback a block takes for an asset nobody has imported yet.
 
-### The bucket stores content ids; the CDN serves types
+### The bucket stores content ids, and so does the address
 
-**The key is not the URL, and the two now say different things.** An object is stored at
-`{ab}/{cd}/{cid}.{ext}` -- the id, fanned out, and nothing else. It is served at
-`/{type}/{cid}.{ext}`.
+**The key is not the URL, and the difference is now one word.** An object is stored at
+`{ab}/{cd}/{cid}.{ext}` -- the id, fanned out, and nothing else -- and served at
+`/object/{cid}.{ext}`.
 
-The type is in the URL because an address is read by people and a hash says nothing about what it
-is. It is *not* in the key because the id already identifies the object: a type directory in the
-bucket would be a second place to write a fact the id settles, and the two can then disagree. The
-fan-out exists for a filesystem mirror, which has directories that overflow; R2 has none. The
+The fan-out exists for a filesystem mirror, which has directories that overflow; R2 has none. The
 extension is kept on both sides so that a bucket downloaded whole is still a directory of files
-that open.
+that open, and so that the address names bytes rather than a thing that might be spelled several
+ways.
 
-So the type is **decorative in the lookup and load-bearing in the reading**, which is precisely
-why it is checked rather than ignored: an address that resolves under any type is an address with
-no canonical spelling. A type that cannot carry the extension is corrected with a `301` to the one
-that can. `json` names two types -- a compiled view and a standalone page -- so an address
-carrying it is served rather than guessed at; the envelope inside says which it really is.
+**The address used to carry a type, and it answered a question the extension already answers.**
+`/{type}/{cid}.{ext}` put a word in front on the grounds that an address is read by people and a
+hash says nothing about what it is -- but then the word had to be checked, because an address that
+resolves under any type has no canonical spelling; so a wrong one was corrected with a `301`, and
+`json` named two types and could be corrected to neither. A table, a validator, a redirect and a
+carve-out, for a segment the bucket never stored and the extension already settled.
 
 Spelling the storage key into a link would publish the bucket's layout as an interface, and an
 interface is the one thing that cannot be reorganised later. The licence texts leaked it for

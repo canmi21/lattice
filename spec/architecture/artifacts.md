@@ -27,17 +27,24 @@ nothing.
 
 ## The key says what may cache it
 
-**`/{type}/{hash}.{ext}`, where the hash is BLAKE3 truncated to 128 bits and written as 32
-lowercase hex characters.** A key of that shape is content-addressed and is answered
-`immutable`. Any other key is not, and is answered with five minutes.
+**A hash in the path, written as BLAKE3 truncated to 128 bits in 32 lowercase hex characters.**
+An address carrying one is content-addressed and is answered `immutable`. An address carrying none
+is not, and keeps an hour. Anything that is not an answer keeps five minutes.
 
-The classifier is the rule. Nothing is looked up in a table and no new object type has to
-remember to ask for a policy: it gets the right one from the shape of its own name. The test
-that this is working is that adding a type is a one-line change with no cache decision in it.
+The classifier is the rule. Nothing is looked up in a table and no route has to remember to ask
+for a policy: it gets the right one from the shape of its own address. The test that this is
+working is that a route added beside the others arrives with the right lifetime and no decision
+in it.
+
+**There are three tiers and there used to be two.** The middle one arrived with the addresses that
+name rather than identify -- a permanent name, a proxied path -- and what it says is that the
+thing behind a name can move, but not on this site's publication clock. Before it, those addresses
+took the five minutes meant for refusals, which was a publication delay applied to something that
+is not published here.
 
 **The long life is conditional on the answer having one.** A `404` on a content-addressed key
 means the object was not uploaded or has been swept, and neither is a fact worth keeping for a
-year. Every failure is five minutes, whatever the key looks like.
+year. Every failure is five minutes, whatever the address looks like.
 
 **A `304` is not a failure, and reading the condition as "2xx" got that wrong.** A revalidation's
 headers replace the stored response's, so five minutes on a `304` cuts a year-old copy down to
@@ -56,7 +63,7 @@ they are looking at. It is still matched strictly rather than ignored -- `/{type
 and nothing looser -- because a segment that is decorative in one place and load-bearing in
 another is the kind of thing that is eventually parsed by accident.
 
-### There are no exceptions left
+### There is one exception again, and it carries a promise
 
 This section used to hold one. **Latin font subsets** were served under stable names for a year,
 on the promise that re-subsetting would produce a new filename -- and 510 of the 524 published
@@ -68,8 +75,14 @@ keeps is the year the shape of its name earns. Re-subsetting writes a different 
 different address instead of overwriting a promised name, which is what the promise was asking
 everyone to remember not to do.
 
-An exception is a name plus the promise that justifies it. There is no list; a key wanting a long
-life without a hash has to arrive with one, and none currently does.
+An exception is a name plus the promise that justifies it, and there is exactly one:
+**`/favicon.ico`**, which keeps a year with no hash in it. The promise is that what moves is not
+that address but what the alias layer answers for the permanent name behind it, and that keeps its
+own hour. A browser asks every origin it touches for this name whatever the markup says, so the
+address itself is as fixed as anything here gets.
+
+Any other address wanting a long life without a hash has to arrive with its own promise. The list
+is one long and was empty an hour before this was written, which is the rate it should grow at.
 
 `/favicon/{domain}` was already not on it. It is not content-addressed, it is refetched and may
 legitimately change, so it takes the five minutes the rule gives everything else -- the default

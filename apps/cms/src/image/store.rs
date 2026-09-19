@@ -11,8 +11,8 @@ const FAN: usize = 2;
 
 /// **The one declaration of the bucket's layout, on this side.** The twin of `storageKey` in
 /// `libs/store`, kept in sync by a test there. Nothing is filed by kind: the id already identifies
-/// it, and the CDN's `/{type}/` is where a reader gets one. See spec/architecture/data.md, "The
-/// bucket stores content ids; the CDN serves types".
+/// it, and `/object/{cid}.{ext}` is where a reader gets one. See spec/architecture/data.md,
+/// "The bucket stores content ids, and so does the address".
 fn object_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {
 	let (first, second) = fanout(cid);
 	public_root.join(first).join(second).join(format!("{cid}.{extension}"))
@@ -33,7 +33,7 @@ pub fn variant_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {
 /// path to the hardware decoder Apple devices need. A second spelling here would be a format
 /// this repository does not publish. See spec/architecture/video/pipeline.md.
 pub fn video_path(public_root: &Path, cid: &str) -> PathBuf {
-	object_path(public_root, cid, "mp4")
+	object_path(public_root, cid, crate::extension::VIDEO)
 }
 
 /// `{ab}/{cd}/{cid}.vtt`: one text track.
