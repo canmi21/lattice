@@ -1,7 +1,7 @@
 {
   "version": 5,
   "created": "2026-08-01T22:12:59.501555Z",
-  "updated": "2026-09-19T04:38:47.328371Z",
+  "updated": "2026-09-19T17:19:18.774356Z",
   "media": {
     "0e0624f079e617e53ed474ccd98a947b": {
       "version": 5,
@@ -9,6 +9,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:32.15685Z",
       "updated": "2026-09-14T02:55:32.15685Z",
+      "canonical": "cid:fedbcfcac77cb7268299fcefd4d13048.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -77,6 +78,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:46.024963Z",
       "updated": "2026-07-31T20:21:56.232998Z",
+      "canonical": "cid:954d662f031fd678688ef5725761b8e8.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -131,6 +133,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:28.28226Z",
       "updated": "2026-09-14T02:55:28.28226Z",
+      "canonical": "cid:b5a284d188978e25f86752a6e6dc86da.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -199,6 +202,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:25.020139Z",
       "updated": "2026-09-14T02:55:25.020139Z",
+      "canonical": "cid:22b31d4cd3b1e07f3a82082a649eeb56.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -266,6 +270,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:45.035035Z",
       "updated": "2026-07-31T20:09:37.394499Z",
+      "canonical": "cid:4f54c76d3f8f75b6544b60f74c7e5d70.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -320,6 +325,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:30.621462Z",
       "updated": "2026-09-14T02:55:30.621462Z",
+      "canonical": "cid:d5725defac0405422b0b7313ea8ba269.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -387,6 +393,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:01.458831Z",
       "updated": "2026-07-31T20:16:43.086122Z",
+      "canonical": "cid:994d007381f04c8b9baa9412b350c1a6.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -441,6 +448,7 @@
       "type": "media.image.frame",
       "created": "2026-09-14T05:14:04.536162Z",
       "updated": "2026-09-14T05:14:04.536162Z",
+      "canonical": "cid:8f03677c02ed340e2dcbc490342feced.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -499,6 +507,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:16.888864Z",
       "updated": "2026-07-31T20:16:43.086169Z",
+      "canonical": "cid:cd3992ce15d610da4df1b5f107bd059c.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -563,6 +572,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:34.684647Z",
       "updated": "2026-09-14T02:55:34.684647Z",
+      "canonical": "cid:7890118bf414bb9e79047374d885d7e7.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -630,6 +640,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:14.861506Z",
       "updated": "2026-07-31T20:16:43.08617Z",
+      "canonical": "cid:eebc752aa0cf7b5cf94a736488e6454e.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -704,6 +715,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:38.102946Z",
       "updated": "2026-07-31T20:16:43.086172Z",
+      "canonical": "cid:71aa2631cd4c616d2ecca6e510cf06f4.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -778,6 +790,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:21.904926Z",
       "updated": "2026-09-14T02:55:21.904926Z",
+      "canonical": "cid:5503d852f121c5266a08a9fcf88dc4ca.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -845,6 +858,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:18.933532Z",
       "updated": "2026-07-31T20:16:43.086173Z",
+      "canonical": "cid:940b33cbc888007bf301d6fee6109a09.png",
       "layers": {
         "media": {
           "version": 1,
@@ -899,6 +913,7 @@
       "type": "media.video.clip",
       "created": "2026-09-14T05:14:04.536178Z",
       "updated": "2026-09-14T22:34:51.727387Z",
+      "canonical": "cid:32e7dfde423c03f535d6e67900583d36.mp4",
       "layers": {
         "media": {
           "version": 1,
@@ -951,6 +966,7 @@
       "type": "media.image.screenshot",
       "created": "2026-07-31T07:08:07.490003Z",
       "updated": "2026-08-01T22:20:52.07249Z",
+      "canonical": "cid:6cff4e039ad180a712870d3748696afd.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1018,6 +1034,7 @@
       "type": "media.image.photo",
       "created": "2026-08-02T04:47:35.14414Z",
       "updated": "2026-08-02T04:47:35.14414Z",
+      "canonical": "cid:882358601ecf295f1a1bd728bd2d5f9e.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1137,6 +1154,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:02.238104Z",
       "updated": "2026-07-31T20:16:43.086174Z",
+      "canonical": "cid:b28e02888c7215fab56686b3d3ca285b.png",
       "layers": {
         "media": {
           "version": 1,
@@ -1191,6 +1209,7 @@
       "type": "media.image.photo",
       "created": "2026-08-02T04:47:54.995999Z",
       "updated": "2026-08-02T04:47:54.995999Z",
+      "canonical": "cid:a0102500a8e7382540d281a3d438cf0a.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1310,6 +1329,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:25.817905Z",
       "updated": "2026-07-31T20:16:43.086175Z",
+      "canonical": "cid:df34ad0f1e18b374dbc65bbab5f80df8.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1364,6 +1384,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:37.352254Z",
       "updated": "2026-09-14T02:55:37.352254Z",
+      "canonical": "cid:ebcc9c32c3cacb82564a02831a4d6167.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1432,6 +1453,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:53.021527Z",
       "updated": "2026-07-31T20:16:43.086176Z",
+      "canonical": "cid:bdf8387468547fa42282650dae0717f1.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1506,6 +1528,7 @@
       "type": "media.image.photo",
       "created": "2026-08-02T04:48:31.553161Z",
       "updated": "2026-08-02T04:48:31.553161Z",
+      "canonical": "cid:27753f1eb86c142d19cd8dbe07db6fd7.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1625,6 +1648,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:23.332745Z",
       "updated": "2026-09-14T02:55:23.332745Z",
+      "canonical": "cid:abd5361ecfeebc3ab229a7d3e42a1894.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1692,6 +1716,7 @@
       "type": "media.image.frame",
       "created": "2026-09-14T05:14:03.143595Z",
       "updated": "2026-09-14T05:14:03.143595Z",
+      "canonical": "cid:1bb9a144ca1fd7e19dbadbc1c64dd0bd.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1740,6 +1765,7 @@
       "type": "media.image.photo",
       "created": "2026-08-02T04:48:16.855481Z",
       "updated": "2026-08-02T04:48:16.855481Z",
+      "canonical": "cid:ade3b84d0b2359c0db0eaf4e688ce701.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1859,6 +1885,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:16.086626Z",
       "updated": "2026-07-31T20:16:43.086177Z",
+      "canonical": "cid:9e8fa0537094d4442bed2a3fb590b2e9.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1913,6 +1940,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:17.290358Z",
       "updated": "2026-07-31T20:16:43.086178Z",
+      "canonical": "cid:f4bb4c7fd4012e55bcc1b51ed849079f.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -1967,6 +1995,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:00.494314Z",
       "updated": "2026-07-31T20:16:43.086179Z",
+      "canonical": "cid:60e6e9a51528ccf4b96ab1fe46f49f09.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2041,6 +2070,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:38.251746Z",
       "updated": "2026-09-14T02:55:38.251746Z",
+      "canonical": "cid:972de82fb8dbcb81cf129af098e664e7.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2108,6 +2138,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:54.080758Z",
       "updated": "2026-07-31T20:16:43.086179Z",
+      "canonical": "cid:b4a5ed8c96ed7aa8ecd526744173d962.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2162,6 +2193,7 @@
       "type": "media.image.photo",
       "created": "2026-08-02T04:46:50.910918Z",
       "updated": "2026-08-02T04:46:50.910918Z",
+      "canonical": "cid:824b345e8660464e8f7cbc6167f1242b.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2281,6 +2313,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:29.079463Z",
       "updated": "2026-09-14T02:55:29.079463Z",
+      "canonical": "cid:0d5a4f27caed55b32db222e55b5d33a2.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2348,6 +2381,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:24.519146Z",
       "updated": "2026-07-31T20:16:43.08618Z",
+      "canonical": "cid:e8b530aa153a78f1cdea3d2980f80ecd.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2422,6 +2456,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:08:17.941643Z",
       "updated": "2026-07-31T20:16:43.08618Z",
+      "canonical": "cid:04b86c0895d716b7f562562bf80a6a54.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2476,6 +2511,7 @@
       "type": "media.video.clip",
       "created": "2026-09-14T05:14:02.007815Z",
       "updated": "2026-09-14T22:34:53.642484Z",
+      "canonical": "cid:10b90410324e5aee22415776b0f89e0d.mp4",
       "layers": {
         "media": {
           "version": 1,
@@ -2546,6 +2582,7 @@
       "type": "media.video.clip",
       "created": "2026-09-14T05:14:03.143612Z",
       "updated": "2026-09-14T22:34:54.422116Z",
+      "canonical": "cid:766abd9d564851362536c6db951e3ce7.mp4",
       "layers": {
         "media": {
           "version": 1,
@@ -2598,6 +2635,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:33.843869Z",
       "updated": "2026-09-14T02:55:33.843869Z",
+      "canonical": "cid:0ae1703c96bda47873ba43af5cd2504b.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2665,6 +2703,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:20.545315Z",
       "updated": "2026-09-14T02:55:20.545315Z",
+      "canonical": "cid:94fe4ee4bd026578e917979e081a014c.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2732,6 +2771,7 @@
       "type": "media.image.frame",
       "created": "2026-09-14T05:14:02.007694Z",
       "updated": "2026-09-14T05:14:02.007694Z",
+      "canonical": "cid:6310dda60581eac49e2f43ce147ea7da.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2800,6 +2840,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:36.561722Z",
       "updated": "2026-09-14T02:55:36.561722Z",
+      "canonical": "cid:52537bb99eb66c0b497c2bfde032d0c7.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2867,6 +2908,7 @@
       "type": "media.image.photo",
       "created": "2026-08-02T04:47:13.18364Z",
       "updated": "2026-08-02T04:47:13.18364Z",
+      "canonical": "cid:2b2cbc1618a81040a761e883c7f9d2fd.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -2986,6 +3028,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:26.765698Z",
       "updated": "2026-09-14T02:55:26.765698Z",
+      "canonical": "cid:7d7cb6efea1446dc811a501191c141de.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -3053,6 +3096,7 @@
       "type": "media.image.screenshot",
       "created": "2026-09-14T02:55:25.301959Z",
       "updated": "2026-09-14T02:55:25.301959Z",
+      "canonical": "cid:9cd001cb35dc4ed92768e93db839585e.avif",
       "layers": {
         "media": {
           "version": 1,
@@ -3111,6 +3155,7 @@
       "type": "media.image",
       "created": "2026-07-31T07:09:08.636245Z",
       "updated": "2026-07-31T20:16:43.086182Z",
+      "canonical": "cid:fef2f87ce0d55159371000f0d936a469.avif",
       "layers": {
         "media": {
           "version": 1,
