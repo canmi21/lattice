@@ -131,6 +131,50 @@ fn fanned_files(public: &Path) -> std::io::Result<Vec<PathBuf>> {
 	Ok(found)
 }
 
+pub const FONTS_VERSION: u32 = 1;
+
+/// What the font pipeline published, by family. Written by `.mise/tasks/fonts`.
+#[derive(Debug, Default, Serialize, Deserialize)]
+struct Fonts {
+	version: u32,
+	#[serde(default)]
+	families: BTreeMap<String, Vec<String>>,
+}
+
+/// Where the font pipeline writes what it published, which is under `data/build/` like the rest
+/// of what a tool rebuilds.
+fn fonts_path(repo: &Path) -> PathBuf {
+	repo.join("data").join("build").join("fonts.json")
+}
+
+/// Every content id a published font chunk is named by, read from the record that published it.
+///
+/// Nothing else reaches a chunk: it is in no article, no manifest and no root. Read from the
+/// record rather than from the stylesheets a browser fetches, for the reason every keep-set here
+/// reads a record -- generated output is one unmatched pattern away from deleting everything.
+///
+/// Absent is an error when chunks are published and an empty set when none are, because those
+/// two states are indistinguishable from the record alone and only one of them is safe.
+fn fonts_named(repo: &Path, published: &[PathBuf]) -> std::io::Result<BTreeSet<String>> {
+	let path = fonts_path(repo);
+	let advice = "run `mise run fonts --adopt --all`";
+	let Ok(text) = std::fs::read_to_string(&path) else {
+		let woff2 = |p: &PathBuf| p.extension().and_then(|e| e.to_str()) == Some("woff2");
+		if published.iter().any(woff2) {
+			let missing = format!("{} does not exist and chunks are published -- {advice}", path.display());
+			return Err(std::io::Error::other(missing));
+		}
+		return Ok(BTreeSet::new());
+	};
+	let record: Fonts = serde_json::from_str(&text)
+		.map_err(|error| std::io::Error::other(format!("{}: {error}", path.display())))?;
+	if record.version != FONTS_VERSION {
+		let stale = format!("{} is version {} -- {advice}", path.display(), record.version);
+		return Err(std::io::Error::other(stale));
+	}
+	Ok(record.families.into_values().flatten().collect())
+}
+
 #[derive(Debug, Default)]
 pub struct Sweep {
 	/// Files no reachable asset claims.
@@ -180,6 +224,14 @@ pub fn plan(
 		}
 	}
 
+	// The whole content-addressed space, which is now one flat tree rather than a prefix per kind.
+	// A two-hex directory at the top of the objects tree is a fan-out segment and nothing else is,
+	// so this walks exactly what `storageKey` writes and never a named prefix beside it. That
+	// replaced a list of trees to keep complete -- `video/` and `captions/` were missing from it,
+	// which is the quietest way for a store to leak: a tree nothing sweeps has no orphans by
+	// definition, so it reports clean while it grows.
+	let fanned = fanned_files(public)?;
+
 	let mut keep: BTreeSet<String> = reached.clone();
 	for key in &reached {
 		let Some(media) = merged.media.get(key) else { continue };
@@ -217,6 +269,11 @@ pub fn plan(
 			.filter(|(key, _)| wanted_cards.contains(*key))
 			.map(|(_, card)| card.cid.clone()),
 	);
+
+	// Font chunks are content-addressed and share the flat space, and nothing in an article, a
+	// manifest or either root reaches one. The font pipeline's own record is the whole of what
+	// stands between them and this sweep. See spec/architecture/fonts.md.
+	keep.extend(fonts_named(repo, &fanned)?);
 
 	// Licence texts are content-addressed too and share the flat space, but nothing in an article
 	// or the root reaches one: they hang off the dependency record instead. Without this every
@@ -534,6 +591,34 @@ mod tests {
 		// The cover is reachable only through the clip, so its manifest entry has to survive
 		// the same hop its bytes did.
 		assert!(sweep.entries.is_empty(), "{:?}", sweep.entries);
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	#[test]
+	fn a_font_chunk_is_kept_by_the_stylesheet_that_names_it() {
+		// A chunk is in no article, no manifest and no root -- the stylesheet a browser reads
+		// before fetching it is the only thing that names one, so without this every one of them
+		// reads as garbage an hour after it lands.
+		let temporary = temp();
+		let root = temporary.path().to_path_buf();
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+		let sheets = root.join("libs").join("fonts").join("src");
+		std::fs::create_dir_all(&sheets).expect("dir");
+
+		let public = root.join("public");
+		let named = "ab".repeat(16);
+		let orphan = "cd".repeat(16);
+		for cid in [&named, &orphan] {
+			crate::image::store::write(&crate::image::store::variant_path(&public, cid, "woff2"), b"f")
+				.expect("write");
+		}
+		std::fs::write(sheets.join("one.css"), format!("src:url('/object/{named}.woff2')"))
+			.expect("stylesheet");
+
+		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
+		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
+		assert!(!names.contains(&named), "swept a chunk a stylesheet names");
+		assert!(names.contains(&orphan), "kept a chunk nothing names");
 		std::fs::remove_dir_all(&root).ok();
 	}
 

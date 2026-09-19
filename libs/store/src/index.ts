@@ -74,28 +74,44 @@ export async function read(
 	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
 }
 
+/** What a head reports. `uploaded` is null only where the store keeps no date; see `measure`. */
+export type Measured = { size: number; uploaded: Date | null };
+
 /**
- * How large the object under a key is, without reading a byte of it.
+ * What is known about an object under a key, without reading a byte of it.
  *
  * A caller that has to refuse work before paying for it needs the size first: an isolate gets
  * 128 MB for its heap and its WebAssembly together, so a length that arrives alongside the bytes
  * arrives too late to be a limit. Null is no such object, which makes this a presence check too.
+ * The date rides along because the same head already carries it, and a caller wanting both
+ * should not spend a second round trip on the second one.
  */
-export async function sizeOf(env: Bindings, key: string): Promise<number | null> {
-	if (env.STORE) return (await env.STORE.head(key))?.size ?? null;
+export async function measure(env: Bindings, key: string): Promise<Measured | null> {
+	if (env.STORE) {
+		const head = await env.STORE.head(key);
+		return head ? { size: head.size, uploaded: head.uploaded ?? null } : null;
+	}
 	if (env.ASSETS) {
 		const response = await env.ASSETS.fetch(`${ASSET_ORIGIN}/${key}`);
 		if (!response.ok) return null;
+		// Development only, where the tree is on this machine: the fetcher may declare neither a
+		// date nor a length, and production never reaches either fallback -- R2 answers both.
+		const uploaded = dateOf(response.headers.get('last-modified'));
 		const declared = response.headers.get('content-length');
 		if (declared !== null) {
 			await response.body?.cancel();
-			return Number(declared);
+			return { size: Number(declared), uploaded };
 		}
-		// Development only, where the tree is on this machine and the fetcher may declare no
-		// length. Production never reaches this: R2 answers a head with the size.
-		return (await response.arrayBuffer()).byteLength;
+		return { size: (await response.arrayBuffer()).byteLength, uploaded };
 	}
 	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
+}
+
+/** A header date, or null for absent and for unparseable, which are one thing to a caller. */
+function dateOf(header: string | null): Date | null {
+	if (header === null) return null;
+	const at = new Date(header);
+	return Number.isNaN(at.getTime()) ? null : at;
 }
 
 /** One range, in the two shapes the grammar allows, resolved against a size the reader knows. */
@@ -188,11 +204,7 @@ async function readFromAssets(
 	const resolved = resolve(wanted, whole.byteLength);
 	if (!resolved) return { unsatisfiable: true, total: whole.byteLength };
 	const part = whole.subarray(resolved.offset, resolved.offset + resolved.length);
-	return {
-		body: new Response(part).body as ReadableStream,
-		contentType,
-		partial: { ...resolved, total: whole.byteLength },
-	};
+	return { body: streamOf(part), contentType, partial: { ...resolved, total: whole.byteLength } };
 }
 
 /**
@@ -242,6 +254,34 @@ export function unsatisfiableResponse(total: number): Response {
 			headers: { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' },
 		},
 	);
+}
+
+/**
+ * Bytes already in hand, answered as a `Range` asked for them.
+ *
+ * For a body that was derived rather than stored: there is no object to ask the bucket for a part
+ * of, so the artifact is produced whole and the slice is taken here. The grammar stays in this
+ * module -- one parser, one set of spellings -- and a header it does not implement is served
+ * whole, which is what a recipient is allowed to do. See spec/architecture/delivery.md.
+ */
+export function rangedResponse(
+	bytes: Uint8Array,
+	contentType: string,
+	range: string | null | undefined,
+): Response {
+	const wanted = range ? parseRange(range) : null;
+	if (!wanted) return toResponse({ body: streamOf(bytes), contentType });
+
+	const total = bytes.byteLength;
+	const resolved = resolve(wanted, total);
+	if (!resolved) return unsatisfiableResponse(total);
+	const part = bytes.subarray(resolved.offset, resolved.offset + resolved.length);
+	return toResponse({ body: streamOf(part), contentType, partial: { ...resolved, total } });
+}
+
+/** Bytes as a body. The cast is the workers runtime's stream against the DOM's declaration. */
+function streamOf(bytes: Uint8Array): ReadableStream {
+	return new Response(bytes).body as ReadableStream;
 }
 
 /**

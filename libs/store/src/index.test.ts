@@ -63,7 +63,7 @@ describe('contentTypeFor', () => {
 	it('maps the formats actually stored', () => {
 		expect(contentTypeFor('favicon/a.com/light.svg')).toBe('image/svg+xml');
 		expect(contentTypeFor('favicon/a.com/dark.ico')).toBe('image/x-icon');
-		expect(contentTypeFor('fonts/x.woff2')).toBe('font/woff2');
+		expect(contentTypeFor('44/b6/44b6081deaf0242ca3bf83d62a3b6c95.woff2')).toBe('font/woff2');
 		expect(contentTypeFor('meta/44b6081deaf0242ca3bf83d62a3b6c95.json')).toBe('application/json');
 	});
 
@@ -230,4 +230,3 @@ it('files an object exactly where apps/cms writes it', () => {
 	expect(record, 'meta_path moved or changed shape in apps/cms').not.toBeNull();
 	expect(record![1]).toContain('.join("meta").join(format!("{blake3}.json"))');
 });
-
