@@ -149,12 +149,11 @@ fn fonts_path(repo: &Path) -> PathBuf {
 
 /// Every content id a published font chunk is named by, read from the record that published it.
 ///
-/// Nothing else reaches a chunk: it is in no article, no manifest and no root. Read from the
-/// record rather than from the stylesheets a browser fetches, for the reason every keep-set here
-/// reads a record -- generated output is one unmatched pattern away from deleting everything.
-///
-/// Absent is an error when chunks are published and an empty set when none are, because those
-/// two states are indistinguishable from the record alone and only one of them is safe.
+/// Nothing else reaches a chunk: it is in no article, no manifest and no root. The record is
+/// under `data/build/` and therefore not in the repository, which is what makes absence a state
+/// rather than a corruption -- a checkout that has never run the font pipeline has none. Hence
+/// the rule below: an error when chunks are published and an empty set when none are, because
+/// those two are indistinguishable from the record alone and only one of them is safe.
 fn fonts_named(repo: &Path, published: &[PathBuf]) -> std::io::Result<BTreeSet<String>> {
 	let path = fonts_path(repo);
 	let advice = "run `mise run fonts --adopt --all`";
