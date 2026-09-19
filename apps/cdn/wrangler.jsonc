@@ -14,7 +14,7 @@
 	"r2_buckets": [
 		{
 			"binding": "STORE",
-			"bucket_name": "public",
+			"bucket_name": "objects",
 		},
 	],
 

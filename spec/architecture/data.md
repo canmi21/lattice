@@ -338,6 +338,11 @@ It is about **which credentials can reach which**.
 | `metadata` | `state/index.json`, `meta/{cid}.json` | the API | names, rewritten in place |
 | `objects` | everything content-addressed | the CDN | content ids, never rewritten |
 
+**Each is named for what it holds.** The first was `public`, chosen when one local path matched
+one bucket path segment for segment -- `data/public/favicon/x.svg` against `r2:public/favicon/x.svg`.
+Neither half of that survived: the bucket has no `favicon/` prefix and the local tree is
+`data/bucket/objects`, so the name was describing a property it no longer had.
+
 They were one bucket, and the CDN's catch-all route served `meta/{cid}.json` to anyone who asked.
 Its name ends in a hash, so the cache policy read the shape and granted a year of `immutable` --
 to a record the API rewrites whenever an asset is re-derived. The comment above that route said

@@ -37,7 +37,7 @@ RCLONE_CONFIG_R2_REGION = "auto"
 # closed if either is unset rather than syncing half of a publication.
 #
 # These name the destination only. Credentials live in rclone's own config, never here.
-R2_OBJECTS_REMOTE = "r2:public"
+R2_OBJECTS_REMOTE = "r2:objects"
 R2_METADATA_REMOTE = "r2:metadata"
 
 [tasks.test]

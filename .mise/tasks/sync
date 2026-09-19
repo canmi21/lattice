@@ -55,7 +55,7 @@ METADATA_REMOTE="${R2_METADATA_REMOTE:-}"
 
 if [ -z "$OBJECTS_REMOTE" ] || [ -z "$METADATA_REMOTE" ]; then
 	echo "set both rclone destinations, for example:" >&2
-	echo "  set -gx R2_OBJECTS_REMOTE r2:public" >&2
+	echo "  set -gx R2_OBJECTS_REMOTE r2:objects" >&2
 	echo "  set -gx R2_METADATA_REMOTE r2:metadata" >&2
 	echo "credentials belong in rclone's own config, never in this repo" >&2
 	exit 1
