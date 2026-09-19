@@ -27,7 +27,7 @@ was merely different, and the difference was a draft on the public site.
 ## Publication drops them; the local tree keeps them
 
 **The discriminator is which root an article is written into**, and nothing else. A draft's
-objects go into the objects tree like every other article's; the root under `data/draft/` names
+objects go into the objects tree like every other article's; the root under `data/bucket/draft/` names
 them and the one under `data/bucket/metadata/` does not. Only the second is mirrored.
 
 **Objects are not what is withheld, and were never what was withheld.**
@@ -41,8 +41,8 @@ one rule out of what was two.
 maps one to a content id, so a root naming a draft is a draft anybody can ask for by title. That
 is the thing worth withholding, and withholding it is stronger than filtering it: the production
 API is handed a root that does not contain drafts, so there is no filter in any endpoint to
-forget. The boundary stays the one the mirror already enforces -- `rclone` is pointed inside
-`data/bucket` and cannot see `data/draft`. See
+forget. The mirror enforces the same boundary from the other side: `sync` names the two trees it
+transfers and refuses a source that contains the draft tree beside them. See
 [architecture/artifacts.md](architecture/artifacts.md), "Drafts leave the corpus at publication,
 not at build".
 

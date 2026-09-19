@@ -30,12 +30,24 @@ BASE="$(cd "$(dirname "$0")/../.." && pwd)"
 OBJECTS="$BASE/data/bucket/objects"
 METADATA="$BASE/data/bucket/metadata"
 
+DRAFT="$BASE/data/bucket/draft"
+
 for tree in "$OBJECTS" "$METADATA"; do
 	if [ ! -d "$tree" ]; then
 		echo "refusing to sync: $tree does not exist" >&2
 		echo "an empty or wrong source would delete the entire bucket" >&2
 		exit 1
 	fi
+	# The draft tree is bucket-shaped and sits beside the two mirrors, which puts it exactly one
+	# directory level away from being published. Asserted rather than assumed: aiming a source at
+	# the parent instead of the leaf would publish every draft, and nothing else here would notice.
+	case "$DRAFT" in
+	"$tree"/*)
+		echo "refusing to sync: $tree contains the draft tree" >&2
+		echo "a source must name a mirror, never the directory holding them" >&2
+		exit 1
+		;;
+	esac
 done
 
 OBJECTS_REMOTE="${R2_OBJECTS_REMOTE:-}"

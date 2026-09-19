@@ -390,7 +390,7 @@ async function linkRecords(metadataDir: string, draftDir: string): Promise<void>
 const objectsDir = new URL('data/bucket/objects/', ROOT);
 const roots = [
 	{ name: 'public', metadata: new URL('data/bucket/metadata/', ROOT), articles: published.articles },
-	{ name: 'draft', metadata: new URL('data/draft/', ROOT), articles: drafted.articles },
+	{ name: 'draft', metadata: new URL('data/bucket/draft/', ROOT), articles: drafted.articles },
 ];
 
 for (const { name, metadata, articles } of roots) {
@@ -409,6 +409,6 @@ for (const { name, metadata, articles } of roots) {
 
 await linkRecords(
 	fileURLToPath(new URL('data/bucket/metadata/', ROOT)),
-	fileURLToPath(new URL('data/draft/', ROOT)),
+	fileURLToPath(new URL('data/bucket/draft/', ROOT)),
 );
 console.log('draft: records linked from the published tree');

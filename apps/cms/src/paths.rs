@@ -53,10 +53,11 @@ pub fn bucket_root(repo: &Path) -> PathBuf {
 
 /// The draft corpus, which is one root and a link to the published records.
 ///
-/// Never mirrored. A draft's objects are in the objects tree like everything else; what
-/// withholds one is that the published root does not name it. See spec/drafts.md.
+/// Bucket-shaped like its two neighbours -- `wrangler dev` binds it as one -- and the only one of
+/// the three that is never mirrored. A draft's objects are in the objects tree like everything
+/// else; what withholds one is that the published root does not name it. See spec/drafts.md.
 pub fn draft_root(repo: &Path) -> PathBuf {
-	repo.join("data").join("draft")
+	bucket_root(repo).join("draft")
 }
 
 /// The bytes nothing derives: originals, fonts, a geocoding database, the site's own marks.

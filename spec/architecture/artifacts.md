@@ -133,7 +133,7 @@ name it -- five minutes plus a margin, so in practice a day.
 
 A draft is compiled like anything else and its objects go into the **same** tree as everything
 else. What withholds it is that the published root does not name it; a second root, under
-`data/draft/` and never mirrored, does.
+`data/bucket/draft/` and never mirrored, does.
 
 **The object tree was never the boundary, and pretending it was hid that.** `refs::scan` has never
 read the draft flag, so a draft's pictures and clips have always been derived and mirrored like any
@@ -146,11 +146,11 @@ that is withheld. A slug is human-readable and easy to guess; `findArticle` maps
 id. So the production API is given a root that does not contain drafts, rather than a root that
 does plus a filter -- a forgotten filter publishes a draft, and there is no filter to forget.
 
-That also keeps this boundary the one the mirror already enforces. `rclone` is pointed inside
-`data/bucket` and cannot see `data/draft` at all.
+That also keeps this boundary the one the mirror already enforces, from the other side: `sync`
+names the two trees it transfers, and refuses outright a source that contains the draft tree.
 
 **Development reads the draft root, and that is the whole of the difference.** `wrangler dev` binds
-one directory, so `data/draft/` holds the draft root and a single symlink to the published records;
+one directory, so `data/bucket/draft/` holds the draft root and one symlink to the published records;
 the CDN's dev binding is the objects tree itself. Nothing is copied and nothing is mirrored twice.
 
 ## The API is the only thing that changes
