@@ -74,6 +74,30 @@ export async function read(
 	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
 }
 
+/**
+ * How large the object under a key is, without reading a byte of it.
+ *
+ * A caller that has to refuse work before paying for it needs the size first: an isolate gets
+ * 128 MB for its heap and its WebAssembly together, so a length that arrives alongside the bytes
+ * arrives too late to be a limit. Null is no such object, which makes this a presence check too.
+ */
+export async function sizeOf(env: Bindings, key: string): Promise<number | null> {
+	if (env.STORE) return (await env.STORE.head(key))?.size ?? null;
+	if (env.ASSETS) {
+		const response = await env.ASSETS.fetch(`${ASSET_ORIGIN}/${key}`);
+		if (!response.ok) return null;
+		const declared = response.headers.get('content-length');
+		if (declared !== null) {
+			await response.body?.cancel();
+			return Number(declared);
+		}
+		// Development only, where the tree is on this machine and the fetcher may declare no
+		// length. Production never reaches this: R2 answers a head with the size.
+		return (await response.arrayBuffer()).byteLength;
+	}
+	throw new Error('no store bound: expected STORE in production or ASSETS under wrangler dev');
+}
+
 /** One range, in the two shapes the grammar allows, resolved against a size the reader knows. */
 type Wanted = { offset: number; end: number | null } | { suffix: number };
 

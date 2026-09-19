@@ -38,6 +38,16 @@ export const NAMED_PREFIXES = new Set([
 ]);
 
 /**
+ * Prefixes that are not a public type and check their own second segment.
+ *
+ * `/object/{cid}.{ext}` names an object by id under no type at all, and `/derive` carries two
+ * extensions where every other address carries one. Both are well formed and both fail the parse
+ * below, so each route says `400` for the shapes it cannot answer rather than this doing it
+ * twice. See ./object.ts and ./derive.ts.
+ */
+export const SELF_CHECKED = new Set(['object', 'derive']);
+
+/**
  * The correction a mistyped type earns, or nothing when the address is already right.
  *
  * The content id is what identifies an object, so a wrong type still finds it -- which is exactly
@@ -63,9 +73,11 @@ export const addressable: MiddlewareHandler = async (c, next) => {
 	}
 
 	if (NAMED_PREFIXES.has(head)) return next();
-	if (!isPublicType(head)) return failure(c, 400, 'not_an_address');
-	// A type takes exactly one segment after it, and that segment is the object's name.
+	// A type takes exactly one segment after it, and that segment is the object's name. True of
+	// the self-checked prefixes too: neither of them spells the bucket's fan-out into an address.
 	if (deeper.length > 0) return failure(c, 400, 'not_an_address');
+	if (SELF_CHECKED.has(head)) return next();
+	if (!isPublicType(head)) return failure(c, 400, 'not_an_address');
 
 	const dot = rest.lastIndexOf('.');
 	const cid = dot > 0 ? rest.slice(0, dot).toLowerCase() : '';

@@ -9,7 +9,7 @@ import {
 	type Bindings,
 } from '@canmi/store';
 import { canonicalSpelling, parseName, validatorFor } from './key';
-import { DECODABLE, type Decodable, type Encodable, isEncodable, transcode } from './transcode';
+import { DECODABLE, MEDIA_TYPES, type Decodable, isEncodable, transcode } from './transcode';
 import { failure } from './respond';
 
 /**
@@ -21,20 +21,6 @@ import { failure } from './respond';
  * can invent dimensions to burn CPU on. See spec/architecture/delivery.md.
  */
 const image = new Hono<{ Bindings: Bindings }>();
-
-/**
- * What a re-encoded response is served as.
- *
- * Keyed by `Encodable`, not by string, so the table is complete by construction. Typed loosely
- * before, an indexed lookup returned `string | undefined` and the missing case silently fell
- * back to `image/jpeg` -- wrong for anything that was not JPEG. Adding a format without its
- * MIME type is now a compile error instead.
- */
-const TYPES: Record<Encodable, string> = {
-	webp: 'image/webp',
-	jpeg: 'image/jpeg',
-	png: 'image/png',
-};
 
 image.get('/:name', async (c) => {
 	const parsed = parseName(c.req.param('name'));
@@ -88,7 +74,7 @@ image.get('/:name', async (c) => {
 
 	const bytes = await transcode(await source.bytes, source.format, extension);
 	const response = finish(
-		new Response(bytes, { headers: { 'Content-Type': TYPES[extension] } }),
+		new Response(bytes, { headers: { 'Content-Type': MEDIA_TYPES[extension] } }),
 		cid,
 		extension,
 	);

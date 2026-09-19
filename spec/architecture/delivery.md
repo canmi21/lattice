@@ -14,9 +14,46 @@ the extension is the entire request -- there is no size parameter to vary, so a 
 invent work. Results are held in the edge cache, so the decode is paid once per colo rather
 than once per reader.
 
-Only the decoders for what is stored and the encoders for what is asked for. The AVIF
-_encoder_ is deliberately absent: 1.1MB compressed against 332KB for the decoder, and
-`cms image` already produces AVIF locally where the time costs nothing.
+Only the decoders for what is stored and the encoders for what is asked for. **The AVIF encoder
+was deliberately absent and now is not, on one route.** It was argued out on its size -- 1.1MB
+compressed against 332KB for the decoder -- and on `cms image` already producing AVIF locally
+where the time costs nothing. The first half was measured against the wrong number: the limit is
+64MiB uncompressed and nothing compressed, and the bundle carrying it is 5.7MB.
+
+The second half still holds, which is why the encoder is on `/derive` alone and `/image` still
+offers `webp`, `jpeg` and `png`. A flat-colour original stored as PNG has no AVIF to serve, and
+`/image/{cid}.avif` answering 404 for it is a fact about the bucket that a caller can act on.
+Adding the encoder there would have turned that 404 into a silent conversion on a live route.
+
+## Two routes, and what each will not do
+
+`/object/{cid}.{ext}` is the whole of content addressing with nothing added: it forms the key,
+reads, and answers. No probe, no synthesis, no outbound request. It is the one route on this host
+that keeps its year on a property rather than a promise.
+
+`/derive/{cid}.{ext}.{ext}` is where every transcoding lives, present and future. The source
+extension is stated rather than searched for -- this route is told the full name of what to work
+from, so it never probes, and it asks the same lookup `/object` uses by calling it rather than by
+fetching its own hostname, which would spend a subrequest and invite a loop.
+
+| asked for | answered |
+| --- | --- |
+| a source that is not in the bucket | `404`, before any byte is read |
+| the same extension twice | `301` to `/object`, because there is no work to do |
+| an image format from a decodable source | the transcode |
+| `zip` | the object packaged, stored rather than deflated |
+| anything else | `400` |
+
+**A `3xx` here earns the year, which no other route on this host grants it.** Everywhere else a
+redirect is a fact about now; on these two it is a function of the input and can no more change
+than the bytes can. The rule is `2xx` or `3xx` keeps the year, everything else keeps five minutes.
+
+**The archive is streamed and its timestamp is not a clock.** Entries are stored, not deflated --
+these are already-compressed media and deflate would spend CPU to add bytes -- and the source is
+capped at 50MB, checked against a `head` before anything is read, because an isolate has 128MB for
+its heap and its WebAssembly together and may already be holding a codec. A fixed epoch rather
+than the hour it was asked for, because a response served `immutable` has to be a function of its
+input, and a clock in the bytes would make the same request return different archives.
 
 ## The extension asks for a format
 

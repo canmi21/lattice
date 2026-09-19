@@ -57,3 +57,26 @@ export const cacheControl: MiddlewareHandler = async (c, next) => {
 		headers,
 	});
 };
+
+/**
+ * The same rule for the two routes whose whole answer is settled by the address.
+ *
+ * `/object` and `/derive` part company with the floor above on one status class: a `3xx` here
+ * earns the year too. A `/derive` redirect is a function of the input -- the two extensions were
+ * the same -- so it can no more change than the bytes can, and five minutes would make a client
+ * re-ask a question already written in the URL. Everything else is a fact about the bucket or
+ * about this moment and keeps the short life. See spec/architecture/delivery.md.
+ */
+export const objectCache: MiddlewareHandler = async (c, next) => {
+	await next();
+	if (c.res.headers.has('Cache-Control')) return;
+
+	const settled = c.res.status >= 200 && c.res.status < 400;
+	const headers = new Headers(c.res.headers);
+	headers.set('Cache-Control', settled ? UNCHANGING : PUBLISHED);
+	c.res = new Response(c.res.body, {
+		status: c.res.status,
+		statusText: c.res.statusText,
+		headers,
+	});
+};

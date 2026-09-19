@@ -1,5 +1,7 @@
 import decodeAvif, { init as initAvifDecode } from '@jsquash/avif/decode';
 import AVIF_DEC_WASM from '@jsquash/avif/codec/dec/avif_dec.wasm';
+import encodeAvif, { init as initAvifEncode } from '@jsquash/avif/encode';
+import AVIF_ENC_WASM from '@jsquash/avif/codec/enc/avif_enc.wasm';
 import encodeJpeg, { init as initJpegEncode } from '@jsquash/jpeg/encode';
 import JPEG_ENC_WASM from '@jsquash/jpeg/codec/enc/mozjpeg_enc.wasm';
 import decodePng, { init as initPngDecode } from '@jsquash/png/decode';
@@ -18,8 +20,8 @@ import WEBP_ENC_WASM from '@jsquash/webp/codec/enc/webp_enc.wasm';
  * produced here, not at the edge", for the measurement -- so the worker decodes and re-encodes
  * itself, which removes the plan tier, the monthly quota and the dimension ceiling too.
  *
- * Only decoders for what is stored, only encoders for what is asked for; that same section
- * gives the size trade behind leaving the AVIF encoder out.
+ * Only decoders for what is stored, encoders for what is asked for -- `/image` still offers no
+ * AVIF, for the size trade there; `/derive` names its source, so it may ask, and this carries one.
  */
 
 /**
@@ -68,6 +70,7 @@ const readyAvifDecode = once(() => initAvifDecode(AVIF_DEC_WASM));
 const readyPngDecode = once(() => initPngDecode(PNG_WASM));
 const readyPngEncode = once(() => initPngEncode(PNG_WASM));
 const readyJpegEncode = once(() => initJpegEncode(JPEG_ENC_WASM));
+const readyAvifEncode = once(() => initAvifEncode(AVIF_ENC_WASM));
 const readyWebpEncode = once(() => initWebpEncode(WEBP_ENC_WASM));
 
 /**
@@ -76,13 +79,39 @@ const readyWebpEncode = once(() => initWebpEncode(WEBP_ENC_WASM));
  * `jpg` is deliberately not a member -- see spec/architecture/delivery.md, "The extension asks
  * for a format", for why one spelling stays one. The route redirects it instead.
  *
- * There is no AVIF encoder, only the decoder, for the size trade the same section gives.
+ * `ENCODABLE` is what `/image` offers and deliberately leaves AVIF out, for the size trade the
+ * same section gives: a browser reaching that route for a fallback already cannot read AVIF.
  */
 export const DECODABLE = ['avif', 'png'] as const;
 export const ENCODABLE = ['webp', 'jpeg', 'png'] as const;
 
+/**
+ * What `/derive` may be asked to produce, which is every encoder this worker carries.
+ *
+ * A superset of `ENCODABLE` by one entry, and the entry is the point: `/derive` is told the
+ * source format rather than probing for it, so asking it for AVIF is asking for a conversion
+ * nobody could have reached through `/image`, where AVIF is what the source usually already is.
+ */
+export const DERIVABLE = ['webp', 'jpeg', 'png', 'avif'] as const;
+
 export type Decodable = (typeof DECODABLE)[number];
 export type Encodable = (typeof ENCODABLE)[number];
+export type Derivable = (typeof DERIVABLE)[number];
+
+/**
+ * What a re-encoded response is served as.
+ *
+ * Keyed by `Derivable`, not by string, so the table is complete by construction. Typed loosely
+ * before, an indexed lookup returned `string | undefined` and the missing case silently fell
+ * back to `image/jpeg` -- wrong for anything that was not JPEG. Adding a format without its
+ * MIME type is now a compile error instead.
+ */
+export const MEDIA_TYPES: Record<Derivable, string> = {
+	webp: 'image/webp',
+	jpeg: 'image/jpeg',
+	png: 'image/png',
+	avif: 'image/avif',
+};
 
 /**
  * Quality for the fallback formats.
@@ -93,12 +122,19 @@ export type Encodable = (typeof ENCODABLE)[number];
  */
 const QUALITY = 80;
 
+/** The same intent on AVIF's own scale, where the codec's default sits at 50. */
+const AVIF_QUALITY = 50;
+
 export function isDecodable(extension: string): extension is Decodable {
 	return (DECODABLE as readonly string[]).includes(extension);
 }
 
 export function isEncodable(extension: string): extension is Encodable {
 	return (ENCODABLE as readonly string[]).includes(extension);
+}
+
+export function isDerivable(extension: string): extension is Derivable {
+	return (DERIVABLE as readonly string[]).includes(extension);
 }
 
 async function toPixels(bytes: ArrayBuffer, from: Decodable): Promise<ImageData> {
@@ -117,7 +153,7 @@ async function toPixels(bytes: ArrayBuffer, from: Decodable): Promise<ImageData>
 	return pixels;
 }
 
-async function fromPixels(pixels: ImageData, to: Encodable): Promise<ArrayBuffer> {
+async function fromPixels(pixels: ImageData, to: Derivable): Promise<ArrayBuffer> {
 	switch (to) {
 		case 'webp':
 			await readyWebpEncode();
@@ -128,6 +164,12 @@ async function fromPixels(pixels: ImageData, to: Encodable): Promise<ArrayBuffer
 		case 'png':
 			await readyPngEncode();
 			return encodePng(pixels);
+		case 'avif':
+			await readyAvifEncode();
+			// AVIF's scale is not the other two's: 50 is its own default and roughly where 80
+			// lands for JPEG, so reusing `QUALITY` here would ask for a much larger file than
+			// the fallbacks it sits beside.
+			return encodeAvif(pixels, { quality: AVIF_QUALITY });
 	}
 }
 
@@ -135,7 +177,7 @@ async function fromPixels(pixels: ImageData, to: Encodable): Promise<ArrayBuffer
 export async function transcode(
 	bytes: ArrayBuffer,
 	from: Decodable,
-	to: Encodable,
+	to: Derivable,
 ): Promise<ArrayBuffer> {
 	return fromPixels(await toPixels(bytes, from), to);
 }

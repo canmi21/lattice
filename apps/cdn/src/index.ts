@@ -10,6 +10,8 @@ import { cacheControl } from './cache';
 import image from './image';
 import github from './github';
 import license from './license';
+import object from './object';
+import derive from './derive';
 import {
 	isUnsatisfiable,
 	read,
@@ -82,6 +84,17 @@ for (const type of PLAIN_OBJECTS) {
 for (const type of ARTIFACT_TYPES) {
 	app.route(`/${type}`, artifact(type));
 }
+
+/**
+ * Two addresses that name an object without naming a type, and neither resolves anything.
+ *
+ * `/object/{cid}.{ext}` is the lookup on its own, and `/derive/{cid}.{ext}.{ext}` is that same
+ * lookup plus one conversion the caller spelled out in full. They keep a cache rule of their own
+ * -- a `3xx` earns the year here, because a redirect either of them issues is a function of the
+ * address -- which is why each mounts `objectCache` itself rather than taking the floor above.
+ */
+app.route('/object', object);
+app.route('/derive', derive);
 
 /**
  * The font chunks, which are named rather than addressed by content.

@@ -1,5 +1,5 @@
 import { UNCHANGING } from '@canmi/cache';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import {
 	isUnsatisfiable,
 	read,
@@ -22,6 +22,50 @@ import { failure } from './respond';
  * A factory rather than two files, so the same five lines cannot drift apart between them.
  * `image` and `license` keep routes of their own because each does something more.
  */
+
+/**
+ * Hand back the object an id and an extension name, ranges and validator included.
+ *
+ * Separated from the factory below because `/object` performs exactly this lookup under no type
+ * at all -- see ./object.ts. Two copies of the range and 304 handling is how one of them ends up
+ * answering a seek with the whole file.
+ */
+export async function serveObject(
+	c: Context<{ Bindings: Bindings }>,
+	cid: string,
+	extension: string,
+): Promise<Response> {
+	// Answered before the bucket is touched, exactly as the image and licence routes do: the
+	// id is a hash of the bytes, so a client holding this tag holds these bytes, and reading
+	// the object to confirm it would only prove what the URL already stated.
+	const tag = validatorFor(cid, extension);
+	if (c.req.header('If-None-Match') === tag) {
+		return new Response(null, { status: 304, headers: { ETag: tag } });
+	}
+
+	const found = await read(c.env, storageKey(cid, extension), c.req.header('Range'));
+	if (!found) {
+		return failure(c, 404, 'not_found');
+	}
+	// The object is there and the question was wrong, which is a different answer from 404:
+	// 416 carries the size so the client can ask again knowing it.
+	if (isUnsatisfiable(found)) {
+		return unsatisfiableResponse(found.total);
+	}
+
+	const response = toResponse(found);
+	const headers = new Headers(response.headers);
+	// Overwritten rather than deferred to, so the tag agrees with what the 304 above compares
+	// against instead of with whatever R2 supplies for the stored object.
+	headers.set('ETag', tag);
+	headers.set('Cache-Control', UNCHANGING);
+	// `Accept-Ranges`, `Content-Range` and the 206 come from `toResponse`, which is where
+	// every object in this worker gets them. A clip is the reason they matter: a player seeks
+	// by asking for a byte range, and without them a browser fetches the whole rung to start
+	// in the middle of it.
+	return new Response(response.body, { status: response.status, headers });
+}
+
 export function stored(_type: PublicType, extension: string) {
 	const route = new Hono<{ Bindings: Bindings }>();
 
@@ -30,37 +74,7 @@ export function stored(_type: PublicType, extension: string) {
 		if (!parsed || parsed.extension !== extension) {
 			return failure(c, 400, 'not_a_content_id');
 		}
-		const { cid } = parsed;
-
-		// Answered before the bucket is touched, exactly as the image and licence routes do: the
-		// id is a hash of the bytes, so a client holding this tag holds these bytes, and reading
-		// the object to confirm it would only prove what the URL already stated.
-		const tag = validatorFor(cid, extension);
-		if (c.req.header('If-None-Match') === tag) {
-			return new Response(null, { status: 304, headers: { ETag: tag } });
-		}
-
-		const found = await read(c.env, storageKey(cid, extension), c.req.header('Range'));
-		if (!found) {
-			return failure(c, 404, 'not_found');
-		}
-		// The object is there and the question was wrong, which is a different answer from 404:
-		// 416 carries the size so the client can ask again knowing it.
-		if (isUnsatisfiable(found)) {
-			return unsatisfiableResponse(found.total);
-		}
-
-		const response = toResponse(found);
-		const headers = new Headers(response.headers);
-		// Overwritten rather than deferred to, so the tag agrees with what the 304 above compares
-		// against instead of with whatever R2 supplies for the stored object.
-		headers.set('ETag', tag);
-		headers.set('Cache-Control', UNCHANGING);
-		// `Accept-Ranges`, `Content-Range` and the 206 come from `toResponse`, which is where
-		// every object in this worker gets them. A clip is the reason they matter: a player seeks
-		// by asking for a byte range, and without them a browser fetches the whole rung to start
-		// in the middle of it.
-		return new Response(response.body, { status: response.status, headers });
+		return serveObject(c, parsed.cid, extension);
 	});
 
 	return route;
