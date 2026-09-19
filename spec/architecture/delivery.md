@@ -41,13 +41,25 @@ fetching its own hostname, which would spend a subrequest and invite a loop.
 | --- | --- |
 | a source that is not in the bucket | `404`, before any byte is read |
 | the same extension twice | `301` to `/object`, because there is no work to do |
+| a `jpg` target | `301` to the `.jpeg` spelling, after the source lookup |
 | an image format from a decodable source | the transcode |
-| `zip` | the object packaged, stored rather than deflated |
+| `zip`, source under the cap | the object packaged, stored rather than deflated |
+| `zip`, source over the cap | `413 too_large_to_package` |
+| `zip` with a `Range`, source over the seeking cap | `413 too_large_to_seek` |
 | anything else | `400` |
 
 **A `3xx` here earns the year, which no other route on this host grants it.** Everywhere else a
 redirect is a fact about now; on these two it is a function of the input and can no more change
 than the bytes can. The rule is `2xx` or `3xx` keeps the year, everything else keeps five minutes.
+
+**Two caps and two refusals, because they are two different answers.** A full request streams, so
+it holds only the chunk in flight and the cap is 50MB. A ranged one cannot: a zip's checksum
+covers all of its data and is written after it, so even a range naming the first byte has to read
+the last, and the archive is built whole before it is sliced. That path's cap is half the other,
+so the peak it reaches is the same number the streaming path passes through an isolate that has
+128MB for its heap and its WebAssembly together and may already be holding a codec. The two
+messages differ because `too_large_to_package` for a request that would have succeeded without a
+`Range` header tells a client nothing it can act on.
 
 **The archive is streamed and its timestamp is not a clock.** Entries are stored, not deflated --
 these are already-compressed media and deflate would spend CPU to add bytes -- and the source is
@@ -236,8 +248,15 @@ One rule over the four groups, and it reads the answer rather than the route:
 | answered | kept | because |
 | --- | --- | --- |
 | `2xx` or `3xx`, a hash in the path | a year, `immutable` | the hash is the bytes |
-| `2xx` or `3xx`, no hash | an hour | what stands behind a name can move, but not on this site's clock |
+| `2xx` or `3xx`, no hash | an hour | see below |
 | anything else | five minutes | a refusal is a fact about now |
+
+**An hour is what an address that names rather than identifies earns.** What stands behind a name
+can move -- a permanent name is answered by a different object when a mark is redrawn, a proxied
+path by whatever the third party has now -- so the year is not available to it. But it does not
+move on this site's publication clock either, and five minutes is that clock: giving it to
+something this site does not publish would be asserting a delay that has nothing to do with the
+thing. An hour says the address is stable and its answer is not.
 
 Everything `public`. **A `3xx` keeps the year here, which no other host grants it**: a redirect
 elsewhere is a fact about this moment, and on `/derive` it is a function of the input and can no
