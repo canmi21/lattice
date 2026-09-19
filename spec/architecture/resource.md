@@ -131,6 +131,41 @@ which is not. Asking for a picture and receiving a resource with no `media` segm
 error or a corrupt record, and answering it with a blank is how a missing image becomes a missing
 image nobody reports.
 
+## A bare id means whatever the resource says it means
+
+`ill.li/{rid}` is the whole of what a resource id is for from outside: five characters that stand
+for a thing, and a `302` to wherever that thing currently is. What it redirects to is declared,
+not inferred -- **`canonical` on the record, and a resource declaring none is a `404`.**
+
+Inferring would need a rule per type, and every one of them would be a judgement somebody
+disagrees with: which size is *the* picture, which rung is *the* clip, which tone is *the* icon.
+Declaring moves that decision to publication, where the answer is known, and leaves the reader a
+lookup.
+
+**The value is a scheme and never an address.**
+
+| written | expands to |
+| --- | --- |
+| `cid:{cid}.{ext}` | `{cdn}/object/{cid}.{ext}` |
+| `slug:{x}` | `{site}/{x}` |
+
+A URL here would put a hostname in every record, so moving a domain would mean rewriting all of
+them; a scheme is expanded by whoever answers, from the one place a hostname is declared.
+`libs/fonts` already publishes stylesheets carrying `__CDN_URL__` for the same reason, which is
+this idea before it had a name. `slug:` needs no lookup either: the site resolves a bare name to
+the article's real path itself, so a moved article keeps its short link.
+
+**What is declared is the largest rendition**, for a picture and a clip alike, tie-broken on byte
+size and then on the content id so the answer does not depend on map order. Compatibility is
+deliberately not weighed -- a `<picture>` handles that on the site, and a link somebody shares
+should hand over the best there is. A variant carrying no resolution is not a candidate, because
+it can only be a vector and the extension table would name one `.avif`: an address to a file
+nobody wrote is worse than the refusal.
+
+Measured on this corpus: 45 resources, 40 naming an AVIF, 3 a clip's top rung, 2 a PNG that is
+the whole ladder for a flat-colour original. No resource failed to declare one, and no tie
+occurred, so both tie-breaks exist only under test.
+
 ## Content binds at the layer that has it
 
 There is no fixed home for "the cids this resource owns", and there does not need to be. **A
