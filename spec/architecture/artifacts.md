@@ -117,14 +117,23 @@ A root that arrives first names objects that are not there yet, and the previous
 what that costs. Confirming before the flip is a step in the publish task rather than a
 property of the transfer, because ordering within one `rclone` run is not something to rely on.
 
-**The content-addressed prefixes are mirrored with `copy`, not `sync`.** `sync` deletes what is
-no longer local, which would remove the objects a root still in somebody's cache is naming. The
-retention that prevents that is simply not deleting: an object stays until a sweep asks. This is
-the position [data.md](data.md) already takes -- "Deletion is the one thing that never happens
-as a side effect" -- applied to a prefix where it is load-bearing rather than merely prudent.
+**Every tree is mirrored with `sync`, the content-addressed ones included.** This once read the
+other way: the content-addressed prefixes were copied, because `sync` deletes what is no longer
+local and that would remove objects a root still in somebody's cache is naming.
 
-The root is written with `sync` like everything else. It is one file and it is meant to be
-replaced.
+The window is real and the placement was wrong. A mirror that keeps what the source dropped
+diverges from it permanently, invisibly and forever, in exchange for a window measured in
+minutes -- and it bought nothing anyway, because the sweep behind it deleted with no delay at
+all. The retention belongs where the timing is known, which is the sweep: an object is deleted
+locally an hour after nothing names it, so by the time it reaches the mirror as a deletion it
+has been unnamed for longer than any root is cached.
+
+**Deletion wants the opposite order from upload, and the mirror goes as far as one run allows.**
+An object must stop being named before it stops being readable, so a delete belongs after the new
+root is up. `rclone` binds a delete to the transfer that discovered it and the objects transfer
+must run first, so `--delete-after` is the reachable half: nothing leaves a bucket until that
+transfer's uploads have landed, and a failed run leaves a superset rather than a hole. The rest
+is the hour above.
 
 A sweep is `cms gc`'s existing shape: dry by default, listing what nothing references.
 

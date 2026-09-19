@@ -15,8 +15,75 @@ use crate::image::run::{MERGED, load};
 use crate::licenses;
 use crate::opengraph;
 use crate::refs;
-use std::collections::BTreeSet;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+
+/// How long an object stays unnamed before this sweep will delete it.
+///
+/// The published root is cached for five minutes, so for five minutes after a republish there are
+/// readers holding a root that names objects the new one does not. An hour is that window plus a
+/// margin wide enough that nothing here has to be precise about clocks. See
+/// spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
+const DELAY: jiff::SignedDuration = jiff::SignedDuration::from_hours(1);
+
+pub const VERSION: u32 = 1;
+
+/// What the last run found unnamed, and when it first found it so.
+///
+/// A sweep can see that nothing names an object; it cannot see when that became true. This is the
+/// missing half, and it is only ever that: content id to the moment it was first observed
+/// unnamed, written as ISO 8601 in UTC so it means the same on whichever machine reads it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Pending {
+	pub version: u32,
+	#[serde(default)]
+	pub unnamed: BTreeMap<String, String>,
+}
+
+impl Default for Pending {
+	fn default() -> Self {
+		Self { version: VERSION, unnamed: BTreeMap::new() }
+	}
+}
+
+/// Regenerable by waiting, so it sits under `data/build/` with the rest of what a tool rebuilds.
+///
+/// Losing it costs one more cycle -- the next run records again and the one after it deletes --
+/// and nothing else, which is the whole test for what belongs there.
+pub fn record_path(repo: &Path) -> PathBuf {
+	repo.join("data").join("build").join("sweep.json")
+}
+
+/// Read the record, treating anything unreadable or of another version as empty.
+///
+/// Empty delays every deletion by one more cycle, which is the safe direction. The alternative is
+/// reading a shape written by different code as evidence that deleting is now safe.
+pub fn load_record(path: &Path) -> Pending {
+	std::fs::read_to_string(path)
+		.ok()
+		.and_then(|text| serde_json::from_str::<Pending>(&text).ok())
+		.filter(|record| record.version == VERSION)
+		.unwrap_or_default()
+}
+
+pub fn save_record(path: &Path, record: &Pending) -> std::io::Result<()> {
+	if let Some(parent) = path.parent() {
+		std::fs::create_dir_all(parent)?;
+	}
+	let mut text = serde_json::to_string_pretty(record)
+		.map_err(|error| std::io::Error::other(error.to_string()))?;
+	text.push('\n');
+	std::fs::write(path, text)
+}
+
+/// Whether an id first seen unnamed at `first_seen` has been unnamed for the whole delay.
+///
+/// A stamp that does not parse reads as now rather than as long ago. The record exists to say
+/// when deleting becomes safe, and evidence nobody can read is not a licence to delete.
+fn unnamed_long_enough(first_seen: &str, now: jiff::Timestamp) -> bool {
+	first_seen.parse::<jiff::Timestamp>().is_ok_and(|seen| now.duration_since(seen) >= DELAY)
+}
 
 /// Every content id one root mentions, read as text rather than against a schema.
 ///
@@ -70,6 +137,9 @@ pub struct Sweep {
 ///
 /// `metadata` is the other tree: the published root lives there, and every hash it names is what
 /// keeps the compiled corpus out of the orphan list.
+///
+/// **Nothing is offered until it has been unnamed for an hour**, so the first run of a pair
+/// records and collects nothing. Planning writes that record; it still deletes nothing.
 pub fn plan(
 	repo: &Path,
 	public: &Path,
@@ -143,15 +213,12 @@ pub fn plan(
 	// A poster's entry stays in the manifest for the same reason its bytes stay on disk: the
 	// clip's record points at it, and a record naming an entry that is gone is the one failure
 	// this sweep must not create.
-	let mut sweep = Sweep {
-		entries: merged
-			.media
-			.keys()
-			.filter(|cid| !wanted.contains(*cid) && !keep.contains(*cid))
-			.cloned()
-			.collect(),
-		..Sweep::default()
-	};
+	let unnamed_entries: Vec<String> = merged
+		.media
+		.keys()
+		.filter(|cid| !wanted.contains(*cid) && !keep.contains(*cid))
+		.cloned()
+		.collect();
 
 	// The whole content-addressed space, which is now one flat tree rather than a prefix per kind.
 	// A two-hex directory at the top of the objects tree is a fan-out segment and nothing else is,
@@ -159,8 +226,34 @@ pub fn plan(
 	// replaced a list of trees to keep complete -- `video/` and `captions/` were missing from it,
 	// which is the quietest way for a store to leak: a tree nothing sweeps has no orphans by
 	// definition, so it reports clean while it grows.
-	for path in fanned_files(public)? {
-		if !keep.contains(&stem_of(&path)) {
+	let unnamed_files: Vec<PathBuf> =
+		fanned_files(public)?.into_iter().filter(|path| !keep.contains(&stem_of(path))).collect();
+
+	// Nothing above knows when an object stopped being named, only that nothing names it now, so
+	// this run writes that down and collects what an earlier run wrote down an hour ago. The new
+	// record is built out of what is unnamed today rather than edited into the old one, which is
+	// what clears the timer for anything named again: an id that came back is not carried over,
+	// and so cannot be deleted later on the strength of a run that predates its return.
+	let now = jiff::Timestamp::now();
+	let recorded = load_record(&record_path(repo));
+	let mut pending = Pending::default();
+	let mut due: BTreeSet<String> = BTreeSet::new();
+	let unnamed = unnamed_entries.iter().cloned().chain(unnamed_files.iter().map(|p| stem_of(p)));
+	for cid in unnamed {
+		let first_seen = recorded.unnamed.get(&cid).cloned().unwrap_or_else(|| now.to_string());
+		if unnamed_long_enough(&first_seen, now) {
+			due.insert(cid.clone());
+		}
+		pending.unnamed.insert(cid, first_seen);
+	}
+	save_record(&record_path(repo), &pending)?;
+
+	let mut sweep = Sweep {
+		entries: unnamed_entries.into_iter().filter(|cid| due.contains(cid)).collect(),
+		..Sweep::default()
+	};
+	for path in unnamed_files {
+		if due.contains(&stem_of(&path)) {
 			sweep.bytes += path.metadata().map(|meta| meta.len()).unwrap_or_default();
 			sweep.orphans.push(path);
 		}
@@ -170,6 +263,7 @@ pub fn plan(
 	// that the domain was checked, so removing one file inside it would claim the site was
 	// asked and had no icon. They are swept where they are fetched, not where they are published:
 	// the published copy is content-addressed and falls out of `keep` with everything else.
+	// The hour above does not reach here: no published key is addressed by this name.
 	let wanted_domains: BTreeSet<String> =
 		scan.wanted().into_iter().map(|icon| icon.domain).collect();
 	for directory in directories_under(&crate::paths::favicon_root(repo))? {
