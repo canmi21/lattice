@@ -948,6 +948,12 @@ fn grant_resource_ids(live: bool) -> anyhow::Result<ExitCode> {
 	match migrate::apply(&root, &articles, &plan) {
 		Ok(rewritten) => {
 			println!("granted {} ids, rewrote {rewritten} reference(s)", plan.grants.len());
+			// Rewriting a reference moves every byte after it, and the segment layout is a set of
+			// byte spans over these files. Said here because the alternative is finding out from a
+			// failing test, and a view spliced from a stale layout is wrong silently.
+			if rewritten > 0 {
+				println!("run `cms segments`: rewriting references moved the spans it records");
+			}
 			Ok(ExitCode::SUCCESS)
 		}
 		Err(error) => {
