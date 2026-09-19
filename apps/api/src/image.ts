@@ -1,4 +1,5 @@
 import { isResourceId } from '@canmi/artifacts';
+import { PUBLISHED } from '@canmi/cache';
 import { read, recordKey } from '@canmi/store';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
@@ -31,7 +32,7 @@ image.get('/media', async (c) => {
 		'Content-Type': 'application/json; charset=utf-8',
 		// The record can be rewritten when an asset is re-derived, so unlike the assets
 		// themselves this is not immutable and gets a short life instead.
-		'Cache-Control': 'public, max-age=300',
+		'Cache-Control': PUBLISHED,
 	});
 	if (found.etag) headers.set('ETag', found.etag);
 	return new Response(found.body, { headers });

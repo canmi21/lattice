@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
+		"@canmi/cache": "workspace:*",
 		"@canmi/robots": "workspace:*",
 		"@canmi/store": "workspace:*",
 		"@canmi/urls": "workspace:*",

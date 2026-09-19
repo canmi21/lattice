@@ -8,6 +8,7 @@ import type {
 	SitemapAnswer,
 	ViewAnswer,
 } from '@canmi/artifacts';
+import { PUBLISHED, WHILE_UNREACHABLE } from '@canmi/cache';
 import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
 import { Hono, type Context } from 'hono';
 import type { Bindings } from './bindings';
@@ -31,7 +32,7 @@ const corpus = new Hono<{ Bindings: Bindings }>();
  * on "the API failed" would turn a blip into an outage, which is why a 5xx is `no-store` instead;
  * the asymmetry is spec/architecture/artifacts.md's, not this file's.
  */
-const MISSED = { 'Cache-Control': 'public, max-age=300' } as const;
+const MISSED = { 'Cache-Control': PUBLISHED } as const;
 
 /**
  * An answer says how stale it may usefully get; it does not do the serving.
@@ -41,7 +42,9 @@ const MISSED = { 'Cache-Control': 'public, max-age=300' } as const;
  * error worth serving stale. The site holds the cache that acts on this -- see
  * spec/architecture/artifacts.md, "The site keeps serving when the API does not".
  */
-const ANSWERED = { 'Cache-Control': 'public, max-age=300, stale-if-error=10800' } as const;
+const ANSWERED = {
+	'Cache-Control': `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`,
+} as const;
 
 /** The only standalone page there is; see libs/artifacts, `PublishedPage`. */
 const HOMEPAGE = 'homepage';

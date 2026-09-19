@@ -1,18 +1,6 @@
 import { HASH_PATTERN } from '@canmi/artifacts';
+import { PUBLISHED, UNCHANGING } from '@canmi/cache';
 import type { MiddlewareHandler } from 'hono';
-
-/** One year. The longest value browsers honour, and what `immutable` implies. */
-const IMMUTABLE = 31_536_000;
-const BRIEF = 300;
-
-/**
- * What a hashed name earns. Exported because a route that caches its own response has to
- * stamp this before the response is stored, which is earlier than this middleware runs.
- */
-export const FOREVER = `public, max-age=${IMMUTABLE}, immutable`;
-
-/** Everything the year does not reach: a name whose bytes may change, and every error. */
-export const BRIEFLY = `public, max-age=${BRIEF}`;
 
 /**
  * Whether the path's last segment is a content hash, which is the whole basis for the year.
@@ -39,6 +27,13 @@ export function isContentAddressed(path: string): boolean {
  */
 const PROMISED = ['/fonts/'];
 
+/**
+ * The floor: this worker's one cache rule, derived from the key rather than looked up.
+ *
+ * A route that stores its own response stamps `UNCHANGING` itself, which it has to do before
+ * the response is put in the cache and therefore earlier than this runs. Everything else
+ * arrives here unstamped and is decided by the shape of the name it was asked for.
+ */
 export const cacheControl: MiddlewareHandler = async (c, next) => {
 	await next();
 	if (c.res.headers.has('Cache-Control')) return;
@@ -51,11 +46,11 @@ export const cacheControl: MiddlewareHandler = async (c, next) => {
 	// A 304 is not an error and is counted: its headers replace the stored response's, so five
 	// minutes there would cut a year-old copy down on every revalidation.
 	const ok = (c.res.status >= 200 && c.res.status < 300) || c.res.status === 304;
-	const forever =
+	const unchanging =
 		ok && (isContentAddressed(path) || PROMISED.some((prefix) => path.startsWith(prefix)));
 
 	const headers = new Headers(c.res.headers);
-	headers.set('Cache-Control', forever ? FOREVER : BRIEFLY);
+	headers.set('Cache-Control', unchanging ? UNCHANGING : PUBLISHED);
 	c.res = new Response(c.res.body, {
 		status: c.res.status,
 		statusText: c.res.statusText,

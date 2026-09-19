@@ -142,6 +142,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../../libs/artifacts
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../../libs/cache
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -164,6 +167,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../../libs/artifacts
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../../libs/cache
       '@canmi/locales':
         specifier: workspace:*
         version: link:../../libs/locales
@@ -210,6 +216,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../../libs/artifacts
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../../libs/cache
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -549,6 +558,8 @@ importers:
       valibot:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)
+
+  libs/cache: {}
 
   libs/fonts: {}
 

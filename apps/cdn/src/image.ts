@@ -1,3 +1,4 @@
+import { UNCHANGING } from '@canmi/cache';
 import { Hono } from 'hono';
 import {
 	isUnsatisfiable,
@@ -7,7 +8,6 @@ import {
 	unsatisfiableResponse,
 	type Bindings,
 } from '@canmi/store';
-import { FOREVER } from './cache';
 import { canonicalSpelling, parseName, validatorFor } from './key';
 import { DECODABLE, type Decodable, type Encodable, isEncodable, transcode } from './transcode';
 import { failure } from './respond';
@@ -126,7 +126,7 @@ function finish(response: Response, cid: string, extension: string): Response {
 	// which would answer a `.webp` request with the AVIF object's tag and disagree with what
 	// the 304 path compares against.
 	headers.set('ETag', validatorFor(cid, extension));
-	headers.set('Cache-Control', FOREVER);
+	headers.set('Cache-Control', UNCHANGING);
 	return new Response(response.body, { status: response.status, headers });
 }
 

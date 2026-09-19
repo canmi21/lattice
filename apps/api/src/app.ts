@@ -1,3 +1,4 @@
+import { PUBLISHED } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
 import { DEVELOPMENT_PORTS, URLS, isDevHost, pickUrls } from '@canmi/urls';
 import { Hono, type Context } from 'hono';
@@ -91,7 +92,7 @@ app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
  * from a handler or from never reaching one. Five minutes, because which routes exist changes when
  * this worker is deployed and not before. See spec/architecture/artifacts.md.
  */
-app.notFound((c) => failure(c, 404, 'no_such_route', { 'Cache-Control': 'public, max-age=300' }));
+app.notFound((c) => failure(c, 404, 'no_such_route', { 'Cache-Control': PUBLISHED }));
 
 /**
  * A failure is JSON and is never stored, however far up it was thrown.

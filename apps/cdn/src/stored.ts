@@ -1,3 +1,4 @@
+import { UNCHANGING } from '@canmi/cache';
 import { Hono } from 'hono';
 import {
 	isUnsatisfiable,
@@ -8,7 +9,6 @@ import {
 	type Bindings,
 } from '@canmi/store';
 import type { PublicType } from '@canmi/artifacts';
-import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
 import { failure } from './respond';
 
@@ -55,7 +55,7 @@ export function stored(_type: PublicType, extension: string) {
 		// Overwritten rather than deferred to, so the tag agrees with what the 304 above compares
 		// against instead of with whatever R2 supplies for the stored object.
 		headers.set('ETag', tag);
-		headers.set('Cache-Control', FOREVER);
+		headers.set('Cache-Control', UNCHANGING);
 		// `Accept-Ranges`, `Content-Range` and the 206 come from `toResponse`, which is where
 		// every object in this worker gets them. A clip is the reason they matter: a player seeks
 		// by asking for a byte range, and without them a browser fetches the whole rung to start

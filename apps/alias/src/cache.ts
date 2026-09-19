@@ -1,3 +1,4 @@
+import { PUBLISHED, WHILE_UNREACHABLE } from '@canmi/cache';
 import type { MiddlewareHandler } from 'hono';
 
 /**
@@ -5,12 +6,10 @@ import type { MiddlewareHandler } from 'hono';
  *
  * **This layer's answer is exactly as fresh as the API answer behind it**, so a resolved redirect
  * takes the same life the `/asset` answer takes. Any other number would be a second publication
- * delay on one resource, which is the thing the arrangement exists to avoid. See
+ * delay on one resource, which is the thing the arrangement exists to avoid -- so the numbers
+ * are `@canmi/cache`'s and only the three decisions below are this layer's. See
  * spec/architecture/delivery.md.
  */
-
-/** Five minutes, the one publication delay. Written out in apps/api and apps/cdn too. */
-const BRIEF = 300;
 
 /**
  * A resolved name, and a miss that is a fact about the corpus.
@@ -19,10 +18,10 @@ const BRIEF = 300;
  * has to reach another to answer at all -- and a redirect it last resolved is a better answer
  * during an outage than no answer. The target is content-addressed, so a stale one is still bytes.
  */
-export const RESOLVED = `public, max-age=${BRIEF}, stale-if-error=10800`;
+export const RESOLVED = `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`;
 
 /** A name the corpus does not publish, or an address that could never name one. */
-export const REFUSED = `public, max-age=${BRIEF}`;
+export const REFUSED = PUBLISHED;
 
 /**
  * Anything that says something about this moment rather than about the corpus.

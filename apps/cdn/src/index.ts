@@ -1,11 +1,12 @@
 import { ARTIFACT_TYPES, PUBLIC_TYPES } from '@canmi/artifacts';
+import { PUBLISHED } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { addressable } from './address';
 import { artifact } from './artifact';
-import { BRIEFLY, cacheControl } from './cache';
+import { cacheControl } from './cache';
 import image from './image';
 import github from './github';
 import license from './license';
@@ -53,7 +54,7 @@ app.get('/favicon.ico', (c) => {
 // forever, over something mild. So the policy stops being clever: everything is fetchable,
 // cached briefly -- like every name without a hash in it -- so a correction takes minutes.
 app.get('/robots.txt', (c) => {
-	c.header('Cache-Control', BRIEFLY);
+	c.header('Cache-Control', PUBLISHED);
 	return c.text(robotsTxt({ disallow: [''] }));
 });
 

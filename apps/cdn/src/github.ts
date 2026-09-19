@@ -1,6 +1,6 @@
+import { PUBLISHED } from '@canmi/cache';
 import { GITHUB_OWNER, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
-import { BRIEFLY } from './cache';
 import { failure } from './respond';
 
 /**
@@ -56,6 +56,13 @@ export const ROLLING_TAGS: ReadonlySet<string> = new Set([
 /** How long a fetched asset is kept, and how long a failure to fetch one is. */
 export type Life = { readonly hit: string; readonly miss: string };
 
+/**
+ * Three numbers about somebody else's release cadence, and none of them this site's.
+ *
+ * `FIVE_MINUTES` has the publication delay's value and is not the publication delay: it says how
+ * fast a rolling tag moves, which is a fact about GitHub. Taking it from `@canmi/cache` would
+ * collapse two facts into one and tie a nightly's freshness to when this site last published.
+ */
 const HOUR = 3_600;
 const FIVE_MINUTES = 300;
 const MINUTE = 60;
@@ -67,7 +74,9 @@ export function releaseLife(tag: string): Life {
 			miss: `public, max-age=${MINUTE}`,
 		};
 	}
-	return { hit: `public, max-age=${HOUR}`, miss: BRIEFLY };
+	// The miss is the exception, and it always was: a fetch that failed says nothing about how
+	// fast the tag moves, so it takes this host's ordinary short life rather than a fourth number.
+	return { hit: `public, max-age=${HOUR}`, miss: PUBLISHED };
 }
 
 /**

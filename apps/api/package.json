@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
+		"@canmi/cache": "workspace:*",
 		"@canmi/locales": "workspace:*",
 		"@canmi/robots": "workspace:*",
 		"@canmi/store": "workspace:*",

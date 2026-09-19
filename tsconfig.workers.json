@@ -36,8 +36,10 @@
 		"apps/alias/src/**/*.ts",
 		"apps/alias/*.d.ts",
 		"libs/store/src/**/*.ts",
-		// Types and schemas only, so it carries no runtime globals and is safe in both programs.
-		"libs/artifacts/src/**/*.ts"
+		// Types, schemas and constants only, so neither carries a runtime global and both are
+		// safe in this program and in the browser one at once.
+		"libs/artifacts/src/**/*.ts",
+		"libs/cache/src/**/*.ts"
 	],
 	"exclude": ["**/node_modules", "**/dist", "**/build"]
 }

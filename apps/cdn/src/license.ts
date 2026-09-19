@@ -1,3 +1,4 @@
+import { UNCHANGING } from '@canmi/cache';
 import { Hono } from 'hono';
 import {
 	isUnsatisfiable,
@@ -7,7 +8,6 @@ import {
 	unsatisfiableResponse,
 	type Bindings,
 } from '@canmi/store';
-import { FOREVER } from './cache';
 import { parseName, validatorFor } from './key';
 import { failure } from './respond';
 
@@ -51,7 +51,7 @@ license.get('/:name', async (c) => {
 	// Overwritten rather than deferred to, so the tag agrees with what the 304 above compares
 	// against instead of with whatever R2 supplies for the stored object.
 	headers.set('ETag', tag);
-	headers.set('Cache-Control', FOREVER);
+	headers.set('Cache-Control', UNCHANGING);
 	return new Response(response.body, { status: response.status, headers });
 });
 

@@ -1,3 +1,4 @@
+import { PUBLISHED } from '@canmi/cache';
 import { and, count, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
@@ -45,7 +46,7 @@ engagement.get('/stats', async (c) => {
 		c,
 		{ subscriber_count: subscriberCount, like_count: likeCount } satisfies StatsAnswer,
 		{
-			'Cache-Control': 'public, max-age=300',
+			'Cache-Control': PUBLISHED,
 		},
 	);
 });
