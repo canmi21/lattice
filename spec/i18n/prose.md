@@ -133,6 +133,20 @@ mark. That falls out of translating the field rather than being a rule of its ow
 writing this down is that a later reader finding one subtitle stopped and another not has found a
 preference, not a defect to normalise.
 
+### The error page's sentence ends without one, in every language
+
+`error.not-found` and `error.unexpected` carry no terminal mark: `出了点问题`, `Something went
+wrong`, `이 페이지를 찾을 수 없습니다`. The page is a number, a hairline and that sentence, so a full
+stop is the only punctuation on the screen and reads as debris rather than as the end of
+anything. Nothing follows it that a reader could mistake it for running into.
+
+This does not follow [styling/phone.md](../styling/phone.md), "A short form ends without its
+final punctuation where the script allows it", and is deliberately not keyed to the script the
+way that rule is. The phone notice drops its mark because a tinted box has already ended the
+line, which is an argument about a boundary that only some scripts need; here there is no box
+and no second sentence in any language, so the answer is the same in all nine. A later reader
+finding Korean and French stopped short has found this decision, not a rule applied wrongly.
+
 ## A budget is a ceiling, not a target
 
 A short form is written to fit, not to fill. Measured across the corpus, Latin views use around

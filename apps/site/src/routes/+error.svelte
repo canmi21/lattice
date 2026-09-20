@@ -65,10 +65,19 @@
 		504: 'Gateway Timeout',
 	};
 
+	/**
+	 * The sentence is this site's, in the reader's language, and never `page.error.message`.
+	 *
+	 * That field carries whichever words the framework or an `error()` call happened to use --
+	 * `Internal Error`, `License not found` -- which are for a log. It is also always set, so
+	 * reading it meant the localised sentence below never rendered outside 404 and a reader
+	 * asking for Chinese was answered in English. The protocol's own name is not lost: it is in
+	 * the title and in the line a screen reader is given.
+	 */
 	const message = $derived(
 		page.status === 404
 			? m['error.not-found']({}, { locale })
-			: (page.error?.message ?? m['error.unexpected']({}, { locale })),
+			: m['error.unexpected']({}, { locale }),
 	);
 	const titleText = $derived(STATUS_TEXT[page.status] ?? 'Error');
 </script>
@@ -80,7 +89,10 @@
 <main class="flex min-h-screen items-center justify-center px-6">
 	<div class="flex items-center">
 		<h1 class="pr-6 {stylex.attrs(styles.status).class}">
-			{page.status}<span class="sr-only"> {titleText}</span>
+			<!-- The space is written as data rather than as markup, because Svelte trims whitespace
+			     at the start of an element's content and a screen reader was hearing "500Internal
+			     Server Error" as one word. -->
+			{page.status}<span class="sr-only">{` ${titleText}`}</span>
 		</h1>
 		<p class="pl-6 {stylex.attrs(styles.message).class}">
 			{message}
