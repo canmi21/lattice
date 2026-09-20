@@ -191,4 +191,7 @@ export const handle = sequence(
 	pageHandle,
 );
 
-export const handleError = handleErrorWithSentry();
+/** The same stamp from the other side; see hooks.client.ts. */
+export const handleError = handleErrorWithSentry(
+	({ message }): App.Error => ({ message, origin: 'server' }),
+);

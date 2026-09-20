@@ -23,7 +23,16 @@ Sentry.init({
 });
 
 export const init: ClientInit = prepareBrowserRuntime;
-export const handleError = Sentry.handleErrorWithSentry();
+/**
+ * Every unexpected error that happens in the browser, stamped as this side's.
+ *
+ * Only unexpected ones reach here -- an `error()` carries its own body straight to the page --
+ * so an `origin` is the page's signal that something broke rather than that a question was
+ * answered. See app.d.ts and routes/+error.svelte.
+ */
+export const handleError = Sentry.handleErrorWithSentry(
+	({ message }): App.Error => ({ message, origin: 'client' }),
+);
 
 function cleanLanguageParameter(): void {
 	const replacement = withoutLanguageParameter(new URL(window.location.href));

@@ -5,7 +5,19 @@ import type { LocaleCode } from '$lib/locale';
 
 declare global {
 	namespace App {
-		// interface Error {}
+		interface Error {
+			message: string;
+			/**
+			 * Which side failed, and **absent when nothing did**.
+			 *
+			 * Only unexpected errors reach `handleError`; an `error()` goes straight to the page
+			 * with its own body. So no stamp means an answer rather than a failure -- a 404 is a
+			 * 404 whichever side worked it out. One gap: an error surfaced through `__data.json`
+			 * arrives as a status and a string and loses this, which draws the page with the
+			 * code -- the right fallback, since the status is the part that survived.
+			 */
+			origin?: 'server' | 'client';
+		}
 		interface Locals {
 			locale?: { code: LocaleCode; language_tag: string };
 			/** What the document is painted in, settled from the cookie beside the class. */
