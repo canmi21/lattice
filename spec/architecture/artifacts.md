@@ -398,6 +398,18 @@ A root from three hours ago names objects that are all still there and still imm
 it renders is a coherent older page rather than a broken one. That property is a gift of content
 addressing and it is the reason this is worth relying on rather than merely tolerable.
 
+**There are two calls on that path now, and the second one is the same bet.** A compiled article
+names resources and stops, so rendering one also asks what those rids currently mean -- see
+[resource.md](resource.md), "A rid is resolved three times, and each stage bakes only what it can
+know". The stale answer survives for the reason the stale root does: a record from three hours ago
+names files that are content-addressed and therefore still there.
+
+The two failures are not the same and are not cached the same. A resource the corpus does not
+publish is a fact about the corpus and keeps the publication delay; an API that could not be
+reached is a fact about this moment and is not stored. That is the asymmetry `apps/alias` already
+keeps, arrived at there because every icon on a page came through one host and holding a blip for
+five minutes turned it into an outage.
+
 ## Two consumers, and the second one is the browser
 
 The site renders the first view a reader asks for, so that the first paint costs them no round

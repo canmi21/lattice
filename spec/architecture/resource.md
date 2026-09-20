@@ -167,6 +167,60 @@ Measured on this corpus: 45 resources, 40 naming an AVIF, 3 a clip's top rung, 2
 the whole ladder for a flat-colour original. No resource failed to declare one, and no tie
 occurred, so both tie-breaks exist only under test.
 
+## A rid is resolved three times, and each stage bakes only what it can know
+
+A compiled article names resources and stops. It does not name bytes. Turning a rid into the
+files behind it happens later, twice, and the same answer serves both.
+
+| stage | what it may bake | what it must not |
+| --- | --- | --- |
+| compile | the article's own shape: markdown to components, a rid where a resource is named | anything derived from a resource's current content |
+| SSR | the record for every rid on the page, its placeholder inlined and its files named | a choice only the browser can make, such as which width to fetch |
+| CSR | the same record, asked for again after hydration | nothing it did not already ask for |
+
+**The rule is one sentence: a stage bakes what it can determine and passes the rest on.** Compile
+time can determine what the article says, because the article is what it is reading. It cannot
+determine what a resource currently contains, because that is a fact about the corpus at the
+moment somebody asks.
+
+### What this buys, and it is the reason to accept the cost
+
+**A compiled article stops changing when an asset is re-derived.** Today re-encoding one picture
+rewrites the `srcset` inside every content object that names it, so the object's own content id
+moves and the article is republished -- for a change the article did not make. Stopping at the rid
+severs that: the object changes when the article changes and at no other time.
+
+That is what an editor that runs online needs. It writes a rid, and nothing downstream has to be
+recompiled for the write to take effect. A pipeline that bakes bytes at compile time can only be
+driven by something that can run the compiler.
+
+**No flexibility is lost, and the one that looks lost is not.** A picture's placeholder and its
+whole ladder arrive in the same answer, so the reader still sees a colour block before a byte of
+the image is requested, and the browser still chooses its own width from a `srcset` it was handed.
+What moved is when the ladder was written down, not who decides which rung to fetch.
+
+### Two failures, and only one of them is about the corpus
+
+A resolution that fails is cached the way the alias layer already caches its own, and for the
+reason written there: every picture on a page comes through this, so holding one blip turns a blip
+into an outage.
+
+- **The corpus has no such resource** is a fact about the corpus and keeps the publication delay.
+- **The API could not be reached** is a fact about this moment and is not stored at all.
+
+The site already renders through a network call and already answers an unreachable API with
+`stale-if-error` over a window measured in hours -- see [artifacts.md](artifacts.md), "The site
+keeps serving when the API does not". This adds volume to that dependency rather than a new kind
+of it, and the property that makes it survivable is the same one: a record from three hours ago
+names objects that are all still there and still immutable.
+
+### One question per page, not one per resource
+
+Measured on the corpus as it stands, an article names four resources or none. That is small enough
+that the shape matters more than the cost: a page asks once for everything it needs, through the
+batch entry point that exists for exactly this and today has arms for articles and reads but not
+for resources. See [artifacts.md](artifacts.md), "One batch entry point".
+
 ## Content binds at the layer that has it
 
 There is no fixed home for "the cids this resource owns", and there does not need to be. **A
