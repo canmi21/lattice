@@ -77,7 +77,7 @@ export const URLS = {
 	// licence routes, which have to state the terms of the code around the credits as well as
 	// the credits themselves -- so it is a published fact, not a convenience, and belongs
 	// beside the other URLs rather than written into a route.
-	source: `https://github.com/${GITHUB_OWNER}/press`,
+	source: `https://github.com/${GITHUB_OWNER}/lattice`,
 	// The apexes, declared once above so the one a worker answers on cannot be spelled twice.
 	internal: INTERNAL,
 	external: {
