@@ -263,11 +263,36 @@ what this side already knows, and the answer read back mid-flight is the unrelia
 measures 28px in flight and 24px at rest. It is the same answer the return control gives to the
 same question below, for the same reason.
 
-**One property, one writer.** The mark's opacity is written by that per-frame reconstruction and
-by nothing else. The animation library keeps a value per element and property, so a property it
-has animated once and that is then set behind its back reads to it as already at its target and
-is never rendered again -- which showed up as the mark appearing on a first hover and never on
-any hover after it.
+### One property, one writer
+
+**Every animated property on the rail has exactly one thing writing it.** The mark's opacity is
+written by the per-frame reconstruction above and by nothing else; a bar's opacity is written by
+its animation and by nothing else. This has been broken twice, in two different ways, and neither
+failure announced itself.
+
+**A value set behind the animation's back is never rendered.** The library keeps a value per
+element and property, so a property it has animated once, and that is then assigned directly,
+reads to it as already at its target. Nothing is drawn. This is how the mark came up at full
+strength on a first hover and not at all on any hover after it.
+
+**And a reactive `style` attribute is a writer, however little of it is reactive.** Svelte
+compiles an interpolated `style` to an assignment of the whole `cssText`, so a template that
+interpolates one value in it rewrites every declaration in it -- erasing what the animation put
+there, and guarding only against its own previous string, never against the animation's writes.
+Render effects run before user effects in a flush, so the sequence per handover was: the template
+snaps both bars to their destination with no animation; the animation then resolves its start
+from the value it cached before the wipe, jumps both back, and springs. One frame at the
+destination, then a jump home, then the move -- on two bars at once, in opposite directions. That
+is the flicker the reading cue had while scrolling, and it was intermittent only because an
+animation still in flight masks the wipe: handovers closer together than the spring's settle look
+clean, and one after the column has come to rest shows all of it.
+
+**So a template writes the first paint and then stops.** What a server renders is the honest
+resting state -- no entry is being read, because nothing has scrolled -- and the moment there is
+an entry being read, the property belongs to the animation. The one place that needs care is the
+handover at mount: an effect that skips its first run leaves nobody to draw a mark the template
+no longer draws, which on a page opened partway down would leave the entry unmarked until the
+reader next scrolled.
 
 ### Absent rather than squeezed
 

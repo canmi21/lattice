@@ -208,7 +208,7 @@
 	let phaseTimer: ReturnType<typeof setTimeout> | undefined;
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
 	let indicatorAnimation: AnimationControl | undefined;
-	/** Whether the animation in flight is the one that opens the rail, rather than a move along it. */
+	/** Whether the animation in flight is the reveal, rather than a move along the rail. */
 	let indicatorRevealing = false;
 	let geometryVersion = $state(0);
 
@@ -244,14 +244,11 @@
 	/**
 	 * Where the indicator goes, for a rail opened by `opened` with bars still `bar` tall.
 	 *
-	 * **The rail is in motion exactly when this is asked**, so nothing here measures a box that
-	 * animates -- a button reported 28px mid-flight and 24px once it settled. The layout is
-	 * arithmetic instead, in the two lengths the reveal moves: an entry is its padding, plus
-	 * whatever is left of its bar, plus however much of its label has arrived. Every other term
-	 * is declared or was measured before anything started moving.
-	 *
-	 * The rail's two resting layouts are this function's endpoints -- a full bar with nothing
-	 * opened, and `OPEN` below -- and everything between them is a frame of the reveal.
+	 * Arithmetic rather than measured, because the rail is in motion exactly when this is asked:
+	 * a button reports 28px mid-flight and 24px once it settles. The two resting layouts are this
+	 * function's endpoints and every frame of the reveal lies between them. See
+	 * spec/styling/rail.md, "The active mark opens with the column, not to where the column is
+	 * going".
 	 */
 	function indicatorGeometry(
 		index: number,
@@ -290,18 +287,10 @@
 	/**
 	 * The reveal: the mark opens out of the collapsed column along with the entry it marks.
 	 *
-	 * Written at the open position outright, the mark landed as far below its own label as
-	 * everything above it had yet to expand -- a column's worth for the last entry -- and then
-	 * rode back up as the rail grew, which is the whole rail's growth read as the mark
-	 * travelling. So it is drawn from the layout the rail is in, frame by frame.
-	 *
-	 * Those frames are reconstructed rather than read off the rail: the two lengths the reveal
-	 * moves are a bar's height and how much of a label has arrived, and both are run here on the
-	 * same curves the bars and the labels are run on above. One spring and one tween, the same
-	 * two constants, so the mark cannot drift from the column without the column drifting from
-	 * itself. Nothing samples the rail mid-flight and nothing forces a layout -- the same answer
-	 * the return control gives to the same question, see spec/styling/rail.md, "Article home
-	 * navigation yields to the table of contents".
+	 * The frames are reconstructed rather than read off the rail -- one spring and one tween, the
+	 * same two constants the bars and the labels run on, so the mark cannot drift from the column
+	 * without the column drifting from itself. See spec/styling/rail.md, "The active mark opens
+	 * with the column, not to where the column is going".
 	 */
 	function revealIndicator(index: number) {
 		const indicator = indicatorEl;
@@ -684,6 +673,13 @@
 
 		if (!firstWidthSet) {
 			firstWidthSet = true;
+			// The mark the template can no longer draw. On a page opened partway down, the spy
+			// settles an active entry from its own effect above -- which runs before this one, in
+			// this same flush -- so the entry is already marked by the time the run that would
+			// animate it is the one being skipped, and the bar would stay idle until the reader
+			// next scrolled. Written rather than animated: a first paint has nothing to move from.
+			const marked = bars[active];
+			if (marked) marked.style.opacity = '0.8';
 			return;
 		}
 
@@ -883,6 +879,12 @@
 					     document the reader arrived in, so a value left over from another article
 					     can never reach a navigation. Otherwise `2rem`, the resting shape a server
 					     draws and the rail settles out of. See lib/client/measured-ground.ts. -->
+					<!-- The opacity is idle here and never the entry being read: this attribute
+					     compiles to a write of the whole `cssText`, so interpolating the active
+					     entry would erase what the animation last put on this element, at every
+					     handover. A server render has nobody reading, so idle is the honest first
+					     paint and the only one this side owes; past that the property belongs to
+					     the animation alone, see spec/styling/rail.md, "One property, one writer". -->
 					<span
 						data-toc-bar
 						class="block {stylex.attrs(styles.bar).class}"
@@ -890,7 +892,7 @@
 							? remFromDefaultPixels(barWidths[i] ?? MAX_BAR_WIDTH / 2)
 							: settled
 								? `var(--toc-bar-${i}, 2rem)`
-								: '2rem'}; height: 0.25rem; opacity: {i === activeIndex ? 0.8 : 0.35}"
+								: '2rem'}; height: 0.25rem; opacity: 0.35"
 					></span>
 				</span>
 				<span class:focus-ring-inner={showText} class="toc-ring-text block w-fit max-w-full">
