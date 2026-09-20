@@ -26,6 +26,8 @@
 	"diagram.close": "Diagramm schließen",
 	"diagram.enlarge": "Diagramm vergrößern",
 	"diagram.title": "Diagramm",
+	"error.contact.not-found": "Wenn das ein Fehler ist, schreib an {#mail}{/mail}",
+	"error.contact.unexpected": "Schick einen {#report}Fehlerbericht{/report} oder schreib an {#mail}{/mail}",
 	"error.not-found": "Diese Seite wurde nicht gefunden",
 	"error.unexpected": "Etwas ist schiefgelaufen",
 	"image.close": "Bild schließen",

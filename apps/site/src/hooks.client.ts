@@ -10,6 +10,12 @@ import { registerClientStrategy } from '$lib/locale/paraglide';
 registerClientStrategy();
 registerAnalytics();
 
+// The feedback dialog is deliberately absent here. Naming it in `integrations` puts its widget
+// in the app entry, which every reader downloads for a control that only the error page has --
+// measured at 24KB gzipped. It is added on demand instead; see lib/error/report.ts.
+//
+// `enabled: false` sets up no integrations, so a disabled client has none to find. Adding one to
+// it still works, which is why the dialog can be opened in development at all.
 Sentry.init({
 	dsn: URLS.external.sentry.site,
 	enabled: !dev,

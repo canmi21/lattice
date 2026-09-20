@@ -26,6 +26,8 @@
 	"diagram.close": "Cerrar el diagrama",
 	"diagram.enlarge": "Ampliar el diagrama",
 	"diagram.title": "Diagrama",
+	"error.contact.not-found": "Si crees que es un error, escribe a {#mail}{/mail}",
+	"error.contact.unexpected": "Envía un {#report}informe de error{/report} o escribe a {#mail}{/mail}",
 	"error.not-found": "No se ha encontrado esta página",
 	"error.unexpected": "Algo ha salido mal",
 	"image.close": "Cerrar la imagen",

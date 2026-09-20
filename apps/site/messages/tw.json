@@ -26,6 +26,8 @@
 	"diagram.close": "關閉圖表",
 	"diagram.enlarge": "放大圖表",
 	"diagram.title": "圖表",
+	"error.contact.not-found": "如果你認為這是一個錯誤請聯絡 {#mail}{/mail}",
+	"error.contact.unexpected": "提交{#report}錯誤表單{/report}或聯絡 {#mail}{/mail}",
 	"error.not-found": "找不到這個頁面",
 	"error.unexpected": "出了點問題",
 	"image.close": "關閉圖片",

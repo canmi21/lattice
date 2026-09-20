@@ -26,6 +26,8 @@
 	"diagram.close": "다이어그램 닫기",
 	"diagram.enlarge": "다이어그램 확대",
 	"diagram.title": "다이어그램",
+	"error.contact.not-found": "잘못된 것 같으면 {#mail}{/mail}에 알려 주세요",
+	"error.contact.unexpected": "{#report}오류 보고서{/report}를 보내거나 {#mail}{/mail}에 알려 주세요",
 	"error.not-found": "이 페이지를 찾을 수 없습니다",
 	"error.unexpected": "문제가 발생했습니다",
 	"image.close": "이미지 닫기",

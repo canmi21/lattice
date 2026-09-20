@@ -26,6 +26,8 @@
 	"diagram.close": "Close diagram",
 	"diagram.enlarge": "Enlarge diagram",
 	"diagram.title": "Diagram",
+	"error.contact.not-found": "If you think this is a mistake, write to {#mail}{/mail}",
+	"error.contact.unexpected": "File a {#report}report{/report} or email {#mail}{/mail}",
 	"error.not-found": "This page could not be found",
 	"error.unexpected": "Something went wrong",
 	"image.close": "Close image",
