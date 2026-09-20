@@ -244,7 +244,7 @@
 			<LanguageSwitcher code={data.locale.code} prefetch={(next) => publishedHome(fetch, next)} />
 		</div>
 
-		<ArticleList articles={data.articles} heading={data.writing} />
+		<ArticleList articles={data.articles} heading={data.writing} shapes={data.shapes} />
 
 		<Newsletter locale={data.locale.code} class="mt-16" />
 

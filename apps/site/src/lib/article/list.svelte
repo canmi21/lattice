@@ -5,14 +5,15 @@
 </script>
 
 <script lang="ts">
-	import { measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext';
 	import { animate } from 'motion';
 	import { remFromDefaultPixels, remFromMeasuredPixels } from '$lib/client/units';
 	import ArticleCard from './card.svelte';
+	import { thumbnails, type Bar } from './thumbnail';
 
 	let {
 		articles,
 		heading,
+		shapes,
 	}: {
 		articles: {
 			meta: ViewMeta;
@@ -21,7 +22,26 @@
 			paragraphs: string[];
 		}[];
 		heading: string;
+		/**
+		 * Every thumbnail's bars, when the load already worked them out.
+		 *
+		 * Absent means the server drew this, which cannot measure text -- so the cards carry
+		 * their default shape and the effect below settles them. Present means a browser
+		 * measured before this rendered, and there is nothing to settle: the cards are already
+		 * right and nothing animates. See spec/styling/first-paint.md.
+		 */
+		shapes?: Bar[][];
 	} = $props();
+
+	/** The shapes as the markup writes them, so a card can take them straight. */
+	const drawn = $derived(
+		shapes?.map((bars) =>
+			bars.map(({ width, gap }) => ({
+				width: remFromDefaultPixels(width),
+				marginTop: remFromDefaultPixels(gap),
+			})),
+		),
+	);
 
 	// Bar widths map straight into the range taken from the first frame's bars:
 	// shortest (12) to longest (32), no quantization. The title stays within the
@@ -79,65 +99,33 @@
 	// and longest clause, spanning the full body range. Mirrors the ToC: the markup
 	// ships a baked first frame and we spring each bar to the computed shape.
 	$effect(() => {
-		if (!listEl) return;
+		// Nothing to settle when the shapes came with the page. See the prop above.
+		if (shapes || !listEl) return;
 		const icons = listEl.querySelectorAll<HTMLElement>('[data-article-icon]');
 		if (icons.length !== articles.length || icons.length === 0) return;
 
 		const raf = requestAnimationFrame(() => {
-			const font = fontOf(listEl?.querySelector('p') ?? document.body);
-			const natural = (t: string) => measureNaturalWidth(prepareWithSegments(t, font));
-
-			const titleW = articles.map((a) => natural(a.meta.title));
-			const tLo = Math.min(...titleW);
-			const tHi = Math.max(...titleW);
-			const bodyW = articles.map((a) => clauses(a.paragraphs).map(natural));
-
-			icons.forEach((icon, ai) => {
+			const target = thumbnails(articles, fontOf(listEl?.querySelector('p') ?? document.body));
+			icons.forEach((icon, index) => {
 				const bars = icon.querySelectorAll<HTMLElement>('[data-icon-bar]');
-				if (bars.length !== 5) return;
+				const shape = target[index];
+				if (bars.length !== 5 || shape === undefined) return;
 
-				const article = articles[ai];
-				const titleWidth = titleW[ai];
-				const lines = bodyW[ai];
-				if (article === undefined || titleWidth === undefined || lines === undefined) return;
-
-				const tFill = tHi > tLo ? (titleWidth - tLo) / (tHi - tLo) : 0.5;
-				const target = [{ width: Math.round(lerp(TITLE_MIN, TITLE_MAX, tFill)), gap: 0 }];
-
-				const lo = lines.length ? Math.min(...lines) : 0;
-				const hi = lines.length ? Math.max(...lines) : 1;
-				const sep = separatorGap(article.path);
-				IDEAL_BODY.forEach((ideal, i) => {
-					const w = lines[i];
-					const content =
-						w === undefined
-							? ideal
-							: lerp(BODY_MIN, BODY_MAX, hi > lo ? (w - lo) / (hi - lo) : 0.7);
-					// Lean the ideal shape toward the measured proportion by BLEND.
-					const width = Math.round(ideal * (1 - BLEND) + content * BLEND);
-					// Title gap and the chosen body separator share TITLE_GAP; rest small.
-					const gap = i === 0 || i === sep ? TITLE_GAP : LINE_GAP;
-					target.push({ width, gap });
-				});
-
-				bars.forEach((bar, i) => {
-					const shape = target[i];
-					if (shape === undefined) return;
-					// Width springs via motion; marginTop is animated with the native
-					// WAAPI because motion only snaps layout props (it tweens width but
-					// jumps margin). Set the final margin as the base, then tween to it.
+				bars.forEach((bar, line) => {
+					const to = shape[line];
+					if (to === undefined) return;
+					// Width springs via motion; marginTop is animated with the native WAAPI because
+					// motion only snaps layout props (it tweens width but jumps margin). Set the
+					// final margin as the base, then tween to it.
 					animate(
 						bar,
-						{ width: remFromDefaultPixels(shape.width) },
-						{
-							...SPRING,
-							onComplete: () => (bar.style.width = remFromDefaultPixels(shape.width)),
-						},
+						{ width: remFromDefaultPixels(to.width) },
+						{ ...SPRING, onComplete: () => (bar.style.width = remFromDefaultPixels(to.width)) },
 					);
 					const from = Number.parseFloat(getComputedStyle(bar).marginTop) || 0;
-					const to = remFromDefaultPixels(shape.gap);
-					bar.style.marginTop = to;
-					bar.animate([{ marginTop: remFromMeasuredPixels(from) }, { marginTop: to }], {
+					const gap = remFromDefaultPixels(to.gap);
+					bar.style.marginTop = gap;
+					bar.animate([{ marginTop: remFromMeasuredPixels(from) }, { marginTop: gap }], {
 						duration: GAP_MS,
 						easing: GAP_EASE,
 					});
@@ -156,7 +144,7 @@
 		{heading}
 	</h2>
 	<div>
-		{#each articles as article (article.path)}
+		{#each articles as article, index (article.path)}
 			<ArticleCard
 				title={article.meta.title}
 				subtitle={article.meta.subtitle}
@@ -164,6 +152,7 @@
 				short_subtitle={article.meta.short.subtitle}
 				created={article.created}
 				path={article.path}
+				bars={drawn?.[index]}
 			/>
 		{/each}
 	</div>

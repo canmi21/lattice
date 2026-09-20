@@ -39,6 +39,68 @@ removing the gap must not silently remove the greeting with it.
 What does follow from removing the gap is that the animation becomes the site's to choose:
 duration, easing and what moves stop being dictated by how long a measurement took.
 
+## A page declares what only a browser can work out
+
+The rule above says an arrival may animate and a navigation may not. What makes the second half
+possible is that **a client navigation can take the measurement before it paints**, and the place
+to take it is the page's own `load`.
+
+A universal `load` runs on the server for a document and in the browser for a navigation. So a
+measurement written there is absent in the first case and present in the second, without the page
+asking which it is in:
+
+```ts
+const shapes = await measured(() => thumbnails(articles, fontOfClass('article-preview-subtitle')));
+return { shapes, articles };
+```
+
+The component takes it as a prop and reads its absence as the instruction:
+
+```svelte
+{ shapes }: { shapes?: Bar[][] }   // absent: draw the default, then settle
+```
+
+**The absence is the signal, and it is the whole mechanism.** A component that gets nothing was
+rendered by something that could not know, so it draws its declared default and animates to the
+value once it can measure. A component that gets a value was rendered by a browser that already
+knew, and there is nothing to animate because nothing is going to change. Neither has to be told
+which kind of render it is in, and no third state has to be kept in sync with the first two.
+
+### The default is declared, and is not necessarily nothing
+
+What a component draws while the value is missing is a real design decision, not a zero. An
+article thumbnail's bars have a hand-tuned shape that reads as a page of text; the table of
+contents rests at half. The animation goes from the declared default to the measured value, so
+the default is the first thing a reader sees on every document load and is drawn to be seen.
+
+### It is `undefined` during hydration too, and that is the difference between the two rules
+
+SvelteKit runs a universal `load` again in the browser as it hydrates. Left alone, the
+measurement would therefore arrive one frame after the server's default, and a first paint would
+*jump* instead of settling -- measured on the homepage: 32px to 26px in one step, two distinct
+widths across 120 frames. `measured` answers `undefined` while the document is still the one the
+reader arrived in, which is the flag the section below already keeps. With it, the same first
+paint springs through 33 widths, and the client navigation that follows draws 26 on its first
+frame and never moves.
+
+### What it cannot cover, and what to do there instead
+
+The measurement has to be one a browser can make **without the page it is for**. Text width is:
+`measureText` on a canvas needs the string, the font and the width available, and all three are
+either in the load's own data or facts about the stylesheet -- which is why `fontOfClass` reads a
+probe wearing the class in the document already open rather than an element on a page that does
+not exist yet.
+
+A measurement of the laid-out page is not, and `scrollHeight` is the example. The answer there is
+not to reach for the DOM early but to notice that the value is usually known anyway: a navigation
+arrives at the top of a page, so a reading position is zero whatever the document's height turns
+out to be.
+
+**A `load` that measures delays the navigation**, so it is bounded. Fonts are waited for, because
+text measured in a font that has not loaded is measured in a different font, and the wait is
+raced against a deadline: a slightly wrong width is a far better answer than a page that does not
+come.
+
 ## Arrival is a property of the document, not of the component
 
 The decision is never "is this component mounting for the first time". A component mounts on

@@ -9,6 +9,7 @@
 		short_subtitle,
 		created,
 		path,
+		bars,
 	}: {
 		title: string;
 		subtitle: string;
@@ -17,7 +18,17 @@
 		short_subtitle: string;
 		created: string;
 		path: string;
+		/**
+		 * The thumbnail's five bars, when somebody already knew them.
+		 *
+		 * Absent is a server that could not measure text, and the hand-tuned default stands in
+		 * until the list settles it. Present is a browser that measured before this was drawn, and
+		 * then the first frame is the answer. See spec/styling/first-paint.md.
+		 */
+		bars?: readonly { width: string; marginTop: string }[];
 	} = $props();
+
+	const lines = $derived(bars ?? ARTICLE_THUMBNAIL_LINES);
 
 	const date = $derived(shortDate(created));
 </script>
@@ -27,7 +38,7 @@
 	hydration the article list measures the corpus and animates them to a content-derived
 	shape (normalized list-wide, see list.svelte). -->
 	<div data-article-icon aria-hidden="true" class="article-preview-thumbnail focus-ring-inner">
-		{#each ARTICLE_THUMBNAIL_LINES as line}
+		{#each lines as line}
 			<span data-icon-bar style:width={line.width} style:margin-top={line.marginTop}></span>
 		{/each}
 	</div>
