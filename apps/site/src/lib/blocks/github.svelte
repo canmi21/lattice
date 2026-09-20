@@ -68,6 +68,18 @@
 		languageDot: {
 			borderRadius: '50%',
 		},
+		/**
+		 * The three counts, in figures that do not shift width as they change.
+		 *
+		 * It was `tabular-nums` in the markup, which spec/architecture/css/layers.md names as a
+		 * ramp member left in the frame; this is the migration it said the move belonged to. The
+		 * utility composed the value out of five private Tailwind variables and this states it;
+		 * the one it set, `--tw-numeric-spacing`, is registered `inherits: false`, so nothing
+		 * below could have been reading it.
+		 */
+		figure: {
+			fontVariantNumeric: 'tabular-nums',
+		},
 		corner: {
 			color: 'var(--color-text-soft)',
 		},
@@ -107,6 +119,14 @@
 	const displayName = $derived(title || repo.full_name.split('/').at(-1) || repo.full_name);
 	const pushed = $derived(repo.pushed_at ? shortDate(repo.pushed_at) : undefined);
 
+	/**
+	 * Where the card sits in the column, as one utility rather than two conditional classes.
+	 *
+	 * A ternary rather than a pair of classes on one property, whose order inside one layer is not
+	 * the author's to choose. See spec/architecture/css/migration.md.
+	 */
+	const alignment = $derived(align === 'center' ? 'mx-auto' : align === 'right' ? 'ms-auto' : '');
+
 	function repositoryName(value: string): string {
 		const name = value.split('/').at(-1) ?? value;
 		return name
@@ -116,66 +136,78 @@
 	}
 </script>
 
+<!-- `repo-card` carries no rule of its own any more and is not dead: the corner glyph's reveal at
+     the foot is gated on this element's hover, and a descendant selected through its parent is the
+     one thing no class can express. -->
 <a
 	{href}
 	target="_blank"
 	rel="noopener"
-	class:card-center={align === 'center'}
-	class:card-right={align === 'right'}
-	class="repo-card group focus-ring {stylex.attrs(surfaces.interactive, styles.card).class}"
+	class="repo-card group focus-ring relative my-[1.8em] flex h-26 w-full max-w-[28rem] flex-col gap-[0.35rem] overflow-hidden px-3 py-[0.6rem] {alignment} {stylex.attrs(
+		surfaces.interactive,
+		styles.card,
+	).class}"
 >
-	<div class="header">
-		<span class="name {stylex.attrs(styles.name).class}"
-			>{title || repositoryName(displayName)}</span
-		>
-		<span class="fullname {stylex.attrs(styles.fullname).class}">{repo.full_name}</span>
+	<div class="flex items-center gap-2">
+		<span class={stylex.attrs(styles.name).class}>{title || repositoryName(displayName)}</span>
+		<span class="ms-[0.4rem] {stylex.attrs(styles.fullname).class}">{repo.full_name}</span>
 	</div>
 
 	{#if git_ref}
-		<span class="ref {stylex.attrs(styles.ref).class}">
+		<span
+			class="absolute top-2 right-[0.6rem] inline-flex items-center gap-[0.2rem] {stylex.attrs(
+				styles.ref,
+			).class}"
+		>
 			<GitCommitHorizontal class="size-3" strokeWidth={2} aria-hidden="true" />
 			{git_ref.slice(0, 7)}
 		</span>
 	{/if}
 
 	{#if repo.description}
-		<p class="description {stylex.attrs(styles.description).class}">{repo.description}</p>
+		<!-- The standard `line-clamp` is written beside the utility because the utility does not
+		     write it: `line-clamp-2` emits `-webkit-line-clamp` alone. Measured in Chrome the two
+		     agree -- the standard property computes to nothing there -- so this is carried across
+		     for the engines compat.md floors at rather than for a value that differs today. -->
+		<p class="m-0 line-clamp-2 flex-1 [line-clamp:2] {stylex.attrs(styles.description).class}">
+			{repo.description}
+		</p>
 	{/if}
 
-	<div class="meta {stylex.attrs(styles.meta).class}">
+	<div class="mt-auto flex flex-wrap items-center gap-[0.6rem] {stylex.attrs(styles.meta).class}">
 		{#if repo.language}
-			<span class="meta-item">
+			<span class="inline-flex items-center gap-1 whitespace-nowrap">
 				<span
-					class="language-dot {stylex.attrs(styles.languageDot).class}"
+					class="inline-block size-[0.6rem] shrink-0 {stylex.attrs(styles.languageDot).class}"
 					style="background-color: {langColor(repo.language)}"
 					aria-hidden="true"
 				></span>
 				{repo.language}
 			</span>
 		{/if}
-		<span class="meta-item">
+		<span class="inline-flex items-center gap-1 whitespace-nowrap">
 			<Star class="size-3.5" strokeWidth={2} aria-hidden="true" />
-			<span class="tabular-nums">{compactCount(repo.stars)}</span>
+			<span class={stylex.attrs(styles.figure).class}>{compactCount(repo.stars)}</span>
 			<span class="sr-only">stars</span>
 		</span>
-		<span class="meta-item">
+		<span class="inline-flex items-center gap-1 whitespace-nowrap">
 			<GitFork class="size-3.5" strokeWidth={2} aria-hidden="true" />
-			<span class="tabular-nums">{compactCount(repo.forks)}</span>
+			<span class={stylex.attrs(styles.figure).class}>{compactCount(repo.forks)}</span>
 			<span class="sr-only">forks</span>
 		</span>
 		{#if repo.license && repo.license !== 'NOASSERTION'}
-			<span class="meta-item">
+			<span class="inline-flex items-center gap-1 whitespace-nowrap">
 				<Scale class="size-3.5" strokeWidth={2} aria-hidden="true" />
 				{repo.license}
 			</span>
 		{/if}
-		<span class="meta-item">
+		<span class="inline-flex items-center gap-1 whitespace-nowrap">
 			<CircleDot class="size-3.5" strokeWidth={2} aria-hidden="true" />
-			<span class="tabular-nums">{compactCount(repo.open_issues)}</span>
+			<span class={stylex.attrs(styles.figure).class}>{compactCount(repo.open_issues)}</span>
 			<span class="sr-only">open issues</span>
 		</span>
 		{#if pushed}
-			<span class="meta-item">
+			<span class="inline-flex items-center gap-1 whitespace-nowrap">
 				<Clock class="size-3.5" strokeWidth={2} aria-hidden="true" />
 				{pushed}
 			</span>
@@ -188,81 +220,6 @@
 </a>
 
 <style>
-	.repo-card {
-		position: relative;
-		display: flex;
-		width: 100%;
-		max-width: 28rem;
-		height: 6.5rem;
-		margin-block: 1.8em;
-		flex-direction: column;
-		gap: 0.35rem;
-		overflow: hidden;
-		padding: 0.6rem 0.75rem;
-	}
-
-	.card-center {
-		margin-inline: auto;
-	}
-
-	.card-right {
-		margin-inline-start: auto;
-	}
-
-	.header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.fullname {
-		margin-inline-start: 0.4rem;
-	}
-
-	.ref {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.6rem;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.2rem;
-	}
-
-	.description {
-		display: -webkit-box;
-		flex: 1;
-		overflow: hidden;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		margin: 0;
-	}
-
-	.meta {
-		display: flex;
-		margin-top: auto;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.6rem;
-	}
-
-	/* An icon and the number beside it are one item and stay on one line. `white-space` is text
-	   behaviour, which spec/architecture/css/layers.md hands the frame by name; it is written here
-	   with the rest of this item's geometry, and moving it out is migration work. */
-	.meta-item {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		white-space: nowrap;
-	}
-
-	.language-dot {
-		display: inline-block;
-		width: 0.6rem;
-		height: 0.6rem;
-		flex-shrink: 0;
-	}
-
 	/* The corner glyph's reveal stays whole here rather than half of it in the visual layer: the
 	   offsets are placement, and the opacity it rests at has its other value behind the card's
 	   own hover, one level up. That is an ancestor, and an ancestor is what the visual layer

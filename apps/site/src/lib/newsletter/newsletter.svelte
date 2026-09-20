@@ -285,11 +285,23 @@ button is as wide as the wider of the two and its edge does not move when the co
 alternative is animating a width the stylesheet cannot know, which is a measurement this does not
 otherwise need. See spec/engagement.md. -->
 {#snippet label(subscribed: boolean)}
-	<span class="labels" class:crossfading={entering} class:recrossing={stage === 'reverting'}>
-		<span class:spent={subscribed} aria-hidden={subscribed}>
+	<span
+		class="inline-grid place-items-center"
+		class:crossfading={entering}
+		class:recrossing={stage === 'reverting'}
+	>
+		<span
+			class="col-start-1 row-start-1 whitespace-nowrap {subscribed ? 'invisible' : ''}"
+			class:spent={subscribed}
+			aria-hidden={subscribed}
+		>
 			{m['newsletter.subscribe']({}, { locale })}
 		</span>
-		<span class:spent={!subscribed} aria-hidden={!subscribed}>
+		<span
+			class="col-start-1 row-start-1 whitespace-nowrap {subscribed ? '' : 'invisible'}"
+			class:spent={!subscribed}
+			aria-hidden={!subscribed}
+		>
 			{m['newsletter.subscribed']({}, { locale })}
 		</span>
 	</span>
@@ -330,22 +342,28 @@ otherwise need. See spec/engagement.md. -->
 		address -- selecting a row of bullets invites copying something that is not there. The field
 		re-asserts what a field is, from the block below. -->
 		<div
-			class="pill focus-input-shell mt-4 flex cursor-default items-center gap-2 p-1.5 pl-5 {stylex.attrs(
+			class="pill focus-input-shell mt-4 mx-[calc(-1_*_var(--pill-overhang))] flex cursor-default items-center gap-2 p-1.5 pl-5 {stylex.attrs(
 				surfaces.paper,
 				styles.pill,
 			).class}"
 			role={shown ? 'status' : undefined}
 		>
 			{#if shown}
-				<span aria-hidden="true" class="swap min-w-0 flex-1">
+				<span aria-hidden="true" class="inline-grid min-w-0 flex-1 items-center">
 					{#if entering}
 						<!-- A plain copy of what was typed, standing in for the field that has just gone so
 						the address appears to be redacted in place rather than replaced. -->
-						<span class="typed {stylex.attrs(styles.address).class}">{entering}</span>
+						<span
+							class="typed col-start-1 row-start-1 min-w-0 overflow-hidden whitespace-nowrap {stylex.attrs(
+								styles.address,
+							).class}">{entering}</span
+						>
 					{/if}
 					<!-- The address is already unreadable, so nothing is gained by letting it wrap. -->
 					<span
-						class="masked {stylex.attrs(styles.address).class}"
+						class="masked col-start-1 row-start-1 min-w-0 overflow-hidden whitespace-nowrap {stylex.attrs(
+							styles.address,
+						).class}"
 						class:revealing={entering}
 						class:dissolving={stage === 'reverting'}
 					>
@@ -400,7 +418,9 @@ otherwise need. See spec/engagement.md. -->
 		The left slot carries whatever the reader most recently needs to know and falls back to the
 		count; the right slot is the only place a destructive action appears. -->
 		<div
-			class="row mt-3.5 flex items-baseline justify-between gap-6 {stylex.attrs(styles.row).class}"
+			class="mt-3.5 flex items-baseline justify-between gap-6 pe-[calc(0.375rem_+_1px_-_var(--pill-overhang))] {stylex.attrs(
+				styles.row,
+			).class}"
 		>
 			{#if status === 'error'}
 				<p class="selectable" role="alert">{m['newsletter.error']({}, { locale })}</p>
@@ -444,9 +464,12 @@ otherwise need. See spec/engagement.md. -->
 				     painting at one position and shifting after hydration, which is the failure
 				     spec/styling/rail.md records. So the cell reserves the width the same way the
 				     button does, and the control centres inside it. -->
-				<span class="under-chip shrink-0">
-					<span class="ghost px-4 {stylex.attrs(styles.ghost).class}" aria-hidden="true"
-						>{@render label(true)}</span
+				<span class="under-chip inline-grid shrink-0 place-items-center">
+					<span
+						class="invisible col-start-1 row-start-1 px-4 whitespace-nowrap {stylex.attrs(
+							styles.ghost,
+						).class}"
+						aria-hidden="true">{@render label(true)}</span
 					>
 					<button
 						type="button"
@@ -455,7 +478,8 @@ otherwise need. See spec/engagement.md. -->
 						aria-busy={cancellation.isPending}
 						class:arriving={stage === 'undoing'}
 						class:departing={stage === 'reverting'}
-						class="focus-link spring-underline {stylex.attrs(styles.undo).class}"
+						class="focus-link spring-underline col-start-1 row-start-1 {stylex.attrs(styles.undo)
+							.class}"
 					>
 						{m['newsletter.unsubscribe']({}, { locale })}
 					</button>
@@ -474,11 +498,6 @@ otherwise need. See spec/engagement.md. -->
 		--pill-height: 3.375rem;
 	}
 
-	/* Both ends sit at the column edge, so both are pulled. The formula is in styles/app.css. */
-	.pill {
-		margin-inline: calc(-1 * var(--pill-overhang));
-	}
-
 	/* The two halves of the pointer's account that need an ancestor to find their element. What
 	   the pill and the chip say about themselves is a Tailwind class on each of them, in the
 	   markup; a field and a button are reached through the pill they are inside, which is the one
@@ -493,48 +512,6 @@ otherwise need. See spec/engagement.md. -->
 	.pill button,
 	.under-chip button {
 		cursor: pointer;
-	}
-
-	/* The row ends where the button above it ends, so the cell below the button is the button.
-	   The pill is drawn wider than the column by its overhang, and carries a border and a padding
-	   inside that, so the button's box ends this far in. */
-	.row {
-		padding-inline-end: calc(0.375rem + 1px - var(--pill-overhang));
-	}
-
-	/* One cell, as wide as the button above, holding the hidden labels that decide that width and
-	   the control that centres inside it. */
-	.under-chip {
-		display: inline-grid;
-		place-items: center;
-	}
-
-	.under-chip > * {
-		grid-area: 1 / 1;
-	}
-
-	/* It reserves width and paints nothing. `visibility` rather than `display` for the reason
-	   spec/architecture/css/layers.md names this element for: a removed box measures nothing.
-	   `white-space` for the same reason one step along -- the width being reserved is the width of
-	   two labels that do not wrap. The type they are set in is the visual half and sits at the
-	   head of this file. */
-	.ghost {
-		visibility: hidden;
-		white-space: nowrap;
-	}
-
-	/* Both addresses occupy one cell, so the masked form arrives exactly where the field's text
-	   was rather than beside it. */
-	.swap {
-		display: inline-grid;
-		align-items: center;
-	}
-
-	.swap > span {
-		grid-area: 1 / 1;
-		min-width: 0;
-		overflow: hidden;
-		white-space: nowrap;
 	}
 
 	.typed {
@@ -560,23 +537,10 @@ otherwise need. See spec/engagement.md. -->
 		}
 	}
 
-	.labels {
-		display: inline-grid;
-		place-items: center;
-	}
-
-	.labels > span {
-		grid-area: 1 / 1;
-		white-space: nowrap;
-	}
-
-	/* `visibility` rather than `display`, which is the whole point: the box still measures. Which
-	   of the two is read aloud is marked separately, since the crossfade below has to turn this
-	   back on to paint it. */
-	.spent {
-		visibility: hidden;
-	}
-
+	/* `spent` carries no declaration of its own any more -- the invisibility it named is a utility
+	   on the same element, and `visibility` rather than `display` is still the whole point, because
+	   the box has to keep measuring. What the class is for now is the two rules below, which reach
+	   a child through a state on its parent and hand it a keyframe that paints it again. */
 	.crossfading > span,
 	.recrossing > span {
 		animation-timing-function: var(--ease-spring);

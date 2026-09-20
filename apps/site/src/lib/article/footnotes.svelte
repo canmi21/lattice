@@ -302,17 +302,17 @@
      them speaks at the page's shared section-name size. See spec/styling/notes.md. -->
 <section
 	aria-label={m['article.notes']({}, { locale })}
-	class="notes {stylex.attrs(styles.notes).class}"
+	class="mt-16 pt-6 {stylex.attrs(styles.notes).class}"
 >
 	<!-- The heading speaks at the same size and colour as the article title and the newsletter
 	     heading: three sections of one page, one voice for their names. Only the notes under it
 	     stay small. -->
 	<!-- No font-size: it inherits the root size the article title and the newsletter heading render
 	at, neither of which sets one either -- match by sharing the chain, not by copying a number. -->
-	<h2 class="notes-heading {stylex.attrs(surfaces.heading).class}">
+	<h2 class="mx-0 mt-0 mb-3 {stylex.attrs(surfaces.heading).class}">
 		{m['article.notes']({}, { locale })}
 	</h2>
-	<ol class="notes-list">
+	<ol class="m-0 flex list-none flex-col gap-1 p-0">
 		{#each shown as note (note.number)}{@render entry(note)}{/each}
 	</ol>
 
@@ -328,7 +328,7 @@
 			     numbers printed beside them. -->
 			<ol
 				id={panelId}
-				class="notes-list"
+				class="m-0 flex list-none flex-col gap-1 p-0"
 				start={SHOWN + 1}
 				aria-hidden={foldHidden}
 				inert={foldHidden}
@@ -339,7 +339,9 @@
 
 		<button
 			type="button"
-			class="notes-toggle focus-link cursor-pointer {stylex.attrs(styles.toggle).class}"
+			class="focus-link mt-2 inline-flex cursor-pointer items-center gap-1 p-0 {stylex.attrs(
+				styles.toggle,
+			).class}"
 			aria-expanded={expanded}
 			aria-controls={panelId}
 			onclick={() => setExpanded(!expanded)}
@@ -348,7 +350,7 @@
 				? m['article.notes.fold']({}, { locale })
 				: m['article.notes.unfold']({ count: folded.length }, { locale })}
 			<span
-				class="notes-chevron {stylex.attrs(styles.chevron, expanded && styles.chevronUp).class}"
+				class="inline-flex {stylex.attrs(styles.chevron, expanded && styles.chevronUp).class}"
 				aria-hidden="true"
 			>
 				<ChevronDown class="size-[1.1em]" />
@@ -358,7 +360,7 @@
 </section>
 
 {#snippet entry(note: ArticleNote)}
-	<li id="note-{note.number}" class="jump-target note {stylex.attrs(styles.note).class}">
+	<li id="note-{note.number}" class="jump-target note m-0 {stylex.attrs(styles.note).class}">
 		<!-- Words, marker, then link: see spec/styling/notes.md, "A note names its words first, then
 		     its number, then what it says" and "The number is the same superscript that marked
 		     it in the prose", for the ordering and why the marker is hidden from a screen reader.
@@ -373,7 +375,10 @@
 				href="#marker-{note.number}"
 				class="note-link focus-link {stylex.attrs(styles.link).class}"
 				onclick={jumpBack}
-				>{note.text}<span class="note-back {stylex.attrs(styles.back).class}" aria-hidden="true">
+				>{note.text}<span
+					class="ms-[0.35rem] inline-flex align-[-0.1em] {stylex.attrs(styles.back).class}"
+					aria-hidden="true"
+				>
 					<CornerDownLeft class="size-[1.1em]" />
 				</span><span class="sr-only">
 					({m['article.notes.back']({ number: note.number }, { locale })})</span
@@ -384,36 +389,6 @@
 {/snippet}
 
 <style>
-	/* The spacing the article's ending boundary sits at -- the rule itself is at the head of this
-	   file. It matches the newsletter's own (mt-16 plus its padding), so the boundary sits where
-	   it always has whether or not an article carried notes. */
-	.notes {
-		margin-top: 4rem;
-		padding-top: 1.5rem;
-	}
-
-	.notes-heading {
-		margin: 0 0 0.75rem;
-	}
-
-	/* An ordered list still, for what a screen reader is told, with nothing of a list drawn: the
-	   numbers a reader sees are the superscripts, which is how they were met in the prose. */
-	.notes-list {
-		display: flex;
-		margin: 0;
-		flex-direction: column;
-		/* Tight, because at this size the notes are a block to be scanned rather than paragraphs
-		   to be read apart. Spaced as they were for the larger text, two notes read as two
-		   unrelated things. */
-		gap: 0.25rem;
-		padding: 0;
-		list-style: none;
-	}
-
-	.note {
-		margin: 0;
-	}
-
 	/* The fold. Closed, it stands one line tall so the next note starts and dissolves rather
 	   than being cut off -- see the markup. The height is animated between measured numbers by
 	   the shared disclosure the code blocks use, so the two open with one motion; `auto` at
@@ -441,20 +416,6 @@
 	.notes-fold[data-phase='collapsing'],
 	.notes-fold[data-phase='expanding'] {
 		will-change: height;
-	}
-
-	/* The control sits under the fade, where the list ran out -- the reader's eye is already
-	   there. What it looks like there is at the head of this file; this is the box it takes. */
-	.notes-toggle {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		margin-top: 0.5rem;
-		padding: 0;
-	}
-
-	.notes-chevron {
-		display: inline-flex;
 	}
 
 	/* Descendant rather than child: the marker sits inside .note-line, which the landing light
@@ -492,14 +453,6 @@
 	.note:hover .note-link,
 	.note-link:focus-visible {
 		color: var(--color-text-strong);
-	}
-
-	/* Trailing the last word, not parked at the right edge. The way back belongs to the sentence
-	   that was just read, and a column of arrows down the right reads as a table's furniture. */
-	.note-back {
-		display: inline-flex;
-		margin-inline-start: 0.35rem;
-		vertical-align: -0.1em;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

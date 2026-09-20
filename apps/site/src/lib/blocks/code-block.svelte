@@ -16,10 +16,10 @@
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
 	 * declares. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot styles what StyleX cannot reach: Shiki's own preformatted element
-	 * and spans, plus the copy control's reveal frame, gated by a variant class and a copy state on
-	 * an ancestor of what they style. See spec/architecture/css/authoring.md, "A comment in the
-	 * module script cannot write a tag in angle brackets".
+	 * The scoped block at the foot styles what no class reaches: Shiki's own preformatted element
+	 * -- spelled out, per that file's "A comment in the module script cannot write a tag in angle
+	 * brackets" -- and spans, plus the copy control's reveal, gated on an ancestor. Everything
+	 * else it used to hold is geometry and is now in the markup.
 	 */
 	const styles = stylex.create({
 		// Shared by the two titles, which differ only in whether the title is a control.
@@ -352,9 +352,15 @@
 
 {#snippet codeAction()}
 	{#if code !== undefined}
+		<!-- The control's two shapes are written as ternaries rather than as a base utility and a
+		     variant class over it: two utilities for one property in one layer are ordered by
+		     something the author does not control. See spec/architecture/css/migration.md.
+		     `code-copy-unlabelled` stays because the reveal's own halves below still read it. -->
 		<button
 			type="button"
-			class="code-copy focus-ring cursor-pointer {stylex.attrs(styles.copy).class}"
+			class="code-copy focus-ring absolute top-2 right-2 z-10 inline-flex h-6 min-w-6 cursor-pointer items-center overflow-hidden px-1 {hasLanguageLabel
+				? 'justify-end'
+				: 'justify-center'} {stylex.attrs(styles.copy).class}"
 			class:code-copy-unlabelled={!hasLanguageLabel}
 			data-copy-state={copyState}
 			aria-label={copyActionLabel}
@@ -365,17 +371,39 @@
 			onkeydown={keyCopy}
 			onclick={copySource}
 		>
-			<span bind:this={copyContentEl} class="code-copy-content">
+			<span bind:this={copyContentEl} class="code-copy-content inline-flex items-center">
 				{#if label}<span class="code-copy-label" aria-hidden="true">{label}</span>{/if}
-				<span class="code-copy-mask" aria-hidden="true">
-					<span bind:this={copyGlyphEl} class="code-copy-glyph">
-						<span class="code-copy-icon code-copy-request {stylex.attrs(styles.copyIcon).class}">
+				<span
+					class="code-copy-mask inline-flex shrink-0 overflow-hidden {hasLanguageLabel
+						? 'w-5'
+						: 'w-3.5'}"
+					aria-hidden="true"
+				>
+					<span
+						bind:this={copyGlyphEl}
+						class="code-copy-glyph grid w-3.5 flex-[0_0_0.875rem] {hasLanguageLabel
+							? 'ml-1.5'
+							: 'ml-0'}"
+					>
+						<span
+							class="code-copy-icon code-copy-request col-start-1 row-start-1 grid place-items-center {stylex.attrs(
+								styles.copyIcon,
+							).class}"
+						>
 							<Copy class="size-3.5" />
 						</span>
-						<span class="code-copy-icon code-copy-success {stylex.attrs(styles.copyIcon).class}">
+						<span
+							class="code-copy-icon code-copy-success col-start-1 row-start-1 grid place-items-center {stylex.attrs(
+								styles.copyIcon,
+							).class}"
+						>
 							<Check class="size-3.5" />
 						</span>
-						<span class="code-copy-icon code-copy-failure {stylex.attrs(styles.copyIcon).class}">
+						<span
+							class="code-copy-icon code-copy-failure col-start-1 row-start-1 grid place-items-center {stylex.attrs(
+								styles.copyIcon,
+							).class}"
+						>
 							<X class="size-3.5" />
 						</span>
 					</span>
@@ -437,9 +465,13 @@
 				</div>
 			{/if}
 
+			<!-- The height is the script's, written inline while it animates; these two say what the
+			     box is at each end of that. A component varying on its own data attribute has no
+			     StyleX spelling (spec/architecture/css/authoring.md) but the frame has one, and a
+			     class reaches this element, so the frame is where they go. -->
 			<div
 				bind:this={collapseEl}
-				class="code-collapse"
+				class="overflow-hidden data-[phase=collapsed]:h-0 data-[phase=collapsing]:[will-change:height] data-[phase=expanding]:[will-change:height]"
 				data-phase={canCollapse ? phase : 'expanded'}
 			>
 				<div id={panelId} class="code-panel relative" aria-hidden={panelHidden} inert={panelHidden}>
@@ -482,36 +514,13 @@
 		outline: none;
 	}
 
-	/* The copy control and the collapse, in geometry only: where each part is and how large.
-	   What they look like is the visual layer's and sits at the head of this file. See
-	   spec/architecture/css/layers.md. */
-	.code-copy {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		z-index: 10;
-		display: inline-flex;
-		height: 1.5rem;
-		min-width: 1.5rem;
-		align-items: center;
-		justify-content: flex-end;
-		overflow: hidden;
-		padding-inline: 0.25rem;
-	}
-
-	.code-copy-unlabelled {
-		justify-content: center;
-	}
-
-	/* The reveal's resting frame, and the same values `renderCopyReveal(0)` writes inline the
-	   moment the script runs. It stays whole here rather than half of it in the visual layer:
-	   the offsets are placement, and what is not -- the opacities, the icons' scale -- has its
-	   other value behind a class on the button above, the unlabelled variant or the copy state.
-	   That is an ancestor, and an ancestor is what the visual layer cannot see without a marker
-	   nobody owns yet. See spec/todo.md. */
+	/* The copy control's reveal, and only that: the four values `renderCopyReveal(0)` writes
+	   inline the moment the script runs, plus the two the copy state swaps. The set stays whole
+	   because each member's other value is behind a class or an attribute on the button above,
+	   which is an ancestor the visual layer cannot see without a marker nobody owns yet. The
+	   control's geometry went to the markup. See spec/architecture/css/migration.md, "The test
+	   applies to a declaration, and stops applying to a member of a set", and spec/todo.md. */
 	.code-copy-content {
-		display: inline-flex;
-		align-items: center;
 		transform: translateX(1.25rem);
 	}
 
@@ -519,35 +528,16 @@
 		transform: none;
 	}
 
-	.code-copy-mask {
-		display: inline-flex;
-		width: 1.25rem;
-		flex-shrink: 0;
-		overflow: hidden;
-	}
-
 	.code-copy-glyph {
-		display: grid;
-		width: 0.875rem;
-		flex: 0 0 0.875rem;
-		margin-left: 0.375rem;
 		opacity: 0;
 		transform: translateX(0.375rem);
 	}
 
 	.code-copy-unlabelled .code-copy-glyph {
-		margin-left: 0;
 		transform: scale(0.82);
 	}
 
-	.code-copy-unlabelled .code-copy-mask {
-		width: 0.875rem;
-	}
-
 	.code-copy-icon {
-		grid-area: 1 / 1;
-		display: grid;
-		place-items: center;
 		opacity: 0;
 		transform: scale(0.82);
 	}
@@ -558,19 +548,6 @@
 	.code-copy[data-copy-state='failed'] .code-copy-failure {
 		opacity: 1;
 		transform: scale(1);
-	}
-
-	.code-collapse {
-		overflow: hidden;
-	}
-
-	.code-collapse[data-phase='collapsed'] {
-		height: 0;
-	}
-
-	.code-collapse[data-phase='collapsing'],
-	.code-collapse[data-phase='expanding'] {
-		will-change: height;
 	}
 
 	.codeblock :global(.shiki),

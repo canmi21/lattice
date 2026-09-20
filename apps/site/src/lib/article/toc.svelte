@@ -11,6 +11,17 @@
 	 * what the marks are made of.
 	 */
 	const styles = stylex.create({
+	/**
+	 * The rail's own offset near the end of an article, on top of the box's vertical centring.
+	 *
+	 * Here rather than in the markup because no utility translates a `transform` -- Tailwind 4
+	 * writes `translate` as its own property, a different declaration with a different computed
+	 * value. See spec/architecture/css/migration.md, "No utility translates a `transform`
+	 * declaration". Horizontal placement stays the rail box's, in utilities.css.
+	 */
+		nav: {
+			transform: 'translateY(var(--toc-end-offset, 0rem))',
+		},
 		/** The bar marking the entry being read. Its height and its offset are the animation's. */
 		indicator: {
 			borderRadius: radius.full,
@@ -758,7 +769,9 @@
 		onmouseenter={handleEnter}
 		onmouseleave={handleLeave}
 		class:revealed={showText}
-		class="toc-nav pointer-events-auto relative w-full flex-col items-start overflow-visible"
+		class="toc-nav pointer-events-auto relative w-full flex-col items-start overflow-visible {stylex.attrs(
+			styles.nav,
+		).class}"
 	>
 		<span
 			bind:this={indicatorEl}
@@ -790,12 +803,18 @@
 					></span>
 				</span>
 				<span class:focus-ring-inner={showText} class="toc-ring-text block w-fit max-w-full">
+					<!-- Clamped to two lines within the rail's width. `line-clamp-2` is the four
+					     declarations Tailwind writes as one utility -- the `display` among them -- and
+					     `[line-clamp:2]` is the standard property beside it, which that utility does
+					     not emit; measured in Chrome the standard one computes to nothing, so it is
+					     carried across for the engines spec/compat.md floors at rather than for a
+					     value that differs today. -->
 					<span
 						data-toc-text
-						class={stylex.attrs(
+						class="line-clamp-2 max-w-full [line-clamp:2] {stylex.attrs(
 							styles.label,
 							i === activeIndex ? styles.labelActive : styles.labelIdle,
-						).class}
+						).class}"
 						style="height: 0; opacity: 0"
 					>
 						{entry.text}
@@ -807,26 +826,6 @@
 {/if}
 
 <style>
-	/* Horizontal placement belongs to the rail box in utilities.css. Vertical centring is the
-	   box's `align-items`; this offset rides on top of it near the end of an article. */
-	.toc-nav {
-		transform: translateY(var(--toc-end-offset, 0rem));
-	}
-
-	/* The clamp to two lines, and the width it clamps within. Tailwind writes `line-clamp-2` as
-	   these four declarations together and one of them is a `display`, so the set stays where the
-	   member that cannot move is; spec/todo.md is already holding the question of a compound
-	   utility that straddles the boundary. What the label looks like is the visual layer's and
-	   sits at the head of this file. See spec/architecture/css/layers.md. */
-	[data-toc-text] {
-		display: -webkit-box;
-		max-width: 100%;
-		overflow: hidden;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-	}
-
 	/* A script whose spaces mean something breaks at them first -- see spec/styling/rail.md, "Balance
 	   evens the lines; it does not choose where the break may land, and for Han that is the part
 	   that matters" and "Japanese is excluded, and the measurement is the argument". The floor

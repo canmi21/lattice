@@ -315,19 +315,27 @@
 {#snippet copy(short: string, long: string)}
 	{@const parts = splitCopy(short, long)}
 	{#if parts}
-		<span class="copy segmented" aria-hidden="true">
-			<span class="prefix-mask reveal-mask"
-				><span class={stylex.attrs(styles.copyRun).class}>{parts.prefix}</span></span
+		<span class="inline-flex flex-none items-center" aria-hidden="true">
+			<span class="prefix-mask reveal-mask flex-none overflow-hidden"
+				><span class="block w-max {stylex.attrs(styles.copyRun).class}">{parts.prefix}</span></span
 			>
-			<span class="shared {stylex.attrs(styles.copyRun).class}">{parts.shared}</span>
-			<span class="suffix-mask reveal-mask"
-				><span class={stylex.attrs(styles.copyRun).class}>{parts.suffix}</span></span
+			<span class="shared block w-max {stylex.attrs(styles.copyRun).class}">{parts.shared}</span>
+			<span class="suffix-mask reveal-mask flex-none overflow-hidden"
+				><span class="block w-max {stylex.attrs(styles.copyRun).class}">{parts.suffix}</span></span
 			>
 		</span>
 	{:else}
-		<span class="copy fallback" aria-hidden="true">
-			<span class="short whitespace-nowrap {stylex.attrs(styles.shortCopy).class}">{short}</span>
-			<span class="long whitespace-nowrap {stylex.attrs(styles.longCopy).class}">{long}</span>
+		<span class="inline-grid flex-none" aria-hidden="true">
+			<span
+				class="short col-start-1 row-start-1 justify-self-start whitespace-nowrap {stylex.attrs(
+					styles.shortCopy,
+				).class}">{short}</span
+			>
+			<span
+				class="long col-start-1 row-start-1 justify-self-start overflow-hidden whitespace-nowrap {stylex.attrs(
+					styles.longCopy,
+				).class}">{long}</span
+			>
 		</span>
 	{/if}
 {/snippet}
@@ -353,7 +361,7 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action like focus-ring cursor-pointer {stylex.attrs(
+			class="action like focus-ring inline-flex h-9 shrink-0 cursor-pointer items-center overflow-hidden px-3 {stylex.attrs(
 				surfaces.interactive,
 				styles.action,
 				styles.likeFigures,
@@ -379,8 +387,10 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring cursor-pointer {stylex.attrs(surfaces.interactive, styles.action)
-				.class}"
+			class="action focus-ring inline-flex h-9 shrink-0 cursor-pointer items-center overflow-hidden px-3 {stylex.attrs(
+				surfaces.interactive,
+				styles.action,
+			).class}"
 		>
 			<Star class="icon" aria-hidden="true" />
 			{@render copy(favourShort, favourLabel)}
@@ -395,8 +405,10 @@
 			onmouseleave={collapse}
 			onfocus={expandFromFocus}
 			onblur={collapse}
-			class="action focus-ring cursor-pointer {stylex.attrs(surfaces.interactive, styles.action)
-				.class}"
+			class="action focus-ring inline-flex h-9 shrink-0 cursor-pointer items-center overflow-hidden px-3 {stylex.attrs(
+				surfaces.interactive,
+				styles.action,
+			).class}"
 		>
 			<Coffee class="icon" aria-hidden="true" />
 			{@render copy(
@@ -408,18 +420,9 @@
 </section>
 
 <style>
-	/* The pill in geometry only: where each part is and how large. What it looks like, and what
-	   it does under a pointer, is the visual layer's and sits at the head of this file. See
-	   spec/architecture/css/layers.md. */
-	.action {
-		display: inline-flex;
-		height: 2.25rem;
-		flex-shrink: 0;
-		align-items: center;
-		overflow: hidden;
-		padding-inline: 0.75rem;
-	}
-
+	/* The glyph inside the pill, which the icon component renders and no class here reaches. The
+	   pill's own geometry is in the markup, and `action` stays because the rules below reach into
+	   it. See spec/architecture/css/layers.md. */
 	.action :global(.icon) {
 		width: 1rem;
 		height: 1rem;
@@ -427,39 +430,18 @@
 		flex-shrink: 0;
 	}
 
-	.copy {
-		flex: none;
-	}
-
-	.segmented {
-		display: inline-flex;
-		align-items: center;
-	}
-
+	/* The resting end of a width `revealCopy` writes inline as the pill opens, so the two mean
+	   nothing apart and this stays where the script can be read against it. The mask's own box
+	   went to the markup. See spec/architecture/css/migration.md, "The test applies to a
+	   declaration, and stops applying to a member of a set". */
 	.reveal-mask {
 		width: 0;
-		flex: none;
-		overflow: hidden;
 	}
 
-	.reveal-mask > span,
-	.shared {
-		display: block;
-		width: max-content;
-	}
-
-	.fallback {
-		display: inline-grid;
-	}
-
-	.fallback > span {
-		grid-area: 1 / 1;
-		justify-self: start;
-	}
-
+	/* The same, for the pill that has no shared run to slide: the long copy rests at no width and
+	   its other value is two rules down, behind an attribute on an ancestor. */
 	.long {
 		max-width: 0;
-		overflow: hidden;
 	}
 
 	:global(.action[data-expanded='true']) .short {

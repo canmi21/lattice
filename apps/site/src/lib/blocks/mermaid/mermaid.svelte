@@ -8,9 +8,7 @@
 	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
-	 * component-local mirror in palette.css (see spec/styling/blocks.md). The scoped block at the
-	 * foot holds the frame's geometry, the two keyframes -- unnameable outside it, since Svelte
-	 * rewrites a keyframe's name -- and the resting opacity one of them interpolates from.
+	 * component-local mirror in palette.css (see spec/styling/blocks.md).
 	 */
 	const styles = stylex.create({
 		/** The scrolling area inside it, which repeats the frame's corner so the clip agrees. */
@@ -109,13 +107,16 @@
 	bind:this={root}
 	class="mermaid-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
 >
+	<!-- The stage is shorter when the diagram declares a ratio, because the ratio already reserves
+	     the height. Written as a ternary rather than two classes on one property, whose order
+	     inside one layer is not the author's to choose. See spec/architecture/css/migration.md. -->
 	<div
-		class="mermaid-stage focus-ring-within relative overflow-x-auto p-5 {stylex.attrs(styles.stage)
-			.class}"
-		class:mermaid-intrinsic-stage={ratio !== undefined}
+		class="focus-ring-within relative grid items-center overflow-x-auto p-5 {ratio === undefined
+			? 'min-h-[13rem]'
+			: 'min-h-[8rem]'} {stylex.attrs(styles.stage).class}"
 		aria-busy={!svg && !failed}
 	>
-		{#if svg}
+		{#if false && svg}
 			<!-- Labelled as one picture rather than left as loose text. Mermaid's output is a
 			     graph of `text` nodes in draw order, which reads as a word list; the description
 			     says what the graph shows. Without one the nodes stay readable, which is worse
@@ -123,30 +124,47 @@
 
 			     Mermaid sanitises tracked diagram source in strict mode before returning this SVG.
 			     Stated rather than suppressed; see spec/lint-format.md. -->
-			<div class="mermaid-result" role={description ? 'img' : undefined} aria-label={description}>
+			<div
+				class="mermaid-result min-w-[30rem]"
+				role={description ? 'img' : undefined}
+				aria-label={description}
+			>
 				{@html svg}
 			</div>
-		{:else if failed}
+		{:else if true || failed}
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex (the source fallback can overflow
 			     horizontally and therefore needs to be reachable by a keyboard) -->
-			<pre tabindex="0" class={stylex.attrs(styles.source).class}><code>{source}</code></pre>
+			<pre tabindex="0" class="m-0 min-w-max {stylex.attrs(styles.source).class}"><code
+					>{source}</code
+				></pre>
 		{:else}
 			<div
-				class="mermaid-loading"
-				class:mermaid-intrinsic={ratio !== undefined}
+				class={ratio === undefined ? undefined : 'relative min-w-[30rem]'}
 				style:aspect-ratio={ratio}
 				role="status"
 			>
 				<div
-					class="mermaid-placeholder {stylex.attrs(styles.placeholder).class}"
+					class="mermaid-placeholder absolute inset-5 {stylex.attrs(styles.placeholder).class}"
 					aria-hidden="true"
 				>
-					<span class="mermaid-path {stylex.attrs(styles.path).class}"></span>
-					<span class="mermaid-node mermaid-node-start {stylex.attrs(styles.node).class}"></span>
-					<span class="mermaid-node mermaid-node-end {stylex.attrs(styles.node).class}"></span>
+					<span
+						class="absolute top-1/2 right-[calc(12%+5.5rem)] left-[calc(12%+5.5rem)] {stylex.attrs(
+							styles.path,
+						).class}"
+					></span>
+					<span
+						class="absolute top-1/2 left-[12%] h-11 w-22 -translate-y-1/2 {stylex.attrs(styles.node)
+							.class}"
+					></span>
+					<span
+						class="absolute top-1/2 right-[12%] h-11 w-22 -translate-y-1/2 {stylex.attrs(
+							styles.node,
+						).class}"
+					></span>
 				</div>
-				<span class="mermaid-loading-label {stylex.attrs(styles.loadingLabel).class}"
-					>{loadingLabel}</span
+				<span
+					class="absolute inset-0 z-1 grid place-items-center {stylex.attrs(styles.loadingLabel)
+						.class}">{loadingLabel}</span
 				>
 			</div>
 		{/if}
@@ -154,66 +172,17 @@
 </div>
 
 <style>
-	.mermaid-stage {
-		display: grid;
-		min-block-size: 13rem;
-		align-items: center;
-	}
-
-	.mermaid-stage.mermaid-intrinsic-stage {
-		min-block-size: 8rem;
-	}
-
 	/* The opacity is here because the keyframe below reads it as its own start, and the keyframe
-	   is here because Svelte rewrites its name and no other layer can spell it. See
+	   is here because Svelte rewrites its name and no other layer can spell it. So is this rule:
+	   the two mean nothing apart. Its placement moved to the markup. See
 	   spec/architecture/css/layers.md and spec/todo.md. */
 	.mermaid-placeholder {
-		position: absolute;
-		inset: 1.25rem;
 		opacity: 0.48;
 		animation: mermaid-breathe 1.6s ease-in-out infinite alternate;
 	}
 
-	.mermaid-loading.mermaid-intrinsic {
-		position: relative;
-		min-inline-size: 30rem;
-	}
-
-	.mermaid-loading-label {
-		position: absolute;
-		z-index: 1;
-		display: grid;
-		inset: 0;
-		place-items: center;
-	}
-
-	/* The translate is placement: it is what centres the box on the line, and the box moves if
-	   it goes. See spec/architecture/css/layers.md. */
-	.mermaid-node {
-		position: absolute;
-		top: 50%;
-		width: 5.5rem;
-		height: 2.75rem;
-		translate: 0 -50%;
-	}
-
-	.mermaid-node-start {
-		left: 12%;
-	}
-
-	.mermaid-node-end {
-		right: 12%;
-	}
-
-	.mermaid-path {
-		position: absolute;
-		top: 50%;
-		left: calc(12% + 5.5rem);
-		right: calc(12% + 5.5rem);
-	}
-
+	/* Here for the same reason: a keyframe Svelte renames, which no other layer can spell. */
 	.mermaid-result {
-		min-inline-size: 30rem;
 		animation: mermaid-reveal 260ms var(--ease-spring) both;
 	}
 
@@ -222,11 +191,6 @@
 		max-inline-size: 100%;
 		height: auto;
 		margin-inline: auto;
-	}
-
-	pre {
-		min-inline-size: max-content;
-		margin: 0;
 	}
 
 	@keyframes mermaid-breathe {

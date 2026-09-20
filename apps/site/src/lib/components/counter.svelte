@@ -11,16 +11,12 @@
 	);
 </script>
 
-<!-- The box and its optical alignment are in styles/app.css. -->
+<!-- The box and its optical alignment are in styles/app.css. The wider gap where a thousands
+     separator would go is a ternary rather than a second class over the first: they are the same
+     property in the same layer, and that order is not the author's to choose. See
+     spec/architecture/css/migration.md. -->
 <span class="value">
 	{#each cells as cell, i (i)}
-		<span class="value-cell ml-0.25 w-4.5" class:grouped={cell.grouped}>{cell.digit}</span>
+		<span class="value-cell w-4.5 {cell.grouped ? 'ml-[0.3125rem]' : 'ml-0.25'}">{cell.digit}</span>
 	{/each}
 </span>
-
-<style>
-	/* Where the comma was. */
-	.grouped {
-		margin-left: 0.3125rem;
-	}
-</style>

@@ -7,10 +7,10 @@
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
 	 * declares. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot keeps the card's geometry and the corner arrow's reveal whole:
-	 * the arrow's other opacity lives in `.tweet-card:hover .corner`, an ancestor selector this
-	 * layer cannot write, so the motion between the two and the reduced-motion rule suppressing
-	 * it stay beside the value they animate.
+	 * The scoped block at the foot keeps the corner arrow's reveal whole and nothing else: the
+	 * arrow's other opacity lives in `.tweet-card:hover .corner`, an ancestor selector this layer
+	 * cannot write, so the motion between the two and the reduced-motion rule suppressing it stay
+	 * beside the value they animate. The card's geometry is in the markup.
 	 */
 	const styles = stylex.create({
 		/**
@@ -94,21 +94,24 @@
 	{href}
 	target="_blank"
 	rel="noopener"
-	class="tweet-card group focus-ring {stylex.attrs(surfaces.interactive, styles.card).class}"
+	class="tweet-card group focus-ring relative my-[1.8em] flex w-full max-w-[28rem] flex-col gap-[0.7rem] p-3 {stylex.attrs(
+		surfaces.interactive,
+		styles.card,
+	).class}"
 >
-	<header class="header {stylex.attrs(styles.header).class}">
+	<header class="flex items-center gap-[0.35rem] {stylex.attrs(styles.header).class}">
 		<SocialIcon name="twitter" class="size-4" />
 		<span class="author {stylex.attrs(styles.author).class}">@{tweet.author}</span>
-		<span aria-hidden="true" class="separator">·</span>
+		<span aria-hidden="true" class="mx-[0.05rem]">·</span>
 		<time datetime={tweet.created}>{date}</time>
 	</header>
 
-	<p class="tweet-text {stylex.attrs(styles.text).class}">{tweet.text}</p>
+	<p class="m-0 {stylex.attrs(styles.text).class}">{tweet.text}</p>
 
-	<footer class="metrics {stylex.attrs(styles.metrics).class}">
-		<span class="metric">
+	<footer class="flex items-center gap-[0.9rem] {stylex.attrs(styles.metrics).class}">
+		<span class="flex items-center gap-1">
 			<svg
-				class="action-icon {stylex.attrs(styles.actionIcon).class}"
+				class="size-3.5 flex-none {stylex.attrs(styles.actionIcon).class}"
 				viewBox="0 0 24 24"
 				aria-hidden="true"
 			>
@@ -119,9 +122,9 @@
 			<span class={stylex.attrs(styles.count).class}>{compactCount(tweet.replies)}</span>
 			<span class="sr-only"> replies</span>
 		</span>
-		<span class="metric">
+		<span class="flex items-center gap-1">
 			<svg
-				class="action-icon {stylex.attrs(styles.actionIcon).class}"
+				class="size-3.5 flex-none {stylex.attrs(styles.actionIcon).class}"
 				viewBox="0 0 24 24"
 				aria-hidden="true"
 			>
@@ -132,9 +135,9 @@
 			<span class={stylex.attrs(styles.count).class}>{compactCount(tweet.reposts)}</span>
 			<span class="sr-only"> reposts</span>
 		</span>
-		<span class="metric">
+		<span class="flex items-center gap-1">
 			<svg
-				class="action-icon {stylex.attrs(styles.actionIcon).class}"
+				class="size-3.5 flex-none {stylex.attrs(styles.actionIcon).class}"
 				viewBox="0 0 24 24"
 				aria-hidden="true"
 			>
@@ -153,52 +156,10 @@
 </a>
 
 <style>
-	/* Geometry, and the corner arrow's reveal. What the card looks like is the visual layer's and
-	   sits at the head of this file. See spec/architecture/css/layers.md. */
-	.tweet-card {
-		position: relative;
-		display: flex;
-		width: 100%;
-		max-width: 28rem;
-		margin-block: 1.8em;
-		flex-direction: column;
-		gap: 0.7rem;
-		padding: 0.75rem;
-	}
-
-	.header,
-	.metrics,
-	.metric {
-		display: flex;
-		align-items: center;
-	}
-
-	.header {
-		gap: 0.35rem;
-	}
-
-	.separator {
-		margin-inline: 0.05rem;
-	}
-
-	.tweet-text {
-		margin: 0;
-	}
-
-	.metrics {
-		gap: 0.9rem;
-	}
-
-	.metric {
-		gap: 0.25rem;
-	}
-
-	.action-icon {
-		width: 0.875rem;
-		height: 0.875rem;
-		flex: none;
-	}
-
+	/* All that is left is the corner arrow's reveal, which is gated on the card's own hover and
+	   reaches a descendant: an ancestor is what no class can express. The card's geometry is now
+	   in the markup, and `tweet-card` stays because the two rules below still name it. See
+	   spec/architecture/css/layers.md. */
 	.corner {
 		position: absolute;
 		right: 0.75rem;

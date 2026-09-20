@@ -104,6 +104,21 @@
 	const TAP_SLOP = 8;
 	let pressed: { x: number; y: number } | undefined;
 
+	/**
+	 * The enlarged picture's own shape, once the record says what shape that is.
+	 *
+	 * Two terms, and the smaller of them wins: the picture reaches the window's left and right
+	 * edges when it is the wider of the two, and its top and bottom when it is the taller. There
+	 * is no third term. Nothing here is allowed to hold the picture off an edge -- not a gutter,
+	 * not a corner radius, not a frame, and not a ceiling on how large it may be drawn. Whatever
+	 * the window has, the picture takes. See spec/styling/blocks.md.
+	 */
+	const measured = $derived(
+		width && height
+			? '[aspect-ratio:var(--picture-width)/var(--picture-height)] w-[min(100vw,calc(100dvh_*_var(--picture-width)_/_var(--picture-height)))]'
+			: '',
+	);
+
 	function press(event: PointerEvent) {
 		const taps = event.isPrimary && event.button === 0;
 		pressed = taps ? { x: event.clientX, y: event.clientY } : undefined;
@@ -128,7 +143,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="preview-frame cursor-zoom-in"
+	class="relative block cursor-zoom-in"
 	style:border-radius={radius}
 	onclick={() => (open = true)}
 >
@@ -139,7 +154,8 @@
 	     would put an element between the pointer and the picture, and it costs no focusability. -->
 	<button
 		type="button"
-		class="preview-open pointer-events-none focus-ring {stylex.attrs(styles.openControl).class}"
+		class="focus-ring pointer-events-none absolute inset-0 m-0 p-0 {stylex.attrs(styles.openControl)
+			.class}"
 		style:border-radius={radius}
 		aria-label={label}
 	></button>
@@ -155,8 +171,8 @@
 		>
 			<Dialog.Title class="sr-only">{title}</Dialog.Title>
 			<div
-				class="preview-figure {stylex.attrs(styles.figure).class}"
-				class:preview-measured={width && height}
+				class="preview-figure max-h-[100dvh] max-w-[100vw] {measured} {stylex.attrs(styles.figure)
+					.class}"
 				style:--picture-width={width}
 				style:--picture-height={height}
 			>
@@ -170,21 +186,6 @@
 </Dialog.Root>
 
 <style>
-	.preview-frame {
-		position: relative;
-		display: block;
-	}
-
-	/* Over the picture, in geometry only. It exists to be reached by Tab, named, and given the
-	   focus ring; what keeps it off the drawing, and what keeps it from drawing any chrome of its
-	   own, is the visual layer's and sits at the head of this file. */
-	.preview-open {
-		position: absolute;
-		inset: 0;
-		margin: 0;
-		padding: 0;
-	}
-
 	/* Pure black, in both themes, behind every picture. The page's two grounds are a warm
 	   near-white and a warm near-black, and a picture read against either of them is being read
 	   against the site rather than on its own. This is the one surface here that does not follow
@@ -197,21 +198,6 @@
 
 	:global(.preview-stage) {
 		transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
-	}
-
-	.preview-figure {
-		max-width: 100vw;
-		max-height: 100dvh;
-	}
-
-	/* Two terms, and the smaller of them wins: the picture reaches the window's left and right
-	   edges when it is the wider of the two, and its top and bottom when it is the taller. There
-	   is no third term. Nothing here is allowed to hold the picture off an edge -- not a gutter,
-	   not a corner radius, not a frame, and not a ceiling on how large it may be drawn. Whatever
-	   the window has, the picture takes. See spec/styling/blocks.md. */
-	.preview-figure.preview-measured {
-		aspect-ratio: var(--picture-width) / var(--picture-height);
-		width: min(100vw, calc(100dvh * var(--picture-width) / var(--picture-height)));
 	}
 
 	.preview-figure :global(svg),

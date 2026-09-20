@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -9,7 +10,7 @@
 	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo.md, "Tokei draws
 	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip
 	 * (spec/todo.md, "A shadow is one utility, two declarations and four variables the visual
-	 * layer cannot restate"). The block at the foot otherwise holds geometry and unclassable rules.
+	 * layer cannot restate").
 	 */
 	const styles = stylex.create({
 		/** A treemap tile's language name, over the tile's own colour. */
@@ -43,6 +44,36 @@
 		/** The quieter half of a labelled figure, in the summary and in the tooltip both. */
 		muted: {
 			color: 'var(--color-text-soft)',
+		},
+		/** The square of colour a legend entry and a nested language each put before their name. */
+		swatch: {
+			borderRadius: '0.125rem',
+		},
+		/**
+		 * The link out to tokei itself, at the end of the summary row.
+		 *
+		 * One property transitions, so the four lists are single-item and `transition-behavior` is
+		 * left to the initial value the shorthand also set. The reduced-motion branch is
+		 * `transition: none` written out. See spec/todo.md, "A `transition` shorthand sets five
+		 * lists and the migrated form writes three".
+		 */
+		summaryLink: {
+			color: {
+				default: 'var(--color-text-soft)',
+				':hover': 'var(--color-text-strong)',
+			},
+			fontSize: text.px11,
+			textDecorationLine: 'none',
+			transitionProperty: {
+				default: 'color',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '140ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: 'ease',
+			transitionDelay: '0s',
 		},
 		/** The panel that follows the pointer across the chart. */
 		tooltip: {
@@ -79,10 +110,41 @@
 		tooltipGrid: {
 			fontSize: text.px11,
 		},
+		/**
+		 * The smallest type the figure writes: a percentage beside a count in the tooltip grid, and
+		 * a nested language's line total. One key rather than two because the two rules it replaces
+		 * declared the same pair character for character.
+		 */
+		micro: {
+			color: 'var(--color-text-soft)',
+			fontSize: '0.65625rem',
+		},
 		nested: {
 			borderTopWidth: border.hairlineRem,
 			borderTopStyle: 'solid',
 			borderTopColor: 'var(--color-border)',
+		},
+		table: {
+			color: 'var(--color-text-strong)',
+			fontSize: text.px13,
+		},
+		/**
+		 * A column heading. The weight is a literal because 400 is on no rung of the ladder
+		 * `vocabulary.stylex.ts` names -- it is the ramp's floor rather than a step on it.
+		 */
+		tableHead: {
+			borderBottomWidth: border.hairlineRem,
+			borderBottomStyle: 'solid',
+			borderBottomColor: 'var(--color-border)',
+			color: 'var(--color-text-soft)',
+			fontSize: text.px12,
+			fontWeight: 400,
+		},
+		/** A body cell, whose rule is half the width of the heading's and is not a named hairline. */
+		tableCell: {
+			borderBottomWidth: '0.03125rem',
+			borderBottomStyle: 'solid',
+			borderBottomColor: 'var(--color-border)',
 		},
 		languageCell: {
 			fontWeight: weight.medium,
@@ -179,46 +241,72 @@
 </script>
 
 {#if stats.length > 0}
-	<div class="code-stats">
-		<div class="chart-area">
+	<div class="my-[1.8em]">
+		<div class="min-h-[6.25rem]">
 			{#if view === 'table'}
-				<div class="table-wrap">
-					<table>
+				<div class="overflow-x-auto">
+					<table class="w-full border-collapse {stylex.attrs(styles.table).class}">
 						<thead>
 							<tr>
-								<th class="left">Language</th>
-								<th>Files</th>
-								<th>Lines</th>
-								<th>Code</th>
-								<th>Comments</th>
-								<th>Blanks</th>
-								<th class="left breakdown-heading">Breakdown</th>
+								<th class="px-1.5 py-2 text-left {stylex.attrs(styles.tableHead).class}"
+									>Language</th
+								>
+								<th class="px-1.5 py-2 text-right {stylex.attrs(styles.tableHead).class}">Files</th>
+								<th class="px-1.5 py-2 text-right {stylex.attrs(styles.tableHead).class}">Lines</th>
+								<th class="px-1.5 py-2 text-right {stylex.attrs(styles.tableHead).class}">Code</th>
+								<th class="px-1.5 py-2 text-right {stylex.attrs(styles.tableHead).class}"
+									>Comments</th
+								>
+								<th class="px-1.5 py-2 text-right {stylex.attrs(styles.tableHead).class}">Blanks</th
+								>
+								<th
+									class="min-w-[7.5rem] px-1.5 py-2 text-left {stylex.attrs(styles.tableHead)
+										.class}">Breakdown</th
+								>
 							</tr>
 						</thead>
 						<tbody>
 							{#each sorted as stat (stat.lang)}
 								<tr>
 									<td
-										class="language-cell whitespace-nowrap {stylex.attrs(styles.languageCell)
-											.class}"
+										class="px-1.5 py-2 text-left whitespace-nowrap {stylex.attrs(
+											styles.tableCell,
+											styles.languageCell,
+										).class}"
 									>
 										<span
-											class="language-dot {stylex.attrs(styles.languageDot).class}"
+											class="mr-1.5 inline-block size-2.5 align-middle {stylex.attrs(
+												styles.languageDot,
+											).class}"
 											style="background: {langColor(stat.lang)}"
 											aria-hidden="true"
 										></span>
 										{stat.lang}
 									</td>
-									<td>{stat.files.toLocaleString('en-US')}</td>
-									<td title={stat.lines.toLocaleString('en-US')}>{compactCount(stat.lines)}</td>
-									<td title={stat.code.toLocaleString('en-US')}>{compactCount(stat.code)}</td>
-									<td title={stat.comments.toLocaleString('en-US')}
-										>{compactCount(stat.comments)}</td
+									<td class="px-1.5 py-2 text-right {stylex.attrs(styles.tableCell).class}"
+										>{stat.files.toLocaleString('en-US')}</td
 									>
-									<td title={stat.blanks.toLocaleString('en-US')}>{compactCount(stat.blanks)}</td>
-									<td>
+									<td
+										class="px-1.5 py-2 text-right {stylex.attrs(styles.tableCell).class}"
+										title={stat.lines.toLocaleString('en-US')}>{compactCount(stat.lines)}</td
+									>
+									<td
+										class="px-1.5 py-2 text-right {stylex.attrs(styles.tableCell).class}"
+										title={stat.code.toLocaleString('en-US')}>{compactCount(stat.code)}</td
+									>
+									<td
+										class="px-1.5 py-2 text-right {stylex.attrs(styles.tableCell).class}"
+										title={stat.comments.toLocaleString('en-US')}>{compactCount(stat.comments)}</td
+									>
+									<td
+										class="px-1.5 py-2 text-right {stylex.attrs(styles.tableCell).class}"
+										title={stat.blanks.toLocaleString('en-US')}>{compactCount(stat.blanks)}</td
+									>
+									<td class="px-1.5 py-2 text-right {stylex.attrs(styles.tableCell).class}">
 										<div
-											class="breakdown {stylex.attrs(styles.breakdown).class}"
+											class="flex h-3.5 min-w-[6.25rem] overflow-hidden {stylex.attrs(
+												styles.breakdown,
+											).class}"
 											aria-label="{percent(stat.code, stat.lines)}% code, {percent(
 												stat.comments,
 												stat.lines,
@@ -252,12 +340,13 @@
 			{:else}
 				<div
 					bind:this={chart}
-					class="chart"
+					class="relative"
 					role="presentation"
 					onpointerleave={() => (tip = undefined)}
 				>
 					{#if view === 'bar'}
 						<svg
+							class="block h-auto w-full"
 							viewBox="0 0 {BAR_WIDTH} {BAR_HEIGHT}"
 							role="img"
 							aria-label="{title}: lines by language"
@@ -337,6 +426,7 @@
 						</svg>
 					{:else}
 						<svg
+							class="block h-auto w-full"
 							viewBox="0 0 {TREE_WIDTH} {TREE_HEIGHT}"
 							role="img"
 							aria-label="{title}: {stats.length} languages, {totals.lines.toLocaleString(
@@ -414,50 +504,70 @@
 						{@const commentPercent = percent(tip.stat.comments, tip.stat.lines)}
 						{@const blankPercent = Math.max(0, 100 - codePercent - commentPercent)}
 						<div
-							class="tooltip pointer-events-none shadow-sm {stylex.attrs(styles.tooltip).class}"
+							class="pointer-events-none absolute z-10 max-w-[16.25rem] min-w-[11.25rem] px-[0.55rem] py-[0.4rem] shadow-sm {stylex.attrs(
+								styles.tooltip,
+							).class}"
 							style="left: calc({remFromMeasuredPixels(
 								tip.x,
 							)} + 1rem); top: calc({remFromMeasuredPixels(tip.y)} + 1rem)"
 						>
-							<div class="tooltip-head">
+							<div class="mb-[0.3rem] flex items-center gap-[0.3rem]">
 								<span
-									class="tooltip-dot {stylex.attrs(styles.tooltipDot).class}"
+									class="size-2 shrink-0 {stylex.attrs(styles.tooltipDot).class}"
 									style="background: {langColor(tip.stat.lang)}"
 									aria-hidden="true"
 								></span>
-								<span class="tooltip-title {stylex.attrs(styles.tooltipTitle).class}"
-									>{tip.stat.lang}</span
-								>
-								<span class="tooltip-count {stylex.attrs(styles.tooltipCount).class}"
+								<span class={stylex.attrs(styles.tooltipTitle).class}>{tip.stat.lang}</span>
+								<span class="ml-auto {stylex.attrs(styles.tooltipCount).class}"
 									>{tip.stat.lines.toLocaleString('en-US')} lines</span
 								>
 							</div>
-							<div class="tooltip-bar {stylex.attrs(styles.tooltipBar).class}">
+							<div
+								class="mb-[0.3rem] flex h-[0.1875rem] overflow-hidden {stylex.attrs(
+									styles.tooltipBar,
+								).class}"
+							>
 								<span style="width: {codePercent}%; background: {FUNCTION_COLORS.code}"></span>
 								<span style="width: {commentPercent}%; background: {FUNCTION_COLORS.comments}"
 								></span>
 								<span style="width: {blankPercent}%; background: {FUNCTION_COLORS.blanks}"></span>
 							</div>
-							<div class="tooltip-grid {stylex.attrs(styles.tooltipGrid).class}">
-								<span class="muted {stylex.attrs(styles.muted).class}">Files</span><span
+							<div
+								class="tooltip-grid grid grid-cols-[auto_1fr] gap-x-2 gap-y-0 {stylex.attrs(
+									styles.tooltipGrid,
+								).class}"
+							>
+								<span class={stylex.attrs(styles.muted).class}>Files</span><span
 									>{tip.stat.files.toLocaleString('en-US')}</span
 								>
 								<span style="color: {FUNCTION_COLORS.code}">Code</span><span
-									>{tip.stat.code.toLocaleString('en-US')} <small>{codePercent}%</small></span
+									>{tip.stat.code.toLocaleString('en-US')}
+									<small class={stylex.attrs(styles.micro).class}>{codePercent}%</small></span
 								>
 								<span style="color: {FUNCTION_COLORS.comments}">Comments</span><span
 									>{tip.stat.comments.toLocaleString('en-US')}
-									<small>{commentPercent}%</small></span
+									<small class={stylex.attrs(styles.micro).class}>{commentPercent}%</small></span
 								>
 								<span style="color: {FUNCTION_COLORS.blanks}">Blanks</span><span
-									>{tip.stat.blanks.toLocaleString('en-US')} <small>{blankPercent}%</small></span
+									>{tip.stat.blanks.toLocaleString('en-US')}
+									<small class={stylex.attrs(styles.micro).class}>{blankPercent}%</small></span
 								>
 							</div>
 							{#if tip.stat.nested.length > 0}
-								<div class="nested {stylex.attrs(styles.nested).class}">
+								<div
+									class="mt-1 flex flex-wrap gap-x-2 gap-y-[0.15rem] pt-1 {stylex.attrs(
+										styles.nested,
+									).class}"
+								>
 									{#each tip.stat.nested as nested (nested.lang)}
 										<span
-											><i style="background: {langColor(nested.lang)}"></i>{nested.lang}
+											class="inline-flex items-center gap-[0.2rem] whitespace-nowrap {stylex.attrs(
+												styles.micro,
+											).class}"
+											><i
+												class="inline-block size-1.5 {stylex.attrs(styles.swatch).class}"
+												style="background: {langColor(nested.lang)}"
+											></i>{nested.lang}
 											{compactCount(nested.lines)}</span
 										>
 									{/each}
@@ -469,34 +579,49 @@
 			{/if}
 		</div>
 
-		<div class="bottom-bar">
-			<div class="legend {stylex.attrs(styles.legend).class}" aria-label="Line kinds">
+		<div class="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+			<div class="flex gap-3 {stylex.attrs(styles.legend).class}" aria-label="Line kinds">
 				{#each Object.entries(FUNCTION_COLORS) as [kind, color] (kind)}
-					<span
-						><i style="background: {color}" aria-hidden="true"></i>{kind.charAt(0).toUpperCase() +
-							kind.slice(1)}</span
+					<span class="flex items-center gap-1"
+						><i
+							class="inline-block size-2.5 {stylex.attrs(styles.swatch).class}"
+							style="background: {color}"
+							aria-hidden="true"
+						></i>{kind.charAt(0).toUpperCase() + kind.slice(1)}</span
 					>
 				{/each}
 			</div>
-			<div class="summary {stylex.attrs(styles.summary).class}">
+			<!-- The row folds away on a narrow screen, and the query is written out rather than taken
+			     from the `max-` variant: that one compiles to `width < 40rem`, which stops one pixel
+			     short of where this rule stopped. See spec/architecture/css/migration.md, "A name that
+			     promises a translation is where the value changes". -->
+			<div
+				class="flex flex-wrap gap-x-4 gap-y-[0.4rem] [@media(max-width:40rem)]:hidden {stylex.attrs(
+					styles.summary,
+				).class}"
+			>
 				<span
-					><span class="muted {stylex.attrs(styles.muted).class}">Total files</span>
-					<b>{compactCount(totals.files)}</b></span
+					><span class={stylex.attrs(styles.muted).class}>Total files</span>
+					<b class={stylex.attrs(surfaces.heading).class}>{compactCount(totals.files)}</b></span
 				>
 				<span
-					><span class="muted {stylex.attrs(styles.muted).class}">Total lines</span>
-					<b>{compactCount(totals.lines)}</b></span
+					><span class={stylex.attrs(styles.muted).class}>Total lines</span>
+					<b class={stylex.attrs(surfaces.heading).class}>{compactCount(totals.lines)}</b></span
 				>
 				<span
-					><span class="muted {stylex.attrs(styles.muted).class}">Code lines</span>
-					<b>{compactCount(totals.code)}</b></span
+					><span class={stylex.attrs(styles.muted).class}>Code lines</span>
+					<b class={stylex.attrs(surfaces.heading).class}>{compactCount(totals.code)}</b></span
 				>
 				<span
-					><span class="muted {stylex.attrs(styles.muted).class}">Comment ratio</span>
-					<b>{percent(totals.comments, totals.lines)}%</b></span
+					><span class={stylex.attrs(styles.muted).class}>Comment ratio</span>
+					<b class={stylex.attrs(surfaces.heading).class}
+						>{percent(totals.comments, totals.lines)}%</b
+					></span
 				>
 				<a
-					class="focus-link"
+					class="focus-link inline-flex items-center gap-[0.0625rem] {stylex.attrs(
+						styles.summaryLink,
+					).class}"
 					href="{URLS.external.github.web}/XAMPPRocky/tokei"
 					target="_blank"
 					rel="noopener"
@@ -508,20 +633,6 @@
 {/if}
 
 <style>
-	.code-stats {
-		margin-block: 1.8em;
-	}
-	.chart-area {
-		min-height: 6.25rem;
-	}
-	.chart {
-		position: relative;
-	}
-	.chart svg {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
 	/* The chart's own palette rather than the site's, so it stays out of the visual layer. See
 	   spec/todo.md. */
 	.tile-name {
@@ -530,160 +641,11 @@
 	.tile-size {
 		fill: rgb(255 255 255 / 75%);
 	}
-	.bottom-bar {
-		display: flex;
-		margin-top: 0.625rem;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.375rem 0.75rem;
-	}
-	.legend {
-		display: flex;
-		gap: 0.75rem;
-	}
-	.legend span {
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-	.legend i,
-	.nested i {
-		display: inline-block;
-		width: 0.625rem;
-		height: 0.625rem;
-		border-radius: 0.125rem;
-	}
-	.summary {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.4rem 1rem;
-	}
-	.summary b {
-		color: var(--color-text-strong);
-		font-weight: 500;
-	}
-	.summary a {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.0625rem;
-		color: var(--color-text-soft);
-		font-size: 0.6875rem;
-		text-decoration: none;
-		transition: color 140ms ease;
-	}
-	.summary a:hover {
-		color: var(--color-text-strong);
-	}
-	.tooltip {
-		position: absolute;
-		z-index: 10;
-		min-width: 11.25rem;
-		max-width: 16.25rem;
-		padding: 0.4rem 0.55rem;
-	}
-	.tooltip-head {
-		display: flex;
-		margin-bottom: 0.3rem;
-		align-items: center;
-		gap: 0.3rem;
-	}
-	.tooltip-dot {
-		width: 0.5rem;
-		height: 0.5rem;
-		flex-shrink: 0;
-	}
-	.tooltip-count {
-		margin-left: auto;
-	}
-	.tooltip-bar {
-		display: flex;
-		height: 0.1875rem;
-		margin-bottom: 0.3rem;
-		overflow: hidden;
-	}
-	.tooltip-grid {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0 0.5rem;
-	}
+	/* The figures against their labels. Counted rather than named, so no class reaches them and
+	   this is the one rule in the tooltip a layer above could not have written. The stack is the
+	   chart's own rather than the site's prose, and `tooltipCount` above sets the same one. */
 	.tooltip-grid > :nth-child(even) {
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		text-align: right;
-	}
-	.tooltip-grid small {
-		color: var(--color-text-soft);
-		font-size: 0.65625rem;
-	}
-	.nested {
-		display: flex;
-		margin-top: 0.25rem;
-		padding-top: 0.25rem;
-		flex-wrap: wrap;
-		gap: 0.15rem 0.5rem;
-	}
-	.nested span {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.2rem;
-		color: var(--color-text-soft);
-		font-size: 0.65625rem;
-		white-space: nowrap;
-	}
-	.nested i {
-		width: 0.375rem;
-		height: 0.375rem;
-	}
-	.table-wrap {
-		overflow-x: auto;
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		color: var(--color-text-strong);
-		font-size: 0.8125rem;
-	}
-	th {
-		border-bottom: 0.0625rem solid var(--color-border);
-		padding: 0.5rem 0.375rem;
-		color: var(--color-text-soft);
-		font-size: 0.75rem;
-		font-weight: 400;
-		text-align: right;
-	}
-	td {
-		border-bottom: 0.03125rem solid var(--color-border);
-		padding: 0.5rem 0.375rem;
-		text-align: right;
-	}
-	.left,
-	.language-cell {
-		text-align: left;
-	}
-	.language-dot {
-		display: inline-block;
-		width: 0.625rem;
-		height: 0.625rem;
-		margin-right: 0.375rem;
-		vertical-align: middle;
-	}
-	.breakdown-heading {
-		min-width: 7.5rem;
-	}
-	.breakdown {
-		display: flex;
-		min-width: 6.25rem;
-		height: 0.875rem;
-		overflow: hidden;
-	}
-	@media (max-width: 40rem) {
-		.summary {
-			display: none;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.summary a {
-			transition: none;
-		}
 	}
 </style>

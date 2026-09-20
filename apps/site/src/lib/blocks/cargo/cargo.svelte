@@ -1,15 +1,16 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
 	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
-	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a component-local
-	 * mirror this layer does not own (spec/styling/controls.md), plus `shadow-sm` on the tooltip
-	 * (spec/todo.md, "A shadow is one utility, two declarations and four variables the visual
-	 * layer cannot restate"). The block at the foot otherwise holds geometry and unclassable rules.
+	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a local mirror this
+	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on the tooltip (spec/todo.md,
+	 * "A shadow is one utility, two declarations and four variables the visual layer cannot
+	 * restate").
 	 */
 	const styles = stylex.create({
 		/** A tile's crate name, over whichever palette colour the tile drew. */
@@ -49,6 +50,64 @@
 		links: {
 			fontSize: text.px11,
 		},
+		/**
+		 * A tile, which is an anchor. It draws no ring of its own: the rule in the block below
+		 * puts one on the rect inside it instead, where it reads against the treemap rather than
+		 * against the page. The three longhands are `outline: none` written out, because an
+		 * omitted longhand is not its initial value -- the shorthand leaves `currentColor` and
+		 * `medium` behind it. See spec/architecture/css/migration.md.
+		 */
+		tile: {
+			outlineStyle: 'none',
+			outlineWidth: 'medium',
+			outlineColor: 'currentColor',
+		},
+		/**
+		 * One of the three registry links in the footer.
+		 *
+		 * One property transitions, so the four lists are single-item and `transition-behavior` is
+		 * left to the initial value the shorthand also set. See spec/todo.md, "A `transition`
+		 * shorthand sets five lists and the migrated form writes three".
+		 */
+		link: {
+			color: {
+				default: 'var(--color-text-soft)',
+				':hover': 'var(--color-text-strong)',
+			},
+			textDecorationLine: 'none',
+			transitionProperty: {
+				default: 'color',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '140ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: 'ease',
+			transitionDelay: '0s',
+		},
+		table: {
+			color: 'var(--color-text-strong)',
+			fontSize: text.px13,
+		},
+		/**
+		 * A column heading. The weight is a literal because 400 is on no rung of the ladder
+		 * `vocabulary.stylex.ts` names -- it is the ramp's floor rather than a step on it.
+		 */
+		tableHead: {
+			borderBottomWidth: border.hairlineRem,
+			borderBottomStyle: 'solid',
+			borderBottomColor: 'var(--color-border)',
+			color: 'var(--color-text-soft)',
+			fontSize: text.px12,
+			fontWeight: 400,
+		},
+		/** A body cell, whose rule is half the width of the heading's and is not a named hairline. */
+		tableCell: {
+			borderBottomWidth: '0.03125rem',
+			borderBottomStyle: 'solid',
+			borderBottomColor: 'var(--color-border)',
+		},
 		tooltip: {
 			borderWidth: border.hairlineRem,
 			borderStyle: 'solid',
@@ -72,9 +131,10 @@
 			fontSize: text.px11,
 		},
 		/**
-		 * The crate name in the table. Its `text-align` stays in the block below: the cell rules
-		 * there are unlayered scoped CSS and outrank this layer, so an alignment written here
-		 * would lose to the right-aligned `td` it exists to override.
+		 * The crate name in the table. Its `text-align` is a utility on the cell rather than a key
+		 * here -- text behaviour is the frame -- and it no longer overrides anything: the `td`
+		 * rule it used to fight moved to the markup with it, so each cell now carries the one
+		 * alignment it wants. See spec/architecture/css/layers.md, "Typography splits".
 		 */
 		nameCell: {
 			fontWeight: weight.medium,
@@ -158,60 +218,79 @@
 	}
 </script>
 
-<div class="cargo-widget">
-	<div class="chart-area">
+<!-- `cargo-widget` carries no rule here and is not dead: it is the hook `palette.css` hangs the
+     twenty-five crate colours and the four kind colours off, and that file is a component-local
+     mirror this layer does not own. See spec/architecture/css/authoring.md, "Colour is never
+     retyped", and spec/styling/controls.md. -->
+<div class="cargo-widget my-[1.8em]">
+	<div class="min-h-[3.75rem]">
 		{#if view === 'table'}
-			<div class="table-wrap">
-				<table>
+			<div class="overflow-x-auto">
+				<table class="w-full border-collapse {stylex.attrs(styles.table).class}">
 					<thead>
 						<tr>
-							<th class="left">Crate</th>
-							<th>Version</th>
-							<th>Kind</th>
-							<th>Depth</th>
-							<th>Size</th>
+							<th class="p-1.5 text-left {stylex.attrs(styles.tableHead).class}">Crate</th>
+							<th class="p-1.5 text-right {stylex.attrs(styles.tableHead).class}">Version</th>
+							<th class="p-1.5 text-right {stylex.attrs(styles.tableHead).class}">Kind</th>
+							<th class="p-1.5 text-right {stylex.attrs(styles.tableHead).class}">Depth</th>
+							<th class="p-1.5 text-right {stylex.attrs(styles.tableHead).class}">Size</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each sorted as item (item.key)}
 							<tr>
-								<td class="name-cell whitespace-nowrap {stylex.attrs(styles.nameCell).class}">
+								<td
+									class="p-1.5 text-left whitespace-nowrap {stylex.attrs(
+										styles.tableCell,
+										styles.nameCell,
+									).class}"
+								>
 									<span
-										class="crate-dot {stylex.attrs(styles.dot).class}"
+										class="mr-[0.3125rem] inline-block size-2 align-middle {stylex.attrs(styles.dot)
+											.class}"
 										style="background: {colors.get(item.dep.name) ?? '#888'}"
 										aria-hidden="true"
 									></span>
 									{item.dep.name}
-									{#if item.dep.optional}<span
-											class="optional {stylex.attrs(styles.optional).class}">opt</span
+									{#if item.dep.optional}<span class="ml-1 {stylex.attrs(styles.optional).class}"
+											>opt</span
 										>{/if}
 								</td>
-								<td>{item.dep.version}</td>
-								<td>
+								<td class="p-1.5 text-right {stylex.attrs(styles.tableCell).class}"
+									>{item.dep.version}</td
+								>
+								<td class="p-1.5 text-right {stylex.attrs(styles.tableCell).class}">
 									<span
-										class="kind-dot {stylex.attrs(styles.dot).class}"
+										class="mr-[0.1875rem] inline-block size-1.5 align-middle {stylex.attrs(
+											styles.dot,
+										).class}"
 										style="background: {kindColor(item.dep)}"
 										aria-hidden="true"
 									></span>
 									{item.dep.kind}
 								</td>
-								<td>{item.dep.depth === 0 ? 'direct' : item.dep.depth}</td>
-								<td>{item.dep.size == null ? '-' : formatBytes(item.dep.size)}</td>
+								<td class="p-1.5 text-right {stylex.attrs(styles.tableCell).class}"
+									>{item.dep.depth === 0 ? 'direct' : item.dep.depth}</td
+								>
+								<td class="p-1.5 text-right {stylex.attrs(styles.tableCell).class}"
+									>{item.dep.size == null ? '-' : formatBytes(item.dep.size)}</td
+								>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			</div>
 		{:else if tiles.length === 0}
-			<p class="empty {stylex.attrs(styles.empty).class}">No dependency size data available.</p>
+			<p class="m-0 {stylex.attrs(styles.empty).class}">No dependency size data available.</p>
 		{:else}
 			<div
 				bind:this={chart}
-				class="chart"
+				class="relative"
 				role="presentation"
 				onpointerleave={() => (tip = undefined)}
 			>
 				<svg
+					class="block h-auto w-full"
 					viewBox="0 0 {WIDTH} {HEIGHT}"
 					role="img"
 					aria-label="{crate.name} {crate.version}: {crate.deps.length} dependencies, {formatBytes(
@@ -232,6 +311,7 @@
 					</defs>
 					{#each tiles as tile, index (tile.key)}
 						<a
+							class="cargo-tile {stylex.attrs(styles.tile).class}"
 							href="{URLS.external.registries.cargo}/crates/{tile.dep.name}/{tile.dep.version}"
 							target="_blank"
 							rel="noopener"
@@ -289,37 +369,41 @@
 				<!-- The tooltip follows the pointer, so it must never be under it. -->
 				{#if tip}
 					<div
-						class="tooltip pointer-events-none shadow-sm {stylex.attrs(styles.tooltip).class}"
+						class="pointer-events-none absolute z-10 max-w-[16.25rem] min-w-[11.25rem] px-[0.55rem] py-[0.4rem] shadow-sm {stylex.attrs(
+							styles.tooltip,
+						).class}"
 						style="left: calc({remFromMeasuredPixels(
 							tip.x,
 						)} + 1rem); top: calc({remFromMeasuredPixels(tip.y)} + 1rem)"
 					>
-						<div class="tooltip-head">
+						<div class="mb-[0.3rem] flex items-center gap-[0.3rem]">
 							<span
-								class="tooltip-dot {stylex.attrs(styles.dot).class}"
+								class="size-2 shrink-0 {stylex.attrs(styles.dot).class}"
 								style="background: {kindColor(tip.dep)}"
 								aria-hidden="true"
 							></span>
-							<span class="tooltip-title {stylex.attrs(styles.tooltipTitle).class}"
-								>{tip.dep.name}</span
-							>
-							<span class="tooltip-count {stylex.attrs(styles.tooltipCount).class}"
+							<span class={stylex.attrs(styles.tooltipTitle).class}>{tip.dep.name}</span>
+							<span class="ml-auto {stylex.attrs(styles.tooltipCount).class}"
 								>{tip.dep.version}</span
 							>
 						</div>
-						<div class="tooltip-grid {stylex.attrs(styles.tooltipGrid).class}">
-							<span class="muted {stylex.attrs(styles.muted).class}">Kind</span>
+						<div
+							class="tooltip-grid grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-0 {stylex.attrs(
+								styles.tooltipGrid,
+							).class}"
+						>
+							<span class={stylex.attrs(styles.muted).class}>Kind</span>
 							<span>{tip.dep.kind}{tip.dep.optional ? ' (optional)' : ''}</span>
-							<span class="muted {stylex.attrs(styles.muted).class}">Size</span>
+							<span class={stylex.attrs(styles.muted).class}>Size</span>
 							<span>{tip.dep.size == null ? 'unknown' : formatBytes(tip.dep.size)}</span>
-							<span class="muted {stylex.attrs(styles.muted).class}">Depth</span>
+							<span class={stylex.attrs(styles.muted).class}>Depth</span>
 							<span>{tip.dep.depth === 0 ? 'direct' : `transitive (${tip.dep.depth})`}</span>
 							{#if tip.dep.target}
-								<span class="muted {stylex.attrs(styles.muted).class}">Target</span>
+								<span class={stylex.attrs(styles.muted).class}>Target</span>
 								<span>{tip.dep.target}</span>
 							{/if}
 							{#if tip.dep.features.length > 0}
-								<span class="muted {stylex.attrs(styles.muted).class}">Features</span>
+								<span class={stylex.attrs(styles.muted).class}>Features</span>
 								<span
 									>{tip.dep.features.length <= 3
 										? tip.dep.features.join(', ')
@@ -333,12 +417,12 @@
 		{/if}
 	</div>
 
-	<div class="footer">
-		<div class="legend {stylex.attrs(styles.legend).class}" aria-label="Dependency kinds">
+	<div class="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+		<div class="flex gap-3 {stylex.attrs(styles.legend).class}" aria-label="Dependency kinds">
 			{#each Object.entries(KIND_COLORS) as [kind, color] (kind)}
-				<span class="legend-item">
+				<span class="flex items-center gap-1">
 					<span
-						class="legend-dot {stylex.attrs(styles.dot).class}"
+						class="inline-block size-2.5 {stylex.attrs(styles.dot).class}"
 						style="background: {color}"
 						aria-hidden="true"
 					></span>
@@ -346,22 +430,38 @@
 				</span>
 			{/each}
 		</div>
-		<div class="footer-right whitespace-nowrap {stylex.attrs(styles.footerRight).class}">
+		<!-- The figures fold away on a narrow screen, and the query is written out rather than taken
+		     from the `max-` variant: that one compiles to a condition that stops one pixel short of
+		     where this rule stopped. See spec/architecture/css/migration.md, "A name that promises a
+		     translation is where the value changes". -->
+		<div
+			class="flex items-center gap-[0.65rem] whitespace-nowrap [@media(max-width:40rem)]:hidden {stylex.attrs(
+				styles.footerRight,
+			).class}"
+		>
 			{#if features > 0}<span
-					><span class="muted {stylex.attrs(styles.muted).class}">Features</span>
-					<b>{features}</b></span
+					><span class={stylex.attrs(styles.muted).class}>Features</span>
+					<b class={stylex.attrs(surfaces.heading).class}>{features}</b></span
 				>{/if}
 			<span
-				><span class="muted {stylex.attrs(styles.muted).class}">Deps</span>
-				<b>{direct}+{crate.deps.length - direct}</b></span
+				><span class={stylex.attrs(styles.muted).class}>Deps</span>
+				<b class={stylex.attrs(surfaces.heading).class}>{direct}+{crate.deps.length - direct}</b
+				></span
 			>
 			<span
-				><span class="muted {stylex.attrs(styles.muted).class}">Size</span>
-				<b>{formatBytes(crate.total_dep_size)}</b></span
+				><span class={stylex.attrs(styles.muted).class}>Size</span>
+				<b class={stylex.attrs(surfaces.heading).class}>{formatBytes(crate.total_dep_size)}</b
+				></span
 			>
-			<span class="links {stylex.attrs(styles.links).class}">
+			<span class="flex gap-2 {stylex.attrs(styles.links).class}">
 				{#each [[`${URLS.external.registries.cargo}/crates/${crate.name}`, 'crates.io'], [`${URLS.external.rust.lib}/crates/${crate.name}`, 'lib.rs'], [`${URLS.external.rust.docs}/${crate.name}`, 'docs.rs']] as [href, label] (label)}
-					<a class="focus-link" {href} target="_blank" rel="noopener">
+					<a
+						class="focus-link inline-flex items-center gap-[0.0625rem] {stylex.attrs(styles.link)
+							.class}"
+						{href}
+						target="_blank"
+						rel="noopener"
+					>
 						{label}<ArrowUpRight class="size-2.5" strokeWidth={2} aria-hidden="true" />
 					</a>
 				{/each}
@@ -371,157 +471,17 @@
 </div>
 
 <style>
-	.cargo-widget {
-		margin-block: 1.8em;
-	}
-	.chart-area {
-		min-height: 3.75rem;
-	}
-	.chart {
-		position: relative;
-	}
-	.chart svg {
-		display: block;
-		width: 100%;
-		height: auto;
-	}
-	.chart a {
-		outline: none;
-	}
-	.chart a:focus-visible rect:first-child {
+	/* The ring a focused tile draws, which is on the rect inside the anchor rather than on the
+	   anchor: a child selected through its parent's state, which no class reaches. The white is
+	   the treemap's own, read against whichever palette colour the tile drew -- see
+	   spec/styling/controls.md. */
+	.cargo-tile:focus-visible rect:first-child {
 		stroke: white;
 		stroke-width: 2;
 	}
-	.empty {
-		margin: 0;
-	}
-	.footer {
-		display: flex;
-		margin-top: 0.5rem;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.375rem 0.75rem;
-	}
-	.legend {
-		display: flex;
-		gap: 0.75rem;
-	}
-	.legend-item {
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-	}
-	.legend-dot {
-		display: inline-block;
-		width: 0.625rem;
-		height: 0.625rem;
-	}
-	.footer-right {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-	}
-	.footer-right b {
-		color: var(--color-text-strong);
-		font-weight: 500;
-	}
-	.links {
-		display: flex;
-		gap: 0.5rem;
-	}
-	.links a {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.0625rem;
-		color: var(--color-text-soft);
-		text-decoration: none;
-		transition: color 140ms ease;
-	}
-	.links a:hover {
-		color: var(--color-text-strong);
-	}
-	.tooltip {
-		position: absolute;
-		z-index: 10;
-		min-width: 11.25rem;
-		max-width: 16.25rem;
-		padding: 0.4rem 0.55rem;
-	}
-	.tooltip-head {
-		display: flex;
-		margin-bottom: 0.3rem;
-		align-items: center;
-		gap: 0.3rem;
-	}
-	.tooltip-dot {
-		width: 0.5rem;
-		height: 0.5rem;
-		flex-shrink: 0;
-	}
-	.tooltip-count {
-		margin-left: auto;
-	}
-	.tooltip-grid {
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr);
-		gap: 0 0.5rem;
-	}
+	/* The values against their labels. Counted rather than named, so no class reaches them. */
 	.tooltip-grid > :nth-child(even) {
 		overflow-wrap: anywhere;
 		text-align: right;
-	}
-	.table-wrap {
-		overflow-x: auto;
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		color: var(--color-text-strong);
-		font-size: 0.8125rem;
-	}
-	th {
-		border-bottom: 0.0625rem solid var(--color-border);
-		padding: 0.375rem;
-		color: var(--color-text-soft);
-		font-size: 0.75rem;
-		font-weight: 400;
-		text-align: right;
-	}
-	td {
-		border-bottom: 0.03125rem solid var(--color-border);
-		padding: 0.375rem;
-		text-align: right;
-	}
-	.left,
-	.name-cell {
-		text-align: left;
-	}
-	.crate-dot {
-		display: inline-block;
-		width: 0.5rem;
-		height: 0.5rem;
-		margin-right: 0.3125rem;
-		vertical-align: middle;
-	}
-	.kind-dot {
-		display: inline-block;
-		width: 0.375rem;
-		height: 0.375rem;
-		margin-right: 0.1875rem;
-		vertical-align: middle;
-	}
-	.optional {
-		margin-left: 0.25rem;
-	}
-	@media (max-width: 40rem) {
-		.footer-right {
-			display: none;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.links a {
-			transition: none;
-		}
 	}
 </style>

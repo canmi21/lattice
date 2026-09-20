@@ -309,15 +309,19 @@
 
 <div class="space-y-2">
 	<!--
-		One frame around the picture and the bar, which is the shape `code-block` already draws: a
-		body and a hairline-divided row of controls inside one border. `relative` is what the play
-		affordance is positioned against, and `overflow-hidden` is what keeps the video's corners
-		inside the frame's now that the border is the frame's rather than the element's.
+		One frame around the picture and the bar. `relative` positions the play affordance;
+		`overflow-hidden` keeps the video's corners inside the frame's, now that the border is the
+		frame's. In web fullscreen it becomes the window: opaque, covering everything, the browser's
+		own chrome left up -- the whole difference from the button beside it. The two positions are a
+		ternary rather than a utility and a variant over it (spec/architecture/css/migration.md), and
+		`m-0` goes with `fixed`, or the block rhythm's margin leaves the frame eight pixels short.
 	-->
 	<div
 		bind:this={frame}
 		style={ground}
-		class="video-frame relative overflow-hidden {stylex.attrs(styles.frame).class}"
+		class="video-frame overflow-hidden {filling
+			? 'fixed inset-0 z-[60] m-0'
+			: 'relative'} {stylex.attrs(styles.frame).class}"
 		data-clip={src}
 		data-filling={filling || undefined}
 	>
@@ -333,7 +337,7 @@
 	     the clip has, written by the loop below, and the compiler can only see a static one) -->
 		<video
 			bind:this={el}
-			class="video-surface block w-full"
+			class="video-surface block h-full w-full object-cover"
 			onclick={() => controls?.press()}
 			src={resolved ? undefined : fallback}
 			data-settled={settled || undefined}
@@ -373,7 +377,7 @@
 				}
 			</style>
 			<video
-				class="video-surface block w-full"
+				class="video-surface block h-full w-full object-cover"
 				src={resolved ? undefined : fallback}
 				{poster}
 				{width}
@@ -471,17 +475,13 @@
 		border-radius: 0.1875rem;
 	}
 
-	/* The window is the declared shape and the picture fills it, which is `picture.svelte`'s
-	   `crop` applied to a clip: the box is the layout and the file bends to it. */
+	/* The hold: one mechanism in four parts, kept whole. The window and the picture filling it
+	   are utilities in the markup now; what is left is the fade -- an opacity read from
+	   `--clip-hold`, which the head script writes on the frame, its other value behind
+	   `data-settled`, an attribute this component sets on itself that StyleX cannot spell, and
+	   the transition below. Only a remembered clip is held, and the set stays whole: see
+	   spec/architecture/video/player.md and spec/architecture/css/migration.md. */
 	.video-surface {
-		display: block;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		/* Held back until the frame on screen is the one asked for, with the blurred ground behind
-		   it showing through. Only a clip this tab remembers is held, via `--clip-hold` set on the
-		   frame by the head script -- see spec/architecture/video/player.md ("Only a remembered clip is
-		   held") for why defaulting to held here would cost every reader a wait for hydration. */
 		opacity: var(--clip-hold, 1);
 		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
 	}
@@ -496,12 +496,12 @@
 		}
 	}
 
-	/* Both fullscreens: whatever the frame looks like in an article, it stops looking like it. The
-	   two modes arrive by different routes -- an attribute this file writes, and the Fullscreen API
-	   promoting the same element -- and written apart, only the attribute used to turn the frame
-	   off; see spec/architecture/video/player.md ("The clip is fitted and never stretched") for the
-	   two-pixel grey rectangle that gave it away. `:fullscreen` stands alone rather than in a list
-	   with a prefixed spelling, because an unknown selector in a list invalidates the whole rule. */
+	/* Both fullscreens, in one rule on purpose: the two routes -- an attribute this file writes
+	   and the Fullscreen API -- carry one appearance, and written apart only the attribute turned
+	   the frame off. `:fullscreen` stands alone rather than in a list, because an unknown selector
+	   in a list invalidates the whole rule. It stays here because the frame has no named variant
+	   for `:fullscreen`; the position half did move, as a ternary, since `filling` is state this
+	   component holds. See spec/architecture/css/layers.md and spec/architecture/video/player.md. */
 	.video-frame[data-filling='true'],
 	.video-frame:fullscreen {
 		display: grid;
@@ -517,21 +517,6 @@
 		/* Also the letterbox. The frame's ground is `paper`, so without this a clip that does not
 		   match the screen's shape is bordered by the page's colour on two sides. */
 		background: oklch(0 0 0);
-	}
-
-	/* Web fullscreen only: the frame becomes the window. Opaque and covering everything, because
-	   the point of the mode is that nothing but the clip is on screen and the browser's own chrome
-	   stays -- the whole difference from the button beside it; no player library has this since it
-	   is a page mode rather than a media one. Driven by an attribute rather than a scoped
-	   `:has(.player-filling)`, which cannot match across the component boundary this crosses. */
-	.video-frame[data-filling='true'] {
-		position: fixed;
-		inset: 0;
-		/* The article's own block rhythm, which a fixed box still honours: `inset: 0` pins both
-		   edges and the margin is then taken out of the height between them. Measured, the frame
-		   came up eight pixels short and the page showed through the bottom of it. */
-		margin: 0;
-		z-index: 60;
 	}
 
 	/* The clip is fitted, never stretched, and bordered by black on the axis it does not fill. The

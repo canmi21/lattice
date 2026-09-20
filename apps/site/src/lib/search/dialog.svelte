@@ -375,7 +375,17 @@
 
 			<!-- One element holds every state the body can be in, because the height is animated
 			     between them and a height belongs to a box that stays put. -->
-			<div bind:this={bodyEl} class="search-body min-h-0" data-moving={bodyMoving || undefined}>
+			<!-- The body scrolls at rest and is clipped while it moves: an animated height that let
+			     its scrollbar show would flash one in and out on every result that changes the panel's
+			     size. A ternary rather than a base utility and a variant over it, because the two are
+			     the same property in one layer; see spec/architecture/css/migration.md. -->
+			<div
+				bind:this={bodyEl}
+				class="search-body min-h-0 {bodyMoving
+					? 'overflow-hidden [will-change:height]'
+					: 'overflow-y-auto'}"
+				data-moving={bodyMoving || undefined}
+			>
 				{#if groups.length > 0}
 					<ul class="p-1.5">
 						{#each groups as group (group.path)}
@@ -517,19 +527,6 @@
 		50% {
 			opacity: 1;
 		}
-	}
-
-	/*
-	 * The body scrolls at rest and is clipped while it moves: an animated height that let its
-	 * scrollbar show would flash one in and out on every result that changes the panel's size.
-	 */
-	.search-body {
-		overflow-y: auto;
-	}
-
-	.search-body[data-moving] {
-		overflow: hidden;
-		will-change: height;
 	}
 
 	/* The search input's own clear button is the browser's, not this design system's. */
