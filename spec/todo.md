@@ -1257,3 +1257,52 @@ a TypeScript compile behind it, which is the subprocess boundary
 ruled on in this one. The entry above, on where the compiler lives, is the same question arriving
 from the other side -- and answering either one first mostly decides the other. Neither is worth
 taking while the publish path is still new enough that its shape may move.
+
+## A clip is the one resource reference the compiler still resolves into bytes
+
+[architecture/resource.md](architecture/resource.md), "A rid is resolved three times", says a
+compile may bake the article's own shape and nothing derived from a resource's current content.
+Two of the three references that name a resource now obey it: `::linkcard`'s mark and `::image`'s
+picture compile to a rid under `resources` and are resolved per render. `::video` does not. Its
+block carries `src` as a rid and then, beside it, `rungs` with absolute CDN URLs, `poster` as
+another, `preview`, `width`, `height`, `gain` and `captions` -- every one of them a fact about what
+the clip currently holds. Measured on `hindsight/except-me`: 15 image blocks contribute 15 rids to
+`namedResources` and its 3 video blocks contribute none, because a `video` block has no `resources`
+key for the collector to read.
+
+The consequence is the one that paragraph exists to name: re-encoding a clip rewrites the `rungs`
+inside every content object that plays it, so the object's id moves and the article is republished
+for a change the article did not make. It is also the reason an editor that runs online cannot yet
+write a clip reference -- the write would need a recompile to take effect.
+
+**What deciding it would cost.** The record side is ready: `media.video.clip` is in the catalogue
+with its rungs and caption tracks, and `media.image.frame` already points at its clip through
+`source`. What is not settled is which of a clip's several references are roles on one block --
+the clip and its poster frame are two resources, and `namedResources` reads a map, so
+`{ clip, poster }` is the shape it is waiting for -- and whether the player's fallback for a
+reference nothing has imported survives the move, since today that fallback is "the resolved
+fields are absent" and after it would be "the record is absent". Both are decisions about the
+player rather than about the resolution path, which is why the two loops that built that path
+stopped at the edge of them.
+
+## The resolution path on the site has no tests, because the site's modules do not resolve under vitest
+
+`apps/site/src/lib/published/` is where a rid becomes a record: the batch question, the split at
+what one request carries, the memo, and the two cache windows that decide what is stored after a
+miss and after an outage. Nothing in it is covered. Every test under `apps/site` imports by
+relative path and none touches `$lib` or `$app`, and that is not a convention -- the root
+`vitest.config.ts` declares no alias for either, so a test that imported `$lib/published` would
+fail to resolve before an assertion ran.
+
+The behaviour was verified by execution rather than by assertion while this was written: driving
+`publishedResources` against a recording fetch under a throwaway config shows one question for a
+page, a rid the corpus does not publish stored and not asked for again, nothing stored at all when
+the API cannot be reached, and a 65-rid page split into 64 and 1 rather than refused. Each of those
+was confirmed to fail when the behaviour behind it was removed. None of it is committed.
+
+**What deciding it would cost.** Three aliases -- `$app/environment`, `$lib`, and a stub for
+`@tanstack/svelte-query`, which publishes `.svelte` source that Node cannot load. The first two are
+a line each. The third is the decision: either a stub module that every test in the workspace would
+then resolve to, or `@sveltejs/vite-plugin-svelte` in the root config, which pulls the site's whole
+Svelte pipeline into `apps/cdn`'s test run as well. Neither is a change to make as a side effect of
+a task about batching.

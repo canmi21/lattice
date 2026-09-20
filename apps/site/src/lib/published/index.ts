@@ -12,6 +12,7 @@ import {
 	artifactAddress,
 	feedHtml,
 	parseResource,
+	resourceQuestions,
 	unwrap,
 	readEnvelope,
 	readPageEnvelope,
@@ -281,9 +282,19 @@ export async function publishedResources(
 	if (ask.length === 0) return found;
 
 	try {
-		const batch = await askBatch({ type: 'resources', rids: ask }, fetch);
+		// One question for every page this corpus has, and the fewest that can answer for a page
+		// that ever outgrows what one request carries -- never a refusal, which on this path is a
+		// blank article rather than a missing picture. The cap belongs to the request shape and is
+		// read from there; see `resourceQuestions` in libs/artifacts.
+		const answers = await Promise.all(
+			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', rids }, fetch)),
+		);
+		const answered: BatchAnswerOf<'resources'>['resources'] = Object.assign(
+			{},
+			...answers.map((batch) => batch.resources),
+		);
 		const bodies = ask.map((rid) => {
-			const record = batch.resources[rid];
+			const record = answered[rid];
 			return [rid, record === undefined ? MISSING : JSON.stringify(record)] as const;
 		});
 		await Promise.all(bodies.map(([rid, body]) => rememberBody(resourceUrl(rid), body)));

@@ -51,9 +51,9 @@
 		},
 	],
 	// The port also appears in libs/urls as the development API URL. wrangler cannot read a
-	// TypeScript library, so the number is written twice on purpose. This is the base
-	// workspace's pair; `mise run dev-api` passes an overlay's shifted pair as flags,
-	// computed by libs/urls from the same number. See spec/toolchain.md.
+	// TypeScript library, so the number is written twice on purpose. It is the only pair there
+	// is: one checkout runs one set, and a second copy collides here rather than drifting to a
+	// free port. See spec/toolchain.md.
 	"dev": {
 		// Every interface, so a phone on the same network can reach this worker. The port is
 		// still the mutex a second copy collides on; see spec/toolchain.md.

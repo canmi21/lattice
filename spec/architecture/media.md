@@ -72,12 +72,15 @@ Following the reference reaches the target's own source, so a poster's provenanc
 its video to whoever published it, without the outer name being retyped and without the two ever
 disagreeing.
 
-## The description is baked in beside the placeholder
+## The description is baked in and the placeholder no longer is
 
-The build inlines an image's description the same way it inlines its thumbhash: both belong to
-the picture, both come from the manifest, and neither should be repeated in the article that
-happens to reference it. An article written before any description existed picks one up on the
-next build, without being edited.
+Both belong to the picture rather than to the article that references it, and neither is
+repeated there. What separates them is the asset's clock, which is
+[delivery.md](delivery.md)'s rule: a description is written by `cms alt` into a file in this
+repository, so it moves when the repository does and the build inlines it; a placeholder moves
+when the picture is encoded again, so it travels with the record and is resolved per render.
+See [resource.md](resource.md), "A rid is resolved three times". An article written before any
+description existed still picks one up on the next build, without being edited.
 
 Writing `alt` overrides it for one page's context. The two syntaxes differ in what they can
 express, and the difference is real: markdown has no way to say "decorative", so `![](x)`

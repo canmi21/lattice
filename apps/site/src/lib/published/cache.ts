@@ -9,22 +9,32 @@
 
 import { browser } from '$app/environment';
 import { unwrap } from '@canmi/artifacts';
+import { PUBLICATION_DELAY, WHILE_UNREACHABLE } from '@canmi/cache';
 import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
 type Fetch = typeof fetch;
 
 type Held = { at: number; body: string };
 
-/** The API's own max-age, restated: past it an answer is asked for again rather than served. */
-export const FRESH_MS = 5 * 60 * 1_000;
+/**
+ * The API's own max-age: past it an answer is asked for again rather than served.
+ *
+ * Converted rather than written. Both numbers below are the ones the API stamps its answers with,
+ * and this side holding a copy longer than the shared caches do would be claiming to know
+ * something it was not told -- so they are read from where that decision lives and not restated.
+ * Milliseconds because this side compares to `Date.now()`; `@canmi/cache` deals in the seconds a
+ * `Cache-Control` is written in. See libs/cache.
+ */
+export const FRESH_MS = PUBLICATION_DELAY * 1_000;
 
 /**
  * How old an answer may be and still be served when the API will not answer at all.
  *
  * Hours, because a root this old names objects that are all still there and still immutable, so
- * what it renders is a coherent older page rather than a broken one.
+ * what it renders is a coherent older page rather than a broken one. The same window `apps/alias`
+ * puts in `stale-if-error`, and the same one for the same reason.
  */
-export const STALE_MS = 3 * 60 * 60 * 1_000;
+export const STALE_MS = WHILE_UNREACHABLE * 1_000;
 
 /** When this copy was taken. `Date` belongs to whichever cache wrote it, and is not ours. */
 const STAMP = 'x-published-at';

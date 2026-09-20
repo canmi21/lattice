@@ -36,6 +36,16 @@ export const ReadsRequestSchema = v.object({
 });
 
 /**
+ * How many resources one question carries.
+ *
+ * **A limit of the request and never of the page**, which is a difference a caller reading it the
+ * other way pays for with a blank article rather than a missing picture. `resourceQuestions` is
+ * that reading, written down so nobody has to arrive at it. See spec/architecture/resource.md,
+ * "One question per page". Measured: the heaviest article in this corpus names fifteen.
+ */
+export const RESOURCES_PER_QUESTION = 64;
+
+/**
  * What every rid on one page currently means, asked once.
  *
  * An arm here rather than a fan of `GET /media?rid=`, and bounded like the slugs above: one
@@ -45,8 +55,25 @@ export const ReadsRequestSchema = v.object({
  */
 export const ResourcesRequestSchema = v.object({
 	type: v.literal('resources'),
-	rids: v.pipe(v.array(v.string()), v.maxLength(64)),
+	rids: v.pipe(v.array(v.string()), v.maxLength(RESOURCES_PER_QUESTION)),
 });
+
+/**
+ * The questions one page's rids become: deduplicated, and split where the request shape ends.
+ *
+ * One list in and one question out, for every page this corpus has and every page it plausibly
+ * grows -- the split is the tail nobody reaches, and it exists so that reaching it costs a second
+ * request rather than the page. Deduplicated here as well as at the collector, because a caller
+ * can hand this a list assembled from more than one view.
+ */
+export function resourceQuestions(rids: readonly string[]): string[][] {
+	const wanted = [...new Set(rids)];
+	const questions: string[][] = [];
+	for (let from = 0; from < wanted.length; from += RESOURCES_PER_QUESTION) {
+		questions.push(wanted.slice(from, from + RESOURCES_PER_QUESTION));
+	}
+	return questions;
+}
 
 /**
  * What arrives at `/batch`, discriminated by `type`.

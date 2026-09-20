@@ -455,6 +455,20 @@ Resolving a page's resources is that first one, because it asks for many rids at
 question has a body. Nothing before it could have revealed this: the trap is not that the rule was
 wrong, it is that half of it had never been reached.
 
+**What the reached half costs is one port, and that is the port rule arriving from a second
+direction.** The list names the site's development port and no other, so a site served from
+anywhere else has its resource question refused while the API answers `200`, and the page renders
+blank with `CORS error: No 'Access-Control-Allow-Origin' header is present` in the site's log and
+nothing in the API's. Measured on port 26611. It is not a gap to widen:
+[../toolchain.md](../toolchain.md) already says one checkout runs one set on the pinned numbers and
+that the slot arithmetic for a second is gone, so the one legal origin and the one legal port are
+the same decision written twice. **A browser never meets it**, because in development it reaches
+the API through the site's own proxy, and that proxy answers the CORS question itself -- verified:
+the same `POST` carrying the same foreign origin is refused directly by the API and allowed through
+the proxy, which echoes it. So the allowlist is consulted on exactly one path, the server's own
+non-`GET`, and anyone who sees a page resolve after hydration but not before should look here
+before looking at their own work.
+
 **And in development the site's origin is not the one the list names.** `localhost` and
 `127.0.0.1` are one machine spelled two ways; the list holds the first, so browsing the site by IP
 produced an answer with no header and a `500` where the same page worked by name. Development

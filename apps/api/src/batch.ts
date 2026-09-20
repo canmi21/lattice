@@ -33,7 +33,14 @@ import { articleReads } from './schema';
 import { failure, success } from './respond';
 import { findArticle, rootOf } from './root';
 
-/** Room for the longest question this takes: 64 slugs and nine locales. */
+/**
+ * The backstop: a limit of bytes, not of anything a question means.
+ *
+ * Every arm bounds how many things it names and none bounds how long one is, so this is what a
+ * body no arm could produce runs into. Measured on this corpus, the widest each arm allows is
+ * 2,006 bytes of `articles`, 1,946 of `reads` and 541 of `resources`; `articles` reaches here
+ * only once its slugs average 124 characters, four times the longest there is.
+ */
 const MAX_BODY_SIZE = 8_192;
 const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 
@@ -148,8 +155,15 @@ async function resources(
 			if (!stored) return;
 			// Parsed only far enough to put it in a JSON answer. What the record says is the
 			// consumer's to read, and validating here would be a second reading of one format.
-			const record = JSON.parse(await new Response(stored.body).text()) as Resource;
-			found[rid] = record;
+			const text = await new Response(stored.body).text();
+			try {
+				found[rid] = JSON.parse(text) as Resource;
+			} catch {
+				// A record the store holds and nothing can read is left out, like one nothing
+				// publishes. `/media` streams bytes and lets its one reader fail; this composes an
+				// answer, so an uncaught parse here would cost a page of fifteen the other
+				// fourteen -- and a `5xx` is `no-store`, so it would cost them on every render.
+			}
 		}),
 	);
 	return { type: 'resources', resources: found };

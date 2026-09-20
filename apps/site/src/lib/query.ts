@@ -7,9 +7,16 @@
  * question from whether it is still fresh, which is what the five minutes answers.
  */
 import { browser } from '$app/environment';
+import { PUBLICATION_DELAY } from '@canmi/cache';
 import { QueryClient } from '@tanstack/svelte-query';
 
-export const QUERY_STALE_TIME = 5 * 60 * 1_000;
+/** The publication delay itself, not a copy of it: see libs/cache for why there is one number. */
+export const QUERY_STALE_TIME = PUBLICATION_DELAY * 1_000;
+
+/**
+ * How long an answer stays worth restoring after the tab is gone, which `@canmi/cache` does not
+ * own: nothing stamps it on a response, and it answers retention rather than freshness.
+ */
 export const QUERY_CACHE_MAX_AGE = 3 * 24 * 60 * 60 * 1_000;
 
 /**

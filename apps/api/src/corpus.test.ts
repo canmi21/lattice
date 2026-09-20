@@ -5,7 +5,12 @@ import app from './app';
 import type { Bindings } from './bindings';
 import { standUpDatabase } from './d1.harness';
 import { forgetRoot } from './root';
-import { unwrap, type BatchAnswerOf, type FeedAnswer } from '@canmi/artifacts';
+import {
+	RESOURCES_PER_QUESTION,
+	unwrap,
+	type BatchAnswerOf,
+	type FeedAnswer,
+} from '@canmi/artifacts';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
@@ -291,6 +296,36 @@ describe('POST /batch', () => {
 	});
 
 	/**
+	 * The two caps are different limits and refuse differently, which is worth holding apart.
+	 *
+	 * How many things an arm names is the schema's, and going over it is a mistake in the question
+	 * -- a `400`. How many bytes the body is is the route's backstop against a question no arm's
+	 * caps could produce -- a `413`. Both leave through the envelope; see
+	 * spec/architecture/artifacts.md, "A refusal nobody handled is still a refusal".
+	 */
+	it('refuses more rids than one question carries, and says so in the envelope', async () => {
+		const many = Array.from({ length: RESOURCES_PER_QUESTION + 1 }, (_, at) =>
+			at.toString(36).padStart(5, '0'),
+		);
+		const res = await get('/batch', { method: 'POST', body: { type: 'resources', rids: many } });
+		expect(res.status).toBe(400);
+		expect(await res.json()).toEqual({ status: 'error', message: 'unreadable_batch' });
+	});
+
+	it('refuses a body past the backstop before reading any of it', async () => {
+		// Inside every count the schema allows and far outside the bytes: the caps bound how many
+		// things a question names, never how long one is.
+		const res = await get('/batch', {
+			method: 'POST',
+			body: { type: 'reads', slugs: Array.from({ length: 8 }, () => 'a'.repeat(2_000)) },
+		});
+		expect(res.status).toBe(413);
+		expect(res.headers.get('Content-Type')).toContain('application/json');
+		expect(res.headers.get('Cache-Control')).toBe('no-store');
+		expect(await res.json()).toEqual({ status: 'error', message: 'body_too_large' });
+	});
+
+	/**
 	 * A page names resources and asks what they mean once. See spec/architecture/resource.md,
 	 * "One question per page, not one per resource".
 	 */
@@ -318,6 +353,30 @@ describe('POST /batch', () => {
 		expect(answered.resources['k7m2x']).toEqual(record);
 		// Deduplicated, and a string that could never be an id costs no lookup at all.
 		expect(asked.toSorted()).toEqual(['/meta/k7m2x.json', '/meta/zzzzz.json']);
+	});
+
+	/**
+	 * A record the store holds and nothing can read is a third case, and it used to be a `500`.
+	 *
+	 * `/media` streams bytes and lets its one reader fail. This composes an answer, so an uncaught
+	 * parse cost a page of fifteen pictures the other fourteen -- and on every render, a `5xx`
+	 * being `no-store`.
+	 */
+	it('leaves out a record it cannot read rather than losing the whole answer', async () => {
+		const store = async (url: string): Promise<Response> => {
+			const path = new URL(url).pathname;
+			if (path === '/meta/k7m2x.json') return new Response('{ this is not json');
+			if (path === '/meta/q4w8n.json') return new Response(JSON.stringify({ resource: 'q4w8n' }));
+			return new Response('not found', { status: 404 });
+		};
+		const res = await get('/batch', {
+			fetch: store,
+			method: 'POST',
+			body: { type: 'resources', rids: ['k7m2x', 'q4w8n'] },
+		});
+		expect(res.status).toBe(200);
+		const answered = await payload<BatchAnswerOf<'resources'>>(res);
+		expect(Object.keys(answered.resources)).toEqual(['q4w8n']);
 	});
 
 	it('takes a rid however it was spelled, the record being filed in one case', async () => {

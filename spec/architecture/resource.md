@@ -123,6 +123,14 @@ per request; it is a selector beside the record now, written once on each side.
 pictures, and one placeholder painted under both would be the wrong colour under one of them. A
 field invented to satisfy a schema is a field a reader will eventually believe.
 
+**The decoded copy is stored beside the hash, and the reason is not size.** The hash is the
+canonical form and a page cannot paint it: turning one into pixels is a codec, and the side that
+needs it is a universal load that runs in the Worker and again in the browser and must answer the
+same in both. A codec reached through `node:fs` can exist in the first and never in the second, so
+per-request decoding is not available on that half. One decode at import serves both. Measured on
+this corpus: 167 characters median, about a tenth of a photograph's record and a fifth of a
+screenshot's.
+
 ## `type` is a namespace, and every segment does three jobs
 
 `media.image.photo` is read left to right, and each segment:
@@ -259,6 +267,17 @@ Measured on the corpus as it stands, an article names four resources or none. Th
 that the shape matters more than the cost: a page asks once for everything it needs, through the
 batch entry point that exists for exactly this and today has arms for articles and reads but not
 for resources. See [artifacts.md](artifacts.md), "One batch entry point".
+
+**The arm's cap is a limit of the request and not of the page, and the difference is a whole
+failure mode.** Sixty-four rids fit in one question; the heaviest article here names fifteen, and
+`hindsight/except-me` is that article. Read the cap as a limit on what an article may name and a
+page over it is refused -- which on this path is not a missing picture but a blank page, because a
+picture that does not resolve throws where a mark that does not is simply absent. Read as what it
+is, a page over it asks twice. So the caller splits at the cap rather than handing over a body it
+knows will be refused, and one question per page stays the property of every page that exists
+rather than a property the corpus has not yet outgrown. The byte ceiling on the route is a third
+thing again: a backstop against a body no arm's caps could produce, four times the largest question
+anything here sends.
 
 ## Content binds at the layer that has it
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import * as v from 'valibot';
 import {
 	best,
 	CANONICAL_PATTERN,
@@ -10,6 +11,9 @@ import {
 	pictured,
 	requireSegment,
 	resolution,
+	resourceQuestions,
+	RESOURCES_PER_QUESTION,
+	ResourcesRequestSchema,
 	scalable,
 	toned,
 } from './index';
@@ -323,5 +327,32 @@ describe('the resources a view names', () => {
 				},
 			]),
 		).toEqual(['k7m2x', 'q4w8n']);
+	});
+});
+
+/**
+ * What those rids become on the wire, which is one question for every page this corpus has.
+ *
+ * The cap is a limit of the request and not of the page, and the difference only shows past it:
+ * read the other way a page over the cap is refused, and a refusal here is a blank article rather
+ * than a missing picture, because `pictured` throws for a rid it has no record of.
+ */
+describe('the questions one page becomes', () => {
+	it('asks once for a page, and deduplicates a list assembled from more than one view', () => {
+		expect(resourceQuestions(['k7m2x', 'q4w8n', 'k7m2x'])).toEqual([['k7m2x', 'q4w8n']]);
+		expect(resourceQuestions([])).toEqual([]);
+	});
+
+	it('splits at what one request carries rather than handing over a body that is refused', () => {
+		const many = Array.from({ length: RESOURCES_PER_QUESTION + 1 }, (_, at) => `r${at}`);
+		const questions = resourceQuestions(many);
+		expect(questions.map((question) => question.length)).toEqual([RESOURCES_PER_QUESTION, 1]);
+		// Every rid asked for, exactly once, whichever question it landed in.
+		expect(questions.flat()).toEqual(many);
+		// And each question is one the schema will read, which is the whole point of the split.
+		for (const rids of questions) {
+			expect(v.is(ResourcesRequestSchema, { type: 'resources', rids })).toBe(true);
+		}
+		expect(v.is(ResourcesRequestSchema, { type: 'resources', rids: many })).toBe(false);
 	});
 });
