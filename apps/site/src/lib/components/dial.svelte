@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { untrack, type Snippet } from 'svelte';
 
 	/**
 	 * Two glyphs in one cell, one showing, turning when that changes.
@@ -24,19 +24,26 @@
 	} = $props();
 
 	/**
-	 * Whether a change has happened yet, rather than whether one is happening.
+	 * How many times the shown face has actually changed. Zero on arrival, whichever face that is.
 	 *
-	 * The turn plays on a change and never on arrival: a page that loads already showing the
-	 * second face has not just turned to it, and animating on mount would announce something that
-	 * did not happen. An effect settles this after the first paint, which is exactly late enough.
+	 * The turn plays on a change and never on arrival -- a page that loads already showing the
+	 * second face has not just turned to it. This counts changes rather than flipping a flag after
+	 * mount, because **adding the class that enables an animation is itself the change that starts
+	 * it**: a flag armed in an effect fires the turn on arrival, which is the one case it exists to
+	 * exclude. See spec/styling/first-paint.md.
 	 */
-	let arrived = $state(false);
-	$effect(() => {
-		arrived = true;
+	let turns = $state(0);
+	let last = untrack(() => shown);
+	// `$effect.pre`, so the class lands in the same flush as the face it belongs to rather than a
+	// frame after it. It runs on mount too, and finds nothing changed.
+	$effect.pre(() => {
+		if (shown === last) return;
+		last = shown;
+		turns += 1;
 	});
 </script>
 
-<span class="dial inline-grid place-items-center {className}" class:arrived>
+<span class="dial inline-grid place-items-center {className}" class:turned={turns > 0}>
 	<span class="face" data-shown={shown === 'first'}>{@render first()}</span>
 	<span class="face" data-shown={shown === 'second'}>{@render second()}</span>
 </span>
@@ -65,7 +72,7 @@
 	   frame as something that suppresses transitions document-wide -- which is what the theme flip
 	   does to stop a card's hover fade easing the page's colours through greys. An animation needs
 	   no value to change and is not switched off with them. */
-	.arrived .face[data-shown='true'] {
+	.turned .face[data-shown='true'] {
 		animation: arrive 200ms ease-out both;
 	}
 
@@ -78,7 +85,7 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.arrived .face[data-shown='true'] {
+		.turned .face[data-shown='true'] {
 			animation: none;
 		}
 	}
