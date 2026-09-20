@@ -58,6 +58,33 @@ async function wholeArchive() {
 	return new Uint8Array(await response.arrayBuffer());
 }
 
+/**
+ * The archive, read back field by field.
+ *
+ * Stored entries, so the source bytes sit unaltered between the local header and the data
+ * descriptor -- which is what makes a round trip checkable without an unzipper.
+ */
+function unpack(archive: Uint8Array, nameLength: number, size: number) {
+	const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
+	const data = 30 + nameLength;
+	return {
+		localSignature: view.getUint32(0, true),
+		name: new TextDecoder().decode(archive.subarray(30, data)),
+		body: archive.subarray(data, data + size),
+		descriptorSignature: view.getUint32(data + size, true),
+		crc: view.getUint32(data + size + 4, true),
+		storedSize: view.getUint32(data + size + 8, true),
+		centralSignature: view.getUint32(data + size + 16, true),
+		endSignature: view.getUint32(archive.length - 22, true),
+	};
+}
+
+/** The DOS fields the format writes, from whichever of the two records is passed in. */
+function stamp(archive: Uint8Array, at: number) {
+	const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
+	return { time: view.getUint16(at + 10, true), date: view.getUint16(at + 12, true) };
+}
+
 describe('the source object comes first', () => {
 	it('is 404 when nothing is stored under the id, which is temporary rather than wrong', async () => {
 		const response = await derive.request(`/${CID}.avif.webp`, {}, bucketWith({}));
@@ -154,27 +181,6 @@ describe('an image format the worker can produce', () => {
 });
 
 describe('the object in an archive', () => {
-	/**
-	 * The archive, read back field by field.
-	 *
-	 * Stored entries, so the source bytes sit unaltered between the local header and the data
-	 * descriptor -- which is what makes a round trip checkable without an unzipper.
-	 */
-	function unpack(archive: Uint8Array, nameLength: number, size: number) {
-		const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
-		const data = 30 + nameLength;
-		return {
-			localSignature: view.getUint32(0, true),
-			name: new TextDecoder().decode(archive.subarray(30, data)),
-			body: archive.subarray(data, data + size),
-			descriptorSignature: view.getUint32(data + size, true),
-			crc: view.getUint32(data + size + 4, true),
-			storedSize: view.getUint32(data + size + 8, true),
-			centralSignature: view.getUint32(data + size + 16, true),
-			endSignature: view.getUint32(archive.length - 22, true),
-		};
-	}
-
 	it('packages the single object under the name it has outside the archive', async () => {
 		const response = await derive.request(`/${CID}.avif.zip`, {}, holding('avif'));
 		expect(response.status).toBe(200);
@@ -219,12 +225,6 @@ describe('the object in an archive', () => {
 });
 
 describe('the archive says when the bytes arrived', () => {
-	/** The DOS fields the format writes, from whichever of the two records is passed in. */
-	function stamp(archive: Uint8Array, at: number) {
-		const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
-		return { time: view.getUint16(at + 10, true), date: view.getUint16(at + 12, true) };
-	}
-
 	// 2026-03-14 15:09:26 UTC, as DOS spells it: the hour, the minute and half the seconds in
 	// one field, and the years since 1980, the month and the day in the other.
 	const TIME = (15 << 11) | (9 << 5) | (26 >> 1);
