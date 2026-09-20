@@ -301,6 +301,26 @@ does, one name standing for another, and the host is the short form a reader see
 `aka.ffoni.com` and the domain was `internal.link`, serving nothing -- `link` said nothing either,
 because every URL is a link.
 
+### The deployed name and the called name differ
+
+**The worker is deployed as `aka`. Everything that calls it says `alias`, and keeps saying it.**
+`URLS.internal.alias`, `DEVELOPMENT_PORTS.alias`, `DEVELOPMENT_PROXY_PATHS.alias`, the property
+`upstream()` returns, every type and import: unchanged, and not pending.
+
+The test for one occurrence is a question. **Does this name a thing that is deployed, or a thing
+that is called?** A directory and a worker are deployed, so `apps/aka`, the `name` in its
+`wrangler.jsonc`, the package name, and the `dev-aka` and `deploy-aka` tasks take `aka`. A property
+on a URL map is called, so it stays `alias`. Prose splits the same way: a sentence that would still
+be true if the worker had never been renamed is about the layer, and says `alias`.
+
+Both names say the same thing, which is why neither is wrong and why this is not a half-finished
+rename. The workspace's `naming.md` asks a member to be named in one word for its responsibility,
+and `alias` already satisfies that -- the code had no reason to move. What changed is only the name
+the deployment wears, said in the voice its siblings use: `press`, `still`, `seam`, `lattice`. A
+layer whose whole job is one name standing for another is an *also known as*. The workspace's
+`naming.md` already has this shape under "Vendor names stay at the edge" -- a name that differs at
+a boundary, with the edge here on the other side.
+
 ### What this layer lets a cache keep
 
 **Its answer is exactly as fresh as the answer behind it**, so a resolved redirect takes the life

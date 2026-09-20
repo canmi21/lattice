@@ -24,7 +24,9 @@ sys.dont_write_bytecode = True
 
 BASE = pathlib.Path(__file__).resolve().parents[2]
 SESSION = f"{BASE.name}-dev"
-SERVERS = ["site", "api", "cdn", "alias"]
+# Deployed names, which is what a `dev-` task and a tmux window are named for; the alias layer
+# is deployed as `aka`. See spec/architecture/delivery.md.
+SERVERS = ["site", "api", "cdn", "aka"]
 OPTIONAL = {"cms"}
 # A window whose foreground command is a shell has no server in it any more.
 SHELLS = {"fish", "zsh", "bash", "sh", "-fish", "-zsh", "-bash"}

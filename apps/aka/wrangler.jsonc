@@ -1,9 +1,11 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	// Named for what the layer does -- one name standing for another -- rather than for the
-	// domain it answers on, which is `ill.li` and is attached to this worker rather than
-	// declared by it. See spec/architecture/delivery.md.
-	"name": "alias",
+	// `aka` is the deployed name; the code calls this layer `alias` and keeps doing so. Both say
+	// the same thing -- one name standing for another -- and neither is the domain it answers on,
+	// which is `ill.li`, attached to this worker rather than declared by it. The test for which
+	// name a place takes: a thing that is deployed is `aka`, a thing that is called is `alias`.
+	// See spec/architecture/delivery.md, "The deployed name and the called name differ".
+	"name": "aka",
 	"main": "src/index.ts",
 	// Must not exceed what the installed workerd supports, which lags the calendar. Setting
 	// this to "today" fails to start with a date mismatch rather than anything descriptive.

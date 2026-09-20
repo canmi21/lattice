@@ -31,7 +31,7 @@ export const FRESH_MS = PUBLICATION_DELAY * 1_000;
  * How old an answer may be and still be served when the API will not answer at all.
  *
  * Hours, because a root this old names objects that are all still there and still immutable, so
- * what it renders is a coherent older page rather than a broken one. The same window `apps/alias`
+ * what it renders is a coherent older page rather than a broken one. The same window `apps/aka`
  * puts in `stale-if-error`, and the same one for the same reason.
  */
 export const STALE_MS = WHILE_UNREACHABLE * 1_000;

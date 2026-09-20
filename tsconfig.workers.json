@@ -33,8 +33,8 @@
 		"apps/api/*.d.ts",
 		"apps/cdn/src/**/*.ts",
 		"apps/cdn/*.d.ts",
-		"apps/alias/src/**/*.ts",
-		"apps/alias/*.d.ts",
+		"apps/aka/src/**/*.ts",
+		"apps/aka/*.d.ts",
 		"libs/store/src/**/*.ts",
 		// Types, schemas and constants only, so neither carries a runtime global and both are
 		// safe in this program and in the browser one at once.

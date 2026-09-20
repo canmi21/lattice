@@ -110,7 +110,7 @@ mod tests {
 
 	/// Every hostname this rule has to answer the same way twice.
 	///
-	/// It was a contract between two languages: `/favicon/:domain` in apps/alias spelled the same
+	/// It was a contract between two languages: `/favicon/:domain` in apps/aka spelled the same
 	/// five rules in TypeScript, and read this table rather than keep its own after the two drifted
 	/// over `999.999.999.999`. An icon is a resource now and no hostname reaches a worker, so this
 	/// is a table of cases. Lowercase, because callers lowercase first.

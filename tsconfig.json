@@ -30,6 +30,6 @@
 		"libs/store",
 		"apps/api",
 		"apps/cdn",
-		"apps/alias"
+		"apps/aka"
 	]
 }
