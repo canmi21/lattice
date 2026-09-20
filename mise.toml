@@ -73,12 +73,27 @@ run = [
 description = "Lint the workspace"
 run = "oxlint ."
 
+# The CMS window's frontend, which the Tauri crate needs to *compile*, not to run:
+# `tauri::generate_context!` reads `frontendDist` at macro expansion and panics when the
+# directory is absent. So both Rust tasks below depend on it, and neither is a Rust task in the
+# sense of only needing cargo.
+#
+# Nothing rebuilt this before, which `mise run clean` made visible: clean removes build output
+# and can write it again, exactly as it promises, and then `test-rust` failed with a proc macro
+# panic naming a path rather than a missing step. The gap was in the graph, not in clean.
+[tasks.build-cms]
+description = "Build the CMS window's frontend, which the Tauri crate reads at compile time"
+dir = "apps/cms"
+run = "pnpm run build:web"
+
 [tasks.test-rust]
 description = "Run the Rust test suites"
+depends = ["build-cms"]
 run = "cargo test --workspace"
 
 [tasks.lint-rust]
 description = "Lint the Rust crates"
+depends = ["build-cms"]
 run = "cargo clippy --workspace --all-targets"
 
 # wrangler is a devDependency of each worker rather than a mise tool, because it participates
