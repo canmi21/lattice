@@ -26,6 +26,45 @@ not: a flat-colour original written as PNG has no AVIF to serve, and `/object/{c
 answering 404 for it is a fact about the bucket that a caller can act on rather than a conversion
 happening quietly.
 
+### Rejected: loading a codec per route
+
+Five `.wasm` modules are 5244.8 KiB of a 5796.91 KiB bundle -- 90.5% -- and only one of them is
+wanted on any given request, so importing each one where it is used reads as the obvious saving.
+It saves nothing, for two reasons that are independent and each sufficient on its own.
+
+**The runtime does not consult the import graph.** workerd's default module registry compiles
+every module in the bundle at `Worker::Script` construction, reached or not:
+_"The legacy registry eagerly compiled all worker bundle ESM modules at startup"_
+([legacy-module-registry.md](https://github.com/cloudflare/workerd/blob/main/docs/reference/detail/legacy-module-registry.md)).
+A module nothing imports still costs its compile and its memory, once per isolate replica.
+
+**And the bundler hoists a `.wasm` import out of a dynamically imported module.** Measured with
+wrangler 4 against this project's own compatibility date: a `.wasm` imported by a module reachable
+only through `await import()` is emitted at the entry's top level as a static `import`
+declaration, which ESM grammar permits nowhere else. The JavaScript around it is deferred --
+esbuild wraps it in an `__esm` closure -- but the codec is not. So even with a registry that
+compiled lazily, first import would still be entry evaluation, which is startup.
+
+**The saving that exists was already taken**, and `transcode.ts` says so where it is made: an
+imported `.wasm` is a compiled `WebAssembly.Module` and instantiation is a separate call, which
+`once()` defers per codec into the request path. Instantiation is the expensive half. What
+dynamic import could still move is that file's top-level body -- a class declaration and six
+closures -- against a startup budget of one second.
+
+**Nor is the size itself costing anything.** 5.66 MiB against 64 MiB, nothing charged per
+request, and the eager compile is a baseline Liftoff pass with optimisation tiering up on a
+background thread rather than a full compile of 5.2 MiB.
+
+**If startup is ever suspected, measure before changing anything**: `startup_time_ms` from
+`wrangler deploy` or `wrangler versions upload`, or `wrangler check startup`. The
+`new_module_registry` compatibility flag is not the answer -- its lazy compile does not bite
+while the five are in the entry's static graph, and its compile-cache advantage is over ESM
+bytecode, where the legacy path already shares compiled wasm between isolates. It also changes
+CJS interop semantics, which this bundle depends on. The only change that takes the 90% off this
+worker's startup is moving the codecs behind a service binding, which is the split the
+[limits page](https://developers.cloudflare.com/workers/platform/limits/) names for exactly this.
+That is reasoning from the two rules above rather than something anybody has run.
+
 ## Two routes, and what each will not do
 
 `/object/{cid}.{ext}` is the whole of content addressing with nothing added: it forms the key,
@@ -37,16 +76,16 @@ extension is stated rather than searched for -- this route is told the full name
 from, so it never probes, and it asks the same lookup `/object` uses by calling it rather than by
 fetching its own hostname, which would spend a subrequest and invite a loop.
 
-| asked for | answered |
-| --- | --- |
-| a source that is not in the bucket | `404`, before any byte is read |
-| the same extension twice | `301` to `/object`, because there is no work to do |
-| a `jpg` target | `301` to the `.jpeg` spelling, after the source lookup |
-| an image format from a decodable source | the transcode |
-| `zip`, source under the cap | the object packaged, stored rather than deflated |
-| `zip`, source over the cap | `413 too_large_to_package` |
-| `zip` with a `Range`, source over the seeking cap | `413 too_large_to_seek` |
-| anything else | `400` |
+| asked for                                         | answered                                               |
+| ------------------------------------------------- | ------------------------------------------------------ |
+| a source that is not in the bucket                | `404`, before any byte is read                         |
+| the same extension twice                          | `301` to `/object`, because there is no work to do     |
+| a `jpg` target                                    | `301` to the `.jpeg` spelling, after the source lookup |
+| an image format from a decodable source           | the transcode                                          |
+| `zip`, source under the cap                       | the object packaged, stored rather than deflated       |
+| `zip`, source over the cap                        | `413 too_large_to_package`                             |
+| `zip` with a `Range`, source over the seeking cap | `413 too_large_to_seek`                                |
+| anything else                                     | `400`                                                  |
 
 **A `3xx` here earns the year, which no other route on this host grants it.** Everywhere else a
 redirect is a fact about now; on these two it is a function of the input and can no more change
@@ -118,7 +157,7 @@ path: `cms image` names a published file `.jpeg` and writes that name into the a
 site's asset resolver builds the same one. Both spelled it `jpg` until the correction existed to
 catch them, which would have made every JPEG this repository serves pay a hop meant for somebody
 else's typo -- invisible from either side alone, since the CDN and the article each looked right.
-A test on each side holds the two spellings together, and a third holds that a `.jpg` *source* is
+A test on each side holds the two spellings together, and a third holds that a `.jpg` _source_ is
 refused rather than quietly rewritten.
 
 The extension also caps the exposure, and that argument stands on its own: only a size that was
@@ -218,12 +257,12 @@ the refusals, and everything else that is not a settled answer.
 **It resolves nothing, and that is enforced by what is mounted rather than by what is declared.**
 Four groups reach a handler and everything else is a `400`:
 
-| group | what it does | outbound |
-| --- | --- | --- |
-| `/object/{cid}.{ext}` | hands back the bytes at that key | none |
-| `/derive/{cid}.{ext}.{ext}` | every conversion and every archive | none |
-| `/proxy/{vendor}/**` | a third party, live | **yes** |
-| `/` `/favicon.ico` `/robots.txt` | this host's own three answers | none |
+| group                            | what it does                       | outbound |
+| -------------------------------- | ---------------------------------- | -------- |
+| `/object/{cid}.{ext}`            | hands back the bytes at that key   | none     |
+| `/derive/{cid}.{ext}.{ext}`      | every conversion and every archive | none     |
+| `/proxy/{vendor}/**`             | a third party, live                | **yes**  |
+| `/` `/favicon.ico` `/robots.txt` | this host's own three answers      | none     |
 
 Beside them, `/github/**` answers `308` to `/proxy/github/**`, permanently, because the prefix
 moved and a reader holding the old one should stop holding it.
@@ -248,11 +287,11 @@ lookup.
 
 One rule over the four groups, and it reads the answer rather than the route:
 
-| answered | kept | because |
-| --- | --- | --- |
-| `2xx` or `3xx`, a hash in the path | a year, `immutable` | the hash is the bytes |
-| `2xx` or `3xx`, no hash | an hour | see below |
-| anything else | five minutes | a refusal is a fact about now |
+| answered                           | kept                | because                       |
+| ---------------------------------- | ------------------- | ----------------------------- |
+| `2xx` or `3xx`, a hash in the path | a year, `immutable` | the hash is the bytes         |
+| `2xx` or `3xx`, no hash            | an hour             | see below                     |
+| anything else                      | five minutes        | a refusal is a fact about now |
 
 **An hour is what an address that names rather than identifies earns.** What stands behind a name
 can move -- a permanent name is answered by a different object when a mark is redrawn, a proxied
@@ -280,12 +319,12 @@ likewise.
 
 Four hosts answer, and three of them are a ladder.
 
-| | depends on | answers with |
-| --- | --- | --- |
-| `cdn` | nothing, except on `/proxy` | bytes |
-| `api` | the metadata bucket | records |
-| `ill.li` | `api` | a redirect |
-| `site` | `api` + `cdn` | pages |
+|          | depends on                  | answers with |
+| -------- | --------------------------- | ------------ |
+| `cdn`    | nothing, except on `/proxy` | bytes        |
+| `api`    | the metadata bucket         | records      |
+| `ill.li` | `api`                       | a redirect   |
+| `site`   | `api` + `cdn`               | pages        |
 
 **Nothing below reaches upward.** The CDN can serve every byte it holds with the API down, which is
 not a happy accident -- it is what content addressing buys, and asking the CDN to look anything up
@@ -317,7 +356,7 @@ Both names say the same thing, which is why neither is wrong and why this is not
 rename. The workspace's `naming.md` asks a member to be named in one word for its responsibility,
 and `alias` already satisfies that -- the code had no reason to move. What changed is only the name
 the deployment wears, said in the voice its siblings use: `press`, `still`, `seam`, `lattice`. A
-layer whose whole job is one name standing for another is an *also known as*. The workspace's
+layer whose whole job is one name standing for another is an _also known as_. The workspace's
 `naming.md` already has this shape under "Vendor names stay at the edge" -- a name that differs at
 a boundary, with the edge here on the other side.
 
@@ -329,13 +368,13 @@ publication delay on one resource, which is the thing the ladder above exists to
 
 The refusals split on one question, and it is not success against failure:
 
-| answered | kept | because |
-| --- | --- | --- |
-| `302`/`307`, resolved | five minutes, `stale-if-error` | the life of the answer it wrapped |
-| `404`, no such name | five minutes | a fact about the corpus, true until the next publication |
-| `400`, malformed hostname | five minutes | a fact about the address; not worth a third number |
-| `502`, upstream unreachable | `no-store` | a fact about this moment |
-| `500` | `no-store` | the same |
+| answered                    | kept                           | because                                                  |
+| --------------------------- | ------------------------------ | -------------------------------------------------------- |
+| `302`/`307`, resolved       | five minutes, `stale-if-error` | the life of the answer it wrapped                        |
+| `404`, no such name         | five minutes                   | a fact about the corpus, true until the next publication |
+| `400`, malformed hostname   | five minutes                   | a fact about the address; not worth a third number       |
+| `502`, upstream unreachable | `no-store`                     | a fact about this moment                                 |
+| `500`                       | `no-store`                     | the same                                                 |
 
 **`502` is the one that matters.** Every icon on a page comes through here, so a five-minute hold
 on one unreachable upstream is an outage rather than a blip -- the same asymmetry the CDN keeps
@@ -368,11 +407,11 @@ A permanent redirect from here would be a promise about bytes this layer does no
 answer is always temporary, which leaves two codes, and what picks between them is whether the
 request carried input.
 
-| asked with | answered | because |
-| --- | --- | --- |
-| a path alone | `302` | there is nothing to preserve; a `GET` stays a `GET` |
-| a query | `307` | the query is the question, and the answer depends on it |
-| a body | `307` | a `302` is specified to let an agent discard it |
+| asked with   | answered | because                                                 |
+| ------------ | -------- | ------------------------------------------------------- |
+| a path alone | `302`    | there is nothing to preserve; a `GET` stays a `GET`     |
+| a query      | `307`    | the query is the question, and the answer depends on it |
+| a body       | `307`    | a `302` is specified to let an agent discard it         |
 
 **A path is not input.** It is the name being resolved, and it arrives at the CDN as a different
 name anyway. `?tone=dark` is input: it selects among several answers, so the request is preserved
