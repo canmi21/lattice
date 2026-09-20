@@ -418,6 +418,8 @@
 		}
 
 		let cancelInitialJump: (() => void) | undefined;
+		/** One reading per frame however many scroll events arrived. */
+		let spyFrame: number | undefined;
 		/** How long the recheck above waits for a restored place: a handful of frames, never more. */
 		const SETTLE_FRAMES = 30;
 		let settleFrame = 0;
@@ -479,11 +481,10 @@
 		/**
 		 * The last heading at or above the reading band, which is the one being read.
 		 *
-		 * Asked of the page rather than of whatever the observer happened to report. Its callback
-		 * carries the entries that changed, in no particular order, so taking the first
-		 * intersecting one answers with an arbitrary heading whenever more than one crosses at
-		 * once -- which is exactly what an instant jump does. Measured at 7,614px into this
-		 * article, the rail marked the first entry while the reader was at the third.
+		 * One rule, asked of the page. An observer used to answer this by reporting whichever
+		 * entry it happened to list first, which is an arbitrary heading whenever more than one
+		 * crosses at once -- measured at 7,614px into this article, the rail marked the first
+		 * entry while the reader was at the third.
 		 */
 		const readingAt = (): number => {
 			const threshold = window.scrollY + window.innerHeight * 0.3;
@@ -494,26 +495,39 @@
 			return found;
 		};
 
-		// The observer is the trigger and the position is the answer.
-		const observer = new IntersectionObserver(
-			() => {
-				if (isClickScrolling) return;
-				if (window.scrollY <= TOP_DEAD_ZONE) return;
+		/**
+		 * The scroll is what moves the mark, read once per frame.
+		 *
+		 * An `IntersectionObserver` was the trigger here and stopped being one: measured on a
+		 * fresh load, it delivered a single callback at the top of the page and never fired again,
+		 * so nothing marked the rail until the reader clicked an entry. Its whole purpose was to
+		 * keep work off the scrolling thread, and the answer it triggered is a loop over this
+		 * article's headings -- which is the work, and is a frame's worth of it either way.
+		 */
+		const follow = () => {
+			if (spyFrame !== undefined) return;
+			spyFrame = requestAnimationFrame(() => {
+				spyFrame = undefined;
+				if (isClickScrolling || window.scrollY <= TOP_DEAD_ZONE) return;
 				const index = readingAt();
 				if (index >= 0) activeIndex = index;
-			},
-			{ rootMargin: '0% 0% -70% 0%', threshold: 0 },
-		);
-		for (const h of headings) observer.observe(h);
-		cleanups.push(() => observer.disconnect());
+			});
+		};
+		window.addEventListener('scroll', follow, { passive: true });
+		window.addEventListener('resize', follow, { passive: true });
+		cleanups.push(() => {
+			window.removeEventListener('scroll', follow);
+			window.removeEventListener('resize', follow);
+			if (spyFrame !== undefined) cancelAnimationFrame(spyFrame);
+			spyFrame = undefined;
+		});
 
 		/**
 		 * Where the reader already is, which on a client navigation they are not yet.
 		 *
-		 * A restored place is scrolled to after this runs, and the observer's first callback was
-		 * discarded because the page was still at the top when it arrived -- so nothing marked the
-		 * rail until the reader moved. Rechecked on the next frames, bounded, so a restore that
-		 * lands late is still met.
+		 * A restored place is scrolled to after this runs, and a scroll the reader did not make
+		 * may not raise an event -- so nothing would mark the rail until they moved. Rechecked on
+		 * the next frames, bounded, so a restore that lands late is still met.
 		 */
 		const settle = () => {
 			if (window.scrollY <= TOP_DEAD_ZONE) return false;
