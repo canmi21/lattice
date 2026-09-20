@@ -131,10 +131,6 @@
 	const RESTING_STEP = 3;
 	const BAR_HEIGHT = 4;
 	const INDICATOR_HEIGHT = 12;
-	/** How many frames of an unchanged geometry mean the layout has settled. */
-	const STEADY_FRAMES = 2;
-	/** And the ceiling, for a layout that never does. */
-	const HOLD_FRAMES = 60;
 	const REVEAL_DELAY = 180;
 	const LEAVE_DELAY = 250;
 	const SCROLL_OFFSET = 96;
@@ -168,7 +164,21 @@
 	 * shared one is the rail's declared width, which is a different column of bars.
 	 */
 	let fallback = $state.raw<RailWidths | undefined>();
-	const shape = $derived(rail ?? fallback);
+
+	/**
+	 * A shape is only usable if it carries everything this build asks of one.
+	 *
+	 * The sitting's record outlives a deploy: a tab that measured under an older build has a
+	 * stored answer in the older build's shape, and the subject it was keyed by still matches.
+	 * An incomplete one is treated as no answer -- the page measures again and settles, which is
+	 * what a first visit does anyway.
+	 */
+	function whole(value: RailWidths | undefined): RailWidths | undefined {
+		if (!value) return undefined;
+		const sized = value.widths?.length === toc.length && value.lines?.length === toc.length;
+		return sized ? value : undefined;
+	}
+	const shape = $derived(whole(rail) ?? fallback);
 
 	/**
 	 * Whether a shape painted before hydration may be read.
@@ -195,8 +205,6 @@
 	let isClickScrolling = false;
 	let phaseTimer: ReturnType<typeof setTimeout> | undefined;
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
-	let trackingToken = 0;
-	let trackingRAF: number | undefined;
 	let indicatorAnimation: AnimationControl | undefined;
 	let geometryVersion = $state(0);
 
@@ -230,14 +238,31 @@
 	}
 
 
-	function indicatorGeometry(button: HTMLElement): IndicatorGeometry {
-		const label = button.querySelector<HTMLElement>('[data-toc-text]');
-		const lineHeight = label ? parseFloat(getComputedStyle(label).lineHeight) : 0;
-		const measuredLines = label && lineHeight > 0 ? Math.round(label.scrollHeight / lineHeight) : 1;
-		const lines = Math.min(2, Math.max(1, measuredLines));
-		const height = toScaledPixels(INDICATOR_HEIGHT, rootFontPixels()) + lineHeight * (lines - 1);
-		const center = button.offsetTop + button.offsetHeight / 2;
-		return { y: center - height / 2, height };
+	/**
+	 * Where the indicator goes, worked out from the shape rather than read off the rail.
+	 *
+	 * **The rail is in motion exactly when this is asked**, so nothing here measures a box that
+	 * animates -- a button reported 28px mid-flight and 24px once it settled. An open rail is
+	 * arithmetic: an entry is its padding plus the lines its label takes, which the measurement
+	 * already worked out, and both lengths are declared rather than animated.
+	 */
+	function indicatorGeometry(index: number): IndicatorGeometry | undefined {
+		const lines = shape?.lines;
+		const label = asideEl?.querySelector<HTMLElement>('[data-toc-text]');
+		const button = asideEl?.querySelector<HTMLElement>('[data-toc-button]');
+		if (!lines || !label || !button || index < 0 || index >= lines.length) return undefined;
+
+		const lineHeight = parseFloat(getComputedStyle(label).lineHeight);
+		const style = getComputedStyle(button);
+		const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+		if (!Number.isFinite(lineHeight) || !Number.isFinite(padding)) return undefined;
+
+		const tall = (entry: number) => padding + lineHeight * (lines[entry] ?? 1);
+		let top = button.offsetTop;
+		for (let entry = 0; entry < index; entry += 1) top += tall(entry);
+
+		const height = toScaledPixels(INDICATOR_HEIGHT, rootFontPixels()) + lineHeight * ((lines[index] ?? 1) - 1);
+		return { y: top + tall(index) / 2 - height / 2, height };
 	}
 
 	function followArticleEnd(node: HTMLElement) {
@@ -618,11 +643,6 @@
 		const geometryChanged = geometry !== prevGeometryVersion;
 		prevGeometryVersion = geometry;
 
-		trackingToken++;
-		if (trackingRAF !== undefined) {
-			cancelAnimationFrame(trackingRAF);
-			trackingRAF = undefined;
-		}
 		indicatorAnimation?.stop();
 		indicatorAnimation = undefined;
 
@@ -634,44 +654,20 @@
 			return;
 		}
 
-		/**
-		 * Re-apply the geometry until it stops moving, then stop.
-		 *
-		 * Entries change height as the rail reveals -- a label that wraps at the collapsed width
-		 * stops wrapping at the full one -- so a position taken during that is one for a layout
-		 * that no longer exists. Measured: 2px below the first entry and 6px below the ninth, the
-		 * error growing down the column. The fixed 200ms window this replaced was the wrong shape,
-		 * since the reveal's own delay is most of it.
-		 */
-		const holdPosition = () => {
-			const myToken = trackingToken;
-			let frames = 0;
-			let steady = 0;
-			let last = '';
-			const step = () => {
-				if (myToken !== trackingToken || !asideEl || !indicatorEl) return;
-				const btn = asideEl.querySelectorAll<HTMLElement>('[data-toc-button]')[active];
-				if (!btn) return;
-				const target = indicatorGeometry(btn);
-				indicatorEl.style.height = remFromMeasuredPixels(target.height);
-				indicatorEl.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
-				steady = `${target.y}/${target.height}` === last ? steady + 1 : 0;
-				last = `${target.y}/${target.height}`;
-				frames += 1;
-				// Bounded, because a layout that never settles must not be watched for ever.
-				trackingRAF =
-					steady >= STEADY_FRAMES || frames >= HOLD_FRAMES ? undefined : requestAnimationFrame(step);
-			};
-			step();
+		/** One write, because the target is arithmetic and does not wait for a layout. */
+		const place = () => {
+			const target = indicatorGeometry(active);
+			if (!indicatorEl || !target) return;
+			indicatorEl.style.height = remFromMeasuredPixels(target.height);
+			indicatorEl.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
 		};
 
 		if (!prevIndicatorVisible || (geometryChanged && active === prevIndicatorActive)) {
-			holdPosition();
+			place();
 			indicatorEl.style.opacity = '0.8';
 		} else {
-			const activeButton = buttons[active];
-			if (activeButton === undefined) return;
-			const target = indicatorGeometry(activeButton);
+			const target = indicatorGeometry(active);
+			if (!target) return;
 			const indicator = indicatorEl;
 			const navRect = asideEl.getBoundingClientRect();
 			const indicatorRect = indicator.getBoundingClientRect();
@@ -687,10 +683,9 @@
 					indicator.style.transform = `translateY(${remFromMeasuredPixels(center - height / 2)})`;
 				},
 				onComplete: () => {
+					indicator.style.height = remFromMeasuredPixels(target.height);
+					indicator.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
 					indicatorAnimation = undefined;
-					// Not `target`, which was read when the spring started. The rail may have
-					// finished revealing since, and the entries are not where they were.
-					holdPosition();
 				},
 			});
 		}

@@ -135,6 +135,14 @@ export type RailWidths = {
 	widths: number[];
 	/** The widest label as the rail will draw it, which is the widest a bar may be. */
 	ceiling: number;
+	/**
+	 * How many lines each label takes once the rail is open. One or two.
+	 *
+	 * Carried because the rail's revealed layout is arithmetic on it -- an entry is its padding
+	 * plus its lines -- and something has to know that layout without reading a DOM that is still
+	 * animating into it. See toc.svelte, where the indicator is placed from this.
+	 */
+	lines: number[];
 };
 
 /**
@@ -152,11 +160,16 @@ export function railWidths(
 ): RailWidths {
 	const usable = Number.isFinite(available) && available > 0 ? available : 0;
 	let ceiling = 0;
+	const taken: number[] = [];
 	const widths = toc.map(({ text }) => {
 		const natural = measureNaturalWidth(prepareWithSegments(text, fonts.heading));
-		if (usable === 0) return natural;
+		if (usable === 0) {
+			taken.push(1);
+			return natural;
+		}
 		const label = measureNaturalWidth(prepareWithSegments(text, fonts.label));
 		const lines = Math.min(2, Math.max(1, Math.ceil(label / usable)));
+		taken.push(lines);
 		// What the label actually occupies: it cannot exceed the rail, which is where it wraps.
 		ceiling = Math.max(ceiling, Math.min(label, usable));
 		return natural / lines;
@@ -168,5 +181,6 @@ export function railWidths(
 			ceiling,
 		),
 		ceiling,
+		lines: taken,
 	};
 }
