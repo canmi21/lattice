@@ -486,9 +486,6 @@ importers:
       '@inlang/plugin-message-format':
         specifier: ^4.4.4
         version: 4.4.4
-      '@jsquash/webp':
-        specifier: ^1.5.0
-        version: 1.5.0
       '@noble/hashes':
         specifier: ^2.4.0
         version: 2.4.0
