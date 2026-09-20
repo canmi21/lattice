@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { browser, dev } from '$app/environment';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { URLS, pageUrls } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '$lib/article/trail';
+	import { leaveArrival } from '$lib/client/arrival';
 	import { installFocusSourceTracker } from '$lib/client/focus-source';
+	import { goTo, keepPlace, placeOf } from '$lib/client/scroll';
 	import { followPointerKind, warmWhatThePointerRests } from '$lib/client/warm.svelte';
 	import SearchDialog from '$lib/search/dialog.svelte';
 	import { languageTag, localeUrl, SITE_LANGUAGE } from '$lib/locale';
@@ -118,12 +120,32 @@
 	 * and the first load alike; on the first load `from` is null, which `advance` reads as "trust
 	 * the record only if it claims this page". See $lib/article/trail.ts.
 	 */
-	afterNavigate(({ from, to }) => {
+	/**
+	 * What the page being left has to be asked before it goes: where the reader was in it, and
+	 * that the document has stopped being the one they arrived in.
+	 *
+	 * Before rather than after, because the navigation renders its page first and both answers
+	 * would already be the new page's by then. See spec/styling/first-paint.md.
+	 */
+	beforeNavigate(({ from }) => {
+		leaveArrival();
+		if (from) keepPlace(sessionStorage, from.url.pathname, window.scrollY);
+	});
+
+	afterNavigate(({ from, to, type }) => {
 		if (!to) return;
 		writeTrail(
 			sessionStorage,
 			advance(readTrail(sessionStorage), to.url.pathname, from?.url.pathname),
 		);
+
+		// `enter` is a document the browser has already placed, `popstate` is one it restores
+		// itself, and a fragment is an address that names where to be. What is left is the
+		// navigation nothing else knows is a return. See spec/engagement.md, "A path keeps its
+		// place, because Back is a link".
+		if (type === 'enter' || type === 'popstate' || to.url.hash) return;
+		const at = placeOf(sessionStorage, to.url.pathname);
+		if (at !== undefined) goTo(at);
 	});
 
 	/**

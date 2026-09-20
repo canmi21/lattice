@@ -387,6 +387,38 @@ called `state`, because the storage area already says which record it is.
 self-validating shape and its own module, and moving it would be churn with nothing on the other
 side of it -- see [styling/rail.md](styling/rail.md).
 
+### A path keeps its place, because Back is a link
+
+A browser restores a scroll position on a history pop and nowhere else. That is right, and it is
+not what this site's Back does: a trail step is a *forward* navigation to an earlier path -- see
+[styling/rail.md](styling/rail.md), "Back is one step up the reading trail" -- so nothing native
+can tell it is a return, and a reader who opened an article from halfway down the homepage was
+put back at the top of it.
+
+So `scroll.at` holds where each path had got to, written in `beforeNavigate` for the page being
+left. It is restored on a `link` or `goto` navigation to a path with a record, and on nothing
+else: `enter` is a document the browser has already placed, `popstate` is one it restores itself,
+and a fragment in the address is a reader naming where to be.
+
+**It is restored on arriving at a path, not on going back to one.** Returning to a page is the
+case that made this necessary, but it is not a narrower rule worth writing -- following a link to
+a page this tab was reading is the same reader wanting the same place, whichever control they
+used to get there. The cost is that a reader who wanted the top of a page they had been down
+finds it where they left it, which is one gesture to undo and is what every tabbed application
+does.
+
+**The restore follows the page while it is still finding its height.** A client navigation
+renders from data it already holds, so the document is usually the right height on the frame it
+appears and the first attempt lands. What the following is for is the part of a page measured
+after mount -- the homepage's cards do not know their pictures' shapes until they have them, so
+the list is briefly shorter than it will be and an offset near the bottom would be clamped to
+whatever fitted. It gives up after half a second, and it gives up instantly on any scroll of the
+reader's own, who has answered the question by starting to read.
+
+That half second is a consequence of measuring after paint, and [styling/first-paint.md](styling/first-paint.md)
+is where that is being removed. When a client navigation knows its own layout before it paints,
+the first attempt always lands and the following costs one frame.
+
 **A collection is the exception to flat and dotted.** `video.at` is one key holding a map from
 clip reference to position, because its keys are not names this repository chooses: they are
 whatever the articles refer to. The rule is about names, not about depth, and one fact whose shape
