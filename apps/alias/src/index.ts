@@ -1,3 +1,4 @@
+import { UNCHANGING } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
@@ -31,6 +32,20 @@ app.use('*', cacheControl);
 app.get('/', (c) => {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
 	return c.redirect(`${urls.site}/?ref=alias`, 301);
+});
+
+/**
+ * The name a browser asks every origin for, pointed at where this host resolves names.
+ *
+ * The other three send an absolute redirect here, which states which layer owns the name. On
+ * this host that is vacuous, so the redirect is relative and no host is written down. A redirect
+ * rather than a second call into `resolve`, because two paths resolving one name are two
+ * statements of one decision. The year is the CDN's argument beside its own copy: what moves is
+ * what `/symlink/favicon.ico` answers, and that keeps its own five minutes.
+ */
+app.get('/favicon.ico', (c) => {
+	c.header('Cache-Control', UNCHANGING);
+	return c.redirect('/symlink/favicon.ico', 301);
 });
 
 /**

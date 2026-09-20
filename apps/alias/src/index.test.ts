@@ -152,11 +152,20 @@ describe('the rest of the host', () => {
 		expect(await res.text()).toContain('User-agent: *');
 	});
 
-	it('refuses everything else, including the fixed names that moved under the prefix', async () => {
+	it('answers the name a browser asks every origin for, without resolving it twice', async () => {
+		// This was a 400 while `/symlink/` was new, on the reasoning that the name had moved under
+		// the prefix. A browser does not read the prefix: it asks every origin it touches for this
+		// one, which is why the other three hosts all answer it. The redirect is relative, so no
+		// host is named, and resolution still happens in exactly one place.
 		const fetching = answering(200, named);
-		// `favicon.ico` at the root was this host's address until the prefix existed. It is not a
-		// rid -- a rid is five characters and carries no dot -- so it parses as nothing.
-		expect((await ask('/favicon.ico')).status).toBe(400);
+		const res = await ask('/favicon.ico');
+		expect(res.status).toBe(301);
+		expect(res.headers.get('Location')).toBe('/symlink/favicon.ico');
+		expect(fetching).not.toHaveBeenCalled();
+	});
+
+	it('refuses everything else, including a name that is neither a rid nor under the prefix', async () => {
+		const fetching = answering(200, named);
 		expect((await ask('/k7m2')).status).toBe(400);
 		expect((await ask('/k7m2xy')).status).toBe(400);
 		expect((await ask('/symlink')).status).toBe(400);
