@@ -363,7 +363,7 @@
 		headline: meta.title,
 		description: meta.description,
 		image: card,
-		datePublished: meta.created,
+		datePublished: meta.published,
 		dateModified: meta.lastmod,
 		inLanguage: locale.tag,
 		mainEntityOfPage: locale.canonical,
@@ -372,7 +372,20 @@
 
 	// Pin UTC so the shown day matches the authored frontmatter date everywhere it
 	// renders, mirroring the article list (see card.svelte).
-	const date = $derived(shortDate(meta.created));
+	const date = $derived(shortDate(meta.published));
+
+	/**
+	 * The Markdown twin of this page.
+	 *
+	 * Taken from the canonical's path rather than the canonical itself: a translated view's
+	 * canonical carries `?lang=`, and the document is a hook that replaces the extension on the
+	 * path alone -- see hooks.server.ts and spec/locale/addressing.md, "Every page negotiates;
+	 * the exceptions are documents".
+	 */
+	const markdown = $derived.by(() => {
+		const { origin, pathname } = new URL(locale.canonical);
+		return `${origin}${pathname}.md`;
+	});
 </script>
 
 <svelte:head>
@@ -393,7 +406,13 @@
 		<meta property="og:image:height" content={CARD_HEIGHT} />
 		<meta property="og:image:alt" content={meta.title} />
 	{/if}
-	<meta property="article:published_time" content={meta.created} />
+	<meta property="article:published_time" content={meta.published} />
+
+	<!-- The document does not negotiate, so on a translated view the twin is in another language
+	     than the page: `hreflang` says so, `type` says it is a reformulation, and the two stand
+	     together. See spec/locale/addressing.md, "Every page negotiates; the exceptions are
+	     documents". -->
+	<link rel="alternate" type="text/markdown" hreflang={meta.lang} href={markdown} />
 
 	<!-- `summary_large_image` is what makes X render the card at full width rather than as a
 	     thumbnail beside the text, which is the only shape this layout is drawn for. -->
@@ -455,7 +474,7 @@
 						styles.meta,
 					).class}"
 				>
-					<time class="selectable" datetime={meta.created}>{date}</time>
+					<time class="selectable" datetime={meta.published}>{date}</time>
 					<span
 						class="inline-flex items-center gap-1"
 						title="{words.toLocaleString('en-US')} words"

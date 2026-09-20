@@ -245,7 +245,7 @@
 	     See spec/lint-format.md. -->
 	{@html ldJson(website)}
 	<link rel="alternate" type="application/atom+xml" href={feed} title={site.name} />
-	<link rel="llms" type="text/markdown" href="/llms.txt" />
+	<link rel="describedby" type="text/markdown" href="/llms.txt" />
 	<link rel="icon" type="image/png" sizes="96x96" href="{marks}/favicon-96x96.png" />
 	<link rel="icon" type="image/png" sizes="512x512" href="{marks}/favicon-512x512.png" />
 	<link rel="icon" type="image/svg+xml" sizes="any" href="{marks}/favicon.svg" />
