@@ -2,7 +2,11 @@ import { expect, it } from 'vitest';
 import { advance, backTarget, readTrail, type Trail } from './trail';
 
 const at = (path: string, ...paths: string[]): Trail => ({ at: path, paths });
-const storage = (value: string) => ({ getItem: () => value });
+/** The tab record as the container writes it, so the test feeds what production reads. */
+const storage = (value: string) => ({
+	getItem: () => `{"version":2,"trail":${value}}`,
+	setItem: () => {},
+});
 
 it('remembers the page a reader came from', () => {
 	const trail = advance(at('/'), '/architecture/one', '/');
@@ -62,7 +66,7 @@ it('keeps the trail bounded rather than growing with every step', () => {
 });
 
 it('ignores a stored value that is not a trail', () => {
-	expect(readTrail(storage('not json'))).toBeUndefined();
+	expect(readTrail({ getItem: () => 'not json', setItem: () => {} })).toBeUndefined();
 	expect(readTrail(storage('{"at":"/","paths":[1,2]}'))).toBeUndefined();
 	expect(readTrail(storage('{"at":"/","paths":["/x"]}'))).toEqual(at('/', '/x'));
 });

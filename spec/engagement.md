@@ -383,9 +383,29 @@ migrations. Two records hold different facts and will version independently, and
 for one running against the other is the failure the whole mechanism exists to prevent. Both are
 called `state`, because the storage area already says which record it is.
 
-`sessionStorage["trail"]` stays outside both. It is the same kind of fact, but it carries its own
-self-validating shape and its own module, and moving it would be churn with nothing on the other
-side of it -- see [styling/rail.md](styling/rail.md).
+**The reading trail is in the tab record too, and this paragraph used to say it was not.** It
+stayed outside on two arguments: that it carried its own self-validating shape and its own
+module, and that moving it would be churn with nothing on the other side of it.
+
+The first never distinguished it. `video.at` also has its own module and its own per-value
+check, and it lives in the container: what the container owns is where a fact is kept, not
+whether the fact is well formed. A module still decides what its own value means -- `isTrail`
+is unchanged and is still the whole of that question.
+
+The second was a fair reading of its time and stopped being true. The record has since taken
+`scroll.at` and `measured`, which left the trail as the only loose key in `sessionStorage` --
+the exact scatter the container was introduced to prevent. It is also now half of one gesture:
+Back needs where to go, which is the trail, and where the reader was on that page, which is
+`scroll.at`. Two halves of one gesture should version together.
+
+Nothing carries a live tab's old loose key across. A trail lives for one sitting and its absence
+already means the homepage, so the cost of losing one is a Back control pointing where it points
+on a first visit -- see [styling/rail.md](styling/rail.md).
+
+**A fallback names the kind of thing wanted, and `undefined` is not a kind.** Reading the trail
+with `undefined` as its fallback discarded every stored trail, because the container compares
+what it found against the kind it was asked for. The fallback is `{}`, which an absent record
+answers with and `isTrail` refuses like anything else that is not a trail.
 
 ### A path keeps its place, because Back is a link
 

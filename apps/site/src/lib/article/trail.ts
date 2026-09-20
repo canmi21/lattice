@@ -6,9 +6,12 @@
  * browser's own history does not track: its previous entry may be an anchor jump, a locale
  * switch, or somebody else's site, none of which is a step in a reading trail.
  *
- * `sessionStorage` fits the lifetime: one tab, surviving reloads, gone when the tab closes. Two
- * tabs on the same site are two readers and get two trails.
+ * It lives in the `tab` record, which is what this lifetime means: one tab, surviving reloads,
+ * gone when the tab closes. Two tabs on the same site are two readers and get two trails. See
+ * spec/engagement.md, "What this site remembers is two records and one mechanism".
  */
+
+import { tab, type Store } from '../client/state';
 
 export const TRAIL_KEY = 'trail';
 
@@ -76,19 +79,15 @@ export function backTarget(trail: Trail | undefined): string {
 	return trail?.paths.at(-1) ?? HOME;
 }
 
-export function readTrail(storage: Pick<Storage, 'getItem'>): Trail | undefined {
-	const raw = storage.getItem(TRAIL_KEY);
-	if (!raw) return undefined;
-	try {
-		const parsed: unknown = JSON.parse(raw);
-		return isTrail(parsed) ? parsed : undefined;
-	} catch {
-		// Another tab, an older shape, or somebody's devtools. A trail is a convenience and its
-		// absence is already handled, so a bad one is dropped rather than reported.
-		return undefined;
-	}
+export function readTrail(storage: Store): Trail | undefined {
+	// `{}` and not `undefined`: the container compares the kind of thing wanted, and asking for
+	// `undefined` would discard every stored trail. Whether what comes back is one is this
+	// module's question, and `isTrail` is the whole of it -- a bad trail is dropped rather than
+	// reported, since its absence is already what a first visit looks like.
+	const stored = tab.recall<unknown>(storage, TRAIL_KEY, {});
+	return isTrail(stored) ? stored : undefined;
 }
 
-export function writeTrail(storage: Pick<Storage, 'setItem'>, trail: Trail): void {
-	storage.setItem(TRAIL_KEY, JSON.stringify(trail));
+export function writeTrail(storage: Store, trail: Trail): void {
+	tab.remember(storage, TRAIL_KEY, trail);
 }
