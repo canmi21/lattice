@@ -356,3 +356,40 @@ describe('the questions one page becomes', () => {
 		expect(v.is(ResourcesRequestSchema, { type: 'resources', rids: many })).toBe(false);
 	});
 });
+
+/**
+ * The article layer's own dates, which are a second producer's and not the publisher's.
+ *
+ * `published` is optional here and required in the root on purpose: a layer that fails to
+ * validate fails the whole record rather than stopping at that segment, so a record written
+ * before the field existed has to keep reading. Declaring it is still what matters -- the layer
+ * is a `v.object`, and an undeclared key is dropped rather than refused.
+ */
+describe('when an article went public', () => {
+	const documentLayer = { version: 1, slug: 'less-is-more', source: 'b'.repeat(32), locales: {} };
+	const postOf = (dates: Record<string, string>) =>
+		parseResource({
+			...base,
+			type: 'document.post',
+			layers: { document: documentLayer, post: { version: 1, dates, tags: [] } },
+		});
+
+	it('reads a record written before the field existed', () => {
+		const dates = { created: '2026-01-01T00:00:00Z', lastmod: '2026-01-01T00:00:00Z' };
+		const post = requireSegment(postOf(dates), 'post');
+		expect(post.dates.published).toBeUndefined();
+		expect(post.dates.created).toBe('2026-01-01T00:00:00Z');
+	});
+
+	it('keeps the date rather than dropping it once a record carries one', () => {
+		const post = requireSegment(
+			postOf({
+				created: '2026-01-01T00:00:00Z',
+				published: '2026-08-23T09:00:00Z',
+				lastmod: '2026-09-01T12:30:00Z',
+			}),
+			'post',
+		);
+		expect(post.dates.published).toBe('2026-08-23T09:00:00Z');
+	});
+});

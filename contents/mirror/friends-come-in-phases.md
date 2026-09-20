@@ -4,6 +4,7 @@ subtitle: 探访我那脆弱的人际关系？
 description: 从 QQ 群聊到 Twitter Timeline，笔者回望一段段因事件相遇、随阶段淡去的友情，在失落、占有欲与自省之间，尝试接受朋友的周期性，也珍惜每一次时间线的交汇。
 lang: zh
 created: 2026-08-14T00:28:00Z
+published: 2026-08-14T00:28:00Z
 lastmod: 2026-08-20T04:35:19Z
 ---
 

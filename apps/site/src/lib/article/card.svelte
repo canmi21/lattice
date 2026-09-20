@@ -9,7 +9,7 @@
 		subtitle,
 		short_title,
 		short_subtitle,
-		created,
+		published,
 		path,
 		bars,
 		index,
@@ -19,7 +19,7 @@
 		/** What a phone shows instead. Equal to the full form where none was written. */
 		short_title: string;
 		short_subtitle: string;
-		created: string;
+		published: string;
 		path: string;
 		/**
 		 * The thumbnail's five bars, when somebody already knew them.
@@ -57,7 +57,7 @@
 			),
 	);
 
-	const date = $derived(shortDate(created));
+	const date = $derived(shortDate(published));
 </script>
 
 <a href="/{path}" class="article-preview group focus-visible:outline-none">
@@ -79,7 +79,7 @@
 			<h3 class="selectable article-preview-title max-sm:hidden">{title}</h3>
 			<h3 class="selectable article-preview-title sm:hidden">{short_title}</h3>
 			<div class="article-preview-leader"></div>
-			<time datetime={created} class="article-preview-date">{date}</time>
+			<time datetime={published} class="article-preview-date">{date}</time>
 		</div>
 		<p class="selectable article-preview-subtitle max-sm:hidden">{subtitle}</p>
 		<p class="selectable article-preview-subtitle sm:hidden">{short_subtitle}</p>

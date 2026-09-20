@@ -4,8 +4,9 @@ subtitle: 从 Next.js 13 鸽到 Next.js 16
 description: 笔者用两年把博客拖成反向代理、自研框架与 vfs 的副产物，在 AI 焦虑里学会放手、All in Cloudflare
   上线了第一篇。一段从 Next.js 13 鸽到 16 的过度工程自白。
 lang: zh
-created: 2026-03-24T08:49:57.449Z
-lastmod: 2026-04-01T10:36:51.601Z
+created: 2026-03-24T08:49:57Z
+published: 2026-03-24T08:49:57Z
+lastmod: 2026-04-01T10:36:51Z
 ---
 
 这个博客，我想了两年

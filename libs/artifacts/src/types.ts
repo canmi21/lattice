@@ -15,6 +15,8 @@ export type ArticleMeta = {
 	/** The source view's public BCP-47 language tag. */
 	lang: string;
 	created: string;
+	/** When the article went public, which is the date a reader is shown. The author's to edit. */
+	published: string;
 	lastmod: string;
 	/**
 	 * Written but not published. Absent means published, so an article says nothing to stay
@@ -202,7 +204,14 @@ export type Block =
 export type ArticleReference = {
 	title: string;
 	subtitle: string;
-	created: string;
+	/**
+	 * The date the card draws, which is when the target went public and not when it was written.
+	 *
+	 * Named for what it holds rather than kept as `created` beside a second key: this is what a
+	 * card shows, not what an article is, and a card shows one date. A record carries every fact
+	 * it knows -- see `ArticleMeta` -- and a projection carries the one that is drawn.
+	 */
+	published: string;
 	/** What a phone card shows instead, where the row clips. Falls back to the full form for a
 	 *  view the CMS has not written one for. See spec/i18n/prose.md. */
 	short_title: string;

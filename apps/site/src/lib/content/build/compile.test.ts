@@ -503,7 +503,7 @@ it('draws an ::article card from the target article rather than from the directi
 				'architecture/compile-time-rendering': {
 					title: 'Rendering as a Protocol',
 					subtitle: 'UI should be described, not executed.',
-					created: '2026-04-13T19:18:28.488Z',
+					published: '2026-04-13T19:18:28.488Z',
 					short_title: 'Rendering as a Protocol',
 					short_subtitle: 'Described, not executed.',
 				},
@@ -518,7 +518,7 @@ it('draws an ::article card from the target article rather than from the directi
 		path: 'architecture/compile-time-rendering',
 		title: 'Rendering as a Protocol',
 		subtitle: 'UI should be described, not executed.',
-		created: '2026-04-13T19:18:28.488Z',
+		published: '2026-04-13T19:18:28.488Z',
 		// The card is the homepage's row, so it carries what that row needs on a phone too.
 		short_title: 'Rendering as a Protocol',
 		short_subtitle: 'Described, not executed.',

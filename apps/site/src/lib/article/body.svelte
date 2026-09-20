@@ -310,7 +310,7 @@
 				subtitle={block.subtitle}
 				short_title={block.short_title}
 				short_subtitle={block.short_subtitle}
-				created={block.created}
+				published={block.published}
 				path={block.path}
 			/>
 		{:else if block.type === 'placeholder'}

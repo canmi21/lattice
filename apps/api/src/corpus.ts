@@ -138,9 +138,11 @@ corpus.get('/homepage', async (c) => {
 		locale: { code: locale, language_tag: languageTagOf(root, locale) },
 		page: homepage(root, locale),
 		// Sorted here rather than trusted from the root, so the order the homepage renders in is
-		// a property of this route.
+		// a property of this route. By `published`, which is the date printed beside each entry: a
+		// list ordered by anything else stops making sense the moment the two disagree, and moving
+		// a `published` date by hand is most of what editing one is for.
 		articles: articles.toSorted(
-			(a, b) => Date.parse(b.dates.created) - Date.parse(a.dates.created),
+			(a, b) => Date.parse(b.dates.published) - Date.parse(a.dates.published),
 		),
 	};
 	return success(c, answer satisfies HomeAnswer, ANSWERED);

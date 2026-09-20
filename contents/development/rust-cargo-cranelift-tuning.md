@@ -4,8 +4,9 @@ subtitle: 来看看实践中的 Rust 开发配置调优吧
 description: 从 Rust 编译流程谈起，逐项介绍 Cargo.toml 与链接器层面的编译速度与产物体积调优手段——Cranelift
   后端、codegen-units、opt-level、LTO、strip、panic=abort、lld 与 MUSL，附实测对比。
 lang: zh
-created: 2026-04-05T14:48:43.726Z
-lastmod: 2026-04-07T06:44:02.055Z
+created: 2026-04-05T14:48:43Z
+published: 2026-04-05T14:48:43Z
+lastmod: 2026-04-07T06:44:02Z
 ---
 
 我喜欢 Rust 已经很久了，它的优点很明显，同时缺点也很明显。内存 Safe 无需 GC、零成本抽象、并发安全、几乎现阶段最好的工具链和配套外围建设、超强的覆盖面(上到 Web 云服务器，下到单片机)，还有错误处理设计非常好。缺点嘛，学习陡峭？难以理解 Ownship，Borrow 之类的模型约束；写起来很慢？

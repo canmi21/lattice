@@ -220,7 +220,11 @@ async function publishArticle(
 				description: view.meta.description,
 				short: { title: view.short.title, subtitle: view.short.subtitle },
 			},
-			dates: { created: view.meta.created, lastmod: view.meta.lastmod },
+			dates: {
+				created: view.meta.created,
+				published: view.meta.published,
+				lastmod: view.meta.lastmod,
+			},
 			metrics: { words: view.words },
 			preview: { paragraphs: paragraphs(view.text) },
 		} satisfies RootView;

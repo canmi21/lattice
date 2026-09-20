@@ -18,7 +18,7 @@ export const load: PageLoad = async ({ url, fetch, parent, depends }) => {
 	const home = await orReload(url, publishedHome(fetch, code));
 	const articles = home.articles.map((article) => ({
 		meta: article.meta,
-		created: article.dates.created,
+		published: article.dates.published,
 		slug: article.slug,
 		path: article.path,
 		paragraphs: article.preview.paragraphs,

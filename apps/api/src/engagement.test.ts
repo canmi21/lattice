@@ -30,7 +30,7 @@ const UNREAD_PATH = `mirror/${UNREAD_SLUG}`;
 
 /** Enough of a root for the read counter to recognise these two slugs and refuse every other. */
 const ROOT = {
-	version: 1,
+	version: 2,
 	assets: {},
 	generated: '2026-01-02T00:00:00.000Z',
 	articles: [

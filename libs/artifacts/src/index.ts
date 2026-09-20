@@ -22,7 +22,7 @@ export * from './batch.ts';
  * Bumped when a producer and a consumer can no longer read each other. They deploy separately
  * now, so this is the only thing that tells a Worker it is holding bytes it does not understand.
  */
-export const ARTIFACT_VERSION = 1;
+export const ARTIFACT_VERSION = 2;
 
 /** BLAKE3 truncated to 128 bits, as the bucket spells it. See spec/architecture/artifacts.md. */
 export const HASH_PATTERN = /^[0-9a-f]{32}$/;
@@ -139,7 +139,15 @@ export const RootViewSchema = v.object({
 		translated: v.boolean(),
 	}),
 	meta: ViewMetaSchema,
-	dates: v.object({ created: v.string(), lastmod: v.string() }),
+	/**
+	 * When the file came into being, when the article went public, and when it last changed.
+	 * `published` is the author's to edit and the one a reader is shown.
+	 *
+	 * **A `v.object` drops a key it does not declare rather than refusing it**, so a producer
+	 * that writes a fourth date without adding it here hands every consumer `undefined` and
+	 * nothing reports it. `index.test.ts` pins this key set for that reason.
+	 */
+	dates: v.object({ created: v.string(), published: v.string(), lastmod: v.string() }),
 	metrics: v.object({ words: v.number() }),
 	// The opening prose the homepage card draws its body bars from. Carried here so listing every
 	// article costs one request rather than one per article; it is the only body text the root holds.
@@ -265,7 +273,7 @@ export type FeedAnswer = {
 		objects: { content: string };
 		locale: RootView['locale'];
 		meta: { title: string; description: string };
-		dates: { created: string; lastmod: string };
+		dates: { created: string; published: string; lastmod: string };
 	}[];
 };
 
@@ -691,7 +699,16 @@ export const DocumentLayerSchema = v.object({
 /** An article: the document, plus the two things a page without a date does not carry. */
 export const PostLayerSchema = v.object({
 	...layered,
-	dates: v.object({ created: v.string(), lastmod: v.string() }),
+	// `published` is optional here and required in the root, because this layer has a producer of
+	// its own and records it wrote before the field existed must keep parsing: a layer that fails
+	// validation fails the whole record rather than stopping at that segment. Declared all the
+	// same, since a `v.object` drops what it does not declare -- so leaving it out would silently
+	// swallow the field the day something does write it.
+	dates: v.object({
+		created: v.string(),
+		published: v.optional(v.string()),
+		lastmod: v.string(),
+	}),
 	tags: v.array(v.string()),
 });
 

@@ -27,10 +27,12 @@ type ViewOverrides = {
 	content?: string;
 	language_tag?: string;
 	created?: string;
+	published?: string;
 	lastmod?: string;
 };
 
 function view(overrides: ViewOverrides = {}): Record<string, unknown> {
+	const created = overrides.created ?? '2026-01-01T00:00:00.000Z';
 	return {
 		objects: { content: overrides.content ?? '0'.repeat(32) },
 		locale: {
@@ -45,7 +47,10 @@ function view(overrides: ViewOverrides = {}): Record<string, unknown> {
 			short: { title: 'Short', subtitle: 'Shorter' },
 		},
 		dates: {
-			created: overrides.created ?? '2026-01-01T00:00:00.000Z',
+			created,
+			// Every article out there went public the day it came into being, so a fixture says the
+			// same unless the test it serves is about the two differing.
+			published: overrides.published ?? created,
 			lastmod: overrides.lastmod ?? '2026-01-02T00:00:00.000Z',
 		},
 		metrics: { words: 900 },
@@ -56,7 +61,7 @@ function view(overrides: ViewOverrides = {}): Record<string, unknown> {
 // Out of publication order on purpose: the homepage's order is this route's to decide, not the
 // root's to be trusted for.
 const ROOT = {
-	version: 1,
+	version: 2,
 	assets: {},
 	generated: '2026-01-03T00:00:00.000Z',
 	articles: [

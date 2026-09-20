@@ -6,6 +6,7 @@ description: A scaffold article with nothing to say yet. It exists so the shape 
 lang: en
 draft: true
 created: 2026-09-09T22:00:34Z
+published: 2026-09-09T22:00:34Z
 lastmod: 2026-09-09T22:00:34Z
 ---
 

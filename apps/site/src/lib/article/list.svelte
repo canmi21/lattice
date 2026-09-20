@@ -17,7 +17,7 @@
 	}: {
 		articles: {
 			meta: ViewMeta;
-			created: string;
+			published: string;
 			path: string;
 			paragraphs: string[];
 		}[];
@@ -150,7 +150,7 @@
 				subtitle={article.meta.subtitle}
 				short_title={article.meta.short.title}
 				short_subtitle={article.meta.short.subtitle}
-				created={article.created}
+				published={article.published}
 				path={article.path}
 				bars={drawn?.[index]}
 				{index}

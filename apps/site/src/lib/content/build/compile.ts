@@ -1130,9 +1130,13 @@ export async function compile(
 
 	// Provenance/recency rides as frontmatter on the full article markdown; the
 	// index (/llms.txt) stays metadata-free per convention.
+	// All three dates, `created` included, even though only `published` is shown anywhere: this
+	// document is the article's machine-readable twin, and a reader of it is asking what the
+	// source says rather than what a page renders.
 	const frontmatter = stringifyYaml({
 		title: meta.title,
 		created: meta.created,
+		published: meta.published,
 		lastmod: meta.lastmod,
 		lang: meta.lang,
 		source: url,

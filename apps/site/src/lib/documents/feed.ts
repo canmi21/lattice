@@ -32,7 +32,7 @@ export function buildFeed(entries: readonly FeedEntry[], code: LocaleCode, site:
 		id: entry.url,
 		title: entry.meta.title,
 		updated: new Date(entry.dates.lastmod),
-		published: new Date(entry.dates.created),
+		published: new Date(entry.dates.published),
 		summary: entry.meta.description,
 		content: entry.html,
 		links: [{ href: entry.locale.canonical }],

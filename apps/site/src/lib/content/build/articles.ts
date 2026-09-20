@@ -337,13 +337,13 @@ export async function buildArticles(
 			layout,
 		);
 		for (const code of LOCALE_CODES) {
-			const { title, subtitle, created } = articleFrontmatter(raws[code], file);
+			const { title, subtitle, published } = articleFrontmatter(raws[code], file);
 			// The short forms fall back to the full ones. A view the CMS has not been run for has
 			// none, and a card that showed nothing would be worse than one that clips.
 			references[code][path] = {
 				title,
 				subtitle,
-				created,
+				published,
 				short_title: short[code].title ?? title,
 				short_subtitle: short[code].subtitle ?? subtitle,
 			};
@@ -475,7 +475,13 @@ export async function buildArticles(
 	}
 
 	return {
-		articles: articles.toSorted((a, b) => Date.parse(b.meta.created) - Date.parse(a.meta.created)),
+		// By the date each entry prints beside itself, which is `published`: this order reaches
+		// the homepage list, the feed and /llms.txt, and a list sorted by a date it does not show
+		// reads as broken the first time the two disagree. It is also the only thing that makes
+		// moving a `published` date by hand do anything -- ordering is most of what one is for.
+		articles: articles.toSorted(
+			(a, b) => Date.parse(b.meta.published) - Date.parse(a.meta.published),
+		),
 		files: [
 			...files,
 			...files.map((file) => file.replace(/\.md$/, '.i18n.yaml')),

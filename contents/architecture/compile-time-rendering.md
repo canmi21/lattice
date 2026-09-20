@@ -4,8 +4,9 @@ subtitle: UI should be described, not executed.
 description: 从 SSR、SSG、ISR、RSC 的渲染谱系出发，提出 CTR (Compile-Time Rendering) 与 Seam
   协议——把组件结构和数据视为两个独立发布物、运行时拼接。围绕 JTD、Sentinel、SeamJS 讨论把 UI 当协议而非可执行代码的可能。
 lang: zh
-created: 2026-04-13T19:18:28.488Z
-lastmod: 2026-04-14T01:54:50.646Z
+created: 2026-04-13T19:18:28Z
+published: 2026-04-13T19:18:28Z
+lastmod: 2026-04-14T01:54:50Z
 ---
 
 这篇文章可能不适合所有人阅读，要理解它在说什么你至少得是一个准前端开发者或全栈开发者，对 `SSR`、`SSG`、`ISR` 这些概念有基本的认知且至少用过 **Next.js**

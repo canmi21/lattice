@@ -7,6 +7,7 @@ description: Jobs left Jony Ive answerable to no one but himself, and then died 
 lang: en
 draft: true
 created: 2026-09-14T02:52:19Z
+published: 2026-09-14T02:52:19Z
 lastmod: 2026-09-14T02:52:19Z
 ---
 

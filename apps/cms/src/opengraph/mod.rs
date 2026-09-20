@@ -76,6 +76,9 @@ pub struct Article {
 	pub subtitle: Option<String>,
 	pub category: Option<String>,
 	pub created: Option<String>,
+	/// The author-controlled date the article went public, which is the one the card draws.
+	/// `created` stays alongside it because when a file came into being is a separate fact.
+	pub published: Option<String>,
 }
 
 /// Read the frontmatter fields the card needs.
@@ -101,7 +104,8 @@ pub fn article_of(root: &Path, path: &Path) -> Option<Article> {
 			.map(str::to_owned)
 			.filter(|value| !value.is_empty())
 	};
-	let (title, subtitle, created) = (field("title"), field("subtitle"), field("created"));
+	let (title, subtitle) = (field("title"), field("subtitle"));
+	let (created, published) = (field("created"), field("published"));
 
 	let relative = path.strip_prefix(root).ok()?.with_extension("");
 	let slug = relative.to_str()?.to_owned();
@@ -110,7 +114,7 @@ pub fn article_of(root: &Path, path: &Path) -> Option<Article> {
 	let category =
 		relative.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()).map(str::to_owned);
 
-	Some(Article { slug, title: title?, subtitle, category, created })
+	Some(Article { slug, title: title?, subtitle, category, created, published })
 }
 
 /// `2026-04-13T19:18:28.488Z` as `Apr 13, 2026`.
@@ -223,7 +227,8 @@ fn article_jobs(
 	article: &Article,
 ) -> std::io::Result<Vec<Job>> {
 	let sidecar = store::load(&store::path_for(path))?;
-	let date = article.created.as_deref().and_then(short_date);
+	// The card is what a reader meets before the article, so it carries the reader-facing date.
+	let date = article.published.as_deref().and_then(short_date);
 
 	Ok(
 		locale::VIEWS
@@ -669,7 +674,7 @@ mod tests {
 		std::fs::write(
 			&path,
 			"---\ntitle: A Thing\nsubtitle: About the thing\ndescription: a much longer paragraph\n\
-			 created: 2026-04-13T19:18:28.488Z\n---\n\nbody\n",
+			 created: 2026-04-13T19:18:28Z\npublished: 2026-05-02T08:00:00Z\n---\n\nbody\n",
 		)
 		.expect("write");
 
@@ -679,6 +684,10 @@ mod tests {
 		assert_eq!(article.subtitle.as_deref(), Some("About the thing"));
 		// The category is where the file sits, not something restated in the frontmatter.
 		assert_eq!(article.category.as_deref(), Some("development"));
+		// Two dates, kept apart. They are equal across the whole corpus today, so nothing but a
+		// fixture that separates them can tell which one the card would draw.
+		assert_eq!(article.created.as_deref(), Some("2026-04-13T19:18:28Z"));
+		assert_eq!(article.published.as_deref(), Some("2026-05-02T08:00:00Z"));
 		std::fs::remove_dir_all(&root).ok();
 	}
 
