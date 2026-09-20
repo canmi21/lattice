@@ -131,6 +131,10 @@
 	const RESTING_STEP = 3;
 	const BAR_HEIGHT = 4;
 	const INDICATOR_HEIGHT = 12;
+	/** How many frames of an unchanged geometry mean the layout has settled. */
+	const STEADY_FRAMES = 2;
+	/** And the ceiling, for a layout that never does. */
+	const HOLD_FRAMES = 60;
 	const REVEAL_DELAY = 180;
 	const LEAVE_DELAY = 250;
 	const SCROLL_OFFSET = 96;
@@ -630,32 +634,40 @@
 			return;
 		}
 
-		if (!prevIndicatorVisible || (geometryChanged && active === prevIndicatorActive)) {
-			const setLivePos = () => {
-				if (!asideEl || !indicatorEl) return;
+		/**
+		 * Re-apply the geometry until it stops moving, then stop.
+		 *
+		 * Entries change height as the rail reveals -- a label that wraps at the collapsed width
+		 * stops wrapping at the full one -- so a position taken during that is one for a layout
+		 * that no longer exists. Measured: 2px below the first entry and 6px below the ninth, the
+		 * error growing down the column. The fixed 200ms window this replaced was the wrong shape,
+		 * since the reveal's own delay is most of it.
+		 */
+		const holdPosition = () => {
+			const myToken = trackingToken;
+			let frames = 0;
+			let steady = 0;
+			let last = '';
+			const step = () => {
+				if (myToken !== trackingToken || !asideEl || !indicatorEl) return;
 				const btn = asideEl.querySelectorAll<HTMLElement>('[data-toc-button]')[active];
 				if (!btn) return;
 				const target = indicatorGeometry(btn);
 				indicatorEl.style.height = remFromMeasuredPixels(target.height);
 				indicatorEl.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
+				steady = `${target.y}/${target.height}` === last ? steady + 1 : 0;
+				last = `${target.y}/${target.height}`;
+				frames += 1;
+				// Bounded, because a layout that never settles must not be watched for ever.
+				trackingRAF =
+					steady >= STEADY_FRAMES || frames >= HOLD_FRAMES ? undefined : requestAnimationFrame(step);
 			};
-			setLivePos();
-			indicatorEl.style.opacity = '0.8';
+			step();
+		};
 
-			if (!prevIndicatorVisible) {
-				const myToken = trackingToken;
-				const start = performance.now();
-				const tick = () => {
-					if (myToken !== trackingToken) return;
-					setLivePos();
-					if (performance.now() - start < 200) {
-						trackingRAF = requestAnimationFrame(tick);
-					} else {
-						trackingRAF = undefined;
-					}
-				};
-				trackingRAF = requestAnimationFrame(tick);
-			}
+		if (!prevIndicatorVisible || (geometryChanged && active === prevIndicatorActive)) {
+			holdPosition();
+			indicatorEl.style.opacity = '0.8';
 		} else {
 			const activeButton = buttons[active];
 			if (activeButton === undefined) return;
@@ -675,9 +687,10 @@
 					indicator.style.transform = `translateY(${remFromMeasuredPixels(center - height / 2)})`;
 				},
 				onComplete: () => {
-					indicator.style.height = remFromMeasuredPixels(target.height);
-					indicator.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
 					indicatorAnimation = undefined;
+					// Not `target`, which was read when the spring started. The rail may have
+					// finished revealing since, and the entries are not where they were.
+					holdPosition();
 				},
 			});
 		}
