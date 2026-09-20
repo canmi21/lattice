@@ -71,6 +71,7 @@
 
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { arriving } from '$lib/client/arrival';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import Dial from '$lib/components/dial.svelte';
@@ -117,10 +118,14 @@
 	let previous = browser ? scrollY : 0;
 
 	/**
-	 * Whether the entry settle is still allowed to ease. True from the server's markup, false once
-	 * the settle has had its 260ms, and never true again.
+	 * Whether the entry settle is still allowed to ease. False once it has had its 260ms.
+	 *
+	 * Armed only in the document the reader arrived in. A client navigation lands at the top of
+	 * its page, so the ring is empty and correct before it is drawn -- and where a place was
+	 * remembered, the scroll that restores it is a real scroll the ring simply follows. Easing
+	 * either would be easing a value that was never wrong. See spec/styling/first-paint.md.
 	 */
-	let entering = $state(true);
+	let entering = $state(arriving());
 
 	function measure(): void {
 		const now = scrollY;

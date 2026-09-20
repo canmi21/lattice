@@ -63,18 +63,39 @@ const fonts = new Map<string, string>();
  * will. Memoised, because that is a fact about the stylesheet and cannot have changed.
  */
 export function fontOfClass(className: string): string {
-	const held = fonts.get(className);
+	return fontOfProbe([['span', className]]);
+}
+
+/**
+ * The same, for a font an element only has because of where it sits.
+ *
+ * An article heading is `600` because of its own class and `15px` because of the article body
+ * around it -- two components, and neither alone resolves to what the heading actually is. The
+ * chain is outermost first, and the font read is the last element's.
+ */
+export function fontOfProbe(chain: readonly (readonly [string, string])[]): string {
+	const key = chain.map(([tag, className]) => `${tag}.${className}`).join('>');
+	const held = fonts.get(key);
 	if (held !== undefined) return held;
 
-	const probe = document.createElement('span');
-	probe.className = className;
+	let outer: HTMLElement | undefined;
+	let inner: HTMLElement | undefined;
+	for (const [tag, className] of chain) {
+		const element = document.createElement(tag);
+		element.className = className;
+		if (inner) inner.appendChild(element);
+		else outer = element;
+		inner = element;
+	}
+	if (!outer || !inner) return shorthand(getComputedStyle(document.body));
+
 	// Out of flow and out of the way: it is read, never seen, and must not reflow what is on
 	// screen while the reader is looking at it.
-	probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;top:-9999px';
-	document.body.appendChild(probe);
-	const font = shorthand(getComputedStyle(probe));
-	probe.remove();
+	outer.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;top:-9999px';
+	document.body.appendChild(outer);
+	const font = shorthand(getComputedStyle(inner));
+	outer.remove();
 
-	fonts.set(className, font);
+	fonts.set(key, font);
 	return font;
 }

@@ -19,6 +19,7 @@
 	meta={data.meta}
 	phone_title={data.body.phone_title}
 	toc={data.body.toc}
+	rail={data.rail}
 	words={data.metrics.words}
 	reads={data.reads}
 	summary={data.body.summary}

@@ -3,6 +3,8 @@ import { redirects } from 'virtual:redirects';
 import { orReload, publishedReads, publishedResources, publishedView } from '$lib/published';
 import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
 import { namedResources } from '@canmi/artifacts';
+import { measureRail } from '$lib/article/rail-measure';
+import { measured } from '$lib/client/measured';
 import type { PageLoad } from './$types';
 
 export const prerender = false;
@@ -51,9 +53,22 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 		publishedResources(fetch, namedResources(view.body.blocks)),
 		publishedReads(fetch, view.slug),
 	]);
+
+	/**
+	 * How wide the table of contents draws its bars, worked out here when a browser is asking.
+	 *
+	 * Heading width is not something a server can know, so this is `undefined` during SSR and the
+	 * rail settles into it after hydration. On a client navigation it is measured before the
+	 * article renders, and the rail's first frame is already the answer -- measured, the bars
+	 * used to sweep 36 widths over 294ms on every article opened. See
+	 * spec/styling/first-paint.md, "A page declares what only a browser can work out".
+	 */
+	const rail = await measured(() => measureRail(view.body.toc));
+
 	return {
 		resources,
 		reads,
+		rail,
 		// Which card this view shows, from the answer rather than from the address: a card is a
 		// content-addressed object and there is nothing to derive one from a slug.
 		card: found.card,

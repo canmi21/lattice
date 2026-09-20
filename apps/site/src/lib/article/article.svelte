@@ -124,6 +124,15 @@
 			borderStyle: 'dashed',
 		},
 	});
+
+	/**
+	 * What the article body's class resolves to, for a measurement taken before it is on screen.
+	 *
+	 * A heading is `600` because of its own class and its size because of this one, so the rail's
+	 * measurement needs both. Exported rather than re-declared, because two places agreeing about
+	 * a font is exactly how they stop agreeing. See lib/article/rail-measure.ts.
+	 */
+	export const ARTICLE_BODY_CLASS = stylex.attrs(styles.body).class ?? '';
 </script>
 
 <script lang="ts">
@@ -159,6 +168,7 @@
 	import { formatCompact } from './format';
 	import ActionBar from './action-bar.svelte';
 	import HomeLink from './home-link.svelte';
+	import type { RailWidths } from './rail-widths';
 	import Toc from './toc.svelte';
 	import TranslationNotice from './translation-notice.svelte';
 	import IconXai from './xai-icon.svelte';
@@ -178,6 +188,7 @@
 		meta,
 		phone_title,
 		toc,
+		rail,
 		words,
 		reads: served,
 		summary,
@@ -195,6 +206,8 @@
 		 *  does not. Decided in the build; see $lib/content/build/width.ts. */
 		phone_title: string;
 		toc: TocEntry[];
+		/** What the rail's bars measure, when the load already knew. See toc.svelte. */
+		rail?: RailWidths;
 		/** How long the article is in the view being read. Body prose only -- see ArticleView. */
 		words: number;
 		/**
@@ -399,7 +412,7 @@
 	     anything having to measure them -- see spec/styling/rail.md. A drag started on a heading
 	     here should not come away with the navigation, so the apparatus does not select. -->
 	<div class="article-rail select-none">
-		<Toc {toc} />
+		<Toc {toc} {rail} />
 		<HomeLink locale={locale.code} />
 	</div>
 	<!-- The mirror of that rail, down the region on the other side. What a reader does with an

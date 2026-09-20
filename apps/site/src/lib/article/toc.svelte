@@ -65,6 +65,9 @@
 			color: 'var(--color-text-soft)',
 		},
 	});
+
+	/** What a rail label's class resolves to; see article.svelte, `ARTICLE_BODY_CLASS`. */
+	export const TOC_LABEL_CLASS = stylex.attrs(styles.label).class ?? '';
 </script>
 
 <script lang="ts">
@@ -75,11 +78,27 @@
 		remFromDefaultPixels,
 		remFromMeasuredPixels,
 	} from '$lib/client/units';
+	import { untrack } from 'svelte';
 	import type { TocEntry } from '@canmi/artifacts/types';
+	import type { RailWidths } from './rail-widths';
 	import { railEndOffset } from './rail';
 	import { scheduleInitialHashJump } from './toc';
 
-	let { toc }: { toc: TocEntry[] } = $props();
+	let {
+		toc,
+		rail,
+	}: {
+		toc: TocEntry[];
+		/**
+		 * Every bar's width, when the load already worked them out.
+		 *
+		 * Absent means a server drew this, which cannot measure a heading -- so the bars carry
+		 * their baked first frame and settle into the measurement after hydration. Present means
+		 * a browser measured before this rendered, and the first frame is the answer. See
+		 * spec/styling/first-paint.md.
+		 */
+		rail?: RailWidths;
+	} = $props();
 
 	const MAX_BAR_WIDTH = 64;
 	/**
@@ -133,11 +152,17 @@
 
 	let hydratedEntries = $state.raw<HydratedEntries>();
 	/** The widest label as the rail will draw it, which is the widest a bar may be. */
-	let labelCeiling = $state(0);
+	// The measurement is a fact about this render, not a value that goes on changing, so taking
+	// only the initial one is the intent. See blocks/code-block.svelte for the same reading.
+	let labelCeiling = $state(untrack(() => rail?.ceiling ?? 0));
 	const entries = $derived(
 		hydratedEntries?.source === toc
 			? hydratedEntries.entries
-			: toc.map<Entry>(({ slug, text }) => ({ slug, width: 0, text })),
+			: toc.map<Entry>(({ slug, text }, index) => ({
+					slug,
+					text,
+					width: rail?.widths[index] ?? 0,
+				})),
 	);
 	let asideEl = $state<HTMLElement | undefined>();
 	let indicatorEl = $state<HTMLElement | undefined>();
@@ -488,19 +513,29 @@
 
 		const raf = requestAnimationFrame(() => {
 			const measured: Entry[] = [];
-			const labels = asideEl?.querySelectorAll<HTMLElement>('[data-toc-text]');
-			const available = expandedLabelWidth();
-			let widest = 0;
-			for (const [index, el] of headings.entries()) {
-				const text = headingText(el);
-				const prepared = prepareWithSegments(text, fontOf(el));
-				const w = measureNaturalWidth(prepared);
-				const { lines, drawn } = labelMetrics(text, labels?.[index], available);
-				widest = Math.max(widest, drawn);
-				measured.push({ el, slug: el.id, width: w / lines, text });
+			// Already worked out, before this page was drawn. The elements are still collected --
+			// they are what a jump and the scroll spy need -- but nothing is measured again, and
+			// nothing therefore changes for the bars to animate between.
+			if (rail) {
+				for (const [index, el] of headings.entries()) {
+					measured.push({ el, slug: el.id, width: rail.widths[index] ?? 0, text: headingText(el) });
+				}
+				hydratedEntries = { source, entries: measured };
+			} else {
+				const labels = asideEl?.querySelectorAll<HTMLElement>('[data-toc-text]');
+				const available = expandedLabelWidth();
+				let widest = 0;
+				for (const [index, el] of headings.entries()) {
+					const text = headingText(el);
+					const prepared = prepareWithSegments(text, fontOf(el));
+					const w = measureNaturalWidth(prepared);
+					const { lines, drawn } = labelMetrics(text, labels?.[index], available);
+					widest = Math.max(widest, drawn);
+					measured.push({ el, slug: el.id, width: w / lines, text });
+				}
+				labelCeiling = widest;
+				hydratedEntries = { source, entries: measured };
 			}
-			labelCeiling = widest;
-			hydratedEntries = { source, entries: measured };
 			if (initialTarget) {
 				// Bar-width animation snapshots scrollY while resolving keyframes. Start after that
 				// restoration phase or it cancels this smooth jump and leaves a cold load at the top.
@@ -796,10 +831,15 @@
 					class:focus-ring-inner={!showText}
 					class="toc-ring-bar block w-fit {stylex.attrs(styles.barRing).class}"
 				>
+					<!-- The baked first frame, unless the load already knew better. `2rem` is the
+					     resting shape a server draws and the rail settles out of; a width here is
+					     the measurement, and then there is nothing to settle. -->
 					<span
 						data-toc-bar
 						class="block {stylex.attrs(styles.bar).class}"
-						style="width: 2rem; height: 0.25rem; opacity: 0.35"
+						style="width: {rail
+							? remFromDefaultPixels(barWidths[i] ?? MAX_BAR_WIDTH / 2)
+							: '2rem'}; height: 0.25rem; opacity: {i === activeIndex ? 0.8 : 0.35}"
 					></span>
 				</span>
 				<span class:focus-ring-inner={showText} class="toc-ring-text block w-fit max-w-full">

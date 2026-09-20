@@ -47,6 +47,9 @@
 			transitionTimingFunction: easing.inOut,
 		},
 	});
+
+	/** What a heading's class resolves to; see article.svelte, `ARTICLE_BODY_CLASS`. */
+	export const SECTION_TITLE_CLASS = stylex.attrs(styles.title).class ?? '';
 </script>
 
 <script lang="ts">
