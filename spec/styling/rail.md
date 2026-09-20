@@ -240,6 +240,35 @@ what it is a thumbnail of.
 Every bar is served at the fifth step and animates to its own, so the column resolves outward
 from the middle rather than growing from nothing.
 
+### The active mark opens with the column, not to where the column is going
+
+The mark beside the entry being read is drawn only while the rail is open, so every hover is the
+one occasion it has to appear -- and it appears while the column beneath it is still fanning out
+of its collapsed stack. Its open position is therefore where its entry is _going_, and writing it
+there the moment the mark becomes visible puts it as far from its own label as everything above
+that label has yet to expand: a tenth of a column for the first entry and the better part of one
+for the last. Nothing then moves it, but the rail grows around its centre underneath it, and the
+mark rides up with the box -- measured at 209px of separation at the instant it appeared and 125px
+of travel afterwards, which reads as the mark flying in rather than the column opening.
+
+**So the mark is drawn from the layout the rail is in, frame by frame, and stays on its entry
+throughout.** It is beside its label when it appears and beside it when everything stops, and it
+fades in on the labels' own tween rather than switching on part-way through theirs.
+
+Those frames are reconstructed rather than read off the rail. Only two lengths move during a
+reveal -- what is left of a bar, and how much of a label has arrived -- and both are run against
+the same two constants the bars and the labels are run against, so a frame of the layout is
+arithmetic in them. Sampling the column instead would mean a forced layout every frame to learn
+what this side already knows, and the answer read back mid-flight is the unreliable one: a button
+measures 28px in flight and 24px at rest. It is the same answer the return control gives to the
+same question below, for the same reason.
+
+**One property, one writer.** The mark's opacity is written by that per-frame reconstruction and
+by nothing else. The animation library keeps a value per element and property, so a property it
+has animated once and that is then set behind its back reads to it as already at its target and
+is never rendered again -- which showed up as the mark appearing on a first hover and never on
+any hover after it.
+
 ### Absent rather than squeezed
 
 The rail appears only where the region holds it with `--rail-edge` clear on both sides. An earlier

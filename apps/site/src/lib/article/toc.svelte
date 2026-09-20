@@ -11,14 +11,14 @@
 	 * what the marks are made of.
 	 */
 	const styles = stylex.create({
-	/**
-	 * The rail's own offset near the end of an article, on top of the box's vertical centring.
-	 *
-	 * Here rather than in the markup because no utility translates a `transform` -- Tailwind 4
-	 * writes `translate` as its own property, a different declaration with a different computed
-	 * value. See spec/architecture/css/migration.md, "No utility translates a `transform`
-	 * declaration". Horizontal placement stays the rail box's, in utilities.css.
-	 */
+		/**
+		 * The rail's own offset near the end of an article, on top of the box's vertical centring.
+		 *
+		 * Here rather than in the markup because no utility translates a `transform` -- Tailwind 4
+		 * writes `translate` as its own property, a different declaration with a different computed
+		 * value. See spec/architecture/css/migration.md, "No utility translates a `transform`
+		 * declaration". Horizontal placement stays the rail box's, in utilities.css.
+		 */
 		nav: {
 			transform: 'translateY(var(--toc-end-offset, 0rem))',
 		},
@@ -131,6 +131,7 @@
 	const RESTING_STEP = 3;
 	const BAR_HEIGHT = 4;
 	const INDICATOR_HEIGHT = 12;
+	const INDICATOR_OPACITY = 0.8;
 	const REVEAL_DELAY = 180;
 	const LEAVE_DELAY = 250;
 	const SCROLL_OFFSET = 96;
@@ -201,11 +202,14 @@
 	let firstIndicatorSet = false;
 	let prevIndicatorVisible = false;
 	let prevIndicatorActive = -1;
+	let prevShowText = false;
 	let prevGeometryVersion = 0;
 	let isClickScrolling = false;
 	let phaseTimer: ReturnType<typeof setTimeout> | undefined;
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
 	let indicatorAnimation: AnimationControl | undefined;
+	/** Whether the animation in flight is the one that opens the rail, rather than a move along it. */
+	let indicatorRevealing = false;
 	let geometryVersion = $state(0);
 
 	function jumpToSection(el: HTMLHeadingElement | undefined, idx: number) {
@@ -237,16 +241,23 @@
 		return clone.textContent?.trim() ?? '';
 	}
 
-
 	/**
-	 * Where the indicator goes, worked out from the shape rather than read off the rail.
+	 * Where the indicator goes, for a rail opened by `opened` with bars still `bar` tall.
 	 *
 	 * **The rail is in motion exactly when this is asked**, so nothing here measures a box that
-	 * animates -- a button reported 28px mid-flight and 24px once it settled. An open rail is
-	 * arithmetic: an entry is its padding plus the lines its label takes, which the measurement
-	 * already worked out, and both lengths are declared rather than animated.
+	 * animates -- a button reported 28px mid-flight and 24px once it settled. The layout is
+	 * arithmetic instead, in the two lengths the reveal moves: an entry is its padding, plus
+	 * whatever is left of its bar, plus however much of its label has arrived. Every other term
+	 * is declared or was measured before anything started moving.
+	 *
+	 * The rail's two resting layouts are this function's endpoints -- a full bar with nothing
+	 * opened, and `OPEN` below -- and everything between them is a frame of the reveal.
 	 */
-	function indicatorGeometry(index: number): IndicatorGeometry | undefined {
+	function indicatorGeometry(
+		index: number,
+		bar: number,
+		opened: number,
+	): IndicatorGeometry | undefined {
 		const lines = shape?.lines;
 		const label = asideEl?.querySelector<HTMLElement>('[data-toc-text]');
 		const button = asideEl?.querySelector<HTMLElement>('[data-toc-button]');
@@ -257,12 +268,120 @@
 		const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
 		if (!Number.isFinite(lineHeight) || !Number.isFinite(padding)) return undefined;
 
-		const tall = (entry: number) => padding + lineHeight * (lines[entry] ?? 1);
-		let top = button.offsetTop;
-		for (let entry = 0; entry < index; entry += 1) top += tall(entry);
+		// Every entry above this one contributes the same padding and the same bar, and its own
+		// label's share of whatever has arrived -- so their labels are counted in lines rather
+		// than one entry at a time.
+		let above = 0;
+		for (let entry = 0; entry < index; entry += 1) above += lines[entry] ?? 1;
+		const top = button.offsetTop + index * (padding + bar) + lineHeight * opened * above;
+		const tall = padding + bar + lineHeight * opened * (lines[index] ?? 1);
 
-		const height = toScaledPixels(INDICATOR_HEIGHT, rootFontPixels()) + lineHeight * ((lines[index] ?? 1) - 1);
-		return { y: top + tall(index) / 2 - height / 2, height };
+		// Collapsed, the entry is a bar and the mark on it is that bar; open, it is the mark's
+		// own length, plus a line for a label that takes two.
+		const open =
+			toScaledPixels(INDICATOR_HEIGHT, rootFontPixels()) + lineHeight * ((lines[index] ?? 1) - 1);
+		const height = bar * (1 - opened) + open * opened;
+		return { y: top + tall / 2 - height / 2, height };
+	}
+
+	/** The rail open: bars gone, labels arrived. The reveal's far end, and where it rests. */
+	const OPEN = (index: number) => indicatorGeometry(index, 0, 1);
+
+	/**
+	 * The reveal: the mark opens out of the collapsed column along with the entry it marks.
+	 *
+	 * Written at the open position outright, the mark landed as far below its own label as
+	 * everything above it had yet to expand -- a column's worth for the last entry -- and then
+	 * rode back up as the rail grew, which is the whole rail's growth read as the mark
+	 * travelling. So it is drawn from the layout the rail is in, frame by frame.
+	 *
+	 * Those frames are reconstructed rather than read off the rail: the two lengths the reveal
+	 * moves are a bar's height and how much of a label has arrived, and both are run here on the
+	 * same curves the bars and the labels are run on above. One spring and one tween, the same
+	 * two constants, so the mark cannot drift from the column without the column drifting from
+	 * itself. Nothing samples the rail mid-flight and nothing forces a layout -- the same answer
+	 * the return control gives to the same question, see spec/styling/rail.md, "Article home
+	 * navigation yields to the table of contents".
+	 */
+	function revealIndicator(index: number) {
+		const indicator = indicatorEl;
+		if (!indicator) return;
+		let bar = toScaledPixels(BAR_HEIGHT, rootFontPixels());
+		let opened = 0;
+		indicatorRevealing = true;
+		const write = () => {
+			const at = indicatorGeometry(index, bar, opened);
+			if (!at) return;
+			indicator.style.height = remFromMeasuredPixels(at.height);
+			indicator.style.transform = `translateY(${remFromMeasuredPixels(at.y)})`;
+			// Drawn on the labels' own tween rather than animated beside it, so the mark cannot
+			// arrive ahead of or behind the words it marks. It is also the only thing writing
+			// this element's opacity: `animate` keeps a value per element and property, and one
+			// that has been set behind its back reads as already there and is never rendered --
+			// which is how the mark came up at full strength on a first hover and not at all on
+			// the second.
+			indicator.style.opacity = `${INDICATOR_OPACITY * opened}`;
+		};
+		write();
+		const labels = animate(0, 1, {
+			...TEXT_TWEEN,
+			onUpdate: (value) => {
+				opened = value;
+				write();
+			},
+			onComplete: () => {
+				opened = 1;
+			},
+		});
+		// The bars settle after the labels do, so theirs is the animation that ends the reveal.
+		const bars = animate(bar, 0, {
+			...BAR_SPRING,
+			onUpdate: (value) => {
+				bar = value;
+				write();
+			},
+			onComplete: () => {
+				bar = 0;
+				write();
+				indicatorAnimation = undefined;
+				indicatorRevealing = false;
+			},
+		});
+		indicatorAnimation = {
+			stop: () => {
+				labels.stop();
+				bars.stop();
+			},
+		};
+	}
+
+	/** One spring from one geometry to another, written as a height and a transform. */
+	function springIndicator(from: IndicatorGeometry, to: IndicatorGeometry) {
+		const indicator = indicatorEl;
+		if (!indicator) return;
+		const startCenter = from.y + from.height / 2;
+		const targetCenter = to.y + to.height / 2;
+		indicatorAnimation = animate(0, 1, {
+			...BAR_SPRING,
+			onUpdate: (progress) => {
+				const height = from.height + (to.height - from.height) * progress;
+				const center = startCenter + (targetCenter - startCenter) * progress;
+				indicator.style.height = remFromMeasuredPixels(height);
+				indicator.style.transform = `translateY(${remFromMeasuredPixels(center - height / 2)})`;
+			},
+			onComplete: () => {
+				indicator.style.height = remFromMeasuredPixels(to.height);
+				indicator.style.transform = `translateY(${remFromMeasuredPixels(to.y)})`;
+				indicatorAnimation = undefined;
+			},
+		});
+	}
+
+	/** Whatever the indicator is running, and the state that says the reveal is one of them. */
+	function stopIndicator() {
+		indicatorAnimation?.stop();
+		indicatorAnimation = undefined;
+		indicatorRevealing = false;
 	}
 
 	function followArticleEnd(node: HTMLElement) {
@@ -552,7 +671,7 @@
 			for (const c of cleanups) c();
 			if (phaseTimer) clearTimeout(phaseTimer);
 			if (leaveTimer) clearTimeout(leaveTimer);
-			indicatorAnimation?.stop();
+			stopIndicator();
 		};
 	});
 
@@ -652,15 +771,24 @@
 		if (!firstIndicatorSet) {
 			firstIndicatorSet = true;
 			prevGeometryVersion = geometry;
+			prevShowText = show;
 			return;
 		}
 		const geometryChanged = geometry !== prevGeometryVersion;
 		prevGeometryVersion = geometry;
-
-		indicatorAnimation?.stop();
-		indicatorAnimation = undefined;
+		/** This run is the hover opening the column, rather than one on a column already open. */
+		const opening = show && !prevShowText;
+		prevShowText = show;
 
 		const visible = show && active >= 0 && active < buttons.length;
+
+		// A reveal in flight is the rail opening, and the geometry it is reported through is the
+		// geometry that reveal's own spring is already crossing. Re-placing on each of those
+		// reports would drop the mark at the settled position with the column still on its way.
+		if (indicatorRevealing && visible && !opening && active === prevIndicatorActive) return;
+
+		stopIndicator();
+
 		if (!visible) {
 			indicatorEl.style.opacity = '0';
 			prevIndicatorVisible = false;
@@ -670,38 +798,33 @@
 
 		/** One write, because the target is arithmetic and does not wait for a layout. */
 		const place = () => {
-			const target = indicatorGeometry(active);
+			const target = OPEN(active);
 			if (!indicatorEl || !target) return;
 			indicatorEl.style.height = remFromMeasuredPixels(target.height);
 			indicatorEl.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
 		};
 
-		if (!prevIndicatorVisible || (geometryChanged && active === prevIndicatorActive)) {
+		if (!prevIndicatorVisible) {
+			// Opening, the mark comes out of the collapsed column with its entry and fades in as
+			// the labels do; on a column already open -- the reader scrolling out of the top dead
+			// zone under a held pointer -- there is nothing to come out of and nothing to arrive
+			// with, so the open position is simply where it is.
+			if (opening) {
+				indicatorEl.style.opacity = '0';
+				revealIndicator(active);
+			} else {
+				place();
+				indicatorEl.style.opacity = `${INDICATOR_OPACITY}`;
+			}
+		} else if (geometryChanged && active === prevIndicatorActive) {
 			place();
-			indicatorEl.style.opacity = '0.8';
+			indicatorEl.style.opacity = `${INDICATOR_OPACITY}`;
 		} else {
-			const target = indicatorGeometry(active);
+			const target = OPEN(active);
 			if (!target) return;
-			const indicator = indicatorEl;
 			const navRect = asideEl.getBoundingClientRect();
-			const indicatorRect = indicator.getBoundingClientRect();
-			const startHeight = indicatorRect.height;
-			const startCenter = indicatorRect.top - navRect.top + startHeight / 2;
-			const targetCenter = target.y + target.height / 2;
-			indicatorAnimation = animate(0, 1, {
-				...BAR_SPRING,
-				onUpdate: (progress) => {
-					const height = startHeight + (target.height - startHeight) * progress;
-					const center = startCenter + (targetCenter - startCenter) * progress;
-					indicator.style.height = remFromMeasuredPixels(height);
-					indicator.style.transform = `translateY(${remFromMeasuredPixels(center - height / 2)})`;
-				},
-				onComplete: () => {
-					indicator.style.height = remFromMeasuredPixels(target.height);
-					indicator.style.transform = `translateY(${remFromMeasuredPixels(target.y)})`;
-					indicatorAnimation = undefined;
-				},
-			});
+			const indicatorRect = indicatorEl.getBoundingClientRect();
+			springIndicator({ y: indicatorRect.top - navRect.top, height: indicatorRect.height }, target);
 		}
 		prevIndicatorVisible = visible;
 		prevIndicatorActive = active;
