@@ -148,6 +148,7 @@
 		ArticleSummary,
 		TocEntry,
 	} from '@canmi/artifacts/types';
+	import type { Theme } from '@canmi/theme';
 	import type { LocaleCode } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { warmView } from '$lib/published';
@@ -180,6 +181,7 @@
 		words,
 		summary,
 		locale,
+		theme,
 		notes = [],
 		children,
 	}: {
@@ -197,6 +199,8 @@
 		/** The selected locale, or its English fallback. Absent only when neither exists. */
 		summary?: ArticleSummary;
 		locale: ArticleLocale;
+		/** What the document is painted in, settled on the server beside the class. */
+		theme: Theme;
 		/** Collected author's notes, rendered after the article's closing rule. */
 		notes?: ArticleNote[];
 		children: Snippet;
@@ -389,7 +393,7 @@
 	</div>
 	<!-- The mirror of that rail, down the region on the other side. What a reader does with an
 	     article rather than what it is; see the component for why it declares no width. -->
-	<ActionBar locale={locale.code} />
+	<ActionBar locale={locale.code} {theme} />
 	<!-- The top is computed from the column's own side gutter and lives in `.article-column`; see
 	     spec/styling/rail.md. The bottom keeps its 6rem at every width, because the space under the
 	     footer competes with nothing. -->

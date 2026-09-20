@@ -71,7 +71,9 @@
 
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import Dial from '$lib/components/dial.svelte';
 	import type { LocaleCode } from '$lib/locale';
 	import * as m from '$lib/paraglide/messages';
 
@@ -103,12 +105,31 @@
 	let read = $state(browser ? fraction() : 0);
 
 	/**
+	 * Which way the reader was last going, which is what the arrow offers to finish.
+	 *
+	 * Not where they are: at the same position a reader on the way down wants the end and a reader
+	 * on the way back wants the top, and only the direction they came from separates the two. A
+	 * wheel, a trackpad and a thumb all express it, so nothing here asks which device it is.
+	 *
+	 * Down until told otherwise, because a page opens at the top and there is nowhere up to go.
+	 */
+	let heading = $state<'down' | 'up'>('down');
+	let previous = browser ? scrollY : 0;
+
+	/**
 	 * Whether the entry settle is still allowed to ease. True from the server's markup, false once
 	 * the settle has had its 260ms, and never true again.
 	 */
 	let entering = $state(true);
 
 	function measure(): void {
+		const now = scrollY;
+		// A move of nothing is not a change of mind: two events one pixel apart would otherwise
+		// flip the glyph on a resize or a rubber band.
+		if (Math.abs(now - previous) > 2) {
+			heading = now > previous ? 'down' : 'up';
+			previous = now;
+		}
 		read = fraction();
 	}
 
@@ -140,16 +161,19 @@
 	});
 
 	/**
-	 * The arrow's share, full by the first fifth.
+	 * The arrow's share: nothing at either end, full across the middle.
 	 *
-	 * It grows with the read rather than appearing at a threshold, because a control that pops
-	 * into place reads as a thing that just became possible, and going back up was possible from
-	 * the first pixel. A fifth is where it stops growing and not where it starts.
+	 * It grows over the first fifth and shrinks away over the last, because at the very top there
+	 * is nowhere up to go and at the very bottom nowhere down, and an arrow offering a move that
+	 * is already made is worse than no arrow. It grows rather than appearing at a threshold: a
+	 * control that pops into place reads as one that just became possible, and it was possible
+	 * from the first pixel.
 	 */
-	const shown = $derived(Math.min(1, read / 0.2));
+	const shown = $derived(Math.min(1, read / 0.2, (1 - read) / 0.2));
 
-	function toTop(): void {
-		scrollTo({ top: 0, behavior: 'smooth' });
+	function jump(): void {
+		const to = heading === 'down' ? document.documentElement.scrollHeight : 0;
+		scrollTo({ top: to, behavior: 'smooth' });
 	}
 </script>
 
@@ -160,10 +184,12 @@
 	type="button"
 	class="focus-ring grid size-5 place-items-center rounded-full"
 	style="--reading-read: {read}; --reading-arrow: {shown}"
-	onclick={toTop}
+	onclick={jump}
 	onpointerenter={() => (hovered = true)}
 	onpointerleave={() => (hovered = false)}
-	aria-label={m['article.to-top']({}, { locale })}
+	aria-label={heading === 'down'
+		? m['article.to-end']({}, { locale })
+		: m['article.to-top']({}, { locale })}
 >
 	<!-- One cell, so the ring and the arrow share a centre without either being positioned. -->
 	<svg class="col-start-1 row-start-1 size-5 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
@@ -187,6 +213,9 @@
 		).class}"
 		style="scale: calc(0.4 + 0.6 * var(--reading-arrow))"
 	>
-		<ArrowUp size={9} strokeWidth={2.5} aria-hidden="true" />
+		<Dial shown={heading === 'up' ? 'first' : 'second'}>
+			{#snippet first()}<ArrowUp size={9} strokeWidth={2.5} aria-hidden="true" />{/snippet}
+			{#snippet second()}<ArrowDown size={9} strokeWidth={2.5} aria-hidden="true" />{/snippet}
+		</Dial>
 	</span>
 </button>

@@ -36,20 +36,11 @@ export function currentTheme(root: HTMLElement = document.documentElement): Them
 /**
  * Move the class with every transition in the document switched off, then switch them back on.
  *
- * A theme is one class and the whole page repaints from it in a single frame -- nothing eases
- * `--color-page`. But anything that eases a colour for its *own* reasons eases this one too: a
- * card that fades its border on hover fades it from the light border to the dark one as well, so
- * the page arrives black while its cards are still halfway, sweeping through greys that belong to
- * neither theme. Measured on an article's link cards: 150ms of intermediate value behind a page
- * that had already finished.
- *
- * The hover fade is right and is not what changes. What changes is that a theme is not a state
- * anything transitions *to* -- it is which set of values was true all along -- so the one frame it
- * moves in is the one frame nothing may animate.
- *
- * **The reflow is the whole trick.** Without reading a layout property between the two writes, the
- * browser coalesces adding the sheet, toggling the class and removing the sheet into one style
- * recalculation, sees only the start and end, and transitions anyway.
+ * A theme repaints in one frame, but anything easing a colour for its own reasons eases this one
+ * too: measured on an article's link cards, 150ms of greys belonging to neither theme, behind a
+ * page that had already finished. **The reflow is the whole trick** -- without a layout read
+ * between the writes the browser folds all three into one recalculation, sees only the ends, and
+ * transitions anyway.
  */
 function withoutTransitions(change: () => void, root: HTMLElement): void {
 	// A root outside a document has nothing painting from it, so there is nothing to suppress and
@@ -61,7 +52,9 @@ function withoutTransitions(change: () => void, root: HTMLElement): void {
 	}
 	const suppress = document_.createElement('style');
 	suppress.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
-	document_.head.append(suppress);
+	// `appendChild` rather than `append`: this library is read by the workers too, and their
+	// types give `append` a different signature on the same name.
+	document_.head.appendChild(suppress);
 	change();
 	// Read, and do not remove the read: it is what forces the new values to be committed under
 	// the rule above rather than after it.

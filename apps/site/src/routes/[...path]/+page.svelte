@@ -22,6 +22,7 @@
 	words={data.metrics.words}
 	summary={data.body.summary}
 	locale={data.locale}
+	theme={data.theme}
 	{notes}
 >
 	<ArticleBody blocks={data.body.blocks} resources={data.resources} locale={data.locale.code} />

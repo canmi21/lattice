@@ -16,6 +16,7 @@
 </script>
 
 <script lang="ts">
+	import type { Theme } from '@canmi/theme';
 	import type { LocaleCode } from '$lib/locale';
 	import ThemeToggle from '$lib/theme/toggle.svelte';
 	import ReadingProgress from './reading-progress.svelte';
@@ -29,7 +30,7 @@
 	 * both sides. See spec/styling/rail.md, "The article is centred; the rail adapts to the region
 	 * beside it" and "Absent rather than squeezed".
 	 */
-	let { locale }: { locale: LocaleCode } = $props();
+	let { locale, theme }: { locale: LocaleCode; theme: Theme } = $props();
 </script>
 
 <!-- A full-height strip, inert, with its children taking their own events back -- the same
@@ -43,6 +44,6 @@
 		<!-- Presentational, and the reader is told nothing by it that the arrangement does not
 		     already say. -->
 		<div class="h-px w-6 {stylex.attrs(styles.rule).class}" role="presentation"></div>
-		<ThemeToggle {locale} />
+		<ThemeToggle {locale} {theme} />
 	</div>
 </div>

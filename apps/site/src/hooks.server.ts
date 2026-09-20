@@ -122,7 +122,10 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 			httpOnly: false,
 		});
 	}
-	const theme = event.cookies.get('theme');
+	// Settled once and used twice: the class the document is painted from, and the value a control
+	// renders from. A control that read the class back would be deriving what is already known.
+	const theme = event.cookies.get('theme') === 'dark' ? 'dark' : 'light';
+	event.locals.theme = theme;
 	const response = await resolve(event, {
 		transformPageChunk: ({ html }) =>
 			hoistCharset(

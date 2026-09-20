@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { Theme } from '@canmi/theme';
 import type { LocaleCode } from '$lib/locale';
 
 declare global {
@@ -7,6 +8,8 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			locale?: { code: LocaleCode; language_tag: string };
+			/** What the document is painted in, settled from the cookie beside the class. */
+			theme?: Theme;
 		}
 		// interface PageData {}
 		// interface PageState {}

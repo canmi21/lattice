@@ -13,5 +13,8 @@ import type { LayoutServerLoad } from './$types';
  */
 export const load: LayoutServerLoad = async ({ locals, fetch }) => ({
 	locale: locals.locale ?? { code: 'mw' as const, language_tag: SITE_LANGUAGE },
+	// Travels with the locale for the same reason: settled on the server, and a control that
+	// derived it from the painted class would be answering a question already answered.
+	theme: locals.theme ?? ('light' as const),
 	stats: await siteStats(fetch).catch(() => undefined),
 });
