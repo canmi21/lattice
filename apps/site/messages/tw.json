@@ -26,6 +26,7 @@
 	"diagram.close": "關閉圖表",
 	"diagram.enlarge": "放大圖表",
 	"diagram.title": "圖表",
+	"error.client": "用戶端頁面崩潰了！描述一下你當時在做什麼會很有幫助",
 	"error.contact.not-found": "如果你認為這是一個錯誤請聯絡 {#mail}{/mail}",
 	"error.contact.unexpected": "提交{#report}錯誤表單{/report}或聯絡 {#mail}{/mail}",
 	"error.not-found": "找不到這個頁面",

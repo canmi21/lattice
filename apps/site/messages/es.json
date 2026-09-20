@@ -26,6 +26,7 @@
 	"diagram.close": "Cerrar el diagrama",
 	"diagram.enlarge": "Ampliar el diagrama",
 	"diagram.title": "Diagrama",
+	"error.client": "Esta página ha fallado en el navegador. Ayuda que cuentes qué estabas haciendo",
 	"error.contact.not-found": "Si crees que es un error, escribe a {#mail}{/mail}",
 	"error.contact.unexpected": "Envía un {#report}informe de error{/report} o escribe a {#mail}{/mail}",
 	"error.not-found": "No se ha encontrado esta página",

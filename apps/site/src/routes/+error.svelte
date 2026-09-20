@@ -48,26 +48,14 @@
 			lineHeight: 1.6,
 			color: 'var(--color-text-soft)',
 		},
-		/** The address itself, at the strength of the text it sits in until it is pointed at. */
-		address: {
-			color: {
-				default: 'var(--color-text)',
-				':hover': 'var(--color-text-strong)',
-			},
-			transitionProperty: 'color',
-			transitionDuration: '150ms',
-			transitionTimingFunction: 'ease',
-		},
 	});
 </script>
 
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
 	import { page } from '$app/state';
 	import * as m from '$lib/paraglide/messages';
 	import type { LocaleCode } from '$lib/locale';
-	import { site } from '$lib/site';
+	import Offer from '$lib/error/offer.svelte';
 
 	// The view being rendered, read off what the server stamped. An error page still answers in
 	// the language the reader asked for. See spec/locale/addressing.md.
@@ -106,56 +94,13 @@
 	);
 	const titleText = $derived(STATUS_TEXT[page.status] ?? 'Error');
 
-	/**
-	 * Whether the page is reporting an absence or a failure, which is what the offer turns on.
-	 *
-	 * The two sentences are rendered separately rather than chosen into one variable, because
-	 * they do not carry the same tags -- only a failure offers the report form, since a page that
-	 * is simply not there is nothing to report -- and paraglide types each message by the tags it
-	 * actually has. A union of the two is correctly rejected.
-	 */
+	/** An absence rather than a failure: there is nothing to report, so the offer is shorter. */
 	const missing = $derived(page.status === 404);
-
-	/**
-	 * The dialog is fetched on the first press and never before it.
-	 *
-	 * The import is here and not at the top for two reasons. It is 24KB gzipped of preact, which
-	 * in the app entry is every page paying for a control only this one has. And this component
-	 * renders on the server, where `@sentry/sveltekit` resolves to an entry with no `getFeedback`
-	 * -- a top-level import of a name that is not there fails the module rather than the call,
-	 * which 500ed the error page itself.
-	 */
-	async function openReport(): Promise<void> {
-		const { openReport: show } = await import('$lib/error/report');
-		await show();
-	}
 </script>
 
 <svelte:head>
 	<title>{page.status} {titleText}</title>
 </svelte:head>
-
-<!-- Declared once and handed to whichever sentence is being rendered. Both sentences name the
-     address and only one names the form, so writing them inside each message would put the same
-     anchor in two places for the sake of the tag that differs. -->
-{#snippet address()}<a
-		href="mailto:{site.author.email}"
-		class="focus-link spring-underline article-link {stylex.attrs(styles.address).class}"
-		>{site.author.email}</a
-	>{/snippet}
-
-<!-- A button and not a link, because what it opens is a dialog on this page rather than somewhere
-     to go. Its label is the text inside the tag, so the words stay in the message file with the
-     sentence they belong to rather than in a key of their own.
-
-     The stroke is on the span and not on the button: a button's box is a line box, so a stroke
-     pinned to its bottom sat 2.5px below the address's in the same sentence. See utilities.css. -->
-{#snippet reportForm({ children }: { children?: Snippet })}<button
-		type="button"
-		onclick={openReport}
-		class="focus-link spring-underline-host cursor-pointer {stylex.attrs(styles.address).class}"
-		><span class="spring-underline article-link">{@render children?.()}</span></button
-	>{/snippet}
 
 <!-- The pair sits at the centre of the window and the offer at the foot of it. The offer is taken
      out of the flow rather than laid out below: in flow it would be half of what is centred, and
@@ -173,21 +118,6 @@
 		</p>
 	</div>
 	<p class="absolute inset-x-0 bottom-16 px-6 text-center {stylex.attrs(styles.offer).class}">
-		{#if missing}
-			<ParaglideMessage
-				message={m['error.contact.not-found']}
-				inputs={{}}
-				options={{ locale }}
-				mail={address}
-			/>
-		{:else}
-			<ParaglideMessage
-				message={m['error.contact.unexpected']}
-				inputs={{}}
-				options={{ locale }}
-				mail={address}
-				report={reportForm}
-			/>
-		{/if}
+		<Offer {locale} {missing} />
 	</p>
 </main>

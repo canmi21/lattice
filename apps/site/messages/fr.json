@@ -26,6 +26,7 @@
 	"diagram.close": "Fermer le diagramme",
 	"diagram.enlarge": "Agrandir le diagramme",
 	"diagram.title": "Diagramme",
+	"error.client": "Cette page a planté dans le navigateur. Décrire ce que vous faisiez nous aide",
 	"error.contact.not-found": "Si vous pensez qu'il s'agit d'une erreur, écrivez à {#mail}{/mail}",
 	"error.contact.unexpected": "Envoyez un {#report}rapport d'erreur{/report} ou écrivez à {#mail}{/mail}",
 	"error.not-found": "Cette page est introuvable",

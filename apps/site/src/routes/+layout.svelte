@@ -112,14 +112,26 @@
 	}
 
 	/**
-	 * Record the reading trail, for every page rather than only articles.
+	 * Cmd/Ctrl+I opens the report form, from wherever the reader is.
 	 *
-	 * The Back control lives on an article, but the step it has to remember is often taken
-	 * elsewhere -- the homepage, a licence page -- and a page that skipped recording would be a
-	 * hole the next article's Back link falls into. `afterNavigate` covers the client navigations
-	 * and the first load alike; on the first load `from` is null, which `advance` reads as "trust
-	 * the record only if it claims this page". See $lib/article/trail.ts.
+	 * `I` for issue, and the pair is the one the search dialog already uses -- one test covers a
+	 * Mac and a PC because only one of the two modifiers is ever the platform's. It may not take
+	 * Shift: `Cmd+Opt+I` and `Ctrl+Shift+I` are the developer tools, which a page cannot override.
+	 *
+	 * The form's widget is fetched by the press and not before, so a shortcut on every page costs
+	 * every page nothing. See lib/error/report.ts.
 	 */
+	async function onWindowKeydown(event: KeyboardEvent): Promise<void> {
+		// `key` is absent when the keydown did not come from the browser -- an extension or an
+		// automation harness dispatching a plain Event under this name. See search/dialog.svelte,
+		// where calling a string method on nothing threw for a reader mid-sentence.
+		if (event.key?.toLowerCase() !== 'i' || !(event.metaKey || event.ctrlKey)) return;
+		if (event.shiftKey || event.altKey) return;
+		event.preventDefault();
+		const { openReport } = await import('$lib/error/report');
+		await openReport();
+	}
+
 	/**
 	 * What the page being left has to be asked before it goes: where the reader was in it, and
 	 * that the document has stopped being the one they arrived in.
@@ -132,6 +144,15 @@
 		if (from) keepPlace(sessionStorage, from.url.pathname, window.scrollY);
 	});
 
+	/**
+	 * Record the reading trail, for every page rather than only articles.
+	 *
+	 * The Back control lives on an article, but the step it has to remember is often taken
+	 * elsewhere -- the homepage, a licence page -- and a page that skipped recording would be a
+	 * hole the next article's Back link falls into. `afterNavigate` covers the client navigations
+	 * and the first load alike; on the first load `from` is null, which `advance` reads as "trust
+	 * the record only if it claims this page". See $lib/article/trail.ts.
+	 */
 	afterNavigate(({ from, to, type }) => {
 		if (!to) return;
 		writeTrail(
@@ -183,6 +204,8 @@
 		},
 	};
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->

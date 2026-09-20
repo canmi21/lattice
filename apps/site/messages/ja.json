@@ -26,6 +26,7 @@
 	"diagram.close": "図を閉じる",
 	"diagram.enlarge": "図を拡大",
 	"diagram.title": "図",
+	"error.client": "ページがクラッシュしちゃいました！直前に何をしていたか教えてもらえると助かります",
 	"error.contact.not-found": "誤りだと思われる場合は {#mail}{/mail} までご連絡ください",
 	"error.contact.unexpected": "{#report}エラーレポート{/report}を送るか、{#mail}{/mail} までご連絡ください",
 	"error.not-found": "このページは見つかりませんでした",

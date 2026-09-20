@@ -1,0 +1,97 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The two ways out of an error page, as one sentence. See spec/architecture/css/authoring.md.
+	 *
+	 * No tag in angle brackets may appear anywhere in this block, comments included -- see
+	 * spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag in angle
+	 * brackets".
+	 */
+	const styles = stylex.create({
+		/** The address and the form, at the strength of the text they sit in until pointed at. */
+		control: {
+			color: {
+				default: 'var(--color-text)',
+				':hover': 'var(--color-text-strong)',
+			},
+			transitionProperty: 'color',
+			transitionDuration: '150ms',
+			transitionTimingFunction: 'ease',
+		},
+	});
+</script>
+
+<script lang="ts">
+	import type { Snippet } from 'svelte';
+	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
+	import type { LocaleCode } from '$lib/locale';
+	import * as m from '$lib/paraglide/messages';
+	import { site } from '$lib/site';
+
+	/**
+	 * What an error page offers a reader who wants to do something about it.
+	 *
+	 * Its own component because it appears in two places that are otherwise nothing alike -- at
+	 * the foot of a page that has a status code, and at the centre of one that does not -- and
+	 * because the report form it opens is wiring no page should hold a second copy of.
+	 */
+	let {
+		locale,
+		/** An absence rather than a failure: there is nothing to report, so only the address. */
+		missing = false,
+	}: { locale: LocaleCode; missing?: boolean } = $props();
+
+	/**
+	 * The dialog is fetched on the first press and never before it.
+	 *
+	 * The import is here and not at the top for two reasons. Its widget is 24KB gzipped of
+	 * preact, which in the app entry is every page paying for a control only an error page has.
+	 * And this renders on the server, where `@sentry/sveltekit` resolves to an entry with no
+	 * `getFeedback` -- a top-level import of a name that is not there fails the module rather
+	 * than the call, which 500ed the error page itself.
+	 */
+	async function openReport(): Promise<void> {
+		const { openReport: show } = await import('./report');
+		await show();
+	}
+</script>
+
+<!-- Declared once and handed to whichever sentence is being rendered. Both name the address and
+     only one names the form, so writing them inside each message would put the same anchor in
+     two places for the sake of the tag that differs. -->
+{#snippet address()}<a
+		href="mailto:{site.author.email}"
+		class="focus-link spring-underline article-link {stylex.attrs(styles.control).class}"
+		>{site.author.email}</a
+	>{/snippet}
+
+<!-- A button and not a link, because what it opens is a dialog on this page rather than somewhere
+     to go. Its label is the text inside the tag, so the words stay in the message file with the
+     sentence they belong to rather than in a key of their own.
+
+     The stroke is on the span and not on the button: a button's box is a line box, so a stroke
+     pinned to its bottom sat 2.5px below the address's in the same sentence. See utilities.css. -->
+{#snippet reportForm({ children }: { children?: Snippet })}<button
+		type="button"
+		onclick={openReport}
+		class="focus-link spring-underline-host cursor-pointer {stylex.attrs(styles.control).class}"
+		><span class="spring-underline article-link">{@render children?.()}</span></button
+	>{/snippet}
+
+{#if missing}
+	<ParaglideMessage
+		message={m['error.contact.not-found']}
+		inputs={{}}
+		options={{ locale }}
+		mail={address}
+	/>
+{:else}
+	<ParaglideMessage
+		message={m['error.contact.unexpected']}
+		inputs={{}}
+		options={{ locale }}
+		mail={address}
+		report={reportForm}
+	/>
+{/if}
