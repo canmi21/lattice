@@ -325,6 +325,64 @@ describe('article reads', () => {
 		);
 		expect(response.status).toBe(429);
 	});
+
+	// The half the site renders from. Cacheable is the whole reason it is a separate method, so
+	// the header is as much the contract here as the number is.
+	it('answers the count without recording one, and lets a shared cache hold the answer', async () => {
+		await api('/read', { method: 'POST', ip: IP_ONE, body: { slug } });
+
+		const asked = await api(`/read?slug=${slug}`, { ip: IP_TWO });
+		expect(asked.status).toBe(200);
+		expect(await payload(asked)).toEqual({ slug, read_count: 1 });
+		expect(asked.headers.get('Cache-Control')).toBe('public, max-age=300');
+
+		// Asking twice is still one read: the count is what changes when somebody visits, and
+		// looking is not visiting.
+		expect(await payload(await api(`/read?slug=${slug}`, { ip: IP_TWO }))).toEqual({
+			slug,
+			read_count: 1,
+		});
+	});
+
+	it('reports an article nobody has read as zero without opening its row', async () => {
+		expect(await payload(await api(`/read?slug=${UNREAD_SLUG}`, { ip: IP_ONE }))).toEqual({
+			slug: UNREAD_SLUG,
+			read_count: 0,
+		});
+
+		const rows = await database
+			.prepare('SELECT COUNT(*) AS rows FROM article_reads')
+			.first<{ rows: number }>();
+		expect(rows?.rows).toBe(0);
+	});
+
+	// A slug the corpus does not name stays unnamed until the next publication, so the refusal
+	// is held exactly as long as an answer would be. See spec/engagement.md.
+	it('refuses an unknown slug, and a missing one, for as long as it answers', async () => {
+		for (const path of ['/read?slug=made-up', '/read']) {
+			const response = await api(path, { ip: IP_ONE });
+			expect(response.status).toBe(404);
+			expect(await response.json()).toEqual({ status: 'error', message: 'unknown_article' });
+			expect(response.headers.get('Cache-Control')).toBe('public, max-age=300');
+		}
+	});
+
+	// A shared cache asking on everyone's behalf carries no address of its own, and this is the
+	// answer it exists to hold.
+	it('answers a count without a client address', async () => {
+		const anonymous = await app.fetch(
+			new Request(`${URLS.apps.production.api}/read?slug=${slug}`, {
+				headers: { Origin: URLS.apps.production.site },
+			}),
+			{
+				ASSETS: store,
+				DATABASE: database as unknown as Bindings['DATABASE'],
+				ENGAGEMENT_RATE_LIMITER: allow,
+			} as Bindings,
+		);
+		expect(anonymous.status).toBe(200);
+		expect(await payload(anonymous)).toEqual({ slug, read_count: 0 });
+	});
 });
 
 type ApiOptions = {

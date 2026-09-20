@@ -23,6 +23,7 @@ import {
 	type HomeAnswer,
 	type PublishedPage,
 	type PublishedView,
+	type ReadAnswer,
 	type SitemapAnswer,
 	type StatsAnswer,
 	type BatchAnswer,
@@ -98,6 +99,23 @@ export function publishedMetadata(
  */
 export function siteStats(fetch: Fetch): Promise<StatsAnswer | undefined> {
 	return answer<StatsAnswer>(fetch, api('/stats'));
+}
+
+/**
+ * The lookup half of the read counter, asked while the page is being rendered.
+ *
+ * Here rather than in `engagement/reads` for the reason `siteStats` is: what decides where a
+ * fetch belongs is which cache it wants, and this one wants this module's five-minute one.
+ * **Never throws** -- a count is an ornament and failure is absence. See spec/engagement.md,
+ * "The count is asked for and recorded separately".
+ */
+export async function publishedReads(fetch: Fetch, slug: string): Promise<number | undefined> {
+	try {
+		const found = await answer<ReadAnswer>(fetch, api(`/read?slug=${encodeURIComponent(slug)}`));
+		return found?.read_count;
+	} catch {
+		return undefined;
+	}
 }
 
 /**

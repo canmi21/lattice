@@ -20,6 +20,7 @@
 	phone_title={data.body.phone_title}
 	toc={data.body.toc}
 	words={data.metrics.words}
+	reads={data.reads}
 	summary={data.body.summary}
 	locale={data.locale}
 	theme={data.theme}

@@ -23,11 +23,15 @@ const counted = new Set<string>();
  * one reader into several. Focus and reconnect stay off, because returning to a tab is not opening
  * the article; the interval is the one trigger. See spec/engagement.md.
  */
-export function createReadsQuery(slug: () => string) {
+export function createReadsQuery(slug: () => string, served: () => number | undefined = () => undefined) {
 	return createQuery(() => ({
 		queryKey: [READS_QUERY_KEY, slug()],
 		queryFn: () => readsOf(slug()),
 		enabled: browser,
+		// A placeholder and not `initialData`: initial data is data, and data is fresh for
+		// `staleTime` -- five minutes in which the visit would never be recorded, because
+		// recording it is what the fetch does on the way to the answer.
+		placeholderData: placeholderOf(slug(), served()),
 		staleTime: QUERY_STALE_TIME,
 		gcTime: QUERY_CACHE_MAX_AGE,
 		// The same five minutes the answer is fresh for, so the timer asks exactly when the cached
@@ -38,6 +42,17 @@ export function createReadsQuery(slug: () => string) {
 		refetchOnReconnect: false,
 		retry: 1,
 	}));
+}
+
+/**
+ * The served figure as something to draw, or nothing where there is nothing to draw.
+ *
+ * Absent rather than zero when the API would not answer: zero is a claim that nobody has read
+ * this, and an article's metadata row is already written to leave the figure out entirely rather
+ * than show one it does not have.
+ */
+function placeholderOf(slug: string, served: number | undefined): Reads | undefined {
+	return served === undefined ? undefined : { slug, read_count: served };
 }
 
 /**

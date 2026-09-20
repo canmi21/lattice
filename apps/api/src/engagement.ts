@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Bindings } from './bindings';
-import type { ApiResponse, LikedAnswer, StatsAnswer } from '@canmi/artifacts';
+import type { ApiResponse, LikedAnswer, ReadAnswer, StatsAnswer } from '@canmi/artifacts';
 import { failure, success } from './respond';
 import { canonicalEmail } from './email';
 import { findArticle, rootOf } from './root';
@@ -166,14 +166,41 @@ engagement.put('/like', JSON_LIMIT, async (c) => {
 });
 
 /**
- * Count a read of one article, and answer with the count it now has.
+ * How many times one article has been read. Asking does not count as one.
  *
- * The slug rides in the body rather than the path because an article path contains a slash --
- * `development/rust-cargo-cranelift-tuning` -- and a route pattern that has to encode one is a
- * worse contract than the JSON body every other mutation here already uses.
+ * The same resource as the `POST` below, split from it because only a question can be cached --
+ * and being cacheable is what lets the site render the figure rather than fill a gap in after
+ * hydration. Refusals are held as long as answers, which is what `PUBLISHED` already means. See
+ * spec/engagement.md, "The count is asked for and recorded separately".
+ */
+engagement.get('/read', async (c) => {
+	const ip = clientIp(c.req.raw);
+	// Limited where there is an address, answered where there is not -- the same shape as
+	// `/stats`, because a cacheable public number is not something an unattributable request
+	// should be refused.
+	if (ip && !(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
+
+	const slug = c.req.query('slug');
+	// A query parameter rather than a path segment, because an article path contains a slash and
+	// the identity asked with here has to survive a router that would read one as a boundary.
+	if (!slug || !findArticle(await rootOf(c.env), slug)) {
+		return failure(c, 404, 'unknown_article', { 'Cache-Control': PUBLISHED });
+	}
+
+	const database = drizzle(c.env.DATABASE);
+	return success(c, { slug, read_count: await countOf(database, slug) } satisfies ReadAnswer, {
+		'Cache-Control': PUBLISHED,
+	});
+});
+
+/**
+ * Count a read of one article, and answer with the count it now has -- because the caller's
+ * figure is known to be wrong here, not as a second way to ask. See spec/engagement.md.
  *
- * Which slugs exist comes from the published root, so the database never learns a slug from a
- * request, and a new article no longer needs a deploy of this worker to be countable.
+ * The slug rides in the body rather than the path because an article path contains a slash, and
+ * a route pattern that has to encode one is a worse contract than the JSON body every other
+ * mutation here already uses. Which slugs exist comes from the published root, so the database
+ * never learns a slug from a request and a new article needs no deploy of this worker.
  */
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
@@ -194,12 +221,11 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 	// within the minute is the same read rather than a failure. So the count comes back
 	// either way and only the increment is withheld.
 	if (!(await withinLimit(c.env.READ_RATE_LIMITER, `${ip}:${slug}`))) {
-		const [existing] = await database
-			.select({ count: articleReads.count })
-			.from(articleReads)
-			.where(eq(articleReads.slug, slug))
-			.limit(1);
-		return success(c, { slug, read_count: existing?.count ?? 0 }, NO_STORE);
+		return success(
+			c,
+			{ slug, read_count: await countOf(database, slug) } satisfies ReadAnswer,
+			NO_STORE,
+		);
 	}
 
 	// Read and increment in one statement so two concurrent readers cannot land on the same
@@ -213,8 +239,23 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 		})
 		.returning({ count: articleReads.count });
 
-	return success(c, { slug, read_count: row?.count ?? 1 }, NO_STORE);
+	return success(c, { slug, read_count: row?.count ?? 1 } satisfies ReadAnswer, NO_STORE);
 });
+
+/**
+ * The count an article has, without opening a row for one nobody has read.
+ *
+ * Absent is zero rather than a special case: a row appears on the first read, so no row is an
+ * article at zero, and the two callers here would otherwise each decide that for themselves.
+ */
+async function countOf(database: Database, slug: string): Promise<number> {
+	const [existing] = await database
+		.select({ count: articleReads.count })
+		.from(articleReads)
+		.where(eq(articleReads.slug, slug))
+		.limit(1);
+	return existing?.count ?? 0;
+}
 
 function clientIp(request: Request): string | undefined {
 	return request.headers.get('CF-Connecting-IP') || undefined;

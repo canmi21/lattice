@@ -1,9 +1,47 @@
 # Reader engagement
 
 Newsletter subscriptions and likes are mutable reader state. They belong to the standalone API
-Worker at `apps/api`, never to the site Worker. The site has no embedded `/api/*` routes, and SSR
-does not fetch engagement data. Server rendering remains limited to locale selection and content
-that was available at build time.
+Worker at `apps/api`, never to the site Worker. The site has no embedded `/api/*` routes.
+
+**What SSR may fetch is decided by who the answer is about, not by whether it is engagement.** A
+number about the site -- how many have subscribed, how many have liked, how many have read an
+article -- is the same for every reader, so a shared cache may hold it and the server may render
+it. A fact about whoever is asking is never either: a page cached for one reader would tell the
+next one they had clicked something they had not. That is the line `/stats` and `/like` are split
+along, and the one `GET /read` and `POST /read` are split along below.
+
+## The count is asked for and recorded separately
+
+Reading an article is two things that were one request. `POST /read` recorded the visit and
+answered with the running total, so the only way to learn the count was to add to it -- and a
+`POST` is not a cacheable request, so there was no answer a shared cache could hold. The figure
+could not be rendered on the server and arrived after hydration, into a gap held open for it.
+
+So the question and the visit are two methods on one resource:
+
+| | what it is | who does it | cache |
+| --- | --- | --- | --- |
+| `GET /read?slug=` | how many have read this | the load, on the server and on a client navigation alike | `PUBLISHED`, refusals included |
+| `POST /read` | one more has | the browser, once it has hydrated | `no-store` |
+
+One name and two methods rather than two names, because they are the same fact approached twice.
+They share an answer shape for the same reason, the `POST`'s figure differing only in that it
+includes the visit it just made.
+
+**The `POST` still answers with a count, and that is not a second way to ask.** It is the one
+moment the caller's own figure is known to be wrong: what it drew came from a cached answer taken
+before this visit. The browser draws the served figure, records the visit, and replaces it with
+the figure that includes itself -- so the number a reader watches settle is their own arrival.
+
+Five minutes is the same delay every other published answer has, and the same reasoning: a
+counter that lags a reader's own visit is corrected by that reader's own visit. A slug the corpus
+does not name is refused for five minutes too, because it stays unnamed until the next
+publication.
+
+**A count is an ornament and never a dependency.** The site's lookup does not throw: an article
+that would not render because a counter was unreachable trades the thing for the thing about it.
+An absent count is absent from the metadata row rather than drawn as zero -- zero is a claim that
+nobody has read this, which is a different statement from having nothing to say.
 
 ## One D1 database owns API state
 

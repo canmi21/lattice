@@ -179,6 +179,7 @@
 		phone_title,
 		toc,
 		words,
+		reads: served,
 		summary,
 		locale,
 		theme,
@@ -196,6 +197,13 @@
 		toc: TocEntry[];
 		/** How long the article is in the view being read. Body prose only -- see ArticleView. */
 		words: number;
+		/**
+		 * How many have read it, as the load found out -- absent when the API would not say.
+		 *
+		 * The figure to draw until this reader's own visit has been recorded, which is a thing
+		 * only the browser can do. See spec/engagement.md.
+		 */
+		reads?: number;
 		/** The selected locale, or its English fallback. Absent only when neither exists. */
 		summary?: ArticleSummary;
 		locale: ArticleLocale;
@@ -214,7 +222,10 @@
 		xai: { icon: IconXai, name: 'xAI' },
 	} as const;
 
-	const reads = createReadsQuery(() => slug);
+	const reads = createReadsQuery(
+		() => slug,
+		() => served,
+	);
 	const readCount = $derived(reads.data?.read_count);
 
 	let summaryOpen = $state(false);
@@ -440,11 +451,12 @@
 						<Type class="size-3.5" aria-hidden="true" />
 						{formatCompact(words)}
 					</span>
-					<!-- Absent until the count arrives, rather than held open at a guessed width.
-					     The server cannot know this number -- see spec/engagement.md -- and the
-					     width it would need is the rendered width of a figure nobody has yet. A
-					     returning reader is served the previous count out of the persisted query
-					     cache and sees no movement at all. -->
+					<!-- Absent when there is no count, rather than held open at a guessed width:
+					     the width it would need is the rendered width of a figure nobody has.
+					     Normally there is one from the first frame, because the load asks -- what
+					     is left here is the API being unreachable. The figure then goes up by one
+					     when this reader's own visit is recorded, which is the one thing a server
+					     genuinely cannot do. See spec/engagement.md. -->
 					{#if readCount != null}
 						<!-- Absent below `sm` as well, and that is a second decision. The row is four
 						     controls and a date, which is one line on a laptop and two on a phone; the

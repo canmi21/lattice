@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { redirects } from 'virtual:redirects';
-import { orReload, publishedResources, publishedView } from '$lib/published';
+import { orReload, publishedReads, publishedResources, publishedView } from '$lib/published';
 import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
 import { namedResources } from '@canmi/artifacts';
 import type { PageLoad } from './$types';
@@ -41,13 +41,19 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 		redirect(segments.length > 1 ? 301 : 302, `/${found.path}${url.search}`);
 
 	const view = found.view;
-	// The second call on this path, and the same bet as the first. A compiled article names
-	// resources and stops, so rendering one also asks what those rids currently mean -- once for
-	// the whole page rather than once per resource. See spec/architecture/resource.md, "One
-	// question per page, not one per resource".
-	const resources = await publishedResources(fetch, namedResources(view.body.blocks));
+	// The second and third calls on this path, together because neither is the other's input.
+	// A compiled article names rids and stops, so rendering one also asks what those currently
+	// mean -- once for the whole page; see spec/architecture/resource.md, "One question per page,
+	// not one per resource". The count is asked here rather than after hydration so the figure is
+	// in the first frame; see spec/engagement.md, "The count is asked for and recorded
+	// separately".
+	const [resources, reads] = await Promise.all([
+		publishedResources(fetch, namedResources(view.body.blocks)),
+		publishedReads(fetch, view.slug),
+	]);
 	return {
 		resources,
+		reads,
 		// Which card this view shows, from the answer rather than from the address: a card is a
 		// content-addressed object and there is nothing to derive one from a slug.
 		card: found.card,

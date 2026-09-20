@@ -35,7 +35,14 @@ export const LikedAnswerSchema = v.object({ liked: v.boolean() });
 /** Read counts by slug, for every slug asked for that names an article. */
 export const ReadsAnswerSchema = v.object({ reads: v.record(v.string(), counter) });
 
-/** What recording a visit answers with: the article, and the running total including it. */
+/**
+ * One article and its count, which is what both halves of the read counter answer.
+ *
+ * `GET /read` asks and `POST /read` records, and they share a shape because they answer the same
+ * question -- the `POST` differing only in that its figure includes the visit it just made. A
+ * second schema would be the same two fields under another name, and a consumer would have to
+ * know which one it was holding to read them. See spec/engagement.md.
+ */
 export const ReadAnswerSchema = v.object({ slug: v.string(), read_count: counter });
 
 /** Taking or giving back a like. */
