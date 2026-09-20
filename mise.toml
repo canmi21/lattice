@@ -160,7 +160,7 @@ description = "Regenerate the Rust mirror of the URL map from libs/urls"
 # so skipping this step means the mirror changes shape after it is generated.
 run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
 
-# What `mise run publish press` runs, and the one verb the workspace refuses to let mean
+# What `mise run publish lattice` runs, and the one verb the workspace refuses to let mean
 # everything -- see spec/architecture/repos.md there. For this project publishing is the corpus
 # rather than a release: compile every view into `data/bucket`, then mirror.
 #
@@ -168,7 +168,7 @@ run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
 # passes through to the mirror; the compile writes only into `data/` either way and is safe to
 # repeat, since an object whose bytes are unchanged has the same name and is skipped.
 [tasks.publish]
-description = "Compile the corpus into publishable objects and mirror them: `publish press [--live]`"
+description = "Compile the corpus into publishable objects and mirror them: `publish lattice [--live]`"
 # `cms segments` first, because the layout it writes is no longer in git -- it rebuilds from the
 # corpus in seconds, and a view spliced from a stale one is wrong in a way nothing reports. See
 # spec/i18n/segments.md.

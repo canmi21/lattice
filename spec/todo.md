@@ -1243,7 +1243,7 @@ publish step is what would move.
 [architecture/cms.md](architecture/cms.md) draws the line plainly: a view that has found
 outstanding work shows the command that closes it, and that command becomes a button only once
 the operation has moved below both shells and the task substrate can report its progress and
-refuse a second copy. `publish` is `mise run publish press` and lives below neither shell, so the
+refuse a second copy. `publish` is `mise run publish lattice` and lives below neither shell, so the
 CMS may name it and may not run it.
 
 It is exactly the class that rule was written for. It runs for as long as the corpus takes to

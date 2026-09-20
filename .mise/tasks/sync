@@ -67,7 +67,7 @@ if [ -z "$OBJECTS_REMOTE" ] || [ -z "$METADATA_REMOTE" ]; then
 fi
 
 # Every argument, not just the first. mise appends a task's whole argument list to its last
-# command, so this is reached as `sync press --live` as often as `sync --live` -- and reading `$1`
+# command, so this is reached as `sync lattice --live` as often as `sync --live` -- and reading `$1`
 # alone made the first of those a dry run that reported success. The flag is what is looked for,
 # wherever it lands.
 MODE=(--dry-run)
