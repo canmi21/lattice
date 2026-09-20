@@ -135,9 +135,10 @@ dir = "apps/cdn"
 # it alongside the worker.
 run = 'pnpm exec wrangler deploy --env=""'
 
-# The two workers take their port from the workspace slot as flags, so an overlay binds its own
-# range; the numbers pinned in each wrangler.jsonc are what slot 0 resolves to. libs/urls owns
-# the arithmetic and prints the flags. The site needs no flag: its Vite config reads the slot.
+# Each dev server binds the number pinned in its own wrangler.jsonc, and the site's Vite config
+# reads the same number from libs/urls. One checkout runs one set: the slot arithmetic that once
+# shifted the whole range for a second is gone, and the collision is the mutex. See
+# spec/toolchain.md.
 [tasks.dev-api]
 description = "Run the API worker"
 dir = "apps/api"
