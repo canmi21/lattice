@@ -450,8 +450,7 @@ export const ImageVariantSchema = v.object({
 export const ImageLayerSchema = v.object({
 	...layered,
 	/**
-	 * Base64 thumbhash: the compact canonical placeholder, and the only form kept. The site build
-	 * decodes it once and inlines the result, so a reader sees the picture before it arrives.
+	 * Base64 thumbhash: the compact canonical placeholder, and what `placeholder` decodes from.
 	 *
 	 * Optional, because a picture is not the only thing this layer describes. An icon binds two
 	 * files under `icon` and has no single picture to stand in for -- **absent is the answer**
@@ -459,6 +458,16 @@ export const ImageLayerSchema = v.object({
 	 * tones would be painted under the other.
 	 */
 	thumbhash: v.optional(v.string()),
+	/**
+	 * The same placeholder decoded, as a `data:image/webp` URI a page paints directly.
+	 *
+	 * Carried rather than derived where it is wanted, and the reason is not size: this record is
+	 * read by a **universal** load, and the decode is a WebP codec reached through `node:fs`,
+	 * which no browser bundle may contain. One decode at import serves both halves. Measured at
+	 * 167 characters median here, about 8% of a photograph's record. Additive, so the layer
+	 * keeps its version -- see the parsing table in spec/architecture/resource.md.
+	 */
+	placeholder: v.optional(v.string()),
 	dimension: v.object({ width: v.number(), height: v.number(), aspect: v.string() }),
 	resolution: v.optional(v.object({ width: v.number(), height: v.number() })),
 	variants: v.array(ImageVariantSchema),
@@ -959,4 +968,113 @@ export const ICON_EXTENSION: Record<string, string> = {
  */
 export function toned(icon: IconLayer, want?: Tone): ImageVariant | undefined {
 	return want ? icon.tones[want] : (icon.tones.light ?? icon.tones.dark);
+}
+
+/**
+ * What a published variant's file is called, keyed by what it holds.
+ *
+ * Beside `ICON_EXTENSION` rather than folded into it, for the reason that table gives: a ladder
+ * produces these four and never an SVG or an ICO, and answering `avif` for a mime it does not
+ * recognise would be a guess an icon cannot afford. Held to `for_variant` in
+ * apps/cms/src/extension.rs by a test, the two being one fact in two languages.
+ */
+export const VARIANT_EXTENSION: Record<string, string> = {
+	'image/avif': 'avif',
+	'image/webp': 'webp',
+	'image/png': 'png',
+	// `jpeg`, matching what apps/cms names the file. These are object addresses, and `/object`
+	// forms a key from the name rather than correcting it -- so a link built here spelling it
+	// `jpg` is a 404, not the hop `/derive` grants a target.
+	'image/jpeg': 'jpeg',
+};
+
+/**
+ * Where one published file is fetched from: the content id and the extension that says how to
+ * read it, under `/object` like every other byte the CDN holds.
+ *
+ * Here rather than in each caller because the resolution that used to happen at build time now
+ * happens in three places -- a build writing the markdown target's address, a Worker rendering a
+ * page, a browser rendering the same page again -- and a URL spelled three ways is three chances
+ * to spell it wrong. The CDN is passed rather than picked: which one answers depends on the mode.
+ */
+export function objectUrl(cdnUrl: string, cid: string, extension: string): string {
+	return `${cdnUrl}/object/${cid}.${extension}`;
+}
+
+/**
+ * The variants a `srcset` can name, smallest first.
+ *
+ * Only the ones with pixels, because a `w` descriptor is a pixel count and a vector has none to
+ * state -- it is the `src`, and one file that serves every width needs no candidates beside it.
+ */
+export function rungs(image: ImageLayer): (ImageVariant & { width: number })[] {
+	return image.variants
+		.flatMap((file) => (file.resolution ? [{ ...file, width: file.resolution.width }] : []))
+		.toSorted((a, b) => a.width - b.width);
+}
+
+/** Everything the markup needs about one picture, from the record and the CDN alone. */
+export type Picture = {
+	src: string;
+	srcset: string;
+	/** The intrinsic box, which is what reserves the space before anything is fetched. */
+	width: number;
+	height: number;
+	ratio: string;
+	/** The colour block painted under it while it arrives. Absent for a record holding no hash. */
+	placeholder?: string;
+};
+
+/**
+ * Which of a resource's files a picture is drawn from, and the refusal when it is not one.
+ *
+ * The second per-kind selector, beside `toned`, and one thing separates them: **a mark that does
+ * not resolve is absent and a picture that does not is an error.** A card's foot loses an
+ * ornament and still says where the link goes; an article loses what the paragraph is about, and
+ * a blank there is how a missing image becomes one nobody reports. So this throws, where the
+ * build refuses only what its committed manifest does not know -- spec/architecture/resource.md.
+ */
+export function pictured(
+	rid: string,
+	record: ParsedResource | undefined,
+	cdnUrl: string,
+): Picture {
+	if (!record) throw new Error(`no record for resource ${rid}, which an article draws`);
+	const image = requireSegment(record, 'image');
+	// The file to serve at the picture's own size, which is the largest rung that is never
+	// enlarged -- asked of the layer, so nothing here has to know which mimes scale.
+	const file = best(image, width(image));
+	if (!file) throw new Error(`resource ${rid} publishes no file to draw`);
+	return {
+		src: objectUrl(cdnUrl, file.content, VARIANT_EXTENSION[file.mime] ?? 'avif'),
+		srcset: rungs(image)
+			.map(
+				(rung) =>
+					`${objectUrl(cdnUrl, rung.content, VARIANT_EXTENSION[rung.mime] ?? 'avif')} ${rung.width}w`,
+			)
+			.join(', '),
+		// The intrinsic box, not the chosen variant's: they share an aspect, and this is what the
+		// browser needs to reserve the right space before anything loads.
+		width: width(image),
+		height: height(image),
+		ratio: aspect(image),
+		placeholder: image.placeholder,
+	};
+}
+
+/**
+ * Every rid the blocks of one view name, each asked for once.
+ *
+ * A block declares its resources under a key that says so, and this reads that key and nothing
+ * else. What it replaces was a switch over block types, kept in the page that renders them,
+ * which grew an arm for every block that came to name one. The shape is what fixes that: with
+ * the roles on the block there is no list here to grow. Deduplicated, because two pictures of
+ * one subject are one question -- spec/architecture/resource.md, "One question per page".
+ */
+export function namedResources(blocks: readonly Block[]): string[] {
+	return [
+		...new Set(
+			blocks.flatMap((block) => ('resources' in block ? Object.values(block.resources ?? {}) : [])),
+		),
+	];
 }

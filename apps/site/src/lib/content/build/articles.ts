@@ -57,7 +57,6 @@ import type {
 } from '@canmi/artifacts/types';
 import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '../../locale/index.ts';
 import { highlight } from './highlight.ts';
-import { buildPreviews } from './placeholder.ts';
 
 const SEGMENT_LAYOUT_VERSION = 5;
 
@@ -299,7 +298,6 @@ export async function buildArticles(
 			`${paths.segments}: expected version ${SEGMENT_LAYOUT_VERSION}, got ${layout.version}`,
 		);
 	}
-	const previews = await buildPreviews(assets);
 	const articles: Article[] = [];
 
 	// Two passes over the corpus, because an `::article` card names an article that nothing has
@@ -380,11 +378,11 @@ export async function buildArticles(
 			// article's own language, and a description generated in English and translated into
 			// eight is available in that one too. Reading the original meant hearing the pictures
 			// described in a language the article never used.
-			resolveAsset: createAssetResolver(assets, media, previews, paths.cdnUrl, originLocale),
+			resolveAsset: createAssetResolver(assets, media, paths.cdnUrl, originLocale),
 			// No locale and no CDN: an icon resolves to a rid, and what that rid holds is neither
 			// this build's to settle nor translated. See spec/architecture/resource.md.
 			resolveIcon,
-			resolveVideo: createVideoResolver(assets, media, previews, paths.cdnUrl, originLocale),
+			resolveVideo: createVideoResolver(assets, media, paths.cdnUrl, originLocale),
 			describeDiagram: createDiagramResolver(drawings, originLocale),
 			articles: references.mw,
 			highlight,
@@ -403,7 +401,6 @@ export async function buildArticles(
 									resolveAsset: createAssetResolver(
 										assets,
 										media,
-										previews,
 										paths.cdnUrl,
 										PUBLIC_LANGUAGE[code],
 									),
@@ -411,7 +408,6 @@ export async function buildArticles(
 									resolveVideo: createVideoResolver(
 										assets,
 										media,
-										previews,
 										paths.cdnUrl,
 										PUBLIC_LANGUAGE[code],
 									),

@@ -131,14 +131,21 @@ pub mod layer {
 	#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 	pub struct Image {
 		pub version: u32,
-		/// Base64 thumbhash: the compact canonical placeholder, and the only form kept. The
-		/// build decodes it once and inlines the result.
+		/// Base64 thumbhash: the compact canonical placeholder, and what `placeholder` below is
+		/// decoded from.
 		///
 		/// Optional, because a picture is not the only thing this layer describes. An icon binds
 		/// two files under `icon` and has no single picture to stand in for -- absent is the
 		/// answer there, and a placeholder invented for one tone would be painted under the other.
 		#[serde(default, skip_serializing_if = "Option::is_none")]
 		pub thumbhash: Option<String>,
+		/// The same placeholder decoded, as a `data:image/webp` URI a page paints directly.
+		///
+		/// Stored rather than derived where it is wanted: see `super::painted`. Additive, so the
+		/// layer keeps its version -- an unknown field is the row the parsing table opens with,
+		/// in spec/architecture/resource.md.
+		#[serde(default, skip_serializing_if = "Option::is_none")]
+		pub placeholder: Option<String>,
 		/// The intrinsic box -- an SVG's `viewBox`, a bitmap's pixels -- and what layout and
 		/// aspect ratio are computed from.
 		pub dimension: Dimension,
@@ -859,6 +866,7 @@ fn from_legacy(
 			let pixels = !scalable(&origin.mime);
 			let picture = layer::Image {
 				version: layer::Image::VERSION,
+				placeholder: painted_from(Some(&image.thumbhash)),
 				thumbhash: Some(image.thumbhash),
 				dimension: Dimension {
 					width: image.source.width,
@@ -1030,10 +1038,40 @@ pub fn migrate(merged: &Merged, metadata: &Path) -> Vec<String> {
 			std::fs::read_to_string(path)
 				.ok()
 				.and_then(|text| serde_json::from_str::<Media>(&text).ok())
-				.is_none_or(|document| document.version < VERSION || document.canonical != media.canonical)
+				// The whole record rather than the envelope's version and its canonical form.
+				// Those two were the only fields that had ever moved without a pixel moving with
+				// them, and the day a third did -- a layer gaining a field, which by design
+				// raises no number above it -- the published copy stayed behind with nothing to
+				// say so. The manifest is what a record is written from, so any difference is a
+				// record that has not been written yet.
+				.is_none_or(|document| document != **media)
 		})
 		.map(|(key, _)| key.clone())
 		.collect()
+}
+
+/// The decoded placeholder for a base64 thumbhash, or none where there is nothing to decode.
+fn painted_from(thumbhash: Option<&str>) -> Option<String> {
+	super::painted(&STANDARD.decode(thumbhash?).ok()?)
+}
+
+/// Decode the placeholder for every picture written before the record carried one.
+///
+/// A record holds the hash already, so this touches no original and no pixel -- the same reason
+/// `run::republish` exists rather than a re-derivation. Returns how many were filled in.
+pub fn repaint(merged: &mut Merged) -> usize {
+	let mut filled = 0;
+	for media in merged.media.values_mut() {
+		let Some(image) = media.layers.image.as_mut() else { continue };
+		if image.placeholder.is_some() {
+			continue;
+		}
+		image.placeholder = painted_from(image.thumbhash.as_deref());
+		if image.placeholder.is_some() {
+			filled += 1;
+		}
+	}
+	filled
 }
 
 pub fn ratio_of(width: u32, height: u32) -> String {
@@ -1078,6 +1116,7 @@ pub fn media_for(
 	let image = layer::Image {
 		version: layer::Image::VERSION,
 		thumbhash: Some(STANDARD.encode(&derived.thumb)),
+		placeholder: super::painted(&derived.thumb),
 		dimension: Dimension {
 			width: derived.width,
 			height: derived.height,
@@ -1138,6 +1177,7 @@ pub mod fixture {
 		layers.image = Some(layer::Image {
 			version: layer::Image::VERSION,
 			thumbhash: None,
+			placeholder: None,
 			dimension: Dimension { width, height, aspect: ratio_of(width, height) },
 			resolution: Some(Resolution { width, height }),
 			variants: variants
@@ -1172,6 +1212,7 @@ pub mod fixture {
 		layers.image = Some(layer::Image {
 			version: layer::Image::VERSION,
 			thumbhash: None,
+			placeholder: None,
 			dimension: Dimension { width: 32, height: 32, aspect: "1:1".into() },
 			resolution: Some(Resolution { width: 32, height: 32 }),
 			variants: Vec::new(),
@@ -1574,6 +1615,7 @@ mod tests {
 		layers.image = Some(layer::Image {
 			version: layer::Image::VERSION,
 			thumbhash: None,
+			placeholder: None,
 			dimension: Dimension { width: 1920, height: 1248, aspect: "40:26".into() },
 			resolution: None,
 			variants: variants
@@ -1679,6 +1721,46 @@ mod tests {
 		let json = serde_json::to_string(media).expect("json");
 		crate::image::store::write(&path, json.as_bytes()).expect("sidecar");
 		assert!(migrate(&merged, metadata).is_empty());
+	}
+
+	#[test]
+	fn a_published_record_missing_a_field_a_layer_gained_is_stale_too() {
+		// The case the version numbers are designed not to report. A layer gaining a field raises
+		// nothing above it -- by spec/architecture/resource.md, an additive change is the row a
+		// reader ignores -- so the envelope still says 5 and the published copy sat there with a
+		// placeholder no page could paint. Comparing the record is what notices.
+		let temporary = tempfile::tempdir().expect("temp");
+		let metadata = temporary.path();
+		let merged = merged_of(LEGACY_IMAGE);
+		let media = merged.media.get(LEGACY_CID).expect("the record");
+		let path = crate::image::store::meta_path(metadata, media.resource.as_str());
+
+		let mut published = media.clone();
+		published.layers.image.as_mut().expect("a picture").placeholder = None;
+		assert_eq!(published.version, media.version);
+		let json = serde_json::to_string(&published).expect("json");
+		crate::image::store::write(&path, json.as_bytes()).expect("sidecar");
+		assert_eq!(migrate(&merged, metadata), vec![LEGACY_CID.to_owned()]);
+	}
+
+	#[test]
+	fn a_record_holding_only_the_hash_is_repainted_without_reading_an_original() {
+		// What `cms image` does to a corpus published before the decoded form was stored. The
+		// hash is on the record already, so this touches no file under data/source.
+		let mut merged = merged_of(LEGACY_IMAGE);
+		let picture = merged.media.get_mut(LEGACY_CID).expect("the record");
+		picture.layers.image.as_mut().expect("a picture").placeholder = None;
+
+		assert_eq!(repaint(&mut merged), 1);
+		let painted = merged
+			.media
+			.get(LEGACY_CID)
+			.and_then(|media| media.image())
+			.and_then(|image| image.placeholder.clone())
+			.expect("a decoded placeholder");
+		assert!(painted.starts_with("data:image/webp;base64,"), "{painted}");
+		// Idempotent: a record that already carries one is left alone rather than re-encoded.
+		assert_eq!(repaint(&mut merged), 0);
 	}
 
 	#[test]

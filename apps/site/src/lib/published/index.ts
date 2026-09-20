@@ -55,7 +55,7 @@ type Fetch = typeof fetch;
  * from; the Worker needs an origin, because SvelteKit answers a same-origin path from its own
  * router and would never reach the dev proxy. The two are identical in production. See libs/urls.
  */
-function upstream(): { api: string; cdn: string } {
+function upstream(): { api: string; cdn: string; alias: string } {
 	return browser ? pageUrls(dev) : pickUrls(dev);
 }
 
@@ -353,9 +353,11 @@ export async function publishedFeedEntries(
 	);
 }
 
-/** Where the links a feed body writes are rooted, for whichever CDN is answering. */
+/** Where the links a feed body writes are rooted, for whichever hosts are answering. */
 function feedBases(url: string, locale: LocaleCode) {
-	return { site: URLS.apps.production.site, images: `${upstream().cdn}/object/`, url, locale };
+	// The alias layer rather than the CDN, because a feed names a rid and has nothing to resolve
+	// one with. See `FeedBases` in libs/artifacts.
+	return { site: URLS.apps.production.site, resources: `${upstream().alias}/`, url, locale };
 }
 
 /**

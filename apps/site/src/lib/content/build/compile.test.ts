@@ -14,7 +14,7 @@ import { articleFrontmatter, compile, compilePage } from './compile';
 function feedOf(compiled: Pick<Compiled, 'blocks'>): string {
 	return feedHtml(compiled.blocks, {
 		site: URLS.apps.production.site,
-		images: `${URLS.apps.production.cdn}/object/`,
+		resources: `${URLS.apps.production.alias}/`,
 		url: '/article',
 		locale: 'mw',
 	});
@@ -753,14 +753,14 @@ it('refuses an image reference nothing resolves, rather than addressing it anywa
  * and the feed and the markdown did not -- every image in both was a 404. So both targets name
  * what the resolver found, and a reference it did not find fails the compile.
  */
-it('names the published rendition in the feed and the markdown, not the authored id', async () => {
+it('names the published rendition in the markdown and the rid in the feed, never the authored id', async () => {
 	const resolved = {
+		resource: 'k7m2x',
 		src: 'https://cdn.example/object/rendition.avif',
 		srcset: 'https://cdn.example/object/rendition.avif 640w',
 		width: 100,
 		height: 100,
 		ratio: '1:1',
-		preview: '',
 	};
 	const compiled = await compile(
 		'---\ntitle: Test\nlang: en-US\n---\n\n::image{src="original.avif" alt="A"}\n\n![B](original.avif)\n',
@@ -772,10 +772,57 @@ it('names the published rendition in the feed and the markdown, not the authored
 		},
 	);
 
-	for (const target of [feedOf(compiled), compiled.markdown]) {
-		expect(target).not.toContain('original.avif');
-		expect(target.match(/rendition\.avif/g)).toHaveLength(2);
-	}
+	// Two documents and two answers, because they can follow different things. The markdown
+	// target is read by something that will not run a layout and cannot resolve anything, so it
+	// gets the rendition the build found; a feed names the rid and lets the alias layer say what
+	// that currently means, which is the address that survives a re-encode.
+	expect(compiled.markdown).not.toContain('original.avif');
+	expect(compiled.markdown.match(/rendition\.avif/g)).toHaveLength(2);
+	const feed = feedOf(compiled);
+	expect(feed).not.toContain('original.avif');
+	expect(feed).not.toContain('rendition.avif');
+	expect(feed.match(/ill\.li\/k7m2x/g)).toHaveLength(2);
+});
+
+/**
+ * The block a picture compiles to, which is the rid and what the article itself decided.
+ *
+ * Everything else about a picture moves when it is encoded again, on nobody's schedule but the
+ * corpus's -- so carrying it here is what made a re-encode republish every article naming it.
+ * See spec/architecture/resource.md, "A rid is resolved three times".
+ */
+it('compiles a picture to its rid and nothing derived from what that resource holds', async () => {
+	const compiled = await compile(
+		'---\ntitle: Test\nlang: en-US\n---\n\n::image{src="original.avif" alt="A" ratio="16:9"}\n',
+		'/article',
+		{
+			newTabNote: 'opens in new tab',
+			resolveAsset: () => ({
+				resource: 'k7m2x',
+				src: 'https://cdn.example/object/rendition.avif',
+				srcset: 'https://cdn.example/object/rendition.avif 640w',
+				width: 100,
+				height: 100,
+				ratio: '1:1',
+				placeholder: 'data:image/webp;base64,PLACEHOLDER',
+			}),
+			highlight: async () => '',
+		},
+	);
+
+	const picture = compiled.blocks.find((block) => block.type === 'image');
+	expect(picture).toEqual({
+		type: 'image',
+		resources: { picture: 'k7m2x' },
+		alt: 'A',
+		crop: '16 / 9',
+		align: undefined,
+	});
+	// The ladder, the placeholder and the box, none of which a compiled article may carry.
+	const written = JSON.stringify(picture);
+	expect(written).not.toContain('rendition.avif');
+	expect(written).not.toContain('PLACEHOLDER');
+	expect(written).not.toContain('100');
 });
 
 it('names ::linkcard, not ::image, when a card ratio is malformed', async () => {
@@ -972,9 +1019,9 @@ it('turns a link card url into the rid of that site mark, keeping the tone unres
 	// The whole URL is handed over, not a hostname this side extracted: which resource a card
 	// means is the library's question, and two spellings of that lookup would eventually differ.
 	expect(asked).toEqual(['https://Example.com/deep/page', 'https://nobody.example']);
-	expect(cards[0]).toMatchObject({ icon: 'k7m2x', tone: 'dark' });
+	expect(cards[0]).toMatchObject({ resources: { icon: 'k7m2x' }, tone: 'dark' });
 	// Nothing collected for a site is an ordinary state, and the card still compiles.
-	expect(cards[1]?.type === 'linkcard' && cards[1].icon).toBeUndefined();
+	expect(cards[1]?.type === 'linkcard' && cards[1].resources).toBeUndefined();
 	// No address anywhere in the block: a hostname or a cid here would be the baked resolution.
 	expect(JSON.stringify(cards[0])).not.toContain('example.com/favicon');
 });

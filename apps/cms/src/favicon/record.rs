@@ -176,6 +176,7 @@ pub fn prepare(
 		// No placeholder: two tones are two pictures, and one thumbhash painted under both would
 		// be the wrong colour under one of them. See the layer.
 		thumbhash: None,
+		placeholder: None,
 		dimension: dimension.expect("a file was measured, so there is a box"),
 		resolution,
 		// Empty on purpose. The files bind at `icon`, because what selects between them is tone

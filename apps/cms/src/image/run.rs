@@ -58,6 +58,11 @@ pub fn run(
 	// reads the same as a photograph carrying no position.
 	let gazetteer = super::geo::Gazetteer::open(repo);
 
+	// A record written before the placeholder was stored holds the hash it decodes from, so the
+	// manifest can fill it in without reading an original. Done before the sweep below, which is
+	// what notices that the published copy no longer matches and rewrites it.
+	manifest::repaint(&mut merged);
+
 	// Records published under an older shape are rewritten from the merged manifest, which
 	// already holds everything they contain. Re-deriving to fix a version number would spend
 	// minutes of CPU to produce identical pixels.

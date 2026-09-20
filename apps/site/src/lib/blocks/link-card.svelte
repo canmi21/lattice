@@ -45,7 +45,7 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls } from '@canmi/urls';
-	import { ICON_EXTENSION, toned, type ParsedResource } from '@canmi/artifacts';
+	import { ICON_EXTENSION, objectUrl, toned, type ParsedResource } from '@canmi/artifacts';
 	import Picture, { type Source } from '$lib/components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import * as m from '$lib/paraglide/messages';
@@ -90,7 +90,7 @@
 	// Nothing rather than a guessed extension: `/object` forms a key from the name it is given and
 	// corrects nothing, so a spelling this side invented is a 404 wearing an icon's clothes.
 	const faviconSrc = $derived(
-		mark && faviconExtension ? `${cdnUrl}/object/${mark.content}.${faviconExtension}` : undefined,
+		mark && faviconExtension ? objectUrl(cdnUrl, mark.content, faviconExtension) : undefined,
 	);
 
 	let imgEl = $state<HTMLImageElement | undefined>();

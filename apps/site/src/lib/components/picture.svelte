@@ -20,8 +20,6 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
-	import { pageUrls } from '@canmi/urls';
 	import Preview from '$lib/components/preview.svelte';
 	import type { LocaleCode } from '$lib/locale';
 	import * as m from '$lib/paraglide/messages';
@@ -109,12 +107,11 @@
 			.join(';') || undefined,
 	);
 
-	// An article can name an image that has not been imported yet. That should cost a
-	// placeholder rather than a build, so an unresolved reference still renders.
-	const fallback = $derived(`${pageUrls(dev).cdn}${OBJECT}${src}`);
 	// The `img` is what a browser understanding none of the sources falls back to, so it names
-	// the widest-supported format rather than the best one.
-	const largestJpeg = $derived(jpeg?.split(', ').pop()?.split(' ')[0] ?? fallback);
+	// the widest-supported format rather than the best one. `src` is already an address by the
+	// time it arrives -- resolved in the page's load for a picture, in the build for a card's
+	// cover -- so there is nothing left here to join to an origin.
+	const largestJpeg = $derived(jpeg?.split(', ').pop()?.split(' ')[0] ?? src);
 </script>
 
 <!-- `block`, because `picture` is inline in the browser's own stylesheet and a non-replaced

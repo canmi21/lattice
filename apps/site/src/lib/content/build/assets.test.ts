@@ -2,13 +2,20 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { sourceFingerprint } from './assemble';
-import { aspect, best, toned, width, ICON_EXTENSION, TONES } from '@canmi/artifacts';
+import {
+	aspect,
+	best,
+	toned,
+	width,
+	ICON_EXTENSION,
+	TONES,
+	VARIANT_EXTENSION,
+} from '@canmi/artifacts';
 import {
 	createAssetResolver,
 	createDiagramResolver,
 	createIconResolver,
 	createVideoResolver,
-	EXTENSION,
 	readAssets,
 	type MediaManifest,
 } from './assets';
@@ -16,10 +23,11 @@ import {
 /**
  * The Rust function that names a published file, read out of its source.
  *
- * This table rebuilds a URL for a file `cms image` already named, so the two have to spell every
- * format the same way. Nothing connected them, and both said `jpg` for a JPEG. A redirect on the
- * CDN used to catch that; `/object` forms a key from the name and reads it, so the disagreement
- * is now a 404 and this is the only thing holding the two spellings together.
+ * The table is in libs/artifacts, beside `ICON_EXTENSION`; its test stays here because that
+ * package's own program is the browser's and has no `node:fs` to read a file with. It rebuilds
+ * a URL for a file `cms image` already named, and both sides once said `jpg` for a JPEG --
+ * `/object` forms a key from the name and reads it, so that disagreement is a 404 now and this
+ * is the only thing holding the two spellings together.
  */
 const ARM = /"(image\/[a-z+]+)" => (?:"([a-z0-9]+)"|(JPEG))/g;
 
@@ -40,7 +48,7 @@ it('names each format the way apps/cms names the file', () => {
 	expect(Object.keys(authoritative).length).toBeGreaterThan(0);
 
 	for (const [mime, extension] of Object.entries(authoritative)) {
-		expect(EXTENSION[mime], `${mime} is spelled differently on each side`).toBe(extension);
+		expect(VARIANT_EXTENSION[mime], `${mime} is spelled differently on each side`).toBe(extension);
 	}
 });
 
@@ -115,6 +123,7 @@ const LIBRARY = readAssets({
 			image: {
 				version: 1,
 				thumbhash: 'AAAA',
+				placeholder: 'data:image/webp;base64,PLACEHOLDER',
 				dimension: { width: 1920, height: 1080, aspect: '16:9' },
 				resolution: { width: 1920, height: 1080 },
 				variants: [
@@ -219,14 +228,12 @@ const SAID = {
 	},
 } satisfies MediaManifest;
 
-const PREVIEWS = new Map([['AAAA', 'data:image/webp;base64,PLACEHOLDER']]);
-
 function videos(locale = 'en-US') {
-	return createVideoResolver(LIBRARY, SAID, PREVIEWS, 'https://cdn.example', locale);
+	return createVideoResolver(LIBRARY, SAID, 'https://cdn.example', locale);
 }
 
 function pictures(locale = 'en-US') {
-	return createAssetResolver(LIBRARY, SAID, PREVIEWS, 'https://cdn.example', locale);
+	return createAssetResolver(LIBRARY, SAID, 'https://cdn.example', locale);
 }
 
 /**
@@ -382,9 +389,14 @@ it('reads the committed manifest, whichever side of the migration it is on', () 
 		// pick from. See spec/architecture/resource.md, "Content binds at the layer that has it".
 		if (image) {
 			// **Optional means absent for an icon and for nothing else.** A picture written without
-			// one resolves to `preview: ''` and renders with no placeholder, silently losing the
-			// paint-before-load a thumbhash exists for -- which no type and no build would fail on.
+			// one renders with no placeholder, silently losing the paint-before-load a thumbhash
+			// exists for -- which no type and no build would fail on.
 			expect(Boolean(image.thumbhash), `${asset.resource} (${asset.type})`).toBe(!icon);
+			// And the decoded copy beside it, which is the form the page actually paints. The
+			// hash alone was enough while a build inlined it; a universal load cannot run the
+			// codec, so a record carrying only the hash is a picture nothing paints under. See
+			// spec/architecture/resource.md, "A rid is resolved three times".
+			expect(Boolean(image.placeholder), `${asset.resource} (${asset.type})`).toBe(!icon);
 			const serves = icon
 				? (toned(icon, 'light') ?? toned(icon, 'dark'))
 				: best(image, width(image));

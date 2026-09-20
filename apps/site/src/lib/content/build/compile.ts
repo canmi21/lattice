@@ -911,7 +911,16 @@ export async function compile(
 			// republished the day they redraw their mark. See spec/architecture/resource.md,
 			// "A rid is resolved three times, and each stage bakes only what it can know".
 			const icon = href ? resolveIcon?.(href) : undefined;
-			const card = { src: attrs.src ?? '', url: href, title: attrs.title ?? '', icon, tone };
+			const card = {
+				src: attrs.src ?? '',
+				url: href,
+				title: attrs.title ?? '',
+				// The whole key, absent for a site nothing has collected a mark for. A role rather
+				// than a field of its own, so the page that resolves a view's resources reads one
+				// name on every block instead of a list of block types. See `namedResources`.
+				resources: icon ? { icon } : undefined,
+				tone,
+			};
 			// Cropped like `::image`, defaults included: a card is typed on purpose, so saying
 			// nothing about the ratio reads as "the usual one" rather than as "leave it alone".
 			// Screenshots arrive at whatever shape a window happened to be, and a column of
@@ -919,9 +928,24 @@ export async function compile(
 			const crop = cropRatio(attrs.ratio, url, 'linkcard');
 			const align = cropAlign(attrs.align, url, 'linkcard');
 			// A card's cover is an asset like any other, so it gets the same variants and
-			// placeholder. Resolving here rather than in the component keeps the manifest --
-			// every base64 preview in it -- out of the client bundle.
-			blocks.push({ type: 'linkcard', ...card, crop, align, ...resolveAsset(card.src) });
+			// placeholder. Still resolved here, unlike an article's picture: a cover is what the
+			// card is, it is never enlarged and never re-cropped, and moving it would mean a
+			// second record on the critical path for an ornament rather than for the subject of a
+			// paragraph. Named field by field rather than spread, because what the resolver
+			// answers with is now a picture plus what only this build knows.
+			const cover = resolveAsset(card.src);
+			blocks.push({
+				type: 'linkcard',
+				...card,
+				crop,
+				align,
+				src: cover?.src ?? card.src,
+				srcset: cover?.srcset,
+				width: cover?.width,
+				height: cover?.height,
+				preview: cover?.placeholder,
+				description: cover?.description,
+			});
 			md.push(`[${card.title}](${card.url})`);
 			continue;
 		}
@@ -957,14 +981,22 @@ export async function compile(
 			const src = attrs.src ?? '';
 			const crop = cropRatio(attrs.ratio, url, 'image');
 			const align = cropAlign(attrs.align, url, 'image');
-			const resolved = resolveAsset(src);
+			// Nothing resolving is a refusal rather than a guess -- see `unresolved`. The build
+			// still asks, even though a block no longer carries the answer: the markdown target
+			// below needs an address a reader can follow, and a reference the committed manifest
+			// does not know is a typo or an unimported file, which is the cheapest refusal there
+			// is. What the corpus currently publishes is the other stage's to refuse.
+			const resolved = resolveAsset(src) ?? unresolved(src, sourceFile ?? url);
 			// The published rendition, not the id the author wrote: only renditions are stored,
-			// so naming the original gives a feed reader a 404. Nothing resolving is a refusal
-			// rather than a guess -- see `unresolved`.
-			const absolute = resolved?.src ?? unresolved(src, sourceFile ?? url);
+			// so naming the original gives a feed reader a 404.
+			const absolute = resolved.src;
 			const alt = altFor(attrs.alt, resolved);
 
-			blocks.push({ type: 'image', src, alt, crop, align, ...resolved });
+			// The rid and what the article itself decided, and nothing derived from what that
+			// resource currently holds: the ladder, the placeholder and the box are resolved per
+			// render now, so a picture encoded again stops rewriting every article naming it.
+			// See spec/architecture/resource.md, "A rid is resolved three times".
+			blocks.push({ type: 'image', resources: { picture: resolved.resource }, alt, crop, align });
 			// The crop does not survive into the feed or the markdown target, and should not:
 			// neither runs a layout, and a crop is how a page shows an image rather than
 			// anything the image says.
@@ -1070,10 +1102,10 @@ export async function compile(
 			// Feed and markdown get one plain URL, because neither can express a srcset and
 			// both are read by things that will not run a layout. It is the largest published
 			// rendition for the reason above: the authored id names bytes the bucket never got.
-			const resolved = resolveAsset(image.url);
-			const absolute = resolved?.src ?? unresolved(image.url, sourceFile ?? url);
+			const resolved = resolveAsset(image.url) ?? unresolved(image.url, sourceFile ?? url);
+			const absolute = resolved.src;
 			const alt = altFor(image.alt, resolved);
-			blocks.push({ type: 'image', src: image.url, alt, ...resolved });
+			blocks.push({ type: 'image', resources: { picture: resolved.resource }, alt });
 			md.push(`![${alt}](${absolute})`);
 			if (alt) text.push(alt);
 			continue;

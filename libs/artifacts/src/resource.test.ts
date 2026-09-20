@@ -6,6 +6,8 @@ import {
 	expandCanonical,
 	ICON_EXTENSION,
 	parseResource,
+	namedResources,
+	pictured,
 	requireSegment,
 	resolution,
 	scalable,
@@ -245,5 +247,81 @@ describe('an icon binds its files by tone', () => {
 		const parsed = iconOf({ light: file('a') });
 		expect(requireSegment(parsed, 'image').thumbhash).toBeUndefined();
 		expect(ICON_EXTENSION['image/svg+xml']).toBe('svg');
+	});
+});
+
+/**
+ * The two selectors, and the one way they differ.
+ *
+ * A mark that does not resolve is absent and a picture that does not is an error. Both sides of
+ * that are asserted here, because a change making the second one quiet would look like an
+ * improvement and would be the failure spec/architecture/resource.md names: a missing image
+ * nobody reports.
+ */
+describe('the picture selector', () => {
+	const variants = [
+		{ content: 'a'.repeat(32), mime: 'image/avif', bytes: 9, resolution: { width: 640, height: 640 } },
+		{ content: 'b'.repeat(32), mime: 'image/avif', bytes: 99, resolution: { width: 10, height: 10 } },
+	];
+	const drawn = {
+		...image,
+		placeholder: 'data:image/webp;base64,PLACEHOLDER',
+		variants,
+	};
+	const picture = parseResource({ ...base, type: 'media.image', layers: { media, image: drawn } });
+
+	it('builds the ladder smallest first, and the src from the rung that is never enlarged', () => {
+		const answer = pictured('k7m2x', picture, 'https://cdn.example');
+		expect(answer.srcset).toBe(
+			`https://cdn.example/object/${'b'.repeat(32)}.avif 10w, https://cdn.example/object/${'a'.repeat(32)}.avif 640w`,
+		);
+		// The intrinsic box and not the chosen file's, which is what reserves the right space.
+		expect([answer.width, answer.height, answer.ratio]).toEqual([10, 10, '1:1']);
+		expect(answer.placeholder).toBe('data:image/webp;base64,PLACEHOLDER');
+	});
+
+	it('refuses a rid the corpus answered nothing for', () => {
+		expect(() => pictured('k7m2x', undefined, 'https://cdn.example')).toThrow('k7m2x');
+	});
+
+	it('refuses a resource that is not a picture', () => {
+		const document = parseResource({
+			...base,
+			type: 'document',
+			layers: { document: { version: 1, slug: 's', source: 'b'.repeat(32), locales: {} } },
+		});
+		expect(() => pictured('k7m2x', document, 'https://cdn.example')).toThrow();
+	});
+
+	it('refuses a picture nothing has been derived for', () => {
+		const bare = parseResource({ ...base, type: 'media.image', layers: { media, image } });
+		expect(() => pictured('k7m2x', bare, 'https://cdn.example')).toThrow('k7m2x');
+	});
+});
+
+/**
+ * What a page asks for, read off the blocks by one name rather than by a list of block types.
+ *
+ * The list it replaces grew an arm per block, in the page that renders them. This asserts the
+ * property that replaced it: a block carrying no resources costs nothing, and one carrying two
+ * needs no arm of its own.
+ */
+describe('the resources a view names', () => {
+	it('reads every role on every block, once each, and nothing else', () => {
+		expect(
+			namedResources([
+				{ type: 'prose', html: '<p>a</p>' },
+				{ type: 'image', resources: { picture: 'k7m2x' }, alt: 'A' },
+				{ type: 'image', resources: { picture: 'k7m2x' }, alt: 'Again' },
+				{ type: 'linkcard', src: 'a', url: 'https://example.com', title: 'T' },
+				{
+					type: 'linkcard',
+					src: 'b',
+					url: 'https://example.com',
+					title: 'T',
+					resources: { icon: 'q4w8n' },
+				},
+			]),
+		).toEqual(['k7m2x', 'q4w8n']);
 	});
 });

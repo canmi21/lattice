@@ -73,7 +73,9 @@
 	import Info from '@lucide/svelte/icons/info';
 	import X from '@lucide/svelte/icons/x';
 	import { Popover } from 'bits-ui';
-	import type { ParsedResource } from '@canmi/artifacts';
+	import { dev } from '$app/environment';
+	import { pageUrls } from '@canmi/urls';
+	import { pictured, type ParsedResource } from '@canmi/artifacts';
 	import type { Block } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import ArticleCard from './card.svelte';
@@ -90,6 +92,9 @@
 		resources,
 		locale,
 	}: { blocks: Block[]; resources: Record<string, ParsedResource>; locale: LocaleCode } = $props();
+	// The CDN, because what a record names is a content id: the resolution that could not happen
+	// at build time has happened in the load, and what is left is an object address.
+	const cdnUrl = pageUrls(dev).cdn;
 	let root = $state<HTMLElement>();
 	let trigger = $state<HTMLButtonElement>();
 	let note = $state('');
@@ -246,15 +251,20 @@
 				items={block.items}
 			/>
 		{:else if block.type === 'image'}
+			<!-- Resolved here rather than carried by the block: the ladder and the placeholder are
+			     the record's, and the record is a fact about the corpus at the moment somebody
+			     asks. `pictured` refuses a rid that resolved to nothing, which is the one thing a
+			     picture does that a card's mark does not -- see libs/artifacts. -->
+			{@const picture = pictured(block.resources.picture, resources[block.resources.picture], cdnUrl)}
 			<Picture
 				{locale}
 				enlarges
-				src={block.src}
+				src={picture.src}
 				alt={block.alt}
-				width={block.width}
-				height={block.height}
-				preview={block.preview}
-				srcset={block.srcset}
+				width={picture.width}
+				height={picture.height}
+				preview={picture.placeholder}
+				srcset={picture.srcset}
 				crop={block.crop}
 				align={block.align}
 				eager={i === lead}
@@ -279,7 +289,7 @@
 				src={block.src}
 				url={block.url}
 				title={block.title}
-				icon={block.icon ? resources[block.icon] : undefined}
+				icon={block.resources ? resources[block.resources.icon] : undefined}
 				tone={block.tone}
 				width={block.width}
 				height={block.height}

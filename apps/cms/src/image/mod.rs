@@ -12,6 +12,8 @@ pub mod manifest;
 pub mod run;
 pub mod store;
 
+use base64::Engine as _;
+use base64::engine::general_purpose::STANDARD;
 use encode::Format;
 use fast_image_resize::images::Image as FirImage;
 use fast_image_resize::{PixelType, ResizeOptions, Resizer};
@@ -139,8 +141,8 @@ pub fn derive(original: &[u8], keep_original: bool) -> Result<Derived, Error> {
 		}
 	}
 
-	// Only the hash is kept. The decoded form the site inlines is produced at build time from
-	// this, so storing one here would be the same picture written twice.
+	// The hash. `painted` turns it into the copy a page draws, and `media_for` keeps both on the
+	// record -- see that function for why the decoded one cannot be produced where it is used.
 	let thumb = placeholder(&image)?;
 	Ok(Derived { cid: cid(original), width: size.width, height: size.height, thumb, variants })
 }
@@ -280,13 +282,36 @@ fn resize(image: &DynamicImage, target: Size) -> DynamicImage {
 
 /// The compact hash a page paints before any image arrives.
 ///
-/// Only the hash: it used to also return a decoded, re-encoded copy for inlining, which the
-/// site build now produces from this instead -- one picture, one stored form.
+/// The canonical form, and the one a record is keyed on: `painted` below is what it decodes to,
+/// stored beside it because the side that needs it cannot run a codec.
 fn placeholder(image: &DynamicImage) -> Result<Vec<u8>, Error> {
 	// thumbhash reads a small input by design; anything larger is wasted work.
 	let small = resize(image, Size::new(image.width(), image.height()).scaled_to_long_edge(100));
 	let rgba = small.to_rgba8();
 	Ok(thumbhash::rgba_to_thumb_hash(rgba.width() as usize, rgba.height() as usize, rgba.as_raw()))
+}
+
+/// What that hash is encoded at, for a picture roughly 32 pixels on its long edge.
+///
+/// Higher is wasted: the source is a thumbhash, which has already discarded everything but an
+/// impression of colour and shape. This only has to avoid adding artefacts of its own to a
+/// picture about to be covered by the real one.
+const PAINT_QUALITY: f32 = 70.0;
+
+/// The thumbhash decoded once, as the data URI the record carries.
+///
+/// Stored rather than derived where it is wanted, and the reason is not size: the side that
+/// wants it is a **universal** load, run in the Worker and again in the browser, and a WebP
+/// codec reached through `node:fs` can exist in the first and never in the second. One decode
+/// here serves both. See spec/architecture/resource.md, "A rid is resolved three times".
+///
+/// `None` where thumbhash refuses the hash: the picture draws without a colour block under it.
+pub fn painted(thumb: &[u8]) -> Option<String> {
+	let (width, height, rgba) = thumbhash::thumb_hash_to_rgba(thumb).ok()?;
+	let encoded =
+		webp::Encoder::from_rgba(&rgba, u32::try_from(width).ok()?, u32::try_from(height).ok()?)
+			.encode(PAINT_QUALITY);
+	Some(format!("data:image/webp;base64,{}", STANDARD.encode(&*encoded)))
 }
 
 #[cfg(test)]
@@ -397,8 +422,36 @@ mod tests {
 		// stays small enough to sit in a manifest without thought, so the bound is asserted
 		// rather than a value that happened to come out of one image.
 		assert!((16..=32).contains(&derived.thumb.len()), "thumbhash is {} bytes", derived.thumb.len());
-		// The decoded form the site inlines is no longer produced here, so there is nothing
-		// else to assert: the hash is the whole output.
+	}
+
+	#[test]
+	fn decodes_that_placeholder_into_something_a_page_can_paint_directly() {
+		let derived = derive(&photo(1500, 1000), false).expect("derive");
+		let painted = painted(&derived.thumb).expect("a decoded placeholder");
+		// A data URI and not a URL, because the point of it is to be painted before any request
+		// is made -- and WebP rather than PNG, which is measurably smaller at this size.
+		assert!(painted.starts_with("data:image/webp;base64,"), "{painted}");
+		let bytes = STANDARD.decode(painted.trim_start_matches("data:image/webp;base64,")).expect("base64");
+		// RIFF, then the length, then WEBP. Enough to say a decoder was actually run rather than
+		// a prefix being pasted in front of something else.
+		assert_eq!(&bytes[..4], b"RIFF");
+		assert_eq!(&bytes[8..12], b"WEBP");
+		// Small enough to inline into a record a page fetches on its critical path. 167
+		// characters is the corpus median; the bound is what keeps a future quality change from
+		// quietly making every record heavier.
+		assert!(painted.len() < 512, "placeholder is {} characters", painted.len());
+	}
+
+	#[test]
+	fn a_record_carries_both_forms_of_its_placeholder() {
+		let prepared = derive_for(&photo(40, 30), "image/png", None, false, None, rid())
+			.expect("derive for write");
+		let image = prepared.media.image().expect("a picture");
+		// The hash is the canonical one and the decoded copy is what gets painted. A record
+		// holding only the first is one a universal load cannot paint under, because the codec
+		// that decodes it cannot exist in a browser bundle.
+		assert!(image.thumbhash.is_some());
+		assert!(image.placeholder.as_deref().is_some_and(|p| p.starts_with("data:image/webp;base64,")));
 	}
 
 	#[test]

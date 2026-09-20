@@ -10,10 +10,12 @@
  * at a time and is worth following precisely; a touch screen names nothing until it is too late,
  * so the homepage warms the list it is showing and no images. See spec/engagement.md.
  */
-import { browser } from '$app/environment';
+import { browser, dev } from '$app/environment';
+import { namedResources, pictured, type Block } from '@canmi/artifacts';
+import { pageUrls } from '@canmi/urls';
 import { warmReads } from '$lib/engagement/reads.svelte';
 import type { LocaleCode } from '$lib/locale';
-import { publishedView } from '$lib/published';
+import { publishedResources, publishedView } from '$lib/published';
 
 const HOVERS = '(hover: hover) and (pointer: fine)';
 
@@ -54,16 +56,22 @@ const started = new Set<string>();
 /**
  * The first picture in an article, and only the first.
  *
- * A reader opening an article sees one image before they scroll, and the rest are a download they
- * have not asked for. `srcset` is left to the browser: handing it the whole set lets it pick the
- * width it would have picked anyway, so the warm and the render agree instead of racing.
+ * A reader opening an article sees one image before they scroll, and the rest are a download
+ * they have not asked for. `srcset` is left to the browser, so the warm and the render agree
+ * instead of racing. Two things now, the record first: a block names a rid, so what the picture
+ * is has to be asked before its bytes can be, and that answer is held under the address the
+ * page will ask at whether or not the bytes arrive in time.
  */
-function warmFirstImage(blocks: readonly { type: string; [key: string]: unknown }[]): void {
+async function warmFirstImage(blocks: readonly Block[]): Promise<void> {
+	const records = await publishedResources(fetch, namedResources(blocks));
 	const first = blocks.find((block) => block.type === 'image');
-	if (!first || typeof first.src !== 'string') return;
+	if (!first) return;
+	const record = records[first.resources.picture];
+	if (!record?.layers.image) return;
+	const { src, srcset } = pictured(first.resources.picture, record, pageUrls(dev).cdn);
 	const picture = new Image();
-	if (typeof first.srcset === 'string') picture.srcset = first.srcset;
-	picture.src = first.src;
+	picture.srcset = srcset;
+	picture.src = src;
 }
 
 /**
@@ -86,7 +94,7 @@ export async function warmArticle(
 	void warmReads(slug);
 	try {
 		const found = await publishedView(fetch, slug, locale);
-		if (found && withImage) warmFirstImage(found.view.body.blocks);
+		if (found && withImage) await warmFirstImage(found.view.body.blocks);
 	} catch {
 		// The navigation will ask again, and it is the one the reader is waiting on.
 	}

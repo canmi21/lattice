@@ -12,15 +12,12 @@
  * say, in this view's language.
  */
 import {
-	aspect,
-	best,
-	height,
 	isResourceId,
 	parseResource,
+	pictured,
 	requireSegment,
-	width,
-	type ImageLayer,
 	type ParsedResource,
+	type Picture,
 	type VideoLayer,
 } from '@canmi/artifacts';
 import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
@@ -28,51 +25,37 @@ import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
 import { sourceFingerprint } from './assemble.ts';
 
 /**
- * What a published variant's file is called, keyed by what it holds.
- *
- * Exported so a test can hold it to the Rust side that names the files. The two are one fact in
- * two languages: apps/cms writes the name, this rebuilds it, and a disagreement shows up only as
- * a redirect nobody notices.
- */
-export const EXTENSION: Record<string, string> = {
-	'image/avif': 'avif',
-	'image/webp': 'webp',
-	'image/png': 'png',
-	// `jpeg`, matching what apps/cms names the file. These are object addresses, and `/object`
-	// forms a key from the name rather than correcting it -- so a link built here spelling it
-	// `jpg` is a 404, not the hop `/derive` grants a target.
-	'image/jpeg': 'jpeg',
-};
-
-/**
  * What a published rung and a published text track are called.
  *
- * Apart from `EXTENSION` above rather than folded into it: that table is held to `apps/cms`'s
- * `for_variant` by a test that reads only its `image/*` arms, and these two are not variants of a
- * picture. One format each, which is spec/architecture/video/pipeline.md's whole point -- AV1 in
- * MP4, and WebVTT beside it.
+ * Apart from `VARIANT_EXTENSION` in libs/artifacts rather than folded into it: that table is
+ * held to `apps/cms`'s `for_variant` by a test that reads only its `image/*` arms, and these two
+ * are not variants of a picture. One format each, which is spec/architecture/video/pipeline.md's
+ * whole point -- AV1 in MP4, and WebVTT beside it.
  */
 export const MEDIA_EXTENSION: Record<string, string> = {
 	'video/mp4': 'mp4',
 	'text/vtt': 'vtt',
 };
 
-export type Resolved = {
-	src: string;
-	srcset: string;
-	width: number;
-	height: number;
-	ratio: string;
-	preview: string;
+/**
+ * A reference resolved against the committed manifest: the picture, plus what this build knows
+ * that the record does not.
+ *
+ * The picture half is the same answer a page arrives at per render, through the same selector,
+ * so the two cannot drift. What this build still resolves is the feed's and the markdown
+ * target's address, neither of which can follow a rid, and the description.
+ */
+export type Resolved = Picture & {
+	/** The resource the reference found, which is what a compiled block names and nothing else. */
+	resource: string;
 	/**
-	 * What the image shows, from the manifest.
+	 * What the image shows, from the manifest, in this view's language.
 	 *
-	 * Baked in at build time for the same reason the placeholder is: it belongs to the picture,
-	 * so every article referencing it inherits the same words without repeating them, and a
-	 * description written after the article still reaches it on the next build.
-	 *
-	 * Absent for an asset nobody has described yet. That is a gap `cms check` reports, not
-	 * something to paper over with the filename.
+	 * Baked, unlike the ladder above, and what separates them is the asset's clock: a ladder
+	 * moves when the picture is encoded again, a description when `cms alt` writes a file in
+	 * this repository. See spec/architecture/delivery.md, "resolve at build time what changes
+	 * when the article changes". Absent for an asset nobody has described, which `cms check`
+	 * reports rather than papering over with the filename.
 	 */
 	description?: string;
 };
@@ -177,10 +160,6 @@ function entryOf(
 	return cid ? media.media[cid] : undefined;
 }
 
-function url(cdnUrl: string, cid: string, mime: string): string {
-	return `${cdnUrl}/object/${cid}.${EXTENSION[mime] ?? 'avif'}`;
-}
-
 /**
  * Where a published rung or track is asked for: the content id and the extension that says which
  * representation is wanted, under `/object` like every other byte the CDN holds.
@@ -192,20 +171,6 @@ function url(cdnUrl: string, cid: string, mime: string): string {
 function published(cdnUrl: string, cid: string, mime: string): string {
 	const extension = MEDIA_EXTENSION[mime];
 	return extension ? `${cdnUrl}/object/${cid}.${extension}` : `${cdnUrl}/object/${cid}`;
-}
-
-/**
- * The variants a `srcset` can name, smallest first.
- *
- * Only the ones with pixels, because a `w` descriptor is a pixel count and a vector has none to
- * state -- it is the `src`, and one file that serves every width needs no candidates beside it.
- * Which mimes those are is the image layer's to know and never this file's; see
- * spec/architecture/resource.md, "The image layer answers in four steps".
- */
-function rungs(image: ImageLayer): { content: string; mime: string; width: number }[] {
-	return image.variants
-		.flatMap((file) => (file.resolution ? [{ ...file, width: file.resolution.width }] : []))
-		.toSorted((a, b) => a.width - b.width);
 }
 
 /**
@@ -257,7 +222,6 @@ export function createDiagramResolver(
 export function createAssetResolver(
 	assets: AssetLibrary,
 	media: MediaManifest,
-	previews: ReadonlyMap<string, string>,
 	/**
 	 * Which CDN the markup should name.
 	 *
@@ -271,31 +235,24 @@ export function createAssetResolver(
 ): (reference: string) => Resolved | null {
 	return (reference) => {
 		const asset = found(assets, reference);
-		const image = asset?.layers.image;
-		if (!asset || !image) return null;
-
-		// The file to serve at the picture's own size, which is the largest rung that is never
-		// enlarged -- asked of the layer rather than worked out here, so nothing in this file has
-		// to know which mimes scale. A picture with no variants derived yet has no answer.
-		const file = best(image, width(image));
-		if (!file) return null;
-
-		return {
-			src: url(cdnUrl, file.content, file.mime),
-			srcset: rungs(image)
-				.map((rung) => `${url(cdnUrl, rung.content, rung.mime)} ${rung.width}w`)
-				.join(', '),
-			// The intrinsic box, not the chosen variant's: they share an aspect, and this is what
-			// the browser needs to reserve the right space before anything loads.
-			width: width(image),
-			height: height(image),
-			ratio: aspect(image),
-			// Absent for anything with no one picture to stand in for -- an icon binds two.
-			preview: (image.thumbhash && previews.get(image.thumbhash)) || '',
-			// media.yaml owns these translations independently from article segments. Selecting the
-			// matching value here makes each compiled view carry its own accessible fallback text.
-			description: entryOf(asset, media)?.description?.[descriptionLocale]?.text,
-		};
+		// A clip named where a picture belongs, or a reference nothing answered: null either way,
+		// and the caller decides whether that is a fallback or a refusal. `pictured` below is the
+		// one that throws, and it is only reached once this has said there is a picture here.
+		if (!asset?.layers.image) return null;
+		try {
+			return {
+				resource: asset.resource,
+				...pictured(asset.resource, asset, cdnUrl),
+				// media.yaml owns these translations independently from article segments. Selecting
+				// the matching value here makes each compiled view carry its own fallback text.
+				description: entryOf(asset, media)?.description?.[descriptionLocale]?.text,
+			};
+		} catch {
+			// A picture with no variants derived yet. Nothing for the feed to link to, so this is
+			// the same answer as a reference nothing resolved -- and `unresolved` in the compiler
+			// is what turns it into a refusal a person reads.
+			return null;
+		}
 	};
 }
 
@@ -393,12 +350,11 @@ function levelling(source: VideoLayer['source']): number {
 export function createVideoResolver(
 	assets: AssetLibrary,
 	media: MediaManifest,
-	previews: ReadonlyMap<string, string>,
 	/** Which CDN the markup should name; see createAssetResolver. */
 	cdnUrl: string,
 	descriptionLocale = 'en-US',
 ): (reference: string) => ResolvedVideo | null {
-	const resolvePoster = createAssetResolver(assets, media, previews, cdnUrl, descriptionLocale);
+	const resolvePoster = createAssetResolver(assets, media, cdnUrl, descriptionLocale);
 	return (reference) => {
 		const asset = found(assets, reference);
 		const video = asset?.layers.video;
@@ -429,7 +385,7 @@ export function createVideoResolver(
 			// chosen here rather than by the browser, and the largest is the only one that is
 			// never enlarged -- an AVIF still costs tens of kilobytes at any of them.
 			poster: poster?.src,
-			preview: poster?.preview,
+			preview: poster?.placeholder,
 			captions: video.tracks.map((track) => ({
 				src: published(cdnUrl, track.content, track.mime),
 				kind: track.kind,

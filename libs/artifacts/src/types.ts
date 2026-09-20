@@ -90,15 +90,15 @@ export type Block =
 			url: string;
 			title: string;
 			/**
-			 * The rid of the site's mark, and never an address.
+			 * The site's mark, by rid, and never an address.
 			 *
 			 * An icon belongs to somebody else's site and is redrawn on their schedule, so what
-			 * this resource currently holds is a fact about the corpus at the moment somebody asks
-			 * -- not something a compiled article may carry. The page resolves it; the card just
-			 * says which resource it means. Absent for a site nothing has collected a mark for.
-			 * See spec/architecture/resource.md, "A rid is resolved three times".
+			 * this resource currently holds is a fact about the corpus at the moment somebody
+			 * asks -- not something a compiled article may carry. The whole key is absent for a
+			 * site nothing has collected a mark for, and the role is spelled out so a page reads
+			 * one name on every block: see `namedResources`, and spec/architecture/resource.md.
 			 */
-			icon?: string;
+			resources?: { icon: string };
 			/** Which of that resource's files to draw. Selected at render time, not here. */
 			tone?: 'light' | 'dark';
 			width?: number;
@@ -131,12 +131,24 @@ export type Block =
 	  }
 	| {
 			type: 'image';
-			src: string;
+			/**
+			 * The picture, by rid, and nothing derived from what it currently holds.
+			 *
+			 * Its ladder, its placeholder and its intrinsic box all move when the picture is
+			 * encoded again, on nobody's schedule but the corpus's, so they are resolved per
+			 * render and this names what they are resolved from. What is left is what the
+			 * article itself decided. See spec/architecture/resource.md, "A rid is resolved
+			 * three times".
+			 */
+			resources: { picture: string };
+			/**
+			 * What the picture is called here, which is the article's to say.
+			 *
+			 * Baked, unlike the ladder above, because it changes on **this** repository's
+			 * schedule: `cms alt` writes it into a file beside the article, per locale, and a
+			 * view carries the one it is written in rather than nine it is not.
+			 */
 			alt: string;
-			width?: number;
-			height?: number;
-			/** The image's own aspect ratio, as derived. Not what it is displayed at. */
-			ratio?: string;
 			/**
 			 * A ratio to crop the displayed image to, as `16 / 9` ready for CSS.
 			 *
@@ -148,8 +160,6 @@ export type Block =
 			crop?: string;
 			/** `object-position` for that crop. Absent means centred. */
 			align?: string;
-			preview?: string;
-			srcset?: string;
 	  }
 	| {
 			type: 'video';

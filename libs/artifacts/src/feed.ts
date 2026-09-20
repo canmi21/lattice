@@ -19,8 +19,16 @@ import type { Block, QuadrantDirection, QuadrantItem } from './types.ts';
 export type FeedBases = {
 	/** The site's own origin, for an `::article` card pointing at another article here. */
 	site: string;
-	/** The image prefix, already ending in a slash. Only reached by an unresolved reference. */
-	images: string;
+	/**
+	 * Where a bare resource id is resolved, already ending in a slash.
+	 *
+	 * A feed cannot pick a width and has nothing to resolve a rid with, so it names the id
+	 * itself and lets the alias layer answer with the largest rendition that resource declares.
+	 * That is what `ill.li/{rid}` is for from outside, and it is stable across a re-encode in a
+	 * way a baked address never was. See spec/architecture/resource.md, "A bare id means
+	 * whatever the resource says it means".
+	 */
+	resources: string;
 	/** The article's own URL, named by everything a feed cannot show in place. */
 	url: string;
 	/**
@@ -58,17 +66,6 @@ function diagram(title: string, description: string | undefined, url: string): s
 function region(item: QuadrantItem, axes: Record<QuadrantDirection, string>): string {
 	const [vertical, horizontal] = item.at.split('-') as ['top' | 'bottom', 'left' | 'right'];
 	return `${axes[vertical]} / ${axes[horizontal]}`;
-}
-
-/**
- * An image's address, which is the published rendition whenever one was found.
- *
- * A block's `src` is already absolute when the resolver rewrote it, and is the reference the
- * author wrote when nothing resolved -- the two cases this distinguishes. See
- * spec/architecture/data.md, "An asset's identity is not an address".
- */
-function imageSource(src: string, images: string): string {
-	return /^https?:\/\//.test(src) ? src : `${images}${src}`;
 }
 
 /**
@@ -130,7 +127,7 @@ export function blockFeedHtml(block: Block, bases: FeedBases): string | undefine
 		case 'article':
 			return `<p><a href="${bases.site}/${block.path}?lang=${bases.locale}">${escapeHtml(block.title)}</a> — ${escapeHtml(block.subtitle)}</p>`;
 		case 'image':
-			return `<p><img src="${imageSource(block.src, bases.images)}" alt="${escapeHtml(block.alt)}" /></p>`;
+			return `<p><img src="${bases.resources}${block.resources.picture}" alt="${escapeHtml(block.alt)}" /></p>`;
 		case 'video': {
 			// Neither a still nor a sentence is the clip, so the feed gets both: the poster it can
 			// show, and where the thing itself plays.
