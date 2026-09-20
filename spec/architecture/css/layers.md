@@ -134,9 +134,9 @@ looked up, nothing drifts, and nobody needs a name to read it.
 
 Two things pointed at this line from opposite sides, and both were errors of the same kind:
 
-- `font-variant-numeric: tabular-nums` is written as a Tailwind class in the markup at three places
-  in [github.svelte](../../../apps/site/src/lib/blocks/github.svelte) -- a ramp member in the frame.
-  Still there.
+- `font-variant-numeric: tabular-nums` was written as a Tailwind class in the markup at three
+  places in [github.svelte](../../../apps/site/src/lib/blocks/github.svelte) -- a ramp member in the
+  frame. Corrected: it is one `fontVariantNumeric` in that component's vocabulary now.
 - `white-space: nowrap` was written in StyleX in
   [cargo.svelte](../../../apps/site/src/lib/blocks/cargo/cargo.svelte),
   [tokei.svelte](../../../apps/site/src/lib/blocks/tokei/tokei.svelte),

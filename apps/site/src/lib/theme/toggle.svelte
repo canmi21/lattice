@@ -1,6 +1,27 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
+
+	const styles = stylex.create({
+		/**
+		 * Bare, and not `surfaces.quietControl`.
+		 *
+		 * That surface is taken whole or not at all -- its own comment says the cursor arrives with
+		 * the colour and the plate or none of them does -- and the plate is what this cannot have.
+		 * The control sits alone in the action bar with nothing behind it, so a hover ground would
+		 * be a rectangle appearing in empty margin. Its sibling above writes its own for the same
+		 * reason. What is kept is what a control owes a reader: the hand, and ink that answers.
+		 */
+		control: {
+			color: {
+				default: 'var(--color-text-soft)',
+				':hover': 'var(--color-text-strong)',
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			transitionProperty: 'color',
+			transitionDuration: '150ms',
+			transitionTimingFunction: 'ease',
+		},
+	});
 </script>
 
 <script lang="ts">
@@ -30,15 +51,20 @@
 	 * every load would announce something that did not happen -- the same line the newsletter's
 	 * confirmation draws between what the reader just did and what they are.
 	 */
-	let pressed = $state(false);
+	let turn = $state(0);
 
 	const next = $derived<Theme>(theme === 'dark' ? 'light' : 'dark');
 
 	function toggle() {
 		if (theme === undefined) return;
-		pressed = true;
 		theme = next;
 		applyTheme(theme);
+		// After the flip, never with it. `applyTheme` moves the class with every transition in the
+		// document switched off -- that is what stops a card's hover fade from easing the page's
+		// colours through greys -- and a turn written as a transition on these glyphs was switched
+		// off along with them. An animation does not need a value to change, so it plays here on
+		// its own terms, one frame later, against a page that has already finished.
+		turn += 1;
 		// Path and lifetime come from the library, so this and the first-visit script cannot
 		// disagree about a preference the reader set once.
 		document.cookie = themeCookie(theme);
@@ -53,22 +79,23 @@
 	onclick={toggle}
 	aria-label={m['theme.switch']({}, { locale })}
 	aria-pressed={theme === 'dark'}
-	class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(surfaces.quietControl).class}"
+	class="inline-flex cursor-pointer items-center {stylex.attrs(styles.control).class}"
 >
-	<span class="dial focus-link-inner" class:turning={pressed}>
-		<Sun class="size-3.5" data-shown={theme === 'light'} aria-hidden="true" />
-		<Moon class="size-3.5" data-shown={theme === 'dark'} aria-hidden="true" />
-	</span>
+	<!-- `turn` keys the span, so every press replaces the node and the animation below starts from
+	     its first frame rather than being a class that is already on. -->
+	{#key turn}
+		<span class="dial focus-link-inner inline-grid place-items-center" class:turning={turn > 0}>
+			<Sun class="sun size-3.5" aria-hidden="true" />
+			<Moon class="moon size-3.5" aria-hidden="true" />
+		</span>
+	{/key}
 </button>
 
 <style>
-	/* Both glyphs in one grid cell. `visibility` rather than `display` so the box still measures
-	   in either state and the two can cross without the row reflowing. */
-	.dial {
-		display: inline-grid;
-		place-items: center;
-	}
-
+	/* Both glyphs in one grid cell -- the cell itself is `inline-grid place-items-center` in the
+	   markup. `visibility` rather than `display` so the box still measures in either state and the
+	   two can cross without the row reflowing. These reach an icon component's own element, which
+	   no class here can carry. */
 	.dial :global(svg) {
 		grid-area: 1 / 1;
 		visibility: hidden;
@@ -79,25 +106,43 @@
 		scale: 0.6;
 	}
 
-	.dial :global(svg[data-shown='true']) {
+	/* The root's class decides, and `hooks.server.ts` writes it from the cookie -- so the very
+	   markup the server sends already shows the right glyph, with no script and no second frame.
+	   A first visit has no cookie to read, and there the pre-paint script in `app.html` puts the
+	   class on before anything is painted, which lands in the same place one step later. */
+	:global(html:not(.dark)) .dial :global(svg.sun),
+	:global(html.dark) .dial :global(svg.moon) {
 		visibility: visible;
 		opacity: 1;
 		rotate: 0deg;
 		scale: 1;
 	}
 
-	/* Only after a press. A page that loads already dark has not just changed. */
-	.turning :global(svg) {
-		transition:
-			opacity 200ms ease,
-			rotate 320ms var(--ease-spring),
-			scale 320ms var(--ease-spring),
-			visibility 320ms;
+	/* Only after a press. A page that loads already dark has not just changed.
+
+	   Fast, and with no overshoot. The theme itself lands in a single frame -- nothing transitions
+	   `--color-page` -- so a spring here left the glyph still settling over a page that had already
+	   finished, and the pair read as hesitant rather than as one act. `ease-out` rather than
+	   `--ease-spring` for the same reason: a bounce is a thing still deciding. */
+	.turning :global(svg.sun),
+	.turning :global(svg.moon) {
+		animation: arrive 200ms ease-out both;
+	}
+
+	/* The glyph that is leaving is already gone by the time this runs -- the flip is instant -- so
+	   what is animated is the one arriving, turning in from where the other one left. */
+	@keyframes arrive {
+		from {
+			opacity: 0;
+			rotate: -90deg;
+			scale: 0.6;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.turning :global(svg) {
-			transition: none;
+		.turning :global(svg.sun),
+		.turning :global(svg.moon) {
+			animation: none;
 		}
 	}
 </style>

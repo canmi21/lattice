@@ -154,6 +154,23 @@ Data palettes belong to the visualisation that gives them meaning, not to the si
 Cargo palette lives in a component-only stylesheet scoped below `.cargo-widget`; it stays vivid
 in both page themes and never becomes a token available to unrelated interface chrome.
 
+## A value the reader is already driving takes no easing at all
+
+Easing is for a value that moves on its own: a panel that opens, a colour that answers a hover,
+anything whose start and end the page chose. A value bound to a scroll, a drag or a pointer has
+no such pair -- it is wherever the hand put it, every frame. Putting a transition on one eases
+the *input*, so the mark arrives where the reader already is a frame or two late, and a hand
+reads that lag as the thing being attached to something other than the page.
+
+Measured on the reading ring in the article's action bar, which had an 80ms ease on its dash
+offset: the ring is bound to the scroll and the ease was visible as slippage at any speed the
+page was actually read at. The player's scrubber has never had one on its played and loaded
+bars, for the same reason and without anybody writing it down until now.
+
+The rule is not "no motion here". The arrow inside that ring fades and grows on a 200ms curve,
+because its opacity is a state the page decided -- earned by how far down the reader is -- and
+not a position the reader is holding.
+
 ## Motion runs at runtime only when the value is not known in advance
 
 `motion` is a dependency, and reaching for `animate()` is the wrong default. It earns its place

@@ -156,6 +156,7 @@
 	import Footnotes from './footnotes.svelte';
 	import { createReadsQuery } from '$lib/engagement/reads.svelte';
 	import { formatCompact } from './format';
+	import ActionBar from './action-bar.svelte';
 	import HomeLink from './home-link.svelte';
 	import Toc from './toc.svelte';
 	import TranslationNotice from './translation-notice.svelte';
@@ -386,6 +387,9 @@
 		<Toc {toc} />
 		<HomeLink locale={locale.code} />
 	</div>
+	<!-- The mirror of that rail, down the region on the other side. What a reader does with an
+	     article rather than what it is; see the component for why it declares no width. -->
+	<ActionBar locale={locale.code} />
 	<!-- The top is computed from the column's own side gutter and lives in `.article-column`; see
 	     spec/styling/rail.md. The bottom keeps its 6rem at every width, because the space under the
 	     footer competes with nothing. -->
@@ -400,14 +404,16 @@
 				     that fits, not the title cut short", for why and how CSS picks between them. -->
 				<h1 class="max-sm:hidden {stylex.attrs(styles.title).class}">
 					{meta.title}{#if meta.draft}<span
-							class="draft-mark {stylex.attrs(styles.draftMark).class}"
+							class="ms-2 inline-block px-[0.4375rem] align-middle {stylex.attrs(styles.draftMark)
+								.class}"
 						>
 							{m['article.draft']({}, { locale: locale.code })}
 						</span>{/if}
 				</h1>
 				<h1 class="sm:hidden {stylex.attrs(styles.title).class}">
 					{phone_title}{#if meta.draft}<span
-							class="draft-mark {stylex.attrs(styles.draftMark).class}"
+							class="ms-2 inline-block px-[0.4375rem] align-middle {stylex.attrs(styles.draftMark)
+								.class}"
 						>
 							{m['article.draft']({}, { locale: locale.code })}
 						</span>{/if}
@@ -496,8 +502,13 @@
 				{#if summary}
 					<!-- Rows collapse to 0fr rather than the box to height 0, which is the one way to
 					     animate to a height nobody measured. See spec/architecture/media.md on motion. -->
+					<!-- The two rows are a ternary rather than a base utility and a variant over it: one
+					     property in one layer, whose order is not the author's to choose. See
+					     spec/architecture/css/migration.md. -->
 					<div
-						class="summary-shell {stylex.attrs(styles.summaryShell).class}"
+						class="grid {summaryOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'} {stylex.attrs(
+							styles.summaryShell,
+						).class}"
 						data-open={summaryOpen}
 					>
 						<div class="overflow-hidden">
@@ -553,31 +564,6 @@
 </main>
 
 <style>
-	/* Never seen in production, so it spends nothing on being pretty. What is left here is its
-	   box: aligned to the middle of the title's own line box rather than its baseline, since it
-	   is a label about the article and not a word of its name. */
-	.draft-mark {
-		display: inline-block;
-		margin-inline-start: 0.5rem;
-		padding-inline: 0.4375rem;
-		vertical-align: middle;
-	}
-
-	/* Animating to `height: auto` is not possible, so the grid row is animated instead: 0fr to
-	   1fr resolves against the content's own height without anyone measuring it. The child
-	   needs `overflow: hidden` for the clip to happen. The animation between the two rows is
-	   motion and sits in the visual layer at the head of this file; what stays is the open row,
-	   which the visual layer has no way to ask about -- an attribute on this element is not a
-	   class on it. */
-	.summary-shell {
-		display: grid;
-		grid-template-rows: 0fr;
-	}
-
-	.summary-shell[data-open='true'] {
-		grid-template-rows: 1fr;
-	}
-
 	.article-body :global(strong) {
 		font-weight: 500;
 		color: var(--color-text-strong);

@@ -293,10 +293,13 @@
 
 <!-- A full-width strip the rail lays out, inert like the rail itself; the control inside it
      takes its events back, so only the link is in the pointer's way. -->
-<div use:followToc={locale} class="home-slot pointer-events-none absolute flex w-full items-center">
+<div
+	use:followToc={locale}
+	class="home-slot pointer-events-none absolute top-27 left-0 flex w-full items-center"
+>
 	<a
 		{href}
-		class="home-link focus-link pointer-events-auto inline-flex items-center gap-1.5 whitespace-nowrap {stylex.attrs(
+		class="focus-link pointer-events-auto inline-flex items-center gap-1.5 whitespace-nowrap [translate:calc(-1_*_var(--rail-icon-overhang))_0] {stylex.attrs(
 			surfaces.uiText,
 			styles.link,
 		).class}"
@@ -307,18 +310,13 @@
 </div>
 
 <style>
-	/* Left edge and width are the rail box's -- sharing them is the point of the box. Out of its
-	   flow, so the box is sized by the entries alone and this control cannot widen it. */
+	/* The offset that follows the rail. Its edge, width and removal from the box's flow are
+	   utilities in the markup now. What is left is the `transform`, because no utility translates
+	   one -- Tailwind 4 writes `translate` as its own property, a different declaration with a
+	   different computed value. See spec/architecture/css/migration.md, "No utility translates a
+	   `transform` declaration". The link's overhang below was already a `translate`, so that one
+	   went to the markup as the declaration it was. */
 	.home-slot {
-		top: 6.75rem;
-		left: 0;
 		transform: translateY(calc(-50% + var(--home-offset, 0rem)));
-	}
-
-	/* Only the glyph hangs outside the rail's text; the label stays aligned with the entries. The
-	   overhang is a declared length because the rail's left margin is computed against it -- see
-	   `--rail-icon-overhang` in utilities.css. */
-	.home-link {
-		translate: calc(-1 * var(--rail-icon-overhang)) 0;
 	}
 </style>
