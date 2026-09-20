@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+#MISE description="Say which generation the live corpus is, against the one this source expects"
+set -euo pipefail
+
+# What the live corpus is, next to what this build can read.
+#
+# `ARTIFACT_VERSION` says which generation of published bytes this source understands, and the
+# root in the bucket says which generation is actually out there. They move on separate
+# schedules: the workers deploy from a push through CI, and the corpus only moves when somebody
+# runs `publish` by hand. Nothing measured the distance between them, so a deploy that arrived
+# first was silent until a reader opened an article.
+#
+# **This warns and never refuses.** A build that cannot read the live corpus is worth knowing
+# about before it is worth stopping -- the gap is normally minutes, closed by the publish that
+# follows, and a check that blocked the deploy would be wrong far more often than it was right.
+# What it owes is a line loud enough to find afterwards, which is why the live root's timestamp
+# is in it.
+#
+# Not being able to ask is also not a failure. This runs where rclone is configured and in CI
+# where it is not, and a deploy is not the place to discover a missing credential for a check.
+
+BASE="$(cd "$(dirname "$0")/../.." && pwd)"
+INDEX="$BASE/libs/artifacts/src/index.ts"
+
+WANTED="$(sed -n 's/^export const ARTIFACT_VERSION = \([0-9]*\);$/\1/p' "$INDEX")"
+if [ -z "$WANTED" ]; then
+	echo "generation: no ARTIFACT_VERSION in ${INDEX#"$BASE"/}, skipping the check" >&2
+	exit 0
+fi
+
+REMOTE="${R2_METADATA_REMOTE:-}"
+if [ -z "$REMOTE" ]; then
+	echo "generation: R2_METADATA_REMOTE is unset, so the live corpus was not asked"
+	echo "generation: this source reads generation $WANTED"
+	exit 0
+fi
+
+# The root is the one mutable object and the only one that has to be current, so it is what is
+# asked. `|| true` because every failure here -- no credential, no network, no bucket -- is a
+# check that could not run rather than an answer.
+LIVE="$(rclone cat "$REMOTE/state/index.json" 2>/dev/null || true)"
+if [ -z "$LIVE" ]; then
+	echo "generation: could not read $REMOTE/state/index.json, so the live corpus was not asked"
+	echo "generation: this source reads generation $WANTED"
+	exit 0
+fi
+
+read -r PUBLISHED GENERATED <<EOF
+$(printf '%s' "$LIVE" | python3 -c '
+import json, sys
+try:
+	root = json.load(sys.stdin)
+except Exception:
+	print("? ?")
+else:
+	print(root.get("version", "?"), root.get("generated", "?"))
+')
+EOF
+
+if [ "$PUBLISHED" = "?" ]; then
+	echo "generation: the live root did not parse, so its generation is unknown"
+	echo "generation: this source reads generation $WANTED"
+	exit 0
+fi
+
+if [ "$PUBLISHED" = "$WANTED" ]; then
+	echo "generation: live corpus is $PUBLISHED, published $GENERATED -- this source reads $WANTED"
+	exit 0
+fi
+
+echo
+if [ "$PUBLISHED" -lt "$WANTED" ] 2>/dev/null; then
+	echo "WARNING: the live corpus is a generation behind this source."
+	echo "  live      generation $PUBLISHED, published $GENERATED"
+	echo "  this code reads generation $WANTED"
+	echo
+	echo "  Deploying is allowed and this is not stopping it. Until \`mise run publish lattice"
+	echo "  --live\` has run, a worker built from this source is reading objects written under an"
+	echo "  older shape, and what that costs is whatever the two generations disagree about."
+else
+	echo "WARNING: the live corpus is ahead of this source."
+	echo "  live      generation $PUBLISHED, published $GENERATED"
+	echo "  this code reads generation $WANTED"
+	echo
+	echo "  Somebody published from a newer source than this one. Deploying this build would take"
+	echo "  the site back a generation; pull before you do."
+fi
+echo
+exit 0

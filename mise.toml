@@ -107,6 +107,10 @@ run = "pnpm exec wrangler login"
 [tasks.deploy-site]
 description = "Build and deploy the site worker"
 dir = "apps/site"
+# Asked before the build, not after: a worker that reads a generation the corpus has not got
+# yet is the failure this exists to name, and naming it once it is live is too late to be a
+# warning. It never refuses. See spec/architecture/artifacts.md.
+depends = ["generation"]
 # Two steps because the adapter writes the worker that wrangler then uploads, and the build is
 # also where source maps go to Sentry. Cloudflare will run the same two commands once the repo
 # is connected; this is the same path, run from here.
@@ -115,12 +119,17 @@ run = ["pnpm run build", "pnpm exec wrangler deploy"]
 [tasks.deploy-api]
 description = "Deploy the API worker"
 dir = "apps/api"
+# The API is the one worker that parses the root in full, so a generation it cannot read is not
+# a degraded page here -- it is every answer failing. See root.ts.
+depends = ["generation"]
 # The package command applies committed remote D1 migrations immediately before upload.
 run = "pnpm run deploy"
 
-[tasks.deploy-alias]
-description = "Deploy the alias worker, which resolves names and stores nothing"
-dir = "apps/alias"
+# `aka` is the deployed name and `alias` is what the code calls the same layer, on purpose. See
+# spec/architecture/delivery.md, "The deployed name and the called name differ".
+[tasks.deploy-aka]
+description = "Deploy the alias layer's worker, which resolves names and stores nothing"
+dir = "apps/aka"
 # `--env=""` for the same reason the CDN passes it, even though this worker declares no
 # environment: naming the top level explicitly means a dev environment added later cannot
 # change which one a bare deploy picks.
@@ -154,9 +163,9 @@ description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"
 run = "pnpm run dev"
 
-[tasks.dev-alias]
-description = "Run the alias worker, which resolves names and stores nothing"
-dir = "apps/alias"
+[tasks.dev-aka]
+description = "Run the alias layer's worker, which resolves names and stores nothing"
+dir = "apps/aka"
 run = "pnpm run dev"
 
 [tasks.dev-cms]
@@ -189,6 +198,7 @@ description = "Compile the corpus into publishable objects and mirror them: `pub
 # corpus in seconds, and a view spliced from a stale one is wrong in a way nothing reports. See
 # spec/i18n/segments.md.
 run = [
+	".mise/tasks/generation",
 	"cargo run -q -p cms -- segments",
 	"node apps/site/scripts/publish.ts",
 	".mise/tasks/sync",
@@ -220,6 +230,7 @@ depends = [
 	"test",
 	"refs",
 	"comments",
+	"shape",
 	"lint-rust",
 	"test-rust",
 ]

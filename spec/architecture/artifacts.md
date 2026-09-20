@@ -409,7 +409,7 @@ names files that are content-addressed and therefore still there.
 
 The two failures are not the same and are not cached the same. A resource the corpus does not
 publish is a fact about the corpus and keeps the publication delay; an API that could not be
-reached is a fact about this moment and is not stored. That is the asymmetry `apps/alias` already
+reached is a fact about this moment and is not stored. That is the asymmetry `apps/aka` already
 keeps, arrived at there because every icon on a page came through one host and holding a blip for
 five minutes turned it into an outage.
 
@@ -502,6 +502,51 @@ producer it does not run -- it is the boundary of what this check is. Measured: 
 emitting a `locale` on a page object after the field was dropped, which cost nine published objects
 where one would do, and no consumer noticed or could have. What found it was a person reading the
 builder.
+
+### The envelope check is only as good as the version inside it
+
+`ARTIFACT_VERSION` is the field the envelope check turns on, and its own comment states the job:
+bumped when a producer and a consumer can no longer read each other, and the only thing that
+tells a worker it is holding bytes it does not understand. Everything above depends on somebody
+having moved it.
+
+Nobody did. When a compiled `image` block stopped carrying `src`, `srcset`, `width` and `height`
+and started carrying a rid under `resources`, the constant stayed at 1. Both generations of
+object therefore declared the same version, the envelope compared 1 against 1 and passed, and a
+site worker deployed ahead of the corpus dereferenced a field its own type declared required.
+Every article carrying a picture answered 500; every article without one was fine, so the outage
+read as three broken articles rather than as a stale corpus.
+
+**A change to a published shape moves `ARTIFACT_VERSION` in the same commit.** That is now
+checked rather than remembered: `mise run shape` fingerprints the published shapes and compares
+the fingerprint to the version it was recorded against, and `verify` runs it. `mise run shape
+--bump` raises the constant and records what it now means, so nobody has to pick the number;
+`--record` writes down what the current version means without raising it.
+
+The fingerprint is **deliberately coarse** -- the whole of `types.ts` plus the named published
+shapes in `index.ts`, comments stripped -- so renaming a type asks for a bump the emitted bytes
+did not need. That is the side to be wrong on. A bump nobody needed costs one republish; a
+missing bump costs what it cost here, and bumping is one command.
+
+**Bumping cannot happen at publication.** The constant is source the workers are built from, so
+a publisher that raised it on its own would write a corpus no deployed worker had been compiled
+to read -- the same failure, in the same direction. The order is: raise it in the source,
+publish, then deploy.
+
+### A build says how far the live corpus is from it, and does not refuse
+
+The two halves move on separate schedules -- workers deploy from a push through CI, the corpus
+moves when somebody runs `publish` -- and nothing measured the distance. `mise run generation`
+reads the live root out of the metadata bucket and prints its version and publication time
+beside the one this source expects. `publish`, `deploy-site` and `deploy-api` all ask first;
+the API asks because it is the one worker that parses the root in full, where a generation it
+cannot read is not a degraded page but every answer failing.
+
+**It warns and never refuses.** The gap is normally minutes, closed by the publish that follows,
+and a check that blocked on it would be wrong far more often than right. What it owes is a line
+loud enough to find afterwards, which is why the live root's timestamp is in it. Not being able
+to ask is not a failure either: it runs where rclone is configured and in CI where it is not,
+and a deploy is not the place to discover a missing credential for a check.
 
 `valibot` is the schema library, chosen over `arktype` and `zod` because the schema ships to a
 browser and an edge runtime, because it is the type's source of truth and therefore has to be a

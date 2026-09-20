@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+#MISE description="Check that the published shape and ARTIFACT_VERSION moved together: `shape [--bump]`"
+"""Hold `ARTIFACT_VERSION` to what its own comment promises.
+
+The constant says it is "bumped when a producer and a consumer can no longer read each other",
+and it is the only thing that tells a Worker it is holding bytes it does not understand. Nothing
+enforced that. The `image` block lost six keys and gained `resources`, the constant stayed at 1,
+and a Worker deployed ahead of the corpus read an old object, dereferenced a field the type said
+was required, and returned 500 on every article carrying a picture.
+
+So the shapes are fingerprinted and the fingerprint is committed beside the version it belongs
+to. A change to either half without the other fails here.
+
+**The fingerprint is deliberately coarse.** It covers the whole of `types.ts` plus the named
+published shapes in `index.ts`, with comments stripped and whitespace collapsed -- so renaming a
+type or reordering two fields asks for a bump that the emitted bytes did not need. That is the
+side to be wrong on: a bump nobody needed costs one republish, and a missing bump costs what it
+cost the day this was written. Bumping is one command, which is what makes the trade cheap.
+
+`--bump` raises the constant and records the shape it now means. `--record` writes down what the
+current version means without raising it, which is for the first run and for a version somebody
+raised by hand.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import pathlib
+import re
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+ARTIFACTS = ROOT / "libs/artifacts"
+INDEX = ARTIFACTS / "src/index.ts"
+TYPES = ARTIFACTS / "src/types.ts"
+RECORD = ARTIFACTS / "shape.json"
+
+VERSION = re.compile(r"^export const ARTIFACT_VERSION = (\d+);$", re.M)
+
+# What one published article object is made of. `types.ts` entire, because everything in it is
+# reachable from a block; `index.ts` by name, because most of that file is code rather than shape.
+NAMED = (
+	"RootViewSchema",
+	"RootArticleSchema",
+	"RootAssetSchema",
+	"RootSchema",
+	"EnvelopeSchema",
+	"PageEnvelopeSchema",
+	"PublishedView",
+	"PublishedPage",
+)
+
+
+def uncommented(source: str) -> str:
+	"""The source with comments gone and every run of whitespace one space.
+
+	Comments are the half of these files that changes most and means least here. Strings are left
+	alone on purpose: a literal union such as `'left' | 'center'` is shape.
+	"""
+	out: list[str] = []
+	i = 0
+	quote: str | None = None
+	while i < len(source):
+		char = source[i]
+		if quote:
+			out.append(char)
+			if char == "\\":
+				if i + 1 < len(source):
+					out.append(source[i + 1])
+				i += 2
+				continue
+			if char == quote:
+				quote = None
+			i += 1
+			continue
+		if char in "\"'`":
+			quote = char
+			out.append(char)
+			i += 1
+			continue
+		if source.startswith("//", i):
+			i = source.find("\n", i)
+			if i == -1:
+				break
+			continue
+		if source.startswith("/*", i):
+			end = source.find("*/", i + 2)
+			i = len(source) if end == -1 else end + 2
+			continue
+		out.append(char)
+		i += 1
+	return re.sub(r"\s+", " ", "".join(out)).strip()
+
+
+def declaration(source: str, name: str) -> str:
+	"""One `export type|const|interface NAME ...` up to the `;` that closes it.
+
+	Depth-counted rather than matched by line, because these are equally a `v.object({...})` and
+	a union whose members each return to depth zero before the statement ends.
+	"""
+	start = re.search(rf"\bexport (?:type|const|interface) {re.escape(name)}\b", source)
+	if not start:
+		raise SystemExit(f"{INDEX.relative_to(ROOT)}: no declaration named {name}")
+	depth = 0
+	i = start.start()
+	while i < len(source):
+		char = source[i]
+		if char in "({[":
+			depth += 1
+		elif char in ")}]":
+			depth -= 1
+		elif char == ";" and depth == 0:
+			return source[start.start() : i + 1]
+		i += 1
+	raise SystemExit(f"{INDEX.relative_to(ROOT)}: {name} is never closed")
+
+
+def fingerprint() -> str:
+	index = uncommented(INDEX.read_text())
+	parts = [uncommented(TYPES.read_text())]
+	parts.extend(declaration(index, name) for name in NAMED)
+	digest = hashlib.sha256("\n".join(parts).encode()).hexdigest()
+	# Sixteen characters. This is compared, never searched for, and a line somebody has to read
+	# when the check fails is better short.
+	return digest[:16]
+
+
+def version() -> int:
+	found = VERSION.search(INDEX.read_text())
+	if not found:
+		raise SystemExit(f"{INDEX.relative_to(ROOT)}: no ARTIFACT_VERSION to read")
+	return int(found.group(1))
+
+
+def record() -> dict:
+	if not RECORD.exists():
+		return {"version": 0, "fingerprint": ""}
+	return json.loads(RECORD.read_text())
+
+
+def write(version_now: int, shape: str) -> None:
+	RECORD.write_text(
+		json.dumps(
+			{
+				"version": version_now,
+				"fingerprint": shape,
+				"covers": [
+					"libs/artifacts/src/types.ts",
+					*(f"libs/artifacts/src/index.ts:{name}" for name in NAMED),
+				],
+			},
+			indent="\t",
+		)
+		+ "\n"
+	)
+
+
+def bump() -> int:
+	source = INDEX.read_text()
+	raised = version() + 1
+	INDEX.write_text(VERSION.sub(f"export const ARTIFACT_VERSION = {raised};", source, count=1))
+	write(raised, fingerprint())
+	print(f"ARTIFACT_VERSION is {raised}, and {RECORD.relative_to(ROOT)} records the shape it means")
+	print("every published object is now a generation behind: run `mise run publish lattice --live`")
+	return 0
+
+
+def keep() -> int:
+	"""Write down what the current version means, without raising it."""
+	write(version(), fingerprint())
+	print(f"version {version()} now means {fingerprint()}, recorded in {RECORD.relative_to(ROOT)}")
+	return 0
+
+
+def check() -> int:
+	held = record()
+	shape = fingerprint()
+	if held.get("fingerprint") == shape:
+		print(f"published shape unchanged: version {version()}, {shape}")
+		return 0
+	if not RECORD.exists():
+		print(f"no shape recorded for ARTIFACT_VERSION {version()}")
+		print("run `mise run shape --record` once, against a corpus published from this source")
+		return 1
+	if version() != held.get("version"):
+		# The bump was made by hand and the record was not. Nothing is wrong; say what to run.
+		print(f"ARTIFACT_VERSION is {version()} and the recorded shape is for {held.get('version')}")
+		print("run `mise run shape --record` to write down what this version means")
+		return 1
+	print("the published shape changed and ARTIFACT_VERSION did not.")
+	print(f"  recorded {held.get('fingerprint') or '(nothing)'}")
+	print(f"  now      {shape}")
+	print()
+	print("A consumer cannot tell an object written before this change from one written after,")
+	print("which is what the constant exists to say. Run `mise run shape --bump`, then publish.")
+	return 1
+
+
+flags = sys.argv[1:]
+sys.exit(bump() if "--bump" in flags else keep() if "--record" in flags else check())
