@@ -104,7 +104,48 @@ of** -- the translation notice, and a translator's note, which appears in no `.m
 lives in a sidecar. And the widths that matter are the ones [styling/rail.md](../../styling/rail.md)
 already identifies as behaviour boundaries rather than a round number picked here.
 
+### A name that promises a translation is where the value changes
+
+Measured on the player, the largest block this repository had: four moves would have changed a
+computed value, and two of the four were reachable by reading. **Both of the two that were not are
+names that promise a translation and do not deliver one**, which is why neither sends anybody to
+look. Each rule below therefore names the artefact to inspect, because "measure carefully" is not a
+thing anyone can follow.
+
+**Dump the emitted condition text for every at-rule rewritten as a variant, and compare it to the
+rule it replaced.** `max-[45rem]:` compiles to `@media (width < 45rem)`, not `@media (max-width:
+45rem)`: exclusive where the original was inclusive, so the declaration stops applying at exactly
+the boundary and a control reappears at 720px. The inclusive form is `[@media(max-width:45rem)]:`.
+The artefact is `conditionText` off `document.styleSheets`; the check is string equality against
+the old at-rule. This is the one nothing would have sent anybody to look at -- it surfaced beside
+an unrelated dump, and without that accident it would have shipped.
+
+**Take a shorthand's longhand set from the specification, not from the properties you meant to
+move.** `transition` sets five lists and the obvious migration writes four: `transition-behavior`
+computes `normal, normal` under a two-property shorthand and `normal` without it. `border: 0` sets
+`border-style: none` over Tailwind's preflight `solid`, so omitting `borderStyle` is not a no-op
+either. This is the same mistake as the one diagnosed above about the gate's property list, one
+level further down.
+
+**No utility translates a `transform` declaration.** Tailwind 4 writes `scale`, `rotate` and
+`translate` as their own properties, so a hover enlargement becomes `scale: 1.05` with `transform`
+left at `none` -- the same pixels and a different computed value. Anything whose computed value has
+to stay a `transform` is the vocabulary by necessity rather than by the axis. Those three properties
+are already named here as a hole in the gate's list; they are also a hole in the frame.
+
+Anticipated rather than hit, and recorded because the adjacent rule in
+[authoring.md](authoring.md) covers conditions and not this: two utilities for one property in one
+layer are ordered by something the author does not control. Write the pair exclusively -- a ternary
+-- or lean on a variant's specificity and measure that it holds.
+
 ### What the gate cannot see
+
+**A pseudo-element's computed style is not readable.** `getComputedStyle(el, '::-webkit-slider-thumb')`
+returns the host element's style rather than the pseudo-element's, reporting `background-image: none`
+for a track whose rule is a gradient. This is not a hole in a property list, it is a class of rule
+the method cannot read at all, and every component carrying a range input has some. Those rules stay
+in the escape hatch anyway, which is what keeps this survivable: what cannot be measured is also
+what was never going to move.
 
 **It runs Chrome.** The floors in [compat.md](../../compat.md) are Firefox 115 and Safari 16, and this
 repository has already been caught once by a property measured in one engine: `text-wrap: pretty`
