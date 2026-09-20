@@ -510,6 +510,13 @@
 		}
 
 		let cancelInitialJump: (() => void) | undefined;
+		/** How long the recheck above waits for a restored place: a handful of frames, never more. */
+		const SETTLE_FRAMES = 30;
+		let settleFrame = 0;
+		let destroyedSpy = false;
+		cleanups.push(() => {
+			destroyedSpy = true;
+		});
 
 		const raf = requestAnimationFrame(() => {
 			const measured: Entry[] = [];
@@ -573,33 +580,60 @@
 		window.addEventListener('scroll', onScroll, { passive: true });
 		cleanups.push(() => window.removeEventListener('scroll', onScroll));
 
+		/**
+		 * The last heading at or above the reading band, which is the one being read.
+		 *
+		 * Asked of the page rather than of whatever the observer happened to report. Its callback
+		 * carries the entries that changed, in no particular order, so taking the first
+		 * intersecting one answers with an arbitrary heading whenever more than one crosses at
+		 * once -- which is exactly what an instant jump does. Measured at 7,614px into this
+		 * article, the rail marked the first entry while the reader was at the third.
+		 */
+		const readingAt = (): number => {
+			const threshold = window.scrollY + window.innerHeight * 0.3;
+			let found = -1;
+			headings.forEach((heading, index) => {
+				if (heading.getBoundingClientRect().top + window.scrollY <= threshold) found = index;
+			});
+			return found;
+		};
+
+		// The observer is the trigger and the position is the answer.
 		const observer = new IntersectionObserver(
-			(ixs) => {
+			() => {
 				if (isClickScrolling) return;
 				if (window.scrollY <= TOP_DEAD_ZONE) return;
-				for (const ix of ixs) {
-					if (ix.isIntersecting) {
-						const idx = headings.indexOf(ix.target as HTMLHeadingElement);
-						if (idx >= 0) {
-							activeIndex = idx;
-							break;
-						}
-					}
-				}
+				const index = readingAt();
+				if (index >= 0) activeIndex = index;
 			},
 			{ rootMargin: '0% 0% -70% 0%', threshold: 0 },
 		);
 		for (const h of headings) observer.observe(h);
 		cleanups.push(() => observer.disconnect());
 
-		if (window.scrollY > TOP_DEAD_ZONE) {
-			const threshold = window.scrollY + window.innerHeight * 0.3;
-			let initialIdx = -1;
-			headings.forEach((heading, i) => {
-				const top = heading.getBoundingClientRect().top + window.scrollY;
-				if (top <= threshold) initialIdx = i;
-			});
-			if (initialIdx >= 0) activeIndex = initialIdx;
+		/**
+		 * Where the reader already is, which on a client navigation they are not yet.
+		 *
+		 * A restored place is scrolled to after this runs, and the observer's first callback was
+		 * discarded because the page was still at the top when it arrived -- so nothing marked the
+		 * rail until the reader moved. Rechecked on the next frames, bounded, so a restore that
+		 * lands late is still met.
+		 */
+		const settle = () => {
+			if (window.scrollY <= TOP_DEAD_ZONE) return false;
+			const index = readingAt();
+			if (index < 0) return false;
+			activeIndex = index;
+			return true;
+		};
+		if (!settle()) {
+			let tries = 0;
+			const again = () => {
+				if (destroyedSpy || settle() || (tries += 1) > SETTLE_FRAMES) return;
+				settleFrame = requestAnimationFrame(again);
+			};
+			settleFrame = requestAnimationFrame(again);
+			cleanups.push(() => cancelAnimationFrame(settleFrame));
 		}
 
 		return () => {
