@@ -46,7 +46,7 @@ function resolveGithubAvatar(input: string, cdnUrl: string): string {
 	const parsed = parseAvatarRef(rest);
 	if (!parsed) return input;
 	const query = parsed.size ? `?width=${parsed.size}` : '';
-	return `${cdnUrl}/github/avatar/${parsed.idOrName}${query}`;
+	return `${cdnUrl}/proxy/github/avatar/${parsed.idOrName}${query}`;
 }
 
 function parseAvatarRef(rest: string): { idOrName: string; size: string | null } | null {
@@ -91,7 +91,7 @@ function rewriteIfKnown(input: string, cdnUrl: string): string {
 		if (match) {
 			const size = url.searchParams.get('s');
 			const query = size ? `?width=${size}` : '';
-			return `${cdnUrl}/github/avatar/${match[1]}${query}`;
+			return `${cdnUrl}/proxy/github/avatar/${match[1]}${query}`;
 		}
 	}
 

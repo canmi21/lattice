@@ -130,7 +130,7 @@ export function githubRepository(value: string | undefined): GithubRepository | 
 }
 
 export function githubAvatar(cdn: string, login: string, width: number): string {
-	return `${cdn}/github/avatar/${encodeURIComponent(login)}?width=${width}`;
+	return `${cdn}/proxy/github/avatar/${encodeURIComponent(login)}?width=${width}`;
 }
 
 export type Dependents = {

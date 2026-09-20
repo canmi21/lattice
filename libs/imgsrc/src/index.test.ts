@@ -74,28 +74,28 @@ describe('imgsrc', () => {
 
 	describe('github:avatar: scheme', () => {
 		it('numeric id without size', () => {
-			expect(imgsrc('github:avatar:72544151')).toBe(`${prodCdn}/github/avatar/72544151`);
+			expect(imgsrc('github:avatar:72544151')).toBe(`${prodCdn}/proxy/github/avatar/72544151`);
 		});
 
 		it('numeric id with @size', () => {
 			expect(imgsrc('github:avatar:72544151@192')).toBe(
-				`${prodCdn}/github/avatar/72544151?width=192`,
+				`${prodCdn}/proxy/github/avatar/72544151?width=192`,
 			);
 		});
 
 		it('username via @ prefix', () => {
-			expect(imgsrc('github:avatar:@canmi21')).toBe(`${prodCdn}/github/avatar/canmi21`);
+			expect(imgsrc('github:avatar:@canmi21')).toBe(`${prodCdn}/proxy/github/avatar/canmi21`);
 		});
 
 		it('username with @size', () => {
 			expect(imgsrc('github:avatar:@canmi21@192')).toBe(
-				`${prodCdn}/github/avatar/canmi21?width=192`,
+				`${prodCdn}/proxy/github/avatar/canmi21?width=192`,
 			);
 		});
 
 		it('respects custom cdnUrl', () => {
 			expect(imgsrc('github:avatar:72544151@192', { cdnUrl: devCdn })).toBe(
-				`${devCdn}/github/avatar/72544151?width=192`,
+				`${devCdn}/proxy/github/avatar/72544151?width=192`,
 			);
 		});
 
@@ -114,7 +114,7 @@ describe('imgsrc', () => {
 
 	describe('plain url rewrite for known github surfaces', () => {
 		it('avatars URL rewrites to CDN avatar route', () => {
-			expect(imgsrc(`${github.avatars}/u/72544151?v=4`)).toBe(`${prodCdn}/github/avatar/72544151`);
+			expect(imgsrc(`${github.avatars}/u/72544151?v=4`)).toBe(`${prodCdn}/proxy/github/avatar/72544151`);
 		});
 
 		it('avatars URL respects custom cdnUrl', () => {
@@ -122,18 +122,18 @@ describe('imgsrc', () => {
 				imgsrc(`${github.avatars}/u/72544151`, {
 					cdnUrl: devCdn,
 				}),
-			).toBe(`${devCdn}/github/avatar/72544151`);
+			).toBe(`${devCdn}/proxy/github/avatar/72544151`);
 		});
 
 		it('avatars URL preserves ?s=N as ?width=N', () => {
 			expect(imgsrc(`${github.avatars}/u/72544151?s=192`)).toBe(
-				`${prodCdn}/github/avatar/72544151?width=192`,
+				`${prodCdn}/proxy/github/avatar/72544151?width=192`,
 			);
 		});
 
 		it('avatars URL drops other query params but keeps ?s=N', () => {
 			expect(imgsrc(`${github.avatars}/u/72544151?v=4&s=64`)).toBe(
-				`${prodCdn}/github/avatar/72544151?width=64`,
+				`${prodCdn}/proxy/github/avatar/72544151?width=64`,
 			);
 		});
 
