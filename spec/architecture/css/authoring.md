@@ -29,6 +29,28 @@ and deletes the whole instance script below it: silently, with no error, and a z
 The visual half of a component sits in the module script precisely because it holds no markup, so
 this rule costs it nothing to keep and is the one thing the module script's comments must not do.
 
+### The instance script's comments cannot either, and there the symptom is silence
+
+The same tag in the *instance* script's comments breaks a different tool in a worse way.
+`svelte-check` stops parsing the script where it meets one and reads the remainder of the file as
+markup, so everything below is never type-checked. Nothing is deleted and nothing is reported: the
+file still appears in the run and still says zero errors.
+
+Measured on this repository's largest component. Taking `<style>` out of the opening doc comment of
+[video-controls.svelte](../../../apps/site/src/lib/components/video-controls.svelte), changing
+nothing else, turned `66 FILES 0 ERRORS` into `67 FILES 10 ERRORS`. **The file count is the tell**:
+the swallowed script imported nothing, so its imports never entered the program either. The ten
+errors it was hiding had been there long enough that nobody could say when they arrived.
+
+**Backticks do not stop it**, which is the half a reader will assume otherwise -- the comment that
+hid those ten wrote the tag inside a code span in a JSDoc block. Only the compiler and the dev
+server were ever unaffected; the page rendered correctly throughout.
+
+So the rule is the whole file's, not the module script's: **no comment anywhere in a component
+writes a tag in angle brackets.** Name it in prose. Whether the closing tag matters, whether other
+tag names do it, and whether an entity escapes it are all untested, and there is no reason to find
+out rather than simply not writing one.
+
 ## A comment that names a utility compiles that utility
 
 Tailwind reads the raw bytes of every file under `apps/site`, so a class name written in a comment
