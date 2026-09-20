@@ -8,6 +8,7 @@
 
 import { browser } from '$app/environment';
 import { arriving } from './arrival';
+import { tab, type Store } from './state';
 
 /**
  * How long a measurement may wait for the fonts it is about to measure in.
@@ -19,19 +20,59 @@ import { arriving } from './arrival';
  */
 const FONTS_MS = 400;
 
+/** Where a measurement is kept for the rest of the sitting. One key, a map inside it. */
+const KEY = 'measured';
+
+/** What is stored: the answer, and what it was an answer about. */
+type Held = { of: string; value: unknown };
+
+function held(storage: Store): Record<string, Held> {
+	const stored = tab.recall<Record<string, unknown>>(storage, KEY, {});
+	const clean: Record<string, Held> = {};
+	for (const [name, entry] of Object.entries(stored)) {
+		if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) continue;
+		const { of, value } = entry as { of?: unknown; value?: unknown };
+		if (typeof of === 'string' && value !== undefined) clean[name] = { of, value };
+	}
+	return clean;
+}
+
 /**
- * Compute on a client navigation, answer `undefined` anywhere else.
+ * Answer the measurement, and settle only the first time in a sitting that nobody has one.
  *
  * **The absence is the signal**: a component given nothing draws its default and settles, one
- * given a value draws the value. Undefined during hydration as well as on the server, because
- * SvelteKit runs a universal `load` again as it hydrates -- without that the measurement lands
- * one frame after the default and the first paint jumps instead of settling. See
- * spec/styling/first-paint.md, "A page declares what only a browser can work out".
+ * given a value draws the value. A server has nothing to measure with, a navigation measures
+ * before it renders, and an arrival is answered from what this tab already worked out.
+ *
+ * `of` is what the answer is about, so a shape measured from one list of headings is never drawn
+ * for another. See spec/styling/first-paint.md, "A measurement is a fact about this sitting".
  */
-export async function measured<T>(compute: () => T): Promise<T | undefined> {
-	if (!browser || arriving()) return undefined;
+export async function measured<T>(name: string, of: string, compute: () => T): Promise<T | undefined> {
+	if (!browser) return undefined;
+
+	const stored = held(sessionStorage)[name];
+	if (stored?.of === of) return stored.value as T;
+
+	if (arriving()) {
+		// Measured anyway, so the next page in this sitting is drawn rather than settled -- and
+		// answered `undefined`, because the arrival is where the animation belongs.
+		void fontsSettled().then(() => keep(name, of, compute()));
+		return undefined;
+	}
+
 	await fontsSettled();
-	return compute();
+	const value = compute();
+	keep(name, of, value);
+	return value;
+}
+
+/** Write one answer into the sitting's record. A failure is silence: it is only ever a shortcut. */
+function keep(name: string, of: string, value: unknown): void {
+	try {
+		tab.remember(sessionStorage, KEY, { ...held(sessionStorage), [name]: { of, value } });
+	} catch {
+		// Private browsing, or storage the reader turned off. The measurement still happened.
+	}
 }
 
 /**

@@ -71,7 +71,6 @@
 </script>
 
 <script lang="ts">
-	import { measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext';
 	import { animate, frame as motionFrame } from 'motion';
 	import {
 		DEFAULT_PIXELS_PER_REM,
@@ -79,7 +78,9 @@
 		remFromMeasuredPixels,
 	} from '$lib/client/units';
 	import { untrack } from 'svelte';
+	import { arriving } from '$lib/client/arrival';
 	import type { TocEntry } from '@canmi/artifacts/types';
+	import { measureRail } from './rail-measure';
 	import type { RailWidths } from './rail-widths';
 	import { railEndOffset } from './rail';
 	import { scheduleInitialHashJump } from './toc';
@@ -145,7 +146,7 @@
 	const toScaledPixels = (value: number, root: number) => (value / DEFAULT_PIXELS_PER_REM) * root;
 
 	type Phase = 'collapsed' | 'expanded' | 'revealed';
-	type Entry = { el?: HTMLHeadingElement; slug: string; width: number; text: string };
+	type Entry = { el?: HTMLHeadingElement; slug: string; text: string };
 	type HydratedEntries = { source: TocEntry[]; entries: Entry[] };
 	type IndicatorGeometry = { y: number; height: number };
 	type AnimationControl = { stop: () => void };
@@ -154,15 +155,28 @@
 	/** The widest label as the rail will draw it, which is the widest a bar may be. */
 	// The measurement is a fact about this render, not a value that goes on changing, so taking
 	// only the initial one is the intent. See blocks/code-block.svelte for the same reading.
-	let labelCeiling = $state(untrack(() => rail?.ceiling ?? 0));
+	/**
+	 * What this component measured for itself, on the one render where nobody had it.
+	 *
+	 * The same call the load makes, so a first visit, a reload painted from the sitting's record
+	 * and a client navigation all draw the same bars. Two measurements meaning the same thing is
+	 * how they stop agreeing -- and they had: this component's own ceiling came out 0 where the
+	 * shared one is the rail's declared width, which is a different column of bars.
+	 */
+	let fallback = $state.raw<RailWidths | undefined>();
+	const shape = $derived(rail ?? fallback);
+
+	/**
+	 * Whether a shape painted before hydration may be read.
+	 *
+	 * Only on the document the reader arrived in: the head script runs once, so its properties
+	 * belong to the page that was served and to no page navigated to afterwards.
+	 */
+	const settled = untrack(() => arriving());
 	const entries = $derived(
 		hydratedEntries?.source === toc
 			? hydratedEntries.entries
-			: toc.map<Entry>(({ slug, text }, index) => ({
-					slug,
-					text,
-					width: rail?.widths[index] ?? 0,
-				})),
+			: toc.map<Entry>(({ slug, text }) => ({ slug, text })),
 	);
 	let asideEl = $state<HTMLElement | undefined>();
 	let indicatorEl = $state<HTMLElement | undefined>();
@@ -211,142 +225,6 @@
 		return clone.textContent?.trim() ?? '';
 	}
 
-	function fontOf(el: HTMLElement): string {
-		const cs = getComputedStyle(el);
-		return `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-	}
-
-	/** How wide a label may be before it wraps: the shell's cap, which is where the text lives. */
-	function expandedLabelWidth(): number {
-		const shell = asideEl?.parentElement;
-		if (!shell) return Number.POSITIVE_INFINITY;
-		const cap = Number.parseFloat(getComputedStyle(shell).maxWidth);
-		return Number.isFinite(cap) && cap > 0 ? cap : shell.getBoundingClientRect().width;
-	}
-
-	/**
-	 * How the rail will lay this entry out: how many lines it takes, and how wide it draws.
-	 *
-	 * See spec/styling/rail.md, "An entry that wraps contributes half its width per line", for why a
-	 * wrapping heading must not report its single-line width. Measured in the label's own font
-	 * rather than the heading's, since the two are not proportional and the wrap happens here.
-	 */
-	function labelMetrics(
-		text: string,
-		label: HTMLElement | undefined,
-		available: number,
-	): { lines: number; drawn: number } {
-		if (!label || !Number.isFinite(available) || available <= 0) return { lines: 1, drawn: 0 };
-		const width = measureNaturalWidth(prepareWithSegments(text, fontOf(label)));
-		return {
-			lines: Math.min(2, Math.max(1, Math.ceil(width / available))),
-			// What the label actually occupies: it cannot exceed the rail, which is where it wraps.
-			drawn: Math.min(width, available),
-		};
-	}
-
-	/**
-	 * A stable number for a string, so a tie is broken the same way on every render.
-	 *
-	 * FNV-1a, which is a few lines and has no other requirement here than that two headings that
-	 * differ anywhere land on different numbers. Nothing depends on it being hard to reverse.
-	 */
-	function textHash(text: string): number {
-		let hash = 2166136261;
-		for (let index = 0; index < text.length; index += 1) {
-			hash ^= text.charCodeAt(index);
-			hash = Math.imul(hash, 16777619);
-		}
-		return hash >>> 0;
-	}
-
-	/**
-	 * Bar widths, in tenths of the longest heading.
-	 *
-	 * See spec/styling/rail.md, "Collapsed, the bars are a thumbnail of the list", for why a tenth is
-	 * the right grain and why the scale is the longest heading rather than the shortest-to-longest
-	 * spread.
-	 */
-	function steppedBars(widths: number[], texts: string[], ceiling: number): number[] {
-		if (widths.length === 0) return [];
-		// A bar may never be wider than the widest label -- see spec/styling/rail.md, "A bar may never
-		// be wider than the widest label".
-		const longest = Math.min(MAX_BAR_WIDTH, ceiling > 0 ? ceiling : MAX_BAR_WIDTH);
-		const max = Math.max(...widths);
-		if (max < 1) return widths.map(() => longest / 2);
-
-		const steps = widths.map((w) => Math.min(STEPS, Math.max(1, Math.round((w / max) * STEPS))));
-
-		// Bring the peaks down until no entry stands more than `MAX_ADJACENT_STEP` above a
-		// neighbour. Two passes, forward and back, make the constraint hold both ways. Down
-		// rather than up, and only ever toward a neighbour, never levelled with it -- see
-		// spec/styling/rail.md, "No entry stands more than three steps above a neighbour, and the
-		// outlier comes down".
-		const flatten = (from: number[]): number[] => {
-			const out: number[] = [];
-			for (const step of from) {
-				const previous = out.at(-1);
-				out.push(previous === undefined ? step : Math.min(step, previous + MAX_ADJACENT_STEP));
-			}
-			return out;
-		};
-		const shaved = flatten(flatten(steps).reverse()).reverse();
-
-		// The other half of the same idea: two neighbours on the same step are separated by one,
-		// toward whichever side they were already nearer. Both constraints run in one pass --
-		// applied separately, the second would undo the first. See spec/styling/rail.md, "Two
-		// neighbours on the same step are separated by one step", including the tie-break rule.
-		const settled: number[] = [];
-		shaved.forEach((step, index) => {
-			const previous = settled.at(-1);
-			if (previous === undefined) {
-				settled.push(step);
-				return;
-			}
-			const held = Math.min(
-				previous + MAX_ADJACENT_STEP,
-				Math.max(previous - MAX_ADJACENT_STEP, step),
-			);
-			if (Math.abs(held - previous) >= MIN_ADJACENT_STEP) {
-				settled.push(held);
-				return;
-			}
-			// Moved just far enough to be a second mark rather than a repeat of the first. The
-			// separation is the point, not the distance: these two headings are the same length,
-			// and a bigger push would say they are not.
-			const down = Math.max(1, previous - MIN_ADJACENT_STEP);
-			const up = Math.min(STEPS, previous + MIN_ADJACENT_STEP);
-			// At either end of the scale one of the two directions is not a move at all -- from
-			// the tenth step, "up" is the tenth step. Whichever side still has somewhere to go
-			// takes it, and only a genuine choice between two of them consults the text.
-			const canGoDown = previous - down >= MIN_ADJACENT_STEP;
-			const canGoUp = up - previous >= MIN_ADJACENT_STEP;
-			if (!canGoDown && !canGoUp) {
-				settled.push(held);
-				return;
-			}
-			if (canGoDown !== canGoUp) {
-				settled.push(canGoDown ? down : up);
-				return;
-			}
-			const toDown = Math.abs(step - down);
-			const toUp = Math.abs(step - up);
-			if (toDown !== toUp) {
-				settled.push(toDown < toUp ? down : up);
-				return;
-			}
-			settled.push(textHash(texts[index] ?? '') % 2 === 0 ? down : up);
-		});
-
-		// Finally, slide the whole column down if nothing in it reaches the low end of the scale.
-		// A shift, not a rescale: every difference above was chosen against the two rules, and
-		// rescaling would quietly undo them. Moving all of the steps by one amount changes none of
-		// them.
-		const lowest = Math.min(...settled);
-		const excess = Math.max(0, lowest - RESTING_STEP);
-
-		return settled.map((step) => ((step - excess) / STEPS) * longest);
-	}
 
 	function indicatorGeometry(button: HTMLElement): IndicatorGeometry {
 		const label = button.querySelector<HTMLElement>('[data-toc-text]');
@@ -431,13 +309,14 @@
 		};
 	}
 
-	const barWidths = $derived(
-		steppedBars(
-			entries.map((e) => e.width),
-			entries.map((e) => e.text),
-			labelCeiling,
-		),
-	);
+	/**
+	 * What each bar is drawn at: the load's answer where there is one, worked out here where not.
+	 *
+	 * One function either way -- the scale lives in `rail-widths.ts` so a measurement taken in a
+	 * `load`, one taken in this component and one painted by the head script are the same numbers.
+	 */
+	/** What each bar is drawn at: the shape, or the resting half-scale until there is one. */
+	const barWidths = $derived(shape ? shape.widths : toc.map(() => MAX_BAR_WIDTH / 2));
 	const showText = $derived(phase === 'revealed');
 
 	function handleEnter() {
@@ -523,26 +402,14 @@
 			// Already worked out, before this page was drawn. The elements are still collected --
 			// they are what a jump and the scroll spy need -- but nothing is measured again, and
 			// nothing therefore changes for the bars to animate between.
-			if (rail) {
-				for (const [index, el] of headings.entries()) {
-					measured.push({ el, slug: el.id, width: rail.widths[index] ?? 0, text: headingText(el) });
-				}
-				hydratedEntries = { source, entries: measured };
-			} else {
-				const labels = asideEl?.querySelectorAll<HTMLElement>('[data-toc-text]');
-				const available = expandedLabelWidth();
-				let widest = 0;
-				for (const [index, el] of headings.entries()) {
-					const text = headingText(el);
-					const prepared = prepareWithSegments(text, fontOf(el));
-					const w = measureNaturalWidth(prepared);
-					const { lines, drawn } = labelMetrics(text, labels?.[index], available);
-					widest = Math.max(widest, drawn);
-					measured.push({ el, slug: el.id, width: w / lines, text });
-				}
-				labelCeiling = widest;
-				hydratedEntries = { source, entries: measured };
+			// The elements, which are what a jump and the scroll spy need. Widths are the shape's.
+			for (const el of headings) {
+				measured.push({ el, slug: el.id, text: headingText(el) });
 			}
+			hydratedEntries = { source, entries: measured };
+			// Nobody handed this render a shape, so it is measured here -- by the same function,
+			// so the bars are the ones every other route to this page would have drawn.
+			if (!rail) fallback = measureRail(source);
 			if (initialTarget) {
 				// Bar-width animation snapshots scrollY while resolving keyframes. Start after that
 				// restoration phase or it cancels this smooth jump and leaves a cold load at the top.
@@ -865,15 +732,20 @@
 					class:focus-ring-inner={!showText}
 					class="toc-ring-bar block w-fit {stylex.attrs(styles.barRing).class}"
 				>
-					<!-- The baked first frame, unless the load already knew better. `2rem` is the
-					     resting shape a server draws and the rail settles out of; a width here is
-					     the measurement, and then there is nothing to settle. -->
+					<!-- Three answers, in the order they are known. The load's measurement, if it
+					     has one. Otherwise a custom property, which the head script sets from what
+					     this tab measured earlier in the sitting -- and which is only read on the
+					     document the reader arrived in, so a value left over from another article
+					     can never reach a navigation. Otherwise `2rem`, the resting shape a server
+					     draws and the rail settles out of. See lib/client/measured-ground.ts. -->
 					<span
 						data-toc-bar
 						class="block {stylex.attrs(styles.bar).class}"
 						style="width: {rail
 							? remFromDefaultPixels(barWidths[i] ?? MAX_BAR_WIDTH / 2)
-							: '2rem'}; height: 0.25rem; opacity: {i === activeIndex ? 0.8 : 0.35}"
+							: settled
+								? `var(--toc-bar-${i}, 2rem)`
+								: '2rem'}; height: 0.25rem; opacity: {i === activeIndex ? 0.8 : 0.35}"
 					></span>
 				</span>
 				<span class:focus-ring-inner={showText} class="toc-ring-text block w-fit max-w-full">

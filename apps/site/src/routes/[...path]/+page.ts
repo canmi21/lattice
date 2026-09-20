@@ -63,7 +63,13 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 	 * used to sweep 36 widths over 294ms on every article opened. See
 	 * spec/styling/first-paint.md, "A page declares what only a browser can work out".
 	 */
-	const rail = await measured(() => measureRail(view.body.toc));
+	const rail = await measured(
+		`article.rail.${view.slug}`,
+		// Keyed by the article and checked against its headings: a stored shape belongs to the
+		// headings it was measured from, and a republished article can change them.
+		view.body.toc.map((entry) => entry.text).join('\u0000'),
+		() => measureRail(view.body.toc),
+	);
 
 	return {
 		resources,

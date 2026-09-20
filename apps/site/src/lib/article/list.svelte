@@ -153,6 +153,7 @@
 				created={article.created}
 				path={article.path}
 				bars={drawn?.[index]}
+				{index}
 			/>
 		{/each}
 	</div>

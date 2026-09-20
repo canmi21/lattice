@@ -33,8 +33,12 @@ export const load: PageLoad = async ({ url, fetch, parent, depends }) => {
 	 * point of declaring it here rather than measuring in the component. See
 	 * spec/styling/first-paint.md, "A page declares what only a browser can work out".
 	 */
-	const shapes = await measured(() =>
-		thumbnails(articles, fontOfClass('article-preview-subtitle')),
+	const shapes = await measured(
+		'home.thumbnails',
+		// What it is an answer about: change the list or a title and the stored shape is not this
+		// list's any more.
+		articles.map((article) => article.meta.title).join('\u0000'),
+		() => thumbnails(articles, fontOfClass('article-preview-subtitle')),
 	);
 
 	return {

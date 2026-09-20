@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { ARTICLE_THUMBNAIL_LINES } from '@canmi/primitives';
+	import { arriving } from '$lib/client/arrival';
 	import { shortDate } from '$lib/format';
 
 	let {
@@ -10,6 +12,7 @@
 		created,
 		path,
 		bars,
+		index,
 	}: {
 		title: string;
 		subtitle: string;
@@ -26,9 +29,33 @@
 		 * then the first frame is the answer. See spec/styling/first-paint.md.
 		 */
 		bars?: readonly { width: string; marginTop: string }[];
+		/**
+		 * Where this card sits in the homepage's list, which is how the head script names its bars.
+		 *
+		 * Absent for a card inside an article, which has no list to be measured against and keeps
+		 * the baked shape. See article/body.svelte.
+		 */
+		index?: number;
 	} = $props();
 
-	const lines = $derived(bars ?? ARTICLE_THUMBNAIL_LINES);
+	/**
+	 * Three answers, in the order they are known: the load's measurement, then what this sitting
+	 * painted before anything rendered, then the hand-tuned default. The custom properties are
+	 * only read on the document the reader arrived in -- the head script runs once, so they belong
+	 * to the page that was served. See lib/client/measured-ground.ts.
+	 */
+	const settled = untrack(() => arriving());
+	const lines = $derived(
+		bars ??
+			ARTICLE_THUMBNAIL_LINES.map((line, bar) =>
+				settled && index !== undefined
+					? {
+							width: `var(--card-${index}-${bar}-w, ${line.width})`,
+							marginTop: `var(--card-${index}-${bar}-g, ${line.marginTop})`,
+						}
+					: line,
+			),
+	);
 
 	const date = $derived(shortDate(created));
 </script>

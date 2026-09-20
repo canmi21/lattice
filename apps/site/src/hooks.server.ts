@@ -7,6 +7,7 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { articleRailScript } from '$lib/article/rail';
 import { articleHashScript } from '$lib/article/toc';
 import { videoGroundScript } from '$lib/client/ground';
+import { measuredGroundScript } from '$lib/client/measured-ground';
 import {
 	LANGUAGE_COOKIE_MAX_AGE,
 	languageTag,
@@ -138,6 +139,7 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 					.replace('%theme.script%', themeScript)
 					.replace('%article.hash.script%', isPage ? articleHashScript : '')
 					.replace('%video.ground.script%', videoGroundScript)
+					.replace('%measured.ground.script%', measuredGroundScript)
 					.replace('%article.rail.script%', articleRailScript),
 			),
 	});

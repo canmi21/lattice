@@ -83,6 +83,55 @@ reader arrived in, which is the flag the section below already keeps. With it, t
 paint springs through 33 widths, and the client navigation that follows draws 26 on its first
 frame and never moves.
 
+## A measurement is a fact about this sitting, and it is kept like one
+
+A client navigation can measure before it paints. A document load cannot: the server has already
+sent its HTML and the browser paints that, so the first article of a sitting settles and so did
+every reload after it, replaying an entrance for a shape the tab worked out minutes ago.
+
+So the answer is written into the `tab` record in `sessionStorage`, beside the other facts about
+this sitting -- see [engagement.md](../engagement.md), "What this site remembers is two records
+and one mechanism". The lifetime is exactly right: a measurement is true of this browser at this
+size with these fonts, which is what one sitting means.
+
+**The rule the reader sees: the first time in a sitting animates, and nothing after it does.**
+
+1. First document load, nothing stored. Measured after hydration, stored, and the page settles --
+   the entrance happens once.
+2. Any load after it, including a reload. A script in `<head>` reads the record and writes the
+   answer as custom properties before anything is painted, so the served default is never seen.
+3. A client navigation. Measured in the `load`, as above.
+
+`measured` is keyed by what the answer is about as well as by name -- an article's own headings,
+the homepage's own titles. A stored shape belongs to the text it was measured from, and a
+republished article must not be drawn from the one before it.
+
+### The head script paints it, and that is the only way to reach a first frame
+
+The markup reads each value with its declared default as the fallback -- `var(--toc-bar-3, 2rem)`
+-- so a tab with nothing stored renders exactly the page that was served. The script emits a
+`<style>` on `:root`; it cannot set widths on elements, because it runs before any of them is
+parsed. `client/ground.ts` is the same shape for a video's blurred ground, and
+[architecture/video/player.md](../architecture/video/player.md) argues that one.
+
+**Those properties are read only on the document the reader arrived in.** The script runs once, so
+its values belong to the page that was served and to no page navigated to afterwards.
+
+**Each blocking script gets its own `<script>` tag.** Two IIFEs on consecutive lines are not two
+statements: without a semicolon between them, `})()` and `(function(){` parse as a call of the
+first one's result, which is `undefined`, and the second script never runs. Measured: the
+properties were simply absent, with no error anywhere a page would show one.
+
+### One measurement, one function, or the three routes disagree
+
+The value painted by the script, the value a `load` computes and the value a component measures
+for itself have to be the same number, so they are the same call. This is not a style preference:
+the rail had a second measurement of its own, and the two answered a ceiling of 0 against the
+rail's declared width -- a different column of bars depending on how the reader arrived.
+
+That is also why the shared function answers what is **drawn** rather than a natural width
+somebody still has to turn into one. A head script cannot run the arithmetic in a component.
+
 ### What it cannot cover, and what to do there instead
 
 The measurement has to be one a browser can make **without the page it is for**. Text width is:
