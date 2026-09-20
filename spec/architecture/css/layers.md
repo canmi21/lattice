@@ -104,10 +104,14 @@ this layer is the wrong answer regardless of what the declaration says.
   [article.svelte](../../../apps/site/src/lib/article/article.svelte) is the only such site.
 
 **The frame** owns the one-offs: `display` and the flex and grid properties, `gap`, `margin`,
-`padding`, `width`, `height` and their `min-`/`max-` forms, `position` and `inset`, `z-index`,
-`align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`, `user-select`, and text
-behaviour -- `white-space`, `text-wrap`, `overflow-wrap`, `word-break`, `hyphens`,
-`text-overflow`.
+`padding`, `width`, `height` and their `min-`/`max-` forms, `aspect-ratio`, `position` and
+`inset`, `z-index`, `align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`,
+`user-select`, and text behaviour -- `white-space`, `text-wrap`, `overflow-wrap`, `word-break`,
+`hyphens`, `text-overflow`, `text-align`.
+
+`aspect-ratio` and `text-align` are the quadrant's two additions, and each is the third question
+answering rather than the first two: a class reaches the element, no recipe names the
+declaration, and the value is one keyword or one ratio on one element.
 
 ### Typography splits, and the line runs through it rather than around it
 

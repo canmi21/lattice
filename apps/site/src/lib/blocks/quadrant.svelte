@@ -7,8 +7,10 @@
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
-	 * The block at the foot is the figure's geometry, including the two axis arrowheads: see
-	 * spec/todo.md, "An arrowhead is a shape made of borders, and the test cannot cut it in half".
+	 * The figure's geometry is the frame, written on the elements in the markup. What is left in
+	 * the block at the foot is the two axis arrowheads alone, which are pseudo-elements no class
+	 * reaches: see spec/todo.md, "An arrowhead is a shape made of borders, and the test cannot cut
+	 * it in half".
 	 */
 	const styles = stylex.create({
 		/** The plotting ground. The ink is set once here and inherits into everything below. */
@@ -84,6 +86,20 @@
 	const titleId = `${figureId}-title`;
 	const descriptionId = `${figureId}-description`;
 
+	/**
+	 * The half of a region's flow that its name decides: items anchor at the corner nearest the
+	 * cross, so the vertical half says how they stack and the horizontal half which way they run.
+	 *
+	 * Branches rather than a pair of utilities on one property, whose order inside one layer is
+	 * not the author's to choose. See spec/architecture/css/migration.md.
+	 */
+	function cellFlow(position: QuadrantPosition): string {
+		const stack = position.startsWith('top')
+			? 'flex-wrap-reverse items-end'
+			: 'flex-wrap items-start';
+		return `${stack} ${position.endsWith('left') ? 'flex-row-reverse' : 'flex-row'}`;
+	}
+
 	function sentence(value: string): string {
 		return /[.!?]$/u.test(value) ? value : `${value}.`;
 	}
@@ -122,7 +138,7 @@
      plus the assembled sentences when no reading exists yet. See spec/styling/blocks.md, "The
      picture and the control that opens it are siblings". -->
 <figure
-	class="quadrant-block overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
+	class="overflow-hidden {stylex.attrs(surfaces.blockFrame).class}"
 	role="img"
 	aria-label={reading}
 	aria-labelledby={reading ? undefined : titleId}
@@ -134,44 +150,71 @@
 			<span id={descriptionId}>{assembled}</span>
 		</figcaption>
 	{/if}
-	<div class="quadrant-scroll overflow-x-auto">
-		<div class="quadrant-stage {stylex.attrs(styles.stage).class}" aria-hidden="true">
-			<div class="quadrant-plot">
-				<div class="vertical-axis pointer-events-none">
-					<span class="axis-label axis-top whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
-						>{visualAxis(axes.top)}</span
-					>
-					<span class="vertical-rule {stylex.attrs(styles.verticalRule).class}"></span>
+	<div class="overflow-x-auto">
+		<div
+			class="relative mx-auto aspect-[38/21] w-[min(100%,45rem)] min-w-[36rem] {stylex.attrs(
+				styles.stage,
+			).class}"
+			aria-hidden="true"
+		>
+			<div
+				class="absolute top-1/2 left-1/2 grid max-h-[calc(100%-4rem)] min-h-[12rem] max-w-[calc(100%-5rem)] min-w-[20rem] -translate-x-1/2 -translate-y-1/2"
+			>
+				<div
+					class="pointer-events-none relative z-1 col-start-1 row-start-1 w-0 justify-self-center"
+				>
 					<span
-						class="axis-label axis-bottom whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
-						>{visualAxis(axes.bottom)}</span
+						class="absolute bottom-[calc(100%+1rem)] left-1/2 -translate-x-1/2 whitespace-nowrap {stylex.attrs(
+							styles.axisLabel,
+						).class}">{visualAxis(axes.top)}</span
+					>
+					<span
+						class="vertical-rule absolute inset-y-0 left-0 {stylex.attrs(styles.verticalRule)
+							.class}"
+					></span>
+					<span
+						class="absolute top-[calc(100%+0.75rem)] left-1/2 -translate-x-1/2 whitespace-nowrap {stylex.attrs(
+							styles.axisLabel,
+						).class}">{visualAxis(axes.bottom)}</span
 					>
 				</div>
 				<div
-					class="horizontal-axis pointer-events-none {stylex.attrs(styles.horizontalAxis).class}"
+					class="horizontal-axis pointer-events-none relative z-1 col-start-1 row-start-1 grid self-center {stylex.attrs(
+						styles.horizontalAxis,
+					).class}"
 				>
 					<span
-						class="axis-label axis-left whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
-						>{visualAxis(axes.left)}</span
+						class="absolute top-1/2 right-[calc(100%+0.75rem)] -translate-y-1/2 whitespace-nowrap {stylex.attrs(
+							styles.axisLabel,
+						).class}">{visualAxis(axes.left)}</span
 					>
 					<span
-						class="axis-label axis-right whitespace-nowrap {stylex.attrs(styles.axisLabel).class}"
-						>{visualAxis(axes.right)}</span
+						class="absolute top-1/2 left-[calc(100%+1rem)] -translate-y-1/2 whitespace-nowrap {stylex.attrs(
+							styles.axisLabel,
+						).class}">{visualAxis(axes.right)}</span
 					>
 				</div>
 
-				<div class="quadrant-grid">
+				<div class="col-start-1 row-start-1 grid w-max grid-cols-2 grid-rows-2">
 					{#each positions as position}
 						{@const quadrantItems = items.filter((item) => item.at === position)}
-						<div class="quadrant-cell" data-position={position}>
+						<div
+							class="flex max-w-[16rem] min-w-0 content-start justify-start gap-2.5 p-5 {cellFlow(
+								position,
+							)}"
+							data-position={position}
+						>
 							{#each quadrantItems as item}
-								<div class="quadrant-box {stylex.attrs(styles.box).class}">
-									<div class="quadrant-item">
-										<span
-											class="quadrant-title {stylex.attrs(surfaces.heading, styles.itemTitle)
-												.class}">{item.title}</span
+								<div
+									class="flex w-max max-w-[11rem] flex-col items-center justify-center gap-2.5 px-4 py-2.5 text-center {stylex.attrs(
+										styles.box,
+									).class}"
+								>
+									<div class="grid max-w-[13rem] gap-[0.35rem]">
+										<span class={stylex.attrs(surfaces.heading, styles.itemTitle).class}
+											>{item.title}</span
 										>
-										{#if item.note}<span class="quadrant-note {stylex.attrs(styles.itemNote).class}"
+										{#if item.note}<span class={stylex.attrs(styles.itemNote).class}
 												>{item.note}</span
 											>{/if}
 									</div>
@@ -186,40 +229,9 @@
 </figure>
 
 <style>
-	.quadrant-stage {
-		position: relative;
-		inline-size: min(100%, 45rem);
-		min-inline-size: 36rem;
-		margin-inline: auto;
-		aspect-ratio: 38 / 21;
-	}
-
-	.quadrant-plot {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		display: grid;
-		min-inline-size: 20rem;
-		max-inline-size: calc(100% - 5rem);
-		min-block-size: 12rem;
-		max-block-size: calc(100% - 4rem);
-		translate: -50% -50%;
-	}
-
-	.vertical-axis {
-		z-index: 1;
-		position: relative;
-		grid-area: 1 / 1;
-		justify-self: center;
-		inline-size: 0;
-	}
-
-	.vertical-rule {
-		position: absolute;
-		inset-block: 0;
-		left: 0;
-	}
-
+	/* The two arrowheads, each a triangle drawn out of borders on a pseudo-element. They are the
+	whole of what is left here: a class reaches every other element in this figure, so everything
+	else is the frame in the markup or the vocabulary above. See spec/architecture/css/layers.md. */
 	.vertical-rule::before {
 		position: absolute;
 		top: -0.5rem;
@@ -232,29 +244,6 @@
 		content: '';
 	}
 
-	.axis-top,
-	.axis-bottom {
-		position: absolute;
-		left: 50%;
-		translate: -50% 0;
-	}
-
-	.axis-top {
-		bottom: calc(100% + 1rem);
-	}
-
-	.axis-bottom {
-		top: calc(100% + 0.75rem);
-	}
-
-	.horizontal-axis {
-		z-index: 1;
-		position: relative;
-		display: grid;
-		grid-area: 1 / 1;
-		align-self: center;
-	}
-
 	.horizontal-axis::after {
 		position: absolute;
 		top: 50%;
@@ -265,74 +254,5 @@
 		border-block: 0.3125rem solid transparent;
 		border-inline-start: 0.5625rem solid var(--color-border-strong);
 		content: '';
-	}
-
-	.axis-left,
-	.axis-right {
-		position: absolute;
-		top: 50%;
-		translate: 0 -50%;
-	}
-
-	.axis-left {
-		right: calc(100% + 0.75rem);
-	}
-
-	.axis-right {
-		left: calc(100% + 1rem);
-	}
-
-	.quadrant-grid {
-		display: grid;
-		grid-area: 1 / 1;
-		grid-template: repeat(2, minmax(0, 1fr)) / repeat(2, minmax(0, 1fr));
-		inline-size: max-content;
-	}
-
-	.quadrant-cell {
-		display: flex;
-		min-inline-size: 0;
-		max-inline-size: 16rem;
-		flex-wrap: wrap;
-		gap: 0.625rem;
-		padding: 1.25rem;
-	}
-
-	.quadrant-cell[data-position^='top'] {
-		flex-wrap: wrap-reverse;
-		align-content: flex-start;
-		align-items: flex-end;
-	}
-
-	.quadrant-cell[data-position^='bottom'] {
-		align-content: flex-start;
-		align-items: flex-start;
-	}
-
-	.quadrant-cell[data-position$='left'] {
-		flex-direction: row-reverse;
-		justify-content: flex-start;
-	}
-
-	.quadrant-cell[data-position$='right'] {
-		justify-content: flex-start;
-	}
-
-	.quadrant-box {
-		display: flex;
-		inline-size: max-content;
-		max-inline-size: 11rem;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.625rem;
-		padding: 0.625rem 1rem;
-		text-align: center;
-	}
-
-	.quadrant-item {
-		display: grid;
-		gap: 0.35rem;
-		max-inline-size: 13rem;
 	}
 </style>
