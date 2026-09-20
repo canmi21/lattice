@@ -13,11 +13,16 @@
  */
 import {
 	BatchRequestSchema,
+	isResourceId,
+	recordKey,
 	type BatchAnswer,
 	type BatchedArticle,
 	type ReadsRequestSchema,
 	type ArticlesRequestSchema,
+	type Resource,
+	type ResourcesRequestSchema,
 } from '@canmi/artifacts';
+import { read } from '@canmi/store';
 import { inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
@@ -47,13 +52,25 @@ batch.post(
 		// when one route answers several questions.
 		if (!asked.success) return failure(c, 400, 'unreadable_batch', NO_STORE);
 
-		const answer =
-			asked.output.type === 'articles'
-				? await articles(c.env, asked.output)
-				: await reads(c.env, asked.output);
+		const answer = await answerFor(c.env, asked.output);
 		return success(c, answer satisfies BatchAnswer, NO_STORE);
 	},
 );
+
+/** Which arm answers, named once so the variant and the handlers cannot drift apart. */
+async function answerFor(
+	env: Bindings,
+	asked: v.InferOutput<typeof BatchRequestSchema>,
+): Promise<BatchAnswer> {
+	switch (asked.type) {
+		case 'articles':
+			return articles(env, asked);
+		case 'reads':
+			return reads(env, asked);
+		case 'resources':
+			return resources(env, asked);
+	}
+}
 
 /**
  * Several articles in several languages, as the cross product.
@@ -109,6 +126,33 @@ async function reads(
 		type: 'reads',
 		reads: Object.fromEntries(known.map((slug) => [slug, counted.get(slug) ?? 0])),
 	};
+}
+
+/**
+ * What each of these rids currently means, as the stored records themselves.
+ *
+ * The documents `GET /media?rid=` streams one at a time, composed no further: a record carries
+ * its own version and is read by whoever asked. A rid the corpus does not publish is absent
+ * rather than an error, for the reason a slug is. Checked before any read, so a body of strings
+ * that could never be ids costs one pass and no lookups.
+ */
+async function resources(
+	env: Bindings,
+	asked: v.InferOutput<typeof ResourcesRequestSchema>,
+): Promise<BatchAnswer> {
+	const wanted = [...new Set(asked.rids.map((rid) => rid.toLowerCase()))].filter(isResourceId);
+	const found: Record<string, Resource> = {};
+	await Promise.all(
+		wanted.map(async (rid) => {
+			const stored = await read(env, recordKey(rid));
+			if (!stored) return;
+			// Parsed only far enough to put it in a JSON answer. What the record says is the
+			// consumer's to read, and validating here would be a second reading of one format.
+			const record = JSON.parse(await new Response(stored.body).text()) as Resource;
+			found[rid] = record;
+		}),
+	);
+	return { type: 'resources', resources: found };
 }
 
 /**

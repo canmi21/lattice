@@ -73,12 +73,23 @@
 	import Info from '@lucide/svelte/icons/info';
 	import X from '@lucide/svelte/icons/x';
 	import { Popover } from 'bits-ui';
+	import type { ParsedResource } from '@canmi/artifacts';
 	import type { Block } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';
 
-	let { blocks, locale }: { blocks: Block[]; locale: LocaleCode } = $props();
+	/**
+	 * What every rid on this page currently means, resolved by the load and handed down.
+	 *
+	 * Passed rather than fetched here for the reason the blocks are: a component renders what it
+	 * was given, and a page asks its questions once. See spec/architecture/resource.md.
+	 */
+	let {
+		blocks,
+		resources,
+		locale,
+	}: { blocks: Block[]; resources: Record<string, ParsedResource>; locale: LocaleCode } = $props();
 	let root = $state<HTMLElement>();
 	let trigger = $state<HTMLButtonElement>();
 	let note = $state('');
@@ -268,6 +279,7 @@
 				src={block.src}
 				url={block.url}
 				title={block.title}
+				icon={block.icon ? resources[block.icon] : undefined}
 				tone={block.tone}
 				width={block.width}
 				height={block.height}

@@ -4,10 +4,12 @@ import {
 	CANONICAL_PATTERN,
 	enough,
 	expandCanonical,
+	ICON_EXTENSION,
 	parseResource,
 	requireSegment,
 	resolution,
 	scalable,
+	toned,
 } from './index';
 
 const base = {
@@ -192,5 +194,56 @@ describe('what a bare resource id means', () => {
 	it('refuses anything carrying a host of its own', () => {
 		expect(expandCanonical('https://site.example/less-is-more', hosts)).toBeUndefined();
 		expect(CANONICAL_PATTERN.test('https://site.example/x')).toBe(false);
+	});
+});
+
+/**
+ * The icon layer, which is where a leaf type's own axis lives.
+ *
+ * Tone is not a size, so it is not a variant; a site with one mark carries one key rather than a
+ * null. See spec/architecture/resource.md, "Content binds at the layer that has it".
+ */
+describe('an icon binds its files by tone', () => {
+	const file = (content: string) => ({
+		content: content.repeat(32),
+		mime: 'image/svg+xml',
+		bytes: 1,
+	});
+	const iconOf = (tones: Record<string, unknown>) =>
+		parseResource({
+			...base,
+			type: 'media.image.icon',
+			layers: {
+				media,
+				image: { version: 1, dimension: { width: 32, height: 32, aspect: '1:1' }, variants: [] },
+				icon: { version: 1, domain: 'a.example', tones },
+			},
+		});
+
+	it('reads a record that names one tone and no null', () => {
+		const parsed = iconOf({ dark: file('d') });
+		const icon = requireSegment(parsed, 'icon');
+		expect(icon.tones.light).toBeUndefined();
+		// A named tone is that tone or nothing; with none named the one file answers.
+		expect(toned(icon, 'light')).toBeUndefined();
+		expect(toned(icon, 'dark')?.content).toBe('d'.repeat(32));
+		expect(toned(icon)?.content).toBe('d'.repeat(32));
+	});
+
+	it('prefers light when no tone is named, an untinted mark being drawn for light', () => {
+		const icon = requireSegment(iconOf({ light: file('a'), dark: file('b') }), 'icon');
+		expect(toned(icon)?.content).toBe('a'.repeat(32));
+	});
+
+	it('refuses an icon that names no file at all', () => {
+		// A resource that is an icon and holds nothing could only be answered with a blank, which
+		// is how a missing mark becomes a missing mark nobody reports.
+		expect(() => iconOf({})).toThrow();
+	});
+
+	it('carries no placeholder, two tones being two pictures', () => {
+		const parsed = iconOf({ light: file('a') });
+		expect(requireSegment(parsed, 'image').thumbhash).toBeUndefined();
+		expect(ICON_EXTENSION['image/svg+xml']).toBe('svg');
 	});
 });

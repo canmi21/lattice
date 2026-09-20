@@ -89,6 +89,17 @@ export type Block =
 			src: string;
 			url: string;
 			title: string;
+			/**
+			 * The rid of the site's mark, and never an address.
+			 *
+			 * An icon belongs to somebody else's site and is redrawn on their schedule, so what
+			 * this resource currently holds is a fact about the corpus at the moment somebody asks
+			 * -- not something a compiled article may carry. The page resolves it; the card just
+			 * says which resource it means. Absent for a site nothing has collected a mark for.
+			 * See spec/architecture/resource.md, "A rid is resolved three times".
+			 */
+			icon?: string;
+			/** Which of that resource's files to draw. Selected at render time, not here. */
 			tone?: 'light' | 'dark';
 			width?: number;
 			height?: number;

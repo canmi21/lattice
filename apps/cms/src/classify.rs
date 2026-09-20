@@ -39,7 +39,6 @@ pub struct Outcome {
 	pub failed: Vec<(String, String)>,
 	/// Pictures another run holds a claim on, left to it rather than classified twice.
 	pub claimed_elsewhere: usize,
-	pub unreadable: Vec<String>,
 	pub exhausted: Option<String>,
 	/// Tags the model asked for that were not already in the registry.
 	pub minted: Vec<String>,
@@ -208,33 +207,35 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 	let registry_path = tags::path_for(repo);
 	let mut registry = tags::load(&registry_path)?;
 
-	// Pictures only. Every category this command can answer with -- photograph, screenshot,
-	// diagram, document, artwork -- is a kind of picture, and the runner is asked to look at one
-	// file. A clip fits none of them and is not asked about here. See
-	// spec/architecture/video/pipeline.md.
-	let pictures: Vec<&String> =
-		merged.media.iter().filter(|(_, media)| media.image().is_some()).map(|(cid, _)| cid).collect();
-	let wanted: Vec<String> = pictures
+	// **Pictures somebody imported, asked of the originals tree rather than of the type chain.**
+	// Every category this command can answer with -- photograph, screenshot, diagram, document,
+	// artwork -- is a kind of picture, and the runner is handed one file to look at. A clip fits
+	// none of them; nor does an icon, which carries an `image` layer for its box and binds its
+	// files at `icon`, nor a frame ffmpeg cut. Excluding leaves by name would mean a list that
+	// grows with every leaf, so this asks the one thing that knows. See alt.rs, `pending`.
+	let by_id = originals_by_id(&crate::paths::image_originals(repo));
+	// The record's own newest origin, never the key it is filed under: a key is a cid for a
+	// picture and a rid for an icon, while `media.yaml` and this tree are both keyed by the cid.
+	let pictures: Vec<(&String, &PathBuf)> = merged
+		.media
+		.values()
+		.filter(|media| media.image().is_some())
+		.filter_map(|media| by_id.get_key_value(media.origin_cid()?))
+		.collect();
+	let todo: Vec<(String, PathBuf)> = pictures
 		.iter()
-		.filter(|cid| needs_classification(described.media.get(**cid), &registry, force))
-		.map(|cid| (*cid).clone())
+		.filter(|(cid, _)| needs_classification(described.media.get(*cid), &registry, force))
+		.map(|(cid, path)| ((*cid).clone(), (*path).clone()))
 		.collect();
 
-	// Counted against the pictures rather than the whole manifest: a clip was never in scope, so
-	// reporting it as skipped would say this command had finished work it never began.
-	let mut outcome = Outcome { skipped: pictures.len() - wanted.len(), ..Outcome::default() };
-	if wanted.is_empty() {
+	// Counted against the pictures this command owns rather than the whole manifest: a clip, an
+	// icon and a mark were never in scope, so reporting one as skipped would say this command had
+	// finished work it never began.
+	let mut outcome = Outcome { skipped: pictures.len() - todo.len(), ..Outcome::default() };
+	if todo.is_empty() {
 		return Ok(outcome);
 	}
-
-	let by_id = originals_by_id(&crate::paths::image_originals(repo));
-	let mut todo: Vec<(String, PathBuf)> = Vec::new();
-	for cid in wanted {
-		match by_id.get(&cid) {
-			Some(path) => todo.push((cid, path.clone())),
-			None => outcome.unreadable.push(cid),
-		}
-	}
+	let mut todo = todo;
 	if let Some(limit) = limit {
 		todo.truncate(limit);
 	}
@@ -390,7 +391,7 @@ mod tests {
 			version: crate::image::manifest::VERSION,
 			created: "2026-08-01T00:00:00Z".into(),
 			updated: "2026-08-01T00:00:00Z".into(),
-			media: BTreeMap::from([(id.clone(), bare_media())]),
+			media: BTreeMap::from([(id.clone(), bare_media(&id))]),
 		};
 		std::fs::create_dir_all(root.join(crate::image::run::MERGED).parent().expect("record dir"))
 			.expect("record directory");
@@ -418,8 +419,12 @@ mod tests {
 		let _ = std::fs::remove_dir_all(&root);
 	}
 
-	fn bare_media() -> crate::image::manifest::Media {
-		crate::image::manifest::fixture::picture("p0000", "", (10, 10), &[])
+	/// A record with no category yet, whose origin is the real cid of the file on disk.
+	///
+	/// Selection reads the record's own origin rather than the key it is filed under, so a
+	/// fixture that disagreed with itself would be testing the map rather than the command.
+	fn bare_media(cid: &str) -> crate::image::manifest::Media {
+		crate::image::manifest::fixture::picture("p0000", cid, (10, 10), &[])
 	}
 
 	fn registry() -> tags::Registry {

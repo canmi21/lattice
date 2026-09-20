@@ -573,6 +573,15 @@ export type CompileContext = {
 	newTabNote: string;
 	resolveAsset: (reference: string) => Resolved | null;
 	/**
+	 * Which resource is the mark of the site a link card points at, by rid.
+	 *
+	 * The one thing compile time can settle about an icon, and deliberately the only one: what
+	 * the resource currently holds is a fact about the corpus when somebody asks, so the page
+	 * resolves it and this names it. Optional, because a caller with no manifest compiles a card
+	 * with no mark -- the same state a site nobody has collected an icon for is in.
+	 */
+	resolveIcon?: (url: string) => string | undefined;
+	/**
 	 * What a diagram says, by the exact source bytes of the block that draws it, in this view's
 	 * language.
 	 *
@@ -755,6 +764,7 @@ export async function compile(
 	{
 		newTabNote,
 		resolveAsset,
+		resolveIcon,
 		resolveVideo,
 		describeDiagram,
 		articles,
@@ -895,7 +905,13 @@ export async function compile(
 			const attrs = node.attributes ?? {};
 			const tone: 'light' | 'dark' | undefined =
 				attrs.tone === 'dark' ? 'dark' : attrs.tone === 'light' ? 'light' : undefined;
-			const card = { src: attrs.src ?? '', url: attrs.url ?? '', title: attrs.title ?? '', tone };
+			const href = attrs.url ?? '';
+			// The rid, and not the hostname the author wrote: the address an icon lives at is
+			// somebody else's to change, and a compiled article that carried one would have to be
+			// republished the day they redraw their mark. See spec/architecture/resource.md,
+			// "A rid is resolved three times, and each stage bakes only what it can know".
+			const icon = href ? resolveIcon?.(href) : undefined;
+			const card = { src: attrs.src ?? '', url: href, title: attrs.title ?? '', icon, tone };
 			// Cropped like `::image`, defaults included: a card is typed on purpose, so saying
 			// nothing about the ratio reads as "the usual one" rather than as "leave it alone".
 			// Screenshots arrive at whatever shape a window happened to be, and a column of

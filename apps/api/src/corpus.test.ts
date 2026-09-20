@@ -60,7 +60,9 @@ const ROOT = {
 			path: 'architecture/the-first',
 			url: `${SITE}/architecture/the-first`,
 			markdown: '1'.repeat(32),
-			alternates: [{ code: 'ja', language_tag: 'ja-JP', href: `${SITE}/ja/architecture/the-first` }],
+			alternates: [
+				{ code: 'ja', language_tag: 'ja-JP', href: `${SITE}/ja/architecture/the-first` },
+			],
 			canonical_urls: [`${SITE}/architecture/the-first`, `${SITE}/ja/architecture/the-first`],
 			views: {
 				mw: view({ content: 'a'.repeat(32) }),
@@ -287,6 +289,51 @@ describe('POST /batch', () => {
 		});
 		expect(res.status).toBe(400);
 	});
+
+	/**
+	 * A page names resources and asks what they mean once. See spec/architecture/resource.md,
+	 * "One question per page, not one per resource".
+	 */
+	it('answers rids with their stored records, and leaves out the ones nothing publishes', async () => {
+		const record = { version: 5, resource: 'k7m2x', type: 'media.image.icon' };
+		const asked: string[] = [];
+		const store = async (url: string): Promise<Response> => {
+			asked.push(new URL(url).pathname);
+			return new URL(url).pathname === '/meta/k7m2x.json'
+				? new Response(JSON.stringify(record))
+				: new Response('not found', { status: 404 });
+		};
+
+		const answered = await payload<BatchAnswerOf<'resources'>>(
+			await get('/batch', {
+				fetch: store,
+				method: 'POST',
+				// `zzzzz` is a rid nothing publishes; `NOPE!` could never be one at all.
+				body: { type: 'resources', rids: ['k7m2x', 'k7m2x', 'zzzzz', 'NOPE!'] },
+			}),
+		);
+
+		expect(answered.type).toBe('resources');
+		expect(Object.keys(answered.resources)).toEqual(['k7m2x']);
+		expect(answered.resources['k7m2x']).toEqual(record);
+		// Deduplicated, and a string that could never be an id costs no lookup at all.
+		expect(asked.toSorted()).toEqual(['/meta/k7m2x.json', '/meta/zzzzz.json']);
+	});
+
+	it('takes a rid however it was spelled, the record being filed in one case', async () => {
+		const store = async (url: string): Promise<Response> =>
+			new URL(url).pathname === '/meta/k7m2x.json'
+				? new Response(JSON.stringify({ resource: 'k7m2x' }))
+				: new Response('not found', { status: 404 });
+		const answered = await payload<BatchAnswerOf<'resources'>>(
+			await get('/batch', {
+				fetch: store,
+				method: 'POST',
+				body: { type: 'resources', rids: ['K7M2X'] },
+			}),
+		);
+		expect(Object.keys(answered.resources)).toEqual(['k7m2x']);
+	});
 });
 
 describe('the feed', () => {
@@ -343,7 +390,8 @@ afterAll(async () => {
 });
 
 type Asked = {
-	fetch?: () => Promise<Response>;
+	/** The store this request reads through. Takes the key, so a test can hold more than one. */
+	fetch?: (url: string) => Promise<Response>;
 	method?: string;
 	body?: Record<string, unknown>;
 };
@@ -351,7 +399,7 @@ type Asked = {
 async function get(path: string, asked: Asked = {}): Promise<Response> {
 	const bindings = {
 		ASSETS: {
-			fetch: asked.fetch ?? (async () => new Response(JSON.stringify(ROOT))),
+			fetch: asked.fetch ?? (async (): Promise<Response> => new Response(JSON.stringify(ROOT))),
 		} as unknown as Bindings['ASSETS'],
 		DATABASE: database as unknown as Bindings['DATABASE'],
 	} as Bindings;

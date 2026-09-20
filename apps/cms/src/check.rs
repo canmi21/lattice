@@ -119,14 +119,26 @@ fn gaps(
 		}
 	}
 
+	// **What a page resolves through is the record, not the file.** A directory of icons with no
+	// resource behind it renders nothing, so it is the same gap as never having collected them --
+	// reported in its own words, because the two are fixed by different halves of one command.
 	for (domain, tone) in scan.icons() {
-		if favicon::stored(icons, &domain, tone.as_deref()).is_none() {
-			let detail = match &tone {
+		let recorded = merged.by_icon_domain(&domain).and_then(|(_, media)| media.icon());
+		let detail = match recorded {
+			Some(icon) if icon.tones.of(tone.as_deref()).is_some() => continue,
+			Some(_) => match &tone {
+				Some(tone) => format!("no {tone} icon in the record"),
+				None => "the record names no icon at all".to_owned(),
+			},
+			None if favicon::stored(icons, &domain, tone.as_deref()).is_some() => {
+				"collected but not recorded".to_owned()
+			}
+			None => match &tone {
 				Some(tone) => format!("no {tone} icon collected"),
 				None => "no icon collected".to_owned(),
-			};
-			found.push(Gap { level: Level::Info, what: domain, detail, action: Some(Action::Favicon) });
-		}
+			},
+		};
+		found.push(Gap { level: Level::Info, what: domain, detail, action: Some(Action::Favicon) });
 	}
 
 	found

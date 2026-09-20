@@ -452,8 +452,13 @@ export const ImageLayerSchema = v.object({
 	/**
 	 * Base64 thumbhash: the compact canonical placeholder, and the only form kept. The site build
 	 * decodes it once and inlines the result, so a reader sees the picture before it arrives.
+	 *
+	 * Optional, because a picture is not the only thing this layer describes. An icon binds two
+	 * files under `icon` and has no single picture to stand in for -- **absent is the answer**
+	 * there, exactly as it is for `resolution`, and a placeholder invented for one of the two
+	 * tones would be painted under the other.
 	 */
-	thumbhash: v.string(),
+	thumbhash: v.optional(v.string()),
 	dimension: v.object({ width: v.number(), height: v.number(), aspect: v.string() }),
 	resolution: v.optional(v.object({ width: v.number(), height: v.number() })),
 	variants: v.array(ImageVariantSchema),
@@ -558,17 +563,31 @@ export const FrameLayerSchema = v.object({
 	at: v.optional(v.number()),
 });
 
+/** Which shade an icon is drawn for. Closed, and the axis this layer exists to carry. */
+export const TONES = ['light', 'dark'] as const;
+export type Tone = (typeof TONES)[number];
+
 /**
- * Another site's mark: one resource per domain, in both schemes.
+ * Another site's mark: one resource per domain, one file per tone.
  *
- * Light and dark are two pictures rather than two encodings of one, so they bind here rather than
- * in the image layer's variants, which answer for a single picture.
+ * Light and dark are two pictures, not two encodings of one, so they bind here and not in
+ * `image.variants`. Each is described as an image variant is; what differs is the axis. A site
+ * with one mark carries one key, and absence is the answer as it is for `resolution`. See
+ * spec/architecture/resource.md, "Content binds at the layer that has it".
  */
-export const IconLayerSchema = v.object({
-	...layered,
-	domain: v.string(),
-	scheme: v.object({ light: v.optional(hash), dark: v.optional(hash) }),
-});
+export const IconLayerSchema = v.pipe(
+	v.object({
+		...layered,
+		domain: v.string(),
+		tones: v.object({
+			light: v.optional(ImageVariantSchema),
+			dark: v.optional(ImageVariantSchema),
+		}),
+	}),
+	// A resource that is an icon and names no file is a record with nothing in it -- not a state
+	// the collector can reach, and one a reader could only answer with a blank.
+	v.check((icon) => TONES.some((tone) => icon.tones[tone]), 'an icon names no file for any tone'),
+);
 
 /**
  * This site's own mark: one thing, six files.
@@ -911,4 +930,33 @@ export function best(image: ImageLayer, want: number): ImageVariant | undefined 
 	if (vector) return vector;
 	const rungs = [...image.variants].sort((a, b) => longEdge(a) - longEdge(b));
 	return rungs.find((file) => longEdge(file) >= want) ?? rungs[rungs.length - 1];
+}
+
+/**
+ * What an icon's file is spelled with, keyed by what is in it.
+ *
+ * Its own table rather than the variant one, for the reason `for_icon` is its own on the other
+ * side: these bytes were encoded by somebody else's server and arrive as SVG or ICO, neither of
+ * which a ladder ever produces -- and the ladder's table answers `avif` for anything it does not
+ * recognise, which would be an address to a file nobody wrote. The twin of `icon_mime` in
+ * apps/cms/src/extension.rs, held to it by a test here.
+ */
+export const ICON_EXTENSION: Record<string, string> = {
+	'image/svg+xml': 'svg',
+	'image/png': 'png',
+	'image/jpeg': 'jpeg',
+	'image/x-icon': 'ico',
+};
+
+/**
+ * Which of an icon's files answers for a tone, and `undefined` when none does.
+ *
+ * A named tone is that tone or nothing: a caller handed the other one cannot tell it happened,
+ * and would draw a light mark on a dark surface believing it had the right one. With none named
+ * either will do, light first, an untinted mark being drawn for light backgrounds. The one place
+ * that rule is written on this side, having been the alias layer's until an icon became a
+ * resource.
+ */
+export function toned(icon: IconLayer, want?: Tone): ImageVariant | undefined {
+	return want ? icon.tones[want] : (icon.tones.light ?? icon.tones.dark);
 }

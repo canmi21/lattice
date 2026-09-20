@@ -89,48 +89,40 @@ pub struct Outcome {
 	pub failed: Vec<(String, String)>,
 	/// Assets another run holds a claim on, left to it rather than described twice.
 	pub claimed_elsewhere: usize,
-	/// Assets with no original on hand, which cannot be looked at.
-	pub unreadable: Vec<String>,
 }
 
-/// Which assets still need describing, paired with the original to look at.
+/// Every picture this command owns, and which of them still want describing.
 ///
-/// The originals are matched by hashing rather than by filename: the id *is* the hash, and
-/// `data/source/image` holds whatever names the files arrived under.
+/// **Ownership is asked here rather than discovered as a miss further down.** An `image` layer is
+/// not the same thing as a picture somebody imported -- an icon carries one for its box, a frame
+/// was cut by ffmpeg -- and excluding leaves by name is a list that grows with every leaf. The
+/// originals tree is the only thing that knows, and it is matched by hashing rather than by
+/// filename: the id *is* the hash, and the tree holds whatever names the files arrived under.
 fn pending(
 	merged: &Merged,
 	described: &media::Media,
 	originals: &Path,
 	force: bool,
-) -> (Vec<(String, PathBuf)>, Vec<String>) {
-	// Pictures only, and not because a clip needs no description -- it does. This command hands
-	// a runner one file and asks it to look, which is what a picture is; a clip is described
-	// from frames this repository chooses and a word budget, and that is a different command
-	// asking a different question. See spec/architecture/video/pipeline.md. Left out of the count
-	// rather than skipped, because a clip is not work this command owes and never finished.
-	let wanted: Vec<&String> = merged
+) -> (Vec<(String, PathBuf)>, usize) {
+	let by_id = originals_by_id(originals);
+	// The record's own newest origin, never the key it is filed under: a key is a cid for a
+	// picture and a rid for an icon, while `media.yaml` and this tree are both keyed by the cid.
+	// See image/manifest.rs, `Merged`, for the two conventions and why they are two.
+	let owned: Vec<(&String, &PathBuf)> = merged
 		.media
-		.iter()
-		.filter(|(_, media)| media.image().is_some())
-		.map(|(cid, _)| cid)
-		.filter(|cid| {
-			force || described.media.get(*cid).is_none_or(|entry| entry.description.is_empty())
+		.values()
+		.filter(|media| media.image().is_some())
+		.filter_map(|media| {
+			let cid = media.origin_cid()?;
+			by_id.get_key_value(cid)
 		})
 		.collect();
-	if wanted.is_empty() {
-		return (Vec::new(), Vec::new());
-	}
-
-	let by_id = originals_by_id(originals);
-	let mut found = Vec::new();
-	let mut missing = Vec::new();
-	for cid in wanted {
-		match by_id.get(cid) {
-			Some(path) => found.push((cid.clone(), path.clone())),
-			None => missing.push(cid.clone()),
-		}
-	}
-	(found, missing)
+	let todo = owned
+		.iter()
+		.filter(|(cid, _)| force || wants_description(described, cid))
+		.map(|(cid, path)| ((*cid).clone(), (*path).clone()))
+		.collect();
+	(todo, owned.len())
 }
 
 fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
@@ -202,19 +194,18 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 	let described_path = media::path_for(repository);
 	let described = media::load(&described_path)?;
 
-	let (mut todo, unreadable) = pending(merged, &described, originals, force);
+	let (mut todo, owned) = pending(merged, &described, originals, force);
 	let wanted = todo.len();
 	// Each call costs real money, so a whole library should be something asked for rather than
 	// the only option. Trying two first is how you find out the prompt is wrong for cheap.
 	if let Some(limit) = limit {
 		todo.truncate(limit);
 	}
-	let mut outcome = Outcome {
-		skipped: merged.media.len() - wanted - unreadable.len(),
-		deferred: wanted - todo.len(),
-		unreadable,
-		..Outcome::default()
-	};
+	// Counted against the pictures this command owns rather than against the whole manifest. A
+	// clip, an icon and a mark are not work it owes, so counting them as skipped would report a
+	// debt no run will ever pay -- the figure would not move however often this was run.
+	let mut outcome =
+		Outcome { skipped: owned - wanted, deferred: wanted - todo.len(), ..Outcome::default() };
 
 	// A call takes tens of seconds and there is nothing to read while it does, so silence for
 	// several minutes is indistinguishable from a hang.
@@ -342,7 +333,7 @@ mod tests {
 			version: crate::image::manifest::VERSION,
 			created: "2026-08-01T00:00:00Z".into(),
 			updated: "2026-08-01T00:00:00Z".into(),
-			media: BTreeMap::from([(id.clone(), described_media())]),
+			media: BTreeMap::from([(id.clone(), described_media(&id))]),
 		};
 
 		let held = claim::take(&root, "alt", &id).expect("claim");
@@ -368,8 +359,12 @@ mod tests {
 	}
 
 	/// A manifest record with no description yet, which is what makes it a candidate.
-	fn described_media() -> crate::image::manifest::Media {
-		crate::image::manifest::fixture::picture("p0000", "", (10, 10), &[])
+	///
+	/// Its origin is the real cid of the file on disk, as a record's is: selection reads the
+	/// record's own origin rather than the key it is filed under, so a fixture that disagreed
+	/// with itself would be testing the map rather than the command.
+	fn described_media(cid: &str) -> crate::image::manifest::Media {
+		crate::image::manifest::fixture::picture("p0000", cid, (10, 10), &[])
 	}
 
 	#[test]
@@ -394,11 +389,54 @@ mod tests {
 			updated: crate::image::manifest::now(),
 			media: BTreeMap::from([("aa11".to_owned(), clip)]),
 		};
-		let (todo, unreadable) =
+		let (todo, owned) =
 			pending(&merged, &crate::media::Media::default(), Path::new("/nonexistent"), false);
 		assert!(todo.is_empty());
-		// Not unreadable either: there is no original this command failed to find.
-		assert!(unreadable.is_empty());
+		// And owned by nothing either: a clip is not a picture this command failed to find.
+		assert_eq!(owned, 0);
+	}
+
+	/// A record can carry an `image` layer and not be a picture this command owns.
+	///
+	/// An icon carries one for its box and binds its files at `icon`; its originals are somebody
+	/// else's mark under `data/source/favicon`. Selected by the type chain it entered the list,
+	/// was joined into `media.yaml` under a key that is its rid, missed, and came out the far end
+	/// as "no original on hand" -- eight lines of it, on a command that spends money.
+	#[test]
+	fn a_record_with_an_image_layer_and_no_original_here_is_not_this_command_s_work() {
+		let temporary = tempfile::tempdir().expect("temp");
+		let root = temporary.path();
+		let originals = root.join("originals");
+		std::fs::create_dir_all(&originals).expect("originals");
+		let bytes = b"a picture somebody imported".to_vec();
+		std::fs::write(originals.join("a.png"), &bytes).expect("original");
+		let picture = crate::image::cid(&bytes);
+
+		let merged = Merged {
+			version: crate::image::manifest::VERSION,
+			created: crate::image::manifest::now(),
+			updated: crate::image::manifest::now(),
+			media: BTreeMap::from([
+				(picture.clone(), described_media(&picture)),
+				// Filed under its rid, which is the second keying convention in this map and the
+				// reason the join below was reading a rid as a cid.
+				(
+					"i0000".to_owned(),
+					crate::image::manifest::fixture::icon(
+						"i0000",
+						"a.example",
+						Some("c".repeat(32).as_str()),
+						None,
+					),
+				),
+			]),
+		};
+
+		let (todo, owned) = pending(&merged, &crate::media::Media::default(), &originals, false);
+		assert_eq!(owned, 1, "an icon counted as a picture this command owns");
+		assert_eq!(todo.len(), 1);
+		assert_eq!(todo[0].0, picture, "selected by something other than the record's own origin");
+		let _ = std::fs::remove_dir_all(root);
 	}
 
 	#[test]
@@ -451,9 +489,9 @@ mod tests {
 		);
 		assert!(!wants_description(&described, "a"));
 
-		// Nothing pending, so the originals directory is never even read.
-		let (todo, missing) = pending(&merged, &described, Path::new("/nowhere"), false);
+		// An originals tree that holds nothing owns nothing, so there is no work either way.
+		let (todo, owned) = pending(&merged, &described, Path::new("/nowhere"), false);
 		assert!(todo.is_empty());
-		assert!(missing.is_empty());
+		assert_eq!(owned, 0);
 	}
 }

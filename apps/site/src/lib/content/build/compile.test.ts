@@ -937,3 +937,44 @@ it('refuses a ::video that names nothing', async () => {
 		}),
 	).rejects.toThrow('video requires a non-empty src attribute');
 });
+
+/**
+ * A link card compiles to the rid of the site's mark, and never to an address for it.
+ *
+ * What the resource holds changes on somebody else's schedule, so baking it here would mean
+ * republishing every article naming that site the day they redraw it. See
+ * spec/architecture/resource.md, "A rid is resolved three times".
+ */
+it('turns a link card url into the rid of that site mark, keeping the tone unresolved', async () => {
+	const source = [
+		'---',
+		'title: Test',
+		'lang: en-US',
+		'---',
+		'',
+		'::linkcard{src="a.avif" url="https://Example.com/deep/page" title="One" tone="dark"}',
+		'',
+		'::linkcard{src="b.avif" url="https://nobody.example" title="Two"}',
+		'',
+	].join('\n');
+	const asked: string[] = [];
+	const compiled = await compile(source, '/article', {
+		newTabNote: 'opens in new tab',
+		resolveAsset: () => null,
+		resolveIcon: (url) => {
+			asked.push(url);
+			return new URL(url).hostname.toLowerCase() === 'example.com' ? 'k7m2x' : undefined;
+		},
+		highlight: async () => '',
+	});
+
+	const cards = compiled.blocks.filter((block) => block.type === 'linkcard');
+	// The whole URL is handed over, not a hostname this side extracted: which resource a card
+	// means is the library's question, and two spellings of that lookup would eventually differ.
+	expect(asked).toEqual(['https://Example.com/deep/page', 'https://nobody.example']);
+	expect(cards[0]).toMatchObject({ icon: 'k7m2x', tone: 'dark' });
+	// Nothing collected for a site is an ordinary state, and the card still compiles.
+	expect(cards[1]?.type === 'linkcard' && cards[1].icon).toBeUndefined();
+	// No address anywhere in the block: a hostname or a cid here would be the baked resolution.
+	expect(JSON.stringify(cards[0])).not.toContain('example.com/favicon');
+});

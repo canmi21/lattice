@@ -16,7 +16,7 @@ type Fetch = typeof fetch;
 type Held = { at: number; body: string };
 
 /** The API's own max-age, restated: past it an answer is asked for again rather than served. */
-const FRESH_MS = 5 * 60 * 1_000;
+export const FRESH_MS = 5 * 60 * 1_000;
 
 /**
  * How old an answer may be and still be served when the API will not answer at all.
@@ -24,7 +24,7 @@ const FRESH_MS = 5 * 60 * 1_000;
  * Hours, because a root this old names objects that are all still there and still immutable, so
  * what it renders is a coherent older page rather than a broken one.
  */
-const STALE_MS = 3 * 60 * 60 * 1_000;
+export const STALE_MS = 3 * 60 * 60 * 1_000;
 
 /** When this copy was taken. `Date` belongs to whichever cache wrote it, and is not ours. */
 const STAMP = 'x-published-at';
@@ -34,8 +34,14 @@ const MEMO_LIMIT = 64;
 
 const memo = new Map<string, Held>();
 
-/** Stored where a body would be, so "no such thing" is cached rather than asked again. */
-const MISSING = '\u0000missing';
+/**
+ * Stored where a body would be, so "no such thing" is cached rather than asked again.
+ *
+ * Exported because a batch learns the same fact: a rid the answer omits is a fact about the
+ * corpus, and it keeps the publication delay like every other one. See
+ * spec/architecture/resource.md, "Two failures, and only one of them is about the corpus".
+ */
+export const MISSING = '\u0000missing';
 
 /** The colo cache, which only a Worker has: a browser's `caches` carries no `default`. */
 function colo(): Cache | undefined {
@@ -84,6 +90,39 @@ async function store(url: string, body: string): Promise<void> {
 }
 
 /**
+ * What this side already holds for a key, and how old it is, without asking upstream.
+ *
+ * The two caches answer differently and the caller does not care which: the Worker's memo and
+ * colo store carry their own stamp, and the browser's query client has one already. `undefined`
+ * is "nothing held", which is not the same as the `MISSING` body -- that one is an answer.
+ */
+export async function heldBody(url: string): Promise<{ body: string; age: number } | undefined> {
+	if (browser) {
+		const state = queryClient().getQueryState<string>(['api', url]);
+		const body = state?.data;
+		if (body === undefined) return undefined;
+		return { body, age: Date.now() - state!.dataUpdatedAt };
+	}
+	const stored = await held(url);
+	return stored ? { body: stored.body, age: Date.now() - stored.at } : undefined;
+}
+
+/**
+ * Put a body where a later read of the same key will find it, whichever cache that is.
+ *
+ * The exact bytes, not a payload to wrap: what is stored has to be what the reader of that key
+ * opens, so a copy written by a batch and one written by the fetch it saved are the same thing.
+ */
+export async function rememberBody(url: string, body: string): Promise<void> {
+	if (browser) {
+		queryClient().setQueryData(['api', url], body);
+		return;
+	}
+	remember(url, body);
+	await store(url, body);
+}
+
+/**
  * Put an answer the site already holds where `answer` will find it.
  *
  * A batch gets back something no single-answer URL was used to fetch. Writing each piece under the
@@ -92,14 +131,8 @@ async function store(url: string, body: string): Promise<void> {
  * that opens a fresh one.
  */
 export async function rememberAnswer<T>(url: string, payload: T): Promise<void> {
-	const body = JSON.stringify({ status: 'success', data: payload });
 	// Into whichever cache `answer` would read from, which is not the same one on both sides.
-	if (browser) {
-		queryClient().setQueryData(['api', url], body);
-		return;
-	}
-	remember(url, body);
-	await store(url, body);
+	await rememberBody(url, JSON.stringify({ status: 'success', data: payload }));
 }
 
 /**

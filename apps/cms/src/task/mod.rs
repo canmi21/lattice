@@ -168,8 +168,11 @@ pub const CATALOG: &[Spec] = &[
 		detail: "Fetch the icon each linkcard draws, one per site an article links to.",
 		paid: false,
 		items: Items::Many("domain"),
-		reads: &[Record::Articles],
-		writes: &[Record::PublicFavicon],
+		reads: &[Record::Articles, Record::Manifest],
+		// An icon is a resource, so collecting one writes everything importing a picture writes:
+		// the source file, the bytes hashed into the objects tree, the published record, and the
+		// manifest that is the register every id is allocated against.
+		writes: &[Record::PublicFavicon, Record::PublicImage, Record::PublicMeta, Record::Manifest],
 		after: &[],
 	},
 	Spec {

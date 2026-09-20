@@ -234,6 +234,16 @@ pub fn plan(
 		}
 	}
 
+	// An icon is reached by the domain a link card links to and by nothing else: no article names
+	// its rid, because the compiler resolves a hostname into one. Its bytes were kept alive by the
+	// published root's asset map until they became a resource, and an hour after that stopped
+	// being true this would have offered every icon in the corpus for deletion.
+	for (domain, _) in scan.icons() {
+		if let Some((key, _)) = merged.by_icon_domain(&domain) {
+			reached.insert(key.to_owned());
+		}
+	}
+
 	// The whole content-addressed space, which is now one flat tree rather than a prefix per kind.
 	// A two-hex directory at the top of the objects tree is a fan-out segment and nothing else is,
 	// so this walks exactly what `storageKey` writes and never a named prefix beside it. That
@@ -249,6 +259,9 @@ pub fn plan(
 		// clip's picture layers, were it ever to grow them, are content this has to keep too.
 		if let Some(image) = media.image() {
 			keep.extend(image.variants.iter().map(|variant| variant.content.clone()));
+		}
+		if let Some(icon) = media.icon() {
+			keep.extend(icon.tones.files().map(|file| file.content.clone()));
 		}
 		if let Some(video) = media.video() {
 			keep.extend(video.variants.iter().map(|rung| rung.content.clone()));
@@ -805,6 +818,68 @@ mod tests {
 		let later = swept(&root, &public, &metadata, &contents);
 		let names: Vec<String> = later.orphans.iter().map(|path| stem_of(path)).collect();
 		assert!(!names.contains(&dropped_variant), "collected a variant an article names again");
+		std::fs::remove_dir_all(&root).ok();
+	}
+
+	/// The icon's own bytes, kept because a link card links to that site and for no other reason.
+	///
+	/// **No article names an icon's rid**: the compiler turns a link card's hostname into one, so
+	/// the only path from the corpus to these objects is the domain. They were kept alive by the
+	/// published root's asset map until they became resources, and an hour after that stopped
+	/// being true this would have offered every icon in the corpus for deletion.
+	#[test]
+	fn keeps_the_files_of_an_icon_a_link_card_links_to() {
+		let temporary = temp();
+		let root = temporary.path();
+		std::fs::create_dir_all(root.join("contents")).expect("dir");
+		std::fs::write(root.join("contents/a.md"), r#"::linkcard{url="https://kept.example/x"}"#)
+			.expect("write");
+
+		let kept_light = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+		let kept_dark = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+		let unlinked = "cccccccccccccccccccccccccccccccc";
+		let merged = Merged {
+			version: 1,
+			created: "2026-07-31T00:00:00Z".into(),
+			updated: "2026-07-31T00:00:00Z".into(),
+			media: BTreeMap::from([
+				(
+					"k0001".to_owned(),
+					crate::image::manifest::fixture::icon(
+						"k0001",
+						"kept.example",
+						Some(kept_light),
+						Some(kept_dark),
+					),
+				),
+				(
+					"k0002".to_owned(),
+					crate::image::manifest::fixture::icon("k0002", "gone.example", Some(unlinked), None),
+				),
+			]),
+		};
+		crate::image::store::write(
+			&root.join(MERGED),
+			serde_json::to_string(&merged).expect("json").as_bytes(),
+		)
+		.expect("write");
+
+		let public = root.join("public");
+		for content in [kept_light, kept_dark, unlinked] {
+			crate::image::store::write(
+				&crate::image::store::variant_path(&public, content, "png"),
+				b"bytes",
+			)
+			.expect("write");
+		}
+
+		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
+		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
+		assert!(!names.contains(&kept_light.to_owned()), "collected a linked icon: {names:?}");
+		assert!(!names.contains(&kept_dark.to_owned()), "collected a linked icon: {names:?}");
+		// The site nothing links to any more is still collected, which is what says the reach
+		// above is the domain rather than a blanket exemption for icons.
+		assert!(names.contains(&unlinked.to_owned()), "kept an icon nothing links to: {names:?}");
 		std::fs::remove_dir_all(&root).ok();
 	}
 

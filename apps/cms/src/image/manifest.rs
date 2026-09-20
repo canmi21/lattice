@@ -45,6 +45,8 @@ pub struct Layers {
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub frame: Option<layer::Frame>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub icon: Option<layer::Icon>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub video: Option<layer::Video>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub clip: Option<layer::Clip>,
@@ -66,6 +68,9 @@ impl Layered for Layers {
 		}
 		if let Some(frame) = &self.frame {
 			present.push(("frame", frame.version));
+		}
+		if let Some(icon) = &self.icon {
+			present.push(("icon", icon.version));
 		}
 		if let Some(video) = &self.video {
 			present.push(("video", video.version));
@@ -90,6 +95,7 @@ impl Layers {
 			photo: None,
 			screenshot: None,
 			frame: None,
+			icon: None,
 			video: None,
 			clip: None,
 			unknown: BTreeMap::new(),
@@ -104,7 +110,7 @@ impl Layers {
 /// the whole record.
 pub mod layer {
 	use super::exif;
-	use super::{Dimension, Excerpt, ImageVariant, Origin, Resolution, Track};
+	use super::{Dimension, Excerpt, ImageVariant, Origin, Resolution, Tones, Track};
 	use super::{VideoSource, VideoVariant};
 	use crate::resource::ResourceId;
 	use serde::{Deserialize, Serialize};
@@ -127,7 +133,12 @@ pub mod layer {
 		pub version: u32,
 		/// Base64 thumbhash: the compact canonical placeholder, and the only form kept. The
 		/// build decodes it once and inlines the result.
-		pub thumbhash: String,
+		///
+		/// Optional, because a picture is not the only thing this layer describes. An icon binds
+		/// two files under `icon` and has no single picture to stand in for -- absent is the
+		/// answer there, and a placeholder invented for one tone would be painted under the other.
+		#[serde(default, skip_serializing_if = "Option::is_none")]
+		pub thumbhash: Option<String>,
 		/// The intrinsic box -- an SVG's `viewBox`, a bitmap's pixels -- and what layout and
 		/// aspect ratio are computed from.
 		pub dimension: Dimension,
@@ -178,6 +189,20 @@ pub mod layer {
 		pub at: Option<f64>,
 	}
 
+	/// Another site's mark: one resource per domain, one file per tone.
+	///
+	/// **Light and dark are two pictures, not two encodings of one**, so they bind here rather
+	/// than in `image.variants`, which means "the same picture, smaller" -- a list that would
+	/// make every consumer of it wrong about one of the two. Each file is described exactly as an
+	/// image variant is, because a file is a file; what differs is the axis it is keyed on.
+	#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+	pub struct Icon {
+		pub version: u32,
+		/// The site this is the mark of, lowercased, exactly as the collector stored it.
+		pub domain: String,
+		pub tones: Tones,
+	}
+
 	/// A moving picture: what the source was, what was published of it, and what is read over it.
 	///
 	/// The source numbers are kept because a rung is a re-encode and none of them can be read
@@ -221,6 +246,9 @@ pub mod layer {
 		pub const VERSION: u32 = 1;
 	}
 	impl Frame {
+		pub const VERSION: u32 = 1;
+	}
+	impl Icon {
 		pub const VERSION: u32 = 1;
 	}
 	impl Video {
@@ -279,6 +307,41 @@ pub struct ImageVariant {
 	/// re-deriving has to reproduce what was published.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub quality: Option<f32>,
+}
+
+/// An icon's files, one per tone.
+///
+/// **A site with one icon carries one key**, and absence is the answer -- the same idiom
+/// `resolution` uses above. Nothing writes a null to say "this site has no dark mark", so no
+/// reader has to tell that null apart from a tone nobody looked for.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct Tones {
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub light: Option<ImageVariant>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub dark: Option<ImageVariant>,
+}
+
+impl Tones {
+	/// Which file answers for a tone, and nothing when none does.
+	///
+	/// **A named tone is that tone or nothing.** A caller that asked for dark and received light
+	/// cannot tell it happened, and would draw a light mark on a dark surface believing it had
+	/// the right one. With no tone named either will do, and light goes first because an
+	/// untinted mark is drawn for light backgrounds. The twin of `toned` in libs/artifacts.
+	pub fn of(&self, tone: Option<&str>) -> Option<&ImageVariant> {
+		match tone {
+			Some("light") => self.light.as_ref(),
+			Some("dark") => self.dark.as_ref(),
+			Some(_) => None,
+			None => self.light.as_ref().or(self.dark.as_ref()),
+		}
+	}
+
+	/// Every file this icon publishes, in the order a canonical is chosen from.
+	pub fn files(&self) -> impl Iterator<Item = &ImageVariant> {
+		self.light.iter().chain(self.dark.iter())
+	}
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -348,6 +411,11 @@ impl Media {
 	/// is turned away is a visible line rather than an empty string further down.
 	pub fn image(&self) -> Option<&layer::Image> {
 		self.layers.image.as_ref()
+	}
+
+	/// The icon this record is, or nothing when it is not one.
+	pub fn icon(&self) -> Option<&layer::Icon> {
+		self.layers.icon.as_ref()
 	}
 
 	pub fn video(&self) -> Option<&layer::Video> {
@@ -446,8 +514,26 @@ pub fn canonical_of(layers: &Layers) -> Option<Canonical> {
 		content: &rung.content,
 		extension: crate::extension::VIDEO,
 	});
+	if let Some(icon) = &layers.icon {
+		return icon_canonical(icon);
+	}
 	let best = pictures.chain(rungs).max_by(|left, right| left.rank().cmp(&right.rank()))?;
 	Some(Canonical::Object { cid: best.content.to_owned(), extension: best.extension.to_owned() })
+}
+
+/// What a bare rid means for an icon, which the ladder rule above cannot answer.
+///
+/// Largest is the wrong question here: the two files are two pictures, and an SVG has no pixels
+/// to be largest by, so ranking them would hand out whichever happened to be a bitmap. The light
+/// one is what an untinted mark is, and it is what a reader following a bare id should be shown;
+/// a site that publishes only a dark mark is answered with the one file it has.
+fn icon_canonical(icon: &layer::Icon) -> Option<Canonical> {
+	let file = icon.tones.of(None)?;
+	// `for_icon`, not `for_variant`: the ladder's table answers AVIF for anything it does not
+	// recognise, and these files are whatever somebody else's server served -- an SVG named
+	// `.avif` is an address to a file nobody wrote.
+	let extension = crate::extension::for_icon(&file.mime)?;
+	Some(Canonical::Object { cid: file.content.clone(), extension: extension.to_owned() })
 }
 
 /// Every resource, merged. This is the file that gets committed.
@@ -480,6 +566,19 @@ impl Merged {
 			.media
 			.iter()
 			.find(|(_, media)| media.resource == resource)
+			.map(|(key, media)| (key.as_str(), media))
+	}
+
+	/// The icon collected for one site, which is how a link card reaches its mark.
+	///
+	/// A domain rather than a reference, because an article never names an icon: it names a URL,
+	/// and the hostname of that URL is the identity. A scan for the same reason `by_resource` is
+	/// one. See spec/architecture/resource.md, "The catalogue".
+	pub fn by_icon_domain(&self, domain: &str) -> Option<(&str, &Media)> {
+		self
+			.media
+			.iter()
+			.find(|(_, media)| media.icon().is_some_and(|icon| icon.domain == domain))
 			.map(|(key, media)| (key.as_str(), media))
 	}
 
@@ -760,7 +859,7 @@ fn from_legacy(
 			let pixels = !scalable(&origin.mime);
 			let picture = layer::Image {
 				version: layer::Image::VERSION,
-				thumbhash: image.thumbhash,
+				thumbhash: Some(image.thumbhash),
 				dimension: Dimension {
 					width: image.source.width,
 					height: image.source.height,
@@ -799,6 +898,7 @@ fn from_legacy(
 				photo: None,
 				screenshot: None,
 				frame: None,
+				icon: None,
 				video: Some(layer::Video {
 					version: layer::Video::VERSION,
 					source: VideoSource {
@@ -891,6 +991,7 @@ fn image_layers(origin: Origin, image: layer::Image, metadata: Option<exif::Meta
 			metadata,
 		}),
 		frame: None,
+		icon: None,
 		video: None,
 		clip: None,
 		unknown: BTreeMap::new(),
@@ -929,9 +1030,7 @@ pub fn migrate(merged: &Merged, metadata: &Path) -> Vec<String> {
 			std::fs::read_to_string(path)
 				.ok()
 				.and_then(|text| serde_json::from_str::<Media>(&text).ok())
-				.is_none_or(|document| {
-					document.version < VERSION || document.canonical != media.canonical
-				})
+				.is_none_or(|document| document.version < VERSION || document.canonical != media.canonical)
 		})
 		.map(|(key, _)| key.clone())
 		.collect()
@@ -978,7 +1077,7 @@ pub fn media_for(
 		Origin { blake3: derived.cid.clone(), mime: source_mime.to_owned(), bytes: source_bytes };
 	let image = layer::Image {
 		version: layer::Image::VERSION,
-		thumbhash: STANDARD.encode(&derived.thumb),
+		thumbhash: Some(STANDARD.encode(&derived.thumb)),
 		dimension: Dimension {
 			width: derived.width,
 			height: derived.height,
@@ -1038,7 +1137,7 @@ pub mod fixture {
 		});
 		layers.image = Some(layer::Image {
 			version: layer::Image::VERSION,
-			thumbhash: String::new(),
+			thumbhash: None,
 			dimension: Dimension { width, height, aspect: ratio_of(width, height) },
 			resolution: Some(Resolution { width, height }),
 			variants: variants
@@ -1053,6 +1152,36 @@ pub mod fixture {
 				.collect(),
 		});
 		record(resource, Namespace::of(&["media", "image"]), layers)
+	}
+
+	/// A site's mark, one file per tone. A tone given no content id is one it does not publish.
+	pub fn icon(resource: &str, domain: &str, light: Option<&str>, dark: Option<&str>) -> Media {
+		let file = |content: &str| ImageVariant {
+			content: content.to_owned(),
+			mime: "image/png".into(),
+			bytes: 1,
+			resolution: Some(Resolution { width: 32, height: 32 }),
+			quality: None,
+		};
+		let origin =
+			|content: &str| Origin { blake3: content.to_owned(), mime: "image/png".into(), bytes: 1 };
+		let mut layers = Layers::of(layer::Media {
+			version: layer::Media::VERSION,
+			origin: light.iter().chain(dark.iter()).map(|content| origin(content)).collect(),
+		});
+		layers.image = Some(layer::Image {
+			version: layer::Image::VERSION,
+			thumbhash: None,
+			dimension: Dimension { width: 32, height: 32, aspect: "1:1".into() },
+			resolution: Some(Resolution { width: 32, height: 32 }),
+			variants: Vec::new(),
+		});
+		layers.icon = Some(layer::Icon {
+			version: layer::Icon::VERSION,
+			domain: domain.to_owned(),
+			tones: Tones { light: light.map(file), dark: dark.map(file) },
+		});
+		record(resource, Namespace::of(&["media", "image", "icon"]), layers)
 	}
 
 	/// A clip made from `cid`: 1080p, silent, one second, covered by the frame `cover` names.
@@ -1222,7 +1351,7 @@ mod tests {
 		assert_eq!(media.created, "2026-09-14T02:55:32.15685Z");
 		assert_eq!(media.origin().map(|origin| origin.blake3.as_str()), Some(LEGACY_CID));
 		assert_eq!(media.origin().map(|origin| origin.bytes), Some(477_086));
-		assert_eq!(image.thumbhash, "+vcJBYCIh5iIh3ePhkeHcoiIj4f4");
+		assert_eq!(image.thumbhash.as_deref(), Some("+vcJBYCIh5iIh3ePhkeHcoiIj4f4"));
 		assert_eq!(image.dimension.width, 1960);
 		assert_eq!(image.dimension.aspect, "20:13");
 		assert_eq!(image.resolution, Some(Resolution { width: 1960, height: 1274 }));
@@ -1444,7 +1573,7 @@ mod tests {
 			Layers::of(layer::Media { version: layer::Media::VERSION, origin: Vec::new() });
 		layers.image = Some(layer::Image {
 			version: layer::Image::VERSION,
-			thumbhash: String::new(),
+			thumbhash: None,
 			dimension: Dimension { width: 1920, height: 1248, aspect: "40:26".into() },
 			resolution: None,
 			variants: variants

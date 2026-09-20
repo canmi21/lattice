@@ -48,7 +48,6 @@ const SITE = new URL('apps/site/', ROOT);
  */
 const INPUTS = {
 	brand: fileURLToPath(new URL('data/source/brand', ROOT)),
-	icons: fileURLToPath(new URL('data/source/favicon', ROOT)),
 	notice: fileURLToPath(new URL('data/build/licenses-full.txt', ROOT)),
 	cards: fileURLToPath(new URL('data/build/opengraph.json', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
@@ -300,33 +299,6 @@ async function publishNotice(tree: Tree): Promise<Root['assets']> {
 	};
 }
 
-/**
- * The icons `cms favicon` fetched from other people's sites, published like anything else.
- *
- * Named `favicon/{domain}/{tone}`, which is what a link card can construct from the domain it
- * already knows -- so this is request-time resolution rather than build-time. An icon changes on
- * its owner's schedule, and compiling its hash into a card would mean republishing every article
- * that mentions them the day they redraw it. See spec/architecture/delivery.md.
- */
-async function publishIcons(tree: Tree): Promise<Root['assets']> {
-	const assets: Root['assets'] = {};
-	const domains = await readdir(INPUTS.icons, { withFileTypes: true }).catch(() => []);
-	for (const domain of domains) {
-		if (!domain.isDirectory() || domain.name.startsWith('.')) continue;
-		for (const file of (await readdir(join(INPUTS.icons, domain.name))).toSorted()) {
-			if (file.startsWith('.')) continue;
-			const tone = file.slice(0, file.lastIndexOf('.'));
-			const extension = file.slice(file.lastIndexOf('.') + 1);
-			const bytes = await readFile(join(INPUTS.icons, domain.name, file));
-			assets[`favicon/${domain.name}/${tone}`] = {
-				cid: await tree.putBytes(bytes, extension),
-				extension,
-			};
-		}
-	}
-	return assets;
-}
-
 async function publishCorpus(
 	dir: string,
 	metadata: string,
@@ -345,9 +317,13 @@ async function publishCorpus(
 	await tree.putRoot({
 		version: ARTIFACT_VERSION,
 		generated: new Date().toISOString(),
+		// **This site's own names, and nobody else's.** Another site's mark used to be fifteen
+		// entries here, named `favicon/{domain}/{tone}` because that is what a link card could
+		// build from the domain it knew. It is a resource now: `cms favicon` hashes the bytes in
+		// and writes the record, a card compiles to a rid, and the page asks what that rid means.
+		// See spec/architecture/resource.md, "The catalogue".
 		assets: {
 			...(await publishBrand(tree)),
-			...(await publishIcons(tree)),
 			...(await publishNotice(tree)),
 		},
 		articles: rootArticles,

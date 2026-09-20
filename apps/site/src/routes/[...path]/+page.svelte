@@ -24,5 +24,5 @@
 	locale={data.locale}
 	{notes}
 >
-	<ArticleBody blocks={data.body.blocks} locale={data.locale.code} />
+	<ArticleBody blocks={data.body.blocks} resources={data.resources} locale={data.locale.code} />
 </Article>

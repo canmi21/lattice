@@ -87,6 +87,15 @@ export type Resolved = {
 export type AssetLibrary = {
 	byResource: Map<string, ParsedResource>;
 	byOrigin: Map<string, ParsedResource>;
+	/**
+	 * Every icon, by the site it is the mark of.
+	 *
+	 * A third index rather than a third id: a link card names a URL and never a resource, so the
+	 * hostname is the only thing the compiler has to look one up with. The record's own `domain`
+	 * is what it is keyed by here, so nothing has to agree on a convention. See
+	 * spec/architecture/resource.md, "The catalogue".
+	 */
+	byIconDomain: Map<string, ParsedResource>;
 };
 
 /**
@@ -99,7 +108,11 @@ export type AssetLibrary = {
  */
 export function readAssets(manifest: unknown): AssetLibrary {
 	const { media = {} } = (manifest ?? {}) as { media?: Record<string, unknown> };
-	const library: AssetLibrary = { byResource: new Map(), byOrigin: new Map() };
+	const library: AssetLibrary = {
+		byResource: new Map(),
+		byOrigin: new Map(),
+		byIconDomain: new Map(),
+	};
 	for (const [key, record] of Object.entries(media)) {
 		if (typeof record !== 'object' || record === null || !('layers' in record)) {
 			throw new Error(`\`${key}\` has no resource id -- run \`cms migrate\` first`);
@@ -111,6 +124,8 @@ export function readAssets(manifest: unknown): AssetLibrary {
 		for (const origin of requireSegment(asset, 'media').origin) {
 			library.byOrigin.set(origin.blake3, asset);
 		}
+		const icon = asset.layers.icon;
+		if (icon) library.byIconDomain.set(icon.domain, asset);
 	}
 	return library;
 }
@@ -275,11 +290,27 @@ export function createAssetResolver(
 			width: width(image),
 			height: height(image),
 			ratio: aspect(image),
-			preview: previews.get(image.thumbhash) ?? '',
+			// Absent for anything with no one picture to stand in for -- an icon binds two.
+			preview: (image.thumbhash && previews.get(image.thumbhash)) || '',
 			// media.yaml owns these translations independently from article segments. Selecting the
 			// matching value here makes each compiled view carry its own accessible fallback text.
 			description: entryOf(asset, media)?.description?.[descriptionLocale]?.text,
 		};
+	};
+}
+
+/**
+ * Which resource is the mark of the site a link points at, by its rid alone.
+ *
+ * The rid and nothing else: which resource the card means follows from the URL, and what that
+ * resource currently holds does not. See spec/architecture/resource.md, "A rid is resolved three
+ * times, and each stage bakes only what it can know". `undefined` for a site nothing has
+ * collected a mark for, which `cms check` reports and the card renders without.
+ */
+export function createIconResolver(assets: AssetLibrary): (url: string) => string | undefined {
+	return (url) => {
+		const hostname = URL.parse(url)?.hostname.toLowerCase();
+		return hostname ? assets.byIconDomain.get(hostname)?.resource : undefined;
 	};
 }
 

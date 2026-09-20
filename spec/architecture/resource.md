@@ -84,6 +84,45 @@ layer that changes shape raises its own number and the envelope does not notice.
 whole reason the numbers are per layer: a version that rises for reasons unrelated to what a
 reader parses teaches the reader to ignore it.
 
+### A layer keyed by name, and the absent key that says something
+
+`icon` is the first layer whose content is selected by a name rather than by a number, and the
+shape is written down because it recurs: a mark asked for by role will want the same one.
+
+```jsonc
+"icon": {
+  "version": 1,
+  "domain": "github.com",
+  "tones": {
+    "light": { "content": "9fc87f…", "mime": "image/svg+xml", "bytes": 959 },
+    "dark":  { "content": "df8ece…", "mime": "image/svg+xml", "bytes": 957 }
+  }
+}
+```
+
+Each tone is **described exactly as an image variant is**, because a file is a file and what a
+reader needs to know of one does not change with the axis it was chosen by. What differs is the
+container: `image.variants` is a list because size is ordered and a caller picks by comparing;
+tone is not ordered, so this is a map and a caller picks by naming.
+
+**A site with one mark carries one key, and the other is simply absent.** Six of the eight domains
+here publish a single icon and carry it under both names; `sakura-ushio.icu` publishes one for
+dark alone, and its record says so by having no `light`. That is the idiom `resolution` already
+uses for a vector -- **absent is the answer**. A null would be a third state nobody can act on: a
+reader cannot tell "this site has no light mark" from "nobody looked" by reading one, and both
+sides would then need a rule for it. An icon naming no file at all is refused rather than stored,
+a mark holding none being something that could only ever be answered with a blank.
+
+**A named tone is that tone or nothing.** A caller that asked for dark and was handed light cannot
+tell it happened, and would draw a light mark on a dark surface believing it had the right one;
+nothing hands the choice back. With no tone named either will do, and light goes first because an
+untinted mark is drawn for light backgrounds. That rule belonged to a worker resolving `?tone=`
+per request; it is a selector beside the record now, written once on each side.
+
+**`image.thumbhash` is optional for the same reason the tones are two.** Two tones are two
+pictures, and one placeholder painted under both would be the wrong colour under one of them. A
+field invented to satisfy a schema is a field a reader will eventually believe.
+
 ## `type` is a namespace, and every segment does three jobs
 
 `media.image.photo` is read left to right, and each segment:

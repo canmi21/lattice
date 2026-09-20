@@ -47,6 +47,22 @@ pub fn for_icon(content_type: &str) -> Option<&'static str> {
 /// Every extension an icon can be stored under, in the order a lookup should try them.
 pub const ICON_EXTENSIONS: [&str; 4] = ["svg", "png", JPEG, "ico"];
 
+/// What is in an icon stored under this extension, which is the inverse of `for_icon`.
+///
+/// A separate table from `image::mime_of` because that one answers about pictures the ladder
+/// derives from and knows nothing about SVG or ICO, which are exactly the two an icon arrives as.
+/// The record stores the mime, so this is what turns a file on disk back into one; the test below
+/// walks it against `for_icon` so the pair cannot drift.
+pub fn icon_mime(extension: &str) -> Option<&'static str> {
+	match extension {
+		"svg" => Some("image/svg+xml"),
+		"png" => Some("image/png"),
+		JPEG => Some("image/jpeg"),
+		"ico" => Some("image/x-icon"),
+		_ => None,
+	}
+}
+
 /// What a rung of a clip's ladder is stored under. No function, because there is nothing to
 /// decide: one codec in one container, so a second spelling would name a file nobody wrote.
 pub const VIDEO: &str = "mp4";
@@ -77,6 +93,20 @@ mod tests {
 		assert_eq!(for_icon("image/vnd.microsoft.icon"), Some("ico"));
 		assert_eq!(for_icon("IMAGE/PNG; charset=binary"), Some("png"));
 		assert_eq!(for_icon("application/octet-stream"), None);
+	}
+
+	/// The pair has to be an inverse, because one writes the file and the other reads it back.
+	///
+	/// A mime that does not come back as the extension it was stored under is a record naming a
+	/// file at an address nobody wrote -- and `for_variant` would answer `.avif` for every one of
+	/// these, which is why the icon path has its own table at all.
+	#[test]
+	fn every_icon_extension_round_trips_through_its_mime() {
+		for extension in ICON_EXTENSIONS {
+			let mime = icon_mime(extension).expect("every stored extension names what is in it");
+			assert_eq!(for_icon(mime), Some(extension), "{extension}");
+		}
+		assert_eq!(icon_mime("avif"), None);
 	}
 
 	#[test]

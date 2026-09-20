@@ -14,6 +14,7 @@ pub mod collect;
 pub mod fetch;
 pub mod host;
 pub mod parse;
+pub mod record;
 
 use parse::{MediaTone, Tone};
 use std::path::{Path, PathBuf};

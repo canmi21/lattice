@@ -77,10 +77,13 @@ address itself is as fixed as anything here gets.
 Any other address wanting a long life without a hash has to arrive with its own promise. The list
 is one long and was empty an hour before this was written, which is the rate it should grow at.
 
-`/favicon/{domain}` was already not on it, and it is not this rule's to give a life to either: it
-is an alias-layer route rather than a CDN one, so it takes that host's default of five minutes. An
-answer there is exactly as fresh as the `/asset` answer behind it, which is the honest length for
-something refetched from a site nobody here controls.
+Another site's icon was the standing example of an address that wanted one and was refused: it was
+an alias-layer route rather than a CDN one, so it took that host's default of five minutes, which
+was as fresh as the `/asset` answer behind it. **It stopped needing an exception by stopping being
+a name.** An icon is a resource, a link card compiles to its rid, and what a page draws is an
+object address like any other -- so the five minutes now sit on the record that names it and the
+bytes keep the year the shape of their name earns. See [resource.md](resource.md), "The
+catalogue".
 
 ## The mutable root
 
@@ -438,6 +441,19 @@ while `event.fetch` sends no `Origin` header at all, so an allowlist keyed on th
 nothing. The API answers `200`, the render throws, and nothing says why. So a request arriving
 without an `Origin` is answered `*`: it is not a browser making a cross-origin request, and the
 header grants it nothing. Requests that do carry one are still matched against the list.
+
+**That held only while every such fetch was a `GET`, and it is half the rule.** SvelteKit sets
+`Origin` on every server-side request and deletes it again only for `GET` and `HEAD` --
+`runtime/server/fetch.js:41-43` against `:52-58` in 2.70.3 -- while the CORS simulation at
+`runtime/server/page/load_data.js:297` runs for every cross-origin fetch from a `load` whichever
+method it used, and throws at `:307-309` on an answer the header does not name. So the paragraph
+above describes a `GET`, and the allowlist it says grants nothing was dead code on this path for
+as long as the site only made those. **The first non-`GET` a `load` makes is the first request the
+list can refuse**, and it refuses it in development, where the site's origin is a port.
+
+Resolving a page's resources is that first one, because it asks for many rids at once and a batch
+question has a body. Nothing before it could have revealed this: the trap is not that the rule was
+wrong, it is that half of it had never been reached.
 
 **And in development the site's origin is not the one the list names.** `localhost` and
 `127.0.0.1` are one machine spelled two ways; the list holds the first, so browsing the site by IP

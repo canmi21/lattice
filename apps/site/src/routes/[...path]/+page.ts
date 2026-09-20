@@ -1,10 +1,22 @@
 import { error, redirect } from '@sveltejs/kit';
 import { redirects } from 'virtual:redirects';
-import { orReload, publishedView } from '$lib/published';
+import { orReload, publishedResources, publishedView } from '$lib/published';
 import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
+import type { PublishedView } from '@canmi/artifacts';
 import type { PageLoad } from './$types';
 
 export const prerender = false;
+
+/**
+ * Every resource this view's blocks name, in the order they appear.
+ *
+ * Read off the compiled blocks rather than declared beside them: a block is the only thing that
+ * knows which resource it means, and a second list would be one more thing to keep in step. A
+ * link card's icon is the whole list today; a picture will join it here and nowhere else.
+ */
+function namedResources(blocks: PublishedView['body']['blocks']): string[] {
+	return blocks.flatMap((block) => (block.type === 'linkcard' && block.icon ? [block.icon] : []));
+}
 
 /**
  * An article is asked for by identity and served only at its address.
@@ -36,10 +48,17 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 
 	// The query rides along: `?lang=` selects the view, and dropping it here would answer a
 	// reader's redirect in a language they did not ask for.
-	if (found.path !== asked) redirect(segments.length > 1 ? 301 : 302, `/${found.path}${url.search}`);
+	if (found.path !== asked)
+		redirect(segments.length > 1 ? 301 : 302, `/${found.path}${url.search}`);
 
 	const view = found.view;
+	// The second call on this path, and the same bet as the first. A compiled article names
+	// resources and stops, so rendering one also asks what those rids currently mean -- once for
+	// the whole page rather than once per resource. See spec/architecture/resource.md, "One
+	// question per page, not one per resource".
+	const resources = await publishedResources(fetch, namedResources(view.body.blocks));
 	return {
+		resources,
 		// Which card this view shows, from the answer rather than from the address: a card is a
 		// content-addressed object and there is nothing to derive one from a slug.
 		card: found.card,

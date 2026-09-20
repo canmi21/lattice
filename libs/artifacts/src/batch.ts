@@ -12,7 +12,7 @@
  */
 import * as v from 'valibot';
 import { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
-import type { ViewAnswer } from './index.ts';
+import type { Resource, ViewAnswer } from './index.ts';
 
 /** A slug names an article; the list is bounded so one request cannot ask for the whole corpus. */
 const slugs = v.pipe(v.array(v.string()), v.maxLength(64));
@@ -36,12 +36,29 @@ export const ReadsRequestSchema = v.object({
 });
 
 /**
+ * What every rid on one page currently means, asked once.
+ *
+ * An arm here rather than a fan of `GET /media?rid=`, and bounded like the slugs above: one
+ * page's worth, not a walk of the corpus. Unchecked against the id pattern for the reason `slugs`
+ * is -- a string that could never be one comes back absent, which is the same answer sooner. See
+ * spec/architecture/resource.md, "One question per page, not one per resource".
+ */
+export const ResourcesRequestSchema = v.object({
+	type: v.literal('resources'),
+	rids: v.pipe(v.array(v.string()), v.maxLength(64)),
+});
+
+/**
  * What arrives at `/batch`, discriminated by `type`.
  *
  * A variant rather than a union of objects: valibot reads `type` first and reports the failure
  * against that one branch, so a malformed `reads` body is not also reported as a bad `articles`.
  */
-export const BatchRequestSchema = v.variant('type', [ArticlesRequestSchema, ReadsRequestSchema]);
+export const BatchRequestSchema = v.variant('type', [
+	ArticlesRequestSchema,
+	ReadsRequestSchema,
+	ResourcesRequestSchema,
+]);
 
 export type BatchRequest = v.InferOutput<typeof BatchRequestSchema>;
 export type BatchType = BatchRequest['type'];
@@ -63,12 +80,14 @@ export type BatchedArticle = {
  * What `/batch` answers, carrying back the `type` it was asked.
  *
  * Echoed rather than assumed: a consumer holding an answer can tell what it is an answer to
- * without remembering what it sent. A slug the corpus does not name is absent rather than an
- * error. Both maps are keyed by slug, because an answer keyed by address could not be matched
- * back to the question without the caller deriving one from the other.
+ * without remembering what it sent. A slug or a rid the corpus does not name is absent rather
+ * than an error. Every map is keyed by what was asked with -- the identity, never the address --
+ * because an answer keyed by anything else could not be matched back to the question without the
+ * caller deriving one from the other.
  */
 export type BatchAnswer =
 	| { type: 'articles'; articles: Record<string, BatchedArticle> }
-	| { type: 'reads'; reads: Record<string, number> };
+	| { type: 'reads'; reads: Record<string, number> }
+	| { type: 'resources'; resources: Record<string, Resource> };
 
 export type BatchAnswerOf<T extends BatchType> = Extract<BatchAnswer, { type: T }>;

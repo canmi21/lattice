@@ -199,7 +199,7 @@ copy it was confirming. Failures get the five minutes; `2xx` and `304` keep the 
 [artifacts.md](artifacts.md), "The key says what may cache it".
 
 **This shortened three things that were not content-addressed and had been getting a week**:
-`/favicon/{domain}`, the licence aggregate, and the assets no named route claimed. The week was
+another site's icon, the licence aggregate, and the assets no named route claimed. The week was
 inherited from the `_headers` era and had never been argued for any of them individually.
 
 Five minutes is the right number for the same reason the API's answers get five minutes: these
@@ -383,20 +383,37 @@ cover. The icons `cms favicon` fetches from other sites travel for the same reas
 `data/source/favicon`: re-fetchable in principle, but only from a site that may have redrawn its icon
 since, so a clone without them cannot reproduce what is published.
 
-### Another site's icon is the case this layer exists for
+### Another site's icon was the case this layer existed for, and it is a resource now
 
-`ill.li/favicon/{domain}` keeps the domain in the address, because that is what a link card can
-construct from what it already knows and it is the half worth reading. What the name means changes
-when that site redraws its icon -- somebody else's schedule -- so compiling the hash into every
-card would mean republishing every article that mentions them on the day they do.
+`ill.li/favicon/{domain}` kept the domain in the address, because that was what a link card could
+construct from what it already knew and it was the half worth reading. **That argument is
+retired**, and what replaced it is not a different address but a different question: an icon is a
+resource, a card compiles to its rid, and a page asks the API what that rid currently means while
+it renders -- so the domain is no longer something anything has to construct an address from. See
+[resource.md](resource.md), "A rid is resolved three times, and each stage bakes only what it can
+know".
 
-`?tone=` selects among answers, so a request carrying one takes the `307`. **A named tone is that
-tone or nothing**: a caller that asked for dark and received light cannot tell it happened, and
-would draw a light icon on a dark surface believing it had the right one. With no tone named,
-either will do and light is tried first.
+The reason the route existed survives intact and is now served better. What an icon is still
+changes when that site redraws it -- somebody else's schedule -- so it is still resolved per
+request rather than compiled into every article that mentions them. What changed is who resolves
+it: the page, on the path it already renders through, instead of a browser following a redirect
+from a host that holds nothing. A card draws a CDN object address directly, one hop rather than
+two, and this layer is left with the names a browser constructs on its own.
+
+The half that was genuinely lost is readability: `/favicon/github.com` said what it was and
+`/object/df8ece….svg` does not. That is the ordinary cost of content addressing, paid everywhere
+else here already, and it buys the icon a year and `immutable` in exchange for five minutes.
+
+`?tone=` was a query, which is why the route took the `307` in the table above. It is a key in the
+record now and selects nothing over the network at all, so that row lost its only example here --
+the rule stays because it is about requests, not about icons.
+
+**A named tone is still that tone or nothing.** The rule moved with the files: it is stated once
+in [resource.md](resource.md), "A layer keyed by name, and the absent key that says something",
+and spelled on each side beside the record rather than in a worker.
 
 Content addressing deduplicated them on the way in: a site whose light and dark icons are the same
-file now has one object, not two, without anything being written to notice that.
+file has one object, not two, named twice, without anything being written to notice that.
 
 ## Release assets are proxied, for one account
 

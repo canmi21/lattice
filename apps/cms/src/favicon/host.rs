@@ -108,13 +108,12 @@ mod tests {
 		assert_eq!(hostname("   "), None);
 	}
 
-	/// Every hostname the two ends of the pipeline have to answer the same way.
+	/// Every hostname this rule has to answer the same way twice.
 	///
-	/// `/favicon/:domain` in apps/alias is the other end, and a name only one side takes is an
-	/// object in the bucket that is a 400 for ever, or a lookup that can never hit. This suite was
-	/// written twice by two people, neither reading the other; this is the one copy, and
-	/// apps/alias/src/hostname.test.ts reads it out of this file. Lowercase throughout, because
-	/// both callers lowercase before asking.
+	/// It was a contract between two languages: `/favicon/:domain` in apps/alias spelled the same
+	/// five rules in TypeScript, and read this table rather than keep its own after the two drifted
+	/// over `999.999.999.999`. An icon is a resource now and no hostname reaches a worker, so this
+	/// is a table of cases. Lowercase, because callers lowercase first.
 	const SHARED: [(&str, bool); 15] = [
 		("example.com", true),
 		("blog.example.co.uk", true),

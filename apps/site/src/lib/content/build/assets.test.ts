@@ -2,10 +2,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { sourceFingerprint } from './assemble';
-import { aspect, best, width } from '@canmi/artifacts';
+import { aspect, best, toned, width, ICON_EXTENSION, TONES } from '@canmi/artifacts';
 import {
 	createAssetResolver,
 	createDiagramResolver,
+	createIconResolver,
 	createVideoResolver,
 	EXTENSION,
 	readAssets,
@@ -369,14 +370,37 @@ it('reads the committed manifest, whichever side of the migration it is on', () 
 	expect(migrated).toHaveLength(records.length);
 
 	const library = readAssets(manifest);
+	const resolveIcon = createIconResolver(library);
 	expect(library.byResource.size).toBe(records.length);
 	for (const asset of library.byResource.values()) {
 		const image = asset.layers.image;
+		const icon = asset.layers.icon;
 		// Every question the markup asks of a picture, asked of every picture in the corpus: a
-		// file to serve, and a box to reserve before it arrives.
+		// file to serve, and a box to reserve before it arrives. **Which layer answers the first
+		// of those is the record's to say**: an icon binds its files at `icon`, because what
+		// selects between them is tone, so `image.variants` is empty and `best` has nothing to
+		// pick from. See spec/architecture/resource.md, "Content binds at the layer that has it".
 		if (image) {
-			expect(best(image, width(image)), `${asset.resource} has nothing to serve`).toBeDefined();
+			// **Optional means absent for an icon and for nothing else.** A picture written without
+			// one resolves to `preview: ''` and renders with no placeholder, silently losing the
+			// paint-before-load a thumbhash exists for -- which no type and no build would fail on.
+			expect(Boolean(image.thumbhash), `${asset.resource} (${asset.type})`).toBe(!icon);
+			const serves = icon
+				? (toned(icon, 'light') ?? toned(icon, 'dark'))
+				: best(image, width(image));
+			expect(serves, `${asset.resource} has nothing to serve`).toBeDefined();
 			expect(aspect(image), `${asset.resource} has no aspect`).toMatch(/^\d+:\d+$/);
+		}
+		// An icon is the one leaf whose content is keyed by name. Both tones point at objects the
+		// CDN can be asked for, under a spelling this side and apps/cms agree on, and the domain
+		// it belongs to is what a link card's URL is turned into a rid through.
+		if (icon) {
+			expect(resolveIcon(`https://${icon.domain}/deep/page`), icon.domain).toBe(asset.resource);
+			expect(image?.variants, `${asset.resource} binds at icon and not at image`).toEqual([]);
+			for (const tone of TONES) {
+				const file = icon.tones[tone];
+				if (file) expect(ICON_EXTENSION[file.mime], `${asset.resource} ${tone}`).toBeDefined();
+			}
 		}
 		// A cover is a rid, and the picture it names is in this same file. A cover that resolved
 		// to nothing would be a clip rendering with no poster and nothing reported.

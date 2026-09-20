@@ -45,6 +45,7 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
 	import { pageUrls } from '@canmi/urls';
+	import { ICON_EXTENSION, toned, type ParsedResource } from '@canmi/artifacts';
 	import Picture, { type Source } from '$lib/components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import * as m from '$lib/paraglide/messages';
@@ -55,28 +56,42 @@
 	 * listing again, and forwards untouched.
 	 *
 	 * `::linkcard{favicon=...}` is not here and never was reachable: the compiler drops it, so no
-	 * prop could receive it. See spec/architecture/data.md for where the collector sends it and
-	 * why the page always draws `/favicon/{domain}` instead.
+	 * prop could receive it. See spec/architecture/data.md for where the collector sends it.
 	 */
 	type Props = Source & {
 		/** The view being rendered. Passed rather than read: see spec/locale/addressing.md. */
 		locale: LocaleCode;
 		url: string;
 		title: string;
+		/**
+		 * The site's mark as the corpus currently holds it, resolved by the page.
+		 *
+		 * The record and not an address: what the resource holds changes on somebody else's
+		 * schedule, so it is looked up per render and never compiled into the article. Absent for
+		 * a site nothing has collected a mark for, and the card then draws none.
+		 */
+		icon?: ParsedResource;
 		tone?: 'light' | 'dark';
 		/** What the cover shows, from the manifest. See the markup for where it goes. */
 		description?: string;
 	};
-	let { locale, url, title, tone, description, ...cover }: Props = $props();
+	let { locale, url, title, icon, tone, description, ...cover }: Props = $props();
 
 	const describedBy = $props.id();
 
-	// The alias layer, not the CDN: an icon belongs to somebody else's site and changes on their
-	// schedule, so compiling its hash into this card would mean republishing every article that
-	// mentions them the day they redraw it. See spec/architecture/delivery.md.
-	const aliasUrl = pageUrls(dev).alias;
+	// The CDN, because what the record names is a content id: the resolution that could not happen
+	// at build time already happened, in the load, and what is left is an object address. A named
+	// tone is that tone or nothing -- see `toned` in libs/artifacts for why nothing is the right
+	// answer rather than the other file.
+	const cdnUrl = pageUrls(dev).cdn;
 	const domain = $derived(new URL(url).hostname);
-	const faviconSrc = $derived(`${aliasUrl}/favicon/${domain}${tone ? `?tone=${tone}` : ''}`);
+	const mark = $derived(icon?.layers.icon ? toned(icon.layers.icon, tone) : undefined);
+	const faviconExtension = $derived(mark && ICON_EXTENSION[mark.mime]);
+	// Nothing rather than a guessed extension: `/object` forms a key from the name it is given and
+	// corrects nothing, so a spelling this side invented is a 404 wearing an icon's clothes.
+	const faviconSrc = $derived(
+		mark && faviconExtension ? `${cdnUrl}/object/${mark.content}.${faviconExtension}` : undefined,
+	);
 
 	let imgEl = $state<HTMLImageElement | undefined>();
 	let hoverTint = $state<'black' | 'white' | null>(null);
@@ -162,7 +177,11 @@
 		<Picture {...cover} alt="" bind:el={imgEl} />
 	</div>
 	<div class="absolute right-12 bottom-3 left-3 flex items-center gap-2">
-		<img src={faviconSrc} alt="" aria-hidden="true" loading="lazy" class="h-4 w-4 shrink-0" />
+		<!-- No element at all for a site nothing has collected a mark for: a broken image is a
+		     worse answer than none, and the name beside it already says where the link goes. -->
+		{#if faviconSrc}
+			<img src={faviconSrc} alt="" aria-hidden="true" loading="lazy" class="h-4 w-4 shrink-0" />
+		{/if}
 		<span
 			class="truncate {stylex.attrs(surfaces.uiText, styles.title).class} {tone === 'dark'
 				? 'text-black'

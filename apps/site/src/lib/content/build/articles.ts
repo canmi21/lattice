@@ -5,6 +5,7 @@ import { URLS } from '@canmi/urls';
 import { parse as parseYaml } from 'yaml';
 import {
 	createAssetResolver,
+	createIconResolver,
 	createDiagramResolver,
 	createVideoResolver,
 	readAssets,
@@ -262,6 +263,8 @@ export async function buildArticles(
 	refuseBadSlugs(files, await reservedNames(paths.routes));
 	const notes = await newTabNotes(paths.messages);
 	const assets = readAssets(JSON.parse(await readFile(paths.assets, 'utf8')));
+	// One resolver for every view, because a rid is the same in all nine of them.
+	const resolveIcon = createIconResolver(assets);
 	const media = (parseYaml(await readFile(paths.media, 'utf8')) ?? { media: {} }) as MediaManifest;
 	// Absent until `cms diagram` has been run, which is a state the build has to survive: every
 	// consumer of a description falls back to what it said without one.
@@ -378,6 +381,9 @@ export async function buildArticles(
 			// eight is available in that one too. Reading the original meant hearing the pictures
 			// described in a language the article never used.
 			resolveAsset: createAssetResolver(assets, media, previews, paths.cdnUrl, originLocale),
+			// No locale and no CDN: an icon resolves to a rid, and what that rid holds is neither
+			// this build's to settle nor translated. See spec/architecture/resource.md.
+			resolveIcon,
 			resolveVideo: createVideoResolver(assets, media, previews, paths.cdnUrl, originLocale),
 			describeDiagram: createDiagramResolver(drawings, originLocale),
 			articles: references.mw,
@@ -401,6 +407,7 @@ export async function buildArticles(
 										paths.cdnUrl,
 										PUBLIC_LANGUAGE[code],
 									),
+									resolveIcon,
 									resolveVideo: createVideoResolver(
 										assets,
 										media,
@@ -460,7 +467,15 @@ export async function buildArticles(
 				];
 			}),
 		) as Record<LocaleCode, ArticleView>;
-		articles.push({ ...compiled.mw, slug: slugOf(path), path, url, views, canonical_urls, alternates });
+		articles.push({
+			...compiled.mw,
+			slug: slugOf(path),
+			path,
+			url,
+			views,
+			canonical_urls,
+			alternates,
+		});
 	}
 
 	return {

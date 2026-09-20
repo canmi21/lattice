@@ -297,12 +297,21 @@ fn fetch_favicons(force: bool, domains: &[String]) -> anyhow::Result<ExitCode> {
 	for domain in &outcome.claimed_elsewhere {
 		println!("held  {domain} (another run has it)");
 	}
+	// Named rather than counted for the same reason: a rid goes into a record every article
+	// linking to that site now resolves through, and it is the one thing here that cannot be
+	// undone by running the command again.
+	for (domain, resource) in &outcome.granted {
+		println!("grant {resource} {domain}");
+	}
 	println!(
-		"{} collected, {} already present, {} failed, {} held elsewhere",
+		"{} collected, {} already present, {} failed, {} held elsewhere, \
+		 {} granted an id, {} record(s) rewritten",
 		outcome.collected,
 		outcome.skipped,
 		outcome.failed.len(),
-		outcome.claimed_elsewhere.len()
+		outcome.claimed_elsewhere.len(),
+		outcome.granted.len(),
+		outcome.rerecorded
 	);
 	Ok(ExitCode::SUCCESS)
 }
@@ -481,11 +490,6 @@ fn describe_images(
 	for (cid, error) in &outcome.failed {
 		eprintln!("fail  {cid}: {error}");
 	}
-	// Reported rather than fatal: an asset whose original is gone can still be served, it just
-	// cannot be looked at again.
-	for cid in &outcome.unreadable {
-		eprintln!("warn  no original on hand for {cid}");
-	}
 	if outcome.claimed_elsewhere > 0 {
 		eprintln!("note  {} left to a run already describing them", outcome.claimed_elsewhere);
 	}
@@ -560,9 +564,10 @@ fn describe_clips(
 	for (cid, error) in &outcome.failed {
 		eprintln!("fail  {cid}: {error}");
 	}
-	// Reported rather than fatal, as it is for a picture: a clip whose original is gone still
-	// plays, it just cannot be sampled again. A rung would decode, but the frames are read for
-	// text and a re-encode of a re-encode is not what to read it from.
+	// Reported rather than fatal: a clip whose original is gone still plays, it just cannot be
+	// sampled again. A rung would decode, but the frames are read for text and a re-encode of a
+	// re-encode is not what to read it from. `cms alt` and `cms tag` carry no such line: they
+	// select on the originals tree now, so a picture with no original is not their work to miss.
 	for cid in &outcome.unreadable {
 		eprintln!("warn  no original on hand for {cid}");
 	}
@@ -822,9 +827,6 @@ fn classify_images(
 
 	for (cid, error) in &outcome.failed {
 		eprintln!("fail  {cid}: {error}");
-	}
-	for cid in &outcome.unreadable {
-		eprintln!("warn  no original on hand for {cid}");
 	}
 	if !outcome.minted.is_empty() {
 		println!("new tags: {}", outcome.minted.join(", "));

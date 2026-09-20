@@ -11,6 +11,7 @@ import { browser, dev } from '$app/environment';
 import {
 	artifactAddress,
 	feedHtml,
+	parseResource,
 	unwrap,
 	readEnvelope,
 	readPageEnvelope,
@@ -26,6 +27,7 @@ import {
 	type BatchAnswer,
 	type BatchAnswerOf,
 	type BatchRequest,
+	type ParsedResource,
 	type ViewAnswer,
 } from '@canmi/artifacts';
 import { pageUrls, pickUrls, URLS } from '@canmi/urls';
@@ -34,7 +36,15 @@ import { noticeHtml } from '$lib/documents/notice';
 import { LOCALE_CODES, type LocaleCode } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
 import { createBatcher } from '$lib/engagement/batch';
-import { answer, rememberAnswer } from './cache.ts';
+import {
+	answer,
+	heldBody,
+	rememberAnswer,
+	rememberBody,
+	FRESH_MS,
+	MISSING,
+	STALE_MS,
+} from './cache.ts';
 
 type Fetch = typeof fetch;
 
@@ -97,8 +107,15 @@ export function siteStats(fetch: Fetch): Promise<StatsAnswer | undefined> {
  */
 export async function askBatch<T extends BatchRequest>(
 	asked: T,
+	/**
+	 * Whose `fetch` asks. The load's, wherever there is one: SvelteKit records what it answered
+	 * and inlines it into the rendered page, so the same question after hydration is read out of
+	 * the document rather than sent again. The global one is right for a warm, which only ever
+	 * runs in a browser that is already looking at the page.
+	 */
+	asking: Fetch = fetch,
 ): Promise<BatchAnswerOf<T['type']>> {
-	const response = await fetch(api('/batch'), {
+	const response = await asking(api('/batch'), {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(asked),
@@ -218,6 +235,79 @@ export async function publishedHome(
 		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)
 		: undefined;
 	return { articles: found.articles, card: found.page?.objects.card, page };
+}
+
+/**
+ * The address one resource's record is asked for at, so a batch and a single lookup agree.
+ *
+ * `GET /media?rid=` is a real route and answers exactly this document. Writing what the batch
+ * learned under that address is what makes the two one answer rather than two, and is the same
+ * arrangement `lookupView` keeps over `/article`.
+ */
+function resourceUrl(rid: string): string {
+	return api(`/media?rid=${encodeURIComponent(rid)}`);
+}
+
+/**
+ * What every rid on one page currently means, asked once and held per resource.
+ *
+ * The second half of the resolution a compiled article stops short of, run from the universal
+ * `load` so the Worker asks while rendering and the browser reads the inlined answer back on
+ * hydration. A rid the corpus does not publish is remembered and keeps the publication delay; an
+ * unreachable API is stored nowhere, and whatever is still held answers. See
+ * spec/architecture/resource.md, "A rid is resolved three times".
+ */
+export async function publishedResources(
+	fetch: Fetch,
+	rids: readonly string[],
+): Promise<Record<string, ParsedResource>> {
+	const wanted = [...new Set(rids)];
+	if (wanted.length === 0) return {};
+
+	const held = await Promise.all(
+		wanted.map(async (rid) => [rid, await heldBody(resourceUrl(rid))] as const),
+	);
+
+	const found: Record<string, ParsedResource> = {};
+	const ask: string[] = [];
+	for (const [rid, stored] of held) {
+		// A remembered `MISSING` is an answer, so it costs no question and contributes no entry.
+		if (stored && stored.age < FRESH_MS) {
+			if (stored.body !== MISSING) read(found, rid, stored.body);
+		} else {
+			ask.push(rid);
+		}
+	}
+	if (ask.length === 0) return found;
+
+	try {
+		const batch = await askBatch({ type: 'resources', rids: ask }, fetch);
+		const bodies = ask.map((rid) => {
+			const record = batch.resources[rid];
+			return [rid, record === undefined ? MISSING : JSON.stringify(record)] as const;
+		});
+		await Promise.all(bodies.map(([rid, body]) => rememberBody(resourceUrl(rid), body)));
+		for (const [rid, body] of bodies) {
+			if (body !== MISSING) read(found, rid, body);
+		}
+	} catch {
+		const stale = await Promise.all(
+			ask.map(async (rid) => [rid, await heldBody(resourceUrl(rid))] as const),
+		);
+		for (const [rid, stored] of stale) {
+			if (stored && stored.body !== MISSING && stored.age < STALE_MS) read(found, rid, stored.body);
+		}
+	}
+	return found;
+}
+
+/** One stored record, parsed for as much of it as this build knows and dropped if it cannot be. */
+function read(into: Record<string, ParsedResource>, rid: string, body: string): void {
+	try {
+		into[rid] = parseResource(JSON.parse(body));
+	} catch {
+		return;
+	}
 }
 
 /**
