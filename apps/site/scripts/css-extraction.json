@@ -5,42 +5,48 @@
 				"apps/site/src/lib/blocks/cargo/cargo.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte",
 				"apps/site/src/lib/support/support.svelte"
-			]
+			],
+			"stays": "cargo and tokei write one footer link twice, comment for comment, leaving support as the only other witness -- and the three share a transition with its property list left out, which is the half that differs at every site"
 		},
 		{
 			"components": [
 				"apps/site/src/lib/blocks/cargo/cargo.svelte",
 				"apps/site/src/lib/blocks/mermaid/mermaid.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte"
-			]
+			],
+			"stays": "the cargo and tokei tooltips are one panel written twice, down to the markup and the `.tooltip-grid` rule under it, so mermaid's sketch node is the second witness and there is no third"
 		},
 		{
 			"components": [
 				"apps/site/src/lib/blocks/cargo/cargo.svelte",
 				"apps/site/src/lib/blocks/quadrant.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte"
-			]
+			],
+			"stays": "the same one tooltip written twice, against quadrant's box -- spec/todo.md names `mermaid.node` and `quadrant.box` as whole-box borders belonging to neither named surface so a later count would not read them as members"
 		},
 		{
 			"components": [
 				"apps/site/src/lib/blocks/cargo/cargo.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte",
 				"apps/site/src/lib/components/video.svelte"
-			]
+			],
+			"stays": "the same one tooltip again, and a video frame that takes picture's edge by its own comment -- extraction.md has already ruled the clip out of `blockFrame`, and one tooltip and one clip are two"
 		},
 		{
 			"components": [
 				"apps/site/src/lib/blocks/cargo/cargo.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte",
 				"apps/site/src/lib/licenses/package-list.svelte"
-			]
+			],
+			"stays": "the same one tooltip, and a licence badge: what they hold in common is an edge and a type step, two concerns that meet here by arithmetic rather than by anybody drawing one thing"
 		},
 		{
 			"components": [
 				"apps/site/src/lib/blocks/cargo/cargo.svelte",
 				"apps/site/src/lib/blocks/github.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte"
-			]
+			],
+			"stays": "cargo and tokei spell `tooltipCount` identically because the tooltip around it is one panel written twice, which leaves github's commit ref as the second witness"
 		},
 		{
 			"components": [
@@ -48,7 +54,8 @@
 				"apps/site/src/lib/licenses/package-list.svelte",
 				"apps/site/src/routes/licenses/[license]/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte"
-			]
+			],
+			"stays": "three of the four are the licence surface -- the package list and two of its routes, whose counts place themselves against each other in their comments -- so mermaid's fallback source is the only witness outside it"
 		},
 		{
 			"components": [
@@ -63,7 +70,8 @@
 				"apps/site/src/lib/licenses/package-list.svelte",
 				"apps/site/src/routes/licenses/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/+page.svelte"
-			]
+			],
+			"stays": "one directory row drawn on three pages of the licence surface: package-list's own comment says it copied the row character for character, and spec/todo.md records the two directories writing it the same way"
 		},
 		{
 			"components": [
@@ -71,14 +79,16 @@
 				"apps/site/src/routes/licenses/[license]/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte"
-			]
+			],
+			"stays": "one count on four routes of one section, each page's comment sizing itself against a sibling's -- spec/todo.md holds that surface open at eight addresses meant to become two or three"
 		},
 		{
 			"components": [
 				"apps/site/src/routes/licenses/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/[registry]/[...package]/+page.svelte"
-			]
+			],
+			"stays": "the directories' own step of the same count, with the package page's version beside it: three pages of one section rather than three components that arrived at it apart"
 		},
 		{
 			"components": [
