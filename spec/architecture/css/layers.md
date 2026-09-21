@@ -8,10 +8,10 @@ themselves say is the `styling/` directory's -- why a rail is 8.5rem is
 
 ## The three layers, and the order their question is asked in
 
-| Layer            | Called here      | Written in            |
-| ---------------- | ---------------- | --------------------- |
-| Svelte `<style>` | the escape hatch | the component's block |
-| StyleX           | the vocabulary   | TypeScript            |
+| Layer            | Called here      | Written in                              |
+| ---------------- | ---------------- | --------------------------------------- |
+| Svelte `<style>` | the escape hatch | the component's block                   |
+| StyleX           | the vocabulary   | TypeScript                              |
 | Tailwind         | the frame        | the markup, and Tailwind's lower layers |
 
 Those names are this file's own. Two sections down, arguing about precedence, it already writes
@@ -151,8 +151,8 @@ repeated 1.4 line height described as vocabulary that had not been named yet. An
 by property is checkable; an exception hiding inside a definition is not.
 
 A ramp property written with a literal is unnamed vocabulary, and
-[authoring.md](authoring.md) says how to mark it so it can be counted rather than argued about
-one site at a time.
+[authoring.md](authoring.md), "An unnamed ramp value is marked, so it can be counted", says how the
+tree's are counted rather than argued about one site at a time.
 
 ### The axis this replaces, and why this file is the argument against it
 
@@ -192,6 +192,13 @@ argument again, which is how `white-space` ended up with two homes. A list can b
 wrong is a thing a list can be _caught_ at; a test that two honest readers resolve differently is
 not wrong anywhere in particular.
 
+**When the enumeration and the three questions disagree, the three questions win, and the
+enumeration is corrected in the same change.** The sentence above covers a property the table never
+named; this one covers a property it named wrongly, which the `white-space` miscount below shows is
+a thing that happens here. It takes nothing from the table: the lookup is still the everyday answer
+and still the thing a reviewer can check without having been in the argument. What is now written
+down is that the table can be caught wrong, and who settles it when it is.
+
 ### What each layer owns, by name
 
 **The escape hatch** is not a property list, because it is not a property question. Anything at all
@@ -212,7 +219,7 @@ the escape hatch by the same mechanism read from the other side.
 [vocabulary.stylex.ts](../../../apps/site/src/lib/vocabulary.stylex.ts):
 
 - colour, in all its spellings: `color`, `background-color`, `border-color`, `outline-color`,
-  `text-decoration-color`, `fill`, `stroke`
+  `fill`, `stroke`
 - `border-radius`, `border-width`, `border-style`, `box-shadow`, `opacity`
 - the four `transition-*` longhands, `animation-*` where a class can reach the element
 - the type ramp: `font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family`,
@@ -234,14 +241,13 @@ the escape hatch by the same mechanism read from the other side.
 `inset`, `z-index`, `align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`,
 `user-select`, `will-change`, `border-collapse`, and text behaviour -- `white-space`,
 `text-wrap`, `overflow-wrap`, `word-break`, `line-break`, `hyphens`, `text-overflow`,
-`text-align`.
+`text-align`, and the `text-decoration-*` family with `text-underline-offset`.
 
 **These were added after the lists were checked against what the code actually uses**, which is
 the only way a list like this stays a list rather than becoming a sample. The vocabulary gains
 `filter`, `backdrop-filter`, `background-image` and `text-shadow`, all appearance and all of them
 already inside the player's reused surfaces; `outline-style` and `outline-width`, because
 splitting them from the `outline-color` already listed would run one outline across two layers;
-`text-decoration-line` and `text-underline-offset` beside `text-decoration-color`;
 `stroke-width` and `stroke-linecap` beside `stroke`; and `transition-behavior`, the fifth
 `transition-*` longhand. `text-transform`, `scale`, `rotate` and `translate` split by site the
 way `cursor` and `transform` do -- inside a surface they are members, written once they are the
@@ -253,6 +259,37 @@ frame. `will-change` is a hint about one element with no scale to consult, and
 declaration in two places at once and the axis cannot answer for it. StyleX accepts only the
 longhands in any case, which makes the rule free to follow and its violation a compile error on
 one side and silent on the other.
+
+**The enumeration grows by family, not by longhand.** `border-*`, `outline-*` and `transition-*`
+each paid for this sentence before it was written. Splitting one longhand from its family runs one
+visual thing across two layers, and which layer a reader lands in then depends on which half of the
+same border or the same underline they happened to be looking at. A ruling on one longhand is a
+ruling on the family, and it is written into the list that way.
+
+**The `text-decoration-*` family is the frame, and it is where that rule was paid for a fourth
+time.** The colour row above listed `text-decoration-color` while the row below rules
+`text-decoration-line` the frame: one underline across two layers, which is the `white-space`
+mistake inside a single property family. The three questions settle it against the list, by "The
+enumeration is the rule, and the test is only how the enumeration grows" above, and the list is
+corrected here -- `text-decoration-line`, `-color`, `-style` and `-thickness`, and
+`text-underline-offset` with them, are the frame together. The sites agree: the one key that draws
+an underline rather than suppressing one -- `label` in the support page's
+[body.svelte](../../../apps/site/src/lib/home/body.svelte) -- is a per-component key used once, and
+the underline rules on compiled prose are a selector's.
+
+**A UA default suppressed is the frame, unless it is a recipe's member.** `text-decoration: none`
+on a link, `list-style: none` on a list, `appearance: none` on a control, `border: 0`,
+`outline: none` -- each written as its longhands, by the paragraph above. The declaration says only
+"not the browser's": it takes its value from no scale, it names nothing, and there is nothing for a
+recipe to hold. The exception is real and is the focus ring's own suppression, where the
+`outline: none` is a member of that recipe and travels with it -- question two, reached before this
+row. The two sites writing it as the shorthand are the frame by it: `textDecoration: 'none'` in
+[github.svelte](../../../apps/site/src/lib/blocks/github.svelte) and
+[footnotes.svelte](../../../apps/site/src/lib/article/footnotes.svelte), each a component turning
+off a link's underline and belonging to no named recipe, and both are `no-underline` in the markup.
+The `textDecorationLine: 'none'` keys in the blocks answer to the same row. It earns its place by
+pre-deciding a class of argument rather than leaving the questions to re-decide it one suppression
+at a time.
 
 `aspect-ratio` and `text-align` are the quadrant's two additions, and each is the third question
 answering rather than the first two: a class reaches the element, no recipe names the
@@ -433,8 +470,8 @@ it a layer is also choosing what it is a layer of. It is settled: **every rule i
 layer that already exists, so the file has nothing left to be.**
 
 The file holds four unrelated things. Named recipes past the three-component threshold -- the
-`.focus-link` family, `.spring-underline`, `.article-link`, `.selectable`, `.jump-target` -- are
-the vocabulary, and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). **Four of those
+`.focus-link` family, `.spring-underline`, `.article-link`, `.jump-target` -- are the vocabulary,
+and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). **Four of those
 names do not go, and the reason is the interface rather than convenience**: `focus-link`,
 `spring-underline`, `article-link` and `jump-target` are written onto compiled prose by
 [compile.ts](../../../apps/site/src/lib/content/build/compile.ts), which the corpus publish runs
@@ -447,6 +484,18 @@ applied in a single place -- `.article-rail`, `.article-column`, `.meta-language
 frame, and go to the markup. The `.focus-ring` family, the `.focus-input` family and
 `.article-content` each have a section below, because the first disposition of each was wrong. The two `:root` blocks, about 3.3KB, are tokens and never
 were a layering question.
+
+**`.selectable` goes to the markup as well, and it was never a layering question either.** It is a
+hand-written copy of a utility: one declaration in two spellings, at five sites, where Tailwind's
+`select-*` already emit both -- the built sheet carries
+`.select-none{-webkit-user-select:none;user-select:none}`, and `select-text` emits exactly what
+`.selectable` does. **A name alone is not a recipe** -- this file's own sentence, and the one that
+ruled twelve of thirteen `cursor` sites the frame -- settles it: the enumeration was right to hold
+`user-select` in the frame, and the paragraph above naming `.selectable` as the vocabulary's was
+wrong. Deleting it raises the declaration rather than lowering it -- `.selectable` sits in
+`components` and `select-text` in `utilities`. If the name carried anything past the utility it was
+"this is a sentence a reader may quote" against `select-text`'s "do this", and that meaning is a
+comment's rather than a class name's.
 
 The counts this paragraph carried are gone rather than refreshed. They were doing the deciding,
 which is the mistake the next two sections are about, and one of them was counting the wrong
@@ -529,9 +578,20 @@ could reach, `.focus-ring:focus-visible`'s outline, shares its block with three 
 cannot, so lifting it would write the same outline twice and leave the rest standing. There is no
 genuinely shared appearance left over to move, so nothing does.
 
-**The colour rule names `.focus-link` and `.focus-link-inner` too**, and that family is still
-listed above as the vocabulary's. Whoever moves it inherits this rule and has to say which half
-of it travels; this file has not answered that.
+**The colour rule names `.focus-link` and `.focus-link-inner` too**, and the question of which half
+of it travels presupposed a split. There is none. The declaration is a member of the ring's recipe
+and a recipe migrates whole -- every declaration belonging to a surface belongs to it, whether it
+paints a colour or sets a cursor. Its reason for existing is to sit beside the ring: it states the
+colour at rest so that Tailwind's `transition-colors`, which nearly every control here carries,
+cannot fade the ring in from the element's own text colour. A declaration whose whole job is to
+defend against a frame utility, filed anywhere but beside the ring, is one the next reader deletes
+as redundant.
+
+**The `:where()` is not the evidence it looks like**, and this is the part that will be got wrong
+again. Zero specificity is how this implementation gives itself no weight; it is not a sign that a
+declaration is a backstop belonging to `components`. Membership is decided first and form second --
+the zero-specificity test places a declaration _within_ the frame, once the three questions have
+already ruled it the frame.
 
 ### `.article-content` is the frame, and question one was answered by the wrong element
 

@@ -16,6 +16,12 @@ and re-deriving means having the argument again, which is exactly how one proper
 two homes in this tree -- [layers.md](layers.md), "The enumeration is the rule, and the test is only
 how the enumeration grows".
 
+Trusting the lookup is not the same as trusting it against evidence. **Where the enumeration and
+the three questions disagree, the questions win and the enumeration is corrected in the same
+change**, by the same section. So do not re-derive an answer the table gives, and do report one the
+table gets wrong -- the underline family was found that way, listed by property under two layers at
+once.
+
 The three questions the enumeration was built from, asked in order, the first one that answers
 answering: **can a class reach the element at all**, and if not the declaration is the escape hatch;
 **is the declaration a member of a named, reused recipe**, and if so it is the vocabulary;
