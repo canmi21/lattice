@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, easing, transition } from '$lib/vocabulary.stylex.ts';
+	import { duration } from '$lib/vocabulary.stylex.ts';
 	import { surfaces } from '$lib/surfaces.ts';
 
 	/**
@@ -43,9 +43,6 @@
 				default: 'var(--color-text-soft)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 			},
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 	});
 
@@ -92,7 +89,11 @@
 		).class}"
 	>
 		<span
-			class="focus-ring-inner block {stylex.attrs(surfaces.focusRingInner, styles.glyph).class}"
+			class="focus-ring-inner block {stylex.attrs(
+				surfaces.focusRingInner,
+				surfaces.colorShift,
+				styles.glyph,
+			).class}"
 		>
 			<Hash class="h-4 w-4" aria-hidden="true" />
 		</span>

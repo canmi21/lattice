@@ -1,15 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import {
-		border,
-		duration,
-		easing,
-		line,
-		radius,
-		text,
-		transition,
-	} from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
@@ -58,13 +50,6 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
-			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
-			// is the computed value and dropping them changes it. Whether the visual layer should
-			// be naming another framework's private variables is in spec/todo.md.
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 		/** The registration badge sharing the row with them. */
 		icpLink: {
@@ -74,9 +59,6 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 	});
 </script>
@@ -206,9 +188,9 @@
 </svelte:head>
 
 <!-- Selection off by default, since the page is mostly controls and a drag on a card or button
-     should not sweep up a date or label with it; the sentences turn it back on with `.selectable`
-     (styles/utilities.css). `select-none` carries the `-webkit-` prefix Safari 16 still needs,
-     which is the floor in spec/compat.md. -->
+     should not sweep up a date or label with it; every sentence below, and every one inside the
+     components this page holds, turns it back on with `select-text`. Both utilities carry the
+     `-webkit-` prefix Safari 16 still needs, which is the floor in spec/compat.md. -->
 <main class="min-h-screen select-none {stylex.attrs(surfaces.page).class}">
 	<!-- Less air on a phone at both ends, where 6rem is most of what the reader can see before
 	     scrolling. The foot takes two thirds of what the head does: the space above opens the page
@@ -224,15 +206,15 @@
 				class="h-13 w-13 {stylex.attrs(styles.avatar).class}"
 			/>
 			<div>
-				<h1 class="selectable {stylex.attrs(styles.name).class}">{site.author.fullName}</h1>
-				<p class="selectable {stylex.attrs(styles.role).class}">{site.author.role}</p>
+				<h1 class="select-text {stylex.attrs(styles.name).class}">{site.author.fullName}</h1>
+				<p class="select-text {stylex.attrs(styles.role).class}">{site.author.role}</p>
 			</div>
 		</header>
 
 		<!-- Bio prose is compiled from contents/index.md (DLC directives), single-sourced
 		with /llms.txt. PageBody keeps styled text as dead HTML and renders each social
 		link live so its icon reuses the shared <Icon> component. -->
-		<div class="selectable mt-8 space-y-4 {stylex.attrs(styles.bio).class}">
+		<div class="select-text mt-8 space-y-4 {stylex.attrs(styles.bio).class}">
 			<PageBody blocks={data.bio} locale={data.locale.code} />
 		</div>
 
@@ -271,6 +253,7 @@
 						title={link.label}
 						data-sveltekit-reload={'document' in link ? true : undefined}
 						class="focus-ring inline-flex size-5 items-center justify-center {stylex.attrs(
+							surfaces.colorShift,
 							styles.socialLink,
 						).class}"
 						{...link.href.startsWith('/') ? {} : { target: '_blank', rel: 'noopener' }}
@@ -285,6 +268,7 @@
 				target="_blank"
 				rel="noopener"
 				class="focus-link inline-flex items-center gap-1.5 max-sm:hidden {stylex.attrs(
+					surfaces.colorShift,
 					styles.icpLink,
 				).class}"
 			>

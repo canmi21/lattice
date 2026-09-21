@@ -1,16 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import {
-		border,
-		duration,
-		easing,
-		family,
-		line,
-		radius,
-		text,
-		transition,
-	} from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the registry directory. Every colour is the token variable `libs/tokens`
@@ -31,13 +22,6 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
-			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
-			// is the computed value and dropping them changes it. Whether the visual layer should
-			// be naming another framework's private variables is in spec/todo.md.
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 		title: {
 			color: 'var(--color-text-strong)',
@@ -116,7 +100,10 @@
 		<nav aria-label={m['licenses.breadcrumb']({}, { locale })}>
 			<a
 				href="/licenses"
-				class="focus-link inline-flex items-center gap-1.5 {stylex.attrs(styles.backLink).class}"
+				class="focus-link inline-flex items-center gap-1.5 {stylex.attrs(
+					surfaces.colorShift,
+					styles.backLink,
+				).class}"
 			>
 				<ArrowLeft class="size-4" aria-hidden="true" />
 				<span>{m['licenses.all_licenses']({}, { locale })}</span>

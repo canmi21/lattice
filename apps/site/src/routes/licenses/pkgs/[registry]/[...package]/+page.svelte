@@ -1,16 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import {
-		border,
-		duration,
-		easing,
-		family,
-		line,
-		radius,
-		text,
-		transition,
-	} from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
@@ -36,9 +27,6 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 		name: {
 			color: 'var(--color-text-strong)',
@@ -123,9 +111,6 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
 				':focus-visible': 'var(--color-text-soft)',
 			},
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 		chainName: {
 			color: 'var(--color-text-strong)',
@@ -153,9 +138,6 @@
 				':focus-visible': 'var(--color-text-soft)',
 			},
 			overflowWrap: 'break-word',
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 		dependentName: {
 			color: 'var(--color-text-strong)',
@@ -232,17 +214,22 @@
 			aria-label={m['licenses.breadcrumb']({}, { locale })}
 			class="flex min-w-0 flex-wrap items-center gap-x-2 {stylex.attrs(styles.breadcrumb).class}"
 		>
-			<a href="/licenses" class="focus-link {stylex.attrs(styles.breadcrumbLink).class}"
+			<a
+				href="/licenses"
+				class="focus-link {stylex.attrs(surfaces.colorShift, styles.breadcrumbLink).class}"
 				>{m['licenses.all_licenses']({}, { locale })}</a
 			>
 			<span aria-hidden="true">/</span>
-			<a href="/licenses/pkgs" class="focus-link {stylex.attrs(styles.breadcrumbLink).class}"
+			<a
+				href="/licenses/pkgs"
+				class="focus-link {stylex.attrs(surfaces.colorShift, styles.breadcrumbLink).class}"
 				>{m['licenses.packages']({}, { locale })}</a
 			>
 			<span aria-hidden="true">/</span>
 			<a
 				href={data.registry.directoryHref}
-				class="focus-link {stylex.attrs(styles.breadcrumbLink).class}">{data.registry.name}</a
+				class="focus-link {stylex.attrs(surfaces.colorShift, styles.breadcrumbLink).class}"
+				>{data.registry.name}</a
 			>
 		</nav>
 
@@ -486,8 +473,10 @@
 									{#if node.href}
 										<a
 											href={node.href}
-											class="focus-link min-w-0 truncate {stylex.attrs(styles.chainLink).class}"
-											>{node.name}</a
+											class="focus-link min-w-0 truncate {stylex.attrs(
+												surfaces.colorShift,
+												styles.chainLink,
+											).class}">{node.name}</a
 										>
 									{:else}
 										<span class="min-w-0 truncate {stylex.attrs(styles.chainName).class}"
@@ -531,8 +520,10 @@
 										{#if node.href}
 											<a
 												href={node.href}
-												class="focus-link min-w-0 {stylex.attrs(styles.dependentLink).class}"
-												>{node.name}</a
+												class="focus-link min-w-0 {stylex.attrs(
+													surfaces.colorShift,
+													styles.dependentLink,
+												).class}">{node.name}</a
 											>
 										{:else}
 											<span class="min-w-0 {stylex.attrs(styles.dependentName).class}"

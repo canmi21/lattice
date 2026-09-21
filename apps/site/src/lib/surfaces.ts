@@ -1,5 +1,14 @@
 import * as stylex from '@stylexjs/stylex';
-import { border, leading, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+import {
+	border,
+	duration,
+	easing,
+	leading,
+	radius,
+	text,
+	transition,
+	weight,
+} from '$lib/vocabulary.stylex.ts';
 
 /**
  * The declaration groups the visual layer repeats, each with one name -- `vocabulary.stylex.ts`
@@ -84,6 +93,19 @@ export const surfaces = stylex.create({
 			':hover': 'var(--color-paper-hover)',
 			':focus-visible': 'var(--color-paper-hover)',
 		},
+	},
+
+	/**
+	 * How a colour change is drawn: eight components hand their hover and focus colours this
+	 * curve, and before this they each wrote the three declarations out. Named for the cost of
+	 * changing it rather than for bytes -- atomic classes already deduplicate these, so nothing
+	 * shrinks, but the curve was eight files to edit and is now one. `quietControl` below keeps
+	 * its own, which names two properties rather than `transition.colors`' ten.
+	 */
+	colorShift: {
+		transitionProperty: transition.colors,
+		transitionDuration: duration.base,
+		transitionTimingFunction: easing.inOut,
 	},
 
 	/**

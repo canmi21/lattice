@@ -1,7 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, transition } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
@@ -23,12 +22,6 @@
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
-			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
-			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
-			// is the computed value and dropping them changes it. See spec/todo.md.
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
 		},
 	});
 </script>
@@ -301,6 +294,7 @@
 		{href}
 		class="focus-link pointer-events-auto inline-flex items-center gap-1.5 whitespace-nowrap [translate:calc(-1_*_var(--rail-icon-overhang))_0] {stylex.attrs(
 			surfaces.uiText,
+			surfaces.colorShift,
 			styles.link,
 		).class}"
 	>
