@@ -12,11 +12,14 @@ themselves say is the `styling/` directory's -- why a rail is 8.5rem is
 | ---------------- | ---------------- | --------------------- |
 | Svelte `<style>` | the escape hatch | the component's block |
 | StyleX           | the vocabulary   | TypeScript            |
-| Tailwind         | the frame        | the markup            |
+| Tailwind         | the frame        | the markup, and Tailwind's lower layers |
 
 Those names are this file's own. Two sections down, arguing about precedence, it already writes
 that **the escape hatch outranks the vocabulary, which outranks the frame** -- the prose was using
 a better taxonomy than the table above it, and the table now uses the prose's.
+
+**The frame's row names two places, because the frame is four cascade layers rather than one
+position.** See "The frame is a stack, and a declaration written to lose goes low in it" below.
 
 **A declaration's layer is decided by membership, not by what kind of declaration it is.** Three
 questions, asked in this order; the first one that answers, answers.
@@ -36,7 +39,8 @@ questions, asked in this order; the first one that answers, answers.
    addresses. The ramp is the one exception to that sentence and it is stated as one below.
 3. **Otherwise it is the frame.** A one-off on one element, taking its value from a CSS keyword or
    from Tailwind's own scale, said on the element where somebody reading the structure is already
-   looking.
+   looking. That is the top of the frame rather than the whole of it: the frame has lower layers,
+   and a declaration written to lose goes into one of those rather than into the markup.
 
 **Question one was "can a class reach the element", and the wording let the wrong element answer
 it.** A declaration on markdown-compiled prose can be reached by a class -- on the wrapper a
@@ -60,6 +64,27 @@ believe there is a distinction to learn.
 What the proposal was right about is that such declarations were homeless. They have a home: the
 escape hatch, in the component rendering the root of the content they style. That is the answer
 question one now gives.
+
+### The frame is a stack, and a declaration written to lose goes low in it
+
+The built stylesheet orders its layers `properties, theme, base, components, utilities, priority1
+... priority7` -- read off `apps/site/.svelte-kit/output/client/_/immutable/assets/0.*.css`. Four
+of those are Tailwind's, all four sit below every StyleX layer, and `utilities` is the top of the
+four rather than the whole of them. The frame is the four.
+
+**This is not a new layer, and it buys no new position.** Those positions exist, they are already
+Tailwind's, and [utilities.css](../../../apps/site/src/styles/utilities.css) already writes into
+two of them -- `@layer base` for the focus backstop at the top of the file, `@layer components`
+for the focus utilities below it, each under a comment arguing the position it sits in. The code
+has been doing this all along and only this file had stopped naming it, which is why the section
+above does not refuse this the way it refuses a fourth layer.
+
+What the lower layers are for is the one position the vocabulary cannot express. **StyleX has no
+layers between atomic classes on one element**: the winner is whichever `stylex.attrs(...)`
+argument came last at that call site. So a declaration whose whole job is to be overridden has
+nowhere in the vocabulary to be overridden from, and in `utilities` it would beat the thing it
+exists to yield to. `base` and `components` are that position, and a declaration written to lose
+goes into one of them.
 
 ### An escape hatch lives with the element it starts from
 
@@ -353,12 +378,11 @@ it a layer is also choosing what it is a layer of. It is settled: **every rule i
 layer that already exists, so the file has nothing left to be.**
 
 The file holds four unrelated things. Named recipes past the three-component threshold -- the
-`.focus-link` family, the `.focus-ring` family, `.spring-underline`, `.article-link`,
-`.selectable`, `.jump-target` -- are the vocabulary, and go to
-[surfaces.ts](../../../apps/site/src/lib/surfaces.ts). One-off classes applied in a single
-place -- `.article-rail`, `.article-column`, `.meta-language` -- are the frame, and go to the
-markup. The `.focus-input` family and `.article-content` each have a section below, because the
-first disposition of each was wrong. The two `:root` blocks, about 3.3KB, are tokens and never
+`.focus-link` family, `.spring-underline`, `.article-link`, `.selectable`, `.jump-target` -- are
+the vocabulary, and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). One-off classes
+applied in a single place -- `.article-rail`, `.article-column`, `.meta-language` -- are the
+frame, and go to the markup. The `.focus-ring` family, the `.focus-input` family and
+`.article-content` each have a section below, because the first disposition of each was wrong. The two `:root` blocks, about 3.3KB, are tokens and never
 were a layering question.
 
 The counts this paragraph carried are gone rather than refreshed. They were doing the deciding,
@@ -398,6 +422,31 @@ the one this file already asks under "Lowering a declaration is only safe where 
 already sets it": does anything above the target layer already declare that property on that
 element. It is worth recording because a count is the answer a reader reaches for again -- it is
 quick, it is visible in the markup, and it is about the class rather than about the cascade.
+
+### The `.focus-ring` family does not split, and stays in the Tailwind layers it already sits in
+
+The threshold sent the family to the vocabulary. Worked through rule by rule, none of it goes.
+
+Two of its five rules can be reached by a class and both are written to lose.
+`:where(.focus-ring, .focus-ring-inner, .focus-ring-within)` sets a `0.25rem` fallback corner, and
+the rule below it states the ring's colour at rest; each zeroes its own specificity with `:where()`
+and each sits in `components`, low in the frame's stack. The corner is live rather than dead --
+across the thirty-eight elements wearing one of the three classes it draws at fourteen, the
+section glyph, the rail's text ring, the card thumbnail and eleven player glyphs, none of which
+declares a radius, and it yields wherever the element's own surface or utility declares one. In
+the vocabulary it would have no position to yield from, and a call site passing `surfaces.*`
+first would start drawing a 0.25rem corner on a pill. It stays where it is, by the rule above.
+
+The other three rules are reached through a relationship no class can express: a child selected
+through its parent's `:focus-visible`, a parent selected through `:has()` on a descendant, and
+both again under an `html[data-focus-source]` ancestor. The one declaration among them a class
+could reach, `.focus-ring:focus-visible`'s outline, shares its block with three selectors that
+cannot, so lifting it would write the same outline twice and leave the rest standing. There is no
+genuinely shared appearance left over to move, so nothing does.
+
+**The colour rule names `.focus-link` and `.focus-link-inner` too**, and that family is still
+listed above as the vocabulary's. Whoever moves it inherits this rule and has to say which half
+of it travels; this file has not answered that.
 
 ### `.article-content` is the frame, and question one was answered by the wrong element
 
