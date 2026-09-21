@@ -22,6 +22,7 @@ const NODES = join(OUTPUT, 'server/nodes');
 const MANIFEST = join(OUTPUT, 'server/manifest.js');
 const BUDGETS = fileURLToPath(new URL('css-budget.json', import.meta.url));
 const RECORD = relative(ROOT, BUDGETS);
+const SCAN = relative(ROOT, fileURLToPath(import.meta.url));
 
 /**
  * Pinned rather than left at zlib's default, because a figure written down months ago is only
@@ -45,29 +46,46 @@ type Load = {
 	gzip: number;
 };
 
+/** A node file this scan opened and could not read: which file, and which line it wanted. */
+type Blind = { file: string; missing: 'index' | 'stylesheets' };
+
 /**
  * The stylesheets each route node declares, by node index.
  *
  * These are the `<link>` tags SSR writes into the head, which is what first-load means here: the
  * bytes a browser must have before it paints, not every sheet the build emitted.
  */
-function nodeSheets(): Map<number, string[]> {
+function nodeSheets(): { sheets: Map<number, string[]>; blind: Blind[] } {
 	const sheets = new Map<number, string[]>();
+	const blind: Blind[] = [];
 	for (const entry of readdirSync(NODES)) {
 		if (!entry.endsWith('.js')) continue;
-		const source = readFileSync(join(NODES, entry), 'utf8');
+		const file = join(NODES, entry);
+		const source = readFileSync(file, 'utf8');
 		const index = /^export const index = (\d+);$/m.exec(source)?.[1];
 		const declared = /^export const stylesheets = (\[[^\]]*\]);$/m.exec(source)?.[1];
-		if (index === undefined || declared === undefined) continue;
+		if (index === undefined) {
+			blind.push({ file, missing: 'index' });
+			continue;
+		}
+		if (declared === undefined) {
+			blind.push({ file, missing: 'stylesheets' });
+			continue;
+		}
 		sheets.set(Number(index), JSON.parse(declared) as string[]);
 	}
-	return sheets;
+	return { sheets, blind };
 }
 
 // One route entry in the server manifest, taken as text. Importing it instead would pull the
 // whole server bundle -- and its environment -- into a check that wants four literals.
 const ROUTE =
 	/id: "([^"]+)",[\s\S]*?page: (?:null|\{ layouts: \[([^\]]*)\], errors: \[[^\]]*\], leaf: (\d+) \})/g;
+
+// Every route entry opens with one of these, so it counts what ROUTE has to match. ROUTE spans
+// lazily to its `page`, and a manifest that stopped writing one would pair route A's id with
+// route B's leaf rather than fail -- a short count is what makes that visible.
+const ENTRY = /id: "/g;
 
 /**
  * Every route that renders a page, with the node chain SSR walks to render it.
@@ -76,14 +94,16 @@ const ROUTE =
  * That is what makes a budget per category maintainable -- publishing cannot move these figures,
  * and the set changes only when somebody adds a +page.svelte.
  */
-function chains(): Map<string, number[]> {
+function chains(): { found: Map<string, number[]>; entries: number; matched: number } {
 	const found = new Map<string, number[]>();
-	for (const [, id, layouts, leaf] of readFileSync(MANIFEST, 'utf8').matchAll(ROUTE)) {
+	const source = readFileSync(MANIFEST, 'utf8');
+	const routes = [...source.matchAll(ROUTE)];
+	for (const [, id, layouts, leaf] of routes) {
 		if (id === undefined || leaf === undefined) continue;
 		const nodes = [...(layouts ?? '').split(','), leaf].map((part) => Number(part.trim()));
 		found.set(id, nodes.filter((node) => Number.isInteger(node)));
 	}
-	return found;
+	return { found, entries: source.match(ENTRY)?.length ?? 0, matched: routes.length };
 }
 
 /** Whether a category's pattern takes this route: the id itself, or a `/*` prefix above it. */
@@ -116,21 +136,63 @@ function report(load: Load): string {
 	].join('\n');
 }
 
+/** Names the file, because 'the shape has changed' sends the reader to read all of the output. */
+function unreadable(node: Blind): string {
+	const clause =
+		node.missing === 'index'
+			? 'holds no `export const index` line this scan can read'
+			: 'declares an index but no `export const stylesheets` line this scan can read';
+	return (
+		`${relative(ROOT, node.file)} ${clause}. SvelteKit's output has changed shape, so every ` +
+		'route through this node is being charged zero CSS and the budgets are not measurements. ' +
+		`Fix the scan in ${SCAN} before trusting it again.`
+	);
+}
+
 function main(): number {
-	let chain: Map<string, number[]>;
-	let declared: Map<number, string[]>;
+	let routes: ReturnType<typeof chains>;
+	let nodes: ReturnType<typeof nodeSheets>;
 	try {
-		chain = chains();
-		declared = nodeSheets();
+		routes = chains();
+		nodes = nodeSheets();
 	} catch {
 		console.error(`no build under ${OUTPUT}. Build the site first.`);
 		return 1;
 	}
+	const chain = routes.found;
+	const declared = nodes.sheets;
 	if (chain.size === 0 || declared.size === 0) {
 		console.error(
 			`read no routes or no nodes from ${OUTPUT}. SvelteKit's output has changed shape and ` +
 				'this check is measuring nothing -- fix the scan before trusting it again.',
 		);
+		return 1;
+	}
+
+	// A scan that skipped part of its input makes every number under it fiction, so this returns
+	// rather than joining the budget failures below and printing a table it cannot stand behind.
+	const untrusted = nodes.blind.map(unreadable);
+	for (const [route, walk] of [...chain].sort()) {
+		for (const node of walk) {
+			if (declared.has(node)) continue;
+			untrusted.push(
+				`route '${route}' walks node ${node}, and no file under ${relative(ROOT, NODES)} ` +
+					"declared it. This route's first-load CSS is being undercounted by whatever that " +
+					`node carries. Fix the scan in ${SCAN}.`,
+			);
+		}
+	}
+	const dropped = routes.entries - routes.matched;
+	if (dropped > 0) {
+		untrusted.push(
+			`${relative(ROOT, MANIFEST)} holds ${routes.entries} route entries and this scan matched ` +
+				`${routes.matched} of them. SvelteKit's manifest has changed shape; the ${dropped} it ` +
+				`could not read ${dropped === 1 ? 'is' : 'are'} charged to no budget. Fix the route ` +
+				`scan in ${SCAN}.`,
+		);
+	}
+	if (untrusted.length > 0) {
+		for (const line of untrusted) console.error(line);
 		return 1;
 	}
 
