@@ -1323,3 +1323,46 @@ a line each. The third is the decision: either a stub module that every test in 
 then resolve to, or `@sveltejs/vite-plugin-svelte` in the root config, which pulls the site's whole
 Svelte pipeline into `apps/cdn`'s test run as well. Neither is a change to make as a side effect of
 a task about batching.
+
+## The dissolution section's argument stopped following from its premise
+
+[architecture/css/layers.md](architecture/css/layers.md), "`utilities.css` is dissolved, not given
+a position", settles the question this way: **every rule in it belongs to a layer that already
+exists, so the file has nothing left to be.** That inference held while "a layer that already
+exists" meant a layer somewhere other than this file. "The frame is a stack, and a declaration
+written to lose goes low in it", added later to the same file, makes `base` and `components` two
+positions this file itself opens, and records that it already writes into both. The premise stops
+entailing the conclusion, and the section's own children confirm it: the `.focus-ring` family
+belongs to an existing layer and stays in it.
+
+**What gives is the word "so", not necessarily the conclusion.** Three grounds the axis never
+supplied are still open, and dissolving the file would need one of them: the file is a grab-bag of
+four unrelated things, which is a filing objection rather than a layering one; `base` and
+`components` can be opened from any stylesheet, so nothing about those positions requires this
+one; and the same file's test for a fourth layer -- "A layer is a position in the cascade.
+Something that does not need a new position is asking for a new file, and a file is not a layer"
+-- says the number of files is not a layering question in either direction.
+
+Measured while the wrapper landed: 26 rule blocks, of which 18 cannot move at all on the current
+rules and 2 need a decision the file has not taken. **On the rules as they stand the file cannot
+be emptied**, which is the second half of the same finding. Moving the declarations to `app.css`
+under the same `@layer` wrappers is a rename rather than a dissolution, and `app.css` already
+carries unlayered `.pill` and `.value`.
+
+## `libs/tokens` is where a `:root` block goes, and only one kind has been tested there
+
+The same file sends a `:root` block declaring nothing but custom properties to
+[libs/tokens](../libs/tokens), "which is where a value gets a name". The load-bearing half is
+"not a layering question at all" -- that is what stops the block being weighed against the three
+questions. The destination half is an example that generalised.
+
+It holds for the rail block, on a reason the sentence does not give: `--rail-width` and
+`--rail-column` are a cross-language contract that `apps/cms/src/i18n/width.rs` derives two
+constants from by hand, and `libs/urls` is this repository's established answer for a value two
+languages need. It is untested for a block that is genuinely one site's and crosses no boundary,
+where `apps/site/src/styles/` would be the better home.
+
+**`width.rs` cites `apps/site/src/styles/utilities.css` by path, and nothing checks it.** The
+reference check validates markdown links, `spec/**/*.md` cited from code, and quoted section
+names; a non-spec path in a Rust doc comment is in its not-flagged set. Whoever moves the block
+updates that citation in the same commit, because nothing will say they forgot.
