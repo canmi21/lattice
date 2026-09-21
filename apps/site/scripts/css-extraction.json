@@ -64,7 +64,8 @@
 				"apps/site/src/lib/components/picture.svelte",
 				"apps/site/src/lib/components/video.svelte",
 				"apps/site/src/routes/+page.svelte"
-			]
+			],
+			"stays": "video copies picture's border values by its own comment, and the homepage avatar is a circle that happens to spell the same four -- two related and one coincidence, and extraction.md wants three unrelated"
 		},
 		{
 			"components": [
