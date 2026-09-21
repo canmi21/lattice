@@ -1,8 +1,11 @@
-# Plain text carries no in-band charset, and Cloudflare serves static .txt as
-# text/plain with none, so non-ASCII would decode as a legacy locale encoding
-# (UTF-8 bytes read as Windows-1252). Pin UTF-8 for every static .txt: llms.txt,
-# llms-full.txt, robots.txt and any future one. Other formats are self-describing
-# (html meta, xml prolog) or default to UTF-8 (css, js); .md is worker-served so
-# _headers does not apply.
+# Cloudflare serves static .txt as bare text/plain in production only -- wrangler dev adds
+# charset=utf-8, so this looks redundant every time it is checked locally. Without it the
+# non-ASCII in licenses.txt decodes as Windows-1252.
+# https://github.com/cloudflare/workers-sdk/issues/9599
 /*.txt
   Content-Type: text/plain; charset=utf-8
+
+# Matches nothing today -- the article twins are answered in hooks.server.ts before the asset
+# layer is reached. Here so a statically served .md cannot arrive as text/plain.
+/*.md
+  Content-Type: text/markdown; charset=utf-8
