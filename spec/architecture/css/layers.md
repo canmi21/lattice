@@ -24,14 +24,14 @@ position.** See "The frame is a stack, and a declaration written to lose goes lo
 **A declaration's layer is decided by membership, not by what kind of declaration it is.** Three
 questions, asked in this order; the first one that answers, answers.
 
-1. **Can any author of this element write a class on it?** If not, it is the escape hatch. An
-   author is whatever produced the markup -- a template, the markdown compiler, any code that
-   emits elements -- and the question is about all of them, not about the component the
-   declaration would be convenient in. A `<strong>` the markdown compiler produced, a floating
-   surface Bits UI portalled out of the tree, a child whose styling depends on its parent, a
-   keyframe, a pseudo-element: no author of any of those can put a class on it, which is the only
-   thing the other two layers can do. This is the one hard mechanical boundary in the arrangement,
-   and it is the part the old axis already had right.
+1. **Does this element carry a class in the build output?** If it does not, the declaration is the
+   escape hatch. A `<strong>` the markdown compiler produced, a `<p>` inside a blockquote, a
+   keyframe, a pseudo-element: none of them has a class to hang a rule on, and a class is the only
+   thing the other two layers can put on an element. The answer is read off the emitted markup
+   rather than argued, which is the whole of the change from the wording before it -- that one
+   asked whether an author _could_ write a class, and what an author could do is decided by
+   whoever felt like it. This is the one hard mechanical boundary in the arrangement, and it is
+   the part the old axis already had right.
 2. **Is the declaration a member of a named, reused recipe, or one of the type ramp's six
    properties?** Then it is the vocabulary. A surface is a set of declarations with a name, used
    in several places, and every declaration inside one belongs to it whether it draws a colour or
@@ -42,12 +42,23 @@ questions, asked in this order; the first one that answers, answers.
    looking. That is the top of the frame rather than the whole of it: the frame has lower layers,
    and a declaration written to lose goes into one of those rather than into the markup.
 
-**Question one was "can a class reach the element", and the wording let the wrong element answer
-it.** A declaration on markdown-compiled prose can be reached by a class -- on the wrapper a
-component owns, which is how `.article-content` came to hold a per-language prose policy in an
-unlayered global stylesheet. The class reaches the wrapper; it does not reach the `<p>` the rule
-is about. Asking whether an author of _this_ element can write a class on it puts that back where
-it belongs, in the escape hatch of the component that renders its root.
+**Question one was "can a class reach the element", and a capability is not a thing a reader can
+check.** The wording let the wrong element answer -- a class reaches markdown-compiled prose on
+the wrapper a component owns, and a wrapper is not the `<p>` the rule is about -- and it let the
+wrong answer stand as well, because what could be written is settled by whoever felt like writing
+it. Reading the class off the element settles both: the wrapper carries one, the `<p>` does not,
+and neither fact is arguable.
+
+### The compiler writes a class only where the element's styling is a recipe
+
+Question one is checkable because the compiler's output is checkable, and that holds only while
+the compiler is disciplined about what it classes. It can class anything:
+[compile.ts](../../../apps/site/src/lib/content/build/compile.ts) puts `focus-link`,
+`spring-underline` and `article-link` on every prose link, and two frozen tables turn a `:t` token
+into a colour or a font class. So the discipline is written as a rule rather than left as a habit
+-- **the compiler writes a class on an element where that element's styling belongs to a named
+recipe, and nowhere else.** Without it the boundary moves the first time classing something is
+convenient, and question one is back to asking whether somebody felt like it.
 
 ### A new layer has to buy a new position in the cascade
 
@@ -166,10 +177,17 @@ not wrong anywhere in particular.
 ### What each layer owns, by name
 
 **The escape hatch** is not a property list, because it is not a property question. Anything at all
-may be written in a `<style>` block, and the only thing that puts it there is that no class reaches
-the element: markdown-compiled content, a portalled surface, a descendant selected through its
-parent, `@keyframes`, `::selection`, vendor pseudo-elements. If a class _can_ reach the element,
-this layer is the wrong answer regardless of what the declaration says.
+may be written in a `<style>` block, and the only thing that puts it there is that the element
+carries no class: markdown-compiled content, a `<p>` inside a blockquote, `@keyframes`,
+`::selection`, vendor pseudo-elements. If the element carries a class, this layer is the wrong
+answer regardless of what the declaration says.
+
+**A selector no class can stand in for lands here too, and question one does not catch it.** The
+surface Bits UI portals out of the tree carries the class
+[modal.svelte](../../../apps/site/src/lib/components/modal.svelte) gave it and is styled from a
+`<style>` block anyway, because the rules key off `[data-starting-style]`, a state attribute the
+library sets; a child reached through its parent's `:focus-visible` is the same shape. Both are
+the escape hatch by the same mechanism read from the other side.
 
 **The vocabulary** owns every declaration that is a member of a named surface in
 [surfaces.ts](../../../apps/site/src/lib/surfaces.ts) or takes its value from
@@ -503,9 +521,9 @@ answers, and nothing above declares any of the seven on either element. The shap
 at two sites -- and
 unpleasant is not an answer the three questions take.
 
-This file's opening still uses `.article-content` as its worked example of question one letting
-the wrong element answer. The example does not survive; the point it illustrates does, on the
-compiled `<strong>` and the portalled surface beside it.
+The opening no longer cites `.article-content` as question one's worked example. It does not
+survive this section: both elements carry a class, so the observable test answers the way this
+section does. The point the opening was making is carried by the compiled `<strong>` instead.
 
 ## The distribution cost is known, and accepted
 
