@@ -93,11 +93,13 @@ to do outside focus, so it belongs to the focus state rather than the base rule.
 Article prose links carry a thin, rounded underline in the strong border colour at rest, then draw
 another in the article metadata text colour from left to right on hover or keyboard focus. Each
 stroke sits one step below the previous one on the neutral ramp, which runs strong text, text, soft
-text, strong border, border. Holding both strokes under the prose they mark keeps the affordance
-subordinate until interaction. The second stroke uses the same sampled non-linear spring as the
-translation notice link. It is a layered background rather than `text-decoration`, because the latter cannot
-animate its width; the resting layer remains visible throughout, so the animation reinforces an
-affordance instead of being the only indication that the text is a link.
+text, strong border, border. That ramp is the palette's contrast half, and the grounds it is read
+against answer to a different rule -- [surfaces.md](surfaces.md). Holding both strokes under the
+prose they mark keeps the affordance subordinate until interaction. The second stroke uses the same
+sampled non-linear spring as the translation notice link. It is a layered background rather than
+`text-decoration`, because the latter cannot animate its width; the resting layer remains visible
+throughout, so the animation reinforces an affordance instead of being the only indication that the
+text is a link.
 
 ### Quiet metadata controls share one surface
 
