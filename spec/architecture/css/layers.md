@@ -488,8 +488,17 @@ nothing changed.
 ### `utilities.css` is dissolved, not given a position
 
 It was left open whether the file should be layered or taken apart, on the reasoning that giving
-it a layer is also choosing what it is a layer of. It is settled: **every rule in it belongs to a
-layer that already exists, so the file has nothing left to be.**
+it a layer is also choosing what it is a layer of. The layering half is settled: **every rule in
+it belongs to a layer that already exists, so the file is given no layer of its own.** Taking it
+apart no longer follows from that. "The frame is a stack, and a declaration written to lose goes
+low in it" above makes `base` and `components` two positions this file itself opens, so "a layer
+that already exists" stopped meaning a layer somewhere else, and the dispositions below confirm
+it: the `.focus-ring` family, the rail geometry and the per-language prose each belong to an
+existing layer and stay in it. **Dissolving the file needs a ground the axis never supplied**, and
+three are open: that it is a grab-bag of four unrelated things, which is a filing objection rather
+than a layering one; that nothing about `base` and `components` requires this stylesheet to open
+them, since any stylesheet can; and "A new layer has to buy a new position in the cascade" above,
+which says the number of files is not a layering question in either direction. None is taken here.
 
 The file holds four unrelated things. Named recipes past the three-component threshold -- the
 `.focus-link` family, `.spring-underline`, `.article-link`, `.jump-target` -- are the vocabulary,

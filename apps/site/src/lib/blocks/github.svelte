@@ -17,7 +17,6 @@
 		card: {
 			borderRadius: radius.xl,
 			color: 'inherit',
-			textDecoration: 'none',
 			// Reduced motion is the same suppression the card used to write as `transition: none`,
 			// which is more than one longhand: the shorthand also returns the duration and the
 			// curve to their initial values. Two properties in the list, so each of the other
@@ -143,7 +142,7 @@
 	{href}
 	target="_blank"
 	rel="noopener"
-	class="repo-card group focus-ring relative my-[1.8em] flex h-26 w-full max-w-[28rem] flex-col gap-[0.35rem] overflow-hidden px-3 py-[0.6rem] {alignment} {stylex.attrs(
+	class="repo-card group focus-ring relative my-[1.8em] flex h-26 w-full max-w-[28rem] flex-col gap-[0.35rem] overflow-hidden px-3 py-[0.6rem] no-underline {alignment} {stylex.attrs(
 		surfaces.interactive,
 		styles.card,
 	).class}"
