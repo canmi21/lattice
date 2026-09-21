@@ -86,7 +86,8 @@
 		copy: {
 			borderRadius: radius.sm,
 			fontSize: text.px12,
-			lineHeight: 1,
+			lineHeight: line.none,
+			// unnamed: the only tracking on lowercase here, and one site is not a scale.
 			letterSpacing: '0.05em',
 			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
 			// rule this replaced was written as. Sameness first; see spec/architecture/css/migration.md.

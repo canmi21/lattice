@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { family, figures, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
@@ -56,12 +56,12 @@
 		},
 		description: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.78125rem',
-			lineHeight: 1.45,
+			fontSize: text.px13,
+			lineHeight: line.base,
 		},
 		meta: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.71875rem',
+			fontSize: text.px12,
 		},
 		/** The language's dot. Its fill is the language's colour and arrives inline. */
 		languageDot: {
@@ -77,7 +77,7 @@
 		 * below could have been reading it.
 		 */
 		figure: {
-			fontVariantNumeric: 'tabular-nums',
+			fontVariantNumeric: figures.tabular,
 		},
 		corner: {
 			color: 'var(--color-text-soft)',

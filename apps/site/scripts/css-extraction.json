@@ -88,6 +88,14 @@
 				"apps/site/src/routes/licenses/pkgs/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/[registry]/[...package]/+page.svelte"
 			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/error/client.svelte",
+				"apps/site/src/lib/error/status.svelte",
+				"apps/site/src/routes/licenses/pkgs/[registry]/[...package]/+page.svelte"
+			],
+			"stays": "two error shells and a package page sharing soft prose one step down, which is a coincidence of the ramp rather than a recipe"
 		}
 	]
 }

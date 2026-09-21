@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
@@ -21,7 +21,8 @@
 		},
 		tileSize: {
 			fill: 'rgb(255 255 255 / 70%)',
-			fontSize: '0.5625rem',
+			// Two rungs under the tile name, as tokei's own pair is two under its tile name.
+			fontSize: text.px9,
 		},
 		/** The line shown in place of a chart when no dependency has a size. */
 		empty: {
@@ -90,17 +91,14 @@
 			color: 'var(--color-text-strong)',
 			fontSize: text.px13,
 		},
-		/**
-		 * A column heading. The weight is a literal because 400 is on no rung of the ladder
-		 * `vocabulary.stylex.ts` names -- it is the ramp's floor rather than a step on it.
-		 */
+		/** A column heading, put back to the body weight a `th` would otherwise render bold at. */
 		tableHead: {
 			borderBottomWidth: border.hairlineRem,
 			borderBottomStyle: 'solid',
 			borderBottomColor: 'var(--color-border)',
 			color: 'var(--color-text-soft)',
 			fontSize: text.px12,
-			fontWeight: 400,
+			fontWeight: weight.normal,
 		},
 		/** A body cell, whose rule is half the width of the heading's and is not a named hairline. */
 		tableCell: {
@@ -116,7 +114,7 @@
 			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
 			fontSize: text.px12,
-			lineHeight: 1.4,
+			lineHeight: line.snug,
 		},
 		tooltipTitle: {
 			fontWeight: weight.strong,

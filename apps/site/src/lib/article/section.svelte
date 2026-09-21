@@ -16,6 +16,9 @@
 	const styles = stylex.create({
 		title: {
 			color: 'var(--color-text-strong)',
+			// Tailwind's semibold, 40 over the site's own `strong` and written at this site alone.
+			// Which of the two a heading should be is a question nobody has answered. See spec/todo.md.
+			// unnamed: neither step of the weight ladder, and one site is not a third.
 			fontWeight: 600,
 		},
 		anchor: {

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { text } from '$lib/vocabulary.stylex.ts';
+	import { line, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * Two small lines, centred, separated by ink rather than size. See
@@ -14,13 +14,13 @@
 		/** What happened, and the one thing a reader can add that a stack trace cannot. */
 		said: {
 			fontSize: text.px14,
-			lineHeight: 1.6,
+			lineHeight: line.relaxed,
 			color: 'var(--color-text)',
 		},
 		/** The way out. Its two controls take their own colour; this is the prose around them. */
 		offer: {
 			fontSize: text.px13,
-			lineHeight: 1.6,
+			lineHeight: line.relaxed,
 			color: 'var(--color-text-soft)',
 		},
 	});

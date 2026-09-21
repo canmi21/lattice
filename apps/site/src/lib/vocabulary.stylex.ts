@@ -32,12 +32,14 @@ export const radius = stylex.defineConsts({
 /**
  * The type ladder, named by its size in pixels at the default root.
  *
- * Six steps, one pixel apart, and only two of them are Tailwind's -- its `xs` step is `px12`
+ * Seven steps, one pixel apart, and only two of them are Tailwind's -- its `xs` step is `px12`
  * and its `sm` step is `px14`. A t-shirt ladder would therefore have had to give those letters
  * meanings that disagree with the utilities the components' own comments still cite, so the
- * figure is the name and the unit stays `rem`.
+ * figure is the name and the unit stays `rem`. `px9` is the floor and a treemap tile is the only
+ * thing down there: a ladder holds a step because it is one. See spec/todo.md.
  */
 export const text = stylex.defineConsts({
+	px9: '0.5625rem',
 	px10: '0.625rem',
 	px11: '0.6875rem',
 	px12: '0.75rem',
@@ -47,31 +49,59 @@ export const text = stylex.defineConsts({
 });
 
 /**
- * Line heights written as a ratio, both of them Tailwind's. The site's third repeated ratio,
- * 1.4, is not named: it belongs to no scale and nothing records why it is 1.4. See spec/todo.md.
+ * Line heights written as a ratio: Tailwind's ladder, an eighth apart above the floor.
+ *
+ * Five steps, and every unitless line in the tree is its nearest one at a worst error of 0.075.
+ * What stood here before was nine ratios between 1.2 and 1.625, which is nine decisions taken
+ * separately rather than a scale. `none` is the floor and not a step on the eighths: a box that
+ * is the padding around one line, never two.
  */
 export const line = stylex.defineConsts({
+	none: 1,
+	tight: 1.25,
 	snug: 1.375,
+	base: 1.5,
 	relaxed: 1.625,
 });
 
 /**
- * A line height written as a length, which is a different kind of thing from the ratios above
+ * Line heights written as a length, which is a different kind of thing from the ratios above
  * and is named apart from them for that reason.
  *
- * Every one of its six sites sits directly under `text.px14`, because it is the line that step
- * computes to and the ratio that would say so, `calc(1.25 / 0.875)`, does not terminate. So the
+ * Each is the line its own step computes to, where the ratio that would say so does not
+ * terminate: `calc(1.25 / 0.875)` under `text.px14`, `calc(1 / 0.75)` under `text.px12`. So the
  * name is the length, on the same footing as the type ladder. See
  * spec/architecture/css/authoring.md.
  */
 export const leading = stylex.defineConsts({
+	px16: '1rem',
 	px20: '1.25rem',
 });
 
-/** Tailwind's medium weight, and the site's own step above it that no utility writes. */
+/**
+ * The body weight a reset puts back, Tailwind's medium, and the site's own step above it that no
+ * utility writes. 600 is in the tree at one site and on none of these. See spec/todo.md.
+ */
 export const weight = stylex.defineConsts({
+	normal: 400,
 	medium: 500,
 	strong: 560,
+});
+
+/**
+ * The tracking small uppercase takes, which is the site's one letter-spacing decision. The other
+ * value in the tree is on lowercase at a single site, and is a different one. See spec/todo.md.
+ */
+export const tracking = stylex.defineConsts({
+	caps: '0.02em',
+});
+
+/**
+ * Figures that hold their width as they change, which eight components ask for in eight places.
+ * One value rather than a scale, and the only ramp property the tree spells exactly one way.
+ */
+export const figures = stylex.defineConsts({
+	tabular: 'tabular-nums',
 });
 
 /**

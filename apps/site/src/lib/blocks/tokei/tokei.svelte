@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
@@ -84,7 +84,7 @@
 			backgroundColor: 'var(--color-paper)',
 			color: 'var(--color-text)',
 			fontSize: text.px12,
-			lineHeight: 1.4,
+			lineHeight: line.snug,
 		},
 		tooltipDot: {
 			borderRadius: '0.125rem',
@@ -117,7 +117,7 @@
 		 */
 		micro: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.65625rem',
+			fontSize: text.px10,
 		},
 		nested: {
 			borderTopWidth: border.hairlineRem,
@@ -128,17 +128,14 @@
 			color: 'var(--color-text-strong)',
 			fontSize: text.px13,
 		},
-		/**
-		 * A column heading. The weight is a literal because 400 is on no rung of the ladder
-		 * `vocabulary.stylex.ts` names -- it is the ramp's floor rather than a step on it.
-		 */
+		/** A column heading, put back to the body weight a `th` would otherwise render bold at. */
 		tableHead: {
 			borderBottomWidth: border.hairlineRem,
 			borderBottomStyle: 'solid',
 			borderBottomColor: 'var(--color-border)',
 			color: 'var(--color-text-soft)',
 			fontSize: text.px12,
-			fontWeight: 400,
+			fontWeight: weight.normal,
 		},
 		/** A body cell, whose rule is half the width of the heading's and is not a named hairline. */
 		tableCell: {

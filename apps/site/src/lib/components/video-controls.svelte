@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, figures, radius, text, tracking } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
@@ -137,7 +137,7 @@
 		/** The elapsed and total time, in figures that do not shift width as they count. */
 		clock: {
 			fontSize: text.px11,
-			fontVariantNumeric: 'tabular-nums',
+			fontVariantNumeric: figures.tabular,
 			color: 'var(--player-ink-dim)',
 			textShadow: 'var(--player-shadow)',
 		},
@@ -205,7 +205,7 @@
 		},
 		menuTitle: {
 			fontSize: text.px10,
-			letterSpacing: '0.02em',
+			letterSpacing: tracking.caps,
 			color: 'var(--player-ink-faint)',
 		},
 		/** A row in the menu, where the highlight is the surface rather than an ornament on it. */

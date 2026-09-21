@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text, tracking, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
@@ -26,8 +26,9 @@
 			backgroundColor: 'var(--color-paper-hover)',
 			fontSize: text.px12,
 			fontWeight: weight.medium,
+			// unnamed: the title's own line box, matched so the mark centres on it. Not a step.
 			lineHeight: '1.5rem',
-			letterSpacing: '0.02em',
+			letterSpacing: tracking.caps,
 			color: 'var(--color-text-soft)',
 			textTransform: 'uppercase',
 		},

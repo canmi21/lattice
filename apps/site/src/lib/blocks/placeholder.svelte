@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { border, family, leading, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the placeholder a block falls back to. Every colour is the token
@@ -31,7 +31,7 @@
 		 */
 		meta: {
 			fontSize: text.px12,
-			lineHeight: '1rem',
+			lineHeight: leading.px16,
 		},
 	});
 </script>

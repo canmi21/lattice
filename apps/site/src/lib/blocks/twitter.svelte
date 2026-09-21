@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { figures, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
@@ -45,7 +45,7 @@
 		/** The handle and the date above the text. */
 		header: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.71875rem',
+			fontSize: text.px12,
 		},
 		author: {
 			color: 'var(--color-text-strong)',
@@ -57,18 +57,18 @@
 			whiteSpace: 'pre-wrap',
 			color: 'var(--color-text)',
 			fontSize: text.px14,
-			lineHeight: 1.55,
+			lineHeight: line.base,
 		},
 		metrics: {
 			color: 'var(--color-text-soft)',
-			fontSize: '0.71875rem',
+			fontSize: text.px12,
 		},
 		/** The three glyphs, which take the row's ink rather than naming one of their own. */
 		actionIcon: {
 			fill: 'currentColor',
 		},
 		count: {
-			fontVariantNumeric: 'tabular-nums',
+			fontVariantNumeric: figures.tabular,
 		},
 		/** The corner arrow's ink only. Its reveal is in the scoped block, for the reason above. */
 		corner: {

@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, duration, line, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
@@ -38,7 +38,7 @@
 		 */
 		note: {
 			fontSize: text.px11,
-			lineHeight: 1.6,
+			lineHeight: line.relaxed,
 			color: 'var(--color-text-soft)',
 			// `balance` over the categorically-right `pretty` -- measured, not reasoned; see
 			// spec/styling/notes.md, "A wrapped note is balanced, and that was measured rather than
@@ -60,9 +60,9 @@
 			borderStyle: 'none',
 			backgroundColor: 'transparent',
 			fontSize: text.px11,
-			// The same 1.6 the notes read at, and it outranks the 1.25rem `focus-link` sets on
+			// The same line the notes read at, and it outranks the 1.25rem `focus-link` sets on
 			// this element from the components layer exactly as the scoped rule did.
-			lineHeight: 1.6,
+			lineHeight: line.relaxed,
 			// A bare `:hover`, with no `(hover: hover)` around it, because a bare one is what the
 			// rule this replaced was written as. Sameness first; see spec/architecture/css/migration.md.
 			color: {
@@ -120,9 +120,11 @@
 		 */
 		back: {
 			// Sized against the note, not against the page, for the same reason the marker is.
+			// unnamed: relative to whatever encloses it, so no rung of a rem ladder can hold it.
 			fontSize: '0.9em',
 			color: 'var(--color-text-strong)',
 			// Zero, so an arrow at the end of a wrapped note cannot open up the line it lands on.
+			// unnamed: a box made to contribute nothing, which is below the ladder's floor of 1.
 			lineHeight: 0,
 		},
 	});

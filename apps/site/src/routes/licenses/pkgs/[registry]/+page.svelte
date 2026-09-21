@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { family, line, text } from '$lib/vocabulary.stylex.ts';
+	import { family, figures, line, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
@@ -43,7 +43,7 @@
 		count: {
 			fontFamily: family.monoTheme,
 			fontSize: text.px13,
-			fontVariantNumeric: 'tabular-nums',
+			fontVariantNumeric: figures.tabular,
 			color: 'var(--color-text-soft)',
 		},
 	});

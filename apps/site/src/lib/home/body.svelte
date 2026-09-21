@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { line } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the support page's links. Every colour is the token variable
@@ -11,7 +12,7 @@
 	 */
 	const styles = stylex.create({
 		link: {
-			lineHeight: 1.25,
+			lineHeight: line.tight,
 			color: 'var(--color-text-strong)',
 		},
 		/** The label, which carries the rule under the words rather than under the icon. */

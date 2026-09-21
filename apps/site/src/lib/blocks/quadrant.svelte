@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
@@ -21,7 +21,7 @@
 		axisLabel: {
 			fontFamily: family.monoTheme,
 			fontSize: text.px10,
-			lineHeight: 1.25,
+			lineHeight: line.tight,
 			color: 'var(--color-text-soft)',
 		},
 		/**
@@ -52,12 +52,13 @@
 		},
 		itemTitle: {
 			fontSize: text.px13,
-			lineHeight: 1.2,
+			// The tight step, up from 1.2 so the block's three lines are one value.
+			lineHeight: line.tight,
 		},
 		itemNote: {
 			fontFamily: family.monoTheme,
 			fontSize: text.px10,
-			lineHeight: 1.25,
+			lineHeight: line.tight,
 			color: 'var(--color-text-soft)',
 		},
 	});

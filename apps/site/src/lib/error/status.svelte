@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, line, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
@@ -21,11 +21,13 @@
 			// All four edges, three of which have no width to draw: `border-border` is the
 			// shorthand, and the computed style carries the colour on every side.
 			borderColor: 'var(--color-border)',
+			// unnamed: display type, nine steps over the interface ladder and written once.
 			fontSize: '1.5rem',
 			// The line both halves are given, which is what puts the number and the sentence on one
 			// box however tall each would otherwise have been. Tailwind writes it as `--tw-leading`
 			// and its `2xl` step reads that variable rather than its own default, so the pair never
 			// competed and the ratio `calc(2 / 1.5)` never reached the element.
+			// unnamed: one box's height shared by two keys of this file, not a step on a ladder.
 			lineHeight: '3.0625rem',
 			fontWeight: weight.medium,
 			color: 'var(--color-text)',
@@ -33,6 +35,7 @@
 		/** The sentence written for a person, on the same line box as the number. */
 		message: {
 			fontSize: text.px14,
+			// unnamed: the same box as the number beside it, which is what puts them on one line.
 			lineHeight: '3.0625rem',
 			color: 'var(--color-text)',
 		},
@@ -45,7 +48,7 @@
 		 */
 		offer: {
 			fontSize: text.px13,
-			lineHeight: 1.6,
+			lineHeight: line.relaxed,
 			color: 'var(--color-text-soft)',
 		},
 	});

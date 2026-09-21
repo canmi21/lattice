@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { weight } from '$lib/vocabulary.stylex.ts';
+	import { figures, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
@@ -46,7 +46,7 @@
 		 * its neighbours. See spec/styling/prose.md, "A number's treatment follows the role it plays".
 		 */
 		likeFigures: {
-			fontVariantNumeric: 'tabular-nums',
+			fontVariantNumeric: figures.tabular,
 		},
 		/**
 		 * One run of a label that was split into three.

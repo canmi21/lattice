@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { border, family, line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable
@@ -28,7 +28,7 @@
 		loadingLabel: {
 			fontFamily: family.monoTheme,
 			fontSize: text.px12,
-			lineHeight: 1,
+			lineHeight: line.none,
 			color: 'var(--color-text-soft)',
 		},
 		/** One of the sketch's two boxes. Which end it sits at is the block's. */
@@ -49,7 +49,7 @@
 		source: {
 			fontFamily: family.monoTheme,
 			fontSize: text.px13,
-			lineHeight: 1.4,
+			lineHeight: line.snug,
 			color: 'var(--color-text-soft)',
 			// The ring belongs to the stage, which `focus-ring-within` draws around the whole box;
 			// a second one on the source inside it would read as two controls.

@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable `libs/tokens`
@@ -81,8 +81,9 @@
 		 * reserves the width is layout, below.
 		 */
 		ghost: {
+			// unnamed: the size the button renders at, which is the inherited root and no rung.
 			fontSize: '1rem',
-			lineHeight: 1.5,
+			lineHeight: line.base,
 			fontWeight: weight.medium,
 		},
 		undo: {
