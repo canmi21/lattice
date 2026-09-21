@@ -1,5 +1,6 @@
 import { bundledLanguagesInfo, createHighlighter, isPlainLang, type Highlighter } from 'shiki';
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+import { oneLightPro } from './one-light-pro.ts';
 
 export type CodeBlock = {
 	lang: string;
@@ -37,7 +38,7 @@ let highlighterPromise: Promise<Highlighter> | null = null;
 function getHighlighter(): Promise<Highlighter> {
 	if (!highlighterPromise) {
 		highlighterPromise = createHighlighter({
-			themes: ['min-light', 'one-dark-pro'],
+			themes: [oneLightPro, 'one-dark-pro'],
 			langs: LANGS,
 			engine: createJavaScriptRegexEngine(),
 		});
@@ -49,7 +50,7 @@ export async function highlight(code: string, lang: string): Promise<string> {
 	const highlighter = await getHighlighter();
 	return highlighter.codeToHtml(code, {
 		lang,
-		themes: { light: 'min-light', dark: 'one-dark-pro' },
+		themes: { light: 'one-light-pro', dark: 'one-dark-pro' },
 		defaultColor: false,
 	});
 }

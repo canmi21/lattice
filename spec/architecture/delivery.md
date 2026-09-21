@@ -65,6 +65,39 @@ worker's startup is moving the codecs behind a service binding, which is the spl
 [limits page](https://developers.cloudflare.com/workers/platform/limits/) names for exactly this.
 That is reasoning from the two rules above rather than something anybody has run.
 
+## Where the syntax colours are resolved
+
+A code block is highlighted while its article is compiled, and the colours are stored in the
+published object. Changing the syntax theme is therefore a recompilation of the corpus, not a
+deploy -- the friction that prompted the measurements below, all of them gzipped, because Shiki's
+output is repetitive enough that raw sizes mislead by a factor of five.
+
+|                                                             | gzipped |
+| ----------------------------------------------------------- | ------- |
+| The heaviest article's code, bare                           | 0.96 KB |
+| The same, with the colours baked in                         | 2.15 KB |
+| The same, as a theme of CSS variables                       | 1.78 KB |
+| The same, as classes naming each token's scope set          | 2.16 KB |
+| Grammars for the ten languages, were they sent to a browser | 63 KB   |
+| The two themes, likewise                                    | 7 KB    |
+
+**Deferring the colour is free, and moving the renderer is not.** The three artifact shapes land
+within a fifth of a kilobyte of each other, so the choice between them is about palette fidelity
+rather than bytes. Rendering in the browser instead is a different order of question: one reader
+would fetch more grammar than the entire corpus spends on baked colour, to save 1.5 KB on the
+article in front of them. It also cannot be avoided by rendering on the server alone, because
+after hydration this site's articles are rendered by the browser and not by the Worker --
+[artifacts.md](artifacts.md), "Two consumers, and the second one is the browser".
+
+**What deferring would buy is a theme change that is a deploy.** Neither deferred shape needs a
+renderer at the edge or in the page: a colour resolved from a class is a stylesheet's job, so the
+SSR and CSR paths would stay identical. The cheap shape collapses the palette to about a dozen
+token kinds; the faithful one keys on each token's scope set, which is nearly one key per token
+today -- 448 sets over 697 tokens, a 1.6 KB table for the whole corpus, growing with it. That
+table is also first-load CSS, and the article route has around 1.4 KB of budget left, which is the
+first thing that route would have to answer for. Nothing here is decided; the current cost of a
+theme change is one `publish`.
+
 ## Two routes, and what each will not do
 
 `/object/{cid}.{ext}` is the whole of content addressing with nothing added: it forms the key,

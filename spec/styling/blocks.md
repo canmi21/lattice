@@ -34,6 +34,36 @@ message table. Closing hides the current check or cross before resetting to the 
 resting icon flashes through the exit. Reduced-motion readers receive each state without the mask
 or icon transition.
 
+### The light syntax theme is One Light's palette under One Dark Pro's rules
+
+Shiki's bundle holds 65 themes and two of the One family: `one-dark-pro` and `one-light`. There is
+no `one-light-pro`, and the pair is mismatched because of it. One Dark Pro is the elaborated One
+Dark -- it colours 250 scopes One Light leaves alone, bare identifiers among them -- so a light
+page read beside a dark one looked bare, and the difference was visible in ordinary prose: the
+component name inside a closing JSX tag is coloured in dark and was not in light.
+
+So the light half is derived rather than picked.
+[one-light-pro.ts](../../apps/site/src/lib/content/build/one-light-pro.ts) keeps every rule One
+Dark Pro writes and swaps only the colour, through a table pairing the two
+palettes. The pairing was voted from the selectors both themes already define, so it is One Light's
+own answer wherever One Light has one; four colours had no shared scope and were settled against
+what One Light does with the same scope family. A colour with no counterpart throws rather than
+passing through, because a dark colour surviving onto a light page is the kind of wrong that
+reaches a reader before it reaches a test. Measured on the case that started it, the derived theme
+colours the same 63% of tokens One Dark Pro does, against One Light's 54%, and spends no colour
+One Light does not.
+
+**The theme is not a palette the interface may read.** It is a third component-local mirror beside
+Cargo's and Mermaid's, exempted for the reason those are --
+[architecture/css/authoring.md](../architecture/css/authoring.md), "Colour is never retyped" --
+and the open question about where such a palette should live is
+[todo.md](../todo.md), "Tokei draws from a palette of its own, and it is the third one".
+
+**A theme change is a recompilation of the corpus, not a deploy.** The colours are resolved while
+an article is compiled and stored in its published object, so nothing on a reader's machine can
+change them. What that costs and what deferring it would cost is measured in
+[architecture/delivery.md](../architecture/delivery.md), "Where the syntax colours are resolved".
+
 ### A scrolling code block fades at both edges instead of drawing a bar
 
 Code wider than the column scrolls and no longer shows a scrollbar for it. What says it scrolls is
