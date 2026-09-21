@@ -174,6 +174,17 @@ export const RAMP = [
 	'font-variant-numeric',
 ];
 
+/**
+ * Whether a property is one of the ramp's six, through whatever spelling or longhand.
+ *
+ * Here rather than in either gate because both ask it, and the answer is the line that drifts:
+ * css-ramp.ts asks it of a declaration, css-extraction.ts of every declaration reading a name.
+ */
+export function isRampProperty(property: string, owners: Map<string, Owner>): boolean {
+	const says = owner(property, owners);
+	return says !== undefined && RAMP.includes(says.via);
+}
+
 /** The sides a box property splits into, physical and logical. */
 const EDGES = [
 	'top',

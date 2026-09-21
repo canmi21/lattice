@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HOMES, ROOT, scan, untrusted, type Block, type Scan, type Value } from './css-source.ts';
-import { RAMP, owner, table, type Owner } from './css-owners.ts';
+import { isRampProperty, table, type Owner } from './css-owners.ts';
 
 const RECORD = fileURLToPath(new URL('css-extraction.json', import.meta.url));
 const RECORDED = relative(ROOT, RECORD);
@@ -149,14 +149,14 @@ function readers(found: Scan): Map<string, Set<string>> {
 /**
  * Whether a name is a step on the type ramp, which the threshold does not apply to.
  *
- * spec/architecture/css/layers.md, "The type ramp is vocabulary by property, and takes its value
- * from a token", exempts the six "whether or not the declaration around them is a named recipe"
- * -- which is the condition this bar tests. A scale with a hole wherever fewer than three
- * components use a step is not a scale. Read off css-owners.ts, which css-ramp.ts also reads.
+ * Derived, where css-ramp.ts asks the stated question: a name is a step exactly when every
+ * declaration reading it is a ramp declaration. spec/architecture/css/layers.md, "The type ramp
+ * is vocabulary by property, and takes its value from a token", exempts the six from the
+ * condition this bar tests, and a scale with a hole at every step under the bar is not a scale.
  */
-function isRamp(reading: Set<string> | undefined, owners: Map<string, Owner>): boolean {
+function isRampStep(reading: Set<string> | undefined, owners: Map<string, Owner>): boolean {
 	if (reading === undefined || reading.size === 0) return false;
-	return [...reading].every((property) => RAMP.includes(owner(property, owners)?.via ?? ''));
+	return [...reading].every((property) => isRampProperty(property, owners));
 }
 
 /** A repeated set of declarations that no name in the visual layer covers. */
@@ -361,7 +361,7 @@ function main(): number {
 		if (!DECLARING.has(group.file)) continue;
 		for (const { key, line } of group.keys) {
 			const name = `${group.name}.${key}`;
-			if (isRamp(reading.get(name), owners)) {
+			if (isRampStep(reading.get(name), owners)) {
 				steps += 1;
 				continue;
 			}

@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HOMES, ROOT, literals, scan, untrusted, type Declaration } from './css-source.ts';
-import { RAMP, kebab, owner, table } from './css-owners.ts';
+import { RAMP, isRampProperty, kebab, table } from './css-owners.ts';
 
 const RECORD = fileURLToPath(new URL('css-ramp.json', import.meta.url));
 const RECORDED = relative(ROOT, RECORD);
@@ -166,8 +166,7 @@ function main(): number {
 			// The vocabulary's own module is where a ramp value is supposed to be a literal: that
 			// is what naming one means.
 			if (declaration.file === VOCABULARY) continue;
-			const says = owner(declaration.property, owners);
-			if (says === undefined || !RAMP.includes(says.via)) continue;
+			if (!isRampProperty(declaration.property, owners)) continue;
 			for (const raw of literals(declaration.value)) {
 				if (wantsName(raw)) unnamed.push({ declaration, raw });
 			}
