@@ -280,7 +280,27 @@
 			var(--underline-height) var(--underline-height);
 		-webkit-box-decoration-break: clone;
 		box-decoration-break: clone;
+		/* So the padding the focus rule below adds carries no stroke: the size and position above
+		   are read against this box, which stays the text's. Without padding it is the same box. */
+		background-origin: content-box;
 		transition: --underline-progress 315ms var(--ease-spring);
+	}
+
+	/* The focus ring's lower edge lands on the stroke instead of below it. The stroke is the bottom
+	   `--underline-height` of the box, so an outline inset by that much occupies the same band --
+	   but `outline-offset` has no per-side form, and inset alone took the same width off each end
+	   and cut into the first and last glyph. The padding gives that width back and the margin
+	   returns it to the line, so only the height moves: 22px to 18px on a 15px link, the text
+	   where it was. `box-decoration-break: clone` above is what makes this hold across a wrap. */
+	.focus-link.spring-underline,
+	.focus-link-inner.spring-underline {
+		padding-inline: var(--underline-height);
+		margin-inline: calc(-1 * var(--underline-height));
+	}
+
+	.focus-link.spring-underline:focus-visible,
+	:focus-visible > .focus-link-inner.spring-underline {
+		outline-offset: calc(-1 * var(--underline-height));
 	}
 
 	.article-link {
