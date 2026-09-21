@@ -70,7 +70,8 @@ run = "node apps/site/scripts/css-budget.ts"
 
 [tasks.lint]
 description = "Lint the workspace"
-run = "oxlint ."
+# The expansion is strict mode, set by `mise run audit` and nothing else. See spec/lint-format.md.
+run = 'oxlint . ${AUDIT:+--deny-warnings}'
 
 # The CMS window's frontend, which the Tauri crate needs to *compile*: `generate_context!` reads
 # `frontendDist` at macro expansion and panics when the directory is absent. Both Rust tasks
@@ -88,7 +89,9 @@ run = "cargo test --workspace"
 [tasks.lint-rust]
 description = "Lint the Rust crates"
 depends = ["build-cms"]
-run = "cargo clippy --workspace --all-targets"
+# `-D warnings` on the command line outranks the lint table in Cargo.toml, which is how strict
+# mode reaches `complexity = "warn"` without that table being edited. See spec/lint-format.md.
+run = 'cargo clippy --workspace --all-targets ${AUDIT:+-- -D warnings}'
 
 # wrangler is a devDependency of each worker rather than a mise tool, because it participates
 # in the npm resolution model -- so it is never on $PATH and always needs `pnpm exec`. These
@@ -168,7 +171,9 @@ run = "pnpm run dev"
 [tasks.check-site]
 description = "Type check the site, which needs SvelteKit's generated declarations"
 dir = "apps/site"
-run = "pnpm run check"
+# No `--` before the flag: svelte-check's parser reads that as end-of-options and silently drops
+# what follows, so the strict run would pass. See spec/lint-format.md.
+run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
 [tasks.urls]
 description = "Regenerate the Rust mirror of the URL map from libs/urls"
