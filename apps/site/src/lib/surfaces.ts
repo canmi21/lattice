@@ -129,8 +129,17 @@ export const surfaces = stylex.create({
 	 * See spec/styling/focus.md.
 	 */
 	focusRingHost: {
-		'--focus-ring-style': { default: null, ':focus-visible': 'solid' },
-		'--focus-ring-width': { default: null, ':focus-visible': '0.125rem' },
+		// Read through `--focus-ring-suppress` rather than stated outright. A known pointer takes
+		// the ring away from a lower layer than this one, so it cannot win the property; it writes
+		// that name instead, which nothing else writes and no cascade decides. `none` is not a
+		// width, so the child's `outline-width` is invalid at computed-value time and falls back to
+		// its initial `medium` -- the reset `outline: none` performs. See spec/styling/focus.md.
+		'--focus-ring-style': { default: null, ':focus-visible': 'var(--focus-ring-suppress, solid)' },
+		'--focus-ring-width': {
+			default: null,
+			':focus-visible': 'var(--focus-ring-suppress, 0.125rem)',
+		},
+		// Not suppressed: a corner is not a ring, and the pointer rule never took it away.
 		'--focus-ring-radius': { default: null, ':focus-visible': radius.sm },
 		outlineStyle: { default: null, ':focus-visible': 'none' },
 		outlineWidth: { default: null, ':focus-visible': 'medium' },

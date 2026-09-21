@@ -69,11 +69,14 @@
 	   so the failure mode with the attribute absent is showing a ring once too often, never hiding
 	   one from a keyboard user. See spec/styling/focus.md, "`:focus-visible` is the browser's guess,
 	   and the site keeps its own answer". */
+	/* The second declaration is how this reaches a ring drawn on a child, which is a StyleX layer
+	   above and out of reach of the outline above it. `surfaces.focusRingHost` substitutes this
+	   name into the ring it hands down, and only this rule ever writes it -- a name with one
+	   writer has no cascade to lose, so indirection gets there where precedence cannot. */
 	html[data-focus-source='pointer'] :focus-visible,
-	html[data-focus-source='pointer'] :focus-visible > .focus-ring-inner,
-	html[data-focus-source='pointer'] :focus-visible > .focus-link-inner,
 	html[data-focus-source='pointer'] .focus-ring-within:has(:focus-visible) {
 		outline: none;
+		--focus-ring-suppress: none;
 	}
 }
 
