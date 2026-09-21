@@ -3,16 +3,18 @@
  *
  * The threshold in spec/architecture/css/extraction.md is three components, which is a fact about
  * the whole repository and invisible from the file being edited -- so it drifts unless something
- * recomputes it. Two halves: a name applied in fewer than three components fails outright, and a
- * group of declarations repeated across three files with no name is listed in a record that says,
- * per group, whether anybody has judged it. See spec/architecture/css/procedure.md, "A rule that
- * rests on a global count is computed, never remembered". Reads source, so it needs no build.
+ * recomputes it. Two halves: a name applied in fewer than three components fails outright unless
+ * it is a step on the type ramp, and a group of declarations repeated across three files with no
+ * name is listed in a record that says, per group, whether anybody has judged it. See
+ * spec/architecture/css/procedure.md, "A rule that rests on a global count is computed, never
+ * remembered". Reads source, so it needs no build.
  */
 
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HOMES, ROOT, scan, untrusted, type Block, type Scan, type Value } from './css-source.ts';
+import { RAMP, owner, table, type Owner } from './css-owners.ts';
 
 const RECORD = fileURLToPath(new URL('css-extraction.json', import.meta.url));
 const RECORDED = relative(ROOT, RECORD);
@@ -121,6 +123,40 @@ function named(value: Value): string[] {
 	if (value.kind === 'named') return [`${value.group}.${value.key}`];
 	if (value.kind === 'literal') return [];
 	return value.branches.flatMap(named);
+}
+
+/**
+ * The properties reading each name, which is how a ramp step is told from a recipe's value.
+ *
+ * Every reader and not any: a name read by a `fontSize` in one place and a `padding` in another
+ * is not a step on a scale, and neither is one nothing reads at all. That is what keeps
+ * `radius.md`, `transition.colors` and a name the tree has stopped reading under the bar.
+ */
+function readers(found: Scan): Map<string, Set<string>> {
+	const reading = new Map<string, Set<string>>();
+	for (const block of found.blocks) {
+		for (const declaration of block.declarations) {
+			for (const read of named(declaration.value)) {
+				const already = reading.get(read) ?? new Set<string>();
+				already.add(declaration.property);
+				reading.set(read, already);
+			}
+		}
+	}
+	return reading;
+}
+
+/**
+ * Whether a name is a step on the type ramp, which the threshold does not apply to.
+ *
+ * spec/architecture/css/layers.md, "The type ramp is vocabulary by property, and takes its value
+ * from a token", exempts the six "whether or not the declaration around them is a named recipe"
+ * -- which is the condition this bar tests. A scale with a hole wherever fewer than three
+ * components use a step is not a scale. Read off css-owners.ts, which css-ramp.ts also reads.
+ */
+function isRamp(reading: Set<string> | undefined, owners: Map<string, Owner>): boolean {
+	if (reading === undefined || reading.size === 0) return false;
+	return [...reading].every((property) => RAMP.includes(owner(property, owners)?.via ?? ''));
 }
 
 /** A repeated set of declarations that no name in the visual layer covers. */
@@ -317,11 +353,18 @@ function main(): number {
 	}
 
 	const applied = sites(found);
+	const owners = table();
+	const reading = readers(found);
 	const failures: string[] = [];
+	let steps = 0;
 	for (const group of found.groups) {
 		if (!DECLARING.has(group.file)) continue;
 		for (const { key, line } of group.keys) {
 			const name = `${group.name}.${key}`;
+			if (isRamp(reading.get(name), owners)) {
+				steps += 1;
+				continue;
+			}
 			const where = applied.get(name) ?? new Set<string>();
 			if (where.size >= THRESHOLD) continue;
 			failures.push(
@@ -369,9 +412,11 @@ function main(): number {
 		(each) => listed.get(identify(each.files))?.stays !== undefined,
 	).length;
 	console.log(
-		`every one of the ${total} names in the visual layer is applied in ${THRESHOLD} components ` +
-			`or more; ${unnamed.length} repeated declaration groups carry no name -- ${judged} judged ` +
-			`and kept, ${unnamed.length - judged} not yet looked at, all of them in ${RECORDED}`,
+		`every one of the ${total - steps} names in the visual layer is applied in ${THRESHOLD} ` +
+			`components or more, and the ${steps} type ramp steps are held to no bar -- ` +
+			`spec/architecture/css/layers.md; ${unnamed.length} repeated declaration groups carry no ` +
+			`name -- ${judged} judged and kept, ${unnamed.length - judged} not yet looked at, all of ` +
+			`them in ${RECORDED}`,
 	);
 	return 0;
 }
