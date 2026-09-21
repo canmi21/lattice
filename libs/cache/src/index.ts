@@ -12,8 +12,26 @@
  * one place holding three unrelated decisions.
  */
 
-/** Five minutes, in seconds. How far behind the current publication an answer may be. */
-export const PUBLICATION_DELAY = 300;
+/**
+ * Whether this bundle is a development one, asked once for the whole arrangement.
+ *
+ * The only judgement in this file, and deliberately the only one anywhere: every consumer reads
+ * a number, never a condition, so no two of them can decide differently. The mode rather than
+ * `DEV`, which is also true under vitest -- that spelling left all 22 assertions about the
+ * published header exercising this branch and nothing checking the number a reader gets.
+ * Wrangler's esbuild defines no `import.meta.env` at all, so a worker reads `undefined` and keeps
+ * the published numbers, which is right: the caches it stamps for are real even on a laptop.
+ */
+const DEVELOPING = (import.meta as { env?: { MODE?: string } }).env?.MODE === 'development';
+
+/**
+ * Five minutes, in seconds. How far behind the current publication an answer may be.
+ *
+ * None of it while developing: a publication delay is a promise made to readers, and on a laptop
+ * it is only the distance between a rebuild and seeing it, which was minutes of waiting for a
+ * change nobody else was going to read.
+ */
+export const PUBLICATION_DELAY = DEVELOPING ? 0 : 300;
 
 /** One year, in seconds: the longest a browser honours, and what `immutable` already implies. */
 const UNCHANGING_LIFE = 31_536_000;

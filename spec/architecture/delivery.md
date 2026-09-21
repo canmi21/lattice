@@ -285,6 +285,26 @@ year. An address that names rather than identifies keeps the hour that the middl
 above gives it -- the metadata bucket's root, and anything proxied. What is left on five minutes is
 the refusals, and everything else that is not a settled answer.
 
+### Development keeps no publication delay, and the judgement is made once
+
+A publication delay is a promise to readers, and a laptop has none: there the five minutes is only
+the distance between a rebuild and seeing it. So `PUBLICATION_DELAY` is zero in a development
+bundle, and every number derived from it follows -- the site's held copy of an API answer, the
+client query cache's staleness, and the `max-age` a worker stamps.
+
+**The condition is in `libs/cache` and nowhere else.** Consumers read a number, never a condition,
+which is the same reason the number itself is shared: eleven stamping sites each asking whether
+they are in development is eleven chances for two of them to answer differently. `libs/urls` takes
+`isDev` as an argument instead, and that is right for it -- a worker reads its environment from the
+request it is answering, and an address is a per-request question. A lifetime is not.
+
+**It is the mode, not `DEV`.** Vite sets `DEV` under vitest too, so that spelling made a test run
+exercise the development branch: all 22 assertions about the published header checked the number a
+reader never gets, and the number they do get was checked by nothing. `MODE === 'development'`
+separates the three cases, and wrangler's esbuild defines no `import.meta.env` at all -- so a
+worker keeps the published numbers, which is right, because the caches it stamps for are real ones
+even when it runs on a laptop.
+
 ## The CDN is four route groups and a refusal
 
 **It resolves nothing, and that is enforced by what is mounted rather than by what is declared.**

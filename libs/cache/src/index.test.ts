@@ -4,9 +4,10 @@ import { NAMED, PUBLICATION_DELAY, PUBLISHED, UNCHANGING, WHILE_UNREACHABLE } fr
 /**
  * The bytes, written out rather than recomposed.
  *
- * Every expectation here is a literal. This file exists to catch a header changing, and one
- * that built its expectation the way the source does would agree with whatever the source
- * became -- which is the shape of a test that has stopped holding anything.
+ * Every expectation is a literal, so this file disagrees with the source rather than following
+ * it wherever it goes. That is also what catches the development branch firing where it should
+ * not, which `DEV` did under vitest -- see spec/architecture/delivery.md, "Development keeps no
+ * publication delay, and the judgement is made once".
  */
 describe('lifetimes', () => {
 	it('holds an answer about the corpus for the one publication delay', () => {
