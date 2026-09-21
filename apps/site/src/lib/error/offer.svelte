@@ -17,9 +17,10 @@
 			},
 		},
 		/**
-		 * The form's button only. Nothing unlayered takes its `transition`, while the address is a
-		 * `spring-underline`, whose unlayered shorthand takes all four longhands and would leave
-		 * these inert. See spec/architecture/css/layers.md.
+		 * The form's button only. Nothing else declares its `transition`, while the address is a
+		 * `spring-underline`, whose shorthand sets all four longhands from the components layer --
+		 * so this one would outrank it and stop the underline springing. See
+		 * spec/architecture/css/layers.md.
 		 */
 		fade: {
 			transitionProperty: 'color',
