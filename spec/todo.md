@@ -282,19 +282,40 @@ be reached and its subject cannot -- and only the first of them is what `stylex.
 
 The newsletter's unsubscribe control is `focus-link spring-underline` and, until this migration
 moved it into the visual layer, `transition-colors duration-200` beside them. Measured, the control
-reports `transition-property: --underline-progress`, a duration of 315ms and the shared spring:
-`.spring-underline` in [utilities.css](../apps/site/src/styles/utilities.css) sits outside every
+reported `transition-property: --underline-progress`, a duration of 315ms and the shared spring:
+`.spring-underline` in [utilities.css](../apps/site/src/styles/utilities.css) sat outside every
 `@layer`, an unlayered rule outranks every layered one, and its `transition` shorthand takes all
-four longhands. The ten-property list has never reached the element, and the hover colour on that
-control snaps rather than fades.
+four longhands. The ten-property list never reached the element, and the hover colour on that
+control snapped rather than faded. Moving the declaration changed nothing, because StyleX is
+layered too and lost to the same rule -- which is why it was carried across unchanged rather than
+dropped, a migration moving what the markup said rather than what it achieved.
 
-Moving the declaration changes nothing, because StyleX is layered too and loses to the same rule --
-which is why it was carried across unchanged rather than dropped, a migration moving what the
-markup said rather than what it achieved. The finding is that the named layer is unlayered in some
-places and layered in others with nothing saying which, so an element carrying a vocabulary class
-and a utility for the same property has no way to say which it meant. Deciding it means giving
-`utilities.css` and [`libs/primitives`](../libs/primitives/src/style.css) a layer of their own,
-which is the boundary question the first entry in this file is already holding.
+**The heading is wrong in its first word now, and the mechanism inverted rather than went away.**
+`.spring-underline` is in `@layer components` at
+[utilities.css](../apps/site/src/styles/utilities.css):210. StyleX's priority layers sit above
+Tailwind's `components`, so a `transition-*` in the visual layer on that element now beats the
+shorthand instead of losing to it. That is the reversal
+[architecture/css/layers.md](architecture/css/layers.md) predicted under "`utilities.css` is
+dissolved, not given a position", which names this control among the three to expect rather than
+discover.
+
+**What the control does is unchanged, and it is now held on purpose.** No markup on the site carries
+`transition-colors` beside `spring-underline` any more -- counted, zero sites -- and the two
+components that could now declare one in the visual layer decline to, each with a comment saying
+why: `undo` in [newsletter.svelte](../apps/site/src/lib/newsletter/newsletter.svelte) writes no
+transition at all, so the hover snaps and the underline springs, and `fade` in
+[offer.svelte](../apps/site/src/lib/error/offer.svelte) is confined to the form's button for the
+same reason. The swallowing is gone and the snap it produced is deliberate. What holds it is a
+comment at each call site, which is weaker than a check and stronger than the accident it replaced.
+
+**What is still open is the general half, and it has lost the half that made it general.**
+[`libs/primitives`](../libs/primitives/src/style.css) declares no `@layer` at all, so the named
+layer is unlayered there and layered in `utilities.css` with nothing saying which a given rule
+should be, and an element carrying a primitives class and a utility for the same property still has
+no way to say which it meant. The deciding sentence here was giving `utilities.css` and
+`libs/primitives` a layer of their own; `utilities.css` took Tailwind's `components` instead, which
+answered the cascade and settled nothing about the boundary. What is left is `libs/primitives`
+alone, and it is the first entry in this file's question rather than this one's.
 
 ## The gate compares a list, and a list is not a test
 
@@ -1386,10 +1407,29 @@ constants from by hand, and `libs/urls` is this repository's established answer 
 languages need. It is untested for a block that is genuinely one site's and crosses no boundary,
 where `apps/site/src/styles/` would be the better home.
 
-**`width.rs` cites `apps/site/src/styles/utilities.css` by path, and nothing checks it.** The
-reference check validates markdown links, `spec/**/*.md` cited from code, and quoted section
-names; a non-spec path in a Rust doc comment is in its not-flagged set. Whoever moves the block
-updates that citation in the same commit, because nothing will say they forgot.
+**The contract is cited four times, in both directions, and nothing checks any of them.** The
+reference check validates markdown links, `spec/**/*.md` cited from code, and quoted section names;
+a path written inside a Rust doc comment or a CSS comment is in its not-flagged set, whichever end
+it points at. The four, with what each names:
+
+- [width.rs](../apps/cms/src/i18n/width.rs):253 gives `--rail-column` and the path
+  `apps/site/src/styles/utilities.css`, deriving `DESKTOP_TITLE` and `DESKTOP_SUBTITLE` from it.
+- [width.rs](../apps/cms/src/i18n/width.rs):12-17, above `ONE_LINE`, gives `--rail-width` and says
+  "Move that declaration and move this" -- with **no path at all**. There is nothing here for a
+  check to validate even if one read Rust comments, and nothing for a reader to follow either.
+- [utilities.css](../apps/site/src/styles/utilities.css):84, in the `--rail-width` comment, gives
+  `ONE_LINE` and the path `apps/cms/src/i18n/width.rs`.
+- [utilities.css](../apps/site/src/styles/utilities.css):88, in the `--rail-column` comment, gives
+  `budget::DESKTOP_TITLE`, `DESKTOP_SUBTITLE` and the same path.
+
+**Two of the four carry something that is checked, and they are the same two.** The `--rail-width`
+pair -- `width.rs`:12-17 and `utilities.css`:84 -- each cite [styling/rail.md](styling/rail.md),
+"The rail's box is one declared width", and a quoted section name is checked. The `--rail-column`
+pair cite no spec section at all, so nothing in either comment is verified by anything. The half
+that holds itself up is the pointer to the argument, never the pointer to the other language.
+
+Whoever moves the block updates three paths and re-reads a fourth comment naming a property with no
+file beside it, and nothing will say they forgot any of the four.
 
 ## The three-component threshold is a memory, and nothing counts the components
 
@@ -1442,3 +1482,20 @@ sources against 145 taking a named value, plus 27 in stylesheets outside the vis
 `libs/fonts` is excluded, where the same property names are `@font-face` descriptors and not a ramp
 at all. Which of those sets the gate should count is part of what deciding this costs, and the
 number moves by a factor of two depending on the answer.
+
+## A commit said less than it carried, because the paths were a directory
+
+`72f00943`, "fix: the twenty-six frame declarations leave the visual layer", also carries six
+`:global()` selectors narrowed to their attribute form in `article.svelte` and `body.svelte`, and
+the matching class writes removed from `compile.ts` and its test. Those belong to the anchor
+migration's second step, not to the utilities move, and the message names only the second thing.
+
+**The cause is the commit, not the workers.** It was taken as `jj commit apps/site/src ...` while
+two workers were writing in that tree, and a path list takes everything under the path rather
+than the change the message describes. The workspace's `spec/toolchain.md` already says a path
+list silently omits what it does not name; this is the same mechanism running the other way, and
+reading `jj st` in full before committing is what catches both.
+
+Nothing is wrong in the tree -- both changes were verified and both are wanted. What is wrong is
+that the log no longer separates them, so a bisect over the anchor migration lands on a commit
+about utilities.
