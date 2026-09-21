@@ -1,3 +1,92 @@
 {
-	"candidates": 11
+	"groups": [
+		{
+			"components": [
+				"apps/site/src/lib/blocks/cargo/cargo.svelte",
+				"apps/site/src/lib/blocks/tokei/tokei.svelte",
+				"apps/site/src/lib/support/support.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/blocks/cargo/cargo.svelte",
+				"apps/site/src/lib/blocks/mermaid/mermaid.svelte",
+				"apps/site/src/lib/blocks/tokei/tokei.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/blocks/cargo/cargo.svelte",
+				"apps/site/src/lib/blocks/quadrant.svelte",
+				"apps/site/src/lib/blocks/tokei/tokei.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/blocks/cargo/cargo.svelte",
+				"apps/site/src/lib/blocks/tokei/tokei.svelte",
+				"apps/site/src/lib/components/video.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/blocks/cargo/cargo.svelte",
+				"apps/site/src/lib/blocks/tokei/tokei.svelte",
+				"apps/site/src/lib/licenses/package-list.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/blocks/cargo/cargo.svelte",
+				"apps/site/src/lib/blocks/github.svelte",
+				"apps/site/src/lib/blocks/tokei/tokei.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/blocks/mermaid/mermaid.svelte",
+				"apps/site/src/lib/licenses/package-list.svelte",
+				"apps/site/src/routes/licenses/[license]/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/components/modal.svelte",
+				"apps/site/src/routes/licenses/[license]/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/[registry]/[...package]/+page.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/components/picture.svelte",
+				"apps/site/src/lib/components/video.svelte",
+				"apps/site/src/routes/+page.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/lib/licenses/package-list.svelte",
+				"apps/site/src/routes/licenses/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/+page.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/routes/licenses/+page.svelte",
+				"apps/site/src/routes/licenses/[license]/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte"
+			]
+		},
+		{
+			"components": [
+				"apps/site/src/routes/licenses/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/+page.svelte",
+				"apps/site/src/routes/licenses/pkgs/[registry]/[...package]/+page.svelte"
+			]
+		}
+	]
 }

@@ -1,12 +1,12 @@
 /**
- * Count the components behind every name in the visual layer, and the repetitions with no name.
+ * Count the components behind every name in the visual layer, and list the repetitions with none.
  *
  * The threshold in spec/architecture/css/extraction.md is three components, which is a fact about
  * the whole repository and invisible from the file being edited -- so it drifts unless something
  * recomputes it. Two halves: a name applied in fewer than three components fails outright, and a
- * group of declarations repeated across three files with no name is recorded as a candidate
- * against a baseline. See spec/architecture/css/procedure.md, "A rule that rests on a global
- * count is computed, never remembered". Reads source, so it needs no build.
+ * group of declarations repeated across three files with no name is listed in a record that says,
+ * per group, whether anybody has judged it. See spec/architecture/css/procedure.md, "A rule that
+ * rests on a global count is computed, never remembered". Reads source, so it needs no build.
  */
 
 import { readFileSync } from 'node:fs';
@@ -35,12 +35,26 @@ const SURFACES = 'surfaces';
  */
 const MEMBERS = 3;
 
+/**
+ * One entry: the components a repetition is written in, and whatever judgement was passed on it.
+ *
+ * The components are the key, because they are what extraction.md's second clause asks about --
+ * whether these three are unrelated. See `identify` below for why the declarations are not.
+ */
+type Entry = {
+	components: string[];
+	/** Why the components are unrelated, so the repetition stays. Absent until somebody looks. */
+	stays?: string;
+};
+
 type Ledger = {
 	/**
-	 * Repeated declaration groups nobody has named. A debt, not a target: extraction.md's other
-	 * clause is that the components be unrelated, and no count can tell a recipe from a copy.
+	 * Every repeated declaration group nobody has named, one entry per set of components. A list
+	 * and not a total: extraction.md's other clause is that the components be unrelated, so some
+	 * of these are meant to stay, and no count can say whether a figure that stopped falling is
+	 * finished work or work nobody has started.
 	 */
-	candidates: number;
+	groups: Entry[];
 };
 
 /** One declaration, written the way two of them are compared. */
@@ -158,23 +172,134 @@ function candidates(found: Scan): Candidate[] {
 	);
 }
 
-/** What the reader does about a repetition: name it, or record that it is not a recipe. */
-function report(found: Candidate[], recorded: number): string {
-	const lines = found.map((each) =>
-		[
-			`  ${each.files.length} components write the same ${each.declarations.length} declarations:`,
-			...each.declarations.map((one) => `      ${one}`),
-			...each.files.map((one) => `      in ${one}`),
-		].join('\n'),
-	);
+/**
+ * What identifies a group across commits: the components, never the declarations it shares.
+ *
+ * A group is found as the maximal set two components share, so naming any part of one rewrites
+ * every group built on that part -- naming `colorShift` moved four of fifteen entries and emptied
+ * a fifth. Keying on the declarations would make all four look new and lose their judgements. The
+ * components survive that, and are what the judgement is about. Two groups over the same
+ * components therefore share one entry: the judgement that they are unrelated covers both.
+ */
+function identify(components: string[]): string {
+	return components.toSorted().join('\n');
+}
+
+/** One repetition as every message here prints it: what is written, and where. */
+function shape(each: Candidate): string[] {
 	return [
-		`${found.length} repeated declaration groups have no name, and ${RECORDED} records ` +
-			`${recorded}.`,
-		...lines,
-		`  Give one a key in apps/site/src/lib/surfaces.ts, or raise 'candidates' in ${RECORDED}`,
-		`  to ${found.length} in a commit saying which of these are copies rather than recipes --`,
-		'  extraction.md wants the three components unrelated, and no count can tell the two apart.',
+		`  ${each.files.length} components write the same ${each.declarations.length} declarations:`,
+		...each.declarations.map((one) => `      ${one}`),
+		...each.files.map((one) => `      in ${one}`),
+	];
+}
+
+/** The entry to paste, spelled as the record spells it: the reader copies rather than writes. */
+function paste(components: string[]): string[] {
+	return [
+		'\t\t{',
+		'\t\t\t"components": [',
+		...components.map((one, at) => `\t\t\t\t"${one}"${at === components.length - 1 ? '' : ','}`),
+		'\t\t\t]',
+		'\t\t}',
+	];
+}
+
+/** What the reader does about a repetition the record has never seen: name it, or list it. */
+function unlisted(components: string[], found: Candidate[]): string {
+	return [
+		`${RECORDED} lists nothing about a repetition the tree holds:`,
+		...found.flatMap(shape),
+		`  Give the group a key in apps/site/src/lib/surfaces.ts, or add this to 'groups' in`,
+		`  ${RECORDED}:`,
+		...paste(components),
+		'  Red here is the list working rather than a fault in it: either this repetition is',
+		'  new and wants judging, or the tree has moved since the list was written. Both take',
+		'  the same repair -- paste the entry above. With no "stays" it records that nobody has',
+		'  judged the group, which is the state this gate counts rather than fails on. Add',
+		'  "stays" once somebody has: extraction.md wants the three components unrelated, and',
+		'  no count can tell a recipe from a copy.',
 	].join('\n');
+}
+
+/** What the reader does about an entry whose repetition the tree no longer holds. */
+function gone(entry: Entry): string {
+	const judged =
+		entry.stays === undefined
+			? ['  Nobody had judged it, so the entry says nothing the tree does not.']
+			: ['  It was judged, and this is the judgement being dropped:', `      ${entry.stays}`];
+	return [
+		`${RECORDED} lists components that no longer repeat any set of declarations:`,
+		...entry.components.map((one) => `      in ${one}`),
+		...judged,
+		'  Somebody named the declarations, or a component stopped writing them. Delete the entry',
+		`  from 'groups' in ${RECORDED}: an entry matching nothing`,
+		'  counts judged work the tree does not show.',
+	].join('\n');
+}
+
+/** One entry of the record, or why it could not be read. A hand-edited file is input like any. */
+function entryOf(raw: unknown, at: number): Entry | string {
+	const where = `${RECORDED}, entry ${at + 1} of 'groups',`;
+	if (typeof raw !== 'object' || raw === null) return `${where} is not an object.`;
+	const { components, stays } = raw as { components?: unknown; stays?: unknown };
+	if (!Array.isArray(components) || components.some((one) => typeof one !== 'string')) {
+		return `${where} has no 'components' array of file paths.`;
+	}
+	if (components.length < THRESHOLD) {
+		return (
+			`${where} lists ${components.length} components, under the bar of ${THRESHOLD}. ` +
+			'No group this gate finds is that small, so the entry can never match one.'
+		);
+	}
+	if (stays !== undefined && typeof stays !== 'string') {
+		return `${where} has a 'stays' that is not a sentence saying why the group is no recipe.`;
+	}
+	const listed = components as string[];
+	return stays === undefined ? { components: listed } : { components: listed, stays };
+}
+
+/** One set of components under two entries: the second is never read, so one is a mistake. */
+function twice(entry: Entry): string {
+	return [
+		`${RECORDED} lists one set of components under two entries of 'groups':`,
+		...entry.components.map((one) => `      in ${one}`),
+		'  One entry per set of components, carrying the one judgement that covers whatever they',
+		'  repeat. Merge the two, or the second says nothing.',
+	].join('\n');
+}
+
+/**
+ * The record, or the reasons it could not be read.
+ *
+ * A file a person edits is input, and a gate that cannot read its input has to say so: a cast
+ * over a malformed record would silently judge every group unlisted. See spec/code.md.
+ */
+function ledger(): { entries: Entry[]; broken: string[] } {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(readFileSync(RECORD, 'utf8'));
+	} catch (error) {
+		const why = error instanceof Error ? error.message : String(error);
+		return {
+			entries: [],
+			broken: [`${RECORDED} is not JSON: ${why}. This gate judges nothing until it parses.`],
+		};
+	}
+	const groups: unknown = (parsed as Partial<Ledger>).groups;
+	if (!Array.isArray(groups)) {
+		return {
+			entries: [],
+			broken: [
+				`${RECORDED} holds no 'groups' array. It is the list of repeated declaration groups ` +
+					'nobody has named, one entry per set of components.',
+			],
+		};
+	}
+	const read = groups.map(entryOf);
+	const broken = read.filter((each) => typeof each === 'string');
+	const entries = read.filter((each) => typeof each !== 'string');
+	return { entries, broken };
 }
 
 function main(): number {
@@ -210,9 +335,29 @@ function main(): number {
 		}
 	}
 
-	const record = JSON.parse(readFileSync(RECORD, 'utf8')) as Ledger;
+	const record = ledger();
+	failures.push(...record.broken);
 	const unnamed = candidates(found);
-	if (unnamed.length !== record.candidates) failures.push(report(unnamed, record.candidates));
+
+	const repeated = new Map<string, Candidate[]>();
+	for (const each of unnamed) {
+		const key = identify(each.files);
+		repeated.set(key, [...(repeated.get(key) ?? []), each]);
+	}
+	const listed = new Map<string, Entry>();
+	for (const entry of record.entries) {
+		const key = identify(entry.components);
+		if (listed.has(key)) failures.push(twice(entry));
+		else listed.set(key, entry);
+	}
+	// Only once the record parsed: against an unreadable one every group looks unlisted and every
+	// entry looks stale, which buries the one line saying why.
+	if (record.broken.length === 0) {
+		for (const [key, group] of repeated) {
+			if (!listed.has(key)) failures.push(unlisted(group[0]!.files, group));
+		}
+		for (const [key, entry] of listed) if (!repeated.has(key)) failures.push(gone(entry));
+	}
 
 	if (failures.length > 0) {
 		for (const line of failures) console.error(line);
@@ -220,9 +365,13 @@ function main(): number {
 	}
 	const names = found.groups.filter((group) => DECLARING.has(group.file));
 	const total = names.reduce((sum, group) => sum + group.keys.length, 0);
+	const judged = unnamed.filter(
+		(each) => listed.get(identify(each.files))?.stays !== undefined,
+	).length;
 	console.log(
 		`every one of the ${total} names in the visual layer is applied in ${THRESHOLD} components ` +
-			`or more; ${unnamed.length} repetitions carry no name, which is the debt ${RECORDED} records`,
+			`or more; ${unnamed.length} repeated declaration groups carry no name -- ${judged} judged ` +
+			`and kept, ${unnamed.length - judged} not yet looked at, all of them in ${RECORDED}`,
 	);
 	return 0;
 }
