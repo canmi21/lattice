@@ -8,9 +8,9 @@ chosen because they are objective rather than stylistic:
 3. A section name quoted beside such a citation, in code or in another doc, exists in it.
 4. No URL the running system resolves is written outside `libs/urls`.
 
-The first three break silently on rename; the last enforces spec/architecture/workspace.md,
-"Every URL is declared once", which was prose-only until this existed. What is deliberately
-not flagged -- prose paths, comments, `$schema`, `@context` -- is argued at each constant.
+The first three break silently on rename and are shared with the workspace's own gate, which is
+where they live. The fourth is this repository's and enforces spec/architecture/workspace.md,
+"Every URL is declared once", prose-only until this existed. Each constant argues what it exempts.
 
 Run with --json to emit the pair graph instead of validating.
 """
@@ -20,10 +20,37 @@ from __future__ import annotations
 import json
 import pathlib
 import re
-import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+# The three shared rules come from the workspace this project is cloned inside, reached by
+# position -- the same way this repository finds `.editorconfig` and the toolchain it builds with.
+# Their absence means the arrangement is wrong, and saying so by name beats a gate that quietly
+# checks less. See the workspace's spec/architecture/repos.md, "Configuration is inherited by
+# position, not copied".
+SHARED = ROOT.parents[1] / ".mise" / "tasks" / "refs_check.py"
+if not SHARED.is_file():
+	sys.exit(
+		f"refs: the shared reference rules are not at {SHARED}\n"
+		"  A project is cloned inside the workspace that holds them, and this one is not."
+	)
+sys.path.insert(0, str(SHARED.parent))
+
+from refs_check import (  # noqa: E402
+	COMMENT_WRAP,
+	DOC_ANCHOR,
+	DOC_TAIL,
+	PROSE_WRAP,
+	ROOT_DOCS,
+	citing_files,
+	code_anchor,
+	dead_anchors,
+	dead_links,
+	pair_graph,
+	read,
+	tracked,
+)
+
 # Recursive, because a spec topic large enough to need several files gets a directory rather
 # than a longer file. A non-recursive glob would silently stop checking the moment one did.
 DOC_GLOBS = ("spec/**/*.md", "CLAUDE.md")
@@ -42,30 +69,19 @@ CODE_SUFFIXES = {
 	".yaml",
 	".yml",
 }
-# Directories whose files are records or prose rather than code, plus the lockfile.
-# The tracked() docstring gives each exemption's reason.
+# Directories whose files are records or prose rather than code, plus the lockfile. `contents/`
+# is excluded whatever the extension -- a translation sidecar is YAML by format and prose by
+# nature, and asking its links to live in libs/urls would be asking an article not to cite
+# anything. `data/` holds curated records, not code, and is excluded the same way.
 SKIP_DIRS = {"data", "contents"}
 SKIP_FILES = {"pnpm-lock.yaml"}
 
-MD_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
-DOC_PATH = r"[a-z0-9-]+(?:/[a-z0-9-]+)*\.md"
-SPEC_REF = re.compile(rf"spec/{DOC_PATH}")
-# A citation may name a section: `spec/<f>.md, "Name"` or `spec/<f>.md ("Name")`. The quote need
-# not sit against it -- the gap here runs from two to forty-six -- but it may not cross a full
-# stop or a semicolon, or a sentence quoting something else is read as this one's anchor.
-ANCHOR = r'[^".;\n]{0,60}?"(?P<anchor>[^"]{6,160})"'
-CODE_ANCHOR = re.compile(rf"(?P<target>spec/{DOC_PATH}){ANCHOR}")
-# A doc cites by markdown link or by bare path, and either may be relative to the citing file.
-DOC_ANCHOR = re.compile(rf"(?:\[[^\]]*\]\()?(?P<target>(?:\.\./)*{DOC_PATH})\)?{ANCHOR}")
-# An anchor may wrap, so continuation lines fold away before matching. `///` and `//!` come
-# before `//`: the shorter alternative matches first and leaves a stray slash inside the quote,
-# which reads as a break in an anchor that is intact. `#` is here for `.gitignore`, whose
-# anchors wrap across it exactly as a Rust doc comment's do.
-COMMENT_WRAP = re.compile(r"\n[ \t]*(?:\*|///|//!|//|#)?[ \t]*")
-# Prose carries no comment markers, and a `*` opening a line is emphasis rather than one.
-PROSE_WRAP = re.compile(r"\n\s*")
-SPACES = re.compile(r"\s+")
-NOT_WORD = re.compile(r"[^a-z0-9 ]")
+SPEC_REF = re.compile(rf"spec/{DOC_TAIL}")
+# The root docs join the anchor check and nothing else: a bare `CLAUDE.md` in code is a value in
+# a config list far more often than a pointer, and a rule over those would be this tool checking
+# its own configuration, which already fails loudly when it is wrong.
+CODE_ANCHOR = code_anchor(rf"spec/{DOC_TAIL}|{ROOT_DOCS}")
+ROOT_DOC = re.compile(ROOT_DOCS)
 # The backslash ends a match so `url=\"https://a.example\"` inside a Rust format string reads
 # as the address alone, not the address plus its escape.
 URL = re.compile(r"https?://[^\s\"'`)\],;\\]+")
@@ -104,28 +120,8 @@ def docs() -> list[pathlib.Path]:
 	return found
 
 
-def tracked() -> list[pathlib.Path]:
-	"""Every file git knows about, less the trees that hold records rather than source.
-
-	The candidate set comes from git, because `.gitignore` is already the one home of "this is
-	build output, not code"; a second list of what is code can only ever drift from the first.
-	`contents/` is excluded whatever the extension -- a translation sidecar is YAML by format and
-	prose by nature, and asking its links to live in libs/urls would be asking an article not to
-	cite anything. `data/` holds curated records, not code, and is excluded the same way.
-	"""
-	listing = subprocess.run(
-		["git", "-C", str(ROOT), "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-		capture_output=True,
-		text=True,
-		check=True,
-	)
-	return [
-		path
-		for name in listing.stdout.split("\0")
-		if name
-		for path in [ROOT / name]
-		if path.name not in SKIP_FILES and not SKIP_DIRS & set(pathlib.PurePath(name).parts)
-	]
+def files() -> list[pathlib.Path]:
+	return tracked(ROOT, skip_files=SKIP_FILES, skip_dirs=SKIP_DIRS)
 
 
 def code_files() -> list[pathlib.Path]:
@@ -135,67 +131,35 @@ def code_files() -> list[pathlib.Path]:
 	is a judgement about single-sourcing that this repository has already argued out in prose,
 	and widening a URL gate is not the same decision as widening a citation gate.
 	"""
-	return [path for path in tracked() if path.suffix in CODE_SUFFIXES]
+	return [path for path in files() if path.suffix in CODE_SUFFIXES]
 
 
-def extensionless_text(path: pathlib.Path) -> bool:
-	"""Whether a tracked file with no extension is text, and so can hold a citation.
+def locate(cited: str) -> pathlib.Path | None:
+	"""Where a cited rule is, or None when nothing from here up holds it.
 
-	A shebang is the obvious tell and it is not enough: it finds the nine scripts under
-	`.mise/tasks/` and misses `.gitignore` and `.gitattributes`, which cite without being
-	executable. Decoding to text with no NUL in it covers both, and all it lets in besides is
-	text nobody cites from, which costs a scan and nothing else.
+	Rules that follow the author rather than this project live in the workspace above, so a
+	citation of `spec/code.md` resolves one directory up. Walk rather than hardcode the depth: a
+	rule this project owns answers from here and one it inherits answers from above, through the
+	same call and without either having to say which it is.
 	"""
-	if path.suffix:
-		return False
-	body = read(path)
-	return bool(body) and "\0" not in body
+	directory = ROOT
+	while True:
+		if (directory / cited).exists():
+			return directory / cited
+		if directory.parent == directory:
+			return None
+		directory = directory.parent
 
 
-def citing_files() -> list[pathlib.Path]:
-	"""Code, plus the extensionless text lying beside it.
+def resolve(path: pathlib.Path, cited: str) -> pathlib.Path | None:
+	"""Where a citation points: up the tree for a rule, beside the citing file for a neighbour.
 
-	A suffix allowlist is blind to precisely the files this checker lives among, which is how nine
-	citations of a spec file that never existed survived in them. In any of these a path-shaped
-	`spec/` string is a citation wherever it sits -- comment, docstring or printed message alike,
-	since a dead citation shown to whoever fails a check is still dead. An illustration is spelled
-	so it cannot resolve instead: `spec/<f>.md`, or a glob.
+	A `spec/` path and a root doc are both rules, and a rule may be this project's or the
+	workspace's, so both walk up. Anything else is a doc naming a neighbour of its own.
 	"""
-	return [path for path in tracked() if path.suffix in CODE_SUFFIXES or extensionless_text(path)]
-
-
-def read(path: pathlib.Path) -> str:
-	try:
-		return path.read_text()
-	except (OSError, UnicodeDecodeError):
-		return ""
-
-
-def without_code(text: str) -> str:
-	"""Blank out fenced blocks and inline code, keeping line structure intact.
-
-	A doc that documents markdown syntax writes things like `![](cid.ext)` inside backticks.
-	Those are examples of a link, not links, and reading them as targets makes the spec unable
-	to describe the very format this repository uses without tripping its own gate.
-	"""
-	text = FENCE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-	return INLINE_CODE.sub(lambda m: " " * len(m.group(0)), text)
-
-
-FENCE = re.compile(r"```.*?```", re.S)
-INLINE_CODE = re.compile(r"`[^`\n]+`")
-
-
-def dead_doc_links() -> list[str]:
-	dead = []
-	for doc in docs():
-		for match in MD_LINK.finditer(without_code(read(doc))):
-			target = match.group(1)
-			if target.startswith(("http://", "https://", "#", "mailto:")):
-				continue
-			if not (doc.parent / target.split("#")[0]).exists():
-				dead.append(f"{doc.relative_to(ROOT)} -> {target}")
-	return dead
+	if cited.startswith("spec/") or ROOT_DOC.fullmatch(cited):
+		return locate(cited)
+	return path.parent / cited
 
 
 def stray_urls() -> list[str]:
@@ -221,99 +185,31 @@ def stray_urls() -> list[str]:
 	return stray
 
 
-def pair_graph() -> dict[str, list[str]]:
-	"""spec file -> the code files that cite it."""
-	graph: dict[str, list[str]] = {}
-	for path in citing_files():
-		rel = str(path.relative_to(ROOT))
-		for spec in sorted(set(SPEC_REF.findall(read(path)))):
-			graph.setdefault(spec, []).append(rel)
-	return graph
-
-
-def locate(spec: str) -> pathlib.Path | None:
-	"""Where a cited spec file is, or None when nothing from here up holds it.
-
-	Rules that follow the author rather than this project live in the workspace above, so a
-	citation of `spec/code.md` resolves one directory up. Walk rather than hardcode the depth:
-	the same file has to answer the same way whether this repository sits inside that workspace
-	or was cloned on its own -- in which case nothing above it exists and the citation is
-	genuinely dead. See the meta repository's architecture/repos.md.
-	"""
-	directory = ROOT
-	while True:
-		if (directory / spec).exists():
-			return directory / spec
-		if directory.parent == directory:
-			return None
-		directory = directory.parent
-
-
-BODIES: dict[pathlib.Path, str] = {}
-
-
-def flatten(text: str) -> str:
-	"""Text reduced to its lowercase words, every other character becoming a space.
-
-	Applied to the heading's file and to the anchor alike, so a heading spelling a name in
-	backticks or separating a clause with an em dash still matches the citation quoting it.
-	"""
-	return NOT_WORD.sub(" ", SPACES.sub(" ", text).lower()).strip()
-
-
-def flattened(path: pathlib.Path | None) -> str | None:
-	"""One file flattened and kept, or None when it is not there."""
-	if path is None or not path.is_file():
-		return None
-	if path not in BODIES:
-		BODIES[path] = flatten(read(path))
-	return BODIES[path]
-
-
-def dead_anchors() -> tuple[list[str], int]:
-	"""Section names quoted from code or from another doc that the named file no longer holds.
-
-	A file existing does not mean the section named inside it still does, so a heading is part of
-	the interface. Read raw rather than through `without_code`: an anchor quotes its heading
-	verbatim, inline code and all. A target that is not there is somebody else's failure above.
-	"""
-	dead: list[str] = []
-	seen = 0
-	sources = [(path, CODE_ANCHOR, COMMENT_WRAP) for path in citing_files()]
-	sources += [(doc, DOC_ANCHOR, PROSE_WRAP) for doc in docs()]
-	for path, pattern, wrap in sources:
-		for match in pattern.finditer(wrap.sub(" ", read(path))):
-			cited = match.group("target")
-			target = locate(cited) if cited.startswith("spec/") else path.parent / cited
-			body = flattened(target)
-			if body is None:
-				continue
-			seen += 1
-			if flatten(match.group("anchor")) not in body:
-				dead.append(f'{path.relative_to(ROOT)} -> {cited} ("{match.group("anchor")}")')
-	return dead, seen
-
-
 def main() -> int:
-	graph = pair_graph()
+	citing = citing_files(files(), CODE_SUFFIXES)
+	graph = pair_graph(ROOT, citing, SPEC_REF)
 
 	if "--json" in sys.argv:
 		print(json.dumps(graph))
 		return 0
 
-	dead, anchors = dead_anchors()
+	written = docs()
+	sources = [(path, CODE_ANCHOR, COMMENT_WRAP) for path in citing]
+	sources += [(doc, DOC_ANCHOR, PROSE_WRAP) for doc in written]
 
-	problems = [f"dead link: {d}" for d in dead_doc_links()]
+	dead, _ = dead_links(ROOT, written)
+	stale, anchors = dead_anchors(ROOT, sources, resolve)
+
+	problems = [f"dead link: {d}" for d in dead]
 	problems += [
-		f"missing spec cited by {cited}: {spec}"
+		f"missing spec cited by {', '.join(cited)}: {spec}"
 		for spec, cited in sorted(graph.items())
 		if not locate(spec)
-		for cited in [", ".join(cited)]
 	]
-	problems += [f"missing section: {d}" for d in dead]
+	problems += [f"missing section: {d}" for d in stale]
 	problems += [
 		f"URL outside {URL_HOMES[0]}: {u}  (declare it there, or make it a comment if it is a"
-		f" citation -- see spec/architecture/workspace.md, \"Every URL is declared once\")"
+		f' citation -- see spec/architecture/workspace.md, "Every URL is declared once")'
 		for u in stray_urls()
 	]
 
@@ -325,7 +221,7 @@ def main() -> int:
 
 	linked = sum(len(v) for v in graph.values())
 	print(
-		f"references OK: {len(docs())} docs, {linked} code -> spec citations, "
+		f"references OK: {len(written)} docs, {linked} code -> spec citations, "
 		f"{anchors} quoted sections, URLs single-sourced"
 	)
 	return 0
