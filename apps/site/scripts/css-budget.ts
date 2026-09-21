@@ -79,7 +79,7 @@ const ROUTE =
 function chains(): Map<string, number[]> {
 	const found = new Map<string, number[]>();
 	for (const [, id, layouts, leaf] of readFileSync(MANIFEST, 'utf8').matchAll(ROUTE)) {
-		if (leaf === undefined) continue;
+		if (id === undefined || leaf === undefined) continue;
 		const nodes = [...(layouts ?? '').split(','), leaf].map((part) => Number(part.trim()));
 		found.set(id, nodes.filter((node) => Number.isInteger(node)));
 	}
