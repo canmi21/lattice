@@ -61,7 +61,7 @@
 <script lang="ts">
 	import './palette.css';
 	import { currentTheme, observeTheme, type Theme } from '@canmi/theme';
-	import { renderMermaid } from './mermaid';
+	import { renderMermaid, type Drawings } from './mermaid';
 
 	let {
 		source,
@@ -76,19 +76,25 @@
 		description?: string;
 	} = $props();
 	let root = $state<HTMLElement>();
-	let svg = $state('');
+	let drawings = $state<Drawings>();
 	let failed = $state(false);
-	// Undefined until the document has been read, which is what keeps the render below from
-	// drawing one diagram in a guessed theme and a second one in the painted one.
+	// Undefined until the document has been read, so nothing is shown in a guessed theme first.
 	let theme = $state<Theme>();
-	/** Whether the drawing that lands next fades in. A redraw for a new theme is a cut. */
+	/** Whether the drawing that lands next fades in. Turning the theme is a cut. */
 	let reveal = $state(false);
-	/** The source currently on screen, so a redraw can be told from a different diagram. */
-	let drawn: string | undefined;
+
+	/**
+	 * The drawing for the theme on screen, picked rather than rendered.
+	 *
+	 * Both were drawn together, so this assignment settles inside the same microtask the theme
+	 * change arrives in and paints in the frame the rest of the page turns in.
+	 */
+	const svg = $derived(theme && drawings ? drawings[theme] : '');
 
 	$effect(() => {
 		theme = currentTheme();
 		return observeTheme((painted) => {
+			reveal = false;
 			theme = painted;
 		});
 	});
@@ -96,23 +102,16 @@
 	$effect(() => {
 		const host = root;
 		const definition = source;
-		const painted = theme;
-		if (!host || !painted) return;
+		if (!host) return;
 
 		let current = true;
-		// A theme change redraws the diagram that is already up, so it stays there until its
-		// replacement lands: clearing it first would send every toggle back through the loading
-		// surface. A different diagram has nothing to hold and returns there on purpose.
-		if (drawn !== definition) {
-			svg = '';
-			failed = false;
-		}
-		void renderMermaid(definition, host, painted).then(
+		drawings = undefined;
+		failed = false;
+		void renderMermaid(definition, host).then(
 			(result) => {
 				if (!current) return;
-				reveal = drawn !== definition;
-				drawn = definition;
-				svg = result.svg;
+				reveal = true;
+				drawings = result;
 			},
 			(error: unknown) => {
 				if (!current) return;

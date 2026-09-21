@@ -94,24 +94,28 @@ surface, which is what a theme toggle should look like when the picture was alre
 Reduced-motion readers receive the final states without the loading pulse or reveal. The boundary is
 implemented in [mermaid.svelte](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte).
 
-### A theme change redraws a diagram, because the palette is inside the SVG
+### A diagram is drawn in both themes at once, because the palette is inside the SVG
 
-Every other surface on the site answers a theme change for free: the class moves on the root
-element, the tokens beneath it repaint, and whatever is drawn from them is already correct. A
-Mermaid diagram is the one thing that is not, because Mermaid resolves the palette while it renders
-and writes the resulting colours into a `style` element inside the SVG it returns. Those colours are
-a copy, and a copy does not repaint.
+Every other surface answers a theme change for free: the class moves on the root element, the tokens
+beneath it repaint, and whatever is drawn from them is already correct in the frame that follows.
+A Mermaid diagram is the one thing that is not, because Mermaid resolves the palette while it
+renders and writes the resulting colours into a `style` element inside the SVG. Those colours are a
+copy, and a copy does not repaint.
 
-So the component subscribes to the painted theme and draws again when it changes, and the adapter
-configures once per theme rather than once -- the `initialize` guard used to be a plain boolean,
-which is what left a diagram carrying the previous theme's colours until the page was reloaded. The
-theme is passed to the adapter rather than read back off an ancestor, so the value the component
-re-rendered on and the value baked into the drawing cannot be two different answers. The
-subscription is `observeTheme` in [libs/theme](../../libs/theme/src/index.ts), which watches the
-class rather than being told, matching what `currentTheme` beside it already does.
+Redrawing on the change was the first repair and it is not enough. Measured on an article holding
+three diagrams: the suppression sheet `applyTheme` installs opens and closes inside one synchronous
+block and is gone at 2.6ms, the page repaints correctly at 8.9ms, and the three diagrams turned at
+20.3ms, 31.3ms and 42.5ms -- one to two frames behind everything around them, with no transition
+anywhere near it. A render is asynchronous and can therefore never land inside a synchronous
+window, which is the whole of why the `!important` sheet cannot help here.
 
-This is the cost of the hex mirror below and is accepted with it. Anything else that copies a
-colour out of the tokens instead of reading them owes the same redraw.
+So both drawings are made while the loading surface is still up, and the toggle picks one. The
+subscription is `observeTheme` in [libs/theme](../../libs/theme/src/index.ts), whose callback is a
+microtask: it runs before the next paint, so an assignment made there turns the diagram in the same
+frame as the page. The adapter serialises its renders because Mermaid's `initialize` is global and
+every diagram now configures twice, and the two palettes are named rather than switched by a `.dark`
+ancestor so the theme that is not on screen stays readable. The price is a second render per diagram
+on first load, behind a surface that was already reserving the space.
 
 Mermaid's theme engine accepts hex colours while the site palette is authored in OKLCH. It does not
 justify changing the shared palette or scattering overrides across generated SVG selectors. A

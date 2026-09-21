@@ -70,8 +70,8 @@ export function applyTheme(theme: Theme, root: HTMLElement = document.documentEl
  * Call back whenever the painted theme changes, and return the unsubscribe.
  *
  * For whatever copied a colour out of the tokens and so cannot repaint on its own -- see
- * spec/styling/blocks.md, "A theme change redraws a diagram, because the palette is inside the
- * SVG". The class is watched rather than `applyTheme` announcing, for the reason `currentTheme`
+ * spec/styling/blocks.md, "A diagram is drawn in both themes at once, because the palette is
+ * inside the SVG". The class is watched rather than `applyTheme` announcing, so `currentTheme`
  * reads it. `create` is injected like `followSystemTheme`'s media query, so the node suite can
  * drive it without a DOM.
  */

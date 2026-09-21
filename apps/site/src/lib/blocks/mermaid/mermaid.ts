@@ -3,9 +3,18 @@ import type { Theme } from '@canmi/theme';
 
 type Mermaid = (typeof import('mermaid'))['default'];
 
+/** One diagram drawn in both themes, so a toggle is an assignment rather than a render. */
+export type Drawings = Record<Theme, string>;
+
+const THEMES: readonly Theme[] = ['light', 'dark'];
+
 let modulePromise: Promise<Mermaid> | undefined;
-let configuredTheme: Theme | undefined;
 let diagramId = 0;
+/**
+ * `initialize` is global, so two diagrams cannot be mid-configuration at once -- and every
+ * diagram now configures twice. Renders go through here one at a time.
+ */
+let pending: Promise<unknown> = Promise.resolve();
 
 function color(style: CSSStyleDeclaration, name: string): string {
 	const value = style.getPropertyValue(name).trim();
@@ -21,18 +30,18 @@ function color(style: CSSStyleDeclaration, name: string): string {
 
 function configuration(root: HTMLElement, theme: Theme): MermaidConfig {
 	const style = getComputedStyle(root);
-	const page = color(style, '--mermaid-page');
-	const paper = color(style, '--mermaid-paper');
-	const hover = color(style, '--mermaid-paper-hover');
-	const border = color(style, '--mermaid-border');
-	const strongBorder = color(style, '--mermaid-border-strong');
-	const text = color(style, '--mermaid-text');
-	const softText = color(style, '--mermaid-text-soft');
-	const strongText = color(style, '--mermaid-text-strong');
-	const ink = color(style, '--mermaid-ink');
-	const accent = color(style, '--mermaid-accent');
-	// Taken from the caller rather than read back off an ancestor, so the value the component
-	// re-renders on and the value baked into the SVG cannot be two different answers.
+	// Named rather than switched by an ancestor, so the theme that is not on screen is readable.
+	const of = (name: string) => color(style, `--mermaid-${theme}-${name}`);
+	const page = of('page');
+	const paper = of('paper');
+	const hover = of('paper-hover');
+	const border = of('border');
+	const strongBorder = of('border-strong');
+	const text = of('text');
+	const softText = of('text-soft');
+	const strongText = of('text-strong');
+	const ink = of('ink');
+	const accent = of('accent');
 	const darkMode = theme === 'dark';
 
 	return {
@@ -116,30 +125,35 @@ function configuration(root: HTMLElement, theme: Theme): MermaidConfig {
 	};
 }
 
-/**
- * Configure once per theme, rather than once.
- *
- * Mermaid writes the palette into the SVG it returns, so a repainted token reaches a diagram that
- * is already drawn only if it is drawn again -- see spec/styling/blocks.md, "A theme change
- * redraws a diagram, because the palette is inside the SVG". `initialize` merges, and this
- * adapter passes every value it owns on each call, so repeating it leaves none behind.
- */
-async function load(root: HTMLElement, theme: Theme): Promise<Mermaid> {
+async function draw(source: string, root: HTMLElement): Promise<Drawings> {
 	modulePromise ??= import('mermaid').then(({ default: mermaid }) => mermaid);
 	const mermaid = await modulePromise;
-	if (configuredTheme !== theme) {
+	const drawings = {} as Drawings;
+	for (const theme of THEMES) {
+		// Sequential on purpose, which is what the `no-await-in-loop` warning is about: the
+		// configuration `initialize` writes is global, so a second render started before the
+		// first finished would draw in whichever theme was configured last. `initialize` merges,
+		// and this adapter passes every value it owns on each call, so repeating it leaves none
+		// of the previous theme behind. Stated rather than suppressed; see spec/lint-format.md.
 		mermaid.initialize(configuration(root, theme));
-		configuredTheme = theme;
+		diagramId += 1;
+		const result: RenderResult = await mermaid.render(`mermaid-diagram-${diagramId}`, source);
+		drawings[theme] = result.svg;
 	}
-	return mermaid;
+	return drawings;
 }
 
-export async function renderMermaid(
-	source: string,
-	root: HTMLElement,
-	theme: Theme,
-): Promise<RenderResult> {
-	const mermaid = await load(root, theme);
-	diagramId += 1;
-	return mermaid.render(`mermaid-diagram-${diagramId}`, source);
+/**
+ * Draw one diagram in both themes.
+ *
+ * Mermaid writes the palette into the SVG it returns, so a repainted token reaches a diagram
+ * already on screen only through another render -- and a render is asynchronous, which is a frame
+ * or two after the rest of the page has turned. Drawing both while the loading surface is still up
+ * makes the toggle an assignment. See spec/styling/blocks.md, "A diagram is drawn in both themes
+ * at once, because the palette is inside the SVG".
+ */
+export async function renderMermaid(source: string, root: HTMLElement): Promise<Drawings> {
+	const run = pending.then(() => draw(source, root));
+	pending = run.catch(() => undefined);
+	return run;
 }

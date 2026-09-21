@@ -17,14 +17,19 @@ const SOURCE = 'flowchart LR\nA --> B';
 
 /** A render held open, so each test settles it in the direction it is about. */
 function diagram() {
-	let resolve!: (result: { svg: string }) => void;
+	let resolve!: (result: { light: string; dark: string }) => void;
 	let reject!: (error: Error) => void;
-	const promise = new Promise<{ svg: string }>((res, rej) => {
+	const promise = new Promise<{ light: string; dark: string }>((res, rej) => {
 		resolve = res;
 		reject = rej;
 	});
 	renderMermaid.mockReturnValue(promise);
 	return { resolve, reject };
+}
+
+/** Both drawings of one diagram, told apart by what their single `text` node says. */
+function drawings(light = 'A', dark = 'A in the dark') {
+	return { light: `<svg><text>${light}</text></svg>`, dark: `<svg><text>${dark}</text></svg>` };
 }
 
 function mount(props: { description?: string | undefined } = {}) {
@@ -49,7 +54,7 @@ it('shows the drawn diagram, and not its source', async () => {
 	expect(screen.getByRole('status')).toBeDefined();
 	expect(container.querySelector('pre')).toBeNull();
 
-	resolve({ svg: '<svg><text>A</text></svg>' });
+	resolve(drawings());
 	await screen.findByRole('img', { name: 'A to B' });
 
 	expect(container.querySelector('.mermaid-result svg')).not.toBeNull();
@@ -65,7 +70,7 @@ it('leaves the diagram unlabelled until a description has been written', async (
 	const { resolve } = diagram();
 	const { container } = mount({ description: undefined });
 
-	resolve({ svg: '<svg><text>A</text></svg>' });
+	resolve(drawings());
 	await waitFor(() => expect(container.querySelector('.mermaid-result svg')).not.toBeNull());
 
 	// `cms diagram` has not been run over every article, so an absent description is the ordinary
@@ -87,4 +92,26 @@ it('falls back to the readable source, and draws nothing', async () => {
 	expect(container.querySelector('svg')).toBeNull();
 	expect(screen.queryByRole('img')).toBeNull();
 	expect(reported).toHaveBeenCalledWith('Could not render Mermaid diagram', expect.any(Error));
+});
+
+it('turns the theme by picking the other drawing, without rendering again', async () => {
+	const { resolve } = diagram();
+	const { container } = mount();
+
+	resolve(drawings());
+	await screen.findByRole('img', { name: 'A to B' });
+	expect(container.querySelector('.mermaid-result svg text')?.textContent).toBe('A');
+	expect(renderMermaid).toHaveBeenCalledOnce();
+
+	document.documentElement.classList.add('dark');
+	// Both drawings were already in hand, so the swap owes nothing to the renderer. A second
+	// call here would be the frame of lag this arrangement exists to remove -- see
+	// spec/styling/blocks.md, "A diagram is drawn in both themes at once, because the palette is
+	// inside the SVG".
+	await waitFor(() =>
+		expect(container.querySelector('.mermaid-result svg text')?.textContent).toBe('A in the dark'),
+	);
+	expect(renderMermaid).toHaveBeenCalledOnce();
+
+	document.documentElement.classList.remove('dark');
 });
