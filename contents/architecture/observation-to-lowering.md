@@ -507,7 +507,7 @@ ComponentIR
 
 另外就是 “不推 global state” 对 Seam 的意义也比 DX 更深，我相信你肯定在 Next.js 项目里面或者任何 React 全栈框架里面已经见过了下面这一坨玩意 ↓
 
-```tsx
+```typescript
 <ThemeProvider>
   <AuthProvider>
     <QueryClientProvider>
