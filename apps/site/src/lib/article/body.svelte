@@ -135,8 +135,9 @@
 	function noteJump(target: EventTarget | null): HTMLAnchorElement | undefined {
 		if (!(target instanceof Element)) return undefined;
 		// Markers only. The way back lives in the notes section, which renders outside this
-		// root and owns its own clicks -- see footnotes.svelte. Either spelling of the address,
-		// until the corpus is republished -- see spec/architecture/css/authoring.md.
+		// root and owns its own clicks -- see footnotes.svelte. Either spelling, because a
+		// heading's marker is section.svelte's and carries the class alone, while the compiler's
+		// carries the attribute -- see spec/architecture/css/authoring.md.
 		const found = target.closest<HTMLAnchorElement>('a.note-marker-link, a[data-note-marker-link]');
 		return found && root?.contains(found) ? found : undefined;
 	}

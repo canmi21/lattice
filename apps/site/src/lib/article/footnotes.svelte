@@ -275,13 +275,13 @@
 		event.preventDefault();
 		jumpTo(destination);
 		// Light the words the reader is returning to. A marker in a heading has no wrapped
-		// words -- the heading names itself -- so the marker alone takes the light there.
-		// Both spellings of the address: the marker and the words are compiled into the article,
-		// so one published before the move carries only the class. See
-		// spec/architecture/css/authoring.md.
+		// words -- the heading names itself -- so the marker alone takes the light there, and it
+		// is section.svelte's, which writes the class alone. Hence both spellings for the marker
+		// and one for the words, which only the compiler writes.
+		// See spec/architecture/css/authoring.md.
 		const sup = destination.closest('sup.note-marker, sup[data-note-marker]');
 		const words = sup?.previousElementSibling;
-		const target = words?.matches('.note-words, [data-note-words]') === true ? words : sup;
+		const target = words?.matches('[data-note-words]') === true ? words : sup;
 		if (target instanceof HTMLElement) flashOnArrival(target, 'each');
 	}
 </script>
