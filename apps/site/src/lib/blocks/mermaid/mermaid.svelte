@@ -116,7 +116,7 @@
 			: 'min-h-[8rem]'} {stylex.attrs(styles.stage).class}"
 		aria-busy={!svg && !failed}
 	>
-		{#if false && svg}
+		{#if svg}
 			<!-- Labelled as one picture rather than left as loose text. Mermaid's output is a
 			     graph of `text` nodes in draw order, which reads as a word list; the description
 			     says what the graph shows. Without one the nodes stay readable, which is worse
@@ -131,7 +131,7 @@
 			>
 				{@html svg}
 			</div>
-		{:else if true || failed}
+		{:else if failed}
 			<!-- svelte-ignore a11y_no_noninteractive_tabindex (the source fallback can overflow
 			     horizontally and therefore needs to be reachable by a keyboard) -->
 			<pre tabindex="0" class="m-0 min-w-max {stylex.attrs(styles.source).class}"><code
