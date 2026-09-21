@@ -1366,3 +1366,55 @@ where `apps/site/src/styles/` would be the better home.
 reference check validates markdown links, `spec/**/*.md` cited from code, and quoted section
 names; a non-spec path in a Rust doc comment is in its not-flagged set. Whoever moves the block
 updates that citation in the same commit, because nothing will say they forgot.
+
+## The three-component threshold is a memory, and nothing counts the components
+
+[architecture/css/extraction.md](architecture/css/extraction.md) admits a value to the vocabulary at
+three components, and a declaration group on the same bar plus one more. Nothing counts them. Every
+admission and every refusal so far is a number somebody held in their head at the moment they wrote
+the value, and whoever reads the result inherits the conclusion without the count.
+
+"The extraction threshold counts one layer and the vocabulary lives in three" above is a different
+finding about the same number: that one is about which layers a count should read, and this one is
+that no count exists to point at a layer. A `check-layers` reporting application sites per value
+would make the threshold a measurement rather than a memory, and the two questions only separate
+once something is doing the counting.
+
+Measured 2026-09-21 by reading `mise.toml` and `apps/site/scripts/`: `check-css` builds the site and
+runs `css-layers.ts`, which reads the built stylesheets and holds the order of the three layers. No
+task in this repository reads a declaration's value and counts where else it is written. Deciding
+this costs a parser over the site's TypeScript, and a threshold that can fail a build is a number
+that has to be right on the days nobody is thinking about it.
+
+## The enumeration is normative and the code has drifted from it
+
+[architecture/css/layers.md](architecture/css/layers.md), "The enumeration is the rule, and the test
+is only how the enumeration grows", makes the property list the thing that decides, on the argument
+that a lookup can be checked by somebody who was not in the argument. The list is prose inside
+paragraphs, so nothing reads it, and nobody has checked it.
+
+Measured 2026-09-21 over `apps/site/src`, taking every `stylex.create` block and every `class`
+attribute in a `.svelte` file: 20 frame-owned declarations are written in the visual layer -- 11
+`textWrap`, 6 `overflowWrap`, 3 `whiteSpace` -- and 14 vocabulary-owned ones are written as
+utilities in the markup, 7 appearance and 7 colour. The three `whiteSpace` are the sites that file
+already accounts for as a different value at each; the other 31 are drift nobody recorded.
+
+A table that is data rather than prose could be compared against what the tree declares. What it
+costs is that the enumeration stops being readable where it is argued: why `cursor` splits by site,
+why `will-change` belongs to no ramp, and the pair of mirror-image errors that placed the typography
+line all sit beside entries a machine would rather have alone.
+
+## The `// unnamed:` ledger has no entries and no counter
+
+[architecture/css/authoring.md](architecture/css/authoring.md), "An unnamed ramp value is marked, so
+it can be counted", asks for a mark beside every ramp property written with a literal and a gate
+that prints the total. Measured 2026-09-21: the tree carries zero marks, and no task counts
+anything. The convention is written and unused, which is worse than either half alone -- a reader
+meeting an unmarked literal cannot tell whether it was judged and passed or never looked at.
+
+**The 125 that section names is not reproducible and should not be read as current.** Scanning the
+same properties today finds 48 written with a literal across the site's own `.svelte` and `.ts`
+sources against 145 taking a named value, plus 27 in stylesheets outside the visual layer;
+`libs/fonts` is excluded, where the same property names are `@font-face` descriptors and not a ramp
+at all. Which of those sets the gate should count is part of what deciding this costs, and the
+number moves by a factor of two depending on the answer.

@@ -123,6 +123,19 @@ arrangement the ports themselves rely on.
 tmux is a machine tool rather than a mise one, for the reason the workspace's `toolchain.md`
 gives about that distinction generally.
 
+### A window runs a shell and the dev task is typed into it
+
+Each window is opened on the default shell and sent `mise run dev-<app>` as keystrokes, rather
+than being given the command as the window's own process. A window whose process is the server
+dies with the server, which leaves nothing to read afterwards and nothing to restart into; a shell
+outlives it, and the window's foreground command is then the evidence of whether the server is
+still there. That is the whole of how `up` tells a running window from an idle one, and it is what
+makes running `up` twice safe rather than merely harmless.
+
+What it costs is that a server's exit is silent until somebody asks. `base status` is the asking.
+Nothing here supervises anything, and a window reading `idle` is the report a supervisor would
+have made.
+
 ## The Tauri dev watcher is told where the frontend is
 
 `tauri dev` watches every directory Cargo reaches through a local `path` dependency, not just
