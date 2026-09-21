@@ -53,13 +53,32 @@ and would leave two lists on one page disagreeing about where their values begin
 Japanese. Intrinsic sizing answers the translation, subgrid answers the alignment, and neither
 answer is a measurement anybody has to maintain.
 
-## A summary provider mark follows the last letter, not the punctuation
+## A summary provider mark aligns with the summary's widest line
 
-The provider mark at the end of an article summary is visually anchored to the text line above
-it rather than to the paragraph edge. When the summary's final line has room for the mark, the
-mark remains on that line and its right edge aligns with the final letter on the preceding line.
-When the final line has no room, the mark moves to the following line and aligns with the final
-letter on the summary's final text line instead.
+The provider mark at the end of an article summary aligns with the rightmost ink in the whole
+block: the widest of its rendered lines, measured through that line's last letter. Not the
+paragraph edge, and -- since this rule replaced an earlier one -- not the line the mark happens
+to sit beside.
+
+**The earlier rule anchored the mark to the line immediately above it**, the preceding line
+while the mark shared the last text line and the last text line once it had dropped below. Its
+argument was adjacency: a mark reads as belonging to the line it sits next to. That holds, and
+it is what this rule gives up. What it costs is that the column the mark lands in is then a
+property of one arbitrary line, so it moves from summary to summary and from locale to locale,
+and a block whose right edge is already ragged gets a mark ragged with it. Aligning to the
+widest line puts the mark where the block visibly ends. The price, stated so nobody rediscovers
+it as a defect: when the widest line is several lines above the mark, the mark sits at a column
+with no text beside it.
+
+Two lines are the case that hides the difference, which is why the earlier rule survived as long
+as it did. A one-line summary has one line and it is trivially the widest. Two lines with the
+mark beside the second put the anchor on the first, and the mark only fits there when the second
+line is short -- so the first line is the widest, and both rules give the same answer. From three
+lines the anchor is one interior line among several competitors, and each falls short of the
+widest by whatever word did not fit.
+
+The quantity is a maximum over every line rather than a choice between two, and the lines are
+already to hand where the choice used to be made.
 
 Punctuation does not supply that anchor. A line ending in `block，` aligns the mark with the right
 edge of `k`, and a Chinese sentence ending in `。` aligns it with the preceding Han character.

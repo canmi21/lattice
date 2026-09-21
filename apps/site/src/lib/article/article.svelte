@@ -276,12 +276,12 @@
 	}
 
 	/**
-	 * Follow the last letter on the rendered reference line, not its trailing punctuation.
+	 * Anchor the mark to the widest line in the summary, through that line's last letter.
 	 *
-	 * A wrapped line can stop short by a word or several CJK glyphs, and CSS exposes no value for
-	 * that ink width. Pretext applies the browser's line-breaking rules to exact canvas metrics;
-	 * the mark stays in flow and measurement only supplies the inset wrapping cannot express.
-	 * See spec/styling/lengths.md.
+	 * Aligning to the line immediately above it leaves the mark at a different column on every
+	 * summary, which reads as a ragged edge rather than as one. CSS exposes neither of those
+	 * widths, so pretext measures them from the browser's own font metrics.
+	 * See spec/styling/lengths.md, "A summary provider mark aligns with the summary's widest line".
 	 */
 	function alignSummaryProvider(node: HTMLParagraphElement) {
 		let frame = 0;
@@ -318,11 +318,9 @@
 				const width = node.clientWidth;
 				const lineHeight = Number.parseFloat(style.lineHeight);
 				const lines = layoutWithLines(prepared, width, lineHeight).lines;
-				const last = lines.at(-1);
-				if (!last) return;
+				if (lines.length === 0) return;
 
 				const markWidth = mark.getBoundingClientRect().width;
-				const startMargin = Number.parseFloat(getComputedStyle(mark).marginInlineStart) || 0;
 				const widthThroughLastLetter = (line: (typeof lines)[number]) => {
 					const throughLastLetter = line.text.match(/^.*\p{L}\p{M}*/u)?.[0];
 					return throughLastLetter
@@ -331,12 +329,7 @@
 							)
 						: line.width;
 				};
-				const lastWidth = widthThroughLastLetter(last);
-				const preceding = lines.at(-2);
-				const precedingWidth = preceding ? widthThroughLastLetter(preceding) : undefined;
-				const sharesLastLine =
-					precedingWidth !== undefined && last.width + startMargin <= precedingWidth - markWidth;
-				const anchorWidth = sharesLastLine ? precedingWidth : lastWidth;
+				const anchorWidth = Math.max(...lines.map((line) => widthThroughLastLetter(line)));
 				const inset = Math.min(Math.max(0, width - anchorWidth), Math.max(0, width - markWidth));
 				mark.style.marginInlineEnd = remFromMeasuredPixels(inset);
 			});
