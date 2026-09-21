@@ -417,9 +417,9 @@ of it to the markup.
 its rule blocks sit outside every layer and therefore outrank the vocabulary unconditionally,
 which is a silent wrong answer and the one a partial port walks into -- a rule moved to StyleX
 loses to whatever of its block is still unlayered here, and nothing reports it. Putting them in a
-layer below the escape hatch makes the order predictable while the rules move one group at a
-time. What the wrapper costs is three elements
-that render differently the moment those rules are inside any layer StyleX's are declared after:
+layer below the escape hatch makes the order predictable while the rules move one group at a time.
+What the wrapper costs is three elements that render differently the moment those rules are inside
+any layer StyleX's are declared after:
 `.spring-underline`'s `transition` shorthand stops beating the StyleX `transition-*` on
 [newsletter.svelte](../../../apps/site/src/lib/newsletter/newsletter.svelte):481 and
 [offer.svelte](../../../apps/site/src/lib/error/offer.svelte):65, and the `.focus-input-shell`
