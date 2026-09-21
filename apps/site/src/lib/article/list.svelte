@@ -140,7 +140,8 @@
      section does it and one fewer place the same string is written. The id is also what a caller
      needs to reach this heading from outside. -->
 <section bind:this={listEl} aria-labelledby="writing-heading" class="mt-16">
-	<h2 id="writing-heading" class="selectable mb-3 {stylex.attrs(surfaces.heading).class}">
+	<!-- The heading is a sentence, and the home page around it has selection switched off. -->
+	<h2 id="writing-heading" class="select-text mb-3 {stylex.attrs(surfaces.heading).class}">
 		{heading}
 	</h2>
 	<div>

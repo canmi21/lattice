@@ -76,18 +76,22 @@
 		{/each}
 	</div>
 
+	<!-- `select-text` on the four sentences below, and on nothing else here: the card is a control
+	     and the home page switches selection off over the whole of itself, so a title or a subtitle
+	     is a sentence a reader may quote while the leader and the date are furniture a drag should
+	     not come away with. The date is deliberately not one of them. -->
 	<div class="article-preview-copy">
 		<!-- Title shares its line with the dotted leader and date, so the leader
 		starts at the title's end rather than the (often longer) subtitle below. -->
 		<div class="article-preview-heading">
 			<!-- Both forms in the document, CSS choosing between them: see spec/styling/phone.md,
 			     "A phone is shown the title that fits, not the title cut short". -->
-			<h3 class="selectable article-preview-title max-sm:hidden">{title}</h3>
-			<h3 class="selectable article-preview-title sm:hidden">{short_title}</h3>
+			<h3 class="select-text article-preview-title max-sm:hidden">{title}</h3>
+			<h3 class="select-text article-preview-title sm:hidden">{short_title}</h3>
 			<div class="article-preview-leader"></div>
 			<time datetime={published} class="article-preview-date">{date}</time>
 		</div>
-		<p class="selectable article-preview-subtitle max-sm:hidden">{subtitle}</p>
-		<p class="selectable article-preview-subtitle sm:hidden">{short_subtitle}</p>
+		<p class="select-text article-preview-subtitle max-sm:hidden">{subtitle}</p>
+		<p class="select-text article-preview-subtitle sm:hidden">{short_subtitle}</p>
 	</div>
 </a>

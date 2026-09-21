@@ -19,17 +19,6 @@
    Keeping this in the components layer lets each control's rounded utility own its actual
    silhouette. See spec/styling/focus.md. */
 @layer components {
-	/* Prose, in a page that has switched selection off. A component marks which of its parts are
-	   sentences; whether a drag should sweep controls up too is the page's call, so this does
-	   nothing on a page that never restricts selection.
-
-	   `-webkit-` is carried because Safari only dropped the prefix in 17 and the floor here is 16.
-	   Applied to the element itself, so it wins over a `none` inherited from any ancestor. */
-	.selectable {
-		-webkit-user-select: text;
-		user-select: text;
-	}
-
 	:where(.focus-ring, .focus-ring-inner, .focus-ring-within) {
 		border-radius: 0.25rem;
 	}

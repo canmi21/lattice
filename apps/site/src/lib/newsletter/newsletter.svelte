@@ -312,7 +312,10 @@ otherwise need. See spec/engagement.md. -->
 		class="pill-metrics {className}"
 		style={sequenceStyle()}
 	>
-		<h2 id="newsletter-heading" class="selectable mb-3 {stylex.attrs(surfaces.heading).class}">
+		<!-- `select-text` here and on every line of prose below, because the home page holding this
+		     section switches selection off over the whole of itself and these are sentences rather
+		     than apparatus. The pill, its button and the count beside them stay unselectable. -->
+		<h2 id="newsletter-heading" class="select-text mb-3 {stylex.attrs(surfaces.heading).class}">
 			{m['newsletter.heading']({}, { locale })}
 		</h2>
 
@@ -322,10 +325,10 @@ otherwise need. See spec/engagement.md. -->
 		     Both are in the markup and one is `display: none`, so a screen reader is read exactly
 		     one of them. The bio does this with markers inside its markdown; a message has none,
 		     so the choice is made here. See spec/styling/phone.md. -->
-		<p class="selectable hidden sm:block {stylex.attrs(styles.pitch).class}">
+		<p class="select-text hidden sm:block {stylex.attrs(styles.pitch).class}">
 			{m['newsletter.pitch']({}, { locale })}
 		</p>
-		<p class="selectable sm:hidden {stylex.attrs(styles.pitch).class}">
+		<p class="select-text sm:hidden {stylex.attrs(styles.pitch).class}">
 			{m['newsletter.pitch.short']({}, { locale })}
 		</p>
 
@@ -418,14 +421,14 @@ otherwise need. See spec/engagement.md. -->
 			).class}"
 		>
 			{#if status === 'error'}
-				<p class="selectable" role="alert">{m['newsletter.error']({}, { locale })}</p>
+				<p class="select-text" role="alert">{m['newsletter.error']({}, { locale })}</p>
 			{:else if status === 'cancelled'}
-				<p class="selectable" role="status" class:returning={stage === 'restoring'}>
+				<p class="select-text" role="status" class:returning={stage === 'restoring'}>
 					{m['newsletter.unsubscribed']({}, { locale })}
 				</p>
 			{:else if status === 'confirmed'}
 				<p
-					class="selectable"
+					class="select-text"
 					role="status"
 					class:arriving={entering}
 					class:departing={stage === 'reverting'}
@@ -433,7 +436,7 @@ otherwise need. See spec/engagement.md. -->
 					{m['newsletter.confirm']({}, { locale })}
 				</p>
 			{:else}
-				<p class="selectable" class:leaving={entering}>
+				<p class="select-text" class:leaving={entering}>
 					<ParaglideMessage
 						message={m['newsletter.subscribers']}
 						inputs={{ count: subscribers }}

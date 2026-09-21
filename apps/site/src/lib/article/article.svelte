@@ -446,15 +446,15 @@
 						</span>{/if}
 				</h1>
 				<!-- Apparatus rather than article, so it does not select either; the body and its own
-				     controls are left alone deliberately, and the dates inside take selection back
-				     with `.selectable`. Quoting a passage is the reason this page exists. -->
+				     controls are left alone deliberately, and the date inside takes selection back with
+				     `select-text`. Quoting a passage is the reason this page exists. -->
 				<div
 					class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 select-none {stylex.attrs(
 						surfaces.uiText,
 						styles.meta,
 					).class}"
 				>
-					<time class="selectable" datetime={meta.published}>{date}</time>
+					<time class="select-text" datetime={meta.published}>{date}</time>
 					<span
 						class="inline-flex items-center gap-1"
 						title="{words.toLocaleString('en-US')} words"
