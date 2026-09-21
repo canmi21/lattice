@@ -127,7 +127,7 @@ flowchart LR
 
 举个反例，React 里面的
 
-```typescript
+```tsx
 function Card({ user }) {
   return user
     ? <div className="card">
@@ -314,7 +314,7 @@ Seam 完全可以把它理解成类似下面的样子
 
 这里当然不是说 JSX 做不到。只是真的写起来的话没几个人会把结构留在分支树上容易看得见的地方，基本上都是写成这下面这样子(x)
 
-```typescript
+```tsx
 const price = formatPrice(product);
 const body = product.available
   ? getAvailableView(product)
@@ -507,7 +507,7 @@ ComponentIR
 
 另外就是 “不推 global state” 对 Seam 的意义也比 DX 更深，我相信你肯定在 Next.js 项目里面或者任何 React 全栈框架里面已经见过了下面这一坨玩意 ↓
 
-```typescript
+```tsx
 <ThemeProvider>
   <AuthProvider>
     <QueryClientProvider>
@@ -525,7 +525,7 @@ ComponentIR
 
 具体就是把原来一堆嵌套的 Provider 丢数组，然后定义一个组合函数，最后再吃这一层即可。~~但是这个对我来说其实就是一种自欺欺人的行为~~，本质上只是"藏起来"了, 又不是真的消除了。也就是从视觉上的嵌套变成了逻辑上的嵌套而已，某种意义上的 "眼不见为净" 纯纯的自我安慰
 
-```typescript
+```tsx
 const AppProviders = composeProviders([
   ThemeProvider,
   AuthProvider,

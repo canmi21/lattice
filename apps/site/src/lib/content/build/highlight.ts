@@ -14,6 +14,9 @@ const LANGS = [
 	'shell',
 	'json',
 	'typescript',
+	// JSX is not in the TypeScript grammar, so a fence carrying it needs this one or its tags
+	// degrade into comparisons and bare identifiers. See spec/styling/blocks.md.
+	'tsx',
 	'javascript',
 	'svelte',
 	'html',
