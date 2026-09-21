@@ -115,14 +115,6 @@
 			fontWeight: weight.medium,
 		},
 		/**
-		 * The underline stays off -- eight dotted lines of apparatus would out-shout the article
-		 * above them. The colour it rests at is in the block below, with the ancestor the
-		 * hovered value is reached through.
-		 */
-		link: {
-			textDecoration: 'none',
-		},
-		/**
 		 * The way back, bright at rest like the number at the note's head: the two ends of the
 		 * walk are the two points of colour, and everything between them is the reading.
 		 */
@@ -370,13 +362,18 @@
 		     The phrase and number stay outside the link -- they are the note's address, not its
 		     content -- and the link's accessible name stays the explanation itself, with the
 		     purpose after it as words only a screen reader gets. -->
+		<!-- The link's underline stays off: eight dotted lines of apparatus would out-shout the
+		     article above them. Suppressing a browser default names nothing, so it is the frame
+		     rather than the visual layer -- spec/architecture/css/layers.md, "What each layer owns,
+		     by name". The colour it rests at is in the block at the foot, with the ancestor the
+		     hovered value is reached through. -->
 		<span class="note-line"
 			><span class="note-phrase {stylex.attrs(styles.phrase).class}">{note.phrase}</span><sup
 				class="note-marker"
 				aria-hidden="true">{note.number}</sup
 			><a
 				href="#marker-{note.number}"
-				class="note-link focus-link {stylex.attrs(styles.link).class}"
+				class="note-link focus-link no-underline"
 				onclick={jumpBack}
 				>{note.text}<span
 					class="ms-[0.35rem] inline-flex align-[-0.1em] {stylex.attrs(styles.back).class}"
