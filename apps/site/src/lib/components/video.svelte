@@ -24,6 +24,29 @@
 		notice: { ...frame, color: 'var(--color-text-soft)' },
 		/** The way out, which is the one thing in the notice a reader is meant to reach for. */
 		link: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
+		/**
+		 * The hold: a remembered clip stays transparent until it has seeked to the frame its
+		 * reader left it on. The opacity is read from `--clip-hold`, which the head script writes
+		 * on the frame and the element inherits; its other value is behind `data-settled`, which
+		 * only the block can spell and which outranks this layer. See
+		 * spec/architecture/video/player.md. One property in the list, so the delay and the
+		 * behaviour keep the initial values the shorthand this replaced already computed to.
+		 */
+		surface: {
+			opacity: 'var(--clip-hold, 1)',
+			transitionProperty: {
+				default: 'opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '120ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
+		},
 	});
 </script>
 
@@ -337,7 +360,8 @@
 	     the clip has, written by the loop below, and the compiler can only see a static one) -->
 		<video
 			bind:this={el}
-			class="video-surface block h-full w-full object-cover"
+			class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface)
+				.class}"
 			onclick={() => controls?.press()}
 			src={resolved ? undefined : fallback}
 			data-settled={settled || undefined}
@@ -377,7 +401,8 @@
 				}
 			</style>
 			<video
-				class="video-surface block h-full w-full object-cover"
+				class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface)
+					.class}"
 				src={resolved ? undefined : fallback}
 				{poster}
 				{width}
@@ -475,25 +500,13 @@
 		border-radius: 0.1875rem;
 	}
 
-	/* The hold: one mechanism in four parts, kept whole. The window and the picture filling it
-	   are utilities in the markup now; what is left is the fade -- an opacity read from
-	   `--clip-hold`, which the head script writes on the frame, its other value behind
-	   `data-settled`, an attribute this component sets on itself that StyleX cannot spell, and
-	   the transition below. Only a remembered clip is held, and the set stays whole: see
-	   spec/architecture/video/player.md and spec/architecture/css/migration.md. */
-	.video-surface {
-		opacity: var(--clip-hold, 1);
-		transition: opacity 120ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
+	/* The end of the hold: the clip has seeked to the frame its reader left it on and may be
+	   shown. An attribute this component sets on itself, which no layer but this one can spell --
+	   see spec/architecture/css/authoring.md, "An attribute selector is not a condition, even on
+	   the element itself". The opacity it releases, and the fade between the two, are in the
+	   visual layer. */
 	.video-surface[data-settled] {
 		opacity: 1;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.video-surface {
-			transition: none;
-		}
 	}
 
 	/* Both fullscreens, in one rule on purpose: the two routes -- an attribute this file writes

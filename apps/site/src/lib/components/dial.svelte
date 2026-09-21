@@ -1,3 +1,21 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+
+	/**
+	 * The visual half of the dial: the opacity a turned-out face rests at, and nothing else.
+	 *
+	 * Its other value stays in the block at the foot beside the three it travels with, because
+	 * all four are reached through `data-shown` on the face itself. See
+	 * spec/architecture/css/authoring.md, "An attribute selector is not a condition, even on the
+	 * element itself".
+	 */
+	const styles = stylex.create({
+		face: {
+			opacity: 0,
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { untrack, type Snippet } from 'svelte';
 
@@ -44,23 +62,32 @@
 </script>
 
 <span class="dial inline-grid place-items-center {className}" class:turned={turns > 0}>
-	<span class="face" data-shown={shown === 'first'}>{@render first()}</span>
-	<span class="face" data-shown={shown === 'second'}>{@render second()}</span>
+	<span
+		class="face col-start-1 row-start-1 inline-grid invisible -rotate-90 [scale:0.6] {stylex.attrs(
+			styles.face,
+		).class}"
+		data-shown={shown === 'first'}>{@render first()}</span
+	>
+	<span
+		class="face col-start-1 row-start-1 inline-grid invisible -rotate-90 [scale:0.6] {stylex.attrs(
+			styles.face,
+		).class}"
+		data-shown={shown === 'second'}>{@render second()}</span
+	>
 </span>
 
 <style>
-	/* Both faces in one cell. `visibility` rather than `display` so the box measures the same in
-	   either state and nothing around it moves as the two cross. */
+	/* The one declaration of the resting face the enumeration cannot answer for: it names no
+	   `place-items`, and neither does anything it derives. It stays here until the table can be
+	   asked. See spec/architecture/css/layers.md. */
 	.face {
-		grid-area: 1 / 1;
-		display: inline-grid;
 		place-items: center;
-		visibility: hidden;
-		opacity: 0;
-		rotate: -90deg;
-		scale: 0.6;
 	}
 
+	/* The face that is showing. `visibility` rather than `display` so the box measures the same in
+	   either state and nothing around it moves as the two cross. Four values against the four the
+	   turned-out face rests at, three of them in the markup and the opacity in the visual layer;
+	   this rule outranks both, which is what keeps the pair meeting. */
 	.face[data-shown='true'] {
 		visibility: visible;
 		opacity: 1;

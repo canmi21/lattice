@@ -73,6 +73,10 @@
 		 *
 		 * Only its resting end is here. What it opens to is written against `data-expanded` on the
 		 * pill above it, which is an ancestor, and the width it opens within is the block's.
+		 *
+		 * The third of its resting values is neither: `max-w-0` is in the markup, because a
+		 * maximum width takes its value from no scale this repository keeps. Its other value is
+		 * in that same ancestor rule, which outranks the frame, so the two still meet.
 		 */
 		longCopy: {
 			opacity: 0,
@@ -326,7 +330,7 @@
 				).class}">{short}</span
 			>
 			<span
-				class="long col-start-1 row-start-1 justify-self-start overflow-hidden whitespace-nowrap {stylex.attrs(
+				class="long col-start-1 row-start-1 max-w-0 justify-self-start overflow-hidden whitespace-nowrap {stylex.attrs(
 					styles.longCopy,
 				).class}">{long}</span
 			>
@@ -430,12 +434,6 @@
 	   declaration, and stops applying to a member of a set". */
 	.reveal-mask {
 		width: 0;
-	}
-
-	/* The same, for the pill that has no shared run to slide: the long copy rests at no width and
-	   its other value is two rules down, behind an attribute on an ancestor. */
-	.long {
-		max-width: 0;
 	}
 
 	:global(.action[data-expanded='true']) .short {

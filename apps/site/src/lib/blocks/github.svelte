@@ -7,10 +7,10 @@
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot holds geometry, plus the corner glyph's reveal: gated on the
-	 * card's hover but reaching a descendant the visual layer cannot see without a marker nobody
-	 * owns yet (spec/todo.md). See spec/architecture/css/authoring.md, "A comment in the module
-	 * script cannot write a tag in angle brackets".
+	 * The corner glyph's other opacity is in the block at the foot, gated on the card's hover and
+	 * reaching a descendant this layer cannot see without a marker nobody owns yet (spec/todo.md).
+	 * The opacity it rests at, and the motion between the two, are here. This comment may not
+	 * write a tag in angle brackets; see the same file.
 	 */
 	const styles = stylex.create({
 		/** The card itself, which is the link. Its box stays in the block below. */
@@ -79,8 +79,29 @@
 		figure: {
 			fontVariantNumeric: figures.tabular,
 		},
+		/**
+		 * The corner glyph's ink and the opacity it rests at. The other opacity is the scoped
+		 * block's, because it is gated on an ancestor's hover.
+		 *
+		 * One property in the list, so the delay and the behaviour are left out: their initial
+		 * values are already the one-item lists the shorthand this replaced computed to. Reduced
+		 * motion is that shorthand's `none` as longhands, which is more than the property alone.
+		 */
 		corner: {
 			color: 'var(--color-text-soft)',
+			opacity: 0,
+			transitionProperty: {
+				default: 'opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '200ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
 		},
 	});
 </script>
@@ -213,33 +234,26 @@
 		{/if}
 	</div>
 
-	<span class="corner {stylex.attrs(styles.corner).class}" aria-hidden="true">
+	<span class="corner absolute {stylex.attrs(styles.corner).class}" aria-hidden="true">
 		<ArrowUpRight class="size-4" strokeWidth={2} />
 	</span>
 </a>
 
 <style>
-	/* The corner glyph's reveal stays whole here rather than half of it in the visual layer: the
-	   offsets are placement, and the opacity it rests at has its other value behind the card's
-	   own hover, one level up. That is an ancestor, and an ancestor is what the visual layer
-	   cannot see without a marker nobody owns yet. The transition between the two goes with them.
-	   See spec/todo.md. */
+	/* Two offsets the enumeration cannot answer for: it derives the `inset` family as
+	   `inset-right` and `inset-bottom`, which are not spellings CSS has, so the longhands it
+	   plainly means to own fall through it. They stay here until the table can be asked. See
+	   spec/architecture/css/layers.md. */
 	.corner {
-		position: absolute;
 		right: 0.75rem;
 		bottom: 0.75rem;
-		opacity: 0;
-		transition: opacity 200ms ease-out;
 	}
 
+	/* The glyph's other opacity, gated on the card's own hover one level up. That is an ancestor,
+	   and an ancestor is what the visual layer cannot see without a marker nobody owns yet. See
+	   spec/todo.md. */
 	.repo-card:hover .corner,
 	.repo-card:focus-visible .corner {
 		opacity: 1;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.corner {
-			transition: none;
-		}
 	}
 </style>

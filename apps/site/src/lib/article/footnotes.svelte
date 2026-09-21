@@ -7,10 +7,10 @@
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
 	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block below keeps the section's and fold's geometry, the `:global` marker rules,
-	 * and the note-link's hovered colour -- see spec/todo.md, "Ancestor state reaches the visual
-	 * layer only through a marker nobody owns". See spec/architecture/css/authoring.md, "A comment in
-	 * the module script cannot write a tag in angle brackets", for why this block must not.
+	 * The block below keeps what a class cannot reach: the fold's mask and its two phase rules, the
+	 * `:global` marker rules, and the note-link's hovered colour -- see spec/todo.md, "Ancestor
+	 * state reaches the visual layer only through a marker nobody owns". This comment may not
+	 * write a tag in angle brackets; see the same file.
 	 */
 	const styles = stylex.create({
 		/**
@@ -98,6 +98,30 @@
 		 */
 		chevronUp: {
 			transform: 'rotate(180deg)',
+		},
+		/**
+		 * The explanation itself, which is the control: it inherits the note's quiet colour and
+		 * brightens whole under the pointer, so hovering anywhere on those words says so.
+		 *
+		 * Only the resting colour and the motion toward the other one are here. The brightened
+		 * value is reached through the note, which is an ancestor -- see spec/todo.md, "Ancestor
+		 * state reaches the visual layer only through a marker nobody owns" -- so it stays in the
+		 * block, which outranks this layer and still wins.
+		 */
+		link: {
+			color: 'inherit',
+			// Reduced motion is the same suppression the link used to write as `transition: none`,
+			// which is more than one longhand: the shorthand also returns the duration and the
+			// curve to their initial values.
+			transitionProperty: { default: 'color', '@media (prefers-reduced-motion: reduce)': 'none' },
+			transitionDuration: {
+				default: duration.base,
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
 		},
 		/**
 		 * The quoted words are the article's, said again -- weight alone marks them. Colour is
@@ -308,10 +332,16 @@
 
 	{#if collapsible}
 		<!-- The rest, behind a fold that leaves the next note's first line showing and fades it
-		     out. The fade is the honest half of the disclosure: a hard cut says the list ends
-		     here, while text dissolving mid-line says it continues and something is holding it
-		     back. The count on the control then says how much. -->
-		<div bind:this={foldEl} class="notes-fold" data-phase={phase}>
+		     out: a hard cut says the list ends here, while text dissolving mid-line says it
+		     continues and something is holding it back. Positioned so the clip holds -- see
+		     spec/styling/notes.md, "A fold that clips has to be positioned" -- and one line tall,
+		     as a custom property rather than the length itself because `peekPixels` reads the
+		     number back off the element. -->
+		<div
+			bind:this={foldEl}
+			class="notes-fold relative h-[var(--peek-height)] overflow-hidden [--peek-height:1.75rem]"
+			data-phase={phase}
+		>
 			<!-- A second list rather than more items in the first: `ol` takes only list items, so
 			     a fold that can be measured and animated has to be an element the list cannot
 			     contain. `start` keeps the ordinals a screen reader announces true to the
@@ -375,7 +405,10 @@
 			><span class="note-phrase {stylex.attrs(styles.phrase).class}">{note.phrase}</span><sup
 				class="note-marker"
 				aria-hidden="true">{note.number}</sup
-			><a href="#marker-{note.number}" class="note-link focus-link no-underline" onclick={jumpBack}
+			><a
+				href="#marker-{note.number}"
+				class="note-link focus-link no-underline {stylex.attrs(styles.link).class}"
+				onclick={jumpBack}
 				>{note.text}<span
 					class="ms-[0.35rem] inline-flex align-[-0.1em] {stylex.attrs(styles.back).class}"
 					aria-hidden="true"
@@ -390,19 +423,6 @@
 {/snippet}
 
 <style>
-	/* The fold. Closed, it stands one line tall so the next note starts and dissolves rather
-	   than being cut off -- see the markup. The height is animated between measured numbers by
-	   the shared disclosure the code blocks use, so the two open with one motion; `auto` at
-	   rest, so an open fold still follows its own content when the window changes. */
-	.notes-fold {
-		--peek-height: 1.75rem;
-		/* Positioned so the clip actually holds -- see spec/styling/notes.md, "A fold that clips has
-		   to be positioned". */
-		position: relative;
-		overflow: hidden;
-		height: var(--peek-height);
-	}
-
 	/* Not a gradient drawn over the text: a mask, so whatever the theme paints behind the page
 	   is what shows through. A translucent overlay in the paper's colour would be a second
 	   place the background is written down, and would be wrong the moment either changes. */
@@ -410,6 +430,9 @@
 		mask-image: linear-gradient(to bottom, black 0.35rem, transparent);
 	}
 
+	/* The height animates between measured numbers, driven by the shared disclosure the code
+	   blocks use, so the two open with one motion. Back to `auto` at rest, so an open fold still
+	   follows its own content when the window changes. */
 	.notes-fold[data-phase='expanded'] {
 		height: auto;
 	}
@@ -432,18 +455,6 @@
 		margin-inline-end: 0.3rem;
 	}
 
-	/* The link is the explanation: it inherits the note's quiet colour and brightens whole under
-	   the pointer, so hovering anywhere on those words says they are the control. The phrase and
-	   number ahead of it sit outside and keep their resting look.
-
-	   The resting colour and its transition stay here rather than in the visual layer: the
-	   brightened value is reached through this ancestor -- see spec/todo.md, "Ancestor state
-	   reaches the visual layer only through a marker nobody owns". */
-	.note-link {
-		color: inherit;
-		transition: color 200ms ease-out;
-	}
-
 	/* Hover is read from the note, not the link: a link is an inline box, wrapping into one box
 	   per line with a gap between them neither owns, so a pointer crossing a wrapped note fell
 	   through it and the note went dark mid-read. The note is a block and has no such gap.
@@ -454,11 +465,5 @@
 	.note:hover .note-link,
 	.note-link:focus-visible {
 		color: var(--color-text-strong);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.note-link {
-			transition: none;
-		}
 	}
 </style>

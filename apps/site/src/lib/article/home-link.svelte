@@ -6,12 +6,19 @@
 	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot of this file is placement, not a migration leftover: where the
-	 * slot sits in the rail box, and how far the glyph hangs outside the rail's text, the latter
-	 * reading a length declared on an ancestor. See spec/architecture/css/authoring.md, "A comment in
-	 * the module script cannot write a tag in angle brackets", for why this block itself must not.
+	 * See spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag
+	 * in angle brackets", for why this comment must not.
 	 */
 	const styles = stylex.create({
+		/**
+		 * The offset that follows the rail, which stays a `transform` because no utility
+		 * translates one: Tailwind 4 writes `translate` as its own property, the same pixels at a
+		 * different computed value. The visual layer by necessity rather than by the axis. See
+		 * spec/architecture/css/migration.md, "No utility translates a `transform` declaration".
+		 */
+		slot: {
+			transform: 'translateY(calc(-50% + var(--home-offset, 0rem)))',
+		},
 		link: {
 			// `focus-link` sets the same 1.25rem line on this element from the components layer, and
 			// the visual layer outranks it exactly as the utility it replaced did. See spec/todo.md.
@@ -288,7 +295,9 @@
      takes its events back, so only the link is in the pointer's way. -->
 <div
 	use:followToc={locale}
-	class="home-slot pointer-events-none absolute top-27 left-0 flex w-full items-center"
+	class="home-slot pointer-events-none absolute top-27 left-0 flex w-full items-center {stylex.attrs(
+		styles.slot,
+	).class}"
 >
 	<a
 		{href}
@@ -302,15 +311,3 @@
 		<span>{m['article.back']({}, { locale })}</span>
 	</a>
 </div>
-
-<style>
-	/* The offset that follows the rail. Its edge, width and removal from the box's flow are
-	   utilities in the markup now. What is left is the `transform`, because no utility translates
-	   one -- Tailwind 4 writes `translate` as its own property, a different declaration with a
-	   different computed value. See spec/architecture/css/migration.md, "No utility translates a
-	   `transform` declaration". The link's overhang below was already a `translate`, so that one
-	   went to the markup as the declaration it was. */
-	.home-slot {
-		transform: translateY(calc(-50% + var(--home-offset, 0rem)));
-	}
-</style>

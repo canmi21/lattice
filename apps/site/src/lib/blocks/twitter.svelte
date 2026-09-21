@@ -7,10 +7,10 @@
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
 	 * declares. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot keeps the corner arrow's reveal whole and nothing else: the
-	 * arrow's other opacity lives in `.tweet-card:hover .corner`, an ancestor selector this layer
-	 * cannot write, so the motion between the two and the reduced-motion rule suppressing it stay
-	 * beside the value they animate. The card's geometry is in the markup.
+	 * The scoped block at the foot keeps the corner arrow's other opacity and nothing else: it
+	 * lives in `.tweet-card:hover .corner`, an ancestor selector this layer cannot write. The
+	 * opacity the arrow rests at, and the motion between the two, are here. The card's geometry
+	 * is in the markup.
 	 */
 	const styles = stylex.create({
 		/**
@@ -68,9 +68,29 @@
 		count: {
 			fontVariantNumeric: figures.tabular,
 		},
-		/** The corner arrow's ink only. Its reveal is in the scoped block, for the reason above. */
+		/**
+		 * The corner arrow's ink and the opacity it rests at. Its other opacity is in the scoped
+		 * block, for the reason above.
+		 *
+		 * One property in the list, so the delay and the behaviour are left out: their initial
+		 * values are already the one-item lists the shorthand this replaced computed to. Reduced
+		 * motion is that shorthand's `none` as longhands, which is more than the property alone.
+		 */
 		corner: {
 			color: 'var(--color-text-soft)',
+			opacity: 0,
+			transitionProperty: {
+				default: 'opacity',
+				'@media (prefers-reduced-motion: reduce)': 'none',
+			},
+			transitionDuration: {
+				default: '200ms',
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: {
+				default: 'ease-out',
+				'@media (prefers-reduced-motion: reduce)': 'ease',
+			},
 		},
 	});
 </script>
@@ -149,34 +169,25 @@
 		</span>
 	</footer>
 
-	<span class="corner {stylex.attrs(styles.corner).class}" aria-hidden="true">
+	<span class="corner absolute {stylex.attrs(styles.corner).class}" aria-hidden="true">
 		<ArrowUpRight class="size-4" strokeWidth={2} />
 	</span>
 </a>
 
 <style>
-	/* All that is left is the corner arrow's reveal, which is gated on the card's own hover and
-	   reaches a descendant: an ancestor is what no class can express. The card's geometry is now
-	   in the markup, and `tweet-card` stays because the two rules below still name it. See
+	/* Two offsets the enumeration cannot answer for: it derives the `inset` family as
+	   `inset-right` and `inset-bottom`, which are not spellings CSS has, so the longhands it
+	   plainly means to own fall through it. They stay here until the table can be asked. See
 	   spec/architecture/css/layers.md. */
 	.corner {
-		position: absolute;
 		right: 0.75rem;
 		bottom: 0.75rem;
-		opacity: 0;
-		transition: opacity 200ms ease-out;
 	}
 
+	/* The arrow's other opacity, gated on the card's own hover and reaching a descendant: an
+	   ancestor is what no class can express. `tweet-card` stays because this rule names it. */
 	.tweet-card:hover .corner,
 	.tweet-card:focus-visible .corner {
 		opacity: 1;
-	}
-
-	/* The card's half of this went with its transition into the visual layer. This half cannot
-	   follow: what it suppresses is the arrow's reveal, and the reveal stays here. */
-	@media (prefers-reduced-motion: reduce) {
-		.corner {
-			transition: none;
-		}
 	}
 </style>
