@@ -1,8 +1,6 @@
-# rclone filter for the mirrors under data/bucket. Read top to bottom; first match wins.
-#
-# The sources are already the published trees, so this only has to drop the things that live
-# alongside real content: editor and OS leftovers, and the skeleton marker git needs.
-# Anything not matched here is published.
+# rclone filter for the mirrors under data/bucket; first match wins. The sources are already
+# the published trees, so all this drops is what lands alongside real content -- editor and OS
+# leftovers, and the skeleton marker git needs. Anything not matched here is published.
 
 - .gitkeep
 - .DS_Store

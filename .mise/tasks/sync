@@ -5,31 +5,14 @@ set -euo pipefail
 # The publication gate. Whether a file reaches the internet is decided here and nowhere else.
 #
 # What makes it fail closed is the SOURCE path, not the filter file: rclone is pointed at the two
-# published trees and can never see anything else under data/. A directory added later -- raw
-# originals, exports, scratch -- is excluded because it was never in scope, with no rule needed and
-# none to forget. The filter only drops junk that lands inside a published tree itself.
+# published trees and can never see anything else under data/, so a directory added later is
+# excluded because it was never in scope. The two failure modes are not symmetric -- miss a
+# denylist rule and a draft publishes silently, get this wrong and a file fails to appear.
 #
-# Structuring it this way rather than as "sync data/ minus a denylist" is deliberate. The two
-# failure modes are not symmetric: miss a denylist rule and a draft is published silently, with
-# nothing to notice; get this wrong and a file merely fails to appear, which shows up the first
-# time you look for it.
-#
-# **Two trees and two buckets**, because the API reads one and the CDN serves the other and
-# neither should hold a credential for both. See spec/architecture/data.md, "One bucket holds
-# records and the other holds bytes".
-#
-# **`sync` rather than `copy`, for every tree without exception.** A bucket is a mirror: what is
-# here goes up, what is not here is deleted. A mirror that keeps what the source dropped is not a
-# mirror, and the divergence is invisible -- nothing reports it, and it grows. That also makes a
-# wrong SOURCE path destructive, which is what the guards below and the dry run by default are for.
-#
-# The content-addressed prefixes used to be copied instead, so the bucket would keep an object a
-# root still in somebody's cache is naming. That reasoning was right and was being applied in the
-# wrong place: the window it protects is a property of *when a sweep may delete*, not of what a
-# mirror may transfer, and holding it here made the local tree and the bucket disagree forever
-# while the sweep deleted with no delay at all. `cms gc` now waits an hour after an object stops
-# being named, and the mirror simply mirrors. See spec/architecture/artifacts.md, "An object is
-# swept an hour after nothing names it".
+# **`sync` rather than `copy`, for every tree**, because a bucket is a mirror and one that keeps
+# what the source dropped diverges invisibly. Which is also why the default is a dry run.
+# See spec/architecture/data.md, "One bucket holds records and the other holds bytes", and
+# spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
 
 BASE="$(cd "$(dirname "$0")/../.." && pwd)"
 OBJECTS="$BASE/data/bucket/objects"
@@ -92,24 +75,13 @@ JUNK=(--filter-from "$(dirname "$0")/sync.filter")
 # than incidental. See the ordering note below.
 COMMON=(--progress --delete-after ${MODE[@]+"${MODE[@]}"})
 
-# Three transfers in one order, and the order is the whole of it. An object named by its own hash
-# has to be readable before a root names it: a root that arrives first produces a 404 that is then
-# held for five minutes on a key that becomes valid a second later. Each step exits non-zero on a
-# failed transfer and `set -e` stops the next one, which is what makes the ordering a guarantee
-# rather than a hope. The root goes last of all, and it is in the other bucket now.
+# Three transfers in one order, and the order is the whole of it. An object has to be readable
+# before a root names it, or the root produces a 404 held for five minutes on a key that becomes
+# valid a second later; `set -e` between the steps is what makes that a guarantee.
 #
-# **Deletion is the mirror image and wants the opposite order.** An object has to stop being named
-# before it stops being readable, so a delete belongs after the new root is up, not before it --
-# for the whole of a run the live root is still the previous one, and it names what this run is
-# about to remove. rclone binds a delete to the transfer that discovered it, so inside one run
-# --delete-after is as far as that goes: nothing leaves a bucket until everything that transfer
-# publishes has landed, and a run that fails partway leaves a superset rather than a hole.
-#
-# The rest of the distance is deliberately not the mirror's to cover. What a cached root still
-# names is kept alive by `cms gc` waiting an hour before it deletes anything locally, so by the
-# time a key reaches this file as a deletion it stopped being named an hour ago -- longer than any
-# root is cached. Reversing the transfer order to close the remainder would break the upload
-# guarantee above, which protects the answer that actually cannot be cached.
+# Deletion wants the opposite order, and --delete-after is as far as one run can go: nothing
+# leaves a bucket until everything that transfer publishes has landed. The rest of the distance
+# is `cms gc` waiting an hour, which is longer than any root is cached.
 rclone sync "$OBJECTS" "$OBJECTS_REMOTE" "${JUNK[@]}" --track-renames "${COMMON[@]}"
 rclone sync "$METADATA/meta" "$METADATA_REMOTE/meta" "${JUNK[@]}" --track-renames "${COMMON[@]}"
 rclone sync "$METADATA/state" "$METADATA_REMOTE/state" "${JUNK[@]}" "${COMMON[@]}"

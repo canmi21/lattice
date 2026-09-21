@@ -1,28 +1,16 @@
 #!/usr/bin/env python3
 #MISE description="Check that references resolve and that URLs live in one place"
-"""Validate how this repo refers to things: to its own files, and to hosts.
-
-Four checks, all chosen because they are objective rather than stylistic:
+"""Validate how this repo refers to things: to its own files, and to hosts. Four checks, all
+chosen because they are objective rather than stylistic:
 
 1. A markdown link in a doc points at a file that exists.
 2. A `spec/**/*.md` cited from code exists.
 3. A section name quoted beside such a citation, in code or in another doc, exists in it.
 4. No URL the running system resolves is written outside `libs/urls`.
 
-The first three break silently on rename -- nothing fails, the reader just follows a dead path.
-The last is the enforcement half of the single-source rule in spec/architecture.md, which was
-prose-only until this check existed, and prose-only rules are followed until the first time
-somebody is in a hurry.
-
-Deliberately NOT checked: path-shaped strings in prose. The rules use invented names as
-examples on purpose (`apps/r2`, `user-profile.ts`, `libs/canvas` as a name that was rejected),
-and a check that flags those would be wrong far more often than right. Illustrations stay in
-inline code; real references are markdown links, which is what makes them checkable.
-
-Also not flagged as URLs: comments, markdown links, `$schema` keys, and JSON-LD `@context`
-values. The first two are citations that no software resolves. `$schema` has to be a URL
-precisely because these tools are installed through mise and have no `node_modules` to point
-at -- see spec/toolchain.md. `@context` is a namespace identifier, like an xmlns.
+The first three break silently on rename; the last enforces spec/architecture/workspace.md,
+"Every URL is declared once", which was prose-only until this existed. What is deliberately
+not flagged -- prose paths, comments, `$schema`, `@context` -- is argued at each constant.
 
 Run with --json to emit the pair graph instead of validating.
 """
@@ -54,8 +42,8 @@ CODE_SUFFIXES = {
 	".yaml",
 	".yml",
 }
-# Directories whose files are records or prose rather than code, plus the lockfile --
-# see the code_files docstring and spec/architecture.md for each exemption's reason.
+# Directories whose files are records or prose rather than code, plus the lockfile.
+# The code_files docstring gives each exemption's reason.
 SKIP_DIRS = {"data", "contents"}
 SKIP_FILES = {"pnpm-lock.yaml"}
 
@@ -91,13 +79,11 @@ URL_HOMES = ("libs/urls/", "apps/cms/src/urls.rs")
 # is cargo's own source-id syntax, quoted in test fixtures in cargo's spelling -- an
 # identifier again, and not this software's to respell.
 URL_EXEMPT = ('"$schema"', "'@context'", '"@context"', "registry+https://")
-# Names RFC 2606 reserves so they can never resolve to anything. A URL on one of these is a
-# placeholder -- for an API that demands an absolute URL, or for a value a test needs to be
-# rejected -- and by definition never an endpoint, so it cannot be what this check looks for.
-# Exempting them by rule rather than case by case is what keeps this from collecting
-# exceptions.
-# Case-insensitive because DNS is: a test probing host lowercasing spells a reserved name in
-# mixed case on purpose.
+# Names RFC 2606 reserves so they can never resolve. A URL on one of these is a placeholder --
+# for an API demanding an absolute URL, or a value a test needs rejected -- and never an
+# endpoint. Exempting by rule rather than case by case is what keeps this from collecting
+# exceptions. Case-insensitive because DNS is: a test probing host lowercasing spells a
+# reserved name in mixed case on purpose.
 URL_UNRESOLVABLE = re.compile(
 	r"https?://(?:[^/\s]*\.)?(?:test|example|invalid|localhost)(?:[/:?#]|$)"
 	r"|https?://(?:[^/\s]*\.)?example\.(?:com|net|org)(?:[/:?#]|$)",
@@ -120,16 +106,11 @@ def docs() -> list[pathlib.Path]:
 def code_files() -> list[pathlib.Path]:
 	"""Files whose URLs something other than a reader would resolve.
 
-	The candidate set comes from git -- tracked files plus new ones not yet ignored -- because
-	`.gitignore` is already the one home of "this is build output, not code". An earlier version
-	kept its own directory denylist here and skipped any path segment named `build`, which
-	silently exempted `apps/site/src/lib/content/build/`: a source directory that merely shares
-	a name with output. A second list of what is code can only ever drift from the first.
-
-	`contents/` is excluded whatever the extension. A translation sidecar is YAML by format
-	and prose by nature: the links in it are the ones the author wrote in the article, carried
-	across by the translator. Asking those to live in libs/urls would be asking an article not
-	to cite anything. `data/` holds curated records, not code, and is excluded the same way.
+	The candidate set comes from git, because `.gitignore` is already the one home of "this is
+	build output, not code"; a second list of what is code can only ever drift from the first.
+	`contents/` is excluded whatever the extension -- a translation sidecar is YAML by format and
+	prose by nature, and asking its links to live in libs/urls would be asking an article not to
+	cite anything. `data/` holds curated records, not code, and is excluded the same way.
 	"""
 	listing = subprocess.run(
 		["git", "-C", str(ROOT), "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
@@ -257,14 +238,9 @@ def flattened(path: pathlib.Path | None) -> str | None:
 def dead_anchors() -> tuple[list[str], int]:
 	"""Section names quoted from code or from another doc that the named file no longer holds.
 
-	The citation check one level down: a file existing does not mean the section named inside it
-	still does, so a heading is part of the interface and renaming one has references to update.
-
-	Read raw rather than through `without_code`. An anchor quotes its heading verbatim, inline
-	code and all, and blanking that inside the quote destroys the very text being matched.
-
-	A target that is not there is somebody else's failure -- the checks above -- and in a doc it
-	is usually not a citation at all but one of the invented names the rules use as examples.
+	A file existing does not mean the section named inside it still does, so a heading is part of
+	the interface. Read raw rather than through `without_code`: an anchor quotes its heading
+	verbatim, inline code and all. A target that is not there is somebody else's failure above.
 	"""
 	dead: list[str] = []
 	seen = 0

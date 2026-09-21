@@ -2,24 +2,17 @@
 #MISE description="Check that the published shape and ARTIFACT_VERSION moved together: `shape [--bump]`"
 """Hold `ARTIFACT_VERSION` to what its own comment promises.
 
-The constant says it is "bumped when a producer and a consumer can no longer read each other",
-and it is the only thing that tells a Worker it is holding bytes it does not understand. Nothing
-enforced that. The `image` block lost six keys and gained `resources`, the constant stayed at 1,
-and a Worker deployed ahead of the corpus read an old object, dereferenced a field the type said
-was required, and returned 500 on every article carrying a picture.
+It is the only thing that tells a Worker it is holding bytes it does not understand, and nothing
+enforced that: the `image` block lost six keys, the constant stayed at 1, and a Worker deployed
+ahead of the corpus returned 500 on every article carrying a picture. So the shapes are
+fingerprinted and the fingerprint is committed beside the version it belongs to.
 
-So the shapes are fingerprinted and the fingerprint is committed beside the version it belongs
-to. A change to either half without the other fails here.
+**The fingerprint is deliberately coarse** -- `types.ts` entire plus the named published shapes
+in `index.ts` -- so renaming a type asks for a bump the emitted bytes did not need. That is the
+side to be wrong on, because bumping is one command and a missing bump costs the 500s above.
 
-**The fingerprint is deliberately coarse.** It covers the whole of `types.ts` plus the named
-published shapes in `index.ts`, with comments stripped and whitespace collapsed -- so renaming a
-type or reordering two fields asks for a bump that the emitted bytes did not need. That is the
-side to be wrong on: a bump nobody needed costs one republish, and a missing bump costs what it
-cost the day this was written. Bumping is one command, which is what makes the trade cheap.
-
-`--bump` raises the constant and records the shape it now means. `--record` writes down what the
-current version means without raising it, which is for the first run and for a version somebody
-raised by hand.
+`--bump` raises the constant and records the shape it now means; `--record` writes down what the
+current version means without raising it.
 """
 
 from __future__ import annotations

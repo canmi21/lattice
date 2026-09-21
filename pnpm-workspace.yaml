@@ -6,8 +6,7 @@ packages:
   - apps/*
   # Each is a separate repository this workspace ignores; the glob matches nothing when none
   # are cloned. Membership here is what makes a sub-repo's git dependency resolve to local
-  # source, together with one override below per library it consumes.
-  # See spec/architecture/repos.md.
+  # source. See spec/architecture/repos.md.
   - repos/*
 
 # SvelteKit 2 retains cookie 0.6 for compatibility with invalid cookie attributes. Match only
@@ -16,35 +15,24 @@ packages:
 overrides:
   '@sveltejs/kit@2>cookie@<0.7.0': 0.7.2
 
-  # miniflare pins undici exactly, and the release that carries the fix is only on its alpha
-  # line. Both are development-only -- a deployed Worker uses workerd's own fetch and never
-  # loads undici -- so this buys a clean alert list rather than production safety, at the cost
-  # of a patch-level bump across an exact pin. Drop it once a stable miniflare ships 7.29.
+  # miniflare pins undici exactly and the fix is only on its alpha line. Development-only --
+  # a deployed Worker uses workerd's own fetch -- so this buys a clean alert list rather than
+  # production safety. Drop it once a stable miniflare ships 7.29.
   'miniflare>undici': ^7.29.0
 
-  # paraglide's compiler reaches its message store through @inlang/sdk, which pins @lix-js/sdk
-  # exactly -- and the pair it pins at 3.0.4, lix 0.15.1, fails every compile with "No Lix
-  # transaction is active". The catalogues then stop regenerating silently and the build uses
-  # whatever the last working compile left on disk, so a message added after the break simply
-  # does not exist at runtime.
-  #
-  # Pinned here rather than at @lix-js/sdk: overriding the inner one fights an exact pin and
-  # produces a different failure. paraglide takes @inlang/sdk by range, so a patch there moved
-  # lix three minors on a pre-1.0 package. Drop it when a later @inlang/sdk compiles.
+  # 3.0.4 pins lix 0.15.1, which fails every paraglide compile with "No Lix transaction is
+  # active" -- silently, leaving the last good catalogues on disk, so a message added after
+  # the break does not exist at runtime. Pinned here because the inner pin is exact.
   '@inlang/sdk': 3.0.2
 
-  # drizzle-kit still pulls the deprecated @esbuild-kit loaders, which pin ~0.18.20 and can
-  # therefore never reach the patched 0.25. The advisory is about esbuild's dev server, which
-  # this chain never starts; the override exists so the alert does not mask a real one later.
+  # drizzle-kit still pulls the deprecated @esbuild-kit loaders, pinned at ~0.18.20 and so
+  # unable to reach the patched 0.25. The advisory is about esbuild's dev server, which this
+  # chain never starts; the override exists so the alert does not mask a real one later.
   '@esbuild-kit/core-utils>esbuild': ^0.25.12
 
-# A package listed here may run arbitrary code during install. pnpm blocks that by default,
-# and the default is right -- an install script is the shortest path from a compromised
-# package to a compromised machine, and it runs before anybody reads a line of the code.
-#
-# These are allowed because they cannot work otherwise: each ships a platform-specific native
-# binary that the install step fetches and unpacks. Nothing goes in this list to make a warning
-# go away.
+# An install script runs arbitrary code before anybody reads the package, which is why pnpm
+# blocks it. These are allowed because they cannot work otherwise: each unpacks a
+# platform-specific native binary. Nothing goes in this list to make a warning go away.
 allowBuilds:
   '@sentry/cli': true
   cn-font-split: true
@@ -55,14 +43,13 @@ allowBuilds:
   protobufjs: true
   workerd: true
 
-# Supply-chain delay: a version must have been public for at least 24 hours before it
-# can be installed. Most npm compromises are caught and yanked well inside that window.
-# The unit is minutes. Applies to transitive dependencies too.
+# Supply-chain delay, in minutes: a version waits 24 hours before it can be installed, here and
+# transitively. The rule is the workspace's, in its toolchain.md -- a path across that boundary
+# resolves only while this project is nested, so it is named rather than linked.
 minimumReleaseAge: 1440
 
-# Exempt only packages where waiting a day costs more than it protects: toolchain and
-# type packages that get bumped constantly and are read at build time, not shipped.
-# Keep this list short -- every entry is an accepted risk.
+# Exempt only where waiting a day costs more than it protects: toolchain and type packages,
+# read at build time and not shipped. Keep it short -- every entry is an accepted risk.
 minimumReleaseAgeExclude:
   - '@cloudflare/workers-types'
   - '@types/node'

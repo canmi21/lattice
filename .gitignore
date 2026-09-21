@@ -9,10 +9,8 @@
 # Bytecode cache for the Python mise tasks. Produced whenever one is imported rather than run.
 __pycache__/
 
-# pnpm keeps its content-addressable store in ~/Library/pnpm. A copy appears here only when
-# something runs pnpm inside a sandbox that cannot reach the home directory -- a coding agent
-# confined to the workspace is the case that produced it -- and pnpm silently falls back to the
-# project root. Harmless, never wanted in a diff.
+# pnpm falls back to a store here when it cannot reach ~/Library/pnpm -- a coding agent
+# confined to the workspace is the case that produced it. Harmless, never wanted in a diff.
 .pnpm-store/
 
 # Build output
@@ -28,41 +26,29 @@ apps/site/src/lib/paraglide/
 apps/site/.inlang/cache/
 apps/site/.inlang/.meta.json
 
-# data/ holds assets and the records describing them. The bytes stay out of git -- photos,
-# derived variants, fonts, a geocoding database -- and are mirrored to R2 or backed up
-# separately; the records go in. The empty skeleton is tracked so a fresh clone has the
-# directories to put things in. See spec/architecture.md; git ignores, sync filters, and
-# backup lists are three different sets and are not to be shared.
+# The bytes stay out of git and are mirrored to R2 or backed up separately, the records go
+# in, and the empty skeleton is tracked so a fresh clone has the directories to put things
+# in. See spec/architecture/data.md, "Three ignore lists, no sharing".
 data/**
 !data/**/
 !data/**/.gitkeep
-# An allowlist, not exceptions. What `data/` keeps out of git is bytes, not the directory:
-# photographs, derived variants, fonts and a geocoding database say nothing in a diff.
-#
-# `data/record/` is the other half: text a person curates or a tool regenerates, which a build
-# consumes without the underlying bytes or local tools. One rule rather than a filename per
-# record, because the list was the thing that drifted -- a record added without a line here is a
-# record that silently does not travel, and nobody finds out until a clone cannot build. What
-# each of them is, and why it is committed, is in spec/architecture/data.md.
+# An allowlist, not exceptions, and one rule rather than a filename per record -- the list
+# was the thing that drifted, and a record added without a line here silently does not
+# travel until a clone cannot build. See spec/architecture/data.md.
 !data/record/**
 
-# The site's own brand marks: authored once, by hand, and regenerable by nobody. They were sitting
-# loose in the published tree and therefore in no clone but this machine's, which made "the bytes
-# belong to the machine" true of the one set that cannot be re-derived from anything. Small, and
-# they change about never. See spec/architecture/data.md, "What stays in git, and until when".
+# Authored once, by hand, regenerable by nobody -- the one set that cannot be re-derived, and
+# small enough that keeping it costs nothing. See spec/architecture/data.md, "What stays in git".
 !data/source/brand/**
 
-# Icons fetched from other people's sites. Re-fetchable in principle, but only from a site that may
-# have redrawn or removed its icon since -- so a clone without them cannot reproduce what is
-# published, which is the test. Fifteen small files. See spec/architecture/delivery.md.
+# Re-fetchable in principle, but only from a site that may have redrawn or removed its icon
+# since, so a clone without them cannot reproduce what is published -- which is the test.
+# Fifteen small files. See spec/architecture/delivery.md.
 !data/source/favicon/**
 
-# Under data/build/ the test is whether the file can be regenerated losslessly and for free.
-# These four cannot: crates, repos and twitter are fetched from a network that may have moved on
-# -- twitter holds snapshots of posts that can be deleted -- and licenses.json is read by the
-# site's build rather than by publishing. segments.json is absent because `cms segments` rebuilds
-# it from the corpus in seconds, and opengraph.json because only `cms og` reads it, to skip cards
-# it has already drawn. See spec/architecture/data.md, "What `data/` keeps out of git".
+# The test here is whether a file regenerates losslessly and for free. These four cannot:
+# three come from a network that may have moved on, and licenses.json is read by the site's
+# own build. See spec/architecture/data.md, "Generated build inputs live under `data/build/`".
 !data/build/crates.json
 !data/build/repos.json
 !data/build/twitter.json
@@ -87,9 +73,9 @@ coverage/
 .env.*
 !.env.example
 
-# age private keys. The real one lives in ~/.config/sops/age and never belongs here, but a
-# stray copy would otherwise be committed in the clear. secrets.json is deliberately NOT
-# ignored -- it is committed encrypted; see spec/toolchain.md.
+# The real age key lives in ~/.config/sops/age; these patterns catch a stray copy before it
+# is committed in the clear. secrets.json is deliberately NOT ignored -- it is committed
+# encrypted. See spec/toolchain.md, "Secrets".
 *.age
 keys.txt
 age-key*.txt

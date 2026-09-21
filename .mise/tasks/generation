@@ -2,22 +2,13 @@
 #MISE description="Say which generation the live corpus is, against the one this source expects"
 set -euo pipefail
 
-# What the live corpus is, next to what this build can read.
+# What the live corpus is, next to what this build can read. `ARTIFACT_VERSION` says which
+# generation this source understands and the bucket root says which is out there; they move on
+# separate schedules, and nothing measured the distance until this did.
 #
-# `ARTIFACT_VERSION` says which generation of published bytes this source understands, and the
-# root in the bucket says which generation is actually out there. They move on separate
-# schedules: the workers deploy from a push through CI, and the corpus only moves when somebody
-# runs `publish` by hand. Nothing measured the distance between them, so a deploy that arrived
-# first was silent until a reader opened an article.
-#
-# **This warns and never refuses.** A build that cannot read the live corpus is worth knowing
-# about before it is worth stopping -- the gap is normally minutes, closed by the publish that
-# follows, and a check that blocked the deploy would be wrong far more often than it was right.
-# What it owes is a line loud enough to find afterwards, which is why the live root's timestamp
-# is in it.
-#
-# Not being able to ask is also not a failure. This runs where rclone is configured and in CI
-# where it is not, and a deploy is not the place to discover a missing credential for a check.
+# **This warns and never refuses**, and not being able to ask is not a failure either: the gap
+# is normally minutes, and a check that blocked the deploy would be wrong more often than right.
+# See spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
 
 BASE="$(cd "$(dirname "$0")/../.." && pwd)"
 INDEX="$BASE/libs/artifacts/src/index.ts"

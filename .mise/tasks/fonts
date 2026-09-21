@@ -3,10 +3,9 @@
 """Build web-font chunks without turning retained full faces into a requirement.
 
 The manifest makes the two independent roles of a full face visible: a disposable pipeline
-input and, for the one family that needs it, a runtime dependency. See spec/architecture.md.
-
-A chunk is an object like every other: named by the content id of its own bytes and filed in
-the shared fan-out tree, never in a directory of its own. See spec/architecture/fonts.md.
+input and, for the one family that needs it, a runtime dependency. A chunk is an object like
+every other, named by the content id of its own bytes and filed in the shared fan-out tree.
+See spec/architecture/fonts.md.
 """
 
 from __future__ import annotations

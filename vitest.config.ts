@@ -8,18 +8,12 @@ const SITE = fileURLToPath(new URL('./apps/site/', import.meta.url));
 /**
  * The one thing the default configuration cannot resolve.
  *
- * `apps/cdn` imports its codecs' `.wasm` files directly, because wrangler substitutes a compiled
- * `WebAssembly.Module` for each import at bundle time. Node has no such substitution, so any test
- * that reaches one of those modules fails to load before a single assertion runs -- which left the
- * route module untestable and its behaviour unheld.
+ * `apps/cdn` imports its codecs' `.wasm` files directly, which wrangler substitutes at bundle
+ * time and node does not -- so any test reaching one failed to load. An empty stub is safe
+ * because a codec initialises lazily: a path that does not encode or decode never touches it.
  *
- * The stub is an empty object, and that is safe for exactly the reason it is narrow: a codec is
- * initialised lazily, on the first call that needs it, so a path that does not encode or decode
- * never touches what this replaces.
- *
- * **The limit, stated because it is invisible otherwise:** a test that does exercise a transcode
- * will not fail honestly here -- it will fail inside a codec initialised from nothing. Testing
- * that path needs a real Worker runtime (`@cloudflare/vitest-pool-workers`), not a wider stub.
+ * **The limit, invisible otherwise:** a test that does transcode will not fail honestly, it will
+ * fail inside a codec initialised from nothing. That path needs a real Worker runtime.
  */
 export default defineConfig({
 	plugins: [
@@ -39,10 +33,8 @@ export default defineConfig({
 	/**
 	 * Two suites, because a component needs a DOM and nothing else here does.
 	 *
-	 * The split is by filename rather than by directory: `*.svelte.test.ts` mounts a component,
-	 * `*.test.ts` does not, so each project's glob states its own requirement and a new test lands
-	 * in the right one by what it is named. Keeping them apart is what leaves the node suite at
-	 * node's speed -- a jsdom environment for all of it would be paid by 58 files to serve one.
+	 * Split by filename rather than by directory, so a new test lands in the right one by what it
+	 * is named -- and the node suite stays at node's speed instead of 58 files paying for jsdom.
 	 */
 	test: {
 		projects: [
@@ -55,17 +47,10 @@ export default defineConfig({
 			},
 			{
 				/**
-				 * Rebuilt from the site's config rather than extended from it.
-				 *
-				 * `extends` was the intent, and SvelteKit's plugin makes it unreachable: it
-				 * overrides `root` back to the working directory, and a project rooted at the
-				 * workspace goes looking for `src/app.html` and `.inlang` here. What the component
-				 * actually needs is two of those plugins, so they are stated instead.
-				 *
-				 * Neither is optional. `stylex.create` throws when it reaches the runtime -- the
-				 * component calls it in `<script module>`, so without the compiler the import
-				 * fails before a test runs. `$lib` is SvelteKit's, and is restated for the same
-				 * reason SvelteKit is absent.
+				 * Rebuilt from the site's config rather than extended from it: SvelteKit's plugin
+				 * overrides `root` back to the working directory, so a project rooted at the
+				 * workspace goes looking for `src/app.html` and `.inlang` here. Neither plugin is
+				 * optional -- `stylex.create` throws at runtime, and `$lib` is SvelteKit's.
 				 */
 				extends: false,
 				root: SITE,
@@ -81,11 +66,9 @@ export default defineConfig({
 							unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
 						}),
 						enforce: undefined,
-						// Dropped because a test run is not a dev server, and StyleX's is what keeps
-						// the process alive: the hook opens a 150ms interval polling for CSS updates
-						// and unregisters it on `httpServer.close`, which vitest's middleware-mode
-						// server does not have. Nothing it installs -- that interval, the dev CSS
-						// middleware -- has a reader here.
+						// Dropped because a test run is not a dev server: the hook opens a 150ms interval
+						// polling for CSS updates and unregisters it on `httpServer.close`, which
+						// vitest's middleware-mode server does not have. Nothing it installs is read.
 						configureServer: undefined,
 					},
 				],

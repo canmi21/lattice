@@ -6,11 +6,9 @@ set -euo pipefail
 # missing -- the same state as an image whose EXIF carried no position -- so this is a thing
 # to run once rather than a dependency of any build.
 #
-# A task rather than a line in mise.toml because these are URLs a program resolves, and the
-# rule that they live in libs/urls exists so there is one spelling of each. A shell script
-# cannot import a TypeScript library, so single-sourcing them there would move the text
-# without removing the second copy. The same reasoning the dev ports are written twice under.
-# See spec/architecture.md.
+# A task rather than a line in mise.toml because a shell script cannot import a TypeScript
+# library, so single-sourcing these addresses would move the text without removing the second
+# copy. See spec/architecture/workspace.md, "Every URL is declared once".
 BASE="https://download.geonames.org/export/dump"
 TARGET="$(cd "$(dirname "$0")/../.." && pwd)/data/source/geo"
 
