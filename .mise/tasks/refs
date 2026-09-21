@@ -4,7 +4,7 @@
 chosen because they are objective rather than stylistic:
 
 1. A markdown link in a doc points at a file that exists.
-2. A `spec/**/*.md` cited from code exists.
+2. A `spec/**/*.md` cited from code, or from the extensionless text beside it, exists.
 3. A section name quoted beside such a citation, in code or in another doc, exists in it.
 4. No URL the running system resolves is written outside `libs/urls`.
 
@@ -43,24 +43,25 @@ CODE_SUFFIXES = {
 	".yml",
 }
 # Directories whose files are records or prose rather than code, plus the lockfile.
-# The code_files docstring gives each exemption's reason.
+# The tracked() docstring gives each exemption's reason.
 SKIP_DIRS = {"data", "contents"}
 SKIP_FILES = {"pnpm-lock.yaml"}
 
 MD_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 DOC_PATH = r"[a-z0-9-]+(?:/[a-z0-9-]+)*\.md"
 SPEC_REF = re.compile(rf"spec/{DOC_PATH}")
-# A citation may name a section: `spec/x.md, "Name"` or `spec/x.md ("Name")`. The quote need not
-# sit against it -- the gap here runs from two characters to forty-six -- but it may not cross a
-# full stop or a semicolon, or a sentence quoting something else is read as this one's anchor.
+# A citation may name a section: `spec/<f>.md, "Name"` or `spec/<f>.md ("Name")`. The quote need
+# not sit against it -- the gap here runs from two to forty-six -- but it may not cross a full
+# stop or a semicolon, or a sentence quoting something else is read as this one's anchor.
 ANCHOR = r'[^".;\n]{0,60}?"(?P<anchor>[^"]{6,160})"'
 CODE_ANCHOR = re.compile(rf"(?P<target>spec/{DOC_PATH}){ANCHOR}")
 # A doc cites by markdown link or by bare path, and either may be relative to the citing file.
 DOC_ANCHOR = re.compile(rf"(?:\[[^\]]*\]\()?(?P<target>(?:\.\./)*{DOC_PATH})\)?{ANCHOR}")
 # An anchor may wrap, so continuation lines fold away before matching. `///` and `//!` come
 # before `//`: the shorter alternative matches first and leaves a stray slash inside the quote,
-# which reads as a break in an anchor that is intact.
-COMMENT_WRAP = re.compile(r"\n[ \t]*(?:\*|///|//!|//)?[ \t]*")
+# which reads as a break in an anchor that is intact. `#` is here for `.gitignore`, whose
+# anchors wrap across it exactly as a Rust doc comment's do.
+COMMENT_WRAP = re.compile(r"\n[ \t]*(?:\*|///|//!|//|#)?[ \t]*")
 # Prose carries no comment markers, and a `*` opening a line is emphasis rather than one.
 PROSE_WRAP = re.compile(r"\n\s*")
 SPACES = re.compile(r"\s+")
@@ -103,8 +104,8 @@ def docs() -> list[pathlib.Path]:
 	return found
 
 
-def code_files() -> list[pathlib.Path]:
-	"""Files whose URLs something other than a reader would resolve.
+def tracked() -> list[pathlib.Path]:
+	"""Every file git knows about, less the trees that hold records rather than source.
 
 	The candidate set comes from git, because `.gitignore` is already the one home of "this is
 	build output, not code"; a second list of what is code can only ever drift from the first.
@@ -123,10 +124,44 @@ def code_files() -> list[pathlib.Path]:
 		for name in listing.stdout.split("\0")
 		if name
 		for path in [ROOT / name]
-		if path.name not in SKIP_FILES
-		and path.suffix in CODE_SUFFIXES
-		and not SKIP_DIRS & set(pathlib.PurePath(name).parts)
+		if path.name not in SKIP_FILES and not SKIP_DIRS & set(pathlib.PurePath(name).parts)
 	]
+
+
+def code_files() -> list[pathlib.Path]:
+	"""Files whose URLs something other than a reader would resolve.
+
+	Narrower than the files that may cite, and deliberately: an address written in a shell task
+	is a judgement about single-sourcing that this repository has already argued out in prose,
+	and widening a URL gate is not the same decision as widening a citation gate.
+	"""
+	return [path for path in tracked() if path.suffix in CODE_SUFFIXES]
+
+
+def extensionless_text(path: pathlib.Path) -> bool:
+	"""Whether a tracked file with no extension is text, and so can hold a citation.
+
+	A shebang is the obvious tell and it is not enough: it finds the nine scripts under
+	`.mise/tasks/` and misses `.gitignore` and `.gitattributes`, which cite without being
+	executable. Decoding to text with no NUL in it covers both, and all it lets in besides is
+	text nobody cites from, which costs a scan and nothing else.
+	"""
+	if path.suffix:
+		return False
+	body = read(path)
+	return bool(body) and "\0" not in body
+
+
+def citing_files() -> list[pathlib.Path]:
+	"""Code, plus the extensionless text lying beside it.
+
+	A suffix allowlist is blind to precisely the files this checker lives among, which is how nine
+	citations of a spec file that never existed survived in them. In any of these a path-shaped
+	`spec/` string is a citation wherever it sits -- comment, docstring or printed message alike,
+	since a dead citation shown to whoever fails a check is still dead. An illustration is spelled
+	so it cannot resolve instead: `spec/<f>.md`, or a glob.
+	"""
+	return [path for path in tracked() if path.suffix in CODE_SUFFIXES or extensionless_text(path)]
 
 
 def read(path: pathlib.Path) -> str:
@@ -189,7 +224,7 @@ def stray_urls() -> list[str]:
 def pair_graph() -> dict[str, list[str]]:
 	"""spec file -> the code files that cite it."""
 	graph: dict[str, list[str]] = {}
-	for path in code_files():
+	for path in citing_files():
 		rel = str(path.relative_to(ROOT))
 		for spec in sorted(set(SPEC_REF.findall(read(path)))):
 			graph.setdefault(spec, []).append(rel)
@@ -244,7 +279,7 @@ def dead_anchors() -> tuple[list[str], int]:
 	"""
 	dead: list[str] = []
 	seen = 0
-	sources = [(path, CODE_ANCHOR, COMMENT_WRAP) for path in code_files()]
+	sources = [(path, CODE_ANCHOR, COMMENT_WRAP) for path in citing_files()]
 	sources += [(doc, DOC_ANCHOR, PROSE_WRAP) for doc in docs()]
 	for path, pattern, wrap in sources:
 		for match in pattern.finditer(wrap.sub(" ", read(path))):
