@@ -35,8 +35,8 @@ afterEach(() => {
 
 it('initializes strict rendering from the colocated hex palette', async () => {
 	const { renderMermaid } = await import('./mermaid');
-	const root = { closest: () => null } as unknown as HTMLElement;
-	const result = await renderMermaid('flowchart LR\nA --> B', root);
+	const root = {} as unknown as HTMLElement;
+	const result = await renderMermaid('flowchart LR\nA --> B', root, 'light');
 
 	expect(initialize).toHaveBeenCalledOnce();
 	expect(initialize).toHaveBeenCalledWith(

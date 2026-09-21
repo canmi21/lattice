@@ -66,6 +66,32 @@ export function applyTheme(theme: Theme, root: HTMLElement = document.documentEl
 	withoutTransitions(() => root.classList.toggle('dark', theme === 'dark'), root);
 }
 
+/**
+ * Call back whenever the painted theme changes, and return the unsubscribe.
+ *
+ * For whatever copied a colour out of the tokens and so cannot repaint on its own -- see
+ * spec/styling/blocks.md, "A theme change redraws a diagram, because the palette is inside the
+ * SVG". The class is watched rather than `applyTheme` announcing, for the reason `currentTheme`
+ * reads it. `create` is injected like `followSystemTheme`'s media query, so the node suite can
+ * drive it without a DOM.
+ */
+export function observeTheme(
+	callback: (theme: Theme) => void,
+	root: HTMLElement = document.documentElement,
+	create: (react: () => void) => MutationObserver = (react) => new MutationObserver(react),
+): () => void {
+	let painted = currentTheme(root);
+	const observer = create(() => {
+		const next = currentTheme(root);
+		// The class also carries the palette names, so most mutations here settle nothing.
+		if (next === painted) return;
+		painted = next;
+		callback(next);
+	});
+	observer.observe(root, { attributeFilter: ['class'] });
+	return () => observer.disconnect();
+}
+
 export function followSystemTheme(
 	root: HTMLElement = document.documentElement,
 	media: MediaQueryList = window.matchMedia(SYSTEM_DARK_QUERY),

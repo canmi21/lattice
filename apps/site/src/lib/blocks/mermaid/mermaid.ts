@@ -1,9 +1,10 @@
 import type { MermaidConfig, RenderResult } from 'mermaid';
+import type { Theme } from '@canmi/theme';
 
 type Mermaid = (typeof import('mermaid'))['default'];
 
 let modulePromise: Promise<Mermaid> | undefined;
-let configured = false;
+let configuredTheme: Theme | undefined;
 let diagramId = 0;
 
 function color(style: CSSStyleDeclaration, name: string): string {
@@ -18,7 +19,7 @@ function color(style: CSSStyleDeclaration, name: string): string {
 		: value;
 }
 
-function configuration(root: HTMLElement): MermaidConfig {
+function configuration(root: HTMLElement, theme: Theme): MermaidConfig {
 	const style = getComputedStyle(root);
 	const page = color(style, '--mermaid-page');
 	const paper = color(style, '--mermaid-paper');
@@ -30,7 +31,9 @@ function configuration(root: HTMLElement): MermaidConfig {
 	const strongText = color(style, '--mermaid-text-strong');
 	const ink = color(style, '--mermaid-ink');
 	const accent = color(style, '--mermaid-accent');
-	const darkMode = root.closest('.dark, [data-theme="dark"]') !== null;
+	// Taken from the caller rather than read back off an ancestor, so the value the component
+	// re-renders on and the value baked into the SVG cannot be two different answers.
+	const darkMode = theme === 'dark';
 
 	return {
 		startOnLoad: false,
@@ -113,18 +116,30 @@ function configuration(root: HTMLElement): MermaidConfig {
 	};
 }
 
-async function load(root: HTMLElement): Promise<Mermaid> {
+/**
+ * Configure once per theme, rather than once.
+ *
+ * Mermaid writes the palette into the SVG it returns, so a repainted token reaches a diagram that
+ * is already drawn only if it is drawn again -- see spec/styling/blocks.md, "A theme change
+ * redraws a diagram, because the palette is inside the SVG". `initialize` merges, and this
+ * adapter passes every value it owns on each call, so repeating it leaves none behind.
+ */
+async function load(root: HTMLElement, theme: Theme): Promise<Mermaid> {
 	modulePromise ??= import('mermaid').then(({ default: mermaid }) => mermaid);
 	const mermaid = await modulePromise;
-	if (!configured) {
-		mermaid.initialize(configuration(root));
-		configured = true;
+	if (configuredTheme !== theme) {
+		mermaid.initialize(configuration(root, theme));
+		configuredTheme = theme;
 	}
 	return mermaid;
 }
 
-export async function renderMermaid(source: string, root: HTMLElement): Promise<RenderResult> {
-	const mermaid = await load(root);
+export async function renderMermaid(
+	source: string,
+	root: HTMLElement,
+	theme: Theme,
+): Promise<RenderResult> {
+	const mermaid = await load(root, theme);
 	diagramId += 1;
 	return mermaid.render(`mermaid-diagram-${diagramId}`, source);
 }

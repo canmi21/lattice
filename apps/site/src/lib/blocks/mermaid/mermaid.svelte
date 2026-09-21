@@ -60,6 +60,7 @@
 
 <script lang="ts">
 	import './palette.css';
+	import { currentTheme, observeTheme, type Theme } from '@canmi/theme';
 	import { renderMermaid } from './mermaid';
 
 	let {
@@ -77,18 +78,41 @@
 	let root = $state<HTMLElement>();
 	let svg = $state('');
 	let failed = $state(false);
+	// Undefined until the document has been read, which is what keeps the render below from
+	// drawing one diagram in a guessed theme and a second one in the painted one.
+	let theme = $state<Theme>();
+	/** Whether the drawing that lands next fades in. A redraw for a new theme is a cut. */
+	let reveal = $state(false);
+	/** The source currently on screen, so a redraw can be told from a different diagram. */
+	let drawn: string | undefined;
+
+	$effect(() => {
+		theme = currentTheme();
+		return observeTheme((painted) => {
+			theme = painted;
+		});
+	});
 
 	$effect(() => {
 		const host = root;
 		const definition = source;
-		if (!host) return;
+		const painted = theme;
+		if (!host || !painted) return;
 
 		let current = true;
-		svg = '';
-		failed = false;
-		void renderMermaid(definition, host).then(
+		// A theme change redraws the diagram that is already up, so it stays there until its
+		// replacement lands: clearing it first would send every toggle back through the loading
+		// surface. A different diagram has nothing to hold and returns there on purpose.
+		if (drawn !== definition) {
+			svg = '';
+			failed = false;
+		}
+		void renderMermaid(definition, host, painted).then(
 			(result) => {
-				if (current) svg = result.svg;
+				if (!current) return;
+				reveal = drawn !== definition;
+				drawn = definition;
+				svg = result.svg;
 			},
 			(error: unknown) => {
 				if (!current) return;
@@ -126,6 +150,7 @@
 			     Stated rather than suppressed; see spec/lint-format.md. -->
 			<div
 				class="mermaid-result min-w-[30rem]"
+				class:mermaid-reveal={reveal}
 				role={description ? 'img' : undefined}
 				aria-label={description}
 			>
@@ -182,7 +207,7 @@
 	}
 
 	/* Here for the same reason: a keyframe Svelte renames, which no other layer can spell. */
-	.mermaid-result {
+	.mermaid-reveal {
 		animation: mermaid-reveal 260ms var(--ease-spring) both;
 	}
 
@@ -199,22 +224,23 @@
 		}
 	}
 
+	/* Opacity and blur only. The diagram arrives where the loading surface already reserved its
+	   space, so a rise into that space is the one thing the reveal must not draw: it reads as the
+	   picture having been in the wrong place a moment earlier. */
 	@keyframes mermaid-reveal {
 		from {
 			opacity: 0;
 			filter: blur(0.25rem);
-			transform: translateY(0.25rem);
 		}
 		to {
 			opacity: 1;
 			filter: blur(0);
-			transform: translateY(0);
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		.mermaid-placeholder,
-		.mermaid-result {
+		.mermaid-reveal {
 			animation: none;
 		}
 	}

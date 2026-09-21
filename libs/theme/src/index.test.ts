@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { inlineScriptString } from './inline-script';
-import { applyTheme, currentTheme, followSystemTheme, themeCookie, themeScript } from './index';
+import {
+	applyTheme,
+	currentTheme,
+	followSystemTheme,
+	observeTheme,
+	themeCookie,
+	themeScript,
+	type Theme,
+} from './index';
 
 describe('inlineScriptString', () => {
 	it('keeps serialized values inside the inline script element', () => {
@@ -81,5 +89,45 @@ describe('followSystemTheme', () => {
 
 		expect(modes).toEqual([false, true]);
 		expect(removed).toBe(listener);
+	});
+});
+
+describe('observeTheme', () => {
+	function watched(dark: boolean) {
+		const classes = new Set(dark ? ['dark'] : []);
+		const root = {
+			classList: {
+				contains: (name: string) => classes.has(name),
+				toggle: (name: string, on: boolean) => (on ? classes.add(name) : classes.delete(name)),
+			},
+		} as unknown as HTMLElement;
+		return { root, classes };
+	}
+
+	it('reports a change once, and says nothing about the mutations that are not one', () => {
+		const { root, classes } = watched(false);
+		const seen: Theme[] = [];
+		let react!: () => void;
+		let disconnected = false;
+		const observer = {
+			observe: () => {},
+			disconnect: () => (disconnected = true),
+		} as unknown as MutationObserver;
+
+		const stop = observeTheme((theme) => seen.push(theme), root, (callback) => {
+			react = callback;
+			return observer;
+		});
+
+		// The palette names ride on the same attribute, so a mutation is not itself an answer.
+		classes.add('nord');
+		react();
+		applyTheme('dark', root);
+		react();
+		react();
+
+		expect(seen).toEqual(['dark']);
+		stop();
+		expect(disconnected).toBe(true);
 	});
 });

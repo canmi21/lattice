@@ -72,20 +72,46 @@ reader does not have to infer whether an unfinished graphic is decorative or sti
 optional fence metadata `ratio="2.77366"` records the rendered SVG's width-to-height ratio as a
 positive decimal. When present, the loading surface uses that ratio with the same `30rem` minimum
 content width as the eventual result, reserving its responsive height before Mermaid loads. It is
-authored geometry, not a heuristic. A missing ratio retains the `13rem` fallback; a known ratio
-uses an `8rem` floor, so a short horizontal flow is not padded out to fallback height while taller
+authored geometry, not a heuristic. A missing ratio retains the `13rem` fallback; a known ratio uses
+an `8rem` floor, so a short horizontal flow is not padded out to fallback height while taller
 diagrams remain governed by their content. Malformed values fail content compilation. The frame
-follows the ordinary code-block language without
-copying its nested surfaces: one thin outer border
+follows the ordinary code-block language without copying its nested surfaces: one thin outer border
 contains one uninterrupted paper background, matching the ordinary code surface. Diagram nodes use
-the adjacent hover-paper step so they lift out of that deeper field without another component
-frame. An inset border or contrasting padding band makes a diagram look heavier than the prose and
-is not used. The stage centres every result vertically within its reserved height; Mermaid already
-centres the SVG horizontally. A short horizontal flow therefore does not cling to the top of the
-fallback-height frame, and the loading and final compositions share the same centre. Horizontal
-overflow remains scrollable. A failed render leaves the authored source readable inside that
-surface. Reduced-motion readers receive the final states without the loading pulse or reveal. The
-boundary is implemented in [mermaid.svelte](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte).
+the adjacent hover-paper step so they lift out of that deeper field without another component frame.
+The frame is the sheet and the nodes the step off it, so which of the two is the lighter follows the
+theme -- [surfaces.md](surfaces.md), "A sheet takes the theme's own end of the range, and a step off
+it goes the other way". An inset border or contrasting padding band makes a diagram look heavier
+than the prose and is not used. The stage centres every result vertically within its reserved
+height; Mermaid already centres the SVG horizontally. A short horizontal flow therefore does not
+cling to the top of the fallback-height frame, and the loading and final compositions share the same
+centre. Horizontal overflow remains scrollable. A failed render leaves the authored source readable
+inside that surface. The reveal is opacity and blur and carries no movement: the loading surface
+already holds the space the diagram lands in, so a rise into it reads as the picture having been in
+the wrong place a moment before. It belongs to arriving rather than to drawing, so only a diagram
+the reader has not been shown yet fades in -- a redraw for a new theme keeps the current drawing on
+screen and cuts to its replacement, without the fade and without going back through the loading
+surface, which is what a theme toggle should look like when the picture was already there.
+Reduced-motion readers receive the final states without the loading pulse or reveal. The boundary is
+implemented in [mermaid.svelte](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte).
+
+### A theme change redraws a diagram, because the palette is inside the SVG
+
+Every other surface on the site answers a theme change for free: the class moves on the root
+element, the tokens beneath it repaint, and whatever is drawn from them is already correct. A
+Mermaid diagram is the one thing that is not, because Mermaid resolves the palette while it renders
+and writes the resulting colours into a `style` element inside the SVG it returns. Those colours are
+a copy, and a copy does not repaint.
+
+So the component subscribes to the painted theme and draws again when it changes, and the adapter
+configures once per theme rather than once -- the `initialize` guard used to be a plain boolean,
+which is what left a diagram carrying the previous theme's colours until the page was reloaded. The
+theme is passed to the adapter rather than read back off an ancestor, so the value the component
+re-rendered on and the value baked into the drawing cannot be two different answers. The
+subscription is `observeTheme` in [libs/theme](../../libs/theme/src/index.ts), which watches the
+class rather than being told, matching what `currentTheme` beside it already does.
+
+This is the cost of the hex mirror below and is accepted with it. Anything else that copies a
+colour out of the tokens instead of reading them owes the same redraw.
 
 Mermaid's theme engine accepts hex colours while the site palette is authored in OKLCH. It does not
 justify changing the shared palette or scattering overrides across generated SVG selectors. A
