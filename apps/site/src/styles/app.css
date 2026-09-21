@@ -35,48 +35,53 @@
 	);
 }
 
-/* Optical width compensation for a `rounded-full` control, shared with newsletter.svelte rather
-   than derived a second time. See spec/styling/lengths.md, "A pill's rounded cap is optically
-   pulled in, so the box is pulled out to match" for the derivation and the coefficient below.
+/* Layered rather than unlayered, for the reason `utilities.css` records at its own wrapper: an
+   unlayered rule outranks every layered one and so outranks StyleX. See
+   spec/architecture/css/layers.md, "`utilities.css` is dissolved, not given a position". */
+@layer components {
+	/* Optical width compensation for a `rounded-full` control, shared with newsletter.svelte rather
+	   than derived a second time. See spec/styling/lengths.md, "A pill's rounded cap is optically
+	   pulled in, so the box is pulled out to match" for the derivation and the coefficient below.
 
-   Set `--pill-height` on the element or an ancestor -- the radius has to be pinned rather than
-   read back, because `rounded-full` clamps to half the height and CSS cannot see the result. */
-/* Two selectors, one block: on the pill itself, and on an ancestor that has to hand the same
-   numbers to something beside it. A row under a pill lines up with what is inside the pill, and
-   the overhang is part of that arithmetic -- deriving it a second time would put the coefficient
-   above in two places. */
-.pill-metrics,
-.pill {
-	--pill-radius: calc(var(--pill-height) / 2);
-	--pill-overhang: calc(var(--pill-radius) * 0.2146);
-}
+	   Set `--pill-height` on the element or an ancestor -- the radius has to be pinned rather than
+	   read back, because `rounded-full` clamps to half the height and CSS cannot see the result. */
+	/* Two selectors, one block: on the pill itself, and on an ancestor that has to hand the same
+	   numbers to something beside it. A row under a pill lines up with what is inside the pill, and
+	   the overhang is part of that arithmetic -- deriving it a second time would put the coefficient
+	   above in two places. */
+	.pill-metrics,
+	.pill {
+		--pill-radius: calc(var(--pill-height) / 2);
+		--pill-overhang: calc(var(--pill-radius) * 0.2146);
+	}
 
-.pill {
-	height: var(--pill-height);
-}
+	.pill {
+		height: var(--pill-height);
+	}
 
-/* A boxed counter in running text; the component owns cell count and width, this file owns the
-   box and its alignment.
+	/* A boxed counter in running text; the component owns cell count and width, this file owns the
+	   box and its alignment.
 
-   Digits sit above the baseline, so baseline alignment lands ~0.08em below the surrounding ink
-   centre (measured 0.370em for Latin, 0.360em for CJK -- close enough to share one shift).
-   Transform rather than vertical-align, which grows the line box and drags the baseline with it,
-   cancelling most of its own correction. */
-.value {
-	display: inline-flex;
-	transform: translateY(-0.08em);
-}
+	   Digits sit above the baseline, so baseline alignment lands ~0.08em below the surrounding ink
+	   centre (measured 0.370em for Latin, 0.360em for CJK -- close enough to share one shift).
+	   Transform rather than vertical-align, which grows the line box and drags the baseline with it,
+	   cancelling most of its own correction. */
+	.value {
+		display: inline-flex;
+		transform: translateY(-0.08em);
+	}
 
-.value-cell {
-	display: flex;
-	height: 1.5rem;
-	align-items: center;
-	justify-content: center;
-	border: 0.0625rem solid var(--color-border);
-	border-radius: 0.25rem;
-	background: var(--color-paper);
-	font-family: var(--font-mono);
-	font-size: 0.8125rem;
-	font-variant-numeric: tabular-nums;
-	color: var(--color-text-strong);
+	.value-cell {
+		display: flex;
+		height: 1.5rem;
+		align-items: center;
+		justify-content: center;
+		border: 0.0625rem solid var(--color-border);
+		border-radius: 0.25rem;
+		background: var(--color-paper);
+		font-family: var(--font-mono);
+		font-size: 0.8125rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-text-strong);
+	}
 }
