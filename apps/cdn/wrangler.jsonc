@@ -30,14 +30,11 @@
 		"inspector_port": 26517,
 	},
 
-	// Development reads the objects tree itself, because the local tree is the source of truth
-	// and dev should read the source rather than a copy. It lives under `env.dev` so that a plain
-	// `wrangler deploy` never sees it -- otherwise deploying would upload every photo in
-	// data/bucket/objects alongside the worker, which is precisely what R2 exists to avoid.
-	//
-	// `run_worker_first` matters more than it looks. Without it wrangler answers asset requests
-	// before the worker runs, so routing and cache headers are simply skipped and dev serves
-	// `max-age=0` where production serves a year. Measured: that is exactly what happened.
+	// Dev reads the local objects tree; see spec/architecture/data.md, "Where bytes and records
+	// live". It sits under `env.dev` so a plain `wrangler deploy` never uploads every photo in
+	// it alongside the worker. `run_worker_first` matters more than it looks: without it wrangler
+	// answers asset requests before the worker runs, so routing and cache headers are skipped and
+	// dev serves `max-age=0` where production serves a year. Measured: that is what happened.
 	"env": {
 		"dev": {
 			// The objects tree itself, with no draft copy beside it: a draft's objects are in here
