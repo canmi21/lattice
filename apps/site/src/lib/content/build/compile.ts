@@ -374,7 +374,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 						{
 							type: 'element',
 							tagName: 'span',
-							properties: { className: ['note-words'], 'data-note-words': true },
+							properties: { 'data-note-words': true },
 							children,
 						},
 						{
@@ -411,7 +411,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 						tagName: 'button',
 						properties: {
 							type: 'button',
-							className: ['tn-trigger', 'focus-link'],
+							className: ['focus-link'],
 							'data-tn-trigger': true,
 							'data-tn-note': note,
 							ariaControls: ['translator-note'],
@@ -423,7 +423,6 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 								type: 'element' as const,
 								tagName: 'svg',
 								properties: {
-									className: ['tn-icon'],
 									'data-tn-icon': true,
 									viewBox: '0 0 24 24',
 									fill: 'none',
@@ -467,7 +466,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 						type: 'element',
 						tagName: 'span',
 						properties: {
-							className: ['spoiler', 'focus-link'],
+							className: ['focus-link'],
 							'data-spoiler': true,
 							tabIndex: 0,
 						},

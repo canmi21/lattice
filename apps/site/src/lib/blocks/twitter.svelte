@@ -22,7 +22,6 @@
 		card: {
 			borderRadius: radius.xl,
 			color: 'inherit',
-			textDecorationLine: 'none',
 			// Two properties in the list, so the duration and the curve are stated twice: a
 			// transition's other lists are read per property, and one value against two
 			// properties is not the same computed style as two. The delay is stated for the
@@ -52,9 +51,8 @@
 			fontSize: text.px13,
 			fontWeight: weight.strong,
 		},
-		/** The tweet. The preserved whitespace is what the text looks like, not how large it is. */
+		/** The tweet. */
 		text: {
-			whiteSpace: 'pre-wrap',
 			color: 'var(--color-text)',
 			fontSize: text.px14,
 			lineHeight: line.base,
@@ -94,7 +92,7 @@
 	{href}
 	target="_blank"
 	rel="noopener"
-	class="tweet-card group focus-ring relative my-[1.8em] flex w-full max-w-[28rem] flex-col gap-[0.7rem] p-3 {stylex.attrs(
+	class="tweet-card group focus-ring relative my-[1.8em] flex w-full max-w-[28rem] flex-col gap-[0.7rem] p-3 no-underline {stylex.attrs(
 		surfaces.interactive,
 		styles.card,
 	).class}"
@@ -106,7 +104,8 @@
 		<time datetime={tweet.created}>{date}</time>
 	</header>
 
-	<p class="m-0 {stylex.attrs(styles.text).class}">{tweet.text}</p>
+	<!-- The line breaks are the author's, so they are kept rather than collapsed. -->
+	<p class="m-0 whitespace-pre-wrap {stylex.attrs(styles.text).class}">{tweet.text}</p>
 
 	<footer class="flex items-center gap-[0.9rem] {stylex.attrs(styles.metrics).class}">
 		<span class="flex items-center gap-1">

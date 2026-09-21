@@ -26,14 +26,13 @@
 		title: {
 			color: 'var(--color-text-strong)',
 		},
-		/** The opening paragraphs. Both declarations inherit down to the paragraphs inside. */
+		/** The opening paragraphs. The line inherits down to the paragraphs inside. */
 		intro: {
 			// The line is Tailwind's `--leading-relaxed`, and its value is written out rather
 			// than read: that variable is emitted only for the utilities that name it, so reading
 			// it here would leave this line depending on a class somewhere else in the markup.
 			// The value terminates, so there is no arithmetic to round.
 			lineHeight: line.relaxed,
-			textWrap: 'pretty',
 		},
 		/** The last of the three, quieter than the two above it. */
 		introNote: {
@@ -44,7 +43,6 @@
 			color: 'var(--color-text)',
 		},
 		census: {
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		actionLink: {
@@ -75,7 +73,6 @@
 		},
 		footnote: {
 			fontSize: text.px13,
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 	});
@@ -152,7 +149,8 @@
 
 		<header class="mt-8">
 			<h1 class={stylex.attrs(styles.title).class}>{m['licenses.title']({}, { locale })}</h1>
-			<div class="mt-4 space-y-4 {stylex.attrs(styles.intro).class}">
+			<!-- The wrap inherits down to the paragraphs inside, the way the line does. -->
+			<div class="mt-4 space-y-4 text-pretty {stylex.attrs(styles.intro).class}">
 				<p>{m['licenses.built']({}, { locale })}</p>
 				<p>{m['licenses.thanks']({}, { locale })}</p>
 				<p class={stylex.attrs(styles.introNote).class}>
@@ -176,7 +174,7 @@
 			</div>
 		</header>
 
-		<p class="mt-8 {stylex.attrs(styles.census).class}">
+		<p class="mt-8 text-pretty {stylex.attrs(styles.census).class}">
 			<ParaglideMessage
 				message={m['licenses.census']}
 				inputs={{ count, licenses: data.licenses.length }}
@@ -267,7 +265,7 @@
 					<span class={stylex.attrs(styles.count).class}>{compactCount(entry.count)}</span>
 				</a>
 			{/each}
-			<p class="mt-3 {stylex.attrs(styles.footnote).class}">
+			<p class="mt-3 text-pretty {stylex.attrs(styles.footnote).class}">
 				<span aria-hidden="true">*&nbsp;</span>{m['licenses.multiple']({}, { locale })}
 			</p>
 		</section>

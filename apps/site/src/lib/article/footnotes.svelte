@@ -40,13 +40,6 @@
 			fontSize: text.px11,
 			lineHeight: line.relaxed,
 			color: 'var(--color-text-soft)',
-			// `balance` over the categorically-right `pretty` -- measured, not reasoned; see
-			// spec/styling/notes.md, "A wrapped note is balanced, and that was measured rather than
-			// reasoned".
-			//
-			// Declared on the note rather than the line inside it: this is the block that
-			// establishes the lines, and the span within it establishes none of its own.
-			textWrap: 'balance',
 		},
 		/**
 		 * Quiet like the notes and brightening whole on approach, the same way a note's own
@@ -357,7 +350,16 @@
 </section>
 
 {#snippet entry(note: ArticleNote)}
-	<li id="note-{note.number}" class="jump-target note m-0 {stylex.attrs(styles.note).class}">
+	<!-- `balance` over the categorically-right `pretty` -- measured, not reasoned; see
+	     spec/styling/notes.md, "A wrapped note is balanced, and that was measured rather than
+	     reasoned".
+
+	     Declared on the note rather than the line inside it: this is the block that establishes
+	     the lines, and the span within it establishes none of its own. -->
+	<li
+		id="note-{note.number}"
+		class="jump-target note m-0 text-balance {stylex.attrs(styles.note).class}"
+	>
 		<!-- Words, marker, then link: see spec/styling/notes.md, "A note names its words first, then
 		     its number, then what it says" and "The number is the same superscript that marked
 		     it in the prose", for the ordering and why the marker is hidden from a screen reader.
@@ -373,10 +375,7 @@
 			><span class="note-phrase {stylex.attrs(styles.phrase).class}">{note.phrase}</span><sup
 				class="note-marker"
 				aria-hidden="true">{note.number}</sup
-			><a
-				href="#marker-{note.number}"
-				class="note-link focus-link no-underline"
-				onclick={jumpBack}
+			><a href="#marker-{note.number}" class="note-link focus-link no-underline" onclick={jumpBack}
 				>{note.text}<span
 					class="ms-[0.35rem] inline-flex align-[-0.1em] {stylex.attrs(styles.back).class}"
 					aria-hidden="true"

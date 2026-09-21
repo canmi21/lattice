@@ -49,15 +49,6 @@
 			// it here would leave this line depending on a class somewhere else in the markup. The
 			// value terminates, so there is no arithmetic to round.
 			lineHeight: line.snug,
-			whiteSpace: 'normal',
-			overflowWrap: 'anywhere',
-			// An entry that needs two lines gets two comparable lines. Left to fill and spill, the
-			// break lands wherever the width runs out: `Independencia de la` over `UI` puts nineteen
-			// characters above two, which reads as a mistake rather than as a wrapped label. This is
-			// what `balance` is for -- short, headline-shaped text, a couple of lines at most -- and
-			// it is the label's own line lengths it evens out, so entries stay independent of each
-			// other. Where it is unsupported the text simply fills, which is today's behaviour.
-			textWrap: 'balance',
 		},
 		labelActive: {
 			color: 'var(--color-text-strong)',
@@ -914,9 +905,15 @@
 					     not emit; measured in Chrome the standard one computes to nothing, so it is
 					     carried across for the engines spec/compat.md floors at rather than for a
 					     value that differs today. -->
+					<!-- An entry that needs two lines gets two comparable lines. Left to fill and spill,
+					     the break lands wherever the width runs out: `Independencia de la` over `UI` puts
+					     nineteen characters above two, which reads as a mistake rather than as a wrapped
+					     label. `balance` is for exactly this -- short, headline-shaped text, a couple of
+					     lines at most -- and it evens out the label's own line lengths, so entries stay
+					     independent of each other. Unsupported, the text simply fills. -->
 					<span
 						data-toc-text
-						class="line-clamp-2 max-w-full [line-clamp:2] {stylex.attrs(
+						class="line-clamp-2 max-w-full text-balance whitespace-normal wrap-anywhere [line-clamp:2] {stylex.attrs(
 							styles.label,
 							i === activeIndex ? styles.labelActive : styles.labelIdle,
 						).class}"
@@ -933,9 +930,9 @@
 <style>
 	/* A script whose spaces mean something breaks at them first -- see spec/styling/rail.md, "Balance
 	   evens the lines; it does not choose where the break may land, and for Han that is the part
-	   that matters" and "Japanese is excluded, and the measurement is the argument". The floor
-	   and this override sit in two layers because the override is reached through `:lang` and
-	   the visual layer reaches an element only through a class on it. See spec/todo.md. */
+	   that matters" and "Japanese is excluded, and the measurement is the argument". The floor is
+	   written on the label and this override here, because the override is reached through `:lang`
+	   rather than through a class on the element. See spec/todo.md. */
 	[data-toc-text]:lang(zh),
 	[data-toc-text]:lang(ko) {
 		word-break: keep-all;

@@ -359,10 +359,9 @@
 </Popover.Root>
 
 <style>
-	/* Class and attribute both, at identical specificity, for as long as both spellings are out
-	   there: an article published before the address moved carries only the class. The classes go
-	   once the corpus is republished. See spec/architecture/css/authoring.md. */
-	:global(.tn-trigger),
+	/* The address is the attribute. Only the compiler writes a translator's note, and the corpus
+	   carries the attribute, so there is no second spelling to match.
+	   See spec/architecture/css/authoring.md. */
 	:global([data-tn-trigger]) {
 		margin: 0;
 		border: 0;
@@ -378,9 +377,6 @@
 		cursor: help;
 	}
 
-	:global(.tn-trigger:hover),
-	:global(.tn-trigger:focus-visible),
-	:global(.tn-trigger[aria-expanded='true']),
 	:global([data-tn-trigger]:hover),
 	:global([data-tn-trigger]:focus-visible),
 	:global([data-tn-trigger][aria-expanded='true']) {
@@ -388,8 +384,6 @@
 		text-decoration-color: currentColor;
 	}
 
-	/* Trigger and icon travel together, so no document mixes the two spellings. */
-	:global(.tn-trigger .tn-icon),
 	:global([data-tn-trigger] [data-tn-icon]) {
 		display: inline;
 		width: 0.78em;

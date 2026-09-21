@@ -30,7 +30,6 @@
 		},
 		name: {
 			color: 'var(--color-text-strong)',
-			overflowWrap: 'break-word',
 		},
 		version: {
 			fontFamily: family.monoTheme,
@@ -39,7 +38,6 @@
 		},
 		summary: {
 			lineHeight: line.relaxed,
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		noticeLink: {
@@ -59,7 +57,6 @@
 		},
 		spdx: {
 			fontFamily: family.monoTheme,
-			overflowWrap: 'break-word',
 			color: 'var(--color-text-strong)',
 		},
 		spdxTerms: {
@@ -72,7 +69,6 @@
 		assertedNote: {
 			fontSize: text.px13,
 			lineHeight: line.relaxed,
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		handle: {
@@ -128,20 +124,18 @@
 			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
-		// A dependent's name wraps where a chain's truncates, so the two links differ by one
-		// declaration and are written out rather than composed: merging a second style over the
-		// first would reach the resting colour and leave its two states behind.
+		// A dependent's name wraps where a chain's truncates, and that one declaration is now a
+		// utility in the markup -- which leaves these two holding what `chainLink` and `chainName`
+		// already hold.
 		dependentLink: {
 			color: {
 				default: 'var(--color-text-strong)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
 				':focus-visible': 'var(--color-text-soft)',
 			},
-			overflowWrap: 'break-word',
 		},
 		dependentName: {
 			color: 'var(--color-text-strong)',
-			overflowWrap: 'break-word',
 		},
 	});
 </script>
@@ -235,11 +229,15 @@
 
 		<header class="mt-8">
 			<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-				<h1 class="min-w-0 {stylex.attrs(styles.name).class}">{data.coordinates.name}</h1>
+				<h1 class="min-w-0 wrap-break-word {stylex.attrs(styles.name).class}">
+					{data.coordinates.name}
+				</h1>
 				<span class={stylex.attrs(styles.version).class}>{data.coordinates.version}</span>
 			</div>
 			{#if data.entry.description}
-				<p class="mt-4 {stylex.attrs(styles.summary).class}">{data.entry.description}</p>
+				<p class="mt-4 text-pretty {stylex.attrs(styles.summary).class}">
+					{data.entry.description}
+				</p>
 			{/if}
 			<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">
 				<a
@@ -373,11 +371,12 @@
 						{#if soleLicense}
 							<a
 								href={soleLicense.href}
-								class="focus-link spring-underline article-link {stylex.attrs(styles.spdx).class}"
-								>{data.entry.spdx}</a
+								class="focus-link spring-underline article-link wrap-break-word {stylex.attrs(
+									styles.spdx,
+								).class}">{data.entry.spdx}</a
 							>
 						{:else}
-							<p class={stylex.attrs(styles.spdx).class}>{data.entry.spdx}</p>
+							<p class="wrap-break-word {stylex.attrs(styles.spdx).class}">{data.entry.spdx}</p>
 							<p class="mt-1 flex flex-wrap gap-x-3 gap-y-1 {stylex.attrs(styles.spdxTerms).class}">
 								{#each data.licenses as license (license.license)}
 									<a
@@ -389,7 +388,7 @@
 							</p>
 						{/if}
 						{#if data.entry.asserted}
-							<p class="mt-2 {stylex.attrs(styles.assertedNote).class}">
+							<p class="mt-2 text-pretty {stylex.attrs(styles.assertedNote).class}">
 								{m['licenses.asserted_note']({}, { locale })}
 							</p>
 						{/if}
@@ -520,13 +519,14 @@
 										{#if node.href}
 											<a
 												href={node.href}
-												class="focus-link min-w-0 {stylex.attrs(
+												class="focus-link min-w-0 wrap-break-word {stylex.attrs(
 													surfaces.colorShift,
 													styles.dependentLink,
 												).class}">{node.name}</a
 											>
 										{:else}
-											<span class="min-w-0 {stylex.attrs(styles.dependentName).class}"
+											<span
+												class="min-w-0 wrap-break-word {stylex.attrs(styles.dependentName).class}"
 												>{node.name}</span
 											>
 										{/if}

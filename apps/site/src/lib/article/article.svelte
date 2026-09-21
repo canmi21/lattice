@@ -610,10 +610,10 @@
 		color: var(--color-text-soft);
 	}
 
-	/* Every rule below reaching compiled prose matches a class and an attribute at identical
-	   specificity, for as long as both spellings are out there: an article published before the
-	   address moved carries only the class. The classes go once the corpus is republished.
-	   See spec/architecture/css/authoring.md. */
+	/* The marker rules below match a class and an attribute at identical specificity. The corpus
+	   carries both, so compiled prose no longer needs the class arm -- a heading's marker does,
+	   because section.svelte writes the class alone. The class arm goes when section.svelte gains
+	   the attribute. See spec/architecture/css/authoring.md. */
 
 	/* A note's marker. It rides above the line it interrupts and stays smaller than the words
 	   around it: a reader following the sentence should be able to pass over it, and a reader
@@ -657,8 +657,9 @@
 	   the animation is not. */
 
 	/* .note-return stays a class: a script adds it at runtime, so no published article carries one
-	   and there is nothing to migrate. Marker and link travel together, so no document mixes the
-	   two spellings and the pair below covers every case. */
+	   and there is nothing to migrate. Two shapes are lit -- the noted words with the marker beside
+	   them, and a heading's marker alone -- and each is spelled twice while section.svelte's marker
+	   carries no attribute. Two arms remain once it does. */
 	.article-body :global(.note-return + .note-marker .note-marker-link),
 	.article-body :global(.note-marker.note-return .note-marker-link),
 	.article-body :global(.note-return + [data-note-marker] [data-note-marker-link]),
@@ -694,7 +695,6 @@
 	   `:focus-visible` -- a tap's focus is the only reveal a touch screen has, and revealing is
 	   the element's whole job, unlike the ring, which stays keyboard-only via .focus-link.
 	   See spec/styling/notes.md. */
-	.article-body :global(.spoiler),
 	.article-body :global([data-spoiler]) {
 		border-radius: 0.25rem;
 		cursor: pointer;
@@ -702,15 +702,12 @@
 		transition: filter 200ms ease-out;
 	}
 
-	.article-body :global(.spoiler:hover),
-	.article-body :global(.spoiler:focus),
 	.article-body :global([data-spoiler]:hover),
 	.article-body :global([data-spoiler]:focus) {
 		filter: none;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.article-body :global(.spoiler),
 		.article-body :global([data-spoiler]) {
 			transition: none;
 		}

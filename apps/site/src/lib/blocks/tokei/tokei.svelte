@@ -63,7 +63,6 @@
 				':hover': 'var(--color-text-strong)',
 			},
 			fontSize: text.px11,
-			textDecorationLine: 'none',
 			transitionProperty: {
 				default: 'color',
 				'@media (prefers-reduced-motion: reduce)': 'none',
@@ -616,7 +615,7 @@
 					></span
 				>
 				<a
-					class="focus-link inline-flex items-center gap-[0.0625rem] {stylex.attrs(
+					class="focus-link no-underline inline-flex items-center gap-[0.0625rem] {stylex.attrs(
 						styles.summaryLink,
 					).class}"
 					href="{URLS.external.github.web}/XAMPPRocky/tokei"

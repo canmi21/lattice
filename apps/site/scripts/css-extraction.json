@@ -52,15 +52,6 @@
 		},
 		{
 			"components": [
-				"apps/site/src/lib/components/modal.svelte",
-				"apps/site/src/routes/licenses/[license]/+page.svelte",
-				"apps/site/src/routes/licenses/pkgs/+page.svelte",
-				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte",
-				"apps/site/src/routes/licenses/pkgs/[registry]/[...package]/+page.svelte"
-			]
-		},
-		{
-			"components": [
 				"apps/site/src/lib/components/picture.svelte",
 				"apps/site/src/lib/components/video.svelte",
 				"apps/site/src/routes/+page.svelte"

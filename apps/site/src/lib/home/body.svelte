@@ -15,12 +15,6 @@
 			lineHeight: line.tight,
 			color: 'var(--color-text-strong)',
 		},
-		/** The label, which carries the rule under the words rather than under the icon. */
-		label: {
-			textDecorationLine: 'underline',
-			textDecorationColor: 'var(--color-border)',
-			textUnderlineOffset: '4px',
-		},
 	});
 </script>
 
@@ -51,7 +45,9 @@
 						{...seg.new_tab ? { target: '_blank', rel: 'noopener' } : {}}
 					>
 						{#if seg.icon}<Icon name={seg.icon} />{/if}
-						<span class={stylex.attrs(styles.label).class}>{seg.label}</span>
+						<!-- The label is its own element so that the rule runs under the words and not
+						     under the icon beside them. -->
+						<span class="underline decoration-border underline-offset-4">{seg.label}</span>
 						{#if seg.new_tab}<span class="sr-only">
 								({m['support.new-tab']({}, { locale })})</span
 							>{/if}

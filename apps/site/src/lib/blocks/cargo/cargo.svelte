@@ -75,7 +75,6 @@
 				default: 'var(--color-text-soft)',
 				':hover': 'var(--color-text-strong)',
 			},
-			textDecorationLine: 'none',
 			transitionProperty: {
 				default: 'color',
 				'@media (prefers-reduced-motion: reduce)': 'none',
@@ -454,8 +453,9 @@
 			<span class="flex gap-2 {stylex.attrs(styles.links).class}">
 				{#each [[`${URLS.external.registries.cargo}/crates/${crate.name}`, 'crates.io'], [`${URLS.external.rust.lib}/crates/${crate.name}`, 'lib.rs'], [`${URLS.external.rust.docs}/${crate.name}`, 'docs.rs']] as [href, label] (label)}
 					<a
-						class="focus-link inline-flex items-center gap-[0.0625rem] {stylex.attrs(styles.link)
-							.class}"
+						class="focus-link no-underline inline-flex items-center gap-[0.0625rem] {stylex.attrs(
+							styles.link,
+						).class}"
 						{href}
 						target="_blank"
 						rel="noopener"

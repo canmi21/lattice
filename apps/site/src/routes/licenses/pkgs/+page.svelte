@@ -33,7 +33,6 @@
 			// it here would leave this line depending on a class somewhere else in the markup.
 			// The value terminates, so there is no arithmetic to round.
 			lineHeight: line.relaxed,
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		/** The line holding the language switcher. Both declarations inherit into it. */
@@ -112,7 +111,7 @@
 
 		<header class="mt-8">
 			<h1 class={stylex.attrs(styles.title).class}>{m['licenses.packages']({}, { locale })}</h1>
-			<p class="mt-4 {stylex.attrs(styles.summary).class}">
+			<p class="mt-4 text-pretty {stylex.attrs(styles.summary).class}">
 				{m['licenses.packages_summary']({ count }, { locale })}
 			</p>
 			<div class="mt-4 {stylex.attrs(styles.switcherRow).class}">

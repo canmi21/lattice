@@ -22,13 +22,8 @@
 				':focus-visible': 'var(--color-text-strong)',
 			},
 		},
-		/**
-		 * The licence identifier as a heading. It carries a break the two directory titles do
-		 * not, because this one is an SPDX expression rather than a word: an overflow wrap is how
-		 * the package page's `name` and `spdx` already write the same need.
-		 */
+		/** The licence identifier as a heading. */
 		title: {
-			overflowWrap: 'break-word',
 			color: 'var(--color-text-strong)',
 		},
 		/** The one opening paragraph, which counts the packages behind the sections below. */
@@ -38,7 +33,6 @@
 			// it here would leave this line depending on a class somewhere else in the markup.
 			// The value terminates, so there is no arithmetic to round.
 			lineHeight: line.relaxed,
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 		actionLink: {
@@ -105,8 +99,11 @@
 		</nav>
 
 		<header class="mt-8">
-			<h1 class={stylex.attrs(styles.title).class}>{data.license.license}</h1>
-			<p class="mt-4 {stylex.attrs(styles.summary).class}">
+			<!-- The heading carries a break the two directory titles do not, because this one is an
+			     SPDX expression rather than a word: an overflow wrap is how the package page's name
+			     and identifier already write the same need. -->
+			<h1 class="wrap-break-word {stylex.attrs(styles.title).class}">{data.license.license}</h1>
+			<p class="mt-4 text-pretty {stylex.attrs(styles.summary).class}">
 				{m['licenses.license_summary']({ count }, { locale })}
 			</p>
 			<nav aria-label={m['licenses.actions']({}, { locale })} class="mt-4 flex flex-wrap gap-4">

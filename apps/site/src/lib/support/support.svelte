@@ -48,15 +48,6 @@
 		likeFigures: {
 			fontVariantNumeric: figures.tabular,
 		},
-		/**
-		 * One run of a label that was split into three.
-		 *
-		 * `pre` because it was split at a space: the prefix ends on one and the suffix opens on one,
-		 * and a collapsed space is a run that measures narrower than it draws.
-		 */
-		copyRun: {
-			whiteSpace: 'pre',
-		},
 		/** The short label, shown until the pill opens. */
 		shortCopy: {
 			opacity: 1,
@@ -315,13 +306,16 @@
 {#snippet copy(short: string, long: string)}
 	{@const parts = splitCopy(short, long)}
 	{#if parts}
+		<!-- Each of the three runs preserves its spaces, because the label was split at one: the
+		     prefix ends on a space and the suffix opens on one, and a collapsed space is a run that
+		     measures narrower than it draws. -->
 		<span class="inline-flex flex-none items-center" aria-hidden="true">
 			<span class="prefix-mask reveal-mask flex-none overflow-hidden"
-				><span class="block w-max {stylex.attrs(styles.copyRun).class}">{parts.prefix}</span></span
+				><span class="block w-max whitespace-pre">{parts.prefix}</span></span
 			>
-			<span class="shared block w-max {stylex.attrs(styles.copyRun).class}">{parts.shared}</span>
+			<span class="shared block w-max whitespace-pre">{parts.shared}</span>
 			<span class="suffix-mask reveal-mask flex-none overflow-hidden"
-				><span class="block w-max {stylex.attrs(styles.copyRun).class}">{parts.suffix}</span></span
+				><span class="block w-max whitespace-pre">{parts.suffix}</span></span
 			>
 		</span>
 	{:else}

@@ -58,7 +58,6 @@
 		body: {
 			fontSize: text.px15,
 			lineHeight: line.relaxed,
-			textWrap: 'pretty',
 			color: 'var(--color-text-soft)',
 		},
 	});
@@ -116,7 +115,7 @@
 					<X class="size-4" aria-hidden="true" />
 				</Dialog.Close>
 			</div>
-			<Dialog.Description class="mt-2 {stylex.attrs(styles.body).class}">
+			<Dialog.Description class="mt-2 text-pretty {stylex.attrs(styles.body).class}">
 				{@render children()}
 			</Dialog.Description>
 		</Dialog.Content>
