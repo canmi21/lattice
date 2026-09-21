@@ -217,6 +217,16 @@
 		margin-inline: auto;
 	}
 
+	/* The node boxes, taking the corner the sketch shown in their place already takes. A decision
+	   is a `polygon` and cannot be given one here, so the adapter cuts its points instead and
+	   both read `--mermaid-corner` from palette.css. An edge label's ground is `rect.background`
+	   and is not a node. Reached from here because Mermaid writes these elements and no class of
+	   this repository lands on one -- see spec/architecture/css/layers.md. */
+	.mermaid-result :global(rect.basic) {
+		rx: var(--mermaid-corner);
+		ry: var(--mermaid-corner);
+	}
+
 	@keyframes mermaid-breathe {
 		to {
 			opacity: 0.72;

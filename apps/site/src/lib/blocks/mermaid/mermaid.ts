@@ -28,6 +28,66 @@ function color(style: CSSStyleDeclaration, name: string): string {
 		: value;
 }
 
+/** Two decimals is under half a device pixel at the sizes a diagram is drawn at. */
+function trim(value: number): string {
+	return value.toFixed(2).replace(/\.?0+$/, '');
+}
+
+/**
+ * One polygon's outline with every corner cut back and bridged by a quadratic.
+ *
+ * Undefined when the points cannot be read, so the caller leaves the shape exactly as Mermaid
+ * drew it rather than emitting a path built from half of them.
+ */
+function roundedOutline(points: string, radius: number): string | undefined {
+	const corners = points
+		.trim()
+		.split(/\s+/)
+		.map((pair) => pair.split(',').map(Number));
+	if (corners.length < 3) return undefined;
+	if (corners.some((pair) => pair.length !== 2 || pair.some((n) => !Number.isFinite(n)))) {
+		return undefined;
+	}
+
+	let outline = '';
+	for (const [index, corner] of corners.entries()) {
+		const [x, y] = corner as [number, number];
+		const [px, py] = corners[(index - 1 + corners.length) % corners.length] as [number, number];
+		const [nx, ny] = corners[(index + 1) % corners.length] as [number, number];
+		const back = Math.hypot(x - px, y - py);
+		const forward = Math.hypot(nx - x, ny - y);
+		if (back === 0 || forward === 0) return undefined;
+		// Never take more than half an edge, so a short one blunts rather than crossing into the
+		// cut its neighbour is making from the other end.
+		const from = Math.min(radius, back / 2) / back;
+		const to = Math.min(radius, forward / 2) / forward;
+		outline += index === 0 ? 'M' : 'L';
+		outline += `${trim(x + (px - x) * from)},${trim(y + (py - y) * from)}`;
+		outline += `Q${trim(x)},${trim(y)} ${trim(x + (nx - x) * to)},${trim(y + (ny - y) * to)}`;
+	}
+	return `${outline}Z`;
+}
+
+/**
+ * The same corner the node boxes take from CSS, given to the shapes that cannot take it there.
+ *
+ * Mermaid draws a decision as a `polygon`, and a polygon has no radius to set -- the only CSS
+ * lever is a round line join, which blunts nothing at the hairline this drawing is stroked at.
+ * So the points become a path once, while the drawing is being cached, and the swap path stays
+ * free. Only the polygon tags are rewritten; every other byte Mermaid wrote is left alone.
+ */
+function roundDecisions(svg: string, radius: number): string {
+	// `NaN <= 0` is false, so an unreadable corner has to be refused by name or every coordinate
+	// below becomes NaN and the drawing disappears without an error.
+	if (!Number.isFinite(radius) || radius <= 0) return svg;
+	return svg.replace(/<polygon\b([^>]*)>(?:<\/polygon>)?/g, (whole, attributes: string) => {
+		const points = /\bpoints="([^"]*)"/.exec(attributes);
+		const outline = points && roundedOutline(points[1] ?? '', radius);
+		if (!points || !outline) return whole;
+		return `<path${attributes.replace(points[0], `d="${outline}"`)}></path>`;
+	});
+}
+
 function configuration(root: HTMLElement, theme: Theme): MermaidConfig {
 	const style = getComputedStyle(root);
 	// Named rather than switched by an ancestor, so the theme that is not on screen is readable.
@@ -129,6 +189,8 @@ async function draw(source: string, root: HTMLElement): Promise<Drawings> {
 	modulePromise ??= import('mermaid').then(({ default: mermaid }) => mermaid);
 	const mermaid = await modulePromise;
 	const drawings = {} as Drawings;
+	// One home for the corner, read from the same stylesheet the node boxes take theirs from.
+	const corner = Number.parseFloat(getComputedStyle(root).getPropertyValue('--mermaid-corner'));
 	for (const theme of THEMES) {
 		// Sequential on purpose, which is what the `no-await-in-loop` warning is about: the
 		// configuration `initialize` writes is global, so a second render started before the
@@ -138,7 +200,7 @@ async function draw(source: string, root: HTMLElement): Promise<Drawings> {
 		mermaid.initialize(configuration(root, theme));
 		diagramId += 1;
 		const result: RenderResult = await mermaid.render(`mermaid-diagram-${diagramId}`, source);
-		drawings[theme] = result.svg;
+		drawings[theme] = roundDecisions(result.svg, corner);
 	}
 	return drawings;
 }

@@ -2,7 +2,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const initialize = vi.fn();
 const render = vi.fn(async (id: string, source: string) => ({
-	svg: `<svg id="${id}"><text>${source}</text></svg>`,
+	// A decision's diamond rides along, because every drawing passes through the corner cutter.
+	svg: `<svg id="${id}"><text>${source}</text><polygon points="10,0 20,10 10,20 0,10" class="label-container"></polygon></svg>`,
 }));
 
 vi.mock('mermaid', () => ({ default: { initialize, render } }));
@@ -10,6 +11,7 @@ vi.mock('mermaid', () => ({ default: { initialize, render } }));
 const palette: Record<string, string> = {
 	// Production CSS minification shortens repeatable hex pairs; the reader must restore the
 	// six-digit values required by Mermaid rather than depending on source spelling.
+	'--mermaid-corner': '8px',
 	'--mermaid-light-page': '#111',
 	'--mermaid-light-paper': '#fff',
 	'--mermaid-light-paper-hover': '#f2f2f2',
@@ -84,4 +86,27 @@ it('initializes strict rendering from the colocated hex palette, once per theme'
 	expect(render).toHaveBeenCalledWith('mermaid-diagram-1', 'flowchart LR\nA --> B');
 	expect(drawings.light).toContain('mermaid-diagram-1');
 	expect(drawings.dark).toContain('mermaid-diagram-2');
+});
+
+it('gives a decision the corner a node box takes from CSS', async () => {
+	const { renderMermaid } = await import('./mermaid');
+	const drawings = await renderMermaid('flowchart LR\nA --> B', {} as unknown as HTMLElement);
+
+	// A polygon has no radius to set, so its points become a path while the drawing is cached
+	// rather than on the swap. Every other attribute Mermaid wrote survives the rewrite.
+	for (const drawing of [drawings.light, drawings.dark]) {
+		expect(drawing).not.toContain('<polygon');
+		expect(drawing).toContain('class="label-container"');
+		expect(drawing).toMatch(/<path d="M[\d.,\sQL-]+Z"/);
+	}
+});
+
+it('leaves a shape exactly as it was drawn when its points cannot be read', async () => {
+	const { renderMermaid } = await import('./mermaid');
+	render.mockResolvedValue({ svg: '<svg><polygon points="10,0 nonsense"></polygon></svg>' });
+
+	const drawings = await renderMermaid('flowchart LR\nA --> B', {} as unknown as HTMLElement);
+
+	// Half a shape is worse than the shape, so the cutter declines rather than guessing.
+	expect(drawings.light).toContain('<polygon points="10,0 nonsense">');
 });

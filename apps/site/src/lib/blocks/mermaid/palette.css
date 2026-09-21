@@ -5,8 +5,13 @@
  *
  * Both palettes are named rather than switched by a `.dark` ancestor, because the adapter draws
  * each diagram in both themes at once and therefore has to read the one that is not on screen.
+ *
+ * The corner is here for the same reason the colours are: a node box takes it through CSS while a
+ * decision takes it as geometry the adapter computes, and the two must not be two numbers.
  */
 .mermaid-block {
+	--mermaid-corner: 8px;
+
 	--mermaid-light-page: #fbfbfb;
 	--mermaid-light-paper: #ffffff;
 	--mermaid-light-paper-hover: #f2f2f2;

@@ -77,22 +77,29 @@ an `8rem` floor, so a short horizontal flow is not padded out to fallback height
 diagrams remain governed by their content. Malformed values fail content compilation. The frame
 follows the ordinary code-block language without copying its nested surfaces: one thin outer border
 contains one uninterrupted paper background, matching the ordinary code surface. Diagram nodes use
-the adjacent hover-paper step so they lift out of that deeper field without another component frame.
-The frame is the sheet and the nodes the step off it, so which of the two is the lighter follows the
-theme -- [surfaces.md](surfaces.md), "A sheet takes the theme's own end of the range, and a step off
-it goes the other way". An inset border or contrasting padding band makes a diagram look heavier
-than the prose and is not used. The stage centres every result vertically within its reserved
-height; Mermaid already centres the SVG horizontally. A short horizontal flow therefore does not
-cling to the top of the fallback-height frame, and the loading and final compositions share the same
-centre. Horizontal overflow remains scrollable. A failed render leaves the authored source readable
-inside that surface. The reveal is opacity and blur and carries no movement: the loading surface
-already holds the space the diagram lands in, so a rise into it reads as the picture having been in
-the wrong place a moment before. It belongs to arriving rather than to drawing, so only a diagram
-the reader has not been shown yet fades in -- a redraw for a new theme keeps the current drawing on
-screen and cuts to its replacement, without the fade and without going back through the loading
-surface, which is what a theme toggle should look like when the picture was already there.
-Reduced-motion readers receive the final states without the loading pulse or reveal. The boundary is
-implemented in [mermaid.svelte](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte).
+the adjacent hover-paper step so they lift out of that deeper field without another component frame,
+and take the same corner as the sketch the loading surface draws in their place, which is a step
+tighter than the frame's own. A decision is authored as a diamond, which Mermaid draws as a
+`polygon` and CSS cannot give a radius to -- its only lever there is a round line join, which blunts
+nothing at the hairline a diagram is stroked at. So a box takes the corner through CSS and a diamond
+has its points cut into a path while the drawing is being cached, both reading one value from the
+palette beside them so they cannot become two numbers. An edge label's ground is not a node and
+keeps its own shape. The frame is the sheet and the nodes the step off it, so which of the two is
+the lighter follows the theme -- [surfaces.md](surfaces.md), "A sheet takes the theme's own end of
+the range, and a step off it goes the other way". An inset border or contrasting padding band makes
+a diagram look heavier than the prose and is not used. The stage centres every result vertically
+within its reserved height; Mermaid already centres the SVG horizontally. A short horizontal flow
+therefore does not cling to the top of the fallback-height frame, and the loading and final
+compositions share the same centre. Horizontal overflow remains scrollable. A failed render leaves
+the authored source readable inside that surface. The reveal is opacity and blur and carries no
+movement: the loading surface already holds the space the diagram lands in, so a rise into it reads
+as the picture having been in the wrong place a moment before. It belongs to arriving rather than to
+drawing, so only a diagram the reader has not been shown yet fades in -- a redraw for a new theme
+keeps the current drawing on screen and cuts to its replacement, without the fade and without going
+back through the loading surface, which is what a theme toggle should look like when the picture was
+already there. Reduced-motion readers receive the final states without the loading pulse or reveal.
+The boundary is implemented in
+[mermaid.svelte](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte).
 
 ### A diagram is drawn in both themes at once, because the palette is inside the SVG
 
