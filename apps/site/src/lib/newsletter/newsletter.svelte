@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, radius, text, transition, weight } from '$lib/vocabulary.stylex.ts';
+	import { duration, easing, radius, text, weight } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable `libs/tokens`
@@ -94,15 +94,9 @@
 				':focus-visible': 'var(--color-text-strong)',
 			},
 			opacity: { default: null, ':disabled': 0.6 },
-			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included --
-			// dropping them changes the computed value even though nothing here sets a gradient.
-			// None of the three actually reaches the element, since `.spring-underline` is
-			// unlayered and already owns `transition`; see spec/architecture/css/layers.md, "There is a
-			// fourth participant, and it sits above the visual layer". Carried across unchanged
-			// on purpose, and recorded in spec/todo.md.
-			transitionProperty: transition.colors,
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
+			// `.spring-underline` is unlayered and owns this element's `transition`, so a colour
+			// transition declared here would never reach it. See spec/architecture/css/layers.md,
+			// "There is a fourth participant, and it sits above the visual layer".
 		},
 	});
 </script>

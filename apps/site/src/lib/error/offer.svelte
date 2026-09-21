@@ -15,6 +15,13 @@
 				default: 'var(--color-text)',
 				':hover': 'var(--color-text-strong)',
 			},
+		},
+		/**
+		 * The form's button only. Nothing unlayered takes its `transition`, while the address is a
+		 * `spring-underline`, whose unlayered shorthand takes all four longhands and would leave
+		 * these inert. See spec/architecture/css/layers.md.
+		 */
+		fade: {
 			transitionProperty: 'color',
 			transitionDuration: '150ms',
 			transitionTimingFunction: 'ease',
@@ -75,8 +82,10 @@
 {#snippet reportForm({ children }: { children?: Snippet })}<button
 		type="button"
 		onclick={openReport}
-		class="focus-link spring-underline-host cursor-pointer {stylex.attrs(styles.control).class}"
-		><span class="spring-underline article-link">{@render children?.()}</span></button
+		class="focus-link spring-underline-host cursor-pointer {stylex.attrs(
+			styles.control,
+			styles.fade,
+		).class}"><span class="spring-underline article-link">{@render children?.()}</span></button
 	>{/snippet}
 
 {#if missing}
