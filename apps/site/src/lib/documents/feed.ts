@@ -20,6 +20,7 @@ const MARKS = `${URLS.apps.production.alias}/symlink`;
 export type FeedSite = {
 	name: string;
 	tagline: string;
+	// The author's own address, not one of the site's boxes: an Atom author is a person.
 	author: { name: string; email: string };
 	feed: { id: string; followDescription: string };
 };

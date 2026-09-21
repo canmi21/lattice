@@ -19,7 +19,8 @@ author:
   # is one of the things this site leaves in English on purpose.
   fullName: Canmi Wu
   role: Systems Engineer
-  email: support@canmi.net
+  # A person's address, and the one the feed names as its author. The site's own boxes are `mail`.
+  email: t@canmi.icu
   # Handles, not URLs. Where to reach them is libs/urls' business; who they identify lives here.
   telegram: canmimua
   twitter: canmi21
@@ -32,6 +33,13 @@ author:
   # Bluesky identifies an account by a domain the owner proves; the handle being the site's
   # domain is that proof, not a second copy of the address.
   bluesky: canmi.net
+
+# Every address the site answers on is a name at this domain, so moving the domain is one edit.
+# The author's own address is in `author` and is deliberately not one of these.
+mail:
+  domain: canmi.net
+  boxes:
+    support: reader mail, and the address an error page offers
 
 feed:
   id: tag:canmi.net,2023:atom

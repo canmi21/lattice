@@ -49,6 +49,50 @@ it('keeps an email link working when its visible label is translated', () => {
 	});
 });
 
+/**
+ * The three cases the corpus meets: the author, a site box, and a name nothing answers for.
+ *
+ * Addresses are not asserted literally -- they are the config's to move, and a test repeating
+ * them is the second copy this change exists to remove. What is asserted is that a name became
+ * an address at all: `to=author` used to compile to `mailto:author`, a live link to nowhere.
+ */
+it('resolves the author by name rather than by address', () => {
+	const page = compilePage(
+		'---\ntitle: Test\n---\n\n:link[email]{to=author}\n',
+		'opens in new tab',
+	);
+	const paragraph = page.blocks[0];
+	if (paragraph?.type !== 'p') throw new Error('expected a paragraph');
+	const [segment] = paragraph.segments;
+	if (segment?.type !== 'link') throw new Error('expected a link');
+
+	expect(segment.href).not.toBe('mailto:author');
+	expect(segment.href).toMatch(/^mailto:[^@\s]+@[^@\s]+$/u);
+});
+
+it('composes a site box out of the one domain the config carries', () => {
+	const page = compilePage(
+		'---\ntitle: Test\n---\n\n:link[email]{to=support}\n',
+		'opens in new tab',
+	);
+	const paragraph = page.blocks[0];
+	if (paragraph?.type !== 'p') throw new Error('expected a paragraph');
+	const [segment] = paragraph.segments;
+	if (segment?.type !== 'link') throw new Error('expected a link');
+
+	expect(segment.href).toMatch(/^mailto:support@[^@\s]+$/u);
+});
+
+it('refuses a mailbox nothing answers for with the file named', () => {
+	expect(() =>
+		compilePage(
+			'---\ntitle: Test\n---\n\n:link[email]{to=postmaster}\n',
+			'opens in new tab',
+			'contents/homepage.md',
+		),
+	).toThrow('contents/homepage.md: :link[email] to must be an address or one of');
+});
+
 it('renders a translator note as an explicit control instead of a native tooltip', async () => {
 	const compiled = await compile(
 		'---\ntitle: Test\nlang: en-US\n---\n\nA :tn[local phrase]{is="Its meaning needs context."}.\n',

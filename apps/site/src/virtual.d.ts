@@ -34,6 +34,9 @@ declare module 'virtual:site' {
 			fediverse: string;
 			bluesky: string;
 		};
+		// The boxes the site answers on, name to purpose. The address is the name at `domain`,
+		// composed where it is used, so no address is written out.
+		mail: { domain: string; boxes: { support: string } };
 		feed: { id: string; followDescription: string };
 		indexnow: string;
 		// Both public by construction: they ship in the browser bundle. See spec/search.md.

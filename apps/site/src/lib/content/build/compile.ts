@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { URLS } from '@canmi/urls';
 import { toHtml } from 'hast-util-to-html';
 import { toHast, type Handler } from 'mdast-util-to-hast';
@@ -98,23 +100,77 @@ const SOCIAL: Record<
 	email: { href: (h) => `mailto:${h}`, new_tab: false },
 };
 
+/** A `to` that is already an address rather than the name of one. */
+const ADDRESS = /^[^@\s]+@[^@\s]+$/u;
+
+/**
+ * Every mailbox the corpus may name, as a name to an address.
+ *
+ * Read from the file rather than through `virtual:site`, because this runs outside the Vite
+ * graph -- the same reason `scripts/indexnow.ts` reads it. The site's boxes are composed from
+ * the one domain the config carries, so no article and no consumer writes an address out.
+ */
+function readMailboxes(): Record<string, string> {
+	const path = fileURLToPath(new URL('../../../../site.config.yaml', import.meta.url));
+	const config = parseYaml(readFileSync(path, 'utf8')) as {
+		author?: { email?: string };
+		mail?: { domain?: string; boxes?: Record<string, string> };
+	};
+	const author = config.author?.email;
+	const domain = config.mail?.domain;
+	if (!author || !domain) {
+		throw new Error('site.config.yaml: author.email and mail.domain are both required');
+	}
+	// The author is a person and a box is not, so that one name is reserved: a box called
+	// `author` would put two addresses under one token with nothing to say which won.
+	const named: Record<string, string> = { author };
+	for (const box of Object.keys(config.mail?.boxes ?? {})) {
+		if (box in named) throw new Error(`site.config.yaml: mail box "${box}" is a reserved name`);
+		named[box] = `${box}@${domain}`;
+	}
+	return named;
+}
+
+const MAILBOXES = readMailboxes();
+
+/**
+ * The address a `:link[email]` names, or a refusal that names the article.
+ *
+ * A name nothing answers for used to compile to `mailto:author`: a live link to nowhere, which
+ * renders and reports nothing. Thrown here for the reason `classFor` throws. An address written
+ * out in full still passes -- it is a shape this cannot be wrong about.
+ */
+function mailbox(name: string, source: string): string {
+	if (ADDRESS.test(name)) return name;
+	const address = MAILBOXES[name];
+	if (!address) {
+		const names = Object.keys(MAILBOXES).join(', ');
+		throw new Error(
+			`${source}: :link[email] to must be an address or one of ${names}, got "${name}"`,
+		);
+	}
+	return address;
+}
+
 // `:link[Twitter]{to=canmi21}` resolves to the profile; add the `follow` flag for
 // the intent-follow prompt. Unknown platforms fall back to the raw `to` value.
 function resolveLink(
 	label: string,
 	attrs: DirectiveAttrs,
+	source: string,
 ): { href: string; new_tab: boolean; platform?: SocialPlatform } {
 	const handle = attrs.to ?? '';
 	const named = label.toLowerCase();
 	const platform =
 		named in SOCIAL
 			? (named as SocialPlatform)
-			: /^[^@\s]+@[^@\s]+$/u.test(handle)
+			: ADDRESS.test(handle)
 				? ('email' as const)
 				: undefined;
 	if (!platform) return { href: handle, new_tab: false };
 	const target = SOCIAL[platform];
-	const href = target.follow && 'follow' in attrs ? target.follow(handle) : target.href(handle);
+	const to = platform === 'email' ? mailbox(handle, source) : handle;
+	const href = target.follow && 'follow' in attrs ? target.follow(to) : target.href(to);
 	return { href, new_tab: target.new_tab, platform };
 }
 
@@ -277,7 +333,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 				const attrs = (directive.attributes ?? {}) as DirectiveAttrs;
 				const children = state.all(directive);
 				if (directive.name === 'link') {
-					const { href, new_tab } = resolveLink(mdastToString(directive), attrs);
+					const { href, new_tab } = resolveLink(mdastToString(directive), attrs, source);
 					if (new_tab) {
 						children.push({
 							type: 'element',
@@ -420,17 +476,20 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 // Lower DLC directives to standard markdown for the text/llms.txt target: `:link`
 // becomes a real link; `:t` keeps emphasis where it maps cleanly (bold/italic) and
 // is otherwise unwrapped, since the styling is HTML-only.
-function lowerDirectives(nodes: RootContent[]): RootContent[] {
+function lowerDirectives(nodes: RootContent[], source: string): RootContent[] {
 	return nodes.flatMap((node) => {
 		if ('children' in node && Array.isArray(node.children)) {
-			node.children = lowerDirectives(node.children as RootContent[]) as typeof node.children;
+			node.children = lowerDirectives(
+				node.children as RootContent[],
+				source,
+			) as typeof node.children;
 		}
 		if (node.type === 'textDirective') {
 			const directive = node as TextDirective;
 			const attrs = (directive.attributes ?? {}) as DirectiveAttrs;
 			const children = directive.children as unknown as RootContent[];
 			if (directive.name === 'link') {
-				const { href } = resolveLink(mdastToString(directive), attrs);
+				const { href } = resolveLink(mdastToString(directive), attrs, source);
 				return [{ type: 'link', url: href, children } as unknown as RootContent];
 			}
 			// The markdown target has a footnote of its own, and remark writes it. A real
@@ -466,13 +525,13 @@ function lowerDirectives(nodes: RootContent[]): RootContent[] {
 	});
 }
 
-function proseMarkdown(node: RootContent): string {
+function proseMarkdown(node: RootContent, source: string): string {
 	// Lowered first, like the other markdown target. The serialiser has no handler for a
 	// directive and throws on one it has not seen, so this path worked only for as long as every
 	// directive in the corpus happened to be reachable another way -- `:tn` was the first that
 	// was not, and it failed the whole page rather than the one node.
 	const text = stringifier
-		.stringify({ type: 'root', children: lowerDirectives([node]) } as Root)
+		.stringify({ type: 'root', children: lowerDirectives([node], source) } as Root)
 		.trim();
 	// The document is the source view and nothing reading it will negotiate, so a link out of it
 	// names the source. Prose only: a fence is pushed separately and its contents are not ours to
@@ -1165,7 +1224,7 @@ export async function compile(
 
 		numberNotes(node, notes, sourceFile ?? url);
 		blocks.push({ type: 'prose', html: proseHtml(node, newTabNote, sourceFile ?? url) });
-		md.push(proseMarkdown(node));
+		md.push(proseMarkdown(node, sourceFile ?? url));
 		const plain = mdastToString(node).trim();
 		if (plain) text.push(plain);
 	}
@@ -1220,7 +1279,7 @@ function inlineSegments(node: Paragraph, newTabNote: string, source: string): In
 			flush();
 			const attrs = (child.attributes ?? {}) as DirectiveAttrs;
 			const label = mdastToString(child);
-			const { href, new_tab, platform } = resolveLink(label, attrs);
+			const { href, new_tab, platform } = resolveLink(label, attrs, source);
 			// Both spellings are variants, and a variant sorts after a plain utility. The `:t`
 			// markers above can say `hidden sm:inline` because a span has no display utility to
 			// argue with; a link is `inline-flex` for its icon, and `hidden` is the same kind of
@@ -1273,7 +1332,7 @@ export function compilePage(
 	}
 
 	const body = stringifier
-		.stringify({ type: 'root', children: lowerDirectives(bodyNodes) } as Root)
+		.stringify({ type: 'root', children: lowerDirectives(bodyNodes, sourceFile) } as Root)
 		.trim();
 	return { meta, blocks, body };
 }

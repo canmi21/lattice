@@ -38,6 +38,12 @@
 	import * as m from '$lib/paraglide/messages';
 	import { site } from '$lib/site';
 
+	// The error page speaks for the site, so it offers the site's box and not the author's. The
+	// annotation is what makes renaming the box in site.config.yaml fail here rather than ship an
+	// address nobody reads.
+	const box: keyof typeof site.mail.boxes = 'support';
+	const contact = `${box}@${site.mail.domain}`;
+
 	/**
 	 * What an error page offers a reader who wants to do something about it.
 	 *
@@ -70,9 +76,9 @@
      only one names the form, so writing them inside each message would put the same anchor in
      two places for the sake of the tag that differs. -->
 {#snippet address()}<a
-		href="mailto:{site.author.email}"
+		href="mailto:{contact}"
 		class="focus-link spring-underline article-link {stylex.attrs(styles.control).class}"
-		>{site.author.email}</a
+		>{contact}</a
 	>{/snippet}
 
 <!-- A button and not a link, because what it opens is a dialog on this page rather than somewhere
