@@ -101,14 +101,20 @@
 				borderColor: 'var(--color-border-strong)',
 			},
 		},
-		chainLink: {
+		/**
+		 * A package named in a list: the chain's nodes and the dependents both. One pair rather
+		 * than two because a dependent's name wraps where a chain's truncates and nothing else
+		 * differed, and that declaration is a utility in the markup -- the same reason
+		 * `nodeVersion` and `nodeTag` below already serve the two lists.
+		 */
+		nodeLink: {
 			color: {
 				default: 'var(--color-text-strong)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
 				':focus-visible': 'var(--color-text-soft)',
 			},
 		},
-		chainName: {
+		nodeName: {
 			color: 'var(--color-text-strong)',
 		},
 		nodeVersion: {
@@ -123,19 +129,6 @@
 		groupLabel: {
 			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
-		},
-		// A dependent's name wraps where a chain's truncates, and that one declaration is now a
-		// utility in the markup -- which leaves these two holding what `chainLink` and `chainName`
-		// already hold.
-		dependentLink: {
-			color: {
-				default: 'var(--color-text-strong)',
-				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-soft)' },
-				':focus-visible': 'var(--color-text-soft)',
-			},
-		},
-		dependentName: {
-			color: 'var(--color-text-strong)',
 		},
 	});
 </script>
@@ -474,11 +467,11 @@
 											href={node.href}
 											class="focus-link min-w-0 truncate {stylex.attrs(
 												surfaces.colorShift,
-												styles.chainLink,
+												styles.nodeLink,
 											).class}">{node.name}</a
 										>
 									{:else}
-										<span class="min-w-0 truncate {stylex.attrs(styles.chainName).class}"
+										<span class="min-w-0 truncate {stylex.attrs(styles.nodeName).class}"
 											>{node.name}</span
 										>
 									{/if}
@@ -521,12 +514,11 @@
 												href={node.href}
 												class="focus-link min-w-0 wrap-break-word {stylex.attrs(
 													surfaces.colorShift,
-													styles.dependentLink,
+													styles.nodeLink,
 												).class}">{node.name}</a
 											>
 										{:else}
-											<span
-												class="min-w-0 wrap-break-word {stylex.attrs(styles.dependentName).class}"
+											<span class="min-w-0 wrap-break-word {stylex.attrs(styles.nodeName).class}"
 												>{node.name}</span
 											>
 										{/if}
