@@ -94,9 +94,10 @@
 				':focus-visible': 'var(--color-text-strong)',
 			},
 			opacity: { default: null, ':disabled': 0.6 },
-			// `.spring-underline` is unlayered and owns this element's `transition`, so a colour
-			// transition declared here would never reach it. See spec/architecture/css/layers.md,
-			// "There is a fourth participant, and it sits above the visual layer".
+			// No colour transition, so the hover snaps. `.spring-underline` sets this element's
+			// `transition` from the components layer, and one declared here would outrank its
+			// `transition-property` and stop the underline springing. See
+			// spec/architecture/css/layers.md.
 		},
 	});
 </script>
@@ -506,6 +507,25 @@ otherwise need. See spec/engagement.md. -->
 	.pill button,
 	.under-chip button {
 		cursor: pointer;
+	}
+
+	/* Text inputs match their bordered shell on pointer focus and add the blue keyboard outline only
+	   when navigation, rather than a click, put the caret there. Here rather than in a Tailwind
+	   layer because the shell carries `surfaces.paper`, which declares `border-color` from above
+	   every one of them -- see spec/architecture/css/layers.md, "`.focus-input` stays in the escape
+	   hatch, because a surface already owns the border", and spec/styling/focus.md. */
+	.focus-input {
+		outline: none;
+	}
+
+	.focus-input-shell:has(.focus-input:focus) {
+		border-color: var(--color-border-strong);
+	}
+
+	/* The attribute is on the document, which no scoped selector reaches. */
+	:global(html[data-focus-source='kbd']) .focus-input-shell:has(.focus-input:focus-visible) {
+		outline: 0.125rem solid var(--color-accent);
+		outline-offset: 0;
 	}
 
 	.typed {
