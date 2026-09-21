@@ -169,18 +169,20 @@ def keep() -> int:
 def check() -> int:
 	held = record()
 	shape = fingerprint()
-	if held.get("fingerprint") == shape:
-		print(f"published shape unchanged: version {version()}, {shape}")
-		return 0
 	if not RECORD.exists():
 		print(f"no shape recorded for ARTIFACT_VERSION {version()}")
 		print("run `mise run shape --record` once, against a corpus published from this source")
 		return 1
+	# Ahead of the fingerprint comparison, which returns 0: a constant raised by hand over an
+	# unchanged shape is exactly this branch, and below that comparison it never runs.
 	if version() != held.get("version"):
 		# The bump was made by hand and the record was not. Nothing is wrong; say what to run.
 		print(f"ARTIFACT_VERSION is {version()} and the recorded shape is for {held.get('version')}")
 		print("run `mise run shape --record` to write down what this version means")
 		return 1
+	if held.get("fingerprint") == shape:
+		print(f"published shape unchanged: version {version()}, {shape}")
+		return 0
 	print("the published shape changed and ARTIFACT_VERSION did not.")
 	print(f"  recorded {held.get('fingerprint') or '(nothing)'}")
 	print(f"  now      {shape}")
