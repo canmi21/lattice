@@ -3,7 +3,7 @@
 ## What this repository is
 
 lattice is one project of several and its own repository, cloned into the workspace's `repos/` as a
-sibling of the others. It holds the site, the two Workers beside it, the desktop CMS that edits
+sibling of the others. It holds the site, the three Workers beside it, the desktop CMS that edits
 it, the corpus they serve, and the libraries those share. Nothing else, and the absences are as
 much of the description as the contents: there is no `.editorconfig`, no `rustfmt.toml`, no
 `.oxlintrc.json`, no agent hook and no `CLAUDE.md` anywhere below this root. Every one of those
@@ -178,7 +178,7 @@ tooltips and surrounding statistics use the same surfaces as the rest of the sit
 
 Type checking runs three times, over three programs: [tsconfig.json](../../tsconfig.json) for the
 browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the two Workers and `libs/store`, and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
+for the three Workers and `libs/store`, and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
 the node programs under an app's `scripts/`.
 
 The split is forced rather than chosen. `@cloudflare/workers-types` declares its own
@@ -256,6 +256,16 @@ Directory structure is the skeleton: expensive to change, so it may only carry s
 Which domain an app answers on is not stable. That mapping belongs in a typed map in a
 library, where changing it is a one-line edit instead of a rename plus every import plus the
 workspace globs.
+
+### What the reference check will not flag
+
+Path-shaped strings in prose are ignored on purpose. These documents use invented names as
+examples -- `apps/r2`, `user-profile.ts`, `libs/canvas` as a name that was rejected -- and a
+check that flagged those would be wrong far more often than right.
+
+The convention is what makes the distinction mechanical rather than a judgement the checker has
+to make: an illustration stays in inline code, a real reference is a markdown link. So the
+check reads links and leaves backticks alone, and neither half has to guess.
 
 ### Every URL is declared once
 

@@ -278,7 +278,7 @@ def main() -> int:
 	problems += [f"missing section: {d}" for d in dead]
 	problems += [
 		f"URL outside {URL_HOMES[0]}: {u}  (declare it there, or make it a comment if it is a"
-		f" citation -- see spec/architecture.md)"
+		f" citation -- see spec/architecture/workspace.md, \"Every URL is declared once\")"
 		for u in stray_urls()
 	]
 

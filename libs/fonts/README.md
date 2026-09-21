@@ -1,6 +1,6 @@
 # Font pipeline
 
-The [architecture spec](../../spec/architecture.md#latin-and-cjk-use-different-slicing-strategies)
+The [architecture spec](../../spec/architecture/fonts.md#latin-and-cjk-use-different-slicing-strategies)
 owns the decisions behind disposable inputs, independent runtime dependencies, and the two
 slicing strategies. This is the runbook for applying them.
 
@@ -85,7 +85,7 @@ name at that boundary while its faces name the local sources, redistributable in
 stems that can satisfy the pick. When two entries publish exactly the same face, subsets, and
 stems, the second sets `chunksFrom` to the first's id: identical bytes are already one object, and
 what the field adds is that they are meant to stay one, so re-slicing the source rewrites both
-stylesheets. See the [family-choice rule](../../spec/architecture.md#latin-and-cjk-use-different-slicing-strategies).
+stylesheets. See the [family-choice rule](../../spec/architecture/fonts.md#latin-and-cjk-use-different-slicing-strategies).
 
 Use `frequency-chunks` for a large CJK face. It accepts one face and emits hundreds of chunks by
 `unicode-range`, plus its generated stylesheet.
@@ -115,7 +115,7 @@ inputs or published files.
 3. Run `mise run fonts <family>` and then `mise run fonts --check`. A family whose chunks already
    exist as bytes takes `mise run fonts --adopt <family>` instead.
 4. Apply the input-retention decision recorded in the
-   [architecture spec](../../spec/architecture.md#a-font-pipeline-input-is-disposable).
+   [architecture spec](../../spec/architecture/fonts.md#a-font-pipeline-input-is-disposable).
 
 Rebuilding identical bytes is harmless: they are the same object, published to the same address,
 and nothing is overwritten. Slicing that changes the bytes produces a different object at a

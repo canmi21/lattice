@@ -1,6 +1,6 @@
 # Where bytes and records live
 
-What a *thing* is, as opposed to what a run of bytes is, is [resource.md](resource.md): the
+What a _thing_ is, as opposed to what a run of bytes is, is [resource.md](resource.md): the
 resource id, the layered record, and the catalogue of what earns one. This file is where both
 kinds of thing are kept.
 
@@ -56,15 +56,15 @@ The text lives in one place, `data/record/`, and every file in it is committed b
 thing that drifts -- a record added without its line silently does not travel, and nobody finds out
 until a clone cannot build. A directory cannot be forgotten the way a line can.
 
-| record | why it cannot be regenerated |
-| --- | --- |
-| `metadata.json` | the only link from a content id to its variants; a build resolves every image out of it with no image present |
-| `media.yaml` | descriptions bought one model call at a time, and a window a person chose |
-| `tags.yaml` | what each tag is called, in every language, curated |
-| `tn.yaml` | which passages a translator has to gloss |
-| `licenses.yaml` | the licence a person worked out for a package that declared none |
-| `fonts.json` | which families are split, and how |
-| `diagram.json` | what each diagram says, bought one model call at a time and keyed by block hash |
+| record          | why it cannot be regenerated                                                                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metadata.json` | the only link from a content id to its variants; a build resolves every image out of it with no image present                                                                 |
+| `media.yaml`    | descriptions bought one model call at a time, and a window a person chose                                                                                                     |
+| `tags.yaml`     | what each tag is called, in every language, curated                                                                                                                           |
+| `tn.yaml`       | which passages a translator has to gloss                                                                                                                                      |
+| `licenses.yaml` | the licence a person worked out for a package that declared none                                                                                                              |
+| `fonts.json`    | which families are split, and how                                                                                                                                             |
+| `diagram.json`  | what each diagram says, bought one model call at a time and keyed by block hash                                                                                               |
 | `indexnow.json` | what has already been announced; losing it cannot be recomputed, only re-sent, which is the one thing that protocol asks us not to do -- see [../indexing.md](../indexing.md) |
 
 ### Generated build inputs live under `data/build/`
@@ -145,6 +145,18 @@ answers that. The images they reference are a different matter and live in `data
 why moving articles out of the app cost nothing: the bytes that would bloat a repository were
 never in it.
 
+## A gate names what passes, never what is held back
+
+`mise run publish` syncs the two published trees by naming them. It does not sync `data/` minus
+a list of what to keep back, and the difference is not style.
+
+**The two failure modes are not symmetric.** Miss an entry on a denylist and a draft is
+published, silently, with nothing that would notice. Get an allowlist wrong and a file merely
+fails to appear -- which shows up the first time somebody looks for it, which is soon.
+
+So a gate is built to be wrong in the direction that reports itself. That holds wherever a gate
+decides what leaves this repository, and the publication path is the case it was written from.
+
 ## Publication is a path, not a rule
 
 `mise run sync` mirrors two named trees and nothing else. What makes that safe is the source path:
@@ -173,7 +185,7 @@ is invisible -- nothing reports it, and it grows.
 The content-addressed prefixes used to be copied rather than synced, on the reasoning that
 deleting one would remove an object a root still in somebody's cache is naming. **That reasoning
 was right and was being applied in the wrong place.** The window it protects against is real, but
-it is a property of *when a sweep may delete*, not of what a mirror may transfer -- and putting it
+it is a property of _when a sweep may delete_, not of what a mirror may transfer -- and putting it
 in the mirror meant the local tree and the bucket disagreed forever, while the sweep deleted with
 no delay at all. The delay now lives in the sweep, which is the only thing that knows when an
 object stopped being named: see [artifacts.md](artifacts.md), "An object is swept an hour after
@@ -347,10 +359,10 @@ the writing side, URLs on the site, and nothing on the reading side, so four run
 Two buckets, and the split is not about size -- the records are under half a percent of the bytes.
 It is about **which credentials can reach which**.
 
-| | holds | read by | keys |
-| --- | --- | --- | --- |
-| `metadata` | `state/index.json`, `meta/{rid}.json` | the API | names, rewritten in place |
-| `objects` | everything content-addressed | the CDN | content ids, never rewritten |
+|            | holds                                 | read by | keys                         |
+| ---------- | ------------------------------------- | ------- | ---------------------------- |
+| `metadata` | `state/index.json`, `meta/{rid}.json` | the API | names, rewritten in place    |
+| `objects`  | everything content-addressed          | the CDN | content ids, never rewritten |
 
 **Each is named for what it holds.** The first was `public`, chosen when one local path matched
 one bucket path segment for segment -- `data/public/favicon/x.svg` against `r2:public/favicon/x.svg`.

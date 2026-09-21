@@ -103,6 +103,21 @@ development, so the Rust mirror does too -- the two languages still give one ans
 that mirror is for. And `og:image` is a relative URL in development, which is invalid to a crawler
 and reaches none; production is unaffected.
 
+## The base session
+
+`mise run base up [cms]` ensures a tmux session named `<basename>-dev` exists with a window per
+server, each running that server's mise dev task. A window already running is left alone; one
+whose server has exited is restarted. `cms` adds the desktop client, which is outside the
+always-on set because it is a window somebody uses rather than a server somebody calls.
+
+**It runs from the base checkout only.** The base is the one checkout that runs everything, on
+the numbers "Dev ports are pinned" above fixes, so a second checkout starting these would
+collide rather than get a set of its own. That collision is the mutex, which is the same
+arrangement the ports themselves rely on.
+
+tmux is a machine tool rather than a mise one, for the reason the workspace's `toolchain.md`
+gives about that distinction generally.
+
 ## The Tauri dev watcher is told where the frontend is
 
 `tauri dev` watches every directory Cargo reaches through a local `path` dependency, not just
