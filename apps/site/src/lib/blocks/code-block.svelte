@@ -480,6 +480,20 @@
 					<div class="code-scroll overflow-x-auto p-4 pr-16 {stylex.attrs(styles.scroll).class}">
 						{@render source()}
 					</div>
+					<!-- Both edges, each as wide as the padding it starts over: at rest they cover the
+					     scroller's own gutters and veil nothing, and each begins to do its work
+					     exactly as the code starts passing under it. `from-transparent` is
+					     transparent black and still cannot grey the ramp, because gradient stops
+					     interpolate premultiplied; `from-paper/0` computes to the same colour.
+					     Flush with the panel: here the border and corner are the frame's own. -->
+					<span
+						aria-hidden="true"
+						class="pointer-events-none absolute inset-y-0 left-0 w-4 bg-linear-to-l from-transparent to-paper"
+					></span>
+					<span
+						aria-hidden="true"
+						class="pointer-events-none absolute inset-y-0 right-0 w-4 bg-linear-to-r from-transparent to-paper"
+					></span>
 				</div>
 			</div>
 		</div>
@@ -497,15 +511,45 @@
 			>
 				{@render source()}
 			</div>
+			<!-- The same pair, stepped inside the hairline and given the frame's corner, because
+			     here both are the scroller's own and a flush rectangle would paint over each. -->
+			<span
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-y-px left-px w-4 rounded-l-xl bg-linear-to-l from-transparent to-paper"
+			></span>
+			<span
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-y-px right-px w-4 rounded-r-xl bg-linear-to-r from-transparent to-paper"
+			></span>
 		</div>
 	{/if}
 </div>
 
 <style>
+	/* The width is what makes the scroller's own end padding real. Shiki's pre is a block and
+	   takes the content width, so a long line overflows the pre rather than widening it -- and a
+	   scrollable area grown by a descendant's overflow does not get the padding, leaving `pr-16`
+	   buying nothing the moment a block scrolls, with code running under the copy control and
+	   under the fade. Sizing the pre to its own content puts the reserved column back. */
 	.codeblock :global(pre) {
 		background: transparent;
 		margin: 0;
 		padding: 0;
+		inline-size: max-content;
+		min-inline-size: 100%;
+	}
+
+	/* The code still scrolls and no longer draws a bar for it: the fade at the right edge is the
+	   affordance instead, and a bar under the last line was a second one that also moved the
+	   block's height on platforms reserving room for it. The two halves mean nothing apart --
+	   one engine reads only the property, the other only the pseudo-element, which no class can
+	   reach -- so they stay together here. See spec/architecture/css/layers.md. */
+	.code-scroll {
+		scrollbar-width: none;
+	}
+
+	.code-scroll::-webkit-scrollbar {
+		display: none;
 	}
 
 	/* Shiki's <pre> takes focus, while the shared within utility draws on this box. The title

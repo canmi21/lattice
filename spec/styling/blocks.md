@@ -34,6 +34,22 @@ message table. Closing hides the current check or cross before resetting to the 
 resting icon flashes through the exit. Reduced-motion readers receive each state without the mask
 or icon transition.
 
+### A scrolling code block fades at both edges instead of drawing a bar
+
+Code wider than the column scrolls and no longer shows a scrollbar for it. What says it scrolls is
+a fade at each edge, and each is exactly as wide as the gutter it starts over -- the distance from
+the frame to the first character. That width is what makes the pair need no scroll position to be
+correct: at rest each fade lies over its own padding and veils nothing, and each begins working the
+moment code starts passing under it. A bar was a second affordance that also moved the block's
+height on platforms reserving room for it.
+
+The scroller's end padding had to be made real first. Shiki's `pre` is a block and takes the
+content width, so a long line overflows the `pre` rather than widening it, and a scrollable area
+grown by a descendant's overflow is not given the container's padding: the reserved right column
+bought nothing the moment a block scrolled, leaving code to run under the copy control and, once
+there was one, under the fade. Sizing the `pre` to its own content restores it, and is what keeps
+the last characters of the longest line clear of the fade at full scroll.
+
 ### A titled code block is one framed disclosure
 
 A fenced code block may carry `title`, `collapsible`, and `default` presentation metadata. A title
