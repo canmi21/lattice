@@ -1,4 +1,7 @@
 <script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import { border } from '$lib/vocabulary.stylex.ts';
+
 	/**
 	 * Everything the build resolved about one image: which bytes, how large they are, and how this
 	 * site frames them. Declared here because every caller forwards it verbatim and none reads it
@@ -17,6 +20,22 @@
 		/** `object-position` within that crop. Absent means centred. */
 		align?: string;
 	};
+
+	/**
+	 * The frame a picture wears in the column, which the enlarged view does not. Radius, width,
+	 * style and colour are the border family, and the family is the vocabulary's by property --
+	 * see spec/architecture/css/layers.md, "What each layer owns, by name" -- so the utilities
+	 * that drew this in the markup are here. 1rem is Tailwind's `--radius-2xl` and stays a
+	 * literal: the radius ladder names five steps and this is not one of them.
+	 */
+	const styles = stylex.create({
+		framed: {
+			borderRadius: '1rem',
+			borderWidth: border.doublePx,
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+		},
+	});
 </script>
 
 <script lang="ts">
@@ -136,10 +155,7 @@
 			fetchpriority={eager ? 'high' : undefined}
 			decoding="async"
 			crossorigin="anonymous"
-			class="block w-full object-cover"
-			class:rounded-2xl={shaped}
-			class:border-2={shaped}
-			class:border-border={shaped}
+			class="block w-full object-cover {stylex.attrs(shaped && styles.framed).class ?? ''}"
 			style={framing}
 		/>
 	</picture>

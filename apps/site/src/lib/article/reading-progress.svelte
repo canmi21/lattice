@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { radius } from '$lib/vocabulary.stylex.ts';
 
 	/**
 	 * How far down the article the reader is, drawn as a ring, and a way back to the top.
@@ -8,6 +9,14 @@
 	 * and the ring already says the one thing a figure would: how much is left.
 	 */
 	const styles = stylex.create({
+		/**
+		 * The button's own shape: a full circle, because the ring it holds is one. A radius is the
+		 * vocabulary's by property, and `.focus-ring`'s 0.25rem fallback in `@layer components`
+		 * yields to it here as it yielded to the utility. See spec/architecture/css/layers.md.
+		 */
+		control: {
+			borderRadius: radius.full,
+		},
 		/** The dish the ring is drawn on -- unfilled, so the page shows through the middle. */
 		ring: {
 			fill: 'none',
@@ -187,7 +196,7 @@
      spec/architecture/css/authoring.md. -->
 <button
 	type="button"
-	class="focus-ring grid size-5 place-items-center rounded-full"
+	class="focus-ring grid size-5 place-items-center {stylex.attrs(styles.control).class}"
 	style="--reading-read: {read}; --reading-arrow: {shown}"
 	onclick={jump}
 	onpointerenter={() => (hovered = true)}
