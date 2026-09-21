@@ -9,6 +9,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { staleBuild } from './build-freshness.ts';
 
 const SITE = fileURLToPath(new URL('..', import.meta.url));
 const CLIENT = join(SITE, '.svelte-kit/output/client');
@@ -147,6 +148,11 @@ function main(): number {
 	}
 	if (assets.length === 0) {
 		console.error(`no built stylesheets under ${CLIENT}. Build the site first.`);
+		return 1;
+	}
+	const stale = staleBuild();
+	if (stale !== undefined) {
+		console.error(stale);
 		return 1;
 	}
 

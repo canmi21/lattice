@@ -1,0 +1,19 @@
+{
+	"categories": [
+		{
+			"name": "index",
+			"gzip": 16384,
+			"routes": ["/"]
+		},
+		{
+			"name": "article",
+			"gzip": 21504,
+			"routes": ["/[...path]"]
+		},
+		{
+			"name": "light",
+			"gzip": 14336,
+			"routes": ["/licenses", "/licenses/*"]
+		}
+	]
+}

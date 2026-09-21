@@ -69,6 +69,13 @@ run = [
 	"node apps/site/scripts/css-layers.ts",
 ]
 
+[tasks.check-css-budget]
+description = "Hold each route category's first-load CSS to the budget in css-budget.json"
+# Reads the build check-css already made rather than making a second one: the two measure
+# different things about the same output, and a build here would only be a slower copy of it.
+wait_for = ["check-css"]
+run = "node apps/site/scripts/css-budget.ts"
+
 [tasks.lint]
 description = "Lint the workspace"
 run = "oxlint ."
@@ -226,6 +233,7 @@ depends = [
 	"check-site",
 	"check-fonts",
 	"check-css",
+	"check-css-budget",
 	"lint",
 	"test",
 	"refs",
