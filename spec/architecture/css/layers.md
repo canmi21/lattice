@@ -21,19 +21,84 @@ a better taxonomy than the table above it, and the table now uses the prose's.
 **A declaration's layer is decided by membership, not by what kind of declaration it is.** Three
 questions, asked in this order; the first one that answers, answers.
 
-1. **Can a class reach the element at all?** If not, it is the escape hatch. A `<strong>` the
-   markdown compiler produced, a floating surface Bits UI portalled out of the tree, a child whose
-   styling depends on its parent, a keyframe, a pseudo-element: none of those can be reached by
-   putting a class on something, which is the only thing the other two layers can do. This is the
-   one hard mechanical boundary in the arrangement, and it is the part the old axis already had
-   right.
-2. **Is the declaration a member of a named, reused recipe?** Then it is the vocabulary. A surface
-   is a set of declarations with a name, used in several places, and every declaration inside one
-   belongs to it whether it draws a colour or sets a cursor. What puts a declaration there is the
-   name it arrived under, not the subject it addresses.
+1. **Can any author of this element write a class on it?** If not, it is the escape hatch. An
+   author is whatever produced the markup -- a template, the markdown compiler, any code that
+   emits elements -- and the question is about all of them, not about the component the
+   declaration would be convenient in. A `<strong>` the markdown compiler produced, a floating
+   surface Bits UI portalled out of the tree, a child whose styling depends on its parent, a
+   keyframe, a pseudo-element: no author of any of those can put a class on it, which is the only
+   thing the other two layers can do. This is the one hard mechanical boundary in the arrangement,
+   and it is the part the old axis already had right.
+2. **Is the declaration a member of a named, reused recipe, or one of the type ramp's six
+   properties?** Then it is the vocabulary. A surface is a set of declarations with a name, used
+   in several places, and every declaration inside one belongs to it whether it draws a colour or
+   sets a cursor. What puts a declaration there is the name it arrived under, not the subject it
+   addresses. The ramp is the one exception to that sentence and it is stated as one below.
 3. **Otherwise it is the frame.** A one-off on one element, taking its value from a CSS keyword or
    from Tailwind's own scale, said on the element where somebody reading the structure is already
    looking.
+
+**Question one was "can a class reach the element", and the wording let the wrong element answer
+it.** A declaration on markdown-compiled prose can be reached by a class -- on the wrapper a
+component owns, which is how `.article-content` came to hold a per-language prose policy in an
+unlayered global stylesheet. The class reaches the wrapper; it does not reach the `<p>` the rule
+is about. Asking whether an author of _this_ element can write a class on it puts that back where
+it belongs, in the escape hatch of the component that renders its root.
+
+### A new layer has to buy a new position in the cascade
+
+A fourth layer was proposed for exactly the case above, for declarations aimed at elements this
+repository does not author. The proposal was coherent and it is refused, on a test worth keeping
+for the next one:
+
+**A layer is a position in the cascade. Something that does not need a new position is asking for
+a new file, and a file is not a layer.** Content styling loses to a component's own escape hatch
+and beats nothing the escape hatch does not already beat, so it would have sat at the escape
+hatch's position under a second name -- and two names for one position is how a reader comes to
+believe there is a distinction to learn.
+
+What the proposal was right about is that such declarations were homeless. They have a home: the
+escape hatch, in the component rendering the root of the content they style. That is the answer
+question one now gives.
+
+### An escape hatch lives with the element it starts from
+
+A declaration in the escape hatch belongs to **the component that renders the root of the subtree
+it styles**, not to whichever component is nearest or most convenient. A rule about markdown
+prose lives with the component that renders the article body; a rule about a portalled surface
+lives with the component that opens it.
+
+A `:root` block declaring nothing but custom properties is not a layering question at all. It
+belongs to [libs/tokens](../../../libs/tokens), which is where a value gets a name, and it should
+not be weighed against the three questions above.
+
+### Lowering a declaration is only safe where no surface already sets it
+
+An element carrying a surface that sets property P cannot take its P from the frame. The surface
+outranks the frame, so the frame's value is written and never rendered -- the class is on the
+element, the declaration is in the stylesheet, and the effect is absent.
+
+This was first written down about one call site, `summaryTrigger` and its `cursor`. It is not a
+property of that call site. It holds for every property of every surface, and lowering anything
+out of the vocabulary means first checking that no surface on the same element still claims it.
+
+### The type ramp is vocabulary by property, and takes its value from a token
+
+`font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family` and
+`font-variant-numeric` are vocabulary wherever they appear, whether or not the declaration around
+them is a named recipe, and each takes its value from [vocabulary.stylex.ts](../../../apps/site/src/lib/vocabulary.stylex.ts) rather than a
+literal.
+
+**This is an exception to the membership axis and is written as one.** The alternative was worse:
+the axis's second definition said a declaration is vocabulary when its value comes from the
+vocabulary file, which decides membership by how the value was spelled -- and a value is in that
+file because the declaration was judged vocabulary. The circle was live, and it was what left a
+repeated 1.4 line height described as vocabulary that had not been named yet. An exception stated
+by property is checkable; an exception hiding inside a definition is not.
+
+A ramp property written with a literal is unnamed vocabulary, and
+[authoring.md](authoring.md) says how to mark it so it can be counted rather than argued about
+one site at a time.
 
 ### The axis this replaces, and why this file is the argument against it
 
@@ -70,7 +135,7 @@ The reason is reviewability. A lookup can be checked by somebody who was not in 
 open the list, find the property, and either the code agrees with the list or it does not. A test
 cannot be checked that way, because checking it means running it again, which means having the
 argument again, which is how `white-space` ended up with two homes. A list can be wrong, and being
-wrong is a thing a list can be *caught* at; a test that two honest readers resolve differently is
+wrong is a thing a list can be _caught_ at; a test that two honest readers resolve differently is
 not wrong anywhere in particular.
 
 ### What each layer owns, by name
@@ -78,7 +143,7 @@ not wrong anywhere in particular.
 **The escape hatch** is not a property list, because it is not a property question. Anything at all
 may be written in a `<style>` block, and the only thing that puts it there is that no class reaches
 the element: markdown-compiled content, a portalled surface, a descendant selected through its
-parent, `@keyframes`, `::selection`, vendor pseudo-elements. If a class *can* reach the element,
+parent, `@keyframes`, `::selection`, vendor pseudo-elements. If a class _can_ reach the element,
 this layer is the wrong answer regardless of what the declaration says.
 
 **The vocabulary** owns every declaration that is a member of a named surface in
@@ -98,7 +163,7 @@ this layer is the wrong answer regardless of what the declaration says.
   is the frame. **Meeting one in StyleX that is not in a surface, move it to the markup** --
   `cursor-pointer`, `cursor-zoom-in`, `cursor-not-allowed`, `cursor-default` -- and delete the
   comment beside it, which will be citing this list for the wrong half of the split. The one
-  exception is not an exception to the axis but to the move: a key that *overrides* a surface's
+  exception is not an exception to the axis but to the move: a key that _overrides_ a surface's
   own `cursor` on an element that also carries that surface cannot go down a layer, because the
   surface would then outrank it. `summaryTrigger` in
   [article.svelte](../../../apps/site/src/lib/article/article.svelte) is the only such site.
@@ -106,8 +171,27 @@ this layer is the wrong answer regardless of what the declaration says.
 **The frame** owns the one-offs: `display` and the flex and grid properties, `gap`, `margin`,
 `padding`, `width`, `height` and their `min-`/`max-` forms, `aspect-ratio`, `position` and
 `inset`, `z-index`, `align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`,
-`user-select`, and text behaviour -- `white-space`, `text-wrap`, `overflow-wrap`, `word-break`,
-`hyphens`, `text-overflow`, `text-align`.
+`user-select`, `will-change`, `border-collapse`, and text behaviour -- `white-space`,
+`text-wrap`, `overflow-wrap`, `word-break`, `line-break`, `hyphens`, `text-overflow`,
+`text-align`.
+
+**These were added after the lists were checked against what the code actually uses**, which is
+the only way a list like this stays a list rather than becoming a sample. The vocabulary gains
+`filter`, `backdrop-filter`, `background-image` and `text-shadow`, all appearance and all of them
+already inside the player's reused surfaces; `outline-style` and `outline-width`, because
+splitting them from the `outline-color` already listed would run one outline across two layers;
+`text-decoration-line` and `text-underline-offset` beside `text-decoration-color`;
+`stroke-width` and `stroke-linecap` beside `stroke`; and `transition-behavior`, the fifth
+`transition-*` longhand. `text-transform`, `scale`, `rotate` and `translate` split by site the
+way `cursor` and `transform` do -- inside a surface they are members, written once they are the
+frame. `will-change` is a hint about one element with no scale to consult, and
+`border-collapse` is table layout belonging to no ramp.
+
+**A shorthand is written as longhands, always.** `transition`, `animation`, `border` and
+`background` each bundle properties this file assigns to different layers, so one shorthand is a
+declaration in two places at once and the axis cannot answer for it. StyleX accepts only the
+longhands in any case, which makes the rule free to follow and its violation a compile error on
+one side and silent on the other.
 
 `aspect-ratio` and `text-align` are the quadrant's two additions, and each is the third question
 answering rather than the first two: a class reaches the element, no recipe names the
@@ -260,9 +344,50 @@ achieved.
 
 The consequence to expect while migrating: **a component carrying a vocabulary class may find its
 visual layer silently outranked for the same property.** The gate does not catch it, because
-nothing changed. What is wrong is upstream of the migration, and it is in
-[todo.md](../../todo.md) beside the question of where the vocabulary should live -- the two are one
-decision, because giving `utilities.css` a layer is also choosing what it is a layer of.
+nothing changed.
+
+### `utilities.css` is dissolved, not given a position
+
+It was left open whether the file should be layered or taken apart, on the reasoning that giving
+it a layer is also choosing what it is a layer of. It is settled: **every rule in it belongs to a
+layer that already exists, so the file has nothing left to be.**
+
+Counted by how many places apply each class, the file holds four unrelated things. Named recipes
+past the three-component threshold -- `.value` at eighteen sites, the `.focus-link` family at
+eighteen, the `.focus-ring` family at twelve, `.spring-underline` at seven, `.article-link` and
+`.selectable` at five, `.jump-target` at three -- are the vocabulary, and go to
+[surfaces.ts](../../../apps/site/src/lib/surfaces.ts). One-off classes applied in a single
+place -- `.article-rail`, `.article-column`, `.meta-language`, the `.focus-input` family,
+`.pill`, `.value-cell` -- are the frame, and go to the markup. `.article-content` and its
+`:lang()` variants style elements the markdown compiler authored, so by question one they are
+the escape hatch and go to the component rendering the article body. The two `:root` blocks,
+about 3.3KB, are tokens and never were a layering question.
+
+**Layering the file first is an interim step, not the destination.** Twenty of its rule blocks
+sit outside every layer and therefore outrank the vocabulary unconditionally, which is a silent
+wrong answer; putting them in a layer below the escape hatch makes the order predictable while
+the rules move one group at a time. Nothing about that step justifies keeping the file.
+
+## The distribution cost is known, and accepted
+
+Both of the global layers are global sheets. A one-off pushed to the frame joins Tailwind's, a
+recipe pushed to the vocabulary joins StyleX's, and the escape hatch is the only layer a bundler
+splits per route. So the axis trades total bytes against first-load bytes on the lightest pages,
+and it is worth saying which way each moved.
+
+Total CSS fell, 88,486 bytes raw against 92,033 before. The licenses page's first load rose from
+9,855 to 13,411 bytes gzipped, about 36 per cent; an article page was roughly flat, because an
+article carries enough of both sheets to have been paying already.
+
+**This is accepted rather than unnoticed.** The alternative is extracting per-route subsets from
+two sheets neither vendor splits, which means maintaining a bundler plugin -- far more than the
+bytes are worth. The other direction, growing the escape hatch because it happens to split, is
+the axis running backwards for a reason that has nothing to do with where a declaration belongs.
+
+What it gets instead is a number somebody watches: `mise run check-css` fails when first-load CSS
+for a route category passes a recorded budget, so a regression here is a failing check rather
+than a page that feels slow. Raising a budget is a deliberate edit, which is the point of
+recording it.
 
 That ordering is the one this layering wants -- the escape hatch outranks the vocabulary, which
 outranks the frame -- and it is worth being clear that this is luck rather than design. **It falls

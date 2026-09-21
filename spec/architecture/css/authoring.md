@@ -31,7 +31,7 @@ this rule costs it nothing to keep and is the one thing the module script's comm
 
 ### The instance script's comments cannot either, and there the symptom is silence
 
-The same tag in the *instance* script's comments breaks a different tool in a worse way.
+The same tag in the _instance_ script's comments breaks a different tool in a worse way.
 `svelte-check` stops parsing the script where it meets one and reads the remainder of the file as
 markup, so everything below is never type-checked. Nothing is deleted and nothing is reported: the
 file still appears in the run and still says zero errors.
@@ -101,6 +101,33 @@ Rewriting English was never going to buy most of the bytes.
 What the migration out of the escape hatch takes with it is a third thing again, and it is real:
 `backdrop-filter` alone is 569 bytes and four declarations. It is a side effect of moving
 declarations to the layer that owns them, not a reason to move them.
+
+## A class name is a literal, or a lookup in a table of literals
+
+A compiler that builds a class name by joining strings produces a name the scanner never reads,
+and Tailwind generates nothing for it. The declaration is absent from the stylesheet and the
+markup carrying it is silently unstyled.
+
+`compile.ts` did this for the colour and family classes an article directive can ask for, and
+`text-blue`, `text-accent`, `font-mono` and `font-serif` were not in the built CSS at all.
+`text-text-strong` worked, because that exact string happened to be written as a literal
+elsewhere in the repository -- which is the failure mode's whole character: it looks fine until
+the one lucky name is the one you check.
+
+**So a compiler emits a literal, or reads one out of a table whose values are literals**, and an
+input the table does not name fails where the article is compiled rather than producing a class
+that does nothing.
+
+## An unnamed ramp value is marked, so it can be counted
+
+A type ramp property written with a literal is vocabulary that has not been named --
+[layers.md](layers.md), "The type ramp is vocabulary by property, and takes its value from a
+token". Judging each one again at each site is how 125 of them accumulated without anybody
+knowing the number.
+
+Mark it instead: `// unnamed: line height 1.4, not yet named` beside the declaration, and a gate
+counts the marks and prints the total. The judgement is then made once, the count is visible,
+and a number that rises is a thing somebody can decide about.
 
 ## StyleX cannot be reached from a stylesheet
 

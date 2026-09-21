@@ -82,13 +82,13 @@ gate cannot be an empty diff, and the reason is the readable name". A name stand
 costs the next reader the one signal they had.
 
 Do not open a new name in `vocabulary.stylex.ts` or `surfaces.ts` on the way past. The bar is three
-components, and for a group three *unrelated* ones; [extraction.md](extraction.md) holds both bars
+components, and for a group three _unrelated_ ones; [extraction.md](extraction.md) holds both bars
 and the gates a name has to pass.
 
 ### The escape hatch is a rule in the block, and a selector is the only reason to be there
 
 The one thing that puts a declaration in a `<style>` block is that no class reaches the element.
-Anything at all may be written there, and if a class *can* reach the element this layer is the
+Anything at all may be written there, and if a class _can_ reach the element this layer is the
 wrong answer regardless of what the declaration says.
 
 It outranks both other layers, and a conflict resolves per property rather than per block, so a
@@ -153,6 +153,42 @@ A finding about the layering that your change is not allowed to fix goes to
 [todo.md](../../todo.md) with the evidence, one entry each -- the discipline
 [migration.md](migration.md) states for a migration, and the same file is where the site's
 outstanding layering questions already live.
+
+## A rule that rests on a global count is computed, never remembered
+
+Whether a declaration is vocabulary depends on how many components apply the recipe it belongs
+to. That is a fact about the whole repository, invisible from the file being edited, and it
+moves on its own: a third consumer promotes a declaration, deleting one demotes it. Nothing
+watching it means the axis is correct on the day it is applied and drifting from the next.
+
+`mise run check-layers` computes it. It reports a surface in the vocabulary with fewer than
+three application sites, and a value combination repeated three times or more across the frame.
+The second is worth more than the first -- it says a recipe has grown where nobody has named
+one yet, rather than waiting for somebody to notice.
+
+## The enumeration is data, and this file is not where it lives
+
+The property lists in [layers.md](layers.md) argue where each boundary sits. The lists
+themselves are not an argument, and by the workspace's own test -- a sentence that would need
+editing because somebody changed the code is describing implementation -- they do not belong in
+`spec/` at all.
+
+They live as a typed constant the lint rule, the gate and the documentation all read. One
+representation, no parser between them, and no way for the table and the check to disagree.
+Generating the document from the data and parsing the document from the check were both
+considered: the first puts a machine-written region inside a hand-written argument, the second
+can pass by matching nothing at all. Neither failure is available when there is one source and
+nobody is transcribing it.
+
+## First-load CSS has a budget per route category
+
+The layering pushes bytes into two global sheets and leaves only the escape hatch splitting per
+route -- [layers.md](layers.md), "The distribution cost is known, and accepted". A gate measures
+first-load CSS after a build, by route category, and fails against a recorded budget.
+
+Budgets start at the current figures with headroom: a light page such as the licenses routes and
+an article page are the two categories the measurement separates. Raising one is an edit
+somebody makes on purpose, which is the only reason to record a number rather than compute it.
 
 ## Proving you changed nothing, and the states the proof never entered
 
