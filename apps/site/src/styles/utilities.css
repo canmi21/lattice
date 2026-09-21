@@ -291,17 +291,6 @@
 		--underline-progress: 100%;
 	}
 
-	/* A button wears its stroke on an inner span, and the control still drives it.
-
-	   A button's box is a line box rather than the text's content area, and the stroke is pinned to
-	   the box's bottom -- measured on the error page, the button's sat 2.5px below the anchor's in
-	   the same sentence. An inner span is a real inline box and hugs the text the way an anchor does.
-	   The rule above would then only answer to hover over the text, and never to focus, which lands
-	   on the button. */
-	.spring-underline-host:is(:hover, :focus-visible) .spring-underline {
-		--underline-progress: 100%;
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		.spring-underline {
 			transition: none;
