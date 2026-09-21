@@ -161,10 +161,25 @@ to. That is a fact about the whole repository, invisible from the file being edi
 moves on its own: a third consumer promotes a declaration, deleting one demotes it. Nothing
 watching it means the axis is correct on the day it is applied and drifting from the next.
 
-`mise run check-layers` computes it. It reports a surface in the vocabulary with fewer than
-three application sites, and a value combination repeated three times or more across the frame.
-The second is worth more than the first -- it says a recipe has grown where nobody has named
-one yet, rather than waiting for somebody to notice.
+`mise run check-css-extraction` computes it, over a scan of `apps/site/src` that needs no build.
+It fails on a name in the vocabulary that fewer than three components apply, and it reports the
+declaration groups three or more components write identically with no name. The second is worth
+more than the first -- it says a recipe has grown where nobody has named one yet, rather than
+waiting for somebody to notice -- and it is the half no count can finish: the bar also asks that
+the three components be unrelated, and a copy and a recipe look the same from here. So its number
+is recorded rather than judged, in `apps/site/scripts/css-extraction.json`, and moving it either
+way is somebody deciding on purpose.
+
+Two more rules rest on a count of the same kind, and each has its own task and its own record.
+`mise run check-css-enumeration` gives every declaration in the visual layer to the layer the
+enumeration names for its property, and `mise run check-css-ramp` finds the type ramp values
+written as a literal instead of read from the ladder -- [authoring.md](authoring.md), "An unnamed
+ramp value is marked, so it can be counted". Both hold a number that may only fall, and both say
+in the failure that the number is a debt and not a target. **A count they cannot take fails
+them.** A file, a block or a value the scan cannot read is named and the gate stops, because a
+scan that quietly measures less returns a smaller number and reports nothing about the gap --
+the defect [the workspace code.md](../../../../../spec/code.md), "A rule is maintainable only
+when breaking it fails loudly", records `check-css-budget` having had.
 
 ## The enumeration is data, and this file is not where it lives
 
@@ -179,6 +194,15 @@ Generating the document from the data and parsing the document from the check we
 considered: the first puts a machine-written region inside a hand-written argument, the second
 can pass by matching nothing at all. Neither failure is available when there is one source and
 nobody is transcribing it.
+
+The constant is
+[css-owners.ts](../../../apps/site/scripts/css-owners.ts), and it is an object keyed by property
+rather than the JSON that sits beside `css-budget.ts`: the failure a hand-kept table has is one
+property listed under two layers, and a duplicate key is a type error where a duplicate entry in
+JSON is a surprise at runtime. `node apps/site/scripts/css-enumeration.ts --list` prints it.
+**The lists in [layers.md](layers.md) are still prose, and until they become a citation this is
+two copies rather than one.** The gate reads the constant and nothing reads the prose, so the two
+can part company with nothing reporting it -- which is the state this section was written to end.
 
 ## First-load CSS has a budget per route category
 
@@ -208,13 +232,16 @@ pseudo-element's computed style is not readable at all**, which is a class of ru
 cannot see rather than a name missing from a list. [migration.md](migration.md), "What the gate
 cannot see", holds these and several more.
 
-**The instrument is gone, and the standard is not.** The snapshot harness was migration scaffolding
-and was not kept; `apps/site/scripts/` holds one CSS script today and it is
-[css-layers.ts](../../../apps/site/scripts/css-layers.ts), which asserts the relative order of the
-three layers and nothing about any element. It runs as `mise run check-css` and is part of
-`verify`. So `verify` passing is not evidence that a declaration landed where it was before: it is
-evidence that the layers are still stacked in the order everything above assumes. The rest is read
-in a browser, on the states named above, by somebody who knows what they moved.
+**The instrument is gone, and the standard is not.** The snapshot harness was migration
+scaffolding and was not kept. What `apps/site/scripts/` holds is five CSS gates and not one of
+them reads an element: [css-layers.ts](../../../apps/site/scripts/css-layers.ts) asserts the
+relative order of the three layers, [css-budget.ts](../../../apps/site/scripts/css-budget.ts)
+holds first-load bytes per route category, and the three above count what the rules rest on --
+application sites, the layer each declaration was written in, and the ramp values with no name.
+Each is a fact about the whole repository, which is the class of thing a person cannot hold; none
+is a fact about how one element came out. So `verify` passing is not evidence that a declaration
+landed where it was before. The rest is read in a browser, on the states named above, by somebody
+who knows what they moved.
 
 ### The gap this file will not fill
 

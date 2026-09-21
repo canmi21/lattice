@@ -68,6 +68,22 @@ description = "Hold each route category's first-load CSS to the budget in css-bu
 wait_for = ["check-css"]
 run = "node apps/site/scripts/css-budget.ts"
 
+# Three gates over the same scan of apps/site/src. Separate tasks rather than one, because each
+# names a different rule and a reader seeing which task went red already knows what to open. They
+# read source rather than the build, so nothing here waits on check-css. See
+# spec/architecture/css/procedure.md.
+[tasks.check-css-extraction]
+description = "Count the components behind every name in the visual layer, and the repetitions with none"
+run = "node apps/site/scripts/css-extraction.ts"
+
+[tasks.check-css-enumeration]
+description = "Hold every StyleX declaration to the layer the enumeration gives its property"
+run = "node apps/site/scripts/css-enumeration.ts"
+
+[tasks.check-css-ramp]
+description = "Count the type ramp values written as a literal rather than read from the ladder"
+run = "node apps/site/scripts/css-ramp.ts"
+
 [tasks.lint]
 description = "Lint the workspace"
 # The expansion is strict mode, set by `mise run audit` and nothing else. See spec/lint-format.md.
@@ -220,6 +236,9 @@ depends = [
 	"check-fonts",
 	"check-css",
 	"check-css-budget",
+	"check-css-extraction",
+	"check-css-enumeration",
+	"check-css-ramp",
 	"lint",
 	"test",
 	"refs",
