@@ -146,7 +146,6 @@
 	import IconClaude from '~icons/mingcute/claude-line';
 	import IconGemini from '~icons/mingcute/google-gemini-line';
 	import IconOpenAi from '~icons/mingcute/openai-line';
-	import { layoutWithLines, measureNaturalWidth, prepareWithSegments } from '@chenglou/pretext';
 	import { remFromMeasuredPixels } from '$lib/client/units';
 	import * as m from '$lib/paraglide/messages';
 	import type { Snippet } from 'svelte';
@@ -275,62 +274,50 @@
 		return `<script type="application/ld+json">${json}</${'script'}>`;
 	}
 
+	/** A grapheme cluster whose base is a letter, which is the only ink this anchor is read off. */
+	const LETTER_BASE = /^\p{L}/u;
+
 	/**
-	 * Anchor the mark to the widest line in the summary, through that line's last letter.
+	 * Anchor the mark to the rightmost ink in the summary, through the widest line's last letter.
 	 *
-	 * Aligning to the line immediately above it leaves the mark at a different column on every
-	 * summary, which reads as a ragged edge rather than as one. CSS exposes neither of those
-	 * widths, so pretext measures them from the browser's own font metrics.
+	 * The browser has already broken this paragraph, so its boxes are read back rather than
+	 * modelled: within a line `right` grows along the text, so the maximum over every letter is
+	 * already the maximum over lines of each line's last letter, and punctuation never enters one.
 	 * See spec/styling/lengths.md, "A summary provider mark aligns with the summary's widest line".
 	 */
 	function alignSummaryProvider(node: HTMLParagraphElement) {
 		let frame = 0;
-		let prepared: ReturnType<typeof prepareWithSegments> | undefined;
-		let preparedText = '';
-		let preparedFont = '';
-		let preparedLetterSpacing = 0;
+		// A range offset counts UTF-16 units, so a letter outside the BMP is two of them and the
+		// cluster is what carries its combining marks. A range splitting one has engine-dependent
+		// rects; a range over a whole one does not.
+		const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 		const align = () => {
 			cancelAnimationFrame(frame);
 			frame = requestAnimationFrame(() => {
 				const mark = node.querySelector<HTMLElement>('[data-summary-provider]');
-				const text = Array.from(node.childNodes)
-					.filter((child) => child.nodeType === Node.TEXT_NODE)
-					.map((child) => child.textContent ?? '')
-					.join('')
-					.trim();
-				if (!mark || !text) return;
+				if (!mark) return;
 
-				const style = getComputedStyle(node);
-				const parsedLetterSpacing = Number.parseFloat(style.letterSpacing);
-				const letterSpacing = Number.isFinite(parsedLetterSpacing) ? parsedLetterSpacing : 0;
-				if (
-					!prepared ||
-					preparedText !== text ||
-					preparedFont !== style.font ||
-					preparedLetterSpacing !== letterSpacing
-				) {
-					prepared = prepareWithSegments(text, style.font, { letterSpacing });
-					preparedText = text;
-					preparedFont = style.font;
-					preparedLetterSpacing = letterSpacing;
+				const probe = document.createRange();
+				let anchor = Number.NEGATIVE_INFINITY;
+				for (const child of node.childNodes) {
+					// The mark is this paragraph's only element child and its last, so stopping at it is
+					// what keeps the float out of the walk.
+					if (child === mark) break;
+					if (child.nodeType !== Node.TEXT_NODE) continue;
+					for (const { segment, index } of graphemes.segment(child.textContent ?? '')) {
+						if (!LETTER_BASE.test(segment)) continue;
+						probe.setStart(child, index);
+						probe.setEnd(child, index + segment.length);
+						for (const rect of probe.getClientRects()) anchor = Math.max(anchor, rect.right);
+					}
 				}
+				// No boxes at all means the paragraph is not being laid out, and an inset written from
+				// nothing is a wrong one.
+				if (anchor === Number.NEGATIVE_INFINITY) return;
 
-				const width = node.clientWidth;
-				const lineHeight = Number.parseFloat(style.lineHeight);
-				const lines = layoutWithLines(prepared, width, lineHeight).lines;
-				if (lines.length === 0) return;
-
+				const box = node.getBoundingClientRect();
 				const markWidth = mark.getBoundingClientRect().width;
-				const widthThroughLastLetter = (line: (typeof lines)[number]) => {
-					const throughLastLetter = line.text.match(/^.*\p{L}\p{M}*/u)?.[0];
-					return throughLastLetter
-						? measureNaturalWidth(
-								prepareWithSegments(throughLastLetter, style.font, { letterSpacing }),
-							)
-						: line.width;
-				};
-				const anchorWidth = Math.max(...lines.map((line) => widthThroughLastLetter(line)));
-				const inset = Math.min(Math.max(0, width - anchorWidth), Math.max(0, width - markWidth));
+				const inset = Math.min(Math.max(0, box.right - anchor), Math.max(0, box.width - markWidth));
 				mark.style.marginInlineEnd = remFromMeasuredPixels(inset);
 			});
 		};
@@ -559,7 +546,10 @@
 								aria-labelledby={summaryTrigger}
 								class="mt-3 pr-3 pl-3 {stylex.attrs(styles.summaryPanel).class}"
 							>
-								<p use:alignSummaryProvider>
+								<!-- The summary is body prose and breaks its lines by the body's rules, which is
+								     the class rather than a second copy of them. See spec/styling/prose.md,
+								     "Where a line ends is declared per language". -->
+								<p class="article-summary" use:alignSummaryProvider>
 									{summary.text}
 									{#if SummaryProviderIcon && summaryProvider}
 										<span

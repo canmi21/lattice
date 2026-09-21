@@ -312,12 +312,13 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
 	outline-offset: 0;
 }
 
-/* The article's line-breaking policy, pinned per language rather than left to the browser's
-   default -- which is what every value below was until this was written. `:lang()` rather than a
-   locale code, so the rule reaches `<html lang>`'s resolved language including the `mw` view's
-   per-article one. See spec/styling/prose.md, "Where a line ends is declared per language", and
-   spec/locale/addressing.md for the `mw` case. */
-.article-content {
+/* The line-breaking policy for body prose, pinned per language rather than left to the browser's
+   default -- which is what every value below was until this was written. The article body and the
+   summary above it are both prose, so they share one declaration instead of two that drift apart.
+   `:lang()` rather than a locale code, so the rule reaches `<html lang>`'s resolved language
+   including the `mw` view's per-article one. See spec/styling/prose.md, "Where a line ends is
+   declared per language", and spec/locale/addressing.md for the `mw` case. */
+:is(.article-content, .article-summary) {
 	text-wrap: wrap;
 	hyphens: manual;
 	word-break: normal;
@@ -332,10 +333,10 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    776). `text-wrap: pretty` is deliberately absent here -- it is free in Chrome but not WebKit,
    where at this width it adds lines in every language and roughly doubles the right-hand gap. See
    spec/styling/prose.md, "Two rule sets, because the trade reverses with the column". */
-.article-content:lang(en),
-.article-content:lang(de),
-.article-content:lang(es),
-.article-content:lang(fr) {
+:is(.article-content, .article-summary):lang(en),
+:is(.article-content, .article-summary):lang(de),
+:is(.article-content, .article-summary):lang(es),
+:is(.article-content, .article-summary):lang(fr) {
 	hyphens: auto;
 }
 
@@ -346,10 +347,10 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    Chrome's is. See spec/styling/prose.md, "Two rule sets, because the trade reverses with the
    column". */
 @media (min-width: 45rem) {
-	.article-content:lang(en),
-	.article-content:lang(de),
-	.article-content:lang(es),
-	.article-content:lang(fr) {
+	:is(.article-content, .article-summary):lang(en),
+	:is(.article-content, .article-summary):lang(de),
+	:is(.article-content, .article-summary):lang(es),
+	:is(.article-content, .article-summary):lang(fr) {
 		hyphens: manual;
 		text-wrap: pretty;
 	}
@@ -359,7 +360,7 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    closing punctuation -- and `auto` does not enforce it. Measured over the same article, `strict`
    removed all twelve violations and cost no lines at all: 328 either way. Eight of the twelve
    were a line opening on `ー`. See spec/styling/prose.md. */
-.article-content:lang(ja) {
+:is(.article-content, .article-summary):lang(ja) {
 	line-break: strict;
 }
 
@@ -367,6 +368,6 @@ html[data-focus-source='kbd'] .focus-input-shell:has(.focus-input:focus-visible)
    article; `keep-all` removes every one for eight extra lines. Chinese gets nothing beyond the
    shared block above -- `strict` measured identically to `auto` there, so there is nothing to pin.
    See spec/styling/prose.md, "Where a line ends is declared per language". */
-.article-content:lang(ko) {
+:is(.article-content, .article-summary):lang(ko) {
 	word-break: keep-all;
 }
