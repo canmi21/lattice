@@ -56,12 +56,13 @@
 		outline-offset: 0;
 	}
 
-	/* The other half of `focus-ring-inner`: a control that hands its outline to a child does not
+	/* The other half of the inner variants: a control that hands its outline to a child does not
 	   also draw one itself. Without this the base-layer backstop still fires on the parent and the
 	   control wears two rings, one around the hit area and one around the icon inside it. This is
 	   the narrow case spec/styling/focus.md allows suppression for -- the position is already
-	   marked. */
-	:focus-visible:has(> .focus-ring-inner) {
+	   marked. `focus-link-inner` had no such rule and every call site was bringing its own through
+	   `surfaces.quietControl`; adding it here changed none of them. */
+	:focus-visible:has(> :is(.focus-ring-inner, .focus-link-inner)) {
 		outline: none;
 	}
 

@@ -78,15 +78,18 @@
      to go. Its label is the text inside the tag, so the words stay in the message file with the
      sentence they belong to rather than in a key of their own.
 
-     The stroke is on the span and not on the button: a button's box is a line box, so a stroke
-     pinned to its bottom sat 2.5px below the address's in the same sentence. See utilities.css. -->
+     The stroke and the ring both sit on the span, because a button's box is a line box: the
+     stroke sat 2.5px below the address's in the same sentence, and the ring stood 20px against
+     its 15.5px. `focus-link-inner` is the variant for that. See utilities.css. -->
 {#snippet reportForm({ children }: { children?: Snippet })}<button
 		type="button"
 		onclick={openReport}
-		class="focus-link spring-underline-host cursor-pointer {stylex.attrs(
+		class="spring-underline-host cursor-pointer {stylex.attrs(
 			styles.control,
 			styles.fade,
-		).class}"><span class="spring-underline article-link">{@render children?.()}</span></button
+		).class}"><span class="focus-link-inner spring-underline article-link"
+			>{@render children?.()}</span
+		></button
 	>{/snippet}
 
 {#if missing}
