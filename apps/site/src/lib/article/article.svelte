@@ -498,10 +498,15 @@
 						}}
 						class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
 							surfaces.quietControl,
+							surfaces.focusRingHost,
 							styles.summaryTrigger,
 						).class}"
 					>
-						<span class="focus-link-inner inline-flex items-center gap-1">
+						<span
+							class="focus-link-inner inline-flex items-center gap-1 {stylex.attrs(
+								surfaces.focusLinkInner,
+							).class}"
+						>
 							<Sparkles class="size-3.5" aria-hidden="true" />
 							<span class="max-sm:hidden">{m['article.summary']({}, { locale: locale.code })}</span>
 							<span class="sm:hidden"

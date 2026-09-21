@@ -260,10 +260,15 @@
 					data-sveltekit-reload
 					class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
 						surfaces.quietControl,
+						surfaces.focusRingHost,
 						styles.noticeLink,
 					).class}"
 				>
-					<span class="focus-link-inner inline-flex items-center gap-1.5">
+					<span
+						class="focus-link-inner inline-flex items-center gap-1.5 {stylex.attrs(
+							surfaces.focusLinkInner,
+						).class}"
+					>
 						<FileText class="size-3.5" aria-hidden="true" />
 						<span>{m['licenses.package_notice']({}, { locale })}</span>
 					</span>

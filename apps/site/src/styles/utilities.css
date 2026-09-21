@@ -12,11 +12,12 @@
 	}
 }
 
-/* Keyboard focus belongs to the control's visible shape. The direct variant follows the
-   focusable box; the inner and within variants move the same outline to a representative child
-   or ancestor when the hit area and visible control are different. Keeping this in the components
-   layer lets each control's rounded utility own its actual silhouette. See
-   spec/styling/focus.md. */
+/* Keyboard focus belongs to the control's visible shape. The direct variant follows the focusable
+   box; the within variant moves the same outline to an ancestor when the hit area and visible
+   control are different. The inner variants' rings are the vocabulary's -- `surfaces.focusRingHost`
+   hands one down and `focusRingInner` takes it -- and what is left here is what they are at rest.
+   Keeping this in the components layer lets each control's rounded utility own its actual
+   silhouette. See spec/styling/focus.md. */
 @layer components {
 	/* Prose, in a page that has switched selection off. A component marks which of its parts are
 	   sentences; whether a drag should sweep controls up too is the page's call, so this does
@@ -49,29 +50,16 @@
 
 	.focus-ring:focus-visible,
 	.focus-link:focus-visible,
-	:focus-visible > .focus-ring-inner,
-	:focus-visible > .focus-link-inner,
 	.focus-ring-within:has(:focus-visible) {
 		outline: 0.125rem solid var(--color-accent);
 		outline-offset: 0;
-	}
-
-	/* The other half of the inner variants: a control that hands its outline to a child does not
-	   also draw one itself. Without this the base-layer backstop still fires on the parent and the
-	   control wears two rings, one around the hit area and one around the icon inside it. This is
-	   the narrow case spec/styling/focus.md allows suppression for -- the position is already
-	   marked. `focus-link-inner` had no such rule and every call site was bringing its own through
-	   `surfaces.quietControl`; adding it here changed none of them. */
-	:focus-visible:has(> :is(.focus-ring-inner, .focus-link-inner)) {
-		outline: none;
 	}
 
 	/* A text link's corner exists only to shape the outline, so it arrives with the outline. Left on
 	   at rest it would also clip the background, and a radius sized for a focus outline is twice the
 	   height of the underline stroke below: the corner arc cuts about 0.25rem off the bottom of each
 	   end and nothing off the top, bowing a straight line into a lens. See spec/styling/focus.md. */
-	.focus-link:focus-visible,
-	:focus-visible > .focus-link-inner {
+	.focus-link:focus-visible {
 		border-radius: 0.25rem;
 	}
 

@@ -210,10 +210,15 @@
 				href="/licenses/pkgs"
 				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
 					surfaces.quietControl,
+					surfaces.focusRingHost,
 					styles.actionLink,
 				).class}"
 			>
-				<span class="focus-link-inner inline-flex items-center gap-1.5">
+				<span
+					class="focus-link-inner inline-flex items-center gap-1.5 {stylex.attrs(
+						surfaces.focusLinkInner,
+					).class}"
+				>
 					<FolderOpen class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.packages']({}, { locale })}</span>
 				</span>
@@ -223,10 +228,15 @@
 				data-sveltekit-reload
 				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
 					surfaces.quietControl,
+					surfaces.focusRingHost,
 					styles.actionLink,
 				).class}"
 			>
-				<span class="focus-link-inner inline-flex items-center gap-1.5">
+				<span
+					class="focus-link-inner inline-flex items-center gap-1.5 {stylex.attrs(
+						surfaces.focusLinkInner,
+					).class}"
+				>
 					<FileText class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.index']({}, { locale })}</span>
 				</span>
@@ -236,10 +246,15 @@
 				data-sveltekit-reload
 				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
 					surfaces.quietControl,
+					surfaces.focusRingHost,
 					styles.actionLink,
 				).class}"
 			>
-				<span class="focus-link-inner inline-flex items-center gap-1.5">
+				<span
+					class="focus-link-inner inline-flex items-center gap-1.5 {stylex.attrs(
+						surfaces.focusLinkInner,
+					).class}"
+				>
 					<Scale class="size-3.5" aria-hidden="true" />
 					<span>{m['licenses.full']({}, { locale })}</span>
 				</span>

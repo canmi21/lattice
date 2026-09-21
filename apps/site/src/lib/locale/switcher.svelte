@@ -328,9 +328,15 @@
 >
 	<DropdownMenu.Trigger
 		aria-label={m['language.switcher']({ name: label }, { locale: code })}
-		class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(surfaces.quietControl).class}"
+		class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+			surfaces.quietControl,
+			surfaces.focusRingHost,
+		).class}"
 	>
-		<span class="focus-link-inner inline-flex items-center gap-1">
+		<span
+			class="focus-link-inner inline-flex items-center gap-1 {stylex.attrs(surfaces.focusLinkInner)
+				.class}"
+		>
 			<CurrentMark class={markSize} aria-hidden="true" />
 			<span class={phoneRegion ? undefined : 'max-sm:hidden'}>{label}</span>
 			{#if !phoneRegion}

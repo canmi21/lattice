@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { duration, easing, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -1340,6 +1341,7 @@
 		<button
 			type="button"
 			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+				surfaces.focusRingHost,
 				styles.button,
 			).class}"
 			onclick={toggle}
@@ -1347,12 +1349,14 @@
 			title={label}
 		>
 			{#if view.paused}<PlayIcon
-					class="player-glyph player-glyph-play focus-ring-inner"
+					class="player-glyph player-glyph-play focus-ring-inner {stylex.attrs(
+						surfaces.focusRingInner,
+					).class}"
 					weight="fill"
 					aria-hidden="true"
 				/>
 			{:else}<PauseIcon
-					class="player-glyph focus-ring-inner"
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 					weight="fill"
 					aria-hidden="true"
 				/>{/if}
@@ -1362,6 +1366,7 @@
 			<button
 				type="button"
 				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					surfaces.focusRingHost,
 					styles.button,
 				).class}"
 				onclick={unmute}
@@ -1369,12 +1374,12 @@
 				title={m['video.mute']({}, { locale })}
 			>
 				{#if view.muted || volume === 0}<SpeakerSimpleXIcon
-						class="player-glyph focus-ring-inner"
+						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 						weight="fill"
 						aria-hidden="true"
 					/>
 				{:else}<SpeakerHighIcon
-						class="player-glyph focus-ring-inner"
+						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 						weight="fill"
 						aria-hidden="true"
 					/>{/if}
@@ -1405,6 +1410,7 @@
 			<button
 				type="button"
 				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					surfaces.focusRingHost,
 					styles.button,
 					view.captions && styles.buttonOn,
 				).class}"
@@ -1420,7 +1426,7 @@
 				title={m['video.captions']({}, { locale })}
 			>
 				<ClosedCaptioningIcon
-					class="player-glyph focus-ring-inner"
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 					weight="bold"
 					aria-hidden="true"
 				/>
@@ -1431,6 +1437,7 @@
 			<button
 				type="button"
 				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					surfaces.focusRingHost,
 					styles.button,
 					menu && styles.buttonOn,
 				).class}"
@@ -1447,7 +1454,9 @@
 					the arithmetic and why the stroke in `.player-glyph-cog` is solved with it.
 				-->
 				<GearSixIcon
-					class="player-glyph player-glyph-cog focus-ring-inner"
+					class="player-glyph player-glyph-cog focus-ring-inner {stylex.attrs(
+						surfaces.focusRingInner,
+					).class}"
 					weight="bold"
 					viewBox="-24.38 -24.38 304.76 304.76"
 					aria-hidden="true"
@@ -1514,6 +1523,7 @@
 			<button
 				type="button"
 				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					surfaces.focusRingHost,
 					styles.button,
 				).class}"
 				onclick={() => (player?.togglePictureInPicture as () => void)?.()}
@@ -1521,7 +1531,7 @@
 				title={m['video.pip']({}, { locale })}
 			>
 				<PictureInPictureIcon
-					class="player-glyph focus-ring-inner"
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 					weight="bold"
 					aria-hidden="true"
 				/>
@@ -1539,6 +1549,7 @@
 		<button
 			type="button"
 			class="player-button inline-grid size-7.5 cursor-pointer place-items-center [@media(max-width:45rem)]:hidden {stylex.attrs(
+				surfaces.focusRingHost,
 				styles.button,
 				filling && styles.buttonOn,
 			).class}"
@@ -1553,9 +1564,12 @@
 			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
 			     still around it. The other button below leaves the browser behind entirely, and the
 			     two must not look alike -- they are different destinations, not two sizes of one. -->
-			{#if filling}<FrameCornersInIcon class="player-glyph focus-ring-inner" aria-hidden="true" />
+			{#if filling}<FrameCornersInIcon
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+					aria-hidden="true"
+				/>
 			{:else}<FrameCornersIcon
-					class="player-glyph focus-ring-inner"
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 					weight="bold"
 					aria-hidden="true"
 				/>{/if}
@@ -1564,6 +1578,7 @@
 		<button
 			type="button"
 			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+				surfaces.focusRingHost,
 				styles.button,
 			).class}"
 			onclick={() => (player?.toggleFullscreen as () => void)?.()}
@@ -1575,10 +1590,13 @@
 				: m['video.fullscreen']({}, { locale })}
 		>
 			{#if view.fullscreen}<CornersInWideIcon
-					class="player-glyph focus-ring-inner"
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
 					aria-hidden="true"
 				/>
-			{:else}<CornersOutWideIcon class="player-glyph focus-ring-inner" aria-hidden="true" />{/if}
+			{:else}<CornersOutWideIcon
+					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+					aria-hidden="true"
+				/>{/if}
 		</button>
 	</div>
 </div>

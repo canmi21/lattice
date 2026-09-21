@@ -25,6 +25,19 @@ const paper = {
 	borderColor: 'var(--color-border)',
 };
 
+/**
+ * The child half of a focus ring a control hands down: the host sets the `--focus-ring-*` group
+ * at `:focus-visible` and inheritance carries it here, so both ends are same-element declarations
+ * and no selector crosses between them. The colour is stated rather than handed down -- an
+ * outline's is `currentColor` until named, and `transition.colors` carries `outline-color`. See
+ * spec/styling/focus.md.
+ */
+const handedRing = {
+	outlineStyle: 'var(--focus-ring-style, none)',
+	outlineWidth: 'var(--focus-ring-width, medium)',
+	outlineColor: 'var(--color-accent)',
+};
+
 export const surfaces = stylex.create({
 	/**
 	 * The ground every route stands on: the page's own colour and the ink that inherits from it.
@@ -107,6 +120,32 @@ export const surfaces = stylex.create({
 		outlineWidth: { default: null, ':focus-visible': 'medium' },
 		outlineColor: { default: null, ':focus-visible': 'currentColor' },
 	},
+
+	/**
+	 * A control whose visible shape is a child rather than its own box: it declares the ring the
+	 * child draws instead of drawing one, and takes the base layer's backstop off itself so it
+	 * does not wear two. Which of the three the child reads is the child's own affair. The
+	 * `outline` longhands are `outline: none` written out, for the reason `quietControl` gives.
+	 * See spec/styling/focus.md.
+	 */
+	focusRingHost: {
+		'--focus-ring-style': { default: null, ':focus-visible': 'solid' },
+		'--focus-ring-width': { default: null, ':focus-visible': '0.125rem' },
+		'--focus-ring-radius': { default: null, ':focus-visible': radius.sm },
+		outlineStyle: { default: null, ':focus-visible': 'none' },
+		outlineWidth: { default: null, ':focus-visible': 'medium' },
+		outlineColor: { default: null, ':focus-visible': 'currentColor' },
+	},
+
+	/** The child a host's ring is drawn on, where the child's corner is already its own. */
+	focusRingInner: handedRing,
+
+	/**
+	 * The same for a text link's inner span, whose corner comes from the host too: a corner left
+	 * on at rest would clip the underline's background, and it is sized for the outline rather
+	 * than for the stroke. See spec/styling/focus.md.
+	 */
+	focusLinkInner: { ...handedRing, borderRadius: 'var(--focus-ring-radius, 0)' },
 
 	/**
 	 * The interface's own type step: fourteen pixels with the line that step computes to. Six

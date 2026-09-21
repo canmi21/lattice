@@ -1,8 +1,10 @@
 <script lang="ts">
+	import * as stylex from '@stylexjs/stylex';
 	import { untrack } from 'svelte';
 	import { ARTICLE_THUMBNAIL_LINES } from '@canmi/primitives';
 	import { arriving } from '$lib/client/arrival';
 	import { shortDate } from '$lib/format';
+	import { surfaces } from '$lib/surfaces.ts';
 
 	let {
 		title,
@@ -60,11 +62,15 @@
 	const date = $derived(shortDate(published));
 </script>
 
-<a href="/{path}" class="article-preview group focus-visible:outline-none">
+<a href="/{path}" class="article-preview group {stylex.attrs(surfaces.focusRingHost).class}">
 	<!-- A4-ish sheet. Five bars carry the hand-tuned first-frame widths/gaps; after
 	hydration the article list measures the corpus and animates them to a content-derived
 	shape (normalized list-wide, see list.svelte). -->
-	<div data-article-icon aria-hidden="true" class="article-preview-thumbnail focus-ring-inner">
+	<div
+		data-article-icon
+		aria-hidden="true"
+		class="article-preview-thumbnail focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+	>
 		{#each lines as line}
 			<span data-icon-bar style:width={line.width} style:margin-top={line.marginTop}></span>
 		{/each}

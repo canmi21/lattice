@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 
 	/**
 	 * The two ways out of an error page, as one sentence. See spec/architecture/css/authoring.md.
@@ -85,10 +86,13 @@
 		type="button"
 		onclick={openReport}
 		class="spring-underline-host cursor-pointer {stylex.attrs(
+			surfaces.focusRingHost,
 			styles.control,
 			styles.fade,
-		).class}"><span class="focus-link-inner spring-underline article-link"
-			>{@render children?.()}</span
+		).class}"
+		><span
+			class="focus-link-inner spring-underline article-link {stylex.attrs(surfaces.focusLinkInner)
+				.class}">{@render children?.()}</span
 		></button
 	>{/snippet}
 

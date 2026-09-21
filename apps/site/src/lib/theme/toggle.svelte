@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 
 	const styles = stylex.create({
 		/**
@@ -63,9 +64,15 @@
 	onclick={toggle}
 	aria-label={m['theme.switch']({}, { locale })}
 	aria-pressed={theme === 'dark'}
-	class="inline-flex cursor-pointer items-center {stylex.attrs(styles.control).class}"
+	class="inline-flex cursor-pointer items-center {stylex.attrs(
+		surfaces.focusRingHost,
+		styles.control,
+	).class}"
 >
-	<Dial class="focus-link-inner" shown={theme === 'dark' ? 'second' : 'first'}>
+	<Dial
+		class="focus-link-inner {stylex.attrs(surfaces.focusLinkInner).class}"
+		shown={theme === 'dark' ? 'second' : 'first'}
+	>
 		{#snippet first()}<Sun class="size-3.5" aria-hidden="true" />{/snippet}
 		{#snippet second()}<Moon class="size-3.5" aria-hidden="true" />{/snippet}
 	</Dial>

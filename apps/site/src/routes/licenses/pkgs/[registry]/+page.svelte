@@ -112,10 +112,15 @@
 					rel="noopener"
 					class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
 						surfaces.quietControl,
+						surfaces.focusRingHost,
 						styles.actionLink,
 					).class}"
 				>
-					<span class="focus-link-inner inline-flex items-center gap-1.5">
+					<span
+						class="focus-link-inner inline-flex items-center gap-1.5 {stylex.attrs(
+							surfaces.focusLinkInner,
+						).class}"
+					>
 						<ExternalLink class="size-3.5" aria-hidden="true" />
 						<span>{m['licenses.registry']({}, { locale })}</span>
 					</span>

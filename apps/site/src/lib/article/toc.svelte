@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '$lib/surfaces.ts';
 	import { line, radius, text } from '$lib/vocabulary.stylex.ts';
 
 	/**
@@ -863,7 +864,10 @@
 				aria-current={i === activeIndex ? 'location' : undefined}
 				title={entry.text}
 				onclick={() => jumpToSection(entry.el, i)}
-				class="block max-w-full cursor-pointer py-0.75 text-left {stylex.attrs(styles.entry).class}"
+				class="block max-w-full cursor-pointer py-0.75 text-left {stylex.attrs(
+					surfaces.focusRingHost,
+					styles.entry,
+				).class}"
 			>
 				<!-- Bar and text each sit in a full-opacity ring host: the inner span carries
 				the opacity animation, so drawing the focus ring on the wrapper keeps it crisp
@@ -871,7 +875,10 @@
 				which wrapper shows the ring (see <style>). -->
 				<span
 					class:focus-ring-inner={!showText}
-					class="toc-ring-bar block w-fit {stylex.attrs(styles.barRing).class}"
+					class="toc-ring-bar block w-fit {stylex.attrs(
+						!showText && surfaces.focusRingInner,
+						styles.barRing,
+					).class}"
 				>
 					<!-- Three answers, in the order they are known. The load's measurement, if it
 					     has one. Otherwise a custom property, which the head script sets from what
@@ -895,7 +902,12 @@
 								: '2rem'}; height: 0.25rem; opacity: 0.35"
 					></span>
 				</span>
-				<span class:focus-ring-inner={showText} class="toc-ring-text block w-fit max-w-full">
+				<span
+					class:focus-ring-inner={showText}
+					class="toc-ring-text block w-fit max-w-full {stylex.attrs(
+						showText && surfaces.focusRingInner,
+					).class}"
+				>
 					<!-- Clamped to two lines within the rail's width. `line-clamp-2` is the four
 					     declarations Tailwind writes as one utility -- the `display` among them -- and
 					     `[line-clamp:2]` is the standard property beside it, which that utility does

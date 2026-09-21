@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, easing, transition } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '$lib/surfaces.ts';
 
 	/**
 	 * The heading, as the anchor button's `when.ancestor` sees it. See spec/todo.md, "Ancestor
@@ -86,10 +87,13 @@
 		aria-label="Copy link to section"
 		onclick={copyHash}
 		class="absolute top-1/2 -left-7 hidden cursor-pointer -translate-y-1/2 py-1 pr-2 pl-1 lg:block {stylex.attrs(
+			surfaces.focusRingHost,
 			styles.anchor,
 		).class}"
 	>
-		<span class="focus-ring-inner block {stylex.attrs(styles.glyph).class}">
+		<span
+			class="focus-ring-inner block {stylex.attrs(surfaces.focusRingInner, styles.glyph).class}"
+		>
 			<Hash class="h-4 w-4" aria-hidden="true" />
 		</span>
 	</button>
