@@ -426,6 +426,26 @@ any layer StyleX's are declared after:
 border at newsletter.svelte:345 stops beating `surfaces.paper`. Expect those three rather than
 find them. Nothing about the step justifies keeping the file.
 
+### A `@property` registration stays outside every layer, and the migration has to leave it there
+
+Nineteen of the twenty unlayered rule blocks in
+[utilities.css](../../../apps/site/src/styles/utilities.css) went into `@layer components`. The
+twentieth is a `@property` registration, and it is at the top level on purpose.
+
+**Tailwind writes its pre-`@property` fallback only for the registrations it finds at the top
+level** -- the `@layer properties` block, guarded by `@supports`, that hands each registered
+custom property its initial value to a browser too old to register one. A registration nested in a
+layer is dropped from that block, and nothing else about it changes: it compiles, it reaches the
+emitted stylesheet, and the animation it feeds still runs.
+
+**That is what makes the move dangerous rather than merely wrong.** A registration has no cascade
+interaction with the rules around it, so folding it into a layer looks free, and tidying it in is
+the obvious next edit. Three of the four things a reader would check say it is fine. The fourth is
+one missing declaration inside an `@supports` block, on the browsers between this site's floor and
+`@property`'s own -- see [compat.md](../../compat.md), "The syntax floor is set to the same line,
+deliberately". Nothing mechanical catches it, so the comment at the registration and this rule are
+the whole of what stands in the way.
+
 ### `.focus-input` stays in the escape hatch, because a surface already owns the border
 
 The family went to the frame on its application count: three rules used in one place, which is
