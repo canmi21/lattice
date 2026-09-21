@@ -18,7 +18,7 @@ There isn't one.
 
 An English verb only changes shape for two tenses, present and past. The future never got a shape of its own.
 
-```mermaid
+```mermaid ratio="7.95"
 flowchart LR
     A["past: ate"] --> B["present: eat"]
     B -.-> C["future: ???"]
@@ -58,7 +58,7 @@ Same word, four different jobs.
 
 When you listen, the verb arrives but the time doesn't.
 
-```mermaid
+```mermaid ratio="7.2"
 flowchart LR
     N["now?"] -.- A["I'm eating."] -.- T["tonight?"]
 ```
@@ -67,7 +67,7 @@ flowchart LR
 
 Speaking is the same problem in reverse. You already know you mean later. What you don't have is a default way to say it.
 
-```mermaid
+```mermaid ratio="2.89"
 flowchart LR
     A["I will eat.<br/>a decision"] -.- L["later"]
     B["I'm going to eat.<br/>a plan"] -.- L
