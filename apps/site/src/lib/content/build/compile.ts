@@ -380,7 +380,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 						{
 							type: 'element',
 							tagName: 'sup',
-							properties: { className: ['note-marker'], 'data-note-marker': true },
+							properties: { 'data-note-marker': true },
 							children: [
 								{
 									type: 'element',
@@ -392,7 +392,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 										// marker lands it in the same band arriving at a section does.
 										// `focus-link` and `jump-target` are recipes and stay classes; only the
 										// address travels. See spec/architecture/css/authoring.md.
-										className: ['note-marker-link', 'focus-link', 'jump-target'],
+										className: ['focus-link', 'jump-target'],
 										'data-note-marker-link': true,
 									},
 									children: [{ type: 'text', value: String(number) }],

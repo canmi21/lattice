@@ -134,13 +134,9 @@ it('wraps the noted words so the walk back has something to light', async () => 
 	);
 	const prose = compiled.blocks[0];
 	if (prose?.type !== 'prose') throw new Error('expected prose');
-	expect(prose.html).toContain(
-		'<span data-note-words>model</span><sup class="note-marker" data-note-marker>',
-	);
+	expect(prose.html).toContain('<span data-note-words>model</span><sup data-note-marker>');
 	// The two recipes stay classes; only the address the escape hatch reaches by travels.
-	expect(prose.html).toContain(
-		'class="note-marker-link focus-link jump-target" data-note-marker-link',
-	);
+	expect(prose.html).toContain('class="focus-link jump-target" data-note-marker-link');
 });
 
 it('fogs a spoiler visually while leaving its words real in both targets', async () => {

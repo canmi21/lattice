@@ -103,11 +103,16 @@
 	</button>
 	{@render children()}
 	<!-- After the words rather than above them: a heading's note belongs to the heading, and a
-	     marker floating off the cap line reads as belonging to the page. See
-	     spec/styling/notes.md. -->
-	{#each notes as number (number)}<sup class="note-marker"
-			><a id="marker-{number}" href="#note-{number}" class="note-marker-link focus-link jump-target"
-				>{number}</a
+	     marker floating off the cap line reads as belonging to the page. The addresses are spelled
+	     exactly as compile.ts spells a prose marker's, so one selector reaches both origins, while
+	     `focus-link` and `jump-target` stay classes, being recipes. See spec/styling/notes.md and
+	     spec/architecture/css/authoring.md. -->
+	{#each notes as number (number)}<sup data-note-marker
+			><a
+				id="marker-{number}"
+				href="#note-{number}"
+				class="focus-link jump-target"
+				data-note-marker-link>{number}</a
 			></sup
 		>{/each}
 </svelte:element>
