@@ -37,7 +37,7 @@ let highlighterPromise: Promise<Highlighter> | null = null;
 function getHighlighter(): Promise<Highlighter> {
 	if (!highlighterPromise) {
 		highlighterPromise = createHighlighter({
-			themes: ['one-light', 'one-dark-pro'],
+			themes: ['min-light', 'one-dark-pro'],
 			langs: LANGS,
 			engine: createJavaScriptRegexEngine(),
 		});
@@ -49,7 +49,7 @@ export async function highlight(code: string, lang: string): Promise<string> {
 	const highlighter = await getHighlighter();
 	return highlighter.codeToHtml(code, {
 		lang,
-		themes: { light: 'one-light', dark: 'one-dark-pro' },
+		themes: { light: 'min-light', dark: 'one-dark-pro' },
 		defaultColor: false,
 	});
 }

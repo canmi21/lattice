@@ -71,13 +71,23 @@ there are three of them, and 75KB was always LXGW's number rather than the group
 latin and latin-ext. `code` and `pre` are the only selectors naming the family, so what a reader
 ever fetches is decided by what appears inside them.
 
-Measured, nothing there is ever emphasised. Neither `one-light` nor `one-dark-pro` emits
-`font-style` or `font-weight` for any token, no article writes code inside bold or italic markup,
-and no rule gives `code` a weight of its own. Six of the eight cuts therefore cannot be requested,
+Measured, nothing there is ever emphasised -- but not for the reason this file used to give. It
+said neither syntax theme emits `font-style` or `font-weight`, and that was wrong: `one-dark-pro`
+marks every comment italic, `one-light` did too, and 88 published objects carry the mark. What
+saves it is that a dual-theme render emits the style as a custom property, `--shiki-dark-font-style`
+beside `--shiki-dark`, and [code-block.svelte](../../apps/site/src/lib/blocks/code-block.svelte)
+reads only the colour. The declaration is never made, so the browser is never asked. (`min-light`,
+the light half since, emits no style at all, which makes the light side true in both readings.)
+
+**So the reachable set is held by an omission, and a rule reading that variable would end it.**
+Writing `font-style: var(--shiki-dark-font-style)` beside the colour is a one-line change that
+looks like a fix and puts two more cuts on the wire for every article with a comment in its code.
+No article writes code inside bold or italic markup either, and no rule gives `code` a weight of
+its own. Six of the eight cuts therefore cannot be requested,
 and the latin-ext regular waits on an article whose code contains a character above U+00FF.
 
-They stay, under the rule in the workspace's `code.md`: a monospace family cut to a single weight has
-to be re-cut the moment anything wants emphasis, and until then it costs a reader nothing. A
+They stay, under the rule in the workspace's `code.md`: a monospace family cut to a single weight
+has to be re-cut the moment anything wants emphasis, and until then it costs a reader nothing. A
 `@font-face` is a declaration; the browser fetches a cut only when text matches its family, its
 style and weight, and its `unicode-range`. The unreachable six are bytes in the bucket, not bytes
 on the wire.
