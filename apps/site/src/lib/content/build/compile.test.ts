@@ -107,11 +107,15 @@ it('renders a translator note as an explicit control instead of a native tooltip
 	const prose = compiled.blocks[0];
 	if (prose?.type !== 'prose') throw new Error('expected prose');
 
-	expect(prose.html).toContain('<button type="button" class="tn-trigger focus-link"');
+	// The address is the attribute and the class is what a published article already carries,
+	// so both are pinned until the corpus catches up. See spec/architecture/css/authoring.md.
+	expect(prose.html).toContain(
+		'<button type="button" class="tn-trigger focus-link" data-tn-trigger',
+	);
 	expect(prose.html).toContain('data-tn-note="Its meaning needs context."');
 	expect(prose.html).toContain('aria-controls="translator-note" aria-expanded="false"');
 	expect(prose.html).toContain(
-		'<svg class="tn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"',
+		'<svg class="tn-icon" data-tn-icon viewBox="0 0 24 24" fill="none" stroke="currentColor"',
 	);
 	expect(prose.html).toContain('<circle cx="12" cy="12" r="10"></circle>');
 	expect(prose.html).toContain('<path d="M12 16v-4"></path>');
@@ -131,7 +135,13 @@ it('wraps the noted words so the walk back has something to light', async () => 
 	);
 	const prose = compiled.blocks[0];
 	if (prose?.type !== 'prose') throw new Error('expected prose');
-	expect(prose.html).toContain('<span class="note-words">model</span><sup class="note-marker">');
+	expect(prose.html).toContain(
+		'<span class="note-words" data-note-words>model</span><sup class="note-marker" data-note-marker>',
+	);
+	// The two recipes stay classes; only the address the escape hatch reaches by travels.
+	expect(prose.html).toContain(
+		'class="note-marker-link focus-link jump-target" data-note-marker-link',
+	);
 });
 
 it('fogs a spoiler visually while leaving its words real in both targets', async () => {
@@ -148,9 +158,11 @@ it('fogs a spoiler visually while leaving its words real in both targets', async
 	const prose = compiled.blocks[0];
 	if (prose?.type !== 'prose') throw new Error('expected prose');
 
-	// The fog is CSS; the compiled output only names the class and makes the span reachable
-	// without a pointer. The words stay ordinary text inside it.
-	expect(prose.html).toContain('<span class="spoiler focus-link" tabindex="0">nobody wins</span>');
+	// The fog is CSS; the compiled output only addresses the span and makes it reachable without
+	// a pointer. The words stay ordinary text inside it.
+	expect(prose.html).toContain(
+		'<span class="spoiler focus-link" data-spoiler tabindex="0">nobody wins</span>',
+	);
 	// The markdown target lifts the fog rather than spelling it: its readers are models.
 	expect(compiled.markdown).toContain('The ending is nobody wins after all.');
 	expect(compiled.markdown).not.toContain('spoiler');

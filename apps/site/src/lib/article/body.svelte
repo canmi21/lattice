@@ -7,9 +7,9 @@
 	 * Every colour is the token variable `libs/tokens` already declares, so nothing here can
 	 * change one. See spec/architecture/css/authoring.md.
 	 *
-	 * The scoped block at the foot of this file does not shrink: every rule in it reaches
-	 * `.tn-trigger`, a control the markdown compiler wrote into the prose, and a style reaches an
-	 * element only through a class on that element.
+	 * The scoped block at the foot of this file does not shrink: every rule in it reaches the
+	 * translator's-note trigger, a control the markdown compiler wrote into the prose, and a style
+	 * reaches an element only through a class on that element.
 	 */
 	const styles = stylex.create({
 		/** The note's header row, which carries the ink its icon and label inherit. */
@@ -138,8 +138,9 @@
 	function noteJump(target: EventTarget | null): HTMLAnchorElement | undefined {
 		if (!(target instanceof Element)) return undefined;
 		// Markers only. The way back lives in the notes section, which renders outside this
-		// root and owns its own clicks -- see footnotes.svelte.
-		const found = target.closest<HTMLAnchorElement>('a.note-marker-link');
+		// root and owns its own clicks -- see footnotes.svelte. Either spelling of the address,
+		// until the corpus is republished -- see spec/architecture/css/authoring.md.
+		const found = target.closest<HTMLAnchorElement>('a.note-marker-link, a[data-note-marker-link]');
 		return found && root?.contains(found) ? found : undefined;
 	}
 
@@ -361,7 +362,11 @@
 </Popover.Root>
 
 <style>
-	:global(.tn-trigger) {
+	/* Class and attribute both, at identical specificity, for as long as both spellings are out
+	   there: an article published before the address moved carries only the class. The classes go
+	   once the corpus is republished. See spec/architecture/css/authoring.md. */
+	:global(.tn-trigger),
+	:global([data-tn-trigger]) {
 		margin: 0;
 		border: 0;
 		background: transparent;
@@ -378,12 +383,17 @@
 
 	:global(.tn-trigger:hover),
 	:global(.tn-trigger:focus-visible),
-	:global(.tn-trigger[aria-expanded='true']) {
+	:global(.tn-trigger[aria-expanded='true']),
+	:global([data-tn-trigger]:hover),
+	:global([data-tn-trigger]:focus-visible),
+	:global([data-tn-trigger][aria-expanded='true']) {
 		color: var(--color-text-strong);
 		text-decoration-color: currentColor;
 	}
 
-	:global(.tn-trigger .tn-icon) {
+	/* Trigger and icon travel together, so no document mixes the two spellings. */
+	:global(.tn-trigger .tn-icon),
+	:global([data-tn-trigger] [data-tn-icon]) {
 		display: inline;
 		width: 0.78em;
 		height: 0.78em;

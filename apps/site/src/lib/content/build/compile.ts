@@ -315,6 +315,10 @@ function markProseLinks(node: Nodes): void {
 	}
 }
 
+// An address -- a class carrying no declaration, there so a :global() rule or a script can reach
+// the node -- is written as a data attribute with the class kept beside it, until the corpus is
+// republished and the classes go. See spec/architecture/css/authoring.md.
+
 // Render a top-level prose node to HTML. `delete` (gfm strikethrough) maps to
 // <s> so the existing .article-body :global(s) styling keeps working; the DLC
 // `:t` / `:link` text directives expand to spans / anchors.
@@ -370,13 +374,13 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 						{
 							type: 'element',
 							tagName: 'span',
-							properties: { className: ['note-words'] },
+							properties: { className: ['note-words'], 'data-note-words': true },
 							children,
 						},
 						{
 							type: 'element',
 							tagName: 'sup',
-							properties: { className: ['note-marker'] },
+							properties: { className: ['note-marker'], 'data-note-marker': true },
 							children: [
 								{
 									type: 'element',
@@ -386,7 +390,10 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 										id: `marker-${number}`,
 										// The id sits here, so the scroll margin has to as well: returning to a
 										// marker lands it in the same band arriving at a section does.
+										// `focus-link` and `jump-target` are recipes and stay classes; only the
+										// address travels. See spec/architecture/css/authoring.md.
 										className: ['note-marker-link', 'focus-link', 'jump-target'],
+										'data-note-marker-link': true,
 									},
 									children: [{ type: 'text', value: String(number) }],
 								},
@@ -405,6 +412,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 						properties: {
 							type: 'button',
 							className: ['tn-trigger', 'focus-link'],
+							'data-tn-trigger': true,
 							'data-tn-note': note,
 							ariaControls: ['translator-note'],
 							ariaExpanded: 'false',
@@ -416,6 +424,7 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 								tagName: 'svg',
 								properties: {
 									className: ['tn-icon'],
+									'data-tn-icon': true,
 									viewBox: '0 0 24 24',
 									fill: 'none',
 									stroke: 'currentColor',
@@ -457,7 +466,11 @@ function proseHtml(node: RootContent, newTabNote: string, source: string): strin
 					return {
 						type: 'element',
 						tagName: 'span',
-						properties: { className: ['spoiler', 'focus-link'], tabIndex: 0 },
+						properties: {
+							className: ['spoiler', 'focus-link'],
+							'data-spoiler': true,
+							tabIndex: 0,
+						},
 						children,
 					};
 				}

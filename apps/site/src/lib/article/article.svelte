@@ -609,12 +609,18 @@
 		color: var(--color-text-soft);
 	}
 
+	/* Every rule below reaching compiled prose matches a class and an attribute at identical
+	   specificity, for as long as both spellings are out there: an article published before the
+	   address moved carries only the class. The classes go once the corpus is republished.
+	   See spec/architecture/css/authoring.md. */
+
 	/* A note's marker. It rides above the line it interrupts and stays smaller than the words
 	   around it: a reader following the sentence should be able to pass over it, and a reader
 	   looking for it should find it without hunting. Global because prose markers arrive as
 	   compiled HTML while a heading's are written by section.svelte -- one appearance, two
 	   origins. See spec/styling/notes.md. */
-	.article-body :global(.note-marker) {
+	.article-body :global(.note-marker),
+	.article-body :global([data-note-marker]) {
 		/* Relative, so one ratio serves both places a marker appears: beside prose it lands where
 		   the absolute 0.6875rem used to, and in the smaller notes below it shrinks with them. */
 		font-size: 0.73em;
@@ -622,7 +628,8 @@
 		line-height: 0;
 	}
 
-	.article-body :global(.note-marker-link) {
+	.article-body :global(.note-marker-link),
+	.article-body :global([data-note-marker-link]) {
 		padding-inline: 0.0625rem;
 		color: var(--color-text-soft);
 		text-decoration: none;
@@ -630,12 +637,15 @@
 	}
 
 	.article-body :global(.note-marker-link:hover),
-	.article-body :global(.note-marker-link:focus-visible) {
+	.article-body :global(.note-marker-link:focus-visible),
+	.article-body :global([data-note-marker-link]:hover),
+	.article-body :global([data-note-marker-link]:focus-visible) {
 		color: var(--color-text-strong);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.article-body :global(.note-marker-link) {
+		.article-body :global(.note-marker-link),
+		.article-body :global([data-note-marker-link]) {
 			transition: none;
 		}
 	}
@@ -644,8 +654,14 @@
 	   words -- see spec/styling/notes.md, "The walk back from a note lights the words it lands on",
 	   for the overlay itself. Under reduced motion the tint simply is: the information is kept,
 	   the animation is not. */
+
+	/* .note-return stays a class: a script adds it at runtime, so no published article carries one
+	   and there is nothing to migrate. Marker and link travel together, so no document mixes the
+	   two spellings and the pair below covers every case. */
 	.article-body :global(.note-return + .note-marker .note-marker-link),
-	.article-body :global(.note-marker.note-return .note-marker-link) {
+	.article-body :global(.note-marker.note-return .note-marker-link),
+	.article-body :global(.note-return + [data-note-marker] [data-note-marker-link]),
+	.article-body :global([data-note-marker].note-return [data-note-marker-link]) {
 		animation: note-return-marker 1.8s ease-out both;
 	}
 
@@ -664,7 +680,9 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.article-body :global(.note-return + .note-marker .note-marker-link),
-		.article-body :global(.note-marker.note-return .note-marker-link) {
+		.article-body :global(.note-marker.note-return .note-marker-link),
+		.article-body :global(.note-return + [data-note-marker] [data-note-marker-link]),
+		.article-body :global([data-note-marker].note-return [data-note-marker-link]) {
 			animation: none;
 			color: var(--color-text-strong);
 		}
@@ -675,7 +693,8 @@
 	   `:focus-visible` -- a tap's focus is the only reveal a touch screen has, and revealing is
 	   the element's whole job, unlike the ring, which stays keyboard-only via .focus-link.
 	   See spec/styling/notes.md. */
-	.article-body :global(.spoiler) {
+	.article-body :global(.spoiler),
+	.article-body :global([data-spoiler]) {
 		border-radius: 0.25rem;
 		cursor: pointer;
 		filter: blur(0.28em);
@@ -683,12 +702,15 @@
 	}
 
 	.article-body :global(.spoiler:hover),
-	.article-body :global(.spoiler:focus) {
+	.article-body :global(.spoiler:focus),
+	.article-body :global([data-spoiler]:hover),
+	.article-body :global([data-spoiler]:focus) {
 		filter: none;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.article-body :global(.spoiler) {
+		.article-body :global(.spoiler),
+		.article-body :global([data-spoiler]) {
 			transition: none;
 		}
 	}
