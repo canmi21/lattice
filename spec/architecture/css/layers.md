@@ -352,21 +352,70 @@ It was left open whether the file should be layered or taken apart, on the reaso
 it a layer is also choosing what it is a layer of. It is settled: **every rule in it belongs to a
 layer that already exists, so the file has nothing left to be.**
 
-Counted by how many places apply each class, the file holds four unrelated things. Named recipes
-past the three-component threshold -- `.value` at eighteen sites, the `.focus-link` family at
-eighteen, the `.focus-ring` family at twelve, `.spring-underline` at seven, `.article-link` and
-`.selectable` at five, `.jump-target` at three -- are the vocabulary, and go to
+The file holds four unrelated things. Named recipes past the three-component threshold -- the
+`.focus-link` family, the `.focus-ring` family, `.spring-underline`, `.article-link`,
+`.selectable`, `.jump-target` -- are the vocabulary, and go to
 [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). One-off classes applied in a single
-place -- `.article-rail`, `.article-column`, `.meta-language`, the `.focus-input` family,
-`.pill`, `.value-cell` -- are the frame, and go to the markup. `.article-content` and its
-`:lang()` variants style elements the markdown compiler authored, so by question one they are
-the escape hatch and go to the component rendering the article body. The two `:root` blocks,
-about 3.3KB, are tokens and never were a layering question.
+place -- `.article-rail`, `.article-column`, `.meta-language` -- are the frame, and go to the
+markup. The `.focus-input` family and `.article-content` each have a section below, because the
+first disposition of each was wrong. The two `:root` blocks, about 3.3KB, are tokens and never
+were a layering question.
 
-**Layering the file first is an interim step, not the destination.** Twenty of its rule blocks
-sit outside every layer and therefore outrank the vocabulary unconditionally, which is a silent
-wrong answer; putting them in a layer below the escape hatch makes the order predictable while
-the rules move one group at a time. Nothing about that step justifies keeping the file.
+The counts this paragraph carried are gone rather than refreshed. They were doing the deciding,
+which is the mistake the next two sections are about, and one of them was counting the wrong
+thing: `.value` was listed at eighteen sites and the class is written once, on the span in
+[counter.svelte](../../../apps/site/src/lib/components/counter.svelte). `.value`, `.value-cell`,
+`.pill` and `.pill-metrics` are also [app.css](../../../apps/site/src/styles/app.css)'s, not
+this file's, and they travel with it: `.value-cell`'s `font-family`, `font-size` and
+`font-variant-numeric` are ramp members wherever they appear and go to the vocabulary, the rest
+of it to the markup.
+
+**Layering the file first is an interim step, and it is not behaviour-preserving.** Twenty of
+its rule blocks sit outside every layer and therefore outrank the vocabulary unconditionally,
+which is a silent wrong answer; putting them in a layer below the escape hatch makes the order
+predictable while the rules move one group at a time. What the wrapper costs is three elements
+that render differently the moment those rules are inside any layer StyleX's are declared after:
+`.spring-underline`'s `transition` shorthand stops beating the StyleX `transition-*` on
+[newsletter.svelte](../../../apps/site/src/lib/newsletter/newsletter.svelte):481 and
+[offer.svelte](../../../apps/site/src/lib/error/offer.svelte):65, and the `.focus-input-shell`
+border at newsletter.svelte:345 stops beating `surfaces.paper`. Expect those three rather than
+find them. Nothing about the step justifies keeping the file.
+
+### `.focus-input` stays in the escape hatch, because a surface already owns the border
+
+The family went to the frame on its application count: three rules used in one place, which is
+the shape of a one-off. The count is not the question.
+`.focus-input-shell:has(.focus-input:focus)` sets `border-color` on the newsletter's pill, and
+that pill carries `surfaces.paper`, which sets `border-color` unconditionally. Tailwind's
+`utilities` layer sits below StyleX's `priority1` through `priority7` -- read off the built
+stylesheet, and asserted by [css-layers.ts](../../../apps/site/scripts/css-layers.ts) -- so the
+frame can express the `:has()` condition and still never render it. The escape hatch in
+[newsletter.svelte](../../../apps/site/src/lib/newsletter/newsletter.svelte) is the only layer
+that wins, and the family goes there whole rather than splitting over the one rule that fails.
+
+**The wrong reason was "few enough application sites to be frame-shaped".** The right question is
+the one this file already asks under "Lowering a declaration is only safe where no surface
+already sets it": does anything above the target layer already declare that property on that
+element. It is worth recording because a count is the answer a reader reaches for again -- it is
+quick, it is visible in the markup, and it is about the class rather than about the cascade.
+
+### `.article-content` is the frame, and question one was answered by the wrong element
+
+The disposition read escape hatch because the rules reach markdown-compiled prose. They do not
+reach it by selector. Every one of the seven properties is inherited and all seven are declared
+on the wrapper -- a `<div>` [body.svelte](../../../apps/site/src/lib/article/body.svelte)
+authors and already classes with `space-y-4` -- while `.article-summary` is a `<p>`
+[article.svelte](../../../apps/site/src/lib/article/article.svelte) authors outright. An author
+of each of those elements can write a class on it, so question one does not answer; two call
+sites is short of the three-component threshold, so question two does not either. Question three
+answers, and nothing above declares any of the seven on either element. The shape is unpleasant
+-- six languages across three `:lang()` blocks and a width query, written as arbitrary variants
+at two sites -- and
+unpleasant is not an answer the three questions take.
+
+This file's opening still uses `.article-content` as its worked example of question one letting
+the wrong element answer. The example does not survive; the point it illustrates does, on the
+compiled `<strong>` and the portalled surface beside it.
 
 ## The distribution cost is known, and accepted
 
