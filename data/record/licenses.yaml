@@ -1,17 +1,6 @@
-# Licences worked out by reading a package, because the package never declared one.
-#
-# `cms licenses` refuses to finish while a dependency has no discoverable terms. That is the
-# one finding in the whole record that needs a person: everything else it can simply state.
-# This file is where the person's answer goes, so the decision is made once, in the open, and
-# with the evidence beside it.
-#
-# An entry only ever fills a gap. A package that declares its own licence is never overridden
-# from here -- otherwise this file could quietly disagree with the package it describes.
-# `cms licenses` reports an entry whose package now declares its own, so the list shrinks by
-# itself instead of accumulating.
-#
-# The published record marks these as asserted rather than declared, and the site says so.
-# Recording a judgement as if the package had made it is the one dishonest thing this could do.
+# Licences worked out by reading a package, because the package never declared one. An entry
+# only ever fills a gap, and `cms licenses` reports one whose package has since declared its
+# own, so the list shrinks by itself. See spec/architecture/data.md, "A dependency's licence".
 
 version: 1
 
