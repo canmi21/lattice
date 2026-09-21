@@ -67,7 +67,7 @@ flowchart LR
 
 Speaking is the same problem in reverse. You already know you mean later. What you don't have is a default way to say it.
 
-```mermaid ratio="2.89"
+```mermaid ratio="3.3"
 flowchart LR
     A["I will eat.<br/>a decision"] -.- L["later"]
     B["I'm going to eat.<br/>a plan"] -.- L

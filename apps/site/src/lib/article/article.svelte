@@ -738,4 +738,59 @@
 		padding: 0.125rem 0.375rem;
 		font-size: 0.875rem;
 	}
+
+	/* A table the markdown compiler wrote, reached from here because it carries no class -- which
+	   is question one's answer in spec/architecture/css/layers.md.
+
+	   `border-collapse: separate` is what lets the frame keep its corner: collapsing merges the
+	   outer border into the cells' and the radius then clips a line that is no longer there. Cell
+	   borders go on two edges only, so no interior line is drawn twice. */
+	.article-body :global(table) {
+		width: 100%;
+		border-width: 1px;
+		border-style: solid;
+		border-color: var(--color-border);
+		border-radius: 0.75rem;
+		border-spacing: 0;
+		border-collapse: separate;
+		overflow: hidden;
+	}
+
+	/* Three grounds, counting the page the frame sits on. The head takes `paper` and the body the
+	   step beyond it, so the rows carry the weight and the head reads as their label. */
+	.article-body :global(tbody) {
+		background-color: var(--color-paper-hover);
+	}
+
+	.article-body :global(thead) {
+		background-color: var(--color-paper);
+	}
+
+	.article-body :global(th),
+	.article-body :global(td) {
+		border-inline-end: 1px solid var(--color-border);
+		border-block-end: 1px solid var(--color-border);
+		padding-block: 0.625rem;
+		padding-inline: 0.875rem;
+		text-align: start;
+		vertical-align: baseline;
+		overflow-wrap: break-word;
+	}
+
+	/* The frame already draws the last column's right edge and the last row's bottom, so the cells
+	   there stop short of doubling it. */
+	.article-body :global(tr > :last-child) {
+		border-inline-end: 0;
+	}
+
+	.article-body :global(tbody tr:last-child > *) {
+		border-block-end: 0;
+	}
+
+	/* A heading at the weight and ink this prose already gives a `strong`, rather than the bold a
+	   `th` renders at by default. */
+	.article-body :global(th) {
+		font-weight: 500;
+		color: var(--color-text-strong);
+	}
 </style>
