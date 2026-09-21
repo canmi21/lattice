@@ -308,6 +308,25 @@ they read it without leaving the file. That is the whole argument for utilities 
 argument about one-offs read in place; it stops being true the moment a value is a lookup into
 something the markup cannot show, which is what a colour, a type step or a radius is.
 
+**Reading a declaration in place is a benefit of the frame where it applies, and it is not the test
+for belonging to it.** The three questions send things to the frame that no amount of reading in
+place explains. `.article-content`'s per-language prose policy is a lookup into
+[styling/prose.md](../../styling/prose.md) -- `[&:lang(ko)]:[word-break:keep-all]` read in place
+tells a reader nothing, and the comment above it is a pointer to a document. `.article-column`'s
+`padding-top: clamp(...)` is a lookup into [styling/rail.md](../../styling/rail.md) at a single
+site, where no threshold is involved at all. Both are the frame and both answer correctly, because
+neither of the other two layers can hold them. **The frame is the residual layer**: a declaration
+is there when no reachability problem sends it to the escape hatch and no name sends it to the
+vocabulary, and the paragraph above describes the common case rather than the criterion.
+
+This makes the document honest about the two dispositions; it does not defend how either is
+written. `.article-content` is still one policy spelled twice in arbitrary variants at two sites.
+**Where a declaration goes and where it belongs are different questions**, and only the first is
+this file's: the three questions answer it, and nothing here answers the second. Lowering the
+three-component threshold to two was the alternative and it is refused, because it swaps one count
+for another and the criterion survives the swap -- the line moves until the case that exposed it
+falls on the other side, and `.article-column` at one site is reached by no count at all.
+
 **The vocabulary is StyleX because a vocabulary wants to be composed and typed.** A surface is a
 set of declarations with a name, used in several places, and it should be possible to say so in one
 expression that a compiler checks and a bundler deduplicates. Utilities cannot name a surface; they
@@ -396,8 +415,10 @@ of it to the markup.
 
 **Layering the file first is an interim step, and it is not behaviour-preserving.** Twenty of
 its rule blocks sit outside every layer and therefore outrank the vocabulary unconditionally,
-which is a silent wrong answer; putting them in a layer below the escape hatch makes the order
-predictable while the rules move one group at a time. What the wrapper costs is three elements
+which is a silent wrong answer and the one a partial port walks into -- a rule moved to StyleX
+loses to whatever of its block is still unlayered here, and nothing reports it. Putting them in a
+layer below the escape hatch makes the order predictable while the rules move one group at a
+time. What the wrapper costs is three elements
 that render differently the moment those rules are inside any layer StyleX's are declared after:
 `.spring-underline`'s `transition` shorthand stops beating the StyleX `transition-*` on
 [newsletter.svelte](../../../apps/site/src/lib/newsletter/newsletter.svelte):481 and
