@@ -118,12 +118,64 @@ function resolveLink(
 	return { href, new_tab: target.new_tab, platform };
 }
 
-// `:t` attributes -> utility classes. font/color carry token names (libs/tokens);
+/**
+ * Every colour class `:t` can ask for, written out whole.
+ *
+ * A joined name is one Tailwind's scanner never reads, so it emits no rule and the run is
+ * silently unstyled -- `text-blue` and `text-text` were both absent from the built CSS, and
+ * `text-text-strong` worked only because that string is written literally further down. The
+ * length is the point, and class-names.test.ts holds it. See spec/architecture/css/authoring.md.
+ */
+export const COLOR_CLASSES = {
+	text: 'text-text',
+	'text-muted': 'text-text-muted',
+	'text-soft': 'text-text-soft',
+	'text-strong': 'text-text-strong',
+	ink: 'text-ink',
+	accent: 'text-accent',
+	blue: 'text-blue',
+	'blue-ink': 'text-blue-ink',
+	green: 'text-green',
+	'green-ink': 'text-green-ink',
+	red: 'text-red',
+	'red-ink': 'text-red-ink',
+} as const;
+
+/** Literals for the same reason. `font-baskerville` is libs/fonts; the other two are Tailwind's. */
+export const FONT_CLASSES = {
+	baskerville: 'font-baskerville',
+	mono: 'font-mono',
+	serif: 'font-serif',
+} as const;
+
+/**
+ * The class a token names, or a refusal that names the article.
+ *
+ * A token nothing answers for used to compile to a class with no rule behind it, which is the
+ * one outcome indistinguishable from a typo: the page renders, the word is unstyled, and the
+ * build says nothing. Thrown here rather than checked in a gate, so the article is named.
+ */
+function classFor(
+	table: Record<string, string>,
+	attribute: string,
+	value: string,
+	source: string,
+): string {
+	const name = table[value];
+	if (!name) {
+		throw new Error(
+			`${source}: :t ${attribute} must be one of ${Object.keys(table).join(', ')}, got "${value}"`,
+		);
+	}
+	return name;
+}
+
+// `:t` attributes -> utility classes. font/color carry token names, looked up above;
 // the rest are boolean flags.
-function styleClasses(attrs: DirectiveAttrs): string[] {
+function styleClasses(attrs: DirectiveAttrs, source: string): string[] {
 	const classes: string[] = [];
-	if (attrs.font) classes.push(`font-${attrs.font}`);
-	if (attrs.color) classes.push(`text-${attrs.color}`);
+	if (attrs.font) classes.push(classFor(FONT_CLASSES, 'font', attrs.font, source));
+	if (attrs.color) classes.push(classFor(COLOR_CLASSES, 'color', attrs.color, source));
 	if ('italic' in attrs) classes.push('italic');
 	if ('bold' in attrs) classes.push('font-bold');
 	if ('underline' in attrs) classes.push('underline');
@@ -210,7 +262,7 @@ function markProseLinks(node: Nodes): void {
 // Render a top-level prose node to HTML. `delete` (gfm strikethrough) maps to
 // <s> so the existing .article-body :global(s) styling keeps working; the DLC
 // `:t` / `:link` text directives expand to spans / anchors.
-function proseHtml(node: RootContent, newTabNote: string): string {
+function proseHtml(node: RootContent, newTabNote: string, source: string): string {
 	markProseLinks(node);
 	const hast = toHast(node, {
 		handlers: {
@@ -356,7 +408,7 @@ function proseHtml(node: RootContent, newTabNote: string): string {
 				return {
 					type: 'element',
 					tagName: 'span',
-					properties: { className: styleClasses(attrs) },
+					properties: { className: styleClasses(attrs, source) },
 					children,
 				};
 			}) satisfies Handler,
@@ -1112,7 +1164,7 @@ export async function compile(
 		}
 
 		numberNotes(node, notes, sourceFile ?? url);
-		blocks.push({ type: 'prose', html: proseHtml(node, newTabNote) });
+		blocks.push({ type: 'prose', html: proseHtml(node, newTabNote, sourceFile ?? url) });
 		md.push(proseMarkdown(node));
 		const plain = mdastToString(node).trim();
 		if (plain) text.push(plain);
@@ -1154,7 +1206,7 @@ export async function compile(
 // Split a paragraph into inline segments at `:link` boundaries: text runs (incl.
 // `:t` styling) become dead HTML, each `:link` a live segment the route renders
 // with its icon. Keeps the {@html} surface minimal, mirroring article blocks.
-function inlineSegments(node: Paragraph, newTabNote: string): InlineSegment[] {
+function inlineSegments(node: Paragraph, newTabNote: string, source: string): InlineSegment[] {
 	const segments: InlineSegment[] = [];
 	let run: string[] = [];
 	const flush = () => {
@@ -1186,7 +1238,7 @@ function inlineSegments(node: Paragraph, newTabNote: string): InlineSegment[] {
 				...(width ? { width } : {}),
 			});
 		} else {
-			run.push(proseHtml(child as RootContent, newTabNote));
+			run.push(proseHtml(child as RootContent, newTabNote, source));
 		}
 	}
 	flush();
@@ -1215,8 +1267,8 @@ export function compilePage(
 		bodyNodes.push(node);
 		blocks.push(
 			node.type === 'paragraph'
-				? { type: 'p', segments: inlineSegments(node, newTabNote) }
-				: { type: 'html', html: proseHtml(node, newTabNote) },
+				? { type: 'p', segments: inlineSegments(node, newTabNote, sourceFile) }
+				: { type: 'html', html: proseHtml(node, newTabNote, sourceFile) },
 		);
 	}
 
