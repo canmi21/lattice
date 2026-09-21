@@ -152,10 +152,11 @@ export const surfaces = stylex.create({
 	 */
 	focusRingHost: {
 		// Read through `--focus-ring-suppress` rather than stated outright. A known pointer takes
-		// the ring away from a lower layer than this one, so it cannot win the property; it writes
-		// that name instead, which nothing else writes and no cascade decides. `none` is not a
-		// width, so the child's `outline-width` is invalid at computed-value time and falls back to
-		// its initial `medium` -- the reset `outline: none` performs. See spec/styling/focus.md.
+		// the ring away on the focused element, and the ring being suppressed here is drawn on a
+		// child of it, which no selector in that rule reaches -- so it writes that name instead,
+		// which nothing else writes and no cascade decides. `none` is not a width, so the child's
+		// `outline-width` is invalid at computed-value time and falls back to its initial `medium`
+		// -- the reset `outline: none` performs. See spec/styling/focus.md.
 		'--focus-ring-style': { default: null, ':focus-visible': 'var(--focus-ring-suppress, solid)' },
 		'--focus-ring-width': {
 			default: null,

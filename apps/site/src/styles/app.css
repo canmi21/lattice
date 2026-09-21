@@ -1,3 +1,14 @@
+/* Where each layer resolves, declared before anything opens one, because a layer takes its
+   position from where its name is first seen. Tailwind's five and StyleX's seven are repeated
+   rather than claimed -- naming a layer again moves nothing, and listing them is the only way to
+   put a name after them: StyleX appends its sheet after every stylesheet this file can import, so
+   a layer declared last in the built output cannot be declared in the built output at all. That
+   last name is `overrides`, the one position the layers did not have: above every StyleX layer
+   and below the escape hatch, which is unlayered and beats all of them. A StyleX layer missing
+   from this list would be declared after `overrides` and would outrank it, which is what
+   apps/site/scripts/css-layers.ts fails on. See spec/architecture/css/layers.md, "A new layer has
+   to buy a new position in the cascade". */
+@layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
 @import '@canmi/tokens/colors.css';
 @import '@canmi/tokens/player.css';

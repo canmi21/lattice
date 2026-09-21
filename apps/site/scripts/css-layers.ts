@@ -1,9 +1,14 @@
 /**
- * Hold the order of the three layers that write CSS for this site.
+ * Hold the order of the layers that write CSS for this site.
  *
  * Why this has to be measured rather than promised, and why it asserts relative order never
  * layer names -- see spec/architecture/css/layers.md, "The precedence is measured, and it is not
  * promised". Reads the built stylesheets, so it runs after a production build.
+ *
+ * `OVERRIDES` is the exception to "never layer names" and is named for the same reason
+ * `utilities` is: it is this repository's own, a rename should stop somebody, and it is the one
+ * position nothing else holds. See spec/architecture/css/layers.md, "A new layer has to buy a new
+ * position in the cascade".
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
@@ -17,6 +22,8 @@ const SRC = join(SITE, 'src');
 
 /** Tailwind's own layer for the utilities a class attribute names. */
 const TAILWIND_UTILITIES = 'utilities';
+/** This repository's own layer, for a recipe that has to outrank every StyleX layer. */
+const OVERRIDES = 'overrides';
 /** A StyleX atomic class. Its compiler emits `x` followed by a base-36 hash. */
 const STYLEX_CLASS = /\.x[a-z0-9]{6,}\b/;
 /** Svelte's scoping suffix, which it appends to every selector in a component's block. */
@@ -160,6 +167,7 @@ function main(): number {
 	const failures: string[] = [];
 	let sawStylex = false;
 	let sawTailwind = false;
+	let sawOverrides = false;
 
 	for (const path of assets) {
 		const name = path.slice(CLIENT.length + 1);
@@ -180,6 +188,36 @@ function main(): number {
 					failures.push(
 						`${name}: StyleX layer '${layer}' is declared before Tailwind's ` +
 							`'${TAILWIND_UTILITIES}', so a utility now wins over the visual layer`,
+					);
+				}
+			}
+		}
+
+		// And `overrides` has to outrank the visual layer, which is the whole of what it is for.
+		// Asserted in the stylesheet that carries StyleX, because that is the pair being ordered;
+		// a route sheet carrying neither says nothing about it.
+		const overrides = order.indexOf(OVERRIDES);
+		if (stylex.length > 0) {
+			if (overrides === -1) {
+				failures.push(
+					`${name}: no '${OVERRIDES}' layer, so the position above every StyleX layer is ` +
+						`gone. app.css declares the order; utilities.css writes the rules.`,
+				);
+			} else {
+				sawOverrides = true;
+				for (const layer of stylex) {
+					if (order.indexOf(layer) > overrides) {
+						failures.push(
+							`${name}: StyleX layer '${layer}' is declared after '${OVERRIDES}' and now ` +
+								`outranks it. Name '${layer}' in the '@layer' statement in app.css, ahead ` +
+								`of '${OVERRIDES}'.`,
+						);
+					}
+				}
+				if ((selectors.get(OVERRIDES) ?? []).length === 0) {
+					failures.push(
+						`${name}: the '${OVERRIDES}' layer is declared and empty. A position nothing ` +
+							`writes into is a position nothing holds.`,
 					);
 				}
 			}
@@ -210,6 +248,12 @@ function main(): number {
 				'plugin is not reaching the build -- check the plugin order in vite.config.ts.',
 		);
 	}
+	if (sawStylex && !sawOverrides) {
+		failures.push(
+			`no stylesheet carrying StyleX also declares '${OVERRIDES}'. The '@layer' statement ` +
+				'at the top of app.css is what puts it there, and it did not reach the build.',
+		);
+	}
 
 	if (failures.length > 0) {
 		for (const line of failures) console.error(line);
@@ -219,7 +263,7 @@ function main(): number {
 		console.log('layer order holds; the visual layer is not in use yet, so nothing asserts it');
 		return 0;
 	}
-	console.log('layer order holds: scoped over StyleX over Tailwind');
+	console.log(`layer order holds: scoped over ${OVERRIDES} over StyleX over Tailwind`);
 	return 0;
 }
 
