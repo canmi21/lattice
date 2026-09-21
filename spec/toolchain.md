@@ -4,6 +4,11 @@ The rules that follow the author rather than the project -- shell, secrets, vers
 control, tool versions, dependency policy, default stacks -- are the meta repository's.
 What is here is what this repository alone decides.
 
+One of those is worth naming here rather than leaving to be found, because it is reached for
+before anybody goes looking: deletion is `trash` and never `rm`, directories included. The
+workspace's `toolchain.md` gives it under "An agent deletes with `trash`, never with `rm`",
+with the reason and the cost.
+
 ### Tokens are scoped to one bucket
 
 An R2 API token is created for a single bucket, not for the account. The sync task runs
