@@ -115,6 +115,25 @@ nowhere in the vocabulary to be overridden from, and in `utilities` it would bea
 exists to yield to. `base` and `components` are that position, and a declaration written to lose
 goes into one of them.
 
+### A frame declaration the markup cannot show stays in a frame stylesheet
+
+The lower layers hold a second kind of declaration, and this one is not about the cascade at all.
+**A value the markup cannot show is one the markup should not carry.** The frame's argument is that
+a one-off says itself on the element a reader is already looking at -- true of a `flex` and a `gap`,
+false of a `clamp()` over two custom properties or of four `:lang()` variants, which written as
+arbitrary variants become a string the reader has to decompile before it says anything. Sent to the
+markup such a declaration loses the one thing the move was for, so it stays in a frame stylesheet.
+
+**It is in the frame either way.** `@layer components` is a frame position rather than an interim
+one, so moving a declaration out of it and into the markup changes which frame layer it sits in and
+does not move it into the frame. What decides is the value's own shape, not how many places the
+class is applied: `.article-column`'s `padding-top` is a three-term `clamp()`, `.article-rail` reads
+`--rail-*` values computed from each other and takes its `display` from a `@media`, and the
+`:lang()` prose rules on `:is(.article-content, .article-summary)` are four language variants plus a
+width query. All three stay. `.meta-language` is a single declaration that would show itself, and it
+stays because the `@media` that draws the rail is the same query that moves it -- one number, one
+block.
+
 ### An escape hatch lives with the element it starts from
 
 A declaration in the escape hatch belongs to **the component that renders the root of the subtree
@@ -384,8 +403,9 @@ something the markup cannot show, which is what a colour, a type step or a radiu
 **Reading a declaration in place is a benefit of the frame where it applies, and it is not the test
 for belonging to it.** The three questions send things to the frame that no amount of reading in
 place explains. `.article-content`'s per-language prose policy is a lookup into
-[styling/prose.md](../../styling/prose.md) -- `[&:lang(ko)]:[word-break:keep-all]` read in place
-tells a reader nothing, and the comment above it is a pointer to a document. `.article-column`'s
+[styling/prose.md](../../styling/prose.md) -- written in the markup as
+`[&:lang(ko)]:[word-break:keep-all]` it would tell a reader nothing, and the comment above it is a
+pointer to a document. `.article-column`'s
 `padding-top: clamp(...)` is a lookup into [styling/rail.md](../../styling/rail.md) at a single
 site, where no threshold is involved at all. Both are the frame and both answer correctly, because
 neither of the other two layers can hold them. **The frame is the residual layer**: a declaration
@@ -393,7 +413,9 @@ is there when no reachability problem sends it to the escape hatch and no name s
 vocabulary, and the paragraph above describes the common case rather than the criterion.
 
 This makes the document honest about the two dispositions; it does not defend how either is
-written. `.article-content` is still one policy spelled twice in arbitrary variants at two sites.
+written. `.article-content` was one policy spelled twice in arbitrary variants at two sites, and is
+now one `:is(.article-content, .article-summary)` group in the frame stylesheet, which is the
+section above answering rather than this paragraph.
 **Where a declaration goes and where it belongs are different questions**, and only the first is
 this file's: the three questions answer it, and nothing here answers the second. Lowering the
 three-component threshold to two was the alternative and it is refused, because it swaps one count
@@ -481,7 +503,8 @@ That does not give the file back a position: a stylesheet carrying four vocabula
 carrier, and a file is not a layer. Which stylesheet carries them is not settled here.
 One-off classes
 applied in a single place -- `.article-rail`, `.article-column`, `.meta-language` -- are the
-frame, and go to the markup. The `.focus-ring` family, the `.focus-input` family and
+frame, and stay in the `@layer components` they are already written in, by "A frame declaration the
+markup cannot show stays in a frame stylesheet" above. The `.focus-ring` family, the `.focus-input` family and
 `.article-content` each have a section below, because the first disposition of each was wrong. The two `:root` blocks, about 3.3KB, are tokens and never
 were a layering question.
 
@@ -603,9 +626,10 @@ authors and already classes with `space-y-4` -- while `.article-summary` is a `<
 of each of those elements can write a class on it, so question one does not answer; two call
 sites is short of the three-component threshold, so question two does not either. Question three
 answers, and nothing above declares any of the seven on either element. The shape is unpleasant
--- six languages across three `:lang()` blocks and a width query, written as arbitrary variants
-at two sites -- and
-unpleasant is not an answer the three questions take.
+-- six languages across three `:lang()` blocks and a width query, over two class names -- and
+unpleasant is not an answer the three questions take. That shape is also what keeps the group in
+the frame stylesheet rather than sending it to the markup, by "A frame declaration the markup
+cannot show stays in a frame stylesheet" above.
 
 The opening no longer cites `.article-content` as question one's worked example. It does not
 survive this section: both elements carry a class, so the observable test answers the way this
