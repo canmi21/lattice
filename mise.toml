@@ -5,24 +5,18 @@
 CMS_PORT = "26521"
 
 # Credentials, decrypted by mise on entering the directory. The file is committed encrypted;
-# only the age private key opens it. See spec/toolchain.md for the key setup and for why this
-# is JSON rather than a dotenv.
+# only the age private key opens it -- see spec/toolchain.md, "Secrets", for the key setup and
+# for why this is JSON rather than a dotenv.
 _.file = "secrets.json"
 
-# Source maps are uploaded to Sentry by a production build, and the credential for it sits in
-# the file above -- decrypted on every machine that has the age key, which means a local build
-# was publishing maps for a worker nobody deploys.
-#
-# This is the switch that stops it, and it lives here rather than in a dotenv because CI does
-# not read mise.toml. Present on every machine holding the repository, absent from every build
-# that ships: neither side configures anything. `SENTRY_SKIP_UPLOAD= pnpm run build` uploads
-# once anyway. See apps/site/vite.config.ts.
+# A local build was publishing source maps for a worker nobody deploys: the Sentry credential
+# is decrypted on every machine with the age key. Here rather than in a dotenv because CI does
+# not read mise.toml. `SENTRY_SKIP_UPLOAD= pnpm run build` uploads once anyway.
 SENTRY_SKIP_UPLOAD = "1"
 
-# oxfmt lives in package.json rather than [tools] below: its svelte option resolves
-# `svelte/compiler` through node's module graph, which a mise-installed binary can never
-# reach. This keeps `oxfmt` and everything else pnpm carries invocable from the shell and
-# from `jj fix`. See spec/toolchain.md.
+# oxfmt lives in package.json rather than [tools]: its svelte option resolves `svelte/compiler`
+# through node's module graph, which a mise-installed binary can never reach. This keeps what
+# pnpm carries invocable from the shell and from `jj fix`. See spec/toolchain.md.
 _.path = ["{{config_root}}/node_modules/.bin"]
 
 # rclone is configured entirely through the environment, so there is no rclone.conf holding a
@@ -32,11 +26,9 @@ RCLONE_CONFIG_R2_TYPE = "s3"
 RCLONE_CONFIG_R2_PROVIDER = "Cloudflare"
 RCLONE_CONFIG_R2_REGION = "auto"
 
-# One remote per bucket, because there are two: the CDN reads content-addressed bytes and the
-# API reads records, and neither holds a credential for the other's. `mise run publish` fails
-# closed if either is unset rather than syncing half of a publication.
-#
-# These name the destination only. Credentials live in rclone's own config, never here.
+# One remote per bucket, because there are two and neither holds a credential for the other's.
+# `mise run publish` fails closed if either is unset rather than syncing half a publication.
+# These name the destination only; credentials live in rclone's own config, never here.
 R2_OBJECTS_REMOTE = "r2:objects"
 R2_METADATA_REMOTE = "r2:metadata"
 
@@ -80,14 +72,9 @@ run = "node apps/site/scripts/css-budget.ts"
 description = "Lint the workspace"
 run = "oxlint ."
 
-# The CMS window's frontend, which the Tauri crate needs to *compile*, not to run:
-# `tauri::generate_context!` reads `frontendDist` at macro expansion and panics when the
-# directory is absent. So both Rust tasks below depend on it, and neither is a Rust task in the
-# sense of only needing cargo.
-#
-# Nothing rebuilt this before, which `mise run clean` made visible: clean removes build output
-# and can write it again, exactly as it promises, and then `test-rust` failed with a proc macro
-# panic naming a path rather than a missing step. The gap was in the graph, not in clean.
+# The CMS window's frontend, which the Tauri crate needs to *compile*: `generate_context!` reads
+# `frontendDist` at macro expansion and panics when the directory is absent. Both Rust tasks
+# below depend on it, and `mise run clean` is what made the missing step visible.
 [tasks.build-cms]
 description = "Build the CMS window's frontend, which the Tauri crate reads at compile time"
 dir = "apps/cms"
@@ -114,9 +101,9 @@ run = "pnpm exec wrangler login"
 [tasks.deploy-site]
 description = "Build and deploy the site worker"
 dir = "apps/site"
-# Asked before the build, not after: a worker that reads a generation the corpus has not got
-# yet is the failure this exists to name, and naming it once it is live is too late to be a
-# warning. It never refuses. See spec/architecture/artifacts.md.
+# Asked before the build, not after: a worker that reads a generation the corpus has not got yet
+# is the failure this exists to name, and naming it live is too late. It never refuses. See
+# spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
 depends = ["generation"]
 # Two steps because the adapter writes the worker that wrangler then uploads, and the build is
 # also where source maps go to Sentry. Cloudflare will run the same two commands once the repo
@@ -145,16 +132,14 @@ run = 'pnpm exec wrangler deploy --env=""'
 [tasks.deploy-cdn]
 description = "Deploy the CDN worker"
 dir = "apps/cdn"
-# `--env=""` names the top-level environment explicitly. Defining any environment at all makes
-# wrangler refuse to guess, and the one it would be guessing between here is production and
-# the dev config that mounts the objects tree as assets -- picking wrong would upload every file
-# it alongside the worker.
+# `--env=""` names the top-level environment explicitly. Defining any environment makes wrangler
+# refuse to guess, and here it would be guessing between production and the dev config that
+# mounts the objects tree as assets -- picking wrong uploads every one of those files.
 run = 'pnpm exec wrangler deploy --env=""'
 
 # Each dev server binds the number pinned in its own wrangler.jsonc, and the site's Vite config
-# reads the same number from libs/urls. One checkout runs one set: the slot arithmetic that once
-# shifted the whole range for a second is gone, and the collision is the mutex. See
-# spec/toolchain.md.
+# reads the same number from libs/urls. One checkout runs one set, so the collision is the
+# mutex and the slot arithmetic is gone. See spec/toolchain.md, "Dev ports are pinned".
 [tasks.dev-api]
 description = "Run the API worker"
 dir = "apps/api"
@@ -192,13 +177,9 @@ description = "Regenerate the Rust mirror of the URL map from libs/urls"
 # so skipping this step means the mirror changes shape after it is generated.
 run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
 
-# What `mise run publish lattice` runs, and the one verb the workspace refuses to let mean
-# everything -- see spec/architecture/repos.md there. For this project publishing is the corpus
-# rather than a release: compile every view into `data/bucket`, then mirror.
-#
-# Dry by default because `sync` is, and the two halves must not disagree about that. `--live`
-# passes through to the mirror; the compile writes only into `data/` either way and is safe to
-# repeat, since an object whose bytes are unchanged has the same name and is skipped.
+# What `mise run publish lattice` runs. For this project publishing is the corpus rather than a
+# release: compile every view into `data/bucket`, then mirror. Dry by default because `sync` is,
+# and `--live` passes through. See spec/architecture/repos.md.
 [tasks.publish]
 description = "Compile the corpus into publishable objects and mirror them: `publish lattice [--live]`"
 # `cms segments` first, because the layout it writes is no longer in git -- it rebuilds from the
@@ -250,12 +231,9 @@ rclone = "1"
 
 [tasks.gc]
 description = "Compact the object stores and list published assets no article references"
-# Run when you want to, not on every commit: these walk the whole repository, and paying that
-# on each of a dozen commits an hour buys nothing. git also does this itself via gc.auto.
-#
-# The asset sweep only reports here. Compacting an object store loses nothing, while deleting
-# a published variant changes what R2 serves on the next sync, so the two do not deserve the
-# same trigger even when they are convenient to run together.
+# Run when you want to, not on every commit: these walk the whole repository. The asset sweep
+# only reports here -- compacting an object store loses nothing, while deleting a published
+# variant changes what R2 serves on the next sync.
 run = ["jj util gc", "git gc", "cargo run -q -p cms -- gc"]
 
 [tasks.gc-assets]
