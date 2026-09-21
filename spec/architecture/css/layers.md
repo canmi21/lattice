@@ -49,16 +49,9 @@ wrong answer stand as well, because what could be written is settled by whoever 
 it. Reading the class off the element settles both: the wrapper carries one, the `<p>` does not,
 and neither fact is arguable.
 
-### The compiler writes a class only where the element's styling is a recipe
-
-Question one is checkable because the compiler's output is checkable, and that holds only while
-the compiler is disciplined about what it classes. It can class anything:
-[compile.ts](../../../apps/site/src/lib/content/build/compile.ts) puts `focus-link`,
-`spring-underline` and `article-link` on every prose link, and two frozen tables turn a `:t` token
-into a colour or a font class. So the discipline is written as a rule rather than left as a habit
--- **the compiler writes a class on an element where that element's styling belongs to a named
-recipe, and nowhere else.** Without it the boundary moves the first time classing something is
-convenient, and question one is back to asking whether somebody felt like it.
+Question one is checkable only while the compiler is disciplined about what it classes, and that
+rule is [authoring.md](authoring.md)'s, "The compiler writes a class only where the element's
+styling is a recipe" -- what source may emit belongs to that file.
 
 ### A new layer has to buy a new position in the cascade
 
@@ -75,6 +68,31 @@ believe there is a distinction to learn.
 What the proposal was right about is that such declarations were homeless. They have a home: the
 escape hatch, in the component rendering the root of the content they style. That is the answer
 question one now gives.
+
+### A layer is not a mechanism
+
+The vocabulary is StyleX, and that is an implementation rather than a definition. **A layer may
+have more than one implementation mechanism; the mechanism is chosen by the consumer, and
+membership does not change with it.** A named, reused recipe past the three-component threshold is
+the vocabulary whether it is written as a `stylex.create` key or by hand in a shared stylesheet.
+
+What forces the distinction is a consumer that cannot reach StyleX. The corpus is compiled by
+[compile.ts](../../../apps/site/src/lib/content/build/compile.ts), which runs from
+`node apps/site/scripts/publish.ts` outside the Vite graph, so the plugin never transforms it and
+it writes literal class names only. And a StyleX class name is a content hash of the property and
+its value, so changing a value moves the name. The CSS ships with the site build and the HTML
+carrying the names ships with the corpus publish, on its own schedule, with no moment at which
+both are released together -- so those names are an interface between two artifacts rather than an
+implementation detail, and an interface cannot be a hash. It has to be stable and hand-written.
+
+**A hand-written recipe is admitted to the vocabulary on the named-and-reused test plus one of two
+conditions**: either (a) at least one consumer cannot reach StyleX -- today that is the corpus
+compiler and nothing else -- or (b) the recipe is relational and neither `stylex.when.*` nor the
+custom-property route can express it.
+
+**(b) is narrower than it looks.** `when.ancestor` and `when.descendant` do exist in StyleX 0.19
+and compile to real selectors, at the cost of a marker class on the other end. So "StyleX cannot
+express a cross-element selector" is false, and it is not a route into (b).
 
 ### The frame is a stack, and a declaration written to lose goes low in it
 
@@ -416,7 +434,15 @@ layer that already exists, so the file has nothing left to be.**
 
 The file holds four unrelated things. Named recipes past the three-component threshold -- the
 `.focus-link` family, `.spring-underline`, `.article-link`, `.selectable`, `.jump-target` -- are
-the vocabulary, and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). One-off classes
+the vocabulary, and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). **Four of those
+names do not go, and the reason is the interface rather than convenience**: `focus-link`,
+`spring-underline`, `article-link` and `jump-target` are written onto compiled prose by
+[compile.ts](../../../apps/site/src/lib/content/build/compile.ts), which the corpus publish runs
+outside the Vite graph and on its own schedule. They stay hand-written recipes in a shared
+stylesheet and they are still the vocabulary -- "A layer is not a mechanism" above, condition (a).
+That does not give the file back a position: a stylesheet carrying four vocabulary recipes is a
+carrier, and a file is not a layer. Which stylesheet carries them is not settled here.
+One-off classes
 applied in a single place -- `.article-rail`, `.article-column`, `.meta-language` -- are the
 frame, and go to the markup. The `.focus-ring` family, the `.focus-input` family and
 `.article-content` each have a section below, because the first disposition of each was wrong. The two `:root` blocks, about 3.3KB, are tokens and never

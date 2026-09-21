@@ -118,6 +118,30 @@ the one lucky name is the one you check.
 input the table does not name fails where the article is compiled rather than producing a class
 that does nothing.
 
+### The compiler writes a class only where the element's styling is a recipe
+
+The rule above says what a class name may be; this one says when one may be written at all. The
+compiler can class anything: [compile.ts](../../../apps/site/src/lib/content/build/compile.ts)
+puts `focus-link`, `spring-underline` and `article-link` on every prose link, and two frozen
+tables turn a `:t` token into a colour or a font class. So the discipline is written as a rule
+rather than left as a habit -- **the compiler writes a class on an element where that element's
+styling belongs to a named recipe, and nowhere else.** Without it, question one of
+[layers.md](layers.md) is back to asking whether somebody felt like classing something, because
+the boundary moves the first time it is convenient.
+
+**A class the content author asked for is allowed.** The `:t` directive path -- `styleClasses`,
+`COLOR_CLASSES`, `FONT_CLASSES` -- resolves a token the author wrote in the article into a
+utility, which is the compiler standing in for the markup author rather than inventing anything.
+The separator is observable and is not intent: **did the class come from something the author
+wrote in the article, or did the compiler invent it?** A `:t` attribute is in the source file;
+`spoiler` and `note-marker` are not.
+
+**A class that carries no styling is not a styling class.** `note-words` exists for a
+`classList.contains` in
+[footnotes.svelte](../../../apps/site/src/lib/article/footnotes.svelte) and is a script hook. The
+exemption stays observable rather than asserted: grep the built stylesheets for the name and find
+nothing, which is what `note-words` does today.
+
 ## An unnamed ramp value is marked, so it can be counted
 
 A type ramp property written with a literal is vocabulary that has not been named --
