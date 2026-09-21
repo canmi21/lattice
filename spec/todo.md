@@ -16,6 +16,23 @@ The CSS migration is where the file started and not what it is limited to. A fin
 found in passing that is a defect in where a decision lives rather than in what it decided, and
 those are not a property of stylesheets. The rules above hold whatever the language.
 
+## `.gitattributes` is a list nothing keeps complete
+
+Two paths are marked `linguist-generated=true` so a forge reads this repository as what somebody
+wrote rather than as what its tools emit -- [architecture/workspace.md](architecture/workspace.md),
+"Machine output is marked, so the language statistics describe the repository". A third path that
+becomes machine output and is not added goes on being counted, and nothing fails.
+
+The evidence that this drifts is the file itself. It carried ten lines of reasoning citing
+`spec/architecture.md`, a file that does not exist, and the citation survived because
+`mise run refs` reads code under `apps/` and `libs/` and the documents, and `.gitattributes` is
+neither.
+
+Deciding it costs a definition. A gate has to answer "is this machine output" without a person,
+and the only honest proxy is the set of paths this repository's own generators write -- which is
+a second list, kept by hand, with the same failure. Worth doing only alongside a reason to
+enumerate those outputs anyway.
+
 ## The named layer in CSS is the visual layer, written before there was one
 
 `utilities.css` and [`libs/primitives/src/style.css`](../libs/primitives/src/style.css) hold a

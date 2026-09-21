@@ -54,6 +54,31 @@ Dating such a number would excuse the disagreement it exists to catch.
 The test is what keeps the number true. If the only thing that would is somebody noticing, date
 it.
 
+## Machine output is marked, so the language statistics describe the repository
+
+A forge reads the tree and says what it is written in. Two paths here would answer for their
+generators instead, and both are marked `linguist-generated=true` in `.gitattributes`.
+
+`libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
+hundred lines of stylesheet anybody wrote. Counted, the figure describes the subsetter.
+`data/metadata.json` is written by `cms image` and is tracked only because a build resolves
+every image from it with no byte of `data/` present -- a record, not source. See
+[data.md](data.md), "What stays in git, and until when".
+
+**A glob for the fonts, not a list of families.** Adding a font is three steps and coming back
+to this file is not one anybody would remember. Nothing in that directory is hand-authored,
+whether `mise run fonts` produced it or it arrived in a prebuilt web package, so the glob is the
+honest shape and a list would be a maintenance obligation bought for nothing.
+
+**Every other stylesheet stays counted.** `libs/tokens/src/colors.css`, `apps/site/src/styles/`
+and the rest are decisions somebody made and should weigh what they weigh. The mark is for
+output, not for files that are merely long.
+
+Nothing checks this. A path that becomes machine output and is not added here goes on being
+counted, and the statistics drift without anything failing -- which is the same shape as every
+other rule in this repository that a person has to remember, and is listed with them in
+[todo.md](../todo.md) if it is ever worth a gate.
+
 ## Layout
 
 ```
