@@ -34,18 +34,62 @@ disposable. It never has the collection, and it never needs a full copy of anyth
 
 ## The model these milestones assume
 
-| concept     | what it identifies                                                       | lifecycle                                                                              |
-| ----------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| **cid**     | a run of bytes                                                           | decided by the bytes; held by a reference count, collectable 24h after it reaches zero |
-| **rid**     | a thing, as an overlay that resolves to whichever cid currently means it | granted; may be created empty and filled in later; deleting one changes no cid         |
-| **article** | one rid, its content in each language, and its metadata                  | content and metadata each version independently; the rid does not move                 |
+### Three things, and what each one is allowed to do
 
-Six consequences, each of which some milestone below exists to deliver. They are stated here rather
-than in the rows because every row assumes all six.
+| concept  | what it identifies                                                       | mutable?                                                             |
+| -------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| **rid**  | a thing, as an overlay resolving to whichever content currently means it | yes, in what it points at; the id itself never moves                 |
+| **cid**  | a run of bytes                                                           | **never.** Bytes are not edited; different bytes are a different cid |
+| metadata | what is known about one of the two above                                 | yes, and it is the only mutable half of the pair                     |
+
+**A resource may hold several contents at once**, so this is not a chain of replacements: an icon
+is a light file and a dark one, a photograph can carry the scan it was imported as and the better
+scan that arrived later. Editing a picture, when there is an editor to do it with, produces new
+bytes and therefore a new cid; what changes is which content the rid resolves to.
+
+### Metadata is layered by one question
+
+**Would this still be true of different bytes of the same thing?**
+
+| answer | it belongs to | examples                                                               |
+| ------ | ------------- | ---------------------------------------------------------------------- |
+| yes    | the **rid**   | description and alt text, category, tags, source and credit, licence   |
+| no     | the **cid**   | dimensions, thumbhash, colour space, camera data, the derived variants |
+
+The split is not tidiness; it is what makes replacing bytes free. `media.yaml` holds 42 paid
+descriptions in nine languages today, keyed by an original's cid, so a better scan of any of them
+costs either a careful migration or the money a second time. Held against the rid, a better scan
+costs nothing, because the rid did not change -- which is the argument
+[architecture/resource.md](../architecture/resource.md) already made when it granted ids in the
+first place. What stays on the cid is what a new original invalidates anyway and what any run can
+recompute.
+
+Both layers are structured the way the type chain already is: a segment declares that its layer is
+present and parseable, and a consumer binds to the shallowest segment that answers its question.
+
+### Deleting removes one thing, and never what it pointed at
+
+**Nothing cascades.** Deleting a rid deletes that rid. The contents it resolved to are untouched,
+and so is everything else naming them.
+
+What decides whether an object may go is a **reference table, not a counter**: one row per
+reference, so "what still names this" is a query with an answer somebody can read rather than an
+integer somebody maintained. A hand-kept count drifts by exactly one on any path that forgets it,
+and the drift is permanent and silent in both directions -- too high leaks bytes forever, too low
+deletes something that is still on a page. The table also makes a dry run explanatory: it says
+which article, revision or record is holding the thing alive.
+
+References resolve in two hops -- an article names a rid, the rid resolves to a cid -- and the row
+is recorded on the second hop, so repointing a rid moves the reference with it.
+
+**Unreferenced is not deleted.** An object nothing names becomes collectable 24 hours later, and
+collection happens only when a sweep is run: a scheduled task in the cloud, and by hand locally.
+Nothing disappears as a side effect of an edit.
+
+### Five consequences for an article
 
 **A date is derived from a revision, not typed by a person.** Created is the first revision and
-last-modified is the latest. An article's frontmatter states them today because there was nowhere
-else to put them, which is the same reason it states everything else it states.
+last-modified is the latest.
 
 **An unpublished article is one with no publication date**, rather than one carrying a flag. If
 that holds, `draft: true` has nothing left to say; whether it goes is an open question below,
@@ -60,10 +104,6 @@ the rest of the time.
 attributes of the article, and the only reason they live in the source is that no record holds
 them. The record that holds them also names the file the text is in, so it is the binding between
 a rid and its source as well -- one answer to two questions.
-
-**A reference count replaces the unnamed sweep.** An object is reachable while something names it
-and collectable 24 hours after nothing does. Counting makes deleting a rid a safe, ordinary
-operation instead of a question about what else might be pointing at the same bytes.
 
 **A rid is one space with one resolver.** An article, a picture and later an album are all granted
 ids from the same five characters of base36, and the `type` chain says which kind a given one is.
@@ -101,47 +141,64 @@ model CLI, or handle a 200MB original -- so the only question was where the meta
 and they go where the authored data's single writer is. What the two share is libraries, not a
 deployment.
 
-## Two facts this plan starts from
+## What the tree actually holds today
 
-**The rid mechanism is written and has never been applied.** `resource.rs` allocates, checks a
-register and refuses ugly stems; `cms migrate` grants ids, rewrites article references and moves
-published records onto their new keys, dry by default. And `data/record/media.yaml` still holds 46
-records keyed by a 32-character cid and not one rid. The catalogue in resource.md describes the
-corpus after that pass, which is why its counts do not match the tree.
+Measured, because the surrounding documents describe a target and read as though it had been
+reached.
 
-**Miniflare's state directory is not a home for authored data.** `mise run clean` already protects
-it -- the workspace's task calls `.wrangler/state` "data somebody entered, not output somebody
-built" -- but the path is version-scoped, `wrangler dev` can be pointed elsewhere, and nothing
-backs it up. It stays what it is: the development copy of reader state. The authored database is a
-plain SQLite file inside the collection, and `local` is the only process that opens it for writing.
+**The ids were granted and the keying was not finished.** All 53 records in
+`data/record/metadata.json` carry a `resource` and a parsed `type` chain, and the rids are unique.
+But 45 of them are still filed under a 32-character cid while 8 icons are filed under their rid --
+two keying conventions in one map, which is what `alt.rs` already blames for a join that read a rid
+as a cid. `cms migrate` reports nothing to do, because every record does hold an id; the key was
+never its test.
+
+**No article is a resource yet.** The catalogue's media rows match the tree exactly -- 17
+`media.image`, 16 screenshots, 8 icons, 6 photographs, 3 frames, 3 clips -- and the three
+`document` rows describe nothing that exists.
+
+**Two curated records are being written outside git.** The commit that moved the records into one
+directory changed the doc comments in `media.rs` and `tags.rs` and not the code: `path_for` still
+returns `data/media.yaml` and `data/tags.yaml`, which `.gitignore` excludes. So `data/record/*`
+holds 46 records with 42 paid descriptions, last written on the 14th, while the files the commands
+actually read hold 38 records of newer categories and tags, no descriptions at all, and no history.
+Running `cms alt` against that file would buy all 42 descriptions a second time.
+
+**Re-keying `metadata.json` is deliberately not a milestone.** The site never reads its top-level
+key -- `readAssets` walks the map and indexes by the `resource` field inside each record -- and the
+file retires into the authored database anyway. Restyling a file on its way out buys nothing.
 
 ## A. The data model
 
 Everything else waits on this group. Each row is a change to what is stored, not to what anybody
 sees.
 
-| id  | milestone                   | what it is                                                                                     | after | horizon |
-| --- | --------------------------- | ---------------------------------------------------------------------------------------------- | ----- | ------- |
-| A0  | Media takes its ids         | `cms migrate`, reviewed dry and then applied: the corpus stops being keyed by cids             | --    | near    |
-| A1  | An article has a rid        | An article becomes a `document.post` resource, from the same space and the same register       | A0    | near    |
-| A3  | Revisions and history       | Every save writes an immutable revision; a head per article; dates derived from them           | A1    | near    |
-| A2  | Metadata leaves the text    | The authored database holds path, description, publication, last-modified and its lock         | A1 A3 | near    |
-| A4  | Reference counting, and 24h | Counts on cids; collection 24 hours after zero, replacing the two-pass unnamed sweep           | A2    | near    |
-| A6  | Path history, and redirects | A former path is kept, so a redirect is a fact in the record rather than something to remember | A2    | near    |
-| A5  | One rid over every language | The existing views and translations move under the article's own identity                      | A1 A2 | mid     |
-| A7  | Reader state keyed by rid   | Counters, subscriptions and later comments re-keyed once, by the fold rule in engagement.md    | A1    | mid     |
+| id  | milestone                         | what it is                                                                                                           | after | horizon |
+| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----- | ------- |
+| A0  | The curated records are salvaged  | One trustworthy `media.yaml` and `tags.yaml` out of the two divergent copies, and the path bug closed                | --    | near    |
+| A1  | The authored database exists      | Resources, contents, the two metadata layers and the reference table, under one Drizzle schema                       | --    | near    |
+| A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | near    |
+| A3  | An article is a resource          | `document.post`, granted from the same space and the same register                                                   | A1    | near    |
+| A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | near    |
+| A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near    |
+| A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | near    |
+| A7  | One rid over every language       | The existing views and translations move under the article's own identity                                            | A3 A5 | mid     |
+| A8  | Reader state keyed by rid         | Counters, subscriptions and later comments re-keyed once, by the fold rule in engagement.md                          | A3    | mid     |
 
-**A2 must not land before there is a surface that can edit what it moves.** The frontmatter is
-editable in any text editor; a row in SQLite is not. The moment the description and the path leave
-the source file, the only way to change them is a tool, so A2 ships with B4 or with a stopgap
-command that sets a field. This is the one place in this plan where the obvious order blocks the
-author.
+**A0 is a salvage, not a repair.** The file it fixes is retiring at A2, so nothing here is worth
+maintaining afterwards -- what matters is that the import has one input that has lost nothing. The
+newer copy holds five days of categories and tags; the committed one holds the 42 descriptions.
+Importing either one alone loses the other, and this is the only moment the choice exists.
 
-**A3 is near-term for the same reason.** A text file under git has a history whether or not
-anybody designed one; a database file has none. Revisions are the undo, and they have to exist
-before the thing they are undoing does.
+**A5 must not land before there is a surface that can edit what it moves.** The frontmatter is
+editable in any text editor; a row in SQLite is not. So A5 ships with B4, or with a stopgap command
+that sets a field. This is the one place in this plan where the obvious order blocks the author.
 
-A7 is deliberately not near-term. [engagement.md](../engagement.md) records what a re-key already
+**A4 is near-term for the same reason.** A text file under git has a history whether or not anybody
+designed one; a database file has none. Revisions are the undo, and they have to exist before the
+thing they are undoing does.
+
+A8 is deliberately not near-term. [engagement.md](../engagement.md) records what a re-key already
 cost once -- six stranded rows in the fifty-four minutes between a migration and the code that
 wanted it -- and the rule it produced is that such a migration folds rather than skips and runs
 twice. That is a piece of work with its own rehearsal, and it does not belong inside a week that is
@@ -156,12 +213,12 @@ what B3 would otherwise have to invent.
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------- | -------- | ------- |
 | B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | near    |
 | B2  | The desktop client is archived | Source moved under `archive/`, out of the Cargo workspace and out of `check`                      | B1       | near    |
-| B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A1 A3 B1 | near    |
-| B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A2 B3    | near    |
-| B5  | Images are managed             | Upload and replace: new bytes, the rid repointed, derivation triggered                            | A4 B3    | near    |
+| B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near    |
+| B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near    |
+| B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near    |
 | B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid     |
 | B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid     |
-| B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A7       | mid     |
+| B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid     |
 
 B1 is the decision that keeps the later ones cheap. The editor is a web client from its first day,
 talking to an HTTP API that happens to be on this machine -- so D4, which puts the same surface
@@ -179,14 +236,14 @@ construction rather than by care.
 | C1  | The collection leaves the repository   | It lives on its own, and `local` is the only process that may write it                    | B1    | mid     |
 | C0  | What cannot be recomputed is backed up | A real backup of the authored database, the id register and the paid outputs              | C1    | mid     |
 | C2  | Development gets copies                | Published objects read from the live CDN, reader state dumped once; no full copy, ever    | C1    | mid     |
-| C3  | The corpus leaves git                  | History and backup become the CMS's; cannot start before C0                               | A3 C0 | mid     |
+| C3  | The corpus leaves git                  | History and backup become the CMS's; cannot start before C0                               | A4 C0 | mid     |
 | C4  | A measuring step at publication        | A controlled headless browser answers what only a browser knows, and the answer is stored | B6    | mid     |
 
 **C0 is ordered before C3 and the order is the point.** Git is what currently backs up the things
-no run can reproduce: the id register, whose entries are identities other records point at, and
-`media.yaml`, whose 315KB are nine languages of description that were paid for once. Losing them
-is not a rebuild, it is a re-purchase or a permanent loss of identity. So the backup exists before
-the corpus stops being committed, not after.
+no run can reproduce: the id register, whose entries are identities other records point at, and the
+paid descriptions. Losing them is not a rebuild, it is a re-purchase or a permanent loss of
+identity. So the backup exists before the corpus stops being committed, not after. A0 is the
+evidence that this is not hypothetical -- five days of curation are already outside git today.
 
 C2 is why the collection growing to a terabyte is not a problem that has to be solved later.
 Published objects are immutable and already served, so development reads them where they are; the
@@ -217,7 +274,11 @@ Each of these blocks a specific milestone and is a decision rather than a discov
 
 **Whether `draft: true` survives as anything.** An empty publication date already says
 unpublished, but the flag is what the mirror and the sweep read today, so retiring it is a change
-to those as well. Blocks A2.
+to those as well. Blocks A5.
+
+**Which records the import takes, and which stay files.** `media.yaml` and `tags.yaml` are
+authored text and clearly move. `diagram.json`, `fonts.json` and `indexnow.json` are each a
+different mixture of authored and derived, and one of them may belong where it is. Blocks A2.
 
 **Where the collection lives, and whether its database is one file or several.** One file is one
 lock and one backup; several are a smaller blast radius and a harder join. Blocks C1.
