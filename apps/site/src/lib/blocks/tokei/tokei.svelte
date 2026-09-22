@@ -7,9 +7,9 @@
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
 	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
-	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo.md, "Tokei draws
+	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo/todo.md, "Tokei draws
 	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip
-	 * (spec/todo.md, "A shadow is one utility, two declarations and four variables the visual
+	 * (spec/todo/todo.md, "A shadow is one utility, two declarations and four variables the visual
 	 * layer cannot restate").
 	 */
 	const styles = stylex.create({
@@ -54,7 +54,7 @@
 		 *
 		 * One property transitions, so the four lists are single-item and `transition-behavior` is
 		 * left to the initial value the shorthand also set. The reduced-motion branch is
-		 * `transition: none` written out. See spec/todo.md, "A `transition` shorthand sets five
+		 * `transition: none` written out. See spec/todo/todo.md, "A `transition` shorthand sets five
 		 * lists and the migrated form writes three".
 		 */
 		summaryLink: {
@@ -630,7 +630,7 @@
 
 <style>
 	/* The chart's own palette rather than the site's, so it stays out of the visual layer. See
-	   spec/todo.md. */
+	   spec/todo/todo.md. */
 	.tile-name {
 		fill: white;
 	}

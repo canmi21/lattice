@@ -17,7 +17,7 @@
 		 * The floating card. Where it is and how wide stays in the markup, and so does
 		 * `shadow-sm`: Tailwind composes that property out of five registered variables and the
 		 * visual layer has no way to make an `@property` registration, so the utility and its
-		 * variable move together or not at all. See spec/todo.md.
+		 * variable move together or not at all. See spec/todo/todo.md.
 		 */
 		surface: {
 			borderRadius: radius.lg,
@@ -45,7 +45,7 @@
 			},
 			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
 			// Nothing here sets a gradient and they animate nothing, but the measure of sameness
-			// is the computed value and dropping them changes it. See spec/todo.md.
+			// is the computed value and dropping them changes it. See spec/todo/todo.md.
 			transitionProperty: transition.colors,
 			transitionDuration: '150ms',
 			transitionTimingFunction: easing.inOut,

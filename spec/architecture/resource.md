@@ -7,10 +7,10 @@ out of it, and the catalogue of what is a resource here.
 
 ## Two ids
 
-| | what it identifies | who decides it | where it appears |
-| --- | --- | --- | --- |
-| **content id**, `cid` | a run of bytes | the bytes | object keys, CDN addresses |
-| **resource id**, `rid` | a thing | we allocate it | article source, record keys |
+|                        | what it identifies | who decides it | where it appears            |
+| ---------------------- | ------------------ | -------------- | --------------------------- |
+| **content id**, `cid`  | a run of bytes     | the bytes      | object keys, CDN addresses  |
+| **resource id**, `rid` | a thing            | we allocate it | article source, record keys |
 
 **A cid is derived and a rid is granted.** Two files with the same bytes have one cid whether or
 not anybody meant them to; two pictures of the same subject have two rids whether or not the
@@ -35,8 +35,8 @@ the key and once in a `blake3` field holding the same value. Three things follow
   like a name.
 
 A rid fixes all three at once, and the structure needed no rearranging to accept it: the manifest
-was already a two-layer thing -- one entry, several stored variants -- and only the *source of the
-entry's key* changes.
+was already a two-layer thing -- one entry, several stored variants -- and only the _source of the
+entry's key_ changes.
 
 ## A rid is five characters of base36
 
@@ -165,13 +165,13 @@ Strict forward compatibility would be machinery bought for one window: both side
 pushed together, and the only skew is that the API's build may finish minutes before the site's.
 Minutes do not justify a compatibility contract. What they justify is not falling over.
 
-| the record has | a reader does |
-| --- | --- |
-| a field it does not know | ignores it |
-| lost a field it knew | proceeds without it |
-| a `type` segment it does not know | stops there, keeps what it parsed |
+| the record has                        | a reader does                             |
+| ------------------------------------- | ----------------------------------------- |
+| a field it does not know              | ignores it                                |
+| lost a field it knew                  | proceeds without it                       |
+| a `type` segment it does not know     | stops there, keeps what it parsed         |
 | a layer `version` above what it knows | treats that layer as unknown, stops there |
-| no segment the reader needed | **errors** |
+| no segment the reader needed          | **errors**                                |
 
 The last row is the one that is strict, and the difference is worth stating: the first four are "I
 do not know about this", which is survivable; the last is "this is not the thing you asked for",
@@ -186,16 +186,16 @@ for a thing, and a `302` to wherever that thing currently is. What it redirects 
 not inferred -- **`canonical` on the record, and a resource declaring none is a `404`.**
 
 Inferring would need a rule per type, and every one of them would be a judgement somebody
-disagrees with: which size is *the* picture, which rung is *the* clip, which tone is *the* icon.
+disagrees with: which size is _the_ picture, which rung is _the_ clip, which tone is _the_ icon.
 Declaring moves that decision to publication, where the answer is known, and leaves the reader a
 lookup.
 
 **The value is a scheme and never an address.**
 
-| written | expands to |
-| --- | --- |
+| written           | expands to                 |
+| ----------------- | -------------------------- |
 | `cid:{cid}.{ext}` | `{cdn}/object/{cid}.{ext}` |
-| `slug:{x}` | `{site}/{x}` |
+| `slug:{x}`        | `{site}/{x}`               |
 
 A URL here would put a hostname in every record, so moving a domain would mean rewriting all of
 them; a scheme is expanded by whoever answers, from the one place a hostname is declared.
@@ -219,11 +219,11 @@ occurred, so both tie-breaks exist only under test.
 A compiled article names resources and stops. It does not name bytes. Turning a rid into the
 files behind it happens later, twice, and the same answer serves both.
 
-| stage | what it may bake | what it must not |
-| --- | --- | --- |
-| compile | the article's own shape: markdown to components, a rid where a resource is named | anything derived from a resource's current content |
-| SSR | the record for every rid on the page, its placeholder inlined and its files named | a choice only the browser can make, such as which width to fetch |
-| CSR | the same record, asked for again after hydration | nothing it did not already ask for |
+| stage   | what it may bake                                                                  | what it must not                                                 |
+| ------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| compile | the article's own shape: markdown to components, a rid where a resource is named  | anything derived from a resource's current content               |
+| SSR     | the record for every rid on the page, its placeholder inlined and its files named | a choice only the browser can make, such as which width to fetch |
+| CSR     | the same record, asked for again after hydration                                  | nothing it did not already ask for                               |
 
 **The rule is one sentence: a stage bakes what it can determine and passes the rest on.** Compile
 time can determine what the article says, because the article is what it is reading. It cannot
@@ -299,10 +299,10 @@ list wrong about one of them.
 
 ## `source` and `origin` are different questions
 
-| | points at | answers |
-| --- | --- | --- |
-| `source` | a **resource**, by rid | where this came from, as a thing we also hold |
-| `origin` | anything that helps | what it was derived from, including bytes we do not hold |
+|          | points at              | answers                                                  |
+| -------- | ---------------------- | -------------------------------------------------------- |
+| `source` | a **resource**, by rid | where this came from, as a thing we also hold            |
+| `origin` | anything that helps    | what it was derived from, including bytes we do not hold |
 
 An image's `origin` is the original file: its cid, its mime, its size. The bytes are not published
 and may no longer exist anywhere; the cid is kept so that the next import of the same file is
@@ -321,18 +321,18 @@ its own visited set, because the graph has cycles by design.
 
 Nine leaf types, two branches. Counts are this corpus at the time of writing.
 
-| type | count | what it is |
-| --- | --- | --- |
-| `media.image.photo` | 6 | camera data present |
-| `media.image.screenshot` | 16 | extraction ran and found no camera |
-| `media.image` | 17 | extraction never ran; unclassified on purpose |
-| `media.image.frame` | 3 | a still cut from a clip; `source` is the clip |
-| `media.image.icon` | 8 | another site's mark, one resource per domain, light and dark |
-| `media.image.mark` | 1 | this site's own mark: one thing, six files |
-| `media.video.clip` | 3 | rungs and caption tracks |
-| `document.post` | 6 | source, nine locales, nine cards |
-| `document` | 1 | a standalone page: the same, with no tags and no dates |
-| `document.notice` | 1 | the attribution text, rewritten whenever dependencies move |
+| type                     | count | what it is                                                   |
+| ------------------------ | ----- | ------------------------------------------------------------ |
+| `media.image.photo`      | 6     | camera data present                                          |
+| `media.image.screenshot` | 16    | extraction ran and found no camera                           |
+| `media.image`            | 17    | extraction never ran; unclassified on purpose                |
+| `media.image.frame`      | 3     | a still cut from a clip; `source` is the clip                |
+| `media.image.icon`       | 8     | another site's mark, one resource per domain, light and dark |
+| `media.image.mark`       | 1     | this site's own mark: one thing, six files                   |
+| `media.video.clip`       | 3     | rungs and caption tracks                                     |
+| `document.post`          | 6     | source, nine locales, nine cards                             |
+| `document`               | 1     | a standalone page: the same, with no tags and no dates       |
+| `document.notice`        | 1     | the attribution text, rewritten whenever dependencies move   |
 
 **A classification that needs a rid cannot happen before rids exist.** A frame is a frame because
 its `source` names the clip it was cut from, and that is a rid -- so a pre-migration corpus has no

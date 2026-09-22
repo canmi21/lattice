@@ -77,7 +77,7 @@ the default is the first thing a reader sees on every document load and is drawn
 
 SvelteKit runs a universal `load` again in the browser as it hydrates. Left alone, the
 measurement would therefore arrive one frame after the server's default, and a first paint would
-*jump* instead of settling -- measured on the homepage: 32px to 26px in one step, two distinct
+_jump_ instead of settling -- measured on the homepage: 32px to 26px in one step, two distinct
 widths across 120 frames. `measured` answers `undefined` while the document is still the one the
 reader arrived in, which is the flag the section below already keeps. With it, the same first
 paint springs through 33 widths, and the client navigation that follows draws 26 on its first

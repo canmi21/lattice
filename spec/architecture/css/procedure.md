@@ -156,7 +156,7 @@ beside each. Nothing catches that, because a test that disagrees with itself is 
 in particular. A list can be wrong, and being wrong is a thing a list can be caught at.
 
 A finding about the layering that your change is not allowed to fix goes to
-[todo.md](../../todo.md) with the evidence, one entry each -- the discipline
+[todo.md](../../todo/todo.md) with the evidence, one entry each -- the discipline
 [migration.md](migration.md) states for a migration, and the same file is where the site's
 outstanding layering questions already live.
 

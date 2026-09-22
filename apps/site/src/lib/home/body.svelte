@@ -7,7 +7,7 @@
 	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * `focus-link` stays in the markup beside these: it is the site's named vocabulary, which
-	 * both the utility this replaces and this style already outrank. See spec/todo.md, "The
+	 * both the utility this replaces and this style already outrank. See spec/todo/todo.md, "The
 	 * named layer in CSS is the visual layer, written before there was one".
 	 */
 	const styles = stylex.create({

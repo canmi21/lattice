@@ -16,10 +16,10 @@ sheet laid on it, and a sheet takes the end of the range the theme calls its own
 light, the deepest surface in dark. `paper-hover` is one step off that sheet, which therefore means
 darker in light and lighter in dark.
 
-| | `page` | `paper` | `paper-hover` |
-| --- | --- | --- | --- |
-| light | 0.987 | 1.000 | 0.962 |
-| dark | 0.178 | 0.157 | 0.213 |
+|       | `page` | `paper` | `paper-hover` |
+| ----- | ------ | ------- | ------------- |
+| light | 0.987  | 1.000   | 0.962         |
+| dark  | 0.178  | 0.157   | 0.213         |
 
 Both halves mirror, and for the surfaces that is the point rather than an oversight. The homepage's
 article thumbnail is the case that settles it: it is a drawing of a page of writing, so in light it
@@ -42,4 +42,4 @@ themes without removing it, and swapping the palette's two light values fixes th
 of the thumbnail, the card and the hover feedback, all three of which were right.
 
 So a band that must always recede needs a pair of its own, and that pair is not written yet --
-[todo.md](../todo.md), "A table head wants a ground that stays the darker one in both themes".
+[site.md](../todo/site.md), "A table head wants a ground that stays the darker one in both themes".

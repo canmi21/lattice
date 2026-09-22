@@ -93,7 +93,7 @@ because a view spliced from a stale layout is wrong in a way nothing reports.
 **`licenses.json` answers the same way and has not left**, which is worth stating rather than
 hiding. It is a pure function of the lockfile, but the site's own build still reads it -- the
 licence pages were held out of the move to published objects, so a CI build with no `data/` would
-fail without it. It stays until that surface is decided; [todo.md](../todo.md) holds why.
+fail without it. It stays until that surface is decided; [todo.md](../todo/todo.md) holds why.
 
 The question is deliberately not "was it generated", which was the shape that misled. Three
 kinds of generated file answer it differently and only the first is free:

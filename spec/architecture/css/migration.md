@@ -40,7 +40,7 @@ there. The visual half moves and the layout half stays, which leaves the block s
 mixed. That is the intended stopping point rather than a job half done: relocating layout out of
 scoped CSS and into the markup is a second pass with its own volume and its own risk, and running
 it inside a migration whose whole value is an empty diff would make the diff unreadable. It is one
-entry in [todo.md](../../todo.md), for the site rather than per component.
+entry in [todo.md](../../todo/todo.md), for the site rather than per component.
 
 The two are worth separating because mixing them destroys the only signal available. If a migration
 is allowed to improve as it goes, a visual regression and an intended improvement arrive in the same
@@ -53,7 +53,7 @@ supposed to change. An empty diff is the pass. A non-empty diff is not a failure
 every entry is explained or reverted.
 
 Findings about layering that the migration is not allowed to fix go to
-[todo.md](../../todo.md), with the evidence, one entry each.
+[todo.md](../../todo/todo.md), with the evidence, one entry each.
 
 ### What the gate answered
 

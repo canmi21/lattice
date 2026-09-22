@@ -932,7 +932,7 @@
 	   evens the lines; it does not choose where the break may land, and for Han that is the part
 	   that matters" and "Japanese is excluded, and the measurement is the argument". The floor is
 	   written on the label and this override here, because the override is reached through `:lang`
-	   rather than through a class on the element. See spec/todo.md. */
+	   rather than through a class on the element. See spec/todo/todo.md. */
 	[data-toc-text]:lang(zh),
 	[data-toc-text]:lang(ko) {
 		word-break: keep-all;

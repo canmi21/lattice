@@ -10,7 +10,7 @@
 	 * The page writes the same trail, the same heading and the same directory row as the licence
 	 * directory one level up, and those styles say what its styles say, name for name. They are
 	 * written out rather than shared: a visual constant with two consumers wants a module of its
-	 * own, and where that module should live is the question spec/todo.md is already holding.
+	 * own, and where that module should live is the question spec/todo/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		backLink: {

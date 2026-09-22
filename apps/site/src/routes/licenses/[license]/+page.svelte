@@ -9,7 +9,7 @@
 	 *
 	 * Third of the licence surface's directory pages, writing the same trail, heading and tabular
 	 * count as the two above it, name for name. Written out rather than shared -- where a module
-	 * for this should live is the question spec/todo.md is already holding.
+	 * for this should live is the question spec/todo/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		backLink: {

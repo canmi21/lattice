@@ -78,7 +78,7 @@ output, not for files that are merely long.
 Nothing checks this. A path that becomes machine output and is not added here goes on being
 counted, and the statistics drift without anything failing -- which is the same shape as every
 other rule in this repository that a person has to remember, and is listed with them in
-[todo.md](../todo.md) if it is ever worth a gate.
+[todo.md](../todo/todo.md) if it is ever worth a gate.
 
 ## Layout
 

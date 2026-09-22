@@ -6,7 +6,7 @@
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
 	 * The title/arrow colour and the cover's hover brightness and blend mode are exceptions, not
-	 * the token layer's or not expressible here -- see spec/todo.md. See
+	 * the token layer's or not expressible here -- see spec/todo/todo.md. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot holds the other half of the focus treatment: it recolours the
@@ -27,7 +27,7 @@
 		 * the three `--tw-gradient-*` variables and the four discrete ones included -- and only
 		 * `filter` is ever animated here. Nothing sets the rest and they interpolate nothing, but
 		 * the measure of sameness is the computed value and dropping them changes it. Whether the
-		 * visual layer should be naming another framework's private variables is in spec/todo.md.
+		 * visual layer should be naming another framework's private variables is in spec/todo/todo.md.
 		 */
 		media: {
 			transitionProperty:

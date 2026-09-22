@@ -10,7 +10,7 @@
 	 * The page is the package page's sibling -- a trail, a header, a row of quiet controls and a
 	 * list -- and several of these say what a style there says. They are written out rather than
 	 * shared: a visual constant with two consumers wants a module of its own, and where that
-	 * module should live is the question spec/todo.md is already holding.
+	 * module should live is the question spec/todo/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		backLink: {

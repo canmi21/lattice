@@ -8,7 +8,7 @@
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
-	 * a little geometry beside it -- see spec/todo.md, "The article body's typography reaches
+	 * a little geometry beside it -- see spec/todo/todo.md, "The article body's typography reaches
 	 * elements no component renders". See spec/architecture/css/authoring.md, "A comment in the
 	 * module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
@@ -759,7 +759,7 @@
 	/* Three grounds, counting the page the frame sits on. The head takes the step off the sheet and
 	   the rows take the sheet, which reads as a band behind the rows in light and as a chip over
 	   them in dark; a pair that mirrors cannot be deeper in both, and light is the half this was
-	   judged on. See spec/todo.md, "A table head wants a ground that stays the darker one in both
+	   judged on. See spec/todo/todo.md, "A table head wants a ground that stays the darker one in both
 	   themes". */
 	.article-body :global(tbody) {
 		background-color: var(--color-paper);

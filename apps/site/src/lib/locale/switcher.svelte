@@ -9,7 +9,7 @@
 	 *
 	 * The row's highlight and the mark's pair stay in the markup, gated on `data-highlighted`:
 	 * StyleX addresses only pseudo-classes and at-rules, and here it would also outrank the
-	 * `group-data-` variant left behind. Recorded in spec/todo.md.
+	 * `group-data-` variant left behind. Recorded in spec/todo/todo.md.
 	 */
 	const styles = stylex.create({
 		/** The trigger's caret, which turns to face the panel that is about to open. */

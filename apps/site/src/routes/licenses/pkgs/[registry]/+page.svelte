@@ -9,7 +9,7 @@
 	 *
 	 * A sibling of the two directories above it, writing the same trail, header and quiet
 	 * control, name for name. Written out rather than shared -- where a module for this should
-	 * live is the question spec/todo.md is already holding.
+	 * live is the question spec/todo/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		backLink: {

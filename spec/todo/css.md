@@ -1,41 +1,12 @@
-# Deferred: where the layering is not yet what it should be
+# Deferred: the CSS layering
 
-[architecture/css/migration.md](architecture/css/migration.md) says a migrated component renders exactly what it
-rendered before, and that moving a declaration into the layer it belongs in is a second change.
-This file is where that second change waits.
+Findings from the layer migration. [architecture/css/migration.md](../architecture/css/migration.md) says a migrated component renders exactly what it rendered before, and that moving a declaration into the layer it belongs in is a second change. This is where that second change waits.
 
-An entry here is a finding, not a plan. It says what was found, what the evidence is, and what
-deciding it would cost -- and it stops there, because the ordinary rule for a list of known
-problems applies: one item at a time, proposed and explicitly accepted before anything is written.
-The workspace's `agent-protocol.md` says why, and the reason bites hardest on a list like this one,
-where every entry was judged once already by whoever was mid-migration when they wrote it.
-
-Anyone finishing a component adds what they found. Nobody works an entry as part of the migration.
-
-The CSS migration is where the file started and not what it is limited to. A finding is anything
-found in passing that is a defect in where a decision lives rather than in what it decided, and
-those are not a property of stylesheets. The rules above hold whatever the language.
-
-## `.gitattributes` is a list nothing keeps complete
-
-Two paths are marked `linguist-generated=true` so a forge reads this repository as what somebody
-wrote rather than as what its tools emit -- [architecture/workspace.md](architecture/workspace.md),
-"Machine output is marked, so the language statistics describe the repository". A third path that
-becomes machine output and is not added goes on being counted, and nothing fails.
-
-The evidence that this drifts is the file itself. It carried ten lines of reasoning citing
-`spec/architecture.md`, a file that does not exist, and the citation survived because
-`mise run refs` reads code under `apps/` and `libs/` and the documents, and `.gitattributes` is
-neither.
-
-Deciding it costs a definition. A gate has to answer "is this machine output" without a person,
-and the only honest proxy is the set of paths this repository's own generators write -- which is
-a second list, kept by hand, with the same failure. Worth doing only alongside a reason to
-enumerate those outputs anyway.
+The rules over an entry are the index's; see [todo.md](todo.md).
 
 ## The named layer in CSS is the visual layer, written before there was one
 
-`utilities.css` and [`libs/primitives/src/style.css`](../libs/primitives/src/style.css) hold a
+`utilities.css` and [`libs/primitives/src/style.css`](../../libs/primitives/src/style.css) hold a
 vocabulary of named surfaces -- `focus-link`, `spring-underline`, `article-link`, `pill`, `value`,
 `jump-target`, `selectable`. Measured across the site's markup before any of them moved, 426 of
 1601 class tokens were these rather than Tailwind utilities, which is the vocabulary announcing
@@ -67,15 +38,15 @@ shape at component scale.
 
 It works, it is readable, and it is the pattern the visual layer is least able to hold: StyleX's
 model is that everything on an element comes from a class on that element. The question this file
-is holding is not whether the arithmetic is right -- [styling/lengths.md](styling/lengths.md) argues
+is holding is not whether the arithmetic is right -- [styling/lengths.md](../styling/lengths.md) argues
 each number at length -- but whether the derivation belongs in the selector layer, in the visual
 layer as a composed style, or somewhere it currently is not.
 
 ## The article body's typography reaches elements no component renders
 
 61 of the 351 rules in Svelte `<style>` blocks were `:global` at the time, and the largest group is
-[article.svelte](../apps/site/src/lib/article/article.svelte) and
-[body.svelte](../apps/site/src/lib/article/body.svelte) styling prose the markdown compiler
+[article.svelte](../../apps/site/src/lib/article/article.svelte) and
+[body.svelte](../../apps/site/src/lib/article/body.svelte) styling prose the markdown compiler
 produced: `strong`, `s`, `hr`, `blockquote`, `pre`, `code`, `picture`, `img`, `.shiki span`.
 
 Under the three layers this is correctly the selector layer, because there is no element to put a
@@ -94,7 +65,7 @@ here the element exists and is ours, it is simply somewhere else in the document
 ## `libs/svg-canvas` is a 527-line global stylesheet
 
 It styles generated SVG, so it is the selector layer by the definition in
-[architecture/css/layers.md](architecture/css/layers.md). It is also five times the size of every other file in
+[architecture/css/layers.md](../architecture/css/layers.md). It is also five times the size of every other file in
 that layer, unscoped, and loaded by whoever imports the library. Whether a drawing's appearance is
 the drawing's or the site's is the question underneath it.
 
@@ -127,13 +98,13 @@ would have the outer one's hover reveal the inner one's control.
 
 The second half of that error message named a blocker that is gone, and saying so here is a
 correction: `unstable_moduleResolution` **is** set in the vite plugin -- see
-[architecture/css/layers.md](architecture/css/layers.md), "The module resolution is stated rather than defaulted,
+[architecture/css/layers.md](../architecture/css/layers.md), "The module resolution is stated rather than defaulted,
 because it is what makes `$lib` reachable" -- and `lib/vocabulary.stylex.ts` is already the
 `.stylex.ts` home a marker would live in. Neither is a cost this decision still has to pay, and
 the entry priced both.
 
 What keeps `defaultMarker()` in place is the extension refusal above plus a type mismatch the
-component records at [section.svelte](../apps/site/src/lib/article/section.svelte): `when.ancestor`
+component records at [section.svelte](../../apps/site/src/lib/article/section.svelte): `when.ancestor`
 is called with no explicit marker, because its parameter is branded for a `defineMarker()` symbol
 and the default marker is branded as itself, so handing the default one over would not type check.
 A named marker in a `.stylex.ts` file is what that parameter wants, and moving to one is now a
@@ -143,7 +114,7 @@ change inside two files rather than a boundary question.
 
 `truncate` is `overflow: hidden` plus `text-overflow: ellipsis` plus `white-space: nowrap`. The
 first decides how large the box is and the other two decide how the text looks, so under
-[architecture/css/layers.md](architecture/css/layers.md) the utility straddles the boundary and no third of it
+[architecture/css/layers.md](../architecture/css/layers.md) the utility straddles the boundary and no third of it
 can move without settling where the other two go. The package page carries eight of them and six
 other components carry nine more.
 
@@ -176,7 +147,7 @@ will disagree.
 
 So there are two things to settle and one place to settle them. **Where a shared visual constant
 lives**: a `.stylex.ts` module components import, which is the same boundary question as
-[`libs/primitives`](../libs/primitives/src/style.css) above and should be answered with it rather
+[`libs/primitives`](../../libs/primitives/src/style.css) above and should be answered with it rather
 than beside it. And **what the shared surfaces are called**, which is the part that cannot be
 mechanical, because a name that describes the markup it came from stops being true the third time
 it is used.
@@ -186,7 +157,7 @@ same string wherever it goes.
 
 ## Layout sits in the selector layer, in nearly every block that has one
 
-[architecture/css/migration.md](architecture/css/migration.md) says a migration moves the visual layer and stops
+[architecture/css/migration.md](../architecture/css/migration.md) says a migration moves the visual layer and stops
 there, which is why a migrated block comes out smaller and still mixed. `code-block.svelte` is the
 first one large enough to show what is left: `position`, `top`, `right`, `z-index`, five
 `display`s, four widths, three `overflow`s and a `height`, most of which needs no selector to
@@ -194,7 +165,7 @@ reach the element it styles.
 
 Measured across the site at the time: 203 of the 327 rules in the 25 `<style>` blocks named
 nothing but a class on an element the component itself renders, and 329 of the declarations inside
-them were layout. Under [architecture/css/layers.md](architecture/css/layers.md) that is the markup's, written as
+them were layout. Under [architecture/css/layers.md](../architecture/css/layers.md) that is the markup's, written as
 utilities on the element, and it is sitting in the one layer that exists to hold what the other
 two cannot address.
 
@@ -246,7 +217,7 @@ The component states the exclusion instead, `:hover:not(:disabled)`, which makes
 exclusive rather than ranked and therefore reads the same under either ordering. What is left
 unresolved is that this is a repair rediscovered per component. Nothing checks that a migrated pair
 of overlapping conditions still resolves the way it did, and
-[css-layers.ts](../apps/site/scripts/css-layers.ts) is about the order of the layers rather than
+[css-layers.ts](../../apps/site/scripts/css-layers.ts) is about the order of the layers rather than
 about what sits inside one. Deciding it is either a rule that overlapping conditions are always
 written as exclusions, or a check that can see the pair.
 
@@ -256,7 +227,7 @@ Svelte rewrites a keyframe's name to a scoped one and rewrites the `animation` p
 same block to match. Nothing outside that block can name it: an `animation-name` written in the
 visual layer points at a keyframe that does not exist. So the newsletter's eight keyframes stay in
 the selector layer, and so do the eleven classes whose whole content is an `animation` naming one,
-even though [architecture/css/layers.md](architecture/css/layers.md) lists motion as the visual layer's subject.
+even though [architecture/css/layers.md](../architecture/css/layers.md) lists motion as the visual layer's subject.
 
 The part that is a finding rather than a consequence is what the keyframes contain. `cool`'s `to`
 block is `background-color: var(--color-paper-hover)` and `color: var(--color-text-soft)`, which is
@@ -283,7 +254,7 @@ be reached and its subject cannot -- and only the first of them is what `stylex.
 The newsletter's unsubscribe control is `focus-link spring-underline` and, until this migration
 moved it into the visual layer, `transition-colors duration-200` beside them. Measured, the control
 reported `transition-property: --underline-progress`, a duration of 315ms and the shared spring:
-`.spring-underline` in [utilities.css](../apps/site/src/styles/utilities.css) sat outside every
+`.spring-underline` in [utilities.css](../../apps/site/src/styles/utilities.css) sat outside every
 `@layer`, an unlayered rule outranks every layered one, and its `transition` shorthand takes all
 four longhands. The ten-property list never reached the element, and the hover colour on that
 control snapped rather than faded. Moving the declaration changed nothing, because StyleX is
@@ -292,24 +263,24 @@ dropped, a migration moving what the markup said rather than what it achieved.
 
 **The heading is wrong in its first word now, and the mechanism inverted rather than went away.**
 `.spring-underline` is in `@layer components` at
-[utilities.css](../apps/site/src/styles/utilities.css):210. StyleX's priority layers sit above
+[utilities.css](../../apps/site/src/styles/utilities.css):210. StyleX's priority layers sit above
 Tailwind's `components`, so a `transition-*` in the visual layer on that element now beats the
 shorthand instead of losing to it. That is the reversal
-[architecture/css/layers.md](architecture/css/layers.md) predicted under "`utilities.css` is
+[architecture/css/layers.md](../architecture/css/layers.md) predicted under "`utilities.css` is
 dissolved, not given a position", which names this control among the three to expect rather than
 discover.
 
 **What the control does is unchanged, and it is now held on purpose.** No markup on the site carries
 `transition-colors` beside `spring-underline` any more -- counted, zero sites -- and the two
 components that could now declare one in the visual layer decline to, each with a comment saying
-why: `undo` in [newsletter.svelte](../apps/site/src/lib/newsletter/newsletter.svelte) writes no
+why: `undo` in [newsletter.svelte](../../apps/site/src/lib/newsletter/newsletter.svelte) writes no
 transition at all, so the hover snaps and the underline springs, and `fade` in
-[offer.svelte](../apps/site/src/lib/error/offer.svelte) is confined to the form's button for the
+[offer.svelte](../../apps/site/src/lib/error/offer.svelte) is confined to the form's button for the
 same reason. The swallowing is gone and the snap it produced is deliberate. What holds it is a
 comment at each call site, which is weaker than a check and stronger than the accident it replaced.
 
 **What is still open is the general half, and it has lost the half that made it general.**
-[`libs/primitives`](../libs/primitives/src/style.css) declares no `@layer` at all, so the named
+[`libs/primitives`](../../libs/primitives/src/style.css) declares no `@layer` at all, so the named
 layer is unlayered there and layered in `utilities.css` with nothing saying which a given rule
 should be, and an element carrying a primitives class and a utility for the same property still has
 no way to say which it meant. The deciding sentence here was giving `utilities.css` and
@@ -320,12 +291,12 @@ alone, and it is the first entry in this file's question rather than this one's.
 ## The gate compares a list, and a list is not a test
 
 `cursor`, `pointer-events` and `user-select` are settled as visual in
-[architecture/css/layers.md](architecture/css/layers.md), so the article shell's
+[architecture/css/layers.md](../architecture/css/layers.md), so the article shell's
 `.article-rail, .meta { user-select: none }` moved into the visual layer with everything else. Of
 the three, only `cursor` is in the seventy-two properties the migration's snapshot compares.
 `user-select` is not, `-webkit-user-select` is not, and neither is `pointer-events`.
 
-Measured while migrating [article.svelte](../apps/site/src/lib/article/article.svelte): the style
+Measured while migrating [article.svelte](../../apps/site/src/lib/article/article.svelte): the style
 was applied to the rail and not to the metadata row beside it, so the row silently became
 selectable again -- and the diff over 120 snapshots was empty. It was found by reading the computed
 style in a browser afterwards. A static snapshot has a second reason to miss it, which is that
@@ -334,7 +305,7 @@ nothing in the harness drags across an element.
 The finding is not that one name is missing from a list. It is that the list was written from the
 properties a migration was expected to move, while what a migration was allowed to move was decided
 by a test, and a list and a test drift the first time somebody applies the test honestly. That
-observation is now [architecture/css/layers.md](architecture/css/layers.md)'s own argument for
+observation is now [architecture/css/layers.md](../architecture/css/layers.md)'s own argument for
 giving the test up: the enumeration there is the rule, and the test is only how the enumeration
 grows.
 
@@ -349,7 +320,7 @@ at all, so a utility leaving the markup takes its private variables with it unno
 
 ## An SVG presentation attribute is a fourth writer, and it sits below every layer
 
-[icons.svelte](../apps/site/src/lib/home/icons.svelte) draws ten glyphs and two of them ink
+[icons.svelte](../../apps/site/src/lib/home/icons.svelte) draws ten glyphs and two of them ink
 themselves twice. Every branch carried `fill-current`, which is visual and moved; `twitter` also
 carries `stroke="currentColor"`, `stroke-width="0.7"` and `stroke-linejoin="round"` as SVG
 presentation attributes, and `moe` carries those three plus `fill-rule="evenodd"`. All seven decide
@@ -366,7 +337,7 @@ Deciding it costs a behaviour change rather than a rendering one: a stroke writt
 layer stops being overridable by a caller's utility and starts outranking it, on a glyph the
 homepage and the tweet block both render. It also asks whether a path's own description belongs to
 the site at all -- `fill-rule` is closer to the artwork than to the interface -- which is the
-question [`libs/svg-canvas`](../libs/svg-canvas/src/style.css) above is already holding.
+question [`libs/svg-canvas`](../../libs/svg-canvas/src/style.css) above is already holding.
 
 ## A shadow is one utility, two declarations and four variables the visual layer cannot restate
 
@@ -395,15 +366,15 @@ the site. Spelling the four placeholders out as literals -- `0 0 #0000, 0 0 #000
 0 0 #0000,` and then the real pair -- computes identically and says nothing to a reader about why
 four transparent shadows are there. Dropping them changes the computed value.
 
-So `shadow-lg` on [dialog.svelte](../apps/site/src/lib/search/dialog.svelte)'s panel and
-`shadow-sm` on [cargo.svelte](../apps/site/src/lib/blocks/cargo/cargo.svelte)'s tooltip stayed in
-the markup, under the set rule in [architecture/css/migration.md](architecture/css/migration.md): Tailwind writes the
+So `shadow-lg` on [dialog.svelte](../../apps/site/src/lib/search/dialog.svelte)'s panel and
+`shadow-sm` on [cargo.svelte](../../apps/site/src/lib/blocks/cargo/cargo.svelte)'s tooltip stayed in
+the markup, under the set rule in [architecture/css/migration.md](../architecture/css/migration.md): Tailwind writes the
 variable and the shorthand as a unit in one rule, which is checkable, and the member that cannot
 move is the `@property` registration. Four more sites carry the same utility --
-[modal.svelte](../apps/site/src/lib/components/modal.svelte),
-[popover-content.svelte](../apps/site/src/lib/components/popover-content.svelte),
-[menu-content.svelte](../apps/site/src/lib/components/menu-content.svelte) and
-[tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte) -- so the decision is the site's
+[modal.svelte](../../apps/site/src/lib/components/modal.svelte),
+[popover-content.svelte](../../apps/site/src/lib/components/popover-content.svelte),
+[menu-content.svelte](../../apps/site/src/lib/components/menu-content.svelte) and
+[tokei.svelte](../../apps/site/src/lib/blocks/tokei/tokei.svelte) -- so the decision is the site's
 rather than one component's.
 
 It is the same shape as `transition-colors`'s three `--tw-gradient-*` variables, one step worse.
@@ -414,7 +385,7 @@ along, or saying that a utility whose value is assembled from registered variabl
 utility the visual layer takes.
 
 The migrated form was written and reverted on
-[menu-content.svelte](../apps/site/src/lib/components/menu-content.svelte), which is where the cost
+[menu-content.svelte](../../apps/site/src/lib/components/menu-content.svelte), which is where the cost
 showed itself. A `--tw-shadow` declared from StyleX beside the five-term chain compiles and renders
 correctly today, and it is correct only while five other components keep a class this one does not
 control: the registrations reach the document because Tailwind scans the markup and finds a
@@ -422,7 +393,7 @@ control: the registrations reach the document because Tailwind scans the markup 
 registered, an unresolved custom property makes the whole declaration invalid at computed-value
 time, and this panel's `box-shadow` becomes `none`. There is no build error and no console warning,
 and the gate cannot see it either: a menu renders nothing until it is opened, which
-[architecture/css/migration.md](architecture/css/migration.md) already lists among the surfaces a snapshot never
+[architecture/css/migration.md](../architecture/css/migration.md) already lists among the surfaces a snapshot never
 reaches. A component whose appearance depends on another component keeping a class is a worse
 arrangement than the one it replaced, and the failure arrives in a file nobody was editing.
 
@@ -435,13 +406,13 @@ visual layer would have to state does not resolve at all.
 
 ## Two of the site's colours are not the token layer's, and cannot be read from it
 
-[link-card.svelte](../apps/site/src/lib/blocks/link-card.svelte) writes its title and its corner
+[link-card.svelte](../../apps/site/src/lib/blocks/link-card.svelte) writes its title and its corner
 arrow in `text-black` or `text-white` according to the tone the block declares. Measured across the
 markup, those two elements are the only users of either utility on the site, and neither colour is
-in [`libs/tokens`](../libs/tokens/src/colors.css): they are Tailwind's own `--color-black` and
+in [`libs/tokens`](../../libs/tokens/src/colors.css): they are Tailwind's own `--color-black` and
 `--color-white`.
 
-[architecture/css/authoring.md](architecture/css/authoring.md) says a colour is read as the variable the token layer
+[architecture/css/authoring.md](../architecture/css/authoring.md) says a colour is read as the variable the token layer
 declares and is never retyped, and neither half of that is available here. Retyping gives `#000`,
 which the rule forbids and which puts a colour somewhere other than `libs/tokens`. Reading
 `var(--color-black)` works only for as long as some utility still names it: `app.css` imports
@@ -471,11 +442,11 @@ interpolating it renders those nine characters as a class token beside the real 
 It bites once so far. link-card's corner arrow takes `mix-blend-difference` only when the block
 declares no tone, and there is no unconditional declaration left on that element to hold the
 attribute open, so the utility stayed in the markup. The one other conditional on the site --
-[switcher.svelte](../apps/site/src/lib/locale/switcher.svelte)'s caret -- passes an unconditional
+[switcher.svelte](../../apps/site/src/lib/locale/switcher.svelte)'s caret -- passes an unconditional
 style first and never sees it.
 
 Three repairs, and they are not equivalent. A `?? ''` at each site is one more thing to remember at
-exactly the place [architecture/css/authoring.md](architecture/css/authoring.md) already says a rule cannot be checked.
+exactly the place [architecture/css/authoring.md](../architecture/css/authoring.md) already says a rule cannot be checked.
 A helper that merges class strings is the repair that file proposes for `attrs` replacing `class`,
 and it would absorb this case for free. Writing the off state as its own style so that something
 always resolves adds a declaration the markup never had, which a migration may not do. The middle
@@ -483,13 +454,13 @@ one belongs with the `attrs` hazard rather than beside it.
 
 ## A wrapping floor moved and the language override on top of it could not
 
-[toc.svelte](../apps/site/src/lib/article/toc.svelte) writes its entry labels with
+[toc.svelte](../../apps/site/src/lib/article/toc.svelte) writes its entry labels with
 `overflow-wrap: anywhere` and then, for Chinese and Korean, `word-break: keep-all` on top of it.
 The comment beside the second calls the first its floor, and it is: a Han run with no space in it
 still breaks wherever it must.
 
 Both decide how the text looks and neither moves an element, so under
-[architecture/css/layers.md](architecture/css/layers.md) both are the visual layer's. The floor moved. The
+[architecture/css/layers.md](../architecture/css/layers.md) both are the visual layer's. The floor moved. The
 override did not, because it is reached through `:lang(zh)` and `:lang(ko)`, and nothing on this
 site has established whether StyleX takes a functional pseudo-class as a condition key. Reading
 does not settle it -- the plugin either emits the rule or drops it silently -- and the migration's
@@ -498,7 +469,7 @@ would have to be driven at a width that makes it wrap.
 
 The rendering is unchanged: the two are different properties, the scoped rule is unlayered, and the
 interaction between them is the layout algorithm's rather than the cascade's. What is left is one
-mechanism written in two places, and the set rule in [architecture/css/migration.md](architecture/css/migration.md)
+mechanism written in two places, and the set rule in [architecture/css/migration.md](../architecture/css/migration.md)
 does not cover it -- that rule keeps a group together only where something else already writes the
 group as a unit, and nothing writes `overflow-wrap` beside `word-break`.
 
@@ -509,19 +480,19 @@ depends on the same answer.
 
 ## A data attribute on the element itself is a condition the visual layer cannot state
 
-[support.svelte](../apps/site/src/lib/support/support.svelte) draws its like pill dark once the
+[support.svelte](../../apps/site/src/lib/support/support.svelte) draws its like pill dark once the
 reader has liked: `.like[data-liked='true']:is(:hover, :focus-visible)` sets a border colour, a
 background and a text colour. All three are visual, the element is one the component renders
 itself, and no descendant or ancestor is involved -- so by every test in
-[architecture/css/layers.md](architecture/css/layers.md) the declarations belong in the visual layer. StyleX
+[architecture/css/layers.md](../architecture/css/layers.md) the declarations belong in the visual layer. StyleX
 cannot hold them. Its conditions are pseudo-classes, pseudo-elements and at-rules; an attribute
 selector is not among them, and the attribute is the whole of what distinguishes this state.
 
 So the pill's resting surface and its hover moved and its liked hover stayed, and one control's
 appearance is now written in two layers with nothing in either saying the other exists. It works
 only because a scoped rule is unlayered and therefore outranks the visual layer for the properties
-they share, which is the accident [architecture/css/layers.md](architecture/css/layers.md) already declines to
-promise. The same shape is in [preview.svelte](../apps/site/src/lib/components/preview.svelte),
+they share, which is the accident [architecture/css/layers.md](../architecture/css/layers.md) already declines to
+promise. The same shape is in [preview.svelte](../../apps/site/src/lib/components/preview.svelte),
 where `[data-starting-style]` and `[data-ending-style]` carry the opening and closing opacities
 that Bits UI drives.
 
@@ -537,7 +508,7 @@ of its values in the selector layer.
 
 The entry above on floating surfaces says Bits UI portals them out of the component tree and they
 are therefore reached with `:global`. Migrating
-[preview.svelte](../apps/site/src/lib/components/preview.svelte) sharpens that: the portal is what
+[preview.svelte](../../apps/site/src/lib/components/preview.svelte) sharpens that: the portal is what
 puts them out of the _selector_ layer's reach, and it puts them out of nothing else.
 
 The component writes `class="preview-ground fixed inset-0 z-50"` on `Dialog.Overlay`, and Bits UI
@@ -548,7 +519,7 @@ of these surfaces -- the ground, the stage and the close -- without a selector o
 
 It was not taken, and the reasons are worth recording because they are not the portal. The ground's
 `#000` and the close's wash and hairline are literals rather than tokens, argued as such in
-[styling/blocks.md](styling/blocks.md), so moving them would put the site's only unthemed colours
+[styling/blocks.md](../styling/blocks.md), so moving them would put the site's only unthemed colours
 into the layer whose one structural guarantee is that a colour is a token variable. And every one of
 those rules has a second half conditioned on a data attribute, which is the entry above: the
 transitions would move and the opacities they animate could not. Three rules split across two
@@ -563,7 +534,7 @@ two.
 The entry above measures that StyleX's conditions are pseudo-classes, pseudo-elements and at-rules,
 and concludes that an attribute-conditioned value has nowhere in the visual layer to go. This entry
 opened by quoting a stronger sentence that has since been retracted, so the quote is withdrawn from
-here too. [architecture/css/authoring.md](architecture/css/authoring.md) now calls the impossibility
+here too. [architecture/css/authoring.md](../architecture/css/authoring.md) now calls the impossibility
 "a true observation about the type generalised one step past what had been tested", and carries the
 same compiled rule this entry does. The type in question, `` `:${string}` ``, is exactly the hole:
 StyleX rejects a key by what it opens with rather than by what it contains, and
@@ -585,7 +556,7 @@ still needs the marker that the ancestor entry above is holding.
 So this does not settle that entry, it widens it. The choice is not two ways but three: the markup
 keeps every attribute-conditioned value, or the selector layer does, or `:is([attr])` becomes how
 the visual layer says an attribute and the same spelling is used everywhere. Whichever is chosen,
-the sentence in [architecture/css/authoring.md](architecture/css/authoring.md) has to change with it: a rule stated as
+the sentence in [architecture/css/authoring.md](../architecture/css/authoring.md) has to change with it: a rule stated as
 an impossibility is the one kind a reader never re-measures.
 
 That sentence was changed before any of the three was chosen, which is the convergence the top of
@@ -594,17 +565,17 @@ is still open, and this entry stays with it.
 
 ## Tokei draws from a palette of its own, and it is the third one
 
-[architecture/css/authoring.md](architecture/css/authoring.md) exempts two component-local palettes from the rule that
+[architecture/css/authoring.md](../architecture/css/authoring.md) exempts two component-local palettes from the rule that
 a colour is the token layer's -- Cargo's and Mermaid's -- argued in
-[styling/controls.md](styling/controls.md) and [styling/blocks.md](styling/blocks.md).
-[tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte) has a third that neither file names:
+[styling/controls.md](../styling/controls.md) and [styling/blocks.md](../styling/blocks.md).
+[tokei.svelte](../../apps/site/src/lib/blocks/tokei/tokei.svelte) has a third that neither file names:
 a colour per language from `langColor`, three hexes in `FUNCTION_COLORS` for code, comments and
 blanks, two `rgba()` literals inline on the tile's completion bar, and two whites inking a tile's
 label over whatever colour the language happens to be.
 
 The whites are the ones the migration had to rule on, because they are `fill` on an element this
 component renders and `fill` is visual by the same test that moved `fill-current` in
-[icons.svelte](../apps/site/src/lib/home/icons.svelte). They stayed, for the reason the link card's
+[icons.svelte](../../apps/site/src/lib/home/icons.svelte). They stayed, for the reason the link card's
 black and white stayed two entries above: a colour that no token declares cannot be stated in the
 layer whose one structural guarantee is that a colour is a token variable. So `.tile-name` and
 `.tile-size` are now a `fill` in the selector layer and a size and a weight in the visual one.
@@ -617,14 +588,14 @@ enumerating it, or a home for a chart's palette that is neither the token layer 
 ## A `transition` shorthand sets five lists and the migrated form writes three
 
 `transition: background-color 150ms ease-out, border-color 150ms ease-out` on
-[github.svelte](../apps/site/src/lib/blocks/github.svelte)'s repository card is one declaration and
+[github.svelte](../../apps/site/src/lib/blocks/github.svelte)'s repository card is one declaration and
 five computed longhands, each of them a two-item list: `transition-property`, `-duration`,
 `-timing-function`, `-delay` and `-behavior`. The shorthand sets the last two to their initial
 values once per item, so the element computes `transition-delay: 0s, 0s` and `transition-behavior:
 normal, normal`.
 
 The migrated form writes three of the five. It was arrived at on
-[code-block.svelte](../apps/site/src/lib/blocks/code-block.svelte)'s `copyIcon`, whose comment says
+[code-block.svelte](../../apps/site/src/lib/blocks/code-block.svelte)'s `copyIcon`, whose comment says
 exactly why the curve is stated twice -- "a transition's other lists are read per property, and one
 value against two properties is not the same computed style as two" -- and then stops at the curve.
 `transition-delay` and `transition-behavior` are left to their initial values, which are
@@ -633,13 +604,13 @@ computed `0s, 0s` and `normal` where it computed `normal, normal`.
 
 Nothing renders differently and nothing animates differently: the delay is zero either way and the
 behaviour is normal either way. What changes is the computed value, and
-[architecture/css/migration.md](architecture/css/migration.md) makes the computed value the measure -- it is the same
+[architecture/css/migration.md](../architecture/css/migration.md) makes the computed value the measure -- it is the same
 argument that keeps three `--tw-gradient-*` variables in every migrated `transition-colors`, where
 the names are another framework's and the values animate nothing. The two answers disagree, and
 they disagree inside one property.
 
 Whether the gate would catch it is not known here. The harness is not in the tree, and
-[architecture/css/migration.md](architecture/css/migration.md) says only that the list has gone from seventy-three
+[architecture/css/migration.md](../architecture/css/migration.md) says only that the list has gone from seventy-three
 properties to ninety-eight and that a migration moving a property nobody has compared before should
 say so. This is that: `transition-behavior` reached Chrome in 117 and is younger than most of the
 list.
@@ -656,7 +627,7 @@ wordier at each site, or that the two lists whose values are inert are outside w
 
 ## An arrowhead is a shape made of borders, and the test cannot cut it in half
 
-[quadrant.svelte](../apps/site/src/lib/blocks/quadrant.svelte) tips each of its two axes with a
+[quadrant.svelte](../../apps/site/src/lib/blocks/quadrant.svelte) tips each of its two axes with a
 triangle, drawn the way CSS has always drawn one: a pseudo-element at `width: 0; height: 0` with
 three borders, two of them transparent and the third the arrowhead itself.
 
@@ -670,7 +641,7 @@ three borders, two of them transparent and the third the arrowhead itself.
 }
 ```
 
-Every test in [architecture/css/layers.md](architecture/css/layers.md) gives two answers here at once. The border
+Every test in [architecture/css/layers.md](../architecture/css/layers.md) gives two answers here at once. The border
 widths are the only size the element has, so they decide how large it is; the border colours decide
 how it looks, and one of them is a token. `transparent` is neither: on a box with no width it is
 how CSS says a side does not exist, which is shape rather than appearance. And `content` is not
@@ -697,8 +668,8 @@ as `'1px'` ten times and as `'0.0625rem'` seven. Both are one pixel at the defau
 neither is at any other, so the site has two answers to what a hairline is and they part company
 the moment a reader enlarges text.
 
-Two files carry both. In [`blocks/quadrant.svelte`](../apps/site/src/lib/blocks/quadrant.svelte)
-and [`blocks/mermaid/mermaid.svelte`](../apps/site/src/lib/blocks/mermaid/mermaid.svelte) the
+Two files carry both. In [`blocks/quadrant.svelte`](../../apps/site/src/lib/blocks/quadrant.svelte)
+and [`blocks/mermaid/mermaid.svelte`](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte) the
 pre-migration source declares only `0.0625rem`, in a scoped rule; the `1px` arrived from Tailwind's
 `border` utility in the same component's markup. So neither spelling was invented here and the
 migration is faithful in both directions -- it is the act of putting the layout layer's answer and
@@ -710,7 +681,7 @@ there and nothing could see it.
 four say the literal `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. Tailwind's stack
 carries Monaco, Liberation Mono and Courier New; the literal one does not. A reader on a machine
 that has Monaco and not Menlo reads two different fonts on one page today, and has for as long as
-both spellings have existed. [`blocks/github.svelte`](../apps/site/src/lib/blocks/github.svelte)
+both spellings have existed. [`blocks/github.svelte`](../../apps/site/src/lib/blocks/github.svelte)
 says in a comment why it kept the literal one, which is the correct behaviour for a migration and
 also the reason this entry exists rather than a commit.
 
@@ -728,10 +699,10 @@ height is the least settled of all -- 41 declarations, fifteen values, mixing un
 The pill is worse than that sentence says, and the extra spellings are outside the count. Those 42
 declarations are the visual layer's, and a corner that is fully round is written four ways across
 the site: `calc(infinity * 1px)`, `624.9375rem`, `9999px` -- in
-[preview.svelte](../apps/site/src/lib/components/preview.svelte)'s scoped block and again on
+[preview.svelte](../../apps/site/src/lib/components/preview.svelte)'s scoped block and again on
 `.article-preview-thumbnail [data-icon-bar]` in
-[`libs/primitives`](../libs/primitives/src/style.css) -- and `50%` on
-[`blocks/github.svelte`](../apps/site/src/lib/blocks/github.svelte)'s language dot. The last is the
+[`libs/primitives`](../../libs/primitives/src/style.css) -- and `50%` on
+[`blocks/github.svelte`](../../apps/site/src/lib/blocks/github.svelte)'s language dot. The last is the
 one that is not a synonym: a percentage is a share of the box, so on anything that is not square it
 draws an ellipse where the other three draw a stadium. Every element carrying it is square today,
 which is why nothing looks wrong and why nothing would say so if one stopped being.
@@ -743,7 +714,7 @@ two mono stacks are a question about which one is right, which is not a layering
 
 ## Nothing in the tree asks whether a declaration moved
 
-[architecture/css/extraction.md](architecture/css/extraction.md) now says what the gate on a naming change is -- build,
+[architecture/css/extraction.md](../architecture/css/extraction.md) now says what the gate on a naming change is -- build,
 and compare the multiset of emitted declarations per layer -- and no check makes that comparison.
 It was two scripts written for this change and kept out of the tree with the migration's own
 harness, so the next person to name a value has to write them again or trust a reading.
@@ -758,14 +729,14 @@ One consequence of the mechanism has nowhere to be recorded but here, because it
 this repository rather than about StyleX. **A constant's key spelling is part of the stylesheet.**
 The class is hashed from `var(--<consthash>)` and the hash is over the module path and the key, so
 renaming `text.px14` or moving the module rewrites rules while changing no declaration. Every name
-in [vocabulary.stylex.ts](../apps/site/src/lib/vocabulary.stylex.ts) was therefore argued once,
+in [vocabulary.stylex.ts](../../apps/site/src/lib/vocabulary.stylex.ts) was therefore argued once,
 before anything read it, and a later rename is not the free edit it looks like.
 
 ## A line height with no reason behind it is a lookup, not a name
 
-`1.4` is the site's third repeated line-height ratio -- [cargo](../apps/site/src/lib/blocks/cargo/cargo.svelte),
-[tokei](../apps/site/src/lib/blocks/tokei/tokei.svelte) and
-[mermaid](../apps/site/src/lib/blocks/mermaid/mermaid.svelte) -- so it clears the three-component
+`1.4` is the site's third repeated line-height ratio -- [cargo](../../apps/site/src/lib/blocks/cargo/cargo.svelte),
+[tokei](../../apps/site/src/lib/blocks/tokei/tokei.svelte) and
+[mermaid](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte) -- so it clears the three-component
 threshold that every other name in the vocabulary was admitted by. It was left a literal anyway.
 
 Nothing distinguishes it. It is on no scale: Tailwind's neighbours are `leading-snug` at 1.375 and
@@ -782,7 +753,7 @@ further on: there two components each rounded a judgement, here three landed on 
 nobody chose it. Deciding it is either moving each of the three onto the scale, which is a visual
 change on at least two of them and therefore needs the gate rather than an argument, or writing
 down that a scale is allowed members nobody chose -- in which case the threshold for a name is not
-repetition alone, and [architecture/css/extraction.md](architecture/css/extraction.md) says it is.
+repetition alone, and [architecture/css/extraction.md](../architecture/css/extraction.md) says it is.
 
 ## A reduced-motion answer is three declarations that only mean anything together
 
@@ -796,13 +767,13 @@ The repetition is real anyway, and it is not of a value. What repeats is a _set_
 declarations that say one thing, which is that this element does not animate for a reader who
 asked for that. The three do not always travel together: counted across the same blocks the
 property appears twelve times, the duration fourteen and the curve nine, and
-[switcher.svelte](../apps/site/src/lib/locale/switcher.svelte) answers with the property alone.
+[switcher.svelte](../../apps/site/src/lib/locale/switcher.svelte) answers with the property alone.
 Whether each of those is deliberate is a question one name would have made visible and three
 literals never will. `defineConsts` cannot hold it -- a const is a value, and this is three of them
 against a condition. `stylex.create` cannot hold it either, and this entry said it could.
 
 **What stood here was that it can**, "and a shared style composed into each component is what the
-visual layer is for, which is the argument [architecture/css/layers.md](architecture/css/layers.md) makes for the
+visual layer is for, which is the argument [architecture/css/layers.md](../architecture/css/layers.md) makes for the
 layer in the first place". The argument is sound and the premise is false, which is the combination
 worth leaving on the page: a shared composed style is exactly what the visual layer is for, and
 this set is the one kind of thing it cannot be made of.
@@ -824,27 +795,27 @@ picture, `grid-template-rows` on the article summary, three-item lists on the su
 `color` and `transform` on the two footnote controls. The escapes were measured and none is
 available: a function in `create` emits `var()` for each default and registers three custom
 properties, which is six rules the stylesheet did not have; a helper called inside `create` fails
-the build on the cross-file path [architecture/css/extraction.md](architecture/css/extraction.md) already records as
+the build on the cross-file path [architecture/css/extraction.md](../architecture/css/extraction.md) already records as
 broken; and there is no `include` in the API at 0.19.
 
 What is left to name is the three literals, which the paragraph above declines. The composed style
-this entry was waiting on now exists -- [surfaces.ts](../apps/site/src/lib/surfaces.ts) holds four
+this entry was waiting on now exists -- [surfaces.ts](../../apps/site/src/lib/surfaces.ts) holds four
 groups -- and this is the one thing it cannot hold. So the entry is no longer about naming and is
 entirely about the reading: whether
-[switcher.svelte](../apps/site/src/lib/locale/switcher.svelte) answering with the property alone,
+[switcher.svelte](../../apps/site/src/lib/locale/switcher.svelte) answering with the property alone,
 and the twelve, fourteen and nine counts above, are that many deliberate decisions or one decision
 written inconsistently. No arrangement of the visual layer will make that visible, and answering it
 is a person reading nine style objects.
 
 ## One property has a measured policy in one layer and a flat assertion in the other
 
-[utilities.css](../apps/site/src/styles/utilities.css) answers `text-wrap` for article prose with a
+[utilities.css](../../apps/site/src/styles/utilities.css) answers `text-wrap` for article prose with a
 rule conditioned on language and on width. `.article-content` sets `wrap` at rest and takes
 `pretty` only for English, German, Spanish and French, and only above 45rem. Both exclusions are
 measured rather than omitted: in WebKit at 354px `pretty` adds lines in every language, eleven in
 German and forty-two in Japanese, and roughly doubles the mean right-hand gap everywhere; on
 Japanese it takes that gap from 1.6% to 7.9% and the loose lines from 1 to 58.
-[styling/prose.md](styling/prose.md) argues each of those numbers, and the comment beside the rule
+[styling/prose.md](../styling/prose.md) argues each of those numbers, and the comment beside the rule
 calls the narrow column the correction a phone forced.
 
 Four licence pages answer the same property with no condition at all. `summary` in
@@ -866,9 +837,9 @@ deciding this counts them first.
 
 ## A value is written twice on one element, once as a class and once in the visual layer
 
-[body.svelte](../apps/site/src/lib/article/body.svelte)'s note close carries `focus-ring` in its
+[body.svelte](../../apps/site/src/lib/article/body.svelte)'s note close carries `focus-ring` in its
 markup and `borderRadius: radius.sm` in its style object. `:where(.focus-ring, .focus-ring-inner,
-.focus-ring-within)` in [utilities.css](../apps/site/src/styles/utilities.css) already sets
+.focus-ring-within)` in [utilities.css](../../apps/site/src/styles/utilities.css) already sets
 `border-radius: 0.25rem`, and `radius.sm` is `0.25rem`, so the element is told the same thing twice
 by two layers.
 
@@ -890,19 +861,19 @@ rather than to remove.
 
 ## The border strengthens when a control is engaged, and the site spells that two ways
 
-[utilities.css](../apps/site/src/styles/utilities.css) writes
+[utilities.css](../../apps/site/src/styles/utilities.css) writes
 `.focus-input-shell:has(.focus-input:focus) { border-color: var(--color-border-strong) }`, which
 reaches a wrapper from a focused descendant. Three components write the same idea as a conditional
 value on the element itself -- `borderColor` from `var(--color-border)` to
 `var(--color-border-strong)` on `:hover` and on `:focus-visible` -- in
-[github.svelte](../apps/site/src/lib/blocks/github.svelte)'s card,
-[twitter.svelte](../apps/site/src/lib/blocks/twitter.svelte)'s card and
-[support.svelte](../apps/site/src/lib/support/support.svelte)'s action.
+[github.svelte](../../apps/site/src/lib/blocks/github.svelte)'s card,
+[twitter.svelte](../../apps/site/src/lib/blocks/twitter.svelte)'s card and
+[support.svelte](../../apps/site/src/lib/support/support.svelte)'s action.
 
 Neither is wrong and the two are not interchangeable. The `:has()` form is the only one available
 to it, because the focused element and the bordered element are different elements and a StyleX
 condition reaches neither from the other. It also answers `:focus` rather than `:focus-visible` on
-purpose -- [styling/focus.md](styling/focus.md) argues that a pointer focus should match the shell
+purpose -- [styling/focus.md](../styling/focus.md) argues that a pointer focus should match the shell
 while only a keyboard adds the ring -- so the two differ in what they answer as well as in how.
 
 What is unrecorded is that one idea has two spellings and nothing says which applies when. Deciding
@@ -932,20 +903,20 @@ nobody has looked at yet.
 
 ## The extraction threshold counts one layer and the vocabulary lives in three
 
-[architecture/css/extraction.md](architecture/css/extraction.md) admits a value to the vocabulary at three components,
+[architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at three components,
 and the count is taken over the thirty-five `stylex.create` blocks. The named surfaces are not all
-in those blocks. [utilities.css](../apps/site/src/styles/utilities.css) holds fifteen classes,
-[`libs/primitives`](../libs/primitives/src/style.css) holds eight across eleven selectors, and
+in those blocks. [utilities.css](../../apps/site/src/styles/utilities.css) holds fifteen classes,
+[`libs/primitives`](../../libs/primitives/src/style.css) holds eight across eleven selectors, and
 `app.css` holds four more -- `.pill-metrics`, `.pill`, `.value` and `.value-cell` -- so a surface
 can have two instances in the visual layer, sit below the bar, and already be written a third time
 in a stylesheet.
 
 Two of those three files sit above the visual layer, which makes the miscount worse than an
 accounting error. Measured on `app.css`: it opens with four imports,
-[`libs/primitives`](../libs/primitives/src/style.css)'s stylesheet third and
-[utilities.css](../apps/site/src/styles/utilities.css) fourth, and neither is inside an `@layer`.
+[`libs/primitives`](../../libs/primitives/src/style.css)'s stylesheet third and
+[utilities.css](../../apps/site/src/styles/utilities.css) fourth, and neither is inside an `@layer`.
 `utilities.css` layers part of itself and `libs/primitives` layers none of itself, so every rule in
-the second is unlayered and, by [architecture/css/layers.md](architecture/css/layers.md)'s count, nineteen of the
+the second is unlayered and, by [architecture/css/layers.md](../architecture/css/layers.md)'s count, nineteen of the
 twenty-seven selectors in the first are too -- and an unlayered rule outranks every layered one.
 That is the fourth participant that file already records for `utilities.css`, now confirmed by
 measurement for `libs/primitives` rather than inferred from the import form. So a surface named
@@ -970,7 +941,7 @@ across the site and does not clear it inside one layer.
 
 ## The visual layer has two filename conventions and only one of them is the compiler's
 
-[vocabulary.stylex.ts](../apps/site/src/lib/vocabulary.stylex.ts) carries a vendor's name in its
+[vocabulary.stylex.ts](../../apps/site/src/lib/vocabulary.stylex.ts) carries a vendor's name in its
 filename because `defineConsts` refuses to hash a module spelled any other way, and its own doc
 comment says exactly that: the filename is the compiler's, not this repository's. The module
 holding composed styles has no such requirement -- `stylex.create` hashes from the declaration and
@@ -998,7 +969,7 @@ it.
 The entry on one border and two spellings counts `borderWidth` as `1px` ten times and `0.0625rem`
 seven, and reads the split as a scale nobody named. Naming the surfaces says something the count
 could not: the split is not scattered. Every one of the eight sites of
-[`surfaces.paper`](../apps/site/src/lib/surfaces.ts) writes `1px` -- the three block frames, the
+[`surfaces.paper`](../../apps/site/src/lib/surfaces.ts) writes `1px` -- the three block frames, the
 menu, the popover, the modal, the search panel and the newsletter's pill -- and every one of the
 three sites of `surfaces.interactive` writes `0.0625rem` -- the repository card, the tweet card and
 the support pill. Neither group has an exception.
@@ -1045,8 +1016,8 @@ visited and left.
 
 The counts say how narrow this instance was and how wide the shape is. Ten declarations across the
 site sit under a pseudo-element block, in three keys: `chainMarker`, and the `::placeholder`
-colours in [newsletter.svelte](../apps/site/src/lib/newsletter/newsletter.svelte)'s field and
-[dialog.svelte](../apps/site/src/lib/search/dialog.svelte)'s query. The other two hold token
+colours in [newsletter.svelte](../../apps/site/src/lib/newsletter/newsletter.svelte)'s field and
+[dialog.svelte](../../apps/site/src/lib/search/dialog.svelte)'s query. The other two hold token
 colours only, so three was the whole of the miss. Conditional values are much the larger half and
 were not missed, which is luck rather than design -- the value-naming step happened to read them.
 
@@ -1061,7 +1032,7 @@ is invisible every time, which is the argument for writing it down rather than r
 
 Seven components wrote `background-color: var(--color-page)` with `color: var(--color-text)`, and
 in five of them those two were the whole style object. They read
-[`surfaces.page`](../apps/site/src/lib/surfaces.ts) now, which removes the duplication and leaves
+[`surfaces.page`](../../apps/site/src/lib/surfaces.ts) now, which removes the duplication and leaves
 the question underneath it untouched.
 
 The question is why a route declares the ground at all. Every one of the thirteen addresses puts
@@ -1083,13 +1054,13 @@ colour moves.
 
 ## The vocabulary counts components and a recipe is not one
 
-[architecture/css/extraction.md](architecture/css/extraction.md) admits a value to the vocabulary at three components.
+[architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at three components.
 `0.125rem` as a `border-radius` is written in two of them --
-[cargo.svelte](../apps/site/src/lib/blocks/cargo/cargo.svelte) and
-[tokei.svelte](../apps/site/src/lib/blocks/tokei/tokei.svelte), the second twice -- and now in
-[`surfaces.quietControl`](../apps/site/src/lib/surfaces.ts) as well, which is a third file and not
+[cargo.svelte](../../apps/site/src/lib/blocks/cargo/cargo.svelte) and
+[tokei.svelte](../../apps/site/src/lib/blocks/tokei/tokei.svelte), the second twice -- and now in
+[`surfaces.quietControl`](../../apps/site/src/lib/surfaces.ts) as well, which is a third file and not
 a third component. It is Tailwind's `--radius-xs`, the one step of that scale
-[`vocabulary.stylex.ts`](../apps/site/src/lib/vocabulary.stylex.ts) does not name, and the reason
+[`vocabulary.stylex.ts`](../../apps/site/src/lib/vocabulary.stylex.ts) does not name, and the reason
 it does not is that it was below the bar on the day the scale was written.
 
 Whether a recipe counts toward the bar is the question, and it is not the same question as whether
@@ -1104,7 +1075,7 @@ after this one, which is why it is here rather than settled in passing by whoeve
 `surfaces.quietControl` is the visual half of what was one CSS rule. The other half -- `-mx-1
 inline-flex items-center px-1 py-0.5` -- is Tailwind utilities that each of the seven call sites
 carries in its own markup, because that half is layout and the markup is where layout lives. The
-split is what [architecture/css/layers.md](architecture/css/layers.md) requires and the halves are in the right
+split is what [architecture/css/layers.md](../architecture/css/layers.md) requires and the halves are in the right
 places.
 
 What went with it is that the rule could not be half-applied and the recipe can. Composing
@@ -1122,232 +1093,16 @@ markup string composes.
 
 ## Whether a clip and a picture should draw one frame is a question about `blockFrame`'s users
 
-[architecture/css/extraction.md](architecture/css/extraction.md) records why a video clip takes `picture.svelte`'s 2px
-edge and 1rem corner rather than [`surfaces.blockFrame`](../apps/site/src/lib/surfaces.ts)'s
+[architecture/css/extraction.md](../architecture/css/extraction.md) records why a video clip takes `picture.svelte`'s 2px
+edge and 1rem corner rather than [`surfaces.blockFrame`](../../apps/site/src/lib/surfaces.ts)'s
 hairline and `radius.xl`: its neighbour in a column of prose is almost always a picture, and two
 different corners side by side would read as a mistake. Left open is whether the site should have
 one answer for both media boxes instead of two, which is a question about who else draws
 `blockFrame` rather than about the clip alone.
 
-## A total function answers for input it does not know, and is wrong instead of failing
-
-[`extension::for_variant`](../apps/cms/src/extension.rs) maps a mime type to the extension a
-stored file is named by. It returns `&'static str` rather than an option, and its own doc says
-why: "Total rather than optional: the encoder only ever produces these, and anything unrecognised
-is AVIF because that is what the ladder stores." That was true of a repository storing one kind of
-asset. It stopped being true when video landed, and the function did not change, because nothing
-about its signature could tell it had.
-
-**What it does with a mime it does not know is answer `avif`.** So `for_variant("video/mp4")` is
-`"avif"`, and a caller that hands it a clip's variant gets back a path under `image/` with an
-extension nothing ever wrote. The failure has no error to surface and no branch to test: the
-function cannot fail, so the caller cannot check, so the wrong path flows to `is_file()`, which
-answers false, which reads as "this asset is not published yet".
-
-It has already produced one bug of exactly that shape. `published()` in
-[`image/run.rs`](../apps/cms/src/image/run.rs) was written as
-`variant_path(public, cid, extension::for_variant(&record.mime)).is_file()`, which is correct for
-every picture. Copied into the video command unchanged -- the natural thing to do, because it
-reads as a general question about a record -- it asks whether `{ab}/{cd}/{cid}.avif` exists for a
-rung that lives at `{ab}/{cd}/{cid}.mp4`, one tree and one id apart only by extension. It answers
-false on every run, and the
-command re-encodes a clip that is already on disk. Nothing raises, nothing logs, and the only
-symptom is that a run which should be a no-op takes minutes.
-
-The shape is what invites this rather than any one call site. A function that takes a mime and
-cannot fail reads as a function that knows every mime, so it gets called on mimes it does not
-know, and the answer it gives is indistinguishable from an answer it does know. The separate
-`for_icon` beside it is `Option`-returning for a reason its own doc gives -- a `Content-Type` from
-a server nobody controls -- and the two sit in one file disagreeing about whether an unknown type
-is a value or a question.
-
-**What deciding it would cost.** The narrow reading is that `for_variant` is named for an image
-variant and video should never have reached it, so the fix is at the call sites and the function
-is fine. The wider reading is that a total function over an open input set is the defect, and
-`for_variant` should return `Option<&'static str>` with the AVIF default moved to the one caller
-that wants it -- which is every image path, so the change is small in edits and large in what it
-asserts. Both readings leave a picture, a rung and a track needing a mime-to-extension answer
-each, and there is no longer a tree in the key to tell them apart -- the extension is the whole of
-it. Neither is worth doing while the video commands are still landing, because the call sites are
-what would move.
-
-## The homepage lists every article, and will not be able to for long
-
-`+page.svelte` renders one card per article the API answers with, and the API answers with all of
-them. Six today. The intent is a fold -- five, or thereabouts -- and a route carrying the rest,
-and none of that is decided: whether the fold is a count or a date, whether the full list is
-paginated or one page, whether it has its own card and its own place in the sitemap, and what a
-reader on a phone sees instead of a hover.
-
-It is written down here because two things already built assume the list is short and will quietly
-stop being right. The homepage warms every article it lists on a device with no pointer, which is
-sound for six and wasteful for sixty; and the read-count batcher carries up to 24 keys, which is a
-number chosen against today's list rather than against anything. Both follow whatever the fold
-turns out to be, so neither is worth changing before it is decided.
-
-## The licence surface is eight addresses and one baked record
-
-`/licenses`, `/licenses/{spdx}`, `/licenses/pkgs`, `/licenses/pkgs/{registry}`,
-`/licenses/pkgs/{registry}/{package}`, `/licenses/{registry}/{name}@{version}.txt`,
-`/licenses/full.txt` and `/licenses.txt` are eight public addresses across thirteen route files.
-Nothing else this site serves spends that much of its URL space on one subject, and the subject is
-a dependency list.
-
-Behind them, the `virtual-licenses` plugin in [vite.config.ts](../apps/site/vite.config.ts) bakes
-`data/build/licenses.json` into the server bundle. Measured on a production build: 482KB raw and
-71.7KB gzipped, the largest chunk the Worker carries after the corpus itself -- ahead of
-`index-server.js` at 40.6KB and `surfaces.js` at 36.5KB. Only the metadata travels; the licence
-texts are already published objects the CDN serves.
-
-What makes it a finding rather than a preference is that the record sits on the wrong side of a
-line this repository is in the middle of drawing. It is derived from the lockfile by a pure
-function, so nothing is lost by regenerating it, which is the test that sends a generated record
-out of git and into R2. It is also the only such record with a consumer at request time. So the
-classification reaches it, and the answer it gives -- publish it as an artifact and fetch it like
-any other -- is an answer about a surface nobody has decided to keep.
-
-**One piece has already been taken, and it was the expensive one.** The surface had an OpenGraph
-card per licence, per registry and per package, in each of the nine views: 6804 files and 518 MiB,
-87% of everything the bucket held. Those are gone and the routes are not -- see
-[architecture/media.md](architecture/media.md), "The licence routes have no card". It narrows
-nothing about the addresses; it stops an undecided surface from being the largest thing published.
-
-**What deciding it would cost.** The intent is two or three addresses rather than eight, and which
-ones is open: a single page carrying the directory inline, or a page plus the text endpoints that
-exist for machines rather than readers. Whatever survives decides what the record has to be, which
-is why it is held out of the move rather than carried through it and rebuilt afterwards. The cost
-of waiting is that `data/build/licenses.json` stays in git while every other pure derivation
-leaves; the cost of not waiting is migrating a payload onto a surface that is about to lose most
-of it.
-
-## The site's non-page routes are SvelteKit's, and every other worker's are hono's
-
-`apps/api` and `apps/cdn` are hono. `apps/site` is not, and it serves eight `+server.ts` routes
-plus a handle that answers `<url>.md` before the router sees it:
-
-| Route                                                           | Answers                                     |
-| --------------------------------------------------------------- | ------------------------------------------- |
-| `/atom.xml`                                                     | the assembled feed                          |
-| `/sitemap.xml`                                                  | the assembled sitemap                       |
-| `/llms.txt`                                                     | the assembled index                         |
-| `/robots.txt`                                                   | a constant                                  |
-| `/{key}.txt`                                                    | the IndexNow key                            |
-| `/licenses.txt`, `/licenses/full.txt`, `/licenses/{...package}` | licence text                                |
-| `<url>.md`                                                      | an article's source, from `hooks.server.ts` |
-
-The intent is that a page stays SvelteKit's and everything else becomes one hono app mounted
-inside it, so that every non-HTML response this project serves is written the same way: one
-router, one `failure` helper, one place a cache header is decided. Today the site answers those
-questions in eight files and a handle, none of which share the helpers `apps/api` and `apps/cdn`
-already have.
-
-**What has to be decided before it can be done.** Where the hono app is mounted -- a catch-all
-`+server.ts` forwarding `event.request`, or `handle` in `hooks.server.ts` ahead of the router --
-and the two differ in what they can reach. Hono would not have `event.fetch`, which is what makes
-a same-origin subrequest work in SSR and what `$lib/published` takes as an argument, so that has
-to be passed in rather than imported. `<url>.md` is the awkward one: it is a suffix on every
-page's path rather than a route, so it is the case that decides whether the mount point can be a
-route at all. And whether the licence text routes survive the surface decision above is open, so
-there is no reason to move them first.
-
-## The compiler still lives in the application that stopped using it
-
-`apps/site/src/lib/content/build/` is 2,900 lines that turn markdown into blocks: `compile.ts`
-alone is 1,210, with `articles.ts`, `assets.ts`, `assemble.ts`, `width.ts` and `highlight.ts`
-beside it. After the move to published objects, nothing in the site's Worker or its browser
-bundle imports any of it. Its only caller is `apps/site/scripts/publish.ts`.
-
-So it sits in an application that does not use it, under a path that says it is part of one.
-Nothing misbehaves: `scripts/` is not bundled, the code is unchanged, and `tsconfig.scripts.json`
-checks it where it stands. It is a name that has stopped describing its contents.
-
-Where it should go is the open part, and the candidates are not equivalent.
-[architecture/cms.md](architecture/cms.md) says content operations belong below both of the CMS's
-shells, which would make this the CMS's -- but the CMS is Rust, and
-[i18n/segments.md](i18n/segments.md) refuses to reimplement remark's canonical form in a second
-language, so the CMS would be reaching it by subprocess. A package of its own under `libs/` is the
-other candidate and is cheap, and it would make the publish step a consumer like any other rather
-than the owner by accident.
-
-**What deciding it would cost.** The move itself is mechanical -- one directory, one caller, and
-the type surface already left for `libs/artifacts`. What it settles is whether the CMS owns
-compilation, which is a question about the CMS's boundary rather than about this directory, and
-answering it in passing while moving files is exactly how a boundary gets decided by whoever was
-holding the mouse. Not worth doing during the migration that created the situation, because the
-publish step is what would move.
-
-## Publishing is a mise task and cannot become a CMS button
-
-[architecture/cms.md](architecture/cms.md) draws the line plainly: a view that has found
-outstanding work shows the command that closes it, and that command becomes a button only once
-the operation has moved below both shells and the task substrate can report its progress and
-refuse a second copy. `publish` is `mise run publish lattice` and lives below neither shell, so the
-CMS may name it and may not run it.
-
-It is exactly the class that rule was written for. It runs for as long as the corpus takes to
-compile, it writes into `data/` and then across the network, and two copies racing over one tree
-is the failure the substrate exists to refuse. It differs from the paid sweeps in only one way:
-it spends time rather than money, which makes an accidental second run cheaper, not safe.
-
-**What deciding it would cost.** Moving it means an in-process application operation in Rust with
-a TypeScript compile behind it, which is the subprocess boundary
-[i18n/segments.md](i18n/segments.md) already accepts in the other direction and cms.md has not
-ruled on in this one. The entry above, on where the compiler lives, is the same question arriving
-from the other side -- and answering either one first mostly decides the other. Neither is worth
-taking while the publish path is still new enough that its shape may move.
-
-## A clip is the one resource reference the compiler still resolves into bytes
-
-[architecture/resource.md](architecture/resource.md), "A rid is resolved three times", says a
-compile may bake the article's own shape and nothing derived from a resource's current content.
-Two of the three references that name a resource now obey it: `::linkcard`'s mark and `::image`'s
-picture compile to a rid under `resources` and are resolved per render. `::video` does not. Its
-block carries `src` as a rid and then, beside it, `rungs` with absolute CDN URLs, `poster` as
-another, `preview`, `width`, `height`, `gain` and `captions` -- every one of them a fact about what
-the clip currently holds. Measured on `hindsight/except-me`: 15 image blocks contribute 15 rids to
-`namedResources` and its 3 video blocks contribute none, because a `video` block has no `resources`
-key for the collector to read.
-
-The consequence is the one that paragraph exists to name: re-encoding a clip rewrites the `rungs`
-inside every content object that plays it, so the object's id moves and the article is republished
-for a change the article did not make. It is also the reason an editor that runs online cannot yet
-write a clip reference -- the write would need a recompile to take effect.
-
-**What deciding it would cost.** The record side is ready: `media.video.clip` is in the catalogue
-with its rungs and caption tracks, and `media.image.frame` already points at its clip through
-`source`. What is not settled is which of a clip's several references are roles on one block --
-the clip and its poster frame are two resources, and `namedResources` reads a map, so
-`{ clip, poster }` is the shape it is waiting for -- and whether the player's fallback for a
-reference nothing has imported survives the move, since today that fallback is "the resolved
-fields are absent" and after it would be "the record is absent". Both are decisions about the
-player rather than about the resolution path, which is why the two loops that built that path
-stopped at the edge of them.
-
-## The resolution path on the site has no tests, because the site's modules do not resolve under vitest
-
-`apps/site/src/lib/published/` is where a rid becomes a record: the batch question, the split at
-what one request carries, the memo, and the two cache windows that decide what is stored after a
-miss and after an outage. Nothing in it is covered. Every test under `apps/site` imports by
-relative path and none touches `$lib` or `$app`, and that is not a convention -- the root
-`vitest.config.ts` declares no alias for either, so a test that imported `$lib/published` would
-fail to resolve before an assertion ran.
-
-The behaviour was verified by execution rather than by assertion while this was written: driving
-`publishedResources` against a recording fetch under a throwaway config shows one question for a
-page, a rid the corpus does not publish stored and not asked for again, nothing stored at all when
-the API cannot be reached, and a 65-rid page split into 64 and 1 rather than refused. Each of those
-was confirmed to fail when the behaviour behind it was removed. None of it is committed.
-
-**What deciding it would cost.** Three aliases -- `$app/environment`, `$lib`, and a stub for
-`@tanstack/svelte-query`, which publishes `.svelte` source that Node cannot load. The first two are
-a line each. The third is the decision: either a stub module that every test in the workspace would
-then resolve to, or `@sveltejs/vite-plugin-svelte` in the root config, which pulls the site's whole
-Svelte pipeline into `apps/cdn`'s test run as well. Neither is a change to make as a side effect of
-a task about batching.
-
 ## The dissolution section's argument stopped following from its premise
 
-[architecture/css/layers.md](architecture/css/layers.md), "`utilities.css` is dissolved, not given
+[architecture/css/layers.md](../architecture/css/layers.md), "`utilities.css` is dissolved, not given
 a position", settles the question this way: **every rule in it belongs to a layer that already
 exists, so the file has nothing left to be.** That inference held while "a layer that already
 exists" meant a layer somewhere other than this file. "The frame is a stack, and a declaration
@@ -1369,15 +1124,15 @@ Checked against the tree on 2026-09-21:
 
 - `.article-rail`, `.article-column`, `.meta-language` and the `:lang()` prose rules on
   `:is(.article-content, .article-summary)` stay in `@layer components`, by
-  [architecture/css/layers.md](architecture/css/layers.md), "A frame declaration the markup cannot
+  [architecture/css/layers.md](../architecture/css/layers.md), "A frame declaration the markup cannot
   show stays in a frame stylesheet". They are the frame and they are already in it, so there is
   nothing to move.
 - `focus-link`, `spring-underline`, `article-link` and `jump-target` stay hand-written recipes,
   by that file's "A layer is not a mechanism", condition (a). All four are written by
-  [compile.ts](../apps/site/src/lib/content/build/compile.ts), which cannot reach StyleX.
+  [compile.ts](../../apps/site/src/lib/content/build/compile.ts), which cannot reach StyleX.
 - `.selectable` is gone rather than moved: no rule and no call site is left anywhere in the tree.
 - The `.focus-input` family is in the escape hatch in
-  [newsletter.svelte](../apps/site/src/lib/newsletter/newsletter.svelte), and no `focus-input` rule
+  [newsletter.svelte](../../apps/site/src/lib/newsletter/newsletter.svelte), and no `focus-input` rule
   remains in `utilities.css`.
 - The focus families and the interface classes are decided for a layer of their own and the move
   has not landed. Read here, they are still in `utilities.css`'s and `app.css`'s
@@ -1385,7 +1140,7 @@ Checked against the tree on 2026-09-21:
 
 **What is not answered is whether the file empties at all**, and that is the whole of what is left
 of this entry. With those groups staying and the `:root` rail tokens going to
-[libs/tokens](../libs/tokens) under the entry below, what remains in `utilities.css` is a question
+[libs/tokens](../../libs/tokens) under the entry below, what remains in `utilities.css` is a question
 for whoever picks it up rather than a backlog item with a known answer. The count that was here --
 26 rule blocks, 18 unable to move on the rules as they stood and 2 awaiting a decision -- predates
 every ruling above and is evidence of nothing now; counting again is the first thing that work
@@ -1397,7 +1152,7 @@ would arrive at.
 ## `libs/tokens` is where a `:root` block goes, and only one kind has been tested there
 
 The same file sends a `:root` block declaring nothing but custom properties to
-[libs/tokens](../libs/tokens), "which is where a value gets a name". The load-bearing half is
+[libs/tokens](../../libs/tokens), "which is where a value gets a name". The load-bearing half is
 "not a layering question at all" -- that is what stops the block being weighed against the three
 questions. The destination half is an example that generalised.
 
@@ -1412,18 +1167,18 @@ reference check validates markdown links, `spec/**/*.md` cited from code, and qu
 a path written inside a Rust doc comment or a CSS comment is in its not-flagged set, whichever end
 it points at. The four, with what each names:
 
-- [width.rs](../apps/cms/src/i18n/width.rs):253 gives `--rail-column` and the path
+- [width.rs](../../apps/cms/src/i18n/width.rs):253 gives `--rail-column` and the path
   `apps/site/src/styles/utilities.css`, deriving `DESKTOP_TITLE` and `DESKTOP_SUBTITLE` from it.
-- [width.rs](../apps/cms/src/i18n/width.rs):12-17, above `ONE_LINE`, gives `--rail-width` and says
+- [width.rs](../../apps/cms/src/i18n/width.rs):12-17, above `ONE_LINE`, gives `--rail-width` and says
   "Move that declaration and move this" -- with **no path at all**. There is nothing here for a
   check to validate even if one read Rust comments, and nothing for a reader to follow either.
-- [utilities.css](../apps/site/src/styles/utilities.css):84, in the `--rail-width` comment, gives
+- [utilities.css](../../apps/site/src/styles/utilities.css):84, in the `--rail-width` comment, gives
   `ONE_LINE` and the path `apps/cms/src/i18n/width.rs`.
-- [utilities.css](../apps/site/src/styles/utilities.css):88, in the `--rail-column` comment, gives
+- [utilities.css](../../apps/site/src/styles/utilities.css):88, in the `--rail-column` comment, gives
   `budget::DESKTOP_TITLE`, `DESKTOP_SUBTITLE` and the same path.
 
 **Two of the four carry something that is checked, and they are the same two.** The `--rail-width`
-pair -- `width.rs`:12-17 and `utilities.css`:84 -- each cite [styling/rail.md](styling/rail.md),
+pair -- `width.rs`:12-17 and `utilities.css`:84 -- each cite [styling/rail.md](../styling/rail.md),
 "The rail's box is one declared width", and a quoted section name is checked. The `--rail-column`
 pair cite no spec section at all, so nothing in either comment is verified by anything. The half
 that holds itself up is the pointer to the argument, never the pointer to the other language.
@@ -1433,7 +1188,7 @@ file beside it, and nothing will say they forgot any of the four.
 
 ## The three-component threshold is a memory, and nothing counts the components
 
-[architecture/css/extraction.md](architecture/css/extraction.md) admits a value to the vocabulary at
+[architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at
 three components, and a declaration group on the same bar plus one more. Nothing counts them. Every
 admission and every refusal so far is a number somebody held in their head at the moment they wrote
 the value, and whoever reads the result inherits the conclusion without the count.
@@ -1452,7 +1207,7 @@ that has to be right on the days nobody is thinking about it.
 
 ## The enumeration is normative and the code has drifted from it
 
-[architecture/css/layers.md](architecture/css/layers.md), "The enumeration is the rule, and the test
+[architecture/css/layers.md](../architecture/css/layers.md), "The enumeration is the rule, and the test
 is only how the enumeration grows", makes the property list the thing that decides, on the argument
 that a lookup can be checked by somebody who was not in the argument. The list is prose inside
 paragraphs, so nothing reads it, and nobody has checked it.
@@ -1470,7 +1225,7 @@ line all sit beside entries a machine would rather have alone.
 
 ## The `// unnamed:` ledger has no entries and no counter
 
-[architecture/css/authoring.md](architecture/css/authoring.md), "An unnamed ramp value is marked, so
+[architecture/css/authoring.md](../architecture/css/authoring.md), "An unnamed ramp value is marked, so
 it can be counted", asks for a mark beside every ramp property written with a literal and a gate
 that prints the total. Measured 2026-09-21: the tree carries zero marks, and no task counts
 anything. The convention is written and unused, which is worse than either half alone -- a reader
@@ -1482,23 +1237,6 @@ sources against 145 taking a named value, plus 27 in stylesheets outside the vis
 `libs/fonts` is excluded, where the same property names are `@font-face` descriptors and not a ramp
 at all. Which of those sets the gate should count is part of what deciding this costs, and the
 number moves by a factor of two depending on the answer.
-
-## A commit said less than it carried, because the paths were a directory
-
-`72f00943`, "fix: the twenty-six frame declarations leave the visual layer", also carries six
-`:global()` selectors narrowed to their attribute form in `article.svelte` and `body.svelte`, and
-the matching class writes removed from `compile.ts` and its test. Those belong to the anchor
-migration's second step, not to the utilities move, and the message names only the second thing.
-
-**The cause is the commit, not the workers.** It was taken as `jj commit apps/site/src ...` while
-two workers were writing in that tree, and a path list takes everything under the path rather
-than the change the message describes. The workspace's `spec/toolchain.md` already says a path
-list silently omits what it does not name; this is the same mechanism running the other way, and
-reading `jj st` in full before committing is what catches both.
-
-Nothing is wrong in the tree -- both changes were verified and both are wanted. What is wrong is
-that the log no longer separates them, so a bisect over the anchor migration lands on a commit
-about utilities.
 
 ## A keyframe in the vocabulary empties a StyleX layer, and no gate sees it
 
@@ -1536,23 +1274,6 @@ do the eight keyframes a survey found otherwise movable. That is a larger floor 
 concluded, and the reason is a defect rather than a capability. A measured-working mermaid sits in
 the session scratchpad; it was reverted rather than landed red.
 
-## A commit subject says sixteen rules where twelve were moved
-
-`d662919f`, "refactor: sixteen ordinary scoped rules become utilities and surfaces", is wrong in
-its subject and right in its body. Twelve rules were acted on, not sixteen; the body's figures --
-twenty-six declarations, eighteen StyleX keys, thirteen markup tokens -- are machine-checked and
-stand. The census reads 33 ordinary rules before and 24 after, because three of the twelve were
-split rather than moved: `github`'s and `twitter`'s `.corner` still hold `right`/`bottom` and
-`dial`'s `.face` still holds `place-items`, all three unruled by the enumeration.
-
-The arithmetic that makes 33 whole, since a later reader will try: 12 moved, 13 keyframe-bound,
-1 `.focus-input` held by its own section, and 7 held by rules already written down -- the code
-block's three by migration.md's set rule, tokei's two by this file, `support`'s `.reveal-mask` by
-that same set rule, and `footnotes`' `.notes-fold:not(...)` whose only declaration is an unruled
-`mask-image`.
-
-**Declarations are the honest unit here**, because a rule that splits is neither moved nor kept.
-
 ## The scoped census does not descend into `:not()`
 
 `census.mjs`, the survey's scan, records `:not` as a reason a rule is relational without reading
@@ -1560,99 +1281,3 @@ its argument, so `footnotes.svelte`'s `.notes-fold:not([data-phase='expanded'])`
 ordinary despite the attribute selector inside it. It changed nothing this time -- that rule
 carries `mask-image`, which the enumeration cannot answer for, so it stayed either way -- but the
 next `:not()` wrapping something the scan cannot express will be mis-sorted the same way.
-
-## An article written in English is told it has no English version
-
-Open `/hindsight/except-me` or `/convention/forecast-tense` in the English interface and the
-translation notice reads "No English version of this article yet. What is shown is English (US)".
-Both carry `lang: en`, so the sentence contradicts itself in the one place a reader sees.
-
-It is not in the server's markup -- `grep translation-notice` over either response returns
-nothing -- so it arrives at hydration, from `article.svelte`'s
-`{#if locale.code !== 'mw'}` around the notice. That test asks whether the reader is looking at a
-non-default locale; it never asks whether the article's own `lang` already is that locale. For a
-corpus written mostly in Chinese the two questions had the same answer, and the first article in
-English made them differ.
-
-The fix is a condition, not a message: the notice belongs where the view's locale differs from
-`meta.lang`, which the component already receives as `sourceLanguage`. Worth checking at the same
-time what the notice should say on a `lang: en` article viewed in Chinese, since that is the
-mirror case and nothing has exercised it either.
-
-## A table head wants a ground that stays the darker one in both themes
-
-A Markdown table draws two grounds, and the reading the head is supposed to carry is a band set
-behind its rows. That only happens while the head is the deeper of the two, and the palette cannot
-promise it -- [styling/surfaces.md](styling/surfaces.md), "A mirrored pair cannot keep one of its
-members the darker one". With head `paper` the band is right in dark and inverted in light; with
-head `paper-hover` it is right in light and inverted in dark. The current assignment is the second,
-chosen by looking at both and preferring the light half, not by an argument that settles it.
-
-Three repairs were tried against the running site and each one is a trade rather than a fix.
-Swapping the component's two tokens, which is what the current assignment is, moves the inversion
-from light to dark rather than removing it. Swapping the palette's
-two light values makes both tables right and costs the homepage thumbnail, which stops being a
-white sheet and becomes a grey one on a lighter page, along with every card and the light hover
-feedback. Giving the head a border instead of a ground was not built; it changes what the block is
-rather than which colour it takes, so it belongs to whoever decides the table's shape.
-
-Deciding it costs a token pair. A band that must always recede needs two values of its own that do
-not mirror -- roughly 0.962 and 1.000 in light, 0.157 and 0.213 in dark, which is the existing pair
-with the two themes crossed over. That is a fourth and fifth entry in a palette whose argument is
-that it has one home for a colour, and it is worth spending only if a second band turns up. So far
-the table is the only one.
-
-## A wrap policy is one decision per language, and the paragraph is where it is wanted
-
-[styling/prose.md](styling/prose.md) settles where a line ends per language and per column width,
-and both halves hold. What it has no way to say is that one paragraph wants a different answer from
-the one beside it, and that is the case English keeps producing: a two-line paragraph whose second
-line carries three words. Measured on `convention/forecast-tense` at the 672px column, five of its
-twelve multi-line paragraphs end on a line holding between 16% and 32% of the column; the whole
-article is nineteen paragraphs and thirty-four lines, so the shape is most of what a reader sees.
-
-`text-wrap: pretty` does not reach this. Measured over that article it scores identically to the
-browser's default -- same lines, same stranded finals -- because rescuing a three-word final line
-means loosening the line above it, and that is the trade `pretty` declines. `balance` is the
-property that makes the earlier lines shorter, and applied to the whole article it costs what
-prose.md already says it costs: the mean gap on non-final lines goes 3.1% to 24.3% and eleven of
-twenty-two lines stand more than an eighth short.
-
-**Applied per paragraph instead, the same property costs about half.** Marking only the paragraphs
-whose final line falls under a threshold, measured on `architecture/compile-time-rendering` --
-forty-nine paragraphs, 224 lines, no extra lines at any setting:
-
-| threshold      | marked | short finals | mean gap | loose lines |
-| -------------- | ------ | ------------ | -------- | ----------- |
-| none, as it is | 0      | 8            | 2.0%     | 0           |
-| 15%            | 3      | 5            | 3.2%     | 10          |
-| 20%            | 4      | 4            | 3.6%     | 13          |
-| 30%            | 6      | 2            | 4.2%     | 21          |
-| 40%            | 8      | 2            | 4.7%     | 26          |
-| whole article  | 49     | 2            | 7.9%     | 40          |
-
-Two paragraphs survive every threshold because Chromium stops balancing past six lines; the two
-are eleven lines and eight. A system that marks paragraphs should not mark those -- the declaration
-would be inert and the marking would lie about what the page does.
-
-**The rule cannot be written in CSS, and that is the whole shape of the problem.** A selector
-cannot ask how long a line came out, so something that can see the layout has to decide, and only
-then does CSS execute the answer under a policy name. Three places could decide. The browser, with
-the `measured()` mechanism [styling/first-paint.md](styling/first-paint.md) already uses for the
-table of contents rail -- exact at any width, at the price of a first frame that reflows and of
-JavaScript in the reading path. The compile step, laying the text out with the real font at the one
-column width that is fixed -- exact only if its line breaking agrees with the browser's, and unable
-to say anything about the narrow column, whose width is the device's. Or a character count, which
-was measured and is not viable: predicting from characters per line picked two of four paragraphs
-on the short article and three of eight on the long one, with seventeen false positives.
-
-That the fixed column and the per-paragraph decision share a boundary is not a coincidence. A
-paragraph can only be judged where the column is a known number, which is `--rail-column` and
-above -- exactly where `pretty` already lives.
-
-What deciding it costs: a named policy per language, which is the shape prose.md already has; an
-optional per-paragraph override in the compiled article, which is a change to the block contract in
-`libs/artifacts` and to both ends that read it; and a measuring layer chosen from the three above.
-The threshold is a constant in whichever layer measures, and the table above is what it should be
-argued from. The language half stays as it is: English opts in, every other language keeps one
-answer per article until somebody measures it.

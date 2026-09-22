@@ -57,7 +57,7 @@ One Light does not.
 Cargo's and Mermaid's, exempted for the reason those are --
 [architecture/css/authoring.md](../architecture/css/authoring.md), "Colour is never retyped" --
 and the open question about where such a palette should live is
-[todo.md](../todo.md), "Tokei draws from a palette of its own, and it is the third one".
+[css.md](../todo/css.md), "Tokei draws from a palette of its own, and it is the third one".
 
 **A theme change is a recompilation of the corpus, not a deploy.** The colours are resolved while
 an article is compiled and stored in its published object, so nothing on a reader's machine can

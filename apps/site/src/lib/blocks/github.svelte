@@ -8,7 +8,7 @@
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The corner glyph's other opacity is in the block at the foot, gated on the card's hover and
-	 * reaching a descendant this layer cannot see without a marker nobody owns yet (spec/todo.md).
+	 * reaching a descendant this layer cannot see without a marker nobody owns yet (spec/todo/todo.md).
 	 * The opacity it rests at, and the motion between the two, are here. This comment may not
 	 * write a tag in angle brackets; see the same file.
 	 */
@@ -251,7 +251,7 @@
 
 	/* The glyph's other opacity, gated on the card's own hover one level up. That is an ancestor,
 	   and an ancestor is what the visual layer cannot see without a marker nobody owns yet. See
-	   spec/todo.md. */
+	   spec/todo/todo.md. */
 	.repo-card:hover .corner,
 	.repo-card:focus-visible .corner {
 		opacity: 1;

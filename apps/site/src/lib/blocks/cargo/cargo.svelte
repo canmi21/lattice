@@ -8,7 +8,7 @@
 	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a local mirror this
-	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on the tooltip (spec/todo.md,
+	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on the tooltip (spec/todo/todo.md,
 	 * "A shadow is one utility, two declarations and four variables the visual layer cannot
 	 * restate").
 	 */
@@ -67,7 +67,7 @@
 		 * One of the three registry links in the footer.
 		 *
 		 * One property transitions, so the four lists are single-item and `transition-behavior` is
-		 * left to the initial value the shorthand also set. See spec/todo.md, "A `transition`
+		 * left to the initial value the shorthand also set. See spec/todo/todo.md, "A `transition`
 		 * shorthand sets five lists and the migrated form writes three".
 		 */
 		link: {

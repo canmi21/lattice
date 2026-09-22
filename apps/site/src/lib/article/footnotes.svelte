@@ -8,7 +8,7 @@
 	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The block below keeps what a class cannot reach: the fold's mask and its two phase rules, the
-	 * `:global` marker rules, and the note-link's hovered colour -- see spec/todo.md, "Ancestor
+	 * `:global` marker rules, and the note-link's hovered colour -- see spec/todo/todo.md, "Ancestor
 	 * state reaches the visual layer only through a marker nobody owns". This comment may not
 	 * write a tag in angle brackets; see the same file.
 	 */
@@ -104,7 +104,7 @@
 		 * brightens whole under the pointer, so hovering anywhere on those words says so.
 		 *
 		 * Only the resting colour and the motion toward the other one are here. The brightened
-		 * value is reached through the note, which is an ancestor -- see spec/todo.md, "Ancestor
+		 * value is reached through the note, which is an ancestor -- see spec/todo/todo.md, "Ancestor
 		 * state reaches the visual layer only through a marker nobody owns" -- so it stays in the
 		 * block, which outranks this layer and still wins.
 		 */

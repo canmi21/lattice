@@ -1,7 +1,7 @@
 /**
  * The values the visual layer repeats, each with one name, already written character for
  * character by three or more components -- a value only two share stays a literal. Two spellings
- * of one idea keep two names: they part company outside the default root size. See spec/todo.md.
+ * of one idea keep two names: they part company outside the default root size. See spec/todo/todo.md.
  *
  * `defineConsts`, never `defineVars`: a var group rewrites every reading declaration into a
  * `var()`, where a const inlines and leaves the declaration as written; only the hashed class
@@ -19,7 +19,7 @@ import * as stylex from '@stylexjs/stylex';
  * Tailwind's radius scale, which is where all five of these came from -- `--radius-sm` through
  * `--radius-xl`, and the pill. `624.9375rem` is the site's other pill and is deliberately
  * not here: it computes to a different number and it is the one value on the site that loses a
- * digit in serialisation. See spec/todo.md.
+ * digit in serialisation. See spec/todo/todo.md.
  */
 export const radius = stylex.defineConsts({
 	sm: '0.25rem',
@@ -36,7 +36,7 @@ export const radius = stylex.defineConsts({
  * and its `sm` step is `px14`. A t-shirt ladder would therefore have had to give those letters
  * meanings that disagree with the utilities the components' own comments still cite, so the
  * figure is the name and the unit stays `rem`. `px9` is the floor and a treemap tile is the only
- * thing down there: a ladder holds a step because it is one. See spec/todo.md.
+ * thing down there: a ladder holds a step because it is one. See spec/todo/todo.md.
  */
 export const text = stylex.defineConsts({
 	px9: '0.5625rem',
@@ -80,7 +80,7 @@ export const leading = stylex.defineConsts({
 
 /**
  * The body weight a reset puts back, Tailwind's medium, and the site's own step above it that no
- * utility writes. 600 is in the tree at one site and on none of these. See spec/todo.md.
+ * utility writes. 600 is in the tree at one site and on none of these. See spec/todo/todo.md.
  */
 export const weight = stylex.defineConsts({
 	normal: 400,
@@ -90,7 +90,7 @@ export const weight = stylex.defineConsts({
 
 /**
  * The tracking small uppercase takes, which is the site's one letter-spacing decision. The other
- * value in the tree is on lowercase at a single site, and is a different one. See spec/todo.md.
+ * value in the tree is on lowercase at a single site, and is a different one. See spec/todo/todo.md.
  */
 export const tracking = stylex.defineConsts({
 	caps: '0.02em',
@@ -109,7 +109,7 @@ export const figures = stylex.defineConsts({
  *
  * They are the same length at the default root size and at no other, so a reader who enlarges
  * text sees them part company. Which one a hairline should be is a real question and it is not
- * answered here. See spec/todo.md.
+ * answered here. See spec/todo/todo.md.
  */
 export const border = stylex.defineConsts({
 	hairlinePx: '1px',
@@ -133,7 +133,7 @@ export const easing = stylex.defineConsts({
  * Three of the ten are Tailwind's private gradient variables and this site sets none of them.
  * They stay because the measure of a migration is the computed value, and whether they belong in
  * our source at all is a question one name does not answer -- it only gives it one place to be
- * answered in. See spec/todo.md.
+ * answered in. See spec/todo/todo.md.
  */
 export const transition = stylex.defineConsts({
 	colors:
@@ -145,7 +145,7 @@ export const transition = stylex.defineConsts({
  *
  * Tailwind's theme variable carries Monaco, Liberation Mono and Courier New; the spelled-out one
  * does not, so a machine with Monaco and without Menlo renders two different fonts on one page.
- * Which is right is a question about the fonts rather than about the layering. See spec/todo.md.
+ * Which is right is a question about the fonts rather than about the layering. See spec/todo/todo.md.
  */
 export const family = stylex.defineConsts({
 	monoTheme: 'var(--font-mono)',

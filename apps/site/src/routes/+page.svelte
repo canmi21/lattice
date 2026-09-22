@@ -9,7 +9,7 @@
 	 *
 	 * The two link styles below say the same thing twice at two sizes. They are written out
 	 * rather than shared: a visual constant with two consumers wants a module of its own, and
-	 * where that module should live is the question spec/todo.md is already holding.
+	 * where that module should live is the question spec/todo/todo.md is already holding.
 	 */
 	const styles = stylex.create({
 		avatar: {
@@ -96,7 +96,7 @@
 	 * is warmed whole. `warmListed` decides that; a pointer device leaves here having done nothing.
 	 *
 	 * TODO: this list shows every article there is and wants folding. It warms what is on screen,
-	 * so it follows that change rather than needing to be found again. See spec/todo.md.
+	 * so it follows that change rather than needing to be found again. See spec/todo/todo.md.
 	 */
 	$effect(() => {
 		warmListed(

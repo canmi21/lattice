@@ -25,7 +25,7 @@ import {
  * not among them: no two of the eight agree on one. `borderStyle` is stated rather than omitted
  * -- see spec/architecture/css/extraction.md, "An omitted longhand is not its initial value when a
  * shorthand registered it". `hairlinePx` is what excludes the cargo and tokei tooltips, which draw
- * the same ground with `hairlineRem`. See spec/todo.md.
+ * the same ground with `hairlineRem`. See spec/todo/todo.md.
  */
 const paper = {
 	backgroundColor: 'var(--color-paper)',
@@ -52,7 +52,7 @@ export const surfaces = stylex.create({
 	 * The ground every route stands on: the page's own colour and the ink that inherits from it.
 	 * This removes the duplication of seven components writing the same two declarations, but not
 	 * the question underneath it -- one line on `body` would be the better repair. See
-	 * spec/todo.md, "The page ground is now one name, and the repair it is standing in for is one
+	 * spec/todo/todo.md, "The page ground is now one name, and the repair it is standing in for is one
 	 * line on `body`".
 	 */
 	page: {
@@ -75,7 +75,7 @@ export const surfaces = stylex.create({
 	/**
 	 * Bordered paper that answers a pointer: the repository card, the tweet card and the support pill
 	 * each darken the border and the ground on hover and focus. The `hairlineRem` is not a ruling
-	 * against `paper`'s `hairlinePx` -- see spec/todo.md, "Two named surfaces disagree about what a
+	 * against `paper`'s `hairlinePx` -- see spec/todo/todo.md, "Two named surfaces disagree about what a
 	 * hairline is, and each is internally consistent". `:hover` is bare, with no `(hover: hover)`,
 	 * matching the rules it replaced (sameness first; spec/architecture/css/migration.md). The
 	 * transition and the radius are not here: neither is common to all three.
@@ -111,7 +111,7 @@ export const surfaces = stylex.create({
 	/**
 	 * The compact icon-and-label control a metadata row is made of. See spec/styling/focus.md, "Quiet
 	 * metadata controls share one surface" (why this replaced the `.quiet-control` class) and
-	 * spec/todo.md, "A recipe's other half is a convention and nothing checks that a call site
+	 * spec/todo/todo.md, "A recipe's other half is a convention and nothing checks that a call site
 	 * kept it" (why only the appearance is here). `:hover` is bare (sameness first,
 	 * spec/architecture/css/migration.md). `outline: none` also resets width and colour, to `medium`/
 	 * `currentcolor` rather than the `0.125rem` accent base-layer `:focus-visible` sets.
@@ -132,7 +132,7 @@ export const surfaces = stylex.create({
 			':hover': 'var(--color-paper-hover)',
 			':focus-visible': 'var(--color-paper-hover)',
 		},
-		// Doubled because two properties transition: spec/todo.md, "A `transition` shorthand
+		// Doubled because two properties transition: spec/todo/todo.md, "A `transition` shorthand
 		// sets five lists and the migrated form writes three".
 		transitionProperty: 'color, background-color',
 		transitionDuration: '200ms, 200ms',

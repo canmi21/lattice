@@ -4,7 +4,7 @@
 	import { surfaces } from '$lib/surfaces.ts';
 
 	/**
-	 * The heading, as the anchor button's `when.ancestor` sees it. See spec/todo.md, "Ancestor
+	 * The heading, as the anchor button's `when.ancestor` sees it. See spec/todo/todo.md, "Ancestor
 	 * state reaches the visual layer only through a marker nobody owns", for why both the resting
 	 * and hovered opacity have to sit here and why this uses the default marker rather than a
 	 * named one. `when.ancestor` is called without an explicit marker: the parameter is branded
@@ -17,7 +17,7 @@
 		title: {
 			color: 'var(--color-text-strong)',
 			// Tailwind's semibold, 40 over the site's own `strong` and written at this site alone.
-			// Which of the two a heading should be is a question nobody has answered. See spec/todo.md.
+			// Which of the two a heading should be is a question nobody has answered. See spec/todo/todo.md.
 			// unnamed: neither step of the weight ladder, and one site is not a third.
 			fontWeight: 600,
 		},

@@ -22,7 +22,7 @@
 				"apps/site/src/lib/blocks/quadrant.svelte",
 				"apps/site/src/lib/blocks/tokei/tokei.svelte"
 			],
-			"stays": "the same one tooltip written twice, against quadrant's box -- spec/todo.md names `mermaid.node` and `quadrant.box` as whole-box borders belonging to neither named surface so a later count would not read them as members"
+			"stays": "the same one tooltip written twice, against quadrant's box -- spec/todo/todo.md names `mermaid.node` and `quadrant.box` as whole-box borders belonging to neither named surface so a later count would not read them as members"
 		},
 		{
 			"components": [
@@ -71,7 +71,7 @@
 				"apps/site/src/routes/licenses/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/+page.svelte"
 			],
-			"stays": "one directory row drawn on three pages of the licence surface: package-list's own comment says it copied the row character for character, and spec/todo.md records the two directories writing it the same way"
+			"stays": "one directory row drawn on three pages of the licence surface: package-list's own comment says it copied the row character for character, and spec/todo/todo.md records the two directories writing it the same way"
 		},
 		{
 			"components": [
@@ -80,7 +80,7 @@
 				"apps/site/src/routes/licenses/pkgs/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte"
 			],
-			"stays": "one count on four routes of one section, each page's comment sizing itself against a sibling's -- spec/todo.md holds that surface open at eight addresses meant to become two or three"
+			"stays": "one count on four routes of one section, each page's comment sizing itself against a sibling's -- spec/todo/todo.md holds that surface open at eight addresses meant to become two or three"
 		},
 		{
 			"components": [

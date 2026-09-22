@@ -20,7 +20,7 @@
 		 *
 		 * Only the blur is here. Its opacity is the resting end of `mermaid-breathe`, which reads
 		 * that value as the animation's implicit start, so the two mean nothing apart -- and the
-		 * keyframe cannot leave the block that names it. See spec/todo.md.
+		 * keyframe cannot leave the block that names it. See spec/todo/todo.md.
 		 */
 		placeholder: {
 			filter: 'blur(0.3rem)',
@@ -199,7 +199,7 @@
 	/* The opacity is here because the keyframe below reads it as its own start, and the keyframe
 	   is here because Svelte rewrites its name and no other layer can spell it. So is this rule:
 	   the two mean nothing apart. Its placement moved to the markup. See
-	   spec/architecture/css/layers.md and spec/todo.md. */
+	   spec/architecture/css/layers.md and spec/todo/todo.md. */
 	.mermaid-placeholder {
 		opacity: 0.48;
 		animation: mermaid-breathe 1.6s ease-in-out infinite alternate;

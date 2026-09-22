@@ -230,7 +230,7 @@ it a pseudo-class and it passes. Run through the build's own Babel plugin at the
 So `[data-liked='true']` cannot be a key and `:is([data-liked='true'])` can. Whether that is a
 deliberate affordance or a validator that only inspects the first character is not something this
 repository can know, which is the argument for treating it as neither settled nor forbidden: it is
-recorded in [todo.md](../../todo.md) and no migration has relied on it.
+recorded in [todo.md](../../todo/todo.md) and no migration has relied on it.
 
 What stands regardless is the narrower fact. `stylex.when.*` takes an attribute selector only to
 describe an _ancestor_ or a _sibling_, so a component varying on **its own** data attribute has no

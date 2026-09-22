@@ -180,7 +180,7 @@ the markup, visual in TypeScript, the selector in the block. Layout and visual a
 an adjective cannot be looked up. Every property nobody had thought of needed a fresh ruling, and
 the rulings piled up here -- `cursor`, `pointer-events`, `user-select`, `visibility` and
 `transform`, five properties settled one at a time in a file that was supposed to have settled
-them all with one sentence. The rest of the arguing moved to [todo.md](../../todo.md), which is now
+them all with one sentence. The rest of the arguing moved to [todo.md](../../todo/todo.md), which is now
 the largest file in `spec/` and is largely made of it.
 
 The clearest evidence that the adjective does not decide is in the tree, where one property has

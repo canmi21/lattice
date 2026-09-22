@@ -10,7 +10,7 @@
 	 * What is left in the block at the foot of this file is the reveal's geometry -- the masks, the
 	 * grid the fallback stacks in, the widths the script animates -- and the states the pill's own
 	 * `data-expanded` gates, which a layer reaching an element through a class on that element
-	 * cannot see. See spec/todo.md.
+	 * cannot see. See spec/todo/todo.md.
 	 */
 	const styles = stylex.create({
 		/** One pill: the like, the favour and the sponsor all wear this. */

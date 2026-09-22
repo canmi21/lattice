@@ -159,7 +159,7 @@ in both page themes and never becomes a token available to unrelated interface c
 Easing is for a value that moves on its own: a panel that opens, a colour that answers a hover,
 anything whose start and end the page chose. A value bound to a scroll, a drag or a pointer has
 no such pair -- it is wherever the hand put it, every frame. Putting a transition on one eases
-the *input*, so the mark arrives where the reader already is a frame or two late, and a hand
+the _input_, so the mark arrives where the reader already is a frame or two late, and a hand
 reads that lag as the thing being attached to something other than the page.
 
 Measured on the reading ring in the article's action bar, which had an 80ms ease on its dash

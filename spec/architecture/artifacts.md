@@ -565,7 +565,7 @@ and a deploy is not the place to discover a missing credential for a check.
 `valibot` is the schema library, chosen over `arktype` and `zod` because the schema ships to a
 browser and an edge runtime, because it is the type's source of truth and therefore has to be a
 file a person can annotate, and because runtime validation speed -- the axis `arktype` is
-strongest on -- is the axis this design spends least on. See [todo.md](../todo.md) for what is
+strongest on -- is the axis this design spends least on. See [todo.md](../todo/todo.md) for what is
 still undecided around it.
 
 ## What happens when writing moves online

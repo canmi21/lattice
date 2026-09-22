@@ -21,7 +21,7 @@
 		},
 		link: {
 			// `focus-link` sets the same 1.25rem line on this element from the components layer, and
-			// the visual layer outranks it exactly as the utility it replaced did. See spec/todo.md.
+			// the visual layer outranks it exactly as the utility it replaced did. See spec/todo/todo.md.
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
