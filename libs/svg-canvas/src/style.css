@@ -1,7 +1,7 @@
 /*
  * Styling for SVG diagrams using Claude's .svg-canvas convention.
- * The selectors and hex palette mirror that markup contract; OKLCH tokens only cover our
- * native UI and theme.
+ * The selectors and light palette mirror that markup contract; the dark palette derives from
+ * those hues in OKLCH. The site's native UI tokens remain a separate system.
  */
 
 .svg-canvas {
@@ -52,29 +52,29 @@
 
 .dark .svg-canvas,
 [data-theme='dark'] .svg-canvas {
-	--color-background-primary: #2c2b29;
-	--color-background-secondary: #3a3937;
-	--color-background-tertiary: #1f1e1c;
-	--color-background-info: #042c53;
-	--color-background-danger: #501313;
-	--color-background-success: #173404;
-	--color-background-warning: #412402;
+	--color-background-primary: oklch(0.987 0 0 / 0.02);
+	--color-background-secondary: oklch(0.955 0.003 286 / 0.02);
+	--color-background-tertiary: oklch(0.937 0.003 286 / 0.015);
+	--color-background-info: oklch(0.7168 0.1433 254.61 / 0.1);
+	--color-background-danger: oklch(0.7192 0.169 13.43 / 0.11);
+	--color-background-success: oklch(0.8003 0.1821 143.46 / 0.11);
+	--color-background-warning: oklch(0.8369 0.1644 76.2 / 0.12);
 
-	--color-text-primary: #f1efe8;
-	--color-text-secondary: #b4b2a9;
-	--color-text-tertiary: #888780;
-	--color-text-info: #85b7eb;
-	--color-text-danger: #f09595;
-	--color-text-success: #97c459;
-	--color-text-warning: #fac775;
+	--color-text-primary: oklch(0.987 0 0 / 0.9);
+	--color-text-secondary: oklch(0.955 0.003 286 / 0.68);
+	--color-text-tertiary: oklch(0.937 0.003 286 / 0.48);
+	--color-text-info: oklch(0.7168 0.1433 254.61);
+	--color-text-danger: oklch(0.6615 0.1539 13.26);
+	--color-text-success: oklch(0.7433 0.1657 143.46);
+	--color-text-warning: oklch(0.7799 0.1496 76.2);
 
-	--color-border-tertiary: rgba(241, 239, 232, 0.15);
-	--color-border-secondary: rgba(241, 239, 232, 0.3);
-	--color-border-primary: rgba(241, 239, 232, 0.4);
-	--color-border-info: #85b7eb;
-	--color-border-danger: #f09595;
-	--color-border-success: #97c459;
-	--color-border-warning: #fac775;
+	--color-border-tertiary: oklch(0.987 0 0 / 0.08);
+	--color-border-secondary: oklch(0.987 0 0 / 0.16);
+	--color-border-primary: oklch(0.987 0 0 / 0.24);
+	--color-border-info: oklch(0.7168 0.1433 254.61 / 0.21);
+	--color-border-danger: oklch(0.7192 0.169 13.43 / 0.22);
+	--color-border-success: oklch(0.8003 0.1821 143.46 / 0.22);
+	--color-border-warning: oklch(0.8369 0.1644 76.2 / 0.23);
 }
 
 .svg-canvas svg text {
@@ -291,7 +291,7 @@
 	fill: #e45649;
 }
 
-/* Dark: 800 fill + 200 stroke + 100 title / 200 subtitle */
+/* Dark: the light palette's hue and fill-to-stroke mixture, behind brighter ink. */
 
 .dark .svg-canvas svg .c-purple > rect,
 .dark .svg-canvas svg .c-purple > circle,
@@ -305,18 +305,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-purple,
 [data-theme='dark'] .svg-canvas svg circle.c-purple,
 [data-theme='dark'] .svg-canvas svg ellipse.c-purple {
-	fill: #3c3489;
-	stroke: #afa9ec;
+	fill: oklch(0.709 0.1592 328.78 / 0.07);
+	stroke: oklch(0.709 0.1592 328.78 / 0.18);
 }
 .dark .svg-canvas svg .c-purple > .th,
 .dark .svg-canvas svg .c-purple > .t,
 [data-theme='dark'] .svg-canvas svg .c-purple > .th,
 [data-theme='dark'] .svg-canvas svg .c-purple > .t {
-	fill: #cecbf6;
+	fill: oklch(0.709 0.1592 328.78);
 }
 .dark .svg-canvas svg .c-purple > .ts,
 [data-theme='dark'] .svg-canvas svg .c-purple > .ts {
-	fill: #afa9ec;
+	fill: oklch(0.652 0.1449 328.78);
 }
 
 .dark .svg-canvas svg .c-teal > rect,
@@ -331,18 +331,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-teal,
 [data-theme='dark'] .svg-canvas svg circle.c-teal,
 [data-theme='dark'] .svg-canvas svg ellipse.c-teal {
-	fill: #085041;
-	stroke: #5dcaa5;
+	fill: oklch(0.7845 0.1325 237.19 / 0.09);
+	stroke: oklch(0.7845 0.1325 237.19 / 0.2);
 }
 .dark .svg-canvas svg .c-teal > .th,
 .dark .svg-canvas svg .c-teal > .t,
 [data-theme='dark'] .svg-canvas svg .c-teal > .th,
 [data-theme='dark'] .svg-canvas svg .c-teal > .t {
-	fill: #9fe1cb;
+	fill: oklch(0.7845 0.1325 237.19);
 }
 .dark .svg-canvas svg .c-teal > .ts,
 [data-theme='dark'] .svg-canvas svg .c-teal > .ts {
-	fill: #5dcaa5;
+	fill: oklch(0.7275 0.1206 237.19);
 }
 
 .dark .svg-canvas svg .c-coral > rect,
@@ -357,18 +357,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-coral,
 [data-theme='dark'] .svg-canvas svg circle.c-coral,
 [data-theme='dark'] .svg-canvas svg ellipse.c-coral {
-	fill: #712b13;
-	stroke: #f0997b;
+	fill: oklch(0.7576 0.159 55.93 / 0.09);
+	stroke: oklch(0.7576 0.159 55.93 / 0.2);
 }
 .dark .svg-canvas svg .c-coral > .th,
 .dark .svg-canvas svg .c-coral > .t,
 [data-theme='dark'] .svg-canvas svg .c-coral > .th,
 [data-theme='dark'] .svg-canvas svg .c-coral > .t {
-	fill: #f5c4b3;
+	fill: oklch(0.7576 0.159 55.93);
 }
 .dark .svg-canvas svg .c-coral > .ts,
 [data-theme='dark'] .svg-canvas svg .c-coral > .ts {
-	fill: #f0997b;
+	fill: oklch(0.7006 0.1447 55.93);
 }
 
 .dark .svg-canvas svg .c-pink > rect,
@@ -383,18 +383,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-pink,
 [data-theme='dark'] .svg-canvas svg circle.c-pink,
 [data-theme='dark'] .svg-canvas svg ellipse.c-pink {
-	fill: #72243e;
-	stroke: #ed93b1;
+	fill: oklch(0.7253 0.1752 4.55 / 0.09);
+	stroke: oklch(0.7253 0.1752 4.55 / 0.2);
 }
 .dark .svg-canvas svg .c-pink > .th,
 .dark .svg-canvas svg .c-pink > .t,
 [data-theme='dark'] .svg-canvas svg .c-pink > .th,
 [data-theme='dark'] .svg-canvas svg .c-pink > .t {
-	fill: #f4c0d1;
+	fill: oklch(0.7253 0.1752 4.55);
 }
 .dark .svg-canvas svg .c-pink > .ts,
 [data-theme='dark'] .svg-canvas svg .c-pink > .ts {
-	fill: #ed93b1;
+	fill: oklch(0.6683 0.1594 4.55);
 }
 
 .dark .svg-canvas svg .c-gray > rect,
@@ -409,18 +409,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-gray,
 [data-theme='dark'] .svg-canvas svg circle.c-gray,
 [data-theme='dark'] .svg-canvas svg ellipse.c-gray {
-	fill: #444441;
-	stroke: #b4b2a9;
+	fill: oklch(0.955 0.003 286 / 0.02);
+	stroke: oklch(0.955 0.003 286 / 0.08);
 }
 .dark .svg-canvas svg .c-gray > .th,
 .dark .svg-canvas svg .c-gray > .t,
 [data-theme='dark'] .svg-canvas svg .c-gray > .th,
 [data-theme='dark'] .svg-canvas svg .c-gray > .t {
-	fill: #d3d1c7;
+	fill: oklch(0.987 0 0 / 0.86);
 }
 .dark .svg-canvas svg .c-gray > .ts,
 [data-theme='dark'] .svg-canvas svg .c-gray > .ts {
-	fill: #b4b2a9;
+	fill: oklch(0.955 0.003 286 / 0.65);
 }
 
 .dark .svg-canvas svg .c-blue > rect,
@@ -435,18 +435,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-blue,
 [data-theme='dark'] .svg-canvas svg circle.c-blue,
 [data-theme='dark'] .svg-canvas svg ellipse.c-blue {
-	fill: #0c447c;
-	stroke: #85b7eb;
+	fill: oklch(0.7168 0.1433 254.61 / 0.1);
+	stroke: oklch(0.7168 0.1433 254.61 / 0.21);
 }
 .dark .svg-canvas svg .c-blue > .th,
 .dark .svg-canvas svg .c-blue > .t,
 [data-theme='dark'] .svg-canvas svg .c-blue > .th,
 [data-theme='dark'] .svg-canvas svg .c-blue > .t {
-	fill: #b5d4f4;
+	fill: oklch(0.7168 0.1433 254.61);
 }
 .dark .svg-canvas svg .c-blue > .ts,
 [data-theme='dark'] .svg-canvas svg .c-blue > .ts {
-	fill: #85b7eb;
+	fill: oklch(0.7168 0.1433 254.61);
 }
 
 .dark .svg-canvas svg .c-green > rect,
@@ -461,18 +461,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-green,
 [data-theme='dark'] .svg-canvas svg circle.c-green,
 [data-theme='dark'] .svg-canvas svg ellipse.c-green {
-	fill: #27500a;
-	stroke: #97c459;
+	fill: oklch(0.8003 0.1821 143.46 / 0.11);
+	stroke: oklch(0.8003 0.1821 143.46 / 0.22);
 }
 .dark .svg-canvas svg .c-green > .th,
 .dark .svg-canvas svg .c-green > .t,
 [data-theme='dark'] .svg-canvas svg .c-green > .th,
 [data-theme='dark'] .svg-canvas svg .c-green > .t {
-	fill: #c0dd97;
+	fill: oklch(0.8003 0.1821 143.46);
 }
 .dark .svg-canvas svg .c-green > .ts,
 [data-theme='dark'] .svg-canvas svg .c-green > .ts {
-	fill: #97c459;
+	fill: oklch(0.7433 0.1657 143.46);
 }
 
 .dark .svg-canvas svg .c-amber > rect,
@@ -487,18 +487,18 @@
 [data-theme='dark'] .svg-canvas svg rect.c-amber,
 [data-theme='dark'] .svg-canvas svg circle.c-amber,
 [data-theme='dark'] .svg-canvas svg ellipse.c-amber {
-	fill: #633806;
-	stroke: #ef9f27;
+	fill: oklch(0.8369 0.1644 76.2 / 0.12);
+	stroke: oklch(0.8369 0.1644 76.2 / 0.23);
 }
 .dark .svg-canvas svg .c-amber > .th,
 .dark .svg-canvas svg .c-amber > .t,
 [data-theme='dark'] .svg-canvas svg .c-amber > .th,
 [data-theme='dark'] .svg-canvas svg .c-amber > .t {
-	fill: #fac775;
+	fill: oklch(0.8369 0.1644 76.2);
 }
 .dark .svg-canvas svg .c-amber > .ts,
 [data-theme='dark'] .svg-canvas svg .c-amber > .ts {
-	fill: #ef9f27;
+	fill: oklch(0.7799 0.1496 76.2);
 }
 
 .dark .svg-canvas svg .c-red > rect,
@@ -513,16 +513,16 @@
 [data-theme='dark'] .svg-canvas svg rect.c-red,
 [data-theme='dark'] .svg-canvas svg circle.c-red,
 [data-theme='dark'] .svg-canvas svg ellipse.c-red {
-	fill: #791f1f;
-	stroke: #f09595;
+	fill: oklch(0.7192 0.169 13.43 / 0.11);
+	stroke: oklch(0.7192 0.169 13.43 / 0.22);
 }
 .dark .svg-canvas svg .c-red > .th,
 .dark .svg-canvas svg .c-red > .t,
 [data-theme='dark'] .svg-canvas svg .c-red > .th,
 [data-theme='dark'] .svg-canvas svg .c-red > .t {
-	fill: #f7c1c1;
+	fill: oklch(0.7192 0.169 13.43);
 }
 .dark .svg-canvas svg .c-red > .ts,
 [data-theme='dark'] .svg-canvas svg .c-red > .ts {
-	fill: #f09595;
+	fill: oklch(0.6615 0.1539 13.26);
 }

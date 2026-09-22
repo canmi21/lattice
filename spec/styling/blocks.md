@@ -179,6 +179,39 @@ cannot replace the site's security, type, or palette decisions. The duplication 
 local: changing a shared colour may require changing its Mermaid mirror, while every other consumer
 continues to have one OKLCH source.
 
+### A dark SVG canvas uses one perceptual ramp across its hues
+
+The SVG canvas contract arrived with unrelated dark ramps under the same class names. Repeated across
+a diagram, their changing lightness and chroma made some hues heavy and others washed out. The nine
+named roles are eight chromatic colors plus gray. They are semantic samples from the color wheel,
+not equal divisions of it: forcing eight forty-five-degree steps would change which color a name
+means between themes.
+
+**Light mode defines both hue identity and the fill-to-stroke relationship.** In OKLab, each light
+fill is its stroke mixed into the page by roughly seven to twelve percent. Dark mode keeps that
+per-color proportion: purple seven percent; teal, coral, and pink nine; blue ten; green and red
+eleven; amber twelve. Red and blue retain their chosen dark anchors, while the other hues come from
+their light counterparts. Thus teal remains the blue-cyan beside blue, and purple remains the
+magenta-purple used in light mode. Gray's light fill is about six percent of its stroke; because the
+dark gray stroke is itself translucent, the equivalent near-white pigment is two percent rather
+than another ten-percent surface.
+
+The border uses the same pigment as the fill at one quiet alpha step above it: roughly eighteen to
+twenty-three percent for chromatic roles and eight percent for gray. It therefore separates two
+surfaces without competing with their words. A middle ink step serves supporting text where the
+anchor defines one, and a vivid 400-like ink serves the title. A derived middle step keeps hue,
+lowers lightness by about `0.057`, and retains about ninety-one percent of the title chroma.
+
+The hues and tone roles live together in [style.css](../../libs/svg-canvas/src/style.css). Neutral
+roles retain their alpha hierarchy. The existing custom-property and class names are the markup
+contract and do not move.
+
+This only governs the named canvas palette. A literal `fill` or `stroke` that draws a separate mark
+inside an article, including an intentionally solid shape, remains untouched. A literal on a shape
+already owned by a named palette class is redundant and must be removed so that the token remains
+the one source of its appearance. Replacing raw SVG with a smaller authored form may eventually give
+the remaining literals a semantic home, but that is a separate content and compiler decision.
+
 ## A picture in an article opens at the size of the window
 
 Two things in a body are pictures: an `svg-canvas` diagram and an `::image`. Both are bound by the
