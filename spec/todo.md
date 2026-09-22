@@ -1585,10 +1585,12 @@ A Markdown table draws two grounds, and the reading the head is supposed to carr
 behind its rows. That only happens while the head is the deeper of the two, and the palette cannot
 promise it -- [styling/surfaces.md](styling/surfaces.md), "A mirrored pair cannot keep one of its
 members the darker one". With head `paper` the band is right in dark and inverted in light; with
-head `paper-hover` it is right in light and inverted in dark. The current assignment is the first.
+head `paper-hover` it is right in light and inverted in dark. The current assignment is the second,
+chosen by looking at both and preferring the light half, not by an argument that settles it.
 
 Three repairs were tried against the running site and each one is a trade rather than a fix.
-Swapping the component's two tokens moves the inversion from light to dark. Swapping the palette's
+Swapping the component's two tokens, which is what the current assignment is, moves the inversion
+from light to dark rather than removing it. Swapping the palette's
 two light values makes both tables right and costs the homepage thumbnail, which stops being a
 white sheet and becomes a grey one on a lighter page, along with every card and the light hover
 feedback. Giving the head a border instead of a ground was not built; it changes what the block is
