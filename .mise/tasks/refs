@@ -53,7 +53,7 @@ from refs_check import (  # noqa: E402
 
 # Recursive, because a spec topic large enough to need several files gets a directory rather
 # than a longer file. A non-recursive glob would silently stop checking the moment one did.
-DOC_GLOBS = ("spec/**/*.md", "CLAUDE.md")
+DOC_GLOBS = ("spec/**/*.md", "AGENTS.md")
 CODE_SUFFIXES = {
 	".ts",
 	".js",
@@ -77,7 +77,7 @@ SKIP_DIRS = {"data", "contents"}
 SKIP_FILES = {"pnpm-lock.yaml"}
 
 SPEC_REF = re.compile(rf"spec/{DOC_TAIL}")
-# The root docs join the anchor check and nothing else: a bare `CLAUDE.md` in code is a value in
+# The root docs join the anchor check and nothing else: a bare `AGENTS.md` in code is a value in
 # a config list far more often than a pointer, and a rule over those would be this tool checking
 # its own configuration, which already fails loudly when it is wrong.
 CODE_ANCHOR = code_anchor(rf"spec/{DOC_TAIL}|{ROOT_DOCS}")

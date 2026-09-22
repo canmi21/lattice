@@ -6,7 +6,8 @@ lattice is one project of several and its own repository, cloned into the worksp
 sibling of the others. It holds the site, the three Workers beside it, the desktop CMS that edits
 it, the corpus they serve, and the libraries those share. Nothing else, and the absences are as
 much of the description as the contents: there is no `.editorconfig`, no `rustfmt.toml`, no
-`.oxlintrc.json`, no agent hook and no `CLAUDE.md` anywhere below this root. Every one of those
+`.oxlintrc.json`, no agent hook and no `AGENTS.md` anywhere below this root -- nor a `CLAUDE.md`,
+which would stop Claude Code reading the workspace's `AGENTS.md`. Every one of those
 exists once, one directory up, and is found by walking up from wherever a tool starts -- so a file
 here is formatted, linted and checked by configuration it carries no copy of. The toolchain works
 the same way: node, rust, pnpm, jj and oxlint are declared in the workspace's `[tools]`, and this
@@ -14,7 +15,7 @@ repository's `mise.toml` adds only `rclone`, the one tool nothing above it needs
 
 Which questions that arrangement settles -- where a rule lives, why nothing is a submodule, why a
 project cloned on its own has no formatter, why work begins above rather than here -- belongs to
-the workspace's `CLAUDE.md` and its `architecture/repos.md`. Cited by name rather than linked: a
+the workspace's `AGENTS.md` and its `architecture/repos.md`. Cited by name rather than linked: a
 relative path across the repository boundary resolves only while this project happens to be
 nested, and a name reads correctly either way.
 
@@ -82,7 +83,7 @@ other rule in this repository that a person has to remember, and is listed with 
 ## Layout
 
 ```
-spec/       Rules, this project's own. Entered from the workspace's CLAUDE.md one directory
+spec/       Rules, this project's own. Entered from the workspace's AGENTS.md one directory
             up; this repository deliberately carries none of its own.
 libs/       Libraries, any language.
 apps/       Deployable things, any language.
