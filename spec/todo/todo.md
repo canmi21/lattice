@@ -22,6 +22,14 @@ which areas exist and which entries are worth reaching for first.
 | [cms.md](cms.md)         | 3       | the compiler's home, and what the CMS cannot yet offer    |
 | [tooling.md](tooling.md) | 3       | the files that describe the repository rather than run it |
 
+## The plan is not a finding
+
+[milestones.md](milestones.md) holds the agreed shape of the work -- what is being changed, in what
+order, and what each step cannot start before. It is kept in this directory because it is read
+beside these entries and not because it is one of them: a finding is something nobody has decided,
+and a milestone is something already decided and not yet done. An entry here that a milestone
+subsumes is deleted rather than left standing.
+
 ## Ranking, and what it is not
 
 **Nothing here is ranked by how bad it is.** The order below is what the current work is blocked on,
