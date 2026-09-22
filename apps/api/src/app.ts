@@ -32,9 +32,11 @@ const ORIGINS = new Set([
 /**
  * The list and nothing else -- except a request with no `Origin`, and except in development.
  *
- * A request with no `Origin` is not a browser asking, so `*` grants it nothing -- but SvelteKit
- * simulates CORS inside `load` and throws without it, which is how the site reaches this API
- * while rendering. `Vary: Origin` is on every answer, so no cache serves one of these to the other.
+ * A request with no `Origin` is not a browser asking, so `*` grants it nothing. The site rendering
+ * is not that case: SvelteKit sends the page's own origin from `load` and throws on an answer
+ * without the header, so an origin missing here is a 500 on the site. The list names no port, and
+ * no other port reaches a worker; see spec/architecture/delivery.md, "Only ports 80 and 443 reach
+ * a worker". `Vary: Origin` is on every answer, so no cache serves one of these to the other.
  */
 function allowOrigin(origin: string, c: Context): string | null {
 	if (!origin) return '*';
