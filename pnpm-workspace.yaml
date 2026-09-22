@@ -55,3 +55,5 @@ minimumReleaseAgeExclude:
   - '@types/node'
   - vite
   - wrangler
+  - '@cloudflare/unenv-preset@2.16.2'
+  - miniflare@5.20260921.0-alpha
