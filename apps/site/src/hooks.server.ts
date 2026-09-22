@@ -16,6 +16,7 @@ import {
 	resolveLocale,
 	SITE_LANGUAGE,
 } from '$lib/locale';
+import { HOME_SLUG } from '$lib/opengraph';
 import { publishedMarkdown, publishedMetadata } from '$lib/published';
 import { registerServerStrategy } from '$lib/locale/paraglide';
 
@@ -28,6 +29,13 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
 	if (pathname.endsWith('.md')) {
 		// The identity, which is the last segment: `/mirror/a-b.md` and `/homepage.md` alike.
 		const asked = pathname.slice(1, -3);
+		// `/.md` is the source of `/`, and `/` is the homepage, whose source is filed under its own
+		// slug. The page side redirects the other way -- `/homepage` bounces to `/` below -- because
+		// each side has a different canonical address for the one thing. Asked with no identity at
+		// all, the API answers 400 to an empty slug and `answer` throws, so `/.md` was a 500.
+		if (!identityIn(asked)) {
+			return new Response(null, { status: 302, headers: { Location: `/${HOME_SLUG}.md` } });
+		}
 		const found = await publishedMarkdown(event.fetch, identityIn(asked));
 		if (found) {
 			// A document is redirected on the same terms a page is, because a source served at
@@ -69,7 +77,12 @@ const DOCUMENT_PATH = /\.[^./]+$/;
  * "A slug is the identity and the path is the address".
  */
 function identityIn(path: string): string {
-	return path.replace(/^\/+|\/+$/g, '').split('/').at(-1) ?? '';
+	return (
+		path
+			.replace(/^\/+|\/+$/g, '')
+			.split('/')
+			.at(-1) ?? ''
+	);
 }
 
 /** The route every page that is not one of this site's own fixed addresses resolves to. */
@@ -194,6 +207,7 @@ export const handle = sequence(
 );
 
 /** The same stamp from the other side; see hooks.client.ts. */
-export const handleError = handleErrorWithSentry(
-	({ message }): App.Error => ({ message, origin: 'server' }),
-);
+export const handleError = handleErrorWithSentry(({ message }): App.Error => ({
+	message,
+	origin: 'server',
+}));

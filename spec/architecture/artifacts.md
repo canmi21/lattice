@@ -2,7 +2,7 @@
 
 The corpus is compiled here and published as objects. The site reads them at request time and
 is rebuilt only when its own code changes. What the objects hold is
-[data.md](data.md); how a reader reaches one is [delivery.md](delivery.md); what a *thing* is as
+[data.md](data.md); how a reader reaches one is [delivery.md](delivery.md); what a _thing_ is as
 opposed to a run of bytes is [resource.md](resource.md); this file is the shape they are addressed
 by and the rules that fall out of it.
 
@@ -219,7 +219,7 @@ the whole design's latency rests on.
 | `GET /homepage?lang=`      | the article list it renders, and its own compiled page   |
 | `GET /sitemap`             | every indexable view's path, date and alternates         |
 | `GET /feed?lang=`          | one locale's entries: metadata and a `content` hash each |
-| `GET /media?rid=`          | what is known about one resource                          |
+| `GET /media?rid=`          | what is known about one resource                         |
 | `POST /batch`              | every question asked about many things; see below        |
 
 ### A slug is the identity and the path is the address
@@ -276,6 +276,20 @@ nobody can apply without asking. So `/source` answers with the path as well as t
 reason every other single lookup does: the question asked by identity, and only the answer knows
 whether the address it was asked at is the real one. A page has no directory, so its identity is
 already its address and it never redirects.
+
+**The homepage is the one thing whose two sides have different canonical addresses**, and `/.md`
+is where that shows. The page is at `/` and `/homepage` bounces to it; the source is at
+`/homepage.md` and `/.md` bounces to _that_, so the two redirects run in opposite directions. The
+alternative reading of `/.md` -- an address naming nothing, answered 404 -- describes a request
+nobody makes: a reader appending `.md` to the page they are on is asking for that page's source,
+and the homepage is a page like any other.
+
+It was a 500 before it was either. `/.md` leaves no identity behind once the extension is taken
+off, the empty slug went to the API anyway, and `/source` answers 400 to one -- which is correct,
+and which the site turns into a thrown error, because only a 404 means absence there. **A 4xx that
+is not 404 says the caller built the question wrong**, so it is left loud: swallowing it here would
+have hidden every malformed request this site will ever send, to save one guard at the one place
+that could send one.
 
 ### A question asks with a query; a list asks with a body
 
