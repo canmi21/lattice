@@ -72,7 +72,7 @@ impl Default for Registry {
 }
 
 pub fn path_for(repo: &Path) -> PathBuf {
-	repo.join("data").join("tags.yaml")
+	crate::paths::record_root(repo).join("tags.yaml")
 }
 
 /// The tag registry, empty when the repository has none yet.

@@ -123,7 +123,7 @@ impl Default for Media {
 }
 
 pub fn path_for(repo: &Path) -> PathBuf {
-	repo.join("data").join("media.yaml")
+	crate::paths::record_root(repo).join("media.yaml")
 }
 
 /// The descriptions and categories held against each asset, empty when the repository has none

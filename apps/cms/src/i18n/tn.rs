@@ -80,7 +80,7 @@ impl Table {
 }
 
 pub fn path_for(repo: &Path) -> PathBuf {
-	repo.join("data").join("tn.yaml")
+	crate::paths::record_root(repo).join("tn.yaml")
 }
 
 /// The gloss table, empty when nothing has been scanned yet.

@@ -90,7 +90,7 @@ pub struct Assertions {
 }
 
 pub fn assertions_path(repo: &Path) -> PathBuf {
-	repo.join("data").join("licenses.yaml")
+	crate::paths::record_root(repo).join("licenses.yaml")
 }
 
 pub fn read_assertions(repo: &Path) -> Result<Assertions, String> {

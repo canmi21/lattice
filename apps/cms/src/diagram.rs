@@ -107,7 +107,7 @@ fn default_version() -> u32 {
 
 /// Where the descriptions live.
 pub fn store_path(repository: &Path) -> PathBuf {
-	repository.join("data").join("diagram.json")
+	crate::paths::record_root(repository).join("diagram.json")
 }
 
 /// The store, empty when the repository has none yet.

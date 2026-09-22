@@ -431,7 +431,8 @@ mod tests {
 		// A data URI and not a URL, because the point of it is to be painted before any request
 		// is made -- and WebP rather than PNG, which is measurably smaller at this size.
 		assert!(painted.starts_with("data:image/webp;base64,"), "{painted}");
-		let bytes = STANDARD.decode(painted.trim_start_matches("data:image/webp;base64,")).expect("base64");
+		let bytes =
+			STANDARD.decode(painted.trim_start_matches("data:image/webp;base64,")).expect("base64");
 		// RIFF, then the length, then WEBP. Enough to say a decoder was actually run rather than
 		// a prefix being pasted in front of something else.
 		assert_eq!(&bytes[..4], b"RIFF");
@@ -444,8 +445,8 @@ mod tests {
 
 	#[test]
 	fn a_record_carries_both_forms_of_its_placeholder() {
-		let prepared = derive_for(&photo(40, 30), "image/png", None, false, None, rid())
-			.expect("derive for write");
+		let prepared =
+			derive_for(&photo(40, 30), "image/png", None, false, None, rid()).expect("derive for write");
 		let image = prepared.media.image().expect("a picture");
 		// The hash is the canonical one and the decoded copy is what gets painted. A record
 		// holding only the first is one a universal load cannot paint under, because the codec

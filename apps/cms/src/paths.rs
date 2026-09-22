@@ -60,6 +60,17 @@ pub fn draft_root(repo: &Path) -> PathBuf {
 	bucket_root(repo).join("draft")
 }
 
+/// The text a person curates, which is the one part of `data/` git keeps.
+///
+/// Every record goes through this rather than being spelled where it is read: the commit that
+/// moved them into one directory corrected five doc comments and none of the five paths, so
+/// `cms tn` was reading a missing file as an empty table -- which its own loader documents as the
+/// way to spend the money twice. A helper is what makes that a compile-time fact rather than a
+/// comment. See spec/architecture/data.md, "What `data/` keeps out of git".
+pub fn record_root(repo: &Path) -> PathBuf {
+	repo.join("data").join("record")
+}
+
 /// The bytes nothing derives: originals, fonts, a geocoding database, the site's own marks.
 ///
 /// Every one of them is an input. What is published from here is hashed in by the publisher, so
@@ -96,6 +107,26 @@ fn find_upwards(start: &Path) -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	/// Every curated record is under `data/record`, and each of these was once not.
+	///
+	/// The five paths below were left spelling `data/<name>` when the records moved, so two of
+	/// them wrote to files git never saw and three read a missing file as an empty one. Naming
+	/// them here is what makes the next one fail loudly rather than quietly cost money.
+	#[test]
+	fn every_curated_record_is_under_the_record_directory() {
+		let repo = Path::new("/repo");
+		let record = record_root(repo);
+		for path in [
+			crate::media::path_for(repo),
+			crate::tags::path_for(repo),
+			crate::diagram::store_path(repo),
+			crate::licenses::assertions_path(repo),
+			crate::i18n::tn::path_for(repo),
+		] {
+			assert!(path.starts_with(&record), "{} is not under {}", path.display(), record.display());
+		}
+	}
 
 	#[test]
 	fn finds_the_marker_from_a_nested_directory() {
