@@ -8,7 +8,7 @@
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The corner glyph's other opacity is in the block at the foot, gated on the card's hover and
-	 * reaching a descendant this layer cannot see without a marker nobody owns yet (spec/todo/todo.md).
+	 * reaching a descendant this layer cannot see without a marker nobody owns (spec/todo/css.md).
 	 * The opacity it rests at, and the motion between the two, are here. This comment may not
 	 * write a tag in angle brackets; see the same file.
 	 */

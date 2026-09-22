@@ -1,5 +1,9 @@
 version: 3
 tags:
+  airpods:
+    kind: technical
+    display: AirPods
+    meaning: Apple wireless earbuds product line
   algae:
     kind: ordinary
     source: Algae
@@ -72,80 +76,41 @@ tags:
   anime-avatar:
     kind: ordinary
     source: Anime Avatar
-    meaning: stylized illustrated profile image
+    meaning: illustrated profile portrait in anime style
     display:
-      de-DE:
-        text: Anime-Avatar
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
-        review: false
       en-US:
         text: Anime Avatar
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:00:52.337797Z
-        seconds: 7.466820459
-        tokens: 19385
-        review: false
-      es-ES:
-        text: Avatar anime
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
-        review: false
-      fr-FR:
-        text: Avatar anime
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
-        review: false
-      ja-JP:
-        text: アニメアイコン
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
-        review: false
-      ko-KR:
-        text: 애니메이션 아바타
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
-        review: false
-      zh-CN:
-        text: 动漫头像
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
-        review: false
-      zh-TW:
-        text: 動漫頭像
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:05.762911Z
-        seconds: 3.60099975
-        tokens: 27215
+        at: 2026-09-20T02:27:29.119487Z
+        seconds: 7.927042292
+        tokens: 18182
         review: false
   apple:
     kind: technical
     display: Apple
-    meaning: consumer electronics company
+    meaning: technology company and consumer electronics brand
+  apple-tv:
+    kind: technical
+    display: Apple TV
+    meaning: Apple television streaming platform and device
   apple-watch:
     kind: technical
     display: Apple Watch
     meaning: Apple smartwatch product line
+  artificial-intelligence:
+    kind: ordinary
+    source: Artificial Intelligence
+    meaning: computer systems that perform tasks associated with human intelligence
+    display:
+      en-US:
+        text: Artificial Intelligence
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:10.78182Z
+        seconds: 8.217867875
+        tokens: 17395
+        review: false
   automobile:
     kind: ordinary
     source: Automobile
@@ -214,6 +179,32 @@ tags:
         at: 2026-08-29T23:12:09.368587Z
         seconds: 9.053185375
         tokens: 27641
+        review: false
+  black-car:
+    kind: ordinary
+    source: Black Car
+    meaning: automobile covered with black fabric
+    display:
+      en-US:
+        text: Black Car
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:34.888102Z
+        seconds: 6.631309083
+        tokens: 17509
+        review: false
+  blog:
+    kind: ordinary
+    source: Blog
+    meaning: website publishing dated articles and posts
+    display:
+      en-US:
+        text: Blog
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:52.443146Z
+        seconds: 6.847615666
+        tokens: 17302
         review: false
   blog-framework:
     kind: ordinary
@@ -287,7 +278,7 @@ tags:
   bytecode-alliance:
     kind: technical
     display: Bytecode Alliance
-    meaning: open-source organization for bytecode technologies
+    meaning: open source WebAssembly organization
   cargo:
     kind: technical
     display: Cargo
@@ -297,138 +288,26 @@ tags:
     source: Cellular Network
     meaning: mobile carrier connectivity and SIM service
     display:
-      de-DE:
-        text: Mobilfunknetz
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
-        review: false
       en-US:
         text: Cellular Network
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:00:18.600489Z
-        seconds: 13.205130708
-        tokens: 17128
-        review: false
-      es-ES:
-        text: Red móvil
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
-        review: false
-      fr-FR:
-        text: Réseau cellulaire
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
-        review: false
-      ja-JP:
-        text: モバイルネットワーク
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
-        review: false
-      ko-KR:
-        text: 셀룰러 네트워크
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
-        review: false
-      zh-CN:
-        text: 蜂窝网络
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
-        review: false
-      zh-TW:
-        text: 行動網路
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:22.144897Z
-        seconds: 3.750208417
-        tokens: 27224
+        at: 2026-09-20T02:27:02.664423Z
+        seconds: 5.78320625
+        tokens: 15892
         review: false
   charging-case:
     kind: ordinary
     source: Charging Case
-    meaning: protective battery case for wireless earbuds
+    meaning: protective case that stores and charges earbuds
     display:
-      de-DE:
-        text: Ladecase
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
-        review: false
       en-US:
         text: Charging Case
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-09-14T03:24:33.70163Z
-        seconds: 5.015256334
-        tokens: 18948
-        review: false
-      es-ES:
-        text: Estuche de carga
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
-        review: false
-      fr-FR:
-        text: Étui de charge
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
-        review: false
-      ja-JP:
-        text: 充電ケース
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
-        review: false
-      ko-KR:
-        text: 충전 케이스
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
-        review: false
-      zh-CN:
-        text: 充电盒
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
-        review: false
-      zh-TW:
-        text: 充
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:39.476204Z
-        seconds: 5.518611416
-        tokens: 12296
+        at: 2026-09-20T02:38:06.524005Z
+        seconds: 4.510664333
+        tokens: 17459
         review: false
   chinese-graffiti:
     kind: ordinary
@@ -499,6 +378,10 @@ tags:
         seconds: 4.165395667
         tokens: 27234
         review: false
+  claude:
+    kind: technical
+    display: Claude
+    meaning: Anthropic artificial intelligence model family
   cloud:
     kind: ordinary
     source: Cloud
@@ -571,7 +454,20 @@ tags:
   cloudflare:
     kind: technical
     display: Cloudflare
-    meaning: web infrastructure and cloud services company
+    meaning: cloud computing and internet security company
+  clouds:
+    kind: ordinary
+    source: Clouds
+    meaning: visible masses of condensed water vapor
+    display:
+      en-US:
+        text: Clouds
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:30:22.375383Z
+        seconds: 82.695153833
+        tokens: 201598
+        review: false
   command-line-interface:
     kind: ordinary
     source: Command-Line Interface
@@ -646,69 +542,26 @@ tags:
     source: Compilation
     meaning: building source code into executable software
     display:
-      de-DE:
-        text: Kompilierung
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
-        review: false
       en-US:
         text: Compilation
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:00:59.80671Z
-        seconds: 6.461400833
-        tokens: 19540
+        at: 2026-09-20T02:27:37.048547Z
+        seconds: 5.877813083
+        tokens: 18350
         review: false
-      es-ES:
-        text: Compilación
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
-        review: false
-      fr-FR:
-        text: Compilation
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
-        review: false
-      ja-JP:
-        text: コンパイル
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
-        review: false
-      ko-KR:
-        text: 컴파일
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
-        review: false
-      zh-CN:
-        text: 编译
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
-        review: false
-      zh-TW:
-        text: 編譯
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:37.326371Z
-        seconds: 3.183018916
-        tokens: 27187
+  computer-motherboard:
+    kind: ordinary
+    source: Computer Motherboard
+    meaning: main circuit board inside a computer
+    display:
+      en-US:
+        text: Computer Motherboard
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:27.275264Z
+        seconds: 7.608682375
+        tokens: 18349
         review: false
   concrete-wall:
     kind: ordinary
@@ -779,10 +632,49 @@ tags:
         seconds: 3.6604449580000002
         tokens: 27213
         review: false
+  cost-report:
+    kind: ordinary
+    source: Cost Report
+    meaning: daily summary of monetary charges
+    display:
+      en-US:
+        text: Cost Report
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:19.003693Z
+        seconds: 8.267945292
+        tokens: 19008
+        review: false
   cranelift:
     kind: technical
     display: Cranelift
     meaning: compiler backend
+  curb:
+    kind: ordinary
+    source: Curb
+    meaning: raised edge separating a roadway from a planted area
+    display:
+      en-US:
+        text: Curb
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:04.074759Z
+        seconds: 6.702903417
+        tokens: 17299
+        review: false
+  desktop-computer:
+    kind: ordinary
+    source: Desktop Computer
+    meaning: stationary personal computer
+    display:
+      en-US:
+        text: Desktop Computer
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:27.275264Z
+        seconds: 7.608682375
+        tokens: 18349
+        review: false
   ebook:
     kind: ordinary
     source: eBook
@@ -855,7 +747,7 @@ tags:
   esim:
     kind: technical
     display: eSIM
-    meaning: embedded SIM for cellular service
+    meaning: embedded subscriber identity module standard
   exposed-pipes:
     kind: ordinary
     source: Exposed Pipes
@@ -925,74 +817,31 @@ tags:
         seconds: 3.7063235
         tokens: 27212
         review: false
+  fabric-drape:
+    kind: ordinary
+    source: Fabric Drape
+    meaning: cloth draped over an object
+    display:
+      en-US:
+        text: Fabric Drape
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:34.888102Z
+        seconds: 6.631309083
+        tokens: 17509
+        review: false
   fallen-leaves:
     kind: ordinary
     source: Fallen Leaves
-    meaning: dead leaves on the ground
+    meaning: dry leaves lying on the ground
     display:
-      de-DE:
-        text: Laub
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
-        review: false
       en-US:
         text: Fallen Leaves
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:01:34.651687Z
-        seconds: 11.932593624999999
-        tokens: 19898
-        review: false
-      es-ES:
-        text: Hojas caídas
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
-        review: false
-      fr-FR:
-        text: Feuilles mortes
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
-        review: false
-      ja-JP:
-        text: 落ち葉
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
-        review: false
-      ko-KR:
-        text: 낙엽
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
-        review: false
-      zh-CN:
-        text: 落叶
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
-        review: false
-      zh-TW:
-        text: 落葉
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:47.890028Z
-        seconds: 3.556782917
-        tokens: 27202
+        at: 2026-09-20T02:30:10.699546Z
+        seconds: 11.672477167
+        tokens: 18756
         review: false
   fire-hydrant:
     kind: ordinary
@@ -1063,10 +912,36 @@ tags:
         seconds: 3.613278791
         tokens: 27207
         review: false
+  floating-debris:
+    kind: ordinary
+    source: Floating Debris
+    meaning: waste and vegetation collected on water
+    display:
+      en-US:
+        text: Floating Debris
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:41.523915Z
+        seconds: 113.677867375
+        tokens: 422038
+        review: false
+  fog:
+    kind: ordinary
+    source: Fog
+    meaning: dense cloud near ground reducing visibility
+    display:
+      en-US:
+        text: Fog
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:30:22.375383Z
+        seconds: 82.695153833
+        tokens: 201598
+        review: false
   gnu-gold:
     kind: technical
     display: GNU gold
-    meaning: GNU project's optimized linker
+    meaning: GNU linker implementation
   gnu-ld:
     kind: technical
     display: GNU ld
@@ -1074,80 +949,45 @@ tags:
   grass:
     kind: ordinary
     source: Grass
-    meaning: green plants growing between the boards
+    meaning: green ground-covering plants
     display:
-      de-DE:
-        text: Gras
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
       en-US:
         text: Grass
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:03:10.068639Z
-        seconds: 10.314060334
-        tokens: 20049
+        at: 2026-09-20T02:30:10.699546Z
+        seconds: 11.672477167
+        tokens: 18756
         review: false
-      es-ES:
-        text: Hierba
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
-      fr-FR:
-        text: Herbe
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
-      ja-JP:
-        text: 草
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
-      ko-KR:
-        text: 잔디
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
-      zh-CN:
-        text: 草
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
-      zh-TW:
-        text: 草
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:12:55.069614Z
-        seconds: 3.089501917
-        tokens: 27176
-        review: false
+  hdmi:
+    kind: technical
+    display: HDMI
+    meaning: digital audio and video connector standard
   hexo:
     kind: technical
     display: Hexo
-    meaning: blog framework and static site generator
+    meaning: blog framework
+  hong-kong:
+    kind: ordinary
+    source: Hong Kong
+    meaning: special administrative region in China
+    display:
+      en-US:
+        text: Hong Kong
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:02.664423Z
+        seconds: 5.78320625
+        tokens: 15892
+        review: false
   ios:
     kind: technical
     display: iOS
     meaning: Apple mobile operating system
+  ipad:
+    kind: technical
+    display: iPad
+    meaning: Apple tablet computer product line
   iphone:
     kind: technical
     display: iPhone
@@ -1230,155 +1070,90 @@ tags:
     source: Laptop
     meaning: portable personal computer
     display:
-      de-DE:
-        text: Laptop
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
-        review: false
       en-US:
         text: Laptop
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:00:13.563261Z
-        seconds: 5.03532875
-        tokens: 19198
+        at: 2026-09-20T02:26:36.629348Z
+        seconds: 6.723463375
+        tokens: 19880
         review: false
-      es-ES:
-        text: Portátil
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
-        review: false
-      fr-FR:
-        text: Ordinateur portable
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
-        review: false
-      ja-JP:
-        text: ノートパソコン
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
-        review: false
-      ko-KR:
-        text: 노트북
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
-        review: false
-      zh-CN:
-        text: 笔记本电脑
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
-        review: false
-      zh-TW:
-        text: 筆記型電腦
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:01.478032Z
-        seconds: 3.371526333
-        tokens: 27198
+  laptop-port:
+    kind: ordinary
+    source: Laptop Port
+    meaning: physical connection interface on a laptop
+    display:
+      en-US:
+        text: Laptop Port
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:26:36.629348Z
+        seconds: 6.723463375
+        tokens: 19880
         review: false
   lawn:
     kind: ordinary
     source: Lawn
-    meaning: grass-covered ground
+    meaning: grassy outdoor ground surface
     display:
-      de-DE:
-        text: Rasen
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
       en-US:
         text: Lawn
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:01:34.651687Z
-        seconds: 11.932593624999999
-        tokens: 19898
+        at: 2026-09-20T02:30:10.699546Z
+        seconds: 11.672477167
+        tokens: 18756
         review: false
-      es-ES:
-        text: Césped
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
-      fr-FR:
-        text: Pelouse
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
-      ja-JP:
-        text: 芝生
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
-      ko-KR:
-        text: 잔디밭
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
-      zh-CN:
-        text: 草坪
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
-      zh-TW:
-        text: 草坪
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:04.85437Z
-        seconds: 3.389547375
-        tokens: 27185
-        review: false
+  lightning:
+    kind: technical
+    display: Lightning
+    meaning: Apple connector and cable standard
   llvm-lld:
     kind: technical
     display: LLVM lld
-    meaning: LLVM project's linker
+    meaning: LLVM project linker
   mac-pro:
     kind: technical
     display: Mac Pro
-    meaning: Apple professional desktop computer
+    meaning: Apple professional desktop computer product line
+  macbook-air:
+    kind: technical
+    display: MacBook Air
+    meaning: Apple laptop computer product line
   macos:
     kind: technical
     display: macOS
     meaning: Apple desktop operating system
+  metal-cable-railing:
+    kind: ordinary
+    source: Metal Cable Railing
+    meaning: safety barrier made with metal cables
+    display:
+      en-US:
+        text: Metal Cable Railing
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:41.523915Z
+        seconds: 113.677867375
+        tokens: 422038
+        review: false
   mold-linker:
     kind: technical
     display: mold
     meaning: high-performance executable linker
+  moss:
+    kind: ordinary
+    source: Moss
+    meaning: small green plant growing between deck boards
+    display:
+      en-US:
+        text: Moss
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:59.293537Z
+        seconds: 54.670079833
+        tokens: 173573
+        review: false
   mushroom:
     kind: ordinary
     source: Mushroom
@@ -1452,7 +1227,15 @@ tags:
     kind: technical
     display: Next.js
     meaning: React web framework
+  nextjs:
+    kind: technical
+    display: Next.js
+    meaning: React web framework
   node-js:
+    kind: technical
+    display: Node.js
+    meaning: JavaScript runtime environment
+  nodejs:
     kind: technical
     display: Node.js
     meaning: JavaScript runtime environment
@@ -1598,6 +1381,19 @@ tags:
         seconds: 3.715436375
         tokens: 27198
         review: false
+  personal-portfolio:
+    kind: ordinary
+    source: Personal Portfolio
+    meaning: individual developer showcase website
+    display:
+      en-US:
+        text: Personal Portfolio
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:29.119487Z
+        seconds: 7.927042292
+        tokens: 18182
+        review: false
   personal-website:
     kind: ordinary
     source: Personal Website
@@ -1666,6 +1462,19 @@ tags:
         at: 2026-08-29T23:13:19.250361Z
         seconds: 3.396456958
         tokens: 27205
+        review: false
+  presentation-stage:
+    kind: ordinary
+    source: Presentation Stage
+    meaning: venue stage for a public presentation
+    display:
+      en-US:
+        text: Presentation Stage
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:30:05.244767Z
+        seconds: 5.452055208
+        tokens: 17626
         review: false
   printed-circuit-board:
     kind: ordinary
@@ -1805,10 +1614,27 @@ tags:
         seconds: 4.083015042
         tokens: 27186
         review: false
+  react:
+    kind: technical
+    display: React
+    meaning: JavaScript user interface library
   remix:
     kind: technical
     display: Remix
-    meaning: full stack web framework
+    meaning: web framework for building full-stack applications
+  responsive-web-design:
+    kind: ordinary
+    source: Responsive Web Design
+    meaning: website layout adapting to different screen sizes
+    display:
+      en-US:
+        text: Responsive Web Design
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:52.443146Z
+        seconds: 6.847615666
+        tokens: 17302
+        review: false
   river:
     kind: ordinary
     source: River
@@ -1887,74 +1713,44 @@ tags:
     source: Shrub
     meaning: low woody garden plant
     display:
-      de-DE:
-        text: Strauch
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
-        review: false
       en-US:
         text: Shrub
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:00:39.818059Z
-        seconds: 7.355496083
-        tokens: 18467
+        at: 2026-09-20T02:33:04.074759Z
+        seconds: 6.702903417
+        tokens: 17299
         review: false
-      es-ES:
-        text: Arbusto
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
-        review: false
-      fr-FR:
-        text: Arbuste
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
-        review: false
-      ja-JP:
-        text: 低木
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
-        review: false
-      ko-KR:
-        text: 관목
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
-        review: false
-      zh-CN:
-        text: 灌木
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
-        review: false
-      zh-TW:
-        text: 灌木
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:34.637029Z
-        seconds: 3.620866958
-        tokens: 27183
+  sidewalk:
+    kind: ordinary
+    source: Sidewalk
+    meaning: paved pedestrian path beside a road
+    display:
+      en-US:
+        text: Sidewalk
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:04.074759Z
+        seconds: 6.702903417
+        tokens: 17299
         review: false
   sim-card:
+    kind: ordinary
+    source: SIM Card
+    meaning: mobile subscriber identity module
+    display:
+      en-US:
+        text: SIM Card
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:02.664423Z
+        seconds: 5.78320625
+        tokens: 15892
+        review: false
+  simon-and-schuster:
     kind: technical
-    display: SIM Card
-    meaning: subscriber identity module card for mobile service
+    display: Simon & Schuster
+    meaning: book publishing company
   simon-schuster:
     kind: technical
     display: Simon & Schuster
@@ -1962,352 +1758,98 @@ tags:
   sky:
     kind: ordinary
     source: Sky
-    meaning: visible atmosphere above the ground
+    meaning: expanse of atmosphere overhead
     display:
-      de-DE:
-        text: Himmel
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
-        review: false
       en-US:
         text: Sky
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:03:20.385154Z
-        seconds: 4.654326417
-        tokens: 20079
-        review: false
-      es-ES:
-        text: Cielo
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
-        review: false
-      fr-FR:
-        text: Ciel
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
-        review: false
-      ja-JP:
-        text: 空
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
-        review: false
-      ko-KR:
-        text: 하늘
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
-        review: false
-      zh-CN:
-        text: 天空
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
-        review: false
-      zh-TW:
-        text: 天空
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:38.262652Z
-        seconds: 3.055890416
-        tokens: 27181
+        at: 2026-09-20T02:30:22.375383Z
+        seconds: 82.695153833
+        tokens: 201598
         review: false
   smartphone:
     kind: ordinary
     source: Smartphone
-    meaning: handheld mobile computing device
+    meaning: handheld mobile telephone computer
     display:
-      de-DE:
-        text: Smartphone
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
-        review: false
       en-US:
         text: Smartphone
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-09-14T03:24:27.300957Z
-        seconds: 6.383272417
-        tokens: 20489
-        review: false
-      es-ES:
-        text: Teléfono inteligente
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
-        review: false
-      fr-FR:
-        text: Smartphone
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
-        review: false
-      ja-JP:
-        text: スマートフォン
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
-        review: false
-      ko-KR:
-        text: 스마트폰
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
-        review: false
-      zh-CN:
-        text: 智能手机
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
-        review: false
-      zh-TW:
-        text: 智慧型手機
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:49.87497Z
-        seconds: 4.338731833
-        tokens: 12280
+        at: 2026-09-20T02:26:56.058391Z
+        seconds: 6.603782542
+        tokens: 18140
         review: false
   smartwatch:
     kind: ordinary
     source: Smartwatch
-    meaning: wrist-worn digital device with watch functions
+    meaning: wearable digital wristwatch
     display:
-      de-DE:
-        text: Smartwatch
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
-        review: false
       en-US:
         text: Smartwatch
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-09-14T03:23:33.951413Z
-        seconds: 5.271738958
-        tokens: 19753
+        at: 2026-09-20T02:35:48.809592Z
+        seconds: 7.074103917
+        tokens: 19389
         review: false
-      es-ES:
-        text: Reloj inteligente
+  speaker-grille:
+    kind: ordinary
+    source: Speaker Grille
+    meaning: perforated cover for a device speaker
+    display:
+      en-US:
+        text: Speaker Grille
         provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
-        review: false
-      fr-FR:
-        text: Montre connectée
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
-        review: false
-      ja-JP:
-        text: スマートウォッチ
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
-        review: false
-      ko-KR:
-        text: 스마트워치
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
-        review: false
-      zh-CN:
-        text: 智能手表
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
-        review: false
-      zh-TW:
-        text: 智慧手
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:54.219928Z
-        seconds: 4.759701459
-        tokens: 12341
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:26:56.058391Z
+        seconds: 6.603782542
+        tokens: 18140
         review: false
   steve-jobs:
     kind: ordinary
     source: Steve Jobs
-    meaning: Apple co-founder presenting the original iPhone
+    meaning: Apple co-founder and technology executive
     display:
-      de-DE:
-        text: Steve Jobs
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
-        review: false
       en-US:
         text: Steve Jobs
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-09-14T03:23:39.24002Z
-        seconds: 7.854052833
-        tokens: 20492
-        review: false
-      es-ES:
-        text: Steve Jobs
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
-        review: false
-      fr-FR:
-        text: Steve Jobs
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
-        review: false
-      ja-JP:
-        text: スティーブ・ジョブズ
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
-        review: false
-      ko-KR:
-        text: 스티브 잡스
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
-        review: false
-      zh-CN:
-        text: 史蒂夫·乔布斯
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
-        review: false
-      zh-TW:
-        text: 史蒂夫·喬布
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:24:58.989602Z
-        seconds: 5.626053083
-        tokens: 12208
+        at: 2026-09-20T02:30:05.244767Z
+        seconds: 5.452055208
+        tokens: 17626
         review: false
   streetlight:
     kind: ordinary
     source: Streetlight
-    meaning: outdoor lamp along a pedestrian promenade
+    meaning: outdoor lamp for illuminating public areas
     display:
-      de-DE:
-        text: Straßenlaterne
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
-        review: false
       en-US:
         text: Streetlight
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-08-02T04:01:55.360218Z
-        seconds: 6.978482708
-        tokens: 19084
-        review: false
-      es-ES:
-        text: Farola
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
-        review: false
-      fr-FR:
-        text: Lampadaire
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
-        review: false
-      ja-JP:
-        text: 街灯
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
-        review: false
-      ko-KR:
-        text: 가로등
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
-        review: false
-      zh-CN:
-        text: 路灯
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
-        review: false
-      zh-TW:
-        text: 路燈
-        provider: anthropic
-        model: claude-opus-5
-        at: 2026-08-29T23:13:41.323301Z
-        seconds: 3.465137
-        tokens: 27200
+        at: 2026-09-20T02:33:41.523915Z
+        seconds: 113.677867375
+        tokens: 422038
         review: false
   taptic-engine:
     kind: technical
     display: Taptic Engine
-    meaning: Apple haptic feedback actuator
+    meaning: Apple haptic feedback actuator technology
+  terminal:
+    kind: ordinary
+    source: Terminal
+    meaning: command-line interface window
+    display:
+      en-US:
+        text: Terminal
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:37.048547Z
+        seconds: 5.877813083
+        tokens: 18350
+        review: false
   token-usage:
     kind: ordinary
     source: Token Usage
@@ -2446,10 +1988,36 @@ tags:
         seconds: 2.944903416
         tokens: 27180
         review: false
+  tree-branches:
+    kind: ordinary
+    source: Tree Branches
+    meaning: woody limbs and twigs of a tree
+    display:
+      en-US:
+        text: Tree Branches
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:31:49.810177Z
+        seconds: 74.260613166
+        tokens: 238184
+        review: false
   typeless:
     kind: technical
     display: Typeless
-    meaning: voice-powered writing application
+    meaning: voice typing software brand
+  urban-river:
+    kind: ordinary
+    source: Urban River
+    meaning: river running through a city
+    display:
+      en-US:
+        text: Urban River
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:41.523915Z
+        seconds: 113.677867375
+        tokens: 422038
+        review: false
   usage-cost:
     kind: ordinary
     source: Usage Cost
@@ -2519,6 +2087,19 @@ tags:
         seconds: 3.524978209
         tokens: 27209
         review: false
+  usage-statistics:
+    kind: ordinary
+    source: Usage Statistics
+    meaning: tabular record of token usage and costs
+    display:
+      en-US:
+        text: Usage Statistics
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:19.003693Z
+        seconds: 8.267945292
+        tokens: 19008
+        review: false
   usb-c:
     kind: technical
     display: USB-C
@@ -2526,75 +2107,19 @@ tags:
   vercel:
     kind: technical
     display: Vercel
-    meaning: cloud platform for web deployment and developer tools
+    meaning: cloud platform and web development company
   walter-isaacson:
     kind: ordinary
     source: Walter Isaacson
-    meaning: author credited on the book page
+    meaning: American author and biographer
     display:
-      de-DE:
-        text: Walter Isaacson
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
-        review: false
       en-US:
         text: Walter Isaacson
         provider: openai
         model: gpt-5-6-terra-medium
-        at: 2026-09-14T03:23:51.719209Z
-        seconds: 5.055178042
-        tokens: 20416
-        review: false
-      es-ES:
-        text: Walter Isaacson
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
-        review: false
-      fr-FR:
-        text: Walter Isaacson
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
-        review: false
-      ja-JP:
-        text: ウォルター・アイザックソン
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
-        review: false
-      ko-KR:
-        text: 월터 아이작슨
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
-        review: false
-      zh-CN:
-        text: 沃尔特·艾萨克森
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
-        review: false
-      zh-TW:
-        text: 沃爾特·艾
-        provider: openai
-        model: gpt-oss-120b-medium
-        at: 2026-09-14T03:25:04.625835Z
-        seconds: 4.366971875
-        tokens: 12307
+        at: 2026-09-20T02:31:45.073823Z
+        seconds: 4.732375125
+        tokens: 18524
         review: false
   wasmtime:
     kind: technical
@@ -2669,6 +2194,45 @@ tags:
         seconds: 3.750783292
         tokens: 27206
         review: false
+  waterfront-promenade:
+    kind: ordinary
+    source: Waterfront Promenade
+    meaning: pedestrian walkway beside a body of water
+    display:
+      en-US:
+        text: Waterfront Promenade
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:33:41.523915Z
+        seconds: 113.677867375
+        tokens: 422038
+        review: false
+  weathered-wood:
+    kind: ordinary
+    source: Weathered Wood
+    meaning: aged wood exposed to outdoor conditions
+    display:
+      en-US:
+        text: Weathered Wood
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:59.293537Z
+        seconds: 54.670079833
+        tokens: 173573
+        review: false
+  web-browser:
+    kind: ordinary
+    source: Web Browser
+    meaning: software for viewing websites
+    display:
+      en-US:
+        text: Web Browser
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:26:43.355536Z
+        seconds: 5.057350792
+        tokens: 16386
+        review: false
   web-navigation:
     kind: ordinary
     source: Web Navigation
@@ -2738,6 +2302,19 @@ tags:
         seconds: 3.441728708
         tokens: 27211
         review: false
+  website:
+    kind: ordinary
+    source: Website
+    meaning: web page for a software product
+    display:
+      en-US:
+        text: Website
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:13.68505Z
+        seconds: 4.427648959
+        tokens: 16631
+        review: false
   wireless-earbuds:
     kind: ordinary
     source: Wireless Earbuds
@@ -2806,6 +2383,32 @@ tags:
         at: 2026-09-14T03:25:09.002284Z
         seconds: 5.109739917
         tokens: 12389
+        review: false
+  wooden-beam:
+    kind: ordinary
+    source: Wooden Beam
+    meaning: structural timber crosspiece
+    display:
+      en-US:
+        text: Wooden Beam
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:31:49.810177Z
+        seconds: 74.260613166
+        tokens: 238184
+        review: false
+  wooden-deck:
+    kind: ordinary
+    source: Wooden Deck
+    meaning: planked outdoor walking surface
+    display:
+      en-US:
+        text: Wooden Deck
+        provider: openai
+        model: gpt-5-6-terra-medium
+        at: 2026-09-20T02:27:59.293537Z
+        seconds: 54.670079833
+        tokens: 173573
         review: false
   wooden-decking:
     kind: ordinary

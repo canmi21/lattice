@@ -1,7 +1,7 @@
 /**
  * The values the visual layer repeats, each with one name, already written character for
  * character by three or more components -- a value only two share stays a literal. Two spellings
- * of one idea keep two names: they part company outside the default root size. See spec/todo/todo.md.
+ * of one idea keep two names: they differ outside the default root size. See spec/todo/css.md.
  *
  * `defineConsts`, never `defineVars`: a var group rewrites every reading declaration into a
  * `var()`, where a const inlines and leaves the declaration as written; only the hashed class
@@ -90,7 +90,7 @@ export const weight = stylex.defineConsts({
 
 /**
  * The tracking small uppercase takes, which is the site's one letter-spacing decision. The other
- * value in the tree is on lowercase at a single site, and is a different one. See spec/todo/todo.md.
+ * value in the tree is on lowercase at one site, and is a different one. See spec/todo/css.md.
  */
 export const tracking = stylex.defineConsts({
 	caps: '0.02em',
@@ -145,7 +145,7 @@ export const transition = stylex.defineConsts({
  *
  * Tailwind's theme variable carries Monaco, Liberation Mono and Courier New; the spelled-out one
  * does not, so a machine with Monaco and without Menlo renders two different fonts on one page.
- * Which is right is a question about the fonts rather than about the layering. See spec/todo/todo.md.
+ * Which is right is a question about the fonts rather than the layering. See spec/todo/css.md.
  */
 export const family = stylex.defineConsts({
 	monoTheme: 'var(--font-mono)',

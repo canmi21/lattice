@@ -66,11 +66,12 @@ media:
         seconds: 3.002701125
         tokens: 11849
         review: false
+    category: artwork
+    tags:
     source:
       url: https://www.apple.com/newsroom/2021/10/apple-unveils-game-changing-macbook-pro/
       label: Apple Newsroom
   12faaa76365814de1195d6bdf1e5ba05:
-    category: screenshot
     description:
       de-DE:
         text: 'Ein Screenshot der Startseite des Hexo-Projekts im Dark Mode, mit dem blauen sechseckigen „H"-Logo oben links neben Navigationslinks für Docs, API, News, Plugins, Themes, About, einem GitHub-Icon, einem Suchfeld mit Cmd-K-Hinweis und einem englischen Sprachumschalter rechts. Der Hero-Bereich lautet „A fast, simple & powerful blog framework" über einem kopierbaren Installationsbefehl, `$ npm install hexo-cli -g`, mit einem blauen Pfeil-Button, und darunter eine Reihe von Badges: 41k GitHub-Sterne, 5k Forks, 212k Downloads/Monat und ein Follow-@hexojs-Link. Eine Release-Leiste listet hexo 8.1.0 vom 26.10.2025, hexo 8.0.0 vom 16.09.2025, hexo 7.3.0 vom 02.07.2024 und Hexo 7.2.0 vom 17.04.2024 auf, und der nächste Abschnitt beginnt mit den Feature-Überschriften „Blazing Fast" und „Markdown Support". Die Release-Daten und die Download-Zahl datieren die Aufnahme auf Ende Oktober 2025 oder später.'
@@ -136,11 +137,8 @@ media:
         seconds: 8.770971042
         tokens: 27461
         review: false
+    category: screenshot
     tags:
-    - hexo
-    - npm
-    - blog-framework
-    - web-navigation
   148eafdca3f111eb70a55331ceb96b97:
     description:
       de-DE:
@@ -207,11 +205,12 @@ media:
         seconds: 3.1973119580000002
         tokens: 11841
         review: false
+    category: artwork
+    tags:
     source:
       url: https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/
       label: Apple Newsroom
   181da036230de994a607f5fef0d03cb9:
-    category: artwork
     description:
       de-DE:
         text: Ein Produktfoto zeigt die Rückseite und die untere Kante eines space‑gray iPhone 6s vor einem schlichten weißen Hintergrund. Das Telefon ist diagonal ausgerichtet, wobei seine einzelne Rückkamera, das Apple‑Logo, die Antennenbänder, die Seitentasten, der Lightning‑Anschluss, die Lautsprecherlöcher und die Aufschrift „iPhone S“ unter weicher Studiobeleuchtung sichtbar sind.
@@ -277,15 +276,12 @@ media:
         seconds: 3.274545167
         tokens: 11839
         review: false
+    category: artwork
     tags:
-    - apple
-    - iphone
-    - usb-c
     source:
       url: https://web.archive.org/web/20150910154005id_/http://images.apple.com/v/iphone-6s/a/overview/hero_spacegray_xlarge_2x.png
       label: Apple
   18dc4b33f21890aa9042955b67ac346d:
-    category: screenshot
     description:
       de-DE:
         text: Ein zugeschnittener iOS-Screenshot im Dark Mode des Bereichs „SIMs" in den Mobilfunkeinstellungen, der eine abgerundete dunkle Karte mit zwei eSIM-Einträgen zeigt. Der erste, mit „T1" gekennzeichnet, lautet „Travel - CMHK" und steht auf „On"; der zweite, mit „T2" gekennzeichnet, lautet „Travel - Hutchison HK", ebenfalls „On", darunter eine Hongkonger Nummer, die mit „+852 51" beginnt und auf „77" endet, wobei die mittleren Ziffern absichtlich unkenntlich gemacht sind. Am unteren Rand der Karte befindet sich ein blauer Link „Add eSIM", und jede Zeile hat einen Pfeil für weitere Details. Es belegt ein Gerät, das zwei aktive Hongkonger Reise-eSIMs gleichzeitig nutzt, vor dem Teilen als Screenshot aufgenommen und geschwärzt.
@@ -351,10 +347,8 @@ media:
         seconds: 7.2486775
         tokens: 27252
         review: false
+    category: screenshot
     tags:
-    - esim
-    - sim-card
-    - cellular-network
   1c77835df9adb398aef1941422b92695:
     description:
       de-DE:
@@ -421,16 +415,16 @@ media:
         seconds: 3.014112583
         tokens: 11837
         review: false
+    category: photograph
+    tags:
     source:
       url: https://web.archive.org/web/20150414005150id_/http://www.apple.com/macbook/design/
       label: Apple
   2722532798307eb9c03d89e2343c2cda:
-    category: screenshot
     description:
       de-DE:
         text: |-
           Ein Screenshot der Landingpage einer macOS-App namens Typeless, dargestellt auf schlichtem weißem Hintergrund, mit einer Wortmarke und einem kleinen dunklen Glyph oben links, einer zentrierten Navigation aus Manifesto, Pricing und About sowie einem schwarzen Pill-Button mit der Aufschrift "Download for macOS" oben rechts. Die Hero-Überschrift steht riesig und zentriert — "Speak," in fast Schwarz, gefolgt von "don't type" in mittlerem Grau — über einer zweizeiligen Unterzeile, die Grau und schwarze Schriftstärke zur Hervorhebung mischt: "Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing." Eine zweite, größere Kopie desselben schwarzen "Download for macOS"-Buttons sitzt unter dem Text, und die untere Hälfte des Bildausschnitts ist leeres Weiß.
-
           Das wirkt wie eine festgehaltene Referenz eines Marketing-Hero-Bereichs — ein Diktier- bzw. Speech-to-Text-Produkt, das sich über Geschwindigkeit und ausgefeilte Ausgabe positioniert — vermutlich als Design- oder Copywriting-Beispiel gespeichert.
         provider: anthropic
         model: claude-opus-5
@@ -441,7 +435,6 @@ media:
       en-US:
         text: |-
           A screenshot of the landing page for a macOS app called Typeless, rendered on a plain white background with a wordmark and small dark glyph at top left, a centred nav of Manifesto, Pricing and About, and a black pill button reading "Download for macOS" in the top right. The hero headline sits huge and centred — "Speak," in near-black followed by "don't type" in mid grey — above a two-line subhead that mixes grey and black weight for emphasis: "Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing." A second, larger copy of the same black "Download for macOS" button sits below the copy, and the lower half of the frame is empty white.
-
           This looks like a captured reference of a marketing hero section — a dictation/speech-to-text product pitching itself on speed and output polish — likely saved as a design or copywriting example.
         provider: anthropic
         model: claude-opus-5
@@ -452,7 +445,6 @@ media:
       es-ES:
         text: |-
           Una captura de pantalla de la página de inicio de una app de macOS llamada Typeless, mostrada sobre un fondo blanco liso con un logotipo tipográfico y un pequeño glifo oscuro en la esquina superior izquierda, una barra de navegación centrada con Manifesto, Pricing y About, y un botón negro en forma de píldora que dice "Download for macOS" en la esquina superior derecha. El titular principal aparece enorme y centrado: "Speak," en un tono casi negro seguido de "don't type" en gris medio, sobre un subtítulo de dos líneas que combina gris y negro en distintos grosores para dar énfasis: "Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing." Una segunda copia, más grande, del mismo botón negro "Download for macOS" se sitúa debajo del texto, y la mitad inferior del encuadre está vacía en blanco.
-
           Parece una referencia capturada de una sección hero de marketing: un producto de dictado o de voz a texto que se promociona por su velocidad y por el acabado de su resultado, probablemente guardada como ejemplo de diseño o de redacción publicitaria.
         provider: anthropic
         model: claude-opus-5
@@ -463,7 +455,6 @@ media:
       fr-FR:
         text: |-
           Capture d'écran de la page d'accueil d'une application macOS appelée Typeless, affichée sur un fond blanc uni, avec un logotype et un petit glyphe sombre en haut à gauche, une navigation centrée comprenant Manifesto, Pricing et About, et un bouton noir en forme de pastille portant la mention « Download for macOS » en haut à droite. Le titre principal, énorme et centré, associe « Speak, » en noir presque pur et « don't type » en gris moyen — au-dessus d'un sous-titre de deux lignes qui mêle gris et noir gras pour l'emphase : « Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing. » Une seconde copie, plus grande, du même bouton noir « Download for macOS » se trouve sous le texte, et la moitié inférieure du cadre est vide et blanche.
-
           Cela ressemble à une capture de référence d'une section hero marketing — un produit de dictée / reconnaissance vocale qui se positionne sur la rapidité et la qualité du texte produit — sans doute conservée comme exemple de design ou de rédaction publicitaire.
         provider: anthropic
         model: claude-opus-5
@@ -474,7 +465,6 @@ media:
       ja-JP:
         text: |-
           Typeless という macOS アプリのランディングページのスクリーンショット。何もない白い背景に描画され、左上にワードマークと小さな濃い色のグリフ、中央に Manifesto、Pricing、About のナビゲーション、右上に「Download for macOS」と書かれた黒いピル型ボタンが配置されている。ヒーローの見出しは巨大かつ中央寄せで、ほぼ黒の "Speak," に続いて中間グレーの "don't type" が並び、その下にはグレーと黒のウェイトを混ぜて強調した2行のサブ見出しがある。「Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing.」テキストの下には同じ黒い「Download for macOS」ボタンの、より大きな2つ目のコピーが置かれ、フレームの下半分は白い余白になっている。
-
           これはマーケティングのヒーローセクションを記録した参考資料に見える。速度と出力の洗練度を売りにするディクテーション/音声入力製品であり、デザインまたはコピーライティングの実例として保存されたものと思われる。
         provider: anthropic
         model: claude-opus-5
@@ -485,7 +475,6 @@ media:
       ko-KR:
         text: |-
           Typeless라는 macOS 앱의 랜딩 페이지 스크린샷으로, 단색 흰색 배경 위에 렌더링되어 있으며 좌측 상단에는 워드마크와 작은 짙은 색 글리프가, 가운데에는 Manifesto, Pricing, About으로 구성된 내비게이션이, 우측 상단에는 "Download for macOS"라고 적힌 검은색 알약 모양 버튼이 배치되어 있다. 히어로 헤드라인은 크고 가운데 정렬되어 있으며 — 거의 검정에 가까운 색의 "Speak," 뒤에 중간 회색의 "don't type"이 이어진다 — 그 아래에는 회색과 검은색 굵기를 섞어 강조를 준 두 줄짜리 서브헤드가 있다: "Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing." 본문 아래에는 동일한 검은색 "Download for macOS" 버튼이 더 큰 크기로 한 번 더 놓여 있고, 프레임의 아래쪽 절반은 비어 있는 흰색이다.
-
           이것은 마케팅 히어로 섹션을 캡처한 참고 자료로 보이며 — 속도와 결과물의 완성도를 내세우는 받아쓰기/음성-텍스트 변환 제품 — 디자인 또는 카피라이팅 예시로 저장된 것으로 추정된다.
         provider: anthropic
         model: claude-opus-5
@@ -496,7 +485,6 @@ media:
       zh-CN:
         text: |-
           一张名为 Typeless 的 macOS 应用落地页截图，渲染在纯白背景上，左上角是文字标志和一个深色小字符，中间是 Manifesto、Pricing 和 About 组成的居中导航，右上角是一个写着「Download for macOS」的黑色胶囊按钮。主标题居中且字号极大——近黑色的「Speak,」后接中灰色的「don't type」——下方是混用灰色与黑色字重以作强调的两行副标题：「Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing.」文案下方是同一个黑色「Download for macOS」按钮的第二个更大的副本，画面下半部分为空白留白。
-
           这看起来是一份营销 hero 区域的参考截图——一款以速度和输出精致度为卖点的听写/语音转文字产品——很可能是作为设计或文案范例保存的。
         provider: anthropic
         model: claude-opus-5
@@ -507,7 +495,6 @@ media:
       zh-TW:
         text: |-
           一張 macOS 應用程式 Typeless 的到達頁面截圖，以純白色背景呈現，左上角有文字商標與一個深色小圖示，中央是 Manifesto、Pricing 與 About 的導覽列，右上角則是一顆寫著「Download for macOS」的黑色膠囊按鈕。主標題以極大字級置中排列——近黑色的「Speak,」後接中灰色的「don't type」——下方是兩行副標，混用灰色與黑色字重來強調重點：「Speak naturally, and Typeless will turn your words into polished messages, emails, and documents that read like you carefully typed them - in real time. 4x faster than typing.」文案下方另有一顆更大的同款黑色「Download for macOS」按鈕，畫面下半部則是一片留白。
-
           這看起來是行銷用 hero 區塊的參考截圖——一款以速度與輸出精緻度為賣點的口述／語音轉文字產品——可能是作為設計或文案範例而保存。
         provider: anthropic
         model: claude-opus-5
@@ -515,15 +502,12 @@ media:
         seconds: 9.508406083
         tokens: 27374
         review: false
+    category: screenshot
     tags:
-    - typeless
-    - macos
-    - web-navigation
   3d9e11cbe0aaddf693318b4f060bbdf3:
     source:
       url: cid://6264d3f4d385043c2d839ff8f92d1a72
   3f34360a5eb3c9ec303ca1035cc2453b:
-    category: screenshot
     description:
       de-DE:
         text: 'Ein Browser-Screenshot der Startseite des Cranelift-Projekts, mit einem Bytecode-Alliance-Logo oben links und einer Navigationsleiste mit den Einträgen Documentation, API Reference, Contributing, Chat sowie einem GitHub-Icon. Unter der großen Überschrift „Cranelift" beschreibt die Seite das Projekt als ein Projekt der Bytecode Alliance: ein schnelles, sicheres, vergleichsweise einfaches und innovatives Compiler-Backend, das eine Zwischendarstellung von einem Frontend entgegennimmt und zu ausführbarem Maschinencode kompiliert, eingesetzt als Bibliothek innerhalb eines „Embedders" — insbesondere der virtuellen WebAssembly-Maschine Wasmtime für JIT- und AOT-Kompilierung sowie als experimentelles Backend für den Rust-Compiler — und selbst in Rust geschrieben. Ein zweiter Absatz führt als unterstützte Plattformen x86-64, aarch64 (ARM64), s390x (IBM Z) und riscv64 auf und weist darauf hin, dass es retargetierbar ist und weitere ISA-Beiträge willkommen sind; ein dritter besagt, dass es aktiv gepflegt und produktiv eingesetzt wird, um sandboxed nicht vertrauenswürdigen Code mit nahezu nativer Performance auszuführen, und dass es der Release-Policy und der Security-Policy von Wasmtime folgt. Die Aufnahme scheint ein Beleg für die offizielle Selbstbeschreibung des Projekts zu sein, vermutlich als Referenz dafür gespeichert, was Cranelift zu unterstützen angibt.'
@@ -589,13 +573,9 @@ media:
         seconds: 9.898687542
         tokens: 27576
         review: false
+    category: screenshot
     tags:
-    - cranelift
-    - bytecode-alliance
-    - wasmtime
-    - rust
   4306a064284c581dc88a2c494e77f8f4:
-    category: document
     description:
       de-DE:
         text: 'Ein Screenshot eines Werbeprodukts zeigt links eine ausgehöhlte Apple Watch, bei der das beschriftete „TAPTIC ENGINE“ sichtbar ist, und rechts großen Text: „Wir haben einen Weg gefunden, der Technologie einen menschlicheren Touch zu geben. Wortwörtlich.“ Der begleitende Text erklärt, dass das Taptic Engine Handgelenk‑Vibrationen für Alarme, Benachrichtigungen und Tastbefehle liefert, sowie subtile Audiosignale und intime Apple‑Watch‑Kommunikation wie sanfte Vibrationen oder das Senden eines Herzschlags.'
@@ -661,16 +641,12 @@ media:
         seconds: 3.227587125
         tokens: 11956
         review: false
+    category: document
     tags:
-    - apple
-    - apple-watch
-    - taptic-engine
-    - smartwatch
     source:
       url: https://web.archive.org/web/20150309213711/http://www.apple.com/watch/technology/
       label: Apple
   4a1d25650b1262d916f6571208a32764:
-    category: screenshot
     description:
       de-DE:
         text: Ein Screenshot der Startseite eines persönlichen Blogs im Dark Mode, mit fast schwarzem Hintergrund und blassen Blütenblättern, die darüber hinwegtreiben. Oben in der Mitte sitzt eine pillenförmige Navigationsleiste mit den chinesischen Einträgen 首页 (aktiv), 文稿, 手记, 时光, 思考 und 更多, oben links ein kleiner Avatar im Anime-Stil und oben rechts ein Anmelde-Icon; der Hero-Text links lautet "Hi, I'm Innei 👋。" über "A NodeJS Full Stack <Developer />" und der Zeile "An independent developer coding with love." Darunter folgt eine Reihe runder Social-Buttons — Bilibili, NetEase Cloud Music, GitHub, E-Mail, RSS, Telegram und X — während ein großes kreisrundes Anime-Porträt eines silberhaarigen Mädchens mit rosa Schleife die rechte Seite verankert und ein graues chinesisches Zitat über Verantwortung und innere Stärke am unteren Rand entlangläuft. Es handelt sich offensichtlich um die Landing-Ansicht von Inneis persönlicher Website, dargestellt in einem Browser in Desktop-Breite.
@@ -736,13 +712,9 @@ media:
         seconds: 10.76853325
         tokens: 27413
         review: false
-    tags:
-    - web-navigation
-    - node-js
-    - anime-avatar
-    - personal-website
-  5104d3b6f735fbe76558681b4d37e8ce:
     category: screenshot
+    tags:
+  5104d3b6f735fbe76558681b4d37e8ce:
     description:
       de-DE:
         text: 'Ein macOS-Terminal-Screenshot mit dem Titel `~/C/P/seam`, der das Ende eines erfolgreichen Cargo-Builds zeigt: etwa dreißig cyanfarbene "Compiling"-Zeilen laufen vorbei, beginnend mit Drittanbieter-Crates (console v0.16.3, reqwest v0.13.2, clap v4.6.0, tokio-tungstenite v0.29.0, notify v8.2.0, wasm-bindgen-macro v0.2.114) und endend mit lokalen Workspace-Mitgliedern in v0.5.38 — seam-codegen, seam-server-axum, seam-skeleton, seam-injector-wasm, seam-engine-wasm und seam-cli — gefolgt von vier Beispiel-Crates in v0.0.0 unter `examples/` (github-dashboard rust-axum backend, i18n-demo backend, markdown-demo server-rust, standalone server-rust). Die letzte Zeile lautet `Finished \`dev\` profile [unoptimized + debuginfo] target(s) in 19.23s`, und der Prompt kehrt als `canmi@xyy ~/C/P/seam (main)>` zurück. Es ist ein Beleg dafür, dass der seam-Workspace — ein Rust-Projekt, aufgeteilt in CLI-, Server-Adapter-, Codegen- und WASM-Engine-/Injector-Crates sowie mehrere Beispiel-Backends — auf dem Branch `main` in etwa zwanzig Sekunden sauber baut.'
@@ -808,13 +780,9 @@ media:
         seconds: 8.476979583
         tokens: 27624
         review: false
+    category: screenshot
     tags:
-    - rust
-    - cargo
-    - command-line-interface
-    - compilation
   52835c03630e87eecf5653c5c99dc008:
-    category: photograph
     description:
       de-DE:
         text: Ein Foto zeigt Steve Jobs auf der Bühne, wie er das ursprüngliche iPhone hochhält, dessen kleiner Bildschirm ein Raster von App‑Symbolen anzeigt. Er trägt einen schwarzen Mock‑Rollkragenpullover und eine Brille vor einem dunklen Hintergrund, dominiert von einem großen, unscharfen Apple‑Logo, das von hellem Präsentationslicht beleuchtet wird. Es scheint die öffentliche Einführung des ersten iPhone durch Apple zu dokument
@@ -880,15 +848,12 @@ media:
         seconds: 2.878506291
         tokens: 11818
         review: false
+    category: photograph
     tags:
-    - apple
-    - iphone
-    - steve-jobs
     source:
       url: https://www.wired.com/story/iphone-history-dogfight/
       label: Wired
   5c33f853b73251e594e7c0eaca0a5709:
-    category: screenshot
     description:
       de-DE:
         text: Ein Screenshot der Next.js-Startseite im Dark Mode, der den Landing-Hero so zeigt, wie er in einem Desktop-Browser erscheint. Eine obere Navigationsleiste trägt links das Vercel-Dreieck und den NEXT.js-Schriftzug, daneben Links für Showcase, Docs, Blog, Templates und Enterprise, und rechts ein Feld „Search documentation..." mit einem ⌘K-Hinweis, einen Deploy-Button und einen Learn-Button. In der Mitte der Seite steht „The React Framework for the Web" in großer weißer Schrift, mit der Unterzeile „Used by some of the world's largest companies, Next.js enables you to create high-quality web applications with the power of React components," darüber einem blassen „Get Started"-Button und einem dunklen „Learn Next.js"-Button, und darunter dem Befehl `~ npx create-next-app@latest`. Schwach gepunktete Gitterlinien und zwei angeschnittene Kreisumrisse liegen als Hintergrundornament hinter dem Text.
@@ -954,10 +919,8 @@ media:
         seconds: 8.52645325
         tokens: 27352
         review: false
+    category: screenshot
     tags:
-    - next-js
-    - npm
-    - web-navigation
   6264d3f4d385043c2d839ff8f92d1a72:
     description:
       de-DE:
@@ -1031,7 +994,6 @@ media:
       from: 0.0
       to: 18.0
   6da637a66b48711354532477ac3f2014:
-    category: artwork
     description:
       de-DE:
         text: Ein Werbe-Mockup für ein Hexo-Blog-Theme, das links die Wortmarke „NIvi" in großer hellgrauer Schrift über einer kurzen lachsrosa Unterstreichung mit zwei überlappenden Browser-Screenshots des Themes auf der rechten Seite kombiniert. Das größere, desktopbreite Fenster zeigt einen cremefarbenen Header mit dem Schriftzug-Logo „Hexo" und einer Navigation aus Suche, ARTICLE, ARCHIVES, TAGS, ABOUT, darunter ein typografischer Testbeitrag vom 27.12.2013 mit dem Titel „Elements" — die Standard-Beispielseite von Hexo, die Heading 1 bis Heading 6 durchgeht, einen Paragraph-Abschnitt mit Lorem ipsum samt rosa Inline-Links, Fett, Kursiv, Unterstreichung und Code-Spans, ein Blockquote mit rosa Balken sowie eine dreispaltige Tabelle mit „Table Header 1–3" über den Zeilen „Division 1–3". Eine schmalere Mobil- oder Tablet-Darstellung derselben Seite überlappt sie unten rechts und zeigt das zentrierte Logo und den identischen Inhalt einspaltig umgebrochen. Das Ganze steht auf reinem Weiß und wirkt wie eine Theme-Präsentation, ein Beleg dafür, dass das Design seinen vollständigen HTML-Elementsatz bei beiden Breiten sauber rendert.
@@ -1097,18 +1059,13 @@ media:
         seconds: 11.798782917
         tokens: 27544
         review: false
+    category: artwork
     tags:
-    - hexo
-    - blog-framework
-    - web-navigation
-    - personal-website
   7c112d031538b0ee7baeea1524fc5de5:
-    category: photograph
     description:
       de-DE:
         text: |-
           Eine Fotografie, die aus geringer Höhe senkrecht auf einen verwitterten Holzsteg im Freien blickt; die grauen, von der Sonne ausgebleichten Bohlen verlaufen diagonal von links unten nach rechts oben und füllen unter flachem, schattenlosem Wolkenlicht das gesamte Bild. Viele Bretter sind gerissen, verschüsselt oder ganz durchgebrochen und hinterlassen dunkle Lücken und zackige Hohlräume dort, wo die Enden weggefault sind; Nagelköpfe stehen über das Holz hinaus, und eine Bohle hat sich vollständig aus der Flucht gehoben. Durch einen breiten Bruch quer über den oberen linken Bereich drängen dünnes grünes Gras, welkes Laub und Zweige aus dem blanken Erdreich darunter hervor, und am ganz oberen Bildrand ist gerade noch ein Streifen Pflaster zu erkennen.
-
           Das Bild wirkt wie ein Beleg für einen vernachlässigten, unsicheren Gehweg – die Fäulnis, die fehlenden Bretter und der Bewuchs, der hindurchwächst, deuten darauf hin, dass er seit mehreren Jahreszeiten nicht mehr instand gehalten wurde.
         provider: anthropic
         model: claude-opus-5
@@ -1119,7 +1076,6 @@ media:
       en-US:
         text: |-
           A photograph looking down at close range onto a weathered outdoor boardwalk, the grey sun-bleached planks running diagonally from lower left to upper right and filling the entire frame under flat, shadowless overcast light. Many boards have split, cupped or snapped clean through, leaving dark gaps and jagged voids where the ends have rotted away; nail heads sit proud of the timber and one plank has lifted out of line entirely. Through a wide break across the upper left, thin green grass, dead leaves and twigs push up from the bare soil beneath, and a strip of paving is just visible at the very top edge.
-
           The image reads as evidence of a neglected, unsafe walkway — the rot, missing boards and vegetation growing through suggest it has been out of maintenance for several seasons.
         provider: anthropic
         model: claude-opus-5
@@ -1130,7 +1086,6 @@ media:
       es-ES:
         text: |-
           Una fotografía tomada desde arriba y a corta distancia de una pasarela de madera exterior deteriorada por la intemperie; los tablones grises, descoloridos por el sol, discurren en diagonal desde la parte inferior izquierda hasta la superior derecha y llenan todo el encuadre bajo una luz plana y sin sombras de cielo nublado. Muchas tablas se han agrietado, alabeado o partido por completo, dejando huecos oscuros y vacíos irregulares donde los extremos se han podrido; las cabezas de los clavos sobresalen de la madera y un tablón se ha levantado por completo de su línea. A través de una amplia rotura en la parte superior izquierda, hierba verde y fina, hojas secas y ramitas asoman desde la tierra desnuda que hay debajo, y una franja de pavimento apenas se distingue en el borde superior.
-
           La imagen se lee como evidencia de una pasarela descuidada e insegura: la podredumbre, las tablas ausentes y la vegetación que crece a través de ella sugieren que lleva varias temporadas sin mantenimiento.
         provider: anthropic
         model: claude-opus-5
@@ -1141,7 +1096,6 @@ media:
       fr-FR:
         text: |-
           Une photographie prise en plongée, à faible distance, d'une passerelle en bois extérieure usée par les intempéries, dont les planches grises décolorées par le soleil filent en diagonale du coin inférieur gauche vers le coin supérieur droit et occupent tout le cadre sous une lumière plate et sans ombre de ciel couvert. De nombreuses planches se sont fendues, gondolées ou cassées net, laissant des interstices sombres et des vides déchiquetés là où les extrémités ont pourri; des têtes de clous dépassent du bois et une planche s'est entièrement soulevée hors de l'alignement. Par une large brèche en haut à gauche, de fines herbes vertes, des feuilles mortes et des brindilles émergent de la terre nue en dessous, et une bande de dallage est tout juste visible sur le bord supérieur.
-
           L'image se lit comme le témoignage d'un cheminement négligé et dangereux — la pourriture, les planches manquantes et la végétation qui pousse à travers suggèrent qu'il est sans entretien depuis plusieurs saisons.
         provider: anthropic
         model: claude-opus-5
@@ -1152,7 +1106,6 @@ media:
       ja-JP:
         text: |-
           風化した屋外の木製ボードウォークを至近距離で見下ろした写真。灰色に日焼けした板が左下から右上へ斜めに走り、平坦で影のない曇天光の下、フレーム全体を埋めている。多くの板が裂けたり、反ったり、完全に折れたりしており、端が腐り落ちた箇所には暗い隙間とぎざぎざの空隙が残る。釘の頭が木材から浮き出し、一枚の板は完全に列から外れて持ち上がっている。左上を横切る大きな破損部からは、下の剥き出しの土から細い緑の草、枯葉、小枝が伸び出しており、最上端にはわずかに舗装の帯が見える。
-
           この画像は、放置され安全でない歩道の証拠として読み取れる。腐朽、失われた板、突き抜けて生える植物は、数季にわたって整備が行われていないことを示唆している。
         provider: anthropic
         model: claude-opus-5
@@ -1163,7 +1116,6 @@ media:
       ko-KR:
         text: |-
           풍화된 야외 목재 보드워크를 가까운 거리에서 내려다본 사진으로, 햇볕에 바래 회색이 된 널판이 좌측 하단에서 우측 상단으로 대각선으로 뻗으며 그림자 없이 평평한 흐린 날의 빛 아래 화면 전체를 가득 채우고 있다. 많은 널판이 갈라지거나 휘거나 완전히 부러져 있고, 끝부분이 썩어 없어진 자리에는 어두운 틈과 들쭉날쭉한 구멍이 남아 있다. 못 대가리는 목재 위로 튀어나와 있고 널판 하나는 아예 줄에서 들려 나와 있다. 좌측 상단을 가로지르는 넓게 벌어진 틈 사이로 아래의 맨흙에서 가늘고 푸른 풀과 마른 잎, 잔가지가 밀고 올라와 있으며, 맨 위쪽 가장자리에는 포장된 길의 일부가 살짝 보인다.
-
           이 이미지는 방치되어 안전하지 않은 통행로의 증거로 읽힌다. 부패와 빠진 널판, 뚫고 자라난 초목은 여러 계절 동안 관리가 이루어지지 않았음을 시사한다.
         provider: anthropic
         model: claude-opus-5
@@ -1174,7 +1126,6 @@ media:
       zh-CN:
         text: |-
           一张俯拍的近距离照片，拍摄一段饱经风霜的户外木栈道，灰白褪色的木板自左下向右上斜向延伸，在平淡无影的阴天光线下填满整个画面。许多木板已开裂、翘曲或彻底断裂，留下深色的缝隙和末端腐烂后形成的参差豁口；钉帽凸出于木材表面，有一块木板已完全脱离原位翘起。透过左上方一处宽大的破口，可见稀疏的绿草、枯叶和细枝从下方裸露的泥土中钻出，画面最上缘还隐约露出一小条铺装地面。
-
           这幅画面呈现出一条年久失修、存在安全隐患的步道——腐朽、缺失的木板以及穿透生长的植被，都表明它已有数季无人维护。
         provider: anthropic
         model: claude-opus-5
@@ -1185,7 +1136,6 @@ media:
       zh-TW:
         text: |-
           一張近距離俯視風化戶外木棧道的照片，灰白褪色的木板由左下往右上斜向延伸，在平淡無影的陰天光線下鋪滿整個畫面。許多木板已經裂開、翹曲或整片斷裂，末端腐朽脫落後留下暗黑的縫隙與參差的破洞；釘頭凸出於木材表面，其中一塊木板更完全脫離了原本的排列。在左上方一道寬大的裂口下方，稀疏的綠草、枯葉與細枝從裸露的泥土中冒出，畫面最上緣則隱約可見一小段鋪面。
-
           這張影像呈現出一條疏於維護、並不安全的步道——腐朽、缺失的木板以及穿透而出的植被，顯示它已經好幾季沒有進行維修了。
         provider: anthropic
         model: claude-opus-5
@@ -1193,12 +1143,9 @@ media:
         seconds: 9.916865625
         tokens: 27268
         review: false
+    category: photograph
     tags:
-    - wooden-decking
-    - grass
-    - fallen-leaves
   7d3a80a688fa627e4f3577f69b320867:
-    category: diagram
     description:
       de-DE:
         text: 'Ein gruppiertes Balkendiagramm, das vier Unix-Linker vergleicht — GNU ld 2.42 (blau), GNU gold 2.38 (rot), LLVM lld 19.0.0 (gelb) und mold 2.4.0 (grün) — anhand der Linkzeit in Sekunden auf einer y-Achse von 0 bis 50, über drei Programme hinweg, die mit ihren Binärgrößen auf der x-Achse angegeben sind: MySQL 8.3 mit 0,47 GiB, Clang 19.0 mit 1,56 GiB und Chromium 124 mit 1,35 GiB. Für MySQL liegen die vier Balken bei etwa 11, 7,5, 1,7 und 0,5 Sekunden; für Clang bei 42, 33, 5,3 und 1,4; für Chromium fehlt der blaue Balken vollständig, gold liegt bei etwa 27, lld bei etwa 6 und mold bei etwa 1,4. Der Abstand vergrößert sich mit der Binärgröße, und der fehlende GNU-ld-Balken legt nahe, dass dieser Linker Chromium nicht linken konnte, sodass das Diagramm als Beleg dafür zu lesen ist, dass mold bei großen Builds rund eine Größenordnung schneller ist als lld und etwa zwanzig- bis dreißigmal schneller als die traditionellen GNU-Linker.'
@@ -1264,13 +1211,9 @@ media:
         seconds: 8.188519041
         tokens: 27470
         review: false
+    category: diagram
     tags:
-    - gnu-ld
-    - gnu-gold
-    - llvm-lld
-    - mold-linker
   7ff802c270a8b05f42e77ff401fe5475:
-    category: photograph
     description:
       de-DE:
         text: 'Eine Fotografie einer kahlen Betonwand in einer düsteren Tiefgarage, frontal aufgenommen. Über das untere graue Band der Wand sind sechs große chinesische Schriftzeichen in Rot handgemalt, mit sichtbaren Farbläufern: 消防通道 严禁停车 – „Feuerwehrzufahrt, Parken strengstens verboten." Am linken Rand befindet sich ein an der Wand montierter Hydrantenschrank mit gesprungener Glastür, beschriftet mit 消火栓 / FIRE HYDRANT, gespeist von verzinkten Rohrleitungen, die bis zu einer Kabelführung an der Decke hinaufführen, und etwas höher an der hellen oberen Wand sitzt ein kleiner quadratischer Abluftschlitz. Das flache, schattenlose Licht und der leere, fleckige Boden lassen darauf schließen, dass es sich um einen Handy-Schnappschuss handelt, der dokumentieren soll, dass der Rettungsweg frei und gekennzeichnet ist.'
@@ -1336,13 +1279,9 @@ media:
         seconds: 10.664256791
         tokens: 27233
         review: false
+    category: photograph
     tags:
-    - fire-hydrant
-    - concrete-wall
-    - chinese-graffiti
-    - exposed-pipes
   8acf126a993024efcb5d4db159659d40:
-    category: screenshot
     description:
       de-DE:
         text: Ein Desktop-Browser-Screenshot der Marketing-Startseite von Vercel, dargestellt auf schwarzem Hintergrund mit einem schwachen Raster-Overlay. Die dunkle Navigationsleiste trägt links die Vercel-Dreieck-Wortmarke, Menüpunkte für Products, Resources, Solutions, Enterprise und Pricing sowie rechts die Bedienelemente Ask AI, Log In und Sign Up; die Hero-Überschrift lautet „Build and deploy on the AI Cloud." über der Unterzeile „Vercel provides the developer tools and cloud infrastructure to build, scale, and secure a faster, more personalized web." Darunter befinden sich zwei Schaltflächen – eine weiße primäre Schaltfläche „Start Deploying" mit dem Dreieck-Glyph und eine sekundäre Schaltfläche „Get a Demo" mit Umrandung. Darunter erhebt sich ein großes Dreieck in Strichzeichnung aus dem Raster, von hinten angestrahlt von einem Leuchten, das links blau, an der Spitze grün und rechts rot verläuft – ein Beleg für eine kürzlich erfolgte Aufnahme der aktuellen AI-Cloud-Positionierung der Website.
@@ -1408,12 +1347,9 @@ media:
         seconds: 9.939283916
         tokens: 27416
         review: false
+    category: screenshot
     tags:
-    - vercel
-    - web-navigation
-    - landing-page
   8b5c00c5682e593968de91a04fd3fd2d:
-    category: photograph
     description:
       de-DE:
         text: Ein Bühnenfoto zeigt Steve Jobs in einem schwarzen Rollkragenpullover und Jeans, der nach unten auf einen offenen silbernen Apple‑Laptop schaut, während er einen großen manila‑farbenen Geschäftsumschlag hält. Er steht vor einem nahezu schwarzen Hintergrund mit tiefblau‑violetten Vorhängen, beleuchtet von einem fokussierten Bühnenlicht; das Bild scheint Apples berühmte Vorführung zu dokumentieren, bei der ein Laptop in einen Umschlag passte.
@@ -1479,15 +1415,12 @@ media:
         seconds: 2.751697584
         tokens: 11631
         review: false
+    category: photograph
     tags:
-    - steve-jobs
-    - laptop
-    - apple
     source:
       url: https://www.macrumors.com/2023/01/15/macbook-air-turns-15/
       label: MacRumors
   8d32cfe9437f0bba72819263799a99ca:
-    category: photograph
     description:
       de-DE:
         text: Eine formatfüllende Nahaufnahme des Bodens von oben, ganz von Gras ausgefüllt — dünne grüne Halme, verflochten mit einer dichten Matte aus blassen, vertrockneten, strohfarbenen Stängeln, die die Mitte und die linke Seite beherrscht. Darüber verteilt liegen ausgebleichte und braun gewordene Laubblätter, einige dunklere, feuchte nahe der unteren linken Ecke, wo blanker Boden durchscheint, sowie ein Paar kleiner rostoranger Blätter nahe der Mitte, die die einzige gesättigte Farbe im Bild bilden. Ein schlanker, kahler Zweig, silbrig-weiß und gegabelt, liegt diagonal rechts der Mitte, und das Licht ist flach und bedeckt, ohne sichtbare Schatten. Es wirkt wie eine beiläufige Aufnahme einer Bodentextur, wie man sie macht, um den Zustand eines Rasens oder Randstreifens im Spätherbst oder Vorfrühling festzuhalten, wenn neuer Wuchs durch den abgestorbenen Filz der letzten Saison dringt.
@@ -1553,12 +1486,9 @@ media:
         seconds: 11.833774333000001
         tokens: 27320
         review: false
-    tags:
-    - lawn
-    - mushroom
-    - fallen-leaves
-  8fd9a29b8367e6beba6b7901e794ca3a:
     category: photograph
+    tags:
+  8fd9a29b8367e6beba6b7901e794ca3a:
     description:
       de-DE:
         text: Eine Fotografie eines aufgeklappten schwarzen Laptops, der auf einem Geländerpfosten aus Granit über einem breiten, schlickbraunen Fluss balanciert; sein Bildschirm ist dunkel und spiegelt nur das gekräuselte Wasser davor. Das gegenüberliegende Ufer ist eine niedrige grüne Baumreihe unter einem flachen weißen Dunst, mit einer Gruppe blasser Wohntürme und einem Baukran links, weiteren Wohnblöcken und einer langen Straßenbrücke rechts; eine kleine rote Fahrwassertonne liegt allein im Wasser. Näher am Betrachter zeichnen ein Metallhandlauf und eine niedrige Lampe den Uferweg nach rechts nach, wo am Rand algendurchzogene Wattflächen freiliegen. Das Licht ist diffus und schattenlos, Mittag bei bedecktem Himmel oder Smog, und die Szene wirkt, als hätte dort jemand am Fluss mit seinem Arbeitsgerät innegehalten, statt es tatsächlich zu benutzen.
@@ -1624,13 +1554,9 @@ media:
         seconds: 10.592006125
         tokens: 27272
         review: false
+    category: photograph
     tags:
-    - laptop
-    - river
-    - waterfront
-    - railing
   91b5741d129e27d79f2e717ab31d022c:
-    category: screenshot
     description:
       de-DE:
         text: 'Screenshot einer Simon & Schuster E‑Book‑Seite mit dem Titel „Excerpt 4“ aus einem Buch von Walter Isaacson, zeigt einen langen Abschnitt, der Jony Ives Intelligenz, Produktvision und operative Autorität bei Apple lobt. Die letzten Zeilen sind hellgelb hervorgehoben: Steve Jobs sagt, dass Ive mehr operative Macht habe als jeder andere bei Apple, außer ihm, und dass niemand Ive sagen könne, was er zu tun habe. In der rechten Seitenleiste steht ein E‑Book‑Preis von 16,99 $ und Schaltflächen für die Händler Amazon Kindle, Apple Books, Barnes & Noble, BAM!, Bookshop und'
@@ -1696,11 +1622,8 @@ media:
         seconds: 3.768287084
         tokens: 11983
         review: false
+    category: screenshot
     tags:
-    - apple
-    - simon-schuster
-    - walter-isaacson
-    - ebook
     source:
       url: https://parents.simonandschuster.com/9781451648553
       label: Simon & Schuster
@@ -1708,7 +1631,6 @@ media:
     source:
       url: cid://cda77856d388c1fb733042c25b943569
   a2b472ee8c494d39f18e8cb06f5ec684:
-    category: photograph
     description:
       de-DE:
         text: Eine Fotografie, um neunzig Grad gedreht gespeichert, die einen verwitterten Holzsteg zeigt, der von der Kamera weg unter einer verrosteten Stahlpergola verläuft, deren nackte Träger und Seilgeländer von überhängendem Bambus und Sträuchern halb verschluckt werden. Tiefstehende Sonne streicht von einer Seite über die vergrauten Bohlen, wirft lange Schattenbalken und lässt trockenes Laub und vereinzelte Grashalme in den Fugen zurück; der Bewuchs ist dicht und ungeschnitten und schließt sich weiter hinten über dem Weg. Durch eine Lücke im Bildausschnitt am hinteren Ende ragt die Glas-Beton-Fassade eines Bürohochhauses vor einem blassen, dunstigen Himmel auf und verortet diesen überwucherten erhöhten Weg eindeutig in einer Stadt statt in einem Park.
@@ -1774,13 +1696,9 @@ media:
         seconds: 10.660104042
         tokens: 27248
         review: false
-    tags:
-    - pergola
-    - railing
-    - tree
-    - shrub
-  a46df6030a9b1ba3f0af95e1a2196850:
     category: photograph
+    tags:
+  a46df6030a9b1ba3f0af95e1a2196850:
     description:
       de-DE:
         text: Eine Fotografie, aufgenommen mit Blick nach unten auf eine niedrige Hecke aus beschnittenen immergrünen Sträuchern, die diagonal durch das Bild hinter einem hellen Granitbordstein verläuft, mit einem Streifen aus grauem Pflaster und Asphalt in der unteren linken Ecke. Die Sträucher sind dicht, aber in der Nähe des Bordsteins sichtbar licht, wo kahle verholzte Stängel und ein Boden aus braunem Falllaub durchscheinen, und das Laub trägt den gelbgrünen Schimmer des frischen Frühjahrsaustriebs; ein schlanker Baumstamm ragt am oberen Bildrand aus der Bepflanzung, und ein Band rostroter Beetpflanzen füllt den fernen Hintergrund. Das Licht ist hell und gerichtet, tief genug, um lange weiche Schatten eines außerhalb des Bildes befindlichen Objekts über den Gehweg und den Bordstein zu werfen, was auf den späten Nachmittag hindeutet.
@@ -1846,13 +1764,9 @@ media:
         seconds: 10.1374065
         tokens: 27233
         review: false
+    category: photograph
     tags:
-    - shrub
-    - tree
-    - park-path
-    - fallen-leaves
   a853e69c33ee2c50ed9125ff947b2d49:
-    category: screenshot
     description:
       de-DE:
         text: Ein Screenshot des Hero-Bereichs der Cloudflare-Marketing-Startseite, auf den oberen Teil der Seite zugeschnitten, auf einem gesättigten orangen Hintergrund mit einer schwachen gepunkteten Textur und einem warmen, blassen Schimmer, der von der unteren Mitte aufsteigt. Die Navigationsleiste enthält Products, Solutions, Resources und Pricing als Dropdown-Einträge, mit einer "Login"-Pille und einer weißen "Start building"-Schaltfläche auf der rechten Seite; die Überschrift lautet "Everything we learned from powering 20% of the Internet—yours by default", gefolgt von der Unterzeile "Cloudflare is your AI Cloud with compute, AI inference, and storage — letting you ship applications instead of managing infrastructure." und einem zweiten weißen "Start building"-Call-to-Action. Es ist ein Beleg für Cloudflares aktuelle Positionierung als "AI Cloud" statt als reiner CDN- oder Security-Anbieter, die sich auf die Reichweitenbehauptung von 20 % des Internets als Beweispunkt stützt.
@@ -1918,12 +1832,9 @@ media:
         seconds: 8.603296791
         tokens: 27349
         review: false
-    tags:
-    - cloudflare
-    - landing-page
-    - web-navigation
-  a904d61e5006b602f7c6efd236911d78:
     category: screenshot
+    tags:
+  a904d61e5006b602f7c6efd236911d78:
     description:
       de-DE:
         text: Ein Screenshot eines macOS-Terminalfensters (Ampel-Buttons oben links, dunkler Hintergrund, Monospace-Schrift), der eine mit Rahmenzeichen gezeichnete Tabelle des täglichen LLM-Token-Verbrauchs und der Kosten zeigt, so weit gescrollt, dass die Kopfzeile außerhalb des sichtbaren Bereichs liegt. Jede Zeile besteht aus einem Datum von 2026-03-03 bis 2026-03-13, gepaart mit den an diesem Tag verwendeten Modellen — haiku-4-5, opus-4-6 und an manchen Tagen sonnet-4-6 —, gefolgt von fünf Zahlenspalten, die sich als Input-, Output-, Cache-Write- und Cache-Read-Tokens plus einer Gesamtsumme lesen lassen, sowie einem abschließenden Dollarbetrag; die Gesamtwerte reichen von 161.186.904 Tokens bei 97,92 $ am 2026-03-12 bis zu 3.277.442.496 Tokens bei 1.765,56 $ am 2026-03-09. Cache-Read ist mit Abstand die dominierende Spalte, oft im Milliardenbereich gegenüber wenigen Millionen Output-Tokens, und die Kosten folgen dieser Gesamtsumme eng. Es scheint sich um die Ausgabe eines CLI-Tools zur Verbrauchsauswertung zu handeln, ein Beleg für eine intensive, mehrtägige Claude-Code-Arbeitslast, die im Zeitraum vom 2026-03-06 bis zum 2026-03-09 mit rund 1.700 $ pro Tag ihren Höhepunkt erreicht.
@@ -1989,13 +1900,9 @@ media:
         seconds: 10.377418625
         tokens: 27491
         review: false
+    category: screenshot
     tags:
-    - macos
-    - command-line-interface
-    - token-usage
-    - usage-cost
   aecdaad11c3a4a2e31877f7dcae8c4e1:
-    category: artwork
     description:
       de-DE:
         text: Ein klares Produkt‑Render‑Diagramm zeigt einen silbernen Apple Mac Pro‑Turm von vorne links und mit entferntem Gehäuse rechts. Die Vorderseite hat das charakteristische Raster aus runden Lüftungsöffnungen und polierten Tragegriffen, während die freigelegte Seite eine große schwarze Logikplatine, Prozessor‑Module, Erweiterungssteckplätze, Anschlüsse und Kühlkomponenten zeigt. Vor einem schlichten weißen Hintergrund dokumentiert es das äußere Design und die interne Hardware‑Anordnung des Mac Pro.
@@ -2061,17 +1968,14 @@ media:
         seconds: 3.492437208
         tokens: 11915
         review: false
+    category: artwork
     tags:
-    - apple
-    - mac-pro
-    - printed-circuit-board
     source:
       url: https://www.apple.com/newsroom/2019/06/apple-unveils-powerful-all-new-mac-pro-and-groundbreaking-pro-display-xdr/
       label: Apple Newsroom
   b5951446d4de92d1b15b929938562f02:
     category: photograph
   c4297c3fd885b805484659786e1fb561:
-    category: screenshot
     description:
       de-DE:
         text: Ein Screenshot der Landingpage der Remix-Website, dargestellt auf einem blassen Farbverlauf von Grau zu Weiß, mit der Wortmarke „Remix" oben links und einer Navigationszeile oben rechts mit den Einträgen Blog, Jam, Store, V2 Docs. Zentrierter Überschriftentext verkündet „Remix 3 is under active development", darunter der Untertitel „A new full stack framework built on Web APIs". Die unteren zwei Drittel füllt eine stilisierte Illustration eines unter einem schwarzen Tuch verborgenen Autos, dessen Falten das Licht einfangen, mit einem diagonalen Banner in Regenbogenstreifen und weißen Rennstreifen-Blitzen, die die Mitte kreuzen — das klassische Motiv des verhüllten Supersportwagens als Teaser. Es liest sich als Beleg für den Zustand der Remix-3-Projektseite vor der Ankündigung, auf der die Neuentwicklung des Frameworks vor jeder Veröffentlichung publik gemacht wird.
@@ -2137,13 +2041,9 @@ media:
         seconds: 9.469611041
         tokens: 27263
         review: false
+    category: screenshot
     tags:
-    - remix
-    - landing-page
-    - web-navigation
-    - automobile
   c59b29dec6d015ea19363ac47f43c36e:
-    category: photograph
     description:
       de-DE:
         text: Eine Fotografie, aufgenommen von einer Uferpromenade, mit Blick über eine weite Fläche flachen graubraunen Wassers hin zu einer fernen Stadtsilhouette. Das Licht ist diffus und dunstig — ein bedeckter oder smogverhangener Tag ohne sichtbare Sonne — sodass die Ansammlung von Hochhäusern und zwei schlanken Türmen am gegenüberliegenden Ufer sich als blasse Silhouetten über einem niedrigen Streifen kahler Bäume abzeichnen, ihre Spiegelungen schwach im Wasser verwischt. Im Vordergrund, unterhalb eines Geländers aus Metallseilen und zweier grauer Laternenmasten, hat sich ein großer Teppich aus dunklem Treibgut und Pflanzenresten am nahen Ufer angesammelt, in dem sich einige blasse Müllfetzen verfangen haben, während ein einzelnes kleines rotes Boot allein in der Flussmitte liegt. Es scheint sich um einen Beleg für Oberflächenverschmutzung oder Treibgutansammlung entlang eines städtischen Flusses zu handeln, wobei die Skyline ihn in einer großen, sich aktiv entwickelnden Stadt verortet.
@@ -2209,12 +2109,8 @@ media:
         seconds: 10.285685375
         tokens: 27277
         review: false
+    category: photograph
     tags:
-    - river
-    - waterfront
-    - railing
-    - streetlight
-    - algae
   c89ca3ea4b02c6a8a0c626a76a1a1682:
     description:
       de-DE:
@@ -2285,7 +2181,6 @@ media:
       url: https://web.archive.org/web/20150414005150id_/http://www.apple.com/macbook/design/
       label: Apple
   cbc260f16e936f977570f8fb391f48e2:
-    category: screenshot
     description:
       de-DE:
         text: 'Ein Screenshot eines dunklen macOS-Terminalfensters mit dem Titel `~/C/P/seam`, gefüllt mit dem Ende eines Cargo-Release-Builds: rund vierzig cyanfarbene „Compiling“-Zeilen, die Drittanbieter-Crates mit Versionen auflisten – walkdir v2.5.0, rand v0.10.0, tungstenite v0.29.0, sha2 v0.10.9, clap v4.6.0, rquickjs v0.11.0, notify v8.2.0, indicatif v0.18.4 –, gefolgt von den eigenen Workspace-Mitgliedern des Projekts in v0.5.38, jeweils mit ihrem Pfad: seam-codegen, seam-skeleton, seam-injector-wasm, seam-engine-wasm, seam-server, seam-server-axum und seam-cli unter `/Users/canmi/Canmi/Project/seam/src/`, dann vier Beispiel-Crates in v0.0.0 (demo-server-rust, github-dashboard-axum, markdown-demo-rust, i18n-demo-axum). Die letzte Zeile lautet `Finished \`release\` profile [optimized] target(s) in 1m 05s`, darunter wartet der Shell-Prompt `canmi@xyy ~/C/P/seam (main)>`. Es ist der Beleg für einen sauberen, warnungsfreien Release-Build des gesamten seam-Workspace – Library, Server-Adapter, CLI und alle mitgelieferten Beispiele –, der auf dem main-Branch in etwas mehr als einer Minute abgeschlossen wurde.'
@@ -2351,14 +2246,9 @@ media:
         seconds: 9.663934709
         tokens: 27676
         review: false
-    tags:
-    - cargo
-    - rust
-    - compilation
-    - command-line-interface
-    - macos
-  ccab92399398f1642024732cc1097abe:
     category: screenshot
+    tags:
+  ccab92399398f1642024732cc1097abe:
     description:
       de-DE:
         text: Ein Screenshot der Beitragsliste eines persönlichen Blogs, mit einer dunklen Seitenleiste links, die einen runden Avatar im Anime-Stil, den Namen 小汐, einen 主页-Link, eine Reihe von Links 所有文章 / 友链 / 关于我 sowie vier runde Social-Media-Icons, darunter GitHub und QQ, enthält. Die Hauptspalte zeigt eine angeheftete Beitragskarte mit dem Titel PD-METER-R4 vom 2023-01-29, deren chinesische Zusammenfassung besagt, dass sich das Projekt in Entwicklung befindet und im Vergleich zu R3 ein optimiertes Layout, einen ausgetauschten Hauptcontroller und einige neue Funktionen aufweist; darunter befinden sich zwei Fotos einer kleinen grünen Platine mit der Aufschrift USBC-R4 SAKURA, Vorder- und Rückseite, aufgenommen auf einem weißen Tuch mit einem Kamera-Wasserzeichen des Xiaomi 12S Ultra, das 2023.02.06 15:47 anzeigt. Die Karte trägt ein 置顶-Tag (angeheftet) und eine Schaltfläche 展开全文 >> zum Aufklappen, und darunter beginnt eine zweite Karte für WORX-BAT-Charger vom 2023-02-14. Es scheint sich um einen Beleg für das Blog eines Hardware-Bastlers zu handeln, das die Iterationen einer USB-C-Power-Delivery-Messplatine dokumentiert.
@@ -2424,11 +2314,8 @@ media:
         seconds: 10.724009625
         tokens: 27495
         review: false
+    category: screenshot
     tags:
-    - personal-website
-    - anime-avatar
-    - printed-circuit-board
-    - usb-c
   cd09df7945f22065fd0995f8f8207e55:
     description:
       de-DE:
@@ -2574,7 +2461,6 @@ media:
       from: 2340.0
       to: 2365.0
   ce6115b517f4858113b6aa4a061322aa:
-    category: screenshot
     description:
       de-DE:
         text: Ein Screenshot einer Produktseite, der die Apple Watch Edition bewirbt. Oben rechts steht die Überschrift „WATCH EDITION“ neben einem Text, der acht elegante Apple‑Watch‑Designs mit 18‑Karat‑Goldgehäusen, Saphirkristall‑Displays und speziell entworfenen Armbändern beschreibt, sowie einem blauen „Watch the Gold film“-Abspiellink. Die untere Hälfte wird von einer Nahaufnahme einer seitlichen Ansicht eines polierten goldenen Watch‑Gehäuses dominiert, mit seiner Digital Crown, Seitentaste und einem dunkelblauen Lederarmband vor einem hellgrauen Hintergrund
@@ -2640,15 +2526,12 @@ media:
         seconds: 4.017511958
         tokens: 11937
         review: false
+    category: screenshot
     tags:
-    - apple
-    - apple-watch
-    - smartwatch
     source:
       url: https://web.archive.org/web/20150309223102/http://www.apple.com/watch/apple-watch-edition/
       label: Apple
   d4186e9b053d6e972d2480b545e0a4da:
-    category: screenshot
     description:
       de-DE:
         text: 'Ein Screenshot aus einer Apple‑Keynote zeigt drei iPhone 4S‑Geräte auf einer dunklen Bühnenfolie: eines mit dem Startbildschirm, eines mit einer Siri‑Kalender‑Erinnerungsoberfläche und eines mit einem Fotobildschirm. Tim Cook steht rechts neben einer groß projizierten iPhone‑Anzeige, mit einem „APPLE“-Label in der oberen rechten Ecke, und scheint die Funktionen des Telefons zu präsentieren'
@@ -2714,10 +2597,8 @@ media:
         seconds: 3.082410625
         tokens: 11832
         review: false
+    category: screenshot
     tags:
-    - apple
-    - iphone
-    - steve-jobs
     source:
       url: https://www.cnet.com/videos/the-day-tim-cook-replaced-steve-jobs-the-iphone-4s-launch-cnet-archives/
       label: CNET
@@ -2725,7 +2606,6 @@ media:
     source:
       url: cid://cd09df7945f22065fd0995f8f8207e55
   d95819761cd2d03787a9ff5d58905017:
-    category: artwork
     description:
       de-DE:
         text: Produktwerbegrafik für das iPhone 5c mit dem Apple‑Logo und dem Aufdruck „iPhone 5c“ auf weißem Hintergrund. Fünf aufrechte Telefone in Grün, Blau, Gelb, Pink und Weiß werden gezeigt, die die farbigen Kunststoffhüllen und Seitentasten betonen; zwei zeigen teilweise Frontbildschirme und das weiße Telefon zeigt die Rückseite mit dem Apple‑Logo.
@@ -2791,15 +2671,12 @@ media:
         seconds: 3.07255875
         tokens: 11862
         review: false
+    category: artwork
     tags:
-    - iphone
-    - apple
-    - iphone-5c
     source:
       url: https://www.macrumors.com/2022/10/08/iphone-5c-obsolete-next-month/
       label: MacRumors
   ec38a5d85298b5e0d5b8acc1591097c2:
-    category: photograph
     description:
       de-DE:
         text: Eine auf Augenhöhe aufgenommene Fotografie entlang eines breiten Betonfußwegs, der von der Kamera weg durch einen begrünten Streifen neben einer Wohnsiedlung verläuft; der Belag ist staubig und von heruntergefallenen Zweigen und trockenem Laub durchzogen, Unkraut drängt aus jeder Fuge und entlang des Bordsteins hervor. Links wird der Weg von überwucherten Sträuchern und einer Heckenreihe gesäumt, hinter der ein Metallzaun steht; dahinter ragen zwei helle Wohnhochhäuser mit dunklen verglasten Fensterbändern in einen hellen, bedeckten Himmel. Rechts stehen junge Bäume mit weiß gekalkten Stämmen in gemähtem Gras, und dort, wo der Weg in mittlerer Entfernung aus dem Blickfeld biegt, ist eine niedrige Pergola oder ein Unterstandsgerüst zu sehen. Das Licht ist flach und dunstig, tief stehend und winterlich, wirft lange, weiche Schatten über den Belag und lässt die Hochhäuser leicht ausgewaschen erscheinen. Es liest sich als unauffällige Durchgangsaufnahme eines neu gebauten, aber bereits vernachlässigten Grüngürtels einer Wohnsiedlung.
@@ -2865,13 +2742,9 @@ media:
         seconds: 12.260816916
         tokens: 27389
         review: false
+    category: photograph
     tags:
-    - park-path
-    - shrub
-    - tree
-    - pergola
   f04a630871b46cc55111ffe1264891e9:
-    category: artwork
     description:
       de-DE:
         text: Eine Werbegrafik zeigt ein weißes iPhone, das den iOS 7‑Startbildschirm anzeigt, schräg vor einem sauberen weißen Hintergrund. Großer Text links lautet „iOS 7“ und „Das mobile Betriebssystem aus einer völlig neuen Perspektive.“ Sie wirbt für Apples iOS 7‑Neugestaltung und betont die farbenfrohen App‑Symbole sowie das schlanke Handy‑Design.
@@ -2937,15 +2810,12 @@ media:
         seconds: 3.3834005830000002
         tokens: 11800
         review: false
+    category: artwork
     tags:
-    - iphone
-    - ios
-    - smartphone
     source:
       url: https://web.archive.org/web/20130612003638/http://www.apple.com/ios/ios7/
       label: Apple
   f60c583c98fad33c0821a8ec87daa101:
-    category: artwork
     description:
       de-DE:
         text: Ein Produktfoto zeigt ein Paar glänzender weißer kabelloser Ohrhörer, die teilweise aus einem offenen weißen Ladecase heraus schweben, vor einem schlichten elfenbeinfarbenen Hintergrund. Weiches, gleichmäßiges Studiolicht betont die glatten Kunststoffoberflächen, Lautsprechergitter und kleinen schwarzen Sensordetails; es wirkt wie ein Werbebild für Apple‑ähnliche AirPods.
@@ -3011,15 +2881,12 @@ media:
         seconds: 3.301994917
         tokens: 11792
         review: false
+    category: artwork
     tags:
-    - apple
-    - wireless-earbuds
-    - charging-case
     source:
       url: https://www.apple.com/newsroom/2016/09/apple-reinvents-the-wireless-headphones-with-airpods/
       label: Apple Newsroom
   ff309d022981d9168fca9e5e9b7291e4:
-    category: photograph
     description:
       de-DE:
         text: Eine Fotografie, die senkrecht nach oben in einen blassblaugrauen Tageshimmel blickt, über den kleine, weich umrissene Büschel weißer Wolken verstreut sind – ein altocumulusartiges Feld, das sich zur oberen linken Bildecke hin verdichtet und nach unten rechts hin in klaren Himmel ausdünnt. Am rechten Rand ragt die Spitze eines belaubten Zweigs von außerhalb des Bildes herein; seine schlanken Zweiglein und spitzen, zusammengesetzten Blätter erscheinen vor dem hellen Himmel fast schwarz, auch wenn einige Blätter genug Licht einfangen, um grün zu wirken. Das Licht ist diffus und leicht dunstig, wobei die Helligkeit des Himmels zur bewölkten Ecke hin zunimmt, was darauf hindeutet, dass die Sonne auf dieser Seite knapp außerhalb des Bildausschnitts steht. Es wirkt wie ein beiläufiger, nach oben gerichteter Schnappschuss, vermutlich unter einem Baum aufgenommen.
@@ -3085,7 +2952,5 @@ media:
         seconds: 10.09882
         tokens: 27234
         review: false
+    category: photograph
     tags:
-    - tree
-    - sky
-    - cloud

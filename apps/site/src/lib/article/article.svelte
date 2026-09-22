@@ -759,7 +759,7 @@
 	/* Three grounds, counting the page the frame sits on. The head takes the step off the sheet and
 	   the rows take the sheet, which reads as a band behind the rows in light and as a chip over
 	   them in dark; a pair that mirrors cannot be deeper in both, and light is the half this was
-	   judged on. See spec/todo/todo.md, "A table head wants a ground that stays the darker one in both
+	   judged on. spec/todo/site.md, "A table head wants a ground that stays the darker one in both
 	   themes". */
 	.article-body :global(tbody) {
 		background-color: var(--color-paper);

@@ -8,7 +8,7 @@
 	 *
 	 * The row is the licence directory's row with a second column, its three declarations copied
 	 * character for character rather than shared -- where a module for the shared constant should
-	 * live is the question spec/todo/todo.md is already holding. See spec/architecture/css/authoring.md,
+	 * live is the question spec/todo/site.md is holding. See spec/architecture/css/authoring.md,
 	 * "A comment in the module script cannot write a tag in angle brackets".
 	 */
 	const styles = stylex.create({
