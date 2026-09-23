@@ -119,9 +119,10 @@ article is written on the color it is read on, and the ground takes `--color-pap
 token the site already has rather than a new one. That pair mirrors, so the ground is the deeper of
 the two in light and the lighter in dark, which is [styling/surfaces.md](../styling/surfaces.md),
 "A mirrored pair cannot keep one of its members the darker one", met from the other side and
-accepted until a pair that holds in both themes is written. The document scrolls rather than the
-pane, because the preview's rail is fixed to the viewport and reads the window's scroll; the pane
-is clipped, not scrolled, to keep its corners.
+accepted until a pair that holds in both themes is written. The document never scrolls; the
+pane does, so the ground and the section column hold still while the text moves. That excludes the
+article preview from the pane: its rail is fixed to the viewport and reads the window's scroll, so
+it moves to a route of its own rather than staying a mode inside the editor.
 
 **Labels are written in the case they are read in.** No uppercase and no caps tracking on a column
 head, a field label or the mark: small soft text is quiet enough, and shouting it in capitals is

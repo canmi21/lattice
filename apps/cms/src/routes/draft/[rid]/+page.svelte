@@ -142,7 +142,7 @@
 {/snippet}
 
 <div
-	class="sticky top-0 z-10 -mx-4 -mt-8 mb-8 px-4 py-2.5 md:-mx-8 md:px-8 {stylex.attrs(styles.bar)
+	class="sticky -top-8 z-10 -mx-4 -mt-8 mb-8 px-4 py-2.5 md:-mx-8 md:px-8 {stylex.attrs(styles.bar)
 		.class}"
 >
 	<div class="mx-auto flex max-w-3xl items-center gap-2 {stylex.attrs(surfaces.uiText).class}">

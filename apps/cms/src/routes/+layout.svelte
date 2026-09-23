@@ -69,9 +69,9 @@
 	{#if dev}{@html DEV_STYLEX}{/if}
 </svelte:head>
 
-<div class="flex min-h-dvh flex-col gap-2 p-2 md:flex-row">
+<div class="flex h-dvh flex-col gap-2 overflow-hidden p-2 md:flex-row">
 	<nav
-		class="flex shrink-0 items-center gap-1 px-2 py-1 md:sticky md:top-2 md:h-[calc(100dvh-1rem)] md:w-44 md:flex-col md:items-stretch md:py-4"
+		class="flex shrink-0 items-center gap-1 px-2 py-1 md:w-44 md:flex-col md:items-stretch md:py-4"
 	>
 		<a href="/" class="mr-4 px-2 no-underline md:mr-0 md:mb-5 {stylex.attrs(styles.mark).class}"
 			>collection</a
@@ -91,13 +91,11 @@
 		{/each}
 	</nav>
 
-	<!-- Clipped rather than scrolled: the document is what scrolls, because the preview's rail is
-	     fixed to the viewport and its contents read the window's scroll. `overflow: clip` rounds
-	     the corners without making a scroll container, so a sticky bar inside still sticks to the
-	     viewport. No column here either -- the preview's rail works out where it goes from the
-	     width it is given, and a page that wants a measure sets its own. -->
+	<!-- The pane is the one thing that scrolls. The ground holds still around it, so the sections
+	     and the pane's corners stay where they are while the text moves, and a sticky bar inside
+	     sticks to the pane's top edge. A page that wants a measure sets its own. -->
 	<div
-		class="min-w-0 flex-1 overflow-clip px-4 pt-8 pb-24 md:px-8 {stylex.attrs(
+		class="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 pt-8 pb-24 md:px-8 {stylex.attrs(
 			surfaces.page,
 			styles.pane,
 		).class}"
@@ -107,9 +105,12 @@
 </div>
 
 <style>
-	/* The ground the pane is set on. `html` carries no class, and it is what the tokens paint, so
-	   the one place this can be said is here. */
+	/* The ground the pane is set on, and held still: the document never scrolls, only the pane
+	   does, so the page cannot rubber-band the ground out from under it either. `html` carries no
+	   class, and it is what the tokens paint, so the one place this can be said is here. */
 	:global(html) {
+		overflow: hidden;
+		overscroll-behavior: none;
 		background-color: var(--color-paper-hover);
 	}
 </style>
