@@ -41,6 +41,10 @@
 	let title = $derived(data.draft.meta.title ?? '');
 	let subtitle = $derived(data.draft.meta.subtitle ?? '');
 	let description = $derived(data.draft.meta.description ?? '');
+	// Not stored yet: the collection keeps no short forms of its own, so these are the page's until
+	// it does.
+	let shortTitle = $derived((void data.draft, ''));
+	let shortSubtitle = $derived((void data.draft, ''));
 	// The address is a category and a slug, chosen apart: the category from those the corpus
 	// already uses, the slug written. A path with no category -- the homepage -- is a slug alone.
 	const address = (path: string | undefined) => {
@@ -330,11 +334,27 @@
 					<input bind:value={title} placeholder="Untitled" class={field('title')} />
 				</label>
 				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Short title</span>
+					<input
+						bind:value={shortTitle}
+						placeholder="What a phone card shows"
+						class={field('short_title')}
+					/>
+				</label>
+				<label class="flex flex-col gap-1">
 					<span class={stylex.attrs(styles.label).class}>Subtitle</span>
 					<input
 						bind:value={subtitle}
 						placeholder="A line under the title"
 						class={field('subtitle')}
+					/>
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Short subtitle</span>
+					<input
+						bind:value={shortSubtitle}
+						placeholder="The subtitle, shorter"
+						class={field('short_subtitle')}
 					/>
 				</label>
 				<!-- The category is chosen from those the corpus uses, or written: a new one is only this
