@@ -270,7 +270,7 @@
 		menu = undefined;
 		forget(entry.resource);
 		await invalidate(DRAFTS);
-		if (page.url.pathname === `/draft/${entry.resource}`) await goto('/articles');
+		if (page.url.pathname === `/draft/${entry.resource}`) await goto('/');
 	}
 
 	async function start() {

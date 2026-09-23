@@ -188,7 +188,8 @@ icon alone, which is a signal the row already had to show. A folder opens and cl
 height, the way the site's footnotes fold -- the list stays in the page, the box around it clips, and
 the box moves between two measured heights on the site's disclosure timing
 ([fold.ts](../../apps/cms/src/lib/fold.ts)) -- because the sidebar's height changes with it, and a
-list that appeared all at once would jump everything below it. The ledger at `/articles` stays as the page for working the list rather than navigating it.
+list that appeared all at once would jump everything below it. There is no list page besides it: the folder is where an article is found, and opening one is
+opening its draft.
 
 **A panel scrolls without a scrollbar.** The sidebar's list and the details drawer are cards
 laid over or beside the writing, and a bar down their edge is chrome that says nothing the moving
@@ -266,8 +267,7 @@ author has to translate back in their head; the preview remains the exact render
 is only as close as the unrendered nodes allow.
 
 The pages described below -- Overview and the Articles ledger -- were the desktop client's and have
-not been rebuilt in the web one. What they say about the visual language still holds, and the draft
-list is a ledger by the same argument.
+not been rebuilt in the web one. What they say about the visual language still holds.
 
 The shared visual language extends beyond the palette. The CMS uses the site's quiet text
 hierarchy, generous content spacing, hairline borders, paper only for contained surfaces and
