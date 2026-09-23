@@ -2,42 +2,5 @@
 	"name": "@canmi/cms",
 	"private": true,
 	"type": "module",
-	"scripts": {
-		"dev": "node client/dev.ts",
-		"dev:web": "vite",
-		"build": "tauri build",
-		"build:web": "vite build",
-		"roundtrip:markdown": "node scripts/markdown-roundtrip.ts"
-	},
-	"dependencies": {
-		"@canmi/fonts": "workspace:*",
-		"@canmi/locales": "workspace:*",
-		"@canmi/motion": "workspace:*",
-		"@canmi/primitives": "workspace:*",
-		"@canmi/theme": "workspace:*",
-		"@canmi/units": "workspace:*",
-		"@canmi/urls": "workspace:*",
-		"@milkdown/core": "7.22.1",
-		"@milkdown/ctx": "7.22.1",
-		"@milkdown/preset-commonmark": "7.22.1",
-		"@milkdown/utils": "7.22.1",
-		"@tauri-apps/api": "^2.11.1",
-		"hast-util-to-html": "^9.0.5",
-		"mdast-util-to-hast": "^13.2.1",
-		"motion": "^13.2.0",
-		"remark-directive": "^4.0.0",
-		"remark-frontmatter": "5.0.0",
-		"remark-gfm": "^4.0.1",
-		"remark-parse": "^11.0.0",
-		"unified": "^11.0.5",
-		"yaml": "2.9.0"
-	},
-	"devDependencies": {
-		"@canmi/tokens": "workspace:*",
-		"@tailwindcss/vite": "^4.3.3",
-		"@tauri-apps/cli": "^2.11.4",
-		"@types/node": "^26.5.1",
-		"tailwindcss": "^4.3.3",
-		"vite": "^8.3.0"
-	}
+	"dependencies": {}
 }

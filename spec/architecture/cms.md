@@ -1,5 +1,12 @@
 # The CMS as an application
 
+**The client this file describes is archived.** It ran as a Tauri window with a Milkdown editor
+inside it, and it is now source kept to be read under
+[archive/desktop-cms](../../archive/desktop-cms) -- nothing there builds. What survives it is the
+rule the window was the second shell of: an operation lives below both shells, and a GUI never
+owns a second implementation. The surface that replaces it is a web client against `local`; see
+[../todo/milestones.md](../todo/milestones.md). Filenames below name files in the archive.
+
 ## The desktop CMS is a resident process, not a viewer
 
 The Tauri client stays running. It exists to do two things the command-line shell structurally
@@ -25,7 +32,7 @@ application layer's job under the rule below, not a page's.
 A view that has found outstanding work shows the command that closes it. The command becomes a
 button only after the operation has moved below both shells and the task substrate can report its
 progress and refuse a second copy; known but unmigrated operations remain text. The Derived page
-implements that boundary in [derived.ts](../../apps/cms/client/derived.ts), while the task centre will
+implements that boundary in `client/derived.ts`, while the task centre will
 eventually provide the complete catalogue and scheduling surface.
 
 The reason is what these operations are. They run for minutes, several of them spend money on a
@@ -36,7 +43,7 @@ lies.
 
 An interactive run calls the same in-process application operation as the CLI. The GUI never owns
 a second implementation and never turns terminal output into an API. The Tauri adapter is in
-[main.rs](../../apps/cms/src-tauri/src/main.rs).
+`tauri-src/main.rs`.
 
 A class that spends money says so wherever it is offered, before anybody reaches for it. A paid
 operation does not become a button until that warning is part of the path that starts it.
@@ -190,7 +197,7 @@ is short for a reason.
 it is working on, so an article cannot be matched to a run exactly -- what is knowable is that
 while `locale` runs, the articles short of translations are the ones being worked on. The mapping
 from task to the findings it closes is one table in
-[articles.ts](../../apps/cms/client/articles.ts), so a task that becomes runnable adds a line
+`articles.ts`, so a task that becomes runnable adds a line
 there rather than a branch. This is the page's only claim about live state, and it is the reason
 the library polls the same registry the Derived page does.
 
@@ -249,7 +256,7 @@ nobody can see, and playing one is only delay.
 **Anything that opens or closes animates its own height, on the one spring.** A group folding, an
 article's panel, and whatever grows a disclosure next: if a press changes the shape of a box, the
 box travels between the two shapes rather than snapping. The gesture is `animateHeight` in
-[motion.ts](../../apps/cms/client/motion.ts) and the spring is `@canmi/motion`, shared with the
+`motion.ts` and the spring is `@canmi/motion`, shared with the
 site, so there is one way a thing opens here and no second set of numbers to keep in step.
 
 Two consequences follow and both are load-bearing. **A panel is built whether or not it is open**,
@@ -349,7 +356,7 @@ opening, because a tab strip's hops are short enough that the panel curve would 
 movement could be read as one.
 
 The spring is `@canmi/motion`, shared with the site's disclosures, which is the pair that moved it
-out of the site. The gesture itself is in [motion.ts](../../apps/cms/client/motion.ts) rather than
+out of the site. The gesture itself is in `motion.ts` rather than
 in the page, because every page that grows a tab strip wants the same one.
 
 Marks appear on the tabs and on the group bands, and the type on both rises to the size the band's

@@ -89,22 +89,12 @@ description = "Lint the workspace"
 # The expansion is strict mode, set by `mise run audit` and nothing else. See spec/lint-format.md.
 run = 'oxlint . ${AUDIT:+--deny-warnings}'
 
-# The CMS window's frontend, which the Tauri crate needs to *compile*: `generate_context!` reads
-# `frontendDist` at macro expansion and panics when the directory is absent. Both Rust tasks
-# below depend on it, and `mise run clean` is what made the missing step visible.
-[tasks.build-cms]
-description = "Build the CMS window's frontend, which the Tauri crate reads at compile time"
-dir = "apps/cms"
-run = "pnpm run build:web"
-
 [tasks.test-rust]
 description = "Run the Rust test suites"
-depends = ["build-cms"]
 run = "cargo test --workspace"
 
 [tasks.lint-rust]
 description = "Lint the Rust crates"
-depends = ["build-cms"]
 # `-D warnings` on the command line outranks the lint table in Cargo.toml, which is how strict
 # mode reaches `complexity = "warn"` without that table being edited. See spec/lint-format.md.
 run = 'cargo clippy --workspace --all-targets ${AUDIT:+-- -D warnings}'
@@ -177,11 +167,6 @@ run = "pnpm run dev"
 [tasks.dev-aka]
 description = "Run the alias layer's worker, which resolves names and stores nothing"
 dir = "apps/aka"
-run = "pnpm run dev"
-
-[tasks.dev-cms]
-description = "Run the CMS desktop client"
-dir = "apps/cms"
 run = "pnpm run dev"
 
 # The collection's two SQLite files, created where a fresh clone has neither. Migrating is the

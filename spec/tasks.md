@@ -64,7 +64,7 @@ second name for one store is two locks guarding half a thing each.
 now, so `PublicImage`, `PublicVideo`, `PublicCaptions`, `PublicOpengraph` and `PublicLicense` all
 denote the same directory. That is not a lock that stopped working, for two reasons worth stating
 because neither is obvious: two writers can only collide on a key when they are writing identical
-bytes, since the key *is* the hash of them; and the one task that deletes takes every record, so
+bytes, since the key _is_ the hash of them; and the one task that deletes takes every record, so
 nothing writes beside a sweep. What the names partition is who writes what, not which directory
 they write into.
 
@@ -273,14 +273,13 @@ interpreted values would require reconstructing the author's spelling at seriali
 weaken the byte-identical guarantee for no benefit; renderers read the structured attribute
 instead. A `font` directive's `family` attribute and a `font` fence's sole value must be ids
 exported by `@canmi/fonts`, and are rejected otherwise. That single catalogue prevents the editor
-syntax and renderer capabilities from drifting apart. See
-[markdown.ts](../apps/cms/client/markdown.ts).
+syntax and renderer capabilities from drifting apart.
 
-[markdown-roundtrip.ts](../apps/cms/scripts/markdown-roundtrip.ts) checks idempotence on the stored
-articles and reports semantic-risk changes by category. This is a weaker guarantee than the old
-arbitrary-input byte round trip: a normalised article round-trips trivially. It remains useful for
-detecting a serializer change or a custom node that drops meaning. Run it after touching the parse
-or serialize path, because that damage is invisible in a diff of the editor's own code.
+**The editor this describes is archived**, and so is the round-trip check that guarded it: both
+are under [archive/desktop-cms](../archive/desktop-cms), read rather than run. What they say about
+the syntax still holds, because the syntax is the corpus's rather than that editor's -- and the
+next editor inherits the same obligation, which is that a parse and serialize pass has to be
+idempotent on the stored articles and that the damage from breaking it is invisible in a diff.
 
 ## A finished run leaves nothing behind, and that is the gap
 

@@ -4,7 +4,7 @@ resolver = "3"
 # Listed explicitly rather than globbed: Cargo errors on any matched directory without a
 # Cargo.toml, so a glob over `apps/*` would break every cargo command the moment a
 # TypeScript-only directory appeared there.
-members = ["apps/cms", "apps/cms/src-tauri"]
+members = ["apps/cms"]
 
 [workspace.package]
 edition = "2024"
