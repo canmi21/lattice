@@ -124,6 +124,11 @@ before the first frame. The script is the part that matters. The server cannot r
 `localStorage`, so it renders the fallback width, and applying the remembered one after hydration
 would be exactly the jump rendering on the server was meant to remove.
 
+**The writer's fold survives a reload.** It is kept beside the width, under `cms.sidebar.folded`,
+and marked on the root by the same first-frame script, so a sidebar left folded opens folded rather
+than docking for a frame and then going. Only the writer's choice is kept; a window too narrow to
+dock it folds it without saying anything about what they want on a wider one.
+
 **Dragging the divider past the minimum folds the sidebar.** The width holds at the minimum, and
 for a further 2rem the drag means nothing -- overshooting an edge a little is not a request. Past
 that margin the sidebar recedes behind a notice saying that letting go will fold it, dragging back
@@ -195,6 +200,16 @@ for one. Both float over the pane rather than inside it, so they hold still whil
 the layout draws them and a page hands over what goes in them
 ([chrome.svelte.ts](../../apps/cms/src/lib/chrome.svelte.ts)), early enough that the server renders
 them with the page. A publication refused for a missing field opens the drawer on it.
+
+The drawer holds the article's title and subtitle, its category and slug -- the path, chosen as
+its two parts -- its language and its description, each in the control that fits it. A category is
+picked from the ones the corpus already uses, or written as a new one; a new one is only this
+draft's until it is saved, and from then on every draft's list offers it, because the list is read
+off the saved drafts and is kept nowhere else. The language is picked from the site's own.
+
+The drawer is the same kind of thing as the lifted sidebar: the same ground, corner and shadow,
+and the same movement, [movement.ts](../../apps/cms/src/lib/movement.ts), in from its edge and out
+past it.
 
 The toolbar is icons alone, each named for a screen reader and on hover, and small enough to sit
 over the text without asking to be read. The drawer comes out the way a folded sidebar does, from

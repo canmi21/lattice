@@ -14,15 +14,16 @@
 	import Save from '@lucide/svelte/icons/save';
 	import Send from '@lucide/svelte/icons/send';
 	import X from '@lucide/svelte/icons/x';
-	import { onMount, type Component } from 'svelte';
-	import { cubicOut } from 'svelte/easing';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import { endonym, PUBLIC_LANGUAGE } from '@canmi/locales';
+	import { onMount, tick, type Component } from 'svelte';
 	import { edgeReveal } from '@canmi/behavior/edge';
-	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import { EDGE_MARGINS, useChrome } from '$lib/chrome.svelte.ts';
+	import { arriving, leaving, Movement } from '$lib/movement.ts';
 	import {
 		DRAFTS,
 		listRevisions,
@@ -40,7 +41,29 @@
 	let title = $derived(data.draft.meta.title ?? '');
 	let subtitle = $derived(data.draft.meta.subtitle ?? '');
 	let description = $derived(data.draft.meta.description ?? '');
-	let path = $derived(data.draft.meta.path ?? '');
+	// The address is a category and a slug, chosen apart: the category from those the corpus
+	// already uses, the slug written. A path with no category -- the homepage -- is a slug alone.
+	const address = (path: string | undefined) => {
+		const cut = path?.lastIndexOf('/') ?? -1;
+		return cut < 0
+			? { category: '', slug: path ?? '' }
+			: { category: path!.slice(0, cut), slug: path!.slice(cut + 1) };
+	};
+	let category = $derived(address(data.draft.meta.path).category);
+	let slug = $derived(address(data.draft.meta.path).slug);
+	/** Writing a category the list does not have yet; it joins the list once a draft saves it. */
+	let naming = $derived.by(() => (void data.draft, false));
+	const categories = $derived(
+		[...new Set([...data.articles.map((article) => address(article.meta.path).category), category])]
+			.filter(Boolean)
+			.toSorted(),
+	);
+	const LANGUAGES = Object.entries(PUBLIC_LANGUAGE).map(([code, tag]) => ({
+		code,
+		name: endonym(tag),
+	}));
+	/** The value the category menu uses for writing a new one, which no category can be. */
+	const NEW_CATEGORY = ':new';
 	let language = $derived(data.draft.meta.language ?? '');
 	let revisions = $derived(data.revisions);
 	let missing = $derived.by((): string[] => (void data.draft, []));
@@ -52,6 +75,40 @@
 	let details = $state<'closed' | 'hover' | 'pinned'>('closed');
 	let drawerElement = $state<HTMLElement>();
 
+	// It moves the way the sidebar does, on the same mechanism: in from the right edge, out past it.
+	const movement = new Movement();
+	/** Set while the drawer is going back, so the moves that follow do not start it again. */
+	let closing = false;
+	const across = () =>
+		drawerElement ? window.innerWidth - drawerElement.getBoundingClientRect().left : 0;
+
+	async function open(how: 'hover' | 'pinned') {
+		if (details !== 'closed' && !closing) {
+			if (how === 'pinned') details = 'pinned';
+			return;
+		}
+		closing = false;
+		details = how;
+		await tick();
+		if (!drawerElement) return;
+		const distance = across();
+		await movement.release(
+			await movement.play(drawerElement, arriving('right', distance), distance),
+		);
+	}
+
+	async function close() {
+		if (details === 'closed' || closing || !drawerElement) return;
+		closing = true;
+		const distance = across();
+		const done = await movement.play(drawerElement, leaving('right', distance), distance);
+		// Opened again meanwhile: it stays.
+		if (!closing) return;
+		closing = false;
+		details = 'closed';
+		await movement.release(done);
+	}
+
 	// The right edge brings the drawer out the way the left edge brings out a folded sidebar, on the
 	// same margins; a drawer pinned by the toolbar is the toolbar's. See @canmi/behavior/edge.
 	const edge = edgeReveal({
@@ -60,8 +117,8 @@
 		live: () => details !== 'pinned',
 		out: () => details === 'hover',
 		panel: () => drawerElement,
-		reveal: () => (details = 'hover'),
-		conceal: () => (details = 'closed'),
+		reveal: () => void open('hover'),
+		conceal: () => void close(),
 	});
 
 	/**
@@ -96,7 +153,7 @@
 			title: said_(title),
 			subtitle: said_(subtitle),
 			description: said_(description),
-			path: said_(path),
+			path: said_(category && slug ? `${category}/${slug}` : slug),
 			language: said_(language),
 		});
 		forget(rid);
@@ -124,17 +181,8 @@
 		missing = done.published ? [] : (done.missing ?? []);
 		said = done.published ? `Published as revision ${done.seq}` : done.detail;
 		// A publication refused for a missing field is answered where the fields are.
-		if (missing.length > 0) details = 'pinned';
+		if (missing.length > 0) void open('pinned');
 		if (done.published) revisions = await listRevisions(rid);
-	}
-
-	/** The drawer arriving from the right edge, on the site's timing for a surface answering a press. */
-	function arrive(node: HTMLElement) {
-		return {
-			duration: prefersReducedMotion() ? 0 : pressMotion(node.offsetWidth).duration * 1000,
-			easing: cubicOut,
-			css: (t: number) => `transform: translateX(${(1 - t) * 1.5}rem); opacity: ${t};`,
-		};
 	}
 
 	const styles = stylex.create({
@@ -144,10 +192,12 @@
 			borderRadius: radius.full,
 			boxShadow: '0 0.5rem 1.5rem oklch(0 0 0 / 0.12), 0 0 0 1px var(--color-border)',
 		},
+		// The lifted sidebar's own ground, corner and shadow -- `sidebarStyles` in $lib/sidebar.ts --
+		// so the two panels that come out of the window's edges are one kind of thing.
 		sheet: {
-			backgroundColor: 'var(--color-paper)',
+			backgroundColor: 'var(--color-paper-hover)',
 			borderRadius: radius.xl,
-			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.14), 0 0 0 1px var(--color-border)',
+			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.18), 0 0 0 1px var(--color-border)',
 		},
 		round: { borderRadius: radius.full },
 		pressed: {
@@ -171,6 +221,8 @@
 		},
 		divider: { backgroundColor: 'var(--color-border)' },
 		revision: { color: 'var(--color-text-muted)', fontVariantNumeric: figures.tabular },
+		code: { fontFamily: family.monoTheme, fontSize: text.px13 },
+		address: { color: 'var(--color-text-soft)', fontFamily: family.monoTheme, fontSize: text.px12 },
 	});
 
 	/** A field's class, marked when a refused publication named it as missing. */
@@ -200,12 +252,36 @@
 	</button>
 {/snippet}
 
+<!-- A native menu under the field's own line, with the chevron that says it opens. -->
+{#snippet menu(
+	value: string,
+	choose: (value: string) => void,
+	options: { value: string; label: string }[],
+	key: string,
+)}
+	<span class="relative flex items-center">
+		<select
+			{value}
+			onchange={(event) => choose(event.currentTarget.value)}
+			class="cursor-pointer appearance-none pe-6 {field(key)}"
+		>
+			{#each options as option (option.value)}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		</select>
+		<ChevronDown
+			class="pointer-events-none absolute end-0 size-4 {stylex.attrs(styles.quiet).class}"
+			aria-hidden="true"
+		/>
+	</span>
+{/snippet}
+
 {#snippet toolbar()}
 	<div class="flex items-center gap-0.5 p-0.5 {stylex.attrs(styles.pill).class}">
 		{@render action(
 			'Details',
 			PanelRight,
-			() => (details = details === 'pinned' ? 'closed' : 'pinned'),
+			() => void (details === 'pinned' ? close() : open('pinned')),
 			details !== 'closed',
 		)}
 		<span class="mx-0.5 h-4 w-px {stylex.attrs(styles.divider).class}" aria-hidden="true"></span>
@@ -220,7 +296,6 @@
 		<!-- It stops above the toolbar rather than running under it, so nothing it holds is covered. -->
 		<aside
 			bind:this={drawerElement}
-			transition:arrive
 			aria-label="Details"
 			class="absolute top-2 right-2 bottom-20 z-30 flex w-88 max-w-[calc(100%-1rem)] flex-col gap-6 overflow-y-auto p-5 {stylex.attrs(
 				surfaces.uiText,
@@ -233,7 +308,7 @@
 				<button
 					type="button"
 					aria-label="Close the details"
-					onclick={() => (details = 'closed')}
+					onclick={() => void close()}
 					class="ms-auto cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.round)
 						.class}"
 				>
@@ -262,13 +337,58 @@
 						class={field('subtitle')}
 					/>
 				</label>
+				<!-- The category is chosen from those the corpus uses, or written: a new one is only this
+				     draft's until it is saved, and after that every draft's list has it. -->
 				<label class="flex flex-col gap-1">
-					<span class={stylex.attrs(styles.label).class}>Path</span>
-					<input bind:value={path} placeholder="architecture/some-slug" class={field('path')} />
+					<span class={stylex.attrs(styles.label).class}>Category</span>
+					{#if naming}
+						<input
+							bind:value={category}
+							placeholder="a-new-category"
+							class="{field('path')} {stylex.attrs(styles.code).class}"
+						/>
+					{:else}
+						{@render menu(
+							category,
+							(value) => {
+								if (value === NEW_CATEGORY) {
+									naming = true;
+									category = '';
+								} else category = value;
+							},
+							[
+								{ value: '', label: 'None' },
+								...categories.map((name) => ({ value: name, label: name })),
+								{ value: NEW_CATEGORY, label: 'New category…' },
+							],
+							'path',
+						)}
+					{/if}
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Slug</span>
+					<input
+						bind:value={slug}
+						placeholder="some-slug"
+						class="{field('path')} {stylex.attrs(styles.code).class}"
+					/>
+					<span class={stylex.attrs(styles.address).class}
+						>/{category ? `${category}/` : ''}{slug}</span
+					>
 				</label>
 				<label class="flex flex-col gap-1">
 					<span class={stylex.attrs(styles.label).class}>Language</span>
-					<input bind:value={language} placeholder="en" class={field('language')} />
+					{@render menu(
+						language,
+						(value) => (language = value),
+						[
+							...(LANGUAGES.some((known) => known.code === language)
+								? []
+								: [{ value: language, label: language || 'None' }]),
+							...LANGUAGES.map((known) => ({ value: known.code, label: known.name })),
+						],
+						'language',
+					)}
 				</label>
 				<label class="flex flex-col gap-1">
 					<span class={stylex.attrs(styles.label).class}>Description</span>

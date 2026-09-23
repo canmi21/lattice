@@ -16,14 +16,21 @@
 	import Search from '@lucide/svelte/icons/search';
 	import Settings from '@lucide/svelte/icons/settings';
 	import { edgeReveal } from '@canmi/behavior/edge';
+	import { reader } from '@canmi/behavior/state';
 	import { resizeHandle } from '@canmi/behavior/resize';
-	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
 	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
 	import { createDraft, DRAFTS } from '$lib/collection.ts';
-	import { FOLD_BELOW, SIDEBAR, sidebarStyles } from '$lib/sidebar.ts';
+	import { arriving, leaving, Movement } from '$lib/movement.ts';
+	import {
+		FOLD_BELOW,
+		FOLDED_ATTRIBUTE,
+		FOLDED_KEY,
+		SIDEBAR,
+		sidebarStyles,
+	} from '$lib/sidebar.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -83,39 +90,19 @@
 	let nav: HTMLElement;
 	let float: HTMLElement;
 
+	/** Every movement of the sidebar, one at a time. See `$lib/movement.ts`. */
+	const movement = new Movement();
+	const play = (keyframes: Keyframe[], pixels: number) => movement.play(nav, keyframes, pixels);
+	const release = (animation: Animation | undefined) => movement.release(animation);
+
 	/**
-	 * One movement of the sidebar, on the site's timing: a surface answering a press, scaled by the
-	 * distance it moves (`@canmi/motion`). Played by the browser and held at its last frame until
-	 * the caller has moved the state the stylesheet reads, then cancelled -- so nothing a movement
-	 * wrote outlives it, and the resting place is always the rules' and never a leftover inline.
-	 * A new movement cancels the one in flight. Under reduced motion there is none.
+	 * The writer's fold, remembered: the attribute the first-frame script sets from the record is
+	 * kept in step, so the rules read the same answer before hydration and after it.
 	 */
-	let playing: Animation | undefined;
-
-	async function play(keyframes: Keyframe[], pixels: number): Promise<Animation | undefined> {
-		playing?.cancel();
-		playing = undefined;
-		if (prefersReducedMotion()) return undefined;
-		const timing = pressMotion(pixels);
-		const animation = nav.animate(keyframes, {
-			duration: timing.duration * 1000,
-			easing: `cubic-bezier(${timing.ease.join(', ')})`,
-			fill: 'forwards',
-		});
-		playing = animation;
-		try {
-			await animation.finished;
-			return animation;
-		} catch {
-			return undefined; // cancelled by whatever replaced it
-		}
-	}
-
-	/** Let a finished movement go, once the state it was moving toward is on the page. */
-	async function release(animation: Animation | undefined) {
-		await tick();
-		animation?.cancel();
-		if (playing === animation) playing = undefined;
+	function remember(on: boolean) {
+		collapsed = on;
+		document.documentElement.toggleAttribute(FOLDED_ATTRIBUTE, on);
+		reader.remember(localStorage, FOLDED_KEY, on);
 	}
 
 	/** Set while the sidebar is going down, so the moves that follow do not start it again. */
@@ -141,10 +128,7 @@
 		peek = how;
 		await tick();
 		const distance = nav.getBoundingClientRect().right;
-		const done = await play(
-			[{ transform: `translateX(${-distance}px)` }, { transform: 'translateX(0)' }],
-			distance,
-		);
+		const done = await play(arriving('left', distance), distance);
 		await release(done);
 	}
 
@@ -152,10 +136,7 @@
 		if (peek === 'none' || lowering) return;
 		lowering = true;
 		const distance = nav.getBoundingClientRect().right;
-		const done = await play(
-			[{ transform: 'translateX(0)' }, { transform: `translateX(${-distance}px)` }],
-			distance,
-		);
+		const done = await play(leaving('left', distance), distance);
 		// A lift that started meanwhile has taken over, and the sidebar stays up.
 		if (!lowering) return;
 		lowering = false;
@@ -177,14 +158,14 @@
 	async function fold() {
 		if (peek !== 'none') return lower();
 		const done = await sweep(nav.getBoundingClientRect().width, 0);
-		collapsed = true;
+		remember(true);
 		await release(done);
 	}
 
 	async function unfold() {
 		if (!wide) return lift('pinned');
 		peek = 'none';
-		collapsed = false;
+		remember(false);
 		await tick();
 		await release(await sweep(0, nav.getBoundingClientRect().width));
 	}
@@ -218,6 +199,7 @@
 	}
 
 	onMount(() => {
+		collapsed = reader.recall(localStorage, FOLDED_KEY, false);
 		const narrow = window.matchMedia(`(max-width: ${FOLD_BELOW}rem)`);
 		const measure = () => (wide = !narrow.matches);
 		measure();
@@ -228,7 +210,7 @@
 	// A window widened past the fold docks the sidebar, so a lifted one has nothing left to float over.
 	$effect(() => {
 		if (!folded && peek !== 'none') {
-			playing?.cancel();
+			movement.cancel();
 			lowering = false;
 			peek = 'none';
 		}
