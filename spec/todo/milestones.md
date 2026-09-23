@@ -86,19 +86,27 @@ is recorded on the second hop, so repointing a rid moves the reference with it.
 collection happens only when a sweep is run: a scheduled task in the cloud, and by hand locally.
 Nothing disappears as a side effect of an edit.
 
-### Five consequences for an article
+### An article is `document.article`, and its state is counted rather than declared
 
-**A date is derived from a revision, not typed by a person.** Created is the first revision and
-last-modified is the latest.
+**A draft is an article with no revisions, and publishing is writing the first one.** Nothing
+carries a flag: the state is a row count, so the contradiction the corpus holds today -- three
+articles marked `draft` while carrying a publication date -- cannot be spelled. `article` rather
+than `document` because a document will be other things later, and the layer that answers "when
+was this published" belongs to the narrower one.
 
-**An unpublished article is one with no publication date**, rather than one carrying a flag. If
-that holds, `draft: true` has nothing left to say; whether it goes is an open question below,
-because the flag is also what the mirror and the sweep read.
+**Every date is mechanical except the one a reader is shown.** The resource's `created` is when
+that identity was granted here and its `updated` is its last change; both are written by the
+machine and by nothing else. What a reader sees as the publication is the first revision's moment
+and what they would see as an update is the latest one's, so neither is stored a second time.
 
-**Last-modified can be locked, and a locked one is allowed to lie.** A style migration that touches
-a paragraph to keep it rendering is not an edit to the article, and a reader told otherwise is told
-something false. So the lock is explicit, and what it buys is that the honest field stays honest
-the rest of the time.
+**A revision's moment may be corrected, once and then never.** An article imported from somewhere
+it was already published was published before it arrived, and the honest answer to "when was this
+published" is that earlier date -- so `at` is editable, and a one-way lock taken by hand settles
+it. Default unlocked; nothing takes the lock automatically.
+
+**An id may be reserved before its thing is one.** A draft has an identity from the first
+keystroke and a type only once somebody has decided what they are writing, so `type` is null until
+then. That is resource.md's own rule about leaves, applied to the first segment.
 
 **Metadata is not part of the text.** The path, the description, the dates and the lock are
 attributes of the article, and the only reason they live in the source is that no record holds
@@ -178,7 +186,7 @@ sees.
 | A0  | The curated records are salvaged  | One trustworthy `media.yaml` and `tags.yaml` out of the two divergent copies, and the path bug closed                | --    | near    |
 | A1  | The authored database exists      | Resources, contents, the two metadata layers and the reference table, under one Drizzle schema                       | --    | near    |
 | A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | near    |
-| A3  | An article is a resource          | `document.post`, granted from the same space and the same register                                                   | A1    | near    |
+| A3  | An article is a resource          | `document.article`, granted from the same space and the same register                                                | A1    | near    |
 | A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | near    |
 | A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near    |
 | A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | near    |
@@ -289,9 +297,10 @@ the volume goes up.
 
 Each of these blocks a specific milestone and is a decision rather than a discovery.
 
-**Whether `draft: true` survives as anything.** An empty publication date already says
-unpublished, but the flag is what the mirror and the sweep read today, so retiring it is a change
-to those as well. Blocks A5.
+**Where a draft is kept, and in what form.** The editing buffer changes every few seconds and
+wants no history, which argues for a mutable row; the draft root under `data/bucket/draft` already
+exists for the other thing called a draft, a compiled snapshot the local site can render. What
+that root is for once an editor renders its own preview is undecided. Blocks A5.
 
 **Which records the import takes, and which stay files.** `media.yaml` and `tags.yaml` are
 authored text and clearly move. `diagram.json`, `fonts.json` and `indexnow.json` are each a
