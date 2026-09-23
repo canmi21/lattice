@@ -12,7 +12,8 @@
 		"./article": "./src/article.ts",
 		"./allocate": "./src/allocate.ts",
 		"./store": "./src/store.ts",
-		"./revise": "./src/revise.ts"
+		"./revise": "./src/revise.ts",
+		"./sweep": "./src/sweep.ts"
 	},
 	"scripts": {
 		"database:generate": "drizzle-kit generate --config drizzle.source.ts && drizzle-kit generate --config drizzle.derived.ts"

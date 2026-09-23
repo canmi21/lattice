@@ -202,6 +202,12 @@ run = "node libs/collection/src/migrate.ts"
 # empties what it wrote last time: the files are the only source until they retire, so the
 # database is whatever they say this time. Ids are granted afresh each run, which is free only
 # while nothing outside the collection names an article by its rid. See spec/todo/milestones.md.
+# What still names a run of bytes, and what has stopped. Reporting is the default; `--collect`
+# takes what the grace period released, and cannot be undone. See spec/todo/milestones.md, A6.
+[tasks.sweep]
+description = "Report what the collection no longer references; --collect takes it"
+run = "node libs/collection/src/sweep.ts"
+
 [tasks.articles]
 description = "Import the markdown corpus into the collection, replacing what a previous run wrote"
 run = "node libs/collection/src/articles.ts"

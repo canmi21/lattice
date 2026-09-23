@@ -189,9 +189,16 @@ sees.
 | A3  | An article is a resource          | `document.article`, granted from the same space and the same register                                                | A1    | **done** |
 | A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | **done** |
 | A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near     |
-| A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | near     |
+| A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | **done** |
 | A7  | One rid over every language       | The existing views and translations move under the article's own identity                                            | A3 A5 | mid      |
 | A8  | Reader state keyed by rid         | Counters, subscriptions and later comments re-keyed once, by the fold rule in engagement.md                          | A3    | mid      |
+
+**A6's table is rebuilt rather than maintained.** The argument against a counter was that it
+drifts by one on any path that forgets it; a table written incrementally has the same failure in
+a slower form. So the reference set is recomputed from the authored database on every run, which
+cannot disagree with it, and lives in the derived database because that is what a thing you can
+throw away is for. What is not recomputed is the clock: `unreferenced.since` is when something
+stopped being named, and a run that restarted it would mean nothing ever came due.
 
 **A0 is a salvage, not a repair.** The file it fixes is retiring at A2, so nothing here is worth
 maintaining afterwards -- what matters is that the import has one input that has lost nothing. The

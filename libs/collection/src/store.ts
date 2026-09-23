@@ -11,7 +11,7 @@
  */
 import { blake3 } from '@noble/hashes/blake3.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 /** Where the collection's bytes live, relative to a repository root. */
@@ -37,6 +37,8 @@ export function contentId(text: string): string {
 export type ContentStore = {
 	read(cid: string): Promise<string>;
 	write(cid: string, text: string): Promise<void>;
+	/** Take the bytes. Absent is success: a sweep that runs twice must not fail the second time. */
+	forget(cid: string): Promise<void>;
 };
 
 /**
@@ -63,6 +65,10 @@ export function fileStore(root: string): ContentStore {
 			writeFileSync(file, text);
 			return Promise.resolve();
 		},
+		forget(cid) {
+			rmSync(pathFor(root, cid), { force: true });
+			return Promise.resolve();
+		},
 	};
 }
 
@@ -76,6 +82,10 @@ export function memoryStore(held: Map<string, string> = new Map()): ContentStore
 		},
 		write(cid, text) {
 			held.set(cid, text);
+			return Promise.resolve();
+		},
+		forget(cid) {
+			held.delete(cid);
 			return Promise.resolve();
 		},
 	};
