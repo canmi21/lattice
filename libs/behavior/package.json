@@ -5,6 +5,7 @@
 	"exports": {
 		"./arrival": "./src/arrival.ts",
 		"./collapse": "./src/collapse.ts",
+		"./edge": "./src/edge.ts",
 		"./jump": "./src/jump.ts",
 		"./progress": "./src/progress.ts",
 		"./resize": "./src/resize.ts",
