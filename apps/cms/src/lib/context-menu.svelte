@@ -99,14 +99,14 @@
 
 	const styles = stylex.create({
 		// Square rows, edge to edge, as the site's menu has them: the panel's corner is the only one.
-		// Every entry reads in the strong ink, and the highlight alone says which one is under the
-		// pointer.
-		row: { borderRadius: 0, color: 'var(--color-text-strong)' },
-		// A destructive entry is not announced until it is about to be chosen: red on the highlight,
-		// and like the others at rest, so a menu of ordinary actions does not read as a warning.
+		// The ink is the quiet control's -- soft at rest, strong under the pointer -- so the entry
+		// being chosen is the one that lights.
+		row: { borderRadius: 0 },
+		// A destructive entry rests like every other and lights in its own color: red instead of
+		// the strong ink, so what it will do is said at the moment it is about to be chosen.
 		danger: {
 			color: {
-				default: 'var(--color-text-strong)',
+				default: 'var(--color-text-soft)',
 				':hover': 'var(--color-red)',
 				':focus-visible': 'var(--color-red)',
 			},
