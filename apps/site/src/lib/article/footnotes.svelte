@@ -150,7 +150,7 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import { jumpTo, movesThisPage, targetOf } from '$lib/client/jump';
 	import { animateHeight, type AnimationControl, type CollapsePhase } from '$lib/client/collapse';
 	import { DEFAULT_PIXELS_PER_REM } from '$lib/client/units';

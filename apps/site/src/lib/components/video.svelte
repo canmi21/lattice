@@ -59,7 +59,7 @@
 	import { surfaces } from '$lib/surfaces.ts';
 	import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	let {
 		src,

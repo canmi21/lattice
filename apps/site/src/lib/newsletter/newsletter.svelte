@@ -122,7 +122,7 @@
 		SEQUENCE_TOTAL,
 		sequenceStyle,
 	} from '$lib/newsletter/sequence';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	let {
 		class: className = '',

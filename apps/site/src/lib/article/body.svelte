@@ -66,7 +66,7 @@
 	import { flashOnArrival } from './note-flash';
 	import { revealNoteBeforeJump } from './note-reveal';
 	import PopoverContent from '$lib/components/popover-content.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import Info from '@lucide/svelte/icons/info';
 	import X from '@lucide/svelte/icons/x';
 	import { Popover } from 'bits-ui';

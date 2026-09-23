@@ -286,7 +286,7 @@
 	import { reader } from '$lib/client/state';
 	import type { VideoRung } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	let {
 		video,

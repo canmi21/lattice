@@ -1,5 +1,5 @@
 import { endonym } from '@canmi/locales';
-import * as m from '../paraglide/messages';
+import * as m from '@canmi/messages';
 import { PUBLIC_LANGUAGE, type LocaleCode } from './index';
 
 type TranslationCode = Exclude<LocaleCode, 'mw'>;

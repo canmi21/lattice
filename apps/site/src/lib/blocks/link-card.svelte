@@ -48,7 +48,7 @@
 	import { ICON_EXTENSION, objectUrl, toned, type ParsedResource } from '@canmi/artifacts';
 	import Picture, { type Source } from '$lib/components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import type { LocaleCode } from '$lib/locale';
 
 	/**

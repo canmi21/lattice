@@ -79,7 +79,7 @@
 	import { publishedHome } from '$lib/published';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
 	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import { site } from '$lib/site';
 	import Support from '$lib/support/support.svelte';
 	import type { PageData } from './$types';

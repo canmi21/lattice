@@ -1,4 +1,4 @@
-import { defineCustomClientStrategy, defineCustomServerStrategy } from '../paraglide/runtime';
+import { defineCustomClientStrategy, defineCustomServerStrategy } from '@canmi/messages/runtime';
 import { localeCode } from './index';
 
 /**

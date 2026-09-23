@@ -39,7 +39,7 @@
 	import { animate } from 'motion';
 	import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '$lib/client/units';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import { homeRestingCenter, railEndOffset } from './rail';
 	import { backTarget, readTrail } from './trail';
 

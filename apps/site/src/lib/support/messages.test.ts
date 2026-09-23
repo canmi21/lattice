@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import de from '../../../messages/de.json';
-import en from '../../../messages/en.json';
-import es from '../../../messages/es.json';
-import fr from '../../../messages/fr.json';
-import ja from '../../../messages/ja.json';
-import ko from '../../../messages/ko.json';
-import mw from '../../../messages/mw.json';
-import tw from '../../../messages/tw.json';
-import zh from '../../../messages/zh.json';
+import de from '@canmi/messages/messages/de.json';
+import en from '@canmi/messages/messages/en.json';
+import es from '@canmi/messages/messages/es.json';
+import fr from '@canmi/messages/messages/fr.json';
+import ja from '@canmi/messages/messages/ja.json';
+import ko from '@canmi/messages/messages/ko.json';
+import mw from '@canmi/messages/messages/mw.json';
+import tw from '@canmi/messages/messages/tw.json';
+import zh from '@canmi/messages/messages/zh.json';
 
 const locales = { de, en, es, fr, ja, ko, mw, tw, zh } as const;
 

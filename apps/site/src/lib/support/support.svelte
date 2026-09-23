@@ -108,7 +108,7 @@
 		createStatsQuery,
 	} from '$lib/engagement/engagement.svelte';
 	import { PUBLIC_LANGUAGE, type LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import { intlLocale } from '$lib/format';
 
 	/**

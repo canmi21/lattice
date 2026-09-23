@@ -22,7 +22,7 @@ dist/
 target/
 .svelte-kit/
 # Compiled from .inlang on every build; settings.json and messages/ are what is authored.
-apps/site/src/lib/paraglide/
+libs/messages/src/
 apps/site/.inlang/cache/
 apps/site/.inlang/.meta.json
 

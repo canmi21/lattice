@@ -71,7 +71,7 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { localeUrl } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
 	import { compactCount, intlLocale } from '$lib/format';
 

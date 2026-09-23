@@ -353,6 +353,9 @@ importers:
       '@canmi/locales':
         specifier: workspace:*
         version: link:../../libs/locales
+      '@canmi/messages':
+        specifier: workspace:*
+        version: link:../../libs/messages
       '@canmi/motion':
         specifier: workspace:*
         version: link:../../libs/motion
@@ -653,6 +656,15 @@ importers:
         version: link:../urls
 
   libs/locales: {}
+
+  libs/messages:
+    devDependencies:
+      '@inlang/paraglide-js':
+        specifier: ^2.25.1
+        version: 2.25.4(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+      '@inlang/plugin-message-format':
+        specifier: ^4.4.4
+        version: 4.4.4
 
   libs/motion: {}
 
@@ -5804,6 +5816,21 @@ snapshots:
       valibot: 1.5.0(typescript@6.0.3)
     optionalDependencies:
       typescript: 6.0.3
+      vite: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
+
+  '@inlang/paraglide-js@2.25.4(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))':
+    dependencies:
+      '@inlang/recommend-sherlock': 0.2.1
+      '@inlang/sdk': 3.0.2
+      commander: 11.1.0
+      consola: 3.4.0
+      jiti: 2.7.0
+      json5: 2.2.3
+      unplugin: 2.3.11
+      urlpattern-polyfill: 10.1.0
+      valibot: 1.5.0(typescript@7.0.2)
+    optionalDependencies:
+      typescript: 7.0.2
       vite: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
 
   '@inlang/plugin-message-format@4.4.4':

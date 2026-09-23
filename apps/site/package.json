@@ -16,6 +16,7 @@
 		"@canmi/fonts": "workspace:*",
 		"@canmi/imgsrc": "workspace:*",
 		"@canmi/locales": "workspace:*",
+		"@canmi/messages": "workspace:*",
 		"@canmi/motion": "workspace:*",
 		"@canmi/primitives": "workspace:*",
 		"@canmi/robots": "workspace:*",

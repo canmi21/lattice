@@ -28,7 +28,7 @@
 
 <script lang="ts">
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import Offer from './offer.svelte';
 
 	/**

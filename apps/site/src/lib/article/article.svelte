@@ -148,7 +148,7 @@
 	import IconGemini from '~icons/mingcute/google-gemini-line';
 	import IconOpenAi from '~icons/mingcute/openai-line';
 	import { remFromMeasuredPixels } from '$lib/client/units';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import type { Snippet } from 'svelte';
 	import type {
 		Alternate,

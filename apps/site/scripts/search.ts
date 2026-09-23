@@ -266,7 +266,7 @@ const { articles } = await buildArticles(
 	{
 		contents: fileURLToPath(new URL('contents', ROOT)),
 		cdnUrl: URLS.apps.production.cdn,
-		messages: fileURLToPath(new URL('messages', SITE)),
+		messages: fileURLToPath(new URL('../../libs/messages/messages', SITE)),
 		assets: fileURLToPath(new URL('data/record/metadata.json', ROOT)),
 		media: fileURLToPath(new URL('data/record/media.yaml', ROOT)),
 		diagrams: fileURLToPath(new URL('data/record/diagram.json', ROOT)),

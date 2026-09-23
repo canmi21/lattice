@@ -61,7 +61,7 @@
 		sourceLanguageName,
 	} from '$lib/locale/switcher';
 	import { fillSlot } from '$lib/locale/spacing';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	type TranslationCode = Exclude<LocaleCode, 'mw'>;
 

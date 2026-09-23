@@ -85,7 +85,7 @@
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import Dial from '$lib/components/dial.svelte';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	/** Passed rather than read; see spec/locale/addressing.md. */
 	let { locale }: { locale: LocaleCode } = $props();

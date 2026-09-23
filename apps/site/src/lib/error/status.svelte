@@ -55,7 +55,7 @@
 </script>
 
 <script lang="ts">
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import type { LocaleCode } from '$lib/locale';
 	import Offer from './offer.svelte';
 

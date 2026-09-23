@@ -20,7 +20,7 @@
 
 <script lang="ts">
 	import Icon from './icons.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import type { PageBlock } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 

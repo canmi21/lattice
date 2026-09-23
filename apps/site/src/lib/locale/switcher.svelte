@@ -73,7 +73,7 @@
 	} from './switcher';
 	import { acceptedLocale, SITE_LANGUAGE, type LocaleCode } from './index';
 	import { chooseLocale } from './current.svelte';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	// The language of the thing being read. An article passes its own; a page passes nothing and
 	// takes the site's, which is what its `<html lang>` already declares. See languageChoices.

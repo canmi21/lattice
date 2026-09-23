@@ -32,7 +32,7 @@
 	import { applyTheme, themeCookie, type Theme } from '@canmi/theme';
 	import Dial from '$lib/components/dial.svelte';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	/**
 	 * The theme arrives as a value, settled on the server beside the class it wrote.

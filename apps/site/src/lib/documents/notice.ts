@@ -18,7 +18,7 @@ import {
 	sourceLanguageName,
 } from '../locale/switcher.ts';
 import { fillSlot } from '../locale/spacing.ts';
-import * as m from '../paraglide/messages.js';
+import * as m from '@canmi/messages';
 
 type TranslationCode = Exclude<LocaleCode, 'mw'>;
 

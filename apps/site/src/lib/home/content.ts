@@ -1,6 +1,6 @@
 import type { PageBlock, PublishedPage } from '@canmi/artifacts';
 import type { LocaleCode } from '../locale/index';
-import * as m from '../paraglide/messages';
+import * as m from '@canmi/messages';
 
 export type HomepageContent = {
 	title: string;

@@ -1,0 +1,15 @@
+{
+	"name": "@canmi/messages",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/messages.js",
+		"./runtime": "./src/runtime.js",
+		"./server": "./src/server.js",
+		"./messages/*.json": "./messages/*.json"
+	},
+	"devDependencies": {
+		"@inlang/paraglide-js": "^2.25.1",
+		"@inlang/plugin-message-format": "^4.4.4"
+	}
+}

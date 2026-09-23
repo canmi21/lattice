@@ -32,12 +32,21 @@ RCLONE_CONFIG_R2_REGION = "auto"
 R2_OBJECTS_REMOTE = "r2:objects"
 R2_METADATA_REMOTE = "r2:metadata"
 
+# The interface copy, compiled from the nine JSON files somebody writes into the module the
+# components import. Not in git, because a run rewrites it from the files beside it -- so a
+# fresh clone compiles it before anything that imports it is checked or run.
+[tasks.messages]
+description = "Compile the interface copy into @canmi/messages"
+run = "pnpm --filter @canmi/messages exec paraglide-js compile --project .inlang --outdir src"
+
 [tasks.test]
 description = "Run every test in the workspace"
+depends = ["messages"]
 run = "pnpm exec vitest run"
 
 [tasks.check]
 description = "Type check every workspace package, in each runtime context"
+depends = ["messages"]
 # Three programs, because workerd, the browser and bare node declare different things under the
 # same names. See spec/architecture/workspace.md; each tsconfig says which is which.
 run = [

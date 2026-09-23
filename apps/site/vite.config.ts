@@ -103,9 +103,10 @@ export default defineConfig(({ mode }) => {
 			// See spec/locale/addressing.md.
 			paraglideVitePlugin({
 				// The SDK refuses any project path not ending in `.inlang`, so the whole name is
-				// the suffix. See spec/locale/interface.md.
-				project: './.inlang',
-				outdir: './src/lib/paraglide',
+				// the suffix. See spec/locale/interface.md. Both live in `libs/messages` because
+				// the article components import the output and a library cannot reach `$lib`.
+				project: '../../libs/messages/.inlang',
+				outdir: '../../libs/messages/src',
 				strategy: ['custom-negotiated'],
 			}),
 			// Iconify sets compiled to Svelte components at build time, so a set contributes only

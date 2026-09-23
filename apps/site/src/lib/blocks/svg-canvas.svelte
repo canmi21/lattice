@@ -2,7 +2,7 @@
 	import '@canmi/svg-canvas/style.css';
 	import Preview from '$lib/components/preview.svelte';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 
 	let {
 		svg,

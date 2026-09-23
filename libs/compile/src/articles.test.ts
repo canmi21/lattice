@@ -12,7 +12,7 @@ const ROOT = new URL('../../../', import.meta.url);
 function paths() {
 	return {
 		contents: fileURLToPath(new URL('contents', ROOT)),
-		messages: fileURLToPath(new URL('apps/site/messages', ROOT)),
+		messages: fileURLToPath(new URL('libs/messages/messages', ROOT)),
 		cdnUrl: URLS.apps.production.cdn,
 		assets: fileURLToPath(new URL('data/record/metadata.json', ROOT)),
 		media: fileURLToPath(new URL('data/record/media.yaml', ROOT)),

@@ -1,8 +1,9 @@
 //! The UI copy a card borrows from the pages.
 //!
 //! A card is a page in picture form, so its words are the page's words: read straight out of
-//! `apps/site/messages/{view}.json`, the catalogs paraglide compiles for the site. Writing them
-//! again here would mean two sets of nine translations that agree only until one is edited.
+//! `libs/messages/messages/{view}.json`, the catalogs paraglide compiles the site's copy from.
+//! Writing them again here would mean two sets of nine translations that agree only until one is
+//! edited. The library is where they live because this is the third thing to read them.
 //!
 //! Only `{name}` interpolation is supported, which is all these messages use -- there is no
 //! plural machinery in the catalogs, so there is none to reimplement.
@@ -11,7 +12,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 pub fn catalog_path(repo: &Path, view: &str) -> PathBuf {
-	repo.join("apps").join("site").join("messages").join(format!("{view}.json"))
+	repo.join("libs").join("messages").join("messages").join(format!("{view}.json"))
 }
 
 /// Every message for one view, or an empty map when the catalog cannot be read.

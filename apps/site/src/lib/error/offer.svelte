@@ -35,7 +35,7 @@
 	import type { Snippet } from 'svelte';
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
 	import type { LocaleCode } from '$lib/locale';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import { site } from '$lib/site';
 
 	// The error page speaks for the site, so it offers the site's box and not the author's. The

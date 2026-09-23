@@ -141,7 +141,7 @@
 	import { localeUrl } from '$lib/locale';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { githubAvatar, textUrl } from '$lib/licenses';
-	import * as m from '$lib/paraglide/messages';
+	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

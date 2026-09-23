@@ -12,7 +12,7 @@ import {
 	sourceLanguageName,
 	triggerLabel,
 } from './switcher';
-import * as m from '../paraglide/messages';
+import * as m from '@canmi/messages';
 import { SITE_LANGUAGE, type LocaleCode } from './index';
 
 function stableEndonyms(current: LocaleCode) {
