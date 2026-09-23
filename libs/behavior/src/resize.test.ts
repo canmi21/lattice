@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampSpan, dividerScript, rememberedWidth, type Divider } from './resize';
+import { clampSpan, dividerScript, dragged, rememberedWidth, type Divider } from './resize';
 import { reader, type Store } from './state';
 
 const DIVIDER: Divider = {
@@ -55,5 +55,14 @@ describe('a divider width', () => {
 		}
 		reader.remember(local, DIVIDER.key, 'wide');
 		expect(runScript(local)).toBeUndefined();
+	});
+
+	it('holds at the minimum through the margin, and asks to fold only past it', () => {
+		const { span } = DIVIDER;
+		expect(dragged(12, span, 2)).toEqual({ width: 12, folding: false });
+		expect(dragged(9, span, 2)).toEqual({ width: 10, folding: false });
+		expect(dragged(8, span, 2)).toEqual({ width: 10, folding: false });
+		expect(dragged(7.9, span, 2)).toEqual({ width: 10, folding: true });
+		expect(dragged(-40, span)).toEqual({ width: 10, folding: false });
 	});
 });

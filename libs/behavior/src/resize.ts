@@ -61,6 +61,33 @@ export function dividerScript(divider: Divider): string {
 const KEY_STEP = 1;
 
 /**
+ * Dragging past the minimum to fold the region away, for a divider whose region can fold.
+ *
+ * Past the minimum the width holds, and for `beyond` rem the drag means nothing more: a writer
+ * who overshot the edge by a little has not asked for anything. Past that it is a request to fold,
+ * `intent` says so while it holds so the page can show what letting go will do, and letting go
+ * then calls `fold`. The remembered width is left as it was before the drag, so unfolding returns
+ * to it rather than to the minimum the drag was pinned at.
+ */
+export type Fold = {
+	beyond: number;
+	intent: (folding: boolean) => void;
+	fold: () => void;
+};
+
+/** Where a drag has taken a divider: the width it shows, and whether it is asking to fold. */
+export function dragged(
+	rem: number,
+	span: Span,
+	beyond?: number,
+): { width: number; folding: boolean } {
+	return {
+		width: clampSpan(rem, span),
+		folding: beyond !== undefined && rem < span.min - beyond,
+	};
+}
+
+/**
  * Make `handle` drag the divider: a Svelte action, and a plain function anywhere else.
  *
  * The drag writes the property on every move and the record once, when it is let go -- the
@@ -70,15 +97,18 @@ const KEY_STEP = 1;
  * While a drag is held the whole document takes the resize cursor and gives up text selection:
  * the pointer leaves the handle as soon as it moves faster than the region follows, and without
  * both the cursor flickers and the page behind it is selected.
+ *
+ * With `fold`, dragging well past the minimum folds the region; see `Fold`.
  */
 export function resizeHandle(
 	handle: HTMLElement,
-	divider: Divider,
+	divider: Divider & { fold?: Fold },
 	storage: Store = localStorage,
 ): { destroy: () => void } {
 	const root = document.documentElement;
 	let width = rememberedWidth(storage, divider);
 	let start: { x: number; width: number } | undefined;
+	let folding = false;
 
 	const rootPixels = () => Number.parseFloat(getComputedStyle(root).fontSize) || 16;
 
@@ -99,17 +129,38 @@ export function resizeHandle(
 
 	function move(event: PointerEvent) {
 		if (!start) return;
-		show(start.width + (event.clientX - start.x) / rootPixels());
+		const at = dragged(
+			start.width + (event.clientX - start.x) / rootPixels(),
+			divider.span,
+			divider.fold?.beyond,
+		);
+		show(at.width);
+		if (at.folding !== folding) {
+			folding = at.folding;
+			divider.fold?.intent(folding);
+		}
 	}
 
-	function up(event: PointerEvent) {
+	/** Let go of the drag; `released` is a real release, where a cancelled pointer is not one. */
+	function end(event: PointerEvent, released: boolean) {
 		if (!start) return;
+		const before = start.width;
 		start = undefined;
 		if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
 		root.style.removeProperty('cursor');
 		root.style.removeProperty('user-select');
+		if (folding) {
+			folding = false;
+			divider.fold?.intent(false);
+			show(before);
+			if (released) divider.fold?.fold();
+			return;
+		}
 		reader.remember(storage, divider.key, width);
 	}
+
+	const up = (event: PointerEvent) => end(event, true);
+	const cancel = (event: PointerEvent) => end(event, false);
 
 	function key(event: KeyboardEvent) {
 		const step = event.key === 'ArrowLeft' ? -KEY_STEP : event.key === 'ArrowRight' ? KEY_STEP : 0;
@@ -131,7 +182,7 @@ export function resizeHandle(
 	handle.addEventListener('pointerdown', down);
 	handle.addEventListener('pointermove', move);
 	handle.addEventListener('pointerup', up);
-	handle.addEventListener('pointercancel', up);
+	handle.addEventListener('pointercancel', cancel);
 	handle.addEventListener('keydown', key);
 	handle.addEventListener('dblclick', reset);
 
@@ -140,7 +191,7 @@ export function resizeHandle(
 			handle.removeEventListener('pointerdown', down);
 			handle.removeEventListener('pointermove', move);
 			handle.removeEventListener('pointerup', up);
-			handle.removeEventListener('pointercancel', up);
+			handle.removeEventListener('pointercancel', cancel);
 			handle.removeEventListener('keydown', key);
 			handle.removeEventListener('dblclick', reset);
 		},
