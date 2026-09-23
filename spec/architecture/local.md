@@ -114,6 +114,16 @@ empty page is the honest state of a section nobody has built yet. It is a column
 over the page so that adding a section changes a list and not a layout. Below the `md` width it
 folds into a row of icons, since the CMS is still a page that has to open on a phone.
 
+**The gap between the sidebar and the pane is a divider the writer drags.** Its width is kept in
+the `reader` record in `localStorage` -- the mechanism the site keeps its own per-person facts in,
+[engagement.md](../engagement.md), "What this site remembers is two records and one mechanism" --
+under `cms.sidebar.width`, on the CMS's own origin. The divider itself is
+[resize.ts](../../libs/behavior/src/resize.ts) in `@canmi/behavior`, shared rather than written for
+this page: the handle, the range a width may take, and the script that sets a remembered width
+before the first frame. The script is the part that matters. The server cannot read
+`localStorage`, so it renders the fallback width, and applying the remembered one after hydration
+would be exactly the jump rendering on the server was meant to remove.
+
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row
 outlives publication and is the working copy from then on. The folder carries the control that

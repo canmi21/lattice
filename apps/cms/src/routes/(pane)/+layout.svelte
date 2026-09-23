@@ -12,10 +12,12 @@
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Settings from '@lucide/svelte/icons/settings';
+	import { resizeHandle } from '@canmi/behavior/resize';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import type { Component } from 'svelte';
 	import { createDraft, DRAFTS } from '$lib/collection.ts';
+	import { SIDEBAR } from '$lib/sidebar.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -53,6 +55,9 @@
 
 	const here = (href: string) => page.url.pathname === href;
 
+	const LINE =
+		'linear-gradient(to right, transparent calc(50% - 1px), var(--color-border-strong) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px))';
+
 	// The page is laid out as a ground with the content pane set on it: the section column is the
 	// ground itself, and the pane is the site's own page color with a corner, so what is being
 	// written sits on exactly the ground a reader sees it on. See spec/architecture/local.md.
@@ -67,6 +72,17 @@
 			backgroundColor: 'var(--color-page)',
 		},
 		unnamed: { color: 'var(--color-text-soft)' },
+		// The divider draws nothing at rest; a line appears down its middle while it is pointed at,
+		// held or focused, which is the only time it is anything but the gap between two regions.
+		handle: {
+			backgroundImage: {
+				default: 'none',
+				':hover': LINE,
+				':active': LINE,
+				':focus-visible': LINE,
+			},
+			outlineStyle: { default: null, ':focus-visible': 'none' },
+		},
 		chevron: {
 			transitionProperty: 'rotate',
 			transitionDuration: duration.base,
@@ -94,8 +110,13 @@
 	</a>
 {/snippet}
 
-<div data-ground class="flex h-dvh flex-col gap-2 overflow-hidden p-2 md:flex-row">
-	<nav class="flex shrink-0 gap-1 px-1 md:w-60 md:flex-col md:py-2">
+<div data-ground class="flex h-dvh flex-col gap-2 overflow-hidden p-2 md:flex-row md:gap-0">
+	<!-- The width is the divider's property, set before the first frame when one is remembered;
+	     the fallback beside it is what the server renders and a first visit keeps. -->
+	<nav
+		style:--sidebar-fallback="{SIDEBAR.span.fallback}rem"
+		class="flex shrink-0 gap-1 px-1 md:w-[var(--sidebar-width,var(--sidebar-fallback))] md:flex-col md:py-2"
+	>
 		<div class="flex min-h-0 flex-1 gap-0.5 md:flex-col md:overflow-y-auto">
 			{#each SECTIONS as section (section.href)}
 				{@render entry(section)}
@@ -168,6 +189,20 @@
 
 		<div class="md:pt-2">{@render entry(SETTINGS)}</div>
 	</nav>
+
+	<!-- The gap between the two regions is the divider: drag it, step it with the arrow keys, or
+	     double-click it to go back to the fallback. See @canmi/behavior/resize. -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex (a focusable separator with a value is a widget
+	     in ARIA -- the arrow keys move it -- and the rule reads the role as static) -->
+	<div
+		role="separator"
+		aria-orientation="vertical"
+		aria-label="Resize the sidebar"
+		tabindex="0"
+		use:resizeHandle={SIDEBAR}
+		class="w-2 shrink-0 cursor-col-resize touch-none max-md:hidden {stylex.attrs(styles.handle)
+			.class}"
+	></div>
 
 	<!-- The pane is the one thing that scrolls. The ground holds still around it, so the sections
 	     and the pane's corners stay where they are while the text moves, and a sticky bar inside

@@ -325,6 +325,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../../libs/artifacts
+      '@canmi/behavior':
+        specifier: workspace:*
+        version: link:../../libs/behavior
       '@canmi/collection':
         specifier: workspace:*
         version: link:../../libs/collection

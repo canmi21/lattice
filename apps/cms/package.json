@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
+		"@canmi/behavior": "workspace:*",
 		"@canmi/collection": "workspace:*",
 		"@canmi/locales": "workspace:*",
 		"@canmi/messages": "workspace:*",

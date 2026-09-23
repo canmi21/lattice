@@ -1,10 +1,14 @@
+import { dividerScript } from '@canmi/behavior/resize';
 import { themeScript } from '@canmi/theme';
 import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { LOCAL_ORIGIN } from '$lib/local.ts';
+import { SIDEBAR } from '$lib/sidebar.ts';
 
 /**
  * The theme bootstrap, written into the shell before anything paints -- the same script the site
- * runs, substituted the way the site substitutes it. See spec/architecture/workspace.md.
+ * runs, substituted the way the site substitutes it. See spec/architecture/workspace.md. The
+ * sidebar's remembered width is set the same way and for the same reason: after hydration would
+ * be a frame at the fallback width and then a jump.
  *
  * A hook rather than Vite's `transformIndexHtml`, which is what stood here and never ran: SvelteKit
  * renders `app.html` itself and does not hand it to that hook, so the placeholder reached the
@@ -13,7 +17,12 @@ import { LOCAL_ORIGIN } from '$lib/local.ts';
  * render the fallback page, which is the page the static build serves.
  */
 export const handle: Handle = ({ event, resolve }) =>
-	resolve(event, { transformPageChunk: ({ html }) => html.replace('%theme.script%', themeScript) });
+	resolve(event, {
+		transformPageChunk: ({ html }) =>
+			html
+				.replace('%theme.script%', themeScript)
+				.replace('%sidebar.script%', dividerScript(SIDEBAR)),
+	});
 
 /**
  * A page rendered here reads `local` the way the browser does, by asking its own origin for
