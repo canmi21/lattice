@@ -79,8 +79,12 @@
 		return { loose, folders: [...folders].toSorted(([a], [b]) => a.localeCompare(b)) };
 	});
 
-	/** The step inward per level: small, so depth reads without spending the sidebar's width on it. */
-	const INDENT = ['ps-2', 'ps-4', 'ps-6'];
+	/**
+	 * The step inward per level: small, so depth reads without spending the sidebar's width on it.
+	 * A margin rather than padding, so a row's ground -- the current one's highlight -- starts where
+	 * its level does and still runs to the sidebar's edge, and the tree reads in the highlight too.
+	 */
+	const INDENT = ['', 'ms-2', 'ms-4'];
 
 	async function start() {
 		const { resource } = await createDraft();
@@ -306,7 +310,7 @@
 {#snippet article(entry: Draft, depth: number)}
 	{@const href = `/draft/${entry.resource}`}
 	{@const current = page.url.pathname === href}
-	<li>
+	<li class="flex flex-col">
 		<a
 			{href}
 			aria-current={current ? 'page' : undefined}
@@ -430,12 +434,12 @@
 					{/each}
 					{#each groups.folders as [category, entries] (category)}
 						{@const shown = !closed.has(category)}
-						<li>
+						<li class="flex flex-col">
 							<button
 								type="button"
 								aria-expanded={shown}
 								onclick={() => (shown ? closed.add(category) : closed.delete(category))}
-								class="{TREE_ITEM} {INDENT[1]} w-full cursor-pointer text-left {stylex.attrs(
+								class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
 									surfaces.quietControl,
 									surfaces.uiText,
 									styles.item,

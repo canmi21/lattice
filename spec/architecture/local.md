@@ -157,7 +157,9 @@ and the list is the draft rows, which is every article whether published or not 
 outlives publication and is the working copy from then on. Inside it each category is a folder of
 its own, and an article with none sits directly under Articles. Depth is said by a small step inward
 rather than a full one per level, because a sidebar spends its width on names and a tree that
-indents properly runs out of it within two levels. Only Articles carries a chevron, at the end of its
+indents properly runs out of it within two levels. The step is a margin, so a highlighted row's
+ground starts at its level and still runs to the sidebar's edge: the tree reads in the highlight
+as well as in the text. Only Articles carries a chevron, at the end of its
 row beside the control that creates an article; a category says whether it is open by its folder
 icon alone, which is a signal the row already had to show. A folder opens and closes by its
 height, the way the site's footnotes fold -- the list stays in the page, the box around it clips, and
