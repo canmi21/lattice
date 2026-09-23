@@ -43,6 +43,29 @@ export const SIDEBAR: Divider = {
 	span: { min: SIDEBAR_MIN, max: 28, fallback: 15 },
 };
 
+/**
+ * Whether the writer folded the sidebar, kept beside its width in the `reader` record so a reload
+ * opens it the way it was left. Only the writer's choice is kept: a window too narrow to dock it
+ * folds it anyway and says nothing about what they want once the window is wide again.
+ */
+export const FOLDED_KEY = 'cms.sidebar.folded';
+
+/** The attribute on the root that says the writer folded it, set before the first frame. */
+export const FOLDED_ATTRIBUTE = 'data-sidebar-folded';
+
+/**
+ * The script that marks the root before the first frame when the sidebar was left folded, as a
+ * string to inline in the document head -- for the reason `dividerScript` gives, which is also why
+ * it reads the record itself. `sidebar.test.ts` holds it to what `reader` stores.
+ */
+export function foldedScript(): string {
+	return (
+		`(function(){try{var r=localStorage.getItem("state");if(!r)return;` +
+		`if(JSON.parse(r)[${JSON.stringify(FOLDED_KEY)}]===true)` +
+		`document.documentElement.setAttribute(${JSON.stringify(FOLDED_ATTRIBUTE)},"")}catch(e){}})()`
+	);
+}
+
 /** The sidebar and the divider gone, within `scope`. */
 function folded(scope: string): string {
 	return `${scope} [data-sidebar], ${scope} [data-divider] { display: none; }`;
@@ -71,6 +94,7 @@ export function sidebarStyles(): string {
 		`[data-sidebar] { width: clamp(${min}rem, ${width}, calc(100vw - ${CHROME + PANE_MIN}rem)); }`,
 		`@media (max-width: ${FOLD_BELOW}rem) { ${folded('[data-ground]')} }`,
 		folded('[data-ground][data-collapsed]'),
+		folded(`[${FOLDED_ATTRIBUTE}]`),
 		`[data-ground][data-peek] [data-sidebar] { display: flex; position: fixed; z-index: 30;` +
 			` top: ${GROUND_EDGE}rem; bottom: ${GROUND_EDGE}rem; left: ${GROUND_EDGE}rem;` +
 			` width: clamp(${min}rem, ${width}, min(${max}rem, calc(100vw - ${2 * GROUND_EDGE}rem)));` +

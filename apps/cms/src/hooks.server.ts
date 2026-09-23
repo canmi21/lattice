@@ -2,7 +2,7 @@ import { dividerScript } from '@canmi/behavior/resize';
 import { themeScript } from '@canmi/theme';
 import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { LOCAL_ORIGIN } from '$lib/local.ts';
-import { SIDEBAR } from '$lib/sidebar.ts';
+import { foldedScript, SIDEBAR } from '$lib/sidebar.ts';
 
 /**
  * The theme bootstrap, written into the shell before anything paints -- the same script the site
@@ -21,7 +21,7 @@ export const handle: Handle = ({ event, resolve }) =>
 		transformPageChunk: ({ html }) =>
 			html
 				.replace('%theme.script%', themeScript)
-				.replace('%sidebar.script%', dividerScript(SIDEBAR)),
+				.replace('%sidebar.script%', `${dividerScript(SIDEBAR)};${foldedScript()}`),
 	});
 
 /**
