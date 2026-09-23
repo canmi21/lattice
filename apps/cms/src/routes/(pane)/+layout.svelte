@@ -24,6 +24,7 @@
 	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
 	import { createDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { foldHeight } from '$lib/fold.ts';
 	import { arriving, leaving, Movement } from '$lib/movement.ts';
 	import {
 		FOLD_BELOW,
@@ -418,8 +419,9 @@
 				</button>
 			</div>
 
-			{#if open}
-				<ul class="flex flex-col gap-0.5">
+			<!-- Folded by its height, not removed: see $lib/fold.ts. -->
+			<div use:foldHeight={open} class="shrink-0 overflow-hidden">
+				<ul class="flex flex-col gap-0.5 pt-0.5">
 					{#each groups.loose as entry (entry.resource)}
 						{@render article(entry, 1)}
 					{/each}
@@ -443,17 +445,17 @@
 								{/if}
 								<span class="truncate">{category}</span>
 							</button>
-							{#if shown}
-								<ul class="mt-0.5 flex flex-col gap-0.5">
+							<div use:foldHeight={shown} class="overflow-hidden">
+								<ul class="flex flex-col gap-0.5 pt-0.5">
 									{#each entries as entry (entry.resource)}
 										{@render article(entry, 2)}
 									{/each}
 								</ul>
-							{/if}
+							</div>
 						</li>
 					{/each}
 				</ul>
-			{/if}
+			</div>
 		</div>
 
 		<div class="pt-2 {stylex.attrs(folding && styles.receded).class}">
