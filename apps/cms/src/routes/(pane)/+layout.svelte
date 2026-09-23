@@ -368,7 +368,7 @@
 			</div>
 		{/if}
 		<div
-			class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto {stylex.attrs(
+			class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none] {stylex.attrs(
 				folding && styles.receded,
 			).class}"
 		>
@@ -378,8 +378,8 @@
 
 			<!-- Articles, a folder of every article, and inside it a folder per category. The depth is
 			     said by a small step inward rather than a full one per level, so a deep list does not
-			     run out of width; a folder's chevron sits at the row's end with the control beside
-			     it, not in front of the name. -->
+			     run out of width. Only Articles carries a chevron, at the row's end beside the control
+			     that creates one; a category says it is open by its folder icon alone. -->
 			<div class="mt-3 flex items-center">
 				<button
 					type="button"
@@ -442,7 +442,6 @@
 									<Folder class="size-4 shrink-0" aria-hidden="true" />
 								{/if}
 								<span class="truncate">{category}</span>
-								<span class="ms-auto shrink-0">{@render chevron(shown)}</span>
 							</button>
 							{#if shown}
 								<ul class="mt-0.5 flex flex-col gap-0.5">

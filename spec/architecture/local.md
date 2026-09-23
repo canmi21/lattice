@@ -157,9 +157,13 @@ and the list is the draft rows, which is every article whether published or not 
 outlives publication and is the working copy from then on. Inside it each category is a folder of
 its own, and an article with none sits directly under Articles. Depth is said by a small step inward
 rather than a full one per level, because a sidebar spends its width on names and a tree that
-indents properly runs out of it within two levels. A folder's chevron sits at the end of its row,
-not in front of its name, and the Articles row keeps the control that creates an article beside
-it. The ledger at `/articles` stays as the page for working the list rather than navigating it.
+indents properly runs out of it within two levels. Only Articles carries a chevron, at the end of its
+row beside the control that creates an article; a category says whether it is open by its folder
+icon alone, which is a signal the row already had to show. The ledger at `/articles` stays as the page for working the list rather than navigating it.
+
+**A panel scrolls without a scrollbar.** The sidebar's list and the details drawer are cards
+laid over or beside the writing, and a bar down their edge is chrome that says nothing the moving
+content does not; every such panel hides it. The pane, which is the page, keeps its own.
 
 **The column is the ground and the content is a pane set on it.** Structurally the two sit side by
 side in one container; visually the column has no edge of its own, and the pane is a rounded sheet
