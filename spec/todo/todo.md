@@ -59,7 +59,6 @@ reasons.
 - The article body's typography reaches elements no component renders
 - The floating surfaces are styled from the component that summons them
 - `libs/svg-canvas` is a 527-line global stylesheet
-- The CMS has no third layer
 - Ancestor state reaches the visual layer only through a marker nobody owns
 - `truncate` is one utility and two layers
 - A shared visual vocabulary, arrived at by two people writing it separately

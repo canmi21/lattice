@@ -106,6 +106,24 @@ the unpainted sidebar material and the Tauri capability files were answers about
 one platform, and the next surface is a browser tab. The archive holds them, and a reader who
 wants them knows where to look.
 
+**The web client is a narrow column of sections beside one content pane.** The sections are the
+surfaces this plan builds -- drafts now, images and albums with B5 and B7 -- and the column lists
+only what exists, because a link to an unbuilt page is a promise the tool does not keep. It is a
+column rather than a row over the page so that adding a section changes a list and not a layout.
+Below the `md` width it folds into a row, since the CMS is still a page that has to open on a phone.
+
+**The editor writes in the article's own typography.** Its prose sits under
+[prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
+under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given
+the same one through Milkdown's attribute hooks. The alternative was a writing theme of the CMS's
+own, and it was refused because every difference between it and the page is a difference the
+author has to translate back in their head; the preview remains the exact rendering, and the editor
+is only as close as the unrendered nodes allow.
+
+The pages described below -- Overview and the Articles ledger -- were the desktop client's and have
+not been rebuilt in the web one. What they say about the visual language still holds, and the draft
+list is a ledger by the same argument.
+
 The shared visual language extends beyond the palette. The CMS uses the site's quiet text
 hierarchy, generous content spacing, hairline borders, paper only for contained surfaces and
 restrained line icons. Task pages do not acquire branded tiles or ornamental status chrome merely

@@ -371,9 +371,6 @@ importers:
       '@milkdown/prose':
         specifier: ^7.22.1
         version: 7.22.1
-      '@milkdown/theme-nord':
-        specifier: ^7.22.1
-        version: 7.22.1(supports-color@10.2.2)
       '@stylexjs/stylex':
         specifier: ^0.19.0
         version: 0.19.1
@@ -2154,9 +2151,6 @@ packages:
 
   '@milkdown/prose@7.22.1':
     resolution: {integrity: sha512-fqgTHl94G7oDPY94cPYBm6ARxEoLQ10ubkTNLD1nzAlTUfJLULZkIEMSMy4CECncw2go3ExW32CZPpXLJVSxnQ==}
-
-  '@milkdown/theme-nord@7.22.1':
-    resolution: {integrity: sha512-KBl+XXl0km/7ZETvL14uf7UKVoVyrjGOtuweXKkJkmSAj2pr7luY84YWB3IAjbe7ucjNzY4MUFfEMXwZQZYT6A==}
 
   '@milkdown/transformer@7.22.1':
     resolution: {integrity: sha512-rU1IBtxezNg7TSWaq+RP59/t6tfD3jIPGrwAtMKPIGuYEax+8d1fyGisp98TeI3l0VQEIgMpF+KlNDV+Y1HJVA==}
@@ -6322,15 +6316,6 @@ snapshots:
       prosemirror-tables: 1.8.5
       prosemirror-transform: 1.12.1
       prosemirror-view: 1.42.5
-
-  '@milkdown/theme-nord@7.22.1(supports-color@10.2.2)':
-    dependencies:
-      '@milkdown/core': 7.22.1(supports-color@10.2.2)
-      '@milkdown/ctx': 7.22.1
-      '@milkdown/prose': 7.22.1
-      clsx: 2.1.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@milkdown/transformer@7.22.1(supports-color@10.2.2)':
     dependencies:

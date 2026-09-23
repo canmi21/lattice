@@ -1,10 +1,13 @@
 <script lang="ts">
+	import * as stylex from '@stylexjs/stylex';
 	import { page } from '$app/state';
 	import { tick } from 'svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
 	import Shell from '@canmi/prose/shell.svelte';
 	import { articleRailScript } from '@canmi/prose/rail';
 	import { currentTheme } from '@canmi/theme';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, family, figures, radius, text, tracking } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import {
@@ -90,15 +93,109 @@
 		said = done.published ? `Published as revision ${done.seq}` : done.detail;
 		if (done.published) revisions = await listRevisions(rid);
 	}
+
+	const styles = stylex.create({
+		// The bar stays over the text while it scrolls, so it takes the page's ground to hide what
+		// passes under it, and one hairline to say where it ends.
+		bar: {
+			backgroundColor: 'var(--color-page)',
+			borderBottomWidth: border.hairlinePx,
+			borderBottomStyle: 'solid',
+			borderBottomColor: 'var(--color-border)',
+		},
+		crumb: { color: 'var(--color-text-soft)' },
+		rid: { color: 'var(--color-text-muted)', fontFamily: family.monoTheme, fontSize: text.px13 },
+		quiet: { color: 'var(--color-text-soft)' },
+		missing: { color: 'var(--color-red)' },
+		button: { borderRadius: radius.md },
+		// The article's own title is the strong ink and nothing else -- its size is the body's --
+		// so the field it is typed into is too, and the preview's header matches the site's.
+		title: {
+			color: 'var(--color-text-strong)',
+			'::placeholder': { color: 'var(--color-text-soft)' },
+		},
+		label: {
+			color: 'var(--color-text-soft)',
+			fontSize: text.px12,
+			letterSpacing: tracking.caps,
+		},
+		field: {
+			color: 'var(--color-text)',
+			borderBottomWidth: border.hairlinePx,
+			borderBottomStyle: 'solid',
+			borderBottomColor: { default: 'var(--color-border)', ':focus': 'var(--color-border-strong)' },
+			'::placeholder': { color: 'var(--color-text-soft)' },
+		},
+		revision: { color: 'var(--color-text-muted)', fontVariantNumeric: figures.tabular },
+	});
 </script>
 
+{#snippet action(label: string, run: () => void)}
+	<button
+		onclick={run}
+		class="cursor-pointer px-3 py-1 {stylex.attrs(
+			surfaces.interactive,
+			surfaces.colorShift,
+			surfaces.uiText,
+			styles.button,
+		).class}">{label}</button
+	>
+{/snippet}
+
+<div
+	class="sticky top-0 z-10 -mx-4 -mt-8 mb-8 px-4 py-2.5 md:-mx-8 md:px-8 {stylex.attrs(styles.bar)
+		.class}"
+>
+	<div class="mx-auto flex max-w-3xl items-center gap-2 {stylex.attrs(surfaces.uiText).class}">
+		<a href="/" class="no-underline {stylex.attrs(surfaces.quietControl).class}">Drafts</a>
+		<span class={stylex.attrs(styles.quiet).class}>/</span>
+		<span class={stylex.attrs(styles.rid).class}>{rid}</span>
+		<span class="min-w-0 flex-1 truncate ps-2">
+			{#if missing.length > 0}
+				<span class={stylex.attrs(styles.missing).class}>missing: {missing.join(', ')}</span>
+			{:else if said}
+				<span class={stylex.attrs(styles.quiet).class}>{said}</span>
+			{/if}
+		</span>
+		{#if draft}
+			{@render action(showing ? 'Edit' : 'Preview', look)}
+			{@render action('Save', save)}
+			{@render action('Publish', publish)}
+		{/if}
+	</div>
+</div>
+
 {#if draft === undefined}
-	<p class="quiet">Opening {rid}…</p>
+	<p class="mx-auto max-w-3xl {stylex.attrs(surfaces.uiText, styles.quiet).class}">
+		Opening {rid}…
+	</p>
 {:else}
-	<div class="chrome fields">
-		<input bind:value={title} placeholder="Title" class="title" />
-		<input bind:value={path} placeholder="architecture/some-slug" />
-		<input bind:value={language} placeholder="en" class="short" />
+	<div class="mx-auto mb-10 max-w-3xl">
+		<input
+			bind:value={title}
+			placeholder="Untitled"
+			aria-label="Title"
+			class="w-full bg-transparent outline-none {stylex.attrs(styles.title).class}"
+		/>
+		<div class="mt-4 flex flex-wrap gap-x-8 gap-y-3 {stylex.attrs(surfaces.uiText).class}">
+			<label class="flex min-w-0 flex-1 basis-64 items-baseline gap-3">
+				<span class="uppercase {stylex.attrs(styles.label).class}">Path</span>
+				<input
+					bind:value={path}
+					placeholder="architecture/some-slug"
+					class="min-w-0 flex-1 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field)
+						.class}"
+				/>
+			</label>
+			<label class="flex items-baseline gap-3">
+				<span class="uppercase {stylex.attrs(styles.label).class}">Language</span>
+				<input
+					bind:value={language}
+					placeholder="en"
+					class="w-16 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field).class}"
+				/>
+			</label>
+		</div>
 	</div>
 
 	{#if showing && preview}
@@ -111,83 +208,24 @@
 				<div class="home-slot"></div>
 			{/snippet}
 			{#snippet header()}
-				<h1 class="text-2xl font-semibold">{title || 'Untitled'}</h1>
+				<h1 class={stylex.attrs(styles.title).class}>{title || 'Untitled'}</h1>
 			{/snippet}
 			<ArticleBody blocks={preview.blocks} resources={preview.resources} locale="mw" />
 		</Shell>
 	{:else}
-		<div class="chrome"><Editor markdown={draft.body} onChange={typed} /></div>
+		<div class="mx-auto max-w-3xl"><Editor markdown={draft.body} onChange={typed} /></div>
 	{/if}
-
-	<div class="chrome bar">
-		<button onclick={save}>Save</button>
-		<button onclick={look}>{showing ? 'Edit' : 'Preview'}</button>
-		<button onclick={publish}>Publish</button>
-		{#if said}<span class="quiet">{said}</span>{/if}
-		{#if missing.length > 0}<span class="missing">missing: {missing.join(', ')}</span>{/if}
-	</div>
 
 	{#if revisions.length > 0}
-		<ul class="chrome revisions">
-			{#each revisions as revision (revision.seq)}
-				<li class="quiet">
-					{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
-				</li>
-			{/each}
-		</ul>
+		<div class="mx-auto mt-16 max-w-3xl {stylex.attrs(surfaces.uiText).class}">
+			<h2 class="mb-2 uppercase {stylex.attrs(styles.label).class}">Revisions</h2>
+			<ul>
+				{#each revisions as revision (revision.seq)}
+					<li class="py-0.5 {stylex.attrs(styles.revision).class}">
+						{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
+					</li>
+				{/each}
+			</ul>
+		</div>
 	{/if}
 {/if}
-
-<style>
-	.fields {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-bottom: 1rem;
-	}
-	input {
-		flex: 1 1 12rem;
-		padding: 0.375rem 0.5rem;
-		border: 1px solid var(--color-border, #ddd);
-		border-radius: 0.375rem;
-		background: none;
-		color: inherit;
-		font: inherit;
-	}
-	.title {
-		flex-basis: 100%;
-		font-size: 1.25rem;
-		font-weight: 600;
-	}
-	.short {
-		flex: 0 0 5rem;
-	}
-	.bar {
-		display: flex;
-		gap: 0.75rem;
-		align-items: center;
-		margin-top: 1.5rem;
-	}
-	button {
-		padding: 0.375rem 0.875rem;
-		border: 1px solid var(--color-border, #ddd);
-		border-radius: 0.375rem;
-		background: none;
-		color: inherit;
-		cursor: pointer;
-		font: inherit;
-	}
-	.revisions {
-		margin-top: 2rem;
-		padding: 0;
-		list-style: none;
-	}
-	.quiet {
-		color: var(--color-text-soft, #888);
-		font-size: 0.8125rem;
-	}
-	.missing {
-		color: #b00;
-		font-size: 0.8125rem;
-	}
-</style>

@@ -45,7 +45,7 @@ layer as a composed style, or somewhere it currently is not.
 ## The article body's typography reaches elements no component renders
 
 61 of the 351 rules in Svelte `<style>` blocks were `:global` at the time, and the largest group is
-[article.svelte](../../apps/site/src/lib/article/article.svelte) and
+[prose-root.svelte](../../libs/prose/src/prose-root.svelte) and
 [body.svelte](../../libs/prose/src/body.svelte) styling prose the markdown compiler
 produced: `strong`, `s`, `hr`, `blockquote`, `pre`, `code`, `picture`, `img`, `.shiki span`.
 
@@ -68,17 +68,6 @@ It styles generated SVG, so it is the selector layer by the definition in
 [architecture/css/layers.md](../architecture/css/layers.md). It is also five times the size of every other file in
 that layer, unscoped, and loaded by whoever imports the library. Whether a drawing's appearance is
 the drawing's or the site's is the question underneath it.
-
-## The CMS has no third layer
-
-`apps/cms` renders no Svelte. It is `index.html` plus TypeScript building DOM directly, against
-1396 lines of hand-written CSS with semantic class names, and Tailwind is imported but almost
-unused. Two of the three layers exist there and the selector layer does not, because there is no
-component scope to be the escape hatch.
-
-So the site's arrangement does not transfer to it unchanged, and the shared vocabulary above is the
-only piece that crosses. Whether the CMS follows, and what the third layer is there if it does, is
-its own decision and not a consequence of this one.
 
 ## Ancestor state reaches the visual layer only through a marker nobody owns
 

@@ -5,18 +5,37 @@
 	 * The editor owns the document while it is open: `markdown` is read to seed it and never
 	 * written back into it, because an editor that re-seeds on every keystroke moves the caret.
 	 * What comes out goes up through `onChange`, and the page decides when that becomes a row.
+	 *
+	 * It is set in the article's own typography rather than a theme of Milkdown's: the prose sits
+	 * under the root the article body sits under, and the nodes that carry a class there -- a
+	 * heading, a code block -- are given the same one here through Milkdown's attribute hooks.
 	 */
-	import { Editor, defaultValueCtx, rootCtx } from '@milkdown/core';
-	import { commonmark } from '@milkdown/preset-commonmark';
+	import * as stylex from '@stylexjs/stylex';
+	import { Editor, defaultValueCtx, editorViewOptionsCtx, rootCtx } from '@milkdown/core';
+	import { codeBlockAttr, commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { gfm } from '@milkdown/preset-gfm';
 	import { history } from '@milkdown/plugin-history';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
-	import { nord } from '@milkdown/theme-nord';
+	import ProseRoot from '@canmi/prose/prose-root.svelte';
+	import { titleStyles } from '@canmi/prose/section-title';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { family, text } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount } from 'svelte';
 
 	let { markdown, onChange }: { markdown: string; onChange: (value: string) => void } = $props();
 
 	let host: HTMLDivElement;
+
+	// What `section.svelte` puts on a heading, and the spacing it takes above one: a section sits
+	// further from what precedes it than a subsection does. See spec/styling/rail.md.
+	const HEADING = stylex.attrs(titleStyles.title).class ?? '';
+
+	// The site draws a fence through its own component; here it is the frame that component draws
+	// around one, holding raw text rather than highlighted tokens.
+	const styles = stylex.create({
+		code: { fontFamily: family.monoTheme, fontSize: text.px13 },
+	});
+	const CODE = `overflow-x-auto px-4 py-3 ${stylex.attrs(surfaces.blockFrame, styles.code).class}`;
 
 	onMount(() => {
 		let editor: Editor | undefined;
@@ -25,9 +44,19 @@
 			.config((ctx) => {
 				ctx.set(rootCtx, host);
 				ctx.set(defaultValueCtx, seed);
+				// The document is the prose's own spacing and nothing else: the blocks sit one
+				// spacing step apart, as the compiled body's do, and no outline is drawn around the
+				// field, because the page it is on already says where writing happens.
+				ctx.update(editorViewOptionsCtx, (previous) => ({
+					...previous,
+					attributes: { class: 'min-h-96 space-y-4 outline-none' },
+				}));
+				ctx.set(headingAttr.key, (node) => ({
+					class: `${HEADING} ${node.attrs.level === 2 ? 'mt-12' : 'mt-8'}`,
+				}));
+				ctx.set(codeBlockAttr.key, () => ({ pre: { class: CODE }, code: {} }));
 				ctx.get(listenerCtx).markdownUpdated((_, value) => onChange(value));
 			})
-			.config(nord)
 			.use(commonmark)
 			.use(gfm)
 			.use(history)
@@ -38,16 +67,4 @@
 	});
 </script>
 
-<div class="host" bind:this={host}></div>
-
-<style>
-	.host :global(.milkdown) {
-		padding: 0;
-		outline: none;
-	}
-	.host :global(.ProseMirror) {
-		min-height: 24rem;
-		outline: none;
-		line-height: 1.7;
-	}
-</style>
+<ProseRoot><div bind:this={host}></div></ProseRoot>

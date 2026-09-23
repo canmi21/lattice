@@ -1,6 +1,10 @@
 <script lang="ts">
 	import '../styles/app.css';
+	import * as stylex from '@stylexjs/stylex';
 	import { dev } from '$app/environment';
+	import { page } from '$app/state';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, text, tracking, weight } from '@canmi/tokens/vocabulary.stylex';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -22,6 +26,42 @@
 			void import('virtual:stylex:runtime');
 		});
 	}
+
+	/**
+	 * Every section the CMS has, and the paths that count as being in it. Only what exists is
+	 * listed: a link to a page nobody has built is a promise the tool does not keep. Images and
+	 * albums join this list with B5 and B7. See spec/architecture/local.md.
+	 */
+	const SECTIONS = [
+		{
+			label: 'Drafts',
+			href: '/',
+			owns: (path: string) => path === '/' || path.startsWith('/draft/'),
+		},
+	];
+
+	// The nav's one edge follows it: along the bottom while it is a row over the page, down the
+	// side once it is a column beside it. `48rem` is the breakpoint the markup's `md:` names.
+	const styles = stylex.create({
+		nav: {
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			borderTopWidth: 0,
+			borderLeftWidth: 0,
+			borderBottomWidth: { default: border.hairlinePx, '@media (min-width: 48rem)': 0 },
+			borderRightWidth: { default: 0, '@media (min-width: 48rem)': border.hairlinePx },
+		},
+		mark: {
+			color: 'var(--color-text-soft)',
+			fontSize: text.px12,
+			letterSpacing: tracking.caps,
+			fontWeight: weight.medium,
+		},
+		current: {
+			color: 'var(--color-text-strong)',
+			fontWeight: weight.medium,
+		},
+	});
 </script>
 
 <svelte:head>
@@ -31,41 +71,39 @@
 	{#if dev}{@html DEV_STYLEX}{/if}
 </svelte:head>
 
-<main>
-	<div class="chrome"><a class="home" href="/">collection</a></div>
-	{@render children()}
-</main>
+<div
+	class="min-h-screen md:grid md:grid-cols-[11rem_minmax(0,1fr)] {stylex.attrs(surfaces.page)
+		.class}"
+>
+	<nav
+		class="flex items-center gap-1 px-4 py-3 md:sticky md:top-0 md:h-screen md:flex-col md:items-stretch md:px-3 md:py-6 {stylex.attrs(
+			styles.nav,
+		).class}"
+	>
+		<a
+			href="/"
+			class="mr-4 px-2 uppercase no-underline md:mr-0 md:mb-6 {stylex.attrs(styles.mark).class}"
+			>collection</a
+		>
+		{#each SECTIONS as section (section.href)}
+			{@const here = section.owns(page.url.pathname)}
+			<a
+				href={section.href}
+				aria-current={here ? 'page' : undefined}
+				class="block px-2 py-1 no-underline {stylex.attrs(
+					surfaces.quietControl,
+					surfaces.uiText,
+					here && styles.current,
+				).class}">{section.label}</a
+			>
+		{/each}
+	</nav>
 
-<style>
-	:global(body) {
-		margin: 0;
-		background: var(--color-paper, #fff);
-		color: var(--color-text-strong, #111);
-		font-family: ui-sans-serif, system-ui, sans-serif;
-	}
-
-	/* No column here. The preview draws the site's own page, whose rail works out where it goes
-	   from the width it is given -- a wrapper narrower than an article plus its rail leaves the
-	   rail no region to sit in, and it collapses against the edge. What needs a measure is the
-	   editor, which sets its own. */
-	main {
-		padding: 2rem 1rem 6rem;
-	}
-
-	/* Global because the editor's own controls carry it: the measure belongs to the chrome
-	   wherever it is written, and the preview inside the same page must not take it. */
-	:global(.chrome) {
-		max-width: 48rem;
-		margin: 0 auto;
-	}
-
-	.home {
-		display: inline-block;
-		margin-bottom: 2rem;
-		color: var(--color-text-soft, #666);
-		font-size: 0.8125rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		text-decoration: none;
-	}
-</style>
+	<!-- No column here. The preview draws the site's own page, whose rail works out where it goes
+	     from the width it is given -- a wrapper narrower than an article plus its rail leaves the
+	     rail no region to sit in, and it collapses against the edge. A page that wants a measure
+	     sets its own. -->
+	<div class="min-w-0 px-4 pt-8 pb-24 md:px-8">
+		{@render children()}
+	</div>
+</div>
