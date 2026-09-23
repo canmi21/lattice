@@ -6,14 +6,16 @@
 		"./source": "./src/source.ts",
 		"./derived": "./src/derived.ts",
 		"./open": "./src/open.ts",
-		"./migrate": "./src/migrate.ts"
+		"./migrate": "./src/migrate.ts",
+		"./import": "./src/import.ts"
 	},
 	"scripts": {
 		"database:generate": "drizzle-kit generate --config drizzle.source.ts && drizzle-kit generate --config drizzle.derived.ts"
 	},
 	"dependencies": {
 		"better-sqlite3": "^12.6.0",
-		"drizzle-orm": "^0.45.2"
+		"drizzle-orm": "^0.45.2",
+		"yaml": "^2.8.1"
 	},
 	"devDependencies": {
 		"@types/better-sqlite3": "^7.6.13",

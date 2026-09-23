@@ -7,6 +7,7 @@
  */
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import * as derived from './derived.ts';
 import * as source from './source.ts';
 
@@ -36,5 +37,12 @@ export function openDerived(file: string) {
 	return drizzle(open(file), { schema: derived });
 }
 
-export type SourceDatabase = ReturnType<typeof openSource>;
-export type DerivedDatabase = ReturnType<typeof openDerived>;
+/**
+ * What a query takes, which is any SQLite drizzle has -- a file, D1, or a transaction over either.
+ *
+ * Deliberately not `ReturnType<typeof openSource>`: that names better-sqlite3, so every function
+ * taking one would refuse a transaction and refuse D1 later. The driver is named in this module
+ * and nowhere else, which is the whole reason this module exists.
+ */
+export type SourceDatabase = BaseSQLiteDatabase<'sync' | 'async', unknown, typeof source>;
+export type DerivedDatabase = BaseSQLiteDatabase<'sync' | 'async', unknown, typeof derived>;

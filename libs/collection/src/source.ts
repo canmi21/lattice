@@ -132,6 +132,9 @@ export const tags = sqliteTable('tag', {
 	kind: text('kind').notNull(),
 	meaning: text('meaning'),
 	source: text('source'),
+	// The label when it is the same in every language -- a product name, mostly. A tag whose label
+	// was translated has a row per locale in `text` instead, and never both.
+	display: text('display'),
 });
 
 export const resourceTags = sqliteTable(
@@ -163,6 +166,25 @@ export const documents = sqliteTable('document', {
 	published: text('published'),
 	modified: text('modified').notNull(),
 	modifiedLocked: integer('modified_locked', { mode: 'boolean' }).notNull().default(false),
+});
+
+/**
+ * What a `media.*` resource carries beyond being a resource, and a person wrote all of it.
+ *
+ * The twin of `documents`: a column exists here because something orders or filters by it, and
+ * the rest of what is known about a picture stays in the layers. `excerpt` is the window a person
+ * chose out of a clip, which nothing can derive from the bytes.
+ */
+export const media = sqliteTable('media', {
+	resource: text('resource')
+		.primaryKey()
+		.references(() => resources.id),
+	category: text('category'),
+	sourceUrl: text('source_url'),
+	sourceLabel: text('source_label'),
+	// A pair, `{ from, to }` in seconds: the window somebody chose out of a clip, which nothing
+	// derives from the bytes. JSON rather than two columns because nothing orders by either half.
+	excerpt: text('excerpt', { mode: 'json' }),
 });
 
 /**
