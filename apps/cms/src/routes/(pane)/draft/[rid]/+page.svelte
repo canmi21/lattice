@@ -1,18 +1,12 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { tick } from 'svelte';
-	import ArticleBody from '@canmi/prose/body.svelte';
-	import Shell from '@canmi/prose/shell.svelte';
-	import { articleRailScript } from '@canmi/prose/rail';
-	import { currentTheme } from '@canmi/theme';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import {
-		previewDraft,
-		type Preview,
 		listRevisions,
 		publishDraft,
 		readDraft,
@@ -31,8 +25,6 @@
 	let language = $state('');
 	let revisions = $state<Revision[]>([]);
 	let said = $state<string | undefined>(undefined);
-	let preview = $state<Preview | undefined>(undefined);
-	let showing = $state(false);
 	let missing = $state<string[]>([]);
 
 	$effect(() => {
@@ -72,18 +64,11 @@
 		said = `Saved ${held.updated.slice(11, 19)}`;
 	}
 
-	// Compiled where the compiler is, then rendered with the components the site renders with --
-	// so what is shown here is the article and not an approximation of it. See milestones.md B3a.
+	// The preview reads the row, so what it shows is what was just written only once it is saved.
+	// It is a route of its own because it scrolls the window; see preview/[rid]/+page.svelte.
 	async function look() {
-		showing = !showing;
-		if (!showing) return;
 		await save();
-		preview = await previewDraft(rid);
-		said = undefined;
-		// The rail's vertical placement is a measurement, and the site takes it in a shell script
-		// once the markup is there. Here the markup arrives after a fetch, so it is taken then.
-		await tick();
-		new Function(articleRailScript)();
+		await goto(`/preview/${rid}`);
 	}
 
 	async function publish() {
@@ -109,7 +94,7 @@
 		missing: { color: 'var(--color-red)' },
 		button: { borderRadius: radius.md },
 		// The article's own title is the strong ink and nothing else -- its size is the body's --
-		// so the field it is typed into is too, and the preview's header matches the site's.
+		// so the field it is typed into is too.
 		title: {
 			color: 'var(--color-text-strong)',
 			'::placeholder': { color: 'var(--color-text-soft)' },
@@ -157,7 +142,7 @@
 			{/if}
 		</span>
 		{#if draft}
-			{@render action(showing ? 'Edit' : 'Preview', look)}
+			{@render action('Preview', look)}
 			{@render action('Save', save)}
 			{@render action('Publish', publish)}
 		{/if}
@@ -197,23 +182,7 @@
 		</div>
 	</div>
 
-	{#if showing && preview}
-		<!-- The page the site reads an article on, drawn around this draft. Not a preview layout:
-		     the same component, so there is nothing here that can drift from what is published. -->
-		<Shell toc={preview.toc} locale="mw" theme={currentTheme()}>
-			{#snippet home()}
-				<!-- The rail script measures this to place the rail; the site's own control links
-				     home, which is not where this one is. -->
-				<div class="home-slot"></div>
-			{/snippet}
-			{#snippet header()}
-				<h1 class={stylex.attrs(styles.title).class}>{title || 'Untitled'}</h1>
-			{/snippet}
-			<ArticleBody blocks={preview.blocks} resources={preview.resources} locale="mw" />
-		</Shell>
-	{:else}
-		<div class="mx-auto max-w-3xl"><Editor markdown={draft.body} onChange={typed} /></div>
-	{/if}
+	<div class="mx-auto max-w-3xl"><Editor markdown={draft.body} onChange={typed} /></div>
 
 	{#if revisions.length > 0}
 		<div class="mx-auto mt-16 max-w-3xl {stylex.attrs(surfaces.uiText).class}">

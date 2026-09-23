@@ -122,7 +122,8 @@ the two in light and the lighter in dark, which is [styling/surfaces.md](../styl
 accepted until a pair that holds in both themes is written. The document never scrolls; the
 pane does, so the ground and the section column hold still while the text moves. That excludes the
 article preview from the pane: its rail is fixed to the viewport and reads the window's scroll, so
-it moves to a route of its own rather than staying a mode inside the editor.
+it is a route of its own, `/preview/[rid]`, outside the ground and the pane, rather than a mode
+inside the editor.
 
 **Labels are written in the case they are read in.** No uppercase and no caps tracking on a column
 head, a field label or the mark: small soft text is quiet enough, and shouting it in capitals is
