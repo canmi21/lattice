@@ -185,7 +185,7 @@ sees.
 | --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----- | -------- |
 | A0  | The curated records are salvaged  | One trustworthy `media.yaml` and `tags.yaml` out of the two divergent copies, and the path bug closed                | --    | **done** |
 | A1  | The authored database exists      | Resources, contents, the two metadata layers and the reference table, under one Drizzle schema                       | --    | **done** |
-| A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | **done** |
+| A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | near     |
 | A3  | An article is a resource          | `document.article`, granted from the same space and the same register                                                | A1    | **done** |
 | A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | **done** |
 | A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near     |
@@ -199,6 +199,18 @@ a slower form. So the reference set is recomputed from the authored database on 
 cannot disagree with it, and lives in the derived database because that is what a thing you can
 throw away is for. What is not recomputed is the clock: `unreferenced.since` is when something
 stopped being named, and a run that restarted it would mean nothing ever came due.
+
+**A2 is half taken, and this row was marked `done` before that was checked.** What the records
+hold did move in -- `import.ts` writes every resource, content, tag and paid description into the
+collection, and the schema tests hold it there. The files did not retire: `media.yaml`,
+`tags.yaml` and `metadata.json` are still on disk and still read, by around twenty modules
+including the publish pass, `local`'s own commands and the preview's compile. They are the source
+of truth and the collection is the copy, which is the wrong way round for a row that says they
+retire.
+
+Retiring them is a reader migration, not a deletion: every reader above has to ask the collection
+instead, and that is the same move A5 is waiting to make for the article metadata. It is the
+first half of C5 arriving early -- see the table there, where these three files are the first row.
 
 **A0 is a salvage, not a repair.** The file it fixes is retiring at A2, so nothing here is worth
 maintaining afterwards -- what matters is that the import has one input that has lost nothing. The
