@@ -82,15 +82,15 @@ function metaOf(frontmatter: Frontmatter, path: string): DraftMeta {
 }
 
 /**
- * What a published document's layers hold, which is not the same for the two kinds of document.
+ * An article's layers. The standalone page gets none, which is the decided answer and not a gap.
  *
- * The page stops at `document` and takes a title, because it has no address anybody chose and no
- * language beside its siblings -- it is one permanent URL with one text. Parsing the article's
- * shape is what refuses a half-filled one here rather than at the first page that rendered it.
- * See spec/todo/milestones.md, "How a fixed page is edited, if at all".
+ * Its shape is a different one from an article's rather than a smaller one, and designing it is
+ * deliberately deferred -- so the page declares `document` and carries no layer, which stops the
+ * chain there and leaves the record valid. See spec/todo/milestones.md, "How a fixed page is
+ * edited, if at all", and spec/architecture/resource.md, "The catalogue".
  */
 function layersFor(type: string, frontmatter: Frontmatter, path: string) {
-	if (type !== ARTICLE_TYPE) return { document: { version: 1, title: frontmatter.title } };
+	if (type !== ARTICLE_TYPE) return {};
 	return articleLayers(v.parse(articleMeta, metaOf(frontmatter, path)));
 }
 
