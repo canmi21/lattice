@@ -35,6 +35,8 @@ overrides:
 # platform-specific native binary. Nothing goes in this list to make a warning go away.
 allowBuilds:
   '@sentry/cli': true
+  # Compiles or unpacks a native binding; a pure-JS SQLite is not what this is.
+  better-sqlite3: true
   cn-font-split: true
   # Its postinstall only prints a funding message; the runtime modules need no build step.
   core-js: false

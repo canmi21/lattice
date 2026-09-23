@@ -1,0 +1,99 @@
+{
+	"version": "6",
+	"dialect": "sqlite",
+	"id": "7ffb0bb7-e977-46fd-a9e8-4ac03f45aadb",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"tables": {
+		"reference": {
+			"name": "reference",
+			"columns": {
+				"from_kind": {
+					"name": "from_kind",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"from_id": {
+					"name": "from_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"cid": {
+					"name": "cid",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"via": {
+					"name": "via",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"reference_by_cid": {
+					"name": "reference_by_cid",
+					"columns": ["cid"],
+					"isUnique": false
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {
+				"reference_from_kind_from_id_cid_pk": {
+					"columns": ["from_kind", "from_id", "cid"],
+					"name": "reference_from_kind_from_id_cid_pk"
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"unreferenced": {
+			"name": "unreferenced",
+			"columns": {
+				"cid": {
+					"name": "cid",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"since": {
+					"name": "since",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"collected": {
+					"name": "collected",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		}
+	},
+	"views": {},
+	"enums": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"internal": {
+		"indexes": {}
+	}
+}
