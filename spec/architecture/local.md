@@ -186,6 +186,16 @@ so a built CMS would be the client-only shell again; the rendering described her
 dev server, which is what runs it. Serving a build that renders needs a server adapter, and that
 is a decision about how `local` serves the CMS rather than about this page.
 
+**A draft's page is the text, and nothing that is not the writing sits on it.** What the article
+is -- title, subtitle, description, path, language -- and its revisions are in a drawer at the
+pane's right, and the actions -- the drawer itself, preview, save, publish -- are a toolbar
+floating centred at the pane's foot, above everything else in it. A draft is written before it is
+described, and a writer who has not decided a title should not be looking at an empty field asking
+for one. Both float over the pane rather than inside it, so they hold still while the text scrolls;
+the layout draws them and a page hands over what goes in them
+([chrome.svelte.ts](../../apps/cms/src/lib/chrome.svelte.ts)), early enough that the server renders
+them with the page. A publication refused for a missing field opens the drawer on it.
+
 **The editor writes in the article's own typography.** Its prose sits under
 [prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
 under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given

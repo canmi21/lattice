@@ -1,11 +1,27 @@
 <script lang="ts">
+	/**
+	 * Writing a draft: the text and nothing else on the page.
+	 *
+	 * What the article is -- its title, subtitle, description, address and language -- is not the
+	 * writing, and it is kept out of the way of it: in a drawer at the pane's right, opened from the
+	 * toolbar that floats at the pane's foot with everything else a draft can have done to it. See
+	 * spec/architecture/local.md.
+	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { invalidate } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import Eye from '@lucide/svelte/icons/eye';
+	import PanelRight from '@lucide/svelte/icons/panel-right';
+	import Save from '@lucide/svelte/icons/save';
+	import Send from '@lucide/svelte/icons/send';
+	import X from '@lucide/svelte/icons/x';
+	import { onMount, type Component } from 'svelte';
+	import { cubicOut } from 'svelte/easing';
+	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
+	import { useChrome } from '$lib/chrome.svelte.ts';
 	import {
 		DRAFTS,
 		listRevisions,
@@ -21,15 +37,20 @@
 	// article resets them all, because they are derived from the draft that was loaded.
 	const rid = $derived(data.draft.resource);
 	let title = $derived(data.draft.meta.title ?? '');
+	let subtitle = $derived(data.draft.meta.subtitle ?? '');
+	let description = $derived(data.draft.meta.description ?? '');
 	let path = $derived(data.draft.meta.path ?? '');
 	let language = $derived(data.draft.meta.language ?? '');
 	let revisions = $derived(data.revisions);
 	let missing = $derived.by((): string[] => (void data.draft, []));
 
+	/** Whether the drawer holding what the article is stands open. */
+	let details = $state(false);
+
 	/**
 	 * The editor is the one region the server leaves empty: it is a rich-text view that exists
 	 * only in a browser, and what it opens on may be the buffer, which only the browser has. So it
-	 * mounts after hydration, and until then the fields and everything around it are already there.
+	 * mounts after hydration, and until then everything around it is already there.
 	 */
 	let mounted = $state(false);
 	onMount(() => (mounted = true));
@@ -51,9 +72,13 @@
 	// empty string -- which is a value, and which the collection would otherwise have to guess at.
 	const said_ = (value: string) => (value.trim() === '' ? undefined : value.trim());
 
+	// Every field the draft carries goes back with every save: the row's metadata is replaced
+	// whole, so a field left out here would be a field a save erased.
 	async function save() {
 		const held = await saveDraft(rid, body, {
 			title: said_(title),
+			subtitle: said_(subtitle),
+			description: said_(description),
 			path: said_(path),
 			language: said_(language),
 		});
@@ -81,33 +106,42 @@
 		const done: Publication = await publishDraft(rid);
 		missing = done.published ? [] : (done.missing ?? []);
 		said = done.published ? `Published as revision ${done.seq}` : done.detail;
+		// A publication refused for a missing field is answered where the fields are.
+		if (missing.length > 0) details = true;
 		if (done.published) revisions = await listRevisions(rid);
 	}
 
+	/** The drawer arriving from the right edge, on the site's timing for a surface answering a press. */
+	function arrive(node: HTMLElement) {
+		return {
+			duration: prefersReducedMotion() ? 0 : pressMotion(node.offsetWidth).duration * 1000,
+			easing: cubicOut,
+			css: (t: number) => `transform: translateX(${(1 - t) * 1.5}rem); opacity: ${t};`,
+		};
+	}
+
 	const styles = stylex.create({
-		// The bar stays over the text while it scrolls, so it takes the page's ground to hide what
-		// passes under it, and one hairline to say where it ends.
-		bar: {
-			backgroundColor: 'var(--color-page)',
-			borderBottomWidth: border.hairlinePx,
-			borderBottomStyle: 'solid',
-			borderBottomColor: 'var(--color-border)',
+		// Both float over the text, so both are a sheet with an edge and a shadow to say so.
+		pill: {
+			backgroundColor: 'var(--color-paper)',
+			borderRadius: radius.full,
+			boxShadow: '0 0.5rem 1.5rem oklch(0 0 0 / 0.12), 0 0 0 1px var(--color-border)',
 		},
-		crumb: { color: 'var(--color-text-soft)' },
-		rid: { color: 'var(--color-text-muted)', fontFamily: family.monoTheme, fontSize: text.px13 },
+		sheet: {
+			backgroundColor: 'var(--color-paper)',
+			borderRadius: radius.xl,
+			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.14), 0 0 0 1px var(--color-border)',
+		},
+		round: { borderRadius: radius.full },
+		pressed: {
+			color: 'var(--color-text-strong)',
+			backgroundColor: 'var(--color-paper-hover)',
+		},
 		quiet: { color: 'var(--color-text-soft)' },
 		missing: { color: 'var(--color-red)' },
-		button: { borderRadius: radius.md },
-		// The article's own title is the strong ink and nothing else -- its size is the body's --
-		// so the field it is typed into is too.
-		title: {
-			color: 'var(--color-text-strong)',
-			'::placeholder': { color: 'var(--color-text-soft)' },
-		},
-		label: {
-			color: 'var(--color-text-soft)',
-			fontSize: text.px13,
-		},
+		heading: { color: 'var(--color-text-strong)' },
+		rid: { color: 'var(--color-text-muted)', fontFamily: family.monoTheme, fontSize: text.px13 },
+		label: { color: 'var(--color-text-soft)', fontSize: text.px13 },
 		field: {
 			color: 'var(--color-text)',
 			borderBottomWidth: border.hairlinePx,
@@ -115,92 +149,133 @@
 			borderBottomColor: { default: 'var(--color-border)', ':focus': 'var(--color-border-strong)' },
 			'::placeholder': { color: 'var(--color-text-soft)' },
 		},
+		absent: {
+			borderBottomColor: { default: 'var(--color-red)', ':focus': 'var(--color-red)' },
+		},
+		divider: { backgroundColor: 'var(--color-border)' },
 		revision: { color: 'var(--color-text-muted)', fontVariantNumeric: figures.tabular },
 	});
+
+	/** A field's class, marked when a refused publication named it as missing. */
+	const field = (key: string) =>
+		`w-full bg-transparent py-1 outline-none ${stylex.attrs(styles.field, missing.includes(key) && styles.absent).class}`;
+
+	useChrome({ toolbar, drawer });
 </script>
 
-{#snippet action(label: string, run: () => void)}
+{#snippet action(label: string, Icon: Component, run: () => void, on = false)}
 	<button
+		type="button"
 		onclick={run}
-		class="cursor-pointer px-3 py-1 {stylex.attrs(
-			surfaces.interactive,
-			surfaces.colorShift,
+		aria-pressed={on || undefined}
+		class="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 {stylex.attrs(
+			surfaces.quietControl,
 			surfaces.uiText,
-			styles.button,
-		).class}">{label}</button
+			styles.round,
+			on && styles.pressed,
+		).class}"
 	>
+		<Icon class="size-4 shrink-0" aria-hidden="true" />
+		<span>{label}</span>
+	</button>
 {/snippet}
 
-<div
-	class="sticky -top-8 z-10 -mx-4 -mt-8 mb-8 px-4 py-2.5 md:-mx-8 md:px-8 {stylex.attrs(styles.bar)
-		.class}"
->
-	<div
-		class="mx-auto flex max-w-(--rail-column) px-6 items-center gap-2 {stylex.attrs(surfaces.uiText)
-			.class}"
-	>
-		<a href="/articles" class="no-underline {stylex.attrs(surfaces.quietControl).class}">Articles</a
-		>
-		<span class={stylex.attrs(styles.quiet).class}>/</span>
-		<span class={stylex.attrs(styles.rid).class}>{rid}</span>
-		<span class="min-w-0 flex-1 truncate ps-2">
-			{#if missing.length > 0}
-				<span class={stylex.attrs(styles.missing).class}>missing: {missing.join(', ')}</span>
-			{:else if said}
-				<span class={stylex.attrs(styles.quiet).class}>{said}</span>
-			{/if}
-		</span>
-		{@render action('Preview', look)}
-		{@render action('Save', save)}
-		{@render action('Publish', publish)}
+{#snippet toolbar()}
+	<div class="flex items-center gap-0.5 p-1 {stylex.attrs(styles.pill).class}">
+		{@render action('Details', PanelRight, () => (details = !details), details)}
+		<span class="mx-1 h-4 w-px {stylex.attrs(styles.divider).class}" aria-hidden="true"></span>
+		{@render action('Preview', Eye, look)}
+		{@render action('Save', Save, save)}
+		{@render action('Publish', Send, publish)}
+		{#if missing.length > 0}
+			<span class="max-w-60 truncate px-3 {stylex.attrs(surfaces.uiText, styles.missing).class}"
+				>missing: {missing.join(', ')}</span
+			>
+		{:else if said}
+			<span class="max-w-60 truncate px-3 {stylex.attrs(surfaces.uiText, styles.quiet).class}"
+				>{said}</span
+			>
+		{/if}
 	</div>
-</div>
+{/snippet}
 
-<div class="mx-auto mb-10 max-w-(--rail-column) px-6">
-	<input
-		bind:value={title}
-		placeholder="Untitled"
-		aria-label="Title"
-		class="w-full bg-transparent outline-none {stylex.attrs(styles.title).class}"
-	/>
-	<div class="mt-4 flex flex-wrap gap-x-8 gap-y-3 {stylex.attrs(surfaces.uiText).class}">
-		<label class="flex min-w-0 flex-1 basis-64 items-baseline gap-3">
-			<span class={stylex.attrs(styles.label).class}>Path</span>
-			<input
-				bind:value={path}
-				placeholder="architecture/some-slug"
-				class="min-w-0 flex-1 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field).class}"
-			/>
-		</label>
-		<label class="flex items-baseline gap-3">
-			<span class={stylex.attrs(styles.label).class}>Language</span>
-			<input
-				bind:value={language}
-				placeholder="en"
-				class="w-16 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field).class}"
-			/>
-		</label>
-	</div>
-</div>
+{#snippet drawer()}
+	{#if details}
+		<!-- It stops above the toolbar rather than running under it, so nothing it holds is covered. -->
+		<aside
+			transition:arrive
+			aria-label="Details"
+			class="absolute top-2 right-2 bottom-20 z-30 flex w-88 max-w-[calc(100%-1rem)] flex-col gap-6 overflow-y-auto p-5 {stylex.attrs(
+				surfaces.uiText,
+				styles.sheet,
+			).class}"
+		>
+			<header class="flex items-center gap-2">
+				<h2 class={stylex.attrs(styles.heading).class}>Details</h2>
+				<span class={stylex.attrs(styles.rid).class}>{rid}</span>
+				<button
+					type="button"
+					aria-label="Close the details"
+					onclick={() => (details = false)}
+					class="ms-auto cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.round)
+						.class}"
+				>
+					<X class="size-4" aria-hidden="true" />
+				</button>
+			</header>
+
+			<div class="flex flex-col gap-4">
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Title</span>
+					<input bind:value={title} placeholder="Untitled" class={field('title')} />
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Subtitle</span>
+					<input
+						bind:value={subtitle}
+						placeholder="A line under the title"
+						class={field('subtitle')}
+					/>
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Path</span>
+					<input bind:value={path} placeholder="architecture/some-slug" class={field('path')} />
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Language</span>
+					<input bind:value={language} placeholder="en" class={field('language')} />
+				</label>
+				<label class="flex flex-col gap-1">
+					<span class={stylex.attrs(styles.label).class}>Description</span>
+					<textarea
+						bind:value={description}
+						rows="3"
+						placeholder="What the article is about, for search and sharing"
+						class="resize-none {field('description')}"></textarea>
+				</label>
+			</div>
+
+			{#if revisions.length > 0}
+				<section class="flex flex-col gap-1">
+					<h3 class={stylex.attrs(styles.label).class}>Revisions</h3>
+					<ul>
+						{#each revisions as revision (revision.seq)}
+							<li class="py-0.5 {stylex.attrs(styles.revision).class}">
+								{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/if}
+		</aside>
+	{/if}
+{/snippet}
 
 <!-- Mounted in the browser only, and remounted per article: the editor reads its text once,
      when it opens, so a second article has to be a second editor. The height is held so the
-     region does not arrive by pushing the revisions down. -->
+     region does not arrive by pushing anything down. -->
 <div class="mx-auto min-h-96 max-w-(--rail-column) px-6">
 	{#if mounted}
 		{#key rid}<Editor markdown={body} onChange={typed} />{/key}
 	{/if}
 </div>
-
-{#if revisions.length > 0}
-	<div class="mx-auto mt-16 max-w-(--rail-column) px-6 {stylex.attrs(surfaces.uiText).class}">
-		<h2 class="mb-2 {stylex.attrs(styles.label).class}">Revisions</h2>
-		<ul>
-			{#each revisions as revision (revision.seq)}
-				<li class="py-0.5 {stylex.attrs(styles.revision).class}">
-					{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
-				</li>
-			{/each}
-		</ul>
-	</div>
-{/if}

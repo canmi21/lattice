@@ -20,11 +20,15 @@
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
+	import { provideChrome } from '$lib/chrome.svelte.ts';
 	import { createDraft, DRAFTS } from '$lib/collection.ts';
 	import { FOLD_BELOW, SIDEBAR, sidebarStyles } from '$lib/sidebar.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
+
+	/** What a page floats over the pane: a toolbar at its foot, a drawer at its right. */
+	const chrome = provideChrome();
 
 	type Section = { label: string; href: string; icon: Component };
 
@@ -432,7 +436,7 @@
 		     and the pane's corners stay where they are while the text moves, and a sticky bar inside
 		     sticks to the pane's top edge. A page that wants a measure sets its own. -->
 		<div
-			class="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 pt-8 pb-24 {stylex.attrs(
+			class="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 pt-16 pb-32 {stylex.attrs(
 				surfaces.page,
 				styles.pane,
 			).class}"
@@ -468,6 +472,15 @@
 				<Search class="size-4" aria-hidden="true" />
 			</button>
 		</div>
+
+		<!-- What the page floats over the pane: a drawer at its right, and a toolbar centred at its
+		     foot and above everything else there, the drawer included. -->
+		{@render chrome.drawer?.()}
+		{#if chrome.toolbar}
+			<div class="pointer-events-none absolute inset-x-0 bottom-6 z-40 flex justify-center">
+				<div class="pointer-events-auto">{@render chrome.toolbar()}</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
