@@ -16,10 +16,11 @@ const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
 /**
  * Stems refused anywhere in a candidate, because an id ends up in article source and in a URL.
  *
- * The twin of `DENIED` in `apps/local/src/resource.rs`; see spec/todo/cms.md for which of the two
- * should own it once allocation has one home.
+ * The twin of `DENIED` in `apps/local/src/resource.rs`, and exported so the test beside this file
+ * can hold the two to each other. See spec/todo/cms.md for which of them should own it once
+ * allocation has one home.
  */
-const DENIED = [
+export const DENIED = [
 	'anus',
 	'arse',
 	'clit',
