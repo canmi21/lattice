@@ -73,6 +73,15 @@ export const surfaces = stylex.create({
 	blockFrame: { ...paper, borderRadius: radius.xl },
 
 	/**
+	 * The panel a menu opens on: `paper` with a medium corner, square rows running edge to edge
+	 * inside it. The site's dropdowns and the CMS's context menu are one kind of thing and draw
+	 * this, which is a name opened by that decision rather than found by the three-component bar --
+	 * see spec/architecture/css/extraction.md, "A name can be decided as well as found". The shadow
+	 * is the markup's `shadow-sm`, for the reason `menu-content.svelte` gives.
+	 */
+	menu: { ...paper, borderRadius: radius.md },
+
+	/**
 	 * Bordered paper that answers a pointer: the repository card, the tweet card and the support pill
 	 * each darken the border and the ground on hover and focus. The `hairlineRem` is not a ruling
 	 * against `paper`'s `hairlinePx` -- spec/todo/css.md, "Two named surfaces disagree about what a

@@ -1,24 +1,16 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { radius } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one -- see spec/architecture/css/authoring.md, "A
-	 * comment in the module script cannot write a tag in angle brackets", for why this one may not.
+	 * A dropdown's panel draws `surfaces.menu`, the one menu style the site and the CMS share. See
+	 * spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag in
+	 * angle brackets", for why this comment may not write one.
 	 *
 	 * The scoped block at the foot of this file reaches what Bits UI portals out of the tree,
 	 * through data attributes the library writes. `shadow-sm` stays in the markup because it is
 	 * five variables, four of them registered by an `@property` rule no component can write.
 	 */
-	const styles = stylex.create({
-		/** The panel itself: a bordered sheet of paper. Its shadow is still the markup's. */
-		surface: {
-			// 0.375rem is the `--radius-md` behind Tailwind's medium corner.
-			borderRadius: radius.md,
-		},
-	});
 </script>
 
 <script lang="ts">
@@ -53,10 +45,7 @@
 		sideOffset={8}
 		collisionPadding={EDGE_PADDING}
 		loop
-		class="menu-content z-30 min-w-36 overflow-hidden shadow-sm {stylex.attrs(
-			surfaces.paper,
-			styles.surface,
-		).class}"
+		class="menu-content z-30 min-w-36 overflow-hidden shadow-sm {stylex.attrs(surfaces.menu).class}"
 	>
 		{@render children()}
 	</DropdownMenu.Content>

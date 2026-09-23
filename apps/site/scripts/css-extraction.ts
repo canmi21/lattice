@@ -23,6 +23,15 @@ const SELF = relative(ROOT, fileURLToPath(import.meta.url));
 /** extraction.md's bar, for a value and for a group alike. */
 const THRESHOLD = 3;
 
+/**
+ * Names opened by the author's decision rather than found by the bar: surfaces declared one style
+ * even though fewer than three components here draw them -- the others may be in another app this
+ * scan does not read. Each must still be applied somewhere the scan can see, since a decided name
+ * nothing uses is a name for nothing. See spec/architecture/css/extraction.md, "A name can be
+ * decided as well as found".
+ */
+const DECIDED = new Set(['surfaces.menu']);
+
 /** A read inside one of these is the declaration of a name rather than an application of it. */
 const GROUPS = HOMES.groups;
 const DECLARING = new Set([HOMES.values, GROUPS]);
@@ -367,6 +376,7 @@ function main(): number {
 			}
 			const where = applied.get(name) ?? new Set<string>();
 			if (where.size >= THRESHOLD) continue;
+			if (DECIDED.has(name) && where.size > 0) continue;
 			failures.push(
 				[
 					`${group.file}:${line} names '${name}', which ${where.size} components apply:`,
