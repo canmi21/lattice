@@ -1,23 +1,20 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
-	import { createDraft, listDrafts, type Draft } from '$lib/collection.ts';
+	import { createDraft, DRAFTS } from '$lib/collection.ts';
+	import type { PageProps } from './$types';
 
-	let drafts = $state<Draft[] | undefined>(undefined);
-	let failure = $state<string | undefined>(undefined);
-
-	$effect(() => {
-		listDrafts()
-			.then((held) => (drafts = held))
-			.catch((error: unknown) => (failure = String(error)));
-	});
+	// The list the layout already loaded for the sidebar: one read serves both.
+	let { data }: PageProps = $props();
+	const drafts = $derived(data.articles);
 
 	// A new article is an id being reserved, not a file being made: the row exists before anything
 	// has been decided about it, which is what lets the editor open on it. See resource.md.
 	async function start() {
 		const { resource } = await createDraft();
+		await invalidate(DRAFTS);
 		await goto(`/draft/${resource}`);
 	}
 
@@ -41,7 +38,6 @@
 		fact: { color: 'var(--color-text-muted)', fontVariantNumeric: figures.tabular },
 		rid: { fontFamily: family.monoTheme, fontSize: text.px13 },
 		quiet: { color: 'var(--color-text-soft)' },
-		failure: { color: 'var(--color-red)' },
 	});
 
 	const COLUMNS = 'grid grid-cols-[minmax(0,1fr)_4.5rem_6rem] items-baseline gap-4 px-2';
@@ -61,11 +57,7 @@
 		>
 	</div>
 
-	{#if failure}
-		<p class={stylex.attrs(surfaces.uiText, styles.failure).class}>{failure}</p>
-	{:else if drafts === undefined}
-		<p class={stylex.attrs(surfaces.uiText, styles.quiet).class}>Reading the collection…</p>
-	{:else if drafts.length === 0}
+	{#if drafts.length === 0}
 		<p class={stylex.attrs(surfaces.uiText, styles.quiet).class}>Nothing written yet.</p>
 	{:else}
 		<div class="{COLUMNS} pb-2 {stylex.attrs(styles.label).class}">

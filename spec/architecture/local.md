@@ -137,6 +137,20 @@ inside the editor.
 head, a field label or the mark: small soft text is quiet enough, and shouting it in capitals is
 the ornament this language refuses.
 
+**The frame is rendered on the server; only the editor is not.** A client-only page arrives as an
+empty shell and draws everything after its script runs, which on every reload is a frame of
+nothing followed by the layout snapping in. So the sidebar, the article list, a draft's fields and
+the preview are all rendered with the page, from load functions that read `local` -- the browser
+through the dev server's proxy, the server directly, which `hooks.server.ts` arranges. The
+rich-text editor is the one region the server leaves empty, holding its height, and it mounts after
+hydration because it is a browser-only view and what it opens on may be the unsaved buffer, which
+only the browser has.
+
+What this does not yet cover is a build. The adapter is still the static one with a fallback page,
+so a built CMS would be the client-only shell again; the rendering described here holds under the
+dev server, which is what runs it. Serving a build that renders needs a server adapter, and that
+is a decision about how `local` serves the CMS rather than about this page.
+
 **The editor writes in the article's own typography.** Its prose sits under
 [prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
 under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given

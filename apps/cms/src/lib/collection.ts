@@ -4,6 +4,10 @@
  * Paths are relative: the dev server forwards `/collection`, so the browser is always talking to
  * its own origin and there is no address here to go stale when this stops being a dev server.
  * See spec/architecture/local.md, "The HTTP shell is two runtimes and one address".
+ *
+ * The reads take a `fetch`, because they run in load functions as well: on the server that is
+ * SvelteKit's, which `hooks.server.ts` points at `local`, and its answer is carried to the browser
+ * so hydration does not ask again.
  */
 import type { ParsedResource } from '@canmi/artifacts';
 import type { Block, TocEntry } from '@canmi/artifacts/types';
@@ -24,8 +28,10 @@ export type Publication =
 	| { published: true; seq: number; cid: string; at: string }
 	| { published: false; refused: string; detail: string; missing?: string[] };
 
-async function call<T>(path: string, init?: RequestInit): Promise<T> {
-	const response = await fetch(`/collection${path}`, {
+type Fetch = typeof fetch;
+
+async function call<T>(path: string, init?: RequestInit, fetcher: Fetch = fetch): Promise<T> {
+	const response = await fetcher(`/collection${path}`, {
 		...init,
 		headers: init?.body ? { 'content-type': 'application/json' } : undefined,
 	});
@@ -37,8 +43,9 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 	return (await response.json()) as T;
 }
 
-export const listDrafts = () => call<Draft[]>('/drafts');
-export const readDraft = (rid: string) => call<Draft>(`/drafts/${rid}`);
+export const listDrafts = (fetcher?: Fetch) => call<Draft[]>('/drafts', undefined, fetcher);
+export const readDraft = (rid: string, fetcher?: Fetch) =>
+	call<Draft>(`/drafts/${rid}`, undefined, fetcher);
 export const createDraft = () => call<{ resource: string }>('/drafts', { method: 'POST' });
 
 export const saveDraft = (rid: string, body: string, meta: DraftMeta) =>
@@ -47,7 +54,8 @@ export const saveDraft = (rid: string, body: string, meta: DraftMeta) =>
 export const publishDraft = (rid: string) =>
 	call<Publication>(`/drafts/${rid}/publish`, { method: 'POST', body: '{}' });
 
-export const listRevisions = (rid: string) => call<Revision[]>(`/articles/${rid}/revisions`);
+export const listRevisions = (rid: string, fetcher?: Fetch) =>
+	call<Revision[]>(`/articles/${rid}/revisions`, undefined, fetcher);
 
 /** The draft compiled the way the site compiles a published one. See architecture/local.md. */
 export type Preview = {
@@ -56,5 +64,8 @@ export type Preview = {
 	resources: Record<string, ParsedResource>;
 };
 
-export const previewDraft = (rid: string) =>
-	call<Preview>(`/drafts/${rid}/preview`, { method: 'POST', body: '{}' });
+export const previewDraft = (rid: string, fetcher?: Fetch) =>
+	call<Preview>(`/drafts/${rid}/preview`, { method: 'POST', body: '{}' }, fetcher);
+
+/** What a load that reads the article list declares, so a write can ask for it again. */
+export const DRAFTS = 'collection:drafts';

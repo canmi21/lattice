@@ -4,14 +4,11 @@ import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
+import { LOCAL_ORIGIN } from './src/lib/local.ts';
 
 // The workspace root, matching the site: StyleX hashes a class from the file's path relative to
 // this, and the visual layer is written in `libs/` as well as in an application.
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
-
-// Where `local` answers. Read from the environment rather than restated, because the Rust half
-// binds the same number -- see spec/toolchain.md, "Dev ports are pinned".
-const LOCAL = `http://localhost:${process.env.LOCAL_PORT ?? 26521}`;
 
 export default defineConfig({
 	plugins: [
@@ -37,7 +34,7 @@ export default defineConfig({
 		// arrangement -- a draft's pictures were never published, so only the local CDN answers
 		// for them. See spec/architecture/local.md and spec/architecture/workspace.md.
 		proxy: {
-			'/collection': { target: LOCAL, changeOrigin: false },
+			'/collection': { target: LOCAL_ORIGIN, changeOrigin: false },
 			[DEVELOPMENT_PROXY_PATHS.cdn]: {
 				target: developmentUrl('cdn'),
 				changeOrigin: true,

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import ChartLine from '@lucide/svelte/icons/chart-line';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -14,10 +14,11 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
-	import type { Component, Snippet } from 'svelte';
-	import { createDraft, listDrafts, type Draft } from '$lib/collection.ts';
+	import type { Component } from 'svelte';
+	import { createDraft, DRAFTS } from '$lib/collection.ts';
+	import type { LayoutProps } from './$types';
 
-	let { children }: { children: Snippet } = $props();
+	let { data, children }: LayoutProps = $props();
 
 	type Section = { label: string; href: string; icon: Component };
 
@@ -37,22 +38,16 @@
 
 	/**
 	 * Every article, draft or published: the draft row outlives publication and is the working
-	 * copy from then on, so the draft rows are the whole set. Read again on every navigation, which
-	 * is what picks up a title saved or an article created since. See spec/todo/milestones.md.
+	 * copy from then on, so the draft rows are the whole set. Loaded with the page, and again
+	 * whenever something that writes them says so. See spec/todo/milestones.md.
 	 */
-	let articles = $state<Draft[]>([]);
+	const articles = $derived(data.articles);
 	let open = $state(true);
-
-	$effect(() => {
-		void page.url.pathname;
-		listDrafts()
-			.then((held) => (articles = held))
-			.catch(() => {});
-	});
 
 	async function start() {
 		const { resource } = await createDraft();
 		open = true;
+		await invalidate(DRAFTS);
 		await goto(`/draft/${resource}`);
 	}
 

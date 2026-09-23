@@ -1,9 +1,12 @@
 /**
- * Rendered in the browser and nowhere else.
+ * Rendered on the server, then taken over in the browser.
  *
- * Every route here reads `local`, which is a process on this machine: there is no crawler to
- * render for, no cache to fill, and a server-side pass would only be a second place the same
- * fetch could fail. See spec/todo/milestones.md, group B.
+ * Every route reads `local`, so what it shows depends on a process on this machine -- which is
+ * also true of the server rendering it, through `hooks.server.ts`. What is rendered there is the
+ * frame and every value a load returns: the sidebar, the article list, the fields of a draft. The
+ * rich-text editor is the one part that exists only in the browser, and it mounts into a region
+ * the server leaves empty. See spec/architecture/local.md.
+ *
+ * Not prerendered: nothing here is the same twice.
  */
-export const ssr = false;
 export const prerender = false;

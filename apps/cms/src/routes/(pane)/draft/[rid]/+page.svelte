@@ -1,48 +1,46 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
+	import { goto, invalidate } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import {
+		DRAFTS,
 		listRevisions,
 		publishDraft,
-		readDraft,
 		saveDraft,
-		type Draft,
 		type Publication,
-		type Revision,
 	} from '$lib/collection.ts';
+	import type { PageProps } from './$types';
 
-	const rid = $derived(page.params.rid ?? '');
+	let { data }: PageProps = $props();
 
-	let draft = $state<Draft | undefined>(undefined);
-	let body = $state('');
-	let title = $state('');
-	let path = $state('');
-	let language = $state('');
-	let revisions = $state<Revision[]>([]);
-	let said = $state<string | undefined>(undefined);
-	let missing = $state<string[]>([]);
+	// Each field starts from the row and is the page's own once typed into; moving to another
+	// article resets them all, because they are derived from the draft that was loaded.
+	const rid = $derived(data.draft.resource);
+	let title = $derived(data.draft.meta.title ?? '');
+	let path = $derived(data.draft.meta.path ?? '');
+	let language = $derived(data.draft.meta.language ?? '');
+	let revisions = $derived(data.revisions);
+	let missing = $derived.by((): string[] => (void data.draft, []));
 
-	$effect(() => {
-		const id = rid;
-		if (!id) return;
-		void readDraft(id).then((held) => {
-			draft = held;
-			// The row is what was saved; the buffer is what was typed after that. The later of the
-			// two wins, and the page says so rather than resolving it silently.
-			const buffered = recall(id);
-			body = buffered ?? held.body;
-			if (buffered !== undefined && buffered !== held.body) said = 'Recovered unsaved text.';
-			title = held.meta.title ?? '';
-			path = held.meta.path ?? '';
-			language = held.meta.language ?? '';
-		});
-		void listRevisions(id).then((held) => (revisions = held));
-	});
+	/**
+	 * The editor is the one region the server leaves empty: it is a rich-text view that exists
+	 * only in a browser, and what it opens on may be the buffer, which only the browser has. So it
+	 * mounts after hydration, and until then the fields and everything around it are already there.
+	 */
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+
+	// The row is what was saved; the buffer is what was typed after that. The later of the two
+	// wins, and the page says so rather than resolving it silently.
+	const buffered = $derived(mounted ? recall(rid) : undefined);
+	let body = $derived(buffered ?? data.draft.body);
+	let said = $derived(
+		buffered !== undefined && buffered !== data.draft.body ? 'Recovered unsaved text.' : undefined,
+	);
 
 	function typed(value: string) {
 		body = value;
@@ -59,9 +57,10 @@
 			path: said_(path),
 			language: said_(language),
 		});
-		draft = held;
 		forget(rid);
 		said = `Saved ${held.updated.slice(11, 19)}`;
+		// The sidebar names the article by its title and orders it by this save.
+		await invalidate(DRAFTS);
 	}
 
 	// The preview reads the row, so what it shows is what was just written only once it is saved.
@@ -142,59 +141,57 @@
 				<span class={stylex.attrs(styles.quiet).class}>{said}</span>
 			{/if}
 		</span>
-		{#if draft}
-			{@render action('Preview', look)}
-			{@render action('Save', save)}
-			{@render action('Publish', publish)}
-		{/if}
+		{@render action('Preview', look)}
+		{@render action('Save', save)}
+		{@render action('Publish', publish)}
 	</div>
 </div>
 
-{#if draft === undefined}
-	<p class="mx-auto max-w-3xl {stylex.attrs(surfaces.uiText, styles.quiet).class}">
-		Opening {rid}…
-	</p>
-{:else}
-	<div class="mx-auto mb-10 max-w-3xl">
-		<input
-			bind:value={title}
-			placeholder="Untitled"
-			aria-label="Title"
-			class="w-full bg-transparent outline-none {stylex.attrs(styles.title).class}"
-		/>
-		<div class="mt-4 flex flex-wrap gap-x-8 gap-y-3 {stylex.attrs(surfaces.uiText).class}">
-			<label class="flex min-w-0 flex-1 basis-64 items-baseline gap-3">
-				<span class={stylex.attrs(styles.label).class}>Path</span>
-				<input
-					bind:value={path}
-					placeholder="architecture/some-slug"
-					class="min-w-0 flex-1 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field)
-						.class}"
-				/>
-			</label>
-			<label class="flex items-baseline gap-3">
-				<span class={stylex.attrs(styles.label).class}>Language</span>
-				<input
-					bind:value={language}
-					placeholder="en"
-					class="w-16 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field).class}"
-				/>
-			</label>
-		</div>
+<div class="mx-auto mb-10 max-w-3xl">
+	<input
+		bind:value={title}
+		placeholder="Untitled"
+		aria-label="Title"
+		class="w-full bg-transparent outline-none {stylex.attrs(styles.title).class}"
+	/>
+	<div class="mt-4 flex flex-wrap gap-x-8 gap-y-3 {stylex.attrs(surfaces.uiText).class}">
+		<label class="flex min-w-0 flex-1 basis-64 items-baseline gap-3">
+			<span class={stylex.attrs(styles.label).class}>Path</span>
+			<input
+				bind:value={path}
+				placeholder="architecture/some-slug"
+				class="min-w-0 flex-1 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field).class}"
+			/>
+		</label>
+		<label class="flex items-baseline gap-3">
+			<span class={stylex.attrs(styles.label).class}>Language</span>
+			<input
+				bind:value={language}
+				placeholder="en"
+				class="w-16 bg-transparent py-0.5 outline-none {stylex.attrs(styles.field).class}"
+			/>
+		</label>
 	</div>
+</div>
 
-	<div class="mx-auto max-w-3xl"><Editor markdown={draft.body} onChange={typed} /></div>
-
-	{#if revisions.length > 0}
-		<div class="mx-auto mt-16 max-w-3xl {stylex.attrs(surfaces.uiText).class}">
-			<h2 class="mb-2 {stylex.attrs(styles.label).class}">Revisions</h2>
-			<ul>
-				{#each revisions as revision (revision.seq)}
-					<li class="py-0.5 {stylex.attrs(styles.revision).class}">
-						{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
-					</li>
-				{/each}
-			</ul>
-		</div>
+<!-- Mounted in the browser only, and remounted per article: the editor reads its text once,
+     when it opens, so a second article has to be a second editor. The height is held so the
+     region does not arrive by pushing the revisions down. -->
+<div class="mx-auto min-h-96 max-w-3xl">
+	{#if mounted}
+		{#key rid}<Editor markdown={body} onChange={typed} />{/key}
 	{/if}
+</div>
+
+{#if revisions.length > 0}
+	<div class="mx-auto mt-16 max-w-3xl {stylex.attrs(surfaces.uiText).class}">
+		<h2 class="mb-2 {stylex.attrs(styles.label).class}">Revisions</h2>
+		<ul>
+			{#each revisions as revision (revision.seq)}
+				<li class="py-0.5 {stylex.attrs(styles.revision).class}">
+					{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
+				</li>
+			{/each}
+		</ul>
+	</div>
 {/if}

@@ -11,44 +11,36 @@
 	 * just being written.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { page } from '$app/state';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
 	import Shell from '@canmi/prose/shell.svelte';
 	import { articleRailScript } from '@canmi/prose/rail';
-	import { currentTheme } from '@canmi/theme';
+	import { currentTheme, type Theme } from '@canmi/theme';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { previewDraft, readDraft, type Preview } from '$lib/collection.ts';
-
-	const rid = $derived(page.params.rid ?? '');
-
-	let title = $state('');
-	let preview = $state<Preview | undefined>(undefined);
-	let failure = $state<string | undefined>(undefined);
+	import type { PageProps } from './$types';
 
 	// Compiled where the compiler is, then rendered with the components the site renders with --
 	// so what is shown here is the article and not an approximation of it. See milestones.md B3a.
+	let { data }: PageProps = $props();
+	const rid = $derived(data.rid);
+
+	// Which theme is painted is a fact about the document, which the server does not have: the
+	// bootstrap script decides it before the first frame, from a cookie or the system. So the page
+	// renders light and reads the real answer once it is in the browser.
+	let theme = $state<Theme>('light');
+	onMount(() => (theme = currentTheme()));
+
+	// The rail's vertical placement is a measurement, and the site takes it in a shell script once
+	// the markup is there. The markup is rendered with the page, so it is taken once the page is in
+	// the browser, and again when another draft replaces this one.
 	$effect(() => {
-		const id = rid;
-		if (!id) return;
-		void Promise.all([readDraft(id), previewDraft(id)])
-			.then(async ([draft, compiled]) => {
-				title = draft.meta.title ?? '';
-				preview = compiled;
-				// The rail's vertical placement is a measurement, and the site takes it in a shell
-				// script once the markup is there. Here the markup arrives after a fetch, so it is
-				// taken then.
-				await tick();
-				new Function(articleRailScript)();
-			})
-			.catch((error: unknown) => (failure = String(error)));
+		void data.preview;
+		void tick().then(() => new Function(articleRailScript)());
 	});
 
 	const styles = stylex.create({
 		// The article's own title is the strong ink and nothing else, as it is on the site.
 		title: { color: 'var(--color-text-strong)' },
-		quiet: { color: 'var(--color-text-soft)' },
-		failure: { color: 'var(--color-red)' },
 		back: {
 			color: {
 				default: 'var(--color-text-soft)',
@@ -63,35 +55,29 @@
 	});
 </script>
 
-{#if failure}
-	<p class="p-8 {stylex.attrs(surfaces.uiText, styles.failure).class}">{failure}</p>
-{:else if preview === undefined}
-	<p class="p-8 {stylex.attrs(surfaces.uiText, styles.quiet).class}">Compiling {rid}…</p>
-{:else}
-	<!-- The page the site reads an article on, drawn around this draft. Not a preview layout:
-	     the same component, so there is nothing here that can drift from what is published. -->
-	<Shell toc={preview.toc} locale="mw" theme={currentTheme()}>
-		{#snippet home()}
-			<!-- Where the site's control leads back to its homepage, this one leads back to the
-			     editor. The rail script measures the slot by its class to place it. -->
-			<div
-				class="home-slot pointer-events-none absolute top-27 left-0 flex w-full items-center {stylex.attrs(
-					styles.slot,
-				).class}"
+<!-- The page the site reads an article on, drawn around this draft. Not a preview layout:
+     the same component, so there is nothing here that can drift from what is published. -->
+<Shell toc={data.preview.toc} locale="mw" {theme}>
+	{#snippet home()}
+		<!-- Where the site's control leads back to its homepage, this one leads back to the
+		     editor. The rail script measures the slot by its class to place it. -->
+		<div
+			class="home-slot pointer-events-none absolute top-27 left-0 flex w-full items-center {stylex.attrs(
+				styles.slot,
+			).class}"
+		>
+			<a
+				href="/draft/{rid}"
+				class="pointer-events-auto no-underline {stylex.attrs(
+					surfaces.uiText,
+					surfaces.colorShift,
+					styles.back,
+				).class}">Edit</a
 			>
-				<a
-					href="/draft/{rid}"
-					class="pointer-events-auto no-underline {stylex.attrs(
-						surfaces.uiText,
-						surfaces.colorShift,
-						styles.back,
-					).class}">Edit</a
-				>
-			</div>
-		{/snippet}
-		{#snippet header()}
-			<h1 class={stylex.attrs(styles.title).class}>{title || 'Untitled'}</h1>
-		{/snippet}
-		<ArticleBody blocks={preview.blocks} resources={preview.resources} locale="mw" />
-	</Shell>
-{/if}
+		</div>
+	{/snippet}
+	{#snippet header()}
+		<h1 class={stylex.attrs(styles.title).class}>{data.title || 'Untitled'}</h1>
+	{/snippet}
+	<ArticleBody blocks={data.preview.blocks} resources={data.preview.resources} locale="mw" />
+</Shell>

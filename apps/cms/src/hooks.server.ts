@@ -1,5 +1,6 @@
 import { themeScript } from '@canmi/theme';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleFetch } from '@sveltejs/kit';
+import { LOCAL_ORIGIN } from '$lib/local.ts';
 
 /**
  * The theme bootstrap, written into the shell before anything paints -- the same script the site
@@ -13,3 +14,16 @@ import type { Handle } from '@sveltejs/kit';
  */
 export const handle: Handle = ({ event, resolve }) =>
 	resolve(event, { transformPageChunk: ({ html }) => html.replace('%theme.script%', themeScript) });
+
+/**
+ * A page rendered here reads `local` the way the browser does, by asking its own origin for
+ * `/collection` -- but the forwarding is the dev server's proxy, which a server-side fetch never
+ * passes through. So the request is sent to `local` directly, and to it alone.
+ */
+export const handleFetch: HandleFetch = ({ event, request, fetch }) => {
+	const url = new URL(request.url);
+	if (url.origin !== event.url.origin || !url.pathname.startsWith('/collection')) {
+		return fetch(request);
+	}
+	return fetch(new Request(`${LOCAL_ORIGIN}${url.pathname}${url.search}`, request));
+};
