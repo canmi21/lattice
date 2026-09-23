@@ -7,7 +7,7 @@
 	import { articleRailScript } from '@canmi/prose/rail';
 	import { currentTheme } from '@canmi/theme';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, figures, radius, text, tracking } from '@canmi/tokens/vocabulary.stylex';
+	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import {
@@ -116,8 +116,7 @@
 		},
 		label: {
 			color: 'var(--color-text-soft)',
-			fontSize: text.px12,
-			letterSpacing: tracking.caps,
+			fontSize: text.px13,
 		},
 		field: {
 			color: 'var(--color-text)',
@@ -179,7 +178,7 @@
 		/>
 		<div class="mt-4 flex flex-wrap gap-x-8 gap-y-3 {stylex.attrs(surfaces.uiText).class}">
 			<label class="flex min-w-0 flex-1 basis-64 items-baseline gap-3">
-				<span class="uppercase {stylex.attrs(styles.label).class}">Path</span>
+				<span class={stylex.attrs(styles.label).class}>Path</span>
 				<input
 					bind:value={path}
 					placeholder="architecture/some-slug"
@@ -188,7 +187,7 @@
 				/>
 			</label>
 			<label class="flex items-baseline gap-3">
-				<span class="uppercase {stylex.attrs(styles.label).class}">Language</span>
+				<span class={stylex.attrs(styles.label).class}>Language</span>
 				<input
 					bind:value={language}
 					placeholder="en"
@@ -218,7 +217,7 @@
 
 	{#if revisions.length > 0}
 		<div class="mx-auto mt-16 max-w-3xl {stylex.attrs(surfaces.uiText).class}">
-			<h2 class="mb-2 uppercase {stylex.attrs(styles.label).class}">Revisions</h2>
+			<h2 class="mb-2 {stylex.attrs(styles.label).class}">Revisions</h2>
 			<ul>
 				{#each revisions as revision (revision.seq)}
 					<li class="py-0.5 {stylex.attrs(styles.revision).class}">

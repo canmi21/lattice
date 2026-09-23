@@ -2,7 +2,7 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { goto } from '$app/navigation';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, figures, radius, text, tracking } from '@canmi/tokens/vocabulary.stylex';
+	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import { createDraft, listDrafts, type Draft } from '$lib/collection.ts';
 
 	let drafts = $state<Draft[] | undefined>(undefined);
@@ -28,8 +28,7 @@
 		button: { borderRadius: radius.md },
 		label: {
 			color: 'var(--color-text-soft)',
-			fontSize: text.px12,
-			letterSpacing: tracking.caps,
+			fontSize: text.px13,
 		},
 		row: {
 			borderTopWidth: border.hairlinePx,
@@ -69,7 +68,7 @@
 	{:else if drafts.length === 0}
 		<p class={stylex.attrs(surfaces.uiText, styles.quiet).class}>Nothing written yet.</p>
 	{:else}
-		<div class="{COLUMNS} pb-2 uppercase {stylex.attrs(styles.label).class}">
+		<div class="{COLUMNS} pb-2 {stylex.attrs(styles.label).class}">
 			<span>Title</span><span>Id</span><span class="text-right">Saved</span>
 		</div>
 		<ul>

@@ -4,7 +4,7 @@
 	import { dev } from '$app/environment';
 	import { page } from '$app/state';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, text, tracking, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
@@ -40,25 +40,23 @@
 		},
 	];
 
-	// The nav's one edge follows it: along the bottom while it is a row over the page, down the
-	// side once it is a column beside it. `48rem` is the breakpoint the markup's `md:` names.
+	// The page is laid out as a ground with the content pane set on it: the section column is the
+	// ground itself, and the pane is the site's own page colour with a corner, so what is being
+	// written sits on exactly the ground a reader sees it on. See spec/architecture/local.md.
 	const styles = stylex.create({
-		nav: {
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			borderTopWidth: 0,
-			borderLeftWidth: 0,
-			borderBottomWidth: { default: border.hairlinePx, '@media (min-width: 48rem)': 0 },
-			borderRightWidth: { default: 0, '@media (min-width: 48rem)': border.hairlinePx },
-		},
+		pane: { borderRadius: radius.xl },
 		mark: {
 			color: 'var(--color-text-soft)',
-			fontSize: text.px12,
-			letterSpacing: tracking.caps,
+			fontSize: text.px13,
 			fontWeight: weight.medium,
 		},
+		// A section is a pill on the ground rather than a word in a list, so its corner is the
+		// buttons' rather than the compact control's.
+		item: { borderRadius: radius.md },
+		// The section being worked in takes the pane's ground, which is what says the pane is its.
 		current: {
 			color: 'var(--color-text-strong)',
+			backgroundColor: 'var(--color-page)',
 			fontWeight: weight.medium,
 		},
 	});
@@ -71,18 +69,11 @@
 	{#if dev}{@html DEV_STYLEX}{/if}
 </svelte:head>
 
-<div
-	class="min-h-screen md:grid md:grid-cols-[11rem_minmax(0,1fr)] {stylex.attrs(surfaces.page)
-		.class}"
->
+<div class="flex min-h-dvh flex-col gap-2 p-2 md:flex-row">
 	<nav
-		class="flex items-center gap-1 px-4 py-3 md:sticky md:top-0 md:h-screen md:flex-col md:items-stretch md:px-3 md:py-6 {stylex.attrs(
-			styles.nav,
-		).class}"
+		class="flex shrink-0 items-center gap-1 px-2 py-1 md:sticky md:top-2 md:h-[calc(100dvh-1rem)] md:w-44 md:flex-col md:items-stretch md:py-4"
 	>
-		<a
-			href="/"
-			class="mr-4 px-2 uppercase no-underline md:mr-0 md:mb-6 {stylex.attrs(styles.mark).class}"
+		<a href="/" class="mr-4 px-2 no-underline md:mr-0 md:mb-5 {stylex.attrs(styles.mark).class}"
 			>collection</a
 		>
 		{#each SECTIONS as section (section.href)}
@@ -94,16 +85,31 @@
 					surfaces.quietControl,
 					surfaces.uiText,
 					here && styles.current,
+					styles.item,
 				).class}">{section.label}</a
 			>
 		{/each}
 	</nav>
 
-	<!-- No column here. The preview draws the site's own page, whose rail works out where it goes
-	     from the width it is given -- a wrapper narrower than an article plus its rail leaves the
-	     rail no region to sit in, and it collapses against the edge. A page that wants a measure
-	     sets its own. -->
-	<div class="min-w-0 px-4 pt-8 pb-24 md:px-8">
+	<!-- Clipped rather than scrolled: the document is what scrolls, because the preview's rail is
+	     fixed to the viewport and its contents read the window's scroll. `overflow: clip` rounds
+	     the corners without making a scroll container, so a sticky bar inside still sticks to the
+	     viewport. No column here either -- the preview's rail works out where it goes from the
+	     width it is given, and a page that wants a measure sets its own. -->
+	<div
+		class="min-w-0 flex-1 overflow-clip px-4 pt-8 pb-24 md:px-8 {stylex.attrs(
+			surfaces.page,
+			styles.pane,
+		).class}"
+	>
 		{@render children()}
 	</div>
 </div>
+
+<style>
+	/* The ground the pane is set on. `html` carries no class, and it is what the tokens paint, so
+	   the one place this can be said is here. */
+	:global(html) {
+		background-color: var(--color-paper-hover);
+	}
+</style>

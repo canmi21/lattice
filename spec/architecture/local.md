@@ -112,6 +112,21 @@ only what exists, because a link to an unbuilt page is a promise the tool does n
 column rather than a row over the page so that adding a section changes a list and not a layout.
 Below the `md` width it folds into a row, since the CMS is still a page that has to open on a phone.
 
+**The column is the ground and the content is a pane set on it.** Structurally the two sit side by
+side in one container; visually the column has no edge of its own, and the pane is a rounded sheet
+laid on the ground with a gap around it. The pane takes `--color-page`, the site's own ground, so an
+article is written on the colour it is read on, and the ground takes `--color-paper-hover` -- a
+token the site already has rather than a new one. That pair mirrors, so the ground is the deeper of
+the two in light and the lighter in dark, which is [styling/surfaces.md](../styling/surfaces.md),
+"A mirrored pair cannot keep one of its members the darker one", met from the other side and
+accepted until a pair that holds in both themes is written. The document scrolls rather than the
+pane, because the preview's rail is fixed to the viewport and reads the window's scroll; the pane
+is clipped, not scrolled, to keep its corners.
+
+**Labels are written in the case they are read in.** No uppercase and no caps tracking on a column
+head, a field label or the mark: small soft text is quiet enough, and shouting it in capitals is
+the ornament this language refuses.
+
 **The editor writes in the article's own typography.** Its prose sits under
 [prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
 under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given
