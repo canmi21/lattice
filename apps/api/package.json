@@ -3,13 +3,13 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"db:generate": "drizzle-kit generate",
-		"db:migrate:local": "wrangler d1 migrations apply api --local --env dev",
-		"db:migrate:remote": "wrangler d1 migrations apply api --remote --env=\"\"",
+		"database:generate": "drizzle-kit generate",
+		"database:migrate:local": "wrangler d1 migrations apply api --local --env dev",
+		"database:migrate:remote": "wrangler d1 migrations apply api --remote --env=\"\"",
 		"types": "wrangler types --env=\"\" --include-runtime=false",
-		"dev": "pnpm run db:migrate:local && wrangler dev --env dev",
-		"deploy": "pnpm run db:migrate:remote && wrangler deploy --env=\"\"",
-		"build": "pnpm run db:migrate:remote && wrangler deploy --dry-run --outdir=dist --env=\"\""
+		"dev": "pnpm run database:migrate:local && wrangler dev --env dev",
+		"deploy": "pnpm run database:migrate:remote && wrangler deploy --env=\"\"",
+		"build": "pnpm run database:migrate:remote && wrangler deploy --dry-run --outdir=dist --env=\"\""
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",

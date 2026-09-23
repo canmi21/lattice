@@ -9,7 +9,7 @@
 		"./migrate": "./src/migrate.ts"
 	},
 	"scripts": {
-		"db:generate": "drizzle-kit generate --config drizzle.source.ts && drizzle-kit generate --config drizzle.derived.ts"
+		"database:generate": "drizzle-kit generate --config drizzle.source.ts && drizzle-kit generate --config drizzle.derived.ts"
 	},
 	"dependencies": {
 		"better-sqlite3": "^12.6.0",
