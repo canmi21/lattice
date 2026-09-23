@@ -291,6 +291,9 @@
 	});
 
 	const ITEM = 'flex min-w-0 items-center gap-2 px-2 py-1.5 no-underline';
+	// The article tree is denser than the sections above it: it is a long list read by scanning,
+	// where the sections are a handful of places to go.
+	const TREE_ITEM = 'flex min-w-0 items-center gap-2 px-2 py-1 no-underline';
 </script>
 
 {#snippet chevron(shown: boolean)}
@@ -308,7 +311,7 @@
 			{href}
 			aria-current={current ? 'page' : undefined}
 			title={entry.meta.title ?? 'Untitled'}
-			class="{ITEM} {INDENT[depth]} {stylex.attrs(
+			class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(
 				surfaces.quietControl,
 				surfaces.uiText,
 				styles.item,
@@ -421,7 +424,7 @@
 
 			<!-- Folded by its height, not removed: see $lib/fold.ts. -->
 			<div use:foldHeight={open} class="shrink-0 overflow-hidden">
-				<ul class="flex flex-col gap-0.5 pt-0.5">
+				<ul class="flex flex-col">
 					{#each groups.loose as entry (entry.resource)}
 						{@render article(entry, 1)}
 					{/each}
@@ -432,7 +435,7 @@
 								type="button"
 								aria-expanded={shown}
 								onclick={() => (shown ? closed.add(category) : closed.delete(category))}
-								class="{ITEM} {INDENT[1]} w-full cursor-pointer text-left {stylex.attrs(
+								class="{TREE_ITEM} {INDENT[1]} w-full cursor-pointer text-left {stylex.attrs(
 									surfaces.quietControl,
 									surfaces.uiText,
 									styles.item,
@@ -446,7 +449,7 @@
 								<span class="truncate">{category}</span>
 							</button>
 							<div use:foldHeight={shown} class="overflow-hidden">
-								<ul class="flex flex-col gap-0.5 pt-0.5">
+								<ul class="flex flex-col">
 									{#each entries as entry (entry.resource)}
 										{@render article(entry, 2)}
 									{/each}
