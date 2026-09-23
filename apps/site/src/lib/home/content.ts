@@ -14,7 +14,7 @@ export type HomepageContent = {
  *
  * The bio is identity copy and stays in its English source form in every view; it used to be
  * read from `mw` explicitly, which is no longer needed because the build compiles a page once
- * and files it under every locale. See buildPages in $lib/content/build/articles.ts. A homepage
+ * and files it under every locale. See buildPages in @canmi/compile/articles. A homepage
  * the root does not name costs a bare article list rather than an error.
  */
 export function homepageContent(

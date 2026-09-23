@@ -1,4 +1,4 @@
-import { PUBLIC_LANGUAGE } from '../../locale/index.ts';
+import { PUBLIC_LANGUAGE } from '@canmi/locales';
 
 export type TranslationLocale = (typeof PUBLIC_LANGUAGE)[keyof typeof PUBLIC_LANGUAGE];
 

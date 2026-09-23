@@ -19,7 +19,7 @@ which areas exist and which entries are worth reaching for first.
 | ------------------------ | ------- | --------------------------------------------------------- |
 | [css.md](css.md)         | 49      | the layer migration's leftovers                           |
 | [site.md](site.md)       | 8       | routing, rendering, the article page, the tests           |
-| [cms.md](cms.md)         | 3       | the compiler's home, and what the CMS cannot yet offer    |
+| [cms.md](cms.md)         | 2       | what the CMS cannot yet offer, and what it cannot reach   |
 | [tooling.md](tooling.md) | 3       | the files that describe the repository rather than run it |
 
 ## The plan is not a finding
@@ -40,7 +40,6 @@ unranked, which is what every entry is until somebody has a reason to reach for 
 
 These block the authoring side, which is where the work is. Each is in the file named beside it.
 
-- The compiler still lives in the application that stopped using it -- [cms.md](cms.md)
 - Publishing is a mise task and cannot become a CMS button -- [cms.md](cms.md)
 - A clip is the one resource reference the compiler still resolves into bytes -- [cms.md](cms.md)
 - A wrap policy is one decision per language, and the paragraph is where it is wanted -- [site.md](site.md)
@@ -118,7 +117,6 @@ reasons.
 
 ### [cms.md](cms.md)
 
-- The compiler still lives in the application that stopped using it
 - Publishing is a mise task and cannot become a CMS button
 - A clip is the one resource reference the compiler still resolves into bytes
 

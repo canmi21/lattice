@@ -1,34 +1,9 @@
-# Deferred: the CMS and the compiler
+# Deferred: the CMS
 
-Where the authoring side is not what it should be -- what the compiler still owns, what the CMS cannot offer, and what a published resource cannot be reached by.
+Where the authoring side is not what it should be -- what the CMS cannot offer, and what a
+published resource cannot be reached by.
 
 The rules over an entry are the index's; see [todo.md](todo.md).
-
-## The compiler still lives in the application that stopped using it
-
-`apps/site/src/lib/content/build/` is 2,900 lines that turn markdown into blocks: `compile.ts`
-alone is 1,210, with `articles.ts`, `assets.ts`, `assemble.ts`, `width.ts` and `highlight.ts`
-beside it. After the move to published objects, nothing in the site's Worker or its browser
-bundle imports any of it. Its only caller is `apps/site/scripts/publish.ts`.
-
-So it sits in an application that does not use it, under a path that says it is part of one.
-Nothing misbehaves: `scripts/` is not bundled, the code is unchanged, and `tsconfig.scripts.json`
-checks it where it stands. It is a name that has stopped describing its contents.
-
-Where it should go is the open part, and the candidates are not equivalent.
-[architecture/local.md](../architecture/local.md) says content operations belong below both of the CMS's
-shells, which would make this the CMS's -- but the CMS is Rust, and
-[i18n/segments.md](../i18n/segments.md) refuses to reimplement remark's canonical form in a second
-language, so the CMS would be reaching it by subprocess. A package of its own under `libs/` is the
-other candidate and is cheap, and it would make the publish step a consumer like any other rather
-than the owner by accident.
-
-**What deciding it would cost.** The move itself is mechanical -- one directory, one caller, and
-the type surface already left for `libs/artifacts`. What it settles is whether the CMS owns
-compilation, which is a question about the CMS's boundary rather than about this directory, and
-answering it in passing while moving files is exactly how a boundary gets decided by whoever was
-holding the mouse. Not worth doing during the migration that created the situation, because the
-publish step is what would move.
 
 ## Publishing is a mise task and cannot become a CMS button
 

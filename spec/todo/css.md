@@ -1129,7 +1129,7 @@ Checked against the tree on 2026-09-21:
   nothing to move.
 - `focus-link`, `spring-underline`, `article-link` and `jump-target` stay hand-written recipes,
   by that file's "A layer is not a mechanism", condition (a). All four are written by
-  [compile.ts](../../apps/site/src/lib/content/build/compile.ts), which cannot reach StyleX.
+  [compile.ts](../../libs/compile/src/compile.ts), which cannot reach StyleX.
 - `.selectable` is gone rather than moved: no rule and no call site is left anywhere in the tree.
 - The `.focus-input` family is in the escape hatch in
   [newsletter.svelte](../../apps/site/src/lib/newsletter/newsletter.svelte), and no `focus-input` rule

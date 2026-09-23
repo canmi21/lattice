@@ -27,7 +27,7 @@ const HASH_WIDTH = 64;
  *
  * Higher is wasted on a picture that has already discarded everything but an impression of colour
  * and shape, and this only has to avoid adding artefacts of its own. See
- * `content/build/placeholder.ts`, where the same number encodes the same kind of picture.
+ * `libs/compile/src/placeholder.ts`, where the same number encodes the same kind of picture.
  */
 const STILL_QUALITY = 0.7;
 
@@ -106,7 +106,7 @@ export function stillOf(element: HTMLVideoElement): string | undefined {
 		// which is exactly what this looked like. A thumbhash keeps a handful of coefficients and
 		// throws the rest away, so what comes back is a field of colour that was never pretending
 		// to be in focus -- and that is the appearance every picture on this site already has,
-		// because they are placed the same way. See `content/build/placeholder.ts`.
+		// because they are placed the same way. See `libs/compile/src/placeholder.ts`.
 		const hash = rgbaToThumbHash(pixels.width, pixels.height, pixels.data);
 		const { w, h, rgba } = thumbHashToRGBA(hash);
 		const out = document.createElement('canvas');

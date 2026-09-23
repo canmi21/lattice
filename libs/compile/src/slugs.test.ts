@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { refuseBadSlugs, reservedNames, slugOf } from './slugs';
 
-const ROUTES = fileURLToPath(new URL('../../../routes', import.meta.url));
+const ROUTES = fileURLToPath(new URL('../../../apps/site/src/routes', import.meta.url));
 
 it('takes the identity off the end of a source path', () => {
 	expect(slugOf('mirror/friends-come-in-phases.md')).toBe('friends-come-in-phases');

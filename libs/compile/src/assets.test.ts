@@ -33,7 +33,7 @@ const ARM = /"(image\/[a-z+]+)" => (?:"([a-z0-9]+)"|(JPEG))/g;
 
 it('names each format the way apps/local names the file', () => {
 	const source = readFileSync(
-		fileURLToPath(new URL('../../../../../local/src/extension.rs', import.meta.url)),
+		fileURLToPath(new URL('../../../apps/local/src/extension.rs', import.meta.url)),
 		'utf8',
 	);
 	const body = /pub fn for_variant\(mime: &str\) -> &'static str \{([\s\S]*?)\n\}/.exec(source);
@@ -361,7 +361,7 @@ it('refuses the other kind of record rather than half-reading it', () => {
  */
 it('reads the committed manifest, whichever side of the migration it is on', () => {
 	const file = fileURLToPath(
-		new URL('../../../../../../data/record/metadata.json', import.meta.url),
+		new URL('../../../data/record/metadata.json', import.meta.url),
 	);
 	const manifest = JSON.parse(readFileSync(file, 'utf8')) as { media: Record<string, object> };
 	const records = Object.values(manifest.media);

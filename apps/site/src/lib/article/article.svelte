@@ -203,7 +203,7 @@
 		card?: string;
 		meta: ArticleMeta;
 		/** The title a phone sees: `meta.title` where it fits the column, the short one where it
-		 *  does not. Decided in the build; see $lib/content/build/width.ts. */
+		 *  does not. Decided in the build; see libs/compile/src/width.ts. */
 		phone_title: string;
 		toc: TocEntry[];
 		/** What the rail's bars measure, when the load already knew. See toc.svelte. */

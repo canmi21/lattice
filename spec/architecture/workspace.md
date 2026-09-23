@@ -365,7 +365,7 @@ free, which a written-in one could never have: the directive is one line and a v
 nine.
 
 The cost is that the site's content build runs
-[two passes](../../apps/site/src/lib/content/build/articles.ts): every view's frontmatter is
+[two passes](../../libs/compile/src/articles.ts): every view's frontmatter is
 read before anything compiles, because the compiler sees one article at a time while a card
 names another. A path no article answers to fails the build rather than degrading to a
 placeholder -- unlike an embed, nothing has to be fetched first, so an unresolved path is a typo

@@ -29,7 +29,7 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 
 	// The hyphen is what reserves every single word for this site's own router, so a name without
 	// one cannot be an article and this is a 404 without asking the corpus at all. The build
-	// refuses a corpus that would make this test lie; see lib/content/build/slugs.ts.
+	// refuses a corpus that would make this test lie; see libs/compile/src/slugs.ts.
 	if (!slug.includes('-')) error(404, 'Not found');
 
 	const { locale } = await parent();

@@ -3,7 +3,7 @@ import { parse as parseYaml } from 'yaml';
 import { describe, expect, it } from 'vitest';
 import { assemble, similarity, type SegmentLayout, type TranslationSidecar } from './assemble';
 import { CANONICAL_SIMILARITY_THRESHOLD, indexingMetadata } from './indexing';
-import { LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '../../locale/index';
+import { LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/locales';
 
 // Real articles, measured rather than invented: the threshold is a claim about actual
 // translations, and a fixture written to sit on one side of it would prove nothing.
@@ -20,12 +20,12 @@ const ARTICLES: { path: string; source: Exclude<LocaleCode, 'mw'> }[] = [
 	{ path: 'mirror/friends-come-in-phases', source: 'zh' },
 ];
 const layout = JSON.parse(
-	readFileSync(new URL('../../../../../../data/build/segments.json', import.meta.url), 'utf8'),
+	readFileSync(new URL('../../../data/build/segments.json', import.meta.url), 'utf8'),
 ) as SegmentLayout;
 
 function articleContent(path: string): Record<LocaleCode, string> {
-	const article = new URL(`../../../../../../contents/${path}.md`, import.meta.url);
-	const sidecar = new URL(`../../../../../../contents/${path}.i18n.yaml`, import.meta.url);
+	const article = new URL(`../../../contents/${path}.md`, import.meta.url);
+	const sidecar = new URL(`../../../contents/${path}.i18n.yaml`, import.meta.url);
 	const raw = readFileSync(article, 'utf8');
 	const sidecarData = parseYaml(readFileSync(sidecar, 'utf8')) as TranslationSidecar;
 	const spans = layout.articles[`${path}.md`];

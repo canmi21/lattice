@@ -1,10 +1,10 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ARTIFACT_VERSION, type PublishedPage } from '@canmi/artifacts';
-import { homepageContent } from '../../home/content';
-import { buildPages } from './articles';
+import { buildPages } from '@canmi/compile/articles';
+import { homepageContent } from './content';
 
-const ROOT = new URL('../../../../../../', import.meta.url);
+const ROOT = new URL('../../../../../', import.meta.url);
 
 describe('standalone page locale views', () => {
 	it('keeps the bio in English while localising the writing heading', async () => {

@@ -55,7 +55,7 @@ import type {
 	RepoRecord,
 	TweetRecord,
 } from '@canmi/artifacts/types';
-import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '../../locale/index.ts';
+import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/locales';
 import { highlight } from './highlight.ts';
 
 const SEGMENT_LAYOUT_VERSION = 5;

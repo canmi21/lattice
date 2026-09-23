@@ -12,7 +12,7 @@ import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import type { Resolved, ResolvedVideo } from './assets.ts';
-import { assertLanguageTag } from '../../locale/index.ts';
+import { assertLanguageTag } from '@canmi/locales';
 import type {
 	Block,
 	CardAlign,
@@ -63,23 +63,6 @@ const stringifier = unified().use(remarkStringify, { bullet: '-', fences: true }
 const QUADRANT_DIRECTIONS = ['top', 'right', 'bottom', 'left'] as const;
 const QUADRANT_POSITIONS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
 
-/**
- * Escape a value for either HTML text or a double-quoted attribute.
- *
- * Quotes are escaped because some of these land in `alt="..."`, and a description that
- * mentions a path or a window title routinely contains one -- 15 of the 24 written so far do.
- * Without this the attribute simply ends early, which is malformed output today and an
- * injection point the moment any of this text stops being ours.
- */
-function escapeHtml(value: string): string {
-	return value
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
-}
-
 // DLC directives extend markdown with display-only semantics that compile
 // differently per target: rich HTML for the page, plain markdown for /llms.txt.
 // `:t[text]{...}` is a styled span; `:link[platform]{to=handle}` a social link.
@@ -111,7 +94,7 @@ const ADDRESS = /^[^@\s]+@[^@\s]+$/u;
  * the one domain the config carries, so no article and no consumer writes an address out.
  */
 function readMailboxes(): Record<string, string> {
-	const path = fileURLToPath(new URL('../../../../site.config.yaml', import.meta.url));
+	const path = fileURLToPath(new URL('../../../apps/site/site.config.yaml', import.meta.url));
 	const config = parseYaml(readFileSync(path, 'utf8')) as {
 		author?: { email?: string };
 		mail?: { domain?: string; boxes?: Record<string, string> };
@@ -993,10 +976,6 @@ export async function compile(
 			const quadrant = quadrantBlock(node, sourceFile ?? url);
 			const reading = describeDiagram?.(blockSource(raw, node));
 			blocks.push(reading === undefined ? quadrant : { ...quadrant, reading });
-			const entries = quadrant.items.map((item) => {
-				const note = item.note ? ` — ${escapeHtml(item.note)}` : '';
-				return `<li><strong>${escapeHtml(item.title)}</strong>${note} <small>(${escapeHtml(quadrantRegion(item, quadrant.axes))})</small></li>`;
-			});
 			md.push(
 				[
 					`> [quadrant: ${quadrant.title}]`,
@@ -1140,7 +1119,7 @@ export async function compile(
 			const attrs = (node.attributes ?? {}) as DirectiveAttrs;
 			const src = requiredDirectiveAttribute(attrs, 'src', 'video', source);
 			const resolved = resolveVideo?.(src) ?? null;
-			blocks.push({ type: 'video', src, ...(resolved ?? {}) });
+			blocks.push({ type: 'video', src, ...resolved });
 
 			// Neither target can play anything, so both get the poster -- a real still of the clip,
 			// with the clip's own description as its text -- and a line saying where it plays. The

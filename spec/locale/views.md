@@ -215,7 +215,7 @@ and deferred while `zh` scored 0.495, so the rule follows the article rather tha
 Chinese. **That is history and not a standing control.** `contents/homepage.md` carries no
 `.i18n.yaml` sidecar where the seven articles do, and the English-source side went unmeasured
 when the homepage stopped being translated -- which is what
-[indexing.test.ts](../../apps/site/src/lib/content/build/indexing.test.ts) records, and what this
+[indexing.test.ts](../../libs/compile/src/indexing.test.ts) records, and what this
 passage went on offering in the present tense after it had stopped being true. The measurement
 stands as the reason the rule is written the way it is; nothing checks it today.
 

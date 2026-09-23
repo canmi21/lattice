@@ -1,0 +1,35 @@
+{
+	"name": "@canmi/compile",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./articles": "./src/articles.ts",
+		"./compile": "./src/compile.ts",
+		"./assets": "./src/assets.ts",
+		"./assemble": "./src/assemble.ts",
+		"./indexing": "./src/indexing.ts",
+		"./slugs": "./src/slugs.ts",
+		"./width": "./src/width.ts",
+		"./highlight": "./src/highlight.ts"
+	},
+	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
+		"@canmi/locales": "workspace:*",
+		"@canmi/urls": "workspace:*",
+		"hast-util-to-html": "^9.0.5",
+		"mdast-util-directive": "^3.1.0",
+		"mdast-util-to-hast": "^13.2.1",
+		"mdast-util-to-string": "^4.0.0",
+		"remark-directive": "^4.0.0",
+		"remark-frontmatter": "^5.0.0",
+		"remark-gfm": "^4.0.1",
+		"remark-parse": "^11.0.0",
+		"remark-stringify": "^11.0.0",
+		"shiki": "^3.14.0",
+		"unified": "^11.0.5",
+		"yaml": "^2.8.1"
+	},
+	"devDependencies": {
+		"@types/mdast": "^4.0.4"
+	}
+}

@@ -6,7 +6,7 @@ import { buildArticles, summaryFor, translatedRaws } from './articles';
 import { sourceFingerprint, type SegmentSpan } from './assemble';
 import { articleFrontmatter } from './compile';
 
-const ROOT = new URL('../../../../../../', import.meta.url);
+const ROOT = new URL('../../../', import.meta.url);
 
 /** The real corpus, which is what both suites below are about. */
 function paths() {

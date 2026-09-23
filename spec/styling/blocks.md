@@ -43,7 +43,7 @@ page read beside a dark one looked bare, and the difference was visible in ordin
 component name inside a closing JSX tag is coloured in dark and was not in light.
 
 So the light half is derived rather than picked.
-[one-light-pro.ts](../../apps/site/src/lib/content/build/one-light-pro.ts) keeps every rule One
+[one-light-pro.ts](../../libs/compile/src/one-light-pro.ts) keeps every rule One
 Dark Pro writes and swaps only the colour, through a table pairing the two
 palettes. The pairing was voted from the selectors both themes already define, so it is One Light's
 own answer wherever One Light has one; four colours had no shared scope and were settled against

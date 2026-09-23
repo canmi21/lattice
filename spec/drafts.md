@@ -12,7 +12,7 @@ through a text-only accessor.
 
 **Both readers accept the quoted form, and both trim it.** `draft: "true"` is a draft to
 `local document::is_draft` and to the site, which normalises the flag once in
-[compile.ts](../apps/site/src/lib/content/build/compile.ts)'s frontmatter reader rather than at
+[compile.ts](../libs/compile/src/compile.ts)'s frontmatter reader rather than at
 each place that asks -- so `articleFrontmatter(...).draft` is the boolean the type promises and a
 caller testing `=== true` is right without knowing any of this.
 
@@ -50,7 +50,7 @@ not at build".
 the shared tree that only the draft root names, so a sweep reading the published root alone calls
 every draft an orphan, deletes it, and watches the next publish write it back.
 
-Dropping still happens in [articles.ts](../apps/site/src/lib/content/build/articles.ts), before
+Dropping still happens in [articles.ts](../libs/compile/src/articles.ts), before
 the article is compiled, so there is one place to read and no list of consumers to keep in step.
 The homepage listing, the sitemap, the Atom feed, `/llms.txt` and the per-article markdown all
 resolve through the root, and a draft is simply not in the one the site reads.

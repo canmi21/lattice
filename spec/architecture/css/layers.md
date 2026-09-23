@@ -77,7 +77,7 @@ membership does not change with it.** A named, reused recipe past the three-comp
 the vocabulary whether it is written as a `stylex.create` key or by hand in a shared stylesheet.
 
 What forces the distinction is a consumer that cannot reach StyleX. The corpus is compiled by
-[compile.ts](../../../apps/site/src/lib/content/build/compile.ts), which runs from
+[compile.ts](../../../libs/compile/src/compile.ts), which runs from
 `node apps/site/scripts/publish.ts` outside the Vite graph, so the plugin never transforms it and
 it writes literal class names only. And a StyleX class name is a content hash of the property and
 its value, so changing a value moves the name. The CSS ships with the site build and the HTML
@@ -505,7 +505,7 @@ The file holds four unrelated things. Named recipes past the three-component thr
 and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). **Four of those
 names do not go, and the reason is the interface rather than convenience**: `focus-link`,
 `spring-underline`, `article-link` and `jump-target` are written onto compiled prose by
-[compile.ts](../../../apps/site/src/lib/content/build/compile.ts), which the corpus publish runs
+[compile.ts](../../../libs/compile/src/compile.ts), which the corpus publish runs
 outside the Vite graph and on its own schedule. They stay hand-written recipes in a shared
 stylesheet and they are still the vocabulary -- "A layer is not a mechanism" above, condition (a).
 That does not give the file back a position: a stylesheet carrying four vocabulary recipes is a

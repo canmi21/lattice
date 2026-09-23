@@ -33,7 +33,7 @@ import {
 } from '@canmi/artifacts';
 import type { Article, Page } from '@canmi/artifacts/types';
 import { URLS } from '@canmi/urls';
-import { buildArticles, buildPages } from '../src/lib/content/build/articles.ts';
+import { buildArticles, buildPages } from '@canmi/compile/articles';
 import { LOCALE_CODES } from '../src/lib/locale/index.ts';
 
 const ROOT = new URL('../../../', import.meta.url);

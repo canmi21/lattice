@@ -121,7 +121,7 @@ that does nothing.
 ### The compiler writes a class only where the element's styling is a recipe
 
 The rule above says what a class name may be; this one says when one may be written at all. The
-compiler can class anything: [compile.ts](../../../apps/site/src/lib/content/build/compile.ts)
+compiler can class anything: [compile.ts](../../../libs/compile/src/compile.ts)
 puts `focus-link`, `spring-underline` and `article-link` on every prose link, and two frozen
 tables turn a `:t` token into a colour or a font class. So the discipline is written as a rule
 rather than left as a habit -- **the compiler writes a class on an element where that element's

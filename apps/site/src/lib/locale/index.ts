@@ -1,44 +1,23 @@
-import { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
-export { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
+import { localeCode, type LocaleCode } from '@canmi/locales';
+
+/**
+ * What a tag is now lives in `@canmi/locales`, because the compiler needs it and this file is
+ * an application's. Re-exported rather than relocated at every call site: thirty-five modules
+ * here ask `$lib/locale` for a mix of both halves, and the halves are what moved, not the name.
+ */
+export {
+	assertLanguageTag,
+	localeCode,
+	LOCALE_CODES,
+	localeUrl,
+	languageTag,
+	PUBLIC_LANGUAGE,
+	type LocaleCode,
+} from '@canmi/locales';
 
 export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 export { SITE_LANGUAGE } from '@canmi/locales';
-
-export const PUBLIC_LANGUAGE = {
-	de: 'de-DE',
-	en: 'en-US',
-	es: 'es-ES',
-	fr: 'fr-FR',
-	ja: 'ja-JP',
-	ko: 'ko-KR',
-	zh: 'zh-CN',
-	tw: 'zh-TW',
-} as const satisfies Record<Exclude<LocaleCode, 'mw'>, string>;
-
-const CODE_SET = new Set<string>(LOCALE_CODES);
-const LANGUAGE_TAG_SHAPE = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
-
-export function localeCode(value: string | null | undefined): LocaleCode | undefined {
-	return value != null && CODE_SET.has(value) ? (value as LocaleCode) : undefined;
-}
-
-/** The public URL for a selected view; the source view keeps the bare address. */
-export function localeUrl(url: string, code: LocaleCode): string {
-	return code === 'mw' ? url : `${url}?lang=${code}`;
-}
-
-/** A public BCP-47 tag. `mw` is the source article, so its tag is article-owned. */
-export function languageTag(code: LocaleCode, sourceLanguage: string): string {
-	return code === 'mw' ? sourceLanguage : PUBLIC_LANGUAGE[code];
-}
-
-/** Reject malformed source metadata before it reaches `<html lang>` or `og:locale`. */
-export function assertLanguageTag(value: unknown, file: string): asserts value is string {
-	if (typeof value !== 'string' || !LANGUAGE_TAG_SHAPE.test(value)) {
-		throw new Error(`${file}: invalid BCP-47 lang frontmatter ${JSON.stringify(value)}`);
-	}
-}
 
 function codeForLanguageRange(value: string): Exclude<LocaleCode, 'mw'> | undefined {
 	const range = value.toLowerCase();
