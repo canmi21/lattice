@@ -193,13 +193,14 @@ is a decision about how `local` serves the CMS rather than about this page.
 
 **A draft's page is the text, and nothing that is not the writing sits on it.** What the article
 is -- title, subtitle, description, path, language -- and its revisions are in a drawer at the
-pane's right, and the actions -- the drawer itself, preview, save, publish -- are a toolbar
-floating centred at the pane's foot, above everything else in it. A draft is written before it is
+window's right edge, and the actions -- preview, save, publish -- are a toolbar floating centred
+at the pane's foot, above everything else in it. A draft is written before it is
 described, and a writer who has not decided a title should not be looking at an empty field asking
 for one. Both float over the pane rather than inside it, so they hold still while the text scrolls;
 the layout draws them and a page hands over what goes in them
 ([chrome.svelte.ts](../../apps/cms/src/lib/chrome.svelte.ts)), early enough that the server renders
-them with the page. A publication refused for a missing field opens the drawer on it.
+them with the page. A publication refused for a missing field is said on the publish button, and
+the fields it names are marked in the drawer.
 
 The drawer holds the article's title and subtitle, its category and slug -- the path, chosen as
 its two parts -- its language and its description, each in the control that fits it. A category is
@@ -208,13 +209,14 @@ draft's until it is saved, and from then on every draft's list offers it, becaus
 off the saved drafts and is kept nowhere else. The language is picked from the site's own.
 
 The drawer is the same kind of thing as the lifted sidebar: the same ground, corner and shadow,
-and the same movement, [movement.ts](../../apps/cms/src/lib/movement.ts), in from its edge and out
-past it.
+the whole height of the window at its edge, and the same movement,
+[movement.ts](../../apps/cms/src/lib/movement.ts), in from its edge and out past it. It is a little
+wider than the sidebar, because it holds fields rather than a list.
 
 The toolbar is icons alone, each named for a screen reader and on hover, and small enough to sit
-over the text without asking to be read. The drawer comes out the way a folded sidebar does, from
-its edge: the pointer at the window's right edge brings it out and moving clear of it puts it back,
-while one opened from the toolbar stays until it is closed. Both edges are one gesture on one pair
+over the text without asking to be read. The drawer comes out the way a folded sidebar does, and
+only that way: the pointer at the window's right edge brings it out and moving clear of it puts it
+back. Nothing pins it open, so it carries no control to close it. Both edges are one gesture on one pair
 of margins, [edge.ts](../../libs/behavior/src/edge.ts) in `@canmi/behavior`. When the draft was
 last saved, and why a publication was refused, are said at the top of the drawer for now -- that is
 a place kept, not a place decided.

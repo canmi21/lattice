@@ -10,10 +10,8 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { invalidate } from '$app/navigation';
 	import Eye from '@lucide/svelte/icons/eye';
-	import PanelRight from '@lucide/svelte/icons/panel-right';
 	import Save from '@lucide/svelte/icons/save';
 	import Send from '@lucide/svelte/icons/send';
-	import X from '@lucide/svelte/icons/x';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { endonym, PUBLIC_LANGUAGE } from '@canmi/locales';
 	import { onMount, tick, type Component } from 'svelte';
@@ -73,10 +71,11 @@
 	let missing = $derived.by((): string[] => (void data.draft, []));
 
 	/**
-	 * The drawer holding what the article is: shut, out because the pointer ran to the window's
-	 * right edge and going back when it leaves, or pinned open by the toolbar until closed.
+	 * The drawer holding what the article is, which only the pointer brings out: running to the
+	 * window's right edge opens it, and moving clear of it puts it back. Nothing pins it, so it has
+	 * no control of its own to close it with.
 	 */
-	let details = $state<'closed' | 'hover' | 'pinned'>('closed');
+	let details = $state<'closed' | 'open'>('closed');
 	let drawerElement = $state<HTMLElement>();
 
 	// It moves the way the sidebar does, on the same mechanism: in from the right edge, out past it.
@@ -86,13 +85,10 @@
 	const across = () =>
 		drawerElement ? window.innerWidth - drawerElement.getBoundingClientRect().left : 0;
 
-	async function open(how: 'hover' | 'pinned') {
-		if (details !== 'closed' && !closing) {
-			if (how === 'pinned') details = 'pinned';
-			return;
-		}
+	async function open() {
+		if (details === 'open' && !closing) return;
 		closing = false;
-		details = how;
+		details = 'open';
 		await tick();
 		if (!drawerElement) return;
 		const distance = across();
@@ -114,14 +110,14 @@
 	}
 
 	// The right edge brings the drawer out the way the left edge brings out a folded sidebar, on the
-	// same margins; a drawer pinned by the toolbar is the toolbar's. See @canmi/behavior/edge.
+	// same margins. See @canmi/behavior/edge.
 	const edge = edgeReveal({
 		side: 'right',
 		...EDGE_MARGINS,
-		live: () => details !== 'pinned',
-		out: () => details === 'hover',
+		live: () => true,
+		out: () => details === 'open',
 		panel: () => drawerElement,
-		reveal: () => void open('hover'),
+		reveal: () => void open(),
 		conceal: () => void close(),
 	});
 
@@ -184,8 +180,8 @@
 		const done: Publication = await publishDraft(rid);
 		missing = done.published ? [] : (done.missing ?? []);
 		said = done.published ? `Published as revision ${done.seq}` : done.detail;
-		// A publication refused for a missing field is answered where the fields are.
-		if (missing.length > 0) void open('pinned');
+		// A refusal is said on the button that was refused, and the fields it names are marked in the
+		// drawer for when it is brought out.
 		if (done.published) revisions = await listRevisions(rid);
 	}
 
@@ -204,10 +200,6 @@
 			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.18), 0 0 0 1px var(--color-border)',
 		},
 		round: { borderRadius: radius.full },
-		pressed: {
-			color: 'var(--color-text-strong)',
-			backgroundColor: 'var(--color-paper-hover)',
-		},
 		quiet: { color: 'var(--color-text-soft)' },
 		missing: { color: 'var(--color-red)' },
 		heading: { color: 'var(--color-text-strong)' },
@@ -223,7 +215,6 @@
 		absent: {
 			borderBottomColor: { default: 'var(--color-red)', ':focus': 'var(--color-red)' },
 		},
-		divider: { backgroundColor: 'var(--color-border)' },
 		revision: { color: 'var(--color-text-muted)', fontVariantNumeric: figures.tabular },
 		code: { fontFamily: family.monoTheme, fontSize: text.px13 },
 		address: { color: 'var(--color-text-soft)', fontFamily: family.monoTheme, fontSize: text.px12 },
@@ -239,17 +230,16 @@
 <svelte:document onpointermove={edge} />
 
 <!-- An icon alone: the label is what a screen reader says and what the pointer is told on hover. -->
-{#snippet action(label: string, Icon: Component, run: () => void, on = false)}
+{#snippet action(label: string, Icon: Component, run: () => void, refused = false)}
 	<button
 		type="button"
 		onclick={run}
 		aria-label={label}
 		title={label}
-		aria-pressed={on || undefined}
 		class="cursor-pointer p-2 {stylex.attrs(
 			surfaces.quietControl,
 			styles.round,
-			on && styles.pressed,
+			refused && styles.missing,
 		).class}"
 	>
 		<Icon class="size-4" aria-hidden="true" />
@@ -282,26 +272,25 @@
 
 {#snippet toolbar()}
 	<div class="flex items-center gap-0.5 p-0.5 {stylex.attrs(styles.pill).class}">
-		{@render action(
-			'Details',
-			PanelRight,
-			() => void (details === 'pinned' ? close() : open('pinned')),
-			details !== 'closed',
-		)}
-		<span class="mx-0.5 h-4 w-px {stylex.attrs(styles.divider).class}" aria-hidden="true"></span>
 		{@render action('Preview', Eye, look)}
 		{@render action('Save', Save, save)}
-		{@render action('Publish', Send, publish)}
+		{@render action(
+			missing.length > 0 ? `Publish -- missing ${missing.join(', ')}` : 'Publish',
+			Send,
+			publish,
+			missing.length > 0,
+		)}
 	</div>
 {/snippet}
 
 {#snippet drawer()}
-	{#if details !== 'closed'}
-		<!-- It stops above the toolbar rather than running under it, so nothing it holds is covered. -->
+	{#if details === 'open'}
+		<!-- The whole height of the window, beside its edge, as the lifted sidebar stands at the
+		     other one -- a little wider, for fields rather than a list. -->
 		<aside
 			bind:this={drawerElement}
 			aria-label="Details"
-			class="absolute top-2 right-2 bottom-20 z-30 flex w-88 max-w-[calc(100%-1rem)] flex-col gap-6 overflow-y-auto p-5 {stylex.attrs(
+			class="fixed top-2 right-2 bottom-2 z-30 flex w-68 max-w-[calc(100vw-1rem)] flex-col gap-5 overflow-y-auto p-4 {stylex.attrs(
 				surfaces.uiText,
 				styles.sheet,
 			).class}"
@@ -309,15 +298,6 @@
 			<header class="flex items-center gap-2">
 				<h2 class={stylex.attrs(styles.heading).class}>Details</h2>
 				<span class={stylex.attrs(styles.rid).class}>{rid}</span>
-				<button
-					type="button"
-					aria-label="Close the details"
-					onclick={() => void close()}
-					class="ms-auto cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.round)
-						.class}"
-				>
-					<X class="size-4" aria-hidden="true" />
-				</button>
 			</header>
 
 			<!-- Where the last save and a refused publication are said, for now: a place kept until
