@@ -1,0 +1,35 @@
+{
+	"name": "@canmi/cms",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo"
+	},
+	"dependencies": {
+		"@canmi/collection": "workspace:*",
+		"@canmi/locales": "workspace:*",
+		"@canmi/tokens": "workspace:*",
+		"@canmi/urls": "workspace:*"
+	},
+	"devDependencies": {
+		"@milkdown/core": "^7.22.1",
+		"@milkdown/ctx": "^7.22.1",
+		"@milkdown/preset-commonmark": "^7.22.1",
+		"@milkdown/preset-gfm": "^7.22.1",
+		"@milkdown/plugin-history": "^7.22.1",
+		"@milkdown/plugin-listener": "^7.22.1",
+		"@milkdown/prose": "^7.22.1",
+		"@milkdown/theme-nord": "^7.22.1",
+		"@stylexjs/stylex": "^0.19.0",
+		"@stylexjs/unplugin": "^0.19.0",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/vite-plugin-svelte": "^7.3.0",
+		"svelte": "^5.57.1",
+		"svelte-check": "^4.7.6",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.0"
+	}
+}

@@ -10,13 +10,20 @@
  */
 import * as v from 'valibot';
 
+/**
+ * Required means written, not present. An empty string is what an untouched form sends, and
+ * `v.string()` accepts it -- so the first article published from the editor was a typeless page
+ * at the address `''` with no title, and nothing objected. Measured, not imagined.
+ */
+const written = v.pipe(v.string(), v.trim(), v.nonEmpty());
+
 export const articleMeta = v.object({
-	title: v.string(),
+	title: written,
 	subtitle: v.optional(v.string()),
 	description: v.optional(v.string()),
-	language: v.string(),
+	language: written,
 	/** The address, without a leading slash: `architecture/compile-time-rendering`. */
-	path: v.string(),
+	path: written,
 });
 
 /** The same fields, every one of them absent until somebody decides it. */

@@ -82,3 +82,7 @@ age-key*.txt
 
 # OS
 .DS_Store
+
+# The editor's SvelteKit output, generated on every dev run and build.
+apps/cms/.svelte-kit/
+apps/cms/build/

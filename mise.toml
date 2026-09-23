@@ -168,6 +168,13 @@ description = "Run the site worker"
 dir = "apps/site"
 run = "pnpm run dev"
 
+# The editor. A Vite dev server and nothing else: it reads `local` over `/collection`, which the
+# server forwards, so the browser only ever talks to its own origin. See architecture/local.md.
+[tasks.dev-cms]
+description = "Run the editor, which reads the collection through local"
+dir = "apps/cms"
+run = "pnpm run dev"
+
 [tasks.dev-cdn]
 description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"
@@ -202,6 +209,11 @@ run = "node libs/collection/src/articles.ts"
 # The article renderer is a package of Svelte components, and `tsc` does not read `.svelte`. It
 # is checked on its own rather than inside the site's project: a component still reaching for
 # `$lib` or `$app` fails here instead of passing because an application happened to compile it.
+[tasks.check-cms]
+description = "Type check the editor, which is a SvelteKit application"
+dir = "apps/cms"
+run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
+
 [tasks.check-prose]
 description = "Type check the article renderer, which is Svelte components in a library"
 dir = "libs/prose"
@@ -258,6 +270,7 @@ depends = [
 	"check",
 	"check-site",
 	"check-prose",
+	"check-cms",
 	"check-fonts",
 	"check-css",
 	"check-css-budget",

@@ -83,6 +83,16 @@ describe('revisions', () => {
 		expect(await database.select().from(schema.revisions)).toHaveLength(0);
 	});
 
+	it('refuses a field that was left blank, because an empty string is not an answer', async () => {
+		// What an untouched form sends. `v.string()` accepts it, so this passed once and published
+		// a typeless article at the address `''` -- the case this schema's `nonEmpty` exists for.
+		await drafted('Something.\n', { title: '', language: '  ', path: '' });
+		const refused = await publish(database, store, RID);
+		expect(refused).toMatchObject({ published: false, refused: 'incomplete' });
+		expect(refused).toHaveProperty('missing', expect.arrayContaining(['title', 'language', 'path']));
+		expect(await database.select().from(schema.revisions)).toHaveLength(0);
+	});
+
 	it('refuses to publish text that is already published', async () => {
 		await drafted('Unchanged.\n');
 		await publish(database, store, RID, { at: NOW });
