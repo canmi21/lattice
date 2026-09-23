@@ -124,6 +124,13 @@ before the first frame. The script is the part that matters. The server cannot r
 `localStorage`, so it renders the fallback width, and applying the remembered one after hydration
 would be exactly the jump rendering on the server was meant to remove.
 
+**Dragging the divider past the minimum folds the sidebar.** The width holds at the minimum, and
+for a further 2rem the drag means nothing -- overshooting an edge a little is not a request. Past
+that margin the sidebar recedes behind a notice saying that letting go will fold it, dragging back
+withdraws the notice, and letting go folds. The width remembered is the one from before the drag,
+so unfolding returns to it rather than to the minimum the drag was pinned at. The gesture is
+`Fold` in [resize.ts](../../libs/behavior/src/resize.ts), beside the rest of the divider.
+
 **The sidebar folds away when the window cannot hold both regions, and floats back on demand.**
 Each region has a minimum, measured rather than chosen: the sidebar's is its widest section row
 with the room its icon keeps from the window's edge repeated after the label, and the pane's is the

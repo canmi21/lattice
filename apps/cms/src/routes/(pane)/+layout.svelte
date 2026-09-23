@@ -18,7 +18,7 @@
 	import { resizeHandle } from '@canmi/behavior/resize';
 	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
+	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
 	import { createDraft, DRAFTS } from '$lib/collection.ts';
 	import { FOLD_BELOW, SIDEBAR, sidebarStyles } from '$lib/sidebar.ts';
@@ -120,6 +120,21 @@
 
 	/** Set while the sidebar is going down, so the moves that follow do not start it again. */
 	let lowering = false;
+
+	/**
+	 * Dragging the divider past the sidebar's minimum. It holds there through a margin, and past
+	 * it the drag is asking to fold: the sidebar says so while it is, and letting go folds it.
+	 * See `Fold` in @canmi/behavior/resize.
+	 */
+	let folding = $state(false);
+	const RESIZING = {
+		...SIDEBAR,
+		fold: {
+			beyond: 2,
+			intent: (asking: boolean) => (folding = asking),
+			fold: () => void fold(),
+		},
+	};
 
 	async function lift(how: 'hover' | 'pinned') {
 		lowering = false;
@@ -235,6 +250,17 @@
 			backgroundColor: 'var(--color-page)',
 		},
 		unnamed: { color: 'var(--color-text-soft)' },
+		// What the sidebar holds recedes while a drag is asking to fold it, and the notice stands
+		// in front: what letting go will do, said on the region it will happen to.
+		receded: { opacity: 0.25 },
+		notice: {
+			color: 'var(--color-text-strong)',
+			backgroundColor: 'var(--color-page)',
+			borderRadius: radius.lg,
+			borderWidth: border.hairlinePx,
+			borderStyle: 'dashed',
+			borderColor: 'var(--color-border-strong)',
+		},
 		// The divider draws nothing at rest; a line appears down its middle while it is pointed at,
 		// held or focused, which is the only time it is anything but the gap between two regions.
 		handle: {
@@ -294,8 +320,23 @@
 >
 	<!-- The width is the divider's property, set before the first frame when one is remembered, and
 	     placed by the rules in the head: docked, folded away, or lifted over the pane. -->
-	<nav data-sidebar bind:this={nav} class="flex shrink-0 flex-col gap-1 px-1 py-2">
-		<div class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
+	<nav data-sidebar bind:this={nav} class="relative flex shrink-0 flex-col gap-1 px-1 py-2">
+		{#if folding}
+			<div
+				class="pointer-events-none absolute inset-1 z-10 flex flex-col items-center justify-center gap-2 text-center {stylex.attrs(
+					surfaces.uiText,
+					styles.notice,
+				).class}"
+			>
+				<PanelLeftClose class="size-5" aria-hidden="true" />
+				<span>Release to fold</span>
+			</div>
+		{/if}
+		<div
+			class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto {stylex.attrs(
+				folding && styles.receded,
+			).class}"
+		>
 			{#each SECTIONS as section (section.href)}
 				{@render entry(section)}
 			{/each}
@@ -365,7 +406,9 @@
 			{/if}
 		</div>
 
-		<div class="pt-2">{@render entry(SETTINGS)}</div>
+		<div class="pt-2 {stylex.attrs(folding && styles.receded).class}">
+			{@render entry(SETTINGS)}
+		</div>
 	</nav>
 
 	<!-- The gap between the two regions is the divider: drag it, step it with the arrow keys, or
@@ -378,7 +421,7 @@
 		aria-label="Resize the sidebar"
 		tabindex="0"
 		data-divider
-		use:resizeHandle={SIDEBAR}
+		use:resizeHandle={RESIZING}
 		class="w-2 shrink-0 cursor-col-resize touch-none {stylex.attrs(styles.handle).class}"
 	></div>
 
