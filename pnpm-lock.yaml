@@ -509,6 +509,9 @@ importers:
       '@noble/hashes':
         specifier: ^2.4.0
         version: 2.4.0
+      '@sanity/diff-match-patch':
+        specifier: ^3.2.1
+        version: 3.2.1
       better-sqlite3:
         specifier: ^12.6.0
         version: 12.11.1
@@ -2113,6 +2116,10 @@ packages:
 
   '@rrweb/utils@2.1.6':
     resolution: {integrity: sha512-BIRXcxiytJs5Guxw0tzsnVS7ukcMqtnxixjIGvV49VdJeOEG6NJeMU7o8efbHW1D52a12Y8QsgDjgDgblg3org==}
+
+  '@sanity/diff-match-patch@3.2.1':
+    resolution: {integrity: sha512-Ll3BPOn9aPGeBUOFDZpKk0IObL+NI4tNq7VyOKj680xd+iCtfjnbcZZU0vpj94XozVGE0Zf+0FoYWXk2xJgZCg==}
+    engines: {node: '>=18.18'}
 
   '@sentry/browser-utils@10.75.0':
     resolution: {integrity: sha512-yZfdQ87RLat/7retF8zA6Z9zCAT12IyaPvIiu+bbi1E1V1OqDpS8MKNa/6LF69Ap7DVTORi9ITEgjlAqTXF0xQ==}
@@ -5949,6 +5956,8 @@ snapshots:
   '@rrweb/types@2.0.0-alpha.20': {}
 
   '@rrweb/utils@2.1.6': {}
+
+  '@sanity/diff-match-patch@3.2.1': {}
 
   '@sentry/browser-utils@10.75.0':
     dependencies:

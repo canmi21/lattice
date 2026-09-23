@@ -12,6 +12,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { importArticles } from './articles.ts';
+import { memoryStore } from './store.ts';
 import * as schema from './source.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -20,8 +21,9 @@ const REPOSITORY = resolve(HERE, '../../..');
 async function imported() {
 	const database = drizzle(new Database(':memory:'), { schema });
 	migrate(database, { migrationsFolder: resolve(HERE, '../drizzle/source') });
-	const tally = await importArticles(database, REPOSITORY);
-	return { database, tally };
+	const store = memoryStore();
+	const tally = await importArticles(database, store, REPOSITORY);
+	return { database, store, tally };
 }
 
 it('publishes what carries no draft flag and holds the rest as drafts', async () => {
@@ -31,18 +33,21 @@ it('publishes what carries no draft flag and holds the rest as drafts', async ()
 	const drafts = await database.select().from(schema.drafts);
 	// State is counted: every published thing has its first revision, and no draft has one.
 	expect(revisions).toHaveLength(tally.published);
-	expect(drafts).toHaveLength(tally.drafted);
 	expect(revisions.every((row) => row.seq === 1 && row.cid !== null)).toBe(true);
+	// Every article has a working copy, published or not. Without one the next revision would
+	// have nothing to be written from, which is what makes this a row per article and not per
+	// unpublished article.
+	expect(drafts).toHaveLength(tally.published + tally.drafted);
 });
 
-it('leaves a draft without a type, because nobody has said what it will be', async () => {
+it('leaves an unpublished article without a type, because nobody has said what it will be', async () => {
 	const { database } = await imported();
 	const held = await database.select().from(schema.resources);
-	const drafted = await database.select().from(schema.drafts);
-	const ids = new Set(drafted.map((row) => row.resource));
-	expect(held.filter((row) => ids.has(row.id)).every((row) => row.type === null)).toBe(true);
+	const revisions = await database.select().from(schema.revisions);
+	const published = new Set(revisions.map((row) => row.resource));
+	expect(held.filter((row) => !published.has(row.id)).every((row) => row.type === null)).toBe(true);
 	expect(
-		held.filter((row) => !ids.has(row.id)).every((row) => row.type?.startsWith('document')),
+		held.filter((row) => published.has(row.id)).every((row) => row.type?.startsWith('document')),
 	).toBe(true);
 });
 
@@ -55,7 +60,7 @@ it('takes the publication date from the frontmatter, which is what this gate is 
 
 it('runs twice with the same tally, and grants no id it then abandons', async () => {
 	const { database, tally } = await imported();
-	const again = await importArticles(database, REPOSITORY);
+	const again = await importArticles(database, memoryStore(), REPOSITORY);
 	expect(again).toEqual(tally);
 	const held = await database.select().from(schema.resources);
 	expect(held).toHaveLength(tally.published + tally.drafted);

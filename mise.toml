@@ -182,6 +182,14 @@ run = "cargo run -q -p local -- serve"
 description = "Bring the collection's databases up to the schema in libs/collection"
 run = "node libs/collection/src/migrate.ts"
 
+# The corpus, read out of `contents` and written into the collection. Re-runnable because it
+# empties what it wrote last time: the files are the only source until they retire, so the
+# database is whatever they say this time. Ids are granted afresh each run, which is free only
+# while nothing outside the collection names an article by its rid. See spec/todo/milestones.md.
+[tasks.articles]
+description = "Import the markdown corpus into the collection, replacing what a previous run wrote"
+run = "node libs/collection/src/articles.ts"
+
 [tasks.check-site]
 description = "Type check the site, which needs SvelteKit's generated declarations"
 dir = "apps/site"

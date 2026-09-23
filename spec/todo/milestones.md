@@ -187,7 +187,7 @@ sees.
 | A1  | The authored database exists      | Resources, contents, the two metadata layers and the reference table, under one Drizzle schema                       | --    | **done** |
 | A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | **done** |
 | A3  | An article is a resource          | `document.article`, granted from the same space and the same register                                                | A1    | **done** |
-| A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | near     |
+| A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | **done** |
 | A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near     |
 | A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | near     |
 | A7  | One rid over every language       | The existing views and translations move under the article's own identity                                            | A3 A5 | mid      |
@@ -202,9 +202,21 @@ Importing either one alone loses the other, and this is the only moment the choi
 editable in any text editor; a row in SQLite is not. So A5 ships with B4, or with a stopgap command
 that sets a field. This is the one place in this plan where the obvious order blocks the author.
 
-**A4 is near-term for the same reason.** A text file under git has a history whether or not anybody
+**A4 came early for the same reason.** A text file under git has a history whether or not anybody
 designed one; a database file has none. Revisions are the undo, and they have to exist before the
 thing they are undoing does.
+
+**A4 settled three things the editor would otherwise have had to guess.** Publishing takes no text:
+the draft row is the working copy before the first publication and after every one, so there is one
+place the text can be and no second place it could differ from. Publishing text that is already
+published is refused rather than recorded, because a revision says what a version's text is and not
+how many times a button was pressed -- which also means that changing a title is not a publication.
+And bytes live beside the database rather than in it: `content` says a run of bytes exists and what
+is known about it, and `data/collection/objects` holds the bytes, written before the row that names
+them so that the failure a crash leaves behind is an uncollected object rather than a broken page.
+
+That tree is not `data/bucket/objects`. The published one holds what compilation emitted and can
+emit again; this one holds authored input, and is the reason C0 exists.
 
 A8 is deliberately not near-term. [engagement.md](../engagement.md) records what a re-key already
 cost once -- six stranded rows in the fifty-four minutes between a migration and the code that

@@ -7,13 +7,15 @@
  * importer is the gate, so it closes by there being no other way in: nothing else writes `created`.
  */
 import { inArray, isNull, like, or } from 'drizzle-orm';
-import { blake3 } from '@noble/hashes/blake3.js';
-import { bytesToHex } from '@noble/hashes/utils.js';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import { ARTICLE_TYPE, PAGE_TYPE, type DraftMeta } from './article.ts';
+import * as v from 'valibot';
+import { ARTICLE_TYPE, PAGE_TYPE, articleMeta, type DraftMeta } from './article.ts';
 import { allocate } from './allocate.ts';
+import { articleLayers } from './revise.ts';
+import { contentId, fileStore, OBJECTS_DIR, type ContentStore } from './store.ts';
 import { contents, documents, drafts, paths, resources, revisions } from './source.ts';
 import type { SourceDatabase } from './open.ts';
 
@@ -45,11 +47,6 @@ async function clear(database: SourceDatabase) {
 	database.delete(documents).where(inArray(documents.resource, held)).run();
 	database.delete(drafts).where(inArray(drafts.resource, held)).run();
 	database.delete(resources).where(inArray(resources.id, held)).run();
-}
-
-/** The published object's key is this digest, which `.mise/tasks/content-id.mjs` also computes. */
-function contentId(body: string): string {
-	return bytesToHex(blake3(new TextEncoder().encode(body), { dkLen: 16 }));
 }
 
 function markdownFiles(root: string): string[] {
@@ -85,6 +82,19 @@ function metaOf(frontmatter: Frontmatter, path: string): DraftMeta {
 }
 
 /**
+ * What a published document's layers hold, which is not the same for the two kinds of document.
+ *
+ * The page stops at `document` and takes a title, because it has no address anybody chose and no
+ * language beside its siblings -- it is one permanent URL with one text. Parsing the article's
+ * shape is what refuses a half-filled one here rather than at the first page that rendered it.
+ * See spec/todo/milestones.md, "How a fixed page is edited, if at all".
+ */
+function layersFor(type: string, frontmatter: Frontmatter, path: string) {
+	if (type !== ARTICLE_TYPE) return { document: { version: 1, title: frontmatter.title } };
+	return articleLayers(v.parse(articleMeta, metaOf(frontmatter, path)));
+}
+
+/**
  * Each file becomes an identity, and what it becomes after that depends on one question.
  *
  * Published articles take the type, an address, a content and a first revision dated by their
@@ -92,7 +102,11 @@ function metaOf(frontmatter: Frontmatter, path: string): DraftMeta {
  * published is that a revision exists. The flag is read here for the last time: after this the
  * state is counted rather than declared.
  */
-export async function importArticles(database: SourceDatabase, repository: string) {
+export async function importArticles(
+	database: SourceDatabase,
+	store: ContentStore,
+	repository: string,
+) {
 	const root = resolve(repository, 'contents');
 	await clear(database);
 	let published = 0;
@@ -115,20 +129,28 @@ export async function importArticles(database: SourceDatabase, repository: strin
 				type: isDraft ? null : type,
 				created,
 				updated: created,
-				layers: isDraft ? {} : { article: { version: 1, ...metaOf(frontmatter, path) } },
+				layers: isDraft ? {} : layersFor(type, frontmatter, path),
 			})
 			.run();
 
+		// Every article gets a draft row, published or not: it is the working copy, and it is the
+		// working copy from the first keystroke to the last edit rather than only until publication.
+		// Without one an imported article would have nothing to edit, so the next revision could
+		// never be written -- see the `draft` table's own note in source.ts.
+		database
+			.insert(drafts)
+			.values({ resource: id, body, meta: metaOf(frontmatter, path), created, updated: created })
+			.run();
+
 		if (isDraft) {
-			database
-				.insert(drafts)
-				.values({ resource: id, body, meta: metaOf(frontmatter, path), created, updated: created })
-				.run();
 			drafted += 1;
 			continue;
 		}
 
 		const cid = contentId(body);
+		// Bytes before rows, which is the order revise.ts publishes in and for the same reason: an
+		// object nothing names is collectable, a row naming bytes that are absent is a broken page.
+		await store.write(cid, body);
 		// The same bytes are the same row by definition, so an existing one is already right.
 		database
 			.insert(contents)
@@ -147,4 +169,12 @@ export async function importArticles(database: SourceDatabase, repository: strin
 		published += 1;
 	}
 	return { published, drafted };
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+	const repository = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+	const { openSource, SOURCE_FILE } = await import('./open.ts');
+	const database = openSource(join(repository, SOURCE_FILE));
+	const tally = await importArticles(database, fileStore(join(repository, OBJECTS_DIR)), repository);
+	console.log(`articles imported: ${tally.published} published, ${tally.drafted} unpublished`);
 }
