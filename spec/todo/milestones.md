@@ -208,9 +208,10 @@ including the publish pass, `local`'s own commands and the preview's compile. Th
 of truth and the collection is the copy, which is the wrong way round for a row that says they
 retire.
 
-Retiring them is a reader migration, not a deletion: every reader above has to ask the collection
-instead, and that is the same move A5 is waiting to make for the article metadata. It is the
-first half of C5 arriving early -- see the table there, where these three files are the first row.
+Retiring them is a reader migration, not a deletion, and it does not wait on A5: those are the
+article's fields and these are the media and tag records, two sets of data with two sets of
+readers. What it waits on is stated below, and it is a decision rather than an amount of work.
+These three files are also C5's first row, so that milestone inherits whatever this one settles.
 
 **A0 is a salvage, not a repair.** The file it fixes is retiring at A2, so nothing here is worth
 maintaining afterwards -- what matters is that the import has one input that has lost nothing. The
@@ -401,6 +402,19 @@ Moving the collection out of the working tree was argued for here on a reason th
 be false: version control cannot reach it, because it is ignored, and an abandoned change leaves
 it untouched -- measured, not assumed. `clean` is barred from local state by its own rule. What is
 actually left for C1 is growth and D2's move to another machine, neither of which presses today.
+
+**How a one-shot command reads the collection.** More than half the readers of the three record
+files are Rust -- ten of `media.yaml`'s, six of `metadata.json`'s -- and `local` holds no line
+that opens the collection's database, because B1 gave the authored database to the TypeScript
+half so that its schema is declared once. Every one of those readers is a command that runs and
+exits: `local alt`, `local image`, `local gc`. `local serve` is one subcommand beside them, not a
+thing they can assume is up.
+
+So there are four answers and none is free. A command spawns the other half and pays node's
+startup every run. A command requires `serve` to be up, which changes what the command line
+promises. Rust opens the file read-only, which is a second set of column names to drift. Or the
+commands that read records move to the other half, away from the derivation they were written
+for. Blocks the second half of A2, and C5 behind it.
 
 **What `local` is called once it is not local.** The name describes where it runs, and D2 moves it
 to another machine while D4 puts its surface on the public internet. It is the right name for the
