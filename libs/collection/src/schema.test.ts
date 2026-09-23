@@ -76,10 +76,14 @@ describe('the authored schema', () => {
 		const resource = await aResource(database);
 		await database
 			.insert(schema.paths)
-			.values({ resource, path: 'convention/a-b', since: NOW, until: NOW });
-		await database.insert(schema.paths).values({ resource, path: 'a-b', since: '2026-09-23' });
+			.values({ resource, directory: 'convention', slug: 'a-b', since: NOW, until: NOW });
+		await database
+			.insert(schema.paths)
+			.values({ resource, directory: null, slug: 'a-b', since: '2026-09-23' });
 		await expect(
-			database.insert(schema.paths).values({ resource, path: 'other/a-b', since: '2026-09-24' }),
+			database
+				.insert(schema.paths)
+				.values({ resource, directory: 'other', slug: 'a-b', since: '2026-09-24' }),
 		).rejects.toThrow(/UNIQUE/i);
 	});
 

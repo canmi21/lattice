@@ -10,11 +10,11 @@
  * See spec/todo/milestones.md, "An article is `document.article`, and its state is counted".
  */
 import { applyPatches, makePatches, parsePatch, stringifyPatches } from '@sanity/diff-match-patch';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne } from 'drizzle-orm';
 import * as v from 'valibot';
 import { ARTICLE_TYPE, articleMeta, type ArticleMeta } from './article.ts';
 import { contentId, type ContentStore } from './store.ts';
-import { contents, documents, drafts, paths, resources, revisions } from './source.ts';
+import { contents, documents, drafts, paths, place, resources, revisions } from './source.ts';
 import type { SourceDatabase } from './open.ts';
 
 /** How a patch is written. Per row, so that changing it is a decision and not a migration. */
@@ -34,7 +34,7 @@ export function articleLayers(meta: ArticleMeta) {
 /** A publication that happened, or a reason it did not. Both are answers the editor displays. */
 export type Publication =
 	| { published: true; seq: number; cid: string; at: string }
-	| { published: false; refused: 'no-draft' | 'unchanged'; detail: string }
+	| { published: false; refused: 'no-draft' | 'unchanged' | 'name-taken'; detail: string }
 	| { published: false; refused: 'incomplete'; detail: string; missing: string[] };
 
 /**
@@ -82,6 +82,22 @@ export async function publish(
 			};
 		}
 		opening = { meta: parsed.output };
+
+		// Asked rather than left to the unique index, so the answer is a sentence the editor can
+		// show. The index is still there and is what makes this safe: two publications racing
+		// would both pass this check and only one would pass that. See source.ts.
+		const { slug } = place(parsed.output.path);
+		const [taken] = await database
+			.select({ resource: paths.resource })
+			.from(paths)
+			.where(and(eq(paths.slug, slug), isNull(paths.until), ne(paths.resource, rid)));
+		if (taken) {
+			return {
+				published: false,
+				refused: 'name-taken',
+				detail: `${taken.resource} already answers to ${slug}`,
+			};
+		}
 	}
 
 	// The patch walks from the text being published back to the one it replaces, which is what
@@ -104,7 +120,9 @@ export async function publish(
 				.where(eq(resources.id, rid))
 				.run();
 			tx.insert(documents).values({ resource: rid }).onConflictDoNothing().run();
-			tx.insert(paths).values({ resource: rid, path: opening.meta.path, since: at }).run();
+			tx.insert(paths)
+				.values({ resource: rid, ...place(opening.meta.path), since: at })
+				.run();
 		} else {
 			tx.update(resources).set({ updated: at }).where(eq(resources.id, rid)).run();
 		}

@@ -16,7 +16,7 @@ import { ARTICLE_TYPE, PAGE_TYPE, articleMeta, type DraftMeta } from './article.
 import { allocate } from './allocate.ts';
 import { articleLayers } from './revise.ts';
 import { contentId, fileStore, OBJECTS_DIR, type ContentStore } from './store.ts';
-import { contents, documents, drafts, paths, resources, revisions } from './source.ts';
+import { contents, documents, drafts, paths, place, resources, revisions } from './source.ts';
 import type { SourceDatabase } from './open.ts';
 
 type Frontmatter = {
@@ -161,7 +161,7 @@ export async function importArticles(
 			.insert(documents)
 			.values({ resource: id, sourceFile: relative(repository, file) })
 			.run();
-		database.insert(paths).values({ resource: id, path, since: created }).run();
+		database.insert(paths).values({ resource: id, ...place(path), since: created }).run();
 		database
 			.insert(revisions)
 			.values({ resource: id, seq: 1, at: frontmatter.published ?? created, cid, composed: cid })

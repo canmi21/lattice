@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { dates, lockTime, publish, retime, textAt } from './revise.ts';
 import { memoryStore } from './store.ts';
+import { address } from './source.ts';
 import * as schema from './source.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -70,8 +71,8 @@ describe('revisions', () => {
 		// The address is a row in `path` and not also a field in the layers, because that table is
 		// the redirect history and a second copy is the one that goes stale.
 		expect(resource!.layers).toEqual({ article: { version: 1, title: META.title, language: 'en' } });
-		const [address] = await database.select().from(schema.paths);
-		expect(address!.path).toBe(META.path);
+		const [held] = await database.select().from(schema.paths);
+		expect(address(held!)).toBe(META.path);
 	});
 
 	it('refuses a draft that is not yet an article, and says which fields are missing', async () => {
@@ -91,6 +92,27 @@ describe('revisions', () => {
 		expect(refused).toMatchObject({ published: false, refused: 'incomplete' });
 		expect(refused).toHaveProperty('missing', expect.arrayContaining(['title', 'language', 'path']));
 		expect(await database.select().from(schema.revisions)).toHaveLength(0);
+	});
+
+	it('refuses a second article under a name another one already answers to', async () => {
+		// The rule `refuseBadSlugs` has held over the markdown files, moved to where the corpus
+		// will be once those files are gone: a slug is the identity and the directory is only
+		// where it lives, so two directories do not make two articles of one name.
+		await drafted('First.\n');
+		await publish(database, store, RID, { at: NOW });
+		await database
+			.insert(schema.resources)
+			.values({ id: 'zz9pl', created: NOW, updated: NOW, layers: {} });
+		await database.insert(schema.drafts).values({
+			resource: 'zz9pl',
+			body: 'Second.\n',
+			meta: { ...META, path: 'mirror/observation-to-lowering' },
+			created: NOW,
+			updated: NOW,
+		});
+		const refused = await publish(database, store, 'zz9pl');
+		expect(refused).toMatchObject({ published: false, refused: 'name-taken' });
+		expect(await database.select().from(schema.paths)).toHaveLength(1);
 	});
 
 	it('refuses to publish text that is already published', async () => {

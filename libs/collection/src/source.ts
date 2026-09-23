@@ -200,7 +200,16 @@ export const paths = sqliteTable(
 		resource: text('resource')
 			.notNull()
 			.references(() => resources.id),
-		path: text('path').notNull(),
+		/**
+		 * Where it lives, and null at the top of the tree.
+		 *
+		 * Stored apart from the slug rather than as one address, because the address is the two
+		 * of them joined and a joined copy is a second place the same fact could be edited. The
+		 * split is also what lets the constraint below say what it means.
+		 */
+		directory: text('directory'),
+		/** What it is. See spec/architecture/artifacts.md, "A slug is the identity". */
+		slug: text('slug').notNull(),
 		since: text('since').notNull(),
 		until: text('until'),
 	},
@@ -209,9 +218,30 @@ export const paths = sqliteTable(
 		uniqueIndex('path_current')
 			.on(table.resource)
 			.where(sql`until is null`),
-		index('path_by_path').on(table.path),
+		/**
+		 * One article per name, whatever directory it sits in -- the rule `refuseBadSlugs` has
+		 * enforced over the markdown files, moved to where the corpus will still be once those
+		 * files are gone. Partial, because a slug is free again once its address is retired.
+		 */
+		uniqueIndex('path_slug_current')
+			.on(table.slug)
+			.where(sql`until is null`),
+		index('path_by_slug').on(table.slug),
 	],
 );
+
+/** The address a reader sees, which is the two columns above and is stored as neither. */
+export function address(row: { directory: string | null; slug: string }): string {
+	return row.directory ? `${row.directory}/${row.slug}` : row.slug;
+}
+
+/** The inverse, for a path somebody typed: everything before the last slash is where it lives. */
+export function place(path: string): { directory: string | null; slug: string } {
+	const cut = path.lastIndexOf('/');
+	return cut === -1
+		? { directory: null, slug: path }
+		: { directory: path.slice(0, cut), slug: path.slice(cut + 1) };
+}
 
 /**
  * A draft: one mutable row per identity, and the only mutable text there is.

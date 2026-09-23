@@ -44,7 +44,7 @@ export const DESTINATIONS: Record<keyof ArticleMeta, string> = {
 	subtitle: 'resource.layers.article.subtitle',
 	description: 'resource.layers.article.description',
 	language: 'resource.layers.article.language',
-	path: 'path.path',
+	path: 'path.directory + path.slug',
 };
 
 /** The type chain an article is granted when it stops being a draft. */
