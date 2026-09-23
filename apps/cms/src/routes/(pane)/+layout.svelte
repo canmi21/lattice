@@ -227,7 +227,7 @@
 		if (confirming !== entry.resource) {
 			return { ...base, run: () => void (confirming = entry.resource) };
 		}
-		return { ...base, label: 'Click again to delete', run: () => remove(entry) };
+		return { ...base, label: 'Click again to delete', armed: true, run: () => remove(entry) };
 	}
 
 	async function remove(entry: Draft) {

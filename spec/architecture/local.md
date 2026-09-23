@@ -163,7 +163,9 @@ them -- open, open in a new tab, preview, copy an identifier or a link, open and
 delete. The handler is on those rows and nowhere above them: the pane, the text and the ground keep
 the browser's menu, because a tool that takes the right click everywhere takes away copying, spell
 checking and inspecting to offer a handful of its own entries. An entry that cannot apply is shown
-and refused, with the reason on hover, rather than left out, so the menu keeps its shape.
+and refused, with the reason on hover, rather than left out, so the menu keeps its shape. Every
+entry reads in the strong ink; a destructive one is red only while the pointer or the keyboard is on
+it, and once it has been asked for, so a menu of ordinary actions does not read as a warning.
 
 **Deleting takes back a draft that was never published, and asks twice.** The collection is in no
 version control and not yet backed up, so a deletion cannot be undone; the first click turns the

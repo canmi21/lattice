@@ -10,7 +10,10 @@
 		label: string;
 		icon?: Component;
 		run: () => void | Promise<void>;
+		/** Destructive: it reads like every other entry until the pointer or the keyboard is on it. */
 		danger?: boolean;
+		/** Asked once and waiting for the second ask, so it stays red whatever is on it. */
+		armed?: boolean;
 		refused?: string;
 		stays?: boolean;
 	};
@@ -96,14 +99,19 @@
 
 	const styles = stylex.create({
 		// Square rows, edge to edge, as the site's menu has them: the panel's corner is the only one.
-		row: { borderRadius: 0 },
+		// Every entry reads in the strong ink, and the highlight alone says which one is under the
+		// pointer.
+		row: { borderRadius: 0, color: 'var(--color-text-strong)' },
+		// A destructive entry is not announced until it is about to be chosen: red on the highlight,
+		// and like the others at rest, so a menu of ordinary actions does not read as a warning.
 		danger: {
 			color: {
-				default: 'var(--color-red)',
+				default: 'var(--color-text-strong)',
 				':hover': 'var(--color-red)',
 				':focus-visible': 'var(--color-red)',
 			},
 		},
+		armed: { color: 'var(--color-red)' },
 		refused: {
 			color: 'var(--color-text-soft)',
 			opacity: 0.6,
@@ -147,6 +155,7 @@
 					surfaces.quietControl,
 					styles.row,
 					item.danger && styles.danger,
+					item.armed && styles.armed,
 					item.refused !== undefined && styles.refused,
 				).class}"
 			>
