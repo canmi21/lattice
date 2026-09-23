@@ -217,7 +217,6 @@
 		},
 		revision: { color: 'var(--color-text-muted)', fontVariantNumeric: figures.tabular },
 		code: { fontFamily: family.monoTheme, fontSize: text.px13 },
-		address: { color: 'var(--color-text-soft)', fontFamily: family.monoTheme, fontSize: text.px12 },
 	});
 
 	/** A field's class, marked when a refused publication named it as missing. */
@@ -372,9 +371,6 @@
 						placeholder="some-slug"
 						class="{field('path')} {stylex.attrs(styles.code).class}"
 					/>
-					<span class={stylex.attrs(styles.address).class}
-						>/{category ? `${category}/` : ''}{slug}</span
-					>
 				</label>
 				<label class="flex flex-col gap-1">
 					<span class={stylex.attrs(styles.label).class}>Language</span>
