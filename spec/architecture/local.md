@@ -115,7 +115,7 @@ Below the `md` width it folds into a row, since the CMS is still a page that has
 **The column is the ground and the content is a pane set on it.** Structurally the two sit side by
 side in one container; visually the column has no edge of its own, and the pane is a rounded sheet
 laid on the ground with a gap around it. The pane takes `--color-page`, the site's own ground, so an
-article is written on the colour it is read on, and the ground takes `--color-paper-hover` -- a
+article is written on the color it is read on, and the ground takes `--color-paper-hover` -- a
 token the site already has rather than a new one. That pair mirrors, so the ground is the deeper of
 the two in light and the lighter in dark, which is [styling/surfaces.md](../styling/surfaces.md),
 "A mirrored pair cannot keep one of its members the darker one", met from the other side and

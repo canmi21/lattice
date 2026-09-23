@@ -41,7 +41,7 @@
 	];
 
 	// The page is laid out as a ground with the content pane set on it: the section column is the
-	// ground itself, and the pane is the site's own page colour with a corner, so what is being
+	// ground itself, and the pane is the site's own page color with a corner, so what is being
 	// written sits on exactly the ground a reader sees it on. See spec/architecture/local.md.
 	const styles = stylex.create({
 		pane: { borderRadius: radius.xl },
