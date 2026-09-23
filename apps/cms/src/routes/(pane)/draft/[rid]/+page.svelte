@@ -131,7 +131,8 @@
 		.class}"
 >
 	<div class="mx-auto flex max-w-3xl items-center gap-2 {stylex.attrs(surfaces.uiText).class}">
-		<a href="/" class="no-underline {stylex.attrs(surfaces.quietControl).class}">Drafts</a>
+		<a href="/articles" class="no-underline {stylex.attrs(surfaces.quietControl).class}">Articles</a
+		>
 		<span class={stylex.attrs(styles.quiet).class}>/</span>
 		<span class={stylex.attrs(styles.rid).class}>{rid}</span>
 		<span class="min-w-0 flex-1 truncate ps-2">

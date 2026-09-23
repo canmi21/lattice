@@ -1,35 +1,68 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import ChartLine from '@lucide/svelte/icons/chart-line';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import FileText from '@lucide/svelte/icons/file-text';
+	import Folder from '@lucide/svelte/icons/folder';
+	import FolderOpen from '@lucide/svelte/icons/folder-open';
+	import House from '@lucide/svelte/icons/house';
+	import Link from '@lucide/svelte/icons/link';
+	import MessageSquare from '@lucide/svelte/icons/message-square';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Settings from '@lucide/svelte/icons/settings';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
-	import type { Snippet } from 'svelte';
+	import { duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
+	import type { Component, Snippet } from 'svelte';
+	import { createDraft, listDrafts, type Draft } from '$lib/collection.ts';
 
 	let { children }: { children: Snippet } = $props();
 
+	type Section = { label: string; href: string; icon: Component };
+
 	/**
-	 * Every section the CMS has, and the paths that count as being in it. Only what exists is
-	 * listed: a link to a page nobody has built is a promise the tool does not keep. Images and
-	 * albums join this list with B5 and B7. See spec/architecture/local.md.
+	 * The sections above the articles. Overview first; the three after it are the site's own
+	 * business -- who read it, who linked to it, what readers said -- and are placed before what
+	 * they show is designed. See spec/architecture/local.md.
 	 */
-	const SECTIONS = [
-		{
-			label: 'Drafts',
-			href: '/',
-			owns: (path: string) => path === '/' || path.startsWith('/draft/'),
-		},
+	const SECTIONS: Section[] = [
+		{ label: 'Overview', href: '/', icon: House },
+		{ label: 'Traffic', href: '/traffic', icon: ChartLine },
+		{ label: 'References', href: '/references', icon: Link },
+		{ label: 'Comments', href: '/comments', icon: MessageSquare },
 	];
+
+	const SETTINGS: Section = { label: 'Settings', href: '/settings', icon: Settings };
+
+	/**
+	 * Every article, draft or published: the draft row outlives publication and is the working
+	 * copy from then on, so the draft rows are the whole set. Read again on every navigation, which
+	 * is what picks up a title saved or an article created since. See spec/todo/milestones.md.
+	 */
+	let articles = $state<Draft[]>([]);
+	let open = $state(true);
+
+	$effect(() => {
+		void page.url.pathname;
+		listDrafts()
+			.then((held) => (articles = held))
+			.catch(() => {});
+	});
+
+	async function start() {
+		const { resource } = await createDraft();
+		open = true;
+		await goto(`/draft/${resource}`);
+	}
+
+	const here = (href: string) => page.url.pathname === href;
 
 	// The page is laid out as a ground with the content pane set on it: the section column is the
 	// ground itself, and the pane is the site's own page color with a corner, so what is being
 	// written sits on exactly the ground a reader sees it on. See spec/architecture/local.md.
 	const styles = stylex.create({
 		pane: { borderRadius: radius.xl },
-		mark: {
-			color: 'var(--color-text-soft)',
-			fontSize: text.px13,
-			fontWeight: weight.medium,
-		},
 		// A section is a pill on the ground rather than a word in a list, so its corner is the
 		// buttons' rather than the compact control's.
 		item: { borderRadius: radius.md },
@@ -37,31 +70,108 @@
 		current: {
 			color: 'var(--color-text-strong)',
 			backgroundColor: 'var(--color-page)',
-			fontWeight: weight.medium,
+		},
+		unnamed: { color: 'var(--color-text-soft)' },
+		chevron: {
+			transitionProperty: 'rotate',
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
 		},
 	});
+
+	const ITEM = 'flex min-w-0 items-center gap-2 px-2 py-1.5 no-underline';
 </script>
 
-<div data-ground class="flex h-dvh flex-col gap-2 overflow-hidden p-2 md:flex-row">
-	<nav
-		class="flex shrink-0 items-center gap-1 px-2 py-1 md:w-44 md:flex-col md:items-stretch md:py-4"
+{#snippet entry(section: Section)}
+	{@const current = here(section.href)}
+	<a
+		href={section.href}
+		aria-current={current ? 'page' : undefined}
+		class="{ITEM} {stylex.attrs(
+			surfaces.quietControl,
+			surfaces.uiText,
+			styles.item,
+			current && styles.current,
+		).class}"
 	>
-		<a href="/" class="mr-4 px-2 no-underline md:mr-0 md:mb-5 {stylex.attrs(styles.mark).class}"
-			>collection</a
-		>
-		{#each SECTIONS as section (section.href)}
-			{@const here = section.owns(page.url.pathname)}
-			<a
-				href={section.href}
-				aria-current={here ? 'page' : undefined}
-				class="block px-2 py-1 no-underline {stylex.attrs(
-					surfaces.quietControl,
-					surfaces.uiText,
-					here && styles.current,
-					styles.item,
-				).class}">{section.label}</a
-			>
-		{/each}
+		<section.icon class="size-4 shrink-0" aria-hidden="true" />
+		<span class="truncate max-md:sr-only">{section.label}</span>
+	</a>
+{/snippet}
+
+<div data-ground class="flex h-dvh flex-col gap-2 overflow-hidden p-2 md:flex-row">
+	<nav class="flex shrink-0 gap-1 px-1 md:w-60 md:flex-col md:py-2">
+		<div class="flex min-h-0 flex-1 gap-0.5 md:flex-col md:overflow-y-auto">
+			{#each SECTIONS as section (section.href)}
+				{@render entry(section)}
+			{/each}
+
+			<!-- A folder: the row opens and closes it, and the list under it is every article. -->
+			<div class="mt-3 flex items-center gap-0.5 max-md:hidden">
+				<button
+					type="button"
+					aria-expanded={open}
+					onclick={() => (open = !open)}
+					class="{ITEM} flex-1 cursor-pointer text-left {stylex.attrs(
+						surfaces.quietControl,
+						surfaces.uiText,
+						styles.item,
+					).class}"
+				>
+					<ChevronRight
+						class="size-3.5 shrink-0 {open ? 'rotate-90' : ''} {stylex.attrs(styles.chevron).class}"
+						aria-hidden="true"
+					/>
+					{#if open}
+						<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
+					{:else}
+						<Folder class="size-4 shrink-0" aria-hidden="true" />
+					{/if}
+					<span class="truncate">Articles</span>
+				</button>
+				<button
+					type="button"
+					aria-label="New article"
+					onclick={start}
+					class="cursor-pointer p-1.5 {stylex.attrs(
+						surfaces.quietControl,
+						surfaces.uiText,
+						styles.item,
+					).class}"
+				>
+					<Plus class="size-4" aria-hidden="true" />
+				</button>
+			</div>
+
+			{#if open}
+				<ul class="flex flex-col gap-0.5 max-md:hidden">
+					{#each articles as article (article.resource)}
+						{@const href = `/draft/${article.resource}`}
+						{@const current = page.url.pathname === href}
+						<li>
+							<a
+								{href}
+								aria-current={current ? 'page' : undefined}
+								title={article.meta.title ?? 'Untitled'}
+								class="{ITEM} ps-8 {stylex.attrs(
+									surfaces.quietControl,
+									surfaces.uiText,
+									styles.item,
+									current && styles.current,
+								).class}"
+							>
+								<FileText class="size-4 shrink-0" aria-hidden="true" />
+								<span class="truncate {stylex.attrs(!article.meta.title && styles.unnamed).class}"
+									>{article.meta.title ?? 'Untitled'}</span
+								>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+
+		<div class="md:pt-2">{@render entry(SETTINGS)}</div>
 	</nav>
 
 	<!-- The pane is the one thing that scrolls. The ground holds still around it, so the sections

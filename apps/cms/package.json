@@ -16,7 +16,8 @@
 		"@canmi/prose": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/tokens": "workspace:*",
-		"@canmi/urls": "workspace:*"
+		"@canmi/urls": "workspace:*",
+		"@lucide/svelte": "^1.47.0"
 	},
 	"devDependencies": {
 		"@milkdown/core": "^7.22.1",

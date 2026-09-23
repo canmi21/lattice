@@ -106,11 +106,19 @@ the unpainted sidebar material and the Tauri capability files were answers about
 one platform, and the next surface is a browser tab. The archive holds them, and a reader who
 wants them knows where to look.
 
-**The web client is a narrow column of sections beside one content pane.** The sections are the
-surfaces this plan builds -- drafts now, images and albums with B5 and B7 -- and the column lists
-only what exists, because a link to an unbuilt page is a promise the tool does not keep. It is a
-column rather than a row over the page so that adding a section changes a list and not a layout.
-Below the `md` width it folds into a row, since the CMS is still a page that has to open on a phone.
+**The web client is a narrow column of sections beside one content pane.** Overview comes first;
+then the site's own business -- traffic, references, comments -- then the articles, and settings
+alone at the foot. Each entry carries a line icon beside its label. A section may be placed before
+what it shows is designed, and then its page is empty: the column is being shaped first, and an
+empty page is the honest state of a section nobody has built yet. It is a column rather than a row
+over the page so that adding a section changes a list and not a layout. Below the `md` width it
+folds into a row of icons, since the CMS is still a page that has to open on a phone.
+
+**Articles is a folder, and every article is in it.** The row opens and closes the list under it,
+and the list is the draft rows, which is every article whether published or not -- the draft row
+outlives publication and is the working copy from then on. The folder carries the control that
+creates one. The ledger at `/articles` stays as the page for working the list rather than
+navigating it.
 
 **The column is the ground and the content is a pane set on it.** Structurally the two sit side by
 side in one container; visually the column has no edge of its own, and the pane is a rounded sheet
