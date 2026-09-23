@@ -39,6 +39,10 @@ export default defineConfig({
 	 * is named -- and the node suite stays at node's speed instead of 58 files paying for jsdom.
 	 */
 	test: {
+		// Before any suite, because that is the moment a parentless workerd is unambiguously from
+		// a run that is over -- this one has not spawned one yet. An interrupted run is the half
+		// of the leak the site's build hook does not reach; see the script for the other.
+		globalSetup: ['./apps/site/scripts/reap-workerd.ts'],
 		projects: [
 			{
 				test: {

@@ -10,6 +10,7 @@ import Icons from 'unplugin-icons/vite';
 import { execFileSync } from 'node:child_process';
 import { defineConfig, type UserConfig } from 'vite';
 import { parse as parseYaml } from 'yaml';
+import { reap } from './scripts/reap-workerd.ts';
 
 // The workspace root, because the visual layer is now written in two trees: this application and
 // the packages under `libs/`. StyleX hashes a class from the file's path relative to this.
@@ -98,6 +99,16 @@ export default defineConfig(({ mode }) => {
 	const uploadSourceMaps = uploadsSourceMaps();
 	return {
 		plugins: [
+			{
+				// The adapter leaks one workerd per build, and the last build's is parentless by
+				// now -- which is the only moment it can be told from a dev server's. Build only:
+				// `vite dev` never runs the adapter. See scripts/reap-workerd.ts.
+				name: 'reap-workerd',
+				apply: 'build' as const,
+				buildStart() {
+					reap();
+				},
+			},
 			tailwindcss(),
 			// One strategy, no built-in fallback: locale negotiation stays in the worker and
 			// Paraglide is told the answer. `url` is deliberately absent -- a locale never appears

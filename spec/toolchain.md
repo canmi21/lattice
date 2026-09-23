@@ -108,6 +108,25 @@ development, so the Rust mirror does too -- the two languages still give one ans
 that mirror is for. And `og:image` is a relative URL in development, which is invalid to a crawler
 and reaches none; production is unaffected.
 
+### A build reclaims the workerd the last one leaked
+
+**The site build leaks a workerd every time it runs.** `@sveltejs/adapter-cloudflare` calls
+`getPlatformProxy()` and never disposes it, so each `vite build` leaves one behind, parentless and
+listening, with nothing left that would ever ask it to stop. An interrupted `vitest` leaks one the
+same way, because `apps/api`'s D1 harness disposes its Miniflare in `afterAll` and a SIGKILL never
+reaches it. The suites themselves leak nothing: a build alone leaves one and the whole suite leaves
+none, which is how the two were told apart.
+
+Reclaimed rather than prevented, because a leaked process can only be told from a live one once
+its parent is gone -- which is after the run that made it. So
+[`reap-workerd.ts`](../apps/site/scripts/reap-workerd.ts) runs at the start of the next build and
+of the next test run, and on its own for the same job by hand.
+
+Two are spared. One whose parent is alive belongs to whoever started it, which is every dev server
+in the tmux session below. And one holding a pinned port is spared even with no parent, because
+`wrangler dev` has workerd bind that port itself -- a wrangler that died leaves a page somebody
+may still be reading, and closing it is not a build's business.
+
 ## The base session
 
 `mise run base up` ensures a tmux session named `<basename>-dev` exists with a window per server,
