@@ -238,12 +238,17 @@ what B3 would otherwise have to invent.
 | B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | **done** |
 | B2  | The desktop client is archived | Source moved to a repository of its own, out of the workspace and out of `check`                  | B1       | **done** |
 | B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near     |
-| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | **done** |
+| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | near     |
 | B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near     |
 | B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near     |
 | B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid      |
 | B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid      |
 | B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid      |
+
+**B3a is half taken.** The preview renders a draft with the site's own components, which is the
+route this row asked for; the draft root it was supposed to retire is still five places. A row
+reads `done` when nothing in it is waiting, and this one is waiting on the half that deletes
+things rather than the half that draws them.
 
 **The editor is configured by reading the site.** Both are SvelteKit over the same components,
 and every difference found so far was the site already knowing something: how StyleX's sheet
