@@ -154,9 +154,12 @@ a movement writes outlives it -- the resting place is always the stylesheet's.
 
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row
-outlives publication and is the working copy from then on. The folder carries the control that
-creates one. The ledger at `/articles` stays as the page for working the list rather than
-navigating it.
+outlives publication and is the working copy from then on. Inside it each category is a folder of
+its own, and an article with none sits directly under Articles. Depth is said by a small step inward
+rather than a full one per level, because a sidebar spends its width on names and a tree that
+indents properly runs out of it within two levels. A folder's chevron sits at the end of its row,
+not in front of its name, and the Articles row keeps the control that creates an article beside
+it. The ledger at `/articles` stays as the page for working the list rather than navigating it.
 
 **The column is the ground and the content is a pane set on it.** Structurally the two sit side by
 side in one container; visually the column has no edge of its own, and the pane is a rounded sheet

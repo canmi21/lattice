@@ -24,6 +24,7 @@
 	import { arriving, leaving, Movement } from '$lib/movement.ts';
 	import {
 		DRAFTS,
+		splitPath,
 		listRevisions,
 		publishDraft,
 		saveDraft,
@@ -44,19 +45,18 @@
 	let shortTitle = $derived((void data.draft, ''));
 	let shortSubtitle = $derived((void data.draft, ''));
 	// The address is a category and a slug, chosen apart: the category from those the corpus
-	// already uses, the slug written. A path with no category -- the homepage -- is a slug alone.
-	const address = (path: string | undefined) => {
-		const cut = path?.lastIndexOf('/') ?? -1;
-		return cut < 0
-			? { category: '', slug: path ?? '' }
-			: { category: path!.slice(0, cut), slug: path!.slice(cut + 1) };
-	};
-	let category = $derived(address(data.draft.meta.path).category);
-	let slug = $derived(address(data.draft.meta.path).slug);
+	// already uses, the slug written. See `splitPath`.
+	let category = $derived(splitPath(data.draft.meta.path).category);
+	let slug = $derived(splitPath(data.draft.meta.path).slug);
 	/** Writing a category the list does not have yet; it joins the list once a draft saves it. */
 	let naming = $derived.by(() => (void data.draft, false));
 	const categories = $derived(
-		[...new Set([...data.articles.map((article) => address(article.meta.path).category), category])]
+		[
+			...new Set([
+				...data.articles.map((article) => splitPath(article.meta.path).category),
+				category,
+			]),
+		]
 			.filter(Boolean)
 			.toSorted(),
 	);

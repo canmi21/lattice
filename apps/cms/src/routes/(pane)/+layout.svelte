@@ -22,7 +22,8 @@
 	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
 	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
-	import { createDraft, DRAFTS } from '$lib/collection.ts';
+	import { createDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { arriving, leaving, Movement } from '$lib/movement.ts';
 	import {
 		FOLD_BELOW,
@@ -61,6 +62,24 @@
 	 */
 	const articles = $derived(data.articles);
 	let open = $state(true);
+
+	/** Categories the writer closed; each is open until then. */
+	const closed = new SvelteSet<string>();
+
+	/** The articles with no category, and a folder per category in name order. */
+	const groups = $derived.by(() => {
+		const folders = new Map<string, Draft[]>();
+		const loose: Draft[] = [];
+		for (const entry of articles) {
+			const { category } = splitPath(entry.meta.path);
+			if (!category) loose.push(entry);
+			else folders.set(category, [...(folders.get(category) ?? []), entry]);
+		}
+		return { loose, folders: [...folders].toSorted(([a], [b]) => a.localeCompare(b)) };
+	});
+
+	/** The step inward per level: small, so depth reads without spending the sidebar's width on it. */
+	const INDENT = ['ps-2', 'ps-4', 'ps-6'];
 
 	async function start() {
 		const { resource } = await createDraft();
@@ -273,6 +292,36 @@
 	const ITEM = 'flex min-w-0 items-center gap-2 px-2 py-1.5 no-underline';
 </script>
 
+{#snippet chevron(shown: boolean)}
+	<ChevronRight
+		class="size-3.5 {shown ? 'rotate-90' : ''} {stylex.attrs(styles.chevron).class}"
+		aria-hidden="true"
+	/>
+{/snippet}
+
+{#snippet article(entry: Draft, depth: number)}
+	{@const href = `/draft/${entry.resource}`}
+	{@const current = page.url.pathname === href}
+	<li>
+		<a
+			{href}
+			aria-current={current ? 'page' : undefined}
+			title={entry.meta.title ?? 'Untitled'}
+			class="{ITEM} {INDENT[depth]} {stylex.attrs(
+				surfaces.quietControl,
+				surfaces.uiText,
+				styles.item,
+				current && styles.current,
+			).class}"
+		>
+			<FileText class="size-4 shrink-0" aria-hidden="true" />
+			<span class="truncate {stylex.attrs(!entry.meta.title && styles.unnamed).class}"
+				>{entry.meta.title ?? 'Untitled'}</span
+			>
+		</a>
+	</li>
+{/snippet}
+
 {#snippet entry(section: Section)}
 	{@const current = here(section.href)}
 	<a
@@ -327,8 +376,11 @@
 				{@render entry(section)}
 			{/each}
 
-			<!-- A folder: the row opens and closes it, and the list under it is every article. -->
-			<div class="mt-3 flex items-center gap-0.5">
+			<!-- Articles, a folder of every article, and inside it a folder per category. The depth is
+			     said by a small step inward rather than a full one per level, so a deep list does not
+			     run out of width; a folder's chevron sits at the row's end with the control beside
+			     it, not in front of the name. -->
+			<div class="mt-3 flex items-center">
 				<button
 					type="button"
 					aria-expanded={open}
@@ -339,10 +391,6 @@
 						styles.item,
 					).class}"
 				>
-					<ChevronRight
-						class="size-3.5 shrink-0 {open ? 'rotate-90' : ''} {stylex.attrs(styles.chevron).class}"
-						aria-hidden="true"
-					/>
 					{#if open}
 						<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
 					{:else}
@@ -354,38 +402,55 @@
 					type="button"
 					aria-label="New article"
 					onclick={start}
-					class="cursor-pointer p-1.5 {stylex.attrs(
-						surfaces.quietControl,
-						surfaces.uiText,
-						styles.item,
-					).class}"
+					class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
 				>
-					<Plus class="size-4" aria-hidden="true" />
+					<Plus class="size-3.5" aria-hidden="true" />
+				</button>
+				<button
+					type="button"
+					tabindex="-1"
+					aria-hidden="true"
+					onclick={() => (open = !open)}
+					class="cursor-pointer px-2 py-1.5 {stylex.attrs(surfaces.quietControl, styles.item)
+						.class}"
+				>
+					{@render chevron(open)}
 				</button>
 			</div>
 
 			{#if open}
 				<ul class="flex flex-col gap-0.5">
-					{#each articles as article (article.resource)}
-						{@const href = `/draft/${article.resource}`}
-						{@const current = page.url.pathname === href}
+					{#each groups.loose as entry (entry.resource)}
+						{@render article(entry, 1)}
+					{/each}
+					{#each groups.folders as [category, entries] (category)}
+						{@const shown = !closed.has(category)}
 						<li>
-							<a
-								{href}
-								aria-current={current ? 'page' : undefined}
-								title={article.meta.title ?? 'Untitled'}
-								class="{ITEM} ps-8 {stylex.attrs(
+							<button
+								type="button"
+								aria-expanded={shown}
+								onclick={() => (shown ? closed.add(category) : closed.delete(category))}
+								class="{ITEM} {INDENT[1]} w-full cursor-pointer text-left {stylex.attrs(
 									surfaces.quietControl,
 									surfaces.uiText,
 									styles.item,
-									current && styles.current,
 								).class}"
 							>
-								<FileText class="size-4 shrink-0" aria-hidden="true" />
-								<span class="truncate {stylex.attrs(!article.meta.title && styles.unnamed).class}"
-									>{article.meta.title ?? 'Untitled'}</span
-								>
-							</a>
+								{#if shown}
+									<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
+								{:else}
+									<Folder class="size-4 shrink-0" aria-hidden="true" />
+								{/if}
+								<span class="truncate">{category}</span>
+								<span class="ms-auto shrink-0">{@render chevron(shown)}</span>
+							</button>
+							{#if shown}
+								<ul class="mt-0.5 flex flex-col gap-0.5">
+									{#each entries as entry (entry.resource)}
+										{@render article(entry, 2)}
+									{/each}
+								</ul>
+							{/if}
 						</li>
 					{/each}
 				</ul>

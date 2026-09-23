@@ -69,3 +69,16 @@ export const previewDraft = (rid: string, fetcher?: Fetch) =>
 
 /** What a load that reads the article list declares, so a write can ask for it again. */
 export const DRAFTS = 'collection:drafts';
+
+/**
+ * An article's address as the two things a writer chooses: the category, which is everything
+ * before the last slash, and the slug after it. A path with no slash -- the homepage -- is a slug
+ * with no category. The sidebar groups by the first and the details drawer edits both.
+ */
+export function splitPath(path: string | undefined): { category: string; slug: string } {
+	if (!path) return { category: '', slug: '' };
+	const cut = path.lastIndexOf('/');
+	return cut < 0
+		? { category: '', slug: path }
+		: { category: path.slice(0, cut), slug: path.slice(cut + 1) };
+}
