@@ -269,15 +269,13 @@ pub fn plan(
 		}
 	}
 
-	// Every hash either root names, which is what stops this from deleting the corpus.
+	// Every hash the root names, which is what stops this from deleting the corpus: the objects
+	// tree holds compiled articles beside the assets, so a sweep knowing only about assets would
+	// call every article body an orphan.
 	//
-	// **Both roots, and the draft one is not optional.** A draft compiles into the same objects
-	// tree as everything else and only the draft root names it, so reading the published root
-	// alone would sweep every draft body on every run and the next publish would write it back.
-	// The objects tree holds compiled articles beside the assets, so a sweep that knew about
-	// assets alone would walk past every article body and call it an orphan.
+	// One root, where there were two. Nothing compiles a draft into this tree now, so a draft
+	// body left here is an orphan and reads as one. See spec/drafts.md.
 	keep.extend(hashes_in_root(metadata));
-	keep.extend(hashes_in_root(&crate::paths::draft_root(repo)));
 
 	// Cards are content-addressed too and share the flat space, but no article names one: they
 	// hang off `local og`'s record. The live set is what that command would draw -- every non-draft
@@ -712,9 +710,10 @@ mod tests {
 	}
 
 	#[test]
-	fn a_draft_body_is_kept_by_the_root_only_the_draft_names_it() {
-		// A draft compiles into the same objects tree as everything else, and the published root
-		// does not name it. Reading that root alone would sweep every draft body on every run.
+	fn sweeps_a_body_the_published_root_does_not_name() {
+		// There was a second root naming the drafts, and this asserted the opposite: that a body
+		// only it named survived. Nothing compiles a draft into this tree now, so a body the one
+		// root does not name is an orphan -- which is what the sweep is for. See spec/drafts.md.
 		let temporary = temp();
 		let root = temporary.path().to_path_buf();
 		std::fs::create_dir_all(root.join("contents")).expect("dir");
@@ -724,14 +723,9 @@ mod tests {
 		crate::image::store::write(&crate::image::store::variant_path(&public, &body, "json"), b"{}")
 			.expect("write");
 
-		let state = crate::paths::draft_root(&root).join("state");
-		std::fs::create_dir_all(&state).expect("dir");
-		std::fs::write(state.join("index.json"), format!("{{\"content\":\"{body}\"}}"))
-			.expect("draft root");
-
 		let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
 		let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
-		assert!(!names.contains(&body), "swept a draft body the draft root names");
+		assert!(names.contains(&body), "kept a body no root names");
 		std::fs::remove_dir_all(&root).ok();
 	}
 

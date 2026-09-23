@@ -51,15 +51,6 @@ pub fn bucket_root(repo: &Path) -> PathBuf {
 	repo.join("data").join("bucket")
 }
 
-/// The draft corpus, which is one root and a link to the published records.
-///
-/// Bucket-shaped like its two neighbours -- `wrangler dev` binds it as one -- and the only one of
-/// the three that is never mirrored. A draft's objects are in the objects tree like everything
-/// else; what withholds one is that the published root does not name it. See spec/drafts.md.
-pub fn draft_root(repo: &Path) -> PathBuf {
-	bucket_root(repo).join("draft")
-}
-
 /// The text a person curates, which is the one part of `data/` git keeps.
 ///
 /// Every record goes through this rather than being spelled where it is read: the commit that

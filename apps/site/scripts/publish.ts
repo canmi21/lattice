@@ -9,13 +9,10 @@ import {
 	mkdir,
 	readFile,
 	readdir,
-	readlink,
 	stat,
-	symlink,
-	unlink,
 	writeFile,
 } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { blake3 } from '@noble/hashes/blake3.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
@@ -42,9 +39,8 @@ const SITE = new URL('apps/site/', ROOT);
 /**
  * The corpus compiler's inputs, which are the ones vite.config.ts passes.
  *
- * Production addresses in both trees: an object names where its assets actually live, and the
- * draft tree is a preview of what publishing this corpus would produce rather than a corpus of
- * its own.
+ * Production addresses throughout: an object names where its assets actually live, wherever the
+ * pass that wrote it was run.
  */
 const INPUTS = {
 	brand: fileURLToPath(new URL('data/source/brand', ROOT)),
@@ -336,62 +332,30 @@ async function publishCorpus(
 	return tree.tally;
 }
 
-const [published, drafted, pageBuild] = await Promise.all([
+const [published, pageBuild] = await Promise.all([
 	buildArticles(INPUTS, { drafts: false }),
-	buildArticles(INPUTS, { drafts: true }),
 	buildPages({ contents: INPUTS.contents, messages: INPUTS.messages, segments: INPUTS.segments }),
 ]);
 
 /**
- * The one link left: the records, which the draft root names and the draft build never writes.
+ * One tree of objects and one root over it.
  *
- * `wrangler dev` binds exactly one directory, and the API needs both the draft root and the
- * published records to answer. Nothing else is linked -- the objects are one tree now, and the
- * draft root is the only file in this one.
- */
-async function linkRecords(metadataDir: string, draftDir: string): Promise<void> {
-	const link = join(draftDir, 'meta');
-	const target = join(relative(draftDir, metadataDir), 'meta');
-	const current = await readlink(link).catch(() => undefined);
-	if (current === target) return;
-	if (current !== undefined) await unlink(link);
-	await mkdir(draftDir, { recursive: true });
-	await symlink(target, link);
-}
-
-/**
- * One tree of objects, and a root per corpus.
- *
- * A draft compiles to a content-addressed object like anything else and lands in the same tree.
- * What withholds it is that the published root does not name it, and the root is the one thing
- * that turns a guessable slug into an id. See spec/drafts.md.
+ * There was a second root naming the drafts as well, so that a development site could open an
+ * article nothing had published. The CMS renders a draft from the draft row now, which answers
+ * that need where the writing already is -- so the root, the symlink it needed to reach the
+ * records, and the pass that built it are all gone. See spec/drafts.md.
  */
 const objectsDir = new URL('data/bucket/objects/', ROOT);
-const roots = [
-	{
-		name: 'public',
-		metadata: new URL('data/bucket/metadata/', ROOT),
-		articles: published.articles,
-	},
-	{ name: 'draft', metadata: new URL('data/bucket/draft/', ROOT), articles: drafted.articles },
-];
+const metadataDir = new URL('data/bucket/metadata/', ROOT);
 
-for (const { name, metadata, articles } of roots) {
-	const { written, present, bytes } = await publishCorpus(
-		fileURLToPath(objectsDir),
-		fileURLToPath(metadata),
-		articles,
-		pageBuild.pages,
-	);
-	console.log(
-		`${name}: ${articles.length} articles, ${pageBuild.pages.length} pages, ` +
-			`${written + present} objects -- ${written} written ` +
-			`(${bytes.toLocaleString('en-US')} bytes), ${present} already present`,
-	);
-}
-
-await linkRecords(
-	fileURLToPath(new URL('data/bucket/metadata/', ROOT)),
-	fileURLToPath(new URL('data/bucket/draft/', ROOT)),
+const { written, present, bytes } = await publishCorpus(
+	fileURLToPath(objectsDir),
+	fileURLToPath(metadataDir),
+	published.articles,
+	pageBuild.pages,
 );
-console.log('draft: records linked from the published tree');
+console.log(
+	`public: ${published.articles.length} articles, ${pageBuild.pages.length} pages, ` +
+		`${written + present} objects -- ${written} written ` +
+		`(${bytes.toLocaleString('en-US')} bytes), ${present} already present`,
+);

@@ -16,6 +16,10 @@
 @import '@canmi/prose/rail.css';
 @import './utilities.css';
 @source '../routes';
+/* The article renderer is a package now, and Tailwind does not walk into one. Its components
+   write utilities beside their StyleX, so a utility only they use -- `py-0.75` on a rail entry
+   was the one that showed it -- is never generated unless this file says where to look. */
+@source '../../../../libs/prose/src';
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
 

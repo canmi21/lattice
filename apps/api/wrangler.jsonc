@@ -103,12 +103,12 @@
 					"simple": { "limit": 1, "period": 60 },
 				},
 			],
-			// The draft root, plus a link to the published records the draft build never writes.
-			// Development answers from a root that names the drafts; production answers from one
-			// that does not, and rclone is pointed inside data/bucket and cannot reach this one.
-			// See spec/drafts.md.
+			// The published root and the records beside it. There was a second root naming the
+			// drafts as well, bound here so a development site could open an unpublished article;
+			// the CMS renders a draft from its row now, so development and production answer from
+			// the same tree. See spec/drafts.md.
 			"assets": {
-				"directory": "../../data/bucket/draft",
+				"directory": "../../data/bucket/metadata",
 				"binding": "ASSETS",
 				"run_worker_first": true,
 			},
