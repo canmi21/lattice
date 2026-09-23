@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-#MISE description="Keep the base workspace's dev servers up in tmux: `base up [cms]`, `base status`, `base down`"
+#MISE description="Keep the base workspace's dev servers up in tmux: `base up`, `base status`, `base down`"
 """The base workspace's dev servers, as one tmux session. See spec/toolchain.md, "The base session".
 
-  up [cms]  ensure session `<basename>-dev` exists with a window per server, each running its
+  up        ensure session `<basename>-dev` exists with a window per server, each running its
             mise dev task; windows already running are left alone, windows whose server has
-            exited are restarted. `cms` adds the desktop CMS, which is not part of the always-on
-            set because it is a window somebody uses rather than a server somebody calls.
+            exited are restarted.
   status    one line per window: what is running in it
   down      kill the session, and with it every server
 
@@ -25,9 +24,9 @@ sys.dont_write_bytecode = True
 BASE = pathlib.Path(__file__).resolve().parents[2]
 SESSION = f"{BASE.name}-dev"
 # Deployed names, which is what a `dev-` task and a tmux window are named for; the alias layer
-# is deployed as `aka`. See spec/architecture/delivery.md.
-SERVERS = ["site", "api", "cdn", "aka"]
-OPTIONAL = {"cms"}
+# is deployed as `aka`. See spec/architecture/delivery.md. `local` and the editor run beside them,
+# `local` first because the editor reads the collection through it.
+SERVERS = ["site", "api", "cdn", "aka", "local", "cms"]
 # A window whose foreground command is a shell has no server in it any more.
 SHELLS = {"fish", "zsh", "bash", "sh", "-fish", "-zsh", "-bash"}
 
@@ -68,11 +67,10 @@ def start(app: str, existing: dict[str, str]) -> str:
 
 
 def up(extra: list[str]) -> int:
-	unknown = [app for app in extra if app not in OPTIONAL]
-	if unknown:
-		raise SystemExit(f"error: unknown server(s) {', '.join(unknown)}; optional: {', '.join(sorted(OPTIONAL))}")
+	if extra:
+		raise SystemExit(f"error: `up` takes no arguments; every server is always on: {', '.join(SERVERS)}")
 	existing = windows()
-	for app in [*SERVERS, *extra]:
+	for app in SERVERS:
 		print(start(app, existing))
 		existing = windows()
 	print(f"attach with `tmux attach -t {SESSION}`")

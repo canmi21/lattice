@@ -131,8 +131,13 @@ may still be reading, and closing it is not a build's business.
 
 `mise run base up` ensures a tmux session named `<basename>-dev` exists with a window per server,
 each running that server's mise dev task. A window already running is left alone; one whose server
-has exited is restarted. It took an argument once, for the desktop client -- a window somebody
-used rather than a server somebody called -- and that client is archived.
+has exited is restarted.
+
+**Every server is always on, `local` and the editor included, and `up` takes no argument.** The
+editor was optional while it was the desktop client -- a window somebody used rather than a server
+somebody called -- and that client is archived. What replaced it is a Vite server reading the
+collection through `local`, so both are servers like the rest, and an opt-in for them only left
+them to be started by hand outside the session, where nothing could see or stop them.
 
 **It runs from the base checkout only.** The base is the one checkout that runs everything, on
 the numbers "Dev ports are pinned" above fixes, so a second checkout starting these would
