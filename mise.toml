@@ -204,6 +204,12 @@ run = "node libs/collection/src/migrate.ts"
 description = "Read or set an article's metadata in the collection"
 run = "node libs/collection/src/meta.ts"
 
+# What the translation sidecars hold and where it would land. Read-only: the shape it reports is
+# the thing to agree on before anything is written. See spec/todo/milestones.md, A7.
+[tasks.translations]
+description = "Survey the translation sidecars against the collection, writing nothing"
+run = "node libs/collection/src/translations.ts"
+
 # What still names a run of bytes, and what has stopped. Reporting is the default; `--collect`
 # takes what the grace period released, and cannot be undone. See spec/todo/milestones.md, A6.
 [tasks.sweep]
