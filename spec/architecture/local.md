@@ -157,6 +157,21 @@ below hold still; the articles between them are the one list that grows, so they
 moves, and the Articles row itself -- with the control that creates an article -- stays at the top
 of its region while the tree under it scrolls.
 
+**A right click on the sidebar's rows opens the sidebar's own menu, and anywhere else it is the
+browser's.** A section, the Articles folder, a category and an article each offer what can be done to
+them -- open, open in a new tab, preview, copy an identifier or a link, open and close folders, and
+delete. The handler is on those rows and nowhere above them: the pane, the text and the ground keep
+the browser's menu, because a tool that takes the right click everywhere takes away copying, spell
+checking and inspecting to offer a handful of its own entries. An entry that cannot apply is shown
+and refused, with the reason on hover, rather than left out, so the menu keeps its shape.
+
+**Deleting takes back a draft that was never published, and asks twice.** The collection is in no
+version control and not yet backed up, so a deletion cannot be undone; the first click turns the
+entry into the question and only the second deletes. A published article is not deleted at all --
+taking one off the site is its own act -- and the entry says so. Only the draft and the identity
+reserved for it go, and the database's own foreign keys refuse the deletion if anything else still
+names the rid. See [discard.ts](../../libs/collection/src/discard.ts).
+
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row
 outlives publication and is the working copy from then on. Inside it each category is a folder of

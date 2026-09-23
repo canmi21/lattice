@@ -19,7 +19,14 @@ export type Draft = {
 	meta: DraftMeta;
 	created: string;
 	updated: string;
+	/** Whether it has a revision. Only the list says; a draft read alone does not. */
+	published?: boolean;
 };
+
+/** What taking back a draft answers with. See libs/collection/src/discard.ts. */
+export type Discarded =
+	| { discarded: true }
+	| { discarded: false; refused: 'absent' | 'published' | 'referenced'; detail: string };
 
 export type Revision = { seq: number; at: string; atLocked: boolean; note: string | null };
 
@@ -50,6 +57,9 @@ export const createDraft = () => call<{ resource: string }>('/drafts', { method:
 
 export const saveDraft = (rid: string, body: string, meta: DraftMeta) =>
 	call<Draft>(`/drafts/${rid}`, { method: 'PUT', body: JSON.stringify({ body, meta }) });
+
+export const discardDraft = (rid: string) =>
+	call<Discarded>(`/drafts/${rid}`, { method: 'DELETE' });
 
 export const publishDraft = (rid: string) =>
 	call<Publication>(`/drafts/${rid}/publish`, { method: 'POST', body: '{}' });

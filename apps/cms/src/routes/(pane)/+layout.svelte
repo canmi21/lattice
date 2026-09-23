@@ -4,7 +4,17 @@
 	import { page } from '$app/state';
 	import ChartLine from '@lucide/svelte/icons/chart-line';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
+	import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up';
+	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
+	import Copy from '@lucide/svelte/icons/copy';
+	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import Eye from '@lucide/svelte/icons/eye';
+	import FilePlus from '@lucide/svelte/icons/file-plus';
 	import FileText from '@lucide/svelte/icons/file-text';
+	import Hash from '@lucide/svelte/icons/hash';
+	import Trash from '@lucide/svelte/icons/trash';
+	import Type from '@lucide/svelte/icons/type';
 	import Folder from '@lucide/svelte/icons/folder';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
 	import House from '@lucide/svelte/icons/house';
@@ -22,7 +32,10 @@
 	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
 	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
-	import { createDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
+	import { URLS } from '@canmi/urls';
+	import { forget } from '$lib/buffer.ts';
+	import ContextMenu, { SEPARATOR, type MenuEntry, type MenuItem } from '$lib/context-menu.svelte';
+	import { createDraft, discardDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { foldHeight } from '$lib/fold.ts';
 	import { arriving, leaving, Movement } from '$lib/movement.ts';
@@ -85,6 +98,149 @@
 	 * its level does and still runs to the sidebar's edge, and the tree reads in the highlight too.
 	 */
 	const INDENT = ['', 'ms-2', 'ms-4'];
+
+	/**
+	 * The sidebar's own menu, on the rows that have something to offer: a section, the Articles
+	 * folder, a category, an article. Anywhere else a right click is the browser's -- the handler is
+	 * on those rows and nowhere above them. See $lib/context-menu.svelte.
+	 */
+	let menu = $state<{ x: number; y: number; build: () => MenuItem[] }>();
+	/** The draft whose deletion has been asked for once, and waits for the second ask. */
+	let confirming = $state<string>();
+	/** Why a deletion was refused, said in the menu that asked for it. */
+	let refusal = $state<string>();
+
+	function offer(event: MouseEvent, build: () => MenuItem[]) {
+		event.preventDefault();
+		event.stopPropagation();
+		confirming = undefined;
+		refusal = undefined;
+		menu = { x: event.clientX, y: event.clientY, build };
+	}
+
+	const copy = (text: string) => navigator.clipboard.writeText(text);
+	const newTab = (href: string) => void window.open(href, '_blank');
+
+	function sectionMenu(section: Section): MenuItem[] {
+		return [
+			{ label: 'Open', icon: section.icon, run: () => goto(section.href) },
+			{ label: 'Open in new tab', icon: ExternalLink, run: () => newTab(section.href) },
+			SEPARATOR,
+			{
+				label: 'Copy link',
+				icon: Link,
+				run: () => copy(new URL(section.href, location.origin).href),
+			},
+		];
+	}
+
+	function articlesMenu(): MenuItem[] {
+		return [
+			{ label: 'New article', icon: FilePlus, run: start },
+			SEPARATOR,
+			{
+				label: 'Open all folders',
+				icon: ChevronsUpDown,
+				run: () => {
+					open = true;
+					closed.clear();
+				},
+			},
+			{
+				label: 'Close all folders',
+				icon: ChevronsDownUp,
+				run: () => {
+					for (const [name] of groups.folders) closed.add(name);
+				},
+			},
+		];
+	}
+
+	function categoryMenu(category: string): MenuItem[] {
+		const shown = !closed.has(category);
+		return [
+			{
+				label: shown ? 'Close folder' : 'Open folder',
+				icon: shown ? Folder : FolderOpen,
+				run: () => void (shown ? closed.add(category) : closed.delete(category)),
+			},
+			{
+				label: 'Close other folders',
+				icon: ChevronsDownUp,
+				run: () => {
+					for (const [name] of groups.folders) if (name !== category) closed.add(name);
+					closed.delete(category);
+				},
+			},
+			SEPARATOR,
+			{ label: 'Copy category', icon: Copy, run: () => copy(category) },
+		];
+	}
+
+	function articleMenu(entry: Draft): MenuItem[] {
+		const href = `/draft/${entry.resource}`;
+		const { title, path } = entry.meta;
+		return [
+			{ label: 'Open', icon: FileText, run: () => goto(href) },
+			{ label: 'Open in new tab', icon: ExternalLink, run: () => newTab(href) },
+			{ label: 'Preview in new tab', icon: Eye, run: () => newTab(`/preview/${entry.resource}`) },
+			SEPARATOR,
+			{
+				label: 'Copy title',
+				icon: Type,
+				run: () => copy(title ?? ''),
+				refused: title ? undefined : 'It has no title yet',
+			},
+			{ label: 'Copy ID', icon: Hash, run: () => copy(entry.resource) },
+			{
+				label: 'Copy path',
+				icon: Link,
+				run: () => copy(`/${path}`),
+				refused: path ? undefined : 'It has no path yet',
+			},
+			{
+				label: 'Copy site link',
+				icon: ArrowUpRight,
+				run: () => copy(`${URLS.apps.production.site}/${path}`),
+				refused: entry.published && path ? undefined : 'It is not on the site',
+			},
+			SEPARATOR,
+			deletion(entry),
+		];
+	}
+
+	/**
+	 * Deleting asks twice, because a draft taken back cannot be brought back: the collection is in
+	 * no version control and not yet backed up. A published article is not deleted at all -- taking
+	 * one off the site is its own act. See libs/collection/src/discard.ts.
+	 */
+	function deletion(entry: Draft): MenuEntry {
+		const base = { label: 'Delete', icon: Trash, danger: true, stays: true };
+		if (entry.published) {
+			return {
+				...base,
+				refused: 'A published article is taken off the site, not deleted',
+				run: () => {},
+			};
+		}
+		if (refusal) return { ...base, label: refusal, refused: refusal, run: () => {} };
+		if (confirming !== entry.resource) {
+			return { ...base, run: () => void (confirming = entry.resource) };
+		}
+		return { ...base, label: 'Click again to delete', run: () => remove(entry) };
+	}
+
+	async function remove(entry: Draft) {
+		const done = await discardDraft(entry.resource);
+		if (!done.discarded) {
+			refusal = done.detail;
+			return;
+		}
+		menu = undefined;
+		forget(entry.resource);
+		await invalidate(DRAFTS);
+		if (page.url.pathname === `/draft/${entry.resource}`) await goto('/articles');
+	}
 
 	async function start() {
 		const { resource } = await createDraft();
@@ -206,7 +362,8 @@
 	const moved = edgeReveal({
 		side: 'left',
 		...EDGE_MARGINS,
-		live: () => folded && peek !== 'pinned',
+		// A menu open over it holds it up: reaching the menu can take the pointer past its edge.
+		live: () => folded && peek !== 'pinned' && !menu,
 		out: () => peek === 'hover',
 		panel: () => nav,
 		reveal: () => void lift('hover'),
@@ -315,6 +472,7 @@
 			{href}
 			aria-current={current ? 'page' : undefined}
 			title={entry.meta.title ?? 'Untitled'}
+			oncontextmenu={(event) => offer(event, () => articleMenu(entry))}
 			class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(
 				surfaces.quietControl,
 				surfaces.uiText,
@@ -335,6 +493,7 @@
 	<a
 		href={section.href}
 		aria-current={current ? 'page' : undefined}
+		oncontextmenu={(event) => offer(event, () => sectionMenu(section))}
 		class="{ITEM} {stylex.attrs(
 			surfaces.quietControl,
 			surfaces.uiText,
@@ -393,6 +552,7 @@
 					type="button"
 					aria-expanded={open}
 					onclick={() => (open = !open)}
+					oncontextmenu={(event) => offer(event, articlesMenu)}
 					class="{ITEM} flex-1 cursor-pointer text-left {stylex.attrs(
 						surfaces.quietControl,
 						surfaces.uiText,
@@ -442,6 +602,7 @@
 									type="button"
 									aria-expanded={shown}
 									onclick={() => (shown ? closed.add(category) : closed.delete(category))}
+									oncontextmenu={(event) => offer(event, () => categoryMenu(category))}
 									class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
 										surfaces.quietControl,
 										surfaces.uiText,
@@ -542,6 +703,12 @@
 		{/if}
 	</div>
 </div>
+
+{#if menu}
+	{#key menu}
+		<ContextMenu x={menu.x} y={menu.y} items={menu.build()} close={() => (menu = undefined)} />
+	{/key}
+{/if}
 
 <style>
 	/* The ground the pane is set on, and held still: the document never scrolls, only the pane
