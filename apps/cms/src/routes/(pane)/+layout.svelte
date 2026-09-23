@@ -13,6 +13,7 @@
 	import FilePlus from '@lucide/svelte/icons/file-plus';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Hash from '@lucide/svelte/icons/hash';
+	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash from '@lucide/svelte/icons/trash';
 	import Type from '@lucide/svelte/icons/type';
 	import Folder from '@lucide/svelte/icons/folder';
@@ -105,6 +106,25 @@
 	 * on those rows and nowhere above them. See $lib/context-menu.svelte.
 	 */
 	let menu = $state<{ x: number; y: number; build: () => MenuItem[] }>();
+	/**
+	 * The row being renamed, in place: an article by its rid, a category by `category:` and its
+	 * name. Not wired: leaving the field -- Enter, Escape, or anywhere else -- writes nothing yet.
+	 */
+	let renaming = $state<{ key: string; value: string }>();
+
+	/** Focus the field a rename opens, with its text chosen so typing replaces it. */
+	function field(node: HTMLInputElement) {
+		node.focus();
+		node.select();
+	}
+
+	function renameKey(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === 'Escape') {
+			event.preventDefault();
+			renaming = undefined;
+		}
+	}
+
 	/** The draft whose deletion has been asked for once, and waits for the second ask. */
 	let confirming = $state<string>();
 	/** Why a deletion was refused, said in the menu that asked for it. */
@@ -174,6 +194,12 @@
 			},
 			SEPARATOR,
 			{ label: 'Copy category', icon: Copy, run: () => copy(category) },
+			SEPARATOR,
+			{
+				label: 'Rename',
+				icon: Pencil,
+				run: () => void (renaming = { key: `category:${category}`, value: category }),
+			},
 		];
 	}
 
@@ -205,6 +231,11 @@
 				refused: entry.published && path ? undefined : 'It is not on the site',
 			},
 			SEPARATOR,
+			{
+				label: 'Rename',
+				icon: Pencil,
+				run: () => void (renaming = { key: entry.resource, value: entry.meta.title ?? '' }),
+			},
 			deletion(entry),
 		];
 	}
@@ -468,24 +499,49 @@
 	{@const href = `/draft/${entry.resource}`}
 	{@const current = page.url.pathname === href}
 	<li class="flex flex-col">
-		<a
-			{href}
-			aria-current={current ? 'page' : undefined}
-			title={entry.meta.title ?? 'Untitled'}
-			oncontextmenu={(event) => offer(event, () => articleMenu(entry))}
-			class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(
-				surfaces.quietControl,
-				surfaces.uiText,
-				styles.item,
-				current && styles.current,
-			).class}"
-		>
-			<FileText class="size-4 shrink-0" aria-hidden="true" />
-			<span class="truncate {stylex.attrs(!entry.meta.title && styles.unnamed).class}"
-				>{entry.meta.title ?? 'Untitled'}</span
+		{#if renaming?.key === entry.resource}
+			{@render renamer(FileText, depth)}
+		{:else}
+			<a
+				{href}
+				aria-current={current ? 'page' : undefined}
+				title={entry.meta.title ?? 'Untitled'}
+				oncontextmenu={(event) => offer(event, () => articleMenu(entry))}
+				class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(
+					surfaces.quietControl,
+					surfaces.uiText,
+					styles.item,
+					current && styles.current,
+				).class}"
 			>
-		</a>
+				<FileText class="size-4 shrink-0" aria-hidden="true" />
+				<span class="truncate {stylex.attrs(!entry.meta.title && styles.unnamed).class}"
+					>{entry.meta.title ?? 'Untitled'}</span
+				>
+			</a>
+		{/if}
 	</li>
+{/snippet}
+
+<!-- A row turned into its own name, to be written over: the row's shape and icon, on the ground a
+     current row takes, so it is plain which one is being renamed. -->
+{#snippet renamer(Icon: Component, depth: number)}
+	{#if renaming}
+		<label
+			class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(surfaces.uiText, styles.item, styles.current)
+				.class}"
+		>
+			<Icon class="size-4 shrink-0" aria-hidden="true" />
+			<input
+				bind:value={renaming.value}
+				use:field
+				onkeydown={renameKey}
+				onblur={() => (renaming = undefined)}
+				aria-label="New name"
+				class="min-w-0 flex-1 bg-transparent outline-none"
+			/>
+		</label>
+	{/if}
 {/snippet}
 
 {#snippet entry(section: Section)}
@@ -598,24 +654,28 @@
 						{#each groups.folders as [category, entries] (category)}
 							{@const shown = !closed.has(category)}
 							<li class="flex flex-col">
-								<button
-									type="button"
-									aria-expanded={shown}
-									onclick={() => (shown ? closed.add(category) : closed.delete(category))}
-									oncontextmenu={(event) => offer(event, () => categoryMenu(category))}
-									class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
-										surfaces.quietControl,
-										surfaces.uiText,
-										styles.item,
-									).class}"
-								>
-									{#if shown}
-										<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
-									{:else}
-										<Folder class="size-4 shrink-0" aria-hidden="true" />
-									{/if}
-									<span class="truncate">{category}</span>
-								</button>
+								{#if renaming?.key === `category:${category}`}
+									{@render renamer(shown ? FolderOpen : Folder, 1)}
+								{:else}
+									<button
+										type="button"
+										aria-expanded={shown}
+										onclick={() => (shown ? closed.add(category) : closed.delete(category))}
+										oncontextmenu={(event) => offer(event, () => categoryMenu(category))}
+										class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
+											surfaces.quietControl,
+											surfaces.uiText,
+											styles.item,
+										).class}"
+									>
+										{#if shown}
+											<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
+										{:else}
+											<Folder class="size-4 shrink-0" aria-hidden="true" />
+										{/if}
+										<span class="truncate">{category}</span>
+									</button>
+								{/if}
 								<div use:foldHeight={shown} class="overflow-hidden">
 									<ul class="flex flex-col">
 										{#each entries as entry (entry.resource)}
