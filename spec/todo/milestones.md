@@ -268,11 +268,15 @@ construction rather than by care.
 | id  | milestone                              | what it is                                                                                | after | horizon |
 | --- | -------------------------------------- | ----------------------------------------------------------------------------------------- | ----- | ------- |
 | C1  | The collection leaves the repository   | It lives on its own, and `local` is the only process that may write it                    | B1    | mid     |
-| C0  | What cannot be recomputed is backed up | A real backup of the authored database, the id register and the paid outputs              | C1    | mid     |
+| C0  | What cannot be recomputed is backed up | A real backup of the authored database, the id register and the paid outputs              | A1    | mid     |
 | C2  | Development gets copies                | Published objects read from the live CDN, reader state dumped once; no full copy, ever    | C1    | mid     |
 | C3  | The corpus leaves git                  | History and backup become the CMS's; cannot start before C0                               | A4 C0 | mid     |
 | C4  | A measuring step at publication        | A controlled headless browser answers what only a browser knows, and the answer is stored | B6    | mid     |
 | C5  | The data directory retires             | Nothing under `data/` is tracked, because nothing there is git's to keep                  | C3    | mid     |
+
+**C0 waits on nothing but the database existing.** It was ordered after C1 while C1 was assumed to
+come first; a backup does not need the collection to have moved, and the things it protects are
+already written. C1 is the one deferred, so C0 stops waiting on it.
 
 **C0 is ordered before C3 and the order is the point.** Git is what currently backs up the things
 no run can reproduce: the id register, whose entries are identities other records point at, and the
@@ -335,14 +339,16 @@ collection, and what a reader sees there is its text plus components the site's 
 makes it a different shape from an article rather than a simpler one, and it is worth designing
 once the editor has settled rather than guessing alongside it. Blocks nothing; revisit after B4.
 
-**Where the collection lives, and whether the authored file is split further.** Two files exist
-already and that split is settled: `source.sqlite` is what a person wrote and `derived.sqlite` is
-what a scan can write again, so the backup boundary is visible in the filesystem. Neither half of
-this question is that one. The collection sits inside the working tree today, where an abandoned
-change or a cleaned directory can reach it, and C1 is what moves it somewhere only `local` writes.
-The second half is whether `source.sqlite`'s fourteen tables stay one file: the id register and
-the paid text cannot be recomputed and the rest largely can, so splitting shrinks what a backup
-must be careful with and costs every join across the line. Blocks C1.
+**The authored database stays one file, and the collection stays where it is for now.** Two files
+exist and that split is settled: `source.sqlite` is what a person wrote, `derived.sqlite` is what
+a scan can write again, and the backup boundary is visible in the filesystem. `source.sqlite` is
+not split further -- one file is one lock, one backup and joins that work, and the alternative
+buys a smaller careful-backup at the cost of every join across the line.
+
+Moving the collection out of the working tree was argued for here on a reason that turned out to
+be false: version control cannot reach it, because it is ignored, and an abandoned change leaves
+it untouched -- measured, not assumed. `clean` is barred from local state by its own rule. What is
+actually left for C1 is growth and D2's move to another machine, neither of which presses today.
 
 **What `local` is called once it is not local.** The name describes where it runs, and D2 moves it
 to another machine while D4 puts its surface on the public internet. It is the right name for the
