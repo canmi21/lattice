@@ -1,8 +1,8 @@
 # The CMS as an application
 
-**The client this file describes is archived.** It ran as a Tauri window with a Milkdown editor
-inside it, and it is now source kept to be read under
-[archive/desktop-cms](../../archive/desktop-cms) -- nothing there builds. What survives it is the
+**The client this file describes is gone from here.** It ran as a Tauri window with a Milkdown
+editor inside it, and it is now source kept to be read at
+<https://github.com/canmi21/desktop-cms-archive> -- nothing there builds. What survives it is the
 rule the window was the second shell of: an operation lives below both shells, and a GUI never
 owns a second implementation. The surface that replaces it is a web client against `local`; see
 [../todo/milestones.md](../todo/milestones.md). Filenames below name files in the archive.

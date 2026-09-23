@@ -120,13 +120,13 @@ malformed id and a wrong kind are both 400, and only an id nothing holds is 404.
 
 ## Names
 
-| name                   | what it is                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| `collection`           | the authored data itself: text, original bytes, derived cache, the authored database |
-| `local`                | the service that owns it -- the only writer, a Rust facade with a TypeScript half    |
-| `cms`                  | from here on, only the management surface: the editor, images, albums, reader data   |
-| `api`                  | the public worker, which answers for reader state and carries no authored endpoint   |
-| `archive/desktop-cms/` | the Tauri client's source, kept as reference and built by nothing                    |
+| name         | what it is                                                                           |
+| ------------ | ------------------------------------------------------------------------------------ |
+| `collection` | the authored data itself: text, original bytes, derived cache, the authored database |
+| `local`      | the service that owns it -- the only writer, a Rust facade with a TypeScript half    |
+| `cms`        | from here on, only the management surface: the editor, images, albums, reader data   |
+| `api`        | the public worker, which answers for reader state and carries no authored endpoint   |
+| the archive  | the Tauri client's source, at `canmi21/desktop-cms-archive` and built by nothing     |
 
 `collection` rather than `content` because [architecture/resource.md](../architecture/resource.md)
 already settled that only one thing here may be spelled "content", and that thing is the bytes a

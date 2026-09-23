@@ -276,7 +276,7 @@ exported by `@canmi/fonts`, and are rejected otherwise. That single catalogue pr
 syntax and renderer capabilities from drifting apart.
 
 **The editor this describes is archived**, and so is the round-trip check that guarded it: both
-are under [archive/desktop-cms](../archive/desktop-cms), read rather than run. What they say about
+are at <https://github.com/canmi21/desktop-cms-archive>, read rather than run. What they say about
 the syntax still holds, because the syntax is the corpus's rather than that editor's -- and the
 next editor inherits the same obligation, which is that a parse and serialize pass has to be
 idempotent on the stored articles and that the damage from breaking it is invisible in a diff.
