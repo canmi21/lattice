@@ -24,7 +24,8 @@
 		"./theme-toggle.svelte": "./src/theme-toggle.svelte",
 		"./measured": "./src/measured.ts",
 		"./rail.css": "./src/rail.css",
-		"./shell.svelte": "./src/shell.svelte"
+		"./shell.svelte": "./src/shell.svelte",
+		"./prose-root.svelte": "./src/prose-root.svelte"
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
