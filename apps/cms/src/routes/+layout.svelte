@@ -32,7 +32,7 @@
 </svelte:head>
 
 <main>
-	<a class="home" href="/">collection</a>
+	<div class="chrome"><a class="home" href="/">collection</a></div>
 	{@render children()}
 </main>
 
@@ -44,10 +44,19 @@
 		font-family: ui-sans-serif, system-ui, sans-serif;
 	}
 
+	/* No column here. The preview draws the site's own page, whose rail works out where it goes
+	   from the width it is given -- a wrapper narrower than an article plus its rail leaves the
+	   rail no region to sit in, and it collapses against the edge. What needs a measure is the
+	   editor, which sets its own. */
 	main {
+		padding: 2rem 1rem 6rem;
+	}
+
+	/* Global because the editor's own controls carry it: the measure belongs to the chrome
+	   wherever it is written, and the preview inside the same page must not take it. */
+	:global(.chrome) {
 		max-width: 48rem;
 		margin: 0 auto;
-		padding: 2rem 1rem 6rem;
 	}
 
 	.home {

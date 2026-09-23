@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import ActionBar from '@canmi/prose/action-bar.svelte';
+	import { tick } from 'svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
-	import Toc from '@canmi/prose/toc.svelte';
+	import Shell from '@canmi/prose/shell.svelte';
+	import { articleRailScript } from '@canmi/prose/rail';
 	import { currentTheme } from '@canmi/theme';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
@@ -76,6 +77,10 @@
 		await save();
 		preview = await previewDraft(rid);
 		said = undefined;
+		// The rail's vertical placement is a measurement, and the site takes it in a shell script
+		// once the markup is there. Here the markup arrives after a fetch, so it is taken then.
+		await tick();
+		new Function(articleRailScript)();
 	}
 
 	async function publish() {
@@ -90,25 +95,31 @@
 {#if draft === undefined}
 	<p class="quiet">Opening {rid}…</p>
 {:else}
-	<div class="fields">
+	<div class="chrome fields">
 		<input bind:value={title} placeholder="Title" class="title" />
 		<input bind:value={path} placeholder="architecture/some-slug" />
 		<input bind:value={language} placeholder="en" class="short" />
 	</div>
 
 	{#if showing && preview}
-		<!-- The rail and the bar the site draws around an article, drawn around this one. Both are
-		     fixed strips that position against the viewport, so they sit outside the column. -->
-		<Toc toc={preview.toc} />
-		<ActionBar locale="mw" theme={currentTheme()} />
-		<article class="preview">
+		<!-- The page the site reads an article on, drawn around this draft. Not a preview layout:
+		     the same component, so there is nothing here that can drift from what is published. -->
+		<Shell toc={preview.toc} locale="mw" theme={currentTheme()}>
+			{#snippet home()}
+				<!-- The rail script measures this to place the rail; the site's own control links
+				     home, which is not where this one is. -->
+				<div class="home-slot"></div>
+			{/snippet}
+			{#snippet header()}
+				<h1 class="text-2xl font-semibold">{title || 'Untitled'}</h1>
+			{/snippet}
 			<ArticleBody blocks={preview.blocks} resources={preview.resources} locale="mw" />
-		</article>
+		</Shell>
 	{:else}
-		<Editor markdown={draft.body} onChange={typed} />
+		<div class="chrome"><Editor markdown={draft.body} onChange={typed} /></div>
 	{/if}
 
-	<div class="bar">
+	<div class="chrome bar">
 		<button onclick={save}>Save</button>
 		<button onclick={look}>{showing ? 'Edit' : 'Preview'}</button>
 		<button onclick={publish}>Publish</button>
@@ -117,7 +128,7 @@
 	</div>
 
 	{#if revisions.length > 0}
-		<ul class="revisions">
+		<ul class="chrome revisions">
 			{#each revisions as revision (revision.seq)}
 				<li class="quiet">
 					{revision.seq} · {revision.at.slice(0, 10)}{revision.atLocked ? ' · locked' : ''}
@@ -165,9 +176,6 @@
 		color: inherit;
 		cursor: pointer;
 		font: inherit;
-	}
-	.preview {
-		min-height: 24rem;
 	}
 	.revisions {
 		margin-top: 2rem;

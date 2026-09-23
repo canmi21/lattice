@@ -19,6 +19,7 @@
 	}
 </script>
 
+<div class="chrome">
 <h1>Drafts</h1>
 <button onclick={start}>New</button>
 
@@ -38,6 +39,7 @@
 		{/each}
 	</ul>
 {/if}
+</div>
 
 <style>
 	h1 {

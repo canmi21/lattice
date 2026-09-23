@@ -88,4 +88,15 @@
 			6rem
 		);
 	}
+
+	/* Shown only where the region holds the rail with its clearance on both sides -- absent rather
+	   than squeezed narrow, since a media query can read neither `--rail-width` nor the measured
+	   box. The breakpoint is deliberately conservative; see spec/styling/rail.md, "Absent rather
+	   than squeezed". Change `--rail-width` or `--rail-edge` above and check this still agrees. */
+	@media (min-width: 68rem) {
+		.article-rail {
+			display: flex;
+			align-items: center;
+		}
+	}
 }

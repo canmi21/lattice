@@ -87,11 +87,6 @@
    group at a time; see spec/architecture/css/layers.md, "`utilities.css` is dissolved, not given
    a position". */
 @layer components {
-	/* Shown only where the region holds the rail with its clearance on both sides -- absent rather
-	   than squeezed narrow, since a media query can read neither `--rail-width` nor the measured box.
-	   The breakpoint is deliberately conservative; see spec/styling/rail.md, "Absent rather than
-	   squeezed". Change `--rail-width` or `--rail-edge` above and check this number still agrees by
-	   hand. */
 	/* The language control takes the article's right frame wherever the rail is absent, and rejoins
 	   the metadata row's flow wherever the rail is there. The question is not how wide the window is
 	   but whether the table of contents is on screen: with the rail the page already has a column of
@@ -102,15 +97,10 @@
 		margin-inline-start: auto;
 	}
 
+	/* The number here is the rail's, and the rail took it with it -- see
+	   `libs/prose/src/rail.css`. This rejoins the metadata row's flow at the same width for the
+	   reason stated above, so the two agree by both naming 68rem rather than by sharing a block. */
 	@media (min-width: 68rem) {
-		.article-rail {
-			display: flex;
-			align-items: center;
-		}
-
-		/* Paired with the rail above rather than given its own breakpoint: the number that decides
-		   whether the rail is drawn is the same number that decides this, so the two rules share the
-		   block and there is one of it to change. */
 		.meta-language {
 			margin-inline-start: 0;
 		}
