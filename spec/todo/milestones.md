@@ -321,12 +321,13 @@ the volume goes up.
 
 ## Open questions
 
-Each of these blocks a specific milestone and is a decision rather than a discovery.
+Each of these is a decision rather than a discovery. One is settled and kept here because the
+milestone it shaped has not been taken yet; a question the work has answered is removed instead.
 
-**What the editor holds between saves.** A save writes the draft row; what happens to the
-keystrokes before it is the browser's, and `localStorage` is the obvious place. Whether a warning
-on closing an unsaved tab is enough, or the two layers need reconciling after a crash, is a
-question for whoever builds the editor. Blocks B3.
+**The editor holds unsaved keystrokes in `localStorage`, and that is decided.** A save writes the
+draft row; everything before it is the browser's, keyed by rid so two tabs on two articles do not
+share a buffer. What is left is a detail of B3 rather than a question blocking it: whether a
+warning on closing an unsaved tab is enough, or a recovered buffer is offered against the row.
 
 **How a fixed page is edited, if at all.** The homepage is imported and has no way in afterwards,
 which is accepted for now: it has one permanent address rather than a chosen one, it belongs to no
@@ -334,12 +335,14 @@ collection, and what a reader sees there is its text plus components the site's 
 makes it a different shape from an article rather than a simpler one, and it is worth designing
 once the editor has settled rather than guessing alongside it. Blocks nothing; revisit after B4.
 
-**Which records the import takes, and which stay files.** `media.yaml` and `tags.yaml` are
-authored text and clearly move. `diagram.json`, `fonts.json` and `indexnow.json` are each a
-different mixture of authored and derived, and one of them may belong where it is. Blocks A2.
-
-**Where the collection lives, and whether its database is one file or several.** One file is one
-lock and one backup; several are a smaller blast radius and a harder join. Blocks C1.
+**Where the collection lives, and whether the authored file is split further.** Two files exist
+already and that split is settled: `source.sqlite` is what a person wrote and `derived.sqlite` is
+what a scan can write again, so the backup boundary is visible in the filesystem. Neither half of
+this question is that one. The collection sits inside the working tree today, where an abandoned
+change or a cleaned directory can reach it, and C1 is what moves it somewhere only `local` writes.
+The second half is whether `source.sqlite`'s fourteen tables stay one file: the id register and
+the paid text cannot be recomputed and the rest largely can, so splitting shrinks what a backup
+must be careful with and costs every join across the line. Blocks C1.
 
 **What `local` is called once it is not local.** The name describes where it runs, and D2 moves it
 to another machine while D4 puts its surface on the public internet. It is the right name for the
