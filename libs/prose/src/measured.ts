@@ -6,7 +6,7 @@
  * the answer as a prop, and the one that arrives `undefined` is the one that has to settle.
  */
 
-import { browser } from '$app/environment';
+import { BROWSER as browser } from 'esm-env';
 import { arriving } from '@canmi/behavior/arrival';
 import { tab, type Store } from '@canmi/behavior/state';
 

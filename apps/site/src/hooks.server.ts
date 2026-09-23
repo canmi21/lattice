@@ -4,8 +4,8 @@ import { URLS } from '@canmi/urls';
 import { handleErrorWithSentry, initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
 import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { articleRailScript } from '$lib/article/rail';
-import { articleHashScript } from '$lib/article/toc';
+import { articleRailScript } from '@canmi/prose/rail';
+import { articleHashScript } from '@canmi/prose/toc';
 import { videoGroundScript } from '$lib/client/ground';
 import { measuredGroundScript } from '$lib/client/measured-ground';
 import {

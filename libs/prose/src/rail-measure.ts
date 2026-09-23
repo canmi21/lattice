@@ -6,10 +6,10 @@
  * rather than through a second copy of the same values.
  */
 
-import { ARTICLE_BODY_CLASS } from './article.svelte';
-import { SECTION_TITLE_CLASS } from '@canmi/prose/section-title';
-import { TOC_LABEL_CLASS } from './toc.svelte';
-import { fontOfProbe } from '$lib/client/measured';
+import { ARTICLE_BODY_CLASS } from './article-body.ts';
+import { SECTION_TITLE_CLASS } from './section-title.ts';
+import { TOC_LABEL_CLASS } from './toc-label.ts';
+import { fontOfProbe } from './measured.ts';
 import { railWidths, type RailWidths } from './rail-widths';
 
 /**

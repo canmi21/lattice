@@ -2,6 +2,7 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { line, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { labelStyles } from './toc-label.ts';
 
 	/**
 	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
@@ -42,14 +43,6 @@
 			borderRadius: radius.full,
 			backgroundColor: 'var(--color-text-soft)',
 		},
-		label: {
-			fontSize: text.px13,
-			// The line is Tailwind's `--leading-snug`, and its value is written out rather
-			// than read: that variable is emitted only for the utilities that name it, so reading
-			// it here would leave this line depending on a class somewhere else in the markup. The
-			// value terminates, so there is no arithmetic to round.
-			lineHeight: line.snug,
-		},
 		labelActive: {
 			color: 'var(--color-text-strong)',
 		},
@@ -58,8 +51,6 @@
 		},
 	});
 
-	/** What a rail label's class resolves to; see article.svelte, `ARTICLE_BODY_CLASS`. */
-	export const TOC_LABEL_CLASS = stylex.attrs(styles.label).class ?? '';
 </script>
 
 <script lang="ts">
@@ -68,7 +59,7 @@
 		DEFAULT_PIXELS_PER_REM,
 		remFromDefaultPixels,
 		remFromMeasuredPixels,
-	} from '$lib/client/units';
+	} from '@canmi/units';
 	import { untrack } from 'svelte';
 	import { arriving } from '@canmi/behavior/arrival';
 	import type { TocEntry } from '@canmi/artifacts/types';
@@ -914,7 +905,7 @@
 					<span
 						data-toc-text
 						class="line-clamp-2 max-w-full text-balance whitespace-normal wrap-anywhere [line-clamp:2] {stylex.attrs(
-							styles.label,
+							labelStyles.label,
 							i === activeIndex ? styles.labelActive : styles.labelIdle,
 						).class}"
 						style="height: 0; opacity: 0"

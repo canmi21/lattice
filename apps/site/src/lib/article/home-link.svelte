@@ -40,7 +40,7 @@
 	import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '$lib/client/units';
 	import type { LocaleCode } from '$lib/locale';
 	import * as m from '@canmi/messages';
-	import { homeRestingCenter, railEndOffset } from './rail';
+	import { homeRestingCenter, railEndOffset } from '@canmi/prose/rail';
 	import { backTarget, readTrail } from './trail';
 
 	const DEFAULT_TOP_REM = 6.75;

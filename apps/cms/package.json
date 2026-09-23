@@ -14,6 +14,7 @@
 		"@canmi/messages": "workspace:*",
 		"@canmi/primitives": "workspace:*",
 		"@canmi/prose": "workspace:*",
+		"@canmi/theme": "workspace:*",
 		"@canmi/tokens": "workspace:*",
 		"@canmi/urls": "workspace:*"
 	},

@@ -13,6 +13,7 @@
 @import '@canmi/tokens/colors.css';
 @import '@canmi/tokens/player.css';
 @import '@canmi/primitives/style.css';
+@import '@canmi/prose/rail.css';
 @import './utilities.css';
 @source '../routes';
 

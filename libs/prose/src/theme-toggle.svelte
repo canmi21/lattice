@@ -30,8 +30,8 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
 	import { applyTheme, themeCookie, type Theme } from '@canmi/theme';
-	import Dial from '$lib/components/dial.svelte';
-	import type { LocaleCode } from '$lib/locale';
+	import Dial from './components/dial.svelte';
+	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
 
 	/**

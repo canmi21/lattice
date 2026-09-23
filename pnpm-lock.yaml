@@ -340,6 +340,9 @@ importers:
       '@canmi/prose':
         specifier: workspace:*
         version: link:../../libs/prose
+      '@canmi/theme':
+        specifier: workspace:*
+        version: link:../../libs/theme
       '@canmi/tokens':
         specifier: workspace:*
         version: link:../../libs/tokens
@@ -821,6 +824,9 @@ importers:
       '@canmi/urls':
         specifier: workspace:*
         version: link:../urls
+      '@chenglou/pretext':
+        specifier: ^0.0.9
+        version: 0.0.9
       '@lucide/svelte':
         specifier: ^1.45.0
         version: 1.47.0(svelte@5.57.1)
@@ -864,6 +870,9 @@ importers:
       '@types/d3-hierarchy':
         specifier: ^3.1.7
         version: 3.1.7
+      '@types/node':
+        specifier: ^26.5.1
+        version: 26.6.2
       svelte-check:
         specifier: ^4.7.6
         version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)

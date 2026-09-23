@@ -8,6 +8,7 @@
 @import '@canmi/tokens/colors.css';
 @import '@canmi/tokens/player.css';
 @import '@canmi/primitives/style.css';
+@import '@canmi/prose/rail.css';
 @source '../routes';
 /* The renderer is a package and Tailwind does not walk into one. Its components write utilities
    beside their StyleX, which is the constraint extracting them surfaced: `libs/prose` is not

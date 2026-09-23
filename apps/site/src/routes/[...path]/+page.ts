@@ -3,8 +3,8 @@ import { redirects } from 'virtual:redirects';
 import { orReload, publishedReads, publishedResources, publishedView } from '$lib/published';
 import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
 import { namedResources } from '@canmi/artifacts';
-import { measureRail } from '$lib/article/rail-measure';
-import { measured } from '$lib/client/measured';
+import { measureRail } from '@canmi/prose/rail-measure';
+import { measured } from '@canmi/prose/measured';
 import type { PageLoad } from './$types';
 
 export const prerender = false;

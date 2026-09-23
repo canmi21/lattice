@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import ActionBar from '@canmi/prose/action-bar.svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
+	import Toc from '@canmi/prose/toc.svelte';
+	import { currentTheme } from '@canmi/theme';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import {
@@ -94,12 +97,12 @@
 	</div>
 
 	{#if showing && preview}
+		<!-- The rail and the bar the site draws around an article, drawn around this one. Both are
+		     fixed strips that position against the viewport, so they sit outside the column. -->
+		<Toc toc={preview.toc} />
+		<ActionBar locale="mw" theme={currentTheme()} />
 		<article class="preview">
-			<ArticleBody
-				blocks={preview.blocks}
-				resources={preview.resources}
-				locale="mw"
-			/>
+			<ArticleBody blocks={preview.blocks} resources={preview.resources} locale="mw" />
 		</article>
 	{:else}
 		<Editor markdown={draft.body} onChange={typed} />

@@ -1,0 +1,91 @@
+/* The rail's geometry: the column beside an article that holds its table of contents, and the
+   column the article itself is set in. It left `apps/site/src/styles/utilities.css` a group at a
+   time, which is what that file says its rules do -- see spec/architecture/css/layers.md,
+   "`utilities.css` is dissolved, not given a position". It is here because the components that
+   consume it are, and an application that draws them imports this. */
+@layer components {
+	/* The column running down the left of an article -- the table of contents and the return control
+	   -- is one rail, so its horizontal geometry lives here once and both consume it; each keeps only
+	   its own vertical placement. See spec/styling/rail.md, "The article is centred; the rail adapts
+	   to the region beside it". */
+	:root {
+		/* The rail's width -- the same on every article and in every language, and the width at which
+		   its entries wrap. Argued in spec/styling/rail.md, "The rail's box is one declared width", and
+		   depended on across the language boundary by `ONE_LINE` in apps/local/src/i18n/width.rs, which
+		   turns this width into the column budget a translated heading is held to. */
+		--rail-width: 8.5rem;
+		/* The article column's cap. `budget::DESKTOP_TITLE` and `DESKTOP_SUBTITLE` in
+		   apps/local/src/i18n/width.rs derive a translated title's room from this width, so changing it
+		   changes what the CMS will accept. */
+		--rail-column: 45rem;
+		/* The blank region the rail lives in: window edge to the article's first letter, not to the
+		   column's frame -- the frame is not a thing anybody sees. See spec/styling/rail.md, "The
+		   article is centred; the rail adapts to the region beside it". */
+		--rail-region: calc((100% - var(--rail-column)) / 2 + var(--page-gutter));
+		/* Clearance the rail needs on each side of itself before it is shown at all. */
+		--rail-edge: 1.5rem;
+		/* Where the rail's left margin stops growing and the gap to the article takes every further
+		   pixel instead, so a rail never drifts toward the text on a wide window -- capped on the
+		   margin rather than the centre line, which used to make the gap too wide. See
+		   spec/styling/rail.md, "The article is centred; the rail adapts to the region beside it". */
+		--rail-left-max: 6rem;
+		/* How far the return control's glyph hangs outside the rail's text. Its label aligns with the
+		   entries and only the glyph sits outside, so this is an ornament's overhang rather than part
+		   of the box -- but it is the leftmost ink on the page, so the margin below has to know it. */
+		--rail-icon-overhang: 1.25rem;
+		/* The rail's spare room: what the region has left once the box has taken its width. */
+		--rail-spare: calc(var(--rail-region) - var(--rail-width));
+		/* Where the left margin stops growing at two thirds and waits for the halves to catch up.
+		   Chosen against the two devices that sit either side of it: on an 11-inch iPad the even split
+		   already leaves the glyph 47px of window and looks settled, while on an iPad mini it leaves 27
+		   and the glyph reads as pressed against the edge. At 4rem the mini takes the two-thirds
+		   branch and the 11-inch does not. */
+		--rail-hold: 4rem;
+		/* The rail's left margin, and the reason it is written as one expression rather than a second
+		   breakpoint: two thirds of the spare while there is little of it, half once there is plenty,
+		   and a flat hold between the two. The branches meet where `2/3 s = hold` and again where
+		   `s/2 = hold`, so the margin is continuous at every width and nothing jumps on a resize. A
+		   media query switching between the ratios would have stepped 21px at the width it switched. */
+		--rail-left: min(
+			max(calc(var(--rail-spare) / 2), min(calc(var(--rail-spare) * 2 / 3), var(--rail-hold))),
+			var(--rail-left-max)
+		);
+		/* What the article column keeps between the window's edge and its text, which `px-6` spends
+		   on the sides and the rule below spends on the top. */
+		--page-gutter: 1.5rem;
+	}
+
+	/* The column running down the left of an article -- the table of contents and the return control
+	   -- is one rail, and it is one box, so they cannot disagree about where its left edge is. See
+	   spec/styling/rail.md, "The rail's box is one declared width" for why it is a declared 8.5rem
+	   rather than measured or sized to its entries. */
+	.article-rail {
+		display: none;
+		position: fixed;
+		inset-block: 0;
+		width: var(--rail-width);
+		/* Its centre line on the region's centre line, until the cap. `translate` rather than a
+		   computed `left`, because only the browser knows how wide `fit-content` made it. */
+		left: calc(var(--rail-left) + var(--rail-width) / 2);
+		translate: -50% 0;
+		/* A full-height strip down the page. Its children take their own events back. */
+		pointer-events: none;
+	}
+
+	/* The article is centred on the window and nothing moves it -- not the rail, not the width of the
+	   window. Whatever the rail does, it does inside the region beside it. */
+	.article-column {
+		margin-inline: auto;
+		max-width: var(--rail-column);
+		/* The space above the title is the space beside it: the distance from the window's edge to the
+		   first letter, measured on the side and applied to the top, so it grows past the column's cap
+		   exactly as the side gutter does and settles before the rail appears at 68rem. See
+		   spec/styling/rail.md, "The space above the title is the space beside it". Change
+		   `--rail-column` or the 6rem and check the cap still lands below 68rem. */
+		padding-top: clamp(
+			var(--page-gutter),
+			var(--page-gutter) + (100% - var(--rail-column)) / 2,
+			6rem
+		);
+	}
+}

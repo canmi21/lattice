@@ -1,5 +1,5 @@
 import { thumbnails } from '$lib/article/thumbnail';
-import { fontOfClass, measured } from '$lib/client/measured';
+import { fontOfClass, measured } from '@canmi/prose/measured';
 import { homepageContent } from '$lib/home/content';
 import { orReload, publishedHome } from '$lib/published';
 import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';

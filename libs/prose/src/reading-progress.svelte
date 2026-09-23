@@ -79,12 +79,12 @@
 </script>
 
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { BROWSER as browser } from 'esm-env';
 	import { arriving } from '@canmi/behavior/arrival';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
-	import Dial from '$lib/components/dial.svelte';
-	import type { LocaleCode } from '$lib/locale';
+	import Dial from './components/dial.svelte';
+	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
 
 	/** Passed rather than read; see spec/locale/addressing.md. */

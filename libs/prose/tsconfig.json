@@ -6,7 +6,7 @@
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		"lib": ["es2023", "dom"],
-		"types": [],
+		"types": ["node"],
 		// The message catalog is generated JavaScript carrying JSDoc; reading it is how these
 		// components get types for it at all. Not checked, because nobody can edit it.
 		"allowJs": true,

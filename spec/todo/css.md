@@ -454,7 +454,7 @@ one belongs with the `attrs` hazard rather than beside it.
 
 ## A wrapping floor moved and the language override on top of it could not
 
-[toc.svelte](../../apps/site/src/lib/article/toc.svelte) writes its entry labels with
+[toc.svelte](../../libs/prose/src/toc.svelte) writes its entry labels with
 `overflow-wrap: anywhere` and then, for Chinese and Korean, `word-break: keep-all` on top of it.
 The comment beside the second calls the first its floor, and it is: a Han run with no space in it
 still breaks wherever it must.

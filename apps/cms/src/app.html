@@ -3,12 +3,12 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Collection</title>
+		<script>
+			%theme.script%
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="tap">
-		<!-- Wrapped as SvelteKit asks: a browser extension that inserts a node directly into
-		     <body> otherwise moves the anchor the app hydrates against. -->
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

@@ -11,7 +11,19 @@
 		"./note-reveal": "./src/note-reveal.ts",
 		"./blocks/*": "./src/blocks/*",
 		"./components/*": "./src/components/*",
-		"./section-title": "./src/section-title.ts"
+		"./section-title": "./src/section-title.ts",
+		"./article-body": "./src/article-body.ts",
+		"./toc-label": "./src/toc-label.ts",
+		"./toc.svelte": "./src/toc.svelte",
+		"./toc": "./src/toc.ts",
+		"./rail": "./src/rail.ts",
+		"./rail-widths": "./src/rail-widths.ts",
+		"./rail-measure": "./src/rail-measure.ts",
+		"./action-bar.svelte": "./src/action-bar.svelte",
+		"./reading-progress.svelte": "./src/reading-progress.svelte",
+		"./theme-toggle.svelte": "./src/theme-toggle.svelte",
+		"./measured": "./src/measured.ts",
+		"./rail.css": "./src/rail.css"
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
@@ -25,6 +37,7 @@
 		"@canmi/tokens": "workspace:*",
 		"@canmi/units": "workspace:*",
 		"@canmi/urls": "workspace:*",
+		"@chenglou/pretext": "^0.0.9",
 		"@lucide/svelte": "^1.45.0",
 		"@stylexjs/stylex": "^0.19.0",
 		"@videojs/core": "10.0.0-rc.2",
@@ -41,6 +54,7 @@
 	"devDependencies": {
 		"@testing-library/svelte": "^5.4.2",
 		"@types/d3-hierarchy": "^3.1.7",
+		"@types/node": "^26.5.1",
 		"svelte-check": "^4.7.6",
 		"typescript": "^6.0.3"
 	}

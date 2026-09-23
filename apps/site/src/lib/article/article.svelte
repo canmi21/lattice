@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { bodyStyles } from '@canmi/prose/article-body';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, line, radius, text, tracking, weight } from '@canmi/tokens/vocabulary.stylex';
 
@@ -107,10 +108,6 @@
 			color: 'var(--color-text-soft)',
 		},
 		/** The prose's own size and line. What they reach is the compiler's markup, below. */
-		body: {
-			fontSize: text.px15,
-			lineHeight: line.relaxed,
-		},
 		/**
 		 * The rule the subscription invitation opens on. It belongs to this placement rather than
 		 * to the newsletter -- see spec/styling/controls.md -- so it arrives through that component's
@@ -126,14 +123,6 @@
 		},
 	});
 
-	/**
-	 * What the article body's class resolves to, for a measurement taken before it is on screen.
-	 *
-	 * A heading is `600` because of its own class and its size because of this one, so the rail's
-	 * measurement needs both. Exported rather than re-declared, because two places agreeing about
-	 * a font is exactly how they stop agreeing. See lib/article/rail-measure.ts.
-	 */
-	export const ARTICLE_BODY_CLASS = stylex.attrs(styles.body).class ?? '';
 </script>
 
 <script lang="ts">
@@ -166,10 +155,10 @@
 	import Footnotes from './footnotes.svelte';
 	import { createReadsQuery } from '$lib/engagement/reads.svelte';
 	import { formatCompact } from './format';
-	import ActionBar from './action-bar.svelte';
+	import ActionBar from '@canmi/prose/action-bar.svelte';
 	import HomeLink from './home-link.svelte';
-	import type { RailWidths } from './rail-widths';
-	import Toc from './toc.svelte';
+	import type { RailWidths } from '@canmi/prose/rail-widths';
+	import Toc from '@canmi/prose/toc.svelte';
 	import TranslationNotice from './translation-notice.svelte';
 	import IconXai from './xai-icon.svelte';
 	import { shortDate } from '@canmi/locales/format';
@@ -574,7 +563,7 @@
 				{/if}
 			</header>
 
-			<div class="article-body mt-8 {stylex.attrs(styles.body).class}">
+			<div class="article-body mt-8 {stylex.attrs(bodyStyles.body).class}">
 				{@render children()}
 			</div>
 		</article>
