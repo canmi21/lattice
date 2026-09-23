@@ -5,6 +5,7 @@
  * its own origin and there is no address here to go stale when this stops being a dev server.
  * See spec/architecture/local.md, "The HTTP shell is two runtimes and one address".
  */
+import type { Block, ParsedResource } from '@canmi/artifacts';
 import type { DraftMeta } from '@canmi/collection/article';
 
 export type Draft = {
@@ -46,3 +47,9 @@ export const publishDraft = (rid: string) =>
 	call<Publication>(`/drafts/${rid}/publish`, { method: 'POST', body: '{}' });
 
 export const listRevisions = (rid: string) => call<Revision[]>(`/articles/${rid}/revisions`);
+
+/** The draft compiled the way the site compiles a published one. See architecture/local.md. */
+export type Preview = { blocks: Block[]; resources: Record<string, ParsedResource> };
+
+export const previewDraft = (rid: string) =>
+	call<Preview>(`/drafts/${rid}/preview`, { method: 'POST', body: '{}' });

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import ArticleBody from '@canmi/prose/body.svelte';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import {
+		previewDraft,
+		type Preview,
 		listRevisions,
 		publishDraft,
 		readDraft,
@@ -21,6 +24,8 @@
 	let language = $state('');
 	let revisions = $state<Revision[]>([]);
 	let said = $state<string | undefined>(undefined);
+	let preview = $state<Preview | undefined>(undefined);
+	let showing = $state(false);
 	let missing = $state<string[]>([]);
 
 	$effect(() => {
@@ -60,6 +65,16 @@
 		said = `Saved ${held.updated.slice(11, 19)}`;
 	}
 
+	// Compiled where the compiler is, then rendered with the components the site renders with --
+	// so what is shown here is the article and not an approximation of it. See milestones.md B3a.
+	async function look() {
+		showing = !showing;
+		if (!showing) return;
+		await save();
+		preview = await previewDraft(rid);
+		said = undefined;
+	}
+
 	async function publish() {
 		await save();
 		const done: Publication = await publishDraft(rid);
@@ -78,10 +93,21 @@
 		<input bind:value={language} placeholder="en" class="short" />
 	</div>
 
-	<Editor markdown={draft.body} onChange={typed} />
+	{#if showing && preview}
+		<article class="preview">
+			<ArticleBody
+				blocks={preview.blocks}
+				resources={preview.resources}
+				locale="mw"
+			/>
+		</article>
+	{:else}
+		<Editor markdown={draft.body} onChange={typed} />
+	{/if}
 
 	<div class="bar">
 		<button onclick={save}>Save</button>
+		<button onclick={look}>{showing ? 'Edit' : 'Preview'}</button>
 		<button onclick={publish}>Publish</button>
 		{#if said}<span class="quiet">{said}</span>{/if}
 		{#if missing.length > 0}<span class="missing">missing: {missing.join(', ')}</span>{/if}
@@ -136,6 +162,9 @@
 		color: inherit;
 		cursor: pointer;
 		font: inherit;
+	}
+	.preview {
+		min-height: 24rem;
 	}
 	.revisions {
 		margin-top: 2rem;

@@ -322,12 +322,24 @@ importers:
 
   apps/cms:
     dependencies:
+      '@canmi/artifacts':
+        specifier: workspace:*
+        version: link:../../libs/artifacts
       '@canmi/collection':
         specifier: workspace:*
         version: link:../../libs/collection
       '@canmi/locales':
         specifier: workspace:*
         version: link:../../libs/locales
+      '@canmi/messages':
+        specifier: workspace:*
+        version: link:../../libs/messages
+      '@canmi/primitives':
+        specifier: workspace:*
+        version: link:../../libs/primitives
+      '@canmi/prose':
+        specifier: workspace:*
+        version: link:../../libs/prose
       '@canmi/tokens':
         specifier: workspace:*
         version: link:../../libs/tokens
@@ -374,12 +386,18 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.3.0
         version: 7.3.0(svelte@5.57.1)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
       svelte:
         specifier: ^5.57.1
         version: 5.57.1
       svelte-check:
         specifier: ^4.7.6
         version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -392,6 +410,12 @@ importers:
       '@canmi/collection':
         specifier: workspace:*
         version: link:../../libs/collection
+      '@canmi/compile':
+        specifier: workspace:*
+        version: link:../../libs/compile
+      '@canmi/urls':
+        specifier: workspace:*
+        version: link:../../libs/urls
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@cloudflare/workers-types@5.20260922.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.11.1)(kysely@0.28.17)

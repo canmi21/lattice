@@ -117,6 +117,25 @@ what they do. What a member may be called is the workspace's `naming.md`'s.
 How the command line and the HTTP surface divide one application between them is its own
 subject: [local.md](local.md).
 
+## The editor is configured by reading the site, not by working it out again
+
+**When `apps/cms` will not render something the way the site does, the answer is in
+`apps/site`.** Both are SvelteKit over the same components, and every time the editor has been
+wrong so far the site already held the fix: the StyleX sheet arrives in development through a
+link and a runtime module rather than an import, `@canmi/prose` has to be aliased to its source
+or a workspace package is compiled as a legacy component, and a Tailwind utility written beside
+StyleX needs the consumer to run Tailwind. None of those is discoverable from the failure --
+each one renders something that is merely wrong rather than something that errors.
+
+Copying is the right instinct here and not a shortcut, because the two are converging. The
+account system is what lets the editor stop being a second origin; after it, these become one
+router rather than two, and configuration that already agrees is configuration that does not
+have to be reconciled. See [../todo/milestones.md](../todo/milestones.md), D3 and D4.
+
+So: read the site's `vite.config.ts`, `svelte.config.js`, `app.html` and `styles/app.css`
+before deciding the editor needs something of its own. What genuinely differs is worth a
+comment saying which of the two this one is and why.
+
 ## Libraries export source
 
 A TypeScript library's `exports` point at `./src/*.ts`, not at a built `dist/`. There is no

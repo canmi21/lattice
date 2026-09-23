@@ -10,7 +10,8 @@
 		"./indexing": "./src/indexing.ts",
 		"./slugs": "./src/slugs.ts",
 		"./width": "./src/width.ts",
-		"./highlight": "./src/highlight.ts"
+		"./highlight": "./src/highlight.ts",
+		"./preview": "./src/preview.ts"
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",

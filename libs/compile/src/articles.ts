@@ -31,7 +31,7 @@ import { ARTICLE_TITLE_BUDGET, fits } from './width.ts';
  * caller reads the same JSON the plugin does rather than the code it will generate. A key that
  * disappears fails loudly here rather than emitting an empty parenthesis into every article.
  */
-async function newTabNotes(messages: string): Promise<Record<LocaleCode, string>> {
+export async function newTabNotes(messages: string): Promise<Record<LocaleCode, string>> {
 	const notes = {} as Record<LocaleCode, string>;
 	for (const code of LOCALE_CODES) {
 		const catalog = JSON.parse(await readFile(join(messages, `${code}.json`), 'utf8'));
@@ -69,7 +69,7 @@ type SummarySidecar = { summary?: Record<string, { text?: string; provider?: str
  * Traditional Chinese is matched by script before the language falls through -- the same rule
  * `local summary` applies on the other side of the file. See spec/i18n/copy.md.
  */
-function sourceLocale(lang: string): string {
+export function sourceLocale(lang: string): string {
 	const [primary = lang, ...rest] = lang.toLowerCase().split('-');
 	if (primary === 'zh') {
 		const traditional = rest.some((part) => part === 'hant' || ['tw', 'hk', 'mo'].includes(part));
@@ -145,7 +145,7 @@ async function pageFiles(contents: string): Promise<string[]> {
 		.toSorted();
 }
 
-function articlePath(contents: string, file: string): string {
+export function articlePath(contents: string, file: string): string {
 	return file.slice(contents.length + 1).replace(/\.md$/, '');
 }
 

@@ -238,12 +238,19 @@ what B3 would otherwise have to invent.
 | B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | **done** |
 | B2  | The desktop client is archived | Source moved to a repository of its own, out of the workspace and out of `check`                  | B1       | **done** |
 | B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near     |
-| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | near     |
+| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | **done** |
 | B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near     |
 | B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near     |
 | B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid      |
 | B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid      |
 | B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid      |
+
+**The editor is configured by reading the site.** Both are SvelteKit over the same components,
+and every difference found so far was the site already knowing something: how StyleX's sheet
+arrives in development, that the renderer has to be aliased to its source, that a Tailwind
+utility written beside StyleX needs the consumer to run Tailwind. D3 and D4 make the two one
+router, so configuration that already agrees is configuration nobody has to reconcile then. See
+[../architecture/workspace.md](../architecture/workspace.md).
 
 **B3a is what lets the draft root go, and the draft root is five things.** `publish.ts` builds a
 second root naming all nine articles where the public one names six; the API's development

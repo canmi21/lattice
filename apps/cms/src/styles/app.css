@@ -1,0 +1,17 @@
+/* The layers, declared before anything opens one, in the order the site declares them -- the
+   preview draws with the site's components, so it has to resolve their cascade the same way or
+   a rule lands in a different position than it does in production. See
+   spec/architecture/css/layers.md, "A new layer has to buy a new position in the cascade". */
+@layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4,
+	priority5, priority6, priority7, overrides;
+@import 'tailwindcss';
+@import '@canmi/tokens/colors.css';
+@import '@canmi/tokens/player.css';
+@import '@canmi/primitives/style.css';
+@source '../routes';
+/* The renderer is a package and Tailwind does not walk into one. Its components write utilities
+   beside their StyleX, which is the constraint extracting them surfaced: `libs/prose` is not
+   self-contained, and a consumer supplies Tailwind. */
+@source '../../../../libs/prose/src';
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));

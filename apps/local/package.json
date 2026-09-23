@@ -4,6 +4,8 @@
 	"type": "module",
 	"dependencies": {
 		"@canmi/collection": "workspace:*",
+		"@canmi/compile": "workspace:*",
+		"@canmi/urls": "workspace:*",
 		"drizzle-orm": "^0.45.2"
 	},
 	"devDependencies": {
