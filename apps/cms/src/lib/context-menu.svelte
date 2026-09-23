@@ -27,13 +27,15 @@
 	 * that offer one -- and only there: everywhere else a right click is the browser's. See
 	 * spec/architecture/local.md.
 	 *
+	 * It draws the menu style the site's dropdowns draw, `surfaces.menu`, rather than the ground the
+	 * sidebar stands on: a menu is a thing laid over the page, not a part of the panel it came from.
+	 *
 	 * It keeps to the window, takes the keyboard while it is open -- the arrows move, Enter chooses,
 	 * Escape and Tab leave -- and goes away on a press anywhere else, or when the window loses focus
 	 * or changes size, since the place it was opened for may no longer be where it was.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick } from 'svelte';
 
 	let { x, y, items, close }: { x: number; y: number; items: MenuItem[]; close: () => void } =
@@ -93,13 +95,8 @@
 	}
 
 	const styles = stylex.create({
-		// The ground the edge panels stand on, so a menu over the sidebar is the same kind of thing.
-		sheet: {
-			backgroundColor: 'var(--color-paper-hover)',
-			borderRadius: radius.lg,
-			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.18), 0 0 0 1px var(--color-border)',
-		},
-		item: { borderRadius: radius.md },
+		// Square rows, edge to edge, as the site's menu has them: the panel's corner is the only one.
+		row: { borderRadius: 0 },
 		danger: {
 			color: {
 				default: 'var(--color-red)',
@@ -124,11 +121,14 @@
 	tabindex="-1"
 	style:left="{left}px"
 	style:top="{top}px"
-	class="fixed z-50 flex min-w-44 flex-col p-1 {stylex.attrs(surfaces.uiText, styles.sheet).class}"
+	class="fixed z-50 flex min-w-44 flex-col overflow-hidden py-1 shadow-sm {stylex.attrs(
+		surfaces.uiText,
+		surfaces.menu,
+	).class}"
 >
 	{#each items as item, index (index)}
 		{#if item === SEPARATOR}
-			<div role="separator" class="mx-2 my-0.5 h-px {stylex.attrs(styles.rule).class}"></div>
+			<div role="separator" class="my-1 h-px {stylex.attrs(styles.rule).class}"></div>
 		{:else}
 			<button
 				type="button"
@@ -140,7 +140,7 @@
 					? 'cursor-not-allowed'
 					: 'cursor-pointer'} {stylex.attrs(
 					surfaces.quietControl,
-					styles.item,
+					styles.row,
 					item.danger && styles.danger,
 					item.refused !== undefined && styles.refused,
 				).class}"
