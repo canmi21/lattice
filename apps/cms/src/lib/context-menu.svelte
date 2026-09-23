@@ -128,7 +128,12 @@
 >
 	{#each items as item, index (index)}
 		{#if item === SEPARATOR}
-			<div role="separator" class="my-1 h-px {stylex.attrs(styles.rule).class}"></div>
+			<!-- A line and no room: the rows keep the one spacing they always have, and the line lies on
+			     the boundary between two groups rather than pushing them apart. Positioned, so it
+			     paints above the next row's highlight. -->
+			<div role="separator" class="relative h-0">
+				<span class="absolute inset-x-0 top-0 h-px {stylex.attrs(styles.rule).class}"></span>
+			</div>
 		{:else}
 			<button
 				type="button"
