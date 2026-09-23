@@ -53,6 +53,7 @@ fn dispatch(command: Command) -> anyhow::Result<ExitCode> {
 		Command::Tasks => print_tasks(),
 		Command::Runs => print_runs(),
 		Command::Port => print_port(),
+		Command::Serve => serve(),
 		Command::Segments => write_segment_layout(),
 		Command::Check => check_assets(),
 		Command::Licenses => collect_licenses(),
@@ -228,6 +229,19 @@ fn print_tasks() -> anyhow::Result<ExitCode> {
 			Ok(ExitCode::FAILURE)
 		}
 	}
+}
+
+/// `local serve`: bind the pinned port and keep the collection half alive behind it.
+///
+/// The child is spawned here rather than left to a second task, because a service that answers
+/// for half of itself is two services wearing one name. It dies with this process: the socket is
+/// removed on the way in, so a stale one from a crash is not mistaken for a running half.
+fn serve() -> anyhow::Result<ExitCode> {
+	let repository = paths::repo_root()?;
+	let port = port::from_env().map_err(|error| anyhow::anyhow!("{error}"))?;
+	let runtime = tokio::runtime::Runtime::new().context("could not start a runtime")?;
+	runtime.block_on(crate::serve::run(&repository, port))?;
+	Ok(ExitCode::SUCCESS)
 }
 
 fn print_port() -> anyhow::Result<ExitCode> {

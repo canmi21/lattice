@@ -9,7 +9,8 @@
 		"./migrate": "./src/migrate.ts",
 		"./import": "./src/import.ts",
 		"./articles": "./src/articles.ts",
-		"./article": "./src/article.ts"
+		"./article": "./src/article.ts",
+		"./allocate": "./src/allocate.ts"
 	},
 	"scripts": {
 		"database:generate": "drizzle-kit generate --config drizzle.source.ts && drizzle-kit generate --config drizzle.derived.ts"

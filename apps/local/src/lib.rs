@@ -23,6 +23,7 @@ pub mod paths;
 mod port;
 mod refs;
 pub mod resource;
+mod serve;
 mod summary;
 mod tags;
 pub mod twitter;

@@ -110,6 +110,8 @@ pub enum Command {
 	Runs,
 	/// Print the port the web UI will bind
 	Port,
+	/// Answer HTTP on that port, with the collection half behind it
+	Serve,
 	/// Write article segment ids and source ranges
 	Segments,
 	/// List referenced assets that are not present
@@ -444,7 +446,8 @@ mod tests {
 
 	#[test]
 	fn free_arguments_still_reach_the_commands_that_take_them() {
-		let cli = Cli::try_parse_from(["local", "image", "--original", "a.png", "b.png"]).expect("parse");
+		let cli =
+			Cli::try_parse_from(["local", "image", "--original", "a.png", "b.png"]).expect("parse");
 		match cli.command {
 			Command::Image { original, files, .. } => {
 				assert!(original);
@@ -468,10 +471,18 @@ mod tests {
 	fn an_unknown_track_kind_names_the_three_that_exist() {
 		// The wrong one here is silently wrong for the reader it exists for: someone deaf takes a
 		// track labelled captions, gets subtitles, and is told nothing.
-		let error =
-			Cli::try_parse_from(["local", "captions", "clip", "a.vtt", "--language", "en", "--kind", "cc"])
-				.expect_err("an unknown kind is refused")
-				.to_string();
+		let error = Cli::try_parse_from([
+			"local",
+			"captions",
+			"clip",
+			"a.vtt",
+			"--language",
+			"en",
+			"--kind",
+			"cc",
+		])
+		.expect_err("an unknown kind is refused")
+		.to_string();
 		assert!(error.contains("descriptions"), "the error lists what is accepted");
 	}
 
@@ -484,8 +495,8 @@ mod tests {
 
 	#[test]
 	fn twitter_keeps_its_nested_commands() {
-		let cli =
-			Cli::try_parse_from(["local", "twitter", "semantic", "a", "b", "--limit", "5"]).expect("parse");
+		let cli = Cli::try_parse_from(["local", "twitter", "semantic", "a", "b", "--limit", "5"])
+			.expect("parse");
 		match cli.command {
 			Command::Twitter { command: TwitterCommand::Semantic { query, limit, .. } } => {
 				assert_eq!(query, ["a", "b"]);

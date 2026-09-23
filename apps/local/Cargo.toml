@@ -8,9 +8,9 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-# Blocking HTTP with no async runtime behind it. A local tool fetching a handful of icons has
-# nothing to gain from tokio, and the compile time and binary size are the price of admission.
-# If parallelism is ever needed here, threads are enough.
+# Blocking HTTP, which is what fetching a handful of icons wants: a synchronous call inside an
+# operation that is already running on its own thread. The runtime below is for serving, not for
+# fetching, and a second HTTP client would be a second set of TLS and redirect behaviour.
 ureq = "3"
 # A real HTML5 tokenizer, not the regexes the upstream worker used. That choice was forced by
 # a Worker's bundle budget, and this runs locally, so the constraint is gone. Measured against
@@ -47,8 +47,8 @@ serde_json = { version = "1", features = ["preserve_order"] }
 # any machine that reads it.
 jiff = "0.2"
 base64 = "0.23.1"
-claude-codes = "2.1.278"
-tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"] }
+claude-codes = "2.1.280"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "process", "signal", "fs"] }
 indicatif = "0.18.6"
 cosmic-text = "0.19.0"
 tiny-skia = "0.12.0"
@@ -80,6 +80,16 @@ anyhow = "1.0.104"
 unicode-width = "0.2.2"
 words-count = "0.1"
 unicode-blocks = "0.1"
+# The HTTP shell, beside the command line: one service, two ways in. Long work is what this
+# program is for, so handlers are async and anything that blocks goes through `spawn_blocking` --
+# a minutes-long derive on a runtime thread would stall every other request. See
+# spec/architecture/local.md.
+axum = "0.8.9"
+# Proxying to the TypeScript half, which listens on a socket with no address of its own: a
+# request is a handshake over a `UnixStream` and back, which is what these three are for.
+hyper = { version = "1.11.1", features = ["client", "http1"] }
+hyper-util = "0.1.20"
+http-body-util = "0.1.5"
 
 [dev-dependencies]
 # Temporary directories for tests. The hand-rolled alternative -- `std::env::temp_dir()` joined

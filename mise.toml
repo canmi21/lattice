@@ -169,6 +169,12 @@ description = "Run the alias layer's worker, which resolves names and stores not
 dir = "apps/aka"
 run = "pnpm run dev"
 
+# The HTTP shell and the collection half behind it, on the pinned port. One command because they
+# are one service: the Rust half spawns the other and dies with it. See spec/architecture/local.md.
+[tasks.dev-local]
+description = "Serve the local API, with the collection half behind it"
+run = "cargo run -q -p local -- serve"
+
 # The collection's two SQLite files, created where a fresh clone has neither. Migrating is the
 # only way either is changed: a hand-altered database cannot be migrated afterwards, and neither
 # file is in git. See spec/todo/milestones.md.
