@@ -19,12 +19,13 @@ import { compileDraft, previewResources } from '@canmi/compile/preview';
 import { developmentUrl } from '@canmi/urls';
 import { fileStore, OBJECTS_DIR } from '@canmi/collection/store';
 import { revisions } from '@canmi/collection/source';
-import { asc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { join } from 'node:path';
 
 const socket = process.env.COLLECTION_SOCKET;
 const repository = process.env.COLLECTION_REPOSITORY;
-if (!socket || !repository) throw new Error('COLLECTION_SOCKET and COLLECTION_REPOSITORY are the way in');
+if (!socket || !repository)
+	throw new Error('COLLECTION_SOCKET and COLLECTION_REPOSITORY are the way in');
 
 const database = openSource(join(repository, SOURCE_FILE));
 // Bytes live beside the database and not in it, so this half holds both halves of a content.
@@ -59,7 +60,12 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 	const article = /^\/collection\/articles\/([0-9a-z]{5})(\/revisions(?:\/(\d+))?)?$/.exec(path);
 
 	if (method === 'GET' && path === '/collection/drafts') {
-		return { status: 200, body: await database.select().from(draftRows) };
+		// Last saved first: the list is where writing resumes, and what was just being written is
+		// what is looked for. Unordered, it came back in insertion order, which means nothing.
+		return {
+			status: 200,
+			body: await database.select().from(draftRows).orderBy(desc(draftRows.updated)),
+		};
 	}
 
 	// Creating a draft is reserving an identity: a row in `resource` with no type, because nobody
@@ -68,7 +74,9 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 		const id = await allocate(database);
 		const at = now();
 		await database.insert(resources).values({ id, created: at, updated: at, layers: {} });
-		await database.insert(draftRows).values({ resource: id, body: '', meta: {}, created: at, updated: at });
+		await database
+			.insert(draftRows)
+			.values({ resource: id, body: '', meta: {}, created: at, updated: at });
 		return { status: 201, body: { resource: id } };
 	}
 
@@ -131,12 +139,19 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 	// chain and are stored nowhere else.
 	if (article && method === 'GET' && !article[2]) {
 		const held = await dates(database, article[1]!);
-		return held ? { status: 200, body: held } : { status: 404, body: { error: 'nothing published' } };
+		return held
+			? { status: 200, body: held }
+			: { status: 404, body: { error: 'nothing published' } };
 	}
 
 	if (article && method === 'GET' && article[2] && !article[3]) {
 		const held = await database
-			.select({ seq: revisions.seq, at: revisions.at, atLocked: revisions.atLocked, note: revisions.note })
+			.select({
+				seq: revisions.seq,
+				at: revisions.at,
+				atLocked: revisions.atLocked,
+				note: revisions.note,
+			})
 			.from(revisions)
 			.where(eq(revisions.resource, article[1]!))
 			.orderBy(asc(revisions.seq));
