@@ -66,6 +66,41 @@ validation, effects and errors. The cost is an explicit library boundary and a s
 each shell; a capability that exists in only one of them has not reached the shared surface yet. An operation that exists for only one provider is still a
 shared operation, just not a runner choice -- see [twitter.md](../twitter.md).
 
+## The HTTP shell is two runtimes and one address
+
+`local serve` binds the pinned port and answers what it owns: bytes, derivation, the model calls,
+publishing. **What it does not own is the relational half**, which is a TypeScript process behind
+it, because the collection's schema is the Drizzle one and the same declarations run over D1 when
+this surface goes online. A second declaration of that schema is the thing that would drift, so
+there is not one.
+
+**The boundary is in the route.** Anything under `/collection` is forwarded and everything else is
+answered in Rust, so which half owns a path is readable without opening either. One prefix rather
+than a table of nouns, for the same reason.
+
+**The other half has no address.** It listens on `.local/collection.sock`, beside the claims and
+the locks, and is reached over that socket alone -- so it is unreachable from the network by
+construction rather than by configuration, and there is no second port to pin or collide. That is
+also why nothing here carries a credential: the only way in is a socket on this machine and a port
+bound by the process that owns it. When the surface goes online, the credential arrives at the
+edge that puts it there, not here.
+
+**One command starts both, because they are one service.** The Rust half binds first -- a taken
+port fails before anything else exists, which is the mutex that keeps a second copy from writing
+the collection -- then spawns the other, inherits its output, and kills it on the way out. A stale
+socket from a crash is removed on the way in rather than mistaken for a half that is answering,
+and `/health` asks the socket rather than reporting that a file exists.
+
+**A proxy strips the headers that describe framing.** The body arrives chunked from node and
+leaves with a length, so carrying `transfer-encoding` across is a protocol error -- and hyper
+answers a protocol error by dropping the connection having written nothing. The symptom is `Empty
+reply from server` with no log line on either side, which reads as a panic and is not one. This is
+recorded because finding it cost an hour that a stripped header would have saved.
+
+**Handlers are async and long work is not.** This program exists for operations that take minutes,
+so anything blocking goes through `spawn_blocking`; a derive on a runtime thread stalls every other
+request, and the symptom is an editor that freezes on an unrelated click.
+
 **What the window's own chrome settled is not carried here.** The traffic lights, the drag region,
 the unpainted sidebar material and the Tauri capability files were answers about one framework on
 one platform, and the next surface is a browser tab. The archive holds them, and a reader who

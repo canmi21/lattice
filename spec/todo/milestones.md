@@ -181,17 +181,17 @@ file retires into the authored database anyway. Restyling a file on its way out 
 Everything else waits on this group. Each row is a change to what is stored, not to what anybody
 sees.
 
-| id  | milestone                         | what it is                                                                                                           | after | horizon |
-| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----- | ------- |
-| A0  | The curated records are salvaged  | One trustworthy `media.yaml` and `tags.yaml` out of the two divergent copies, and the path bug closed                | --    | near    |
-| A1  | The authored database exists      | Resources, contents, the two metadata layers and the reference table, under one Drizzle schema                       | --    | near    |
-| A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | near    |
-| A3  | An article is a resource          | `document.article`, granted from the same space and the same register                                                | A1    | near    |
-| A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | near    |
-| A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near    |
-| A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | near    |
-| A7  | One rid over every language       | The existing views and translations move under the article's own identity                                            | A3 A5 | mid     |
-| A8  | Reader state keyed by rid         | Counters, subscriptions and later comments re-keyed once, by the fold rule in engagement.md                          | A3    | mid     |
+| id  | milestone                         | what it is                                                                                                           | after | horizon  |
+| --- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----- | -------- |
+| A0  | The curated records are salvaged  | One trustworthy `media.yaml` and `tags.yaml` out of the two divergent copies, and the path bug closed                | --    | **done** |
+| A1  | The authored database exists      | Resources, contents, the two metadata layers and the reference table, under one Drizzle schema                       | --    | **done** |
+| A2  | The records are imported          | What the YAML and JSON records hold moves in; the files retire                                                       | A0 A1 | **done** |
+| A3  | An article is a resource          | `document.article`, granted from the same space and the same register                                                | A1    | **done** |
+| A4  | Revisions and history             | Every save writes an immutable revision; a head per article; dates derived from them                                 | A1 A3 | near     |
+| A5  | Article metadata leaves the text  | Path, description, publication, last-modified and its lock become rows; frontmatter empties                          | A3 A4 | near     |
+| A6  | Reference counting, and the sweep | The reference table decides reachability; 24 hours of grace; an explicit GC, by hand here and scheduled in the cloud | A2    | near     |
+| A7  | One rid over every language       | The existing views and translations move under the article's own identity                                            | A3 A5 | mid      |
+| A8  | Reader state keyed by rid         | Counters, subscriptions and later comments re-keyed once, by the fold rule in engagement.md                          | A3    | mid      |
 
 **A0 is a salvage, not a repair.** The file it fixes is retiring at A2, so nothing here is worth
 maintaining afterwards -- what matters is that the import has one input that has lost nothing. The
@@ -214,20 +214,24 @@ also moving the corpus.
 
 ## B. The surface
 
+**A row reads `done` when nothing in it is waiting on a decision.** This file is a plan and not a
+status board, so the column says which step the work is standing on rather than how far along
+anything is; a step that turned out to be wrong is rewritten rather than marked.
+
 This is the group that ends the pain. B3 is the point of the whole plan; everything above it is
 what B3 would otherwise have to invent.
 
-| id  | milestone                      | what it is                                                                                        | after    | horizon |
-| --- | ------------------------------ | ------------------------------------------------------------------------------------------------- | -------- | ------- |
-| B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | near    |
-| B2  | The desktop client is archived | Source moved under `archive/`, out of the Cargo workspace and out of `check`                      | B1       | near    |
-| B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near    |
-| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | near    |
-| B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near    |
-| B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near    |
-| B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid     |
-| B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid     |
-| B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid     |
+| id  | milestone                      | what it is                                                                                        | after    | horizon  |
+| --- | ------------------------------ | ------------------------------------------------------------------------------------------------- | -------- | -------- |
+| B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | **done** |
+| B2  | The desktop client is archived | Source moved to a repository of its own, out of the workspace and out of `check`                  | B1       | **done** |
+| B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near     |
+| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | near     |
+| B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near     |
+| B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near     |
+| B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid      |
+| B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid      |
+| B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid      |
 
 **B3a is what lets the draft root go, and the draft root is five things.** `publish.ts` builds a
 second root naming all nine articles where the public one names six; the API's development
