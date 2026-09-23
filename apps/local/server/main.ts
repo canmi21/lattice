@@ -14,6 +14,7 @@ import { rmSync } from 'node:fs';
 import { drafts as draftRows, resources } from '@canmi/collection/source';
 import { openSource, SOURCE_FILE } from '@canmi/collection/open';
 import { allocate } from '@canmi/collection/allocate';
+import { discard } from '@canmi/collection/discard';
 import { dates, publish, textAt } from '@canmi/collection/revise';
 import { compileDraft, previewResources } from '@canmi/compile/preview';
 import { developmentUrl } from '@canmi/urls';
@@ -62,9 +63,16 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 	if (method === 'GET' && path === '/collection/drafts') {
 		// Last saved first: the list is where writing resumes, and what was just being written is
 		// what is looked for. Unordered, it came back in insertion order, which means nothing.
+		// Each says whether it has been published, which is what decides what may be done to it.
+		const rows = await database.select().from(draftRows).orderBy(desc(draftRows.updated));
+		const held = new Set(
+			(await database.selectDistinct({ resource: revisions.resource }).from(revisions)).map(
+				(row) => row.resource,
+			),
+		);
 		return {
 			status: 200,
-			body: await database.select().from(draftRows).orderBy(desc(draftRows.updated)),
+			body: rows.map((row) => ({ ...row, published: held.has(row.resource) })),
 		};
 	}
 
@@ -97,6 +105,13 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 		return changed.length > 0
 			? { status: 200, body: changed[0] }
 			: { status: 404, body: { error: 'no such draft' } };
+	}
+
+	// Taking back a draft never published. A refusal is a 409 like publishing's, and says why. See
+	// libs/collection/src/discard.ts.
+	if (rid && method === 'DELETE') {
+		const done = await discard(database, rid);
+		return { status: done.discarded ? 200 : 409, body: done };
 	}
 
 	// Publishing is what makes a draft an article, so it is a verb on the draft rather than a
