@@ -312,6 +312,12 @@ keystrokes before it is the browser's, and `localStorage` is the obvious place. 
 on closing an unsaved tab is enough, or the two layers need reconciling after a crash, is a
 question for whoever builds the editor. Blocks B3.
 
+**How a fixed page is edited, if at all.** The homepage is imported and has no way in afterwards,
+which is accepted for now: it has one permanent address rather than a chosen one, it belongs to no
+collection, and what a reader sees there is its text plus components the site's router adds. That
+makes it a different shape from an article rather than a simpler one, and it is worth designing
+once the editor has settled rather than guessing alongside it. Blocks nothing; revisit after B4.
+
 **Which records the import takes, and which stay files.** `media.yaml` and `tags.yaml` are
 authored text and clearly move. `diagram.json`, `fonts.json` and `indexnow.json` are each a
 different mixture of authored and derived, and one of them may belong where it is. Blocks A2.
