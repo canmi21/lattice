@@ -196,6 +196,14 @@ the layout draws them and a page hands over what goes in them
 ([chrome.svelte.ts](../../apps/cms/src/lib/chrome.svelte.ts)), early enough that the server renders
 them with the page. A publication refused for a missing field opens the drawer on it.
 
+The toolbar is icons alone, each named for a screen reader and on hover, and small enough to sit
+over the text without asking to be read. The drawer comes out the way a folded sidebar does, from
+its edge: the pointer at the window's right edge brings it out and moving clear of it puts it back,
+while one opened from the toolbar stays until it is closed. Both edges are one gesture on one pair
+of margins, [edge.ts](../../libs/behavior/src/edge.ts) in `@canmi/behavior`. When the draft was
+last saved, and why a publication was refused, are said at the top of the drawer for now -- that is
+a place kept, not a place decided.
+
 **The editor writes in the article's own typography.** Its prose sits under
 [prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
 under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given

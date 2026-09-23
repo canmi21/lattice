@@ -15,12 +15,13 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Search from '@lucide/svelte/icons/search';
 	import Settings from '@lucide/svelte/icons/settings';
+	import { edgeReveal } from '@canmi/behavior/edge';
 	import { resizeHandle } from '@canmi/behavior/resize';
 	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
-	import { provideChrome } from '$lib/chrome.svelte.ts';
+	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
 	import { createDraft, DRAFTS } from '$lib/collection.ts';
 	import { FOLD_BELOW, SIDEBAR, sidebarStyles } from '$lib/sidebar.ts';
 	import type { LayoutProps } from './$types';
@@ -81,11 +82,6 @@
 
 	let nav: HTMLElement;
 	let float: HTMLElement;
-
-	/** How close to the window's left edge the pointer comes to lift the sidebar out, in pixels. */
-	const EDGE = 8;
-	/** How far right of the lifted sidebar the pointer goes before it is let back down. */
-	const RELEASE = 24;
 
 	/**
 	 * One movement of the sidebar, on the site's timing: a surface answering a press, scaled by the
@@ -200,13 +196,17 @@
 		void unfold();
 	}
 
-	function moved(event: PointerEvent) {
-		if (event.pointerType !== 'mouse' || !folded) return;
-		if (peek === 'none' && event.clientX <= EDGE) void lift('hover');
-		else if (peek === 'hover' && event.clientX > nav.getBoundingClientRect().right + RELEASE) {
-			void lower();
-		}
-	}
+	// The edge lifts a folded sidebar out, and moving clear of it lets it down; one pinned by the
+	// float is the float's, and the edge leaves it alone. See @canmi/behavior/edge.
+	const moved = edgeReveal({
+		side: 'left',
+		...EDGE_MARGINS,
+		live: () => folded && peek !== 'pinned',
+		out: () => peek === 'hover',
+		panel: () => nav,
+		reveal: () => void lift('hover'),
+		conceal: () => void lower(),
+	});
 
 	function pressed(event: PointerEvent) {
 		const target = event.target as Node;

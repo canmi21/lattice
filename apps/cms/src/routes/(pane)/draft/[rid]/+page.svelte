@@ -16,12 +16,13 @@
 	import X from '@lucide/svelte/icons/x';
 	import { onMount, type Component } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
+	import { edgeReveal } from '@canmi/behavior/edge';
 	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
-	import { useChrome } from '$lib/chrome.svelte.ts';
+	import { EDGE_MARGINS, useChrome } from '$lib/chrome.svelte.ts';
 	import {
 		DRAFTS,
 		listRevisions,
@@ -44,8 +45,24 @@
 	let revisions = $derived(data.revisions);
 	let missing = $derived.by((): string[] => (void data.draft, []));
 
-	/** Whether the drawer holding what the article is stands open. */
-	let details = $state(false);
+	/**
+	 * The drawer holding what the article is: shut, out because the pointer ran to the window's
+	 * right edge and going back when it leaves, or pinned open by the toolbar until closed.
+	 */
+	let details = $state<'closed' | 'hover' | 'pinned'>('closed');
+	let drawerElement = $state<HTMLElement>();
+
+	// The right edge brings the drawer out the way the left edge brings out a folded sidebar, on the
+	// same margins; a drawer pinned by the toolbar is the toolbar's. See @canmi/behavior/edge.
+	const edge = edgeReveal({
+		side: 'right',
+		...EDGE_MARGINS,
+		live: () => details !== 'pinned',
+		out: () => details === 'hover',
+		panel: () => drawerElement,
+		reveal: () => (details = 'hover'),
+		conceal: () => (details = 'closed'),
+	});
 
 	/**
 	 * The editor is the one region the server leaves empty: it is a rich-text view that exists
@@ -107,7 +124,7 @@
 		missing = done.published ? [] : (done.missing ?? []);
 		said = done.published ? `Published as revision ${done.seq}` : done.detail;
 		// A publication refused for a missing field is answered where the fields are.
-		if (missing.length > 0) details = true;
+		if (missing.length > 0) details = 'pinned';
 		if (done.published) revisions = await listRevisions(rid);
 	}
 
@@ -163,46 +180,46 @@
 	useChrome({ toolbar, drawer });
 </script>
 
+<svelte:document onpointermove={edge} />
+
+<!-- An icon alone: the label is what a screen reader says and what the pointer is told on hover. -->
 {#snippet action(label: string, Icon: Component, run: () => void, on = false)}
 	<button
 		type="button"
 		onclick={run}
+		aria-label={label}
+		title={label}
 		aria-pressed={on || undefined}
-		class="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 {stylex.attrs(
+		class="cursor-pointer p-2 {stylex.attrs(
 			surfaces.quietControl,
-			surfaces.uiText,
 			styles.round,
 			on && styles.pressed,
 		).class}"
 	>
-		<Icon class="size-4 shrink-0" aria-hidden="true" />
-		<span>{label}</span>
+		<Icon class="size-4" aria-hidden="true" />
 	</button>
 {/snippet}
 
 {#snippet toolbar()}
-	<div class="flex items-center gap-0.5 p-1 {stylex.attrs(styles.pill).class}">
-		{@render action('Details', PanelRight, () => (details = !details), details)}
-		<span class="mx-1 h-4 w-px {stylex.attrs(styles.divider).class}" aria-hidden="true"></span>
+	<div class="flex items-center gap-0.5 p-0.5 {stylex.attrs(styles.pill).class}">
+		{@render action(
+			'Details',
+			PanelRight,
+			() => (details = details === 'pinned' ? 'closed' : 'pinned'),
+			details !== 'closed',
+		)}
+		<span class="mx-0.5 h-4 w-px {stylex.attrs(styles.divider).class}" aria-hidden="true"></span>
 		{@render action('Preview', Eye, look)}
 		{@render action('Save', Save, save)}
 		{@render action('Publish', Send, publish)}
-		{#if missing.length > 0}
-			<span class="max-w-60 truncate px-3 {stylex.attrs(surfaces.uiText, styles.missing).class}"
-				>missing: {missing.join(', ')}</span
-			>
-		{:else if said}
-			<span class="max-w-60 truncate px-3 {stylex.attrs(surfaces.uiText, styles.quiet).class}"
-				>{said}</span
-			>
-		{/if}
 	</div>
 {/snippet}
 
 {#snippet drawer()}
-	{#if details}
+	{#if details !== 'closed'}
 		<!-- It stops above the toolbar rather than running under it, so nothing it holds is covered. -->
 		<aside
+			bind:this={drawerElement}
 			transition:arrive
 			aria-label="Details"
 			class="absolute top-2 right-2 bottom-20 z-30 flex w-88 max-w-[calc(100%-1rem)] flex-col gap-6 overflow-y-auto p-5 {stylex.attrs(
@@ -216,13 +233,21 @@
 				<button
 					type="button"
 					aria-label="Close the details"
-					onclick={() => (details = false)}
+					onclick={() => (details = 'closed')}
 					class="ms-auto cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.round)
 						.class}"
 				>
 					<X class="size-4" aria-hidden="true" />
 				</button>
 			</header>
+
+			<!-- Where the last save and a refused publication are said, for now: a place kept until
+			     it is decided where this belongs. -->
+			{#if missing.length > 0}
+				<p class={stylex.attrs(styles.missing).class}>Missing: {missing.join(', ')}</p>
+			{:else if said}
+				<p class={stylex.attrs(styles.quiet).class}>{said}</p>
+			{/if}
 
 			<div class="flex flex-col gap-4">
 				<label class="flex flex-col gap-1">

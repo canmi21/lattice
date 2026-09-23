@@ -14,6 +14,13 @@ export class Chrome {
 	drawer = $state<Snippet | undefined>(undefined);
 }
 
+/**
+ * How the window's edges bring out what is folded against them -- the sidebar at the left, a
+ * page's drawer at the right: within 8px of the edge, and back once the pointer is 24px clear of
+ * the panel's inner side. One pair for both, so the two edges answer the same gesture the same way.
+ */
+export const EDGE_MARGINS = { within: 8, release: 24 };
+
 const KEY = Symbol('chrome');
 
 /** Called by the layout that draws them. */
