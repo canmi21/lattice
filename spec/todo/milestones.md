@@ -267,18 +267,24 @@ what B3 would otherwise have to invent.
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------- | -------- | -------- |
 | B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | **done** |
 | B2  | The desktop client is archived | Source moved to a repository of its own, out of the workspace and out of `check`                  | B1       | **done** |
-| B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near     |
-| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | near     |
+| B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | **done** |
+| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | **done** |
 | B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near     |
 | B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near     |
 | B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid      |
 | B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid      |
 | B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid      |
 
-**B3a is half taken.** The preview renders a draft with the site's own components, which is the
-route this row asked for; the draft root it was supposed to retire is still five places. A row
-reads `done` when nothing in it is waiting, and this one is waiting on the half that deletes
-things rather than the half that draws them.
+**B3a was marked done once while half taken**, and the half that was missing was the one that
+deletes things. Both are taken now: the preview draws a draft on the page an article is read on,
+and the five places the draft root lived are gone with the tree itself.
+
+**A preview that is not the page is not a preview.** The first one rendered the body with the
+site's components and nothing around them, which looked close and was not: the rail had no box to
+sit in, the bar had nothing to position against, and the 197 lines of prose typography were still
+in the application the body had left -- so code, tables and quotes were unstyled. The shell is one
+component now, in `libs/prose`, and the site uses the same one. What stays the site's is every
+snippet it passes in, because those reach for its own data.
 
 **The editor is configured by reading the site.** Both are SvelteKit over the same components,
 and every difference found so far was the site already knowing something: how StyleX's sheet
@@ -287,14 +293,14 @@ utility written beside StyleX needs the consumer to run Tailwind. D3 and D4 make
 router, so configuration that already agrees is configuration nobody has to reconcile then. See
 [../architecture/workspace.md](../architecture/workspace.md).
 
-**B3a is what lets the draft root go, and the draft root is five things.** `publish.ts` builds a
-second root naming all nine articles where the public one names six; the API's development
-environment binds that directory as its assets, with a symlink beside it because wrangler binds
-exactly one directory; `local gc --segments` reads both roots; and `sync` refuses a source that
-contains the draft tree. None of it stores anything -- a draft's bytes are in the objects tree
-like everything else -- so it is a name table whose only purpose is that the development site can
-read what is not published. Once the CMS renders a draft the way the site would, that purpose is
-served better where the browser already is, and all five go.
+**The draft root was five things and none of them stored anything.** `publish.ts` built a second
+root naming all nine articles where the public one named six; the API's development environment
+bound that directory as its assets, with a symlink beside it because wrangler binds exactly one;
+`local gc` read both roots so a sweep would not take what only the second named; and `sync`
+refused a source containing the tree. A draft's bytes were in the objects tree like everything
+else -- it was a name table, and its whole purpose was that a development site could read what
+was not published. The CMS reads the draft row instead, which is where the writing already is,
+so the purpose is served without publishing anything and all five are gone.
 
 B1 is the decision that keeps the later ones cheap. The editor is a web client from its first day,
 talking to an HTTP API that happens to be on this machine -- so D4, which puts the same surface
