@@ -43,12 +43,9 @@ export const SIDEBAR: Divider = {
 	span: { min: SIDEBAR_MIN, max: 28, fallback: 15 },
 };
 
-/** The sidebar and the divider gone, and the float standing in for them, within `scope`. */
+/** The sidebar and the divider gone, within `scope`. */
 function folded(scope: string): string {
-	return (
-		`${scope} [data-sidebar], ${scope} [data-divider] { display: none; }` +
-		` ${scope} [data-float] { display: flex; }`
-	);
+	return `${scope} [data-sidebar], ${scope} [data-divider] { display: none; }`;
 }
 
 /**
@@ -64,7 +61,7 @@ function folded(scope: string): string {
  * - Docked, the sidebar takes its remembered width, never below its minimum and never so wide the
  *   pane falls below its own.
  * - Folded -- by the window being too narrow, or by the writer -- the sidebar and the divider are
- *   gone and the float stands in the corner.
+ *   gone, and the pane takes the whole width.
  * - Peeking, the sidebar is lifted over the pane at the left, at its remembered width.
  */
 export function sidebarStyles(): string {
@@ -72,7 +69,6 @@ export function sidebarStyles(): string {
 	const width = `var(${SIDEBAR.property}, ${fallback}rem)`;
 	return [
 		`[data-sidebar] { width: clamp(${min}rem, ${width}, calc(100vw - ${CHROME + PANE_MIN}rem)); }`,
-		`[data-float] { display: none; }`,
 		`@media (max-width: ${FOLD_BELOW}rem) { ${folded('[data-ground]')} }`,
 		folded('[data-ground][data-collapsed]'),
 		`[data-ground][data-peek] [data-sidebar] { display: flex; position: fixed; z-index: 30;` +

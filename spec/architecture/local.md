@@ -131,13 +131,14 @@ site's article column, `--rail-column`, with the pane's inset around it -- the n
 can be and still be set as it will be read. Both numbers and their sum live in
 [sidebar.ts](../../apps/cms/src/lib/sidebar.ts). While the window holds both, the sidebar keeps its
 remembered width but never so wide the pane drops below its own. Below the sum, and whenever the
-writer folds it, the sidebar is gone entirely rather than shrunk to its icons: the pane takes the
-whole width, and a float in the top-left corner holds the way back and a search that is a place
-kept for a feature not built yet. Running the pointer to the window's left edge lifts the sidebar
-out over the pane, and moving well clear of it lets it down; the float's button pins it until a
-click elsewhere. Every movement takes the site's timing for a surface answering a press, from
-`@canmi/motion`, and nothing a movement writes outlives it -- the resting place is always the
-stylesheet's.
+writer folds it, the sidebar is gone entirely rather than shrunk to its icons, and the pane takes
+the whole width. A float held at the pane's top-left corner, docked or folded, is the one control
+that folds and unfolds it, beside a search that is a place kept for a feature not built yet; the
+sidebar carries no fold control of its own. Running the pointer to the window's left edge lifts a
+folded sidebar out over the pane, and moving well clear of it lets it down; on a window too narrow
+to dock it, the float's button lifts it instead and pins it until a click elsewhere. Every
+movement takes the site's timing for a surface answering a press, from `@canmi/motion`, and nothing
+a movement writes outlives it -- the resting place is always the stylesheet's.
 
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row

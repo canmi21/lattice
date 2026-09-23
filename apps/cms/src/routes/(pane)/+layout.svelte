@@ -174,6 +174,13 @@
 		await release(await sweep(0, nav.getBoundingClientRect().width));
 	}
 
+	/** The float's one control: docked, it folds; folded, it brings the sidebar back. */
+	function toggle() {
+		if (!folded) return void fold();
+		if (peek === 'pinned') return void lower();
+		void unfold();
+	}
+
 	function moved(event: PointerEvent) {
 		if (event.pointerType !== 'mouse' || !folded) return;
 		if (peek === 'none' && event.clientX <= EDGE) void lift('hover');
@@ -288,16 +295,6 @@
 	<!-- The width is the divider's property, set before the first frame when one is remembered, and
 	     placed by the rules in the head: docked, folded away, or lifted over the pane. -->
 	<nav data-sidebar bind:this={nav} class="flex shrink-0 flex-col gap-1 px-1 py-2">
-		<div class="flex justify-end">
-			<button
-				type="button"
-				aria-label={peek === 'none' ? 'Fold the sidebar' : 'Put the sidebar away'}
-				onclick={fold}
-				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
-			>
-				<PanelLeftClose class="size-4" aria-hidden="true" />
-			</button>
-		</div>
 		<div class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
 			{#each SECTIONS as section (section.href)}
 				{@render entry(section)}
@@ -385,40 +382,49 @@
 		class="w-2 shrink-0 cursor-col-resize touch-none {stylex.attrs(styles.handle).class}"
 	></div>
 
-	<!-- The pane is the one thing that scrolls. The ground holds still around it, so the sections
-	     and the pane's corners stay where they are while the text moves, and a sticky bar inside
-	     sticks to the pane's top edge. A page that wants a measure sets its own. -->
-	<div
-		class="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 pt-8 pb-24 {stylex.attrs(
-			surfaces.page,
-			styles.pane,
-		).class}"
-	>
-		{@render children()}
-	</div>
+	<!-- The pane, and the float held over its corner. The float sits outside the element that
+	     scrolls so the text moves under it and it does not move with the text. -->
+	<div class="relative flex min-h-0 min-w-0 flex-1">
+		<!-- The pane is the one thing that scrolls. The ground holds still around it, so the sections
+		     and the pane's corners stay where they are while the text moves, and a sticky bar inside
+		     sticks to the pane's top edge. A page that wants a measure sets its own. -->
+		<div
+			class="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 pt-8 pb-24 {stylex.attrs(
+				surfaces.page,
+				styles.pane,
+			).class}"
+		>
+			{@render children()}
+		</div>
 
-	<!-- Where the sidebar goes when it is folded: a float held in the corner, with the way back and
-	     the search, which is a place held for a feature not built yet. -->
-	<div
-		data-float
-		bind:this={float}
-		class="fixed top-2 left-2 z-20 items-center gap-0.5 p-1 {stylex.attrs(styles.float).class}"
-	>
-		<button
-			type="button"
-			aria-label="Show the sidebar"
-			onclick={unfold}
-			class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+		<!-- Always at the pane's top-left, docked or folded: the one control that folds and unfolds
+		     the sidebar, and the search, which is a place held for a feature not built yet. -->
+		<div
+			bind:this={float}
+			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(styles.float)
+				.class}"
 		>
-			<PanelLeftOpen class="size-4" aria-hidden="true" />
-		</button>
-		<button
-			type="button"
-			aria-label="Search"
-			class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
-		>
-			<Search class="size-4" aria-hidden="true" />
-		</button>
+			<button
+				type="button"
+				aria-label={folded ? 'Show the sidebar' : 'Fold the sidebar'}
+				aria-expanded={!folded || peek !== 'none'}
+				onclick={toggle}
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+			>
+				{#if folded}
+					<PanelLeftOpen class="size-4" aria-hidden="true" />
+				{:else}
+					<PanelLeftClose class="size-4" aria-hidden="true" />
+				{/if}
+			</button>
+			<button
+				type="button"
+				aria-label="Search"
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+			>
+				<Search class="size-4" aria-hidden="true" />
+			</button>
+		</div>
 	</div>
 </div>
 
