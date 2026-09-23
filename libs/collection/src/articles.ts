@@ -27,6 +27,7 @@ type Frontmatter = {
 	draft?: boolean | string;
 	created?: string;
 	published?: string;
+	lastmod?: string;
 };
 
 /**
@@ -162,9 +163,19 @@ export async function importArticles(
 			.values({ resource: id, sourceFile: relative(repository, file) })
 			.run();
 		database.insert(paths).values({ resource: id, ...place(path), since: created }).run();
+		// `lastmod` rather than `published`: there is one revision and one text, and the text is the
+		// one that was last edited. A chain of one says both dates at once, so the honest value is
+		// the later -- and `at` is editable afterwards for exactly this, per spec/todo/milestones.md,
+		// "A revision's moment may be corrected, once and then never".
 		database
 			.insert(revisions)
-			.values({ resource: id, seq: 1, at: frontmatter.published ?? created, cid, composed: cid })
+			.values({
+				resource: id,
+				seq: 1,
+				at: frontmatter.lastmod ?? frontmatter.published ?? created,
+				cid,
+				composed: cid,
+			})
 			.run();
 		published += 1;
 	}

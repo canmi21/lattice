@@ -51,11 +51,14 @@ it('leaves an unpublished article without a type, because nobody has said what i
 	).toBe(true);
 });
 
-it('takes the publication date from the frontmatter, which is what this gate is for', async () => {
+it('dates the one revision by lastmod, because it is the text that was last edited', async () => {
+	// A chain of one says both dates at once, and what the collection holds is the edited text --
+	// so the later value is the honest one. The earlier `published` is what a single revision
+	// cannot also carry; `at` is editable afterwards for the articles where the two should differ.
 	const { database } = await imported();
 	const rows = await database.select().from(schema.revisions);
 	const earliest = rows.map((row) => row.at).sort()[0];
-	expect(earliest).toBe('2026-03-24T08:49:57Z');
+	expect(earliest).toBe('2026-04-01T10:36:51Z');
 });
 
 it('runs twice with the same tally, and grants no id it then abandons', async () => {

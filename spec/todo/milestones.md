@@ -205,19 +205,11 @@ maintaining afterwards -- what matters is that the import has one input that has
 newer copy holds five days of categories and tags; the committed one holds the 42 descriptions.
 Importing either one alone loses the other, and this is the only moment the choice exists.
 
-**A5's rows exist and its readers have not moved, because two things disagree.** Measured over
-the corpus, field by field, against what the frontmatter says:
-
-`lastmod` differs on all six published articles, by one to eight days, and always later. The
-model says a reader's "updated" is the newest revision's moment and is stored nowhere -- but the
-import wrote one revision per article, so the day each was edited after publication has no row to
-be. Either that date is given a home, or the six lose it and `lastmod` becomes the publication
-date until something is edited here.
-
-The standalone page has no metadata at all. Its layers are deliberately empty -- its shape is a
-different one from an article's and designing it is deferred -- so its title and description live
-only in the frontmatter, and a reader switched to the collection would find neither. That is the
-same open question as "How a fixed page is edited, if at all", arriving from the reading side.
+**A5's rows exist, and the one revision each imported article has says `lastmod`.** A chain of
+one says both dates at once, and the text the collection holds is the one that was last edited --
+so that is the honest value, and the publication date is what a single revision cannot also
+carry. `at` is editable and lockable for exactly this: an article whose two dates should differ
+gets a second revision or a correction, per article rather than by rule.
 
 **A5 must not land before there is a surface that can edit what it moves.** The frontmatter is
 editable in any text editor; a row in SQLite is not. So A5 ships with B4, or with a stopgap command
