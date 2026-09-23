@@ -184,6 +184,13 @@ description = "Run the CMS desktop client"
 dir = "apps/cms"
 run = "pnpm run dev"
 
+# The collection's two SQLite files, created where a fresh clone has neither. Migrating is the
+# only way either is changed: a hand-altered database cannot be migrated afterwards, and neither
+# file is in git. See spec/todo/milestones.md.
+[tasks.collection]
+description = "Bring the collection's databases up to the schema in libs/collection"
+run = "node libs/collection/src/migrate.ts"
+
 [tasks.check-site]
 description = "Type check the site, which needs SvelteKit's generated declarations"
 dir = "apps/site"
