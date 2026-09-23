@@ -2,7 +2,6 @@ import { fileURLToPath } from 'node:url';
 import { DEVELOPMENT_PROXY_PATHS, developmentUrl } from '@canmi/urls';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { themeScript } from '@canmi/theme';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
@@ -16,19 +15,6 @@ const LOCAL = `http://localhost:${process.env.LOCAL_PORT ?? 26521}`;
 
 export default defineConfig({
 	plugins: [
-		{
-			/**
-			 * The theme bootstrap, written into the shell before anything paints.
-			 *
-			 * The same script the site runs, from the same library -- the editor has no control
-			 * to change a theme with yet, and the mechanism underneath is still the one thing
-			 * that decides whether `dark` is on the root. The site substitutes it in a server
-			 * hook; this is a single page with no server, so it is substituted here and the
-			 * static build carries it. See spec/architecture/workspace.md.
-			 */
-			name: 'theme-bootstrap',
-			transformIndexHtml: (html: string) => html.replace('%theme.script%', themeScript),
-		},
 		tailwindcss(),
 		sveltekit(),
 		{
