@@ -330,7 +330,7 @@ Nine leaf types, two branches. Counts are this corpus at the time of writing.
 | `media.image.icon`       | 8     | another site's mark, one resource per domain, light and dark |
 | `media.image.mark`       | 1     | this site's own mark: one thing, six files                   |
 | `media.video.clip`       | 3     | rungs and caption tracks                                     |
-| `document.post`          | 6     | source, nine locales, nine cards                             |
+| `document.article`       | 6     | source, nine locales, nine cards                             |
 | `document`               | 1     | a standalone page: the same, with no tags and no dates       |
 | `document.notice`        | 1     | the attribution text, rewritten whenever dependencies move   |
 
@@ -356,8 +356,12 @@ differ only in what they are called, they are a value in the layer above, not a 
 
 That rule costs a name here and is kept anyway: **a standalone page has nothing an article does
 not, so there is no `page` layer** -- it is `document` and stops. Something asking "is this an
-article" asks whether `post` is present and gets a positive answer either way, which is what the
-chain is for. A bare marker layer would have been a name pretending to be data.
+article" asks whether `article` is present and gets a positive answer either way, which is
+what the chain is for. A bare marker layer would have been a name pretending to be data.
+
+**`article` and not `post`.** A document is already other things -- a notice is one -- so the
+segment that answers "when was this published" wants the narrow name rather than the broad one.
+The collection spells it the same way, so one chain reads the same authored and published.
 
 ## The image layer answers in four steps
 

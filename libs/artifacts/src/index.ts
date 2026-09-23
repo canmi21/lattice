@@ -697,7 +697,7 @@ export const DocumentLayerSchema = v.object({
 });
 
 /** An article: the document, plus the two things a page without a date does not carry. */
-export const PostLayerSchema = v.object({
+export const ArticleLayerSchema = v.object({
 	...layered,
 	// `published` is optional here and required in the root, because this layer has a producer of
 	// its own and records it wrote before the field existed must keep parsing: a layer that fails
@@ -741,7 +741,7 @@ export const LAYERS = {
 	video: { version: 1, schema: VideoLayerSchema },
 	clip: { version: 1, schema: ClipLayerSchema },
 	document: { version: 1, schema: DocumentLayerSchema },
-	post: { version: 1, schema: PostLayerSchema },
+	article: { version: 1, schema: ArticleLayerSchema },
 	notice: { version: 1, schema: NoticeLayerSchema },
 } as const;
 
@@ -759,7 +759,7 @@ export type MarkLayer = v.InferOutput<typeof MarkLayerSchema>;
 export type VideoLayer = v.InferOutput<typeof VideoLayerSchema>;
 export type ClipLayer = v.InferOutput<typeof ClipLayerSchema>;
 export type DocumentLayer = v.InferOutput<typeof DocumentLayerSchema>;
-export type PostLayer = v.InferOutput<typeof PostLayerSchema>;
+export type ArticleLayer = v.InferOutput<typeof ArticleLayerSchema>;
 export type NoticeLayer = v.InferOutput<typeof NoticeLayerSchema>;
 
 export function isLayerName(value: string): value is LayerName {
