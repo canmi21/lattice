@@ -20,18 +20,24 @@ CREATE TABLE `content` (
 CREATE TABLE `document` (
 	`resource` text PRIMARY KEY NOT NULL,
 	`source_file` text,
-	`published` text,
-	`modified` text NOT NULL,
-	`modified_locked` integer DEFAULT false NOT NULL,
 	FOREIGN KEY (`resource`) REFERENCES `resource`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `draft` (
-	`resource` text NOT NULL,
-	`slot` text NOT NULL,
-	`body` text NOT NULL,
+	`resource` text PRIMARY KEY NOT NULL,
+	`body` text DEFAULT '' NOT NULL,
+	`meta` text DEFAULT '{}' NOT NULL,
+	`created` text NOT NULL,
 	`updated` text NOT NULL,
-	PRIMARY KEY(`resource`, `slot`),
+	FOREIGN KEY (`resource`) REFERENCES `resource`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `media` (
+	`resource` text PRIMARY KEY NOT NULL,
+	`category` text,
+	`source_url` text,
+	`source_label` text,
+	`excerpt` text,
 	FOREIGN KEY (`resource`) REFERENCES `resource`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
@@ -67,7 +73,7 @@ CREATE TABLE `resource_tag` (
 --> statement-breakpoint
 CREATE TABLE `resource` (
 	`id` text PRIMARY KEY NOT NULL,
-	`type` text NOT NULL,
+	`type` text,
 	`created` text NOT NULL,
 	`updated` text NOT NULL,
 	`canonical` text,
@@ -81,6 +87,7 @@ CREATE TABLE `revision` (
 	`cid` text,
 	`back_diff` text,
 	`composed` text NOT NULL,
+	`at_locked` integer DEFAULT false NOT NULL,
 	`format` text DEFAULT 'dmp-1' NOT NULL,
 	`note` text,
 	PRIMARY KEY(`resource`, `seq`),
@@ -92,7 +99,8 @@ CREATE TABLE `tag` (
 	`name` text PRIMARY KEY NOT NULL,
 	`kind` text NOT NULL,
 	`meaning` text,
-	`source` text
+	`source` text,
+	`display` text
 );
 --> statement-breakpoint
 CREATE TABLE `text` (

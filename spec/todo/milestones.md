@@ -222,11 +222,21 @@ what B3 would otherwise have to invent.
 | B1  | `local`, and its two halves    | The rename, an HTTP shell beside the CLI, and the TypeScript half that owns the authored database | --       | near    |
 | B2  | The desktop client is archived | Source moved under `archive/`, out of the Cargo workspace and out of `check`                      | B1       | near    |
 | B3  | The editor                     | A web client against `local`: write, preview in the site's own components, create gets a rid      | A3 A4 B1 | near    |
+| B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | near    |
 | B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near    |
 | B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near    |
 | B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid     |
 | B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid     |
 | B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid     |
+
+**B3a is what lets the draft root go, and the draft root is five things.** `publish.ts` builds a
+second root naming all nine articles where the public one names six; the API's development
+environment binds that directory as its assets, with a symlink beside it because wrangler binds
+exactly one directory; `cms gc --segments` reads both roots; and `sync` refuses a source that
+contains the draft tree. None of it stores anything -- a draft's bytes are in the objects tree
+like everything else -- so it is a name table whose only purpose is that the development site can
+read what is not published. Once the CMS renders a draft the way the site would, that purpose is
+served better where the browser already is, and all five go.
 
 B1 is the decision that keeps the later ones cheap. The editor is a web client from its first day,
 talking to an HTTP API that happens to be on this machine -- so D4, which puts the same surface
@@ -297,10 +307,10 @@ the volume goes up.
 
 Each of these blocks a specific milestone and is a decision rather than a discovery.
 
-**Where a draft is kept, and in what form.** The editing buffer changes every few seconds and
-wants no history, which argues for a mutable row; the draft root under `data/bucket/draft` already
-exists for the other thing called a draft, a compiled snapshot the local site can render. What
-that root is for once an editor renders its own preview is undecided. Blocks A5.
+**What the editor holds between saves.** A save writes the draft row; what happens to the
+keystrokes before it is the browser's, and `localStorage` is the obvious place. Whether a warning
+on closing an unsaved tab is enough, or the two layers need reconciling after a crash, is a
+question for whoever builds the editor. Blocks B3.
 
 **Which records the import takes, and which stay files.** `media.yaml` and `tags.yaml` are
 authored text and clearly move. `diagram.json`, `fonts.json` and `indexnow.json` are each a

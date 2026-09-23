@@ -32,7 +32,7 @@ const NOW = '2026-09-22T00:00:00Z';
 async function aResource(database: ReturnType<typeof fresh>, id = 'k7m2x') {
 	await database
 		.insert(schema.resources)
-		.values({ id, type: 'document.post', created: NOW, updated: NOW, layers: {} });
+		.values({ id, type: 'document.article', created: NOW, updated: NOW, layers: {} });
 	return id;
 }
 
@@ -48,7 +48,7 @@ describe('the authored schema', () => {
 		await expect(
 			database
 				.insert(schema.documents)
-				.values({ resource: 'nobod', modified: NOW, sourceFile: 'contents/a-b.md' }),
+				.values({ resource: 'nobod', sourceFile: 'contents/a-b.md' }),
 		).rejects.toThrow(/FOREIGN KEY/i);
 	});
 
@@ -98,6 +98,23 @@ describe('the authored schema', () => {
 			.values({ resource, slot: 'dark', seq: 1, cid: 'b'.repeat(32) });
 		await expect(
 			database.insert(schema.resourceContents).values({ ...held, cid: 'b'.repeat(32) }),
+		).rejects.toThrow(/UNIQUE/i);
+	});
+
+	it('reserves an id before the thing has a type, and holds one draft against it', async () => {
+		await database
+			.insert(schema.resources)
+			.values({ id: 'draft', created: NOW, updated: NOW, layers: {} });
+		await database
+			.insert(schema.drafts)
+			.values({ resource: 'draft', body: 'a first line', meta: {}, created: NOW, updated: NOW });
+		const [held] = await database.select().from(schema.drafts);
+		expect(held?.resource).toBe('draft');
+		// One draft per identity: saving is an update, because a draft has no versions.
+		await expect(
+			database
+				.insert(schema.drafts)
+				.values({ resource: 'draft', body: 'a second', meta: {}, created: NOW, updated: NOW }),
 		).rejects.toThrow(/UNIQUE/i);
 	});
 

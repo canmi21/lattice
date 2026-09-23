@@ -31,7 +31,10 @@ import {
  */
 export const resources = sqliteTable('resource', {
 	id: text('id').primaryKey(),
-	type: text('type').notNull(),
+	// Null while an id is reserved and its thing is not yet one: a draft has an identity from the
+	// first keystroke and a type only once somebody has decided what they are writing. A missing
+	// leaf is better than a wrong one, which resource.md already says about the deeper segments.
+	type: text('type'),
 	created: text('created').notNull(),
 	updated: text('updated').notNull(),
 	canonical: text('canonical'),
@@ -151,21 +154,18 @@ export const resourceTags = sqliteTable(
 );
 
 /**
- * What a `document.post` carries beyond being a resource.
+ * What a `document.article` carries beyond being a resource, which is now only where its text is.
  *
- * `sourceFile` is the binding between a rid and the markdown somebody is still editing by hand,
- * and it is also how a draft is found while that lasts: a value means the draft is that file, and
- * null means it is a row in `draft`. `modifiedLocked` is the one field allowed to lie, and only
- * about `modified` -- the honest record of every publication is in `revision`.
+ * Both dates it used to hold are gone, because both are derived: what a reader is shown as the
+ * publication is the first revision's moment and what they would be shown as the update is the
+ * latest one's. Storing either would be the same fact in two places, and the copy is the one that
+ * goes stale. `sourceFile` is the transitional binding to markdown somebody still edits by hand.
  */
 export const documents = sqliteTable('document', {
 	resource: text('resource')
 		.primaryKey()
 		.references(() => resources.id),
 	sourceFile: text('source_file'),
-	published: text('published'),
-	modified: text('modified').notNull(),
-	modifiedLocked: integer('modified_locked', { mode: 'boolean' }).notNull().default(false),
 });
 
 /**
@@ -214,24 +214,22 @@ export const paths = sqliteTable(
 );
 
 /**
- * The one mutable text in this database, and the reason nothing else has to be.
+ * A draft: one mutable row per identity, and the only mutable text there is.
  *
- * A draft changes on every keystroke and has no history anybody wants, so making it a content
- * would allocate an immutable object per save and leave the sweep to clean up after typing. It
- * becomes a content at publication and not before.
+ * Writing starts by reserving an id and typing. Everything an article must have is optional here
+ * -- `meta` is a bag whose fields are all absent until somebody decides them -- so a new file is
+ * a cursor rather than a form. The row outlives publication and is the working copy from then on,
+ * because what makes an article published is a revision existing and not this row being gone.
  */
-export const drafts = sqliteTable(
-	'draft',
-	{
-		resource: text('resource')
-			.notNull()
-			.references(() => resources.id),
-		slot: text('slot').notNull(),
-		body: text('body').notNull(),
-		updated: text('updated').notNull(),
-	},
-	(table) => [primaryKey({ columns: [table.resource, table.slot] })],
-);
+export const drafts = sqliteTable('draft', {
+	resource: text('resource')
+		.primaryKey()
+		.references(() => resources.id),
+	body: text('body').notNull().default(''),
+	meta: text('meta', { mode: 'json' }).notNull().default({}),
+	created: text('created').notNull(),
+	updated: text('updated').notNull(),
+});
 
 /**
  * One row per publication, numbered from one. Editing a draft is not a revision.
@@ -253,6 +251,10 @@ export const revisions = sqliteTable(
 		cid: text('cid'),
 		backDiff: text('back_diff'),
 		composed: text('composed').notNull(),
+		// The one date a person may set, because the first revision is what a reader is shown as the
+		// publication and an article imported from elsewhere was published before it arrived here.
+		// The lock is one-way and taken by hand: after it, this moment is settled.
+		atLocked: integer('at_locked', { mode: 'boolean' }).notNull().default(false),
 		// Per row rather than per database: changing how a patch is written is then a decision for
 		// the next revision instead of a migration over every one already stored. The format is a
 		// storage decision alone -- what a reader is shown is computed from two reconstructed texts

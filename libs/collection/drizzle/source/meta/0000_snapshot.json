@@ -1,7 +1,7 @@
 {
 	"version": "6",
 	"dialect": "sqlite",
-	"id": "7e79af05-4bb8-42e1-8088-77443f43d0c0",
+	"id": "a539f1d5-36f9-41a5-9b59-1ba87bfb39d8",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"tables": {
 		"content_derived": {
@@ -134,28 +134,6 @@
 					"primaryKey": false,
 					"notNull": false,
 					"autoincrement": false
-				},
-				"published": {
-					"name": "published",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": false,
-					"autoincrement": false
-				},
-				"modified": {
-					"name": "modified",
-					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"modified_locked": {
-					"name": "modified_locked",
-					"type": "integer",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false,
-					"default": false
 				}
 			},
 			"indexes": {},
@@ -180,19 +158,28 @@
 				"resource": {
 					"name": "resource",
 					"type": "text",
-					"primaryKey": false,
-					"notNull": true,
-					"autoincrement": false
-				},
-				"slot": {
-					"name": "slot",
-					"type": "text",
-					"primaryKey": false,
+					"primaryKey": true,
 					"notNull": true,
 					"autoincrement": false
 				},
 				"body": {
 					"name": "body",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "''"
+				},
+				"meta": {
+					"name": "meta",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'{}'"
+				},
+				"created": {
+					"name": "created",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true,
@@ -218,12 +205,62 @@
 					"onUpdate": "no action"
 				}
 			},
-			"compositePrimaryKeys": {
-				"draft_resource_slot_pk": {
-					"columns": ["resource", "slot"],
-					"name": "draft_resource_slot_pk"
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"media": {
+			"name": "media",
+			"columns": {
+				"resource": {
+					"name": "resource",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"category": {
+					"name": "category",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"source_url": {
+					"name": "source_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"source_label": {
+					"name": "source_label",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"excerpt": {
+					"name": "excerpt",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
 				}
 			},
+			"indexes": {},
+			"foreignKeys": {
+				"media_resource_resource_id_fk": {
+					"name": "media_resource_resource_id_fk",
+					"tableFrom": "media",
+					"tableTo": "resource",
+					"columnsFrom": ["resource"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"checkConstraints": {}
 		},
@@ -422,7 +459,7 @@
 					"name": "type",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": true,
+					"notNull": false,
 					"autoincrement": false
 				},
 				"created": {
@@ -505,6 +542,14 @@
 					"notNull": true,
 					"autoincrement": false
 				},
+				"at_locked": {
+					"name": "at_locked",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": false
+				},
 				"format": {
 					"name": "format",
 					"type": "text",
@@ -573,6 +618,13 @@
 				},
 				"source": {
 					"name": "source",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"display": {
+					"name": "display",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": false,
