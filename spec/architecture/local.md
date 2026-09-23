@@ -131,7 +131,9 @@ accepted until a pair that holds in both themes is written. The document never s
 pane does, so the ground and the section column hold still while the text moves. That excludes the
 article preview from the pane: its rail is fixed to the viewport and reads the window's scroll, so
 it is a route of its own, `/preview/[rid]`, outside the ground and the pane, rather than a mode
-inside the editor.
+inside the editor. The editor and the preview open each other in a new tab rather than replacing the
+page: the two are read side by side, and leaving the editor to look at the article would throw
+away where the writer was.
 
 **Labels are written in the case they are read in.** No uppercase and no caps tracking on a column
 head, a field label or the mark: small soft text is quiet enough, and shouting it in capitals is

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { goto, invalidate } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
@@ -64,10 +64,16 @@
 	}
 
 	// The preview reads the row, so what it shows is what was just written only once it is saved.
-	// It is a route of its own because it scrolls the window; see preview/[rid]/+page.svelte.
-	async function look() {
-		await save();
-		await goto(`/preview/${rid}`);
+	// It opens in a tab of its own, so the editor stays where it was. The tab is opened inside the
+	// click and pointed at the preview once the save lands: a window opened after an await is no
+	// longer the click's, and the browser blocks it. See preview/[rid]/+page.svelte.
+	function look() {
+		const tab = window.open('about:blank', '_blank');
+		void save()
+			.then(() => {
+				if (tab) tab.location.href = `/preview/${rid}`;
+			})
+			.catch(() => tab?.close());
 	}
 
 	async function publish() {

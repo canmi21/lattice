@@ -11,6 +11,7 @@
 	 * just being written.
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import { onMount, tick } from 'svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
 	import Shell from '@canmi/prose/shell.svelte';
@@ -59,21 +60,28 @@
      the same component, so there is nothing here that can drift from what is published. -->
 <Shell toc={data.preview.toc} locale="mw" {theme}>
 	{#snippet home()}
-		<!-- Where the site's control leads back to its homepage, this one leads back to the
-		     editor. The rail script measures the slot by its class to place it. -->
+		<!-- Where the site's control leads back to its homepage, this one leads to the editor. The
+		     rail script measures the slot by its class to place it. -->
 		<div
 			class="home-slot pointer-events-none absolute top-27 left-0 flex w-full items-center {stylex.attrs(
 				styles.slot,
 			).class}"
 		>
+			<!-- The site's return control, drawn the way the site draws it: the icon hangs into the
+			     rail's margin so the label lines up with the entries. It opens the editor in a tab
+			     of its own, the way the editor opened this one. -->
 			<a
 				href="/draft/{rid}"
-				class="pointer-events-auto no-underline {stylex.attrs(
+				target="_blank"
+				class="pointer-events-auto inline-flex items-center gap-1.5 whitespace-nowrap no-underline [translate:calc(-1_*_var(--rail-icon-overhang))_0] {stylex.attrs(
 					surfaces.uiText,
 					surfaces.colorShift,
 					styles.back,
-				).class}">Edit</a
+				).class}"
 			>
+				<Undo2 class="size-3.5 shrink-0 -translate-y-[0.03125rem]" aria-hidden="true" />
+				<span>Editor</span>
+			</a>
 		</div>
 	{/snippet}
 	{#snippet header()}
