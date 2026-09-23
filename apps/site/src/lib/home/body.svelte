@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { line } from '$lib/vocabulary.stylex.ts';
+	import { line } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the support page's links. Every colour is the token variable
@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-	import Icon from './icons.svelte';
+	import Icon from '@canmi/prose/icons.svelte';
 	import * as m from '@canmi/messages';
 	import type { PageBlock } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';

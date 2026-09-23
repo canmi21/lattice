@@ -7,8 +7,8 @@
  */
 
 import { browser } from '$app/environment';
-import { arriving } from './arrival';
-import { tab, type Store } from './state';
+import { arriving } from '@canmi/behavior/arrival';
+import { tab, type Store } from '@canmi/behavior/state';
 
 /**
  * How long a measurement may wait for the fonts it is about to measure in.

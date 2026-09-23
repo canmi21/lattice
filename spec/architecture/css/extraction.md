@@ -6,7 +6,7 @@ name lives, and the gates a change of name has to pass. The layers it is lifted 
 
 ## A repeated value gets one name, and the name is a constant rather than a variable
 
-[`vocabulary.stylex.ts`](../../../apps/site/src/lib/vocabulary.stylex.ts) holds the values the visual
+[`vocabulary.stylex.ts`](../../../libs/tokens/src/vocabulary.stylex.ts) holds the values the visual
 layer repeats: the radius scale, the type ladder, the two hairlines, the weights, the easing curve,
 the one duration that recurs. A value earns a name at **three components**, not two; a name used
 twice is a name two people have to learn for nothing.
@@ -59,7 +59,7 @@ kind of value, not the feature.
 
 ## A repeated group gets one name too, and that one is free
 
-[`surfaces.ts`](../../../apps/site/src/lib/surfaces.ts) holds the declaration groups several
+[`surfaces.ts`](../../../libs/tokens/src/surfaces.ts) holds the declaration groups several
 components draw. It exported seven at the time, where this list named four: `page`, the ground
 every route stands on and the ink that inherits from it; `paper`, the bordered ground;
 `blockFrame`, which is `paper` at `radius.xl` and is written that way; `interactive`, the eight

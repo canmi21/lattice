@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, figures, line, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, family, figures, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the registry directory. Every colour is the token variable `libs/tokens`
@@ -73,7 +73,7 @@
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
-	import { compactCount, intlLocale } from '$lib/format';
+	import { compactCount, intlLocale } from '@canmi/locales/format';
 
 	let { data }: { data: PageData } = $props();
 	const locale = $derived(data.locale.code);

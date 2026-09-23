@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, line, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, family, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable

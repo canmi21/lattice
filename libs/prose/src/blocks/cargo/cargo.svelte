@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, family, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
@@ -148,7 +148,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@canmi/urls';
 	import { hierarchy, treemap, treemapBinary } from 'd3-hierarchy';
-	import { remFromMeasuredPixels } from '$lib/client/units';
+	import { remFromMeasuredPixels } from '@canmi/units';
 	import {
 		KIND_COLORS,
 		crateColors,

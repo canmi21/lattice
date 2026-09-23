@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, line, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
@@ -72,7 +72,7 @@
 	import ArticleList from '$lib/article/list.svelte';
 	import Modal from '$lib/components/modal.svelte';
 	import PageBody from '$lib/home/body.svelte';
-	import Icon from '$lib/home/icons.svelte';
+	import Icon from '@canmi/prose/icons.svelte';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { localeUrl } from '$lib/locale';
 	import { warmListed } from '$lib/client/warm.svelte';

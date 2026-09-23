@@ -1,0 +1,16 @@
+{
+	// Checked on its own terms rather than inside the site's project, which is the point: a
+	// component that still reached for `$lib` or `$app` would fail here instead of passing on
+	// the strength of whichever application happened to compile it.
+	// See spec/architecture/workspace.md.
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["es2023", "dom"],
+		"types": [],
+		// The message catalog is generated JavaScript carrying JSDoc; reading it is how these
+		// components get types for it at all. Not checked, because nobody can edit it.
+		"allowJs": true,
+		"checkJs": false
+	},
+	"include": ["src/**/*.ts", "src/**/*.svelte"]
+}

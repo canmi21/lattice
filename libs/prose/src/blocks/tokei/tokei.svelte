@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, family, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, family, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
@@ -157,11 +157,11 @@
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { hierarchy, treemap } from 'd3-hierarchy';
-	import { remFromMeasuredPixels } from '$lib/client/units';
+	import { remFromMeasuredPixels } from '@canmi/units';
 	import { URLS } from '@canmi/urls';
 	import { langColor, parseTokei, type LangStat } from './tokei';
 	import type { TokeiView } from '@canmi/artifacts/types';
-	import { compactCount } from '$lib/format';
+	import { compactCount } from '@canmi/locales/format';
 
 	let {
 		source,

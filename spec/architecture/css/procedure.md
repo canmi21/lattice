@@ -47,7 +47,7 @@ that is silent at the moment you write it.
 Write it in the `class` attribute, where somebody reading the structure is already looking. A class
 toggled with Svelte's directive is a class like any other and belongs here by the same question --
 `class:border-border={shaped}` in
-[picture.svelte](../../../apps/site/src/lib/components/picture.svelte) is a frame declaration
+[picture.svelte](../../../libs/prose/src/components/picture.svelte) is a frame declaration
 written as a condition, not a fourth mechanism.
 
 Two things about that attribute are not obvious. Tailwind reads the raw bytes of every file under
@@ -79,7 +79,7 @@ The tree's answer is uniform and worth copying rather than rediscovering: measur
 `apps/site/src`, 350 call sites in 38 files, every one of them interpolating
 `{stylex.attrs(...).class}` into the class string and not one of them a spread. A component that
 takes a `class` prop merges three strings, which
-[icons.svelte](../../../apps/site/src/lib/home/icons.svelte) does in the attribute itself.
+[icons.svelte](../../../libs/prose/src/icons.svelte) does in the attribute itself.
 
 **A key whose last declaration leaves goes with it, in the same change.** An emptied key emits no
 rule and still stamps its readable name on the element, and that name is the only thing in the

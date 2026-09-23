@@ -8,7 +8,7 @@ import {
 	text,
 	transition,
 	weight,
-} from '$lib/vocabulary.stylex.ts';
+} from './vocabulary.stylex.ts';
 
 /**
  * The declaration groups the visual layer repeats, each with one name -- `vocabulary.stylex.ts`

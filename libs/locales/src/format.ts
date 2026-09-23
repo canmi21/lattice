@@ -1,4 +1,4 @@
-import { PUBLIC_LANGUAGE, type LocaleCode } from './locale/index.ts';
+import { PUBLIC_LANGUAGE, type LocaleCode } from './index.ts';
 
 /**
  * Formatting the site does the same way everywhere, gathered because it was not.

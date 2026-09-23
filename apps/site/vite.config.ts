@@ -11,7 +11,9 @@ import { execFileSync } from 'node:child_process';
 import { defineConfig, type UserConfig } from 'vite';
 import { parse as parseYaml } from 'yaml';
 
-const SITE = fileURLToPath(new URL('.', import.meta.url));
+// The workspace root, because the visual layer is now written in two trees: this application and
+// the packages under `libs/`. StyleX hashes a class from the file's path relative to this.
+const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const SITE_CONFIG = fileURLToPath(new URL('./site.config.yaml', import.meta.url));
 const LICENSES = fileURLToPath(new URL('../../data/build/licenses.json', import.meta.url));
 
@@ -137,7 +139,7 @@ export default defineConfig(({ mode }) => {
 				...stylex({
 					useCSSLayers: true,
 					aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
-					unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+					unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
 					// Appending after Tailwind's CSS also means appending after Vite has minified
 					// it, so this layer used to ship its newlines while everything above it had
 					// none. The plugin already runs Lightning CSS over its own sheet before it
@@ -243,7 +245,7 @@ export default defineConfig(({ mode }) => {
 			// imports to Node through Sentry's loader, which cannot transform them and turns every
 			// article request into an otherwise silent 500. Production bundles it already; make the
 			// development SSR path cross the same compilation boundary.
-			noExternal: ['bits-ui', '@inlang/paraglide-js-svelte'],
+			noExternal: ['bits-ui', '@inlang/paraglide-js-svelte', '@canmi/prose'],
 		},
 		build: {
 			// Stated rather than left to Vite's default, which is a baseline of its own choosing

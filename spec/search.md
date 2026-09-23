@@ -283,7 +283,7 @@ Idle text, a list of hits and a failure message are three contents of one elemen
 elements that take turns. The height between them is animated, because a panel that jumped from
 one to the next would read as a new surface arriving each time rather than as the same one
 answering. The motion is the disclosure's -- the code block's spring, shared through
-[collapse.ts](../apps/site/src/lib/client/collapse.ts) rather than written out again -- for the
+[collapse.ts](../libs/behavior/src/collapse.ts) rather than written out again -- for the
 reason that file already gives: two springs meant to be equal and stated separately are two
 numbers to keep in step with no way to tell later whether they were.
 

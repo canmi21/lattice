@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { figures, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { figures, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
@@ -99,7 +99,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import Star from '@lucide/svelte/icons/star';
 	import { animate } from 'motion';
-	import { reader, tab } from '$lib/client/state';
+	import { reader, tab } from '@canmi/behavior/state';
 	import { remFromMeasuredPixels } from '$lib/client/units';
 	import { page } from '$app/state';
 	import {
@@ -109,7 +109,7 @@
 	} from '$lib/engagement/engagement.svelte';
 	import { PUBLIC_LANGUAGE, type LocaleCode } from '$lib/locale';
 	import * as m from '@canmi/messages';
-	import { intlLocale } from '$lib/format';
+	import { intlLocale } from '@canmi/locales/format';
 
 	/**
 	 * Expanding answers to whether the pointer can hover, not to how wide the window is -- a tap

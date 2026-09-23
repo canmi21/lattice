@@ -12,7 +12,7 @@
 
 import { NEGLIGIBLE_PIXELS, pressMotion, prefersReducedMotion } from '@canmi/motion';
 import { animate } from 'motion';
-import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '$lib/client/units';
+import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '@canmi/units';
 
 /**
  * A panel answering a press, not a thing being thrown.

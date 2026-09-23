@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { duration, easing, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a link card. Every colour the token layer names is read as that name.
@@ -43,13 +43,13 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
+	import { DEV as dev } from 'esm-env';
 	import { pageUrls } from '@canmi/urls';
 	import { ICON_EXTENSION, objectUrl, toned, type ParsedResource } from '@canmi/artifacts';
-	import Picture, { type Source } from '$lib/components/picture.svelte';
+	import Picture, { type Source } from '../components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import * as m from '@canmi/messages';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '@canmi/locales';
 
 	/**
 	 * What this card is, plus everything its cover is -- which it takes as `Source` rather than

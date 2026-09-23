@@ -37,7 +37,7 @@ markup, so everything below is never type-checked. Nothing is deleted and nothin
 file still appears in the run and still says zero errors.
 
 Measured on this repository's largest component. Taking `<style>` out of the opening doc comment of
-[video-controls.svelte](../../../apps/site/src/lib/components/video-controls.svelte), changing
+[video-controls.svelte](../../../libs/prose/src/components/video-controls.svelte), changing
 nothing else, turned `66 FILES 0 ERRORS` into `67 FILES 10 ERRORS`. **The file count is the tell**:
 the swallowed script imported nothing, so its imports never entered the program either. The ten
 errors it was hiding had been there long enough that nobody could say when they arrived.

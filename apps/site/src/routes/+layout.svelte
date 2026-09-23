@@ -6,7 +6,7 @@
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '$lib/article/trail';
-	import { leaveArrival } from '$lib/client/arrival';
+	import { leaveArrival } from '@canmi/behavior/arrival';
 	import { installFocusSourceTracker } from '$lib/client/focus-source';
 	import { goTo, keepPlace, placeOf } from '$lib/client/scroll';
 	import { followPointerKind, warmWhatThePointerRests } from '$lib/client/warm.svelte';

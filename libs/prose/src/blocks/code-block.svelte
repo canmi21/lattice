@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
 	import {
 		border,
 		duration,
@@ -10,7 +10,7 @@
 		text,
 		transition,
 		weight,
-	} from '$lib/vocabulary.stylex.ts';
+	} from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
@@ -131,7 +131,7 @@
 		prefersReducedMotion,
 		type AnimationControl,
 		type CollapsePhase,
-	} from '$lib/client/collapse';
+	} from '@canmi/behavior/collapse';
 
 	type Props = {
 		label?: string;

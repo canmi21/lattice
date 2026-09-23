@@ -64,7 +64,7 @@ are masses and take `fill`. The boxes -- captions, picture-in-picture, the windo
 cog -- are openings, and filling them returns a rounded blob that says none of caption, window,
 window-within-window or settings. Those take `bold`, the heaviest weight that keeps the hole.
 
-**Three shapes the set does not have live in `apps/site/src/lib/components/video-glyphs/`.**
+**Three shapes the set does not have live in `libs/prose/src/components/video-glyphs/`.**
 Phosphor's `CornersOut` and `CornersIn` mark the corners of a _square_, which is right for a
 generic expand and wrong in a row where captions, picture-in-picture and the frame are all
 landscape; and `FrameCorners` is drawn only in its enter state, with no partner for leaving. So

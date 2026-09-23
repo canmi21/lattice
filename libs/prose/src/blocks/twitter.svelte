@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { figures, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { figures, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a tweet card. Every colour is the token variable `libs/tokens` already
@@ -99,8 +99,8 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@canmi/urls';
 	import type { TweetRecord } from '@canmi/artifacts/types';
-	import { compactCount, shortDate } from '$lib/format';
-	import SocialIcon from '$lib/home/icons.svelte';
+	import { compactCount, shortDate } from '@canmi/locales/format';
+	import SocialIcon from '../icons.svelte';
 
 	let { tweet }: { tweet: TweetRecord } = $props();
 

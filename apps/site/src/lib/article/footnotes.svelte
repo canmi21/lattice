@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, duration, line, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, duration, line, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
@@ -151,12 +151,12 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
 	import * as m from '@canmi/messages';
-	import { jumpTo, movesThisPage, targetOf } from '$lib/client/jump';
-	import { animateHeight, type AnimationControl, type CollapsePhase } from '$lib/client/collapse';
+	import { jumpTo, movesThisPage, targetOf } from '@canmi/behavior/jump';
+	import { animateHeight, type AnimationControl, type CollapsePhase } from '@canmi/behavior/collapse';
 	import { DEFAULT_PIXELS_PER_REM } from '$lib/client/units';
 	import { onDestroy } from 'svelte';
-	import { flashOnArrival } from './note-flash';
-	import { offerNoteReveal } from './note-reveal';
+	import { flashOnArrival } from '@canmi/prose/note-flash';
+	import { offerNoteReveal } from '@canmi/prose/note-reveal';
 	import type { ArticleNote } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '$lib/locale';
 

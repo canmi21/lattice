@@ -11,6 +11,7 @@
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
+		"@canmi/behavior": "workspace:*",
 		"@canmi/cache": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",
@@ -19,6 +20,7 @@
 		"@canmi/messages": "workspace:*",
 		"@canmi/motion": "workspace:*",
 		"@canmi/primitives": "workspace:*",
+		"@canmi/prose": "workspace:*",
 		"@canmi/robots": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/units": "workspace:*",

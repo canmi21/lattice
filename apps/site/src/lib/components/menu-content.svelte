@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { radius } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { radius } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a dropdown's panel. Every colour is the token variable `libs/tokens`

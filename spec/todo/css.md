@@ -46,7 +46,7 @@ layer as a composed style, or somewhere it currently is not.
 
 61 of the 351 rules in Svelte `<style>` blocks were `:global` at the time, and the largest group is
 [article.svelte](../../apps/site/src/lib/article/article.svelte) and
-[body.svelte](../../apps/site/src/lib/article/body.svelte) styling prose the markdown compiler
+[body.svelte](../../libs/prose/src/body.svelte) styling prose the markdown compiler
 produced: `strong`, `s`, `hr`, `blockquote`, `pre`, `code`, `picture`, `img`, `.shiki span`.
 
 Under the three layers this is correctly the selector layer, because there is no element to put a
@@ -104,7 +104,7 @@ because it is what makes `$lib` reachable" -- and `lib/vocabulary.stylex.ts` is 
 the entry priced both.
 
 What keeps `defaultMarker()` in place is the extension refusal above plus a type mismatch the
-component records at [section.svelte](../../apps/site/src/lib/article/section.svelte): `when.ancestor`
+component records at [section.svelte](../../libs/prose/src/section.svelte): `when.ancestor`
 is called with no explicit marker, because its parameter is branded for a `defineMarker()` symbol
 and the default marker is branded as itself, so handing the default one over would not type check.
 A named marker in a `.stylex.ts` file is what that parameter wants, and moving to one is now a
@@ -320,7 +320,7 @@ at all, so a utility leaving the markup takes its private variables with it unno
 
 ## An SVG presentation attribute is a fourth writer, and it sits below every layer
 
-[icons.svelte](../../apps/site/src/lib/home/icons.svelte) draws ten glyphs and two of them ink
+[icons.svelte](../../libs/prose/src/icons.svelte) draws ten glyphs and two of them ink
 themselves twice. Every branch carried `fill-current`, which is visual and moved; `twitter` also
 carries `stroke="currentColor"`, `stroke-width="0.7"` and `stroke-linejoin="round"` as SVG
 presentation attributes, and `moe` carries those three plus `fill-rule="evenodd"`. All seven decide
@@ -367,14 +367,14 @@ the site. Spelling the four placeholders out as literals -- `0 0 #0000, 0 0 #000
 four transparent shadows are there. Dropping them changes the computed value.
 
 So `shadow-lg` on [dialog.svelte](../../apps/site/src/lib/search/dialog.svelte)'s panel and
-`shadow-sm` on [cargo.svelte](../../apps/site/src/lib/blocks/cargo/cargo.svelte)'s tooltip stayed in
+`shadow-sm` on [cargo.svelte](../../libs/prose/src/blocks/cargo/cargo.svelte)'s tooltip stayed in
 the markup, under the set rule in [architecture/css/migration.md](../architecture/css/migration.md): Tailwind writes the
 variable and the shorthand as a unit in one rule, which is checkable, and the member that cannot
 move is the `@property` registration. Four more sites carry the same utility --
 [modal.svelte](../../apps/site/src/lib/components/modal.svelte),
-[popover-content.svelte](../../apps/site/src/lib/components/popover-content.svelte),
+[popover-content.svelte](../../libs/prose/src/components/popover-content.svelte),
 [menu-content.svelte](../../apps/site/src/lib/components/menu-content.svelte) and
-[tokei.svelte](../../apps/site/src/lib/blocks/tokei/tokei.svelte) -- so the decision is the site's
+[tokei.svelte](../../libs/prose/src/blocks/tokei/tokei.svelte) -- so the decision is the site's
 rather than one component's.
 
 It is the same shape as `transition-colors`'s three `--tw-gradient-*` variables, one step worse.
@@ -406,7 +406,7 @@ visual layer would have to state does not resolve at all.
 
 ## Two of the site's colours are not the token layer's, and cannot be read from it
 
-[link-card.svelte](../../apps/site/src/lib/blocks/link-card.svelte) writes its title and its corner
+[link-card.svelte](../../libs/prose/src/blocks/link-card.svelte) writes its title and its corner
 arrow in `text-black` or `text-white` according to the tone the block declares. Measured across the
 markup, those two elements are the only users of either utility on the site, and neither colour is
 in [`libs/tokens`](../../libs/tokens/src/colors.css): they are Tailwind's own `--color-black` and
@@ -492,7 +492,7 @@ So the pill's resting surface and its hover moved and its liked hover stayed, an
 appearance is now written in two layers with nothing in either saying the other exists. It works
 only because a scoped rule is unlayered and therefore outranks the visual layer for the properties
 they share, which is the accident [architecture/css/layers.md](../architecture/css/layers.md) already declines to
-promise. The same shape is in [preview.svelte](../../apps/site/src/lib/components/preview.svelte),
+promise. The same shape is in [preview.svelte](../../libs/prose/src/components/preview.svelte),
 where `[data-starting-style]` and `[data-ending-style]` carry the opening and closing opacities
 that Bits UI drives.
 
@@ -508,7 +508,7 @@ of its values in the selector layer.
 
 The entry above on floating surfaces says Bits UI portals them out of the component tree and they
 are therefore reached with `:global`. Migrating
-[preview.svelte](../../apps/site/src/lib/components/preview.svelte) sharpens that: the portal is what
+[preview.svelte](../../libs/prose/src/components/preview.svelte) sharpens that: the portal is what
 puts them out of the _selector_ layer's reach, and it puts them out of nothing else.
 
 The component writes `class="preview-ground fixed inset-0 z-50"` on `Dialog.Overlay`, and Bits UI
@@ -568,14 +568,14 @@ is still open, and this entry stays with it.
 [architecture/css/authoring.md](../architecture/css/authoring.md) exempts two component-local palettes from the rule that
 a colour is the token layer's -- Cargo's and Mermaid's -- argued in
 [styling/controls.md](../styling/controls.md) and [styling/blocks.md](../styling/blocks.md).
-[tokei.svelte](../../apps/site/src/lib/blocks/tokei/tokei.svelte) has a third that neither file names:
+[tokei.svelte](../../libs/prose/src/blocks/tokei/tokei.svelte) has a third that neither file names:
 a colour per language from `langColor`, three hexes in `FUNCTION_COLORS` for code, comments and
 blanks, two `rgba()` literals inline on the tile's completion bar, and two whites inking a tile's
 label over whatever colour the language happens to be.
 
 The whites are the ones the migration had to rule on, because they are `fill` on an element this
 component renders and `fill` is visual by the same test that moved `fill-current` in
-[icons.svelte](../../apps/site/src/lib/home/icons.svelte). They stayed, for the reason the link card's
+[icons.svelte](../../libs/prose/src/icons.svelte). They stayed, for the reason the link card's
 black and white stayed two entries above: a colour that no token declares cannot be stated in the
 layer whose one structural guarantee is that a colour is a token variable. So `.tile-name` and
 `.tile-size` are now a `fill` in the selector layer and a size and a weight in the visual one.
@@ -588,14 +588,14 @@ enumerating it, or a home for a chart's palette that is neither the token layer 
 ## A `transition` shorthand sets five lists and the migrated form writes three
 
 `transition: background-color 150ms ease-out, border-color 150ms ease-out` on
-[github.svelte](../../apps/site/src/lib/blocks/github.svelte)'s repository card is one declaration and
+[github.svelte](../../libs/prose/src/blocks/github.svelte)'s repository card is one declaration and
 five computed longhands, each of them a two-item list: `transition-property`, `-duration`,
 `-timing-function`, `-delay` and `-behavior`. The shorthand sets the last two to their initial
 values once per item, so the element computes `transition-delay: 0s, 0s` and `transition-behavior:
 normal, normal`.
 
 The migrated form writes three of the five. It was arrived at on
-[code-block.svelte](../../apps/site/src/lib/blocks/code-block.svelte)'s `copyIcon`, whose comment says
+[code-block.svelte](../../libs/prose/src/blocks/code-block.svelte)'s `copyIcon`, whose comment says
 exactly why the curve is stated twice -- "a transition's other lists are read per property, and one
 value against two properties is not the same computed style as two" -- and then stops at the curve.
 `transition-delay` and `transition-behavior` are left to their initial values, which are
@@ -627,7 +627,7 @@ wordier at each site, or that the two lists whose values are inert are outside w
 
 ## An arrowhead is a shape made of borders, and the test cannot cut it in half
 
-[quadrant.svelte](../../apps/site/src/lib/blocks/quadrant.svelte) tips each of its two axes with a
+[quadrant.svelte](../../libs/prose/src/blocks/quadrant.svelte) tips each of its two axes with a
 triangle, drawn the way CSS has always drawn one: a pseudo-element at `width: 0; height: 0` with
 three borders, two of them transparent and the third the arrowhead itself.
 
@@ -668,8 +668,8 @@ as `'1px'` ten times and as `'0.0625rem'` seven. Both are one pixel at the defau
 neither is at any other, so the site has two answers to what a hairline is and they part company
 the moment a reader enlarges text.
 
-Two files carry both. In [`blocks/quadrant.svelte`](../../apps/site/src/lib/blocks/quadrant.svelte)
-and [`blocks/mermaid/mermaid.svelte`](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte) the
+Two files carry both. In [`blocks/quadrant.svelte`](../../libs/prose/src/blocks/quadrant.svelte)
+and [`blocks/mermaid/mermaid.svelte`](../../libs/prose/src/blocks/mermaid/mermaid.svelte) the
 pre-migration source declares only `0.0625rem`, in a scoped rule; the `1px` arrived from Tailwind's
 `border` utility in the same component's markup. So neither spelling was invented here and the
 migration is faithful in both directions -- it is the act of putting the layout layer's answer and
@@ -681,7 +681,7 @@ there and nothing could see it.
 four say the literal `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. Tailwind's stack
 carries Monaco, Liberation Mono and Courier New; the literal one does not. A reader on a machine
 that has Monaco and not Menlo reads two different fonts on one page today, and has for as long as
-both spellings have existed. [`blocks/github.svelte`](../../apps/site/src/lib/blocks/github.svelte)
+both spellings have existed. [`blocks/github.svelte`](../../libs/prose/src/blocks/github.svelte)
 says in a comment why it kept the literal one, which is the correct behaviour for a migration and
 also the reason this entry exists rather than a commit.
 
@@ -699,10 +699,10 @@ height is the least settled of all -- 41 declarations, fifteen values, mixing un
 The pill is worse than that sentence says, and the extra spellings are outside the count. Those 42
 declarations are the visual layer's, and a corner that is fully round is written four ways across
 the site: `calc(infinity * 1px)`, `624.9375rem`, `9999px` -- in
-[preview.svelte](../../apps/site/src/lib/components/preview.svelte)'s scoped block and again on
+[preview.svelte](../../libs/prose/src/components/preview.svelte)'s scoped block and again on
 `.article-preview-thumbnail [data-icon-bar]` in
 [`libs/primitives`](../../libs/primitives/src/style.css) -- and `50%` on
-[`blocks/github.svelte`](../../apps/site/src/lib/blocks/github.svelte)'s language dot. The last is the
+[`blocks/github.svelte`](../../libs/prose/src/blocks/github.svelte)'s language dot. The last is the
 one that is not a synonym: a percentage is a share of the box, so on anything that is not square it
 draws an ellipse where the other three draw a stadium. Every element carrying it is square today,
 which is why nothing looks wrong and why nothing would say so if one stopped being.
@@ -729,14 +729,14 @@ One consequence of the mechanism has nowhere to be recorded but here, because it
 this repository rather than about StyleX. **A constant's key spelling is part of the stylesheet.**
 The class is hashed from `var(--<consthash>)` and the hash is over the module path and the key, so
 renaming `text.px14` or moving the module rewrites rules while changing no declaration. Every name
-in [vocabulary.stylex.ts](../../apps/site/src/lib/vocabulary.stylex.ts) was therefore argued once,
+in [vocabulary.stylex.ts](../../libs/tokens/src/vocabulary.stylex.ts) was therefore argued once,
 before anything read it, and a later rename is not the free edit it looks like.
 
 ## A line height with no reason behind it is a lookup, not a name
 
-`1.4` is the site's third repeated line-height ratio -- [cargo](../../apps/site/src/lib/blocks/cargo/cargo.svelte),
-[tokei](../../apps/site/src/lib/blocks/tokei/tokei.svelte) and
-[mermaid](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte) -- so it clears the three-component
+`1.4` is the site's third repeated line-height ratio -- [cargo](../../libs/prose/src/blocks/cargo/cargo.svelte),
+[tokei](../../libs/prose/src/blocks/tokei/tokei.svelte) and
+[mermaid](../../libs/prose/src/blocks/mermaid/mermaid.svelte) -- so it clears the three-component
 threshold that every other name in the vocabulary was admitted by. It was left a literal anyway.
 
 Nothing distinguishes it. It is on no scale: Tailwind's neighbours are `leading-snug` at 1.375 and
@@ -799,7 +799,7 @@ the build on the cross-file path [architecture/css/extraction.md](../architectur
 broken; and there is no `include` in the API at 0.19.
 
 What is left to name is the three literals, which the paragraph above declines. The composed style
-this entry was waiting on now exists -- [surfaces.ts](../../apps/site/src/lib/surfaces.ts) holds four
+this entry was waiting on now exists -- [surfaces.ts](../../libs/tokens/src/surfaces.ts) holds four
 groups -- and this is the one thing it cannot hold. So the entry is no longer about naming and is
 entirely about the reading: whether
 [switcher.svelte](../../apps/site/src/lib/locale/switcher.svelte) answering with the property alone,
@@ -837,7 +837,7 @@ deciding this counts them first.
 
 ## A value is written twice on one element, once as a class and once in the visual layer
 
-[body.svelte](../../apps/site/src/lib/article/body.svelte)'s note close carries `focus-ring` in its
+[body.svelte](../../libs/prose/src/body.svelte)'s note close carries `focus-ring` in its
 markup and `borderRadius: radius.sm` in its style object. `:where(.focus-ring, .focus-ring-inner,
 .focus-ring-within)` in [utilities.css](../../apps/site/src/styles/utilities.css) already sets
 `border-radius: 0.25rem`, and `radius.sm` is `0.25rem`, so the element is told the same thing twice
@@ -866,8 +866,8 @@ rather than to remove.
 reaches a wrapper from a focused descendant. Three components write the same idea as a conditional
 value on the element itself -- `borderColor` from `var(--color-border)` to
 `var(--color-border-strong)` on `:hover` and on `:focus-visible` -- in
-[github.svelte](../../apps/site/src/lib/blocks/github.svelte)'s card,
-[twitter.svelte](../../apps/site/src/lib/blocks/twitter.svelte)'s card and
+[github.svelte](../../libs/prose/src/blocks/github.svelte)'s card,
+[twitter.svelte](../../libs/prose/src/blocks/twitter.svelte)'s card and
 [support.svelte](../../apps/site/src/lib/support/support.svelte)'s action.
 
 Neither is wrong and the two are not interchangeable. The `:has()` form is the only one available
@@ -941,7 +941,7 @@ across the site and does not clear it inside one layer.
 
 ## The visual layer has two filename conventions and only one of them is the compiler's
 
-[vocabulary.stylex.ts](../../apps/site/src/lib/vocabulary.stylex.ts) carries a vendor's name in its
+[vocabulary.stylex.ts](../../libs/tokens/src/vocabulary.stylex.ts) carries a vendor's name in its
 filename because `defineConsts` refuses to hash a module spelled any other way, and its own doc
 comment says exactly that: the filename is the compiler's, not this repository's. The module
 holding composed styles has no such requirement -- `stylex.create` hashes from the declaration and
@@ -969,7 +969,7 @@ it.
 The entry on one border and two spellings counts `borderWidth` as `1px` ten times and `0.0625rem`
 seven, and reads the split as a scale nobody named. Naming the surfaces says something the count
 could not: the split is not scattered. Every one of the eight sites of
-[`surfaces.paper`](../../apps/site/src/lib/surfaces.ts) writes `1px` -- the three block frames, the
+[`surfaces.paper`](../../libs/tokens/src/surfaces.ts) writes `1px` -- the three block frames, the
 menu, the popover, the modal, the search panel and the newsletter's pill -- and every one of the
 three sites of `surfaces.interactive` writes `0.0625rem` -- the repository card, the tweet card and
 the support pill. Neither group has an exception.
@@ -1032,7 +1032,7 @@ is invisible every time, which is the argument for writing it down rather than r
 
 Seven components wrote `background-color: var(--color-page)` with `color: var(--color-text)`, and
 in five of them those two were the whole style object. They read
-[`surfaces.page`](../../apps/site/src/lib/surfaces.ts) now, which removes the duplication and leaves
+[`surfaces.page`](../../libs/tokens/src/surfaces.ts) now, which removes the duplication and leaves
 the question underneath it untouched.
 
 The question is why a route declares the ground at all. Every one of the thirteen addresses puts
@@ -1056,11 +1056,11 @@ colour moves.
 
 [architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at three components.
 `0.125rem` as a `border-radius` is written in two of them --
-[cargo.svelte](../../apps/site/src/lib/blocks/cargo/cargo.svelte) and
-[tokei.svelte](../../apps/site/src/lib/blocks/tokei/tokei.svelte), the second twice -- and now in
-[`surfaces.quietControl`](../../apps/site/src/lib/surfaces.ts) as well, which is a third file and not
+[cargo.svelte](../../libs/prose/src/blocks/cargo/cargo.svelte) and
+[tokei.svelte](../../libs/prose/src/blocks/tokei/tokei.svelte), the second twice -- and now in
+[`surfaces.quietControl`](../../libs/tokens/src/surfaces.ts) as well, which is a third file and not
 a third component. It is Tailwind's `--radius-xs`, the one step of that scale
-[`vocabulary.stylex.ts`](../../apps/site/src/lib/vocabulary.stylex.ts) does not name, and the reason
+[`vocabulary.stylex.ts`](../../libs/tokens/src/vocabulary.stylex.ts) does not name, and the reason
 it does not is that it was below the bar on the day the scale was written.
 
 Whether a recipe counts toward the bar is the question, and it is not the same question as whether
@@ -1094,7 +1094,7 @@ markup string composes.
 ## Whether a clip and a picture should draw one frame is a question about `blockFrame`'s users
 
 [architecture/css/extraction.md](../architecture/css/extraction.md) records why a video clip takes `picture.svelte`'s 2px
-edge and 1rem corner rather than [`surfaces.blockFrame`](../../apps/site/src/lib/surfaces.ts)'s
+edge and 1rem corner rather than [`surfaces.blockFrame`](../../libs/tokens/src/surfaces.ts)'s
 hairline and `radius.xl`: its neighbour in a column of prose is almost always a picture, and two
 different corners side by side would read as a mistake. Left open is whether the site should have
 one answer for both media boxes instead of two, which is a question about who else draws

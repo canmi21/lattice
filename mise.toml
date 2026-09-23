@@ -199,6 +199,15 @@ run = "node libs/collection/src/migrate.ts"
 description = "Import the markdown corpus into the collection, replacing what a previous run wrote"
 run = "node libs/collection/src/articles.ts"
 
+# The article renderer is a package of Svelte components, and `tsc` does not read `.svelte`. It
+# is checked on its own rather than inside the site's project: a component still reaching for
+# `$lib` or `$app` fails here instead of passing because an application happened to compile it.
+[tasks.check-prose]
+description = "Type check the article renderer, which is Svelte components in a library"
+dir = "libs/prose"
+depends = ["messages"]
+run = 'pnpm exec svelte-check --tsconfig ./tsconfig.json ${AUDIT:+--fail-on-warnings}'
+
 [tasks.check-site]
 description = "Type check the site, which needs SvelteKit's generated declarations"
 dir = "apps/site"
@@ -248,6 +257,7 @@ depends = [
 	"secrets",
 	"check",
 	"check-site",
+	"check-prose",
 	"check-fonts",
 	"check-css",
 	"check-css-budget",

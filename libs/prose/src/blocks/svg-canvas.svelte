@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '@canmi/svg-canvas/style.css';
-	import Preview from '$lib/components/preview.svelte';
-	import type { LocaleCode } from '$lib/locale';
+	import Preview from '../components/preview.svelte';
+	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
 
 	let {

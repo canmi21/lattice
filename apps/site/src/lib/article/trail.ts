@@ -11,7 +11,7 @@
  * spec/engagement.md, "What this site remembers is two records and one mechanism".
  */
 
-import { tab, type Store } from '../client/state';
+import { tab, type Store } from '@canmi/behavior/state';
 
 export const TRAIL_KEY = 'trail';
 

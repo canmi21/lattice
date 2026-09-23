@@ -145,7 +145,7 @@ keeps the current drawing on screen and cuts to its replacement, without the fad
 back through the loading surface, which is what a theme toggle should look like when the picture was
 already there. Reduced-motion readers receive the final states without the loading pulse or reveal.
 The boundary is implemented in
-[mermaid.svelte](../../apps/site/src/lib/blocks/mermaid/mermaid.svelte).
+[mermaid.svelte](../../libs/prose/src/blocks/mermaid/mermaid.svelte).
 
 ### A diagram is drawn in both themes at once, because the palette is inside the SVG
 
@@ -172,7 +172,7 @@ on first load, behind a surface that was already reserving the space.
 
 Mermaid's theme engine accepts hex colours while the site palette is authored in OKLCH. It does not
 justify changing the shared palette or scattering overrides across generated SVG selectors. A
-component-only [palette](../../apps/site/src/lib/blocks/mermaid/palette.css) therefore mirrors the
+component-only [palette](../../libs/prose/src/blocks/mermaid/palette.css) therefore mirrors the
 interface colours in hex for this adapter alone, with every light and dark value kept together.
 Mermaid receives those values through its supported theme configuration; article-authored config
 cannot replace the site's security, type, or palette decisions. The duplication is accepted and
@@ -219,7 +219,7 @@ article column, which is 48rem at its widest and 342px on a phone, and both carr
 column cannot always afford -- a 600-unit diagram renders at 0.57 of the size it was drawn at on a
 phone, where the palette's `0.875rem` label, 14 of the diagram's own units, lands at eight pixels.
 Pressing either one opens it on a black ground at the size of the window. They go through one
-component, [preview.svelte](../../apps/site/src/lib/components/preview.svelte), which owns the
+component, [preview.svelte](../../libs/prose/src/components/preview.svelte), which owns the
 ground, the sizing, the close control and the dismissal; what a diagram and a photograph differ
 about is two numbers and a label, which they pass in.
 
@@ -401,7 +401,7 @@ page receives static HTML and CSS; the figure adds no client-side renderer or co
 Feed, Markdown and plain-text targets lower the figure to a readable list of axis-region labels and
 items instead of dropping its meaning. Directive attributes remain structural and therefore follow
 the existing non-translatable directive rule in [i18n/segments.md](../i18n/segments.md). The boundary is implemented in
-[quadrant.svelte](../../apps/site/src/lib/blocks/quadrant.svelte).
+[quadrant.svelte](../../libs/prose/src/blocks/quadrant.svelte).
 
 ### A name that is two words is held together
 

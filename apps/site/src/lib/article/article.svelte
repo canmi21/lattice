@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, line, radius, text, tracking, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, line, radius, text, tracking, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
@@ -172,7 +172,7 @@
 	import Toc from './toc.svelte';
 	import TranslationNotice from './translation-notice.svelte';
 	import IconXai from './xai-icon.svelte';
-	import { shortDate } from '$lib/format';
+	import { shortDate } from '@canmi/locales/format';
 
 	type ArticleLocale = {
 		code: LocaleCode;

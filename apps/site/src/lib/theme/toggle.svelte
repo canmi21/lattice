@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
 
 	const styles = stylex.create({
 		/**

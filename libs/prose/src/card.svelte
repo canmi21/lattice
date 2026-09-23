@@ -2,9 +2,9 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { untrack } from 'svelte';
 	import { ARTICLE_THUMBNAIL_LINES } from '@canmi/primitives';
-	import { arriving } from '$lib/client/arrival';
-	import { shortDate } from '$lib/format';
-	import { surfaces } from '$lib/surfaces.ts';
+	import { arriving } from '@canmi/behavior/arrival';
+	import { shortDate } from '@canmi/locales/format';
+	import { surfaces } from '@canmi/tokens/surfaces';
 
 	let {
 		title,

@@ -338,6 +338,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../../libs/artifacts
+      '@canmi/behavior':
+        specifier: workspace:*
+        version: link:../../libs/behavior
       '@canmi/cache':
         specifier: workspace:*
         version: link:../../libs/cache
@@ -362,6 +365,9 @@ importers:
       '@canmi/primitives':
         specifier: workspace:*
         version: link:../../libs/primitives
+      '@canmi/prose':
+        specifier: workspace:*
+        version: link:../../libs/prose
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -565,6 +571,25 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)
 
+  libs/behavior:
+    dependencies:
+      '@canmi/motion':
+        specifier: workspace:*
+        version: link:../motion
+      '@canmi/units':
+        specifier: workspace:*
+        version: link:../units
+      motion:
+        specifier: ^13.2.0
+        version: 13.4.0
+      thumbhash:
+        specifier: ^0.1.1
+        version: 0.1.1
+    devDependencies:
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+
   libs/cache: {}
 
   libs/collection:
@@ -670,6 +695,91 @@ importers:
 
   libs/primitives: {}
 
+  libs/prose:
+    dependencies:
+      '@canmi/artifacts':
+        specifier: workspace:*
+        version: link:../artifacts
+      '@canmi/behavior':
+        specifier: workspace:*
+        version: link:../behavior
+      '@canmi/locales':
+        specifier: workspace:*
+        version: link:../locales
+      '@canmi/messages':
+        specifier: workspace:*
+        version: link:../messages
+      '@canmi/motion':
+        specifier: workspace:*
+        version: link:../motion
+      '@canmi/primitives':
+        specifier: workspace:*
+        version: link:../primitives
+      '@canmi/svg-canvas':
+        specifier: workspace:*
+        version: link:../svg-canvas
+      '@canmi/theme':
+        specifier: workspace:*
+        version: link:../theme
+      '@canmi/tokens':
+        specifier: workspace:*
+        version: link:../tokens
+      '@canmi/units':
+        specifier: workspace:*
+        version: link:../units
+      '@canmi/urls':
+        specifier: workspace:*
+        version: link:../urls
+      '@lucide/svelte':
+        specifier: ^1.45.0
+        version: 1.47.0(svelte@5.57.1)
+      '@stylexjs/stylex':
+        specifier: ^0.19.0
+        version: 0.19.1
+      '@videojs/core':
+        specifier: 10.0.0-rc.2
+        version: 10.0.0-rc.2
+      '@videojs/media':
+        specifier: 10.0.0-rc.2
+        version: 10.0.0-rc.2
+      '@videojs/store':
+        specifier: 10.0.0-rc.2
+        version: 10.0.0-rc.2
+      bits-ui:
+        specifier: ^2.19.2
+        version: 2.19.2(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.0(svelte@5.57.1)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)))(svelte@5.57.1)
+      d3-hierarchy:
+        specifier: ^3.1.2
+        version: 3.1.2
+      esm-env:
+        specifier: ^1.2.2
+        version: 1.2.2
+      mermaid:
+        specifier: ^11.17.2
+        version: 11.17.2
+      motion:
+        specifier: ^13.2.0
+        version: 13.4.0
+      phosphor-svelte:
+        specifier: ^3.1.0
+        version: 3.1.0(svelte@5.57.1)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+    devDependencies:
+      '@testing-library/svelte':
+        specifier: ^5.4.2
+        version: 5.4.2(svelte@5.57.1)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))(vitest@5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(jsdom@30.1.0(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)))
+      '@types/d3-hierarchy':
+        specifier: ^3.1.7
+        version: 3.1.7
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   libs/robots:
     dependencies:
       '@canmi/urls':
@@ -689,7 +799,11 @@ importers:
 
   libs/theme: {}
 
-  libs/tokens: {}
+  libs/tokens:
+    dependencies:
+      '@stylexjs/stylex':
+        specifier: ^0.19.0
+        version: 0.19.1
 
   libs/units: {}
 

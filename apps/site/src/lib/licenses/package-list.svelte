@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, family, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { border, family, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a package list. Every colour is the token variable `libs/tokens` already

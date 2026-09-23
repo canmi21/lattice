@@ -1,0 +1,47 @@
+{
+	"name": "@canmi/prose",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./body.svelte": "./src/body.svelte",
+		"./card.svelte": "./src/card.svelte",
+		"./section.svelte": "./src/section.svelte",
+		"./icons.svelte": "./src/icons.svelte",
+		"./note-flash": "./src/note-flash.ts",
+		"./note-reveal": "./src/note-reveal.ts",
+		"./blocks/*": "./src/blocks/*",
+		"./components/*": "./src/components/*",
+		"./section-title": "./src/section-title.ts"
+	},
+	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
+		"@canmi/behavior": "workspace:*",
+		"@canmi/locales": "workspace:*",
+		"@canmi/messages": "workspace:*",
+		"@canmi/motion": "workspace:*",
+		"@canmi/primitives": "workspace:*",
+		"@canmi/svg-canvas": "workspace:*",
+		"@canmi/theme": "workspace:*",
+		"@canmi/tokens": "workspace:*",
+		"@canmi/units": "workspace:*",
+		"@canmi/urls": "workspace:*",
+		"@lucide/svelte": "^1.45.0",
+		"@stylexjs/stylex": "^0.19.0",
+		"@videojs/core": "10.0.0-rc.2",
+		"@videojs/media": "10.0.0-rc.2",
+		"@videojs/store": "10.0.0-rc.2",
+		"bits-ui": "^2.19.2",
+		"d3-hierarchy": "^3.1.2",
+		"esm-env": "^1.2.2",
+		"mermaid": "^11.17.2",
+		"motion": "^13.2.0",
+		"phosphor-svelte": "^3.1.0",
+		"svelte": "^5.57.1"
+	},
+	"devDependencies": {
+		"@testing-library/svelte": "^5.4.2",
+		"@types/d3-hierarchy": "^3.1.7",
+		"svelte-check": "^4.7.6",
+		"typescript": "^6.0.3"
+	}
+}

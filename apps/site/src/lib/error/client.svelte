@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { line, text } from '$lib/vocabulary.stylex.ts';
+	import { line, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * Two small lines, centred, separated by ink rather than size. See

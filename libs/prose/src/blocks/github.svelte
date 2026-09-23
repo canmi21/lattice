@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { family, figures, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { family, figures, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
@@ -117,7 +117,7 @@
 	import { URLS } from '@canmi/urls';
 	import type { CardAlign, RepoRecord } from '@canmi/artifacts/types';
 	import { langColor } from './tokei/tokei';
-	import { compactCount, shortDate } from '$lib/format';
+	import { compactCount, shortDate } from '@canmi/locales/format';
 
 	let {
 		repo,

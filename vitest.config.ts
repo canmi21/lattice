@@ -4,6 +4,8 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vitest/config';
 
 const SITE = fileURLToPath(new URL('./apps/site/', import.meta.url));
+const PROSE = fileURLToPath(new URL('./libs/prose/src/', import.meta.url));
+const ROOT = fileURLToPath(new URL('./', import.meta.url));
 
 /**
  * The one thing the default configuration cannot resolve.
@@ -63,7 +65,7 @@ export default defineConfig({
 						...stylex({
 							useCSSLayers: true,
 							aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
-							unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+							unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
 						}),
 						enforce: undefined,
 						// Dropped because a test run is not a dev server: the hook opens a 150ms interval
@@ -73,7 +75,9 @@ export default defineConfig({
 					},
 				],
 				resolve: {
-					alias: { $lib: `${SITE}src/lib` },
+					// The renderer is aliased to its source for the reason svelte.config.js gives:
+					// resolved through `node_modules` it would be compiled as a legacy component.
+					alias: { $lib: `${SITE}src/lib`, '@canmi/prose': PROSE.replace(/\/$/, '') },
 					// Svelte publishes a server build that throws from `mount`, and it is what a test
 					// file resolves to by default -- the suite is jsdom, so ask for the other one.
 					conditions: ['browser'],
@@ -81,7 +85,7 @@ export default defineConfig({
 				test: {
 					name: 'component',
 					environment: 'jsdom',
-					include: ['src/**/*.svelte.test.ts'],
+					include: ['src/**/*.svelte.test.ts', '../../libs/prose/src/**/*.svelte.test.ts'],
 				},
 			},
 		],

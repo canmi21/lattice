@@ -7,7 +7,7 @@
  */
 
 import { ARTICLE_BODY_CLASS } from './article.svelte';
-import { SECTION_TITLE_CLASS } from './section.svelte';
+import { SECTION_TITLE_CLASS } from '@canmi/prose/section-title';
 import { TOC_LABEL_CLASS } from './toc.svelte';
 import { fontOfProbe } from '$lib/client/measured';
 import { railWidths, type RailWidths } from './rail-widths';

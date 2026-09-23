@@ -1,7 +1,8 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration } from '$lib/vocabulary.stylex.ts';
-	import { surfaces } from '$lib/surfaces.ts';
+	import { duration } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { titleStyles } from './section-title.ts';
 
 	/**
 	 * The heading, as the anchor button's `when.ancestor` sees it. See spec/todo/todo.md, "Ancestor
@@ -14,13 +15,6 @@
 	const heading = stylex.defaultMarker();
 
 	const styles = stylex.create({
-		title: {
-			color: 'var(--color-text-strong)',
-			// Tailwind's semibold, 40 over the site's own `strong` and written at this site alone.
-			// Which of the two a heading should be is a question nobody answered. See spec/todo/css.md.
-			// unnamed: neither step of the weight ladder, and one site is not a third.
-			fontWeight: 600,
-		},
 		anchor: {
 			opacity: {
 				default: 0,
@@ -49,8 +43,6 @@
 		},
 	});
 
-	/** What a heading's class resolves to; see article.svelte, `ARTICLE_BODY_CLASS`. */
-	export const SECTION_TITLE_CLASS = stylex.attrs(styles.title).class ?? '';
 </script>
 
 <script lang="ts">
@@ -77,7 +69,7 @@
 <svelte:element
 	this={`h${depth}`}
 	id={slug}
-	class="relative {stylex.attrs(styles.title, heading).class}"
+	class="relative {stylex.attrs(titleStyles.title, heading).class}"
 	class:mt-12={depth === 2}
 	class:mt-8={depth !== 2}
 >

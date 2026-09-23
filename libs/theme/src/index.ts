@@ -1,4 +1,4 @@
-import { inlineScriptString } from './inline-script';
+import { inlineScriptString } from './inline-script.ts';
 
 const SYSTEM_DARK_QUERY = '(prefers-color-scheme:dark)';
 

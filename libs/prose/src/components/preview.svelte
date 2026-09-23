@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration } from '$lib/vocabulary.stylex.ts';
+	import { duration } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the three elements this component renders itself. Every colour is the

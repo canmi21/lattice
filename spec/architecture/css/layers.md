@@ -159,7 +159,7 @@ out of the vocabulary means first checking that no surface on the same element s
 
 `font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family` and
 `font-variant-numeric` are vocabulary wherever they appear, whether or not the declaration around
-them is a named recipe, and each takes its value from [vocabulary.stylex.ts](../../../apps/site/src/lib/vocabulary.stylex.ts) rather than a
+them is a named recipe, and each takes its value from [vocabulary.stylex.ts](../../../libs/tokens/src/vocabulary.stylex.ts) rather than a
 literal.
 
 **This is an exception to the membership axis and is written as one.** The alternative was worse:
@@ -185,9 +185,9 @@ the largest file in `spec/` and is largely made of it.
 
 The clearest evidence that the adjective does not decide is in the tree, where one property has
 already been ruled both ways by two people applying the same test in good faith. `white-space:
-nowrap` is StyleX in [cargo.svelte](../../../apps/site/src/lib/blocks/cargo/cargo.svelte), where
+nowrap` is StyleX in [cargo.svelte](../../../libs/prose/src/blocks/cargo/cargo.svelte), where
 the comment beside it reads the property as typography rather than geometry; it is a scoped rule in
-[github.svelte](../../../apps/site/src/lib/blocks/github.svelte), where the comment beside it reads
+[github.svelte](../../../libs/prose/src/blocks/github.svelte), where the comment beside it reads
 the same property as the width being reserved rather than how the text looks. Neither comment is
 careless. The test produced two answers because the test was an adjective.
 
@@ -234,8 +234,8 @@ library sets; a child reached through its parent's `:focus-visible` is the same 
 the escape hatch by the same mechanism read from the other side.
 
 **The vocabulary** owns every declaration that is a member of a named surface in
-[surfaces.ts](../../../apps/site/src/lib/surfaces.ts) or takes its value from
-[vocabulary.stylex.ts](../../../apps/site/src/lib/vocabulary.stylex.ts):
+[surfaces.ts](../../../libs/tokens/src/surfaces.ts) or takes its value from
+[vocabulary.stylex.ts](../../../libs/tokens/src/vocabulary.stylex.ts):
 
 - colour, in all its spellings: `color`, `background-color`, `border-color`, `outline-color`,
   `fill`, `stroke`
@@ -303,7 +303,7 @@ on a link, `list-style: none` on a list, `appearance: none` on a control, `borde
 recipe to hold. The exception is real and is the focus ring's own suppression, where the
 `outline: none` is a member of that recipe and travels with it -- question two, reached before this
 row. The two sites writing it as the shorthand are the frame by it: `textDecoration: 'none'` in
-[github.svelte](../../../apps/site/src/lib/blocks/github.svelte) and
+[github.svelte](../../../libs/prose/src/blocks/github.svelte) and
 [footnotes.svelte](../../../apps/site/src/lib/article/footnotes.svelte), each a component turning
 off a link's underline and belonging to no named recipe, and both are `no-underline` in the markup.
 The `textDecorationLine: 'none'` keys in the blocks answer to the same row. It earns its place by
@@ -322,7 +322,7 @@ Typography was the largest thing the old axis left open, because "visual" swallo
 **The type ramp is the vocabulary.** `font-size`, `line-height`, `font-weight`, `letter-spacing`,
 `font-family` and `font-variant-numeric` take their values from a scale this repository maintains
 and names -- the type ladder, the two line ratios, the two weights and the two monospace stacks in
-[vocabulary.stylex.ts](../../../apps/site/src/lib/vocabulary.stylex.ts). Writing one of those
+[vocabulary.stylex.ts](../../../libs/tokens/src/vocabulary.stylex.ts). Writing one of those
 values is a lookup into that scale whether or not the spelling admits it, and a second spelling of
 the ramp is exactly how a ramp drifts. The site's repeated `1.4` line height is the case that
 proves the rule rather than the exception to it: the ladder does not name it and nothing records
@@ -336,12 +336,12 @@ looked up, nothing drifts, and nobody needs a name to read it.
 Two things pointed at this line from opposite sides, and both were errors of the same kind:
 
 - `font-variant-numeric: tabular-nums` was written as a Tailwind class in the markup at three
-  places in [github.svelte](../../../apps/site/src/lib/blocks/github.svelte) -- a ramp member in the
+  places in [github.svelte](../../../libs/prose/src/blocks/github.svelte) -- a ramp member in the
   frame. Corrected: it is one `fontVariantNumeric` in that component's vocabulary now.
 - `white-space: nowrap` was written in StyleX in
-  [cargo.svelte](../../../apps/site/src/lib/blocks/cargo/cargo.svelte),
-  [tokei.svelte](../../../apps/site/src/lib/blocks/tokei/tokei.svelte),
-  [quadrant.svelte](../../../apps/site/src/lib/blocks/quadrant.svelte),
+  [cargo.svelte](../../../libs/prose/src/blocks/cargo/cargo.svelte),
+  [tokei.svelte](../../../libs/prose/src/blocks/tokei/tokei.svelte),
+  [quadrant.svelte](../../../libs/prose/src/blocks/quadrant.svelte),
   [support.svelte](../../../apps/site/src/lib/support/support.svelte) and
   [switcher.svelte](../../../apps/site/src/lib/locale/switcher.svelte) -- text behaviour in the
   vocabulary. **This list said four and there were five**, which is the enumeration being caught
@@ -502,7 +502,7 @@ which says the number of files is not a layering question in either direction. N
 
 The file holds four unrelated things. Named recipes past the three-component threshold -- the
 `.focus-link` family, `.spring-underline`, `.article-link`, `.jump-target` -- are the vocabulary,
-and go to [surfaces.ts](../../../apps/site/src/lib/surfaces.ts). **Four of those
+and go to [surfaces.ts](../../../libs/tokens/src/surfaces.ts). **Four of those
 names do not go, and the reason is the interface rather than convenience**: `focus-link`,
 `spring-underline`, `article-link` and `jump-target` are written onto compiled prose by
 [compile.ts](../../../libs/compile/src/compile.ts), which the corpus publish runs
@@ -629,7 +629,7 @@ already ruled it the frame.
 
 The disposition read escape hatch because the rules reach markdown-compiled prose. They do not
 reach it by selector. Every one of the seven properties is inherited and all seven are declared
-on the wrapper -- a `<div>` [body.svelte](../../../apps/site/src/lib/article/body.svelte)
+on the wrapper -- a `<div>` [body.svelte](../../../libs/prose/src/body.svelte)
 authors and already classes with `space-y-4` -- while `.article-summary` is a `<p>`
 [article.svelte](../../../apps/site/src/lib/article/article.svelte) authors outright. An author
 of each of those elements can write a class on it, so question one does not answer; two call

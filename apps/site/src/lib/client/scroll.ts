@@ -12,7 +12,7 @@
  * in a page belongs to the sitting rather than to the person.
  */
 
-import { tab, type Store } from './state';
+import { tab, type Store } from '@canmi/behavior/state';
 
 const KEY = 'scroll.at';
 

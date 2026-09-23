@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { easing, line, radius, text, transition } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already

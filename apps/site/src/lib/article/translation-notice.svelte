@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`

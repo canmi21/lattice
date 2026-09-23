@@ -75,7 +75,7 @@ Measured, nothing there is ever emphasised -- but not for the reason this file u
 said neither syntax theme emits `font-style` or `font-weight`, and that was wrong: `one-dark-pro`
 marks every comment italic, `one-light` did too, and 88 published objects carry the mark. What
 saves it is that a dual-theme render emits the style as a custom property, `--shiki-dark-font-style`
-beside `--shiki-dark`, and [code-block.svelte](../../apps/site/src/lib/blocks/code-block.svelte)
+beside `--shiki-dark`, and [code-block.svelte](../../libs/prose/src/blocks/code-block.svelte)
 reads only the colour. The declaration is never made, so the browser is never asked. (`min-light`,
 the light half since, emits no style at all, which makes the light side true in both readings.)
 

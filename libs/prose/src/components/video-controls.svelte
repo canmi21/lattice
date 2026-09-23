@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, figures, radius, text, tracking } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { duration, easing, figures, radius, text, tracking } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
@@ -282,10 +282,10 @@
 	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
 	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';
 	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
-	import { keepPosition, positionOf, stillOf } from '$lib/client/progress';
-	import { reader } from '$lib/client/state';
+	import { keepPosition, positionOf, stillOf } from '@canmi/behavior/progress';
+	import { reader } from '@canmi/behavior/state';
 	import type { VideoRung } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
 
 	let {

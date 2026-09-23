@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a clip: a frame, and the notice under it when nothing else is on screen.
@@ -51,14 +51,14 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
-	import { positionOf } from '$lib/client/progress';
+	import { DEV as dev } from 'esm-env';
+	import { positionOf } from '@canmi/behavior/progress';
 	import { pageUrls } from '@canmi/urls';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
-	import { surfaces } from '$lib/surfaces.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
 	import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
 
 	let {

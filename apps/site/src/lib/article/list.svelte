@@ -1,13 +1,13 @@
 <script module lang="ts">
 	import type { ViewMeta } from '@canmi/artifacts';
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
 </script>
 
 <script lang="ts">
 	import { animate } from 'motion';
 	import { remFromDefaultPixels, remFromMeasuredPixels } from '$lib/client/units';
-	import ArticleCard from './card.svelte';
+	import ArticleCard from '@canmi/prose/card.svelte';
 	import { thumbnails, type Bar } from './thumbnail';
 
 	let {

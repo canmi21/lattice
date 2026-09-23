@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { border, easing, line, radius, text, transition } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { border, easing, line, radius, text, transition } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
@@ -95,7 +95,7 @@
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
 	import { Dialog } from 'bits-ui';
 	import { goto } from '$app/navigation';
-	import { animateHeight, type AnimationControl } from '$lib/client/collapse';
+	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
 	import { remFromMeasuredPixels } from '$lib/client/units';
 	import * as m from '@canmi/messages';
 	import type { LocaleCode } from '$lib/locale/index.ts';

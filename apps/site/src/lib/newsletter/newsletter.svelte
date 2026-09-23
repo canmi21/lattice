@@ -1,8 +1,8 @@
 <script module lang="ts">
 	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { duration, easing, line, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { duration, easing, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the subscription surface. Every colour is the token variable `libs/tokens`

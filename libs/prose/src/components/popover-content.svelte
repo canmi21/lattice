@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { line, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { line, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the popover surface. Every colour is the token variable `libs/tokens`

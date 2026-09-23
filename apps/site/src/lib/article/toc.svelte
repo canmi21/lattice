@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '$lib/surfaces.ts';
-	import { line, radius, text } from '$lib/vocabulary.stylex.ts';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { line, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
@@ -70,7 +70,7 @@
 		remFromMeasuredPixels,
 	} from '$lib/client/units';
 	import { untrack } from 'svelte';
-	import { arriving } from '$lib/client/arrival';
+	import { arriving } from '@canmi/behavior/arrival';
 	import type { TocEntry } from '@canmi/artifacts/types';
 	import { measureRail } from './rail-measure';
 	import type { RailWidths } from './rail-widths';

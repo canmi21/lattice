@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { radius } from '$lib/vocabulary.stylex.ts';
+	import { radius } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * How far down the article the reader is, drawn as a ring, and a way back to the top.
@@ -80,7 +80,7 @@
 
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { arriving } from '$lib/client/arrival';
+	import { arriving } from '@canmi/behavior/arrival';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import Dial from '$lib/components/dial.svelte';

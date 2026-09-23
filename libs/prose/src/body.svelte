@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, leading, radius, text, weight } from '$lib/vocabulary.stylex.ts';
+	import { border, leading, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the translator's note, the only surface this component draws itself.
@@ -50,31 +50,31 @@
 </script>
 
 <script lang="ts">
-	import Cargo from '$lib/blocks/cargo/cargo.svelte';
-	import CodeBlock from '$lib/blocks/code-block.svelte';
-	import GitHub from '$lib/blocks/github.svelte';
-	import LinkCard from '$lib/blocks/link-card.svelte';
-	import Picture from '$lib/components/picture.svelte';
-	import Mermaid from '$lib/blocks/mermaid/mermaid.svelte';
-	import Placeholder from '$lib/blocks/placeholder.svelte';
-	import Quadrant from '$lib/blocks/quadrant.svelte';
-	import SvgCanvas from '$lib/blocks/svg-canvas.svelte';
-	import Tokei from '$lib/blocks/tokei/tokei.svelte';
-	import Twitter from '$lib/blocks/twitter.svelte';
-	import Video from '$lib/components/video.svelte';
-	import { jumpTo, movesThisPage, targetOf } from '$lib/client/jump';
+	import Cargo from './blocks/cargo/cargo.svelte';
+	import CodeBlock from './blocks/code-block.svelte';
+	import GitHub from './blocks/github.svelte';
+	import LinkCard from './blocks/link-card.svelte';
+	import Picture from './components/picture.svelte';
+	import Mermaid from './blocks/mermaid/mermaid.svelte';
+	import Placeholder from './blocks/placeholder.svelte';
+	import Quadrant from './blocks/quadrant.svelte';
+	import SvgCanvas from './blocks/svg-canvas.svelte';
+	import Tokei from './blocks/tokei/tokei.svelte';
+	import Twitter from './blocks/twitter.svelte';
+	import Video from './components/video.svelte';
+	import { jumpTo, movesThisPage, targetOf } from '@canmi/behavior/jump';
 	import { flashOnArrival } from './note-flash';
 	import { revealNoteBeforeJump } from './note-reveal';
-	import PopoverContent from '$lib/components/popover-content.svelte';
+	import PopoverContent from './components/popover-content.svelte';
 	import * as m from '@canmi/messages';
 	import Info from '@lucide/svelte/icons/info';
 	import X from '@lucide/svelte/icons/x';
 	import { Popover } from 'bits-ui';
-	import { dev } from '$app/environment';
+	import { DEV as dev } from 'esm-env';
 	import { pageUrls } from '@canmi/urls';
 	import { pictured, type ParsedResource } from '@canmi/artifacts';
 	import type { Block } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '@canmi/locales';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';
 

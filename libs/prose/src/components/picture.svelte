@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border } from '$lib/vocabulary.stylex.ts';
+	import { border } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * Everything the build resolved about one image: which bytes, how large they are, and how this
@@ -39,8 +39,8 @@
 </script>
 
 <script lang="ts">
-	import Preview from '$lib/components/preview.svelte';
-	import type { LocaleCode } from '$lib/locale';
+	import Preview from './preview.svelte';
+	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
 
 	let {

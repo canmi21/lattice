@@ -2,55 +2,55 @@
 	"groups": [
 		{
 			"components": [
-				"apps/site/src/lib/blocks/cargo/cargo.svelte",
-				"apps/site/src/lib/blocks/tokei/tokei.svelte",
+				"libs/prose/src/blocks/cargo/cargo.svelte",
+				"libs/prose/src/blocks/tokei/tokei.svelte",
 				"apps/site/src/lib/support/support.svelte"
 			],
 			"stays": "cargo and tokei write one footer link twice, comment for comment, leaving support as the only other witness -- and the three share a transition with its property list left out, which is the half that differs at every site"
 		},
 		{
 			"components": [
-				"apps/site/src/lib/blocks/cargo/cargo.svelte",
-				"apps/site/src/lib/blocks/mermaid/mermaid.svelte",
-				"apps/site/src/lib/blocks/tokei/tokei.svelte"
+				"libs/prose/src/blocks/cargo/cargo.svelte",
+				"libs/prose/src/blocks/mermaid/mermaid.svelte",
+				"libs/prose/src/blocks/tokei/tokei.svelte"
 			],
 			"stays": "the cargo and tokei tooltips are one panel written twice, down to the markup and the `.tooltip-grid` rule under it, so mermaid's sketch node is the second witness and there is no third"
 		},
 		{
 			"components": [
-				"apps/site/src/lib/blocks/cargo/cargo.svelte",
-				"apps/site/src/lib/blocks/quadrant.svelte",
-				"apps/site/src/lib/blocks/tokei/tokei.svelte"
+				"libs/prose/src/blocks/cargo/cargo.svelte",
+				"libs/prose/src/blocks/quadrant.svelte",
+				"libs/prose/src/blocks/tokei/tokei.svelte"
 			],
 			"stays": "the same one tooltip written twice, against quadrant's box -- spec/todo/todo.md names `mermaid.node` and `quadrant.box` as whole-box borders belonging to neither named surface so a later count would not read them as members"
 		},
 		{
 			"components": [
-				"apps/site/src/lib/blocks/cargo/cargo.svelte",
-				"apps/site/src/lib/blocks/tokei/tokei.svelte",
-				"apps/site/src/lib/components/video.svelte"
+				"libs/prose/src/blocks/cargo/cargo.svelte",
+				"libs/prose/src/blocks/tokei/tokei.svelte",
+				"libs/prose/src/components/video.svelte"
 			],
 			"stays": "the same one tooltip again, and a video frame that takes picture's edge by its own comment -- extraction.md has already ruled the clip out of `blockFrame`, and one tooltip and one clip are two"
 		},
 		{
 			"components": [
-				"apps/site/src/lib/blocks/cargo/cargo.svelte",
-				"apps/site/src/lib/blocks/tokei/tokei.svelte",
+				"libs/prose/src/blocks/cargo/cargo.svelte",
+				"libs/prose/src/blocks/tokei/tokei.svelte",
 				"apps/site/src/lib/licenses/package-list.svelte"
 			],
 			"stays": "the same one tooltip, and a licence badge: what they hold in common is an edge and a type step, two concerns that meet here by arithmetic rather than by anybody drawing one thing"
 		},
 		{
 			"components": [
-				"apps/site/src/lib/blocks/cargo/cargo.svelte",
-				"apps/site/src/lib/blocks/github.svelte",
-				"apps/site/src/lib/blocks/tokei/tokei.svelte"
+				"libs/prose/src/blocks/cargo/cargo.svelte",
+				"libs/prose/src/blocks/github.svelte",
+				"libs/prose/src/blocks/tokei/tokei.svelte"
 			],
 			"stays": "cargo and tokei spell `tooltipCount` identically because the tooltip around it is one panel written twice, which leaves github's commit ref as the second witness"
 		},
 		{
 			"components": [
-				"apps/site/src/lib/blocks/mermaid/mermaid.svelte",
+				"libs/prose/src/blocks/mermaid/mermaid.svelte",
 				"apps/site/src/lib/licenses/package-list.svelte",
 				"apps/site/src/routes/licenses/[license]/+page.svelte",
 				"apps/site/src/routes/licenses/pkgs/[registry]/+page.svelte"
@@ -59,8 +59,8 @@
 		},
 		{
 			"components": [
-				"apps/site/src/lib/components/picture.svelte",
-				"apps/site/src/lib/components/video.svelte",
+				"libs/prose/src/components/picture.svelte",
+				"libs/prose/src/components/video.svelte",
 				"apps/site/src/routes/+page.svelte"
 			],
 			"stays": "video copies picture's border values by its own comment, and the homepage avatar is a circle that happens to spell the same four -- two related and one coincidence, and extraction.md wants three unrelated"
