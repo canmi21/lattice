@@ -121,7 +121,7 @@
 	tabindex="-1"
 	style:left="{left}px"
 	style:top="{top}px"
-	class="fixed z-50 flex min-w-44 flex-col overflow-hidden py-1 shadow-sm {stylex.attrs(
+	class="fixed z-50 flex min-w-44 flex-col overflow-hidden shadow-sm {stylex.attrs(
 		surfaces.uiText,
 		surfaces.menu,
 	).class}"
