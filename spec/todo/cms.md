@@ -76,3 +76,22 @@ reference nothing has imported survives the move, since today that fallback is "
 fields are absent" and after it would be "the record is absent". Both are decisions about the
 player rather than about the resolution path, which is why the two loops that built that path
 stopped at the edge of them.
+
+## The list of refused ids is written twice, once in each language
+
+`apps/cms/src/resource.rs` refuses eighteen stems anywhere in a candidate id, because an id is
+written into article source and into a URL. `libs/collection/src/allocate.ts` now refuses the same
+eighteen, because allocation happens where the register is, and the register is the `resource`
+table.
+
+Two copies of a word list drift the way every duplicated list drifts, and this one drifts
+silently: the halves disagree only about ids nobody has been granted yet, so the first evidence
+would be an id somebody is embarrassed by. Nothing compares them.
+
+What deciding it costs depends on which way it goes. One owner in TypeScript means the Rust
+allocator reads the list from a file this library publishes, which is a path crossing from
+`apps/cms` into `libs/`, or stops allocating at all once `local` owns granting -- the second is
+where the plan already points, and it removes the question rather than answering it. One owner in
+Rust means the reverse crossing and a build step to generate the TypeScript. A test that asserts
+the two lists are equal is the cheap third option, and it is honest about being a guard rather
+than a fix.
