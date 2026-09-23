@@ -43,7 +43,7 @@
 	const COLUMNS = 'grid grid-cols-[minmax(0,1fr)_4.5rem_6rem] items-baseline gap-4 px-2';
 </script>
 
-<div class="mx-auto w-full max-w-3xl">
+<div class="mx-auto w-full max-w-(--rail-column) px-6">
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class={stylex.attrs(surfaces.heading, styles.title).class}>Articles</h1>
 		<button

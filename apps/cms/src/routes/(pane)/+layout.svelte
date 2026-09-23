@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { goto, invalidate } from '$app/navigation';
+	import { afterNavigate, goto, invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import ChartLine from '@lucide/svelte/icons/chart-line';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -10,14 +10,18 @@
 	import House from '@lucide/svelte/icons/house';
 	import Link from '@lucide/svelte/icons/link';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
+	import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
+	import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Search from '@lucide/svelte/icons/search';
 	import Settings from '@lucide/svelte/icons/settings';
 	import { resizeHandle } from '@canmi/behavior/resize';
+	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
-	import type { Component } from 'svelte';
+	import { onMount, tick, type Component } from 'svelte';
 	import { createDraft, DRAFTS } from '$lib/collection.ts';
-	import { SIDEBAR } from '$lib/sidebar.ts';
+	import { FOLD_BELOW, SIDEBAR, sidebarStyles } from '$lib/sidebar.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -55,6 +59,158 @@
 
 	const here = (href: string) => page.url.pathname === href;
 
+	/** The rules that place the sidebar, rendered into the head with the page. See `$lib/sidebar.ts`. */
+	const PLACEMENT = `<style>${sidebarStyles()}</style>`;
+
+	/**
+	 * Folding. The sidebar folds away when the window cannot hold both regions at their minimums,
+	 * or when the writer folds it; folded, a float in the corner brings it back, and the pointer
+	 * running to the window's left edge lifts it out over the pane for as long as it is wanted.
+	 * See spec/architecture/local.md.
+	 */
+	let collapsed = $state(false);
+	/** Lifted over the pane: by the pointer at the edge, or pinned by the float's button. */
+	let peek = $state<'none' | 'hover' | 'pinned'>('none');
+	/** Whether the window holds both regions. The server cannot know, and assumes it does. */
+	let wide = $state(true);
+	const folded = $derived(collapsed || !wide);
+
+	let nav: HTMLElement;
+	let float: HTMLElement;
+
+	/** How close to the window's left edge the pointer comes to lift the sidebar out, in pixels. */
+	const EDGE = 8;
+	/** How far right of the lifted sidebar the pointer goes before it is let back down. */
+	const RELEASE = 24;
+
+	/**
+	 * One movement of the sidebar, on the site's timing: a surface answering a press, scaled by the
+	 * distance it moves (`@canmi/motion`). Played by the browser and held at its last frame until
+	 * the caller has moved the state the stylesheet reads, then cancelled -- so nothing a movement
+	 * wrote outlives it, and the resting place is always the rules' and never a leftover inline.
+	 * A new movement cancels the one in flight. Under reduced motion there is none.
+	 */
+	let playing: Animation | undefined;
+
+	async function play(keyframes: Keyframe[], pixels: number): Promise<Animation | undefined> {
+		playing?.cancel();
+		playing = undefined;
+		if (prefersReducedMotion()) return undefined;
+		const timing = pressMotion(pixels);
+		const animation = nav.animate(keyframes, {
+			duration: timing.duration * 1000,
+			easing: `cubic-bezier(${timing.ease.join(', ')})`,
+			fill: 'forwards',
+		});
+		playing = animation;
+		try {
+			await animation.finished;
+			return animation;
+		} catch {
+			return undefined; // cancelled by whatever replaced it
+		}
+	}
+
+	/** Let a finished movement go, once the state it was moving toward is on the page. */
+	async function release(animation: Animation | undefined) {
+		await tick();
+		animation?.cancel();
+		if (playing === animation) playing = undefined;
+	}
+
+	/** Set while the sidebar is going down, so the moves that follow do not start it again. */
+	let lowering = false;
+
+	async function lift(how: 'hover' | 'pinned') {
+		lowering = false;
+		peek = how;
+		await tick();
+		const distance = nav.getBoundingClientRect().right;
+		const done = await play(
+			[{ transform: `translateX(${-distance}px)` }, { transform: 'translateX(0)' }],
+			distance,
+		);
+		await release(done);
+	}
+
+	async function lower() {
+		if (peek === 'none' || lowering) return;
+		lowering = true;
+		const distance = nav.getBoundingClientRect().right;
+		const done = await play(
+			[{ transform: 'translateX(0)' }, { transform: `translateX(${-distance}px)` }],
+			distance,
+		);
+		// A lift that started meanwhile has taken over, and the sidebar stays up.
+		if (!lowering) return;
+		lowering = false;
+		peek = 'none';
+		await release(done);
+	}
+
+	/** Open or close a docked sidebar across its width, clipped while it moves. */
+	function sweep(from: number, to: number) {
+		return play(
+			[
+				{ width: `${from}px`, opacity: from ? 1 : 0, overflow: 'hidden' },
+				{ width: `${to}px`, opacity: to ? 1 : 0, overflow: 'hidden' },
+			],
+			Math.abs(to - from),
+		);
+	}
+
+	async function fold() {
+		if (peek !== 'none') return lower();
+		const done = await sweep(nav.getBoundingClientRect().width, 0);
+		collapsed = true;
+		await release(done);
+	}
+
+	async function unfold() {
+		if (!wide) return lift('pinned');
+		peek = 'none';
+		collapsed = false;
+		await tick();
+		await release(await sweep(0, nav.getBoundingClientRect().width));
+	}
+
+	function moved(event: PointerEvent) {
+		if (event.pointerType !== 'mouse' || !folded) return;
+		if (peek === 'none' && event.clientX <= EDGE) void lift('hover');
+		else if (peek === 'hover' && event.clientX > nav.getBoundingClientRect().right + RELEASE) {
+			void lower();
+		}
+	}
+
+	function pressed(event: PointerEvent) {
+		const target = event.target as Node;
+		if (peek === 'pinned' && !nav.contains(target) && !float.contains(target)) void lower();
+	}
+
+	function key(event: KeyboardEvent) {
+		if (event.key === 'Escape' && peek !== 'none') void lower();
+	}
+
+	onMount(() => {
+		const narrow = window.matchMedia(`(max-width: ${FOLD_BELOW}rem)`);
+		const measure = () => (wide = !narrow.matches);
+		measure();
+		narrow.addEventListener('change', measure);
+		return () => narrow.removeEventListener('change', measure);
+	});
+
+	// A window widened past the fold docks the sidebar, so a lifted one has nothing left to float over.
+	$effect(() => {
+		if (!folded && peek !== 'none') {
+			playing?.cancel();
+			lowering = false;
+			peek = 'none';
+		}
+	});
+
+	// Choosing somewhere to go is what a lifted sidebar was for.
+	afterNavigate(() => void lower());
+
 	const LINE =
 		'linear-gradient(to right, transparent calc(50% - 1px), var(--color-border-strong) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px))';
 
@@ -83,6 +239,11 @@
 			},
 			outlineStyle: { default: null, ':focus-visible': 'none' },
 		},
+		float: {
+			backgroundColor: 'var(--color-paper-hover)',
+			borderRadius: radius.lg,
+			boxShadow: '0 0.25rem 1rem oklch(0 0 0 / 0.14), 0 0 0 1px var(--color-border)',
+		},
 		chevron: {
 			transitionProperty: 'rotate',
 			transitionDuration: duration.base,
@@ -106,24 +267,44 @@
 		).class}"
 	>
 		<section.icon class="size-4 shrink-0" aria-hidden="true" />
-		<span class="truncate max-md:sr-only">{section.label}</span>
+		<span class="truncate">{section.label}</span>
 	</a>
 {/snippet}
 
-<div data-ground class="flex h-dvh flex-col gap-2 overflow-hidden p-2 md:flex-row md:gap-0">
-	<!-- The width is the divider's property, set before the first frame when one is remembered;
-	     the fallback beside it is what the server renders and a first visit keeps. -->
-	<nav
-		style:--sidebar-fallback="{SIDEBAR.span.fallback}rem"
-		class="flex shrink-0 gap-1 px-1 md:w-[var(--sidebar-width,var(--sidebar-fallback))] md:flex-col md:py-2"
-	>
-		<div class="flex min-h-0 flex-1 gap-0.5 md:flex-col md:overflow-y-auto">
+<svelte:document onpointermove={moved} onpointerdown={pressed} onkeydown={key} />
+
+<svelte:head>
+	<!-- Built from the sidebar's constants, which a stylesheet cannot read. Raw, and stated rather
+	     than suppressed, for the reason the root layout gives. -->
+	{@html PLACEMENT}
+</svelte:head>
+
+<div
+	data-ground
+	data-collapsed={collapsed || undefined}
+	data-peek={peek !== 'none' || undefined}
+	class="flex h-dvh overflow-hidden p-2"
+>
+	<!-- The width is the divider's property, set before the first frame when one is remembered, and
+	     placed by the rules in the head: docked, folded away, or lifted over the pane. -->
+	<nav data-sidebar bind:this={nav} class="flex shrink-0 flex-col gap-1 px-1 py-2">
+		<div class="flex justify-end">
+			<button
+				type="button"
+				aria-label={peek === 'none' ? 'Fold the sidebar' : 'Put the sidebar away'}
+				onclick={fold}
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+			>
+				<PanelLeftClose class="size-4" aria-hidden="true" />
+			</button>
+		</div>
+		<div class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
 			{#each SECTIONS as section (section.href)}
 				{@render entry(section)}
 			{/each}
 
 			<!-- A folder: the row opens and closes it, and the list under it is every article. -->
-			<div class="mt-3 flex items-center gap-0.5 max-md:hidden">
+			<div class="mt-3 flex items-center gap-0.5">
 				<button
 					type="button"
 					aria-expanded={open}
@@ -160,7 +341,7 @@
 			</div>
 
 			{#if open}
-				<ul class="flex flex-col gap-0.5 max-md:hidden">
+				<ul class="flex flex-col gap-0.5">
 					{#each articles as article (article.resource)}
 						{@const href = `/draft/${article.resource}`}
 						{@const current = page.url.pathname === href}
@@ -187,7 +368,7 @@
 			{/if}
 		</div>
 
-		<div class="md:pt-2">{@render entry(SETTINGS)}</div>
+		<div class="pt-2">{@render entry(SETTINGS)}</div>
 	</nav>
 
 	<!-- The gap between the two regions is the divider: drag it, step it with the arrow keys, or
@@ -199,21 +380,45 @@
 		aria-orientation="vertical"
 		aria-label="Resize the sidebar"
 		tabindex="0"
+		data-divider
 		use:resizeHandle={SIDEBAR}
-		class="w-2 shrink-0 cursor-col-resize touch-none max-md:hidden {stylex.attrs(styles.handle)
-			.class}"
+		class="w-2 shrink-0 cursor-col-resize touch-none {stylex.attrs(styles.handle).class}"
 	></div>
 
 	<!-- The pane is the one thing that scrolls. The ground holds still around it, so the sections
 	     and the pane's corners stay where they are while the text moves, and a sticky bar inside
 	     sticks to the pane's top edge. A page that wants a measure sets its own. -->
 	<div
-		class="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 pt-8 pb-24 md:px-8 {stylex.attrs(
+		class="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 pt-8 pb-24 {stylex.attrs(
 			surfaces.page,
 			styles.pane,
 		).class}"
 	>
 		{@render children()}
+	</div>
+
+	<!-- Where the sidebar goes when it is folded: a float held in the corner, with the way back and
+	     the search, which is a place held for a feature not built yet. -->
+	<div
+		data-float
+		bind:this={float}
+		class="fixed top-2 left-2 z-20 items-center gap-0.5 p-1 {stylex.attrs(styles.float).class}"
+	>
+		<button
+			type="button"
+			aria-label="Show the sidebar"
+			onclick={unfold}
+			class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+		>
+			<PanelLeftOpen class="size-4" aria-hidden="true" />
+		</button>
+		<button
+			type="button"
+			aria-label="Search"
+			class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+		>
+			<Search class="size-4" aria-hidden="true" />
+		</button>
 	</div>
 </div>
 

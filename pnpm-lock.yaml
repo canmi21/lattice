@@ -337,6 +337,9 @@ importers:
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
+      '@canmi/motion':
+        specifier: workspace:*
+        version: link:../../libs/motion
       '@canmi/primitives':
         specifier: workspace:*
         version: link:../../libs/primitives

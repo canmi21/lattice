@@ -135,7 +135,10 @@
 	class="sticky -top-8 z-10 -mx-4 -mt-8 mb-8 px-4 py-2.5 md:-mx-8 md:px-8 {stylex.attrs(styles.bar)
 		.class}"
 >
-	<div class="mx-auto flex max-w-3xl items-center gap-2 {stylex.attrs(surfaces.uiText).class}">
+	<div
+		class="mx-auto flex max-w-(--rail-column) px-6 items-center gap-2 {stylex.attrs(surfaces.uiText)
+			.class}"
+	>
 		<a href="/articles" class="no-underline {stylex.attrs(surfaces.quietControl).class}">Articles</a
 		>
 		<span class={stylex.attrs(styles.quiet).class}>/</span>
@@ -153,7 +156,7 @@
 	</div>
 </div>
 
-<div class="mx-auto mb-10 max-w-3xl">
+<div class="mx-auto mb-10 max-w-(--rail-column) px-6">
 	<input
 		bind:value={title}
 		placeholder="Untitled"
@@ -183,14 +186,14 @@
 <!-- Mounted in the browser only, and remounted per article: the editor reads its text once,
      when it opens, so a second article has to be a second editor. The height is held so the
      region does not arrive by pushing the revisions down. -->
-<div class="mx-auto min-h-96 max-w-3xl">
+<div class="mx-auto min-h-96 max-w-(--rail-column) px-6">
 	{#if mounted}
 		{#key rid}<Editor markdown={body} onChange={typed} />{/key}
 	{/if}
 </div>
 
 {#if revisions.length > 0}
-	<div class="mx-auto mt-16 max-w-3xl {stylex.attrs(surfaces.uiText).class}">
+	<div class="mx-auto mt-16 max-w-(--rail-column) px-6 {stylex.attrs(surfaces.uiText).class}">
 		<h2 class="mb-2 {stylex.attrs(styles.label).class}">Revisions</h2>
 		<ul>
 			{#each revisions as revision (revision.seq)}

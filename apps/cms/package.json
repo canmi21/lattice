@@ -13,6 +13,7 @@
 		"@canmi/collection": "workspace:*",
 		"@canmi/locales": "workspace:*",
 		"@canmi/messages": "workspace:*",
+		"@canmi/motion": "workspace:*",
 		"@canmi/primitives": "workspace:*",
 		"@canmi/prose": "workspace:*",
 		"@canmi/theme": "workspace:*",

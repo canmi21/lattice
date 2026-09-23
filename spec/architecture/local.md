@@ -111,8 +111,8 @@ then the site's own business -- traffic, references, comments -- then the articl
 alone at the foot. Each entry carries a line icon beside its label. A section may be placed before
 what it shows is designed, and then its page is empty: the column is being shaped first, and an
 empty page is the honest state of a section nobody has built yet. It is a column rather than a row
-over the page so that adding a section changes a list and not a layout. Below the `md` width it
-folds into a row of icons, since the CMS is still a page that has to open on a phone.
+over the page so that adding a section changes a list and not a layout. How it folds on a narrow
+window is below.
 
 **The gap between the sidebar and the pane is a divider the writer drags.** Its width is kept in
 the `reader` record in `localStorage` -- the mechanism the site keeps its own per-person facts in,
@@ -123,6 +123,21 @@ this page: the handle, the range a width may take, and the script that sets a re
 before the first frame. The script is the part that matters. The server cannot read
 `localStorage`, so it renders the fallback width, and applying the remembered one after hydration
 would be exactly the jump rendering on the server was meant to remove.
+
+**The sidebar folds away when the window cannot hold both regions, and floats back on demand.**
+Each region has a minimum, measured rather than chosen: the sidebar's is its widest section row
+with the room its icon keeps from the window's edge repeated after the label, and the pane's is the
+site's article column, `--rail-column`, with the pane's inset around it -- the narrowest the writing
+can be and still be set as it will be read. Both numbers and their sum live in
+[sidebar.ts](../../apps/cms/src/lib/sidebar.ts). While the window holds both, the sidebar keeps its
+remembered width but never so wide the pane drops below its own. Below the sum, and whenever the
+writer folds it, the sidebar is gone entirely rather than shrunk to its icons: the pane takes the
+whole width, and a float in the top-left corner holds the way back and a search that is a place
+kept for a feature not built yet. Running the pointer to the window's left edge lifts the sidebar
+out over the pane, and moving well clear of it lets it down; the float's button pins it until a
+click elsewhere. Every movement takes the site's timing for a surface answering a press, from
+`@canmi/motion`, and nothing a movement writes outlives it -- the resting place is always the
+stylesheet's.
 
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row
