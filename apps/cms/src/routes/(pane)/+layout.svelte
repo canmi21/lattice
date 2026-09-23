@@ -375,20 +375,20 @@
 				<span>Release to fold</span>
 			</div>
 		{/if}
-		<div
-			class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none] {stylex.attrs(
-				folding && styles.receded,
-			).class}"
-		>
+		<!-- Three regions: the sections above and settings below hold still, and the articles
+		     between them are the only thing that scrolls, because they are the only list that grows. -->
+		<div class="flex shrink-0 flex-col gap-0.5 {stylex.attrs(folding && styles.receded).class}">
 			{#each SECTIONS as section (section.href)}
 				{@render entry(section)}
 			{/each}
+		</div>
 
+		<div class="mt-3 flex min-h-0 flex-1 flex-col {stylex.attrs(folding && styles.receded).class}">
 			<!-- Articles, a folder of every article, and inside it a folder per category. The depth is
 			     said by a small step inward rather than a full one per level, so a deep list does not
 			     run out of width. Only Articles carries a chevron, at the row's end beside the control
 			     that creates one; a category says it is open by its folder icon alone. -->
-			<div class="mt-3 flex items-center">
+			<div class="flex shrink-0 items-center">
 				<button
 					type="button"
 					aria-expanded={open}
@@ -426,46 +426,50 @@
 				</button>
 			</div>
 
-			<!-- Folded by its height, not removed: see $lib/fold.ts. -->
-			<div use:foldHeight={open} class="shrink-0 overflow-hidden">
-				<ul class="flex flex-col">
-					{#each groups.loose as entry (entry.resource)}
-						{@render article(entry, 1)}
-					{/each}
-					{#each groups.folders as [category, entries] (category)}
-						{@const shown = !closed.has(category)}
-						<li class="flex flex-col">
-							<button
-								type="button"
-								aria-expanded={shown}
-								onclick={() => (shown ? closed.add(category) : closed.delete(category))}
-								class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
-									surfaces.quietControl,
-									surfaces.uiText,
-									styles.item,
-								).class}"
-							>
-								{#if shown}
-									<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
-								{:else}
-									<Folder class="size-4 shrink-0" aria-hidden="true" />
-								{/if}
-								<span class="truncate">{category}</span>
-							</button>
-							<div use:foldHeight={shown} class="overflow-hidden">
-								<ul class="flex flex-col">
-									{#each entries as entry (entry.resource)}
-										{@render article(entry, 2)}
-									{/each}
-								</ul>
-							</div>
-						</li>
-					{/each}
-				</ul>
+			<!-- The folder's row stays at the top of the region, with the control that creates an
+			     article, and the tree under it scrolls. Folded by its height, not removed: see
+			     $lib/fold.ts. -->
+			<div class="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
+				<div use:foldHeight={open} class="overflow-hidden">
+					<ul class="flex flex-col">
+						{#each groups.loose as entry (entry.resource)}
+							{@render article(entry, 1)}
+						{/each}
+						{#each groups.folders as [category, entries] (category)}
+							{@const shown = !closed.has(category)}
+							<li class="flex flex-col">
+								<button
+									type="button"
+									aria-expanded={shown}
+									onclick={() => (shown ? closed.add(category) : closed.delete(category))}
+									class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
+										surfaces.quietControl,
+										surfaces.uiText,
+										styles.item,
+									).class}"
+								>
+									{#if shown}
+										<FolderOpen class="size-4 shrink-0" aria-hidden="true" />
+									{:else}
+										<Folder class="size-4 shrink-0" aria-hidden="true" />
+									{/if}
+									<span class="truncate">{category}</span>
+								</button>
+								<div use:foldHeight={shown} class="overflow-hidden">
+									<ul class="flex flex-col">
+										{#each entries as entry (entry.resource)}
+											{@render article(entry, 2)}
+										{/each}
+									</ul>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				</div>
 			</div>
 		</div>
 
-		<div class="pt-2 {stylex.attrs(folding && styles.receded).class}">
+		<div class="shrink-0 pt-2 {stylex.attrs(folding && styles.receded).class}">
 			{@render entry(SETTINGS)}
 		</div>
 	</nav>

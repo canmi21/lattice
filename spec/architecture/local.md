@@ -152,6 +152,11 @@ to dock it, the float's button lifts it instead and pins it until a click elsewh
 movement takes the site's timing for a surface answering a press, from `@canmi/motion`, and nothing
 a movement writes outlives it -- the resting place is always the stylesheet's.
 
+**The sidebar is three regions, and only the middle one scrolls.** The sections above and settings
+below hold still; the articles between them are the one list that grows, so they are the one that
+moves, and the Articles row itself -- with the control that creates an article -- stays at the top
+of its region while the tree under it scrolls.
+
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row
 outlives publication and is the working copy from then on. Inside it each category is a folder of
