@@ -663,7 +663,7 @@ export function articleFrontmatter(raw: string, file: string): ArticleMeta {
 /**
  * The frontmatter as YAML, with `draft` reduced to the boolean the type promises.
  *
- * `draft: "true"` is a draft, as `cms document::is_draft` has always read it. Lenient rather
+ * `draft: "true"` is a draft, as `local document::is_draft` has always read it. Lenient rather
  * than strict in both readers because the strict reading publishes the quoted spelling, which
  * is the one failure the flag exists to prevent. See spec/drafts.md.
  */
@@ -677,7 +677,7 @@ function readFrontmatter(yaml: string): ArticleMeta {
  * A reference nothing answered for, which fails the compile rather than becoming a URL.
  *
  * The fallback published the authored reference under the CDN's origin, which is a guaranteed
- * 404 in a feed and reads as a working link wherever it is inspected. `cms check` reports a
+ * 404 in a feed and reads as a working link wherever it is inspected. `local check` reports a
  * missing asset and exits zero because a report may not be a gate; a compile is not a report.
  * See spec/architecture/data.md, "Missing assets are reported, never fatal".
  */
@@ -710,7 +710,7 @@ export type CompileContext = {
 	 *
 	 * A diagram is a picture the corpus stores as text, so nothing downstream can read it until
 	 * the CMS has described it. Absent is the ordinary state for a drawing nobody has run
-	 * `cms diagram` for yet, and every consumer here falls back to what it said before.
+	 * `local diagram` for yet, and every consumer here falls back to what it said before.
 	 */
 	describeDiagram?: (source: string) => string | undefined;
 	/**
@@ -741,9 +741,9 @@ export type CompileContext = {
 };
 
 /**
- * The frontmatter keys `cms i18n` translates.
+ * The frontmatter keys `local i18n` translates.
  *
- * A copy. The authority is `TRANSLATABLE_FRONTMATTER` in apps/cms/src/i18n/segment.rs; it is
+ * A copy. The authority is `TRANSLATABLE_FRONTMATTER` in apps/local/src/i18n/segment.rs; it is
  * repeated because a site-only CI build has no Rust toolchain to ask -- see
  * spec/architecture/data.md -- and held to the original by a test rather than by memory.
  *
@@ -1161,7 +1161,7 @@ export async function compile(
 				md.push(`> [crate: ${crate.name} ${crate.version}]`);
 				continue;
 			}
-			// Named but not fetched. The article keeps saying which crate it meant, so `cms embed`
+			// Named but not fetched. The article keeps saying which crate it meant, so `local embed`
 			// can fill it in later without anyone editing prose to ask again.
 			blocks.push({ type: 'placeholder', kind: 'cargo', meta: { crate: name }, pending: true });
 			md.push(`> [crate: ${name}]`);

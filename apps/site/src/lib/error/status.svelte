@@ -94,9 +94,7 @@
 	 * the title and in the line a screen reader is given.
 	 */
 	const message = $derived(
-		status === 404
-			? m['error.not-found']({}, { locale })
-			: m['error.unexpected']({}, { locale }),
+		status === 404 ? m['error.not-found']({}, { locale }) : m['error.unexpected']({}, { locale }),
 	);
 	const titleText = $derived(STATUS_TEXT[status] ?? 'Error');
 

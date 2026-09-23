@@ -101,7 +101,10 @@ function chains(): { found: Map<string, number[]>; entries: number; matched: num
 	for (const [, id, layouts, leaf] of routes) {
 		if (id === undefined || leaf === undefined) continue;
 		const nodes = [...(layouts ?? '').split(','), leaf].map((part) => Number(part.trim()));
-		found.set(id, nodes.filter((node) => Number.isInteger(node)));
+		found.set(
+			id,
+			nodes.filter((node) => Number.isInteger(node)),
+		);
 	}
 	return { found, entries: source.match(ENTRY)?.length ?? 0, matched: routes.length };
 }

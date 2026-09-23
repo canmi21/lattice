@@ -1,0 +1,330 @@
+//! The `local video` command: what the articles ask for, encoded and published.
+//!
+//! The same arrangement `image::run` uses, and deliberately the same vocabulary. Articles drive
+//! this, not the contents of a directory: a reference is either finished -- `{cid}.mp4` -- or it
+//! still names a file, in which case that file is looked for under the originals directory,
+//! encoded, published, and the reference rewritten to what it became. Rewriting is what records
+//! that the work is done, so the state lives in the article rather than in a log beside it.
+
+use super::is_video;
+use crate::image::manifest::{self, Media, Merged};
+use crate::image::run::{MERGED, load, rewrite_references};
+use crate::image::store;
+use crate::media;
+use crate::refs::{self, Scan};
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
+
+#[derive(Debug, Default)]
+pub struct Outcome {
+	pub processed: usize,
+	pub skipped: usize,
+	pub rewritten: usize,
+	pub failed: Vec<(PathBuf, String)>,
+	/// References naming a file that is not under the originals directory.
+	///
+	/// Not an error: an article may be written before its clip is dropped in, and stopping the
+	/// run would leave every other clip unencoded for the sake of one that is late.
+	pub missing: Vec<String>,
+	/// Posters given a `cid://` source in `data/record/media.yaml` because they had none.
+	pub sourced: usize,
+	/// Clips already published that gained a loudness measurement without being re-encoded.
+	pub levelled: usize,
+}
+
+pub struct Options<'a> {
+	pub force: bool,
+	/// Files named on the command line. Empty means "whatever the articles ask for".
+	pub only: &'a [PathBuf],
+}
+
+/// Encode and publish every clip the articles reference, then rewrite the references.
+///
+/// Nothing here migrates a stale record the way `image::run` does. Both commands write into one
+/// merged manifest and `image::run::republish` rewrites a record of either kind from what the
+/// manifest already holds, so a second migration pass here would be the same work done twice.
+pub fn run(
+	repo: &Path,
+	originals: &Path,
+	public: &Path,
+	articles: &Path,
+	options: &Options<'_>,
+) -> std::io::Result<Outcome> {
+	let merged_path = repo.join(MERGED);
+	let mut merged = load(&merged_path)?;
+	let media_path = media::path_for(repo);
+	let mut authored = media::load(&media_path)?;
+	let mut outcome = Outcome::default();
+	let scan = refs::scan(articles)?;
+
+	// What the article wrote, mapped to what it should say now.
+	let mut rewrites: BTreeMap<String, String> = BTreeMap::new();
+
+	for (reference, path) in wanted(&scan, originals, public, &merged, options, &mut outcome) {
+		let bytes = match std::fs::read(&path) {
+			Ok(bytes) => bytes,
+			Err(error) => {
+				outcome.failed.push((path, error.to_string()));
+				continue;
+			}
+		};
+
+		// Read whole rather than streamed, so the id comes from `image::cid` and there is one
+		// definition of how a content id is truncated. These are excerpts, not masters.
+		let id = crate::image::cid(&bytes);
+		if !options.force && published(public, &merged, merged.media.get(&id)) {
+			outcome.skipped += 1;
+			if let Some((target, media)) = reference.as_deref().zip(merged.media.get(&id)) {
+				rewrites.insert(target.to_owned(), media.resource.to_string());
+			}
+			continue;
+		}
+
+		let published =
+			super::publish(&path, &bytes, public, &crate::paths::metadata_root(repo), &merged.media);
+		match published {
+			Ok(prepared) => {
+				if let Some(target) = reference.as_deref() {
+					rewrites.insert(target.to_owned(), prepared.media.resource.to_string());
+				}
+				// The poster is a second asset with a record of its own, not a field of the clip.
+				let poster = prepared.poster.derived.cid.clone();
+				merged.media.insert(poster.clone(), prepared.poster.media.clone());
+				merged.media.insert(id.clone(), prepared.media.clone());
+				if note_poster_source(&mut authored, &poster, &id) {
+					outcome.sourced += 1;
+				}
+				outcome.processed += 1;
+			}
+			Err(error) => outcome.failed.push((path, error.to_string())),
+		}
+	}
+
+	// Loudness is measured in a pass of its own, over the manifest rather than over what is being
+	// encoded. `wanted` answers "what needs deriving", and a clip that is already published needs
+	// nothing derived -- which is exactly the clip this has to reach: the measurement is a fact
+	// about bytes that already exist, it changes none of them, and re-encoding a 4K clip to learn
+	// how loud it is would spend minutes producing pixels that are already correct.
+	outcome.levelled = level_all(&mut merged, originals);
+
+	merged.updated = manifest::now();
+	let json = serde_json::to_string_pretty(&merged)
+		.map_err(|error| std::io::Error::other(error.to_string()))?;
+	store::write(&merged_path, format!("{json}\n").as_bytes())?;
+	media::save(&media_path, &authored)?;
+
+	// Bytes and records land first because a crash after publishing can only leave a clip no
+	// article references yet; that is harmless and a rerun repairs it. Rewriting first could
+	// crash before the bytes land, leaving an article pointing at nothing, and the lost original
+	// filename would leave a later run no way to repair it. See spec/tasks.md.
+	outcome.rewritten = rewrite_references(articles, &rewrites)?;
+	Ok(outcome)
+}
+
+/// Measure every published clip that has audio and no loudness recorded.
+///
+/// Skips a clip whose record already carries one, one with no audio to measure, and one whose
+/// original is not on this machine. A measurement that fails is passed over rather than reported:
+/// the site falls back to playing the clip unlevelled, which is what it did before this existed,
+/// and one unreadable soundtrack is not a reason to fail an import.
+fn level_all(merged: &mut Merged, originals: &Path) -> usize {
+	let wanted: Vec<String> = merged
+		.media
+		.iter()
+		.filter(|(_, media)| {
+			media.video().is_some_and(|video| video.source.audio && video.source.loudness.is_none())
+		})
+		.map(|(cid, _)| cid.clone())
+		.collect();
+	if wanted.is_empty() {
+		return 0;
+	}
+
+	let by_id = originals_by_id(originals);
+	let mut measured = 0;
+	for cid in wanted {
+		let Some(path) = by_id.get(&cid) else { continue };
+		let Ok(Some(level)) = super::loudness::loudness(path, true) else {
+			continue;
+		};
+		let Some(record) = merged.media.get_mut(&cid) else { continue };
+		let Some(video) = record.video_mut() else { continue };
+		video.source.loudness = Some(level.integrated);
+		video.source.peak = Some(level.peak);
+		record.updated = manifest::now();
+		measured += 1;
+	}
+	measured
+}
+
+/// Give a poster the provenance the clip already has, once.
+///
+/// `cid://{blake3}` with no label: the target is an asset in this repository, so there is no
+/// publication to credit and following the link reaches the clip's own source. Only written
+/// when the entry has none -- a source is a claim a person may have corrected by hand, and this
+/// must never be the thing that overwrites it. See spec/architecture/media.md.
+fn note_poster_source(authored: &mut media::Media, poster: &str, clip: &str) -> bool {
+	let entry = authored.media.entry(poster.to_owned()).or_default();
+	if entry.source.is_some() {
+		return false;
+	}
+	// The asset id and not a rung's: the frame came from the clip, not from the 1080p rendition
+	// of it, and a rung's id changes whenever the ladder does. No extension either -- that is how
+	// a request asks for one representation, and this names the thing.
+	entry.source = Some(media::Source { url: format!("cid://{clip}"), label: None });
+	true
+}
+
+/// Every clip to look at this run, paired with the reference that asked for it.
+///
+/// Files named on the command line have no reference to rewrite: they are being imported ahead
+/// of the article that will use them.
+fn wanted(
+	scan: &Scan,
+	originals: &Path,
+	public: &Path,
+	merged: &Merged,
+	options: &Options<'_>,
+	outcome: &mut Outcome,
+) -> Vec<(Option<String>, PathBuf)> {
+	if !options.only.is_empty() {
+		return options.only.iter().map(|path| (None, path.clone())).collect();
+	}
+
+	let mut found: Vec<(Option<String>, PathBuf)> = Vec::new();
+
+	// `refs` collects what an article names, and a clip is named the same way a picture is. A
+	// `::video` directive is not read yet, and when `refs` learns it those references arrive in
+	// this same list with nothing here to change.
+	for reference in scan.unresolved().into_iter().filter(|image| is_video(&image.value)) {
+		let candidate = originals.join(&reference.value);
+		if candidate.is_file() {
+			found.push((Some(reference.value.clone()), candidate));
+		} else {
+			outcome.missing.push(reference.value.clone());
+		}
+	}
+
+	// A finished reference whose rungs are gone -- swept, or never published on this machine.
+	// The original is found by hashing, because the id is the hash.
+	let unpublished: Vec<String> = clips(scan, merged)
+		.into_iter()
+		.filter(|cid| !published(public, merged, merged.media.get(cid)))
+		.collect();
+	if !unpublished.is_empty() {
+		let by_id = originals_by_id(originals);
+		for cid in unpublished {
+			match by_id.get(&cid) {
+				Some(path) => found.push((None, path.clone())),
+				None => outcome.missing.push(cid),
+			}
+		}
+	}
+
+	found
+}
+
+/// The manifest keys of every clip an article has already resolved.
+///
+/// The record says what is a clip, rather than the reference: a rid carries no extension to read
+/// a kind off, which is the point of it -- the article names a thing and the manifest says what
+/// kind of thing it is.
+fn clips(scan: &Scan, merged: &Merged) -> BTreeSet<String> {
+	scan
+		.targets()
+		.iter()
+		.filter_map(|target| merged.resolve(target))
+		.filter(|(_, media)| media.video().is_some())
+		.map(|(key, _)| key.to_owned())
+		.collect()
+}
+
+/// Content id of every original on hand, so a swept clip can be rebuilt from its id alone.
+fn originals_by_id(originals: &Path) -> BTreeMap<String, PathBuf> {
+	sources(originals)
+		.unwrap_or_default()
+		.into_iter()
+		.filter_map(|path| Some((crate::image::cid(&std::fs::read(&path).ok()?), path)))
+		.collect()
+}
+
+/// Whether every object a record claims is actually on disk, the poster's included.
+///
+/// The manifest alone is not evidence: after a sweep it still lists assets whose bytes are gone,
+/// and trusting it would leave articles pointing at nothing. The poster counts because it is the
+/// fallback -- a clip whose rungs are all present and whose poster is missing has lost exactly
+/// what the reader who cannot decode AV1 was going to see.
+fn published(public: &Path, merged: &Merged, media: Option<&Media>) -> bool {
+	let Some(video) = media.and_then(Media::video) else {
+		return false;
+	};
+	let rungs = video.variants.iter().all(|rung| store::video_path(public, &rung.content).is_file());
+	// A clip whose cover resolves to nothing has lost the fallback whether or not bytes are still
+	// there, so it counts as unpublished and the next run writes the link again.
+	rungs && cover_published(public, merged, video.cover)
+}
+
+fn cover_published(public: &Path, merged: &Merged, cover: crate::resource::ResourceId) -> bool {
+	merged.by_resource(cover).map(|(_, media)| media).and_then(Media::image).is_some_and(|image| {
+		image.variants.iter().all(|variant| {
+			let extension = crate::extension::for_variant(&variant.mime);
+			store::variant_path(public, &variant.content, extension).is_file()
+		})
+	})
+}
+
+fn sources(directory: &Path) -> std::io::Result<Vec<PathBuf>> {
+	if !directory.is_dir() {
+		return Ok(Vec::new());
+	}
+	let mut found: Vec<PathBuf> = std::fs::read_dir(directory)?
+		.filter_map(Result::ok)
+		.map(|entry| entry.path())
+		.filter(|path| path.is_file() && is_video(&path.to_string_lossy()))
+		.collect();
+	// Sorted so a run over the same directory reports in the same order twice, which is what
+	// makes a failure reproducible.
+	found.sort();
+	Ok(found)
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn a_poster_keeps_a_source_somebody_wrote() {
+		// A source is a claim a person may have corrected by hand. Re-running the import rebuilds
+		// every pixel and must not take it with them, which is the rule `data/record/media.yaml` exists
+		// to enforce.
+		let mut authored = media::Media::default();
+		authored.media.insert(
+			"poster".to_owned(),
+			media::Entry {
+				source: Some(media::Source {
+					url: "https://example.invalid/newsroom".to_owned(),
+					label: Some("Apple".to_owned()),
+				}),
+				..media::Entry::default()
+			},
+		);
+		assert!(!note_poster_source(&mut authored, "poster", "clip"));
+		assert_eq!(
+			authored.media["poster"].source.as_ref().expect("kept").url,
+			"https://example.invalid/newsroom"
+		);
+	}
+
+	#[test]
+	fn a_poster_with_no_source_is_pointed_at_its_clip_without_a_label() {
+		let mut authored = media::Media::default();
+		assert!(note_poster_source(&mut authored, "poster", "44b6081deaf0242ca3bf83d62a3b6c95"));
+		let source = authored.media["poster"].source.as_ref().expect("written");
+		assert_eq!(source.url, "cid://44b6081deaf0242ca3bf83d62a3b6c95");
+		// The target is an asset here, so there is no publication to credit and a hand-typed name
+		// for something the system already knows is a name nothing checks.
+		assert_eq!(source.label, None);
+		// No extension: that is how a request asks for one representation, not how a thing is named.
+		assert!(!source.url.ends_with(".mp4"));
+	}
+}

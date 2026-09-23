@@ -2,7 +2,7 @@
  * The ports each app answers on in development.
  *
  * Pinned, and bound by exactly one checkout at a time. The gaps are the inspector ports, which
- * wrangler takes as port + 1, and they keep clear of CMS_PORT (mise.toml). A second copy of an
+ * wrangler takes as port + 1, and they keep clear of LOCAL_PORT (mise.toml). A second copy of an
  * app collides here rather than drifting to a free port, which is the cheapest mutex there is.
  * See spec/toolchain.md.
  */
@@ -187,10 +187,10 @@ export function pageUrls(isDev: boolean): UrlMap {
 }
 
 /**
- * The address the CMS dev server binds to, and is therefore reached at.
+ * The address `local` binds to, and is therefore reached at.
  *
  * A literal rather than `localhost`, because binding is a separate question from addressing:
- * this server binds one address on purpose so a desktop app's dev server stays off the
+ * this server binds one address on purpose so it stays off the
  * network, and `localhost` resolves to `::1` first on macOS, which nothing listens on.
  *
  * A bare hostname rather than a URL, because Vite's `server.host` takes the host alone while

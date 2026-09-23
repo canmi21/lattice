@@ -13,9 +13,9 @@ import { TRANSLATABLE_FRONTMATTER } from './compile';
  */
 const DECLARATION = /const TRANSLATABLE_FRONTMATTER: \[&str; (\d+)\] = \[([^\]]*)\]/;
 
-it('lists the frontmatter keys cms i18n actually translates', () => {
+it('lists the frontmatter keys local i18n actually translates', () => {
 	const source = readFileSync(
-		fileURLToPath(new URL('../../../../../cms/src/i18n/segment.rs', import.meta.url)),
+		fileURLToPath(new URL('../../../../../local/src/i18n/segment.rs', import.meta.url)),
 		'utf8',
 	);
 
@@ -48,7 +48,7 @@ function articles(): { path: string; front: Record<string, string> }[] {
 		const block = /^---\n([\s\S]*?)\n---/.exec(readFileSync(path, 'utf8'));
 		if (!block) continue;
 		const front = parseYaml(block[1]!) as Record<string, string>;
-		// A page carries no `lang` and no dates; see apps/cms/src/articles.rs.
+		// A page carries no `lang` and no dates; see apps/local/src/articles.rs.
 		if (typeof front.lang === 'string') found.push({ path, front });
 	}
 	return found;

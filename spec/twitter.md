@@ -1,8 +1,8 @@
 # Twitter lookups
 
 Grok can search Twitter. No other runner can. This file is the decision about what that means for
-the CMS, not a description of the four operations; those live in
-[twitter/mod.rs](../apps/cms/src/twitter/mod.rs).
+`local`, not a description of the four operations; those live in
+[twitter/mod.rs](../apps/local/src/twitter/mod.rs).
 
 ## A single-provider job is not a runner choice
 
@@ -14,7 +14,7 @@ would make the type look like it is choosing among assistants when it is really 
 whether the job exists. The shape would lie.
 
 So the operations live in their own module and name Grok as a fact. They reuse the grok
-binding already in [runner.rs](../apps/cms/src/i18n/runner.rs) because that file owns how
+binding already in [runner.rs](../apps/local/src/i18n/runner.rs) because that file owns how
 the binary is invoked, not because a runner is being selected. Extra flags that only this
 job needs -- no web search, no subagents, a turn cap -- stay with the operation.
 
@@ -31,7 +31,7 @@ format we specify, so that churn costs a prompt change rather than a parser chan
 The format is the line-anchored convention already used for translations; see
 [i18n/request.md](i18n/request.md). Post text is worse than prose -- emoji, URLs, code, unbalanced
 brackets -- which is why JSON is even less appropriate here than it was there. `⟦` and
-`⟧` are U+27E6 and U+27E7; [segment.rs](../apps/cms/src/i18n/segment.rs) explains the
+`⟧` are U+27E6 and U+27E7; [segment.rs](../apps/local/src/i18n/segment.rs) explains the
 choice. The sentinels stay defined there; this module imports them.
 
 A line that _ends_ with a marker is still a marker. The workspace voice rule made one
@@ -62,7 +62,7 @@ including the username in that reference would add a second identity that become
 account is renamed. The fetched author belongs to the record instead.
 
 The site resolves that id against `data/build/twitter.json`, a committed snapshot made from
-`cms twitter thread` output. It never asks Twitter during a build, in the Worker, or in the
+`local twitter thread` output. It never asks Twitter during a build, in the Worker, or in the
 browser. That keeps CI self-contained, avoids one request per reader, and leaves an article
 readable if the live tweet later disappears. The snapshot keeps the root tweet only: replies are
 separate authored objects, not part of the card the directive requested. Engagement counts are
@@ -72,10 +72,10 @@ A missing record renders the ordinary directive placeholder instead of failing t
 The article therefore remains the list of wanted tweets, with no second inventory to maintain,
 while an unfinished lookup is explicit rather than silently omitted.
 
-## Reached as `cms twitter`
+## Reached as `local twitter`
 
 The four operations sit behind one command named for the service, and they print JSON on stdout
-the way `cms overview` does. A thread lookup's root tweet may be copied into the card snapshot;
+the way `local overview` does. A thread lookup's root tweet may be copied into the card snapshot;
 the lookup itself remains a read and never changes the workspace as a side effect.
 
 ## It is Twitter here, and the addresses are `twitter.com`
@@ -84,7 +84,7 @@ The service renamed itself; this repository did not follow, and that is a decisi
 oversight.
 
 **The name.** `X` is a single letter that already means a dozen things in a codebase -- an axis,
-an unknown, a placeholder, a coordinate, a cross. `spec/x.md`, `crate::x`, `x_command`, `cms x`:
+an unknown, a placeholder, a coordinate, a cross. `spec/x.md`, `crate::x`, `x_command`, `local x`:
 each of those reads as a variable somebody forgot to name. `Twitter` says which service it is at
 every point of use, which is the whole job of a name. A rename that makes identifiers ambiguous
 buys currency at the cost of the thing names are for.

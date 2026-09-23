@@ -129,7 +129,7 @@ const hash = v.pipe(v.string(), v.regex(HASH_PATTERN));
  * written, how big it is, and what a listing shows of it.
  */
 export const RootViewSchema = v.object({
-	// The card is optional because `cms og` runs on its own schedule: a view published before the
+	// The card is optional because `local og` runs on its own schedule: a view published before the
 	// card was drawn is a view with no card, not a broken one.
 	objects: v.object({ content: hash, card: v.optional(hash) }),
 	locale: v.object({
@@ -488,7 +488,7 @@ export const ImageLayerSchema = v.object({
  * decoding, and `address` is not in the file at all -- it is looked up offline from `location`.
  * See spec/architecture/media.md, "Where a photograph was taken is worked out offline".
  *
- * Spread into two layers rather than named as one, because `apps/cms/src/image/exif.rs` is
+ * Spread into two layers rather than named as one, because `apps/local/src/image/exif.rs` is
  * flattened into both and a wrapper here would be a key the Rust side never writes.
  */
 const exif = {
@@ -965,7 +965,7 @@ export function best(image: ImageLayer, want: number): ImageVariant | undefined 
  * side: these bytes were encoded by somebody else's server and arrive as SVG or ICO, neither of
  * which a ladder ever produces -- and the ladder's table answers `avif` for anything it does not
  * recognise, which would be an address to a file nobody wrote. The twin of `icon_mime` in
- * apps/cms/src/extension.rs, held to it by a test here.
+ * apps/local/src/extension.rs, held to it by a test here.
  */
 export const ICON_EXTENSION: Record<string, string> = {
 	'image/svg+xml': 'svg',
@@ -993,13 +993,13 @@ export function toned(icon: IconLayer, want?: Tone): ImageVariant | undefined {
  * Beside `ICON_EXTENSION` rather than folded into it, for the reason that table gives: a ladder
  * produces these four and never an SVG or an ICO, and answering `avif` for a mime it does not
  * recognise would be a guess an icon cannot afford. Held to `for_variant` in
- * apps/cms/src/extension.rs by a test, the two being one fact in two languages.
+ * apps/local/src/extension.rs by a test, the two being one fact in two languages.
  */
 export const VARIANT_EXTENSION: Record<string, string> = {
 	'image/avif': 'avif',
 	'image/webp': 'webp',
 	'image/png': 'png',
-	// `jpeg`, matching what apps/cms names the file. These are object addresses, and `/object`
+	// `jpeg`, matching what apps/local names the file. These are object addresses, and `/object`
 	// forms a key from the name rather than correcting it -- so a link built here spelling it
 	// `jpg` is a 404, not the hop `/derive` grants a target.
 	'image/jpeg': 'jpeg',
@@ -1051,11 +1051,7 @@ export type Picture = {
  * a blank there is how a missing image becomes one nobody reports. So this throws, where the
  * build refuses only what its committed manifest does not know -- spec/architecture/resource.md.
  */
-export function pictured(
-	rid: string,
-	record: ParsedResource | undefined,
-	cdnUrl: string,
-): Picture {
+export function pictured(rid: string, record: ParsedResource | undefined, cdnUrl: string): Picture {
 	if (!record) throw new Error(`no record for resource ${rid}, which an article draws`);
 	const image = requireSegment(record, 'image');
 	// The file to serve at the picture's own size, which is the largest rung that is never

@@ -70,8 +70,8 @@ anyone can act on it.
 
 One checkout runs one set, on the pinned numbers. The slot arithmetic that shifted every port
 for a second checkout of this repository is gone with the arrangement it served; what it
-protected still holds, and more simply: the CMS is the one process that writes `data/`, and a
-second copy of it collides on `CMS_PORT`, which is the mutex doing its job.
+protected still holds, and more simply: `local` is the one process that writes `data/`, and a
+second copy of it collides on `LOCAL_PORT`, which is the mutex doing its job.
 
 A port both a TypeScript tool and a Rust binary need is declared in `mise.toml` under `[env]`,
 not in `libs/urls`. The single-source rule asks for one place to edit, not one particular
@@ -110,10 +110,10 @@ and reaches none; production is unaffected.
 
 ## The base session
 
-`mise run base up [cms]` ensures a tmux session named `<basename>-dev` exists with a window per
-server, each running that server's mise dev task. A window already running is left alone; one
-whose server has exited is restarted. `cms` adds the desktop client, which is outside the
-always-on set because it is a window somebody uses rather than a server somebody calls.
+`mise run base up` ensures a tmux session named `<basename>-dev` exists with a window per server,
+each running that server's mise dev task. A window already running is left alone; one whose server
+has exited is restarted. It took an argument once, for the desktop client -- a window somebody
+used rather than a server somebody called -- and that client is archived.
 
 **It runs from the base checkout only.** The base is the one checkout that runs everything, on
 the numbers "Dev ports are pinned" above fixes, so a second checkout starting these would
@@ -135,56 +135,6 @@ makes running `up` twice safe rather than merely harmless.
 What it costs is that a server's exit is silent until somebody asks. `base status` is the asking.
 Nothing here supervises anything, and a window reading `idle` is the report a supervisor would
 have made.
-
-## The Tauri dev watcher is told where the frontend is
-
-`tauri dev` watches every directory Cargo reaches through a local `path` dependency, not just
-`src-tauri`. `cms-app` depends on `cms = { path = ".." }`, so the watched set includes all of
-`apps/cms` -- which is also where the frontend sources live. Editing a `.ts` or `.css` file
-therefore triggered a cargo rebuild and an app restart, and the restart discarded the Vite hot
-update that had already applied. The symptom reads as "HMR is broken"; HMR was fine and was
-being overwritten a second later.
-
-The fix is a `.taurignore` listing the paths Vite owns. **It belongs beside the crate being
-watched -- `apps/cms/.taurignore` -- and not in `src-tauri`,** which is where the obvious guess
-puts it. Patterns are gitignore syntax resolved against the directory holding the file, so a
-copy in `src-tauri` reads `client/` as `src-tauri/client/`, matches nothing, and fails silently:
-the app goes on restarting and the file looks like it was ignored rather than misplaced. Both
-directions were measured by touching a file and watching the process id.
-
-Ignoring too much fails the same way round the other side, so the list names frontend paths
-explicitly rather than excluding everything but `src/`. A Rust edit must still rebuild.
-
-This is a consequence of the frontend and the Rust crate sharing one directory. An app whose
-crate lives entirely under `src-tauri` never sees it, and is not the layout here.
-
-### Two copies of one package read as a type comparing badly to itself
-
-A workspace member with its own range for something the root also carries can be left on an older
-resolution after an update, even when its range admits the new one. Nothing warns; the graph
-simply holds both.
-
-**What it looks like is not what it is.** The compiler reports `Excessive stack depth comparing
-types 'Plugin<any>' and 'Plugin<any>'` -- a type against what appears to be itself -- plus
-`no overload matches this call` on the same object. The two are structurally identical and come
-from different copies, so nothing about the message says "duplicate". `pnpm why <package>` is what
-names it, and `pnpm dedupe` collapses it when no manifest range is actually in conflict.
-
-Worth recording because the update that produced it changed a compiler major at the same time, and
-the first suspicion was the compiler. It was not; both copies had been sitting there since the
-member last resolved.
-
-**Cargo has no equivalent delay and is not getting one.** The question is asked by the npm rule
-sitting here, and the answer is the user's: they watch that ecosystem themselves. So a crate
-published minutes ago can enter a build, and when one breaks it, the fix is a lockfile pin at the
-version that worked -- named in the commit, with no manifest constraint and no `[patch]`, so that
-a later update takes the repair as soon as it exists.
-
-The rule bites in a way worth expecting: a range that would otherwise resolve to the newest
-release quietly resolves to the newest _mature_ one instead. That is the policy working, not a
-resolution failure, and the declared range should still name the version the fix landed in
-rather than whatever happens to be installable today. It becomes an error only when nothing in
-range is old enough, which is what an exemption is for.
 
 ## The site holds TypeScript 6 and 7 at once, on purpose
 

@@ -4,7 +4,7 @@
 # CMS runtime state: the run registry, work-item claims and their lock files. Not `data/`,
 # because a process id and a progress count are not records anyone would read a diff of.
 # See spec/tasks.md.
-.cms/
+.local/
 
 # Bytecode cache for the Python mise tasks. Produced whenever one is imported rather than run.
 __pycache__/

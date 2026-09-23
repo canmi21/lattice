@@ -151,7 +151,7 @@ must run first, so `--delete-after` is the reachable half: nothing leaves a buck
 transfer's uploads have landed, and a failed run leaves a superset rather than a hole. The rest
 is the hour above.
 
-A sweep is `cms gc`'s existing shape: dry by default, listing what nothing references.
+A sweep is `local gc`'s existing shape: dry by default, listing what nothing references.
 
 ### An object is swept an hour after nothing names it
 
@@ -165,7 +165,7 @@ An hour is five minutes plus a margin large enough that nothing has to be precis
 and small enough that a sweep run twice in an afternoon still collects.
 
 **A sweep cannot know when an object stopped being named, so the first run writes it down.**
-`cms gc` records what it found unnamed and when, and deletes on a later run only what has been
+`local gc` records what it found unnamed and when, and deletes on a later run only what has been
 unnamed for the hour. That makes the first run of a pair a no-op by construction, which is also
 what `--dry` already showed, so the shape of the command does not change.
 

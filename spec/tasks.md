@@ -1,13 +1,13 @@
 # Long-running tasks
 
-The desktop CMS is a resident process because it holds the schedule and the editor; see
-[cms.md](architecture/cms.md). This is how the work it schedules is described, kept from
+`local` is a resident process because it holds the schedule and answers the editor; see
+[local.md](architecture/local.md). This is how the work it schedules is described, kept from
 colliding with itself, and observed.
 
 ## The catalogue is data, and it is complete before the runner
 
 Every operation that takes more than an instant is declared in
-[task/mod.rs](../apps/cms/src/task/mod.rs): what it is, whether it asks a model, what it reads,
+[task/mod.rs](../apps/local/src/task/mod.rs): what it is, whether it asks a model, what it reads,
 what it writes, and which tasks must have run first. Nothing there runs anything.
 
 Splitting the description from the execution is what lets the catalogue be finished first. A GUI
@@ -27,18 +27,18 @@ is only safe because the test holds them.
 **One kind of subcommand is deliberately absent, and it is decided by what the command leaves
 behind rather than by how it is invoked.** A second category stood here -- hand-run operations
 whose input is a person's argument, covering `captions`, `invalidate` and `twitter` -- and it did
-not survive its own test. Taking an argument was the only thing those three shared, and `cms
+not survive its own test. Taking an argument was the only thing those three shared, and `local
 captions` is catalogued now while still taking two of them.
 
 **Commands that write no record** -- `overview`, `articles`, `derived`, `check`, `port`, `tasks`,
 `runs` and `twitter`. Listing them would put eight entries in every task view that can never be
 watched, waited on, or scheduled, and none of them can collide with anything: `conflicts_with`
 intersects `writes`, and theirs is empty. This list was called "instant reads", which was never
-true of `cms twitter` -- it waits on somebody else's network and is the slowest read here. Being
+true of `local twitter` -- it waits on somebody else's network and is the slowest read here. Being
 instant was not the reason and never had been; writing nothing is.
 
 That leaves the rule the rest of the commands are held to: **a command that takes more than an
-instant and writes a record is catalogued, whatever it takes on the command line.** `cms captions`
+instant and writes a record is catalogued, whatever it takes on the command line.** `local captions`
 is where that was settled. It takes a clip and a track path, so there is no set of tracks to fan
 out over -- a clip and its track do not arrive on the same day, and often the track never arrives
 -- but it writes `PublicCaptions`, `PublicMeta` and `Manifest`, and the sweep writes all three.
@@ -47,12 +47,12 @@ runner can only stand aside, which is the same shape `segments` and `licenses` h
 per-item fan-out `image` and `video` need. `after` names `video`, because the clip has to be in
 the library and the excerpt the track is cut to is written into `data/record/media.yaml` by that import.
 
-`cms invalidate` is the one command the corrected rule leaves without a home; the section below
+`local invalidate` is the one command the corrected rule leaves without a home; the section below
 records it rather than closing it.
 
 ## A published kind has one record, and the sweep declares every one of them
 
-`cms gc` walks the whole content-addressed space under `data/bucket/objects`, the fetched icons
+`local gc` walks the whole content-addressed space under `data/bucket/objects`, the fetched icons
 under `data/source/favicon`, rewrites `data/record/metadata.json` without the entries it drops, and
 behind `--segments` drops translations for paragraphs an article no longer contains. Each of those
 is a record, and the rule over them has three parts.
@@ -70,10 +70,10 @@ they write into.
 
 **A task declares every record it writes**, including the ones it rewrites on the way past. The
 merged manifest and the sidecar under `meta/` are written for every asset published, so `Manifest`
-and `PublicMeta` belong to `cms image` and `cms video` as much as `PublicImage` does. That is the
-rule `cms video` and `data/record/media.yaml` state below, reaching the published side of the tree.
+and `PublicMeta` belong to `local image` and `local video` as much as `PublicImage` does. That is the
+rule `local video` and `data/record/media.yaml` state below, reaching the published side of the tree.
 
-**The sweep runs twice before it deletes anything.** `cms gc` records what it found unnamed and
+**The sweep runs twice before it deletes anything.** `local gc` records what it found unnamed and
 when; a later run deletes only what has been unnamed for an hour, because a root cached five
 minutes ago may still name it. The pending list is a record like any other and is declared as one.
 See [architecture/artifacts.md](architecture/artifacts.md), "An object is swept an hour after
@@ -86,20 +86,20 @@ without the catalogue being re-read.
 
 Why it is worth stating: `Spec::conflicts_with` intersects `writes` and nothing else. A publisher
 that does not declare what it writes is invisible to the only mechanism that would keep it from
-running beside the sweep. The cost is not a crash -- while `cms captions` had no entry, `cms gc
+running beside the sweep. The cost is not a crash -- while `local captions` had no entry, `local gc
 --live` could remove a track it had just published and the manifest still pointed at, and neither
 run would report anything wrong.
 
 ### One gap is recorded rather than closed
 
-The two that stood here are closed. `cms captions` has a catalogue entry, so the mechanism can see
-that it and `cms gc` contend over three records; a card is swept against the record that names it,
+The two that stood here are closed. `local captions` has a catalogue entry, so the mechanism can see
+that it and `local gc` contend over three records; a card is swept against the record that names it,
 which is settled in [architecture/media.md](architecture/media.md).
 
-`cms invalidate` is what the corrected exemption leaves behind. It writes `Translations` -- the
-same record `cms i18n` writes and `cms gc --segments` deletes from -- and it has no entry, so the
+`local invalidate` is what the corrected exemption leaves behind. It writes `Translations` -- the
+same record `local i18n` writes and `local gc --segments` deletes from -- and it has no entry, so the
 one mechanism that would keep it from running beside either of them cannot see it. Every ground
-that took `cms captions` into the catalogue holds here word for word, and the only thing still
+that took `local captions` into the catalogue holds here word for word, and the only thing still
 keeping it out is that nobody has decided it. That decision is the reader's, not this file's.
 
 Two build records are deliberately left without one. `data/build/licenses.json` and
@@ -108,7 +108,7 @@ neither can be contended over. A record for a store one task owns would name a l
 
 ## Computing and writing are separate concerns
 
-**A task holds no lock while it thinks.** The expensive part of `cms alt` and `cms tag` is minutes
+**A task holds no lock while it thinks.** The expensive part of `local alt` and `local tag` is minutes
 of model calls; the part that touches `data/record/media.yaml` is milliseconds at the end. Leasing that
 file for the length of a run would serialise the two tasks over a critical section a ten-thousandth
 of its length, and serialise them at exactly the point where parallelism is worth the most.
@@ -119,9 +119,9 @@ and moves on. Applying it is somebody else's job.
 **Within a process, one writer per record store applies them in turn.** That removes write races
 without any worker waiting on another, and it means the store is only ever open in one place.
 
-**Between processes, a short lock is taken at the moment of applying** -- and only then. The CMS is
-several processes by design: the desktop client, a hand-run command in a terminal, and eventually
-the schedule. A single-threaded writer inside one of them says nothing about the others, so this
+**Between processes, a short lock is taken at the moment of applying** -- and only then. `local` is
+several processes by design: the resident service, a hand-run command in a terminal, and
+eventually the schedule. A single-threaded writer inside one of them says nothing about the others, so this
 lock is what actually makes the write safe. Held for one apply, it does not measurably contend.
 
 A mutation is flushed as it is applied rather than batched to the end of a run. What is being
@@ -146,14 +146,14 @@ Records are locked one at a time, so a task that writes more than one cannot mak
 atomic together. It does not need to. What it needs is that every state in between is one a
 reader can live with, and that is a property of the order.
 
-`cms tag` is the case that sets it: it writes a tag registry and the assets that name those tags.
+`local tag` is the case that sets it: it writes a tag registry and the assets that name those tags.
 The registry goes first. A definition nothing references yet is inert, and the next run simply
 finds it already there; an asset naming a definition that has not landed is a dangling name, and
 a reader resolving it gets nothing. Between the two applies is a pair of file writes.
 
 So the rule is to write what is pointed _at_ before what points, and the general form of it is
 that the readable intermediate state decides the order. Where no answer touches two records the
-question does not arise -- `cms locale` writes three and each answer lands in exactly one, so its
+question does not arise -- `local locale` writes three and each answer lands in exactly one, so its
 writers never meet.
 
 ## Contention is resolved per item, and the loser does not wait
@@ -175,7 +175,7 @@ A task declared `Items::Whole` cannot divide, so a second runner can only stand 
 ### A claim stops concurrent duplication; only re-reading stops sequential duplication
 
 Claims are taken and released per item, so two runs overlapping in time still each do an item the
-other finished before it was reached. Measured, with two `cms favicon --force` processes over the
+other finished before it was reached. Measured, with two `local favicon --force` processes over the
 same five domains: each collected three and stood aside on two, which is six pieces of work for
 five domains. One domain was fetched twice because the second run arrived after the first had let
 go of it.
@@ -194,21 +194,21 @@ observe that would change the answer.
 
 ## Rewriting article text is a compatibility path, not the design
 
-**The two import commands edit `contents/**/*.md`, and nothing else does.** `cms image` and
-`cms video` each do it because an author wrote a temporary filename -- `![](shot.png)`,
+**The two import commands edit `contents/**/*.md`, and nothing else does.** `local image` and
+`local video` each do it because an author wrote a temporary filename -- `![](shot.png)`,
 `![](take-3.mov)` -- and the reference has to become the resource id once the asset is derived;
-[video/run.rs](../apps/cms/src/video/run.rs) calls the same `rewrite_references` `cms image` does.
+[video/run.rs](../apps/local/src/video/run.rs) calls the same `rewrite_references` `local image` does.
 A test asserts the pair, and a third writer of `Articles` would fail it. Every other task reading
 `Articles` declares `after: ["image"]` largely to stay clear of that rewrite.
 
-`cms video` had no entry for a while, and the cost was not cosmetic. `Spec::conflicts_with` answers
+`local video` had no entry for a while, and the cost was not cosmetic. `Spec::conflicts_with` answers
 whether two operations may be offered together by intersecting their `writes`, so an uncatalogued
 writer of `Articles` was invisible to the only mechanism that would keep it from running beside
-`cms image` -- the contention this file exists to describe.
+`local image` -- the contention this file exists to describe.
 
 Its entry writes `Articles`, `PublicVideo` for the published rungs, `PublicImage` for the
 poster's variants, and `Media`. The last one is easy to miss: giving a poster
-with no source the clip's rewrites the whole of `data/record/media.yaml`, so `cms alt` finishing mid-run
+with no source the clip's rewrites the whole of `data/record/media.yaml`, so `local alt` finishing mid-run
 would be overwritten. A record a task rewrites wholesale is a record it writes, whether or not the
 run had anything of its own to put there.
 
@@ -218,7 +218,7 @@ never held a temporary name, so nothing is left to rewrite. The rewrite is compe
 authoring markdown by hand, not a permanent step.
 
 Two things follow. The split between deriving a picture and writing it is still wanted, because
-that is exactly the pair an editor calls synchronously for one image. And `cms image` keeps a
+that is exactly the pair an editor calls synchronously for one image. And `local image` keeps a
 narrower job afterwards: content that arrived without passing through the editor -- a migration, a
 batch somebody dropped in, an article written in another editor. That is a run a person starts,
 not one a schedule fires, which is what keeps it away from an open draft.
@@ -315,9 +315,9 @@ dies, which is why this needs no heartbeat, no timeout and no daemon.
 
 Written status can only ever be a hint about a process that was alive when it was written.
 
-## Runtime state lives in `.cms/`, keyed by nothing
+## Runtime state lives in `.local/`, keyed by nothing
 
-The run registry, the claims and the lock files sit in `.cms/` at the repository root, untracked.
+The run registry, the claims and the lock files sit in `.local/` at the repository root, untracked.
 
 Not `data/`: that directory groups assets with the records about them, and the question asked of
 anything new there is whether reading its diff would tell anyone anything. A process id and a
@@ -338,7 +338,7 @@ the file, so opening one answers the question the name cannot, and anything read
 gets the same answer by opening them. The hash costs no legibility there, which is the only thing
 it cost above.
 
-That sentence used to name a `cms claims` command. There is no such subcommand and there never
+That sentence used to name a `local claims` command. There is no such subcommand and there never
 was -- it was written as an illustration of who would read the directory and read as a description
 of something that existed. The argument does not need it: what carries it is the key being inside
 the file, which is true of any reader at all.

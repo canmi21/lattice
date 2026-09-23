@@ -19,10 +19,10 @@ could not be rendered on the server and arrived after hydration, into a gap held
 
 So the question and the visit are two methods on one resource:
 
-| | what it is | who does it | cache |
-| --- | --- | --- | --- |
+|                   | what it is              | who does it                                              | cache                          |
+| ----------------- | ----------------------- | -------------------------------------------------------- | ------------------------------ |
 | `GET /read?slug=` | how many have read this | the load, on the server and on a client navigation alike | `PUBLISHED`, refusals included |
-| `POST /read` | one more has | the browser, once it has hydrated | `no-store` |
+| `POST /read`      | one more has            | the browser, once it has hydrated                        | `no-store`                     |
 
 One name and two methods rather than two names, because they are the same fact approached twice.
 They share an answer shape for the same reason, the `POST`'s figure differing only in that it
@@ -410,7 +410,7 @@ answers with and `isTrail` refuses like anything else that is not a trail.
 ### A path keeps its place, because Back is a link
 
 A browser restores a scroll position on a history pop and nowhere else. That is right, and it is
-not what this site's Back does: a trail step is a *forward* navigation to an earlier path -- see
+not what this site's Back does: a trail step is a _forward_ navigation to an earlier path -- see
 [styling/rail.md](styling/rail.md), "Back is one step up the reading trail" -- so nothing native
 can tell it is a return, and a reader who opened an article from halfway down the homepage was
 put back at the top of it.

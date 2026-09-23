@@ -11,7 +11,7 @@
 	}: {
 		svg: string;
 		locale: LocaleCode;
-		/** What the drawing says, from `cms diagram`. Absent until one has been run. */
+		/** What the drawing says, from `local diagram`. Absent until one has been run. */
 		description?: string;
 	} = $props();
 

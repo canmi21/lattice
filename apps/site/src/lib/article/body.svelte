@@ -254,7 +254,11 @@
 			     the record's, and the record is a fact about the corpus at the moment somebody
 			     asks. `pictured` refuses a rid that resolved to nothing, which is the one thing a
 			     picture does that a card's mark does not -- see libs/artifacts. -->
-			{@const picture = pictured(block.resources.picture, resources[block.resources.picture], cdnUrl)}
+			{@const picture = pictured(
+				block.resources.picture,
+				resources[block.resources.picture],
+				cdnUrl,
+			)}
 			<Picture
 				{locale}
 				enlarges

@@ -72,7 +72,7 @@
 		source: string;
 		ratio?: number;
 		loadingLabel: string;
-		/** What the diagram says, from `cms diagram`. Absent until one has been run. */
+		/** What the diagram says, from `local diagram`. Absent until one has been run. */
 		description?: string;
 	} = $props();
 	let root = $state<HTMLElement>();

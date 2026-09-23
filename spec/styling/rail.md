@@ -117,7 +117,7 @@ not move.
 **The number lives in more than one place, and nothing but a pointer connects them.** It is
 declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css), argued
 here, and turned into a column budget across the language boundary by `ONE_LINE` in
-[width.rs](../../apps/cms/src/i18n/width.rs), which the CMS holds a translated heading to and which
+[width.rs](../../apps/local/src/i18n/width.rs), which the CMS holds a translated heading to and which
 [i18n/segments.md](../i18n/segments.md) explains under "A section heading is also a label, and the rail is narrow".
 That budget is **19 columns**, and it is measured in the rendered rail rather than computed from
 this width: a label is given the whole 136px, since nothing in the box takes any of it, and at the

@@ -17,24 +17,24 @@ ninth is the article.
 ## A draft is written, not owed
 
 `draft: true` in the frontmatter takes an article out of every sweep that spends money: `cms
-i18n`, `cms tn`, `cms summary` and `cms diagram` pass over it, and `cms derived` stops counting it
+i18n`, `local tn`, `local summary` and `local diagram` pass over it, and `local derived` stops counting it
 as work outstanding. It is not a visibility rule borrowed from the site build, it is an
 arithmetic one. A draft is going to be edited again, every edit rewrites the canonical form of
 the blocks it touches, and a segment id is the hash of that form -- so translating a draft buys
 eight locales of text that the next save orphans. Minutes would be one thing; this is money.
 
-**Naming an article is how you ask anyway.** `cms i18n contents/hindsight/except-me.md` translates
+**Naming an article is how you ask anyway.** `local i18n contents/hindsight/except-me.md` translates
 it, draft or not, which is what `only` already means everywhere it appears: the sweep is the
 default and the name is the exception. That covers the case this would otherwise make impossible
 -- finishing a piece, translating it, reading the translations over, and publishing all of it at
-once. `cms summary` has no such escape because it takes no article argument; a draft gets its
+once. `local summary` has no such escape because it takes no article argument; a draft gets its
 summary when it stops being a draft.
 
 **The skip is said out loud.** A run that quietly does nothing looks exactly like a run with
-nothing to do, so `cms i18n` reports how many drafts it left and names the way past them.
+nothing to do, so `local i18n` reports how many drafts it left and names the way past them.
 
-`cms articles` still lists a draft, now with `draft` beside its `lang`. The listing says what the
-corpus holds; `cms derived` says what is owed; those are different questions and only the second
+`local articles` still lists a draft, now with `draft` beside its `lang`. The listing says what the
+corpus holds; `local derived` says what is owed; those are different questions and only the second
 one changed.
 
 The same flag is read by [architecture/media.md](../architecture/media.md)'s home card, which stopped
@@ -197,14 +197,14 @@ code and survives untranslated by mechanism, not by instruction.
 
 When a rule changes shape -- source-provenance copies retired, the note policies here and in
 [prose.md](prose.md) stated -- the translations bought under the old rule are not wrong enough to discard wholesale and
-not right enough to keep. `cms invalidate` deletes precisely: entries selected by segment id,
+not right enough to keep. `local invalidate` deletes precisely: entries selected by segment id,
 by what the segment's source contains (`--containing ':fn['` names every note-bearing block),
 or by what the stored translation contains (`--translation-containing ':tn['` names every
 translation that carries a note), optionally narrowed by locale. The ordinary repair run then
 buys back exactly what was dropped and merges it into everything kept, because repair has
 always worked that way; invalidation is just deletion aimed well.
 
-Dry by default, like `cms gc`: the selection prints, `--live` deletes. An empty selection is
+Dry by default, like `local gc`: the selection prints, `--live` deletes. An empty selection is
 refused rather than meaning everything -- that is what `--force` on a translation run is for.
 And a `review: true` entry outranks every selector: the flag means a person read that text,
 and a policy sweep must not undo a judgement it cannot see; the run reports what it kept.
@@ -268,7 +268,7 @@ the CMS has no other reason to load.
 The layout supplies the numbers, and it supplies them from another language. The rail's width is
 declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css) and argued in
 [styling/rail.md](../styling/rail.md) under "The rail's box is one declared width"; what this file's
-rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/cms/src/i18n/width.rs). A label is given
+rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/local/src/i18n/width.rs). A label is given
 the rail's whole 136px at 13px type, which holds ten Han characters or nineteen Latin ones, so one
 line is 19 columns and the two-line clamp is 38. Both are measured in the rendered rail: nineteen
 is the widest a label goes without wrapping anywhere in the corpus, and three of the nine that
@@ -308,9 +308,9 @@ between lines is represented rather than collapsed. Moving between one- and two-
 animates its centre and length together with the same spring, so changing length cannot bend
 or lag behind the existing motion path.
 
-Rust is the only implementation of those block boundaries and hashes. `cms segments` writes
+Rust is the only implementation of those block boundaries and hashes. `local segments` writes
 the ordered translatable segment ids and their source byte ranges to
-`data/build/segments.json`; `cms i18n` refreshes the same record before making any paid
+`data/build/segments.json`; `local i18n` refreshes the same record before making any paid
 request. The publish step assembles the views from that committed record and never splits or
 hashes an article itself, which makes a stale record fail the CMS regression test instead of
 silently turning every translation lookup into a miss.

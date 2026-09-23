@@ -170,7 +170,7 @@
 	<title>{data.title}</title>
 	<meta name="description" content={data.description} />
 	<!--
-		The home page had no card at all, while `cms og` had been rendering one for it since the
+		The home page had no card at all, while `local og` had been rendering one for it since the
 		beginning. A page that advertises nothing is shared as a bare link, which is the one
 		place a card is most worth having.
 	-->

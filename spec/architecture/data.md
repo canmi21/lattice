@@ -70,7 +70,7 @@ until a clone cannot build. A directory cannot be forgotten the way a line can.
 ### Generated build inputs live under `data/build/`
 
 A record a person writes and a record a tool regenerates are both text worth committing, and
-they still do not belong side by side. `data/build/segments.json` is the CMS-derived article
+they still do not belong side by side. `data/build/segments.json` is the derived article
 segment layout the site assembles from; nobody edits it, and a diff of it is a consequence
 rather than a decision.
 
@@ -86,7 +86,7 @@ replaced the requirement.
 Two questions decide it now, and they are asked in order.
 
 **Can it be regenerated losslessly, without spending money and without asking the network?** If
-it can, git keeps nothing by holding it. `segments.json` left on that answer: `cms segments`
+it can, git keeps nothing by holding it. `segments.json` left on that answer: `local segments`
 rebuilds it from the corpus in seconds, and publishing rebuilds it before compiling anything,
 because a view spliced from a stale layout is wrong in a way nothing reports.
 
@@ -112,7 +112,7 @@ that read "generated, therefore droppable" would have thrown it away for 403 byt
 published as an object and reaches its consumer that way. If it does not, it is an intermediate
 the publish step wrote for itself and it belongs nowhere -- not in git, and not in the bucket
 either. `data/build/` is where those live and `opengraph.json` is the standing example: it
-records which cards are current so `cms og` can skip them, and losing it costs one slow rerun.
+records which cards are current so `local og` can skip them, and losing it costs one slow rerun.
 
 That second question exists to stop the bucket becoming the place every generated file goes
 merely because it left git. R2 holds what somebody will ask for.
@@ -121,7 +121,7 @@ merely because it left git. R2 holds what somebody will ask for.
 
 `contents/**.md` and the translation sidecars beside them stay, along with every paid derivation
 and every snapshot above. The reasoning is not that they are small, though they are -- 225KB of
-articles and 1.8MB of translations -- it is that nothing else is holding them: a mistaken `cms
+articles and 1.8MB of translations -- it is that nothing else is holding them: a mistaken `local
 invalidate` is one `jj undo` away only while git has them, and the translations it would delete
 were paid for and read by a person who set `review: true`.
 
@@ -204,13 +204,13 @@ the build -- one missing image is not a reason to block a release.
 
 ## Articles decide which assets exist
 
-`cms` reads `contents/`, never a directory listing. What to derive, what to fetch, what is
+`local` reads `contents/`, never a directory listing. What to derive, what to fetch, what is
 missing and what is no longer wanted are all answers to one question: which assets do the
 articles reference. Something nothing links to is not an asset, it is a leftover.
 
 An image reference is its own state. It either names a file -- looked for under `data/source/image`,
 where originals are kept and never published -- or it is a resource id, the five characters the
-record answers to. `cms image` turns the first into the second, and that rewrite is the record
+record answers to. `local image` turns the first into the second, and that rewrite is the record
 that the work is done. No log beside the article can drift from it, because there is no log.
 **A reference carries no extension at all.** Which format the CDN serves is settled at compile
 time from the record, so a format written into the source would be a claim the article is in no
@@ -218,7 +218,7 @@ position to make -- and a reference written before rids existed, naming a cid an
 corrected to the granted id on a later run.
 
 A linkcard's `favicon` attribute is the opposite -- an instruction to the collector, naming
-where a site's icon should come from when its own is not wanted. `cms favicon` resolves it
+where a site's icon should come from when its own is not wanted. `local favicon` resolves it
 into that domain's slot and records the result as a resource; the page draws whatever the rid
 its card compiled to currently holds. So the attribute is never rewritten: it is the only record
 of where the icon came from, and destroying it would make the choice unrepeatable. See
@@ -236,7 +236,7 @@ icon; what selects between them knows only which files the record names.
 
 ## Missing assets are reported, never fatal
 
-Writing an article before importing its picture is a normal state to be in. `cms check` lists
+Writing an article before importing its picture is a normal state to be in. `local check` lists
 what is absent and always exits zero; a report that can fail a build is a gate wearing a
 report's name, and teaches everyone to skip it.
 
@@ -244,7 +244,7 @@ Severity carries the difference. A missing image leaves a visible hole, so it is
 missing icon leaves a linkcard that still reads correctly, so it is information. A report
 where everything is urgent is a report nobody reads.
 
-**A compile is not a report, and refuses.** The same missing picture that `cms check` mentions
+**A compile is not a report, and refuses.** The same missing picture that `local check` mentions
 fails the build that would publish it: a reference nothing resolves used to become the authored
 id under the CDN's origin, which is a guaranteed 404 that reads as a working link everywhere it
 is inspected -- in a feed most of all, where nobody checks it afterwards. The line is what the
@@ -252,7 +252,7 @@ command is for rather than how bad the fact is. A report that gates teaches ever
 a publication that guesses ships the guess. See [../drafts.md](../drafts.md), where an `::article`
 card naming a draft fails the publish for the same reason.
 
-Deletion is the one thing that never happens as a side effect. `cms gc` is dry by default and
+Deletion is the one thing that never happens as a side effect. `local gc` is dry by default and
 `mise run gc` only reports, because deriving an asset can be repeated until it is right while
 deleting one changes what R2 serves on the next sync. It is recoverable in practice -- the
 originals are still in `data/source/image` and a content id is enough to rebuild from -- but that is
@@ -349,7 +349,7 @@ exactly as long as they had no route of their own; adding one was the fix.
 
 **The layout is declared once per language and the two are held together by a test.**
 `storageKey` in `libs/store` is what the workers read from, `object_path` in
-`apps/cms/src/image/store.rs` is what the writer writes from, and a test in `libs/store` parses
+`apps/local/src/image/store.rs` is what the writer writes from, and a test in `libs/store` parses
 the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
 the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
 404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
@@ -437,7 +437,7 @@ an unlabelled asset; deleting its published bytes still waits for an explicit ga
 
 ## A dependency's licence is an asset like any other
 
-`cms licenses` records every third-party package the deployables are built out of: the
+`local licenses` records every third-party package the deployables are built out of: the
 production closure of the three Workers, and every crate this repository's own tooling
 resolves. Workspace packages are excluded -- they are this project, not something it credits.
 
@@ -603,7 +603,7 @@ the bytes sit in that checkout's `data/` and every process reads them there.
 
 **A reader finds the directory by walking up for it, not by being told where it is.** Each
 command looks for `data/bucket` above its working directory and joins its own paths onto the
-repository root the marker sits in -- [paths.rs](../../apps/cms/src/paths.rs) is the Rust side of
+repository root the marker sits in -- [paths.rs](../../apps/local/src/paths.rs) is the Rust side of
 that. A compile-time path would bake in whichever machine built the binary, and an environment
 variable would be one more thing to set correctly before any command works. Walking up means a
 command run from anywhere inside the tree reaches the same bytes.
@@ -616,9 +616,9 @@ that knew only where objects go could not read the articles deciding what belong
 **The marker is the parent of both mirrors rather than one of them.** What is inside it has been
 relaid twice; that this repository publishes to buckets at all has not changed once.
 
-**Writing is the CMS's and the sync task's** -- the CMS because it is a machine-wide singleton
+**Writing is `local`'s and the sync task's** -- `local` because it is a machine-wide singleton
 on its pinned port, the sync because a mirror with two sources is not a mirror. The port is
-what holds the first of those: a second CMS collides on `CMS_PORT` rather than quietly writing
+what holds the first of those: a second copy collides on `LOCAL_PORT` rather than quietly writing
 `data/` alongside the first. That is the same protection the overlay rule above was written
 for, obtained from the operating system instead of from a directory layout.
 

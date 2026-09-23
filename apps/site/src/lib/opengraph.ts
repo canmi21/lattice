@@ -1,5 +1,5 @@
 /**
- * Addressing the card `cms og` rendered for a page.
+ * Addressing the card `local og` rendered for a page.
  *
  * One card per page per language, published as a content-addressed object like everything else.
  * Which one a page shows comes from that page's own answer, because there is no address to derive

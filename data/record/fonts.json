@@ -51,7 +51,7 @@
 			"stylesheetExport": "@canmi/fonts/wenkai.css",
 			"runtimeInput": {
 				"path": "data/source/fonts/LXGWWenKai-Regular.ttf",
-				"consumer": "apps/cms/src/opengraph/mod.rs"
+				"consumer": "apps/local/src/opengraph/mod.rs"
 			},
 			"chunksFrom": null,
 			"faces": [

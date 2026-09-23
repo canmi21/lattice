@@ -97,8 +97,7 @@ export function followSystemTheme(
 	media: MediaQueryList = window.matchMedia(SYSTEM_DARK_QUERY),
 ): () => void {
 	// The same class, so the same one frame in which nothing may animate.
-	const apply = () =>
-		withoutTransitions(() => root.classList.toggle('dark', media.matches), root);
+	const apply = () => withoutTransitions(() => root.classList.toggle('dark', media.matches), root);
 	apply();
 	media.addEventListener('change', apply);
 	return () => media.removeEventListener('change', apply);

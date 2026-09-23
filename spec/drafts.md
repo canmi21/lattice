@@ -6,12 +6,12 @@ so an article says nothing to be ordinary and one word to be held back.
 ## The flag is read directly, never through a text-field reader
 
 `draft` is a YAML boolean, not text, and a reader that only returns text fields drops it --
-`cms document::fields` did exactly that, so every draft read as published and the home card
+`local document::fields` did exactly that, so every draft read as published and the home card
 counted articles nobody could open. The fix is to read the frontmatter's own value, not go
 through a text-only accessor.
 
 **Both readers accept the quoted form, and both trim it.** `draft: "true"` is a draft to
-`cms document::is_draft` and to the site, which normalises the flag once in
+`local document::is_draft` and to the site, which normalises the flag once in
 [compile.ts](../apps/site/src/lib/content/build/compile.ts)'s frontmatter reader rather than at
 each place that asks -- so `articleFrontmatter(...).draft` is the boolean the type promises and a
 caller testing `=== true` is right without knowing any of this.
@@ -20,7 +20,7 @@ caller testing `=== true` is right without knowing any of this.
 strict reading publishes an article somebody wrote `draft: "true"` on, and publishing a draft is
 the single failure this flag exists to prevent; the lenient reading at worst withholds an article
 whose author typed the quotes and meant them, which they find the moment they look for it. The
-readers disagreed for a while -- the CMS lenient, the site strict -- which is the shape the
+readers disagreed for a while -- `local` lenient, the site strict -- which is the shape the
 workspace's `code.md` warns about under two readings of one format: nothing was wrong, something
 was merely different, and the difference was a draft on the public site.
 
@@ -31,7 +31,7 @@ objects go into the objects tree like every other article's; the root under `dat
 them and the one under `data/bucket/metadata/` does not. Only the second is mirrored.
 
 **Objects are not what is withheld, and were never what was withheld.**
-[refs.rs](../apps/cms/src/refs.rs) has never read the draft flag, so a draft's pictures and clips
+[refs.rs](../apps/local/src/refs.rs) has never read the draft flag, so a draft's pictures and clips
 have always been derived into the published tree and mirrored with everything else. What kept them
 from a reader is that nothing hands out their content ids -- a 128-bit hash of the bytes is not
 something anyone reaches without being told it. Publishing the compiled body the same way makes
@@ -46,7 +46,7 @@ transfers and refuses a source that contains the draft tree beside them. See
 [architecture/artifacts.md](architecture/artifacts.md), "Drafts leave the corpus at publication,
 not at build".
 
-**`cms gc` reads both roots, and the second one is not optional.** A draft body is an object in
+**`local gc` reads both roots, and the second one is not optional.** A draft body is an object in
 the shared tree that only the draft root names, so a sweep reading the published root alone calls
 every draft an orphan, deletes it, and watches the next publish write it back.
 
@@ -76,8 +76,8 @@ is previewed and the count carries over the day it is published. A slug the API 
 an article with no public address costs a row nobody can reach; regenerating the list at
 publication time, and losing what preview recorded, costs more.
 
-**Its pictures and clips are derived and published like anybody else's.** `cms image` and
-`cms video` do not ask whether an article is a draft, and `gc` keeps what a draft references,
+**Its pictures and clips are derived and published like anybody else's.** `local image` and
+`local video` do not ask whether an article is a draft, and `gc` keeps what a draft references,
 because a draft references it. So the bytes reach the CDN before the article does, and the day it
 is published there is nothing left to wait for -- which matters most for a clip, where the wait
 would be minutes of AV1 encoding.

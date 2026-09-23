@@ -1157,7 +1157,7 @@ The same file sends a `:root` block declaring nothing but custom properties to
 questions. The destination half is an example that generalised.
 
 It holds for the rail block, on a reason the sentence does not give: `--rail-width` and
-`--rail-column` are a cross-language contract that `apps/cms/src/i18n/width.rs` derives two
+`--rail-column` are a cross-language contract that `apps/local/src/i18n/width.rs` derives two
 constants from by hand, and `libs/urls` is this repository's established answer for a value two
 languages need. It is untested for a block that is genuinely one site's and crosses no boundary,
 where `apps/site/src/styles/` would be the better home.
@@ -1167,13 +1167,13 @@ reference check validates markdown links, `spec/**/*.md` cited from code, and qu
 a path written inside a Rust doc comment or a CSS comment is in its not-flagged set, whichever end
 it points at. The four, with what each names:
 
-- [width.rs](../../apps/cms/src/i18n/width.rs):253 gives `--rail-column` and the path
+- [width.rs](../../apps/local/src/i18n/width.rs):253 gives `--rail-column` and the path
   `apps/site/src/styles/utilities.css`, deriving `DESKTOP_TITLE` and `DESKTOP_SUBTITLE` from it.
-- [width.rs](../../apps/cms/src/i18n/width.rs):12-17, above `ONE_LINE`, gives `--rail-width` and says
+- [width.rs](../../apps/local/src/i18n/width.rs):12-17, above `ONE_LINE`, gives `--rail-width` and says
   "Move that declaration and move this" -- with **no path at all**. There is nothing here for a
   check to validate even if one read Rust comments, and nothing for a reader to follow either.
 - [utilities.css](../../apps/site/src/styles/utilities.css):84, in the `--rail-width` comment, gives
-  `ONE_LINE` and the path `apps/cms/src/i18n/width.rs`.
+  `ONE_LINE` and the path `apps/local/src/i18n/width.rs`.
 - [utilities.css](../../apps/site/src/styles/utilities.css):88, in the `--rail-column` comment, gives
   `budget::DESKTOP_TITLE`, `DESKTOP_SUBTITLE` and the same path.
 

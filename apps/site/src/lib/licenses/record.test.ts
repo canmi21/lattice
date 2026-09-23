@@ -238,7 +238,7 @@ describe('the record', () => {
 		expect(licenseOf({})).toBe('not declared');
 	});
 
-	// `cms licenses` refuses to finish while a package has no discoverable terms. This is that
+	// `local licenses` refuses to finish while a package has no discoverable terms. This is that
 	// guarantee restated where the site would otherwise be the thing publishing the gap.
 	it('has a license for every package it lists', () => {
 		const missing = Object.entries(record.packages)

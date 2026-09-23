@@ -158,7 +158,7 @@ reached.
 `data/record/metadata.json` carry a `resource` and a parsed `type` chain, and the rids are unique.
 But 45 of them are still filed under a 32-character cid while 8 icons are filed under their rid --
 two keying conventions in one map, which is what `alt.rs` already blames for a join that read a rid
-as a cid. `cms migrate` reports nothing to do, because every record does hold an id; the key was
+as a cid. `local migrate` reports nothing to do, because every record does hold an id; the key was
 never its test.
 
 **No article is a resource yet.** The catalogue's media rows match the tree exactly -- 17
@@ -170,7 +170,7 @@ directory changed the doc comments in `media.rs` and `tags.rs` and not the code:
 returns `data/media.yaml` and `data/tags.yaml`, which `.gitignore` excludes. So `data/record/*`
 holds 46 records with 42 paid descriptions, last written on the 14th, while the files the commands
 actually read hold 38 records of newer categories and tags, no descriptions at all, and no history.
-Running `cms alt` against that file would buy all 42 descriptions a second time.
+Running `local alt` against that file would buy all 42 descriptions a second time.
 
 **Re-keying `metadata.json` is deliberately not a milestone.** The site never reads its top-level
 key -- `readAssets` walks the map and indexes by the `resource` field inside each record -- and the
@@ -232,7 +232,7 @@ what B3 would otherwise have to invent.
 **B3a is what lets the draft root go, and the draft root is five things.** `publish.ts` builds a
 second root naming all nine articles where the public one names six; the API's development
 environment binds that directory as its assets, with a symlink beside it because wrangler binds
-exactly one directory; `cms gc --segments` reads both roots; and `sync` refuses a source that
+exactly one directory; `local gc --segments` reads both roots; and `sync` refuses a source that
 contains the draft tree. None of it stores anything -- a draft's bytes are in the objects tree
 like everything else -- so it is a name table whose only purpose is that the development site can
 read what is not published. Once the CMS renders a draft the way the site would, that purpose is

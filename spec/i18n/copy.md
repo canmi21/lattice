@@ -42,13 +42,13 @@ an English source label, and a short semantic meaning. The identifier is an addr
 Sending it alone made `cellular` become the biological adjective even though the image showed
 mobile carrier settings; a model cannot recover context it was never given.
 
-`cms tag` writes the source and meaning while it can see the image. Existing tags are shown
+`local tag` writes the source and meaning while it can see the image. Existing tags are shown
 with those fields, so reuse means the concept matches rather than merely the spelling. Two
 senses never share one key: `mold-linker` and fungal `mold` are separate records.
 
 A technical tag has one official display form and never enters translation. For an ordinary
-tag, `cms tag` records the English source label as the `en-US` display with the full provenance
-of the vision answer that created it. `cms locale` never replaces that source record, even
+tag, `local tag` records the English source label as the `en-US` display with the full provenance
+of the vision answer that created it. `local locale` never replaces that source record, even
 under `--force`; one request covers every missing non-source locale with the source and meaning
 in the prompt. The result is a ready-to-render standalone label: English uses title case for a
 short tag; German follows noun capitalisation; French and Spanish capitalise the first word and
@@ -62,7 +62,7 @@ the malformed locale.
 
 ## A summary says what is asked and withholds what is found
 
-`cms summary` writes one summary per article, in the article's own language, into a generated
+`local summary` writes one summary per article, in the article's own language, into a generated
 sidecar. It is not the description: that one is sized for a search result and reads as a label,
 while this is read by somebody deciding whether to spend twenty minutes.
 
@@ -88,9 +88,9 @@ failed answer. The article itself is fenced by a different fresh boundary, so pr
 the marker that authorises output. Summary translations use the same pair before they enter the
 sidecar.
 
-### Translated by `cms locale`, not by `cms i18n`
+### Translated by `local locale`, not by `local i18n`
 
-Summaries are short plain strings addressed by locale, which is what `cms locale` already
+Summaries are short plain strings addressed by locale, which is what `local locale` already
 translates -- tag labels and image descriptions have the same shape. They join that queue rather
 than growing a second one, and inherit its backoff, its stop on a spent allowance, and its rule
 that every answer is written to disk before the next is asked for.
@@ -104,7 +104,7 @@ it will finish the thought the original deliberately left open.
 ### A page is not an article, and is not translated
 
 The test is the `lang` frontmatter: an article declares the language it was written in, a page
-does not. `cms i18n`, `cms summary`, and `cms tn` all skip anything without one, and the site
+does not. `local i18n`, `local summary`, and `local tn` all skip anything without one, and the site
 compiles every view of a page from the source. A page is also absent from `data/record/tn.yaml`, not
 recorded as an empty scan; the TN registry contains articles only.
 

@@ -360,8 +360,7 @@
 	     the clip has, written by the loop below, and the compiler can only see a static one) -->
 		<video
 			bind:this={el}
-			class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface)
-				.class}"
+			class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface).class}"
 			onclick={() => controls?.press()}
 			src={resolved ? undefined : fallback}
 			data-settled={settled || undefined}
@@ -401,8 +400,7 @@
 				}
 			</style>
 			<video
-				class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface)
-					.class}"
+				class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface).class}"
 				src={resolved ? undefined : fallback}
 				{poster}
 				{width}

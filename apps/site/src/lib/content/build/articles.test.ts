@@ -26,7 +26,7 @@ function paths() {
 }
 
 /**
- * Whether the corpus has been through `cms migrate`, which everything compiling it needs.
+ * Whether the corpus has been through `local migrate`, which everything compiling it needs.
  *
  * A build reads resources, and the manifest holds them only once the ids have been granted; for
  * the length of one migration round there is nothing here to compile. Standing down is the
@@ -164,7 +164,7 @@ describe.skipIf(!MIGRATED)('drafts', () => {
 		expect(withoutDrafts.articles.every((article) => article.meta.draft !== true)).toBe(true);
 	}, 60_000);
 
-	// The bug this covers: the site tested `=== true` while `cms document::is_draft` accepted the
+	// The bug this covers: the site tested `=== true` while `local document::is_draft` accepted the
 	// quoted spelling, so `draft: "true"` was a draft to the CMS and a published page here --
 	// the one direction the flag exists to prevent. Read against the frontmatter reader rather
 	// than the corpus, because the corpus has no article written that way and should not gain one

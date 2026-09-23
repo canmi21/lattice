@@ -47,7 +47,11 @@ function held(storage: Store): Record<string, Held> {
  * `of` is what the answer is about, so a shape measured from one list of headings is never drawn
  * for another. See spec/styling/first-paint.md, "A measurement is a fact about this sitting".
  */
-export async function measured<T>(name: string, of: string, compute: () => T): Promise<T | undefined> {
+export async function measured<T>(
+	name: string,
+	of: string,
+	compute: () => T,
+): Promise<T | undefined> {
 	if (!browser) return undefined;
 
 	const stored = held(sessionStorage)[name];

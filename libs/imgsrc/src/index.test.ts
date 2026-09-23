@@ -114,7 +114,9 @@ describe('imgsrc', () => {
 
 	describe('plain url rewrite for known github surfaces', () => {
 		it('avatars URL rewrites to CDN avatar route', () => {
-			expect(imgsrc(`${github.avatars}/u/72544151?v=4`)).toBe(`${prodCdn}/proxy/github/avatar/72544151`);
+			expect(imgsrc(`${github.avatars}/u/72544151?v=4`)).toBe(
+				`${prodCdn}/proxy/github/avatar/72544151`,
+			);
 		});
 
 		it('avatars URL respects custom cdnUrl', () => {

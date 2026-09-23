@@ -406,48 +406,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cms"
-version = "0.1.0"
-dependencies = [
- "anstyle",
- "anyhow",
- "base64",
- "blake3",
- "clap",
- "claude-codes",
- "cosmic-text",
- "fast_image_resize",
- "heic",
- "image",
- "indicatif",
- "jiff",
- "kamadak-exif",
- "rand 0.10.3",
- "ravif",
- "rayon",
- "regex",
- "rgb",
- "rstar",
- "scraper",
- "semver",
- "serde",
- "serde_json",
- "serde_yaml_ng",
- "tempfile",
- "thiserror",
- "thumbhash",
- "tiny-skia",
- "tokio",
- "tzf-rs",
- "unicode-blocks",
- "unicode-width",
- "ureq",
- "url",
- "webp",
- "words-count",
-]
-
-[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1423,6 +1381,48 @@ name = "litrs"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
+
+[[package]]
+name = "local"
+version = "0.1.0"
+dependencies = [
+ "anstyle",
+ "anyhow",
+ "base64",
+ "blake3",
+ "clap",
+ "claude-codes",
+ "cosmic-text",
+ "fast_image_resize",
+ "heic",
+ "image",
+ "indicatif",
+ "jiff",
+ "kamadak-exif",
+ "rand 0.10.3",
+ "ravif",
+ "rayon",
+ "regex",
+ "rgb",
+ "rstar",
+ "scraper",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_yaml_ng",
+ "tempfile",
+ "thiserror",
+ "thumbhash",
+ "tiny-skia",
+ "tokio",
+ "tzf-rs",
+ "unicode-blocks",
+ "unicode-width",
+ "ureq",
+ "url",
+ "webp",
+ "words-count",
+]
 
 [[package]]
 name = "lock_api"

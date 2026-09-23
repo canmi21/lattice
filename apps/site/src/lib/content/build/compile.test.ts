@@ -523,7 +523,7 @@ it('leaves an unfetched tweet visible as a directive placeholder', async () => {
 
 	// `pending` is what separates this from the stub an author writes with ::placeholder. The two
 	// had one shape, and the feed is where that showed: this one says nothing there, because what
-	// it would say is that `cms embed` has not run.
+	// it would say is that `local embed` has not run.
 	expect(compiled.blocks).toContainEqual({
 		type: 'placeholder',
 		kind: 'twitter',

@@ -73,7 +73,7 @@ it('leaves the diagram unlabelled until a description has been written', async (
 	resolve(drawings());
 	await waitFor(() => expect(container.querySelector('.mermaid-result svg')).not.toBeNull());
 
-	// `cms diagram` has not been run over every article, so an absent description is the ordinary
+	// `local diagram` has not been run over every article, so an absent description is the ordinary
 	// state and not an edge. Both attributes have to go together: `role="img"` with no name hides
 	// the `text` nodes a reader could otherwise still hear, and announces nothing in their place.
 	expect(screen.queryByRole('img')).toBeNull();

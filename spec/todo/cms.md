@@ -16,7 +16,7 @@ Nothing misbehaves: `scripts/` is not bundled, the code is unchanged, and `tscon
 checks it where it stands. It is a name that has stopped describing its contents.
 
 Where it should go is the open part, and the candidates are not equivalent.
-[architecture/cms.md](../architecture/cms.md) says content operations belong below both of the CMS's
+[architecture/local.md](../architecture/local.md) says content operations belong below both of the CMS's
 shells, which would make this the CMS's -- but the CMS is Rust, and
 [i18n/segments.md](../i18n/segments.md) refuses to reimplement remark's canonical form in a second
 language, so the CMS would be reaching it by subprocess. A package of its own under `libs/` is the
@@ -32,7 +32,7 @@ publish step is what would move.
 
 ## Publishing is a mise task and cannot become a CMS button
 
-[architecture/cms.md](../architecture/cms.md) draws the line plainly: a view that has found
+[architecture/local.md](../architecture/local.md) draws the line plainly: a view that has found
 outstanding work shows the command that closes it, and that command becomes a button only once
 the operation has moved below both shells and the task substrate can report its progress and
 refuse a second copy. `publish` is `mise run publish lattice` and lives below neither shell, so the
@@ -79,7 +79,7 @@ stopped at the edge of them.
 
 ## The list of refused ids is written twice, once in each language
 
-`apps/cms/src/resource.rs` refuses eighteen stems anywhere in a candidate id, because an id is
+`apps/local/src/resource.rs` refuses eighteen stems anywhere in a candidate id, because an id is
 written into article source and into a URL. `libs/collection/src/allocate.ts` now refuses the same
 eighteen, because allocation happens where the register is, and the register is the `resource`
 table.

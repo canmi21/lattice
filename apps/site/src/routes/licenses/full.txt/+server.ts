@@ -11,7 +11,7 @@ export const prerender = false;
 /**
  * The whole attribution notice: every package, with every license text in full.
  *
- * Assembled by `cms licenses` and published as a single object -- see spec/architecture/data.md,
+ * Assembled by `local licenses` and published as a single object -- see spec/architecture/data.md,
  * "A dependency's licence is an asset like any other", for why it is an aggregate rather than
  * built per request. Buffered rather than streamed here: a few megabytes, answered from the edge
  * cache almost every time, and a hand-assembled stream to prepend one line buys nothing a reader

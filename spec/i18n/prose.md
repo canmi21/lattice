@@ -25,7 +25,7 @@ the raw text, so a generated locale must carry real model provenance.
 
 ## A translator-note phrase identifies one occurrence
 
-`cms tn` may suggest only a short phrase that appears in exactly one body segment. If the
+`local tn` may suggest only a short phrase that appears in exactly one body segment. If the
 shortest word occurs more than once, the scanner includes just enough adjacent text to make the
 occurrence unique while keeping the phrase within eight characters. An ambiguous result is
 dropped rather than attached to the first textual match: a plausible note on the wrong
@@ -63,7 +63,7 @@ Chinese, translated words -- article by article, which is the failure mode of an
 rule rather than of any model.
 
 `hooks` cannot check this and `validate.rs` checks only shape; the policy checks live in
-`cms i18n --check` as a report (`audit.rs`), never a gate. Both note policies -- this one and
+`local i18n --check` as a report (`audit.rs`), never a gate. Both note policies -- this one and
 the author's-note continuity in [segments.md](segments.md) -- are soft: a target grammar can force a restatement, and
 a legitimate quote can echo the prose. A hard gate would reject exactly the defensible
 minority, so the audit prints suspects and a person judges them.
@@ -194,7 +194,7 @@ The bands are measured rather than picked: alone, the corpus spans 0.35 to 2.16 
 headroom on each side. Sources under 40px are skipped, where one word either way swings any ratio
 past any threshold.
 
-**It is a warning and never a lock.** A finding leaves the exit code alone -- `cms i18n --check`
+**It is a warning and never a lock.** A finding leaves the exit code alone -- `local i18n --check`
 returns 0 on an article that reports six of them and 1 only when a translation is actually
 missing -- and no run refuses, re-asks or rewrites anything on its account. What it is for is
 triage: a review that would otherwise read 2848 strings reads six, and the rest have been

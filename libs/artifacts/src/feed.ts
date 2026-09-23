@@ -91,7 +91,7 @@ function pinView(html: string, { site, locale }: FeedBases): string {
  * One block as feed HTML, or nothing where the feed has nothing to say.
  *
  * A pending embed is the only `nothing`, and it is the reason a placeholder carries `pending` at
- * all: what it would say is that `cms embed` has not run, which is a fact about this repository
+ * all: what it would say is that `local embed` has not run, which is a fact about this repository
  * rather than about the article.
  */
 export function blockFeedHtml(block: Block, bases: FeedBases): string | undefined {

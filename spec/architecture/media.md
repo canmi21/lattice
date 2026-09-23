@@ -9,7 +9,7 @@ An image is published at 640, 1280 and 1920 on its long edge, and no further. No
 site renders wider, so pixels above the cap are weight every reader pays for and nobody sees.
 An original below the cap is its own top rung; upscaling is never done.
 
-`cms image --original` adds one more rung at the original resolution for the images where the
+`local image --original` adds one more rung at the original resolution for the images where the
 detail is the point -- a photograph rather than a screenshot of some text. It is still AVIF
 and still lossy, so "original" means the full frame rather than the original file. The choice
 is recorded in the manifest rather than inferred, because re-deriving has to reproduce what
@@ -23,7 +23,7 @@ picture, and the picture is the same picture wherever it appears -- so one descr
 once is inherited by every reference, including the ones written years later. An article that
 needs different wording for its own context overrides it; nothing else has to say anything.
 
-`cms alt` fills them by handing the work to a local agent CLI rather than to an API. The
+`local alt` fills them by handing the work to a local agent CLI rather than to an API. The
 default is `gpt-5.6-terra-medium` through Codex. How each runner is shown the file is
 in [i18n/runners.md](../i18n/runners.md). There is no API request to assemble and no key to hold.
 
@@ -39,7 +39,7 @@ is wrong should be cheap.
 It is there rather than in the manifest for the reason that separates the two files: nothing here
 can be rebuilt. EXIF describes what a sensor did and a screenshot of a web page has none; a picture
 that has been through an editor carries nothing true about its origin either. So a source is a
-claim somebody makes, and `cms image --force` must not be able to take it away.
+claim somebody makes, and `local image --force` must not be able to take it away.
 
 **The label names the origin, not the route.** An `web.archive.org` address for a page Apple
 published is labelled Apple: the Internet Archive is how the page can still be read, not who wrote
@@ -76,7 +76,7 @@ disagreeing.
 
 Both belong to the picture rather than to the article that references it, and neither is
 repeated there. What separates them is the asset's clock, which is
-[delivery.md](delivery.md)'s rule: a description is written by `cms alt` into a file in this
+[delivery.md](delivery.md)'s rule: a description is written by `local alt` into a file in this
 repository, so it moves when the repository does and the build inlines it; a placeholder moves
 when the picture is encoded again, so it travels with the record and is resolved per render.
 See [resource.md](resource.md), "A rid is resolved three times". An article written before any
@@ -108,7 +108,7 @@ inconsistency rather than a new decision.
 
 ## Where a photograph was taken is worked out offline
 
-`cms image` reads EXIF once at import, because the original may not be on hand later and the
+`local image` reads EXIF once at import, because the original may not be on hand later and the
 published variants carry none of it -- a reader downloads pixels and nothing else. Nothing in
 that block is trusted about the _file_: EXIF describes what the sensor did, and one sample
 reports 4032x3024 for a frame that is 4032x2268 on disk. Dimensions and ratio come from
@@ -178,7 +178,7 @@ invents a name nobody chose, which then competes with `terminal` forever.
 
 ## A card is drawn once per view, and the record says which
 
-A card was once the single published asset not named by a hash of its bytes: `cms og` wrote
+A card was once the single published asset not named by a hash of its bytes: `local og` wrote
 `opengraph/{slug}.png`, the page emitted that URL from its own route, and the mutable name was
 priced at a week rather than a year. None of that survived. A card is an object like every other,
 and "A card is an object, and the answer says which one" below is where that is written out.
@@ -210,7 +210,7 @@ caption, each embedded post -- so a 9,102-character article reported 14,870, and
 claimed was components rather than writing. Those are not the article. What counts is body prose
 and what is inside it: inline code and quotations stay, because they are in the sentence.
 
-The count is recorded by `cms segments` into `data/build/segments.json`, which the site build
+The count is recorded by `local segments` into `data/build/segments.json`, which the site build
 already requires and already reads per article, and the site reads it rather than counting. One
 rule, one implementation. A second one in TypeScript is exactly how the page and the card came to
 disagree, and what a word is across scripts is not obvious enough to be worth answering twice.
@@ -254,7 +254,7 @@ The counting itself is the `words-count` crate's rather than this repository's, 
 running five candidates against one table of cases instead of reading their descriptions --
 which are identical, while their answers are not. The one thing added on top is that Hangul is
 not Han: Korean is written with spaces, so a word processor counts it like Latin, and the
-crate's `is_cjk` disagrees. See `apps/cms/src/words.rs`, where the table is the specification
+crate's `is_cjk` disagrees. See `apps/local/src/words.rs`, where the table is the specification
 and the rejected candidates are argued.
 
 The address is drawn opposite the site name across the top, because the other free corner is
@@ -272,7 +272,7 @@ refusing to run.
 **A draft gets no card, and a card nothing asks for is deleted.** A draft has no production URL
 for a card to be the picture of, and a card is a public object -- rendered, deployed to the CDN,
 and fetchable by anyone who guesses the path -- so drawing one publishes a piece nobody decided to
-publish. `cms og` skips drafts on the same flag [i18n/segments.md](../i18n/segments.md) uses to keep them out of the
+publish. `local og` skips drafts on the same flag [i18n/segments.md](../i18n/segments.md) uses to keep them out of the
 paid sweeps.
 
 Skipping alone would have left the pictures behind. The card record was already rebuilt rather
@@ -283,24 +283,24 @@ being a second garbage collector: it can only remove a file this command wrote a
 key it cannot account for is left alone, because the record is a file somebody may have edited and
 a path escaping the published root is a reason to stop rather than a reason to delete.
 
-**`cms gc` sweeps the tree that record cannot see.** Being driven by the record is what keeps
-`cms og`'s own sweep from being a second garbage collector, and it is also its limit: a key the
+**`local gc` sweeps the tree that record cannot see.** Being driven by the record is what keeps
+`local og`'s own sweep from being a second garbage collector, and it is also its limit: a key the
 record never held, or one it lost when the file was deleted or its version bumped -- `load` reads
 any other shape as no record at all -- names a card nothing will ever remove. A card is a
-content-addressed object now, so `cms gc` reaches it by walking the one objects tree, and a card
+content-addressed object now, so `local gc` reaches it by walking the one objects tree, and a card
 no live view accounts for goes -- which is what the sweep means everywhere else too.
 
 **The live set is derived from the corpus rather than from `data/build/opengraph.json`.** A card is
-keyed by `{view}/{slug}.png`, and the live slugs are exactly the ones `cms og` would draw: every
+keyed by `{view}/{slug}.png`, and the live slugs are exactly the ones `local og` would draw: every
 article that is not a draft, is not the bio page, and has a title; and the home page -- crossed
-with the nine views. `cms gc` asks the `opengraph`
+with the nine views. `local gc` asks the `opengraph`
 module for that set rather than restating it, and both sides build the path through `card_path`, so
 a change to which pages get cards moves the sweep with it instead of leaving it to be discovered.
 Keying the sweep on the card record instead would have taken the whole tree in exactly the case the
 record was lost, and deleting a card a page still links to is far worse than leaving one behind:
 both are silent, and only the second repairs itself on the next run.
 
-**A card is redrawn when its inputs move, not when its file is missing.** `cms og` records a
+**A card is redrawn when its inputs move, not when its file is missing.** `local og` records a
 hash of everything each card was drawn from in `data/build/opengraph.json` and redraws the ones
 whose hash has changed. The older test -- skip anything already on disk -- was always slightly
 wrong, since an edited title left the previous card in place until somebody remembered
@@ -374,7 +374,7 @@ gives: a card changes when the article changes, so it resolves at build time. Co
 site's favicon, which changes on somebody else's schedule and therefore does not. See
 [delivery.md](delivery.md), "A name is resolved, never stored".
 
-`cms og` still decides what to draw from its own record -- the hash of everything a card was drawn
+`local og` still decides what to draw from its own record -- the hash of everything a card was drawn
 from -- and that record now carries the content id beside it, because with no path to derive there
 is nowhere else the address is written.
 
@@ -445,7 +445,7 @@ it with two permanent code paths and two rules for alt text -- markdown cannot e
 It is done with `aspect-ratio` and `object-fit`, never by storing another object. A variant per
 ratio and alignment would multiply the bucket, and would make a content id mean "this image as
 shown here" instead of "this image" -- which would take the addressing model with it, because
-`cms gc` reaches assets through the ids articles name. The cost is that the hidden part of the
+`local gc` reaches assets through the ids articles name. The cost is that the hidden part of the
 image is still downloaded; that is the cheaper of the two.
 
 **A link card's cover is cropped the same way, by the same default.** `::linkcard` is a

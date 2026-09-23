@@ -25,15 +25,15 @@ import {
  *
  * The table is in libs/artifacts, beside `ICON_EXTENSION`; its test stays here because that
  * package's own program is the browser's and has no `node:fs` to read a file with. It rebuilds
- * a URL for a file `cms image` already named, and both sides once said `jpg` for a JPEG --
+ * a URL for a file `local image` already named, and both sides once said `jpg` for a JPEG --
  * `/object` forms a key from the name and reads it, so that disagreement is a 404 now and this
  * is the only thing holding the two spellings together.
  */
 const ARM = /"(image\/[a-z+]+)" => (?:"([a-z0-9]+)"|(JPEG))/g;
 
-it('names each format the way apps/cms names the file', () => {
+it('names each format the way apps/local names the file', () => {
 	const source = readFileSync(
-		fileURLToPath(new URL('../../../../../cms/src/extension.rs', import.meta.url)),
+		fileURLToPath(new URL('../../../../../local/src/extension.rs', import.meta.url)),
 		'utf8',
 	);
 	const body = /pub fn for_variant\(mime: &str\) -> &'static str \{([\s\S]*?)\n\}/.exec(source);
@@ -306,17 +306,17 @@ it('names every rung by its width, under the box the picture itself declares', (
 /**
  * Both ways an article spells a finished reference, because a corpus holds both.
  *
- * A rid is what it names after `cms migrate` and `{cid}.{ext}` is what it named before, and that
+ * A rid is what it names after `local migrate` and `{cid}.{ext}` is what it named before, and that
  * cid is an original's rather than the resource's. Reading only one of them would strand every
  * reference the other way round for as long as a migration round takes -- the same two forms
- * `apps/cms/src/refs.rs` answers on its side.
+ * `apps/local/src/refs.rs` answers on its side.
  */
 it('answers a reference by the rid that names the thing, or the cid it was imported as', () => {
 	expect(pictures()(COVER)?.src).toBe(`https://cdn.example/object/${FILE.large}.avif`);
 	expect(pictures()(`${IMPORTED.cover}.avif`)?.src).toBe(
 		`https://cdn.example/object/${FILE.large}.avif`,
 	);
-	// A file nobody has imported, which is what an article naming one gets until `cms image` runs.
+	// A file nobody has imported, which is what an article naming one gets until `local image` runs.
 	expect(pictures()('shot.png')).toBeNull();
 });
 
@@ -356,7 +356,7 @@ it('refuses the other kind of record rather than half-reading it', () => {
  * The real file and never a fixture: what drifted apart was the shape this build declares and
  * the shape on disk, and a fixture asserting the two agree only checks itself. Both sides of the
  * migration are accepted and neither is a shrug -- before it the refusal has to name the command
- * to run, after it every record has to answer what the markup asks. `apps/cms/src/image/run.rs`
+ * to run, after it every record has to answer what the markup asks. `apps/local/src/image/run.rs`
  * holds the same file to the loader on the other side.
  */
 it('reads the committed manifest, whichever side of the migration it is on', () => {
@@ -367,11 +367,11 @@ it('reads the committed manifest, whichever side of the migration it is on', () 
 	const records = Object.values(manifest.media);
 	expect(records.length).toBeGreaterThan(0);
 
-	// All or none. `cms migrate` writes the whole manifest before it rewrites anything else, so a
+	// All or none. `local migrate` writes the whole manifest before it rewrites anything else, so a
 	// file holding both shapes is a run that died partway rather than a state to be tolerant of.
 	const migrated = records.filter((record) => 'layers' in record);
 	if (migrated.length === 0) {
-		expect(() => readAssets(manifest)).toThrow('cms migrate');
+		expect(() => readAssets(manifest)).toThrow('local migrate');
 		return;
 	}
 	expect(migrated).toHaveLength(records.length);
@@ -404,7 +404,7 @@ it('reads the committed manifest, whichever side of the migration it is on', () 
 			expect(aspect(image), `${asset.resource} has no aspect`).toMatch(/^\d+:\d+$/);
 		}
 		// An icon is the one leaf whose content is keyed by name. Both tones point at objects the
-		// CDN can be asked for, under a spelling this side and apps/cms agree on, and the domain
+		// CDN can be asked for, under a spelling this side and apps/local agree on, and the domain
 		// it belongs to is what a link card's URL is turned into a rid through.
 		if (icon) {
 			expect(resolveIcon(`https://${icon.domain}/deep/page`), icon.domain).toBe(asset.resource);

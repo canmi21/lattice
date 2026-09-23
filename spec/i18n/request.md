@@ -49,7 +49,7 @@ once. The store is JSON where its neighbours are YAML. `media.yaml` and `tags.ya
 person opens, edits a few entries in and saves back, and YAML is for them; this one is written by
 a command and read by a build, and the only field a person ever reaches into it for is `review`.
 
-`cms diagram` writes the English, and `cms locale` carries it into the other seven the way it
+`local diagram` writes the English, and `local locale` carries it into the other seven the way it
 carries an image description and a summary. English is the source language here for a reason
 sharper than the image case: the labels inside these drawings are English even in the Chinese
 articles, so a description written in anything else would be translating them on the way out. It
@@ -73,10 +73,10 @@ not wired yet. A described diagram could hand the paragraph beside it its descri
 "a code block, not shown", which is the only change here that would improve a translation rather
 than serve a reader directly.
 
-**Not the open-weight text model.** `cms diagram` asks for the picture and not the markup, which
+**Not the open-weight text model.** `local diagram` asks for the picture and not the markup, which
 is a constraint the model holds against what it is literally reading, and the default measurably
 does not hold it: asked for the drawing, it reported fill colours, opacities and the size of the
-legend squares. That is the same failure, and the same remedy, as `cms summary`.
+legend squares. That is the same failure, and the same remedy, as `local summary`.
 
 One detail of the reply is worth recording because it cost two failed runs. The request fences the
 source between one random boundary and asks for the answer between another; a model that has just
@@ -154,7 +154,7 @@ no cost: the block is named, its bytes are not sent.
 
 The initial request covers one segment in all eight locales. A repair request names only the
 locales still missing or rejected; an already stored locale is never paid for again merely
-because its neighbour failed. `cms i18n --locale L` applies the same selection deliberately,
+because its neighbour failed. `local i18n --locale L` applies the same selection deliberately,
 and may be repeated. The answer is a marker line per requested locale followed by its text.
 
 JSON is the obvious choice and the wrong one. Translations are prose full of quotes, colons
@@ -164,7 +164,7 @@ malformed is simply absent, and only that one is requested again.
 
 The command audits the sidecars again after writing. A partial final answer therefore leaves a
 non-zero exit status instead of turning into apparent success and another progress bar on the
-next run. `cms i18n --check` performs that same completeness audit without starting a runner or
+next run. `local i18n --check` performs that same completeness audit without starting a runner or
 making a paid request.
 
 Retries accumulate valid locale answers from every attempt. Once a locale survives validation,
@@ -230,7 +230,7 @@ is wrong.
 
 Read beside its sibling it is obvious. `zh-CN` and `zh-TW` are two views of one language
 translated from one source, and across the corpus they run within a few percent of each other;
-the bad one was 0.58. So `cms i18n --check` compares locales that share a language and reports
+the bad one was 0.58. So `local i18n --check` compares locales that share a language and reports
 a pair that differs by half. Report-only, and only above sixty columns: under that a same-
 language pair legitimately diverges, because one view leaves a six-character fragment alone
 while the other spells it into a sentence. Every divergence measured under that width was
@@ -259,5 +259,5 @@ would go the same way in silence.
 The site refuses to mix languages inside a page, so a single missing body segment makes it serve
 the whole article in the source language with a notice. That means "one entry short" and "this
 locale is unavailable" are the same event, and a count of missing entries does not say so.
-`cms i18n --check` names the article and locale and says the view falls back, beside the count
+`local i18n --check` names the article and locale and says the view falls back, beside the count
 rather than instead of it.

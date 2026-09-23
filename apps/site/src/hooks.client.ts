@@ -30,9 +30,10 @@ export const init: ClientInit = prepareBrowserRuntime;
  * so an `origin` is the page's signal that something broke rather than that a question was
  * answered. See app.d.ts and routes/+error.svelte.
  */
-export const handleError = Sentry.handleErrorWithSentry(
-	({ message }): App.Error => ({ message, origin: 'client' }),
-);
+export const handleError = Sentry.handleErrorWithSentry(({ message }): App.Error => ({
+	message,
+	origin: 'client',
+}));
 
 function cleanLanguageParameter(): void {
 	const replacement = withoutLanguageParameter(new URL(window.location.href));

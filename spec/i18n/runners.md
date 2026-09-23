@@ -25,7 +25,7 @@ model: both tiers can see, measured, so this is the same quality judgement as th
 split, not a capability gate.
 
 `--model` continues to name the runner. For an intentional comparison rather than ordinary
-routing, the article commands `cms summary`, `cms tn`, `cms i18n`, and `cms locale` additionally
+routing, the article commands `local summary`, `local tn`, `local i18n`, and `local locale` additionally
 accept a concrete `--model-id` under the runners whose CLIs take one -- Codex, with an optional
 `--effort`, and Claude, model name alone. The `locale` override also covers
 summary translations that share its queue with tags and image descriptions. That pair pins every
@@ -41,7 +41,7 @@ stateless text-transform contract, expose no tools, disable search and subagents
 turn. Twitter lookup is the deliberate exception: it uses the agent path and its own bounded flags
 because finding a tweet is the task rather than transforming bytes already present in the prompt.
 
-Article translation runs at four requests in flight by default. `cms i18n --parallel N` overrides
+Article translation runs at four requests in flight by default. `local i18n --parallel N` overrides
 that limit for an intentional run and requires a positive integer. Completion order owns queue
 progress: the first request to finish is persisted and immediately replaced, so one long segment
 cannot leave otherwise available slots idle. The flag controls simultaneous paid requests, not
@@ -91,7 +91,7 @@ runner said. Exit status is zero, because nothing went wrong -- the allowance si
 Running again after the reset resumes exactly where it stopped, since only missing segments
 are ever requested.
 
-`cms i18n --frontmatter` narrows paid requests to the allowlisted title, subtitle and
+`local i18n --frontmatter` narrows paid requests to the allowlisted title, subtitle and
 description values. The complete article still participates in layout and orphan validation;
 the flag changes request selection only, so asking for metadata cannot silently make body
 segments look stale or complete.
@@ -106,7 +106,7 @@ A task that has to inspect an image uses `gpt-5.6-terra-medium` through Codex. V
 model that can actually receive the image, and the balanced Terra tier is the default rather
 than either the light Luna route or the high-effort escalation route.
 
-`cms summary` is the third case, and the only text task that does not take the cheap default.
+`local summary` is the third case, and the only text task that does not take the cheap default.
 It asks for a summary that withholds the article's conclusion, which is a constraint the model
 has to hold against what summarising normally means, and the open-weight model measurably does
 not hold it: it handed over an entire proposed design and then appended "reaches a surprising

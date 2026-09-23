@@ -3,7 +3,7 @@
 ## What this repository is
 
 lattice is one project of several and its own repository, cloned into the workspace's `repos/` as a
-sibling of the others. It holds the site, the three Workers beside it, the desktop CMS that edits
+sibling of the others. It holds the site, the three Workers beside it, the local service that edits
 it, the corpus they serve, and the libraries those share. Nothing else, and the absences are as
 much of the description as the contents: there is no `.editorconfig`, no `rustfmt.toml`, no
 `.oxlintrc.json`, no agent hook and no `AGENTS.md` anywhere below this root -- nor a `CLAUDE.md`,
@@ -46,7 +46,7 @@ writing one in the present tense promises that every change to the thing comes b
 the sentence. That does not happen and will not. Dated, the figure stops being a claim that rots
 and becomes what it always was: a mark of how far something had got when somebody last counted.
 The spelling is "measured ... at the time", as [media.md](media.md) uses for its 39 records and
-[cms.md](cms.md) for its largest sidecar.
+[local.md](local.md) for its largest sidecar.
 
 **A figure that is a value the code uses is not dated.** A constant, a threshold, a declared width
 -- these have to match the code exactly, and the answer to one drifting is a check, not a hedge.
@@ -62,7 +62,7 @@ generators instead, and both are marked `linguist-generated=true` in `.gitattrib
 
 `libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
 hundred lines of stylesheet anybody wrote. Counted, the figure describes the subsetter.
-`data/metadata.json` is written by `cms image` and is tracked only because a build resolves
+`data/metadata.json` is written by `local image` and is tracked only because a build resolves
 every image from it with no byte of `data/` present -- a record, not source. See
 [data.md](data.md), "What stays in git, and until when".
 
@@ -114,8 +114,8 @@ libraries by language at the top level would tear that library in half.
 The same applies to `apps/`. A Rust binary and a SvelteKit site sit side by side, named for
 what they do. What a member may be called is the workspace's `naming.md`'s.
 
-How the desktop CMS and the command-line shell divide one application between them is its own
-subject: [cms.md](cms.md).
+How the command line and the HTTP surface divide one application between them is its own
+subject: [local.md](local.md).
 
 ## Libraries export source
 
@@ -327,7 +327,7 @@ referenced it by name.
 
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
 library, so `mise run urls` renders the map into
-[`apps/cms/src/urls.rs`](../../apps/cms/src/urls.rs) -- committed, like the records under
+[`apps/local/src/urls.rs`](../../apps/local/src/urls.rs) -- committed, like the records under
 `data/build/`, so a checkout compiles without Node having run first. The mirror is never
 edited by hand: [`rust.test.ts`](../../libs/urls/src/rust.test.ts) fails `verify` the moment it
 disagrees with the map, so the one-edit measure survives the language boundary. The

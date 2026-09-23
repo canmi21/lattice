@@ -209,7 +209,13 @@
 	<svg class="col-start-1 row-start-1 size-5 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
 		<!-- r is 15.9155 because that circle is 100 long, so the dash offset below is a percentage
 		     and nothing has to compute a circumference to write it. -->
-		<circle class={stylex.attrs(styles.ring).class} cx="18" cy="18" r="15.9155" stroke-width="3.6" />
+		<circle
+			class={stylex.attrs(styles.ring).class}
+			cx="18"
+			cy="18"
+			r="15.9155"
+			stroke-width="3.6"
+		/>
 		<circle
 			class={stylex.attrs(styles.read, entering && styles.entering).class}
 			cx="18"

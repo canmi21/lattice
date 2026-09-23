@@ -114,10 +114,14 @@ describe('observeTheme', () => {
 			disconnect: () => (disconnected = true),
 		} as unknown as MutationObserver;
 
-		const stop = observeTheme((theme) => seen.push(theme), root, (callback) => {
-			react = callback;
-			return observer;
-		});
+		const stop = observeTheme(
+			(theme) => seen.push(theme),
+			root,
+			(callback) => {
+				react = callback;
+				return observer;
+			},
+		);
 
 		// The palette names ride on the same attribute, so a mutation is not itself an answer.
 		classes.add('nord');

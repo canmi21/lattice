@@ -16,7 +16,7 @@ than once per reader.
 
 Only the decoders for what is stored and the encoders for what is asked for. **The AVIF encoder
 was deliberately absent and now is not, on one route.** It was argued out on its size -- 1.1MB
-compressed against 332KB for the decoder -- and on `cms image` already producing AVIF locally
+compressed against 332KB for the decoder -- and on `local image` already producing AVIF locally
 where the time costs nothing. The first half was measured against the wrong number: the limit is
 64MiB uncompressed and nothing compressed, and the bundle carrying it is 5.7MB.
 
@@ -143,7 +143,7 @@ input, and a clock in the bytes would make the same request return different arc
 ## The extension asks for a format
 
 **AVIF is the usual storage format, not the only one.** This section said only AVIF is stored
-and that was wrong: `cms image` writes a flat-colour original as PNG, because lossy coding is
+and that was wrong: `local image` writes a flat-colour original as PNG, because lossy coding is
 the wrong tool for it. An article cannot get this wrong from its side, because a reference names
 a resource id and carries no format at all -- which format the CDN serves is settled at compile
 time from the record. So `/object/{cid}.avif` and
@@ -173,8 +173,8 @@ that leaves `yml` beside `yaml`. Carried as one, it would fragment exactly what 
 above refuses to fragment: two validators, two edge entries and two conversions over identical
 bytes.
 
-**It is pinned in two places, and only one of them is a redirect.** Writing is narrow: `cms image`
-and `cms favicon` both name a published file `.jpeg`, while `mime_of` still accepts a `.jpg` on
+**It is pinned in two places, and only one of them is a redirect.** Writing is narrow: `local image`
+and `local favicon` both name a published file `.jpeg`, while `mime_of` still accepts a `.jpg` on
 the way in, so the short spelling can never be a stored key. Reading is where the correction
 lives: `/derive/{cid}.avif.jpg` answers a permanent redirect to the `.jpeg` spelling, so a reader
 pays one hop once and their browser never asks again.
@@ -186,7 +186,7 @@ under a key the bucket does not hold, and nothing would report it. `/object` cor
 either -- the extension is part of the key there, and a key names bytes or it does not.
 
 **Nothing here generates the short spelling**, which is what keeps that lookup off the ordinary
-path: `cms image` names a published file `.jpeg` and writes that name into the article, and the
+path: `local image` names a published file `.jpeg` and writes that name into the article, and the
 site's asset resolver builds the same one. Both spelled it `jpg` until the correction existed to
 catch them, which would have made every JPEG this repository serves pay a hop meant for somebody
 else's typo -- invisible from either side alone, since the CDN and the article each looked right.
@@ -491,7 +491,7 @@ of them finds the same answer.
 **The marks themselves live in `data/source/brand` and travel with the repository.** They were loose in
 the published tree, which is to say on one machine: authored once by hand, regenerable by nobody,
 and in no clone. That is the one set `data/`'s "the bytes belong to the machine" rule must not
-cover. The icons `cms favicon` fetches from other sites travel for the same reason, in
+cover. The icons `local favicon` fetches from other sites travel for the same reason, in
 `data/source/favicon`: re-fetchable in principle, but only from a site that may have redrawn its icon
 since, so a clone without them cannot reproduce what is published.
 

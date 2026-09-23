@@ -59,7 +59,7 @@ export type Block =
 			title: string;
 			description?: string;
 			/**
-			 * What the figure reads as, from `cms diagram`. Absent until one has been run.
+			 * What the figure reads as, from `local diagram`. Absent until one has been run.
 			 *
 			 * Not `description`, which is one line the author wrote to sit under the title. This
 			 * is the whole figure said in prose, and it is translated, which is what the
@@ -73,7 +73,7 @@ export type Block =
 			type: 'svgCanvas';
 			svg: string;
 			title: string;
-			/** What the drawing says, from `cms diagram`. Absent until one has been run. */
+			/** What the drawing says, from `local diagram`. Absent until one has been run. */
 			description?: string;
 	  }
 	| { type: 'tokei'; source: string; title: string; view: TokeiView }
@@ -124,7 +124,7 @@ export type Block =
 			 * An embed named but not yet fetched, as opposed to a stub the author wrote.
 			 *
 			 * The two had one shape and meant different things, which a consumer could not tell
-			 * apart: `::cargo` whose record `cms embed` has not filled in still says which crate
+			 * apart: `::cargo` whose record `local embed` has not filled in still says which crate
 			 * the article meant, while `::placeholder` is the author asking for a gap. The feed is
 			 * where it showed -- one of them belongs in a document a reader subscribes to and the
 			 * other does not.
@@ -147,7 +147,7 @@ export type Block =
 			 * What the picture is called here, which is the article's to say.
 			 *
 			 * Baked, unlike the ladder above, because it changes on **this** repository's
-			 * schedule: `cms alt` writes it into a file beside the article, per locale, and a
+			 * schedule: `local alt` writes it into a file beside the article, per locale, and a
 			 * view carries the one it is written in rather than nine it is not.
 			 */
 			alt: string;
@@ -182,7 +182,7 @@ export type Block =
 			/**
 			 * What every sample of this clip is multiplied by, so two clips play at one level.
 			 *
-			 * Computed in the build from the loudness and true peak apps/cms measured. `1` for a
+			 * Computed in the build from the loudness and true peak apps/local measured. `1` for a
 			 * clip nothing has measured, which plays as it always did. See `assets.ts`.
 			 */
 			gain?: number;
@@ -213,7 +213,7 @@ export type ArticleReference = {
 	 */
 	published: string;
 	/** What a phone card shows instead, where the row clips. Falls back to the full form for a
-	 *  view the CMS has not written one for. See spec/i18n/prose.md. */
+	 *  view `local` has not written one for. See spec/i18n/prose.md. */
 	short_title: string;
 	short_subtitle: string;
 };
@@ -262,7 +262,7 @@ export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'text'> & {
 	/** False when this locale is showing the complete source article as a safe fallback. */
 	translation_available: boolean;
 	/** The title and subtitle a phone card shows instead of `meta`'s, where the row clips. Falls
-	 *  back to the full form for a view the CMS has not written one for. See spec/i18n/prose.md. */
+	 *  back to the full form for a view `local` has not written one for. See spec/i18n/prose.md. */
 	short: { title: string; subtitle: string };
 	/**
 	 * The title the article page shows on a phone: `meta.title` where it fits the column, and
@@ -272,7 +272,7 @@ export type ArticleView = Pick<Compiled, 'meta' | 'toc' | 'blocks' | 'text'> & {
 	 */
 	phone_title: string;
 	/**
-	 * What the article is about, withholding what it concludes. Written by `cms summary` into a
+	 * What the article is about, withholding what it concludes. Written by `local summary` into a
 	 * sidecar rather than into the article, so it is absent until that has been run.
 	 */
 	summary?: ArticleSummary;

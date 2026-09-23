@@ -6,7 +6,7 @@ The rules over an entry are the index's; see [todo.md](todo.md).
 
 ## A total function answers for input it does not know, and is wrong instead of failing
 
-[`extension::for_variant`](../../apps/cms/src/extension.rs) maps a mime type to the extension a
+[`extension::for_variant`](../../apps/local/src/extension.rs) maps a mime type to the extension a
 stored file is named by. It returns `&'static str` rather than an option, and its own doc says
 why: "Total rather than optional: the encoder only ever produces these, and anything unrecognised
 is AVIF because that is what the ladder stores." That was true of a repository storing one kind of
@@ -20,7 +20,7 @@ function cannot fail, so the caller cannot check, so the wrong path flows to `is
 answers false, which reads as "this asset is not published yet".
 
 It has already produced one bug of exactly that shape. `published()` in
-[`image/run.rs`](../../apps/cms/src/image/run.rs) was written as
+[`image/run.rs`](../../apps/local/src/image/run.rs) was written as
 `variant_path(public, cid, extension::for_variant(&record.mime)).is_file()`, which is correct for
 every picture. Copied into the video command unchanged -- the natural thing to do, because it
 reads as a general question about a record -- it asks whether `{ab}/{cd}/{cid}.avif` exists for a

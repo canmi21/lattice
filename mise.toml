@@ -2,7 +2,7 @@
 # Read by both the Rust binary that binds it and the Vite config that proxies to it, which is
 # why it lives here rather than in libs/urls -- Rust cannot read a TypeScript library.
 # Pinned, never auto-incremented; see spec/toolchain.md.
-CMS_PORT = "26521"
+LOCAL_PORT = "26521"
 
 # Credentials, decrypted by mise on entering the directory. The file is committed encrypted;
 # only the age private key opens it -- see spec/toolchain.md, "Secrets", for the key setup and
@@ -188,19 +188,19 @@ description = "Regenerate the Rust mirror of the URL map from libs/urls"
 # Formatted here rather than left for the next `cargo fmt`, so the file this writes is the file
 # that gets committed. The generator emits one constant per line and rustfmt wraps the long ones,
 # so skipping this step means the mirror changes shape after it is generated.
-run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/cms/src/urls.rs"]
+run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/local/src/urls.rs"]
 
 # What `mise run publish lattice` runs. For this project publishing is the corpus rather than a
 # release: compile every view into `data/bucket`, then mirror. Dry by default because `sync` is,
 # and `--live` passes through. See spec/architecture/repos.md.
 [tasks.publish]
 description = "Compile the corpus into publishable objects and mirror them: `publish lattice [--live]`"
-# `cms segments` first, because the layout it writes is no longer in git -- it rebuilds from the
+# `local segments` first, because the layout it writes is no longer in git -- it rebuilds from the
 # corpus in seconds, and a view spliced from a stale one is wrong in a way nothing reports. See
 # spec/i18n/segments.md.
 run = [
 	".mise/tasks/generation",
-	"cargo run -q -p cms -- segments",
+	"cargo run -q -p local -- segments",
 	"node apps/site/scripts/publish.ts",
 	".mise/tasks/sync",
 ]
@@ -250,11 +250,11 @@ description = "Compact the object stores and list published assets no article re
 # Run when you want to, not on every commit: these walk the whole repository. The asset sweep
 # only reports here -- compacting an object store loses nothing, while deleting a published
 # variant changes what R2 serves on the next sync.
-run = ["jj util gc", "git gc", "cargo run -q -p cms -- gc"]
+run = ["jj util gc", "git gc", "cargo run -q -p local -- gc"]
 
 [tasks.gc-assets]
 description = "Delete the published assets that `gc` listed"
 # Separate because this is the irreversible half. Recoverable in practice -- data/source/image still
-# holds the originals and `cms image` rebuilds from a content id -- but only while that is
+# holds the originals and `local image` rebuilds from a content id -- but only while that is
 # true, which is a fact about this repository rather than a guarantee of the command.
-run = "cargo run -q -p cms -- gc --live"
+run = "cargo run -q -p local -- gc --live"

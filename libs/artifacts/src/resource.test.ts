@@ -79,7 +79,7 @@ describe('the optimistic table', () => {
 });
 
 /**
- * The account `apps/cms/src/image/exif.rs` flattens into a photograph and a screenshot alike.
+ * The account `apps/local/src/image/exif.rs` flattens into a photograph and a screenshot alike.
  *
  * A layer with no home for a field strips it rather than refusing it, so the two sides drifting
  * apart here costs data on the way past and reports nothing. Ten records carry these.
@@ -264,8 +264,18 @@ describe('an icon binds its files by tone', () => {
  */
 describe('the picture selector', () => {
 	const variants = [
-		{ content: 'a'.repeat(32), mime: 'image/avif', bytes: 9, resolution: { width: 640, height: 640 } },
-		{ content: 'b'.repeat(32), mime: 'image/avif', bytes: 99, resolution: { width: 10, height: 10 } },
+		{
+			content: 'a'.repeat(32),
+			mime: 'image/avif',
+			bytes: 9,
+			resolution: { width: 640, height: 640 },
+		},
+		{
+			content: 'b'.repeat(32),
+			mime: 'image/avif',
+			bytes: 99,
+			resolution: { width: 10, height: 10 },
+		},
 	];
 	const drawn = {
 		...image,

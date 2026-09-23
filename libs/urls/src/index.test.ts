@@ -94,7 +94,7 @@ describe('development ports', () => {
 	// nothing else, and the CMS port must be clear of all of them: it is a machine-wide
 	// singleton, and a collision there is the mutex that stops a second copy writing data/.
 	it('keeps the ports clear of the inspector ports and of the CMS port', () => {
-		const cms = Number(process.env.CMS_PORT ?? 26521);
+		const cms = Number(process.env.LOCAL_PORT ?? 26521);
 		const taken = [
 			...Object.values(DEVELOPMENT_PORTS),
 			DEVELOPMENT_PORTS.api + 1,

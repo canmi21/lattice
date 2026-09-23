@@ -23,7 +23,10 @@ const counted = new Set<string>();
  * one reader into several. Focus and reconnect stay off, because returning to a tab is not opening
  * the article; the interval is the one trigger. See spec/engagement.md.
  */
-export function createReadsQuery(slug: () => string, served: () => number | undefined = () => undefined) {
+export function createReadsQuery(
+	slug: () => string,
+	served: () => number | undefined = () => undefined,
+) {
 	return createQuery(() => ({
 		queryKey: [READS_QUERY_KEY, slug()],
 		queryFn: () => readsOf(slug()),

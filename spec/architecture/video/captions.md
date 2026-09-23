@@ -156,7 +156,7 @@ inverse reason.
 
 ### The pairing is checked by arithmetic, and the arithmetic is not about the track
 
-`cms captions <clip> <track.vtt> --language <tag>` is a command of its own rather than a branch of
+`local captions <clip> <track.vtt> --language <tag>` is a command of its own rather than a branch of
 the import, because a clip and its track do not arrive on the same day and often the track never
 arrives at all. Two of the three clips here have none.
 

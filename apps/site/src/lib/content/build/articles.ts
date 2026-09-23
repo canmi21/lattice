@@ -67,7 +67,7 @@ type SummarySidecar = { summary?: Record<string, { text?: string; provider?: str
  *
  * Frontmatter writes the short form; every locale-addressed record here uses the public tag.
  * Traditional Chinese is matched by script before the language falls through -- the same rule
- * `cms summary` applies on the other side of the file. See spec/i18n/copy.md.
+ * `local summary` applies on the other side of the file. See spec/i18n/copy.md.
  */
 function sourceLocale(lang: string): string {
 	const [primary = lang, ...rest] = lang.toLowerCase().split('-');
@@ -81,7 +81,7 @@ function sourceLocale(lang: string): string {
 	return code ? PUBLIC_LANGUAGE[code] : 'en-US';
 }
 
-/** The summary sidecar, which is absent until `cms summary` has been run for that article. */
+/** The summary sidecar, which is absent until `local summary` has been run for that article. */
 async function readSummaries(file: string): Promise<Record<string, ArticleSummary>> {
 	try {
 		const text = await readFile(file.replace(/\.md$/, '.summary.yaml'), 'utf8');
@@ -265,7 +265,7 @@ export async function buildArticles(
 	// One resolver for every view, because a rid is the same in all nine of them.
 	const resolveIcon = createIconResolver(assets);
 	const media = (parseYaml(await readFile(paths.media, 'utf8')) ?? { media: {} }) as MediaManifest;
-	// Absent until `cms diagram` has been run, which is a state the build has to survive: every
+	// Absent until `local diagram` has been run, which is a state the build has to survive: every
 	// consumer of a description falls back to what it said without one.
 	const drawings = JSON.parse(
 		await readFile(paths.diagrams, 'utf8').catch(() => '{"diagrams":{}}'),

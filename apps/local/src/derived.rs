@@ -1,0 +1,209 @@
+//! What every derived record owes the writing, counted one class at a time.
+//!
+//! `local check` answers this per item, which is the right shape for a person fixing one thing and
+//! the wrong shape for deciding what to run: a list of two hundred lines does not say whether the
+//! images are behind or the translations are. This counts each class against what it should hold
+//! and names the command that closes the difference, so the interface can offer the run rather
+//! than making somebody translate a list into a decision.
+//!
+//! Nothing here derives anything itself. It reads the same records `check` and `articles` read,
+//! because a second opinion about what "complete" means is how two pages start disagreeing.
+
+use serde::Serialize;
+use std::path::Path;
+
+use crate::{alt, articles, diagram, favicon, image, media, paths, refs};
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Report {
+	pub classes: Vec<Class>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Class {
+	/// Stable key the interface addresses this class by, and never shown to a reader.
+	pub id: String,
+	pub name: String,
+	/// One line on what the class is, for a reader who has not met the command.
+	pub detail: String,
+	pub have: usize,
+	pub want: usize,
+	/// The `local` subcommand that closes the difference, where one exists.
+	pub action: Option<String>,
+	/// Whether that command spends money on a model. The interface warns before offering it.
+	pub paid: bool,
+}
+
+impl Class {
+	fn new(
+		id: &str,
+		name: &str,
+		detail: &str,
+		have: usize,
+		want: usize,
+		action: Option<&str>,
+		paid: bool,
+	) -> Self {
+		Self {
+			id: id.to_owned(),
+			name: name.to_owned(),
+			detail: detail.to_owned(),
+			have,
+			want,
+			action: action.map(str::to_owned),
+			paid,
+		}
+	}
+}
+
+#[derive(Debug)]
+pub enum Error {
+	Repository(paths::NotFound),
+	Read(std::io::Error),
+}
+
+impl std::fmt::Display for Error {
+	fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Repository(error) => error.fmt(formatter),
+			Self::Read(error) => error.fmt(formatter),
+		}
+	}
+}
+
+impl std::error::Error for Error {}
+
+impl From<std::io::Error> for Error {
+	fn from(error: std::io::Error) -> Self {
+		Self::Read(error)
+	}
+}
+
+pub fn report() -> Result<Report, Error> {
+	let repository = paths::repo_root().map_err(Error::Repository)?;
+	Ok(report_at(&repository)?)
+}
+
+pub fn report_at(repository: &Path) -> std::io::Result<Report> {
+	let contents = repository.join("contents");
+
+	let scan = refs::scan(&contents)?;
+	let described = media::load(&media::path_for(repository))?;
+	// A reference names a resource, so what it is counted against is the record the manifest
+	// holds under that id -- the published document is keyed by the rid and the description by
+	// the manifest's own key, and only the record knows both.
+	let merged = image::run::load(&repository.join(image::run::MERGED))?;
+	let records: Vec<&crate::image::manifest::Media> =
+		scan.targets().iter().filter_map(|target| merged.resolve(target)).map(|(_, m)| m).collect();
+	let referenced_count = records.len();
+
+	let metadata = crate::paths::metadata_root(repository);
+	let fetched = crate::paths::favicon_root(repository);
+	let published = records
+		.iter()
+		.filter(|media| image::store::meta_path(&metadata, media.resource.as_str()).is_file())
+		.count();
+	let descriptions = scan
+		.targets()
+		.iter()
+		.filter_map(|target| merged.resolve(target))
+		.filter(|(key, _)| !alt::wants_description(&described, key))
+		.count();
+
+	let icons = scan.icons();
+	let collected = icons
+		.iter()
+		.filter(|(domain, tone)| favicon::stored(&fetched, domain, tone.as_deref()).is_some())
+		.count();
+
+	let listing = articles::listing_at(repository)?;
+	// Drafts are listed by `local articles` and owed by nobody. This report answers "what is still
+	// outstanding", and the paid commands leave a draft alone, so counting one here would show a
+	// debt no command will ever pay -- `local i18n` would run, report nothing done, and the number
+	// would not move.
+	let owed: Vec<&articles::Article> =
+		listing.articles.iter().filter(|article| !article.draft).collect();
+	let translated: usize = owed.iter().map(|article| article.translated).sum();
+	let translatable: usize = owed.iter().map(|article| article.wanted).sum();
+	// One description per drawing per locale, the same shape the summaries are counted in. A
+	// drawing carried by two articles is one drawing here, because one description serves both.
+	let drawings = diagram::collect(&repository.join("contents"))?;
+	let described_drawings = diagram::load(&diagram::store_path(repository))?;
+	let diagrams_wanted = drawings.len() * listing.locales.len();
+	let diagrams_have: usize = drawings
+		.iter()
+		.map(|drawing| {
+			described_drawings
+				.diagrams
+				.get(&drawing.id)
+				.map_or(0, |entry| entry.description.len().min(listing.locales.len()))
+		})
+		.sum();
+
+	let summaries_wanted = owed.len() * listing.locales.len();
+	let summaries_missing: usize = owed.iter().map(|article| article.summary_gaps.len()).sum();
+
+	Ok(Report {
+		classes: vec![
+			Class::new(
+				"images",
+				"Images",
+				"Referenced pictures with a processed record in the metadata tree.",
+				published,
+				// An unresolved reference names a picture that was never imported, so it counts
+				// against the total rather than being absent from it -- otherwise importing one
+				// would make the figure go down.
+				referenced_count + scan.unresolved().len(),
+				Some("image"),
+				false,
+			),
+			Class::new(
+				"descriptions",
+				"Descriptions",
+				"Accessible descriptions, written once per picture and inherited by every use.",
+				descriptions,
+				referenced_count,
+				Some("alt"),
+				true,
+			),
+			Class::new(
+				"favicons",
+				"Favicons",
+				"Icons the linkcards draw, one per site an article links to.",
+				collected,
+				icons.len(),
+				Some("favicon"),
+				false,
+			),
+			Class::new(
+				"translations",
+				"Translations",
+				"Article segments carried into every locale.",
+				translated,
+				translatable,
+				Some("i18n"),
+				true,
+			),
+			Class::new(
+				"diagrams",
+				"Diagram descriptions",
+				"What each drawing an article carries as source says, per locale.",
+				diagrams_have,
+				diagrams_wanted,
+				Some("diagram"),
+				true,
+			),
+			Class::new(
+				"summaries",
+				"Summaries",
+				"A reader-facing summary per article per locale.",
+				summaries_wanted.saturating_sub(summaries_missing),
+				summaries_wanted,
+				Some("summary"),
+				true,
+			),
+		],
+	})
+}

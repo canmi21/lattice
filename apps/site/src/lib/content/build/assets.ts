@@ -28,7 +28,7 @@ import { sourceFingerprint } from './assemble.ts';
  * What a published rung and a published text track are called.
  *
  * Apart from `VARIANT_EXTENSION` in libs/artifacts rather than folded into it: that table is
- * held to `apps/cms`'s `for_variant` by a test that reads only its `image/*` arms, and these two
+ * held to `apps/local`'s `for_variant` by a test that reads only its `image/*` arms, and these two
  * are not variants of a picture. One format each, which is spec/architecture/video/pipeline.md's
  * whole point -- AV1 in MP4, and WebVTT beside it.
  */
@@ -52,9 +52,9 @@ export type Resolved = Picture & {
 	 * What the image shows, from the manifest, in this view's language.
 	 *
 	 * Baked, unlike the ladder above, and what separates them is the asset's clock: a ladder
-	 * moves when the picture is encoded again, a description when `cms alt` writes a file in
+	 * moves when the picture is encoded again, a description when `local alt` writes a file in
 	 * this repository. See spec/architecture/delivery.md, "resolve at build time what changes
-	 * when the article changes". Absent for an asset nobody has described, which `cms check`
+	 * when the article changes". Absent for an asset nobody has described, which `local check`
 	 * reports rather than papering over with the filename.
 	 */
 	description?: string;
@@ -85,9 +85,9 @@ export type AssetLibrary = {
  * Read `data/record/metadata.json` into that library, refusing the shape from before the ids.
  *
  * The refusal is the point: a record with no `layers` is a manifest that has not been through
- * `cms migrate`, and reading it optimistically would resolve every picture to nothing -- which
+ * `local migrate`, and reading it optimistically would resolve every picture to nothing -- which
  * is how a whole corpus of missing images arrives with nobody told. The twin of the loader in
- * `apps/cms/src/image/manifest.rs`, which refuses the same shape in the same words.
+ * `apps/local/src/image/manifest.rs`, which refuses the same shape in the same words.
  */
 export function readAssets(manifest: unknown): AssetLibrary {
 	const { media = {} } = (manifest ?? {}) as { media?: Record<string, unknown> };
@@ -98,7 +98,7 @@ export function readAssets(manifest: unknown): AssetLibrary {
 	};
 	for (const [key, record] of Object.entries(media)) {
 		if (typeof record !== 'object' || record === null || !('layers' in record)) {
-			throw new Error(`\`${key}\` has no resource id -- run \`cms migrate\` first`);
+			throw new Error(`\`${key}\` has no resource id -- run \`local migrate\` first`);
 		}
 		const asset = parseResource(record);
 		library.byResource.set(asset.resource, asset);
@@ -133,7 +133,7 @@ export type MediaManifest = {
  *
  * `{cid}.{ext}` is what an article named before the ids, and that cid is an original's. A rid
  * carries no extension at all, which is what says it is one: which format gets served is the
- * build's decision now. The twin of `resolved` and `resource` in `apps/cms/src/refs.rs`, which
+ * build's decision now. The twin of `resolved` and `resource` in `apps/local/src/refs.rs`, which
  * answers the same two forms for the commands on that side.
  */
 const RESOLVED = /^([0-9a-f]{32})\.[a-z0-9]+$/;
@@ -149,7 +149,7 @@ function found(library: AssetLibrary, reference: string): ParsedResource | undef
  * What `media.yaml` says about a resource, in the view being compiled.
  *
  * Found by the original's cid and not by the rid: that file is authored beside the record and
- * is still filed the way it always was, which `origin_cid` in `apps/cms/src/image/manifest.rs`
+ * is still filed the way it always was, which `origin_cid` in `apps/local/src/image/manifest.rs`
  * is the same lookup for on that side.
  */
 function entryOf(
@@ -262,7 +262,7 @@ export function createAssetResolver(
  * The rid and nothing else: which resource the card means follows from the URL, and what that
  * resource currently holds does not. See spec/architecture/resource.md, "A rid is resolved three
  * times, and each stage bakes only what it can know". `undefined` for a site nothing has
- * collected a mark for, which `cms check` reports and the card renders without.
+ * collected a mark for, which `local check` reports and the card renders without.
  */
 export function createIconResolver(assets: AssetLibrary): (url: string) => string | undefined {
 	return (url) => {

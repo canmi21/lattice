@@ -25,7 +25,7 @@ export type SegmentLayout = {
 	 * How long each article is, per view, in words. Keyed by the same article path `articles` is,
 	 * then by view code.
 	 *
-	 * Counted by `cms segments` and not here, because the rule has to be one rule. See
+	 * Counted by `local segments` and not here, because the rule has to be one rule. See
 	 * spec/architecture/media.md for what a word is across scripts, and for what a second
 	 * implementation in TypeScript already cost once.
 	 */
@@ -73,7 +73,7 @@ export function assemble(
 			throw new Error(`${article}: invalid source range for article segment ${span.id}`);
 		}
 		if (sourceFingerprint(bytes.subarray(span.start, span.end)) !== span.fingerprint) {
-			throw new Error(`${article}: stale segment layout at ${span.id}; run \`cms segments\``);
+			throw new Error(`${article}: stale segment layout at ${span.id}; run \`local segments\``);
 		}
 		previousEnd = span.end;
 	}

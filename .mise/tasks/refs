@@ -89,7 +89,7 @@ COMMENT = re.compile(r"^\s*(//|#|\*|/\*|<!--)")
 # The library itself, and the generated Rust mirror a `mise run urls` writes from it -- one
 # map, two languages. rust.test.ts holds the mirror to the map, so the exemption cannot hide
 # an edit made to the Rust side alone.
-URL_HOMES = ("libs/urls/", "apps/cms/src/urls.rs")
+URL_HOMES = ("libs/urls/", "apps/local/src/urls.rs")
 # `$schema` keys have to be URLs because mise-installed tools have no node_modules to point
 # at (spec/toolchain.md). JSON-LD's `@context` is a namespace identifier like an xmlns:
 # changing it changes what the document means, not where anything points. `registry+https://`

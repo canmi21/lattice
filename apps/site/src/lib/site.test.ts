@@ -34,7 +34,7 @@ describe('site config', () => {
 	});
 
 	/**
-	 * A card drawn by `cms og` and a page rendered by SvelteKit have no other way to agree than
+	 * A card drawn by `local og` and a page rendered by SvelteKit have no other way to agree than
 	 * both reading the config -- the name, role, GitHub handle and avatar id had drifted into the
 	 * markup as literals once already. Checked against the source text rather than a render,
 	 * because a render agrees with a hardcoded value as happily as with a read one.

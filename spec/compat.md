@@ -82,8 +82,8 @@ which is above the canary for Firefox and would have had precisely the effect de
 `caniuse-lite`, so the compiled output would change on an unrelated dependency update and
 rebuilding one commit twice would not produce the same bytes.
 
-Only the site declares one. `api` and `cdn` run on workerd, and the CMS runs in a webview shipped
-with the client; none of them meets an arbitrary browser.
+Only the site declares one. `api` and `cdn` run on workerd, and the CMS is opened in whatever
+browser its author uses; none of them meets an arbitrary browser.
 
 ### Tailwind's floor is higher and is not this one
 

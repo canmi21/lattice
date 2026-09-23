@@ -34,7 +34,7 @@ and nothing else. What the container does decide is whether playback can begin b
 arrived, which is `faststart` -- the index at the front rather than the back. That is a bigger
 difference to a reader than any codec choice, and it is not a quality decision.
 
-**`cms video::probe::codec_string` names every track, not the picture alone**, because RFC
+**`local video::probe::codec_string` names every track, not the picture alone**, because RFC
 6381's `codecs` parameter is a claim about the whole container and a browser reads the whole
 list to decide whether it can play the file. Naming only the video would be a claim about half
 of it -- and it is a claim about the device population above, not about the function, which is
@@ -169,7 +169,7 @@ English `label` naming the origin rather than the route. Plus two a picture has 
   its twenty-five seconds began at 39:00, and no tool can recover it.
 - `poster`, the content id of the first frame.
 
-**The poster is an ordinary image asset, not a field of the video.** Stored through `cms image`
+**The poster is an ordinary image asset, not a field of the video.** Stored through `local image`
 like any other picture, with its own id, its own AVIF rungs, its own thumbhash and its own
 description in eight languages, and carrying `source: cid://{blake3}` pointing at the video it was
 taken from -- see [media.md](../media.md) for why a source can point inward and why it names the asset
@@ -324,7 +324,7 @@ alters the recording; the one that sounds like averaging is the one that does no
 
 **Nothing is re-encoded.** The numbers are stored and the gain is applied at playback, because the
 bytes are the content id: every rung and every object in the bucket is addressed by it. A number in a record can also be re-tuned later, which a baked-in gain cannot. It
-also means the measurement can be backfilled -- `cms video` measures a published clip that has
+also means the measurement can be backfilled -- `local video` measures a published clip that has
 none without deriving a single pixel again.
 
 The target is -18 LUFS with a -1 dBTP ceiling. -18 sits near the loud end of this corpus rather
@@ -340,12 +340,12 @@ element's volume is its own gain, and the operating system's mixer is downstream
 
 ## What is wired and what is not
 
-`cms video` imports: probe, ladder, encode, publish, poster, record, and the article's reference
-rewritten. `refs::scan` reads `::video`. `cms gc` keeps a clip's rungs, its tracks, its poster and
+`local video` imports: probe, ladder, encode, publish, poster, record, and the article's reference
+rewritten. `refs::scan` reads `::video`. `local gc` keeps a clip's rungs, its tracks, its poster and
 the poster's own variants. The site renders a clip, chooses a rung at hydration and falls back to
-the poster and a notice. `cms captions` cuts a track to a clip and attaches it. `cms clip` samples
+the poster and a notice. `local captions` cuts a track to a clip and attaches it. `local clip` samples
 the frames, writes the prompt, asks, and records the answer where a picture's description goes, so
-`cms locale` carries it into every language with no branch of its own.
+`local locale` carries it into every language with no branch of its own.
 
 The CLI is complete. What is not built is the software-decode path -- see the decision above. This
 sentence also said nothing on the front end read a caption track, which is a correction: it does,

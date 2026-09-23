@@ -20,7 +20,7 @@ answer to what a family is and where its stylesheet lives.
 
 ## A runtime font is a separate dependency
 
-An application may independently need a full face at runtime. `cms og` renders arbitrary titles
+An application may independently need a full face at runtime. `local og` renders arbitrary titles
 with LXGW WenKai and therefore loads that one full TTF by path; a web subset cannot answer for a
 character it does not contain. That runtime dependency is why the 24MB file stays. No other
 published family gets a retained full face merely because this one has two roles. LXGW's own

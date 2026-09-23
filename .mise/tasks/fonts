@@ -176,7 +176,7 @@ def published_chunks(manifest: dict[str, Any]) -> dict[str, list[str]]:
 def write_record(manifest: dict[str, Any]) -> None:
 	"""Say which objects the published stylesheets name, for everything that is not a browser.
 
-	`cms gc` sweeps the objects tree against what each record claims, and a font chunk is reached
+	`local gc` sweeps the objects tree against what each record claims, and a font chunk is reached
 	from no article and no root. Written here because this is what published them: a sweep reading
 	the stylesheets instead would be deciding what to delete by parsing somebody else's output.
 	"""
@@ -189,7 +189,7 @@ def check_record(manifest: dict[str, Any]) -> list[str]:
 	"""The record against the stylesheets, because a stale one is a sweep waiting to happen.
 
 	Missing counts as stale rather than as nothing to check: the record is what stands between
-	these chunks and `cms gc`, and its absence is indistinguishable from a family with none.
+	these chunks and `local gc`, and its absence is indistinguishable from a family with none.
 	"""
 	advice = "run `mise run fonts --adopt --all`"
 	try:
@@ -290,7 +290,7 @@ def validate_published(
 
 	The stylesheet is the record of which chunks a family has -- the only one, now that there is
 	no directory of its own to list, and already the only one for the hundreds a CJK face has.
-	Nothing here looks for chunks nothing names: an object no stylesheet reaches is what `cms gc`
+	Nothing here looks for chunks nothing names: an object no stylesheet reaches is what `local gc`
 	sweeps, not a font problem.
 	"""
 	label = family["id"]

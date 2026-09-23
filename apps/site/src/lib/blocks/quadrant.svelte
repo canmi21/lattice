@@ -76,7 +76,7 @@
 	}: {
 		title: string;
 		description?: string;
-		/** What the figure reads as, from `cms diagram`, in this view's language. */
+		/** What the figure reads as, from `local diagram`, in this view's language. */
 		reading?: string;
 		axes: Record<QuadrantDirection, string>;
 		items: QuadrantItem[];
