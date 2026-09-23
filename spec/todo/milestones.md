@@ -238,12 +238,29 @@ construction rather than by care.
 | C2  | Development gets copies                | Published objects read from the live CDN, reader state dumped once; no full copy, ever    | C1    | mid     |
 | C3  | The corpus leaves git                  | History and backup become the CMS's; cannot start before C0                               | A4 C0 | mid     |
 | C4  | A measuring step at publication        | A controlled headless browser answers what only a browser knows, and the answer is stored | B6    | mid     |
+| C5  | The data directory retires             | Nothing under `data/` is tracked, because nothing there is git's to keep                  | C3    | mid     |
 
 **C0 is ordered before C3 and the order is the point.** Git is what currently backs up the things
 no run can reproduce: the id register, whose entries are identities other records point at, and the
 paid descriptions. Losing them is not a rebuild, it is a re-purchase or a permanent loss of
 identity. So the backup exists before the corpus stops being committed, not after. A0 is the
 evidence that this is not hypothetical -- five days of curation are already outside git today.
+
+**C5 is the end of this group and the measure of whether the rest worked.** `data/` is tracked in
+36 files today, and each one is tracked for a reason that some milestone above removes:
+
+| what                                                                             | files | what has to happen first                                       |
+| -------------------------------------------------------------------------------- | ----- | -------------------------------------------------------------- |
+| `record/media.yaml`, `record/tags.yaml`, `record/metadata.json`                  | 3     | imported already; the readers move to the collection           |
+| `record/diagram.json`, `fonts.json`, `indexnow.json`, `licenses.yaml`, `tn.yaml` | 5     | each is decided: a row in the collection, or a file that stays |
+| `build/*.json`                                                                   | 4     | derived, but fetched over a network; they become derived rows  |
+| `source/brand/*`                                                                 | 6     | **bytes nothing can recompute**; they need C0 before anything  |
+| `source/favicon/*`                                                               | 14    | bytes, refetchable, and cheaper to back up than to refetch     |
+| `bucket/*/.gitkeep`                                                              | 3     | the skeleton, which goes when the tree it marks does           |
+
+The site's own marks are the row that decides the order: losing them is not a rebuild, so the
+directory cannot leave git before the backup exists. That is C0, and this is what makes C0's
+position in this group a fact about twenty files rather than a principle.
 
 C2 is why the collection growing to a terabyte is not a problem that has to be solved later.
 Published objects are immutable and already served, so development reads them where they are; the
