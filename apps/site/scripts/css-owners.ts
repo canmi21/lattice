@@ -124,6 +124,7 @@ export const OWNS = {
 	visibility: 'frame',
 	'pointer-events': 'frame',
 	'user-select': 'frame',
+	'scrollbar-width': 'frame',
 	'will-change': 'frame',
 	'border-collapse': 'frame',
 

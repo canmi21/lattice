@@ -258,9 +258,9 @@ the escape hatch by the same mechanism read from the other side.
 **The frame** owns the one-offs: `display` and the flex and grid properties, `gap`, `margin`,
 `padding`, `width`, `height` and their `min-`/`max-` forms, `aspect-ratio`, `position` and
 `inset`, `z-index`, `align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`,
-`user-select`, `will-change`, `border-collapse`, and text behaviour -- `white-space`,
-`text-wrap`, `overflow-wrap`, `word-break`, `line-break`, `hyphens`, `text-overflow`,
-`text-align`, and the `text-decoration-*` family with `text-underline-offset`.
+`user-select`, `scrollbar-width`, `will-change`, `border-collapse`, and text behaviour --
+`white-space`, `text-wrap`, `overflow-wrap`, `word-break`, `line-break`, `hyphens`,
+`text-overflow`, `text-align`, and the `text-decoration-*` family with `text-underline-offset`.
 
 **These were added after the lists were checked against what the code actually uses**, which is
 the only way a list like this stays a list rather than becoming a sample. The vocabulary gains

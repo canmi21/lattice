@@ -289,7 +289,7 @@
 		<aside
 			bind:this={drawerElement}
 			aria-label="Details"
-			class="fixed top-2 right-2 bottom-2 z-30 flex w-68 max-w-[calc(100vw-1rem)] flex-col gap-5 overflow-y-auto p-4 {stylex.attrs(
+			class="fixed top-2 right-2 bottom-2 z-30 flex w-68 max-w-[calc(100vw-1rem)] flex-col gap-5 overflow-y-auto p-4 [scrollbar-width:none] {stylex.attrs(
 				surfaces.uiText,
 				styles.sheet,
 			).class}"
