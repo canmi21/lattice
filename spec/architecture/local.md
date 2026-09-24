@@ -162,7 +162,9 @@ do.
 **The sidebar is three regions, and only the middle one scrolls.** The sections above and settings
 below hold still; the articles between them are the one list that grows, so they are the one that
 moves, and the Articles row itself -- with the control that creates an article -- stays at the top
-of its region while the tree under it scrolls.
+of its region while the tree under it scrolls. The tree fades at an edge only where rows are cut off there
+([scroll-fade.ts](../../apps/cms/src/lib/scroll-fade.ts)): sharp at the top until it is scrolled,
+sharp at the bottom once the end is reached, so a fade always means there is more.
 
 **The Articles row carries the tree's controls, and is lit as one.** Beside its name sit, in order,
 sorting -- by last saved, the collection's own order and where it starts, then by title from A and

@@ -50,6 +50,7 @@
 	} from '$lib/collection.ts';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { foldHeight } from '$lib/fold.ts';
+	import { scrollFade } from '$lib/scroll-fade.ts';
 	import SearchGlyph from '$lib/glyphs/search.svelte';
 	import SidebarHidden from '$lib/glyphs/sidebar-hidden.svelte';
 	import SidebarShown from '$lib/glyphs/sidebar-shown.svelte';
@@ -819,7 +820,7 @@
 			<!-- The folder's row stays at the top of the region, with the control that creates an
 			     article, and the tree under it scrolls. Folded by its height, not removed: see
 			     $lib/fold.ts. -->
-			<div class="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
+			<div use:scrollFade class="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
 				<div use:foldHeight={open} class="overflow-hidden">
 					<!-- A step of room under the folder's row, the same the sections keep between them, so
 					     the folder and its first entry never share an edge when both are lit. -->
