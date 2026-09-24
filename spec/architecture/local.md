@@ -152,6 +152,12 @@ to dock it, the float's button lifts it instead and pins it until a click elsewh
 movement takes the site's timing for a surface answering a press, from `@canmi/motion`, and nothing
 a movement writes outlives it -- the resting place is always the stylesheet's.
 
+**A top-level row reads lit, and what sits under Articles reads soft.** The sections, Settings and
+the Articles folder itself rest in the strong ink, and the pointer adds a ground; the categories and
+articles under the folder rest soft and lift under the pointer as well. The two levels are told
+apart by their ink before anything is touched, which the indentation alone, kept small, does not
+do.
+
 **The sidebar is three regions, and only the middle one scrolls.** The sections above and settings
 below hold still; the articles between them are the one list that grows, so they are the one that
 moves, and the Articles row itself -- with the control that creates an article -- stays at the top

@@ -458,6 +458,10 @@
 				':focus-visible': 'color-mix(in oklab, var(--color-page) 50%, transparent)',
 			},
 		},
+		// A top-level row -- a section, Settings, the Articles folder -- reads lit at rest, and the
+		// pointer adds only the ground. What sits under Articles rests soft and lifts under the
+		// pointer, so the two levels are told apart by their ink before anything is touched.
+		top: { color: 'var(--color-text-strong)' },
 		// The section being worked in takes the pane's ground, which is what says the pane is its.
 		current: {
 			color: 'var(--color-text-strong)',
@@ -584,6 +588,7 @@
 			surfaces.quietControl,
 			surfaces.uiText,
 			styles.item,
+			styles.top,
 			current && styles.current,
 		).class}"
 	>
@@ -643,6 +648,7 @@
 						surfaces.quietControl,
 						surfaces.uiText,
 						styles.item,
+						styles.top,
 					).class}"
 				>
 					{#if open}
@@ -656,7 +662,8 @@
 					type="button"
 					aria-label="New article"
 					onclick={start}
-					class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+					class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item, styles.top)
+						.class}"
 				>
 					<Plus class="size-3.5" aria-hidden="true" />
 				</button>
@@ -665,8 +672,11 @@
 					tabindex="-1"
 					aria-hidden="true"
 					onclick={() => (open = !open)}
-					class="cursor-pointer px-2 py-1.5 {stylex.attrs(surfaces.quietControl, styles.item)
-						.class}"
+					class="cursor-pointer px-2 py-1.5 {stylex.attrs(
+						surfaces.quietControl,
+						styles.item,
+						styles.top,
+					).class}"
 				>
 					{@render chevron(open)}
 				</button>
