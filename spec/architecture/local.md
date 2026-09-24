@@ -251,7 +251,9 @@ the whole height of the window at its edge, and the same movement,
 wider than the sidebar, because it holds fields rather than a list.
 
 The text fades out before it reaches the toolbar: a veil at the pane's foot, held still with the
-pane, runs from the pane's color to nothing, so the toolbar floats over clear ground. Without it,
+pane, runs from the pane's color to nothing, so the toolbar floats over clear ground. It is solid only at
+the very edge and fades the whole way up: a band of solid color at its foot covered a whole line at
+once, which read as the text being cut rather than fading. Without it,
 in dark especially, the toolbar sat one step off the page and cut the words passing under it at its
 edge, which read as a hole in the text rather than as a thing above it; a stronger edge and a
 frosted ground were both tried and barely told apart from that.

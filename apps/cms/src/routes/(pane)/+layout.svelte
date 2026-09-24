@@ -440,7 +440,8 @@
 	const styles = stylex.create({
 		pane: { borderRadius: radius.xl },
 		veil: {
-			backgroundImage: 'linear-gradient(to top, var(--color-page) 35%, transparent)',
+			// Solid only at the very edge, and fading all the way up: no band of it covers a whole line.
+			backgroundImage: 'linear-gradient(to top, var(--color-page), transparent)',
 			borderBottomLeftRadius: radius.xl,
 			borderBottomRightRadius: radius.xl,
 		},
@@ -766,7 +767,7 @@
 			     ground rather than over words cut off at its edge. Held still with the pane, beneath
 			     the float, the drawer and the toolbar, and rounded to the pane's own corners. -->
 			<div
-				class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 {stylex.attrs(styles.veil)
+				class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 {stylex.attrs(styles.veil)
 					.class}"
 			></div>
 			<div class="pointer-events-none absolute inset-x-0 bottom-6 z-40 flex justify-center">
