@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import ChartLine from '@lucide/svelte/icons/chart-line';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ClockFading from '@lucide/svelte/icons/clock-fading';
 	import ArrowDownAZ from '@lucide/svelte/icons/arrow-down-a-z';
 	import ArrowDownZA from '@lucide/svelte/icons/arrow-down-z-a';
 	import ArrowLeftToLine from '@lucide/svelte/icons/arrow-left-to-line';
@@ -26,7 +27,6 @@
 	import FunnelX from '@lucide/svelte/icons/funnel-x';
 	import House from '@lucide/svelte/icons/house';
 	import Link from '@lucide/svelte/icons/link';
-	import ListClock from '@lucide/svelte/icons/list-clock';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Settings from '@lucide/svelte/icons/settings';
@@ -103,11 +103,16 @@
 	type Order = 'recent' | 'az' | 'za';
 	let order = $state<Order>('recent');
 	const ORDERS: Record<Order, { next: Order; label: string; icon: Component }> = {
-		recent: { next: 'az', label: 'Sorted by last saved', icon: ListClock },
+		recent: { next: 'az', label: 'Sorted by last saved', icon: ClockFading },
 		az: { next: 'za', label: 'Sorted A to Z', icon: ArrowDownAZ },
 		za: { next: 'recent', label: 'Sorted Z to A', icon: ArrowDownZA },
 	};
 	const titleOf = (entry: Draft) => entry.meta.title ?? 'Untitled';
+
+	/** The cell every control on the Articles row stands in, and the two sizes drawn inside it. */
+	const CELL = 'grid size-6 shrink-0 cursor-pointer place-items-center';
+	const GLYPH = 'size-3.5';
+	const DENSE_GLYPH = 'size-3.25';
 	function arranged(list: Draft[]): Draft[] {
 		if (order === 'recent') return list;
 		const sorted = list.toSorted((a, b) => titleOf(a).localeCompare(titleOf(b)));
@@ -624,16 +629,20 @@
 	const TREE_ITEM = 'flex min-w-0 items-center gap-2 px-2 py-0.75 no-underline';
 </script>
 
-<!-- A control on the Articles row: its ink alone answers the pointer, the row being lit already. -->
-{#snippet control(label: string, Icon: Component, run: () => void)}
+<!-- A control on the Articles row: its ink alone answers the pointer, the row being lit already.
+     Each stands in the same fixed cell, so the spacing is the cells' and never moves; what a glyph
+     is drawn at inside its cell is set per glyph, because two drawings at one size do not look one
+     size -- the funnel and the clock fill more of their box than the arrows, the plus and the
+     chevron, and are drawn a step smaller to read alike. -->
+{#snippet control(label: string, Icon: Component, run: () => void, glyph = GLYPH)}
 	<button
 		type="button"
 		aria-label={label}
 		title={label}
 		onclick={run}
-		class="cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.top, styles.bare).class}"
+		class="{CELL} {stylex.attrs(surfaces.quietControl, styles.top, styles.bare).class}"
 	>
-		<Icon class="size-3.5" aria-hidden="true" />
+		<Icon class={glyph} aria-hidden="true" />
 	</button>
 {/snippet}
 
@@ -786,11 +795,13 @@
 						ORDERS[order].label,
 						ORDERS[order].icon,
 						() => (order = ORDERS[order].next),
+						order === 'recent' ? DENSE_GLYPH : GLYPH,
 					)}
 					{@render control(
 						filtering ? 'Filter on' : 'Filter off',
 						filtering ? FunnelX : Funnel,
 						() => (filtering = !filtering),
+						DENSE_GLYPH,
 					)}
 					{@render control('New article', Plus, start)}
 					<button
@@ -798,8 +809,7 @@
 						tabindex="-1"
 						aria-hidden="true"
 						onclick={() => (open = !open)}
-						class="cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.top, styles.bare)
-							.class}"
+						class="{CELL} {stylex.attrs(surfaces.quietControl, styles.top, styles.bare).class}"
 					>
 						{@render chevron(open)}
 					</button>
