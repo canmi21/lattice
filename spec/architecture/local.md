@@ -291,7 +291,11 @@ last saved, and why a publication was refused, are said at the top of the drawer
 a place kept, not a place decided.
 
 **The editor's document is the markdown text, and it moves to CodeMirror 6.** Decided on
-2026-09-24, and the ProseMirror editor described in the paragraphs below is what it replaces. A
+2026-09-24, and the ProseMirror editor described in the paragraphs below is what it replaces. The
+two stand side by side until the new one has everything the old one does: a draft opens in the
+old one, and in the new one with `?editor=text`. The new one is built in four steps -- the text and
+its marks, the page's typography, the custom blocks and inline directives, the handle and the bar
+-- and each is tried in the browser before the next. A
 ProseMirror document is a tree, and markdown was a format it read in and wrote out: every custom
 construct cost a schema, a parser and a serializer, and letting the author see and edit the syntax
 meant converting between the two representations wherever the caret went -- which is a boundary
