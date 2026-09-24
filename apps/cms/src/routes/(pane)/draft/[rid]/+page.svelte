@@ -197,8 +197,9 @@
 
 	const styles = stylex.create({
 		// Both float over the text, so both are a sheet with an edge and a shadow to say so.
+		// The ground the sidebar stands on, so the toolbar reads as the same chrome as the column.
 		pill: {
-			backgroundColor: 'var(--color-paper)',
+			backgroundColor: 'var(--color-paper-hover)',
 			borderRadius: radius.full,
 			boxShadow: '0 0.5rem 1.5rem oklch(0 0 0 / 0.12), 0 0 0 1px var(--color-border)',
 		},
@@ -210,8 +211,17 @@
 			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.18), 0 0 0 1px var(--color-border)',
 		},
 		round: { borderRadius: radius.full },
-		// The toolbar's icons are lit at rest; the pointer is answered by the round ground alone.
-		bright: { color: 'var(--color-text-strong)' },
+		// The toolbar's icons are lit at rest; the pointer is answered by the round ground alone,
+		// which is the pane's color on the sidebar's -- the sidebar's own highlight, for the same
+		// reason: the pill's ground is the quiet control's hover color, and would hide it.
+		bright: {
+			color: 'var(--color-text-strong)',
+			backgroundColor: {
+				default: null,
+				':hover': 'var(--color-page)',
+				':focus-visible': 'var(--color-page)',
+			},
+		},
 		quiet: { color: 'var(--color-text-soft)' },
 		missing: { color: 'var(--color-red)' },
 		heading: { color: 'var(--color-text-strong)' },
@@ -247,7 +257,7 @@
 		onclick={run}
 		aria-label={label}
 		title={label}
-		class="cursor-pointer p-2 {stylex.attrs(
+		class="cursor-pointer p-1.5 {stylex.attrs(
 			surfaces.quietControl,
 			styles.round,
 			styles.bright,
@@ -283,7 +293,7 @@
 {/snippet}
 
 {#snippet toolbar()}
-	<div class="flex items-center gap-0.5 p-0.5 {stylex.attrs(styles.pill).class}">
+	<div class="flex items-center gap-0.5 p-1 {stylex.attrs(styles.pill).class}">
 		<!-- Placeholders, to see the toolbar with its eventual set: none is wired yet, and the two
 		     with a pair of icons only swap between them. Preview, save and publish are off it
 		     meanwhile. -->
