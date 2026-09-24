@@ -17,6 +17,7 @@
 	import { titleStyles } from '@canmi/prose/section-title';
 	import { onMount } from 'svelte';
 	import { enter, lineBreak } from './text-keys';
+	import { pairedDelete } from './text-pairs';
 	import { reading } from './text-state';
 	import { wrapOnType } from './text-wrap';
 
@@ -58,6 +59,15 @@
 					keymap.of([
 						{ key: 'Enter', run: enter(() => view.state.field(field).tree) },
 						{ key: 'Shift-Enter', run: lineBreak },
+						...(['Backspace', 'Delete'] as const).map((key) => ({
+							key,
+							run: (target: EditorView) => {
+								const tree = target.state.field(field).tree;
+								const spec = pairedDelete(target.state, tree, key === 'Delete');
+								if (spec) target.dispatch(spec);
+								return !!spec;
+							},
+						})),
 						...defaultKeymap,
 						...historyKeymap,
 					]),

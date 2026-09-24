@@ -353,6 +353,17 @@ function of the text and the caret alone:
   often goes the way it came. Each wrap is remembered as its own inverse, not recognised in the
   text afterwards, and any other change to the text or the selection forgets it -- so the exception
   holds only in the one state where deleting can mean nothing else.
+- **Deleting a delimiter deletes its partner; adding one never adds another.** Backspace or Delete
+  beside one side of bold, italic, strike or code deletes the matching character on the other side
+  in the same change, so `**bold**` becomes `*bold*` and then `bold`: every step is a mark the
+  parser reads, never half of one, and one undo restores both. The partner is the parser's -- the
+  positions in the site's tree, mirrored from the words outward, so in `***x***` a delimiter
+  deletes within its own layer -- never a count of characters. A delimiter the parser did not pair
+  is deleted alone. A link is left out, because its other half is its whole address; so is a
+  selection, which deleting removes or, just after a wrap, unwraps. Typing a delimiter adds only
+  that one: a single `*` may be what was meant. Other editors pair only an empty `(|)`; this goes
+  further because the partner is known rather than guessed, and is on screen, since the caret
+  beside a mark shows both its sides.
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).
