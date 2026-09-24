@@ -21,6 +21,7 @@
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { family, text } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount } from 'svelte';
+	import { blockHandle } from './block-handle';
 	import { blockViews } from './block-views';
 	import { extensions } from './markdown';
 
@@ -67,6 +68,7 @@
 			.use(extensions)
 			// A block is compiled in the draft's language, or the source language when none is set.
 			.use(blockViews(() => language || 'en-US', CODE))
+			.use(blockHandle)
 			.use(history)
 			.use(listener)
 			.create()

@@ -8,3 +8,18 @@ export function blockProps(initial: BlockProps): BlockProps {
 	const props = $state(initial);
 	return props;
 }
+
+/** Where the block handle stands, and the line a dragged block would land on. */
+export type GripState = {
+	top: number;
+	left: number;
+	shown: boolean;
+	dragging: boolean;
+	/** The drop line while dragging: a window position and a width. */
+	line: { top: number; left: number; width: number } | null;
+};
+
+export function gripState(): GripState {
+	const grip = $state<GripState>({ top: 0, left: 0, shown: false, dragging: false, line: null });
+	return grip;
+}

@@ -304,7 +304,15 @@ parsed from with every attribute intact. It is edited the way Obsidian's live pr
 the rendering stands while the caret is elsewhere, and the moment the caret is inside -- by the
 arrow keys or by pressing the rendering -- the block is its markdown source until the caret
 leaves. So a block directive is held as its own text, like a fence's code, rather than as parsed
-attributes; a form over them could come later, and would be a second way in, not the only one. Showing the directive's source instead would make the
+attributes; a form over them could come later, and would be a second way in, not the only one.
+
+**Every block has a handle.** A child of the document -- a paragraph, a heading, a list, a custom
+block -- shows a six-dot handle to its left while the pointer is over it, as Notion's blocks do.
+Pressed, it opens the block's menu: its source for a block that has one, duplicate, move up and
+down, delete. Dragged, it moves the block, and a line shows where it will land. It follows the
+pointer rather than standing beside every block at once, so the page reads as the article until the
+pointer asks. The menu is the sidebar's menu component, which makes it the one other place the
+editor takes over a press; a right click in the text stays the browser's. Showing the directive's source instead would make the
 author read syntax in the one place built so they do not have to. The block's own markdown is
 compiled by `local` the way a preview is, through `POST /collection/fragment`, and handed to the
 article body -- so the editor never learns what a directive means, and cannot come to disagree with
