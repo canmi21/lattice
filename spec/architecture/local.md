@@ -429,7 +429,10 @@ block is let go. Words and components are carried the same way, because only the
 to where they land; a card naming the block by the pointer was tried first and refused, since a
 name says nothing about the room it takes. The page scrolls under the hand near its top and
 bottom edges, so a block can be carried past what is on screen. Every one of these is a change to the text, which moves the
-blank line that separates a block along with it -- two blocks never end up run together.
+blank line that separates a block along with it -- two blocks never end up run together. Each is
+one step of the undo history, kept apart from a second made within the history's joining delay,
+and leaves the editor focused: the handle stands outside the text, and an undo pressed after a drag
+has to reach the editor rather than the page.
 
 A selection of prose shows a bar of bold, italic, strike and code over it, on the keys it names --
 ⌘B, ⌘I, ⌘⌥X, ⌘E. Each is a toggle and the parser says which way: a selection inside a run of that

@@ -8,7 +8,8 @@
  * column for every block, left of the text.
  */
 import type { Root } from 'mdast';
-import type { EditorState } from '@codemirror/state';
+import { isolateHistory } from '@codemirror/commands';
+import type { EditorState, TransactionSpec } from '@codemirror/state';
 import { type EditorView, ViewPlugin } from '@codemirror/view';
 import ArrowDown from '@lucide/svelte/icons/arrow-down';
 import ArrowUp from '@lucide/svelte/icons/arrow-up';
@@ -266,6 +267,17 @@ class Handle {
 		window.addEventListener('pointerup', up);
 	}
 
+	/**
+	 * A change the handle makes: its own step in the history, so one undo takes back one move and
+	 * not two made within the history's joining delay, and the editor focused after it, so the
+	 * undo that follows reaches the editor and not the page the handle stands on.
+	 */
+	#apply(spec: TransactionSpec, event: string) {
+		const view = this.#view;
+		view.dispatch({ ...spec, userEvent: event, annotations: isolateHistory.of('full') });
+		view.focus();
+	}
+
 	#list(): Island[] {
 		return islands(this.#view.state.doc.toString(), this.#tree(this.#view.state));
 	}
@@ -277,7 +289,7 @@ class Handle {
 		const change = view.state.changes(done.changes);
 		// The caret goes with the block, so the one just moved is the one being looked at.
 		const at = change.mapPos(done.at, 1);
-		view.dispatch({ changes: change, selection: { anchor: at }, scrollIntoView: true });
+		this.#apply({ changes: change, selection: { anchor: at }, scrollIntoView: true }, 'move');
 	}
 
 	#open(target: Placed) {
@@ -304,7 +316,7 @@ class Handle {
 				icon: Copy,
 				run: () => {
 					const change = duplicate(text, list, index);
-					if (change) view.dispatch({ changes: change });
+					if (change) this.#apply({ changes: change }, 'input.duplicate');
 				},
 			},
 			{
@@ -326,7 +338,7 @@ class Handle {
 				danger: true,
 				run: () => {
 					const change = remove(list, index);
-					if (change) view.dispatch({ changes: change });
+					if (change) this.#apply({ changes: change }, 'delete');
 				},
 			},
 		);
