@@ -58,6 +58,16 @@ const parser = unified()
 	.use(remarkGfm)
 	.use(remarkDirective);
 
+/**
+ * An article's syntax tree as the site reads it, before anything is compiled from it.
+ *
+ * Exported as the measure of what a text means: the editor's round trip is held to producing
+ * the same tree. See spec/tasks.md, "The editor's round trip keeps structure".
+ */
+export function syntaxTree(markdown: string): Root {
+	return parser.parse(markdown) as Root;
+}
+
 const stringifier = unified().use(remarkStringify, { bullet: '-', fences: true }).use(remarkGfm);
 
 const QUADRANT_DIRECTIONS = ['top', 'right', 'bottom', 'left'] as const;

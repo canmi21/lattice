@@ -21,6 +21,7 @@
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { family, text } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount } from 'svelte';
+	import { extensions } from './markdown';
 
 	let { markdown, onChange }: { markdown: string; onChange: (value: string) => void } = $props();
 
@@ -59,6 +60,7 @@
 			})
 			.use(commonmark)
 			.use(gfm)
+			.use(extensions)
 			.use(history)
 			.use(listener)
 			.create()

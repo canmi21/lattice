@@ -232,12 +232,16 @@ rewrite. The reverse order can leave an article pointing at bytes that do not ex
 rewrite has destroyed the original filename -- and with it the information a later run needed to
 repair the article. The same rule holds when an editor stores one image before inserting its id.
 
-## The editor's canonical round trip stays idempotent by test
+## The editor's round trip keeps structure, and is checked against the site's parser
 
-[i18n/segments.md](i18n/segments.md) takes a segment id from a block's canonical form and stores articles already
-normalised. Opening and saving a canonical article therefore leaves it byte-identical, but that is
-now an idempotence check rather than a promise to preserve an imported spelling. The file is a
-projection of the canonical form, and the editor writes whatever the normaliser produces.
+[i18n/segments.md](i18n/segments.md) stores articles in canonical form, so the bytes an article is
+saved as are the serializer's and not the author's. **What the editor promises is structural
+equivalence, not byte identity**: the text it writes back, parsed by the parser the site compiles
+with, is the same tree as the text it was given -- every node, every directive name, every
+attribute and every fence parameter -- once positions are set aside. A spelling may change once,
+the first time an article is saved; a parameter may never be lost. The check is a test that runs
+every article in `contents/` through the editor's own pipeline and compares the two trees, so the
+harness and the editor cannot test different things.
 
 What had to be fixed, and the shape they share:
 
@@ -270,7 +274,7 @@ For an opening fence whose info string is `{abc lang}`, remark's lexical split i
 `lang` is `{abc` and `meta` is `lang}`. The schema additionally carries
 `{ name: "abc", values: ["lang"] }` for the block owner. Replacing the raw fields with the
 interpreted values would require reconstructing the author's spelling at serialization time and
-weaken the byte-identical guarantee for no benefit; renderers read the structured attribute
+lose the author's spelling for no benefit; renderers read the structured attribute
 instead. A `font` directive's `family` attribute and a `font` fence's sole value must be ids
 exported by `@canmi/fonts`, and are rejected otherwise. That single catalogue prevents the editor
 syntax and renderer capabilities from drifting apart.
@@ -278,8 +282,9 @@ syntax and renderer capabilities from drifting apart.
 **The editor this describes is archived**, and so is the round-trip check that guarded it: both
 are at <https://github.com/canmi21/desktop-cms-archive>, read rather than run. What they say about
 the syntax still holds, because the syntax is the corpus's rather than that editor's -- and the
-next editor inherits the same obligation, which is that a parse and serialize pass has to be
-idempotent on the stored articles and that the damage from breaking it is invisible in a diff.
+next editor inherits the same obligation, which is that a parse and serialize pass has to keep
+the structure of every stored article, and that the damage from breaking it is invisible in a
+diff. The CMS's editor takes it up with the extensions ported from that archive.
 
 ## A finished run leaves nothing behind, and that is the gap
 

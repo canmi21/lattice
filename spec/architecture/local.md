@@ -295,8 +295,14 @@ a place kept, not a place decided.
 under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given
 the same one through Milkdown's attribute hooks. The alternative was a writing theme of the CMS's
 own, and it was refused because every difference between it and the page is a difference the
-author has to translate back in their head; the preview remains the exact rendering, and the editor
-is only as close as the unrendered nodes allow.
+author has to translate back in their head; the preview remains the exact rendering.
+
+**A custom block is drawn in the editor as what it is, and stored as the markdown it was.** The
+editor is rich text over markdown: a directive or a parameterised fence is a node of its own in
+the document, drawn by the component the site draws it with, and written back as the directive it
+was parsed from with every attribute intact. Showing the directive's source instead would make the
+author read syntax in the one place built so they do not have to. What it must keep is set in
+[../tasks.md](../tasks.md), "The editor's round trip keeps structure".
 
 The pages described below -- Overview and the Articles ledger -- were the desktop client's and have
 not been rebuilt in the web one. What they say about the visual language still holds.
