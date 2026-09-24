@@ -28,14 +28,14 @@ const REACH = 56;
 /** The handle's own height, which it is centred by. */
 const GRIP = 24;
 
+/** How far below the landing line the outline of what would land there starts. */
+const OUTLINE_GAP = 6;
+
 /** How far a press travels before it is a drag rather than a click. */
 const SLOP = 4;
 
 /** Within this much of the scroller's edge a drag scrolls it, faster the closer it is. */
 const EDGE = 64;
-
-/** Blocks with a source to show: the ones the site draws with a component. */
-const SOURCED = new Set(['code', 'table', 'image', 'video']);
 
 type Placed = Island & { index: number; top: number; bottom: number; mark: number };
 
@@ -165,6 +165,26 @@ class Handle {
 		return [...lines];
 	}
 
+	/**
+	 * The room a block takes as drawn, read before it is lifted: from its first line to its last,
+	 * or its component's frame, without the room above it that belongs to the gap. The outline a
+	 * drag shows is this size, so words and components are carried the same way.
+	 */
+	#footprint(elements: HTMLElement[]): { width: number; height: number } {
+		const first = elements[0];
+		const last = elements.at(-1);
+		if (!first || !last) return { width: 0, height: 0 };
+		if (first.classList.contains('rendered')) {
+			const inner = (first.firstElementChild ?? first).getBoundingClientRect();
+			return { width: inner.width, height: first.getBoundingClientRect().bottom - inner.top };
+		}
+		const top =
+			first.getBoundingClientRect().top + Number.parseFloat(getComputedStyle(first).paddingTop);
+		const bottom =
+			last.getBoundingClientRect().bottom - Number.parseFloat(getComputedStyle(last).paddingBottom);
+		return { width: first.getBoundingClientRect().width, height: bottom - top };
+	}
+
 	#press(event: PointerEvent) {
 		if (event.button !== 0) return;
 		const target = this.#target;
@@ -173,6 +193,7 @@ class Handle {
 		const startX = event.clientX;
 		const startY = event.clientY;
 		const dimmed = this.#elements(target);
+		const size = this.#footprint(dimmed);
 		const scrolling = scroller(this.#view.dom);
 		let drop: number | undefined;
 		let pointer = { x: startX, y: startY };
@@ -190,7 +211,9 @@ class Handle {
 			const top =
 				above && below ? (above.bottom + below.top) / 2 : below ? below.top - 8 : above!.bottom + 8;
 			this.grip.line = { top, left: area.left, width: area.width };
-			this.grip.ghost = { x: pointer.x, y: pointer.y, kind: target.kind, label: target.label };
+			// Where it would stand and how much it would take, drawn over what is there: nothing
+			// moves until it is let go.
+			this.grip.outline = { top: top + OUTLINE_GAP, left: area.left, ...size };
 		};
 
 		// Near the scroller's edge the page moves under the hand, so a block can be carried past
@@ -214,6 +237,9 @@ class Handle {
 			if (!this.grip.dragging) {
 				if (Math.hypot(next.clientX - startX, next.clientY - startY) < SLOP) return;
 				this.grip.dragging = true;
+				// The handle stays behind while the block is carried: left up, it would stand beside
+				// whatever scrolls under it.
+				this.grip.shown = false;
 				for (const element of dimmed) element.style.opacity = '0.35';
 			}
 			place();
@@ -228,7 +254,7 @@ class Handle {
 				for (const element of dimmed) element.style.opacity = '';
 				this.grip.dragging = false;
 				this.grip.line = null;
-				this.grip.ghost = null;
+				this.grip.outline = null;
 				this.grip.shown = false;
 				if (drop !== undefined) this.#moveTo(target.index, drop);
 			} else {
@@ -262,7 +288,7 @@ class Handle {
 		if (!block) return;
 		const text = view.state.doc.toString();
 		const items: MenuItem[] = [];
-		if (SOURCED.has(block.kind) || target.label.startsWith('::')) {
+		if (block.sourced) {
 			items.push({
 				label: 'Edit source',
 				icon: Code,

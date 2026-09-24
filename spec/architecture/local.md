@@ -420,10 +420,15 @@ Pressed, it opens the block's menu: its source for a block that has one, duplica
 down, delete. The menu is the sidebar's menu component, which makes it the one other place the
 editor takes over a press; a right click in the text stays the browser's. Dragged, it carries the
 block: the block stays where it was, dimmed, so what is being moved is still visible where it will
-leave; a card by the pointer names it with its kind's icon and its first words; the landing line is
-drawn in the accent with a ring at its start, so it reads as where something goes rather than as a
-rule of the page; and the page scrolls under the hand near its top and bottom edges, so a block can
-be carried past what is on screen. Every one of these is a change to the text, which moves the
+leave, and the handle goes, since left up it would stand beside whatever scrolls under it. The
+landing line is drawn in the accent with a ring at its start, so it reads as where something goes
+rather than as a rule of the page, and below it a dashed outline takes the block's size: the room
+it would fill there, measured as drawn before it was lifted -- its lines, or its component's frame,
+without the gap above either. The outline takes no room of its own; nothing below moves until the
+block is let go. Words and components are carried the same way, because only their size matters
+to where they land; a card naming the block by the pointer was tried first and refused, since a
+name says nothing about the room it takes. The page scrolls under the hand near its top and
+bottom edges, so a block can be carried past what is on screen. Every one of these is a change to the text, which moves the
 blank line that separates a block along with it -- two blocks never end up run together.
 
 A selection of prose shows a bar of bold, italic, strike and code over it, on the keys it names --

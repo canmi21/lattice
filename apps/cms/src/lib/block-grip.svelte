@@ -1,47 +1,17 @@
-<script module lang="ts">
-	import type { Component } from 'svelte';
-	import Box from '@lucide/svelte/icons/box';
-	import Code from '@lucide/svelte/icons/code';
-	import Film from '@lucide/svelte/icons/film';
-	import Heading from '@lucide/svelte/icons/heading';
-	import Image from '@lucide/svelte/icons/image';
-	import List from '@lucide/svelte/icons/list';
-	import Minus from '@lucide/svelte/icons/minus';
-	import Pilcrow from '@lucide/svelte/icons/pilcrow';
-	import Table from '@lucide/svelte/icons/table';
-	import TextQuote from '@lucide/svelte/icons/text-quote';
-
-	/** The icon a dragged block's card carries, by what the block is. */
-	const KINDS: Record<string, Component> = {
-		paragraph: Pilcrow,
-		heading: Heading,
-		blockquote: TextQuote,
-		list: List,
-		code: Code,
-		table: Table,
-		rule: Minus,
-		image: Image,
-		video: Film,
-	};
-</script>
-
 <script lang="ts">
 	/**
-	 * The handle beside the block under the pointer, and while a block is dragged, the card that
-	 * carries it and the line it would land on.
+	 * The handle beside the block under the pointer, and while a block is dragged, the line it would
+	 * land on and the outline of the room it would take there.
 	 *
 	 * Drawn only; where each stands and what pressing does belong to text-handle.ts. See
 	 * spec/architecture/local.md, "Every block has a handle".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { radius } from '@canmi/tokens/vocabulary.stylex';
 	import type { GripState } from './block-props.svelte';
 
 	let { grip, press }: { grip: GripState; press: (event: PointerEvent) => void } = $props();
-
-	const Kind = $derived(grip.ghost ? (KINDS[grip.ghost.kind] ?? Box) : Box);
 
 	const styles = stylex.create({
 		handle: {
@@ -66,12 +36,15 @@
 			backgroundColor: 'var(--color-page)',
 			borderRadius: radius.full,
 		},
-		card: {
-			boxShadow: '0 0.75rem 2rem oklch(0 0 0 / 0.18)',
-			color: 'var(--color-text-strong)',
-			fontSize: text.px13,
+		// The room it would take: dashed, so it reads as a place held rather than a thing there,
+		// and faintly filled so the size can be seen against a component behind it.
+		outline: {
+			borderWidth: '1.5px',
+			borderStyle: 'dashed',
+			borderColor: 'var(--color-accent)',
+			borderRadius: radius.lg,
+			backgroundColor: 'color-mix(in oklab, var(--color-accent) 6%, transparent)',
 		},
-		kind: { color: 'var(--color-text-soft)' },
 	});
 </script>
 
@@ -106,18 +79,15 @@
 	</div>
 {/if}
 
-{#if grip.ghost}
-	<!-- What is in the hand: the block's kind and its first words, beside the pointer. -->
+{#if grip.outline}
+	<!-- Drawn over the page and taking no room in it: what is below moves only once the block is
+	     let go. -->
 	<div
 		aria-hidden="true"
-		style:top="{grip.ghost.y + 12}px"
-		style:left="{grip.ghost.x + 14}px"
-		class="pointer-events-none fixed z-30 flex max-w-80 items-center gap-2 px-3 py-2 {stylex.attrs(
-			surfaces.menu,
-			styles.card,
-		).class}"
-	>
-		<Kind class="size-4 shrink-0 {stylex.attrs(styles.kind).class}" aria-hidden="true" />
-		<span class="truncate">{grip.ghost.label || 'Empty line'}</span>
-	</div>
+		style:top="{grip.outline.top}px"
+		style:left="{grip.outline.left}px"
+		style:width="{grip.outline.width}px"
+		style:height="{grip.outline.height}px"
+		class="pointer-events-none fixed z-10 {stylex.attrs(styles.outline).class}"
+	></div>
 {/if}

@@ -13,40 +13,19 @@ export type Island = {
 	/** Where the block's first line starts, and where its last character ends. */
 	from: number;
 	to: number;
-	/** What the block is, for the card a drag carries: `paragraph`, `heading`, `image`, `code`... */
-	kind: string;
-	/** The first words of it, or the name of what it is. */
-	label: string;
+	/** Whether the site draws it with a component, which has a source to open. */
+	sourced: boolean;
 };
 
-/** How much of a block a drag's card shows. */
-const LABEL = 48;
-
-function describe(node: Nodes, source: string): { kind: string; label: string } {
-	const first = source.split('\n')[0] ?? '';
-	if (node.type === 'leafDirective' || node.type === 'containerDirective') {
-		return { kind: node.name, label: `::${node.name}` };
-	}
-	if (node.type === 'code') {
-		return { kind: 'code', label: node.lang ? `Code · ${node.lang}` : 'Code' };
-	}
-	if (node.type === 'table') return { kind: 'table', label: 'Table' };
-	if (node.type === 'thematicBreak') return { kind: 'rule', label: 'Rule' };
-	// Prose reads as its words: the syntax around them is left off the card.
-	const words = first
-		.replace(/^\s*(?:#{1,6}\s+|>\s?|[-*+]\s+|\d+[.)]\s+)/u, '')
-		.replace(/[*_~`]/gu, '');
-	const label = words.length > LABEL ? `${words.slice(0, LABEL)}…` : words;
-	return { kind: node.type, label };
-}
+/** Blocks the site draws with a component. */
+const RENDERED = new Set(['leafDirective', 'containerDirective', 'code', 'table']);
 
 /** Every block in the text, in order. */
 export function islands(text: string, tree: Root): Island[] {
-	return tree.children.flatMap((node) => {
+	return tree.children.flatMap((node: Nodes) => {
 		if (!node.position) return [];
 		const from = text.lastIndexOf('\n', node.position.start.offset! - 1) + 1;
-		const to = node.position.end.offset!;
-		return [{ from, to, ...describe(node, text.slice(from, to)) }];
+		return [{ from, to: node.position.end.offset!, sourced: RENDERED.has(node.type) }];
 	});
 }
 

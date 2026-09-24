@@ -18,8 +18,8 @@ export type GripState = {
 	dragging: boolean;
 	/** The drop line while dragging: a window position and a width. */
 	line: { top: number; left: number; width: number } | null;
-	/** The card a dragged block is carried on: the pointer's position, what it is, its words. */
-	ghost: { x: number; y: number; kind: string; label: string } | null;
+	/** The room a dragged block would take where it would land, drawn without taking it. */
+	outline: { top: number; left: number; width: number; height: number } | null;
 };
 
 export function gripState(): GripState {
@@ -29,7 +29,7 @@ export function gripState(): GripState {
 		shown: false,
 		dragging: false,
 		line: null,
-		ghost: null,
+		outline: null,
 	});
 	return grip;
 }

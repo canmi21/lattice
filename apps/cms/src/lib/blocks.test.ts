@@ -16,12 +16,12 @@ function apply(changes: ChangeSpec): string {
 const list = islands(TEXT, syntaxTree(TEXT));
 
 describe('blocks', () => {
-	it('lists the blocks with what a drag shows of each', () => {
-		expect(list.map((block) => `${block.kind}:${block.label}`)).toEqual([
-			'paragraph:One.',
-			'heading:Two',
-			'image:::image',
-			'paragraph:Four bold.',
+	it('lists the blocks, and which have a source to open', () => {
+		expect(list.map((block) => `${TEXT.slice(block.from, block.to)}|${block.sourced}`)).toEqual([
+			'One.|false',
+			'## Two|false',
+			'::image{src=x}|true',
+			'Four **bold**.|false',
 		]);
 	});
 
