@@ -301,7 +301,11 @@ author has to translate back in their head; the preview remains the exact render
 editor is rich text over markdown: a directive or a parameterised fence is a node of its own in
 the document, drawn by the component the site draws it with, and written back as the directive it
 was parsed from with every attribute intact. Showing the directive's source instead would make the
-author read syntax in the one place built so they do not have to. What it must keep is set in
+author read syntax in the one place built so they do not have to. The block's own markdown is
+compiled by `local` the way a preview is, through `POST /collection/fragment`, and handed to the
+article body -- so the editor never learns what a directive means, and cannot come to disagree with
+the site about it. A block the compiler refuses shows the reason and its source in its place. What
+it must keep is set in
 [../tasks.md](../tasks.md), "The editor's round trip keeps structure".
 
 The pages described below -- Overview and the Articles ledger -- were the desktop client's and have

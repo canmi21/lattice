@@ -150,6 +150,32 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 		};
 	}
 
+	// A piece of a draft compiled alone: what the editor draws one custom block with. Not tied to a
+	// rid, because the text is what the editor holds right now rather than what was saved. A
+	// compile that refuses the text is a 422 carrying why, which the block shows in its place.
+	if (method === 'POST' && path === '/collection/fragment') {
+		const sent = JSON.parse(body || '{}') as { body?: string; language?: string };
+		try {
+			const compiled = await compileDraft(inputs, {
+				body: sent.body ?? '',
+				language: sent.language ?? 'en-US',
+				path: 'fragment',
+			});
+			return {
+				status: 200,
+				body: {
+					blocks: compiled.blocks,
+					resources: await previewResources(inputs.records, compiled.blocks),
+				},
+			};
+		} catch (error) {
+			return {
+				status: 422,
+				body: { error: error instanceof Error ? error.message : String(error) },
+			};
+		}
+	}
+
 	// What a reader would be shown as the publication and the update, which are the ends of the
 	// chain and are stored nowhere else.
 	if (article && method === 'GET' && !article[2]) {

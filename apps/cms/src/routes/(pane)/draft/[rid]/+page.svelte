@@ -431,6 +431,6 @@
      region does not arrive by pushing anything down. -->
 <div class="mx-auto min-h-96 max-w-(--rail-column) px-6">
 	{#if mounted}
-		{#key rid}<Editor markdown={body} onChange={typed} />{/key}
+		{#key rid}<Editor markdown={body} {language} onChange={typed} />{/key}
 	{/if}
 </div>

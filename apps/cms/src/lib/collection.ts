@@ -92,3 +92,24 @@ export function splitPath(path: string | undefined): { category: string; slug: s
 		? { category: '', slug: path }
 		: { category: path.slice(0, cut), slug: path.slice(cut + 1) };
 }
+
+/** One custom block compiled alone, or why the compiler refused it. */
+export type Fragment =
+	| { blocks: Block[]; resources: Record<string, ParsedResource> }
+	| { error: string };
+
+/**
+ * A piece of markdown compiled the way the site compiles an article, for the editor to draw a
+ * custom block with. Posted rather than cached server-side: it is what the editor holds now.
+ */
+export async function compileFragment(body: string, language: string): Promise<Fragment> {
+	const response = await fetch('/collection/fragment', {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({ body, language }),
+	});
+	if (!response.ok && response.status !== 422) {
+		return { error: `the compiler answered ${response.status}` };
+	}
+	return (await response.json()) as Fragment;
+}
