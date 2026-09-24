@@ -27,5 +27,5 @@
 	class={className}
 	{...rest}
 >
-	<rect x="2" y="5" width="20" height="14" rx="3" />
+	<rect x="2" y="4" width="20" height="16" rx="3" />
 </svg>

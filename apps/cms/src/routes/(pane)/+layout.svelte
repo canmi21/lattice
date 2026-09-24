@@ -35,7 +35,6 @@
 	import ContextMenu, { SEPARATOR, type MenuEntry, type MenuItem } from '$lib/context-menu.svelte';
 	import { createDraft, discardDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { floating } from '$lib/floating.ts';
 	import { foldHeight } from '$lib/fold.ts';
 	import SearchGlyph from '$lib/glyphs/search.svelte';
 	import SidebarHidden from '$lib/glyphs/sidebar-hidden.svelte';
@@ -448,7 +447,17 @@
 		},
 		// A section is a pill on the ground rather than a word in a list, so its corner is the
 		// buttons' rather than the compact control's.
-		item: { borderRadius: radius.md },
+		// Under the pointer a row takes half the current row's ground, so hovering and being chosen
+		// read as one scale -- on the sidebar's ground the quiet control's own hover color is the
+		// ground itself, and showed nothing. The ink still lifts, from the quiet control.
+		item: {
+			borderRadius: radius.md,
+			backgroundColor: {
+				default: null,
+				':hover': 'color-mix(in oklab, var(--color-page) 50%, transparent)',
+				':focus-visible': 'color-mix(in oklab, var(--color-page) 50%, transparent)',
+			},
+		},
 		// The section being worked in takes the pane's ground, which is what says the pane is its.
 		current: {
 			color: 'var(--color-text-strong)',
@@ -476,6 +485,25 @@
 				':focus-visible': LINE,
 			},
 			outlineStyle: { default: null, ':focus-visible': 'none' },
+		},
+		// The sidebar's own ground, so the control reads as part of the chrome around the pane rather
+		// than as a menu over it.
+		float: {
+			backgroundColor: 'var(--color-paper-hover)',
+			borderRadius: radius.lg,
+			boxShadow: '0 0.25rem 1rem oklch(0 0 0 / 0.14), 0 0 0 1px var(--color-border)',
+		},
+		// Lit at rest, like the toolbar's, and answered in the pane's color: on the sidebar's ground
+		// the quiet control's own hover color is the ground itself. Its corner follows the float's,
+		// a rounded rectangle inside a rounded rectangle, rather than the toolbar's circle.
+		floatControl: {
+			color: 'var(--color-text-strong)',
+			borderRadius: radius.md,
+			backgroundColor: {
+				default: null,
+				':hover': 'var(--color-page)',
+				':focus-visible': 'var(--color-page)',
+			},
 		},
 		chevron: {
 			transitionProperty: 'rotate',
@@ -730,17 +758,16 @@
 		     the sidebar, and the search, which is a place held for a feature not built yet. -->
 		<div
 			bind:this={float}
-			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(
-				floating.pill,
-				floating.corner,
-			).class}"
+			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(styles.float)
+				.class}"
 		>
 			<button
 				type="button"
 				aria-label={folded ? 'Show the sidebar' : 'Fold the sidebar'}
 				aria-expanded={!folded || peek !== 'none'}
 				onclick={toggle}
-				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, floating.control).class}"
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.floatControl)
+					.class}"
 			>
 				{#if folded}
 					<SidebarHidden class="size-4.5" aria-hidden="true" />
@@ -751,7 +778,8 @@
 			<button
 				type="button"
 				aria-label="Search"
-				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, floating.control).class}"
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.floatControl)
+					.class}"
 			>
 				<SearchGlyph class="size-4.5" aria-hidden="true" />
 			</button>

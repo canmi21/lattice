@@ -2,7 +2,7 @@
 	The sidebar standing: a landscape frame -- the window -- with the column drawn in at its left.
 
 	Lucide's `panel-left` is square, and a square is not the shape of the window this button
-	stands in; the frame here is 20 by 14, the proportion of the page it controls. Its pair,
+	stands in; the frame here is 20 by 16, the proportion of the page it controls. Its pair,
 	[[sidebar-hidden]], is the same frame with the column taken out, so the button's footprint
 	does not move when its state does.
 -->
@@ -31,6 +31,6 @@
 	class={className}
 	{...rest}
 >
-	<rect x="2" y="5" width="20" height="14" rx="3" />
-	<path d="M9 5v14" />
+	<rect x="2" y="4" width="20" height="16" rx="3" />
+	<path d="M9 4v16" />
 </svg>

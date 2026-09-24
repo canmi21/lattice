@@ -1,6 +1,6 @@
 <!--
 	Search, lowered to stand beside the sidebar frames: its lens and handle keep inside the same
-	band the 14-high frame fills, y 5 to 19 with the stroke about it, where Lucide's own `search` runs 3 to 21 and
+	band the 16-high frame fills, y 4 to 20, where Lucide's own `search` runs 3 to 21 and
 	stood taller than its neighbour.
 -->
 <script lang="ts">
@@ -28,6 +28,6 @@
 	class={className}
 	{...rest}
 >
-	<circle cx="11" cy="11" r="6" />
-	<path d="m19.5 19.5-4.25-4.25" />
+	<circle cx="10.5" cy="10.5" r="6.5" />
+	<path d="m20 20-4.6-4.6" />
 </svg>
