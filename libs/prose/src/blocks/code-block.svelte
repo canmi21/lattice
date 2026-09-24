@@ -121,6 +121,7 @@
 
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import EdgeFades from '../components/edge-fades.svelte';
 	import Check from '@lucide/svelte/icons/check';
 	import Copy from '@lucide/svelte/icons/copy';
 	import X from '@lucide/svelte/icons/x';
@@ -480,20 +481,9 @@
 					<div class="code-scroll overflow-x-auto p-4 pr-16 {stylex.attrs(styles.scroll).class}">
 						{@render source()}
 					</div>
-					<!-- Both edges, each as wide as the padding it starts over: at rest they cover the
-					     scroller's own gutters and veil nothing, and each begins to do its work
-					     exactly as the code starts passing under it. `from-transparent` is
-					     transparent black and still cannot grey the ramp, because gradient stops
-					     interpolate premultiplied; `from-paper/0` computes to the same colour.
-					     Flush with the panel: here the border and corner are the frame's own. -->
-					<span
-						aria-hidden="true"
-						class="pointer-events-none absolute inset-y-0 left-0 w-4 bg-linear-to-l from-transparent to-paper"
-					></span>
-					<span
-						aria-hidden="true"
-						class="pointer-events-none absolute inset-y-0 right-0 w-4 bg-linear-to-r from-transparent to-paper"
-					></span>
+					<!-- The fade at each edge, flush with the panel: here the border and corner are
+					     the frame's own. See ../components/edge-fades.svelte. -->
+					<EdgeFades />
 				</div>
 			</div>
 		</div>
@@ -511,16 +501,9 @@
 			>
 				{@render source()}
 			</div>
-			<!-- The same pair, stepped inside the hairline and given the frame's corner, because
+			<!-- The same fades, stepped inside the hairline and given the frame's corner, because
 			     here both are the scroller's own and a flush rectangle would paint over each. -->
-			<span
-				aria-hidden="true"
-				class="pointer-events-none absolute inset-y-px left-px w-4 rounded-l-xl bg-linear-to-l from-transparent to-paper"
-			></span>
-			<span
-				aria-hidden="true"
-				class="pointer-events-none absolute inset-y-px right-px w-4 rounded-r-xl bg-linear-to-r from-transparent to-paper"
-			></span>
+			<EdgeFades framed />
 		</div>
 	{/if}
 </div>

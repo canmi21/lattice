@@ -372,11 +372,22 @@ function of the text and the caret alone:
   corners, its markers hidden unless the caret is in it; a rule is the page's `<hr>` over its
   dashes. A list is drawn as its source, because the page draws none -- see
   [../todo/site.md](../todo/site.md).
-- **A block the site draws with a component is drawn with it**: a leaf or container directive, a
-  fence and a table are replaced by the site's rendering of their source, compiled by `local`, and
-  carry the room above them themselves because the lines they replace cannot. Pressing one, or
-  the caret reaching it, shows its source on a code frame with nothing inside painted as prose; the
-  caret leaving draws it again. An inline directive is the element the compiler writes for it
+- **A block the site draws with a component is drawn with it, and edited in its own place.** A
+  leaf or container directive, a fence and a table are replaced by the site's rendering of their
+  source, compiled by `local`, and carry the room above them themselves because the lines they
+  replace cannot. Pressing one, or asking its menu for its source, puts a box of plain source text
+  where the rendering stood, **at exactly the height the block last drew at**, so nothing around
+  it moves; a refusal draws short, so the height kept is the last one that drew, and while a block
+  written back is compiled its placeholder holds that height too. Source longer than the box
+  scrolls inside it, with no scrollbar and the code block's own edge fades on all four sides
+  (`libs/prose/src/components/edge-fades.svelte`, which the code block draws on its two unseen
+  edges as well); a scroll the box has no room left for goes on to the page in the same gesture,
+  both ways. The box is the source's while it has focus, with the browser's own undo: leaving it
+  writes the text back as one change, one step of the history, and the block is drawn again or
+  shows why it cannot be. Nothing is written back while it is typed in, which is why it needs no
+  second editor kept in step with the document. A block the caret is in by way of the text itself
+  -- a fence just opened, not yet closed -- is shown as its lines instead, on a code frame with
+  nothing inside painted as prose. An inline directive is the element the compiler writes for it
   around words that stay editable, a note numbered through the document, and a heading's
   `{#anchor}` is hidden with its `#`, since the page takes it as the slug.
 - **Undo and redo answer to the same keys on every system.** ⌘Z and Ctrl+Z undo; ⌘⇧Z,

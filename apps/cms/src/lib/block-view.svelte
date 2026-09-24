@@ -81,11 +81,12 @@
 
 <div class={stylex.attrs(styles.frame, selected && styles.selected).class}>
 	{#if !shown}
-		<div class="truncate px-4 py-3 {stylex.attrs(styles.pending).class}">
+		<div data-pending class="truncate px-4 py-3 {stylex.attrs(styles.pending).class}">
 			{markdown.split('\n')[0]}
 		</div>
 	{:else if 'error' in shown}
-		<div class="flex flex-col gap-2 px-4 py-3 {stylex.attrs(styles.refused).class}">
+		<!-- Marked, so the editor knows this height is the refusal's and not the block's. -->
+		<div data-refused class="flex flex-col gap-2 px-4 py-3 {stylex.attrs(styles.refused).class}">
 			<span class={stylex.attrs(styles.reason).class}>{shown.error}</span>
 			<code class={stylex.attrs(styles.source).class}>{markdown}</code>
 		</div>

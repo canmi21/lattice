@@ -15,6 +15,7 @@
 	import { titleStyles } from '@canmi/prose/section-title';
 	import { onMount } from 'svelte';
 	import { format, formatBar } from './text-bar';
+	import { renderedHeights } from './rendered';
 	import { blockHandle } from './text-handle';
 	import { enter, lineBreak } from './text-keys';
 	import { pairedDelete } from './text-pairs';
@@ -97,6 +98,7 @@
 					field,
 					wrapOnType,
 					blockHandle(tree),
+					renderedHeights,
 					formatBar(tree),
 					EditorView.lineWrapping,
 					plain,
@@ -190,6 +192,42 @@
 		text-decoration-line: underline;
 		text-decoration-style: dashed;
 		text-underline-offset: 4px;
+	}
+
+	/* A rendered block's source, open in the rendering's place and at its height: the source's
+	   own face and frame, scrolling inside itself when longer than the room it was given, and
+	   handing a scroll at its end on to the page. See rendered.ts. */
+	.text-editor :global(.rendered .source) {
+		position: relative;
+	}
+	.text-editor :global(.rendered textarea) {
+		display: block;
+		box-sizing: border-box;
+		width: 100%;
+		/* The code block's padding on every side, which its edge fades are as wide as. */
+		padding: 1rem;
+		border: 1px solid var(--color-border);
+		border-radius: 0.75rem;
+		background: var(--color-paper);
+		color: var(--color-text);
+		font-family: var(--font-mono);
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		white-space: pre;
+		overflow: auto;
+		resize: none;
+		outline: none;
+		tab-size: 2;
+		caret-color: var(--color-text-strong);
+		/* Scrolling with no bar, as the code block does: the fades say there is more. The two
+		   halves mean nothing apart -- one engine reads the property, the other the element. */
+		scrollbar-width: none;
+	}
+	.text-editor :global(.rendered textarea::-webkit-scrollbar) {
+		display: none;
+	}
+	.text-editor :global(.rendered textarea:focus) {
+		border-color: var(--color-border-strong);
 	}
 
 	/* A rendered block takes the pointer as the page does; pressing it opens its source. */

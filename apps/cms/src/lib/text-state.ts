@@ -10,10 +10,8 @@ import { syntaxTree } from '@canmi/compile/parser';
 import { type EditorState, type Range, StateField } from '@codemirror/state';
 import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view';
 import type { Root } from 'mdast';
-import { mount, unmount } from 'svelte';
-import { blockProps } from './block-props.svelte';
-import BlockView from './block-view.svelte';
 import { type Classes, paint } from './paint';
+import { Rendered } from './rendered';
 
 /** The mark a soft break is given at its line's end: the page joins these two lines. */
 class SoftBreak extends WidgetType {
@@ -51,54 +49,6 @@ class Rule extends WidgetType {
 	}
 	override ignoreEvent() {
 		return false;
-	}
-}
-
-/**
- * A block the site draws with a component, drawn with it: its source compiled by `local` and
- * handed to the article body. See block-view.svelte. Pressing it puts the caret at its start, which
- * is what turns it into its source.
- */
-class Rendered extends WidgetType {
-	constructor(
-		readonly source: string,
-		readonly language: string,
-		readonly gap: number,
-	) {
-		super();
-	}
-	override eq(other: Rendered) {
-		return (
-			other.source === this.source && other.language === this.language && other.gap === this.gap
-		);
-	}
-	toDOM(view: EditorView) {
-		const dom = document.createElement('div');
-		dom.className = 'rendered';
-		dom.style.paddingTop = `${this.gap}px`;
-		const shown = mount(BlockView, {
-			target: dom,
-			props: blockProps({ markdown: this.source, language: this.language, selected: false }),
-		});
-		(dom as HTMLElement & { unmount?: () => void }).unmount = () => void unmount(shown);
-		dom.addEventListener('mousedown', (event) => {
-			if (event.button !== 0) return;
-			event.preventDefault();
-			const at = view.posAtDOM(dom);
-			view.dispatch({ selection: { anchor: at } });
-			view.focus();
-		});
-		return dom;
-	}
-	override destroy(dom: HTMLElement) {
-		(dom as HTMLElement & { unmount?: () => void }).unmount?.();
-	}
-	// The component inside takes its own events -- a video's controls, a code block's copy.
-	override ignoreEvent() {
-		return true;
-	}
-	override get estimatedHeight() {
-		return 200;
 	}
 }
 

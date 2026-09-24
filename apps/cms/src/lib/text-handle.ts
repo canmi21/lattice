@@ -20,6 +20,7 @@ import { mount, unmount } from 'svelte';
 import BlockGrip from './block-grip.svelte';
 import { gripState } from './block-props.svelte';
 import { type Island, duplicate, islands, move, remove } from './blocks';
+import { EDIT_SOURCE } from './rendered';
 import ContextMenu, { SEPARATOR, type MenuItem } from './context-menu.svelte';
 
 /** How far left of the text the handle stands, and how far out the pointer may be and keep it. */
@@ -305,8 +306,8 @@ class Handle {
 				label: 'Edit source',
 				icon: Code,
 				run: () => {
-					view.dispatch({ selection: { anchor: block.from }, scrollIntoView: true });
-					view.focus();
+					// Opened in the rendering's place, as pressing it does. See rendered.ts.
+					rendered(view, block.from)?.dispatchEvent(new Event(EDIT_SOURCE));
 				},
 			});
 		}
