@@ -130,7 +130,8 @@ styling belongs to a named recipe, and nowhere else.** Without it, question one 
 the boundary moves the first time it is convenient.
 
 **A class the content author asked for is allowed.** The `:t` directive path -- `styleClasses`,
-`COLOR_CLASSES`, `FONT_CLASSES` -- resolves a token the author wrote in the article into a
+`COLOR_CLASSES`, `FONT_CLASSES`, in `libs/compile/src/style-classes.ts` so the editor draws a run
+with the same table -- resolves a token the author wrote in the article into a
 utility, which is the compiler standing in for the markup author rather than inventing anything.
 The separator is observable and is not intent: **did the class come from something the author
 wrote in the article, or did the compiler invent it?** A `:t` attribute is in the source file;

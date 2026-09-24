@@ -7,10 +7,10 @@ import { COLOR_CLASSES, FONT_CLASSES, compilePage } from './compile.ts';
  *
  * Read from disk rather than asserted against a list written here: a second list would be the
  * same promise made twice, and the thing under test is whether the name reaches the file the
- * scanner opens. `compile.ts` is inside the scanned tree -- `max-sm:mt-4` is written nowhere
+ * scanner opens. `style-classes.ts` is inside the scanned tree -- `max-sm:mt-4` is written nowhere
  * else in the repository and is in the built stylesheet.
  */
-const COMPILER = readFileSync(new URL('./compile.ts', import.meta.url), 'utf8');
+const COMPILER = readFileSync(new URL('./style-classes.ts', import.meta.url), 'utf8');
 
 /** Every class one `:t` per marker produces, read back off the rendered spans. */
 function classNames(markers: string[]): string[] {
