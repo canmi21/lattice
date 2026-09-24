@@ -730,8 +730,10 @@
 		     the sidebar, and the search, which is a place held for a feature not built yet. -->
 		<div
 			bind:this={float}
-			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(floating.pill)
-				.class}"
+			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(
+				floating.pill,
+				floating.corner,
+			).class}"
 		>
 			<button
 				type="button"
@@ -741,9 +743,9 @@
 				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, floating.control).class}"
 			>
 				{#if folded}
-					<SidebarHidden class="size-4" aria-hidden="true" />
+					<SidebarHidden class="size-4.5" aria-hidden="true" />
 				{:else}
-					<SidebarShown class="size-4" aria-hidden="true" />
+					<SidebarShown class="size-4.5" aria-hidden="true" />
 				{/if}
 			</button>
 			<button
@@ -751,7 +753,7 @@
 				aria-label="Search"
 				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, floating.control).class}"
 			>
-				<SearchGlyph class="size-4" aria-hidden="true" />
+				<SearchGlyph class="size-4.5" aria-hidden="true" />
 			</button>
 		</div>
 
