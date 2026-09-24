@@ -164,8 +164,10 @@ moves, and the Articles row itself -- with the control that creates an article -
 of its region while the tree under it scrolls.
 
 **A new article is a row asking for its title before it is anything.** The folder's new-article
-control opens an empty row in place and focuses it; leaving it empty takes it back with nothing
-sent, and only a title given reserves a rid and creates the draft under it. An identity reserved for
+control opens an empty row in place and focuses it. An empty row goes on Escape or a press anywhere
+else; a row with words in it survives a press elsewhere, because a stray click should not cost what
+was typed, and goes only on Escape or its own cancel control. Only Enter on a title reserves a rid
+and creates the draft under it. An identity reserved for
 a row the writer walked away from would be a draft nobody asked for, and the list would fill with
 them. The control itself, like the folder's chevron, answers the pointer with its ink alone: only an
 entry that goes somewhere takes a ground.

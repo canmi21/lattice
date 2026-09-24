@@ -16,6 +16,7 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash from '@lucide/svelte/icons/trash';
 	import Type from '@lucide/svelte/icons/type';
+	import X from '@lucide/svelte/icons/x';
 	import Folder from '@lucide/svelte/icons/folder';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
 	import House from '@lucide/svelte/icons/house';
@@ -281,10 +282,11 @@
 	}
 
 	/**
-	 * A new article starts as a row asking for its title, and nothing exists until one is given:
-	 * leaving the row empty -- Escape, or a press anywhere else -- takes it back without a trace,
-	 * and only a title given asks `local` for a rid, which is then the draft's from its first save.
-	 * An identity reserved for a row the writer abandoned would be a draft nobody asked for.
+	 * A new article starts as a row asking for its title, and nothing exists until one is given and
+	 * Enter confirms it: only then is `local` asked for a rid. An empty row goes away on Escape or a
+	 * press anywhere else. A row with words in it is kept through a press elsewhere -- a stray click
+	 * should not cost what was typed -- and goes only on Escape or its own cancel control. An
+	 * identity reserved for a row the writer abandoned would be a draft nobody asked for.
 	 */
 	let drafting = $state<{ value: string }>();
 	let creating = false;
@@ -743,11 +745,25 @@
 										bind:value={drafting.value}
 										use:field
 										onkeydown={newKey}
-										onblur={() => void settleNew(true)}
+										onblur={() => {
+											if (!drafting?.value.trim()) void settleNew(false);
+										}}
 										placeholder="Title"
 										aria-label="New article's title"
 										class="min-w-0 flex-1 bg-transparent outline-none"
 									/>
+									<!-- Pressed without taking the focus from the field, so the field's own leaving
+									     does not run first. -->
+									<button
+										type="button"
+										aria-label="Cancel the new article"
+										onmousedown={(event) => event.preventDefault()}
+										onclick={() => void settleNew(false)}
+										class="shrink-0 cursor-pointer {stylex.attrs(surfaces.quietControl, styles.bare)
+											.class}"
+									>
+										<X class="size-3.5" aria-hidden="true" />
+									</button>
 								</label>
 							</li>
 						{/if}
