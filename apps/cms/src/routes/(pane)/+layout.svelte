@@ -337,6 +337,7 @@
 	const folded = $derived(collapsed || !wide);
 
 	let nav: HTMLElement;
+	let divider = $state<HTMLElement>();
 	let float: HTMLElement;
 
 	/** Every movement of the sidebar, one at a time. See `$lib/movement.ts`. */
@@ -394,11 +395,22 @@
 	}
 
 	/** Open or close a docked sidebar across its width, clipped while it moves. */
+	//
+	// The closed end is the folded layout exactly, or the last frame jumps: the sidebar's padding
+	// goes to nothing with its width -- a border-box cannot be narrower than its padding, so a
+	// width of zero alone stopped at 8px -- and a negative margin takes up the divider, which is
+	// gone once folded. Measured before this: the pane held still 16px short for 50ms, then jumped.
 	function sweep(from: number, to: number) {
+		const padding = getComputedStyle(nav).paddingInlineStart;
+		const gap = divider?.getBoundingClientRect().width ?? 0;
+		const end = (width: number): Keyframe =>
+			width
+				? { width: `${width}px`, paddingInline: padding, marginInlineEnd: '0px', opacity: 1 }
+				: { width: '0px', paddingInline: '0px', marginInlineEnd: `${-gap}px`, opacity: 0 };
 		return play(
 			[
-				{ width: `${from}px`, opacity: from ? 1 : 0, overflow: 'hidden' },
-				{ width: `${to}px`, opacity: to ? 1 : 0, overflow: 'hidden' },
+				{ ...end(from), overflow: 'hidden' },
+				{ ...end(to), overflow: 'hidden' },
 			],
 			Math.abs(to - from),
 		);
@@ -826,6 +838,7 @@
 		aria-label="Resize the sidebar"
 		tabindex="0"
 		data-divider
+		bind:this={divider}
 		use:resizeHandle={RESIZING}
 		class="w-2 shrink-0 cursor-col-resize touch-none {stylex.attrs(styles.handle).class}"
 	></div>
