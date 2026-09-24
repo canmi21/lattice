@@ -131,7 +131,8 @@ dock it folds it without saying anything about what they want on a wider one.
 
 **Dragging the divider past the minimum folds the sidebar.** The width holds at the minimum, and
 for a further 2rem the drag means nothing -- overshooting an edge a little is not a request. Past
-that margin the sidebar recedes behind a notice saying that letting go will fold it, dragging back
+that margin the sidebar recedes behind a notice -- an arrow into the edge, and no words, since the sidebar is
+at its narrowest there -- saying that letting go will fold it, dragging back
 withdraws the notice, and letting go folds. The width remembered is the one from before the drag,
 so unfolding returns to it rather than to the minimum the drag was pinned at. The gesture is
 `Fold` in [resize.ts](../../libs/behavior/src/resize.ts), beside the rest of the divider.
