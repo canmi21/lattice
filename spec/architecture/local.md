@@ -308,7 +308,11 @@ function of the text and the caret alone:
   drawn as decorations: a mark's delimiters hidden unless the caret touches them, a heading's line
   set in the heading's type, a block directive or a fence replaced by the site's rendering until
   the caret is inside it. `libs/compile` keeps sole ownership of what a directive means; the editor
-  only needs to know where one is.
+  only needs to know where one is. Where the judge is wrong for the language, it is corrected for the site
+  and the editor at once, never for one: CommonMark's flanking rules leave `中文**「引号」**中文`
+  as asterisks, because they expect a space Chinese does not write, so the parser carries the
+  CJK-friendly extension (`remark-cjk-friendly`), which relaxes them only beside a CJK character.
+  No article or draft parsed differently when it was added.
 - **A block is the island.** A paragraph, a heading, a whole fence, a whole `:::` container is
   parsed on its own, and only the block an edit touched is parsed again; the rest are reused. Not a
   line: a paragraph's emphasis may cross a line break, a fence's lines are not prose, and a
