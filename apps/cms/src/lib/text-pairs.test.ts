@@ -8,8 +8,9 @@ import { pairedDelete } from './text-pairs.ts';
 
 /** The text after deleting at the caret `|`: Backspace, or Delete when `forward`. */
 function press(marked: string, forward = false): string {
+	// One caret, taken out at its index: the text itself may hold a `|` of its own after it.
 	const at = marked.indexOf('|');
-	const text = marked.replace('|', '');
+	const text = marked.slice(0, at) + marked.slice(at + 1);
 	let state = EditorState.create({ doc: text, selection: EditorSelection.cursor(at) });
 	const spec = pairedDelete(state, syntaxTree(text), forward);
 	state = spec
