@@ -514,6 +514,18 @@
 		bare: {
 			backgroundColor: { default: null, ':hover': 'transparent', ':focus-visible': 'transparent' },
 		},
+		// The article tree's rows sit with no room between them, so their grounds would meet when two
+		// are lit at once. A transparent hairline above and below, and a ground clipped inside it,
+		// keeps the rows where they are and the grounds a step apart.
+		tight: {
+			borderTopWidth: border.hairlinePx,
+			borderBottomWidth: border.hairlinePx,
+			borderTopStyle: 'solid',
+			borderBottomStyle: 'solid',
+			borderTopColor: 'transparent',
+			borderBottomColor: 'transparent',
+			backgroundClip: 'padding-box',
+		},
 		// A top-level row -- a section, Settings, the Articles folder -- reads lit at rest, and the
 		// pointer adds only the ground. What sits under Articles rests soft and lifts under the
 		// pointer, so the two levels are told apart by their ink before anything is touched.
@@ -575,7 +587,8 @@
 	const ITEM = 'flex min-w-0 items-center gap-2 px-2 py-1.5 no-underline';
 	// The article tree is denser than the sections above it: it is a long list read by scanning,
 	// where the sections are a handful of places to go.
-	const TREE_ITEM = 'flex min-w-0 items-center gap-2 px-2 py-1 no-underline';
+	// One pixel of the vertical room is a transparent edge the ground stops short of: see `tight`.
+	const TREE_ITEM = 'flex min-w-0 items-center gap-2 px-2 py-0.75 no-underline';
 </script>
 
 {#snippet chevron(shown: boolean)}
@@ -598,6 +611,7 @@
 				title={entry.meta.title ?? 'Untitled'}
 				oncontextmenu={(event) => offer(event, () => articleMenu(entry))}
 				class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(
+					styles.tight,
 					surfaces.quietControl,
 					surfaces.uiText,
 					styles.item,
@@ -618,8 +632,12 @@
 {#snippet renamer(Icon: Component, depth: number)}
 	{#if renaming}
 		<label
-			class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(surfaces.uiText, styles.item, styles.current)
-				.class}"
+			class="{TREE_ITEM} {INDENT[depth]} {stylex.attrs(
+				styles.tight,
+				surfaces.uiText,
+				styles.item,
+				styles.current,
+			).class}"
 		>
 			<Icon class="size-4 shrink-0" aria-hidden="true" />
 			<input
@@ -750,6 +768,7 @@
 							<li class="flex flex-col">
 								<label
 									class="{TREE_ITEM} {INDENT[1]} {stylex.attrs(
+										styles.tight,
 										surfaces.uiText,
 										styles.item,
 										styles.current,
@@ -797,6 +816,7 @@
 										onclick={() => (shown ? closed.add(category) : closed.delete(category))}
 										oncontextmenu={(event) => offer(event, () => categoryMenu(category))}
 										class="{TREE_ITEM} {INDENT[1]} cursor-pointer text-left {stylex.attrs(
+											styles.tight,
 											surfaces.quietControl,
 											surfaces.uiText,
 											styles.item,
