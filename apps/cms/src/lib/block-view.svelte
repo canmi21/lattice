@@ -34,14 +34,21 @@
 	import ArticleBody from '@canmi/prose/body.svelte';
 	import { family, radius, text } from '@canmi/tokens/vocabulary.stylex';
 
-	let {
-		markdown,
-		language,
-		name,
-		selected,
-	}: { markdown: string; language: string; name: string; selected: boolean } = $props();
+	let { markdown, language, selected }: { markdown: string; language: string; selected: boolean } =
+		$props();
 
-	const answer = $derived(fragment(markdown, language));
+	// The last answer stays up while the next is compiled, so leaving an edited block does not
+	// flash a placeholder where the drawing was.
+	let shown = $state<Fragment>();
+	$effect(() => {
+		let current = true;
+		void fragment(markdown, language).then((result) => {
+			if (current) shown = result;
+		});
+		return () => {
+			current = false;
+		};
+	});
 
 	const styles = stylex.create({
 		frame: {
@@ -73,16 +80,16 @@
 </script>
 
 <div class={stylex.attrs(styles.frame, selected && styles.selected).class}>
-	{#await answer}
-		<div class="px-4 py-3 {stylex.attrs(styles.pending).class}">::{name}</div>
-	{:then result}
-		{#if 'error' in result}
-			<div class="flex flex-col gap-2 px-4 py-3 {stylex.attrs(styles.refused).class}">
-				<span class={stylex.attrs(styles.reason).class}>{result.error}</span>
-				<code class={stylex.attrs(styles.source).class}>{markdown}</code>
-			</div>
-		{:else}
-			<ArticleBody blocks={result.blocks} resources={result.resources} locale="mw" />
-		{/if}
-	{/await}
+	{#if !shown}
+		<div class="truncate px-4 py-3 {stylex.attrs(styles.pending).class}">
+			{markdown.split('\n')[0]}
+		</div>
+	{:else if 'error' in shown}
+		<div class="flex flex-col gap-2 px-4 py-3 {stylex.attrs(styles.refused).class}">
+			<span class={stylex.attrs(styles.reason).class}>{shown.error}</span>
+			<code class={stylex.attrs(styles.source).class}>{markdown}</code>
+		</div>
+	{:else}
+		<ArticleBody blocks={shown.blocks} resources={shown.resources} locale="mw" />
+	{/if}
 </div>

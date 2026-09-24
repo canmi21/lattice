@@ -2,19 +2,24 @@
  * What the editor knows about this repository's markdown beyond CommonMark and GFM.
  *
  * Every construct the site compiles and the stock presets do not parse is given a place in the
- * document here: the three directive forms and a fence's parameters. Each one is the same journey
- * -- an mdast field, a schema attribute to hold it, and a serializer that writes it back -- and
- * nothing else is attempted here: drawing a node is the node view's business. Installed as one
- * list by the editor and by the round-trip test alike, so the two cannot test different pipelines.
- * See spec/tasks.md, "The editor's round trip keeps structure".
+ * document here. A block directive is held as its own source text, the way a fence holds its
+ * code, because it is edited as text; an inline directive is a node with its name and attributes,
+ * whose words are written in the sentence around them; a fence keeps its parameters. Drawing any
+ * of them is the node views' business. Installed as one list by the editor and by the round-trip
+ * test alike, so the two cannot test different pipelines. See spec/tasks.md, "The editor's round
+ * trip keeps structure".
  *
  * Ported from the archived desktop editor, which settled the same question once.
  */
 import { config, remarkStringifyOptionsCtx } from '@milkdown/core';
 import { codeBlockSchema, linkSchema, paragraphSchema } from '@milkdown/preset-commonmark';
-import type { MarkdownNode } from '@milkdown/transformer';
+import type { JSONRecord, MarkdownNode } from '@milkdown/transformer';
 import { $nodeSchema, $remark } from '@milkdown/utils';
 import remarkDirective from 'remark-directive';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import remarkStringify from 'remark-stringify';
+import { unified } from 'unified';
 
 type Attributes = Record<string, string | null | undefined>;
 
@@ -42,87 +47,49 @@ export const CANONICAL = {
 	tightDefinitions: false,
 } as const;
 
-type Directive = MarkdownNode & { name?: string; attributes?: Attributes };
-
-/** A label written in brackets on a block directive: `::name[label]` or `:::name[label]`. */
-function isLabel(node: MarkdownNode | undefined): boolean {
-	const data = node?.data as { directiveLabel?: boolean } | undefined;
-	return node?.type === 'paragraph' && data?.directiveLabel === true;
-}
-
-/**
- * The directive's name and attributes as schema attributes, and its label kept as the mdast it
- * was: a label is a directive's argument, not prose in the document.
- */
-function attrsOf(node: Directive, label: MarkdownNode[] | null) {
-	return { name: node.name ?? '', attributes: { ...node.attributes }, label };
-}
-
-const DIRECTIVE_ATTRS = {
-	name: { default: '' },
-	attributes: { default: {} },
-	label: { default: null },
-};
-
 const directive = $remark('directive', () => remarkDirective);
 
-/** `:::name{...}` around blocks the author writes in as they would anywhere else. */
-export const containerDirective = $nodeSchema('container_directive', () => ({
-	content: 'block*',
-	group: 'block',
-	defining: true,
-	attrs: DIRECTIVE_ATTRS,
-	parseDOM: [{ tag: 'div[data-container-directive]' }],
-	toDOM: (node) => ['div', { 'data-container-directive': node.attrs.name }, 0],
-	parseMarkdown: {
-		match: ({ type }) => type === 'containerDirective',
-		runner: (state, node, type) => {
-			const children = [...(node.children ?? [])];
-			const label = isLabel(children[0]) ? (children.shift()?.children ?? []) : null;
-			state.openNode(type, attrsOf(node as Directive, label));
-			state.next(children);
-			state.closeNode();
-		},
-	},
-	toMarkdown: {
-		match: (node) => node.type.name === 'container_directive',
-		runner: (state, node) => {
-			state.openNode('containerDirective', undefined, {
-				name: node.attrs.name,
-				attributes: node.attrs.attributes,
-			});
-			if (node.attrs.label) {
-				state.addNode('paragraph', node.attrs.label, undefined, {
-					data: { directiveLabel: true },
-				});
-			}
-			state.next(node.content);
-			state.closeNode();
-		},
-	},
-}));
+/** Block directives as text, in the canonical spelling a saved article uses. */
+const printer = unified().use(remarkStringify, CANONICAL).use(remarkDirective).use(remarkGfm);
 
-/** `::name{...}` on a line of its own: one thing, placed and configured, with no prose inside. */
-export const leafDirective = $nodeSchema('leaf_directive', () => ({
-	atom: true,
+/** And back: the text of a block, read the way the site reads an article. */
+const reader = unified().use(remarkParse).use(remarkGfm).use(remarkDirective);
+
+/**
+ * A block directive -- `::name{...}`, or `:::name{...}` with what it wraps -- held as its own
+ * source text.
+ *
+ * Text rather than structured attributes, because the author edits it as text: the caret goes in
+ * and the block is its markdown until the caret leaves, the way a fence is its code. What is
+ * written back is that text read again as markdown, so a directive that has been edited into
+ * something else is saved as whatever it now is. See spec/architecture/local.md, "A custom block
+ * is drawn in the editor as what it is".
+ */
+export const directiveBlock = $nodeSchema('directive_block', () => ({
+	content: 'text*',
 	group: 'block',
-	attrs: DIRECTIVE_ATTRS,
-	parseDOM: [{ tag: 'div[data-leaf-directive]' }],
-	toDOM: (node) => ['div', { 'data-leaf-directive': node.attrs.name }],
+	marks: '',
+	code: true,
+	defining: true,
+	parseDOM: [{ tag: 'div[data-directive-block]', preserveWhitespace: 'full' }],
+	toDOM: () => ['div', { 'data-directive-block': '' }, 0],
 	parseMarkdown: {
-		match: ({ type }) => type === 'leafDirective',
+		match: ({ type }) => type === 'leafDirective' || type === 'containerDirective',
 		runner: (state, node, type) => {
-			const label = node.children?.length ? node.children : null;
-			state.addNode(type, attrsOf(node as Directive, label));
+			const text = printer.stringify({ type: 'root', children: [node] } as never).trim();
+			state.openNode(type);
+			state.addText(text);
+			state.closeNode();
 		},
 	},
 	toMarkdown: {
-		match: (node) => node.type.name === 'leaf_directive',
+		match: (node) => node.type.name === 'directive_block',
 		runner: (state, node) => {
-			state.addNode('leafDirective', node.attrs.label ?? [], undefined, {
-				name: node.attrs.name,
-				attributes: node.attrs.attributes,
-			});
+			const tree = reader.parse(node.textContent) as unknown as { children: MarkdownNode[] };
+			for (const child of tree.children) {
+				const { type, children, value, position: _position, ...props } = child;
+				state.addNode(type, children, value as string | undefined, props as JSONRecord);
+			}
 		},
 	},
 }));
@@ -141,8 +108,11 @@ export const textDirective = $nodeSchema('text_directive', () => ({
 	parseMarkdown: {
 		match: ({ type }) => type === 'textDirective',
 		runner: (state, node, type) => {
-			const { name, attributes } = attrsOf(node as Directive, null);
-			state.openNode(type, { name, attributes });
+			const { name, attributes } = node as MarkdownNode & {
+				name?: string;
+				attributes?: Attributes;
+			};
+			state.openNode(type, { name: name ?? '', attributes: { ...attributes } });
 			// Closing a node drops every open mark, so the words after a directive inside
 			// `~~...~~` would fall out of the strike. The marks are read off a text added to the
 			// node while it is still empty -- nothing to merge with -- and opened again after it.
@@ -235,8 +205,7 @@ const canonical = config((ctx) => {
 export const extensions = [
 	canonical,
 	...directive,
-	...containerDirective,
-	...leafDirective,
+	...directiveBlock,
 	...textDirective,
 	...fence,
 	...outerLink,

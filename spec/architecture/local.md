@@ -298,9 +298,13 @@ own, and it was refused because every difference between it and the page is a di
 author has to translate back in their head; the preview remains the exact rendering.
 
 **A custom block is drawn in the editor as what it is, and stored as the markdown it was.** The
-editor is rich text over markdown: a directive or a parameterised fence is a node of its own in
-the document, drawn by the component the site draws it with, and written back as the directive it
-was parsed from with every attribute intact. Showing the directive's source instead would make the
+editor is rich text over markdown: a block directive or a fence is a node of its own in the
+document, drawn by the component the site draws it with, and written back as the directive it was
+parsed from with every attribute intact. It is edited the way Obsidian's live preview edits one:
+the rendering stands while the caret is elsewhere, and the moment the caret is inside -- by the
+arrow keys or by pressing the rendering -- the block is its markdown source until the caret
+leaves. So a block directive is held as its own text, like a fence's code, rather than as parsed
+attributes; a form over them could come later, and would be a second way in, not the only one. Showing the directive's source instead would make the
 author read syntax in the one place built so they do not have to. The block's own markdown is
 compiled by `local` the way a preview is, through `POST /collection/fragment`, and handed to the
 article body -- so the editor never learns what a directive means, and cannot come to disagree with

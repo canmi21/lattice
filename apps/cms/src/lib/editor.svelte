@@ -12,7 +12,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { Editor, defaultValueCtx, editorViewOptionsCtx, rootCtx } from '@milkdown/core';
-	import { codeBlockAttr, commonmark, headingAttr } from '@milkdown/preset-commonmark';
+	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { gfm } from '@milkdown/preset-gfm';
 	import { history } from '@milkdown/plugin-history';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
@@ -60,14 +60,13 @@
 				ctx.set(headingAttr.key, (node) => ({
 					class: `${HEADING} ${node.attrs.level === 2 ? 'mt-12' : 'mt-8'}`,
 				}));
-				ctx.set(codeBlockAttr.key, () => ({ pre: { class: CODE }, code: {} }));
 				ctx.get(listenerCtx).markdownUpdated((_, value) => onChange(value));
 			})
 			.use(commonmark)
 			.use(gfm)
 			.use(extensions)
 			// A block is compiled in the draft's language, or the source language when none is set.
-			.use(blockViews(() => language || 'en-US'))
+			.use(blockViews(() => language || 'en-US', CODE))
 			.use(history)
 			.use(listener)
 			.create()
