@@ -197,9 +197,10 @@
 
 	const styles = stylex.create({
 		// Both float over the text, so both are a sheet with an edge and a shadow to say so.
-		// The ground the sidebar stands on, so the toolbar reads as the same chrome as the column.
+		// The menu's ground, `paper`, the deepest surface in dark -- the toolbar is the same kind of
+		// floating thing as a dropdown, and reads as one.
 		pill: {
-			backgroundColor: 'var(--color-paper-hover)',
+			backgroundColor: 'var(--color-paper)',
 			borderRadius: radius.full,
 			boxShadow: '0 0.5rem 1.5rem oklch(0 0 0 / 0.12), 0 0 0 1px var(--color-border)',
 		},
@@ -212,16 +213,8 @@
 		},
 		round: { borderRadius: radius.full },
 		// The toolbar's icons are lit at rest; the pointer is answered by the round ground alone,
-		// which is the pane's color on the sidebar's -- the sidebar's own highlight, for the same
-		// reason: the pill's ground is the quiet control's hover color, and would hide it.
-		bright: {
-			color: 'var(--color-text-strong)',
-			backgroundColor: {
-				default: null,
-				':hover': 'var(--color-page)',
-				':focus-visible': 'var(--color-page)',
-			},
-		},
+		// the menu row's own highlight.
+		bright: { color: 'var(--color-text-strong)' },
 		quiet: { color: 'var(--color-text-soft)' },
 		missing: { color: 'var(--color-red)' },
 		heading: { color: 'var(--color-text-strong)' },
