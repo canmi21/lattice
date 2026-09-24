@@ -8,7 +8,7 @@
 	 * article body is drawn under, so the page's own rules style the elements the drawing makes.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+	import { defaultKeymap, history, historyKeymap, redo, undo } from '@codemirror/commands';
 	import { EditorState } from '@codemirror/state';
 	import { EditorView, keymap } from '@codemirror/view';
 	import ProseRoot from '@canmi/prose/prose-root.svelte';
@@ -88,6 +88,11 @@
 						})),
 						...defaultKeymap,
 						...historyKeymap,
+						// Undo and redo answer to Ctrl on every system, the Mac included, beside the
+						// ⌘ the history's own keys bind there: one hand's habit works on all three.
+						{ key: 'Ctrl-z', run: undo, preventDefault: true },
+						{ key: 'Ctrl-Shift-z', run: redo, preventDefault: true },
+						{ key: 'Ctrl-y', run: redo, preventDefault: true },
 					]),
 					field,
 					wrapOnType,

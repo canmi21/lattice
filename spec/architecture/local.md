@@ -379,6 +379,9 @@ function of the text and the caret alone:
   caret leaving draws it again. An inline directive is the element the compiler writes for it
   around words that stay editable, a note numbered through the document, and a heading's
   `{#anchor}` is hidden with its `#`, since the page takes it as the slug.
+- **Undo and redo answer to the same keys on every system.** ⌘Z and Ctrl+Z undo; ⌘⇧Z,
+  Ctrl+Shift+Z and Ctrl+Y redo -- Ctrl included on the Mac, where the history's own keys bind only
+  ⌘, so one hand's habit works wherever the CMS is opened.
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).
