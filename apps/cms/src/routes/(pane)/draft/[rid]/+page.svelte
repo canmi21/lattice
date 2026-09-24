@@ -9,9 +9,15 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { invalidate } from '$app/navigation';
-	import Eye from '@lucide/svelte/icons/eye';
-	import Save from '@lucide/svelte/icons/save';
-	import Send from '@lucide/svelte/icons/send';
+	import BookOpen from '@lucide/svelte/icons/book-open';
+	import Flag from '@lucide/svelte/icons/flag';
+	import FlagOff from '@lucide/svelte/icons/flag-off';
+	import Funnel from '@lucide/svelte/icons/funnel';
+	import LayerArrowUp from '@lucide/svelte/icons/layer-arrow-up';
+	import LayersPlus from '@lucide/svelte/icons/layers-plus';
+	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+	import ToggleLeft from '@lucide/svelte/icons/toggle-left';
+	import ToggleRight from '@lucide/svelte/icons/toggle-right';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { endonym, PUBLIC_LANGUAGE } from '@canmi/locales';
 	import { onMount, tick, type Component } from 'svelte';
@@ -69,6 +75,10 @@
 	let language = $derived(data.draft.meta.language ?? '');
 	let revisions = $derived(data.revisions);
 	let missing = $derived.by((): string[] => (void data.draft, []));
+
+	// The two placeholder toggles on the toolbar, which change nothing but their own icon.
+	let toggled = $state(false);
+	let flagged = $state(false);
 
 	/**
 	 * The drawer holding what the article is, which only the pointer brings out: running to the
@@ -200,6 +210,8 @@
 			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.18), 0 0 0 1px var(--color-border)',
 		},
 		round: { borderRadius: radius.full },
+		// The toolbar's icons are lit at rest; the pointer is answered by the round ground alone.
+		bright: { color: 'var(--color-text-strong)' },
 		quiet: { color: 'var(--color-text-soft)' },
 		missing: { color: 'var(--color-red)' },
 		heading: { color: 'var(--color-text-strong)' },
@@ -238,6 +250,7 @@
 		class="cursor-pointer p-2 {stylex.attrs(
 			surfaces.quietControl,
 			styles.round,
+			styles.bright,
 			refused && styles.missing,
 		).class}"
 	>
@@ -271,14 +284,24 @@
 
 {#snippet toolbar()}
 	<div class="flex items-center gap-0.5 p-0.5 {stylex.attrs(styles.pill).class}">
-		{@render action('Preview', Eye, look)}
-		{@render action('Save', Save, save)}
+		<!-- Placeholders, to see the toolbar with its eventual set: none is wired yet, and the two
+		     with a pair of icons only swap between them. Preview, save and publish are off it
+		     meanwhile. -->
+		{@render action('Filter', Funnel, () => {})}
+		{@render action('Read', BookOpen, () => {})}
 		{@render action(
-			missing.length > 0 ? `Publish -- missing ${missing.join(', ')}` : 'Publish',
-			Send,
-			publish,
-			missing.length > 0,
+			toggled ? 'Toggle off' : 'Toggle on',
+			toggled ? ToggleRight : ToggleLeft,
+			() => {
+				toggled = !toggled;
+			},
 		)}
+		{@render action('Add a layer', LayersPlus, () => {})}
+		{@render action(flagged ? 'Unflag' : 'Flag', flagged ? FlagOff : Flag, () => {
+			flagged = !flagged;
+		})}
+		{@render action('Bring forward', LayerArrowUp, () => {})}
+		{@render action('Adjust', SlidersHorizontal, () => {})}
 	</div>
 {/snippet}
 
