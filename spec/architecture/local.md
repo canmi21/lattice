@@ -348,7 +348,11 @@ function of the text and the caret alone:
   paragraph; `>` quotes every line touched, and a backtick over several lines fences them. Any
   other character replaces the selection as usual. The two gestures need no guessing apart: a typed
   character reaches the editor's input handler and a paste its clipboard handler, so a paste always
-  replaces.
+  replaces. A wrap just made is taken back by deleting: Backspace or Delete while the
+  selection is still the one it left removes the last layer, not the words, so a `*` typed once too
+  often goes the way it came. Each wrap is remembered as its own inverse, not recognised in the
+  text afterwards, and any other change to the text or the selection forgets it -- so the exception
+  holds only in the one state where deleting can mean nothing else.
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).

@@ -3,12 +3,24 @@
  * Obsidian's editors do: select words and type `*` and they are `*words*`, still selected, so a
  * second `*` makes them bold. See spec/architecture/local.md, "Typing over a selection".
  *
+ * A wrap just made can be taken back by deleting: Backspace or Delete with the selection it left
+ * removes the last layer rather than the words, so a `*` typed once too often goes the way it came.
+ * Anything else -- moving the selection, typing, pasting, undoing -- forgets it, and deleting deletes.
+ *
  * Only a character typed does this. A paste arrives by another path -- CodeMirror hands typed text
  * to its input handler and a paste to its clipboard handler -- so a paste still replaces what is
  * selected, which is what pasting over a selection means.
  */
-import { EditorSelection, type EditorState, type TransactionSpec } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import {
+	Annotation,
+	type ChangeSet,
+	EditorSelection,
+	type EditorState,
+	Prec,
+	StateField,
+	type TransactionSpec,
+} from '@codemirror/state';
+import { EditorView, keymap } from '@codemirror/view';
 
 /** Characters that wrap a selection inside a line, and what closes each. */
 const INLINE: Record<string, string> = { '*': '*', _: '_', '~': '~', '`': '`', '[': ']' };
@@ -76,10 +88,64 @@ export function wrapping(state: EditorState, text: string): TransactionSpec | nu
 	});
 }
 
-/** The input handler: a typed character over a selection is offered to `wrapping` first. */
-export const wrapOnType = EditorView.inputHandler.of((view, _from, _to, text) => {
-	const spec = wrapping(view.state, text);
-	if (!spec) return false;
-	view.dispatch(view.state.update(spec, { userEvent: 'input.type', scrollIntoView: true }));
-	return true;
+/** Marks a transaction as a wrap made, or one taken back. */
+const layer = Annotation.define<'wrap' | 'unwrap'>();
+
+/** One wrap: how to take it back, and the selections either side of it. */
+type Layer = { undo: ChangeSet; before: EditorSelection; after: EditorSelection };
+
+/**
+ * The wraps just made, the latest last. Kept only while nothing else happens: any other change to
+ * the text or the selection clears it, which is what keeps Backspace's special case narrow.
+ */
+const layers = StateField.define<Layer[]>({
+	create: () => [],
+	update(stack, tr) {
+		const said = tr.annotation(layer);
+		if (said === 'wrap') {
+			const undo = tr.changes.invert(tr.startState.doc);
+			return [...stack, { undo, before: tr.startState.selection, after: tr.state.selection }];
+		}
+		if (said === 'unwrap') return stack.slice(0, -1);
+		if (tr.docChanged || (tr.selection && !tr.selection.eq(tr.startState.selection))) return [];
+		return stack;
+	},
 });
+
+/** Typing `text` over the selection as a wrap to be remembered, or nothing. */
+export function wrap(state: EditorState, text: string): TransactionSpec | null {
+	const spec = wrapping(state, text);
+	return spec && { ...spec, annotations: layer.of('wrap') };
+}
+
+/** Deleting right after a wrap: the last layer taken back, or nothing when there is none. */
+export function unwrapping(state: EditorState): TransactionSpec | null {
+	const top = state.field(layers, false)?.at(-1);
+	if (!top || !state.selection.eq(top.after)) return null;
+	return { changes: top.undo, selection: top.before, annotations: layer.of('unwrap') };
+}
+
+const unwrap = (view: EditorView) => {
+	const spec = unwrapping(view.state);
+	if (!spec) return false;
+	view.dispatch(spec, { userEvent: 'delete', scrollIntoView: true });
+	return true;
+};
+
+/** The wrap on typing, and its undoing by Backspace or Delete. */
+export const wrapOnType = [
+	layers,
+	EditorView.inputHandler.of((view, _from, _to, text) => {
+		const spec = wrap(view.state, text);
+		if (!spec) return false;
+		view.dispatch(view.state.update(spec, { userEvent: 'input.type', scrollIntoView: true }));
+		return true;
+	}),
+	// Ahead of the default keymap, whose Backspace deletes the selection.
+	Prec.high(
+		keymap.of([
+			{ key: 'Backspace', run: unwrap },
+			{ key: 'Delete', run: unwrap },
+		]),
+	),
+];
