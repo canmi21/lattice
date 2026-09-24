@@ -21,7 +21,12 @@ export class Chrome {
  */
 export const EDGE_MARGINS = { within: 8, release: 24 };
 
-const KEY = Symbol('chrome');
+/**
+ * A string, not a symbol: a hot reload evaluates this module again, and a new symbol would leave
+ * the layout providing under the old one while the page asks under the new -- measured as a 500 on
+ * every draft page after an edit to this file, until a full reload.
+ */
+const KEY = 'cms.chrome';
 
 /** Called by the layout that draws them. */
 export function provideChrome(): Chrome {
