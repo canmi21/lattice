@@ -28,7 +28,7 @@
 	import { reader } from '@canmi/behavior/state';
 	import { resizeHandle } from '@canmi/behavior/resize';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
+	import { border, duration, easing, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
 	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
 	import { URLS } from '@canmi/urls';
@@ -514,6 +514,7 @@
 		// What the sidebar holds recedes while a drag is asking to fold it, and the notice stands
 		// in front: what letting go will do, said on the region it will happen to.
 		receded: { opacity: 0.25 },
+		noticeWord: { color: 'var(--color-text-soft)', fontSize: text.px12 },
 		notice: {
 			color: 'var(--color-text-strong)',
 			backgroundColor: 'var(--color-page)',
@@ -659,13 +660,14 @@
 	<nav data-sidebar bind:this={nav} class="relative flex shrink-0 flex-col gap-1 px-1 py-2">
 		{#if folding}
 			<div
-				class="pointer-events-none absolute inset-1 z-10 flex flex-col items-center justify-center gap-2 text-center {stylex.attrs(
-					surfaces.uiText,
+				class="pointer-events-none absolute inset-1 z-10 flex flex-col items-center justify-center gap-1.5 {stylex.attrs(
 					styles.notice,
 				).class}"
 			>
+				<!-- The icon says it, and one small word under it confirms what letting go does: the
+				     sidebar is at its narrowest here, and a sentence did not fit it. -->
 				<SidebarHidden class="size-5" aria-hidden="true" />
-				<span>Release to fold</span>
+				<span class={stylex.attrs(styles.noticeWord).class}>Fold</span>
 			</div>
 		{/if}
 		<!-- Three regions: the sections above and settings below hold still, and the articles
