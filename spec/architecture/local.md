@@ -310,6 +310,29 @@ function of the text and the caret alone:
   line: a paragraph's emphasis may cross a line break, a fence's lines are not prose, and a
   container spans many -- an island smaller than the site's is one where the editor and the site
   disagree.
+- **What a block is has a standard, and it is not ours.** CommonMark defines blocks
+  (<https://spec.commonmark.org/0.31.2/#blocks-and-inlines>), GFM adds the table and the directive
+  extension adds two: a leaf directive `::name{...}` on a line of its own, and a container directive
+  `:::name ... :::`. The site's parser implements all of it, so its answer is the only one: an island
+  is a child of the syntax tree's root, with the lines the parser gives it. A container -- a list, a
+  quote, a `:::` -- is one island whole. Measured: a heading, a leaf directive and a fence each
+  interrupt a paragraph with no blank line before them; a markdown image `![](...)` is inline, and
+  stays in its paragraph even alone on a line; an unclosed fence runs to the end of the document. A
+  new component is given a syntax, never a new kind of block: `::` for a thing standing alone, `:::`
+  for one wrapping content, `:` for one inside a sentence.
+- **An edit can move the boundaries it sits between**: a blank line removed joins two paragraphs,
+  a fence opened swallows everything after it. So an edit is parsed again from the island before it
+  until the new boundaries meet the old ones again. A whole parse of the longest article -- 34,860
+  characters, 191 blocks -- measured 16 ms, so parsing everything is the correct first version and
+  parsing islands is an optimisation over it, not a condition of it.
+- **A line break the author makes is a line break on the page.** CommonMark's single newline is a
+  soft break, which the page joins into a space; only a blank line starts a paragraph, and only a
+  trailing backslash or two spaces break a line inside one. So Enter writes a blank line -- a new
+  paragraph -- and Shift+Enter writes a trailing backslash, a break without a paragraph's spacing.
+  Nothing the author presses writes a soft break; one arriving in imported or pasted text is marked
+  at its line's end, because there the editor's line and the page's are not the same. Enter inside
+  source that is not prose -- a fence, a container's or a directive's own lines -- is a plain
+  newline; inside a list it continues the list, and inside a quote the quote.
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).
