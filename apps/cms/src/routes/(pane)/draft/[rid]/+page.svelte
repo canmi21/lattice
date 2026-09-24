@@ -15,7 +15,7 @@
 	import Funnel from '@lucide/svelte/icons/funnel';
 	import LayerArrowUp from '@lucide/svelte/icons/layer-arrow-up';
 	import LayersPlus from '@lucide/svelte/icons/layers-plus';
-	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import ToggleLeft from '@lucide/svelte/icons/toggle-left';
 	import ToggleRight from '@lucide/svelte/icons/toggle-right';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -311,7 +311,7 @@
 			flagged = !flagged;
 		})}
 		{@render action('Bring forward', LayerArrowUp, () => {})}
-		{@render action('Adjust', SlidersHorizontal, () => {})}
+		{@render action('Settings', Settings2, () => {})}
 	</div>
 {/snippet}
 
