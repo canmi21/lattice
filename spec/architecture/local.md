@@ -341,6 +341,14 @@ function of the text and the caret alone:
   at its line's end, because there the editor's line and the page's are not the same. Enter inside
   source that is not prose -- a fence, a container's or a directive's own lines -- is a plain
   newline; inside a list it continues the list, and inside a quote the quote.
+- **Typing over a selection wraps it, and pasting over one replaces it.** A syntax character typed
+  with words selected is taken as the syntax for them, as GitHub's and Obsidian's editors take it:
+  `*`, `_`, `~`, `` ` `` and `[` wrap the selection and leave it selected, so a second `*` makes it
+  bold; over several lines each line is wrapped on its own, since inline syntax cannot cross a
+  paragraph; `>` quotes every line touched, and a backtick over several lines fences them. Any
+  other character replaces the selection as usual. The two gestures need no guessing apart: a typed
+  character reaches the editor's input handler and a paste its clipboard handler, so a paste always
+  replaces.
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).

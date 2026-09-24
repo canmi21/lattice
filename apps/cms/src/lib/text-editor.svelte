@@ -18,6 +18,7 @@
 	import { onMount } from 'svelte';
 	import { enter, lineBreak } from './text-keys';
 	import { reading } from './text-state';
+	import { wrapOnType } from './text-wrap';
 
 	let { markdown, onChange }: { markdown: string; onChange: (value: string) => void } = $props();
 
@@ -61,6 +62,7 @@
 						...historyKeymap,
 					]),
 					field,
+					wrapOnType,
 					EditorView.lineWrapping,
 					plain,
 					EditorView.updateListener.of((update) => {
