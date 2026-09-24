@@ -232,59 +232,19 @@ rewrite. The reverse order can leave an article pointing at bytes that do not ex
 rewrite has destroyed the original filename -- and with it the information a later run needed to
 repair the article. The same rule holds when an editor stores one image before inserting its id.
 
-## The editor's round trip keeps structure, and is checked against the site's parser
+## The editor has no round trip, so there is nothing for one to lose
 
-[i18n/segments.md](i18n/segments.md) stores articles in canonical form, so the bytes an article is
-saved as are the serializer's and not the author's. **What the editor promises is structural
-equivalence, not byte identity**: the text it writes back, parsed by the parser the site compiles
-with, is the same tree as the text it was given -- every node, every directive name, every
-attribute and every fence parameter -- once positions are set aside. A spelling may change once,
-the first time an article is saved; a parameter may never be lost. The check is a test that runs
-every article in `contents/` through the editor's own pipeline and compares the two trees, so the
-harness and the editor cannot test different things.
-
-What had to be fixed, and the shape they share:
-
-- Frontmatter needs a remark plugin to parse it, a normalisation pass to re-emit its YAML, and a
-  schema node to hold the result. Parsing alone leaves an mdast node the editor refuses, because
-  ProseMirror has nowhere to put it. The opaque schema preserves the canonical YAML rather than
-  interpreting metadata as editable prose.
-- A code fence's `meta` -- everything after the language word -- is carried by mdast and dropped by
-  the stock schema, which keeps only `language`. It is written back as a separate mdast field, not
-  appended to the language: a space terminates the language word, so packing both together makes
-  remark escape it and the fence returns as `tokei&#x20;title=...`.
-
-**Every one of those is the same journey: an mdast field, a place in the schema to hold it, and a
-serializer that writes it back.** That is what a custom block type costs here, and the estimate is
-measured rather than guessed. The three directive forms confirm it independently: container,
-leaf, and text directives each need their mdast fields carried into a schema node and written back
-by a serializer. A parameterised fence is the cheaper variation because it can extend the existing
-code-block node instead of adding another node, but its structured parameters still need a schema
-attribute and the raw mdast fields still need a serializer.
-
-The stock commonmark preset remains the foundation, not the home for repository syntax. The
-project extensions form a preset layered after it, so the directive parser, all three schemas, and
-the code-block override are installed as one unit by both the editor and the round-trip harness.
-Forking commonmark would make upstream behavior ours to maintain; scattering the extensions would
-let the harness and editor silently test different pipelines. Milkdown does not provide a generic
-unknown-node escape hatch here: every directive form needs an explicit schema and transformer,
-which is the measured cost rather than an implementation accident.
-
-For an opening fence whose info string is `{abc lang}`, remark's lexical split is kept verbatim:
-`lang` is `{abc` and `meta` is `lang}`. The schema additionally carries
-`{ name: "abc", values: ["lang"] }` for the block owner. Replacing the raw fields with the
-interpreted values would require reconstructing the author's spelling at serialization time and
-lose the author's spelling for no benefit; renderers read the structured attribute
-instead. A `font` directive's `family` attribute and a `font` fence's sole value must be ids
-exported by `@canmi/fonts`, and are rejected otherwise. That single catalogue prevents the editor
-syntax and renderer capabilities from drifting apart.
-
-**The editor this describes is archived**, and so is the round-trip check that guarded it: both
-are at <https://github.com/canmi21/desktop-cms-archive>, read rather than run. What they say about
-the syntax still holds, because the syntax is the corpus's rather than that editor's -- and the
-next editor inherits the same obligation, which is that a parse and serialize pass has to keep
-the structure of every stored article, and that the damage from breaking it is invisible in a
-diff. The CMS's editor takes it up with the extensions ported from that archive.
+The editor's document is the text itself (see
+[architecture/local.md](architecture/local.md), "The editor's document is the markdown text"):
+what is saved is what was typed, and nothing converts it on the way in or out. The obligation the
+two earlier editors carried -- a parse and serialize pass had to keep the structure of every stored
+article, checked by a test over `contents/` -- is gone with the pass. Both editors are archived:
+the desktop one at <https://github.com/canmi21/desktop-cms-archive>, and the ProseMirror one in
+this repository's history before 2026-09-24. What they found about the syntax is still true and
+still the site's parser's to answer: a directive's three forms, and a fence's info string, which
+remark splits at the first space into `lang` and `meta` and which a renderer reads as
+`{ name, values }` when it is written `{name values}`. A `font` directive's `family` and a `font`
+fence's sole value must be ids exported by `@canmi/fonts`.
 
 ## A finished run leaves nothing behind, and that is the gap
 

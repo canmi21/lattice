@@ -1,6 +1,7 @@
 /**
- * What a mounted block view reads, made reactive. On its own because a runes module cannot import
- * Milkdown's `$`-named helpers, and the node view needs both.
+ * The reactive state the editor's mounted components read: a rendered block, the block handle and
+ * the formatting bar. Made here because the modules that mount them are plain TypeScript, where
+ * runes are not available.
  */
 export type BlockProps = { markdown: string; language: string; selected: boolean };
 

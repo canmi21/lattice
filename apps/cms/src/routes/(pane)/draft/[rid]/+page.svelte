@@ -25,8 +25,6 @@
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import Editor from '$lib/editor.svelte';
-	import TextEditor from '$lib/text-editor.svelte';
-	import { page } from '$app/state';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import { EDGE_MARGINS, useChrome } from '$lib/chrome.svelte.ts';
 	import { floating } from '$lib/floating.ts';
@@ -433,14 +431,6 @@
      region does not arrive by pushing anything down. -->
 <div class="mx-auto min-h-96 max-w-(--rail-column) px-6">
 	{#if mounted}
-		<!-- The text editor replaces this one step by step, and is opened by asking for it until it
-		     can. See spec/architecture/local.md, "The editor's document is the markdown text". -->
-		{#key rid}
-			{#if page.url.searchParams.get('editor') === 'text'}
-				<TextEditor markdown={body} {language} onChange={typed} />
-			{:else}
-				<Editor markdown={body} {language} onChange={typed} />
-			{/if}
-		{/key}
+		{#key rid}<Editor markdown={body} {language} onChange={typed} />{/key}
 	{/if}
 </div>

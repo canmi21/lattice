@@ -290,12 +290,11 @@ of margins, [edge.ts](../../libs/behavior/src/edge.ts) in `@canmi/behavior`. Whe
 last saved, and why a publication was refused, are said at the top of the drawer for now -- that is
 a place kept, not a place decided.
 
-**The editor's document is the markdown text, and it moves to CodeMirror 6.** Decided on
-2026-09-24, and the ProseMirror editor described in the paragraphs below is what it replaces. The
-two stand side by side until the new one has everything the old one does: a draft opens in the
-old one, and in the new one with `?editor=text`. The new one is built in four steps -- the text and
-its marks, the page's typography, the custom blocks and inline directives, the handle and the bar
--- and each is tried in the browser before the next. A
+**The editor's document is the markdown text, and it is CodeMirror 6.** Decided on 2026-09-24,
+replacing a ProseMirror editor (Milkdown) the same day its successor could draw everything it drew;
+that one's code and dependencies are gone. It was built in four steps -- the text and its marks, the
+page's typography, the custom blocks and inline directives, the handle and the bar -- and the last
+is still to be moved across: see "Every block has a handle" below. A
 ProseMirror document is a tree, and markdown was a format it read in and wrote out: every custom
 construct cost a schema, a parser and a serializer, and letting the author see and edit the syntax
 meant converting between the two representations wherever the caret went -- which is a boundary
@@ -384,78 +383,40 @@ function of the text and the caret alone:
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).
 
-**The editor writes in the article's own typography.** Its prose sits under
+**The editor writes in the article's own typography.** Its text sits under
 [prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
-under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given
-the same one through Milkdown's attribute hooks. The alternative was a writing theme of the CMS's
-own, and it was refused because every difference between it and the page is a difference the
-author has to translate back in their head; the preview remains the exact rendering.
+under, and the drawing wraps words in the elements the page has -- `strong`, `em`, `code`, `a` -- so
+the page's own rules style them. The alternative was a writing theme of the CMS's own, and it was
+refused because every difference between it and the page is a difference the author has to
+translate back in their head; the preview remains the exact rendering. The CMS loads the site's
+type, `@canmi/fonts/mono.css`, and the shared surfaces, `@canmi/tokens/interaction.css` and
+`@canmi/prose/prose.css`, for the same reason it loads the site's components.
 
-**A custom block is drawn in the editor as what it is, and stored as the markdown it was.** The
-editor is rich text over markdown: a block directive or a fence is a node of its own in the
-document, drawn by the component the site draws it with, and written back as the directive it was
-parsed from with every attribute intact. It is edited the way Obsidian's live preview edits one:
-the rendering stands while the caret is elsewhere, and the moment the caret is inside -- by the
-arrow keys or by pressing the rendering -- the block is its markdown source until the caret
-leaves. So a block directive is held as its own text, like a fence's code, rather than as parsed
-attributes; a form over them could come later, and would be a second way in, not the only one.
-
-**Every block has a handle.** A child of the document -- a paragraph, a heading, a list, a custom
-block -- shows a six-dot handle to its left while the pointer is over it, as Notion's blocks do.
-Pressed, it opens the block's menu: its source for a block that has one, duplicate, move up and
-down, delete. Dragged, it moves the block, and a line shows where it will land. It follows the
-pointer rather than standing beside every block at once, so the page reads as the article until the
-pointer asks. The menu is the sidebar's menu component, which makes it the one other place the
-editor takes over a press; a right click in the text stays the browser's.
+**A custom block is compiled, never interpreted.** Its markdown goes to `local` the way a preview
+does, through `POST /collection/fragment`, and what comes back is handed to the article body -- so
+the editor never learns what a directive means, and cannot come to disagree with the site about
+it. A block the compiler refuses shows the reason and its source in its place.
 
 **Inline directives are drawn, and their words are typed in place.** A `:spoiler`, `:fn`, `:t` or
 `:link` is given the element and attribute the compiler writes for it, so the article body's own
 rules draw it: a spoiler is fogged and clears while the caret is in it, a note's words are followed
 by its number counted through the whole document, a `:t` run takes the classes from the one table
 the compiler reads (`libs/compile/src/style-classes.ts`). What a directive says beyond its words --
-a note's text, a link's target -- is shown on hover, and edited in its source like any marked run
-below. **A run the page
-hides at some width is never hidden in the editor**: `wide` and `narrow` would otherwise put words
-out of the author's reach at whatever width the window happens to be, so both are shown, underlined
-dashed, and named on hover. The CMS loads the site's type, `@canmi/fonts/mono.css`, for the same
-reason it loads the site's components.
+a note's text, a link's target -- is shown on hover and edited in its source, which the caret
+beside it shows. **A run the page hides at some width is never hidden in the editor**: `wide` and
+`narrow` would otherwise put words out of the author's reach at whatever width the window happens to
+be, so both are shown, underlined dashed, and named on hover.
 
-**A sentence's marks are set, and shown as source where the caret is.** Bold, italic, strike and
-code can be set by command -- their keys, or the bar that floats over a selection -- so how marks
-nest is the program's to get right. They can also be typed, because what the author types is
-markdown: `**word**` typed out is bold once the caret has left it. **The site's parser is the only
-judge of what any of it means**, and the rest follows from that:
-
-- **Source is kept as ranges of raw text**: a unit opened under the caret, and whatever was typed or
-  pasted as plain text. Raw text is never escaped; it is saved as the author wrote it, so the page
-  reads exactly what the editor was shown.
-- **Only the smallest unit opens**: the run of marked words, inline directives and words holding
-  markdown's punctuation that the caret is in or beside, never the sentence around it. In
-  `a **b *c* d** e` with the caret on `c`, what opens is `**b *c* d**`. It opens as the author would
-  write it, without the serializer's backslashes, whenever the parser reads the two the same.
-- **Nothing is read while it is being written.** An opened unit is read back when the caret leaves
-  it. A sentence with anything typed in it is read back whole when the caret leaves the sentence,
-  so `**` typed before an old word and `**` after it close around it. Losing focus is leaving, for
-  a block as much as for a sentence. An input method still composing a word is never interrupted.
-  Milkdown's own mark input rules, which match `**word**` the moment it closes, are not installed:
-  they guess at syntax mid-word, and `plugin-automd`, which re-reads a line on every keystroke,
-  shows where that leads.
-- **What does not parse stays where it is.** What parses takes its marks; what does not, a lone
-  `**`, stays the text it is, underlined wavy red, and opens as source again when the caret reaches
-  it. Text that would read as a block on its own -- `- x`, `# x` -- is left as written, since inside
-  a sentence it is neither. A span's surrounding spaces are the sentence's and are kept.
-- **What is saved is the document with everything read back.** Opening and reading back stay out of
-  the undo history, which records what the author changed. Raw text that has somehow come to carry
-  a mark is serialized rather than read as text, so a mark is never lost to being in a raw range.
-
-The bar does not show over open source, where a mark set on the asterisks would be lost on reading
-back. Showing the directive's source instead would make the
-author read syntax in the one place built so they do not have to. The block's own markdown is
-compiled by `local` the way a preview is, through `POST /collection/fragment`, and handed to the
-article body -- so the editor never learns what a directive means, and cannot come to disagree with
-the site about it. A block the compiler refuses shows the reason and its source in its place. What
-it must keep is set in
-[../tasks.md](../tasks.md), "The editor's round trip keeps structure".
+**Every block has a handle, and a selection a bar -- both to be rebuilt on the text editor.** The
+ProseMirror editor had them and they left with it; what they are to be is unchanged. A child of the
+document -- a paragraph, a heading, a list, a custom block -- shows a six-dot handle to its left
+while the pointer is over it, as Notion's blocks do. Pressed, it opens the block's menu: its source
+for a block that has one, duplicate, move up and down, delete. Dragged, it moves the block, and a
+line shows where it will land. It follows the pointer rather than standing beside every block at
+once, so the page reads as the article until the pointer asks. The menu is the sidebar's menu
+component, which makes it the one other place the editor takes over a press; a right click in the
+text stays the browser's. A selection of prose shows a bar of bold, italic, strike and code, which
+wrap the selection as the keys do.
 
 The pages described below -- Overview and the Articles ledger -- were the desktop client's and have
 not been rebuilt in the web one. What they say about the visual language still holds.

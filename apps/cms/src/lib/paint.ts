@@ -118,6 +118,14 @@ function linesOf(text: string, from: number, to: number): number[] {
 	return lines;
 }
 
+/** The words a construct wraps: from its first child to its last, or nothing between. */
+function words(node: Nodes): [number, number] {
+	const children = 'children' in node ? (node.children as Nodes[]) : [];
+	return children.length
+		? [start(children[0]!), end(children.at(-1)!)]
+		: [start(node), start(node)];
+}
+
 /** The classes a `:t` asks for, less the ones that hide it, or none when a token is unknown. */
 function tClasses(attributes: Attributes): string {
 	try {
@@ -138,14 +146,6 @@ export function paint(text: string, tree: Root, selected: Selected, classes: Cla
 		if (touched(selected, start(node), end(node))) return;
 		if (open > start(node)) out.push({ kind: 'hide', from: start(node), to: open });
 		if (end(node) > close) out.push({ kind: 'hide', from: close, to: end(node) });
-	}
-
-	/** The words a construct wraps: from its first child to its last, or nothing between. */
-	function words(node: Nodes): [number, number] {
-		const children = 'children' in node ? (node.children as Nodes[]) : [];
-		return children.length
-			? [start(children[0]!), end(children.at(-1)!)]
-			: [start(node), start(node)];
 	}
 
 	/** An inline directive, as the element the compiler writes for it. */
