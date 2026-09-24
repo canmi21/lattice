@@ -14,6 +14,8 @@
 	import ProseRoot from '@canmi/prose/prose-root.svelte';
 	import { titleStyles } from '@canmi/prose/section-title';
 	import { onMount } from 'svelte';
+	import { format, formatBar } from './text-bar';
+	import { blockHandle } from './text-handle';
 	import { enter, lineBreak } from './text-keys';
 	import { pairedDelete } from './text-pairs';
 	import { reading } from './text-state';
@@ -58,6 +60,7 @@
 			language: () => language || 'en-US',
 			soft: stylex.attrs(styles.soft).class ?? '',
 		});
+		const tree = (state: EditorState) => state.field(field).tree;
 		const view = new EditorView({
 			parent: host,
 			state: EditorState.create({
@@ -68,13 +71,17 @@
 				extensions: [
 					history(),
 					keymap.of([
-						{ key: 'Enter', run: enter(() => view.state.field(field).tree) },
+						{ key: 'Enter', run: enter(() => tree(view.state)) },
 						{ key: 'Shift-Enter', run: lineBreak },
+						// The marks the bar sets, on the keys the bar names.
+						{ key: 'Mod-b', run: format(tree, 'strong') },
+						{ key: 'Mod-i', run: format(tree, 'emphasis') },
+						{ key: 'Mod-Alt-x', run: format(tree, 'delete') },
+						{ key: 'Mod-e', run: format(tree, 'inlineCode') },
 						...(['Backspace', 'Delete'] as const).map((key) => ({
 							key,
 							run: (target: EditorView) => {
-								const tree = target.state.field(field).tree;
-								const spec = pairedDelete(target.state, tree, key === 'Delete');
+								const spec = pairedDelete(target.state, tree(target.state), key === 'Delete');
 								if (spec) target.dispatch(spec);
 								return !!spec;
 							},
@@ -84,6 +91,8 @@
 					]),
 					field,
 					wrapOnType,
+					blockHandle(tree),
+					formatBar(tree),
 					EditorView.lineWrapping,
 					plain,
 					EditorView.updateListener.of((update) => {

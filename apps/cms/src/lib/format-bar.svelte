@@ -4,12 +4,13 @@
 	import Code from '@lucide/svelte/icons/code';
 	import Italic from '@lucide/svelte/icons/italic';
 	import Strikethrough from '@lucide/svelte/icons/strikethrough';
+	import type { Mark } from './text-format';
 
-	/** The marks the bar offers, by their schema name, in the order they stand. */
-	export const FORMATS: { mark: string; label: string; icon: Component; keys: string }[] = [
+	/** The marks the bar offers, by their node in the syntax tree, in the order they stand. */
+	export const FORMATS: { mark: Mark; label: string; icon: Component; keys: string }[] = [
 		{ mark: 'strong', label: 'Bold', icon: Bold, keys: '⌘B' },
 		{ mark: 'emphasis', label: 'Italic', icon: Italic, keys: '⌘I' },
-		{ mark: 'strike_through', label: 'Strikethrough', icon: Strikethrough, keys: '⌘⌥X' },
+		{ mark: 'delete', label: 'Strikethrough', icon: Strikethrough, keys: '⌘⌥X' },
 		{ mark: 'inlineCode', label: 'Code', icon: Code, keys: '⌘E' },
 	];
 </script>
@@ -17,14 +18,14 @@
 <script lang="ts">
 	/**
 	 * The bar over a selection that sets the marks a sentence can carry. Drawn only; where it
-	 * stands and what a press does belong to format-bar.ts.
+	 * stands and what a press does belong to text-bar.ts.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import type { FormatState } from './block-props.svelte';
 	import { floating } from './floating';
 
-	let { format, apply }: { format: FormatState; apply: (mark: string) => void } = $props();
+	let { format, apply }: { format: FormatState; apply: (mark: Mark) => void } = $props();
 
 	const styles = stylex.create({
 		on: { backgroundColor: 'var(--color-paper-hover)' },

@@ -293,8 +293,8 @@ a place kept, not a place decided.
 **The editor's document is the markdown text, and it is CodeMirror 6.** Decided on 2026-09-24,
 replacing a ProseMirror editor (Milkdown) the same day its successor could draw everything it drew;
 that one's code and dependencies are gone. It was built in four steps -- the text and its marks, the
-page's typography, the custom blocks and inline directives, the handle and the bar -- and the last
-is still to be moved across: see "Every block has a handle" below. A
+page's typography, the custom blocks and inline directives, the handle and the bar -- and all four
+are done. A
 ProseMirror document is a tree, and markdown was a format it read in and wrote out: every custom
 construct cost a schema, a parser and a serializer, and letting the author see and edit the syntax
 meant converting between the two representations wherever the caret went -- which is a boundary
@@ -407,16 +407,29 @@ beside it shows. **A run the page hides at some width is never hidden in the edi
 `narrow` would otherwise put words out of the author's reach at whatever width the window happens to
 be, so both are shown, underlined dashed, and named on hover.
 
-**Every block has a handle, and a selection a bar -- both to be rebuilt on the text editor.** The
-ProseMirror editor had them and they left with it; what they are to be is unchanged. A child of the
-document -- a paragraph, a heading, a list, a custom block -- shows a six-dot handle to its left
-while the pointer is over it, as Notion's blocks do. Pressed, it opens the block's menu: its source
-for a block that has one, duplicate, move up and down, delete. Dragged, it moves the block, and a
-line shows where it will land. It follows the pointer rather than standing beside every block at
-once, so the page reads as the article until the pointer asks. The menu is the sidebar's menu
-component, which makes it the one other place the editor takes over a press; a right click in the
-text stays the browser's. A selection of prose shows a bar of bold, italic, strike and code, which
-wrap the selection as the keys do.
+**Every block has a handle, and a selection a bar.** A block -- a child of the document, see "What a
+block is has a standard" above -- shows a six-dot handle to its left while the pointer is over it,
+as Notion's blocks do. It stands in one column for every block, left of the text, and level with
+what the eye takes as the block's start: beside prose, centred on the first line of words as they
+are drawn, since the line's own syntax may be hidden; beside a rendered component, level with the
+component's top edge, since a component has no first line and the room above it is not part of it.
+Measured on both kinds when it was placed. It follows the pointer rather than standing beside every
+block at once, so the page reads as the article until the pointer asks.
+
+Pressed, it opens the block's menu: its source for a block that has one, duplicate, move up and
+down, delete. The menu is the sidebar's menu component, which makes it the one other place the
+editor takes over a press; a right click in the text stays the browser's. Dragged, it carries the
+block: the block stays where it was, dimmed, so what is being moved is still visible where it will
+leave; a card by the pointer names it with its kind's icon and its first words; the landing line is
+drawn in the accent with a ring at its start, so it reads as where something goes rather than as a
+rule of the page; and the page scrolls under the hand near its top and bottom edges, so a block can
+be carried past what is on screen. Every one of these is a change to the text, which moves the
+blank line that separates a block along with it -- two blocks never end up run together.
+
+A selection of prose shows a bar of bold, italic, strike and code over it, on the keys it names --
+⌘B, ⌘I, ⌘⌥X, ⌘E. Each is a toggle and the parser says which way: a selection inside a run of that
+mark has the run's delimiters taken off, and any other is wrapped, each line on its own. The bar
+is not shown in a block whose source is open, where an asterisk is not emphasis.
 
 The pages described below -- Overview and the Articles ledger -- were the desktop client's and have
 not been rebuilt in the web one. What they say about the visual language still holds.

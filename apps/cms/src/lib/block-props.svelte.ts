@@ -18,10 +18,19 @@ export type GripState = {
 	dragging: boolean;
 	/** The drop line while dragging: a window position and a width. */
 	line: { top: number; left: number; width: number } | null;
+	/** The card a dragged block is carried on: the pointer's position, what it is, its words. */
+	ghost: { x: number; y: number; kind: string; label: string } | null;
 };
 
 export function gripState(): GripState {
-	const grip = $state<GripState>({ top: 0, left: 0, shown: false, dragging: false, line: null });
+	const grip = $state<GripState>({
+		top: 0,
+		left: 0,
+		shown: false,
+		dragging: false,
+		line: null,
+		ghost: null,
+	});
 	return grip;
 }
 
