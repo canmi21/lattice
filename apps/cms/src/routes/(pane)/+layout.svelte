@@ -743,7 +743,9 @@
 			     $lib/fold.ts. -->
 			<div class="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
 				<div use:foldHeight={open} class="overflow-hidden">
-					<ul class="flex flex-col">
+					<!-- A step of room under the folder's row, the same the sections keep between them, so
+					     the folder and its first entry never share an edge when both are lit. -->
+					<ul class="flex flex-col pt-0.5">
 						{#if drafting}
 							<li class="flex flex-col">
 								<label
