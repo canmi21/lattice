@@ -14,5 +14,8 @@
    beside their StyleX, which is the constraint extracting them surfaced: `libs/prose` is not
    self-contained, and a consumer supplies Tailwind. */
 @source '../../../../libs/prose/src';
+/* The classes a `:t` asks for are named in the compiler's table, which the editor draws runs with.
+   See libs/compile/src/style-classes.ts. */
+@source '../../../../libs/compile/src/style-classes.ts';
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));

@@ -5,6 +5,8 @@
 	 * is drawn outside them -- it is the site's own page, and it scrolls the window.
 	 */
 	import '../styles/app.css';
+	// The site's type, so the editor and the preview set words in the faces the page does.
+	import '@canmi/fonts/mono.css';
 	import { dev } from '$app/environment';
 	import type { Snippet } from 'svelte';
 

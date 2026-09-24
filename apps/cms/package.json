@@ -11,6 +11,8 @@
 		"@canmi/artifacts": "workspace:*",
 		"@canmi/behavior": "workspace:*",
 		"@canmi/collection": "workspace:*",
+		"@canmi/compile": "workspace:*",
+		"@canmi/fonts": "workspace:*",
 		"@canmi/locales": "workspace:*",
 		"@canmi/messages": "workspace:*",
 		"@canmi/motion": "workspace:*",
@@ -22,7 +24,6 @@
 		"@lucide/svelte": "^1.47.0"
 	},
 	"devDependencies": {
-		"@canmi/compile": "workspace:*",
 		"@milkdown/core": "^7.22.1",
 		"@milkdown/ctx": "^7.22.1",
 		"@milkdown/plugin-history": "^7.22.1",

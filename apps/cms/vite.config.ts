@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PROXY_PATHS, developmentUrl } from '@canmi/urls';
+import { DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls } from '@canmi/urls';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -14,6 +14,17 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
+		{
+			// The font stylesheets carry a placeholder for the CDN, as the site's config explains;
+			// this is a development server, so it is the proxied path. See apps/site/vite.config.ts.
+			name: 'replace-cdn-url',
+			transform(code: string, id: string) {
+				if (/\.css($|\?)/.test(id) && code.includes('__CDN_URL__')) {
+					return code.replaceAll('__CDN_URL__', pageUrls(true).cdn);
+				}
+				return null;
+			},
+		},
 		{
 			...stylex({
 				useCSSLayers: true,

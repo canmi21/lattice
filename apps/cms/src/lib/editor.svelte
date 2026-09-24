@@ -23,6 +23,7 @@
 	import { onMount } from 'svelte';
 	import { blockHandle } from './block-handle';
 	import { blockViews } from './block-views';
+	import { inlineViews } from './inline-views';
 	import { extensions } from './markdown';
 
 	let {
@@ -69,6 +70,7 @@
 			// A block is compiled in the draft's language, or the source language when none is set.
 			.use(blockViews(() => language || 'en-US', CODE))
 			.use(blockHandle)
+			.use(inlineViews)
 			.use(history)
 			.use(listener)
 			.create()

@@ -331,6 +331,12 @@ importers:
       '@canmi/collection':
         specifier: workspace:*
         version: link:../../libs/collection
+      '@canmi/compile':
+        specifier: workspace:*
+        version: link:../../libs/compile
+      '@canmi/fonts':
+        specifier: workspace:*
+        version: link:../../libs/fonts
       '@canmi/locales':
         specifier: workspace:*
         version: link:../../libs/locales
@@ -359,9 +365,6 @@ importers:
         specifier: ^1.47.0
         version: 1.47.0(svelte@5.57.1)
     devDependencies:
-      '@canmi/compile':
-        specifier: workspace:*
-        version: link:../../libs/compile
       '@milkdown/core':
         specifier: ^7.22.1
         version: 7.22.1(supports-color@10.2.2)

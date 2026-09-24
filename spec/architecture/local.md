@@ -312,7 +312,18 @@ Pressed, it opens the block's menu: its source for a block that has one, duplica
 down, delete. Dragged, it moves the block, and a line shows where it will land. It follows the
 pointer rather than standing beside every block at once, so the page reads as the article until the
 pointer asks. The menu is the sidebar's menu component, which makes it the one other place the
-editor takes over a press; a right click in the text stays the browser's. Showing the directive's source instead would make the
+editor takes over a press; a right click in the text stays the browser's.
+
+**Inline directives are drawn, and their words are typed in place.** A `:spoiler`, `:fn`, `:t` or
+`:link` is given the element and attribute the compiler writes for it, so the article body's own
+rules draw it: a spoiler is fogged and clears while the caret is in it, a note's words are followed
+by its number counted through the whole document, a `:t` run takes the classes from the one table
+the compiler reads (`libs/compile/src/style-classes.ts`). What a directive says beyond its words --
+a note's text, a link's target -- is shown on hover and is not yet edited here. **A run the page
+hides at some width is never hidden in the editor**: `wide` and `narrow` would otherwise put words
+out of the author's reach at whatever width the window happens to be, so both are shown, underlined
+dashed, and named on hover. The CMS loads the site's type, `@canmi/fonts/mono.css`, for the same
+reason it loads the site's components. Showing the directive's source instead would make the
 author read syntax in the one place built so they do not have to. The block's own markdown is
 compiled by `local` the way a preview is, through `POST /collection/fragment`, and handed to the
 article body -- so the editor never learns what a directive means, and cannot come to disagree with
