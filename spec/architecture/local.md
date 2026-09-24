@@ -250,6 +250,12 @@ the whole height of the window at its edge, and the same movement,
 [movement.ts](../../apps/cms/src/lib/movement.ts), in from its edge and out past it. It is a little
 wider than the sidebar, because it holds fields rather than a list.
 
+The text fades out before it reaches the toolbar: a veil at the pane's foot, held still with the
+pane, runs from the pane's color to nothing, so the toolbar floats over clear ground. Without it,
+in dark especially, the toolbar sat one step off the page and cut the words passing under it at its
+edge, which read as a hole in the text rather than as a thing above it; a stronger edge and a
+frosted ground were both tried and barely told apart from that.
+
 The toolbar is icons alone, each named for a screen reader and on hover, and small enough to sit
 over the text without asking to be read. The drawer comes out the way a folded sidebar does, and
 only that way: the pointer at the window's right edge brings it out and moving clear of it puts it

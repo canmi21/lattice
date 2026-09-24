@@ -439,6 +439,11 @@
 	// written sits on exactly the ground a reader sees it on. See spec/architecture/local.md.
 	const styles = stylex.create({
 		pane: { borderRadius: radius.xl },
+		veil: {
+			backgroundImage: 'linear-gradient(to top, var(--color-page) 35%, transparent)',
+			borderBottomLeftRadius: radius.xl,
+			borderBottomRightRadius: radius.xl,
+		},
 		// A section is a pill on the ground rather than a word in a list, so its corner is the
 		// buttons' rather than the compact control's.
 		item: { borderRadius: radius.md },
@@ -757,6 +762,13 @@
 		     foot and above everything else there, the drawer included. -->
 		{@render chrome.drawer?.()}
 		{#if chrome.toolbar}
+			<!-- The text fades out before it reaches the toolbar, so the toolbar floats over clear
+			     ground rather than over words cut off at its edge. Held still with the pane, beneath
+			     the float, the drawer and the toolbar, and rounded to the pane's own corners. -->
+			<div
+				class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-28 {stylex.attrs(styles.veil)
+					.class}"
+			></div>
 			<div class="pointer-events-none absolute inset-x-0 bottom-6 z-40 flex justify-center">
 				<div class="pointer-events-auto">{@render chrome.toolbar()}</div>
 			</div>
