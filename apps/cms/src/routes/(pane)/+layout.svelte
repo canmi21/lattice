@@ -33,7 +33,14 @@
 	import { URLS } from '@canmi/urls';
 	import { forget } from '$lib/buffer.ts';
 	import ContextMenu, { SEPARATOR, type MenuEntry, type MenuItem } from '$lib/context-menu.svelte';
-	import { createDraft, discardDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
+	import {
+		createDraft,
+		discardDraft,
+		DRAFTS,
+		saveDraft,
+		splitPath,
+		type Draft,
+	} from '$lib/collection.ts';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { foldHeight } from '$lib/fold.ts';
 	import SearchGlyph from '$lib/glyphs/search.svelte';
@@ -273,11 +280,40 @@
 		if (page.url.pathname === `/draft/${entry.resource}`) await goto('/');
 	}
 
-	async function start() {
-		const { resource } = await createDraft();
+	/**
+	 * A new article starts as a row asking for its title, and nothing exists until one is given:
+	 * leaving the row empty -- Escape, or a press anywhere else -- takes it back without a trace,
+	 * and only a title given asks `local` for a rid, which is then the draft's from its first save.
+	 * An identity reserved for a row the writer abandoned would be a draft nobody asked for.
+	 */
+	let drafting = $state<{ value: string }>();
+	let creating = false;
+
+	function start() {
 		open = true;
-		await invalidate(DRAFTS);
-		await goto(`/draft/${resource}`);
+		drafting = { value: '' };
+	}
+
+	async function settleNew(keep: boolean) {
+		const title = drafting?.value.trim();
+		drafting = undefined;
+		if (!keep || !title || creating) return;
+		creating = true;
+		try {
+			const { resource } = await createDraft();
+			await saveDraft(resource, '', { title });
+			await invalidate(DRAFTS);
+			await goto(`/draft/${resource}`);
+		} finally {
+			creating = false;
+		}
+	}
+
+	function newKey(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === 'Escape') {
+			event.preventDefault();
+			void settleNew(event.key === 'Enter');
+		}
 	}
 
 	const here = (href: string) => page.url.pathname === href;
@@ -457,6 +493,11 @@
 				':hover': 'color-mix(in oklab, var(--color-page) 50%, transparent)',
 				':focus-visible': 'color-mix(in oklab, var(--color-page) 50%, transparent)',
 			},
+		},
+		// A control on a row rather than a row -- the folder's new-article and chevron -- answers the
+		// pointer with its ink alone: only an entry you can go to takes a ground.
+		bare: {
+			backgroundColor: { default: null, ':hover': 'transparent', ':focus-visible': 'transparent' },
 		},
 		// A top-level row -- a section, Settings, the Articles folder -- reads lit at rest, and the
 		// pointer adds only the ground. What sits under Articles rests soft and lifts under the
@@ -662,7 +703,7 @@
 					type="button"
 					aria-label="New article"
 					onclick={start}
-					class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item, styles.top)
+					class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.top, styles.bare)
 						.class}"
 				>
 					<Plus class="size-3.5" aria-hidden="true" />
@@ -674,8 +715,8 @@
 					onclick={() => (open = !open)}
 					class="cursor-pointer px-2 py-1.5 {stylex.attrs(
 						surfaces.quietControl,
-						styles.item,
 						styles.top,
+						styles.bare,
 					).class}"
 				>
 					{@render chevron(open)}
@@ -688,6 +729,28 @@
 			<div class="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
 				<div use:foldHeight={open} class="overflow-hidden">
 					<ul class="flex flex-col">
+						{#if drafting}
+							<li class="flex flex-col">
+								<label
+									class="{TREE_ITEM} {INDENT[1]} {stylex.attrs(
+										surfaces.uiText,
+										styles.item,
+										styles.current,
+									).class}"
+								>
+									<FileText class="size-4 shrink-0" aria-hidden="true" />
+									<input
+										bind:value={drafting.value}
+										use:field
+										onkeydown={newKey}
+										onblur={() => void settleNew(true)}
+										placeholder="Title"
+										aria-label="New article's title"
+										class="min-w-0 flex-1 bg-transparent outline-none"
+									/>
+								</label>
+							</li>
+						{/if}
 						{#each groups.loose as entry (entry.resource)}
 							{@render article(entry, 1)}
 						{/each}

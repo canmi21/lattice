@@ -163,6 +163,13 @@ below hold still; the articles between them are the one list that grows, so they
 moves, and the Articles row itself -- with the control that creates an article -- stays at the top
 of its region while the tree under it scrolls.
 
+**A new article is a row asking for its title before it is anything.** The folder's new-article
+control opens an empty row in place and focuses it; leaving it empty takes it back with nothing
+sent, and only a title given reserves a rid and creates the draft under it. An identity reserved for
+a row the writer walked away from would be a draft nobody asked for, and the list would fill with
+them. The control itself, like the folder's chevron, answers the pointer with its ink alone: only an
+entry that goes somewhere takes a ground.
+
 **A right click on the sidebar's rows opens the sidebar's own menu, and anywhere else it is the
 browser's.** A section, the Articles folder, a category and an article each offer what can be done to
 them -- open, open in a new tab, preview, copy an identifier or a link, open and close folders, and
