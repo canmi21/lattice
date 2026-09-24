@@ -4,6 +4,8 @@
 	import { page } from '$app/state';
 	import ChartLine from '@lucide/svelte/icons/chart-line';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ArrowDownAZ from '@lucide/svelte/icons/arrow-down-a-z';
+	import ArrowDownZA from '@lucide/svelte/icons/arrow-down-z-a';
 	import ArrowLeftToLine from '@lucide/svelte/icons/arrow-left-to-line';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up';
@@ -20,8 +22,11 @@
 	import X from '@lucide/svelte/icons/x';
 	import Folder from '@lucide/svelte/icons/folder';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
+	import Funnel from '@lucide/svelte/icons/funnel';
+	import FunnelX from '@lucide/svelte/icons/funnel-x';
 	import House from '@lucide/svelte/icons/house';
 	import Link from '@lucide/svelte/icons/link';
+	import ListClock from '@lucide/svelte/icons/list-clock';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Settings from '@lucide/svelte/icons/settings';
@@ -90,6 +95,28 @@
 	/** Categories the writer closed; each is open until then. */
 	const closed = new SvelteSet<string>();
 
+	/**
+	 * How the tree is ordered, cycled by the row's control: by when each was last saved -- the
+	 * order the collection answers in, and where it starts -- then by title from A, then from Z.
+	 * Folders follow the titles' direction, and keep name order while the tree is by date.
+	 */
+	type Order = 'recent' | 'az' | 'za';
+	let order = $state<Order>('recent');
+	const ORDERS: Record<Order, { next: Order; label: string; icon: Component }> = {
+		recent: { next: 'az', label: 'Sorted by last saved', icon: ListClock },
+		az: { next: 'za', label: 'Sorted A to Z', icon: ArrowDownAZ },
+		za: { next: 'recent', label: 'Sorted Z to A', icon: ArrowDownZA },
+	};
+	const titleOf = (entry: Draft) => entry.meta.title ?? 'Untitled';
+	function arranged(list: Draft[]): Draft[] {
+		if (order === 'recent') return list;
+		const sorted = list.toSorted((a, b) => titleOf(a).localeCompare(titleOf(b)));
+		return order === 'az' ? sorted : sorted.toReversed();
+	}
+
+	/** Filtering has a control and no rule yet: the control only shows which state it is in. */
+	let filtering = $state(false);
+
 	/** The articles with no category, and a folder per category in name order. */
 	const groups = $derived.by(() => {
 		const folders = new Map<string, Draft[]>();
@@ -99,7 +126,13 @@
 			if (!category) loose.push(entry);
 			else folders.set(category, [...(folders.get(category) ?? []), entry]);
 		}
-		return { loose, folders: [...folders].toSorted(([a], [b]) => a.localeCompare(b)) };
+		const named = [...folders].toSorted(([a], [b]) => a.localeCompare(b));
+		return {
+			loose: arranged(loose),
+			folders: (order === 'za' ? named.toReversed() : named).map(
+				([name, entries]) => [name, arranged(entries)] as const,
+			),
+		};
 	});
 
 	/**
@@ -591,6 +624,19 @@
 	const TREE_ITEM = 'flex min-w-0 items-center gap-2 px-2 py-0.75 no-underline';
 </script>
 
+<!-- A control on the Articles row: its ink alone answers the pointer, the row being lit already. -->
+{#snippet control(label: string, Icon: Component, run: () => void)}
+	<button
+		type="button"
+		aria-label={label}
+		title={label}
+		onclick={run}
+		class="cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.top, styles.bare).class}"
+	>
+		<Icon class="size-3.5" aria-hidden="true" />
+	</button>
+{/snippet}
+
 {#snippet chevron(shown: boolean)}
 	<ChevronRight
 		class="size-3.5 {shown ? 'rotate-90' : ''} {stylex.attrs(styles.chevron).class}"
@@ -712,17 +758,20 @@
 			     said by a small step inward rather than a full one per level, so a deep list does not
 			     run out of width. Only Articles carries a chevron, at the row's end beside the control
 			     that creates one; a category says it is open by its folder icon alone. -->
-			<div class="flex shrink-0 items-center">
+			<!-- The row is lit as one under the pointer, controls and all, but only the name opens
+			     the folder and only each control does what it shows: the room between them does
+			     nothing. -->
+			<div class="flex shrink-0 items-center {stylex.attrs(styles.item).class}">
 				<button
 					type="button"
 					aria-expanded={open}
 					onclick={() => (open = !open)}
 					oncontextmenu={(event) => offer(event, articlesMenu)}
-					class="{ITEM} flex-1 cursor-pointer text-left {stylex.attrs(
+					class="{ITEM} min-w-0 flex-1 cursor-pointer text-left {stylex.attrs(
 						surfaces.quietControl,
 						surfaces.uiText,
-						styles.item,
 						styles.top,
+						styles.bare,
 					).class}"
 				>
 					{#if open}
@@ -732,28 +781,29 @@
 					{/if}
 					<span class="truncate">Articles</span>
 				</button>
-				<button
-					type="button"
-					aria-label="New article"
-					onclick={start}
-					class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.top, styles.bare)
-						.class}"
-				>
-					<Plus class="size-3.5" aria-hidden="true" />
-				</button>
-				<button
-					type="button"
-					tabindex="-1"
-					aria-hidden="true"
-					onclick={() => (open = !open)}
-					class="cursor-pointer px-2 py-1.5 {stylex.attrs(
-						surfaces.quietControl,
-						styles.top,
-						styles.bare,
-					).class}"
-				>
-					{@render chevron(open)}
-				</button>
+				<div class="flex shrink-0 items-center pe-1">
+					{@render control(
+						ORDERS[order].label,
+						ORDERS[order].icon,
+						() => (order = ORDERS[order].next),
+					)}
+					{@render control(
+						filtering ? 'Filter on' : 'Filter off',
+						filtering ? FunnelX : Funnel,
+						() => (filtering = !filtering),
+					)}
+					{@render control('New article', Plus, start)}
+					<button
+						type="button"
+						tabindex="-1"
+						aria-hidden="true"
+						onclick={() => (open = !open)}
+						class="cursor-pointer p-1 {stylex.attrs(surfaces.quietControl, styles.top, styles.bare)
+							.class}"
+					>
+						{@render chevron(open)}
+					</button>
+				</div>
 			</div>
 
 			<!-- The folder's row stays at the top of the region, with the control that creates an

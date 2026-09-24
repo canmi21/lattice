@@ -164,6 +164,12 @@ below hold still; the articles between them are the one list that grows, so they
 moves, and the Articles row itself -- with the control that creates an article -- stays at the top
 of its region while the tree under it scrolls.
 
+**The Articles row carries the tree's controls, and is lit as one.** Beside its name sit, in order,
+sorting -- by last saved, the collection's own order and where it starts, then by title from A and
+from Z, one control cycling the three -- filtering, which has its control and no rule yet, the new
+article and the fold. The row takes the pointer's ground whole, controls included, but only the name
+opens the folder and only each control does what it shows; the room between them does nothing.
+
 **A new article is a row asking for its title before it is anything.** The folder's new-article
 control opens an empty row in place and focuses it. An empty row goes on Escape or a press anywhere
 else; a row with words in it survives a press elsewhere, because a stray click should not cost what
