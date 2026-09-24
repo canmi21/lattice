@@ -4,10 +4,7 @@ import { URLS } from '@canmi/urls';
 import { toHtml } from 'hast-util-to-html';
 import { toHast, type Handler } from 'mdast-util-to-hast';
 import { toString as mdastToString } from 'mdast-util-to-string';
-import remarkDirective from 'remark-directive';
-import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
-import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
@@ -34,6 +31,9 @@ import type {
 	ArticleReference,
 } from '@canmi/artifacts/types';
 import { languageLabel } from './highlight.ts';
+import { parser } from './parser.ts';
+
+export { syntaxTree } from './parser.ts';
 import { styleClasses } from './style-classes.ts';
 
 export { COLOR_CLASSES, FONT_CLASSES } from './style-classes.ts';
@@ -54,22 +54,6 @@ import type { Heading, Image as MdImage, Nodes, Paragraph, Root, RootContent } f
 
 // Feed and markdown targets need absolute image URLs, and they must resolve the same way the
 // rendered page does. Both now read the host from libs/urls rather than each spelling it out.
-
-const parser = unified()
-	.use(remarkParse)
-	.use(remarkFrontmatter, ['yaml'])
-	.use(remarkGfm)
-	.use(remarkDirective);
-
-/**
- * An article's syntax tree as the site reads it, before anything is compiled from it.
- *
- * Exported as the measure of what a text means: the editor's round trip is held to producing
- * the same tree. See spec/tasks.md, "The editor's round trip keeps structure".
- */
-export function syntaxTree(markdown: string): Root {
-	return parser.parse(markdown) as Root;
-}
 
 const stringifier = unified().use(remarkStringify, { bullet: '-', fences: true }).use(remarkGfm);
 

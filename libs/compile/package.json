@@ -11,6 +11,7 @@
 		"./slugs": "./src/slugs.ts",
 		"./width": "./src/width.ts",
 		"./highlight": "./src/highlight.ts",
+		"./parser": "./src/parser.ts",
 		"./preview": "./src/preview.ts",
 		"./style-classes": "./src/style-classes.ts"
 	},
