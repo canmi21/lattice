@@ -57,6 +57,14 @@ output and is never hand-edited.
 
 ## A segment is a block, and its id is the hash of its canonical form
 
+**Retired on 2026-09-24, with everything below that rests on it.** Articles are no longer stored
+in a canonical form, and a segment is no longer keyed by the hash of one: a hash over text is too
+unstable an identity for a translation to hang on. The editor saves what the author wrote, and the
+segment layer is to be redefined by structural equivalence instead -- see
+[../todo/cms.md](../todo/cms.md), "The segment layer waits for its redesign". Until then no new
+article is translated. What follows is kept as the record of what the existing sidecars were built
+by, which the redesign has to read.
+
 Article bodies are split on markdown block boundaries and each block is keyed by a hash,
 truncated the same way asset ids are. The synchronisation behaviour falls out of that rather than
 being built:

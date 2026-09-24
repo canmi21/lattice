@@ -290,6 +290,30 @@ of margins, [edge.ts](../../libs/behavior/src/edge.ts) in `@canmi/behavior`. Whe
 last saved, and why a publication was refused, are said at the top of the drawer for now -- that is
 a place kept, not a place decided.
 
+**The editor's document is the markdown text, and it moves to CodeMirror 6.** Decided on
+2026-09-24, and the ProseMirror editor described in the paragraphs below is what it replaces. A
+ProseMirror document is a tree, and markdown was a format it read in and wrote out: every custom
+construct cost a schema, a parser and a serializer, and letting the author see and edit the syntax
+meant converting between the two representations wherever the caret went -- which is a boundary
+case per gesture per state, and no amount of rules closes it. With the text as the document there is
+nothing to convert: what is saved is what was typed, broken syntax is text the parser has not yet
+recognised, and bold set from a toolbar is `**` inserted around the selection. How it looks is a
+function of the text and the caret alone:
+
+- **The site's parser is the judge of what the text means**, run with positions, and its answer is
+  drawn as decorations: a mark's delimiters hidden unless the caret touches them, a heading's line
+  set in the heading's type, a block directive or a fence replaced by the site's rendering until
+  the caret is inside it. `libs/compile` keeps sole ownership of what a directive means; the editor
+  only needs to know where one is.
+- **A block is the island.** A paragraph, a heading, a whole fence, a whole `:::` container is
+  parsed on its own, and only the block an edit touched is parsed again; the rest are reused. Not a
+  line: a paragraph's emphasis may cross a line break, a fence's lines are not prose, and a
+  container spans many -- an island smaller than the site's is one where the editor and the site
+  disagree.
+- **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
+  once imposed on every save is retired with the segment hashing that needed it. See
+  [../i18n/segments.md](../i18n/segments.md).
+
 **The editor writes in the article's own typography.** Its prose sits under
 [prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
 under, and the nodes that carry a class on the site -- a heading, a code block's frame -- are given
