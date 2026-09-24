@@ -19,8 +19,7 @@
 		rootCtx,
 		serializerCtx,
 	} from '@milkdown/core';
-	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
-	import { gfm } from '@milkdown/preset-gfm';
+	import { headingAttr } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
 	import ProseRoot from '@canmi/prose/prose-root.svelte';
@@ -33,7 +32,7 @@
 	import { formatBar } from './format-bar';
 	import { inlineSource, settled } from './inline-source';
 	import { inlineViews } from './inline-views';
-	import { extensions } from './markdown';
+	import { extensions, presets } from './markdown';
 
 	let {
 		markdown,
@@ -52,9 +51,17 @@
 	const styles = stylex.create({
 		code: { fontFamily: family.monoTheme, fontSize: text.px13 },
 		open: { backgroundColor: 'var(--color-paper-hover)', borderRadius: radius.sm },
+		// Syntax that did not close, underlined where it stands until it is finished.
+		broken: {
+			textDecorationLine: 'underline',
+			textDecorationStyle: 'wavy',
+			textDecorationColor: 'var(--color-red)',
+			textUnderlineOffset: '0.25em',
+		},
 	});
 	// Marked words opened as markdown sit on a faint ground. See inline-source.ts.
 	const OPEN = stylex.attrs(styles.open).class ?? '';
+	const BROKEN = stylex.attrs(styles.broken).class ?? '';
 	const CODE = `overflow-x-auto px-4 py-3 ${stylex.attrs(surfaces.blockFrame, styles.code).class}`;
 
 	onMount(() => {
@@ -81,15 +88,14 @@
 					onChange(current.get(serializerCtx)(settled(current, state)));
 				});
 			})
-			.use(commonmark)
-			.use(gfm)
+			.use(presets)
 			.use(extensions)
 			// A block is compiled in the draft's language, or the source language when none is set.
 			.use(blockViews(() => language || 'en-US', CODE))
 			.use(blockHandle)
 			.use(inlineViews)
 			.use(formatBar)
-			.use(inlineSource(OPEN))
+			.use(inlineSource({ open: OPEN, broken: BROKEN }))
 			.use(history)
 			.use(listener)
 			.create()

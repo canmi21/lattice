@@ -12,7 +12,7 @@ import type { EditorView } from '@milkdown/prose/view';
 import { $prose } from '@milkdown/utils';
 import { mount, unmount } from 'svelte';
 import { formatState } from './block-props.svelte';
-import { inlineSourceKey } from './inline-source';
+import { inRaw } from './inline-source';
 import FormatBar, { FORMATS } from './format-bar.svelte';
 
 /** How far above the selection the bar floats. */
@@ -53,8 +53,7 @@ class Bar {
 			selection.$from.parent.inlineContent &&
 			!selection.$from.parent.type.spec.code;
 		// Inside open source the asterisks are text; a mark set there would be lost on reading back.
-		const opened = inlineSourceKey.getState(view.state);
-		const inSource = !!opened && selection.to > opened.from && selection.from < opened.to;
+		const inSource = inRaw(view.state, selection.from, selection.to);
 		if (!prose || inSource || view.composing || !view.hasFocus()) {
 			this.format.shown = false;
 			return;

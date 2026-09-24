@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 async function open(markdown: string) {
-	editor = await makeEditor(markdown, [inlineSource('')].flat());
+	editor = await makeEditor(markdown, [inlineSource({ open: '', broken: '' })].flat());
 	return editor;
 }
 
@@ -121,5 +121,65 @@ describe('inline source', () => {
 		type(target, 'new');
 		caret(target, 'Other');
 		expect(saved(target)).toBe('Words :fn[here]{is="new"} after.\n\nOther.');
+	});
+
+	it('reads asterisks the author typed as bold once the caret leaves the sentence', async () => {
+		const target = await open('Start.\n\nOther.\n');
+		caret(target, 'Start.', 6);
+		type(target, ' **new** words');
+		expect(text(target)).toBe('Start. **new** wordsOther.');
+		caret(target, 'Other');
+		expect(text(target)).toBe('Start. new wordsOther.');
+		expect(saved(target)).toBe('Start. **new** words\n\nOther.');
+	});
+
+	it('closes asterisks typed on either side of an old word around it', async () => {
+		const target = await open('Say hello there.\n\nOther.\n');
+		caret(target, 'hello');
+		type(target, '**');
+		caret(target, 'hello', 5);
+		type(target, '**');
+		caret(target, 'Other');
+		expect(saved(target)).toBe('Say **hello** there.\n\nOther.');
+	});
+
+	it('saves typed syntax as it was typed while the caret is still in it', async () => {
+		const target = await open('Start.\n');
+		caret(target, 'Start.', 6);
+		type(target, ' **new**');
+		expect(saved(target)).toBe('Start. **new**');
+	});
+
+	it('reads everything back when the editor loses focus', async () => {
+		const target = await open('Plain **bold** end.\n');
+		caret(target, 'bold', 1);
+		expect(text(target)).toBe('Plain **bold** end.');
+		target.action((ctx) => ctx.get(editorViewCtx).dom.dispatchEvent(new window.FocusEvent('blur')));
+		expect(text(target)).toBe('Plain bold end.');
+	});
+
+	it('opens broken syntax again as it was written, without backslashes', async () => {
+		const target = await open('Start.\n\nOther.\n');
+		caret(target, 'Start.', 6);
+		type(target, ' **open');
+		caret(target, 'Other');
+		expect(text(target)).toBe('Start. **openOther.');
+		caret(target, '**open', 3);
+		expect(text(target)).toBe('Start. **openOther.');
+		expect(saved(target)).toBe('Start. \\*\\*open\n\nOther.');
+	});
+
+	it('keeps a mark set on typed text, rather than reading the text alone', async () => {
+		const target = await open('Start.\n\nOther.\n');
+		caret(target, 'Start.', 6);
+		type(target, ' word');
+		target.action((ctx) => {
+			const view = ctx.get(editorViewCtx);
+			const from = at(view.state.doc, 'word');
+			const strong = view.state.schema.marks.strong!;
+			view.dispatch(view.state.tr.addMark(from, from + 4, strong.create()));
+		});
+		caret(target, 'Other');
+		expect(saved(target)).toBe('Start. **word**\n\nOther.');
 	});
 });

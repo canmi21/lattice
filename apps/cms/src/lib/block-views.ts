@@ -16,6 +16,7 @@ import { $prose, $view } from '@milkdown/utils';
 import { mount, unmount } from 'svelte';
 import { blockProps } from './block-props.svelte';
 import BlockView from './block-view.svelte';
+import { inlineSourceKey } from './inline-source';
 import { directiveBlock, fence } from './markdown';
 
 /** A draft's language, read when a block is compiled: descriptions follow the prose's. */
@@ -38,6 +39,8 @@ const editing = $prose(
 			key: new PluginKey('editing-block'),
 			props: {
 				decorations(state) {
+					// An editor out of focus is being read, not edited: every block draws itself.
+					if (inlineSourceKey.getState(state)?.focused === false) return DecorationSet.empty;
 					const { $from } = state.selection;
 					for (let depth = $from.depth; depth > 0; depth--) {
 						const node = $from.node(depth);

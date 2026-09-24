@@ -12,7 +12,9 @@
  * Ported from the archived desktop editor, which settled the same question once.
  */
 import { config, remarkStringifyOptionsCtx } from '@milkdown/core';
+import * as common from '@milkdown/preset-commonmark';
 import { codeBlockSchema, linkSchema, paragraphSchema } from '@milkdown/preset-commonmark';
+import * as github from '@milkdown/preset-gfm';
 import type { JSONRecord, MarkdownNode } from '@milkdown/transformer';
 import { $nodeSchema, $remark } from '@milkdown/utils';
 import remarkDirective from 'remark-directive';
@@ -211,3 +213,24 @@ export const extensions = [
 	...outerLink,
 	...paragraph,
 ];
+
+/**
+ * CommonMark and GFM without the rules that turn typed marks into marks as they are typed.
+ *
+ * Those rules match `**word**` by pattern the moment the second pair closes, which is guessing at
+ * syntax mid-word; here what is typed is source, and the parser reads it once the caret has left.
+ * See inline-source.ts. The block rules -- `# ` for a heading, `- ` for a list -- are kept.
+ */
+export const presets = [
+	common.schema,
+	common.inputRules,
+	common.commands,
+	common.keymap,
+	common.plugins,
+	github.schema,
+	github.inputRules,
+	github.pasteRules,
+	github.keymap,
+	github.commands,
+	github.plugins,
+].flat();

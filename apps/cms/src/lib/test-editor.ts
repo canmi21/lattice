@@ -3,10 +3,8 @@
  */
 import { Editor, defaultValueCtx, rootCtx } from '@milkdown/core';
 import type { MilkdownPlugin } from '@milkdown/ctx';
-import { commonmark } from '@milkdown/preset-commonmark';
-import { gfm } from '@milkdown/preset-gfm';
 import { JSDOM } from 'jsdom';
-import { extensions } from './markdown.ts';
+import { extensions, presets } from './markdown.ts';
 
 /**
  * A window for the editor alone. The file is not run under jsdom as a whole, because jsdom's own
@@ -42,8 +40,7 @@ export function makeEditor(markdown: string, plugins: MilkdownPlugin[] = []): Pr
 			ctx.set(rootCtx, root);
 			ctx.set(defaultValueCtx, markdown);
 		})
-		.use(commonmark)
-		.use(gfm)
+		.use(presets)
 		.use(extensions)
 		.use(plugins)
 		.create();
