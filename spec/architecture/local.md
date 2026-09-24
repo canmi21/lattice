@@ -364,6 +364,15 @@ function of the text and the caret alone:
   that one: a single `*` may be what was meant. Other editors pair only an empty `(|)`; this goes
   further because the partner is known rather than guessed, and is on screen, since the caret
   beside a mark shows both its sides.
+- **Blocks are spaced by the page's numbers, measured on the preview.** CodeMirror draws every
+  line as a bare `.cm-line`, so the article body's rules for `p`, `h2` and `blockquote` cannot
+  reach it; the drawing classes the lines instead, and the editor restates those rules for them.
+  A blank line between blocks is drawn 16px high, the page's gap between two paragraphs, and a
+  block wanting more takes the rest above its first line: 48 above a section heading, 32 above a
+  subsection, 40 either side of a rule. A quote's lines take the blockquote's ground, edge and
+  corners, its markers hidden unless the caret is in it; a rule is the page's `<hr>` over its
+  dashes. A list is drawn as its source, because the page draws none -- see
+  [../todo/site.md](../todo/site.md).
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).

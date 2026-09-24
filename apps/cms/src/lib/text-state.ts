@@ -33,6 +33,24 @@ class SoftBreak extends WidgetType {
 	}
 }
 
+/** A thematic break as the page draws one: an `<hr>`, which the article body's rules style. */
+class Rule extends WidgetType {
+	override eq() {
+		return true;
+	}
+	toDOM() {
+		// Held in an inline box as wide as the line: a bare `<hr>` is a block, and a block inside
+		// a line breaks it into empty line boxes above and below.
+		const holder = document.createElement('span');
+		holder.className = 'rule';
+		holder.append(document.createElement('hr'));
+		return holder;
+	}
+	override ignoreEvent() {
+		return false;
+	}
+}
+
 type Reading = { tree: Root; decorations: DecorationSet };
 
 /** The classes the drawing is made with, which belong to the page that holds the editor. */
@@ -51,6 +69,8 @@ function draw(state: EditorState, tree: Root, classes: Drawing): DecorationSet {
 			ranges.push(Decoration.replace({}).range(piece.from, piece.to));
 		} else if (piece.kind === 'line') {
 			ranges.push(Decoration.line({ class: piece.class }).range(piece.at));
+		} else if (piece.kind === 'rule') {
+			ranges.push(Decoration.replace({ widget: new Rule() }).range(piece.from, piece.to));
 		} else {
 			const widget = new SoftBreak(classes.soft);
 			ranges.push(Decoration.widget({ widget, side: -1 }).range(piece.at));

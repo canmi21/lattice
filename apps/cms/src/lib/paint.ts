@@ -18,13 +18,41 @@ export type Paint =
 	/** A class on the line that starts at `at`. */
 	| { kind: 'line'; at: number; class: string }
 	/** A newline the page joins into a space, marked where the line ends. */
-	| { kind: 'soft'; at: number };
+	| { kind: 'soft'; at: number }
+	/** A thematic break drawn as the page's rule over its dashes. */
+	| { kind: 'rule'; from: number; to: number };
 
 /** The ranges the author has selected; a caret is a range whose ends meet. */
 export type Selected = readonly { from: number; to: number }[];
 
 /** Classes the drawing needs from the page it is drawn on, named rather than written here. */
-export type Classes = { heading: (depth: number) => string; link: string };
+export type Classes = {
+	heading: (depth: number) => string;
+	link: string;
+	/** Room above a block's first line, in pixels, beyond what a blank line gives. */
+	gap: (pixels: number) => string;
+	/** A blank line between blocks, which is the page's space between two of them. */
+	blank: string;
+	quote: { line: string; first: string; last: string };
+	/** The line a drawn rule stands on, which is only as tall as the rule. */
+	rule: string;
+};
+
+/**
+ * The page's space between blocks, measured on the preview: 16 between most, 48 above a section
+ * heading, 32 above a subsection, 40 either side of a rule. A blank line is drawn 16 high, so it is
+ * the space between two paragraphs, and a block needing more takes the rest above its first line.
+ */
+export const BLANK = 16;
+
+function spaceBefore(previous: Nodes, node: Nodes): number {
+	if (node.type === 'heading') return node.depth === 2 ? 48 : 32;
+	if (node.type === 'thematicBreak' || previous.type === 'thematicBreak') return 40;
+	return BLANK;
+}
+
+/** A quote's marker on one of its lines: `>` and the space after it. */
+const QUOTE_MARK = /^[ \t]*>[ \t]?/u;
 
 /** Constructs whose words are wrapped in an element of the same meaning. */
 const TAGS: Partial<Record<Nodes['type'], string>> = {
@@ -91,6 +119,13 @@ export function paint(text: string, tree: Root, selected: Selected, classes: Cla
 			}
 		} else if (node.type === 'paragraph') {
 			softBreaks(node);
+		} else if (node.type === 'blockquote') {
+			quote(node);
+		} else if (node.type === 'thematicBreak') {
+			if (!touched(selected, start(node), end(node))) {
+				out.push({ kind: 'rule', from: start(node), to: end(node) });
+				out.push({ kind: 'line', at: lineStart(text, start(node)), class: classes.rule });
+			}
 		}
 		if ('children' in node) for (const child of node.children) visit(child as Nodes);
 	}
@@ -114,6 +149,46 @@ export function paint(text: string, tree: Root, selected: Selected, classes: Cla
 		}
 	}
 
+	/** Every line of a quote on the quote's ground, its markers hidden unless the caret is in it. */
+	function quote(node: Nodes) {
+		const shown = touched(selected, start(node), end(node));
+		const first = lineStart(text, start(node));
+		for (let at = first; at <= end(node);) {
+			const next = text.indexOf('\n', at);
+			const stop = next < 0 ? text.length : next;
+			const names = [classes.quote.line];
+			if (at === first) names.push(classes.quote.first);
+			if (next < 0 || next >= end(node)) names.push(classes.quote.last);
+			out.push({ kind: 'line', at, class: names.join(' ') });
+			const mark = QUOTE_MARK.exec(text.slice(at, stop))?.[0].length ?? 0;
+			if (!shown && mark) out.push({ kind: 'hide', from: at, to: at + mark });
+			if (next < 0) break;
+			at = next + 1;
+		}
+	}
+
+	/** The space between blocks: blank lines drawn as the page's gap, and room above where it asks more. */
+	function layout() {
+		tree.children.forEach((node, index) => {
+			if (index === 0 || !node.position) return;
+			const previous = tree.children[index - 1]!;
+			let blanks = 0;
+			for (let at = text.indexOf('\n', end(previous)) + 1; at > 0 && at < start(node);) {
+				const next = text.indexOf('\n', at);
+				if (next < 0 || next >= start(node)) break;
+				if (text.slice(at, next).trim() === '') {
+					out.push({ kind: 'line', at, class: classes.blank });
+					blanks += 1;
+				}
+				at = next + 1;
+			}
+			const room = spaceBefore(previous, node) - (blanks > 0 ? BLANK : 0);
+			if (room > 0)
+				out.push({ kind: 'line', at: lineStart(text, start(node)), class: classes.gap(room) });
+		});
+	}
+
 	for (const child of tree.children) visit(child);
+	layout();
 	return out;
 }

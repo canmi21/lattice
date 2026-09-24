@@ -242,3 +242,14 @@ optional per-paragraph override in the compiled article, which is a change to th
 The threshold is a constant in whichever layer measures, and the table above is what it should be
 argued from. The language half stays as it is: English opts in, every other language keeps one
 answer per article until somebody measures it.
+
+## A list on the page has no marker and no indent
+
+Measured on the preview of a draft holding one, 2026-09-24: `ul` and `ol` compute `list-style-type:
+none` with no padding, so a list reads as lines of plain text -- Tailwind's reset takes the markers
+away and nothing in [prose-root.svelte](../../libs/prose/src/prose-root.svelte) puts them back. No
+article has used a list yet, which is why nobody saw it. The CMS's editor draws a list as its source
+until this is decided, rather than inventing a look the page does not have.
+
+**What deciding it would cost.** A rule for `ul`, `ol` and `li` beside the blockquote's in the
+prose root, which the editor then draws to match: the marker, the indent, the space between items.

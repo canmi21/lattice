@@ -5,7 +5,14 @@ import { syntaxTree } from '@canmi/compile/parser';
 import { describe, expect, it } from 'vitest';
 import { paint, type Paint, type Selected } from './paint.ts';
 
-const CLASSES = { heading: (depth: number) => `h${depth}`, link: 'link' };
+const CLASSES = {
+	heading: (depth: number) => `h${depth}`,
+	link: 'link',
+	gap: (pixels: number) => `gap${pixels}`,
+	blank: 'blank',
+	quote: { line: 'q', first: 'q-first', last: 'q-last' },
+	rule: 'rule',
+};
 
 function draw(text: string, selected: Selected = []) {
 	return paint(text, syntaxTree(text), selected, CLASSES);
@@ -20,7 +27,9 @@ function read(text: string, paints: Paint[]) {
 				? `hide:${text.slice(p.from, p.to)}`
 				: p.kind === 'line'
 					? `line:${p.class}@${p.at}`
-					: `soft@${p.at}`,
+					: p.kind === 'rule'
+						? `rule:${text.slice(p.from, p.to)}`
+						: `soft@${p.at}`,
 	);
 }
 
@@ -68,8 +77,13 @@ describe('paint', () => {
 
 	it('sets a heading in its type and hides its marker unless the caret is on it', () => {
 		const text = 'p\n\n## Title';
-		expect(read(text, draw(text))).toEqual(['line:h2@3', 'hide:## ']);
-		expect(read(text, draw(text, caret(8)))).toEqual(['line:h2@3']);
+		expect(read(text, draw(text))).toEqual([
+			'line:h2@3',
+			'hide:## ',
+			'line:blank@2',
+			'line:gap32@3',
+		]);
+		expect(read(text, draw(text, caret(8)))).toEqual(['line:h2@3', 'line:blank@2', 'line:gap32@3']);
 	});
 
 	it('hides the backslash of a break, and marks a soft break where the page joins lines', () => {
@@ -80,5 +94,43 @@ describe('paint', () => {
 	it('leaves broken syntax as the text it is', () => {
 		const text = 'a **open';
 		expect(read(text, draw(text))).toEqual([]);
+	});
+
+	it("spaces blocks as the page does: a blank line is a paragraph's gap, more goes above", () => {
+		const text = 'a\n\nb\n\n### c\n\n---\n\nd';
+		expect(read(text, draw(text)).filter((p) => p.startsWith('line:'))).toEqual([
+			'line:h3@6',
+			'line:rule@13',
+			'line:blank@2',
+			'line:blank@5',
+			'line:gap16@6',
+			'line:blank@12',
+			'line:gap24@13',
+			'line:blank@17',
+			'line:gap24@18',
+		]);
+	});
+
+	it('puts a quote on its ground and hides its markers unless the caret is in it', () => {
+		const text = '> one\n> two';
+		expect(read(text, draw(text))).toEqual([
+			'line:q q-first@0',
+			'hide:> ',
+			'line:q q-last@6',
+			'hide:> ',
+			// One paragraph across two quoted lines: the page joins them.
+			'soft@5',
+		]);
+		expect(read(text, draw(text, caret(3)))).toEqual([
+			'line:q q-first@0',
+			'line:q q-last@6',
+			'soft@5',
+		]);
+	});
+
+	it('draws a rule over its dashes unless the caret is on them', () => {
+		const text = 'a\n\n---';
+		expect(read(text, draw(text))).toContain('rule:---');
+		expect(read(text, draw(text, caret(5)))).not.toContain('rule:---');
 	});
 });

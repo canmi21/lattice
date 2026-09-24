@@ -69,3 +69,15 @@ the redesign starts from a copy it cannot damage. The i18n structure itself may 
 **What deciding it would cost.** The export is mechanical. The redesign is not: every sidecar was
 written against canonical hashes, so moving them is a migration, and `validate.rs` and the runners
 read the old shape.
+
+## The CMS does not load the site's named surfaces, so a link is unstyled there
+
+The compiler writes `focus-link spring-underline article-link` on every prose link, and those three
+are defined in `apps/site/src/styles/utilities.css`, which only the site loads. So a link in the
+CMS's preview, and in its editor, draws without its underline. It is the entry in
+[css.md](css.md), "The named layer in CSS is the visual layer, written before there was one", seen
+from a second consumer: the names belong to the prose the compiler writes, not to the site.
+
+**What deciding it would cost.** Either the prose names move to `libs/prose` beside `rail.css` and
+both applications load them, or they become StyleX recipes the way `quiet-control` did. The first is
+a file moved; the second is the migration that entry defers.
