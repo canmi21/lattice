@@ -26,7 +26,7 @@ export type Paint =
 	| { kind: 'hide'; from: number; to: number }
 	/** A class on the line that starts at `at`. */
 	| { kind: 'line'; at: number; class: string }
-	/** A newline the page joins into a space, marked where the line ends. */
+	/** A newline the page joins into a space, drawn as that space: the two lines are one. */
 	| { kind: 'soft'; at: number }
 	/** A thematic break drawn as the page's rule over its dashes. */
 	| { kind: 'rule'; from: number; to: number }
@@ -46,7 +46,11 @@ export type Classes = {
 	gap: (pixels: number) => string;
 	/** A blank line between blocks, which is the page's space between two of them. */
 	blank: string;
-	quote: { line: string; first: string; last: string };
+	/**
+	 * A quote's lines. `gap` is a line holding only `>`, the space between its paragraphs, drawn at
+	 * that space's height whether its marker shows or not; `quiet` is such a line with it hidden.
+	 */
+	quote: { line: string; first: string; last: string; gap: string; quiet: string };
 	/** The line a drawn rule stands on, which is only as tall as the rule. */
 	rule: string;
 	/** The lines of a block while its source is shown. */
@@ -140,6 +144,29 @@ function tClasses(attributes: Attributes): string {
 export function paint(text: string, tree: Root, selected: Selected, classes: Classes): Paint[] {
 	const out: Paint[] = [];
 	let notes = 0;
+
+	// Every newline inside a paragraph that is not a hard break: the page joins those lines with a
+	// space, so the editor draws them as one line. Found first, because a quote's lines are drawn
+	// by where these fall.
+	const soft = new Set<number>();
+	(function find(nodes: Nodes[]) {
+		for (const node of nodes) {
+			if (!node.position || RENDERED.has(node.type)) continue;
+			if (node.type === 'paragraph') {
+				const hard = new Set<number>();
+				(function collect(parent: Parent) {
+					for (const child of parent.children) {
+						if (child.type === 'break') hard.add(end(child) - 1);
+						if ('children' in child) collect(child);
+					}
+				})(node);
+				for (let at = text.indexOf('\n', start(node)); at >= 0 && at < end(node);) {
+					if (!hard.has(at)) soft.add(at);
+					at = text.indexOf('\n', at + 1);
+				}
+			} else if ('children' in node) find(node.children as Nodes[]);
+		}
+	})(tree.children as Nodes[]);
 
 	/** A construct's delimiters, hidden unless the selection touches the construct. */
 	function delimit(node: Nodes, open: number, close: number) {
@@ -272,38 +299,35 @@ export function paint(text: string, tree: Root, selected: Selected, classes: Cla
 		delimit(node, open, close - anchor);
 	}
 
-	/** Every newline in a paragraph that is not a hard break: the page joins those lines. */
+	/** Every soft break in a paragraph, painted as the space the page draws it as. */
 	function softBreaks(node: Parent & Nodes) {
-		const hard = new Set<number>();
-		const code: [number, number][] = [];
-		(function collect(parent: Parent) {
-			for (const child of parent.children) {
-				if (child.type === 'break') hard.add(end(child) - 1);
-				if (child.type === 'inlineCode') code.push([start(child), end(child)]);
-				if ('children' in child) collect(child);
-			}
-		})(node);
-		for (let at = text.indexOf('\n', start(node)); at >= 0 && at < end(node);) {
-			if (!hard.has(at) && !code.some(([from, to]) => at > from && at < to)) {
-				out.push({ kind: 'soft', at });
-			}
-			at = text.indexOf('\n', at + 1);
-		}
+		for (const at of soft) if (at > start(node) && at < end(node)) out.push({ kind: 'soft', at });
 	}
 
-	/** Every line of a quote on the quote's ground, its markers hidden unless the caret is in it. */
+	/**
+	 * Every line of a quote on the quote's ground, its markers hidden unless the caret is in it. A
+	 * line a soft break joined to the one above is drawn as part of it, so the quote's first and
+	 * last are the lines as drawn, not as written.
+	 */
 	function quote(node: Nodes) {
 		const shown = touched(selected, start(node), end(node));
 		const lines = linesOf(text, start(node), end(node));
-		lines.forEach((at, index) => {
-			const names = [classes.quote.line];
-			if (index === 0) names.push(classes.quote.first);
-			if (index === lines.length - 1) names.push(classes.quote.last);
-			out.push({ kind: 'line', at, class: names.join(' ') });
+		const drawn = lines.filter((at) => !soft.has(at - 1));
+		for (const at of lines) {
 			const stop = text.indexOf('\n', at);
-			const mark = QUOTE_MARK.exec(text.slice(at, stop < 0 ? text.length : stop))?.[0].length ?? 0;
+			const line = text.slice(at, stop < 0 ? text.length : stop);
+			const mark = QUOTE_MARK.exec(line)?.[0].length ?? 0;
 			if (!shown && mark) out.push({ kind: 'hide', from: at, to: at + mark });
-		});
+			if (!drawn.includes(at)) continue;
+			const names = [classes.quote.line];
+			if (at === drawn[0]) names.push(classes.quote.first);
+			if (at === drawn.at(-1)) names.push(classes.quote.last);
+			if (mark && line.slice(mark).trim() === '') {
+				names.push(classes.quote.gap);
+				if (!shown) names.push(classes.quote.quiet);
+			}
+			out.push({ kind: 'line', at, class: names.join(' ') });
+		}
 	}
 
 	/**

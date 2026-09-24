@@ -48,36 +48,6 @@ export const renderedHeights = ViewPlugin.define(() => ({
 	},
 }));
 
-/** The first scrolling ancestor: the page a box hands its scroll on to. */
-function page(element: HTMLElement): HTMLElement | null {
-	for (let at = element.parentElement; at; at = at.parentElement) {
-		const overflow = getComputedStyle(at).overflowY;
-		if ((overflow === 'auto' || overflow === 'scroll') && at.scrollHeight > at.clientHeight) {
-			return at;
-		}
-	}
-	return null;
-}
-
-/**
- * A scroll the box has no room left for goes on to the page, in the same gesture, both ways: the
- * box takes what it can and the page the rest. The browser's own chaining waits for a new
- * gesture once one has started on the box, which reads as the page refusing to move.
- */
-function handOn(box: HTMLElement, event: WheelEvent) {
-	if (event.deltaY === 0 || event.ctrlKey) return;
-	const room =
-		event.deltaY > 0 ? box.scrollHeight - box.clientHeight - box.scrollTop : -box.scrollTop;
-	const rest =
-		event.deltaY > 0 ? Math.max(0, event.deltaY - room) : Math.min(0, event.deltaY - room);
-	if (rest === 0) return;
-	const outer = page(box);
-	if (!outer) return;
-	event.preventDefault();
-	box.scrollTop += event.deltaY - rest;
-	outer.scrollTop += rest;
-}
-
 type Element = HTMLElement & { unmount?: () => void; resized?: ResizeObserver };
 
 export class Rendered extends WidgetType {
@@ -176,7 +146,6 @@ export class Rendered extends WidgetType {
 			drawing.hidden = false;
 		};
 
-		box.addEventListener('wheel', (event) => handOn(box, event), { passive: false });
 		box.addEventListener('blur', commit, { once: true });
 		// A tab closed or navigated away from while the box is open still keeps what was typed.
 		window.addEventListener('pagehide', commit);

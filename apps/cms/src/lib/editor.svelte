@@ -53,7 +53,13 @@
 			link: 'focus-link spring-underline article-link',
 			gap: (pixels) => `gap-${pixels}`,
 			blank: 'blank',
-			quote: { line: 'quote', first: 'quote-first', last: 'quote-last' },
+			quote: {
+				line: 'quote',
+				first: 'quote-first',
+				last: 'quote-last',
+				gap: 'quote-gap',
+				quiet: 'quote-quiet',
+			},
 			rule: 'rule-line',
 			source: { line: 'source', first: 'source-first', last: 'source-last' },
 			only: 'only',
@@ -149,6 +155,17 @@
 		padding-top: 1rem;
 		border-top-right-radius: 0.625rem;
 	}
+	/* A line holding only `>` is the space between a quote's paragraphs, which the page draws as
+	   the margin between them. */
+	.text-editor :global(.cm-line.quote-gap) {
+		/* The same height with its `>` shown, so the caret entering the quote moves nothing. */
+		line-height: 0.75rem;
+	}
+	.text-editor :global(.cm-line.quote-quiet) {
+		/* The size too while the marker is hidden, as the rule's line has it: the caret's
+		   placeholders beside a hidden marker are sized in ems and would hold the line open. */
+		font-size: 0;
+	}
 	.text-editor :global(.cm-line.quote-last) {
 		padding-bottom: 1rem;
 		border-bottom-right-radius: 0.625rem;
@@ -195,8 +212,9 @@
 	}
 
 	/* A rendered block's source, open in the rendering's place and at its height: the source's
-	   own face and frame, scrolling inside itself when longer than the room it was given, and
-	   handing a scroll at its end on to the page. See rendered.ts. */
+	   own face and frame, scrolling inside itself when longer than the room it was given. A scroll
+	   at its end is the browser's: a gesture that began in the box stays in it, and the next one
+	   goes on to the page. See spec/architecture/local.md. */
 	.text-editor :global(.rendered .source) {
 		position: relative;
 	}

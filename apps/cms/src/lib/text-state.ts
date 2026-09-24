@@ -13,7 +13,10 @@ import type { Root } from 'mdast';
 import { type Classes, paint } from './paint';
 import { Rendered } from './rendered';
 
-/** The mark a soft break is given at its line's end: the page joins these two lines. */
+/**
+ * A soft break drawn as what the page draws: a space, the two lines one. A faint mark says a newline
+ * is there in the source, and deleting beside it deletes that newline.
+ */
 class SoftBreak extends WidgetType {
 	constructor(readonly className: string) {
 		super();
@@ -22,12 +25,14 @@ class SoftBreak extends WidgetType {
 		return other.className === this.className;
 	}
 	toDOM() {
+		const holder = document.createElement('span');
 		const mark = document.createElement('span');
 		mark.className = this.className;
 		mark.textContent = '↵';
-		mark.title = 'A single line break: the page joins these lines with a space';
 		mark.setAttribute('aria-hidden', 'true');
-		return mark;
+		holder.title = 'A single line break: the page joins these lines with a space';
+		holder.append(mark, document.createTextNode(' '));
+		return holder;
 	}
 	override ignoreEvent() {
 		return false;
@@ -109,8 +114,9 @@ function draw(state: EditorState, tree: Root, classes: Drawing): DecorationSet {
 		} else if (piece.kind === 'rule') {
 			ranges.push(Decoration.replace({ widget: new Rule() }).range(piece.from, piece.to));
 		} else {
+			// The newline itself replaced, which joins its two lines into one.
 			const widget = new SoftBreak(classes.soft);
-			ranges.push(Decoration.widget({ widget, side: -1 }).range(piece.at));
+			ranges.push(Decoration.replace({ widget }).range(piece.at, piece.at + 1));
 		}
 	}
 	return Decoration.set(ranges, true);

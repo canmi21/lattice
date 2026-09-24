@@ -10,7 +10,7 @@ const CLASSES = {
 	link: 'link',
 	gap: (pixels: number) => `gap${pixels}`,
 	blank: 'blank',
-	quote: { line: 'q', first: 'q-first', last: 'q-last' },
+	quote: { line: 'q', first: 'q-first', last: 'q-last', gap: 'q-gap', quiet: 'q-quiet' },
 	rule: 'rule',
 	source: { line: 'src', first: 'src-first', last: 'src-last' },
 	only: 'only',
@@ -121,19 +121,23 @@ describe('paint', () => {
 	});
 
 	it('puts a quote on its ground and hides its markers unless the caret is in it', () => {
+		// One paragraph across two quoted lines: the page joins them, so they are drawn as one.
 		const text = '> one\n> two';
 		expect(read(text, draw(text))).toEqual([
-			'line:q q-first@0',
 			'hide:> ',
-			'line:q q-last@6',
+			'line:q q-first q-last@0',
 			'hide:> ',
-			// One paragraph across two quoted lines: the page joins them.
 			'soft@5',
 		]);
-		expect(read(text, draw(text, caret(3)))).toEqual([
+		expect(read(text, draw(text, caret(3)))).toEqual(['line:q q-first q-last@0', 'soft@5']);
+	});
+
+	it("draws a quote's paragraph break as the space between its paragraphs", () => {
+		const text = '> one\n>\n> two';
+		expect(read(text, draw(text)).filter((p) => p.startsWith('line:'))).toEqual([
 			'line:q q-first@0',
-			'line:q q-last@6',
-			'soft@5',
+			'line:q q-gap q-quiet@6',
+			'line:q q-last@8',
 		]);
 	});
 

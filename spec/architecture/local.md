@@ -336,8 +336,11 @@ function of the text and the caret alone:
   soft break, which the page joins into a space; only a blank line starts a paragraph, and only a
   trailing backslash or two spaces break a line inside one. So Enter writes a blank line -- a new
   paragraph -- and Shift+Enter writes a trailing backslash, a break without a paragraph's spacing.
-  Nothing the author presses writes a soft break; one arriving in imported or pasted text is marked
-  at its line's end, because there the editor's line and the page's are not the same. Enter inside
+  Nothing the author presses writes a soft break; one arriving in imported or pasted text is drawn
+  as the page draws it -- its newline replaced by a space, the two lines joined into one -- with a
+  faint `↵` beside the space to say a newline is there in the source. Drawn as separate lines, a
+  hard-wrapped quote stood 203px where the page's stood 142; joined, the two measure the same, and
+  the caret entering changes nothing. Enter inside
   source that is not prose -- a fence, a container's or a directive's own lines -- is a plain
   newline; inside a list it continues the list, and inside a quote the quote.
 - **Typing over a selection wraps it, and pasting over one replaces it.** A syntax character typed
@@ -369,7 +372,8 @@ function of the text and the caret alone:
   A blank line between blocks is drawn 16px high, the page's gap between two paragraphs, and a
   block wanting more takes the rest above its first line: 48 above a section heading, 32 above a
   subsection, 40 either side of a rule. A quote's lines take the blockquote's ground, edge and
-  corners, its markers hidden unless the caret is in it; a rule is the page's `<hr>` over its
+  corners, its markers hidden unless the caret is in it, and a line holding only `>` is the 12px
+  between its paragraphs whether its marker shows or not; a rule is the page's `<hr>` over its
   dashes. A list is drawn as its source, because the page draws none -- see
   [../todo/site.md](../todo/site.md).
 - **A block the site draws with a component is drawn with it, and edited in its own place.** A
@@ -381,8 +385,10 @@ function of the text and the caret alone:
   written back is compiled its placeholder holds that height too. Source longer than the box
   scrolls inside it, with no scrollbar and the code block's own edge fades on all four sides
   (`libs/prose/src/components/edge-fades.svelte`, which the code block draws on its two unseen
-  edges as well); a scroll the box has no room left for goes on to the page in the same gesture,
-  both ways. The box is the source's while it has focus, with the browser's own undo: leaving it
+  edges as well); a scroll at the box's end is the browser's: a gesture that began in the box
+  stays in it and stops at its end, momentum included, and the next gesture goes on to the page --
+  the same for a trackpad and a wheel. Handing the rest of a gesture on to the page was tried and
+  refused: it moved the page while the hand was still working the box. The box is the source's while it has focus, with the browser's own undo: leaving it
   writes the text back as one change, one step of the history, and the block is drawn again or
   shows why it cannot be. Nothing is written back while it is typed in, which is why it needs no
   second editor kept in step with the document. A block the caret is in by way of the text itself
