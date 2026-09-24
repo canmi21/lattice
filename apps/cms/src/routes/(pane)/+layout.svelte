@@ -21,10 +21,7 @@
 	import House from '@lucide/svelte/icons/house';
 	import Link from '@lucide/svelte/icons/link';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
-	import PanelLeftClose from '@lucide/svelte/icons/panel-left-close';
-	import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open';
 	import Plus from '@lucide/svelte/icons/plus';
-	import Search from '@lucide/svelte/icons/search';
 	import Settings from '@lucide/svelte/icons/settings';
 	import { edgeReveal } from '@canmi/behavior/edge';
 	import { reader } from '@canmi/behavior/state';
@@ -38,7 +35,11 @@
 	import ContextMenu, { SEPARATOR, type MenuEntry, type MenuItem } from '$lib/context-menu.svelte';
 	import { createDraft, discardDraft, DRAFTS, splitPath, type Draft } from '$lib/collection.ts';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { floating } from '$lib/floating.ts';
 	import { foldHeight } from '$lib/fold.ts';
+	import SearchGlyph from '$lib/glyphs/search.svelte';
+	import SidebarHidden from '$lib/glyphs/sidebar-hidden.svelte';
+	import SidebarShown from '$lib/glyphs/sidebar-shown.svelte';
 	import { arriving, leaving, Movement } from '$lib/movement.ts';
 	import {
 		FOLD_BELOW,
@@ -476,11 +477,6 @@
 			},
 			outlineStyle: { default: null, ':focus-visible': 'none' },
 		},
-		float: {
-			backgroundColor: 'var(--color-paper-hover)',
-			borderRadius: radius.lg,
-			boxShadow: '0 0.25rem 1rem oklch(0 0 0 / 0.14), 0 0 0 1px var(--color-border)',
-		},
 		chevron: {
 			transitionProperty: 'rotate',
 			transitionDuration: duration.base,
@@ -592,7 +588,7 @@
 					styles.notice,
 				).class}"
 			>
-				<PanelLeftClose class="size-5" aria-hidden="true" />
+				<SidebarHidden class="size-5" aria-hidden="true" />
 				<span>Release to fold</span>
 			</div>
 		{/if}
@@ -734,7 +730,7 @@
 		     the sidebar, and the search, which is a place held for a feature not built yet. -->
 		<div
 			bind:this={float}
-			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(styles.float)
+			class="absolute top-2 left-2 z-20 flex items-center gap-0.5 p-1 {stylex.attrs(floating.pill)
 				.class}"
 		>
 			<button
@@ -742,20 +738,20 @@
 				aria-label={folded ? 'Show the sidebar' : 'Fold the sidebar'}
 				aria-expanded={!folded || peek !== 'none'}
 				onclick={toggle}
-				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, floating.control).class}"
 			>
 				{#if folded}
-					<PanelLeftOpen class="size-4" aria-hidden="true" />
+					<SidebarHidden class="size-4" aria-hidden="true" />
 				{:else}
-					<PanelLeftClose class="size-4" aria-hidden="true" />
+					<SidebarShown class="size-4" aria-hidden="true" />
 				{/if}
 			</button>
 			<button
 				type="button"
 				aria-label="Search"
-				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, styles.item).class}"
+				class="cursor-pointer p-1.5 {stylex.attrs(surfaces.quietControl, floating.control).class}"
 			>
-				<Search class="size-4" aria-hidden="true" />
+				<SearchGlyph class="size-4" aria-hidden="true" />
 			</button>
 		</div>
 

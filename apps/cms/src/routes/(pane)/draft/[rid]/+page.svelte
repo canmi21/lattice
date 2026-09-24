@@ -27,6 +27,7 @@
 	import Editor from '$lib/editor.svelte';
 	import { forget, recall, remember } from '$lib/buffer.ts';
 	import { EDGE_MARGINS, useChrome } from '$lib/chrome.svelte.ts';
+	import { floating } from '$lib/floating.ts';
 	import { arriving, leaving, Movement } from '$lib/movement.ts';
 	import {
 		DRAFTS,
@@ -196,14 +197,6 @@
 	}
 
 	const styles = stylex.create({
-		// Both float over the text, so both are a sheet with an edge and a shadow to say so.
-		// The menu's ground, `paper`, the deepest surface in dark -- the toolbar is the same kind of
-		// floating thing as a dropdown, and reads as one.
-		pill: {
-			backgroundColor: 'var(--color-paper)',
-			borderRadius: radius.full,
-			boxShadow: '0 0.5rem 1.5rem oklch(0 0 0 / 0.12), 0 0 0 1px var(--color-border)',
-		},
 		// The lifted sidebar's own ground, corner and shadow -- `sidebarStyles` in $lib/sidebar.ts --
 		// so the two panels that come out of the window's edges are one kind of thing.
 		sheet: {
@@ -211,10 +204,6 @@
 			borderRadius: radius.xl,
 			boxShadow: '0 0.5rem 2rem oklch(0 0 0 / 0.18), 0 0 0 1px var(--color-border)',
 		},
-		round: { borderRadius: radius.full },
-		// The toolbar's icons are lit at rest; the pointer is answered by the round ground alone,
-		// the menu row's own highlight.
-		bright: { color: 'var(--color-text-strong)' },
 		quiet: { color: 'var(--color-text-soft)' },
 		missing: { color: 'var(--color-red)' },
 		heading: { color: 'var(--color-text-strong)' },
@@ -252,8 +241,7 @@
 		title={label}
 		class="cursor-pointer p-1.5 {stylex.attrs(
 			surfaces.quietControl,
-			styles.round,
-			styles.bright,
+			floating.control,
 			refused && styles.missing,
 		).class}"
 	>
@@ -286,7 +274,7 @@
 {/snippet}
 
 {#snippet toolbar()}
-	<div class="flex items-center gap-0.5 p-1 {stylex.attrs(styles.pill).class}">
+	<div class="flex items-center gap-0.5 p-1 {stylex.attrs(floating.pill).class}">
 		<!-- Placeholders, to see the toolbar with its eventual set: none is wired yet, and the two
 		     with a pair of icons only swap between them. Preview, save and publish are off it
 		     meanwhile. -->
