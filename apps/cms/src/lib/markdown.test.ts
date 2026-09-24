@@ -10,38 +10,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { syntaxTree } from '@canmi/compile/compile';
-import { Editor, defaultValueCtx, rootCtx } from '@milkdown/core';
-import { commonmark } from '@milkdown/preset-commonmark';
-import { gfm } from '@milkdown/preset-gfm';
 import { getMarkdown } from '@milkdown/utils';
-import { JSDOM } from 'jsdom';
 import { describe, expect, it } from 'vitest';
-import { extensions } from './markdown.ts';
-
-/**
- * A window for the editor alone. The file is not run under jsdom as a whole, because jsdom's own
- * `URL` replaces the one the site's compiler reads its configuration by.
- */
-const { window } = new JSDOM();
-const GLOBALS = [
-	'document',
-	'navigator',
-	'MutationObserver',
-	'getComputedStyle',
-	'DOMParser',
-] as const;
-// Milkdown's plugin timers signal through the global event target with node's own `Event`, which
-// jsdom's window refuses, so the global one is node's.
-const events = new EventTarget();
-Object.assign(globalThis, {
-	window,
-	addEventListener: events.addEventListener.bind(events),
-	removeEventListener: events.removeEventListener.bind(events),
-	dispatchEvent: events.dispatchEvent.bind(events),
-	...Object.fromEntries(
-		GLOBALS.filter((name) => !(name in globalThis)).map((name) => [name, window[name]]),
-	),
-});
+import { makeEditor } from './test-editor.ts';
 
 const CONTENTS = fileURLToPath(new URL('../../../../contents/', import.meta.url));
 
@@ -59,15 +30,7 @@ function body(file: string): string {
 }
 
 async function roundTrip(markdown: string): Promise<string> {
-	const editor = await Editor.make()
-		.config((ctx) => {
-			ctx.set(rootCtx, document.createElement('div'));
-			ctx.set(defaultValueCtx, markdown);
-		})
-		.use(commonmark)
-		.use(gfm)
-		.use(extensions)
-		.create();
+	const editor = await makeEditor(markdown);
 	const written = editor.action(getMarkdown());
 	await editor.destroy();
 	return written;

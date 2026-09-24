@@ -319,11 +319,33 @@ editor takes over a press; a right click in the text stays the browser's.
 rules draw it: a spoiler is fogged and clears while the caret is in it, a note's words are followed
 by its number counted through the whole document, a `:t` run takes the classes from the one table
 the compiler reads (`libs/compile/src/style-classes.ts`). What a directive says beyond its words --
-a note's text, a link's target -- is shown on hover and is not yet edited here. **A run the page
+a note's text, a link's target -- is shown on hover, and edited in its source like any marked run
+below. **A run the page
 hides at some width is never hidden in the editor**: `wide` and `narrow` would otherwise put words
 out of the author's reach at whatever width the window happens to be, so both are shown, underlined
 dashed, and named on hover. The CMS loads the site's type, `@canmi/fonts/mono.css`, for the same
-reason it loads the site's components. Showing the directive's source instead would make the
+reason it loads the site's components.
+
+**A sentence's marks are set, and shown as source where the caret is.** Bold, italic, strike and
+code are set by command -- their keys, or the bar that floats over a selection -- so how marks nest
+is the program's to get right. And where the caret is, the marked words open as the markdown they
+are, as Obsidian and Typora do it, so the asterisks can be edited as text:
+
+- **Only the smallest unit opens**: the run of marked words and inline directives the caret is in
+  or beside, never the sentence around it. In `a **b *c* d** e` with the caret on `c`, what opens
+  is `**b *c* d**`.
+- **It is read back once the caret has left, never while it is typed in**, and not while an input
+  method is composing. Milkdown's `plugin-automd` re-reads the line on every keystroke, and has to
+  guess at half-written syntax to do it; waiting for the caret to leave means nothing is guessed.
+- **Reading back is the markdown parser's own.** What parses takes its marks again; what does not,
+  a lone `**`, stays the text it is, for the author to finish. Text that would read as a block on
+  its own -- `- x`, `# x` -- is left as written, since inside a sentence it is neither.
+- **What is saved is the document with nothing open.** Open source is asterisks as text, and
+  written as it stands it would come back escaped; the write reads the open unit back first.
+  Opening and reading back stay out of the undo history, which records what the author changed.
+
+The bar does not show over open source, where a mark set on the asterisks would be lost on reading
+back. Showing the directive's source instead would make the
 author read syntax in the one place built so they do not have to. The block's own markdown is
 compiled by `local` the way a preview is, through `POST /collection/fragment`, and handed to the
 article body -- so the editor never learns what a directive means, and cannot come to disagree with

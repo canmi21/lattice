@@ -11,7 +11,14 @@
 	 * heading, a code block -- are given the same one here through Milkdown's attribute hooks.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { Editor, defaultValueCtx, editorViewOptionsCtx, rootCtx } from '@milkdown/core';
+	import {
+		Editor,
+		defaultValueCtx,
+		editorViewCtx,
+		editorViewOptionsCtx,
+		rootCtx,
+		serializerCtx,
+	} from '@milkdown/core';
 	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { gfm } from '@milkdown/preset-gfm';
 	import { history } from '@milkdown/plugin-history';
@@ -19,10 +26,12 @@
 	import ProseRoot from '@canmi/prose/prose-root.svelte';
 	import { titleStyles } from '@canmi/prose/section-title';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { family, text } from '@canmi/tokens/vocabulary.stylex';
+	import { family, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount } from 'svelte';
 	import { blockHandle } from './block-handle';
 	import { blockViews } from './block-views';
+	import { formatBar } from './format-bar';
+	import { inlineSource, settled } from './inline-source';
 	import { inlineViews } from './inline-views';
 	import { extensions } from './markdown';
 
@@ -42,7 +51,10 @@
 	// around one, holding raw text rather than highlighted tokens.
 	const styles = stylex.create({
 		code: { fontFamily: family.monoTheme, fontSize: text.px13 },
+		open: { backgroundColor: 'var(--color-paper-hover)', borderRadius: radius.sm },
 	});
+	// Marked words opened as markdown sit on a faint ground. See inline-source.ts.
+	const OPEN = stylex.attrs(styles.open).class ?? '';
 	const CODE = `overflow-x-auto px-4 py-3 ${stylex.attrs(surfaces.blockFrame, styles.code).class}`;
 
 	onMount(() => {
@@ -62,7 +74,12 @@
 				ctx.set(headingAttr.key, (node) => ({
 					class: `${HEADING} ${node.attrs.level === 2 ? 'mt-12' : 'mt-8'}`,
 				}));
-				ctx.get(listenerCtx).markdownUpdated((_, value) => onChange(value));
+				// What is written is the document with nothing open: open source is asterisks as text,
+				// and saved as it stands they would come back escaped. See inline-source.ts.
+				ctx.get(listenerCtx).markdownUpdated((current) => {
+					const state = current.get(editorViewCtx).state;
+					onChange(current.get(serializerCtx)(settled(current, state)));
+				});
 			})
 			.use(commonmark)
 			.use(gfm)
@@ -71,6 +88,8 @@
 			.use(blockViews(() => language || 'en-US', CODE))
 			.use(blockHandle)
 			.use(inlineViews)
+			.use(formatBar)
+			.use(inlineSource(OPEN))
 			.use(history)
 			.use(listener)
 			.create()

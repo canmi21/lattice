@@ -23,3 +23,11 @@ export function gripState(): GripState {
 	const grip = $state<GripState>({ top: 0, left: 0, shown: false, dragging: false, line: null });
 	return grip;
 }
+
+/** Where the formatting bar stands over a selection, and which of its marks the selection has. */
+export type FormatState = { shown: boolean; top: number; left: number; active: string[] };
+
+export function formatState(): FormatState {
+	const format = $state<FormatState>({ shown: false, top: 0, left: 0, active: [] });
+	return format;
+}
