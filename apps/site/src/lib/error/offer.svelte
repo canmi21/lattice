@@ -87,7 +87,7 @@
 
      The stroke and the ring both sit on the span, because a button's box is a line box: the
      stroke sat 2.5px below the address's in the same sentence, and the ring stood 20px against
-     its 15.5px. `focus-link-inner` is the variant for that. See utilities.css. -->
+     its 15.5px. `focus-link-inner` is the variant for that. See libs/tokens/src/interaction.css. -->
 {#snippet reportForm({ children }: { children?: Snippet })}<button
 		type="button"
 		onclick={openReport}

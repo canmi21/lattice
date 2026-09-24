@@ -1613,7 +1613,7 @@
 	   flush, suppressed on a pointer. Which utility depends on the control's visible edge: a
 	   circle or a row's own width takes `focus-ring`; a 30px button around a 16px glyph hands the
 	   outline to the glyph with `focus-ring-inner`, since the 7px around it is hit target rather
-	   than control. See spec/styling/focus.md and styles/utilities.css for the measurement. */
+	   than control. See spec/styling/focus.md and libs/tokens/src/interaction.css for the measurement. */
 
 	/* The cover's ring is drawn on the glyph and follows its actual shape, not a box around it --
 	   neither the 64px disc nor a box around the 30px glyph is the thing being pointed at. `w` is

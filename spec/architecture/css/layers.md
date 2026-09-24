@@ -509,7 +509,13 @@ names do not go, and the reason is the interface rather than convenience**: `foc
 outside the Vite graph and on its own schedule. They stay hand-written recipes in a shared
 stylesheet and they are still the vocabulary -- "A layer is not a mechanism" above, condition (a).
 That does not give the file back a position: a stylesheet carrying four vocabulary recipes is a
-carrier, and a file is not a layer. Which stylesheet carries them is not settled here.
+carrier, and a file is not a layer. **Which stylesheets carry them was settled on 2026-09-24, when
+the CMS came to draw the same prose**: the focus ring, `--ease-spring` and `.spring-underline` are
+[libs/tokens/src/interaction.css](../../../libs/tokens/src/interaction.css), because every control
+in either application uses them; `.article-link`, `.jump-target` and the per-language line-breaking
+of `.article-content` are [libs/prose/src/prose.css](../../../libs/prose/src/prose.css), beside
+`rail.css`, because they are names the compiler writes into prose. Both applications import both
+after Tailwind. `utilities.css` keeps `.meta-language` alone, which is the site's page.
 One-off classes
 applied in a single place -- `.article-rail`, `.article-column`, `.meta-language` -- are the
 frame, and stay in the `@layer components` they are already written in, by "A frame declaration the

@@ -14,6 +14,8 @@
 @import '@canmi/tokens/player.css';
 @import '@canmi/primitives/style.css';
 @import '@canmi/prose/rail.css';
+@import '@canmi/tokens/interaction.css';
+@import '@canmi/prose/prose.css';
 @import './utilities.css';
 @source '../routes';
 /* The article renderer is a package now, and Tailwind does not walk into one. Its components
@@ -22,34 +24,6 @@
 @source '../../../../libs/prose/src';
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
-
-/* One spring, sampled once. `motion`'s generator produced these points and the browser composites
-   them for free; running the library at paint time would spend JavaScript per frame on a curve
-   that is already known. See spec/styling/controls.md.
-
-   Every consumer that wants this physics reads it from here. Pasting the points a second time is
-   how two animations that were meant to feel identical start drifting apart. */
-:root {
-	--ease-spring: linear(
-		0,
-		0.149,
-		0.393,
-		0.602,
-		0.752,
-		0.85,
-		0.911,
-		0.948,
-		0.97,
-		0.983,
-		0.99,
-		0.994,
-		0.997,
-		0.998,
-		0.999,
-		0.999,
-		1
-	);
-}
 
 /* Layered rather than unlayered, for the reason `utilities.css` records at its own wrapper: an
    unlayered rule outranks every layered one and so outranks StyleX. See

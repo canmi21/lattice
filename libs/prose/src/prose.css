@@ -1,0 +1,79 @@
+/* The rules for names the markdown compiler writes into an article, which both the site's page and
+   the CMS draw: a prose link's colours, where a jump lands, and where a line of body prose may end.
+   Beside `rail.css` for the same reason it is here -- the prose is this package's, and a consumer
+   that draws it loads its rules. The underline itself is `@canmi/tokens/interaction.css`. */
+
+@layer components {
+	.article-link {
+		--underline-rest: var(--color-border-strong);
+		--underline-active: var(--color-text-soft);
+	}
+
+	/* Where an in-page jump puts its target: below the top of the viewport rather than against it,
+	   and as a viewport share on the target itself rather than arithmetic on whatever is doing the
+	   jumping. The article ToC keeps its own offset instead -- an exception with a reason, not a
+	   second rule. See spec/styling/notes.md, "A jump lands below the top edge, not against it". */
+	.jump-target {
+		scroll-margin-top: 15vh;
+	}
+
+	/* The line-breaking policy for body prose, pinned per language rather than left to the browser's
+	   default -- which is what every value below was until this was written. The article body and the
+	   summary above it are both prose, so they share one declaration instead of two that drift apart.
+	   `:lang()` rather than a locale code, so the rule reaches `<html lang>`'s resolved language
+	   including the `mw` view's per-article one. See spec/styling/prose.md, "Where a line ends is
+	   declared per language", and spec/locale/addressing.md for the `mw` case. */
+	:is(.article-content, .article-summary) {
+		text-wrap: wrap;
+		hyphens: manual;
+		word-break: normal;
+		overflow-wrap: normal;
+		line-break: auto;
+		text-spacing-trim: normal;
+		text-autospace: no-autospace;
+	}
+
+	/* Narrow is the base case: `hyphens: auto` buys the tight right edge a column this width needs,
+	   measured in real WebKit on an iPhone (German's mean gap 9.7% to 4.5%, loose lines 215 to 7 of
+	   776). `text-wrap: pretty` is deliberately absent here -- it is free in Chrome but not WebKit,
+	   where at this width it adds lines in every language and roughly doubles the right-hand gap. See
+	   spec/styling/prose.md, "Two rule sets, because the trade reverses with the column". */
+	:is(.article-content, .article-summary):lang(en),
+	:is(.article-content, .article-summary):lang(de),
+	:is(.article-content, .article-summary):lang(es),
+	:is(.article-content, .article-summary):lang(fr) {
+		hyphens: auto;
+	}
+
+	/* Above `--rail-column`, the column is at the measure it was designed at and the right edge is
+	   already tight, so the trade reverses: `pretty` costs no lines here and clears most stranded
+	   final lines. `balance` is rejected at both widths -- it pays across the whole paragraph rather
+	   than at its end -- and neither property reaches CJK, where WebKit's `pretty` is not the no-op
+	   Chrome's is. See spec/styling/prose.md, "Two rule sets, because the trade reverses with the
+	   column". */
+	@media (min-width: 45rem) {
+		:is(.article-content, .article-summary):lang(en),
+		:is(.article-content, .article-summary):lang(de),
+		:is(.article-content, .article-summary):lang(es),
+		:is(.article-content, .article-summary):lang(fr) {
+			hyphens: manual;
+			text-wrap: pretty;
+		}
+	}
+
+	/* Japanese forbids certain characters at the head of a line -- small kana, the long vowel mark,
+	   closing punctuation -- and `auto` does not enforce it. Measured over the same article, `strict`
+	   removed all twelve violations and cost no lines at all: 328 either way. Eight of the twelve
+	   were a line opening on `ー`. See spec/styling/prose.md. */
+	:is(.article-content, .article-summary):lang(ja) {
+		line-break: strict;
+	}
+
+	/* Korean's default breaks mid-eojeol, splitting a word 110 times across 262 lines in the measured
+	   article; `keep-all` removes every one for eight extra lines. Chinese gets nothing beyond the
+	   shared block above -- `strict` measured identically to `auto` there, so there is nothing to
+	   pin. See spec/styling/prose.md, "Where a line ends is declared per language". */
+	:is(.article-content, .article-summary):lang(ko) {
+		word-break: keep-all;
+	}
+}

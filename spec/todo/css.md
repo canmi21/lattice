@@ -18,9 +18,12 @@ users had already measured the defect this entry describes: seven components kep
 that needed a variant wrote its declarations out instead, a class being the one kind of name that
 cannot be specialised. It was also a mixed rule, so the move split it -- the appearance to the
 recipe, and the box, the alignment, the padding and the negative inline margin to Tailwind
-utilities at each of the seven call sites. Nothing else moved with it. The remaining names in
-`utilities.css` stand, and `libs/primitives` is untouched and still deferred, for the reason below
-rather than for want of a spelling.
+utilities at each of the seven call sites. Nothing else moved with it. The prose names --
+`focus-link`, `spring-underline`, `article-link`, `jump-target` -- have since left `utilities.css`
+for `libs/tokens/src/interaction.css` and `libs/prose/src/prose.css`, still hand-written, because
+the CMS draws the same prose; see [architecture/css/layers.md](../architecture/css/layers.md).
+`libs/primitives` is untouched and still deferred, for the reason below rather than for want of a
+spelling.
 
 `libs/primitives` is the interesting half. It is CSS rather than TypeScript for one reason: a
 Svelte application and a plain-TypeScript application both consume it, and CSS was the only thing
