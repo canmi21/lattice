@@ -373,6 +373,13 @@ function of the text and the caret alone:
   corners, its markers hidden unless the caret is in it; a rule is the page's `<hr>` over its
   dashes. A list is drawn as its source, because the page draws none -- see
   [../todo/site.md](../todo/site.md).
+- **A block the site draws with a component is drawn with it**: a leaf or container directive, a
+  fence and a table are replaced by the site's rendering of their source, compiled by `local`, and
+  carry the room above them themselves because the lines they replace cannot. Pressing one, or
+  the caret reaching it, shows its source on a code frame with nothing inside painted as prose; the
+  caret leaving draws it again. An inline directive is the element the compiler writes for it
+  around words that stay editable, a note numbered through the document, and a heading's
+  `{#anchor}` is hidden with its `#`, since the page takes it as the slug.
 - **Nothing is formatted under the author.** A draft is saved as written; the canonical style this
   once imposed on every save is retired with the segment hashing that needed it. See
   [../i18n/segments.md](../i18n/segments.md).

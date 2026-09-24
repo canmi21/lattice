@@ -21,7 +21,11 @@
 	import { reading } from './text-state';
 	import { wrapOnType } from './text-wrap';
 
-	let { markdown, onChange }: { markdown: string; onChange: (value: string) => void } = $props();
+	let {
+		markdown,
+		language,
+		onChange,
+	}: { markdown: string; language: string; onChange: (value: string) => void } = $props();
 
 	let host: HTMLDivElement;
 
@@ -50,6 +54,10 @@
 			blank: 'blank',
 			quote: { line: 'quote', first: 'quote-first', last: 'quote-last' },
 			rule: 'rule-line',
+			source: { line: 'source', first: 'source-first', last: 'source-last' },
+			only: 'only',
+			// A block is compiled in the draft's language, or the source language when none is set.
+			language: () => language || 'en-US',
 			soft: stylex.attrs(styles.soft).class ?? '',
 		});
 		const view = new EditorView({
@@ -132,6 +140,54 @@
 	}
 
 	/* A rule sits in its own line, which already has the room around it. */
+	/* A rendered block's source while the caret is in it: on the frame a code block is drawn in,
+	   in the code face, so it reads as source and not as prose. */
+	.text-editor :global(.cm-line.source) {
+		padding-inline: 1rem;
+		background: var(--color-paper);
+		font-family: var(--font-mono);
+		font-size: 0.8125rem;
+	}
+	.text-editor :global(.cm-line.source-first) {
+		padding-top: 0.75rem;
+		border-top-left-radius: 0.75rem;
+		border-top-right-radius: 0.75rem;
+	}
+	.text-editor :global(.cm-line.source-last) {
+		padding-bottom: 0.75rem;
+		border-bottom-left-radius: 0.75rem;
+		border-bottom-right-radius: 0.75rem;
+	}
+	/* The first line's own room, which a source frame's padding would otherwise replace. */
+	.text-editor :global(.cm-line.source-first.gap-16) {
+		margin-top: 16px;
+		padding-top: 0.75rem;
+	}
+	.text-editor :global(.cm-line.source-first.gap-24) {
+		margin-top: 24px;
+		padding-top: 0.75rem;
+	}
+	.text-editor :global(.cm-line.source-first.gap-32) {
+		margin-top: 32px;
+		padding-top: 0.75rem;
+	}
+
+	/* A `:t` run the page shows at one width only; the editor shows it at every width. */
+	.text-editor :global(.only) {
+		text-decoration-line: underline;
+		text-decoration-style: dashed;
+		text-underline-offset: 4px;
+	}
+
+	/* A rendered block takes the pointer as the page does; pressing it opens its source. */
+	.text-editor :global(.rendered) {
+		cursor: pointer;
+		/* The component is the page's markup, not the editor's text: CodeMirror sets its content
+		   to preserve whitespace, and inherited here every newline in a component's markup would
+		   draw as a line of its own. */
+		white-space: normal;
+	}
+
 	/* The line is the rule's own height, so the room around it is the gap and nothing more. */
 	.text-editor :global(.cm-line.rule-line) {
 		/* The size too: the caret's placeholders beside a widget are sized in ems and would

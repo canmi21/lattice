@@ -10,6 +10,9 @@ import { syntaxTree } from '@canmi/compile/parser';
 import { type EditorState, type Range, StateField } from '@codemirror/state';
 import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view';
 import type { Root } from 'mdast';
+import { mount, unmount } from 'svelte';
+import { blockProps } from './block-props.svelte';
+import BlockView from './block-view.svelte';
 import { type Classes, paint } from './paint';
 
 /** The mark a soft break is given at its line's end: the page joins these two lines. */
@@ -51,10 +54,84 @@ class Rule extends WidgetType {
 	}
 }
 
+/**
+ * A block the site draws with a component, drawn with it: its source compiled by `local` and
+ * handed to the article body. See block-view.svelte. Pressing it puts the caret at its start, which
+ * is what turns it into its source.
+ */
+class Rendered extends WidgetType {
+	constructor(
+		readonly source: string,
+		readonly language: string,
+		readonly gap: number,
+	) {
+		super();
+	}
+	override eq(other: Rendered) {
+		return (
+			other.source === this.source && other.language === this.language && other.gap === this.gap
+		);
+	}
+	toDOM(view: EditorView) {
+		const dom = document.createElement('div');
+		dom.className = 'rendered';
+		dom.style.paddingTop = `${this.gap}px`;
+		const shown = mount(BlockView, {
+			target: dom,
+			props: blockProps({ markdown: this.source, language: this.language, selected: false }),
+		});
+		(dom as HTMLElement & { unmount?: () => void }).unmount = () => void unmount(shown);
+		dom.addEventListener('mousedown', (event) => {
+			if (event.button !== 0) return;
+			event.preventDefault();
+			const at = view.posAtDOM(dom);
+			view.dispatch({ selection: { anchor: at } });
+			view.focus();
+		});
+		return dom;
+	}
+	override destroy(dom: HTMLElement) {
+		(dom as HTMLElement & { unmount?: () => void }).unmount?.();
+	}
+	// The component inside takes its own events -- a video's controls, a code block's copy.
+	override ignoreEvent() {
+		return true;
+	}
+	override get estimatedHeight() {
+		return 200;
+	}
+}
+
+/** A note's number after its words, the page's marker; what the note says is its title. */
+class Note extends WidgetType {
+	constructor(
+		readonly number: number,
+		readonly says: string,
+	) {
+		super();
+	}
+	override eq(other: Note) {
+		return other.number === this.number && other.says === this.says;
+	}
+	toDOM() {
+		const sup = document.createElement('sup');
+		sup.dataset.noteMarker = '';
+		const marker = document.createElement('a');
+		marker.dataset.noteMarkerLink = '';
+		marker.textContent = String(this.number);
+		marker.title = this.says;
+		sup.append(marker);
+		return sup;
+	}
+	override ignoreEvent() {
+		return false;
+	}
+}
+
 type Reading = { tree: Root; decorations: DecorationSet };
 
 /** The classes the drawing is made with, which belong to the page that holds the editor. */
-export type Drawing = Classes & { soft: string };
+export type Drawing = Classes & { soft: string; language: () => string };
 
 function draw(state: EditorState, tree: Root, classes: Drawing): DecorationSet {
 	const text = state.doc.toString();
@@ -63,12 +140,22 @@ function draw(state: EditorState, tree: Root, classes: Drawing): DecorationSet {
 	for (const piece of paint(text, tree, selected, classes)) {
 		if (piece.kind === 'mark') {
 			ranges.push(
-				Decoration.mark({ tagName: piece.tag, class: piece.class }).range(piece.from, piece.to),
+				Decoration.mark({
+					tagName: piece.tag,
+					class: piece.class,
+					attributes: piece.attributes,
+				}).range(piece.from, piece.to),
 			);
 		} else if (piece.kind === 'hide') {
 			ranges.push(Decoration.replace({}).range(piece.from, piece.to));
 		} else if (piece.kind === 'line') {
 			ranges.push(Decoration.line({ class: piece.class }).range(piece.at));
+		} else if (piece.kind === 'block') {
+			const widget = new Rendered(piece.source, classes.language(), piece.gap);
+			ranges.push(Decoration.replace({ widget, block: true }).range(piece.from, piece.to));
+		} else if (piece.kind === 'note') {
+			const widget = new Note(piece.number, piece.says);
+			ranges.push(Decoration.widget({ widget, side: 1 }).range(piece.at));
 		} else if (piece.kind === 'rule') {
 			ranges.push(Decoration.replace({ widget: new Rule() }).range(piece.from, piece.to));
 		} else {

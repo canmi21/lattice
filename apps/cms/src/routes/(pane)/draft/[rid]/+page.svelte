@@ -437,7 +437,7 @@
 		     can. See spec/architecture/local.md, "The editor's document is the markdown text". -->
 		{#key rid}
 			{#if page.url.searchParams.get('editor') === 'text'}
-				<TextEditor markdown={body} onChange={typed} />
+				<TextEditor markdown={body} {language} onChange={typed} />
 			{:else}
 				<Editor markdown={body} {language} onChange={typed} />
 			{/if}

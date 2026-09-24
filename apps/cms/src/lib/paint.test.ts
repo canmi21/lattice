@@ -12,6 +12,8 @@ const CLASSES = {
 	blank: 'blank',
 	quote: { line: 'q', first: 'q-first', last: 'q-last' },
 	rule: 'rule',
+	source: { line: 'src', first: 'src-first', last: 'src-last' },
+	only: 'only',
 };
 
 function draw(text: string, selected: Selected = []) {
@@ -20,17 +22,24 @@ function draw(text: string, selected: Selected = []) {
 
 /** The text each paint covers, which is easier to read than offsets. */
 function read(text: string, paints: Paint[]) {
-	return paints.map((p) =>
-		p.kind === 'mark'
-			? `${p.tag}:${text.slice(p.from, p.to)}`
-			: p.kind === 'hide'
-				? `hide:${text.slice(p.from, p.to)}`
-				: p.kind === 'line'
-					? `line:${p.class}@${p.at}`
-					: p.kind === 'rule'
-						? `rule:${text.slice(p.from, p.to)}`
-						: `soft@${p.at}`,
-	);
+	return paints.map((p) => {
+		switch (p.kind) {
+			case 'mark':
+				return `${p.tag}:${text.slice(p.from, p.to)}`;
+			case 'hide':
+				return `hide:${text.slice(p.from, p.to)}`;
+			case 'line':
+				return `line:${p.class}@${p.at}`;
+			case 'rule':
+				return `rule:${text.slice(p.from, p.to)}`;
+			case 'block':
+				return `block+${p.gap}:${p.source}`;
+			case 'note':
+				return `note${p.number}:${p.says}`;
+			default:
+				return `soft@${p.at}`;
+		}
+	});
 }
 
 const caret = (at: number): Selected => [{ from: at, to: at }];
@@ -78,12 +87,12 @@ describe('paint', () => {
 	it('sets a heading in its type and hides its marker unless the caret is on it', () => {
 		const text = 'p\n\n## Title';
 		expect(read(text, draw(text))).toEqual([
-			'line:h2@3',
-			'hide:## ',
 			'line:blank@2',
 			'line:gap32@3',
+			'line:h2@3',
+			'hide:## ',
 		]);
-		expect(read(text, draw(text, caret(8)))).toEqual(['line:h2@3', 'line:blank@2', 'line:gap32@3']);
+		expect(read(text, draw(text, caret(8)))).toEqual(['line:blank@2', 'line:gap32@3', 'line:h2@3']);
 	});
 
 	it('hides the backslash of a break, and marks a soft break where the page joins lines', () => {
@@ -99,13 +108,13 @@ describe('paint', () => {
 	it("spaces blocks as the page does: a blank line is a paragraph's gap, more goes above", () => {
 		const text = 'a\n\nb\n\n### c\n\n---\n\nd';
 		expect(read(text, draw(text)).filter((p) => p.startsWith('line:'))).toEqual([
-			'line:h3@6',
-			'line:rule@13',
 			'line:blank@2',
 			'line:blank@5',
 			'line:gap16@6',
+			'line:h3@6',
 			'line:blank@12',
 			'line:gap24@13',
+			'line:rule@13',
 			'line:blank@17',
 			'line:gap24@18',
 		]);
@@ -132,5 +141,48 @@ describe('paint', () => {
 		const text = 'a\n\n---';
 		expect(read(text, draw(text))).toContain('rule:---');
 		expect(read(text, draw(text, caret(5)))).not.toContain('rule:---');
+	});
+
+	it('replaces a directive, a fence and a table with the rendering, carrying its room', () => {
+		const text = 'a\n\n::image{src=x}\n\n```js\nlet *a* = 1;\n```\n\n| a |\n|---|\n| b |';
+		expect(read(text, draw(text)).filter((p) => p.startsWith('block'))).toEqual([
+			'block+0:::image{src=x}',
+			'block+0:```js\nlet *a* = 1;\n```',
+			'block+0:| a |\n|---|\n| b |',
+		]);
+	});
+
+	it("shows a block's source on its frame while the caret is in it, with nothing painted inside", () => {
+		const text = '```js\nlet *a* = 1;\n```';
+		expect(read(text, draw(text, caret(8)))).toEqual([
+			'line:src src-first@0',
+			'line:src@6',
+			'line:src src-last@19',
+		]);
+	});
+
+	it('draws inline directives as the compiler writes them, numbering notes in order', () => {
+		const text = 'x :fn[one]{is="first"} :spoiler[s] :fn[two]{is="second"} :t[w]{wide}';
+		expect(read(text, draw(text))).toEqual([
+			'span:one',
+			'note1:first',
+			'hide::fn[',
+			'hide:]{is="first"}',
+			'span:s',
+			'hide::spoiler[',
+			'hide:]',
+			'span:two',
+			'note2:second',
+			'hide::fn[',
+			'hide:]{is="second"}',
+			'span:w',
+			'hide::t[',
+			'hide:]{wide}',
+		]);
+	});
+
+	it("hides a heading's anchor with its marker", () => {
+		const text = '## Title {#slug}';
+		expect(read(text, draw(text))).toEqual(['line:h2@0', 'hide:## ', 'hide: {#slug}']);
 	});
 });
