@@ -1,7 +1,14 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { duration, easing, figures, radius, text, tracking } from '@canmi/tokens/vocabulary.stylex';
+	import {
+		duration,
+		easing,
+		figures,
+		radius,
+		text,
+		tracking,
+	} from '@canmi/tokens/vocabulary.stylex';
 
 	/**
 	 * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are

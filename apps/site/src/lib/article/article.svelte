@@ -123,7 +123,6 @@
 			borderStyle: 'dashed',
 		},
 	});
-
 </script>
 
 <script lang="ts">
@@ -398,154 +397,152 @@
 <Shell {toc} {rail} locale={locale.code} {theme}>
 	{#snippet home()}<HomeLink locale={locale.code} />{/snippet}
 	{#snippet header()}
-				<!-- Inside the heading rather than beside it. A wrapper would exist on every article to
+		<!-- Inside the heading rather than beside it. A wrapper would exist on every article to
 				     serve the few that are drafts, and the side rail measures this very box to place the
 				     return control -- so a published article renders exactly the markup it did before,
 				     because the branch below produces nothing at all. See spec/drafts.md. -->
-				<!-- Two headings, one shown: see spec/styling/phone.md, "A phone is shown the title
+		<!-- Two headings, one shown: see spec/styling/phone.md, "A phone is shown the title
 				     that fits, not the title cut short", for why and how CSS picks between them. -->
-				<h1 class="max-sm:hidden {stylex.attrs(styles.title).class}">
-					{meta.title}{#if meta.draft}<span
-							class="ms-2 inline-block px-[0.4375rem] align-middle {stylex.attrs(styles.draftMark)
-								.class}"
-						>
-							{m['article.draft']({}, { locale: locale.code })}
-						</span>{/if}
-				</h1>
-				<h1 class="sm:hidden {stylex.attrs(styles.title).class}">
-					{phone_title}{#if meta.draft}<span
-							class="ms-2 inline-block px-[0.4375rem] align-middle {stylex.attrs(styles.draftMark)
-								.class}"
-						>
-							{m['article.draft']({}, { locale: locale.code })}
-						</span>{/if}
-				</h1>
-				<!-- Apparatus rather than article, so it does not select either; the body and its own
+		<h1 class="max-sm:hidden {stylex.attrs(styles.title).class}">
+			{meta.title}{#if meta.draft}<span
+					class="ms-2 inline-block px-[0.4375rem] align-middle {stylex.attrs(styles.draftMark)
+						.class}"
+				>
+					{m['article.draft']({}, { locale: locale.code })}
+				</span>{/if}
+		</h1>
+		<h1 class="sm:hidden {stylex.attrs(styles.title).class}">
+			{phone_title}{#if meta.draft}<span
+					class="ms-2 inline-block px-[0.4375rem] align-middle {stylex.attrs(styles.draftMark)
+						.class}"
+				>
+					{m['article.draft']({}, { locale: locale.code })}
+				</span>{/if}
+		</h1>
+		<!-- Apparatus rather than article, so it does not select either; the body and its own
 				     controls are left alone deliberately, and the date inside takes selection back with
 				     `select-text`. Quoting a passage is the reason this page exists. -->
-				<div
-					class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 select-none {stylex.attrs(
-						surfaces.uiText,
-						styles.meta,
-					).class}"
-				>
-					<time class="select-text" datetime={meta.published}>{date}</time>
-					<span
-						class="inline-flex items-center gap-1"
-						title="{words.toLocaleString('en-US')} words"
-						aria-label="{words.toLocaleString('en-US')} words"
-					>
-						<Type class="size-3.5" aria-hidden="true" />
-						{formatCompact(words)}
-					</span>
-					<!-- Absent when there is no count, rather than held open at a guessed width:
+		<div
+			class="meta mt-2 flex flex-wrap items-center gap-2 max-sm:gap-x-1.5 select-none {stylex.attrs(
+				surfaces.uiText,
+				styles.meta,
+			).class}"
+		>
+			<time class="select-text" datetime={meta.published}>{date}</time>
+			<span
+				class="inline-flex items-center gap-1"
+				title="{words.toLocaleString('en-US')} words"
+				aria-label="{words.toLocaleString('en-US')} words"
+			>
+				<Type class="size-3.5" aria-hidden="true" />
+				{formatCompact(words)}
+			</span>
+			<!-- Absent when there is no count, rather than held open at a guessed width:
 					     the width it would need is the rendered width of a figure nobody has.
 					     Normally there is one from the first frame, because the load asks -- what
 					     is left here is the API being unreachable. The figure then goes up by one
 					     when this reader's own visit is recorded, which is the one thing a server
 					     genuinely cannot do. See spec/engagement.md. -->
-					{#if readCount != null}
-						<!-- Absent below `sm` as well, and that is a second decision. The row is four
+			{#if readCount != null}
+				<!-- Absent below `sm` as well, and that is a second decision. The row is four
 						     controls and a date, which is one line on a laptop and two on a phone; the
 						     read count is the only one a reader never acts on, so it is the one that
 						     goes. See spec/styling/phone.md. -->
-						<span
-							class="inline-flex items-center gap-1 max-sm:hidden"
-							title="{readCount} reads"
-							aria-label="{readCount.toLocaleString('en-US')} reads"
-						>
-							<BookOpenText class="size-3.5" aria-hidden="true" />
-							{formatCompact(readCount)}
-						</span>
-					{/if}
-					<!-- A disclosure, not a menu: it is deliberately not dismissed by clicking
+				<span
+					class="inline-flex items-center gap-1 max-sm:hidden"
+					title="{readCount} reads"
+					aria-label="{readCount.toLocaleString('en-US')} reads"
+				>
+					<BookOpenText class="size-3.5" aria-hidden="true" />
+					{formatCompact(readCount)}
+				</span>
+			{/if}
+			<!-- A disclosure, not a menu: it is deliberately not dismissed by clicking
 					     elsewhere, because a reader comparing the summary against the article is
 					     doing exactly that -- clicking elsewhere. Only the trigger closes it. The
 					     disabled control keeps this metadata row stable while generated copy is absent. -->
-					<button
-						type="button"
-						id={summaryTrigger}
-						disabled={!summary}
-						aria-expanded={summary ? summaryOpen : false}
-						aria-controls={summary ? summaryPanel : undefined}
-						onclick={() => {
-							if (summary) summaryOpen = !summaryOpen;
-						}}
-						class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
-							surfaces.quietControl,
-							surfaces.focusRingHost,
-							styles.summaryTrigger,
-						).class}"
-					>
-						<span
-							class="focus-link-inner inline-flex items-center gap-1 {stylex.attrs(
-								surfaces.focusLinkInner,
-							).class}"
-						>
-							<Sparkles class="size-3.5" aria-hidden="true" />
-							<span class="max-sm:hidden">{m['article.summary']({}, { locale: locale.code })}</span>
-							<span class="sm:hidden"
-								>{m['article.summary.short']({}, { locale: locale.code })}</span
-							>
-						</span>
-					</button>
-					<span class="meta-language">
-						<LanguageSwitcher
-							code={locale.code}
-							sourceLanguage={meta.lang}
-							phoneRegion={false}
-							framed
-							prefetch={(next) => warmView(slug, next)}
-						/>
-					</span>
-				</div>
-				{#if locale.code !== 'mw'}
-					<TranslationNotice
-						code={locale.code}
-						sourceLanguage={meta.lang}
-						available={locale.translated}
-						prefetch={(next) => warmView(slug, next)}
-					/>
-				{/if}
-				{#if summary}
-					<!-- Rows collapse to 0fr rather than the box to height 0, which is the one way to
+			<button
+				type="button"
+				id={summaryTrigger}
+				disabled={!summary}
+				aria-expanded={summary ? summaryOpen : false}
+				aria-controls={summary ? summaryPanel : undefined}
+				onclick={() => {
+					if (summary) summaryOpen = !summaryOpen;
+				}}
+				class="-mx-1 inline-flex items-center px-1 py-0.5 {stylex.attrs(
+					surfaces.quietControl,
+					surfaces.focusRingHost,
+					styles.summaryTrigger,
+				).class}"
+			>
+				<span
+					class="focus-link-inner inline-flex items-center gap-1 {stylex.attrs(
+						surfaces.focusLinkInner,
+					).class}"
+				>
+					<Sparkles class="size-3.5" aria-hidden="true" />
+					<span class="max-sm:hidden">{m['article.summary']({}, { locale: locale.code })}</span>
+					<span class="sm:hidden">{m['article.summary.short']({}, { locale: locale.code })}</span>
+				</span>
+			</button>
+			<span class="meta-language">
+				<LanguageSwitcher
+					code={locale.code}
+					sourceLanguage={meta.lang}
+					phoneRegion={false}
+					framed
+					prefetch={(next) => warmView(slug, next)}
+				/>
+			</span>
+		</div>
+		{#if locale.code !== 'mw'}
+			<TranslationNotice
+				code={locale.code}
+				sourceLanguage={meta.lang}
+				available={locale.translated}
+				prefetch={(next) => warmView(slug, next)}
+			/>
+		{/if}
+		{#if summary}
+			<!-- Rows collapse to 0fr rather than the box to height 0, which is the one way to
 					     animate to a height nobody measured. See spec/architecture/media.md on motion. -->
-					<!-- The two rows are a ternary rather than a base utility and a variant over it: one
+			<!-- The two rows are a ternary rather than a base utility and a variant over it: one
 					     property in one layer, whose order is not the author's to choose. See
 					     spec/architecture/css/migration.md. -->
+			<div
+				class="grid {summaryOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'} {stylex.attrs(
+					styles.summaryShell,
+				).class}"
+				data-open={summaryOpen}
+			>
+				<div class="overflow-hidden">
 					<div
-						class="grid {summaryOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'} {stylex.attrs(
-							styles.summaryShell,
-						).class}"
-						data-open={summaryOpen}
+						id={summaryPanel}
+						role="region"
+						aria-labelledby={summaryTrigger}
+						class="mt-3 pr-3 pl-3 {stylex.attrs(styles.summaryPanel).class}"
 					>
-						<div class="overflow-hidden">
-							<div
-								id={summaryPanel}
-								role="region"
-								aria-labelledby={summaryTrigger}
-								class="mt-3 pr-3 pl-3 {stylex.attrs(styles.summaryPanel).class}"
-							>
-								<!-- The summary is body prose and breaks its lines by the body's rules, which is
+						<!-- The summary is body prose and breaks its lines by the body's rules, which is
 								     the class rather than a second copy of them. See spec/styling/prose.md,
 								     "Where a line ends is declared per language". -->
-								<p class="article-summary" use:alignSummaryProvider>
-									{summary.text}
-									{#if SummaryProviderIcon && summaryProvider}
-										<span
-											data-summary-provider
-											class="float-right mt-0.75 ml-2 block h-4"
-											aria-label={summaryProvider.name}
-											title={summaryProvider.name}
-										>
-											<SummaryProviderIcon class="h-4 w-auto" aria-hidden="true" />
-										</span>
-									{/if}
-								</p>
-							</div>
-						</div>
+						<p class="article-summary" use:alignSummaryProvider>
+							{summary.text}
+							{#if SummaryProviderIcon && summaryProvider}
+								<span
+									data-summary-provider
+									class="float-right mt-0.75 ml-2 block h-4"
+									aria-label={summaryProvider.name}
+									title={summaryProvider.name}
+								>
+									<SummaryProviderIcon class="h-4 w-auto" aria-hidden="true" />
+								</span>
+							{/if}
+						</p>
 					</div>
-				{/if}
+				</div>
+			</div>
+		{/if}
 	{/snippet}
 	{#snippet tail()}
 		<!-- The dashed rule that opens whatever follows the article is the article's closing

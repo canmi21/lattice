@@ -145,9 +145,11 @@ export async function compileDraft(paths: PreviewPaths, draft: PreviewDraft): Pr
 	const drawings = await optional<DiagramStore>(paths.diagrams, { diagrams: {} } as DiagramStore);
 	const locale = sourceLocale(draft.language);
 	const embeds = {
-		crates: (await optional<{ crates?: Record<string, CrateRecord> }>(paths.crates, {})).crates ?? {},
+		crates:
+			(await optional<{ crates?: Record<string, CrateRecord> }>(paths.crates, {})).crates ?? {},
 		repos: (await optional<{ repos?: Record<string, RepoRecord> }>(paths.repos, {})).repos ?? {},
-		tweets: (await optional<{ tweets?: Record<string, TweetRecord> }>(paths.tweets, {})).tweets ?? {},
+		tweets:
+			(await optional<{ tweets?: Record<string, TweetRecord> }>(paths.tweets, {})).tweets ?? {},
 	};
 
 	return compile(withFrontmatter(draft), `${URLS.apps.production.site}/${draft.path}`, {

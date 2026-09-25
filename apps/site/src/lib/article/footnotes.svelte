@@ -152,7 +152,11 @@
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
 	import * as m from '@canmi/messages';
 	import { jumpTo, movesThisPage, targetOf } from '@canmi/behavior/jump';
-	import { animateHeight, type AnimationControl, type CollapsePhase } from '@canmi/behavior/collapse';
+	import {
+		animateHeight,
+		type AnimationControl,
+		type CollapsePhase,
+	} from '@canmi/behavior/collapse';
 	import { DEFAULT_PIXELS_PER_REM } from '$lib/client/units';
 	import { onDestroy } from 'svelte';
 	import { flashOnArrival } from '@canmi/prose/note-flash';

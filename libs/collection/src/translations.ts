@@ -98,7 +98,11 @@ export async function survey(database: SourceDatabase, contents: string): Promis
 				});
 			}
 		}
-		files.push({ file: relative(contents, file), segments: Object.keys(segments).length, locales: locales.size });
+		files.push({
+			file: relative(contents, file),
+			segments: Object.keys(segments).length,
+			locales: locales.size,
+		});
 	}
 
 	const held = await database

@@ -50,7 +50,6 @@
 			color: 'var(--color-text-soft)',
 		},
 	});
-
 </script>
 
 <script lang="ts">

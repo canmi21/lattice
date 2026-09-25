@@ -56,7 +56,9 @@ describe('the sweep', () => {
 	it('keeps bytes a resource still holds, and names what is holding them', async () => {
 		const cid = await content('a'.repeat(32));
 		const rid = await resource('k7m2x');
-		await source.insert(schema.resourceContents).values({ resource: rid, cid, slot: 'original', seq: 1 });
+		await source
+			.insert(schema.resourceContents)
+			.values({ resource: rid, cid, slot: 'original', seq: 1 });
 
 		const swept = await reconcile(source, derived, NOW);
 		expect(swept.waiting).toHaveLength(0);
@@ -103,7 +105,9 @@ describe('the sweep', () => {
 		expect(await derived.select().from(derivedSchema.unreferenced)).toHaveLength(1);
 
 		const rid = await resource('t0vau');
-		await source.insert(schema.resourceContents).values({ resource: rid, cid, slot: 'original', seq: 1 });
+		await source
+			.insert(schema.resourceContents)
+			.values({ resource: rid, cid, slot: 'original', seq: 1 });
 		const again = await reconcile(source, derived, LATER);
 
 		expect(again.revived).toEqual([cid]);
@@ -167,7 +171,9 @@ describe('the sweep', () => {
 	it('rebuilds the table rather than adding to it, so a removed reference is gone', async () => {
 		const cid = await content('9'.repeat(32));
 		const rid = await resource('28cmp');
-		await source.insert(schema.resourceContents).values({ resource: rid, cid, slot: 'original', seq: 1 });
+		await source
+			.insert(schema.resourceContents)
+			.values({ resource: rid, cid, slot: 'original', seq: 1 });
 		await reconcile(source, derived, NOW);
 
 		await source.delete(schema.resourceContents).where(eq(schema.resourceContents.resource, rid));

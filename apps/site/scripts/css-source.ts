@@ -22,7 +22,11 @@ export const ROOT = join(SITE, '../..');
  * `libs/prose`: a gate that scans one of them reports a smaller corpus rather than a failure,
  * which is the way this kind of check goes quietly wrong.
  */
-const SRC = [join(SITE, 'src'), join(SITE, '../../libs/prose/src'), join(SITE, '../../libs/tokens/src')];
+const SRC = [
+	join(SITE, 'src'),
+	join(SITE, '../../libs/prose/src'),
+	join(SITE, '../../libs/tokens/src'),
+];
 const SCAN = relative(ROOT, fileURLToPath(import.meta.url));
 
 /** The module every `stylex.create` call comes from, and the only one this scan recognises. */

@@ -360,9 +360,7 @@ it('refuses the other kind of record rather than half-reading it', () => {
  * holds the same file to the loader on the other side.
  */
 it('reads the committed manifest, whichever side of the migration it is on', () => {
-	const file = fileURLToPath(
-		new URL('../../../data/record/metadata.json', import.meta.url),
-	);
+	const file = fileURLToPath(new URL('../../../data/record/metadata.json', import.meta.url));
 	const manifest = JSON.parse(readFileSync(file, 'utf8')) as { media: Record<string, object> };
 	const records = Object.values(manifest.media);
 	expect(records.length).toBeGreaterThan(0);

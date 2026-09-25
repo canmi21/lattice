@@ -5,13 +5,7 @@
  * when its own code changes, and the corpus is published on its own schedule from here.
  * See spec/architecture/artifacts.md.
  */
-import {
-	mkdir,
-	readFile,
-	readdir,
-	stat,
-	writeFile,
-} from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { blake3 } from '@noble/hashes/blake3.js';

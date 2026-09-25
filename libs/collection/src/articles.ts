@@ -162,7 +162,10 @@ export async function importArticles(
 			.insert(documents)
 			.values({ resource: id, sourceFile: relative(repository, file) })
 			.run();
-		database.insert(paths).values({ resource: id, ...place(path), since: created }).run();
+		database
+			.insert(paths)
+			.values({ resource: id, ...place(path), since: created })
+			.run();
 		// `lastmod` rather than `published`: there is one revision and one text, and the text is the
 		// one that was last edited. A chain of one says both dates at once, so the honest value is
 		// the later -- and `at` is editable afterwards for exactly this, per spec/todo/milestones.md,
@@ -186,6 +189,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 	const repository = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 	const { openSource, SOURCE_FILE } = await import('./open.ts');
 	const database = openSource(join(repository, SOURCE_FILE));
-	const tally = await importArticles(database, fileStore(join(repository, OBJECTS_DIR)), repository);
+	const tally = await importArticles(
+		database,
+		fileStore(join(repository, OBJECTS_DIR)),
+		repository,
+	);
 	console.log(`articles imported: ${tally.published} published, ${tally.drafted} unpublished`);
 }

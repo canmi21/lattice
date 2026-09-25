@@ -40,15 +40,29 @@ export async function collect(database: SourceDatabase): Promise<Reference[]> {
 		.from(revisions);
 	for (const row of heads) {
 		if (row.cid === null) continue;
-		found.push({ fromKind: 'revision', fromId: `${row.resource}/${row.seq}`, cid: row.cid, via: null });
+		found.push({
+			fromKind: 'revision',
+			fromId: `${row.resource}/${row.seq}`,
+			cid: row.cid,
+			via: null,
+		});
 	}
 
 	// What a resource currently holds, which is the hop a rid resolves through.
 	const held = await database
-		.select({ resource: resourceContents.resource, cid: resourceContents.cid, slot: resourceContents.slot })
+		.select({
+			resource: resourceContents.resource,
+			cid: resourceContents.cid,
+			slot: resourceContents.slot,
+		})
 		.from(resourceContents);
 	for (const row of held) {
-		found.push({ fromKind: 'resource', fromId: `${row.resource}/${row.slot}`, cid: row.cid, via: row.resource });
+		found.push({
+			fromKind: 'resource',
+			fromId: `${row.resource}/${row.slot}`,
+			cid: row.cid,
+			via: row.resource,
+		});
 	}
 
 	// A derived variant is alive while its original is, and dies with it: nothing else names one.
@@ -175,7 +189,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 		`${swept.references.length} references, ${swept.waiting.length} waiting, ` +
 			`${swept.collectable.length} past ${GRACE_HOURS}h, ${swept.revived.length} revived`,
 	);
-	for (const { cid, since } of swept.collectable) console.log(`  collectable ${cid} since ${since}`);
+	for (const { cid, since } of swept.collectable)
+		console.log(`  collectable ${cid} since ${since}`);
 
 	if (!process.argv.includes('--collect')) {
 		if (swept.collectable.length > 0) console.log('pass --collect to take them');

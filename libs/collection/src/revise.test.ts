@@ -70,7 +70,9 @@ describe('revisions', () => {
 		expect(resource!.type).toBe('document.article');
 		// The address is a row in `path` and not also a field in the layers, because that table is
 		// the redirect history and a second copy is the one that goes stale.
-		expect(resource!.layers).toEqual({ article: { version: 1, title: META.title, language: 'en' } });
+		expect(resource!.layers).toEqual({
+			article: { version: 1, title: META.title, language: 'en' },
+		});
 		const [held] = await database.select().from(schema.paths);
 		expect(address(held!)).toBe(META.path);
 	});
@@ -90,7 +92,10 @@ describe('revisions', () => {
 		await drafted('Something.\n', { title: '', language: '  ', path: '' });
 		const refused = await publish(database, store, RID);
 		expect(refused).toMatchObject({ published: false, refused: 'incomplete' });
-		expect(refused).toHaveProperty('missing', expect.arrayContaining(['title', 'language', 'path']));
+		expect(refused).toHaveProperty(
+			'missing',
+			expect.arrayContaining(['title', 'language', 'path']),
+		);
 		expect(await database.select().from(schema.revisions)).toHaveLength(0);
 	});
 
