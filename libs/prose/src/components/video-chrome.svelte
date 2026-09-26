@@ -24,21 +24,7 @@
 	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
 	import { styles } from './video-controls.styles.ts';
 	import VideoSettings from './video-settings.svelte';
-
-	/** What the store says about the clip, as `video-controls.svelte` pulls it. */
-	export type View = {
-		paused: boolean;
-		currentTime: number;
-		duration: number;
-		buffered: number;
-		muted: boolean;
-		rate: number;
-		fullscreen: boolean;
-		pip: boolean;
-		pipAvailable: boolean;
-		captions: boolean;
-		hasCaptions: boolean;
-	};
+	import type { View } from './video-store.ts';
 
 	let {
 		view,

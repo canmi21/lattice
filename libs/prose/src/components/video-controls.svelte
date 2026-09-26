@@ -21,22 +21,6 @@
 	 * foot of this file, of `video-chrome.svelte` and of `video-settings.svelte` -- is a selector no
 	 * class can reach. The row is drawn by those two; the stages, the gestures and the store are here.
 	 */
-	import { combine, createStore } from '@videojs/store';
-	import {
-		bufferFeature,
-		controlsFeature,
-		errorFeature,
-		fullscreenFeature,
-		pipFeature,
-		playbackFeature,
-		playbackRateFeature,
-		sourceFeature,
-		textTrackFeature,
-		timeFeature,
-		volumeFeature,
-		type PlayerTarget,
-	} from '@videojs/core/dom';
-	import { HTMLVideoAdapter } from '@videojs/media/dom';
 	// Phosphor here and Lucide everywhere else -- see spec/styling/player.md, "The player's glyphs
 	// are Phosphor, at two weights, plus three this repository draws", for the fill-vs-bold rule and
 	// the reasoning behind the split. `*Icon` names, not the bare ones: `CornersOut` and its
@@ -53,8 +37,10 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { placeCaptions } from './video-captions.ts';
-	import VideoChrome, { type View } from './video-chrome.svelte';
+	import VideoChrome from './video-chrome.svelte';
 	import { styles } from './video-controls.styles.ts';
+	import { attachStore, type Player, type View } from './video-store.ts';
+	import { watchFrame } from './video-gestures.ts';
 	import { Level } from './video-level.ts';
 	import { holdPage } from './video-page.ts';
 	import { Place } from './video-place.svelte.ts';
@@ -112,29 +98,6 @@
 		locale: LocaleCode;
 	} = $props();
 
-	/**
-	 * The features this player uses, named one by one rather than taken from `videoFeatures`.
-	 *
-	 * The preset is fifteen. Four are for things this site does not have -- `audioTrack` needs a
-	 * stream with more than one, `live` and `streamType` need a live stream, `remotePlayback` is
-	 * AirPlay and Cast -- one, `orientationLock`, is a phone rotating into fullscreen, and
-	 * `quality` is the one whose list stays empty because nothing populates renditions from
-	 * separate progressive files. Worth 1.2kB, and worth more as a statement of what is used.
-	 */
-	const FEATURES = [
-		playbackFeature,
-		timeFeature,
-		bufferFeature,
-		volumeFeature,
-		playbackRateFeature,
-		textTrackFeature,
-		fullscreenFeature,
-		pipFeature,
-		sourceFeature,
-		errorFeature,
-		controlsFeature,
-	] as const;
-
 	/** Where a reader's level lives between visits. Flat and dotted; see `client/state.ts`. */
 	const VOLUME_KEY = 'video.volume';
 	/**
@@ -180,7 +143,7 @@
 		hasCaptions: false,
 	});
 
-	let player = $state<Record<string, unknown> | null>(null);
+	let player = $state<Player | null>(null);
 	/** The reader's own level, which muted playback never touches. See `unmute`. */
 	let volume = $state(DEFAULT_VOLUME);
 	let ceiling = $state(1);
@@ -240,45 +203,11 @@
 	});
 
 	$effect(() => {
-		const store = createStore<PlayerTarget>()(combine(...FEATURES)) as unknown as Record<
-			string,
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			any
-		>;
 		if (!video || !frame) return;
-		const adapter = new HTMLVideoAdapter();
-		// `attach` returns nothing -- read in @videojs/media 10.0.0-rc.2, every path falls off the
-		// end -- so there is no release function to hold and the teardown below has none to call.
-		adapter.attach(video);
-		const detach = store.attach({ media: adapter, container: frame });
-		player = store;
-
-		const pull = () => {
-			// Tuples, not a `TimeRanges`: `MediaBufferState.buffered` is `[start, end][]`, and
-			// calling `.end()` on it threw inside this very function, which stopped every field
-			// below from being read at all. The last range's end is how much is on hand.
-			const ranges = store.buffered as [number, number][] | undefined;
-			view = {
-				paused: Boolean(store.paused),
-				currentTime: Number(store.currentTime ?? 0),
-				duration: Number.isFinite(store.duration) ? Number(store.duration) : 0,
-				buffered: ranges?.length ? (ranges[ranges.length - 1]?.[1] ?? 0) : 0,
-				muted: Boolean(store.muted),
-				rate: Number(store.playbackRate ?? 1),
-				fullscreen: Boolean(store.fullscreen),
-				pip: Boolean(store.pip),
-				pipAvailable: store.pipAvailability !== 'unavailable',
-				captions: Boolean(store.subtitlesShowing),
-				hasCaptions: (store.textTrackList?.length ?? 0) > 0,
-			};
-		};
-		const stop = store.subscribe(pull);
-		pull();
-
+		const linked = attachStore(video, frame, (next) => (view = next));
+		player = linked.player;
 		return () => {
-			stop?.();
-			detach?.();
-			store.destroy?.();
+			linked.release();
 			player = null;
 		};
 	});
@@ -466,81 +395,45 @@
 	}
 
 	/**
-	 * Waking a clip on a touch device, and keeping it on screen: a finger pressing and wandering
-	 * -- far enough to drop the platform's long-press menu, never lifting into a tap -- is this
-	 * device's closest thing to hovering. See spec/architecture/video/player.md, "On a touch device",
-	 * for why lifting does not pause, unlike a pointer leaving.
+	 * The frame's reader: scrolled near, pointed at, or touched and wandered on. What each means is
+	 * here; the listening is `./video-gestures.ts`. See spec/architecture/video/player.md, "On a
+	 * touch device", for why lifting does not pause, unlike a pointer leaving.
 	 */
 	$effect(() => {
 		if (!video || !frame) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (entry?.isIntersecting) return void place.prime();
+		const element = video;
+		return watchFrame(frame, hovers, {
+			near: () => place.prime(),
+			far: () => {
 				// Playing in another window, the clip is not on this page to scroll past.
 				if (away) return;
 				// Paused rather than stopped, so a reader who returns finds it where they left it.
-				if (stage !== 'sleeping' && !video.paused) (player?.pause as () => void)?.();
+				if (stage !== 'sleeping' && !element.paused) (player?.pause as () => void)?.();
 			},
-			{ threshold: 0.35 },
-		);
-		observer.observe(frame);
-
-		const onEnter = () => {
-			over = true;
-			// Arriving is not a reason to take the disc away that instant. The row comes up on the
-			// same movement, and two things changing in opposite directions in one frame reads as
-			// a flinch; the countdown lets the one that is leaving leave on its own.
-			hold();
-			if (stage === 'sleeping') preview();
-			// Back on the clip it left: pick up from where the pointer left off rather than from
-			// the beginning. The position was kept precisely so this would be a resumption.
-			else if (stage === 'previewing' && video.paused) start();
-		};
-		const onLeave = () => {
-			over = false;
-			// A preview lasts as long as the pointer does -- it was never asked for, so it has no
-			// business continuing once the pointer leaves. Only a preview: an `awake` clip was
-			// asked for and keeps playing wherever the pointer goes.
-			if (stage === 'previewing' && !video.paused) (player?.pause as () => void)?.();
-			// The row goes at once and the disc does not, because from here the disc is the only
-			// control there is. How long it stays is `covered`'s question, not this one's: a
-			// clip still running takes the countdown, a paused one is kept.
-			hold();
-		};
-		let down: { x: number; y: number } | null = null;
-		const onStart = (event: TouchEvent) => {
-			const touch = event.touches[0];
-			down = touch ? { x: touch.clientX, y: touch.clientY } : null;
-		};
-		const onMove = (event: TouchEvent) => {
-			const touch = event.touches[0];
-			if (!down || !touch) return;
-			// Four pixels: past what a still finger drifts, short of what the platform reads as a
-			// drag. Enough to say the finger is on the clip and moving rather than tapping it.
-			const moved = Math.hypot(touch.clientX - down.x, touch.clientY - down.y) > 4;
-			if (moved) preview();
-		};
-		const onEnd = () => {
-			down = null;
-		};
-
-		if (hovers) {
-			frame.addEventListener('pointerenter', onEnter);
-			frame.addEventListener('pointerleave', onLeave);
-		} else {
-			frame.addEventListener('touchstart', onStart, { passive: true });
-			frame.addEventListener('touchmove', onMove, { passive: true });
-			frame.addEventListener('touchend', onEnd, { passive: true });
-		}
-
-		return () => {
-			observer.disconnect();
-			frame.removeEventListener('pointerenter', onEnter);
-			frame.removeEventListener('pointerleave', onLeave);
-			frame.removeEventListener('touchstart', onStart);
-			frame.removeEventListener('touchmove', onMove);
-			frame.removeEventListener('touchend', onEnd);
-		};
+			enter: () => {
+				over = true;
+				// Arriving is not a reason to take the disc away that instant. The row comes up on the
+				// same movement, and two things changing in opposite directions in one frame reads as
+				// a flinch; the countdown lets the one that is leaving leave on its own.
+				hold();
+				if (stage === 'sleeping') preview();
+				// Back on the clip it left: pick up from where the pointer left off rather than from
+				// the beginning. The position was kept precisely so this would be a resumption.
+				else if (stage === 'previewing' && element.paused) start();
+			},
+			leave: () => {
+				over = false;
+				// A preview lasts as long as the pointer does -- it was never asked for, so it has no
+				// business continuing once the pointer leaves. Only a preview: an `awake` clip was
+				// asked for and keeps playing wherever the pointer goes.
+				if (stage === 'previewing' && !element.paused) (player?.pause as () => void)?.();
+				// The row goes at once and the disc does not, because from here the disc is the only
+				// control there is. How long it stays is `covered`'s question, not this one's: a
+				// clip still running takes the countdown, a paused one is kept.
+				hold();
+			},
+			wander: preview,
+		});
 	});
 
 	/**
