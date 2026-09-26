@@ -37,9 +37,10 @@
 	--player-menu-shadow: 0 0.5rem 1.5rem oklch(0 0 0 / 0.35);
 
 	/* A menu row under a pointer or a key. No colour shift, only more light, and only a little: on
-	   an unknown backdrop a hue would be a second variable nobody can predict, and at 16% the row
-	   under the pointer outshone the menu around it. */
-	--player-wash: oklch(1 0 0 / 0.1);
+	   an unknown backdrop a hue would be a second variable nobody can predict. Light over a ground this
+	   dark reads as far more than its alpha: 16% outshone the menu around the row, 10% still did,
+	   so 6%, and the row's ink rising from dim to full carries the rest. */
+	--player-wash: oklch(1 0 0 / 0.06);
 
 	/* The gradient under the control row. Transparent at the top so no edge is drawn across the
 	   picture, and dark enough at the bottom to hold white ink over a bright frame. */

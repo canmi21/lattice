@@ -43,8 +43,9 @@ menu sits on the veil, and because the disc is one glyph while the menu is a lis
 more of its own ground (0.5 against 0.45), a little less blur (24px against 32) and a little less
 saturation (170% against 180%). It has no edge: a light line round it read as a frame drawn on
 the glass, and a dark one still read as a line. `--player-menu-shadow` lifts it off the picture,
-and a row under the pointer brightens by 10% (`--player-wash`), since at 16% the row outshone
-the menu around it. The disc keeps the glass.
+and a row under the pointer takes 6% of white (`--player-wash`): light over a ground this dark
+reads as far more than its alpha, and 16% and then 10% both outshone the menu around the row. The
+row's ink rising from dim to full carries the rest. The disc keeps the glass.
 
 **It opens where it stands.** Opening and closing fade it and grow it from 98%, from the corner
 nearest the cog, over 150ms on `cubic-bezier(0.22, 1, 0.36, 1)` -- the site's dropdowns, in
