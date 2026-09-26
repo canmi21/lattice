@@ -1,7 +1,8 @@
 <!--
 	@component
 	The settings in the player's row: the cog, and the menu it opens. The menu names what can be set
-	-- quality when there is more than one rung, speed, and how loud the level at its top plays --
+	-- quality when there is more than one rung, speed, and the gain: how loud the level slider's
+	top plays --
 	with what each is now, and the choices for one are a page of their own, reached by its row and
 	left by the row at the top. A choice closes the menu. So does a press anywhere else, which does
 	nothing but close it. See spec/architecture/video/player.md, "The settings menu".
@@ -274,7 +275,7 @@
 						{@render entry('quality', m['video.quality']({}, { locale }), quality)}
 					{/if}
 					{@render entry('speed', m['video.speed']({}, { locale }), `${rate}×`)}
-					{@render entry('volume', m['video.volume']({}, { locale }), percent(ceiling))}
+					{@render entry('volume', m['video.gain']({}, { locale }), percent(ceiling))}
 				{:else if page === 'quality'}
 					{@render back(m['video.quality']({}, { locale }))}
 					{@render choice(
@@ -292,7 +293,7 @@
 						{@render choice(`${speed}×`, rate === speed, () => onrate(speed))}
 					{/each}
 				{:else}
-					{@render back(m['video.volume']({}, { locale }))}
+					{@render back(m['video.gain']({}, { locale }))}
 					{#each CEILINGS as value (value)}
 						{@render choice(percent(value), ceiling === value, () => onceiling(value))}
 					{/each}

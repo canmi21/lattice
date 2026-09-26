@@ -321,7 +321,7 @@ clip starts again.
 ### The settings menu
 
 **It names what can be set, and each has a page of its own.** The cog opens a list of what the
-reader can change -- quality, only while a clip has more than one rung; speed; volume -- each with
+reader can change -- quality, only while a clip has more than one rung; speed; gain -- each with
 what it is now, and the choices for one are a page reached from its row and left by the row at
 the top of it. Everything a menu of every choice at once used to show is one step further in, and
 the menu itself is two or three rows. A choice closes the whole menu: it was opened for that.
@@ -336,7 +336,9 @@ the choice is Auto and the height once one is picked; inside, the Auto
 row names, beside it, what it would play for the frame as it is. What is playing is read from the
 element's own `currentSrc`, so the tick is right however the rung was chosen.
 
-**Volume is where the slider's top is, not a switch.** The page offers 5, 25, 50, 75, 100, 150 and
+**Gain is where the slider's top is, not the level.** Named gain rather than volume, because it
+never moves the level slider beside the time and a menu row called volume read as if it did. The
+page offers 5, 25, 50, 75, 100, 150 and
 200%, 100 by default: the level slider then plays from nothing to that, so a clip under
 something else can have its whole slider in the quiet range, and one that is too quiet can go past
 what the element plays alone -- the `GainNode` in `video-level.ts`, whose gesture rule holds
