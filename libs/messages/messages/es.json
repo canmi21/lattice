@@ -134,6 +134,7 @@
 	"video.mute": "Silenciar",
 	"video.pause": "Pausa",
 	"video.pip": "Imagen en imagen",
+	"video.pip-playing": "Reproduciendo en imagen en imagen",
 	"video.play": "Reproducir",
 	"video.quality": "Calidad",
 	"video.seek": "Buscar",

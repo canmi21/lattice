@@ -134,6 +134,7 @@
 	"video.mute": "静音",
 	"video.pause": "暂停",
 	"video.pip": "画中画",
+	"video.pip-playing": "正在画中画中播放",
 	"video.play": "播放",
 	"video.quality": "清晰度",
 	"video.seek": "跳转",

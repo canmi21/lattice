@@ -134,6 +134,7 @@
 	"video.mute": "음소거",
 	"video.pause": "일시정지",
 	"video.pip": "화면 속 화면",
+	"video.pip-playing": "화면 속 화면에서 재생 중",
 	"video.play": "재생",
 	"video.quality": "화질",
 	"video.seek": "탐색",

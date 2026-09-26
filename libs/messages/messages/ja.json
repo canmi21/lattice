@@ -134,6 +134,7 @@
 	"video.mute": "ミュート",
 	"video.pause": "一時停止",
 	"video.pip": "ピクチャ・イン・ピクチャ",
+	"video.pip-playing": "ピクチャ・イン・ピクチャで再生中",
 	"video.play": "再生",
 	"video.quality": "画質",
 	"video.seek": "シーク",

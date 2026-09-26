@@ -112,10 +112,13 @@ drawing arrive in the wrong order: the frame is available at `enterpictureinpict
 mounted by that same state would not exist yet. Tainting does not matter -- it is displayed, never
 read back, and a cross-origin draw only blocks `getImageData` and `toDataURL`.
 
-**And it can be pressed to bring the clip back.** The disc returns wearing the
-picture-in-picture glyph, and so does the picture behind it: while a clip is playing somewhere
-else, pressing it can only mean one thing. The play disc is withheld for the same reason -- two
-discs on one picture is one more than there is anything to press.
+**And it says where the clip went, and offers it back.** Over the still, one line says the clip
+is playing in picture in picture, and under it a button, in words, brings it back -- the disc's
+glass, since it stands where the disc stood. It was the disc alone, wearing the
+picture-in-picture glyph, and a symbol on a grey picture with nothing beside it read as nothing.
+The picture behind is pressable too: while a clip is playing somewhere else, pressing it can only
+mean one thing. The play disc is withheld for the same reason -- two ways to start something on
+a picture that is not playing here is one more than there is anything to start.
 
 ### Filling the window is a page mode, not a media one
 

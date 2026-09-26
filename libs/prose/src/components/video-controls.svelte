@@ -736,21 +736,28 @@
 ></canvas>
 
 {#if view.pip}
-	<button
-		type="button"
-		onclick={(event) => {
-			event.stopPropagation();
-			returnHere();
-		}}
-		aria-label={m['video.exit-pip']({}, { locale })}
-		title={m['video.exit-pip']({}, { locale })}
-		class="player-cover pointer-events-auto absolute inset-0 m-auto grid size-16 cursor-pointer place-items-center {stylex.attrs(
-			styles.cover,
-			styles.coverShown,
+	<div
+		class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center {stylex.attrs(
+			styles.away,
 		).class}"
 	>
-		<PictureInPictureIcon class="player-cover-glyph" weight="bold" aria-hidden="true" />
-	</button>
+		<p class="m-0 {stylex.attrs(styles.awayText).class}">
+			{m['video.pip-playing']({}, { locale })}
+		</p>
+		<button
+			type="button"
+			onclick={(event) => {
+				event.stopPropagation();
+				returnHere();
+			}}
+			class="focus-ring pointer-events-auto inline-flex cursor-pointer items-center gap-2 px-3.5 py-1.5 {stylex.attrs(
+				styles.awayButton,
+			).class}"
+		>
+			<PictureInPictureIcon class="size-4" weight="bold" aria-hidden="true" />
+			{m['video.exit-pip']({}, { locale })}
+		</button>
+	</div>
 {/if}
 
 {#if hovers || stage === 'sleeping'}

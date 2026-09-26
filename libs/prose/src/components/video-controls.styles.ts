@@ -77,6 +77,22 @@ export const styles = stylex.create({
 		transitionDelay: '0s',
 	},
 	stillShown: { opacity: 1 },
+	/**
+	 * What the still says while the clip is elsewhere: where it went, in words, and the way back,
+	 * in words too -- a glyph alone on a grey picture was a symbol with nothing to read it by. The
+	 * way back wears the disc's glass, since it stands where the disc stood.
+	 */
+	away: { fontSize: text.px13, textShadow: 'var(--player-shadow)' },
+	awayText: { color: 'var(--player-ink-dim)' },
+	awayButton: {
+		borderWidth: 0,
+		borderStyle: 'none',
+		borderRadius: radius.full,
+		color: 'var(--player-ink)',
+		backgroundColor: 'var(--player-glass)',
+		backdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+		WebkitBackdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+	},
 
 	/**
 	 * The veil under the control row, which is a gradient and therefore a background image
