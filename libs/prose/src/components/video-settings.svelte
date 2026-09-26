@@ -15,7 +15,7 @@
 	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
 	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { animate } from 'motion';
+	import { animate, cubicBezier } from 'motion';
 	import { tick } from 'svelte';
 	import type { VideoRung } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '@canmi/locales';
@@ -54,6 +54,23 @@
 	 */
 	const CEILINGS = [0.05, 0.25, 0.5, 0.75, 1, 1.5, 2];
 
+	/**
+	 * How the menu opens and closes: in place, fading and growing from 98% out of the corner by
+	 * the cog. The numbers are the site's dropdowns', `menu-content.svelte` in `apps/site`, which
+	 * this menu is one of. See spec/styling/player.md, "It opens where it stands".
+	 */
+	const OPENING = { duration: 150, easing: cubicBezier(0.22, 1, 0.36, 1), scale: 0.98 };
+
+	function appear(_node: Element) {
+		if (prefersReducedMotion()) return { duration: 0 };
+		const { duration, easing, scale } = OPENING;
+		return {
+			duration,
+			easing,
+			css: (t: number) => `opacity: ${t}; transform: scale(${scale + (1 - scale) * t});`,
+		};
+	}
+
 	type Page = 'root' | 'quality' | 'speed' | 'volume';
 	/** Which page the menu shows. Every opening starts at the list of what can be set. */
 	let page = $state<Page>('root');
@@ -61,9 +78,14 @@
 		if (!menu) {
 			resizing?.stop();
 			resizing = undefined;
-			page = 'root';
 		}
 	});
+
+	/** Opened at the list of what can be set; the page it closed on is kept while it fades out. */
+	function toggle() {
+		if (!menu) page = 'root';
+		menu = !menu;
+	}
 
 	let panel = $state<HTMLElement>();
 	let body = $state<HTMLElement>();
@@ -208,7 +230,7 @@
 			styles.button,
 			menu && styles.buttonOn,
 		).class}"
-		onclick={() => (menu = !menu)}
+		onclick={toggle}
 		aria-expanded={menu}
 		aria-label={m['video.settings']({}, { locale })}
 		title={m['video.settings']({}, { locale })}
@@ -231,7 +253,10 @@
 	{#if menu}
 		<div
 			bind:this={panel}
-			class="absolute end-0 bottom-9 w-32 overflow-hidden p-0.5 {stylex.attrs(styles.menu).class}"
+			transition:appear
+			class="absolute end-0 bottom-9 w-32 origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(
+				styles.menu,
+			).class}"
 		>
 			<div bind:this={body}>
 				{#if page === 'root'}

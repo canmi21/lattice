@@ -39,11 +39,17 @@ disc's own colour, so **more of it is less glass, not more**.
 **The menu has its own ground.** It wore the disc's glass until it was looked at beside the disc:
 the same tokens read differently, because the disc floats in the middle of the picture and the
 menu sits on the veil, and because the disc is one glyph while the menu is a list of words at
-12px. So `--player-menu` is denser than the glass (0.72 against 0.45), its blur smaller (20px
-against 32) so the frame behind is colour rather than texture, and its saturation push lighter
-(140% against 180%). A hairline inside its edge, `--player-menu-edge`, keeps the panel's shape
-over a frame as dark as it is, and `--player-menu-shadow` lifts it off the picture. The disc keeps
+12px. So `--player-menu` is still glass, with the frame showing through as colour, but a little
+more of its own ground (0.5 against 0.45), a little less blur (24px against 32) and a little less
+saturation (170% against 180%). Its edge, `--player-menu-edge`, is darker than its ground: a
+first edge lighter than the ground read as a frame drawn round the menu, and a dark one reads
+only as where the glass stops. `--player-menu-shadow` lifts it off the picture. The disc keeps
 the glass.
+
+**It opens where it stands.** Opening and closing fade it and grow it from 98%, from the corner
+nearest the cog, over 150ms on `cubic-bezier(0.22, 1, 0.36, 1)` -- the site's dropdowns, in
+`apps/site/src/lib/components/menu-content.svelte`, move exactly so, and the player's menu is one
+of them. Reduced motion shows and hides it at once.
 
 **A control lights up rather than growing a plate under it.** Hover and keyboard focus used to put
 a rounded translucent rectangle behind each 16px glyph, on a row that already sits on its own
