@@ -195,14 +195,17 @@ export const styles = stylex.create({
 	},
 
 	/**
-	 * The settings menu stands away from the frame, so it carries the plate rather than the
-	 * veil. Its corner is a literal: 0.625rem is on no scale this repository names.
+	 * The settings menu, on a ground of its own rather than the disc's glass: see `--player-menu`
+	 * in `libs/tokens/src/player.css`. The edge and the shadow are one list because both are a
+	 * `box-shadow`. Its corner is a literal, 0.5rem, which is a row's `radius.md` plus the 2px the
+	 * panel keeps around its rows, so the two corners share a centre.
 	 */
 	menu: {
-		borderRadius: '0.625rem',
-		backgroundColor: 'var(--player-glass)',
-		backdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
-		WebkitBackdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
+		borderRadius: '0.5rem',
+		backgroundColor: 'var(--player-menu)',
+		backdropFilter: 'blur(var(--player-menu-blur)) saturate(var(--player-menu-saturate))',
+		WebkitBackdropFilter: 'blur(var(--player-menu-blur)) saturate(var(--player-menu-saturate))',
+		boxShadow: 'inset 0 0 0 1px var(--player-menu-edge), var(--player-menu-shadow)',
 	},
 	menuTitle: {
 		fontSize: text.px10,

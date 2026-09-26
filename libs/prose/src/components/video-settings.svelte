@@ -158,7 +158,7 @@
 	const quality = $derived(rungs?.find((rung) => rung.src === chosen));
 
 	const ROW =
-		'focus-ring flex w-full cursor-pointer items-center gap-3 px-2 py-1 text-start whitespace-nowrap';
+		'focus-ring flex w-full cursor-pointer items-center gap-2 px-2 py-0.5 text-start whitespace-nowrap';
 </script>
 
 {#snippet entry(to: Page, label: string, value: string)}
@@ -169,7 +169,7 @@
 	>
 		<span class="flex-1">{label}</span>
 		<span class={stylex.attrs(styles.menuTitle).class}>{value}</span>
-		<CaretRightIcon class="size-3" weight="bold" aria-hidden="true" />
+		<CaretRightIcon class="size-2.5" weight="bold" aria-hidden="true" />
 	</button>
 {/snippet}
 
@@ -180,7 +180,7 @@
 		aria-label={m['video.back']({}, { locale })}
 		onclick={() => void turn('root')}
 	>
-		<CaretLeftIcon class="size-3" weight="bold" aria-hidden="true" />
+		<CaretLeftIcon class="size-2.5" weight="bold" aria-hidden="true" />
 		<span class="flex-1">{label}</span>
 	</button>
 {/snippet}
@@ -195,7 +195,7 @@
 			menu = false;
 		}}
 	>
-		<CheckIcon class="size-3 {on ? '' : 'invisible'}" weight="bold" aria-hidden="true" />
+		<CheckIcon class="size-2.5 {on ? '' : 'invisible'}" weight="bold" aria-hidden="true" />
 		<span class="flex-1">{label}</span>
 	</button>
 {/snippet}
@@ -231,7 +231,7 @@
 	{#if menu}
 		<div
 			bind:this={panel}
-			class="absolute end-0 bottom-9 w-36 overflow-hidden p-1 {stylex.attrs(styles.menu).class}"
+			class="absolute end-0 bottom-9 w-32 overflow-hidden p-0.5 {stylex.attrs(styles.menu).class}"
 		>
 			<div bind:this={body}>
 				{#if page === 'root'}

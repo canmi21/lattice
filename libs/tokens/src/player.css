@@ -26,6 +26,17 @@
 	--player-glass-blur: 32px;
 	--player-glass-saturate: 180%;
 
+	/* The settings menu: a list to read rather than a glyph to find, and it sits on the veil. So a
+	   denser ground than the glass, a smaller blur that leaves the frame as colour rather than
+	   texture, and a lighter saturation push; a hairline inside the edge, so the panel holds its
+	   shape over a frame as dark as it is, and a shadow to lift it off the picture. See
+	   spec/styling/player.md, "The menu has its own ground". */
+	--player-menu: oklch(0.16 0 0 / 0.72);
+	--player-menu-blur: 20px;
+	--player-menu-saturate: 140%;
+	--player-menu-edge: oklch(1 0 0 / 0.1);
+	--player-menu-shadow: 0 0.5rem 1.5rem oklch(0 0 0 / 0.35);
+
 	/* A control under a pointer or a key. No colour shift, only more light: on an unknown
 	   backdrop a hue would be a second variable nobody can predict. */
 	--player-wash: oklch(1 0 0 / 0.16);

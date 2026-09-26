@@ -36,6 +36,15 @@ less of its own colour, more blur, and the saturation push that stops a blurred 
 two. At `0.45` the frame behind reads at 55%, against the plate's 34%. Alpha is the share of the
 disc's own colour, so **more of it is less glass, not more**.
 
+**The menu has its own ground.** It wore the disc's glass until it was looked at beside the disc:
+the same tokens read differently, because the disc floats in the middle of the picture and the
+menu sits on the veil, and because the disc is one glyph while the menu is a list of words at
+12px. So `--player-menu` is denser than the glass (0.72 against 0.45), its blur smaller (20px
+against 32) so the frame behind is colour rather than texture, and its saturation push lighter
+(140% against 180%). A hairline inside its edge, `--player-menu-edge`, keeps the panel's shape
+over a frame as dark as it is, and `--player-menu-shadow` lifts it off the picture. The disc keeps
+the glass.
+
 **A control lights up rather than growing a plate under it.** Hover and keyboard focus used to put
 a rounded translucent rectangle behind each 16px glyph, on a row that already sits on its own
 veil: a plate on a plate, and a bigger visual event than the state it reports. Dim ink to full ink
