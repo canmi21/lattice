@@ -70,6 +70,23 @@ def fork(source: pathlib.Path, target: pathlib.Path) -> None:
 		run("sqlite3", str(database), f"VACUUM INTO '{escaped}'")
 
 
+def toolchain() -> str:
+	"""The workspace's mise config less its monorepo table, whose roots do not exist here.
+
+	Written anew by every build rather than linked, so it is as current as the sandbox is: the
+	tools and the environment are the workspace's own lines, not a copy kept apart from them.
+	"""
+	kept: list[str] = []
+	skipping = False
+	for line in (WORKSPACE / "mise.toml").read_text().splitlines():
+		if line.startswith("["):
+			skipping = line.strip() == "[monorepo]"
+		if skipping or line.startswith("monorepo_root"):
+			continue
+		kept.append(line)
+	return "\n".join(kept) + "\n"
+
+
 def build() -> None:
 	print("making the sandbox")
 	if registered():
@@ -78,15 +95,20 @@ def build() -> None:
 	BASE.mkdir(parents=True, exist_ok=True)
 	for entry in WORKSPACE.iterdir():
 		link = BASE / entry.name
-		if entry.name in SKIPPED or link.is_symlink() or link.exists():
+		if entry.name in SKIPPED or entry.name == "mise.toml" or link.is_symlink() or link.exists():
 			continue
 		link.symlink_to(entry)
+	(BASE / "mise.toml").write_text(toolchain())
 	HOME.mkdir(parents=True)
 	(HOME / "mise.toml").write_text(ENVIRONMENT)
 
 	print("  code: a workspace at main")
 	run("jj", "workspace", "add", "--name", NAME, "--revision", "main", str(CODE))
-	run("jj", "sparse", "set", "--remove", "data", cwd=CODE)
+	# Every top-level path but `data`: a pattern is a prefix, so leaving one out is the only way
+	# to take a tree out of a checkout that starts from everything.
+	tops = sorted({path.split("/", 1)[0] for path in run("jj", "file", "list", "-r", "main").splitlines()})
+	keep = [f"--add={top}" for top in tops if top != "data"]
+	run("jj", "sparse", "set", "--clear", *keep, cwd=CODE)
 
 	print("  data: forked")
 	fork(REPOSITORY / "data", DATA)

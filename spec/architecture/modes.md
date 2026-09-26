@@ -52,7 +52,8 @@ is reset, not repaired.
   checkout would have two different sources overwriting one cache.
 - **`/tmp/sandbox` stands in for the workspace root.** The formatter rules, the toolchain and the
   agent hooks are found by walking up from a project into the workspace, and `/tmp` is outside
-  it. `/tmp/sandbox` holds links to those files, so a command in the sandbox finds the same rules
+  it. `/tmp/sandbox` holds links to those files, and a copy of the workspace's mise config
+  written by each build without its monorepo table, whose roots are not there, so a command in the sandbox finds the same rules
   -- the commit check and the `rm` guard included -- where it would have found them at home.
 
 ### Every port is shifted by one hundred
