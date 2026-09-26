@@ -196,8 +196,7 @@ export const styles = stylex.create({
 
 	/**
 	 * The settings menu, on a ground of its own rather than the disc's glass: see `--player-menu`
-	 * in `libs/tokens/src/player.css`. The edge and the shadow are one list because both are a
-	 * `box-shadow`. Its corner is a literal, 0.5rem, which is a row's `radius.md` plus the 2px the
+	 * in `libs/tokens/src/player.css`. Its corner is a literal, 0.5rem, which is a row's `radius.md` plus the 2px the
 	 * panel keeps around its rows, so the two corners share a centre.
 	 */
 	menu: {
@@ -205,7 +204,7 @@ export const styles = stylex.create({
 		backgroundColor: 'var(--player-menu)',
 		backdropFilter: 'blur(var(--player-menu-blur)) saturate(var(--player-menu-saturate))',
 		WebkitBackdropFilter: 'blur(var(--player-menu-blur)) saturate(var(--player-menu-saturate))',
-		boxShadow: 'inset 0 0 0 1px var(--player-menu-edge), var(--player-menu-shadow)',
+		boxShadow: 'var(--player-menu-shadow)',
 	},
 	menuTitle: {
 		fontSize: text.px10,

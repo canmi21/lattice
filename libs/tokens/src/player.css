@@ -28,18 +28,18 @@
 
 	/* The settings menu: a list to read rather than a glyph to find, and it sits on the veil. Still
 	   glass -- the frame shows through as colour -- but a little more of its own ground than the
-	   disc and a little less blur, so words at 12px hold over it. Its edge is darker than its
-	   ground, not lighter: a light line reads as a frame drawn round it, a dark one only as where
-	   the glass stops. See spec/styling/player.md, "The menu has its own ground". */
+	   disc and a little less blur, so words at 12px hold over it. No edge: a line round it, light
+	   or dark, read as a frame drawn on the glass. See spec/styling/player.md, "The menu has its
+	   own ground". */
 	--player-menu: oklch(0.18 0 0 / 0.5);
 	--player-menu-blur: 24px;
 	--player-menu-saturate: 170%;
-	--player-menu-edge: oklch(0 0 0 / 0.18);
 	--player-menu-shadow: 0 0.5rem 1.5rem oklch(0 0 0 / 0.35);
 
-	/* A control under a pointer or a key. No colour shift, only more light: on an unknown
-	   backdrop a hue would be a second variable nobody can predict. */
-	--player-wash: oklch(1 0 0 / 0.16);
+	/* A menu row under a pointer or a key. No colour shift, only more light, and only a little: on
+	   an unknown backdrop a hue would be a second variable nobody can predict, and at 16% the row
+	   under the pointer outshone the menu around it. */
+	--player-wash: oklch(1 0 0 / 0.1);
 
 	/* The gradient under the control row. Transparent at the top so no edge is drawn across the
 	   picture, and dark enough at the bottom to hold white ink over a bright frame. */

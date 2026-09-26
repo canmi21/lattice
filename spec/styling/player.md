@@ -41,10 +41,10 @@ the same tokens read differently, because the disc floats in the middle of the p
 menu sits on the veil, and because the disc is one glyph while the menu is a list of words at
 12px. So `--player-menu` is still glass, with the frame showing through as colour, but a little
 more of its own ground (0.5 against 0.45), a little less blur (24px against 32) and a little less
-saturation (170% against 180%). Its edge, `--player-menu-edge`, is darker than its ground: a
-first edge lighter than the ground read as a frame drawn round the menu, and a dark one reads
-only as where the glass stops. `--player-menu-shadow` lifts it off the picture. The disc keeps
-the glass.
+saturation (170% against 180%). It has no edge: a light line round it read as a frame drawn on
+the glass, and a dark one still read as a line. `--player-menu-shadow` lifts it off the picture,
+and a row under the pointer brightens by 10% (`--player-wash`), since at 16% the row outshone
+the menu around it. The disc keeps the glass.
 
 **It opens where it stands.** Opening and closing fade it and grow it from 98%, from the corner
 nearest the cog, over 150ms on `cubic-bezier(0.22, 1, 0.36, 1)` -- the site's dropdowns, in
