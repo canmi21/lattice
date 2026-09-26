@@ -1,55 +1,8 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { line, radius, text } from '@canmi/tokens/vocabulary.stylex';
 	import { labelStyles } from './toc-label.ts';
-
-	/**
-	 * The visual half of the table of contents. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
-	 *
-	 * Nothing here draws a bar's width or the indicator's height. Those are measured and written
-	 * inline by the script below, an inline style outranks every layer, and this one only says
-	 * what the marks are made of.
-	 */
-	const styles = stylex.create({
-		/**
-		 * The rail's own offset near the end of an article, on top of the box's vertical centring.
-		 *
-		 * Here rather than in the markup because no utility translates a `transform` -- Tailwind 4
-		 * writes `translate` as its own property, a different declaration with a different computed
-		 * value. See spec/architecture/css/migration.md, "No utility translates a `transform`
-		 * declaration". Horizontal placement stays the rail box's, in utilities.css.
-		 */
-		nav: {
-			transform: 'translateY(var(--toc-end-offset, 0rem))',
-		},
-		/** The bar marking the entry being read. Its height and its offset are the animation's. */
-		indicator: {
-			borderRadius: radius.full,
-			backgroundColor: 'var(--color-text-soft)',
-		},
-		entry: {
-			// The ring belongs to one of the two wrappers inside, which `focus-ring-inner` draws
-			// around the bar while the column is collapsed and around the label once it is not.
-			outlineStyle: { default: null, ':focus-visible': 'none' },
-		},
-		/** The wrapper the ring is drawn on while the column is collapsed. */
-		barRing: {
-			borderRadius: radius.full,
-		},
-		/** The collapsed thumbnail of one heading. The width it is drawn at stays inline. */
-		bar: {
-			borderRadius: radius.full,
-			backgroundColor: 'var(--color-text-soft)',
-		},
-		labelActive: {
-			color: 'var(--color-text-strong)',
-		},
-		labelIdle: {
-			color: 'var(--color-text-soft)',
-		},
-	});
+	import { styles } from './toc.styles.ts';
 </script>
 
 <script lang="ts">
@@ -64,7 +17,14 @@
 	import type { TocEntry } from '@canmi/artifacts/types';
 	import { measureRail } from './rail-measure';
 	import type { RailWidths } from './rail-widths';
-	import { railEndOffset } from './rail';
+	import {
+		followArticleEnd,
+		placeIndicator,
+		rootFontPixels,
+		toScaledPixels,
+		BAR_HEIGHT,
+		type IndicatorGeometry,
+	} from './toc-measure.ts';
 	import { scheduleInitialHashJump } from './toc';
 
 	let {
@@ -111,8 +71,6 @@
 	 * Three rather than one: the shortest bar in such an article is still a long heading.
 	 */
 	const RESTING_STEP = 3;
-	const BAR_HEIGHT = 4;
-	const INDICATOR_HEIGHT = 12;
 	const INDICATOR_OPACITY = 0.8;
 	const REVEAL_DELAY = 180;
 	const LEAVE_DELAY = 250;
@@ -121,17 +79,9 @@
 	const BAR_SPRING = { type: 'spring' as const, stiffness: 300, damping: 28 };
 	const TEXT_TWEEN = { duration: 0.15 };
 
-	// Geometry is authored against the default root and written as rem. Calculations that mix it
-	// with DOM measurements scale it to the live root first.
-	const rootFontPixels = () =>
-		Number.parseFloat(getComputedStyle(document.documentElement).fontSize) ||
-		DEFAULT_PIXELS_PER_REM;
-	const toScaledPixels = (value: number, root: number) => (value / DEFAULT_PIXELS_PER_REM) * root;
-
 	type Phase = 'collapsed' | 'expanded' | 'revealed';
 	type Entry = { el?: HTMLHeadingElement; slug: string; text: string };
 	type HydratedEntries = { source: TocEntry[]; entries: Entry[] };
-	type IndicatorGeometry = { y: number; height: number };
 	type AnimationControl = { stop: () => void };
 
 	let hydratedEntries = $state.raw<HydratedEntries>();
@@ -223,44 +173,8 @@
 		return clone.textContent?.trim() ?? '';
 	}
 
-	/**
-	 * Where the indicator goes, for a rail opened by `opened` with bars still `bar` tall.
-	 *
-	 * Arithmetic rather than measured, because the rail is in motion exactly when this is asked:
-	 * a button reports 28px mid-flight and 24px once it settles. The two resting layouts are this
-	 * function's endpoints and every frame of the reveal lies between them. See
-	 * spec/styling/rail.md, "The active mark opens with the column, not to where the column is
-	 * going".
-	 */
-	function indicatorGeometry(
-		index: number,
-		bar: number,
-		opened: number,
-	): IndicatorGeometry | undefined {
-		const lines = shape?.lines;
-		const label = asideEl?.querySelector<HTMLElement>('[data-toc-text]');
-		const button = asideEl?.querySelector<HTMLElement>('[data-toc-button]');
-		if (!lines || !label || !button || index < 0 || index >= lines.length) return undefined;
-
-		const lineHeight = parseFloat(getComputedStyle(label).lineHeight);
-		const style = getComputedStyle(button);
-		const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-		if (!Number.isFinite(lineHeight) || !Number.isFinite(padding)) return undefined;
-
-		// Every entry above this one contributes the same padding and the same bar, and its own
-		// label's share of whatever has arrived -- so their labels are counted in lines rather
-		// than one entry at a time.
-		let above = 0;
-		for (let entry = 0; entry < index; entry += 1) above += lines[entry] ?? 1;
-		const top = button.offsetTop + index * (padding + bar) + lineHeight * opened * above;
-		const tall = padding + bar + lineHeight * opened * (lines[index] ?? 1);
-
-		// Collapsed, the entry is a bar and the mark on it is that bar; open, it is the mark's
-		// own length, plus a line for a label that takes two.
-		const open =
-			toScaledPixels(INDICATOR_HEIGHT, rootFontPixels()) + lineHeight * ((lines[index] ?? 1) - 1);
-		const height = bar * (1 - opened) + open * opened;
-		return { y: top + tall / 2 - height / 2, height };
+	function indicatorGeometry(index: number, bar: number, opened: number) {
+		return placeIndicator(asideEl, shape?.lines, index, bar, opened);
 	}
 
 	/** The rail open: bars gone, labels arrived. The reveal's far end, and where it rests. */
@@ -353,79 +267,6 @@
 		indicatorAnimation?.stop();
 		indicatorAnimation = undefined;
 		indicatorRevealing = false;
-	}
-
-	function followArticleEnd(node: HTMLElement) {
-		const article = document.querySelector<HTMLElement>('article');
-		let frame = 0;
-		let rootPixels = rootFontPixels();
-		let navHeight = node.getBoundingClientRect().height;
-		let articleTop = 0;
-		let articleEnd = Number.POSITIVE_INFINITY;
-		let renderedOffset = '';
-		let destroyed = false;
-		let measureNext = false;
-
-		const position = () => {
-			const offset = railEndOffset(window.innerHeight, navHeight, articleEnd - window.scrollY);
-			const rendered = remFromMeasuredPixels(offset, rootPixels);
-			if (rendered === renderedOffset) return;
-			renderedOffset = rendered;
-			node.style.setProperty('--toc-end-offset', rendered);
-		};
-
-		const calibrate = () => {
-			rootPixels = rootFontPixels();
-			navHeight = node.getBoundingClientRect().height;
-			if (article) {
-				const rect = article.getBoundingClientRect();
-				articleTop = rect.top + window.scrollY;
-				articleEnd = rect.bottom + window.scrollY;
-			}
-			position();
-		};
-
-		const schedule = (measure = false) => {
-			measureNext ||= measure;
-			cancelAnimationFrame(frame);
-			frame = requestAnimationFrame(() => {
-				if (measureNext) {
-					measureNext = false;
-					calibrate();
-				} else {
-					position();
-				}
-			});
-		};
-
-		const resize = new ResizeObserver((observations) => {
-			for (const entry of observations) {
-				const height = entry.borderBoxSize[0]?.blockSize ?? entry.contentRect.height;
-				if (entry.target === node) navHeight = height;
-				if (entry.target === article) articleEnd = articleTop + height;
-			}
-			position();
-		});
-		resize.observe(node);
-		if (article) resize.observe(article);
-		const onScroll = () => schedule();
-		const onResize = () => schedule(true);
-		window.addEventListener('scroll', onScroll, { passive: true });
-		window.addEventListener('resize', onResize);
-		calibrate();
-		document.fonts.ready.then(() => {
-			if (!destroyed) calibrate();
-		});
-
-		return {
-			destroy() {
-				destroyed = true;
-				cancelAnimationFrame(frame);
-				resize.disconnect();
-				window.removeEventListener('scroll', onScroll);
-				window.removeEventListener('resize', onResize);
-			},
-		};
 	}
 
 	/**
