@@ -137,6 +137,8 @@ def build() -> None:
 	print("  dependencies")
 	run("pnpm", "install", "--frozen-lockfile", "--offline", cwd=CODE)
 	run("mise", "run", "messages", cwd=CODE)
+	# What git ignores and a check still reads: the workers' binding types, which wrangler writes.
+	run("pnpm", "-r", "--if-present", "run", "types", cwd=CODE)
 	WHOLE.write_text(run("jj", "log", "--no-graph", "-r", "main", "-T", "commit_id.short()"))
 	print(f"made: {CODE}")
 
