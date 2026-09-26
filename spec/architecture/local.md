@@ -129,6 +129,14 @@ and marked on the root by the same first-frame script, so a sidebar left folded 
 than docking for a frame and then going. Only the writer's choice is kept; a window too narrow to
 dock it folds it without saying anything about what they want on a wider one.
 
+**So do the article tree's folders.** Whether Articles is open is kept under `cms.articles.open`,
+and the categories closed, by name, under `cms.articles.closed`, in the same record
+([folders.ts](../../apps/cms/src/lib/folders.ts)). A category that no longer exists is dropped
+the next time the set is written. Unlike the fold these are put back after hydration, not before
+the first frame: the tree is below the fold of the page's attention and a script for it would be
+one more thing reading the record raw. Put back, a folder goes where it was left without moving,
+and only a folder somebody opens or closes animates.
+
 **Dragging the divider past the minimum folds the sidebar.** The width holds at the minimum, and
 for a further 2rem the drag means nothing -- overshooting an edge a little is not a request. Past
 that margin the sidebar recedes behind a notice -- an arrow into the edge, and no words, since the sidebar is
