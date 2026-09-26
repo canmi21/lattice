@@ -131,6 +131,11 @@
 
 	/** Where a reader's level lives between visits. Flat and dotted; see `client/state.ts`. */
 	const VOLUME_KEY = 'video.volume';
+	/**
+	 * What the level slider's top plays at, as a fraction of the clip's full volume. It replaced a
+	 * yes-or-no doubling, kept under `video.boost`, which is read once as 2 and then forgotten.
+	 */
+	const CEILING_KEY = 'video.ceiling';
 	const BOOST_KEY = 'video.boost';
 
 	/**
@@ -172,7 +177,7 @@
 	let player = $state<Record<string, unknown> | null>(null);
 	/** The reader's own level, which muted playback never touches. See `unmute`. */
 	let volume = $state(DEFAULT_VOLUME);
-	let boost = $state(false);
+	let ceiling = $state(1);
 	let chosen = $state<string | undefined>(undefined);
 	let menu = $state(false);
 	/**
@@ -201,7 +206,11 @@
 
 	$effect(() => {
 		volume = reader.recall(localStorage, VOLUME_KEY, DEFAULT_VOLUME);
-		boost = reader.recall(localStorage, BOOST_KEY, false);
+		ceiling = reader.recall(
+			localStorage,
+			CEILING_KEY,
+			reader.recall(localStorage, BOOST_KEY, false) ? 2 : 1,
+		);
 		wantsCaptions = reader.recall(localStorage, CAPTIONS_KEY, false);
 	});
 
@@ -507,7 +516,7 @@
 	/** The reader's level, times this clip's levelling, onto the element. See `./video-level.ts`. */
 	function applyVolume() {
 		if (!video) return;
-		level.apply(video, (boost ? volume * 2 : volume) * levelling);
+		level.apply(video, volume * ceiling * levelling);
 	}
 
 	function setVolume(next: number) {
@@ -558,9 +567,10 @@
 		reader.remember(localStorage, CAPTIONS_KEY, wantsCaptions);
 	}
 
-	function toggleBoost() {
-		boost = !boost;
-		reader.remember(localStorage, BOOST_KEY, boost);
+	function setCeiling(next: number) {
+		ceiling = next;
+		reader.remember(localStorage, CEILING_KEY, next);
+		reader.forget(localStorage, BOOST_KEY);
 		applyVolume();
 	}
 
@@ -724,7 +734,7 @@
 	{view}
 	{shown}
 	{volume}
-	{boost}
+	{ceiling}
 	{chosen}
 	{rungs}
 	bind:menu
@@ -737,7 +747,7 @@
 	oncaptions={toggleCaptions}
 	onquality={quality}
 	onrate={(rate) => (player?.setPlaybackRate as (value: number) => void)?.(rate)}
-	onboost={toggleBoost}
+	onceiling={setCeiling}
 	onpip={() => (player?.togglePictureInPicture as () => void)?.()}
 	onfill={toggleFill}
 	onfullscreen={() => (player?.toggleFullscreen as () => void)?.()}

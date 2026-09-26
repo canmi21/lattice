@@ -44,7 +44,7 @@
 		view,
 		shown,
 		volume,
-		boost,
+		ceiling,
 		chosen,
 		rungs,
 		menu = $bindable(false),
@@ -57,7 +57,7 @@
 		oncaptions,
 		onquality,
 		onrate,
-		onboost,
+		onceiling,
 		onpip,
 		onfill,
 		onfullscreen,
@@ -67,7 +67,8 @@
 		shown: boolean;
 		/** The reader's own level, which muted playback never touches. */
 		volume: number;
-		boost: boolean;
+		/** What the level slider's top plays at; see `video-settings.svelte`. */
+		ceiling: number;
 		chosen?: string;
 		rungs?: VideoRung[];
 		menu?: boolean;
@@ -80,7 +81,7 @@
 		oncaptions: () => void;
 		onquality: (src: string) => void;
 		onrate: (rate: number) => void;
-		onboost: () => void;
+		onceiling: (ceiling: number) => void;
 		onpip: () => void;
 		onfill: () => void;
 		onfullscreen: () => void;
@@ -229,12 +230,12 @@
 			{rungs}
 			{chosen}
 			rate={view.rate}
-			{boost}
+			{ceiling}
 			bind:menu
 			{locale}
 			{onquality}
 			{onrate}
-			{onboost}
+			{onceiling}
 		/>
 
 		{#if view.pipAvailable}

@@ -1,13 +1,22 @@
 <!--
 	@component
-	The settings in the player's row: the cog, and the menu it opens -- quality when there is more
-	than one rung, speed, and the ceiling a reader may raise. What each choice does is the player's;
-	this only offers them. See `video-controls.svelte`.
+	The settings in the player's row: the cog, and the menu it opens. The menu names what can be set
+	-- quality when there is more than one rung, speed, and how loud the level at its top plays --
+	with what each is now, and the choices for one are a page of their own, reached by its row and
+	left by the row at the top. A choice closes the menu. So does a press anywhere else, which does
+	nothing but close it. See spec/architecture/video/player.md, "The settings menu".
 -->
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
+	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
+	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
+	import { animate } from 'motion';
+	import { tick } from 'svelte';
 	import type { VideoRung } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
@@ -17,25 +26,179 @@
 		rungs,
 		chosen,
 		rate,
-		boost,
+		ceiling,
 		menu = $bindable(false),
 		locale,
 		onquality,
 		onrate,
-		onboost,
+		onceiling,
 	}: {
 		rungs?: VideoRung[];
 		/** The rung playing, when the reader chose one. */
 		chosen?: string;
 		rate: number;
-		boost: boolean;
+		/** What the level slider's top plays at, as a fraction of the clip's full volume. */
+		ceiling: number;
 		menu?: boolean;
 		locale: LocaleCode;
 		onquality: (src: string) => void;
 		onrate: (rate: number) => void;
-		onboost: () => void;
+		onceiling: (ceiling: number) => void;
 	} = $props();
+
+	const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+	/**
+	 * How loud the slider's top is. Below 1 the whole slider is finer at the quiet end, for a clip
+	 * played under something else; above it is past what the element alone can play, which is the
+	 * `GainNode` in `./video-level.ts`.
+	 */
+	const CEILINGS = [0.05, 0.25, 0.5, 0.75, 1, 1.5, 2];
+
+	type Page = 'root' | 'quality' | 'speed' | 'volume';
+	/** Which page the menu shows. Every opening starts at the list of what can be set. */
+	let page = $state<Page>('root');
+	$effect(() => {
+		if (!menu) {
+			resizing?.stop();
+			resizing = undefined;
+			page = 'root';
+		}
+	});
+
+	let panel = $state<HTMLElement>();
+	let body = $state<HTMLElement>();
+
+	/**
+	 * How far a page travels as it comes in: from the side it is in the menu's order, forward
+	 * from the end and back from the start, so a page reached is to the right of where it was
+	 * reached from.
+	 */
+	const SHIFT = 12;
+	let resizing: AnimationControl | undefined;
+
+	/**
+	 * Turn to another page, the way the site moves anything: the panel's height travels to the
+	 * new page's with the disclosure's own animation, and the page comes in from its side on the
+	 * press timing for that height. With reduced motion it is simply there.
+	 */
+	async function turn(to: Page) {
+		const forward = to !== 'root';
+		if (!panel || !body || prefersReducedMotion()) {
+			page = to;
+			return;
+		}
+		resizing?.stop();
+		const from = panel.getBoundingClientRect().height;
+		panel.style.height = `${from}px`;
+		page = to;
+		await tick();
+		if (!panel || !body) return;
+		const edge = panel.getBoundingClientRect().height - panel.clientHeight;
+		const padding = parseFloat(getComputedStyle(panel).paddingBlockStart) * 2;
+		const target = body.getBoundingClientRect().height + padding + edge;
+		const settle = (finished?: AnimationControl) => {
+			if (finished !== undefined && finished !== resizing) return;
+			resizing = undefined;
+			if (panel) panel.style.height = '';
+		};
+		resizing = animateHeight(panel, target, settle);
+		const { duration, ease } = pressMotion(target - from || SHIFT);
+		animate(
+			body,
+			{
+				opacity: [0, 1],
+				transform: [`translateX(${forward ? SHIFT : -SHIFT}px)`, 'translateX(0px)'],
+			},
+			{ duration, ease },
+		);
+	}
+
+	/** An event spent: nothing under it hears of it, and it does nothing by default. */
+	function spend(event: Event) {
+		event.preventDefault();
+		event.stopPropagation();
+	}
+
+	/** Stop spending clicks once the press that closed the menu is over and its click has come. */
+	function release() {
+		setTimeout(() => window.removeEventListener('click', spend, true), 0);
+	}
+
+	/**
+	 * A press outside the menu closes it and is spent doing so: a click on the picture does not
+	 * also pause it, and one on a link does not also follow it. The press is taken at the capture
+	 * phase, before anything under it hears of it, and so is the click it turns into, which is
+	 * only waited for until the press is released. Escape closes it too, and goes no further --
+	 * the page mode behind it closes on Escape as well, and one key is one step back.
+	 */
+	$effect(() => {
+		if (!menu) return;
+		const press = (event: PointerEvent) => {
+			if (panel?.contains(event.target as Node)) return;
+			spend(event);
+			window.addEventListener('mousedown', spend, { capture: true, once: true });
+			window.addEventListener('click', spend, true);
+			window.addEventListener('pointerup', release, { capture: true, once: true });
+			menu = false;
+		};
+		const key = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape') return;
+			spend(event);
+			menu = false;
+		};
+		window.addEventListener('pointerdown', press, true);
+		window.addEventListener('keydown', key, true);
+		return () => {
+			window.removeEventListener('pointerdown', press, true);
+			window.removeEventListener('keydown', key, true);
+		};
+	});
+
+	const percent = (value: number) => `${Math.round(value * 100)}%`;
+	const quality = $derived(rungs?.find((rung) => rung.src === chosen));
+
+	const ROW =
+		'focus-ring flex w-full cursor-pointer items-center gap-3 px-2 py-1 text-start whitespace-nowrap';
 </script>
+
+{#snippet entry(to: Page, label: string, value: string)}
+	<button
+		type="button"
+		class="{ROW} {stylex.attrs(styles.menuItem).class}"
+		onclick={() => void turn(to)}
+	>
+		<span class="flex-1">{label}</span>
+		<span class={stylex.attrs(styles.menuTitle).class}>{value}</span>
+		<CaretRightIcon class="size-3" weight="bold" aria-hidden="true" />
+	</button>
+{/snippet}
+
+{#snippet back(label: string)}
+	<button
+		type="button"
+		class="{ROW} mb-0.5 {stylex.attrs(styles.menuItem, styles.menuItemOn).class}"
+		aria-label={m['video.back']({}, { locale })}
+		onclick={() => void turn('root')}
+	>
+		<CaretLeftIcon class="size-3" weight="bold" aria-hidden="true" />
+		<span class="flex-1">{label}</span>
+	</button>
+{/snippet}
+
+{#snippet choice(label: string, on: boolean, pick: () => void)}
+	<button
+		type="button"
+		class="{ROW} {stylex.attrs(styles.menuItem, on && styles.menuItemOn).class}"
+		aria-pressed={on}
+		onclick={() => {
+			pick();
+			menu = false;
+		}}
+	>
+		<CheckIcon class="size-3 {on ? '' : 'invisible'}" weight="bold" aria-hidden="true" />
+		<span class="flex-1">{label}</span>
+	</button>
+{/snippet}
 
 <div class="relative">
 	<button
@@ -66,52 +229,38 @@
 		/>
 	</button>
 	{#if menu}
-		<div class="absolute end-0 bottom-9 min-w-28 p-1 text-start {stylex.attrs(styles.menu).class}">
-			{#if rungs && rungs.length > 1}
-				<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
-					{m['video.quality']({}, { locale })}
-				</p>
-				{#each rungs as rung (rung.src)}
-					<button
-						type="button"
-						class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
-							styles.menuItem,
-							chosen === rung.src && styles.menuItemOn,
-						).class}"
-						onclick={() => onquality(rung.src)}
-					>
-						{rung.height}p
-					</button>
-				{/each}
-			{/if}
-			<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
-				{m['video.speed']({}, { locale })}
-			</p>
-			{#each [0.5, 1, 1.25, 1.5, 2] as speed (speed)}
-				<button
-					type="button"
-					class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
-						styles.menuItem,
-						rate === speed && styles.menuItemOn,
-					).class}"
-					onclick={() => onrate(speed)}
-				>
-					{speed}&times;
-				</button>
-			{/each}
-			<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
-				{m['video.boost']({}, { locale })}
-			</p>
-			<button
-				type="button"
-				class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
-					styles.menuItem,
-					boost && styles.menuItemOn,
-				).class}"
-				onclick={onboost}
-			>
-				200%
-			</button>
+		<div
+			bind:this={panel}
+			class="absolute end-0 bottom-9 w-36 overflow-hidden p-1 {stylex.attrs(styles.menu).class}"
+		>
+			<div bind:this={body}>
+				{#if page === 'root'}
+					{#if rungs && rungs.length > 1}
+						{@render entry(
+							'quality',
+							m['video.quality']({}, { locale }),
+							quality ? `${quality.height}p` : '',
+						)}
+					{/if}
+					{@render entry('speed', m['video.speed']({}, { locale }), `${rate}×`)}
+					{@render entry('volume', m['video.volume']({}, { locale }), percent(ceiling))}
+				{:else if page === 'quality'}
+					{@render back(m['video.quality']({}, { locale }))}
+					{#each rungs ?? [] as rung (rung.src)}
+						{@render choice(`${rung.height}p`, chosen === rung.src, () => onquality(rung.src))}
+					{/each}
+				{:else if page === 'speed'}
+					{@render back(m['video.speed']({}, { locale }))}
+					{#each SPEEDS as speed (speed)}
+						{@render choice(`${speed}×`, rate === speed, () => onrate(speed))}
+					{/each}
+				{:else}
+					{@render back(m['video.volume']({}, { locale }))}
+					{#each CEILINGS as value (value)}
+						{@render choice(percent(value), ceiling === value, () => onceiling(value))}
+					{/each}
+				{/if}
+			</div>
 		</div>
 	{/if}
 </div>
@@ -124,9 +273,9 @@
 	}
 
 	/* The other half of the cog's optical correction, solved together with the markup's `viewBox`:
-   a filled path has no stroke to thicken, so the weight comes back as an actual stroke of
-   4.571 units. See spec/styling/player.md for the arithmetic. `stroke` inherits, so Phosphor's
-   transparent sizing rect is turned off below rather than left to draw a square around it. */
+	   a filled path has no stroke to thicken, so the weight comes back as an actual stroke of
+	   4.571 units. See spec/styling/player.md for the arithmetic. `stroke` inherits, so Phosphor's
+	   transparent sizing rect is turned off below rather than left to draw a square around it. */
 	.player-button :global(.player-glyph-cog) {
 		stroke: currentColor;
 		stroke-width: 4.571px;

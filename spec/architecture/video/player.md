@@ -318,6 +318,33 @@ more than two seconds out of date.
 A clip that reached its end drops its entry rather than storing the duration, because a finished
 clip starts again.
 
+### The settings menu
+
+**It names what can be set, and each has a page of its own.** The cog opens a list of what the
+reader can change -- quality, only while a clip has more than one rung; speed; volume -- each with
+what it is now, and the choices for one are a page reached from its row and left by the row at
+the top of it. Everything a menu of every choice at once used to show is one step further in, and
+the menu itself is two or three rows. A choice closes the whole menu: it was opened for that.
+
+**Volume is where the slider's top is, not a switch.** The page offers 5, 25, 50, 75, 100, 150 and
+200%, 100 by default: the level slider then plays from nothing to that, so a clip under
+something else can have its whole slider in the quiet range, and one that is too quiet can go past
+what the element plays alone -- the `GainNode` in `video-level.ts`, whose gesture rule holds
+because a choice is a click. It is `video.ceiling` in the `reader` record, and it replaced a
+yes-or-no doubling kept under `video.boost`, which is read once as 200% and then forgotten.
+
+**A press anywhere else closes it, and does nothing else.** While it is open, a press outside the
+menu -- on the picture, on the page, on the cog -- is taken at the capture phase with the click it
+turns into, and only closes it: a click meant to dismiss the menu must not also pause the clip or
+follow a link. Escape closes it the same way, and goes no further than the menu. Found by using
+it: the menu closed only from its own cog, which nobody reaches for first.
+
+**Turning a page moves the way the site moves.** The panel's height travels to the next page's
+with `animateHeight` from `@canmi/behavior/collapse`, the disclosure's own animation, and the page
+comes in from its side -- forward from the right, back from the left -- on `pressMotion` for that
+height, so the two finish together. The panel's width is fixed, so only the height moves; reduced
+motion turns the page at once.
+
 ## What the page ships before the player is alive
 
 A clip is in the document long before anything can work it, and two different readers are inside
