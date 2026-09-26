@@ -46,6 +46,8 @@
 		volume,
 		ceiling,
 		chosen,
+		current,
+		suggested,
 		rungs,
 		menu = $bindable(false),
 		filling,
@@ -70,6 +72,8 @@
 		/** What the level slider's top plays at; see `video-settings.svelte`. */
 		ceiling: number;
 		chosen?: string;
+		current?: VideoRung;
+		suggested?: VideoRung;
 		rungs?: VideoRung[];
 		menu?: boolean;
 		filling: boolean;
@@ -79,7 +83,7 @@
 		onunmute: () => void;
 		onvolume: (level: number) => void;
 		oncaptions: () => void;
-		onquality: (src: string) => void;
+		onquality: (src: string | undefined) => void;
 		onrate: (rate: number) => void;
 		onceiling: (ceiling: number) => void;
 		onpip: () => void;
@@ -229,6 +233,8 @@
 		<VideoSettings
 			{rungs}
 			{chosen}
+			{current}
+			{suggested}
 			rate={view.rate}
 			{ceiling}
 			bind:menu

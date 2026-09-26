@@ -56,6 +56,7 @@
 	import { pageUrls } from '@canmi/urls';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
+	import { chooseRung, playable } from './video-rungs.ts';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '@canmi/locales';
@@ -249,20 +250,6 @@
 	let support = $state<'unknown' | 'native' | 'none'>('unknown');
 
 	/**
-	 * Which rung the display needs, once there is a display to ask.
-	 *
-	 * This function is the whole reason a chooser exists. A `<source>` is selected by its `type`
-	 * and never by its size, so a browser handed two rungs takes the first one it can decode
-	 * rather than the one it needs, and `srcset` has no equivalent here -- there is nowhere in
-	 * the markup to say "this many pixels wide". So the smallest rung that covers the physical
-	 * width wins, and nothing above it buys a pixel the column can show.
-	 */
-	function chooseRung(available: VideoRung[], rendered: number, ratio: number): VideoRung {
-		const needed = rendered * ratio;
-		return available.find((rung) => rung.width >= needed) ?? available[available.length - 1]!;
-	}
-
-	/**
 	 * The choice, made once, from a device that has finally said what it is.
 	 *
 	 * Setting `src` rather than reordering the `<source>` children is not a shortcut: resource
@@ -274,14 +261,15 @@
 	$effect(() => {
 		const video = el;
 		if (!video || !rungs?.length) return;
-		const playable = rungs.filter((rung) => video.canPlayType(rung.type) !== '');
-		if (playable.length === 0) {
+		const choices = playable(video, rungs);
+		if (choices.length === 0) {
 			support = 'none';
 			return;
 		}
 		support = 'native';
-		const wanted = chooseRung(playable, video.clientWidth, window.devicePixelRatio);
-		if (wanted !== playable[0]) {
+		// The chooser is `./video-rungs.ts`, shared with the controls' "Auto".
+		const wanted = chooseRung(choices, video.clientWidth, window.devicePixelRatio);
+		if (wanted !== choices[0]) {
 			video.src = wanted.src;
 			video.load();
 		}

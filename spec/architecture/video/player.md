@@ -326,6 +326,16 @@ what it is now, and the choices for one are a page reached from its row and left
 the top of it. Everything a menu of every choice at once used to show is one step further in, and
 the menu itself is two or three rows. A choice closes the whole menu: it was opened for that.
 
+**Quality has an "Auto", and it is where a clip starts.** Auto is the chooser in `video-rungs.ts`
+-- the smallest rung that covers the frame's physical width -- which `video.svelte` asks once on
+load; picking a rung takes the choice from it, and picking Auto hands it back and plays what it
+picks now. While the choice is Auto, a frame that grows into full screen or the window is asked
+again and moves up a rung if it now needs one, never down: every swap interrupts the clip, and a
+frame going back to the column can keep the sharper picture it has. The quality row says both
+what the choice is and what it came to -- "Auto · 1080p", or "2160p" once picked -- and the Auto
+row names, beside it, what it would play for the frame as it is. What is playing is read from the
+element's own `currentSrc`, so the tick is right however the rung was chosen.
+
 **Volume is where the slider's top is, not a switch.** The page offers 5, 25, 50, 75, 100, 150 and
 200%, 100 by default: the level slider then plays from nothing to that, so a clip under
 something else can have its whole slider in the quiet range, and one that is too quiet can go past

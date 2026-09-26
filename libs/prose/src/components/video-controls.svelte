@@ -58,6 +58,7 @@
 	import { Level } from './video-level.ts';
 	import { holdPage } from './video-page.ts';
 	import { Place } from './video-place.svelte.ts';
+	import { automatic, playing } from './video-rungs.ts';
 
 	let {
 		video,
@@ -178,7 +179,10 @@
 	/** The reader's own level, which muted playback never touches. See `unmute`. */
 	let volume = $state(DEFAULT_VOLUME);
 	let ceiling = $state(1);
+	/** The rung the reader picked, or undefined while the choice is left to the chooser ("Auto"). */
 	let chosen = $state<string | undefined>(undefined);
+	/** The rung the element is playing now, whoever chose it. */
+	let current = $state<VideoRung | undefined>(undefined);
 	let menu = $state(false);
 	/**
 	 * What web fullscreen does to the page behind it: scroll swallowed, not redirected -- see
@@ -545,17 +549,63 @@
 	 * remember the position, change the source, put it back, resume if it was playing. The seek
 	 * lands on the nearest keyframe, which is why this is the one control that interrupts itself.
 	 */
-	function quality(src: string) {
+	function swap(src: string) {
 		if (!video) return;
 		const at = video.currentTime;
-		const playing = !video.paused;
-		chosen = src;
+		const running = !video.paused;
 		video.src = src;
 		video.load();
 		video.currentTime = at;
 		applyVolume();
-		if (playing) void video.play();
+		if (running) void video.play();
 	}
+
+	/** A rung the reader picks, or the choice handed back to the chooser when there is none. */
+	function quality(src: string | undefined) {
+		if (!video) return;
+		chosen = src;
+		const wanted = src ?? automatic(video, rungs ?? [])?.src;
+		if (wanted && wanted !== current?.src) swap(wanted);
+	}
+
+	$effect(() => {
+		const element = video;
+		if (!element) return;
+		const read = () => (current = playing(element, rungs ?? []));
+		read();
+		element.addEventListener('loadedmetadata', read);
+		element.addEventListener('emptied', read);
+		return () => {
+			element.removeEventListener('loadedmetadata', read);
+			element.removeEventListener('emptied', read);
+		};
+	});
+
+	/**
+	 * While the choice is the chooser's, a frame that grows -- full screen, or filling the window --
+	 * is asked again, and moves up a rung if it now needs one. Only up: every swap interrupts the
+	 * clip, and a frame going back to the column can keep the sharper picture it already has.
+	 */
+	let shape: string | undefined;
+	$effect(() => {
+		const now = `${view.fullscreen}|${filling}`;
+		const before = shape;
+		shape = now;
+		if (before === undefined || before === now || chosen !== undefined || !video) return;
+		const element = video;
+		requestAnimationFrame(() => {
+			const wanted = automatic(element, rungs ?? []);
+			if (wanted && wanted.width > (current?.width ?? 0)) swap(wanted.src);
+		});
+	});
+
+	/** What "Auto" would play, asked again whenever the menu opens or the frame changes size. */
+	const suggested = $derived.by(() => {
+		void view.fullscreen;
+		void filling;
+		void menu;
+		return video && rungs ? automatic(video, rungs) : undefined;
+	});
 
 	/**
 	 * The reader's answer, and the only thing that writes it. The store is told by the effect above
@@ -736,6 +786,8 @@
 	{volume}
 	{ceiling}
 	{chosen}
+	{current}
+	{suggested}
 	{rungs}
 	bind:menu
 	{filling}

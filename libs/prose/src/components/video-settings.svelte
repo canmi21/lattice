@@ -25,6 +25,8 @@
 	let {
 		rungs,
 		chosen,
+		current,
+		suggested,
 		rate,
 		ceiling,
 		menu = $bindable(false),
@@ -34,14 +36,19 @@
 		onceiling,
 	}: {
 		rungs?: VideoRung[];
-		/** The rung playing, when the reader chose one. */
+		/** The rung the reader picked; undefined while it is left to the chooser, which is "Auto". */
 		chosen?: string;
+		/** The rung playing now, whoever picked it. */
+		current?: VideoRung;
+		/** What "Auto" would play for the frame as it is. */
+		suggested?: VideoRung;
 		rate: number;
 		/** What the level slider's top plays at, as a fraction of the clip's full volume. */
 		ceiling: number;
 		menu?: boolean;
 		locale: LocaleCode;
-		onquality: (src: string) => void;
+		/** A rung, or undefined to hand the choice back to the chooser. */
+		onquality: (src: string | undefined) => void;
 		onrate: (rate: number) => void;
 		onceiling: (ceiling: number) => void;
 	} = $props();
@@ -177,7 +184,18 @@
 	});
 
 	const percent = (value: number) => `${Math.round(value * 100)}%`;
-	const quality = $derived(rungs?.find((rung) => rung.src === chosen));
+	const auto = $derived(m['video.auto']({}, { locale }));
+	/**
+	 * What the quality row says it is: the height playing, and "Auto" before it while the choice
+	 * is the chooser's -- the reader sees both that it is automatic and what it came to.
+	 */
+	const quality = $derived.by(() => {
+		const height = current ? `${current.height}p` : '';
+		if (chosen !== undefined) return height;
+		return height ? `${auto} · ${height}` : auto;
+	});
+	/** Wider when there is a quality row, whose value is the longest thing the menu says. */
+	const wide = $derived((rungs?.length ?? 0) > 1);
 
 	const ROW =
 		'focus-ring flex w-full cursor-pointer items-center gap-2 px-2 py-0.5 text-start whitespace-nowrap';
@@ -207,7 +225,7 @@
 	</button>
 {/snippet}
 
-{#snippet choice(label: string, on: boolean, pick: () => void)}
+{#snippet choice(label: string, on: boolean, pick: () => void, hint = '')}
 	<button
 		type="button"
 		class="{ROW} {stylex.attrs(styles.menuItem, on && styles.menuItemOn).class}"
@@ -219,6 +237,7 @@
 	>
 		<CheckIcon class="size-2.5 {on ? '' : 'invisible'}" weight="bold" aria-hidden="true" />
 		<span class="flex-1">{label}</span>
+		{#if hint}<span class={stylex.attrs(styles.menuTitle).class}>{hint}</span>{/if}
 	</button>
 {/snippet}
 
@@ -254,23 +273,25 @@
 		<div
 			bind:this={panel}
 			transition:appear
-			class="absolute end-0 bottom-9 w-32 origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(
-				styles.menu,
-			).class}"
+			class="absolute end-0 bottom-9 {wide
+				? 'w-40'
+				: 'w-32'} origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(styles.menu).class}"
 		>
 			<div bind:this={body}>
 				{#if page === 'root'}
 					{#if rungs && rungs.length > 1}
-						{@render entry(
-							'quality',
-							m['video.quality']({}, { locale }),
-							quality ? `${quality.height}p` : '',
-						)}
+						{@render entry('quality', m['video.quality']({}, { locale }), quality)}
 					{/if}
 					{@render entry('speed', m['video.speed']({}, { locale }), `${rate}×`)}
 					{@render entry('volume', m['video.volume']({}, { locale }), percent(ceiling))}
 				{:else if page === 'quality'}
 					{@render back(m['video.quality']({}, { locale }))}
+					{@render choice(
+						auto,
+						chosen === undefined,
+						() => onquality(undefined),
+						suggested ? `${suggested.height}p` : '',
+					)}
 					{#each rungs ?? [] as rung (rung.src)}
 						{@render choice(`${rung.height}p`, chosen === rung.src, () => onquality(rung.src))}
 					{/each}
