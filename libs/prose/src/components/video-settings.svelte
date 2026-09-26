@@ -185,17 +185,8 @@
 
 	const percent = (value: number) => `${Math.round(value * 100)}%`;
 	const auto = $derived(m['video.auto']({}, { locale }));
-	/**
-	 * What the quality row says it is: the height playing, and "Auto" before it while the choice
-	 * is the chooser's -- the reader sees both that it is automatic and what it came to.
-	 */
-	const quality = $derived.by(() => {
-		const height = current ? `${current.height}p` : '';
-		if (chosen !== undefined) return height;
-		return height ? `${auto} · ${height}` : auto;
-	});
-	/** Wider when there is a quality row, whose value is the longest thing the menu says. */
-	const wide = $derived((rungs?.length ?? 0) > 1);
+	/** What the quality row says it is: "Auto" while the choice is the chooser's, the height once picked. */
+	const quality = $derived(chosen === undefined ? auto : current ? `${current.height}p` : '');
 
 	const ROW =
 		'focus-ring flex w-full cursor-pointer items-center gap-2 px-2 py-0.5 text-start whitespace-nowrap';
@@ -273,9 +264,9 @@
 		<div
 			bind:this={panel}
 			transition:appear
-			class="absolute end-0 bottom-9 {wide
-				? 'w-40'
-				: 'w-32'} origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(styles.menu).class}"
+			class="absolute end-0 bottom-9 w-32 origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(
+				styles.menu,
+			).class}"
 		>
 			<div bind:this={body}>
 				{#if page === 'root'}

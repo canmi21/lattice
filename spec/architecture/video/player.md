@@ -331,8 +331,8 @@ the menu itself is two or three rows. A choice closes the whole menu: it was ope
 load; picking a rung takes the choice from it, and picking Auto hands it back and plays what it
 picks now. While the choice is Auto, a frame that grows into full screen or the window is asked
 again and moves up a rung if it now needs one, never down: every swap interrupts the clip, and a
-frame going back to the column can keep the sharper picture it has. The quality row says both
-what the choice is and what it came to -- "Auto · 1080p", or "2160p" once picked -- and the Auto
+frame going back to the column can keep the sharper picture it has. The quality row says "Auto" while
+the choice is Auto and the height once one is picked; inside, the Auto
 row names, beside it, what it would play for the frame as it is. What is playing is read from the
 element's own `currentSrc`, so the tick is right however the rung was chosen.
 
