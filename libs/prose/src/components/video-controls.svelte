@@ -58,7 +58,12 @@
 	import { Level } from './video-level.ts';
 	import { holdPage } from './video-page.ts';
 	import { Place } from './video-place.svelte.ts';
-	import { automatic, playing } from './video-rungs.ts';
+	import { Quality } from './video-quality.svelte.ts';
+	import { claimOnPlay } from './video-session.ts';
+	import { moveToWindow, ownable } from './video-pip.ts';
+	import VideoPip from './video-pip.svelte';
+	import VideoAway from './video-away.svelte';
+	import { mount, unmount } from 'svelte';
 
 	let {
 		video,
@@ -179,10 +184,6 @@
 	/** The reader's own level, which muted playback never touches. See `unmute`. */
 	let volume = $state(DEFAULT_VOLUME);
 	let ceiling = $state(1);
-	/** The rung the reader picked, or undefined while the choice is left to the chooser ("Auto"). */
-	let chosen = $state<string | undefined>(undefined);
-	/** The rung the element is playing now, whoever chose it. */
-	let current = $state<VideoRung | undefined>(undefined);
 	let menu = $state(false);
 	/**
 	 * What web fullscreen does to the page behind it: scroll swallowed, not redirected -- see
@@ -207,6 +208,14 @@
 
 	/** The clip's level past what the element alone can play. See `./video-level.ts`. */
 	const level = new Level();
+
+	/** Which rung plays, the reader's or the chooser's. See `./video-quality.svelte.ts`. */
+	const ladder = new Quality(
+		() => video,
+		() => rungs,
+		() => `${view.fullscreen}|${filling}`,
+		() => applyVolume(),
+	);
 
 	$effect(() => {
 		volume = reader.recall(localStorage, VOLUME_KEY, DEFAULT_VOLUME);
@@ -314,23 +323,81 @@
 	 */
 	let still = $state<HTMLCanvasElement>();
 
-	$effect(() => {
+	/** Copy the frame the clip is on into the still. */
+	function capture(): void {
 		const element = video;
 		const canvas = still;
 		if (!element || !canvas) return;
-		const capture = () => {
-			// Tainting is not a concern: the canvas is displayed, never read back, and drawing
-			// from a cross-origin element only blocks `getImageData` and `toDataURL`.
-			canvas.width = element.videoWidth || 16;
-			canvas.height = element.videoHeight || 9;
-			canvas.getContext('2d')?.drawImage(element, 0, 0, canvas.width, canvas.height);
-		};
+		// Tainting is not a concern: the canvas is displayed, never read back, and drawing
+		// from a cross-origin element only blocks `getImageData` and `toDataURL`.
+		canvas.width = element.videoWidth || 16;
+		canvas.height = element.videoHeight || 9;
+		canvas.getContext('2d')?.drawImage(element, 0, 0, canvas.width, canvas.height);
+	}
+
+	$effect(() => {
+		const element = video;
+		if (!element) return;
 		element.addEventListener('enterpictureinpicture', capture);
 		return () => element.removeEventListener('enterpictureinpicture', capture);
 	});
 
+	/**
+	 * The page's own picture-in-picture window, while the clip is in it. See `./video-pip.ts`, and
+	 * spec/architecture/video/player.md, "Picture in picture is ours where the browser allows it".
+	 */
+	let own = $state<{ release: () => void }>();
+
+	/** Whether the clip is playing somewhere other than here, in either kind of window. */
+	const away = $derived(view.pip || own !== undefined);
+
+	/** Move the clip into a window the page draws; the browser's own if that is refused. */
+	async function goOwn(): Promise<void> {
+		const element = video;
+		if (!element || own || !frame) return;
+		capture();
+		const opened = await moveToWindow(element, frame, (target, onClose) => {
+			const shown = mount(VideoPip, {
+				target,
+				props: {
+					video: element,
+					get chrome() {
+						return pipChrome;
+					},
+				},
+			});
+			onClose(() => void unmount(shown));
+		});
+		if (!opened) return void (player?.togglePictureInPicture as () => void)?.();
+		opened.closed.then(() => (own = undefined));
+		own = opened;
+	}
+
+	/**
+	 * The system's media controls drive the clip last played: claimed at `play`, let go when the
+	 * clip is gone. See `./video-session.ts`.
+	 */
+	$effect(() => {
+		const element = video;
+		if (!element) return;
+		return claimOnPlay(
+			element,
+			{ play: start, pause: () => (player?.pause as () => void)?.() },
+			// The page's title, or its heading where the page names none -- the editor's preview.
+			() => document.title || document.querySelector('h1')?.textContent?.trim() || '',
+		);
+	});
+
+	/** Open a picture-in-picture window: the page's own where it can be, the browser's where not. */
+	function togglePip(): void {
+		if (away) return returnHere();
+		if (ownable()) return void goOwn();
+		(player?.togglePictureInPicture as () => void)?.();
+	}
+
 	/** Bring the clip back from the other window, which is the one thing the still is good for. */
 	function returnHere(): void {
+		if (own) return own.release();
 		void document.exitPictureInPicture?.().catch(() => {
 			// The window was closed from its own control between the press and this call. The
 			// state will catch up on `leavepictureinpicture` either way.
@@ -409,6 +476,8 @@
 		const observer = new IntersectionObserver(
 			([entry]) => {
 				if (entry?.isIntersecting) return void place.prime();
+				// Playing in another window, the clip is not on this page to scroll past.
+				if (away) return;
 				// Paused rather than stopped, so a reader who returns finds it where they left it.
 				if (stage !== 'sleeping' && !video.paused) (player?.pause as () => void)?.();
 			},
@@ -488,7 +557,7 @@
 	export function press() {
 		if (!video) return;
 		// While it is playing somewhere else, pressing the picture can only mean one thing.
-		if (view.pip) return void returnHere();
+		if (away) return void returnHere();
 		if (stage !== 'awake') {
 			wake();
 			showChrome = true;
@@ -542,69 +611,37 @@
 		else (player?.pause as () => void)?.();
 	}
 
-	/**
-	 * Quality, which the store cannot do for us: `videoRenditionList` is filled by an engine that
-	 * knows about renditions -- hls.js, dash.js -- and our ladder is separate progressive files,
-	 * so nothing fills it (measured, length 0 with four rungs on the page). So the swap is ours:
-	 * remember the position, change the source, put it back, resume if it was playing. The seek
-	 * lands on the nearest keyframe, which is why this is the one control that interrupts itself.
-	 */
-	function swap(src: string) {
-		if (!video) return;
-		const at = video.currentTime;
-		const running = !video.paused;
-		video.src = src;
-		video.load();
-		video.currentTime = at;
-		applyVolume();
-		if (running) void video.play();
-	}
-
-	/** A rung the reader picks, or the choice handed back to the chooser when there is none. */
-	function quality(src: string | undefined) {
-		if (!video) return;
-		chosen = src;
-		const wanted = src ?? automatic(video, rungs ?? [])?.src;
-		if (wanted && wanted !== current?.src) swap(wanted);
-	}
-
-	$effect(() => {
-		const element = video;
-		if (!element) return;
-		const read = () => (current = playing(element, rungs ?? []));
-		read();
-		element.addEventListener('loadedmetadata', read);
-		element.addEventListener('emptied', read);
-		return () => {
-			element.removeEventListener('loadedmetadata', read);
-			element.removeEventListener('emptied', read);
-		};
-	});
-
-	/**
-	 * While the choice is the chooser's, a frame that grows -- full screen, or filling the window --
-	 * is asked again, and moves up a rung if it now needs one. Only up: every swap interrupts the
-	 * clip, and a frame going back to the column can keep the sharper picture it already has.
-	 */
-	let shape: string | undefined;
-	$effect(() => {
-		const now = `${view.fullscreen}|${filling}`;
-		const before = shape;
-		shape = now;
-		if (before === undefined || before === now || chosen !== undefined || !video) return;
-		const element = video;
-		requestAnimationFrame(() => {
-			const wanted = automatic(element, rungs ?? []);
-			if (wanted && wanted.width > (current?.width ?? 0)) swap(wanted.src);
-		});
-	});
-
 	/** What "Auto" would play, asked again whenever the menu opens or the frame changes size. */
 	const suggested = $derived.by(() => {
 		void view.fullscreen;
 		void filling;
 		void menu;
-		return video && rungs ? automatic(video, rungs) : undefined;
+		return ladder.suggest();
+	});
+
+	/** The row in the page's own picture-in-picture window, with the same state and actions. */
+	const pipChrome = $derived({
+		view,
+		volume,
+		ceiling,
+		chosen: ladder.chosen,
+		current: ladder.current,
+		suggested,
+		rungs,
+		filling: false,
+		locale,
+		pipOffered: true,
+		ontoggle: toggle,
+		onseek: (at: number) => (player?.seek as (value: number) => void)?.(at),
+		onunmute: unmute,
+		onvolume: setVolume,
+		oncaptions: toggleCaptions,
+		onquality: (src: string | undefined) => ladder.pick(src),
+		onrate: (rate: number) => (player?.setPlaybackRate as (value: number) => void)?.(rate),
+		onceiling: setCeiling,
+		onpip: returnHere,
+		onfill: () => {},
+		onfullscreen: () => {},
 	});
 
 	/**
@@ -636,7 +673,9 @@
 	 * pointer device", for why it does not also fade on an idle timer the way a native player's
 	 * does.
 	 */
-	const shown = $derived(stage === 'awake' && (hovers ? over || menu : showChrome || menu));
+	const shown = $derived(
+		!away && stage === 'awake' && (hovers ? over || menu : showChrome || menu),
+	);
 	/** Whether the pointer is on the cover itself, which is not the same as being on the frame. */
 	let onCover = $state(false);
 	/** Whether the countdown started by the last state change is still running. */
@@ -652,7 +691,7 @@
 	const covered = $derived(
 		// Never while the clip is elsewhere, whatever stage it left in. The still has its own
 		// control and two discs on one picture is one more than there is anything to press.
-		!view.pip &&
+		!away &&
 			(hovers
 				? stage === 'awake'
 					? onCover || lingering || (!over && view.paused)
@@ -730,34 +769,13 @@
 	bind:this={still}
 	class="pointer-events-none absolute inset-0 h-full w-full object-cover {stylex.attrs(
 		styles.still,
-		view.pip && styles.stillShown,
+		away && styles.stillShown,
 	).class}"
 	aria-hidden="true"
 ></canvas>
 
-{#if view.pip}
-	<div
-		class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center {stylex.attrs(
-			styles.away,
-		).class}"
-	>
-		<p class="m-0 {stylex.attrs(styles.awayText).class}">
-			{m['video.pip-playing']({}, { locale })}
-		</p>
-		<button
-			type="button"
-			onclick={(event) => {
-				event.stopPropagation();
-				returnHere();
-			}}
-			class="focus-ring pointer-events-auto inline-flex cursor-pointer items-center gap-2 px-3.5 py-1.5 {stylex.attrs(
-				styles.awayButton,
-			).class}"
-		>
-			<PictureInPictureIcon class="size-4" weight="bold" aria-hidden="true" />
-			{m['video.exit-pip']({}, { locale })}
-		</button>
-	</div>
+{#if away}
+	<VideoAway {locale} onreturn={returnHere} />
 {/if}
 
 {#if hovers || stage === 'sleeping'}
@@ -792,8 +810,8 @@
 	{shown}
 	{volume}
 	{ceiling}
-	{chosen}
-	{current}
+	chosen={ladder.chosen}
+	current={ladder.current}
 	{suggested}
 	{rungs}
 	bind:menu
@@ -804,10 +822,11 @@
 	onunmute={unmute}
 	onvolume={setVolume}
 	oncaptions={toggleCaptions}
-	onquality={quality}
+	onquality={(src) => ladder.pick(src)}
 	onrate={(rate) => (player?.setPlaybackRate as (value: number) => void)?.(rate)}
 	onceiling={setCeiling}
-	onpip={() => (player?.togglePictureInPicture as () => void)?.()}
+	onpip={togglePip}
+	pipOffered={view.pipAvailable || ownable()}
 	onfill={toggleFill}
 	onfullscreen={() => (player?.toggleFullscreen as () => void)?.()}
 />

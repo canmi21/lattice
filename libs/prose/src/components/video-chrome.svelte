@@ -61,6 +61,8 @@
 		onrate,
 		onceiling,
 		onpip,
+		pipOffered,
+		detached = false,
 		onfill,
 		onfullscreen,
 	}: {
@@ -87,6 +89,13 @@
 		onrate: (rate: number) => void;
 		onceiling: (ceiling: number) => void;
 		onpip: () => void;
+		/** Whether a picture-in-picture window can be had here, the browser's or the page's own. */
+		pipOffered: boolean;
+		/**
+		 * Drawn in the picture-in-picture window rather than on the page: the way back replaces
+		 * the way there, and filling the window or the screen means nothing in a window this size.
+		 */
+		detached?: boolean;
 		onfill: () => void;
 		onfullscreen: () => void;
 	} = $props();
@@ -244,7 +253,7 @@
 			{onceiling}
 		/>
 
-		{#if view.pipAvailable}
+		{#if pipOffered || detached}
 			<button
 				type="button"
 				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
@@ -252,8 +261,8 @@
 					styles.button,
 				).class}"
 				onclick={onpip}
-				aria-label={m['video.pip']({}, { locale })}
-				title={m['video.pip']({}, { locale })}
+				aria-label={detached ? m['video.exit-pip']({}, { locale }) : m['video.pip']({}, { locale })}
+				title={detached ? m['video.exit-pip']({}, { locale }) : m['video.pip']({}, { locale })}
 			>
 				<PictureInPictureIcon
 					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
@@ -263,7 +272,8 @@
 			</button>
 		{/if}
 
-		<!--
+		{#if !detached}
+			<!--
 		Web fullscreen is offered only once `.article-column`'s 720px cap has been reached, in
 		CSS rather than script so it is right on the first frame. See
 		spec/architecture/video/player.md, "Filling the window is a page mode, not a media one".
@@ -271,55 +281,56 @@
 		which compiles to a strictly-less-than comparison and would leave this control on
 		screen at exactly 45rem. Measured against the rule it replaces.
 	-->
-		<button
-			type="button"
-			class="player-button inline-grid size-7.5 cursor-pointer place-items-center [@media(max-width:45rem)]:hidden {stylex.attrs(
-				surfaces.focusRingHost,
-				styles.button,
-				filling && styles.buttonOn,
-			).class}"
-			onclick={onfill}
-			aria-pressed={filling}
-			aria-label={m['video.fill']({}, { locale })}
-			title={m['video.fill']({}, { locale })}
-		>
-			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
+			<button
+				type="button"
+				class="player-button inline-grid size-7.5 cursor-pointer place-items-center [@media(max-width:45rem)]:hidden {stylex.attrs(
+					surfaces.focusRingHost,
+					styles.button,
+					filling && styles.buttonOn,
+				).class}"
+				onclick={onfill}
+				aria-pressed={filling}
+				aria-label={m['video.fill']({}, { locale })}
+				title={m['video.fill']({}, { locale })}
+			>
+				<!-- A frame, because that is what this fills: the browser's window, with its own chrome
 		     still around it. The other button below leaves the browser behind entirely, and the
 		     two must not look alike -- they are different destinations, not two sizes of one. -->
-			{#if filling}<FrameCornersInIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					aria-hidden="true"
-				/>
-			{:else}<FrameCornersIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					weight="bold"
-					aria-hidden="true"
-				/>{/if}
-		</button>
+				{#if filling}<FrameCornersInIcon
+						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+						aria-hidden="true"
+					/>
+				{:else}<FrameCornersIcon
+						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+						weight="bold"
+						aria-hidden="true"
+					/>{/if}
+			</button>
 
-		<button
-			type="button"
-			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-				surfaces.focusRingHost,
-				styles.button,
-			).class}"
-			onclick={onfullscreen}
-			aria-label={view.fullscreen
-				? m['video.exit-fullscreen']({}, { locale })
-				: m['video.fullscreen']({}, { locale })}
-			title={view.fullscreen
-				? m['video.exit-fullscreen']({}, { locale })
-				: m['video.fullscreen']({}, { locale })}
-		>
-			{#if view.fullscreen}<CornersInWideIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					aria-hidden="true"
-				/>
-			{:else}<CornersOutWideIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					aria-hidden="true"
-				/>{/if}
-		</button>
+			<button
+				type="button"
+				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+					surfaces.focusRingHost,
+					styles.button,
+				).class}"
+				onclick={onfullscreen}
+				aria-label={view.fullscreen
+					? m['video.exit-fullscreen']({}, { locale })
+					: m['video.fullscreen']({}, { locale })}
+				title={view.fullscreen
+					? m['video.exit-fullscreen']({}, { locale })
+					: m['video.fullscreen']({}, { locale })}
+			>
+				{#if view.fullscreen}<CornersInWideIcon
+						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+						aria-hidden="true"
+					/>
+				{:else}<CornersOutWideIcon
+						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+						aria-hidden="true"
+					/>{/if}
+			</button>
+		{/if}
 	</div>
 </div>
 

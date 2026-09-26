@@ -69,7 +69,10 @@ export const styles = stylex.create({
 	 * not before, so it is carried across as it stands.
 	 */
 	still: {
-		filter: 'grayscale(1) brightness(0.55)',
+		// Blurred as well, so the frame reads as where the clip was rather than as the clip, and
+		// scaled past the frame's edge, which a blur would otherwise leave soft and pale.
+		filter: 'grayscale(1) brightness(0.55) blur(14px)',
+		transform: 'scale(1.08)',
 		opacity: 0,
 		transitionProperty: 'opacity',
 		transitionDuration: duration.base,
@@ -83,7 +86,7 @@ export const styles = stylex.create({
 	 * way back wears the disc's glass, since it stands where the disc stood.
 	 */
 	away: { fontSize: text.px13, textShadow: 'var(--player-shadow)' },
-	awayText: { color: 'var(--player-ink-dim)' },
+	awayText: { color: 'var(--player-ink-dim)', fontSize: text.px12 },
 	awayButton: {
 		borderWidth: 0,
 		borderStyle: 'none',

@@ -112,13 +112,41 @@ drawing arrive in the wrong order: the frame is available at `enterpictureinpict
 mounted by that same state would not exist yet. Tainting does not matter -- it is displayed, never
 read back, and a cross-origin draw only blocks `getImageData` and `toDataURL`.
 
-**And it says where the clip went, and offers it back.** Over the still, one line says the clip
-is playing in picture in picture, and under it a button, in words, brings it back -- the disc's
-glass, since it stands where the disc stood. It was the disc alone, wearing the
+**And it says where the clip went, and offers it back, and nothing else.** While the clip is away
+the still is grey, dimmed and blurred -- blurred so it reads as where the clip was, scaled past
+the frame's edge so the blur leaves no pale rim -- the row and the scrubber are hidden, and the
+play disc is withheld: a picture that is not playing here has nothing to seek or start. One line
+in its top-left corner says the clip is playing in picture in picture, and one button in its
+middle, in words and on the disc's glass, brings it back. The picture behind is pressable too,
+since pressing it can only mean one thing. It was first the disc alone wearing the
 picture-in-picture glyph, and a symbol on a grey picture with nothing beside it read as nothing.
-The picture behind is pressable too: while a clip is playing somewhere else, pressing it can only
-mean one thing. The play disc is withheld for the same reason -- two ways to start something on
-a picture that is not playing here is one more than there is anything to start.
+A clip in the other window is not paused for being scrolled past, which a clip on the page is.
+
+### Picture in picture is ours where the browser allows it
+
+Chromium offers Document Picture-in-Picture: a window the page fills itself. There the clip's
+own element is moved into it and back -- it plays on across the move -- and the window shows the
+player's row, drawn by the same `video-chrome.svelte` told it is detached: the way back replaces
+the way there, and filling the window or the screen is left out. `video-pip.ts` opens it at the
+clip's shape, no wider than 480px, and dresses it as the page: every stylesheet copied rule by
+rule under a `<base>` so fonts resolve, and the root's classes, `lang` and data attributes, so
+the theme and language are the page's. While the element is away the frame keeps its shape by an
+`aspect-ratio` set from its last box, since the element is what gave it height. The settings
+menu listens for presses in the window it is drawn in.
+
+The window's own title bar stays. It is the browser's, it names the page's origin, and no option
+of the API takes it away; the only one, `disallowReturnToOpener`, removes its return button,
+which is left in place beside ours. Safari and Firefox offer no such window, and there the
+browser's own is used as before.
+
+### The system's controls drive the clip last played
+
+The media keys, the lock screen, the control centre and the buttons a browser puts in its own
+picture-in-picture window reach the page through one Media Session, and a page with several
+clips has one session. A clip claims it when it starts playing, so it is the clip last played
+that answers; it hands over its own play, so a key restores a position the way the page does, and
+pause, a ten-second skip either way and a seek. The title is the page's, or its heading where the
+page names none. See `video-session.ts`.
 
 ### Filling the window is a page mode, not a media one
 

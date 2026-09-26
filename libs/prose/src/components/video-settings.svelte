@@ -96,6 +96,8 @@
 	}
 
 	let panel = $state<HTMLElement>();
+	/** The cog, whose window is where presses and keys are listened for: the page's, or a picture-in-picture window's. */
+	let cog = $state<HTMLElement>();
 	let body = $state<HTMLElement>();
 
 	/**
@@ -150,8 +152,8 @@
 	}
 
 	/** Stop spending clicks once the press that closed the menu is over and its click has come. */
-	function release() {
-		setTimeout(() => window.removeEventListener('click', spend, true), 0);
+	function release(host: Window) {
+		setTimeout(() => host.removeEventListener('click', spend, true), 0);
 	}
 
 	/**
@@ -166,9 +168,10 @@
 		const press = (event: PointerEvent) => {
 			if (panel?.contains(event.target as Node)) return;
 			spend(event);
-			window.addEventListener('mousedown', spend, { capture: true, once: true });
-			window.addEventListener('click', spend, true);
-			window.addEventListener('pointerup', release, { capture: true, once: true });
+			const view = (event.view as Window | null) ?? window;
+			view.addEventListener('mousedown', spend, { capture: true, once: true });
+			view.addEventListener('click', spend, true);
+			view.addEventListener('pointerup', () => release(view), { capture: true, once: true });
 			menu = false;
 		};
 		const key = (event: KeyboardEvent) => {
@@ -176,11 +179,12 @@
 			spend(event);
 			menu = false;
 		};
-		window.addEventListener('pointerdown', press, true);
-		window.addEventListener('keydown', key, true);
+		const host = cog?.ownerDocument.defaultView ?? window;
+		host.addEventListener('pointerdown', press, true);
+		host.addEventListener('keydown', key, true);
 		return () => {
-			window.removeEventListener('pointerdown', press, true);
-			window.removeEventListener('keydown', key, true);
+			host.removeEventListener('pointerdown', press, true);
+			host.removeEventListener('keydown', key, true);
 		};
 	});
 
@@ -241,6 +245,7 @@
 			styles.button,
 			menu && styles.buttonOn,
 		).class}"
+		bind:this={cog}
 		onclick={toggle}
 		aria-expanded={menu}
 		aria-label={m['video.settings']({}, { locale })}
