@@ -231,8 +231,12 @@
 		font-family: var(--font-mono);
 		font-size: 0.8125rem;
 		line-height: 1.6;
-		white-space: pre;
-		overflow: auto;
+		/* Wrapped at the box's width, a long attribute or address broken wherever it must: the
+		   box scrolls one way only. See spec/architecture/local.md. */
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		overflow-x: hidden;
+		overflow-y: auto;
 		resize: none;
 		outline: none;
 		tab-size: 2;

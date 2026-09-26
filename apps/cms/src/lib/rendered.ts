@@ -117,8 +117,8 @@ export class Rendered extends WidgetType {
 		box.style.height = `${height}px`;
 		box.setAttribute('aria-label', 'Block source');
 		frame.append(box);
-		// The code block's own edge fades, on all four sides: the box scrolls either way and shows
-		// no scrollbar, so the fade is where the text is seen to go on.
+		// The code block's own edge fades, on all four sides as the code block draws them: the box
+		// wraps its lines and scrolls down, and shows no scrollbar, so the fade is where the text is seen to go on.
 		const fades = mount(EdgeFades, { target: frame, props: { framed: true } });
 		drawing.hidden = true;
 		dom.append(frame);

@@ -382,8 +382,10 @@ function of the text and the caret alone:
   replace cannot. Pressing one, or asking its menu for its source, puts a box of plain source text
   where the rendering stood, **at exactly the height the block last drew at**, so nothing around
   it moves; a refusal draws short, so the height kept is the last one that drew, and while a block
-  written back is compiled its placeholder holds that height too. Source longer than the box
-  scrolls inside it, with no scrollbar and the code block's own edge fades on all four sides
+  written back is compiled its placeholder holds that height too. Its lines wrap at the box's
+  width, a long attribute or address broken wherever it must be, so the box scrolls one way only;
+  a table's source wraps too, its pipes out of line, because the box is for the text and not the
+  layout. Source longer than the box scrolls down inside it, with no scrollbar and the code block's own edge fades on all four sides
   (`libs/prose/src/components/edge-fades.svelte`, which the code block draws on its two unseen
   edges as well); a scroll at the box's end is the browser's: a gesture that began in the box
   stays in it and stops at its end, momentum included, and the next gesture goes on to the page --
