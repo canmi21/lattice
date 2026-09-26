@@ -52,9 +52,11 @@ is reset, not repaired.
   checkout would have two different sources overwriting one cache.
 - **`/tmp/sandbox` stands in for the workspace root.** The formatter rules, the toolchain and the
   agent hooks are found by walking up from a project into the workspace, and `/tmp` is outside
-  it. `/tmp/sandbox` holds links to those files, and a copy of the workspace's mise config
-  written by each build without its monorepo table, whose roots are not there, so a command in the sandbox finds the same rules
-  -- the commit check and the `rm` guard included -- where it would have found them at home.
+  it. `/tmp/sandbox` holds a copy of each of its files and a link to each of its directories, so a
+  command in the sandbox finds the same rules -- the commit check and the `rm` guard included --
+  where it would have found them at home. Files are copied, never linked: oxfmt looking upward for
+  its config passes over a link, and formatted the sandbox with its defaults while it was one. The
+  mise config is copied without its monorepo table, whose roots are not there.
 
 ### Every port is shifted by one hundred
 

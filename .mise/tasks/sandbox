@@ -87,18 +87,34 @@ def toolchain() -> str:
 	return "\n".join(kept) + "\n"
 
 
+def stand_in() -> None:
+	"""`/tmp/sandbox` as the workspace root: its files copied and its directories linked.
+
+	Copied, because a formatter looking upward for its config passes over a link -- oxfmt formatted
+	the sandbox with its defaults while `.oxfmtrc.json` was one. Written anew by every build, so
+	a copy is as current as the sandbox is.
+	"""
+	for entry in WORKSPACE.iterdir():
+		here = BASE / entry.name
+		if entry.name in SKIPPED:
+			continue
+		if here.is_symlink() or here.is_file():
+			here.unlink()
+		if entry.name == "mise.toml":
+			here.write_text(toolchain())
+		elif entry.is_file():
+			shutil.copy2(entry, here)
+		elif not here.exists():
+			here.symlink_to(entry)
+
+
 def build() -> None:
 	print("making the sandbox")
 	if registered():
 		run("jj", "workspace", "forget", NAME)
 	shutil.rmtree(HOME, ignore_errors=True)
 	BASE.mkdir(parents=True, exist_ok=True)
-	for entry in WORKSPACE.iterdir():
-		link = BASE / entry.name
-		if entry.name in SKIPPED or entry.name == "mise.toml" or link.is_symlink() or link.exists():
-			continue
-		link.symlink_to(entry)
-	(BASE / "mise.toml").write_text(toolchain())
+	stand_in()
 	HOME.mkdir(parents=True)
 	(HOME / "mise.toml").write_text(ENVIRONMENT)
 
