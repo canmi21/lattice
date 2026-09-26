@@ -1,240 +1,4 @@
 <script module lang="ts">
-	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import {
-		duration,
-		easing,
-		figures,
-		radius,
-		text,
-		tracking,
-	} from '@canmi/tokens/vocabulary.stylex';
-
-	/**
-	 * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
-	 * read against the page and these against a video frame. See spec/styling/player.md, "The
-	 * player brings its own colours, because it cannot know what is behind them", and
-	 * spec/architecture/css/authoring.md, "Colour is never retyped".
-	 *
-	 * A transition naming two properties writes its lists doubled and as literals, the way
-	 * `surfaces.quietControl` does: spec/todo/todo.md, "A `transition` shorthand sets five lists".
-	 */
-	const styles = stylex.create({
-		/**
-		 * The disc over the middle of the picture. `transform` is here rather than in the markup
-		 * because the frame cannot spell it: Tailwind 4 enlarges with the `scale` property, which
-		 * is a different declaration and a different computed value from this one. The three
-		 * `outline` longhands are `outline: none` written out, because an omitted longhand is not
-		 * its initial value -- measured, the shorthand leaves `currentColor` and `medium` behind
-		 * it. See spec/architecture/css/migration.md.
-		 */
-		cover: {
-			borderWidth: 0,
-			borderStyle: 'none',
-			borderRadius: radius.full,
-			color: 'var(--player-ink)',
-			backgroundColor: 'var(--player-glass)',
-			backdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
-			WebkitBackdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
-			// Hidden by default and faded in, on the chrome's curve and duration, because after the
-			// first click the two leave together: a clip playing to nobody drops its whole
-			// interface at once rather than in two steps. The `:focus-visible` branch is the
-			// invisible tab stop -- a ring drawn on a control nobody can see is worse than none.
-			opacity: { default: 0, ':focus-visible': 1 },
-			transform: { default: null, ':hover': 'scale(1.05)' },
-			outlineStyle: { default: null, ':focus-visible': 'none' },
-			outlineWidth: { default: null, ':focus-visible': 'medium' },
-			outlineColor: { default: null, ':focus-visible': 'currentColor' },
-			transitionProperty: {
-				default: 'opacity, transform',
-				'@media (prefers-reduced-motion: reduce)': 'none',
-			},
-			transitionDuration: {
-				default: '200ms, 200ms',
-				'@media (prefers-reduced-motion: reduce)': '0s',
-			},
-			transitionTimingFunction: {
-				default: 'cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.4, 0, 0.2, 1)',
-				'@media (prefers-reduced-motion: reduce)': 'ease',
-			},
-			transitionDelay: { default: '0s, 0s', '@media (prefers-reduced-motion: reduce)': '0s' },
-			// The fifth list the shorthand set. Two entries, because a `transition` naming two
-			// properties computes to two -- measured, `normal, normal` before and `normal` after
-			// when it was left off, which renders the same and is still a value that changed.
-			transitionBehavior: {
-				default: 'normal, normal',
-				'@media (prefers-reduced-motion: reduce)': 'normal',
-			},
-		},
-		/** The cover on screen, which the disc and the picture-in-picture return share. */
-		coverShown: { opacity: 1 },
-
-		/**
-		 * The still: grey and slightly dimmed, which is the whole message -- this is a picture of
-		 * the clip and not the clip. Its fade is not in the reduced-motion branch below and was
-		 * not before, so it is carried across as it stands.
-		 */
-		still: {
-			filter: 'grayscale(1) brightness(0.55)',
-			opacity: 0,
-			transitionProperty: 'opacity',
-			transitionDuration: duration.base,
-			transitionTimingFunction: easing.inOut,
-			transitionDelay: '0s',
-		},
-		stillShown: { opacity: 1 },
-
-		/**
-		 * The veil under the control row, which is a gradient and therefore a background image
-		 * rather than a background colour. The row's other half of this pair -- the answer to a
-		 * focus inside it -- stays in the scoped block, where a relational selector can reach it.
-		 */
-		chrome: {
-			backgroundImage: 'var(--player-veil)',
-			opacity: 0,
-			transitionProperty: {
-				default: 'opacity',
-				'@media (prefers-reduced-motion: reduce)': 'none',
-			},
-			transitionDuration: {
-				default: duration.base,
-				'@media (prefers-reduced-motion: reduce)': '0s',
-			},
-			transitionTimingFunction: {
-				default: easing.inOut,
-				'@media (prefers-reduced-motion: reduce)': 'ease',
-			},
-			transitionDelay: { default: '0s', '@media (prefers-reduced-motion: reduce)': '0s' },
-		},
-		chromeShown: { opacity: 1 },
-
-		/** The ink the row hands down to everything in it. */
-		row: { color: 'var(--player-ink)' },
-
-		/**
-		 * A control in the row. Hover lights the glyph and draws nothing behind it -- a plate here
-		 * would be a plate on the row's own veil, and a bigger visual event than the state it
-		 * reports. The wash stays for the menu below, where a highlighted row is the surface
-		 * rather than an ornament.
-		 */
-		button: {
-			borderWidth: 0,
-			borderStyle: 'none',
-			borderRadius: radius.md,
-			color: {
-				default: 'var(--player-ink-dim)',
-				':hover': 'var(--player-ink)',
-				':focus-visible': 'var(--player-ink)',
-			},
-			backgroundColor: 'transparent',
-			transitionProperty: { default: 'color', '@media (prefers-reduced-motion: reduce)': 'none' },
-			transitionDuration: {
-				default: duration.base,
-				'@media (prefers-reduced-motion: reduce)': '0s',
-			},
-			transitionTimingFunction: {
-				default: easing.inOut,
-				'@media (prefers-reduced-motion: reduce)': 'ease',
-			},
-			transitionDelay: { default: '0s', '@media (prefers-reduced-motion: reduce)': '0s' },
-		},
-		/** A toggle reporting that it is on, which is full ink and nothing else. */
-		buttonOn: { color: 'var(--player-ink)' },
-
-		/** The elapsed and total time, in figures that do not shift width as they count. */
-		clock: {
-			fontSize: text.px11,
-			fontVariantNumeric: figures.tabular,
-			color: 'var(--player-ink-dim)',
-			textShadow: 'var(--player-shadow)',
-		},
-
-		/**
-		 * The scrubber's unfilled bar. Its `outlineColor` is stated at rest for the reason
-		 * spec/styling/focus.md gives: an outline's colour is `currentColor` until named, and the
-		 * ring this bar is handed would otherwise start from the row's ink.
-		 */
-		track: {
-			borderRadius: radius.full,
-			backgroundColor: 'var(--player-ink-faint)',
-			outlineColor: 'var(--color-accent)',
-		},
-		/** Both bars take the track's corner rather than restating it. */
-		bar: { borderRadius: 'inherit' },
-		loaded: { backgroundColor: 'var(--player-ink-dim)' },
-		played: { backgroundColor: 'var(--player-ink)' },
-
-		/**
-		 * What the two range inputs share: no ground of their own, and a ring they hand to the bar
-		 * a reader can actually see. The three `outline` longhands are `outline: none` written
-		 * out, the same as the cover's.
-		 */
-		slider: {
-			backgroundColor: 'transparent',
-			outlineStyle: { default: null, ':focus-visible': 'none' },
-			outlineWidth: { default: null, ':focus-visible': 'medium' },
-			outlineColor: { default: 'var(--color-accent)', ':focus-visible': 'currentColor' },
-		},
-		/**
-		 * The volume slider, closed. The width it opens to lives in the scoped block with the
-		 * parent's hover, which no class can express.
-		 */
-		level: {
-			opacity: 0,
-			transitionProperty: {
-				default: 'width, opacity',
-				'@media (prefers-reduced-motion: reduce)': 'none',
-			},
-			transitionDuration: {
-				default: '200ms, 200ms',
-				'@media (prefers-reduced-motion: reduce)': '0s',
-			},
-			transitionTimingFunction: {
-				default: 'cubic-bezier(0.4, 0, 0.2, 1), cubic-bezier(0.4, 0, 0.2, 1)',
-				'@media (prefers-reduced-motion: reduce)': 'ease',
-			},
-			transitionDelay: { default: '0s, 0s', '@media (prefers-reduced-motion: reduce)': '0s' },
-			transitionBehavior: {
-				default: 'normal, normal',
-				'@media (prefers-reduced-motion: reduce)': 'normal',
-			},
-		},
-
-		/**
-		 * The settings menu stands away from the frame, so it carries the plate rather than the
-		 * veil. Its corner is a literal: 0.625rem is on no scale this repository names.
-		 */
-		menu: {
-			borderRadius: '0.625rem',
-			backgroundColor: 'var(--player-glass)',
-			backdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
-			WebkitBackdropFilter: 'blur(var(--player-glass-blur)) saturate(var(--player-glass-saturate))',
-		},
-		menuTitle: {
-			fontSize: text.px10,
-			letterSpacing: tracking.caps,
-			color: 'var(--player-ink-faint)',
-		},
-		/** A row in the menu, where the highlight is the surface rather than an ornament on it. */
-		menuItem: {
-			borderWidth: 0,
-			borderStyle: 'none',
-			borderRadius: radius.md,
-			fontSize: text.px12,
-			color: {
-				default: 'var(--player-ink-dim)',
-				':hover': 'var(--player-ink)',
-				':focus-visible': 'var(--player-ink)',
-			},
-			backgroundColor: {
-				default: 'transparent',
-				':hover': 'var(--player-wash)',
-				':focus-visible': 'var(--player-wash)',
-			},
-		},
-		menuItemOn: { color: 'var(--player-ink)' },
-	});
-
 	/**
 	 * Whether a reader has given this page permission to make noise, for every clip at once.
 	 *
@@ -253,9 +17,11 @@
 	 * See spec/architecture/video/player.md, "The chrome is built on `@videojs/core`'s headless
 	 * store, not its skin", for why `@videojs/core/dom` and not the preset or custom elements, and
 	 * for the `attach` trap. Every colour is a `--player-*` token, the one that does not follow the
-	 * theme -- see `libs/tokens/src/player.css` for why. The scoped block at the foot keeps 71 of
-	 * its 195 declarations, and every one of them is a selector no class can reach.
+	 * theme -- see `libs/tokens/src/player.css` for why. What is left in the scoped blocks -- at the
+	 * foot of this file, of `video-chrome.svelte` and of `video-settings.svelte` -- is a selector no
+	 * class can reach. The row is drawn by those two; the stages, the gestures and the store are here.
 	 */
+	import { combine, createStore } from '@videojs/store';
 	import {
 		bufferFeature,
 		controlsFeature,
@@ -271,29 +37,27 @@
 		type PlayerTarget,
 	} from '@videojs/core/dom';
 	import { HTMLVideoAdapter } from '@videojs/media/dom';
-	import { combine, createStore } from '@videojs/store';
 	// Phosphor here and Lucide everywhere else -- see spec/styling/player.md, "The player's glyphs
 	// are Phosphor, at two weights, plus three this repository draws", for the fill-vs-bold rule and
 	// the reasoning behind the split. `*Icon` names, not the bare ones: `CornersOut` and its
 	// siblings are deprecated aliases and say so in their own types. The three shapes Phosphor
 	// does not draw -- the landscape corner pair and the frame's exit state -- live in
 	// `./video-glyphs`, in the same hand, at Phosphor's props minus `weight`.
-	import ClosedCaptioningIcon from 'phosphor-svelte/lib/ClosedCaptioningIcon';
-	import FrameCornersIcon from 'phosphor-svelte/lib/FrameCornersIcon';
-	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
 	import PauseIcon from 'phosphor-svelte/lib/PauseIcon';
 	import PictureInPictureIcon from 'phosphor-svelte/lib/PictureInPictureIcon';
 	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
-	import SpeakerHighIcon from 'phosphor-svelte/lib/SpeakerHighIcon';
-	import SpeakerSimpleXIcon from 'phosphor-svelte/lib/SpeakerSimpleXIcon';
-	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
-	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';
-	import FrameCornersInIcon from './video-glyphs/frame-corners-in.svelte';
-	import { keepPosition, positionOf, stillOf } from '@canmi/behavior/progress';
 	import { reader } from '@canmi/behavior/state';
 	import type { VideoRung } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '@canmi/locales';
 	import * as m from '@canmi/messages';
+	import * as stylex from '@stylexjs/stylex';
+	import { surfaces } from '@canmi/tokens/surfaces';
+	import { placeCaptions } from './video-captions.ts';
+	import VideoChrome, { type View } from './video-chrome.svelte';
+	import { styles } from './video-controls.styles.ts';
+	import { Level } from './video-level.ts';
+	import { holdPage } from './video-page.ts';
+	import { Place } from './video-place.svelte.ts';
 
 	let {
 		video,
@@ -391,7 +155,7 @@
 	 */
 	const DEFAULT_VOLUME = 0.5;
 
-	let view = $state({
+	let view = $state<View>({
 		paused: true,
 		currentTime: 0,
 		duration: 0,
@@ -419,30 +183,10 @@
 	 */
 	$effect(() => {
 		if (!filling) return;
-		const { body, documentElement: root } = document;
-		const gutter = window.innerWidth - root.clientWidth;
-		const overflow = body.style.overflow;
-		const padding = body.style.paddingInlineEnd;
-		body.style.overflow = 'hidden';
-		if (gutter > 0) body.style.paddingInlineEnd = `${gutter}px`;
-
-		const onKey = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') filling = false;
-		};
-		const swallow = (event: TouchEvent) => {
-			if ((event.target as Element | null)?.closest('.player-chrome')) return;
-			event.preventDefault();
-		};
-		window.addEventListener('keydown', onKey);
-		document.addEventListener('touchmove', swallow, { passive: false });
-
-		return () => {
-			body.style.overflow = overflow;
-			body.style.paddingInlineEnd = padding;
-			window.removeEventListener('keydown', onKey);
-			document.removeEventListener('touchmove', swallow);
-			window.scrollTo({ top: restore, behavior: 'instant' });
-		};
+		return holdPage(
+			() => (filling = false),
+			() => restore,
+		);
 	});
 
 	/**
@@ -452,7 +196,8 @@
 	 */
 	let restore = 0;
 
-	let gain: GainNode | undefined;
+	/** The clip's level past what the element alone can play. See `./video-level.ts`. */
+	const level = new Level();
 
 	$effect(() => {
 		volume = reader.recall(localStorage, VOLUME_KEY, DEFAULT_VOLUME);
@@ -541,29 +286,11 @@
 		return () => query.removeEventListener('change', sync);
 	});
 
-	/**
-	 * Where this clip was when the tab last saw it, applied at the last possible moment -- read
-	 * once and spent once. See spec/architecture/video/player.md, "A reload finds a clip where the
-	 * tab left it", for why it waits for the viewport rather than load or the first `play`.
-	 */
-	let restored: number | undefined;
-	$effect(() => {
-		restored = positionOf(sessionStorage, clip)?.at;
-		const element = video;
-		if (restored === undefined || !element) return;
-		/**
-		 * A clip this tab has already watched seeks at `loadedmetadata`, before the element
-		 * decodes its own frame -- narrowing the frame-zero flash, not closing it: a cached clip
-		 * can decode frame zero before hydration runs, a race script cannot win. What actually
-		 * hides it is the transparency hold; see spec/architecture/video/player.md, "A clip the tab
-		 * remembers does not show itself until the frame is the right one" for the measured
-		 * 100ms/80ms/315ms. Clips with no remembered position still wait, per `prime` below.
-		 */
-		const early = () => prime();
-		if (element.readyState >= HTMLMediaElement.HAVE_METADATA) early();
-		else element.addEventListener('loadedmetadata', early, { once: true });
-		return () => element.removeEventListener('loadedmetadata', early);
-	});
+	/** Where this clip is, kept for the tab. See `./video-place.svelte.ts`. */
+	const place = new Place(
+		() => video,
+		() => clip,
+	);
 
 	/**
 	 * The frame the clip was on when it left for the picture-in-picture window, captured into a
@@ -573,27 +300,6 @@
 	 * than conditional on state.
 	 */
 	let still = $state<HTMLCanvasElement>();
-
-	/**
-	 * Whether this source has already been asked for a frame.
-	 *
-	 * Reset when the element takes a new one -- a rung swap calls `load()`, which throws away
-	 * whatever was decoded -- so the replacement is asked for a frame of its own.
-	 */
-	let primed = false;
-	$effect(() => {
-		const element = video;
-		if (!element) return;
-		const again = () => {
-			primed = false;
-		};
-		element.addEventListener('emptied', again);
-		element.addEventListener('loadstart', again);
-		return () => {
-			element.removeEventListener('emptied', again);
-			element.removeEventListener('loadstart', again);
-		};
-	});
 
 	$effect(() => {
 		const element = video;
@@ -618,167 +324,7 @@
 		});
 	}
 
-	/**
-	 * Where captions sit, decided when the shape changes and at no other time.
-	 *
-	 * See spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in
-	 * the black", for the whole account: why a bar only gets the caption once it is comfortably
-	 * taller than one (`CUE_ROOM`), why cues are positioned against the element box rather than the
-	 * picture, and why the answer is recomputed on shape rather than on cues.
-	 */
-	const CUE_LINES = 2;
-	/**
-	 * The caption's own height, in multiples of its size: 1.35 is `::cue`'s line-height in
-	 * `video.svelte`, and the plate is painted to exactly that box, nothing added around it. See
-	 * spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in the
-	 * black", for the measurement against a real caption.
-	 */
-	const CUE_BLOCK = 1.35 * CUE_LINES;
-	/**
-	 * How much taller than the caption a bar has to be before the caption is put in it.
-	 *
-	 * A bar that merely fits the caption is not a place to put one. At 1.5 the leftover is half a
-	 * caption, a quarter of one above and a quarter below, which is the least that reads as a
-	 * caption sitting in a bar rather than filling it. Measured on a 1000x730 window before this
-	 * existed: a bar of 83.8 took a caption block of 73.2 and left 5.3px of black under the
-	 * descenders, which is the failure this number is against.
-	 */
-	const CUE_ROOM = 1.5;
-	/**
-	 * How far above the picture's bottom edge a caption sits, in multiples of the caption's own
-	 * size -- the same gap looks half as big under a caption twice the size. At 0.8 the article
-	 * keeps its old 13.2px gap, 12.8px. See spec/architecture/video/captions.md, "A caption is set in
-	 * the page's voice and placed in the black", for what this replaced.
-	 */
-	const CUE_CLEAR = 0.8;
-	/**
-	 * What stands in for the plate's horizontal padding: `::cue` cannot be padded, so a
-	 * non-collapsing space sits on each side of every line instead. Thin space gives 4px a side,
-	 * the finest available short of a class of its own scaled by `font-size` -- see
-	 * spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in the
-	 * black", for the measurement and the alternatives it beat.
-	 */
-	const CUE_PAD = '\u2009';
-	/** A caption reads at a size taken from the picture, between these two. */
-	const CUE_MIN = 14;
-	const CUE_MAX = 30;
-	const CUE_SCALE = 0.042;
-
-	/**
-	 * How much of the picture a caption may fill before it is worth breaking (`KEEP`), and how
-	 * full the first line aims to be when it does break (`FILL`, short of `KEEP` on purpose). The
-	 * file's own break point is a suggestion about where, not about whether -- see
-	 * spec/architecture/video/captions.md, "A caption is set in the page's voice and placed in the
-	 * black", for why and for the measurement.
-	 */
-	const CUE_KEEP = 0.9;
-	const CUE_FILL = 0.8;
-	/** What stopping at a clause is worth, against how unequal it leaves the two lines. */
-	const CUE_NUDGE = 0.08;
-
-	/**
-	 * What the files say, kept so that re-measuring is idempotent.
-	 *
-	 * Every recompute rewrites `text`, so without the original the second pass would be measuring
-	 * the first pass's answer and the caption would drift a word at a time.
-	 */
-	const written = new WeakMap<TextTrackCue, string>();
-
-	/** One canvas for every measurement this component ever makes. */
-	let ruler: CanvasRenderingContext2D | null | undefined;
-
-	/**
-	 * Where to break a caption that has to break, which is a separate question from whether.
-	 * Candidates are the places a reader would accept one: after punctuation, and at a space.
-	 * **Balanced rather than first-line-filled** -- see spec/architecture/video/captions.md, "A
-	 * caption is set in the page's voice and placed in the black", for why filling strands a word.
-	 * Failing `FILL` entirely, the shortest first line under `KEEP` is taken instead, and failing
-	 * that the text is left whole.
-	 */
-	function breakAt(text: string, measure: (value: string) => number, width: number): string {
-		const candidates: { at: number; punctuated: boolean }[] = [];
-		for (let i = 1; i < text.length; i++) {
-			const before = text[i - 1] ?? '';
-			const here = text[i] ?? '';
-			const punctuated = /[,.;:!?—、。，；：！？]/.test(before);
-			if (punctuated || here === ' ') candidates.push({ at: i, punctuated });
-		}
-		const scored = candidates
-			.map((c) => ({ ...c, head: text.slice(0, c.at).trim(), tail: text.slice(c.at).trim() }))
-			.filter((c) => c.head && c.tail)
-			.map((c) => ({ ...c, size: measure(c.head) }));
-		const weighed = scored
-			.map((c) => ({ ...c, rest: measure(c.tail) }))
-			.filter((c) => c.size <= width * CUE_FILL && c.rest <= width * CUE_FILL)
-			.map((c) => ({
-				...c,
-				// Lower is better: how unequal the two lines are, less a nudge for stopping at a
-				// clause rather than mid-sentence.
-				cost: Math.abs(c.size - c.rest) - (c.punctuated ? width * CUE_NUDGE : 0),
-			}));
-		const chosen =
-			weighed.sort((a, b) => a.cost - b.cost)[0] ??
-			scored.filter((c) => c.size <= width * CUE_KEEP).sort((a, b) => a.size - b.size)[0];
-		return chosen ? [chosen.head, chosen.tail].join('\n') : text;
-	}
-
-	function placeCaptions(): void {
-		const element = video;
-		if (!element) return;
-		const box = element.getBoundingClientRect();
-		if (!box.height || !element.videoWidth || !element.videoHeight) return;
-
-		const shown = Math.min(box.height, (box.width * element.videoHeight) / element.videoWidth);
-		const size = Math.min(CUE_MAX, Math.max(CUE_MIN, shown * CUE_SCALE));
-		element.style.setProperty('--cue-size', `${Math.round(size)}px`);
-
-		// `cover` fills the box, so the picture is the box and there is nothing to move out of.
-		const fitted = getComputedStyle(element).objectFit === 'contain';
-		const bar = fitted ? (box.height - shown) / 2 : 0;
-		const block = size * CUE_BLOCK;
-		// One expression for both places a caption can go, because the bar being absent and the
-		// bar being too shallow want the same answer: the bottom of the picture, held off it.
-		const bottom =
-			bar >= block * CUE_ROOM
-				? // Centred in the bar: half the leftover above the caption, half below.
-					box.height - (bar - block) / 2
-				: box.height - bar - size * CUE_CLEAR;
-		const line = Math.min(100, Math.max(0, (bottom / box.height) * 100));
-
-		// The picture's own width, not the box's: in full screen the bars are part of the element
-		// and no part of what a caption has to fit across.
-		const across = Math.min(box.width, (box.height * element.videoWidth) / element.videoHeight);
-		ruler ??= document.createElement('canvas').getContext('2d');
-		const face = getComputedStyle(element).fontFamily;
-		if (ruler) ruler.font = `${size}px ${face}`;
-		// Every measurement is of the padded line, because the padding is part of the plate and the
-		// plate is what has to fit across the picture. Both halves of a break gain the same amount,
-		// so the balance the break is chosen on is unaffected and only the thresholds move.
-		const measure = (value: string) => ruler?.measureText(CUE_PAD + value + CUE_PAD).width ?? 0;
-		const padded = (value: string) =>
-			value
-				.split('\n')
-				.map((row) => CUE_PAD + row + CUE_PAD)
-				.join('\n');
-
-		for (const track of element.textTracks) {
-			for (const cue of track.cues ?? []) {
-				(cue as VTTCue).snapToLines = false;
-				// Assigned before `line`, because `line` is validated against it.
-				if ('lineAlign' in cue) (cue as VTTCue).lineAlign = 'end';
-				(cue as VTTCue).line = line;
-
-				if (!written.has(cue)) written.set(cue, (cue as VTTCue).text);
-				const original = written.get(cue) ?? '';
-				const joined = original.replaceAll('\n', ' ').replaceAll(/\s+/g, ' ').trim();
-				if (!ruler || !joined) continue;
-				(cue as VTTCue).text = padded(
-					measure(joined) <= across * CUE_KEEP ? joined : breakAt(joined, measure, across),
-				);
-			}
-		}
-	}
-
+	/** Where captions sit: see `./video-captions.ts`. */
 	$effect(() => {
 		const element = video;
 		if (!element) return;
@@ -787,8 +333,8 @@
 		void filling;
 		void view.fullscreen;
 		void view.hasCaptions;
-		placeCaptions();
-		const again = () => placeCaptions();
+		placeCaptions(element);
+		const again = () => placeCaptions(element);
 		window.addEventListener('resize', again);
 		// Cues do not exist until the track has loaded, and a track loads once.
 		for (const node of element.querySelectorAll('track')) node.addEventListener('load', again);
@@ -800,121 +346,10 @@
 		};
 	});
 
-	/**
-	 * A seek small enough to land inside the first frame, and large enough to be a seek.
-	 *
-	 * Assigning the position the element already reports is not a seek and decodes nothing, so a
-	 * clip that has never moved needs a number that is not zero. A ten-thousandth of a second is
-	 * inside frame zero at any frame rate anyone ships.
-	 */
-	const NUDGE = 0.0001;
-
-	/**
-	 * Decode one frame, so the element has something of its own to show, once the reader is
-	 * anywhere near it. Tied to the viewport rather than the first `play`, which is the whole cost
-	 * control: a range request per clip, spent only on clips a reader has actually scrolled to.
-	 * See spec/architecture/video/player.md, "The poster is a fallback, and the wait is a blur", for
-	 * why the poster alone is not enough.
-	 */
-	function prime(): void {
-		if (!video || primed) return;
-		// Once per source, tracked rather than inferred. It used to ask `readyState` whether a
-		// frame was already there, and `readyState` does not answer that question: measured at 4
-		// -- enough data for the whole clip -- with `totalVideoFrames` still 0, so it skipped the
-		// seek, nothing ever decoded, and the thumbhash showed through the poster's absence.
-		primed = true;
-		const at = restored ?? 0;
-		// Spent here rather than at `start`: the position has been applied, and applying it twice
-		// would seek a clip the reader has just pressed play on.
-		restored = undefined;
-		seekTo(at > 0 ? at : NUDGE);
-	}
-
-	/**
-	 * Seek, waiting for metadata if there is not yet a timeline to seek within.
-	 *
-	 * Assigning `currentTime` before metadata sets a default start position instead of seeking,
-	 * which lands in the right place but never fires `seeked` -- and `seeked` is what tells
-	 * `video.svelte` a frame has been put up.
-	 */
-	function seekTo(at: number): void {
-		const element = video;
-		if (!element) return;
-		if (element.readyState >= HTMLMediaElement.HAVE_METADATA) element.currentTime = at;
-		else
-			element.addEventListener('loadedmetadata', () => void (element.currentTime = at), {
-				once: true,
-			});
-	}
-
-	/**
-	 * Play, putting the clip back where the tab left it first.
-	 *
-	 * Every path to playback goes through here rather than calling the store directly, because a
-	 * position restored on some of them and not others is worse than one restored on none.
-	 */
+	/** Play, by way of `Place`, which puts the clip back where the tab left it first. */
 	function start(): void {
-		const at = restored;
-		restored = undefined;
-		if (at !== undefined) seekTo(at);
-		void (player?.play as () => void)?.();
+		place.start(() => void (player?.play as () => void)?.());
 	}
-
-	/**
-	 * Record where the clip has got to, or forget it.
-	 *
-	 * The picture goes with the number, and that is the point of taking one at all: a reload that
-	 * puts the clip back at fourteen seconds and blurs the *first* frame behind it while it
-	 * decodes is showing the wrong place, and the blurred ground is the one thing on screen for
-	 * that moment.
-	 */
-	function keep(): void {
-		if (!video || !clip) return;
-		kept = performance.now();
-		keepPosition(sessionStorage, clip, video.currentTime, video.duration, stillOf(video));
-	}
-
-	/**
-	 * How long the remembered frame is allowed to be out of date while a clip is running -- kept
-	 * on `timeupdate` rather than an interval, since it fires only during playback and needs
-	 * nothing unwound. See spec/architecture/video/player.md, "The poster is a fallback, and the wait
-	 * is a blur", for why it also runs while playing (not only at `pause`/`ended`/`pagehide`)
-	 * and for the cost measurement behind the two seconds.
-	 */
-	const KEEP_EVERY = 2000;
-	let kept = 0;
-	function keepWhileRunning(): void {
-		if (performance.now() - kept < KEEP_EVERY) return;
-		keep();
-	}
-
-	/**
-	 * The last moment a phone reliably gives anybody.
-	 *
-	 * `pagehide` catches a reload and a deliberate close, and on a mobile browser it is not
-	 * guaranteed to run before a backgrounded tab is thrown away. Going hidden is, and it is also
-	 * exactly when a reader who switches away should have their place taken down.
-	 */
-	function keepOnHide(): void {
-		if (document.visibilityState === 'hidden') keep();
-	}
-
-	$effect(() => {
-		if (!video) return;
-		const element = video;
-		element.addEventListener('pause', keep);
-		element.addEventListener('ended', keep);
-		element.addEventListener('timeupdate', keepWhileRunning);
-		window.addEventListener('pagehide', keep);
-		document.addEventListener('visibilitychange', keepOnHide);
-		return () => {
-			element.removeEventListener('pause', keep);
-			element.removeEventListener('ended', keep);
-			element.removeEventListener('timeupdate', keepWhileRunning);
-			window.removeEventListener('pagehide', keep);
-			document.removeEventListener('visibilitychange', keepOnHide);
-		};
-	});
 
 	/**
 	 * Start a preview, silent or not depending on what the reader has already allowed.
@@ -960,7 +395,7 @@
 		if (!video || !frame) return;
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				if (entry?.isIntersecting) return void prime();
+				if (entry?.isIntersecting) return void place.prime();
 				// Paused rather than stopped, so a reader who returns finds it where they left it.
 				if (stage !== 'sleeping' && !video.paused) (player?.pause as () => void)?.();
 			},
@@ -1069,41 +504,10 @@
 		}, 280);
 	}
 
-	/**
-	 * The level, and the ceiling a reader may raise. `video.volume` is capped at 1, so anything
-	 * above it needs a `GainNode` and therefore `crossorigin`. Built once, lazily, since
-	 * `createMediaElementSource` takes the element's audio over for good with no way back --
-	 * which two things can push past the cap: the reader's own ceiling, and a clip quiet enough
-	 * that its levelling alone is above one.
-	 */
+	/** The reader's level, times this clip's levelling, onto the element. See `./video-level.ts`. */
 	function applyVolume() {
 		if (!video) return;
-		const wanted = (boost ? volume * 2 : volume) * levelling;
-		if (wanted <= 1) {
-			video.volume = wanted;
-			if (gain) gain.gain.value = 1;
-			return;
-		}
-		if (!gain) {
-			// **Only ever from a click.** Every caller of this is one -- the volume slider, the
-			// mute button, a quality change -- and that matters more than it looks: a context
-			// created without a gesture starts suspended, and once `createMediaElementSource` has
-			// taken the element's audio a suspended context is not quiet, it is silent. `resume`
-			// is the belt to that brace.
-			//
-			// A browser with no `AudioContext` keeps the cap instead of losing its sound.
-			try {
-				const context = new AudioContext();
-				gain = context.createGain();
-				context.createMediaElementSource(video).connect(gain).connect(context.destination);
-				void context.resume();
-			} catch {
-				video.volume = 1;
-				return;
-			}
-		}
-		video.volume = 1;
-		gain.gain.value = wanted;
+		level.apply(video, (boost ? volume * 2 : volume) * levelling);
 	}
 
 	function setVolume(next: number) {
@@ -1144,16 +548,27 @@
 		if (playing) void video.play();
 	}
 
-	function clock(seconds: number): string {
-		if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
-		const whole = Math.floor(seconds);
-		const [h, mm, ss] = [Math.floor(whole / 3600), Math.floor(whole / 60) % 60, whole % 60];
-		const pad = (value: number) => String(value).padStart(2, '0');
-		return h > 0 ? `${h}:${pad(mm)}:${pad(ss)}` : `${mm}:${pad(ss)}`;
+	/**
+	 * The reader's answer, and the only thing that writes it. The store is told by the effect above
+	 * rather than from here, so there is one path onto the clip whether the answer arrives by a
+	 * press now or out of the record at load.
+	 */
+	function toggleCaptions() {
+		wantsCaptions = !wantsCaptions;
+		reader.remember(localStorage, CAPTIONS_KEY, wantsCaptions);
 	}
 
-	const played = $derived(view.duration ? (view.currentTime / view.duration) * 100 : 0);
-	const loaded = $derived(view.duration ? (view.buffered / view.duration) * 100 : 0);
+	function toggleBoost() {
+		boost = !boost;
+		reader.remember(localStorage, BOOST_KEY, boost);
+		applyVolume();
+	}
+
+	function toggleFill() {
+		if (!filling) restore = window.scrollY;
+		filling = !filling;
+	}
+
 	/**
 	 * Whether the chrome is on screen: never in `sleeping` or `previewing`, and only `awake` shows
 	 * it since only a click asked for it. A pointer device follows the pointer and nothing else; a
@@ -1162,10 +577,6 @@
 	 * does.
 	 */
 	const shown = $derived(stage === 'awake' && (hovers ? over || menu : showChrome || menu));
-	const label = $derived(
-		view.paused ? m['video.play']({}, { locale }) : m['video.pause']({}, { locale }),
-	);
-
 	/** Whether the pointer is on the cover itself, which is not the same as being on the frame. */
 	let onCover = $state(false);
 	/** Whether the countdown started by the last state change is still running. */
@@ -1309,304 +720,28 @@
 	</button>
 {/if}
 
-<div
-	class="player-chrome absolute inset-x-0 top-auto bottom-0 px-2.5 pt-8 pb-2 {shown
-		? 'pointer-events-auto'
-		: 'pointer-events-none'} {stylex.attrs(styles.chrome, shown && styles.chromeShown).class}"
->
-	<div class="player-scrub relative mx-1.5 flex h-4 items-center">
-		<div
-			class="player-track absolute inset-x-0 h-0.75 overflow-hidden {stylex.attrs(styles.track)
-				.class}"
-		>
-			<div
-				class="absolute inset-y-0 start-0 {stylex.attrs(styles.bar, styles.loaded).class}"
-				style="width:{loaded}%"
-			></div>
-			<div
-				class="absolute inset-y-0 start-0 {stylex.attrs(styles.bar, styles.played).class}"
-				style="width:{played}%"
-			></div>
-		</div>
-		<input
-			type="range"
-			class="player-seek relative m-0 h-4 w-full cursor-pointer appearance-none {stylex.attrs(
-				styles.slider,
-			).class}"
-			min="0"
-			max={view.duration || 1}
-			step="0.01"
-			value={view.currentTime}
-			aria-label={m['video.seek']({}, { locale })}
-			aria-valuetext="{clock(view.currentTime)} / {clock(view.duration)}"
-			oninput={(event) =>
-				(player?.seek as (value: number) => void)?.(Number(event.currentTarget.value))}
-		/>
-	</div>
-
-	<div class="flex items-center gap-0.5 {stylex.attrs(styles.row).class}">
-		<button
-			type="button"
-			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-				surfaces.focusRingHost,
-				styles.button,
-			).class}"
-			onclick={toggle}
-			aria-label={label}
-			title={label}
-		>
-			{#if view.paused}<PlayIcon
-					class="player-glyph player-glyph-play focus-ring-inner {stylex.attrs(
-						surfaces.focusRingInner,
-					).class}"
-					weight="fill"
-					aria-hidden="true"
-				/>
-			{:else}<PauseIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					weight="fill"
-					aria-hidden="true"
-				/>{/if}
-		</button>
-
-		<div class="player-volume flex items-center">
-			<button
-				type="button"
-				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-					surfaces.focusRingHost,
-					styles.button,
-				).class}"
-				onclick={unmute}
-				aria-label={m['video.mute']({}, { locale })}
-				title={m['video.mute']({}, { locale })}
-			>
-				{#if view.muted || volume === 0}<SpeakerSimpleXIcon
-						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-						weight="fill"
-						aria-hidden="true"
-					/>
-				{:else}<SpeakerHighIcon
-						class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-						weight="fill"
-						aria-hidden="true"
-					/>{/if}
-			</button>
-			<input
-				type="range"
-				class="player-level h-4 w-0 cursor-pointer appearance-none {stylex.attrs(
-					styles.slider,
-					styles.level,
-				).class}"
-				min="0"
-				max="1"
-				step="0.01"
-				value={view.muted ? 0 : volume}
-				aria-label={m['video.volume']({}, { locale })}
-				style="--filled:{(view.muted ? 0 : volume) * 100}%"
-				oninput={(event) => setVolume(Number(event.currentTarget.value))}
-			/>
-		</div>
-
-		<span class="ms-1.5 {stylex.attrs(styles.clock).class}"
-			>{clock(view.currentTime)} / {clock(view.duration)}</span
-		>
-
-		<span class="flex-1"></span>
-
-		{#if view.hasCaptions}
-			<button
-				type="button"
-				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-					surfaces.focusRingHost,
-					styles.button,
-					view.captions && styles.buttonOn,
-				).class}"
-				onclick={() => {
-					// The reader's answer, and the only thing that writes it. The store is told by
-					// the effect above rather than from here, so there is one path onto the clip
-					// whether the answer arrives by a press now or out of the record at load.
-					wantsCaptions = !wantsCaptions;
-					reader.remember(localStorage, CAPTIONS_KEY, wantsCaptions);
-				}}
-				aria-pressed={view.captions}
-				aria-label={m['video.captions']({}, { locale })}
-				title={m['video.captions']({}, { locale })}
-			>
-				<ClosedCaptioningIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					weight="bold"
-					aria-hidden="true"
-				/>
-			</button>
-		{/if}
-
-		<div class="relative">
-			<button
-				type="button"
-				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-					surfaces.focusRingHost,
-					styles.button,
-					menu && styles.buttonOn,
-				).class}"
-				onclick={() => (menu = !menu)}
-				aria-expanded={menu}
-				aria-label={m['video.settings']({}, { locale })}
-				title={m['video.settings']({}, { locale })}
-			>
-				<!--
-					The one round glyph in a row of rectangles, brought down to match them by
-					growing the canvas under it rather than shrinking the element -- so the focus
-					ring, on the 16x16 element, is unchanged. See spec/styling/player.md, "The player's
-					glyphs are Phosphor, at two weights, plus three this repository draws", for
-					the arithmetic and why the stroke in `.player-glyph-cog` is solved with it.
-				-->
-				<GearSixIcon
-					class="player-glyph player-glyph-cog focus-ring-inner {stylex.attrs(
-						surfaces.focusRingInner,
-					).class}"
-					weight="bold"
-					viewBox="-24.38 -24.38 304.76 304.76"
-					aria-hidden="true"
-				/>
-			</button>
-			{#if menu}
-				<div
-					class="absolute end-0 bottom-9 min-w-28 p-1 text-start {stylex.attrs(styles.menu).class}"
-				>
-					{#if rungs && rungs.length > 1}
-						<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
-							{m['video.quality']({}, { locale })}
-						</p>
-						{#each rungs as rung (rung.src)}
-							<button
-								type="button"
-								class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
-									styles.menuItem,
-									chosen === rung.src && styles.menuItemOn,
-								).class}"
-								onclick={() => quality(rung.src)}
-							>
-								{rung.height}p
-							</button>
-						{/each}
-					{/if}
-					<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
-						{m['video.speed']({}, { locale })}
-					</p>
-					{#each [0.5, 1, 1.25, 1.5, 2] as rate (rate)}
-						<button
-							type="button"
-							class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
-								styles.menuItem,
-								view.rate === rate && styles.menuItemOn,
-							).class}"
-							onclick={() => (player?.setPlaybackRate as (value: number) => void)?.(rate)}
-						>
-							{rate}&times;
-						</button>
-					{/each}
-					<p class="m-0 px-2 pt-1 pb-0.5 uppercase {stylex.attrs(styles.menuTitle).class}">
-						{m['video.boost']({}, { locale })}
-					</p>
-					<button
-						type="button"
-						class="focus-ring block w-full cursor-pointer px-2 py-1 text-start {stylex.attrs(
-							styles.menuItem,
-							boost && styles.menuItemOn,
-						).class}"
-						onclick={() => {
-							boost = !boost;
-							reader.remember(localStorage, BOOST_KEY, boost);
-							applyVolume();
-						}}
-					>
-						200%
-					</button>
-				</div>
-			{/if}
-		</div>
-
-		{#if view.pipAvailable}
-			<button
-				type="button"
-				class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-					surfaces.focusRingHost,
-					styles.button,
-				).class}"
-				onclick={() => (player?.togglePictureInPicture as () => void)?.()}
-				aria-label={m['video.pip']({}, { locale })}
-				title={m['video.pip']({}, { locale })}
-			>
-				<PictureInPictureIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					weight="bold"
-					aria-hidden="true"
-				/>
-			</button>
-		{/if}
-
-		<!--
-			Web fullscreen is offered only once `.article-column`'s 720px cap has been reached, in
-			CSS rather than script so it is right on the first frame. See
-			spec/architecture/video/player.md, "Filling the window is a page mode, not a media one".
-			The query is spelled out rather than taken from Tailwind's own maximum-width variant,
-			which compiles to a strictly-less-than comparison and would leave this control on
-			screen at exactly 45rem. Measured against the rule it replaces.
-		-->
-		<button
-			type="button"
-			class="player-button inline-grid size-7.5 cursor-pointer place-items-center [@media(max-width:45rem)]:hidden {stylex.attrs(
-				surfaces.focusRingHost,
-				styles.button,
-				filling && styles.buttonOn,
-			).class}"
-			onclick={() => {
-				if (!filling) restore = window.scrollY;
-				filling = !filling;
-			}}
-			aria-pressed={filling}
-			aria-label={m['video.fill']({}, { locale })}
-			title={m['video.fill']({}, { locale })}
-		>
-			<!-- A frame, because that is what this fills: the browser's window, with its own chrome
-			     still around it. The other button below leaves the browser behind entirely, and the
-			     two must not look alike -- they are different destinations, not two sizes of one. -->
-			{#if filling}<FrameCornersInIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					aria-hidden="true"
-				/>
-			{:else}<FrameCornersIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					weight="bold"
-					aria-hidden="true"
-				/>{/if}
-		</button>
-
-		<button
-			type="button"
-			class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
-				surfaces.focusRingHost,
-				styles.button,
-			).class}"
-			onclick={() => (player?.toggleFullscreen as () => void)?.()}
-			aria-label={view.fullscreen
-				? m['video.exit-fullscreen']({}, { locale })
-				: m['video.fullscreen']({}, { locale })}
-			title={view.fullscreen
-				? m['video.exit-fullscreen']({}, { locale })
-				: m['video.fullscreen']({}, { locale })}
-		>
-			{#if view.fullscreen}<CornersInWideIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					aria-hidden="true"
-				/>
-			{:else}<CornersOutWideIcon
-					class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-					aria-hidden="true"
-				/>{/if}
-		</button>
-	</div>
-</div>
+<VideoChrome
+	{view}
+	{shown}
+	{volume}
+	{boost}
+	{chosen}
+	{rungs}
+	bind:menu
+	{filling}
+	{locale}
+	ontoggle={toggle}
+	onseek={(at) => (player?.seek as (value: number) => void)?.(at)}
+	onunmute={unmute}
+	onvolume={setVolume}
+	oncaptions={toggleCaptions}
+	onquality={quality}
+	onrate={(rate) => (player?.setPlaybackRate as (value: number) => void)?.(rate)}
+	onboost={toggleBoost}
+	onpip={() => (player?.togglePictureInPicture as () => void)?.()}
+	onfill={toggleFill}
+	onfullscreen={() => (player?.toggleFullscreen as () => void)?.()}
+/>
 
 <style>
 	/* What is left here is what no class can reach, which is the whole of the escape hatch's job:
@@ -1657,172 +792,5 @@
 		height: 1.875rem;
 		fill: currentColor;
 		filter: drop-shadow(var(--player-shadow));
-	}
-
-	/* A hidden row is still a tab stop, so it also has to show itself: `:has(:focus-visible)`
-	   rather than `:focus-within`, which would also pin the row open after a mouse click. Not
-	   `html[data-focus-source='kbd']` either -- see spec/styling/focus.md, "`:focus-visible` is the
-	   browser's guess, and the site keeps its own answer". Both declarations stay together because
-	   the condition is a relation to a descendant, which no class carries -- see
-	   spec/architecture/css/authoring.md, "An attribute selector is not a condition". */
-	.player-chrome:has(:focus-visible) {
-		opacity: 1;
-		pointer-events: auto;
-	}
-
-	.player-button :global(.player-glyph) {
-		width: 1rem;
-		height: 1rem;
-		filter: drop-shadow(var(--player-shadow));
-	}
-
-	/* The same glyph in the row, and the same finding: Phosphor's `Play` is already centred on its
-	   mass, so the offset that used to be here was a second correction. See the cover's rule. */
-	.player-button :global(.player-glyph-play) {
-		fill: currentColor;
-	}
-
-	/* The other half of the cog's optical correction, solved together with the markup's `viewBox`:
-	   a filled path has no stroke to thicken, so the weight comes back as an actual stroke of
-	   4.571 units. See spec/styling/player.md for the arithmetic. `stroke` inherits, so Phosphor's
-	   transparent sizing rect is turned off below rather than left to draw a square around it. */
-	.player-button :global(.player-glyph-cog) {
-		stroke: currentColor;
-		stroke-width: 4.571px;
-		stroke-linejoin: round;
-	}
-
-	.player-button :global(.player-glyph-cog rect) {
-		stroke: none;
-	}
-
-	/* Both sliders hand their ring to the bar a reader can actually see, the same call
-	   `focus-ring-inner` makes elsewhere -- but neither utility reaches an `<input>`, whose bar is
-	   a sibling or a shadow pseudo-element rather than a descendant, so the two placements are
-	   written out below by hand. The colour they are stated in at rest is in the vocabulary, on
-	   the three elements a class reaches. See spec/styling/focus.md for the measurement. */
-	.player-scrub:has(.player-seek:focus-visible) .player-track {
-		outline: 0.125rem solid var(--color-accent);
-		outline-offset: 0;
-	}
-
-	/* One engine per rule, never a list: a selector list holding a pseudo-element the engine does
-	   not know invalidates the whole rule, in both engines. */
-	.player-level:focus-visible::-webkit-slider-runnable-track {
-		outline: 0.125rem solid var(--color-accent);
-		outline-offset: 0;
-	}
-
-	.player-level:focus-visible::-moz-range-track {
-		outline: 0.125rem solid var(--color-accent);
-		outline-offset: 0;
-	}
-
-	/* The utilities' pointer suppression matches the focused element, and these three rules draw
-	   on something else, so it cannot reach them. Same shape, written out: a positively known
-	   pointer takes the outline away, an absent attribute leaves it alone. */
-	:global(html[data-focus-source='pointer'])
-		.player-scrub:has(.player-seek:focus-visible)
-		.player-track {
-		outline: none;
-	}
-
-	:global(html[data-focus-source='pointer'])
-		.player-level:focus-visible::-webkit-slider-runnable-track {
-		outline: none;
-	}
-
-	:global(html[data-focus-source='pointer']) .player-level:focus-visible::-moz-range-track {
-		outline: none;
-	}
-
-	/* One engine per rule, never a list: a selector list holding a pseudo-element the engine does
-	   not know invalidates the whole rule, in both engines. */
-	.player-seek::-webkit-slider-runnable-track {
-		height: 1rem;
-		background: transparent;
-	}
-
-	.player-seek::-moz-range-track {
-		height: 1rem;
-		background: transparent;
-	}
-
-	.player-seek::-webkit-slider-thumb {
-		appearance: none;
-		width: 0.625rem;
-		height: 0.625rem;
-		margin-top: 0.1875rem;
-		border-radius: calc(infinity * 1px);
-		background: var(--player-ink);
-		box-shadow: var(--player-shadow);
-		opacity: 0;
-		transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.player-seek::-moz-range-thumb {
-		width: 0.625rem;
-		height: 0.625rem;
-		border: 0;
-		border-radius: calc(infinity * 1px);
-		background: var(--player-ink);
-		box-shadow: var(--player-shadow);
-		opacity: 0;
-		transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.player-scrub:hover .player-seek::-webkit-slider-thumb,
-	.player-seek:focus-visible::-webkit-slider-thumb {
-		opacity: 1;
-	}
-
-	.player-scrub:hover .player-seek::-moz-range-thumb,
-	.player-seek:focus-visible::-moz-range-thumb {
-		opacity: 1;
-	}
-
-	/* Volume: opens on hover, the way a native player's does. The width it opens to is here and
-	   the width it rests at is in the markup, because this one is conditioned on the parent. */
-	.player-volume:hover .player-level,
-	.player-level:focus-visible {
-		width: 4rem;
-		opacity: 1;
-	}
-
-	.player-level::-webkit-slider-runnable-track {
-		height: 0.1875rem;
-		border-radius: calc(infinity * 1px);
-		background: linear-gradient(
-			to right,
-			var(--player-ink) var(--filled),
-			var(--player-ink-faint) var(--filled)
-		);
-	}
-
-	.player-level::-moz-range-track {
-		height: 0.1875rem;
-		border-radius: calc(infinity * 1px);
-		background: linear-gradient(
-			to right,
-			var(--player-ink) var(--filled),
-			var(--player-ink-faint) var(--filled)
-		);
-	}
-
-	.player-level::-webkit-slider-thumb {
-		appearance: none;
-		width: 0.625rem;
-		height: 0.625rem;
-		margin-top: -0.21875rem;
-		border-radius: calc(infinity * 1px);
-		background: var(--player-ink);
-	}
-
-	.player-level::-moz-range-thumb {
-		width: 0.625rem;
-		height: 0.625rem;
-		border: 0;
-		border-radius: calc(infinity * 1px);
-		background: var(--player-ink);
 	}
 </style>

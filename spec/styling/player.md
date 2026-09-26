@@ -55,7 +55,8 @@ Icons on this site come from Lucide and mingcute through `unplugin-icons`, and t
 not. The rest sit in prose at text size with a word beside them; a player's sit on a picture at
 16px with nothing to read them against, and Phosphor's heavier, rounder strokes hold up where
 Lucide's thin geometry starts to disappear. The two never meet -- no component outside
-`video-controls.svelte` and its `video-glyphs/` directory imports from `phosphor-svelte`.
+`video-controls.svelte`, the `video-chrome.svelte` and `video-settings.svelte` it draws its row
+with, and its `video-glyphs/` directory imports from `phosphor-svelte`.
 
 **Fill for a mass, bold for an opening.** Phosphor's `fill` is not "the same drawing, heavier": it
 is a second drawing in which the outline is filled and most of the negative space inside is gone.

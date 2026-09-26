@@ -351,7 +351,8 @@ The CLI is complete. What is not built is the software-decode path -- see the de
 sentence also said nothing on the front end read a caption track, which is a correction: it does,
 and the two caption sections in [captions.md](captions.md) describe what it does. `video.svelte` renders a `<track>`
 per entry and styles `::cue`; `video-controls.svelte` holds the site-wide `video.captions`
-preference, drives the track list from it, and places the cues against the letterbox.
+preference, drives the track list from it, and places the cues against the letterbox with
+`video-captions.ts`.
 
 Measured over the three clips here on the first real batch: 60, 60 and 75 words asked for, 62k
 tokens in, three answers that read the burnt-in text rather than restating the background. The
