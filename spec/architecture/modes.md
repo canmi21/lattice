@@ -75,6 +75,56 @@ What leaves the machine and leaves nothing behind is allowed. A model call write
 into the fork's records, which is the point of trying it; it costs what it costs anywhere, and is
 announced as a paid operation is anywhere. Fetching a tweet or a repository is a read.
 
+## Landing a change from the sandbox
+
+Nothing is copied back. The sandbox is a workspace of this repository, so a commit made there is
+in the repository the moment it is made, and landing it is moving two things: `main`, and then
+the collaboration working copy. The first is part of finishing a task; the second is the moment
+the change reaches the servers the author is using, and is taken as that.
+
+**1. Commit in the sandbox, on top of `main`.** Commit as anywhere else, in small verified steps
+(see the workspace's `spec/commits.md`). If `main` has moved since the sandbox was made -- the
+author committed in collaboration -- rebase onto it before moving anything, and resolve and
+re-check there:
+
+```sh
+cd /tmp/sandbox/lattice/code
+jj rebase -b @ -d main        # the sandbox's commits onto the current main; conflicts stay here
+mise run verify               # or the checks the change touches
+```
+
+**2. Move `main` to the sandbox's commit.** Still in the sandbox:
+
+```sh
+jj bookmark move main --to @-
+```
+
+jj refuses a move that is not forward, which is the check that nothing on `main` was dropped: a
+refusal means step 1's rebase was skipped. The change is now on `main`, and the collaboration
+checkout has not changed a byte.
+
+**3. Bring the collaboration working copy onto it -- when the author says so.** From this
+checkout:
+
+```sh
+cd ~/workspace/repos/lattice
+jj rebase -s @ -d main        # the author's uncommitted edits, carried onto the new main
+```
+
+Its files change, and the running servers reload what Vite serves at once. That is the point of
+asking first: the author may be mid-sentence in a draft, and their uncommitted edits are carried
+across and may conflict, which jj records in the files rather than refusing. An agent does this
+when the author asks for it; otherwise it names the command and stops at step 2.
+
+What the reload does not reach is restarted by hand. `local` is a Rust binary run once, so a
+change under `apps/local` needs its window stopped and `mise run base up` again, which restarts
+an idle window. A change to the collection schema also needs `mise run collection` against the
+real databases, which is a change to the real data and ranks as one.
+
+**The data never lands.** A draft written in the sandbox, a record a model call filled in, a row
+a test made -- none of it goes back, and nothing exists to carry it. What was worth keeping is
+made again in collaboration, which is where the real version of it lives.
+
 ## The task decides the mode
 
 Building or changing how something works is sandbox work, and an agent's browser drives the
