@@ -248,4 +248,13 @@ export const styles = stylex.create({
 		},
 	},
 	menuItemOn: { color: 'var(--player-ink)' },
+	/**
+	 * A setting's value standing in for a glyph on the picture-in-picture row: the glyph's weight
+	 * and shadow, at the size of the row's clock, so a word reads as a control beside the icons.
+	 */
+	badge: {
+		fontSize: text.px12,
+		fontWeight: 600,
+		textShadow: 'var(--player-shadow)',
+	},
 });

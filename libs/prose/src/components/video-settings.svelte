@@ -12,11 +12,7 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
-	import FadersIcon from 'phosphor-svelte/lib/FadersIcon';
-	import GaugeIcon from 'phosphor-svelte/lib/GaugeIcon';
 	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
-	import HighDefinitionIcon from 'phosphor-svelte/lib/HighDefinitionIcon';
-	import type { Component } from 'svelte';
 	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
 	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
@@ -101,12 +97,28 @@
 		}
 	});
 
-	/** What the trigger is called and drawn as: the cog, or the one setting it stands for. */
-	const trigger = $derived.by((): { label: string; icon?: Component } => {
+	/**
+	 * The name a rung goes by on a control too small for its height: 4K, 2K, HD, or SD below that.
+	 * Decided by height, the dimension the ladder is named for.
+	 */
+	function grade(rung: VideoRung | undefined): string {
+		const height = rung?.height ?? 0;
+		if (height >= 2160) return '4K';
+		if (height >= 1440) return '2K';
+		if (height >= 720) return 'HD';
+		return 'SD';
+	}
+
+	/**
+	 * What the trigger is called, and what it shows: the cog, or -- standing for one setting --
+	 * the setting's value in place of a glyph, since a value is what the reader wants to see there.
+	 */
+	const trigger = $derived.by((): { label: string; value?: string } => {
 		if (only === 'quality')
-			return { label: m['video.quality']({}, { locale }), icon: HighDefinitionIcon };
-		if (only === 'speed') return { label: m['video.speed']({}, { locale }), icon: GaugeIcon };
-		if (only === 'volume') return { label: m['video.gain']({}, { locale }), icon: FadersIcon };
+			return { label: m['video.quality']({}, { locale }), value: grade(current) };
+		if (only === 'speed') return { label: m['video.speed']({}, { locale }), value: `${rate}×` };
+		if (only === 'volume')
+			return { label: m['video.gain']({}, { locale }), value: percent(ceiling) };
 		return { label: m['video.settings']({}, { locale }) };
 	});
 
@@ -210,6 +222,12 @@
 	});
 
 	const percent = (value: number) => `${Math.round(value * 100)}%`;
+	/**
+	 * The panel's width: the cog's list at the width its longest row needs, and a single setting's
+	 * choices at theirs -- a speed is five characters, and a list of them at the cog's width was
+	 * mostly empty glass.
+	 */
+	const width = $derived(only === 'speed' ? 'w-20' : only === 'quality' ? 'w-28' : 'w-32');
 	const auto = $derived(m['video.auto']({}, { locale }));
 	/** What the quality row says it is: "Auto" while the choice is the chooser's, the height once picked. */
 	const quality = $derived(chosen === undefined ? auto : current ? `${current.height}p` : '');
@@ -263,7 +281,7 @@
 <div class="relative">
 	<button
 		type="button"
-		class="player-button inline-grid size-7.5 cursor-pointer place-items-center {stylex.attrs(
+		class="player-button inline-grid h-7.5 min-w-7.5 cursor-pointer place-items-center {stylex.attrs(
 			surfaces.focusRingHost,
 			styles.button,
 			menu && styles.buttonOn,
@@ -274,12 +292,13 @@
 		aria-label={trigger.label}
 		title={trigger.label}
 	>
-		{#if trigger.icon}
-			<trigger.icon
-				class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
-				weight="bold"
-				aria-hidden="true"
-			/>
+		{#if trigger.value}
+			<span
+				class="focus-ring-inner px-0.5 leading-none tabular-nums {stylex.attrs(
+					surfaces.focusRingInner,
+					styles.badge,
+				).class}">{trigger.value}</span
+			>
 		{:else}
 			<!--
 			The one round glyph in a row of rectangles, brought down to match them by
@@ -301,7 +320,7 @@
 		<div
 			bind:this={panel}
 			transition:appear
-			class="absolute end-0 bottom-9 w-32 origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(
+			class="absolute end-0 bottom-9 {width} origin-bottom-right overflow-hidden p-0.5 {stylex.attrs(
 				styles.menu,
 			).class}"
 		>

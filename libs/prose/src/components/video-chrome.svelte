@@ -101,12 +101,12 @@
 	} = $props();
 
 	/**
-	 * The three single-setting controls a detached row has in place of the cog, and whether any
+	 * The single-setting controls a detached row has in place of the cog, and whether any
 	 * of them is open -- which holds the row on screen as the cog's menu does.
 	 */
-	const open = $state({ quality: false, speed: false, volume: false });
+	const open = $state({ quality: false, speed: false });
 	$effect(() => {
-		if (detached) menu = open.quality || open.speed || open.volume;
+		if (detached) menu = open.quality || open.speed;
 	});
 
 	function clock(seconds: number): string {
@@ -274,20 +274,6 @@
 				{ceiling}
 				bind:menu={open.speed}
 				only="speed"
-				{locale}
-				{onquality}
-				{onrate}
-				{onceiling}
-			/>
-			<VideoSettings
-				{rungs}
-				{chosen}
-				{current}
-				{suggested}
-				rate={view.rate}
-				{ceiling}
-				bind:menu={open.volume}
-				only="volume"
 				{locale}
 				{onquality}
 				{onrate}
