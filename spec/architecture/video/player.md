@@ -127,7 +127,11 @@ A clip in the other window is not paused for being scrolled past, which a clip o
 Chromium offers Document Picture-in-Picture: a window the page fills itself. There the clip's
 own element is moved into it and back -- it plays on across the move -- and the window shows the
 player's row, drawn by the same `video-chrome.svelte` told it is detached: the way back replaces
-the way there, and filling the window or the screen is left out. `video-pip.ts` opens it at the
+the way there, and filling the window or the screen is left out. It has no cog either: quality,
+speed and gain each have a control of their own in its corner -- `HighDefinition`, `Gauge` and
+`Faders`, bold, at the cog's size -- opening straight onto their choices, since the corner has the
+room and nothing else to hold, and a list reached through a list is a step the window does not
+need. Captions keep the control they have on the page. `video-pip.ts` opens it at the
 clip's shape, no wider than 480px, and dresses it as the page: every stylesheet copied rule by
 rule under a `<base>` so fonts resolve, and the root's classes, `lang` and data attributes, so
 the theme and language are the page's. While the element is away the frame keeps its shape by an

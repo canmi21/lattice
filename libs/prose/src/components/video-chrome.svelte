@@ -100,6 +100,15 @@
 		onfullscreen: () => void;
 	} = $props();
 
+	/**
+	 * The three single-setting controls a detached row has in place of the cog, and whether any
+	 * of them is open -- which holds the row on screen as the cog's menu does.
+	 */
+	const open = $state({ quality: false, speed: false, volume: false });
+	$effect(() => {
+		if (detached) menu = open.quality || open.speed || open.volume;
+	});
+
 	function clock(seconds: number): string {
 		if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
 		const whole = Math.floor(seconds);
@@ -239,19 +248,66 @@
 			</button>
 		{/if}
 
-		<VideoSettings
-			{rungs}
-			{chosen}
-			{current}
-			{suggested}
-			rate={view.rate}
-			{ceiling}
-			bind:menu
-			{locale}
-			{onquality}
-			{onrate}
-			{onceiling}
-		/>
+		{#if detached}
+			{#if rungs && rungs.length > 1}
+				<VideoSettings
+					{rungs}
+					{chosen}
+					{current}
+					{suggested}
+					rate={view.rate}
+					{ceiling}
+					bind:menu={open.quality}
+					only="quality"
+					{locale}
+					{onquality}
+					{onrate}
+					{onceiling}
+				/>
+			{/if}
+			<VideoSettings
+				{rungs}
+				{chosen}
+				{current}
+				{suggested}
+				rate={view.rate}
+				{ceiling}
+				bind:menu={open.speed}
+				only="speed"
+				{locale}
+				{onquality}
+				{onrate}
+				{onceiling}
+			/>
+			<VideoSettings
+				{rungs}
+				{chosen}
+				{current}
+				{suggested}
+				rate={view.rate}
+				{ceiling}
+				bind:menu={open.volume}
+				only="volume"
+				{locale}
+				{onquality}
+				{onrate}
+				{onceiling}
+			/>
+		{:else}
+			<VideoSettings
+				{rungs}
+				{chosen}
+				{current}
+				{suggested}
+				rate={view.rate}
+				{ceiling}
+				bind:menu
+				{locale}
+				{onquality}
+				{onrate}
+				{onceiling}
+			/>
+		{/if}
 
 		{#if pipOffered || detached}
 			<button

@@ -12,7 +12,11 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
+	import FadersIcon from 'phosphor-svelte/lib/FadersIcon';
+	import GaugeIcon from 'phosphor-svelte/lib/GaugeIcon';
 	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
+	import HighDefinitionIcon from 'phosphor-svelte/lib/HighDefinitionIcon';
+	import type { Component } from 'svelte';
 	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
 	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
 	import { surfaces } from '@canmi/tokens/surfaces';
@@ -31,6 +35,7 @@
 		rate,
 		ceiling,
 		menu = $bindable(false),
+		only,
 		locale,
 		onquality,
 		onrate,
@@ -47,6 +52,13 @@
 		/** What the level slider's top plays at, as a fraction of the clip's full volume. */
 		ceiling: number;
 		menu?: boolean;
+		/**
+		 * One setting on a control of its own rather than the cog's list: its own glyph, its page
+		 * opened directly, and no way back to a list there is not. The picture-in-picture window's
+		 * row, which has the room and no other use for its corner. See
+		 * spec/architecture/video/player.md, "Picture in picture is ours where the browser allows it".
+		 */
+		only?: 'quality' | 'speed' | 'volume';
 		locale: LocaleCode;
 		/** A rung, or undefined to hand the choice back to the chooser. */
 		onquality: (src: string | undefined) => void;
@@ -89,9 +101,18 @@
 		}
 	});
 
+	/** What the trigger is called and drawn as: the cog, or the one setting it stands for. */
+	const trigger = $derived.by((): { label: string; icon?: Component } => {
+		if (only === 'quality')
+			return { label: m['video.quality']({}, { locale }), icon: HighDefinitionIcon };
+		if (only === 'speed') return { label: m['video.speed']({}, { locale }), icon: GaugeIcon };
+		if (only === 'volume') return { label: m['video.gain']({}, { locale }), icon: FadersIcon };
+		return { label: m['video.settings']({}, { locale }) };
+	});
+
 	/** Opened at the list of what can be set; the page it closed on is kept while it fades out. */
 	function toggle() {
-		if (!menu) page = 'root';
+		if (!menu) page = only ?? 'root';
 		menu = !menu;
 	}
 
@@ -210,15 +231,17 @@
 {/snippet}
 
 {#snippet back(label: string)}
-	<button
-		type="button"
-		class="{ROW} mb-0.5 {stylex.attrs(styles.menuItem, styles.menuItemOn).class}"
-		aria-label={m['video.back']({}, { locale })}
-		onclick={() => void turn('root')}
-	>
-		<CaretLeftIcon class="size-2.5" weight="bold" aria-hidden="true" />
-		<span class="flex-1">{label}</span>
-	</button>
+	{#if !only}
+		<button
+			type="button"
+			class="{ROW} mb-0.5 {stylex.attrs(styles.menuItem, styles.menuItemOn).class}"
+			aria-label={m['video.back']({}, { locale })}
+			onclick={() => void turn('root')}
+		>
+			<CaretLeftIcon class="size-2.5" weight="bold" aria-hidden="true" />
+			<span class="flex-1">{label}</span>
+		</button>
+	{/if}
 {/snippet}
 
 {#snippet choice(label: string, on: boolean, pick: () => void, hint = '')}
@@ -248,23 +271,31 @@
 		bind:this={cog}
 		onclick={toggle}
 		aria-expanded={menu}
-		aria-label={m['video.settings']({}, { locale })}
-		title={m['video.settings']({}, { locale })}
+		aria-label={trigger.label}
+		title={trigger.label}
 	>
-		<!--
+		{#if trigger.icon}
+			<trigger.icon
+				class="player-glyph focus-ring-inner {stylex.attrs(surfaces.focusRingInner).class}"
+				weight="bold"
+				aria-hidden="true"
+			/>
+		{:else}
+			<!--
 			The one round glyph in a row of rectangles, brought down to match them by
 			growing the canvas under it rather than shrinking the element -- so the focus
 			ring, on the 16x16 element, is unchanged. See spec/styling/player.md, "The player's
 			glyphs are Phosphor, at two weights, plus three this repository draws", for
 			the arithmetic and why the stroke in `.player-glyph-cog` is solved with it.
 		-->
-		<GearSixIcon
-			class="player-glyph player-glyph-cog focus-ring-inner {stylex.attrs(surfaces.focusRingInner)
-				.class}"
-			weight="bold"
-			viewBox="-24.38 -24.38 304.76 304.76"
-			aria-hidden="true"
-		/>
+			<GearSixIcon
+				class="player-glyph player-glyph-cog focus-ring-inner {stylex.attrs(surfaces.focusRingInner)
+					.class}"
+				weight="bold"
+				viewBox="-24.38 -24.38 304.76 304.76"
+				aria-hidden="true"
+			/>
+		{/if}
 	</button>
 	{#if menu}
 		<div
