@@ -6,9 +6,30 @@
  * app collides here rather than drifting to a free port, which is the cheapest mutex there is.
  * See spec/toolchain.md.
  */
-export const DEVELOPMENT_PORTS = { site: 26511, api: 26512, alias: 26514, cdn: 26516 } as const;
+export const PINNED_PORTS = { site: 26511, api: 26512, alias: 26514, cdn: 26516 } as const;
 
-export type AppName = keyof typeof DEVELOPMENT_PORTS;
+/** Stated by a build for a runtime with no environment to read: a worker, a page. */
+declare const STATED_PORT_OFFSET: number | undefined;
+
+/**
+ * How far the sandbox shifts every pinned port, and 0 everywhere else. Read from the environment
+ * where there is one, and stated by the build where there is not; production states nothing and
+ * gets 0. See spec/architecture/modes.md, "Every port is shifted by one hundred".
+ */
+export const PORT_OFFSET: number =
+	typeof STATED_PORT_OFFSET === 'number'
+		? STATED_PORT_OFFSET
+		: Number(
+				(globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+					?.LATTICE_PORT_OFFSET || 0,
+			);
+
+/** The ports this checkout's servers bind: the pinned ones, shifted in the sandbox. */
+export const DEVELOPMENT_PORTS = Object.fromEntries(
+	Object.entries(PINNED_PORTS).map(([app, port]) => [app, port + PORT_OFFSET]),
+) as { readonly [App in keyof typeof PINNED_PORTS]: number };
+
+export type AppName = keyof typeof PINNED_PORTS;
 export type DevelopmentUrls = Readonly<Record<AppName, string>>;
 
 /**

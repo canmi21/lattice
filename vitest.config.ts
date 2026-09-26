@@ -43,6 +43,9 @@ export default defineConfig({
 		// a run that is over -- this one has not spawned one yet. An interrupted run is the half
 		// of the leak the site's build hook does not reach; see the script for the other.
 		globalSetup: ['./apps/site/scripts/reap-workerd.ts'],
+		// The suites assert the map, not the run: the sandbox's shift is taken off, so a test
+		// reads the pinned numbers wherever it runs. See spec/architecture/modes.md.
+		env: { LATTICE_PORT_OFFSET: '0' },
 		projects: [
 			{
 				test: {

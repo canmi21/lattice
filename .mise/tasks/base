@@ -8,13 +8,14 @@
   status    one line per window: what is running in it
   down      kill the session, and with it every server
 
-Runs from the base only: the base is the one workspace that runs everything, on the pinned
-ports, and an overlay starting this would collide with it. tmux itself is a machine tool
+Runs from the base, and from the sandbox on its shifted ports: the base is the one workspace that
+runs everything on the pinned ones, and anything else starting this would collide with it. tmux itself is a machine tool
 (Homebrew), not a mise tool -- see the spec for why.
 """
 
 from __future__ import annotations
 
+import os
 import pathlib
 import subprocess
 import sys
@@ -22,7 +23,9 @@ import sys
 sys.dont_write_bytecode = True
 
 BASE = pathlib.Path(__file__).resolve().parents[2]
-SESSION = f"{BASE.name}-dev"
+# The sandbox runs the same servers beside these, under a name of its own. See
+# spec/architecture/modes.md.
+SESSION = "lattice-sandbox-dev" if os.environ.get("LATTICE_SANDBOX") else f"{BASE.name}-dev"
 # Deployed names, which is what a `dev-` task and a tmux window are named for; the alias layer
 # is deployed as `aka`. See spec/architecture/delivery.md. `local` and the editor run beside them,
 # `local` first because the editor reads the collection through it.

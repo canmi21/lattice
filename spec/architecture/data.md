@@ -591,7 +591,9 @@ rest as declaring nothing would be false, and would bury the handful that genuin
 ## The bytes belong to the machine, and one checkout holds them
 
 `data/` is machine-level, not checkout-level. It is the local truth R2 mirrors and the thing a
-backup is taken of, and a machine has one of it: the one checkout's.
+backup is taken of, and a machine has one of it: the one checkout's. The sandbox's fork of it is
+not a second one -- nothing leaves the machine from it, and it is thrown away rather than kept.
+See [modes.md](modes.md).
 
 **This section is a correction.** It described base and overlay workspaces, an
 `mise run workspace add` that linked every untracked path under `data/` back into a base, and

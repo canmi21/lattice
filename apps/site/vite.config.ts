@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PORTS, DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls } from '@canmi/urls';
+import {
+	DEVELOPMENT_PORTS,
+	DEVELOPMENT_PROXY_PATHS,
+	developmentUrl,
+	pageUrls,
+	PORT_OFFSET,
+} from '@canmi/urls';
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -280,6 +286,9 @@ export default defineConfig(({ mode }) => {
 		define: {
 			'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
 			'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
+			// A page has no environment to read the sandbox's shift from. Development only: a
+			// production build states nothing and reads 0. See spec/architecture/modes.md.
+			...(mode === 'production' ? {} : { STATED_PORT_OFFSET: PORT_OFFSET }),
 		},
 	} satisfies UserConfig;
 });

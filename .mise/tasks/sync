@@ -14,6 +14,13 @@ set -euo pipefail
 # See spec/architecture/data.md, "One bucket holds records and the other holds bytes", and
 # spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
 
+# Asserted here as well as by the tasks that reach it: this is the gate, and it is run by hand.
+# See spec/architecture/modes.md.
+if [ -n "${LATTICE_SANDBOX:-}" ]; then
+	echo "refusing to sync from the sandbox: its data is a fork" >&2
+	exit 1
+fi
+
 BASE="$(cd "$(dirname "$0")/../.." && pwd)"
 OBJECTS="$BASE/data/bucket/objects"
 METADATA="$BASE/data/bucket/metadata"

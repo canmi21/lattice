@@ -69,7 +69,10 @@ available -- the operating system provides it for free, and it fails loudly at t
 anyone can act on it.
 
 One checkout runs one set, on the pinned numbers. The slot arithmetic that shifted every port
-for a second checkout of this repository is gone with the arrangement it served; what it
+for a second checkout of this repository is gone with the arrangement it served, and one fixed
+shift came back for a different one: the sandbox binds every number plus 100, from
+`LATTICE_PORT_OFFSET`, which nothing else sets -- see
+[architecture/modes.md](architecture/modes.md); what it
 protected still holds, and more simply: `local` is the one process that writes `data/`, and a
 second copy of it collides on `LOCAL_PORT`, which is the mutex doing its job.
 
@@ -139,9 +142,11 @@ somebody called -- and that client is archived. What replaced it is a Vite serve
 collection through `local`, so both are servers like the rest, and an opt-in for them only left
 them to be started by hand outside the session, where nothing could see or stop them.
 
-**It runs from the base checkout only.** The base is the one checkout that runs everything, on
-the numbers "Dev ports are pinned" above fixes, so a second checkout starting these would
-collide rather than get a set of its own. That collision is the mutex, which is the same
+**It runs from the base checkout, and from the sandbox.** The base is the one checkout that runs
+everything, on the numbers "Dev ports are pinned" above fixes, so a second checkout starting these
+would collide rather than get a set of its own. The sandbox is the one exception, and runs the
+same session under its own name on the shifted set -- see
+[architecture/modes.md](architecture/modes.md). That collision is the mutex, which is the same
 arrangement the ports themselves rely on.
 
 tmux is a machine tool rather than a mise one, for the reason the workspace's `toolchain.md`

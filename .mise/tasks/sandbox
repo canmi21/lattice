@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+#MISE description="The sandbox: `sandbox up`, `sandbox status`, `sandbox down`, `sandbox reset [--discard]`"
+"""A working copy and a fork of the data to break freely. See spec/architecture/modes.md.
+
+  up        make the sandbox if it is missing or partial, then run its dev servers in tmux,
+            on the shifted ports, as session `lattice-sandbox-dev`
+  status    whether it is whole, what it was forked from, and what its servers are doing
+  down      stop its servers
+  reset     throw it away and make it again from `main` and the data as it is now; refuses
+            while its working copy holds changes, unless given --discard
+
+Run from this checkout, never from inside the sandbox: the sandbox is made from here.
+"""
+
+from __future__ import annotations
+
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+
+REPOSITORY = pathlib.Path(__file__).resolve().parents[2]
+WORKSPACE = REPOSITORY.parents[1]
+BASE = pathlib.Path("/tmp/sandbox")
+HOME = BASE / "lattice"
+CODE = HOME / "code"
+DATA = HOME / "data"
+# Written last, so a sandbox without it was cut short -- by an error, or by macOS clearing /tmp.
+WHOLE = HOME / ".whole"
+NAME = "sandbox"
+SESSION = "lattice-sandbox-dev"
+# The workspace root's own files, linked so a command in the sandbox walks up into the same
+# rules it would find at home: formatting, the toolchain, the hooks.
+SKIPPED = {".git", ".jj", "repos", ".DS_Store", ".claude", ".codex"}
+# What the sandbox is told, and nothing else sets. See spec/architecture/modes.md.
+ENVIRONMENT = '[env]\nLATTICE_SANDBOX = "1"\nLATTICE_PORT_OFFSET = "100"\n'
+# The local D1 behind the API, forked beside the collection so its counters and comments are
+# the real ones too.
+D1 = pathlib.Path("apps/api/.wrangler/state/v3/d1")
+
+
+def run(*args: str, cwd: pathlib.Path = REPOSITORY, check: bool = True) -> str:
+	result = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+	if check and result.returncode != 0:
+		sys.stderr.write(result.stdout + result.stderr)
+		raise SystemExit(f"failed: {' '.join(args)}")
+	return result.stdout
+
+
+def registered() -> bool:
+	return any(line.split(":", 1)[0] == NAME for line in run("jj", "workspace", "list").splitlines())
+
+
+def whole() -> bool:
+	return WHOLE.exists() and (CODE / ".jj").exists() and DATA.is_dir() and registered()
+
+
+def fork(source: pathlib.Path, target: pathlib.Path) -> None:
+	"""The tree as APFS clones, and each SQLite file as a consistent snapshot of itself."""
+	target.parent.mkdir(parents=True, exist_ok=True)
+	run("cp", "-cR", str(source), str(target))
+	for database in source.rglob("*.sqlite"):
+		copy = target / database.relative_to(source)
+		for stale in (copy, copy.with_name(copy.name + "-wal"), copy.with_name(copy.name + "-shm")):
+			stale.unlink(missing_ok=True)
+		escaped = str(copy).replace("'", "''")
+		run("sqlite3", str(database), f"VACUUM INTO '{escaped}'")
+
+
+def build() -> None:
+	print("making the sandbox")
+	if registered():
+		run("jj", "workspace", "forget", NAME)
+	shutil.rmtree(HOME, ignore_errors=True)
+	BASE.mkdir(parents=True, exist_ok=True)
+	for entry in WORKSPACE.iterdir():
+		link = BASE / entry.name
+		if entry.name in SKIPPED or link.is_symlink() or link.exists():
+			continue
+		link.symlink_to(entry)
+	HOME.mkdir(parents=True)
+	(HOME / "mise.toml").write_text(ENVIRONMENT)
+
+	print("  code: a workspace at main")
+	run("jj", "workspace", "add", "--name", NAME, "--revision", "main", str(CODE))
+	run("jj", "sparse", "set", "--remove", "data", cwd=CODE)
+
+	print("  data: forked")
+	fork(REPOSITORY / "data", DATA)
+	(CODE / "data").symlink_to("../data")
+	if (REPOSITORY / D1).is_dir():
+		fork(REPOSITORY / D1, CODE / D1)
+
+	for config in (BASE / "mise.toml", HOME / "mise.toml", CODE / "mise.toml"):
+		run("mise", "trust", "--quiet", str(config))
+	print("  dependencies")
+	run("pnpm", "install", "--frozen-lockfile", "--offline", cwd=CODE)
+	run("mise", "run", "messages", cwd=CODE)
+	WHOLE.write_text(run("jj", "log", "--no-graph", "-r", "main", "-T", "commit_id.short()"))
+	print(f"made: {CODE}")
+
+
+def ensure() -> None:
+	if not whole():
+		build()
+
+
+def session_exists() -> bool:
+	return subprocess.run(["tmux", "has-session", "-t", SESSION], capture_output=True).returncode == 0
+
+
+def up() -> int:
+	ensure()
+	subprocess.run(["mise", "run", "base", "up"], cwd=CODE, check=True)
+	print("editor: http://localhost:26618")
+	return 0
+
+
+def down() -> int:
+	if session_exists():
+		run("tmux", "kill-session", "-t", SESSION)
+		print(f"killed {SESSION}")
+	else:
+		print(f"no session {SESSION}")
+	return 0
+
+
+def status() -> int:
+	if not whole():
+		print("no sandbox, or a partial one; `sandbox up` makes it")
+		return 1
+	print(f"forked from main at {WHOLE.read_text().strip()}: {CODE}")
+	if session_exists():
+		subprocess.run(["mise", "run", "base", "status"], cwd=CODE)
+	else:
+		print("servers: down")
+	return 0
+
+
+def reset(extra: list[str]) -> int:
+	discard = "--discard" in extra
+	if whole() and not discard:
+		changed = run("jj", "diff", "--summary", cwd=CODE).strip()
+		if changed:
+			print(changed)
+			raise SystemExit("the sandbox's working copy holds changes: commit them, or reset --discard")
+	running = session_exists()
+	down()
+	build()
+	if running:
+		return up()
+	return 0
+
+
+def main(argv: list[str]) -> int:
+	if os.environ.get("LATTICE_SANDBOX") or REPOSITORY == CODE.resolve():
+		raise SystemExit("run this from the collaboration checkout; the sandbox is made from there")
+	verb = argv[0] if argv else None
+	if verb == "up":
+		return up()
+	if verb == "down":
+		return down()
+	if verb == "status":
+		return status()
+	if verb == "reset":
+		return reset(argv[1:])
+	print(__doc__.strip(), file=sys.stderr)
+	return 2
+
+
+if __name__ == "__main__":
+	sys.exit(main(sys.argv[1:]))

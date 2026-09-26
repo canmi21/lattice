@@ -2,7 +2,9 @@
 # Read by both the Rust binary that binds it and the Vite config that proxies to it, which is
 # why it lives here rather than in libs/urls -- Rust cannot read a TypeScript library.
 # Pinned, never auto-incremented; see spec/toolchain.md.
-LOCAL_PORT = "26521"
+# Shifted in the sandbox, whose own config sets the offset; 26521 everywhere else. See
+# spec/architecture/modes.md.
+LOCAL_PORT = "{{ 26521 + (env.LATTICE_PORT_OFFSET | default(value='0') | int) }}"
 
 # Credentials, decrypted by mise on entering the directory. The file is committed encrypted;
 # only the age private key opens it -- see spec/toolchain.md, "Secrets", for the key setup and
@@ -111,6 +113,14 @@ run = 'cargo clippy --workspace --all-targets ${AUDIT:+-- -D warnings}'
 # wrangler is a devDependency of each worker rather than a mise tool, because it participates
 # in the npm resolution model -- so it is never on $PATH and always needs `pnpm exec`. These
 # wrap that, since "which incantation reaches wrangler" is not worth remembering.
+# Everything that writes somewhere off this machine and leaves it there depends on this, and it
+# refuses in the sandbox, whose data is a fork. See spec/architecture/modes.md, "It refuses what
+# leaves the machine and stays there".
+[tasks.outward]
+description = "Refuse in the sandbox; the tasks that publish, deploy or announce depend on it"
+hide = true
+run = 'if [ -n "${LATTICE_SANDBOX:-}" ]; then echo "refusing in the sandbox: this writes off the machine, and the data here is a fork" >&2; exit 1; fi'
+
 [tasks.cf-login]
 description = "Authenticate wrangler with Cloudflare (interactive)"
 dir = "apps/api"
@@ -122,7 +132,7 @@ dir = "apps/site"
 # Asked before the build, not after: a worker that reads a generation the corpus has not got yet
 # is the failure this exists to name, and naming it live is too late. It never refuses. See
 # spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
-depends = ["generation"]
+depends = ["outward", "generation"]
 # Two steps because the adapter writes the worker that wrangler then uploads, and the build is
 # also where source maps go to Sentry. Cloudflare will run the same two commands once the repo
 # is connected; this is the same path, run from here.
@@ -133,7 +143,7 @@ description = "Deploy the API worker"
 dir = "apps/api"
 # The API is the one worker that parses the root in full, so a generation it cannot read is not
 # a degraded page here -- it is every answer failing. See root.ts.
-depends = ["generation"]
+depends = ["outward", "generation"]
 # The package command applies committed remote D1 migrations immediately before upload.
 run = "pnpm run deploy"
 
@@ -141,6 +151,7 @@ run = "pnpm run deploy"
 # spec/architecture/delivery.md, "The deployed name and the called name differ".
 [tasks.deploy-aka]
 description = "Deploy the alias layer's worker, which resolves names and stores nothing"
+depends = ["outward"]
 dir = "apps/aka"
 # `--env=""` for the same reason the CDN passes it, even though this worker declares no
 # environment: naming the top level explicitly means a dev environment added later cannot
@@ -149,6 +160,7 @@ run = 'pnpm exec wrangler deploy --env=""'
 
 [tasks.deploy-cdn]
 description = "Deploy the CDN worker"
+depends = ["outward"]
 dir = "apps/cdn"
 # `--env=""` names the top-level environment explicitly. Defining any environment makes wrangler
 # refuse to guess, and here it would be guessing between production and the dev config that
@@ -156,12 +168,14 @@ dir = "apps/cdn"
 run = 'pnpm exec wrangler deploy --env=""'
 
 # Each dev server binds the number pinned in its own wrangler.jsonc, and the site's Vite config
-# reads the same number from libs/urls. One checkout runs one set, so the collision is the
-# mutex and the slot arithmetic is gone. See spec/toolchain.md, "Dev ports are pinned".
+# reads the same number from libs/urls. One checkout runs one set, so the collision is the mutex
+# and the slot arithmetic is gone. See spec/toolchain.md, "Dev ports are pinned". The sandbox
+# hands each worker a shifted number, which libs/urls/scripts/wrangler-dev.ts prints and prints
+# nothing outside it -- see spec/architecture/modes.md.
 [tasks.dev-api]
 description = "Run the API worker"
 dir = "apps/api"
-run = "pnpm run dev"
+run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts api)"
 
 [tasks.dev-site]
 description = "Run the site worker"
@@ -178,12 +192,12 @@ run = "pnpm run dev"
 [tasks.dev-cdn]
 description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"
-run = "pnpm run dev"
+run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts cdn)"
 
 [tasks.dev-aka]
 description = "Run the alias layer's worker, which resolves names and stores nothing"
 dir = "apps/aka"
-run = "pnpm run dev"
+run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts alias)"
 
 # The HTTP shell and the collection half behind it, on the pinned port. One command because they
 # are one service: the Rust half spawns the other and dies with it. See spec/architecture/local.md.
@@ -256,6 +270,7 @@ run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- apps/local/src/urls.rs"]
 # and `--live` passes through. See spec/architecture/repos.md.
 [tasks.publish]
 description = "Compile the corpus into publishable objects and mirror them: `publish lattice [--live]`"
+depends = ["outward"]
 # `local segments` first, because the layout it writes is no longer in git -- it rebuilds from the
 # corpus in seconds, and a view spliced from a stale one is wrong in a way nothing reports. See
 # spec/i18n/segments.md.
@@ -268,6 +283,7 @@ run = [
 
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"
+depends = ["outward"]
 # Reads the live sitemap, so it wants a published corpus rather than a dev server -- run it
 # after `publish`, not after a deploy: a deploy no longer moves an article. `--dry` prints what
 # would go and touches nothing. See spec/indexing.md.
@@ -275,6 +291,7 @@ run = "node apps/site/scripts/indexnow.ts"
 
 [tasks.search]
 description = "Align the search index with the corpus"
+depends = ["outward"]
 # Reads the built corpus and diffs it against the index itself, so it needs no deployed site --
 # but the records name live addresses, so it belongs after deploy-site all the same. `--dry`
 # prints what would be written and sends nothing. See spec/search.md.
