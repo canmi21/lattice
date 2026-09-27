@@ -133,3 +133,14 @@ Building or changing how something works is sandbox work, and an agent's browser
 sandbox's ports. Working on the content, or on code the author is changing alongside, is
 collaboration work. When a task is both, the code is made in the sandbox and the content in
 collaboration once the code has reached it.
+
+### Building the home node is done in collaboration, and it is what retires the sandbox
+
+The sandbox exists because the author's working servers and an agent's development servers both
+run on the author's machine, from one repository whose files they watch. `host`, `keeper` and the
+services they deploy -- see [host.md](host.md) and [services.md](services.md) -- change no data and
+nothing those servers load, so they are built in this checkout directly.
+
+They are also the way out of that arrangement. Once what needs no public reach runs on the machine
+at home, the servers the author uses are no longer the ones an edit here reloads, and the sandbox
+has nothing left to separate. This section and the sandbox go together, when that has happened.
