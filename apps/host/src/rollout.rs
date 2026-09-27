@@ -34,9 +34,15 @@ pub struct Outcome {
 	pub routed: Result<(), String>,
 }
 
-/// Refuse what could not be run before anything is stopped. keeper is the one reserved name host
-/// deploys; host itself is keeper's to deploy.
+/// Whether host takes a deploy under this name at all: any app's, and keeper, the one reserved
+/// name it deploys. host itself is keeper's to deploy.
+pub fn deployable(name: &str) -> Result<(), Invalid> {
+	if name == "keeper" { Ok(()) } else { deploy::manifest::check_name(name) }
+}
+
+/// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
+	deployable(requested)?;
 	if requested == "keeper" {
 		manifest.check_platform(requested, &host.config.node)?;
 	} else {
@@ -135,4 +141,20 @@ async fn collect(host: &Host) -> Result<(), Error> {
 	}
 	host.engine.collect(&names, &keep).await?;
 	Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+	use super::deployable;
+	use deploy::manifest::Invalid;
+
+	#[test]
+	fn host_takes_keeper_and_any_app_but_not_itself() {
+		assert!(deployable("geo").is_ok());
+		// keeper is reserved for every app and still deployable by host, which is the whole of how
+		// keeper arrives on a node; turning it away here once stopped the first one arriving.
+		assert!(deployable("keeper").is_ok());
+		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
+		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
+	}
 }

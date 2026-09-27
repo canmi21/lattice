@@ -2,8 +2,8 @@
 //! version it runs and the one before it, and every route to something that is not a container.
 //! See spec/architecture/host.md, "host renders all of Caddy, and Caddy remembers nothing".
 
-pub use deploy::Version;
 use deploy::Manifest;
+pub use deploy::Version;
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use std::path::Path;

@@ -73,7 +73,7 @@ async fn upload(
 	Path(name): Path<String>,
 	mut parts: Multipart,
 ) -> Response {
-	if let Err(error) = manifest::check_name(&name) {
+	if let Err(error) = rollout::deployable(&name) {
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
 	}
 	let mut declared: Option<Manifest> = None;
