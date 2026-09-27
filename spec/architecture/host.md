@@ -18,7 +18,8 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 
 - A name is a DNS label: lowercase letters, digits and hyphens.
 - Apps from this repository and images from elsewhere share the one namespace.
-- `host` and `keeper` are reserved for the two programs below.
+- `host` and `keeper` are reserved for the two programs below, `api` for the API host, and
+  `caddy` and `cloudflared` because a container's name is the app's and those two already run.
 
 `.icu` is private and `.net` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
@@ -88,6 +89,17 @@ at all. A network of its own shared with Caddy alone, the app's own directory an
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
+### The declaration is `service.toml`, beside the Dockerfile
+
+An app states what it needs in `apps/<name>/service.toml` and ships it with its image. host is a
+program deployed apart from the file it reads, so the file carries a `version` and host refuses one
+it does not know before reading anything else, while a key it does not know is ignored -- see the
+workspace's `json.md`. What the keys are is [manifest.rs](../../apps/host/src/manifest.rs); host
+reads geo's own file in its tests, so the reader and a real declaration cannot drift apart.
+
+An upload is written to disk whole before anything is stopped, so a transfer cut short never leaves
+an app down.
+
 ## One token, behind two doors
 
 No account system: there is one user. Reaching the panel from the public goes through the tunnel
@@ -147,6 +159,14 @@ after a reboot, say -- would start empty and serve nothing until host came up. T
 by host and is the same bytes it pushes, so it is not a second record, and Caddy recovers alone.
 
 The Caddyfile is retired with this. What it held by hand is entries in host.
+
+**Caddy's admin endpoint is a unix socket, never a port.** Every app shares a network with Caddy,
+so an admin port would let any app rewrite every route. The socket sits in a directory only Caddy
+and host mount.
+
+**A Caddy container that is recreated, not restarted, comes back attached to no app's network.**
+host attaches it to all of them again whenever it starts and whenever it is asked to reapply, so the
+remedy is one request rather than a list of commands.
 
 ## Open
 

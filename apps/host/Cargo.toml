@@ -1,0 +1,29 @@
+[package]
+name = "host"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = "1.0.104"
+axum = { version = "0.8.9", features = ["multipart"] }
+bollard = "0.21.1"
+bytes = "1.12.1"
+futures-util = "0.3.34"
+http-body-util = "0.1.5"
+hyper = { version = "1.11.1", features = ["client", "http1"] }
+hyper-util = { version = "0.1.20", features = ["tokio"] }
+jiff = "0.2"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.20"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time", "process", "fs"] }
+tokio-util = { version = "0.7.19", features = ["io"] }
+toml = "1.1.6"
+
+[dev-dependencies]
+tempfile = "3.27.0"

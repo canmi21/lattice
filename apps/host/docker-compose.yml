@@ -1,0 +1,21 @@
+# host on the machine, started by hand the first time and by keeper after that. Lives at
+# /data/apps/host/ beside a `.env` holding what spec/architecture/host.md says it is told.
+name: host
+
+services:
+  host:
+    image: host:local
+    container_name: host
+    restart: unless-stopped
+    # Root on the machine by design: it holds the Docker socket and deletes btrfs subvolumes,
+    # which needs CAP_SYS_ADMIN. See spec/architecture/host.md, "One token, behind two doors".
+    privileged: true
+    env_file: .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

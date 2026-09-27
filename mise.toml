@@ -281,6 +281,12 @@ run = [
 	".mise/tasks/sync",
 ]
 
+[tasks.host]
+description = "Build an app for the machine at home: `host deploy <name>` hands it to host there"
+# Leaves this machine and stays there, like every other deploy. See spec/architecture/host.md.
+depends = ["outward"]
+run = "node apps/host/scripts/host.ts"
+
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"
 depends = ["outward"]

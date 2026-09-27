@@ -1,0 +1,11 @@
+{
+	"name": "@canmi/host",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"@canmi/urls": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^26.5.1"
+	}
+}
