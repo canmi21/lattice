@@ -1,0 +1,13 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "geo"
+placements = ["home"]
+
+[container]
+port = 8080
+health = "/health"
+
+# Reached privately as the `geo` scope of the API host; not published on the public one.
+[api]
+public = false
