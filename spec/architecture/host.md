@@ -146,6 +146,14 @@ The first keeper and host are started by hand. Nothing earlier exists to start t
 Containers are kept alive by dockerd's restart policy, and routes live in Caddy, not in host. So a
 host or keeper that is down means nothing can be deployed, and nothing stops being served.
 
+**A node's Docker starts only once `/data` is mounted.** Every container binds a path under it, and
+Docker started without it creates those paths empty on the root disk: Caddy comes up with no
+configuration, host with a new database, and every app on nothing, all of it looking like a clean
+start. `/data` keeps `nofail` in fstab, so a node with a failed disk still boots and answers ssh,
+and a drop-in gives the Docker unit `RequiresMountsFor=/data`, so it waits for the mount and does
+not start without it. Nothing needs starting in order beyond that: every container restarts on its
+own policy, and Caddy starts from the file host last wrote whether or not host is up yet.
+
 ### host renders all of Caddy, and Caddy remembers nothing
 
 Caddy's whole configuration is derived from host's state: every app, every name, every upstream that
