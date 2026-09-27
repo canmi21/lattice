@@ -74,7 +74,12 @@ pub async fn deploy(host: &Host, manifest: Manifest, image: String) -> Result<Ou
 
 	let deployed_at = jiff::Timestamp::now().to_string();
 	let image = next.image.clone();
-	host.store.put_app(&Deployed { manifest: next.manifest, image: next.image, previous: current, deployed_at })?;
+	host.store.put_app(&Deployed {
+		manifest: next.manifest,
+		image: next.image,
+		previous: current,
+		deployed_at,
+	})?;
 	let routed = route(host).await.map_err(|error| error.to_string());
 	collect(host).await?;
 	Ok(Outcome { name, image, routed })

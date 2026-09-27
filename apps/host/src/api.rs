@@ -1,18 +1,18 @@
 //! host's HTTP surface. One token admits everything but `/health`, on the LAN as much as through
 //! the tunnel -- see spec/architecture/host.md, "One token, behind two doors".
 
-use crate::rollout::{self, Error as DeployError};
-use deploy::Manifest;
-use deploy::replace::Error as Failed;
-use crate::store::Route;
 use crate::Host;
-use deploy::manifest;
+use crate::rollout::{self, Error as DeployError};
+use crate::store::Route;
 use axum::extract::{DefaultBodyLimit, Multipart, Path, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post, put};
 use axum::{Json, Router};
+use deploy::Manifest;
+use deploy::manifest;
+use deploy::replace::Error as Failed;
 use serde::Deserialize;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
