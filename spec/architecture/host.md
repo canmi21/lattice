@@ -13,7 +13,7 @@ are placed on it, and how names and APIs reach them, is [services.md](services.m
 ## One name, everywhere
 
 An app has one name, and every place it appears is that name: `gemini` is the app in host, the
-container, `/data/apps/gemini/` on the machine, `gemini.canmi.icu` privately and `gemini.canmi.net`
+container, `/data/apps/gemini/` on the machine, `gemini.canmi.icu` privately and `gemini.canmi.app`
 publicly. Nothing maps one spelling to another, so nothing can disagree.
 
 - A name is a DNS label: lowercase letters, digits and hyphens.
@@ -21,7 +21,7 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 - `host` and `keeper` are reserved for the two programs below, `api` for the API host, and
   `caddy` and `cloudflared` because a container's name is the app's and those two already run.
 
-`.icu` is private and `.net` is public, and what each admits is
+`.icu` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
 
 ## One version runs, and a failed deploy puts the last one back
@@ -179,7 +179,7 @@ own policy, and Caddy starts from the file host last wrote whether or not host i
 ### host renders all of Caddy, and Caddy remembers nothing
 
 Caddy's whole configuration is derived from host's state: every app, every name, every upstream that
-is not a container -- the NAS behind `nas.canmi.net` is one. host renders it complete, writes it to
+is not a container -- the NAS behind `nas.canmi.app` is one. host renders it complete, writes it to
 the file Caddy starts from, and then loads the same bytes through Caddy's admin API. Never a partial
 patch, never Caddy's own autosave, never `--resume`. A full render is cheap, and one derivation means
 the state host shows is the state being served.

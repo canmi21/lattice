@@ -47,19 +47,23 @@ edge in front of everything else.
 
 | Name           | Who reaches it                                   | What goes there                     |
 | -------------- | ------------------------------------------------ | ----------------------------------- |
-| `canmi.net`    | everyone                                         | the site                            |
-| `*.canmi.net`  | the author, from anywhere, through Access        | interfaces                          |
+| `canmi.net`    | everyone                                         | the site, and nothing else          |
+| `*.canmi.app`  | the author, from anywhere, through Access        | interfaces                          |
 | `ffoni.com`    | the public; whether a login is needed is per route | APIs                              |
 | `*.canmi.icu`  | the LAN and the tailnet only                     | everything, APIs included           |
+
+**`canmi.net` is the site's alone.** Interfaces were under `*.canmi.net` at first and moved to
+`*.canmi.app`, so that the site's domain carries the site and nothing else. `canmi.app` was owned
+and unused, which made it the one to take them.
 
 **An interface is reached by a subdomain, and an API by a path.** An interface assumes it is served
 from the root -- asset paths written absolute, cookies set on `/` -- and breaks under a prefix. An
 API's client takes a base URL and does not care.
 
-`*.canmi.net` is a wildcard in the tunnel and in Access both, so a name there is public and behind a
+`*.canmi.app` is a wildcard in the tunnel and in Access both, so a name there is public and behind a
 login in the same moment. A browser carries the Access cookie and needs no change to the app. A
 program cannot, which is why an application serving its panel and its API on one route needs no
-splitting: on `.net` its API is unusable to anything but the author's browser, and a program the
+splitting: on `.app` its API is unusable to anything but the author's browser, and a program the
 author runs reaches the API over `.icu`.
 
 `*.canmi.icu` resolves in public DNS to the machine's LAN address, which answers nobody outside the
@@ -108,7 +112,7 @@ Caddy and nothing else, so an app that is compromised cannot reach another aroun
 cloudflared reaches Caddy only, and Workers VPC reaches a node through Caddy too.
 
 This is a single entrance, not zero trust, and the difference is worth knowing: `.icu` admits by
-where a request comes from, `.net` by who sent it. For one person that is the right trade. host is
+where a request comes from, `.app` by who sent it. For one person that is the right trade. host is
 the exception: it is root on its machine, so it asks for its token even on the LAN.
 
 ## A Workers placement is deployed by Cloudflare, not by host

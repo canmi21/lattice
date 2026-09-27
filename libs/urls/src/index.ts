@@ -68,14 +68,11 @@ const development: DevelopmentUrls = developmentUrls();
 export const GITHUB_OWNER = 'canmi21';
 
 /**
- * The domains owned here, whichever of them a worker is bound to.
- *
- * `infra` is the apex api and cdn hang off. `alias` is the apex the alias layer answers on: the
- * key names what the layer does -- one name standing for another -- where `link` named nothing,
- * every URL being a link. The production map below reads it from here rather than spelling a
- * second copy that could drift. `app` is owned and serves nothing yet. `home` is the panel of the
- * machine at home and `keeper` the program that updates it, both reachable on the LAN and the
- * tailnet only; see spec/architecture/host.md.
+ * The domains owned here, which the production map below reads rather than spelling twice.
+ * `infra` is the apex api and cdn hang off; `alias` the alias layer's, keyed by what it does
+ * where `link` named nothing, every URL being a link. `app` is the suffix interfaces are public
+ * under behind Access, see spec/architecture/services.md; `home` and `keeper` are the machine at
+ * home's panel and what updates it, LAN and tailnet only, see spec/architecture/host.md.
  */
 const INTERNAL = {
 	app: 'https://canmi.app',
