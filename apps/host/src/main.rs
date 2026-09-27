@@ -26,6 +26,7 @@ async fn main() -> anyhow::Result<()> {
 	if let Some(parent) = config.state.parent() {
 		std::fs::create_dir_all(parent)?;
 	}
+	deploy::clear_arrivals(&config.incoming)?;
 	let host = Arc::new(Host {
 		store: store::Store::open(&config.state)?,
 		engine: deploy::Engine::connect()?,

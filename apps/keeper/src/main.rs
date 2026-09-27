@@ -52,6 +52,7 @@ async fn main() -> anyhow::Result<()> {
 		volumes: Volumes::new(apps, PathBuf::from(setting("SNAPSHOTS_ROOT", "/data/.snapshots"))),
 		replacing: tokio::sync::Mutex::new(()),
 	});
+	deploy::clear_arrivals(&keeper.incoming)?;
 	let listen = setting("LISTEN", &format!("0.0.0.0:{PORT}"));
 	let guarded = Router::new()
 		.route("/apps/host", post(upload).layer(DefaultBodyLimit::disable()))
@@ -93,7 +94,7 @@ fn failed(status: StatusCode, message: impl ToString) -> Response {
 /// The same request host takes for any app: the declaration as `service`, the archive as `image`,
 /// written to disk whole before the running host is touched.
 async fn upload(State(keeper): State<Arc<Keeper>>, mut parts: Multipart) -> Response {
-	let archive = keeper.incoming.join("host.tar");
+	let archive = deploy::arrival(&keeper.incoming);
 	let mut declared = None;
 	let mut received = false;
 	loop {

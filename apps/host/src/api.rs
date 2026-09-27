@@ -77,7 +77,7 @@ async fn upload(
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
 	}
 	let mut declared: Option<Manifest> = None;
-	let archive = host.config.incoming.join(format!("{name}.tar"));
+	let archive = deploy::arrival(&host.config.incoming);
 	let mut received = false;
 	loop {
 		let part = match parts.next_field().await {
