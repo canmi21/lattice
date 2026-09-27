@@ -19,6 +19,25 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 - Apps from this repository and images from elsewhere share the one namespace.
 - `host` and `keeper` are reserved for the two programs below.
 
+### Two suffixes, and where each one reaches
+
+**`.icu` is private and `.net` is public**, and those are the only two a person has to remember.
+
+`*.canmi.icu` resolves in public DNS to the machine's LAN address, which answers nobody outside the
+house. The machine advertises that one address, as a `/32`, as a tailnet route, so a device on the
+tailnet reaches it from anywhere under the same name. **The answer DNS gives never changes; what
+changes is whether the address is reachable.** So there is no DNS server of our own and no split
+DNS, which the alternative -- the tailnet answering its own address for the name -- would need.
+Caddy admits `.icu` from the LAN, the tailnet's `100.64.0.0/10` and the machine itself, and from
+nothing else.
+
+`*.canmi.net` arrives only through the tunnel, and **every name there is public from the start.**
+The tunnel and Cloudflare Access are both wildcards, so a name exists and is behind a login in the
+same moment; Access is the gate, and an app has nothing to turn on. An app that a program has to
+reach -- an API called by a script -- is admitted by an Access service token, **never by a bypass
+policy**: a bypass is a hole in the wildcard that is recorded only in Cloudflare's dashboard, where
+nothing in this repository can see it.
+
 ## One version runs, and a failed deploy puts the last one back
 
 **Each app runs exactly one container.** A deploy stops it, snapshots its directory, starts the new
@@ -128,12 +147,20 @@ The first keeper and host are started by hand. Nothing earlier exists to start t
 Containers are kept alive by dockerd's restart policy, and routes live in Caddy, not in host. So a
 host or keeper that is down means nothing can be deployed, and nothing stops being served.
 
+### host renders all of Caddy, and Caddy remembers nothing
+
+Caddy's whole configuration is derived from host's state: every app, every name, every upstream that
+is not a container -- the NAS behind `nas.canmi.net` is one. host renders it complete, writes it to
+the file Caddy starts from, and then loads the same bytes through Caddy's admin API. Never a partial
+patch, never Caddy's own autosave, never `--resume`. A full render is cheap, and one derivation means
+the state host shows is the state being served.
+
+**The file is what keeps this section true.** Pushed alone, a Caddy that restarts before host --
+after a reboot, say -- would start empty and serve nothing until host came up. The file is written
+by host and is the same bytes it pushes, so it is not a second record, and Caddy recovers alone.
+
+The Caddyfile is retired with this. What it held by hand is entries in host.
+
 ## Open
 
-- How routes survive a Caddy restart: Caddy resuming its last configuration, or host reconciling
-  them on start.
-- The tailnet name. Advertising the machine's own LAN address as a tailnet route would make
-  `<name>.canmi.icu` resolve and reach it from the tailnet too, so one private name serves both, at
-  the cost of approving the route and Caddy's LAN guard admitting `100.64.0.0/10`.
-- Whether the public name is off until an app turns it on.
 - Which app in this repository is the first to run there.
