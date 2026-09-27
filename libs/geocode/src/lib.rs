@@ -1,19 +1,41 @@
 //! Turning a pair of coordinates into a place name, without asking anyone.
 //!
-//! GeoNames' `cities500` in `data/source/geo`, indexed once into an R-tree and searched for the
-//! nearest settlement. Offline on purpose: a reverse geocoding service would make importing a
-//! photograph depend on somebody else's uptime, their rate limit and their opinion about what
-//! we may do with the answer -- for a fact that never changes once written. See
-//! spec/architecture/media.md.
+//! GeoNames' `cities500`, indexed once into an R-tree and searched for the nearest settlement.
+//! Offline on purpose: a reverse geocoding service would make naming a place depend on somebody
+//! else's uptime, their rate limit and their opinion about what we may do with the answer -- for a
+//! fact that never changes once written. See spec/architecture/media.md.
 //!
-//! The data is 39MB of text and lives outside git, like the photographs it describes. `mise
-//! run geo` fetches it; without it, addresses are simply absent, which is the same state as an
-//! image whose EXIF carried no position.
+//! Two consumers: `local`, naming where a photograph was taken, and the `geo` service, answering
+//! the same question over HTTP. The data directory is the caller's to know.
 
-use super::exif::Address;
 use rstar::{AABB, PointDistance, RTree, RTreeObject};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+
+/// Where a position is, as far as the data can say.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+pub struct Address {
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub continent: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub country: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub country_code: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub region: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub subregion: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub city: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub district: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub postal_code: Option<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub timezone: Option<String>,
+}
 
 /// One settlement, as much of it as the address needs.
 #[derive(Debug, Clone)]
@@ -86,13 +108,10 @@ pub struct Gazetteer {
 	///
 	/// Fourteen seconds for 1.8 million points, and most imports are screenshots with no GPS
 	/// at all. Paying that before knowing whether anything will ask is the cost of a guess.
-	postal: std::cell::OnceCell<Option<RTree<Postal>>>,
-	root: std::path::PathBuf,
+	postal: OnceLock<Option<RTree<Postal>>>,
+	root: PathBuf,
 	finder: tzf_rs::DefaultFinder,
 }
-
-/// Where the data lives, relative to the repository root.
-pub const DIRECTORY: &str = "data/source/geo";
 
 fn continent_of(code: &str) -> &'static str {
 	match code {
@@ -108,10 +127,9 @@ fn continent_of(code: &str) -> &'static str {
 }
 
 impl Gazetteer {
-	/// Read the gazetteer, or `None` when it has not been fetched.
-	pub fn open(repo: &Path) -> Option<Self> {
-		let root = repo.join(DIRECTORY);
-		let root_for_later = root.clone();
+	/// Read the gazetteer from its data directory, or `None` when it has not been fetched.
+	pub fn open(root: &Path) -> Option<Self> {
+		let root_for_later = root.to_path_buf();
 		let cities = std::fs::read_to_string(root.join("cities500.txt")).ok()?;
 
 		let mut countries = HashMap::new();
@@ -169,10 +187,18 @@ impl Gazetteer {
 			countries,
 			regions,
 			subregions,
-			postal: std::cell::OnceCell::new(),
+			postal: OnceLock::new(),
 			root: root_for_later,
 			finder: tzf_rs::DefaultFinder::new(),
 		})
+	}
+
+	/// Read the postal index now rather than at the first lookup that needs it.
+	///
+	/// A service answering many lookups pays this before it reports itself healthy, so no request
+	/// is the one that waits fourteen seconds.
+	pub fn preload(&self) {
+		self.postal();
 	}
 
 	/// The postal index, read on first use.
@@ -262,8 +288,8 @@ mod tests {
 
 	#[test]
 	fn a_missing_gazetteer_is_absence_rather_than_failure() {
-		// The data is 39MB and lives outside git. Not having fetched it should read the same
-		// as a photograph that carried no position: no address, no error.
+		// The data lives outside git. Not having fetched it should read the same as a photograph
+		// that carried no position: no address, no error.
 		assert!(Gazetteer::open(Path::new("/nowhere-at-all")).is_none());
 	}
 

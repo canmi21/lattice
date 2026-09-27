@@ -106,27 +106,7 @@ pub struct Location {
 	pub direction: Option<f64>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
-pub struct Address {
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub continent: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub country: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub country_code: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub region: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub subregion: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub city: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub district: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub postal_code: Option<String>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub timezone: Option<String>,
-}
+pub use geocode::Address;
 
 impl Metadata {
 	/// Whether anything at all was found. Used by the tests, and by a caller that wants to

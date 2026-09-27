@@ -6,7 +6,6 @@
 
 pub mod encode;
 pub mod exif;
-pub mod geo;
 pub mod ladder;
 pub mod manifest;
 pub mod run;
@@ -153,7 +152,7 @@ pub fn derive_for(
 	source_mime: &str,
 	previous: Option<&Media>,
 	keep_original: bool,
-	gazetteer: Option<&geo::Gazetteer>,
+	gazetteer: Option<&geocode::Gazetteer>,
 	resource: crate::resource::ResourceId,
 ) -> Result<Prepared, Error> {
 	let derived = derive(original, keep_original)?;
@@ -199,7 +198,7 @@ pub fn publish(
 	metadata: &Path,
 	previous: Option<&Media>,
 	keep_original: bool,
-	gazetteer: Option<&geo::Gazetteer>,
+	gazetteer: Option<&geocode::Gazetteer>,
 	resource: crate::resource::ResourceId,
 ) -> Result<Media, Error> {
 	let prepared = derive_for(original, source_mime, previous, keep_original, gazetteer, resource)?;
@@ -228,7 +227,7 @@ pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Resul
 		&crate::paths::metadata_root(repository),
 		merged.media.get(&id),
 		keep_original,
-		geo::Gazetteer::open(repository).as_ref(),
+		geocode::Gazetteer::open(&crate::paths::geo_root(repository)).as_ref(),
 		resource,
 	)?;
 	// The rid, because that is what an article names now. The cid is still the manifest's key and

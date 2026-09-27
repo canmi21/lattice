@@ -904,6 +904,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "geo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "geocode",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "geocode"
+version = "0.1.0"
+dependencies = [
+ "rstar",
+ "serde",
+ "tzf-rs",
+]
+
+[[package]]
 name = "geometry-rs"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1527,6 +1547,7 @@ dependencies = [
  "claude-codes",
  "cosmic-text",
  "fast_image_resize",
+ "geocode",
  "heic",
  "http-body-util",
  "hyper",
@@ -1540,7 +1561,6 @@ dependencies = [
  "rayon",
  "regex",
  "rgb",
- "rstar",
  "scraper",
  "semver",
  "serde",
@@ -1551,7 +1571,6 @@ dependencies = [
  "thumbhash",
  "tiny-skia",
  "tokio",
- "tzf-rs",
  "unicode-blocks",
  "unicode-width",
  "ureq",

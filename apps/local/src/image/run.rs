@@ -56,7 +56,7 @@ pub fn run(
 	let scan = refs::scan(articles)?;
 	// Opened once for the whole run, and absent when the data has not been fetched -- which
 	// reads the same as a photograph carrying no position.
-	let gazetteer = super::geo::Gazetteer::open(repo);
+	let gazetteer = geocode::Gazetteer::open(&crate::paths::geo_root(repo));
 
 	// A record written before the placeholder was stored holds the hash it decodes from, so the
 	// manifest can fill it in without reading an original. Done before the sweep below, which is

@@ -56,8 +56,8 @@ serde_yaml_ng = "0.10.0"
 rand = "0.10.3"
 kamadak-exif = "0.6.1"
 heic = "0.1.6"
-tzf-rs = "2.1.2"
-rstar = "0.13.0"
+# Naming where a photograph was taken, shared with the `geo` service.
+geocode = { path = "../../libs/geocode" }
 semver = "1.0.28"
 rayon = "1.12.0"
 # Argument parsing. The hand-rolled version read `--limit` with `.parse().ok()`, so a typo in the
