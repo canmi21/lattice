@@ -89,7 +89,9 @@ async fn stopped() {
 		let _ = tokio::signal::ctrl_c().await;
 	};
 	let terminated = async {
-		if let Ok(mut signal) = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+		if let Ok(mut signal) =
+			tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+		{
 			signal.recv().await;
 		}
 	};
