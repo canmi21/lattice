@@ -1,7 +1,9 @@
-//! Docker, as host uses it: load an archive, give an app its network, run exactly one container
-//! per app, and remove the images nothing needs. What a container is allowed is decided in `run`.
+//! Docker, as the platform uses it: load an archive, give an app its network, run exactly one
+//! container per app, and remove the images nothing needs. What a container is allowed is decided
+//! in `run`.
 
 use crate::manifest::Manifest;
+use serde::{Deserialize, Serialize};
 use bollard::Docker;
 use bollard::models::{
 	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, NetworkConnectRequest,
@@ -23,6 +25,29 @@ const REPOSITORY: &str = "host";
 
 /// Memory a container gets when its declaration names none.
 const DEFAULT_MEMORY_MB: u32 = 512;
+
+/// The label every container carries its own version in, so what runs can be read back from
+/// Docker by a program that keeps no state of its own.
+const VERSION_LABEL: &str = "host.version";
+
+/// One version of an app: what it declared and the image it ran.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Version {
+	pub manifest: Manifest,
+	pub image: String,
+}
+
+/// How a container is run. Chosen by the program deploying it from the app's name, never by the
+/// app's declaration -- see spec/architecture/host.md, "What a deployment may ask for is host's
+/// decision".
+#[derive(Debug, Clone)]
+pub enum Shape {
+	/// Every app: no capabilities, a read-only root, its own directory and nothing else.
+	Sandboxed,
+	/// host and keeper only: privileged, the Docker socket, the whole of `/data`, and the
+	/// environment of the node's one `.env`.
+	Platform { env: Vec<String> },
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -145,37 +170,64 @@ impl Engine {
 	/// Create and start the app's one container. Everything it is allowed is here, whatever its
 	/// declaration says; see spec/architecture/host.md, "What a deployment may ask for is host's
 	/// decision".
-	pub async fn run(&self, manifest: &Manifest, image: &str, data: &Path) -> Result<(), Error> {
+	pub async fn run(&self, version: &Version, shape: &Shape, data: &Path) -> Result<(), Error> {
+		let manifest = &version.manifest;
 		let name = &manifest.name;
-		let binds =
-			manifest.data.as_ref().map(|mount| vec![format!("{}:{}", data.display(), mount.path)]);
-		let memory = i64::from(manifest.container.memory_mb.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
-		let host_config = HostConfig {
-			network_mode: Some(network_of(name)),
-			binds,
-			restart_policy: Some(RestartPolicy {
-				name: Some(RestartPolicyNameEnum::UNLESS_STOPPED),
-				..Default::default()
-			}),
-			cap_drop: Some(vec!["ALL".into()]),
-			security_opt: Some(vec!["no-new-privileges".into()]),
-			readonly_rootfs: Some(true),
-			tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
-			memory: Some(memory),
-			pids_limit: Some(512),
-			init: Some(true),
-			log_config: Some(HostConfigLogConfig {
-				typ: Some("json-file".into()),
-				config: Some(HashMap::from([
-					("max-size".into(), "10m".into()),
-					("max-file".into(), "3".into()),
-				])),
-			}),
-			..Default::default()
+		let logs = HostConfigLogConfig {
+			typ: Some("json-file".into()),
+			config: Some(HashMap::from([
+				("max-size".into(), "10m".into()),
+				("max-file".into(), "3".into()),
+			])),
 		};
+		let restart =
+			RestartPolicy { name: Some(RestartPolicyNameEnum::UNLESS_STOPPED), ..Default::default() };
+		let (host_config, env) = match shape {
+			Shape::Sandboxed => {
+				let binds =
+					manifest.data.as_ref().map(|mount| vec![format!("{}:{}", data.display(), mount.path)]);
+				let memory =
+					i64::from(manifest.container.memory_mb.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
+				let config = HostConfig {
+					network_mode: Some(network_of(name)),
+					binds,
+					restart_policy: Some(restart),
+					cap_drop: Some(vec!["ALL".into()]),
+					security_opt: Some(vec!["no-new-privileges".into()]),
+					readonly_rootfs: Some(true),
+					tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
+					memory: Some(memory),
+					pids_limit: Some(512),
+					init: Some(true),
+					log_config: Some(logs),
+					..Default::default()
+				};
+				(config, None)
+			}
+			Shape::Platform { env } => {
+				let config = HostConfig {
+					network_mode: Some(network_of(name)),
+					binds: Some(vec![
+						"/var/run/docker.sock:/var/run/docker.sock".into(),
+						"/data:/data".into(),
+					]),
+					restart_policy: Some(restart),
+					privileged: Some(true),
+					init: Some(true),
+					log_config: Some(logs),
+					..Default::default()
+				};
+				(config, Some(env.clone()))
+			}
+		};
+		let recorded = serde_json::to_string(version).unwrap_or_default();
 		let body = ContainerCreateBody {
-			image: Some(image.into()),
-			labels: Some(HashMap::from([("host.app".into(), name.clone())])),
+			image: Some(version.image.clone()),
+			env,
+			labels: Some(HashMap::from([
+				("host.app".into(), name.clone()),
+				(VERSION_LABEL.into(), recorded),
+			])),
 			host_config: Some(host_config),
 			networking_config: Some(bollard::models::NetworkingConfig {
 				endpoints_config: Some(HashMap::from([(network_of(name), EndpointSettings::default())])),
@@ -208,9 +260,37 @@ impl Engine {
 		text
 	}
 
-	/// Remove every image host loaded that no app runs now or keeps to go back to.
-	pub async fn collect(&self, keep: &HashSet<String>) -> Result<(), Error> {
-		let filters = HashMap::from([("reference", vec![format!("{REPOSITORY}/*")])]);
+	/// What runs under `name` now: the version its label recorded, or -- for a container started by
+	/// hand, which carries none -- `fallback` with the image it actually runs.
+	pub async fn current(&self, name: &str, fallback: &Manifest) -> Result<Option<Version>, Error> {
+		let inspected = match self.docker.inspect_container(name, None).await {
+			Ok(inspected) => inspected,
+			Err(error) if absent(&error) => return Ok(None),
+			Err(error) => return Err(error.into()),
+		};
+		let recorded = inspected
+			.config
+			.and_then(|config| config.labels)
+			.and_then(|labels| labels.get(VERSION_LABEL).cloned())
+			.and_then(|text| serde_json::from_str::<Version>(&text).ok());
+		Ok(Some(match (recorded, inspected.image) {
+			(Some(version), _) => version,
+			(None, Some(image)) => Version { manifest: fallback.clone(), image },
+			(None, None) => return Ok(None),
+		}))
+	}
+
+	/// Whether the Docker daemon answers at all.
+	pub async fn ping(&self) -> Result<(), Error> {
+		self.docker.ping().await?;
+		Ok(())
+	}
+
+	/// Remove every image loaded for the named apps that none of them runs now or keeps to go
+	/// back to. Each program collects only what it deploys, so neither removes the other's way back.
+	pub async fn collect(&self, names: &[&str], keep: &HashSet<String>) -> Result<(), Error> {
+		let references = names.iter().map(|name| format!("{REPOSITORY}/{name}")).collect();
+		let filters = HashMap::from([("reference", references)]);
 		let images = self
 			.docker
 			.list_images(Some(ListImagesOptionsBuilder::new().filters(&filters).build()))

@@ -692,6 +692,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "deploy"
+version = "0.0.0"
+dependencies = [
+ "bollard",
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "jiff",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "toml",
+]
+
+[[package]]
 name = "derive_more"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1201,12 +1219,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "axum",
- "bollard",
- "bytes",
- "futures-util",
- "http-body-util",
- "hyper",
- "hyper-util",
+ "deploy",
  "jiff",
  "rusqlite",
  "serde",
@@ -1215,7 +1228,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-util",
- "toml",
 ]
 
 [[package]]

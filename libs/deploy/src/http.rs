@@ -1,4 +1,4 @@
-//! The two requests host makes itself: a health check over a container network, and a load
+//! The two requests the platform makes itself: a health check over a container network, and a load
 //! through Caddy's admin socket. One connection each, HTTP/1.1, nothing kept open.
 
 use bytes::Bytes;

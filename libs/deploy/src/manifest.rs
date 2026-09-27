@@ -13,6 +13,11 @@ pub const VERSION: u32 = 1;
 /// containers an app's container name would collide with.
 const RESERVED: [&str; 5] = ["host", "keeper", "api", "caddy", "cloudflared"];
 
+/// The two programs of the platform, which each deploy the other and which alone run in the
+/// platform's shape. See spec/architecture/host.md, "host never updates itself; keeper updates
+/// host".
+pub const PLATFORM: [&str; 2] = ["host", "keeper"];
+
 /// See spec/architecture/services.md, "A service keeps one port".
 pub const PORTS: RangeInclusive<u16> = 10000..=32767;
 
@@ -107,10 +112,22 @@ impl Manifest {
 
 	/// Whether this node may run it under the name it was sent as.
 	pub fn check(&self, requested: &str, node: &str) -> Result<(), Invalid> {
+		check_name(requested)?;
+		self.check_rest(requested, node)
+	}
+
+	/// The same, for one of the platform's own programs, whose names are otherwise reserved.
+	pub fn check_platform(&self, requested: &str, node: &str) -> Result<(), Invalid> {
+		if !PLATFORM.contains(&requested) {
+			return Err(Invalid::Name(requested.into()));
+		}
+		self.check_rest(requested, node)
+	}
+
+	fn check_rest(&self, requested: &str, node: &str) -> Result<(), Invalid> {
 		if self.name != requested {
 			return Err(Invalid::Mismatch { declared: self.name.clone(), requested: requested.into() });
 		}
-		check_name(&self.name)?;
 		if !self.placements.iter().any(|placement| placement == node) {
 			return Err(Invalid::NotPlaced { name: self.name.clone(), node: node.into() });
 		}
@@ -150,7 +167,7 @@ mod tests {
 
 	/// The file geo ships. Two programs read this format, so the reader is tested against a real
 	/// declaration rather than one written to suit it.
-	const GEO: &str = include_str!("../../geo/service.toml");
+	const GEO: &str = include_str!("../../../apps/geo/service.toml");
 
 	#[test]
 	fn reads_the_declaration_geo_ships() {
@@ -192,6 +209,17 @@ mod tests {
 			Err(Invalid::NotPlaced { name: "geo".into(), node: "vps".into() })
 		);
 		assert!(matches!(manifest.check("other", "home"), Err(Invalid::Mismatch { .. })));
+	}
+
+	#[test]
+	fn only_the_two_platform_programs_pass_the_platform_check() {
+		let mut manifest = Manifest::parse(GEO).unwrap();
+		manifest.name = "keeper".into();
+		assert_eq!(manifest.check_platform("keeper", "home"), Ok(()));
+		// The ordinary check still refuses the name, so no app can be sent as keeper.
+		assert_eq!(manifest.check("keeper", "home"), Err(Invalid::Reserved("keeper".into())));
+		manifest.name = "api".into();
+		assert_eq!(manifest.check_platform("api", "home"), Err(Invalid::Name("api".into())));
 	}
 
 	#[test]

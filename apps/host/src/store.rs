@@ -2,7 +2,8 @@
 //! version it runs and the one before it, and every route to something that is not a container.
 //! See spec/architecture/host.md, "host renders all of Caddy, and Caddy remembers nothing".
 
-use crate::manifest::Manifest;
+pub use deploy::Version;
+use deploy::Manifest;
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -16,12 +17,6 @@ pub struct Deployed {
 	/// What a failed deploy puts back, and what a rollback offers.
 	pub previous: Option<Version>,
 	pub deployed_at: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Version {
-	pub manifest: Manifest,
-	pub image: String,
 }
 
 /// A name that reaches something host does not run: the NAS, or a container another compose

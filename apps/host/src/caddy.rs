@@ -15,7 +15,7 @@ pub enum Error {
 	#[error("writing {path}: {source}")]
 	Write { path: String, source: std::io::Error },
 	#[error("Caddy's admin socket: {0}")]
-	Admin(#[from] crate::http::Error),
+	Admin(#[from] deploy::http::Error),
 	#[error("Caddy refused the configuration ({status}): {body}")]
 	Refused { status: u16, body: String },
 }
@@ -157,7 +157,7 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 pub async fn apply(config: &CaddyConfig, rendered: &Value) -> Result<(), Error> {
 	let bytes = serde_json::to_vec_pretty(rendered).unwrap_or_default();
 	write(&config.config_file, &bytes).await?;
-	let (status, body) = crate::http::post_unix(&config.admin_socket, "/load", bytes).await?;
+	let (status, body) = deploy::http::post_unix(&config.admin_socket, "/load", bytes).await?;
 	if status >= 300 {
 		return Err(Error::Refused { status, body });
 	}
@@ -178,7 +178,7 @@ async fn write(path: &Path, bytes: &[u8]) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::manifest::Manifest;
+	use deploy::Manifest;
 
 	fn config() -> CaddyConfig {
 		CaddyConfig {

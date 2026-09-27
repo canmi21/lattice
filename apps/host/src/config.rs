@@ -23,6 +23,8 @@ pub struct Config {
 	pub state: PathBuf,
 	/// Where uploaded archives wait while they are loaded.
 	pub incoming: PathBuf,
+	/// The node's one `.env`, which keeper is started with as host is.
+	pub platform_env: PathBuf,
 	pub caddy: CaddyConfig,
 }
 
@@ -77,6 +79,7 @@ impl Config {
 			snapshots_root: PathBuf::from(optional("SNAPSHOTS_ROOT", "/data/.snapshots")),
 			state: apps_root.join("host").join("data").join("host.db"),
 			incoming: apps_root.join("host").join("data").join("incoming"),
+			platform_env: apps_root.join("host").join(".env"),
 			caddy: CaddyConfig {
 				container: optional("CADDY_CONTAINER", "caddy"),
 				admin_socket: caddy_root.join("run").join("admin.sock"),

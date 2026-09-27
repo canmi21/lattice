@@ -1,10 +1,12 @@
 //! host's HTTP surface. One token admits everything but `/health`, on the LAN as much as through
 //! the tunnel -- see spec/architecture/host.md, "One token, behind two doors".
 
-use crate::deploy::{self, Error as DeployError};
-use crate::manifest::Manifest;
+use crate::rollout::{self, Error as DeployError};
+use deploy::Manifest;
+use deploy::replace::Error as Failed;
 use crate::store::Route;
-use crate::{Host, manifest};
+use crate::Host;
+use deploy::manifest;
 use axum::extract::{DefaultBodyLimit, Multipart, Path, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{self, Next};
@@ -23,7 +25,14 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/routes/{name}", put(put_route).delete(delete_route))
 		.route("/caddy", get(caddy).post(reapply))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
-	Router::new().route("/health", get(|| async { "ok" })).merge(guarded).with_state(host)
+	Router::new().route("/health", get(health)).merge(guarded).with_state(host)
+}
+
+/// What keeper asks before it lets a new host stay: that it reads its own state and reaches
+/// Docker, which are what every other request needs. Open, since it says nothing about either.
+async fn health(State(host): State<Arc<Host>>) -> StatusCode {
+	let ready = host.store.apps().is_ok() && host.engine.ping().await.is_ok();
+	if ready { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE }
 }
 
 /// Compared in time independent of where the first difference is.
@@ -102,7 +111,7 @@ async fn upload(
 	if !received {
 		return failed(StatusCode::BAD_REQUEST, "no `image` part");
 	}
-	if let Err(error) = deploy::admit(&host, &name, &manifest) {
+	if let Err(error) = rollout::admit(&host, &name, &manifest) {
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
 	}
 
@@ -118,12 +127,12 @@ async fn upload(
 		Ok(image) => image,
 		Err(error) => return failed(StatusCode::UNPROCESSABLE_ENTITY, error),
 	};
-	match deploy::deploy(&host, manifest, image).await {
+	match rollout::deploy(&host, manifest, image).await {
 		Ok(outcome) => Json(outcome).into_response(),
 		Err(error @ (DeployError::Invalid(_) | DeployError::PortTaken { .. })) => {
 			failed(StatusCode::UNPROCESSABLE_ENTITY, error)
 		}
-		Err(error @ (DeployError::Unhealthy { .. } | DeployError::FirstFailed { .. })) => {
+		Err(error @ DeployError::Replace(Failed::Unhealthy { .. } | Failed::FirstFailed { .. })) => {
 			failed(StatusCode::BAD_GATEWAY, error)
 		}
 		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
@@ -184,14 +193,14 @@ async fn delete_route(State(host): State<Arc<Host>>, Path(name): Path<String>) -
 
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.
 async fn caddy(State(host): State<Arc<Host>>) -> Response {
-	match deploy::render(&host) {
+	match rollout::render(&host) {
 		Ok(rendered) => Json(rendered).into_response(),
 		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
 	}
 }
 
 async fn reapply(State(host): State<Arc<Host>>) -> Response {
-	if let Err(error) = deploy::attach(&host).await {
+	if let Err(error) = rollout::attach(&host).await {
 		return failed(StatusCode::INTERNAL_SERVER_ERROR, error);
 	}
 	routed(&host).await
@@ -200,7 +209,7 @@ async fn reapply(State(host): State<Arc<Host>>) -> Response {
 /// The state changed; Caddy follows. Stored even when Caddy cannot be reached, so the answer says
 /// which half happened.
 async fn routed(host: &Host) -> Response {
-	match deploy::route(host).await {
+	match rollout::route(host).await {
 		Ok(()) => StatusCode::NO_CONTENT.into_response(),
 		Err(error) => {
 			failed(StatusCode::BAD_GATEWAY, format!("stored, but Caddy was not updated: {error}"))
