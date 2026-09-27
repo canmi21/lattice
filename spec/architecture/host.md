@@ -9,15 +9,40 @@ here; they are managed from host's panel.
 The machine has no inbound public address. It reaches out through a Cloudflare tunnel, and it is on
 the tailnet. Everything below is shaped by that and by there being exactly one user.
 
-## A deployment is immutable, and an alias points at one
+## One name, everywhere
 
-The model is Vercel's. Each commit of an app is one container, started once and never changed; the
-name a reader uses is a pointer to one of them. A release starts the new container, checks it, and
-moves the pointer. A rollback moves the pointer back, which is why it is instant. A preview is a
-deployment's own name, with no pointer involved.
+An app has one name, and every place it appears is that name: `gemini` is the app in host, the
+container, `/data/apps/gemini/` on the machine, `gemini.canmi.icu` privately and `gemini.canmi.net`
+publicly. Nothing maps one spelling to another, so nothing can disagree.
 
-How far a name reaches -- the LAN, the tailnet, or the public through the tunnel -- is a field of the
-alias, not of the container.
+- A name is a DNS label: lowercase letters, digits and hyphens.
+- Apps from this repository and images from elsewhere share the one namespace.
+- `host` and `keeper` are reserved for the two programs below.
+
+## One version runs, and a failed deploy puts the last one back
+
+**Each app runs exactly one container.** A deploy stops it, snapshots its directory, starts the new
+image and checks it. If the check fails, the directory is put back from the snapshot and the
+previous image is started again. A deploy costs a few seconds of the app being down, which one user
+accepts; what it buys is that two versions never write the same data at once.
+
+**Rejected: Vercel's model of immutable deployments behind a moving alias.** It runs old and new side
+by side, which is what makes its rollback instant and its releases gapless. Both are worth something
+to many users sharing a service. Here they cost two copies of every app, and two processes over one
+SQLite file, to save a pause nobody else sees.
+
+The snapshot is taken after the container stops, so it is never of a database halfway through a
+write. `/data` is btrfs and **each app's directory is its own subvolume**, so the snapshot is atomic,
+covers exactly that app, and costs nothing until something is written. The directory is therefore
+created with `btrfs subvolume create`, never `mkdir`: a plain directory cannot be snapshotted alone.
+
+**Two rollbacks, and only one restores data.** A deploy that fails its check restores the snapshot,
+since the new version may already have changed the data. Going back to an older version days later
+starts the older image on the current data, since restoring would erase everything written since. The
+second is a choice offered, never a default.
+
+host keeps the previous image of every app and the last few snapshots, and removes the rest. Nothing
+else on the machine needs tending.
 
 ## The machine pulls; nothing pushes into it
 
@@ -29,25 +54,32 @@ channel that accepts one has no boundary to enforce.
 
 So the direction is reversed, and trust is moved off the channel.
 
-- CI builds only the apps a push changed, for `linux/arm64`, and pushes each to its own package on
-  ghcr, tagged by commit. There is no release per app: this is one repository holding many, and a
-  release ritual per app is exactly the cost that stops small apps being written.
-- CI attests each image with GitHub's artifact attestation, which binds it to this repository, the
-  workflow and the ref, keyless.
-- CI then sends a notice -- app, commit, digest -- through the tunnel. There is no polling; the notice
-  says exactly what is ready.
-- **The notice is a hint, not an authority.** host pulls the digest itself and verifies the
-  attestation came from this repository's workflow on `main` before anything runs. A forged notice
-  can at worst redeploy a version `main` already signed.
+- CI builds only the apps a push changed, for `linux/arm64`, as an image archive, and uploads it as
+  an artifact of that workflow run. **Nothing is published**: no release, no package, no registry.
+  This is one repository holding many apps, and a publishing ritual per app is exactly the cost that
+  stops small apps being written.
+- CI attests the archive with GitHub's artifact attestation, which binds it to this repository, the
+  workflow and the ref, keyless. The attestation lives in GitHub's attestation API and is not a
+  publication either.
+- CI then sends a notice through the tunnel naming the app and the commit. There is no polling; the
+  notice says exactly what is ready.
+- host finds the run by the commit, downloads the artifact with a read-only token scoped to this
+  repository's Actions, and **verifies the attestation came from this repository's workflow on
+  `main` before anything runs**. The notice is a hint, not an authority: a forged one can at worst
+  redeploy a version `main` already signed.
 
-A local deploy is `wrangler deploy`'s shape: built on the Mac, which is arm64 like the machine, and
-handed over by a mise task through one interface that answers only on the LAN and the tailnet. What
-admits it is the token below, not an attestation.
+An artifact expires after its retention period. That does not matter to a deploy, since the image is
+on the machine once loaded, and a rollback uses the image host kept.
+
+A local deploy is `wrangler deploy`'s shape: built on the Mac, which is arm64 like the machine, into
+the same archive, and uploaded by a mise task to an interface that answers only on the LAN and the
+tailnet. What admits it is the token below, not an attestation. So there is one artifact format with
+two sources, and no registry anywhere.
 
 ## What a deployment may ask for is host's decision
 
 An app declares what it needs; host turns that into a container and decides which capabilities
-exist at all. The shared network and nothing else, the app's own data directory and nothing else, no
+exist at all. The shared network and nothing else, the app's own directory and nothing else, no
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
@@ -70,11 +102,10 @@ and a device on the LAN without it gets nothing.
 An updater cannot be the thing it updates: a broken update leaves nothing running that could undo
 it. So there are two programs, and each updates the other, never itself.
 
-- **keeper** is small and rarely changes. It takes a new host digest, snapshots host's data
-  directory, starts the new host beside the old one, checks it deeply -- it starts, reaches Docker,
-  reaches Caddy, reads its own database -- then moves traffic and stops the old one. On any failure
-  the old host keeps running and the snapshot is restored.
-- **host** deploys everything else, keeper included, with the same start, check and swap.
+- **keeper** is small and rarely changes. It deploys host by the same stop, snapshot, start and check
+  as any app, with a deeper check -- host starts, reaches Docker, reaches Caddy, reads its own
+  database -- and on failure puts the previous host back.
+- **host** deploys everything else, keeper included.
 
 **host rolls forward, not back.** keeper guards one failure only: a host that does not start.
 Anything wrong with a host that does start is fixed by pushing the next host, because that update is
@@ -82,13 +113,8 @@ carried by keeper and never by the program that is broken. That is what lets kee
 enough to read at once, and its stability comes from its size rather than from rules about it. CI
 builds only what changed, so keeper's image moves only when keeper's code does.
 
-**keeper has its own intake.** A notice for host goes to keeper directly, and keeper accepts a push
+**keeper has its own intake.** A notice for host goes to keeper directly, and keeper accepts an upload
 on the LAN. Routed through host, a broken host would stand between the fix and the machine.
-
-**The snapshot is what makes a rollback carry state.** `/data` on the machine is btrfs, so a snapshot
-is copy-on-write and costs nothing until something is written. A new host that migrated its database
-and then failed to start is put back with the database it can read, so no migration has to be
-written to be readable by the version before it.
 
 **Rejected: two identical full instances, A active and B standby.** Two holders of the Docker socket
 need a leader election, and the standby logic would live inside the program that changes most. The
@@ -100,12 +126,14 @@ The first keeper and host are started by hand. Nothing earlier exists to start t
 ## The control plane going down is not an outage
 
 Containers are kept alive by dockerd's restart policy, and routes live in Caddy, not in host. So a
-host or keeper that is down means nothing can be deployed, and nothing stops being served. Removing
-images no deployment references is host's job, so the machine needs no tending.
+host or keeper that is down means nothing can be deployed, and nothing stops being served.
 
 ## Open
 
-- How a local build crosses the LAN interface: a registry push, or an image archive uploaded to host.
 - How routes survive a Caddy restart: Caddy resuming its last configuration, or host reconciling
   them on start.
+- The tailnet name. Advertising the machine's own LAN address as a tailnet route would make
+  `<name>.canmi.icu` resolve and reach it from the tailnet too, so one private name serves both, at
+  the cost of approving the route and Caddy's LAN guard admitting `100.64.0.0/10`.
+- Whether the public name is off until an app turns it on.
 - Which app in this repository is the first to run there.
