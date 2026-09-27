@@ -13,6 +13,7 @@ pub const SOURCE: &str = "https://github.com/canmi21/lattice";
 pub const INTERNAL_APP: &str = "https://canmi.app";
 pub const INTERNAL_INFRA: &str = "https://ffoni.com";
 pub const INTERNAL_ALIAS: &str = "https://ill.li";
+pub const INTERNAL_HOME: &str = "https://host.canmi.icu";
 pub const EXTERNAL_GITHUB_WEB: &str = "https://github.com";
 pub const EXTERNAL_GITHUB_API: &str = "https://api.github.com";
 pub const EXTERNAL_GITHUB_RAW: &str = "https://raw.githubusercontent.com";
