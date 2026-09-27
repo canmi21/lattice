@@ -3,7 +3,6 @@
 //! in `run`.
 
 use crate::manifest::Manifest;
-use serde::{Deserialize, Serialize};
 use bollard::Docker;
 use bollard::models::{
 	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, NetworkConnectRequest,
@@ -16,6 +15,7 @@ use bollard::query_parameters::{
 };
 use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 

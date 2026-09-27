@@ -17,10 +17,12 @@ pub use volume::Volumes;
 /// start from it, so the token has one home on the machine.
 pub fn read_env(path: &std::path::Path) -> std::io::Result<Vec<String>> {
 	let text = std::fs::read_to_string(path)?;
-	Ok(text
-		.lines()
-		.map(str::trim)
-		.filter(|line| !line.is_empty() && !line.starts_with('#') && line.contains('='))
-		.map(str::to_owned)
-		.collect())
+	Ok(
+		text
+			.lines()
+			.map(str::trim)
+			.filter(|line| !line.is_empty() && !line.starts_with('#') && line.contains('='))
+			.map(str::to_owned)
+			.collect(),
+	)
 }
