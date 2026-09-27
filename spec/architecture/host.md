@@ -7,7 +7,8 @@ reaches it without anybody logging into the machine. Images somebody else publis
 here; they are managed from host's panel.
 
 The machine has no inbound public address. It reaches out through a Cloudflare tunnel, and it is on
-the tailnet. Everything below is shaped by that and by there being exactly one user.
+the tailnet. Everything below is shaped by that and by there being exactly one user. Which services
+are placed on it, and how names and APIs reach them, is [services.md](services.md).
 
 ## One name, everywhere
 
@@ -19,24 +20,8 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 - Apps from this repository and images from elsewhere share the one namespace.
 - `host` and `keeper` are reserved for the two programs below.
 
-### Two suffixes, and where each one reaches
-
-**`.icu` is private and `.net` is public**, and those are the only two a person has to remember.
-
-`*.canmi.icu` resolves in public DNS to the machine's LAN address, which answers nobody outside the
-house. The machine advertises that one address, as a `/32`, as a tailnet route, so a device on the
-tailnet reaches it from anywhere under the same name. **The answer DNS gives never changes; what
-changes is whether the address is reachable.** So there is no DNS server of our own and no split
-DNS, which the alternative -- the tailnet answering its own address for the name -- would need.
-Caddy admits `.icu` from the LAN, the tailnet's `100.64.0.0/10` and the machine itself, and from
-nothing else.
-
-`*.canmi.net` arrives only through the tunnel, and **every name there is public from the start.**
-The tunnel and Cloudflare Access are both wildcards, so a name exists and is behind a login in the
-same moment; Access is the gate, and an app has nothing to turn on. An app that a program has to
-reach -- an API called by a script -- is admitted by an Access service token, **never by a bypass
-policy**: a bypass is a hole in the wildcard that is recorded only in Cloudflare's dashboard, where
-nothing in this repository can see it.
+`.icu` is private and `.net` is public, and what each admits is
+[services.md](services.md), "A domain says who can reach it, not what is behind it".
 
 ## One version runs, and a failed deploy puts the last one back
 
@@ -80,8 +65,9 @@ So the direction is reversed, and trust is moved off the channel.
 - CI attests the archive with GitHub's artifact attestation, which binds it to this repository, the
   workflow and the ref, keyless. The attestation lives in GitHub's attestation API and is not a
   publication either.
-- CI then sends a notice through the tunnel naming the app and the commit. There is no polling; the
-  notice says exactly what is ready.
+- CI then sends a notice naming the app and the commit, through a Worker that verifies GitHub's
+  OIDC token for the run -- see [services.md](services.md), "Every node is the same node". There is
+  no polling; the notice says exactly what is ready.
 - host finds the run by the commit, downloads the artifact with a read-only token scoped to this
   repository's Actions, and **verifies the attestation came from this repository's workflow on
   `main` before anything runs**. The notice is a hint, not an authority: a forged one can at worst
@@ -97,24 +83,25 @@ two sources, and no registry anywhere.
 
 ## What a deployment may ask for is host's decision
 
-An app declares what it needs; host turns that into a container and decides which capabilities
-exist at all. The shared network and nothing else, the app's own directory and nothing else, no
+An app declares what it needs; host turns that into a container and decides which capabilities exist
+at all. A network of its own shared with Caddy alone, the app's own directory and nothing else, no
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
 ## One token, behind two doors
 
 No account system: there is one user. Reaching the panel from the public goes through the tunnel
-with Cloudflare Access in front. Behind that, and directly on the LAN and the tailnet, **one long API
-token is required everywhere**. host holds the Docker socket, so its token is root on the machine,
-and a device on the LAN without it gets nothing.
+with Cloudflare Access in front. Behind that, and directly on the LAN and the tailnet, **one long
+API token is required everywhere** -- the one exception to the apps behind Caddy authenticating
+nothing. host holds the Docker socket, so its token is root on the machine, and a device on the LAN
+without it gets nothing.
 
 - It lives in this repository's `secrets.json`, so a mise task deploys without asking. On the
   machine it lives in host's own `.env` and is read back over SSH when forgotten. A browser keeps it
   as a saved password.
-- **It never goes to GitHub.** CI holds only an Access service token for the notice endpoint, and
-  that endpoint can do nothing but ask host to look. A compromise of CI must not be a compromise of
-  the panel, or the reversal above bought nothing.
+- **It never goes to GitHub**, and neither does anything else: CI's notice is admitted by the OIDC
+  token GitHub mints per run, and can do nothing but ask host to look. A compromise of CI must not
+  be a compromise of the panel, or the reversal above bought nothing.
 
 ## host never updates itself; keeper updates host
 
@@ -163,4 +150,4 @@ The Caddyfile is retired with this. What it held by hand is entries in host.
 
 ## Open
 
-- Which app in this repository is the first to run there.
+What is still undecided about placing services here is listed in [services.md](services.md).
