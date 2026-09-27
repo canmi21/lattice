@@ -1,6 +1,7 @@
 /**
  * `mise run host deploy <name>`: build an app's image for the machine at home and hand it, with
- * its declaration, to host there -- over the LAN or the tailnet, never the tunnel.
+ * its declaration, to host there -- or, for host itself, to keeper, since host never replaces
+ * itself. Over the LAN or the tailnet, never the tunnel.
  * `image <name> <path>` only builds the archive, which is how host itself is first carried over.
  * See spec/architecture/host.md, "The machine pulls; nothing pushes into it".
  */
@@ -56,8 +57,9 @@ function build(name: string, archive: string): void {
  * system's own, is never asked. The token goes in on stdin so it never shows in `ps`.
  */
 function upload(name: string, declaration: string, archive: string, token: string): boolean {
-	const address = `${URLS.internal.home}/apps/${name}`;
-	console.log(`handing ${name} to ${URLS.internal.home}`);
+	const receiver = name === 'host' ? URLS.internal.keeper : URLS.internal.home;
+	const address = `${receiver}/apps/${name}`;
+	console.log(`handing ${name} to ${receiver}`);
 	const sent = spawnSync(
 		'curl',
 		[

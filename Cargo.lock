@@ -1663,6 +1663,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "keeper"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "deploy",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
 name = "lebe"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

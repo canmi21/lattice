@@ -99,3 +99,12 @@ impl Config {
 		})
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	#[test]
+	fn the_port_is_the_one_the_declaration_states() {
+		let declaration = include_str!("../service.toml");
+		assert!(declaration.lines().any(|line| line.trim() == format!("port = {}", super::PORT)));
+	}
+}

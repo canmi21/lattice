@@ -1,0 +1,14 @@
+# keeper as host deploys it. Its shape is the platform's and not this file's to choose; see
+# spec/architecture/host.md, "host never updates itself; keeper updates host".
+version = 1
+name = "keeper"
+placements = ["home"]
+
+[container]
+# One below host's 11011: the one that stands in front of it.
+port = 11010
+health = "/health"
+
+# keeper.canmi.icu, and never the public suffix: it is the way back in when host is broken.
+[interface]
+public = false

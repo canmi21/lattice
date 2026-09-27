@@ -121,9 +121,23 @@ An updater cannot be the thing it updates: a broken update leaves nothing runnin
 it. So there are two programs, and each updates the other, never itself.
 
 - **keeper** is small and rarely changes. It deploys host by the same stop, snapshot, start and check
-  as any app, with a deeper check -- host starts, reaches Docker, reaches Caddy, reads its own
-  database -- and on failure puts the previous host back.
+  as any app -- one procedure, in `libs/deploy`, that both programs call -- against host's
+  `/health`, which answers only once host reads its own database and reaches Docker. On failure it
+  puts the previous host back.
 - **host** deploys everything else, keeper included.
+
+**The platform's shape is chosen by name, never by a declaration.** host and keeper run privileged,
+with the Docker socket and the whole of `/data`, and every other app runs as the section on what a
+deployment may ask for describes. Which shape a container gets is decided by the program deploying
+it from the app's name -- `host` and `keeper`, and only those -- so no `service.toml` can ask for
+the platform's reach. Both start from the one `.env` in host's directory, which is why the token has
+one home on the machine.
+
+**keeper keeps no state.** Every container carries the version it runs in a label, so keeper reads
+what host runs back from Docker; a host started by hand carries none, and the declaration keeper was
+just sent stands in for it beside the image it really runs. Each program removes old images only of
+what it deploys -- host of the apps and keeper, keeper of host -- so neither can remove the other's
+way back.
 
 **host rolls forward, not back.** keeper guards one failure only: a host that does not start.
 Anything wrong with a host that does start is fixed by pushing the next host, because that update is
@@ -131,15 +145,23 @@ carried by keeper and never by the program that is broken. That is what lets kee
 enough to read at once, and its stability comes from its size rather than from rules about it. CI
 builds only what changed, so keeper's image moves only when keeper's code does.
 
-**keeper has its own intake.** A notice for host goes to keeper directly, and keeper accepts an upload
-on the LAN. Routed through host, a broken host would stand between the fix and the machine.
+**keeper has its own intake.** `mise run host deploy host` goes to `keeper.canmi.icu`, never to
+host, and so will a notice for host. Routed through host, a broken host would stand between the fix
+and the machine. keeper is private to the LAN and the tailnet; it is the way back in, and has no
+business on the public suffix.
+
+It is reached through Caddy like everything else, which was chosen over binding keeper's port to the
+machine's address directly. The cost is that a Caddy that is down makes keeper unreachable too;
+accepted, because Caddy starts from the file host last wrote and fails independently of host, so
+the case keeper exists for -- a broken host -- leaves Caddy standing.
 
 **Rejected: two identical full instances, A active and B standby.** Two holders of the Docker socket
 need a leader election, and the standby logic would live inside the program that changes most. The
 variant where B catches up once A succeeds also discards the fallback at the moment a latent bug is
 still invisible.
 
-The first keeper and host are started by hand. Nothing earlier exists to start them.
+The first host is started by hand, from its `docker-compose.yml`, since nothing earlier exists to
+start it. keeper is never started by hand: the first one is deployed by host.
 
 ## The control plane going down is not an outage
 

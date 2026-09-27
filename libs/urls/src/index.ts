@@ -74,13 +74,15 @@ export const GITHUB_OWNER = 'canmi21';
  * key names what the layer does -- one name standing for another -- where `link` named nothing,
  * every URL being a link. The production map below reads it from here rather than spelling a
  * second copy that could drift. `app` is owned and serves nothing yet. `home` is the panel of the
- * machine at home, reachable on the LAN and the tailnet only; see spec/architecture/host.md.
+ * machine at home and `keeper` the program that updates it, both reachable on the LAN and the
+ * tailnet only; see spec/architecture/host.md.
  */
 const INTERNAL = {
 	app: 'https://canmi.app',
 	infra: 'https://ffoni.com',
 	alias: 'https://ill.li',
 	home: 'https://host.canmi.icu',
+	keeper: 'https://keeper.canmi.icu',
 } as const;
 
 export const URLS = {
