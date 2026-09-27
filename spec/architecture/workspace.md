@@ -150,6 +150,13 @@ The constraint: this holds only while every consumer bundles. A consumer that ru
 Node against the package would need a build. If that day comes, add the build to that one
 library rather than reinstating it everywhere.
 
+## A package here has no version
+
+Nothing in this repository is published as a package, so nothing here has a version to state: a
+`package.json` carries no `version` field, and a crate says `0.0.0` because Cargo wants the key. A
+number that moved would claim releases that never happen, and one that sat at `0.1.0` would claim
+one that did.
+
 ## Web interface primitives
 
 Bits UI is the site's headless behavior layer. It owns the difficult, reusable interaction
