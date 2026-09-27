@@ -376,6 +376,9 @@ D1 depends on nothing and may be taken at any point. It is filed as long-term be
 blocked on it today, and that changes the moment B3 through B7 make publishing cheap enough that
 the volume goes up.
 
+The machine D1 and D2 assume is made deployable first, so that what moves there arrives by a push
+rather than by hand. See [../architecture/host.md](../architecture/host.md).
+
 ## Open questions
 
 Each of these is a decision rather than a discovery. One is settled and kept here because the
