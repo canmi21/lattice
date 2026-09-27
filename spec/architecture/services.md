@@ -97,12 +97,24 @@ This is a single entrance, not zero trust, and the difference is worth knowing: 
 where a request comes from, `.net` by who sent it. For one person that is the right trade. host is
 the exception: it is root on its machine, so it asks for its token even on the LAN.
 
+## A Workers placement is deployed by Cloudflare, not by host
+
+Workers are built by Cloudflare's own Git integration: it watches this repository, filtered to the
+paths each Worker and the libraries it imports live under, and deploys on a push that touches them.
+That is already the shape this file wants -- the platform pulls, and GitHub holds no secret -- so
+host does not run `wrangler` and holds no Cloudflare token for it. What a Workers placement adds
+here is the declaration, not a second way to deploy.
+
+## The order it is built in
+
+The node at home first, proved end to end on the simplest service there is: `geo`, the offline
+gazetteer that names where a photograph was taken, read-only and shipped with its data. Then the
+VPS as a second node, then Workers as a placement with `api` and `cdn` declared in, then failover.
+The declaration carries placements from the first service, so each step adds an implementation
+rather than a field.
+
 ## Open
 
-- Who runs `wrangler deploy` for a Workers placement: the host at home holding Cloudflare's token,
-  keeping GitHub free of secrets, or CI holding it.
-- The order of building: the node at home first, then the VPS, then Workers as a placement with
-  `api` and `cdn` taken in, then failover.
 - Whether Workers VPC can address Caddy by hostname. Inferred, not yet verified.
 - What still addresses the site's API at the root, and so how long the root keeps answering as
   `/site/` while it moves.
