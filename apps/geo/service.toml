@@ -5,7 +5,8 @@ name = "geo"
 placements = ["home"]
 
 [container]
-port = 8080
+# The tropics sit at 23.44 degrees; see spec/architecture/services.md, "A service keeps one port".
+port = 23440
 health = "/health"
 
 # Reached privately as the `geo` scope of the API host; not published on the public one.

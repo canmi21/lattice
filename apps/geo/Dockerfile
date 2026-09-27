@@ -20,5 +20,4 @@ FROM gcr.io/distroless/cc-debian13:nonroot
 COPY --from=build /geo /geo
 # GeoNames' dumps travel with the binary: read-only data, so every copy of the service is whole.
 COPY data/source/geo /data
-EXPOSE 8080
 ENTRYPOINT ["/geo"]

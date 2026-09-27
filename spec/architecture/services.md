@@ -87,6 +87,20 @@ is Caddy on the node. Both are rendered from the one declaration, since two tabl
 are two readings of one format and would come to disagree silently -- the case the workspace's
 `code.md` warns about.
 
+## A service keeps one port
+
+Every service has a port of five digits, chosen for it and never shared: the same number inside its
+container, on a machine where it is published, and in development. `geo` answers on 23440, after the
+latitude of the tropics. A port like 8080 is everybody's default, so it says nothing about what is
+listening, and two services left on their defaults are a collision waiting for a second container.
+
+**The range is 10000 to 32767.** Below it are the well-known and commonly defaulted ports; above it
+begins the range Linux hands out as the source port of outgoing connections, where a listener can
+now and then find its number already taken by one of them.
+
+A service states its port in `service.toml`, and host refuses a second app declaring one already
+held, so the numbers stay distinct without a list anybody has to keep.
+
 ## One door per node
 
 **No container publishes a port.** Each app has a Docker network of its own that it shares with

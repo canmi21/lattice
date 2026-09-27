@@ -15,6 +15,10 @@ use std::future::IntoFuture;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 
+/// This service's port, inside its container and everywhere else. `service.toml` states it for
+/// host, and the test below holds the two together.
+const PORT: u16 = 23440;
+
 /// Empty until the data is read, which is what `/health` reports on.
 type Loaded = Arc<OnceLock<Gazetteer>>;
 
@@ -27,7 +31,7 @@ struct Position {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	let data = PathBuf::from(std::env::var("GEO_DATA").unwrap_or_else(|_| "/data".into()));
-	let listen = std::env::var("LISTEN").unwrap_or_else(|_| "0.0.0.0:8080".into());
+	let listen = std::env::var("LISTEN").unwrap_or_else(|_| format!("0.0.0.0:{PORT}"));
 
 	let loaded: Loaded = Arc::default();
 	let router = Router::new()
@@ -92,5 +96,14 @@ async fn stopped() {
 	tokio::select! {
 		() = interrupted => {}
 		() = terminated => {}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	#[test]
+	fn the_port_is_the_one_the_declaration_states() {
+		let declaration = include_str!("../service.toml");
+		assert!(declaration.lines().any(|line| line.trim() == format!("port = {}", super::PORT)));
 	}
 }
