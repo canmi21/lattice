@@ -92,7 +92,9 @@ export const URLS = {
 		development,
 		production: {
 			site: 'https://canmi.net',
-			api: 'https://api.ffoni.com',
+			// The site's public scope of the API host, which the alias layer reads; see
+			// spec/architecture/services.md, "The site's API runs in the site's Worker".
+			api: `https://api.ffoni.com/${SITE_SCOPE}`,
 			// An apex of its own rather than a label under `infra`, because here the address is
 			// the product: a resolved name is read aloud and typed, and `ill.li/k7m2x` is short
 			// enough to be either. See spec/architecture/delivery.md.
