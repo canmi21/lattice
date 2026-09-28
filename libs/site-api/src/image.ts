@@ -6,7 +6,7 @@ import type { Bindings } from './bindings';
 import { failure } from './respond';
 
 /**
- * `GET /media?rid=` -- what is known about a resource.
+ * `GET /media?resource=` -- what is known about a resource.
  *
  * **Asked by resource id and never by a content id.** A cid names what the CDN serves; this
  * record says what the thing is, survives a re-derive and is rewritten in place, so it is asked
@@ -18,7 +18,7 @@ import { failure } from './respond';
 const image = new Hono<{ Bindings: Bindings }>();
 
 image.get('/media', async (c) => {
-	const rid = (c.req.query('rid') ?? '').toLowerCase();
+	const rid = (c.req.query('resource') ?? '').toLowerCase();
 	if (!isResourceId(rid)) {
 		return failure(c, 400, 'invalid_resource', {});
 	}

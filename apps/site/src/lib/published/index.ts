@@ -148,7 +148,7 @@ export async function askBatch<T extends BatchRequest>(
 function viewUrl(slug: string, locale: LocaleCode): string {
 	// Both identifiers in the query, and the identity alone in `slug` -- never the path. See
 	// spec/architecture/artifacts.md, "A question asks with a query; a list asks with a body".
-	return apiPath('article', { slug, lang: locale });
+	return apiPath('article', { slug, locale });
 }
 
 /**
@@ -247,7 +247,7 @@ export async function publishedHome(
 	fetch: Fetch,
 	locale: LocaleCode,
 ): Promise<{ articles: HomeAnswer['articles']; card?: string; page: PublishedPage | undefined }> {
-	const found = await answer<HomeAnswer>(fetch, apiPath('homepage', { lang: locale }));
+	const found = await answer<HomeAnswer>(fetch, apiPath('homepage', { locale }));
 	if (!found) throw new Error(`the API names no homepage for ${locale}`);
 	const page = found.page
 		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)
@@ -258,12 +258,12 @@ export async function publishedHome(
 /**
  * The address one resource's record is asked for at, so a batch and a single lookup agree.
  *
- * `GET /media?rid=` is a real route and answers exactly this document. Writing what the batch
+ * `GET /media?resource=` is a real route and answers exactly this document. Writing what the batch
  * learned under that address is what makes the two one answer rather than two, and is the same
  * arrangement `lookupView` keeps over `/article`.
  */
 function resourceUrl(rid: string): string {
-	return apiPath('media', { rid });
+	return apiPath('media', { resource: rid });
 }
 
 /**
@@ -304,7 +304,7 @@ export async function publishedResources(
 		// blank article rather than a missing picture. The cap belongs to the request shape and is
 		// read from there; see `resourceQuestions` in libs/artifacts.
 		const answers = await Promise.all(
-			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', rids }, fetch)),
+			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', resources: rids }, fetch)),
 		);
 		const answered: BatchAnswerOf<'resources'>['resources'] = Object.assign(
 			{},
@@ -364,7 +364,7 @@ export async function publishedFeedEntries(
 	fetch: Fetch,
 	locale: LocaleCode,
 ): Promise<FeedEntry[] | undefined> {
-	const found = await answer<FeedAnswer>(fetch, apiPath('feed', { lang: locale }));
+	const found = await answer<FeedAnswer>(fetch, apiPath('feed', { locale }));
 	if (!found) return undefined;
 	return Promise.all(
 		found.entries.map(async (entry) => {

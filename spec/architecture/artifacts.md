@@ -212,15 +212,15 @@ the CDN by hash and cached for a year.
 five-minute cache by the number of values it takes, and the hit rate on these answers is what
 the whole design's latency rests on.
 
-| Route                      | Answers                                                  |
-| -------------------------- | -------------------------------------------------------- |
-| `GET /article?slug=&lang=` | one view's metadata and its `content` hash               |
-| `GET /source?slug=`        | the `markdown` hash, for `<url>.md`                      |
-| `GET /homepage?lang=`      | the article list it renders, and its own compiled page   |
-| `GET /sitemap`             | every indexable view's path, date and alternates         |
-| `GET /feed?lang=`          | one locale's entries: metadata and a `content` hash each |
-| `GET /media?rid=`          | what is known about one resource                         |
-| `POST /batch`              | every question asked about many things; see below        |
+| Route                        | Answers                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `GET /article?slug=&locale=` | one view's metadata and its `content` hash               |
+| `GET /source?slug=`          | the `markdown` hash, for `<url>.md`                      |
+| `GET /homepage?locale=`      | the article list it renders, and its own compiled page   |
+| `GET /sitemap`               | every indexable view's path, date and alternates         |
+| `GET /feed?locale=`          | one locale's entries: metadata and a `content` hash each |
+| `GET /media?resource=`       | what is known about one resource                         |
+| `POST /batch`                | every question asked about many things; see below        |
 
 ### A slug is the identity and the path is the address
 
@@ -305,11 +305,13 @@ The cost is that a slug carries slashes and arrives percent-encoded --
 `?slug=architecture%2Fcompile-time-rendering` reads worse than a path did. That is the price of a
 rule with no exceptions, and a rule with one exception is a rule nobody can apply without asking.
 
-**The locale is a query parameter and never a path segment.** `?lang=` is how this site already
-asks -- [locale/addressing.md](../locale/addressing.md) gives it as a reader's first preference
-source and `llms.txt` documents it for machines -- so one spelling reaches the site and the API.
-Absent means `mw`, the same answer a bare URL gives; an unknown value is a `400` and never a
-fallback to another view. It stays the one variant dimension either way.
+**The locale is a query parameter and never a path segment.** The API spells it `?locale=`, as it
+spells every parameter out -- see services.md, "Names in an API are spelled out". The site's pages
+keep `?lang=`: [locale/addressing.md](../locale/addressing.md) gives it as a reader's first
+preference source, `llms.txt` documents it for machines, and it is in every indexed address, so a
+page's spelling is not the API's to change. The two used to be one spelling on purpose; the API's
+names being meaningful was worth more. Absent means `mw`, the same answer a bare URL gives; an
+unknown value is a `400` and never a fallback to another view.
 
 **The CDN is the exception, and it is not one.** There a path _is_ the key --
 `/object/{cid}.{ext}` -- and the whole cache policy is derived from its shape, so moving a hash

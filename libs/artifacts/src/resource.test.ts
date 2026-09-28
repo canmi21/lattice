@@ -361,9 +361,9 @@ describe('the questions one page becomes', () => {
 		expect(questions.flat()).toEqual(many);
 		// And each question is one the schema will read, which is the whole point of the split.
 		for (const rids of questions) {
-			expect(v.is(ResourcesRequestSchema, { type: 'resources', rids })).toBe(true);
+			expect(v.is(ResourcesRequestSchema, { type: 'resources', resources: rids })).toBe(true);
 		}
-		expect(v.is(ResourcesRequestSchema, { type: 'resources', rids: many })).toBe(false);
+		expect(v.is(ResourcesRequestSchema, { type: 'resources', resources: many })).toBe(false);
 	});
 });
 

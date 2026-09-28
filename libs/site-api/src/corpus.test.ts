@@ -108,7 +108,7 @@ beforeEach(async () => {
 
 describe('GET /view/:slug', () => {
 	it('answers with the view, its hashes and five minutes', async () => {
-		const res = await get('/article?slug=the-first&lang=en');
+		const res = await get('/article?slug=the-first&locale=en');
 		expect(res.status).toBe(200);
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300, stale-if-error=10800');
 		expect(await payload(res)).toMatchObject({
@@ -129,23 +129,23 @@ describe('GET /view/:slug', () => {
 	// Five minutes on a miss too, but no `stale-if-error`: a 404 is not an error worth serving
 	// stale. See spec/architecture/artifacts.md.
 	it('caches a miss as long as an answer, without offering it stale', async () => {
-		const unknown = await get('/article?slug=made/up&lang=en');
+		const unknown = await get('/article?slug=made/up&locale=en');
 		expect(unknown.status).toBe(404);
 		expect(unknown.headers.get('Cache-Control')).toBe('public, max-age=300');
 
-		const untranslated = await get('/article?slug=the-second&lang=ja');
+		const untranslated = await get('/article?slug=the-second&locale=ja');
 		expect(untranslated.status).toBe(404);
 	});
 
 	it('refuses a locale it does not know rather than falling back to one it does', async () => {
-		const res = await get('/article?slug=the-first&lang=xx');
+		const res = await get('/article?slug=the-first&locale=xx');
 		expect(res.status).toBe(400);
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
 	// spec/architecture/artifacts.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
-		expect(await payload(await get('/article?slug=the-first&lang=en'))).not.toHaveProperty(
+		expect(await payload(await get('/article?slug=the-first&locale=en'))).not.toHaveProperty(
 			'markdown',
 		);
 	});
@@ -173,7 +173,7 @@ describe('GET /source', () => {
 
 describe('GET /homepage', () => {
 	it('lists the locale views newest first, with the homepage page', async () => {
-		const res = await get('/homepage?lang=en');
+		const res = await get('/homepage?locale=en');
 		expect(res.status).toBe(200);
 		const body = await payload<{
 			locale: { code: string; language_tag: string };
@@ -191,7 +191,7 @@ describe('GET /homepage', () => {
 
 	// Nothing stands in for a view this locale does not have, here or on /view.
 	it('drops an article this locale cannot show, and answers no page at all', async () => {
-		const res = await get('/homepage?lang=ja');
+		const res = await get('/homepage?locale=ja');
 		const body = await payload<{ page: unknown; articles: { slug: string }[] }>(res);
 		expect(body.articles.map((article) => article.slug)).toEqual(['the-first']);
 		expect(body.page).toBeNull();
@@ -312,7 +312,10 @@ describe('POST /batch', () => {
 		const many = Array.from({ length: RESOURCES_PER_QUESTION + 1 }, (_, at) =>
 			at.toString(36).padStart(5, '0'),
 		);
-		const res = await get('/batch', { method: 'POST', body: { type: 'resources', rids: many } });
+		const res = await get('/batch', {
+			method: 'POST',
+			body: { type: 'resources', resources: many },
+		});
 		expect(res.status).toBe(400);
 		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_body' });
 	});
@@ -349,7 +352,7 @@ describe('POST /batch', () => {
 				fetch: store,
 				method: 'POST',
 				// `zzzzz` is a rid nothing publishes; `NOPE!` could never be one at all.
-				body: { type: 'resources', rids: ['k7m2x', 'k7m2x', 'zzzzz', 'NOPE!'] },
+				body: { type: 'resources', resources: ['k7m2x', 'k7m2x', 'zzzzz', 'NOPE!'] },
 			}),
 		);
 
@@ -377,7 +380,7 @@ describe('POST /batch', () => {
 		const res = await get('/batch', {
 			fetch: store,
 			method: 'POST',
-			body: { type: 'resources', rids: ['k7m2x', 'q4w8n'] },
+			body: { type: 'resources', resources: ['k7m2x', 'q4w8n'] },
 		});
 		expect(res.status).toBe(200);
 		const answered = await payload<BatchAnswerOf<'resources'>>(res);
@@ -393,7 +396,7 @@ describe('POST /batch', () => {
 			await get('/batch', {
 				fetch: store,
 				method: 'POST',
-				body: { type: 'resources', rids: ['K7M2X'] },
+				body: { type: 'resources', resources: ['K7M2X'] },
 			}),
 		);
 		expect(Object.keys(answered.resources)).toEqual(['k7m2x']);
@@ -404,7 +407,7 @@ describe('the feed', () => {
 	// Entries and not a document: the feed is assembled by whoever asked, out of objects this
 	// answer names. See spec/architecture/artifacts.md, "Which objects exist".
 	it('lists what one locale has, newest change first, and nothing for a locale with none', async () => {
-		const answered = await payload<FeedAnswer>(await get('/feed?lang=en'));
+		const answered = await payload<FeedAnswer>(await get('/feed?locale=en'));
 		expect(answered.locale).toEqual({ code: 'en' });
 		// Not the root's order: `mirror/the-second` is second there and changed later, so it leads.
 		expect(answered.entries.map((entry) => entry.slug)).toEqual(['the-second', 'the-first']);
@@ -416,7 +419,7 @@ describe('the feed', () => {
 		});
 
 		// A locale no article has a view in is an empty feed, not a 404: the site still exists.
-		expect((await payload<FeedAnswer>(await get('/feed?lang=ko'))).entries).toEqual([]);
+		expect((await payload<FeedAnswer>(await get('/feed?locale=ko'))).entries).toEqual([]);
 	});
 });
 
@@ -424,7 +427,7 @@ describe('the feed', () => {
 // became an outage, so it is the one answer here that is never stored.
 describe('a root that cannot be read', () => {
 	it('fails rather than reporting an empty corpus, and is not cached', async () => {
-		const res = await get('/homepage?lang=en', {
+		const res = await get('/homepage?locale=en', {
 			fetch: async () => new Response('nope', { status: 404 }),
 		});
 		expect(res.status).toBe(500);

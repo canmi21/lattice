@@ -140,7 +140,7 @@ async function reads(
 /**
  * What each of these rids currently means, as the stored records themselves.
  *
- * The documents `GET /media?rid=` streams one at a time, composed no further: a record carries
+ * The documents `GET /media?resource=` streams one at a time, composed no further: a record carries
  * its own version and is read by whoever asked. A rid the corpus does not publish is absent
  * rather than an error, for the reason a slug is. Checked before any read, so a body of strings
  * that could never be ids costs one pass and no lookups.
@@ -149,7 +149,7 @@ async function resources(
 	env: Bindings,
 	asked: v.InferOutput<typeof ResourcesRequestSchema>,
 ): Promise<BatchAnswer> {
-	const wanted = [...new Set(asked.rids.map((rid) => rid.toLowerCase()))].filter(isResourceId);
+	const wanted = [...new Set(asked.resources.map((rid) => rid.toLowerCase()))].filter(isResourceId);
 	const found: Record<string, Resource> = {};
 	await Promise.all(
 		wanted.map(async (rid) => {

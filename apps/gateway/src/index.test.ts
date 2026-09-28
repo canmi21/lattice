@@ -167,11 +167,11 @@ describe('the gateway', () => {
 			new Response('ok')
 		)) as typeof fetch;
 		try {
-			await ask('/site/media?rid=a', { SITE: 'development' });
+			await ask('/site/media?resource=a', { SITE: 'development' });
 		} finally {
 			globalThis.fetch = real;
 		}
-		expect(seen).toEqual([`${developmentUrl('site')}/api/media?rid=a`]);
+		expect(seen).toEqual([`${developmentUrl('site')}/api/media?resource=a`]);
 	});
 
 	it("sends the host's own address to the site", async () => {

@@ -47,7 +47,7 @@ describe('a resource', () => {
 		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.avif`);
 		// Asked by rid, which is what `/media` takes. A cid names bytes and would answer nothing
 		// about the thing. See spec/architecture/resource.md, "Two ids".
-		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/media?rid=${RID}`);
+		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/media?resource=${RID}`);
 	});
 
 	it('sends a declared slug to the site rather than to the bytes', async () => {

@@ -207,15 +207,12 @@ function homepage(root: Root, locale: LocaleCode): HomeAnswer['page'] {
 }
 
 /**
- * Which view was asked for: `?lang=`, and the source when nothing was asked.
- *
- * A query parameter rather than a path segment, because that is how this site already asks --
- * `spec/locale/addressing.md` gives `lang` as a reader's first preference source and `llms.txt`
- * documents it for machines. One spelling reaches the site and the API. Absent means `mw`, the
- * same answer a bare URL gives; an unknown value is a 400 and never a fallback to another view.
+ * Which view was asked for: `?locale=`, and the source when nothing was asked. Absent means `mw`,
+ * the same answer a bare URL gives; an unknown value is a 400 and never a fallback to another
+ * view. See spec/architecture/artifacts.md, "The locale is a query parameter".
  */
 function askedLocale(c: Context): LocaleCode | undefined {
-	const asked = c.req.query('lang');
+	const asked = c.req.query('locale');
 	if (asked === undefined || asked === '') return 'mw';
 	return (LOCALE_CODES as readonly string[]).includes(asked) ? (asked as LocaleCode) : undefined;
 }

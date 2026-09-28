@@ -48,14 +48,14 @@ export const RESOURCES_PER_QUESTION = 64;
 /**
  * What every rid on one page currently means, asked once.
  *
- * An arm here rather than a fan of `GET /media?rid=`, and bounded like the slugs above: one
+ * An arm here rather than a fan of `GET /media?resource=`, and bounded like the slugs above: one
  * page's worth, not a walk of the corpus. Unchecked against the id pattern for the reason `slugs`
  * is -- a string that could never be one comes back absent, which is the same answer sooner. See
  * spec/architecture/resource.md, "One question per page, not one per resource".
  */
 export const ResourcesRequestSchema = v.object({
 	type: v.literal('resources'),
-	rids: v.pipe(v.array(v.string()), v.maxLength(RESOURCES_PER_QUESTION)),
+	resources: v.pipe(v.array(v.string()), v.maxLength(RESOURCES_PER_QUESTION)),
 });
 
 /**
