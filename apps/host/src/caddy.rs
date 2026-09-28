@@ -185,7 +185,7 @@ fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> V
 				Some(Target {
 					name: app.manifest.name.clone(),
 					dial: format!("{}:{}", app.manifest.name, app.manifest.container.as_ref()?.port?),
-					home: None,
+					home: app.manifest.interface.as_ref()?.home.clone(),
 				})
 			}),
 	);
@@ -440,6 +440,21 @@ mod tests {
 		assert!(!rendered.contains("nas.inside.test"));
 		// host's own panel is on both.
 		assert!(rendered.contains("host.inside.test") && rendered.contains("host.outside.test"));
+	}
+
+	#[test]
+	fn an_apps_declared_home_redirects_its_root() {
+		let text = include_str!("../../gemini/service.toml");
+		let gemini = Deployed {
+			manifest: Manifest::parse(text).unwrap(),
+			image: "sha256:g".into(),
+			previous: None,
+			deployed_at: String::new(),
+			held: false,
+		};
+		let rendered = super::tests::text(&render(&config(), "host", &[gemini], &[]));
+		assert!(rendered.contains(r#""Location":["/admin"]"#));
+		assert_eq!(rendered.matches(r#""dial":"gemini:20830""#).count(), 2);
 	}
 
 	#[test]

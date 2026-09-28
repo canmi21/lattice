@@ -25,7 +25,7 @@ reads R2, which has an S3 surface, so it can be placed off Cloudflare as it is.
 
 ## Every node is the same node
 
-The VPS and the machine at home run the same four things: host, keeper, Caddy and cloudflared.
+The VPS and the machine at home run the same four things: host, keeper, Caddy and the tunnel.
 Neither opens an inbound port; public traffic reaches each through its own tunnel, and the nodes
 reach each other on the tailnet. Each node's host deploys only what is placed on it.
 
@@ -185,7 +185,7 @@ a check on the others:
    call through, with the WAF beneath it.
 3. **Caddy on the node** keeps the same rows again, for what the gateway forwards and nothing else:
    a request carrying its mark, counted by the visitor's address that Caddy takes from
-   `Cf-Connecting-IP`, which it believes from cloudflared alone. It is there for the moment a
+   `Cf-Connecting-IP`, which it believes from the tunnel alone. It is there for the moment a
    counter fails and lets a call through. The LAN, the tailnet and our own Workers meet no limit
    here either. host renders one zone a row into the tunnel's side, named as the gateway's counters
    are without the address, and a refusal is the envelope's `rate_limited` with `Retry-After` and
@@ -291,7 +291,8 @@ without a network, see [meter.md](meter.md).
 
 **No container publishes a port.** Each app has a Docker network of its own that it shares with
 Caddy and nothing else, so an app that is compromised cannot reach another around Caddy.
-cloudflared reaches Caddy only, and Workers VPC reaches a node through Caddy too.
+The tunnel reaches Caddy only, and Workers VPC reaches a node through Caddy too: a Worker asks
+Caddy with the name it wants as `Host`, as `gemini`'s VPC service does.
 
 This is a single entrance, not zero trust, and the difference is worth knowing: `.icu` admits by
 where a request comes from, `.app` by who sent it. For one person that is the right trade. host is

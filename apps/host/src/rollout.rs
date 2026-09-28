@@ -55,14 +55,18 @@ pub struct Outcome {
 	pub routed: Result<(), String>,
 }
 
-/// Whether host takes a deploy under this name at all: any app's, and keeper, the meter and Caddy,
-/// the reserved names it deploys. host itself is keeper's to deploy.
+/// Whether host takes a deploy under this name at all: any app's, and keeper, the meter, Caddy and
+/// the tunnel, the reserved names it deploys. host itself is keeper's to deploy.
 pub fn deployable(name: &str) -> Result<(), Invalid> {
 	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it.
-const TAKEN: [&str; 3] = ["keeper", "meter", "caddy"];
+const TAKEN: [&str; 4] = ["keeper", "meter", "caddy", "tunnel"];
+
+/// The platform's own that stand on no network of their own: the meter has none, and Caddy and the
+/// tunnel stand on the edge.
+const UNNETWORKED: [&str; 3] = ["meter", "caddy", "tunnel"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
@@ -88,7 +92,8 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 }
 
 /// How the node runs an app: keeper in the platform's shape, the meter as an observer, Caddy on the
-/// edge, and every other app sandboxed. The last three read their own environment.
+/// edge, the tunnel at the address Caddy trusts, and every other app sandboxed. All but keeper read
+/// their own environment.
 fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	if name == "keeper" {
 		let path = &host.config.platform_env;
@@ -100,6 +105,7 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	Ok(match name {
 		"meter" => Shape::Observer { env },
 		"caddy" => Shape::Edge { env },
+		"tunnel" => Shape::Tunnel { env, address: host.config.caddy.tunnel_source.clone() },
 		_ => Shape::Sandboxed { env },
 	})
 }
@@ -114,6 +120,10 @@ async fn run_version(
 ) -> Result<PathBuf, Error> {
 	let shape = shape_of(host, &next.manifest.name)?;
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
+	// The tunnel has no network of its own for host to ask its health on; host stands on the edge.
+	if matches!(shape, Shape::Tunnel { .. }) {
+		host.engine.join(deploy::engine::EDGE_NETWORK, &members[..1], false).await?;
+	}
 	let snapshot =
 		replace(&host.engine, &host.volumes, &members, &shape, next, current, restore).await?;
 	// A new Caddy is a new container, on none of the apps' networks yet.
@@ -473,10 +483,9 @@ pub fn render(host: &Host) -> Result<serde_json::Value, store::Error> {
 pub async fn attach(host: &Host) -> Result<(), RouteError> {
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
 	host.engine.network("host", &members).await?;
-	// The meter has no network, and Caddy stands on the edge rather than on one of its own.
 	for app in host.store.apps()? {
 		let name = app.manifest.name.as_str();
-		if name != "meter" && name != host.config.caddy.container {
+		if !UNNETWORKED.contains(&name) && name != host.config.caddy.container {
 			host.engine.network(name, &members).await?;
 		}
 	}
@@ -526,6 +535,8 @@ mod tests {
 		assert!(deployable("keeper").is_ok());
 		assert!(deployable("meter").is_ok());
 		assert!(deployable("caddy").is_ok());
+		assert!(deployable("tunnel").is_ok());
+		assert_eq!(deployable("panel"), Err(Invalid::Reserved("panel".into())));
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
 	}

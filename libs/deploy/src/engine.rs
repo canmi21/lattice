@@ -5,7 +5,7 @@
 use crate::manifest::Manifest;
 use bollard::Docker;
 use bollard::models::{
-	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType,
+	ContainerCreateBody, EndpointIpamConfig, EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType,
 	NetworkConnectRequest, NetworkCreateRequest, PortBinding, RestartPolicy, RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
@@ -58,13 +58,17 @@ pub enum Shape {
 	/// host writes, read-only; no capability but binding a low port. See
 	/// spec/architecture/host.md, "Caddy is deployed like any app, and is the one door".
 	Edge { env: Vec<String> },
+	/// The tunnel only: sandboxed, on the `edge` network at `address`, the one address Caddy
+	/// believes a visitor's address from. See spec/architecture/host.md, "The tunnel is deployed like
+	/// any app, at the address Caddy trusts".
+	Tunnel { env: Vec<String>, address: String },
 }
 
 impl Shape {
 	/// Whether it runs on the app's own network, which Caddy and host join. The meter has no
 	/// network at all, and Caddy stands on the edge and joins the others.
 	pub fn networked(&self) -> bool {
-		!matches!(self, Shape::Observer { .. } | Shape::Edge { .. })
+		!matches!(self, Shape::Observer { .. } | Shape::Edge { .. } | Shape::Tunnel { .. })
 	}
 }
 
@@ -167,9 +171,15 @@ impl Engine {
 	/// The app's network, shared with Caddy and with host for its health checks, and nothing else.
 	pub async fn network(&self, name: &str, members: &[&str]) -> Result<(), Error> {
 		let network = network_of(name);
+		self.join(&network, members, true).await
+	}
+
+	/// Attach `members` to `network`, which is made first when `create` allows it.
+	pub async fn join(&self, network: &str, members: &[&str], create: bool) -> Result<(), Error> {
+		let network = network.to_owned();
 		match self.docker.inspect_network(&network, None).await {
 			Ok(_) => {}
-			Err(error) if absent(&error) => {
+			Err(error) if absent(&error) && create => {
 				let request = NetworkCreateRequest {
 					name: network.clone(),
 					driver: Some("bridge".into()),
@@ -296,6 +306,13 @@ impl Engine {
 				};
 				(config, env.clone())
 			}
+			Shape::Tunnel { env, .. } => {
+				let config = HostConfig {
+					network_mode: Some(EDGE_NETWORK.into()),
+					..sandboxed(own.into_iter().collect())
+				};
+				(config, env.clone())
+			}
 			Shape::Platform { env } => {
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
@@ -327,11 +344,16 @@ impl Engine {
 			host_config: Some(host_config),
 			networking_config: match shape {
 				Shape::Observer { .. } => None,
-				Shape::Edge { .. } => Some(EDGE_NETWORK.to_owned()),
-				_ => Some(network_of(name)),
+				Shape::Edge { .. } => Some((EDGE_NETWORK.to_owned(), EndpointSettings::default())),
+				Shape::Tunnel { address, .. } => {
+					let fixed = EndpointIpamConfig { ipv4_address: Some(address.clone()), ..Default::default() };
+					let settings = EndpointSettings { ipam_config: Some(fixed), ..Default::default() };
+					Some((EDGE_NETWORK.to_owned(), settings))
+				}
+				_ => Some((network_of(name), EndpointSettings::default())),
 			}
-			.map(|network| bollard::models::NetworkingConfig {
-				endpoints_config: Some(HashMap::from([(network, EndpointSettings::default())])),
+			.map(|(network, settings)| bollard::models::NetworkingConfig {
+				endpoints_config: Some(HashMap::from([(network, settings)])),
 			}),
 			..Default::default()
 		};

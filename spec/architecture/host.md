@@ -20,8 +20,9 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 - Apps from this repository and images from elsewhere share the one namespace.
 - `host` and `keeper` are reserved for the two programs below, `meter` for what samples the
   machine ([meter.md](meter.md)), `api` for the API host, `gateway` for the Worker answering it
-  publicly, `caddy` for the door host deploys (below), and `cloudflared` because a container's
-  name is the app's and it already runs.
+  publicly, `caddy` for the door host deploys and `tunnel` for the way in from Cloudflare (both
+  below), `panel` for host's interface, and `cloudflared` because the tunnel ran under that name
+  before host deployed it.
 
 `.icu` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
@@ -109,10 +110,9 @@ table, which host does not read, and is left as root's.
 **Every container has a memory ceiling, and no swap past it.** A declaration states `memory_mb` and
 host gives 512 without one; the platform's own two containers get theirs the same way, and swap is
 set equal to the limit, since a ceiling that can be exceeded into swap only makes the machine
-slower. The containers host does not run -- Caddy, cloudflared, the images started by a compose
-file -- carry theirs in that file. Each figure is the container's measured peak with room above it:
-geo, measured at 290 MiB held and 130 more pushed into swap against a 512 limit it met sixty times,
-has 768; host 256 and keeper 128 against peaks of 41 and 11; the rest 256.
+slower. Each figure is the container's measured use with room above it: geo, measured at 290 MiB
+held and 130 more pushed into swap against a 512 limit it met sixty times, has 768; host 128,
+keeper 32, the meter 32 and Caddy 128, against 50, 9, 19 and 20 measured on 2026-09-28.
 
 ### An image is built for speed, and for any node of its architecture
 
@@ -236,7 +236,7 @@ shown in the panel as every app is. The shape differs from an app's sandbox in f
 
 - Its ports, 80, 443 and 443 over UDP, are published on the machine; no other container publishes
   any.
-- It stands on the `edge` network, which cloudflared shares, rather than on one of its own, and
+- It stands on the `edge` network, which the tunnel shares, rather than on one of its own, and
   after every deploy host joins it to each app's network again, since a new container is on none.
 - Beside its `data/` -- certificates, and the admin socket -- it mounts `host/`, the configuration
   host writes, read-only, and `config/`.
@@ -248,6 +248,26 @@ provider proves certificates with is its `secret.env`, as any app's secret is. *
 it does not start at all**, so a node's first Caddy deployed by host needs `secret.env` in place
 before it, or every door closes; the one it replaces is brought back by hand from the compose file
 beside it, `docker compose up -d`.
+
+### The tunnel is deployed like any app, at the address Caddy trusts
+
+**cloudflared is `apps/tunnel`, deployed by host in a shape its name alone gets**: sandboxed as an
+app is, but standing on `edge` at `tunnel_source` from host's configuration -- the one address
+Caddy believes `Cf-Connecting-Ip` from, so a visitor's address is only ever taken from it. Its
+routes are the dashboard's, a remotely-managed tunnel; its token is `TUNNEL_TOKEN` in its
+`secret.env`; its health is its metrics server's `/ready`, on its port, which host reaches by
+standing on `edge` too. A tunnel that is down closes the public side and the notices CI sends, so
+the one it replaced is brought back by hand, and the LAN and the tailnet, which never pass it, are
+how.
+
+### An upstream image is adopted, not rebuilt
+
+**An image from elsewhere becomes an app by a directory like any other**: its `service.toml`, and a
+Dockerfile that is the upstream image at a pinned version, with only what the node needs said on
+top -- its user by number, where its data and its port are. A new version is that one line changed,
+and CI deploys it as it deploys everything. What it keeps secret stays in its `secret.env` on the
+node and never reaches the repository. `gemini` and `tunnel` came in this way; an app with a page
+not at its root declares `home` under `[interface]`, and Caddy sends `/` there.
 
 ### host renders all of Caddy, and Caddy remembers nothing
 

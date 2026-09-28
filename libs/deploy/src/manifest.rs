@@ -9,14 +9,16 @@ use std::ops::RangeInclusive;
 /// sense of a newer file; a key an older host can ignore is not a bump. See spec/json.md.
 pub const VERSION: u32 = 1;
 
-/// Names taken by the platform itself: its two programs, the meter that watches the machine, the
-/// API host and the Worker answering it, and the containers an app's name would collide with.
-const RESERVED: [&str; 7] = ["host", "keeper", "meter", "api", "gateway", "caddy", "cloudflared"];
+/// Names taken by the platform itself: its programs, the meter that watches the machine, the API
+/// host and the Worker answering it, and the containers an app's name would collide with.
+const RESERVED: [&str; 9] =
+	["host", "keeper", "meter", "api", "gateway", "caddy", "tunnel", "panel", "cloudflared"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the meter, and Caddy. See spec/architecture/host.md, "host
-/// never updates itself; keeper updates host", and spec/architecture/meter.md.
-pub const OWN: [&str; 4] = ["host", "keeper", "meter", "caddy"];
+/// keeper, which each deploy the other, the meter, Caddy and the tunnel. See
+/// spec/architecture/host.md, "host never updates itself; keeper updates host", and
+/// spec/architecture/meter.md.
+pub const OWN: [&str; 5] = ["host", "keeper", "meter", "caddy", "tunnel"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -95,6 +97,20 @@ pub const LONGEST_WINDOW: u32 = 86_400;
 pub struct Interface {
 	#[serde(default = "public_by_default")]
 	pub public: bool,
+	/// Where a request for exactly `/` is sent, when the app's own page is not at its root.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub home: Option<String>,
+}
+
+/// Whether `home` stays on the name it is set for. `/` would send the root to itself forever; `//`
+/// and `/\` are read by a browser as another site entirely, which would make the name an open
+/// redirect; and a control character has no business in the `Location` it becomes.
+pub fn is_home(home: &str) -> bool {
+	home.starts_with('/')
+		&& home != "/"
+		&& !home.starts_with("//")
+		&& !home.starts_with("/\\")
+		&& !home.chars().any(char::is_control)
 }
 
 fn public_by_default() -> bool {
@@ -135,6 +151,8 @@ pub enum Invalid {
 	Health,
 	#[error("the data path has to be absolute")]
 	DataPath,
+	#[error("a home is a path on the app's own site other than `/`")]
+	Home,
 	#[error("an API prefix is served on Workers alone, never by a node")]
 	Prefix,
 	#[error(
@@ -203,6 +221,10 @@ impl Manifest {
 		}
 		if self.data.as_ref().is_some_and(|data| !data.path.starts_with('/')) {
 			return Err(Invalid::DataPath);
+		}
+		let home = self.interface.as_ref().and_then(|interface| interface.home.as_deref());
+		if home.is_some_and(|home| !is_home(home)) {
+			return Err(Invalid::Home);
 		}
 		if self.api.as_ref().is_some_and(|api| api.prefix.is_some()) {
 			return Err(Invalid::Prefix);
@@ -397,6 +419,19 @@ mod tests {
 			let manifest = Manifest::parse(&text).unwrap();
 			assert_eq!(manifest.check("geo", "home"), Err(Invalid::Limit), "{broken}");
 		}
+	}
+
+	#[test]
+	fn a_home_stays_on_the_apps_own_site() {
+		let gemini = Manifest::parse(include_str!("../../../apps/gemini/service.toml")).unwrap();
+		assert_eq!(gemini.check("gemini", "home"), Ok(()));
+		for home in ["/", "admin", "//evil.example"] {
+			let mut elsewhere = gemini.clone();
+			elsewhere.interface.as_mut().unwrap().home = Some(home.into());
+			assert_eq!(elsewhere.check("gemini", "home"), Err(Invalid::Home), "{home}");
+		}
+		let tunnel = Manifest::parse(include_str!("../../../apps/tunnel/service.toml")).unwrap();
+		assert_eq!(tunnel.check_own("tunnel", "home"), Ok(()));
 	}
 
 	#[test]

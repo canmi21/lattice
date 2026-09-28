@@ -14,7 +14,7 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post, put};
 use axum::{Json, Router};
 use deploy::Manifest;
-use deploy::manifest;
+use deploy::manifest::{self, is_home};
 use deploy::replace::Error as Failed;
 use serde::Deserialize;
 use std::sync::Arc;
@@ -577,35 +577,24 @@ async fn delete_route(State(host): State<Arc<Host>>, Path(name): Path<String>) -
 	}
 }
 
-/// Whether `home` stays on the name it is set for. `/` would send the root to itself forever; `//`
-/// and `/\` are read by a browser as another site entirely, which would make the name an open
-/// redirect; and a control character has no business in the `Location` it becomes.
-fn is_home(home: &str) -> bool {
-	home.starts_with('/')
-		&& home != "/"
-		&& !home.starts_with("//")
-		&& !home.starts_with("/\\")
-		&& !home.chars().any(char::is_control)
-}
-
-/// What Caddy would be given now, without giving it. What to read before switching Caddy over.
 /// The meter's socket, as the meter deployed on this node declares it; none without one.
-fn agent_socket(host: &Host) -> Option<std::path::PathBuf> {
+fn meter_socket(host: &Host) -> Option<std::path::PathBuf> {
 	let meter = host.store.apps().ok()?.into_iter().find(|app| app.manifest.name == "meter")?;
 	Some(host.volumes.data("meter").join(meter.manifest.container?.socket?))
 }
 
 /// The machine as it is this second, with what does not change beside it.
 async fn node_now(State(host): State<Arc<Host>>) -> Response {
-	node::relay(agent_socket(&host).as_deref(), "/now").await
+	node::relay(meter_socket(&host).as_deref(), "/now").await
 }
 
 /// The machine over time, at the grain asked for; the query is the meter's to read.
 async fn node_series(State(host): State<Arc<Host>>, RawQuery(query): RawQuery) -> Response {
 	let path = query.map_or_else(|| "/series".to_owned(), |query| format!("/series?{query}"));
-	node::relay(agent_socket(&host).as_deref(), &path).await
+	node::relay(meter_socket(&host).as_deref(), &path).await
 }
 
+/// What Caddy would be given now, without giving it. What to read before switching Caddy over.
 async fn caddy(State(host): State<Arc<Host>>) -> Response {
 	match rollout::render(&host) {
 		Ok(rendered) => response::success(StatusCode::OK, rendered),
@@ -636,13 +625,14 @@ async fn routed(host: &Host) -> Response {
 mod tests {
 	#[test]
 	fn a_home_stays_on_its_own_site() {
-		assert!(super::is_home("/admin"));
-		assert!(super::is_home("/admin/"));
-		assert!(!super::is_home("/"));
-		assert!(!super::is_home("admin"));
-		assert!(!super::is_home("//evil.example"));
-		assert!(!super::is_home("/\\evil.example"));
-		assert!(!super::is_home("/admin\r\nSet-Cookie: x=1"));
+		use deploy::manifest::is_home;
+		assert!(is_home("/admin"));
+		assert!(is_home("/admin/"));
+		assert!(!is_home("/"));
+		assert!(!is_home("admin"));
+		assert!(!is_home("//evil.example"));
+		assert!(!is_home("/\\evil.example"));
+		assert!(!is_home("/admin\r\nSet-Cookie: x=1"));
 	}
 
 	#[test]
