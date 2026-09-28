@@ -5,6 +5,7 @@
 
 use crate::engine::{self, Engine, Shape, Version};
 use crate::volume::{self, Volumes};
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 /// How long a new version has to answer its health check when its declaration does not say.
@@ -25,7 +26,10 @@ pub enum Error {
 	FirstFailed { reason: String, logs: String },
 }
 
-/// Run `next` in place of `current`, on the app's own network with `members` attached to it.
+/// Run `next` in place of `current`, on the app's own network with `members` attached to it, and
+/// answer with the snapshot taken of the app's directory before `next` started. With `restore`,
+/// the directory is first put back as that snapshot held it -- a rollback with its data -- and a
+/// failed check still puts back the directory as it was just before.
 pub async fn replace(
 	engine: &Engine,
 	volumes: &Volumes,
@@ -33,7 +37,8 @@ pub async fn replace(
 	shape: &Shape,
 	next: &Version,
 	current: Option<&Version>,
-) -> Result<(), Error> {
+	restore: Option<&Path>,
+) -> Result<PathBuf, Error> {
 	let name = next.manifest.name.as_str();
 	engine.network(name, members).await?;
 	volumes.ensure(name).await?;
@@ -41,13 +46,16 @@ pub async fn replace(
 	engine.archive(name, &volumes.logs(name)).await?;
 	engine.remove(name).await?;
 	let snapshot = volumes.snapshot(name).await?;
+	if let Some(restore) = restore {
+		volumes.restore(name, restore).await?;
+	}
 	let checked = match engine.run(next, shape, &volumes.data(name)).await {
 		Ok(()) => healthy(engine, next).await,
 		Err(error) => Err(error.to_string()),
 	};
 	let Err(reason) = checked else {
 		volumes.prune(name).await?;
-		return Ok(());
+		return Ok(snapshot);
 	};
 
 	let logs = engine.tail(name).await;

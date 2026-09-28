@@ -4,7 +4,7 @@
 use crate::Host;
 use crate::environment;
 use crate::rollout::{self, Error as DeployError};
-use crate::store::Route;
+use crate::store::{Action, Deployed, Route, Source};
 use axum::extract::{DefaultBodyLimit, Multipart, Path, Query, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{self, Next};
@@ -21,7 +21,13 @@ use tokio::io::AsyncWriteExt;
 pub fn router(host: Arc<Host>) -> Router {
 	let guarded = Router::new()
 		.route("/apps", get(apps))
-		.route("/apps/{name}", post(upload).layer(DefaultBodyLimit::disable()))
+		.route("/apps/{name}", get(app).post(upload).layer(DefaultBodyLimit::disable()))
+		.route("/apps/{name}/history", get(history))
+		.route("/apps/{name}/redeploy", post(redeploy))
+		.route("/apps/{name}/rollback", post(rollback))
+		.route("/apps/{name}/start", post(start))
+		.route("/apps/{name}/stop", post(stop))
+		.route("/apps/{name}/restart", post(restart))
 		.route("/apps/{name}/logs", get(logs))
 		.route("/apps/{name}/logs/archive", get(archived))
 		.route("/apps/{name}/logs/archive/{file}", get(archived_file))
@@ -113,8 +119,117 @@ fn stored<T: serde::Serialize>(read: Result<T, impl ToString>) -> Response {
 	}
 }
 
+/// An app as the panel shows it: what the store holds, and what only Docker and the snapshots know.
+#[derive(serde::Serialize)]
+struct Shown {
+	#[serde(flatten)]
+	app: Deployed,
+	running: bool,
+	/// Whether a rollback with data can be offered.
+	restorable: bool,
+}
+
+async fn shown(host: &Host, app: Deployed) -> Shown {
+	let running = host.engine.running(&app.manifest.name).await.unwrap_or(false);
+	let restorable = rollout::restorable(host, &app).ok().flatten().is_some();
+	Shown { app, running, restorable }
+}
+
 async fn apps(State(host): State<Arc<Host>>) -> Response {
-	stored(host.store.apps())
+	let apps = match host.store.apps() {
+		Ok(apps) => apps,
+		Err(error) => return failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
+	};
+	let mut all = Vec::with_capacity(apps.len());
+	for app in apps {
+		all.push(shown(&host, app).await);
+	}
+	response::success(StatusCode::OK, all)
+}
+
+async fn app(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	match host.store.app(&name) {
+		Ok(Some(app)) => response::success(StatusCode::OK, shown(&host, app).await),
+		Ok(None) => response::failure(StatusCode::NOT_FOUND, "no_such_app"),
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
+	}
+}
+
+#[derive(Deserialize)]
+struct Page {
+	before: Option<i64>,
+	limit: Option<u32>,
+}
+
+/// How many events a page holds when the panel names no number, and the most it may ask for.
+const EVENTS: u32 = 50;
+const MOST_EVENTS: u32 = 500;
+
+/// An app's events, the newest first, a page at a time: the next page is the one `before` the
+/// last id of this one.
+async fn history(
+	State(host): State<Arc<Host>>,
+	Path(name): Path<String>,
+	Query(page): Query<Page>,
+) -> Response {
+	let limit = page.limit.unwrap_or(EVENTS).clamp(1, MOST_EVENTS);
+	stored(host.store.events(Some(&name), page.before, limit))
+}
+
+/// A panel action's refusal, by what went wrong.
+fn refused(error: DeployError) -> Response {
+	let (status, code) = match &error {
+		DeployError::Itself => (StatusCode::FORBIDDEN, "invalid_target"),
+		DeployError::NoSuchApp(_) => (StatusCode::NOT_FOUND, "no_such_app"),
+		DeployError::NoPrevious(_) => (StatusCode::CONFLICT, "no_such_version"),
+		DeployError::NoSnapshot(_) => (StatusCode::CONFLICT, "no_such_snapshot"),
+		DeployError::Replace(Failed::Unhealthy { .. } | Failed::FirstFailed { .. }) => {
+			(StatusCode::BAD_GATEWAY, "app_unavailable")
+		}
+		DeployError::Engine(_) | DeployError::Replace(_) => {
+			(StatusCode::BAD_GATEWAY, "docker_unavailable")
+		}
+		DeployError::Store(_) => (StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable"),
+		_ => (StatusCode::INTERNAL_SERVER_ERROR, "service_unavailable"),
+	};
+	failed(status, code, error)
+}
+
+fn done(result: Result<impl serde::Serialize, DeployError>) -> Response {
+	match result {
+		Ok(value) => response::success(StatusCode::OK, value),
+		Err(error) => refused(error),
+	}
+}
+
+async fn redeploy(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	done(rollout::redeploy(&host, &name).await)
+}
+
+#[derive(Deserialize)]
+struct Rollback {
+	#[serde(default)]
+	with_data: bool,
+}
+
+async fn rollback(
+	State(host): State<Arc<Host>>,
+	Path(name): Path<String>,
+	Json(asked): Json<Rollback>,
+) -> Response {
+	done(rollout::rollback(&host, &name, asked.with_data).await)
+}
+
+async fn start(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	done(rollout::act(&host, &name, Action::Start).await)
+}
+
+async fn stop(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	done(rollout::act(&host, &name, Action::Stop).await)
+}
+
+async fn restart(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	done(rollout::act(&host, &name, Action::Restart).await)
 }
 
 /// A deploy: the declaration as the part `service`, then the image archive as the part `image`.
@@ -165,7 +280,7 @@ async fn upload(
 	if !received {
 		return failed(StatusCode::BAD_REQUEST, "invalid_upload", "No image part");
 	}
-	match rollout::from_archive(&host, &name, manifest, &archive).await {
+	match rollout::from_archive(&host, &name, manifest, &archive, &Source::upload()).await {
 		Ok(outcome) => response::success(StatusCode::OK, outcome),
 		Err(error @ DeployError::Invalid(_)) => {
 			failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_declaration", error)

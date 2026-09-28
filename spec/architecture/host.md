@@ -333,8 +333,8 @@ program answering the request, and keeper is the one that replaces host.
 
 **A stop holds until a start.** A stopped app stays stopped through a reboot -- Docker's own
 restart policy does that -- and through a deploy: while it is held, a CI run that built it is recorded
-as skipped rather than started. A start runs the version it was stopped at; a redeploy or a rollback
-is a choice to run something, and ends the hold.
+as skipped rather than started. A start runs the version it was stopped at; a redeploy, a rollback
+or an upload is a choice to run something, and ends the hold.
 
 ## Open
 

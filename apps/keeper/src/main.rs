@@ -233,7 +233,7 @@ async fn notice(State(keeper): State<Arc<Keeper>>, Json(notice): Json<Notice>) -
 async fn from_run(keeper: &Keeper, run: u64) -> bool {
 	let Some(github) = keeper.github.as_ref() else { return false };
 	let artifacts = match github.artifacts(run).await {
-		Ok(artifacts) => artifacts,
+		Ok(built) => built.artifacts,
 		Err(error) => {
 			eprintln!("keeper: run {run}: {error}");
 			return false;
@@ -296,8 +296,10 @@ async fn replace_host(keeper: &Keeper, next: Version) -> Result<String, Reply> {
 	let env = deploy::read_env(&keeper.platform_env).map_err(|e| internal(&e))?;
 	let members = [keeper.own_container.as_str(), keeper.caddy_container.as_str()];
 	let shape = Shape::Platform { env };
-	match replace(&keeper.engine, &keeper.volumes, &members, &shape, &next, current.as_ref()).await {
-		Ok(()) => {}
+	let replaced =
+		replace(&keeper.engine, &keeper.volumes, &members, &shape, &next, current.as_ref(), None);
+	match replaced.await {
+		Ok(_) => {}
 		Err(error @ (Failed::Unhealthy { .. } | Failed::FirstFailed { .. })) => {
 			return Err(Reply(StatusCode::BAD_GATEWAY, "app_unavailable", error.to_string()));
 		}

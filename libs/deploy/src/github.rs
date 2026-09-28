@@ -52,6 +52,16 @@ pub struct Run {
 	pub event: String,
 	pub status: String,
 	pub conclusion: Option<String>,
+	/// The commit the run built, recorded beside what it deployed.
+	#[serde(default)]
+	pub head_sha: Option<String>,
+}
+
+/// What a run built: its commit, and the artifacts it left.
+#[derive(Debug)]
+pub struct Built {
+	pub commit: Option<String>,
+	pub artifacts: Vec<Artifact>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -160,20 +170,19 @@ impl GitHub {
 	}
 
 	/// The deploy artifacts of `run`, once its record says it is one to deploy.
-	pub async fn artifacts(&self, run: u64) -> Result<Vec<Artifact>, Error> {
+	pub async fn artifacts(&self, run: u64) -> Result<Built, Error> {
 		let record: Run = self.json(&format!("/actions/runs/{run}")).await?;
 		check(run, &record, &self.repository)?;
 		let listed: Listed = self.json(&format!("/actions/runs/{run}/artifacts?per_page=100")).await?;
-		Ok(
-			listed
-				.artifacts
-				.into_iter()
-				.filter(|record| !record.expired)
-				.filter_map(|record| {
-					Some(Artifact { app: app_of(&record.name)?, id: record.id, digest: record.digest? })
-				})
-				.collect(),
-		)
+		let artifacts = listed
+			.artifacts
+			.into_iter()
+			.filter(|record| !record.expired)
+			.filter_map(|record| {
+				Some(Artifact { app: app_of(&record.name)?, id: record.id, digest: record.digest? })
+			})
+			.collect();
+		Ok(Built { commit: record.head_sha, artifacts })
 	}
 
 	/// Download `artifact` into `directory`, hold it to its digest, and take out what CI put in it.
@@ -261,6 +270,7 @@ mod tests {
 			event: "push".into(),
 			status: "completed".into(),
 			conclusion: Some("success".into()),
+			head_sha: None,
 		}
 	}
 

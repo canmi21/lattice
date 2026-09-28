@@ -11,6 +11,7 @@ use bollard::models::{
 use bollard::query_parameters::{
 	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListImagesOptionsBuilder,
 	LogsOptionsBuilder, RemoveContainerOptionsBuilder, RemoveImageOptionsBuilder,
+	RestartContainerOptionsBuilder,
 	StopContainerOptionsBuilder, TagImageOptionsBuilder,
 };
 use bytes::Bytes;
@@ -253,6 +254,25 @@ impl Engine {
 			.create_container(Some(CreateContainerOptionsBuilder::new().name(name).build()), body)
 			.await?;
 		self.docker.start_container(name, None).await?;
+		Ok(())
+	}
+
+	/// Start the app's container as it is.
+	pub async fn start(&self, name: &str) -> Result<(), Error> {
+		self.docker.start_container(name, None).await?;
+		Ok(())
+	}
+
+	/// Stop it, leaving it in place; Docker's restart policy leaves a stopped container stopped.
+	pub async fn stop(&self, name: &str) -> Result<(), Error> {
+		let options = StopContainerOptionsBuilder::new().t(20).build();
+		self.docker.stop_container(name, Some(options)).await?;
+		Ok(())
+	}
+
+	pub async fn restart(&self, name: &str) -> Result<(), Error> {
+		let options = RestartContainerOptionsBuilder::new().t(20).build();
+		self.docker.restart_container(name, Some(options)).await?;
 		Ok(())
 	}
 

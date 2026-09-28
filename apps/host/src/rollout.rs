@@ -2,13 +2,13 @@
 //! procedure, then record the new version, route it and collect what is no longer needed. See
 //! spec/architecture/host.md.
 
-use crate::store::Deployed;
+use crate::store::{Action, Deployed, Source};
 use crate::{Host, caddy, store};
 use deploy::manifest::{Invalid, Manifest};
 use deploy::replace::{self, replace};
 use deploy::{Shape, Version, engine};
 use std::collections::HashSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 #[derive(Debug, thiserror::Error)]
@@ -27,6 +27,16 @@ pub enum Error {
 	Environment { path: String, source: std::io::Error },
 	#[error("the archive: {0}")]
 	Archive(std::io::Error),
+	#[error("host does not act on itself; keeper replaces it")]
+	Itself,
+	#[error("`{0}` is not an app this node runs")]
+	NoSuchApp(String),
+	#[error("`{0}` has no previous version to go back to")]
+	NoPrevious(String),
+	#[error("the snapshot from before `{0}`'s version was deployed is no longer kept")]
+	NoSnapshot(String),
+	#[error("only start, stop and restart act on a container as it is")]
+	NotAnAct,
 	#[error("the app's environment: {0}")]
 	AppEnvironment(#[from] crate::environment::Error),
 	/// Docker would not load the archive: it is the upload that is wrong, not the node.
@@ -70,36 +80,83 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	Ok(())
 }
 
-pub async fn deploy(host: &Host, manifest: Manifest, image: String) -> Result<Outcome, Error> {
-	let name = manifest.name.clone();
-	let shape = if name == "keeper" {
+/// How the node runs an app: keeper in the platform's shape, and every other app sandboxed with its
+/// own environment.
+fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
+	if name == "keeper" {
 		let path = &host.config.platform_env;
 		let env = deploy::read_env(path)
 			.map_err(|source| Error::Environment { path: path.display().to_string(), source })?;
-		Shape::Platform { env }
-	} else {
-		Shape::Sandboxed { env: crate::environment::variables(&host.volumes.root(&name))? }
-	};
-	let current = host
-		.store
-		.app(&name)?
-		.map(|current| Version { manifest: current.manifest, image: current.image });
-	let next = Version { manifest, image };
-	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
-	replace(&host.engine, &host.volumes, &members, &shape, &next, current.as_ref()).await?;
+		return Ok(Shape::Platform { env });
+	}
+	Ok(Shape::Sandboxed { env: crate::environment::variables(&host.volumes.root(name))? })
+}
 
-	let deployed_at = jiff::Timestamp::now().to_string();
-	let image = next.image.clone();
-	host.store.put_app(&Deployed {
-		manifest: next.manifest,
-		image: next.image,
-		previous: current,
-		deployed_at,
-		held: false,
-	})?;
+/// The one step every action that runs a version shares: replace what runs with `next`, restoring
+/// `restore` first, and answer with the snapshot taken before `next` started.
+async fn run_version(
+	host: &Host,
+	next: &Version,
+	current: Option<&Version>,
+	restore: Option<&Path>,
+) -> Result<PathBuf, Error> {
+	let shape = shape_of(host, &next.manifest.name)?;
+	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
+	Ok(replace(&host.engine, &host.volumes, &members, &shape, next, current, restore).await?)
+}
+
+/// Close event `id` with how `result` went, keeping the snapshot a success took.
+fn close<T>(host: &Host, id: i64, result: &Result<(T, PathBuf), Error>) {
+	let closed = match result {
+		Ok((_, snapshot)) => {
+			let snapshot = snapshot.display().to_string();
+			host.store.finish(id, store::Outcome::Succeeded, Some(&snapshot), None)
+		}
+		Err(error) => host.store.finish(id, store::Outcome::Failed, None, Some(&error.to_string())),
+	};
+	if let Err(error) = closed {
+		eprintln!("host: recording event {id}: {error}");
+	}
+}
+
+/// Caddy follows the state, and images no version needs go.
+async fn settle(host: &Host, name: String, image: String) -> Result<Outcome, Error> {
 	let routed = route(host).await.map_err(|error| error.to_string());
 	collect(host).await?;
 	Ok(Outcome { name, image, routed })
+}
+
+/// Deploy a new version, as an upload or a CI run brings one. Explicit, so it ends a hold.
+pub async fn deploy(
+	host: &Host,
+	manifest: Manifest,
+	image: String,
+	source: &Source,
+) -> Result<Outcome, Error> {
+	let name = manifest.name.clone();
+	let id =
+		host.store.record(&name, Action::Deploy, source, Some(&image), store::Outcome::Running)?;
+	let result = async {
+		let current = host
+			.store
+			.app(&name)?
+			.map(|current| Version { manifest: current.manifest, image: current.image });
+		let next = Version { manifest, image };
+		let snapshot = run_version(host, &next, current.as_ref(), None).await?;
+		host.store.put_app(&Deployed {
+			manifest: next.manifest,
+			image: next.image.clone(),
+			previous: current,
+			deployed_at: jiff::Timestamp::now().to_string(),
+			held: false,
+		})?;
+		host.store.hold(&name, false)?;
+		Ok((next.image, snapshot))
+	}
+	.await;
+	close(host, id, &result);
+	let (image, _) = result?;
+	settle(host, name, image).await
 }
 
 /// Load an image archive and deploy it, as an upload or a notice brings one. The archive is gone
@@ -109,6 +166,7 @@ pub async fn from_archive(
 	name: &str,
 	manifest: Manifest,
 	archive: &Path,
+	source: &Source,
 ) -> Result<Outcome, Error> {
 	let deployed = async {
 		admit(host, name, &manifest)?;
@@ -117,11 +175,113 @@ pub async fn from_archive(
 		let file = tokio::fs::File::open(archive).await.map_err(Error::Archive)?;
 		let loaded = host.engine.load(name, tokio_util::io::ReaderStream::new(file)).await;
 		let image = loaded.map_err(Error::Load)?;
-		deploy(host, manifest, image).await
+		deploy(host, manifest, image, source).await
 	}
 	.await;
 	let _ = tokio::fs::remove_file(archive).await;
 	deployed
+}
+
+/// An app the panel may act on: one host runs, and not host itself, which cannot stop or replace
+/// the program answering the request. See spec/architecture/host.md, "What the panel can do to an
+/// app".
+fn actionable(host: &Host, name: &str) -> Result<Deployed, Error> {
+	if name == "host" {
+		return Err(Error::Itself);
+	}
+	host.store.app(name)?.ok_or_else(|| Error::NoSuchApp(name.into()))
+}
+
+/// Run the current version again: a deploy of what already runs, which picks up a changed
+/// environment.
+pub async fn redeploy(host: &Host, name: &str) -> Result<Outcome, Error> {
+	let _one = host.deploying.lock().await;
+	let app = actionable(host, name)?;
+	let source = Source::panel();
+	let id = host.store.record(
+		name,
+		Action::Redeploy,
+		&source,
+		Some(&app.image),
+		store::Outcome::Running,
+	)?;
+	let result = async {
+		let current = Version { manifest: app.manifest.clone(), image: app.image.clone() };
+		let snapshot = run_version(host, &current, Some(&current), None).await?;
+		host.store.put_app(&Deployed { deployed_at: jiff::Timestamp::now().to_string(), ..app })?;
+		host.store.hold(name, false)?;
+		Ok(((), snapshot))
+	}
+	.await;
+	close(host, id, &result);
+	result?;
+	let image = host.store.app(name)?.map(|app| app.image).unwrap_or_default();
+	settle(host, name.into(), image).await
+}
+
+/// Whether a rollback with data can be offered: the snapshot from before the running version was
+/// deployed is still among the ones kept.
+pub fn restorable(host: &Host, app: &Deployed) -> Result<Option<PathBuf>, Error> {
+	let recorded = host.store.snapshot_before(&app.manifest.name, &app.image)?;
+	Ok(recorded.map(PathBuf::from).filter(|path| path.exists()))
+}
+
+/// Run the previous version instead of the current one. With `with_data`, the app's directory is
+/// also put back as it was before the current version was deployed, and everything written since is
+/// lost.
+pub async fn rollback(host: &Host, name: &str, with_data: bool) -> Result<Outcome, Error> {
+	let _one = host.deploying.lock().await;
+	let app = actionable(host, name)?;
+	let previous = app.previous.clone().ok_or_else(|| Error::NoPrevious(name.into()))?;
+	let restore = if with_data {
+		Some(restorable(host, &app)?.ok_or_else(|| Error::NoSnapshot(name.into()))?)
+	} else {
+		None
+	};
+	let action = if with_data { Action::RollbackWithData } else { Action::Rollback };
+	let source = Source::panel();
+	let id =
+		host.store.record(name, action, &source, Some(&previous.image), store::Outcome::Running)?;
+	let result = async {
+		let current = Version { manifest: app.manifest.clone(), image: app.image.clone() };
+		let snapshot = run_version(host, &previous, Some(&current), restore.as_deref()).await?;
+		host.store.put_app(&Deployed {
+			manifest: previous.manifest.clone(),
+			image: previous.image.clone(),
+			previous: Some(current),
+			deployed_at: jiff::Timestamp::now().to_string(),
+			held: false,
+		})?;
+		host.store.hold(name, false)?;
+		Ok(((), snapshot))
+	}
+	.await;
+	close(host, id, &result);
+	result?;
+	settle(host, name.into(), previous.image).await
+}
+
+/// Start, stop or restart the container as it is. A stop holds the app stopped; a start or a
+/// restart ends the hold.
+pub async fn act(host: &Host, name: &str, action: Action) -> Result<(), Error> {
+	let _one = host.deploying.lock().await;
+	let app = actionable(host, name)?;
+	let source = Source::panel();
+	let id = host.store.record(name, action, &source, Some(&app.image), store::Outcome::Running)?;
+	let done = match action {
+		Action::Start => host.engine.start(name).await,
+		Action::Stop => host.engine.stop(name).await,
+		Action::Restart => host.engine.restart(name).await,
+		_ => return Err(Error::NotAnAct),
+	};
+	let (outcome, detail) = match &done {
+		Ok(()) => (store::Outcome::Succeeded, None),
+		Err(error) => (store::Outcome::Failed, Some(error.to_string())),
+	};
+	host.store.finish(id, outcome, None, detail.as_deref())?;
+	done?;
+	host.store.hold(name, action == Action::Stop)?;
+	Ok(())
 }
 
 /// Deploy what a CI run built for this node, once GitHub's record of the run says it may be.
@@ -136,8 +296,8 @@ pub async fn from_run(host: Arc<Host>, run: u64, host_replaced: bool) -> bool {
 		eprintln!("host: run {run}: this node has no GITHUB_ACTIONS_TOKEN");
 		return false;
 	};
-	let artifacts = match github.artifacts(run).await {
-		Ok(artifacts) => artifacts,
+	let (commit, artifacts) = match github.artifacts(run).await {
+		Ok(built) => (built.commit, built.artifacts),
 		Err(error) => {
 			eprintln!("host: run {run}: {error}");
 			return false;
@@ -171,7 +331,17 @@ pub async fn from_run(host: Arc<Host>, run: u64, host_replaced: bool) -> bool {
 			let _ = tokio::fs::remove_file(&fetched.image).await;
 			continue;
 		}
-		match from_archive(&host, &artifact.app, manifest, &fetched.image).await {
+		let source = Source::run(run, commit.clone());
+		// Held stopped from the panel: the run is recorded, not started. See
+		// spec/architecture/host.md, "A stop holds until a start".
+		if host.store.app(&artifact.app).ok().flatten().is_some_and(|app| app.held) {
+			let skipped = store::Outcome::Skipped;
+			let _ = host.store.record(&artifact.app, Action::Deploy, &source, None, skipped);
+			let _ = tokio::fs::remove_file(&fetched.image).await;
+			eprintln!("host: run {run}: {} is held stopped, so it was not deployed", artifact.app);
+			continue;
+		}
+		match from_archive(&host, &artifact.app, manifest, &fetched.image, &source).await {
 			Ok(outcome) => eprintln!("host: run {run}: {} is {}", outcome.name, outcome.image),
 			Err(error) => {
 				eprintln!("host: run {run}: {}: {error}", artifact.app);

@@ -434,20 +434,14 @@ impl Store {
 			.collect()
 	}
 
-	/// The snapshot taken before the version an app runs now was deployed: the last deploy of any
-	/// kind that succeeded and recorded one.
-	pub fn last_snapshot(&self, app: &str) -> Result<Option<String>, Error> {
+	/// The snapshot taken before `image` was deployed: what the directory held before the version
+	/// an app runs now first ran. What a rollback with data restores.
+	pub fn snapshot_before(&self, app: &str, image: &str) -> Result<Option<String>, Error> {
 		let connection = lock(&self.history);
-		Ok(
-			connection
-				.query_row(
-					"SELECT snapshot FROM events WHERE app = ?1 AND snapshot IS NOT NULL
-				AND outcome = 'succeeded' ORDER BY id DESC LIMIT 1",
-					[app],
-					|row| row.get(0),
-				)
-				.optional()?,
-		)
+		let query = "SELECT snapshot FROM events WHERE app = ?1 AND image = ?2
+			AND snapshot IS NOT NULL AND action = 'deploy' AND outcome = 'succeeded'
+			ORDER BY id DESC LIMIT 1";
+		Ok(connection.query_row(query, [app, image], |row| row.get(0)).optional()?)
 	}
 }
 
@@ -576,12 +570,18 @@ mod history {
 		let source = Source::run(7, Some("abc".into()));
 		let id =
 			store.record("geo", Action::Deploy, &source, Some("sha256:b"), Outcome::Running).unwrap();
-		assert_eq!(store.last_snapshot("geo").unwrap(), None);
+		assert_eq!(store.snapshot_before("geo", "sha256:b").unwrap(), None);
 		store.finish(id, Outcome::Succeeded, Some("/snapshots/geo/1"), None).unwrap();
-		let failed = store.record("geo", Action::Deploy, &source, None, Outcome::Running).unwrap();
+		let failed = store.record("geo", Action::Deploy, &source, Some("sha256:b"), Outcome::Running);
+		let failed = failed.unwrap();
 		store.finish(failed, Outcome::Failed, Some("/snapshots/geo/2"), Some("unhealthy")).unwrap();
-		assert_eq!(store.last_snapshot("geo").unwrap().as_deref(), Some("/snapshots/geo/1"));
-		let [newest, oldest] = store.events(Some("geo"), None, 50).unwrap().try_into().unwrap();
+		// A redeploy of the same image is not what first ran it.
+		let again = store.record("geo", Action::Redeploy, &source, Some("sha256:b"), Outcome::Running);
+		store.finish(again.unwrap(), Outcome::Succeeded, Some("/snapshots/geo/3"), None).unwrap();
+		let before = store.snapshot_before("geo", "sha256:b").unwrap();
+		assert_eq!(before.as_deref(), Some("/snapshots/geo/1"));
+		assert_eq!(store.snapshot_before("geo", "sha256:c").unwrap(), None);
+		let [_, newest, oldest] = store.events(Some("geo"), None, 50).unwrap().try_into().unwrap();
 		assert_eq!((newest.outcome, newest.detail.as_deref()), (Outcome::Failed, Some("unhealthy")));
 		assert_eq!((oldest.source, oldest.outcome), (source, Outcome::Succeeded));
 		assert!(oldest.finished_at.is_some());
