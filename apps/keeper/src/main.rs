@@ -162,7 +162,11 @@ async fn upload(State(keeper): State<Arc<Keeper>>, mut parts: Multipart) -> Resp
 
 /// Load a host archive and put it in place, as an upload or a notice brings one. The archive is
 /// gone afterwards whatever happened.
-async fn from_archive(keeper: &Keeper, manifest: Manifest, archive: &Path) -> Result<String, Reply> {
+async fn from_archive(
+	keeper: &Keeper,
+	manifest: Manifest,
+	archive: &Path,
+) -> Result<String, Reply> {
 	let replaced = async {
 		if let Err(error) = manifest.check_platform("host", &keeper.node) {
 			return Err(Reply(StatusCode::UNPROCESSABLE_ENTITY, error.to_string()));

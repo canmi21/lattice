@@ -247,10 +247,9 @@ mod tests {
 
 	#[test]
 	fn a_node_refuses_a_service_with_no_container() {
-		let manifest = Manifest::parse(
-			"version = 1\nname = \"edge\"\nplacements = [\"workers\", \"home\"]\n",
-		)
-		.unwrap();
+		let manifest =
+			Manifest::parse("version = 1\nname = \"edge\"\nplacements = [\"workers\", \"home\"]\n")
+				.unwrap();
 		assert_eq!(manifest.check("edge", "home"), Err(Invalid::NoContainer("edge".into())));
 	}
 

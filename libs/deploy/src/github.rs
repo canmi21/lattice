@@ -130,10 +130,8 @@ impl GitHub {
 			.https_only()
 			.enable_http1()
 			.build();
-		let repository = urls::SOURCE
-			.trim_start_matches(urls::EXTERNAL_GITHUB_WEB)
-			.trim_start_matches('/')
-			.to_owned();
+		let repository =
+			urls::SOURCE.trim_start_matches(urls::EXTERNAL_GITHUB_WEB).trim_start_matches('/').to_owned();
 		Self { client: Client::builder(TokioExecutor::new()).build(https), repository, token }
 	}
 
@@ -166,14 +164,16 @@ impl GitHub {
 		let record: Run = self.json(&format!("/actions/runs/{run}")).await?;
 		check(run, &record, &self.repository)?;
 		let listed: Listed = self.json(&format!("/actions/runs/{run}/artifacts?per_page=100")).await?;
-		Ok(listed
-			.artifacts
-			.into_iter()
-			.filter(|record| !record.expired)
-			.filter_map(|record| {
-				Some(Artifact { app: app_of(&record.name)?, id: record.id, digest: record.digest? })
-			})
-			.collect())
+		Ok(
+			listed
+				.artifacts
+				.into_iter()
+				.filter(|record| !record.expired)
+				.filter_map(|record| {
+					Some(Artifact { app: app_of(&record.name)?, id: record.id, digest: record.digest? })
+				})
+				.collect(),
+		)
 	}
 
 	/// Download `artifact` into `directory`, hold it to its digest, and take out what CI put in it.
