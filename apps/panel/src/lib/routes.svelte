@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { untrack } from 'svelte';
-	import Globe from '@lucide/svelte/icons/globe';
 	import Lock from '@lucide/svelte/icons/lock';
 	import { signedOut } from './session.svelte';
 	import { api, Refused, type Route } from './api';
@@ -11,7 +10,9 @@
 	import PageHeader from './page-header.svelte';
 	import { tone, type } from './style/surfaces';
 
-	const blank = (): Route => ({ name: '', upstream: '', private: true, public: false, home: '' });
+	// A route is always on `.app`; only `private` -- whether it is also on `.icu` -- is the
+	// panel's to set. See spec/architecture/host.md, "One name inside, and a domain label outside".
+	const blank = (): Route => ({ name: '', upstream: '', private: true, public: true, home: '' });
 	let { initial }: { initial?: Route[] } = $props();
 
 	// What the server read is where the page starts; the browser reads again after every change.
@@ -75,7 +76,6 @@
 						<td>
 							<div class="flex gap-1.5">
 								{#if route.private}<Badge tone="muted">Private</Badge>{/if}
-								{#if route.public}<Badge tone="good">Public</Badge>{/if}
 							</div>
 						</td>
 						<td
@@ -121,9 +121,6 @@
 			<input class="w-44" bind:value={editing.home} placeholder="Home, such as /admin" />
 			<label class="inline-flex items-center gap-1.5 {stylex.attrs(type.muted).class}">
 				<input type="checkbox" bind:checked={editing.private} /><Lock size={13} /> Private
-			</label>
-			<label class="inline-flex items-center gap-1.5 {stylex.attrs(type.muted).class}">
-				<input type="checkbox" bind:checked={editing.public} /><Globe size={13} /> Public
 			</label>
 			<Button variant="primary" type="submit">Save</Button>
 		</form>

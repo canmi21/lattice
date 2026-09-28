@@ -135,32 +135,28 @@ fn refused() -> Value {
 	})
 }
 
-/// Each API scope, its prefix stripped before the service sees the request; on the tunnel's side
-/// only the public ones, which the gateway reaches over Workers VPC, and their limits. See
-/// spec/architecture/services.md, "A path with no scope is a 400, on both gateways".
+/// Each API scope, its prefix stripped before the service sees the request; the API host answers
+/// every scope on both sides, since `.icu` is the LAN and `.app` sits behind Access -- what the
+/// public may reach of it is the gateway's table, not this render. Limits are only ever counted on
+/// the tunnel's side, over what the gateway forwards. See spec/architecture/services.md, "A path
+/// with no scope is a 400, on both gateways".
 fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 	let mut routes = vec![json!({
 		"match": [{ "path": ["/"] }],
 		"handle": [{ "handler": "static_response", "status_code": 400 }]
 	})];
-	routes.extend(
-		apps
-			.iter()
-			.filter(|app| app.manifest.api.as_ref().is_some_and(|api| !public || api.public))
-			.filter_map(|app| {
-				let name = &app.manifest.name;
-				let port = app.manifest.container.as_ref()?.port?;
-				let api = app.manifest.api.as_ref()?;
-				let mut handle =
-					vec![json!({ "handler": "rewrite", "strip_path_prefix": format!("/{name}") })];
-				handle.extend(public.then(|| limited(name, &api.limits)).flatten());
-				handle.extend([encode(), proxy(&format!("{name}:{port}"), name)]);
-				Some(json!({
-					"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
-					"handle": handle
-				}))
-			}),
-	);
+	routes.extend(apps.iter().filter(|app| app.manifest.api.is_some()).filter_map(|app| {
+		let name = &app.manifest.name;
+		let port = app.manifest.container.as_ref()?.port?;
+		let api = app.manifest.api.as_ref()?;
+		let mut handle = vec![json!({ "handler": "rewrite", "strip_path_prefix": format!("/{name}") })];
+		handle.extend(public.then(|| limited(name, &api.limits)).flatten());
+		handle.extend([encode(), proxy(&format!("{name}:{port}"), name)]);
+		Some(json!({
+			"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
+			"handle": handle
+		}))
+	}));
 	routes.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
 	routes
 }
@@ -172,29 +168,33 @@ fn api_host(host: String, apps: &[Deployed], public: bool) -> Value {
 	})
 }
 
-/// Everything reached by a subdomain of its own on one side: each app with an interface, the panel
-/// among them, and each route. host has none: only the panel reaches it.
+/// Everything reached by a subdomain of its own on one side, by its label: each app with an
+/// interface, the panel among them, and each route. host has none: only the panel reaches it.
+/// Every label is on `.app`; `.icu` carries it only when the interface's `lan`, or the route's
+/// `private`, says so. See spec/architecture/host.md, "`.icu` is a mirror of part of `.app`, and
+/// nothing else".
 fn interfaces(apps: &[Deployed], routes: &[Route], public: bool) -> Vec<Target> {
 	let mut targets = Vec::new();
 	targets.extend(
 		apps
 			.iter()
 			.filter(|app| {
-				app.manifest.interface.as_ref().is_some_and(|interface| !public || interface.public)
+				app.manifest.interface.as_ref().is_some_and(|interface| public || interface.lan)
 			})
 			.filter_map(|app| {
+				let interface = app.manifest.interface.as_ref()?;
 				Some(Target {
-					name: app.manifest.name.clone(),
+					name: interface.label(&app.manifest.name).to_owned(),
 					dial: format!("{}:{}", app.manifest.name, app.manifest.container.as_ref()?.port?),
-					home: app.manifest.interface.as_ref()?.home.clone(),
+					home: interface.home.clone(),
 				})
 			}),
 	);
-	targets.extend(
-		routes.iter().filter(|route| if public { route.public } else { route.private }).map(|route| {
-			Target { name: route.name.clone(), dial: route.upstream.clone(), home: route.home.clone() }
-		}),
-	);
+	targets.extend(routes.iter().filter(|route| public || route.private).map(|route| Target {
+		name: route.name.clone(),
+		dial: route.upstream.clone(),
+		home: route.home.clone(),
+	}));
 	targets
 }
 
@@ -213,17 +213,6 @@ pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Valu
 	outside.push(api_host(format!("api.{public}"), apps, true));
 	for target in interfaces(apps, routes, true) {
 		outside.push(named(format!("{}.{public}", target.name), &target));
-	}
-	// keeper's one path on the tunnel's side: the Worker reaches it there with a notice, and its
-	// interface stays private. See spec/architecture/host.md, "keeper has its own intake".
-	let keeper = apps.iter().find(|app| app.manifest.name == "keeper");
-	if let Some(port) = keeper.and_then(|keeper| keeper.manifest.container.as_ref()?.port) {
-		let name = format!("keeper.{public}");
-		let dial = format!("keeper:{port}");
-		outside.push(json!({
-			"match": [{ "host": [&name], "path": ["/notice"] }],
-			"handle": [encode(), proxy(&dial, &name)]
-		}));
 	}
 	outside.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
 
@@ -328,18 +317,20 @@ mod tests {
 	}
 
 	#[test]
-	fn an_api_is_a_scope_with_its_prefix_stripped_and_nothing_public() {
+	fn an_api_scope_answers_on_both_api_hosts_regardless_of_its_public_flag() {
 		let mut private = geo();
 		private.manifest.api.as_mut().unwrap().public = false;
 		let rendered = text(&render(&config(), &[private], &[]));
 		assert!(rendered.contains(r#""host":["api.inside.test"]"#));
+		assert!(rendered.contains(r#""host":["api.outside.test"]"#));
 		assert!(rendered.contains(r#""path":["/geo","/geo/*"]"#));
 		assert!(rendered.contains(r#""strip_path_prefix":"/geo""#));
-		assert!(rendered.contains(r#""dial":"geo:23440""#));
-		// geo declares no interface and a private API, so nothing of it reaches the public suffix.
+		// geo declares no interface, so a private scope still reaches nothing of its own on either
+		// suffix -- the API host alone carries it, on both sides. `api.public` is the gateway's
+		// scope table's alone; see spec/architecture/services.md, "One API host, scoped by path".
 		assert!(!rendered.contains("geo.outside.test"));
 		assert!(!rendered.contains("geo.inside.test"));
-		assert_eq!(rendered.matches(r#""dial":"geo:23440""#).count(), 1);
+		assert_eq!(rendered.matches(r#""dial":"geo:23440""#).count(), 2);
 	}
 
 	#[test]
@@ -511,7 +502,7 @@ mod tests {
 	}
 
 	#[test]
-	fn keeper_answers_only_its_notice_on_the_tunnel_side() {
+	fn keepers_whole_interface_is_on_both_suffixes() {
 		let keeper = Deployed {
 			manifest: Manifest::parse(include_str!("../../keeper/service.toml")).unwrap(),
 			image: "sha256:k".into(),
@@ -519,14 +510,13 @@ mod tests {
 			deployed_at: String::new(),
 			held: false,
 		};
-		let rendered = render(&config(), &[keeper], &[]);
-		let outside = text(&rendered["apps"]["http"]["servers"]["tunnel"]);
-		assert!(outside.contains(r#""host":["keeper.outside.test"],"path":["/notice"]"#));
-		// Nowhere on the tunnel's side is keeper matched by its name alone.
-		assert!(!outside.contains(r#"{"host":["keeper.outside.test"]}"#));
-		// Its interface is the private side's, whole.
-		let inside = text(&rendered["apps"]["http"]["servers"]["private"]);
-		assert!(inside.contains(r#"{"host":["keeper.inside.test"]}"#));
+		// keeper's whole interface is on `.app` now, behind Access like any other -- not the one
+		// `/notice` path the Worker used to reach it by. See spec/architecture/host.md, "`.icu` is
+		// a mirror of part of `.app`, and nothing else".
+		let rendered = text(&render(&config(), &[keeper], &[]));
+		assert!(rendered.contains(r#"{"host":["keeper.outside.test"]}"#));
+		assert!(rendered.contains(r#"{"host":["keeper.inside.test"]}"#));
+		assert_eq!(rendered.matches(r#""dial":"keeper:11010""#).count(), 2);
 	}
 
 	#[test]

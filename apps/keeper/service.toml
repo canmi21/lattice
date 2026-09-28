@@ -11,6 +11,6 @@ health = "/health"
 # 9 MiB idle, and past 16 fetching host's image, where 16 was met and keeper killed mid-deploy.
 memory_mb = 64
 
-# keeper.canmi.icu, and never the public suffix: it is the way back in when host is broken.
+# keeper.canmi.icu and keeper.canmi.app both, behind Access on the tunnel's side too. See
+# spec/architecture/host.md, "keeper has its own intake".
 [interface]
-public = false

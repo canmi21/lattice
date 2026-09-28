@@ -14,6 +14,11 @@ pub const VERSION: u32 = 1;
 const RESERVED: [&str; 9] =
 	["host", "keeper", "meter", "api", "gateway", "caddy", "tunnel", "panel", "cloudflared"];
 
+/// Labels reserved for what is on its way, not yet a real app or route: `cms`, the editor, which
+/// keeps its own address until it moves. See spec/architecture/host.md, "One name inside, and a
+/// domain label outside".
+const RESERVED_LABELS: [&str; 1] = ["cms"];
+
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
 /// keeper, which each deploy the other, the meter, Caddy, the tunnel and the panel. See
 /// spec/architecture/host.md, "host never updates itself; keeper updates host", and
@@ -91,15 +96,29 @@ pub struct Limit {
 /// The longest window a limit may count over: a day. Anything longer is a quota, not a limit.
 pub const LONGEST_WINDOW: u32 = 86_400;
 
-/// Reached as a subdomain of its own, privately and -- unless it says otherwise -- publicly
-/// behind Access. See spec/architecture/services.md.
+/// Reached as a subdomain of its own: always on `.app`, behind Access, and on `.icu` too unless
+/// `lan` says otherwise. See spec/architecture/host.md, "One name inside, and a domain label
+/// outside", and spec/architecture/services.md, "A domain says who can reach it, not what is
+/// behind it".
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Interface {
-	#[serde(default = "public_by_default")]
-	pub public: bool,
+	/// The DNS label this interface answers on, in place of the app's own name. Apps and routes
+	/// share one namespace of labels: no two things answer on one label.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub domain: Option<String>,
+	/// Whether the label is also on `.icu`, the LAN's mirror of `.app`. `.app` always carries it.
+	#[serde(default = "lan_by_default")]
+	pub lan: bool,
 	/// Where a request for exactly `/` is sent, when the app's own page is not at its root.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub home: Option<String>,
+}
+
+impl Interface {
+	/// The label this interface answers on: its own `domain`, or the app's name.
+	pub fn label<'a>(&'a self, name: &'a str) -> &'a str {
+		self.domain.as_deref().unwrap_or(name)
+	}
 }
 
 /// Whether `home` stays on the name it is set for. `/` would send the root to itself forever; `//`
@@ -113,7 +132,7 @@ pub fn is_home(home: &str) -> bool {
 		&& !home.chars().any(char::is_control)
 }
 
-fn public_by_default() -> bool {
+fn lan_by_default() -> bool {
 	true
 }
 
@@ -131,7 +150,9 @@ pub enum Invalid {
 	Version(u32),
 	#[error("`{0}` is not a name: lowercase letters, digits and inner hyphens, at most 63")]
 	Name(String),
-	#[error("`{0}` is reserved for the platform")]
+	#[error("`{0}` is not a label: lowercase letters, digits and inner hyphens, at most 63")]
+	Label(String),
+	#[error("`{0}` is reserved")]
 	Reserved(String),
 	#[error("the declaration says `{declared}` but it was sent as `{requested}`")]
 	Mismatch { declared: String, requested: String },
@@ -226,6 +247,10 @@ impl Manifest {
 		if home.is_some_and(|home| !is_home(home)) {
 			return Err(Invalid::Home);
 		}
+		if let Some(domain) = self.interface.as_ref().and_then(|interface| interface.domain.as_deref())
+		{
+			check_domain(domain)?;
+		}
 		if self.api.as_ref().is_some_and(|api| api.prefix.is_some()) {
 			return Err(Invalid::Prefix);
 		}
@@ -253,19 +278,38 @@ impl Manifest {
 	}
 }
 
+/// The shape of any DNS label this format uses, name or domain alike.
+fn is_label(value: &str) -> bool {
+	!value.is_empty()
+		&& value.len() <= 63
+		&& !value.starts_with('-')
+		&& !value.ends_with('-')
+		&& value.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+}
+
 /// One DNS label, and not one of the platform's own. Every place an app appears is this name, so
 /// it has to be valid in all of them at once.
 pub fn check_name(name: &str) -> Result<(), Invalid> {
-	let label = !name.is_empty()
-		&& name.len() <= 63
-		&& !name.starts_with('-')
-		&& !name.ends_with('-')
-		&& name.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-');
-	if !label {
+	if !is_label(name) {
 		return Err(Invalid::Name(name.into()));
 	}
-	if RESERVED.contains(&name) {
+	if RESERVED.contains(&name) || RESERVED_LABELS.contains(&name) {
 		return Err(Invalid::Reserved(name.into()));
+	}
+	Ok(())
+}
+
+/// A label an interface or a route answers on: `domain`, or a route's own name. Apps and routes
+/// share this one namespace, on top of a smaller reserved list than a name's -- see
+/// spec/architecture/host.md, "One name inside, and a domain label outside". Whether it collides
+/// with another app or route already answering on it is checked where both are known, in host's
+/// store.
+pub fn check_domain(domain: &str) -> Result<(), Invalid> {
+	if !is_label(domain) {
+		return Err(Invalid::Label(domain.into()));
+	}
+	if RESERVED.contains(&domain) || RESERVED_LABELS.contains(&domain) {
+		return Err(Invalid::Reserved(domain.into()));
 	}
 	Ok(())
 }
@@ -439,5 +483,47 @@ mod tests {
 		let mut manifest = Manifest::parse(GEO).unwrap();
 		manifest.api.as_mut().unwrap().prefix = Some("/api".into());
 		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Prefix));
+	}
+
+	#[test]
+	fn a_label_maps_an_apps_name_for_what_reaches_it_from_outside() {
+		let gemini = Manifest::parse(include_str!("../../../apps/gemini/service.toml")).unwrap();
+		let interface = gemini.interface.as_ref().unwrap();
+		// No `domain` set: the label is the app's own name.
+		assert_eq!(interface.label("gemini"), "gemini");
+		let mut labeled = gemini.clone();
+		labeled.interface.as_mut().unwrap().domain = Some("infra".into());
+		assert_eq!(labeled.interface.as_ref().unwrap().label("gemini"), "infra");
+		assert_eq!(labeled.check("gemini", "home"), Ok(()));
+	}
+
+	#[test]
+	fn a_reserved_label_is_refused() {
+		let mut manifest = Manifest::parse(GEO).unwrap();
+		manifest.interface = Some(Interface { domain: Some("cms".into()), lan: true, home: None });
+		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Reserved("cms".into())));
+		manifest.interface.as_mut().unwrap().domain = Some("host".into());
+		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Reserved("host".into())));
+		manifest.interface.as_mut().unwrap().domain = Some("Geo".into());
+		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Label("Geo".into())));
+	}
+
+	#[test]
+	fn an_old_manifests_interface_public_key_is_ignored() {
+		// A manifest a store already holds from before this key was replaced with `domain` and
+		// `lan` still has to deserialize; see spec/json.md and the note on `Interface` below.
+		let text = format!("{GEO}\n[interface]\npublic = false\n");
+		let manifest = Manifest::parse(&text).unwrap();
+		let interface = manifest.interface.unwrap();
+		assert_eq!((interface.domain, interface.lan), (None, true));
+	}
+
+	#[test]
+	fn lan_defaults_to_on_and_can_be_turned_off() {
+		let gemini = Manifest::parse(include_str!("../../../apps/gemini/service.toml")).unwrap();
+		assert!(gemini.interface.as_ref().unwrap().lan);
+		let mut off = gemini;
+		off.interface.as_mut().unwrap().lan = false;
+		assert_eq!(off.check("gemini", "home"), Ok(()));
 	}
 }

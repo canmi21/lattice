@@ -10,19 +10,41 @@ The machine has no inbound public address. It reaches out through a Cloudflare t
 the tailnet. Everything below is shaped by that and by there being exactly one user. Which services
 are placed on it, and how names and APIs reach them, is [services.md](services.md).
 
-## One name, everywhere
+## One name inside, and a domain label outside
 
-An app has one name, and every place it appears is that name: `gemini` is the app in host, the
-container, `/data/apps/gemini/` on the machine, `gemini.canmi.icu` privately and `gemini.canmi.app`
-publicly. Nothing maps one spelling to another, so nothing can disagree.
+An app has one name, and every place inside the node it appears is that name: `panel` is the app in
+host, the container, `/data/apps/panel/` on the machine, its network and its logs. **What it is
+reached by from outside is a DNS label of its own**, `[interface] domain` in its `service.toml`,
+which is the name unless it says otherwise: the panel is `infra.canmi.icu` and `infra.canmi.app`.
+A service's name is what code and people use; the label is what the address says, and it can
+change without the service being renamed.
 
-- A name is a DNS label: lowercase letters, digits and hyphens.
-- Apps from this repository and images from elsewhere share the one namespace.
-- `host` and `keeper` are reserved for the two programs below, `meter` for what samples the
+- A name and a label are DNS labels: lowercase letters, digits and hyphens.
+- Apps from this repository and images from elsewhere share the one namespace of names, and apps
+  and routes share the one namespace of labels: no two things answer on one label.
+- `host` and `keeper` are reserved names for the two programs below, `meter` for what samples the
   machine ([meter.md](meter.md)), `api` for the API host, `gateway` for the Worker answering it
   publicly, `caddy` for the door host deploys and `tunnel` for the way in from Cloudflare (both
   below), `panel` for host's interface, and `cloudflared` because the tunnel ran under that name
   before host deployed it.
+- **Labels are reserved too, for what is on its way**: `cms`, for the editor, which keeps its own
+  address until it moves. No app or route may take a reserved label.
+- **`.icu` is a mirror of part of `.app`, and nothing else.** Every label is on `.app`, reached
+  from the public side behind Access and from the LAN alike; `.icu` carries a label only as a copy
+  of what `.app` answers on it, same paths, same service, for reaching it on the LAN without
+  Access. A label may be left off `.icu` -- `lan = false` on an interface or a route -- and nothing
+  is ever on `.icu` alone. So keeper's whole interface is on `keeper.canmi.app` behind Access as
+  well, and the API host answers every scope on both, the private ones included: the public never
+  reaches a private scope, since Access stands in front of `api.canmi.app` and the gateway passes
+  on only the scopes in its table, and our Workers reach every scope through the one VPC service.
+
+**A label is declared in the repository, and the panel will write it there.** The rule for every
+setting the panel can change: git is the one record, and a change made in the panel becomes a
+pull request against the repository that a bot opens, deployed like any other change once it is
+merged. Until then the panel shows it as pending. The bot is a GitHub account of its own, a
+collaborator given access to the repository like a person, so what it proposes is reviewed like
+anyone's and its token opens pull requests and nothing more. It is not built yet; until it is, a
+label is changed in `service.toml`.
 
 `.icu` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
@@ -330,8 +352,8 @@ app, in the sandbox, under a reserved name, restarted and never stopped from its
 
 - **host answers on its own network alone.** It binds its port to its address on `app-host`,
   which the panel and keeper join and Caddy does not; every app network host joins to check an
-  app's health leaves that port out of reach. Nothing routes a name to host: `panel.canmi.icu` and
-  `panel.canmi.app` are the panel's.
+  app's health leaves that port out of reach. Nothing routes a name to host: `infra.canmi.icu` and
+  `infra.canmi.app` are the panel's.
 - **The panel passes `/api/*` and `/notice` on to host**, carrying the session cookie as the
   token, the request's type and the answer's cookies back, and nothing else of either. An upload is
   streamed through, never held. The hook's notice reaches host this way, and keeper's intake is
@@ -390,10 +412,10 @@ a second node come after it.
 
 ### What host keeps, and where
 
-host's state is three SQLite files by what they hold, since a file costs nothing and one per
+host's state is four SQLite files by what they hold, since a file costs nothing and one per
 subject keeps each small, separately inspectable and separately backed up: `apps.db`, what runs
-now and what is held stopped; `routes.db`, the names that reach something host does not run; and
-`history.db`, every event. They sit in host's own data directory. A single `host.db` from before
+now and what is held stopped; `routes.db`, the names that reach something host does not run;
+`history.db`, every event; and `images.db`, each image flagged for removal and since when. They sit in host's own data directory. A single `host.db` from before
 the split is read into them once and renamed aside.
 
 **Every event is kept, and none is pruned.** A deploy, a redeploy, a rollback of either kind, a

@@ -17,8 +17,9 @@ export interface Env {
 /** The public suffix Caddy routes the two receivers under; VPC sends it as the `Host`. */
 const SUFFIX = new URL(URLS.internal.app).hostname;
 
-/** Where the notice goes on a node: the panel, which passes it on to host, and keeper. */
-export const RECEIVERS = ['panel', 'keeper'].map((name) => `http://${name}.${SUFFIX}/notice`);
+/** Where the notice goes on a node, by label: the panel, which passes it on to host, and keeper.
+ * See spec/architecture/host.md, "One name inside, and a domain label outside". */
+export const RECEIVERS = ['infra', 'keeper'].map((label) => `http://${label}.${SUFFIX}/notice`);
 
 export async function handle(request: Request, env: Env): Promise<Response> {
 	const { pathname } = new URL(request.url);

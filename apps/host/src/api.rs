@@ -554,11 +554,19 @@ async fn put_route(
 	Path(name): Path<String>,
 	Json(body): Json<RouteBody>,
 ) -> Response {
-	if let Err(error) = manifest::check_name(&name) {
+	// A route's name is the label it answers on; see spec/architecture/host.md, "One name inside,
+	// and a domain label outside".
+	if let Err(error) = manifest::check_domain(&name) {
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_name", error);
 	}
 	if body.home.as_deref().is_some_and(|home| !is_home(home)) {
 		return response::failure(StatusCode::UNPROCESSABLE_ENTITY, "invalid_home");
+	}
+	// A route is always on `.app`; `public = false` is refused rather than silently ignored, so a
+	// caller that meant to keep it off the tunnel is told rather than getting the opposite. See
+	// spec/architecture/host.md, "One name inside, and a domain label outside".
+	if !body.public {
+		return response::failure(StatusCode::UNPROCESSABLE_ENTITY, "invalid_route");
 	}
 	let route = Route {
 		name,

@@ -78,6 +78,7 @@ export interface Route {
 	name: string;
 	upstream: string;
 	private: boolean;
+	/** Always true: a route is always on `.app`. host refuses a route put with this false. */
 	public: boolean;
 	home?: string;
 }

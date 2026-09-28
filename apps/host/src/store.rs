@@ -40,6 +40,12 @@ pub struct Route {
 	pub home: Option<String>,
 }
 
+/// The label an app answers on from outside, if it has an interface at all: its own `domain`, or
+/// its name. See spec/architecture/host.md, "One name inside, and a domain label outside".
+fn label(manifest: &Manifest) -> Option<&str> {
+	manifest.interface.as_ref().map(|interface| interface.label(&manifest.name))
+}
+
 fn route_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<Route> {
 	Ok(Route {
 		name: row.get(0)?,
@@ -338,8 +344,15 @@ impl Store {
 	/// Store what runs now. The hold is not this call's to change; see `hold`.
 	pub fn put_app(&self, app: &Deployed) -> Result<(), Error> {
 		let name = &app.manifest.name;
-		if self.route(name)?.is_some() {
-			return Err(Error::TakenByRoute(name.clone()));
+		if let Some(this_label) = label(&app.manifest) {
+			if self.route(this_label)?.is_some() {
+				return Err(Error::TakenByRoute(this_label.to_owned()));
+			}
+			for other in self.apps()? {
+				if other.manifest.name != *name && label(&other.manifest) == Some(this_label) {
+					return Err(Error::TakenByApp(this_label.to_owned()));
+				}
+			}
 		}
 		let previous = app.previous.as_ref().map(serde_json::to_string).transpose()?;
 		lock(&self.apps).execute(
@@ -370,10 +383,13 @@ impl Store {
 		Ok(connection.query_row(query, [name], route_from).optional()?)
 	}
 
-	/// One namespace for apps and routes: a name is one thing, wherever it appears.
+	/// One namespace of labels for apps and routes: no two things answer on one. See
+	/// spec/architecture/host.md, "One name inside, and a domain label outside".
 	pub fn put_route(&self, route: &Route) -> Result<(), Error> {
-		if self.app(&route.name)?.is_some() {
-			return Err(Error::TakenByApp(route.name.clone()));
+		for app in self.apps()? {
+			if label(&app.manifest) == Some(route.name.as_str()) {
+				return Err(Error::TakenByApp(route.name.clone()));
+			}
 		}
 		lock(&self.routes).execute(
 			"INSERT INTO routes (name, upstream, private, public, home) VALUES (?1, ?2, ?3, ?4, ?5)
@@ -526,15 +542,31 @@ mod tests {
 	}
 
 	#[test]
-	fn a_name_is_an_app_or_a_route_and_never_both() {
+	fn a_label_is_an_app_or_a_route_and_never_both() {
 		let directory = tempfile::tempdir().unwrap();
 		let store = Store::open(directory.path()).unwrap();
+		// geo declares no interface, so it takes no label at all: a route may share its name.
 		store.put_app(&deployed("sha256:a", None)).unwrap();
+		let same_name = Route {
+			name: "geo".into(),
+			upstream: "x.test:1".into(),
+			private: true,
+			public: true,
+			home: None,
+		};
+		store.put_route(&same_name).unwrap();
+		store.delete_route("geo").unwrap();
+
+		// An app with an interface does take one, and a route cannot then share it.
+		let mut interfaced = deployed("sha256:a", None);
+		interfaced.manifest.interface =
+			Some(deploy::manifest::Interface { domain: None, lan: true, home: None });
+		store.put_app(&interfaced).unwrap();
 		let route = Route {
 			name: "geo".into(),
 			upstream: "x.test:1".into(),
 			private: true,
-			public: false,
+			public: true,
 			home: None,
 		};
 		assert!(matches!(store.put_route(&route), Err(Error::TakenByApp(_))));
@@ -549,6 +581,46 @@ mod tests {
 		assert_eq!(store.routes().unwrap(), vec![nas]);
 		assert!(store.delete_route("nas").unwrap());
 		assert!(!store.delete_route("nas").unwrap());
+	}
+
+	#[test]
+	fn a_domain_that_is_already_a_route_or_another_apps_label_is_refused() {
+		let directory = tempfile::tempdir().unwrap();
+		let store = Store::open(directory.path()).unwrap();
+		let route = Route {
+			name: "capture".into(),
+			upstream: "x.test:1".into(),
+			private: true,
+			public: true,
+			home: None,
+		};
+		store.put_route(&route).unwrap();
+
+		let labeled = |image: &str, domain: &str| {
+			let mut app = deployed(image, None);
+			app.manifest.name = image.trim_start_matches("sha256:").to_owned();
+			app.manifest.interface =
+				Some(deploy::manifest::Interface { domain: Some(domain.into()), lan: true, home: None });
+			app
+		};
+		// The route's label is already taken.
+		assert!(matches!(
+			store.put_app(&labeled("sha256:a", "capture")),
+			Err(Error::TakenByRoute(label)) if label == "capture"
+		));
+
+		// Two different apps cannot share a label either.
+		store.put_app(&labeled("sha256:a", "shot")).unwrap();
+		assert!(matches!(
+			store.put_app(&labeled("sha256:b", "shot")),
+			Err(Error::TakenByApp(label)) if label == "shot"
+		));
+		// Redeploying the same app under the label it already holds is not a collision with itself.
+		let mut app = deployed("sha256:a", None);
+		app.manifest.name = "a".into();
+		app.manifest.interface =
+			Some(deploy::manifest::Interface { domain: Some("shot".into()), lan: true, home: None });
+		store.put_app(&app).unwrap();
 	}
 }
 

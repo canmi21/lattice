@@ -14,4 +14,8 @@ health = "/health"
 # About 26 MiB of Node idle, with room for pages rendered while an upload streams through.
 memory_mb = 128
 
+# infra.canmi.icu and infra.canmi.app: the reserved name `panel` stays inside the node, and
+# `infra` is what reaches it from outside. See spec/architecture/host.md, "One name inside, and a
+# domain label outside".
 [interface]
+domain = "infra"

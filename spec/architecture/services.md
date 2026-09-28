@@ -66,7 +66,7 @@ is [firewall.md](firewall.md).
 
 **"The LAN" includes the node's own containers.** Caddy admits `.icu` from the sources host is told
 in `PRIVATE_SOURCES`: the LAN, the tailnet, loopback, and Docker's private range, `172.16.0.0/12`.
-The last is for an app reaching another app by its name -- `shot` capturing `panel.canmi.icu` -- whose request arrives from its container's address. It opens nothing a container could
+The last is for an app reaching another app by its name -- `shot` capturing `infra.canmi.icu` -- whose request arrives from its container's address. It opens nothing a container could
 not already reach: every container reaches the LAN directly, and host asks for its token on every
 door regardless.
 
@@ -266,6 +266,19 @@ appears, in a parameter, a body and an answer alike. An identifier this spec def
 `cid`, is its own full name. `rid` stays the term inside the code and the storage keys, where it is
 defined; outside, it is `resource`.
 
+## A service keeps its data in SQLite, in its own directory
+
+**Every service that stores anything embeds SQLite, in its own data directory, in WAL mode.** It
+is what makes a deploy's snapshot and a rollback with data whole: the app's subvolume holds all of
+its data, and stopping the app stops every write to it. A shared database server would put an
+app's data outside its subvolume, where a snapshot of the app no longer covers it -- file-level
+copies of one database in a cluster cannot be restored alone -- and would be one more resident
+every service waits on and falls with.
+
+A service that one day needs what SQLite cannot give -- several processes or machines writing one
+dataset, heavy concurrent writes, a feature only PostgreSQL has -- gets a PostgreSQL of its own, in
+its own subvolume and stopped with it, never one shared by all. Nothing here needs it yet.
+
 ## A service keeps one port
 
 Every service has a port of five digits, chosen for it and never shared: the same number inside its
@@ -296,7 +309,8 @@ The tunnel reaches Caddy only, and Workers VPC reaches a node through Caddy too.
 names what it wants as `Host` -- `api.canmi.app` for an API, `gemini.canmi.app` for gemini -- so a
 new service a Worker needs is never a new VPC service in the dashboard. What a Worker can reach is
 decided here rather than there: it is the tunnel's side of Caddy, which host renders from every
-`service.toml` -- public API scopes, public interfaces and routes, and keeper's `/notice`. Caddy
+`service.toml` -- every label, since the tunnel's side is the whole of `.app`; what the public
+reaches of it is Access's to say, and of the API the gateway's table. Caddy
 cannot tell a Worker's request from a visitor's, since both arrive from the tunnel; the visitor is
 the one Access stops first, at Cloudflare. The VPC service's HTTPS port is never used: Caddy's
 tunnel side answers plain HTTP on 80.
