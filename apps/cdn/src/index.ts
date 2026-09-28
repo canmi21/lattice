@@ -96,7 +96,7 @@ app.route('/proxy/github', github);
  * route, there never will be, and collapsing the two would throw away the only signal that
  * tells a sweep from a typo. Last, so it takes what nothing above claimed, methods included.
  */
-app.all('*', (c) => failure(c, 400, 'not_an_address'));
+app.all('*', (c) => failure(c, 400, 'invalid_address'));
 
 /**
  * A failure is JSON and is never stored, however far up it was thrown.
@@ -107,7 +107,7 @@ app.all('*', (c) => failure(c, 400, 'not_an_address'));
  */
 app.onError((error, c) => {
 	console.error(error);
-	const response = failure(c, 500, 'unavailable');
+	const response = failure(c, 500, 'service_unavailable');
 	response.headers.set('Cache-Control', 'no-store');
 	return response;
 });

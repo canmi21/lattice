@@ -82,7 +82,7 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 	const asset = c.req.param('asset');
 
 	if (![repo, tag, asset].every(isReleaseName)) {
-		return failure(c, 404, 'not_found');
+		return failure(c, 404, 'no_such_object');
 	}
 
 	// The edge holds the whole file under the plain URL, and `match` answers a Range request
@@ -109,7 +109,7 @@ github.get('/release/:repo/:tag/:asset', async (c) => {
 	if (!response.ok && response.status !== 206) {
 		// A repository not under the account, a tag that was never cut, an asset not attached:
 		// GitHub says 404 to all three, and so does this.
-		return failure(c, response.status === 404 ? 404 : 502, 'not_found');
+		return failure(c, response.status === 404 ? 404 : 502, 'no_such_object');
 	}
 
 	const headers = new Headers();

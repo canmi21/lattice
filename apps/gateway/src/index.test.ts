@@ -101,7 +101,7 @@ describe('the gateway', () => {
 		for (const path of ['//stats', '//']) {
 			const answer = await ask(path);
 			expect(answer.status).toBe(400);
-			expect(await answer.json()).toEqual({ status: 'error', message: 'no_scope' });
+			expect(await answer.json()).toMatchObject({ status: 'error', code: 'invalid_path' });
 		}
 	});
 
@@ -112,7 +112,30 @@ describe('the gateway', () => {
 	});
 
 	it('says so when a scope it knows has no binding', async () => {
-		expect((await ask('/site/x')).status).toBe(502);
+		const answer = await ask('/site/x');
+		expect(answer.status).toBe(502);
+		expect(await answer.json()).toMatchObject({ code: 'scope_unavailable' });
+	});
+
+	it('says the service is out of reach, in the envelope, when the node cannot be reached', async () => {
+		const thrown = {
+			fetch: async () => Promise.reject(new Error('tunnel down')),
+		} as unknown as Fetcher;
+		const page = {
+			fetch: async () => new Response('<html>Bad gateway</html>', { status: 502 }),
+		} as unknown as Fetcher;
+		const own = {
+			fetch: async () =>
+				Response.json({ status: 'error', code: 'service_unavailable' }, { status: 503 }),
+		} as unknown as Fetcher;
+		for (const HOME of [thrown, page]) {
+			const answer = await ask('/geo/address', { HOME });
+			expect(answer.status).toBe(502);
+			expect(await answer.json()).toMatchObject({ code: 'upstream_unavailable' });
+		}
+		// A service's own failure is passed on as it said it.
+		const passed = await ask('/geo/address', { HOME: own });
+		expect(passed.status).toBe(503);
 	});
 
 	it('hands a Workers scope its request with the scope taken off', async () => {

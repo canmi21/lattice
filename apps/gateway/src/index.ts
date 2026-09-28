@@ -5,8 +5,8 @@
  * service would otherwise repeat: CORS, and limits by address. See spec/architecture/services.md,
  * "One API host, scoped by path".
  */
-import type { ApiResponse } from '@canmi/artifacts';
 import { limited, within } from '@canmi/limits';
+import { failure } from '@canmi/response';
 import { robotsTxt } from '@canmi/robots';
 import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
@@ -22,12 +22,14 @@ export type Env = Readonly<Record<string, unknown>>;
 /** The public suffix a node's Caddy answers the API host under on its tunnel's side. */
 const NODE_API = `api.${new URL(URLS.internal.app).hostname}`;
 
-/** The same envelope every service behind the gateway answers in. */
-function refuse(status: 400 | 404 | 502, message: string, headers: HeadersInit = {}) {
-	return Response.json({ status: 'error', message } satisfies ApiResponse<never>, {
-		status,
-		headers: { 'Cache-Control': 'no-store', ...headers },
-	});
+/**
+ * Whether an answer is a service's own, rather than a gateway or a proxy on the way saying it
+ * could not reach one: every service here answers in the JSON envelope, and a proxy's error page
+ * is not JSON.
+ */
+function answered(response: Response): boolean {
+	if (response.status < 500) return true;
+	return response.headers.get('content-type')?.startsWith('application/json') ?? false;
 }
 
 function isFetcher(value: unknown): value is Fetcher {
@@ -93,8 +95,8 @@ export function gateway(
 	app.use('*', async (c, next) => {
 		const { scope } = split(new URL(c.req.url));
 		// Every path here is under a scope, so one without is malformed, not missing.
-		if (scope === '') return refuse(400, 'no_scope');
-		if (!Object.hasOwn(scopes, scope)) return refuse(404, 'no_such_scope');
+		if (scope === '') return failure(400, 'invalid_path');
+		if (!Object.hasOwn(scopes, scope)) return failure(404, 'no_such_scope');
 		const handler = corsOf.get(scope);
 		return handler ? handler(c, next) : next();
 	});
@@ -111,7 +113,7 @@ export function gateway(
 			return limited();
 		}
 		const binding = destination(c.env[target.binding], target);
-		if (!binding) return refuse(502, 'scope_unbound');
+		if (!binding) return failure(502, 'scope_unavailable');
 
 		let forwarded = new URL(url);
 		if (target.placement === WORKERS) {
@@ -123,7 +125,15 @@ export function gateway(
 			forwarded.host = NODE_API;
 		}
 		const request = new Request(forwarded, c.req.raw);
-		const answer = await (typeof binding === 'string' ? fetch(request) : binding.fetch(request));
+		// The machine at home can be off, or its tunnel down; either is the service being out of
+		// reach, which is what the caller is told, in the envelope, rather than a proxy's page.
+		let answer: Response;
+		try {
+			answer = await (typeof binding === 'string' ? fetch(request) : binding.fetch(request));
+		} catch {
+			return failure(502, 'upstream_unavailable');
+		}
+		if (!answered(answer)) return failure(502, 'upstream_unavailable');
 		// A fetched response's headers are immutable, and CORS adds to them on the way out.
 		return new Response(answer.body, answer);
 	});

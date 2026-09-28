@@ -53,7 +53,7 @@ app.notFound((c) => failure(c, 404, 'no_such_route', { 'Cache-Control': PUBLISHE
  */
 app.onError((error, c) => {
 	console.error(error);
-	return failure(c, 500, 'unavailable', { 'Cache-Control': 'no-store' });
+	return failure(c, 500, 'service_unavailable', { 'Cache-Control': 'no-store' });
 });
 
 export default app;

@@ -1,5 +1,6 @@
 import { dev } from '$app/environment';
 import api, { PUBLIC_ROUTES } from '@canmi/site-api';
+import { failure } from '@canmi/response';
 import { URLS } from '@canmi/urls';
 import type { RequestEvent } from '@sveltejs/kit';
 import { routeOf } from '$lib/api';
@@ -9,13 +10,6 @@ export const API_PREFIX = '/api/';
 
 /** The public API host. A request naming it reached this Worker through the gateway's binding. */
 const API_HOST = new URL(URLS.apps.production.api).hostname;
-
-function refuse(status: 404, message: string): Response {
-	return Response.json(
-		{ status: 'error', message },
-		{ status, headers: { 'Cache-Control': 'no-store' } },
-	);
-}
 
 /** The API's bindings: the Worker's own, with the records read from the tree in development. */
 async function bindings(event: RequestEvent): Promise<Record<string, unknown>> {
@@ -43,7 +37,7 @@ export async function answer(event: RequestEvent): Promise<Response | undefined>
 	if (!outside && !url.pathname.startsWith(API_PREFIX)) return undefined;
 	const segment = url.pathname.startsWith(API_PREFIX) ? url.pathname.slice(API_PREFIX.length) : '';
 	const route = outside ? (PUBLIC_ROUTES.has(segment) ? segment : undefined) : routeOf(segment);
-	if (!route) return refuse(404, 'no_such_route');
+	if (!route) return failure(404, 'no_such_route');
 
 	const inner = new URL(url);
 	inner.pathname = `/${route}`;

@@ -11,6 +11,7 @@ members = [
 	"apps/local",
 	"libs/deploy",
 	"libs/geocode",
+	"libs/response",
 	"libs/urls",
 ]
 

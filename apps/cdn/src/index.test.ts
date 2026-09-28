@@ -95,7 +95,7 @@ describe('the catch-all', () => {
 		for (const [path, res] of answers) {
 			expect(res.status, path).toBe(400);
 		}
-		expect(await answers[0]?.[1].json()).toEqual({ status: 'error', message: 'not_an_address' });
+		expect(await answers[0]?.[1].json()).toMatchObject({ status: 'error', code: 'invalid_address' });
 	});
 
 	it('refuses a single segment, a deeper one, and holds neither for long', async () => {
@@ -116,6 +116,6 @@ describe('the catch-all', () => {
 		const res = await ask('/robots.txt', { method: 'POST' });
 		expect(res.status).toBe(400);
 		expect(res.headers.get('Content-Type')).toContain('application/json');
-		expect(await res.json()).toEqual({ status: 'error', message: 'not_an_address' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_address' });
 	});
 });

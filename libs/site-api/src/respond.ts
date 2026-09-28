@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@canmi/artifacts';
+import { type ApiResponse, type Code, errorBody } from '@canmi/response';
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
@@ -25,14 +25,15 @@ export function success<T>(
 }
 
 /**
- * `message` carries this API's existing vocabulary -- `not_found`, `unknown_locale` -- rather than
- * prose. A caller switches on the status code; the string is for whoever is reading a log.
+ * A refusal: a code a caller switches on, and the code's own message unless `message` says more.
+ * See spec/architecture/services.md, "Every answer is one envelope".
  */
 export function failure(
 	c: Context,
 	status: ContentfulStatusCode,
-	message: string,
+	code: Code,
 	headers: Headers,
+	message?: string,
 ) {
-	return c.json({ status: 'error', message } satisfies ApiResponse<never>, status, headers);
+	return c.json(errorBody(code, message), status, headers);
 }

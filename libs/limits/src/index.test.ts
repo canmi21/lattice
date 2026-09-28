@@ -47,5 +47,5 @@ it('answers in the envelope, with a retry hint', async () => {
 	const answer = limited();
 	expect(answer.status).toBe(429);
 	expect(answer.headers.get('retry-after')).toBe('60');
-	expect(await answer.json()).toEqual({ status: 'error', message: 'rate_limited' });
+	expect(await answer.json()).toMatchObject({ status: 'error', code: 'rate_limited' });
 });

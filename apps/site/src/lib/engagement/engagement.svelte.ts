@@ -207,7 +207,7 @@ async function setLike(liked: boolean): Promise<LikeAnswer> {
  * The one place an engagement answer is opened.
  *
  * `unwrap` decides whether the call worked; every caller below checks only the shape of what it
- * asked for. See libs/artifacts, `ApiResponse`.
+ * asked for. See libs/response, `ApiResponse`.
  */
 export async function jsonResponse<T>(response: Response): Promise<T> {
 	if (!response.ok) throw new Error(`engagement request failed with ${response.status}`);

@@ -214,6 +214,9 @@ importers:
       '@canmi/cache':
         specifier: workspace:*
         version: link:../../libs/cache
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../libs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -239,6 +242,9 @@ importers:
       '@canmi/cache':
         specifier: workspace:*
         version: link:../../libs/cache
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../libs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -373,6 +379,9 @@ importers:
       '@canmi/limits':
         specifier: workspace:*
         version: link:../../libs/limits
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../libs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -470,6 +479,9 @@ importers:
       '@canmi/prose':
         specifier: workspace:*
         version: link:../../libs/prose
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../libs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -669,6 +681,9 @@ importers:
       '@canmi/locales':
         specifier: workspace:*
         version: link:../locales
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../response
       '@canmi/urls':
         specifier: workspace:*
         version: link:../urls
@@ -791,7 +806,11 @@ importers:
         specifier: workspace:*
         version: link:../urls
 
-  libs/limits: {}
+  libs/limits:
+    dependencies:
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../response
 
   libs/locales: {}
 
@@ -899,6 +918,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  libs/response: {}
+
   libs/robots:
     dependencies:
       '@canmi/urls':
@@ -919,6 +940,9 @@ importers:
       '@canmi/locales':
         specifier: workspace:*
         version: link:../locales
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../response
       '@canmi/store':
         specifier: workspace:*
         version: link:../store
@@ -950,6 +974,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../artifacts
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../response
       '@cloudflare/workers-types':
         specifier: ^5.20260911.1
         version: 5.20260922.1

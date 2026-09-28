@@ -15,7 +15,7 @@ import {
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
  * every route shares. `unwrap` is the same one the site uses; a route that stops wrapping fails
- * here first. See libs/artifacts, `ApiResponse`.
+ * here first. See libs/response, `ApiResponse`.
  */
 async function payload<T = unknown>(response: Response): Promise<T> {
 	return unwrap<T>(await response.json(), response.url || 'test');
@@ -232,7 +232,7 @@ describe('a refusal nothing handled', () => {
 		const res = await get('/nonexistent');
 		expect(res.status).toBe(404);
 		expect(res.headers.get('Content-Type')).toContain('application/json');
-		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_route' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'no_such_route' });
 		expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
 	});
 
@@ -241,7 +241,7 @@ describe('a refusal nothing handled', () => {
 		const res = await get('/batch');
 		expect(res.status).toBe(405);
 		expect(res.headers.get('Allow')).toBe('POST');
-		expect(await res.json()).toEqual({ status: 'error', message: 'batch_takes_post' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_method' });
 	});
 });
 
@@ -314,7 +314,7 @@ describe('POST /batch', () => {
 		);
 		const res = await get('/batch', { method: 'POST', body: { type: 'resources', rids: many } });
 		expect(res.status).toBe(400);
-		expect(await res.json()).toEqual({ status: 'error', message: 'unreadable_batch' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_body' });
 	});
 
 	it('refuses a body past the backstop before reading any of it', async () => {
@@ -327,7 +327,7 @@ describe('POST /batch', () => {
 		expect(res.status).toBe(413);
 		expect(res.headers.get('Content-Type')).toContain('application/json');
 		expect(res.headers.get('Cache-Control')).toBe('no-store');
-		expect(await res.json()).toEqual({ status: 'error', message: 'body_too_large' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_body' });
 	});
 
 	/**

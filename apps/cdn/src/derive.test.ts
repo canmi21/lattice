@@ -89,7 +89,7 @@ describe('the source object comes first', () => {
 	it('is 404 when nothing is stored under the id, which is temporary rather than wrong', async () => {
 		const response = await derive.request(`/${CID}.avif.webp`, {}, bucketWith({}));
 		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: 'error', message: 'not_found' });
+		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_object' });
 	});
 
 	// The redirect below is cheap and would still be a wrong answer: a client sent to an address
@@ -143,7 +143,7 @@ describe('the short spelling of JPEG', () => {
 	it('leaves a `jpg` source alone, so it is the plain 404 a missing object is', async () => {
 		const response = await app.request(`/derive/${CID}.jpg.webp`, {}, holding('jpeg'));
 		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: 'error', message: 'not_found' });
+		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_object' });
 		// Five minutes, because a 404 on a hashed address is a fact about the bucket rather than
 		// about the address -- the same life every other miss on this host takes.
 		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
@@ -176,7 +176,7 @@ describe('an image format the worker can produce', () => {
 	it('refuses a source nothing here decodes', async () => {
 		const response = await derive.request(`/${CID}.mp4.webp`, {}, holding('mp4'));
 		expect(response.status).toBe(400);
-		expect(await response.json()).toEqual({ status: 'error', message: 'not_derivable' });
+		expect(await response.json()).toMatchObject({ status: 'error', code: 'invalid_derivation' });
 	});
 });
 
@@ -220,7 +220,11 @@ describe('the object in an archive', () => {
 		} as never;
 		const response = await derive.request(`/${CID}.mp4.zip`, {}, bucket);
 		expect(response.status).toBe(413);
-		expect(await response.json()).toEqual({ status: 'error', message: 'too_large_to_package' });
+		expect(await response.json()).toMatchObject({
+			status: 'error',
+			code: 'invalid_size',
+			message: 'The object is too large to package',
+		});
 	});
 });
 
@@ -347,7 +351,11 @@ describe('a range over a derived artifact', () => {
 			bucket,
 		);
 		expect(sought.status).toBe(413);
-		expect(await sought.json()).toEqual({ status: 'error', message: 'too_large_to_seek' });
+		expect(await sought.json()).toMatchObject({
+			status: 'error',
+			code: 'invalid_size',
+			message: 'The object is too large to seek within',
+		});
 	});
 
 	// Past the streaming cap, where the plain request would have been refused too: the range is
@@ -360,7 +368,11 @@ describe('a range over a derived artifact', () => {
 			bucket,
 		);
 		expect(sought.status).toBe(413);
-		expect(await sought.json()).toEqual({ status: 'error', message: 'too_large_to_package' });
+		expect(await sought.json()).toMatchObject({
+			status: 'error',
+			code: 'invalid_size',
+			message: 'The object is too large to package',
+		});
 	});
 });
 
@@ -368,7 +380,7 @@ describe('anything else', () => {
 	it('refuses a target nobody can produce', async () => {
 		const response = await derive.request(`/${CID}.avif.exe`, {}, holding('avif'));
 		expect(response.status).toBe(400);
-		expect(await response.json()).toEqual({ status: 'error', message: 'not_derivable' });
+		expect(await response.json()).toMatchObject({ status: 'error', code: 'invalid_derivation' });
 	});
 
 	it('refuses a name that is not exactly an id and two extensions', async () => {

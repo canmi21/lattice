@@ -61,7 +61,7 @@ export function parseDerivation(name: string): { cid: string; from: string; to: 
 derive.get('/:name', async (c) => {
 	const parsed = parseDerivation(c.req.param('name'));
 	if (!parsed) {
-		return failure(c, 400, 'not_an_address');
+		return failure(c, 400, 'invalid_address');
 	}
 	const { cid, from, to } = parsed;
 	const range = c.req.header('Range');
@@ -72,7 +72,7 @@ derive.get('/:name', async (c) => {
 	// temporary fact and the only thing separating a sweep from a typo.
 	const measured = await measureObject(c.env, cid, from);
 	if (measured === null) {
-		return failure(c, 404, 'not_found');
+		return failure(c, 404, 'no_such_object');
 	}
 
 	// The target alone, and never the source. A source spelled `jpg` is a key the bucket cannot
@@ -91,11 +91,11 @@ derive.get('/:name', async (c) => {
 	if (isDerivable(to)) {
 		// A target this worker can encode is still nothing without a source it can decode.
 		if (!isDecodable(from)) {
-			return failure(c, 400, 'not_derivable');
+			return failure(c, 400, 'invalid_derivation');
 		}
 		const source = await findObject(c.env, cid, from);
 		if (!source) {
-			return failure(c, 404, 'not_found');
+			return failure(c, 404, 'no_such_object');
 		}
 		const bytes = await transcode(await new Response(source.body).arrayBuffer(), from, to);
 		// The whole image, then the range out of it. Transcoding a slice would answer with bytes
@@ -105,17 +105,17 @@ derive.get('/:name', async (c) => {
 
 	if (to === PACKAGED) {
 		if (measured.size > MAX_PACKAGED) {
-			return failure(c, 413, 'too_large_to_package');
+			return failure(c, 413, 'invalid_size', 'The object is too large to package');
 		}
 		// A different refusal, because it is a different fact: this one would have been answered
 		// whole. A client told the object is too large to package learns nothing it can act on,
 		// where one told it is too large to seek into knows to ask again without the header.
 		if (range && measured.size > MAX_SOUGHT) {
-			return failure(c, 413, 'too_large_to_seek');
+			return failure(c, 413, 'invalid_size', 'The object is too large to seek within');
 		}
 		const source = await findObject(c.env, cid, from);
 		if (!source) {
-			return failure(c, 404, 'not_found');
+			return failure(c, 404, 'no_such_object');
 		}
 		// Named inside the archive as the object is named outside it, so unpacking gives back
 		// the file the address asked for rather than something called after this route. The
@@ -130,7 +130,7 @@ derive.get('/:name', async (c) => {
 
 	// A target nobody here can produce. The shape parsed and the source is there, and still
 	// nothing could ever answer, which is the same malformed answer an unroutable address gets.
-	return failure(c, 400, 'not_derivable');
+	return failure(c, 400, 'invalid_derivation');
 });
 
 export default derive;

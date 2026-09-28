@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@canmi/artifacts';
+import { errorBody } from '@canmi/response';
 
 // Where an object lives is a fact about the bucket, and both the workers and the node publisher
 // need it -- so it is declared in the library that is safe in either program and re-exported here.
@@ -247,13 +247,10 @@ export function toResponse(found: Found): Response {
 export function unsatisfiableResponse(total: number): Response {
 	// A 416 is a refusal, so it carries the envelope every refusal carries -- and `Content-Range`
 	// beside it, which is the part a client actually needs to ask again. See spec/json.md.
-	return Response.json(
-		{ status: 'error', message: 'range_not_satisfiable' } satisfies ApiResponse<never>,
-		{
-			status: 416,
-			headers: { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' },
-		},
-	);
+	return Response.json(errorBody('invalid_range'), {
+		status: 416,
+		headers: { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' },
+	});
 }
 
 /**

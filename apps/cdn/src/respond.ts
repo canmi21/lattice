@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@canmi/artifacts';
+import { type Code, errorBody } from '@canmi/response';
 import type { Context } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
@@ -9,6 +9,6 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
  * else takes the envelope every API answer takes, so a caller reads one shape whichever of the
  * two workers refused it. See spec/architecture/artifacts.md and the workspace spec/json.md.
  */
-export function failure(c: Context, status: ContentfulStatusCode, message: string) {
-	return c.json({ status: 'error', message } satisfies ApiResponse<never>, status);
+export function failure(c: Context, status: ContentfulStatusCode, code: Code, message?: string) {
+	return c.json(errorBody(code, message), status);
 }

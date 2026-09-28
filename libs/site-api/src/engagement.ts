@@ -15,7 +15,8 @@ const CANCEL_TOKEN = /^[0-9a-f]{32}$/;
 const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 const JSON_LIMIT = bodyLimit({
 	maxSize: MAX_BODY_SIZE,
-	onError: (c) => failure(c, 413, 'body_too_large', NO_STORE),
+	onError: (c) =>
+		failure(c, 413, 'invalid_body', NO_STORE, 'The body is larger than this route reads'),
 });
 
 const engagement = new Hono<{ Bindings: Bindings }>();
@@ -55,7 +56,7 @@ engagement.get('/stats', async (c) => {
  */
 engagement.get('/like', async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
+	if (!ip) return failure(c, 400, 'client_address_unavailable', NO_STORE);
 
 	const database = drizzle(c.env.DATABASE);
 	const like = await database.select({ ip: likes.ip }).from(likes).where(eq(likes.ip, ip)).limit(1);
@@ -67,7 +68,7 @@ engagement.get('/like', async (c) => {
 
 engagement.post('/newsletter', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
+	if (!ip) return failure(c, 400, 'client_address_unavailable', NO_STORE);
 
 	const body = await readObject(c.req.raw);
 	const email = canonicalEmail(body?.email);
@@ -101,7 +102,7 @@ engagement.post('/newsletter', JSON_LIMIT, async (c) => {
 
 engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
+	if (!ip) return failure(c, 400, 'client_address_unavailable', NO_STORE);
 
 	const body = await readObject(c.req.raw);
 	const email = canonicalEmail(body?.email);
@@ -122,7 +123,7 @@ engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 		)
 		.returning({ email: newsletterSubscriptions.email });
 	if (deleted.length === 0) {
-		return failure(c, 404, 'subscription_not_found', NO_STORE);
+		return failure(c, 404, 'no_such_subscription', NO_STORE);
 	}
 
 	const subscriberCount = await rowCount(database, newsletterSubscriptions);
@@ -131,7 +132,7 @@ engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 
 engagement.put('/like', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
+	if (!ip) return failure(c, 400, 'client_address_unavailable', NO_STORE);
 
 	const body = await readObject(c.req.raw);
 	if (typeof body?.liked !== 'boolean') {
@@ -165,7 +166,7 @@ engagement.get('/read', async (c) => {
 	// A query parameter rather than a path segment, because an article path contains a slash and
 	// the identity asked with here has to survive a router that would read one as a boundary.
 	if (!slug || !findArticle(await rootOf(c.env), slug)) {
-		return failure(c, 404, 'unknown_article', { 'Cache-Control': PUBLISHED });
+		return failure(c, 404, 'no_such_article', { 'Cache-Control': PUBLISHED });
 	}
 
 	const database = drizzle(c.env.DATABASE);
@@ -185,12 +186,12 @@ engagement.get('/read', async (c) => {
  */
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
-	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
+	if (!ip) return failure(c, 400, 'client_address_unavailable', NO_STORE);
 
 	const body = await readObject(c.req.raw);
 	const slug = body?.slug;
 	if (typeof slug !== 'string' || !findArticle(await rootOf(c.env), slug)) {
-		return failure(c, 404, 'unknown_article', NO_STORE);
+		return failure(c, 404, 'no_such_article', NO_STORE);
 	}
 
 	const database = drizzle(c.env.DATABASE);

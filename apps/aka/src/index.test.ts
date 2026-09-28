@@ -63,7 +63,7 @@ describe('a resource', () => {
 		const res = await ask(`/${RID}`);
 
 		expect(res.status).toBe(404);
-		expect(await res.json()).toEqual({ status: 'error', message: 'no_canonical_form' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'no_such_form' });
 		expect(res.headers.get('Cache-Control')).toBe(MINUTES);
 	});
 
@@ -78,16 +78,16 @@ describe('a resource', () => {
 	});
 
 	it('is 404 for a rid the corpus has no record of', async () => {
-		answering(404, { status: 'error', message: 'not_found' });
+		answering(404, { status: 'error', code: 'no_such_object' });
 		const res = await ask(`/${RID}`);
 		expect(res.status).toBe(404);
-		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_resource' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'no_such_resource' });
 	});
 
 	// Every icon on a page comes through this host, so an unreachable upstream held for five
 	// minutes is an outage rather than a blip. The same asymmetry apps/cdn keeps.
 	it('never stores the fact that the layer behind it was unreachable', async () => {
-		answering(500, { status: 'error', message: 'unavailable' });
+		answering(500, { status: 'error', code: 'service_unavailable' });
 		const res = await ask(`/${RID}`);
 
 		expect(res.status).toBe(502);
@@ -113,11 +113,11 @@ describe('a name this site publishes', () => {
 	});
 
 	it('is 404 for a name the corpus does not publish, and holds that briefly', async () => {
-		answering(404, { status: 'error', message: 'not_found' });
+		answering(404, { status: 'error', code: 'no_such_object' });
 		const res = await ask('/symlink/nothing.svg');
 
 		expect(res.status).toBe(404);
-		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_name' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'no_such_asset' });
 		expect(res.headers.get('Cache-Control')).toBe(MINUTES);
 	});
 
@@ -172,7 +172,7 @@ describe('the rest of the host', () => {
 		expect(fetching).not.toHaveBeenCalled();
 
 		const refused = await ask('/anything');
-		expect(await refused.json()).toEqual({ status: 'error', message: 'not_an_address' });
+		expect(await refused.json()).toMatchObject({ status: 'error', code: 'invalid_address' });
 		expect(refused.headers.get('Cache-Control')).toBe(MINUTES);
 	});
 

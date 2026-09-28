@@ -85,11 +85,11 @@ app.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.r
  * the routes above expresses names nothing at all and never will. Last, so it takes whatever
  * nothing above claimed, methods included. The same split apps/cdn keeps.
  */
-app.all('*', (c) => failure(c, 400, 'not_an_address'));
+app.all('*', (c) => failure(c, 400, 'invalid_address'));
 
 app.onError((error, c) => {
 	console.error(error);
-	const response = failure(c, 500, 'unavailable');
+	const response = failure(c, 500, 'service_unavailable');
 	response.headers.set('Cache-Control', NEVER);
 	return response;
 });

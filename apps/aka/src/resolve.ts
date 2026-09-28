@@ -26,7 +26,7 @@ export async function resolve(c: Context, name: string): Promise<Response> {
 	}
 	// Not a name this site publishes, which is a fact about the corpus and takes the corpus
 	// lifetime -- `failure` stamps it, the same life every other miss here gets.
-	if (asked.status === 404) return failure(c, 404, 'no_such_name');
+	if (asked.status === 404) return failure(c, 404, 'no_such_asset');
 
 	const asset = unwrap<AssetAnswer>(await asked.json(), asked.url);
 	// The id alone, under no type: `/object` is the whole of content addressing on that host

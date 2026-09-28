@@ -20,12 +20,12 @@ const image = new Hono<{ Bindings: Bindings }>();
 image.get('/media', async (c) => {
 	const rid = (c.req.query('rid') ?? '').toLowerCase();
 	if (!isResourceId(rid)) {
-		return failure(c, 400, 'not_a_resource_id', {});
+		return failure(c, 400, 'invalid_resource', {});
 	}
 
 	const found = await read(c.env, recordKey(rid));
 	if (!found) {
-		return failure(c, 404, 'not_found', {});
+		return failure(c, 404, 'no_such_resource', {});
 	}
 
 	const headers = new Headers({

@@ -6,6 +6,8 @@
  * repeat".
  */
 
+import { failure } from '@canmi/response';
+
 export interface Limit {
 	readonly methods: readonly string[];
 	/** The path as the service sees it. */
@@ -42,8 +44,5 @@ export async function within(
 
 /** The answer to a request over its limit, in the envelope every API here answers in. */
 export function limited(): Response {
-	return Response.json(
-		{ status: 'error', message: 'rate_limited' },
-		{ status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': '60' } },
-	);
+	return failure(429, 'rate_limited', { headers: { 'Retry-After': '60' } });
 }

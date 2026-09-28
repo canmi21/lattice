@@ -50,14 +50,16 @@ batch.post(
 	'/batch',
 	bodyLimit({
 		maxSize: MAX_BODY_SIZE,
-		onError: (c) => failure(c, 413, 'body_too_large', NO_STORE),
+		onError: (c) =>
+			failure(c, 413, 'invalid_body', NO_STORE, 'The body is larger than this route reads'),
 	}),
 	async (c) => {
 		const body = await c.req.json().catch(() => undefined);
 		const asked = v.safeParse(BatchRequestSchema, body);
 		// The schema names the type it could not read, which is more useful than "bad request"
 		// when one route answers several questions.
-		if (!asked.success) return failure(c, 400, 'unreadable_batch', NO_STORE);
+		if (!asked.success)
+			return failure(c, 400, 'invalid_body', NO_STORE, 'This is not a batch question');
 
 		const answer = await answerFor(c.env, asked.output);
 		return success(c, answer satisfies BatchAnswer, NO_STORE);
@@ -176,6 +178,8 @@ async function resources(
  * for a path it knows under another method, and it is the least useful answer available: typing
  * this URL into a browser is the first thing anyone does, and a GET is what a browser sends.
  */
-batch.all('/batch', (c) => failure(c, 405, 'batch_takes_post', { ...NO_STORE, Allow: 'POST' }));
+batch.all('/batch', (c) =>
+	failure(c, 405, 'invalid_method', { ...NO_STORE, Allow: 'POST' }, 'This route takes POST'),
+);
 
 export default batch;

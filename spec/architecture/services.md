@@ -152,6 +152,38 @@ site runs under Vite, which that registry does not see, so its binding in develo
 `development` and the gateway asks the site's development address instead. One that is not running
 answers as unavailable rather than taking the rest down.
 
+## Every answer is one envelope
+
+Every API here, in TypeScript or in Rust, answers in one shape: `{ "status": "success", "data": ... }`
+or `{ "status": "error", "code": ..., "message": ... }`. `libs/response` is both halves -- `src/index.ts`
+and the `response` crate -- and both read the one catalogue of codes, `codes.json`, and are tested
+against the same fixtures, so the two languages cannot drift apart. A success carries what the route
+answers and nothing else; there is nothing to say about a call that worked. A body that is the
+thing itself -- an image, a file, a redirect -- is not wrapped.
+
+**A failure carries a code and a message, both always.** The code is for a program: ours, lowercase
+with underscores, and not the HTTP status, which the response already has. The message is for a
+person: one line of English, objective, short without being curt, opening with a capital and ending
+without a stop. Each code has a default message in the catalogue, so a refusal names its code and a
+moment with something more exact to say -- a port and who holds it -- says it instead.
+
+**A code is one of three families.** `no_such_*` for something asked for by a name or an id that
+does not exist, `invalid_*` for a request that is malformed, and `*_unavailable` for something that
+could not be reached or read at this moment. `rate_limited` is the one code outside them.
+
+**What faces the public says nothing about the inside.** A message a stranger can read names no
+path, no internal error and no secret; a failure inside is logged in full and answered with its
+code's own message. host and keeper are reached from the LAN and the tailnet alone, so theirs may
+say exactly what went wrong.
+
+## Names in an API are spelled out
+
+A path segment may be a short word -- `geo`, `cdn`, `aka` -- but a query parameter and a JSON key are
+written in full: `latitude`, not `lat`; `resource`, not `rid`. One concept has one name wherever it
+appears, in a parameter, a body and an answer alike. An identifier this spec defines, `slug` or
+`cid`, is its own full name. `rid` stays the term inside the code and the storage keys, where it is
+defined; outside, it is `resource`.
+
 ## A service keeps one port
 
 Every service has a port of five digits, chosen for it and never shared: the same number inside its

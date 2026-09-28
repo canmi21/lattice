@@ -38,7 +38,7 @@ export async function resource(c: Context, rid: string): Promise<Response> {
 	const canonical = CANONICAL_PATTERN.test(declared) ? expandCanonical(declared, urls) : undefined;
 	// A resource declaring no canonical form has no address to be sent to, and choosing one from
 	// its variants would be this layer inventing what the record was supposed to say.
-	if (!canonical) return failure(c, 404, 'no_canonical_form');
+	if (!canonical) return failure(c, 404, 'no_such_form');
 
 	const answer = c.redirect(canonical, redirectFor(c.req.method, new URL(c.req.url).search));
 	answer.headers.set('Cache-Control', RESOLVED);

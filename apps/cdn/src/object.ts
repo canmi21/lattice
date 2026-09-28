@@ -76,7 +76,7 @@ export async function serveObject(
 
 	const found = await read(c.env, storageKey(cid, extension), c.req.header('Range'));
 	if (!found) {
-		return failure(c, 404, 'not_found');
+		return failure(c, 404, 'no_such_object');
 	}
 	// The object is there and the question was wrong, which is a different answer from 404:
 	// 416 carries the size so the client can ask again knowing it.
@@ -99,7 +99,7 @@ export async function serveObject(
 object.get('/:name', async (c) => {
 	const parsed = parseName(c.req.param('name'));
 	if (!parsed || !isExtension(parsed.extension)) {
-		return failure(c, 400, 'not_a_content_id');
+		return failure(c, 400, 'invalid_content_id');
 	}
 	return serveObject(c, parsed.cid, parsed.extension);
 });

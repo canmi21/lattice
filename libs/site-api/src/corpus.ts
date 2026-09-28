@@ -61,13 +61,13 @@ const HOMEPAGE = 'homepage';
  */
 corpus.get('/article', async (c) => {
 	const locale = askedLocale(c);
-	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
+	if (!locale) return failure(c, 400, 'invalid_locale', MISSED);
 	const slug = c.req.query('slug');
-	if (!slug) return failure(c, 400, 'expected_slug', MISSED);
+	if (!slug) return failure(c, 400, 'invalid_slug', MISSED);
 
 	const article = findArticle(await rootOf(c.env), slug);
 	const view = article?.views[locale];
-	if (!article || !view) return failure(c, 404, 'not_found', MISSED);
+	if (!article || !view) return failure(c, 404, 'no_such_article', MISSED);
 
 	// Both halves, because the question only carried one. `slug` is what the consumer checks the
 	// fetched object's envelope against and keys the read counter by; `path` is what it compares
@@ -94,9 +94,9 @@ corpus.get('/article', async (c) => {
  */
 corpus.get('/asset', async (c) => {
 	const name = c.req.query('name');
-	if (!name) return failure(c, 400, 'expected_name', MISSED);
+	if (!name) return failure(c, 400, 'invalid_name', MISSED, 'A name is needed');
 	const asset = (await rootOf(c.env)).assets[name];
-	if (!asset) return failure(c, 404, 'not_found', MISSED);
+	if (!asset) return failure(c, 404, 'no_such_asset', MISSED);
 	return success(c, { name, ...asset } satisfies AssetAnswer, ANSWERED);
 });
 
@@ -110,17 +110,17 @@ corpus.get('/asset', async (c) => {
 corpus.get('/source', async (c) => {
 	const root = await rootOf(c.env);
 	const slug = c.req.query('slug');
-	if (!slug) return failure(c, 400, 'expected_slug', MISSED);
+	if (!slug) return failure(c, 400, 'invalid_slug', MISSED);
 	// A page has no directory, so its identity is already its address.
 	const article = findArticle(root, slug);
 	const hash = article?.markdown ?? root.pages[slug]?.markdown;
-	if (!hash) return failure(c, 404, 'not_found', MISSED);
+	if (!hash) return failure(c, 404, 'no_such_article', MISSED);
 	return success(c, { hash, path: article?.path ?? slug } satisfies DocumentAnswer, ANSWERED);
 });
 
 corpus.get('/homepage', async (c) => {
 	const locale = askedLocale(c);
-	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
+	if (!locale) return failure(c, 400, 'invalid_locale', MISSED);
 
 	const root = await rootOf(c.env);
 	const listed: { article: Root['articles'][number]; view: RootView }[] = [];
@@ -170,7 +170,7 @@ corpus.get('/sitemap', async (c) => {
  */
 corpus.get('/feed', async (c) => {
 	const locale = askedLocale(c);
-	if (!locale) return failure(c, 400, 'unknown_locale', MISSED);
+	if (!locale) return failure(c, 400, 'invalid_locale', MISSED);
 
 	const entries: FeedAnswer['entries'] = [];
 	for (const article of (await rootOf(c.env)).articles) {

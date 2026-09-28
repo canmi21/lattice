@@ -10,7 +10,7 @@ import { unwrap } from '@canmi/artifacts';
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
  * every route shares. `unwrap` is the same one the site uses; a route that stops wrapping fails
- * here first. See libs/artifacts, `ApiResponse`.
+ * here first. See libs/response, `ApiResponse`.
  */
 async function payload<T = unknown>(response: Response): Promise<T> {
 	return unwrap<T>(await response.json(), response.url || 'test');
@@ -255,7 +255,7 @@ describe('article reads', () => {
 			body: { slug: 'made/up' },
 		});
 		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: 'error', message: 'unknown_article' });
+		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_article' });
 
 		const rows = await database
 			.prepare('SELECT COUNT(*) AS rows FROM article_reads')
@@ -329,7 +329,7 @@ describe('article reads', () => {
 		for (const path of ['/read?slug=made-up', '/read']) {
 			const response = await api(path, { ip: IP_ONE });
 			expect(response.status).toBe(404);
-			expect(await response.json()).toEqual({ status: 'error', message: 'unknown_article' });
+			expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_article' });
 			expect(response.headers.get('Cache-Control')).toBe('public, max-age=300');
 		}
 	});

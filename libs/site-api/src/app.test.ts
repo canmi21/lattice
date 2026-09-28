@@ -16,7 +16,7 @@ describe('limits', () => {
 		);
 		expect(res.status).toBe(429);
 		expect(res.headers.get('Retry-After')).toBe('60');
-		expect(await res.json()).toEqual({ status: 'error', message: 'rate_limited' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'rate_limited' });
 	});
 });
 
@@ -24,7 +24,7 @@ describe('an unknown route', () => {
 	it('says so in the envelope', async () => {
 		const res = await app.fetch(new Request(`${base}/nothing`), {} as Bindings);
 		expect(res.status).toBe(404);
-		expect(await res.json()).toEqual({ status: 'error', message: 'no_such_route' });
+		expect(await res.json()).toMatchObject({ status: 'error', code: 'no_such_route' });
 	});
 });
 

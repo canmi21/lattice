@@ -81,7 +81,7 @@ describe('an object named by its id alone', () => {
 	it('is 404 when the object is absent, and holds that briefly', async () => {
 		const response = await app.request(`/object/${CID}.avif`, {}, bucketWith([]));
 		expect(response.status).toBe(404);
-		expect(await response.json()).toEqual({ status: 'error', message: 'not_found' });
+		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_object' });
 		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
 	});
 
