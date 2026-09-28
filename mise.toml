@@ -288,6 +288,12 @@ description = "Build an app for the machine at home: `host deploy <name>` hands 
 depends = ["outward"]
 run = "node apps/host/scripts/host.ts"
 
+# A browser here is refused the local network, and the panel answers only there. See
+# spec/toolchain.md, "Reaching the LAN from a browser that cannot".
+[tasks.reach]
+description = "Answer on localhost for an interface only the LAN reaches: `reach [name]`, host by default"
+run = "node apps/host/scripts/reach.ts"
+
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"
 depends = ["outward"]

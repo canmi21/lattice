@@ -139,6 +139,21 @@ in the tmux session below. And one holding a pinned port is spared even with no 
 `wrangler dev` has workerd bind that port itself -- a wrangler that died leaves a page somebody
 may still be reading, and closing it is not a build's business.
 
+### Reaching the LAN from a browser that cannot
+
+**`mise run reach [name]` answers on `http://localhost:26520` for `<name>.canmi.icu`**, host's
+panel when no name is given. macOS asks before a program reaches the local network, and a browser
+an agent drives, like node from mise, is refused; the system's own `ssh` and `curl` never are.
+So [`reach.ts`](../apps/host/scripts/reach.ts) has ssh carry the node's port 443 to a loopback
+port and speaks to that alone, sending every request as the name would arrive: TLS with the name
+as SNI and as `Host`, so Caddy routes it. Caddy's guard sees the node's own address, which is a
+LAN one; a tunnel to the node's loopback is refused by the same guard, which is why the far end
+is the LAN address.
+
+Plain HTTP on this side, because localhost is a secure context: the session cookie's `Secure` is
+kept and still sent. The port is `REACH_PORT` in `libs/urls`, beside the pinned ones and outside
+their map, since what answers there is not an app.
+
 ## The base session
 
 `mise run base up` ensures a tmux session named `<basename>-dev` exists with a window per server,

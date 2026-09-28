@@ -29,6 +29,13 @@ export const DEVELOPMENT_PORTS = Object.fromEntries(
 	Object.entries(PINNED_PORTS).map(([app, port]) => [app, port + PORT_OFFSET]),
 ) as { readonly [App in keyof typeof PINNED_PORTS]: number };
 
+/**
+ * Where `mise run reach` answers: a plain-HTTP door on this machine to an interface that only the
+ * LAN reaches. Not an app, so it is kept out of the map above. See spec/toolchain.md, "Reaching
+ * the LAN from a browser that cannot".
+ */
+export const REACH_PORT: number = 26520 + PORT_OFFSET;
+
 export type AppName = keyof typeof PINNED_PORTS;
 
 export type DevelopmentUrls = Readonly<Record<AppName, string>>;
