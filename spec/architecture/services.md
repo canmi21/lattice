@@ -133,6 +133,12 @@ Worker applies the same rows itself -- the site's are `libs/site-api/src/limits.
 does not refuse anyone -- the reader still gets the count, only the increment is withheld -- so it
 is part of what `/read` means, and it stays in the site's API.
 
+**A free service is limited where the public reaches it, and nowhere else.** `geo` is a public
+scope: any page may call `api.ffoni.com/geo/reverse`, and one address may ask sixty times a minute --
+it answers from memory, so the limit keeps a crawler off the machine at home rather than paying for
+an answer. Our own callers do not pass the gateway and so meet no limit: a Worker binds the node's
+VPC service and asks `api.canmi.app` directly, and the LAN and the tailnet ask `api.canmi.icu`.
+
 **The gateway is written with Hono**, for its CORS middleware and the one error envelope, which
 every service here already answers in. It answers `/robots.txt` itself, keeping the whole host out
 of an index.

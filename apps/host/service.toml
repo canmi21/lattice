@@ -8,3 +8,5 @@ placements = ["home"]
 # After the machine's address ending in .11.
 port = 11011
 health = "/health"
+# About 40 MiB; images are streamed from disk, so a deploy adds buffers rather than an image.
+memory_mb = 256

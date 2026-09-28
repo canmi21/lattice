@@ -98,6 +98,14 @@ at all. A network of its own shared with Caddy alone, the app's own directory an
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
+**Every container has a memory ceiling, and no swap past it.** A declaration states `memory_mb` and
+host gives 512 without one; the platform's own two containers get theirs the same way, and swap is
+set equal to the limit, since a ceiling that can be exceeded into swap only makes the machine
+slower. The containers host does not run -- Caddy, cloudflared, the images started by a compose
+file -- carry theirs in that file. Each figure is the container's measured peak with room above it:
+geo, measured at 290 MiB held and 130 more pushed into swap against a 512 limit it met sixty times,
+has 768; host 256 and keeper 128 against peaks of 41 and 11; the rest 256.
+
 ### An image is built for speed, and for any node of its architecture
 
 Every image compiles its binary with the `container` profile in the workspace's `Cargo.toml`: full

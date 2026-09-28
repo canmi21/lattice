@@ -8,7 +8,10 @@ placements = ["home"]
 # The tropics sit at 23.44 degrees; see spec/architecture/services.md, "A service keeps one port".
 port = 23440
 health = "/health"
+# The gazetteer held in memory, about 420 MiB once loaded, and more while it loads.
+memory_mb = 768
 
-# Reached privately as the `geo` scope of the API host; not published on the public one.
+# The `geo` scope of the API host: public through the gateway, which limits it by address, and
+# unlimited privately and to our own Workers. See spec/architecture/services.md.
 [api]
-public = false
+public = true

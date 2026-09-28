@@ -264,7 +264,9 @@ mod tests {
 
 	#[test]
 	fn an_api_is_a_scope_with_its_prefix_stripped_and_nothing_public() {
-		let rendered = text(&render(&config(), "host", &[geo()], &[]));
+		let mut private = geo();
+		private.manifest.api.as_mut().unwrap().public = false;
+		let rendered = text(&render(&config(), "host", &[private], &[]));
 		assert!(rendered.contains(r#""host":["api.inside.test"]"#));
 		assert!(rendered.contains(r#""path":["/geo","/geo/*"]"#));
 		assert!(rendered.contains(r#""strip_path_prefix":"/geo""#));
@@ -277,9 +279,7 @@ mod tests {
 
 	#[test]
 	fn a_public_scope_is_on_the_tunnels_api_host_too() {
-		let mut open = geo();
-		open.manifest.api.as_mut().unwrap().public = true;
-		let rendered = render(&config(), "host", &[open], &[]);
+		let rendered = render(&config(), "host", &[geo()], &[]);
 		let tunnel = &rendered["apps"]["http"]["servers"]["tunnel"]["routes"][0]["handle"][0]["routes"];
 		assert_eq!(tunnel[1]["match"][0]["host"][0], "api.outside.test");
 		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 2);

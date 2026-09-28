@@ -2,6 +2,10 @@
 import type { Scope } from './table.ts';
 
 export const SCOPES: Readonly<Record<string, Scope>> = {
+	geo: {
+		placement: 'home',
+		binding: 'HOME',
+	},
 	hook: {
 		placement: 'workers',
 		binding: 'HOOK',

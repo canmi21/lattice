@@ -182,6 +182,10 @@ impl Engine {
 		};
 		let restart =
 			RestartPolicy { name: Some(RestartPolicyNameEnum::UNLESS_STOPPED), ..Default::default() };
+		// A ceiling on every container, and no swap past it: a limit that can be exceeded into swap
+		// is a slower machine rather than a limit. See spec/architecture/host.md.
+		let declared = manifest.container.as_ref().and_then(|container| container.memory_mb);
+		let memory = i64::from(declared.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
 		let (host_config, env) = match shape {
 			Shape::Sandboxed => {
 				// A structured mount rather than a `source:target` string, which a target containing a
@@ -195,8 +199,6 @@ impl Engine {
 						..Default::default()
 					}]
 				});
-				let declared = manifest.container.as_ref().and_then(|container| container.memory_mb);
-				let memory = i64::from(declared.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
 					mounts,
@@ -206,6 +208,7 @@ impl Engine {
 					readonly_rootfs: Some(true),
 					tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
 					memory: Some(memory),
+					memory_swap: Some(memory),
 					pids_limit: Some(512),
 					init: Some(true),
 					log_config: Some(logs),
@@ -221,6 +224,8 @@ impl Engine {
 						"/data:/data".into(),
 					]),
 					restart_policy: Some(restart),
+					memory: Some(memory),
+					memory_swap: Some(memory),
 					privileged: Some(true),
 					init: Some(true),
 					log_config: Some(logs),

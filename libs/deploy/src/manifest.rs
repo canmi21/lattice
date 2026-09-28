@@ -195,7 +195,7 @@ mod tests {
 	fn reads_the_declaration_geo_ships() {
 		let manifest = Manifest::parse(GEO).unwrap();
 		assert_eq!(manifest.name, "geo");
-		assert_eq!(manifest.api, Some(Api { public: false, prefix: None }));
+		assert_eq!(manifest.api, Some(Api { public: true, prefix: None }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
 	}
 

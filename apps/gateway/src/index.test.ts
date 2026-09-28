@@ -217,3 +217,27 @@ describe('the gateway', () => {
 		);
 	});
 });
+
+describe("geo's policy", () => {
+	const app = gateway({ geo: { placement: 'home', binding: 'HOME' } }, POLICIES);
+
+	it('lets any page call it, and limits one address on the lookup alone', async () => {
+		const asked: string[] = [];
+		const env = {
+			HOME: binding().fetcher,
+			GEO_LIMIT: {
+				limit: async ({ key }: { key: string }) => (asked.push(key), { success: false }),
+			},
+		};
+		const headers = { 'cf-connecting-ip': '192.0.2.1', origin: 'https://anyone.test' };
+		const lookup = await app.fetch(
+			new Request(`${HOST}/geo/reverse?lat=1&lon=2`, { headers }),
+			env,
+		);
+		expect(lookup.status).toBe(429);
+		expect(asked).toEqual(['192.0.2.1']);
+		const health = await app.fetch(new Request(`${HOST}/geo/health`, { headers }), env);
+		expect(health.status).toBe(200);
+		expect(health.headers.get('access-control-allow-origin')).toBe('*');
+	});
+});

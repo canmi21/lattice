@@ -16,6 +16,11 @@
 		{ "binding": "SITE", "service": "site" },
 	],
 
+	// The limits src/policy.ts names.
+	"ratelimits": [
+		{ "name": "GEO_LIMIT", "namespace_id": "959379525", "simple": { "limit": 60, "period": 60 } },
+	],
+
 	// The Caddy of the machine at home, the same VPC service `hook` notifies through.
 	"vpc_services": [
 		{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true },
@@ -37,6 +42,13 @@
 		"dev": {
 			"services": [{ "binding": "HOOK", "service": "hook" }],
 			"vars": { "SITE": "development" },
+			"ratelimits": [
+				{
+					"name": "GEO_LIMIT",
+					"namespace_id": "959379525",
+					"simple": { "limit": 60, "period": 60 },
+				},
+			],
 		},
 	},
 

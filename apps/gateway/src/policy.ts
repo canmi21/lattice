@@ -17,7 +17,15 @@ export interface Policy {
 }
 
 /**
- * None yet. The site's public routes are read by servers, not browsers, and are the cacheable
- * records; the routes that write are the site's own and limited in its Worker.
+ * The site has none: its public routes are read by servers, not browsers, and the routes that write
+ * are its own and limited in its Worker.
  */
-export const POLICIES: Readonly<Record<string, Policy>> = {};
+export const POLICIES: Readonly<Record<string, Policy>> = {
+	// A free lookup: any page may call it, and one address may ask about once a second. It answers
+	// from memory, so the limit is what keeps a crawler from the machine at home, not the cost of
+	// one answer. Our own Workers and the private host ask without it.
+	geo: {
+		origin: () => '*',
+		limits: [{ methods: ['GET', 'HEAD'], path: '/reverse', limiter: 'GEO_LIMIT' }],
+	},
+};
