@@ -21,11 +21,14 @@ hyper-rustls = { version = "0.27", default-features = false, features = ["http1"
 hyper-util = { version = "0.1.20", features = ["client-legacy", "http1", "tokio"] }
 mimalloc = "0.1.52"
 response = { path = "../../libs/response", features = ["axum"] }
+rustls = { version = "0.23.45", default-features = false, features = ["ring", "std", "tls12"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
+tokio-rustls = { version = "0.26.5", default-features = false, features = ["ring", "tls12"] }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "fs", "sync", "time", "io-util"] }
 url = "2.5.8"
 urls = { path = "../../libs/urls" }
+webpki-roots = "1.0.9"
 uuid = { version = "1.26.1", features = ["v4", "serde"] }
 
 [dev-dependencies]

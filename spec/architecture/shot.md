@@ -60,8 +60,11 @@ us: the public reaches public addresses alone, so nothing in it is ours to hide.
   `connect_ms`, `tls_ms`, `first_byte_ms`, `dom_content_loaded_ms` and `load_ms` from the browser's
   navigation timing, whose connection is to the proxy's tunnel; and `requests` and `bytes` over the
   whole page.
-- `connection`: the document's `protocol`, and its `tls` -- protocol, cipher, issuer, subject and
-  validity.
+- `connection`: the `addresses` the name resolved to, as the proxy judged them, the first it could
+  reach being the one connected; the document's `protocol`; its `tls` -- protocol, cipher, issuer,
+  subject and validity; and, for an `insecure` capture alone, `overlooked`: what a strict client
+  would have refused the certificate for, found by asking the host again with the platform's roots,
+  or null when it would have taken it.
 - `health`: `errors` thrown in the page and `failed_requests`, those the page did not call off
   itself -- a service of ours captured is checked by it as well as seen.
 

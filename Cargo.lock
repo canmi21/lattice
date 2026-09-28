@@ -3247,14 +3247,17 @@ dependencies = [
  "jiff",
  "mimalloc",
  "response",
+ "rustls",
  "serde",
  "serde_json",
  "tempfile",
  "tokio",
+ "tokio-rustls",
  "tower",
  "url",
  "urls",
  "uuid",
+ "webpki-roots",
 ]
 
 [[package]]

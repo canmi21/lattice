@@ -5,6 +5,7 @@ pub mod address;
 pub mod api;
 pub mod asked;
 pub mod browser;
+pub mod certificate;
 pub mod observe;
 pub mod proxy;
 pub mod queue;

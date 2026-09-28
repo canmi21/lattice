@@ -195,7 +195,8 @@ impl<R: Resolve> Render for Chromium<R> {
 		let reach = if asked.internal { Reach::Internal } else { Reach::Public };
 		// Judged here as well as at the proxy, so a refusal says why rather than a tunnel failing.
 		let resolving = std::time::Instant::now();
-		destination(&*self.resolver, asked.url.host_str().unwrap_or_default(), reach).await?;
+		let host = asked.url.host_str().unwrap_or_default();
+		let addresses = destination(&*self.resolver, host, reach).await?;
 		// The browser resolves nothing itself, so this is the page's name lookup, as the proxy has it.
 		let resolving_ms = resolving.elapsed().as_millis() as u64;
 
@@ -247,6 +248,16 @@ impl<R: Resolve> Render for Chromium<R> {
 						.unwrap_or_default();
 					let mut capture = shoot(&page, asked).await?;
 					capture.observed = observer.tell(&facts, resolving_ms);
+					let connection = &mut capture.observed["connection"];
+					connection["addresses"] = serde_json::json!(addresses);
+					// Only an ask to overlook a certificate is told what it overlooked.
+					if asked.insecure
+						&& let Some(&address) = addresses.first()
+					{
+						let port = asked.url.port_or_known_default().unwrap_or(443);
+						let why = crate::certificate::overlooked(host, address, port).await;
+						connection["overlooked"] = serde_json::json!(why);
+					}
 					Ok(capture)
 				}
 				.await;
