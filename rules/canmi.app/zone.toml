@@ -7,12 +7,13 @@ action = "block"
 expression = "../all/block-probes.txt"
 
 [[rules]]
-name = "Security Contact"
+name = "Redirect to canmi.net"
 phase = "http_request_dynamic_redirect"
 action = "redirect"
-expression = "security-redirect.txt"
+expression = "canmi-net-redirect.txt"
 target_url = "APPS_PRODUCTION_SITE"
-target_path = "/.well-known/security.txt"
+target_path_from_request = true
+preserve_query_string = true
 status = 301
 
 [[rules]]

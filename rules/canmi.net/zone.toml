@@ -13,6 +13,23 @@ action = "block"
 expression = "site-files-only.txt"
 
 [[rules]]
+name = "Referral Redirect"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "referral-redirect.txt"
+target_expression = "referral-redirect-target.txt"
+status = 301
+
+[[rules]]
+name = "Subdomain Migration"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "subdomain-migration.txt"
+target_expression = "subdomain-migration-target.txt"
+preserve_query_string = true
+status = 307
+
+[[rules]]
 name = "Rate Cap"
 phase = "http_ratelimit"
 action = "block"

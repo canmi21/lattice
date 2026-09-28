@@ -19,6 +19,22 @@ action = "block"
 expression = "cdn-prefixes-only.txt"
 
 [[rules]]
+name = "Redirect from HTTP to HTTPS"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "http-to-https-redirect.txt"
+target_expression = "http-to-https-redirect-target.txt"
+status = 301
+
+[[rules]]
+name = "Redirect from WWW to root"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "www-redirect.txt"
+target_expression = "www-redirect-target.txt"
+status = 301
+
+[[rules]]
 name = "Rate Cap"
 phase = "http_ratelimit"
 action = "block"
