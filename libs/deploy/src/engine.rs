@@ -444,6 +444,15 @@ impl Engine {
 		}))
 	}
 
+	/// When the container under `name` was made, as Docker says it, or nothing when there is none.
+	pub async fn created(&self, name: &str) -> Result<Option<String>, Error> {
+		match self.docker.inspect_container(name, None).await {
+			Ok(inspected) => Ok(inspected.created),
+			Err(error) if absent(&error) => Ok(None),
+			Err(error) => Err(error.into()),
+		}
+	}
+
 	/// Whether the Docker daemon answers at all.
 	pub async fn ping(&self) -> Result<(), Error> {
 		self.docker.ping().await?;

@@ -17,6 +17,8 @@ export interface App extends Version {
 	held: boolean;
 	running: boolean;
 	restorable: boolean;
+	/** host, keeper or Caddy: restarted from here, never stopped. */
+	platform: boolean;
 }
 
 export type Action =

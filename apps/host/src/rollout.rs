@@ -29,6 +29,8 @@ pub enum Error {
 	Archive(std::io::Error),
 	#[error("host does not act on itself; keeper replaces it")]
 	Itself,
+	#[error("`{0}` is the platform's own: it is restarted, never stopped")]
+	Platform(String),
 	#[error("`{0}` is not an app this node runs")]
 	NoSuchApp(String),
 	#[error("`{0}` has no previous version to go back to")]
@@ -200,6 +202,33 @@ pub async fn from_archive(
 	deployed
 }
 
+/// The platform's own three: the panel restarts them and never stops them, since each stopped takes
+/// the panel or the way back with it. See spec/architecture/host.md, "What the panel can do to an
+/// app".
+pub const PLATFORM: [&str; 3] = ["host", "keeper", "caddy"];
+
+/// What a restart must not wait for: host answering the request, and Caddy carrying it. The panel
+/// is told first and the restart follows.
+const ON_THE_WAY: [&str; 2] = ["host", "caddy"];
+
+/// How long a restart on the way waits, so the answer saying it was asked has left.
+const ANSWERED: std::time::Duration = std::time::Duration::from_millis(500);
+
+/// host as it runs now, read back from its container's label, in the shape of any app. keeper
+/// keeps no record and host none of itself, so it has no previous version here and is never held.
+pub async fn itself(host: &Host) -> Result<Option<Deployed>, Error> {
+	let fallback = Manifest::parse(include_str!("../service.toml"))?;
+	let Some(version) = host.engine.current("host", &fallback).await? else { return Ok(None) };
+	let deployed_at = host.engine.created("host").await?.unwrap_or_default();
+	Ok(Some(Deployed {
+		manifest: version.manifest,
+		image: version.image,
+		previous: None,
+		deployed_at,
+		held: false,
+	}))
+}
+
 /// An app the panel may act on: one host runs, and not host itself, which cannot stop or replace
 /// the program answering the request. See spec/architecture/host.md, "What the panel can do to an
 /// app".
@@ -280,8 +309,12 @@ pub async fn rollback(host: &Host, name: &str, with_data: bool) -> Result<Outcom
 }
 
 /// Start, stop or restart the container as it is. A stop holds the app stopped; a start or a
-/// restart ends the hold.
-pub async fn act(host: &Host, name: &str, action: Action) -> Result<(), Error> {
+/// restart ends the hold. The platform's own are restarted and nothing else.
+pub async fn act(host: &Arc<Host>, name: &str, action: Action) -> Result<(), Error> {
+	permitted(name, action)?;
+	if ON_THE_WAY.contains(&name) {
+		return restart_later(host, name).await;
+	}
 	let _one = host.deploying.lock().await;
 	let app = actionable(host, name)?;
 	let source = Source::panel();
@@ -299,6 +332,44 @@ pub async fn act(host: &Host, name: &str, action: Action) -> Result<(), Error> {
 	host.store.finish(id, outcome, None, detail.as_deref())?;
 	done?;
 	host.store.hold(name, action == Action::Stop)?;
+	Ok(())
+}
+
+/// Whether the panel may do this to the container at all, before anything is asked of Docker.
+fn permitted(name: &str, action: Action) -> Result<(), Error> {
+	if PLATFORM.contains(&name) && action != Action::Restart {
+		return Err(Error::Platform(name.into()));
+	}
+	Ok(())
+}
+
+/// A restart of what carries the request: recorded, answered, and only then done. host's own is
+/// recorded as done when asked, since nothing of it is left to finish the record once it restarts.
+async fn restart_later(host: &Arc<Host>, name: &str) -> Result<(), Error> {
+	let image = match name {
+		"host" => itself(host).await?.map(|app| app.image),
+		_ => Some(actionable(host, name)?.image),
+	};
+	let source = Source::panel();
+	let outcome = if name == "host" { store::Outcome::Succeeded } else { store::Outcome::Running };
+	let id = host.store.record(name, Action::Restart, &source, image.as_deref(), outcome)?;
+	let host = host.clone();
+	let name = name.to_owned();
+	tokio::spawn(async move {
+		tokio::time::sleep(ANSWERED).await;
+		let _one = host.deploying.lock().await;
+		let done = host.engine.restart(&name).await;
+		if let Err(error) = &done {
+			eprintln!("host: restarting {name}: {error}");
+		}
+		if name != "host" {
+			let (outcome, detail) = match &done {
+				Ok(()) => (store::Outcome::Succeeded, None),
+				Err(error) => (store::Outcome::Failed, Some(error.to_string())),
+			};
+			let _ = host.store.finish(id, outcome, None, detail.as_deref());
+		}
+	});
 	Ok(())
 }
 
@@ -430,6 +501,22 @@ async fn collect(host: &Host) -> Result<(), Error> {
 mod tests {
 	use super::deployable;
 	use deploy::manifest::Invalid;
+
+	#[test]
+	fn the_platforms_own_are_restarted_and_never_stopped_or_started() {
+		use super::{Error, permitted};
+		use crate::store::Action;
+		for name in ["host", "keeper", "caddy"] {
+			assert!(permitted(name, Action::Restart).is_ok(), "{name}");
+			for action in [Action::Stop, Action::Start] {
+				assert!(matches!(permitted(name, action), Err(Error::Platform(_))), "{name}");
+			}
+		}
+		for action in [Action::Stop, Action::Start, Action::Restart] {
+			assert!(permitted("geo", action).is_ok());
+			assert!(permitted("agent", action).is_ok());
+		}
+	}
 
 	#[test]
 	fn host_takes_keeper_and_any_app_but_not_itself() {

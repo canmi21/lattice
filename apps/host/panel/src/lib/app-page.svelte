@@ -50,8 +50,24 @@
 		load();
 	});
 
-	/** host does none of these to itself; see spec/architecture/host.md. */
+	/** host neither redeploys nor rolls back itself; see spec/architecture/host.md. */
 	const itself = $derived(name === 'host');
+	/** What carries this panel: restarting it drops the answer, so the page waits for it back. */
+	const onTheWay = $derived(name === 'host' || name === 'caddy');
+
+	/** Wait out a restart of what carries the panel: a moment, then until the app answers again. */
+	async function back() {
+		const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+		await pause(2000);
+		for (let tries = 0; tries < 30; tries += 1) {
+			try {
+				if ((await api.app(name)).running) return;
+			} catch {
+				// Still restarting.
+			}
+			await pause(1000);
+		}
+	}
 
 	function ask(request: Pending) {
 		pending = request;
@@ -157,53 +173,65 @@
 						})}>Roll back with data</Button
 				>
 				<span class="mx-1 h-5 w-px {stylex.attrs(surfaces.divider).class}"></span>
-				<Button
-					variant="ghost"
-					icon={Play}
-					disabled={busy || itself}
-					onclick={() =>
-						ask({
-							title: `Start ${name}`,
-							detail: 'Starts the container as it is, and ends a hold.',
-							confirm: 'Start',
-							danger: false,
-							run: () => api.act(name, 'start'),
-						})}>Start</Button
-				>
-				<Button
-					variant="ghost"
-					icon={RefreshCw}
-					disabled={busy || itself}
-					onclick={() =>
-						ask({
-							title: `Restart ${name}`,
-							detail: 'Restarts the container as it is.',
-							confirm: 'Restart',
-							danger: false,
-							run: () => api.act(name, 'restart'),
-						})}>Restart</Button
-				>
-				<Button
-					variant="danger"
-					icon={Square}
-					disabled={busy || itself}
-					onclick={() =>
-						ask({
-							title: `Stop ${name}`,
-							detail:
-								'Stops the container and holds it stopped: through a reboot and through deploys, until it is started here.',
-							confirm: 'Stop',
-							danger: true,
-							run: () => api.act(name, 'stop'),
-						})}>Stop</Button
-				>
+				{#if !app.platform}
+					<Button
+						variant="ghost"
+						icon={Play}
+						disabled={busy}
+						onclick={() =>
+							ask({
+								title: `Start ${name}`,
+								detail: 'Starts the container as it is, and ends a hold.',
+								confirm: 'Start',
+								danger: false,
+								run: () => api.act(name, 'start'),
+							})}>Start</Button
+					>
+					<Button
+						variant="ghost"
+						icon={RefreshCw}
+						disabled={busy}
+						onclick={() =>
+							ask({
+								title: `Restart ${name}`,
+								detail: onTheWay
+									? 'Restarts the container as it is. This panel reaches the node through it, so it is out of reach for a few seconds.'
+									: 'Restarts the container as it is.',
+								confirm: 'Restart',
+								danger: false,
+								run: async () => {
+									await api.act(name, 'restart');
+									if (onTheWay) await back();
+								},
+							})}>Restart</Button
+					>
+					<Button
+						variant="danger"
+						icon={Square}
+						disabled={busy}
+						onclick={() =>
+							ask({
+								title: `Stop ${name}`,
+								detail:
+									'Stops the container and holds it stopped: through a reboot and through deploys, until it is started here.',
+								confirm: 'Stop',
+								danger: true,
+								run: () => api.act(name, 'stop'),
+							})}>Stop</Button
+					>
+				{/if}
 			{/if}
 		{/snippet}
 	</PageHeader>
 
-	{#if itself || busy || error}
+	{#if app.platform || busy || error}
 		<p class="-mt-2 mb-5 {stylex.attrs(type.muted, error ? tone.danger : null).class}">
-			{error || (busy ? 'Working…' : 'host does not act on itself; keeper replaces it.')}
+			{error ||
+				(busy
+					? 'Working…'
+					: itself
+						? 'host is restarted here and nothing more; keeper deploys it.'
+						: 'Part of the platform: restarted here, never stopped.')}
 		</p>
 	{/if}
 
@@ -224,7 +252,8 @@
 		tabs={[
 			{ key: 'history', label: 'History' },
 			{ key: 'logs', label: 'Logs' },
-			{ key: 'environment', label: 'Environment' },
+			// host's own environment is its `.env`, read by nothing here.
+			...(itself ? [] : [{ key: 'environment' as const, label: 'Environment' }]),
 		]}
 	/>
 

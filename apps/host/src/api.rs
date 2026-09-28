@@ -183,19 +183,28 @@ struct Shown {
 	running: bool,
 	/// Whether a rollback with data can be offered.
 	restorable: bool,
+	/// One of the platform's own three, which the panel restarts and never stops.
+	platform: bool,
 }
 
 async fn shown(host: &Host, app: Deployed) -> Shown {
 	let running = host.engine.running(&app.manifest.name).await.unwrap_or(false);
 	let restorable = rollout::restorable(host, &app).ok().flatten().is_some();
-	Shown { app, running, restorable }
+	let platform = rollout::PLATFORM.contains(&app.manifest.name.as_str());
+	Shown { app, running, restorable, platform }
 }
 
+/// Every app the store holds, and host itself among them, read from its container.
 async fn apps(State(host): State<Arc<Host>>) -> Response {
-	let apps = match host.store.apps() {
+	let mut apps = match host.store.apps() {
 		Ok(apps) => apps,
 		Err(error) => return failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
 	};
+	match rollout::itself(&host).await {
+		Ok(itself) => apps.extend(itself),
+		Err(error) => eprintln!("host: reading its own container: {error}"),
+	}
+	apps.sort_by(|a, b| a.manifest.name.cmp(&b.manifest.name));
 	let mut all = Vec::with_capacity(apps.len());
 	for app in apps {
 		all.push(shown(&host, app).await);
@@ -204,6 +213,13 @@ async fn apps(State(host): State<Arc<Host>>) -> Response {
 }
 
 async fn app(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	if name == "host" {
+		return match rollout::itself(&host).await {
+			Ok(Some(app)) => response::success(StatusCode::OK, shown(&host, app).await),
+			Ok(None) => response::failure(StatusCode::NOT_FOUND, "no_such_app"),
+			Err(error) => refused(error),
+		};
+	}
 	match host.store.app(&name) {
 		Ok(Some(app)) => response::success(StatusCode::OK, shown(&host, app).await),
 		Ok(None) => response::failure(StatusCode::NOT_FOUND, "no_such_app"),
@@ -235,7 +251,7 @@ async fn history(
 /// A panel action's refusal, by what went wrong.
 fn refused(error: DeployError) -> Response {
 	let (status, code) = match &error {
-		DeployError::Itself => (StatusCode::FORBIDDEN, "invalid_target"),
+		DeployError::Itself | DeployError::Platform(_) => (StatusCode::FORBIDDEN, "invalid_target"),
 		DeployError::NoSuchApp(_) => (StatusCode::NOT_FOUND, "no_such_app"),
 		DeployError::NoPrevious(_) => (StatusCode::CONFLICT, "no_such_version"),
 		DeployError::NoSnapshot(_) => (StatusCode::CONFLICT, "no_such_snapshot"),
@@ -487,6 +503,10 @@ fn change_variable(
 	if let Err(refused) = known(host, name) {
 		return refused;
 	}
+	// host reads its `.env` beside the compose file, not the two files an app's environment is.
+	if name == "host" {
+		return failed(StatusCode::FORBIDDEN, "invalid_target", DeployError::Itself);
+	}
 	let Some(kind) = environment::Kind::from_segment(kind) else {
 		return response::failure(StatusCode::NOT_FOUND, "no_such_route");
 	};
@@ -500,7 +520,11 @@ fn change_variable(
 }
 
 /// An app host runs, or the refusal to answer for one it does not.
+/// An app whose logs, history and environment may be read: one the store holds, or host itself.
 fn known(host: &Host, name: &str) -> Result<(), Response> {
+	if name == "host" {
+		return Ok(());
+	}
 	match host.store.app(name) {
 		Ok(Some(_)) => Ok(()),
 		Ok(None) => Err(response::failure(StatusCode::NOT_FOUND, "no_such_app")),

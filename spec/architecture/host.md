@@ -405,8 +405,19 @@ from its version: the panel says so, and a redeploy does it.
   ones kept.
 - **Start, stop and restart** act on the container as it is.
 
-Every one of them is confirmed twice. host does none of them to itself: it cannot stop or replace the
-program answering the request, and keeper is the one that replaces host.
+Every one of them is confirmed twice.
+
+**host is listed beside the apps it runs**, read back from its own container's label, since keeper
+keeps no record and host none of itself: its logs and its version are there, with no previous
+version and no environment, which is its `.env` beside the compose file and read by nothing here.
+
+**The platform's own three -- host, keeper and Caddy -- are restarted from the panel and never
+stopped or started.** Each stopped takes the panel or the way back with it: host is the panel, Caddy
+carries it, and keeper is what replaces host. host does not redeploy or roll itself back either,
+since keeper is the one that replaces it; keeper and Caddy are redeployed and rolled back like any
+app. A restart of host or of Caddy -- what answers the request and what carries it -- is answered
+first and done half a second later, and the panel waits for the app to answer again. host's own is
+recorded as done when asked, because nothing of it is left to finish the record once it restarts.
 
 **A stop holds until a start.** A stopped app stays stopped through a reboot -- Docker's own
 restart policy does that -- and through a deploy: while it is held, a CI run that built it is recorded
