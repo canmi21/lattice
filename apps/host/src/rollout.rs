@@ -93,6 +93,7 @@ pub async fn deploy(host: &Host, manifest: Manifest, image: String) -> Result<Ou
 		image: next.image,
 		previous: current,
 		deployed_at,
+		held: false,
 	})?;
 	let routed = route(host).await.map_err(|error| error.to_string());
 	collect(host).await?;

@@ -255,6 +255,7 @@ mod tests {
 			image: "sha256:a".into(),
 			previous: None,
 			deployed_at: String::new(),
+			held: false,
 		}
 	}
 
@@ -377,6 +378,7 @@ mod tests {
 			image: "sha256:k".into(),
 			previous: None,
 			deployed_at: String::new(),
+			held: false,
 		};
 		let rendered = render(&config(), "host", &[keeper], &[]);
 		let outside = text(&rendered["apps"]["http"]["servers"]["tunnel"]);

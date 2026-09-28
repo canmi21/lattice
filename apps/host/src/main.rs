@@ -32,9 +32,6 @@ pub struct Host {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	let config = config::Config::from_env()?;
-	if let Some(parent) = config.state.parent() {
-		std::fs::create_dir_all(parent)?;
-	}
 	deploy::clear_arrivals(&config.incoming)?;
 	let host = Arc::new(Host {
 		store: store::Store::open(&config.state)?,

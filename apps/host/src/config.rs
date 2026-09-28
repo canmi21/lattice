@@ -77,7 +77,7 @@ impl Config {
 			listen,
 			own_container: optional("OWN_CONTAINER", "host"),
 			snapshots_root: PathBuf::from(optional("SNAPSHOTS_ROOT", "/data/.snapshots")),
-			state: apps_root.join("host").join("data").join("host.db"),
+			state: apps_root.join("host").join("data"),
 			incoming: apps_root.join("host").join("data").join("incoming"),
 			platform_env: apps_root.join("host").join(".env"),
 			caddy: CaddyConfig {
