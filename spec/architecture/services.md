@@ -291,8 +291,16 @@ without a network, see [meter.md](meter.md).
 
 **No container publishes a port.** Each app has a Docker network of its own that it shares with
 Caddy and nothing else, so an app that is compromised cannot reach another around Caddy.
-The tunnel reaches Caddy only, and Workers VPC reaches a node through Caddy too: a Worker asks
-Caddy with the name it wants as `Host`, as `gemini`'s VPC service does.
+The tunnel reaches Caddy only, and Workers VPC reaches a node through Caddy too.
+
+**A node has one VPC service, `home`, and it points at Caddy.** A Worker binds it as `HOME` and
+names what it wants as `Host` -- `api.canmi.app` for an API, `gemini.canmi.app` for gemini -- so a
+new service a Worker needs is never a new VPC service in the dashboard. What a Worker can reach is
+decided here rather than there: it is the tunnel's side of Caddy, which host renders from every
+`service.toml` -- public API scopes, public interfaces and routes, and keeper's `/notice`. Caddy
+cannot tell a Worker's request from a visitor's, since both arrive from the tunnel; the visitor is
+the one Access stops first, at Cloudflare. The VPC service's HTTPS port is never used: Caddy's
+tunnel side answers plain HTTP on 80.
 
 This is a single entrance, not zero trust, and the difference is worth knowing: `.icu` admits by
 where a request comes from, `.app` by who sent it. For one person that is the right trade. host is
