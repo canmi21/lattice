@@ -69,6 +69,8 @@ export interface MachineInfo {
 	/** Bytes. */
 	memory: number;
 	swap: number;
+	/** Bytes, of the filesystem the agent keeps its hours on. */
+	storage: number | null;
 	/** Seconds since the epoch. */
 	booted: number | null;
 }

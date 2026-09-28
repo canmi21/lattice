@@ -53,8 +53,8 @@ rather than a change of shape. Names are dotted, lowercase and spelled out.
   backwards was reset, and reads as zero rather than as a negative.
 
 What does not change while the machine is up is read once, as its info: the board's model from the
-device tree, the kernel release, the core count and each core's maximum frequency, total memory and
-swap, and when it booted.
+device tree, the kernel release, the core count and each core's maximum frequency, total memory,
+swap and storage, and when it booted.
 
 ## Retention
 

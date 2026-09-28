@@ -84,6 +84,8 @@ pub struct Info {
 	pub max_frequencies: Vec<Option<f64>>,
 	pub memory: u64,
 	pub swap: u64,
+	/// Bytes, of the filesystem the agent's directory is on.
+	pub storage: Option<u64>,
 	/// Seconds since the epoch.
 	pub booted: Option<u64>,
 }
@@ -286,6 +288,7 @@ pub fn info(roots: &Roots) -> Info {
 			.collect(),
 		memory: memory.total,
 		swap: memory.swap_total,
+		storage: roots.storage.as_deref().and_then(storage).map(|storage| storage.total),
 		booted: booted(&stat),
 	}
 }
@@ -408,6 +411,7 @@ veth12ab: 7777 1 0 0 0 0 0 0 7777 1 0 0 0 0 0 0
 		assert_eq!(info.cores, 2);
 		assert_eq!(info.max_frequencies, [Some(1800.0), Some(2400.0)]);
 		assert_eq!(info.booted, Some(1_780_000_000));
+		assert!(info.storage.is_some_and(|total| total > 0));
 	}
 
 	#[test]

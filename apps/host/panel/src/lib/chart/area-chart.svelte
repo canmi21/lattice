@@ -23,6 +23,7 @@
 		band = true,
 		compact = false,
 		bytes = false,
+		reveal = '',
 	}: {
 		lines: Line[];
 		/** The span shown, in seconds; the points' own when not given. */
@@ -38,6 +39,8 @@
 		compact?: boolean;
 		/** A quantity of bytes, so its ticks fall on binary units. */
 		bytes?: boolean;
+		/** Draws the plot in again when it changes: the span chosen, never each new second. */
+		reveal?: string;
 	} = $props();
 
 	const id = $props.id();
@@ -214,7 +217,7 @@
 				>
 			{/each}
 
-			{#key `${start}`}
+			{#key reveal}
 				<g bind:this={plot}>
 					{#each shapes as shape (shape.line.key)}
 						{#if shape.band}

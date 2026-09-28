@@ -8,7 +8,8 @@ export function bytes(value: number, digits = 1): string {
 		value /= 1024;
 		unit += 1;
 	}
-	return `${value.toFixed(unit === 0 ? 0 : digits)} ${UNITS[unit]}`;
+	// `8 GiB` rather than `8.0 GiB`: a zero after the point says nothing.
+	return `${value.toFixed(unit === 0 ? 0 : digits).replace(/\.0+$/, '')} ${UNITS[unit]}`;
 }
 
 /** A span of seconds as its two largest units: `3d 4h`, `5h 12m`, `42s`. */
