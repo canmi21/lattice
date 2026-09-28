@@ -291,6 +291,7 @@ mod tests {
 			full: false,
 			internal: false,
 			insecure: false,
+			javascript: true,
 			timeout: 15_000,
 			delay: 210,
 		}

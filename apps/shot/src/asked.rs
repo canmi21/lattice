@@ -30,6 +30,8 @@ pub struct Asked {
 	pub internal: bool,
 	/// Whether a certificate the browser would refuse is accepted: an https page's alone.
 	pub insecure: bool,
+	/// Whether the page runs scripts before it is captured; `false` takes it as it is without them.
+	pub javascript: bool,
 	/// Milliseconds the page may take to load.
 	pub timeout: u32,
 	/// Milliseconds between its loading and the picture.
@@ -55,6 +57,7 @@ pub struct Query {
 	pub timeout: Option<String>,
 	pub delay: Option<String>,
 	pub insecure: Option<String>,
+	pub javascript: Option<String>,
 }
 
 /// Where a GET names the page's own query: `query.tab=readme` is the page's `tab=readme`.
@@ -86,6 +89,7 @@ impl Query {
 				"timeout" => &mut query.timeout,
 				"delay" => &mut query.delay,
 				"insecure" => &mut query.insecure,
+				"javascript" => &mut query.javascript,
 				"query" => return Err(Refused::Url),
 				_ => continue,
 			};
@@ -99,9 +103,10 @@ impl Query {
 		let text = |value: Option<f64>| value.map(|value| value.to_string());
 		let flag = |value: Option<bool>| value.map(|value| value.to_string());
 		let number = |value: Option<u32>| value.map(|value| value.to_string());
-		let Body { target, viewport, timing, access } = body;
+		let Body { target, viewport, timing, access, browser } = body;
 		let (target, viewport) = (target.unwrap_or_default(), viewport.unwrap_or_default());
 		let (timing, access) = (timing.unwrap_or_default(), access.unwrap_or_default());
+		let browser = browser.unwrap_or_default();
 		Query {
 			scheme: target.scheme,
 			host: target.host,
@@ -116,6 +121,7 @@ impl Query {
 			timeout: text(timing.timeout),
 			delay: text(timing.delay),
 			insecure: flag(access.insecure),
+			javascript: flag(browser.javascript),
 		}
 	}
 }
@@ -131,6 +137,7 @@ pub struct Body {
 	pub viewport: Option<Viewport>,
 	pub timing: Option<Timing>,
 	pub access: Option<Access>,
+	pub browser: Option<Browser>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
@@ -165,6 +172,12 @@ pub struct Timing {
 pub struct Access {
 	pub insecure: Option<bool>,
 	pub internal: Option<bool>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Browser {
+	pub javascript: Option<bool>,
 }
 
 /// An object's pairs in the order they were written, a list of values as that name repeated;
@@ -216,6 +229,12 @@ pub enum Refused {
 /// `true`, `1` or the bare name mean yes; anything else, or nothing, means no.
 fn yes(value: Option<&str>) -> bool {
 	matches!(value, Some("" | "true" | "1"))
+}
+
+/// The same reading, but yes when nothing was asked: `javascript`'s alone, which runs unless told
+/// not to.
+fn yes_unless_asked(value: Option<&str>) -> bool {
+	value.is_none() || yes(value)
 }
 
 fn dimension(
@@ -302,6 +321,7 @@ impl Asked {
 			full: yes(query.full.as_deref()),
 			internal: !public && yes(query.internal.as_deref()),
 			insecure,
+			javascript: yes_unless_asked(query.javascript.as_deref()),
 			timeout: seconds(query.timeout.as_deref(), DEFAULT_TIMEOUT, &TIMEOUTS)?,
 			delay: seconds(query.delay.as_deref(), DEFAULT_DELAY, &DELAYS)?,
 		})
@@ -406,6 +426,15 @@ mod tests {
 	}
 
 	#[test]
+	fn scripts_run_unless_told_not_to() {
+		let javascript = |pairs: &[(&str, &str)]| Asked::read(&query(pairs), false).unwrap().javascript;
+		assert!(javascript(&[("host", "x.test")]));
+		assert!(javascript(&[("host", "x.test"), ("javascript", "true")]));
+		assert!(!javascript(&[("host", "x.test"), ("javascript", "false")]));
+		assert!(!javascript(&[("host", "x.test"), ("javascript", "0")]));
+	}
+
+	#[test]
 	fn takes_the_pages_query_pair_by_pair_and_writes_it_escaped() {
 		let pairs = [
 			("host", "x.test"),
@@ -435,7 +464,8 @@ mod tests {
 					"query": { "z": "last", "tag": ["a", "b"] }, "hash": "top" },
 				"viewport": { "width": 390, "full": true },
 				"timing": { "timeout": 2.5, "delay": 0.1 },
-				"access": { "insecure": true, "internal": true }
+				"access": { "insecure": true, "internal": true },
+				"browser": { "javascript": false }
 			}"#,
 		)
 		.unwrap();
@@ -443,15 +473,17 @@ mod tests {
 		// Written in the order it was given, not sorted.
 		assert_eq!(asked.url.as_str(), "http://x.test:8080/docs?z=last&tag=a&tag=b#top");
 		assert_eq!((asked.width, asked.full, asked.timeout, asked.delay), (390, true, 2_500, 100));
-		assert!(asked.internal && !asked.insecure);
+		assert!(asked.internal && !asked.insecure && !asked.javascript);
 		let public =
 			serde_json::from_str::<Body>(r#"{"target":{"host":"x.test"},"access":{"internal":true}}"#)
 				.unwrap();
-		assert!(!Asked::read(&Query::from_body(public), true).unwrap().internal);
+		let public = Asked::read(&Query::from_body(public), true).unwrap();
+		assert!(!public.internal && public.javascript);
 		for unknown in [
 			r#"{"url":"https://x.test"}"#,
 			r#"{"target":{"host":"x.test","url":"y"}}"#,
 			r#"{"target":{"query":{"a":1}}}"#,
+			r#"{"browser":{"scripts":false}}"#,
 		] {
 			assert!(serde_json::from_str::<Body>(unknown).is_err(), "{unknown}");
 		}

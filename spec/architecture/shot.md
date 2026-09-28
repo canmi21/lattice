@@ -51,7 +51,8 @@ Each tells its own and nothing of the others'.
   	},
   	"viewport": { "width": 1440, "height": 900, "full": true },
   	"timing": { "timeout": 20, "delay": 1.5 },
-  	"access": { "insecure": true, "internal": false }
+  	"access": { "insecure": true, "internal": false },
+  	"browser": { "javascript": false }
   }
   ```
 
@@ -60,8 +61,8 @@ Each tells its own and nothing of the others'.
   not know, at any level, is `400 invalid_body`, since it would otherwise be quietly not what was
   meant. The same ask by GET and by POST is one capture.
 
-- The rest: `width` and `height`, `full`, `timeout` and `delay`, `insecure` and `internal`, each
-  below.
+- The rest: `width` and `height`, `full`, `timeout` and `delay`, `insecure` and `internal`, and
+  `javascript`, each below.
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
   than what the viewport shows.
 - Every answer but the picture is the envelope, and says `no-store`, but a done task: it may be
@@ -90,14 +91,18 @@ Each tells its own and nothing of the others'.
   `queued_ms` and `rendered_ms` between them. Asked again after failing, a capture's story starts
   over.
 - `request`: what the capture was asked, normalized -- the page's address put together from its
-  parts, the viewport, `full`, `timeout` and `delay` in seconds, `insecure` and `internal`.
+  parts, the viewport, `full`, `timeout` and `delay` in seconds, `insecure`, `internal` and
+  `javascript`.
 - `pictures`, once done: `width` and `height` in pixels, `png_bytes`, and `webp_bytes` or null.
 - `page`: the address it ended at, each `redirects` hop with its status, the document's `status`
   and `type`, its `title`, `description` and `language`, and its whole `width` and `height`.
 - `load`: `dns_ms`, the name's lookup as the proxy made it, since the browser resolves nothing;
   `connect_ms`, `tls_ms`, `first_byte_ms`, `dom_content_loaded_ms` and `load_ms` from the browser's
-  navigation timing, whose connection is to the proxy's tunnel; and `requests` and `bytes` over the
-  whole page.
+  navigation timing, whose connection is to the proxy's tunnel; `requests` and `bytes` over the
+  whole page; and `resources`, the same two split by what each response was, as the browser names
+  its type -- `document`, `script`, `stylesheet`, `font`, `image`, `media`, `fetch` for both
+  `XHR` and `Fetch`, and `other` for the rest -- each `{ count, bytes }`, every kind present even
+  at zero. `bytes` is what crossed the wire, compressed as it came.
 - `connection`: the `addresses` the name resolved to, as the proxy judged them, the first it could
   reach being the one connected; the document's `protocol`; its `tls` -- protocol, cipher, issuer,
   subject and validity; and, for an `insecure` capture alone, `overlooked`: what a strict client
@@ -185,6 +190,10 @@ the browser at once. A browser that has died is started again for the next captu
   them asking; and it is part of what makes two asks one. The proxy's judgment of addresses is not
   touched by it. chromiumoxide overlooks every certificate unless told to respect them, which it
   is.
+- **`javascript=false` captures the page as it is without scripts**: the browser is told to run
+  none on the capture's page before it navigates, so what is taken is the markup and styles alone
+  -- the page a crawler or a reader without scripts sees. Not asked, scripts run. It is part of
+  what makes two asks one.
 - `full` measures the page and captures that much beyond the viewport, at the width asked; it is
   cut at 16,383 pixels, WebP's limit, so both formats are always made.
 - Chromium runs without its own sandbox, since the container gives it no capabilities to build one

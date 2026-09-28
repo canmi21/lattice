@@ -32,6 +32,7 @@ fn story(details: &Details) -> (Value, Value) {
 		"delay": f64::from(asked.delay) / 1000.0,
 		"insecure": asked.insecure,
 		"internal": asked.internal,
+		"javascript": asked.javascript,
 	});
 	(task, request)
 }

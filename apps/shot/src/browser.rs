@@ -5,7 +5,9 @@
 use crate::asked::Asked;
 use crate::render::{Capture, Events, Render};
 use crate::resolve::{Reach, Resolve, destination};
-use chromiumoxide::cdp::browser_protocol::emulation::SetDeviceMetricsOverrideParams;
+use chromiumoxide::cdp::browser_protocol::emulation::{
+	SetDeviceMetricsOverrideParams, SetScriptExecutionDisabledParams,
+};
 use chromiumoxide::cdp::browser_protocol::page::{
 	CaptureScreenshotFormat, CaptureScreenshotParams, Viewport,
 };
@@ -251,6 +253,10 @@ impl<R: Resolve> Render for Chromium<R> {
 					// Sent to this page's own session, so it is this capture's alone.
 					if asked.insecure {
 						page.execute(SetIgnoreCertificateErrorsParams::new(true)).await.map_err(why)?;
+					}
+					// Set before it navigates, so nothing the page would have run ever does.
+					if !asked.javascript {
+						page.execute(SetScriptExecutionDisabledParams::new(true)).await.map_err(why)?;
 					}
 					// Listened for before the page is asked for, or its own request is missed.
 					let observer = crate::observe::Observer::listen(&page).await?;
