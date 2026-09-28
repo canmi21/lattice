@@ -74,26 +74,39 @@ fn refuse_unless(sources: &[String]) -> Value {
 	})
 }
 
-/// Each API scope, its prefix stripped before the service sees the request. See
-/// spec/architecture/services.md, "One API host, scoped by path".
-fn scopes(apps: &[Deployed]) -> Vec<Value> {
-	let mut routes: Vec<Value> = apps
-		.iter()
-		.filter(|app| app.manifest.api.is_some())
-		.filter_map(|app| {
-			let name = &app.manifest.name;
-			let port = app.manifest.container.as_ref()?.port;
-			Some(json!({
-				"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
-				"handle": [
-					{ "handler": "rewrite", "strip_path_prefix": format!("/{name}") },
-					proxy(&format!("{name}:{port}"), name),
-				]
-			}))
-		})
-		.collect();
+/// Each API scope, its prefix stripped before the service sees the request; on the tunnel's side
+/// only the public ones, which the gateway reaches over Workers VPC. See
+/// spec/architecture/services.md, "A path with no scope is a 400, on both gateways".
+fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
+	let mut routes = vec![json!({
+		"match": [{ "path": ["/"] }],
+		"handle": [{ "handler": "static_response", "status_code": 400 }]
+	})];
+	routes.extend(
+		apps
+			.iter()
+			.filter(|app| app.manifest.api.as_ref().is_some_and(|api| !public || api.public))
+			.filter_map(|app| {
+				let name = &app.manifest.name;
+				let port = app.manifest.container.as_ref()?.port;
+				Some(json!({
+					"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
+					"handle": [
+						{ "handler": "rewrite", "strip_path_prefix": format!("/{name}") },
+						proxy(&format!("{name}:{port}"), name),
+					]
+				}))
+			}),
+	);
 	routes.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
 	routes
+}
+
+fn api_host(host: String, apps: &[Deployed], public: bool) -> Value {
+	json!({
+		"match": [{ "host": [host] }],
+		"handle": [{ "handler": "subroute", "routes": scopes(apps, public) }]
+	})
 }
 
 /// Everything reached by a subdomain of its own on one side: host's panel, each app with an
@@ -127,16 +140,14 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 	let public = &config.public_suffix;
 
 	let mut inside = vec![refuse_unless(&config.private_sources)];
-	inside.push(json!({
-		"match": [{ "host": [format!("api.{private}")] }],
-		"handle": [{ "handler": "subroute", "routes": scopes(apps) }]
-	}));
+	inside.push(api_host(format!("api.{private}"), apps, false));
 	for target in interfaces(apps, routes, own, false) {
 		inside.push(named(format!("{}.{private}", target.name), &target));
 	}
 	inside.push(abort());
 
 	let mut outside = vec![refuse_unless(std::slice::from_ref(&config.tunnel_source))];
+	outside.push(api_host(format!("api.{public}"), apps, true));
 	for target in interfaces(apps, routes, own, true) {
 		outside.push(named(format!("{}.{public}", target.name), &target));
 	}
@@ -261,6 +272,24 @@ mod tests {
 		// geo declares no interface and a private API, so nothing of it reaches the public suffix.
 		assert!(!rendered.contains("geo.outside.test"));
 		assert!(!rendered.contains("geo.inside.test"));
+		assert_eq!(rendered.matches(r#""dial":"geo:23440""#).count(), 1);
+	}
+
+	#[test]
+	fn a_public_scope_is_on_the_tunnels_api_host_too() {
+		let mut open = geo();
+		open.manifest.api.as_mut().unwrap().public = true;
+		let rendered = render(&config(), "host", &[open], &[]);
+		let tunnel = &rendered["apps"]["http"]["servers"]["tunnel"]["routes"][0]["handle"][0]["routes"];
+		assert_eq!(tunnel[1]["match"][0]["host"][0], "api.outside.test");
+		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 2);
+	}
+
+	#[test]
+	fn a_path_with_no_scope_is_malformed() {
+		let first = &scopes(&[geo()], false)[0];
+		assert_eq!(first["match"][0]["path"][0], "/");
+		assert_eq!(first["handle"][0]["status_code"], 400);
 	}
 
 	#[test]

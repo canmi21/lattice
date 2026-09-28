@@ -54,7 +54,8 @@ async fn notice(State(host): State<Arc<Host>>, Json(notice): Json<Notice>) -> Re
 	if host.github.is_none() {
 		return failed(StatusCode::SERVICE_UNAVAILABLE, "this node has no GITHUB_ACTIONS_TOKEN");
 	}
-	let fresh = host.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).insert(notice.run);
+	let fresh =
+		host.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).insert(notice.run);
 	if !fresh {
 		return (StatusCode::OK, "already taken").into_response();
 	}
