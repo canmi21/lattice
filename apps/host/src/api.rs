@@ -3,10 +3,11 @@
 
 use crate::Host;
 use crate::environment;
+use crate::node;
 use crate::panel;
 use crate::rollout::{self, Error as DeployError};
 use crate::store::{Action, Deployed, Route, Source};
-use axum::extract::{DefaultBodyLimit, Multipart, Path, Query, Request, State};
+use axum::extract::{DefaultBodyLimit, Multipart, Path, Query, RawQuery, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -37,6 +38,8 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/routes", get(routes))
 		.route("/routes/{name}", put(put_route).delete(delete_route))
 		.route("/caddy", get(caddy).post(reapply))
+		.route("/node/now", get(node_now))
+		.route("/node/series", get(node_series))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
 	// Everything the panel asks is under `/api`; every other path is the panel's own. `/health`
 	// and `/notice` stay at the root, where keeper, the hook and Caddy already reach them. See
@@ -562,6 +565,23 @@ fn is_home(home: &str) -> bool {
 }
 
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.
+/// The agent's socket, as the agent deployed on this node declares it; none without one.
+fn agent_socket(host: &Host) -> Option<std::path::PathBuf> {
+	let agent = host.store.apps().ok()?.into_iter().find(|app| app.manifest.name == "agent")?;
+	Some(host.volumes.data("agent").join(agent.manifest.container?.socket?))
+}
+
+/// The machine as it is this second, with what does not change beside it.
+async fn node_now(State(host): State<Arc<Host>>) -> Response {
+	node::relay(agent_socket(&host).as_deref(), "/now").await
+}
+
+/// The machine over time, at the grain asked for; the query is the agent's to read.
+async fn node_series(State(host): State<Arc<Host>>, RawQuery(query): RawQuery) -> Response {
+	let path = query.map_or_else(|| "/series".to_owned(), |query| format!("/series?{query}"));
+	node::relay(agent_socket(&host).as_deref(), &path).await
+}
+
 async fn caddy(State(host): State<Arc<Host>>) -> Response {
 	match rollout::render(&host) {
 		Ok(rendered) => response::success(StatusCode::OK, rendered),

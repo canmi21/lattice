@@ -1284,6 +1284,7 @@ dependencies = [
  "anyhow",
  "axum",
  "deploy",
+ "http-body-util",
  "jiff",
  "mimalloc",
  "regex",

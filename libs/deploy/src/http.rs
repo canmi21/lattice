@@ -52,13 +52,17 @@ pub async fn status(address: &str, path: &str) -> Result<u16, Error> {
 
 /// The status an app with no network answers `path` with on its socket.
 pub async fn status_unix(socket: &Path, path: &str) -> Result<u16, Error> {
+	Ok(get_unix(socket, path).await?.0)
+}
+
+/// GET `path` from an app on its socket, for its status and body: host asking the agent.
+pub async fn get_unix(socket: &Path, path: &str) -> Result<(u16, String), Error> {
 	let attempt = async {
 		let stream = tokio::net::UnixStream::connect(socket).await.map_err(Error::Connect)?;
 		let request = Request::get(path).header("host", "localhost").body(Full::new(Bytes::new()))?;
 		send(stream, request).await
 	};
-	let (status, _) = tokio::time::timeout(ATTEMPT, attempt).await.map_err(|_| Error::Timeout)??;
-	Ok(status)
+	tokio::time::timeout(ATTEMPT, attempt).await.map_err(|_| Error::Timeout)?
 }
 
 /// POST a JSON body to `address` over a container network, for its status: keeper passing a run

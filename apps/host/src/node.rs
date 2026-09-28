@@ -1,0 +1,80 @@
+//! The machine itself, as the agent samples it. host asks on the agent's socket and passes the
+//! answer on unchanged, since the agent already answers in the envelope. See
+//! spec/architecture/agent.md, "Reached through a socket".
+
+use axum::http::{StatusCode, header};
+use axum::response::{IntoResponse, Response};
+use std::path::Path;
+
+/// What the agent answers `path` with, or `agent_unavailable` when there is no socket to ask or
+/// nothing answers on it.
+pub async fn relay(socket: Option<&Path>, path: &str) -> Response {
+	let Some(socket) = socket else {
+		let message = "No agent is deployed on this node";
+		return response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "agent_unavailable", message);
+	};
+	match deploy::http::get_unix(socket, path).await {
+		Ok((status, body)) => {
+			let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
+			(status, [(header::CONTENT_TYPE, "application/json")], body).into_response()
+		}
+		Err(error) => {
+			response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "agent_unavailable", error)
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use axum::Router;
+	use axum::routing::get;
+	use http_body_util::BodyExt;
+	use std::future::IntoFuture;
+
+	async fn read(answer: Response) -> (StatusCode, serde_json::Value) {
+		let status = answer.status();
+		let body = answer.into_body().collect().await.unwrap().to_bytes();
+		(status, serde_json::from_slice(&body).unwrap())
+	}
+
+	#[tokio::test]
+	async fn passes_the_agents_answer_on_and_says_when_there_is_none() {
+		let directory = tempfile::tempdir().unwrap();
+		let socket = directory.path().join("agent.sock");
+		let agent = Router::new()
+			.route(
+				"/series",
+				get(|query: axum::extract::RawQuery| async move {
+					response::success(StatusCode::OK, query.0.unwrap_or_default())
+				}),
+			)
+			.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") });
+		let listener = tokio::net::UnixListener::bind(&socket).unwrap();
+		tokio::spawn(axum::serve(listener, agent).into_future());
+
+		let (status, body) = read(relay(Some(&socket), "/series?grain=minute&metrics=cpu").await).await;
+		assert_eq!((status, body["data"].as_str()), (StatusCode::OK, Some("grain=minute&metrics=cpu")));
+		let (status, body) = read(relay(Some(&socket), "/nothing").await).await;
+		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_route".into()));
+
+		let (status, body) = read(relay(None, "/now").await).await;
+		assert_eq!(
+			(status, &body["code"]),
+			(StatusCode::SERVICE_UNAVAILABLE, &"agent_unavailable".into())
+		);
+		let gone = directory.path().join("gone.sock");
+		let (status, body) = read(relay(Some(&gone), "/now").await).await;
+		assert_eq!(
+			(status, &body["code"]),
+			(StatusCode::SERVICE_UNAVAILABLE, &"agent_unavailable".into())
+		);
+	}
+
+	#[test]
+	fn every_code_it_answers_with_is_in_the_catalogue() {
+		for code in response::codes_named(include_str!("node.rs")) {
+			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
+		}
+	}
+}

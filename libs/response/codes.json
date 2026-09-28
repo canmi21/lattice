@@ -1,4 +1,5 @@
 {
+	"agent_unavailable": "The agent did not answer on its socket",
 	"app_unavailable": "The new version did not become healthy, and the one before it is running again",
 	"caddy_unavailable": "Caddy did not take the configuration",
 	"client_address_unavailable": "The caller's address is needed and was not given",

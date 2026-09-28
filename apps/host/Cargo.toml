@@ -23,4 +23,5 @@ mimalloc = "0.1.52"
 
 [dev-dependencies]
 regex = "1"
+http-body-util = "0.1.5"
 tempfile = "3.27.0"

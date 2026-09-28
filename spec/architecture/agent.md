@@ -93,6 +93,11 @@ through host's API, behind host's session.
 is `{ at, values: { <metric>: { average, minimum, maximum, count } } }`, the same at every grain,
 so a chart draws one shape.
 
+**The panel reads it through host, at `/api/node/now` and `/api/node/series`,** which pass the
+query on and the agent's answer back unchanged, behind host's session like every other `/api`
+route. host finds the socket from the agent it deployed -- `/data/apps/agent/data/` and the file the
+declaration names -- and answers `agent_unavailable` when none is deployed or nothing answers.
+
 A tick runs on its own thread, on the second, and the socket is served beside it. SIGTERM ends the
 serving, writes the open hour, and removes the socket; one left behind by a run that did not stop
 is removed before binding.
