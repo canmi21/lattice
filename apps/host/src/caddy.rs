@@ -27,8 +27,21 @@ struct Target {
 	home: Option<String>,
 }
 
-fn proxy(dial: &str) -> Value {
-	json!({ "handler": "reverse_proxy", "upstreams": [{ "dial": dial }] })
+/// `host:port` is dialed as plain HTTP. `https://host[:port]` is a device on the LAN that speaks
+/// only TLS, under a certificate it signed itself -- the UniFi router is one -- so it is reached
+/// over TLS without verifying that certificate: pinning it would break whenever the device made a
+/// new one, and the hop never leaves the house. See spec/architecture/host.md.
+fn proxy(upstream: &str) -> Value {
+	let Some(address) = upstream.strip_prefix("https://") else {
+		return json!({ "handler": "reverse_proxy", "upstreams": [{ "dial": upstream }] });
+	};
+	let address = address.trim_end_matches('/');
+	let dial = if address.contains(':') { address.to_owned() } else { format!("{address}:443") };
+	json!({
+		"handler": "reverse_proxy",
+		"upstreams": [{ "dial": dial }],
+		"transport": { "protocol": "http", "tls": { "insecure_skip_verify": true } }
+	})
 }
 
 /// One name, proxied to its upstream; a request for exactly `/` goes to the target's home first
@@ -272,6 +285,18 @@ mod tests {
 		assert!(rendered.contains(r#""status_code":307"#));
 		// Everything past the root still reaches the application, on both sides.
 		assert_eq!(rendered.matches(r#""dial":"gemini.test:8083""#).count(), 2);
+	}
+
+	#[test]
+	fn an_https_upstream_is_reached_over_tls_on_443_unless_it_names_a_port() {
+		let unifi =
+			Route { name: "unifi".into(), upstream: "https://10.0.0.1".into(), private: false, public: true, home: None };
+		let rendered = text(&render(&config(), "host", &[], &[unifi]));
+		assert!(rendered.contains(r#""dial":"10.0.0.1:443""#));
+		assert!(rendered.contains(r#""tls":{"insecure_skip_verify":true}"#));
+		assert_eq!(text(&proxy("https://10.0.0.1:8443/")["upstreams"]), r#"[{"dial":"10.0.0.1:8443"}]"#);
+		// A plain upstream carries no transport at all.
+		assert!(proxy("10.0.0.21:80").get("transport").is_none());
 	}
 
 	#[test]

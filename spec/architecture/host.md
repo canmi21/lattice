@@ -199,6 +199,13 @@ by host and is the same bytes it pushes, so it is not a second record, and Caddy
 
 The Caddyfile is retired with this. What it held by hand is entries in host.
 
+**A route to a device that speaks only TLS is reached over TLS, unverified.** The UniFi router
+answers on HTTPS alone, under a certificate it signed itself, and its route is written
+`https://10.10.10.1`. Caddy connects over TLS and does not check that certificate: the only way to
+check it would be to pin it, and a device that makes itself a new one on an update would then stop
+answering with nothing to say why. The hop is the LAN, between two machines in the same house, so
+what verification would guard against is not on the path.
+
 **A name may send its root elsewhere.** An application whose interface lives under a path -- gemini's
 panel is under `/admin` -- is given a `home`, and a request for exactly `/` is redirected there with a
 307 while every other path reaches the application untouched. Caddy sends the root to `home` and no

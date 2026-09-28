@@ -24,7 +24,8 @@ pub struct Deployed {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Route {
 	pub name: String,
-	/// `host:port`, dialed by Caddy.
+	/// `host:port`, dialed by Caddy as plain HTTP, or `https://host[:port]` for a device on the LAN
+	/// that speaks only TLS under its own certificate.
 	pub upstream: String,
 	pub private: bool,
 	pub public: bool,
