@@ -57,3 +57,26 @@ coarsest grain on disk, so a year is some twenty metrics times 8,760 rows, which
 - A series at the hour grain includes the open hour, so a chart reaches the present.
 - A metric is asked for by name or by a dotted prefix of it: `cpu.core` is every core's usage and
   frequency. Asking for none is asking for all.
+
+## Reached through a socket
+
+**The agent has no network and no port. It answers HTTP on `agent.sock` in its own directory**,
+which is `/data/apps/agent/agent.sock` on the machine, and host, which mounts `/data`, reads it
+there. Nothing else can reach it, so it needs no token, and what it answers goes to the panel only
+through host's API, behind host's session.
+
+| Route                                       | Answers                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------- |
+| `GET /health`                               | success, once it is serving                                       |
+| `GET /info`                                 | what does not change while the machine is up                      |
+| `GET /now`                                  | `{ info, sample }`; `metrics_unavailable` before the first sample |
+| `GET /series?grain=&metrics=&since=&until=` | points, oldest first                                              |
+
+`grain` is `second`, `minute` or `hour`; `metrics` is names or prefixes separated by commas;
+`since` and `until` are whole seconds since the epoch, `since` inclusive, both optional. Each point
+is `{ at, values: { <metric>: { average, minimum, maximum, count } } }`, the same at every grain,
+so a chart draws one shape.
+
+A tick runs on its own thread, on the second, and the socket is served beside it. SIGTERM ends the
+serving, writes the open hour, and removes the socket; one left behind by a run that did not stop
+is removed before binding.

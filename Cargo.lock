@@ -13,11 +13,17 @@ name = "agent"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "axum",
+ "http-body-util",
+ "mimalloc",
+ "response",
  "rusqlite",
  "rustix",
  "serde",
  "serde_json",
  "tempfile",
+ "tokio",
+ "tower",
 ]
 
 [[package]]
