@@ -2,7 +2,15 @@
  * The player's stylex vocabulary, shared by `video-controls.svelte` and the chrome under it.
  */
 import * as stylex from '@stylexjs/stylex';
-import { duration, easing, figures, radius, text, tracking } from '@canmi/tokens/vocabulary.stylex';
+import {
+	duration,
+	easing,
+	figures,
+	radius,
+	text,
+	tracking,
+	weight,
+} from '@canmi/tokens/vocabulary.stylex';
 
 /**
  * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
@@ -254,8 +262,7 @@ export const styles = stylex.create({
 	 */
 	badge: {
 		fontSize: text.px12,
-		// unnamed: the weight of the glyphs beside it rather than a step of the text's ladder.
-		fontWeight: 600,
+		fontWeight: weight.semibold,
 		textShadow: 'var(--player-shadow)',
 	},
 });

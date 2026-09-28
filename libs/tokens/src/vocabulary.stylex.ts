@@ -79,13 +79,15 @@ export const leading = stylex.defineConsts({
 });
 
 /**
- * The body weight a reset puts back, Tailwind's medium, and the site's own step above it that no
- * utility writes. 600 is in the tree at two sites and on none of these. See spec/todo/todo.md.
+ * The body weight a reset puts back, Tailwind's medium, the site's own step above it that no
+ * utility writes, and Tailwind's semibold, which a section title and the player's value badges
+ * take. See spec/todo/todo.md.
  */
 export const weight = stylex.defineConsts({
 	normal: 400,
 	medium: 500,
 	strong: 560,
+	semibold: 600,
 });
 
 /**
