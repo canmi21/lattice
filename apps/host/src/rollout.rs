@@ -68,7 +68,7 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it; `objects` runs none.
-const TAKEN: [&str; 6] = ["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS];
+const TAKEN: [&str; 8] = ["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS, "cron", "apt"];
 
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";
@@ -111,8 +111,9 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 }
 
 /// How the node runs an app: keeper in the platform's shape, the meter as an observer, Caddy on the
-/// edge, the tunnel at the address Caddy trusts, and every other app sandboxed. All but keeper read
-/// their own environment.
+/// edge, the tunnel at the address Caddy trusts, `cron` as the scheduler with every socket-served
+/// service it schedules mounted in, `apt` as the steward, and every other app sandboxed. All but
+/// keeper read their own environment.
 fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	if name == "keeper" {
 		let path = &host.config.platform_env;
@@ -125,6 +126,17 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 		"meter" => Shape::Observer { env },
 		"caddy" => Shape::Edge { env },
 		"tunnel" => Shape::Tunnel { env, address: host.config.caddy.tunnel_source.clone() },
+		"cron" => {
+			let sockets = crate::cron::socket_services(&host.store.apps()?)
+				.into_iter()
+				.map(|service| {
+					let directory = host.volumes.data(&service);
+					(service, directory)
+				})
+				.collect();
+			Shape::Scheduler { env, sockets }
+		}
+		"apt" => Shape::Steward { env },
 		_ => Shape::Sandboxed { env },
 	})
 }
@@ -230,12 +242,15 @@ async fn run_version(
 		Some(current) => sidecar_for(host, &current.manifest, driver.as_ref()).await?,
 		None => None,
 	};
-	if let Some(driver) = &driver {
-		let (Shape::Sandboxed { env }
+	// cron and apt declare no `[objects]`, so binding always no-ops for them; only the shapes that
+	// could carry a sidecar's address need the match at all.
+	if let Some(driver) = &driver
+		&& let Shape::Sandboxed { env }
 		| Shape::Platform { env }
 		| Shape::Observer { env }
 		| Shape::Edge { env }
-		| Shape::Tunnel { env, .. }) = &mut shape;
+		| Shape::Tunnel { env, .. } = &mut shape
+	{
 		bound(env, binding(&next.manifest, &driver.manifest));
 	}
 	// The tunnel has no network of its own for host to ask its health on; host stands on the edge.
@@ -326,15 +341,71 @@ fn close<T>(host: &Host, id: i64, result: &Result<(T, Option<PathBuf>), Error>) 
 }
 
 /// Caddy follows the state, and images no version needs go.
-async fn settle(host: &Host, name: String, image: String) -> Result<Outcome, Error> {
+async fn settle(host: &Arc<Host>, name: String, image: String) -> Result<Outcome, Error> {
 	let routed = route(host).await.map_err(|error| error.to_string());
 	collect(host).await?;
+	tell_cron(host).await;
 	Ok(Outcome { name, image, routed })
+}
+
+/// Write `cron`'s schedule table from the state as it now is: what a deploy, a redeploy or a
+/// rollback leaves behind, or what is already there at start. Logged and skipped rather than
+/// failing the caller -- as `node::tell` is for the meter -- and skipped outright when `cron` has
+/// no directory yet. See spec/architecture/cron.md, "host gives `cron` the table".
+///
+/// A mount change redeploys `cron` on a spawned background task, never inline -- this runs under
+/// `host.deploying`, already held by whoever called it, and taking that lock again would deadlock.
+pub async fn tell_cron(host: &Arc<Host>) {
+	let apps = match host.store.apps() {
+		Ok(apps) => apps,
+		Err(error) => {
+			eprintln!("host: reading apps for cron's schedule table: {error}");
+			return;
+		}
+	};
+	let directory = host.volumes.data(crate::cron::NAME);
+	if let Err(error) = crate::cron::write(&apps, &directory).await {
+		eprintln!("host: writing cron's schedule table: {error}");
+		return;
+	}
+	if host.store.app(crate::cron::NAME).ok().flatten().is_none() {
+		return;
+	}
+	let desired = crate::cron::socket_services(&apps);
+	let mounted = match host.engine.socket_mounts(crate::cron::NAME).await {
+		Ok(mounted) => mounted,
+		Err(error) => {
+			eprintln!("host: reading cron's own mounts: {error}");
+			return;
+		}
+	};
+	if !crate::cron::mounts_changed(&desired, &mounted) {
+		return;
+	}
+	eprintln!(
+		"host: cron's socket services changed (had {}, now {}); redeploying it for its mounts",
+		mounted.join(", "),
+		desired.join(", ")
+	);
+	tokio::spawn(redeploy_cron(host.clone()));
+}
+
+/// `redeploy(host, "cron")`, boxed. `tell_cron` runs inside `settle`, which `redeploy` itself ends
+/// with, so a plain `async move { redeploy(...).await }` here would make this function's future
+/// embed `redeploy`'s, which embeds `settle`'s, which embeds this function's again -- a type with
+/// no fixed size. Naming the return type erases it at this one edge, so the cycle closes through a
+/// trait object instead of an infinitely nested one.
+fn redeploy_cron(host: Arc<Host>) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
+	Box::pin(async move {
+		if let Err(error) = redeploy(&host, crate::cron::NAME).await {
+			eprintln!("host: redeploying cron for its mounts: {error}");
+		}
+	})
 }
 
 /// Deploy a new version, as an upload or a CI run brings one. Explicit, so it ends a hold.
 pub async fn deploy(
-	host: &Host,
+	host: &Arc<Host>,
 	manifest: Manifest,
 	image: String,
 	source: &Source,
@@ -368,7 +439,7 @@ pub async fn deploy(
 /// Load an image archive and deploy it, as an upload or a notice brings one. The archive is gone
 /// afterwards whatever happened, so a refused one does not wait on disk for the next.
 pub async fn from_archive(
-	host: &Host,
+	host: &Arc<Host>,
 	name: &str,
 	manifest: Manifest,
 	archive: &Path,
@@ -427,7 +498,7 @@ fn actionable(host: &Host, name: &str) -> Result<Deployed, Error> {
 
 /// Run the current version again: a deploy of what already runs, which picks up a changed
 /// environment.
-pub async fn redeploy(host: &Host, name: &str) -> Result<Outcome, Error> {
+pub async fn redeploy(host: &Arc<Host>, name: &str) -> Result<Outcome, Error> {
 	let _one = host.deploying.lock().await;
 	let app = actionable(host, name)?;
 	let source = Source::panel();
@@ -462,7 +533,7 @@ pub fn restorable(host: &Host, app: &Deployed) -> Result<Option<PathBuf>, Error>
 /// Run the previous version instead of the current one. With `with_data`, the app's directory is
 /// also put back as it was before the current version was deployed, and everything written since is
 /// lost.
-pub async fn rollback(host: &Host, name: &str, with_data: bool) -> Result<Outcome, Error> {
+pub async fn rollback(host: &Arc<Host>, name: &str, with_data: bool) -> Result<Outcome, Error> {
 	let _one = host.deploying.lock().await;
 	let app = actionable(host, name)?;
 	let previous = app.previous.clone().ok_or_else(|| Error::NoPrevious(name.into()))?;

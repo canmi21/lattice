@@ -19,6 +19,7 @@ pub const INTERNAL_PANEL: &str = "https://infra.canmi.icu";
 pub const INTERNAL_KEEPER: &str = "https://keeper.canmi.icu";
 pub const INTERNAL_HOST: &str = "http://host:11011";
 pub const INTERNAL_LEDGER: &str = "https://api.canmi.icu/ledger";
+pub const INTERNAL_CRON: &str = "https://api.canmi.icu/cron";
 pub const CONTACT_SECURITY: &str = "mailto:security@canmi.net";
 pub const EXTERNAL_DOH_CLOUDFLARE: &str = "https://1.1.1.1/dns-query";
 pub const EXTERNAL_DOH_GOOGLE: &str = "https://8.8.8.8/resolve";

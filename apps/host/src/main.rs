@@ -6,6 +6,7 @@
 mod api;
 mod caddy;
 mod config;
+mod cron;
 mod environment;
 mod images;
 mod node;
@@ -65,6 +66,7 @@ async fn main() -> anyhow::Result<()> {
 		Ok(()) => eprintln!("host: Caddy is in step"),
 		Err(error) => eprintln!("host: Caddy was not updated: {error}"),
 	}
+	rollout::tell_cron(&host).await;
 
 	tokio::spawn(images::run(host.clone()));
 

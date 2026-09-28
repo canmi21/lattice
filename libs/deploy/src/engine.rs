@@ -64,6 +64,14 @@ pub enum Shape {
 	/// believes a visitor's address from. See spec/architecture/host.md, "The tunnel is deployed like
 	/// any app, at the address Caddy trusts".
 	Tunnel { env: Vec<String>, address: String },
+	/// `cron` only: sandboxed like any app, on its own network, plus a bind of each socket-served
+	/// service's data directory at `/sockets/<service>`. See spec/architecture/cron.md, "host gives
+	/// `cron` the table".
+	Scheduler { env: Vec<String>, sockets: Vec<(String, PathBuf)> },
+	/// `apt` only: sandboxed, its own network, root so systemd lets it start a unit, and the
+	/// machine's D-Bus system bus socket bound at the same path. See spec/architecture/apt.md,
+	/// "The door".
+	Steward { env: Vec<String> },
 }
 
 impl Shape {
@@ -87,6 +95,16 @@ pub const EDGE_MOUNTS: [(&str, &str, bool); 2] =
 
 /// Where the observer shape puts the machine's two kernel filesystems.
 pub const OBSERVED: [(&str, &str); 2] = [("/proc", "/host/proc"), ("/sys", "/host/sys")];
+
+/// Where the scheduler shape mounts a socket-served service's data directory, in `cron`'s own
+/// container. See spec/architecture/cron.md, "`reach` is how `cron` asks".
+pub fn socket_mount(service: &str) -> String {
+	format!("/sockets/{service}")
+}
+
+/// The machine's D-Bus system bus socket, mounted into the steward shape at the same path. See
+/// spec/architecture/apt.md, "The door".
+pub const DBUS_SOCKET: &str = "/run/dbus/system_bus_socket";
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -123,6 +141,28 @@ fn bind(source: String, target: String, read_only: bool) -> Mount {
 		read_only: Some(read_only),
 		..Default::default()
 	}
+}
+
+/// The scheduler shape's mounts: the app's own directory, if declared, plus each socket-served
+/// service's data directory at `/sockets/<service>`. See spec/architecture/cron.md.
+fn scheduler_mounts(own: Option<Mount>, sockets: &[(String, PathBuf)]) -> Vec<Mount> {
+	own
+		.into_iter()
+		.chain(
+			sockets
+				.iter()
+				.map(|(service, source)| bind(source.display().to_string(), socket_mount(service), false)),
+		)
+		.collect()
+}
+
+/// The steward shape's mounts: the app's own directory, if declared, plus the machine's D-Bus
+/// system bus socket at the same path. See spec/architecture/apt.md.
+fn steward_mounts(own: Option<Mount>) -> Vec<Mount> {
+	own
+		.into_iter()
+		.chain(std::iter::once(bind(DBUS_SOCKET.into(), DBUS_SOCKET.into(), false)))
+		.collect()
 }
 
 /// What every app's container is allowed, on `network` with `mounts` and `memory` bytes: no
@@ -382,6 +422,8 @@ impl Engine {
 				};
 				(config, env.clone())
 			}
+			Shape::Scheduler { env, sockets } => (sandboxed(scheduler_mounts(own, sockets)), env.clone()),
+			Shape::Steward { env } => (sandboxed(steward_mounts(own)), env.clone()),
 			Shape::Platform { env } => {
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
@@ -404,6 +446,9 @@ impl Engine {
 		let body = ContainerCreateBody {
 			image: Some(version.image.clone()),
 			env: Some(env),
+			// apt runs as root so systemd's D-Bus API lets it start a unit; see
+			// spec/architecture/apt.md, "The door".
+			user: matches!(shape, Shape::Steward { .. }).then(|| "0:0".to_owned()),
 			labels: Some(HashMap::from([
 				("host.app".into(), name.clone()),
 				(VERSION_LABEL.into(), recorded),
@@ -555,6 +600,28 @@ impl Engine {
 		}
 	}
 
+	/// The socket services `name`'s container has mounted at `/sockets/<service>`, read back from
+	/// Docker rather than kept anywhere else -- what its scheduler shape actually ran it with, not
+	/// what it was last meant to. Empty for a container with none, or none at all. See
+	/// spec/architecture/cron.md.
+	pub async fn socket_mounts(&self, name: &str) -> Result<Vec<String>, Error> {
+		let inspected = match self.docker.inspect_container(name, None).await {
+			Ok(inspected) => inspected,
+			Err(error) if absent(&error) => return Ok(Vec::new()),
+			Err(error) => return Err(error.into()),
+		};
+		let prefix = format!("{}/", socket_mount(""));
+		Ok(
+			inspected
+				.mounts
+				.unwrap_or_default()
+				.into_iter()
+				.filter_map(|mount| mount.destination)
+				.filter_map(|destination| destination.strip_prefix(&prefix).map(str::to_owned))
+				.collect(),
+		)
+	}
+
 	/// The address `container` has on `network`, when it is on it.
 	pub async fn address_on(
 		&self,
@@ -682,5 +749,41 @@ mod tests {
 		assert_eq!(numeric_user("0:0"), None);
 		assert_eq!(numeric_user("nobody"), None);
 		assert_eq!(numeric_user(""), None);
+	}
+
+	#[test]
+	fn the_scheduler_shape_mounts_its_own_directory_and_every_socket_service() {
+		let own = Some(bind("/data/apps/cron/data".into(), "/state".into(), false));
+		let sockets = vec![
+			("apt".to_owned(), PathBuf::from("/data/apps/apt/data")),
+			("shot".to_owned(), PathBuf::from("/data/apps/shot/data")),
+		];
+		let mounts = scheduler_mounts(own, &sockets);
+		assert_eq!(mounts.len(), 3);
+		assert_eq!(
+			(mounts[0].source.as_deref(), mounts[0].target.as_deref()),
+			(Some("/data/apps/cron/data"), Some("/state"))
+		);
+		assert_eq!(
+			(mounts[1].source.as_deref(), mounts[1].target.as_deref()),
+			(Some("/data/apps/apt/data"), Some("/sockets/apt"))
+		);
+		assert_eq!(
+			(mounts[2].source.as_deref(), mounts[2].target.as_deref()),
+			(Some("/data/apps/shot/data"), Some("/sockets/shot"))
+		);
+		assert!(mounts.iter().all(|mount| mount.read_only == Some(false)));
+		assert!(scheduler_mounts(None, &[]).is_empty());
+	}
+
+	#[test]
+	fn the_steward_shape_mounts_the_machines_dbus_socket() {
+		let mounts = steward_mounts(None);
+		assert_eq!(mounts.len(), 1);
+		assert_eq!(mounts[0].source.as_deref(), Some(DBUS_SOCKET));
+		assert_eq!(mounts[0].target.as_deref(), Some(DBUS_SOCKET));
+		assert_eq!(mounts[0].read_only, Some(false));
+		let own = Some(bind("/data/apps/apt/data".into(), "/state".into(), false));
+		assert_eq!(steward_mounts(own).len(), 2);
 	}
 }

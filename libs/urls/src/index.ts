@@ -95,6 +95,7 @@ const INTERNAL = {
 	keeper: 'https://keeper.canmi.icu',
 	host: 'http://host:11011',
 	ledger: 'https://api.canmi.icu/ledger',
+	cron: 'https://api.canmi.icu/cron',
 } as const;
 
 export const URLS = {

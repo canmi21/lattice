@@ -1,0 +1,22 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "cron"
+placements = ["home"]
+
+[container]
+# One above ledger's 12010, in the platform's own low block. See spec/architecture/services.md,
+# "A service keeps one port".
+port = 12011
+health = "/health"
+memory_mb = 64
+
+# `schedules.json`, written by host, and `cron.db`, each job's last run. See
+# spec/architecture/cron.md.
+[data]
+path = "/data"
+
+# The panel's alone, on the private side. See spec/architecture/cron.md, "A job is declared by the
+# service that does it".
+[api]
+public = false

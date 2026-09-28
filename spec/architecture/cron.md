@@ -23,17 +23,58 @@ timeout = 300           # seconds before a run is called failed
   UTC, and the panel shows each in the reader's own zone.
 - `every` takes seconds, minutes and hours (`30s`, `1m`, `6h`); `cron` takes the five-field form.
   Exactly one of the two.
-- A service with jobs has to have an `[api]` section, since a job is reached through it.
+- A service with jobs is reached one of two ways: through its `[api]` scope, or -- a service that
+  answers on a Unix socket and on no port, as `apt` does -- on that socket, which host mounts into
+  `cron` for that reason alone.
+
+**`cron` answers on its own `[api]` scope, privately**: `GET /schedules` -- every job, its next
+time and its last run -- and `POST /schedules/<service>/<name>/run` to run one now, which the panel
+uses. Times are RFC 3339 in UTC.
 
 **host gives `cron` the table**: whenever an app is deployed or removed, host writes every app's
 schedules to `schedules.json` in `cron`'s directory, through a temporary file and a rename, as it
 tells the meter which container is which. `cron` reads it again when it changes; it asks host for
 nothing, and host's API stays the panel's alone.
 
+```json
+{
+	"jobs": [
+		{
+			"service": "geo",
+			"name": "refresh",
+			"cron": "0 4 * * *",
+			"every": null,
+			"path": "/jobs/refresh",
+			"catch_up": "once",
+			"overlap": "skip",
+			"timeout": 300,
+			"reach": { "scope": "geo" }
+		},
+		{
+			"service": "apt",
+			"name": "update",
+			"cron": "0 7 * * *",
+			"every": null,
+			"path": "/jobs/update",
+			"catch_up": "once",
+			"overlap": "skip",
+			"timeout": 1800,
+			"reach": { "socket": "/sockets/apt/apt.sock" }
+		}
+	]
+}
+```
+
+`reach` is how `cron` asks: a scope through Caddy, or a socket at the path host mounted it at --
+each socket service's data directory at `/sockets/<service>` in `cron`'s container. **When that set
+of services changes, host redeploys `cron`** so its mounts follow: a socket service deployed after
+`cron`, in the same CI run or later, is reached without anyone asking.
+
 ## A run is a request, and a task in the ledger
 
 **At its time, `cron` asks `POST api.canmi.icu/<scope><path>` through Caddy** -- the private side,
-which every container reaches -- with the run's id in `X-Task-Parent: cron:<id>`. A service that
+which every container reaches -- or `POST <path>` on the service's socket, with the run's id in
+`X-Task-Parent: cron:<id>`. A service that
 records the work as a ledger task takes that as its `parent`, so the chain reads from the schedule
 to everything the run set off.
 

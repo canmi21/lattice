@@ -10,9 +10,10 @@ use std::ops::RangeInclusive;
 pub const VERSION: u32 = 1;
 
 /// Names taken by the platform itself: its programs, the meter that watches the machine, the API
-/// host and the Worker answering it, the object storage driver, and the containers an app's name
-/// would collide with.
-const RESERVED: [&str; 10] = [
+/// host and the Worker answering it, the object storage driver, the scheduler that calls every
+/// job and the door onto the machine's own packages, and the containers an app's name would
+/// collide with. See spec/architecture/cron.md and spec/architecture/apt.md.
+const RESERVED: [&str; 12] = [
 	"host",
 	"keeper",
 	"meter",
@@ -23,6 +24,8 @@ const RESERVED: [&str; 10] = [
 	"panel",
 	"cloudflared",
 	"objects",
+	"cron",
+	"apt",
 ];
 
 /// What an app's object storage sidecar is named after it, so no app may end its own name so. See
@@ -39,10 +42,13 @@ pub const OBJECTS: &str = "objects";
 const RESERVED_LABELS: [&str; 1] = ["cms"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel and the object
-/// storage driver. See spec/architecture/host.md, "host never updates itself; keeper updates host",
-/// spec/architecture/meter.md and spec/architecture/objects.md.
-pub const OWN: [&str; 7] = ["host", "keeper", "meter", "caddy", "tunnel", "panel", "objects"];
+/// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel, the object
+/// storage driver, the scheduler and the door onto the machine's own packages. See
+/// spec/architecture/host.md, "host never updates itself; keeper updates host",
+/// spec/architecture/meter.md, spec/architecture/objects.md, spec/architecture/cron.md and
+/// spec/architecture/apt.md.
+pub const OWN: [&str; 9] =
+	["host", "keeper", "meter", "caddy", "tunnel", "panel", "objects", "cron", "apt"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -68,6 +74,10 @@ pub struct Manifest {
 	pub data: Option<Data>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub objects: Option<Objects>,
+	/// The jobs `cron` calls for it. See spec/architecture/cron.md, "A job is declared by the
+	/// service that does it".
+	#[serde(default, skip_serializing_if = "Vec::is_empty")]
+	pub schedules: Vec<Schedule>,
 }
 
 impl Manifest {
@@ -198,6 +208,69 @@ pub fn is_bucket(name: &str) -> bool {
 		&& !["-s3alias", "--ol-s3", "--x-s3", "--table-s3"].iter().any(|suffix| name.ends_with(suffix))
 }
 
+/// One job `cron` calls for its service. See spec/architecture/cron.md, "A job is declared by the
+/// service that does it".
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Schedule {
+	pub name: String,
+	/// A five-field cron expression, read in UTC. Exactly one of `cron` and `every`.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub cron: Option<String>,
+	/// `30s`, `1m`, `6h`. Exactly one of `cron` and `every`.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub every: Option<String>,
+	/// Asked with POST, under the service's scope or its socket.
+	pub path: String,
+	/// A run missed while the node was down: run it once, or wait for the next.
+	#[serde(default)]
+	pub catch_up: CatchUp,
+	/// A run due while the last is still going: skip it, or queue it behind.
+	#[serde(default)]
+	pub overlap: Overlap,
+	/// Seconds before a run is called failed.
+	#[serde(default = "default_timeout")]
+	pub timeout: u64,
+}
+
+fn default_timeout() -> u64 {
+	300
+}
+
+/// The seconds a `timeout` may declare.
+pub const TIMEOUTS: RangeInclusive<u64> = 1..=86_400;
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum CatchUp {
+	#[default]
+	Once,
+	Skip,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum Overlap {
+	#[default]
+	Skip,
+	Queue,
+}
+
+/// Whether `expr` is shaped like a five-field cron expression: field count and character set
+/// alone, since `cron` itself parses it in full. See spec/architecture/cron.md.
+fn is_cron(expr: &str) -> bool {
+	let field =
+		|f: &str| !f.is_empty() && f.bytes().all(|b| b.is_ascii_digit() || b"*/,-".contains(&b));
+	expr.split_whitespace().count() == 5 && expr.split_whitespace().all(field)
+}
+
+/// Whether `expr` is shaped like `every`: a positive count of seconds, minutes or hours.
+fn is_every(expr: &str) -> bool {
+	let digits = expr.bytes().take_while(u8::is_ascii_digit).count();
+	digits > 0
+		&& matches!(&expr[digits..], "s" | "m" | "h")
+		&& expr[..digits].parse::<u64>().is_ok_and(|value| value > 0)
+}
+
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Invalid {
 	#[error("the declaration is not readable: {0}")]
@@ -242,6 +315,13 @@ pub enum Invalid {
 	Buckets,
 	#[error("`{0}-objects` is longer than the 63 characters a container's name on a network may be")]
 	SidecarName(String),
+	#[error(
+		"schedule `{0}` needs exactly one of `cron` (five fields) or `every` (like `30s`), a path \
+		 from /, and a timeout from 1 to 86400 seconds"
+	)]
+	Schedule(String),
+	#[error("`{0}` declares `[[schedules]]` but answers through neither `[api]` nor a socket")]
+	Unscheduled(String),
 }
 
 impl Manifest {
@@ -339,8 +419,27 @@ impl Manifest {
 		if let Some(objects) = &self.objects {
 			check_objects(&self.name, objects)?;
 		}
+		if !self.schedules.is_empty() {
+			if let Some(bad) = self.schedules.iter().find(|schedule| !sound_schedule(schedule)) {
+				return Err(Invalid::Schedule(bad.name.clone()));
+			}
+			if self.api.is_none() && container.socket.is_none() {
+				return Err(Invalid::Unscheduled(self.name.clone()));
+			}
+		}
 		Ok(())
 	}
+}
+
+/// Whether a schedule is shaped so `cron` could run it: exactly one clock, a path from `/`, and a
+/// timeout in range. See spec/architecture/cron.md.
+fn sound_schedule(schedule: &Schedule) -> bool {
+	let clocked = match (&schedule.cron, &schedule.every) {
+		(Some(cron), None) => is_cron(cron),
+		(None, Some(every)) => is_every(every),
+		_ => false,
+	};
+	clocked && schedule.path.starts_with('/') && TIMEOUTS.contains(&schedule.timeout)
 }
 
 /// Buckets S3 takes, each once, and a sidecar name that resolves on the app's network. See
@@ -657,5 +756,69 @@ mod tests {
 		let mut off = gemini;
 		off.interface.as_mut().unwrap().lan = false;
 		assert_eq!(off.check("gemini", "home"), Ok(()));
+	}
+
+	#[test]
+	fn cron_and_apt_are_reserved_and_deployed_by_host() {
+		assert_eq!(check_name("cron"), Err(Invalid::Reserved("cron".into())));
+		assert_eq!(check_name("apt"), Err(Invalid::Reserved("apt".into())));
+		assert!(OWN.contains(&"cron") && OWN.contains(&"apt"));
+	}
+
+	#[test]
+	fn a_schedule_declares_exactly_one_clock() {
+		let text = format!(
+			"{GEO}\n[[schedules]]\nname = \"refresh\"\ncron = \"0 4 * * *\"\nevery = \"1m\"\npath = \"/jobs/refresh\"\n"
+		);
+		let manifest = Manifest::parse(&text).unwrap();
+		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Schedule("refresh".into())));
+	}
+
+	#[test]
+	fn a_schedule_reads_its_defaults_and_checks_its_shape() {
+		let scheduled = |extra: &str| {
+			Manifest::parse(&format!(
+				"{GEO}\n[[schedules]]\nname = \"refresh\"\npath = \"/jobs/refresh\"\n{extra}\n"
+			))
+			.unwrap()
+		};
+		let manifest = scheduled("cron = \"0 4 * * *\"");
+		let schedule = &manifest.schedules[0];
+		assert_eq!(schedule.catch_up, CatchUp::Once);
+		assert_eq!(schedule.overlap, Overlap::Skip);
+		assert_eq!(schedule.timeout, 300);
+		assert_eq!(manifest.check("geo", "home"), Ok(()));
+
+		assert_eq!(scheduled("every = \"30s\"").check("geo", "home"), Ok(()));
+		for broken in ["cron = \"0 4 * *\"", "cron = \"a 4 * * *\"", "every = \"m\"", "every = \"0s\""]
+		{
+			assert_eq!(
+				scheduled(broken).check("geo", "home"),
+				Err(Invalid::Schedule("refresh".into())),
+				"{broken}"
+			);
+		}
+		let no_slash = Manifest::parse(&format!(
+			"{GEO}\n[[schedules]]\nname = \"refresh\"\ncron = \"0 4 * * *\"\npath = \"jobs/refresh\"\n"
+		))
+		.unwrap();
+		assert_eq!(no_slash.check("geo", "home"), Err(Invalid::Schedule("refresh".into())));
+		let too_long = scheduled("cron = \"0 4 * * *\"\ntimeout = 86401");
+		assert_eq!(too_long.check("geo", "home"), Err(Invalid::Schedule("refresh".into())));
+	}
+
+	#[test]
+	fn a_scheduled_service_answers_through_its_scope_or_its_socket() {
+		let socketed = Manifest::parse(&format!(
+			"version = 1\nname = \"probe\"\nplacements = [\"home\"]\n[container]\nhealth = \"/health\"\nsocket = \"probe.sock\"\n[data]\npath = \"/data\"\n[[schedules]]\nname = \"update\"\ncron = \"0 7 * * *\"\npath = \"/jobs/update\"\n"
+		))
+		.unwrap();
+		assert_eq!(socketed.check("probe", "home"), Ok(()));
+
+		let unreachable = Manifest::parse(&format!(
+			"version = 1\nname = \"probe\"\nplacements = [\"home\"]\n[container]\nhealth = \"/health\"\nport = 20000\n[[schedules]]\nname = \"update\"\ncron = \"0 7 * * *\"\npath = \"/jobs/update\"\n"
+		))
+		.unwrap();
+		assert_eq!(unreachable.check("probe", "home"), Err(Invalid::Unscheduled("probe".into())));
 	}
 }
