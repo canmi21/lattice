@@ -1,5 +1,5 @@
-//! The agent's state: the last reading, the grains held in memory and the store of hours, moved on
-//! once a second and asked for what they hold. See spec/architecture/agent.md.
+//! The meter's state: the last reading, the grains held in memory and the store of hours, moved on
+//! once a second and asked for what they hold. See spec/architecture/meter.md.
 
 use crate::probe::{self, Info, Reading, Roots};
 use crate::retention::{Point, Tiers};

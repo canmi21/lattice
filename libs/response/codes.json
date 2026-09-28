@@ -1,5 +1,4 @@
 {
-	"agent_unavailable": "The agent did not answer on its socket",
 	"app_unavailable": "The new version did not become healthy, and the one before it is running again",
 	"caddy_unavailable": "Caddy did not take the configuration",
 	"client_address_unavailable": "The caller's address is needed and was not given",
@@ -36,6 +35,7 @@
 	"invalid_url": "A capture needs a host, a scheme of http or https, and each part of the address alone",
 	"invalid_variable": "A variable is named in capitals, digits and underscores, with its value on one line",
 	"invalid_viewport": "Width is from 320 to 3840 and height from 240 to 2160",
+	"meter_unavailable": "The meter did not answer on its socket",
 	"metrics_unavailable": "No sample has been taken yet",
 	"no_such_app": "No app has this name",
 	"no_such_article": "No published article has this slug",

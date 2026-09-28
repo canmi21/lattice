@@ -20,14 +20,14 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	&& target="$arch-unknown-linux-musl" \
 	&& rustup target add "$target" \
 	&& export "CC_${arch}_unknown_linux_musl=musl-gcc" \
-	&& cargo build --profile container --locked --target "$target" -p agent \
-	&& cp "target/$target/container/agent" /agent
+	&& cargo build --profile container --locked --target "$target" -p meter \
+	&& cp "target/$target/container/meter" /meter
 
 FROM scratch
-COPY --from=build /agent /agent
-# Where the observer shape mounts the machine's own; see spec/architecture/agent.md.
-ENV AGENT_PROC=/host/proc AGENT_SYS=/host/sys AGENT_DATA=/data
+COPY --from=build /meter /meter
+# Where the observer shape mounts the machine's own; see spec/architecture/meter.md.
+ENV METER_PROC=/host/proc METER_SYS=/host/sys METER_DATA=/data
 # Not root, least of all here: it shares the machine's PIDs, and a root process there could signal
 # the machine's own. Named by number, since scratch has no user table.
 USER 65532:65532
-ENTRYPOINT ["/agent"]
+ENTRYPOINT ["/meter"]

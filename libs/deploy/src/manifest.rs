@@ -9,14 +9,14 @@ use std::ops::RangeInclusive;
 /// sense of a newer file; a key an older host can ignore is not a bump. See spec/json.md.
 pub const VERSION: u32 = 1;
 
-/// Names taken by the platform itself: its two programs, the agent that watches the machine, the
+/// Names taken by the platform itself: its two programs, the meter that watches the machine, the
 /// API host and the Worker answering it, and the containers an app's name would collide with.
-const RESERVED: [&str; 7] = ["host", "keeper", "agent", "api", "gateway", "caddy", "cloudflared"];
+const RESERVED: [&str; 7] = ["host", "keeper", "meter", "api", "gateway", "caddy", "cloudflared"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the agent, and Caddy. See spec/architecture/host.md, "host
-/// never updates itself; keeper updates host", and spec/architecture/agent.md.
-pub const OWN: [&str; 4] = ["host", "keeper", "agent", "caddy"];
+/// keeper, which each deploy the other, the meter, and Caddy. See spec/architecture/host.md, "host
+/// never updates itself; keeper updates host", and spec/architecture/meter.md.
+pub const OWN: [&str; 4] = ["host", "keeper", "meter", "caddy"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -48,7 +48,7 @@ pub struct Container {
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub port: Option<u16>,
 	/// A socket file in its own directory, for a container with no network; see
-	/// spec/architecture/agent.md, "Reached through a socket".
+	/// spec/architecture/meter.md, "Reached through a socket".
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub socket: Option<String>,
 	pub health: String,
@@ -311,7 +311,7 @@ mod tests {
 		assert_eq!(manifest.check_own("keeper", "home"), Ok(()));
 		// The ordinary check still refuses the name, so no app can be sent as keeper.
 		assert_eq!(manifest.check("keeper", "home"), Err(Invalid::Reserved("keeper".into())));
-		assert_eq!(check_name("agent"), Err(Invalid::Reserved("agent".into())));
+		assert_eq!(check_name("meter"), Err(Invalid::Reserved("meter".into())));
 		manifest.name = "api".into();
 		assert_eq!(manifest.check_own("api", "home"), Err(Invalid::Name("api".into())));
 	}

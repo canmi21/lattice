@@ -589,10 +589,10 @@ fn is_home(home: &str) -> bool {
 }
 
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.
-/// The agent's socket, as the agent deployed on this node declares it; none without one.
+/// The meter's socket, as the meter deployed on this node declares it; none without one.
 fn agent_socket(host: &Host) -> Option<std::path::PathBuf> {
-	let agent = host.store.apps().ok()?.into_iter().find(|app| app.manifest.name == "agent")?;
-	Some(host.volumes.data("agent").join(agent.manifest.container?.socket?))
+	let meter = host.store.apps().ok()?.into_iter().find(|app| app.manifest.name == "meter")?;
+	Some(host.volumes.data("meter").join(meter.manifest.container?.socket?))
 }
 
 /// The machine as it is this second, with what does not change beside it.
@@ -600,7 +600,7 @@ async fn node_now(State(host): State<Arc<Host>>) -> Response {
 	node::relay(agent_socket(&host).as_deref(), "/now").await
 }
 
-/// The machine over time, at the grain asked for; the query is the agent's to read.
+/// The machine over time, at the grain asked for; the query is the meter's to read.
 async fn node_series(State(host): State<Arc<Host>>, RawQuery(query): RawQuery) -> Response {
 	let path = query.map_or_else(|| "/series".to_owned(), |query| format!("/series?{query}"));
 	node::relay(agent_socket(&host).as_deref(), &path).await

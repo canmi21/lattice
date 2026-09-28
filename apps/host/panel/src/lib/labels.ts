@@ -1,7 +1,7 @@
 /**
  * The machine's own names made readable. A thermal zone is named by its driver -- `bigcore`, `ddr`
  * -- and a cluster by nothing at all; the metrics keep the kernel's words, and only what is shown
- * is renamed. See spec/architecture/agent.md, "Metrics".
+ * is renamed. See spec/architecture/meter.md, "Metrics".
  */
 import type { Cluster } from './api';
 import { frequency } from './format';

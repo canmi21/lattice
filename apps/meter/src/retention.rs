@@ -1,6 +1,6 @@
 //! Samples kept at three grains: every second for the last minute and every minute for the last
 //! hour, in memory, and every hour for good, handed to the store as each one closes. See
-//! spec/architecture/agent.md, "Retention".
+//! spec/architecture/meter.md, "Retention".
 
 use crate::sample::Sample;
 use std::collections::{BTreeMap, VecDeque};
@@ -123,7 +123,7 @@ impl Tiers {
 		closed
 	}
 
-	/// The hour still open, which a stopping agent keeps rather than loses; the store merges it with
+	/// The hour still open, which a stopping meter keeps rather than loses; the store merges it with
 	/// whatever the same hour gathers after a restart.
 	pub fn open_hour(&self) -> Option<&Point> {
 		self.hour.as_ref()

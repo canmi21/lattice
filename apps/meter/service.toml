@@ -1,14 +1,14 @@
 # What host needs to run this service. The record is read by host on the machine, a program
 # deployed apart from this file, so it carries a version. See spec/architecture/host.md.
 version = 1
-name = "agent"
+name = "meter"
 placements = ["home"]
 
-# No port and no network: host reads it on its socket. See spec/architecture/agent.md.
+# No port and no network: host reads it on its socket. See spec/architecture/meter.md.
 [container]
-socket = "agent.sock"
+socket = "meter.sock"
 health = "/health"
-memory_mb = 64
+memory_mb = 32
 
 [data]
 path = "/data"

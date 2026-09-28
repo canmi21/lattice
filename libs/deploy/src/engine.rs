@@ -49,8 +49,8 @@ pub enum Shape {
 	/// host and keeper only: privileged, the Docker socket, the whole of `/data`, and the
 	/// environment of the node's one `.env`.
 	Platform { env: Vec<String> },
-	/// The agent only: sandboxed as any app, but with no network, the machine's PIDs, and the
-	/// machine's `/proc` and `/sys` read-only under `/host`. See spec/architecture/agent.md, "Run
+	/// The meter only: sandboxed as any app, but with no network, the machine's PIDs, and the
+	/// machine's `/proc` and `/sys` read-only under `/host`. See spec/architecture/meter.md, "Run
 	/// beside the machine, not inside it".
 	Observer { env: Vec<String> },
 	/// Caddy only: the node's one door. Its ports published on the machine, the `edge` network
@@ -61,7 +61,7 @@ pub enum Shape {
 }
 
 impl Shape {
-	/// Whether it runs on the app's own network, which Caddy and host join. The agent has no
+	/// Whether it runs on the app's own network, which Caddy and host join. The meter has no
 	/// network at all, and Caddy stands on the edge and joins the others.
 	pub fn networked(&self) -> bool {
 		!matches!(self, Shape::Observer { .. } | Shape::Edge { .. })

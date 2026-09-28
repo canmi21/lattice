@@ -1,11 +1,11 @@
 //! Two readings made into one sample: counters become percentages and rates, gauges are taken from
 //! the later one. A sample is flat, one number per named metric, so keeping and summarizing them
-//! is the same work whatever they measure. See spec/architecture/agent.md, "Metrics".
+//! is the same work whatever they measure. See spec/architecture/meter.md, "Metrics".
 
 use crate::probe::{Reading, Times};
 use std::collections::BTreeMap;
 
-/// A metric's name to its value, in the units spec/architecture/agent.md lists.
+/// A metric's name to its value, in the units spec/architecture/meter.md lists.
 pub type Values = BTreeMap<String, f64>;
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

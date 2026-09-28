@@ -9,7 +9,7 @@ placements = ["home"]
 [container]
 socket = "admin.sock"
 health = "/config/"
-memory_mb = 256
+memory_mb = 128
 
 # Its certificates and state; the configuration host renders sits beside it, in `host/`.
 [data]

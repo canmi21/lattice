@@ -1,17 +1,17 @@
-//! The machine itself, as the agent samples it. host asks on the agent's socket and passes the
-//! answer on unchanged, since the agent already answers in the envelope. See
-//! spec/architecture/agent.md, "Reached through a socket".
+//! The machine itself, as the meter samples it. host asks on the meter's socket and passes the
+//! answer on unchanged, since the meter already answers in the envelope. See
+//! spec/architecture/meter.md, "Reached through a socket".
 
 use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use std::path::Path;
 
-/// What the agent answers `path` with, or `agent_unavailable` when there is no socket to ask or
+/// What the meter answers `path` with, or `meter_unavailable` when there is no socket to ask or
 /// nothing answers on it.
 pub async fn relay(socket: Option<&Path>, path: &str) -> Response {
 	let Some(socket) = socket else {
-		let message = "No agent is deployed on this node";
-		return response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "agent_unavailable", message);
+		let message = "No meter is deployed on this node";
+		return response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "meter_unavailable", message);
 	};
 	match deploy::http::get_unix(socket, path).await {
 		Ok((status, body)) => {
@@ -19,7 +19,7 @@ pub async fn relay(socket: Option<&Path>, path: &str) -> Response {
 			(status, [(header::CONTENT_TYPE, "application/json")], body).into_response()
 		}
 		Err(error) => {
-			response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "agent_unavailable", error)
+			response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "meter_unavailable", error)
 		}
 	}
 }
@@ -41,8 +41,8 @@ mod tests {
 	#[tokio::test]
 	async fn passes_the_agents_answer_on_and_says_when_there_is_none() {
 		let directory = tempfile::tempdir().unwrap();
-		let socket = directory.path().join("agent.sock");
-		let agent = Router::new()
+		let socket = directory.path().join("meter.sock");
+		let meter = Router::new()
 			.route(
 				"/series",
 				get(|query: axum::extract::RawQuery| async move {
@@ -51,7 +51,7 @@ mod tests {
 			)
 			.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") });
 		let listener = tokio::net::UnixListener::bind(&socket).unwrap();
-		tokio::spawn(axum::serve(listener, agent).into_future());
+		tokio::spawn(axum::serve(listener, meter).into_future());
 
 		let (status, body) = read(relay(Some(&socket), "/series?grain=minute&metrics=cpu").await).await;
 		assert_eq!((status, body["data"].as_str()), (StatusCode::OK, Some("grain=minute&metrics=cpu")));
@@ -61,13 +61,13 @@ mod tests {
 		let (status, body) = read(relay(None, "/now").await).await;
 		assert_eq!(
 			(status, &body["code"]),
-			(StatusCode::SERVICE_UNAVAILABLE, &"agent_unavailable".into())
+			(StatusCode::SERVICE_UNAVAILABLE, &"meter_unavailable".into())
 		);
 		let gone = directory.path().join("gone.sock");
 		let (status, body) = read(relay(Some(&gone), "/now").await).await;
 		assert_eq!(
 			(status, &body["code"]),
-			(StatusCode::SERVICE_UNAVAILABLE, &"agent_unavailable".into())
+			(StatusCode::SERVICE_UNAVAILABLE, &"meter_unavailable".into())
 		);
 	}
 

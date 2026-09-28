@@ -18,8 +18,8 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 
 - A name is a DNS label: lowercase letters, digits and hyphens.
 - Apps from this repository and images from elsewhere share the one namespace.
-- `host` and `keeper` are reserved for the two programs below, `agent` for what samples the
-  machine ([agent.md](agent.md)), `api` for the API host, `gateway` for the Worker answering it
+- `host` and `keeper` are reserved for the two programs below, `meter` for what samples the
+  machine ([meter.md](meter.md)), `api` for the API host, `gateway` for the Worker answering it
   publicly, `caddy` for the door host deploys (below), and `cloudflared` because a container's
   name is the app's and it already runs.
 
@@ -169,11 +169,11 @@ it. So there are two programs, and each updates the other, never itself.
 - **host** deploys everything else, keeper included.
 
 **The platform's shape is chosen by name, never by a declaration.** host and keeper run privileged,
-with the Docker socket and the whole of `/data`; `agent` runs as an observer, which
-[agent.md](agent.md) describes; and every other app runs as the section on what a deployment may
+with the Docker socket and the whole of `/data`; `meter` runs as an observer, which
+[meter.md](meter.md) describes; and every other app runs as the section on what a deployment may
 ask for describes. Which shape a container gets is decided by the program deploying it from the
-app's name -- `host`, `keeper` and `agent`, and only those -- so no `service.toml` can ask for the
-platform's reach. host deploys keeper and the agent; keeper deploys host. Both start from the one `.env` in host's directory, which is why the token has
+app's name -- `host`, `keeper` and `meter`, and only those -- so no `service.toml` can ask for the
+platform's reach. host deploys keeper and the meter; keeper deploys host. Both start from the one `.env` in host's directory, which is why the token has
 one home on the machine.
 
 **keeper keeps no state.** Every container carries the version it runs in a label, so keeper reads
@@ -242,7 +242,7 @@ shown in the panel as every app is. The shape differs from an app's sandbox in f
   host writes, read-only, and `config/`.
 - It keeps one capability, binding a low port; its root is read-only as an app's is.
 
-Its health is its admin socket, `data/admin.sock`, asked `/config/` as the agent's is asked
+Its health is its admin socket, `data/admin.sock`, asked `/config/` as the meter's is asked
 `/health`, and that socket is where host loads every configuration. The Cloudflare token its DNS
 provider proves certificates with is its `secret.env`, as any app's secret is. **Without the token
 it does not start at all**, so a node's first Caddy deployed by host needs `secret.env` in place

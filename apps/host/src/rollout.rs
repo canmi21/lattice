@@ -55,14 +55,14 @@ pub struct Outcome {
 	pub routed: Result<(), String>,
 }
 
-/// Whether host takes a deploy under this name at all: any app's, and keeper, the agent and Caddy,
+/// Whether host takes a deploy under this name at all: any app's, and keeper, the meter and Caddy,
 /// the reserved names it deploys. host itself is keeper's to deploy.
 pub fn deployable(name: &str) -> Result<(), Invalid> {
 	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it.
-const TAKEN: [&str; 3] = ["keeper", "agent", "caddy"];
+const TAKEN: [&str; 3] = ["keeper", "meter", "caddy"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
@@ -87,7 +87,7 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	Ok(())
 }
 
-/// How the node runs an app: keeper in the platform's shape, the agent as an observer, Caddy on the
+/// How the node runs an app: keeper in the platform's shape, the meter as an observer, Caddy on the
 /// edge, and every other app sandboxed. The last three read their own environment.
 fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	if name == "keeper" {
@@ -98,7 +98,7 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	}
 	let env = crate::environment::variables(&host.volumes.root(name))?;
 	Ok(match name {
-		"agent" => Shape::Observer { env },
+		"meter" => Shape::Observer { env },
 		"caddy" => Shape::Edge { env },
 		_ => Shape::Sandboxed { env },
 	})
@@ -473,10 +473,10 @@ pub fn render(host: &Host) -> Result<serde_json::Value, store::Error> {
 pub async fn attach(host: &Host) -> Result<(), RouteError> {
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
 	host.engine.network("host", &members).await?;
-	// The agent has no network, and Caddy stands on the edge rather than on one of its own.
+	// The meter has no network, and Caddy stands on the edge rather than on one of its own.
 	for app in host.store.apps()? {
 		let name = app.manifest.name.as_str();
-		if name != "agent" && name != host.config.caddy.container {
+		if name != "meter" && name != host.config.caddy.container {
 			host.engine.network(name, &members).await?;
 		}
 	}
@@ -514,7 +514,7 @@ mod tests {
 		}
 		for action in [Action::Stop, Action::Start, Action::Restart] {
 			assert!(permitted("geo", action).is_ok());
-			assert!(permitted("agent", action).is_ok());
+			assert!(permitted("meter", action).is_ok());
 		}
 	}
 
@@ -524,7 +524,7 @@ mod tests {
 		// keeper is reserved for every app and still deployable by host, which is the whole of how
 		// keeper arrives on a node; turning it away here once stopped the first one arriving.
 		assert!(deployable("keeper").is_ok());
-		assert!(deployable("agent").is_ok());
+		assert!(deployable("meter").is_ok());
 		assert!(deployable("caddy").is_ok());
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));

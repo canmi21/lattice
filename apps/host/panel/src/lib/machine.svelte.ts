@@ -1,7 +1,7 @@
 /**
  * The machine as the overview reads it: the latest second, a minute of seconds kept here for the
  * sparklines and the live charts, and a series at the grain the chosen span needs, each asked for
- * again on its own beat. See spec/architecture/agent.md, "Retention".
+ * again on its own beat. See spec/architecture/meter.md, "Retention".
  */
 import { api, type Grain, type MachineInfo, type Point, type Sample } from './api';
 import type { Datum } from './chart/series';

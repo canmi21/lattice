@@ -1,5 +1,5 @@
-//! What host asks the agent, over a Unix socket in the agent's directory: no port, no network. See
-//! spec/architecture/agent.md, "Reached through a socket".
+//! What host asks the meter, over a Unix socket in the meter's directory: no port, no network. See
+//! spec/architecture/meter.md, "Reached through a socket".
 
 use crate::sampler::{Grain, Sampler};
 use axum::Router;
@@ -11,8 +11,8 @@ use std::sync::{Arc, Mutex};
 
 pub type Shared = Arc<Mutex<Sampler>>;
 
-/// The socket's name in the agent's directory, which host reads through `/data`.
-pub const SOCKET: &str = "agent.sock";
+/// The socket's name in the meter's directory, which host reads through `/data`.
+pub const SOCKET: &str = "meter.sock";
 
 pub fn routes(sampler: Shared) -> Router {
 	Router::new()
@@ -155,7 +155,7 @@ mod tests {
 
 		let mut stream = tokio::net::UnixStream::connect(&socket).await.unwrap();
 		stream
-			.write_all(b"GET /info HTTP/1.1\r\nhost: agent\r\nconnection: close\r\n\r\n")
+			.write_all(b"GET /info HTTP/1.1\r\nhost: meter\r\nconnection: close\r\n\r\n")
 			.await
 			.unwrap();
 		let mut answer = String::new();

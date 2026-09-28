@@ -1,5 +1,5 @@
 <script lang="ts">
-	/** The machine this host runs on, as its agent samples it: now, and over the span chosen. */
+	/** The machine this host runs on, as its meter samples it: now, and over the span chosen. */
 	import * as stylex from '@stylexjs/stylex';
 	import { untrack } from 'svelte';
 	import Cpu from '@lucide/svelte/icons/cpu';

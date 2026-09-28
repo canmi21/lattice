@@ -284,8 +284,8 @@ held, so the numbers stay distinct without a list anybody has to keep.
 **The one exception has no network at all, and answers on a socket instead.** A container states
 `port` or `socket`, exactly one: `socket` is a file name in the app's own directory, so the
 declaration has to mount one with `[data]`, and it cannot declare `[api]` or `[interface]`, since
-Caddy has no port to reach. host checks its health on that socket. Only the agent is shaped to run
-without a network, see [agent.md](agent.md).
+Caddy has no port to reach. host checks its health on that socket. Only the meter is shaped to run
+without a network, see [meter.md](meter.md).
 
 ## One door per node
 

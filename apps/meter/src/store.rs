@@ -1,6 +1,6 @@
-//! Every closed hour, kept for good in one SQLite file in the agent's directory. An hour written
+//! Every closed hour, kept for good in one SQLite file in the meter's directory. An hour written
 //! twice -- the open one saved on the way down, then finished after a restart -- is merged by
-//! weight, never replaced. See spec/architecture/agent.md, "Retention".
+//! weight, never replaced. See spec/architecture/meter.md, "Retention".
 
 use crate::retention::{Point, Summary, asks_for};
 use rusqlite::{Connection, params};

@@ -61,14 +61,14 @@ export interface Archived {
 	bytes: number;
 }
 
-/** Cores that run at one frequency, which the agent reads once for all of them. */
+/** Cores that run at one frequency, which the meter reads once for all of them. */
 export interface Cluster {
 	cores: number[];
 	/** MHz at most. */
 	max_frequency: number | null;
 }
 
-/** What does not change while the machine is up, as the agent reads it. */
+/** What does not change while the machine is up, as the meter reads it. */
 export interface MachineInfo {
 	model: string | null;
 	kernel: string | null;
@@ -78,13 +78,13 @@ export interface MachineInfo {
 	/** Bytes. */
 	memory: number;
 	swap: number;
-	/** Bytes, of the filesystem the agent keeps its hours on. */
+	/** Bytes, of the filesystem the meter keeps its hours on. */
 	storage: number | null;
 	/** Seconds since the epoch. */
 	booted: number | null;
 }
 
-/** One second of the machine: a value per metric. See spec/architecture/agent.md, "Metrics". */
+/** One second of the machine: a value per metric. See spec/architecture/meter.md, "Metrics". */
 export interface Sample {
 	at: number;
 	values: Record<string, number>;

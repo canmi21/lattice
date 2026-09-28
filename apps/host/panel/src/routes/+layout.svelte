@@ -26,7 +26,7 @@
 		});
 	}
 
-	/** The machine's own name for itself, once the agent has said it. */
+	/** The machine's own name for itself, once the meter has said it. */
 	let machine: string | undefined = $state();
 
 	$effect(() => {

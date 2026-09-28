@@ -87,7 +87,7 @@ impl Config {
 			platform_env: apps_root.join("host").join(".env"),
 			caddy: CaddyConfig {
 				container: optional("CADDY_CONTAINER", "caddy"),
-				// In Caddy's own directory, where host checks its health on it as on the agent's.
+				// In Caddy's own directory, where host checks its health on it as on the meter's.
 				admin_socket: caddy_root.join("data").join("admin.sock"),
 				config_file: caddy_root.join("host").join("caddy.json"),
 				admin_listen: "unix//data/admin.sock".into(),

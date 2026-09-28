@@ -55,7 +55,7 @@ pub async fn status_unix(socket: &Path, path: &str) -> Result<u16, Error> {
 	Ok(get_unix(socket, path).await?.0)
 }
 
-/// GET `path` from an app on its socket, for its status and body: host asking the agent.
+/// GET `path` from an app on its socket, for its status and body: host asking the meter.
 pub async fn get_unix(socket: &Path, path: &str) -> Result<(u16, String), Error> {
 	let attempt = async {
 		let stream = tokio::net::UnixStream::connect(socket).await.map_err(Error::Connect)?;

@@ -1,5 +1,5 @@
 //! What the machine is doing, read from /proc and /sys as counters and gauges. Turning two readings
-//! into rates is `sample`'s; this only reads. See spec/architecture/agent.md.
+//! into rates is `sample`'s; this only reads. See spec/architecture/meter.md.
 
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -14,13 +14,13 @@ pub struct Roots {
 }
 
 impl Roots {
-	/// The machine's, at `AGENT_PROC` and `AGENT_SYS` where the observer shape mounts them, and at
+	/// The machine's, at `METER_PROC` and `METER_SYS` where the observer shape mounts them, and at
 	/// their usual places without.
 	pub fn system(storage: Option<PathBuf>) -> Self {
 		let at = |name: &str, default: &str| {
 			std::env::var_os(name).map_or_else(|| PathBuf::from(default), PathBuf::from)
 		};
-		Self { proc: at("AGENT_PROC", "/proc"), sys: at("AGENT_SYS", "/sys"), storage }
+		Self { proc: at("METER_PROC", "/proc"), sys: at("METER_SYS", "/sys"), storage }
 	}
 }
 
@@ -84,7 +84,7 @@ pub struct Info {
 	pub clusters: Vec<Cluster>,
 	pub memory: u64,
 	pub swap: u64,
-	/// Bytes, of the filesystem the agent's directory is on.
+	/// Bytes, of the filesystem the meter's directory is on.
 	pub storage: Option<u64>,
 	/// Seconds since the epoch.
 	pub booted: Option<u64>,

@@ -1,5 +1,5 @@
-use agent::api::{self, SOCKET, Shared};
-use agent::{probe, sampler::Sampler, store::Store};
+use meter::api::{self, SOCKET, Shared};
+use meter::{probe, sampler::Sampler, store::Store};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -9,9 +9,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 #[global_allocator]
 static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-/// Where the agent keeps its hours and its socket, and whose filesystem it reports as storage.
+/// Where the meter keeps its hours and its socket, and whose filesystem it reports as storage.
 fn directory() -> PathBuf {
-	std::env::var_os("AGENT_DATA").map_or_else(|| "/data".into(), PathBuf::from)
+	std::env::var_os("METER_DATA").map_or_else(|| "/data".into(), PathBuf::from)
 }
 
 #[tokio::main]
@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
 			let rest = Duration::from_secs(1) - Duration::from_nanos(since.subsec_nanos().into());
 			std::thread::sleep(rest);
 			if let Err(error) = api::lock(&ticking).tick() {
-				eprintln!("agent: {error}");
+				eprintln!("meter: {error}");
 			}
 		}
 	});
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
 	let socket = directory.join(SOCKET);
 	let _ = std::fs::remove_file(&socket);
 	let listener = tokio::net::UnixListener::bind(&socket)?;
-	eprintln!("agent: sampling, answering on {}", socket.display());
+	eprintln!("meter: sampling, answering on {}", socket.display());
 	axum::serve(listener, api::routes(shared.clone())).with_graceful_shutdown(stopped()).await?;
 
 	api::lock(&shared).stop()?;
