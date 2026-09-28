@@ -9,6 +9,7 @@ mod config;
 mod cron;
 mod environment;
 mod images;
+mod inspect;
 mod node;
 mod rollout;
 mod store;
@@ -33,6 +34,10 @@ pub struct Host {
 	pub notices: std::sync::Mutex<std::collections::HashSet<u64>>,
 	/// The images as the background last found them, and what the panel asked of them.
 	pub images: images::Images,
+	/// When `cron` was last redeployed for its socket mounts, so a read-back that never settles
+	/// logs once and stops rather than redeploying it forever. See
+	/// `rollout::CRON_MOUNT_REDEPLOY_COOLDOWN`.
+	pub cron_mount_redeployed_at: std::sync::Mutex<Option<std::time::Instant>>,
 }
 
 #[tokio::main]
@@ -54,6 +59,7 @@ async fn main() -> anyhow::Result<()> {
 			.map(deploy::github::GitHub::new),
 		notices: std::sync::Mutex::default(),
 		images: images::Images::default(),
+		cron_mount_redeployed_at: std::sync::Mutex::new(None),
 		config,
 	});
 

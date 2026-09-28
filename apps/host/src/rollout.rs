@@ -382,13 +382,32 @@ pub async fn tell_cron(host: &Arc<Host>) {
 	if !crate::cron::mounts_changed(&desired, &mounted) {
 		return;
 	}
+	let recently = {
+		let redeployed_at = host.cron_mount_redeployed_at.lock().unwrap();
+		redeployed_at.is_some_and(|at| at.elapsed() < CRON_MOUNT_REDEPLOY_COOLDOWN)
+	};
+	if recently {
+		eprintln!(
+			"host: cron's socket services still differ (had {}, want {}) after a recent redeploy for \
+			 them; not redeploying again so soon",
+			mounted.join(", "),
+			desired.join(", ")
+		);
+		return;
+	}
 	eprintln!(
 		"host: cron's socket services changed (had {}, now {}); redeploying it for its mounts",
 		mounted.join(", "),
 		desired.join(", ")
 	);
+	*host.cron_mount_redeployed_at.lock().unwrap() = Some(std::time::Instant::now());
 	tokio::spawn(redeploy_cron(host.clone()));
 }
+
+/// How long `tell_cron` waits after redeploying `cron` for its mounts before it will do so again,
+/// even if the read-back still disagrees -- the guard against the loop a mount-prefix bug once
+/// caused, where the redeploy never made the read-back agree and `tell_cron` ran it every time.
+const CRON_MOUNT_REDEPLOY_COOLDOWN: std::time::Duration = std::time::Duration::from_secs(300);
 
 /// `redeploy(host, "cron")`, boxed. `tell_cron` runs inside `settle`, which `redeploy` itself ends
 /// with, so a plain `async move { redeploy(...).await }` here would make this function's future

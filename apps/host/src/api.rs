@@ -4,6 +4,7 @@
 use crate::Host;
 use crate::environment;
 use crate::images;
+use crate::inspect;
 use crate::node;
 use crate::rollout::{self, Error as DeployError};
 use crate::store::{Action, Deployed, Route, Source};
@@ -46,6 +47,13 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/node/series", get(node_series))
 		.route("/apps/{name}/metrics/now", get(app_now))
 		.route("/apps/{name}/metrics/series", get(app_series))
+		// Read-only, and never a command; see spec/architecture/inspect.md.
+		.route("/inspect/containers", get(inspect::containers::list))
+		.route("/inspect/networks", get(inspect::networks::list))
+		.route("/inspect/disk", get(inspect::disk::get))
+		.route("/inspect/files/{app}", get(inspect::files::root))
+		.route("/inspect/files/{app}/{*path}", get(inspect::files::nested))
+		.route("/inspect/kernel", get(inspect::kernel::get))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
 	// Everything the panel passes on is under `/api`, and `/notice` beside it; `/health` is keeper's.
 	// Nothing else reaches host. See spec/architecture/host.md, "The panel is an app of its own".
@@ -524,8 +532,9 @@ fn change_variable(
 }
 
 /// An app host runs, or the refusal to answer for one it does not.
-/// An app whose logs, history and environment may be read: one the store holds, or host itself.
-fn known(host: &Host, name: &str) -> Result<(), Response> {
+/// An app whose logs, history, environment and files may be read: one the store holds, or host
+/// itself.
+pub(crate) fn known(host: &Host, name: &str) -> Result<(), Response> {
 	if name == "host" {
 		return Ok(());
 	}

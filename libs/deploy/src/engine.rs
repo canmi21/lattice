@@ -5,9 +5,9 @@
 use crate::manifest::Manifest;
 use bollard::Docker;
 use bollard::models::{
-	ContainerCreateBody, EndpointIpamConfig, EndpointSettings, HostConfig, HostConfigLogConfig,
-	Mount, MountType, NetworkConnectRequest, NetworkCreateRequest, PortBinding, RestartPolicy,
-	RestartPolicyNameEnum,
+	ContainerCreateBody, ContainerInspectResponse, ContainerSummary, EndpointIpamConfig,
+	EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType, NetworkConnectRequest,
+	NetworkCreateRequest, NetworkInspect, PortBinding, RestartPolicy, RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
 	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListContainersOptions,
@@ -100,6 +100,18 @@ pub const OBSERVED: [(&str, &str); 2] = [("/proc", "/host/proc"), ("/sys", "/hos
 /// container. See spec/architecture/cron.md, "`reach` is how `cron` asks".
 pub fn socket_mount(service: &str) -> String {
 	format!("/sockets/{service}")
+}
+
+/// The service a mount `destination` was made for, when it sits directly under
+/// `socket_mount("")` -- `socket_mount("")` is itself `/sockets/`, so the prefix stripped here is
+/// that path as it stands, not with a second slash appended to it. `None` for anything outside
+/// that directory, for the directory itself, or for a path with a further slash below it.
+fn socket_service_of(destination: &str) -> Option<String> {
+	let remainder = destination.strip_prefix(&socket_mount(""))?;
+	if remainder.is_empty() || remainder.contains('/') {
+		return None;
+	}
+	Some(remainder.to_owned())
 }
 
 /// The machine's D-Bus system bus socket, mounted into the steward shape at the same path. See
@@ -247,6 +259,153 @@ pub struct Image {
 
 pub fn network_of(name: &str) -> String {
 	format!("app-{name}")
+}
+
+/// One network a container is on, as `/api/inspect/containers` answers it. See
+/// spec/architecture/inspect.md.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct ContainerNetwork {
+	pub name: String,
+	pub address: Option<String>,
+}
+
+/// One of a container's mounts, as inspect reports it: never followed, only named.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct ContainerMount {
+	pub source: String,
+	pub destination: String,
+	pub read_only: bool,
+}
+
+/// One container, whoever started it, as `/api/inspect/containers` answers it. See
+/// spec/architecture/inspect.md.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct ContainerInfo {
+	pub name: String,
+	/// The first twelve characters of its full id.
+	pub id: String,
+	pub image: String,
+	pub state: String,
+	pub status: String,
+	pub started_at: Option<String>,
+	pub restart_count: i64,
+	pub networks: Vec<ContainerNetwork>,
+	pub mounts: Vec<ContainerMount>,
+	/// Bytes, from its `HostConfig`; absent for a container run outside host's own sandbox.
+	pub memory_limit: Option<i64>,
+	pub oom_killed: bool,
+}
+
+/// One container's answer, from what `list` and `inspect` each report of it -- pure, so it is
+/// tested without Docker. See spec/architecture/inspect.md.
+pub fn container_info(summary: ContainerSummary, inspected: ContainerInspectResponse) -> ContainerInfo {
+	let id = summary.id.clone().unwrap_or_default();
+	let name = summary
+		.names
+		.as_ref()
+		.and_then(|names| names.first())
+		.map(|name| name.trim_start_matches('/').to_owned())
+		.unwrap_or_else(|| id.clone());
+	let networks = summary
+		.network_settings
+		.and_then(|settings| settings.networks)
+		.unwrap_or_default()
+		.into_iter()
+		.map(|(network, endpoint)| ContainerNetwork { name: network, address: endpoint.ip_address })
+		.collect();
+	let mounts = summary
+		.mounts
+		.unwrap_or_default()
+		.into_iter()
+		.filter_map(|mount| {
+			Some(ContainerMount {
+				source: mount.source?,
+				destination: mount.destination?,
+				read_only: !mount.rw.unwrap_or(true),
+			})
+		})
+		.collect();
+	let state = inspected.state.unwrap_or_default();
+	ContainerInfo {
+		name,
+		id: id.chars().take(12).collect(),
+		image: summary.image.unwrap_or_default(),
+		state: state.status.map(|status| status.to_string()).unwrap_or_default(),
+		status: summary.status.unwrap_or_default(),
+		started_at: state.started_at,
+		restart_count: inspected.restart_count.unwrap_or(0),
+		oom_killed: state.oom_killed.unwrap_or(false),
+		memory_limit: inspected.host_config.and_then(|config| config.memory),
+		networks,
+		mounts,
+	}
+}
+
+/// One member of a network, as `/api/inspect/networks` answers it.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct NetworkMember {
+	pub name: String,
+	pub address: Option<String>,
+}
+
+/// One Docker network and who is on it, as `/api/inspect/networks` answers it.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct NetworkInfo {
+	pub name: String,
+	pub driver: String,
+	pub subnet: Option<String>,
+	pub members: Vec<NetworkMember>,
+}
+
+/// One network's answer, from what `inspect` reports of it -- pure, so it is tested without
+/// Docker. See spec/architecture/inspect.md.
+pub fn network_info(network: NetworkInspect) -> NetworkInfo {
+	let subnet = network
+		.ipam
+		.and_then(|ipam| ipam.config)
+		.and_then(|config| config.into_iter().find_map(|entry| entry.subnet));
+	let members = network
+		.containers
+		.unwrap_or_default()
+		.into_values()
+		.filter_map(|container| Some(NetworkMember { name: container.name?, address: container.ipv4_address }))
+		.collect();
+	NetworkInfo {
+		name: network.name.unwrap_or_default(),
+		driver: network.driver.unwrap_or_default(),
+		subnet,
+		members,
+	}
+}
+
+/// One filesystem's usage, in bytes, as `statvfs` reports it.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+pub struct FilesystemUsage {
+	pub total: u64,
+	pub used: u64,
+	pub available: u64,
+}
+
+/// A filesystem's usage at `path`, however deep under its mount `path` is. The one place `libc` is
+/// reached for outside the btrfs ioctls below, since host does not depend on it and this is the
+/// deploy crate's one file host may add to. See spec/architecture/inspect.md.
+pub fn filesystem_usage(path: &std::path::Path) -> std::io::Result<FilesystemUsage> {
+	use std::os::unix::ffi::OsStrExt;
+	let cstring = std::ffi::CString::new(path.as_os_str().as_bytes())
+		.map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidInput, error))?;
+	let mut stat: libc::statvfs = unsafe { std::mem::zeroed() };
+	// SAFETY: `cstring` is a valid, nul-terminated path, and `stat` is written by the call alone.
+	let result = unsafe { libc::statvfs(cstring.as_ptr(), &mut stat) };
+	if result != 0 {
+		return Err(std::io::Error::last_os_error());
+	}
+	// The block-count fields are `u64` on Linux and narrower on other Unixes this may be checked
+	// on; `as` widens either way rather than relying on which it is.
+	let block = stat.f_frsize as u64;
+	let total = stat.f_blocks as u64 * block;
+	let available = stat.f_bavail as u64 * block;
+	let used = total.saturating_sub(stat.f_bfree as u64 * block);
+	Ok(FilesystemUsage { total, used, available })
 }
 
 pub struct Engine {
@@ -610,14 +769,13 @@ impl Engine {
 			Err(error) if absent(&error) => return Ok(Vec::new()),
 			Err(error) => return Err(error.into()),
 		};
-		let prefix = format!("{}/", socket_mount(""));
 		Ok(
 			inspected
 				.mounts
 				.unwrap_or_default()
 				.into_iter()
 				.filter_map(|mount| mount.destination)
-				.filter_map(|destination| destination.strip_prefix(&prefix).map(str::to_owned))
+				.filter_map(|destination| socket_service_of(&destination))
 				.collect(),
 		)
 	}
@@ -668,6 +826,35 @@ impl Engine {
 				})
 				.collect(),
 		)
+	}
+
+	/// Every container on the machine, whoever started it: state, image, networks and mounts,
+	/// memory ceiling, restarts, and whether the kernel killed it for memory. See
+	/// spec/architecture/inspect.md.
+	pub async fn containers(&self) -> Result<Vec<ContainerInfo>, Error> {
+		let options = ListContainersOptions { all: true, ..Default::default() };
+		let summaries = self.docker.list_containers(Some(options)).await?;
+		let mut all = Vec::with_capacity(summaries.len());
+		for summary in summaries {
+			let Some(id) = summary.id.clone() else { continue };
+			let inspected = self.docker.inspect_container(&id, None).await?;
+			all.push(container_info(summary, inspected));
+		}
+		Ok(all)
+	}
+
+	/// Every Docker network and who is on it. `list` alone does not carry members, so each is
+	/// inspected in turn. See spec/architecture/inspect.md.
+	pub async fn networks(&self) -> Result<Vec<NetworkInfo>, Error> {
+		let listed =
+			self.docker.list_networks(None::<bollard::query_parameters::ListNetworksOptions>).await?;
+		let mut all = Vec::with_capacity(listed.len());
+		for network in listed {
+			let Some(name) = network.name else { continue };
+			let inspected = self.docker.inspect_network(&name, None).await?;
+			all.push(network_info(inspected));
+		}
+		Ok(all)
 	}
 
 	/// Every image on the machine, whoever loaded it, dangling ones included.
@@ -741,6 +928,108 @@ impl Engine {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn shapes_a_container_from_what_list_and_inspect_each_report() {
+		use bollard::models::{ContainerState, ContainerStateStatusEnum, ContainerSummaryNetworkSettings, MountPoint};
+		let summary = ContainerSummary {
+			id: Some("abcdef0123456789".into()),
+			names: Some(vec!["/geo".into()]),
+			image: Some("host/geo:0f939c217676".into()),
+			status: Some("Up 3 hours".into()),
+			network_settings: Some(ContainerSummaryNetworkSettings {
+				networks: Some(HashMap::from([(
+					"app-geo".into(),
+					EndpointSettings { ip_address: Some("10.0.0.5".into()), ..Default::default() },
+				)])),
+			}),
+			mounts: Some(vec![MountPoint {
+				typ: Some("bind".into()),
+				source: Some("/data/apps/geo".into()),
+				destination: Some("/data".into()),
+				rw: Some(false),
+				..Default::default()
+			}]),
+			..Default::default()
+		};
+		let inspected = ContainerInspectResponse {
+			state: Some(ContainerState {
+				status: Some(ContainerStateStatusEnum::RUNNING),
+				started_at: Some("2026-09-28T00:00:00Z".into()),
+				oom_killed: Some(true),
+				..Default::default()
+			}),
+			restart_count: Some(2),
+			host_config: Some(HostConfig { memory: Some(512 * 1024 * 1024), ..Default::default() }),
+			..Default::default()
+		};
+		let info = container_info(summary, inspected);
+		assert_eq!(info.name, "geo");
+		assert_eq!(info.id, "abcdef012345");
+		assert_eq!(info.image, "host/geo:0f939c217676");
+		assert_eq!(info.state, "running");
+		assert_eq!(info.status, "Up 3 hours");
+		assert_eq!(info.started_at, Some("2026-09-28T00:00:00Z".into()));
+		assert_eq!(info.restart_count, 2);
+		assert!(info.oom_killed);
+		assert_eq!(info.memory_limit, Some(512 * 1024 * 1024));
+		assert_eq!(info.networks, vec![ContainerNetwork {
+			name: "app-geo".into(),
+			address: Some("10.0.0.5".into()),
+		}]);
+		assert_eq!(info.mounts, vec![ContainerMount {
+			source: "/data/apps/geo".into(),
+			destination: "/data".into(),
+			read_only: true,
+		}]);
+	}
+
+	#[test]
+	fn socket_service_of_takes_only_a_direct_child_of_the_sockets_directory() {
+		assert_eq!(socket_service_of("/sockets/apt"), Some("apt".into()));
+		assert_eq!(socket_service_of("/data"), None);
+		assert_eq!(socket_service_of("/sockets/"), None);
+		assert_eq!(socket_service_of("/sockets/a/b"), None);
+	}
+
+	#[test]
+	fn shapes_a_network_and_who_is_on_it() {
+		use bollard::models::{EndpointResource, Ipam, IpamConfig};
+		let network = NetworkInspect {
+			name: Some("app-geo".into()),
+			driver: Some("bridge".into()),
+			ipam: Some(Ipam {
+				config: Some(vec![IpamConfig { subnet: Some("172.20.0.0/16".into()), ..Default::default() }]),
+				..Default::default()
+			}),
+			containers: Some(HashMap::from([(
+				"endpoint-1".into(),
+				EndpointResource {
+					name: Some("geo".into()),
+					ipv4_address: Some("172.20.0.2/16".into()),
+					..Default::default()
+				},
+			)])),
+			..Default::default()
+		};
+		let info = network_info(network);
+		assert_eq!(info.name, "app-geo");
+		assert_eq!(info.driver, "bridge");
+		assert_eq!(info.subnet, Some("172.20.0.0/16".into()));
+		assert_eq!(info.members, vec![NetworkMember {
+			name: "geo".into(),
+			address: Some("172.20.0.2/16".into()),
+		}]);
+	}
+
+	#[test]
+	fn reads_the_filesystem_a_path_is_under() {
+		let root = tempfile::tempdir().unwrap();
+		let usage = filesystem_usage(root.path()).unwrap();
+		assert!(usage.total > 0);
+		assert!(usage.total >= usage.available);
+		assert!(filesystem_usage(std::path::Path::new("/no/such/mount")).is_err());
+	}
 
 	#[test]
 	fn reads_a_numeric_user() {

@@ -1,0 +1,26 @@
+//! `/api/inspect/networks`: every Docker network and who is on it. The shape is
+//! `deploy::engine::network_info`'s, built pure from what `inspect` reports; this is the thin
+//! reader that calls it. See spec/architecture/inspect.md.
+
+use crate::Host;
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::response::Response;
+use std::sync::Arc;
+
+pub async fn list(State(host): State<Arc<Host>>) -> Response {
+	match host.engine.networks().await {
+		Ok(networks) => response::success(StatusCode::OK, networks),
+		Err(error) => response::failure_with(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	#[test]
+	fn every_code_it_answers_with_is_in_the_catalogue() {
+		for code in response::codes_named(include_str!("networks.rs")) {
+			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
+		}
+	}
+}

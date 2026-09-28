@@ -38,11 +38,26 @@ impl Kind {
 	}
 }
 
-/// What the panel is shown: every configuration value, and only the names of the secrets.
+/// One variable as `/api/apps/{name}/environment` and `/api/inspect` alike name it: its name and
+/// which file it is in, with a value only for `config` -- never for `secret`. See
+/// spec/architecture/inspect.md, "An app's environment is asked where it is kept".
+#[derive(Debug, Serialize, PartialEq)]
+pub struct VariableShown {
+	pub name: String,
+	#[serde(rename = "type")]
+	pub kind: &'static str,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub value: Option<String>,
+}
+
+/// What the panel is shown: every configuration value, and only the names of the secrets -- kept
+/// beside `variables`, which answers the same thing by name and type, so a caller that wants
+/// either shape is served without a second read of the files.
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Shown {
 	pub config: BTreeMap<String, String>,
 	pub secrets: BTreeSet<String>,
+	pub variables: Vec<VariableShown>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -102,10 +117,17 @@ fn write(path: &Path, variables: &BTreeMap<String, String>) -> Result<(), Error>
 }
 
 pub fn shown(root: &Path) -> Result<Shown, Error> {
-	Ok(Shown {
-		config: read(&Kind::Config.file(root))?,
-		secrets: read(&Kind::Secret.file(root))?.into_keys().collect(),
-	})
+	let config = read(&Kind::Config.file(root))?;
+	let secrets = read(&Kind::Secret.file(root))?;
+	let mut variables: Vec<VariableShown> = config
+		.iter()
+		.map(|(name, value)| VariableShown { name: name.clone(), kind: "config", value: Some(value.clone()) })
+		.chain(
+			secrets.keys().map(|name| VariableShown { name: name.clone(), kind: "secret", value: None }),
+		)
+		.collect();
+	variables.sort_by(|a, b| a.name.cmp(&b.name));
+	Ok(Shown { config, secrets: secrets.into_keys().collect(), variables })
 }
 
 /// What the container is started with: both files, as `NAME=value`.
@@ -219,6 +241,22 @@ mod tests {
 		assert_eq!(variables(root.path()).unwrap(), ["LEVEL=debug", "TOKEN=s3cret"]);
 		let mode = std::fs::metadata(root.path().join("secret.env")).unwrap().permissions().mode();
 		assert_eq!(mode & 0o777, 0o600);
+	}
+
+	#[test]
+	fn variables_name_each_ones_type_and_carry_a_value_only_for_config() {
+		let root = tempfile::tempdir().unwrap();
+		set(root.path(), Kind::Config, "LEVEL", Some("debug")).unwrap();
+		set(root.path(), Kind::Secret, "TOKEN", Some("s3cret")).unwrap();
+		let shown = shown(root.path()).unwrap();
+		assert_eq!(
+			shown.variables,
+			[
+				VariableShown { name: "LEVEL".into(), kind: "config", value: Some("debug".into()) },
+				VariableShown { name: "TOKEN".into(), kind: "secret", value: None },
+			]
+		);
+		assert!(!serde_json::to_string(&shown.variables).unwrap().contains("s3cret"));
 	}
 
 	#[test]
