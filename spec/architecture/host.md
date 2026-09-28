@@ -254,6 +254,11 @@ browser then asks for the paths the interface expects, and an API under `/v1/` n
 `home` has to stay on its own name -- `//` and `/\` are another site to a browser -- or the name
 becomes an open redirect.
 
+**Every name is compressed at Caddy, and no app compresses for itself.** Each route host renders
+encodes its answer with zstd or gzip, whichever the client prefers; an answer that arrives already
+encoded is passed through. Compression is a property of the edge of the node, like TLS, so it is
+configured once there rather than in every app and every vendor's image.
+
 **Caddy's admin endpoint is a unix socket, never a port.** Every app shares a network with Caddy,
 so an admin port would let any app rewrite every route. The socket sits in a directory only Caddy
 and host mount.
@@ -261,6 +266,75 @@ and host mount.
 **A Caddy container that is recreated, not restarted, comes back attached to no app's network.**
 host attaches it to all of them again whenever it starts and whenever it is asked to reapply, so the
 remedy is one request rather than a list of commands.
+
+## The panel is host's own
+
+host serves its panel itself, on its own names: a Svelte single-page application built with Vite
+at its defaults, copied into host's image and served beside the API, so there is no second service,
+no origin to cross and no CORS. It is written in `apps/host/panel/`.
+
+**The panel signs in with the token, once.** The first visit asks for it; host answers with a
+cookie holding it, `HttpOnly`, `Secure` and `SameSite=Strict`, and every request after carries that.
+The API takes the cookie or an `Authorization` header alike, so scripts and keeper are unchanged.
+The token is asked for on every door, the LAN's included; from the public, Access stands in front
+as well.
+
+**The first version covers the apps of this repository.** Images from elsewhere, notifications and
+a second node come after it.
+
+### What host keeps, and where
+
+host's state is three SQLite files by what they hold, since a file costs nothing and one per
+subject keeps each small, separately inspectable and separately backed up: `apps.db`, what runs
+now and what is held stopped; `routes.db`, the names that reach something host does not run; and
+`history.db`, every event. They sit in host's own data directory. A single `host.db` from before
+the split is read into them once and renamed aside.
+
+**Every event is kept, and none is pruned.** A deploy, a redeploy, a rollback of either kind, a
+start, a stop, a restart and a deploy skipped are each a row: which app, what started it -- a CI run
+and its commit, an upload, or the panel -- the image, when it started and ended, how it ended, and
+why when it failed, with the logs of the failure. The panel pages through them fifty at a time, the
+newest first, as far back as they go.
+
+**Every line an app writes is kept.** Docker does not rotate the logs of a container host runs, and
+before a container is replaced its whole log is written to `/data/logs/<app>/`, one file per
+version it ran, since removing the container would otherwise remove its log. The panel shows the
+running container's recent lines and every archived file. Clearing them out is a later decision,
+made when the disk says so.
+
+### An app's environment is two files, and the panel shows one
+
+Configuration and secrets are both environment variables, given to the container when it starts,
+and both edited in the panel. They are two files in the app's own directory, outside what its
+container mounts, readable by root alone:
+
+- `config.env` is configuration: the panel shows every key and value.
+- `secret.env` is secrets: the panel shows that a key exists, and never its value. Reading one is
+  done over SSH.
+
+They sit in the app's subvolume, so the snapshot a deploy takes holds them, and a failed deploy put
+back puts the environment back with the code. A change applies when the container is next started
+from its version: the panel says so, and a redeploy does it.
+
+### What the panel can do to an app
+
+- **Redeploy** runs the current version again, as a deploy: snapshot, start, check, and the version
+  before put back if the check fails.
+- **Roll back** runs the previous version instead, keeping the data and the environment as they are
+  now. It is the ordinary way back from a bad version.
+- **Roll back with data** does the same and also restores the snapshot taken before the current
+  version was deployed, so the data and the environment are as they were then. Everything written
+  since is lost, so it is shown as the dangerous one. It is offered while that snapshot is among the
+  ones kept.
+- **Start, stop and restart** act on the container as it is.
+
+Every one of them is confirmed twice. host does none of them to itself: it cannot stop or replace the
+program answering the request, and keeper is the one that replaces host.
+
+**A stop holds until a start.** A stopped app stays stopped through a reboot -- Docker's own
+restart policy does that -- and through a deploy: while it is held, a CI run that built it is recorded
+as skipped rather than started. A start runs the version it was stopped at; a redeploy or a rollback
+is a choice to run something, and ends the hold.
 
 ## Open
 
