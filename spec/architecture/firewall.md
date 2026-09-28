@@ -89,6 +89,9 @@ refuse, or an extension among the site's routes and public files that it would, 
 **`mise run rules sync [zone]` deploys them**, through Cloudflare's `cf` CLI: each phase of each zone
 is sent whole, first to Cloudflare's own validation, and only if every one passes is each put as
 the zone's entry point for that phase, replacing what was there. It is run by hand after a change
-lands, and it is safe to run again. It authenticates with a token of its own that may edit a zone's
-WAF and nothing else, decrypted from the repository's secrets; without it the sync refuses rather
-than falling back to a broader login, and the account's owner login is never used by a script.
+lands, and it is safe to run again. It authenticates with `CLOUDFLARE_ZONES_TOKEN`, decrypted from the
+repository's secrets: one token for every script that works on the zones, scoped to all of them
+and to zone-level permissions alone -- WAF and page rules to edit, cache to purge, and DNS,
+settings, analytics and Workers routes to read. Anything the account holds beyond the zones would
+be another token of its own. Without it the sync refuses rather than falling back to a broader
+login, and the account's owner login is never used by a script.

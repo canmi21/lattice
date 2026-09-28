@@ -224,10 +224,10 @@ def sync(zone_arg, dry_run):
 			print(f"sync: no rules/{zone}/zone.toml", file=sys.stderr)
 			return 1
 
-	token = os.environ.get("CLOUDFLARE_RULES_TOKEN")
+	token = os.environ.get("CLOUDFLARE_ZONES_TOKEN")
 	if not token and not dry_run:
 		print(
-			"sync: CLOUDFLARE_RULES_TOKEN is not set. It must come from the repository's encrypted "
+			"sync: CLOUDFLARE_ZONES_TOKEN is not set. It must come from the repository's encrypted "
 			"secrets.json (see spec/toolchain.md, \"Secrets\"), decrypted by mise on entering the "
 			"directory, like HOST_TOKEN. Refusing rather than falling back to cf's own login.",
 			file=sys.stderr,
