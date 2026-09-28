@@ -99,8 +99,9 @@ fn capture<R: Render>(
 }
 
 /// That a capture was taken, and where to ask after it: its state and nothing it found, which is
-/// the task's to tell. Addresses are relative, since this service does not know the scope it is
-/// reached under: `tasks/<id>` beside `capture`.
+/// the task's to tell. `Location` is relative, since this service does not know the scope it is
+/// reached under: `tasks/<id>` beside `capture`. See spec/architecture/shot.md, "A picture is
+/// named by its whole public address".
 fn taken(id: Uuid, known: Option<(View, Details)>) -> Response {
 	let (state, retry_after) = match known.map(|(view, _)| view) {
 		Some(View::Waiting { rendering, retry_after }) => {
@@ -295,8 +296,11 @@ mod tests {
 		drain(&shot).await;
 		let done = ask(&router, &format!("/tasks/{id}"), true).await;
 		assert_eq!(done.status, StatusCode::OK);
-		assert_eq!(done.json()["data"]["png"], format!("../pictures/{id}.png"));
-		assert_eq!(done.json()["data"]["webp"], format!("../pictures/{id}.webp"));
+		assert_eq!(done.json()["data"]["png"], format!("{}/pictures/{id}.png", urls::INTERNAL_SHOT));
+		assert_eq!(
+			done.json()["data"]["webp"],
+			format!("{}/pictures/{id}.webp", urls::INTERNAL_SHOT)
+		);
 		assert_eq!(done.headers[header::CACHE_CONTROL], TASK_CACHE);
 		let data = done.json()["data"].clone();
 		assert_eq!(data["pictures"]["width"], 390);

@@ -68,9 +68,11 @@ Each tells its own and nothing of the others'.
   kept until the capture is forgotten, and says so in `max-age`. A task that failed is
   `502 page_unavailable` with why, in the browser's words; one expired or never made is
   `404 no_such_task`; a full queue is `503 queue_unavailable` with `Retry-After`.
-- **The addresses in an answer are relative** -- `Location: tasks/<id>` beside `capture`,
-  `png: "../pictures/<id>.png"` beside the task -- because the service does not know the scope it
-  is reached under; resolved against the address asked, they land where they should.
+- **A picture is named by its whole public address**, `png: "<shot>/pictures/<id>.png"` where
+  `<shot>` is the scope's public address in `libs/urls`, never written into the code, so an answer
+  read anywhere -- saved, pasted, passed on -- still reaches the picture. It is the public one
+  whichever door the task was asked through, since the pictures are the same behind both.
+  `Location: tasks/<id>` stays relative, which an HTTP client resolves against the address asked.
 - **An id is a random UUID**, so a picture cannot be found by guessing what somebody else asked
   for. The same parameters while a capture of them is kept get the same id, and are not captured
   twice.

@@ -85,7 +85,8 @@ export const GITHUB_OWNER = 'canmi21';
  * `infra` is the apex api and cdn hang off; `alias` the alias layer's. `app` is the suffix every
  * interface is on behind Access, see spec/architecture/services.md; `panel`, `keeper` and `host`
  * are the node's panel, what updates host, and host's API as the panel reaches it, see
- * spec/architecture/host.md; `ledger` is where every service records its tasks, see ledger.md.
+ * spec/architecture/host.md; `ledger` is where every service records its tasks, see ledger.md;
+ * `shot` is the public scope a capture's pictures are named under, see shot.md.
  */
 const INTERNAL = {
 	app: 'https://canmi.app',
@@ -96,6 +97,7 @@ const INTERNAL = {
 	host: 'http://host:11011',
 	ledger: 'https://api.canmi.icu/ledger',
 	cron: 'https://api.canmi.icu/cron',
+	shot: 'https://api.ffoni.com/shot',
 } as const;
 
 export const URLS = {

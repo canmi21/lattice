@@ -36,14 +36,15 @@ fn story(details: &Details) -> (Value, Value) {
 	(task, request)
 }
 
-/// A done capture, all it found. Pictures are `../pictures/<id>.png` beside the task.
+/// A done capture, all it found. Pictures are named by shot's public address. See
+/// spec/architecture/shot.md, "A picture is named by its whole public address".
 pub fn done(id: Uuid, made: &Made, details: &Details) -> Value {
 	let (task, request) = story(details);
 	let mut body = serde_json::json!({
 		"id": id,
 		"state": "done",
-		"png": format!("../pictures/{id}.png"),
-		"webp": made.pictures.webp_bytes.map(|_| format!("../pictures/{id}.webp")),
+		"png": format!("{}/pictures/{id}.png", urls::INTERNAL_SHOT),
+		"webp": made.pictures.webp_bytes.map(|_| format!("{}/pictures/{id}.webp", urls::INTERNAL_SHOT)),
 		"task": task,
 		"request": request,
 		"pictures": made.pictures,
