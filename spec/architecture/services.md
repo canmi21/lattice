@@ -29,10 +29,19 @@ The VPS and the machine at home run the same four things: host, keeper, Caddy an
 Neither opens an inbound port; public traffic reaches each through its own tunnel, and the nodes
 reach each other on the tailnet. Each node's host deploys only what is placed on it.
 
-The notice CI sends after a build reaches every node through one Worker. That Worker verifies the
-OIDC token GitHub mints for each run -- which repository, which ref, which workflow -- and forwards
-over Workers VPC. **So GitHub holds no secret at all**, and what the Worker forwards is still only a
-hint: each host verifies the artifact's attestation itself.
+A finished build reaches every node through one Worker, `hook`, answering the `hook` scope of the
+public API host. GitHub's webhook for workflow runs calls it when a run ends, signed with a secret
+the two share; it checks the signature, keeps only a successful run of the deploy workflow on
+`main`, and passes the run's number over Workers VPC to each node's host, and to keeper, which
+alone deploys host. Workers VPC dials the node's Caddy by name and sends the fetch's hostname as the
+`Host`, so one VPC service reaches every name Caddy answers. What the Worker forwards is only a
+hint: each program asks GitHub about the run itself before it runs anything.
+
+**Rejected: a step in the workflow calling the Worker with GitHub's OIDC token.** It holds no secret
+at all, which the webhook does not match. It also fires before the run has ended, so a node would
+have to reason about a run still going, and it puts a step in every build that exists to announce
+it. The webhook's secret can only forge a hint the node then checks, which is the whole of what it
+is worth to anybody.
 
 ## Cloudflare is the one entrance, and that is accepted
 

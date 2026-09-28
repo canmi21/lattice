@@ -20,35 +20,10 @@ function fail(message: string): never {
 	process.exit(1);
 }
 
-/** The compiler every local check runs, as rustup resolves it from the toolchain file. */
-function rustVersion(): string {
-	const [, version] = execFileSync('rustc', ['--version'], { cwd: ROOT, encoding: 'utf8' }).split(' ');
-	return version ?? fail('rustc printed no version');
-}
-
-/** The machine at home is arm64, and so is the Mac this runs on, so nothing is emulated. */
+/** The one build, shared with CI; see .mise/tasks/image. */
 function build(name: string, archive: string): void {
-	const dockerfile = join(ROOT, 'apps', name, 'Dockerfile');
-	if (!existsSync(dockerfile)) fail(`apps/${name} has no Dockerfile`);
-	execFileSync(
-		'docker',
-		[
-			'buildx',
-			'build',
-			'--platform',
-			'linux/arm64',
-			'--file',
-			dockerfile,
-			'--build-arg',
-			`RUST_VERSION=${rustVersion()}`,
-			'--tag',
-			`${name}:local`,
-			'--output',
-			`type=docker,dest=${archive}`,
-			'.',
-		],
-		{ cwd: ROOT, stdio: 'inherit' },
-	);
+	if (!existsSync(join(ROOT, 'apps', name, 'Dockerfile'))) fail(`apps/${name} has no Dockerfile`);
+	execFileSync(join(ROOT, '.mise/tasks/image'), [name, archive], { cwd: ROOT, stdio: 'inherit' });
 }
 
 /**

@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+#MISE description="The images a change needs rebuilt, as JSON: `deployable [--all] [--since REV | --git BASE] [--files ...]`"
+"""An app is deployable when its directory holds a `service.toml`. It needs a new image when
+anything under that directory changed, when a crate it is built from did, or when the build
+itself did. CI reads the list to decide what to build; see spec/architecture/host.md, "The
+machine pulls; nothing pushes into it"."""
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from graph import ROOT, changed, dependents, owner, rust_graph  # noqa: E402
+
+# How every image is built: a change here is a change to all of them.
+EVERY_IMAGE = {"Cargo.toml", "Cargo.lock", ".dockerignore", ".mise/tasks/image"}
+
+
+def apps():
+	"""App directory name -> its crate's name, for every app that declares a deployment."""
+	found = {}
+	for declaration in sorted(ROOT.glob("apps/*/service.toml")):
+		manifest = declaration.parent / "Cargo.toml"
+		name = declaration.parent.name
+		for line in manifest.read_text().splitlines() if manifest.exists() else []:
+			if line.startswith("name = "):
+				name = line.split('"')[1]
+				break
+		found[declaration.parent.name] = name
+	return found
+
+
+def git_changed(base):
+	"""Files changed between `base` and HEAD, for CI, where there is git and no jj."""
+	command = ["git", "diff", "--name-only", base, "HEAD"]
+	output = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=True).stdout
+	return [line for line in output.splitlines() if line]
+
+
+def needed(files, declared):
+	if any(f in EVERY_IMAGE for f in files):
+		return sorted(declared)
+	# A file another crate includes is ignored here: every such include today is a test's, which
+	# no image carries. A binary that embedded another crate's file would need it counted.
+	crate_dirs, crate_edges, _included = rust_graph()
+	crates, chosen = set(), set()
+	for f in files:
+		parts = f.split("/")
+		if len(parts) > 2 and parts[0] == "apps" and parts[1] in declared:
+			chosen.add(parts[1])
+		crate = crate_dirs.get(owner(f, crate_dirs) or "")
+		if crate and (f.endswith(".rs") or f.endswith("/Cargo.toml")):
+			crates.add(crate)
+	reached = dependents(crates, crate_edges)
+	chosen |= {app for app, crate in declared.items() if crate in reached}
+	return sorted(chosen)
+
+
+def main():
+	arguments = sys.argv[1:]
+	declared = apps()
+	if "--all" in arguments:
+		result = sorted(declared)
+	elif "--files" in arguments:
+		result = needed(arguments[arguments.index("--files") + 1 :], declared)
+	elif "--git" in arguments:
+		result = needed(git_changed(arguments[arguments.index("--git") + 1]), declared)
+	else:
+		since = arguments[arguments.index("--since") + 1] if "--since" in arguments else None
+		result = needed(changed(since), declared)
+	print(json.dumps(result))
+	return 0
+
+
+if __name__ == "__main__":
+	sys.exit(main())

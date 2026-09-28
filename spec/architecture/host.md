@@ -59,20 +59,28 @@ channel that accepts one has no boundary to enforce.
 
 So the direction is reversed, and trust is moved off the channel.
 
-- CI builds only the apps a push changed, for `linux/arm64`, as an image archive, and uploads it as
-  an artifact of that workflow run. **Nothing is published**: no release, no package, no registry.
-  This is one repository holding many apps, and a publishing ritual per app is exactly the cost that
-  stops small apps being written.
-- CI attests the archive with GitHub's artifact attestation, which binds it to this repository, the
-  workflow and the ref, keyless. The attestation lives in GitHub's attestation API and is not a
-  publication either.
-- CI then sends a notice naming the app and the commit, through a Worker that verifies GitHub's
-  OIDC token for the run -- see [services.md](services.md), "Every node is the same node". There is
-  no polling; the notice says exactly what is ready.
-- host finds the run by the commit, downloads the artifact with a read-only token scoped to this
-  repository's Actions, and **verifies the attestation came from this repository's workflow on
-  `main` before anything runs**. The notice is a hint, not an authority: a forged one can at worst
-  redeploy a version `main` already signed.
+- CI builds only the apps a push changed -- `.mise/tasks/deployable` reads the change against the
+  crate graph -- for `linux/arm64`, each as its image archive beside its `service.toml`, and uploads
+  them as artifacts of that workflow run. **Nothing is published**: no release, no package, no
+  registry. This is one repository holding many apps, and a publishing ritual per app is exactly the
+  cost that stops small apps being written. The build is `.mise/tasks/image`, the same one a local
+  deploy runs, and CI checks the workspace out around this repository so the compiler is the one
+  its `rust-toolchain.toml` names.
+- When the run ends, **GitHub's webhook** tells a Worker, which checks the delivery's signature and
+  passes the run's number on -- see [services.md](services.md), "Every node is the same node".
+  There is no polling and no step in the workflow for it; the event says exactly which run ended,
+  and that it succeeded.
+- host asks GitHub about that run with a read-only token scoped to this repository's Actions, and
+  **runs nothing unless the answer is this repository's deploy workflow, on `main`, finished and
+  successful**; then downloads the artifact and checks it against the digest GitHub recorded. The
+  notice is a hint, not an authority: a forged one can at worst redeploy what `main` already built.
+
+**Rejected: verifying a Sigstore attestation of each archive.** An attestation proves an artifact came
+from a given repository's workflow on a given ref, which is what matters when the artifact is taken
+from somewhere else -- a registry, a mirror. Here it is taken from GitHub's API, for a named run whose
+repository, workflow, branch, event and outcome that same API states, over the same TLS. Both prove
+the same thing, and the attestation's half is a certificate chain, a transparency log and a trust
+root to verify in Rust, the most intricate code on the path for no guarantee the run record lacks.
 
 An artifact expires after its retention period. That does not matter to a deploy, since the image is
 on the machine once loaded, and a rollback uses the image host kept.
@@ -128,9 +136,9 @@ without it gets nothing.
 - It lives in this repository's `secrets.json`, so a mise task deploys without asking. On the
   machine it lives in host's own `.env` and is read back over SSH when forgotten. A browser keeps it
   as a saved password.
-- **It never goes to GitHub**, and neither does anything else: CI's notice is admitted by the OIDC
-  token GitHub mints per run, and can do nothing but ask host to look. A compromise of CI must not
-  be a compromise of the panel, or the reversal above bought nothing.
+- **It never goes to GitHub.** The one secret GitHub holds is the webhook's, and what it signs can
+  do nothing but ask host to look at a run it will check for itself. A compromise of CI must not be
+  a compromise of the panel, or the reversal above bought nothing.
 
 ## host never updates itself; keeper updates host
 
@@ -163,9 +171,10 @@ enough to read at once, and its stability comes from its size rather than from r
 builds only what changed, so keeper's image moves only when keeper's code does.
 
 **keeper has its own intake.** `mise run host deploy host` goes to `keeper.canmi.icu`, never to
-host, and so will a notice for host. Routed through host, a broken host would stand between the fix
-and the machine. keeper is private to the LAN and the tailnet; it is the way back in, and has no
-business on the public suffix.
+host, and a notice about a run that built host goes to keeper too. Routed through host, a broken
+host would stand between the fix and the machine. keeper's interface is private to the LAN and the
+tailnet; on the tunnel's side it answers `/notice` and nothing else, since that is the path the
+Worker reaches it by, and a request there can only ask it to look at a run.
 
 It is reached through Caddy like everything else, which was chosen over binding keeper's port to the
 machine's address directly. The cost is that a Caddy that is down makes keeper unreachable too;
