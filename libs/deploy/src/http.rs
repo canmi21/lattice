@@ -50,6 +50,21 @@ pub async fn status(address: &str, path: &str) -> Result<u16, Error> {
 	Ok(status)
 }
 
+/// POST a JSON body to `address` over a container network, for its status: keeper passing a run
+/// on to host.
+pub async fn post(address: &str, path: &str, body: Vec<u8>) -> Result<u16, Error> {
+	let attempt = async {
+		let stream = tokio::net::TcpStream::connect(address).await.map_err(Error::Connect)?;
+		let request = Request::post(path)
+			.header("host", address)
+			.header("content-type", "application/json")
+			.body(Full::new(Bytes::from(body)))?;
+		send(stream, request).await
+	};
+	let (status, _) = tokio::time::timeout(ATTEMPT, attempt).await.map_err(|_| Error::Timeout)??;
+	Ok(status)
+}
+
 /// POST a JSON body through a unix socket. Caddy's admin endpoint on a socket accepts only an empty
 /// host or a loopback address as `Host`, and a client cannot send an empty one, so it is
 /// 127.0.0.1.

@@ -42,6 +42,9 @@ async fn health(State(host): State<Arc<Host>>) -> StatusCode {
 #[derive(Deserialize)]
 struct Notice {
 	run: u64,
+	/// Set by keeper when it passes a run on, having dealt with the host that run built.
+	#[serde(default)]
+	host_done: bool,
 }
 
 /// A CI run has finished. Open, since it can only ask host to look: the run is checked against
@@ -57,7 +60,7 @@ async fn notice(State(host): State<Arc<Host>>, Json(notice): Json<Notice>) -> Re
 	}
 	let taker = host.clone();
 	tokio::spawn(async move {
-		if !rollout::from_run(taker.clone(), notice.run).await {
+		if !rollout::from_run(taker.clone(), notice.run, notice.host_done).await {
 			let mut notices = taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
 			notices.remove(&notice.run);
 		}

@@ -123,7 +123,11 @@ pub async fn from_archive(
 /// Deploy what a CI run built for this node, once GitHub's record of the run says it may be.
 /// host's own image is keeper's to deploy and is left to it. True when everything went, so a
 /// notice that failed on the way can be taken again when GitHub delivers it again.
-pub async fn from_run(host: Arc<Host>, run: u64) -> bool {
+///
+/// A run that built host is keeper's first: keeper replaces host and then passes the run on with
+/// `host_done`, and only that notice is acted on here. Were both to act at once, each would stop
+/// the other mid-deploy. See spec/architecture/host.md, "keeper has its own intake".
+pub async fn from_run(host: Arc<Host>, run: u64, host_done: bool) -> bool {
 	let Some(github) = host.github.as_ref() else {
 		eprintln!("host: run {run}: this node has no GITHUB_ACTIONS_TOKEN");
 		return false;
@@ -135,6 +139,11 @@ pub async fn from_run(host: Arc<Host>, run: u64) -> bool {
 			return false;
 		}
 	};
+	if !host_done && artifacts.iter().any(|artifact| artifact.app == "host") {
+		eprintln!("host: run {run}: it built host, so keeper goes first and passes it back");
+		// Not taken, so the notice keeper sends afterwards is.
+		return false;
+	}
 	let mut whole = true;
 	for artifact in artifacts.iter().filter(|artifact| artifact.app != "host") {
 		let fetched = match github.fetch(artifact, &host.config.incoming).await {

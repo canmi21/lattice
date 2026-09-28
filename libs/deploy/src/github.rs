@@ -212,6 +212,7 @@ impl GitHub {
 			}
 		}
 		file.flush().await.map_err(io(zip.display().to_string()))?;
+		// GitHub's digest is the SHA-256 of the zip as it is downloaded; measured on run 36368010996.
 		let digest = format!("sha256:{}", hex(&hasher.finalize()));
 		if !digest.eq_ignore_ascii_case(&artifact.digest) {
 			let _ = tokio::fs::remove_file(&zip).await;

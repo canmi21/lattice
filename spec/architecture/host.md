@@ -176,6 +176,13 @@ host would stand between the fix and the machine. keeper's interface is private 
 tailnet; on the tunnel's side it answers `/notice` and nothing else, since that is the path the
 Worker reaches it by, and a request there can only ask it to look at a run.
 
+**A run that built host is keeper's first, and host's only after.** The notice reaches both at once,
+and the first run that built both acted on it at once: host replaced keeper while keeper was
+fetching the new host, and the host it was about to put in place never arrived. So host leaves such
+a run alone, and keeper, once host is replaced -- or put back, if the new one failed -- passes the
+run on to host marked as done with host. The rest of the run, keeper included, is then deployed by
+the host that run built.
+
 It is reached through Caddy like everything else, which was chosen over binding keeper's port to the
 machine's address directly. The cost is that a Caddy that is down makes keeper unreachable too;
 accepted, because Caddy starts from the file host last wrote and fails independently of host, so

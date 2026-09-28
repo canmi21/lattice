@@ -26,6 +26,9 @@ static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// holds the two together.
 const PORT: u16 = 11010;
 
+/// host's port, which keeper passes a run on to; host's `service.toml` states it.
+const HOST_PORT: u16 = 11011;
+
 struct Keeper {
 	node: String,
 	token: String,
@@ -230,7 +233,7 @@ async fn from_run(keeper: &Keeper, run: u64) -> bool {
 			return true;
 		}
 	};
-	match from_archive(keeper, manifest, &fetched.image).await {
+	let replaced = match from_archive(keeper, manifest, &fetched.image).await {
 		Ok(image) => {
 			eprintln!("keeper: run {run}: host is {image}");
 			true
@@ -239,6 +242,20 @@ async fn from_run(keeper: &Keeper, run: u64) -> bool {
 			eprintln!("keeper: run {run}: {message}");
 			false
 		}
+	};
+	// Whether the new host stayed or the old one is back, the run's other images are host's now.
+	pass_on(run).await;
+	replaced
+}
+
+/// Hand `run` to host with host's part done, over the network the replacement joined keeper to.
+async fn pass_on(run: u64) {
+	let body = serde_json::json!({ "run": run, "host_done": true }).to_string().into_bytes();
+	let address = format!("host:{HOST_PORT}");
+	match deploy::http::post(&address, "/notice", body).await {
+		Ok(status) if (200..300).contains(&status) => {}
+		Ok(status) => eprintln!("keeper: run {run}: host answered {status} to the run passed on"),
+		Err(error) => eprintln!("keeper: run {run}: passing it on to host: {error}"),
 	}
 }
 
@@ -291,6 +308,12 @@ mod tests {
 	fn the_port_is_the_one_the_declaration_states() {
 		let declaration = include_str!("../service.toml");
 		assert!(declaration.lines().any(|line| line.trim() == format!("port = {}", super::PORT)));
+	}
+
+	#[test]
+	fn host_is_where_host_declares_it() {
+		let declaration = include_str!("../../host/service.toml");
+		assert!(declaration.lines().any(|line| line.trim() == format!("port = {}", super::HOST_PORT)));
 	}
 
 	#[test]
