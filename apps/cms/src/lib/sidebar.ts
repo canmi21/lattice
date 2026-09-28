@@ -72,29 +72,24 @@ function folded(scope: string): string {
 }
 
 /**
- * The rules that place the sidebar, as a stylesheet built from the numbers above.
- *
- * Built rather than written because a media query cannot read a custom property, and the fold is
- * a sum of four of them; written anywhere else it would be a fifth number to keep in step. Every
- * rule is keyed off a state attribute on the ground -- `data-collapsed`, `data-peek` -- which no
- * class can stand in for, so this is the escape hatch by spec/architecture/css/layers.md, "What
- * each layer owns, by name". Unlayered on purpose: it decides `display`, and has to outrank the
- * utilities on the same elements.
- *
- * - Docked, the sidebar takes its remembered width, never below its minimum and never so wide the
- *   pane falls below its own.
- * - Folded -- by the window being too narrow, or by the writer -- the sidebar and the divider are
- *   gone, and the pane takes the whole width.
- * - Peeking, the sidebar is lifted over the pane at the left, at its remembered width.
+ * The rules that place the sidebar, built from the numbers above: a media query cannot read a
+ * custom property, and the fold is a sum of four of them. Every rule keys off a state attribute on
+ * the ground, which no class can stand in for -- the escape hatch by
+ * spec/architecture/css/layers.md, "What each layer owns, by name". Unlayered on purpose: it
+ * decides `display` and has to outrank the utilities on the same elements.
  */
 export function sidebarStyles(): string {
 	const { min, max, fallback } = SIDEBAR.span;
 	const width = `var(${SIDEBAR.property}, ${fallback}rem)`;
 	return [
+		// Docked: the remembered width, never below the minimum nor so wide the pane falls below its
+		// own.
 		`[data-sidebar] { width: clamp(${min}rem, ${width}, calc(100vw - ${CHROME + PANE_MIN}rem)); }`,
+		// Folded, by a narrow window or by the writer: sidebar and divider gone, the pane full width.
 		`@media (max-width: ${FOLD_BELOW}rem) { ${folded('[data-ground]')} }`,
 		folded('[data-ground][data-collapsed]'),
 		folded(`[${FOLDED_ATTRIBUTE}]`),
+		// Peeking: lifted over the pane at the left, at the remembered width.
 		`[data-ground][data-peek] [data-sidebar] { display: flex; position: fixed; z-index: 30;` +
 			` top: ${GROUND_EDGE}rem; bottom: ${GROUND_EDGE}rem; left: ${GROUND_EDGE}rem;` +
 			` width: clamp(${min}rem, ${width}, min(${max}rem, calc(100vw - ${2 * GROUND_EDGE}rem)));` +

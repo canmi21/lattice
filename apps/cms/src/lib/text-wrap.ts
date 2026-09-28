@@ -5,7 +5,8 @@
  *
  * A wrap just made can be taken back by deleting: Backspace or Delete with the selection it left
  * removes the last layer rather than the words, so a `*` typed once too often goes the way it came.
- * Anything else -- moving the selection, typing, pasting, undoing -- forgets it, and deleting deletes.
+ * Anything else -- moving the selection, typing, pasting, undoing -- forgets it, and deleting
+ * deletes.
  *
  * Only a character typed does this. A paste arrives by another path -- CodeMirror hands typed text
  * to its input handler and a paste to its clipboard handler -- so a paste still replaces what is

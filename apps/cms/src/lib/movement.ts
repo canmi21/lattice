@@ -15,7 +15,9 @@ import { tick } from 'svelte';
 export class Movement {
 	#playing: Animation | undefined;
 
-	/** Move `element` through `keyframes`, timed for `pixels` of travel; the finished animation, held. */
+	/**
+	 * Move `element` through `keyframes`, timed for `pixels` of travel; the finished animation, held.
+	 */
 	async play(
 		element: HTMLElement,
 		keyframes: Keyframe[],

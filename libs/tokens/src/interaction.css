@@ -32,13 +32,11 @@
 	);
 }
 
-/* Every focus indicator on this site is the accent outline below, so the browser's own never gets
-   to draw. Chrome renders its default as a two-tone ring, a light contrast edge paired with its
-   blue, which reads as a stray white border against these surfaces; it reaches anything that takes
-   focus without opting into a utility, such as a menu panel that focuses itself as it opens. This
-   replaces that ring rather than removing it: a control nobody gave a focus utility stays visible
-   to the keyboard instead of going silent. Sitting in the base layer lets every rule below win.
-   See spec/styling/focus.md. */
+/* Every focus indicator on this site is the accent outline below, so the browser's own never
+   draws: Chrome's two-tone ring reads as a stray white border on these surfaces, and it reaches
+   anything that takes focus without a utility, such as a menu panel focusing itself as it opens.
+   It replaces the ring rather than removing it, so a control given no focus utility stays visible
+   to the keyboard. In the base layer, so every rule below wins. See spec/styling/focus.md. */
 @layer base {
 	:focus-visible {
 		outline: 0.125rem solid var(--color-accent);

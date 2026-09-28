@@ -1,6 +1,6 @@
 //! Bringing a record of any shape this tool has written up to the current one: the manifest as
-//! `local migrate` reads it, before any record in it has an id, and each record adopted under the id
-//! granted it.
+//! `local migrate` reads it, before any record in it has an id, and each record adopted under the
+//! id granted it.
 
 use super::*;
 

@@ -9,8 +9,8 @@
   down      kill the session, and with it every server
 
 Runs from the base, and from the sandbox on its shifted ports: the base is the one workspace that
-runs everything on the pinned ones, and anything else starting this would collide with it. tmux itself is a machine tool
-(Homebrew), not a mise tool -- see the spec for why.
+runs everything on the pinned ones, and anything else starting this would collide with it. tmux
+itself is a machine tool (Homebrew), not a mise tool -- see the spec for why.
 """
 
 from __future__ import annotations

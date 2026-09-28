@@ -12,14 +12,11 @@
 
 <script lang="ts">
 	/**
-	 * The chrome a clip is driven by, bound to Video.js v10's headless core rather than its skin.
-	 *
-	 * See spec/architecture/video/player.md, "The chrome is built on `@videojs/core`'s headless
-	 * store, not its skin", for why `@videojs/core/dom` and not the preset or custom elements, and
-	 * for the `attach` trap. Every colour is a `--player-*` token, the one that does not follow the
-	 * theme -- see `libs/tokens/src/player.css` for why. What is left in the scoped blocks -- at the
-	 * foot of this file, of `video-chrome.svelte` and of `video-settings.svelte` -- is a selector no
-	 * class can reach. The row is drawn by those two; the stages, the gestures and the store are here.
+	 * The chrome a clip is driven by, on Video.js v10's headless core rather than its skin: see
+	 * spec/architecture/video/player.md, "The chrome is built on `@videojs/core`'s headless store,
+	 * not its skin". Every color is a `--player-*` token, which does not follow the theme; see
+	 * `libs/tokens/src/player.css`. The scoped blocks hold only selectors no class can reach. The
+	 * row is drawn by `video-chrome.svelte` and `video-settings.svelte`; the rest is here.
 	 */
 	// Phosphor here and Lucide everywhere else -- see spec/styling/player.md, "The player's glyphs
 	// are Phosphor, at two weights, plus three this repository draws", for the fill-vs-bold rule and
@@ -733,10 +730,10 @@
 	   this file or in the markup's own classes. */
 
 	/* Every control here opts into the site's keyboard indicator by name -- the accent outline,
-	   flush, suppressed on a pointer. Which utility depends on the control's visible edge: a
-	   circle or a row's own width takes `focus-ring`; a 30px button around a 16px glyph hands the
-	   outline to the glyph with `focus-ring-inner`, since the 7px around it is hit target rather
-	   than control. See spec/styling/focus.md and libs/tokens/src/interaction.css for the measurement. */
+	   flush, suppressed on a pointer. Which utility depends on the control's visible edge: a circle
+	   or a row's own width takes `focus-ring`; a 30px button around a 16px glyph hands the outline
+	   to the glyph with `focus-ring-inner`, the 7px around it being hit target, not control. See
+	   spec/styling/focus.md and libs/tokens/src/interaction.css for the measurement. */
 
 	/* The cover's ring is drawn on the glyph and follows its actual shape, not a box around it --
 	   neither the 64px disc nor a box around the 30px glyph is the thing being pointed at. `w` is

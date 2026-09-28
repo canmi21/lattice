@@ -26,7 +26,7 @@ export type Divider = {
 	span: Span;
 };
 
-/** `rem` held inside the span, and the fallback in place of anything that is not a finite number. */
+/** `rem` held inside the span, and the fallback in place of anything not a finite number. */
 export function clampSpan(rem: unknown, span: Span): number {
 	if (typeof rem !== 'number' || !Number.isFinite(rem)) return span.fallback;
 	return Math.min(span.max, Math.max(span.min, rem));
@@ -38,14 +38,11 @@ export function rememberedWidth(storage: Store, divider: Divider): number {
 }
 
 /**
- * The script that sets the remembered width before the first frame, as a string to inline in the
- * document head.
- *
- * It reads the record itself rather than calling `rememberedWidth`, because it runs before any
- * module has loaded. What it repeats of the record's shape -- one JSON object under `state`, the
- * width a number under the key -- is held against `rememberedWidth` by the test beside this file.
- * Every value is interpolated through `JSON.stringify`, and all of them are this repository's own
- * constants.
+ * The script that sets the remembered width before the first frame, as a string for the head. It
+ * reads the record itself, since it runs before any module loads; what it repeats of the record's
+ * shape -- one JSON object under `state`, the width a number under the key -- is held against
+ * `rememberedWidth` by the test beside this file. Every value goes through `JSON.stringify`, and
+ * all are this repository's own constants.
  */
 export function dividerScript(divider: Divider): string {
 	const { key, property, span } = divider;
@@ -88,17 +85,12 @@ export function dragged(
 }
 
 /**
- * Make `handle` drag the divider: a Svelte action, and a plain function anywhere else.
- *
- * The drag writes the property on every move and the record once, when it is let go -- the
- * record is JSON behind a storage call, and a move event arrives every frame. The arrow keys move
- * it a step and remember at once, and a double click forgets it, which returns the fallback.
- *
- * While a drag is held the whole document takes the resize cursor and gives up text selection:
- * the pointer leaves the handle as soon as it moves faster than the region follows, and without
- * both the cursor flickers and the page behind it is selected.
- *
- * With `fold`, dragging well past the minimum folds the region; see `Fold`.
+ * Make `handle` drag the divider: a Svelte action, and a plain function anywhere else. A drag
+ * writes the property every move and the record once on release; the arrows move a step and
+ * remember at once; a double click forgets, which returns the fallback. While held, the document
+ * takes the resize cursor and gives up selection, since the pointer outruns the handle and the
+ * cursor would flicker and the page be selected. With `fold`, dragging well past the minimum folds
+ * the region; see `Fold`.
  */
 export function resizeHandle(
 	handle: HTMLElement,

@@ -81,13 +81,11 @@
 		>{contact}</a
 	>{/snippet}
 
-<!-- A button and not a link, because what it opens is a dialog on this page rather than somewhere
-     to go. Its label is the text inside the tag, so the words stay in the message file with the
-     sentence they belong to rather than in a key of their own.
-
-     The stroke and the ring both sit on the span, because a button's box is a line box: the
-     stroke sat 2.5px below the address's in the same sentence, and the ring stood 20px against
-     its 15.5px. `focus-link-inner` is the variant for that. See libs/tokens/src/interaction.css. -->
+<!-- A button, not a link: it opens a dialog on this page rather than going somewhere. Its label is
+     the text inside the tag, so the words stay in the message file with their sentence. Stroke and
+     ring sit on the span, because a button's box is a line box: the stroke sat 2.5px below the
+     address's in the same sentence, and the ring stood 20px against its 15.5px. That is what
+     `focus-link-inner` is for; see libs/tokens/src/interaction.css. -->
 {#snippet reportForm({ children }: { children?: Snippet })}<button
 		type="button"
 		onclick={openReport}

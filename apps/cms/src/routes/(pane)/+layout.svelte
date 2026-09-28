@@ -83,7 +83,7 @@
 
 	const here = (href: string) => page.url.pathname === href;
 
-	/** The rules that place the sidebar, rendered into the head with the page. See `$lib/sidebar.ts`. */
+	/** The rules that place the sidebar, rendered into the head; see $lib/sidebar.ts. */
 	const PLACEMENT = `<style>${sidebarStyles()}</style>`;
 
 	/**
@@ -232,7 +232,8 @@
 		return () => narrow.removeEventListener('change', measure);
 	});
 
-	// A window widened past the fold docks the sidebar, so a lifted one has nothing left to float over.
+	// A window widened past the fold docks the sidebar, so a lifted one has nothing left to float
+	// over.
 	$effect(() => {
 		if (!folded && peek !== 'none') {
 			movement.cancel();
@@ -349,7 +350,7 @@
 			</div>
 		{/if}
 		<!-- Three regions: the sections above and settings below hold still, and the articles
-		     between them are the only thing that scrolls, because they are the only list that grows. -->
+		     between them are the only thing that scrolls, being the only list that grows. -->
 		<div class="flex shrink-0 flex-col gap-0.5 {stylex.attrs(folding && rows.receded).class}">
 			{#each SECTIONS as section (section.href)}
 				{@render entry(section)}

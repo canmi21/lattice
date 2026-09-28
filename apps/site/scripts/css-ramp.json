@@ -3,6 +3,7 @@
 		"apps/site/src/lib/article/article.svelte  draftMark.line-height = '1.5rem'",
 		"apps/site/src/lib/article/footnotes.svelte  back.font-size = '0.9em'",
 		"apps/site/src/lib/article/footnotes.svelte  back.line-height = 0",
+		"libs/prose/src/components/video-controls.styles.ts  badge.font-weight = 600",
 		"libs/prose/src/section-title.ts  title.font-weight = 600",
 		"libs/prose/src/blocks/code-block.svelte  copy.letter-spacing = '0.05em'",
 		"apps/site/src/lib/error/status.svelte  message.line-height = '3.0625rem'",

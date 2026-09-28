@@ -14,8 +14,8 @@ import { type Classes, paint } from './paint';
 import { Rendered } from './rendered';
 
 /**
- * A soft break drawn as what the page draws: a space, the two lines one. A faint mark says a newline
- * is there in the source, and deleting beside it deletes that newline.
+ * A soft break drawn as what the page draws: a space, the two lines one. A faint mark says a
+ * newline is there in the source, and deleting beside it deletes that newline.
  */
 class SoftBreak extends WidgetType {
 	constructor(readonly className: string) {

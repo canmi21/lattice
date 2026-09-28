@@ -1,13 +1,12 @@
 /**
  * A block the site draws with a component, drawn with it -- and edited in its own place.
  *
- * The source is compiled by `local` and handed to the article body (block-view.svelte). Pressing the
- * rendering, or asking the block's menu for its source, puts a box of plain source text where the
- * rendering stood, at the height the rendering last had, so nothing around it moves. Source longer
- * than that scrolls inside the box; the page scrolls outside it. The box is the source's only while
- * it has focus: leaving it writes the text back into the document as one change -- one step of the
- * history -- and the block is drawn again, or shows why it cannot be. See
- * spec/architecture/local.md, "A rendered block is edited in its own place".
+ * The source is compiled by `local` and handed to the article body (block-view.svelte). Pressing
+ * the rendering, or asking the block's menu for its source, puts a box of plain source text where
+ * the rendering stood, at the height the rendering last had, so nothing around it moves. Longer
+ * source scrolls inside the box. Leaving the box writes the text back as one step of the history,
+ * and the block is drawn again or shows why it cannot be. See spec/architecture/local.md for how a
+ * component block is drawn and edited in the editor.
  */
 import { isolateHistory } from '@codemirror/commands';
 import { type EditorView, ViewPlugin, WidgetType } from '@codemirror/view';
@@ -118,7 +117,8 @@ export class Rendered extends WidgetType {
 		box.setAttribute('aria-label', 'Block source');
 		frame.append(box);
 		// The code block's own edge fades, on all four sides as the code block draws them: the box
-		// wraps its lines and scrolls down, and shows no scrollbar, so the fade is where the text is seen to go on.
+		// wraps its lines, scrolls down and shows no scrollbar, so the fade is where the text is seen
+		// to go on.
 		const fades = mount(EdgeFades, { target: frame, props: { framed: true } });
 		drawing.hidden = true;
 		dom.append(frame);

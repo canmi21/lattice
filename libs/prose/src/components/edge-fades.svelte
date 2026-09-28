@@ -1,17 +1,11 @@
 <script lang="ts">
 	/**
-	 * The fade at each edge of a scroller of code, which stands in for its scrollbars.
-	 *
-	 * Each edge is as wide as the padding it starts over: at rest it covers the scroller's own
-	 * gutter and veils nothing, and it begins its work exactly as the code starts passing under it.
-	 * All four, so a scroller that scrolls either way fades either way; a code block only ever
-	 * scrolls across, and its top and bottom never have code pass under them, so there they are
-	 * present and never seen. `from-transparent` is transparent black and still cannot grey the
-	 * ramp, because gradient stops interpolate premultiplied.
-	 *
-	 * Placed last inside a `relative` box around the scroller. `framed` steps them inside a
-	 * hairline and gives them the frame's corners, for a scroller that is its own frame; without
-	 * it they sit flush, for a panel whose frame is outside it.
+	 * The fade at each edge of a scroller of code, standing in for its scrollbars. Each is as wide as
+	 * the padding it starts over, so at rest it veils nothing and begins as code passes under it; all
+	 * four, since a scroller may scroll either way. `from-transparent` cannot grey the ramp: gradient
+	 * stops interpolate premultiplied. Placed last in a `relative` box around the scroller; `framed`
+	 * steps them inside a hairline with the frame's corners, for a scroller that is its own frame,
+	 * and without it they sit flush, for a panel framed from outside.
 	 */
 	let { framed = false }: { framed?: boolean } = $props();
 </script>

@@ -129,7 +129,10 @@
 	}
 
 	let panel = $state<HTMLElement>();
-	/** The cog, whose window is where presses and keys are listened for: the page's, or a picture-in-picture window's. */
+	/**
+	 * The cog, whose window is where presses and keys are listened for: the page's, or a
+	 * picture-in-picture window's.
+	 */
 	let cog = $state<HTMLElement>();
 	let body = $state<HTMLElement>();
 
@@ -229,7 +232,7 @@
 	 */
 	const width = $derived(only === 'speed' ? 'w-20' : only === 'quality' ? 'w-28' : 'w-32');
 	const auto = $derived(m['video.auto']({}, { locale }));
-	/** What the quality row says it is: "Auto" while the choice is the chooser's, the height once picked. */
+	/** The quality row's value: "Auto" while the chooser decides, the height once one is picked. */
 	const quality = $derived(chosen === undefined ? auto : current ? `${current.height}p` : '');
 
 	const ROW =

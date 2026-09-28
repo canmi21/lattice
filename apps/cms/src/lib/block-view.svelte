@@ -28,7 +28,7 @@
 	 * handed to the article body -- so what stands in the document is the site's rendering, not
 	 * an imitation of it. A refusal is shown in the block's place with the reason and the source,
 	 * because a block that silently draws nothing is one the author cannot find to fix. See
-	 * spec/architecture/local.md, "A custom block is drawn in the editor as what it is".
+	 * spec/architecture/local.md for why a custom block is compiled rather than interpreted.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import ArticleBody from '@canmi/prose/body.svelte';

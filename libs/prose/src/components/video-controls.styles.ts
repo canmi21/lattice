@@ -215,8 +215,8 @@ export const styles = stylex.create({
 
 	/**
 	 * The settings menu, on a ground of its own rather than the disc's glass: see `--player-menu`
-	 * in `libs/tokens/src/player.css`. Its corner is a literal, 0.5rem, which is a row's `radius.md` plus the 2px the
-	 * panel keeps around its rows, so the two corners share a centre.
+	 * in `libs/tokens/src/player.css`. Its corner is a literal, 0.5rem, which is a row's
+	 * `radius.md` plus the 2px the panel keeps around its rows, so the two corners share a center.
 	 */
 	menu: {
 		borderRadius: '0.5rem',
@@ -254,6 +254,7 @@ export const styles = stylex.create({
 	 */
 	badge: {
 		fontSize: text.px12,
+		// unnamed: the weight of the glyphs beside it rather than a step of the text's ladder.
 		fontWeight: 600,
 		textShadow: 'var(--player-shadow)',
 	},

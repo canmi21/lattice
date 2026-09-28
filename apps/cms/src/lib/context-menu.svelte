@@ -26,16 +26,12 @@
 
 <script lang="ts">
 	/**
-	 * A menu opened where the pointer asked for it, standing in for the browser's own on the places
-	 * that offer one -- and only there: everywhere else a right click is the browser's. See
-	 * spec/architecture/local.md.
-	 *
-	 * It draws the menu style the site's dropdowns draw, `surfaces.menu`, rather than the ground the
-	 * sidebar stands on: a menu is a thing laid over the page, not a part of the panel it came from.
-	 *
-	 * It keeps to the window, takes the keyboard while it is open -- the arrows move, Enter chooses,
-	 * Escape and Tab leave -- and goes away on a press anywhere else, or when the window loses focus
-	 * or changes size, since the place it was opened for may no longer be where it was.
+	 * A menu where the pointer asked, in place of the browser's own only where one is offered;
+	 * everywhere else a right click is the browser's. See spec/architecture/local.md. It is drawn as
+	 * the site's dropdowns are, `surfaces.menu`, since it lies over the page rather than belonging to
+	 * the panel. It keeps to the window and takes the keyboard -- arrows move, Enter chooses, Escape
+	 * and Tab leave -- and goes on any press elsewhere, on blur or on resize, since the place it was
+	 * opened for may have moved.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/tokens/surfaces';

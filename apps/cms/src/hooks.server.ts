@@ -5,16 +5,12 @@ import { LOCAL_ORIGIN } from '$lib/local.ts';
 import { foldedScript, SIDEBAR } from '$lib/sidebar.ts';
 
 /**
- * The theme bootstrap, written into the shell before anything paints -- the same script the site
- * runs, substituted the way the site substitutes it. See spec/architecture/workspace.md. The
- * sidebar's remembered width is set the same way and for the same reason: after hydration would
- * be a frame at the fallback width and then a jump.
- *
- * A hook rather than Vite's `transformIndexHtml`, which is what stood here and never ran: SvelteKit
- * renders `app.html` itself and does not hand it to that hook, so the placeholder reached the
- * browser as a script that failed to parse and the theme was never applied. This runs in
- * development on every request, and at build time on the one request adapter-static makes to
- * render the fallback page, which is the page the static build serves.
+ * The theme bootstrap and the sidebar's remembered width, written into the shell before anything
+ * paints, as the site does it (spec/architecture/workspace.md); after hydration would be a frame of
+ * the fallback and then a jump. A hook, not Vite's `transformIndexHtml`: SvelteKit renders
+ * `app.html` itself and never hands it to that hook, so the placeholder reached the browser
+ * unparsed. It runs on every request in development, and at build time on the one request
+ * adapter-static makes for the fallback page the static build serves.
  */
 export const handle: Handle = ({ event, resolve }) =>
 	resolve(event, {

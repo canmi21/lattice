@@ -1,14 +1,10 @@
 <script lang="ts">
 	/**
-	 * A draft drawn on the page the site reads an article on, and nothing around it.
-	 *
-	 * A route of its own rather than a mode of the editor, because the editor's pane scrolls and
-	 * this page cannot: the rail is fixed to the viewport, and the contents and the progress bar
-	 * read the window's scroll. So it stands outside the ground and the pane, and the document is
-	 * what scrolls. See spec/architecture/local.md.
-	 *
-	 * It shows what was last saved. The editor saves before it comes here, so that is what was
-	 * just being written.
+	 * A draft drawn on the page the site reads an article on, and nothing around it. A route of its
+	 * own rather than a mode of the editor, since the pane scrolls and this page cannot: the rail is
+	 * fixed to the viewport, and the contents and progress bar read the window's scroll, so the
+	 * document is what scrolls. See spec/architecture/local.md. It shows what was last saved, and
+	 * the editor saves before it comes here, so that is what was just being written.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import Undo2 from '@lucide/svelte/icons/undo-2';

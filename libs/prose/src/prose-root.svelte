@@ -1,16 +1,10 @@
 <script lang="ts">
 	/**
-	 * The root compiled prose is drawn under, and the rules that reach into it.
-	 *
-	 * Those rules are the escape hatch -- the elements they style carry no class -- and an escape
-	 * hatch belongs to the component rendering the root of the subtree it styles. Two components
-	 * render that root now: the article page, around the compiled body, and the CMS editor, around
-	 * the text being written. So the root is its own component and both draw it, rather than the
-	 * rules living with one and being copied into the other. See spec/architecture/css/layers.md,
-	 * "An escape hatch lives with the element it starts from".
-	 *
-	 * The body's own size and line arrive here too, so what is inside reads at the article's
-	 * measure wherever this is drawn. The class `article-body` is an address the rail measures by.
+	 * The root compiled prose is drawn under, and the rules reaching into it: an escape hatch, which
+	 * belongs to the component rendering the root it styles. The article page and the CMS editor both
+	 * render it, so it is its own component; see spec/architecture/css/layers.md, "An escape hatch
+	 * lives with the element it starts from". The body's size and line arrive here too, so it reads
+	 * at the article's measure anywhere. `article-body` is an address the rail measures by.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import type { Snippet } from 'svelte';
@@ -20,7 +14,8 @@
 </script>
 
 <!-- A class handed in is merged with this one rather than replacing it. See
-     spec/architecture/css/authoring.md, "A class handed to a child is the same hazard one level up". -->
+     spec/architecture/css/authoring.md, "A class handed to a child is the same hazard one level
+     up". -->
 <div class="article-body {stylex.attrs(bodyStyles.body).class} {className}">
 	{@render children()}
 </div>

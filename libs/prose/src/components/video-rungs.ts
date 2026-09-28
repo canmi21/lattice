@@ -24,7 +24,7 @@ export function playable(video: HTMLVideoElement, rungs: VideoRung[]): VideoRung
 	return rungs.filter((rung) => video.canPlayType(rung.type) !== '');
 }
 
-/** The rung this element would play if the choice were left to it, or none when it can play none. */
+/** The rung this element would play if the choice were left to it, or none if it can play none. */
 export function automatic(video: HTMLVideoElement, rungs: VideoRung[]): VideoRung | undefined {
 	const choices = playable(video, rungs);
 	if (choices.length === 0) return undefined;

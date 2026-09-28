@@ -232,7 +232,8 @@
 
 <svelte:document onpointermove={edge} />
 
-<!-- An icon alone: the label is what a screen reader says and what the pointer is told on hover. -->
+<!-- An icon alone: the label is what a screen reader says and what the pointer is told on
+     hover. -->
 {#snippet action(label: string, Icon: Component, run: () => void, refused = false)}
 	<button
 		type="button"
