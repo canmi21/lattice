@@ -101,6 +101,12 @@ impl Observer {
 		Ok(Self { heard, listening })
 	}
 
+	/// The document's status, once a response for the page's own request has come back; `None`
+	/// before then. See spec/architecture/shot.md, "What an answer tells".
+	pub fn status(&self) -> Option<i64> {
+		hear(&self.heard).document.as_ref().map(|document| document.status)
+	}
+
 	/// Stop listening, and tell what was heard beside what the page says of itself.
 	pub fn tell(self, facts: &Value, resolving_ms: u64) -> Value {
 		for listener in &self.listening {

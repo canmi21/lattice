@@ -4,7 +4,7 @@
 
 use crate::asked::Asked;
 use crate::queue::{Details, Full, Lane, Made, Queue, View};
-use crate::render::{Capture, Render};
+use crate::render::{Capture, Events, Render};
 use crate::store::{Format, Store};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
@@ -54,6 +54,22 @@ impl<R: Render> Shot<R> {
 		let entered = self.queue().enter(asked, lane)?;
 		if entered.queued {
 			self.tell(entered.id);
+			if let Some(events) = self.events(entered.id) {
+				let retry_after = match self.queue().view(entered.id) {
+					Some(View::Waiting { retry_after, .. }) => retry_after,
+					_ => 0,
+				};
+				let lane_name = match lane {
+					Lane::Ours => "ours",
+					Lane::Public => "public",
+				};
+				events.event(
+					"queued",
+					ledger::Level::Info,
+					format!("queued in the {lane_name} lane"),
+					serde_json::json!({ "lane": lane_name, "retry_after": retry_after }),
+				);
+			}
 			self.wake();
 		}
 		Ok(entered.id)
@@ -97,14 +113,32 @@ impl<R: Render> Shot<R> {
 
 	pub async fn render_one(&self, id: Uuid, asked: &Asked) {
 		self.tell(id);
+		let events = self.events(id);
+		if let Some(events) = &events {
+			events.event(
+				"started",
+				ledger::Level::Info,
+				"capture started".to_owned(),
+				serde_json::Value::Null,
+			);
+		}
+		let sink: &dyn Events = match &events {
+			Some(events) => events,
+			None => &(),
+		};
 		let started = Instant::now();
 		let deadline = Duration::from_millis(u64::from(asked.timeout + asked.delay)) + MARGIN;
-		let outcome = match tokio::time::timeout(deadline, self.renderer.capture(asked)).await {
+		let outcome = match tokio::time::timeout(deadline, self.renderer.capture(asked, sink)).await {
 			Err(_) => Err(format!("The capture took longer than {} seconds", deadline.as_secs())),
 			Ok(outcome) => outcome,
 		};
 		let finished_at = jiff::Timestamp::now();
 		let outcome = self.keep(id, outcome, finished_at).await;
+		if let Err(reason) = &outcome
+			&& let Some(events) = &events
+		{
+			events.event("failed", ledger::Level::Error, reason.clone(), serde_json::Value::Null);
+		}
 		self.queue().finish(id, outcome, started.elapsed(), finished_at);
 		self.tell(id);
 		// Another renderer may be waiting on a capture queued while this one was busy.
@@ -140,7 +174,21 @@ impl<R: Render> Shot<R> {
 		let made = Made { pictures, observed: capture.observed.clone() };
 		let record = serde_json::to_vec(&crate::record::done(id, &made, &details)).unwrap_or_default();
 		match self.write(id, &capture, &record).await {
-			Ok(()) => Ok(made),
+			Ok(rolled_out) => {
+				if let Some(events) = self.events(id) {
+					events.event(
+						"stored",
+						ledger::Level::Info,
+						"capture stored".to_owned(),
+						serde_json::json!({
+							"png_bytes": made.pictures.png_bytes,
+							"webp_bytes": made.pictures.webp_bytes,
+							"rolled_out": rolled_out.iter().map(Uuid::to_string).collect::<Vec<_>>(),
+						}),
+					);
+				}
+				Ok(made)
+			}
 			Err(error) => {
 				eprintln!("shot: keeping {id}: {error}");
 				self.store.remove(id).await;
@@ -151,14 +199,15 @@ impl<R: Render> Shot<R> {
 		}
 	}
 
-	async fn write(&self, id: Uuid, capture: &Capture, record: &[u8]) -> std::io::Result<()> {
+	async fn write(&self, id: Uuid, capture: &Capture, record: &[u8]) -> std::io::Result<Vec<Uuid>> {
 		let bytes = capture.png.len() + capture.webp.as_ref().map_or(0, Vec::len) + record.len();
-		self.make_room(id, bytes).await;
+		let rolled_out = self.make_room(id, bytes).await;
 		self.store.write(id, Format::Png, &capture.png).await?;
 		if let Some(webp) = &capture.webp {
 			self.store.write(id, Format::Webp, webp).await?;
 		}
-		self.store.write_record(id, record).await
+		self.store.write_record(id, record).await?;
+		Ok(rolled_out)
 	}
 
 	async fn keep_failure(&self, id: Uuid, reason: &str, details: &Details) {
@@ -171,10 +220,27 @@ impl<R: Render> Shot<R> {
 	}
 
 	/// Roll the oldest out of the store for a capture about to be written, and out of memory too, so
-	/// neither answers for what the other no longer has.
-	async fn make_room(&self, id: Uuid, bytes: usize) {
+	/// neither answers for what the other no longer has; each one rolled out gets an event on its own
+	/// task, since its story ends there rather than on this capture's.
+	async fn make_room(&self, id: Uuid, bytes: usize) -> Vec<Uuid> {
 		let out = self.store.admit(id, bytes as u64).await;
 		self.queue().forget(&out);
+		if let Some(ledger) = &self.ledger {
+			for old in &out {
+				ledger.task("shot", old.to_string()).event(
+					"rolled_out",
+					ledger::Level::Info,
+					"rolled out of the store".to_owned(),
+					serde_json::Value::Null,
+				);
+			}
+		}
+		out
+	}
+
+	/// A handle for this task's events, when the ledger is reached at all.
+	fn events(&self, id: Uuid) -> Option<ledger::TaskEvents> {
+		self.ledger.as_ref().map(|ledger| ledger.task("shot", id.to_string()))
 	}
 
 	/// A capture as the ledger keeps it, as it stands now.
@@ -228,7 +294,7 @@ mod tests {
 	struct Refuses;
 
 	impl Render for Refuses {
-		async fn capture(&self, _: &Asked) -> Result<Capture, String> {
+		async fn capture(&self, _: &Asked, _: &dyn Events) -> Result<Capture, String> {
 			Err("net::ERR_CONNECTION_REFUSED".into())
 		}
 	}

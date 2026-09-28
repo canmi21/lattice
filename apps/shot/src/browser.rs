@@ -3,7 +3,7 @@
 //! spec/architecture/shot.md, "One browser, a context per capture".
 
 use crate::asked::Asked;
-use crate::render::{Capture, Render};
+use crate::render::{Capture, Events, Render};
 use crate::resolve::{Reach, Resolve, destination};
 use chromiumoxide::cdp::browser_protocol::emulation::SetDeviceMetricsOverrideParams;
 use chromiumoxide::cdp::browser_protocol::page::{
@@ -191,14 +191,37 @@ async fn shoot(page: &Page, asked: &Asked) -> Result<Capture, String> {
 }
 
 impl<R: Resolve> Render for Chromium<R> {
-	async fn capture(&self, asked: &Asked) -> Result<Capture, String> {
+	async fn capture(&self, asked: &Asked, events: &dyn Events) -> Result<Capture, String> {
 		let reach = if asked.internal { Reach::Internal } else { Reach::Public };
 		// Judged here as well as at the proxy, so a refusal says why rather than a tunnel failing.
 		let resolving = std::time::Instant::now();
 		let host = asked.url.host_str().unwrap_or_default();
-		let addresses = destination(&*self.resolver, host, reach).await?;
+		let resolved = destination(&*self.resolver, host, reach).await;
 		// The browser resolves nothing itself, so this is the page's name lookup, as the proxy has it.
 		let resolving_ms = resolving.elapsed().as_millis() as u64;
+		let addresses = match resolved {
+			Ok(addresses) => {
+				events.event(
+					"resolving",
+					ledger::Level::Info,
+					format!("{host} resolved to {} address(es)", addresses.len()),
+					serde_json::json!({
+						"host": host,
+						"addresses": addresses.iter().map(ToString::to_string).collect::<Vec<_>>(),
+					}),
+				);
+				addresses
+			}
+			Err(error) => {
+				events.event(
+					"resolving",
+					ledger::Level::Error,
+					error.clone(),
+					serde_json::json!({ "host": host }),
+				);
+				return Err(error);
+			}
+		};
 
 		let browser = self.browser().await?;
 		let context = CreateBrowserContextParams {
@@ -239,6 +262,18 @@ impl<R: Resolve> Render for Chromium<R> {
 							format!("The page did not load in {} seconds", asked.timeout as f64 / 1000.0)
 						})?
 						.map_err(why)?;
+					events.event(
+						"loading",
+						ledger::Level::Info,
+						format!("loaded {}", asked.url),
+						serde_json::json!({ "url": asked.url.as_str(), "status": observer.status() }),
+					);
+					events.event(
+						"waiting",
+						ledger::Level::Info,
+						format!("waiting {} ms for what the load set going", asked.delay),
+						serde_json::json!({ "delay_ms": asked.delay }),
+					);
 					tokio::time::sleep(Duration::from_millis(u64::from(asked.delay))).await;
 					let facts: serde_json::Value = page
 						.evaluate(crate::observe::FACTS)
@@ -246,7 +281,22 @@ impl<R: Resolve> Render for Chromium<R> {
 						.ok()
 						.and_then(|result| result.into_value().ok())
 						.unwrap_or_default();
+					events.event(
+						"capturing",
+						ledger::Level::Info,
+						format!("capturing {}x{}, full={}", asked.width, asked.height, asked.full),
+						serde_json::json!({ "width": asked.width, "height": asked.height, "full": asked.full }),
+					);
 					let mut capture = shoot(&page, asked).await?;
+					events.event(
+						"encoded",
+						ledger::Level::Info,
+						"encoded png and webp".to_owned(),
+						serde_json::json!({
+							"png_bytes": capture.png.len(),
+							"webp_bytes": capture.webp.as_ref().map(Vec::len),
+						}),
+					);
 					capture.observed = observer.tell(&facts, resolving_ms);
 					let connection = &mut capture.observed["connection"];
 					connection["addresses"] = serde_json::json!(addresses);

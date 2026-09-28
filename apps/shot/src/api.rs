@@ -196,7 +196,11 @@ mod tests {
 	struct Fake;
 
 	impl Render for Fake {
-		async fn capture(&self, asked: &Asked) -> Result<Capture, String> {
+		async fn capture(
+			&self,
+			asked: &Asked,
+			_: &dyn crate::render::Events,
+		) -> Result<Capture, String> {
 			if asked.url.host_str() == Some("broken.test") {
 				return Err("net::ERR_NAME_NOT_RESOLVED".into());
 			}
