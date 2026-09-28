@@ -2997,7 +2997,12 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "axum",
+ "bytes",
+ "futures-util",
  "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
  "mimalloc",
  "response",
  "serde",
@@ -3006,6 +3011,7 @@ dependencies = [
  "tokio",
  "tower",
  "url",
+ "urls",
  "uuid",
 ]
 

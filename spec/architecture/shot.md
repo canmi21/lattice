@@ -57,3 +57,27 @@ directory, through a temporary file and a rename, and a sweep every thirty secon
 older than five minutes, failures included. The directory is emptied when the service starts. The
 queue itself -- ids and their states -- is memory, and lost with the process, which only means a
 caller asks again.
+
+## Only public addresses
+
+**Every request a capture makes leaves through a proxy inside `shot`, and the browser resolves no
+name.** Judging the page's address before it loads would not be enough: the page loads more,
+redirects, and a name can answer one address when it is judged and another when it is fetched. So
+the proxy is the only way out, and it resolves each name itself and connects to the address it
+judged:
+
+- Names are asked of Cloudflare's and Google's DNS over HTTPS, both at once, for A and AAAA, and by
+  their addresses (`libs/urls`' `external.doh`), so the asking needs no DNS of its own and the
+  system's resolver is never read for the public. What they give is the union, kept for its TTL and
+  a minute at most; one server failing is not a failure, since the other's addresses meet the same
+  rule.
+- **For the public, every address a name has must be public**, or none is reached: one private
+  address among public ones is still a way in. Public is routed across the internet -- not this
+  machine, a private or link-local range, carrier space (which the tailnet uses), documentation,
+  benchmarking, multicast or reserved, and for IPv6 only global unicast, with an IPv4 address carried
+  inside IPv6 judged as the IPv4 address it is.
+- **With `internal`, any address is reached**, and a name public DNS does not know -- a container's
+  -- is asked of the system.
+- A tunnel for HTTPS is opened to the judged address; a plain HTTP request is sent on in origin form
+  with `Connection: close`, so a browser reusing the connection for another host is judged again.
+  Two ports, one per reach, and each capture's browser context is given the one its ask may use.

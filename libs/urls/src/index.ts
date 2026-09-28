@@ -125,6 +125,13 @@ export const URLS = {
 		security: 'mailto:security@canmi.net',
 	},
 	external: {
+		// DNS over HTTPS, asked by address so that asking needs no DNS of its own; both answer for
+		// every name `shot` captures, and the addresses both give must be public. The certificates
+		// for both name the addresses. See spec/architecture/shot.md, "Only public addresses".
+		doh: {
+			cloudflare: 'https://1.1.1.1/dns-query',
+			google: 'https://8.8.8.8/resolve',
+		},
 		github: {
 			web: 'https://github.com',
 			api: 'https://api.github.com',
