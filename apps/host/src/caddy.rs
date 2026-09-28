@@ -27,13 +27,11 @@ struct Target {
 	home: Option<String>,
 }
 
-/// `host:port` is dialed as plain HTTP. `https://host[:port]` is a device on the LAN that speaks
-/// only TLS, under a certificate it signed itself -- the UniFi router is one -- so it is reached
-/// over TLS without verifying that certificate: pinning it would break whenever the device made a
-/// new one, and the hop never leaves the house. Such a device also expects to be at its own
-/// address, so a request whose `Origin` is the name it is served under -- `https://{name}`, exactly
-/// -- carries the device's own origin instead, and any other origin reaches it untouched for it to
-/// refuse. See spec/architecture/host.md.
+/// `host:port` is dialed as plain HTTP. `https://host[:port]` is a LAN device that speaks only TLS
+/// under its own certificate, like the UniFi router: reached over TLS without verifying it, and
+/// with an `Origin` that is exactly this name's own translated into the device's, since it accepts
+/// a WebSocket from nowhere else. Any other origin reaches it untouched, for it to refuse. Why
+/// neither is checked more strictly is spec/architecture/host.md.
 fn proxy(upstream: &str, name: &str) -> Value {
 	let Some(address) = upstream.strip_prefix("https://") else {
 		return json!({ "handler": "reverse_proxy", "upstreams": [{ "dial": upstream }] });
