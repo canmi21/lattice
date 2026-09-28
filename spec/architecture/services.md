@@ -138,6 +138,25 @@ it forbids, and a request carrying one is answered `403 forbidden_parameter` bef
 against a limit or reaches the service: what a service offers our own callers alone -- `shot`'s
 `internal` -- is closed where the public comes in, and tested there.
 
+### The gateway keeps answers a while
+
+**A read from nobody in particular is answered from the gateway's cache when it can be**, so a
+repeat costs the node nothing: kept in the Cache API of the Cloudflare location that answered, by
+the full address, and looked up before any limit is counted. Only GET is kept, and HEAD is answered
+from what GET kept; a request carrying `Authorization` or a cookie, and an answer setting one, are
+never kept.
+
+- **The service's `Cache-Control` is the word when it says anything.** `no-store`, `no-cache` and
+  `private` keep nothing -- `shot`'s answers about a capture say `no-store` -- and a `max-age` or
+  `s-maxage` is kept that long, as `shot`'s pictures are for fifteen minutes.
+- **Otherwise the scope's policy says, and five minutes for a success and a failure alike when it
+  does not.** `geo` keeps a success for a day, since an address changes only with the gazetteer; a
+  scope may keep nothing at all.
+- **The gateway's own failure to reach a service is kept thirty seconds**, so a node back from a
+  restart is not reported down for five minutes more.
+- Every answer says which it was, `x-gateway-cache: hit` or `miss`. A refusal the gateway makes
+  itself -- a forbidden parameter, a limit -- is never kept.
+
 ### The gateway marks what it passes on
 
 **Every request the gateway forwards carries `x-gateway: public`, set over whatever the caller

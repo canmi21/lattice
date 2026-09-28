@@ -13,6 +13,7 @@ import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@c
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
+import { CACHE_HEADER, cacheable, keyOf, secondsFor, store, toKeep } from './cache.ts';
 import { POLICIES, type Policy } from './policy.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';
@@ -35,7 +36,7 @@ const NODE_API = `api.${new URL(URLS.internal.app).hostname}`;
  * could not reach one: every service here answers in the JSON envelope, and a proxy's error page
  * is not JSON.
  */
-function answered(response: Response): boolean {
+function serviceOwn(response: Response): boolean {
 	if (response.status < 500) return true;
 	return response.headers.get('content-type')?.startsWith('application/json') ?? false;
 }
@@ -119,6 +120,27 @@ export function gateway(
 		if ((policy.forbidden ?? []).some((name) => url.searchParams.has(name))) {
 			return failure(403, 'forbidden_parameter');
 		}
+		// A kept answer is given before any limit is counted: it costs the node nothing.
+		const shelf = cacheable(c.req.raw) ? store() : null;
+		const key = keyOf(url);
+		const hit = shelf ? await shelf.match(key) : undefined;
+		if (hit) return new Response(c.req.method === 'HEAD' ? null : hit.body, hit);
+		/** Keep what may be kept, where a GET asked for it, and say it was not already kept. */
+		const answered = (answer: Response, unreached = false): Response => {
+			const seconds =
+				shelf && c.req.method === 'GET' ? secondsFor(answer, policy.cache, unreached) : 0;
+			if (shelf && seconds > 0) {
+				const kept = shelf.put(key, toKeep(answer, seconds));
+				try {
+					c.executionCtx.waitUntil(kept);
+				} catch {
+					// No execution context outside a Worker; the put simply runs on its own.
+				}
+			}
+			const returned = new Response(answer.body, answer);
+			returned.headers.set(CACHE_HEADER, 'miss');
+			return returned;
+		};
 		if (
 			!(await within(policy.limits ?? [], c.env, { method: c.req.method, path: rest, address }))
 		) {
@@ -144,11 +166,11 @@ export function gateway(
 		try {
 			answer = await (typeof binding === 'string' ? fetch(request) : binding.fetch(request));
 		} catch {
-			return failure(502, 'upstream_unavailable');
+			return answered(failure(502, 'upstream_unavailable'), true);
 		}
-		if (!answered(answer)) return failure(502, 'upstream_unavailable');
+		if (!serviceOwn(answer)) return answered(failure(502, 'upstream_unavailable'), true);
 		// A fetched response's headers are immutable, and CORS adds to them on the way out.
-		return new Response(answer.body, answer);
+		return answered(answer);
 	});
 
 	return app;

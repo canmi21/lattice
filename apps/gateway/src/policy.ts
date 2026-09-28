@@ -1,4 +1,5 @@
 import type { Limit } from '@canmi/limits';
+import type { Lifetime } from './cache.ts';
 
 /**
  * What the gateway enforces for a scope so the service behind it does not: which browsers may call
@@ -19,6 +20,11 @@ export interface Policy {
 	 * what a service offers our own callers alone.
 	 */
 	readonly forbidden?: readonly string[];
+	/**
+	 * How long answers are kept at the gateway when the service does not say: five minutes for a
+	 * success and a failure alike unless given here, and `false` for none kept.
+	 */
+	readonly cache?: Lifetime;
 }
 
 /**
@@ -32,6 +38,8 @@ export const POLICIES: Readonly<Record<string, Policy>> = {
 	geo: {
 		origin: () => '*',
 		limits: [{ methods: ['GET', 'HEAD'], path: '/address', limiter: 'GEO_LIMIT' }],
+		// A place's address changes only when the gazetteer is deployed again.
+		cache: { success: 86_400 },
 	},
 	// Screenshots: a capture costs the machine seconds of a browser, so one address may start three a
 	// minute, while asking after one and fetching it are free. `internal` reaches the LAN, which is
