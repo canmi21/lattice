@@ -15,7 +15,10 @@ zone are few enough to paste.
 | API Scopes Only   | [rules/ffoni.com/api-scopes-only.txt](../../rules/ffoni.com/api-scopes-only.txt)     | ffoni.com                               | 2     |
 | CDN Prefixes Only | [rules/ffoni.com/cdn-prefixes-only.txt](../../rules/ffoni.com/cdn-prefixes-only.txt) | ffoni.com                               | 3     |
 | Alias Paths Only  | [rules/ill.li/alias-paths-only.txt](../../rules/ill.li/alias-paths-only.txt)         | ill.li                                  | 2     |
-| Rate Cap          | [rules/all/rate-cap.txt](../../rules/all/rate-cap.txt)                               | every zone, as its rate limiting rule   | --    |
+| Rate Cap          | [rules/canmi.net/rate-cap.txt](../../rules/canmi.net/rate-cap.txt)                   | canmi.net, 150 in 10 s                  | --    |
+| Rate Cap          | [rules/ill.li/rate-cap.txt](../../rules/ill.li/rate-cap.txt)                         | ill.li, 150 in 10 s                     | --    |
+| Rate Cap          | [rules/canmi.app/rate-cap.txt](../../rules/canmi.app/rate-cap.txt)                   | canmi.app, 300 in 10 s                  | --    |
+| Rate Cap          | [rules/ffoni.com/rate-cap.txt](../../rules/ffoni.com/rate-cap.txt)                   | ffoni.com, 30 in 10 s                   | --    |
 
 **The folder is where a rule is pasted.** `rules/all/` goes into every zone and each other folder is
 named for its zone, since a rule on this plan belongs to one zone; the name is `all` rather than
@@ -39,15 +42,22 @@ another vendor's -- the router, the NAS -- whose files nobody here chose, and Ac
 front of all of them already. `*.canmi.icu` has neither: it is not proxied, so Cloudflare never
 sees it.
 
-**Rate Cap is one ceiling for every zone, and catches floods, not readers.** The plan allows one
-rate limiting rule a zone, counting by IP over 10 seconds and blocking for 10, and its expression
-may read only the path and whether the client is a verified bot. So it is one rule, the same in
-each zone, that counts everything but verified crawlers: **300 requests in 10 seconds**. A reader
-opening the heaviest article asks the CDN for its photographs and a few dozen font slices at once,
-and several readers can share one address behind a carrier's NAT; a flood is thousands. What a
-single service allows is its own, finer limit -- `geo`'s sixty a minute at the gateway -- and this
-sits far above all of them. A cache hit is counted like any other request, which is why the figure
-is generous.
+**Rate Cap is each zone's one rate limiting rule, set to what the zone serves.** The plan allows one
+a zone, counting by IP over 10 seconds and blocking for 10, and its expression may read only the
+path and whether the client is a verified bot, never the host. Verified crawlers are never counted.
+A cache hit is counted like any other request, and several readers can share one address behind a
+carrier's NAT, so the figures catch floods rather than readers:
+
+- **canmi.net, 150.** A page's scripts and styles are immutable and cached after the first visit, so
+  reading costs a few requests a page.
+- **ill.li, 150.** An article's pictures are asked for through the alias layer, dozens a page.
+- **canmi.app, 300.** One person, through Access, behind interfaces -- the router's, the NAS's -- that
+  ask for a great deal at once.
+- **ffoni.com, 30, on the API's public scopes alone.** The zone holds the API host and the CDN, and
+  the path is the only way to tell them apart: `/geo/` and `/site/` are counted and the CDN's
+  prefixes are not, since a page of photographs is a hundred requests. `/hook/` is GitHub's, rare,
+  and from addresses GitHub shares. Thirty is three times what `geo`'s own limit at the gateway,
+  sixty a minute, lets through, so the rule only ever meets a flood.
 
 ## How an expression is written
 
