@@ -9,14 +9,19 @@ use std::ops::RangeInclusive;
 /// sense of a newer file; a key an older host can ignore is not a bump. See spec/json.md.
 pub const VERSION: u32 = 1;
 
-/// Names taken by the platform itself: its two programs, the API host, and the infrastructure
-/// containers an app's container name would collide with.
-const RESERVED: [&str; 5] = ["host", "keeper", "api", "caddy", "cloudflared"];
+/// Names taken by the platform itself: its two programs, the API host and the Worker answering it,
+/// and the infrastructure containers an app's container name would collide with.
+const RESERVED: [&str; 6] = ["host", "keeper", "api", "gateway", "caddy", "cloudflared"];
 
 /// The two programs of the platform, which each deploy the other and which alone run in the
 /// platform's shape. See spec/architecture/host.md, "host never updates itself; keeper updates
 /// host".
 pub const PLATFORM: [&str; 2] = ["host", "keeper"];
+
+/// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
+/// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
+/// deployed by Cloudflare, not by host".
+pub const WORKERS: &str = "workers";
 
 /// See spec/architecture/services.md, "A service keeps one port".
 pub const PORTS: RangeInclusive<u16> = 10000..=32767;
@@ -26,7 +31,9 @@ pub struct Manifest {
 	pub version: u32,
 	pub name: String,
 	pub placements: Vec<String>,
-	pub container: Container,
+	/// What a node runs. Absent from a service placed on Workers alone, and required on a node.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub container: Option<Container>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub api: Option<Api>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
@@ -51,6 +58,10 @@ pub struct Container {
 pub struct Api {
 	#[serde(default)]
 	pub public: bool,
+	/// The Worker answering the scope on a Workers placement, when it is not the service's own
+	/// name. See spec/architecture/services.md, "A service's API half is `<name>-api`".
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub worker: Option<String>,
 }
 
 /// Reached as a subdomain of its own, privately and -- unless it says otherwise -- publicly
@@ -85,6 +96,8 @@ pub enum Invalid {
 	Mismatch { declared: String, requested: String },
 	#[error("`{name}` is not placed on `{node}`")]
 	NotPlaced { name: String, node: String },
+	#[error("`{0}` declares no container for a node to run")]
+	NoContainer(String),
 	#[error("port {0} is outside {start}-{end}", start = PORTS.start(), end = PORTS.end())]
 	Port(u16),
 	#[error("the health path has to start with `/`")]
@@ -131,10 +144,13 @@ impl Manifest {
 		if !self.placements.iter().any(|placement| placement == node) {
 			return Err(Invalid::NotPlaced { name: self.name.clone(), node: node.into() });
 		}
-		if !PORTS.contains(&self.container.port) {
-			return Err(Invalid::Port(self.container.port));
+		let Some(container) = &self.container else {
+			return Err(Invalid::NoContainer(self.name.clone()));
+		};
+		if !PORTS.contains(&container.port) {
+			return Err(Invalid::Port(container.port));
 		}
-		if !self.container.health.starts_with('/') {
+		if !container.health.starts_with('/') {
 			return Err(Invalid::Health);
 		}
 		if self.data.as_ref().is_some_and(|data| !data.path.starts_with('/')) {
@@ -173,7 +189,7 @@ mod tests {
 	fn reads_the_declaration_geo_ships() {
 		let manifest = Manifest::parse(GEO).unwrap();
 		assert_eq!(manifest.name, "geo");
-		assert_eq!(manifest.api, Some(Api { public: false }));
+		assert_eq!(manifest.api, Some(Api { public: false, worker: None }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
 	}
 
@@ -225,7 +241,40 @@ mod tests {
 	#[test]
 	fn a_default_port_is_refused() {
 		let mut manifest = Manifest::parse(GEO).unwrap();
-		manifest.container.port = 8080;
+		manifest.container.as_mut().unwrap().port = 8080;
 		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Port(8080)));
+	}
+
+	#[test]
+	fn a_node_refuses_a_service_with_no_container() {
+		let manifest = Manifest::parse(
+			"version = 1\nname = \"edge\"\nplacements = [\"workers\", \"home\"]\n",
+		)
+		.unwrap();
+		assert_eq!(manifest.check("edge", "home"), Err(Invalid::NoContainer("edge".into())));
+	}
+
+	#[test]
+	fn every_declaration_in_the_repository_is_one_this_reader_takes() {
+		// The gateway's table is generated from these files by a second reader, so this one has to
+		// accept each of them too. See apps/gateway/scripts/scopes.ts.
+		let apps = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../apps");
+		let mut read = 0;
+		for entry in std::fs::read_dir(apps).unwrap() {
+			let path = entry.unwrap().path().join("service.toml");
+			let Ok(text) = std::fs::read_to_string(&path) else { continue };
+			let manifest = Manifest::parse(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+			let node = manifest.placements.iter().find(|placement| *placement != WORKERS);
+			if let Some(node) = node {
+				let checked = if PLATFORM.contains(&manifest.name.as_str()) {
+					manifest.check_platform(&manifest.name, node)
+				} else {
+					manifest.check(&manifest.name, node)
+				};
+				assert_eq!(checked, Ok(()), "{}", path.display());
+			}
+			read += 1;
+		}
+		assert!(read >= 3);
 	}
 }

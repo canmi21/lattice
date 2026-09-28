@@ -1,0 +1,4 @@
+# The alias layer on ill.li, an apex of its own. See spec/architecture/delivery.md.
+version = 1
+name = "aka"
+placements = ["workers"]

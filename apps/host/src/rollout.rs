@@ -55,12 +55,13 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	} else {
 		manifest.check(requested, &host.config.node)?;
 	}
-	let port = manifest.container.port;
-	let holder = host
-		.store
-		.apps()?
-		.into_iter()
-		.find(|app| app.manifest.name != manifest.name && app.manifest.container.port == port);
+	let Some(port) = manifest.container.as_ref().map(|container| container.port) else {
+		return Err(deploy::manifest::Invalid::NoContainer(manifest.name.clone()).into());
+	};
+	let holder = host.store.apps()?.into_iter().find(|app| {
+		app.manifest.name != manifest.name
+			&& app.manifest.container.as_ref().map(|container| container.port) == Some(port)
+	});
 	if let Some(holder) = holder {
 		return Err(Error::PortTaken { port, holder: holder.manifest.name });
 	}

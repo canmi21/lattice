@@ -132,6 +132,26 @@ That is already the shape this file wants -- the platform pulls, and GitHub hold
 host does not run `wrangler` and holds no Cloudflare token for it. What a Workers placement adds
 here is the declaration, not a second way to deploy.
 
+**The placement is named `workers`, and a service placed there alone declares no container.** Its
+`service.toml` holds the name, the placements and, for an API, the `[api]` table; `[container]` is
+required only of a service a node runs. An image is built for an app whose directory holds a
+`Dockerfile` beside its declaration, so a Worker's declaration never reaches the image build, and no
+host is ever sent one. `site`, `cdn`, `aka` and `hook` are declared this way.
+
+## A service's API half is `<name>-api`
+
+A service is one name, but Cloudflare names Workers in one flat space, so a service with pages and
+an API on Workers cannot call both Workers by the service's name. The pages keep the name and the
+API takes `<name>-api`: the site's pages are the Worker `site` on `canmi.net`, and its API is the
+Worker `site-api` in `apps/site-api`, answering the `site` scope. The declaration says so with
+`[api] worker = "site-api"`, and a service whose only Worker is its API -- `hook` -- names none.
+
+**Rejected: the API mounted inside the site's Worker**, as an entrypoint only a binding can reach.
+It would spare a Worker and the suffix, but it hands the code rendering pages the database, the
+metadata bucket and the mail credential, and ties every content publish to a redeploy of the API.
+Which credentials can reach which is the rule data.md's two buckets exist for, and it holds for
+Workers the same way.
+
 ## The order it is built in
 
 The node at home first, proved end to end on the simplest service there is: `geo`, the offline

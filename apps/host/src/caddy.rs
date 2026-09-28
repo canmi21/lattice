@@ -80,15 +80,16 @@ fn scopes(apps: &[Deployed]) -> Vec<Value> {
 	let mut routes: Vec<Value> = apps
 		.iter()
 		.filter(|app| app.manifest.api.is_some())
-		.map(|app| {
+		.filter_map(|app| {
 			let name = &app.manifest.name;
-			json!({
+			let port = app.manifest.container.as_ref()?.port;
+			Some(json!({
 				"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
 				"handle": [
 					{ "handler": "rewrite", "strip_path_prefix": format!("/{name}") },
-					proxy(&format!("{name}:{}", app.manifest.container.port), name),
+					proxy(&format!("{name}:{port}"), name),
 				]
-			})
+			}))
 		})
 		.collect();
 	routes.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
@@ -105,10 +106,12 @@ fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> V
 			.filter(|app| {
 				app.manifest.interface.as_ref().is_some_and(|interface| !public || interface.public)
 			})
-			.map(|app| Target {
-				name: app.manifest.name.clone(),
-				dial: format!("{}:{}", app.manifest.name, app.manifest.container.port),
-				home: None,
+			.filter_map(|app| {
+				Some(Target {
+					name: app.manifest.name.clone(),
+					dial: format!("{}:{}", app.manifest.name, app.manifest.container.as_ref()?.port),
+					home: None,
+				})
 			}),
 	);
 	targets.extend(
@@ -139,9 +142,10 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 	}
 	// keeper's one path on the tunnel's side: the Worker reaches it there with a notice, and its
 	// interface stays private. See spec/architecture/host.md, "keeper has its own intake".
-	if let Some(keeper) = apps.iter().find(|app| app.manifest.name == "keeper") {
+	let keeper = apps.iter().find(|app| app.manifest.name == "keeper");
+	if let Some(container) = keeper.and_then(|keeper| keeper.manifest.container.as_ref()) {
 		let name = format!("keeper.{public}");
-		let dial = format!("keeper:{}", keeper.manifest.container.port);
+		let dial = format!("keeper:{}", container.port);
 		outside.push(json!({
 			"match": [{ "host": [&name], "path": ["/notice"] }],
 			"handle": [proxy(&dial, &name)]

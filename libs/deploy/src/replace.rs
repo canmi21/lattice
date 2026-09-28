@@ -61,7 +61,9 @@ pub async fn replace(
 
 /// Poll the declared path until it answers 2xx, the container exits, or the deadline passes.
 async fn healthy(engine: &Engine, version: &Version) -> Result<(), String> {
-	let container = &version.manifest.container;
+	let Some(container) = &version.manifest.container else {
+		return Err("the declaration has no container to check".into());
+	};
 	let deadline = container.health_timeout.map_or(DEFAULT_DEADLINE, Duration::from_secs);
 	let address = format!("{}:{}", version.manifest.name, container.port);
 	let started = tokio::time::Instant::now();

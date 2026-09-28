@@ -1,0 +1,8 @@
+# Where GitHub's webhook for workflow runs arrives, as the `hook` scope of the API host. See
+# spec/architecture/services.md, "Every node is the same node".
+version = 1
+name = "hook"
+placements = ["workers"]
+
+[api]
+public = true

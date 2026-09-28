@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #MISE description="The images a change needs rebuilt, as JSON: `deployable [--all] [--since REV | --git BASE] [--files ...]`"
-"""An app is deployable when its directory holds a `service.toml`. It needs a new image when
+"""An app is deployable when its directory holds a `service.toml` and a `Dockerfile`; one with the
+declaration alone is placed on Workers, which Cloudflare builds. It needs a new image when
 anything under that directory changed, when a crate it is built from did, or when the build
 itself did. CI reads the list to decide what to build; see spec/architecture/host.md, "The
 machine pulls; nothing pushes into it"."""
@@ -18,9 +19,11 @@ EVERY_IMAGE = {"Cargo.toml", "Cargo.lock", ".dockerignore", ".mise/tasks/image"}
 
 
 def apps():
-	"""App directory name -> its crate's name, for every app that declares a deployment."""
+	"""App directory name -> its crate's name, for every app that declares an image."""
 	found = {}
 	for declaration in sorted(ROOT.glob("apps/*/service.toml")):
+		if not (declaration.parent / "Dockerfile").exists():
+			continue
 		manifest = declaration.parent / "Cargo.toml"
 		name = declaration.parent.name
 		for line in manifest.read_text().splitlines() if manifest.exists() else []:

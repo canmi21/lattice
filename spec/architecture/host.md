@@ -18,8 +18,9 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 
 - A name is a DNS label: lowercase letters, digits and hyphens.
 - Apps from this repository and images from elsewhere share the one namespace.
-- `host` and `keeper` are reserved for the two programs below, `api` for the API host, and
-  `caddy` and `cloudflared` because a container's name is the app's and those two already run.
+- `host` and `keeper` are reserved for the two programs below, `api` for the API host, `gateway`
+  for the Worker answering it publicly, and `caddy` and `cloudflared` because a container's name is
+  the app's and those two already run.
 
 `.icu` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".

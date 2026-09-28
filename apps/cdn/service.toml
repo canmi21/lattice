@@ -1,0 +1,5 @@
+# Content-addressed bytes on cdn.ffoni.com, an origin of its own rather than a scope of the API
+# host. See spec/architecture/services.md.
+version = 1
+name = "cdn"
+placements = ["workers"]

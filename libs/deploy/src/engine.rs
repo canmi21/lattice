@@ -195,8 +195,8 @@ impl Engine {
 						..Default::default()
 					}]
 				});
-				let memory =
-					i64::from(manifest.container.memory_mb.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
+				let declared = manifest.container.as_ref().and_then(|container| container.memory_mb);
+				let memory = i64::from(declared.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
 					mounts,

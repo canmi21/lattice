@@ -1,0 +1,11 @@
+# The site as a service: the pages on canmi.net, and its API as the `site` scope of the API host.
+# Both are Workers, which Cloudflare builds; see spec/architecture/services.md.
+version = 1
+name = "site"
+placements = ["workers"]
+
+# Answered by apps/site-api, the service's API half; see spec/architecture/services.md, "A
+# service's API half is `<name>-api`".
+[api]
+public = true
+worker = "site-api"
