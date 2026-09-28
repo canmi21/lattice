@@ -33,11 +33,17 @@ where
 pub struct Volumes {
 	apps: PathBuf,
 	snapshots: PathBuf,
+	logs: PathBuf,
 }
 
 impl Volumes {
-	pub fn new(apps: PathBuf, snapshots: PathBuf) -> Self {
-		Self { apps, snapshots }
+	pub fn new(apps: PathBuf, snapshots: PathBuf, logs: PathBuf) -> Self {
+		Self { apps, snapshots, logs }
+	}
+
+	/// Where an app's containers' logs are archived, one file per container.
+	pub fn logs(&self, name: &str) -> PathBuf {
+		self.logs.join(name)
 	}
 
 	pub fn root(&self, name: &str) -> PathBuf {

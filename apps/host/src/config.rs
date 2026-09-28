@@ -20,6 +20,7 @@ pub struct Config {
 	/// Where each app's subvolume lives, and where their snapshots are kept.
 	pub apps_root: PathBuf,
 	pub snapshots_root: PathBuf,
+	pub logs_root: PathBuf,
 	pub state: PathBuf,
 	/// Where uploaded archives wait while they are loaded.
 	pub incoming: PathBuf,
@@ -77,6 +78,7 @@ impl Config {
 			listen,
 			own_container: optional("OWN_CONTAINER", "host"),
 			snapshots_root: PathBuf::from(optional("SNAPSHOTS_ROOT", "/data/.snapshots")),
+			logs_root: PathBuf::from(optional("LOGS_ROOT", "/data/logs")),
 			state: apps_root.join("host").join("data"),
 			incoming: apps_root.join("host").join("data").join("incoming"),
 			platform_env: apps_root.join("host").join(".env"),

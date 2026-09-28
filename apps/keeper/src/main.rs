@@ -61,7 +61,11 @@ async fn main() -> anyhow::Result<()> {
 		platform_env: apps.join("host").join(".env"),
 		incoming: apps.join("keeper").join("data").join("incoming"),
 		engine: Engine::connect()?,
-		volumes: Volumes::new(apps, PathBuf::from(setting("SNAPSHOTS_ROOT", "/data/.snapshots"))),
+		volumes: Volumes::new(
+			apps,
+			PathBuf::from(setting("SNAPSHOTS_ROOT", "/data/.snapshots")),
+			PathBuf::from(setting("LOGS_ROOT", "/data/logs")),
+		),
 		replacing: tokio::sync::Mutex::new(()),
 		github: std::env::var("GITHUB_ACTIONS_TOKEN")
 			.ok()

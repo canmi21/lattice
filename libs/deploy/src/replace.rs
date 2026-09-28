@@ -38,6 +38,7 @@ pub async fn replace(
 	engine.network(name, members).await?;
 	volumes.ensure(name).await?;
 
+	engine.archive(name, &volumes.logs(name)).await?;
 	engine.remove(name).await?;
 	let snapshot = volumes.snapshot(name).await?;
 	let checked = match engine.run(next, shape, &volumes.data(name)).await {
@@ -50,6 +51,7 @@ pub async fn replace(
 	};
 
 	let logs = engine.tail(name).await;
+	engine.archive(name, &volumes.logs(name)).await?;
 	engine.remove(name).await?;
 	volumes.restore(name, &snapshot).await?;
 	let Some(current) = current else {

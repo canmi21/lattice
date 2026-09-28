@@ -17,7 +17,8 @@ use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use tokio::io::AsyncWriteExt;
 
 /// Every image host loaded is tagged under this, so the ones it may remove are the ones it put
 /// there and nothing else on the machine.
@@ -56,6 +57,8 @@ pub enum Error {
 	Docker(#[from] bollard::errors::Error),
 	#[error("the archive loaded no image")]
 	NothingLoaded,
+	#[error("archiving the logs to {path}: {source}")]
+	Archive { path: String, source: std::io::Error },
 }
 
 /// A 404 from Docker: the thing asked about does not exist.
@@ -174,13 +177,9 @@ impl Engine {
 	pub async fn run(&self, version: &Version, shape: &Shape, data: &Path) -> Result<(), Error> {
 		let manifest = &version.manifest;
 		let name = &manifest.name;
-		let logs = HostConfigLogConfig {
-			typ: Some("json-file".into()),
-			config: Some(HashMap::from([
-				("max-size".into(), "10m".into()),
-				("max-file".into(), "3".into()),
-			])),
-		};
+		// Not rotated: every line is kept, and archived before the container goes. See
+		// spec/architecture/host.md, "Every line an app writes is kept".
+		let logs = HostConfigLogConfig { typ: Some("json-file".into()), config: None };
 		let restart =
 			RestartPolicy { name: Some(RestartPolicyNameEnum::UNLESS_STOPPED), ..Default::default() };
 		// A ceiling on every container, and no swap past it: a limit that can be exceeded into swap
@@ -273,6 +272,50 @@ impl Engine {
 			text.push_str(&line.to_string());
 		}
 		text
+	}
+
+	/// The last `count` lines the running container wrote, each with Docker's timestamp; none for
+	/// an app with no container.
+	pub async fn lines(&self, name: &str, count: u32) -> Result<Vec<String>, Error> {
+		if let Err(error) = self.docker.inspect_container(name, None).await {
+			return if absent(&error) { Ok(Vec::new()) } else { Err(error.into()) };
+		}
+		let options = LogsOptionsBuilder::new()
+			.stdout(true)
+			.stderr(true)
+			.timestamps(true)
+			.tail(&count.to_string())
+			.build();
+		let mut stream = self.docker.logs(name, Some(options));
+		let mut text = String::new();
+		while let Some(chunk) = stream.next().await {
+			text.push_str(&chunk?.to_string());
+		}
+		Ok(text.lines().map(str::to_owned).collect())
+	}
+
+	/// Everything the container under `name` wrote, into a file of its own in `directory`, named
+	/// by the time and the image. None when there is no container to archive.
+	pub async fn archive(&self, name: &str, directory: &Path) -> Result<Option<PathBuf>, Error> {
+		let inspected = match self.docker.inspect_container(name, None).await {
+			Ok(inspected) => inspected,
+			Err(error) if absent(&error) => return Ok(None),
+			Err(error) => return Err(error.into()),
+		};
+		let image = inspected.image.unwrap_or_default();
+		let short = image.trim_start_matches("sha256:").chars().take(12).collect::<String>();
+		let stamp = jiff::Timestamp::now().strftime("%Y%m%dT%H%M%SZ");
+		let path = directory.join(format!("{stamp}-{short}.log"));
+		let failed = |source| Error::Archive { path: path.display().to_string(), source };
+		tokio::fs::create_dir_all(directory).await.map_err(failed)?;
+		let mut file = tokio::fs::File::create(&path).await.map_err(failed)?;
+		let options = LogsOptionsBuilder::new().stdout(true).stderr(true).timestamps(true).build();
+		let mut stream = self.docker.logs(name, Some(options));
+		while let Some(chunk) = stream.next().await {
+			file.write_all(&chunk?.into_bytes()).await.map_err(failed)?;
+		}
+		file.flush().await.map_err(failed)?;
+		Ok(Some(path))
 	}
 
 	/// What runs under `name` now: the version its label recorded, or -- for a container started by

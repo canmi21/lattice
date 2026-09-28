@@ -37,7 +37,11 @@ async fn main() -> anyhow::Result<()> {
 	let host = Arc::new(Host {
 		store: store::Store::open(&config.state)?,
 		engine: deploy::Engine::connect()?,
-		volumes: deploy::Volumes::new(config.apps_root.clone(), config.snapshots_root.clone()),
+		volumes: deploy::Volumes::new(
+			config.apps_root.clone(),
+			config.snapshots_root.clone(),
+			config.logs_root.clone(),
+		),
 		deploying: tokio::sync::Mutex::new(()),
 		github: std::env::var("GITHUB_ACTIONS_TOKEN")
 			.ok()

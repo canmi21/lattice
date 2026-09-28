@@ -5,7 +5,7 @@ use crate::Host;
 use crate::environment;
 use crate::rollout::{self, Error as DeployError};
 use crate::store::Route;
-use axum::extract::{DefaultBodyLimit, Multipart, Path, Request, State};
+use axum::extract::{DefaultBodyLimit, Multipart, Path, Query, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -22,6 +22,9 @@ pub fn router(host: Arc<Host>) -> Router {
 	let guarded = Router::new()
 		.route("/apps", get(apps))
 		.route("/apps/{name}", post(upload).layer(DefaultBodyLimit::disable()))
+		.route("/apps/{name}/logs", get(logs))
+		.route("/apps/{name}/logs/archive", get(archived))
+		.route("/apps/{name}/logs/archive/{file}", get(archived_file))
 		.route("/apps/{name}/environment", get(environment))
 		.route("/apps/{name}/environment/{kind}/{key}", put(set_variable).delete(unset_variable))
 		.route("/routes", get(routes))
@@ -195,6 +198,81 @@ async fn save(
 	Ok(())
 }
 
+#[derive(Deserialize)]
+struct Lines {
+	lines: Option<u32>,
+}
+
+/// How many of the running container's lines are sent when the panel names no number, and the
+/// most it may ask for; older lines are in the archive.
+const LINES: u32 = 500;
+const MOST_LINES: u32 = 10_000;
+
+async fn logs(
+	State(host): State<Arc<Host>>,
+	Path(name): Path<String>,
+	Query(asked): Query<Lines>,
+) -> Response {
+	if let Err(refused) = known(&host, &name) {
+		return refused;
+	}
+	let count = asked.lines.unwrap_or(LINES).clamp(1, MOST_LINES);
+	match host.engine.lines(&name, count).await {
+		Ok(lines) => response::success(StatusCode::OK, serde_json::json!({ "lines": lines })),
+		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
+	}
+}
+
+#[derive(serde::Serialize)]
+struct Archived {
+	file: String,
+	bytes: u64,
+}
+
+/// Every archived log of the app, the newest first.
+async fn archived(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	if let Err(refused) = known(&host, &name) {
+		return refused;
+	}
+	let directory = host.volumes.logs(&name);
+	let mut files = Vec::new();
+	if let Ok(mut entries) = tokio::fs::read_dir(&directory).await {
+		while let Ok(Some(entry)) = entries.next_entry().await {
+			let file = entry.file_name().to_string_lossy().into_owned();
+			let bytes = entry.metadata().await.map(|meta| meta.len()).unwrap_or_default();
+			if archive_name(&file) {
+				files.push(Archived { file, bytes });
+			}
+		}
+	}
+	files.sort_by(|a, b| b.file.cmp(&a.file));
+	response::success(StatusCode::OK, files)
+}
+
+/// One archived log, as the text it is.
+async fn archived_file(
+	State(host): State<Arc<Host>>,
+	Path((name, file)): Path<(String, String)>,
+) -> Response {
+	if let Err(refused) = known(&host, &name) {
+		return refused;
+	}
+	if !archive_name(&file) {
+		return response::failure(StatusCode::NOT_FOUND, "no_such_object");
+	}
+	match tokio::fs::read(host.volumes.logs(&name).join(&file)).await {
+		Ok(bytes) => ([(header::CONTENT_TYPE, "text/plain; charset=utf-8")], bytes).into_response(),
+		Err(_) => response::failure(StatusCode::NOT_FOUND, "no_such_object"),
+	}
+}
+
+/// A name `Engine::archive` gives, and so one that cannot reach outside the app's directory.
+fn archive_name(file: &str) -> bool {
+	file.ends_with(".log")
+		&& file.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'.')
+		&& !file.starts_with('.')
+}
+
 /// The app's environment as the panel may see it: configuration in full, secrets by name.
 async fn environment(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
 	if let Err(refused) = known(&host, &name) {
@@ -361,6 +439,14 @@ mod tests {
 		assert!(!super::same(b"secreT", b"secret"));
 		assert!(!super::same(b"secret-and-more", b"secret"));
 		assert!(!super::same(b"", b"secret"));
+	}
+
+	#[test]
+	fn an_archived_log_is_named_only_as_the_engine_names_one() {
+		assert!(super::archive_name("20260928T051000Z-1b10fb0cc52f.log"));
+		for outside in ["../apps/host/.env", "x/../y.log", ".log", "a.env", "a b.log", "..log"] {
+			assert!(!super::archive_name(outside), "{outside}");
+		}
 	}
 
 	#[test]
