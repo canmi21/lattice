@@ -27,6 +27,8 @@ pub struct Asked {
 	pub full: bool,
 	/// Whether private addresses may be reached; only our own callers may ask it.
 	pub internal: bool,
+	/// Whether a certificate the browser would refuse is accepted: an https page's alone.
+	pub insecure: bool,
 	/// Milliseconds the page may take to load.
 	pub timeout: u32,
 	/// Milliseconds between its loading and the picture.
@@ -49,6 +51,7 @@ pub struct Query {
 	pub internal: Option<String>,
 	pub timeout: Option<String>,
 	pub delay: Option<String>,
+	pub insecure: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -140,12 +143,14 @@ impl Asked {
 	/// `public` is a request the gateway marked: it may not reach inside, whatever it says.
 	pub fn read(query: &Query, public: bool) -> Result<Self, Refused> {
 		let url = page(query)?;
+		let insecure = url.scheme() == "https" && yes(query.insecure.as_deref());
 		Ok(Self {
 			url,
 			width: dimension(query.width.as_deref(), DEFAULT_WIDTH, &WIDTHS)?,
 			height: dimension(query.height.as_deref(), DEFAULT_HEIGHT, &HEIGHTS)?,
 			full: yes(query.full.as_deref()),
 			internal: !public && yes(query.internal.as_deref()),
+			insecure,
 			timeout: seconds(query.timeout.as_deref(), DEFAULT_TIMEOUT, &TIMEOUTS)?,
 			delay: seconds(query.delay.as_deref(), DEFAULT_DELAY, &DELAYS)?,
 		})
@@ -171,6 +176,7 @@ mod tests {
 			internal: get("internal"),
 			timeout: get("timeout"),
 			delay: get("delay"),
+			insecure: get("insecure"),
 		}
 	}
 
@@ -254,6 +260,14 @@ mod tests {
 			let asked = Asked::read(&query(&[("host", "x.test"), (name, value)]), false);
 			assert_eq!(asked, Err(Refused::Timing), "{name}={value}");
 		}
+	}
+
+	#[test]
+	fn a_certificate_is_overlooked_only_for_https() {
+		let read = |pairs: &[(&str, &str)]| Asked::read(&query(pairs), true).unwrap().insecure;
+		assert!(read(&[("host", "x.test"), ("insecure", "true")]));
+		assert!(!read(&[("host", "x.test"), ("insecure", "true"), ("scheme", "http")]));
+		assert!(!read(&[("host", "x.test")]));
 	}
 
 	#[test]

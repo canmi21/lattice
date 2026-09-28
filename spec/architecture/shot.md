@@ -24,7 +24,8 @@ nothing waits on it:
   optional, each without the mark that opens it. A part holding more than itself -- a host with a
   port or a path, a path with a query -- is refused rather than read. Only `query` ever needs
   escaping, and only when it holds an `&`.
-- The rest: `width` and `height`, `full`, `timeout` and `delay`, and `internal`, each below.
+- The rest: `width` and `height`, `full`, `timeout` and `delay`, `insecure` and `internal`, each
+  below.
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
   than what the viewport shows.
 - Every answer but the picture is the envelope, and says `no-store`. A capture that failed is
@@ -101,6 +102,12 @@ the browser at once. A browser that has died is started again for the next captu
   0.1 to 10 seconds when asked and 210 milliseconds when not. Both are seconds to one decimal place,
   and anything else is `400 invalid_timing`. A capture as a whole may take its timeout and delay
   and ten seconds more before it is called failed. Both are part of what makes two asks one.
+- **A certificate is checked unless `insecure=true`**, which accepts one the browser would refuse --
+  self-signed, expired, for another name -- and only for an https page. It is set on the capture's
+  own page and reaches no other, checked with two captures of one bad certificate at once, one of
+  them asking; and it is part of what makes two asks one. The proxy's judgment of addresses is not
+  touched by it. chromiumoxide overlooks every certificate unless told to respect them, which it
+  is.
 - `full` measures the page and captures that much beyond the viewport, at the width asked; it is
   cut at 16,383 pixels, WebP's limit, so both formats are always made.
 - Chromium runs without its own sandbox, since the container gives it no capabilities to build one

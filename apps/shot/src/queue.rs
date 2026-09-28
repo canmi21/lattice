@@ -210,6 +210,7 @@ mod tests {
 			height: 800,
 			full: false,
 			internal: false,
+			insecure: false,
 			timeout: 15_000,
 			delay: 210,
 		}

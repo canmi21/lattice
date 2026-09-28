@@ -9,6 +9,7 @@ use chromiumoxide::cdp::browser_protocol::emulation::SetDeviceMetricsOverridePar
 use chromiumoxide::cdp::browser_protocol::page::{
 	CaptureScreenshotFormat, CaptureScreenshotParams, Viewport,
 };
+use chromiumoxide::cdp::browser_protocol::security::SetIgnoreCertificateErrorsParams;
 use chromiumoxide::cdp::browser_protocol::target::{
 	CreateBrowserContextParams, CreateTargetParams,
 };
@@ -92,6 +93,8 @@ impl<R: Resolve> Chromium<R> {
 		let mut config = BrowserConfig::builder()
 			.new_headless_mode()
 			.no_sandbox()
+			// The library overlooks every certificate unless told otherwise; only an ask does here.
+			.respect_https_errors()
 			.user_data_dir(&self.profile)
 			.launch_timeout(Duration::from_secs(30))
 			.request_timeout(LONGEST)
@@ -212,6 +215,10 @@ impl<R: Resolve> Render for Chromium<R> {
 						))
 						.await
 						.map_err(why)?;
+					// Sent to this page's own session, so it is this capture's alone.
+					if asked.insecure {
+						page.execute(SetIgnoreCertificateErrorsParams::new(true)).await.map_err(why)?;
+					}
 					// Loaded is the load event, as the browser fires it: fast pages are taken fast.
 					let timeout = Duration::from_millis(u64::from(asked.timeout));
 					tokio::time::timeout(timeout, page.goto(asked.url.as_str()))
