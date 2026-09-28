@@ -1,0 +1,6 @@
+http.host eq "cdn.ffoni.com"
+and not http.request.uri.path in {"/" "/favicon.ico" "/robots.txt"}
+and not starts_with(http.request.uri.path, "/object/")
+and not starts_with(http.request.uri.path, "/derive/")
+and not starts_with(http.request.uri.path, "/proxy/github/")
+and not starts_with(http.request.uri.path, "/github/")

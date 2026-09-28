@@ -52,6 +52,9 @@ Cloudflare itself failing. That is accepted rather than engineered around: an ou
 large share of the web with it, and reaching the VPS around Cloudflare would give up Access and the
 edge in front of everything else.
 
+What that edge refuses before any Worker runs -- scanners, and every path a host does not serve --
+is [firewall.md](firewall.md).
+
 ## A domain says who can reach it, not what is behind it
 
 | Name           | Who reaches it                                   | What goes there                     |

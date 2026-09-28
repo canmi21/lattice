@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from graph import ROOT, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
 
 # Whole-tree and cheap, so they run whatever changed.
-ALWAYS = ["secrets", "refs", "comments", "shape"]
+ALWAYS = ["secrets", "refs", "comments", "shape", "rules"]
 # Whole-program by nature: tsc reads three programs, vitest one suite, oxlint the tree.
 NODE = ["check", "lint", "test"]
 # Gates that belong to one package, run when it or anything it imports changed.

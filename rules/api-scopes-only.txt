@@ -1,0 +1,5 @@
+http.host eq "api.ffoni.com"
+and not http.request.uri.path in {"/" "/robots.txt"}
+and not starts_with(http.request.uri.path, "/geo/")
+and not starts_with(http.request.uri.path, "/hook/")
+and not starts_with(http.request.uri.path, "/site/")

@@ -1,0 +1,3 @@
+http.host eq "canmi.net"
+and not starts_with(http.request.uri.path, "/.well-known/")
+and not http.request.uri.path.extension in {"" "css" "ico" "js" "json" "md" "txt" "xml" "xsl"}

@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+#MISE description="Hold the firewall rules in rules/ to what the apps serve and to Cloudflare's limits"
+"""The firewall rules are pasted into Cloudflare by hand, so nothing there fails when an app
+starts serving something a rule refuses. This does: see spec/architecture/firewall.md."""
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+RULES = ROOT / "rules"
+SPEC = ROOT / "spec/architecture/firewall.md"
+# Cloudflare's own limit on one expression.
+LIMIT = 4096
+
+
+def quoted_set(text, field):
+	"""The values of `field in {...}` in an expression."""
+	found = re.search(re.escape(field) + r' in \{([^}]*)\}', text)
+	return set(re.findall(r'"([^"]*)"', found.group(1))) if found else set()
+
+
+def main():
+	problems = []
+	files = {path.name: path.read_text() for path in sorted(RULES.glob("*.txt"))}
+	listed = set(re.findall(r"rules/([a-z0-9-]+\.txt)", SPEC.read_text()))
+	for name in sorted(listed ^ set(files)):
+		problems.append(f"{name}: in {'the spec' if name in listed else 'rules/'} but not in {'rules/' if name in listed else 'the spec'}")
+
+	for name, text in files.items():
+		if len(text) > LIMIT:
+			problems.append(f"{name}: {len(text)} characters, past Cloudflare's {LIMIT}")
+		if text.count("(") != text.count(")") or text.count('"') % 2:
+			problems.append(f"{name}: unbalanced parentheses or quotes")
+
+	# Every public scope of the API host is let through, and nothing that is not one.
+	scopes_ts = (ROOT / "apps/gateway/src/scopes.ts").read_text()
+	scopes = set(re.findall(r"^\t(?:'|\")?([a-z0-9-]+)(?:'|\")?: \{", scopes_ts, re.M))
+	allowed = set(re.findall(r'starts_with\(http\.request\.uri\.path, "/([a-z0-9-]+)/"\)', files.get("api-scopes-only.txt", "")))
+	for scope in sorted(scopes ^ allowed):
+		problems.append(f"api-scopes-only.txt: /{scope}/ is {'a scope it refuses' if scope in scopes else 'let through but no scope'}")
+
+	# Every extension the site's routes and public files are named with is let through.
+	site = ROOT / "apps/site"
+	# A route is a directory, named as the address it answers; `[...rest]` is a pattern, not a file.
+	routes = [p.name for p in (site / "src/routes").rglob("*") if p.is_dir() and not p.name.startswith("[...")]
+	names = routes + [p.name for p in (site / "public").rglob("*") if p.is_file()]
+	served = {name.rsplit(".", 1)[1].lower() for name in names if "." in name.lstrip(".")}
+	extensions = quoted_set(files.get("site-files-only.txt", ""), "http.request.uri.path.extension")
+	for extension in sorted(served - extensions):
+		problems.append(f"site-files-only.txt: the site serves .{extension} and the rule refuses it")
+
+	if problems:
+		print("Firewall rules out of step:\n")
+		for problem in problems:
+			print(f"  {problem}")
+		print("\nChange the rule in rules/ and paste it into Cloudflare; see spec/architecture/firewall.md.")
+		return 1
+	print(f"rules OK: {len(files)} rules, each within {LIMIT} characters and in step with the apps")
+	return 0
+
+
+if __name__ == "__main__":
+	sys.exit(main())
