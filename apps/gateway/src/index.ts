@@ -8,7 +8,7 @@
 import type { ApiResponse } from '@canmi/artifacts';
 import { limited, within } from '@canmi/limits';
 import { robotsTxt } from '@canmi/robots';
-import { DEVELOPMENT_PORTS, developmentUrl, URLS } from '@canmi/urls';
+import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
@@ -82,6 +82,13 @@ export function gateway(
 	// An API has nothing to index, and its URLs in search results would compete with the pages
 	// that call them.
 	app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
+
+	// The host's own address is somebody typing it, not a malformed call: they go to the site, and
+	// `ref` tells the site's analytics where from.
+	app.get('/', (c) => {
+		const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
+		return c.redirect(`${urls.site}/?ref=api`, 301);
+	});
 
 	app.use('*', async (c, next) => {
 		const { scope } = split(new URL(c.req.url));

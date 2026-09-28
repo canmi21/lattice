@@ -98,7 +98,7 @@ describe('the gateway', () => {
 	}
 
 	it('refuses a path with no scope as malformed', async () => {
-		for (const path of ['', '/', '//stats']) {
+		for (const path of ['//stats', '//']) {
 			const answer = await ask(path);
 			expect(answer.status).toBe(400);
 			expect(await answer.json()).toEqual({ status: 'error', message: 'no_scope' });
@@ -149,6 +149,14 @@ describe('the gateway', () => {
 			globalThis.fetch = real;
 		}
 		expect(seen).toEqual([`${developmentUrl('site')}/api/media?rid=a`]);
+	});
+
+	it("sends the host's own address to the site", async () => {
+		for (const path of ['', '/']) {
+			const answer = await ask(path);
+			expect(answer.status).toBe(301);
+			expect(answer.headers.get('location')).toBe(`${URLS.apps.production.site}/?ref=api`);
+		}
 	});
 
 	it('answers robots itself, keeping the whole host out of an index', async () => {

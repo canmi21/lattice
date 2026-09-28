@@ -111,7 +111,8 @@ of its own.
 
 **A path with no scope is a 400, on both gateways.** Everything on the API host is under a scope, so
 a request without one is malformed rather than looking for something missing; an unknown scope is a
-404. There is no fallback to the root: what addressed the site's API there stopped working when it
+404. The host's own address, `/`, is the one exception: it is somebody typing it, and the public
+gateway sends them to the site with a 301 and `?ref=api` for the analytics. There is no fallback to the root: what addressed the site's API there stopped working when it
 moved to `/site/`, links in mail already sent included, and that was accepted rather than carried.
 
 ## The gateway holds what every API would otherwise repeat
