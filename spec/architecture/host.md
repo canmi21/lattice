@@ -293,6 +293,13 @@ meaning. They are its own rather than `libs/tokens`', which is the site's. Icons
 what moves -- a page arriving, the sidebar's marker crossing to the next page -- moves on
 `@canmi/motion`'s timing, as the editor's panels do.
 
+**Its charts are d3's arithmetic and Svelte's drawing.** d3's scale, shape and array modules
+compute the axes, the paths and the point nearest the pointer; the SVG is written in the component,
+so it follows the component's state like any other markup and nothing reaches into the DOM behind
+Svelte's back. The rest of d3 -- selections, transitions, its axis generator -- is not taken: each
+would draw on its own, and the motion is `@canmi/motion`'s. A chart of bytes ticks in binary
+units, and a series breaks where points are missing rather than drawing across the gap.
+
 **It is laid out for a desktop.** A sidebar and a page beside it, the page's width following the
 window; a phone is not refused and not designed for.
 
