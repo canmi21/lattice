@@ -2,29 +2,20 @@
 
 Cloudflare's WAF runs before a Worker does, so a request it blocks costs nothing: no Worker
 invocation, none of the Free plan's daily requests, nothing reaching the machine at home. The rules
-live in `rules/` as the expressions themselves, one file each, and are pasted into the dashboard by
-hand. Nothing deploys them: the plan has no API for them worth the credential, and five rules per
-zone are few enough to paste.
+live in `rules/`, and **git is their one source: a script syncs them to Cloudflare, one way**.
+Nobody edits them in the dashboard, so the script never reads what is live: what changed is what
+jj's diff of `rules/` says, and a sync replaces each zone's rules with the repository's whole.
 
 ## One blacklist everywhere, and a whitelist where the paths are ours
 
-| Rule              | File                                                                                 | Pasted into                             | Order |
-| ----------------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ----- |
-| Block Probes      | [rules/all/block-probes.txt](../../rules/all/block-probes.txt)                       | canmi.net, ffoni.com, ill.li, canmi.app | 1     |
-| Security Contact  | [rules/canmi.app/security-redirect.txt](../../rules/canmi.app/security-redirect.txt) | canmi.app, as a redirect rule           | --    |
-| Site Files Only   | [rules/canmi.net/site-files-only.txt](../../rules/canmi.net/site-files-only.txt)     | canmi.net                               | 2     |
-| API Scopes Only   | [rules/ffoni.com/api-scopes-only.txt](../../rules/ffoni.com/api-scopes-only.txt)     | ffoni.com                               | 2     |
-| CDN Prefixes Only | [rules/ffoni.com/cdn-prefixes-only.txt](../../rules/ffoni.com/cdn-prefixes-only.txt) | ffoni.com                               | 3     |
-| Alias Paths Only  | [rules/ill.li/alias-paths-only.txt](../../rules/ill.li/alias-paths-only.txt)         | ill.li                                  | 2     |
-| Rate Cap          | [rules/canmi.net/rate-cap.txt](../../rules/canmi.net/rate-cap.txt)                   | canmi.net, 150 in 10 s                  | --    |
-| Rate Cap          | [rules/ill.li/rate-cap.txt](../../rules/ill.li/rate-cap.txt)                         | ill.li, 150 in 10 s                     | --    |
-| Rate Cap          | [rules/canmi.app/rate-cap.txt](../../rules/canmi.app/rate-cap.txt)                   | canmi.app, 300 in 10 s                  | --    |
-| Rate Cap          | [rules/ffoni.com/rate-cap.txt](../../rules/ffoni.com/rate-cap.txt)                   | ffoni.com, 50 in 10 s                   | --    |
+**Each zone is a folder, and its `zone.toml` is the zone's rules in order**: each rule's name as the
+dashboard shows it, its phase -- a custom rule, a rate limit, a redirect -- its action, and a rate
+limit's figures, with its expression in a `.txt` file beside it. `rules/all/` holds what every zone
+takes, listed by each zone that takes it. A threshold lives there and nowhere else: this file says
+how the rules work, and the numbers are the configuration's.
 
-**The folder is where a rule is pasted.** `rules/all/` goes into every zone and each other folder is
-named for its zone, since a rule on this plan belongs to one zone; the name is `all` rather than
-`*`, which Windows refuses in a file name and a shell expands. Every rule blocks, and the title in
-the table is the name it is given in the dashboard.
+**The folder is the zone.** A rule on this plan belongs to one zone; the shared folder is named
+`all` rather than `*`, which Windows refuses in a file name and a shell expands.
 
 **Every host answers its own security.txt.** `libs/security` writes it -- RFC 9116's two required
 fields, `Contact` and `Expires`, and the host's own `Canonical` -- with an expiry 180 days out,
@@ -61,22 +52,22 @@ sees it.
 a zone, counting by IP over 10 seconds and blocking for 10, and its expression may read only the
 path and whether the client is a verified bot, never the host. Verified crawlers are never counted.
 A cache hit is counted like any other request, and several readers can share one address behind a
-carrier's NAT, so the figures catch floods rather than readers:
+carrier's NAT, so the figures -- each zone's `zone.toml`'s -- catch floods rather than readers:
 
-- **canmi.net, 150.** A page's scripts and styles are immutable and cached after the first visit, so
+- **canmi.net**: a page's scripts and styles are immutable and cached after the first visit, so
   reading costs a few requests a page.
-- **ill.li, 150.** An article's pictures are asked for through the alias layer, dozens a page.
-- **canmi.app, 300.** One person, through Access, behind interfaces -- the router's, the NAS's -- that
-  ask for a great deal at once.
-- **ffoni.com, 50, on every scoped path but the CDN's.** The zone holds the API host and the CDN,
-  and the path is the only way to tell them apart. Every path two segments deep is counted, so a
-  new scope is counted without being named. The CDN's groups -- `/object/`, `/derive/`, `/proxy/`
-  -- are left out, since a page of photographs is a hundred requests, but not its old `/github/`,
-  a redirect only old links reach; and so is `/hook/`, GitHub's, rare and from addresses GitHub
-  shares. The rule is a floor against floods, not a limit on use: each scope's own limit is the
-  gateway's, `geo` sixty a minute and `shot` three captures a minute, and fifty in ten seconds
-  leaves room for a page asking several scopes at once, or a caller asking after a capture. What
-  it leaves out is held by `mise run rules` to the CDN's groups and the webhook.
+- **ill.li**: an article's pictures are asked for through the alias layer, dozens a page.
+- **canmi.app**, the highest: one person, through Access, behind interfaces -- the router's, the
+  NAS's -- that ask for a great deal at once.
+- **ffoni.com**, the lowest, **on every scoped path but the CDN's.** The zone holds the API host and
+  the CDN, and the path is the only way to tell them apart. Every path two segments deep is counted,
+  so a new scope is counted without being named. The CDN's groups -- `/object/`, `/derive/`,
+  `/proxy/` -- are left out, since a page of photographs is a hundred requests, but not its old
+  `/github/`, a redirect only old links reach; and so is `/hook/`, GitHub's, rare and from addresses
+  GitHub shares. The rule is a floor against floods, not a limit on use: each scope's own limit is
+  the gateway's, and the cap leaves room for a page asking several scopes at once, or a caller asking
+  after a capture. What it leaves out is held by `mise run rules` to the CDN's groups and the
+  webhook.
 
 ## How an expression is written
 
@@ -89,10 +80,15 @@ carrier's NAT, so the figures catch floods rather than readers:
 - `matches` (regular expressions) is a Business feature and is not used.
 - An expression holds no comments and at most 4,096 characters. What a rule is for is this file.
 
-## Keeping them in step
+## Keeping them in step, and deploying them
 
-`mise run rules` -- one of `verify`'s gates -- holds the files to Cloudflare's limits, to this
-table, and to what the apps serve: a public scope of the API host the rule would refuse, or an
-extension among the site's routes and public files that it would, fails the check. A change to a
-file in `rules/` is not live until it is pasted; **the agent that changes one tells the user which
-rule to paste into which zone**, since nothing else will.
+`mise run rules` -- one of `verify`'s gates -- holds the files to Cloudflare's limits, to each
+zone's `zone.toml`, and to what the apps serve: a public scope of the API host the rule would
+refuse, or an extension among the site's routes and public files that it would, fails the check.
+
+**`mise run rules sync [zone]` deploys them**, through Cloudflare's `cf` CLI: each phase of each zone
+is sent whole, first to Cloudflare's own validation, and only if every one passes is each put as
+the zone's entry point for that phase, replacing what was there. It is run by hand after a change
+lands, and it is safe to run again. It authenticates with a token of its own that may edit a zone's
+WAF and nothing else, decrypted from the repository's secrets; without it the sync refuses rather
+than falling back to a broader login, and the account's owner login is never used by a script.

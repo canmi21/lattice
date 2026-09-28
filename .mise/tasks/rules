@@ -1,17 +1,41 @@
 #!/usr/bin/env python3
-#MISE description="Hold the firewall rules in rules/ to what the apps serve and to Cloudflare's limits"
-"""The firewall rules are pasted into Cloudflare by hand, so nothing there fails when an app
-starts serving something a rule refuses. This does: see spec/architecture/firewall.md."""
+#MISE description="Hold the firewall rules in rules/ to what the apps serve, and deploy them: `rules [sync [zone] [--dry-run]]`"
+"""With no arguments, checks `rules/` against Cloudflare's limits, each zone's `zone.toml`, and
+what the apps serve -- see spec/architecture/firewall.md. `sync [zone] [--dry-run]` deploys: each
+zone's rules replace what is live for each phase they use, through Cloudflare's `cf` CLI.
 
+A zone.toml's `[[rules]]`, one per rule in evaluation order within a phase: `name` (as the
+dashboard shows it), `phase` (http_request_firewall_custom | http_ratelimit |
+http_request_dynamic_redirect), `action` (block | redirect), `expression` (a .txt file relative
+to the zone's folder). A rate limit adds `characteristics`, `period`, `requests_per_period`,
+`mitigation_timeout`, as the Rulesets API names them. A redirect names its target through
+libs/urls rather than a written URL: `target_url` is one of its generated Rust constants
+(libs/urls/src/lib.rs) and `target_path` the path appended to it, plus `status`."""
+
+import json
+import os
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RULES = ROOT / "rules"
-SPEC = ROOT / "spec/architecture/firewall.md"
+URLS_RS = ROOT / "libs/urls/src/lib.rs"
 # Cloudflare's own limit on one expression.
 LIMIT = 4096
+PHASES = {"http_request_firewall_custom", "http_ratelimit", "http_request_dynamic_redirect"}
+ACTIONS = {"block", "redirect"}
+ZONES = sorted(p.name for p in RULES.iterdir() if p.is_dir() and p.name != "all")
+
+
+def urls():
+	"""The generated Rust mirror of libs/urls, name -> value -- a redirect's `target_url` names
+	one of these instead of writing a URL, per spec/architecture/workspace.md, "Every URL is
+	declared once"."""
+	text = URLS_RS.read_text()
+	return dict(re.findall(r'pub const (\w+): &str =\s*"([^"]*)";', text))
 
 
 def quoted_set(text, field):
@@ -20,13 +44,90 @@ def quoted_set(text, field):
 	return set(re.findall(r'"([^"]*)"', found.group(1))) if found else set()
 
 
-def main():
+def parse_value(raw):
+	"""One TOML scalar or array of strings -- the only shapes a zone.toml holds."""
+	raw = raw.strip()
+	if raw.startswith("["):
+		return re.findall(r'"([^"]*)"', raw)
+	if raw.startswith('"'):
+		return raw[1:-1]
+	if raw in ("true", "false"):
+		return raw == "true"
+	return int(raw)
+
+
+def parse_zone_toml(text):
+	"""A zone's rules, in order, as a list of dicts -- a hand-rolled reader for the one shape
+	zone.toml holds (arrays of tables of scalars and string arrays), since nothing in this
+	toolchain's Python carries a TOML parser and the shape is small enough not to need one."""
+	rules = []
+	current = None
+	for line in text.splitlines():
+		line = line.strip()
+		if not line or line.startswith("#"):
+			continue
+		if line == "[[rules]]":
+			if current is not None:
+				rules.append(current)
+			current = {}
+			continue
+		match = re.match(r"^(\w+) = (.+)$", line)
+		if not match or current is None:
+			raise ValueError(f"zone.toml: unreadable line {line!r}")
+		key, raw_value = match.groups()
+		current[key] = parse_value(raw_value)
+	if current is not None:
+		rules.append(current)
+	return rules
+
+
+def load_zone(zone):
+	"""A zone's rules, each with `expression` resolved to its path under rules/ and its text."""
+	path = RULES / zone / "zone.toml"
+	rules = parse_zone_toml(path.read_text())
+	for rule in rules:
+		expression_path = (RULES / zone / rule["expression"]).resolve()
+		rule["expression_key"] = str(expression_path.relative_to(RULES.resolve()))
+		# Collapsed to one line: the file wraps for readability, but the API takes one string
+		# and a literal newline in it is a detail of this repository the request need not carry.
+		rule["expression_text"] = " ".join(expression_path.read_text().split())
+	return rules
+
+
+def check():
 	problems = []
 	# Keyed by the path under rules/: the folder is the zone it is pasted into, `all` every zone.
 	files = {str(path.relative_to(RULES)): path.read_text() for path in sorted(RULES.glob("*/*.txt"))}
-	listed = set(re.findall(r"rules/([a-z0-9.-]+/[a-z0-9-]+\.txt)", SPEC.read_text()))
+
+	zone_rules = {}
+	for zone in ZONES:
+		try:
+			zone_rules[zone] = load_zone(zone)
+		except (ValueError, FileNotFoundError, KeyError) as error:
+			problems.append(f"{zone}/zone.toml: {error}")
+			zone_rules[zone] = []
+
+	listed = set()
+	for zone, rules in zone_rules.items():
+		for rule in rules:
+			listed.add(rule["expression_key"])
+			if rule.get("phase") not in PHASES:
+				problems.append(f"{zone}/zone.toml: {rule.get('name')!r} has no valid phase")
+			if rule.get("action") not in ACTIONS:
+				problems.append(f"{zone}/zone.toml: {rule.get('name')!r} has no valid action")
+			if rule.get("phase") == "http_ratelimit":
+				for field in ("characteristics", "period", "requests_per_period", "mitigation_timeout"):
+					if field not in rule:
+						problems.append(f"{zone}/zone.toml: {rule.get('name')!r} is a rate limit without {field}")
+			if rule.get("phase") == "http_request_dynamic_redirect":
+				for field in ("target_url", "target_path", "status"):
+					if field not in rule:
+						problems.append(f"{zone}/zone.toml: {rule.get('name')!r} is a redirect without {field}")
+				if "target_url" in rule and rule["target_url"] not in urls():
+					problems.append(f"{zone}/zone.toml: {rule.get('name')!r} names an unknown libs/urls constant {rule['target_url']!r}")
+
 	for name in sorted(listed ^ set(files)):
-		problems.append(f"{name}: in {'the spec' if name in listed else 'rules/'} but not in {'rules/' if name in listed else 'the spec'}")
+		problems.append(f"{name}: in {'a zone.toml' if name in listed else 'rules/'} but not in {'rules/' if name in listed else 'any zone.toml'}")
 
 	for name, text in files.items():
 		if len(text) > LIMIT:
@@ -76,10 +177,117 @@ def main():
 		print("Firewall rules out of step:\n")
 		for problem in problems:
 			print(f"  {problem}")
-		print("\nChange the rule in rules/ and paste it into Cloudflare; see spec/architecture/firewall.md.")
+		print("\nChange the rule in rules/ and run `mise run rules sync` to deploy; see spec/architecture/firewall.md.")
 		return 1
-	print(f"rules OK: {len(files)} rules, each within {LIMIT} characters and in step with the apps")
+	print(f"rules OK: {len(files)} rule files across {len(ZONES)} zones, each within {LIMIT} characters and in step with the apps")
 	return 0
+
+
+def rule_body(rule):
+	"""One rule of a phase's ruleset body, in the shape the Rulesets API takes."""
+	body = {
+		"description": rule["name"],
+		"expression": rule["expression_text"],
+		"action": rule["action"],
+	}
+	if rule["phase"] == "http_ratelimit":
+		body["ratelimit"] = {
+			"characteristics": rule["characteristics"],
+			"period": rule["period"],
+			"requests_per_period": rule["requests_per_period"],
+			"mitigation_timeout": rule["mitigation_timeout"],
+		}
+	if rule["phase"] == "http_request_dynamic_redirect":
+		target = urls()[rule["target_url"]] + rule["target_path"]
+		body["action_parameters"] = {
+			"from_value": {
+				"status_code": rule["status"],
+				"target_url": {"value": target},
+				"preserve_query_string": False,
+			}
+		}
+	return body
+
+
+def phase_bodies(zone):
+	"""zone's rules grouped by phase, each a ruleset body: `{"rules": [...]}`, in zone.toml order."""
+	bodies = {}
+	for rule in load_zone(zone):
+		bodies.setdefault(rule["phase"], {"rules": []})["rules"].append(rule_body(rule))
+	return bodies
+
+
+def sync(zone_arg, dry_run):
+	zones = [zone_arg] if zone_arg else ZONES
+	for zone in zones:
+		if zone not in ZONES:
+			print(f"sync: no rules/{zone}/zone.toml", file=sys.stderr)
+			return 1
+
+	token = os.environ.get("CLOUDFLARE_RULES_TOKEN")
+	if not token and not dry_run:
+		print(
+			"sync: CLOUDFLARE_RULES_TOKEN is not set. It must come from the repository's encrypted "
+			"secrets.json (see spec/toolchain.md, \"Secrets\"), decrypted by mise on entering the "
+			"directory, like HOST_TOKEN. Refusing rather than falling back to cf's own login.",
+			file=sys.stderr,
+		)
+		return 1
+
+	env = dict(os.environ)
+	if token:
+		# cf reads CLOUDFLARE_API_TOKEN before any stored OAuth profile, so setting it here is
+		# what keeps the account's own login out of a script's reach.
+		env["CLOUDFLARE_API_TOKEN"] = token
+
+	def command(phase, zone, body_path, validate_only):
+		base = ["cf", "rulesets", "account-rulesets", "phases", "update", phase, "-z", zone, "--body", f"@{body_path}"]
+		return base + ["--validate-only"] if validate_only else base
+
+	for zone in zones:
+		bodies = phase_bodies(zone)
+		texts = {phase: json.dumps(body, indent="\t") + "\n" for phase, body in bodies.items()}
+
+		if dry_run:
+			for phase, text in texts.items():
+				print(f"--- {zone} {phase} ---")
+				print(text)
+			print(f"{zone}: would run, after every phase validates:")
+			for phase in texts:
+				print("  " + " ".join(command(phase, zone, f"<{phase}.json>", False)))
+			continue
+
+		paths = {}
+		for phase, text in texts.items():
+			with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as handle:
+				handle.write(text)
+				paths[phase] = handle.name
+		try:
+			for phase, body_path in paths.items():
+				validated = subprocess.run(command(phase, zone, body_path, True), env=env, cwd=ROOT)
+				if validated.returncode != 0:
+					print(f"sync: {zone} {phase} failed validation, nothing applied for {zone}", file=sys.stderr)
+					return 1
+			for phase, body_path in paths.items():
+				applied = subprocess.run(command(phase, zone, body_path, False), env=env, cwd=ROOT)
+				if applied.returncode != 0:
+					print(f"sync: {zone} {phase} failed to apply", file=sys.stderr)
+					return 1
+		finally:
+			for body_path in paths.values():
+				Path(body_path).unlink(missing_ok=True)
+		print(f"{zone}: synced")
+	return 0
+
+
+def main():
+	args = sys.argv[1:]
+	if args and args[0] == "sync":
+		dry_run = "--dry-run" in args[1:]
+		rest = [a for a in args[1:] if a != "--dry-run"]
+		zone_arg = rest[0] if rest else None
+		return sync(zone_arg, dry_run)
+	return check()
 
 
 if __name__ == "__main__":

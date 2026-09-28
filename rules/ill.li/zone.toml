@@ -1,0 +1,23 @@
+# See rules/canmi.app/zone.toml for the shape, and spec/architecture/firewall.md.
+
+[[rules]]
+name = "Block Probes"
+phase = "http_request_firewall_custom"
+action = "block"
+expression = "../all/block-probes.txt"
+
+[[rules]]
+name = "Alias Paths Only"
+phase = "http_request_firewall_custom"
+action = "block"
+expression = "alias-paths-only.txt"
+
+[[rules]]
+name = "Rate Cap"
+phase = "http_ratelimit"
+action = "block"
+expression = "rate-cap.txt"
+characteristics = ["ip.src"]
+period = 10
+requests_per_period = 150
+mitigation_timeout = 10

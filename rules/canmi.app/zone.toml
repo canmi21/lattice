@@ -1,0 +1,26 @@
+# The shape: see the docstring of .mise/tasks/rules. See spec/architecture/firewall.md.
+
+[[rules]]
+name = "Block Probes"
+phase = "http_request_firewall_custom"
+action = "block"
+expression = "../all/block-probes.txt"
+
+[[rules]]
+name = "Security Contact"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "security-redirect.txt"
+target_url = "APPS_PRODUCTION_SITE"
+target_path = "/.well-known/security.txt"
+status = 301
+
+[[rules]]
+name = "Rate Cap"
+phase = "http_ratelimit"
+action = "block"
+expression = "rate-cap.txt"
+characteristics = ["ip.src"]
+period = 10
+requests_per_period = 300
+mitigation_timeout = 10
