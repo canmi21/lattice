@@ -28,6 +28,11 @@ pub const EXTERNAL_GITHUB_RAW: &str = "https://raw.githubusercontent.com";
 pub const EXTERNAL_GITHUB_AVATARS: &str = "https://avatars.githubusercontent.com";
 pub const EXTERNAL_GITHUB_CDN: &str = "https://cdn.jsdelivr.net/gh";
 pub const EXTERNAL_GOOGLE_SOURCE_PREFERENCES: &str = "https://www.google.com/preferences/source";
+pub const EXTERNAL_GEOLITE_CITY: &str =
+	"https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb";
+pub const EXTERNAL_GEOLITE_ASN: &str =
+	"https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-ASN.mmdb";
+pub const EXTERNAL_GEOLITE_MAXMIND: &str = "https://www.maxmind.com";
 pub const EXTERNAL_REGISTRIES_NPM: &str = "https://www.npmjs.com";
 pub const EXTERNAL_REGISTRIES_CARGO: &str = "https://crates.io";
 pub const EXTERNAL_REGISTRIES_CARGO_INDEX: &str = "https://index.crates.io";

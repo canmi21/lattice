@@ -12,6 +12,12 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				count: 60,
 				seconds: 60,
 			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/ip',
+				count: 60,
+				seconds: 60,
+			},
 		],
 	},
 	hook: {

@@ -4,15 +4,20 @@
 //! gateway under the `geo` scope, which strips the prefix before a request arrives here -- see
 //! spec/architecture/services.md, "One API host, scoped by path".
 
+mod fetch;
+mod ip;
+mod store;
+
 use axum::Router;
 use axum::extract::rejection::QueryRejection;
-use axum::extract::{Query, State};
-use axum::http::StatusCode;
+use axum::extract::{ConnectInfo, Query, State};
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::Response;
 use axum::routing::get;
 use geocode::Gazetteer;
 use serde::Deserialize;
 use std::future::IntoFuture;
+use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 
@@ -25,8 +30,16 @@ static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// host, and the test below holds the two together.
 const PORT: u16 = 23440;
 
-/// Empty until the data is read, which is what `/health` reports on.
+/// Empty until the gazetteer is read, which is what `/health` reports on.
 type Loaded = Arc<OnceLock<Gazetteer>>;
+
+/// What both routes need, cloned once per request; each field is its own `Arc`, so cloning this
+/// clones no data.
+#[derive(Clone)]
+struct AppState {
+	gazetteer: Loaded,
+	geo: Arc<store::Store>,
+}
 
 /// Where to look, in degrees. Spelled out; see spec/architecture/services.md, "Names in an API are
 /// spelled out".
@@ -36,29 +49,51 @@ struct Position {
 	longitude: f64,
 }
 
+/// `address` is optional: absent, the caller's own address is looked up instead.
+#[derive(Deserialize)]
+struct IpQuery {
+	address: Option<String>,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	let data = PathBuf::from(std::env::var("GEO_DATA").unwrap_or_else(|_| "/data".into()));
+	// Writable, unlike GEO_DATA: GeoLite2 is fetched here at run time, not shipped with the image.
+	// See spec/architecture/geo.md, "geo fetches it itself, at run time, once a day".
+	let state_dir = PathBuf::from(std::env::var("GEO_STATE").unwrap_or_else(|_| "/state".into()));
 	let listen = std::env::var("LISTEN").unwrap_or_else(|_| format!("0.0.0.0:{PORT}"));
 
-	let loaded: Loaded = Arc::default();
-	let router = routes(loaded.clone());
+	let gazetteer: Loaded = Arc::default();
+	let geo = Arc::new(store::Store::default());
+	let state = AppState { gazetteer: gazetteer.clone(), geo: geo.clone() };
+	let router = routes(state);
 	let listener = tokio::net::TcpListener::bind(&listen).await?;
-	eprintln!("geo: listening on {listen}, reading {}", data.display());
+	eprintln!(
+		"geo: listening on {listen}, reading {}, fetching to {}",
+		data.display(),
+		state_dir.display()
+	);
+
+	// GeoLite2 is fetched independently of the gazetteer: a slow or failing mirror must not hold
+	// up `/address` or `/health`, which is what `refresh_forever` running unawaited here gives.
+	tokio::spawn(fetch::refresh_forever(state_dir, geo));
 
 	// Served before the data is read, so a health check sees "not yet" rather than a refused
 	// connection. Missing data ends the process: a gazetteer that cannot answer is a failed deploy,
 	// and exiting is what lets the deploy's check see it and put the previous version back.
 	let reading = tokio::task::spawn_blocking(move || {
-		let gazetteer = Gazetteer::open(&data)
+		let gazetteer_data = Gazetteer::open(&data)
 			.ok_or_else(|| anyhow::anyhow!("no gazetteer at {}", data.display()))?;
-		gazetteer.preload();
-		let _ = loaded.set(gazetteer);
+		gazetteer_data.preload();
+		let _ = gazetteer.set(gazetteer_data);
 		anyhow::Ok(())
 	});
 
-	let mut serving =
-		tokio::spawn(axum::serve(listener, router).with_graceful_shutdown(stopped()).into_future());
+	let mut serving = tokio::spawn(
+		axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>())
+			.with_graceful_shutdown(stopped())
+			.into_future(),
+	);
 	tokio::select! {
 		read = reading => {
 			read??;
@@ -69,17 +104,18 @@ async fn main() -> anyhow::Result<()> {
 	Ok(serving.await??)
 }
 
-fn routes(loaded: Loaded) -> Router {
+fn routes(state: AppState) -> Router {
 	Router::new()
 		.route("/address", get(address))
+		.route("/ip", get(ip_lookup))
 		.route("/health", get(health))
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
-		.with_state(loaded)
+		.with_state(state)
 }
 
 /// The place a position is in, as an address from the continent down.
 async fn address(
-	State(loaded): State<Loaded>,
+	State(state): State<AppState>,
 	asked: Result<Query<Position>, QueryRejection>,
 ) -> Response {
 	let Ok(Query(at)) = asked else {
@@ -90,7 +126,7 @@ async fn address(
 	if !in_range {
 		return response::failure(StatusCode::BAD_REQUEST, "invalid_position");
 	}
-	let Some(gazetteer) = loaded.get() else {
+	let Some(gazetteer) = state.gazetteer.get() else {
 		return loading();
 	};
 	match gazetteer.lookup(at.latitude, at.longitude) {
@@ -99,8 +135,40 @@ async fn address(
 	}
 }
 
-async fn health(State(loaded): State<Loaded>) -> Response {
-	if loaded.get().is_some() { response::success(StatusCode::OK, ()) } else { loading() }
+/// An address, looked up in GeoLite2: given directly, or the caller's own otherwise. See
+/// spec/architecture/geo.md, "`/geo/ip`: an address, looked up".
+async fn ip_lookup(
+	State(state): State<AppState>,
+	headers: HeaderMap,
+	ConnectInfo(peer): ConnectInfo<SocketAddr>,
+	asked: Result<Query<IpQuery>, QueryRejection>,
+) -> Response {
+	let Ok(Query(asked)) = asked else {
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_address");
+	};
+	let Some(address) = resolve_address(asked.address.as_deref(), &headers, peer) else {
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_address");
+	};
+	let Some(readers) = state.geo.get() else {
+		let message = "GeoLite2 has not been fetched yet";
+		return response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "service_unavailable", message);
+	};
+	response::success(StatusCode::OK, ip::lookup(&readers, address))
+}
+
+/// `given`, when there is one and it parses; otherwise `Cf-Connecting-Ip`, the gateway's own
+/// header, when that parses; otherwise the address the connection itself arrived from. A header
+/// that does not parse is not the caller's fault, so it falls back rather than answering `400`.
+fn resolve_address(given: Option<&str>, headers: &HeaderMap, peer: SocketAddr) -> Option<IpAddr> {
+	if let Some(text) = given {
+		return text.parse().ok();
+	}
+	let forwarded = headers.get("cf-connecting-ip").and_then(|value| value.to_str().ok());
+	Some(forwarded.and_then(|text| text.parse().ok()).unwrap_or_else(|| peer.ip()))
+}
+
+async fn health(State(state): State<AppState>) -> Response {
+	if state.gazetteer.get().is_some() { response::success(StatusCode::OK, ()) } else { loading() }
 }
 
 fn loading() -> Response {
@@ -135,10 +203,25 @@ mod tests {
 	use http_body_util::BodyExt;
 	use tower::ServiceExt;
 
-	/// What the service answers `path` with while its data is still loading.
+	fn state() -> AppState {
+		AppState { gazetteer: Loaded::default(), geo: Arc::new(store::Store::default()) }
+	}
+
+	/// What the service answers `path` with while its data is still loading. `ConnectInfo` is
+	/// set by hand: `oneshot` runs the `Router` directly, not through
+	/// `into_make_service_with_connect_info`, which is what sets it in `main`.
 	async fn ask(path: &str) -> (StatusCode, serde_json::Value) {
-		let request = Request::get(path).body(Body::empty()).unwrap();
-		let answer = routes(Loaded::default()).oneshot(request).await.unwrap();
+		ask_headers(path, &[]).await
+	}
+
+	async fn ask_headers(path: &str, headers: &[(&str, &str)]) -> (StatusCode, serde_json::Value) {
+		let mut request = Request::get(path);
+		for (name, value) in headers {
+			request = request.header(*name, *value);
+		}
+		let mut request = request.body(Body::empty()).unwrap();
+		request.extensions_mut().insert(ConnectInfo(SocketAddr::from(([203, 0, 113, 9], 0))));
+		let answer = routes(state()).oneshot(request).await.unwrap();
 		let status = answer.status();
 		let body = answer.into_body().collect().await.unwrap().to_bytes();
 		(status, serde_json::from_slice(&body).unwrap())
@@ -163,6 +246,39 @@ mod tests {
 		assert_eq!(ask("/health").await.0, StatusCode::SERVICE_UNAVAILABLE);
 		let (status, body) = ask("/reverse").await;
 		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_route".into()));
+	}
+
+	#[tokio::test]
+	async fn refuses_an_address_it_cannot_parse() {
+		let (status, body) = ask("/ip?address=not-an-address").await;
+		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_address".into()));
+	}
+
+	#[tokio::test]
+	async fn is_unavailable_rather_than_wrong_before_geolite2_has_landed() {
+		let (status, body) = ask("/ip?address=1.1.1.1").await;
+		assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+		assert_eq!(body["code"], "service_unavailable");
+		// /address and /health answer on their own data, unaffected by geo's still being empty.
+		assert_eq!(ask("/health").await.0, StatusCode::SERVICE_UNAVAILABLE);
+	}
+
+	#[test]
+	fn falls_back_from_a_given_address_to_the_header_to_the_peer() {
+		let headers = HeaderMap::new();
+		let peer = SocketAddr::from(([203, 0, 113, 9], 0));
+		assert_eq!(resolve_address(Some("1.1.1.1"), &headers, peer), Some("1.1.1.1".parse().unwrap()));
+		assert_eq!(resolve_address(Some("not-an-address"), &headers, peer), None);
+
+		let mut with_header = HeaderMap::new();
+		with_header.insert("cf-connecting-ip", "8.8.8.8".parse().unwrap());
+		assert_eq!(resolve_address(None, &with_header, peer), Some("8.8.8.8".parse().unwrap()));
+
+		assert_eq!(resolve_address(None, &headers, peer), Some(peer.ip()));
+
+		let mut bad_header = HeaderMap::new();
+		bad_header.insert("cf-connecting-ip", "not-an-address".parse().unwrap());
+		assert_eq!(resolve_address(None, &bad_header, peer), Some(peer.ip()));
 	}
 
 	#[test]

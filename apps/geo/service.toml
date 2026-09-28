@@ -11,6 +11,11 @@ health = "/health"
 # The gazetteer held in memory, about 420 MiB once loaded, and more while it loads.
 memory_mb = 768
 
+# Where GeoLite2 is fetched to, at run time -- unlike /data, which the image ships read-only. See
+# spec/architecture/geo.md, "geo fetches it itself, at run time, once a day".
+[data]
+path = "/state"
+
 # The `geo` scope of the API host: public through the gateway, which limits it by address, and
 # unlimited privately and to our own Workers. See spec/architecture/services.md.
 [api]
@@ -20,5 +25,11 @@ public = true
 [[api.limits]]
 methods = ["GET", "HEAD"]
 path = "/address"
+count = 60
+seconds = 60
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/ip"
 count = 60
 seconds = 60

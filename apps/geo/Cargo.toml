@@ -10,11 +10,22 @@ workspace = true
 [dependencies]
 geocode = { path = "../../libs/geocode" }
 response = { path = "../../libs/response", features = ["axum"] }
+urls = { path = "../../libs/urls" }
 axum = "0.8.9"
-tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal"] }
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "fs", "time", "io-util"] }
 serde = { version = "1", features = ["derive"] }
 anyhow = "1.0.104"
 mimalloc = "0.1.52"
+# The two GeoLite2 readers, swapped as a pair once a fetch proves a new file readable.
+arc-swap = "1.9.2"
+# Memory-mapped so the page cache holds what is asked and the heap nothing; see geo.md.
+maxminddb = { version = "0.32.0", features = ["mmap"] }
+# Fetching GeoLite2 from its mirror, the same way libs/deploy/src/github.rs reaches GitHub.
+bytes = "1.12.1"
+http-body-util = "0.1.5"
+hyper = { version = "1.11.1", features = ["client", "http1"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "tls12", "ring", "webpki-tokio"] }
+hyper-util = { version = "0.1.20", features = ["client-legacy", "http1", "tokio"] }
 
 [dev-dependencies]
 http-body-util = "0.1.5"

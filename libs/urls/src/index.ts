@@ -144,6 +144,13 @@ export const URLS = {
 		google: {
 			sourcePreferences: 'https://www.google.com/preferences/source',
 		},
+		// GeoLite2, as a mirror republishes it daily without a license key, and whose it is, which
+		// `geo` credits in every answer. See spec/architecture/geo.md.
+		geolite: {
+			city: 'https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb',
+			asn: 'https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-ASN.mmdb',
+			maxmind: 'https://www.maxmind.com',
+		},
 		// Where the dependencies come from, named on the licence page. Keyed by purl type, which
 		// is what the record uses, so the page looks a registry up rather than mapping names.
 		registries: {
