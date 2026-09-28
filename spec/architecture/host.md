@@ -274,7 +274,8 @@ at its defaults, copied into host's image and served beside the API, so there is
 no origin to cross and no CORS. It is written in `apps/host/panel/`.
 
 **The panel signs in with the token, once.** The first visit asks for it; host answers with a
-cookie holding it, `HttpOnly`, `Secure` and `SameSite=Strict`, and every request after carries that.
+cookie holding it, `HttpOnly`, `Secure` and `SameSite=Strict`, for thirty days, and every request
+after carries that.
 The API takes the cookie or an `Authorization` header alike, so scripts and keeper are unchanged.
 The token is asked for on every door, the LAN's included; from the public, Access stands in front
 as well.

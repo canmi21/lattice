@@ -40,6 +40,7 @@ pub fn router(host: Arc<Host>) -> Router {
 	Router::new()
 		.route("/health", get(health))
 		.route("/notice", post(notice))
+		.route("/session", post(sign_in).delete(sign_out))
 		.merge(guarded)
 		.with_state(host)
 }
@@ -93,13 +94,56 @@ fn same(given: &[u8], expected: &[u8]) -> bool {
 		&& given.iter().zip(expected).fold(0, |acc, (a, b)| acc | (a ^ b)) == 0
 }
 
-async fn admit(State(host): State<Arc<Host>>, request: Request, next: Next) -> Response {
-	let given = request
-		.headers()
+/// The cookie the panel's session is: the token itself, out of a script's reach. See
+/// spec/architecture/host.md, "The panel signs in with the token, once".
+const SESSION: &str = "host_token";
+/// Thirty days, after which the panel asks again.
+const SESSION_SECONDS: u32 = 30 * 24 * 60 * 60;
+
+/// The token a request carries: its `Authorization` header, or the panel's cookie.
+fn carried(headers: &header::HeaderMap) -> &str {
+	let bearer = headers
 		.get(header::AUTHORIZATION)
 		.and_then(|value| value.to_str().ok())
-		.and_then(|value| value.strip_prefix("Bearer "))
-		.unwrap_or_default();
+		.and_then(|value| value.strip_prefix("Bearer "));
+	let cookie = || {
+		headers
+			.get_all(header::COOKIE)
+			.iter()
+			.filter_map(|value| value.to_str().ok())
+			.flat_map(|value| value.split(';'))
+			.filter_map(|pair| pair.trim().split_once('='))
+			.find(|(name, _)| *name == SESSION)
+			.map(|(_, value)| value)
+	};
+	bearer.or_else(cookie).unwrap_or_default()
+}
+
+#[derive(Deserialize)]
+struct SignIn {
+	token: String,
+}
+
+/// Sign the panel in: the token checked once, then kept as a cookie the browser sends and no
+/// script reads.
+async fn sign_in(State(host): State<Arc<Host>>, Json(asked): Json<SignIn>) -> Response {
+	if !same(asked.token.as_bytes(), host.config.token.as_bytes()) {
+		return response::failure(StatusCode::UNAUTHORIZED, "invalid_token");
+	}
+	let cookie = format!(
+		"{SESSION}={}; Path=/; Max-Age={SESSION_SECONDS}; HttpOnly; Secure; SameSite=Strict",
+		asked.token
+	);
+	([(header::SET_COOKIE, cookie)], response::success(StatusCode::OK, ())).into_response()
+}
+
+async fn sign_out() -> Response {
+	let cookie = format!("{SESSION}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict");
+	([(header::SET_COOKIE, cookie)], response::success(StatusCode::OK, ())).into_response()
+}
+
+async fn admit(State(host): State<Arc<Host>>, request: Request, next: Next) -> Response {
+	let given = carried(request.headers());
 	if !same(given.as_bytes(), host.config.token.as_bytes()) {
 		return response::failure(StatusCode::UNAUTHORIZED, "invalid_token");
 	}
@@ -554,6 +598,20 @@ mod tests {
 		assert!(!super::same(b"secreT", b"secret"));
 		assert!(!super::same(b"secret-and-more", b"secret"));
 		assert!(!super::same(b"", b"secret"));
+	}
+
+	#[test]
+	fn the_token_comes_from_the_header_or_the_panels_cookie() {
+		use axum::http::{HeaderMap, HeaderValue, header};
+		let mut headers = HeaderMap::new();
+		assert_eq!(super::carried(&headers), "");
+		headers.insert(header::COOKIE, HeaderValue::from_static("theme=dark; host_token=abc; x=1"));
+		assert_eq!(super::carried(&headers), "abc");
+		headers.insert(header::AUTHORIZATION, HeaderValue::from_static("Bearer xyz"));
+		assert_eq!(super::carried(&headers), "xyz");
+		let mut other = HeaderMap::new();
+		other.insert(header::COOKIE, HeaderValue::from_static("not_host_token=abc"));
+		assert_eq!(super::carried(&other), "");
 	}
 
 	#[test]
