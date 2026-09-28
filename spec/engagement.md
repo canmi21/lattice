@@ -1,7 +1,7 @@
 # Reader engagement
 
 Newsletter subscriptions and likes are mutable reader state. They belong to the site's API, the
-routes in `apps/site/api`, which the site's Worker answers under `/api/` on its own origin; see
+routes in `apps/site/server`, which the site's Worker answers under `/api/` on its own origin; see
 architecture/services.md, "The site's API runs in the site's Worker". None of them is a public
 route of the API host.
 
@@ -288,7 +288,7 @@ the current IP's `liked` boolean together with the global like and subscriber co
 The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints use
 separate Cloudflare Workers Rate Limiting bindings keyed by the raw IP, with a wider allowance for
 reads. This is deliberately approximate, inexpensive abuse resistance rather than a globally
-strict quota. `apps/site/api/src/limits.ts` says which route each covers, in the one format every
+strict quota. `apps/site/server/src/limits.ts` says which route each covers, in the one format every
 limit here is written in; see architecture/services.md, "The gateway holds what every API would
 otherwise repeat".
 

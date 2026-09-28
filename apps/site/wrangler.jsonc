@@ -25,10 +25,10 @@
 			"binding": "DATABASE",
 			"database_name": "api",
 			"database_id": "959379fe-f528-4304-9f40-3e1c957208fe",
-			"migrations_dir": "api/drizzle",
+			"migrations_dir": "server/drizzle",
 		},
 	],
-	// The allowances of apps/site/api/src/limits.ts, and the read counter's own minute. These are
+	// The allowances of apps/site/server/src/limits.ts, and the read counter's own minute. These are
 	// intentionally approximate: Cloudflare enforces them close to the caller.
 	"ratelimits": [
 		{ "name": "ENGAGEMENT_LIMIT", "namespace_id": "959379523", "simple": { "limit": 60, "period": 60 } },
