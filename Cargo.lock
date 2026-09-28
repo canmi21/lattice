@@ -1959,6 +1959,41 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a79a3332a6609480d7d0c9eab957bca6b455b91bb84e66d19f5ff66294b85b8"
 
 [[package]]
+name = "ledger"
+version = "0.0.0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "jiff",
+ "serde",
+ "serde_json",
+ "tokio",
+ "urls",
+]
+
+[[package]]
+name = "ledger-service"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "http-body-util",
+ "jiff",
+ "ledger",
+ "mimalloc",
+ "response",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tower",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3246,6 +3281,7 @@ dependencies = [
  "hyper-rustls",
  "hyper-util",
  "jiff",
+ "ledger",
  "mimalloc",
  "response",
  "rustls",

@@ -1,0 +1,21 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "ledger"
+placements = ["home"]
+
+[container]
+# One above keeper's 11010 and host's 11011, in the same low block, since ledger is the platform's
+# own kind of record too. See spec/architecture/services.md, "A service keeps one port".
+port = 12010
+health = "/health"
+memory_mb = 64
+
+[data]
+path = "/data"
+
+# The `ledger` scope of the API host, never in the gateway's table: services write to it through
+# Caddy on api.canmi.icu/ledger. See spec/architecture/ledger.md, "One service, pushed to, never
+# asking".
+[api]
+public = false

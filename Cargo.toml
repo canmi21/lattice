@@ -9,10 +9,12 @@ members = [
 	"apps/geo",
 	"apps/host",
 	"apps/keeper",
+	"apps/ledger",
 	"apps/local",
 	"apps/shot",
 	"libs/deploy",
 	"libs/geocode",
+	"libs/ledger",
 	"libs/response",
 	"libs/urls",
 ]
