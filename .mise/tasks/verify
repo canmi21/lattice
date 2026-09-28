@@ -41,9 +41,11 @@ RUST_ROOT_FILES = {"Cargo.toml", "Cargo.lock"}
 SITE_INPUTS = ("contents/", "data/")
 # A Rust file whose only check is a TypeScript test: the generated mirror of the URL map.
 NODE_CHECKED_RUST = {"libs/urls/src/lib.rs"}
-# Every app's declaration is read by the deploy crate's tests, whichever app it sits in.
+# Every app's declaration is read by the deploy crate's tests and by the gateway's scope table,
+# whichever app it sits in.
 DECLARATION = "service.toml"
 DECLARATION_READERS = {"deploy"}
+DECLARATION_PACKAGES = {"@canmi/gateway"}
 
 
 def plan(files):
@@ -63,6 +65,7 @@ def plan(files):
 		crates |= included.get(f, set())
 		if f.startswith("apps/") and Path(f).name == DECLARATION:
 			crates |= DECLARATION_READERS
+			packages |= DECLARATION_PACKAGES
 		crate = crate_dirs.get(owner(f, crate_dirs) or "")
 		if crate and (suffix == ".rs" or f.endswith("/Cargo.toml")):
 			crates.add(crate)

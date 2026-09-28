@@ -1,0 +1,19 @@
+{
+	"name": "@canmi/gateway",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"deploy": "wrangler deploy --env=\"\"",
+		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
+	},
+	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
+		"@canmi/urls": "workspace:*",
+		"hono": "^4.13.7"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20260911.1",
+		"smol-toml": "^1.9.0",
+		"wrangler": "^4.131.1"
+	}
+}

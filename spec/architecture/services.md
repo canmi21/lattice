@@ -100,6 +100,42 @@ is Caddy on the node. Both are rendered from the one declaration, since two tabl
 are two readings of one format and would come to disagree silently -- the case the workspace's
 `code.md` warns about.
 
+**The public gateway is the Worker `gateway` in `apps/gateway`, on `api.ffoni.com`.** Its table is
+`src/scopes.ts`, generated from every `service.toml` by `mise run scopes` and held to them by a
+test, as is the binding list in its `wrangler.jsonc`. A scope on Workers is a service binding named
+for the scope, and the request reaches it with the scope taken off. A scope on a node goes over that
+node's VPC service to its Caddy as `api.canmi.app`, where host renders the public scopes on the
+tunnel's side and Caddy takes the scope off itself. `hook` is a scope like any other, with no route
+of its own.
+
+**A path with no scope is a 400, on both gateways.** Everything on the API host is under a scope, so
+a request without one is malformed rather than looking for something missing; an unknown scope is a
+404. There is no fallback to the root: what addressed the site's API there stopped working when it
+moved to `/site/`, links in mail already sent included, and that was accepted rather than carried.
+
+## The gateway holds what every API would otherwise repeat
+
+**CORS and limits by address are the gateway's, per scope, and a service writes neither.** Which
+origins may call a scope and how often one address may call which of its routes is a row in
+`apps/gateway/src/policy.ts`; the service behind it is business logic and nothing else. A preflight
+is answered at the gateway without reaching the service, and a scope with no origin policy gives a
+browser no CORS at all. A limit names methods and a path, so it can be as narrow as one route, and
+one whose binding is missing refuses rather than letting everything through. The policy lives in
+TypeScript rather than in `service.toml` because it names origins, and every URL is declared once
+in libs/urls.
+
+**A limit that is business logic stays with the service.** The read counter's per-article minute
+does not refuse anyone -- the reader still gets the count, only the increment is withheld -- so it
+is part of what `/read` means, and it stays in the site's API.
+
+**The gateway is written with Hono**, for its CORS middleware and the one error envelope, which
+every service here already answers in.
+
+**Development goes through the gateway too.** It binds the API's pinned port, so a page reaches every
+API at one address with the same CORS it will meet in production. Each service behind it runs on its
+own, only when it is needed, and the gateway finds it through wrangler's registry of running
+sessions; one that is not running answers as unavailable rather than taking the rest down.
+
 ## A service keeps one port
 
 Every service has a port of five digits, chosen for it and never shared: the same number inside its
@@ -156,12 +192,8 @@ Workers the same way.
 
 The node at home first, proved end to end on the simplest service there is: `geo`, the offline
 gazetteer that names where a photograph was taken, read-only and shipped with its data. Then the
-VPS as a second node, then Workers as a placement with `api` and `cdn` declared in, then failover.
-The declaration carries placements from the first service, so each step adds an implementation
-rather than a field.
-
-## Open
-
-- Whether Workers VPC can address Caddy by hostname. Inferred, not yet verified.
-- What still addresses the site's API at the root, and so how long the root keeps answering as
-  `/site/` while it moves.
+Workers as a placement, with the site, its API and `cdn` declared in, and the API host scoped by
+path in front of them; then the VPS as a second node, then failover. Workers came before the VPS
+because two placements -- `workers` and `home` -- are enough to prove the declaration, and neither
+needs a machine that does not exist yet. The declaration carries placements from the first service,
+so each step adds an implementation rather than a field.

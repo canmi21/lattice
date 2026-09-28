@@ -23,6 +23,7 @@
 		"apps/api",
 		"apps/cdn",
 		"apps/aka",
-		"apps/hook"
+		"apps/hook",
+		"apps/gateway"
 	]
 }

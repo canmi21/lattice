@@ -1,0 +1,44 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "gateway",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-29",
+
+	// The public API host, api.ffoni.com, attached in the dashboard like every other custom domain.
+	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and
+	// src/index.test.ts holds this list to the generated table. See spec/architecture/services.md,
+	// "One API host, scoped by path".
+	"services": [
+		{ "binding": "HOOK", "service": "hook" },
+		{ "binding": "SITE", "service": "site-api" },
+	],
+
+	// The per-address limits src/policy.ts names, moved here from the site's API with their
+	// namespaces. See spec/engagement.md for what each allows.
+	"ratelimits": [
+		{
+			"name": "SITE_ENGAGEMENT_LIMIT",
+			"namespace_id": "959379523",
+			"simple": { "limit": 60, "period": 60 },
+		},
+		{
+			"name": "SITE_NEWSLETTER_LIMIT",
+			"namespace_id": "959379521",
+			"simple": { "limit": 5, "period": 60 },
+		},
+		{
+			"name": "SITE_LIKE_LIMIT",
+			"namespace_id": "959379522",
+			"simple": { "limit": 10, "period": 60 },
+		},
+	],
+
+	// The Caddy of the machine at home, the same VPC service `hook` notifies through.
+	"vpc_services": [
+		{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true },
+	],
+
+	"observability": { "logs": { "enabled": true } },
+	"workers_dev": false,
+	"preview_urls": false,
+}

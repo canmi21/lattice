@@ -414,6 +414,28 @@ importers:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
 
+  apps/gateway:
+    dependencies:
+      '@canmi/artifacts':
+        specifier: workspace:*
+        version: link:../../libs/artifacts
+      '@canmi/urls':
+        specifier: workspace:*
+        version: link:../../libs/urls
+      hono:
+        specifier: ^4.13.7
+        version: 4.13.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20260911.1
+        version: 5.20260922.1
+      smol-toml:
+        specifier: ^1.9.0
+        version: 1.9.0
+      wrangler:
+        specifier: ^4.131.1
+        version: 4.136.1(@cloudflare/workers-types@5.20260922.1)(@types/node@26.6.2)
+
   apps/hook:
     dependencies:
       '@canmi/urls':
@@ -4880,6 +4902,10 @@ packages:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
     engines: {node: '>=18'}
 
+  smol-toml@1.9.0:
+    resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
+    engines: {node: '>= 18'}
+
   sorcery@1.0.0:
     resolution: {integrity: sha512-5ay9oJE+7sNmhzl3YNG18jEEEf4AOQCM/FAqR5wMmzqd1FtRorFbJXn3w3SKOhbiQaVgHM+Q1lszZspjri7bpA==}
     hasBin: true
@@ -9170,6 +9196,8 @@ snapshots:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
       totalist: 3.0.1
+
+  smol-toml@1.9.0: {}
 
   sorcery@1.0.0:
     dependencies:
