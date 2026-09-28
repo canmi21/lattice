@@ -24,6 +24,10 @@ pub const MARK: (&str, &str) = ("x-gateway", "public");
 /// How long a caller may keep a picture: longer than it is kept here, which is the caller's to use.
 const PICTURE_CACHE: &str = "public, max-age=900";
 
+/// How long a caller may keep a done task. Nothing done changes, but the store may roll it out at
+/// any time, so a few minutes rather than until a fixed expiry, which there is none of.
+const TASK_CACHE: &str = "public, max-age=300";
+
 pub fn routes<R: Render>(shot: Arc<Shot<R>>) -> Router {
 	Router::new()
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
@@ -84,49 +88,14 @@ fn capture<R: Render>(
 			return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_timing"));
 		}
 	};
-	let asked = shot.queue().ask(asked, lane);
-	match asked {
+	match shot.ask(asked, lane) {
 		Err(Full) => {
 			let mut answer = response::failure(StatusCode::SERVICE_UNAVAILABLE, "queue_unavailable");
 			answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from_static("30"));
 			settled(answer)
 		}
-		Ok(id) => {
-			shot.wake();
-			taken(id, shot.about(id))
-		}
+		Ok(id) => taken(id, shot.about(id)),
 	}
-}
-
-/// Milliseconds from one moment to a later one, when both happened.
-fn between(from: Option<jiff::Timestamp>, to: Option<jiff::Timestamp>) -> Option<i64> {
-	Some(to?.duration_since(from?).as_millis() as i64)
-}
-
-/// When each thing happened to a capture, and what it asked for. See spec/architecture/shot.md,
-/// "What an answer tells".
-fn story(details: &Details) -> (serde_json::Value, serde_json::Value) {
-	let expires = details.finished_at.and_then(|at| at.checked_add(crate::queue::KEPT).ok());
-	let task = serde_json::json!({
-		"asked_at": details.asked_at,
-		"started_at": details.started_at,
-		"finished_at": details.finished_at,
-		"expires_at": expires,
-		"queued_ms": between(Some(details.asked_at), details.started_at),
-		"rendered_ms": between(details.started_at, details.finished_at),
-	});
-	let asked = &details.asked;
-	let request = serde_json::json!({
-		"url": asked.url.as_str(),
-		"width": asked.width,
-		"height": asked.height,
-		"full": asked.full,
-		"timeout": f64::from(asked.timeout) / 1000.0,
-		"delay": f64::from(asked.delay) / 1000.0,
-		"insecure": asked.insecure,
-		"internal": asked.internal,
-	});
-	(task, request)
 }
 
 /// That a capture was taken, and where to ask after it: its state and nothing it found, which is
@@ -141,72 +110,53 @@ fn taken(id: Uuid, known: Option<(View, Details)>) -> Response {
 		// Asking again queues a failed capture afresh, so none is failed here; said all the same.
 		Some(View::Failed { .. }) | None => ("failed", 0),
 	};
-	let task = format!("tasks/{id}");
-	let body =
-		serde_json::json!({ "id": id, "state": state, "retry_after": retry_after, "task": task });
+	let body = serde_json::json!({ "id": id, "state": state, "retry_after": retry_after });
 	let mut answer = response::success(StatusCode::ACCEPTED, body);
 	let headers = answer.headers_mut();
 	if retry_after > 0 {
 		headers.insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
 	}
-	if let Ok(location) = HeaderValue::from_str(&task) {
+	if let Ok(location) = HeaderValue::from_str(&format!("tasks/{id}")) {
 		headers.insert(header::LOCATION, location);
 	}
 	settled(answer)
 }
 
 /// How a capture stands: `202` while it waits or renders, `200` with all it found once done, which
-/// may be kept until the capture is forgotten. Pictures are `../pictures/<id>.png` beside it.
+/// may be kept a while. Answered from memory while the queue remembers the capture, and from its
+/// record on disk after, until the store rolls it out.
 async fn task<R: Render>(State(shot): State<Arc<Shot<R>>>, Path(id): Path<String>) -> Response {
-	let known = Uuid::parse_str(&id).ok().and_then(|id| Some((id, shot.about(id)?)));
-	let Some((id, (view, details))) = known else {
+	let Ok(id) = Uuid::parse_str(&id) else {
 		return settled(response::failure(StatusCode::NOT_FOUND, "no_such_task"));
 	};
-	match view {
-		View::Waiting { rendering, retry_after } => {
-			let state = if rendering { "rendering" } else { "queued" };
-			let body = serde_json::json!({ "id": id, "state": state, "retry_after": retry_after });
-			let mut answer = response::success(StatusCode::ACCEPTED, body);
-			answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
-			settled(answer)
-		}
-		View::Done { made } => {
-			let (task, request) = story(&details);
-			let mut body = serde_json::json!({
-				"id": id,
-				"state": "done",
-				"png": format!("../pictures/{id}.png"),
-				"webp": made.pictures.webp_bytes.map(|_| format!("../pictures/{id}.webp")),
-				"task": task,
-				"request": request,
-				"pictures": made.pictures,
-			});
-			// What the page did sits beside the rest: `page`, `load`, `connection`, `health`.
-			if let (Some(body), serde_json::Value::Object(observed)) =
-				(body.as_object_mut(), made.observed)
-			{
-				body.extend(observed);
+	if let Some((view, details)) = shot.about(id) {
+		return match view {
+			View::Waiting { rendering, retry_after } => {
+				let state = if rendering { "rendering" } else { "queued" };
+				let body = serde_json::json!({ "id": id, "state": state, "retry_after": retry_after });
+				let mut answer = response::success(StatusCode::ACCEPTED, body);
+				answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
+				settled(answer)
 			}
-			let mut answer = response::success(StatusCode::OK, body);
-			let left = details
-				.finished_at
-				.and_then(|at| at.checked_add(crate::queue::KEPT).ok())
-				.map(|expires| expires.duration_since(jiff::Timestamp::now()).as_secs())
-				.filter(|seconds| *seconds > 0);
-			match left
-				.and_then(|seconds| HeaderValue::from_str(&format!("public, max-age={seconds}")).ok())
-			{
-				Some(control) => {
-					answer.headers_mut().insert(header::CACHE_CONTROL, control);
-					answer
-				}
-				None => settled(answer),
-			}
-		}
-		View::Failed { reason } => {
-			settled(response::failure_with(StatusCode::BAD_GATEWAY, "page_unavailable", reason))
-		}
+			View::Done { made } => done(crate::record::done(id, &made, &details)),
+			View::Failed { reason } => failed(&reason),
+		};
 	}
+	match shot.store.read_record(id).await {
+		Some(record) if record["state"] == "done" => done(record),
+		Some(record) => failed(record["reason"].as_str().unwrap_or_default()),
+		None => settled(response::failure(StatusCode::NOT_FOUND, "no_such_task")),
+	}
+}
+
+fn done(record: serde_json::Value) -> Response {
+	let mut answer = response::success(StatusCode::OK, record);
+	answer.headers_mut().insert(header::CACHE_CONTROL, HeaderValue::from_static(TASK_CACHE));
+	answer
+}
+
+fn failed(reason: &str) -> Response {
+	settled(response::failure_with(StatusCode::BAD_GATEWAY, "page_unavailable", reason))
 }
 
 /// The picture, or that there is none: waiting, failed and forgotten are the task's to tell apart.
@@ -234,7 +184,7 @@ async fn picture<R: Render>(
 mod tests {
 	use super::*;
 	use crate::render::Capture;
-	use crate::store::Store;
+	use crate::store::{CAPACITY, Store};
 	use axum::body::Body;
 	use axum::http::Request;
 	use http_body_util::BodyExt;
@@ -284,9 +234,19 @@ mod tests {
 
 	fn service() -> (tempfile::TempDir, Arc<Shot<Fake>>, Router) {
 		let root = tempfile::tempdir().unwrap();
-		let shot = Shot::new(Store::open(root.path()).unwrap(), Fake);
-		let router = routes(shot.clone());
+		let (shot, router) = over(root.path(), CAPACITY);
 		(root, shot, router)
+	}
+
+	/// The service over a directory, as it starts: a fresh queue over whatever the store keeps.
+	fn over(root: &std::path::Path, capacity: u64) -> (Arc<Shot<Fake>>, Router) {
+		let shot = Shot::new(Store::open(root, capacity).unwrap(), Fake, None);
+		let router = routes(shot.clone());
+		(shot, router)
+	}
+
+	async fn capture(router: &Router, path: &str) -> String {
+		ask(router, path, false).await.json()["data"]["id"].as_str().unwrap().to_owned()
 	}
 
 	/// Render whatever is queued, as the background renderers would.
@@ -307,7 +267,8 @@ mod tests {
 		assert_eq!(body["data"]["state"], "queued");
 		let id = body["data"]["id"].as_str().unwrap().to_owned();
 		assert_eq!(first.headers[header::LOCATION], format!("tasks/{id}"));
-		assert_eq!(body["data"]["task"], format!("tasks/{id}"));
+		// The id is said once; where to ask is the header's.
+		assert!(body["data"].get("task").is_none());
 		assert_eq!(first.headers[header::RETRY_AFTER], "5");
 		assert_eq!(first.headers[header::CACHE_CONTROL], "no-store");
 		// Taking it tells nothing of what it will find.
@@ -332,17 +293,13 @@ mod tests {
 		assert_eq!(done.status, StatusCode::OK);
 		assert_eq!(done.json()["data"]["png"], format!("../pictures/{id}.png"));
 		assert_eq!(done.json()["data"]["webp"], format!("../pictures/{id}.webp"));
-		let control = done.headers[header::CACHE_CONTROL].to_str().unwrap().to_owned();
-		assert!(
-			control.starts_with("public, max-age=2") || control == "public, max-age=300",
-			"{control}"
-		);
+		assert_eq!(done.headers[header::CACHE_CONTROL], TASK_CACHE);
 		let data = done.json()["data"].clone();
 		assert_eq!(data["pictures"]["width"], 390);
 		assert_eq!(data["pictures"]["png_bytes"], 3);
 		assert_eq!(data["request"]["url"], "https://example.test/");
 		assert_eq!(data["request"]["delay"], 0.21);
-		assert!(data["task"]["rendered_ms"].is_i64() && data["task"]["expires_at"].is_string());
+		assert!(data["task"]["rendered_ms"].is_i64() && data["task"].get("expires_at").is_none());
 		assert_eq!(data["page"]["title"], "Fake");
 		for (extension, media) in [("png", "image/png"), ("webp", "image/webp")] {
 			let picture = ask(&router, &format!("/pictures/{id}.{extension}"), true).await;
@@ -378,7 +335,7 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn says_why_a_capture_failed_and_forgets_it_after_five_minutes() {
+	async fn says_why_a_capture_failed_after_memory_forgets_it() {
 		let (_root, shot, router) = service();
 		let id = ask(&router, "/capture?host=broken.test", false).await.json()["data"]["id"]
 			.as_str()
@@ -393,12 +350,64 @@ mod tests {
 			ask(&router, &format!("/pictures/{id}.png"), false).await.status,
 			StatusCode::NOT_FOUND
 		);
-		shot.sweep(Instant::now() + crate::queue::KEPT).await;
-		let gone = ask(&router, &format!("/tasks/{id}"), false).await;
+		shot.queue().sweep(Instant::now() + crate::queue::WINDOW);
+		assert!(shot.view(id.parse().unwrap()).is_none());
+		let kept = ask(&router, &format!("/tasks/{id}"), false).await;
+		assert_eq!(kept.status, StatusCode::BAD_GATEWAY);
+		assert_eq!(kept.json()["message"], "net::ERR_NAME_NOT_RESOLVED");
+		assert_eq!(kept.headers[header::CACHE_CONTROL], "no-store");
+		// Its window past, the same ask is a capture of its own.
+		assert_ne!(capture(&router, "/capture?host=broken.test").await, id);
+	}
+
+	#[tokio::test]
+	async fn answers_from_disk_after_a_restart() {
+		let (root, shot, router) = service();
+		let id = capture(&router, "/capture?host=example.test").await;
+		let broken = capture(&router, "/capture?host=broken.test").await;
+		drain(&shot).await;
+		let before = ask(&router, &format!("/tasks/{id}"), false).await.json();
+		drop((shot, router));
+
+		let (_shot, router) = over(root.path(), CAPACITY);
+		let after = ask(&router, &format!("/tasks/{id}"), false).await;
+		assert_eq!(after.status, StatusCode::OK);
+		assert_eq!(after.headers[header::CACHE_CONTROL], TASK_CACHE);
+		assert_eq!(after.json(), before);
+		assert_eq!(ask(&router, &format!("/pictures/{id}.webp"), false).await.body, b"webp");
+		let failed = ask(&router, &format!("/tasks/{broken}"), false).await;
+		assert_eq!(failed.status, StatusCode::BAD_GATEWAY);
+		assert_eq!(failed.json()["message"], "net::ERR_NAME_NOT_RESOLVED");
+		// Remembered by nobody now, the same ask is captured afresh.
+		assert_ne!(capture(&router, "/capture?host=example.test").await, id);
+	}
+
+	#[tokio::test]
+	async fn rolls_out_the_oldest_capture_past_its_capacity() {
+		// One capture's size, measured, sets a store with room for one and a half.
+		let (root, shot, router) = service();
+		capture(&router, "/capture?host=a.test").await;
+		drain(&shot).await;
+		let one = shot.store.bytes();
+		drop(root);
+		let root = tempfile::tempdir().unwrap();
+		let (shot, router) = over(root.path(), one + one / 2);
+
+		let first = capture(&router, "/capture?host=a.test").await;
+		drain(&shot).await;
+		let second = capture(&router, "/capture?host=b.test").await;
+		drain(&shot).await;
+		for path in [format!("/tasks/{first}"), format!("/pictures/{first}.png")] {
+			assert_eq!(ask(&router, &path, false).await.status, StatusCode::NOT_FOUND, "{path}");
+		}
 		assert_eq!(
-			(gone.status, gone.json()["code"].clone()),
-			(StatusCode::NOT_FOUND, "no_such_task".into())
+			ask(&router, &format!("/tasks/{first}"), false).await.json()["code"],
+			"no_such_task"
 		);
+		assert_eq!(ask(&router, &format!("/tasks/{second}"), false).await.status, StatusCode::OK);
+		assert!(shot.store.bytes() <= one + one / 2);
+		// Rolled out, it is forgotten by the queue as well, and asked again is a new capture.
+		assert_ne!(capture(&router, "/capture?host=a.test").await, first);
 	}
 
 	#[tokio::test]

@@ -15,10 +15,12 @@ Each tells its own and nothing of the others'.
 
 | Request                                                       | Answer                                                                                       |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after, task }`: `queued`, `rendering` or `done`, nothing more |
+| `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after }` and `Location: tasks/<id>`: its state, nothing more |
 | `GET /shot/tasks/<id>`                                        | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done    |
 | `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said          |
 
+- **The id is said once, in the body; where to ask is the `Location` header's**, never a second
+  field repeating the id.
 - **A capture asked for again answers the same way** whether it waits or is done: one flow for the
   caller, who reads what it found from the task. One that failed is queued afresh.
 - **A picture is there or it is not.** Waiting, failed and forgotten are the task's to tell apart,
@@ -122,13 +124,21 @@ on".
   gateway; asking after one and fetching it are not counted. Cloudflare's zone rate rule is the
   floor under that.
 
-## Kept on disk, five minutes
+## Kept on disk, four gigabytes, oldest first
 
 **Nothing held in memory is a picture.** Each capture is written beside its id in the service's
-directory, through a temporary file and a rename, and a sweep every thirty seconds deletes what is
-older than five minutes, failures included. The directory is emptied when the service starts. The
-queue itself -- ids and their states -- is memory, and lost with the process, which only means a
-caller asks again.
+directory, through a temporary file and a rename: its pictures, and what its task says -- the
+record `tasks/<id>` answers with -- as `<id>.json`. The directory is kept across restarts.
+
+**The store holds four gigabytes, and the oldest capture goes when a new one would pass it.** A
+capture's pictures and its record leave together; until then `tasks/<id>` and `pictures/<id>.png`
+answer for it however long ago it was made. A failure keeps its record alone.
+
+**The same page asked again within thirty minutes is the capture already made**; after that it is
+captured again, and the older one stays by its own id until the store rolls it out.
+
+**Every capture is a record in the ledger**, queued, running and done, sent as it happens, and kept
+there after the store has let the pictures go. See [ledger.md](ledger.md).
 
 ## Only public addresses
 

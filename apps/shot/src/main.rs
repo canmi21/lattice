@@ -36,7 +36,11 @@ async fn main() -> anyhow::Result<()> {
 	if let Err(error) = browser.warm().await {
 		eprintln!("shot: {error}; it is tried again with the first capture");
 	}
-	let shot = Shot::new(Store::open(&data)?, browser);
+	let capacity = match std::env::var("SHOT_STORE_BYTES") {
+		Ok(bytes) => bytes.parse()?,
+		Err(_) => shot::store::CAPACITY,
+	};
+	let shot = Shot::new(Store::open(&data, capacity)?, browser, Some(ledger::Ledger::start()));
 	shot.start();
 	let listener = tokio::net::TcpListener::bind(&listen).await?;
 	eprintln!("shot: listening on {listen}, keeping captures in {}", data.display());

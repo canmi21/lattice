@@ -1,14 +1,16 @@
 //! The captures asked for and where each is: waiting in one of two lanes, rendering, done or
-//! failed, until it is five minutes settled. Ours go ahead of the public's, always. Nothing here is
-//! a picture; those are on disk. See spec/architecture/shot.md, "Two queues, and ours go first".
+//! failed, remembered for thirty minutes from being asked, after which the disk answers for it.
+//! Ours go ahead of the public's, always. Nothing here is a picture; those are on disk. See
+//! spec/architecture/shot.md, "Two queues, and ours go first" and "Kept on disk, four gigabytes,
+//! oldest first".
 
 use crate::asked::Asked;
 use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, Instant};
 use uuid::Uuid;
 
-/// How long a settled capture is kept, done or failed.
-pub const KEPT: Duration = Duration::from_secs(5 * 60);
+/// How long the same ask is the capture already made, from when it was asked.
+pub const WINDOW: Duration = Duration::from_secs(30 * 60);
 
 /// Whose a capture is: ours -- the LAN, the tailnet, a Worker -- or the public's.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -63,8 +65,8 @@ struct Job {
 	asked: Asked,
 	lane: Lane,
 	state: State,
-	/// When it was done or failed.
-	settled: Option<Instant>,
+	/// When it was asked for, which its window runs from.
+	since: Instant,
 	/// When it was asked for, taken by a browser, and done with, as a caller is told them.
 	asked_at: jiff::Timestamp,
 	started_at: Option<jiff::Timestamp>,
@@ -75,6 +77,7 @@ struct Job {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Details {
 	pub asked: Asked,
+	pub lane: Lane,
 	pub asked_at: jiff::Timestamp,
 	pub started_at: Option<jiff::Timestamp>,
 	pub finished_at: Option<jiff::Timestamp>,
@@ -99,10 +102,17 @@ pub enum View {
 #[derive(Debug, PartialEq)]
 pub struct Full;
 
+/// An ask taken: the capture it is, and whether it was queued by this ask, new or tried again.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Entered {
+	pub id: Uuid,
+	pub queued: bool,
+}
+
 #[derive(Debug)]
 pub struct Queue {
 	jobs: HashMap<Uuid, Job>,
-	/// The capture each distinct ask is, while it is kept.
+	/// The capture each distinct ask is, while it is remembered.
 	by_asked: HashMap<Asked, Uuid>,
 	waiting: [VecDeque<Uuid>; 2],
 	/// How many render at once.
@@ -128,6 +138,11 @@ impl Queue {
 	/// Take an ask: the capture it already is, or a new one in `lane`. A failed one is tried again,
 	/// since the page may be back; one of ours asked for what the public is waiting on moves it up.
 	pub fn ask(&mut self, asked: Asked, lane: Lane) -> Result<Uuid, Full> {
+		self.enter(asked, lane).map(|entered| entered.id)
+	}
+
+	/// `ask`, saying whether the ask queued anything.
+	pub fn enter(&mut self, asked: Asked, lane: Lane) -> Result<Entered, Full> {
 		if let Some(&id) = self.by_asked.get(&asked) {
 			let job = self.jobs.get_mut(&id).expect("an ask names a job it holds");
 			match job.state {
@@ -142,15 +157,16 @@ impl Queue {
 					}
 					job.state = State::Queued;
 					job.lane = lane;
-					job.settled = None;
+					job.since = Instant::now();
 					job.asked_at = jiff::Timestamp::now();
 					job.started_at = None;
 					job.finished_at = None;
 					self.waiting[lane.index()].push_back(id);
+					return Ok(Entered { id, queued: true });
 				}
 				_ => {}
 			}
-			return Ok(id);
+			return Ok(Entered { id, queued: false });
 		}
 		if self.waiting[lane.index()].len() >= lane.capacity() {
 			return Err(Full);
@@ -161,14 +177,14 @@ impl Queue {
 			asked,
 			lane,
 			state: State::Queued,
-			settled: None,
+			since: Instant::now(),
 			asked_at: jiff::Timestamp::now(),
 			started_at: None,
 			finished_at: None,
 		};
 		self.jobs.insert(id, job);
 		self.waiting[lane.index()].push_back(id);
-		Ok(id)
+		Ok(Entered { id, queued: true })
 	}
 
 	/// The next capture to render, ours first, marked as rendering.
@@ -180,16 +196,21 @@ impl Queue {
 		Some((id, job.asked.clone()))
 	}
 
-	/// A capture is over: `Ok` with whether a WebP was made, or why it failed, and how long it took.
-	pub fn finish(&mut self, id: Uuid, outcome: Result<Made, String>, took: Duration, now: Instant) {
+	/// A capture is over: `Ok` with what it made, or why it failed, how long it took, and when.
+	pub fn finish(
+		&mut self,
+		id: Uuid,
+		outcome: Result<Made, String>,
+		took: Duration,
+		finished_at: jiff::Timestamp,
+	) {
 		self.average = self.average * 0.7 + took.as_secs_f64() * 0.3;
 		if let Some(job) = self.jobs.get_mut(&id) {
 			job.state = match outcome {
 				Ok(made) => State::Done { made },
 				Err(reason) => State::Failed { reason },
 			};
-			job.settled = Some(now);
-			job.finished_at = Some(jiff::Timestamp::now());
+			job.finished_at = Some(finished_at);
 		}
 	}
 
@@ -210,6 +231,7 @@ impl Queue {
 		let job = self.jobs.get(&id)?;
 		Some(Details {
 			asked: job.asked.clone(),
+			lane: job.lane,
 			asked_at: job.asked_at,
 			started_at: job.started_at,
 			finished_at: job.finished_at,
@@ -224,20 +246,30 @@ impl Queue {
 		seconds((ahead as f64 / self.concurrency as f64 + 1.0) * self.average)
 	}
 
-	/// Forget every capture settled longer ago than it is kept; answers them, for their files to go.
+	/// Forget every settled capture whose window has passed, the disk answering for it from then;
+	/// answers which were forgotten.
 	pub fn sweep(&mut self, now: Instant) -> Vec<Uuid> {
-		let expired: Vec<Uuid> = self
+		let passed: Vec<Uuid> = self
 			.jobs
 			.iter()
-			.filter(|(_, job)| job.settled.is_some_and(|at| now.duration_since(at) >= KEPT))
+			.filter(|(_, job)| now.duration_since(job.since) >= WINDOW)
 			.map(|(id, _)| *id)
 			.collect();
-		for id in &expired {
-			if let Some(job) = self.jobs.remove(id) {
+		self.forget(&passed);
+		passed.into_iter().filter(|id| !self.jobs.contains_key(id)).collect()
+	}
+
+	/// Forget these captures, the settled among them: rolled out of the store, or past their window.
+	pub fn forget(&mut self, ids: &[Uuid]) {
+		for id in ids {
+			let settled = self
+				.jobs
+				.get(id)
+				.is_some_and(|job| matches!(job.state, State::Done { .. } | State::Failed { .. }));
+			if settled && let Some(job) = self.jobs.remove(id) {
 				self.by_asked.remove(&job.asked);
 			}
 		}
-		expired
 	}
 }
 
@@ -318,17 +350,17 @@ mod tests {
 		assert_eq!(wait(&queue, public[3]), 15);
 		// Quick captures pull the pace down, to the floor of one second.
 		while let Some((id, _)) = queue.take() {
-			queue.finish(id, Ok(made()), Duration::from_millis(500), Instant::now());
+			queue.finish(id, Ok(made()), Duration::from_millis(500), jiff::Timestamp::now());
 		}
 		for _ in 0..10 {
-			queue.finish(ours, Ok(made()), Duration::from_millis(500), Instant::now());
+			queue.finish(ours, Ok(made()), Duration::from_millis(500), jiff::Timestamp::now());
 		}
 		let late = queue.ask(asked("late"), Lane::Public).unwrap();
 		assert_eq!(wait(&queue, late), 1);
 	}
 
 	#[test]
-	fn settles_and_is_forgotten_five_minutes_after() {
+	fn settles_and_is_forgotten_thirty_minutes_after_it_was_asked() {
 		let mut queue = Queue::new(2);
 		let done = queue.ask(asked("d"), Lane::Ours).unwrap();
 		let failed = queue.ask(asked("f"), Lane::Ours).unwrap();
@@ -337,8 +369,9 @@ mod tests {
 		assert!(matches!(queue.view(done), Some(View::Waiting { rendering: true, .. })));
 		queue.take();
 		let at = Instant::now();
-		queue.finish(done, Ok(made()), Duration::from_secs(2), at);
-		queue.finish(failed, Err("net::ERR_NAME_NOT_RESOLVED".into()), Duration::from_secs(2), at);
+		let now = jiff::Timestamp::now();
+		queue.finish(done, Ok(made()), Duration::from_secs(2), now);
+		queue.finish(failed, Err("net::ERR_NAME_NOT_RESOLVED".into()), Duration::from_secs(2), now);
 		assert_eq!(queue.view(done), Some(View::Done { made: made() }));
 		let details = queue.details(done).unwrap();
 		assert!(Some(details.asked_at) <= details.started_at);
@@ -346,16 +379,31 @@ mod tests {
 		assert!(queue.details(waiting).unwrap().started_at.is_none());
 		assert!(matches!(queue.view(failed), Some(View::Failed { .. })));
 
-		assert!(queue.sweep(at + KEPT - Duration::from_secs(1)).is_empty());
-		let mut expired = queue.sweep(at + KEPT);
-		expired.sort();
+		// Within the window the same ask is the capture already made.
+		assert!(queue.sweep(at + WINDOW - Duration::from_secs(60)).is_empty());
+		assert_eq!(queue.ask(asked("d"), Lane::Public), Ok(done));
+		let mut forgotten = queue.sweep(at + WINDOW);
+		forgotten.sort();
 		let mut expected = vec![done, failed];
 		expected.sort();
-		assert_eq!(expired, expected);
+		assert_eq!(forgotten, expected);
 		assert_eq!(queue.view(done), None);
-		// Unsettled, it stays however long it waits; and a forgotten ask is a new capture.
+		// Unsettled, it stays however long it waits; and past its window an ask is a new capture.
 		assert!(queue.view(waiting).is_some());
 		assert_ne!(queue.ask(asked("d"), Lane::Ours), Ok(done));
+	}
+
+	#[test]
+	fn forgets_only_what_is_settled() {
+		let mut queue = Queue::new(1);
+		let done = queue.ask(asked("d"), Lane::Ours).unwrap();
+		let waiting = queue.ask(asked("w"), Lane::Ours).unwrap();
+		queue.take();
+		queue.finish(done, Ok(made()), Duration::from_secs(1), jiff::Timestamp::now());
+		queue.forget(&[done, waiting]);
+		assert_eq!(queue.view(done), None);
+		assert!(queue.view(waiting).is_some());
+		assert_eq!(queue.ask(asked("w"), Lane::Ours), Ok(waiting));
 	}
 
 	#[test]
@@ -363,8 +411,9 @@ mod tests {
 		let mut queue = Queue::new(1);
 		let id = queue.ask(asked("f"), Lane::Public).unwrap();
 		queue.take();
-		queue.finish(id, Err("timed out".into()), Duration::from_secs(20), Instant::now());
-		assert_eq!(queue.ask(asked("f"), Lane::Public), Ok(id));
+		queue.finish(id, Err("timed out".into()), Duration::from_secs(20), jiff::Timestamp::now());
+		assert_eq!(queue.enter(asked("f"), Lane::Public), Ok(Entered { id, queued: true }));
+		assert_eq!(queue.enter(asked("f"), Lane::Public), Ok(Entered { id, queued: false }));
 		assert!(matches!(queue.view(id), Some(View::Waiting { rendering: false, .. })));
 		assert_eq!(queue.take().map(|(next, _)| next), Some(id));
 	}

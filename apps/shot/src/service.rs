@@ -1,12 +1,15 @@
 //! The service's state and the work it does in the background: renderers taking captures off the
-//! queue two at a time, and a sweep that forgets what has been kept long enough.
+//! queue two at a time, a sweep that forgets from memory what the disk answers for, and each change
+//! of state told to the ledger.
 
-use crate::queue::{Queue, View};
-use crate::render::Render;
+use crate::asked::Asked;
+use crate::queue::{Details, Full, Lane, Made, Queue, View};
+use crate::render::{Capture, Render};
 use crate::store::{Format, Store};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 use tokio::sync::Notify;
+use uuid::Uuid;
 
 /// How many captures render at once: a browser page each, on a machine with other work to do.
 pub const CONCURRENCY: usize = 2;
@@ -22,15 +25,18 @@ pub struct Shot<R> {
 	/// Rung when a capture is queued, for a renderer waiting on nothing.
 	queued: Notify,
 	renderer: R,
+	/// Where each change of state is told; none in a test. See spec/architecture/ledger.md.
+	ledger: Option<ledger::Ledger>,
 }
 
 impl<R: Render> Shot<R> {
-	pub fn new(store: Store, renderer: R) -> Arc<Self> {
+	pub fn new(store: Store, renderer: R, ledger: Option<ledger::Ledger>) -> Arc<Self> {
 		Arc::new(Self {
 			queue: Mutex::new(Queue::new(CONCURRENCY)),
 			store,
 			queued: Notify::new(),
 			renderer,
+			ledger,
 		})
 	}
 
@@ -43,12 +49,22 @@ impl<R: Render> Shot<R> {
 		self.queued.notify_one();
 	}
 
-	pub fn view(&self, id: uuid::Uuid) -> Option<View> {
+	/// Take an ask, telling the ledger of what it queued and waking a renderer for it.
+	pub fn ask(&self, asked: Asked, lane: Lane) -> Result<Uuid, Full> {
+		let entered = self.queue().enter(asked, lane)?;
+		if entered.queued {
+			self.tell(entered.id);
+			self.wake();
+		}
+		Ok(entered.id)
+	}
+
+	pub fn view(&self, id: Uuid) -> Option<View> {
 		self.queue().view(id)
 	}
 
 	/// How a capture stands, with its story, read at one moment.
-	pub fn about(&self, id: uuid::Uuid) -> Option<(View, crate::queue::Details)> {
+	pub fn about(&self, id: Uuid) -> Option<(View, Details)> {
 		let queue = self.queue();
 		Some((queue.view(id)?, queue.details(id)?))
 	}
@@ -64,7 +80,7 @@ impl<R: Render> Shot<R> {
 			let mut every = tokio::time::interval(SWEEP);
 			loop {
 				every.tick().await;
-				shot.sweep(Instant::now()).await;
+				shot.queue().sweep(Instant::now());
 			}
 		});
 	}
@@ -79,45 +95,176 @@ impl<R: Render> Shot<R> {
 		}
 	}
 
-	pub async fn render_one(&self, id: uuid::Uuid, asked: &crate::asked::Asked) {
+	pub async fn render_one(&self, id: Uuid, asked: &Asked) {
+		self.tell(id);
 		let started = Instant::now();
 		let deadline = Duration::from_millis(u64::from(asked.timeout + asked.delay)) + MARGIN;
 		let outcome = match tokio::time::timeout(deadline, self.renderer.capture(asked)).await {
 			Err(_) => Err(format!("The capture took longer than {} seconds", deadline.as_secs())),
-			Ok(Err(reason)) => Err(reason),
-			Ok(Ok(capture)) => self.keep(id, capture).await,
+			Ok(outcome) => outcome,
 		};
-		self.queue().finish(id, outcome, started.elapsed(), Instant::now());
+		let finished_at = jiff::Timestamp::now();
+		let outcome = self.keep(id, outcome, finished_at).await;
+		self.queue().finish(id, outcome, started.elapsed(), finished_at);
+		self.tell(id);
 		// Another renderer may be waiting on a capture queued while this one was busy.
 		self.wake();
 	}
 
+	/// Write a settled capture to the store -- its pictures and its record, or a failure's record
+	/// alone -- before the queue says it is settled, so the disk answers as soon as memory forgets.
 	async fn keep(
 		&self,
-		id: uuid::Uuid,
-		capture: crate::render::Capture,
-	) -> Result<crate::queue::Made, String> {
-		let stored = |error: std::io::Error| {
-			eprintln!("shot: keeping {id}: {error}");
-			"The capture could not be kept".to_owned()
+		id: Uuid,
+		outcome: Result<Capture, String>,
+		finished_at: jiff::Timestamp,
+	) -> Result<Made, String> {
+		let Some(details) = self.queue().details(id) else {
+			// A capture rendering is never forgotten; said all the same rather than assumed.
+			return Err("The capture was forgotten while it was taken".to_owned());
 		};
-		self.store.write(id, Format::Png, &capture.png).await.map_err(stored)?;
-		if let Some(webp) = &capture.webp {
-			self.store.write(id, Format::Webp, webp).await.map_err(stored)?;
-		}
+		let details = Details { finished_at: Some(finished_at), ..details };
+		let capture = match outcome {
+			Ok(capture) => capture,
+			Err(reason) => {
+				self.keep_failure(id, &reason, &details).await;
+				return Err(reason);
+			}
+		};
 		let pictures = crate::queue::Pictures {
 			width: capture.width,
 			height: capture.height,
 			png_bytes: capture.png.len() as u64,
 			webp_bytes: capture.webp.as_ref().map(|webp| webp.len() as u64),
 		};
-		Ok(crate::queue::Made { pictures, observed: capture.observed })
+		let made = Made { pictures, observed: capture.observed.clone() };
+		let record = serde_json::to_vec(&crate::record::done(id, &made, &details)).unwrap_or_default();
+		match self.write(id, &capture, &record).await {
+			Ok(()) => Ok(made),
+			Err(error) => {
+				eprintln!("shot: keeping {id}: {error}");
+				self.store.remove(id).await;
+				let reason = "The capture could not be kept";
+				self.keep_failure(id, reason, &details).await;
+				Err(reason.to_owned())
+			}
+		}
 	}
 
-	pub async fn sweep(&self, now: Instant) {
-		let expired = self.queue().sweep(now);
-		for id in expired {
-			self.store.remove(id).await;
+	async fn write(&self, id: Uuid, capture: &Capture, record: &[u8]) -> std::io::Result<()> {
+		let bytes = capture.png.len() + capture.webp.as_ref().map_or(0, Vec::len) + record.len();
+		self.make_room(id, bytes).await;
+		self.store.write(id, Format::Png, &capture.png).await?;
+		if let Some(webp) = &capture.webp {
+			self.store.write(id, Format::Webp, webp).await?;
 		}
+		self.store.write_record(id, record).await
+	}
+
+	async fn keep_failure(&self, id: Uuid, reason: &str, details: &Details) {
+		let record =
+			serde_json::to_vec(&crate::record::failed(id, reason, details)).unwrap_or_default();
+		self.make_room(id, record.len()).await;
+		if let Err(error) = self.store.write_record(id, &record).await {
+			eprintln!("shot: keeping {id}'s failure: {error}");
+		}
+	}
+
+	/// Roll the oldest out of the store for a capture about to be written, and out of memory too, so
+	/// neither answers for what the other no longer has.
+	async fn make_room(&self, id: Uuid, bytes: usize) {
+		let out = self.store.admit(id, bytes as u64).await;
+		self.queue().forget(&out);
+	}
+
+	/// A capture as the ledger keeps it, as it stands now.
+	pub fn record(&self, id: Uuid) -> Option<ledger::Record> {
+		let (view, details) = self.about(id)?;
+		let (state, detail) = match view {
+			View::Waiting { rendering: false, .. } => (ledger::State::Queued, None),
+			View::Waiting { rendering: true, .. } => (ledger::State::Running, None),
+			View::Done { .. } => (ledger::State::Done, None),
+			View::Failed { reason } => (ledger::State::Failed, Some(reason)),
+		};
+		let caller = match details.lane {
+			Lane::Public => ledger::Caller::Public,
+			Lane::Ours => ledger::Caller::Ours,
+		};
+		let asked = &details.asked;
+		Some(ledger::Record {
+			service: "shot".into(),
+			id: id.to_string(),
+			kind: "capture".into(),
+			state,
+			caller,
+			asked_at: details.asked_at,
+			started_at: details.started_at,
+			finished_at: details.finished_at,
+			summary: serde_json::json!({
+				"url": asked.url.as_str(),
+				"width": asked.width,
+				"height": asked.height,
+				"full": asked.full,
+			}),
+			detail,
+		})
+	}
+
+	/// Tell the ledger how a capture stands; it returns at once, whether the ledger is up or not.
+	fn tell(&self, id: Uuid) {
+		if let Some(ledger) = &self.ledger
+			&& let Some(record) = self.record(id)
+		{
+			ledger.record(record);
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use url::Url;
+
+	struct Refuses;
+
+	impl Render for Refuses {
+		async fn capture(&self, _: &Asked) -> Result<Capture, String> {
+			Err("net::ERR_CONNECTION_REFUSED".into())
+		}
+	}
+
+	#[tokio::test]
+	async fn each_state_reads_as_a_ledger_record() {
+		let root = tempfile::tempdir().unwrap();
+		let store = Store::open(root.path(), crate::store::CAPACITY).unwrap();
+		// A ledger nobody answers at: records are handed over and nothing waits on them.
+		let dead = ledger::Ledger::to("http://localhost:9".into());
+		let shot = Shot::new(store, Refuses, Some(dead));
+		let asked = Asked {
+			url: Url::parse("https://example.test/").unwrap(),
+			width: 1280,
+			height: 800,
+			full: true,
+			internal: false,
+			insecure: false,
+			timeout: 15_000,
+			delay: 210,
+		};
+		let id = shot.ask(asked, Lane::Public).unwrap();
+		let queued = shot.record(id).unwrap();
+		assert_eq!((queued.state, queued.caller), (ledger::State::Queued, ledger::Caller::Public));
+		assert_eq!((queued.service.as_str(), queued.kind.as_str()), ("shot", "capture"));
+		assert_eq!(queued.id, id.to_string());
+		assert_eq!(
+			queued.summary,
+			serde_json::json!({ "url": "https://example.test/", "width": 1280, "height": 800, "full": true })
+		);
+		let (_, asked) = shot.queue().take().unwrap();
+		assert_eq!(shot.record(id).unwrap().state, ledger::State::Running);
+		shot.render_one(id, &asked).await;
+		let failed = shot.record(id).unwrap();
+		assert_eq!(failed.state, ledger::State::Failed);
+		assert_eq!(failed.detail.as_deref(), Some("net::ERR_CONNECTION_REFUSED"));
+		assert!(failed.started_at.is_some() && failed.finished_at >= failed.started_at);
 	}
 }
