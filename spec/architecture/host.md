@@ -89,6 +89,15 @@ at all. A network of its own shared with Caddy alone, the app's own directory an
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
+### An image is built for speed, and for any node of its architecture
+
+Every image compiles its binary with the `container` profile in the workspace's `Cargo.toml`: full
+optimisation with fat LTO and one codegen unit, no debug information and no symbols. Speed is
+chosen over size because a server pays for its binary on every request and for its bytes never;
+the build is slower, and it runs on the Mac, where nobody is waiting on a request. No `target-cpu`
+is set, so an image is not tied to the chip of the node it was first built for. The profile is its
+own rather than `release`, which a local build of `local` would otherwise inherit and pay for.
+
 ### The declaration is `service.toml`, beside the Dockerfile
 
 An app states what it needs in `apps/<name>/service.toml` and ships it with its image. host is a

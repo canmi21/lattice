@@ -12,7 +12,7 @@ COPY apps apps
 COPY libs libs
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/src/target \
-	cargo build --release --locked -p keeper && cp target/release/keeper /keeper
+	cargo build --profile container --locked -p keeper && cp target/container/keeper /keeper
 
 # Not distroless: keeper snapshots host's directory with btrfs-progs.
 FROM debian:trixie-slim

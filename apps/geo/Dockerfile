@@ -14,7 +14,7 @@ COPY apps apps
 COPY libs libs
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/src/target \
-	cargo build --release --locked -p geo && cp target/release/geo /geo
+	cargo build --profile container --locked -p geo && cp target/container/geo /geo
 
 FROM gcr.io/distroless/cc-debian13:nonroot
 COPY --from=build /geo /geo

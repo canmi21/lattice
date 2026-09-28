@@ -24,3 +24,14 @@ opt-level = 0
 
 [profile.dev.package."*"]
 opt-level = 3
+
+# What an image ships, and nothing else builds with it. Speed rather than size, since a server's
+# binary is paid for on every request and its bytes never; no debugger reads what it would carry.
+# No target-cpu, so an image runs on any arm64 node. See spec/architecture/host.md.
+[profile.container]
+inherits = "release"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+debug = false
+strip = "symbols"

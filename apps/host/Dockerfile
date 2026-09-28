@@ -12,7 +12,7 @@ COPY apps apps
 COPY libs libs
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/src/target \
-	cargo build --release --locked -p host && cp target/release/host /host
+	cargo build --profile container --locked -p host && cp target/container/host /host
 
 # Not distroless: host snapshots each app's directory with btrfs-progs.
 FROM debian:trixie-slim
