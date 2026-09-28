@@ -6,16 +6,26 @@ live in `rules/`, and **git is their one source: a script syncs them to Cloudfla
 Nobody edits them in the dashboard, so the script never reads what is live: what changed is what
 jj's diff of `rules/` says, and a sync replaces each zone's rules with the repository's whole.
 
-## One blacklist everywhere, and a whitelist where the paths are ours
+## Where a rule lives
 
-**Each zone is a folder, and its `zone.toml` is the zone's rules in order**: each rule's name as the
-dashboard shows it, its phase -- a custom rule, a rate limit, a redirect -- its action, and a rate
-limit's figures, with its expression in a `.txt` file beside it. `rules/all/` holds what every zone
-takes, listed by each zone that takes it. A threshold lives there and nowhere else: this file says
-how the rules work, and the numbers are the configuration's.
+**`rules/` is the whole of every zone's firewall, and nothing else defines one.** Each zone is a
+folder named for it, and its `zone.toml` lists the zone's rules in the order Cloudflare runs them:
+each rule's name as the dashboard shows it, its phase, its action and everything the action takes
+-- a redirect's status and target, a rate limit's figures. A rule's match expression, the one part
+that grows, is a `.txt` file beside it; `rules/all/` holds the expressions every zone shares. A rule
+carries no comment: it is its own reason. The shape is documented where it is read, in
+`.mise/tasks/rules`, and this file names no rule and no figure: what a zone does is read in its
+folder.
 
-**The folder is the zone.** A rule on this plan belongs to one zone; the shared folder is named
-`all` rather than `*`, which Windows refuses in a file name and a shell expands.
+Three things hold across every zone, and a new rule keeps to them:
+
+- **A blacklist everywhere**: what scanners ask every host for is refused before a Worker runs.
+- **A whitelist where the paths are ours**: a host whose every path this repository serves refuses
+  the rest, and lets `/.well-known/` through, where the standards put what every host answers.
+  `*.canmi.app` has no whitelist: its names are other vendors' interfaces behind Access.
+- **One rate cap per zone, a floor under the limits that know more**: counted by address at each
+  Cloudflare location, set to catch a flood rather than a reader. A service's own limits -- the
+  gateway's, Caddy's -- are the exact ones.
 
 **Every host answers its own security.txt.** `libs/security` writes it -- RFC 9116's two required
 fields, `Contact` and `Expires`, and the host's own `Canonical` -- with an expiry 180 days out,
@@ -23,51 +33,6 @@ stated per request so it never lapses, and the site, the gateway, the CDN and th
 answer `/.well-known/security.txt` from it. Every whitelist lets `/.well-known/` through, which the
 gate checks. The address is `security@canmi.net`, forwarded by Cloudflare's Email Routing, so the
 mailbox behind it can change without the file.
-
-**canmi.app redirects, for now.** Its names are interfaces behind Access, several of them another
-vendor's, and none of them ours to add a path to. So the zone's redirect rule, Security Contact,
-sends the path to the site's with a static 301 to `https://canmi.net/.well-known/security.txt`, the
-query not kept; redirect rules run before the WAF and before Access. When the apex serves a page of
-its own it answers the file itself, and a whitelist for it lets `/.well-known/` through like the
-rest.
-
-**Block Probes is the same file in every zone.** It refuses what scanners ask every host for -- the
-paths of WordPress and phpMyAdmin, version control and credential files, package manifests, source
-maps, anything but ports 80 and 443 -- and nothing a site here would serve. Rules are per zone on
-this plan, so "shared" means pasted four times; the file is the one copy.
-
-**A whitelist names exactly what its host answers, and refuses the rest.** The site by extension:
-a page has none, and it serves `css`, `js`, `json`, `md`, `txt`, `xml`, `xsl` and its `ico`, its
-images and fonts coming from the CDN. The API host by scope, the CDN by its prefixes and the alias
-layer by its two shapes of address -- each already answers anything else with a 4xx from its
-Worker, and the rule moves that answer in front of the Worker. Every whitelist names its host, so
-it does nothing to the zone's other names.
-
-**`*.canmi.app` has the blacklist and no whitelist.** Its names are interfaces, several of them
-another vendor's -- the router, the NAS -- whose files nobody here chose, and Access stands in
-front of all of them already. `*.canmi.icu` has neither: it is not proxied, so Cloudflare never
-sees it.
-
-**Rate Cap is each zone's one rate limiting rule, set to what the zone serves.** The plan allows one
-a zone, counting by IP over 10 seconds and blocking for 10, and its expression may read only the
-path and whether the client is a verified bot, never the host. Verified crawlers are never counted.
-A cache hit is counted like any other request, and several readers can share one address behind a
-carrier's NAT, so the figures -- each zone's `zone.toml`'s -- catch floods rather than readers:
-
-- **canmi.net**: a page's scripts and styles are immutable and cached after the first visit, so
-  reading costs a few requests a page.
-- **ill.li**: an article's pictures are asked for through the alias layer, dozens a page.
-- **canmi.app**, the highest: one person, through Access, behind interfaces -- the router's, the
-  NAS's -- that ask for a great deal at once.
-- **ffoni.com**, the lowest, **on every scoped path but the CDN's.** The zone holds the API host and
-  the CDN, and the path is the only way to tell them apart. Every path two segments deep is counted,
-  so a new scope is counted without being named. The CDN's groups -- `/object/`, `/derive/`,
-  `/proxy/` -- are left out, since a page of photographs is a hundred requests, but not its old
-  `/github/`, a redirect only old links reach; and so is `/hook/`, GitHub's, rare and from addresses
-  GitHub shares. The rule is a floor against floods, not a limit on use: each scope's own limit is
-  the gateway's, and the cap leaves room for a page asking several scopes at once, or a caller asking
-  after a capture. What it leaves out is held by `mise run rules` to the CDN's groups and the
-  webhook.
 
 ## How an expression is written
 

@@ -1,1 +1,0 @@
-wildcard_replace(http.request.full_uri, "*://*.canmi.net/*", "https://${2}.canmi.app/${3}")

@@ -1,4 +1,4 @@
-# The shape: see the docstring of .mise/tasks/rules. See spec/architecture/firewall.md.
+# See spec/architecture/firewall.md
 
 [[rules]]
 name = "Block Probes"
@@ -11,8 +11,7 @@ name = "Redirect to canmi.net"
 phase = "http_request_dynamic_redirect"
 action = "redirect"
 expression = "canmi-net-redirect.txt"
-target_url = "APPS_PRODUCTION_SITE"
-target_path_from_request = true
+target = { url = "APPS_PRODUCTION_SITE" }
 preserve_query_string = true
 status = 301
 

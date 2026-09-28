@@ -1,4 +1,4 @@
-# See rules/canmi.app/zone.toml for the shape, and spec/architecture/firewall.md.
+# See spec/architecture/firewall.md
 
 [[rules]]
 name = "Block Probes"
@@ -17,7 +17,7 @@ name = "Referral Redirect"
 phase = "http_request_dynamic_redirect"
 action = "redirect"
 expression = "referral-redirect.txt"
-target_expression = "referral-redirect-target.txt"
+target = 'wildcard_replace(http.request.full_uri, r"https://www.*/*", r"https://${1}/${2}?ref=www")'
 status = 301
 
 [[rules]]
@@ -25,7 +25,7 @@ name = "Subdomain Migration"
 phase = "http_request_dynamic_redirect"
 action = "redirect"
 expression = "subdomain-migration.txt"
-target_expression = "subdomain-migration-target.txt"
+target = 'wildcard_replace(http.request.full_uri, "*://*.canmi.net/*", "https://${2}.canmi.app/${3}")'
 preserve_query_string = true
 status = 307
 

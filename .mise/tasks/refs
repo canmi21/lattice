@@ -177,9 +177,9 @@ def stray_urls() -> list[str]:
 			for match in URL.finditer(line):
 				if URL_UNRESOLVABLE.match(match.group(0)):
 					continue
-				# `https://{domain}/` and `https://${host}` are scheme templates: the authority
-				# arrives at runtime, so there is no address here to single-source.
-				if TEMPLATE_AUTHORITY.match(match.group(0)):
+				# `https://{domain}/` and `https://${host}` are scheme templates, and `http://*` a
+				# Cloudflare wildcard: no address here to single-source.
+				if TEMPLATE_AUTHORITY.match(match.group(0)) or "*" in match.group(0):
 					continue
 				stray.append(f"{rel}:{number} {match.group(0)}")
 	return stray

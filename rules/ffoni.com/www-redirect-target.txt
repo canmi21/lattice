@@ -1,1 +1,0 @@
-wildcard_replace(http.request.full_uri, r"https://www.*", r"https://${1}")

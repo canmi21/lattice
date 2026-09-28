@@ -4,18 +4,13 @@
 what the apps serve -- see spec/architecture/firewall.md. `sync [zone] [--dry-run]` deploys: each
 zone's rules replace what is live for each phase they use, through Cloudflare's `cf` CLI.
 
-A zone.toml's `[[rules]]`, one per rule in evaluation order within a phase: `name` (as the
-dashboard shows it), `phase` (http_request_firewall_custom | http_ratelimit |
-http_request_dynamic_redirect), `action` (block | redirect), `expression` (a .txt file relative
-to the zone's folder). A rate limit adds `characteristics`, `period`, `requests_per_period`,
-`mitigation_timeout`, as the Rulesets API names them. A redirect names its target through
-libs/urls rather than a written URL: `target_url` is one of its generated Rust constants
-(libs/urls/src/lib.rs) and `target_path` the path appended to it, plus `status`. A redirect whose
-target is not that fixed shape takes one of two extensions instead of `target_path`:
-`target_path_from_request = true` alongside `target_url`, appending the incoming request's own
-path rather than a fixed one; or `target_expression`, a .txt file of the raw Rulesets target
-expression (`wildcard_replace`, `concat`, and the like), for a target built from no libs/urls
-constant at all. Either form may add `preserve_query_string = true` (default false)."""
+A zone.toml's `[[rules]]`, one per rule in order within a phase, each preceded by a `#` comment
+saying why it is there: `name`, `phase`, `action`, `expression` (a .txt file, the one part that
+grows). A rate limit adds `characteristics`, `period`, `requests_per_period`,
+`mitigation_timeout`. A redirect adds `status` and `target`: a raw Rulesets target expression
+(a TOML literal string, quotes and all) or `{ url = "<libs/urls constant>" }`, appending
+`path = "<path>"` when fixed and the request's own path otherwise; either form may add
+`preserve_query_string = true` (default false)."""
 
 import json
 import os
@@ -36,8 +31,8 @@ ZONES = sorted(p.name for p in RULES.iterdir() if p.is_dir() and p.name != "all"
 
 
 def urls():
-	"""The generated Rust mirror of libs/urls, name -> value -- a redirect's `target_url` names
-	one of these instead of writing a URL, per spec/architecture/workspace.md, "Every URL is
+	"""The generated Rust mirror of libs/urls, name -> value -- a redirect's `target` names one
+	of these instead of writing a URL, per spec/architecture/workspace.md, "Every URL is
 	declared once"."""
 	text = URLS_RS.read_text()
 	return dict(re.findall(r'pub const (\w+): &str =\s*"([^"]*)";', text))
@@ -50,10 +45,19 @@ def quoted_set(text, field):
 
 
 def parse_value(raw):
-	"""One TOML scalar or array of strings -- the only shapes a zone.toml holds."""
+	"""One TOML scalar, array of strings, or inline table of them -- the only shapes a
+	zone.toml holds. A single-quoted value is TOML's literal string, unescaped, which is what a
+	redirect's `target` needs to hold a Rulesets expression's own quotes."""
 	raw = raw.strip()
+	if raw.startswith("{"):
+		return {
+			key.strip(): parse_value(value)
+			for key, value in (pair.split("=", 1) for pair in raw[1:-1].split(","))
+		}
 	if raw.startswith("["):
 		return re.findall(r'"([^"]*)"', raw)
+	if raw.startswith("'"):
+		return raw[1:-1]
 	if raw.startswith('"'):
 		return raw[1:-1]
 	if raw in ("true", "false"):
@@ -87,20 +91,15 @@ def parse_zone_toml(text):
 
 
 def load_zone(zone):
-	"""A zone's rules, each with `expression` (and a redirect's `target_expression`, if it has
-	one) resolved to its path under rules/ and its text."""
+	"""A zone's rules, each with `expression` resolved to its path under rules/ and its text."""
 	path = RULES / zone / "zone.toml"
 	rules = parse_zone_toml(path.read_text())
 	for rule in rules:
-		for field, key, text in (("expression", "expression_key", "expression_text"), ("target_expression", "target_expression_key", "target_expression_text")):
-			if field not in rule:
-				continue
-			resolved = (RULES / zone / rule[field]).resolve()
-			rule[key] = str(resolved.relative_to(RULES.resolve()))
-			# Collapsed to one line: the file wraps for readability, but the API takes one
-			# string and a literal newline in it is a detail of this repository the request
-			# need not carry.
-			rule[text] = " ".join(resolved.read_text().split())
+		expression_path = (RULES / zone / rule["expression"]).resolve()
+		rule["expression_key"] = str(expression_path.relative_to(RULES.resolve()))
+		# Collapsed to one line: the file wraps for readability, but the API takes one string
+		# and a literal newline in it is a detail of this repository the request need not carry.
+		rule["expression_text"] = " ".join(expression_path.read_text().split())
 	return rules
 
 
@@ -121,8 +120,6 @@ def check():
 	for zone, rules in zone_rules.items():
 		for rule in rules:
 			listed.add(rule["expression_key"])
-			if "target_expression_key" in rule:
-				listed.add(rule["target_expression_key"])
 			if rule.get("phase") not in PHASES:
 				problems.append(f"{zone}/zone.toml: {rule.get('name')!r} has no valid phase")
 			if rule.get("action") not in ACTIONS:
@@ -135,15 +132,19 @@ def check():
 				name = rule.get("name")
 				if "status" not in rule:
 					problems.append(f"{zone}/zone.toml: {name!r} is a redirect without status")
-				has_expression = "target_expression" in rule
-				has_fixed = "target_url" in rule and ("target_path" in rule or rule.get("target_path_from_request"))
-				if has_expression == has_fixed:
-					problems.append(
-						f"{zone}/zone.toml: {name!r} needs either target_expression or "
-						"target_url with target_path or target_path_from_request, not both or neither"
-					)
-				if "target_url" in rule and rule["target_url"] not in urls():
-					problems.append(f"{zone}/zone.toml: {name!r} names an unknown libs/urls constant {rule['target_url']!r}")
+				target = rule.get("target")
+				if target is None:
+					problems.append(f"{zone}/zone.toml: {name!r} is a redirect without target")
+				elif isinstance(target, dict):
+					if "url" not in target:
+						problems.append(f"{zone}/zone.toml: {name!r} target names no url")
+					elif target["url"] not in urls():
+						problems.append(f"{zone}/zone.toml: {name!r} names an unknown libs/urls constant {target['url']!r}")
+				else:
+					if len(target) > LIMIT:
+						problems.append(f"{zone}/zone.toml: {name!r} target is {len(target)} characters, past Cloudflare's {LIMIT}")
+					if target.count("(") != target.count(")") or target.count('"') % 2:
+						problems.append(f"{zone}/zone.toml: {name!r} target has unbalanced parentheses or quotes")
 
 	for name in sorted(listed ^ set(files)):
 		problems.append(f"{name}: in {'a zone.toml' if name in listed else 'rules/'} but not in {'rules/' if name in listed else 'any zone.toml'}")
@@ -217,12 +218,15 @@ def rule_body(rule):
 			"mitigation_timeout": rule["mitigation_timeout"],
 		}
 	if rule["phase"] == "http_request_dynamic_redirect":
-		if "target_expression" in rule:
-			target_url = {"expression": rule["target_expression_text"]}
-		elif rule.get("target_path_from_request"):
-			target_url = {"expression": f'concat("{urls()[rule["target_url"]]}", http.request.uri.path)'}
+		target = rule["target"]
+		if isinstance(target, dict):
+			base = urls()[target["url"]]
+			if "path" in target:
+				target_url = {"value": base + target["path"]}
+			else:
+				target_url = {"expression": f'concat("{base}", http.request.uri.path)'}
 		else:
-			target_url = {"value": urls()[rule["target_url"]] + rule["target_path"]}
+			target_url = {"expression": target}
 		body["action_parameters"] = {
 			"from_value": {
 				"status_code": rule["status"],
