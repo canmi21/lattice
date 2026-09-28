@@ -3,12 +3,12 @@ import { and, count, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
-import type { Bindings } from './bindings';
+import type { Bindings } from '../bindings';
 import type { LikedAnswer, ReadAnswer, StatsAnswer } from '@canmi/artifacts';
-import { failure, success } from './respond';
-import { canonicalEmail } from './email';
-import { findArticle, rootOf } from './root';
-import { articleReads, likes, newsletterSubscriptions } from './schema';
+import { failure, success } from '../lib/respond';
+import { canonicalEmail } from '../lib/email';
+import { findArticle, rootOf } from '../data/root';
+import { articleReads, likes, newsletterSubscriptions } from '../data/schema';
 
 const MAX_BODY_SIZE = 1_024;
 const CANCEL_TOKEN = /^[0-9a-f]{32}$/;

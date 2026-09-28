@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import app from './app';
 import type { Bindings } from './bindings';
 import type { Api } from './boundary';
-import { ROUTES } from './routes';
+import { ROUTES } from './contract/routes';
 
 const base = new URL(URLS.apps.production.site).origin;
 const deny = { limit: async () => ({ success: false }) };

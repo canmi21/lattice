@@ -15,4 +15,4 @@ export interface Api {
 
 declare const api: Api;
 export default api;
-export { PUBLIC_ROUTES, ROUTES, type Route } from './routes';
+export { PUBLIC_ROUTES, ROUTES, type Route } from './contract/routes';

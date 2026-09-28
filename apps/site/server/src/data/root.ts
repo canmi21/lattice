@@ -1,7 +1,7 @@
 import { ROOT_KEY, RootSchema, type Root, type RootArticle } from '@canmi/artifacts';
 import { read } from '@canmi/store';
 import * as v from 'valibot';
-import type { Bindings } from './bindings';
+import type { Bindings } from '../bindings';
 
 /**
  * The one mutable object, read and parsed.

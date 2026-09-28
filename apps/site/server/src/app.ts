@@ -2,12 +2,12 @@ import { PUBLISHED } from '@canmi/cache';
 import { limited, within } from '@canmi/limits';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
-import batch from './batch';
-import corpus from './corpus';
-import engagement from './engagement';
-import { failure } from './respond';
-import image from './image';
-import { LIMITS } from './limits';
+import batch from './handlers/batch';
+import corpus from './handlers/corpus';
+import engagement from './handlers/engagement';
+import { failure } from './lib/respond';
+import media from './handlers/media';
+import { LIMITS } from './contract/limits';
 
 /**
  * The site's JSON API, which the site's own Worker serves: its pages under `/api/`, and the public
@@ -28,7 +28,7 @@ app.use('*', async (c, next) => {
 	return next();
 });
 
-app.route('/', image);
+app.route('/', media);
 app.route('/', corpus);
 app.route('/', batch);
 app.route('/', engagement);

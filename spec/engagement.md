@@ -288,7 +288,7 @@ the current IP's `liked` boolean together with the global like and subscriber co
 The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints use
 separate Cloudflare Workers Rate Limiting bindings keyed by the raw IP, with a wider allowance for
 reads. This is deliberately approximate, inexpensive abuse resistance rather than a globally
-strict quota. `apps/site/server/src/limits.ts` says which route each covers, in the one format every
+strict quota. `apps/site/server/src/contract/limits.ts` says which route each covers, in the one format every
 limit here is written in; see architecture/services.md, "The gateway holds what every API would
 otherwise repeat".
 

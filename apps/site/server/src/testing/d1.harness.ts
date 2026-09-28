@@ -12,7 +12,7 @@ import { convertV4MiniflareOptions, Miniflare } from 'miniflare';
  * The miniflare version is not a choice made here: wrangler depends on it, so pnpm resolves one
  * copy and this runs the same runtime `wrangler dev` does.
  */
-const MIGRATIONS = fileURLToPath(new URL('../drizzle', import.meta.url).href);
+const MIGRATIONS = fileURLToPath(new URL('../../drizzle', import.meta.url).href);
 
 export type LocalDatabase = {
 	miniflare: Miniflare;

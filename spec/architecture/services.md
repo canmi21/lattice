@@ -131,7 +131,7 @@ names origins, and every URL is declared once in libs/urls.
 be as narrow as one route, and one whose binding is missing refuses rather than letting everything
 through; libs/limits is the format and its check. The gateway applies it to what reaches a scope
 through the gateway. Routes that only a Worker's own pages call never pass the gateway, so that
-Worker applies the same rows itself -- the site's are `apps/site/server/src/limits.ts`.
+Worker applies the same rows itself -- the site's are `apps/site/server/src/contract/limits.ts`.
 
 **A limit that is business logic stays with the service.** The read counter's per-article minute
 does not refuse anyone -- the reader still gets the count, only the increment is withheld -- so it
@@ -238,7 +238,7 @@ SvelteKit reads a path as a page's. Two doors reach it:
 - **The public routes are the `site` scope of the API host.** The gateway binds the `site` Worker
   and sends it `/api/{route}` under the API host's name, which a request can carry only by coming
   through that binding: Cloudflare picks the Worker by the host. The Worker serves those names
-  alone -- `PUBLIC_ROUTES` in `apps/site/server/src/routes.ts`, today `media` and `asset`, which the
+  alone -- `PUBLIC_ROUTES` in `apps/site/server/src/contract/routes.ts`, today `media` and `asset`, which the
   alias layer reads. The declaration says where it answers with `[api] prefix = "/api"`, which only
   a Workers placement may carry, since a node's Caddy forwards a scope to a container's root.
 
@@ -280,7 +280,7 @@ own build and Vite runs in node, so the site reads the tree itself, in developme
 
 In production a page asks for a route at `/api/{address}`, twelve hex digits of a SHA-256 over the
 route's name and its contract: the schemas its answer and request are read by, taken as data, and a
-revision for whatever of its shape no schema describes. `apps/site/server/src/contracts.ts` holds the
+revision for whatever of its shape no schema describes. `apps/site/server/src/contract/contracts.ts` holds the
 contracts, and the site's build states every address to the pages and to the Worker in one
 `define`, so the two agree by construction. Development asks by the route's name, and a production
 Worker answers a name with a 404.

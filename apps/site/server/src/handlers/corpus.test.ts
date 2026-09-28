@@ -1,10 +1,10 @@
 import { URLS } from '@canmi/urls';
 import { Miniflare } from 'miniflare';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import app from './app';
-import type { Bindings } from './bindings';
-import { standUpDatabase } from './d1.harness';
-import { forgetRoot } from './root';
+import app from '../app';
+import type { Bindings } from '../bindings';
+import { standUpDatabase } from '../testing/d1.harness';
+import { forgetRoot } from '../data/root';
 import {
 	RESOURCES_PER_QUESTION,
 	unwrap,

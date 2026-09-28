@@ -7,8 +7,8 @@
 			"types": "./src/boundary.d.ts",
 			"default": "./src/index.ts"
 		},
-		"./routes": "./src/routes.ts",
-		"./contracts": "./src/contracts.ts"
+		"./routes": "./src/contract/routes.ts",
+		"./contracts": "./src/contract/contracts.ts"
 	},
 	"scripts": {
 		"database:generate": "drizzle-kit generate"

@@ -28,8 +28,8 @@
 			"migrations_dir": "server/drizzle",
 		},
 	],
-	// The allowances of apps/site/server/src/limits.ts, and the read counter's own minute. These are
-	// intentionally approximate: Cloudflare enforces them close to the caller.
+	// The allowances of apps/site/server/src/contract/limits.ts, and the read counter's own minute.
+	// These are intentionally approximate: Cloudflare enforces them close to the caller.
 	"ratelimits": [
 		{ "name": "ENGAGEMENT_LIMIT", "namespace_id": "959379523", "simple": { "limit": 60, "period": 60 } },
 		{ "name": "NEWSLETTER_LIMIT", "namespace_id": "959379521", "simple": { "limit": 5, "period": 60 } },

@@ -11,9 +11,9 @@ import type {
 import { PUBLISHED, WHILE_UNREACHABLE } from '@canmi/cache';
 import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
 import { Hono, type Context } from 'hono';
-import type { Bindings } from './bindings';
-import { failure, success } from './respond';
-import { findArticle, rootOf } from './root';
+import type { Bindings } from '../bindings';
+import { failure, success } from '../lib/respond';
+import { findArticle, rootOf } from '../data/root';
 
 /**
  * What is published right now, derived from the root and nothing else.

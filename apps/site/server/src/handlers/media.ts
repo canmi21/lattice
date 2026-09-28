@@ -2,8 +2,8 @@ import { isResourceId } from '@canmi/artifacts';
 import { PUBLISHED } from '@canmi/cache';
 import { read, recordKey } from '@canmi/store';
 import { Hono } from 'hono';
-import type { Bindings } from './bindings';
-import { failure } from './respond';
+import type { Bindings } from '../bindings';
+import { failure } from '../lib/respond';
 
 /**
  * `GET /media?resource=` -- what is known about a resource.
@@ -15,9 +15,9 @@ import { failure } from './respond';
  * Reads through the same store as the CDN, so `mise run dev-site-api` answers from the local tree
  * without needing `--remote` to reach a bucket only production writes.
  */
-const image = new Hono<{ Bindings: Bindings }>();
+const media = new Hono<{ Bindings: Bindings }>();
 
-image.get('/media', async (c) => {
+media.get('/media', async (c) => {
 	const rid = (c.req.query('resource') ?? '').toLowerCase();
 	if (!isResourceId(rid)) {
 		return failure(c, 400, 'invalid_resource', {});
@@ -38,4 +38,4 @@ image.get('/media', async (c) => {
 	return new Response(found.body, { headers });
 });
 
-export default image;
+export default media;

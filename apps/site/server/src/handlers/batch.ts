@@ -28,10 +28,10 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import * as v from 'valibot';
-import type { Bindings } from './bindings';
-import { articleReads } from './schema';
-import { failure, success } from './respond';
-import { findArticle, rootOf } from './root';
+import type { Bindings } from '../bindings';
+import { articleReads } from '../data/schema';
+import { failure, success } from '../lib/respond';
+import { findArticle, rootOf } from '../data/root';
 
 /**
  * The backstop: a limit of bytes, not of anything a question means.

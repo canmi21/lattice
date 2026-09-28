@@ -19,7 +19,7 @@ export async function resource(c: Context, rid: string): Promise<Response> {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
 
 	// `/media` answers with the record itself rather than with an envelope, the record being a
-	// document with its own version on it already. See apps/site-api/src/image.ts.
+	// document with its own version on it already. See apps/site/server/src/handlers/media.ts.
 	const asked = await fetch(`${urls.api}/media?resource=${encodeURIComponent(rid)}`);
 	if (asked.status === 404) return failure(c, 404, 'no_such_resource');
 	// A fact about this moment rather than about the corpus, so it is not held at all -- the same
