@@ -24,10 +24,30 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	&& cargo build --profile container --locked --target "$target" -p geo \
 	&& cp "target/$target/container/geo" /geo
 
+# GeoNames, fetched as the image is built, so the data is as new as the build. `ADD` of a URL is
+# cached by the server's ETag, so an unchanged file is not fetched again and a changed one is.
+# `mise run geo` exports this stage for local work, so these addresses are the only copy.
+FROM debian:trixie-slim AS fetch
+RUN apt-get update \
+	&& apt-get install --yes --no-install-recommends unzip \
+	&& rm -rf /var/lib/apt/lists/*
+ADD https://download.geonames.org/export/dump/cities500.zip /fetch/
+ADD https://download.geonames.org/export/zip/allCountries.zip /fetch/
+ADD https://download.geonames.org/export/dump/admin1CodesASCII.txt /geo/
+ADD https://download.geonames.org/export/dump/admin2Codes.txt /geo/
+ADD https://download.geonames.org/export/dump/countryInfo.txt /geo/
+# A URL's file arrives mode 600, and the service reads it as 65532.
+RUN unzip -q /fetch/cities500.zip -d /geo \
+	&& unzip -q -p /fetch/allCountries.zip allCountries.txt > /geo/postal.txt \
+	&& chmod 0644 /geo/*
+
+FROM scratch AS data
+COPY --from=fetch /geo /
+
 FROM scratch
 COPY --from=build /geo /geo
-# GeoNames' dumps travel with the binary: read-only data, so every copy of the service is whole.
-COPY data/source/geo /data
+# Read-only data travelling with the binary, so every copy of the service is whole.
+COPY --from=data / /data
 # Not root: nothing here needs to be, and scratch has no user table, so it is named by number.
 USER 65532:65532
 ENTRYPOINT ["/geo"]

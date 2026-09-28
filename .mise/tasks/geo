@@ -2,24 +2,17 @@
 #MISE description="Fetch the offline gazetteer used to name where a photograph was taken"
 set -euo pipefail
 
-# 39MB of text, outside git like the photographs it describes. Absent, addresses are simply
-# missing -- the same state as an image whose EXIF carried no position -- so this is a thing
-# to run once rather than a dependency of any build.
+# Outside git like the photographs it describes. Absent, addresses are simply missing -- the same
+# state as an image whose EXIF carried no position -- so this is run once rather than by a build.
 #
-# A task rather than a line in mise.toml because a shell script cannot import a TypeScript
-# library, so single-sourcing these addresses would move the text without removing the second
-# copy. See spec/architecture/workspace.md, "Every URL is declared once".
-BASE="https://download.geonames.org/export/dump"
-TARGET="$(cd "$(dirname "$0")/../.." && pwd)/data/source/geo"
+# The files are the geo image's own data stage, exported: its Dockerfile holds the only copy of
+# the addresses, and what `local` reads here is what the service answers from.
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+TARGET="$ROOT/data/source/geo"
 
-mkdir -p "$TARGET"
-cd "$TARGET"
-
-for name in cities500.zip admin1CodesASCII.txt countryInfo.txt; do
-	echo "  fetching $name"
-	curl -sSL -O "$BASE/$name"
-done
-
-unzip -oq cities500.zip
-rm -f cities500.zip
-echo "  $(wc -l < cities500.txt | tr -d ' ') settlements, $(du -sh . | cut -f1) on disk"
+# Every stage's base is parsed even when one is built, so the compiler version is passed as the
+# image build passes it; the data stage itself never uses it.
+RUST_VERSION="$(cd "$ROOT" && rustc --version | cut -d' ' -f2)"
+docker buildx build --file "$ROOT/apps/geo/Dockerfile" --target data \
+	--build-arg "RUST_VERSION=$RUST_VERSION" --output "type=local,dest=$TARGET" "$ROOT/apps/geo"
+echo "  $(wc -l < "$TARGET/cities500.txt" | tr -d ' ') settlements, $(du -sh "$TARGET" | cut -f1) on disk"

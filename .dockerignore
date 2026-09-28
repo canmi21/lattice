@@ -10,5 +10,3 @@
 .local
 contents
 data
-# The gazetteer travels inside the geo image; see apps/geo/Dockerfile.
-!data/source/geo
