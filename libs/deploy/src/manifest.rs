@@ -10,9 +10,28 @@ use std::ops::RangeInclusive;
 pub const VERSION: u32 = 1;
 
 /// Names taken by the platform itself: its programs, the meter that watches the machine, the API
-/// host and the Worker answering it, and the containers an app's name would collide with.
-const RESERVED: [&str; 9] =
-	["host", "keeper", "meter", "api", "gateway", "caddy", "tunnel", "panel", "cloudflared"];
+/// host and the Worker answering it, the object storage driver, and the containers an app's name
+/// would collide with.
+const RESERVED: [&str; 10] = [
+	"host",
+	"keeper",
+	"meter",
+	"api",
+	"gateway",
+	"caddy",
+	"tunnel",
+	"panel",
+	"cloudflared",
+	"objects",
+];
+
+/// What an app's object storage sidecar is named after it, so no app may end its own name so. See
+/// spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
+pub const SIDECAR_SUFFIX: &str = "-objects";
+
+/// The object storage driver: the image every sidecar runs, deployed and never run itself. See
+/// spec/architecture/objects.md, "The driver is deployed like an app, and is not one".
+pub const OBJECTS: &str = "objects";
 
 /// Labels reserved for what is on its way, not yet a real app or route: `cms`, the editor, which
 /// keeps its own address until it moves. See spec/architecture/host.md, "One name inside, and a
@@ -20,10 +39,10 @@ const RESERVED: [&str; 9] =
 const RESERVED_LABELS: [&str; 1] = ["cms"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the meter, Caddy, the tunnel and the panel. See
-/// spec/architecture/host.md, "host never updates itself; keeper updates host", and
-/// spec/architecture/meter.md.
-pub const OWN: [&str; 6] = ["host", "keeper", "meter", "caddy", "tunnel", "panel"];
+/// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel and the object
+/// storage driver. See spec/architecture/host.md, "host never updates itself; keeper updates host",
+/// spec/architecture/meter.md and spec/architecture/objects.md.
+pub const OWN: [&str; 7] = ["host", "keeper", "meter", "caddy", "tunnel", "panel", "objects"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -47,6 +66,20 @@ pub struct Manifest {
 	pub interface: Option<Interface>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub data: Option<Data>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub objects: Option<Objects>,
+}
+
+impl Manifest {
+	/// The container its object storage runs in, when it declares any.
+	pub fn sidecar(&self) -> Option<String> {
+		self.objects.as_ref().map(|_| sidecar_of(&self.name))
+	}
+}
+
+/// The name of `app`'s object storage sidecar.
+pub fn sidecar_of(app: &str) -> String {
+	format!("{app}{SIDECAR_SUFFIX}")
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -142,6 +175,29 @@ pub struct Data {
 	pub path: String,
 }
 
+/// An S3 endpoint of the app's own, over `objects/` in its directory, each bucket a directory
+/// there.
+/// See spec/architecture/objects.md.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Objects {
+	pub buckets: Vec<String>,
+}
+
+/// Whether `name` is a bucket S3 itself would take: 3 to 63 lowercase letters, digits, hyphens and
+/// dots, starting and ending with a letter or digit, no two dots together, not an IPv4 address,
+/// and none of the prefixes and suffixes AWS keeps for itself.
+pub fn is_bucket(name: &str) -> bool {
+	let edge = |b: Option<u8>| b.is_some_and(|b| b.is_ascii_lowercase() || b.is_ascii_digit());
+	(3..=63).contains(&name.len())
+		&& name.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-' || b == b'.')
+		&& edge(name.bytes().next())
+		&& edge(name.bytes().last())
+		&& !name.contains("..")
+		&& name.parse::<std::net::Ipv4Addr>().is_err()
+		&& !["xn--", "sthree-", "amzn-s3-demo-"].iter().any(|prefix| name.starts_with(prefix))
+		&& !["-s3alias", "--ol-s3", "--x-s3", "--table-s3"].iter().any(|suffix| name.ends_with(suffix))
+}
+
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Invalid {
 	#[error("the declaration is not readable: {0}")]
@@ -180,6 +236,12 @@ pub enum Invalid {
 		"a limit names HTTP methods and a path from /, and allows at least once in 1 to 86400 seconds"
 	)]
 	Limit,
+	#[error("`{0}` is not a bucket name S3 takes")]
+	Bucket(String),
+	#[error("`[objects]` names at least one bucket, each once")]
+	Buckets,
+	#[error("`{0}-objects` is longer than the 63 characters a container's name on a network may be")]
+	SidecarName(String),
 }
 
 impl Manifest {
@@ -274,8 +336,27 @@ impl Manifest {
 		if self.api.as_ref().is_some_and(|api| !api.limits.iter().all(sound) || !covered(api)) {
 			return Err(Invalid::Limit);
 		}
+		if let Some(objects) = &self.objects {
+			check_objects(&self.name, objects)?;
+		}
 		Ok(())
 	}
+}
+
+/// Buckets S3 takes, each once, and a sidecar name that resolves on the app's network. See
+/// spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
+fn check_objects(name: &str, objects: &Objects) -> Result<(), Invalid> {
+	if let Some(bucket) = objects.buckets.iter().find(|bucket| !is_bucket(bucket)) {
+		return Err(Invalid::Bucket(bucket.clone()));
+	}
+	let distinct: std::collections::HashSet<&String> = objects.buckets.iter().collect();
+	if objects.buckets.is_empty() || distinct.len() != objects.buckets.len() {
+		return Err(Invalid::Buckets);
+	}
+	if !is_label(&sidecar_of(name)) {
+		return Err(Invalid::SidecarName(name.into()));
+	}
+	Ok(())
 }
 
 /// The shape of any DNS label this format uses, name or domain alike.
@@ -293,7 +374,7 @@ pub fn check_name(name: &str) -> Result<(), Invalid> {
 	if !is_label(name) {
 		return Err(Invalid::Name(name.into()));
 	}
-	if RESERVED.contains(&name) || RESERVED_LABELS.contains(&name) {
+	if RESERVED.contains(&name) || RESERVED_LABELS.contains(&name) || name.ends_with(SIDECAR_SUFFIX) {
 		return Err(Invalid::Reserved(name.into()));
 	}
 	Ok(())
@@ -326,12 +407,21 @@ mod tests {
 	fn reads_the_declaration_geo_ships() {
 		let manifest = Manifest::parse(GEO).unwrap();
 		assert_eq!(manifest.name, "geo");
-		let limits = vec![Limit {
-			methods: vec!["GET".into(), "HEAD".into()],
-			path: "/address".into(),
-			count: 60,
-			seconds: 60,
-		}];
+		assert_eq!(manifest.data, Some(Data { path: "/state".into() }));
+		let limits = vec![
+			Limit {
+				methods: vec!["GET".into(), "HEAD".into()],
+				path: "/address".into(),
+				count: 60,
+				seconds: 60,
+			},
+			Limit {
+				methods: vec!["GET".into(), "HEAD".into()],
+				path: "/ip".into(),
+				count: 60,
+				seconds: 60,
+			},
+		];
 		assert_eq!(manifest.api, Some(Api { public: true, prefix: None, limits }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
 	}
@@ -516,6 +606,48 @@ mod tests {
 		let manifest = Manifest::parse(&text).unwrap();
 		let interface = manifest.interface.unwrap();
 		assert_eq!((interface.domain, interface.lan), (None, true));
+	}
+
+	#[test]
+	fn objects_are_declared_as_buckets_s3_takes() {
+		let declared = |buckets: &str| {
+			Manifest::parse(&format!("{GEO}\n[objects]\nbuckets = [{buckets}]\n")).unwrap()
+		};
+		let manifest = declared("\"photos\", \"thumbs.v2\"");
+		assert_eq!(manifest.check("geo", "home"), Ok(()));
+		assert_eq!(manifest.sidecar().as_deref(), Some("geo-objects"));
+		assert_eq!(Manifest::parse(GEO).unwrap().sidecar(), None);
+		for broken in [
+			"Photos",
+			"ph",
+			"-photos",
+			"photos-",
+			"ph..otos",
+			"192.168.1.1",
+			"xn--photos",
+			"photos-s3alias",
+			"ph_otos",
+		] {
+			let manifest = declared(&format!("\"{broken}\""));
+			assert_eq!(manifest.check("geo", "home"), Err(Invalid::Bucket(broken.into())), "{broken}");
+		}
+		assert_eq!(declared("").check("geo", "home"), Err(Invalid::Buckets));
+		assert_eq!(declared("\"photos\", \"photos\"").check("geo", "home"), Err(Invalid::Buckets));
+		let mut long = declared("\"photos\"");
+		long.name = "a".repeat(56);
+		assert_eq!(long.check(&"a".repeat(56), "home"), Err(Invalid::SidecarName("a".repeat(56))));
+		long.name = "a".repeat(55);
+		assert_eq!(long.check(&"a".repeat(55), "home"), Ok(()));
+	}
+
+	#[test]
+	fn the_driver_and_every_sidecar_name_are_reserved() {
+		assert_eq!(check_name("objects"), Err(Invalid::Reserved("objects".into())));
+		assert_eq!(check_name("geo-objects"), Err(Invalid::Reserved("geo-objects".into())));
+		assert!(check_name("objects-geo").is_ok());
+		let driver = Manifest::parse(include_str!("../../../apps/objects/service.toml")).unwrap();
+		assert_eq!(driver.check_own("objects", "home"), Ok(()));
+		assert_eq!(driver.check("objects", "home"), Err(Invalid::Reserved("objects".into())));
 	}
 
 	#[test]

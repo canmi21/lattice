@@ -115,6 +115,56 @@ pub fn variables(root: &Path) -> Result<Vec<String>, Error> {
 	Ok(all.into_iter().map(|(name, value)| format!("{name}={value}")).collect())
 }
 
+/// The names an app's object storage credentials are kept under in its `secret.env`, and handed to
+/// it as. See spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
+pub const ACCESS_KEY_ID: &str = "S3_ACCESS_KEY_ID";
+pub const SECRET_ACCESS_KEY: &str = "S3_SECRET_ACCESS_KEY";
+
+/// An access key id and its secret, the app's and its sidecar's root account alike.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Credentials {
+	pub access_key_id: String,
+	pub secret_access_key: String,
+}
+
+/// The app's object storage credentials, made once and kept in its `secret.env`: what is there is
+/// answered as it is, and only a missing half is made.
+pub fn credentials(root: &Path) -> Result<Credentials, Error> {
+	let secrets = read(&Kind::Secret.file(root))?;
+	let kept = |name: &str, length: usize, alphabet: &[u8]| -> Result<String, Error> {
+		if let Some(value) = secrets.get(name).filter(|value| !value.is_empty()) {
+			return Ok(value.clone());
+		}
+		let value = random(length, alphabet)?;
+		set(root, Kind::Secret, name, Some(&value))?;
+		Ok(value)
+	};
+	let upper = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	let mixed = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	Ok(Credentials {
+		access_key_id: kept(ACCESS_KEY_ID, 20, upper)?,
+		secret_access_key: kept(SECRET_ACCESS_KEY, 40, mixed)?,
+	})
+}
+
+/// `length` characters of `alphabet` from the kernel's randomness, each byte past the largest
+/// multiple of the alphabet's size thrown away so no character is likelier than another.
+fn random(length: usize, alphabet: &[u8]) -> Result<String, Error> {
+	use std::io::Read;
+	let source = Path::new("/dev/urandom");
+	let mut file = std::fs::File::open(source).map_err(failed(source))?;
+	let limit = 256 - 256 % alphabet.len();
+	let mut value = String::with_capacity(length);
+	let mut byte = [0u8; 1];
+	while value.len() < length {
+		file.read_exact(&mut byte).map_err(failed(source))?;
+		if usize::from(byte[0]) < limit {
+			value.push(char::from(alphabet[usize::from(byte[0]) % alphabet.len()]));
+		}
+	}
+	Ok(value)
+}
+
 /// Set one variable, or remove it with `None`. A name is in one file only, so setting it in one
 /// takes it out of the other. True when anything changed.
 pub fn set(root: &Path, kind: Kind, name: &str, value: Option<&str>) -> Result<bool, Error> {
@@ -181,6 +231,26 @@ mod tests {
 		assert!(set(root.path(), Kind::Secret, "KEY", None).unwrap());
 		assert!(!set(root.path(), Kind::Secret, "KEY", None).unwrap());
 		assert!(variables(root.path()).unwrap().is_empty());
+	}
+
+	#[test]
+	fn object_credentials_are_made_once_and_kept() {
+		let root = tempfile::tempdir().unwrap();
+		set(root.path(), Kind::Secret, "TOKEN", Some("mine")).unwrap();
+		let made = credentials(root.path()).unwrap();
+		assert_eq!(made.access_key_id.len(), 20);
+		assert_eq!(made.secret_access_key.len(), 40);
+		assert!(made.secret_access_key.bytes().all(|b| b.is_ascii_alphanumeric()));
+		// A redeploy asks again and is given the same pair, beside what the app keeps itself.
+		assert_eq!(credentials(root.path()).unwrap(), made);
+		let shown = shown(root.path()).unwrap();
+		let names = [ACCESS_KEY_ID, SECRET_ACCESS_KEY, "TOKEN"];
+		assert_eq!(shown.secrets.iter().collect::<Vec<_>>(), names);
+		// A half removed by hand is made again, and the other half kept.
+		set(root.path(), Kind::Secret, SECRET_ACCESS_KEY, None).unwrap();
+		let again = credentials(root.path()).unwrap();
+		assert_eq!(again.access_key_id, made.access_key_id);
+		assert_ne!(again.secret_access_key, made.secret_access_key);
 	}
 
 	#[test]

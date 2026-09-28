@@ -113,6 +113,86 @@ pub fn numeric_user(user: &str) -> Option<(u32, u32)> {
 	(uid != 0).then_some((uid, gid))
 }
 
+/// A structured mount rather than a `source:target` string, which a target containing a colon could
+/// extend with options of its own.
+fn bind(source: String, target: String, read_only: bool) -> Mount {
+	Mount {
+		source: Some(source),
+		target: Some(target),
+		typ: Some(MountType::BIND),
+		read_only: Some(read_only),
+		..Default::default()
+	}
+}
+
+/// What every app's container is allowed, on `network` with `mounts` and `memory` bytes: no
+/// capabilities, a read-only root, a ceiling with no swap past it, and every line kept -- see
+/// spec/architecture/host.md, "What a deployment may ask for is host's decision".
+fn sandbox(network: String, mounts: Vec<Mount>, memory: i64) -> HostConfig {
+	HostConfig {
+		network_mode: Some(network),
+		mounts: Some(mounts),
+		restart_policy: Some(RestartPolicy {
+			name: Some(RestartPolicyNameEnum::UNLESS_STOPPED),
+			..Default::default()
+		}),
+		cap_drop: Some(vec!["ALL".into()]),
+		security_opt: Some(vec!["no-new-privileges".into()]),
+		readonly_rootfs: Some(true),
+		tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
+		memory: Some(memory),
+		memory_swap: Some(memory),
+		pids_limit: Some(512),
+		init: Some(true),
+		// Not rotated: see spec/architecture/host.md, "Every line an app writes is kept".
+		log_config: Some(HostConfigLogConfig { typ: Some("json-file".into()), config: None }),
+		..Default::default()
+	}
+}
+
+/// A container that runs beside an app, for the app alone: its object storage. See
+/// spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
+#[derive(Debug, Clone, PartialEq)]
+pub struct Sidecar {
+	/// Its container's name, `<app>-objects`.
+	pub name: String,
+	/// The app it serves, whose network is the only one it stands on.
+	pub app: String,
+	pub image: String,
+	pub env: Vec<String>,
+	/// The one directory it mounts, as the machine sees it, and where.
+	pub source: PathBuf,
+	pub target: String,
+	/// Directories made under `source` before it starts, left alone once no longer named.
+	pub directories: Vec<String>,
+	pub port: u16,
+	pub health: String,
+	pub memory_mb: Option<u32>,
+}
+
+impl Sidecar {
+	/// What Docker is asked to create: sandboxed as an app is, on the app's network, with its one
+	/// directory and nothing else.
+	pub fn body(&self) -> ContainerCreateBody {
+		let memory = i64::from(self.memory_mb.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
+		let mount = bind(self.source.display().to_string(), self.target.clone(), false);
+		let network = network_of(&self.app);
+		ContainerCreateBody {
+			image: Some(self.image.clone()),
+			env: Some(self.env.clone()),
+			labels: Some(HashMap::from([(SIDECAR_LABEL.into(), self.app.clone())])),
+			host_config: Some(sandbox(network.clone(), vec![mount], memory)),
+			networking_config: Some(bollard::models::NetworkingConfig {
+				endpoints_config: Some(HashMap::from([(network, EndpointSettings::default())])),
+			}),
+			..Default::default()
+		}
+	}
+}
+
+/// The label a sidecar carries the name of the app it serves in.
+const SIDECAR_LABEL: &str = "host.sidecar";
+
 /// One image on the machine, as the panel lists it.
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct Image {
@@ -248,43 +328,18 @@ impl Engine {
 	pub async fn run(&self, version: &Version, shape: &Shape, data: &Path) -> Result<(), Error> {
 		let manifest = &version.manifest;
 		let name = &manifest.name;
-		// Not rotated: every line is kept, and archived before the container goes. See
-		// spec/architecture/host.md, "Every line an app writes is kept".
-		let logs = HostConfigLogConfig { typ: Some("json-file".into()), config: None };
-		let restart =
-			RestartPolicy { name: Some(RestartPolicyNameEnum::UNLESS_STOPPED), ..Default::default() };
 		// A ceiling on every container, and no swap past it: a limit that can be exceeded into swap
 		// is a slower machine rather than a limit. See spec/architecture/host.md.
 		let declared = manifest.container.as_ref().and_then(|container| container.memory_mb);
 		let memory = i64::from(declared.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
-		// A structured mount rather than a `source:target` string, which a target containing a colon
-		// could extend with options of its own.
-		let bind = |source: String, target: String, read_only: bool| Mount {
-			source: Some(source),
-			target: Some(target),
-			typ: Some(MountType::BIND),
-			read_only: Some(read_only),
-			..Default::default()
-		};
+		let logs = HostConfigLogConfig { typ: Some("json-file".into()), config: None };
+		let restart =
+			RestartPolicy { name: Some(RestartPolicyNameEnum::UNLESS_STOPPED), ..Default::default() };
 		let own = manifest
 			.data
 			.as_ref()
 			.map(|mount| bind(data.display().to_string(), mount.path.clone(), false));
-		let sandboxed = |mounts: Vec<Mount>| HostConfig {
-			network_mode: Some(network_of(name)),
-			mounts: Some(mounts),
-			restart_policy: Some(restart.clone()),
-			cap_drop: Some(vec!["ALL".into()]),
-			security_opt: Some(vec!["no-new-privileges".into()]),
-			readonly_rootfs: Some(true),
-			tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
-			memory: Some(memory),
-			memory_swap: Some(memory),
-			pids_limit: Some(512),
-			init: Some(true),
-			log_config: Some(logs.clone()),
-			..Default::default()
-		};
+		let sandboxed = |mounts: Vec<Mount>| sandbox(network_of(name), mounts, memory);
 		let (host_config, env) = match shape {
 			Shape::Sandboxed { env } => (sandboxed(own.into_iter().collect()), env.clone()),
 			Shape::Observer { env } => {
@@ -377,6 +432,16 @@ impl Engine {
 			.create_container(Some(CreateContainerOptionsBuilder::new().name(name).build()), body)
 			.await?;
 		self.docker.start_container(name, None).await?;
+		Ok(())
+	}
+
+	/// Create and start a sidecar in place of whatever ran under its name. Its network is the app's,
+	/// which has to exist already.
+	pub async fn run_sidecar(&self, sidecar: &Sidecar) -> Result<(), Error> {
+		self.remove(&sidecar.name).await?;
+		let options = CreateContainerOptionsBuilder::new().name(&sidecar.name).build();
+		self.docker.create_container(Some(options), sidecar.body()).await?;
+		self.docker.start_container(&sidecar.name, None).await?;
 		Ok(())
 	}
 
