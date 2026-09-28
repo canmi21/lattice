@@ -5,6 +5,14 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 	geo: {
 		placement: 'home',
 		binding: 'HOME',
+		limits: [
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/address',
+				count: 60,
+				seconds: 60,
+			},
+		],
 	},
 	hook: {
 		placement: 'workers',
@@ -14,6 +22,14 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 	shot: {
 		placement: 'home',
 		binding: 'HOME',
+		limits: [
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/capture',
+				count: 3,
+				seconds: 60,
+			},
+		],
 	},
 	site: {
 		placement: 'workers',

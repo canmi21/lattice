@@ -1,5 +1,17 @@
 import { parse } from 'smol-toml';
 
+/**
+ * How often one address may call a route: `count` calls in `seconds`, on these methods, at the path
+ * the service sees. Declared in the service's `service.toml`, and the same rows Caddy counts on the
+ * node. See spec/architecture/services.md, "A limit is declared once and kept in three places".
+ */
+export interface Allowance {
+	readonly methods: readonly string[];
+	readonly path: string;
+	readonly count: number;
+	readonly seconds: number;
+}
+
 /** One scope the public API host answers, as the gateway routes it. */
 export interface Scope {
 	/** `workers`, or the node whose Caddy answers it. See spec/architecture/services.md. */
@@ -10,6 +22,8 @@ export interface Scope {
 	readonly worker?: string;
 	/** Where the Worker answers its API, when not at its root; the path goes on after it. */
 	readonly prefix?: string;
+	/** Its routes' allowances, when it declares any. */
+	readonly limits?: readonly Allowance[];
 }
 
 /** The placement that is Cloudflare's Workers; the same string as `WORKERS` in manifest.rs. */
@@ -23,7 +37,7 @@ export function bindingOf(name: string): string {
 interface Declaration {
 	name: string;
 	placements: string[];
-	api?: { public?: boolean; prefix?: string };
+	api?: { public?: boolean; prefix?: string; limits?: Allowance[] };
 }
 
 /**
@@ -37,6 +51,7 @@ export function scopeTable(declarations: readonly string[]): Record<string, Scop
 	for (const declaration of read.toSorted((a, b) => a.name.localeCompare(b.name))) {
 		const [placement] = declaration.placements;
 		if (!declaration.api?.public || placement === undefined) continue;
+		const limits = declaration.api.limits?.length ? { limits: declaration.api.limits } : {};
 		table[declaration.name] =
 			placement === WORKERS
 				? {
@@ -44,8 +59,9 @@ export function scopeTable(declarations: readonly string[]): Record<string, Scop
 						binding: bindingOf(declaration.name),
 						worker: declaration.name,
 						...(declaration.api.prefix ? { prefix: declaration.api.prefix } : {}),
+						...limits,
 					}
-				: { placement, binding: bindingOf(placement) };
+				: { placement, binding: bindingOf(placement), ...limits };
 	}
 	return table;
 }

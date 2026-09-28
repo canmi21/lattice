@@ -166,6 +166,35 @@ that ask `api.canmi.icu` or `api.canmi.app` directly. A service that treats our 
 differently reads the mark rather than an address; it cannot be forged from outside, because the
 gateway overwrites it. It is the second lock behind a forbidden parameter, not a replacement for it.
 
+### A limit is declared once and kept in three places
+
+**How often one address may call a route is a row in the service's `service.toml`, and no service
+counts anything itself.** A service stays business logic; three layers outside it keep the row, each
+a check on the others:
+
+1. **Cloudflare's WAF**, one rate rule a zone -- [firewall.md](firewall.md), "Rate Cap" -- is the
+   floor under everything: coarse, by path alone, counted per Cloudflare location, and only ever
+   meeting a flood.
+2. **The gateway** keeps each row for the public, exactly, in a Durable Object per address and route:
+   one count wherever in the world the requests land. Cloudflare's own rate limit binding counts per
+   location, so an address whose requests land in three locations was allowed three times as much;
+   it is not used here.
+3. **Caddy on the node** keeps the same rows for everything that reaches it, the LAN and our Workers
+   included, from the declaration host renders it from.
+
+```toml
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/capture"      # as the service sees it, the scope taken off
+count = 3
+seconds = 60           # 1 to 86400
+```
+
+The gateway's table carries the rows, generated from every `service.toml` as its scopes are; host
+reads the same files. A row a node cannot count is refused when the service is deployed. The site's
+own routes, which its pages call without the gateway, still count in the site's Worker with
+Cloudflare's per-location binding, in the older format below.
+
 **A limit is a row in one format, wherever it is enforced.** It names methods and a path, so it can
 be as narrow as one route, and one whose binding is missing refuses rather than letting everything
 through; libs/limits is the format and its check. The gateway applies it to what reaches a scope

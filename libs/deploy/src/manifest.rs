@@ -69,7 +69,25 @@ pub struct Api {
 	/// "The site's API runs in the site's Worker".
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub prefix: Option<String>,
+	/// How often one address may call a route: the gateway counts it for the public and Caddy for
+	/// everything a node answers, so the service itself counts nothing. See
+	/// spec/architecture/services.md, "A limit is declared once and kept in three places".
+	#[serde(default, skip_serializing_if = "Vec::is_empty")]
+	pub limits: Vec<Limit>,
 }
+
+/// One route's allowance: `count` calls in `seconds`, by one address, on these methods.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Limit {
+	pub methods: Vec<String>,
+	/// The path as the service sees it, with the scope taken off.
+	pub path: String,
+	pub count: u32,
+	pub seconds: u32,
+}
+
+/// The longest window a limit may count over: a day. Anything longer is a quota, not a limit.
+pub const LONGEST_WINDOW: u32 = 86_400;
 
 /// Reached as a subdomain of its own, privately and -- unless it says otherwise -- publicly
 /// behind Access. See spec/architecture/services.md.
@@ -119,6 +137,10 @@ pub enum Invalid {
 	DataPath,
 	#[error("an API prefix is served on Workers alone, never by a node")]
 	Prefix,
+	#[error(
+		"a limit names HTTP methods and a path from /, and allows at least once in 1 to 86400 seconds"
+	)]
+	Limit,
 }
 
 impl Manifest {
@@ -185,6 +207,17 @@ impl Manifest {
 		if self.api.as_ref().is_some_and(|api| api.prefix.is_some()) {
 			return Err(Invalid::Prefix);
 		}
+		let methods = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
+		let sound = |limit: &Limit| {
+			!limit.methods.is_empty()
+				&& limit.methods.iter().all(|method| methods.contains(&method.as_str()))
+				&& limit.path.starts_with('/')
+				&& limit.count > 0
+				&& (1..=LONGEST_WINDOW).contains(&limit.seconds)
+		};
+		if self.api.as_ref().is_some_and(|api| !api.limits.iter().all(sound)) {
+			return Err(Invalid::Limit);
+		}
 		Ok(())
 	}
 }
@@ -218,7 +251,13 @@ mod tests {
 	fn reads_the_declaration_geo_ships() {
 		let manifest = Manifest::parse(GEO).unwrap();
 		assert_eq!(manifest.name, "geo");
-		assert_eq!(manifest.api, Some(Api { public: true, prefix: None }));
+		let limits = vec![Limit {
+			methods: vec!["GET".into(), "HEAD".into()],
+			path: "/address".into(),
+			count: 60,
+			seconds: 60,
+		}];
+		assert_eq!(manifest.api, Some(Api { public: true, prefix: None, limits }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
 	}
 
@@ -330,6 +369,22 @@ mod tests {
 			read += 1;
 		}
 		assert!(read >= 3);
+	}
+
+	#[test]
+	fn refuses_a_limit_it_could_not_count() {
+		for broken in [
+			"methods = []\npath = \"/a\"\ncount = 1\nseconds = 60",
+			"methods = [\"get\"]\npath = \"/a\"\ncount = 1\nseconds = 60",
+			"methods = [\"GET\"]\npath = \"a\"\ncount = 1\nseconds = 60",
+			"methods = [\"GET\"]\npath = \"/a\"\ncount = 0\nseconds = 60",
+			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 0",
+			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 86401",
+		] {
+			let text = format!("{GEO}\n[[api.limits]]\n{broken}\n");
+			let manifest = Manifest::parse(&text).unwrap();
+			assert_eq!(manifest.check("geo", "home"), Err(Invalid::Limit), "{broken}");
+		}
 	}
 
 	#[test]

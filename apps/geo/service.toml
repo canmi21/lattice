@@ -15,3 +15,10 @@ memory_mb = 768
 # unlimited privately and to our own Workers. See spec/architecture/services.md.
 [api]
 public = true
+
+# A lookup answers from memory: a minute's worth at once a second keeps a crawler off the machine.
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/address"
+count = 60
+seconds = 60

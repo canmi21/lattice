@@ -19,3 +19,10 @@ path = "/data"
 # limits how often one address asks. See spec/architecture/shot.md.
 [api]
 public = true
+
+# Starting a capture costs seconds of a browser; asking after one and fetching it are free.
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/capture"
+count = 3
+seconds = 60
