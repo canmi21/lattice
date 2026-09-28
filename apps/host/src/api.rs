@@ -25,7 +25,11 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/routes/{name}", put(put_route).delete(delete_route))
 		.route("/caddy", get(caddy).post(reapply))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
-	Router::new().route("/health", get(health)).merge(guarded).with_state(host)
+	Router::new()
+		.route("/health", get(health))
+		.route("/notice", post(notice))
+		.merge(guarded)
+		.with_state(host)
 }
 
 /// What keeper asks before it lets a new host stay: that it reads its own state and reaches
@@ -33,6 +37,32 @@ pub fn router(host: Arc<Host>) -> Router {
 async fn health(State(host): State<Arc<Host>>) -> StatusCode {
 	let ready = host.store.apps().is_ok() && host.engine.ping().await.is_ok();
 	if ready { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE }
+}
+
+#[derive(Deserialize)]
+struct Notice {
+	run: u64,
+}
+
+/// A CI run has finished. Open, since it can only ask host to look: the run is checked against
+/// GitHub before anything is fetched. See spec/architecture/host.md, "The machine pulls; nothing
+/// pushes into it". Each run is taken once, and again only if taking it failed.
+async fn notice(State(host): State<Arc<Host>>, Json(notice): Json<Notice>) -> Response {
+	if host.github.is_none() {
+		return failed(StatusCode::SERVICE_UNAVAILABLE, "this node has no GITHUB_ACTIONS_TOKEN");
+	}
+	let fresh = host.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).insert(notice.run);
+	if !fresh {
+		return (StatusCode::OK, "already taken").into_response();
+	}
+	let taker = host.clone();
+	tokio::spawn(async move {
+		if !rollout::from_run(taker.clone(), notice.run).await {
+			let mut notices = taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+			notices.remove(&notice.run);
+		}
+	});
+	StatusCode::ACCEPTED.into_response()
 }
 
 /// Compared in time independent of where the first difference is.
@@ -111,27 +141,11 @@ async fn upload(
 	if !received {
 		return failed(StatusCode::BAD_REQUEST, "no `image` part");
 	}
-	if let Err(error) = rollout::admit(&host, &name, &manifest) {
-		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
-	}
-
-	// One deploy at a time on a node: two would snapshot, stop and route over each other.
-	let _one = host.deploying.lock().await;
-	let file = match tokio::fs::File::open(&archive).await {
-		Ok(file) => file,
-		Err(error) => return failed(StatusCode::INTERNAL_SERVER_ERROR, error),
-	};
-	let loaded = host.engine.load(&name, tokio_util::io::ReaderStream::new(file)).await;
-	let _ = tokio::fs::remove_file(&archive).await;
-	let image = match loaded {
-		Ok(image) => image,
-		Err(error) => return failed(StatusCode::UNPROCESSABLE_ENTITY, error),
-	};
-	match rollout::deploy(&host, manifest, image).await {
+	match rollout::from_archive(&host, &name, manifest, &archive).await {
 		Ok(outcome) => Json(outcome).into_response(),
-		Err(error @ (DeployError::Invalid(_) | DeployError::PortTaken { .. })) => {
-			failed(StatusCode::UNPROCESSABLE_ENTITY, error)
-		}
+		Err(
+			error @ (DeployError::Invalid(_) | DeployError::PortTaken { .. } | DeployError::Load(_)),
+		) => failed(StatusCode::UNPROCESSABLE_ENTITY, error),
 		Err(error @ DeployError::Replace(Failed::Unhealthy { .. } | Failed::FirstFailed { .. })) => {
 			failed(StatusCode::BAD_GATEWAY, error)
 		}

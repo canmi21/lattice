@@ -13,12 +13,16 @@ bytes = "1.12.1"
 futures-util = "0.3.34"
 http-body-util = "0.1.5"
 hyper = { version = "1.11.1", features = ["client", "http1"] }
-hyper-util = { version = "0.1.20", features = ["tokio"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "tls12", "ring", "webpki-tokio"] }
+hyper-util = { version = "0.1.20", features = ["client-legacy", "http1", "tokio"] }
 jiff = "0.2"
 # The btrfs ioctls, which is the one reason this crate touches raw syscalls.
 libc = "0.2.189"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
+sha2 = "0.11"
 thiserror = "2.0.20"
 tokio = { version = "1.53.1", features = ["net", "fs", "time", "rt"] }
 toml = "1.1.6"
+urls = { path = "../urls" }
+zip = { version = "8", default-features = false, features = ["deflate"] }

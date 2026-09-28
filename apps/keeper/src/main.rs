@@ -13,7 +13,7 @@ use axum::{Json, Router};
 use deploy::replace::{Error as Failed, replace};
 use deploy::{Engine, Manifest, Shape, Version, Volumes};
 use std::collections::HashSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 
@@ -37,6 +37,10 @@ struct Keeper {
 	engine: Engine,
 	volumes: Volumes,
 	replacing: tokio::sync::Mutex<()>,
+	/// Absent without a GITHUB_ACTIONS_TOKEN, and then CI's notices are refused.
+	github: Option<deploy::github::GitHub>,
+	/// The runs a notice has been taken for.
+	notices: std::sync::Mutex<std::collections::HashSet<u64>>,
 }
 
 fn setting(key: &str, default: &str) -> String {
@@ -56,13 +60,22 @@ async fn main() -> anyhow::Result<()> {
 		engine: Engine::connect()?,
 		volumes: Volumes::new(apps, PathBuf::from(setting("SNAPSHOTS_ROOT", "/data/.snapshots"))),
 		replacing: tokio::sync::Mutex::new(()),
+		github: std::env::var("GITHUB_ACTIONS_TOKEN")
+			.ok()
+			.filter(|token| !token.is_empty())
+			.map(deploy::github::GitHub::new),
+		notices: std::sync::Mutex::default(),
 	});
 	deploy::clear_arrivals(&keeper.incoming)?;
 	let listen = setting("LISTEN", &format!("0.0.0.0:{PORT}"));
 	let guarded = Router::new()
 		.route("/apps/host", post(upload).layer(DefaultBodyLimit::disable()))
 		.layer(middleware::from_fn_with_state(keeper.clone(), admit));
-	let router = Router::new().route("/health", get(health)).merge(guarded).with_state(keeper);
+	let router = Router::new()
+		.route("/health", get(health))
+		.route("/notice", post(notice))
+		.merge(guarded)
+		.with_state(keeper);
 	let listener = tokio::net::TcpListener::bind(&listen).await?;
 	eprintln!("keeper: listening on {listen}");
 	axum::serve(listener, router).with_graceful_shutdown(stopped()).await?;
@@ -138,23 +151,94 @@ async fn upload(State(keeper): State<Arc<Keeper>>, mut parts: Multipart) -> Resp
 	if !received {
 		return failed(StatusCode::BAD_REQUEST, "no `image` part");
 	}
-	if let Err(error) = manifest.check_platform("host", &keeper.node) {
-		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
-	}
-	let _one = keeper.replacing.lock().await;
-	let file = match tokio::fs::File::open(&archive).await {
-		Ok(file) => file,
-		Err(error) => return failed(StatusCode::INTERNAL_SERVER_ERROR, error),
-	};
-	let loaded = keeper.engine.load("host", tokio_util::io::ReaderStream::new(file)).await;
-	let _ = tokio::fs::remove_file(&archive).await;
-	let image = match loaded {
-		Ok(image) => image,
-		Err(error) => return failed(StatusCode::UNPROCESSABLE_ENTITY, error),
-	};
-	match replace_host(&keeper, Version { manifest, image }).await {
+	match from_archive(&keeper, manifest, &archive).await {
 		Ok(image) => Json(serde_json::json!({ "name": "host", "image": image })).into_response(),
 		Err(Reply(status, message)) => failed(status, message),
+	}
+}
+
+/// Load a host archive and put it in place, as an upload or a notice brings one. The archive is
+/// gone afterwards whatever happened.
+async fn from_archive(keeper: &Keeper, manifest: Manifest, archive: &Path) -> Result<String, Reply> {
+	let replaced = async {
+		if let Err(error) = manifest.check_platform("host", &keeper.node) {
+			return Err(Reply(StatusCode::UNPROCESSABLE_ENTITY, error.to_string()));
+		}
+		let _one = keeper.replacing.lock().await;
+		let file = tokio::fs::File::open(archive)
+			.await
+			.map_err(|e| Reply(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+		let loaded = keeper.engine.load("host", tokio_util::io::ReaderStream::new(file)).await;
+		let image = loaded.map_err(|e| Reply(StatusCode::UNPROCESSABLE_ENTITY, e.to_string()))?;
+		replace_host(keeper, Version { manifest, image }).await
+	}
+	.await;
+	let _ = tokio::fs::remove_file(archive).await;
+	replaced
+}
+
+#[derive(serde::Deserialize)]
+struct Notice {
+	run: u64,
+}
+
+/// A CI run has finished; if it built host, host is replaced. Open, since it can only ask keeper
+/// to look: the run is checked against GitHub first. Each run is taken once, and again only if
+/// taking it failed. See spec/architecture/host.md, "keeper has its own intake".
+async fn notice(State(keeper): State<Arc<Keeper>>, Json(notice): Json<Notice>) -> Response {
+	if keeper.github.is_none() {
+		return failed(StatusCode::SERVICE_UNAVAILABLE, "this node has no GITHUB_ACTIONS_TOKEN");
+	}
+	let notices = || keeper.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+	if !notices().insert(notice.run) {
+		return (StatusCode::OK, "already taken").into_response();
+	}
+	let taker = keeper.clone();
+	tokio::spawn(async move {
+		if !from_run(&taker, notice.run).await {
+			taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).remove(&notice.run);
+		}
+	});
+	StatusCode::ACCEPTED.into_response()
+}
+
+/// The host a run built, if it built one, put in place. True when nothing failed.
+async fn from_run(keeper: &Keeper, run: u64) -> bool {
+	let Some(github) = keeper.github.as_ref() else { return false };
+	let artifacts = match github.artifacts(run).await {
+		Ok(artifacts) => artifacts,
+		Err(error) => {
+			eprintln!("keeper: run {run}: {error}");
+			return false;
+		}
+	};
+	let Some(artifact) = artifacts.iter().find(|artifact| artifact.app == "host") else {
+		return true;
+	};
+	let fetched = match github.fetch(artifact, &keeper.incoming).await {
+		Ok(fetched) => fetched,
+		Err(error) => {
+			eprintln!("keeper: run {run}: {error}");
+			return false;
+		}
+	};
+	let manifest = match Manifest::parse(&fetched.declaration) {
+		Ok(manifest) => manifest,
+		Err(error) => {
+			eprintln!("keeper: run {run}: {error}");
+			let _ = tokio::fs::remove_file(&fetched.image).await;
+			return true;
+		}
+	};
+	match from_archive(keeper, manifest, &fetched.image).await {
+		Ok(image) => {
+			eprintln!("keeper: run {run}: host is {image}");
+			true
+		}
+		Err(Reply(_, message)) => {
+			eprintln!("keeper: run {run}: {message}");
+			false
+		}
 	}
 }
 

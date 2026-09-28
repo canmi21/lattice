@@ -8,6 +8,8 @@ use deploy::manifest::{Invalid, Manifest};
 use deploy::replace::{self, replace};
 use deploy::{Shape, Version, engine};
 use std::collections::HashSet;
+use std::path::Path;
+use std::sync::Arc;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -23,6 +25,11 @@ pub enum Error {
 	Engine(#[from] engine::Error),
 	#[error("the node's environment at {path}: {source}")]
 	Environment { path: String, source: std::io::Error },
+	#[error("the archive: {0}")]
+	Archive(std::io::Error),
+	/// Docker would not load the archive: it is the upload that is wrong, not the node.
+	#[error("the archive did not load: {0}")]
+	Load(engine::Error),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -89,6 +96,77 @@ pub async fn deploy(host: &Host, manifest: Manifest, image: String) -> Result<Ou
 	let routed = route(host).await.map_err(|error| error.to_string());
 	collect(host).await?;
 	Ok(Outcome { name, image, routed })
+}
+
+/// Load an image archive and deploy it, as an upload or a notice brings one. The archive is gone
+/// afterwards whatever happened, so a refused one does not wait on disk for the next.
+pub async fn from_archive(
+	host: &Host,
+	name: &str,
+	manifest: Manifest,
+	archive: &Path,
+) -> Result<Outcome, Error> {
+	let deployed = async {
+		admit(host, name, &manifest)?;
+		// One deploy at a time on a node: two would snapshot, stop and route over each other.
+		let _one = host.deploying.lock().await;
+		let file = tokio::fs::File::open(archive).await.map_err(Error::Archive)?;
+		let loaded = host.engine.load(name, tokio_util::io::ReaderStream::new(file)).await;
+		let image = loaded.map_err(Error::Load)?;
+		deploy(host, manifest, image).await
+	}
+	.await;
+	let _ = tokio::fs::remove_file(archive).await;
+	deployed
+}
+
+/// Deploy what a CI run built for this node, once GitHub's record of the run says it may be.
+/// host's own image is keeper's to deploy and is left to it. True when everything went, so a
+/// notice that failed on the way can be taken again when GitHub delivers it again.
+pub async fn from_run(host: Arc<Host>, run: u64) -> bool {
+	let Some(github) = host.github.as_ref() else {
+		eprintln!("host: run {run}: this node has no GITHUB_ACTIONS_TOKEN");
+		return false;
+	};
+	let artifacts = match github.artifacts(run).await {
+		Ok(artifacts) => artifacts,
+		Err(error) => {
+			eprintln!("host: run {run}: {error}");
+			return false;
+		}
+	};
+	let mut whole = true;
+	for artifact in artifacts.iter().filter(|artifact| artifact.app != "host") {
+		let fetched = match github.fetch(artifact, &host.config.incoming).await {
+			Ok(fetched) => fetched,
+			Err(error) => {
+				eprintln!("host: run {run}: {}: {error}", artifact.app);
+				whole = false;
+				continue;
+			}
+		};
+		let manifest = match Manifest::parse(&fetched.declaration) {
+			Ok(manifest) => manifest,
+			Err(error) => {
+				eprintln!("host: run {run}: {}: {error}", artifact.app);
+				let _ = tokio::fs::remove_file(&fetched.image).await;
+				continue;
+			}
+		};
+		// Built for every node; deployed only where it is placed.
+		if !manifest.placements.iter().any(|placement| placement == &host.config.node) {
+			let _ = tokio::fs::remove_file(&fetched.image).await;
+			continue;
+		}
+		match from_archive(&host, &artifact.app, manifest, &fetched.image).await {
+			Ok(outcome) => eprintln!("host: run {run}: {} is {}", outcome.name, outcome.image),
+			Err(error) => {
+				eprintln!("host: run {run}: {}: {error}", artifact.app);
+				whole = false;
+			}
+		}
+	}
+	whole
 }
 
 #[derive(Debug, thiserror::Error)]

@@ -5,6 +5,7 @@
 
 pub mod btrfs;
 pub mod engine;
+pub mod github;
 pub mod http;
 pub mod manifest;
 pub mod replace;

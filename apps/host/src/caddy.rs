@@ -137,6 +137,16 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 	for target in interfaces(apps, routes, own, true) {
 		outside.push(named(format!("{}.{public}", target.name), &target));
 	}
+	// keeper's one path on the tunnel's side: the Worker reaches it there with a notice, and its
+	// interface stays private. See spec/architecture/host.md, "keeper has its own intake".
+	if let Some(keeper) = apps.iter().find(|app| app.manifest.name == "keeper") {
+		let name = format!("keeper.{public}");
+		let dial = format!("keeper:{}", keeper.manifest.container.port);
+		outside.push(json!({
+			"match": [{ "host": [&name], "path": ["/notice"] }],
+			"handle": [proxy(&dial, &name)]
+		}));
+	}
 	outside.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
 
 	// The visitor's address comes from Cloudflare's header, and only when cloudflared sent it.
@@ -325,6 +335,24 @@ mod tests {
 		assert!(!own.is_match("https://unifiXoutside.test"));
 		assert!(!own.is_match("http://unifi.outside.test"));
 		assert_eq!(rule["replace"], "https://device.test");
+	}
+
+	#[test]
+	fn keeper_answers_only_its_notice_on_the_tunnel_side() {
+		let keeper = Deployed {
+			manifest: Manifest::parse(include_str!("../../keeper/service.toml")).unwrap(),
+			image: "sha256:k".into(),
+			previous: None,
+			deployed_at: String::new(),
+		};
+		let rendered = render(&config(), "host", &[keeper], &[]);
+		let outside = text(&rendered["apps"]["http"]["servers"]["tunnel"]);
+		assert!(outside.contains(r#""host":["keeper.outside.test"],"path":["/notice"]"#));
+		// Nowhere on the tunnel's side is keeper matched by its name alone.
+		assert!(!outside.contains(r#"{"host":["keeper.outside.test"]}"#));
+		// Its interface is the private side's, whole.
+		let inside = text(&rendered["apps"]["http"]["servers"]["private"]);
+		assert!(inside.contains(r#"{"host":["keeper.inside.test"]}"#));
 	}
 
 	#[test]

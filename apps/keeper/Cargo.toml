@@ -15,3 +15,4 @@ serde_json = "1.0.151"
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "fs"] }
 tokio-util = { version = "0.7.19", features = ["io"] }
 mimalloc = "0.1.52"
+serde = { version = "1.0.229", features = ["derive"] }

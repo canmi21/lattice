@@ -23,6 +23,10 @@ pub struct Host {
 	pub engine: deploy::Engine,
 	pub volumes: deploy::Volumes,
 	pub deploying: tokio::sync::Mutex<()>,
+	/// Absent without a GITHUB_ACTIONS_TOKEN, and then CI's notices are refused.
+	pub github: Option<deploy::github::GitHub>,
+	/// The runs a notice has been taken for.
+	pub notices: std::sync::Mutex<std::collections::HashSet<u64>>,
 }
 
 #[tokio::main]
@@ -37,6 +41,11 @@ async fn main() -> anyhow::Result<()> {
 		engine: deploy::Engine::connect()?,
 		volumes: deploy::Volumes::new(config.apps_root.clone(), config.snapshots_root.clone()),
 		deploying: tokio::sync::Mutex::new(()),
+		github: std::env::var("GITHUB_ACTIONS_TOKEN")
+			.ok()
+			.filter(|token| !token.is_empty())
+			.map(deploy::github::GitHub::new),
+		notices: std::sync::Mutex::default(),
 		config,
 	});
 
