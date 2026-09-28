@@ -35,6 +35,7 @@
 	"invalid_url": "A capture needs a host, a scheme of http or https, and each part of the address alone",
 	"invalid_variable": "A variable is named in capitals, digits and underscores, with its value on one line",
 	"invalid_viewport": "Width is from 320 to 3840 and height from 240 to 2160",
+	"job_running": "This job is already running",
 	"meter_unavailable": "The meter did not answer on its socket",
 	"metrics_unavailable": "No sample has been taken yet",
 	"no_such_app": "No app has this name",

@@ -1,0 +1,9 @@
+# Installed on the machine by hand, not by this repository -- see spec/architecture/apt.md,
+# "The work stays on the machine, in two units". apt starts this unit over systemd's D-Bus API;
+# when it runs is cron's, per spec/architecture/cron.md.
+[Unit]
+Description=apt-get update, asked for by apt over D-Bus
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/apt-get -q -o DPkg::Lock::Timeout=600 update

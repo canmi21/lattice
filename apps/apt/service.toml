@@ -1,0 +1,34 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "apt"
+placements = ["home"]
+
+# No port and no network: cron reaches this on its socket, host mounts the machine's system bus
+# socket in and the container runs as root only so systemd lets it start a unit. See
+# spec/architecture/apt.md, "The door".
+[container]
+socket = "apt.sock"
+health = "/health"
+memory_mb = 32
+
+[data]
+path = "/data"
+
+# See spec/architecture/cron.md, "A job is declared by the service that does it". Times are UTC:
+# 07:00 is 03:00 New York.
+[[schedules]]
+name = "update"
+cron = "0 7 * * *"
+path = "/jobs/update"
+catch_up = "once"
+overlap = "skip"
+timeout = 1800
+
+[[schedules]]
+name = "upgrade"
+cron = "0 8 * * 0"
+path = "/jobs/upgrade"
+catch_up = "once"
+overlap = "skip"
+timeout = 7200
