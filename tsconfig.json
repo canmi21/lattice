@@ -22,6 +22,7 @@
 		"libs/store",
 		"apps/api",
 		"apps/cdn",
-		"apps/aka"
+		"apps/aka",
+		"apps/hook"
 	]
 }

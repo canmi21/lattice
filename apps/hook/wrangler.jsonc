@@ -1,0 +1,17 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "hook",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-29",
+
+	// A route under the API host's own domain, which wins over the domain's Worker for this scope.
+	// See spec/toolchain.md, "Workers answer on custom domains only".
+	"routes": [{ "pattern": "api.ffoni.com/hook/*", "zone_name": "ffoni.com" }],
+
+	// The Caddy of the machine at home, created in the dashboard; the fetch's hostname is the Host.
+	"vpc_services": [{ "binding": "HOME", "service_id": "VPC_SERVICE_ID", "remote": true }],
+
+	"observability": { "logs": { "enabled": true } },
+	"workers_dev": false,
+	"preview_urls": false,
+}

@@ -21,6 +21,8 @@
 		"apps/cdn/*.d.ts",
 		"apps/aka/src/**/*.ts",
 		"apps/aka/*.d.ts",
+		"apps/hook/src/**/*.ts",
+		"apps/hook/*.d.ts",
 		"libs/store/src/**/*.ts",
 		// Types, schemas and constants only, so neither carries a runtime global and both are
 		// safe in this program and in the browser one at once.
