@@ -9,7 +9,7 @@ placements = ["home"]
 port = 19200
 health = "/health"
 # A browser and the pages it holds open: two at a time, each a few hundred MiB at their worst.
-memory_mb = 1536
+memory_mb = 2048
 
 # Where captures wait out their five minutes. See spec/architecture/shot.md.
 [data]

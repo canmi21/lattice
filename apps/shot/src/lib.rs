@@ -4,6 +4,7 @@
 pub mod address;
 pub mod api;
 pub mod asked;
+pub mod browser;
 pub mod proxy;
 pub mod queue;
 pub mod render;

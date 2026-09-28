@@ -10,7 +10,9 @@ workspace = true
 [dependencies]
 anyhow = "1.0.104"
 axum = "0.8.9"
+base64 = "0.22.1"
 bytes = "1.12.1"
+chromiumoxide = { version = "0.9.1", default-features = false }
 futures-util = "0.3.34"
 http-body-util = "0.1.5"
 hyper = { version = "1.11.1", features = ["client", "http1"] }

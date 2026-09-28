@@ -81,3 +81,23 @@ judged:
 - A tunnel for HTTPS is opened to the judged address; a plain HTTP request is sent on in origin form
   with `Connection: close`, so a browser reusing the connection for another host is judged again.
   Two ports, one per reach, and each capture's browser context is given the one its ask may use.
+
+## One browser, a context per capture
+
+**Chromium runs for the life of the service, and each capture is a browser context of its own**,
+given the proxy for its reach and disposed of when it is done, whether it worked or not; two share
+the browser at once. A browser that has died is started again for the next capture.
+
+- The page loads within twenty seconds, then is taken as settled once no resource has been added
+  for half a second, five seconds at most, and its fonts are ready.
+- `full` measures the page and captures that much beyond the viewport, at the width asked; it is
+  cut at 16,383 pixels, WebP's limit, so both formats are always made.
+- Chromium runs without its own sandbox, since the container gives it no capabilities to build one
+  with; the container is the sandbox. QUIC is off and WebRTC may not use UDP, since either would
+  leave around the proxy; Chromium's own habit of sending loopback around a proxy is undone, so a
+  request for this machine meets the proxy's judgment too.
+- The page's address is judged before it is loaded, so a refusal says which address and why. What
+  the proxy refuses on the way -- a redirect, a resource -- reaches the browser as a failed
+  response, and the capture fails with the browser's words for it, which do not say which.
+- The fonts are the image's, and the image carries Noto Sans for Latin and Noto Sans CJK for
+  Chinese and Japanese, and no emoji.

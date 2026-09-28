@@ -1,8 +1,9 @@
-use shot::asked::Asked;
-use shot::render::{Capture, Render};
+use shot::browser::{Chromium, Proxies};
+use shot::resolve::{Doh, Reach};
 use shot::service::Shot;
 use shot::store::Store;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 /// musl's allocator is slow under many small allocations, and images are built for speed; see
 /// spec/architecture/host.md, "An image is built for speed, and for any node of its architecture".
@@ -13,20 +14,25 @@ static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// host, and the test below holds the two together.
 const PORT: u16 = 19200;
 
-/// Until a browser is wired in, every capture fails and says why.
-struct NoBrowser;
-
-impl Render for NoBrowser {
-	async fn capture(&self, _: &Asked) -> Result<Capture, String> {
-		Err("No browser is running in this build".into())
-	}
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	let data = PathBuf::from(std::env::var("SHOT_DATA").unwrap_or_else(|_| "/data".into()));
 	let listen = std::env::var("LISTEN").unwrap_or_else(|_| format!("0.0.0.0:{PORT}"));
-	let shot = Shot::new(Store::open(&data)?, NoBrowser);
+	// The image's own Chromium unless told otherwise, as on a machine where Chrome is elsewhere.
+	let executable = std::env::var_os("SHOT_BROWSER").map(PathBuf::from);
+	// The browser's profile is scratch, and goes with the process.
+	let profile = std::env::temp_dir().join("shot-chromium");
+
+	let resolver = Arc::new(Doh::new());
+	let proxies = Proxies {
+		public: shot::proxy::start(resolver.clone(), Reach::Public).await?,
+		internal: shot::proxy::start(resolver.clone(), Reach::Internal).await?,
+	};
+	let browser = Chromium::new(executable, profile, proxies, resolver);
+	if let Err(error) = browser.warm().await {
+		eprintln!("shot: {error}; it is tried again with the first capture");
+	}
+	let shot = Shot::new(Store::open(&data)?, browser);
 	shot.start();
 	let listener = tokio::net::TcpListener::bind(&listen).await?;
 	eprintln!("shot: listening on {listen}, keeping captures in {}", data.display());
