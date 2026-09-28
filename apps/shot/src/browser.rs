@@ -16,18 +16,16 @@ use chromiumoxide::{Browser, BrowserConfig, Page};
 use futures_util::StreamExt;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use tokio::sync::Mutex;
 
 /// WebP's side is at most this many pixels, so a whole page is cut off here and both formats fit.
 pub const TALLEST: u32 = 16_383;
 /// WebP quality: past where text looks any different from the PNG, at a fraction of its size.
 pub const WEBP_QUALITY: i64 = 85;
-/// How long a page has to load.
-const LOAD: Duration = Duration::from_secs(20);
-/// How long the network must be quiet before the page is taken as settled, and the most waited.
-const QUIET: Duration = Duration::from_millis(500);
-const SETTLE: Duration = Duration::from_secs(5);
+/// The longest any capture's browser call may take: the longest load, the longest delay, and a
+/// margin for the pictures themselves.
+const LONGEST: Duration = Duration::from_secs(50);
 
 /// Everything that is not a page's own work, turned off; and QUIC, which would leave by UDP around
 /// the proxy, and WebRTC's own UDP, for the same reason.
@@ -96,7 +94,7 @@ impl<R: Resolve> Chromium<R> {
 			.no_sandbox()
 			.user_data_dir(&self.profile)
 			.launch_timeout(Duration::from_secs(30))
-			.request_timeout(LOAD + SETTLE)
+			.request_timeout(LONGEST)
 			// Even the default context goes through the public proxy; every capture has its own.
 			.arg(format!("--proxy-server={}", self.proxies.server(Reach::Public)))
 			.arg(format!("--proxy-bypass-list={BYPASS}"))
@@ -140,25 +138,6 @@ fn why(error: impl std::fmt::Display) -> String {
 		.split(|c: char| c.is_whitespace() || c == '"' || c == '\'')
 		.find(|word| word.starts_with("net::ERR_"))
 		.map_or(said.clone(), str::to_owned)
-}
-
-async fn settle(page: &Page) {
-	let started = Instant::now();
-	let _ = page.evaluate("document.fonts.ready.then(() => true)").await;
-	let mut seen = -1i64;
-	while started.elapsed() < SETTLE {
-		let loaded: i64 = page
-			.evaluate("performance.getEntriesByType('resource').length")
-			.await
-			.ok()
-			.and_then(|result| result.into_value().ok())
-			.unwrap_or(0);
-		if loaded == seen {
-			return;
-		}
-		seen = loaded;
-		tokio::time::sleep(QUIET).await;
-	}
 }
 
 async fn shoot(page: &Page, asked: &Asked) -> Result<Capture, String> {
@@ -233,11 +212,15 @@ impl<R: Resolve> Render for Chromium<R> {
 						))
 						.await
 						.map_err(why)?;
-					tokio::time::timeout(LOAD, page.goto(asked.url.as_str()))
+					// Loaded is the load event, as the browser fires it: fast pages are taken fast.
+					let timeout = Duration::from_millis(u64::from(asked.timeout));
+					tokio::time::timeout(timeout, page.goto(asked.url.as_str()))
 						.await
-						.map_err(|_| format!("The page did not load in {} seconds", LOAD.as_secs()))?
+						.map_err(|_| {
+							format!("The page did not load in {} seconds", asked.timeout as f64 / 1000.0)
+						})?
 						.map_err(why)?;
-					settle(&page).await;
+					tokio::time::sleep(Duration::from_millis(u64::from(asked.delay))).await;
 					shoot(&page, asked).await
 				}
 				.await;

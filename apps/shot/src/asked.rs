@@ -10,6 +10,14 @@ pub const HEIGHTS: std::ops::RangeInclusive<u32> = 240..=2160;
 pub const DEFAULT_WIDTH: u32 = 1280;
 pub const DEFAULT_HEIGHT: u32 = 800;
 
+/// How long the page may take to load, in milliseconds: what may be asked, and what is assumed.
+pub const TIMEOUTS: std::ops::RangeInclusive<u32> = 1_000..=30_000;
+pub const DEFAULT_TIMEOUT: u32 = 15_000;
+/// How long to wait once it has loaded before the picture is taken, in milliseconds. Unasked, a
+/// moment for what the load event set going to draw; asked, a second at the least.
+pub const DELAYS: std::ops::RangeInclusive<u32> = 1_000..=10_000;
+pub const DEFAULT_DELAY: u32 = 210;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Asked {
 	pub url: Url,
@@ -19,6 +27,10 @@ pub struct Asked {
 	pub full: bool,
 	/// Whether private addresses may be reached; only our own callers may ask it.
 	pub internal: bool,
+	/// Milliseconds the page may take to load.
+	pub timeout: u32,
+	/// Milliseconds between its loading and the picture.
+	pub delay: u32,
 }
 
 /// The query as it arrives, every field a string, so a malformed one is ours to name. The page is
@@ -35,6 +47,8 @@ pub struct Query {
 	pub height: Option<String>,
 	pub full: Option<String>,
 	pub internal: Option<String>,
+	pub timeout: Option<String>,
+	pub delay: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -43,6 +57,8 @@ pub enum Refused {
 	Url,
 	/// A width or height that is not a number, or outside the bounds.
 	Viewport,
+	/// A timeout or a delay that is not seconds to one decimal place, or outside its bounds.
+	Timing,
 }
 
 /// `true`, `1` or the bare name mean yes; anything else, or nothing, means no.
@@ -58,6 +74,24 @@ fn dimension(
 	let Some(value) = value else { return Ok(default) };
 	let parsed = value.parse::<u32>().map_err(|_| Refused::Viewport)?;
 	if bounds.contains(&parsed) { Ok(parsed) } else { Err(Refused::Viewport) }
+}
+
+/// Seconds to one decimal place -- `3`, `2.5` -- as milliseconds, within `bounds`.
+fn seconds(
+	value: Option<&str>,
+	default: u32,
+	bounds: &std::ops::RangeInclusive<u32>,
+) -> Result<u32, Refused> {
+	let Some(value) = value else { return Ok(default) };
+	let (whole, tenth) = value.split_once('.').unwrap_or((value, "0"));
+	let digits = |part: &str| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit());
+	if !digits(whole) || !digits(tenth) || tenth.len() != 1 {
+		return Err(Refused::Timing);
+	}
+	let whole = whole.parse::<u32>().map_err(|_| Refused::Timing)?;
+	let milliseconds =
+		whole.checked_mul(1000).ok_or(Refused::Timing)? + u32::from(tenth.as_bytes()[0] - b'0') * 100;
+	if bounds.contains(&milliseconds) { Ok(milliseconds) } else { Err(Refused::Timing) }
 }
 
 /// The page, put together from its parts: `https` when the scheme is not given, the scheme's own
@@ -112,6 +146,8 @@ impl Asked {
 			height: dimension(query.height.as_deref(), DEFAULT_HEIGHT, &HEIGHTS)?,
 			full: yes(query.full.as_deref()),
 			internal: !public && yes(query.internal.as_deref()),
+			timeout: seconds(query.timeout.as_deref(), DEFAULT_TIMEOUT, &TIMEOUTS)?,
+			delay: seconds(query.delay.as_deref(), DEFAULT_DELAY, &DELAYS)?,
 		})
 	}
 }
@@ -133,6 +169,8 @@ mod tests {
 			height: get("height"),
 			full: get("full"),
 			internal: get("internal"),
+			timeout: get("timeout"),
+			delay: get("delay"),
 		}
 	}
 
@@ -186,6 +224,35 @@ mod tests {
 		)
 		.unwrap();
 		assert_eq!((full.width, full.full, full.internal), (390, true, true));
+	}
+
+	#[test]
+	fn times_are_seconds_to_one_place_within_their_bounds() {
+		let asked = Asked::read(&query(&[("host", "x.test")]), false).unwrap();
+		assert_eq!((asked.timeout, asked.delay), (15_000, 210));
+		let asked =
+			Asked::read(&query(&[("host", "x.test"), ("timeout", "2.5"), ("delay", "10")]), false)
+				.unwrap();
+		assert_eq!((asked.timeout, asked.delay), (2_500, 10_000));
+		let asked =
+			Asked::read(&query(&[("host", "x.test"), ("timeout", "30.0"), ("delay", "1")]), false)
+				.unwrap();
+		assert_eq!((asked.timeout, asked.delay), (30_000, 1_000));
+		for (name, value) in [
+			("timeout", "0.9"),
+			("timeout", "30.1"),
+			("timeout", "2.55"),
+			("timeout", "fast"),
+			("timeout", ".5"),
+			("timeout", "5."),
+			("delay", "0.5"),
+			("delay", "10.1"),
+			("delay", "-1"),
+			("delay", "1e1"),
+		] {
+			let asked = Asked::read(&query(&[("host", "x.test"), (name, value)]), false);
+			assert_eq!(asked, Err(Refused::Timing), "{name}={value}");
+		}
 	}
 
 	#[test]

@@ -10,8 +10,9 @@ use tokio::sync::Notify;
 
 /// How many captures render at once: a browser page each, on a machine with other work to do.
 pub const CONCURRENCY: usize = 2;
-/// The longest one capture may take before it is called failed.
-pub const DEADLINE: Duration = Duration::from_secs(30);
+/// What a capture may take past its own timeout and delay, for the browser and the pictures, before
+/// it is called failed.
+pub const MARGIN: Duration = Duration::from_secs(10);
 /// How often settled captures are looked over.
 const SWEEP: Duration = Duration::from_secs(30);
 
@@ -74,8 +75,9 @@ impl<R: Render> Shot<R> {
 
 	pub async fn render_one(&self, id: uuid::Uuid, asked: &crate::asked::Asked) {
 		let started = Instant::now();
-		let outcome = match tokio::time::timeout(DEADLINE, self.renderer.capture(asked)).await {
-			Err(_) => Err(format!("The page took longer than {} seconds", DEADLINE.as_secs())),
+		let deadline = Duration::from_millis(u64::from(asked.timeout + asked.delay)) + MARGIN;
+		let outcome = match tokio::time::timeout(deadline, self.renderer.capture(asked)).await {
+			Err(_) => Err(format!("The capture took longer than {} seconds", deadline.as_secs())),
 			Ok(Err(reason)) => Err(reason),
 			Ok(Ok(capture)) => self.keep(id, capture).await,
 		};

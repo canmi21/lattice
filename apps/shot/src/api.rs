@@ -54,6 +54,9 @@ async fn capture<R: Render>(
 		Err(Refused::Viewport) => {
 			return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_viewport"));
 		}
+		Err(Refused::Timing) => {
+			return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_timing"));
+		}
 	};
 	let asked = shot.queue().ask(asked, lane);
 	match asked {
@@ -265,6 +268,7 @@ mod tests {
 			("/capture", "invalid_url"),
 			("/capture?scheme=file&host=x.test", "invalid_url"),
 			("/capture?host=a.test&width=10", "invalid_viewport"),
+			("/capture?host=a.test&delay=11", "invalid_timing"),
 			("/not-an-id", "no_such_shot"),
 			("/not-an-id.png", "no_such_shot"),
 			("/00000000-0000-0000-0000-000000000000.gif", "no_such_shot"),

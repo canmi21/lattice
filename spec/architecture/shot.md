@@ -10,11 +10,11 @@ nothing: a capture lives five minutes on disk and is gone.
 **Starting a capture answers at once, and the picture comes later.** A browser takes seconds, so
 nothing waits on it:
 
-| Request                                                                                   | Answer                                                               |
-| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `GET /shot/capture?scheme=&host=&port=&path=&query=&hash=&width=&height=&full=&internal=` | `202 { id, state, retry_after }`, or `200` when it is already done   |
-| `GET /shot/<id>`                                                                          | `202` while queued or rendering, `200 { id, state, png, webp }` done |
-| `GET /shot/<id>.png`, `GET /shot/<id>.webp`                                               | the picture itself, `Cache-Control: max-age=900`                     |
+| Request                                     | Answer                                                               |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| `GET /shot/capture?host=&…`                 | `202 { id, state, retry_after }`, or `200` when it is already done   |
+| `GET /shot/<id>`                            | `202` while queued or rendering, `200 { id, state, png, webp }` done |
+| `GET /shot/<id>.png`, `GET /shot/<id>.webp` | the picture itself, `Cache-Control: max-age=900`                     |
 
 - Every route is under `/shot/`, the bare scope included, because the zone's firewall admits a
   scope's paths by that prefix; a UUID is never `capture`.
@@ -24,6 +24,7 @@ nothing waits on it:
   optional, each without the mark that opens it. A part holding more than itself -- a host with a
   port or a path, a path with a query -- is refused rather than read. Only `query` ever needs
   escaping, and only when it holds an `&`.
+- The rest: `width` and `height`, `full`, `timeout` and `delay`, and `internal`, each below.
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
   than what the viewport shows.
 - Every answer but the picture is the envelope, and says `no-store`. A capture that failed is
@@ -32,7 +33,6 @@ nothing waits on it:
 - **The addresses in an answer are relative** -- `Location: <id>`, `png: "<id>.png"` -- because the
   service does not know the scope it is reached under; resolved against the address asked, they
   land beside it.
-- A capture has thirty seconds from when a browser takes it, and fails with why after that.
 - **An id is a random UUID**, so a picture cannot be found by guessing what somebody else asked
   for. The same parameters while a capture of them is kept get the same id, and are not captured
   twice.
@@ -94,8 +94,13 @@ judged:
 given the proxy for its reach and disposed of when it is done, whether it worked or not; two share
 the browser at once. A browser that has died is started again for the next capture.
 
-- The page loads within twenty seconds, then is taken as settled once no resource has been added
-  for half a second, five seconds at most, and its fonts are ready.
+- **A capture is taken when the page has loaded, and then a moment**: loaded is the browser's load
+  event, so a fast page is taken fast and a slow one when it is ready. `timeout` is how long it may
+  take, 1 to 30 seconds and 15 when not asked, and a page slower than that fails saying so. `delay`
+  is how long to wait once it has, for what the load set going -- an animation, a late render --
+  1 to 10 seconds when asked and 210 milliseconds when not. Both are seconds to one decimal place,
+  and anything else is `400 invalid_timing`. A capture as a whole may take its timeout and delay
+  and ten seconds more before it is called failed. Both are part of what makes two asks one.
 - `full` measures the page and captures that much beyond the viewport, at the width asked; it is
   cut at 16,383 pixels, WebP's limit, so both formats are always made.
 - Chromium runs without its own sandbox, since the container gives it no capabilities to build one
