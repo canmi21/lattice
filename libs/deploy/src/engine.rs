@@ -112,6 +112,18 @@ pub fn numeric_user(user: &str) -> Option<(u32, u32)> {
 	(uid != 0).then_some((uid, gid))
 }
 
+/// One image on the machine, as the panel lists it.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct Image {
+	pub id: String,
+	/// Its names; none for a dangling image, which a newer build of its name left behind.
+	pub tags: Vec<String>,
+	/// Bytes, its layers shared with other images included.
+	pub size: u64,
+	/// Seconds since the epoch.
+	pub created: i64,
+}
+
 pub fn network_of(name: &str) -> String {
 	format!("app-{name}")
 }
@@ -488,6 +500,42 @@ impl Engine {
 				})
 				.collect(),
 		)
+	}
+
+	/// Every image on the machine, whoever loaded it, dangling ones included.
+	pub async fn images(&self) -> Result<Vec<Image>, Error> {
+		let listed = self.docker.list_images(None::<bollard::query_parameters::ListImagesOptions>).await?;
+		Ok(
+			listed
+				.into_iter()
+				.map(|image| Image {
+					id: image.id,
+					tags: image.repo_tags.into_iter().filter(|tag| tag != "<none>:<none>").collect(),
+					size: u64::try_from(image.size).unwrap_or(0),
+					created: image.created,
+				})
+				.collect(),
+		)
+	}
+
+	/// The image of every container, running or stopped: none of them may be removed.
+	pub async fn images_in_use(&self) -> Result<HashSet<String>, Error> {
+		let options = ListContainersOptions { all: true, ..Default::default() };
+		let containers = self.docker.list_containers(Some(options)).await?;
+		Ok(containers.into_iter().filter_map(|container| container.image_id).collect())
+	}
+
+	/// What every image together takes on disk, layers shared between them counted once.
+	pub async fn images_size(&self) -> Result<Option<u64>, Error> {
+		let usage = self.docker.df(None).await?;
+		Ok(usage.image_usage.and_then(|usage| usage.total_size).and_then(|size| u64::try_from(size).ok()))
+	}
+
+	/// Remove one image. One a container uses is refused by Docker, and that refusal is the answer.
+	pub async fn remove_image(&self, id: &str) -> Result<(), Error> {
+		let options = RemoveImageOptionsBuilder::new().force(false).build();
+		self.docker.remove_image(id, Some(options), None).await?;
+		Ok(())
 	}
 
 	/// Whether the Docker daemon answers at all.

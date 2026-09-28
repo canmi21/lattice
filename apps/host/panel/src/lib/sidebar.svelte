@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
 	import Boxes from '@lucide/svelte/icons/boxes';
+	import Layers from '@lucide/svelte/icons/layers';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Server from '@lucide/svelte/icons/server';
@@ -19,6 +20,12 @@
 	const pages = [
 		{ href: '/', label: 'Overview', icon: LayoutDashboard, here: (path: string) => path === '/' },
 		{ href: '/apps', label: 'Apps', icon: Boxes, here: (path: string) => path.startsWith('/apps') },
+		{
+			href: '/images',
+			label: 'Images',
+			icon: Layers,
+			here: (path: string) => path.startsWith('/images'),
+		},
 		{
 			href: '/routes',
 			label: 'Routes',

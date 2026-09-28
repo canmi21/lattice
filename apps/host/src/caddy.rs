@@ -151,7 +151,8 @@ fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 				let name = &app.manifest.name;
 				let port = app.manifest.container.as_ref()?.port?;
 				let api = app.manifest.api.as_ref()?;
-				let mut handle = vec![json!({ "handler": "rewrite", "strip_path_prefix": format!("/{name}") })];
+				let mut handle =
+					vec![json!({ "handler": "rewrite", "strip_path_prefix": format!("/{name}") })];
 				handle.extend(public.then(|| limited(name, &api.limits)).flatten());
 				handle.extend([encode(), proxy(&format!("{name}:{port}"), name)]);
 				Some(json!({

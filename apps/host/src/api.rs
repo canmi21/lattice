@@ -3,6 +3,7 @@
 
 use crate::Host;
 use crate::environment;
+use crate::images;
 use crate::node;
 use crate::panel;
 use crate::rollout::{self, Error as DeployError};
@@ -35,6 +36,9 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/apps/{name}/logs/archive/{file}", get(archived_file))
 		.route("/apps/{name}/environment", get(environment))
 		.route("/apps/{name}/environment/{kind}/{key}", put(set_variable).delete(unset_variable))
+		.route("/images", get(images))
+		.route("/images/collect", post(collect_images))
+		.route("/images/{id}", axum::routing::delete(remove_image))
 		.route("/routes", get(routes))
 		.route("/routes/{name}", put(put_route).delete(delete_route))
 		.route("/caddy", get(caddy).post(reapply))
@@ -641,6 +645,34 @@ async fn app_series(
 	};
 	let path = format!("/containers/series?{query}");
 	node::relay(meter_socket(&host).as_deref(), &path).await
+}
+
+/// Every image on the machine, and why each is kept.
+async fn images(State(host): State<Arc<Host>>) -> Response {
+	let size = host.engine.images_size().await.ok().flatten();
+	match images::listed(&host).await {
+		Ok(images) => {
+			response::success(StatusCode::OK, serde_json::json!({ "images": images, "size": size }))
+		}
+		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
+	}
+}
+
+async fn remove_image(State(host): State<Arc<Host>>, Path(id): Path<String>) -> Response {
+	match images::remove(&host, &id).await {
+		Ok(()) => response::success(StatusCode::OK, ()),
+		Err(images::Refused::Absent) => response::failure(StatusCode::NOT_FOUND, "no_such_image"),
+		Err(error @ images::Refused::Kept(_)) => failed(StatusCode::CONFLICT, "image_in_use", error),
+		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
+	}
+}
+
+/// Remove every image nothing could run again.
+async fn collect_images(State(host): State<Arc<Host>>) -> Response {
+	match images::collect(&host).await {
+		Ok(collected) => response::success(StatusCode::OK, collected),
+		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
+	}
 }
 
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.

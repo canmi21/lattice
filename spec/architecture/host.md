@@ -445,6 +445,20 @@ restart policy does that -- and through a deploy: while it is held, a CI run tha
 as skipped rather than started. A start runs the version it was stopped at; a redeploy, a rollback
 or an upload is a choice to run something, and ends the hold.
 
+### An image is kept while something could run it
+
+**The panel's Images page lists every image on the machine and why each stays**: what an app runs,
+what it would go back to on a rollback, what any container is made from -- whoever started it --
+and host's own, which keeper keeps and collects. Everything else is collectable: a dangling image a
+newer build left, an image of an app no longer deployed, an upstream image a compose file once
+pulled. One of those is removed on its own, or all of them at once, each confirmed; a kept one is
+refused with `image_in_use`. Both run under the deploy lock, so an image a deploy has loaded and not
+yet started is never taken for one nothing needs. The size given back is Docker's measure of its
+images before and after, since layers shared with a kept image stay.
+
+A deploy still collects on its own what it made unneeded, as it always has; the page is for what
+nothing deploys any more.
+
 ## Trying host on this machine
 
 **A node is a privileged `docker:dind` container with a btrfs file mounted at `/data`.** host needs

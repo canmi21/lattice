@@ -21,6 +21,16 @@ export interface App extends Version {
 	platform: boolean;
 }
 
+/** An image on the machine, and why it stays: `no` is nothing could run it again. */
+export interface Image {
+	id: string;
+	tags: string[];
+	size: number;
+	created: number;
+	kept: 'current' | 'previous' | 'used' | 'keeper' | 'no';
+	app?: string;
+}
+
 export type Action =
 	| 'deploy'
 	| 'redeploy'
@@ -157,6 +167,10 @@ export const api = {
 		if (since !== undefined) query.set('since', String(since));
 		return call<Point[]>('GET', `/api/node/series?${query}`);
 	},
+	images: () => call<{ images: Image[]; size: number | null }>('GET', '/api/images'),
+	removeImage: (id: string) => call<null>('DELETE', `/api/images/${encodeURIComponent(id)}`),
+	collectImages: () =>
+		call<{ removed: number; freed: number | null }>('POST', '/api/images/collect'),
 	/** One container's latest second, `<name>.cpu` and the rest. */
 	appNow: (name: string) => call<Sample>('GET', `/api/apps/${name}/metrics/now`),
 	appSeries: (name: string, grain: Grain, since?: number) => {

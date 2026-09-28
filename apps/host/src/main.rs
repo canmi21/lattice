@@ -7,6 +7,7 @@ mod api;
 mod caddy;
 mod config;
 mod environment;
+mod images;
 mod node;
 mod panel;
 mod rollout;
