@@ -199,11 +199,21 @@ mod tests {
 		let directory = tempfile::tempdir().unwrap();
 		let store = Store::open(&directory.path().join("host.db")).unwrap();
 		store.put_app(&deployed("sha256:a", None)).unwrap();
-		let route =
-			Route { name: "geo".into(), upstream: "x.test:1".into(), private: true, public: false, home: None };
+		let route = Route {
+			name: "geo".into(),
+			upstream: "x.test:1".into(),
+			private: true,
+			public: false,
+			home: None,
+		};
 		assert!(matches!(store.put_route(&route), Err(Error::TakenByApp(_))));
-		let nas =
-			Route { name: "nas".into(), upstream: "nas.test:80".into(), private: false, public: true, home: None };
+		let nas = Route {
+			name: "nas".into(),
+			upstream: "nas.test:80".into(),
+			private: false,
+			public: true,
+			home: None,
+		};
 		store.put_route(&nas).unwrap();
 		assert_eq!(store.routes().unwrap(), vec![nas]);
 		assert!(store.delete_route("nas").unwrap());
@@ -220,12 +230,13 @@ mod upgrade {
 		let directory = tempfile::tempdir().unwrap();
 		let path = directory.path().join("host.db");
 		let old = Connection::open(&path).unwrap();
-		old.execute_batch(
-			"CREATE TABLE routes (name TEXT PRIMARY KEY, upstream TEXT NOT NULL,
+		old
+			.execute_batch(
+				"CREATE TABLE routes (name TEXT PRIMARY KEY, upstream TEXT NOT NULL,
 				private INTEGER NOT NULL, public INTEGER NOT NULL);
 			INSERT INTO routes VALUES ('nas', 'nas.test:80', 0, 1);",
-		)
-		.unwrap();
+			)
+			.unwrap();
 		drop(old);
 		let store = Store::open(&path).unwrap();
 		let routes = store.routes().unwrap();

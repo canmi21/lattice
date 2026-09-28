@@ -112,14 +112,9 @@ fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> V
 			}),
 	);
 	targets.extend(
-		routes
-			.iter()
-			.filter(|route| if public { route.public } else { route.private })
-			.map(|route| Target {
-				name: route.name.clone(),
-				dial: route.upstream.clone(),
-				home: route.home.clone(),
-			}),
+		routes.iter().filter(|route| if public { route.public } else { route.private }).map(|route| {
+			Target { name: route.name.clone(), dial: route.upstream.clone(), home: route.home.clone() }
+		}),
 	);
 	targets
 }
@@ -266,8 +261,13 @@ mod tests {
 
 	#[test]
 	fn a_route_appears_on_the_sides_it_asks_for() {
-		let nas =
-			Route { name: "nas".into(), upstream: "10.0.0.21:80".into(), private: false, public: true, home: None };
+		let nas = Route {
+			name: "nas".into(),
+			upstream: "10.0.0.21:80".into(),
+			private: false,
+			public: true,
+			home: None,
+		};
 		let rendered = text(&render(&config(), "host", &[], &[nas]));
 		assert!(rendered.contains("nas.outside.test"));
 		assert!(!rendered.contains("nas.inside.test"));
@@ -294,12 +294,20 @@ mod tests {
 
 	#[test]
 	fn an_https_upstream_is_reached_over_tls_on_443_unless_it_names_a_port() {
-		let unifi =
-			Route { name: "unifi".into(), upstream: "https://device.test".into(), private: false, public: true, home: None };
+		let unifi = Route {
+			name: "unifi".into(),
+			upstream: "https://device.test".into(),
+			private: false,
+			public: true,
+			home: None,
+		};
 		let rendered = text(&render(&config(), "host", &[], &[unifi]));
 		assert!(rendered.contains(r#""dial":"device.test:443""#));
 		assert!(rendered.contains(r#""tls":{"insecure_skip_verify":true}"#));
-		assert_eq!(text(&proxy("https://device.test:8443/", "unifi.outside.test")["upstreams"]), r#"[{"dial":"device.test:8443"}]"#);
+		assert_eq!(
+			text(&proxy("https://device.test:8443/", "unifi.outside.test")["upstreams"]),
+			r#"[{"dial":"device.test:8443"}]"#
+		);
 		// A plain upstream carries no transport and no rewriting at all.
 		let plain = proxy("10.0.0.21:80", "nas.outside.test");
 		assert!(plain.get("transport").is_none() && plain.get("headers").is_none());

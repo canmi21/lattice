@@ -6,8 +6,7 @@ use crate::manifest::Manifest;
 use bollard::Docker;
 use bollard::models::{
 	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType,
-	NetworkConnectRequest,
-	NetworkCreateRequest, RestartPolicy, RestartPolicyNameEnum,
+	NetworkConnectRequest, NetworkCreateRequest, RestartPolicy, RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
 	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListImagesOptionsBuilder,

@@ -179,7 +179,10 @@ async fn put_route(
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
 	}
 	if body.home.as_deref().is_some_and(|home| !is_home(home)) {
-		return failed(StatusCode::UNPROCESSABLE_ENTITY, "`home` has to be a path on this site other than `/`");
+		return failed(
+			StatusCode::UNPROCESSABLE_ENTITY,
+			"`home` has to be a path on this site other than `/`",
+		);
 	}
 	let route = Route {
 		name,

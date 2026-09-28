@@ -54,13 +54,17 @@ pub enum Error {
 fn split(path: &Path, operation: &'static str) -> Result<(File, Vec<u8>), Error> {
 	let name = path.file_name().ok_or_else(|| Error::NoName(path.into()))?;
 	let parent = path.parent().ok_or_else(|| Error::NoName(path.into()))?;
-	let directory = File::open(parent)
-		.map_err(|source| Error::Call { operation, path: parent.into(), source })?;
+	let directory =
+		File::open(parent).map_err(|source| Error::Call { operation, path: parent.into(), source })?;
 	Ok((directory, name.as_encoded_bytes().to_vec()))
 }
 
 /// Copy `name` into a fixed field, which must keep a terminating zero.
-fn field<const N: usize>(name: &[u8], path: &Path, operation: &'static str) -> Result<[u8; N], Error> {
+fn field<const N: usize>(
+	name: &[u8],
+	path: &Path,
+	operation: &'static str,
+) -> Result<[u8; N], Error> {
 	let mut bytes = [0u8; N];
 	if name.len() >= N || name.contains(&0) {
 		let source = std::io::Error::from(std::io::ErrorKind::InvalidInput);
@@ -71,12 +75,22 @@ fn field<const N: usize>(name: &[u8], path: &Path, operation: &'static str) -> R
 }
 
 /// The one unsafe line: the kernel reads, and for a snapshot writes, the struct it is handed.
-fn call<T>(directory: &File, request: u64, args: &mut T, path: &Path, operation: &'static str) -> Result<(), Error> {
+fn call<T>(
+	directory: &File,
+	request: u64,
+	args: &mut T,
+	path: &Path,
+	operation: &'static str,
+) -> Result<(), Error> {
 	// SAFETY: `args` is a live, correctly laid out `repr(C)` struct of exactly the size encoded in
 	// `request`, and `directory` stays open for the duration of the call.
 	let result = unsafe { libc::ioctl(directory.as_raw_fd(), request as _, args as *mut T) };
 	if result < 0 {
-		return Err(Error::Call { operation, path: path.into(), source: std::io::Error::last_os_error() });
+		return Err(Error::Call {
+			operation,
+			path: path.into(),
+			source: std::io::Error::last_os_error(),
+		});
 	}
 	Ok(())
 }
@@ -92,7 +106,8 @@ pub fn create(path: &Path) -> Result<(), Error> {
 /// `btrfs subvolume snapshot [-r]`: `target` becomes a snapshot of the subvolume at `source`.
 pub fn snapshot(source: &Path, target: &Path, read_only: bool) -> Result<(), Error> {
 	let operation = "snapshotting";
-	let from = File::open(source).map_err(|e| Error::Call { operation, path: source.into(), source: e })?;
+	let from =
+		File::open(source).map_err(|e| Error::Call { operation, path: source.into(), source: e })?;
 	let (directory, name) = split(target, operation)?;
 	let mut args = VolumeArgsV2 {
 		fd: i64::from(from.as_raw_fd()),
