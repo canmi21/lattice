@@ -51,6 +51,9 @@ pub async fn replace(
 	if let Some(restore) = restore {
 		volumes.restore(name, restore).await?;
 	}
+	if let Some((uid, gid)) = engine.user_of(&next.image).await? {
+		volumes.hand_over(name, uid, gid).await?;
+	}
 	let checked = match engine.run(next, shape, &volumes.data(name)).await {
 		Ok(()) => healthy(engine, next, &volumes.data(name)).await,
 		Err(error) => Err(error.to_string()),

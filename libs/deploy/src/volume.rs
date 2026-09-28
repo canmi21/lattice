@@ -91,6 +91,19 @@ impl Volumes {
 		blocking(move || btrfs::delete(&aside)).await
 	}
 
+	/// Give the app's directory -- the directory itself, not what is in it -- to the user its image
+	/// runs as, so an app that is not root can write there. See spec/architecture/host.md, "An
+	/// app's directory belongs to the user its image runs as".
+	pub async fn hand_over(&self, name: &str, uid: u32, gid: u32) -> Result<(), Error> {
+		use std::os::unix::fs::MetadataExt;
+		let data = self.data(name);
+		let metadata = tokio::fs::metadata(&data).await.map_err(io(&data))?;
+		if (metadata.uid(), metadata.gid()) == (uid, gid) {
+			return Ok(());
+		}
+		std::os::unix::fs::chown(&data, Some(uid), Some(gid)).map_err(io(&data))
+	}
+
 	pub async fn prune(&self, name: &str) -> Result<(), Error> {
 		let directory = self.snapshots.join(name);
 		let mut entries = tokio::fs::read_dir(&directory).await.map_err(io(&directory))?;
@@ -108,5 +121,23 @@ impl Volumes {
 			blocking(move || btrfs::delete(&path)).await?;
 		}
 		Ok(())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use std::os::unix::fs::MetadataExt;
+
+	#[tokio::test]
+	async fn hands_the_directory_over_and_leaves_one_already_handed_over() {
+		let root = tempfile::tempdir().unwrap();
+		let volumes = Volumes::new(root.path().into(), root.path().join("s"), root.path().join("l"));
+		let data = volumes.data("probe");
+		std::fs::create_dir_all(&data).unwrap();
+		// Only to its own owner, which is all a test that is not root may do.
+		let metadata = std::fs::metadata(&data).unwrap();
+		volumes.hand_over("probe", metadata.uid(), metadata.gid()).await.unwrap();
+		assert!(volumes.hand_over("missing", 1, 1).await.is_err());
 	}
 }

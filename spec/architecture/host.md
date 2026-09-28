@@ -99,6 +99,13 @@ at all. A network of its own shared with Caddy alone, the app's own directory an
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
+**An app's directory belongs to the user its image runs as.** host creates it as root, and an image
+that runs as someone else -- which every image from this repository does, as 65532 -- could not
+write to it. So before each version starts, host reads the image's `USER` and, when it is a number
+other than root, gives the directory itself to that user and group; what is inside is left alone,
+since it was written by the app. A user named rather than numbered would need the image's own user
+table, which host does not read, and is left as root's.
+
 **Every container has a memory ceiling, and no swap past it.** A declaration states `memory_mb` and
 host gives 512 without one; the platform's own two containers get theirs the same way, and swap is
 set equal to the limit, since a ceiling that can be exceeded into swap only makes the machine

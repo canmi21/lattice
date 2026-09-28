@@ -80,6 +80,14 @@ fn absent(error: &bollard::errors::Error) -> bool {
 	matches!(error, bollard::errors::Error::DockerResponseServerError { status_code: 404, .. })
 }
 
+/// An image's `USER` as numbers, when it names one other than root. A name would need the image's
+/// own user table to resolve, which the platform does not read, so it is taken as saying nothing.
+pub fn numeric_user(user: &str) -> Option<(u32, u32)> {
+	let (uid, gid) = user.split_once(':').unwrap_or((user, user));
+	let (uid, gid) = (uid.parse::<u32>().ok()?, gid.parse::<u32>().ok()?);
+	(uid != 0).then_some((uid, gid))
+}
+
 pub fn network_of(name: &str) -> String {
 	format!("app-{name}")
 }
@@ -129,6 +137,12 @@ impl Engine {
 			let _ = self.docker.remove_image(&reference, Some(untag), None).await;
 		}
 		Ok(id)
+	}
+
+	/// The user an image runs as, when it is one other than root, named by number.
+	pub async fn user_of(&self, image: &str) -> Result<Option<(u32, u32)>, Error> {
+		let inspected = self.docker.inspect_image(image).await?;
+		Ok(inspected.config.and_then(|config| config.user).as_deref().and_then(numeric_user))
 	}
 
 	/// The app's network, shared with Caddy and with host for its health checks, and nothing else.
@@ -403,5 +417,19 @@ impl Engine {
 				.await;
 		}
 		Ok(())
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn reads_a_numeric_user() {
+		assert_eq!(numeric_user("65532:65532"), Some((65532, 65532)));
+		assert_eq!(numeric_user("1000"), Some((1000, 1000)));
+		assert_eq!(numeric_user("0:0"), None);
+		assert_eq!(numeric_user("nobody"), None);
+		assert_eq!(numeric_user(""), None);
 	}
 }
