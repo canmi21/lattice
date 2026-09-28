@@ -67,6 +67,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           path: repos/lattice
+      # The runner's default builder cannot export an image as an archive; a container builder can.
+      - uses: docker/setup-buildx-action@v4
       - env:
           APP: ${{ matrix.app }}
         run: |
