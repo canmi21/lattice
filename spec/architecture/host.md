@@ -382,6 +382,26 @@ restart policy does that -- and through a deploy: while it is held, a CI run tha
 as skipped rather than started. A start runs the version it was stopped at; a redeploy, a rollback
 or an upload is a choice to run something, and ends the hold.
 
+## Trying host on this machine
+
+**A node is a privileged `docker:dind` container with a btrfs file mounted at `/data`.** host needs
+btrfs for every app's directory and Docker Desktop has none it will share: a path inside its VM is
+refused as a bind source, and one under `/var` is taken for the Mac's `/private/var`. Inside a dind
+container the paths are Linux's own, so host binds what it would bind on the machine:
+
+1. Format a file as btrfs in a throwaway container, into a named volume: `truncate -s 4G`, then
+   `mkfs.btrfs`.
+2. Start `docker:dind` privileged with that volume and host's port published, and inside it
+   `mount -o loop` the file at `/data`.
+3. `docker exec -i ... docker load` host's and the apps' archives from `mise run image`, and start
+   host inside it as the compose file does, with a token of its own; Caddy's absence is logged and
+   ignored.
+4. Deploy through its API as `mise run host deploy` would, and point the panel at it:
+   `PANEL_API=http://localhost:11011 pnpm run dev` in `apps/host/panel`.
+
+A copy of the machine's three databases, read over SSH, gives the panel the real apps and history to
+draw; `docker cp` cannot see into the btrfs mount, so they go in through `docker exec -i`.
+
 ## Open
 
 What is still undecided about placing services here is listed in [services.md](services.md).
