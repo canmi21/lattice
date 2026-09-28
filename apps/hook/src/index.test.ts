@@ -43,7 +43,7 @@ const DELIVERY = JSON.stringify({
 });
 
 async function deliver(body: string, event = 'workflow_run', signature?: string) {
-	return new Request('https://api.example.com/hook/github', {
+	return new Request('https://api.example.com/github', {
 		method: 'POST',
 		headers: { 'x-github-event': event, 'x-hub-signature-256': signature ?? (await sign(body)) },
 		body,
@@ -79,7 +79,7 @@ describe('handle', () => {
 
 	it('answers nothing but its own path', async () => {
 		const { env } = home();
-		const elsewhere = new Request('https://api.example.com/hook/other', { method: 'POST' });
+		const elsewhere = new Request('https://api.example.com/other', { method: 'POST' });
 		expect((await handle(elsewhere, env)).status).toBe(404);
 	});
 });

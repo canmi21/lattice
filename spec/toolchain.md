@@ -28,9 +28,11 @@ them does not.
 
 `workers_dev` and `preview_urls` are off everywhere. Every generated hostname is another route
 to the same worker, reached without whatever sits in front of the custom domain, and nobody
-watches those addresses. A route under a custom domain of our own -- `api.ffoni.com/hook/*` sends
-that scope to the `hook` Worker, and a more specific route wins over the domain's Worker -- is not a
-generated address, and is allowed.
+watches those addresses. A route under a custom domain of our own is not a generated address, and
+is allowed, but none is left. A more specific route wins over the domain's Worker only for a request
+from outside: another Worker's `fetch` passing through a route does not run that route's Worker,
+which is how the alias layer found `api.ffoni.com/site/*` answering it with nothing while the
+gateway held the path by a route. A scope of the API host is reached by binding.
 
 The cost is real and accepted: there is no URL to open between uploading a version and
 promoting it, so a deploy is the first time the code meets production. What replaces that

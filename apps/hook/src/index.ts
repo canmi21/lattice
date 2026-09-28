@@ -21,7 +21,8 @@ export const RECEIVERS = ['host', 'keeper'].map((name) => `http://${name}.${SUFF
 
 export async function handle(request: Request, env: Env): Promise<Response> {
 	const { pathname } = new URL(request.url);
-	if (request.method !== 'POST' || pathname !== '/hook/github') {
+	// The gateway has taken the scope off; see spec/architecture/services.md.
+	if (request.method !== 'POST' || pathname !== '/github') {
 		return new Response(null, { status: 404 });
 	}
 	const body = await request.text();

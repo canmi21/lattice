@@ -4,10 +4,6 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2026-07-29",
 
-	// The site's scope alone, while the old `api` Worker still holds the domain's root: a route
-	// wins over a custom domain, so the site can move to `/site/` before the domain does.
-	"routes": [{ "pattern": "api.ffoni.com/site/*", "zone_name": "ffoni.com" }],
-
 	// The public API host, api.ffoni.com, attached in the dashboard like every other custom domain.
 	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and
 	// src/index.test.ts holds this list to the generated table. See spec/architecture/services.md,

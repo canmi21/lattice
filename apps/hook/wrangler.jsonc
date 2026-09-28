@@ -4,9 +4,8 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2026-07-29",
 
-	// A route under the API host's own domain, which wins over the domain's Worker for this scope.
-	// See spec/toolchain.md, "Workers answer on custom domains only".
-	"routes": [{ "pattern": "api.ffoni.com/hook/*", "zone_name": "ffoni.com" }],
+	// No route of its own: the gateway reaches it by binding as the `hook` scope, with the scope
+	// taken off. See spec/architecture/services.md, "One API host, scoped by path".
 
 	// The Caddy of the machine at home, created in the dashboard; the fetch's hostname is the Host.
 	"vpc_services": [{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true }],
