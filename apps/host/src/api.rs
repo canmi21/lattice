@@ -38,14 +38,19 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/routes/{name}", put(put_route).delete(delete_route))
 		.route("/caddy", get(caddy).post(reapply))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
+	// Everything the panel asks is under `/api`; every other path is the panel's own. `/health`
+	// and `/notice` stay at the root, where keeper, the hook and Caddy already reach them. See
+	// spec/architecture/host.md, "The panel is host's own".
+	let api = Router::new()
+		.route("/session", post(sign_in).delete(sign_out))
+		.merge(guarded)
+		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") });
 	Router::new()
 		.route("/health", get(health))
 		.route("/notice", post(notice))
-		.route("/session", post(sign_in).delete(sign_out))
-		.route("/", get(panel::index))
-		.route(&format!("/{}/{{*path}}", panel::IMMUTABLE), get(panel::immutable))
-		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
-		.merge(guarded)
+		.nest("/api", api)
+		.route("/_app/{*path}", get(panel::build))
+		.fallback(panel::page)
 		.with_state(host)
 }
 

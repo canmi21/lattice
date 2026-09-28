@@ -269,17 +269,26 @@ remedy is one request rather than a list of commands.
 
 ## The panel is host's own
 
-host serves its panel itself, on its own names: a Svelte single-page application built with Vite
-at its defaults, copied into host's image and served beside the API, so there is no second service,
-no origin to cross and no CORS. It is written in `apps/host/panel/`, its components named in
-lowercase like every file, and styled with Tailwind. Its colours are its own for now -- a palette
-declared once, in `panel.css`'s `@theme` -- rather than `libs/tokens`', which is the site's. Its
-page is chosen by the hash, so no path of the panel's is ever one of the API's.
+host serves its panel itself, on its own names: a SvelteKit application exported as static files,
+copied into host's image and served beside the API, so there is no second service, no origin to
+cross and no CORS. It is written in `apps/host/panel/`, its components named in lowercase like every
+file, and styled with Tailwind. Its colours are its own for now -- a palette declared once, in
+`panel.css`'s `@theme` -- rather than `libs/tokens`', which is the site's.
 
-**Its build is laid out as SvelteKit's.** Everything but `index.html` is under `_app/immutable/`,
-in `entry/`, `chunks/` and `assets/`, each file named by sixteen hex digits of its hash alone; host
-serves that prefix for a year and `index.html` never cached. The image builds it in a stage of its
-own, on the Node major the workspace pins, installing the pnpm the repository names.
+**Pages are prerendered and filled in the browser; nothing renders on a server.** Every page of
+fixed address -- the list of apps, the routes -- is exported as a shell of its own, and a page whose
+address holds a name, `/apps/geo`, is answered with the fallback shell, `200.html`. Its addresses
+are ordinary paths; the first version chose its page by the hash, which read as `/#/apps/geo` and
+went the moment the panel had a router of its own.
+
+**Everything the panel asks is under `/api/`, and every other path is the panel's.** Its pages and
+host's API would otherwise share `/apps/geo`. `/health` and `/notice` stay at the root, where
+keeper, the hook and Caddy already reach them and no page will ever be.
+
+**Its build is SvelteKit's, as SvelteKit lays it out.** The files under `_app/immutable/` are named
+by their hash and host serves them for a year; the pages and `_app/version.json` are never cached.
+The image builds it in a stage of its own, on the Node major the workspace pins, installing the pnpm
+the repository names.
 
 **The panel signs in with the token, once.** The first visit asks for it; host answers with a
 cookie holding it, `HttpOnly`, `Secure` and `SameSite=Strict`, for thirty days, and every request

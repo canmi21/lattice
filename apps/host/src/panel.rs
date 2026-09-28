@@ -1,24 +1,26 @@
-//! host's panel, served from the files its image carries: `index.html` at `/`, never cached, and
-//! everything under `_app/immutable/` named by its hash and cached for a year. See
-//! spec/architecture/host.md, "The panel is host's own".
+//! host's panel, served from the static export its image carries: a page of fixed address as the
+//! file SvelteKit prerendered for it, any other path as the fallback shell, and the build's own
+//! files, cached for a year under `_app/immutable/`. See spec/architecture/host.md, "The panel is
+//! host's own".
 
 use crate::Host;
 use axum::extract::{Path, State};
-use axum::http::{StatusCode, header};
+use axum::http::{Method, StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
 use std::sync::Arc;
 
-/// Where the build's files sit under the panel's root, and the prefix they are served at.
-pub const IMMUTABLE: &str = "_app/immutable";
+/// The shell every path without a prerendered page of its own is answered with.
+const FALLBACK: &str = "200.html";
 
 fn content_type(file: &str) -> &'static str {
 	match file.rsplit_once('.').map(|(_, extension)| extension) {
+		Some("html") => "text/html; charset=utf-8",
 		Some("js") => "text/javascript; charset=utf-8",
 		Some("css") => "text/css; charset=utf-8",
+		Some("json") => "application/json",
 		Some("svg") => "image/svg+xml",
 		Some("png") => "image/png",
 		Some("woff2") => "font/woff2",
-		Some("json") => "application/json",
 		_ => "application/octet-stream",
 	}
 }
@@ -29,32 +31,44 @@ fn inside(path: &str) -> bool {
 		&& path.split('/').all(|segment| !segment.is_empty() && !segment.starts_with('.'))
 }
 
-pub async fn index(State(host): State<Arc<Host>>) -> Response {
-	match tokio::fs::read(host.config.panel_root.join("index.html")).await {
-		Ok(bytes) => (
-			[(header::CONTENT_TYPE, "text/html; charset=utf-8"), (header::CACHE_CONTROL, "no-cache")],
-			bytes,
-		)
-			.into_response(),
-		Err(_) => response::failure(StatusCode::NOT_FOUND, "no_such_route"),
-	}
+async fn file(host: &Host, relative: &str, cache: &'static str) -> Option<Response> {
+	let bytes = tokio::fs::read(host.config.panel_root.join(relative)).await.ok()?;
+	let headers = [(header::CONTENT_TYPE, content_type(relative)), (header::CACHE_CONTROL, cache)];
+	Some((headers, bytes).into_response())
 }
 
-pub async fn immutable(State(host): State<Arc<Host>>, Path(path): Path<String>) -> Response {
+fn missing() -> Response {
+	response::failure(StatusCode::NOT_FOUND, "no_such_route")
+}
+
+/// The build's own files: named by their hash under `immutable/`, and so kept a year; anything
+/// else of the build's, such as its version, asked again every time.
+pub async fn build(State(host): State<Arc<Host>>, Path(path): Path<String>) -> Response {
 	if !inside(&path) {
-		return response::failure(StatusCode::NOT_FOUND, "no_such_route");
+		return missing();
 	}
-	match tokio::fs::read(host.config.panel_root.join(IMMUTABLE).join(&path)).await {
-		Ok(bytes) => (
-			[
-				(header::CONTENT_TYPE, content_type(&path)),
-				(header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
-			],
-			bytes,
-		)
-			.into_response(),
-		Err(_) => response::failure(StatusCode::NOT_FOUND, "no_such_route"),
+	let cache =
+		if path.starts_with("immutable/") { "public, max-age=31536000, immutable" } else { "no-cache" };
+	file(&host, &format!("_app/{path}"), cache).await.unwrap_or_else(missing)
+}
+
+/// A page: the one prerendered for this address, or the fallback shell the browser fills in.
+pub async fn page(State(host): State<Arc<Host>>, method: Method, uri: Uri) -> Response {
+	if method != Method::GET && method != Method::HEAD {
+		return missing();
 	}
+	let path = uri.path().trim_matches('/');
+	let own = if path.is_empty() {
+		Some("index.html".to_owned())
+	} else {
+		inside(path).then(|| format!("{path}.html"))
+	};
+	if let Some(own) = own
+		&& let Some(found) = file(&host, &own, "no-cache").await
+	{
+		return found;
+	}
+	file(&host, FALLBACK, "no-cache").await.unwrap_or_else(missing)
 }
 
 #[cfg(test)]
@@ -63,10 +77,13 @@ mod tests {
 
 	#[test]
 	fn serves_only_what_the_build_could_have_written() {
-		assert!(inside("entry/c0409223f1e28ea5.js"));
-		for outside in ["", "../index.html", "entry/../../x", "entry//x", ".env", "entry/.x"] {
+		assert!(inside("immutable/entry/app.DfC2bSYP.js"));
+		for outside in
+			["", "../index.html", "immutable/../../x", "immutable//x", ".env", "immutable/.x"]
+		{
 			assert!(!inside(outside), "{outside}");
 		}
-		assert_eq!(content_type("assets/6d14c14b0b38186f.css"), "text/css; charset=utf-8");
+		assert_eq!(content_type("routes.html"), "text/html; charset=utf-8");
+		assert_eq!(content_type("version.json"), "application/json");
 	}
 }

@@ -1,12 +1,9 @@
 <script lang="ts">
+	import { signedOut } from './session.svelte';
 	import { api, Refused, type Environment } from './api';
 	import { card, danger, heading, primary, row } from './ui';
 
-	let {
-		name,
-		signedOut,
-		onredeploy,
-	}: { name: string; signedOut: (error: unknown) => boolean; onredeploy: () => void } = $props();
+	let { name, onredeploy }: { name: string; onredeploy: () => void } = $props();
 
 	let environment = $state<Environment>({ config: {}, secrets: [] });
 	/** Something changed that the running container does not have yet. */

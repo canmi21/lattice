@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { signedOut } from './session.svelte';
 	import { api, short, when, type App } from './api';
 	import Status from './status.svelte';
 	import { card, heading } from './ui';
 
-	let { signedOut }: { signedOut: (error: unknown) => boolean } = $props();
 	let apps = $state<App[]>([]);
 	let error = $state('');
 
@@ -27,7 +27,7 @@
 		<tbody>
 			{#each apps as app (app.manifest.name)}
 				<tr>
-					<td><a class="text-accent" href="#/apps/{app.manifest.name}">{app.manifest.name}</a></td>
+					<td><a class="text-accent" href="/apps/{app.manifest.name}">{app.manifest.name}</a></td>
 					<td><Status {app} /></td>
 					<td><code>{short(app.image)}</code></td>
 					<td><code class="text-muted">{short(app.previous?.image)}</code></td>

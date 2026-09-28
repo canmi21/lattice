@@ -1,8 +1,7 @@
 <script lang="ts">
+	import { signedOut } from './session.svelte';
 	import { api, Refused, type Route } from './api';
 	import { card, danger, heading, primary, row } from './ui';
-
-	let { signedOut }: { signedOut: (error: unknown) => boolean } = $props();
 
 	const blank = (): Route => ({ name: '', upstream: '', private: true, public: false, home: '' });
 	let routes = $state<Route[]>([]);
@@ -84,7 +83,11 @@
 			pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?"
 			required
 		/>
-		<input bind:value={editing.upstream} placeholder="host:port, or https prefixed for a TLS-only device" required />
+		<input
+			bind:value={editing.upstream}
+			placeholder="host:port, or https prefixed for a TLS-only device"
+			required
+		/>
 		<label class={row}><input type="checkbox" bind:checked={editing.private} /> Private</label>
 		<label class={row}><input type="checkbox" bind:checked={editing.public} /> Public</label>
 		<input bind:value={editing.home} placeholder="home, such as /admin" />

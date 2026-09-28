@@ -1,9 +1,18 @@
 {
-	"extends": "../../../tsconfig.base.json",
+	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		"lib": ["es2023", "dom", "dom.iterable"],
-		"types": ["svelte"],
-		"verbatimModuleSyntax": true
-	},
-	"include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.svelte", "vite.config.ts"]
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		// The root tsconfig sets these for every package it checks; this project is excluded there
+		// for SvelteKit's generated aliases, which is not a waiver of the flags. See spec/code.md.
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noFallthroughCasesInSwitch": true,
+		"moduleResolution": "bundler"
+	}
 }

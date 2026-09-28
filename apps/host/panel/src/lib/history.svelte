@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { signedOut } from './session.svelte';
 	import { api, short, when, type Event } from './api';
 	import { card, heading } from './ui';
 
-	let { name, signedOut }: { name: string; signedOut: (error: unknown) => boolean } = $props();
+	let { name }: { name: string } = $props();
 
 	/** A page is fifty, the newest first; each older page starts before the last one shown. */
 	const PAGE = 50;

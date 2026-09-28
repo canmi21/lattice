@@ -32,8 +32,9 @@ function build(name: string, archive: string): void {
  * system's own, is never asked. The token goes in on stdin so it never shows in `ps`.
  */
 function upload(name: string, declaration: string, archive: string, token: string): boolean {
+	// keeper takes host at its own address; host takes every other app under its API.
 	const receiver = name === 'host' ? URLS.internal.keeper : URLS.internal.home;
-	const address = `${receiver}/apps/${name}`;
+	const address = name === 'host' ? `${receiver}/apps/host` : `${receiver}/api/apps/${name}`;
 	console.log(`handing ${name} to ${receiver}`);
 	const sent = spawnSync(
 		'curl',

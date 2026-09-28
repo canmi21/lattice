@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { signedOut } from './session.svelte';
 	import { api, type Archived } from './api';
 	import { card, heading } from './ui';
 
-	let { name, signedOut }: { name: string; signedOut: (error: unknown) => boolean } = $props();
+	let { name }: { name: string } = $props();
 
 	let lines = $state<string[]>([]);
 	let archived = $state<Archived[]>([]);
@@ -49,7 +50,7 @@
 					<td
 						><a
 							class="text-accent"
-							href="/apps/{name}/logs/archive/{log.file}"
+							href="/api/apps/{name}/logs/archive/{log.file}"
 							target="_blank"
 							rel="noopener">{log.file}</a
 						></td

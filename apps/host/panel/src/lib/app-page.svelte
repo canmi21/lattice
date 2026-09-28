@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { signedOut } from './session.svelte';
 	import { api, Refused, short, when, type App } from './api';
 	import Confirm from './confirm.svelte';
 	import Environment from './environment.svelte';
@@ -7,7 +8,7 @@
 	import Status from './status.svelte';
 	import { card, danger, row } from './ui';
 
-	let { name, signedOut }: { name: string; signedOut: (error: unknown) => boolean } = $props();
+	let { name }: { name: string } = $props();
 
 	let app = $state<App | undefined>();
 	let error = $state('');
@@ -176,13 +177,12 @@
 
 	{#key changed}
 		{#if tab === 'history'}
-			<History {name} {signedOut} />
+			<History {name} />
 		{:else if tab === 'logs'}
-			<Logs {name} {signedOut} />
+			<Logs {name} />
 		{:else}
 			<Environment
 				{name}
-				{signedOut}
 				onredeploy={() =>
 					ask({
 						title: `Redeploy ${name}`,

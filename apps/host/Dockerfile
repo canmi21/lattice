@@ -40,5 +40,5 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM scratch
 COPY --from=build /host /host
-COPY --from=panel /src/apps/host/panel/dist /panel
+COPY --from=panel /src/apps/host/panel/build /panel
 ENTRYPOINT ["/host"]

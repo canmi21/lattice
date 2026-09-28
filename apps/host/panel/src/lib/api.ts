@@ -1,6 +1,7 @@
 /**
- * host's API as the panel reads it: same origin, the session cookie carried by the browser, and
- * every answer in the envelope. See spec/architecture/host.md, "The panel is host's own".
+ * host's API as the panel reads it, under `/api/`: same origin, the session cookie carried by the
+ * browser, and every answer in the envelope. See spec/architecture/host.md, "The panel is host's
+ * own".
  */
 import type { ApiResponse } from '@canmi/response';
 
@@ -86,27 +87,27 @@ export async function call<T>(method: string, path: string, body?: unknown): Pro
 }
 
 export const api = {
-	signIn: (token: string) => call<null>('POST', '/session', { token }),
-	signOut: () => call<null>('DELETE', '/session'),
-	apps: () => call<App[]>('GET', '/apps'),
-	app: (name: string) => call<App>('GET', `/apps/${name}`),
+	signIn: (token: string) => call<null>('POST', '/api/session', { token }),
+	signOut: () => call<null>('DELETE', '/api/session'),
+	apps: () => call<App[]>('GET', '/api/apps'),
+	app: (name: string) => call<App>('GET', `/api/apps/${name}`),
 	history: (name: string, before?: number) =>
-		call<Event[]>('GET', `/apps/${name}/history${before ? `?before=${before}` : ''}`),
-	lines: (name: string) => call<{ lines: string[] }>('GET', `/apps/${name}/logs`),
-	archived: (name: string) => call<Archived[]>('GET', `/apps/${name}/logs/archive`),
-	environment: (name: string) => call<Environment>('GET', `/apps/${name}/environment`),
+		call<Event[]>('GET', `/api/apps/${name}/history${before ? `?before=${before}` : ''}`),
+	lines: (name: string) => call<{ lines: string[] }>('GET', `/api/apps/${name}/logs`),
+	archived: (name: string) => call<Archived[]>('GET', `/api/apps/${name}/logs/archive`),
+	environment: (name: string) => call<Environment>('GET', `/api/apps/${name}/environment`),
 	setVariable: (name: string, kind: 'config' | 'secret', key: string, value: string) =>
-		call<{ changed: boolean }>('PUT', `/apps/${name}/environment/${kind}/${key}`, { value }),
+		call<{ changed: boolean }>('PUT', `/api/apps/${name}/environment/${kind}/${key}`, { value }),
 	unsetVariable: (name: string, kind: 'config' | 'secret', key: string) =>
-		call<{ changed: boolean }>('DELETE', `/apps/${name}/environment/${kind}/${key}`),
-	redeploy: (name: string) => call<unknown>('POST', `/apps/${name}/redeploy`),
+		call<{ changed: boolean }>('DELETE', `/api/apps/${name}/environment/${kind}/${key}`),
+	redeploy: (name: string) => call<unknown>('POST', `/api/apps/${name}/redeploy`),
 	rollback: (name: string, withData: boolean) =>
-		call<unknown>('POST', `/apps/${name}/rollback`, { with_data: withData }),
+		call<unknown>('POST', `/api/apps/${name}/rollback`, { with_data: withData }),
 	act: (name: string, act: 'start' | 'stop' | 'restart') =>
-		call<unknown>('POST', `/apps/${name}/${act}`),
-	routes: () => call<Route[]>('GET', '/routes'),
-	putRoute: (route: Route) => call<null>('PUT', `/routes/${route.name}`, route),
-	deleteRoute: (name: string) => call<null>('DELETE', `/routes/${name}`),
+		call<unknown>('POST', `/api/apps/${name}/${act}`),
+	routes: () => call<Route[]>('GET', '/api/routes'),
+	putRoute: (route: Route) => call<null>('PUT', `/api/routes/${route.name}`, route),
+	deleteRoute: (name: string) => call<null>('DELETE', `/api/routes/${name}`),
 };
 
 /** An image id as a person reads it. */
