@@ -10,14 +10,20 @@ nothing: a capture lives five minutes on disk and is gone.
 **Starting a capture answers at once, and the picture comes later.** A browser takes seconds, so
 nothing waits on it:
 
-| Request                                                 | Answer                                                               |
-| ------------------------------------------------------- | -------------------------------------------------------------------- |
-| `GET /shot/capture?url=&width=&height=&full=&internal=` | `202 { id, state, retry_after }`, or `200` when it is already done   |
-| `GET /shot/<id>`                                        | `202` while queued or rendering, `200 { id, state, png, webp }` done |
-| `GET /shot/<id>.png`, `GET /shot/<id>.webp`             | the picture itself, `Cache-Control: max-age=900`                     |
+| Request                                                                                   | Answer                                                               |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `GET /shot/capture?scheme=&host=&port=&path=&query=&hash=&width=&height=&full=&internal=` | `202 { id, state, retry_after }`, or `200` when it is already done   |
+| `GET /shot/<id>`                                                                          | `202` while queued or rendering, `200 { id, state, png, webp }` done |
+| `GET /shot/<id>.png`, `GET /shot/<id>.webp`                                               | the picture itself, `Cache-Control: max-age=900`                     |
 
 - Every route is under `/shot/`, the bare scope included, because the zone's firewall admits a
   scope's paths by that prefix; a UUID is never `capture`.
+- **The page is six parameters, each one part of its address, never one address inside another:**
+  `scheme`, `http` or `https`, and `https` when absent; `host`, a name or an address, IPv6 with or
+  without its brackets; `port`, the scheme's own when absent; and `path`, `query` and `hash`, each
+  optional, each without the mark that opens it. A part holding more than itself -- a host with a
+  port or a path, a path with a query -- is refused rather than read. Only `query` ever needs
+  escaping, and only when it holds an `&`.
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
   than what the viewport shows.
 - Every answer but the picture is the envelope, and says `no-store`. A capture that failed is
@@ -99,5 +105,8 @@ the browser at once. A browser that has died is started again for the next captu
 - The page's address is judged before it is loaded, so a refusal says which address and why. What
   the proxy refuses on the way -- a redirect, a resource -- reaches the browser as a failed
   response, and the capture fails with the browser's words for it, which do not say which.
-- The fonts are the image's, and the image carries Noto Sans for Latin and Noto Sans CJK for
-  Chinese and Japanese, and no emoji.
+- The browser is Debian's headless shell, not Debian's Chromium, which brings a desktop's libraries
+  along: 1.14 GB against 1.38. Google builds no Chromium for Linux on arm64. The fonts are Noto --
+  Sans for Latin, Sans CJK for Chinese and Japanese -- and no emoji.
+- The image's root is read-only and its `/tmp` small, so `HOME` and `TMPDIR` point inside the
+  service's directory, where the browser keeps its profile, cache and shared memory.

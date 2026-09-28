@@ -20,7 +20,11 @@ async fn main() -> anyhow::Result<()> {
 	let listen = std::env::var("LISTEN").unwrap_or_else(|_| format!("0.0.0.0:{PORT}"));
 	// The image's own Chromium unless told otherwise, as on a machine where Chrome is elsewhere.
 	let executable = std::env::var_os("SHOT_BROWSER").map(PathBuf::from);
-	// The browser's profile is scratch, and goes with the process.
+	// The browser's scratch: its profile, and wherever HOME and TMPDIR point, which the image sets
+	// inside the service's directory because its root is read-only.
+	for scratch in ["HOME", "TMPDIR"].iter().filter_map(std::env::var_os) {
+		std::fs::create_dir_all(scratch)?;
+	}
 	let profile = std::env::temp_dir().join("shot-chromium");
 
 	let resolver = Arc::new(Doh::new());

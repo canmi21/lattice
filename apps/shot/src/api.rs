@@ -190,7 +190,7 @@ mod tests {
 	#[tokio::test]
 	async fn answers_at_once_then_serves_both_pictures() {
 		let (_root, shot, router) = service();
-		let first = ask(&router, "/capture?url=https://example.test/&width=390", false).await;
+		let first = ask(&router, "/capture?host=example.test&width=390", false).await;
 		assert_eq!(first.status, StatusCode::ACCEPTED);
 		let body = first.json();
 		assert_eq!(body["data"]["state"], "queued");
@@ -199,7 +199,7 @@ mod tests {
 		assert_eq!(first.headers[header::RETRY_AFTER], "5");
 		assert_eq!(first.headers[header::CACHE_CONTROL], "no-store");
 		// Asked again before it is done: the same capture.
-		let again = ask(&router, "/capture?url=https://example.test/&width=390", true).await;
+		let again = ask(&router, "/capture?host=example.test&width=390", true).await;
 		assert_eq!(again.json()["data"]["id"], id.as_str());
 
 		drain(&shot).await;
@@ -215,7 +215,7 @@ mod tests {
 			assert_eq!(picture.body, extension.as_bytes());
 		}
 		// Done, asking again answers with it straight away.
-		let cached = ask(&router, "/capture?url=https://example.test/&width=390", false).await;
+		let cached = ask(&router, "/capture?host=example.test&width=390", false).await;
 		assert_eq!(
 			(cached.status, cached.json()["data"]["id"].clone()),
 			(StatusCode::OK, id.clone().into())
@@ -225,8 +225,7 @@ mod tests {
 	#[tokio::test]
 	async fn a_whole_page_may_have_no_webp() {
 		let (_root, shot, router) = service();
-		let id = ask(&router, "/capture?url=https://tall.test/&full=true", false).await.json()["data"]
-			["id"]
+		let id = ask(&router, "/capture?host=tall.test&full=true", false).await.json()["data"]["id"]
 			.as_str()
 			.unwrap()
 			.to_owned();
@@ -241,7 +240,7 @@ mod tests {
 	#[tokio::test]
 	async fn says_why_a_capture_failed_and_forgets_it_after_five_minutes() {
 		let (_root, shot, router) = service();
-		let id = ask(&router, "/capture?url=https://broken.test/", false).await.json()["data"]["id"]
+		let id = ask(&router, "/capture?host=broken.test", false).await.json()["data"]["id"]
 			.as_str()
 			.unwrap()
 			.to_owned();
@@ -264,8 +263,8 @@ mod tests {
 		let (_root, _shot, router) = service();
 		let cases = [
 			("/capture", "invalid_url"),
-			("/capture?url=file:///etc/passwd", "invalid_url"),
-			("/capture?url=https://a.test/&width=10", "invalid_viewport"),
+			("/capture?scheme=file&host=x.test", "invalid_url"),
+			("/capture?host=a.test&width=10", "invalid_viewport"),
 			("/not-an-id", "no_such_shot"),
 			("/not-an-id.png", "no_such_shot"),
 			("/00000000-0000-0000-0000-000000000000.gif", "no_such_shot"),
@@ -282,14 +281,14 @@ mod tests {
 	async fn a_full_public_queue_refuses_the_public_and_not_us() {
 		let (_root, _shot, router) = service();
 		for n in 0..Lane::Public.capacity() {
-			let answer = ask(&router, &format!("/capture?url=https://p{n}.test/"), true).await;
+			let answer = ask(&router, &format!("/capture?host=p{n}.test"), true).await;
 			assert_eq!(answer.status, StatusCode::ACCEPTED);
 		}
-		let refused = ask(&router, "/capture?url=https://late.test/", true).await;
+		let refused = ask(&router, "/capture?host=late.test", true).await;
 		assert_eq!(refused.status, StatusCode::SERVICE_UNAVAILABLE);
 		assert_eq!(refused.json()["code"], "queue_unavailable");
 		assert_eq!(refused.headers[header::RETRY_AFTER], "30");
-		let ours = ask(&router, "/capture?url=https://late.test/", false).await;
+		let ours = ask(&router, "/capture?host=late.test", false).await;
 		assert_eq!(ours.status, StatusCode::ACCEPTED);
 	}
 

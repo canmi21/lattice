@@ -299,7 +299,7 @@ describe("shot's policy", () => {
 				limit: async ({ key }: { key: string }) => (counted.push(key), { success: true }),
 			},
 		};
-		for (const query of ['internal=true', 'internal=false', 'internal', 'url=a&internal=1']) {
+		for (const query of ['internal=true', 'internal=false', 'internal', 'host=a.test&internal=1']) {
 			const answer = await app.fetch(
 				new Request(`${HOST}/shot/capture?${query}`, { headers }),
 				env,
@@ -322,7 +322,7 @@ describe("shot's policy", () => {
 			},
 		};
 		const start = await app.fetch(
-			new Request(`${HOST}/shot/capture?url=https://a.test`, { headers }),
+			new Request(`${HOST}/shot/capture?host=a.test`, { headers }),
 			env,
 		);
 		expect(start.status).toBe(429);

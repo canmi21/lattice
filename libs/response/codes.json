@@ -32,7 +32,7 @@
 	"invalid_target": "Host does not act on itself; keeper replaces it",
 	"invalid_token": "The token is missing or wrong",
 	"invalid_upload": "An upload is the part service, then the part image",
-	"invalid_url": "A capture needs an http or https url",
+	"invalid_url": "A capture needs a host, a scheme of http or https, and each part of the address alone",
 	"invalid_variable": "A variable is named in capitals, digits and underscores, with its value on one line",
 	"invalid_viewport": "Width is from 320 to 3840 and height from 240 to 2160",
 	"metrics_unavailable": "No sample has been taken yet",
