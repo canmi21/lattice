@@ -1,4 +1,4 @@
-# See spec/architecture/firewall.md
+# See spec/architecture/firewall.md.
 
 [[rules]]
 name = "Block Probes"
