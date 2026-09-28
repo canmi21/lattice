@@ -3,6 +3,7 @@
 
 use crate::Host;
 use crate::environment;
+use crate::panel;
 use crate::rollout::{self, Error as DeployError};
 use crate::store::{Action, Deployed, Route, Source};
 use axum::extract::{DefaultBodyLimit, Multipart, Path, Query, Request, State};
@@ -41,6 +42,9 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/health", get(health))
 		.route("/notice", post(notice))
 		.route("/session", post(sign_in).delete(sign_out))
+		.route("/", get(panel::index))
+		.route(&format!("/{}/{{*path}}", panel::IMMUTABLE), get(panel::immutable))
+		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.merge(guarded)
 		.with_state(host)
 }

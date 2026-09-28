@@ -15,6 +15,12 @@ while [ "$dir" != / ] && [ ! -f "$dir/rust-toolchain.toml" ]; do dir="$(dirname 
 version="$(sed -n 's/^channel = "\(.*\)"/\1/p' "$dir/rust-toolchain.toml" 2>/dev/null || true)"
 [ -n "$version" ] || { echo "image: no rust-toolchain.toml above $ROOT" >&2; exit 1; }
 
+# Node's major, for an image that builds a page, from the `[tools]` the workspace pins it in.
+dir="$ROOT"
+while [ "$dir" != / ] && ! grep -qs '^node = "' "$dir/mise.toml"; do dir="$(dirname "$dir")"; done
+node="$(sed -n 's/^node = "\(.*\)"/\1/p' "$dir/mise.toml" 2>/dev/null || true)"
+[ -n "$node" ] || { echo "image: no node in a mise.toml above $ROOT" >&2; exit 1; }
+
 docker buildx build --platform "${PLATFORM:-linux/arm64}" --file "$ROOT/apps/$name/Dockerfile" \
-	--build-arg "RUST_VERSION=$version" --tag "$name:local" \
+	--build-arg "RUST_VERSION=$version" --build-arg "NODE_VERSION=$node" --tag "$name:local" \
 	--output "type=docker,dest=$archive" "$ROOT"

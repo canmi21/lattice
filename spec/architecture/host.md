@@ -271,7 +271,15 @@ remedy is one request rather than a list of commands.
 
 host serves its panel itself, on its own names: a Svelte single-page application built with Vite
 at its defaults, copied into host's image and served beside the API, so there is no second service,
-no origin to cross and no CORS. It is written in `apps/host/panel/`.
+no origin to cross and no CORS. It is written in `apps/host/panel/`, its components named in
+lowercase like every file, and styled with Tailwind. Its colours are its own for now -- a palette
+declared once, in `panel.css`'s `@theme` -- rather than `libs/tokens`', which is the site's. Its
+page is chosen by the hash, so no path of the panel's is ever one of the API's.
+
+**Its build is laid out as SvelteKit's.** Everything but `index.html` is under `_app/immutable/`,
+in `entry/`, `chunks/` and `assets/`, each file named by sixteen hex digits of its hash alone; host
+serves that prefix for a year and `index.html` never cached. The image builds it in a stage of its
+own, on the Node major the workspace pins, installing the pnpm the repository names.
 
 **The panel signs in with the token, once.** The first visit asks for it; host answers with a
 cookie holding it, `HttpOnly`, `Secure` and `SameSite=Strict`, for thirty days, and every request

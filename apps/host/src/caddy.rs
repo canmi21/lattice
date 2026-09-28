@@ -310,13 +310,25 @@ mod tests {
 			public: true,
 			home: None,
 		};
-		let rendered = text(&render(&config(), "host", &[geo()], &[nas]));
-		let proxies = rendered.matches(r#""handler":"reverse_proxy""#).count();
-		assert_eq!(rendered.matches(r#""handler":"encode""#).count(), proxies);
-		assert!(
-			rendered
-				.contains(r#""handler":"encode","prefer":["zstd","gzip"]},{"handler":"reverse_proxy""#)
-		);
+		// Every list of handlers that proxies has the encoder immediately before the proxy.
+		fn check(value: &Value, proxies: &mut usize) {
+			match value {
+				Value::Array(items) => {
+					for (index, item) in items.iter().enumerate() {
+						if item["handler"] == "reverse_proxy" {
+							*proxies += 1;
+							assert!(index > 0 && items[index - 1]["handler"] == "encode", "{items:?}");
+						}
+						check(item, proxies);
+					}
+				}
+				Value::Object(fields) => fields.values().for_each(|field| check(field, proxies)),
+				_ => {}
+			}
+		}
+		let mut proxies = 0;
+		check(&render(&config(), "host", &[geo()], &[nas]), &mut proxies);
+		assert!(proxies >= 3);
 	}
 
 	#[test]

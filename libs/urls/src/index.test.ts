@@ -87,6 +87,7 @@ describe('development ports', () => {
 			api: 'http://localhost:26512/site',
 			alias: 'http://localhost:26514',
 			cdn: 'http://localhost:26516',
+			panel: 'http://localhost:26519',
 		});
 	});
 

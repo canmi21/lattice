@@ -21,6 +21,8 @@ pub struct Config {
 	pub apps_root: PathBuf,
 	pub snapshots_root: PathBuf,
 	pub logs_root: PathBuf,
+	/// The panel's built files, which the image carries.
+	pub panel_root: PathBuf,
 	pub state: PathBuf,
 	/// Where uploaded archives wait while they are loaded.
 	pub incoming: PathBuf,
@@ -79,6 +81,7 @@ impl Config {
 			own_container: optional("OWN_CONTAINER", "host"),
 			snapshots_root: PathBuf::from(optional("SNAPSHOTS_ROOT", "/data/.snapshots")),
 			logs_root: PathBuf::from(optional("LOGS_ROOT", "/data/logs")),
+			panel_root: PathBuf::from(optional("PANEL_ROOT", "/panel")),
 			state: apps_root.join("host").join("data"),
 			incoming: apps_root.join("host").join("data").join("incoming"),
 			platform_env: apps_root.join("host").join(".env"),

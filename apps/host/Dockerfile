@@ -1,8 +1,22 @@
 # syntax=docker/dockerfile:1
 # check=skip=InvalidDefaultArgInFrom
-# Built from the repository root by `mise run host`. RUST_VERSION has no default on purpose, which
-# is the check skipped above: the task reads it from the workspace's rust-toolchain.toml.
+# Built from the repository root by `mise run host`. RUST_VERSION and NODE_VERSION have no default
+# on purpose, which is the check skipped above: the task reads them from the workspace's
+# rust-toolchain.toml and mise.toml.
 ARG RUST_VERSION
+ARG NODE_VERSION
+
+# The panel, built as its own page and copied into the image beside the binary; see
+# spec/architecture/host.md, "The panel is host's own".
+FROM node:${NODE_VERSION}-slim AS panel
+WORKDIR /src
+# The pnpm the repository names, since this Node carries no corepack to pick it.
+COPY package.json ./
+RUN npm install --global "$(node -p "require('./package.json').packageManager")"
+COPY . .
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+	pnpm install --frozen-lockfile --filter "@canmi/host-panel..." \
+	&& pnpm --filter @canmi/host-panel build
 
 # Static, against musl, so the image needs nothing but the binary. The target follows the platform
 # being built, so one Dockerfile serves an arm64 node and an x86 one.
@@ -26,4 +40,5 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM scratch
 COPY --from=build /host /host
+COPY --from=panel /src/apps/host/panel/dist /panel
 ENTRYPOINT ["/host"]

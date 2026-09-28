@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+
+/*
+ * The panel's own palette, declared once here and read as utilities everywhere else. Its own for
+ * now rather than libs/tokens'; see spec/architecture/host.md, "The panel is host's own".
+ */
+@theme {
+	--color-ground: #fbfbfb;
+	--color-surface: #ffffff;
+	--color-ink: #1c1c1e;
+	--color-muted: #6b6b70;
+	--color-line: #e3e3e6;
+	--color-accent: #2f5bd3;
+	--color-good: #1d7f4e;
+	--color-warn: #a4640a;
+	--color-danger: #c0392b;
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-ground: #0d0d0f;
+		--color-surface: #17171a;
+		--color-ink: #ececef;
+		--color-muted: #9a9aa2;
+		--color-line: #2a2a30;
+		--color-accent: #7c9cff;
+		--color-good: #4fc58a;
+		--color-warn: #e0a24a;
+		--color-danger: #ff6b5e;
+	}
+}
+
+@layer base {
+	:root {
+		color-scheme: light dark;
+	}
+
+	body {
+		@apply bg-ground font-sans text-sm text-ink;
+	}
+
+	button {
+		@apply cursor-pointer rounded-md border border-line bg-surface px-3 py-1 disabled:cursor-not-allowed disabled:opacity-45;
+	}
+
+	input,
+	select {
+		@apply rounded-md border border-line bg-surface px-2 py-1;
+	}
+
+	table {
+		@apply w-full border-collapse;
+	}
+
+	th,
+	td {
+		@apply border-b border-line px-2.5 py-2 text-left align-top;
+	}
+
+	th {
+		@apply font-medium text-muted;
+	}
+
+	code,
+	pre {
+		@apply font-mono text-xs;
+	}
+}

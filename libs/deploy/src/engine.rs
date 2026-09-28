@@ -11,8 +11,7 @@ use bollard::models::{
 use bollard::query_parameters::{
 	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListImagesOptionsBuilder,
 	LogsOptionsBuilder, RemoveContainerOptionsBuilder, RemoveImageOptionsBuilder,
-	RestartContainerOptionsBuilder,
-	StopContainerOptionsBuilder, TagImageOptionsBuilder,
+	RestartContainerOptionsBuilder, StopContainerOptionsBuilder, TagImageOptionsBuilder,
 };
 use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
