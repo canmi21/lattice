@@ -39,3 +39,21 @@ rather than a change of shape. Names are dotted, lowercase and spelled out.
 What does not change while the machine is up is read once, as its info: the board's model from the
 device tree, the kernel release, the core count and each core's maximum frequency, total memory and
 swap, and when it booted.
+
+## Retention
+
+**Three grains, rolling: a point a second for the last minute, a point a minute for the last hour,
+and a point an hour for good.** The first two are memory and go with the process; the hours are one
+SQLite file, `hours.db`, in the agent's directory, and nothing ever deletes from it. The hour is the
+coarsest grain on disk, so a year is some twenty metrics times 8,760 rows, which is nothing.
+
+- A minute or an hour point carries each metric's average, minimum and maximum, and how many
+  samples it summarizes. The count is what lets two halves of one hour be merged by weight.
+- Every sample goes into the open minute and the open hour directly, so an hour's average is over
+  its seconds rather than an average of averages.
+- An hour is written when a sample arrives in the next one. A stopping agent writes the hour still
+  open, and the same hour's rows are merged rather than replaced when it is written again after the
+  restart. A gap -- the machine off -- simply closes what was open.
+- A series at the hour grain includes the open hour, so a chart reaches the present.
+- A metric is asked for by name or by a dotted prefix of it: `cpu.core` is every core's usage and
+  frequency. Asking for none is asking for all.
