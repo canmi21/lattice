@@ -1,8 +1,7 @@
 import { PUBLISHED, UNCHANGING } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
-import { DEVELOPMENT_PORTS, URLS, isDevHost, pickUrls } from '@canmi/urls';
-import { Hono, type Context } from 'hono';
-import { cors } from 'hono/cors';
+import { isDevHost, pickUrls } from '@canmi/urls';
+import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 import batch from './batch';
 import corpus from './corpus';
@@ -17,49 +16,10 @@ import image from './image';
  * reporter, which needs a runtime environment none of them have.
  *
  * Alongside the asset metadata endpoint it carries the redirects and robots policy that any
- * host answering on a domain has to have.
+ * host answering on a domain has to have. CORS is the gateway's, in front of it; see
+ * spec/architecture/services.md, "The gateway holds what every API would otherwise repeat".
  */
 const app = new Hono<{ Bindings: Bindings }>();
-
-const ORIGINS = new Set([
-	URLS.apps.production.site,
-	URLS.apps.development.site,
-	URLS.internal.app,
-	URLS.internal.infra,
-	URLS.internal.alias,
-]);
-
-/**
- * The list and nothing else -- except a request with no `Origin`, and except in development.
- *
- * A request with no `Origin` is not a browser asking, so `*` grants it nothing. The site rendering
- * is not that case: SvelteKit sends the page's own origin from `load` and throws on an answer
- * without the header, so an origin missing here is a 500 on the site. The list names no port, and
- * no other port reaches a worker; see spec/architecture/delivery.md, "Only ports 80 and 443 reach
- * a worker". `Vary: Origin` is on every answer, so no cache serves one of these to the other.
- */
-function allowOrigin(origin: string, c: Context): string | null {
-	if (!origin) return '*';
-	if (ORIGINS.has(origin)) return origin;
-	// `localhost` and `127.0.0.1` are one machine spelled two ways, and the list names only the
-	// first -- so browsing the development site by IP produced an answer with no header at all,
-	// which SvelteKit's simulation treats as fatal, and the homepage 500ed while working by name.
-	// The port still has to be the development site's: an unlisted port is a stranger wherever it
-	// is. Gated on the host this request arrived at, so production's list is untouched.
-	const asked = URL.parse(origin);
-	if (!asked || !isDevHost(new URL(c.req.url).hostname)) return null;
-	return isDevHost(asked.hostname) && asked.port === String(DEVELOPMENT_PORTS.site) ? origin : null;
-}
-
-app.use(
-	'*',
-	cors({
-		origin: allowOrigin,
-		allowMethods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-		allowHeaders: ['Content-Type'],
-		maxAge: 86_400,
-	}),
-);
 
 // Browsers ask any origin they touch for /favicon.ico whether or not it serves pages. The name is
 // permanent and the alias layer is where it lives, so this is a 301 with the year to match -- what

@@ -118,7 +118,7 @@ and reaches none; production is unaffected.
 **The site build leaks a workerd every time it runs.** `@sveltejs/adapter-cloudflare` calls
 `getPlatformProxy()` and never disposes it, so each `vite build` leaves one behind, parentless and
 listening, with nothing left that would ever ask it to stop. An interrupted `vitest` leaks one the
-same way, because `apps/api`'s D1 harness disposes its Miniflare in `afterAll` and a SIGKILL never
+same way, because `apps/site-api`'s D1 harness disposes its Miniflare in `afterAll` and a SIGKILL never
 reaches it. The suites themselves leak nothing: a build alone leaves one and the whole suite leaves
 none, which is how the two were told apart.
 

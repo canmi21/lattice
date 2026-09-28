@@ -1,5 +1,5 @@
 {
-	"name": "@canmi/api",
+	"name": "@canmi/site-api",
 	"private": true,
 	"type": "module",
 	"scripts": {

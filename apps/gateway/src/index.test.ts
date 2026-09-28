@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { URLS } from '@canmi/urls';
+import { DEVELOPMENT_PORTS, loopbackUrl, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway } from './index.ts';
@@ -195,5 +195,67 @@ describe('the gateway', () => {
 		expect((await ask('/site/like', { SITE: fetcher }, { method: 'PUT', headers })).status).toBe(
 			429,
 		);
+	});
+});
+
+describe("the site's policy", () => {
+	const app = gateway(
+		{ site: { placement: WORKERS, binding: 'SITE', worker: 'site-api' } },
+		POLICIES,
+	);
+	const production = new URL(URLS.apps.production.api).origin;
+	const development = new URL(URLS.apps.development.api).origin;
+
+	async function origin(host: string, sent?: string) {
+		const { fetcher } = binding();
+		const headers: Record<string, string> = sent ? { origin: sent } : {};
+		const answer = await app.fetch(new Request(`${host}/site/stats`, { headers }), {
+			SITE: fetcher,
+		});
+		return answer.headers.get('access-control-allow-origin');
+	}
+
+	it('allows the site, and an unknown origin nothing', async () => {
+		expect(await origin(production, URLS.apps.production.site)).toBe(URLS.apps.production.site);
+		expect(await origin(production, 'https://evil.test')).toBeNull();
+	});
+
+	// SvelteKit simulates CORS inside `load` and throws on an answer with no header, so the
+	// site's own server rendering is the request that arrives without an `Origin` at all.
+	it('answers a request that sent no origin', async () => {
+		expect(await origin(production)).toBe('*');
+	});
+
+	// One machine, two spellings: the list names `localhost`, and browsing the development site
+	// at 127.0.0.1 got no header at all. Only in development, and only on the site's own port.
+	it('allows the development site by IP in development alone', async () => {
+		const byIp = loopbackUrl(DEVELOPMENT_PORTS.site);
+		expect(await origin(development, byIp)).toBe(byIp);
+		expect(await origin(production, byIp)).toBeNull();
+		expect(await origin(development, loopbackUrl(DEVELOPMENT_PORTS.site + 100))).toBeNull();
+	});
+
+	it('limits each engagement route by the allowance spec/engagement.md gives it', async () => {
+		const expected: Array<[string, string, string | undefined]> = [
+			['PUT', '/like', 'SITE_LIKE_LIMIT'],
+			['GET', '/like', 'SITE_ENGAGEMENT_LIMIT'],
+			['GET', '/stats', 'SITE_ENGAGEMENT_LIMIT'],
+			['GET', '/read', 'SITE_ENGAGEMENT_LIMIT'],
+			['POST', '/read', 'SITE_ENGAGEMENT_LIMIT'],
+			['POST', '/newsletter', 'SITE_NEWSLETTER_LIMIT'],
+			['DELETE', '/newsletter', 'SITE_NEWSLETTER_LIMIT'],
+			['GET', '/media', undefined],
+			['POST', '/batch', undefined],
+		];
+		for (const [method, path, name] of expected) {
+			const asked: string[] = [];
+			const env: Record<string, unknown> = { SITE: binding().fetcher };
+			for (const limit of ['SITE_LIKE_LIMIT', 'SITE_ENGAGEMENT_LIMIT', 'SITE_NEWSLETTER_LIMIT']) {
+				env[limit] = { limit: async () => (asked.push(limit), { success: true }) };
+			}
+			const headers = { 'cf-connecting-ip': '192.0.2.1' };
+			await app.fetch(new Request(`${production}/site${path}`, { method, headers }), env);
+			expect(asked, `${method} ${path}`).toEqual(name ? [name] : []);
+		}
 	});
 });

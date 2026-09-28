@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "api",
+	"name": "site-api",
 	"main": "src/index.ts",
 	// Must not exceed what the installed workerd supports, which lags the calendar.
 	"compatibility_date": "2026-07-29",
@@ -24,24 +24,9 @@
 			"migrations_dir": "drizzle",
 		},
 	],
-	// These quotas are intentionally approximate. Cloudflare enforces them close to the caller;
-	// D1 remains the source of truth for subscription and like identity.
+	// The one limit that is this API's own. The rest refuse a caller and are the gateway's; see
+	// spec/architecture/services.md, "The gateway holds what every API would otherwise repeat".
 	"ratelimits": [
-		{
-			"name": "ENGAGEMENT_RATE_LIMITER",
-			"namespace_id": "959379523",
-			"simple": { "limit": 60, "period": 60 },
-		},
-		{
-			"name": "NEWSLETTER_RATE_LIMITER",
-			"namespace_id": "959379521",
-			"simple": { "limit": 5, "period": 60 },
-		},
-		{
-			"name": "LIKE_RATE_LIMITER",
-			"namespace_id": "959379522",
-			"simple": { "limit": 10, "period": 60 },
-		},
 		{
 			// One read counted per IP per article per minute. This is the counter's whole
 			// deduplication: a refresh inside the minute is the same read, not a new one.
@@ -50,16 +35,12 @@
 			"simple": { "limit": 1, "period": 60 },
 		},
 	],
-	// The port also appears in libs/urls as the development API URL. wrangler cannot read a
-	// TypeScript library, so the number is written twice on purpose. It is the only pair there
-	// is: one checkout runs one set, and a second copy collides here rather than drifting to a
-	// free port. See spec/toolchain.md.
+	// Also in libs/urls, as SERVICE_PORTS; wrangler cannot read that library. Nothing addresses
+	// it: pages reach this Worker through the gateway, which finds it in wrangler's registry of
+	// running sessions. The port is only the mutex a second copy collides on; see spec/toolchain.md.
 	"dev": {
-		// Every interface, so a phone on the same network can reach this worker. The port is
-		// still the mutex a second copy collides on; see spec/toolchain.md.
-		"ip": "*",
-		"port": 26512,
-		"inspector_port": 26513,
+		"port": 26522,
+		"inspector_port": 26523,
 	},
 	// Development reads the local metadata tree directly, the same way apps/cdn does and for the
 	// same reason: the local tree is the source of truth. Without this the simulated bucket is
@@ -80,21 +61,6 @@
 				},
 			],
 			"ratelimits": [
-				{
-					"name": "ENGAGEMENT_RATE_LIMITER",
-					"namespace_id": "959379523",
-					"simple": { "limit": 60, "period": 60 },
-				},
-				{
-					"name": "NEWSLETTER_RATE_LIMITER",
-					"namespace_id": "959379521",
-					"simple": { "limit": 5, "period": 60 },
-				},
-				{
-					"name": "LIKE_RATE_LIMITER",
-					"namespace_id": "959379522",
-					"simple": { "limit": 10, "period": 60 },
-				},
 				{
 					// One read counted per IP per article per minute. This is the counter's whole
 					// deduplication: a refresh inside the minute is the same read, not a new one.

@@ -4,6 +4,10 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2026-07-29",
 
+	// The site's scope alone, while the old `api` Worker still holds the domain's root: a route
+	// wins over a custom domain, so the site can move to `/site/` before the domain does.
+	"routes": [{ "pattern": "api.ffoni.com/site/*", "zone_name": "ffoni.com" }],
+
 	// The public API host, api.ffoni.com, attached in the dashboard like every other custom domain.
 	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and
 	// src/index.test.ts holds this list to the generated table. See spec/architecture/services.md,
@@ -37,6 +41,43 @@
 	"vpc_services": [
 		{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true },
 	],
+
+	// Also in libs/urls as the API's development port, which pages ask; wrangler cannot read that
+	// library. Every interface, so a phone on the same network reaches it. See spec/toolchain.md.
+	"dev": {
+		"ip": "*",
+		"port": 26512,
+		"inspector_port": 26513,
+	},
+
+	// Bindings do not inherit into a named environment. Development binds each service by the name
+	// wrangler registers its dev session under, which a named environment suffixes with `-dev`, and
+	// no node: the machine at home is production's, reached over Cloudflare.
+	"env": {
+		"dev": {
+			"services": [
+				{ "binding": "HOOK", "service": "hook" },
+				{ "binding": "SITE", "service": "site-api-dev" },
+			],
+			"ratelimits": [
+				{
+					"name": "SITE_ENGAGEMENT_LIMIT",
+					"namespace_id": "959379523",
+					"simple": { "limit": 60, "period": 60 },
+				},
+				{
+					"name": "SITE_NEWSLETTER_LIMIT",
+					"namespace_id": "959379521",
+					"simple": { "limit": 5, "period": 60 },
+				},
+				{
+					"name": "SITE_LIKE_LIMIT",
+					"namespace_id": "959379522",
+					"simple": { "limit": 10, "period": 60 },
+				},
+			],
+		},
+	},
 
 	"observability": { "logs": { "enabled": true } },
 	"workers_dev": false,

@@ -1,7 +1,8 @@
 # Reader engagement
 
-Newsletter subscriptions and likes are mutable reader state. They belong to the standalone API
-Worker at `apps/api`, never to the site Worker. The site has no embedded `/api/*` routes.
+Newsletter subscriptions and likes are mutable reader state. They belong to the site's API, the
+Worker `site-api` at `apps/site-api` answering the `site` scope of the API host, never to the site
+Worker. The site has no embedded `/api/*` routes.
 
 **What SSR may fetch is decided by who the answer is about, not by whether it is engagement.** A
 number about the site -- how many have subscribed, how many have liked, how many have read an
@@ -45,9 +46,10 @@ nobody has read this, which is a different statement from having nothing to say.
 
 ## One D1 database owns API state
 
-The API has one Cloudflare D1 database for all of its relational state. Both the database name and
-the Worker name are `api`; its binding is the complete word `DATABASE`. The production database is
-in WNAM, and its id lives in [wrangler.jsonc](../apps/api/wrangler.jsonc) -- the only file that
+The API has one Cloudflare D1 database for all of its relational state. The database is named
+`api`, from when the Worker was too, and a D1 database is not renamed for the Worker that reads it;
+its binding is the complete word `DATABASE`. The production database is
+in WNAM, and its id lives in [wrangler.jsonc](../apps/site-api/wrangler.jsonc) -- the only file that
 consumes it. Copying the id here would make a third home for it, and the only one nothing checks.
 
 Drizzle owns the TypeScript schema and generates committed SQL migrations. Migration filenames use
@@ -286,7 +288,9 @@ the current IP's `liked` boolean together with the global like and subscriber co
 The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints use
 separate Cloudflare Workers Rate Limiting bindings keyed by the raw IP, with a wider allowance for
 reads. This is deliberately approximate, inexpensive abuse resistance rather than a globally
-strict quota.
+strict quota. They are the gateway's, in front of the API, and `apps/gateway/src/policy.ts` says
+which route each covers; see architecture/services.md, "The gateway holds what every API would
+otherwise repeat".
 
 ## A read is counted by the browser that performed it
 
@@ -327,8 +331,9 @@ five minutes per locale -- nine snapshots of one number that could disagree. A s
 article is dropped from the answer rather than refusing it, so one bad entry in a listing does not
 cost the rest.
 
-Deduplication is one Cloudflare rate limit of one count per IP per article per minute, with the
-wider per-IP engagement allowance above it to bound somebody walking every slug in turn. **Being
+Deduplication is one Cloudflare rate limit of one count per IP per article per minute, in the API
+itself, with the gateway's wider per-IP engagement allowance above it to bound somebody walking
+every slug in turn. **Being
 deduplicated is answered with the current count, not with `429`.** The page still needs the number
 to display, and a second look inside the minute is the same read rather than a failure.
 

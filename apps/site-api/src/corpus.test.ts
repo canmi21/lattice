@@ -468,7 +468,7 @@ async function get(path: string, asked: Asked = {}): Promise<Response> {
 		DATABASE: database as unknown as Bindings['DATABASE'],
 	} as Bindings;
 	return app.fetch(
-		new Request(`${URLS.apps.production.api}${path}`, {
+		new Request(`${new URL(URLS.apps.production.api).origin}${path}`, {
 			method: asked.method,
 			headers: asked.body ? { 'Content-Type': 'application/json' } : undefined,
 			body: asked.body ? JSON.stringify(asked.body) : undefined,

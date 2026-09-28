@@ -39,7 +39,7 @@ SKIPPED = {".git", ".jj", "repos", ".DS_Store", ".claude", ".codex"}
 ENVIRONMENT = '[env]\nLATTICE_SANDBOX = "1"\nLATTICE_PORT_OFFSET = "100"\n'
 # The local D1 behind the API, forked beside the collection so its counters and comments are
 # the real ones too.
-D1 = pathlib.Path("apps/api/.wrangler/state/v3/d1")
+D1 = pathlib.Path("apps/site-api/.wrangler/state/v3/d1")
 
 
 def run(*args: str, cwd: pathlib.Path = REPOSITORY, check: bool = True) -> str:

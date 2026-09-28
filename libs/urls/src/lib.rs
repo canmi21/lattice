@@ -2,7 +2,7 @@
 //! One URL map for both languages -- see spec/architecture/workspace.md.
 
 pub const APPS_DEVELOPMENT_SITE: &str = "http://localhost:26511";
-pub const APPS_DEVELOPMENT_API: &str = "http://localhost:26512";
+pub const APPS_DEVELOPMENT_API: &str = "http://localhost:26512/site";
 pub const APPS_DEVELOPMENT_ALIAS: &str = "http://localhost:26514";
 pub const APPS_DEVELOPMENT_CDN: &str = "http://localhost:26516";
 pub const APPS_PRODUCTION_SITE: &str = "https://canmi.net";

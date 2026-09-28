@@ -179,38 +179,15 @@ describe('likes and engagement state', () => {
 		expect(await payload(removed)).toEqual({ liked: false, like_count: 1 });
 	});
 
-	it('returns a retry hint when Cloudflare rejects a mutation', async () => {
-		const deny: RateLimit = { limit: async () => ({ success: false }) };
-		const response = await api(
-			'/like',
-			{ method: 'PUT', ip: IP_ONE, body: { liked: true } },
-			{ LIKE_RATE_LIMITER: deny },
-		);
-		expect(response.status).toBe(429);
-		expect(response.headers.get('Retry-After')).toBe('60');
-		expect(await response.json()).toEqual({ status: 'error', message: 'rate_limited' });
-	});
-
-	it('rate limits the read-heavy state endpoints separately', async () => {
-		const deny: RateLimit = { limit: async () => ({ success: false }) };
-		expect((await api('/stats', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
-			429,
-		);
-		expect((await api('/like', { ip: IP_ONE }, { ENGAGEMENT_RATE_LIMITER: deny })).status).toBe(
-			429,
-		);
-	});
-
 	// The counters are about the site, so an unattributable request is answered rather than
 	// refused -- a shared cache asking on everyone's behalf carries no address of its own.
 	it('answers the counters without a client address, and refuses the personal one', async () => {
 		const anonymous = await app.fetch(
-			new Request(`${URLS.apps.production.api}/stats`, {
+			new Request(`${new URL(URLS.apps.production.api).origin}/stats`, {
 				headers: { Origin: URLS.apps.production.site },
 			}),
 			{
 				DATABASE: database as unknown as Bindings['DATABASE'],
-				ENGAGEMENT_RATE_LIMITER: allow,
 			} as Bindings,
 		);
 		expect(anonymous.status).toBe(200);
@@ -316,16 +293,6 @@ describe('article reads', () => {
 		expect(rows?.rows).toBe(0);
 	});
 
-	it('rejects an IP walking every slug in turn', async () => {
-		const deny: RateLimit = { limit: async () => ({ success: false }) };
-		const response = await api(
-			'/read',
-			{ method: 'POST', ip: IP_ONE, body: { slug } },
-			{ ENGAGEMENT_RATE_LIMITER: deny },
-		);
-		expect(response.status).toBe(429);
-	});
-
 	// The half the site renders from. Cacheable is the whole reason it is a separate method, so
 	// the header is as much the contract here as the number is.
 	it('answers the count without recording one, and lets a shared cache hold the answer', async () => {
@@ -371,13 +338,12 @@ describe('article reads', () => {
 	// answer it exists to hold.
 	it('answers a count without a client address', async () => {
 		const anonymous = await app.fetch(
-			new Request(`${URLS.apps.production.api}/read?slug=${slug}`, {
+			new Request(`${new URL(URLS.apps.production.api).origin}/read?slug=${slug}`, {
 				headers: { Origin: URLS.apps.production.site },
 			}),
 			{
 				ASSETS: store,
 				DATABASE: database as unknown as Bindings['DATABASE'],
-				ENGAGEMENT_RATE_LIMITER: allow,
 			} as Bindings,
 		);
 		expect(anonymous.status).toBe(200);
@@ -399,14 +365,11 @@ async function api(
 	const bindings = {
 		ASSETS: store,
 		DATABASE: database as unknown as Bindings['DATABASE'],
-		ENGAGEMENT_RATE_LIMITER: allow,
-		NEWSLETTER_RATE_LIMITER: allow,
-		LIKE_RATE_LIMITER: allow,
 		READ_RATE_LIMITER: allow,
 		...overrides,
 	} satisfies Bindings;
 	return app.fetch(
-		new Request(`${URLS.apps.production.api}${path}`, {
+		new Request(`${new URL(URLS.apps.production.api).origin}${path}`, {
 			method: options.method,
 			headers: {
 				'CF-Connecting-IP': options.ip,

@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { Bindings } from './bindings';
-import type { ApiResponse, LikedAnswer, ReadAnswer, StatsAnswer } from '@canmi/artifacts';
+import type { LikedAnswer, ReadAnswer, StatsAnswer } from '@canmi/artifacts';
 import { failure, success } from './respond';
 import { canonicalEmail } from './email';
 import { findArticle, rootOf } from './root';
@@ -31,11 +31,6 @@ const engagement = new Hono<{ Bindings: Bindings }>();
  * Splitting `liked` out is what made this possible at all. See spec/engagement.md.
  */
 engagement.get('/stats', async (c) => {
-	const ip = clientIp(c.req.raw);
-	// Limited when there is an address to limit by, but answered without one: a cacheable public
-	// number is not something an unattributable request should be refused.
-	if (ip && !(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
-
 	const database = drizzle(c.env.DATABASE);
 	const [subscriberCount, likeCount] = await Promise.all([
 		rowCount(database, newsletterSubscriptions),
@@ -61,7 +56,6 @@ engagement.get('/stats', async (c) => {
 engagement.get('/like', async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
-	if (!(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
 
 	const database = drizzle(c.env.DATABASE);
 	const like = await database.select({ ip: likes.ip }).from(likes).where(eq(likes.ip, ip)).limit(1);
@@ -74,9 +68,6 @@ engagement.get('/like', async (c) => {
 engagement.post('/newsletter', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
-	if (!(await withinLimit(c.env.NEWSLETTER_RATE_LIMITER, ip))) {
-		return rateLimited();
-	}
 
 	const body = await readObject(c.req.raw);
 	const email = canonicalEmail(body?.email);
@@ -111,9 +102,6 @@ engagement.post('/newsletter', JSON_LIMIT, async (c) => {
 engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
-	if (!(await withinLimit(c.env.NEWSLETTER_RATE_LIMITER, ip))) {
-		return rateLimited();
-	}
 
 	const body = await readObject(c.req.raw);
 	const email = canonicalEmail(body?.email);
@@ -144,7 +132,6 @@ engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 engagement.put('/like', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
-	if (!(await withinLimit(c.env.LIKE_RATE_LIMITER, ip))) return rateLimited();
 
 	const body = await readObject(c.req.raw);
 	if (typeof body?.liked !== 'boolean') {
@@ -174,12 +161,6 @@ engagement.put('/like', JSON_LIMIT, async (c) => {
  * spec/engagement.md, "The count is asked for and recorded separately".
  */
 engagement.get('/read', async (c) => {
-	const ip = clientIp(c.req.raw);
-	// Limited where there is an address, answered where there is not -- the same shape as
-	// `/stats`, because a cacheable public number is not something an unattributable request
-	// should be refused.
-	if (ip && !(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
-
 	const slug = c.req.query('slug');
 	// A query parameter rather than a path segment, because an article path contains a slash and
 	// the identity asked with here has to survive a router that would read one as a boundary.
@@ -205,9 +186,6 @@ engagement.get('/read', async (c) => {
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_ip_unavailable', NO_STORE);
-	// The coarse per-IP allowance, shared with the state endpoint: this is a read that happens
-	// to leave a mark, and what it bounds is somebody walking every slug in turn.
-	if (!(await withinLimit(c.env.ENGAGEMENT_RATE_LIMITER, ip))) return rateLimited();
 
 	const body = await readObject(c.req.raw);
 	const slug = body?.slug;
@@ -263,15 +241,6 @@ function clientIp(request: Request): string | undefined {
 
 async function withinLimit(limiter: RateLimit, key: string): Promise<boolean> {
 	return (await limiter.limit({ key })).success;
-}
-
-// A bare Response rather than `failure`, because it is built without a Context -- the envelope is
-// still the one every other answer uses.
-function rateLimited(): Response {
-	return Response.json({ status: 'error', message: 'rate_limited' } satisfies ApiResponse<never>, {
-		status: 429,
-		headers: { ...NO_STORE, 'Retry-After': '60' },
-	});
 }
 
 async function readObject(request: Request): Promise<Record<string, unknown> | undefined> {

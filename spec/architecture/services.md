@@ -19,7 +19,7 @@ and nothing about the service.
 | read-only data, shipped with it       | any number that can hold it, not Workers      | an IP lookup and its table  |
 | data that is written, in one place    | one                                           | the album; the API over D1  |
 
-This is a property of each service, not a limit of the platform. The `api` Worker keeps its state
+This is a property of each service, not a limit of the platform. The site's API keeps its state
 in D1, which only Cloudflare reads well, so it has one placement until its storage moves. The `cdn`
 reads R2, which has an S3 surface, so it can be placed off Cloudflare as it is.
 

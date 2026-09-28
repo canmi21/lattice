@@ -3,9 +3,9 @@ import { fileURLToPath } from 'node:url';
 import {
 	DEVELOPMENT_PORTS,
 	DEVELOPMENT_PROXY_PATHS,
-	developmentUrl,
 	pageUrls,
 	PORT_OFFSET,
+	URLS,
 } from '@canmi/urls';
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import stylex from '@stylexjs/unplugin/vite';
@@ -244,13 +244,13 @@ export default defineConfig(({ mode }) => {
 			// out, so each worker sees only the paths it actually serves. Both the prefix and the
 			// target come from libs/urls, the one place every address here is declared and where
 			// the reasoning lives for why development collapses three origins into one. The target
-			// is the same function anything else uses to reach these two workers, not a resolver
-			// of its own -- the hop never varied by the family a request arrived on.
+			// is the same map anything else uses to reach these workers, not a resolver of its own,
+			// so the API's carries the site's scope of the gateway with it.
 			proxy: Object.fromEntries(
 				Object.entries(DEVELOPMENT_PROXY_PATHS).map(([app, prefix]) => [
 					prefix,
 					{
-						target: developmentUrl(app as 'api' | 'alias' | 'cdn'),
+						target: URLS.apps.development[app as keyof typeof DEVELOPMENT_PROXY_PATHS],
 						changeOrigin: true,
 						rewrite: (path: string) => path.slice(prefix.length),
 					},
