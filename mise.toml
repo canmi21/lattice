@@ -102,13 +102,14 @@ run = 'oxlint . ${AUDIT:+--deny-warnings}'
 
 [tasks.test-rust]
 description = "Run the Rust test suites"
-run = "cargo test --workspace"
+run = 'cargo test ${RUST_PACKAGES:---workspace}'
 
 [tasks.lint-rust]
 description = "Lint the Rust crates"
 # `-D warnings` on the command line outranks the lint table in Cargo.toml, which is how strict
 # mode reaches `complexity = "warn"` without that table being edited. See spec/lint-format.md.
-run = 'cargo clippy --workspace --all-targets ${AUDIT:+-- -D warnings}'
+# RUST_PACKAGES is `verify` naming the crates a change reached; run alone, it is every crate.
+run = 'cargo clippy ${RUST_PACKAGES:---workspace} --all-targets ${AUDIT:+-- -D warnings}'
 
 # wrangler is a devDependency of each worker rather than a mise tool, because it participates
 # in the npm resolution model -- so it is never on $PATH and always needs `pnpm exec`. These
@@ -302,29 +303,6 @@ depends = ["outward"]
 # but the records name live addresses, so it belongs after deploy-site all the same. `--dry`
 # prints what would be written and sends nothing. See spec/search.md.
 run = "node apps/site/scripts/search.ts"
-
-[tasks.verify]
-description = "Everything a change has to pass, across both languages"
-depends = [
-	"secrets",
-	"check",
-	"check-site",
-	"check-prose",
-	"check-cms",
-	"check-fonts",
-	"check-css",
-	"check-css-budget",
-	"check-css-extraction",
-	"check-css-enumeration",
-	"check-css-ramp",
-	"lint",
-	"test",
-	"refs",
-	"comments",
-	"shape",
-	"lint-rust",
-	"test-rust",
-]
 
 # Inherited from the workspace: node, rust, pnpm, jj, oxlint. Stated here is what only this
 # project needs -- rclone syncs this project's bucket and nothing else uses it.

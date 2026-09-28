@@ -179,3 +179,37 @@ pin, and the repair is to put the 6 back rather than to chase the error into `sv
 
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
 Only the site pays this cost, which is why only the site's manifest looks inconsistent.
+
+## verify runs what a change reaches
+
+**`mise run verify` checks the gates a change can affect, not the whole repository.** The
+repository holds a site, three Workers, a CMS and a growing set of Rust services, and a change to one
+of them used to compile, lint and test every other: an edit to a stylesheet built every crate, and
+geo's gazetteer was fetched and tested on a machine where nothing of geo had moved. The Rust target
+directory grew with each of those builds. So what a change touched decides what runs.
+
+What it touched is the working copy's own change -- what is about to be committed -- or, with
+`--since REV`, everything after that revision. `--all` runs every gate, and so does `mise run
+audit`, which asks about the whole tree by definition. `--dry-run` prints the choice; `--files`
+names files to ask about without changing them. [The script](../.mise/tasks/verify) is the
+mapping, and these are the rules it keeps:
+
+- **Four gates always run** -- secrets, references, comment lengths, the published shape. Each is
+  whole-tree and takes seconds, and a reference can break from anywhere.
+- **A Rust change reaches its crate and every crate that depends on it**, read from
+  `cargo metadata` rather than listed, and clippy and the tests run over those alone. A test that
+  reads another crate's file through `include_str!` depends on it without its manifest saying so;
+  those paths are read out of the source, so changing geo's `service.toml` tests host and
+  `libs/deploy` too. `Cargo.lock`, the workspace manifest and the toolchain file reach every crate.
+- **A TypeScript, Svelte or style change reaches its package and every package that imports it**,
+  read from the `workspace:` dependencies. Any of them runs the three whole-program gates -- the
+  type check, the linter, the test suite -- and a package with gates of its own runs them only when
+  it is reached: the site's checks when the site or anything under it moved, the editor's when the
+  editor did. Articles and tracked records are read rather than imported, so they reach the site.
+- **A change to the gates reaches every gate.** `mise.toml` and `.mise/tasks/` are how everything
+  is checked, so a change there is checked against everything.
+
+**What the graph cannot see is named, and kept short.** The one entry today is the Rust mirror of
+the URL map: it is `.rs`, and its only check is a TypeScript test. A dependency the graph misses is
+a gate that silently does not run, which is the failure `code.md` in the workspace describes, so a
+second such entry is worth a structural fix before it is worth a line in the list.

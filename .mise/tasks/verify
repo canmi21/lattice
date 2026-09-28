@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+#MISE description="Every gate a change reaches: `verify [--all] [--since REV] [--dry-run] [--files ...]`"
+"""The gates a change has to pass, chosen by what it touched. See spec/toolchain.md, "verify runs
+what a change reaches"."""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+
+# Whole-tree and cheap, so they run whatever changed.
+ALWAYS = ["secrets", "refs", "comments", "shape"]
+# Whole-program by nature: tsc reads three programs, vitest one suite, oxlint the tree.
+NODE = ["check", "lint", "test"]
+# Gates that belong to one package, run when it or anything it imports changed.
+PACKAGE_GATES = {
+	"@canmi/site": [
+		"check-site",
+		"check-css",
+		"check-css-budget",
+		"check-css-extraction",
+		"check-css-enumeration",
+		"check-css-ramp",
+	],
+	"@canmi/cms": ["check-cms"],
+	"@canmi/prose": ["check-prose"],
+	"@canmi/fonts": ["check-fonts"],
+}
+RUST = ["lint-rust", "test-rust"]
+EVERYTHING = ALWAYS + NODE + [g for gates in PACKAGE_GATES.values() for g in gates] + RUST
+
+NODE_SUFFIXES = {".ts", ".js", ".mjs", ".cjs", ".svelte", ".css", ".json", ".html", ".yaml", ".yml"}
+# The gates themselves: a change to how anything is checked is checked against everything.
+GATE_FILES = ("mise.toml", ".mise/tasks/")
+NODE_ROOT_FILES = {"package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "vitest.config.ts"}
+RUST_ROOT_FILES = {"Cargo.toml", "Cargo.lock"}
+# Read by the site's build and the corpus tests rather than imported, so no graph reaches them.
+SITE_INPUTS = ("contents/", "data/")
+# A Rust file whose only check is a TypeScript test: the generated mirror of the URL map.
+NODE_CHECKED_RUST = {"apps/local/src/urls.rs"}
+
+
+def changed(since):
+	command = ["jj", "diff", "--name-only"] + (["--from", since, "--to", "@"] if since else ["-r", "@"])
+	output = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=True).stdout
+	return [line for line in output.splitlines() if line]
+
+
+def owner(path, directories):
+	"""The deepest of `directories` holding `path`, or None."""
+	best = None
+	for directory in directories:
+		if path.startswith(directory + "/") and (best is None or len(directory) > len(best)):
+			best = directory
+	return best
+
+
+def dependents(affected, edges):
+	"""`affected` and everything that depends on it, through `edges` of dependency -> dependent."""
+	queue, seen = list(affected), set(affected)
+	while queue:
+		for dependent in edges.get(queue.pop(), ()):
+			if dependent not in seen:
+				seen.add(dependent)
+				queue.append(dependent)
+	return seen
+
+
+def rust_graph():
+	"""Crate directories, dependency -> dependent edges, and file -> crates that include it."""
+	metadata = json.loads(
+		subprocess.run(
+			["cargo", "metadata", "--no-deps", "--format-version", "1"],
+			cwd=ROOT,
+			capture_output=True,
+			text=True,
+			check=True,
+		).stdout
+	)
+	directories, edges, included = {}, {}, {}
+	names = {package["name"] for package in metadata["packages"]}
+	for package in metadata["packages"]:
+		directory = Path(package["manifest_path"]).parent
+		directories[str(directory.relative_to(ROOT))] = package["name"]
+		for dependency in package["dependencies"]:
+			if dependency.get("path") and dependency["name"] in names:
+				edges.setdefault(dependency["name"], set()).add(package["name"])
+		# A test reading another crate's file depends on it without the manifest saying so.
+		for source in directory.rglob("*.rs"):
+			if "target" in source.parts:
+				continue
+			for literal in re.findall(r'include_(?:str|bytes)!\(\s*"([^"]+)"', source.read_text()):
+				target = (source.parent / literal).resolve()
+				if target.is_relative_to(ROOT):
+					included.setdefault(str(target.relative_to(ROOT)), set()).add(package["name"])
+	return directories, edges, included
+
+
+def node_graph():
+	"""Package directories and dependency -> dependent edges among this repository's packages."""
+	directories, manifests = {}, {}
+	for manifest in [*ROOT.glob("apps/*/package.json"), *ROOT.glob("libs/*/package.json")]:
+		data = json.loads(manifest.read_text())
+		directories[str(manifest.parent.relative_to(ROOT))] = data["name"]
+		manifests[data["name"]] = data
+	edges = {}
+	for name, data in manifests.items():
+		for field in ("dependencies", "devDependencies", "peerDependencies"):
+			for dependency in data.get(field, {}):
+				if dependency in manifests:
+					edges.setdefault(dependency, set()).add(name)
+	return directories, edges
+
+
+def plan(files):
+	"""The gates to run, and the Rust packages to run them over (None meaning all)."""
+	if any(f == GATE_FILES[0] or f.startswith(GATE_FILES[1]) for f in files):
+		return EVERYTHING, None, "the gates themselves changed"
+
+	crate_dirs, crate_edges, included = rust_graph()
+	package_dirs, package_edges = node_graph()
+	crates, packages, gates = set(), set(), list(ALWAYS)
+	all_crates = all_packages = site_inputs = False
+
+	for f in files:
+		suffix = Path(f).suffix
+		if f in RUST_ROOT_FILES or f == "rust-toolchain.toml":
+			all_crates = True
+		crates |= included.get(f, set())
+		crate = crate_dirs.get(owner(f, crate_dirs) or "")
+		if crate and (suffix == ".rs" or f.endswith("/Cargo.toml")):
+			crates.add(crate)
+
+		if f in NODE_ROOT_FILES or f.startswith("tsconfig"):
+			all_packages = True
+		if f.startswith(SITE_INPUTS):
+			site_inputs = True
+		package = package_dirs.get(owner(f, package_dirs) or "")
+		if package and (suffix in NODE_SUFFIXES or f in NODE_CHECKED_RUST):
+			packages.add(package)
+
+	reached_packages = set(package_dirs.values()) if all_packages else dependents(packages, package_edges)
+	if reached_packages or site_inputs:
+		gates += NODE
+		if site_inputs:
+			reached_packages.add("@canmi/site")
+		for package, owned in PACKAGE_GATES.items():
+			if package in reached_packages:
+				gates += owned
+
+	reached_crates = None if all_crates else dependents(crates, crate_edges)
+	if all_crates or reached_crates:
+		gates += RUST
+	return gates, reached_crates, None
+
+
+def main():
+	arguments = sys.argv[1:]
+	dry = "--dry-run" in arguments or "-n" in arguments
+	since = arguments[arguments.index("--since") + 1] if "--since" in arguments else None
+	# `--files a b` asks what a change to exactly those files would run, without making it.
+	given = arguments[arguments.index("--files") + 1 :] if "--files" in arguments else None
+
+	if "--all" in arguments or os.environ.get("AUDIT"):
+		gates, crates, reason = EVERYTHING, None, "asked for everything"
+	else:
+		files = given if given is not None else changed(since)
+		gates, crates, reason = plan(files)
+		where = "given" if given is not None else f"since {since}" if since else "in the working copy"
+		print(f"verify: {len(files)} file(s) {where}")
+	if reason:
+		print(f"verify: every gate, because {reason}")
+	scope = "every crate" if crates is None else ", ".join(sorted(crates)) or "none"
+	if "lint-rust" in gates:
+		print(f"verify: Rust over {scope}")
+	print(f"verify: {' '.join(gates)}")
+	if dry:
+		return 0
+
+	environment = dict(os.environ)
+	if crates is not None:
+		environment["RUST_PACKAGES"] = " ".join(f"-p {crate}" for crate in sorted(crates))
+	# Every gate reports, not only the first to fail: a red run is worth its whole list.
+	command = ["mise", "run", "--continue-on-error", gates[0]]
+	for gate in gates[1:]:
+		command += [":::", gate]
+	return subprocess.run(command, cwd=ROOT, env=environment).returncode
+
+
+if __name__ == "__main__":
+	sys.exit(main())
