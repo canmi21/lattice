@@ -6,6 +6,7 @@
 mod api;
 mod caddy;
 mod config;
+mod environment;
 mod rollout;
 mod store;
 

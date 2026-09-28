@@ -2,6 +2,7 @@
 //! the tunnel -- see spec/architecture/host.md, "One token, behind two doors".
 
 use crate::Host;
+use crate::environment;
 use crate::rollout::{self, Error as DeployError};
 use crate::store::Route;
 use axum::extract::{DefaultBodyLimit, Multipart, Path, Request, State};
@@ -21,6 +22,8 @@ pub fn router(host: Arc<Host>) -> Router {
 	let guarded = Router::new()
 		.route("/apps", get(apps))
 		.route("/apps/{name}", post(upload).layer(DefaultBodyLimit::disable()))
+		.route("/apps/{name}/environment", get(environment))
+		.route("/apps/{name}/environment/{kind}/{key}", put(set_variable).delete(unset_variable))
 		.route("/routes", get(routes))
 		.route("/routes/{name}", put(put_route).delete(delete_route))
 		.route("/caddy", get(caddy).post(reapply))
@@ -190,6 +193,70 @@ async fn save(
 	}
 	file.flush().await?;
 	Ok(())
+}
+
+/// The app's environment as the panel may see it: configuration in full, secrets by name.
+async fn environment(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	if let Err(refused) = known(&host, &name) {
+		return refused;
+	}
+	match environment::shown(&host.volumes.root(&name)) {
+		Ok(shown) => response::success(StatusCode::OK, shown),
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
+	}
+}
+
+#[derive(Deserialize)]
+struct Variable {
+	value: String,
+}
+
+async fn set_variable(
+	State(host): State<Arc<Host>>,
+	Path((name, kind, key)): Path<(String, String, String)>,
+	Json(variable): Json<Variable>,
+) -> Response {
+	change_variable(&host, &name, &kind, &key, Some(&variable.value))
+}
+
+async fn unset_variable(
+	State(host): State<Arc<Host>>,
+	Path((name, kind, key)): Path<(String, String, String)>,
+) -> Response {
+	change_variable(&host, &name, &kind, &key, None)
+}
+
+/// A change is written now and applies when the container is next started from its version; the
+/// answer says whether anything changed, for the panel to offer that.
+fn change_variable(
+	host: &Host,
+	name: &str,
+	kind: &str,
+	key: &str,
+	value: Option<&str>,
+) -> Response {
+	if let Err(refused) = known(host, name) {
+		return refused;
+	}
+	let Some(kind) = environment::Kind::from_segment(kind) else {
+		return response::failure(StatusCode::NOT_FOUND, "no_such_route");
+	};
+	match environment::set(&host.volumes.root(name), kind, key, value) {
+		Ok(changed) => response::success(StatusCode::OK, serde_json::json!({ "changed": changed })),
+		Err(error @ (environment::Error::Name(_) | environment::Error::Value)) => {
+			failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_variable", error)
+		}
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
+	}
+}
+
+/// An app host runs, or the refusal to answer for one it does not.
+fn known(host: &Host, name: &str) -> Result<(), Response> {
+	match host.store.app(name) {
+		Ok(Some(_)) => Ok(()),
+		Ok(None) => Err(response::failure(StatusCode::NOT_FOUND, "no_such_app")),
+		Err(error) => Err(failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)),
+	}
 }
 
 async fn routes(State(host): State<Arc<Host>>) -> Response {

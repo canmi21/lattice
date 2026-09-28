@@ -27,6 +27,8 @@ pub enum Error {
 	Environment { path: String, source: std::io::Error },
 	#[error("the archive: {0}")]
 	Archive(std::io::Error),
+	#[error("the app's environment: {0}")]
+	AppEnvironment(#[from] crate::environment::Error),
 	/// Docker would not load the archive: it is the upload that is wrong, not the node.
 	#[error("the archive did not load: {0}")]
 	Load(engine::Error),
@@ -76,7 +78,7 @@ pub async fn deploy(host: &Host, manifest: Manifest, image: String) -> Result<Ou
 			.map_err(|source| Error::Environment { path: path.display().to_string(), source })?;
 		Shape::Platform { env }
 	} else {
-		Shape::Sandboxed
+		Shape::Sandboxed { env: crate::environment::variables(&host.volumes.root(&name))? }
 	};
 	let current = host
 		.store

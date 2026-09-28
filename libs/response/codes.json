@@ -28,6 +28,7 @@
 	"invalid_slug": "A slug is needed",
 	"invalid_token": "The token is missing or wrong",
 	"invalid_upload": "An upload is the part service, then the part image",
+	"invalid_variable": "A variable is named in capitals, digits and underscores, with its value on one line",
 	"no_such_app": "No app has this name",
 	"no_such_article": "No published article has this slug",
 	"no_such_asset": "No asset is published under this name",

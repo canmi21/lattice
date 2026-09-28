@@ -42,8 +42,9 @@ pub struct Version {
 /// decision".
 #[derive(Debug, Clone)]
 pub enum Shape {
-	/// Every app: no capabilities, a read-only root, its own directory and nothing else.
-	Sandboxed,
+	/// Every app: no capabilities, a read-only root, its own directory and nothing else, and the
+	/// environment its two files give it.
+	Sandboxed { env: Vec<String> },
 	/// host and keeper only: privileged, the Docker socket, the whole of `/data`, and the
 	/// environment of the node's one `.env`.
 	Platform { env: Vec<String> },
@@ -187,7 +188,7 @@ impl Engine {
 		let declared = manifest.container.as_ref().and_then(|container| container.memory_mb);
 		let memory = i64::from(declared.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
 		let (host_config, env) = match shape {
-			Shape::Sandboxed => {
+			Shape::Sandboxed { env } => {
 				// A structured mount rather than a `source:target` string, which a target containing a
 				// colon could extend with options of its own.
 				let mounts = manifest.data.as_ref().map(|mount| {
@@ -214,7 +215,7 @@ impl Engine {
 					log_config: Some(logs),
 					..Default::default()
 				};
-				(config, None)
+				(config, Some(env.clone()))
 			}
 			Shape::Platform { env } => {
 				let config = HostConfig {
