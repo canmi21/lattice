@@ -37,6 +37,7 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/apps/{name}/environment/{kind}/{key}", put(set_variable).delete(unset_variable))
 		.route("/images", get(images))
 		.route("/images/collect", post(collect_images))
+		.route("/images/scan", post(scan_images))
 		.route("/images/{id}", axum::routing::delete(remove_image))
 		.route("/routes", get(routes))
 		.route("/routes/{name}", put(put_route).delete(delete_route))
@@ -644,32 +645,31 @@ async fn app_series(
 	node::relay(meter_socket(&host).as_deref(), &path).await
 }
 
-/// Every image on the machine, and why each is kept.
+/// The images as the background last found them, and the tasks asked of it: answered from memory,
+/// so the page never waits on Docker. Before the first scan there are no images to show yet.
 async fn images(State(host): State<Arc<Host>>) -> Response {
-	let size = host.engine.images_size().await.ok().flatten();
-	match images::listed(&host).await {
-		Ok(images) => {
-			response::success(StatusCode::OK, serde_json::json!({ "images": images, "size": size }))
-		}
-		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
-	}
+	let body = serde_json::json!({
+		"scan": host.images.scan(),
+		"tasks": host.images.tasks(),
+		"grace_seconds": images::GRACE.as_secs(),
+	});
+	response::success(StatusCode::OK, body)
 }
 
+/// Queue one image's removal; the task says how it went.
 async fn remove_image(State(host): State<Arc<Host>>, Path(id): Path<String>) -> Response {
-	match images::remove(&host, &id).await {
-		Ok(()) => response::success(StatusCode::OK, ()),
-		Err(images::Refused::Absent) => response::failure(StatusCode::NOT_FOUND, "no_such_image"),
-		Err(error @ images::Refused::Kept(_)) => failed(StatusCode::CONFLICT, "image_in_use", error),
-		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
-	}
+	response::success(StatusCode::ACCEPTED, host.images.ask(images::Kind::Remove { image: id }))
 }
 
-/// Remove every image nothing could run again.
+/// Queue removing every image nothing could run again.
 async fn collect_images(State(host): State<Arc<Host>>) -> Response {
-	match images::collect(&host).await {
-		Ok(collected) => response::success(StatusCode::OK, collected),
-		Err(error) => failed(StatusCode::BAD_GATEWAY, "docker_unavailable", error),
-	}
+	response::success(StatusCode::ACCEPTED, host.images.ask(images::Kind::Collect))
+}
+
+/// Look at the images again now.
+async fn scan_images(State(host): State<Arc<Host>>) -> Response {
+	host.images.rescan();
+	response::success(StatusCode::ACCEPTED, ())
 }
 
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.

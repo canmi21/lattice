@@ -30,6 +30,8 @@ pub struct Host {
 	pub github: Option<deploy::github::GitHub>,
 	/// The runs a notice has been taken for.
 	pub notices: std::sync::Mutex<std::collections::HashSet<u64>>,
+	/// The images as the background last found them, and what the panel asked of them.
+	pub images: images::Images,
 }
 
 #[tokio::main]
@@ -50,6 +52,7 @@ async fn main() -> anyhow::Result<()> {
 			.filter(|token| !token.is_empty())
 			.map(deploy::github::GitHub::new),
 		notices: std::sync::Mutex::default(),
+		images: images::Images::default(),
 		config,
 	});
 
@@ -62,6 +65,8 @@ async fn main() -> anyhow::Result<()> {
 		Ok(()) => eprintln!("host: Caddy is in step"),
 		Err(error) => eprintln!("host: Caddy was not updated: {error}"),
 	}
+
+	tokio::spawn(images::run(host.clone()));
 
 	let telling = host.clone();
 	tokio::spawn(async move {

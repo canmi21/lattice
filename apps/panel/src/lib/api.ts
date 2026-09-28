@@ -29,6 +29,27 @@ export interface Image {
 	created: number;
 	kept: 'current' | 'previous' | 'used' | 'keeper' | 'no';
 	app?: string;
+	/** When it was found collectable, and when it goes on its own. */
+	flagged_at?: string;
+	removed_at?: string;
+}
+
+/** Something the panel asked of the images, done in host's background. */
+export interface ImageTask {
+	id: number;
+	kind: 'remove' | 'collect';
+	image?: string;
+	state: 'queued' | 'running' | 'done' | 'failed';
+	asked_at: string;
+	finished_at?: string;
+	detail?: string;
+}
+
+/** The images as host's background last found them, and the tasks asked of it. */
+export interface Images {
+	scan: { at: string; images: Image[]; size: number | null } | null;
+	tasks: ImageTask[];
+	grace_seconds: number;
 }
 
 export type Action =
@@ -167,10 +188,10 @@ export const api = {
 		if (since !== undefined) query.set('since', String(since));
 		return call<Point[]>('GET', `/api/node/series?${query}`);
 	},
-	images: () => call<{ images: Image[]; size: number | null }>('GET', '/api/images'),
-	removeImage: (id: string) => call<null>('DELETE', `/api/images/${encodeURIComponent(id)}`),
-	collectImages: () =>
-		call<{ removed: number; freed: number | null }>('POST', '/api/images/collect'),
+	images: () => call<Images>('GET', '/api/images'),
+	removeImage: (id: string) => call<ImageTask>('DELETE', `/api/images/${encodeURIComponent(id)}`),
+	collectImages: () => call<ImageTask>('POST', '/api/images/collect'),
+	scanImages: () => call<null>('POST', '/api/images/scan'),
 	/** One container's latest second, `<name>.cpu` and the rest. */
 	appNow: (name: string) => call<Sample>('GET', `/api/apps/${name}/metrics/now`),
 	appSeries: (name: string, grain: Grain, since?: number) => {

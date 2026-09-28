@@ -164,6 +164,13 @@ const HISTORY: &str = "CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS events_by_app ON events (app, id);";
 
+/// Each image nothing could run again, and since when: it is removed an hour after. See
+/// spec/architecture/host.md, "An image is kept while something could run it".
+const IMAGES: &str = "CREATE TABLE IF NOT EXISTS flagged (
+	id TEXT PRIMARY KEY,
+	since TEXT NOT NULL
+);";
+
 fn open(path: &Path, schema: &str) -> Result<Connection, Error> {
 	let connection = Connection::open(path)?;
 	connection.execute_batch("PRAGMA journal_mode = WAL;")?;
@@ -190,6 +197,7 @@ pub struct Store {
 	apps: Mutex<Connection>,
 	routes: Mutex<Connection>,
 	history: Mutex<Connection>,
+	images: Mutex<Connection>,
 }
 
 /// A panic while holding one leaves nothing half-written: every write is one statement.
@@ -208,6 +216,7 @@ impl Store {
 			apps: Mutex::new(open(&directory.join("apps.db"), APPS)?),
 			routes: Mutex::new(open(&directory.join("routes.db"), ROUTES)?),
 			history: Mutex::new(open(&directory.join("history.db"), HISTORY)?),
+			images: Mutex::new(open(&directory.join("images.db"), IMAGES)?),
 		};
 		if split {
 			store.read_legacy(&legacy)?;
@@ -263,6 +272,35 @@ impl Store {
 		for suffix in ["db-wal", "db-shm"] {
 			let _ = std::fs::remove_file(legacy.with_extension(suffix));
 		}
+		Ok(())
+	}
+
+	/// Every flagged image and since when.
+	pub fn flagged(&self) -> Result<std::collections::HashMap<String, jiff::Timestamp>, Error> {
+		let connection = lock(&self.images);
+		let mut statement = connection.prepare("SELECT id, since FROM flagged")?;
+		let rows =
+			statement.query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))?;
+		let mut flagged = std::collections::HashMap::new();
+		for row in rows {
+			let (id, since) = row?;
+			if let Ok(since) = since.parse() {
+				flagged.insert(id, since);
+			}
+		}
+		Ok(flagged)
+	}
+
+	pub fn flag(&self, id: &str, since: jiff::Timestamp) -> Result<(), Error> {
+		lock(&self.images).execute(
+			"INSERT OR IGNORE INTO flagged (id, since) VALUES (?1, ?2)",
+			params![id, since.to_string()],
+		)?;
+		Ok(())
+	}
+
+	pub fn unflag(&self, id: &str) -> Result<(), Error> {
+		lock(&self.images).execute("DELETE FROM flagged WHERE id = ?1", params![id])?;
 		Ok(())
 	}
 
@@ -451,6 +489,18 @@ mod tests {
 
 	fn geo() -> Manifest {
 		Manifest::parse(include_str!("../../geo/service.toml")).unwrap()
+	}
+
+	#[test]
+	fn a_flag_keeps_the_moment_it_was_first_set_until_it_is_taken_off() {
+		let directory = tempfile::tempdir().unwrap();
+		let store = Store::open(directory.path()).unwrap();
+		let first: jiff::Timestamp = "2026-09-28T12:00:00Z".parse().unwrap();
+		store.flag("sha256:a", first).unwrap();
+		store.flag("sha256:a", "2026-09-28T13:00:00Z".parse().unwrap()).unwrap();
+		assert_eq!(store.flagged().unwrap()["sha256:a"], first);
+		store.unflag("sha256:a").unwrap();
+		assert!(store.flagged().unwrap().is_empty());
 	}
 
 	fn deployed(image: &str, previous: Option<Version>) -> Deployed {

@@ -457,17 +457,26 @@ or an upload is a choice to run something, and ends the hold.
 
 ### An image is kept while something could run it
 
-**The panel's Images page lists every image on the machine and why each stays**: what an app runs,
-what it would go back to on a rollback, what any container is made from -- whoever started it --
-and host's own, which keeper keeps and collects. Everything else is collectable: a dangling image a
-newer build left, an image of an app no longer deployed, an upstream image a compose file once
-pulled. One of those is removed on its own, or all of them at once, each confirmed; a kept one is
-refused with `image_in_use`. Both run under the deploy lock, so an image a deploy has loaded and not
-yet started is never taken for one nothing needs. The size given back is Docker's measure of its
-images before and after, since layers shared with a kept image stay.
+**What an image is kept for is decided in host's background, and the panel only reads it.** Once
+a minute, or at once when the panel asks, host scans the images and says why each stays: what an
+app runs, what it would go back to on a rollback, what any container is made from -- whoever started
+it -- and host's own, which keeper keeps and collects. The scan is held in memory, so the Images page
+answers at once; Docker's measure of its images on disk, the slow part, is taken outside the deploy
+lock.
 
-A deploy still collects on its own what it made unneeded, as it always has; the page is for what
-nothing deploys any more.
+**An image nothing needs is flagged, and removed an hour after.** The moment it was first found
+collectable is kept in `images.db`, so a restart does not start the hour again; one that is needed
+again before its hour is up -- the target of a rollback, a container started from it -- is
+unflagged. A dangling image a newer build left, an image of an app no longer deployed, an upstream
+image a compose file once pulled: each goes on its own.
+
+**What the panel asks of the images is a task in a queue, never a request that waits.** Removing
+one now, or collecting all of them now, is answered with the queued task; host's background does
+them in order and then scans again, and the page reads the queue and the scan every two seconds
+while anything is queued and every fifteen otherwise. Every task and every sweep takes the deploy
+lock, so an image a deploy has loaded and not yet started is never taken for one nothing needs.
+
+A deploy still collects on its own what it made unneeded, as it always has.
 
 ## Trying host on this machine
 
