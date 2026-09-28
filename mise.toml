@@ -288,6 +288,12 @@ description = "Build an app for the machine at home: `host deploy <name>` hands 
 depends = ["outward"]
 run = "node apps/host/scripts/host.ts"
 
+[tasks.infra]
+description = "Read the node over host's API: `infra <what> [app] [path]`, before reaching for SSH"
+# Read-only, so unlike `host` above it never writes off this machine and needs no `outward`. See
+# spec/architecture/inspect.md, "`mise run infra`".
+run = "node apps/host/scripts/infra.ts"
+
 # A browser here is refused the local network, and the panel answers only there. See
 # spec/toolchain.md, "Reaching the LAN from a browser that cannot".
 [tasks.reach]
