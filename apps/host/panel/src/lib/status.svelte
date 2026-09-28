@@ -1,14 +1,15 @@
 <script lang="ts">
+	/** Whether an app is up, and whether it is held down. */
 	import type { App } from './api';
+	import Badge from './badge.svelte';
 
 	let { app }: { app: App } = $props();
-	const pill = 'inline-block rounded-full border border-current px-2 text-xs';
 </script>
 
 {#if app.held}
-	<span class="{pill} text-warn">held stopped</span>
+	<Badge tone="warn">Held stopped</Badge>
 {:else if app.running}
-	<span class="{pill} text-good">running</span>
+	<Badge tone="good">Running</Badge>
 {:else}
-	<span class="{pill} text-danger">stopped</span>
+	<Badge tone="danger">Stopped</Badge>
 {/if}

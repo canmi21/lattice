@@ -6,10 +6,10 @@
 @source '.';
 
 /*
- * Nord, and nothing else: one theme, dark, with no light twin. Its sixteen colours are declared
+ * Nord, and nothing else: one theme, dark, with no light twin. Its sixteen colors are declared
  * under their own names, and what the panel means by each is declared once below them; a surface
  * reads the meaning, never the number. The few that are not Nord's own are steps between two of
- * its colours, each saying which. See spec/architecture/host.md, "The panel is host's own".
+ * its colors, each saying which. See spec/architecture/host.md, "The panel is host's own".
  */
 :root {
 	color-scheme: dark;
@@ -47,7 +47,7 @@
 
 	--color-text-strong: var(--nord6);
 	--color-text: var(--nord4);
-	/* Between nord3 and nord4: nord3 is Nord's own comment colour, and too faint to read on nord1. */
+	/* Between nord3 and nord4: nord3 is Nord's own comment color, and too faint to read on nord1. */
 	--color-text-muted: #9aa3b5;
 	--color-text-faint: #6f7a8f;
 
@@ -62,31 +62,22 @@
 	--color-selection: rgb(136 192 208 / 0.3);
 }
 
-/*
- * The names the pages still write as utilities, until each is moved to a surface. Pointed at the
- * meanings above, so they are Nord already.
- */
-@theme {
-	--color-ground: var(--nord0);
-	--color-surface: #323845;
-	--color-ink: var(--nord4);
-	--color-muted: #9aa3b5;
-	--color-line: #3e4555;
-	--color-accent: var(--nord8);
-	--color-good: var(--nord14);
-	--color-warn: var(--nord13);
-	--color-danger: var(--nord11);
-	--font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
-}
-
-/* What carries no class: the document, a selection, the scrollbars. */
+/* What carries no class: the document, a selection, the scrollbars, and the elements a table or a
+   form is made of, which are too many to class one by one. Written to lose to anything a component
+   says. See spec/architecture/css/layers.md, "The frame is a stack, and a declaration written to
+   lose goes low in it". */
 @layer base {
 	body {
 		background-color: var(--color-ground);
 		color: var(--color-text);
-		font-family: var(--font-sans);
+		font-family:
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			'Segoe UI',
+			sans-serif;
 		font-size: 0.875rem;
+		line-height: 1.5;
 		-webkit-font-smoothing: antialiased;
 	}
 
@@ -99,30 +90,84 @@
 		scrollbar-width: thin;
 	}
 
-	button {
-		@apply cursor-pointer rounded-md border border-line bg-surface px-3 py-1 disabled:cursor-not-allowed disabled:opacity-45;
+	a {
+		color: inherit;
+		text-decoration-line: none;
 	}
 
 	input,
-	select {
-		@apply rounded-md border border-line bg-surface px-2 py-1;
+	select,
+	textarea {
+		height: 2rem;
+		padding-inline: 0.625rem;
+		border-width: 1px;
+		border-style: solid;
+		border-color: var(--color-line-strong);
+		border-radius: 0.375rem;
+		background-color: var(--color-sunken);
+		color: var(--color-text-strong);
+		font-size: 0.8125rem;
+		outline-style: none;
+		transition-property: border-color, box-shadow;
+		transition-duration: 120ms;
+	}
+
+	input:focus-visible,
+	select:focus-visible,
+	textarea:focus-visible {
+		border-color: var(--color-accent);
+		box-shadow: 0 0 0 3px rgb(136 192 208 / 0.18);
+	}
+
+	input::placeholder {
+		color: var(--color-text-faint);
+	}
+
+	input[type='checkbox'] {
+		height: auto;
+		accent-color: var(--color-primary);
 	}
 
 	table {
-		@apply w-full border-collapse;
-	}
-
-	th,
-	td {
-		@apply border-b border-line px-2.5 py-2 text-left align-top;
+		width: 100%;
+		border-collapse: collapse;
+		font-variant-numeric: tabular-nums;
 	}
 
 	th {
-		@apply font-medium text-muted;
+		padding: 0.625rem 1.25rem;
+		border-bottom: 1px solid var(--color-line);
+		color: var(--color-text-faint);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		text-align: left;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	td {
+		padding: 0.75rem 1.25rem;
+		border-bottom: 1px solid var(--color-line);
+		vertical-align: middle;
+	}
+
+	tbody tr:last-child td {
+		border-bottom-width: 0;
+	}
+
+	tbody tr {
+		transition-property: background-color;
+		transition-duration: 120ms;
+	}
+
+	tbody tr:hover {
+		background-color: rgb(59 66 82 / 0.55);
 	}
 
 	code,
 	pre {
-		@apply font-mono text-xs;
+		font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+		font-size: 0.75rem;
 	}
 }

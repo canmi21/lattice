@@ -25,27 +25,35 @@ export function arrive(node: HTMLElement, delay = 0): void {
 	);
 }
 
-/** Where a marker stands: its top and its height, in pixels, inside what holds it. */
+/** Where a marker stands along its axis: where it starts and how long it is, in pixels. */
 export interface Place {
-	top: number;
-	height: number;
+	start: number;
+	size: number;
 }
 
 /**
- * Carry a marker from one place to another. The centre and the height run on their own curves over
- * one duration, as a tab indicator does in the editor; the element is left at `to`, set inline.
+ * Carry a marker from one place to another, down a column or along a row. The position and the
+ * length run on their own curves over one duration, as a tab indicator does in the editor; the
+ * element is left at `to`, set inline.
  */
-export function travel(marker: HTMLElement, from: Place | undefined, to: Place): void {
-	marker.style.transform = `translateY(${to.top}px)`;
-	marker.style.height = `${to.height}px`;
-	if (!from || prefersReducedMotion() || (from.top === to.top && from.height === to.height)) return;
-	const timing = travelMotion(to.top - from.top);
+export function travel(
+	marker: HTMLElement,
+	from: Place | undefined,
+	to: Place,
+	axis: 'x' | 'y',
+): void {
+	const shift = (at: number) => `translate${axis.toUpperCase()}(${at}px)`;
+	const length = axis === 'x' ? 'width' : 'height';
+	marker.style.transform = shift(to.start);
+	marker.style[length] = `${to.size}px`;
+	if (!from || prefersReducedMotion() || (from.start === to.start && from.size === to.size)) return;
+	const timing = travelMotion(to.start - from.start);
 	const duration = timing.duration * 1000;
-	marker.animate(
-		[{ transform: `translateY(${from.top}px)` }, { transform: `translateY(${to.top}px)` }],
-		{ duration, easing: curve(timing.centre) },
-	);
-	marker.animate([{ height: `${from.height}px` }, { height: `${to.height}px` }], {
+	marker.animate([{ transform: shift(from.start) }, { transform: shift(to.start) }], {
+		duration,
+		easing: curve(timing.centre),
+	});
+	marker.animate([{ [length]: `${from.size}px` }, { [length]: `${to.size}px` }], {
 		duration,
 		easing: curve(timing.width),
 	});

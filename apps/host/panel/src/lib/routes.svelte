@@ -1,7 +1,14 @@
 <script lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import Globe from '@lucide/svelte/icons/globe';
+	import Lock from '@lucide/svelte/icons/lock';
 	import { signedOut } from './session.svelte';
 	import { api, Refused, type Route } from './api';
-	import { card, danger, heading, primary, row } from './ui';
+	import Badge from './badge.svelte';
+	import Button from './button.svelte';
+	import Card from './card.svelte';
+	import PageHeader from './page-header.svelte';
+	import { tone, type } from './style/surfaces';
 
 	const blank = (): Route => ({ name: '', upstream: '', private: true, public: false, home: '' });
 	let routes = $state<Route[]>([]);
@@ -43,54 +50,78 @@
 	}
 </script>
 
-<section class={card}>
-	<h2 class={heading}>Routes</h2>
-	<p class="mb-2 text-muted">
-		Names that reach something host does not run: a device on the LAN, or a container of another
-		project.
-	</p>
-	{#if error}<p class="text-danger">{error}</p>{/if}
-	<table>
-		<thead>
-			<tr><th>Name</th><th>Upstream</th><th>Private</th><th>Public</th><th>Home</th><th></th></tr>
-		</thead>
-		<tbody>
-			{#each routes as route (route.name)}
-				<tr>
-					<td>{route.name}</td>
-					<td><code>{route.upstream}</code></td>
-					<td>{route.private ? 'yes' : ''}</td>
-					<td>{route.public ? 'yes' : ''}</td>
-					<td><code>{route.home ?? ''}</code></td>
-					<td class={row}>
-						<button onclick={() => (editing = { ...route, home: route.home ?? '' })}>Edit</button>
-						<button class={danger} onclick={() => remove(route.name)}>Remove</button>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</section>
+<PageHeader
+	title="Routes"
+	description="Names that reach something host does not run: a device on the LAN, or a container of another project"
+/>
 
-<section class={card}>
-	<h2 class={heading}>
-		{routes.some((route) => route.name === editing.name) ? `Edit ${editing.name}` : 'Add a route'}
-	</h2>
-	<form class={row} onsubmit={save}>
-		<input
-			bind:value={editing.name}
-			placeholder="name"
-			pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?"
-			required
-		/>
-		<input
-			bind:value={editing.upstream}
-			placeholder="host:port, or https prefixed for a TLS-only device"
-			required
-		/>
-		<label class={row}><input type="checkbox" bind:checked={editing.private} /> Private</label>
-		<label class={row}><input type="checkbox" bind:checked={editing.public} /> Public</label>
-		<input bind:value={editing.home} placeholder="home, such as /admin" />
-		<button class={primary} type="submit">Save</button>
-	</form>
-</section>
+{#if error}<p class="mb-4 {stylex.attrs(tone.danger).class}">{error}</p>{/if}
+
+<div class="flex flex-col gap-6">
+	<Card flush>
+		<table>
+			<thead>
+				<tr><th>Name</th><th>Upstream</th><th>Reached</th><th>Home</th><th></th></tr>
+			</thead>
+			<tbody>
+				{#each routes as route (route.name)}
+					<tr>
+						<td class={stylex.attrs(type.heading).class}>{route.name}</td>
+						<td><code class={stylex.attrs(type.mono).class}>{route.upstream}</code></td>
+						<td>
+							<div class="flex gap-1.5">
+								{#if route.private}<Badge tone="muted">Private</Badge>{/if}
+								{#if route.public}<Badge tone="good">Public</Badge>{/if}
+							</div>
+						</td>
+						<td
+							><code class={stylex.attrs(type.mono, tone.muted).class}>{route.home ?? '–'}</code
+							></td
+						>
+						<td class="w-44">
+							<div class="flex justify-end gap-2">
+								<Button
+									variant="ghost"
+									onclick={() => (editing = { ...route, home: route.home ?? '' })}>Edit</Button
+								>
+								<Button variant="danger" onclick={() => remove(route.name)}>Remove</Button>
+							</div>
+						</td>
+					</tr>
+				{:else}
+					<tr><td colspan="5" class={stylex.attrs(type.muted).class}>No routes yet</td></tr>
+				{/each}
+			</tbody>
+		</table>
+	</Card>
+
+	<Card
+		title={routes.some((route) => route.name === editing.name)
+			? `Edit ${editing.name}`
+			: 'Add a route'}
+	>
+		<form class="flex flex-wrap items-center gap-3" onsubmit={save}>
+			<input
+				class="w-40"
+				bind:value={editing.name}
+				placeholder="name"
+				pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?"
+				required
+			/>
+			<input
+				class="min-w-72 flex-1"
+				bind:value={editing.upstream}
+				placeholder="host:port, or https prefixed for a TLS-only device"
+				required
+			/>
+			<input class="w-44" bind:value={editing.home} placeholder="Home, such as /admin" />
+			<label class="inline-flex items-center gap-1.5 {stylex.attrs(type.muted).class}">
+				<input type="checkbox" bind:checked={editing.private} /><Lock size={13} /> Private
+			</label>
+			<label class="inline-flex items-center gap-1.5 {stylex.attrs(type.muted).class}">
+				<input type="checkbox" bind:checked={editing.public} /><Globe size={13} /> Public
+			</label>
+			<Button variant="primary" type="submit">Save</Button>
+		</form>
+	</Card>
+</div>

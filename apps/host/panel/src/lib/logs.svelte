@@ -1,7 +1,14 @@
 <script lang="ts">
+	/** What the running container wrote, and the logs of every version before it. */
+	import * as stylex from '@stylexjs/stylex';
+	import FileText from '@lucide/svelte/icons/file-text';
+	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 	import { signedOut } from './session.svelte';
 	import { api, type Archived } from './api';
-	import { card, heading } from './ui';
+	import Button from './button.svelte';
+	import Card from './card.svelte';
+	import { bytes } from './format';
+	import { surfaces, tone, type } from './style/surfaces';
 
 	let { name }: { name: string } = $props();
 
@@ -23,43 +30,43 @@
 	$effect(() => {
 		load();
 	});
-
-	function size(bytes: number): string {
-		return bytes < 1024 * 1024
-			? `${Math.ceil(bytes / 1024)} KB`
-			: `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-	}
 </script>
 
-<section class={card}>
-	<div class="flex items-center justify-between">
-		<h2 class="text-base font-semibold">Running container</h2>
-		<button onclick={load}>Refresh</button>
-	</div>
-	{#if error}<p class="text-danger">{error}</p>{/if}
-	<pre class="mt-3 max-h-[60vh] overflow-auto break-all whitespace-pre-wrap">{lines.join('\n') ||
-			'No lines'}</pre>
-</section>
+<div class="flex flex-col gap-6">
+	<Card title="Running container" description="Its last lines, each with Docker's timestamp">
+		{#snippet actions()}
+			<Button variant="ghost" icon={RefreshCw} onclick={load}>Refresh</Button>
+		{/snippet}
+		{#if error}<p class="mb-3 {stylex.attrs(tone.danger).class}">{error}</p>{/if}
+		<pre
+			class="max-h-[60vh] overflow-auto p-4 break-all whitespace-pre-wrap {stylex.attrs(
+				surfaces.well,
+			).class}">{lines.join('\n') || 'No lines'}</pre>
+	</Card>
 
-<section class={card}>
-	<h2 class={heading}>Earlier versions</h2>
-	<table>
-		<tbody>
-			{#each archived as log (log.file)}
-				<tr>
-					<td
-						><a
-							class="text-accent"
-							href="/api/apps/{name}/logs/archive/{log.file}"
-							target="_blank"
-							rel="noopener">{log.file}</a
-						></td
-					>
-					<td class="text-muted">{size(log.bytes)}</td>
-				</tr>
-			{:else}
-				<tr><td class="text-muted">None archived yet</td></tr>
-			{/each}
-		</tbody>
-	</table>
-</section>
+	<Card
+		title="Earlier versions"
+		description="Archived as each container was replaced, and kept"
+		flush
+	>
+		<table>
+			<tbody>
+				{#each archived as log (log.file)}
+					<tr>
+						<td>
+							<a
+								class="inline-flex items-center gap-2 {stylex.attrs(tone.accent).class}"
+								href="/api/apps/{name}/logs/archive/{log.file}"
+								target="_blank"
+								rel="noopener"><FileText size={14} strokeWidth={1.75} />{log.file}</a
+							>
+						</td>
+						<td class="text-right {stylex.attrs(tone.muted).class}">{bytes(log.bytes)}</td>
+					</tr>
+				{:else}
+					<tr><td class={stylex.attrs(type.muted).class}>None archived yet</td></tr>
+				{/each}
+			</tbody>
+		</table>
+	</Card>
+</div>

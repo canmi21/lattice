@@ -35,7 +35,7 @@ export const font = stylex.defineConsts({
 	mono: "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace",
 });
 
-/** How fast a colour answers a pointer: quicker than anything that travels. */
+/** How fast a color answers a pointer: quicker than anything that travels. */
 export const duration = stylex.defineConsts({
 	hover: '120ms',
 });

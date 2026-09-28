@@ -28,7 +28,7 @@
 	];
 
 	const current = $derived(pages.findIndex((item) => item.here(page.url.pathname)));
-	const links: HTMLAnchorElement[] = [];
+	const links: HTMLAnchorElement[] = $state([]);
 	let marker: HTMLElement | undefined = $state();
 	let placed: Place | undefined;
 
@@ -40,9 +40,9 @@
 			placed = undefined;
 			return;
 		}
-		const to = { top: link.offsetTop, height: link.offsetHeight };
+		const to = { start: link.offsetTop, size: link.offsetHeight };
 		marker.style.opacity = '1';
-		travel(marker, placed, to);
+		travel(marker, placed, to, 'y');
 		placed = to;
 	});
 

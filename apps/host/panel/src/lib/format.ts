@@ -34,3 +34,22 @@ export function frequency(megahertz: number): string {
 		? `${(megahertz / 1000).toFixed(2)} GHz`
 		: `${Math.round(megahertz)} MHz`;
 }
+
+/** How long ago a moment was, in its largest unit: `just now`, `4 minutes ago`, `2 days ago`. */
+export function ago(stamp: string | number | undefined, now = Date.now()): string {
+	if (stamp === undefined) return '';
+	const at = typeof stamp === 'number' ? stamp * 1000 : Date.parse(stamp);
+	const seconds = Math.max(0, Math.round((now - at) / 1000));
+	if (seconds < 45) return 'just now';
+	const steps: [number, string][] = [
+		[60, 'minute'],
+		[3600, 'hour'],
+		[86400, 'day'],
+		[2592000, 'month'],
+		[31536000, 'year'],
+	];
+	let [size, unit] = steps[0]!;
+	for (const step of steps) if (seconds >= step[0]) [size, unit] = step;
+	const count = Math.round(seconds / size);
+	return `${count} ${unit}${count === 1 ? '' : 's'} ago`;
+}

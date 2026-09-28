@@ -283,10 +283,10 @@ copied into host's image and served beside the API, so there is no second servic
 cross and no CORS. It is written in `apps/host/panel/`, its components named in lowercase like every
 file.
 
-**It is styled as the site is, in the site's three layers, and coloured as nothing else here is.**
+**It is styled as the site is, in the site's three layers, and colored as nothing else here is.**
 Tailwind in the markup for where a thing sits, StyleX for what it looks like, a `<style>` block
 for what carries no class -- [css/layers.md](css/layers.md) decides which is which, and the build
-and development arrangements there are copied rather than re-derived. Its colours are Nord's, one
+and development arrangements there are copied rather than re-derived. Its colors are Nord's, one
 theme and dark, with no light twin: the sixteen are declared under their own names in `panel.css`,
 what the panel means by each is declared beside them, and a surface in `src/lib/style/` reads the
 meaning. They are its own rather than `libs/tokens`', which is the site's. Icons are Lucide's, and
