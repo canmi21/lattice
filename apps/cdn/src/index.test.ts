@@ -51,6 +51,12 @@ describe('the fixed names', () => {
 		expect(await res.text()).toContain('User-agent: *');
 		expect(res.headers.get('Cache-Control')).toBe(MINUTES);
 	});
+
+	it('answers its own security.txt', async () => {
+		const res = await ask('/.well-known/security.txt');
+		expect(res.status).toBe(200);
+		expect(await res.text()).toContain('Contact: mailto:');
+	});
 });
 
 /**
@@ -95,7 +101,10 @@ describe('the catch-all', () => {
 		for (const [path, res] of answers) {
 			expect(res.status, path).toBe(400);
 		}
-		expect(await answers[0]?.[1].json()).toMatchObject({ status: 'error', code: 'invalid_address' });
+		expect(await answers[0]?.[1].json()).toMatchObject({
+			status: 'error',
+			code: 'invalid_address',
+		});
 	});
 
 	it('refuses a single segment, a deeper one, and holds neither for long', async () => {

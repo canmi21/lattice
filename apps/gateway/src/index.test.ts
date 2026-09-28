@@ -182,6 +182,12 @@ describe('the gateway', () => {
 		}
 	});
 
+	it('answers its own security.txt, before any scope is read', async () => {
+		const answer = await ask('/.well-known/security.txt');
+		expect(answer.status).toBe(200);
+		expect(await answer.text()).toContain('Contact: mailto:');
+	});
+
 	it('answers robots itself, keeping the whole host out of an index', async () => {
 		const answer = await ask('/robots.txt');
 		expect(await answer.text()).toContain('Disallow: /');

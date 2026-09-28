@@ -109,6 +109,11 @@ export const URLS = {
 	source: `https://github.com/${GITHUB_OWNER}/lattice`,
 	// The apexes, declared once above so the one a worker answers on cannot be spelled twice.
 	internal: INTERNAL,
+	// Where a vulnerability is reported, published in every zone's security.txt. An address on
+	// the site's domain that Cloudflare forwards, so the mailbox behind it can change without it.
+	contact: {
+		security: 'mailto:security@canmi.net',
+	},
 	external: {
 		github: {
 			web: 'https://github.com',

@@ -152,6 +152,12 @@ describe('the rest of the host', () => {
 		expect(await res.text()).toContain('User-agent: *');
 	});
 
+	it('answers its own security.txt', async () => {
+		const res = await ask('/.well-known/security.txt');
+		expect(res.status).toBe(200);
+		expect(await res.text()).toContain('Contact: mailto:');
+	});
+
 	it('answers the name a browser asks every origin for, without resolving it twice', async () => {
 		// This was a 400 while `/symlink/` was new, on the reasoning that the name had moved under
 		// the prefix. A browser does not read the prefix: it asks every origin it touches for this

@@ -7,6 +7,7 @@
  */
 import { limited, within } from '@canmi/limits';
 import { failure } from '@canmi/response';
+import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { robotsTxt } from '@canmi/robots';
 import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
@@ -84,6 +85,7 @@ export function gateway(
 	// An API has nothing to index, and its URLs in search results would compete with the pages
 	// that call them.
 	app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
+	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
 
 	// The host's own address is somebody typing it, not a malformed call: they go to the site, and
 	// `ref` tells the site's analytics where from.

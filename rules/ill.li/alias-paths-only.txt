@@ -1,4 +1,5 @@
 http.host eq "ill.li"
+and not starts_with(http.request.uri.path, "/.well-known/")
 and not http.request.uri.path in {"/" "/favicon.ico" "/robots.txt"}
 and not starts_with(http.request.uri.path, "/symlink/")
 and not (len(http.request.uri.path) eq 6 and not http.request.uri.path contains ".")

@@ -11,6 +11,7 @@ zone are few enough to paste.
 | Rule              | File                                                                                 | Pasted into                             | Order |
 | ----------------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ----- |
 | Block Probes      | [rules/all/block-probes.txt](../../rules/all/block-probes.txt)                       | canmi.net, ffoni.com, ill.li, canmi.app | 1     |
+| Security Contact  | [rules/canmi.app/security-redirect.txt](../../rules/canmi.app/security-redirect.txt) | canmi.app, as a redirect rule           | --    |
 | Site Files Only   | [rules/canmi.net/site-files-only.txt](../../rules/canmi.net/site-files-only.txt)     | canmi.net                               | 2     |
 | API Scopes Only   | [rules/ffoni.com/api-scopes-only.txt](../../rules/ffoni.com/api-scopes-only.txt)     | ffoni.com                               | 2     |
 | CDN Prefixes Only | [rules/ffoni.com/cdn-prefixes-only.txt](../../rules/ffoni.com/cdn-prefixes-only.txt) | ffoni.com                               | 3     |
@@ -24,6 +25,20 @@ zone are few enough to paste.
 named for its zone, since a rule on this plan belongs to one zone; the name is `all` rather than
 `*`, which Windows refuses in a file name and a shell expands. Every rule blocks, and the title in
 the table is the name it is given in the dashboard.
+
+**Every host answers its own security.txt.** `libs/security` writes it -- RFC 9116's two required
+fields, `Contact` and `Expires`, and the host's own `Canonical` -- with an expiry 180 days out,
+stated per request so it never lapses, and the site, the gateway, the CDN and the alias layer each
+answer `/.well-known/security.txt` from it. Every whitelist lets `/.well-known/` through, which the
+gate checks. The address is `security@canmi.net`, forwarded by Cloudflare's Email Routing, so the
+mailbox behind it can change without the file.
+
+**canmi.app redirects, for now.** Its names are interfaces behind Access, several of them another
+vendor's, and none of them ours to add a path to. So the zone's redirect rule, Security Contact,
+sends the path to the site's with a static 301 to `https://canmi.net/.well-known/security.txt`, the
+query not kept; redirect rules run before the WAF and before Access. When the apex serves a page of
+its own it answers the file itself, and a whitelist for it lets `/.well-known/` through like the
+rest.
 
 **Block Probes is the same file in every zone.** It refuses what scanners ask every host for -- the
 paths of WordPress and phpMyAdmin, version control and credential files, package manifests, source

@@ -1,5 +1,6 @@
 import { UNCHANGING } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
+import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -58,6 +59,9 @@ app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', REFUSED);
 	return c.text(robotsTxt({ disallow: [''] }));
 });
+
+// security.txt, the same on every host of ours; see spec/architecture/firewall.md.
+app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
 
 /**
  * A resource, answered with whatever it declares itself canonically to be.

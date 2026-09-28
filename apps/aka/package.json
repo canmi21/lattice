@@ -12,6 +12,7 @@
 		"@canmi/cache": "workspace:*",
 		"@canmi/response": "workspace:*",
 		"@canmi/robots": "workspace:*",
+		"@canmi/security": "workspace:*",
 		"@canmi/urls": "workspace:*",
 		"hono": "^4.13.7"
 	},

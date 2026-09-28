@@ -25,6 +25,7 @@
 		"@canmi/prose": "workspace:*",
 		"@canmi/response": "workspace:*",
 		"@canmi/robots": "workspace:*",
+		"@canmi/security": "workspace:*",
 		"@canmi/site-api": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/units": "workspace:*",

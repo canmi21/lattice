@@ -34,6 +34,11 @@ def main():
 		if text.count("(") != text.count(")") or text.count('"') % 2:
 			problems.append(f"{name}: unbalanced parentheses or quotes")
 
+	# Every whitelist lets the RFC-fixed paths through, security.txt among them.
+	for name, text in files.items():
+		if name.endswith("-only.txt") and 'starts_with(http.request.uri.path, "/.well-known/")' not in text:
+			problems.append(f"{name}: a whitelist that refuses /.well-known/")
+
 	# Every public scope of the API host is let through, and nothing that is not one.
 	scopes_ts = (ROOT / "apps/gateway/src/scopes.ts").read_text()
 	scopes = set(re.findall(r"^\t(?:'|\")?([a-z0-9-]+)(?:'|\")?: \{", scopes_ts, re.M))

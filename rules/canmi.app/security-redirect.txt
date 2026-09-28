@@ -1,0 +1,1 @@
+http.request.uri.path eq "/.well-known/security.txt"
