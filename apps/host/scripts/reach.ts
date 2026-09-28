@@ -34,7 +34,9 @@ function freePort(): Promise<number> {
 		probe.once('error', reject);
 		probe.listen(0, '127.0.0.1', () => {
 			const address = probe.address();
-			probe.close(() => (typeof address === 'object' && address ? resolve(address.port) : reject()));
+			probe.close(() =>
+				typeof address === 'object' && address ? resolve(address.port) : reject(),
+			);
 		});
 	});
 }
@@ -66,7 +68,8 @@ function outbound(headers: IncomingHttpHeaders): IncomingHttpHeaders {
 /** What came back, pointed at this door. A `Secure` cookie stays as it is: localhost is secure. */
 function inbound(headers: IncomingHttpHeaders): IncomingHttpHeaders {
 	const rewritten = { ...headers };
-	if (headers.location?.startsWith(ORIGIN)) rewritten.location = LOCAL + headers.location.slice(ORIGIN.length);
+	if (headers.location?.startsWith(ORIGIN))
+		rewritten.location = LOCAL + headers.location.slice(ORIGIN.length);
 	return rewritten;
 }
 
@@ -75,7 +78,14 @@ const { address: node } = await lookup(HOME, { family: 4 });
 const tunnelPort = await freePort();
 const ssh = spawn(
 	'ssh',
-	['-N', '-o', 'ExitOnForwardFailure=yes', '-L', `127.0.0.1:${tunnelPort}:${node}:443`, `root@${node}`],
+	[
+		'-N',
+		'-o',
+		'ExitOnForwardFailure=yes',
+		'-L',
+		`127.0.0.1:${tunnelPort}:${node}:443`,
+		`root@${node}`,
+	],
 	{ stdio: ['ignore', 'inherit', 'inherit'] },
 );
 ssh.on('exit', (code) => {

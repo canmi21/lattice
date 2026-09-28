@@ -10,7 +10,11 @@ import { askPrivate, tryReadPrivate } from './private';
  * once `token` is confirmed. Throws `SignedOut` when it is not; a ledger that cannot be reached
  * answers as an upstream failure rather than throwing, matching `askPrivate` in `./private`.
  */
-export async function ledger(path: string, search: string, token: string | undefined): Promise<Response> {
+export async function ledger(
+	path: string,
+	search: string,
+	token: string | undefined,
+): Promise<Response> {
 	return askPrivate(URLS.internal.ledger, path, search, token);
 }
 

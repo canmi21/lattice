@@ -93,8 +93,9 @@
 				{#each detail.events as event, index (event.seq)}
 					<li class="flex gap-3">
 						<span
-							class="mt-1.5 size-2 shrink-0 rounded-full {stylex.attrs(tone[LEVEL_TONE[event.level]])
-								.class}"
+							class="mt-1.5 size-2 shrink-0 rounded-full {stylex.attrs(
+								tone[LEVEL_TONE[event.level]],
+							).class}"
 							style="background-color: currentColor;"
 						></span>
 						<div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -132,9 +133,9 @@
 					</div>
 					<div class="flex justify-between gap-3">
 						<dt class={stylex.attrs(type.label).class}>Asked</dt>
-						<dd class={stylex.attrs(type.body).class} title={when(task.asked_at)}
-							>{ago(task.asked_at, now)}</dd
-						>
+						<dd class={stylex.attrs(type.body).class} title={when(task.asked_at)}>
+							{ago(task.asked_at, now)}
+						</dd>
 					</div>
 					<div class="flex justify-between gap-3">
 						<dt class={stylex.attrs(type.label).class}>Took</dt>

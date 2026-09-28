@@ -121,10 +121,16 @@ pub fn shown(root: &Path) -> Result<Shown, Error> {
 	let secrets = read(&Kind::Secret.file(root))?;
 	let mut variables: Vec<VariableShown> = config
 		.iter()
-		.map(|(name, value)| VariableShown { name: name.clone(), kind: "config", value: Some(value.clone()) })
-		.chain(
-			secrets.keys().map(|name| VariableShown { name: name.clone(), kind: "secret", value: None }),
-		)
+		.map(|(name, value)| VariableShown {
+			name: name.clone(),
+			kind: "config",
+			value: Some(value.clone()),
+		})
+		.chain(secrets.keys().map(|name| VariableShown {
+			name: name.clone(),
+			kind: "secret",
+			value: None,
+		}))
 		.collect();
 	variables.sort_by(|a, b| a.name.cmp(&b.name));
 	Ok(Shown { config, secrets: secrets.into_keys().collect(), variables })

@@ -35,15 +35,15 @@ already does:
 
 ## The API
 
-| Route                | Answer                                                                    |
-| -------------------- | ------------------------------------------------------------------------- |
-| `/machine`           | the machine's facts and its latest second                                 |
-| `/machine/series`    | its history at the meter's three grains                                   |
-| `/services`          | every service: version, state, when deployed, and what it uses now        |
-| `/services/{name}`   | one service: its declaration, its history, its series                     |
-| `/topology`          | the whole arrangement: services, scopes, labels, schedules, how they meet |
-| `/activity`          | tasks per service and hour, and how they ended                            |
-| `/status`            | the probe's latest round and its recent history                           |
+| Route              | Answer                                                                    |
+| ------------------ | ------------------------------------------------------------------------- |
+| `/machine`         | the machine's facts and its latest second                                 |
+| `/machine/series`  | its history at the meter's three grains                                   |
+| `/services`        | every service: version, state, when deployed, and what it uses now        |
+| `/services/{name}` | one service: its declaration, its history, its series                     |
+| `/topology`        | the whole arrangement: services, scopes, labels, schedules, how they meet |
+| `/activity`        | tasks per service and hour, and how they ended                            |
+| `/status`          | the probe's latest round and its recent history                           |
 
 **What moves is kept five seconds, and the rest a minute**: the gateway keeps an answer as long as
 it says, so however many people look, the node is asked for the machine's latest second at most

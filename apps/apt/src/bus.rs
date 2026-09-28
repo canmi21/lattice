@@ -64,19 +64,17 @@ impl SystemBus {
 	async fn unit_path(&self, unit: &str) -> anyhow::Result<OwnedObjectPath> {
 		let reply = self
 			.connection
-			.call_method(
-				Some(DESTINATION),
-				MANAGER_PATH,
-				Some(MANAGER_INTERFACE),
-				"LoadUnit",
-				&(unit,),
-			)
+			.call_method(Some(DESTINATION), MANAGER_PATH, Some(MANAGER_INTERFACE), "LoadUnit", &(unit,))
 			.await?;
 		let (path,): (OwnedObjectPath,) = reply.body().deserialize()?;
 		Ok(path)
 	}
 
-	async fn get_all(&self, path: &str, interface: &str) -> anyhow::Result<HashMap<String, OwnedValue>> {
+	async fn get_all(
+		&self,
+		path: &str,
+		interface: &str,
+	) -> anyhow::Result<HashMap<String, OwnedValue>> {
 		let reply = self
 			.connection
 			.call_method(Some(DESTINATION), path, Some(PROPERTIES_INTERFACE), "GetAll", &(interface,))
@@ -88,7 +86,8 @@ impl SystemBus {
 #[async_trait]
 impl Bus for SystemBus {
 	async fn start(&self, unit: &str) -> anyhow::Result<()> {
-		self.connection
+		self
+			.connection
 			.call_method(
 				Some(DESTINATION),
 				MANAGER_PATH,
@@ -116,15 +115,30 @@ impl Bus for SystemBus {
 }
 
 fn string_of(map: &HashMap<String, OwnedValue>, key: &str) -> anyhow::Result<String> {
-	map.get(key).cloned().ok_or_else(|| anyhow::anyhow!("missing {key}"))?.try_into().map_err(Into::into)
+	map
+		.get(key)
+		.cloned()
+		.ok_or_else(|| anyhow::anyhow!("missing {key}"))?
+		.try_into()
+		.map_err(Into::into)
 }
 
 fn u64_of(map: &HashMap<String, OwnedValue>, key: &str) -> anyhow::Result<u64> {
-	map.get(key).cloned().ok_or_else(|| anyhow::anyhow!("missing {key}"))?.try_into().map_err(Into::into)
+	map
+		.get(key)
+		.cloned()
+		.ok_or_else(|| anyhow::anyhow!("missing {key}"))?
+		.try_into()
+		.map_err(Into::into)
 }
 
 fn i32_of(map: &HashMap<String, OwnedValue>, key: &str) -> anyhow::Result<i32> {
-	map.get(key).cloned().ok_or_else(|| anyhow::anyhow!("missing {key}"))?.try_into().map_err(Into::into)
+	map
+		.get(key)
+		.cloned()
+		.ok_or_else(|| anyhow::anyhow!("missing {key}"))?
+		.try_into()
+		.map_err(Into::into)
 }
 
 /// A bus that never touches a real one, for the routes and the run-following logic. Shared with

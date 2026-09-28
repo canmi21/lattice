@@ -120,12 +120,15 @@ mod tests {
 			record(3, 6_000_000, " SUBSYSTEM=devices"),
 		];
 		let kills = kills_from(&records);
-		assert_eq!(kills, [Kill {
-			task: "nginx".into(),
-			pid: Some(4242),
-			cgroup: Some("/docker/abc123".into()),
-			monotonic_seconds: 5.5,
-		}]);
+		assert_eq!(
+			kills,
+			[Kill {
+				task: "nginx".into(),
+				pid: Some(4242),
+				cgroup: Some("/docker/abc123".into()),
+				monotonic_seconds: 5.5,
+			}]
+		);
 	}
 
 	#[test]

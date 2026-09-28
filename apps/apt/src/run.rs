@@ -59,7 +59,17 @@ pub async fn start_and_follow(
 			serde_json::Value::Null,
 		);
 	}
-	tell(&ledger, &id, job, ledger::State::Running, asked_at, Some(started_at), None, None, parent.clone());
+	tell(
+		&ledger,
+		&id,
+		job,
+		ledger::State::Running,
+		asked_at,
+		Some(started_at),
+		None,
+		None,
+		parent.clone(),
+	);
 
 	let properties = bus.properties(unit).await?;
 	tokio::spawn(follow(bus, ledger, id, job, asked_at, started_at, parent));
@@ -193,7 +203,8 @@ mod tests {
 	#[tokio::test]
 	async fn a_run_is_followed_from_activating_to_done() {
 		let bus: Arc<dyn Bus> = Arc::new(FakeBus::activating_then_done());
-		let properties = start_and_follow(bus.clone(), None, JOB_UPDATE, UNIT_UPDATE, None).await.unwrap();
+		let properties =
+			start_and_follow(bus.clone(), None, JOB_UPDATE, UNIT_UPDATE, None).await.unwrap();
 		assert!(properties.running());
 		// The background follow-up polls fast in the fake and settles almost at once.
 		tokio::time::sleep(Duration::from_millis(50)).await;

@@ -414,7 +414,9 @@ const CRON_MOUNT_REDEPLOY_COOLDOWN: std::time::Duration = std::time::Duration::f
 /// embed `redeploy`'s, which embeds `settle`'s, which embeds this function's again -- a type with
 /// no fixed size. Naming the return type erases it at this one edge, so the cycle closes through a
 /// trait object instead of an infinitely nested one.
-fn redeploy_cron(host: Arc<Host>) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
+fn redeploy_cron(
+	host: Arc<Host>,
+) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
 	Box::pin(async move {
 		if let Err(error) = redeploy(&host, crate::cron::NAME).await {
 			eprintln!("host: redeploying cron for its mounts: {error}");

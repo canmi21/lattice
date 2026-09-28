@@ -6,7 +6,13 @@
  * app collides here rather than drifting to a free port, which is the cheapest mutex there is.
  * See spec/toolchain.md.
  */
-export const PINNED_PORTS = { site: 26511, api: 26512, alias: 26514, cdn: 26516, panel: 26519 } as const;
+export const PINNED_PORTS = {
+	site: 26511,
+	api: 26512,
+	alias: 26514,
+	cdn: 26516,
+	panel: 26519,
+} as const;
 
 /** Stated by a build for a runtime with no environment to read: a worker, a page. */
 declare const STATED_PORT_OFFSET: number | undefined;

@@ -13,11 +13,11 @@ nothing waits on it:
 **One question a route**: whether a capture was taken, how it stands, whether its picture is there.
 Each tells its own and nothing of the others'.
 
-| Request                                                       | Answer                                                                                       |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Request                                                       | Answer                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after }` and `Location: tasks/<id>`: its state, nothing more |
-| `GET /shot/tasks/<id>`                                        | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done    |
-| `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said          |
+| `GET /shot/tasks/<id>`                                        | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done   |
+| `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said         |
 
 - **The id is said once, in the body; where to ask is the `Location` header's**, never a second
   field repeating the id.

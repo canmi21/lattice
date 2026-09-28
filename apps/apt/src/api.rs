@@ -69,7 +69,12 @@ fn parent_header(headers: &HeaderMap) -> Option<&str> {
 
 /// Starts a job's unit and answers `202` with its state; `409` while it is already running. See
 /// spec/architecture/apt.md, the door's route table.
-async fn start_job(state: &AppState, job: &'static str, unit: &'static str, parent: Option<&str>) -> Response {
+async fn start_job(
+	state: &AppState,
+	job: &'static str,
+	unit: &'static str,
+	parent: Option<&str>,
+) -> Response {
 	let current = match state.bus.properties(unit).await {
 		Ok(properties) => properties,
 		Err(_) => return response::failure(StatusCode::SERVICE_UNAVAILABLE, "service_unavailable"),
@@ -102,7 +107,10 @@ fn job_view(unit: &str, properties: &Properties) -> serde_json::Value {
 
 /// Microseconds since the epoch, as systemd gives a unit's timestamps, read as RFC 3339.
 fn micros(value: u64) -> Option<String> {
-	i64::try_from(value).ok().and_then(|us| jiff::Timestamp::from_microsecond(us).ok()).map(|at| at.to_string())
+	i64::try_from(value)
+		.ok()
+		.and_then(|us| jiff::Timestamp::from_microsecond(us).ok())
+		.map(|at| at.to_string())
 }
 
 #[cfg(test)]
@@ -118,7 +126,12 @@ mod tests {
 		AppState { bus: Arc::new(bus), ledger: None }
 	}
 
-	async fn ask(router: Router, method: &str, path: &str, parent: Option<&str>) -> (StatusCode, serde_json::Value) {
+	async fn ask(
+		router: Router,
+		method: &str,
+		path: &str,
+		parent: Option<&str>,
+	) -> (StatusCode, serde_json::Value) {
 		let mut request = Request::builder().method(method).uri(path);
 		if let Some(parent) = parent {
 			request = request.header("x-task-parent", parent);

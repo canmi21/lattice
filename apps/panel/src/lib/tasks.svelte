@@ -68,16 +68,17 @@
 		if (untrack(() => loaded)) void reload(TASK_PAGE_SIZE);
 	});
 
-	const busy = $derived(
-		tasks.some((task) => task.state === 'queued' || task.state === 'running'),
-	);
+	const busy = $derived(tasks.some((task) => task.state === 'queued' || task.state === 'running'));
 
 	// Often while something is queued or running, seldom otherwise. Refreshes the same span
 	// already shown, at most the 500 rows the ledger answers with in one page.
 	$effect(() => {
 		const every = busy ? 4000 : 30000;
 		if (untrack(() => initial) === undefined && !untrack(() => loaded)) void reload(TASK_PAGE_SIZE);
-		const timer = setInterval(() => void reload(Math.min(Math.max(tasks.length, TASK_PAGE_SIZE), 500)), every);
+		const timer = setInterval(
+			() => void reload(Math.min(Math.max(tasks.length, TASK_PAGE_SIZE), 500)),
+			every,
+		);
 		return () => clearInterval(timer);
 	});
 
@@ -115,7 +116,10 @@
 		<Segmented
 			options={[
 				{ key: 'all', label: 'All' },
-				...STATES.map((state) => ({ key: state, label: state.charAt(0).toUpperCase() + state.slice(1) })),
+				...STATES.map((state) => ({
+					key: state,
+					label: state.charAt(0).toUpperCase() + state.slice(1),
+				})),
 			]}
 			bind:value={stateFilter}
 		/>
@@ -134,8 +138,9 @@
 	<table>
 		<thead>
 			<tr>
-				<th>Service</th><th>Kind</th><th>State</th><th>Caller</th><th>Asked</th><th>Took</th
-				><th>Summary</th>
+				<th>Service</th><th>Kind</th><th>State</th><th>Caller</th><th>Asked</th><th>Took</th><th
+					>Summary</th
+				>
 			</tr>
 		</thead>
 		<tbody>
@@ -151,7 +156,9 @@
 					<td class={stylex.attrs(tone.muted).class}>{task.kind}</td>
 					<td><Badge tone={STATE_TONE[task.state]}>{task.state}</Badge></td>
 					<td class={stylex.attrs(tone.muted).class}>{task.caller}</td>
-					<td class={stylex.attrs(tone.muted).class} title={task.asked_at}>{ago(task.asked_at, now)}</td>
+					<td class={stylex.attrs(tone.muted).class} title={task.asked_at}
+						>{ago(task.asked_at, now)}</td
+					>
 					<td class={stylex.attrs(tone.muted).class}>{took(task)}</td>
 					<td class="max-w-md truncate {stylex.attrs(tone.muted).class}" title={summarize(task)}
 						>{summarize(task)}</td
@@ -168,5 +175,7 @@
 	</table>
 </Card>
 {#if more && tasks.length > 0}
-	<div class="mt-4 flex justify-center"><Button variant="ghost" onclick={older}>Load more</Button></div>
+	<div class="mt-4 flex justify-center">
+		<Button variant="ghost" onclick={older}>Load more</Button>
+	</div>
 {/if}

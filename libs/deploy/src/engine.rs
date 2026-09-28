@@ -298,7 +298,10 @@ pub struct ContainerInfo {
 
 /// One container's answer, from what `list` and `inspect` each report of it -- pure, so it is
 /// tested without Docker. See spec/architecture/inspect.md.
-pub fn container_info(summary: ContainerSummary, inspected: ContainerInspectResponse) -> ContainerInfo {
+pub fn container_info(
+	summary: ContainerSummary,
+	inspected: ContainerInspectResponse,
+) -> ContainerInfo {
 	let id = summary.id.clone().unwrap_or_default();
 	let name = summary
 		.names
@@ -368,7 +371,9 @@ pub fn network_info(network: NetworkInspect) -> NetworkInfo {
 		.containers
 		.unwrap_or_default()
 		.into_values()
-		.filter_map(|container| Some(NetworkMember { name: container.name?, address: container.ipv4_address }))
+		.filter_map(|container| {
+			Some(NetworkMember { name: container.name?, address: container.ipv4_address })
+		})
 		.collect();
 	NetworkInfo {
 		name: network.name.unwrap_or_default(),
@@ -931,7 +936,9 @@ mod tests {
 
 	#[test]
 	fn shapes_a_container_from_what_list_and_inspect_each_report() {
-		use bollard::models::{ContainerState, ContainerStateStatusEnum, ContainerSummaryNetworkSettings, MountPoint};
+		use bollard::models::{
+			ContainerState, ContainerStateStatusEnum, ContainerSummaryNetworkSettings, MountPoint,
+		};
 		let summary = ContainerSummary {
 			id: Some("abcdef0123456789".into()),
 			names: Some(vec!["/geo".into()]),
@@ -973,15 +980,18 @@ mod tests {
 		assert_eq!(info.restart_count, 2);
 		assert!(info.oom_killed);
 		assert_eq!(info.memory_limit, Some(512 * 1024 * 1024));
-		assert_eq!(info.networks, vec![ContainerNetwork {
-			name: "app-geo".into(),
-			address: Some("10.0.0.5".into()),
-		}]);
-		assert_eq!(info.mounts, vec![ContainerMount {
-			source: "/data/apps/geo".into(),
-			destination: "/data".into(),
-			read_only: true,
-		}]);
+		assert_eq!(
+			info.networks,
+			vec![ContainerNetwork { name: "app-geo".into(), address: Some("10.0.0.5".into()) }]
+		);
+		assert_eq!(
+			info.mounts,
+			vec![ContainerMount {
+				source: "/data/apps/geo".into(),
+				destination: "/data".into(),
+				read_only: true,
+			}]
+		);
 	}
 
 	#[test]
@@ -999,7 +1009,10 @@ mod tests {
 			name: Some("app-geo".into()),
 			driver: Some("bridge".into()),
 			ipam: Some(Ipam {
-				config: Some(vec![IpamConfig { subnet: Some("172.20.0.0/16".into()), ..Default::default() }]),
+				config: Some(vec![IpamConfig {
+					subnet: Some("172.20.0.0/16".into()),
+					..Default::default()
+				}]),
 				..Default::default()
 			}),
 			containers: Some(HashMap::from([(
@@ -1016,10 +1029,10 @@ mod tests {
 		assert_eq!(info.name, "app-geo");
 		assert_eq!(info.driver, "bridge");
 		assert_eq!(info.subnet, Some("172.20.0.0/16".into()));
-		assert_eq!(info.members, vec![NetworkMember {
-			name: "geo".into(),
-			address: Some("172.20.0.2/16".into()),
-		}]);
+		assert_eq!(
+			info.members,
+			vec![NetworkMember { name: "geo".into(), address: Some("172.20.0.2/16".into()) }]
+		);
 	}
 
 	#[test]

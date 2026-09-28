@@ -294,9 +294,15 @@ export const api = {
 		),
 	schedules: () => call<Schedule[]>('GET', '/cron/schedules'),
 	runSchedule: (service: string, name: string) =>
-		call<unknown>('POST', `/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/run`),
+		call<unknown>(
+			'POST',
+			`/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/run`,
+		),
 	pauseSchedule: (service: string, name: string) =>
-		call<unknown>('POST', `/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/pause`),
+		call<unknown>(
+			'POST',
+			`/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/pause`,
+		),
 	resumeSchedule: (service: string, name: string) =>
 		call<unknown>(
 			'POST',

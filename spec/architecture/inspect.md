@@ -11,13 +11,13 @@ program with the Docker socket and the whole of `/data`.
 
 Each is its own module in host, under `/api/inspect/`, and each is read-only:
 
-| Route                        | Answer                                                                                         |
-| ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| `containers`                 | every container on the machine, whoever started it: state, image, networks and addresses, mounts, memory ceiling, restarts, and whether the kernel killed it for memory |
-| `networks`                   | every Docker network and who is on it                                                          |
-| `disk`                       | each filesystem's use, every app's subvolume and its size, and the snapshots kept              |
-| `files/<app>[/<path>]`       | a directory under an app's own, listed: each entry's name, kind, size and modification time -- never a file's contents |
-| `kernel`                     | the kernel's recent memory kills and other events worth an alarm, from its log                 |
+| Route                  | Answer                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `containers`           | every container on the machine, whoever started it: state, image, networks and addresses, mounts, memory ceiling, restarts, and whether the kernel killed it for memory |
+| `networks`             | every Docker network and who is on it                                                                                                                                   |
+| `disk`                 | each filesystem's use, every app's subvolume and its size, and the snapshots kept                                                                                       |
+| `files/<app>[/<path>]` | a directory under an app's own, listed: each entry's name, kind, size and modification time -- never a file's contents                                                  |
+| `kernel`               | the kernel's recent memory kills and other events worth an alarm, from its log                                                                                          |
 
 **No route takes anything that becomes a command, and none writes.** A path under `files/` is
 resolved inside the app's directory and refused if it would leave it. What changes the node stays

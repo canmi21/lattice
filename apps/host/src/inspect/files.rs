@@ -105,7 +105,9 @@ async fn answer(host: &Host, app: &str, requested: Option<&str>) -> Response {
 		Err(error) if error.kind() == std::io::ErrorKind::NotADirectory => {
 			response::failure(StatusCode::NOT_FOUND, "no_such_object")
 		}
-		Err(error) => response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
+		Err(error) => {
+			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
+		}
 	}
 }
 
@@ -113,7 +115,10 @@ pub async fn root(State(host): State<Arc<Host>>, Path(app): Path<String>) -> Res
 	answer(&host, &app, None).await
 }
 
-pub async fn nested(State(host): State<Arc<Host>>, Path((app, path)): Path<(String, String)>) -> Response {
+pub async fn nested(
+	State(host): State<Arc<Host>>,
+	Path((app, path)): Path<(String, String)>,
+) -> Response {
 	answer(&host, &app, Some(&path)).await
 }
 

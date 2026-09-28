@@ -40,7 +40,10 @@ const disk = {
 	snapshots: [{ name: 'geo-2026-09-28', app: 'geo', created: '2026-09-28T00:00:00Z' }],
 };
 
-const kernel = { kills: [{ task: 'shot', pid: 4242, cgroup: 'docker/shot', monotonic_seconds: 12345.6 }], unavailable: null };
+const kernel = {
+	kills: [{ task: 'shot', pid: 4242, cgroup: 'docker/shot', monotonic_seconds: 12345.6 }],
+	unavailable: null,
+};
 
 console.log(render('containers', containers, false));
 console.log();

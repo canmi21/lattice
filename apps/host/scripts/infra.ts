@@ -6,7 +6,9 @@
 import { spawnSync } from 'node:child_process';
 import { URLS } from '@canmi/urls';
 
-type Envelope<T> = { status: 'success'; data: T } | { status: 'error'; code: string; message: string };
+type Envelope<T> =
+	| { status: 'success'; data: T }
+	| { status: 'error'; code: string; message: string };
 
 const WHATS = [
 	'containers',
@@ -94,8 +96,11 @@ export function fetchEnvelope(path: string, token: string): Envelope<unknown> {
 /** A plain, aligned text table; padded to the widest cell in each column. */
 export function table(columns: string[], rows: string[][]): string {
 	if (rows.length === 0) return '(empty)';
-	const widths = columns.map((column, i) => Math.max(column.length, ...rows.map((row) => (row[i] ?? '').length)));
-	const line = (cells: string[]) => cells.map((cell, i) => (cell ?? '').padEnd(widths[i] ?? 0)).join('  ');
+	const widths = columns.map((column, i) =>
+		Math.max(column.length, ...rows.map((row) => (row[i] ?? '').length)),
+	);
+	const line = (cells: string[]) =>
+		cells.map((cell, i) => (cell ?? '').padEnd(widths[i] ?? 0)).join('  ');
 	return [line(columns), ...rows.map(line)].join('\n');
 }
 
@@ -136,7 +141,16 @@ export function render(what: What, data: unknown, json: boolean): string {
 	if (json) return JSON.stringify(data, null, 2);
 	switch (what) {
 		case 'containers': {
-			const columns = ['name', 'state', 'status', 'image', 'memory_limit', 'restart_count', 'oom_killed', 'networks'];
+			const columns = [
+				'name',
+				'state',
+				'status',
+				'image',
+				'memory_limit',
+				'restart_count',
+				'oom_killed',
+				'networks',
+			];
 			const rows = list(data).map((item) => [
 				str(at(item, 'name')),
 				str(at(item, 'state')),
@@ -165,7 +179,10 @@ export function render(what: What, data: unknown, json: boolean): string {
 			const appColumns = ['app', 'bytes', 'partial'];
 			const appTable = table(appColumns, rowsOf(appColumns, list(at(data, 'apps'))));
 			const snapshotColumns = ['name', 'app', 'created'];
-			const snapshotTable = table(snapshotColumns, rowsOf(snapshotColumns, list(at(data, 'snapshots'))));
+			const snapshotTable = table(
+				snapshotColumns,
+				rowsOf(snapshotColumns, list(at(data, 'snapshots'))),
+			);
 			return `mounts\n${mountTable}\n\napps\n${appTable}\n\nsnapshots\n${snapshotTable}`;
 		}
 		case 'files': {
@@ -174,7 +191,9 @@ export function render(what: What, data: unknown, json: boolean): string {
 			return table(columns, rowsOf(paths, list(data)));
 		}
 		case 'env': {
-			const variables = Array.isArray(at(data, 'variables')) ? (at(data, 'variables') as unknown[]) : undefined;
+			const variables = Array.isArray(at(data, 'variables'))
+				? (at(data, 'variables') as unknown[])
+				: undefined;
 			if (variables) {
 				const columns = ['name', 'type', 'value'];
 				return table(columns, rowsOf(['name', 'type', 'value'], variables));
@@ -184,7 +203,11 @@ export function render(what: What, data: unknown, json: boolean): string {
 			const secrets = Array.isArray(at(data, 'secrets')) ? (at(data, 'secrets') as unknown[]) : [];
 			const configRows =
 				config && typeof config === 'object'
-					? Object.entries(config as Record<string, unknown>).map(([name, value]) => [name, 'config', str(value)])
+					? Object.entries(config as Record<string, unknown>).map(([name, value]) => [
+							name,
+							'config',
+							str(value),
+						])
 					: [];
 			const secretRows = secrets.map((name) => [str(name), 'secret', '']);
 			return table(['name', 'type', 'value'], [...configRows, ...secretRows]);
@@ -197,14 +220,7 @@ export function render(what: What, data: unknown, json: boolean): string {
 		}
 		case 'apps': {
 			const columns = ['name', 'running', 'held', 'platform', 'image', 'deployed_at'];
-			const paths = [
-				'manifest.name',
-				'running',
-				'held',
-				'platform',
-				'image',
-				'deployed_at',
-			];
+			const paths = ['manifest.name', 'running', 'held', 'platform', 'image', 'deployed_at'];
 			return table(columns, rowsOf(paths, list(data)));
 		}
 		case 'logs': {
@@ -217,14 +233,19 @@ export function render(what: What, data: unknown, json: boolean): string {
 			return table(columns, rowsOf(paths, list(data)));
 		}
 		case 'images': {
-			const images = Array.isArray(at(data, 'scan.images')) ? (at(data, 'scan.images') as unknown[]) : [];
+			const images = Array.isArray(at(data, 'scan.images'))
+				? (at(data, 'scan.images') as unknown[])
+				: [];
 			const columns = ['id', 'tags', 'size', 'kept'];
 			const paths = ['image.id', 'image.tags', 'image.size', 'kept.kept'];
 			return table(columns, rowsOf(paths, images));
 		}
 		case 'now': {
 			if (typeof data !== 'object' || data === null) return str(data);
-			const rows = Object.entries(data as Record<string, unknown>).map(([key, value]) => [key, str(value)]);
+			const rows = Object.entries(data as Record<string, unknown>).map(([key, value]) => [
+				key,
+				str(value),
+			]);
 			return table(['metric', 'value'], rows);
 		}
 	}

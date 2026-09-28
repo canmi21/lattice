@@ -52,7 +52,12 @@ pub struct Disk {
 /// left out rather than answered as an error. Pure, so it is tested without Docker.
 pub fn mount(path: &Path) -> Option<Mount> {
 	let usage = filesystem_usage(path).ok()?;
-	Some(Mount { path: path.display().to_string(), total: usage.total, used: usage.used, available: usage.available })
+	Some(Mount {
+		path: path.display().to_string(),
+		total: usage.total,
+		used: usage.used,
+		available: usage.available,
+	})
 }
 
 /// The size of everything under `root`, walked until `budget` runs out; the second value says
@@ -103,7 +108,9 @@ pub async fn snapshots(snapshots_root: &Path) -> Vec<Snapshot> {
 			// `Timestamp::strptime` refuses a bare `Z`: it wants an offset directive, not a literal
 			// one, so the name is read as a civil time and then given the UTC it was written in.
 			let Some(stripped) = name.strip_suffix('Z') else { continue };
-			let Ok(civil) = jiff::civil::DateTime::strptime("%Y%m%dT%H%M%S%.3f", stripped) else { continue };
+			let Ok(civil) = jiff::civil::DateTime::strptime("%Y%m%dT%H%M%S%.3f", stripped) else {
+				continue;
+			};
 			let Ok(zoned) = civil.to_zoned(jiff::tz::TimeZone::UTC) else { continue };
 			all.push(Snapshot { name, app: app.clone(), created: zoned.timestamp() });
 		}
@@ -176,10 +183,15 @@ mod tests {
 			std::fs::create_dir_all(root.path().join(app).join(name)).unwrap();
 		}
 		let listed = snapshots(root.path()).await;
-		let names: Vec<_> = listed.iter().map(|snapshot| (snapshot.app.as_str(), snapshot.name.as_str())).collect();
+		let names: Vec<_> =
+			listed.iter().map(|snapshot| (snapshot.app.as_str(), snapshot.name.as_str())).collect();
 		assert_eq!(
 			names,
-			[("geo", "20260901T000000.000Z"), ("shot", "20260501T000000.000Z"), ("geo", "20260101T000000.000Z")]
+			[
+				("geo", "20260901T000000.000Z"),
+				("shot", "20260501T000000.000Z"),
+				("geo", "20260101T000000.000Z")
+			]
 		);
 	}
 

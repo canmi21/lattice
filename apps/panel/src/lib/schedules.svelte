@@ -95,12 +95,18 @@
 	function took(job: Schedule): string | undefined {
 		const last = job.last;
 		if (!last?.finished_at) return undefined;
-		const seconds = Math.max(0, Math.round((Date.parse(last.finished_at) - Date.parse(last.started_at)) / 1000));
+		const seconds = Math.max(
+			0,
+			Math.round((Date.parse(last.finished_at) - Date.parse(last.started_at)) / 1000),
+		);
 		return span(seconds);
 	}
 </script>
 
-<PageHeader title="Schedules" description="Every job cron runs on this node, and when it last did" />
+<PageHeader
+	title="Schedules"
+	description="Every job cron runs on this node, and when it last did"
+/>
 
 {#if error}<p class="mb-4 {stylex.attrs(tone.danger).class}">{error}</p>{/if}
 
@@ -120,7 +126,9 @@
 						<div class="flex flex-col gap-0.5">
 							<code class={stylex.attrs(type.mono).class}>{job.cron ?? job.every}</code>
 							{#if scheduleHint(job.cron, job.every)}
-								<span class={stylex.attrs(type.muted).class}>{scheduleHint(job.cron, job.every)}</span>
+								<span class={stylex.attrs(type.muted).class}
+									>{scheduleHint(job.cron, job.every)}</span
+								>
 							{/if}
 							<div class="flex gap-1.5">
 								{#if job.paused}<Badge tone="warn">Paused</Badge>{/if}
@@ -150,9 +158,9 @@
 									>
 								</div>
 								<span class={stylex.attrs(tone.muted).class}>
-									{#if job.last.finished_at}<LocalTime stamp={job.last.finished_at} />{:else}<LocalTime
-											stamp={job.last.started_at}
-										/> · still running{/if}
+									{#if job.last.finished_at}<LocalTime
+											stamp={job.last.finished_at}
+										/>{:else}<LocalTime stamp={job.last.started_at} /> · still running{/if}
 									{#if took(job)}&nbsp;· {took(job)}{/if}
 								</span>
 							</div>
@@ -167,7 +175,8 @@
 								<Button
 									variant="ghost"
 									icon={Play}
-									onclick={() => act(() => api.resumeSchedule(job.service, job.name))}>Resume</Button
+									onclick={() => act(() => api.resumeSchedule(job.service, job.name))}
+									>Resume</Button
 								>
 							{:else}
 								<Button
