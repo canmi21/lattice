@@ -3244,6 +3244,7 @@ dependencies = [
  "hyper",
  "hyper-rustls",
  "hyper-util",
+ "jiff",
  "mimalloc",
  "response",
  "serde",

@@ -47,6 +47,12 @@ impl<R: Render> Shot<R> {
 		self.queue().view(id)
 	}
 
+	/// How a capture stands, with its story, read at one moment.
+	pub fn about(&self, id: uuid::Uuid) -> Option<(View, crate::queue::Details)> {
+		let queue = self.queue();
+		Some((queue.view(id)?, queue.details(id)?))
+	}
+
 	/// Start the renderers and the sweep.
 	pub fn start(self: &Arc<Self>) {
 		for _ in 0..CONCURRENCY {
@@ -86,16 +92,25 @@ impl<R: Render> Shot<R> {
 		self.wake();
 	}
 
-	async fn keep(&self, id: uuid::Uuid, capture: crate::render::Capture) -> Result<bool, String> {
+	async fn keep(
+		&self,
+		id: uuid::Uuid,
+		capture: crate::render::Capture,
+	) -> Result<crate::queue::Pictures, String> {
 		let stored = |error: std::io::Error| {
 			eprintln!("shot: keeping {id}: {error}");
 			"The capture could not be kept".to_owned()
 		};
 		self.store.write(id, Format::Png, &capture.png).await.map_err(stored)?;
-		match capture.webp {
-			Some(webp) => self.store.write(id, Format::Webp, &webp).await.map(|()| true).map_err(stored),
-			None => Ok(false),
+		if let Some(webp) = &capture.webp {
+			self.store.write(id, Format::Webp, webp).await.map_err(stored)?;
 		}
+		Ok(crate::queue::Pictures {
+			width: capture.width,
+			height: capture.height,
+			png_bytes: capture.png.len() as u64,
+			webp_bytes: capture.webp.as_ref().map(|webp| webp.len() as u64),
+		})
 	}
 
 	pub async fn sweep(&self, now: Instant) {

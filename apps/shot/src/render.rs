@@ -8,6 +8,9 @@ use std::future::Future;
 pub struct Capture {
 	pub png: Vec<u8>,
 	pub webp: Option<Vec<u8>>,
+	/// The pictures' size in pixels: the viewport's width, and its height or the page's.
+	pub width: u32,
+	pub height: u32,
 }
 
 pub trait Render: Send + Sync + 'static {

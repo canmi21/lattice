@@ -34,17 +34,21 @@ impl Lane {
 	}
 }
 
+/// What a capture made: its size, and each format's bytes; a WebP may be absent.
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+pub struct Pictures {
+	pub width: u32,
+	pub height: u32,
+	pub png_bytes: u64,
+	pub webp_bytes: Option<u64>,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 enum State {
 	Queued,
 	Rendering,
-	/// Whether a WebP was made beside the PNG.
-	Done {
-		webp: bool,
-	},
-	Failed {
-		reason: String,
-	},
+	Done { pictures: Pictures },
+	Failed { reason: String },
 }
 
 #[derive(Debug)]
@@ -54,6 +58,19 @@ struct Job {
 	state: State,
 	/// When it was done or failed.
 	settled: Option<Instant>,
+	/// When it was asked for, taken by a browser, and done with, as a caller is told them.
+	asked_at: jiff::Timestamp,
+	started_at: Option<jiff::Timestamp>,
+	finished_at: Option<jiff::Timestamp>,
+}
+
+/// A capture's own story, told alongside its state: what was asked, and when each thing happened.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Details {
+	pub asked: Asked,
+	pub asked_at: jiff::Timestamp,
+	pub started_at: Option<jiff::Timestamp>,
+	pub finished_at: Option<jiff::Timestamp>,
 }
 
 /// A capture as a caller is told about it.
@@ -65,7 +82,7 @@ pub enum View {
 		retry_after: u32,
 	},
 	Done {
-		webp: bool,
+		pictures: Pictures,
 	},
 	Failed {
 		reason: String,
@@ -119,6 +136,9 @@ impl Queue {
 					job.state = State::Queued;
 					job.lane = lane;
 					job.settled = None;
+					job.asked_at = jiff::Timestamp::now();
+					job.started_at = None;
+					job.finished_at = None;
 					self.waiting[lane.index()].push_back(id);
 				}
 				_ => {}
@@ -130,7 +150,16 @@ impl Queue {
 		}
 		let id = Uuid::new_v4();
 		self.by_asked.insert(asked.clone(), id);
-		self.jobs.insert(id, Job { asked, lane, state: State::Queued, settled: None });
+		let job = Job {
+			asked,
+			lane,
+			state: State::Queued,
+			settled: None,
+			asked_at: jiff::Timestamp::now(),
+			started_at: None,
+			finished_at: None,
+		};
+		self.jobs.insert(id, job);
 		self.waiting[lane.index()].push_back(id);
 		Ok(id)
 	}
@@ -140,18 +169,26 @@ impl Queue {
 		let id = self.waiting.iter_mut().find_map(VecDeque::pop_front)?;
 		let job = self.jobs.get_mut(&id)?;
 		job.state = State::Rendering;
+		job.started_at = Some(jiff::Timestamp::now());
 		Some((id, job.asked.clone()))
 	}
 
 	/// A capture is over: `Ok` with whether a WebP was made, or why it failed, and how long it took.
-	pub fn finish(&mut self, id: Uuid, outcome: Result<bool, String>, took: Duration, now: Instant) {
+	pub fn finish(
+		&mut self,
+		id: Uuid,
+		outcome: Result<Pictures, String>,
+		took: Duration,
+		now: Instant,
+	) {
 		self.average = self.average * 0.7 + took.as_secs_f64() * 0.3;
 		if let Some(job) = self.jobs.get_mut(&id) {
 			job.state = match outcome {
-				Ok(webp) => State::Done { webp },
+				Ok(pictures) => State::Done { pictures },
 				Err(reason) => State::Failed { reason },
 			};
 			job.settled = Some(now);
+			job.finished_at = Some(jiff::Timestamp::now());
 		}
 	}
 
@@ -163,8 +200,18 @@ impl Queue {
 			State::Rendering => {
 				View::Waiting { rendering: true, retry_after: seconds(self.average / 2.0) }
 			}
-			State::Done { webp } => View::Done { webp: *webp },
+			State::Done { pictures } => View::Done { pictures: pictures.clone() },
 			State::Failed { reason } => View::Failed { reason: reason.clone() },
+		})
+	}
+
+	pub fn details(&self, id: Uuid) -> Option<Details> {
+		let job = self.jobs.get(&id)?;
+		Some(Details {
+			asked: job.asked.clone(),
+			asked_at: job.asked_at,
+			started_at: job.started_at,
+			finished_at: job.finished_at,
 		})
 	}
 
@@ -216,6 +263,10 @@ mod tests {
 		}
 	}
 
+	fn pictures() -> Pictures {
+		Pictures { width: 1280, height: 800, png_bytes: 3, webp_bytes: None }
+	}
+
 	#[test]
 	fn the_same_ask_is_one_capture() {
 		let mut queue = Queue::new(2);
@@ -265,10 +316,10 @@ mod tests {
 		assert_eq!(wait(&queue, public[3]), 15);
 		// Quick captures pull the pace down, to the floor of one second.
 		while let Some((id, _)) = queue.take() {
-			queue.finish(id, Ok(true), Duration::from_millis(500), Instant::now());
+			queue.finish(id, Ok(pictures()), Duration::from_millis(500), Instant::now());
 		}
 		for _ in 0..10 {
-			queue.finish(ours, Ok(true), Duration::from_millis(500), Instant::now());
+			queue.finish(ours, Ok(pictures()), Duration::from_millis(500), Instant::now());
 		}
 		let late = queue.ask(asked("late"), Lane::Public).unwrap();
 		assert_eq!(wait(&queue, late), 1);
@@ -284,9 +335,13 @@ mod tests {
 		assert!(matches!(queue.view(done), Some(View::Waiting { rendering: true, .. })));
 		queue.take();
 		let at = Instant::now();
-		queue.finish(done, Ok(false), Duration::from_secs(2), at);
+		queue.finish(done, Ok(pictures()), Duration::from_secs(2), at);
 		queue.finish(failed, Err("net::ERR_NAME_NOT_RESOLVED".into()), Duration::from_secs(2), at);
-		assert_eq!(queue.view(done), Some(View::Done { webp: false }));
+		assert_eq!(queue.view(done), Some(View::Done { pictures: pictures() }));
+		let details = queue.details(done).unwrap();
+		assert!(Some(details.asked_at) <= details.started_at);
+		assert!(details.started_at <= details.finished_at);
+		assert!(queue.details(waiting).unwrap().started_at.is_none());
 		assert!(matches!(queue.view(failed), Some(View::Failed { .. })));
 
 		assert!(queue.sweep(at + KEPT - Duration::from_secs(1)).is_empty());

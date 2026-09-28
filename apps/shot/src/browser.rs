@@ -181,7 +181,7 @@ async fn shoot(page: &Page, asked: &Asked) -> Result<Capture, String> {
 		page.execute(take(CaptureScreenshotFormat::Webp, Some(WEBP_QUALITY))).await.map_err(why)?;
 	let png = decode(png.result.data.as_ref())?;
 	let webp = decode(webp.result.data.as_ref())?;
-	Ok(Capture { png, webp: Some(webp) })
+	Ok(Capture { png, webp: Some(webp), width: asked.width, height })
 }
 
 impl<R: Resolve> Render for Chromium<R> {

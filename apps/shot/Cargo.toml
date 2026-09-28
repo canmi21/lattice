@@ -11,6 +11,7 @@ workspace = true
 anyhow = "1.0.104"
 axum = "0.8.9"
 base64 = "0.22.1"
+jiff = { version = "0.2", features = ["serde"] }
 bytes = "1.12.1"
 chromiumoxide = { version = "0.9.1", default-features = false }
 futures-util = "0.3.34"

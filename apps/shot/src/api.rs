@@ -3,7 +3,7 @@
 //! See spec/architecture/shot.md, "Asking for one".
 
 use crate::asked::{Asked, Query, Refused};
-use crate::queue::{Full, Lane, View};
+use crate::queue::{Details, Full, Lane, View};
 use crate::render::Render;
 use crate::service::Shot;
 use crate::store::Format;
@@ -67,19 +67,59 @@ async fn capture<R: Render>(
 		}
 		Ok(id) => {
 			shot.wake();
-			about(id, shot.view(id))
+			about(id, shot.about(id))
 		}
 	}
 }
 
+/// Milliseconds from one moment to a later one, when both happened.
+fn between(from: Option<jiff::Timestamp>, to: Option<jiff::Timestamp>) -> Option<i64> {
+	Some(to?.duration_since(from?).as_millis() as i64)
+}
+
+/// When each thing happened to a capture, and what it asked for. See spec/architecture/shot.md,
+/// "What an answer tells".
+fn story(details: &Details) -> (serde_json::Value, serde_json::Value) {
+	let expires = details.finished_at.and_then(|at| at.checked_add(crate::queue::KEPT).ok());
+	let task = serde_json::json!({
+		"asked_at": details.asked_at,
+		"started_at": details.started_at,
+		"finished_at": details.finished_at,
+		"expires_at": expires,
+		"queued_ms": between(Some(details.asked_at), details.started_at),
+		"rendered_ms": between(details.started_at, details.finished_at),
+	});
+	let asked = &details.asked;
+	let request = serde_json::json!({
+		"url": asked.url.as_str(),
+		"width": asked.width,
+		"height": asked.height,
+		"full": asked.full,
+		"timeout": f64::from(asked.timeout) / 1000.0,
+		"delay": f64::from(asked.delay) / 1000.0,
+		"insecure": asked.insecure,
+		"internal": asked.internal,
+	});
+	(task, request)
+}
+
 /// What a capture is now, in the envelope. Addresses in it are relative, since this service does
 /// not know the scope it is reached under: `<id>` beside `capture`, `<id>.png` beside `<id>`.
-fn about(id: Uuid, view: Option<View>) -> Response {
+fn about(id: Uuid, known: Option<(View, Details)>) -> Response {
+	let Some((view, details)) = known else {
+		return settled(response::failure(StatusCode::NOT_FOUND, "no_such_shot"));
+	};
+	let (task, request) = story(&details);
 	let answer = match view {
-		None => response::failure(StatusCode::NOT_FOUND, "no_such_shot"),
-		Some(View::Waiting { rendering, retry_after }) => {
+		View::Waiting { rendering, retry_after } => {
 			let state = if rendering { "rendering" } else { "queued" };
-			let body = serde_json::json!({ "id": id, "state": state, "retry_after": retry_after });
+			let body = serde_json::json!({
+				"id": id,
+				"state": state,
+				"retry_after": retry_after,
+				"task": task,
+				"request": request,
+			});
 			let mut answer = response::success(StatusCode::ACCEPTED, body);
 			let headers = answer.headers_mut();
 			headers.insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
@@ -88,16 +128,19 @@ fn about(id: Uuid, view: Option<View>) -> Response {
 			}
 			answer
 		}
-		Some(View::Done { webp }) => response::success(
+		View::Done { pictures } => response::success(
 			StatusCode::OK,
 			serde_json::json!({
 				"id": id,
 				"state": "done",
 				"png": format!("{id}.png"),
-				"webp": webp.then(|| format!("{id}.webp")),
+				"webp": pictures.webp_bytes.map(|_| format!("{id}.webp")),
+				"task": task,
+				"request": request,
+				"pictures": pictures,
 			}),
 		),
-		Some(View::Failed { reason }) => {
+		View::Failed { reason } => {
 			response::failure_with(StatusCode::BAD_GATEWAY, "page_unavailable", reason)
 		}
 	};
@@ -114,7 +157,7 @@ async fn file<R: Render>(State(shot): State<Arc<Shot<R>>>, Path(file): Path<Stri
 		None => (file.as_str(), None),
 	};
 	let Ok(id) = Uuid::parse_str(name) else { return about(Uuid::nil(), None) };
-	let Some(format) = format else { return about(id, shot.view(id)) };
+	let Some(format) = format else { return about(id, shot.about(id)) };
 	match shot.store.read(id, format).await {
 		Some(bytes) => {
 			([(header::CONTENT_TYPE, format.media_type()), (header::CACHE_CONTROL, PICTURE_CACHE)], bytes)
@@ -144,7 +187,8 @@ mod tests {
 			if asked.url.host_str() == Some("broken.test") {
 				return Err("net::ERR_NAME_NOT_RESOLVED".into());
 			}
-			Ok(Capture { png: b"png".to_vec(), webp: (!asked.full).then(|| b"webp".to_vec()) })
+			let webp = (!asked.full).then(|| b"webp".to_vec());
+			Ok(Capture { png: b"png".to_vec(), webp, width: asked.width, height: asked.height })
 		}
 	}
 
@@ -210,6 +254,12 @@ mod tests {
 		assert_eq!(done.status, StatusCode::OK);
 		assert_eq!(done.json()["data"]["png"], format!("{id}.png"));
 		assert_eq!(done.json()["data"]["webp"], format!("{id}.webp"));
+		let data = done.json()["data"].clone();
+		assert_eq!(data["pictures"]["width"], 390);
+		assert_eq!(data["pictures"]["png_bytes"], 3);
+		assert_eq!(data["request"]["url"], "https://example.test/");
+		assert_eq!(data["request"]["delay"], 0.21);
+		assert!(data["task"]["rendered_ms"].is_i64() && data["task"]["expires_at"].is_string());
 		for (extension, media) in [("png", "image/png"), ("webp", "image/webp")] {
 			let picture = ask(&router, &format!("/{id}.{extension}"), true).await;
 			assert_eq!(picture.status, StatusCode::OK);

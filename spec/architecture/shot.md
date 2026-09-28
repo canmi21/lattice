@@ -43,6 +43,20 @@ nothing waits on it:
 - `retry_after` is an estimate in seconds, never a place in the queue: the captures ahead of it,
   over how many run at once, plus one, times how long a capture has lately taken, between 1 and 60.
 
+## What an answer tells
+
+**An answer about a capture tells its story as well as its state**, the same to the public as to
+us: the public reaches public addresses alone, so nothing in it is ours to hide.
+
+- `task`: `asked_at`, `started_at`, `finished_at` and `expires_at`, as RFC 3339 instants, and
+  `queued_ms` and `rendered_ms` between them. Asked again after failing, a capture's story starts
+  over.
+- `request`: what the capture was asked, normalized -- the page's address put together from its
+  parts, the viewport, `full`, `timeout` and `delay` in seconds, `insecure` and `internal`.
+- `pictures`, once done: `width` and `height` in pixels, `png_bytes`, and `webp_bytes` or null.
+
+A failure is the envelope's, a code and a message, and carries none of this.
+
 ## Two queues, and ours go first
 
 **A request from the public is one the gateway marked**; one without the mark is ours -- the LAN,
