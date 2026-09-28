@@ -295,11 +295,11 @@ mod tests {
 	#[test]
 	fn an_https_upstream_is_reached_over_tls_on_443_unless_it_names_a_port() {
 		let unifi =
-			Route { name: "unifi".into(), upstream: "https://10.0.0.1".into(), private: false, public: true, home: None };
+			Route { name: "unifi".into(), upstream: "https://device.test".into(), private: false, public: true, home: None };
 		let rendered = text(&render(&config(), "host", &[], &[unifi]));
-		assert!(rendered.contains(r#""dial":"10.0.0.1:443""#));
+		assert!(rendered.contains(r#""dial":"device.test:443""#));
 		assert!(rendered.contains(r#""tls":{"insecure_skip_verify":true}"#));
-		assert_eq!(text(&proxy("https://10.0.0.1:8443/", "unifi.outside.test")["upstreams"]), r#"[{"dial":"10.0.0.1:8443"}]"#);
+		assert_eq!(text(&proxy("https://device.test:8443/", "unifi.outside.test")["upstreams"]), r#"[{"dial":"device.test:8443"}]"#);
 		// A plain upstream carries no transport and no rewriting at all.
 		let plain = proxy("10.0.0.21:80", "nas.outside.test");
 		assert!(plain.get("transport").is_none() && plain.get("headers").is_none());
@@ -307,12 +307,16 @@ mod tests {
 
 	#[test]
 	fn only_the_names_own_origin_is_translated_for_a_device() {
-		let rendered = proxy("https://10.0.0.1", "unifi.outside.test");
+		let rendered = proxy("https://device.test", "unifi.outside.test");
 		let rule = &rendered["headers"]["request"]["replace"]["Origin"][0];
+		let own = regex::Regex::new(rule["search_regexp"].as_str().unwrap()).unwrap();
+		assert!(own.is_match("https://unifi.outside.test"));
 		// Anchored at both ends and with its dots escaped, so neither a longer name nor a lookalike
 		// with any character in place of a dot is taken for this one.
-		assert_eq!(rule["search_regexp"], "^https://unifi\\.outside\\.test$");
-		assert_eq!(rule["replace"], "https://10.0.0.1");
+		assert!(!own.is_match("https://unifi.outside.test.evil.test"));
+		assert!(!own.is_match("https://unifiXoutside.test"));
+		assert!(!own.is_match("http://unifi.outside.test"));
+		assert_eq!(rule["replace"], "https://device.test");
 	}
 
 	#[test]

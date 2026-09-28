@@ -21,4 +21,5 @@ tokio-util = { version = "0.7.19", features = ["io"] }
 mimalloc = "0.1.52"
 
 [dev-dependencies]
+regex = "1"
 tempfile = "3.27.0"

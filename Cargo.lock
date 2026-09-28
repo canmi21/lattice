@@ -1224,6 +1224,7 @@ dependencies = [
  "deploy",
  "jiff",
  "mimalloc",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
