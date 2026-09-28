@@ -1,1 +1,0 @@
-http.host eq "api.ffoni.com" and starts_with(http.request.uri.path, "/geo/")

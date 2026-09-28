@@ -15,7 +15,7 @@ zone are few enough to paste.
 | API Scopes Only   | [rules/ffoni.com/api-scopes-only.txt](../../rules/ffoni.com/api-scopes-only.txt)     | ffoni.com                               | 2     |
 | CDN Prefixes Only | [rules/ffoni.com/cdn-prefixes-only.txt](../../rules/ffoni.com/cdn-prefixes-only.txt) | ffoni.com                               | 3     |
 | Alias Paths Only  | [rules/ill.li/alias-paths-only.txt](../../rules/ill.li/alias-paths-only.txt)         | ill.li                                  | 2     |
-| Geo Rate Cap      | [rules/ffoni.com/geo-rate-cap.txt](../../rules/ffoni.com/geo-rate-cap.txt)           | ffoni.com, as its rate limiting rule    | --    |
+| Rate Cap          | [rules/all/rate-cap.txt](../../rules/all/rate-cap.txt)                               | every zone, as its rate limiting rule   | --    |
 
 **The folder is where a rule is pasted.** `rules/all/` goes into every zone and each other folder is
 named for its zone, since a rule on this plan belongs to one zone; the name is `all` rather than
@@ -39,10 +39,15 @@ another vendor's -- the router, the NAS -- whose files nobody here chose, and Ac
 front of all of them already. `*.canmi.icu` has neither: it is not proxied, so Cloudflare never
 sees it.
 
-**Geo Rate Cap is the hard ceiling over the gateway's own limit.** The gateway allows one address
-sixty lookups a minute and answers the rest with a 429, but only after the request has cost a Worker
-invocation. The plan's one rate limiting rule counts by IP over 10 seconds and blocks for 10: set
-it to 50 requests, above anything the gateway lets through, so it only ever catches a flood.
+**Rate Cap is one ceiling for every zone, and catches floods, not readers.** The plan allows one
+rate limiting rule a zone, counting by IP over 10 seconds and blocking for 10, and its expression
+may read only the path and whether the client is a verified bot. So it is one rule, the same in
+each zone, that counts everything but verified crawlers: **300 requests in 10 seconds**. A reader
+opening the heaviest article asks the CDN for its photographs and a few dozen font slices at once,
+and several readers can share one address behind a carrier's NAT; a flood is thousands. What a
+single service allows is its own, finer limit -- `geo`'s sixty a minute at the gateway -- and this
+sits far above all of them. A cache hit is counted like any other request, which is why the figure
+is generous.
 
 ## How an expression is written
 
