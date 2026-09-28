@@ -64,6 +64,13 @@ is [firewall.md](firewall.md).
 | `ffoni.com`   | the public; whether a login is needed is per route | APIs                       |
 | `*.canmi.icu` | the LAN and the tailnet only                       | everything, APIs included  |
 
+**"The LAN" includes the node's own containers.** Caddy admits `.icu` from the sources host is told
+in `PRIVATE_SOURCES`: the LAN, the tailnet, loopback, and Docker's private range, `172.16.0.0/12`.
+The last is for an app reaching another app by its name -- `shot` capturing `host.canmi.icu` for
+the panel -- whose request arrives from its container's address. It opens nothing a container could
+not already reach: every container reaches the LAN directly, and host asks for its token on every
+door regardless.
+
 **`canmi.net` is the site's alone.** Interfaces were under `*.canmi.net` at first and moved to
 `*.canmi.app`, so that the site's domain carries the site and nothing else. `canmi.app` was owned
 and unused, which made it the one to take them.
