@@ -24,14 +24,25 @@ pub enum Error {
 struct Target {
 	name: String,
 	dial: String,
+	home: Option<String>,
 }
 
 fn proxy(dial: &str) -> Value {
 	json!({ "handler": "reverse_proxy", "upstreams": [{ "dial": dial }] })
 }
 
-fn named(host: String, handle: Vec<Value>) -> Value {
-	json!({ "match": [{ "host": [host] }], "handle": [{ "handler": "subroute", "routes": [{ "handle": handle }] }] })
+/// One name, proxied to its upstream; a request for exactly `/` goes to the target's home first
+/// when it has one.
+fn named(host: String, target: &Target) -> Value {
+	let mut routes = Vec::new();
+	if let Some(home) = &target.home {
+		routes.push(json!({
+			"match": [{ "path": ["/"] }],
+			"handle": [{ "handler": "static_response", "status_code": 302, "headers": { "Location": [home] } }]
+		}));
+	}
+	routes.push(json!({ "handle": [proxy(&target.dial)] }));
+	json!({ "match": [{ "host": [host] }], "handle": [{ "handler": "subroute", "routes": routes }] })
 }
 
 fn abort() -> Value {
@@ -69,7 +80,7 @@ fn scopes(apps: &[Deployed]) -> Vec<Value> {
 /// Everything reached by a subdomain of its own on one side: host's panel, each app with an
 /// interface, each route.
 fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> Vec<Target> {
-	let mut targets = vec![Target { name: "host".into(), dial: format!("{own}:{PORT}") }];
+	let mut targets = vec![Target { name: "host".into(), dial: format!("{own}:{PORT}"), home: None }];
 	targets.extend(
 		apps
 			.iter()
@@ -79,13 +90,18 @@ fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> V
 			.map(|app| Target {
 				name: app.manifest.name.clone(),
 				dial: format!("{}:{}", app.manifest.name, app.manifest.container.port),
+				home: None,
 			}),
 	);
 	targets.extend(
 		routes
 			.iter()
 			.filter(|route| if public { route.public } else { route.private })
-			.map(|route| Target { name: route.name.clone(), dial: route.upstream.clone() }),
+			.map(|route| Target {
+				name: route.name.clone(),
+				dial: route.upstream.clone(),
+				home: route.home.clone(),
+			}),
 	);
 	targets
 }
@@ -100,13 +116,13 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 		"handle": [{ "handler": "subroute", "routes": scopes(apps) }]
 	}));
 	for target in interfaces(apps, routes, own, false) {
-		inside.push(named(format!("{}.{private}", target.name), vec![proxy(&target.dial)]));
+		inside.push(named(format!("{}.{private}", target.name), &target));
 	}
 	inside.push(abort());
 
 	let mut outside = vec![refuse_unless(std::slice::from_ref(&config.tunnel_source))];
 	for target in interfaces(apps, routes, own, true) {
-		outside.push(named(format!("{}.{public}", target.name), vec![proxy(&target.dial)]));
+		outside.push(named(format!("{}.{public}", target.name), &target));
 	}
 	outside.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
 
@@ -233,12 +249,29 @@ mod tests {
 	#[test]
 	fn a_route_appears_on_the_sides_it_asks_for() {
 		let nas =
-			Route { name: "nas".into(), upstream: "10.0.0.21:80".into(), private: false, public: true };
+			Route { name: "nas".into(), upstream: "10.0.0.21:80".into(), private: false, public: true, home: None };
 		let rendered = text(&render(&config(), "host", &[], &[nas]));
 		assert!(rendered.contains("nas.outside.test"));
 		assert!(!rendered.contains("nas.inside.test"));
 		// host's own panel is on both.
 		assert!(rendered.contains("host.inside.test") && rendered.contains("host.outside.test"));
+	}
+
+	#[test]
+	fn a_home_redirects_the_root_and_nothing_else() {
+		let gemini = Route {
+			name: "gemini".into(),
+			upstream: "gemini.test:8083".into(),
+			private: true,
+			public: true,
+			home: Some("/admin/".into()),
+		};
+		let rendered = text(&render(&config(), "host", &[], &[gemini]));
+		assert!(rendered.contains(r#""match":[{"path":["/"]}]"#));
+		assert!(rendered.contains(r#""Location":["/admin/"]"#));
+		assert!(rendered.contains(r#""status_code":302"#));
+		// Everything past the root still reaches the application, on both sides.
+		assert_eq!(rendered.matches(r#""dial":"gemini.test:8083""#).count(), 2);
 	}
 
 	#[test]

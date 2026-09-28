@@ -166,6 +166,8 @@ struct RouteBody {
 	upstream: String,
 	private: bool,
 	public: bool,
+	#[serde(default)]
+	home: Option<String>,
 }
 
 async fn put_route(
@@ -176,7 +178,17 @@ async fn put_route(
 	if let Err(error) = manifest::check_name(&name) {
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
 	}
-	let route = Route { name, upstream: body.upstream, private: body.private, public: body.public };
+	// `/` itself would send the root to the root, forever.
+	if body.home.as_deref().is_some_and(|home| !home.starts_with('/') || home == "/") {
+		return failed(StatusCode::UNPROCESSABLE_ENTITY, "`home` has to be a path other than `/`");
+	}
+	let route = Route {
+		name,
+		upstream: body.upstream,
+		private: body.private,
+		public: body.public,
+		home: body.home,
+	};
 	if let Err(error) = host.store.put_route(&route) {
 		return failed(StatusCode::CONFLICT, error);
 	}

@@ -28,6 +28,20 @@ pub struct Route {
 	pub upstream: String,
 	pub private: bool,
 	pub public: bool,
+	/// Where a request for `/` is sent, for an application whose interface does not live at its
+	/// root: gemini's panel is at `/admin/`, and its name alone should open it.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub home: Option<String>,
+}
+
+fn route_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<Route> {
+	Ok(Route {
+		name: row.get(0)?,
+		upstream: row.get(1)?,
+		private: row.get(2)?,
+		public: row.get(3)?,
+		home: row.get(4)?,
+	})
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -60,9 +74,18 @@ impl Store {
 				name TEXT PRIMARY KEY,
 				upstream TEXT NOT NULL,
 				private INTEGER NOT NULL,
-				public INTEGER NOT NULL
+				public INTEGER NOT NULL,
+				home TEXT
 			);",
 		)?;
+		// A database written before `home` existed gains the column; every route in it has none.
+		let columns: Vec<String> = connection
+			.prepare("SELECT name FROM pragma_table_info('routes')")?
+			.query_map([], |row| row.get(0))?
+			.collect::<Result<_, _>>()?;
+		if !columns.iter().any(|column| column == "home") {
+			connection.execute("ALTER TABLE routes ADD COLUMN home TEXT", [])?;
+		}
 		Ok(Self(Mutex::new(connection)))
 	}
 
@@ -111,37 +134,16 @@ impl Store {
 
 	pub fn routes(&self) -> Result<Vec<Route>, Error> {
 		let connection = self.connection();
-		let mut statement =
-			connection.prepare("SELECT name, upstream, private, public FROM routes ORDER BY name")?;
-		let rows = statement.query_map([], |row| {
-			Ok(Route {
-				name: row.get(0)?,
-				upstream: row.get(1)?,
-				private: row.get(2)?,
-				public: row.get(3)?,
-			})
-		})?;
+		let mut statement = connection
+			.prepare("SELECT name, upstream, private, public, home FROM routes ORDER BY name")?;
+		let rows = statement.query_map([], route_from)?;
 		Ok(rows.collect::<Result<_, _>>()?)
 	}
 
 	fn route(&self, name: &str) -> Result<Option<Route>, Error> {
 		let connection = self.connection();
-		Ok(
-			connection
-				.query_row(
-					"SELECT name, upstream, private, public FROM routes WHERE name = ?1",
-					[name],
-					|row| {
-						Ok(Route {
-							name: row.get(0)?,
-							upstream: row.get(1)?,
-							private: row.get(2)?,
-							public: row.get(3)?,
-						})
-					},
-				)
-				.optional()?,
-		)
+		let query = "SELECT name, upstream, private, public, home FROM routes WHERE name = ?1";
+		Ok(connection.query_row(query, [name], route_from).optional()?)
 	}
 
 	/// One namespace for apps and routes: a name is one thing, wherever it appears.
@@ -150,9 +152,9 @@ impl Store {
 			return Err(Error::TakenByApp(route.name.clone()));
 		}
 		self.connection().execute(
-			"INSERT INTO routes (name, upstream, private, public) VALUES (?1, ?2, ?3, ?4)
-			ON CONFLICT (name) DO UPDATE SET upstream = ?2, private = ?3, public = ?4",
-			params![route.name, route.upstream, route.private, route.public],
+			"INSERT INTO routes (name, upstream, private, public, home) VALUES (?1, ?2, ?3, ?4, ?5)
+			ON CONFLICT (name) DO UPDATE SET upstream = ?2, private = ?3, public = ?4, home = ?5",
+			params![route.name, route.upstream, route.private, route.public, route.home],
 		)?;
 		Ok(())
 	}
@@ -197,13 +199,36 @@ mod tests {
 		let store = Store::open(&directory.path().join("host.db")).unwrap();
 		store.put_app(&deployed("sha256:a", None)).unwrap();
 		let route =
-			Route { name: "geo".into(), upstream: "x.test:1".into(), private: true, public: false };
+			Route { name: "geo".into(), upstream: "x.test:1".into(), private: true, public: false, home: None };
 		assert!(matches!(store.put_route(&route), Err(Error::TakenByApp(_))));
 		let nas =
-			Route { name: "nas".into(), upstream: "nas.test:80".into(), private: false, public: true };
+			Route { name: "nas".into(), upstream: "nas.test:80".into(), private: false, public: true, home: None };
 		store.put_route(&nas).unwrap();
 		assert_eq!(store.routes().unwrap(), vec![nas]);
 		assert!(store.delete_route("nas").unwrap());
 		assert!(!store.delete_route("nas").unwrap());
+	}
+}
+
+#[cfg(test)]
+mod upgrade {
+	use super::*;
+
+	#[test]
+	fn a_database_from_before_home_gains_the_column_and_keeps_its_routes() {
+		let directory = tempfile::tempdir().unwrap();
+		let path = directory.path().join("host.db");
+		let old = Connection::open(&path).unwrap();
+		old.execute_batch(
+			"CREATE TABLE routes (name TEXT PRIMARY KEY, upstream TEXT NOT NULL,
+				private INTEGER NOT NULL, public INTEGER NOT NULL);
+			INSERT INTO routes VALUES ('nas', 'nas.test:80', 0, 1);",
+		)
+		.unwrap();
+		drop(old);
+		let store = Store::open(&path).unwrap();
+		let routes = store.routes().unwrap();
+		assert_eq!(routes.len(), 1);
+		assert_eq!(routes[0].home, None);
 	}
 }

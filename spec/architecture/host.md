@@ -190,6 +190,11 @@ by host and is the same bytes it pushes, so it is not a second record, and Caddy
 
 The Caddyfile is retired with this. What it held by hand is entries in host.
 
+**A name may send its root elsewhere.** An application whose interface lives under a path -- gemini's
+panel is at `/admin/` -- is given a `home`, and a request for exactly `/` is redirected there while
+every other path reaches the application untouched. It is a redirect and not a rewrite: the browser
+then asks for the paths the interface expects, and an API under `/v1/` never meets it.
+
 **Caddy's admin endpoint is a unix socket, never a port.** Every app shares a network with Caddy,
 so an admin port would let any app rewrite every route. The socket sits in a directory only Caddy
 and host mount.
