@@ -137,6 +137,48 @@ export interface Point {
 
 export type Grain = 'second' | 'minute' | 'hour';
 
+/** One thing a service was asked to do, as the ledger keeps it. See spec/architecture/ledger.md,
+ * "A task, and the events that make it up". */
+export interface Task {
+	service: string;
+	id: string;
+	/** What was asked, in the service's own words: `capture`. */
+	kind: string;
+	state: 'queued' | 'running' | 'done' | 'failed';
+	caller: 'public' | 'ours';
+	parent: { service: string; id: string } | null;
+	asked_at: string;
+	started_at?: string;
+	finished_at?: string;
+	updated_at: string;
+	/** A small object the service chooses: for `shot`, the page's URL. */
+	summary: Record<string, unknown>;
+	/** Why it failed, in the service's own words, when it did. */
+	detail?: string;
+	/** What `before` takes to page `GET /tasks` past this task. */
+	cursor: string;
+}
+
+/** One step of a task, appended and never changed, in `seq` order. */
+export interface TaskEvent {
+	service: string;
+	task: string;
+	seq: number;
+	at: string;
+	/** The step, in the service's own words: `resolving`, `loading`, `rendering`, `storing`. */
+	stage: string;
+	level: 'info' | 'warn' | 'error';
+	message: string;
+	data?: Record<string, unknown>;
+}
+
+/** A task's own fields, flattened, plus its events in `seq` order and the tasks it is the parent
+ * of, newest first. */
+export interface TaskDetail extends Task {
+	events: TaskEvent[];
+	children: Task[];
+}
+
 /** Not signed in, or signed out since: the panel asks for the token again. */
 export class SignedOut extends Error {}
 
@@ -203,7 +245,31 @@ export const api = {
 	routes: () => call<Route[]>('GET', '/api/routes'),
 	putRoute: (route: Route) => call<null>('PUT', `/api/routes/${route.name}`, route),
 	deleteRoute: (name: string) => call<null>('DELETE', `/api/routes/${name}`),
+	tasks: (filter: TaskFilter, before?: string, limit = TASK_PAGE_SIZE) =>
+		call<Task[]>('GET', `/ledger/tasks${taskQuery(filter, before, limit)}`),
+	task: (service: string, id: string) =>
+		call<TaskDetail>(
+			'GET',
+			`/ledger/tasks/${encodeURIComponent(service)}/${encodeURIComponent(id)}`,
+		),
 };
+
+/** What the Tasks page narrows the list by, each optional. */
+export interface TaskFilter {
+	service?: string;
+	state?: Task['state'];
+}
+
+/** A page's size, at most 500 per spec/architecture/ledger.md, "Read by the panel". */
+export const TASK_PAGE_SIZE = 50;
+
+function taskQuery(filter: TaskFilter, before?: string, limit = TASK_PAGE_SIZE): string {
+	const query = new URLSearchParams({ limit: String(limit) });
+	if (filter.service) query.set('service', filter.service);
+	if (filter.state) query.set('state', filter.state);
+	if (before) query.set('before', before);
+	return `?${query}`;
+}
 
 /** An image id as a person reads it. */
 export function short(image: string | undefined): string {

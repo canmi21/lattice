@@ -8,6 +8,7 @@
 	import Boxes from '@lucide/svelte/icons/boxes';
 	import Layers from '@lucide/svelte/icons/layers';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
+	import ListChecks from '@lucide/svelte/icons/list-checks';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Server from '@lucide/svelte/icons/server';
 	import Waypoints from '@lucide/svelte/icons/waypoints';
@@ -25,6 +26,12 @@
 			label: 'Images',
 			icon: Layers,
 			here: (path: string) => path.startsWith('/images'),
+		},
+		{
+			href: '/tasks',
+			label: 'Tasks',
+			icon: ListChecks,
+			here: (path: string) => path.startsWith('/tasks'),
 		},
 		{
 			href: '/routes',
