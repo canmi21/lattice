@@ -183,8 +183,13 @@ a check on the others:
    address, `shot_get-head_capture_198.51.100.7`. Its log is memory and nothing is written, so a
    counter costs one request of the free plan's hundred thousand a day; one that fails lets the
    call through, with the WAF beneath it.
-3. **Caddy on the node** keeps the same rows for everything that reaches it, the LAN and our Workers
-   included, from the declaration host renders it from.
+3. **Caddy on the node** keeps the same rows again, for what the gateway forwards and nothing else:
+   a request carrying its mark, counted by the visitor's address that Caddy takes from
+   `Cf-Connecting-IP`, which it believes from cloudflared alone. It is there for the moment a
+   counter fails and lets a call through. The LAN, the tailnet and our own Workers meet no limit
+   here either. host renders one zone a row into the tunnel's side, named as the gateway's counters
+   are without the address, and a refusal is the envelope's `rate_limited` with `Retry-After` and
+   `no-store`, so the gateway neither keeps it nor takes it for an unreachable node.
 
 ```toml
 [[api.limits]]
@@ -195,7 +200,8 @@ seconds = 60           # 1 to 86400
 ```
 
 The gateway's table carries the rows, generated from every `service.toml` as its scopes are; host
-reads the same files. A row a node cannot count is refused when the service is deployed. The site's
+reads the same files. A row a node cannot count is refused when the service is deployed, and so is
+a call two rows would cover: the gateway counts the first row that covers it, Caddy every one. The site's
 own routes, which its pages call without the gateway, still count in the site's Worker with
 Cloudflare's per-location binding, in the older format below.
 

@@ -7,6 +7,7 @@
 
 use crate::config::{CaddyConfig, PORT};
 use crate::store::{Deployed, Route};
+use deploy::manifest::Limit;
 use serde_json::{Value, json};
 use std::path::Path;
 
@@ -81,8 +82,61 @@ fn refuse_unless(sources: &[String]) -> Value {
 	})
 }
 
+/// The gateway's mark, on what it forwards from the public; the same pair as `MARK` in the gateway.
+const MARK: (&str, &str) = ("X-Gateway", "public");
+
+/// A scope's limits, counted by the visitor's address on what the gateway forwards, and on nothing
+/// else: our own callers meet none. One zone a row, named as the gateway's counters are without
+/// the address. See spec/architecture/services.md, "A limit is declared once and kept in three
+/// places".
+fn limited(scope: &str, limits: &[Limit]) -> Option<Value> {
+	if limits.is_empty() {
+		return None;
+	}
+	let zones: serde_json::Map<String, Value> = limits
+		.iter()
+		.map(|limit| {
+			let methods: Vec<String> = limit.methods.iter().map(|method| method.to_lowercase()).collect();
+			let path = limit.path.split('/').filter(|part| !part.is_empty()).collect::<Vec<_>>();
+			let path = if path.is_empty() { "root".to_owned() } else { path.join("-") };
+			let zone = json!({
+				"match": [{
+					"method": limit.methods,
+					"path": [limit.path],
+					"header": { MARK.0: [MARK.1] }
+				}],
+				// The address Caddy took from Cloudflare's header; `http.request.client_ip` is no
+				// placeholder, and a key that does not resolve counts everyone as one.
+				"key": "{http.vars.client_ip}",
+				"window": format!("{}s", limit.seconds),
+				"max_events": limit.count
+			});
+			(format!("{scope}_{}_{path}", methods.join("-")), zone)
+		})
+		.collect();
+	Some(json!({ "handler": "rate_limit", "rate_limits": zones }))
+}
+
+/// What a refused call is answered with: the one envelope, never kept by the gateway's cache. The
+/// limiter has already said when to try again.
+fn refused() -> Value {
+	let body = serde_json::to_string(&response::Envelope::error("rate_limited")).unwrap_or_default();
+	json!({
+		"match": [{ "expression": "{http.error.status_code} == 429" }],
+		"handle": [{
+			"handler": "static_response",
+			"status_code": 429,
+			"headers": {
+				"Content-Type": ["application/json"],
+				"Cache-Control": ["no-store"]
+			},
+			"body": body
+		}]
+	})
+}
+
 /// Each API scope, its prefix stripped before the service sees the request; on the tunnel's side
-/// only the public ones, which the gateway reaches over Workers VPC. See
+/// only the public ones, which the gateway reaches over Workers VPC, and their limits. See
 /// spec/architecture/services.md, "A path with no scope is a 400, on both gateways".
 fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 	let mut routes = vec![json!({
@@ -96,13 +150,13 @@ fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 			.filter_map(|app| {
 				let name = &app.manifest.name;
 				let port = app.manifest.container.as_ref()?.port?;
+				let api = app.manifest.api.as_ref()?;
+				let mut handle = vec![json!({ "handler": "rewrite", "strip_path_prefix": format!("/{name}") })];
+				handle.extend(public.then(|| limited(name, &api.limits)).flatten());
+				handle.extend([encode(), proxy(&format!("{name}:{port}"), name)]);
 				Some(json!({
 					"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
-					"handle": [
-						{ "handler": "rewrite", "strip_path_prefix": format!("/{name}") },
-						encode(),
-						proxy(&format!("{name}:{port}"), name),
-					]
+					"handle": handle
 				}))
 			}),
 	);
@@ -195,6 +249,7 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 						"handle": [{ "handler": "subroute", "routes": outside }],
 						"terminal": true
 					}],
+					"errors": { "routes": [refused()] },
 					"trusted_proxies": trusted,
 					"client_ip_headers": ["Cf-Connecting-Ip"]
 				}
@@ -292,6 +347,36 @@ mod tests {
 		let tunnel = &rendered["apps"]["http"]["servers"]["tunnel"]["routes"][0]["handle"][0]["routes"];
 		assert_eq!(tunnel[1]["match"][0]["host"][0], "api.outside.test");
 		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 2);
+	}
+
+	#[test]
+	fn a_limit_counts_what_the_gateway_forwards_on_the_tunnels_side_alone() {
+		let rendered = render(&config(), "host", &[geo()], &[]);
+		let servers = &rendered["apps"]["http"]["servers"];
+		let tunnel = &servers["tunnel"]["routes"][0]["handle"][0]["routes"][1]["handle"][0]["routes"];
+		let handle = &tunnel[1]["handle"];
+		assert_eq!(handle[0]["handler"], "rewrite");
+		assert_eq!(handle[1]["handler"], "rate_limit");
+		let zone = &handle[1]["rate_limits"]["geo_get-head_address"];
+		assert_eq!(text(&zone["match"][0]["method"]), r#"["GET","HEAD"]"#);
+		assert_eq!(zone["match"][0]["path"][0], "/address");
+		assert_eq!(zone["match"][0]["header"]["X-Gateway"][0], "public");
+		assert_eq!(zone["key"], "{http.vars.client_ip}");
+		assert_eq!((zone["window"].as_str(), zone["max_events"].as_u64()), (Some("60s"), Some(60)));
+		// The LAN and the tailnet meet no limit.
+		assert!(!text(&servers["private"]).contains(r#""handler":"rate_limit""#));
+		// A refusal is the envelope, and the gateway keeps none of it.
+		let refused = &servers["tunnel"]["errors"]["routes"][0]["handle"][0];
+		assert_eq!(refused["status_code"], 429);
+		assert_eq!(refused["headers"]["Cache-Control"][0], "no-store");
+		assert!(refused["body"].as_str().unwrap().contains(r#""code":"rate_limited""#));
+	}
+
+	#[test]
+	fn a_scope_with_no_limits_has_no_limiter() {
+		let mut free = geo();
+		free.manifest.api.as_mut().unwrap().limits.clear();
+		assert!(!text(&render(&config(), "host", &[free], &[])).contains(r#""handler":"rate_limit""#));
 	}
 
 	#[test]
