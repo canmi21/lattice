@@ -1,7 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "gateway",
-	"main": "src/index.ts",
+	"main": "src/worker.ts",
 	"compatibility_date": "2026-07-29",
 
 	// The public API host, declared here so every deploy asserts it: attached in the dashboard, it
@@ -16,11 +16,12 @@
 		{ "binding": "SITE", "service": "site" },
 	],
 
-	// The limits src/policy.ts names.
-	"ratelimits": [
-		{ "name": "GEO_LIMIT", "namespace_id": "959379525", "simple": { "limit": 60, "period": 60 } },
-		{ "name": "SHOT_LIMIT", "namespace_id": "959379526", "simple": { "limit": 3, "period": 60 } },
-	],
+	// One counter per address and route, for the limits every service.toml declares: a Durable
+	// Object, since Cloudflare's rate limit binding counts per location. SQLite-backed, the one kind
+	// the free plan has, though it writes nothing. See spec/architecture/services.md, "A limit is
+	// declared once and kept in three places".
+	"durable_objects": { "bindings": [{ "name": "limits", "class_name": "counter" }] },
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["counter"] }],
 
 	// The Caddy of the machine at home, the same VPC service `hook` notifies through.
 	"vpc_services": [
@@ -43,18 +44,7 @@
 		"dev": {
 			"services": [{ "binding": "HOOK", "service": "hook" }],
 			"vars": { "SITE": "development" },
-			"ratelimits": [
-				{
-					"name": "GEO_LIMIT",
-					"namespace_id": "959379525",
-					"simple": { "limit": 60, "period": 60 },
-				},
-				{
-					"name": "SHOT_LIMIT",
-					"namespace_id": "959379526",
-					"simple": { "limit": 3, "period": 60 },
-				},
-			],
+			"durable_objects": { "bindings": [{ "name": "limits", "class_name": "counter" }] },
 		},
 	},
 

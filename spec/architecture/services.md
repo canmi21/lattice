@@ -178,7 +178,11 @@ a check on the others:
 2. **The gateway** keeps each row for the public, exactly, in a Durable Object per address and route:
    one count wherever in the world the requests land. Cloudflare's own rate limit binding counts per
    location, so an address whose requests land in three locations was allowed three times as much;
-   it is not used here.
+   it is not used here. A counter is named in lowercase, as everything the dashboard shows here is:
+   the class is `counter`, the binding `limits`, and each object its scope, methods, path and
+   address, `shot_get-head_capture_198.51.100.7`. Its log is memory and nothing is written, so a
+   counter costs one request of the free plan's hundred thousand a day; one that fails lets the
+   call through, with the WAF beneath it.
 3. **Caddy on the node** keeps the same rows for everything that reaches it, the LAN and our Workers
    included, from the declaration host renders it from.
 

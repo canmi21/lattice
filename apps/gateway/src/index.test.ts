@@ -15,7 +15,7 @@ const HOST = new URL(URLS.apps.production.api).origin;
 function wrangler(): {
 	services: Array<{ binding: string; service: string }>;
 	vpc_services: Array<{ binding: string }>;
-	ratelimits?: Array<{ name: string }>;
+	durable_objects?: { bindings: Array<{ name: string; class_name: string }> };
 } {
 	const text = readFileSync(join(import.meta.dirname, '../wrangler.jsonc'), 'utf8');
 	const bare = text.replace(
@@ -32,6 +32,23 @@ function binding() {
 		fetch: vi.fn(async (request: Request) => (seen.push(request), new Response('ok'))),
 	};
 	return { fetcher: fetcher as unknown as Fetcher, seen };
+}
+
+/** Counters that allow or refuse every call, and remember whose they were asked to count. */
+function counters(allowed: boolean) {
+	const asked: Array<{ name: string; count: number; seconds: number }> = [];
+	return {
+		asked,
+		counters: {
+			idFromName: (name: string) => name,
+			get: (name: string) => ({
+				take: async (count: number, seconds: number) => (
+					asked.push({ name, count, seconds }),
+					{ allowed, retryAfter: allowed ? 0 : 7 }
+				),
+			}),
+		},
+	};
 }
 
 describe('the scope table', () => {
@@ -54,12 +71,12 @@ describe('the scope table', () => {
 		}
 	});
 
-	it('has a policy only for scopes it has, and a binding for every limit a policy names', () => {
-		const limiters = new Set((wrangler().ratelimits ?? []).map((limit) => limit.name));
-		for (const [scope, policy] of Object.entries(POLICIES)) {
-			expect(SCOPES).toHaveProperty(scope);
-			for (const limit of policy.limits ?? []) expect(limiters).toContain(limit.limiter);
-		}
+	it('has a policy only for scopes it has, and the counters every limit is kept in', () => {
+		for (const scope of Object.keys(POLICIES)) expect(SCOPES).toHaveProperty(scope);
+		expect(wrangler().durable_objects?.bindings).toContainEqual({
+			name: 'limits',
+			class_name: 'counter',
+		});
 	});
 
 	it('leaves out a scope that is not public', () => {
@@ -73,29 +90,23 @@ describe('the scope table', () => {
 
 describe('the gateway', () => {
 	const table: Record<string, Scope> = {
-		site: { placement: WORKERS, binding: 'SITE', worker: 'site', prefix: '/api' },
+		site: {
+			placement: WORKERS,
+			binding: 'SITE',
+			worker: 'site',
+			prefix: '/api',
+			limits: [{ methods: ['PUT'], path: '/like', count: 10, seconds: 60 }],
+		},
 		hook: { placement: WORKERS, binding: 'HOOK', worker: 'hook' },
 		geo: { placement: 'home', binding: 'HOME' },
 	};
 	const listed = 'https://listed.test';
 	const policies: Record<string, Policy> = {
-		site: {
-			origin: (origin) => (!origin ? '*' : origin === listed ? origin : null),
-			limits: [{ methods: ['PUT'], path: '/like', limiter: 'LIKE' }],
-		},
+		site: { origin: (origin) => (!origin ? '*' : origin === listed ? origin : null) },
 	};
 	const app = gateway(table, policies);
 	const ask = (path: string, env: Env = {}, init?: RequestInit) =>
 		app.fetch(new Request(`${HOST}${path}`, init), env);
-
-	/** A limiter that allows or refuses everything, and counts the keys it was asked about. */
-	function limiter(success: boolean) {
-		const keys: string[] = [];
-		return {
-			limiter: { limit: async ({ key }: { key: string }) => (keys.push(key), { success }) },
-			keys,
-		};
-	}
 
 	it('refuses a path with no scope as malformed', async () => {
 		for (const path of ['//stats', '//']) {
@@ -142,7 +153,7 @@ describe('the gateway', () => {
 		const { fetcher, seen } = binding();
 		const answer = await ask(
 			'/site/like?slug=a',
-			{ SITE: fetcher, LIKE: limiter(true).limiter },
+			{ SITE: fetcher, limits: counters(true).counters },
 			{ method: 'PUT', headers: { 'cf-connecting-ip': '192.0.2.1' }, body: 'x' },
 		);
 		expect(answer.status).toBe(200);
@@ -233,13 +244,13 @@ describe('the gateway', () => {
 
 	it('limits by address on the method and path a limit names, and nothing else', async () => {
 		const { fetcher, seen } = binding();
-		const refused = limiter(false);
-		const env = { SITE: fetcher, LIKE: refused.limiter };
+		const refused = counters(false);
+		const env = { SITE: fetcher, limits: refused.counters };
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
 		const answer = await ask('/site/like', env, { method: 'PUT', headers });
 		expect(answer.status).toBe(429);
-		expect(answer.headers.get('retry-after')).toBe('60');
-		expect(refused.keys).toEqual(['192.0.2.1']);
+		expect(answer.headers.get('retry-after')).toBe('7');
+		expect(refused.asked).toEqual([{ name: 'site_put_like_192.0.2.1', count: 10, seconds: 60 }]);
 		expect(seen).toHaveLength(0);
 		// Another method on the same path, and a caller with no address, are not this limit's.
 		expect((await ask('/site/like', env, { headers })).status).toBe(200);
@@ -253,6 +264,24 @@ describe('the gateway', () => {
 		expect(seen[0]?.headers.get(MARK.name)).toBe(MARK.value);
 	});
 
+	it('lets a call through when its counter fails, rather than failing it', async () => {
+		const { fetcher } = binding();
+		const broken = {
+			idFromName: (name: string) => name,
+			get: () => ({ take: async () => Promise.reject(new Error('over quota')) }),
+		};
+		const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+		const headers = { 'cf-connecting-ip': '192.0.2.1' };
+		const answer = await ask(
+			'/site/like',
+			{ SITE: fetcher, limits: broken },
+			{ method: 'PUT', headers },
+		);
+		expect(answer.status).toBe(200);
+		expect(error).toHaveBeenCalled();
+		error.mockRestore();
+	});
+
 	it('refuses rather than skips a limit whose binding is missing', async () => {
 		const { fetcher } = binding();
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
@@ -263,23 +292,20 @@ describe('the gateway', () => {
 });
 
 describe("geo's policy", () => {
-	const app = gateway({ geo: { placement: 'home', binding: 'HOME' } }, POLICIES);
+	const app = gateway({ geo: SCOPES.geo as Scope }, POLICIES);
 
 	it('lets any page call it, and limits one address on the lookup alone', async () => {
-		const asked: string[] = [];
-		const env = {
-			HOME: binding().fetcher,
-			GEO_LIMIT: {
-				limit: async ({ key }: { key: string }) => (asked.push(key), { success: false }),
-			},
-		};
+		const refused = counters(false);
+		const env = { HOME: binding().fetcher, limits: refused.counters };
 		const headers = { 'cf-connecting-ip': '192.0.2.1', origin: 'https://anyone.test' };
 		const lookup = await app.fetch(
 			new Request(`${HOST}/geo/address?latitude=1&longitude=2`, { headers }),
 			env,
 		);
 		expect(lookup.status).toBe(429);
-		expect(asked).toEqual(['192.0.2.1']);
+		expect(refused.asked).toEqual([
+			{ name: 'geo_get-head_address_192.0.2.1', count: 60, seconds: 60 },
+		]);
 		const health = await app.fetch(new Request(`${HOST}/geo/health`, { headers }), env);
 		expect(health.status).toBe(200);
 		expect(health.headers.get('access-control-allow-origin')).toBe('*');
@@ -287,18 +313,13 @@ describe("geo's policy", () => {
 });
 
 describe("shot's policy", () => {
-	const app = gateway({ shot: { placement: 'home', binding: 'HOME' } }, POLICIES);
+	const app = gateway({ shot: SCOPES.shot as Scope }, POLICIES);
 	const headers = { 'cf-connecting-ip': '192.0.2.1' };
 
 	it('refuses `internal` from the public, whatever its value, before the service or a limit', async () => {
 		const { fetcher, seen } = binding();
-		const counted: string[] = [];
-		const env = {
-			HOME: fetcher,
-			SHOT_LIMIT: {
-				limit: async ({ key }: { key: string }) => (counted.push(key), { success: true }),
-			},
-		};
+		const allowing = counters(true);
+		const env = { HOME: fetcher, limits: allowing.counters };
 		for (const query of ['internal=true', 'internal=false', 'internal', 'host=a.test&internal=1']) {
 			const answer = await app.fetch(
 				new Request(`${HOST}/shot/capture?${query}`, { headers }),
@@ -310,17 +331,12 @@ describe("shot's policy", () => {
 		const status = await app.fetch(new Request(`${HOST}/shot/abc?internal=true`, { headers }), env);
 		expect(status.status).toBe(403);
 		expect(seen).toHaveLength(0);
-		expect(counted).toHaveLength(0);
+		expect(allowing.asked).toHaveLength(0);
 	});
 
 	it('limits starting a capture, and neither asking after one nor fetching it', async () => {
-		const asked: string[] = [];
-		const env = {
-			HOME: binding().fetcher,
-			SHOT_LIMIT: {
-				limit: async ({ key }: { key: string }) => (asked.push(key), { success: false }),
-			},
-		};
+		const refused = counters(false);
+		const env = { HOME: binding().fetcher, limits: refused.counters };
 		const start = await app.fetch(
 			new Request(`${HOST}/shot/capture?host=a.test`, { headers }),
 			env,
@@ -329,6 +345,6 @@ describe("shot's policy", () => {
 		for (const path of ['/shot/0e6f', '/shot/0e6f.png', '/shot/0e6f.webp']) {
 			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
 		}
-		expect(asked).toEqual(['192.0.2.1']);
+		expect(refused.asked.map((asked) => asked.name)).toEqual(['shot_get-head_capture_192.0.2.1']);
 	});
 });

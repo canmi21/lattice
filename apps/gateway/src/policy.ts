@@ -1,11 +1,11 @@
-import type { Limit } from '@canmi/limits';
 import type { Lifetime } from './cache.ts';
 
 /**
- * What the gateway enforces for a scope so the service behind it does not: which browsers may call
- * it, and how often one address may. Written here rather than in `service.toml`, because an origin
- * is a URL and every URL is declared once in libs/urls. See spec/architecture/services.md, "The
- * gateway holds what every API would otherwise repeat".
+ * What the gateway does for a scope that is not a limit: which browsers may call it, what the
+ * public may not send, how long answers are kept. Written here rather than in `service.toml`,
+ * because an origin is a URL and every URL is declared once in libs/urls; a limit is the service's
+ * own row. See spec/architecture/services.md, "The gateway holds what every API would otherwise
+ * repeat".
  */
 export interface Policy {
 	/**
@@ -13,8 +13,6 @@ export interface Policy {
 	 * scope at all. `request` is the one the gateway received.
 	 */
 	readonly origin?: (origin: string, request: Request) => string | null;
-	/** Limits by the caller's address, on the path as the service sees it. */
-	readonly limits?: readonly Limit[];
 	/**
 	 * Query parameters the public may not send, refused with a 403 before the service sees them:
 	 * what a service offers our own callers alone.
@@ -32,20 +30,14 @@ export interface Policy {
  * are its own and limited in its Worker.
  */
 export const POLICIES: Readonly<Record<string, Policy>> = {
-	// A free lookup: any page may call it, and one address may ask about once a second. It answers
-	// from memory, so the limit is what keeps a crawler from the machine at home, not the cost of
-	// one answer. Our own Workers and the private host ask without it.
+	// A free lookup: any page may call it.
 	geo: {
 		origin: () => '*',
-		limits: [{ methods: ['GET', 'HEAD'], path: '/address', limiter: 'GEO_LIMIT' }],
 		// A place's address changes only when the gazetteer is deployed again.
 		cache: { success: 86_400 },
 	},
-	// Screenshots: a capture costs the machine seconds of a browser, so one address may start three a
-	// minute, while asking after one and fetching it are free. `internal` reaches the LAN, which is
-	// ours alone. See spec/architecture/shot.md.
+	// `internal` reaches the LAN, which is ours alone. See spec/architecture/shot.md.
 	shot: {
-		limits: [{ methods: ['GET', 'HEAD'], path: '/capture', limiter: 'SHOT_LIMIT' }],
 		forbidden: ['internal'],
 	},
 };

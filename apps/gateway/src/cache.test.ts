@@ -70,22 +70,29 @@ describe('the cache at the gateway', () => {
 	it('answers a repeat from the cache without reaching the service, or a limit', async () => {
 		const { put } = install();
 		const counted: string[] = [];
-		const app = gateway(table, {
-			geo: { limits: [{ methods: ['GET'], path: '/address', limiter: 'LIMIT' }] },
-		});
+		const app = gateway(
+			{
+				geo: {
+					placement: 'home',
+					binding: 'HOME',
+					limits: [{ methods: ['GET'], path: '/address', count: 60, seconds: 60 }],
+				},
+			},
+			{},
+		);
 		const { seen, env } = node(() => answer(200));
-		const limited = {
-			LIMIT: { limit: async ({ key }: { key: string }) => (counted.push(key), { success: true }) },
+		const LIMITS = {
+			idFromName: (name: string) => name,
+			get: (name: string) => ({
+				take: async () => (counted.push(name), { allowed: true, retryAfter: 0 }),
+			}),
 		};
 		const ask = () =>
 			app.fetch(
 				new Request(`${HOST}/geo/address?latitude=1`, {
 					headers: { 'cf-connecting-ip': '192.0.2.1' },
 				}),
-				{
-					...env,
-					...limited,
-				},
+				{ ...env, limits: LIMITS },
 			);
 		const first = await ask();
 		expect(first.headers.get(CACHE_HEADER)).toBe('miss');

@@ -5,7 +5,6 @@
  * service would otherwise repeat: CORS, and limits by address. See spec/architecture/services.md,
  * "One API host, scoped by path".
  */
-import { limited, within } from '@canmi/limits';
 import { failure } from '@canmi/response';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { robotsTxt } from '@canmi/robots';
@@ -14,6 +13,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
 import { CACHE_HEADER, cacheable, keyOf, secondsFor, store, toKeep } from './cache.ts';
+import { counted } from './limit.ts';
 import { POLICIES, type Policy } from './policy.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';
@@ -141,10 +141,13 @@ export function gateway(
 			returned.headers.set(CACHE_HEADER, 'miss');
 			return returned;
 		};
-		if (
-			!(await within(policy.limits ?? [], c.env, { method: c.req.method, path: rest, address }))
-		) {
-			return limited();
+		const taken = await counted(c.env.limits, scope, target.limits ?? [], {
+			method: c.req.method,
+			path: rest,
+			address,
+		});
+		if (!taken.allowed) {
+			return failure(429, 'rate_limited', { headers: { 'Retry-After': String(taken.retryAfter) } });
 		}
 		const binding = destination(c.env[target.binding], target);
 		if (!binding) return failure(502, 'scope_unavailable');
@@ -175,5 +178,3 @@ export function gateway(
 
 	return app;
 }
-
-export default gateway();
