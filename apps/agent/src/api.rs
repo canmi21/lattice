@@ -161,7 +161,7 @@ mod tests {
 		let mut answer = String::new();
 		stream.read_to_string(&mut answer).await.unwrap();
 		assert!(answer.starts_with("HTTP/1.1 200"), "{answer}");
-		assert!(answer.contains(r#""model":"FriendlyElec NanoPi R6S""#), "{answer}");
+		assert!(answer.contains(r#""model":"FriendlyElec NanoPi M5""#), "{answer}");
 	}
 
 	#[test]

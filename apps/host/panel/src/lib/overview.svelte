@@ -12,6 +12,7 @@
 	import Legend from './chart/legend.svelte';
 	import type { Line } from './chart/series';
 	import Cores from './cores.svelte';
+	import { clockLine, clusterNames, zoneLabel, zoneOrder } from './labels';
 	import { bytes, frequency, span } from './format';
 	import { Machine, SPANS, type Span } from './machine.svelte';
 	import PageHeader from './page-header.svelte';
@@ -37,9 +38,14 @@
 		color: `var(${color})`,
 		points: machine.series(key),
 	});
-	const capital = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
-	const zones = $derived(machine.names('temperature'));
+	const zones = $derived(
+		machine
+			.names('temperature')
+			.toSorted((a, b) =>
+				zoneOrder(a.slice('temperature.'.length), b.slice('temperature.'.length)),
+			),
+	);
 	const hottest = $derived(
 		zones.toSorted((a, b) => (value(b) ?? 0) - (value(a) ?? 0))[0] as string | undefined,
 	);
@@ -92,7 +98,7 @@
 			title: 'Temperature',
 			description: 'Each thermal zone the board reports',
 			lines: zones.map((zone, index) =>
-				line(zone, capital(zone.slice('temperature.'.length)), PALETTE[index % PALETTE.length]!),
+				line(zone, zoneLabel(zone.slice('temperature.'.length)), PALETTE[index % PALETTE.length]!),
 			),
 			format: degrees,
 			ceiling: undefined,
@@ -113,7 +119,18 @@
 	]);
 
 	const cores = $derived(machine.names('cpu.core').filter((name) => name.endsWith('.usage')));
-	const fastest = $derived(Math.max(0, ...(info?.max_frequencies ?? []).map((mhz) => mhz ?? 0)));
+	const clusters = $derived(info?.clusters ?? []);
+	const fastest = $derived(Math.max(0, ...clusters.map((cluster) => cluster.max_frequency ?? 0)));
+	/** Each core's cluster name, by the core's number. */
+	const clusterOf = $derived.by(() => {
+		const names = clusterNames(clusters);
+		const of: (string | undefined)[] = [];
+		clusters.forEach((cluster, index) =>
+			cluster.cores.forEach((core) => (of[core] = names[index])),
+		);
+		return of;
+	});
+	const clock = $derived(clockLine(clusters, (first) => value(`cpu.frequency.${first}`)));
 	const up = $derived(
 		info?.booted && machine.latest ? span(machine.latest.at - info.booted) : undefined,
 	);
@@ -166,7 +183,9 @@
 		label="Temperature"
 		icon={Thermometer}
 		value={hottest ? degrees(value(hottest)!) : '–'}
-		detail={hottest ? `hottest, ${hottest.slice('temperature.'.length)}` : 'Not reported here'}
+		detail={hottest
+			? `hottest, ${zoneLabel(hottest.slice('temperature.'.length))}`
+			: 'Not reported here'}
 		color="var(--nord12)"
 		recent={hottest ? machine.recent(hottest) : []}
 	/>
@@ -205,14 +224,13 @@
 	{/each}
 </div>
 
-<Card
-	title="Cores"
-	description="Each core this second: how busy, and how fast it runs of how fast it can"
->
+<Card title="Cores" description="Each core this second, and the clock its cluster runs at">
+	{#snippet actions()}
+		<span class={stylex.attrs(type.heading).class}>{clock}</span>
+	{/snippet}
 	<Cores
 		usage={cores.map((name) => value(name) ?? 0)}
-		frequencies={cores.map((name) => value(name.replace(/\.usage$/, '.frequency')))}
-		fastest={info?.max_frequencies ?? []}
+		clusters={cores.map((_, core) => clusterOf[core])}
 	/>
 </Card>
 

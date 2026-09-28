@@ -13,6 +13,7 @@ const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 // macOS; `PANEL_API=http://localhost:11011` asks a host running here instead. See
 // spec/architecture/host.md, "The panel is host's own".
 const API = process.env.PANEL_API || URLS.internal.home;
+const TOKEN = process.env.HOST_TOKEN;
 
 export default defineConfig({
 	plugins: [
@@ -34,6 +35,15 @@ export default defineConfig({
 		port: DEVELOPMENT_PORTS.panel,
 		strictPort: true,
 		// The panel has no host of its own in development: it asks a real one.
-		proxy: { '/api': { target: API, changeOrigin: true, secure: true } },
+		// Signed in as the token mise decrypts, when there is one, so a development panel reads a real
+		// host without the token being typed anywhere. Never in a build: this is the dev server's.
+		proxy: {
+			'/api': {
+				target: API,
+				changeOrigin: true,
+				secure: true,
+				headers: TOKEN ? { authorization: `Bearer ${TOKEN}` } : {},
+			},
+		},
 	},
 });

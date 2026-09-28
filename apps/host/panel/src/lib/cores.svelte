@@ -1,20 +1,16 @@
 <script lang="ts">
-	/** Each core this second: how busy, and how fast it runs against how fast it can. */
+	/** Each core this second: how busy, and which cluster it runs in where there are several. */
 	import * as stylex from '@stylexjs/stylex';
-	import { frequency } from './format';
 	import { type } from './style/surfaces';
 	import { radius } from './style/vocabulary.stylex';
 
 	let {
 		usage,
-		frequencies,
-		fastest,
+		clusters,
 	}: {
 		usage: number[];
-		/** MHz now, per core, where the machine says. */
-		frequencies: (number | undefined)[];
-		/** MHz at most, per core. */
-		fastest: (number | null)[];
+		/** The name of each core's cluster, where the machine has more than one kind. */
+		clusters: (string | undefined)[];
 	} = $props();
 
 	function tone(share: number): string {
@@ -48,14 +44,9 @@
 					style:background-color={tone(share)}
 				></div>
 			</div>
-			<span class="truncate {stylex.attrs(type.muted).class}">
-				{#if frequencies[core] !== undefined}
-					{frequency(frequencies[core]!)}{#if fastest[core]}
-						<span> of {frequency(fastest[core]!)}</span>{/if}
-				{:else}
-					No frequency reported
-				{/if}
-			</span>
+			{#if clusters[core]}
+				<span class="truncate {stylex.attrs(type.muted).class}">{clusters[core]} cluster</span>
+			{/if}
 		</div>
 	{/each}
 </div>

@@ -125,14 +125,7 @@ mod tests {
 		assert_eq!(seconds.len(), 60);
 		assert_eq!(
 			seconds[0].values.keys().collect::<Vec<_>>(),
-			[
-				"cpu.core.0.frequency",
-				"cpu.core.0.usage",
-				"cpu.core.1.frequency",
-				"cpu.core.1.usage",
-				"cpu.iowait",
-				"cpu.usage"
-			]
+			["cpu.core.0.usage", "cpu.core.1.usage", "cpu.frequency.0", "cpu.iowait", "cpu.usage"]
 		);
 		assert_eq!(series(&sampler, Grain::Minute).unwrap().len(), 3);
 		let hours = series(&sampler, Grain::Hour).unwrap();

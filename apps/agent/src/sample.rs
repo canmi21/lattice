@@ -41,10 +41,8 @@ pub fn between(earlier: &Reading, later: &Reading) -> Sample {
 	for (core, (before, after)) in earlier.cores.iter().zip(&later.cores).enumerate() {
 		put(format!("cpu.core.{core}.usage"), share(|t| t.busy, before, after));
 	}
-	for (core, frequency) in later.frequencies.iter().enumerate() {
-		if let Some(frequency) = frequency {
-			put(format!("cpu.core.{core}.frequency"), *frequency);
-		}
+	for (first, frequency) in &later.frequencies {
+		put(format!("cpu.frequency.{first}"), *frequency);
 	}
 	for (window, load) in ["1", "5", "15"].iter().zip(later.load) {
 		put(format!("load.{window}"), load);
@@ -100,7 +98,7 @@ btime 1780000000
 		assert_eq!(value("cpu.iowait"), 10.0);
 		// cpu0: 520 ticks, 120 busy.
 		assert!((value("cpu.core.0.usage") - 120.0 * 100.0 / 520.0).abs() < 1e-9);
-		assert_eq!(value("cpu.core.1.frequency"), 408.0);
+		assert_eq!(value("cpu.frequency.0"), 1800.0);
 		assert_eq!(value("network.received"), 2000.0);
 		assert_eq!(value("disk.written"), 512.0);
 		assert_eq!(value("memory.used"), 2_000_000.0 * 1024.0);

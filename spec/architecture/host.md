@@ -298,7 +298,15 @@ compute the axes, the paths and the point nearest the pointer; the SVG is writte
 so it follows the component's state like any other markup and nothing reaches into the DOM behind
 Svelte's back. The rest of d3 -- selections, transitions, its axis generator -- is not taken: each
 would draw on its own, and the motion is `@canmi/motion`'s. A chart of bytes ticks in binary
-units, and a series breaks where points are missing rather than drawing across the gap.
+units, and a series breaks where points are missing rather than drawing across the gap. **A fill is
+for a chart of one or two lines.** One line keeps its gradient and two share it; three or more are
+drawn as lines alone, because every fill layered on the others washes the plot toward grey.
+
+**The machine's names are made readable where they are shown, never where they are kept.** A
+thermal zone arrives as its driver calls it -- `bigcore`, `littlecore`, `ddr` -- and the panel's
+`labels.ts` says it as Big cores, Little cores, Memory, falling back to the name capitalized. A
+cluster has no name at all: the panel calls them Little and Big by how fast each can run, and a
+machine whose clusters all run at one clock shows that one frequency.
 
 **It is laid out for a desktop.** A sidebar and a page beside it, the page's width following the
 window; a phone is not refused and not designed for.

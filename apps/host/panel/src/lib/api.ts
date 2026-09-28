@@ -59,13 +59,20 @@ export interface Archived {
 	bytes: number;
 }
 
+/** Cores that run at one frequency, which the agent reads once for all of them. */
+export interface Cluster {
+	cores: number[];
+	/** MHz at most. */
+	max_frequency: number | null;
+}
+
 /** What does not change while the machine is up, as the agent reads it. */
 export interface MachineInfo {
 	model: string | null;
 	kernel: string | null;
 	cores: number;
-	/** MHz, per core. */
-	max_frequencies: (number | null)[];
+	/** The cores that share a clock. */
+	clusters: Cluster[];
 	/** Bytes. */
 	memory: number;
 	swap: number;

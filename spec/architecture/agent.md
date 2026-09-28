@@ -28,21 +28,26 @@ the name cannot be taken by an app, and host is the only one that deploys it.
 same work whatever is measured, and a metric a later machine has, or lacks, is a name more or fewer
 rather than a change of shape. Names are dotted, lowercase and spelled out.
 
-| Metric                                      | Unit                 | From                               |
-| ------------------------------------------- | -------------------- | ---------------------------------- |
-| `cpu.usage`, `cpu.iowait`                   | percent of all ticks | `/proc/stat`                       |
-| `cpu.core.<n>.usage`                        | percent of its ticks | `/proc/stat`                       |
-| `cpu.core.<n>.frequency`                    | MHz                  | cpufreq's `scaling_cur_freq`       |
-| `load.1`, `load.5`, `load.15`               | runnable tasks       | `/proc/loadavg`                    |
-| `memory.used`, `memory.cached`, `swap.used` | bytes                | `/proc/meminfo`                    |
-| `temperature.<zone>`                        | degrees Celsius      | `/sys/class/thermal`               |
-| `network.received`, `network.sent`          | bytes per second     | `/proc/1/net/dev`                  |
-| `disk.read`, `disk.written`                 | bytes per second     | `/proc/diskstats`                  |
-| `storage.used`                              | bytes                | `statvfs` of the agent's directory |
+| Metric                                      | Unit                 | From                                     |
+| ------------------------------------------- | -------------------- | ---------------------------------------- |
+| `cpu.usage`, `cpu.iowait`                   | percent of all ticks | `/proc/stat`                             |
+| `cpu.core.<n>.usage`                        | percent of its ticks | `/proc/stat`                             |
+| `cpu.frequency.<first core>`                | MHz                  | cpufreq's `scaling_cur_freq`, per policy |
+| `load.1`, `load.5`, `load.15`               | runnable tasks       | `/proc/loadavg`                          |
+| `memory.used`, `memory.cached`, `swap.used` | bytes                | `/proc/meminfo`                          |
+| `temperature.<zone>`                        | degrees Celsius      | `/sys/class/thermal`                     |
+| `network.received`, `network.sent`          | bytes per second     | `/proc/1/net/dev`                        |
+| `disk.read`, `disk.written`                 | bytes per second     | `/proc/diskstats`                        |
+| `storage.used`                              | bytes                | `statvfs` of the agent's directory       |
 
 - `memory.used` is total less available, which is what the kernel says can be had without
   swapping; `cached` is page cache plus buffers, shown beside it rather than subtracted twice.
-- A zone is named by its type with `-thermal` dropped: `soc`, `gpu`, `bigcore0`.
+- A frequency is read once per cluster -- the cores cpufreq's policy sets at one clock, listed in
+  its `related_cpus` -- and named by the cluster's first core, so an eight-core board with a big and
+  a little cluster has `cpu.frequency.0` and `cpu.frequency.4`. Read per core it would be the same
+  number several times over. A kernel with no policies has each core as its own cluster.
+- A zone is named by its type with `-thermal` dropped: `soc`, `gpu`, `bigcore0`. The name stays the
+  kernel's; making it readable is the panel's, below.
 - The network counts interfaces that leave the machine. Loopback, container veths, bridges and
   tunnels (`tailscale`, `tun`, `wg`) are left out, because each carries bytes a physical interface
   already counted or none that left. It is read through PID 1 because the agent has no network of
@@ -53,8 +58,8 @@ rather than a change of shape. Names are dotted, lowercase and spelled out.
   backwards was reset, and reads as zero rather than as a negative.
 
 What does not change while the machine is up is read once, as its info: the board's model from the
-device tree, the kernel release, the core count and each core's maximum frequency, total memory,
-swap and storage, and when it booted.
+device tree, the kernel release, the core count, each cluster's cores and maximum frequency, total
+memory, swap and storage, and when it booted.
 
 ## Retention
 
@@ -71,8 +76,8 @@ coarsest grain on disk, so a year is some twenty metrics times 8,760 rows, which
   open, and the same hour's rows are merged rather than replaced when it is written again after the
   restart. A gap -- the machine off -- simply closes what was open.
 - A series at the hour grain includes the open hour, so a chart reaches the present.
-- A metric is asked for by name or by a dotted prefix of it: `cpu.core` is every core's usage and
-  frequency. Asking for none is asking for all.
+- A metric is asked for by name or by a dotted prefix of it: `cpu.core` is every core's usage, and
+  `cpu.frequency` every cluster's clock. Asking for none is asking for all.
 
 ## Reached through a socket
 

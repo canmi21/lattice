@@ -44,6 +44,11 @@
 	} = $props();
 
 	const id = $props.id();
+	/**
+	 * How strong each line's fill is. Fills are layered, and several colors layered wash out toward
+	 * grey: one line keeps its gradient, two share it, and three or more are drawn as lines alone.
+	 */
+	const fill = $derived(lines.length === 1 ? 0.32 : lines.length === 2 ? 0.16 : 0);
 	let width = $state(0);
 	let pointer: number | undefined = $state();
 	let plot: SVGGElement | undefined = $state();
@@ -186,7 +191,7 @@
 			<defs>
 				{#each lines as line (line.key)}
 					<linearGradient id="{id}-{line.key}" x1="0" y1="0" x2="0" y2="1">
-						<stop offset="0%" style:stop-color={line.color} style:stop-opacity="0.32" />
+						<stop offset="0%" style:stop-color={line.color} style:stop-opacity={fill} />
 						<stop offset="100%" style:stop-color={line.color} style:stop-opacity="0" />
 					</linearGradient>
 				{/each}
@@ -220,10 +225,10 @@
 			{#key reveal}
 				<g bind:this={plot}>
 					{#each shapes as shape (shape.line.key)}
-						{#if shape.band}
-							<path d={shape.band} style:fill={shape.line.color} style:fill-opacity="0.12" />
+						{#if shape.band && fill > 0}
+							<path d={shape.band} style:fill={shape.line.color} style:fill-opacity={fill * 0.4} />
 						{/if}
-						<path d={shape.fill} fill="url(#{id}-{shape.line.key})" />
+						{#if fill > 0}<path d={shape.fill} fill="url(#{id}-{shape.line.key})" />{/if}
 						<path
 							d={shape.stroke}
 							fill="none"

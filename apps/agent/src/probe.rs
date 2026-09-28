@@ -62,8 +62,8 @@ pub struct Reading {
 	pub cpu: Times,
 	/// Indexed by the kernel's number for the core.
 	pub cores: Vec<Times>,
-	/// MHz, per core, where cpufreq says.
-	pub frequencies: Vec<Option<f64>>,
+	/// MHz, per cluster, named by the cluster's first core.
+	pub frequencies: Vec<(usize, f64)>,
 	pub load: [f64; 3],
 	pub memory: Memory,
 	/// Degrees Celsius, per thermal zone, named by its type.
@@ -80,14 +80,26 @@ pub struct Info {
 	pub model: Option<String>,
 	pub kernel: Option<String>,
 	pub cores: usize,
-	/// MHz, per core.
-	pub max_frequencies: Vec<Option<f64>>,
+	/// The cores that share a clock, which cpufreq calls a policy.
+	pub clusters: Vec<Cluster>,
 	pub memory: u64,
 	pub swap: u64,
 	/// Bytes, of the filesystem the agent's directory is on.
 	pub storage: Option<u64>,
 	/// Seconds since the epoch.
 	pub booted: Option<u64>,
+}
+
+/// Cores that run at one frequency, because cpufreq sets it for all of them at once: a big or a
+/// little cluster on a phone-class board, every core on most others. Read once per cluster, since a
+/// frequency read per core would be the same number several times over.
+#[derive(Debug, Clone, Default, PartialEq, serde::Serialize)]
+pub struct Cluster {
+	pub cores: Vec<usize>,
+	/// MHz at most.
+	pub max_frequency: Option<f64>,
+	#[serde(skip)]
+	directory: PathBuf,
 }
 
 fn read(path: impl AsRef<Path>) -> Option<String> {
@@ -223,9 +235,55 @@ fn temperatures(sys: &Path) -> Vec<(String, f64)> {
 	zones
 }
 
-fn frequency(sys: &Path, core: usize, file: &str) -> Option<f64> {
-	let path = sys.join(format!("devices/system/cpu/cpu{core}/cpufreq/{file}"));
+/// A cpufreq file's kHz, as MHz.
+fn megahertz(path: PathBuf) -> Option<f64> {
 	read(path)?.trim().parse::<f64>().ok().map(|khz| khz / 1000.0)
+}
+
+/// A kernel list of cores, `0 1 2 3` or `0-3,6`, as their numbers.
+pub fn core_list(text: &str) -> Vec<usize> {
+	text
+		.split(|c: char| c.is_whitespace() || c == ',')
+		.filter(|part| !part.is_empty())
+		.flat_map(|part| match part.split_once('-') {
+			Some((from, to)) => match (from.parse::<usize>(), to.parse::<usize>()) {
+				(Ok(from), Ok(to)) => (from..=to).collect(),
+				_ => Vec::new(),
+			},
+			None => part.parse().ok().into_iter().collect(),
+		})
+		.collect()
+}
+
+/// The machine's clusters, from cpufreq's policies; each core its own where there are none, as on
+/// an older kernel, and none where there is no cpufreq at all.
+fn clusters(sys: &Path, numbers: &[usize]) -> Vec<Cluster> {
+	let cpu = sys.join("devices/system/cpu");
+	let mut found: Vec<Cluster> = entries(&cpu.join("cpufreq"), "policy")
+		.into_iter()
+		.filter_map(|(_, directory)| {
+			let cores = core_list(&read(directory.join("related_cpus"))?);
+			(!cores.is_empty()).then(|| Cluster {
+				max_frequency: megahertz(directory.join("cpuinfo_max_freq")),
+				cores,
+				directory,
+			})
+		})
+		.collect();
+	if found.is_empty() {
+		found = numbers
+			.iter()
+			.map(|&core| (core, cpu.join(format!("cpu{core}/cpufreq"))))
+			.filter(|(_, directory)| directory.is_dir())
+			.map(|(core, directory)| Cluster {
+				cores: vec![core],
+				max_frequency: megahertz(directory.join("cpuinfo_max_freq")),
+				directory,
+			})
+			.collect();
+	}
+	found.sort_by_key(|cluster| cluster.cores.first().copied());
+	found
 }
 
 fn storage(path: &Path) -> Option<Storage> {
@@ -258,7 +316,13 @@ pub fn reading_at(roots: &Roots, at: f64) -> Reading {
 	Reading {
 		at,
 		cpu,
-		frequencies: numbers.iter().map(|&n| frequency(&roots.sys, n, "scaling_cur_freq")).collect(),
+		frequencies: clusters(&roots.sys, &numbers)
+			.into_iter()
+			.filter_map(|cluster| {
+				let now = megahertz(cluster.directory.join("scaling_cur_freq"))?;
+				Some((*cluster.cores.first()?, now))
+			})
+			.collect(),
 		cores,
 		load: load(&read(roots.proc.join("loadavg")).unwrap_or_default()),
 		memory: memory(&read(roots.proc.join("meminfo")).unwrap_or_default()),
@@ -282,10 +346,7 @@ pub fn info(roots: &Roots) -> Info {
 		model: text(roots.sys.join("firmware/devicetree/base/model")),
 		kernel: text(roots.proc.join("sys/kernel/osrelease")),
 		cores: numbers.len(),
-		max_frequencies: numbers
-			.iter()
-			.map(|&n| frequency(&roots.sys, n, "cpuinfo_max_freq"))
-			.collect(),
+		clusters: clusters(&roots.sys, &numbers),
 		memory: memory.total,
 		swap: memory.swap_total,
 		storage: roots.storage.as_deref().and_then(storage).map(|storage| storage.total),
@@ -343,7 +404,13 @@ veth12ab: 7777 1 0 0 0 0 0 0 7777 1 0 0 0 0 0 0
 		write(proc.join("1/net/dev"), NET_DEV);
 		write(proc.join("diskstats"), DISKSTATS);
 		write(proc.join("sys/kernel/osrelease"), "6.1.99\n");
-		write(sys.join("firmware/devicetree/base/model"), "FriendlyElec NanoPi R6S\0");
+		write(sys.join("firmware/devicetree/base/model"), "FriendlyElec NanoPi M5\0");
+		// Two cores that share one clock, as a policy; each also has the per-core directory an
+		// older kernel offers alone.
+		let policy = sys.join("devices/system/cpu/cpufreq/policy0");
+		write(policy.join("related_cpus"), "0 1\n");
+		write(policy.join("scaling_cur_freq"), "1800000\n");
+		write(policy.join("cpuinfo_max_freq"), "2400000\n");
 		for (core, (now, max)) in [(0, (1_800_000, 1_800_000)), (1, (408_000, 2_400_000))] {
 			let cpufreq = sys.join(format!("devices/system/cpu/cpu{core}/cpufreq"));
 			write(cpufreq.join("scaling_cur_freq"), &format!("{now}\n"));
@@ -399,19 +466,40 @@ veth12ab: 7777 1 0 0 0 0 0 0 7777 1 0 0 0 0 0 0
 		let (_root, roots) = machine(STAT);
 		let reading = reading_at(&roots, 10.0);
 		assert_eq!(reading.cores.len(), 2);
-		assert_eq!(reading.frequencies, [Some(1800.0), Some(408.0)]);
+		assert_eq!(reading.frequencies, [(0, 1800.0)]);
 		assert_eq!(reading.load, [0.5, 0.25, 0.1]);
 		assert_eq!(reading.temperatures, [("soc".to_owned(), 45.0), ("gpu".to_owned(), 41.5)]);
 		assert_eq!(reading.disk.inbound, 108 * 512);
 		assert!(reading.storage.is_some_and(|storage| storage.total > 0));
 
 		let info = info(&roots);
-		assert_eq!(info.model.as_deref(), Some("FriendlyElec NanoPi R6S"));
+		assert_eq!(info.model.as_deref(), Some("FriendlyElec NanoPi M5"));
 		assert_eq!(info.kernel.as_deref(), Some("6.1.99"));
 		assert_eq!(info.cores, 2);
-		assert_eq!(info.max_frequencies, [Some(1800.0), Some(2400.0)]);
+		assert_eq!(info.clusters.len(), 1);
+		assert_eq!(
+			(info.clusters[0].cores.clone(), info.clusters[0].max_frequency),
+			(vec![0, 1], Some(2400.0))
+		);
 		assert_eq!(info.booted, Some(1_780_000_000));
 		assert!(info.storage.is_some_and(|total| total > 0));
+	}
+
+	#[test]
+	fn reads_a_list_of_cores_either_way_the_kernel_writes_it() {
+		assert_eq!(core_list("0 1 2 3\n"), [0, 1, 2, 3]);
+		assert_eq!(core_list("0-3,6"), [0, 1, 2, 3, 6]);
+		assert!(core_list("").is_empty());
+	}
+
+	#[test]
+	fn without_policies_each_core_is_its_own_cluster() {
+		let (_root, roots) = machine(STAT);
+		std::fs::remove_dir_all(roots.sys.join("devices/system/cpu/cpufreq")).unwrap();
+		let reading = reading_at(&roots, 10.0);
+		assert_eq!(reading.frequencies, [(0, 1800.0), (1, 408.0)]);
+		let maxima: Vec<_> = info(&roots).clusters.iter().map(|c| c.max_frequency).collect();
+		assert_eq!(maxima, [Some(1800.0), Some(2400.0)]);
 	}
 
 	#[test]
