@@ -206,6 +206,13 @@ check it would be to pin it, and a device that makes itself a new one on an upda
 answering with nothing to say why. The hop is the LAN, between two machines in the same house, so
 what verification would guard against is not on the path.
 
+Such a device also believes it is at its own address. UniFi refuses a WebSocket whose `Origin` is not
+its own, so every live view of its interface failed behind the proxy while the pages themselves
+loaded. Caddy therefore rewrites `Origin` for these routes -- but only an `Origin` that is exactly
+the name it is served under, which becomes the device's own. Any other origin reaches the device
+unchanged, so the check the device makes against another site opening its socket in the author's
+browser still stands; it is translated, never switched off.
+
 **A name may send its root elsewhere.** An application whose interface lives under a path -- gemini's
 panel is under `/admin` -- is given a `home`, and a request for exactly `/` is redirected there with a
 307 while every other path reaches the application untouched. Caddy sends the root to `home` and no

@@ -30,17 +30,24 @@ struct Target {
 /// `host:port` is dialed as plain HTTP. `https://host[:port]` is a device on the LAN that speaks
 /// only TLS, under a certificate it signed itself -- the UniFi router is one -- so it is reached
 /// over TLS without verifying that certificate: pinning it would break whenever the device made a
-/// new one, and the hop never leaves the house. See spec/architecture/host.md.
-fn proxy(upstream: &str) -> Value {
+/// new one, and the hop never leaves the house. Such a device also expects to be at its own
+/// address, so a request whose `Origin` is the name it is served under -- `https://{name}`, exactly
+/// -- carries the device's own origin instead, and any other origin reaches it untouched for it to
+/// refuse. See spec/architecture/host.md.
+fn proxy(upstream: &str, name: &str) -> Value {
 	let Some(address) = upstream.strip_prefix("https://") else {
 		return json!({ "handler": "reverse_proxy", "upstreams": [{ "dial": upstream }] });
 	};
 	let address = address.trim_end_matches('/');
 	let dial = if address.contains(':') { address.to_owned() } else { format!("{address}:443") };
+	let own = format!("^https://{}$", name.replace('.', "\\."));
 	json!({
 		"handler": "reverse_proxy",
 		"upstreams": [{ "dial": dial }],
-		"transport": { "protocol": "http", "tls": { "insecure_skip_verify": true } }
+		"transport": { "protocol": "http", "tls": { "insecure_skip_verify": true } },
+		"headers": { "request": { "replace": { "Origin": [
+			{ "search_regexp": own, "replace": format!("https://{address}") }
+		]}}}
 	})
 }
 
@@ -54,7 +61,7 @@ fn named(host: String, target: &Target) -> Value {
 			"handle": [{ "handler": "static_response", "status_code": 307, "headers": { "Location": [home] } }]
 		}));
 	}
-	routes.push(json!({ "handle": [proxy(&target.dial)] }));
+	routes.push(json!({ "handle": [proxy(&target.dial, &host)] }));
 	json!({ "match": [{ "host": [host] }], "handle": [{ "handler": "subroute", "routes": routes }] })
 }
 
@@ -81,7 +88,7 @@ fn scopes(apps: &[Deployed]) -> Vec<Value> {
 				"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
 				"handle": [
 					{ "handler": "rewrite", "strip_path_prefix": format!("/{name}") },
-					proxy(&format!("{name}:{}", app.manifest.container.port)),
+					proxy(&format!("{name}:{}", app.manifest.container.port), name),
 				]
 			})
 		})
@@ -294,9 +301,20 @@ mod tests {
 		let rendered = text(&render(&config(), "host", &[], &[unifi]));
 		assert!(rendered.contains(r#""dial":"10.0.0.1:443""#));
 		assert!(rendered.contains(r#""tls":{"insecure_skip_verify":true}"#));
-		assert_eq!(text(&proxy("https://10.0.0.1:8443/")["upstreams"]), r#"[{"dial":"10.0.0.1:8443"}]"#);
-		// A plain upstream carries no transport at all.
-		assert!(proxy("10.0.0.21:80").get("transport").is_none());
+		assert_eq!(text(&proxy("https://10.0.0.1:8443/", "unifi.outside.test")["upstreams"]), r#"[{"dial":"10.0.0.1:8443"}]"#);
+		// A plain upstream carries no transport and no rewriting at all.
+		let plain = proxy("10.0.0.21:80", "nas.outside.test");
+		assert!(plain.get("transport").is_none() && plain.get("headers").is_none());
+	}
+
+	#[test]
+	fn only_the_names_own_origin_is_translated_for_a_device() {
+		let rendered = proxy("https://10.0.0.1", "unifi.outside.test");
+		let rule = &rendered["headers"]["request"]["replace"]["Origin"][0];
+		// Anchored at both ends and with its dots escaped, so neither a longer name nor a lookalike
+		// with any character in place of a dot is taken for this one.
+		assert_eq!(rule["search_regexp"], "^https://unifi\\.outside\\.test$");
+		assert_eq!(rule["replace"], "https://10.0.0.1");
 	}
 
 	#[test]
