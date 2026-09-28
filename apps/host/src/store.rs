@@ -29,7 +29,7 @@ pub struct Route {
 	pub private: bool,
 	pub public: bool,
 	/// Where a request for `/` is sent, for an application whose interface does not live at its
-	/// root: gemini's panel is at `/admin/`, and its name alone should open it.
+	/// root: gemini's panel is under `/admin`, and its name alone should open it.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub home: Option<String>,
 }

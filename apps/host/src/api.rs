@@ -178,9 +178,8 @@ async fn put_route(
 	if let Err(error) = manifest::check_name(&name) {
 		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
 	}
-	// `/` itself would send the root to the root, forever.
-	if body.home.as_deref().is_some_and(|home| !home.starts_with('/') || home == "/") {
-		return failed(StatusCode::UNPROCESSABLE_ENTITY, "`home` has to be a path other than `/`");
+	if body.home.as_deref().is_some_and(|home| !is_home(home)) {
+		return failed(StatusCode::UNPROCESSABLE_ENTITY, "`home` has to be a path on this site other than `/`");
 	}
 	let route = Route {
 		name,
@@ -201,6 +200,17 @@ async fn delete_route(State(host): State<Arc<Host>>, Path(name): Path<String>) -
 		Ok(false) => StatusCode::NOT_FOUND.into_response(),
 		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
 	}
+}
+
+/// Whether `home` stays on the name it is set for. `/` would send the root to itself forever; `//`
+/// and `/\` are read by a browser as another site entirely, which would make the name an open
+/// redirect; and a control character has no business in the `Location` it becomes.
+fn is_home(home: &str) -> bool {
+	home.starts_with('/')
+		&& home != "/"
+		&& !home.starts_with("//")
+		&& !home.starts_with("/\\")
+		&& !home.chars().any(char::is_control)
 }
 
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.
@@ -231,6 +241,17 @@ async fn routed(host: &Host) -> Response {
 
 #[cfg(test)]
 mod tests {
+	#[test]
+	fn a_home_stays_on_its_own_site() {
+		assert!(super::is_home("/admin"));
+		assert!(super::is_home("/admin/"));
+		assert!(!super::is_home("/"));
+		assert!(!super::is_home("admin"));
+		assert!(!super::is_home("//evil.example"));
+		assert!(!super::is_home("/\\evil.example"));
+		assert!(!super::is_home("/admin\r\nSet-Cookie: x=1"));
+	}
+
 	#[test]
 	fn a_token_matches_only_itself() {
 		assert!(super::same(b"secret", b"secret"));

@@ -38,7 +38,7 @@ fn named(host: String, target: &Target) -> Value {
 	if let Some(home) = &target.home {
 		routes.push(json!({
 			"match": [{ "path": ["/"] }],
-			"handle": [{ "handler": "static_response", "status_code": 302, "headers": { "Location": [home] } }]
+			"handle": [{ "handler": "static_response", "status_code": 307, "headers": { "Location": [home] } }]
 		}));
 	}
 	routes.push(json!({ "handle": [proxy(&target.dial)] }));
@@ -264,12 +264,12 @@ mod tests {
 			upstream: "gemini.test:8083".into(),
 			private: true,
 			public: true,
-			home: Some("/admin/".into()),
+			home: Some("/admin".into()),
 		};
 		let rendered = text(&render(&config(), "host", &[], &[gemini]));
 		assert!(rendered.contains(r#""match":[{"path":["/"]}]"#));
-		assert!(rendered.contains(r#""Location":["/admin/"]"#));
-		assert!(rendered.contains(r#""status_code":302"#));
+		assert!(rendered.contains(r#""Location":["/admin"]"#));
+		assert!(rendered.contains(r#""status_code":307"#));
 		// Everything past the root still reaches the application, on both sides.
 		assert_eq!(rendered.matches(r#""dial":"gemini.test:8083""#).count(), 2);
 	}

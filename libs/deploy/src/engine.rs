@@ -5,7 +5,8 @@
 use crate::manifest::Manifest;
 use bollard::Docker;
 use bollard::models::{
-	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, NetworkConnectRequest,
+	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType,
+	NetworkConnectRequest,
 	NetworkCreateRequest, RestartPolicy, RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
@@ -184,13 +185,22 @@ impl Engine {
 			RestartPolicy { name: Some(RestartPolicyNameEnum::UNLESS_STOPPED), ..Default::default() };
 		let (host_config, env) = match shape {
 			Shape::Sandboxed => {
-				let binds =
-					manifest.data.as_ref().map(|mount| vec![format!("{}:{}", data.display(), mount.path)]);
+				// A structured mount rather than a `source:target` string, which a target containing a
+				// colon could extend with options of its own.
+				let mounts = manifest.data.as_ref().map(|mount| {
+					vec![Mount {
+						source: Some(data.display().to_string()),
+						target: Some(mount.path.clone()),
+						typ: Some(MountType::BIND),
+						read_only: Some(false),
+						..Default::default()
+					}]
+				});
 				let memory =
 					i64::from(manifest.container.memory_mb.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
-					binds,
+					mounts,
 					restart_policy: Some(restart),
 					cap_drop: Some(vec!["ALL".into()]),
 					security_opt: Some(vec!["no-new-privileges".into()]),
