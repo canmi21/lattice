@@ -49,6 +49,13 @@ fn proxy(upstream: &str, name: &str) -> Value {
 	})
 }
 
+/// Compression for every answer Caddy passes on, so no app has to compress for itself; one that
+/// arrives encoded already is passed through. See spec/architecture/host.md, "Every name is
+/// compressed at Caddy, and no app compresses for itself".
+fn encode() -> Value {
+	json!({ "handler": "encode", "encodings": { "zstd": {}, "gzip": {} }, "prefer": ["zstd", "gzip"] })
+}
+
 /// One name, proxied to its upstream; a request for exactly `/` goes to the target's home first
 /// when it has one.
 fn named(host: String, target: &Target) -> Value {
@@ -59,7 +66,7 @@ fn named(host: String, target: &Target) -> Value {
 			"handle": [{ "handler": "static_response", "status_code": 307, "headers": { "Location": [home] } }]
 		}));
 	}
-	routes.push(json!({ "handle": [proxy(&target.dial, &host)] }));
+	routes.push(json!({ "handle": [encode(), proxy(&target.dial, &host)] }));
 	json!({ "match": [{ "host": [host] }], "handle": [{ "handler": "subroute", "routes": routes }] })
 }
 
@@ -93,6 +100,7 @@ fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 					"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
 					"handle": [
 						{ "handler": "rewrite", "strip_path_prefix": format!("/{name}") },
+						encode(),
 						proxy(&format!("{name}:{port}"), name),
 					]
 				}))
@@ -159,7 +167,7 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 		let dial = format!("keeper:{}", container.port);
 		outside.push(json!({
 			"match": [{ "host": [&name], "path": ["/notice"] }],
-			"handle": [proxy(&dial, &name)]
+			"handle": [encode(), proxy(&dial, &name)]
 		}));
 	}
 	outside.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
@@ -291,6 +299,24 @@ mod tests {
 		let first = &scopes(&[geo()], false)[0];
 		assert_eq!(first["match"][0]["path"][0], "/");
 		assert_eq!(first["handle"][0]["status_code"], 400);
+	}
+
+	#[test]
+	fn every_proxied_answer_is_compressed_first() {
+		let nas = Route {
+			name: "nas".into(),
+			upstream: "10.0.0.21:80".into(),
+			private: true,
+			public: true,
+			home: None,
+		};
+		let rendered = text(&render(&config(), "host", &[geo()], &[nas]));
+		let proxies = rendered.matches(r#""handler":"reverse_proxy""#).count();
+		assert_eq!(rendered.matches(r#""handler":"encode""#).count(), proxies);
+		assert!(
+			rendered
+				.contains(r#""handler":"encode","prefer":["zstd","gzip"]},{"handler":"reverse_proxy""#)
+		);
 	}
 
 	#[test]
