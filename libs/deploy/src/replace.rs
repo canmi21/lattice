@@ -40,7 +40,9 @@ pub async fn replace(
 	restore: Option<&Path>,
 ) -> Result<PathBuf, Error> {
 	let name = next.manifest.name.as_str();
-	engine.network(name, members).await?;
+	if shape.networked() {
+		engine.network(name, members).await?;
+	}
 	volumes.ensure(name).await?;
 
 	engine.archive(name, &volumes.logs(name)).await?;
@@ -50,7 +52,7 @@ pub async fn replace(
 		volumes.restore(name, restore).await?;
 	}
 	let checked = match engine.run(next, shape, &volumes.data(name)).await {
-		Ok(()) => healthy(engine, next).await,
+		Ok(()) => healthy(engine, next, &volumes.data(name)).await,
 		Err(error) => Err(error.to_string()),
 	};
 	let Err(reason) = checked else {
@@ -69,20 +71,26 @@ pub async fn replace(
 	Err(Error::Unhealthy { reason, logs })
 }
 
-/// Poll the declared path until it answers 2xx, the container exits, or the deadline passes.
-async fn healthy(engine: &Engine, version: &Version) -> Result<(), String> {
+/// Poll the declared path until it answers 2xx, the container exits, or the deadline passes. An app
+/// on a socket is asked there, in `data`, its directory as the machine sees it.
+async fn healthy(engine: &Engine, version: &Version, data: &Path) -> Result<(), String> {
 	let Some(container) = &version.manifest.container else {
 		return Err("the declaration has no container to check".into());
 	};
 	let deadline = container.health_timeout.map_or(DEFAULT_DEADLINE, Duration::from_secs);
-	let address = format!("{}:{}", version.manifest.name, container.port);
+	let socket = container.socket.as_ref().map(|socket| data.join(socket));
+	let address = format!("{}:{}", version.manifest.name, container.port.unwrap_or_default());
 	let started = tokio::time::Instant::now();
 	let mut last = String::from("no answer yet");
 	while started.elapsed() < deadline {
 		if !engine.running(&version.manifest.name).await.map_err(|e| e.to_string())? {
 			return Err("the container exited during its health check".into());
 		}
-		match crate::http::status(&address, &container.health).await {
+		let answered = match &socket {
+			Some(socket) => crate::http::status_unix(socket, &container.health).await,
+			None => crate::http::status(&address, &container.health).await,
+		};
+		match answered {
 			Ok(status) if (200..300).contains(&status) => return Ok(()),
 			Ok(status) => last = format!("{} answered {status}", container.health),
 			Err(error) => last = error.to_string(),

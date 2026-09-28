@@ -18,9 +18,10 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 
 - A name is a DNS label: lowercase letters, digits and hyphens.
 - Apps from this repository and images from elsewhere share the one namespace.
-- `host` and `keeper` are reserved for the two programs below, `api` for the API host, `gateway`
-  for the Worker answering it publicly, and `caddy` and `cloudflared` because a container's name is
-  the app's and those two already run.
+- `host` and `keeper` are reserved for the two programs below, `agent` for what samples the
+  machine ([agent.md](agent.md)), `api` for the API host, `gateway` for the Worker answering it
+  publicly, and `caddy` and `cloudflared` because a container's name is the app's and those two
+  already run.
 
 `.icu` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
@@ -161,10 +162,11 @@ it. So there are two programs, and each updates the other, never itself.
 - **host** deploys everything else, keeper included.
 
 **The platform's shape is chosen by name, never by a declaration.** host and keeper run privileged,
-with the Docker socket and the whole of `/data`, and every other app runs as the section on what a
-deployment may ask for describes. Which shape a container gets is decided by the program deploying
-it from the app's name -- `host` and `keeper`, and only those -- so no `service.toml` can ask for
-the platform's reach. Both start from the one `.env` in host's directory, which is why the token has
+with the Docker socket and the whole of `/data`; `agent` runs as an observer, which
+[agent.md](agent.md) describes; and every other app runs as the section on what a deployment may
+ask for describes. Which shape a container gets is decided by the program deploying it from the
+app's name -- `host`, `keeper` and `agent`, and only those -- so no `service.toml` can ask for the
+platform's reach. host deploys keeper and the agent; keeper deploys host. Both start from the one `.env` in host's directory, which is why the token has
 one home on the machine.
 
 **keeper keeps no state.** Every container carries the version it runs in a label, so keeper reads

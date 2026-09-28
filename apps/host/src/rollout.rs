@@ -53,26 +53,31 @@ pub struct Outcome {
 	pub routed: Result<(), String>,
 }
 
-/// Whether host takes a deploy under this name at all: any app's, and keeper, the one reserved
-/// name it deploys. host itself is keeper's to deploy.
+/// Whether host takes a deploy under this name at all: any app's, and keeper and the agent, the
+/// reserved names it deploys. host itself is keeper's to deploy.
 pub fn deployable(name: &str) -> Result<(), Invalid> {
-	if name == "keeper" { Ok(()) } else { deploy::manifest::check_name(name) }
+	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
+
+/// The platform's own that host deploys, each in the shape its name gives it.
+const TAKEN: [&str; 2] = ["keeper", "agent"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
 	deployable(requested)?;
-	if requested == "keeper" {
-		manifest.check_platform(requested, &host.config.node)?;
+	if TAKEN.contains(&requested) {
+		manifest.check_own(requested, &host.config.node)?;
 	} else {
 		manifest.check(requested, &host.config.node)?;
 	}
-	let Some(port) = manifest.container.as_ref().map(|container| container.port) else {
+	let Some(container) = manifest.container.as_ref() else {
 		return Err(deploy::manifest::Invalid::NoContainer(manifest.name.clone()).into());
 	};
+	// An app on a socket holds no port.
+	let Some(port) = container.port else { return Ok(()) };
 	let holder = host.store.apps()?.into_iter().find(|app| {
 		app.manifest.name != manifest.name
-			&& app.manifest.container.as_ref().map(|container| container.port) == Some(port)
+			&& app.manifest.container.as_ref().and_then(|container| container.port) == Some(port)
 	});
 	if let Some(holder) = holder {
 		return Err(Error::PortTaken { port, holder: holder.manifest.name });
@@ -80,8 +85,8 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	Ok(())
 }
 
-/// How the node runs an app: keeper in the platform's shape, and every other app sandboxed with its
-/// own environment.
+/// How the node runs an app: keeper in the platform's shape, the agent as an observer, and every
+/// other app sandboxed. Both of the last two read their own environment.
 fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	if name == "keeper" {
 		let path = &host.config.platform_env;
@@ -89,7 +94,8 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 			.map_err(|source| Error::Environment { path: path.display().to_string(), source })?;
 		return Ok(Shape::Platform { env });
 	}
-	Ok(Shape::Sandboxed { env: crate::environment::variables(&host.volumes.root(name))? })
+	let env = crate::environment::variables(&host.volumes.root(name))?;
+	Ok(if name == "agent" { Shape::Observer { env } } else { Shape::Sandboxed { env } })
 }
 
 /// The one step every action that runs a version shares: replace what runs with `next`, restoring
@@ -415,6 +421,7 @@ mod tests {
 		// keeper is reserved for every app and still deployable by host, which is the whole of how
 		// keeper arrives on a node; turning it away here once stopped the first one arriving.
 		assert!(deployable("keeper").is_ok());
+		assert!(deployable("agent").is_ok());
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
 	}

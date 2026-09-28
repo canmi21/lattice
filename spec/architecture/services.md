@@ -13,11 +13,11 @@ and nothing about the service.
 
 ## What a service stores decides how many places it can run
 
-| What it keeps                         | Placements                                    | For example                 |
-| ------------------------------------- | --------------------------------------------- | --------------------------- |
-| nothing                               | any number                                    | a pure transform            |
-| read-only data, shipped with it       | any number that can hold it, not Workers      | an IP lookup and its table  |
-| data that is written, in one place    | one                                           | the album; the API over D1  |
+| What it keeps                      | Placements                               | For example                |
+| ---------------------------------- | ---------------------------------------- | -------------------------- |
+| nothing                            | any number                               | a pure transform           |
+| read-only data, shipped with it    | any number that can hold it, not Workers | an IP lookup and its table |
+| data that is written, in one place | one                                      | the album; the API over D1 |
 
 This is a property of each service, not a limit of the platform. The site's API keeps its state
 in D1, which only Cloudflare reads well, so it has one placement until its storage moves. The `cdn`
@@ -57,12 +57,12 @@ is [firewall.md](firewall.md).
 
 ## A domain says who can reach it, not what is behind it
 
-| Name           | Who reaches it                                   | What goes there                     |
-| -------------- | ------------------------------------------------ | ----------------------------------- |
-| `canmi.net`    | everyone                                         | the site, and nothing else          |
-| `*.canmi.app`  | the author, from anywhere, through Access        | interfaces                          |
-| `ffoni.com`    | the public; whether a login is needed is per route | APIs                              |
-| `*.canmi.icu`  | the LAN and the tailnet only                     | everything, APIs included           |
+| Name          | Who reaches it                                     | What goes there            |
+| ------------- | -------------------------------------------------- | -------------------------- |
+| `canmi.net`   | everyone                                           | the site, and nothing else |
+| `*.canmi.app` | the author, from anywhere, through Access          | interfaces                 |
+| `ffoni.com`   | the public; whether a login is needed is per route | APIs                       |
+| `*.canmi.icu` | the LAN and the tailnet only                       | everything, APIs included  |
 
 **`canmi.net` is the site's alone.** Interfaces were under `*.canmi.net` at first and moved to
 `*.canmi.app`, so that the site's domain carries the site and nothing else. `canmi.app` was owned
@@ -113,8 +113,7 @@ tunnel's side and Caddy takes the scope off itself. `hook` is a scope like any o
 of its own.
 
 **A path with no scope is a 400, on both gateways.** Everything on the API host is under a scope, so
-a request without one is malformed rather than looking for something missing; an unknown scope is a
-404. The host's own address, `/`, is the one exception: it is somebody typing it, and the public
+a request without one is malformed rather than looking for something missing; an unknown scope is a 404. The host's own address, `/`, is the one exception: it is somebody typing it, and the public
 gateway sends them to the site with a 301 and `?ref=api` for the analytics. There is no fallback to the root: what addressed the site's API there stopped working when it
 moved to `/site/`, links in mail already sent included, and that was accepted rather than carried.
 
@@ -200,6 +199,12 @@ now and then find its number already taken by one of them.
 
 A service states its port in `service.toml`, and host refuses a second app declaring one already
 held, so the numbers stay distinct without a list anybody has to keep.
+
+**The one exception has no network at all, and answers on a socket instead.** A container states
+`port` or `socket`, exactly one: `socket` is a file name in the app's own directory, so the
+declaration has to mount one with `[data]`, and it cannot declare `[api]` or `[interface]`, since
+Caddy has no port to reach. host checks its health on that socket. Only the agent is shaped to run
+without a network, see [agent.md](agent.md).
 
 ## One door per node
 

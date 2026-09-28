@@ -14,8 +14,13 @@ pub struct Roots {
 }
 
 impl Roots {
+	/// The machine's, at `AGENT_PROC` and `AGENT_SYS` where the observer shape mounts them, and at
+	/// their usual places without.
 	pub fn system(storage: Option<PathBuf>) -> Self {
-		Self { proc: "/proc".into(), sys: "/sys".into(), storage }
+		let at = |name: &str, default: &str| {
+			std::env::var_os(name).map_or_else(|| PathBuf::from(default), PathBuf::from)
+		};
+		Self { proc: at("AGENT_PROC", "/proc"), sys: at("AGENT_SYS", "/sys"), storage }
 	}
 }
 

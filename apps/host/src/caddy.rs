@@ -95,7 +95,7 @@ fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 			.filter(|app| app.manifest.api.as_ref().is_some_and(|api| !public || api.public))
 			.filter_map(|app| {
 				let name = &app.manifest.name;
-				let port = app.manifest.container.as_ref()?.port;
+				let port = app.manifest.container.as_ref()?.port?;
 				Some(json!({
 					"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
 					"handle": [
@@ -130,7 +130,7 @@ fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> V
 			.filter_map(|app| {
 				Some(Target {
 					name: app.manifest.name.clone(),
-					dial: format!("{}:{}", app.manifest.name, app.manifest.container.as_ref()?.port),
+					dial: format!("{}:{}", app.manifest.name, app.manifest.container.as_ref()?.port?),
 					home: None,
 				})
 			}),
@@ -162,9 +162,9 @@ pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Rout
 	// keeper's one path on the tunnel's side: the Worker reaches it there with a notice, and its
 	// interface stays private. See spec/architecture/host.md, "keeper has its own intake".
 	let keeper = apps.iter().find(|app| app.manifest.name == "keeper");
-	if let Some(container) = keeper.and_then(|keeper| keeper.manifest.container.as_ref()) {
+	if let Some(port) = keeper.and_then(|keeper| keeper.manifest.container.as_ref()?.port) {
 		let name = format!("keeper.{public}");
-		let dial = format!("keeper:{}", container.port);
+		let dial = format!("keeper:{port}");
 		outside.push(json!({
 			"match": [{ "host": [&name], "path": ["/notice"] }],
 			"handle": [encode(), proxy(&dial, &name)]

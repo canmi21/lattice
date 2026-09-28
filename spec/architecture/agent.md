@@ -6,6 +6,22 @@ an AI agent: the name is the one monitoring has always used for the small thing 
 machine being watched. host itself stays out of this: it holds the Docker socket and the panel, and
 a sampler that stalled or leaked inside it would take both down with it.
 
+## Run beside the machine, not inside it
+
+**A container, in a shape of its own that its name chooses: the observer.** It is sandboxed as any
+app is -- no capabilities, a read-only root, its own directory, a memory ceiling -- with three
+differences, and host gives them to the name `agent` and to nothing else:
+
+- **No network.** Not even the app network Caddy shares; it is reached on its socket, below.
+- **The machine's PIDs.** So PID 1 is the machine's, and its network namespace is the one the
+  network counters are read from.
+- **The machine's `/proc` and `/sys`, read-only, at `/host/proc` and `/host/sys`.** Its own `/sys`
+  would not do: Docker masks `/sys/firmware`, where the board names itself. The image points the
+  agent at the two with `AGENT_PROC` and `AGENT_SYS`.
+
+It is built and deployed as geo is, from its `service.toml`, by CI and by host; being reserved,
+the name cannot be taken by an app, and host is the only one that deploys it.
+
 ## Metrics
 
 **A sample is flat: one number per named metric.** Keeping, summarizing and drawing are then the

@@ -101,7 +101,7 @@ pub struct Fetched {
 /// same rule as any other name before anything is done with it.
 pub fn app_of(artifact: &str) -> Option<String> {
 	let app = artifact.strip_prefix(PREFIX)?;
-	let named = crate::manifest::check_name(app).is_ok() || crate::manifest::PLATFORM.contains(&app);
+	let named = crate::manifest::check_name(app).is_ok() || crate::manifest::OWN.contains(&app);
 	named.then(|| app.to_owned())
 }
 

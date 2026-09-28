@@ -9,14 +9,14 @@ use std::ops::RangeInclusive;
 /// sense of a newer file; a key an older host can ignore is not a bump. See spec/json.md.
 pub const VERSION: u32 = 1;
 
-/// Names taken by the platform itself: its two programs, the API host and the Worker answering it,
-/// and the infrastructure containers an app's container name would collide with.
-const RESERVED: [&str; 6] = ["host", "keeper", "api", "gateway", "caddy", "cloudflared"];
+/// Names taken by the platform itself: its two programs, the agent that watches the machine, the
+/// API host and the Worker answering it, and the containers an app's name would collide with.
+const RESERVED: [&str; 7] = ["host", "keeper", "agent", "api", "gateway", "caddy", "cloudflared"];
 
-/// The two programs of the platform, which each deploy the other and which alone run in the
-/// platform's shape. See spec/architecture/host.md, "host never updates itself; keeper updates
-/// host".
-pub const PLATFORM: [&str; 2] = ["host", "keeper"];
+/// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
+/// keeper, which each deploy the other, and the agent. See spec/architecture/host.md, "host never
+/// updates itself; keeper updates host", and spec/architecture/agent.md.
+pub const OWN: [&str; 3] = ["host", "keeper", "agent"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -44,7 +44,13 @@ pub struct Manifest {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Container {
-	pub port: u16,
+	/// Where it answers over its network. A container answers on a port or on a socket, never both.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub port: Option<u16>,
+	/// A socket file in its own directory, for a container with no network; see
+	/// spec/architecture/agent.md, "Reached through a socket".
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub socket: Option<String>,
 	pub health: String,
 	/// Seconds a new version has to report healthy before the deploy is called failed.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
@@ -101,6 +107,12 @@ pub enum Invalid {
 	NoContainer(String),
 	#[error("port {0} is outside {start}-{end}", start = PORTS.start(), end = PORTS.end())]
 	Port(u16),
+	#[error("a container answers on a port or on a socket, exactly one of the two")]
+	Answer,
+	#[error("a socket is a file name in the app's own directory, which `[data]` has to mount")]
+	Socket,
+	#[error("an app on a socket has no port for an API or an interface to reach")]
+	Unroutable,
 	#[error("the health path has to start with `/`")]
 	Health,
 	#[error("the data path has to be absolute")]
@@ -132,9 +144,9 @@ impl Manifest {
 		self.check_rest(requested, node)
 	}
 
-	/// The same, for one of the platform's own programs, whose names are otherwise reserved.
-	pub fn check_platform(&self, requested: &str, node: &str) -> Result<(), Invalid> {
-		if !PLATFORM.contains(&requested) {
+	/// The same, for one of the platform's own, whose names are otherwise reserved.
+	pub fn check_own(&self, requested: &str, node: &str) -> Result<(), Invalid> {
+		if !OWN.contains(&requested) {
 			return Err(Invalid::Name(requested.into()));
 		}
 		self.check_rest(requested, node)
@@ -150,8 +162,19 @@ impl Manifest {
 		let Some(container) = &self.container else {
 			return Err(Invalid::NoContainer(self.name.clone()));
 		};
-		if !PORTS.contains(&container.port) {
-			return Err(Invalid::Port(container.port));
+		match (container.port, &container.socket) {
+			(Some(port), None) if !PORTS.contains(&port) => return Err(Invalid::Port(port)),
+			(Some(_), None) => {}
+			(None, Some(socket)) => {
+				let file = !socket.is_empty() && !socket.contains('/') && socket != "." && socket != "..";
+				if !file || self.data.is_none() {
+					return Err(Invalid::Socket);
+				}
+				if self.api.is_some() || self.interface.is_some() {
+					return Err(Invalid::Unroutable);
+				}
+			}
+			_ => return Err(Invalid::Answer),
 		}
 		if !container.health.starts_with('/') {
 			return Err(Invalid::Health);
@@ -234,21 +257,47 @@ mod tests {
 	}
 
 	#[test]
-	fn only_the_two_platform_programs_pass_the_platform_check() {
+	fn only_the_platforms_own_pass_its_own_check() {
 		let mut manifest = Manifest::parse(GEO).unwrap();
 		manifest.name = "keeper".into();
-		assert_eq!(manifest.check_platform("keeper", "home"), Ok(()));
+		assert_eq!(manifest.check_own("keeper", "home"), Ok(()));
 		// The ordinary check still refuses the name, so no app can be sent as keeper.
 		assert_eq!(manifest.check("keeper", "home"), Err(Invalid::Reserved("keeper".into())));
+		assert_eq!(check_name("agent"), Err(Invalid::Reserved("agent".into())));
 		manifest.name = "api".into();
-		assert_eq!(manifest.check_platform("api", "home"), Err(Invalid::Name("api".into())));
+		assert_eq!(manifest.check_own("api", "home"), Err(Invalid::Name("api".into())));
 	}
 
 	#[test]
 	fn a_default_port_is_refused() {
 		let mut manifest = Manifest::parse(GEO).unwrap();
-		manifest.container.as_mut().unwrap().port = 8080;
+		manifest.container.as_mut().unwrap().port = Some(8080);
 		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Port(8080)));
+	}
+
+	#[test]
+	fn a_container_answers_on_a_port_or_a_socket() {
+		let socketed = |extra: &str| {
+			Manifest::parse(&format!(
+				"version = 1\nname = \"probe\"\nplacements = [\"home\"]\n{extra}\n[container]\nhealth = \"/health\"\nsocket = \"probe.sock\"\n[data]\npath = \"/data\"\n"
+			))
+			.unwrap()
+		};
+		assert_eq!(socketed("").check("probe", "home"), Ok(()));
+		let mut both = socketed("");
+		both.container.as_mut().unwrap().port = Some(20000);
+		assert_eq!(both.check("probe", "home"), Err(Invalid::Answer));
+		let mut neither = socketed("");
+		neither.container.as_mut().unwrap().socket = None;
+		assert_eq!(neither.check("probe", "home"), Err(Invalid::Answer));
+		let mut nested = socketed("");
+		nested.container.as_mut().unwrap().socket = Some("../probe.sock".into());
+		assert_eq!(nested.check("probe", "home"), Err(Invalid::Socket));
+		let mut homeless = socketed("");
+		homeless.data = None;
+		assert_eq!(homeless.check("probe", "home"), Err(Invalid::Socket));
+		let routed = socketed("[api]\npublic = false");
+		assert_eq!(routed.check("probe", "home"), Err(Invalid::Unroutable));
 	}
 
 	#[test]
@@ -271,8 +320,8 @@ mod tests {
 			let manifest = Manifest::parse(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
 			let node = manifest.placements.iter().find(|placement| *placement != WORKERS);
 			if let Some(node) = node {
-				let checked = if PLATFORM.contains(&manifest.name.as_str()) {
-					manifest.check_platform(&manifest.name, node)
+				let checked = if OWN.contains(&manifest.name.as_str()) {
+					manifest.check_own(&manifest.name, node)
 				} else {
 					manifest.check(&manifest.name, node)
 				};

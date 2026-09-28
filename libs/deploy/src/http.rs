@@ -1,5 +1,5 @@
-//! The two requests the platform makes itself: a health check over a container network, and a load
-//! through Caddy's admin socket. One connection each, HTTP/1.1, nothing kept open.
+//! The requests the platform makes itself: a health check over a container network or an app's
+//! socket, and a load through Caddy's admin socket. One connection each, HTTP/1.1, none kept.
 
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
@@ -44,6 +44,17 @@ pub async fn status(address: &str, path: &str) -> Result<u16, Error> {
 	let attempt = async {
 		let stream = tokio::net::TcpStream::connect(address).await.map_err(Error::Connect)?;
 		let request = Request::get(path).header("host", address).body(Full::new(Bytes::new()))?;
+		send(stream, request).await
+	};
+	let (status, _) = tokio::time::timeout(ATTEMPT, attempt).await.map_err(|_| Error::Timeout)??;
+	Ok(status)
+}
+
+/// The status an app with no network answers `path` with on its socket.
+pub async fn status_unix(socket: &Path, path: &str) -> Result<u16, Error> {
+	let attempt = async {
+		let stream = tokio::net::UnixStream::connect(socket).await.map_err(Error::Connect)?;
+		let request = Request::get(path).header("host", "localhost").body(Full::new(Bytes::new()))?;
 		send(stream, request).await
 	};
 	let (status, _) = tokio::time::timeout(ATTEMPT, attempt).await.map_err(|_| Error::Timeout)??;

@@ -183,7 +183,7 @@ async fn from_archive(
 	archive: &Path,
 ) -> Result<String, Reply> {
 	let replaced = async {
-		if let Err(error) = manifest.check_platform("host", &keeper.node) {
+		if let Err(error) = manifest.check_own("host", &keeper.node) {
 			return Err(Reply(
 				StatusCode::UNPROCESSABLE_ENTITY,
 				"invalid_declaration",

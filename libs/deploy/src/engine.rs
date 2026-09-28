@@ -49,7 +49,21 @@ pub enum Shape {
 	/// host and keeper only: privileged, the Docker socket, the whole of `/data`, and the
 	/// environment of the node's one `.env`.
 	Platform { env: Vec<String> },
+	/// The agent only: sandboxed as any app, but with no network, the machine's PIDs, and the
+	/// machine's `/proc` and `/sys` read-only under `/host`. See spec/architecture/agent.md, "Run
+	/// beside the machine, not inside it".
+	Observer { env: Vec<String> },
 }
+
+impl Shape {
+	/// Whether it runs on the app's own network, which Caddy and host join; the agent has none.
+	pub fn networked(&self) -> bool {
+		!matches!(self, Shape::Observer { .. })
+	}
+}
+
+/// Where the observer shape puts the machine's two kernel filesystems.
+pub const OBSERVED: [(&str, &str); 2] = [("/proc", "/host/proc"), ("/sys", "/host/sys")];
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -186,35 +200,44 @@ impl Engine {
 		// is a slower machine rather than a limit. See spec/architecture/host.md.
 		let declared = manifest.container.as_ref().and_then(|container| container.memory_mb);
 		let memory = i64::from(declared.unwrap_or(DEFAULT_MEMORY_MB)) * 1024 * 1024;
+		// A structured mount rather than a `source:target` string, which a target containing a colon
+		// could extend with options of its own.
+		let bind = |source: String, target: String, read_only: bool| Mount {
+			source: Some(source),
+			target: Some(target),
+			typ: Some(MountType::BIND),
+			read_only: Some(read_only),
+			..Default::default()
+		};
+		let own = manifest
+			.data
+			.as_ref()
+			.map(|mount| bind(data.display().to_string(), mount.path.clone(), false));
+		let sandboxed = |mounts: Vec<Mount>| HostConfig {
+			network_mode: Some(network_of(name)),
+			mounts: Some(mounts),
+			restart_policy: Some(restart.clone()),
+			cap_drop: Some(vec!["ALL".into()]),
+			security_opt: Some(vec!["no-new-privileges".into()]),
+			readonly_rootfs: Some(true),
+			tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
+			memory: Some(memory),
+			memory_swap: Some(memory),
+			pids_limit: Some(512),
+			init: Some(true),
+			log_config: Some(logs.clone()),
+			..Default::default()
+		};
 		let (host_config, env) = match shape {
-			Shape::Sandboxed { env } => {
-				// A structured mount rather than a `source:target` string, which a target containing a
-				// colon could extend with options of its own.
-				let mounts = manifest.data.as_ref().map(|mount| {
-					vec![Mount {
-						source: Some(data.display().to_string()),
-						target: Some(mount.path.clone()),
-						typ: Some(MountType::BIND),
-						read_only: Some(false),
-						..Default::default()
-					}]
-				});
+			Shape::Sandboxed { env } => (sandboxed(own.into_iter().collect()), env.clone()),
+			Shape::Observer { env } => {
+				let observed = OBSERVED.iter().map(|(from, to)| bind((*from).into(), (*to).into(), true));
 				let config = HostConfig {
-					network_mode: Some(network_of(name)),
-					mounts,
-					restart_policy: Some(restart),
-					cap_drop: Some(vec!["ALL".into()]),
-					security_opt: Some(vec!["no-new-privileges".into()]),
-					readonly_rootfs: Some(true),
-					tmpfs: Some(HashMap::from([("/tmp".into(), "rw,noexec,nosuid,size=64m".into())])),
-					memory: Some(memory),
-					memory_swap: Some(memory),
-					pids_limit: Some(512),
-					init: Some(true),
-					log_config: Some(logs),
-					..Default::default()
+					network_mode: Some("none".into()),
+					pid_mode: Some("host".into()),
+					..sandboxed(own.into_iter().chain(observed).collect())
 				};
-				(config, Some(env.clone()))
+				(config, env.clone())
 			}
 			Shape::Platform { env } => {
 				let config = HostConfig {
@@ -231,19 +254,19 @@ impl Engine {
 					log_config: Some(logs),
 					..Default::default()
 				};
-				(config, Some(env.clone()))
+				(config, env.clone())
 			}
 		};
 		let recorded = serde_json::to_string(version).unwrap_or_default();
 		let body = ContainerCreateBody {
 			image: Some(version.image.clone()),
-			env,
+			env: Some(env),
 			labels: Some(HashMap::from([
 				("host.app".into(), name.clone()),
 				(VERSION_LABEL.into(), recorded),
 			])),
 			host_config: Some(host_config),
-			networking_config: Some(bollard::models::NetworkingConfig {
+			networking_config: shape.networked().then(|| bollard::models::NetworkingConfig {
 				endpoints_config: Some(HashMap::from([(network_of(name), EndpointSettings::default())])),
 			}),
 			..Default::default()

@@ -6,7 +6,7 @@
 import type { ApiResponse } from '@canmi/response';
 
 export interface Version {
-	manifest: { name: string; container?: { port: number; memory_mb?: number } };
+	manifest: { name: string; container?: { port?: number; socket?: string; memory_mb?: number } };
 	image: string;
 }
 
