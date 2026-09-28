@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { developmentUrl, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
-import { type Env, gateway } from './index.ts';
+import { type Env, gateway, MARK } from './index.ts';
 import { POLICIES, type Policy } from './policy.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, scopeTable, WORKERS } from './table.ts';
@@ -246,6 +246,13 @@ describe('the gateway', () => {
 		expect((await ask('/site/like', env, { method: 'PUT' })).status).toBe(200);
 	});
 
+	it('marks what it passes on as public, over whatever the caller claimed', async () => {
+		const { fetcher, seen } = binding();
+		await ask('/geo/address', { HOME: fetcher }, { headers: { [MARK.name]: 'internal' } });
+		await ask('/site/stats', { SITE: binding().fetcher });
+		expect(seen[0]?.headers.get(MARK.name)).toBe(MARK.value);
+	});
+
 	it('refuses rather than skips a limit whose binding is missing', async () => {
 		const { fetcher } = binding();
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
@@ -276,5 +283,52 @@ describe("geo's policy", () => {
 		const health = await app.fetch(new Request(`${HOST}/geo/health`, { headers }), env);
 		expect(health.status).toBe(200);
 		expect(health.headers.get('access-control-allow-origin')).toBe('*');
+	});
+});
+
+describe("shot's policy", () => {
+	const app = gateway({ shot: { placement: 'home', binding: 'HOME' } }, POLICIES);
+	const headers = { 'cf-connecting-ip': '192.0.2.1' };
+
+	it('refuses `internal` from the public, whatever its value, before the service or a limit', async () => {
+		const { fetcher, seen } = binding();
+		const counted: string[] = [];
+		const env = {
+			HOME: fetcher,
+			SHOT_LIMIT: {
+				limit: async ({ key }: { key: string }) => (counted.push(key), { success: true }),
+			},
+		};
+		for (const query of ['internal=true', 'internal=false', 'internal', 'url=a&internal=1']) {
+			const answer = await app.fetch(
+				new Request(`${HOST}/shot/capture?${query}`, { headers }),
+				env,
+			);
+			expect(answer.status, query).toBe(403);
+			expect(await answer.json()).toMatchObject({ code: 'forbidden_parameter' });
+		}
+		const status = await app.fetch(new Request(`${HOST}/shot/abc?internal=true`, { headers }), env);
+		expect(status.status).toBe(403);
+		expect(seen).toHaveLength(0);
+		expect(counted).toHaveLength(0);
+	});
+
+	it('limits starting a capture, and neither asking after one nor fetching it', async () => {
+		const asked: string[] = [];
+		const env = {
+			HOME: binding().fetcher,
+			SHOT_LIMIT: {
+				limit: async ({ key }: { key: string }) => (asked.push(key), { success: false }),
+			},
+		};
+		const start = await app.fetch(
+			new Request(`${HOST}/shot/capture?url=https://a.test`, { headers }),
+			env,
+		);
+		expect(start.status).toBe(429);
+		for (const path of ['/shot/0e6f', '/shot/0e6f.png', '/shot/0e6f.webp']) {
+			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
+		}
+		expect(asked).toEqual(['192.0.2.1']);
 	});
 });

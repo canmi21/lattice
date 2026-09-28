@@ -1,0 +1,21 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "shot"
+placements = ["home"]
+
+[container]
+# 1920 is the width a screen is most often, and the port ends in the zero every service here does.
+port = 19200
+health = "/health"
+# A browser and the pages it holds open: two at a time, each a few hundred MiB at their worst.
+memory_mb = 1536
+
+# Where captures wait out their five minutes. See spec/architecture/shot.md.
+[data]
+path = "/data"
+
+# The `shot` scope of the API host: public through the gateway, which refuses `internal` there and
+# limits how often one address asks. See spec/architecture/shot.md.
+[api]
+public = true

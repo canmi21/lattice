@@ -20,6 +20,13 @@ import { type Scope, WORKERS } from './table.ts';
 /** Every binding a scope or a limit names, read by name and checked at the one place it is used. */
 export type Env = Readonly<Record<string, unknown>>;
 
+/**
+ * The header every request the gateway passes on carries, set here whatever the caller sent, so a
+ * service can tell the public from our own callers, who reach it without the gateway. See
+ * spec/architecture/services.md, "The gateway marks what it passes on".
+ */
+export const MARK = { name: 'x-gateway', value: 'public' } as const;
+
 /** The public suffix a node's Caddy answers the API host under on its tunnel's side. */
 const NODE_API = `api.${new URL(URLS.internal.app).hostname}`;
 
@@ -109,6 +116,9 @@ export function gateway(
 		const target = scopes[scope] as Scope;
 		const policy = Object.hasOwn(policies, scope) ? (policies[scope] as Policy) : {};
 		const address = c.req.header('cf-connecting-ip');
+		if ((policy.forbidden ?? []).some((name) => url.searchParams.has(name))) {
+			return failure(403, 'forbidden_parameter');
+		}
 		if (
 			!(await within(policy.limits ?? [], c.env, { method: c.req.method, path: rest, address }))
 		) {
@@ -127,6 +137,7 @@ export function gateway(
 			forwarded.host = NODE_API;
 		}
 		const request = new Request(forwarded, c.req.raw);
+		request.headers.set(MARK.name, MARK.value);
 		// The machine at home can be off, or its tunnel down; either is the service being out of
 		// reach, which is what the caller is told, in the envelope, rather than a proxy's page.
 		let answer: Response;

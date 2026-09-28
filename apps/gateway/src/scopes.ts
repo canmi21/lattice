@@ -11,6 +11,10 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 		binding: 'HOOK',
 		worker: 'hook',
 	},
+	shot: {
+		placement: 'home',
+		binding: 'HOME',
+	},
 	site: {
 		placement: 'workers',
 		binding: 'SITE',

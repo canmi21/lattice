@@ -126,6 +126,20 @@ is answered at the gateway without reaching the service, and a scope with no ori
 browser no CORS at all. The policy lives in TypeScript rather than in `service.toml` because it
 names origins, and every URL is declared once in libs/urls.
 
+**A parameter the public may not send is refused at the gateway.** A policy lists query parameters
+it forbids, and a request carrying one is answered `403 forbidden_parameter` before it is counted
+against a limit or reaches the service: what a service offers our own callers alone -- `shot`'s
+`internal` -- is closed where the public comes in, and tested there.
+
+### The gateway marks what it passes on
+
+**Every request the gateway forwards carries `x-gateway: public`, set over whatever the caller
+sent.** The public reaches a node's services through the gateway and nowhere else, so a request
+without the mark came from the LAN, the tailnet or one of our Workers over VPC -- the three callers
+that ask `api.canmi.icu` or `api.canmi.app` directly. A service that treats our own calls
+differently reads the mark rather than an address; it cannot be forged from outside, because the
+gateway overwrites it. It is the second lock behind a forbidden parameter, not a replacement for it.
+
 **A limit is a row in one format, wherever it is enforced.** It names methods and a path, so it can
 be as narrow as one route, and one whose binding is missing refuses rather than letting everything
 through; libs/limits is the format and its check. The gateway applies it to what reaches a scope
@@ -169,9 +183,11 @@ person: one line of English, objective, short without being curt, opening with a
 without a stop. Each code has a default message in the catalogue, so a refusal names its code and a
 moment with something more exact to say -- a port and who holds it -- says it instead.
 
-**A code is one of three families.** `no_such_*` for something asked for by a name or an id that
-does not exist, `invalid_*` for a request that is malformed, and `*_unavailable` for something that
-could not be reached or read at this moment. `rate_limited` is the one code outside them.
+**A code is one of four families.** `no_such_*` for something asked for by a name or an id that
+does not exist, `invalid_*` for a request that is malformed, `*_unavailable` for something that
+could not be reached or read at this moment, and `forbidden_*` for a request that is well formed and
+refused to this caller -- a 403, where `invalid_*` is a 400. `rate_limited` is the one code outside
+them.
 
 **What faces the public says nothing about the inside.** A message a stranger can read names no
 path, no internal error and no secret; a failure inside is logged in full and answered with its

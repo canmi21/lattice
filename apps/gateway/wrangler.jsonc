@@ -19,6 +19,7 @@
 	// The limits src/policy.ts names.
 	"ratelimits": [
 		{ "name": "GEO_LIMIT", "namespace_id": "959379525", "simple": { "limit": 60, "period": 60 } },
+		{ "name": "SHOT_LIMIT", "namespace_id": "959379526", "simple": { "limit": 3, "period": 60 } },
 	],
 
 	// The Caddy of the machine at home, the same VPC service `hook` notifies through.
@@ -47,6 +48,11 @@
 					"name": "GEO_LIMIT",
 					"namespace_id": "959379525",
 					"simple": { "limit": 60, "period": 60 },
+				},
+				{
+					"name": "SHOT_LIMIT",
+					"namespace_id": "959379526",
+					"simple": { "limit": 3, "period": 60 },
 				},
 			],
 		},

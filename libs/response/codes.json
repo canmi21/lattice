@@ -4,6 +4,7 @@
 	"caddy_unavailable": "Caddy did not take the configuration",
 	"client_address_unavailable": "The caller's address is needed and was not given",
 	"docker_unavailable": "Docker did not answer",
+	"forbidden_parameter": "This parameter is not accepted through the public API",
 	"github_unavailable": "This node has no GitHub token to read runs with",
 	"invalid_address": "This is not an address this host serves",
 	"invalid_body": "The body is not one this route reads",

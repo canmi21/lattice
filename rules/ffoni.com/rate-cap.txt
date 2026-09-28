@@ -1,2 +1,2 @@
-(http.request.uri.path wildcard "/geo/*" or http.request.uri.path wildcard "/site/*")
+(http.request.uri.path wildcard "/geo/*" or http.request.uri.path wildcard "/shot/*" or http.request.uri.path wildcard "/site/*")
 and not cf.client.bot

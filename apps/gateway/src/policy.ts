@@ -14,6 +14,11 @@ export interface Policy {
 	readonly origin?: (origin: string, request: Request) => string | null;
 	/** Limits by the caller's address, on the path as the service sees it. */
 	readonly limits?: readonly Limit[];
+	/**
+	 * Query parameters the public may not send, refused with a 403 before the service sees them:
+	 * what a service offers our own callers alone.
+	 */
+	readonly forbidden?: readonly string[];
 }
 
 /**
@@ -27,5 +32,12 @@ export const POLICIES: Readonly<Record<string, Policy>> = {
 	geo: {
 		origin: () => '*',
 		limits: [{ methods: ['GET', 'HEAD'], path: '/address', limiter: 'GEO_LIMIT' }],
+	},
+	// Screenshots: a capture costs the machine seconds of a browser, so one address may start three a
+	// minute, while asking after one and fetching it are free. `internal` reaches the LAN, which is
+	// ours alone. See spec/architecture/shot.md.
+	shot: {
+		limits: [{ methods: ['GET', 'HEAD'], path: '/capture', limiter: 'SHOT_LIMIT' }],
+		forbidden: ['internal'],
 	},
 };
