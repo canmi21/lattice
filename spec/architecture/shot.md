@@ -10,14 +10,23 @@ nothing: a capture lives five minutes on disk and is gone.
 **Starting a capture answers at once, and the picture comes later.** A browser takes seconds, so
 nothing waits on it:
 
-| Request                                           | Answer                                                               |
-| ------------------------------------------------- | -------------------------------------------------------------------- |
-| `GET /shot/capture?host=&…`, `POST /shot/capture` | `202 { id, state, retry_after }`, or `200` when it is already done   |
-| `GET /shot/<id>`                                  | `202` while queued or rendering, `200 { id, state, png, webp }` done |
-| `GET /shot/<id>.png`, `GET /shot/<id>.webp`       | the picture itself, `Cache-Control: max-age=900`                     |
+**One question a route**: whether a capture was taken, how it stands, whether its picture is there.
+Each tells its own and nothing of the others'.
+
+| Request                                                       | Answer                                                                                       |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after, task }`: `queued`, `rendering` or `done`, nothing more |
+| `GET /shot/tasks/<id>`                                        | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done    |
+| `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said          |
+
+- **A capture asked for again answers the same way** whether it waits or is done: one flow for the
+  caller, who reads what it found from the task. One that failed is queued afresh.
+- **A picture is there or it is not.** Waiting, failed and forgotten are the task's to tell apart,
+  so a picture asked for early is `404 no_such_picture`, said `no-store` so that no cache on the way
+  holds it past the moment the picture is made.
 
 - Every route is under `/shot/`, the bare scope included, because the zone's firewall admits a
-  scope's paths by that prefix; a UUID is never `capture`.
+  scope's paths by that prefix.
 - **The page is its parts, never one address inside another:** `scheme`, `http` or `https`, and
   `https` when absent; `host`, a name or an address, IPv6 with or without its brackets; `port`, the
   scheme's own when absent; `path` and `hash`, each optional and without the mark that opens it;
@@ -53,12 +62,13 @@ nothing waits on it:
   below.
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
   than what the viewport shows.
-- Every answer but the picture is the envelope, and says `no-store`. A capture that failed is
+- Every answer but the picture is the envelope, and says `no-store`, but a done task: it may be
+  kept until the capture is forgotten, and says so in `max-age`. A task that failed is
   `502 page_unavailable` with why, in the browser's words; one expired or never made is
-  `404 no_such_shot`; a full queue is `503 queue_unavailable` with `Retry-After`.
-- **The addresses in an answer are relative** -- `Location: <id>`, `png: "<id>.png"` -- because the
-  service does not know the scope it is reached under; resolved against the address asked, they
-  land beside it.
+  `404 no_such_task`; a full queue is `503 queue_unavailable` with `Retry-After`.
+- **The addresses in an answer are relative** -- `Location: tasks/<id>` beside `capture`,
+  `png: "../pictures/<id>.png"` beside the task -- because the service does not know the scope it
+  is reached under; resolved against the address asked, they land where they should.
 - **An id is a random UUID**, so a picture cannot be found by guessing what somebody else asked
   for. The same parameters while a capture of them is kept get the same id, and are not captured
   twice.
@@ -70,8 +80,7 @@ nothing waits on it:
 
 ## What an answer tells
 
-**An answer about a capture tells its story as well as its state**, the same to the public as to
-us: the public reaches public addresses alone, so nothing in it is ours to hide.
+**A done task tells the capture's story as well as its state**, the same to the public as to us: the public reaches public addresses alone, so nothing in it is ours to hide.
 
 - `task`: `asked_at`, `started_at`, `finished_at` and `expires_at`, as RFC 3339 instants, and
   `queued_ms` and `rendered_ms` between them. Asked again after failing, a capture's story starts
@@ -110,7 +119,8 @@ on".
   refuses it with a 403 -- as a query parameter, or as a key anywhere in a JSON body -- and `shot`
   ignores it on a marked request as well. Without it a capture reaches public addresses alone.
 - The public starts three captures a minute from one address, by GET and POST together, at the
-  gateway; asking after one and fetching it are not counted. Cloudflare's zone rate rule is the floor under that.
+  gateway; asking after one and fetching it are not counted. Cloudflare's zone rate rule is the
+  floor under that.
 
 ## Kept on disk, five minutes
 

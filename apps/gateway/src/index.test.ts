@@ -328,7 +328,10 @@ describe("shot's policy", () => {
 			expect(answer.status, query).toBe(403);
 			expect(await answer.json()).toMatchObject({ code: 'forbidden_parameter' });
 		}
-		const status = await app.fetch(new Request(`${HOST}/shot/abc?internal=true`, { headers }), env);
+		const status = await app.fetch(
+			new Request(`${HOST}/shot/tasks/abc?internal=true`, { headers }),
+			env,
+		);
 		expect(status.status).toBe(403);
 		expect(seen).toHaveLength(0);
 		expect(allowing.asked).toHaveLength(0);
@@ -370,7 +373,11 @@ describe("shot's policy", () => {
 			env,
 		);
 		expect(start.status).toBe(429);
-		for (const path of ['/shot/0e6f', '/shot/0e6f.png', '/shot/0e6f.webp']) {
+		for (const path of [
+			'/shot/tasks/0e6f',
+			'/shot/pictures/0e6f.png',
+			'/shot/pictures/0e6f.webp',
+		]) {
 			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
 		}
 		expect(refused.asked.map((asked) => asked.name)).toEqual([

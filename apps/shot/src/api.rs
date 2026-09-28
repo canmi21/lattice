@@ -1,5 +1,6 @@
-//! What `shot` answers, under the scope the gateway and Caddy take off: `/capture` to ask, `/<id>`
-//! to ask after one, `/<id>.png` and `/<id>.webp` for the picture, which alone is not the envelope.
+//! What `shot` answers, under the scope the gateway and Caddy take off, one question a route:
+//! `/capture` whether it was taken, `/tasks/<id>` how it stands and all it found, and
+//! `/pictures/<id>.png` or `.webp` whether the picture is there, which alone is not the envelope.
 //! See spec/architecture/shot.md, "Asking for one".
 
 use crate::asked::{Asked, Query, Refused};
@@ -27,7 +28,8 @@ pub fn routes<R: Render>(shot: Arc<Shot<R>>) -> Router {
 	Router::new()
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
 		.route("/capture", get(capture_get::<R>).post(capture_post::<R>))
-		.route("/{file}", get(file::<R>))
+		.route("/tasks/{id}", get(task::<R>))
+		.route("/pictures/{file}", get(picture::<R>))
 		.fallback(|| async { settled(response::failure(StatusCode::NOT_FOUND, "no_such_route")) })
 		.with_state(shot)
 }
@@ -91,7 +93,7 @@ fn capture<R: Render>(
 		}
 		Ok(id) => {
 			shot.wake();
-			about(id, shot.about(id))
+			taken(id, shot.about(id))
 		}
 	}
 }
@@ -127,37 +129,54 @@ fn story(details: &Details) -> (serde_json::Value, serde_json::Value) {
 	(task, request)
 }
 
-/// What a capture is now, in the envelope. Addresses in it are relative, since this service does
-/// not know the scope it is reached under: `<id>` beside `capture`, `<id>.png` beside `<id>`.
-fn about(id: Uuid, known: Option<(View, Details)>) -> Response {
-	let Some((view, details)) = known else {
-		return settled(response::failure(StatusCode::NOT_FOUND, "no_such_shot"));
+/// That a capture was taken, and where to ask after it: its state and nothing it found, which is
+/// the task's to tell. Addresses are relative, since this service does not know the scope it is
+/// reached under: `tasks/<id>` beside `capture`.
+fn taken(id: Uuid, known: Option<(View, Details)>) -> Response {
+	let (state, retry_after) = match known.map(|(view, _)| view) {
+		Some(View::Waiting { rendering, retry_after }) => {
+			(if rendering { "rendering" } else { "queued" }, retry_after)
+		}
+		Some(View::Done { .. }) => ("done", 0),
+		// Asking again queues a failed capture afresh, so none is failed here; said all the same.
+		Some(View::Failed { .. }) | None => ("failed", 0),
 	};
-	let (task, request) = story(&details);
-	let answer = match view {
+	let task = format!("tasks/{id}");
+	let body =
+		serde_json::json!({ "id": id, "state": state, "retry_after": retry_after, "task": task });
+	let mut answer = response::success(StatusCode::ACCEPTED, body);
+	let headers = answer.headers_mut();
+	if retry_after > 0 {
+		headers.insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
+	}
+	if let Ok(location) = HeaderValue::from_str(&task) {
+		headers.insert(header::LOCATION, location);
+	}
+	settled(answer)
+}
+
+/// How a capture stands: `202` while it waits or renders, `200` with all it found once done, which
+/// may be kept until the capture is forgotten. Pictures are `../pictures/<id>.png` beside it.
+async fn task<R: Render>(State(shot): State<Arc<Shot<R>>>, Path(id): Path<String>) -> Response {
+	let known = Uuid::parse_str(&id).ok().and_then(|id| Some((id, shot.about(id)?)));
+	let Some((id, (view, details))) = known else {
+		return settled(response::failure(StatusCode::NOT_FOUND, "no_such_task"));
+	};
+	match view {
 		View::Waiting { rendering, retry_after } => {
 			let state = if rendering { "rendering" } else { "queued" };
-			let body = serde_json::json!({
-				"id": id,
-				"state": state,
-				"retry_after": retry_after,
-				"task": task,
-				"request": request,
-			});
+			let body = serde_json::json!({ "id": id, "state": state, "retry_after": retry_after });
 			let mut answer = response::success(StatusCode::ACCEPTED, body);
-			let headers = answer.headers_mut();
-			headers.insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
-			if let Ok(location) = HeaderValue::from_str(&id.to_string()) {
-				headers.insert(header::LOCATION, location);
-			}
-			answer
+			answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
+			settled(answer)
 		}
 		View::Done { made } => {
+			let (task, request) = story(&details);
 			let mut body = serde_json::json!({
 				"id": id,
 				"state": "done",
-				"png": format!("{id}.png"),
-				"webp": made.pictures.webp_bytes.map(|_| format!("{id}.webp")),
+				"png": format!("../pictures/{id}.png"),
+				"webp": made.pictures.webp_bytes.map(|_| format!("../pictures/{id}.webp")),
 				"task": task,
 				"request": request,
 				"pictures": made.pictures,
@@ -168,32 +187,46 @@ fn about(id: Uuid, known: Option<(View, Details)>) -> Response {
 			{
 				body.extend(observed);
 			}
-			response::success(StatusCode::OK, body)
+			let mut answer = response::success(StatusCode::OK, body);
+			let left = details
+				.finished_at
+				.and_then(|at| at.checked_add(crate::queue::KEPT).ok())
+				.map(|expires| expires.duration_since(jiff::Timestamp::now()).as_secs())
+				.filter(|seconds| *seconds > 0);
+			match left
+				.and_then(|seconds| HeaderValue::from_str(&format!("public, max-age={seconds}")).ok())
+			{
+				Some(control) => {
+					answer.headers_mut().insert(header::CACHE_CONTROL, control);
+					answer
+				}
+				None => settled(answer),
+			}
 		}
 		View::Failed { reason } => {
-			response::failure_with(StatusCode::BAD_GATEWAY, "page_unavailable", reason)
+			settled(response::failure_with(StatusCode::BAD_GATEWAY, "page_unavailable", reason))
 		}
-	};
-	settled(answer)
+	}
 }
 
-/// `/<id>` for how a capture stands, `/<id>.png` or `/<id>.webp` for the picture.
-async fn file<R: Render>(State(shot): State<Arc<Shot<R>>>, Path(file): Path<String>) -> Response {
-	let (name, format) = match file.rsplit_once('.') {
-		Some((name, extension)) => match Format::from_extension(extension) {
-			Some(format) => (name, Some(format)),
-			None => return about(Uuid::nil(), None),
-		},
-		None => (file.as_str(), None),
+/// The picture, or that there is none: waiting, failed and forgotten are the task's to tell apart.
+async fn picture<R: Render>(
+	State(shot): State<Arc<Shot<R>>>,
+	Path(file): Path<String>,
+) -> Response {
+	let found = file.rsplit_once('.').and_then(|(name, extension)| {
+		Some((Uuid::parse_str(name).ok()?, Format::from_extension(extension)?))
+	});
+	let bytes = match found {
+		Some((id, format)) => shot.store.read(id, format).await.map(|bytes| (format, bytes)),
+		None => None,
 	};
-	let Ok(id) = Uuid::parse_str(name) else { return about(Uuid::nil(), None) };
-	let Some(format) = format else { return about(id, shot.about(id)) };
-	match shot.store.read(id, format).await {
-		Some(bytes) => {
+	match bytes {
+		Some((format, bytes)) => {
 			([(header::CONTENT_TYPE, format.media_type()), (header::CACHE_CONTROL, PICTURE_CACHE)], bytes)
 				.into_response()
 		}
-		None => about(id, None),
+		None => settled(response::failure(StatusCode::NOT_FOUND, "no_such_picture")),
 	}
 }
 
@@ -273,18 +306,37 @@ mod tests {
 		let body = first.json();
 		assert_eq!(body["data"]["state"], "queued");
 		let id = body["data"]["id"].as_str().unwrap().to_owned();
-		assert_eq!(first.headers[header::LOCATION], id.as_str());
+		assert_eq!(first.headers[header::LOCATION], format!("tasks/{id}"));
+		assert_eq!(body["data"]["task"], format!("tasks/{id}"));
 		assert_eq!(first.headers[header::RETRY_AFTER], "5");
 		assert_eq!(first.headers[header::CACHE_CONTROL], "no-store");
+		// Taking it tells nothing of what it will find.
+		assert!(body["data"].get("request").is_none() && body["data"].get("page").is_none());
+		// Waiting: the task says so, and the picture is simply not there.
+		let waiting = ask(&router, &format!("/tasks/{id}"), true).await;
+		assert_eq!(waiting.status, StatusCode::ACCEPTED);
+		assert_eq!(waiting.json()["data"]["state"], "queued");
+		assert_eq!(waiting.headers[header::CACHE_CONTROL], "no-store");
+		let early = ask(&router, &format!("/pictures/{id}.png"), true).await;
+		assert_eq!(
+			(early.status, early.json()["code"].clone()),
+			(StatusCode::NOT_FOUND, "no_such_picture".into())
+		);
+		assert_eq!(early.headers[header::CACHE_CONTROL], "no-store");
 		// Asked again before it is done: the same capture.
 		let again = ask(&router, "/capture?host=example.test&width=390", true).await;
 		assert_eq!(again.json()["data"]["id"], id.as_str());
 
 		drain(&shot).await;
-		let done = ask(&router, &format!("/{id}"), true).await;
+		let done = ask(&router, &format!("/tasks/{id}"), true).await;
 		assert_eq!(done.status, StatusCode::OK);
-		assert_eq!(done.json()["data"]["png"], format!("{id}.png"));
-		assert_eq!(done.json()["data"]["webp"], format!("{id}.webp"));
+		assert_eq!(done.json()["data"]["png"], format!("../pictures/{id}.png"));
+		assert_eq!(done.json()["data"]["webp"], format!("../pictures/{id}.webp"));
+		let control = done.headers[header::CACHE_CONTROL].to_str().unwrap().to_owned();
+		assert!(
+			control.starts_with("public, max-age=2") || control == "public, max-age=300",
+			"{control}"
+		);
 		let data = done.json()["data"].clone();
 		assert_eq!(data["pictures"]["width"], 390);
 		assert_eq!(data["pictures"]["png_bytes"], 3);
@@ -293,18 +345,18 @@ mod tests {
 		assert!(data["task"]["rendered_ms"].is_i64() && data["task"]["expires_at"].is_string());
 		assert_eq!(data["page"]["title"], "Fake");
 		for (extension, media) in [("png", "image/png"), ("webp", "image/webp")] {
-			let picture = ask(&router, &format!("/{id}.{extension}"), true).await;
+			let picture = ask(&router, &format!("/pictures/{id}.{extension}"), true).await;
 			assert_eq!(picture.status, StatusCode::OK);
 			assert_eq!(picture.headers[header::CONTENT_TYPE], media);
 			assert_eq!(picture.headers[header::CACHE_CONTROL], PICTURE_CACHE);
 			assert_eq!(picture.body, extension.as_bytes());
 		}
-		// Done, asking again answers with it straight away.
+		// Done, asking again says so, and still only where to look.
 		let cached = ask(&router, "/capture?host=example.test&width=390", false).await;
-		assert_eq!(
-			(cached.status, cached.json()["data"]["id"].clone()),
-			(StatusCode::OK, id.clone().into())
-		);
+		let data = cached.json()["data"].clone();
+		assert_eq!((cached.status, data["id"].clone()), (StatusCode::ACCEPTED, id.clone().into()));
+		assert_eq!((data["state"].clone(), data["retry_after"].clone()), ("done".into(), 0.into()));
+		assert!(cached.headers.get(header::RETRY_AFTER).is_none() && data.get("png").is_none());
 	}
 
 	#[tokio::test]
@@ -316,10 +368,13 @@ mod tests {
 			.to_owned();
 		drain(&shot).await;
 		assert_eq!(
-			ask(&router, &format!("/{id}"), false).await.json()["data"]["webp"],
+			ask(&router, &format!("/tasks/{id}"), false).await.json()["data"]["webp"],
 			serde_json::Value::Null
 		);
-		assert_eq!(ask(&router, &format!("/{id}.webp"), false).await.status, StatusCode::NOT_FOUND);
+		assert_eq!(
+			ask(&router, &format!("/pictures/{id}.webp"), false).await.status,
+			StatusCode::NOT_FOUND
+		);
 	}
 
 	#[tokio::test]
@@ -330,16 +385,19 @@ mod tests {
 			.unwrap()
 			.to_owned();
 		drain(&shot).await;
-		let failed = ask(&router, &format!("/{id}"), false).await;
+		let failed = ask(&router, &format!("/tasks/{id}"), false).await;
 		assert_eq!(failed.status, StatusCode::BAD_GATEWAY);
 		assert_eq!(failed.json()["code"], "page_unavailable");
 		assert_eq!(failed.json()["message"], "net::ERR_NAME_NOT_RESOLVED");
-
+		assert_eq!(
+			ask(&router, &format!("/pictures/{id}.png"), false).await.status,
+			StatusCode::NOT_FOUND
+		);
 		shot.sweep(Instant::now() + crate::queue::KEPT).await;
-		let gone = ask(&router, &format!("/{id}"), false).await;
+		let gone = ask(&router, &format!("/tasks/{id}"), false).await;
 		assert_eq!(
 			(gone.status, gone.json()["code"].clone()),
-			(StatusCode::NOT_FOUND, "no_such_shot".into())
+			(StatusCode::NOT_FOUND, "no_such_task".into())
 		);
 	}
 
@@ -351,10 +409,13 @@ mod tests {
 			("/capture?scheme=file&host=x.test", "invalid_url"),
 			("/capture?host=a.test&width=10", "invalid_viewport"),
 			("/capture?host=a.test&delay=11", "invalid_timing"),
-			("/not-an-id", "no_such_shot"),
-			("/not-an-id.png", "no_such_shot"),
-			("/00000000-0000-0000-0000-000000000000.gif", "no_such_shot"),
-			("/00000000-0000-0000-0000-000000000000.png", "no_such_shot"),
+			("/tasks/not-an-id", "no_such_task"),
+			("/tasks/00000000-0000-0000-0000-000000000000", "no_such_task"),
+			("/pictures/not-an-id.png", "no_such_picture"),
+			("/pictures/00000000-0000-0000-0000-000000000000", "no_such_picture"),
+			("/pictures/00000000-0000-0000-0000-000000000000.gif", "no_such_picture"),
+			("/pictures/00000000-0000-0000-0000-000000000000.png", "no_such_picture"),
+			("/00000000-0000-0000-0000-000000000000", "no_such_route"),
 		];
 		for (path, code) in cases {
 			let answer = ask(&router, path, false).await;
@@ -391,7 +452,7 @@ mod tests {
 
 	#[tokio::test]
 	async fn a_post_asks_what_the_same_get_asks() {
-		let (_root, _shot, router) = service();
+		let (_root, shot, router) = service();
 		let got =
 			ask(&router, "/capture?host=x.test&path=docs&query.tag=a&query.tag=b&width=390", false).await;
 		let posted = post(
@@ -401,7 +462,10 @@ mod tests {
 		.await;
 		assert_eq!(posted.status, StatusCode::ACCEPTED);
 		assert_eq!(posted.json()["data"]["id"], got.json()["data"]["id"]);
-		assert_eq!(posted.json()["data"]["request"]["url"], "https://x.test/docs?tag=a&tag=b");
+		drain(&shot).await;
+		let id = posted.json()["data"]["id"].as_str().unwrap().to_owned();
+		let task = ask(&router, &format!("/tasks/{id}"), false).await.json();
+		assert_eq!(task["data"]["request"]["url"], "https://x.test/docs?tag=a&tag=b");
 		for broken in ["not json", r#"{"url":"https://x.test"}"#, r#"{"viewport":{"width":"wide"}}"#] {
 			let answer = post(&router, broken).await;
 			assert_eq!(
