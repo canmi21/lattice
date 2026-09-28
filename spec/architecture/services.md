@@ -131,7 +131,7 @@ names origins, and every URL is declared once in libs/urls.
 be as narrow as one route, and one whose binding is missing refuses rather than letting everything
 through; libs/limits is the format and its check. The gateway applies it to what reaches a scope
 through the gateway. Routes that only a Worker's own pages call never pass the gateway, so that
-Worker applies the same rows itself -- the site's are `libs/site-api/src/limits.ts`.
+Worker applies the same rows itself -- the site's are `apps/site/api/src/limits.ts`.
 
 **A limit that is business logic stays with the service.** The read counter's per-article minute
 does not refuse anyone -- the reader still gets the count, only the increment is withheld -- so it
@@ -228,7 +228,7 @@ host is ever sent one. `site`, `cdn`, `aka` and `hook` are declared this way.
 ## The site's API runs in the site's Worker
 
 The site's pages and its API are one Worker, `site`. The API's routes are a Hono app in
-`libs/site-api`, and the site's `hooks.server.ts` hands it the requests that are its own before
+`apps/site/api`, and the site's `hooks.server.ts` hands it the requests that are its own before
 SvelteKit reads a path as a page's. Two doors reach it:
 
 - **The site's pages ask it on their own origin, under `/api/`.** During server rendering SvelteKit
@@ -238,7 +238,7 @@ SvelteKit reads a path as a page's. Two doors reach it:
 - **The public routes are the `site` scope of the API host.** The gateway binds the `site` Worker
   and sends it `/api/{route}` under the API host's name, which a request can carry only by coming
   through that binding: Cloudflare picks the Worker by the host. The Worker serves those names
-  alone -- `PUBLIC_ROUTES` in `libs/site-api/src/routes.ts`, today `media` and `asset`, which the
+  alone -- `PUBLIC_ROUTES` in `apps/site/api/src/routes.ts`, today `media` and `asset`, which the
   alias layer reads. The declaration says where it answers with `[api] prefix = "/api"`, which only
   a Workers placement may carry, since a node's Caddy forwards a scope to a container's root.
 
@@ -260,6 +260,13 @@ streams. So the site imports `@canmi/site-api` through `src/boundary.d.ts`, the 
 something that answers a request -- and the API's own tests hold the real app to that declaration;
 see workspace.md, "A runtime's globals decide which program checks a file".
 
+**It lives in the site, beside `src/` rather than inside it.** `apps/site/api` is the site's own code
+and sits in the site's directory, as a package of its own because its type program is not the
+site's: inside `src/` it would be checked against the browser's globals. Nor is it a SvelteKit
+route -- a `+server.ts` is in `src/` too, and would give up the Hono app, the addresses by contract and
+the limits the API answers through. It was `libs/site-api` for a while, which put the site's API
+among code every app may take, and it is nobody's but the site's.
+
 **In development the records come off the disk.** The API reads the records tree through the
 fetcher the store takes, which `wrangler dev` used to hand over as assets. The site's assets are its
 own build and Vite runs in node, so the site reads the tree itself, in development only.
@@ -268,7 +275,7 @@ own build and Vite runs in node, so the site reads the tree itself, in developme
 
 In production a page asks for a route at `/api/{address}`, twelve hex digits of a SHA-256 over the
 route's name and its contract: the schemas its answer and request are read by, taken as data, and a
-revision for whatever of its shape no schema describes. `libs/site-api/src/contracts.ts` holds the
+revision for whatever of its shape no schema describes. `apps/site/api/src/contracts.ts` holds the
 contracts, and the site's build states every address to the pages and to the Worker in one
 `define`, so the two agree by construction. Development asks by the route's name, and a production
 Worker answers a name with a 404.

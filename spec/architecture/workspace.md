@@ -205,7 +205,7 @@ tooltips and surrounding statistics use the same surfaces as the rest of the sit
 
 Type checking runs three times, over three programs: [tsconfig.json](../../tsconfig.json) for the
 browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the Workers and the libraries only they run -- `libs/store`, `libs/site-api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
+for the Workers and the code only they run -- `libs/store`, the site's API in `apps/site/api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
 the node programs under an app's `scripts/`.
 
 The split is forced rather than chosen. `@cloudflare/workers-types` declares its own

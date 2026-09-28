@@ -533,7 +533,7 @@ importers:
         version: link:../../libs/security
       '@canmi/site-api':
         specifier: workspace:*
-        version: link:../../libs/site-api
+        version: link:api
       '@canmi/theme':
         specifier: workspace:*
         version: link:../../libs/theme
@@ -721,6 +721,49 @@ importers:
       wrangler:
         specifier: ^4.131.1
         version: 4.136.1(@cloudflare/workers-types@5.20260922.1)(@types/node@26.6.2)
+
+  apps/site/api:
+    dependencies:
+      '@canmi/artifacts':
+        specifier: workspace:*
+        version: link:../../../libs/artifacts
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../../../libs/cache
+      '@canmi/limits':
+        specifier: workspace:*
+        version: link:../../../libs/limits
+      '@canmi/locales':
+        specifier: workspace:*
+        version: link:../../../libs/locales
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../../libs/response
+      '@canmi/store':
+        specifier: workspace:*
+        version: link:../../../libs/store
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@cloudflare/workers-types@5.20260922.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.11.1)(kysely@0.28.17)
+      hono:
+        specifier: ^4.13.7
+        version: 4.13.8
+      valibot:
+        specifier: ^1.5.0
+        version: 1.5.0(typescript@7.0.2)
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20260911.1
+        version: 5.20260922.1
+      '@types/node':
+        specifier: ^26.5.1
+        version: 26.6.2
+      drizzle-kit:
+        specifier: ^0.31.10
+        version: 0.31.10
+      miniflare:
+        specifier: 5.20260908.0-alpha
+        version: 5.20260908.0-alpha
 
   libs/artifacts:
     dependencies:
@@ -977,49 +1020,6 @@ importers:
       '@canmi/urls':
         specifier: workspace:*
         version: link:../urls
-
-  libs/site-api:
-    dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../artifacts
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../cache
-      '@canmi/limits':
-        specifier: workspace:*
-        version: link:../limits
-      '@canmi/locales':
-        specifier: workspace:*
-        version: link:../locales
-      '@canmi/response':
-        specifier: workspace:*
-        version: link:../response
-      '@canmi/store':
-        specifier: workspace:*
-        version: link:../store
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(@cloudflare/workers-types@5.20260922.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.11.1)(kysely@0.28.17)
-      hono:
-        specifier: ^4.13.7
-        version: 4.13.8
-      valibot:
-        specifier: ^1.5.0
-        version: 1.5.0(typescript@7.0.2)
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^5.20260911.1
-        version: 5.20260922.1
-      '@types/node':
-        specifier: ^26.5.1
-        version: 26.6.2
-      drizzle-kit:
-        specifier: ^0.31.10
-        version: 0.31.10
-      miniflare:
-        specifier: 5.20260908.0-alpha
-        version: 5.20260908.0-alpha
 
   libs/store:
     dependencies:
