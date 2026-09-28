@@ -30,7 +30,7 @@
 	"invalid_size": "The object is too large for this",
 	"invalid_slug": "A slug is needed",
 	"invalid_target": "Host does not act on itself; keeper replaces it",
-	"invalid_timing": "Timeout is 1 to 30 seconds and delay 1 to 10, each to one decimal place",
+	"invalid_timing": "Timeout is 1 to 30 seconds and delay 0.1 to 10, each to one decimal place",
 	"invalid_token": "The token is missing or wrong",
 	"invalid_upload": "An upload is the part service, then the part image",
 	"invalid_url": "A capture needs a host, a scheme of http or https, and each part of the address alone",

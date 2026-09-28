@@ -19,7 +19,7 @@ zone are few enough to paste.
 | Rate Cap          | [rules/canmi.net/rate-cap.txt](../../rules/canmi.net/rate-cap.txt)                   | canmi.net, 150 in 10 s                  | --    |
 | Rate Cap          | [rules/ill.li/rate-cap.txt](../../rules/ill.li/rate-cap.txt)                         | ill.li, 150 in 10 s                     | --    |
 | Rate Cap          | [rules/canmi.app/rate-cap.txt](../../rules/canmi.app/rate-cap.txt)                   | canmi.app, 300 in 10 s                  | --    |
-| Rate Cap          | [rules/ffoni.com/rate-cap.txt](../../rules/ffoni.com/rate-cap.txt)                   | ffoni.com, 30 in 10 s                   | --    |
+| Rate Cap          | [rules/ffoni.com/rate-cap.txt](../../rules/ffoni.com/rate-cap.txt)                   | ffoni.com, 50 in 10 s                   | --    |
 
 **The folder is where a rule is pasted.** `rules/all/` goes into every zone and each other folder is
 named for its zone, since a rule on this plan belongs to one zone; the name is `all` rather than
@@ -68,11 +68,15 @@ carrier's NAT, so the figures catch floods rather than readers:
 - **ill.li, 150.** An article's pictures are asked for through the alias layer, dozens a page.
 - **canmi.app, 300.** One person, through Access, behind interfaces -- the router's, the NAS's -- that
   ask for a great deal at once.
-- **ffoni.com, 30, on the API's public scopes alone.** The zone holds the API host and the CDN, and
-  the path is the only way to tell them apart: `/geo/` and `/site/` are counted and the CDN's
-  prefixes are not, since a page of photographs is a hundred requests. `/hook/` is GitHub's, rare,
-  and from addresses GitHub shares. Thirty is three times what `geo`'s own limit at the gateway,
-  sixty a minute, lets through, so the rule only ever meets a flood.
+- **ffoni.com, 50, on every scoped path but the CDN's.** The zone holds the API host and the CDN,
+  and the path is the only way to tell them apart. Every path two segments deep is counted, so a
+  new scope is counted without being named. The CDN's groups -- `/object/`, `/derive/`, `/proxy/`
+  -- are left out, since a page of photographs is a hundred requests, but not its old `/github/`,
+  a redirect only old links reach; and so is `/hook/`, GitHub's, rare and from addresses GitHub
+  shares. The rule is a floor against floods, not a limit on use: each scope's own limit is the
+  gateway's, `geo` sixty a minute and `shot` three captures a minute, and fifty in ten seconds
+  leaves room for a page asking several scopes at once, or a caller asking after a capture. What
+  it leaves out is held by `mise run rules` to the CDN's groups and the webhook.
 
 ## How an expression is written
 

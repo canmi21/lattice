@@ -14,8 +14,8 @@ pub const DEFAULT_HEIGHT: u32 = 800;
 pub const TIMEOUTS: std::ops::RangeInclusive<u32> = 1_000..=30_000;
 pub const DEFAULT_TIMEOUT: u32 = 15_000;
 /// How long to wait once it has loaded before the picture is taken, in milliseconds. Unasked, a
-/// moment for what the load event set going to draw; asked, a second at the least.
-pub const DELAYS: std::ops::RangeInclusive<u32> = 1_000..=10_000;
+/// moment for what the load event set going to draw.
+pub const DELAYS: std::ops::RangeInclusive<u32> = 100..=10_000;
 pub const DEFAULT_DELAY: u32 = 210;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -235,9 +235,9 @@ mod tests {
 				.unwrap();
 		assert_eq!((asked.timeout, asked.delay), (2_500, 10_000));
 		let asked =
-			Asked::read(&query(&[("host", "x.test"), ("timeout", "30.0"), ("delay", "1")]), false)
+			Asked::read(&query(&[("host", "x.test"), ("timeout", "30.0"), ("delay", "0.1")]), false)
 				.unwrap();
-		assert_eq!((asked.timeout, asked.delay), (30_000, 1_000));
+		assert_eq!((asked.timeout, asked.delay), (30_000, 100));
 		for (name, value) in [
 			("timeout", "0.9"),
 			("timeout", "30.1"),
@@ -245,7 +245,8 @@ mod tests {
 			("timeout", "fast"),
 			("timeout", ".5"),
 			("timeout", "5."),
-			("delay", "0.5"),
+			("delay", "0"),
+			("delay", "0.0"),
 			("delay", "10.1"),
 			("delay", "-1"),
 			("delay", "1e1"),

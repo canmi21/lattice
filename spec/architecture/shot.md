@@ -98,7 +98,7 @@ the browser at once. A browser that has died is started again for the next captu
   event, so a fast page is taken fast and a slow one when it is ready. `timeout` is how long it may
   take, 1 to 30 seconds and 15 when not asked, and a page slower than that fails saying so. `delay`
   is how long to wait once it has, for what the load set going -- an animation, a late render --
-  1 to 10 seconds when asked and 210 milliseconds when not. Both are seconds to one decimal place,
+  0.1 to 10 seconds when asked and 210 milliseconds when not. Both are seconds to one decimal place,
   and anything else is `400 invalid_timing`. A capture as a whole may take its timeout and delay
   and ten seconds more before it is called failed. Both are part of what makes two asks one.
 - `full` measures the page and captures that much beyond the viewport, at the width asked; it is

@@ -1,2 +1,6 @@
-(http.request.uri.path wildcard "/geo/*" or http.request.uri.path wildcard "/shot/*" or http.request.uri.path wildcard "/site/*")
+http.request.uri.path wildcard "/*/*"
+and not starts_with(http.request.uri.path, "/object/")
+and not starts_with(http.request.uri.path, "/derive/")
+and not starts_with(http.request.uri.path, "/proxy/")
+and not starts_with(http.request.uri.path, "/hook/")
 and not cf.client.bot

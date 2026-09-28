@@ -46,10 +46,21 @@ def main():
 	for scope in sorted(scopes ^ allowed):
 		problems.append(f"ffoni.com/api-scopes-only.txt: /{scope}/ is {'a scope it refuses' if scope in scopes else 'let through but no scope'}")
 
-	# Every public scope is counted by the zone's rate limit, but GitHub's webhook; see the spec.
-	counted = set(re.findall(r'wildcard "/([a-z0-9-]+)/\*"', files.get("ffoni.com/rate-cap.txt", "")))
-	for scope in sorted((scopes - {"hook"}) ^ counted):
-		problems.append(f"ffoni.com/rate-cap.txt: /{scope}/ is {'a scope it does not count' if scope in scopes else 'counted but no scope'}")
+	# The zone's rate limit counts everything but the CDN and GitHub's webhook, so a new scope is
+	# counted unnamed. Each CDN prefix is left out, but the old `/github/`, a redirect, which
+	# is counted; and each prefix left out is the CDN's or the webhook's. See the spec.
+	prefix = r'starts_with\(http\.request\.uri\.path, "(/[^"]+)"\)'
+	cdn = set(re.findall(prefix, files.get("ffoni.com/cdn-prefixes-only.txt", ""))) - {"/.well-known/", "/github/"}
+	cap = files.get("ffoni.com/rate-cap.txt", "")
+	left = set(re.findall(prefix, cap))
+	if 'http.request.uri.path wildcard "/*/*"' not in cap:
+		problems.append("ffoni.com/rate-cap.txt: does not count every scoped path")
+	for path in sorted(cdn):
+		if not any(path.startswith(out) for out in left):
+			problems.append(f"ffoni.com/rate-cap.txt: the CDN's {path} is counted")
+	for out in sorted(left - {"/hook/"}):
+		if not any(path.startswith(out) for path in cdn):
+			problems.append(f"ffoni.com/rate-cap.txt: {out} is left out, and not the CDN's")
 
 	# Every extension the site's routes and public files are named with is let through.
 	site = ROOT / "apps/site"
