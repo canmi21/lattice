@@ -1,7 +1,7 @@
 # Builds the images a push changed and leaves them as artifacts of this run. Nothing is published
 # and nothing here reaches a machine: when the run ends, GitHub's webhook tells the node, and the
 # node fetches and checks what was built. See spec/architecture/host.md.
-name: deploy
+name: Deploy
 
 on:
   push:
