@@ -1,12 +1,9 @@
 # Everything Behind
 
-My little corner of the web.
+Personal interconnected monorepo.  
+Built from scratch. See `mise.toml` for project tasks.
 
-Everything worth explaining lives in `spec/`. If you're curious, point an LLM at it and let it read.
-
-This site was written from scratch.
-
-I doubt there's much here worth reusing directly, but the code is here if you'd like to use it as a reference.
+Mostly built for myself, but feel free to browse the code for reference.
 
 ## License
 
