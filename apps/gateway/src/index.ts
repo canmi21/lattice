@@ -5,6 +5,7 @@
  * service would otherwise repeat: CORS, and limits by address. See spec/architecture/services.md,
  * "One API host, scoped by path".
  */
+import { UNCHANGING } from '@canmi/cache';
 import { failure } from '@canmi/response';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { robotsTxt } from '@canmi/robots';
@@ -117,6 +118,12 @@ export function gateway(
 	// that call them.
 	app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
 	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
+	// The name a browser asks every origin for, sent where the CDN and the site send it.
+	app.get('/favicon.ico', (c) => {
+		const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
+		c.header('Cache-Control', UNCHANGING);
+		return c.redirect(`${urls.alias}/symlink/favicon.ico`, 301);
+	});
 
 	// The host's own address is somebody typing it, not a malformed call: they go to the site, and
 	// `ref` tells the site's analytics where from.

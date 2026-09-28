@@ -204,6 +204,15 @@ describe('the gateway', () => {
 		expect(await answer.text()).toContain('Disallow: /');
 	});
 
+	it('sends the icon to the permanent name rather than reading it as a scope', async () => {
+		const answer = await ask('/favicon.ico');
+		expect(answer.status).toBe(301);
+		expect(answer.headers.get('Location')).toBe(
+			`${URLS.apps.production.alias}/symlink/favicon.ico`,
+		);
+		expect(answer.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
+	});
+
 	it("sends a node's scope to its Caddy with the scope left on", async () => {
 		const { fetcher, seen } = binding();
 		await ask('/geo/address?latitude=1&longitude=2', { HOME: fetcher });

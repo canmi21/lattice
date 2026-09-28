@@ -382,6 +382,9 @@ importers:
       '@canmi/artifacts':
         specifier: workspace:*
         version: link:../../libs/artifacts
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../../libs/cache
       '@canmi/limits':
         specifier: workspace:*
         version: link:../../libs/limits
