@@ -54,3 +54,34 @@ export function ago(stamp: string | number | undefined, now = Date.now()): strin
 	const count = Math.round(seconds / size);
 	return `${count} ${unit}${count === 1 ? '' : 's'} ago`;
 }
+
+/** How long until a moment is due, in its largest unit: `in 3 hours`, `2 minutes overdue`. */
+export function until(stamp: string | undefined, now = Date.now()): string {
+	if (stamp === undefined) return '';
+	const seconds = Math.round((Date.parse(stamp) - now) / 1000);
+	if (Math.abs(seconds) < 45) return 'now';
+	const past = seconds < 0;
+	const abs = Math.abs(seconds);
+	const steps: [number, string][] = [
+		[60, 'minute'],
+		[3600, 'hour'],
+		[86400, 'day'],
+		[2592000, 'month'],
+		[31536000, 'year'],
+	];
+	let [size, unit] = steps[0]!;
+	for (const step of steps) if (abs >= step[0]) [size, unit] = step;
+	const count = Math.round(abs / size);
+	const span = `${count} ${unit}${count === 1 ? '' : 's'}`;
+	return past ? `${span} overdue` : `in ${span}`;
+}
+
+/**
+ * A moment as its own UTC marker: `2026-03-04 04:00 UTC`. Deterministic from `stamp` alone, so
+ * the server that renders a page first and the browser that hydrates it agree on the text without
+ * either reading the machine's own zone. `LocalTime` swaps this for the reader's zone once
+ * mounted. See spec/architecture/cron.md, "Every time is UTC.".
+ */
+export function utcMarker(stamp: string): string {
+	return `${new Date(stamp).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+}

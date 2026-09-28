@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
 	import Boxes from '@lucide/svelte/icons/boxes';
+	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 	import Layers from '@lucide/svelte/icons/layers';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import ListChecks from '@lucide/svelte/icons/list-checks';
@@ -32,6 +33,12 @@
 			label: 'Tasks',
 			icon: ListChecks,
 			here: (path: string) => path.startsWith('/tasks'),
+		},
+		{
+			href: '/schedules',
+			label: 'Schedules',
+			icon: CalendarClock,
+			here: (path: string) => path.startsWith('/schedules'),
 		},
 		{
 			href: '/routes',

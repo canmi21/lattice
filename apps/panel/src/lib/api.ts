@@ -179,6 +179,46 @@ export interface TaskDetail extends Task {
 	children: Task[];
 }
 
+/** How a run ended, as cron's `Outcome` words it. */
+export type Outcome = 'running' | 'done' | 'failed' | 'skipped';
+
+/** A job's latest run, whatever started it, as cron's `store::Last` serializes. */
+export interface LastRun {
+	/** The run's id, which is its ledger task's, under service `cron`: `/tasks/cron/<run>`. */
+	run: string;
+	/** The due time it ran for; none for one asked by hand. */
+	due: string | null;
+	started_at: string;
+	finished_at: string | null;
+	outcome: Outcome;
+	/** The status the service answered with, when it answered. */
+	status: number | null;
+	detail: string | null;
+}
+
+/**
+ * One job cron runs on this node, its own `Job` fields flattened in, as `GET /schedules` answers
+ * -- cron's `scheduler::View`, read directly from `apps/cron/src/scheduler.rs` and
+ * `apps/cron/src/store.rs` while both are written in parallel, kept here in one place so it stays
+ * easy to re-align. See spec/architecture/cron.md, "cron answers on its own `[api]` scope,
+ * privately", "Seen in the panel".
+ */
+export interface Schedule {
+	service: string;
+	name: string;
+	/** Exactly one of `cron` and `every` is set, matching the job's own declaration. */
+	cron: string | null;
+	every: string | null;
+	/** RFC 3339, UTC: when this job next falls due, none once it has nothing left to run for. */
+	next: string | null;
+	/** Held until cron restarts -- see cron.md, "Seen in the panel". */
+	paused: boolean;
+	running: boolean;
+	/** A run due while the last still goes, waiting behind it -- see cron.md, "Overlap". */
+	queued: boolean;
+	last: LastRun | null;
+}
+
 /** Not signed in, or signed out since: the panel asks for the token again. */
 export class SignedOut extends Error {}
 
@@ -251,6 +291,16 @@ export const api = {
 		call<TaskDetail>(
 			'GET',
 			`/ledger/tasks/${encodeURIComponent(service)}/${encodeURIComponent(id)}`,
+		),
+	schedules: () => call<Schedule[]>('GET', '/cron/schedules'),
+	runSchedule: (service: string, name: string) =>
+		call<unknown>('POST', `/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/run`),
+	pauseSchedule: (service: string, name: string) =>
+		call<unknown>('POST', `/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/pause`),
+	resumeSchedule: (service: string, name: string) =>
+		call<unknown>(
+			'POST',
+			`/cron/schedules/${encodeURIComponent(service)}/${encodeURIComponent(name)}/resume`,
 		),
 };
 
