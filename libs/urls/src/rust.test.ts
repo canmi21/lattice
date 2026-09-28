@@ -16,7 +16,7 @@ function constants(rust: string): string {
 
 it('keeps the committed Rust mirror in step with the map', () => {
 	const committed = readFileSync(
-		new URL('../../../apps/local/src/urls.rs', import.meta.url),
+		new URL('./lib.rs', import.meta.url),
 		'utf8',
 	);
 	// A mismatch means the map changed without `mise run urls` -- regenerate rather than edit

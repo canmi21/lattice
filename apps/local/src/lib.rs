@@ -27,7 +27,6 @@ mod serve;
 mod summary;
 mod tags;
 pub mod twitter;
-pub mod urls;
 pub mod video;
 mod words;
 

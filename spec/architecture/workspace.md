@@ -353,7 +353,8 @@ referenced it by name.
 
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
 library, so `mise run urls` renders the map into
-[`apps/local/src/urls.rs`](../../apps/local/src/urls.rs) -- committed, like the records under
+[`libs/urls/src/lib.rs`](../../libs/urls/src/lib.rs), the `urls` crate every Rust program depends
+on -- one directory holding both halves of one library -- and committed, like the records under
 `data/build/`, so a checkout compiles without Node having run first. The mirror is never
 edited by hand: [`rust.test.ts`](../../libs/urls/src/rust.test.ts) fails `verify` the moment it
 disagrees with the map, so the one-edit measure survives the language boundary. The

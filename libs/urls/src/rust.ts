@@ -3,9 +3,9 @@ import { URLS } from './index.ts';
 /**
  * The Rust mirror of the URL map.
  *
- * cms is a Rust process and cannot import this library, so it reads a generated
- * `apps/local/src/urls.rs` instead -- committed like the records under `data/build/`, because a
- * checkout must compile without a Node toolchain having run first. `mise run urls` rewrites it;
+ * Rust cannot import this library, so every Rust program reads a generated `libs/urls/src/lib.rs`
+ * instead, the `urls` crate -- committed like the records under `data/build/`, because a checkout
+ * must compile without a Node toolchain having run first. `mise run urls` rewrites it;
  * `rust.test.ts` fails when the committed file no longer matches this render, so drift between
  * the two languages cannot survive `mise run verify`. See spec/architecture/workspace.md.
  */

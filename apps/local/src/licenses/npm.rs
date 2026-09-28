@@ -221,7 +221,7 @@ fn repository_url(value: &serde_json::Value) -> Option<String> {
 		return None;
 	}
 
-	let github = crate::urls::EXTERNAL_GITHUB_WEB;
+	let github = urls::EXTERNAL_GITHUB_WEB;
 	let mut url = raw.strip_prefix("git+").unwrap_or(raw).to_owned();
 	if let Some(path) = url.strip_prefix("github:") {
 		url = format!("{github}/{path}");
@@ -282,7 +282,7 @@ mod tests {
 
 	#[test]
 	fn turns_repository_shorthands_into_browser_urls() {
-		let github = crate::urls::EXTERNAL_GITHUB_WEB;
+		let github = urls::EXTERNAL_GITHUB_WEB;
 		let expected = format!("{github}/owner/project");
 		for value in [
 			serde_json::json!(format!("git+{github}/owner/project.git")),

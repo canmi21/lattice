@@ -1,0 +1,13 @@
+[package]
+name = "urls"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+# The Rust half of @canmi/urls: `src/lib.rs` is generated from `src/index.ts` by `mise run urls`,
+# so every Rust program reads the one URL map. See spec/architecture/workspace.md.
+[lib]
+path = "src/lib.rs"

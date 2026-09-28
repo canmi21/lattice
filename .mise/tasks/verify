@@ -41,7 +41,7 @@ RUST_ROOT_FILES = {"Cargo.toml", "Cargo.lock"}
 # Read by the site's build and the corpus tests rather than imported, so no graph reaches them.
 SITE_INPUTS = ("contents/", "data/")
 # A Rust file whose only check is a TypeScript test: the generated mirror of the URL map.
-NODE_CHECKED_RUST = {"apps/local/src/urls.rs"}
+NODE_CHECKED_RUST = {"libs/urls/src/lib.rs"}
 
 
 def changed(since):
