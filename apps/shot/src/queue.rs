@@ -43,11 +43,18 @@ pub struct Pictures {
 	pub webp_bytes: Option<u64>,
 }
 
+/// What a capture that worked leaves: its pictures, and what the page did while it was taken.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Made {
+	pub pictures: Pictures,
+	pub observed: serde_json::Value,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 enum State {
 	Queued,
 	Rendering,
-	Done { pictures: Pictures },
+	Done { made: Made },
 	Failed { reason: String },
 }
 
@@ -82,7 +89,7 @@ pub enum View {
 		retry_after: u32,
 	},
 	Done {
-		pictures: Pictures,
+		made: Made,
 	},
 	Failed {
 		reason: String,
@@ -174,17 +181,11 @@ impl Queue {
 	}
 
 	/// A capture is over: `Ok` with whether a WebP was made, or why it failed, and how long it took.
-	pub fn finish(
-		&mut self,
-		id: Uuid,
-		outcome: Result<Pictures, String>,
-		took: Duration,
-		now: Instant,
-	) {
+	pub fn finish(&mut self, id: Uuid, outcome: Result<Made, String>, took: Duration, now: Instant) {
 		self.average = self.average * 0.7 + took.as_secs_f64() * 0.3;
 		if let Some(job) = self.jobs.get_mut(&id) {
 			job.state = match outcome {
-				Ok(pictures) => State::Done { pictures },
+				Ok(made) => State::Done { made },
 				Err(reason) => State::Failed { reason },
 			};
 			job.settled = Some(now);
@@ -200,7 +201,7 @@ impl Queue {
 			State::Rendering => {
 				View::Waiting { rendering: true, retry_after: seconds(self.average / 2.0) }
 			}
-			State::Done { pictures } => View::Done { pictures: pictures.clone() },
+			State::Done { made } => View::Done { made: made.clone() },
 			State::Failed { reason } => View::Failed { reason: reason.clone() },
 		})
 	}
@@ -263,8 +264,9 @@ mod tests {
 		}
 	}
 
-	fn pictures() -> Pictures {
-		Pictures { width: 1280, height: 800, png_bytes: 3, webp_bytes: None }
+	fn made() -> Made {
+		let pictures = Pictures { width: 1280, height: 800, png_bytes: 3, webp_bytes: None };
+		Made { pictures, observed: serde_json::Value::Null }
 	}
 
 	#[test]
@@ -316,10 +318,10 @@ mod tests {
 		assert_eq!(wait(&queue, public[3]), 15);
 		// Quick captures pull the pace down, to the floor of one second.
 		while let Some((id, _)) = queue.take() {
-			queue.finish(id, Ok(pictures()), Duration::from_millis(500), Instant::now());
+			queue.finish(id, Ok(made()), Duration::from_millis(500), Instant::now());
 		}
 		for _ in 0..10 {
-			queue.finish(ours, Ok(pictures()), Duration::from_millis(500), Instant::now());
+			queue.finish(ours, Ok(made()), Duration::from_millis(500), Instant::now());
 		}
 		let late = queue.ask(asked("late"), Lane::Public).unwrap();
 		assert_eq!(wait(&queue, late), 1);
@@ -335,9 +337,9 @@ mod tests {
 		assert!(matches!(queue.view(done), Some(View::Waiting { rendering: true, .. })));
 		queue.take();
 		let at = Instant::now();
-		queue.finish(done, Ok(pictures()), Duration::from_secs(2), at);
+		queue.finish(done, Ok(made()), Duration::from_secs(2), at);
 		queue.finish(failed, Err("net::ERR_NAME_NOT_RESOLVED".into()), Duration::from_secs(2), at);
-		assert_eq!(queue.view(done), Some(View::Done { pictures: pictures() }));
+		assert_eq!(queue.view(done), Some(View::Done { made: made() }));
 		let details = queue.details(done).unwrap();
 		assert!(Some(details.asked_at) <= details.started_at);
 		assert!(details.started_at <= details.finished_at);

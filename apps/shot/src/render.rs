@@ -11,6 +11,8 @@ pub struct Capture {
 	/// The pictures' size in pixels: the viewport's width, and its height or the page's.
 	pub width: u32,
 	pub height: u32,
+	/// What the page did while it was captured: its `page`, `load`, `connection` and `health`.
+	pub observed: serde_json::Value,
 }
 
 pub trait Render: Send + Sync + 'static {

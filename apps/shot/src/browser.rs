@@ -181,14 +181,23 @@ async fn shoot(page: &Page, asked: &Asked) -> Result<Capture, String> {
 		page.execute(take(CaptureScreenshotFormat::Webp, Some(WEBP_QUALITY))).await.map_err(why)?;
 	let png = decode(png.result.data.as_ref())?;
 	let webp = decode(webp.result.data.as_ref())?;
-	Ok(Capture { png, webp: Some(webp), width: asked.width, height })
+	Ok(Capture {
+		png,
+		webp: Some(webp),
+		width: asked.width,
+		height,
+		observed: serde_json::Value::Null,
+	})
 }
 
 impl<R: Resolve> Render for Chromium<R> {
 	async fn capture(&self, asked: &Asked) -> Result<Capture, String> {
 		let reach = if asked.internal { Reach::Internal } else { Reach::Public };
 		// Judged here as well as at the proxy, so a refusal says why rather than a tunnel failing.
+		let resolving = std::time::Instant::now();
 		destination(&*self.resolver, asked.url.host_str().unwrap_or_default(), reach).await?;
+		// The browser resolves nothing itself, so this is the page's name lookup, as the proxy has it.
+		let resolving_ms = resolving.elapsed().as_millis() as u64;
 
 		let browser = self.browser().await?;
 		let context = CreateBrowserContextParams {
@@ -219,6 +228,8 @@ impl<R: Resolve> Render for Chromium<R> {
 					if asked.insecure {
 						page.execute(SetIgnoreCertificateErrorsParams::new(true)).await.map_err(why)?;
 					}
+					// Listened for before the page is asked for, or its own request is missed.
+					let observer = crate::observe::Observer::listen(&page).await?;
 					// Loaded is the load event, as the browser fires it: fast pages are taken fast.
 					let timeout = Duration::from_millis(u64::from(asked.timeout));
 					tokio::time::timeout(timeout, page.goto(asked.url.as_str()))
@@ -228,7 +239,15 @@ impl<R: Resolve> Render for Chromium<R> {
 						})?
 						.map_err(why)?;
 					tokio::time::sleep(Duration::from_millis(u64::from(asked.delay))).await;
-					shoot(&page, asked).await
+					let facts: serde_json::Value = page
+						.evaluate(crate::observe::FACTS)
+						.await
+						.ok()
+						.and_then(|result| result.into_value().ok())
+						.unwrap_or_default();
+					let mut capture = shoot(&page, asked).await?;
+					capture.observed = observer.tell(&facts, resolving_ms);
+					Ok(capture)
 				}
 				.await;
 				let _ = page.close().await;

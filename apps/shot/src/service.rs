@@ -96,7 +96,7 @@ impl<R: Render> Shot<R> {
 		&self,
 		id: uuid::Uuid,
 		capture: crate::render::Capture,
-	) -> Result<crate::queue::Pictures, String> {
+	) -> Result<crate::queue::Made, String> {
 		let stored = |error: std::io::Error| {
 			eprintln!("shot: keeping {id}: {error}");
 			"The capture could not be kept".to_owned()
@@ -105,12 +105,13 @@ impl<R: Render> Shot<R> {
 		if let Some(webp) = &capture.webp {
 			self.store.write(id, Format::Webp, webp).await.map_err(stored)?;
 		}
-		Ok(crate::queue::Pictures {
+		let pictures = crate::queue::Pictures {
 			width: capture.width,
 			height: capture.height,
 			png_bytes: capture.png.len() as u64,
 			webp_bytes: capture.webp.as_ref().map(|webp| webp.len() as u64),
-		})
+		};
+		Ok(crate::queue::Made { pictures, observed: capture.observed })
 	}
 
 	pub async fn sweep(&self, now: Instant) {

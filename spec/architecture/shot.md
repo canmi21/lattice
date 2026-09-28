@@ -54,6 +54,19 @@ us: the public reaches public addresses alone, so nothing in it is ours to hide.
 - `request`: what the capture was asked, normalized -- the page's address put together from its
   parts, the viewport, `full`, `timeout` and `delay` in seconds, `insecure` and `internal`.
 - `pictures`, once done: `width` and `height` in pixels, `png_bytes`, and `webp_bytes` or null.
+- `page`: the address it ended at, each `redirects` hop with its status, the document's `status`
+  and `type`, its `title`, `description` and `language`, and its whole `width` and `height`.
+- `load`: `dns_ms`, the name's lookup as the proxy made it, since the browser resolves nothing;
+  `connect_ms`, `tls_ms`, `first_byte_ms`, `dom_content_loaded_ms` and `load_ms` from the browser's
+  navigation timing, whose connection is to the proxy's tunnel; and `requests` and `bytes` over the
+  whole page.
+- `connection`: the document's `protocol`, and its `tls` -- protocol, cipher, issuer, subject and
+  validity.
+- `health`: `errors` thrown in the page and `failed_requests`, those the page did not call off
+  itself -- a service of ours captured is checked by it as well as seen.
+
+What the page did is listened for before it is asked for, from the browser's network and runtime
+events, and what it says of itself is read once it has settled.
 
 A failure is the envelope's, a code and a message, and carries none of this.
 

@@ -128,18 +128,24 @@ fn about(id: Uuid, known: Option<(View, Details)>) -> Response {
 			}
 			answer
 		}
-		View::Done { pictures } => response::success(
-			StatusCode::OK,
-			serde_json::json!({
+		View::Done { made } => {
+			let mut body = serde_json::json!({
 				"id": id,
 				"state": "done",
 				"png": format!("{id}.png"),
-				"webp": pictures.webp_bytes.map(|_| format!("{id}.webp")),
+				"webp": made.pictures.webp_bytes.map(|_| format!("{id}.webp")),
 				"task": task,
 				"request": request,
-				"pictures": pictures,
-			}),
-		),
+				"pictures": made.pictures,
+			});
+			// What the page did sits beside the rest: `page`, `load`, `connection`, `health`.
+			if let (Some(body), serde_json::Value::Object(observed)) =
+				(body.as_object_mut(), made.observed)
+			{
+				body.extend(observed);
+			}
+			response::success(StatusCode::OK, body)
+		}
 		View::Failed { reason } => {
 			response::failure_with(StatusCode::BAD_GATEWAY, "page_unavailable", reason)
 		}
@@ -188,7 +194,8 @@ mod tests {
 				return Err("net::ERR_NAME_NOT_RESOLVED".into());
 			}
 			let webp = (!asked.full).then(|| b"webp".to_vec());
-			Ok(Capture { png: b"png".to_vec(), webp, width: asked.width, height: asked.height })
+			let observed = serde_json::json!({ "page": { "title": "Fake" } });
+			Ok(Capture { png: b"png".to_vec(), webp, width: asked.width, height: asked.height, observed })
 		}
 	}
 
@@ -260,6 +267,7 @@ mod tests {
 		assert_eq!(data["request"]["url"], "https://example.test/");
 		assert_eq!(data["request"]["delay"], 0.21);
 		assert!(data["task"]["rendered_ms"].is_i64() && data["task"]["expires_at"].is_string());
+		assert_eq!(data["page"]["title"], "Fake");
 		for (extension, media) in [("png", "image/png"), ("webp", "image/webp")] {
 			let picture = ask(&router, &format!("/{id}.{extension}"), true).await;
 			assert_eq!(picture.status, StatusCode::OK);
