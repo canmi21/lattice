@@ -334,6 +334,34 @@ describe("shot's policy", () => {
 		expect(allowing.asked).toHaveLength(0);
 	});
 
+	it('refuses `internal` in a JSON body, however deep, and lets any other body through', async () => {
+		const { fetcher, seen } = binding();
+		const env = { HOME: fetcher, limits: counters(true).counters };
+		const post = (body: string) =>
+			app.fetch(
+				new Request(`${HOST}/shot/capture`, {
+					method: 'POST',
+					headers: { ...headers, 'content-type': 'application/json' },
+					body,
+				}),
+				env,
+			);
+		for (const body of [
+			'{"internal":true}',
+			'{"access":{"internal":false}}',
+			'[{"a":{"internal":1}}]',
+		]) {
+			const answer = await post(body);
+			expect(answer.status, body).toBe(403);
+		}
+		expect(seen).toHaveLength(0);
+		expect((await post('{"access":{"insecure":true},"target":{"host":"a.test"}}')).status).toBe(
+			200,
+		);
+		expect((await post('not json')).status).toBe(200);
+		expect(seen).toHaveLength(2);
+	});
+
 	it('limits starting a capture, and neither asking after one nor fetching it', async () => {
 		const refused = counters(false);
 		const env = { HOME: binding().fetcher, limits: refused.counters };
@@ -345,6 +373,8 @@ describe("shot's policy", () => {
 		for (const path of ['/shot/0e6f', '/shot/0e6f.png', '/shot/0e6f.webp']) {
 			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
 		}
-		expect(refused.asked.map((asked) => asked.name)).toEqual(['shot_get-head_capture_192.0.2.1']);
+		expect(refused.asked.map((asked) => asked.name)).toEqual([
+			'shot_get-head-post_capture_192.0.2.1',
+		]);
 	});
 });

@@ -24,7 +24,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 		binding: 'HOME',
 		limits: [
 			{
-				methods: ['GET', 'HEAD'],
+				methods: ['GET', 'HEAD', 'POST'],
 				path: '/capture',
 				count: 3,
 				seconds: 60,

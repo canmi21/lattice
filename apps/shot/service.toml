@@ -22,7 +22,7 @@ public = true
 
 # Starting a capture costs seconds of a browser; asking after one and fetching it are free.
 [[api.limits]]
-methods = ["GET", "HEAD"]
+methods = ["GET", "HEAD", "POST"]
 path = "/capture"
 count = 3
 seconds = 60

@@ -8,7 +8,8 @@ use crate::render::Render;
 use crate::service::Shot;
 use crate::store::Format;
 use axum::Router;
-use axum::extract::{Path, Query as Read, State};
+use axum::body::Bytes;
+use axum::extract::{Path, RawQuery, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
@@ -25,7 +26,7 @@ const PICTURE_CACHE: &str = "public, max-age=900";
 pub fn routes<R: Render>(shot: Arc<Shot<R>>) -> Router {
 	Router::new()
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
-		.route("/capture", get(capture::<R>))
+		.route("/capture", get(capture_get::<R>).post(capture_post::<R>))
 		.route("/{file}", get(file::<R>))
 		.fallback(|| async { settled(response::failure(StatusCode::NOT_FOUND, "no_such_route")) })
 		.with_state(shot)
@@ -42,13 +43,36 @@ fn lane(headers: &HeaderMap) -> Lane {
 	if marked { Lane::Public } else { Lane::Ours }
 }
 
-async fn capture<R: Render>(
+/// A capture asked for in a GET's query, its pairs read in the order they were sent.
+async fn capture_get<R: Render>(
 	State(shot): State<Arc<Shot<R>>>,
 	headers: HeaderMap,
-	Read(query): Read<Query>,
+	RawQuery(raw): RawQuery,
 ) -> Response {
-	let lane = lane(&headers);
-	let asked = match Asked::read(&query, lane == Lane::Public) {
+	let raw = raw.unwrap_or_default();
+	let pairs = url::form_urlencoded::parse(raw.as_bytes()).into_owned();
+	capture(&shot, &headers, Query::from_pairs(pairs))
+}
+
+/// The same, asked in a POST's JSON.
+async fn capture_post<R: Render>(
+	State(shot): State<Arc<Shot<R>>>,
+	headers: HeaderMap,
+	body: Bytes,
+) -> Response {
+	match serde_json::from_slice::<crate::asked::Body>(&body) {
+		Ok(body) => capture(&shot, &headers, Ok(Query::from_body(body))),
+		Err(error) => settled(response::failure_with(StatusCode::BAD_REQUEST, "invalid_body", error)),
+	}
+}
+
+fn capture<R: Render>(
+	shot: &Shot<R>,
+	headers: &HeaderMap,
+	query: Result<Query, Refused>,
+) -> Response {
+	let lane = lane(headers);
+	let asked = match query.and_then(|query| Asked::read(&query, lane == Lane::Public)) {
 		Ok(asked) => asked,
 		Err(Refused::Url) => return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_url")),
 		Err(Refused::Viewport) => {
@@ -352,6 +376,42 @@ mod tests {
 		assert_eq!(refused.headers[header::RETRY_AFTER], "30");
 		let ours = ask(&router, "/capture?host=late.test", false).await;
 		assert_eq!(ours.status, StatusCode::ACCEPTED);
+	}
+
+	async fn post(router: &Router, body: &str) -> Answer {
+		let request = Request::post("/capture")
+			.header(header::CONTENT_TYPE, "application/json")
+			.body(Body::from(body.to_owned()))
+			.unwrap();
+		let answer = router.clone().oneshot(request).await.unwrap();
+		let (parts, body) = answer.into_parts();
+		let body = body.collect().await.unwrap().to_bytes().to_vec();
+		Answer { status: parts.status, headers: parts.headers, body }
+	}
+
+	#[tokio::test]
+	async fn a_post_asks_what_the_same_get_asks() {
+		let (_root, _shot, router) = service();
+		let got =
+			ask(&router, "/capture?host=x.test&path=docs&query.tag=a&query.tag=b&width=390", false).await;
+		let posted = post(
+			&router,
+			r#"{"target":{"host":"x.test","path":"docs","query":{"tag":["a","b"]}},"viewport":{"width":390}}"#,
+		)
+		.await;
+		assert_eq!(posted.status, StatusCode::ACCEPTED);
+		assert_eq!(posted.json()["data"]["id"], got.json()["data"]["id"]);
+		assert_eq!(posted.json()["data"]["request"]["url"], "https://x.test/docs?tag=a&tag=b");
+		for broken in ["not json", r#"{"url":"https://x.test"}"#, r#"{"viewport":{"width":"wide"}}"#] {
+			let answer = post(&router, broken).await;
+			assert_eq!(
+				(answer.status, answer.json()["code"].clone()),
+				(StatusCode::BAD_REQUEST, "invalid_body".into()),
+				"{broken}"
+			);
+		}
+		let whole = ask(&router, "/capture?host=x.test&query=a%3D1", false).await;
+		assert_eq!(whole.json()["code"], "invalid_url");
 	}
 
 	#[test]

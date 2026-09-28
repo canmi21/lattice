@@ -1,5 +1,6 @@
-//! What a capture is asked for, read from the query and held to what the service will do. Two
-//! requests asking the same are one capture. See spec/architecture/shot.md, "Asking for one".
+//! What a capture is asked for, read from a GET's query or a POST's JSON and held to what the
+//! service will do. Two requests asking the same are one capture. See spec/architecture/shot.md,
+//! "Asking for one".
 
 use url::Url;
 
@@ -35,15 +36,17 @@ pub struct Asked {
 	pub delay: u32,
 }
 
-/// The query as it arrives, every field a string, so a malformed one is ours to name. The page is
-/// six of them, each one part of its address, so a caller never writes an address inside another.
-#[derive(Debug, Default, serde::Deserialize)]
+/// An ask as it arrives, every field a string, so a malformed one is ours to name. The page is its
+/// parts, each one part of its address, and its own query as the pairs it is made of, so a caller
+/// never writes an address, or a query, inside another.
+#[derive(Debug, Default)]
 pub struct Query {
 	pub scheme: Option<String>,
 	pub host: Option<String>,
 	pub port: Option<String>,
 	pub path: Option<String>,
-	pub query: Option<String>,
+	/// The page's own query, name and value, in order; a name may come more than once.
+	pub query: Vec<(String, String)>,
 	pub hash: Option<String>,
 	pub width: Option<String>,
 	pub height: Option<String>,
@@ -52,6 +55,152 @@ pub struct Query {
 	pub timeout: Option<String>,
 	pub delay: Option<String>,
 	pub insecure: Option<String>,
+}
+
+/// Where a GET names the page's own query: `query.tab=readme` is the page's `tab=readme`.
+pub const QUERY_PREFIX: &str = "query.";
+
+impl Query {
+	/// A GET's query, pair by pair as it was sent. A name this service does not read is left alone,
+	/// and `query` itself, which once held the page's query whole, is refused rather than ignored.
+	pub fn from_pairs(pairs: impl IntoIterator<Item = (String, String)>) -> Result<Self, Refused> {
+		let mut query = Query::default();
+		for (name, value) in pairs {
+			if let Some(own) = name.strip_prefix(QUERY_PREFIX) {
+				if own.is_empty() {
+					return Err(Refused::Url);
+				}
+				query.query.push((own.to_owned(), value));
+				continue;
+			}
+			let field = match name.as_str() {
+				"scheme" => &mut query.scheme,
+				"host" => &mut query.host,
+				"port" => &mut query.port,
+				"path" => &mut query.path,
+				"hash" => &mut query.hash,
+				"width" => &mut query.width,
+				"height" => &mut query.height,
+				"full" => &mut query.full,
+				"internal" => &mut query.internal,
+				"timeout" => &mut query.timeout,
+				"delay" => &mut query.delay,
+				"insecure" => &mut query.insecure,
+				"query" => return Err(Refused::Url),
+				_ => continue,
+			};
+			*field = Some(value);
+		}
+		Ok(query)
+	}
+
+	/// A POST's body, the same ask in JSON's own types and grouped by what each part is about.
+	pub fn from_body(body: Body) -> Self {
+		let text = |value: Option<f64>| value.map(|value| value.to_string());
+		let flag = |value: Option<bool>| value.map(|value| value.to_string());
+		let number = |value: Option<u32>| value.map(|value| value.to_string());
+		let Body { target, viewport, timing, access } = body;
+		let (target, viewport) = (target.unwrap_or_default(), viewport.unwrap_or_default());
+		let (timing, access) = (timing.unwrap_or_default(), access.unwrap_or_default());
+		Query {
+			scheme: target.scheme,
+			host: target.host,
+			port: target.port.map(|port| port.to_string()),
+			path: target.path,
+			query: target.query.map(|pairs| pairs.0).unwrap_or_default(),
+			hash: target.hash,
+			width: number(viewport.width),
+			height: number(viewport.height),
+			full: flag(viewport.full),
+			internal: flag(access.internal),
+			timeout: text(timing.timeout),
+			delay: text(timing.delay),
+			insecure: flag(access.insecure),
+		}
+	}
+}
+
+/// A POST's JSON: the GET's fields in JSON's types, grouped -- the page, the viewport, the waiting,
+/// what the capture may reach -- and the page's query an object whose values are a string or
+/// several. A field this service does not know is refused, at every level, since it would
+/// otherwise be silently not what the caller meant.
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Body {
+	pub target: Option<Target>,
+	pub viewport: Option<Viewport>,
+	pub timing: Option<Timing>,
+	pub access: Option<Access>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Target {
+	pub scheme: Option<String>,
+	pub host: Option<String>,
+	pub port: Option<u16>,
+	pub path: Option<String>,
+	pub query: Option<Pairs>,
+	pub hash: Option<String>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Viewport {
+	pub width: Option<u32>,
+	pub height: Option<u32>,
+	pub full: Option<bool>,
+}
+
+/// Seconds, to one decimal place.
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Timing {
+	pub timeout: Option<f64>,
+	pub delay: Option<f64>,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Access {
+	pub insecure: Option<bool>,
+	pub internal: Option<bool>,
+}
+
+/// An object's pairs in the order they were written, a list of values as that name repeated;
+/// serde_json's own map would sort them.
+#[derive(Debug, Default)]
+pub struct Pairs(pub Vec<(String, String)>);
+
+impl<'de> serde::Deserialize<'de> for Pairs {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+		#[derive(serde::Deserialize)]
+		#[serde(untagged)]
+		enum Values {
+			One(String),
+			Several(Vec<String>),
+		}
+		struct Visitor;
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Pairs;
+			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+				formatter.write_str("an object of strings or lists of strings")
+			}
+			fn visit_map<M: serde::de::MapAccess<'de>>(self, mut map: M) -> Result<Pairs, M::Error> {
+				let mut pairs = Vec::new();
+				while let Some((name, values)) = map.next_entry::<String, Values>()? {
+					match values {
+						Values::One(value) => pairs.push((name, value)),
+						Values::Several(values) => {
+							pairs.extend(values.into_iter().map(|value| (name.clone(), value)));
+						}
+					}
+				}
+				Ok(Pairs(pairs))
+			}
+		}
+		deserializer.deserialize_map(Visitor)
+	}
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -134,7 +283,9 @@ fn page(query: &Query) -> Result<Url, Refused> {
 			.map(|part| part.trim_start_matches(mark).to_owned())
 			.filter(|part| !part.is_empty())
 	};
-	url.set_query(given(&query.query, '?').as_deref());
+	if !query.query.is_empty() {
+		url.query_pairs_mut().extend_pairs(&query.query);
+	}
 	url.set_fragment(given(&query.hash, '#').as_deref());
 	Ok(url)
 }
@@ -162,22 +313,8 @@ mod tests {
 	use super::*;
 
 	fn query(pairs: &[(&str, &str)]) -> Query {
-		let get = |name: &str| pairs.iter().find(|(key, _)| *key == name).map(|(_, v)| v.to_string());
-		Query {
-			scheme: get("scheme"),
-			host: get("host"),
-			port: get("port"),
-			path: get("path"),
-			query: get("query"),
-			hash: get("hash"),
-			width: get("width"),
-			height: get("height"),
-			full: get("full"),
-			internal: get("internal"),
-			timeout: get("timeout"),
-			delay: get("delay"),
-			insecure: get("insecure"),
-		}
+		let owned = pairs.iter().map(|(name, value)| ((*name).to_owned(), (*value).to_owned()));
+		Query::from_pairs(owned).unwrap()
 	}
 
 	fn page(pairs: &[(&str, &str)]) -> String {
@@ -193,14 +330,15 @@ mod tests {
 				("host", "x.test"),
 				("port", "8080"),
 				("path", "docs/a b"),
-				("query", "page=2&sort=new"),
+				("query.page", "2"),
+				("query.sort", "new"),
 				("hash", "#top"),
 			]),
 			"http://x.test:8080/docs/a%20b?page=2&sort=new#top"
 		);
 		// The scheme's own port is no port at all; a leading slash or mark is the caller's to omit.
 		assert_eq!(
-			page(&[("host", "x.test"), ("port", "443"), ("path", "/a"), ("query", "?b=1")]),
+			page(&[("host", "x.test"), ("port", "443"), ("path", "/a"), ("query.b", "1")]),
 			"https://x.test/a?b=1"
 		);
 		// An address is a host too, IPv6 with or without its brackets.
@@ -217,10 +355,7 @@ mod tests {
 			("http".into(), "[::1]".into(), None)
 		);
 		assert_eq!(parts(&[("host", "[2001:db8::1]")]), ("https".into(), "[2001:db8::1]".into(), None));
-		assert_eq!(
-			page(&[("host", "x.test"), ("path", ""), ("query", ""), ("hash", "")]),
-			"https://x.test/"
-		);
+		assert_eq!(page(&[("host", "x.test"), ("path", ""), ("hash", "")]), "https://x.test/");
 
 		let asked = Asked::read(&query(&[("host", "x.test")]), false).unwrap();
 		assert_eq!((asked.width, asked.height, asked.full, asked.internal), (1280, 800, false, false));
@@ -268,6 +403,58 @@ mod tests {
 		assert!(read(&[("host", "x.test"), ("insecure", "true")]));
 		assert!(!read(&[("host", "x.test"), ("insecure", "true"), ("scheme", "http")]));
 		assert!(!read(&[("host", "x.test")]));
+	}
+
+	#[test]
+	fn takes_the_pages_query_pair_by_pair_and_writes_it_escaped() {
+		let pairs = [
+			("host", "x.test"),
+			("query.tab", "readme"),
+			("query.tag", "a"),
+			("unknown", "ignored"),
+			("query.tag", "b&c"),
+			("query.q", "rust lang"),
+		];
+		assert_eq!(page(&pairs), "https://x.test/?tab=readme&tag=a&tag=b%26c&q=rust+lang");
+		let owned = |pairs: &[(&str, &str)]| {
+			pairs
+				.iter()
+				.map(|(name, value)| ((*name).to_owned(), (*value).to_owned()))
+				.collect::<Vec<_>>()
+		};
+		// The query whole, as it once was sent, and a pair with no name, are refused.
+		assert!(Query::from_pairs(owned(&[("host", "x.test"), ("query", "a=1")])).is_err());
+		assert!(Query::from_pairs(owned(&[("host", "x.test"), ("query.", "1")])).is_err());
+	}
+
+	#[test]
+	fn reads_a_posts_body_as_its_query() {
+		let body: Body = serde_json::from_str(
+			r#"{
+				"target": { "scheme": "http", "host": "x.test", "port": 8080, "path": "/docs",
+					"query": { "z": "last", "tag": ["a", "b"] }, "hash": "top" },
+				"viewport": { "width": 390, "full": true },
+				"timing": { "timeout": 2.5, "delay": 0.1 },
+				"access": { "insecure": true, "internal": true }
+			}"#,
+		)
+		.unwrap();
+		let asked = Asked::read(&Query::from_body(body), false).unwrap();
+		// Written in the order it was given, not sorted.
+		assert_eq!(asked.url.as_str(), "http://x.test:8080/docs?z=last&tag=a&tag=b#top");
+		assert_eq!((asked.width, asked.full, asked.timeout, asked.delay), (390, true, 2_500, 100));
+		assert!(asked.internal && !asked.insecure);
+		let public =
+			serde_json::from_str::<Body>(r#"{"target":{"host":"x.test"},"access":{"internal":true}}"#)
+				.unwrap();
+		assert!(!Asked::read(&Query::from_body(public), true).unwrap().internal);
+		for unknown in [
+			r#"{"url":"https://x.test"}"#,
+			r#"{"target":{"host":"x.test","url":"y"}}"#,
+			r#"{"target":{"query":{"a":1}}}"#,
+		] {
+			assert!(serde_json::from_str::<Body>(unknown).is_err(), "{unknown}");
+		}
 	}
 
 	#[test]

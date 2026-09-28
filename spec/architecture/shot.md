@@ -10,20 +10,45 @@ nothing: a capture lives five minutes on disk and is gone.
 **Starting a capture answers at once, and the picture comes later.** A browser takes seconds, so
 nothing waits on it:
 
-| Request                                     | Answer                                                               |
-| ------------------------------------------- | -------------------------------------------------------------------- |
-| `GET /shot/capture?host=&…`                 | `202 { id, state, retry_after }`, or `200` when it is already done   |
-| `GET /shot/<id>`                            | `202` while queued or rendering, `200 { id, state, png, webp }` done |
-| `GET /shot/<id>.png`, `GET /shot/<id>.webp` | the picture itself, `Cache-Control: max-age=900`                     |
+| Request                                           | Answer                                                               |
+| ------------------------------------------------- | -------------------------------------------------------------------- |
+| `GET /shot/capture?host=&…`, `POST /shot/capture` | `202 { id, state, retry_after }`, or `200` when it is already done   |
+| `GET /shot/<id>`                                  | `202` while queued or rendering, `200 { id, state, png, webp }` done |
+| `GET /shot/<id>.png`, `GET /shot/<id>.webp`       | the picture itself, `Cache-Control: max-age=900`                     |
 
 - Every route is under `/shot/`, the bare scope included, because the zone's firewall admits a
   scope's paths by that prefix; a UUID is never `capture`.
-- **The page is six parameters, each one part of its address, never one address inside another:**
-  `scheme`, `http` or `https`, and `https` when absent; `host`, a name or an address, IPv6 with or
-  without its brackets; `port`, the scheme's own when absent; and `path`, `query` and `hash`, each
-  optional, each without the mark that opens it. A part holding more than itself -- a host with a
-  port or a path, a path with a query -- is refused rather than read. Only `query` ever needs
-  escaping, and only when it holds an `&`.
+- **The page is its parts, never one address inside another:** `scheme`, `http` or `https`, and
+  `https` when absent; `host`, a name or an address, IPv6 with or without its brackets; `port`, the
+  scheme's own when absent; `path` and `hash`, each optional and without the mark that opens it;
+  and the page's own query as its pairs, **`query.<name>=<value>`, one parameter each**, repeated
+  for a name the page takes more than once and written in the order sent. The service writes the
+  page's address and escapes it; a caller escapes only what any query value needs, `&` and the
+  like. A part holding more than itself -- a host with a port or a path, a path with a query -- is
+  refused rather than read, and so is `query` itself, which once held the query whole.
+- **`POST /shot/capture` asks the same in JSON, grouped by what each part is about:**
+
+  ```json
+  {
+  	"target": {
+  		"scheme": "https",
+  		"host": "github.com",
+  		"port": 443,
+  		"path": "/rust-lang/rust",
+  		"query": { "tab": "readme-ov-file", "tag": ["a", "b"] },
+  		"hash": "readme"
+  	},
+  	"viewport": { "width": 1440, "height": 900, "full": true },
+  	"timing": { "timeout": 20, "delay": 1.5 },
+  	"access": { "insecure": true, "internal": false }
+  }
+  ```
+
+  Every group and field is optional but `target.host`; numbers and booleans are JSON's own; a
+  query value is a string or a list of them, kept in the order written. A field the service does
+  not know, at any level, is `400 invalid_body`, since it would otherwise be quietly not what was
+  meant. The same ask by GET and by POST is one capture.
+
 - The rest: `width` and `height`, `full`, `timeout` and `delay`, `insecure` and `internal`, each
   below.
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
@@ -82,10 +107,10 @@ on".
 - Ours queue ahead of the public's, always, and up to fifty may wait; the public's up to thirty.
   Two captures run at once.
 - **`internal=true` lets a capture reach private addresses, and only ours may send it.** The gateway
-  refuses the parameter with a 403, and `shot` ignores it on a marked request as well. Without it a
-  capture reaches public addresses alone.
-- The public starts three captures a minute from one address, at the gateway; asking after one and
-  fetching it are not counted. Cloudflare's zone rate rule is the floor under that.
+  refuses it with a 403 -- as a query parameter, or as a key anywhere in a JSON body -- and `shot`
+  ignores it on a marked request as well. Without it a capture reaches public addresses alone.
+- The public starts three captures a minute from one address, by GET and POST together, at the
+  gateway; asking after one and fetching it are not counted. Cloudflare's zone rate rule is the floor under that.
 
 ## Kept on disk, five minutes
 

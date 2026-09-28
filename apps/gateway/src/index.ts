@@ -41,6 +41,29 @@ function serviceOwn(response: Response): boolean {
 	return response.headers.get('content-type')?.startsWith('application/json') ?? false;
 }
 
+/** Every key an object holds, however deep, so a nested one cannot slip a forbidden name past. */
+function keysOf(value: unknown): string[] {
+	if (Array.isArray(value)) return value.flatMap(keysOf);
+	if (value === null || typeof value !== 'object') return [];
+	return Object.entries(value).flatMap(([key, inner]) => [key, ...keysOf(inner)]);
+}
+
+/**
+ * Whether a request sends a name the public may not: as a query parameter, or as a key anywhere in
+ * a JSON body. A body that is not JSON is the service's to refuse.
+ */
+async function forbids(forbidden: readonly string[], url: URL, request: Request): Promise<boolean> {
+	if (forbidden.length === 0) return false;
+	if (forbidden.some((name) => url.searchParams.has(name))) return true;
+	if (!request.headers.get('content-type')?.includes('json')) return false;
+	try {
+		const keys = keysOf(await request.clone().json());
+		return forbidden.some((name) => keys.includes(name));
+	} catch {
+		return false;
+	}
+}
+
 function isFetcher(value: unknown): value is Fetcher {
 	return typeof (value as Fetcher | undefined)?.fetch === 'function';
 }
@@ -117,7 +140,7 @@ export function gateway(
 		const target = scopes[scope] as Scope;
 		const policy = Object.hasOwn(policies, scope) ? (policies[scope] as Policy) : {};
 		const address = c.req.header('cf-connecting-ip');
-		if ((policy.forbidden ?? []).some((name) => url.searchParams.has(name))) {
+		if (await forbids(policy.forbidden ?? [], url, c.req.raw)) {
 			return failure(403, 'forbidden_parameter');
 		}
 		// A kept answer is given before any limit is counted: it costs the node nothing.
