@@ -185,7 +185,7 @@ struct Shown {
 	running: bool,
 	/// Whether a rollback with data can be offered.
 	restorable: bool,
-	/// One of the platform's own three, which the panel restarts and never stops.
+	/// One of the platform's own four, which the panel restarts and never stops.
 	platform: bool,
 }
 

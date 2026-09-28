@@ -212,10 +212,10 @@ pub async fn from_archive(
 	deployed
 }
 
-/// The platform's own three: the panel restarts them and never stops them, since each stopped takes
-/// the panel or the way back with it. See spec/architecture/host.md, "What the panel can do to an
-/// app".
-pub const PLATFORM: [&str; 3] = ["host", "keeper", "caddy"];
+/// The platform's own four: the panel restarts them and never stops them, since each stopped takes
+/// the panel, the way in or the way back with it. See spec/architecture/host.md, "What the panel
+/// can do to an app".
+pub const PLATFORM: [&str; 4] = ["host", "keeper", "caddy", "tunnel"];
 
 /// What a restart must not wait for: host answering the request, and Caddy carrying it. The panel
 /// is told first and the restart follows.
@@ -515,7 +515,7 @@ mod tests {
 	fn the_platforms_own_are_restarted_and_never_stopped_or_started() {
 		use super::{Error, permitted};
 		use crate::store::Action;
-		for name in ["host", "keeper", "caddy"] {
+		for name in ["host", "keeper", "caddy", "tunnel"] {
 			assert!(permitted(name, Action::Restart).is_ok(), "{name}");
 			for action in [Action::Stop, Action::Start] {
 				assert!(matches!(permitted(name, action), Err(Error::Platform(_))), "{name}");

@@ -112,7 +112,7 @@ host gives 512 without one; the platform's own two containers get theirs the sam
 set equal to the limit, since a ceiling that can be exceeded into swap only makes the machine
 slower. Each figure is the container's measured use with room above it: geo, measured at 290 MiB
 held and 130 more pushed into swap against a 512 limit it met sixty times, has 768; host 128,
-keeper 32, the meter 32 and Caddy 128, against 50, 9, 19 and 20 measured on 2026-09-28.
+keeper 16, the meter 32 and Caddy 128, against 50, 9, 19 and 20 measured on 2026-09-28.
 
 ### An image is built for speed, and for any node of its architecture
 
@@ -431,11 +431,12 @@ Every one of them is confirmed twice.
 keeps no record and host none of itself: its logs and its version are there, with no previous
 version and no environment, which is its `.env` beside the compose file and read by nothing here.
 
-**The platform's own three -- host, keeper and Caddy -- are restarted from the panel and never
-stopped or started.** Each stopped takes the panel or the way back with it: host is the panel, Caddy
-carries it, and keeper is what replaces host. host does not redeploy or roll itself back either,
-since keeper is the one that replaces it; keeper and Caddy are redeployed and rolled back like any
-app. A restart of host or of Caddy -- what answers the request and what carries it -- is answered
+**The platform's own four -- host, keeper, Caddy and the tunnel -- are restarted from the panel and
+never stopped or started.** Each stopped takes the panel, the way in or the way back with it: host
+is the panel, Caddy carries it, the tunnel is the public side and CI's notices, and keeper is what
+replaces host. host does not redeploy or roll itself back either,
+since keeper is the one that replaces it; keeper, Caddy and the tunnel are redeployed and rolled
+back like any app. A restart of host or of Caddy -- what answers the request and what carries it -- is answered
 first and done half a second later, and the panel waits for the app to answer again. host's own is
 recorded as done when asked, because nothing of it is left to finish the record once it restarts.
 
