@@ -21,8 +21,12 @@ nothing waits on it:
 - `width` and `height` are the viewport in CSS pixels; `full=true` captures the whole page rather
   than what the viewport shows.
 - Every answer but the picture is the envelope, and says `no-store`. A capture that failed is
-  `502 capture_failed` with why; one expired or never made is `404 no_such_shot`; a full queue is
-  `503 queue_unavailable` with `Retry-After`.
+  `502 page_unavailable` with why, in the browser's words; one expired or never made is
+  `404 no_such_shot`; a full queue is `503 queue_unavailable` with `Retry-After`.
+- **The addresses in an answer are relative** -- `Location: <id>`, `png: "<id>.png"` -- because the
+  service does not know the scope it is reached under; resolved against the address asked, they
+  land beside it.
+- A capture has thirty seconds from when a browser takes it, and fails with why after that.
 - **An id is a random UUID**, so a picture cannot be found by guessing what somebody else asked
   for. The same parameters while a capture of them is kept get the same id, and are not captured
   twice.
