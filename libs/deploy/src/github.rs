@@ -86,6 +86,15 @@ pub struct Fetched {
 	pub declaration: String,
 }
 
+/// The app an artifact name carries, when the name is one CI gives and the app a name an app can
+/// have. The name comes from GitHub's answer, not from this repository, so it is held to the
+/// same rule as any other name before anything is done with it.
+pub fn app_of(artifact: &str) -> Option<String> {
+	let app = artifact.strip_prefix(PREFIX)?;
+	let named = crate::manifest::check_name(app).is_ok() || crate::manifest::PLATFORM.contains(&app);
+	named.then(|| app.to_owned())
+}
+
 /// Whether `record` is a finished, successful run of this repository's deploy workflow on `main`.
 pub fn check(run: u64, record: &Run, repository: &str) -> Result<(), Error> {
 	let refuse = |why: String| Err(Error::NotDeployable { run, why });
@@ -162,8 +171,7 @@ impl GitHub {
 			.into_iter()
 			.filter(|record| !record.expired)
 			.filter_map(|record| {
-				let app = record.name.strip_prefix(PREFIX)?.to_owned();
-				Some(Artifact { app, id: record.id, digest: record.digest? })
+				Some(Artifact { app: app_of(&record.name)?, id: record.id, digest: record.digest? })
 			})
 			.collect())
 	}
@@ -192,7 +200,8 @@ impl GitHub {
 			return Err(Error::Status { status, what: format!("artifact {} from storage", artifact.id) });
 		}
 
-		let zip = directory.join(format!("{}-{}.zip", artifact.app, artifact.id));
+		// Named by a counter, like an upload, so nothing GitHub answered becomes part of a path.
+		let zip = crate::arrival(directory);
 		let mut file = tokio::fs::File::create(&zip).await.map_err(io(zip.display().to_string()))?;
 		let mut hasher = Sha256::new();
 		while let Some(frame) = response.body_mut().frame().await {
@@ -209,7 +218,7 @@ impl GitHub {
 			return Err(Error::Digest(artifact.app.clone()));
 		}
 
-		let image = directory.join(format!("{}-{}.tar", artifact.app, artifact.id));
+		let image = crate::arrival(directory);
 		let (name, from, to) = (artifact.app.clone(), zip.clone(), image.clone());
 		let unpacked = tokio::task::spawn_blocking(move || unpack(&name, &from, &to))
 			.await
@@ -275,6 +284,17 @@ mod tests {
 	#[test]
 	fn the_repository_is_read_from_the_source_address() {
 		assert_eq!(GitHub::new(String::new()).repository, "canmi21/lattice");
+	}
+
+	#[test]
+	fn an_artifact_names_an_app_only_when_the_name_could_be_one() {
+		assert_eq!(app_of("deploy-geo").as_deref(), Some("geo"));
+		assert_eq!(app_of("deploy-host").as_deref(), Some("host"));
+		assert_eq!(app_of("deploy-keeper").as_deref(), Some("keeper"));
+		// A name from GitHub's answer never reaches a path, but it is refused before it could.
+		assert_eq!(app_of("deploy-../../etc"), None);
+		assert_eq!(app_of("deploy-api"), None);
+		assert_eq!(app_of("other-geo"), None);
 	}
 
 	#[test]
