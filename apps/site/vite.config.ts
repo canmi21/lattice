@@ -15,6 +15,7 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import Icons from 'unplugin-icons/vite';
 import { execFileSync } from 'node:child_process';
 import { defineConfig, type UserConfig } from 'vite';
+import { addresses } from '@canmi/site-api/contracts';
 import { parse as parseYaml } from 'yaml';
 import { reap } from './scripts/reap-workerd.ts';
 
@@ -288,6 +289,10 @@ export default defineConfig(({ mode }) => {
 			// A page has no environment to read the sandbox's shift from. Development only: a
 			// production build states nothing and reads 0. See spec/architecture/modes.md.
 			...(mode === 'production' ? {} : { STATED_PORT_OFFSET: PORT_OFFSET }),
+			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
+			// the two agree by construction. Production only: development asks by name. See
+			// spec/architecture/services.md, "The pages ask by contract, not by name".
+			...(mode === 'production' ? { STATED_API_ADDRESSES: JSON.stringify(addresses()) } : {}),
 		},
 	} satisfies UserConfig;
 });

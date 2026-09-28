@@ -222,6 +222,26 @@ see workspace.md, "A runtime's globals decide which program checks a file".
 fetcher the store takes, which `wrangler dev` used to hand over as assets. The site's assets are its
 own build and Vite runs in node, so the site reads the tree itself, in development only.
 
+### The pages ask by contract, not by name
+
+In production a page asks for a route at `/api/{address}`, twelve hex digits of a SHA-256 over the
+route's name and its contract: the schemas its answer and request are read by, taken as data, and a
+revision for whatever of its shape no schema describes. `libs/site-api/src/contracts.ts` holds the
+contracts, and the site's build states every address to the pages and to the Worker in one
+`define`, so the two agree by construction. Development asks by the route's name, and a production
+Worker answers a name with a 404.
+
+**The address moves with the contract and with nothing else.** A deploy that leaves a route alone
+leaves its address, and whatever cached it, alone. A deploy that changes it gives it a new address,
+so a tab still open from before asks the old one and is told the route does not exist -- the answer
+a removed route would get -- rather than reading an answer of a shape it no longer understands.
+Hashing the build instead would have cost every open tab every route on every deploy.
+
+**It is not access control.** The addresses are in the page's script for anyone to read. What it
+buys is that the internal routes are nobody's contract: nothing outside the site can come to depend
+on one, so it can change whenever the site does. The public routes keep their names on the API host,
+which is where a promise is made.
+
 This reversed a first arrangement, in which the API was a Worker of its own named `site-api`. Its
 reason was the credential split above, and it was sound until the internal addresses were wanted
 built together with the pages, which two Workers cannot do.
