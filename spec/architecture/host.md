@@ -332,7 +332,9 @@ becomes an open redirect.
 **Every name is compressed at Caddy, and no app compresses for itself.** Each route host renders
 encodes its answer with zstd or gzip, whichever the client prefers; an answer that arrives already
 encoded is passed through. Compression is a property of the edge of the node, like TLS, so it is
-configured once there rather than in every app and every vendor's image.
+configured once there rather than in every app and every vendor's image. A `text/event-stream`
+answer is left uncompressed, since an encoder holds what it compresses and a stream has to arrive
+as it is sent.
 
 **Caddy's admin endpoint is a unix socket, never a port.** Every app shares a network with Caddy,
 so an admin port would let any app rewrite every route. The socket sits in a directory only Caddy
