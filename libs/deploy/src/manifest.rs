@@ -14,9 +14,9 @@ pub const VERSION: u32 = 1;
 const RESERVED: [&str; 7] = ["host", "keeper", "agent", "api", "gateway", "caddy", "cloudflared"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, and the agent. See spec/architecture/host.md, "host never
-/// updates itself; keeper updates host", and spec/architecture/agent.md.
-pub const OWN: [&str; 3] = ["host", "keeper", "agent"];
+/// keeper, which each deploy the other, the agent, and Caddy. See spec/architecture/host.md, "host
+/// never updates itself; keeper updates host", and spec/architecture/agent.md.
+pub const OWN: [&str; 4] = ["host", "keeper", "agent", "caddy"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is

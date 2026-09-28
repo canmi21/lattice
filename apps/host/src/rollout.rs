@@ -53,14 +53,14 @@ pub struct Outcome {
 	pub routed: Result<(), String>,
 }
 
-/// Whether host takes a deploy under this name at all: any app's, and keeper and the agent, the
-/// reserved names it deploys. host itself is keeper's to deploy.
+/// Whether host takes a deploy under this name at all: any app's, and keeper, the agent and Caddy,
+/// the reserved names it deploys. host itself is keeper's to deploy.
 pub fn deployable(name: &str) -> Result<(), Invalid> {
 	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it.
-const TAKEN: [&str; 2] = ["keeper", "agent"];
+const TAKEN: [&str; 3] = ["keeper", "agent", "caddy"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
@@ -85,8 +85,8 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	Ok(())
 }
 
-/// How the node runs an app: keeper in the platform's shape, the agent as an observer, and every
-/// other app sandboxed. Both of the last two read their own environment.
+/// How the node runs an app: keeper in the platform's shape, the agent as an observer, Caddy on the
+/// edge, and every other app sandboxed. The last three read their own environment.
 fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	if name == "keeper" {
 		let path = &host.config.platform_env;
@@ -95,7 +95,11 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 		return Ok(Shape::Platform { env });
 	}
 	let env = crate::environment::variables(&host.volumes.root(name))?;
-	Ok(if name == "agent" { Shape::Observer { env } } else { Shape::Sandboxed { env } })
+	Ok(match name {
+		"agent" => Shape::Observer { env },
+		"caddy" => Shape::Edge { env },
+		_ => Shape::Sandboxed { env },
+	})
 }
 
 /// The one step every action that runs a version shares: replace what runs with `next`, restoring
@@ -108,7 +112,15 @@ async fn run_version(
 ) -> Result<PathBuf, Error> {
 	let shape = shape_of(host, &next.manifest.name)?;
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
-	Ok(replace(&host.engine, &host.volumes, &members, &shape, next, current, restore).await?)
+	let snapshot =
+		replace(&host.engine, &host.volumes, &members, &shape, next, current, restore).await?;
+	// A new Caddy is a new container, on none of the apps' networks yet.
+	if next.manifest.name == host.config.caddy.container
+		&& let Err(error) = attach(host).await
+	{
+		eprintln!("host: attaching the new Caddy: {error}");
+	}
+	Ok(snapshot)
 }
 
 /// Close event `id` with how `result` went, keeping the snapshot a success took.
@@ -390,8 +402,12 @@ pub fn render(host: &Host) -> Result<serde_json::Value, store::Error> {
 pub async fn attach(host: &Host) -> Result<(), RouteError> {
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
 	host.engine.network("host", &members).await?;
+	// The agent has no network, and Caddy stands on the edge rather than on one of its own.
 	for app in host.store.apps()? {
-		host.engine.network(&app.manifest.name, &members).await?;
+		let name = app.manifest.name.as_str();
+		if name != "agent" && name != host.config.caddy.container {
+			host.engine.network(name, &members).await?;
+		}
 	}
 	Ok(())
 }
@@ -422,6 +438,7 @@ mod tests {
 		// keeper arrives on a node; turning it away here once stopped the first one arriving.
 		assert!(deployable("keeper").is_ok());
 		assert!(deployable("agent").is_ok());
+		assert!(deployable("caddy").is_ok());
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
 	}

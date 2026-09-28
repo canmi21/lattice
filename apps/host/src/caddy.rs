@@ -247,7 +247,7 @@ mod tests {
 			container: "caddy".into(),
 			admin_socket: "/nowhere/admin.sock".into(),
 			config_file: "/nowhere/caddy.json".into(),
-			admin_listen: "unix//run/caddy/admin.sock".into(),
+			admin_listen: "unix//data/admin.sock".into(),
 			private_suffix: "inside.test".into(),
 			public_suffix: "outside.test".into(),
 			private_sources: vec!["10.0.0.0/24".into()],

@@ -87,9 +87,10 @@ impl Config {
 			platform_env: apps_root.join("host").join(".env"),
 			caddy: CaddyConfig {
 				container: optional("CADDY_CONTAINER", "caddy"),
-				admin_socket: caddy_root.join("run").join("admin.sock"),
+				// In Caddy's own directory, where host checks its health on it as on the agent's.
+				admin_socket: caddy_root.join("data").join("admin.sock"),
 				config_file: caddy_root.join("host").join("caddy.json"),
-				admin_listen: "unix//run/caddy/admin.sock".into(),
+				admin_listen: "unix//data/admin.sock".into(),
 				private_suffix: required("PRIVATE_SUFFIX")?,
 				public_suffix: required("PUBLIC_SUFFIX")?,
 				private_sources: required("PRIVATE_SOURCES")?

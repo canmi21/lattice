@@ -20,8 +20,8 @@ publicly. Nothing maps one spelling to another, so nothing can disagree.
 - Apps from this repository and images from elsewhere share the one namespace.
 - `host` and `keeper` are reserved for the two programs below, `agent` for what samples the
   machine ([agent.md](agent.md)), `api` for the API host, `gateway` for the Worker answering it
-  publicly, and `caddy` and `cloudflared` because a container's name is the app's and those two
-  already run.
+  publicly, `caddy` for the door host deploys (below), and `cloudflared` because a container's
+  name is the app's and it already runs.
 
 `.icu` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
@@ -226,6 +226,28 @@ start. `/data` keeps `nofail` in fstab, so a node with a failed disk still boots
 and a drop-in gives the Docker unit `RequiresMountsFor=/data`, so it waits for the mount and does
 not start without it. Nothing needs starting in order beyond that: every container restarts on its
 own policy, and Caddy starts from the file host last wrote whether or not host is up yet.
+
+### Caddy is deployed like any app, and is the one door
+
+**Caddy is `apps/caddy`, built here and deployed by host, in a shape its name alone gets: the
+edge.** The official build with two modules, xcaddy's Cloudflare DNS provider for its certificates
+and the rate limiter host renders each service's limits into; declared, versioned, rolled back and
+shown in the panel as every app is. The shape differs from an app's sandbox in four things:
+
+- Its ports, 80, 443 and 443 over UDP, are published on the machine; no other container publishes
+  any.
+- It stands on the `edge` network, which cloudflared shares, rather than on one of its own, and
+  after every deploy host joins it to each app's network again, since a new container is on none.
+- Beside its `data/` -- certificates, and the admin socket -- it mounts `host/`, the configuration
+  host writes, read-only, and `config/`.
+- It keeps one capability, binding a low port; its root is read-only as an app's is.
+
+Its health is its admin socket, `data/admin.sock`, asked `/config/` as the agent's is asked
+`/health`, and that socket is where host loads every configuration. The Cloudflare token its DNS
+provider proves certificates with is its `secret.env`, as any app's secret is. **Without the token
+it does not start at all**, so a node's first Caddy deployed by host needs `secret.env` in place
+before it, or every door closes; the one it replaces is brought back by hand from the compose file
+beside it, `docker compose up -d`.
 
 ### host renders all of Caddy, and Caddy remembers nothing
 

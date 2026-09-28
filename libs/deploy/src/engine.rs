@@ -6,7 +6,7 @@ use crate::manifest::Manifest;
 use bollard::Docker;
 use bollard::models::{
 	ContainerCreateBody, EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType,
-	NetworkConnectRequest, NetworkCreateRequest, RestartPolicy, RestartPolicyNameEnum,
+	NetworkConnectRequest, NetworkCreateRequest, PortBinding, RestartPolicy, RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
 	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListImagesOptionsBuilder,
@@ -53,14 +53,31 @@ pub enum Shape {
 	/// machine's `/proc` and `/sys` read-only under `/host`. See spec/architecture/agent.md, "Run
 	/// beside the machine, not inside it".
 	Observer { env: Vec<String> },
+	/// Caddy only: the node's one door. Its ports published on the machine, the `edge` network
+	/// cloudflared shares, and every app's network joined after it starts; its configuration, which
+	/// host writes, read-only; no capability but binding a low port. See
+	/// spec/architecture/host.md, "Caddy is deployed like any app, and is the one door".
+	Edge { env: Vec<String> },
 }
 
 impl Shape {
-	/// Whether it runs on the app's own network, which Caddy and host join; the agent has none.
+	/// Whether it runs on the app's own network, which Caddy and host join. The agent has no
+	/// network at all, and Caddy stands on the edge and joins the others.
 	pub fn networked(&self) -> bool {
-		!matches!(self, Shape::Observer { .. })
+		!matches!(self, Shape::Observer { .. } | Shape::Edge { .. })
 	}
 }
+
+/// The network the edge shape stands on, shared with cloudflared.
+pub const EDGE_NETWORK: &str = "edge";
+
+/// What the edge shape publishes on the machine: HTTP, HTTPS, and HTTPS over QUIC.
+pub const EDGE_PORTS: [&str; 3] = ["80/tcp", "443/tcp", "443/udp"];
+
+/// Where the edge shape mounts the parts of its directory beside `data/`: host's rendered
+/// configuration, read-only, and Caddy's own configuration state.
+pub const EDGE_MOUNTS: [(&str, &str, bool); 2] =
+	[("host", "/etc/caddy/host", true), ("config", "/config", false)];
 
 /// Where the observer shape puts the machine's two kernel filesystems.
 pub const OBSERVED: [(&str, &str); 2] = [("/proc", "/host/proc"), ("/sys", "/host/sys")];
@@ -73,6 +90,8 @@ pub enum Error {
 	NothingLoaded,
 	#[error("archiving the logs to {path}: {source}")]
 	Archive { path: String, source: std::io::Error },
+	#[error("making {path}: {source}")]
+	Directory { path: String, source: std::io::Error },
 }
 
 /// A 404 from Docker: the thing asked about does not exist.
@@ -253,6 +272,30 @@ impl Engine {
 				};
 				(config, env.clone())
 			}
+			Shape::Edge { env } => {
+				let root = data.parent().unwrap_or(data);
+				// A bind mount's source has to exist, and only `data/` is made for every app.
+				for (from, _, _) in EDGE_MOUNTS {
+					let beside = root.join(from);
+					tokio::fs::create_dir_all(&beside)
+						.await
+						.map_err(|source| Error::Directory { path: beside.display().to_string(), source })?;
+				}
+				let beside = EDGE_MOUNTS.iter().map(|(from, to, read_only)| {
+					bind(root.join(from).display().to_string(), (*to).into(), *read_only)
+				});
+				let published = EDGE_PORTS.iter().map(|port| {
+					let host_port = port.split('/').next().map(str::to_owned);
+					(port.to_string(), Some(vec![PortBinding { host_ip: None, host_port }]))
+				});
+				let config = HostConfig {
+					network_mode: Some(EDGE_NETWORK.into()),
+					port_bindings: Some(published.collect()),
+					cap_add: Some(vec!["NET_BIND_SERVICE".into()]),
+					..sandboxed(own.into_iter().chain(beside).collect())
+				};
+				(config, env.clone())
+			}
 			Shape::Platform { env } => {
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
@@ -279,9 +322,16 @@ impl Engine {
 				("host.app".into(), name.clone()),
 				(VERSION_LABEL.into(), recorded),
 			])),
+			exposed_ports: matches!(shape, Shape::Edge { .. })
+				.then(|| EDGE_PORTS.iter().map(|port| (*port).to_owned()).collect()),
 			host_config: Some(host_config),
-			networking_config: shape.networked().then(|| bollard::models::NetworkingConfig {
-				endpoints_config: Some(HashMap::from([(network_of(name), EndpointSettings::default())])),
+			networking_config: match shape {
+				Shape::Observer { .. } => None,
+				Shape::Edge { .. } => Some(EDGE_NETWORK.to_owned()),
+				_ => Some(network_of(name)),
+			}
+			.map(|network| bollard::models::NetworkingConfig {
+				endpoints_config: Some(HashMap::from([(network, EndpointSettings::default())])),
 			}),
 			..Default::default()
 		};

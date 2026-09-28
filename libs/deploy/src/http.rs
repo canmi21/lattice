@@ -59,7 +59,8 @@ pub async fn status_unix(socket: &Path, path: &str) -> Result<u16, Error> {
 pub async fn get_unix(socket: &Path, path: &str) -> Result<(u16, String), Error> {
 	let attempt = async {
 		let stream = tokio::net::UnixStream::connect(socket).await.map_err(Error::Connect)?;
-		let request = Request::get(path).header("host", "localhost").body(Full::new(Bytes::new()))?;
+		// Loopback as `Host`, which Caddy's admin socket insists on and any other socket ignores.
+		let request = Request::get(path).header("host", "127.0.0.1").body(Full::new(Bytes::new()))?;
 		send(stream, request).await
 	};
 	tokio::time::timeout(ATTEMPT, attempt).await.map_err(|_| Error::Timeout)?
