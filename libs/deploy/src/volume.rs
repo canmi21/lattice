@@ -1,16 +1,16 @@
 //! Each app's directory as a btrfs subvolume, and the snapshots a deploy is undone from. See
 //! spec/architecture/host.md, "One version runs, and a failed deploy puts the last one back".
 
+use crate::btrfs;
 use std::path::{Path, PathBuf};
-use tokio::process::Command;
 
 /// Snapshots kept per app once a deploy succeeds. Copy-on-write, so the cost is what changed.
 const KEEP: usize = 3;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-	#[error("`btrfs {args}` failed: {detail}")]
-	Btrfs { args: String, detail: String },
+	#[error(transparent)]
+	Btrfs(#[from] btrfs::Error),
 	#[error("{path}: {source}")]
 	Io { path: PathBuf, source: std::io::Error },
 }
@@ -19,23 +19,15 @@ fn io(path: &Path) -> impl FnOnce(std::io::Error) -> Error + '_ {
 	move |source| Error::Io { path: path.to_path_buf(), source }
 }
 
-async fn btrfs(args: &[&str]) -> Result<(), Error> {
-	let output = Command::new("btrfs")
-		.args(args)
-		.output()
-		.await
-		.map_err(|e| Error::Btrfs { args: args.join(" "), detail: e.to_string() })?;
-	if output.status.success() {
-		return Ok(());
+/// A btrfs call is a blocking syscall, so it runs where blocking is allowed.
+async fn blocking<F>(work: F) -> Result<(), Error>
+where
+	F: FnOnce() -> Result<(), btrfs::Error> + Send + 'static,
+{
+	match tokio::task::spawn_blocking(work).await {
+		Ok(result) => Ok(result?),
+		Err(joined) => Err(Error::Io { path: PathBuf::new(), source: std::io::Error::other(joined) }),
 	}
-	Err(Error::Btrfs {
-		args: args.join(" "),
-		detail: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
-	})
-}
-
-fn text(path: &Path) -> &str {
-	path.to_str().unwrap_or_default()
 }
 
 pub struct Volumes {
@@ -61,7 +53,8 @@ impl Volumes {
 	pub async fn ensure(&self, name: &str) -> Result<(), Error> {
 		let root = self.root(name);
 		if !root.exists() {
-			btrfs(&["subvolume", "create", text(&root)]).await?;
+			let path = root.clone();
+			blocking(move || btrfs::create(&path)).await?;
 		}
 		let data = self.data(name);
 		tokio::fs::create_dir_all(&data).await.map_err(io(&data))
@@ -72,7 +65,8 @@ impl Volumes {
 		let directory = self.snapshots.join(name);
 		tokio::fs::create_dir_all(&directory).await.map_err(io(&directory))?;
 		let target = directory.join(jiff::Timestamp::now().strftime("%Y%m%dT%H%M%S%.3fZ").to_string());
-		btrfs(&["subvolume", "snapshot", "-r", text(&self.root(name)), text(&target)]).await?;
+		let (source, made) = (self.root(name), target.clone());
+		blocking(move || btrfs::snapshot(&source, &made, true)).await?;
 		Ok(target)
 	}
 
@@ -82,11 +76,13 @@ impl Volumes {
 		let root = self.root(name);
 		let aside = self.snapshots.join(name).join("failed");
 		if aside.exists() {
-			btrfs(&["subvolume", "delete", text(&aside)]).await?;
+			let path = aside.clone();
+			blocking(move || btrfs::delete(&path)).await?;
 		}
 		tokio::fs::rename(&root, &aside).await.map_err(io(&root))?;
-		btrfs(&["subvolume", "snapshot", text(snapshot), text(&root)]).await?;
-		btrfs(&["subvolume", "delete", text(&aside)]).await
+		let (source, made) = (snapshot.to_path_buf(), root.clone());
+		blocking(move || btrfs::snapshot(&source, &made, false)).await?;
+		blocking(move || btrfs::delete(&aside)).await
 	}
 
 	pub async fn prune(&self, name: &str) -> Result<(), Error> {
@@ -102,7 +98,8 @@ impl Volumes {
 		stamps.sort();
 		let excess = stamps.len().saturating_sub(KEEP);
 		for stamp in &stamps[..excess] {
-			btrfs(&["subvolume", "delete", text(&directory.join(stamp))]).await?;
+			let path = directory.join(stamp);
+			blocking(move || btrfs::delete(&path)).await?;
 		}
 		Ok(())
 	}

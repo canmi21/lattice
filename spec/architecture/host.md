@@ -98,6 +98,14 @@ the build is slower, and it runs on the Mac, where nobody is waiting on a reques
 is set, so an image is not tied to the chip of the node it was first built for. The profile is its
 own rather than `release`, which a local build of `local` would otherwise inherit and pay for.
 
+**An image is the binary on `scratch` and nothing else.** Each program is linked statically against
+musl, so it needs no C library from the image, and the image holds the binary and, for geo, its
+data. musl's own allocator is slow under many small allocations, so every program sets mimalloc as
+its allocator; without it the static binary would be the slower one. host and keeper make btrfs's
+ioctls themselves rather than running `btrfs`, which is what let them leave Debian: there is no
+`btrfs` in an empty image, and no command line to inject into once there is no command. The
+target follows the platform being built, so the same Dockerfile serves an x86 node.
+
 ### The declaration is `service.toml`, beside the Dockerfile
 
 An app states what it needs in `apps/<name>/service.toml` and ships it with its image. host is a

@@ -1,23 +1,33 @@
 # syntax=docker/dockerfile:1
 # check=skip=InvalidDefaultArgInFrom
-# Built from the repository root, for the machine at home: `mise run host deploy geo`.
-# RUST_VERSION has no default on purpose, which is the check skipped above: the task reads it
-# from the workspace's rust-toolchain.toml, so the compiler here is the one every check runs.
+# Built from the repository root by `mise run host`. RUST_VERSION has no default on purpose, which
+# is the check skipped above: the task reads it from the workspace's rust-toolchain.toml.
 ARG RUST_VERSION
 
+# Static, against musl, so the image needs nothing but the binary. The target follows the platform
+# being built, so one Dockerfile serves an arm64 node and an x86 one.
 FROM rust:${RUST_VERSION}-slim-trixie AS build
+ARG TARGETARCH
+RUN apt-get update \
+	&& apt-get install --yes --no-install-recommends musl-tools \
+	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /src
-# Cargo reads every workspace member's manifest and targets, so all of apps/ and libs/ come;
-# only geo and what it depends on is compiled.
 COPY Cargo.toml Cargo.lock ./
 COPY apps apps
 COPY libs libs
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/src/target \
-	cargo build --profile container --locked -p geo && cp target/container/geo /geo
+	case "$TARGETARCH" in arm64) arch=aarch64 ;; amd64) arch=x86_64 ;; *) exit 1 ;; esac \
+	&& target="$arch-unknown-linux-musl" \
+	&& rustup target add "$target" \
+	&& export "CC_${arch}_unknown_linux_musl=musl-gcc" \
+	&& cargo build --profile container --locked --target "$target" -p geo \
+	&& cp "target/$target/container/geo" /geo
 
-FROM gcr.io/distroless/cc-debian13:nonroot
+FROM scratch
 COPY --from=build /geo /geo
 # GeoNames' dumps travel with the binary: read-only data, so every copy of the service is whole.
 COPY data/source/geo /data
+# Not root: nothing here needs to be, and scratch has no user table, so it is named by number.
+USER 65532:65532
 ENTRYPOINT ["/geo"]

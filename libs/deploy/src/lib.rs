@@ -3,6 +3,7 @@
 //! by the next. host and keeper differ in what they deploy and what they remember, not in how a
 //! container is replaced. See spec/architecture/host.md.
 
+pub mod btrfs;
 pub mod engine;
 pub mod http;
 pub mod manifest;

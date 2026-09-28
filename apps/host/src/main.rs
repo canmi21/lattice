@@ -11,6 +11,11 @@ mod store;
 
 use std::sync::Arc;
 
+/// musl's allocator is slow under many small allocations, and images are built for speed; see
+/// spec/architecture/host.md, "An image is built for speed, and for any node of its architecture".
+#[global_allocator]
+static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 /// Everything a request handler reaches.
 pub struct Host {
 	pub config: config::Config,

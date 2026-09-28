@@ -17,6 +17,11 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 
+/// musl's allocator is slow under many small allocations, and images are built for speed; see
+/// spec/architecture/host.md, "An image is built for speed, and for any node of its architecture".
+#[global_allocator]
+static ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 /// keeper's own port, one below host's. `service.toml` states it for host, and the test below
 /// holds the two together.
 const PORT: u16 = 11010;
