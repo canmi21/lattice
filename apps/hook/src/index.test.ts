@@ -63,6 +63,7 @@ describe('handle', () => {
 		const { sent, env } = home();
 		const response = await handle(await deliver(DELIVERY, 'workflow_run', 'sha256=00'), env);
 		expect(response.status).toBe(401);
+		expect(await response.json()).toMatchObject({ code: 'invalid_signature' });
 		expect(sent).toHaveLength(0);
 	});
 
@@ -74,7 +75,9 @@ describe('handle', () => {
 
 	it('fails the delivery when a receiver does not take it, so GitHub can redeliver', async () => {
 		const { env } = home(502);
-		expect((await handle(await deliver(DELIVERY), env)).status).toBe(502);
+		const refused = await handle(await deliver(DELIVERY), env);
+		expect(refused.status).toBe(502);
+		expect(await refused.json()).toMatchObject({ status: 'error', code: 'upstream_unavailable' });
 	});
 
 	it('answers nothing but its own path', async () => {

@@ -404,6 +404,9 @@ importers:
 
   apps/hook:
     dependencies:
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../libs/response
       '@canmi/urls':
         specifier: workspace:*
         version: link:../../libs/urls

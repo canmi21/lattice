@@ -7,7 +7,7 @@
 use axum::extract::{DefaultBodyLimit, Multipart, Request, State};
 use axum::http::{StatusCode, header};
 use axum::middleware::{self, Next};
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use deploy::replace::{Error as Failed, replace};
@@ -85,8 +85,11 @@ async fn main() -> anyhow::Result<()> {
 	Ok(())
 }
 
-async fn health(State(keeper): State<Arc<Keeper>>) -> StatusCode {
-	if keeper.engine.ping().await.is_ok() { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE }
+async fn health(State(keeper): State<Arc<Keeper>>) -> Response {
+	match keeper.engine.ping().await {
+		Ok(()) => response::success(StatusCode::OK, ()),
+		Err(_) => response::failure(StatusCode::SERVICE_UNAVAILABLE, "docker_unavailable"),
+	}
 }
 
 /// Compared in time independent of where the first difference is.
@@ -103,13 +106,9 @@ async fn admit(State(keeper): State<Arc<Keeper>>, request: Request, next: Next) 
 		.and_then(|value| value.strip_prefix("Bearer "))
 		.unwrap_or_default();
 	if !same(given.as_bytes(), keeper.token.as_bytes()) {
-		return StatusCode::UNAUTHORIZED.into_response();
+		return response::failure(StatusCode::UNAUTHORIZED, "invalid_token");
 	}
 	next.run(request).await
-}
-
-fn failed(status: StatusCode, message: impl ToString) -> Response {
-	(status, message.to_string()).into_response()
 }
 
 /// The same request host takes for any app: the declaration as `service`, the archive as `image`,
@@ -122,13 +121,19 @@ async fn upload(State(keeper): State<Arc<Keeper>>, mut parts: Multipart) -> Resp
 		let mut part = match parts.next_field().await {
 			Ok(Some(part)) => part,
 			Ok(None) => break,
-			Err(error) => return failed(StatusCode::BAD_REQUEST, error),
+			Err(error) => return upload_refused(error),
 		};
 		match part.name() {
 			Some("service") => match part.text().await.map(|text| Manifest::parse(&text)) {
 				Ok(Ok(manifest)) => declared = Some(manifest),
-				Ok(Err(error)) => return failed(StatusCode::UNPROCESSABLE_ENTITY, error),
-				Err(error) => return failed(StatusCode::BAD_REQUEST, error),
+				Ok(Err(error)) => {
+					return response::failure_with(
+						StatusCode::UNPROCESSABLE_ENTITY,
+						"invalid_declaration",
+						error,
+					);
+				}
+				Err(error) => return upload_refused(error),
 			},
 			Some("image") => {
 				let saved = async {
@@ -141,7 +146,7 @@ async fn upload(State(keeper): State<Arc<Keeper>>, mut parts: Multipart) -> Resp
 					anyhow::Ok(())
 				};
 				if let Err(error) = saved.await {
-					return failed(StatusCode::BAD_REQUEST, error);
+					return upload_refused(error);
 				}
 				received = true;
 			}
@@ -149,15 +154,21 @@ async fn upload(State(keeper): State<Arc<Keeper>>, mut parts: Multipart) -> Resp
 		}
 	}
 	let Some(manifest) = declared else {
-		return failed(StatusCode::BAD_REQUEST, "no `service` part");
+		return response::failure_with(StatusCode::BAD_REQUEST, "invalid_upload", "No service part");
 	};
 	if !received {
-		return failed(StatusCode::BAD_REQUEST, "no `image` part");
+		return response::failure_with(StatusCode::BAD_REQUEST, "invalid_upload", "No image part");
 	}
 	match from_archive(&keeper, manifest, &archive).await {
-		Ok(image) => Json(serde_json::json!({ "name": "host", "image": image })).into_response(),
-		Err(Reply(status, message)) => failed(status, message),
+		Ok(image) => {
+			response::success(StatusCode::OK, serde_json::json!({ "name": "host", "image": image }))
+		}
+		Err(Reply(status, code, message)) => response::failure_with(status, code, message),
 	}
+}
+
+fn upload_refused(error: impl ToString) -> Response {
+	response::failure_with(StatusCode::BAD_REQUEST, "invalid_upload", error)
 }
 
 /// Load a host archive and put it in place, as an upload or a notice brings one. The archive is
@@ -169,14 +180,19 @@ async fn from_archive(
 ) -> Result<String, Reply> {
 	let replaced = async {
 		if let Err(error) = manifest.check_platform("host", &keeper.node) {
-			return Err(Reply(StatusCode::UNPROCESSABLE_ENTITY, error.to_string()));
+			return Err(Reply(
+				StatusCode::UNPROCESSABLE_ENTITY,
+				"invalid_declaration",
+				error.to_string(),
+			));
 		}
 		let _one = keeper.replacing.lock().await;
-		let file = tokio::fs::File::open(archive)
-			.await
-			.map_err(|e| Reply(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+		let file = tokio::fs::File::open(archive).await.map_err(|e| {
+			Reply(StatusCode::INTERNAL_SERVER_ERROR, "service_unavailable", e.to_string())
+		})?;
 		let loaded = keeper.engine.load("host", tokio_util::io::ReaderStream::new(file)).await;
-		let image = loaded.map_err(|e| Reply(StatusCode::UNPROCESSABLE_ENTITY, e.to_string()))?;
+		let image = loaded
+			.map_err(|e| Reply(StatusCode::UNPROCESSABLE_ENTITY, "invalid_image", e.to_string()))?;
 		replace_host(keeper, Version { manifest, image }).await
 	}
 	.await;
@@ -194,11 +210,11 @@ struct Notice {
 /// taking it failed. See spec/architecture/host.md, "keeper has its own intake".
 async fn notice(State(keeper): State<Arc<Keeper>>, Json(notice): Json<Notice>) -> Response {
 	if keeper.github.is_none() {
-		return failed(StatusCode::SERVICE_UNAVAILABLE, "this node has no GITHUB_ACTIONS_TOKEN");
+		return response::failure(StatusCode::SERVICE_UNAVAILABLE, "github_unavailable");
 	}
 	let notices = || keeper.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
 	if !notices().insert(notice.run) {
-		return (StatusCode::OK, "already taken").into_response();
+		return response::success(StatusCode::OK, serde_json::json!({ "run": notice.run }));
 	}
 	let taker = keeper.clone();
 	tokio::spawn(async move {
@@ -206,7 +222,7 @@ async fn notice(State(keeper): State<Arc<Keeper>>, Json(notice): Json<Notice>) -
 			taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).remove(&notice.run);
 		}
 	});
-	StatusCode::ACCEPTED.into_response()
+	response::success(StatusCode::ACCEPTED, serde_json::json!({ "run": notice.run }))
 }
 
 /// The host a run built, if it built one, put in place. True when nothing failed.
@@ -242,7 +258,7 @@ async fn from_run(keeper: &Keeper, run: u64) -> bool {
 			eprintln!("keeper: run {run}: host is {image}");
 			true
 		}
-		Err(Reply(_, message)) => {
+		Err(Reply(_, _, message)) => {
 			eprintln!("keeper: run {run}: {message}");
 			false
 		}
@@ -254,7 +270,7 @@ async fn from_run(keeper: &Keeper, run: u64) -> bool {
 
 /// Hand `run` to host with host's part done, over the network the replacement joined keeper to.
 async fn pass_on(run: u64) {
-	let body = serde_json::json!({ "run": run, "host_done": true }).to_string().into_bytes();
+	let body = serde_json::json!({ "run": run, "host_replaced": true }).to_string().into_bytes();
 	let address = format!("host:{HOST_PORT}");
 	match deploy::http::post(&address, "/notice", body).await {
 		Ok(status) if (200..300).contains(&status) => {}
@@ -263,11 +279,13 @@ async fn pass_on(run: u64) {
 	}
 }
 
-struct Reply(StatusCode, String);
+/// A refusal on its way to the envelope: the status, the code, and what exactly went wrong.
+struct Reply(StatusCode, &'static str, String);
 
 async fn replace_host(keeper: &Keeper, next: Version) -> Result<String, Reply> {
-	let internal =
-		|error: &dyn std::fmt::Display| Reply(StatusCode::INTERNAL_SERVER_ERROR, error.to_string());
+	let internal = |error: &dyn std::fmt::Display| {
+		Reply(StatusCode::INTERNAL_SERVER_ERROR, "service_unavailable", error.to_string())
+	};
 	// A host started by hand carries no recorded version; the one just sent stands in for its
 	// declaration, beside the image it really runs.
 	let current = keeper.engine.current("host", &next.manifest).await.map_err(|e| internal(&e))?;
@@ -277,7 +295,7 @@ async fn replace_host(keeper: &Keeper, next: Version) -> Result<String, Reply> {
 	match replace(&keeper.engine, &keeper.volumes, &members, &shape, &next, current.as_ref()).await {
 		Ok(()) => {}
 		Err(error @ (Failed::Unhealthy { .. } | Failed::FirstFailed { .. })) => {
-			return Err(Reply(StatusCode::BAD_GATEWAY, error.to_string()));
+			return Err(Reply(StatusCode::BAD_GATEWAY, "app_unavailable", error.to_string()));
 		}
 		Err(error) => return Err(internal(&error)),
 	}
@@ -325,5 +343,12 @@ mod tests {
 		assert!(super::same(b"secret", b"secret"));
 		assert!(!super::same(b"secreT", b"secret"));
 		assert!(!super::same(b"", b"secret"));
+	}
+
+	#[test]
+	fn every_code_it_answers_with_is_in_the_catalogue() {
+		for code in response::codes_named(include_str!("main.rs")) {
+			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
+		}
 	}
 }

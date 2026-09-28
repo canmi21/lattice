@@ -3,6 +3,7 @@
  * run worth deploying is passed to the machine at home over Workers VPC -- to host for the apps,
  * and to keeper, which alone deploys host. See spec/architecture/services.md.
  */
+import { failure, success } from '@canmi/response';
 import { URLS } from '@canmi/urls';
 import { runToDeploy, signed } from './github';
 
@@ -23,11 +24,11 @@ export async function handle(request: Request, env: Env): Promise<Response> {
 	const { pathname } = new URL(request.url);
 	// The gateway has taken the scope off; see spec/architecture/services.md.
 	if (request.method !== 'POST' || pathname !== '/github') {
-		return new Response(null, { status: 404 });
+		return failure(404, 'no_such_route');
 	}
 	const body = await request.text();
 	if (!(await signed(body, request.headers.get('x-hub-signature-256'), env.WEBHOOK_SECRET))) {
-		return new Response(null, { status: 401 });
+		return failure(401, 'invalid_signature');
 	}
 	// `ping` arrives when the webhook is set up; every other event is simply not one to act on.
 	if (request.headers.get('x-github-event') !== 'workflow_run') {
@@ -53,7 +54,11 @@ export async function handle(request: Request, env: Env): Promise<Response> {
 	// A receiver that did not take it fails the delivery, so GitHub shows it and it can be
 	// redelivered.
 	const taken = answers.every((answer) => answer.status === 'fulfilled' && answer.value.ok);
-	return Response.json({ run, reached }, { status: taken ? 202 : 502 });
+	if (taken) return success({ run, reached }, { status: 202 });
+	const each = reached.map(({ receiver, status }) => `${receiver} ${status}`);
+	return failure(502, 'upstream_unavailable', {
+		message: `The machine at home did not take run ${run}: ${each.join(', ')}`,
+	});
 }
 
 export default { fetch: handle } satisfies ExportedHandler<Env>;

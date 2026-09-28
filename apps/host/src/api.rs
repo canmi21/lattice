@@ -34,17 +34,23 @@ pub fn router(host: Arc<Host>) -> Router {
 
 /// What keeper asks before it lets a new host stay: that it reads its own state and reaches
 /// Docker, which are what every other request needs. Open, since it says nothing about either.
-async fn health(State(host): State<Arc<Host>>) -> StatusCode {
-	let ready = host.store.apps().is_ok() && host.engine.ping().await.is_ok();
-	if ready { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE }
+async fn health(State(host): State<Arc<Host>>) -> Response {
+	if host.store.apps().is_err() {
+		return response::failure(StatusCode::SERVICE_UNAVAILABLE, "store_unavailable");
+	}
+	if host.engine.ping().await.is_err() {
+		return response::failure(StatusCode::SERVICE_UNAVAILABLE, "docker_unavailable");
+	}
+	response::success(StatusCode::OK, ())
 }
 
 #[derive(Deserialize)]
 struct Notice {
 	run: u64,
-	/// Set by keeper when it passes a run on, having dealt with the host that run built.
-	#[serde(default)]
-	host_done: bool,
+	/// Set by keeper when it passes a run on, having dealt with the host that run built. Also read
+	/// under the name a keeper built before the rename sends.
+	#[serde(default, alias = "host_done")]
+	host_replaced: bool,
 }
 
 /// A CI run has finished. Open, since it can only ask host to look: the run is checked against
@@ -52,21 +58,21 @@ struct Notice {
 /// pushes into it". Each run is taken once, and again only if taking it failed.
 async fn notice(State(host): State<Arc<Host>>, Json(notice): Json<Notice>) -> Response {
 	if host.github.is_none() {
-		return failed(StatusCode::SERVICE_UNAVAILABLE, "this node has no GITHUB_ACTIONS_TOKEN");
+		return response::failure(StatusCode::SERVICE_UNAVAILABLE, "github_unavailable");
 	}
 	let fresh =
 		host.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).insert(notice.run);
 	if !fresh {
-		return (StatusCode::OK, "already taken").into_response();
+		return response::success(StatusCode::OK, serde_json::json!({ "run": notice.run }));
 	}
 	let taker = host.clone();
 	tokio::spawn(async move {
-		if !rollout::from_run(taker.clone(), notice.run, notice.host_done).await {
+		if !rollout::from_run(taker.clone(), notice.run, notice.host_replaced).await {
 			let mut notices = taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
 			notices.remove(&notice.run);
 		}
 	});
-	StatusCode::ACCEPTED.into_response()
+	response::success(StatusCode::ACCEPTED, serde_json::json!({ "run": notice.run }))
 }
 
 /// Compared in time independent of where the first difference is.
@@ -83,20 +89,26 @@ async fn admit(State(host): State<Arc<Host>>, request: Request, next: Next) -> R
 		.and_then(|value| value.strip_prefix("Bearer "))
 		.unwrap_or_default();
 	if !same(given.as_bytes(), host.config.token.as_bytes()) {
-		return StatusCode::UNAUTHORIZED.into_response();
+		return response::failure(StatusCode::UNAUTHORIZED, "invalid_token");
 	}
 	next.run(request).await
 }
 
-fn failed(status: StatusCode, message: impl ToString) -> Response {
-	(status, message.to_string()).into_response()
+/// host is reached from the LAN and the tailnet alone, so a refusal may say exactly what went
+/// wrong; see spec/architecture/services.md, "Every answer is one envelope".
+fn failed(status: StatusCode, code: &str, error: impl ToString) -> Response {
+	response::failure_with(status, code, error)
+}
+
+fn stored<T: serde::Serialize>(read: Result<T, impl ToString>) -> Response {
+	match read {
+		Ok(value) => response::success(StatusCode::OK, value),
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
+	}
 }
 
 async fn apps(State(host): State<Arc<Host>>) -> Response {
-	match host.store.apps() {
-		Ok(apps) => Json(apps).into_response(),
-		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
-	}
+	stored(host.store.apps())
 }
 
 /// A deploy: the declaration as the part `service`, then the image archive as the part `image`.
@@ -108,7 +120,7 @@ async fn upload(
 	mut parts: Multipart,
 ) -> Response {
 	if let Err(error) = rollout::deployable(&name) {
-		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
+		return failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_name", error);
 	}
 	let mut declared: Option<Manifest> = None;
 	let archive = deploy::arrival(&host.config.incoming);
@@ -117,22 +129,24 @@ async fn upload(
 		let part = match parts.next_field().await {
 			Ok(Some(part)) => part,
 			Ok(None) => break,
-			Err(error) => return failed(StatusCode::BAD_REQUEST, error),
+			Err(error) => return failed(StatusCode::BAD_REQUEST, "invalid_upload", error),
 		};
 		match part.name() {
 			Some("service") => {
 				let text = match part.text().await {
 					Ok(text) => text,
-					Err(error) => return failed(StatusCode::BAD_REQUEST, error),
+					Err(error) => return failed(StatusCode::BAD_REQUEST, "invalid_upload", error),
 				};
 				match Manifest::parse(&text) {
 					Ok(manifest) => declared = Some(manifest),
-					Err(error) => return failed(StatusCode::UNPROCESSABLE_ENTITY, error),
+					Err(error) => {
+						return failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_declaration", error);
+					}
 				}
 			}
 			Some("image") => {
 				if let Err(error) = save(&archive, part).await {
-					return failed(StatusCode::BAD_REQUEST, error);
+					return failed(StatusCode::BAD_REQUEST, "invalid_upload", error);
 				}
 				received = true;
 			}
@@ -140,20 +154,26 @@ async fn upload(
 		}
 	}
 	let Some(manifest) = declared else {
-		return failed(StatusCode::BAD_REQUEST, "no `service` part");
+		return failed(StatusCode::BAD_REQUEST, "invalid_upload", "No service part");
 	};
 	if !received {
-		return failed(StatusCode::BAD_REQUEST, "no `image` part");
+		return failed(StatusCode::BAD_REQUEST, "invalid_upload", "No image part");
 	}
 	match rollout::from_archive(&host, &name, manifest, &archive).await {
-		Ok(outcome) => Json(outcome).into_response(),
-		Err(
-			error @ (DeployError::Invalid(_) | DeployError::PortTaken { .. } | DeployError::Load(_)),
-		) => failed(StatusCode::UNPROCESSABLE_ENTITY, error),
-		Err(error @ DeployError::Replace(Failed::Unhealthy { .. } | Failed::FirstFailed { .. })) => {
-			failed(StatusCode::BAD_GATEWAY, error)
+		Ok(outcome) => response::success(StatusCode::OK, outcome),
+		Err(error @ DeployError::Invalid(_)) => {
+			failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_declaration", error)
 		}
-		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
+		Err(error @ DeployError::PortTaken { .. }) => {
+			failed(StatusCode::CONFLICT, "invalid_port", error)
+		}
+		Err(error @ DeployError::Load(_)) => {
+			failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_image", error)
+		}
+		Err(error @ DeployError::Replace(Failed::Unhealthy { .. } | Failed::FirstFailed { .. })) => {
+			failed(StatusCode::BAD_GATEWAY, "app_unavailable", error)
+		}
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "service_unavailable", error),
 	}
 }
 
@@ -173,10 +193,7 @@ async fn save(
 }
 
 async fn routes(State(host): State<Arc<Host>>) -> Response {
-	match host.store.routes() {
-		Ok(routes) => Json(routes).into_response(),
-		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
-	}
+	stored(host.store.routes())
 }
 
 #[derive(Deserialize)]
@@ -194,13 +211,10 @@ async fn put_route(
 	Json(body): Json<RouteBody>,
 ) -> Response {
 	if let Err(error) = manifest::check_name(&name) {
-		return failed(StatusCode::UNPROCESSABLE_ENTITY, error);
+		return failed(StatusCode::UNPROCESSABLE_ENTITY, "invalid_name", error);
 	}
 	if body.home.as_deref().is_some_and(|home| !is_home(home)) {
-		return failed(
-			StatusCode::UNPROCESSABLE_ENTITY,
-			"`home` has to be a path on this site other than `/`",
-		);
+		return response::failure(StatusCode::UNPROCESSABLE_ENTITY, "invalid_home");
 	}
 	let route = Route {
 		name,
@@ -210,7 +224,7 @@ async fn put_route(
 		home: body.home,
 	};
 	if let Err(error) = host.store.put_route(&route) {
-		return failed(StatusCode::CONFLICT, error);
+		return failed(StatusCode::CONFLICT, "invalid_route", error);
 	}
 	routed(&host).await
 }
@@ -218,8 +232,8 @@ async fn put_route(
 async fn delete_route(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
 	match host.store.delete_route(&name) {
 		Ok(true) => routed(&host).await,
-		Ok(false) => StatusCode::NOT_FOUND.into_response(),
-		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
+		Ok(false) => failed(StatusCode::NOT_FOUND, "no_such_route", "No route has this name"),
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
 	}
 }
 
@@ -237,14 +251,14 @@ fn is_home(home: &str) -> bool {
 /// What Caddy would be given now, without giving it. What to read before switching Caddy over.
 async fn caddy(State(host): State<Arc<Host>>) -> Response {
 	match rollout::render(&host) {
-		Ok(rendered) => Json(rendered).into_response(),
-		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, error),
+		Ok(rendered) => response::success(StatusCode::OK, rendered),
+		Err(error) => failed(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error),
 	}
 }
 
 async fn reapply(State(host): State<Arc<Host>>) -> Response {
 	if let Err(error) = rollout::attach(&host).await {
-		return failed(StatusCode::INTERNAL_SERVER_ERROR, error);
+		return failed(StatusCode::INTERNAL_SERVER_ERROR, "docker_unavailable", error);
 	}
 	routed(&host).await
 }
@@ -255,7 +269,8 @@ async fn routed(host: &Host) -> Response {
 	match rollout::route(host).await {
 		Ok(()) => StatusCode::NO_CONTENT.into_response(),
 		Err(error) => {
-			failed(StatusCode::BAD_GATEWAY, format!("stored, but Caddy was not updated: {error}"))
+			let message = format!("Stored, but Caddy was not updated: {error}");
+			failed(StatusCode::BAD_GATEWAY, "caddy_unavailable", message)
 		}
 	}
 }
@@ -279,5 +294,12 @@ mod tests {
 		assert!(!super::same(b"secreT", b"secret"));
 		assert!(!super::same(b"secret-and-more", b"secret"));
 		assert!(!super::same(b"", b"secret"));
+	}
+
+	#[test]
+	fn every_code_it_answers_with_is_in_the_catalogue() {
+		for code in response::codes_named(include_str!("api.rs")) {
+			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
+		}
 	}
 }

@@ -4,11 +4,12 @@
 //! gateway under the `geo` scope, which strips the prefix before a request arrives here -- see
 //! spec/architecture/services.md, "One API host, scoped by path".
 
+use axum::Router;
+use axum::extract::rejection::QueryRejection;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use axum::routing::get;
-use axum::{Json, Router};
 use geocode::Gazetteer;
 use serde::Deserialize;
 use std::future::IntoFuture;
@@ -27,10 +28,12 @@ const PORT: u16 = 23440;
 /// Empty until the data is read, which is what `/health` reports on.
 type Loaded = Arc<OnceLock<Gazetteer>>;
 
+/// Where to look, in degrees. Spelled out; see spec/architecture/services.md, "Names in an API are
+/// spelled out".
 #[derive(Deserialize)]
 struct Position {
-	lat: f64,
-	lon: f64,
+	latitude: f64,
+	longitude: f64,
 }
 
 #[tokio::main]
@@ -39,10 +42,7 @@ async fn main() -> anyhow::Result<()> {
 	let listen = std::env::var("LISTEN").unwrap_or_else(|_| format!("0.0.0.0:{PORT}"));
 
 	let loaded: Loaded = Arc::default();
-	let router = Router::new()
-		.route("/reverse", get(reverse))
-		.route("/health", get(health))
-		.with_state(loaded.clone());
+	let router = routes(loaded.clone());
 	let listener = tokio::net::TcpListener::bind(&listen).await?;
 	eprintln!("geo: listening on {listen}, reading {}", data.display());
 
@@ -69,22 +69,43 @@ async fn main() -> anyhow::Result<()> {
 	Ok(serving.await??)
 }
 
-async fn reverse(State(loaded): State<Loaded>, Query(at): Query<Position>) -> Response {
-	let in_range = (-90.0..=90.0).contains(&at.lat) && (-180.0..=180.0).contains(&at.lon);
+fn routes(loaded: Loaded) -> Router {
+	Router::new()
+		.route("/address", get(address))
+		.route("/health", get(health))
+		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
+		.with_state(loaded)
+}
+
+/// The place a position is in, as an address from the continent down.
+async fn address(
+	State(loaded): State<Loaded>,
+	asked: Result<Query<Position>, QueryRejection>,
+) -> Response {
+	let Ok(Query(at)) = asked else {
+		let message = "Latitude and longitude are both needed, as numbers";
+		return response::failure_with(StatusCode::BAD_REQUEST, "invalid_position", message);
+	};
+	let in_range = (-90.0..=90.0).contains(&at.latitude) && (-180.0..=180.0).contains(&at.longitude);
 	if !in_range {
-		return (StatusCode::BAD_REQUEST, "lat must be within 90 and lon within 180").into_response();
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_position");
 	}
 	let Some(gazetteer) = loaded.get() else {
-		return StatusCode::SERVICE_UNAVAILABLE.into_response();
+		return loading();
 	};
-	match gazetteer.lookup(at.lat, at.lon) {
-		Some(address) => Json(address).into_response(),
-		None => StatusCode::NOT_FOUND.into_response(),
+	match gazetteer.lookup(at.latitude, at.longitude) {
+		Some(address) => response::success(StatusCode::OK, address),
+		None => response::failure(StatusCode::NOT_FOUND, "no_such_place"),
 	}
 }
 
-async fn health(State(loaded): State<Loaded>) -> StatusCode {
-	if loaded.get().is_some() { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE }
+async fn health(State(loaded): State<Loaded>) -> Response {
+	if loaded.get().is_some() { response::success(StatusCode::OK, ()) } else { loading() }
+}
+
+fn loading() -> Response {
+	let message = "The gazetteer is still loading";
+	response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "service_unavailable", message)
 }
 
 /// `docker stop` sends SIGTERM, and a process that is PID 1 in its container ignores it unless it
@@ -108,9 +129,52 @@ async fn stopped() {
 
 #[cfg(test)]
 mod tests {
+	use super::*;
+	use axum::body::Body;
+	use axum::http::Request;
+	use http_body_util::BodyExt;
+	use tower::ServiceExt;
+
+	/// What the service answers `path` with while its data is still loading.
+	async fn ask(path: &str) -> (StatusCode, serde_json::Value) {
+		let request = Request::get(path).body(Body::empty()).unwrap();
+		let answer = routes(Loaded::default()).oneshot(request).await.unwrap();
+		let status = answer.status();
+		let body = answer.into_body().collect().await.unwrap().to_bytes();
+		(status, serde_json::from_slice(&body).unwrap())
+	}
+
+	#[tokio::test]
+	async fn refuses_a_position_it_cannot_read_in_the_envelope() {
+		for path in ["/address", "/address?lat=1&lon=2", "/address?latitude=a&longitude=2"] {
+			let (status, body) = ask(path).await;
+			assert_eq!(status, StatusCode::BAD_REQUEST, "{path}");
+			assert_eq!(body["code"], "invalid_position", "{path}");
+		}
+		let (status, body) = ask("/address?latitude=91&longitude=0").await;
+		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_position".into()));
+	}
+
+	#[tokio::test]
+	async fn says_it_is_loading_rather_than_answering_nothing() {
+		let (status, body) = ask("/address?latitude=35.68&longitude=139.69").await;
+		assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+		assert_eq!(body["code"], "service_unavailable");
+		assert_eq!(ask("/health").await.0, StatusCode::SERVICE_UNAVAILABLE);
+		let (status, body) = ask("/reverse").await;
+		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_route".into()));
+	}
+
 	#[test]
 	fn the_port_is_the_one_the_declaration_states() {
 		let declaration = include_str!("../service.toml");
 		assert!(declaration.lines().any(|line| line.trim() == format!("port = {}", super::PORT)));
+	}
+
+	#[test]
+	fn every_code_it_answers_with_is_in_the_catalogue() {
+		for code in response::codes_named(include_str!("main.rs")) {
+			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
+		}
 	}
 }

@@ -26,6 +26,6 @@ export const POLICIES: Readonly<Record<string, Policy>> = {
 	// one answer. Our own Workers and the private host ask without it.
 	geo: {
 		origin: () => '*',
-		limits: [{ methods: ['GET', 'HEAD'], path: '/reverse', limiter: 'GEO_LIMIT' }],
+		limits: [{ methods: ['GET', 'HEAD'], path: '/address', limiter: 'GEO_LIMIT' }],
 	},
 };

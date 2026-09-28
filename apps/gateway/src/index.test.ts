@@ -189,11 +189,11 @@ describe('the gateway', () => {
 
 	it("sends a node's scope to its Caddy with the scope left on", async () => {
 		const { fetcher, seen } = binding();
-		await ask('/geo/reverse?lat=1&lon=2', { HOME: fetcher });
+		await ask('/geo/address?latitude=1&longitude=2', { HOME: fetcher });
 		const node = new URL(URLS.internal.app);
 		node.hostname = `api.${node.hostname}`;
 		node.protocol = 'http:';
-		expect(seen[0]?.url).toBe(`${node.origin}/geo/reverse?lat=1&lon=2`);
+		expect(seen[0]?.url).toBe(`${node.origin}/geo/address?latitude=1&longitude=2`);
 	});
 
 	it('answers a preflight from a listed origin itself', async () => {
@@ -262,7 +262,7 @@ describe("geo's policy", () => {
 		};
 		const headers = { 'cf-connecting-ip': '192.0.2.1', origin: 'https://anyone.test' };
 		const lookup = await app.fetch(
-			new Request(`${HOST}/geo/reverse?lat=1&lon=2`, { headers }),
+			new Request(`${HOST}/geo/address?latitude=1&longitude=2`, { headers }),
 			env,
 		);
 		expect(lookup.status).toBe(429);

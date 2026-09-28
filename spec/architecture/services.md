@@ -135,7 +135,7 @@ does not refuse anyone -- the reader still gets the count, only the increment is
 is part of what `/read` means, and it stays in the site's API.
 
 **A free service is limited where the public reaches it, and nowhere else.** `geo` is a public
-scope: any page may call `api.ffoni.com/geo/reverse`, and one address may ask sixty times a minute --
+scope: any page may call `api.ffoni.com/geo/address`, and one address may ask sixty times a minute --
 it answers from memory, so the limit keeps a crawler off the machine at home rather than paying for
 an answer. Our own callers do not pass the gateway and so meet no limit: a Worker binds the node's
 VPC service and asks `api.canmi.app` directly, and the LAN and the tailnet ask `api.canmi.icu`.

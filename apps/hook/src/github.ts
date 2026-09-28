@@ -24,7 +24,11 @@ function bytesOf(hex: string): Uint8Array<ArrayBuffer> | undefined {
  * Whether `signature`, GitHub's `X-Hub-Signature-256`, is `body` signed with `secret`. Verified by
  * WebCrypto rather than compared as strings, so the time taken says nothing about the match.
  */
-export async function signed(body: string, signature: string | null, secret: string): Promise<boolean> {
+export async function signed(
+	body: string,
+	signature: string | null,
+	secret: string,
+): Promise<boolean> {
 	const given = bytesOf(signature?.replace(/^sha256=/, '') ?? '');
 	if (!given || !secret) return false;
 	const encoder = new TextEncoder();

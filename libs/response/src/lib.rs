@@ -25,6 +25,21 @@ pub fn message_of(code: &str) -> Option<&'static str> {
 	catalogue().get(code).map(String::as_str)
 }
 
+/// Every code a Rust source names beside a status -- `StatusCode::X, "code"` -- so a program's
+/// tests can hold what it answers with to the catalogue, which TypeScript does with a type.
+pub fn codes_named(source: &str) -> Vec<&str> {
+	source
+		.split("StatusCode::")
+		.skip(1)
+		.filter_map(|after| {
+			let rest = after.trim_start_matches(|c: char| c.is_ascii_uppercase() || c == '_');
+			let rest = rest.strip_prefix(',')?.trim_start().strip_prefix('"')?;
+			rest.split('"').next()
+		})
+		.filter(|named| !named.is_empty() && named.bytes().all(|b| b.is_ascii_lowercase() || b == b'_'))
+		.collect()
+}
+
 impl Envelope<()> {
 	/// A failure with the code's own message. A code missing from the catalogue answers with the
 	/// code itself, and the tests hold every code the programs use to the catalogue.
@@ -75,7 +90,18 @@ mod tests {
 		let fixtures = fixtures();
 		let success: Envelope<Value> = serde_json::from_value(fixtures["success"].clone()).unwrap();
 		assert_eq!(success, Envelope::Success { data: json!({ "count": 3 }) });
-		assert_eq!(serde_json::to_value(Envelope::error("no_such_route")).unwrap(), fixtures["failure"]);
+		assert_eq!(
+			serde_json::to_value(Envelope::error("no_such_route")).unwrap(),
+			fixtures["failure"]
+		);
+	}
+
+	#[test]
+	fn finds_the_codes_a_source_names() {
+		let source = r#"failure(StatusCode::NOT_FOUND, "no_such_place"), Reply(StatusCode::BAD_GATEWAY,
+			"app_unavailable", e), (StatusCode::OK, Json(x)), StatusCode::OK, assert_eq!(s,
+			StatusCode::OK, "{path}")"#;
+		assert_eq!(codes_named(source), ["no_such_place", "app_unavailable"]);
 	}
 
 	#[test]
