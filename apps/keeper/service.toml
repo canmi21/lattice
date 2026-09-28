@@ -8,7 +8,8 @@ placements = ["home"]
 # One below host's 11011: the one that stands in front of it.
 port = 11010
 health = "/health"
-memory_mb = 16
+# 9 MiB idle, and past 16 fetching host's image, where 16 was met and keeper killed mid-deploy.
+memory_mb = 64
 
 # keeper.canmi.icu, and never the public suffix: it is the way back in when host is broken.
 [interface]

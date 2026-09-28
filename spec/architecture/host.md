@@ -112,7 +112,9 @@ host gives 512 without one; the platform's own two containers get theirs the sam
 set equal to the limit, since a ceiling that can be exceeded into swap only makes the machine
 slower. Each figure is the container's measured use with room above it: geo, measured at 290 MiB
 held and 130 more pushed into swap against a 512 limit it met sixty times, has 768; host 128,
-keeper 16, the meter 32 and Caddy 128, against 50, 9, 19 and 20 measured on 2026-09-28.
+keeper 64, the meter 32 and Caddy 128, against 50, 9, 19 and 20 measured on 2026-09-28.
+**A ceiling is set against the peak, never the idle figure**: keeper idles at 9 MiB and passed 16
+fetching host's image, and at a ceiling of 16 it was killed mid-deploy.
 
 ### An image is built for speed, and for any node of its architecture
 
