@@ -9,7 +9,7 @@
 	"routes": [{ "pattern": "api.ffoni.com/hook/*", "zone_name": "ffoni.com" }],
 
 	// The Caddy of the machine at home, created in the dashboard; the fetch's hostname is the Host.
-	"vpc_services": [{ "binding": "HOME", "service_id": "VPC_SERVICE_ID", "remote": true }],
+	"vpc_services": [{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true }],
 
 	"observability": { "logs": { "enabled": true } },
 	"workers_dev": false,
