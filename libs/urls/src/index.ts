@@ -84,15 +84,17 @@ export const GITHUB_OWNER = 'canmi21';
  * The domains owned here, which the production map below reads rather than spelling twice.
  * `infra` is the apex api and cdn hang off; `alias` the alias layer's, keyed by what it does
  * where `link` named nothing, every URL being a link. `app` is the suffix interfaces are public
- * under behind Access, see spec/architecture/services.md; `home` and `keeper` are the machine at
- * home's panel and what updates it, LAN and tailnet only, see spec/architecture/host.md.
+ * under behind Access, see spec/architecture/services.md; `panel` and `keeper` are the machine at
+ * home's panel and what updates host, LAN and tailnet only, and `host` is host's API as the panel
+ * reaches it on the network the two share, see spec/architecture/host.md.
  */
 const INTERNAL = {
 	app: 'https://canmi.app',
 	infra: 'https://ffoni.com',
 	alias: 'https://ill.li',
-	home: 'https://host.canmi.icu',
+	panel: 'https://panel.canmi.icu',
 	keeper: 'https://keeper.canmi.icu',
+	host: 'http://host:11011',
 } as const;
 
 export const URLS = {
@@ -108,8 +110,8 @@ export const URLS = {
 			// enough to be either. See spec/architecture/delivery.md.
 			alias: INTERNAL.alias,
 			cdn: 'https://cdn.ffoni.com',
-			// host's panel, served by host on its own names; see spec/architecture/host.md.
-			panel: INTERNAL.home,
+			// The panel, host's interface, an app of its own; see spec/architecture/host.md.
+			panel: INTERNAL.panel,
 		},
 	},
 	// Where everything here that is not a dependency comes from. Named at the top of the

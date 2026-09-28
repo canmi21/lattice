@@ -1,5 +1,5 @@
 {
-	"name": "@canmi/host-panel",
+	"name": "@canmi/panel",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -7,25 +7,23 @@
 		"build": "vite build",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
 	},
-	"dependencies": {
+	"devDependencies": {
 		"@canmi/motion": "workspace:*",
 		"@canmi/response": "workspace:*",
 		"@canmi/urls": "workspace:*",
 		"@lucide/svelte": "^1.47.0",
-		"d3-array": "^3.2.4",
-		"d3-scale": "^4.0.2",
-		"d3-shape": "^3.2.0"
-	},
-	"devDependencies": {
 		"@stylexjs/stylex": "^0.19.1",
 		"@stylexjs/unplugin": "^0.19.1",
-		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/adapter-node": "^5.5.7",
 		"@sveltejs/kit": "^2.70.3",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@tailwindcss/vite": "^4.3.3",
 		"@types/d3-array": "^3.2.2",
 		"@types/d3-scale": "^4.0.9",
 		"@types/d3-shape": "^3.2.0",
+		"d3-array": "^3.2.4",
+		"d3-scale": "^4.0.2",
+		"d3-shape": "^3.2.0",
 		"svelte": "^5.57.1",
 		"svelte-check": "^4.7.6",
 		"tailwindcss": "^4.3.3",

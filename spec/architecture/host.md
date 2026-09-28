@@ -318,12 +318,30 @@ and host mount.
 host attaches it to all of them again whenever it starts and whenever it is asked to reapply, so the
 remedy is one request rather than a list of commands.
 
-## The panel is host's own
+## The panel is an app of its own
 
-host serves its panel itself, on its own names: a SvelteKit application exported as static files,
-copied into host's image and served beside the API, so there is no second service, no origin to
-cross and no CORS. It is written in `apps/host/panel/`, its components named in lowercase like every
-file.
+**The panel is `apps/panel`, a SvelteKit server on Node, and host's interface; host itself has
+none.** host holds the Docker socket and the whole of `/data`, so what faces a browser is kept out
+of it: a panel broken into reaches host's API and nothing below it, and holds no token of its own to
+reach even that with -- it passes on the one the visitor signed in with. host deploys it like any
+app, in the sandbox, under a reserved name, restarted and never stopped from itself.
+
+- **host answers on its own network alone.** It binds its port to its address on `app-host`,
+  which the panel and keeper join and Caddy does not; every app network host joins to check an
+  app's health leaves that port out of reach. Nothing routes a name to host: `panel.canmi.icu` and
+  `panel.canmi.app` are the panel's.
+- **The panel passes `/api/*` and `/notice` on to host**, carrying the session cookie as the
+  token, the request's type and the answer's cookies back, and nothing else of either. An upload is
+  streamed through, never held. The hook's notice reaches host this way, and keeper's intake is
+  unchanged.
+- **Pages are rendered on the server, and what moves is drawn in the browser.** The first paint
+  is the page as host's answers make it -- whether the visitor is signed in, the list of apps, an
+  app, its images, its routes -- and the charts and everything after an action are the browser's,
+  asking through the same `/api`. A page host cannot answer for renders empty and asks again from
+  the browser.
+- It answers `/health` itself, without asking host, so it stays up to say that host does not.
+
+It is written in `apps/panel/`, its components named in lowercase like every file.
 
 **It is styled as the site is, in the site's three layers, and colored as nothing else here is.**
 Tailwind in the markup for where a thing sits, StyleX for what it looks like, a `<style>` block
@@ -354,20 +372,9 @@ how fast each can run; a machine whose clusters all run at one clock shows that 
 **It is laid out for a desktop.** A sidebar and a page beside it, the page's width following the
 window; a phone is not refused and not designed for.
 
-**Pages are prerendered and filled in the browser; nothing renders on a server.** Every page of
-fixed address -- the list of apps, the routes -- is exported as a shell of its own, and a page whose
-address holds a name, `/apps/geo`, is answered with the fallback shell, `200.html`. Its addresses
-are ordinary paths; the first version chose its page by the hash, which read as `/#/apps/geo` and
-went the moment the panel had a router of its own.
-
-**Everything the panel asks is under `/api/`, and every other path is the panel's.** Its pages and
-host's API would otherwise share `/apps/geo`. `/health` and `/notice` stay at the root, where
-keeper, the hook and Caddy already reach them and no page will ever be.
-
-**Its build is SvelteKit's, as SvelteKit lays it out.** The files under `_app/immutable/` are named
-by their hash and host serves them for a year; the pages and `_app/version.json` are never cached.
-The image builds it in a stage of its own, on the Node major the workspace pins, installing the pnpm
-the repository names.
+**Its build is SvelteKit's Node adapter's, with every dependency bundled in**, so the image is
+Node and that build alone, run as Node's own user. It is built on the Node major the workspace pins,
+installing the pnpm the repository names.
 
 **The panel signs in with the token, once.** The first visit asks for it; host answers with a
 cookie holding it, `HttpOnly`, `Secure` and `SameSite=Strict`, for thirty days, and every request
@@ -431,14 +438,15 @@ Every one of them is confirmed twice.
 keeps no record and host none of itself: its logs and its version are there, with no previous
 version and no environment, which is its `.env` beside the compose file and read by nothing here.
 
-**The platform's own four -- host, keeper, Caddy and the tunnel -- are restarted from the panel and
-never stopped or started.** Each stopped takes the panel, the way in or the way back with it: host
-is the panel, Caddy carries it, the tunnel is the public side and CI's notices, and keeper is what
-replaces host. host does not redeploy or roll itself back either,
-since keeper is the one that replaces it; keeper, Caddy and the tunnel are redeployed and rolled
-back like any app. A restart of host or of Caddy -- what answers the request and what carries it -- is answered
-first and done half a second later, and the panel waits for the app to answer again. host's own is
-recorded as done when asked, because nothing of it is left to finish the record once it restarts.
+**The platform's own five -- host, keeper, Caddy, the tunnel and the panel -- are restarted from
+the panel and never stopped or started.** Each stopped takes the panel, the way in or the way back
+with it: host answers the panel, the panel is the interface, Caddy carries it, the tunnel is the
+public side and CI's notices, and keeper is what replaces host. host does not redeploy or roll
+itself back either, since keeper is the one that replaces it; the other four are redeployed and
+rolled back like any app. A restart of host, Caddy or the panel -- what answers the request and
+what carries it -- is answered first and done half a second later, and the panel waits for the app
+to answer again. host's own is recorded as done when asked, because nothing of it is left to finish
+the record once it restarts.
 
 **A stop holds until a start.** A stopped app stays stopped through a reboot -- Docker's own
 restart policy does that -- and through a deploy: while it is held, a CI run that built it is recorded
@@ -474,7 +482,8 @@ container the paths are Linux's own, so host binds what it would bind on the mac
    host inside it as the compose file does, with a token of its own; Caddy's absence is logged and
    ignored.
 4. Deploy through its API as `mise run host deploy` would, and point the panel at it:
-   `PANEL_API=http://localhost:11011 pnpm run dev` in `apps/host/panel`.
+   `HOST_API=http://localhost:11011 pnpm run dev` in `apps/panel`. Without `HOST_API` a
+   development panel asks the running panel on the machine, signed in as the token mise decrypts.
 
 A copy of the machine's three databases, read over SSH, gives the panel the real apps and history to
 draw; `docker cp` cannot see into the btrfs mount, so they go in through `docker exec -i`.

@@ -2,6 +2,7 @@
 	/** Every app this node runs, and what it ran before. */
 	import { goto } from '$app/navigation';
 	import * as stylex from '@stylexjs/stylex';
+	import { untrack } from 'svelte';
 	import Box from '@lucide/svelte/icons/box';
 	import { api, short, when, type App } from './api';
 	import Card from './card.svelte';
@@ -11,11 +12,15 @@
 	import Status from './status.svelte';
 	import { surfaces, tone, type } from './style/surfaces';
 
-	let apps = $state<App[]>([]);
-	let loaded = $state(false);
+	let { initial }: { initial?: App[] } = $props();
+
+	// What the server read is where the page starts; without it, the browser asks.
+	let apps = $state<App[]>(untrack(() => initial ?? []));
+	let loaded = $state(untrack(() => initial !== undefined));
 	let error = $state('');
 
 	$effect(() => {
+		if (untrack(() => initial) !== undefined) return;
 		api
 			.apps()
 			.then((all) => (apps = all))

@@ -9,7 +9,6 @@ mod config;
 mod environment;
 mod images;
 mod node;
-mod panel;
 mod rollout;
 mod store;
 
@@ -75,8 +74,20 @@ async fn main() -> anyhow::Result<()> {
 		}
 	});
 
-	let listener = tokio::net::TcpListener::bind(host.config.listen).await?;
-	eprintln!("host: node `{}`, listening on {}", host.config.node, host.config.listen);
+	// On the node, only on host's own network, which the panel and keeper share and Caddy does not:
+	// every app's network host joins to check health leaves its port unreachable from there. See
+	// spec/architecture/host.md, "The panel is an app of its own".
+	let mut listen = host.config.listen;
+	if std::env::var_os("LISTEN").is_none() {
+		let network = deploy::engine::network_of(&host.config.own_container);
+		match host.engine.address_on(&host.config.own_container, &network).await {
+			Ok(Some(address)) => listen.set_ip(address),
+			Ok(None) => eprintln!("host: on no network of its own; answering on every one"),
+			Err(error) => eprintln!("host: reading its own address: {error}"),
+		}
+	}
+	let listener = tokio::net::TcpListener::bind(listen).await?;
+	eprintln!("host: node `{}`, listening on {listen}", host.config.node);
 	axum::serve(listener, api::router(host)).with_graceful_shutdown(stopped()).await?;
 	Ok(())
 }

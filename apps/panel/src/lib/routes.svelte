@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { untrack } from 'svelte';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Lock from '@lucide/svelte/icons/lock';
 	import { signedOut } from './session.svelte';
@@ -11,7 +12,10 @@
 	import { tone, type } from './style/surfaces';
 
 	const blank = (): Route => ({ name: '', upstream: '', private: true, public: false, home: '' });
-	let routes = $state<Route[]>([]);
+	let { initial }: { initial?: Route[] } = $props();
+
+	// What the server read is where the page starts; the browser reads again after every change.
+	let routes = $state<Route[]>(untrack(() => initial ?? []));
 	let editing = $state<Route>(blank());
 	let error = $state('');
 
@@ -24,7 +28,7 @@
 	}
 
 	$effect(() => {
-		load();
+		if (untrack(() => initial) === undefined) load();
 	});
 
 	async function attempt(run: () => Promise<unknown>) {

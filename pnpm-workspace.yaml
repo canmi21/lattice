@@ -4,8 +4,6 @@
 packages:
   - libs/*
   - apps/*
-  # host's panel, a package inside the app that serves it; see spec/architecture/host.md.
-  - apps/host/panel
   # The site's API, a package inside the site because its type program is workerd's, not the
   # browser's; see spec/architecture/services.md.
   - apps/site/server

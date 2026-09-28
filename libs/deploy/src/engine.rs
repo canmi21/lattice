@@ -5,14 +5,15 @@
 use crate::manifest::Manifest;
 use bollard::Docker;
 use bollard::models::{
-	ContainerCreateBody, EndpointIpamConfig, EndpointSettings, HostConfig, HostConfigLogConfig, Mount, MountType,
-	NetworkConnectRequest, NetworkCreateRequest, PortBinding, RestartPolicy, RestartPolicyNameEnum,
+	ContainerCreateBody, EndpointIpamConfig, EndpointSettings, HostConfig, HostConfigLogConfig,
+	Mount, MountType, NetworkConnectRequest, NetworkCreateRequest, PortBinding, RestartPolicy,
+	RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
 	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListContainersOptions,
-	ListImagesOptionsBuilder,
-	LogsOptionsBuilder, RemoveContainerOptionsBuilder, RemoveImageOptionsBuilder,
-	RestartContainerOptionsBuilder, StopContainerOptionsBuilder, TagImageOptionsBuilder,
+	ListImagesOptionsBuilder, LogsOptionsBuilder, RemoveContainerOptionsBuilder,
+	RemoveImageOptionsBuilder, RestartContainerOptionsBuilder, StopContainerOptionsBuilder,
+	TagImageOptionsBuilder,
 };
 use bytes::Bytes;
 use futures_util::{Stream, StreamExt};
@@ -359,7 +360,8 @@ impl Engine {
 				Shape::Observer { .. } => None,
 				Shape::Edge { .. } => Some((EDGE_NETWORK.to_owned(), EndpointSettings::default())),
 				Shape::Tunnel { address, .. } => {
-					let fixed = EndpointIpamConfig { ipv4_address: Some(address.clone()), ..Default::default() };
+					let fixed =
+						EndpointIpamConfig { ipv4_address: Some(address.clone()), ..Default::default() };
 					let settings = EndpointSettings { ipam_config: Some(fixed), ..Default::default() };
 					Some((EDGE_NETWORK.to_owned(), settings))
 				}
@@ -488,6 +490,40 @@ impl Engine {
 		}
 	}
 
+	/// The address `container` has on `network`, when it is on it.
+	pub async fn address_on(
+		&self,
+		container: &str,
+		network: &str,
+	) -> Result<Option<std::net::IpAddr>, Error> {
+		let inspected = self.docker.inspect_container(container, None).await?;
+		let networks = inspected.network_settings.and_then(|settings| settings.networks);
+		let address = networks
+			.and_then(|mut networks| networks.remove(network))
+			.and_then(|endpoint| endpoint.ip_address)
+			.and_then(|address| address.parse().ok());
+		Ok(address)
+	}
+
+	/// Take `members` off `network`, where they are on it.
+	pub async fn leave(&self, network: &str, members: &[&str]) -> Result<(), Error> {
+		let attached: HashSet<String> = match self.docker.inspect_network(network, None).await {
+			Ok(inspected) => {
+				inspected.containers.unwrap_or_default().into_values().filter_map(|c| c.name).collect()
+			}
+			Err(error) if absent(&error) => return Ok(()),
+			Err(error) => return Err(error.into()),
+		};
+		for member in members.iter().filter(|member| attached.contains(**member)) {
+			let request = bollard::models::NetworkDisconnectRequest {
+				container: (*member).into(),
+				force: Some(true),
+			};
+			self.docker.disconnect_network(network, request).await?;
+		}
+		Ok(())
+	}
+
 	/// Every running container's id and name, whoever started it.
 	pub async fn named(&self) -> Result<std::collections::BTreeMap<String, String>, Error> {
 		let running = self.docker.list_containers(None::<ListContainersOptions>).await?;
@@ -504,7 +540,8 @@ impl Engine {
 
 	/// Every image on the machine, whoever loaded it, dangling ones included.
 	pub async fn images(&self) -> Result<Vec<Image>, Error> {
-		let listed = self.docker.list_images(None::<bollard::query_parameters::ListImagesOptions>).await?;
+		let listed =
+			self.docker.list_images(None::<bollard::query_parameters::ListImagesOptions>).await?;
 		Ok(
 			listed
 				.into_iter()
@@ -528,7 +565,12 @@ impl Engine {
 	/// What every image together takes on disk, layers shared between them counted once.
 	pub async fn images_size(&self) -> Result<Option<u64>, Error> {
 		let usage = self.docker.df(None).await?;
-		Ok(usage.image_usage.and_then(|usage| usage.total_size).and_then(|size| u64::try_from(size).ok()))
+		Ok(
+			usage
+				.image_usage
+				.and_then(|usage| usage.total_size)
+				.and_then(|size| u64::try_from(size).ok()),
+		)
 	}
 
 	/// Remove one image. One a container uses is refused by Docker, and that refusal is the answer.

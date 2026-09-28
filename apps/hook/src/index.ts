@@ -14,11 +14,11 @@ export interface Env {
 	HOME: Fetcher;
 }
 
-/** The public suffix Caddy routes the two programs under; VPC sends it as the `Host`. */
+/** The public suffix Caddy routes the two receivers under; VPC sends it as the `Host`. */
 const SUFFIX = new URL(URLS.internal.app).hostname;
 
-/** Where the notice goes on a node, for each program that reads one. */
-export const RECEIVERS = ['host', 'keeper'].map((name) => `http://${name}.${SUFFIX}/notice`);
+/** Where the notice goes on a node: the panel, which passes it on to host, and keeper. */
+export const RECEIVERS = ['panel', 'keeper'].map((name) => `http://${name}.${SUFFIX}/notice`);
 
 export async function handle(request: Request, env: Env): Promise<Response> {
 	const { pathname } = new URL(request.url);

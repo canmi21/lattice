@@ -33,7 +33,6 @@ struct Keeper {
 	node: String,
 	token: String,
 	own_container: String,
-	caddy_container: String,
 	/// The node's one `.env`, which host is started with.
 	platform_env: PathBuf,
 	incoming: PathBuf,
@@ -57,7 +56,6 @@ async fn main() -> anyhow::Result<()> {
 		node: std::env::var("NODE")?,
 		token: std::env::var("HOST_TOKEN")?,
 		own_container: setting("OWN_CONTAINER", "keeper"),
-		caddy_container: setting("CADDY_CONTAINER", "caddy"),
 		platform_env: apps.join("host").join(".env"),
 		incoming: apps.join("keeper").join("data").join("incoming"),
 		engine: Engine::connect()?,
@@ -294,7 +292,8 @@ async fn replace_host(keeper: &Keeper, next: Version) -> Result<String, Reply> {
 	// declaration, beside the image it really runs.
 	let current = keeper.engine.current("host", &next.manifest).await.map_err(|e| internal(&e))?;
 	let env = deploy::read_env(&keeper.platform_env).map_err(|e| internal(&e))?;
-	let members = [keeper.own_container.as_str(), keeper.caddy_container.as_str()];
+	// host's network is keeper's and the panel's; Caddy routes nothing to host.
+	let members = [keeper.own_container.as_str()];
 	let shape = Shape::Platform { env };
 	let replaced =
 		replace(&keeper.engine, &keeper.volumes, &members, &shape, &next, current.as_ref(), None);

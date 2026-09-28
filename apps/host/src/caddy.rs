@@ -5,7 +5,7 @@
 //! The shape follows what Caddy's own adapter made of the Caddyfile this replaces: one wildcard
 //! route per suffix, a guard on the source address first, and a subroute of names inside it.
 
-use crate::config::{CaddyConfig, PORT};
+use crate::config::CaddyConfig;
 use crate::store::{Deployed, Route};
 use deploy::manifest::Limit;
 use serde_json::{Value, json};
@@ -172,10 +172,10 @@ fn api_host(host: String, apps: &[Deployed], public: bool) -> Value {
 	})
 }
 
-/// Everything reached by a subdomain of its own on one side: host's panel, each app with an
-/// interface, each route.
-fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> Vec<Target> {
-	let mut targets = vec![Target { name: "host".into(), dial: format!("{own}:{PORT}"), home: None }];
+/// Everything reached by a subdomain of its own on one side: each app with an interface, the panel
+/// among them, and each route. host has none: only the panel reaches it.
+fn interfaces(apps: &[Deployed], routes: &[Route], public: bool) -> Vec<Target> {
+	let mut targets = Vec::new();
 	targets.extend(
 		apps
 			.iter()
@@ -198,20 +198,20 @@ fn interfaces(apps: &[Deployed], routes: &[Route], own: &str, public: bool) -> V
 	targets
 }
 
-pub fn render(config: &CaddyConfig, own: &str, apps: &[Deployed], routes: &[Route]) -> Value {
+pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Value {
 	let private = &config.private_suffix;
 	let public = &config.public_suffix;
 
 	let mut inside = vec![refuse_unless(&config.private_sources)];
 	inside.push(api_host(format!("api.{private}"), apps, false));
-	for target in interfaces(apps, routes, own, false) {
+	for target in interfaces(apps, routes, false) {
 		inside.push(named(format!("{}.{private}", target.name), &target));
 	}
 	inside.push(abort());
 
 	let mut outside = vec![refuse_unless(std::slice::from_ref(&config.tunnel_source))];
 	outside.push(api_host(format!("api.{public}"), apps, true));
-	for target in interfaces(apps, routes, own, true) {
+	for target in interfaces(apps, routes, true) {
 		outside.push(named(format!("{}.{public}", target.name), &target));
 	}
 	// keeper's one path on the tunnel's side: the Worker reaches it there with a notice, and its
@@ -331,7 +331,7 @@ mod tests {
 	fn an_api_is_a_scope_with_its_prefix_stripped_and_nothing_public() {
 		let mut private = geo();
 		private.manifest.api.as_mut().unwrap().public = false;
-		let rendered = text(&render(&config(), "host", &[private], &[]));
+		let rendered = text(&render(&config(), &[private], &[]));
 		assert!(rendered.contains(r#""host":["api.inside.test"]"#));
 		assert!(rendered.contains(r#""path":["/geo","/geo/*"]"#));
 		assert!(rendered.contains(r#""strip_path_prefix":"/geo""#));
@@ -344,7 +344,7 @@ mod tests {
 
 	#[test]
 	fn a_public_scope_is_on_the_tunnels_api_host_too() {
-		let rendered = render(&config(), "host", &[geo()], &[]);
+		let rendered = render(&config(), &[geo()], &[]);
 		let tunnel = &rendered["apps"]["http"]["servers"]["tunnel"]["routes"][0]["handle"][0]["routes"];
 		assert_eq!(tunnel[1]["match"][0]["host"][0], "api.outside.test");
 		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 2);
@@ -352,7 +352,7 @@ mod tests {
 
 	#[test]
 	fn a_limit_counts_what_the_gateway_forwards_on_the_tunnels_side_alone() {
-		let rendered = render(&config(), "host", &[geo()], &[]);
+		let rendered = render(&config(), &[geo()], &[]);
 		let servers = &rendered["apps"]["http"]["servers"];
 		let tunnel = &servers["tunnel"]["routes"][0]["handle"][0]["routes"][1]["handle"][0]["routes"];
 		let handle = &tunnel[1]["handle"];
@@ -377,7 +377,7 @@ mod tests {
 	fn a_scope_with_no_limits_has_no_limiter() {
 		let mut free = geo();
 		free.manifest.api.as_mut().unwrap().limits.clear();
-		assert!(!text(&render(&config(), "host", &[free], &[])).contains(r#""handler":"rate_limit""#));
+		assert!(!text(&render(&config(), &[free], &[])).contains(r#""handler":"rate_limit""#));
 	}
 
 	#[test]
@@ -413,13 +413,13 @@ mod tests {
 			}
 		}
 		let mut proxies = 0;
-		check(&render(&config(), "host", &[geo()], &[nas]), &mut proxies);
+		check(&render(&config(), &[geo()], &[nas]), &mut proxies);
 		assert!(proxies >= 3);
 	}
 
 	#[test]
 	fn the_source_guard_comes_first_on_both_sides() {
-		let rendered = render(&config(), "host", &[], &[]);
+		let rendered = render(&config(), &[], &[]);
 		let servers = &rendered["apps"]["http"]["servers"];
 		for (server, source) in [("private", "10.0.0.0/24"), ("tunnel", "172.30.0.20")] {
 			let first = &servers[server]["routes"][0]["handle"][0]["routes"][0];
@@ -436,11 +436,11 @@ mod tests {
 			public: true,
 			home: None,
 		};
-		let rendered = text(&render(&config(), "host", &[], &[nas]));
+		let rendered = text(&render(&config(), &[], &[nas]));
 		assert!(rendered.contains("nas.outside.test"));
 		assert!(!rendered.contains("nas.inside.test"));
-		// host's own panel is on both.
-		assert!(rendered.contains("host.inside.test") && rendered.contains("host.outside.test"));
+		// host is on neither: the panel is its only way in.
+		assert!(!rendered.contains("host.inside.test") && !rendered.contains("host.outside.test"));
 	}
 
 	#[test]
@@ -453,7 +453,7 @@ mod tests {
 			deployed_at: String::new(),
 			held: false,
 		};
-		let rendered = super::tests::text(&render(&config(), "host", &[gemini], &[]));
+		let rendered = super::tests::text(&render(&config(), &[gemini], &[]));
 		assert!(rendered.contains(r#""Location":["/admin"]"#));
 		assert_eq!(rendered.matches(r#""dial":"gemini:20830""#).count(), 2);
 	}
@@ -467,7 +467,7 @@ mod tests {
 			public: true,
 			home: Some("/admin".into()),
 		};
-		let rendered = text(&render(&config(), "host", &[], &[gemini]));
+		let rendered = text(&render(&config(), &[], &[gemini]));
 		assert!(rendered.contains(r#""match":[{"path":["/"]}]"#));
 		assert!(rendered.contains(r#""Location":["/admin"]"#));
 		assert!(rendered.contains(r#""status_code":307"#));
@@ -484,7 +484,7 @@ mod tests {
 			public: true,
 			home: None,
 		};
-		let rendered = text(&render(&config(), "host", &[], &[unifi]));
+		let rendered = text(&render(&config(), &[], &[unifi]));
 		assert!(rendered.contains(r#""dial":"device.test:443""#));
 		assert!(rendered.contains(r#""tls":{"insecure_skip_verify":true}"#));
 		assert_eq!(
@@ -519,7 +519,7 @@ mod tests {
 			deployed_at: String::new(),
 			held: false,
 		};
-		let rendered = render(&config(), "host", &[keeper], &[]);
+		let rendered = render(&config(), &[keeper], &[]);
 		let outside = text(&rendered["apps"]["http"]["servers"]["tunnel"]);
 		assert!(outside.contains(r#""host":["keeper.outside.test"],"path":["/notice"]"#));
 		// Nowhere on the tunnel's side is keeper matched by its name alone.
@@ -532,9 +532,6 @@ mod tests {
 	#[test]
 	fn the_render_is_the_same_for_the_same_state() {
 		// Stable output is what makes a diff of two renders mean something changed.
-		assert_eq!(
-			text(&render(&config(), "host", &[geo()], &[])),
-			text(&render(&config(), "host", &[geo()], &[]))
-		);
+		assert_eq!(text(&render(&config(), &[geo()], &[])), text(&render(&config(), &[geo()], &[])));
 	}
 }

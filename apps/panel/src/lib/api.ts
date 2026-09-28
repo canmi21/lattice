@@ -1,7 +1,7 @@
 /**
- * host's API as the panel reads it, under `/api/`: same origin, the session cookie carried by the
- * browser, and every answer in the envelope. See spec/architecture/host.md, "The panel is host's
- * own".
+ * host's API as the panel's pages read it, under `/api/`, which the panel's server passes on to
+ * host: same origin, the session cookie carried by the browser, and every answer in the envelope.
+ * See spec/architecture/host.md, "The panel is an app of its own".
  */
 import type { ApiResponse } from '@canmi/response';
 

@@ -9,7 +9,7 @@
  * Nord, and nothing else: one theme, dark, with no light twin. Its sixteen colors are declared
  * under their own names, and what the panel means by each is declared once below them; a surface
  * reads the meaning, never the number. The few that are not Nord's own are steps between two of
- * its colors, each saying which. See spec/architecture/host.md, "The panel is host's own".
+ * its colors, each saying which. See spec/architecture/host.md, "The panel is an app of its own".
  */
 :root {
 	color-scheme: dark;

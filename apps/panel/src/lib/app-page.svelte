@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { untrack } from 'svelte';
 	import DatabaseBackup from '@lucide/svelte/icons/database-backup';
 	import Play from '@lucide/svelte/icons/play';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
@@ -20,9 +21,10 @@
 	import { surfaces, tone, type } from './style/surfaces';
 	import Tabs from './tabs.svelte';
 
-	let { name }: { name: string } = $props();
+	let { name, initial }: { name: string; initial?: App } = $props();
 
-	let app = $state<App | undefined>();
+	// What the server read is where the page starts; the browser reads again after every action.
+	let app = $state<App | undefined>(untrack(() => initial));
 	let error = $state('');
 	let busy = $state(false);
 	let tab = $state<'metrics' | 'history' | 'logs' | 'environment'>('metrics');
@@ -48,13 +50,13 @@
 	}
 
 	$effect(() => {
-		load();
+		if (untrack(() => initial) === undefined) load();
 	});
 
 	/** host neither redeploys nor rolls back itself; see spec/architecture/host.md. */
 	const itself = $derived(name === 'host');
 	/** What carries this panel: restarting it drops the answer, so the page waits for it back. */
-	const onTheWay = $derived(name === 'host' || name === 'caddy');
+	const onTheWay = $derived(name === 'host' || name === 'caddy' || name === 'panel');
 
 	/** Wait out a restart of what carries the panel: a moment, then until the app answers again. */
 	async function back() {
@@ -174,6 +176,24 @@
 						})}>Roll back with data</Button
 				>
 				<span class="mx-1 h-5 w-px {stylex.attrs(surfaces.divider).class}"></span>
+				<Button
+					variant="ghost"
+					icon={RefreshCw}
+					disabled={busy}
+					onclick={() =>
+						ask({
+							title: `Restart ${name}`,
+							detail: onTheWay
+								? 'Restarts the container as it is. This panel reaches the node through it, so it is out of reach for a few seconds.'
+								: 'Restarts the container as it is.',
+							confirm: 'Restart',
+							danger: false,
+							run: async () => {
+								await api.act(name, 'restart');
+								if (onTheWay) await back();
+							},
+						})}>Restart</Button
+				>
 				{#if !app.platform}
 					<Button
 						variant="ghost"
@@ -187,24 +207,6 @@
 								danger: false,
 								run: () => api.act(name, 'start'),
 							})}>Start</Button
-					>
-					<Button
-						variant="ghost"
-						icon={RefreshCw}
-						disabled={busy}
-						onclick={() =>
-							ask({
-								title: `Restart ${name}`,
-								detail: onTheWay
-									? 'Restarts the container as it is. This panel reaches the node through it, so it is out of reach for a few seconds.'
-									: 'Restarts the container as it is.',
-								confirm: 'Restart',
-								danger: false,
-								run: async () => {
-									await api.act(name, 'restart');
-									if (onTheWay) await back();
-								},
-							})}>Restart</Button
 					>
 					<Button
 						variant="danger"

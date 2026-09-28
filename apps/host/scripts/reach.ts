@@ -1,6 +1,6 @@
 /**
  * `mise run reach [name]`: answer on `http://localhost:REACH_PORT` for `<name>.canmi.icu`, which
- * only the LAN reaches -- `host` when no name is given. For a browser this machine refuses the
+ * only the LAN reaches -- `panel` when no name is given. For a browser this machine refuses the
  * local network to, which still reaches localhost. See spec/toolchain.md, "Reaching the LAN from
  * a browser that cannot".
  *
@@ -16,9 +16,9 @@ import { request as secure } from 'node:https';
 import { createServer as createProbe } from 'node:net';
 import { REACH_PORT, URLS } from '@canmi/urls';
 
-const HOME = new URL(URLS.internal.home).hostname;
+const HOME = new URL(URLS.internal.panel).hostname;
 const SUFFIX = HOME.slice(HOME.indexOf('.') + 1);
-const name = process.argv[2] ?? 'host';
+const name = process.argv[2] ?? 'panel';
 if (!/^[a-z0-9-]+$/.test(name)) {
 	console.error('usage: reach [name]');
 	process.exit(1);

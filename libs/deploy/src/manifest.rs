@@ -15,10 +15,10 @@ const RESERVED: [&str; 9] =
 	["host", "keeper", "meter", "api", "gateway", "caddy", "tunnel", "panel", "cloudflared"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the meter, Caddy and the tunnel. See
+/// keeper, which each deploy the other, the meter, Caddy, the tunnel and the panel. See
 /// spec/architecture/host.md, "host never updates itself; keeper updates host", and
 /// spec/architecture/meter.md.
-pub const OWN: [&str; 5] = ["host", "keeper", "meter", "caddy", "tunnel"];
+pub const OWN: [&str; 6] = ["host", "keeper", "meter", "caddy", "tunnel", "panel"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is

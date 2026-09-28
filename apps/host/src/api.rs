@@ -5,7 +5,6 @@ use crate::Host;
 use crate::environment;
 use crate::images;
 use crate::node;
-use crate::panel;
 use crate::rollout::{self, Error as DeployError};
 use crate::store::{Action, Deployed, Route, Source};
 use axum::extract::{DefaultBodyLimit, Multipart, Path, Query, RawQuery, Request, State};
@@ -47,9 +46,8 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/apps/{name}/metrics/now", get(app_now))
 		.route("/apps/{name}/metrics/series", get(app_series))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
-	// Everything the panel asks is under `/api`; every other path is the panel's own. `/health`
-	// and `/notice` stay at the root, where keeper, the hook and Caddy already reach them. See
-	// spec/architecture/host.md, "The panel is host's own".
+	// Everything the panel passes on is under `/api`, and `/notice` beside it; `/health` is keeper's.
+	// Nothing else reaches host. See spec/architecture/host.md, "The panel is an app of its own".
 	let api = Router::new()
 		.route("/session", post(sign_in).delete(sign_out))
 		.merge(guarded)
@@ -58,8 +56,7 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/health", get(health))
 		.route("/notice", post(notice))
 		.nest("/api", api)
-		.route("/_app/{*path}", get(panel::build))
-		.fallback(panel::page)
+		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(host)
 }
 

@@ -55,14 +55,17 @@ pub struct Outcome {
 	pub routed: Result<(), String>,
 }
 
-/// Whether host takes a deploy under this name at all: any app's, and keeper, the meter, Caddy and
-/// the tunnel, the reserved names it deploys. host itself is keeper's to deploy.
+/// Whether host takes a deploy under this name at all: any app's, and keeper, the meter, Caddy, the
+/// tunnel and the panel, the reserved names it deploys. host itself is keeper's to deploy.
 pub fn deployable(name: &str) -> Result<(), Invalid> {
 	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it.
-const TAKEN: [&str; 4] = ["keeper", "meter", "caddy", "tunnel"];
+const TAKEN: [&str; 5] = ["keeper", "meter", "caddy", "tunnel", "panel"];
+
+/// The panel's name: the one app host's own network admits.
+const PANEL: &str = "panel";
 
 /// The platform's own that stand on no network of their own: the meter has none, and Caddy and the
 /// tunnel stand on the edge.
@@ -126,6 +129,13 @@ async fn run_version(
 	}
 	let snapshot =
 		replace(&host.engine, &host.volumes, &members, &shape, next, current, restore).await?;
+	// The panel reaches host on host's own network, which nothing else but keeper joins.
+	if next.manifest.name == PANEL {
+		host
+			.engine
+			.join(&deploy::engine::network_of(&host.config.own_container), &[PANEL], false)
+			.await?;
+	}
 	// A new Caddy is a new container, on none of the apps' networks yet.
 	if next.manifest.name == host.config.caddy.container
 		&& let Err(error) = attach(host).await
@@ -212,14 +222,14 @@ pub async fn from_archive(
 	deployed
 }
 
-/// The platform's own four: the panel restarts them and never stops them, since each stopped takes
+/// The platform's own five: the panel restarts them and never stops them, since each stopped takes
 /// the panel, the way in or the way back with it. See spec/architecture/host.md, "What the panel
 /// can do to an app".
-pub const PLATFORM: [&str; 4] = ["host", "keeper", "caddy", "tunnel"];
+pub const PLATFORM: [&str; 5] = ["host", "keeper", "caddy", "tunnel", "panel"];
 
-/// What a restart must not wait for: host answering the request, and Caddy carrying it. The panel
-/// is told first and the restart follows.
-const ON_THE_WAY: [&str; 2] = ["host", "caddy"];
+/// What a restart must not wait for: host answering the request, and Caddy and the panel carrying
+/// it. The panel is told first and the restart follows.
+const ON_THE_WAY: [&str; 3] = ["host", "caddy", "panel"];
 
 /// How long a restart on the way waits, so the answer saying it was asked has left.
 const ANSWERED: std::time::Duration = std::time::Duration::from_millis(500);
@@ -470,19 +480,20 @@ pub async fn route(host: &Host) -> Result<(), RouteError> {
 }
 
 pub fn render(host: &Host) -> Result<serde_json::Value, store::Error> {
-	Ok(caddy::render(
-		&host.config.caddy,
-		&host.config.own_container,
-		&host.store.apps()?,
-		&host.store.routes()?,
-	))
+	Ok(caddy::render(&host.config.caddy, &host.store.apps()?, &host.store.routes()?))
 }
 
 /// Attach Caddy and host to every app's network again. A Caddy container that was recreated
 /// rather than restarted comes back attached to none of them.
 pub async fn attach(host: &Host) -> Result<(), RouteError> {
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
-	host.engine.network("host", &members).await?;
+	// host's own network is the panel's and keeper's, never Caddy's: nothing is routed to host.
+	let own = deploy::engine::network_of(&host.config.own_container);
+	host.engine.network(&host.config.own_container, &members[..1]).await?;
+	host.engine.leave(&own, &members[1..]).await?;
+	if host.store.app(PANEL)?.is_some() {
+		host.engine.join(&own, &[PANEL], false).await?;
+	}
 	for app in host.store.apps()? {
 		let name = app.manifest.name.as_str();
 		if !UNNETWORKED.contains(&name) && name != host.config.caddy.container {
@@ -515,7 +526,7 @@ mod tests {
 	fn the_platforms_own_are_restarted_and_never_stopped_or_started() {
 		use super::{Error, permitted};
 		use crate::store::Action;
-		for name in ["host", "keeper", "caddy", "tunnel"] {
+		for name in ["host", "keeper", "caddy", "tunnel", "panel"] {
 			assert!(permitted(name, Action::Restart).is_ok(), "{name}");
 			for action in [Action::Stop, Action::Start] {
 				assert!(matches!(permitted(name, action), Err(Error::Platform(_))), "{name}");
@@ -536,7 +547,7 @@ mod tests {
 		assert!(deployable("meter").is_ok());
 		assert!(deployable("caddy").is_ok());
 		assert!(deployable("tunnel").is_ok());
-		assert_eq!(deployable("panel"), Err(Invalid::Reserved("panel".into())));
+		assert!(deployable("panel").is_ok());
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
 	}

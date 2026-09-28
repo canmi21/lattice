@@ -4,6 +4,7 @@
 	 * See spec/architecture/host.md, "An image is kept while something could run it".
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import { untrack } from 'svelte';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { api, Refused, short, type Image } from './api';
@@ -16,9 +17,12 @@
 	import { signedOut } from './session.svelte';
 	import { surfaces, tone, type } from './style/surfaces';
 
-	let images = $state<Image[]>([]);
-	let size = $state<number | null>(null);
-	let loaded = $state(false);
+	let { initial }: { initial?: { images: Image[]; size: number | null } } = $props();
+
+	// What the server read is where the page starts; the browser reads again after every change.
+	let images = $state<Image[]>(untrack(() => initial?.images ?? []));
+	let size = $state<number | null>(untrack(() => initial?.size ?? null));
+	let loaded = $state(untrack(() => initial !== undefined));
 	let busy = $state(false);
 	let error = $state('');
 	let told = $state('');
@@ -44,7 +48,7 @@
 	}
 
 	$effect(() => {
-		load();
+		if (untrack(() => initial) === undefined) load();
 	});
 
 	async function perform() {
