@@ -304,9 +304,10 @@ drawn as lines alone, because every fill layered on the others washes the plot t
 
 **The machine's names are made readable where they are shown, never where they are kept.** A
 thermal zone arrives as its driver calls it -- `bigcore`, `littlecore`, `ddr` -- and the panel's
-`labels.ts` says it as Big cores, Little cores, Memory, falling back to the name capitalized. A
-cluster has no name at all: the panel calls them Little and Big by how fast each can run, and a
-machine whose clusters all run at one clock shows that one frequency.
+`labels.ts` says it properly, falling back to the name capitalized. big.LITTLE's size words are
+never shown as written: big is Performance, little is Efficiency, and a middle tier is Balanced, so
+`bigcore0` is Performance cores 0. A cluster has no name of its own, and takes the same words by
+how fast each can run; a machine whose clusters all run at one clock shows that one frequency.
 
 **It is laid out for a desktop.** A sidebar and a page beside it, the page's width following the
 window; a phone is not refused and not designed for.

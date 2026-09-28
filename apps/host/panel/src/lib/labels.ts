@@ -23,15 +23,25 @@ const ZONES: Record<string, string> = {
 /** Core zones, as `bigcore`, `littlecore0`: which cluster, and which of several. */
 const CORES = /^(big|little|mid|middle)-?core-?(\d*)$/;
 
-/** A zone's name, `bigcore1` read as `Big cores 1`. */
+/**
+ * What a driver's size word means, in the words cluster designs use for it: big.LITTLE's big cores
+ * are built for speed and its little ones for efficiency, and a third tier sits between. The size
+ * words themselves are never shown.
+ */
+const TIERS: Record<string, string> = {
+	big: 'Performance',
+	little: 'Efficiency',
+	mid: 'Balanced',
+	middle: 'Balanced',
+};
+
+/** A zone's name, `bigcore1` read as `Performance cores 1`. */
 export function zoneLabel(zone: string): string {
 	const known = ZONES[zone];
 	if (known) return known;
 	const cores = CORES.exec(zone);
 	if (cores) {
-		const size =
-			cores[1] === 'mid' ? 'Middle' : cores[1]!.charAt(0).toUpperCase() + cores[1]!.slice(1);
-		return `${size} cores${cores[2] ? ` ${cores[2]}` : ''}`;
+		return `${TIERS[cores[1]!]} cores${cores[2] ? ` ${cores[2]}` : ''}`;
 	}
 	return zone
 		.split('-')
@@ -54,7 +64,7 @@ export function zoneOrder(a: string, b: string): number {
 
 /**
  * Each cluster's name by how fast it can run: none when there is one, or when all run as fast;
- * otherwise Little up to Big, and Middle between.
+ * otherwise Efficiency up to Performance, and Balanced between.
  */
 export function clusterNames(clusters: Cluster[]): (string | undefined)[] {
 	const maxima = clusters.map((cluster) => cluster.max_frequency ?? 0);
@@ -62,7 +72,8 @@ export function clusterNames(clusters: Cluster[]): (string | undefined)[] {
 	const ranked = [...new Set(maxima)].sort((a, b) => a - b);
 	return maxima.map((max) => {
 		const place = ranked.indexOf(max);
-		return place === 0 ? 'Little' : place === ranked.length - 1 ? 'Big' : 'Middle';
+		if (place === 0) return TIERS.little;
+		return place === ranked.length - 1 ? TIERS.big : TIERS.mid;
 	});
 }
 
