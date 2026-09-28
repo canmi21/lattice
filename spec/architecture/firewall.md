@@ -8,14 +8,19 @@ zone are few enough to paste.
 
 ## One blacklist everywhere, and a whitelist where the paths are ours
 
-| Rule              | File                                                             | Zones                                   | Action | Order |
-| ----------------- | ---------------------------------------------------------------- | --------------------------------------- | ------ | ----- |
-| Block Probes      | [rules/block-probes.txt](../../rules/block-probes.txt)           | canmi.net, ffoni.com, ill.li, canmi.app | Block  | 1     |
-| Site Files Only   | [rules/site-files-only.txt](../../rules/site-files-only.txt)     | canmi.net                               | Block  | 2     |
-| API Scopes Only   | [rules/api-scopes-only.txt](../../rules/api-scopes-only.txt)     | ffoni.com                               | Block  | 2     |
-| CDN Prefixes Only | [rules/cdn-prefixes-only.txt](../../rules/cdn-prefixes-only.txt) | ffoni.com                               | Block  | 3     |
-| Alias Paths Only  | [rules/alias-paths-only.txt](../../rules/alias-paths-only.txt)   | ill.li                                  | Block  | 2     |
-| Geo Rate Cap      | [rules/geo-rate-cap.txt](../../rules/geo-rate-cap.txt)           | ffoni.com, as its rate limiting rule    | Block  | --    |
+| Rule              | File                                                                                 | Pasted into                             | Order |
+| ----------------- | ------------------------------------------------------------------------------------ | --------------------------------------- | ----- |
+| Block Probes      | [rules/all/block-probes.txt](../../rules/all/block-probes.txt)                       | canmi.net, ffoni.com, ill.li, canmi.app | 1     |
+| Site Files Only   | [rules/canmi.net/site-files-only.txt](../../rules/canmi.net/site-files-only.txt)     | canmi.net                               | 2     |
+| API Scopes Only   | [rules/ffoni.com/api-scopes-only.txt](../../rules/ffoni.com/api-scopes-only.txt)     | ffoni.com                               | 2     |
+| CDN Prefixes Only | [rules/ffoni.com/cdn-prefixes-only.txt](../../rules/ffoni.com/cdn-prefixes-only.txt) | ffoni.com                               | 3     |
+| Alias Paths Only  | [rules/ill.li/alias-paths-only.txt](../../rules/ill.li/alias-paths-only.txt)         | ill.li                                  | 2     |
+| Geo Rate Cap      | [rules/ffoni.com/geo-rate-cap.txt](../../rules/ffoni.com/geo-rate-cap.txt)           | ffoni.com, as its rate limiting rule    | --    |
+
+**The folder is where a rule is pasted.** `rules/all/` goes into every zone and each other folder is
+named for its zone, since a rule on this plan belongs to one zone; the name is `all` rather than
+`*`, which Windows refuses in a file name and a shell expands. Every rule blocks, and the title in
+the table is the name it is given in the dashboard.
 
 **Block Probes is the same file in every zone.** It refuses what scanners ask every host for -- the
 paths of WordPress and phpMyAdmin, version control and credential files, package manifests, source

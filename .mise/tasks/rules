@@ -22,8 +22,9 @@ def quoted_set(text, field):
 
 def main():
 	problems = []
-	files = {path.name: path.read_text() for path in sorted(RULES.glob("*.txt"))}
-	listed = set(re.findall(r"rules/([a-z0-9-]+\.txt)", SPEC.read_text()))
+	# Keyed by the path under rules/: the folder is the zone it is pasted into, `all` every zone.
+	files = {str(path.relative_to(RULES)): path.read_text() for path in sorted(RULES.glob("*/*.txt"))}
+	listed = set(re.findall(r"rules/([a-z0-9.-]+/[a-z0-9-]+\.txt)", SPEC.read_text()))
 	for name in sorted(listed ^ set(files)):
 		problems.append(f"{name}: in {'the spec' if name in listed else 'rules/'} but not in {'rules/' if name in listed else 'the spec'}")
 
@@ -36,9 +37,9 @@ def main():
 	# Every public scope of the API host is let through, and nothing that is not one.
 	scopes_ts = (ROOT / "apps/gateway/src/scopes.ts").read_text()
 	scopes = set(re.findall(r"^\t(?:'|\")?([a-z0-9-]+)(?:'|\")?: \{", scopes_ts, re.M))
-	allowed = set(re.findall(r'starts_with\(http\.request\.uri\.path, "/([a-z0-9-]+)/"\)', files.get("api-scopes-only.txt", "")))
+	allowed = set(re.findall(r'starts_with\(http\.request\.uri\.path, "/([a-z0-9-]+)/"\)', files.get("ffoni.com/api-scopes-only.txt", "")))
 	for scope in sorted(scopes ^ allowed):
-		problems.append(f"api-scopes-only.txt: /{scope}/ is {'a scope it refuses' if scope in scopes else 'let through but no scope'}")
+		problems.append(f"ffoni.com/api-scopes-only.txt: /{scope}/ is {'a scope it refuses' if scope in scopes else 'let through but no scope'}")
 
 	# Every extension the site's routes and public files are named with is let through.
 	site = ROOT / "apps/site"
@@ -46,9 +47,9 @@ def main():
 	routes = [p.name for p in (site / "src/routes").rglob("*") if p.is_dir() and not p.name.startswith("[...")]
 	names = routes + [p.name for p in (site / "public").rglob("*") if p.is_file()]
 	served = {name.rsplit(".", 1)[1].lower() for name in names if "." in name.lstrip(".")}
-	extensions = quoted_set(files.get("site-files-only.txt", ""), "http.request.uri.path.extension")
+	extensions = quoted_set(files.get("canmi.net/site-files-only.txt", ""), "http.request.uri.path.extension")
 	for extension in sorted(served - extensions):
-		problems.append(f"site-files-only.txt: the site serves .{extension} and the rule refuses it")
+		problems.append(f"canmi.net/site-files-only.txt: the site serves .{extension} and the rule refuses it")
 
 	if problems:
 		print("Firewall rules out of step:\n")
