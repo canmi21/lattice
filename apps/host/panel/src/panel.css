@@ -1,44 +1,102 @@
+/* The layers, declared before anything opens one, in the order the site declares them, so the
+   frame, the vocabulary and the escape hatch resolve here as they do there. See
+   spec/architecture/css/layers.md. */
+@layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
+@source '.';
 
 /*
- * The panel's own palette, declared once here and read as utilities everywhere else. Its own for
- * now rather than libs/tokens'; see spec/architecture/host.md, "The panel is host's own".
+ * Nord, and nothing else: one theme, dark, with no light twin. Its sixteen colours are declared
+ * under their own names, and what the panel means by each is declared once below them; a surface
+ * reads the meaning, never the number. The few that are not Nord's own are steps between two of
+ * its colours, each saying which. See spec/architecture/host.md, "The panel is host's own".
+ */
+:root {
+	color-scheme: dark;
+
+	/* Polar Night */
+	--nord0: #2e3440;
+	--nord1: #3b4252;
+	--nord2: #434c5e;
+	--nord3: #4c566a;
+	/* Snow Storm */
+	--nord4: #d8dee9;
+	--nord5: #e5e9f0;
+	--nord6: #eceff4;
+	/* Frost */
+	--nord7: #8fbcbb;
+	--nord8: #88c0d0;
+	--nord9: #81a1c1;
+	--nord10: #5e81ac;
+	/* Aurora */
+	--nord11: #bf616a;
+	--nord12: #d08770;
+	--nord13: #ebcb8b;
+	--nord14: #a3be8c;
+	--nord15: #b48ead;
+
+	/* The ground, and the sidebar a step below it: nord0 darkened toward black. */
+	--color-ground: var(--nord0);
+	--color-sunken: #282d38;
+	/* A card on the ground, a row hovered inside one, and the one selected. */
+	--color-surface: #323845;
+	--color-raised: var(--nord1);
+	--color-selected: var(--nord2);
+	--color-line: #3e4555;
+	--color-line-strong: var(--nord3);
+
+	--color-text-strong: var(--nord6);
+	--color-text: var(--nord4);
+	/* Between nord3 and nord4: nord3 is Nord's own comment colour, and too faint to read on nord1. */
+	--color-text-muted: #9aa3b5;
+	--color-text-faint: #6f7a8f;
+
+	--color-accent: var(--nord8);
+	--color-primary: var(--nord10);
+	--color-good: var(--nord14);
+	--color-warn: var(--nord13);
+	--color-danger: var(--nord11);
+	--color-busy: var(--nord12);
+	--color-note: var(--nord15);
+
+	--color-selection: rgb(136 192 208 / 0.3);
+}
+
+/*
+ * The names the pages still write as utilities, until each is moved to a surface. Pointed at the
+ * meanings above, so they are Nord already.
  */
 @theme {
-	--color-ground: #fbfbfb;
-	--color-surface: #ffffff;
-	--color-ink: #1c1c1e;
-	--color-muted: #6b6b70;
-	--color-line: #e3e3e6;
-	--color-accent: #2f5bd3;
-	--color-good: #1d7f4e;
-	--color-warn: #a4640a;
-	--color-danger: #c0392b;
-	--font-sans: ui-sans-serif, system-ui, sans-serif;
-	--font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+	--color-ground: var(--nord0);
+	--color-surface: #323845;
+	--color-ink: var(--nord4);
+	--color-muted: #9aa3b5;
+	--color-line: #3e4555;
+	--color-accent: var(--nord8);
+	--color-good: var(--nord14);
+	--color-warn: var(--nord13);
+	--color-danger: var(--nord11);
+	--font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--color-ground: #0d0d0f;
-		--color-surface: #17171a;
-		--color-ink: #ececef;
-		--color-muted: #9a9aa2;
-		--color-line: #2a2a30;
-		--color-accent: #7c9cff;
-		--color-good: #4fc58a;
-		--color-warn: #e0a24a;
-		--color-danger: #ff6b5e;
-	}
-}
-
+/* What carries no class: the document, a selection, the scrollbars. */
 @layer base {
-	:root {
-		color-scheme: light dark;
+	body {
+		background-color: var(--color-ground);
+		color: var(--color-text);
+		font-family: var(--font-sans);
+		font-size: 0.875rem;
+		-webkit-font-smoothing: antialiased;
 	}
 
-	body {
-		@apply bg-ground font-sans text-sm text-ink;
+	::selection {
+		background-color: var(--color-selection);
+	}
+
+	* {
+		scrollbar-color: var(--color-line-strong) transparent;
+		scrollbar-width: thin;
 	}
 
 	button {

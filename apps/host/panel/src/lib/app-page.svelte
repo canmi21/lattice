@@ -79,7 +79,11 @@
 					></tr
 				>
 				<tr><th>Previous</th><td><code>{short(app.previous?.image) || 'none'}</code></td></tr>
-				<tr><th>Answers on</th><td>{app.manifest.container?.port ?? app.manifest.container?.socket ?? ''}</td></tr>
+				<tr
+					><th>Answers on</th><td
+						>{app.manifest.container?.port ?? app.manifest.container?.socket ?? ''}</td
+					></tr
+				>
 			</tbody>
 		</table>
 		<div class="{row} mt-4">

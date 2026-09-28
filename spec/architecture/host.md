@@ -281,8 +281,20 @@ remedy is one request rather than a list of commands.
 host serves its panel itself, on its own names: a SvelteKit application exported as static files,
 copied into host's image and served beside the API, so there is no second service, no origin to
 cross and no CORS. It is written in `apps/host/panel/`, its components named in lowercase like every
-file, and styled with Tailwind. Its colours are its own for now -- a palette declared once, in
-`panel.css`'s `@theme` -- rather than `libs/tokens`', which is the site's.
+file.
+
+**It is styled as the site is, in the site's three layers, and coloured as nothing else here is.**
+Tailwind in the markup for where a thing sits, StyleX for what it looks like, a `<style>` block
+for what carries no class -- [css/layers.md](css/layers.md) decides which is which, and the build
+and development arrangements there are copied rather than re-derived. Its colours are Nord's, one
+theme and dark, with no light twin: the sixteen are declared under their own names in `panel.css`,
+what the panel means by each is declared beside them, and a surface in `src/lib/style/` reads the
+meaning. They are its own rather than `libs/tokens`', which is the site's. Icons are Lucide's, and
+what moves -- a page arriving, the sidebar's marker crossing to the next page -- moves on
+`@canmi/motion`'s timing, as the editor's panels do.
+
+**It is laid out for a desktop.** A sidebar and a page beside it, the page's width following the
+window; a phone is not refused and not designed for.
 
 **Pages are prerendered and filled in the browser; nothing renders on a server.** Every page of
 fixed address -- the list of apps, the routes -- is exported as a shell of its own, and a page whose

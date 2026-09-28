@@ -59,6 +59,41 @@ export interface Archived {
 	bytes: number;
 }
 
+/** What does not change while the machine is up, as the agent reads it. */
+export interface MachineInfo {
+	model: string | null;
+	kernel: string | null;
+	cores: number;
+	/** MHz, per core. */
+	max_frequencies: (number | null)[];
+	/** Bytes. */
+	memory: number;
+	swap: number;
+	/** Seconds since the epoch. */
+	booted: number | null;
+}
+
+/** One second of the machine: a value per metric. See spec/architecture/agent.md, "Metrics". */
+export interface Sample {
+	at: number;
+	values: Record<string, number>;
+}
+
+export interface Summary {
+	average: number;
+	minimum: number;
+	maximum: number;
+	count: number;
+}
+
+/** A bucket of time, named by when it starts, each metric summarized over it. */
+export interface Point {
+	at: number;
+	values: Record<string, Summary>;
+}
+
+export type Grain = 'second' | 'minute' | 'hour';
+
 /** Not signed in, or signed out since: the panel asks for the token again. */
 export class SignedOut extends Error {}
 
@@ -105,6 +140,12 @@ export const api = {
 		call<unknown>('POST', `/api/apps/${name}/rollback`, { with_data: withData }),
 	act: (name: string, act: 'start' | 'stop' | 'restart') =>
 		call<unknown>('POST', `/api/apps/${name}/${act}`),
+	now: () => call<{ info: MachineInfo; sample: Sample }>('GET', '/api/node/now'),
+	series: (grain: Grain, metrics: string[], since?: number) => {
+		const query = new URLSearchParams({ grain, metrics: metrics.join(',') });
+		if (since !== undefined) query.set('since', String(since));
+		return call<Point[]>('GET', `/api/node/series?${query}`);
+	},
 	routes: () => call<Route[]>('GET', '/api/routes'),
 	putRoute: (route: Route) => call<null>('PUT', `/api/routes/${route.name}`, route),
 	deleteRoute: (name: string) => call<null>('DELETE', `/api/routes/${name}`),

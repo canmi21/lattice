@@ -8,10 +8,14 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
 	},
 	"dependencies": {
+		"@canmi/motion": "workspace:*",
 		"@canmi/response": "workspace:*",
-		"@canmi/urls": "workspace:*"
+		"@canmi/urls": "workspace:*",
+		"@lucide/svelte": "^1.47.0"
 	},
 	"devDependencies": {
+		"@stylexjs/stylex": "^0.19.1",
+		"@stylexjs/unplugin": "^0.19.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.70.3",
 		"@sveltejs/vite-plugin-svelte": "^7.3.0",

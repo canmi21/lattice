@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Apps from '$lib/apps.svelte';
+	import Overview from '$lib/overview.svelte';
 </script>
 
-<Apps />
+<Overview />
