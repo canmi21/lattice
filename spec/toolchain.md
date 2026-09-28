@@ -34,6 +34,11 @@ from outside: another Worker's `fetch` passing through a route does not run that
 which is how the alias layer found `api.ffoni.com/site/*` answering it with nothing while the
 gateway held the path by a route. A scope of the API host is reached by binding.
 
+**The gateway declares its custom domain in its `wrangler.jsonc`.** Attached in the dashboard,
+`api.ffoni.com` was gone after a deploy that followed its move from the old API Worker -- the DNS
+record went with it, and the first sign was the host not resolving. Declared, every deploy asserts
+it. The other Workers' domains are still the dashboard's, and move the same way if one goes.
+
 The cost is real and accepted: there is no URL to open between uploading a version and
 promoting it, so a deploy is the first time the code meets production. What replaces that
 check is `wrangler dev`, which runs the same code against the same bindings, plus the fact

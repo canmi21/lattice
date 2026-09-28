@@ -4,7 +4,10 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2026-07-29",
 
-	// The public API host, api.ffoni.com, attached in the dashboard like every other custom domain.
+	// The public API host, declared here so every deploy asserts it: attached in the dashboard, it
+	// was gone after a deploy and nothing said so. See spec/toolchain.md.
+	"routes": [{ "pattern": "api.ffoni.com", "custom_domain": true }],
+
 	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and
 	// src/index.test.ts holds this list to the generated table. See spec/architecture/services.md,
 	// "One API host, scoped by path".
