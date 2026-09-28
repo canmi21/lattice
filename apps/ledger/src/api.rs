@@ -1,13 +1,13 @@
 //! What every service, and the panel, reach through Caddy on the private side. See
 //! spec/architecture/ledger.md.
 
-use crate::store::{Cursor, Filter, Store};
+use crate::store::{Cursor, Filter, Store, StoredTask};
 use axum::Router;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::Response;
-use axum::routing::{get, put};
-use ledger::Record;
+use axum::routing::{get, post, put};
+use ledger::{Item, Record};
 use std::sync::{Arc, Mutex};
 
 pub type Shared = Arc<Mutex<Store>>;
@@ -21,6 +21,7 @@ pub fn routes(store: Shared) -> Router {
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
 		.route("/tasks", get(list))
 		.route("/tasks/{service}/{id}", put(upsert).get(get_one))
+		.route("/events", post(events))
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(store)
 }
@@ -31,8 +32,7 @@ fn lock(store: &Shared) -> std::sync::MutexGuard<'_, Store> {
 }
 
 /// The path's `service` and `id` have to equal the body's, so a caller cannot address one task and
-/// send the record of another; see spec/architecture/ledger.md, "One service, pushed to, never
-/// asking".
+/// send the record of another; see spec/architecture/ledger.md, "Pushed to, never asking".
 async fn upsert(
 	Path((service, id)): Path<(String, String)>,
 	State(store): State<Shared>,
@@ -44,7 +44,7 @@ async fn upsert(
 	if record.service != service || record.id != id {
 		return response::failure(StatusCode::BAD_REQUEST, "invalid_body");
 	}
-	match lock(&store).upsert(record) {
+	match lock(&store).upsert(record.into()) {
 		Ok(stored) => response::success(StatusCode::OK, stored),
 		Err(error) => {
 			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
@@ -52,16 +52,45 @@ async fn upsert(
 	}
 }
 
+/// The task as `Stored` (parent included), its events in `seq` order and the tasks it is the
+/// parent of, newest first. See spec/architecture/ledger.md, "Read by the panel".
 async fn get_one(
 	Path((service, id)): Path<(String, String)>,
 	State(store): State<Shared>,
 ) -> Response {
-	match lock(&store).get(&service, &id) {
-		Ok(Some(stored)) => response::success(StatusCode::OK, stored),
+	match lock(&store).view(&service, &id) {
+		Ok(Some(view)) => response::success(StatusCode::OK, view),
 		Ok(None) => response::failure(StatusCode::NOT_FOUND, "no_such_task"),
 		Err(error) => {
 			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
 		}
+	}
+}
+
+/// `service:id`, split on the first `:` so an `id` holding one is still recovered whole.
+fn split_parent(parent: &str) -> Option<(String, String)> {
+	let (service, id) = parent.split_once(':')?;
+	Some((service.to_owned(), id.to_owned()))
+}
+
+/// One row of `GET /tasks`: the stored task plus its own `cursor`, so `before=<cursor>` of the
+/// last item asks for the next page. Only the list answers this way -- the single-task view has no
+/// paging to carry a cursor for.
+#[derive(serde::Serialize)]
+struct Listed {
+	#[serde(flatten)]
+	task: StoredTask,
+	cursor: String,
+}
+
+impl From<StoredTask> for Listed {
+	fn from(task: StoredTask) -> Self {
+		let cursor = Cursor {
+			updated_at: task.updated_at.as_nanosecond() as i64,
+			id: task.task.record.id.clone(),
+		}
+		.encode();
+		Self { task, cursor }
 	}
 }
 
@@ -73,18 +102,45 @@ struct Asked {
 	state: Option<String>,
 	kind: Option<String>,
 	caller: Option<String>,
+	parent: Option<String>,
 }
 
 /// Newest `updated_at` first. A `before` that does not read as a cursor is treated as absent, and a
-/// `state` or `caller` that is not one of the words the wire uses matches nothing, rather than
-/// failing a read that is otherwise well formed.
+/// `state`, `caller` or `parent` that does not read as one matches nothing, rather than failing a
+/// read that is otherwise well formed.
 async fn list(State(store): State<Shared>, Query(asked): Query<Asked>) -> Response {
 	let limit = asked.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
 	let before = asked.before.as_deref().and_then(Cursor::parse);
-	let filter =
-		Filter { service: asked.service, state: asked.state, kind: asked.kind, caller: asked.caller };
+	let parent = asked.parent.as_deref().and_then(split_parent);
+	let filter = Filter {
+		service: asked.service,
+		state: asked.state,
+		kind: asked.kind,
+		caller: asked.caller,
+		parent_service: parent.as_ref().map(|(service, _)| service.clone()),
+		parent_id: parent.as_ref().map(|(_, id)| id.clone()),
+	};
 	match lock(&store).list(&filter, before.as_ref(), limit) {
-		Ok(rows) => response::success(StatusCode::OK, rows),
+		Ok(rows) => {
+			response::success(StatusCode::OK, rows.into_iter().map(Listed::from).collect::<Vec<_>>())
+		}
+		Err(error) => {
+			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
+		}
+	}
+}
+
+/// `POST /events`: a batch of `Item`, each a task or an event, taken in one transaction. Answers
+/// how many items were taken. See spec/architecture/ledger.md, "Pushed to, never asking".
+async fn events(
+	State(store): State<Shared>,
+	body: Result<axum::Json<Vec<Item>>, axum::extract::rejection::JsonRejection>,
+) -> Response {
+	let Ok(axum::Json(items)) = body else {
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_body");
+	};
+	match lock(&store).batch(items) {
+		Ok(taken) => response::success(StatusCode::OK, serde_json::json!({ "taken": taken })),
 		Err(error) => {
 			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
 		}
@@ -94,10 +150,11 @@ async fn list(State(store): State<Shared>, Query(asked): Query<Asked>) -> Respon
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::store::StoredTask;
 	use axum::body::Body;
 	use axum::http::Request;
 	use http_body_util::BodyExt;
-	use ledger::{Caller, State as TaskState, Stored};
+	use ledger::{Caller, Event, Level, Parent, State as TaskState, Task};
 	use tower::ServiceExt;
 
 	fn record(service: &str, id: &str) -> Record {
@@ -130,6 +187,15 @@ mod tests {
 
 	async fn ask(router: Router, path: &str) -> (StatusCode, serde_json::Value) {
 		let request = Request::get(path).body(Body::empty()).unwrap();
+		answer(router, request).await
+	}
+
+	async fn post_events(router: Router, items: &[Item]) -> (StatusCode, serde_json::Value) {
+		let body = serde_json::to_vec(items).unwrap();
+		let request = Request::post("/events")
+			.header("content-type", "application/json")
+			.body(Body::from(body))
+			.unwrap();
 		answer(router, request).await
 	}
 
@@ -183,9 +249,9 @@ mod tests {
 		assert_eq!(rows.len(), 2);
 		assert_eq!(rows[0]["id"], "d");
 
-		let stored: Stored = serde_json::from_value(rows[1].clone()).unwrap();
+		let stored: StoredTask = serde_json::from_value(rows[1].clone()).unwrap();
 		let cursor =
-			Cursor { updated_at: stored.updated_at.as_nanosecond() as i64, id: stored.record.id };
+			Cursor { updated_at: stored.updated_at.as_nanosecond() as i64, id: stored.task.record.id };
 		let path = format!("/tasks?before={}", Cursor::encode(&cursor));
 		let (_, body) = ask(router.clone(), &path).await;
 		let rest = body["data"].as_array().unwrap();
@@ -196,6 +262,145 @@ mod tests {
 		let rows = body["data"].as_array().unwrap();
 		assert_eq!(rows.len(), 1);
 		assert_eq!(rows[0]["service"], "geo");
+	}
+
+	fn event(task: &str, seq: u64) -> Event {
+		Event {
+			service: "shot".into(),
+			task: task.into(),
+			seq,
+			at: "2026-09-28T12:00:01Z".parse().unwrap(),
+			stage: "resolving".into(),
+			level: Level::Info,
+			message: "starting".into(),
+			data: serde_json::Value::Null,
+		}
+	}
+
+	#[tokio::test]
+	async fn a_mixed_batch_is_stored_once_even_posted_twice() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		let items = vec![
+			Item::Task(record("shot", "a").into()),
+			Item::Event(event("a", 1)),
+			Item::Event(event("a", 2)),
+		];
+		let (status, body) = post_events(router.clone(), &items).await;
+		assert_eq!(status, StatusCode::OK);
+		assert_eq!(body["data"]["taken"], 3);
+		let (status, body) = post_events(router.clone(), &items).await;
+		assert_eq!(status, StatusCode::OK);
+		assert_eq!(body["data"]["taken"], 3);
+
+		let (_, body) = ask(router, "/tasks/shot/a").await;
+		assert_eq!(body["data"]["events"].as_array().unwrap().len(), 2);
+	}
+
+	#[tokio::test]
+	async fn events_are_answered_in_seq_order_however_they_arrived() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		post_events(router.clone(), &[Item::Task(record("shot", "a").into())]).await;
+		post_events(
+			router.clone(),
+			&[Item::Event(event("a", 5)), Item::Event(event("a", 1)), Item::Event(event("a", 3))],
+		)
+		.await;
+
+		let (_, body) = ask(router, "/tasks/shot/a").await;
+		let seqs: Vec<u64> = body["data"]["events"]
+			.as_array()
+			.unwrap()
+			.iter()
+			.map(|event| event["seq"].as_u64().unwrap())
+			.collect();
+		assert_eq!(seqs, vec![1, 3, 5]);
+	}
+
+	#[tokio::test]
+	async fn the_task_view_carries_events_and_children() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		post_events(router.clone(), &[Item::Task(record("shot", "parent").into())]).await;
+		let child = Task {
+			record: record("shot", "child"),
+			parent: Some(Parent { service: "shot".into(), id: "parent".into() }),
+		};
+		post_events(router.clone(), &[Item::Task(child), Item::Event(event("parent", 1))]).await;
+
+		let (_, body) = ask(router, "/tasks/shot/parent").await;
+		assert_eq!(body["data"]["events"].as_array().unwrap().len(), 1);
+		let children = body["data"]["children"].as_array().unwrap();
+		assert_eq!(children.len(), 1);
+		assert_eq!(children[0]["id"], "child");
+		assert_eq!(children[0]["parent"]["id"], "parent");
+	}
+
+	#[tokio::test]
+	async fn the_parent_filter_narrows_the_list() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		post_events(router.clone(), &[Item::Task(record("shot", "parent").into())]).await;
+		let child = Task {
+			record: record("shot", "child"),
+			parent: Some(Parent { service: "shot".into(), id: "parent".into() }),
+		};
+		post_events(router.clone(), &[Item::Task(child)]).await;
+
+		let (_, body) = ask(router, "/tasks?parent=shot:parent").await;
+		let rows = body["data"].as_array().unwrap();
+		assert_eq!(rows.len(), 1);
+		assert_eq!(rows[0]["id"], "child");
+	}
+
+	#[tokio::test]
+	async fn the_upsert_rule_still_holds_through_events() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		let mut done = record("shot", "a");
+		done.state = TaskState::Done;
+		done.finished_at = Some("2026-09-28T12:05:00Z".parse().unwrap());
+		post_events(router.clone(), &[Item::Task(done.into())]).await;
+
+		let mut running = record("shot", "a");
+		running.state = TaskState::Running;
+		running.finished_at = Some("2026-09-28T12:04:00Z".parse().unwrap());
+		post_events(router.clone(), &[Item::Task(running.into())]).await;
+
+		let (_, body) = ask(router, "/tasks/shot/a").await;
+		assert_eq!(body["data"]["state"], "done");
+	}
+
+	#[tokio::test]
+	async fn paging_with_the_returned_cursor_walks_every_row_once_even_tied_at_the_millisecond() {
+		let (_directory, store) = shared();
+		let router = routes(store.clone());
+		for id in ["a", "b", "c", "d"] {
+			put(router.clone(), &format!("/tasks/shot/{id}"), &record("shot", id)).await;
+		}
+		// `b` and `c` tie at the same millisecond, so the walk relies on the `id` tiebreaker.
+		let tied = 1_700_000_000_123_000_000i64;
+		lock(&store).force_updated_at("shot", "b", tied);
+		lock(&store).force_updated_at("shot", "c", tied);
+
+		let mut seen = Vec::new();
+		let mut before: Option<String> = None;
+		loop {
+			let path = match &before {
+				Some(cursor) => format!("/tasks?limit=1&before={cursor}"),
+				None => "/tasks?limit=1".to_owned(),
+			};
+			let (_, body) = ask(router.clone(), &path).await;
+			let rows = body["data"].as_array().unwrap();
+			if rows.is_empty() {
+				break;
+			}
+			seen.push(rows[0]["id"].as_str().unwrap().to_owned());
+			before = Some(rows[0]["cursor"].as_str().unwrap().to_owned());
+		}
+		seen.sort();
+		assert_eq!(seen, vec!["a", "b", "c", "d"]);
 	}
 
 	#[test]

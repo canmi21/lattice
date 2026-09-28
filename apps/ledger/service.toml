@@ -15,7 +15,6 @@ memory_mb = 64
 path = "/data"
 
 # The `ledger` scope of the API host, never in the gateway's table: services write to it through
-# Caddy on api.canmi.icu/ledger. See spec/architecture/ledger.md, "One service, pushed to, never
-# asking".
+# Caddy on api.canmi.icu/ledger. See spec/architecture/ledger.md, "Pushed to, never asking".
 [api]
 public = false
