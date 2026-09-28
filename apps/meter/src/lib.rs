@@ -2,6 +2,7 @@
 //! read. See spec/architecture/meter.md.
 
 pub mod api;
+pub mod containers;
 pub mod probe;
 pub mod retention;
 pub mod sample;

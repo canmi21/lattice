@@ -40,6 +40,8 @@ pub fn router(host: Arc<Host>) -> Router {
 		.route("/caddy", get(caddy).post(reapply))
 		.route("/node/now", get(node_now))
 		.route("/node/series", get(node_series))
+		.route("/apps/{name}/metrics/now", get(app_now))
+		.route("/apps/{name}/metrics/series", get(app_series))
 		.layer(middleware::from_fn_with_state(host.clone(), admit));
 	// Everything the panel asks is under `/api`; every other path is the panel's own. `/health`
 	// and `/notice` stay at the root, where keeper, the hook and Caddy already reach them. See
@@ -591,6 +593,53 @@ async fn node_now(State(host): State<Arc<Host>>) -> Response {
 /// The machine over time, at the grain asked for; the query is the meter's to read.
 async fn node_series(State(host): State<Arc<Host>>, RawQuery(query): RawQuery) -> Response {
 	let path = query.map_or_else(|| "/series".to_owned(), |query| format!("/series?{query}"));
+	node::relay(meter_socket(&host).as_deref(), &path).await
+}
+
+#[derive(Deserialize)]
+struct Span {
+	grain: Option<String>,
+	since: Option<String>,
+	until: Option<String>,
+}
+
+/// A container's name as the meter's metrics begin with it; anything else asks for nothing.
+fn container_name(name: &str) -> Option<&str> {
+	let fits = !name.is_empty()
+		&& name.len() <= 128
+		&& name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_');
+	fits.then_some(name)
+}
+
+/// One container now, as the meter last sampled it: `<name>.cpu`, `.memory` and the rest.
+async fn app_now(State(host): State<Arc<Host>>, Path(name): Path<String>) -> Response {
+	let Some(name) = container_name(&name) else {
+		return response::failure(StatusCode::NOT_FOUND, "no_such_app");
+	};
+	node::relay(meter_socket(&host).as_deref(), &format!("/containers/now?metrics={name}")).await
+}
+
+/// One container over time, at the grain asked for.
+async fn app_series(
+	State(host): State<Arc<Host>>,
+	Path(name): Path<String>,
+	Query(span): Query<Span>,
+) -> Response {
+	let Some(name) = container_name(&name) else {
+		return response::failure(StatusCode::NOT_FOUND, "no_such_app");
+	};
+	// The serializer is not `Send`, so it is done with before anything is awaited.
+	let query = {
+		let mut query = url::form_urlencoded::Serializer::new(String::new());
+		query.append_pair("metrics", name);
+		for (key, value) in [("grain", &span.grain), ("since", &span.since), ("until", &span.until)] {
+			if let Some(value) = value {
+				query.append_pair(key, value);
+			}
+		}
+		query.finish()
+	};
+	let path = format!("/containers/series?{query}");
 	node::relay(meter_socket(&host).as_deref(), &path).await
 }
 

@@ -9,7 +9,8 @@ use bollard::models::{
 	NetworkConnectRequest, NetworkCreateRequest, PortBinding, RestartPolicy, RestartPolicyNameEnum,
 };
 use bollard::query_parameters::{
-	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListImagesOptionsBuilder,
+	CreateContainerOptionsBuilder, ImportImageOptionsBuilder, ListContainersOptions,
+	ListImagesOptionsBuilder,
 	LogsOptionsBuilder, RemoveContainerOptionsBuilder, RemoveImageOptionsBuilder,
 	RestartContainerOptionsBuilder, StopContainerOptionsBuilder, TagImageOptionsBuilder,
 };
@@ -473,6 +474,20 @@ impl Engine {
 			Err(error) if absent(&error) => Ok(None),
 			Err(error) => Err(error.into()),
 		}
+	}
+
+	/// Every running container's id and name, whoever started it.
+	pub async fn named(&self) -> Result<std::collections::BTreeMap<String, String>, Error> {
+		let running = self.docker.list_containers(None::<ListContainersOptions>).await?;
+		Ok(
+			running
+				.into_iter()
+				.filter_map(|container| {
+					let name = container.names?.into_iter().next()?;
+					Some((container.id?, name.trim_start_matches('/').to_owned()))
+				})
+				.collect(),
+		)
 	}
 
 	/// Whether the Docker daemon answers at all.

@@ -1,5 +1,5 @@
 use meter::api::{self, SOCKET, Shared};
-use meter::{probe, sampler::Sampler, store::Store};
+use meter::{containers::Names, probe, sampler::Sampler, store::Store};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -18,8 +18,10 @@ fn directory() -> PathBuf {
 async fn main() -> anyhow::Result<()> {
 	let directory = directory();
 	let store = Store::open(&directory.join("hours.db"))?;
+	let containers = Store::open(&directory.join("containers.db"))?;
 	let roots = probe::Roots::system(Some(directory.clone()));
-	let shared: Shared = Arc::new(Mutex::new(Sampler::new(roots, store)));
+	let sampler = Sampler::new(roots, store).with_containers(Names::at(&directory), containers);
+	let shared: Shared = Arc::new(Mutex::new(sampler));
 
 	// Its own thread: a tick is blocking file reads and, once an hour, a SQLite write.
 	let ticking = shared.clone();

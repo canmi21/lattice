@@ -157,6 +157,13 @@ export const api = {
 		if (since !== undefined) query.set('since', String(since));
 		return call<Point[]>('GET', `/api/node/series?${query}`);
 	},
+	/** One container's latest second, `<name>.cpu` and the rest. */
+	appNow: (name: string) => call<Sample>('GET', `/api/apps/${name}/metrics/now`),
+	appSeries: (name: string, grain: Grain, since?: number) => {
+		const query = new URLSearchParams({ grain });
+		if (since !== undefined) query.set('since', String(since));
+		return call<Point[]>('GET', `/api/apps/${name}/metrics/series?${query}`);
+	},
 	routes: () => call<Route[]>('GET', '/api/routes'),
 	putRoute: (route: Route) => call<null>('PUT', `/api/routes/${route.name}`, route),
 	deleteRoute: (name: string) => call<null>('DELETE', `/api/routes/${name}`),

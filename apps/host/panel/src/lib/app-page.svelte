@@ -10,6 +10,7 @@
 	import { api, Refused, short, when, type App } from './api';
 	import Button from './button.svelte';
 	import Confirm from './confirm.svelte';
+	import AppMetrics from './app-metrics.svelte';
 	import Environment from './environment.svelte';
 	import { ago } from './format';
 	import History from './history.svelte';
@@ -24,7 +25,7 @@
 	let app = $state<App | undefined>();
 	let error = $state('');
 	let busy = $state(false);
-	let tab = $state<'history' | 'logs' | 'environment'>('history');
+	let tab = $state<'metrics' | 'history' | 'logs' | 'environment'>('metrics');
 	/** Bumped after an action, so the tabs read again. */
 	let changed = $state(0);
 
@@ -250,6 +251,7 @@
 	<Tabs
 		bind:current={tab}
 		tabs={[
+			{ key: 'metrics', label: 'Metrics' },
 			{ key: 'history', label: 'History' },
 			{ key: 'logs', label: 'Logs' },
 			// host's own environment is its `.env`, read by nothing here.
@@ -258,7 +260,9 @@
 	/>
 
 	{#key changed}
-		{#if tab === 'history'}
+		{#if tab === 'metrics'}
+			<AppMetrics {name} memoryMb={app.manifest.container?.memory_mb ?? 512} />
+		{:else if tab === 'history'}
 			<History {name} />
 		{:else if tab === 'logs'}
 			<Logs {name} />

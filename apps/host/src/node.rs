@@ -6,6 +6,27 @@ use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use std::path::Path;
 
+/// The file the meter reads which container is which from, in its directory; the same name as
+/// `NAMES` in the meter. See spec/architecture/meter.md, "Each container".
+pub const NAMES: &str = "containers.json";
+
+/// How often the meter is told which container is which: a container started since is sampled
+/// from the next telling on.
+pub const TELLING: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// Write every running container's id and name where the meter reads them, through a temporary
+/// file and a rename so it never reads half of one. Nothing when no meter's directory is there.
+pub async fn tell(engine: &deploy::Engine, directory: &Path) -> anyhow::Result<()> {
+	if !tokio::fs::try_exists(directory).await.unwrap_or(false) {
+		return Ok(());
+	}
+	let named = engine.named().await?;
+	let temporary = directory.join(format!("{NAMES}.next"));
+	tokio::fs::write(&temporary, serde_json::to_vec(&named)?).await?;
+	tokio::fs::rename(&temporary, directory.join(NAMES)).await?;
+	Ok(())
+}
+
 /// What the meter answers `path` with, or `meter_unavailable` when there is no socket to ask or
 /// nothing answers on it.
 pub async fn relay(socket: Option<&Path>, path: &str) -> Response {

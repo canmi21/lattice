@@ -78,6 +78,40 @@ coarsest grain on disk, so a year is some twenty metrics times 8,760 rows, which
 - A metric is asked for by name or by a dotted prefix of it: `cpu.core` is every core's usage, and
   `cpu.frequency` every cluster's clock. Asking for none is asking for all.
 
+## Each container
+
+**Every running container is sampled too, each second, into series of its own**: `<name>.cpu`,
+`<name>.memory`, `<name>.network.received` and `.sent`, `<name>.disk.read` and `.written`, with the
+container's name as the prefix that asks for all of it. They are kept at the same three grains as
+the machine's, the hours in `containers.db` beside `hours.db`, so the overview's series stay the
+machine's alone.
+
+| Metric                                           | Unit                         | From                                  |
+| ------------------------------------------------ | ---------------------------- | ------------------------------------- |
+| `<name>.cpu`                                     | percent of the whole machine | the cgroup's `cpu.stat`, `usage_usec` |
+| `<name>.memory`                                  | bytes                        | `memory.current` less `inactive_file` |
+| `<name>.disk.read`, `<name>.disk.written`        | bytes per second             | the cgroup's `io.stat`, every device  |
+| `<name>.network.received`, `<name>.network.sent` | bytes per second             | `net/dev` of one of its processes     |
+
+- The processor is a share of every core, as `cpu.usage` is, so a container's line and the
+  machine's are read on one scale.
+- Memory leaves out the page cache the kernel would take back at once, which is what `docker stats`
+  shows; a container that reads a file once does not look like it holds it.
+- A container's network is its namespace's, read through any process in it; one with no network of
+  its own, the meter itself, sends and receives nothing.
+- The cgroups are Docker's under systemd, `system.slice/docker-<id>.scope`, read from the machine's
+  `/sys` the meter already mounts.
+
+**Which container is which comes from host.** The meter has no Docker socket and keeps it that way,
+so every thirty seconds host writes `containers.json` into the meter's directory -- every running
+container's id and name, whoever started it -- through a temporary file and a rename. The meter
+reads it again when it has changed, and a container started since is sampled from the next telling
+on. A name is a container's, so a container replaced by a deploy goes on in the same series.
+
+host answers `/api/apps/<name>/metrics/now` and `/metrics/series` from them, asking the meter's
+`/containers/now` and `/containers/series` with the name as the metric, and the app's page draws
+them beside its history and logs.
+
 ## Reached through a socket
 
 **The meter has no network and no port. It answers HTTP on `meter.sock` in its own directory**,

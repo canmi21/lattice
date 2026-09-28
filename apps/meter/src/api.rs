@@ -1,7 +1,7 @@
 //! What host asks the meter, over a Unix socket in the meter's directory: no port, no network. See
 //! spec/architecture/meter.md, "Reached through a socket".
 
-use crate::sampler::{Grain, Sampler};
+use crate::sampler::{Grain, Kept, Sampler};
 use axum::Router;
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
@@ -20,6 +20,8 @@ pub fn routes(sampler: Shared) -> Router {
 		.route("/info", get(info))
 		.route("/now", get(now))
 		.route("/series", get(series))
+		.route("/containers/now", get(containers_now))
+		.route("/containers/series", get(containers_series))
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(sampler)
 }
@@ -36,7 +38,7 @@ async fn info(State(sampler): State<Shared>) -> Response {
 /// The latest sample, with what does not change beside it, which is everything a first paint needs.
 async fn now(State(sampler): State<Shared>) -> Response {
 	let sampler = lock(&sampler);
-	match sampler.now() {
+	match sampler.machine().now() {
 		Some(sample) => response::success(
 			StatusCode::OK,
 			serde_json::json!({ "info": sampler.info(), "sample": sample }),
@@ -54,7 +56,45 @@ struct Asked {
 	until: Option<String>,
 }
 
+/// The containers' latest sample, `<name>.<metric>`, with only the metrics asked for.
+async fn containers_now(State(sampler): State<Shared>, Query(asked): Query<Asked>) -> Response {
+	let metrics = requested(&asked);
+	match lock(&sampler).containers().and_then(Kept::now) {
+		Some(sample) => {
+			let mut sample = sample.clone();
+			sample.values.retain(|name, _| crate::retention::asks_for(&metrics, name));
+			response::success(StatusCode::OK, sample)
+		}
+		None => response::failure(StatusCode::SERVICE_UNAVAILABLE, "metrics_unavailable"),
+	}
+}
+
+/// Names or dotted prefixes, separated by commas; none is everything.
+fn requested(asked: &Asked) -> Vec<String> {
+	asked
+		.metrics
+		.iter()
+		.flat_map(|metrics| metrics.split(','))
+		.map(str::trim)
+		.filter(|name| !name.is_empty())
+		.map(str::to_owned)
+		.collect()
+}
+
 async fn series(State(sampler): State<Shared>, Query(asked): Query<Asked>) -> Response {
+	answer_series(&asked, lock(&sampler).machine())
+}
+
+/// Containers' series: a container's name is the prefix that asks for all of it.
+async fn containers_series(State(sampler): State<Shared>, Query(asked): Query<Asked>) -> Response {
+	let sampler = lock(&sampler);
+	match sampler.containers() {
+		Some(kept) => answer_series(&asked, kept),
+		None => response::failure(StatusCode::SERVICE_UNAVAILABLE, "metrics_unavailable"),
+	}
+}
+
+fn answer_series(asked: &Asked, kept: &Kept) -> Response {
 	let grain = asked.grain.as_deref().and_then(|grain| {
 		serde_json::from_value::<Grain>(serde_json::Value::String(grain.to_owned())).ok()
 	});
@@ -64,15 +104,8 @@ async fn series(State(sampler): State<Shared>, Query(asked): Query<Asked>) -> Re
 	else {
 		return response::failure(StatusCode::BAD_REQUEST, "invalid_series");
 	};
-	let metrics: Vec<String> = asked
-		.metrics
-		.iter()
-		.flat_map(|metrics| metrics.split(','))
-		.map(str::trim)
-		.filter(|name| !name.is_empty())
-		.map(str::to_owned)
-		.collect();
-	match lock(&sampler).series(grain, &metrics, since, until) {
+	let metrics = requested(asked);
+	match kept.series(grain, &metrics, since, until) {
 		Ok(points) => response::success(StatusCode::OK, points),
 		Err(error) => {
 			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
@@ -141,6 +174,33 @@ mod tests {
 		}
 		assert_eq!(ask(router.clone(), "/health").await.0, StatusCode::OK);
 		assert_eq!(ask(router, "/metrics").await.1["code"], "no_such_route");
+	}
+
+	#[tokio::test]
+	async fn answers_each_containers_series_apart() {
+		let (root, roots) = machine(STAT);
+		let store = |name: &str| Store::open(&root.path().join(name)).unwrap();
+		let names = crate::containers::Names::at(root.path());
+		let sampler =
+			Sampler::new(roots, store("hours.db")).with_containers(names, store("containers.db"));
+		let shared: Shared = Arc::new(Mutex::new(sampler));
+		let router = routes(shared.clone());
+		assert_eq!(ask(router.clone(), "/containers/now").await.0, StatusCode::SERVICE_UNAVAILABLE);
+
+		let counters = crate::containers::Counters { cpu: 0, memory: 7, ..Default::default() };
+		for at in 100..103 {
+			let containers = [("geo".to_owned(), counters), ("shot".to_owned(), counters)].into();
+			let reading = crate::containers::Reading { at: at as f64, containers };
+			shared.lock().unwrap().take_containers(reading).unwrap();
+		}
+		let (status, body) = ask(router.clone(), "/containers/now?metrics=geo").await;
+		assert_eq!(status, StatusCode::OK);
+		let names: Vec<&String> = body["data"]["values"].as_object().unwrap().keys().collect();
+		assert_eq!(names.len(), 6);
+		assert!(names.iter().all(|name| name.starts_with("geo.")));
+		let (_, body) = ask(router, "/containers/series?grain=second&metrics=shot.memory").await;
+		assert_eq!(body["data"].as_array().unwrap().len(), 2);
+		assert_eq!(body["data"][0]["values"]["shot.memory"]["average"], 7.0);
 	}
 
 	#[tokio::test]

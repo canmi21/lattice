@@ -63,6 +63,17 @@ async fn main() -> anyhow::Result<()> {
 		Err(error) => eprintln!("host: Caddy was not updated: {error}"),
 	}
 
+	let telling = host.clone();
+	tokio::spawn(async move {
+		loop {
+			let directory = telling.volumes.data("meter");
+			if let Err(error) = node::tell(&telling.engine, &directory).await {
+				eprintln!("host: telling the meter which container is which: {error}");
+			}
+			tokio::time::sleep(node::TELLING).await;
+		}
+	});
+
 	let listener = tokio::net::TcpListener::bind(host.config.listen).await?;
 	eprintln!("host: node `{}`, listening on {}", host.config.node, host.config.listen);
 	axum::serve(listener, api::router(host)).with_graceful_shutdown(stopped()).await?;

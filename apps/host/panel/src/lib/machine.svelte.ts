@@ -1,7 +1,8 @@
 /**
- * The machine as the overview reads it: the latest second, a minute of seconds kept here for the
- * sparklines and the live charts, and a series at the grain the chosen span needs, each asked for
- * again on its own beat. See spec/architecture/meter.md, "Retention".
+ * The machine as the overview reads it, or one container as its app's page does: the latest
+ * second, a minute of seconds kept here for the sparklines and the live charts, and a series at
+ * the grain the chosen span needs, each asked for again on its own beat. See
+ * spec/architecture/meter.md, "Retention".
  */
 import { api, type Grain, type MachineInfo, type Point, type Sample } from './api';
 import type { Datum } from './chart/series';
@@ -36,6 +37,26 @@ const CHARTED = [
 /** How many seconds the live ring holds. */
 const RING = 60;
 
+/** Where the samples come from: the machine's own, or one container's. */
+export interface Source {
+	now(): Promise<{ info?: MachineInfo; sample: Sample }>;
+	series(grain: Grain, since: number | undefined): Promise<Point[]>;
+}
+
+const MACHINE: Source = {
+	now: () => api.now(),
+	series: (grain, since) =>
+		api.series(grain, grain === 'second' ? CHARTED.concat('storage') : CHARTED, since),
+};
+
+/** One container, whose metrics all begin with its name. */
+export function container(name: string): Source {
+	return {
+		now: async () => ({ sample: await api.appNow(name) }),
+		series: (grain, since) => api.appSeries(name, grain, since),
+	};
+}
+
 export class Machine {
 	info: MachineInfo | undefined = $state();
 	latest: Sample | undefined = $state();
@@ -50,6 +71,11 @@ export class Machine {
 	loaded: Span | undefined = $state();
 
 	#timers: ReturnType<typeof setInterval>[] = [];
+	#source: Source;
+
+	constructor(source: Source = MACHINE) {
+		this.#source = source;
+	}
 
 	/** Starts asking; the returned function stops. */
 	start(): () => void {
@@ -102,8 +128,8 @@ export class Machine {
 	async #seed() {
 		try {
 			const [now, seconds] = await Promise.all([
-				api.now(),
-				api.series('second', CHARTED.concat('storage'), undefined),
+				this.#source.now(),
+				this.#source.series('second', undefined),
 			]);
 			this.info = now.info;
 			this.latest = now.sample;
@@ -121,7 +147,7 @@ export class Machine {
 
 	async #tick() {
 		try {
-			const now = await api.now();
+			const now = await this.#source.now();
 			this.info = now.info;
 			this.latest = now.sample;
 			this.#append(now.sample);
@@ -144,7 +170,7 @@ export class Machine {
 	async #load() {
 		const span = this.span;
 		try {
-			const points = await api.series(SPANS[span].grain, CHARTED, this.window.since);
+			const points = await this.#source.series(SPANS[span].grain, this.window.since);
 			if (this.span !== span) return;
 			this.points = points;
 			this.loaded = span;
