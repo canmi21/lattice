@@ -1,4 +1,4 @@
-import { browser, dev } from '$app/environment';
+import { browser } from '$app/environment';
 import {
 	CancelAnswerSchema,
 	LikeAnswerSchema,
@@ -13,8 +13,8 @@ import {
 	type NewsletterAnswer,
 	type StatsAnswer,
 } from '@canmi/artifacts';
-import { pageUrls } from '@canmi/urls';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
+import { apiPath } from '$lib/api';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
 /**
@@ -37,8 +37,6 @@ export type Subscription = {
 
 const SUBSCRIPTION_KEY = 'email';
 const CANCEL_TOKEN = /^[0-9a-f]{32}$/;
-
-const apiUrl = pageUrls(dev).api;
 
 /**
  * The two public counters, seeded with what the server already rendered.
@@ -163,17 +161,17 @@ export function createLikeMutation() {
 }
 
 async function fetchStats(): Promise<StatsAnswer> {
-	return answered(StatsAnswerSchema, await fetch(`${apiUrl}/stats`));
+	return answered(StatsAnswerSchema, await fetch(apiPath('stats')));
 }
 
 async function fetchLiked(): Promise<LikedAnswer> {
-	return answered(LikedAnswerSchema, await fetch(`${apiUrl}/like`));
+	return answered(LikedAnswerSchema, await fetch(apiPath('like')));
 }
 
 async function subscribe(email: string): Promise<NewsletterAnswer> {
 	return answered(
 		NewsletterAnswerSchema,
-		await fetch(`${apiUrl}/newsletter`, {
+		await fetch(apiPath('newsletter'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email }),
@@ -182,7 +180,7 @@ async function subscribe(email: string): Promise<NewsletterAnswer> {
 }
 
 async function cancel(subscription: Subscription): Promise<CancelAnswer> {
-	const response = await fetch(`${apiUrl}/newsletter`, {
+	const response = await fetch(apiPath('newsletter'), {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(subscription),
@@ -197,7 +195,7 @@ async function cancel(subscription: Subscription): Promise<CancelAnswer> {
 async function setLike(liked: boolean): Promise<LikeAnswer> {
 	return answered(
 		LikeAnswerSchema,
-		await fetch(`${apiUrl}/like`, {
+		await fetch(apiPath('like'), {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ liked }),

@@ -18,6 +18,7 @@ import {
 } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
 import { publishedMarkdown, publishedMetadata } from '$lib/published';
+import { answer as apiAnswer } from '$lib/server/api';
 import { registerServerStrategy } from '$lib/locale/paraglide';
 
 registerServerStrategy();
@@ -194,6 +195,9 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
+// The site's API, before anything that would read the path as a page's.
+const apiHandle: Handle = async ({ event, resolve }) => (await apiAnswer(event)) ?? resolve(event);
+
 export const handle = sequence(
 	initCloudflareSentryHandle({
 		dsn: URLS.external.sentry.site,
@@ -202,6 +206,7 @@ export const handle = sequence(
 	}),
 	sentryHandle(),
 	securityHandle,
+	apiHandle,
 	markdownHandle,
 	pageHandle,
 );

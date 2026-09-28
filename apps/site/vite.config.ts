@@ -244,8 +244,7 @@ export default defineConfig(({ mode }) => {
 			// out, so each worker sees only the paths it actually serves. Both the prefix and the
 			// target come from libs/urls, the one place every address here is declared and where
 			// the reasoning lives for why development collapses three origins into one. The target
-			// is the same map anything else uses to reach these workers, not a resolver of its own,
-			// so the API's carries the site's scope of the gateway with it.
+			// is the same map anything else uses to reach these workers, not a resolver of its own.
 			proxy: Object.fromEntries(
 				Object.entries(DEVELOPMENT_PROXY_PATHS).map(([app, prefix]) => [
 					prefix,

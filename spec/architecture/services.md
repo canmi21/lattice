@@ -103,7 +103,8 @@ are two readings of one format and would come to disagree silently -- the case t
 **The public gateway is the Worker `gateway` in `apps/gateway`, on `api.ffoni.com`.** Its table is
 `src/scopes.ts`, generated from every `service.toml` by `mise run scopes` and held to them by a
 test, as is the binding list in its `wrangler.jsonc`. A scope on Workers is a service binding named
-for the scope, and the request reaches it with the scope taken off. A scope on a node goes over that
+for the scope, and the request reaches it with the scope taken off and the declaration's `prefix`, if
+it has one, put in front. A scope on a node goes over that
 node's VPC service to its Caddy as `api.canmi.app`, where host renders the public scopes on the
 tunnel's side and Caddy takes the scope off itself. `hook` is a scope like any other, with no route
 of its own.
@@ -119,22 +120,30 @@ moved to `/site/`, links in mail already sent included, and that was accepted ra
 origins may call a scope and how often one address may call which of its routes is a row in
 `apps/gateway/src/policy.ts`; the service behind it is business logic and nothing else. A preflight
 is answered at the gateway without reaching the service, and a scope with no origin policy gives a
-browser no CORS at all. A limit names methods and a path, so it can be as narrow as one route, and
-one whose binding is missing refuses rather than letting everything through. The policy lives in
-TypeScript rather than in `service.toml` because it names origins, and every URL is declared once
-in libs/urls.
+browser no CORS at all. The policy lives in TypeScript rather than in `service.toml` because it
+names origins, and every URL is declared once in libs/urls.
+
+**A limit is a row in one format, wherever it is enforced.** It names methods and a path, so it can
+be as narrow as one route, and one whose binding is missing refuses rather than letting everything
+through; libs/limits is the format and its check. The gateway applies it to what reaches a scope
+through the gateway. Routes that only a Worker's own pages call never pass the gateway, so that
+Worker applies the same rows itself -- the site's are `libs/site-api/src/limits.ts`.
 
 **A limit that is business logic stays with the service.** The read counter's per-article minute
 does not refuse anyone -- the reader still gets the count, only the increment is withheld -- so it
 is part of what `/read` means, and it stays in the site's API.
 
 **The gateway is written with Hono**, for its CORS middleware and the one error envelope, which
-every service here already answers in.
+every service here already answers in. It answers `/robots.txt` itself, keeping the whole host out
+of an index.
 
-**Development goes through the gateway too.** It binds the API's pinned port, so a page reaches every
-API at one address with the same CORS it will meet in production. Each service behind it runs on its
-own, only when it is needed, and the gateway finds it through wrangler's registry of running
-sessions; one that is not running answers as unavailable rather than taking the rest down.
+**Development goes through the gateway too.** It binds the API's pinned port, so a caller reaches
+every API at one address with the same CORS it will meet in production. Each service behind it runs
+on its own, only when it is needed. One served by wrangler is found through wrangler's registry of
+running sessions, under the name it registers -- a named environment suffixes it with `-dev`. The
+site runs under Vite, which that registry does not see, so its binding in development is the word
+`development` and the gateway asks the site's development address instead. One that is not running
+answers as unavailable rather than taking the rest down.
 
 ## A service keeps one port
 
@@ -174,26 +183,55 @@ required only of a service a node runs. An image is built for an app whose direc
 `Dockerfile` beside its declaration, so a Worker's declaration never reaches the image build, and no
 host is ever sent one. `site`, `cdn`, `aka` and `hook` are declared this way.
 
-## A service's API half is `<name>-api`
+## The site's API runs in the site's Worker
 
-A service is one name, but Cloudflare names Workers in one flat space, so a service with pages and
-an API on Workers cannot call both Workers by the service's name. The pages keep the name and the
-API takes `<name>-api`: the site's pages are the Worker `site` on `canmi.net`, and its API is the
-Worker `site-api` in `apps/site-api`, answering the `site` scope. The declaration says so with
-`[api] worker = "site-api"`, and a service whose only Worker is its API -- `hook` -- names none.
+The site's pages and its API are one Worker, `site`. The API's routes are a Hono app in
+`libs/site-api`, and the site's `hooks.server.ts` hands it the requests that are its own before
+SvelteKit reads a path as a page's. Two doors reach it:
 
-**Rejected: the API mounted inside the site's Worker**, as an entrypoint only a binding can reach.
-It would spare a Worker and the suffix, but it hands the code rendering pages the database, the
-metadata bucket and the mail credential, and ties every content publish to a redeploy of the API.
-Which credentials can reach which is the rule data.md's two buckets exist for, and it holds for
-Workers the same way.
+- **The site's pages ask it on their own origin, under `/api/`.** During server rendering SvelteKit
+  answers a same-origin `fetch` in-process, so rendering a page costs no request at all; in the
+  browser it is the connection the page already has, with no CORS and no preflight. These routes
+  are the site's own and nobody else's contract.
+- **The public routes are the `site` scope of the API host.** The gateway binds the `site` Worker
+  and sends it `/api/{route}` under the API host's name, which a request can carry only by coming
+  through that binding: Cloudflare picks the Worker by the host. The Worker serves those names
+  alone -- `PUBLIC_ROUTES` in `libs/site-api/src/routes.ts`, today `media` and `asset`, which the
+  alias layer reads. The declaration says where it answers with `[api] prefix = "/api"`, which only
+  a Workers placement may carry, since a node's Caddy forwards a scope to a container's root.
+
+**Why one Worker.** The pages and the API they call now build together, so what one expects the
+other is -- an internal route can change shape without a window where a deployed page asks a
+deployed API a question it no longer answers. That is also what lets the internal addresses be
+generated at build time for both at once. And rendering reads the corpus through the API, so a
+subrequest per record was the price of keeping them apart.
+
+**What it costs, accepted.** The code rendering pages holds the database, the records bucket and
+the limits, where a separate Worker kept them from it. The rule data.md's two buckets exist for is
+that no route or catch-all can reach what it should not; here the API is reached only at `/api/`
+and the API host, both decided in one function, and the records bucket is still not the one the CDN
+serves. The site's error reporting covers the API, which had a Sentry project of its own.
+
+**The two runtimes stay apart in the type checker.** The site's program checks against the
+browser's globals, and the API against workerd's, and the two disagree about `Response` and
+streams. So the site imports `@canmi/site-api` through `src/boundary.d.ts`, the one thing it needs --
+something that answers a request -- and the API's own tests hold the real app to that declaration;
+see workspace.md, "A runtime's globals decide which program checks a file".
+
+**In development the records come off the disk.** The API reads the records tree through the
+fetcher the store takes, which `wrangler dev` used to hand over as assets. The site's assets are its
+own build and Vite runs in node, so the site reads the tree itself, in development only.
+
+This reversed a first arrangement, in which the API was a Worker of its own named `site-api`. Its
+reason was the credential split above, and it was sound until the internal addresses were wanted
+built together with the pages, which two Workers cannot do.
 
 ## The order it is built in
 
 The node at home first, proved end to end on the simplest service there is: `geo`, the offline
 gazetteer that names where a photograph was taken, read-only and shipped with its data. Then the
-Workers as a placement, with the site, its API and `cdn` declared in, and the API host scoped by
-path in front of them; then the VPS as a second node, then failover. Workers came before the VPS
+Workers as a placement, with the site, `cdn`, `aka` and `hook` declared in, and the API host scoped
+by path in front of them; then the VPS as a second node, then failover. Workers came before the VPS
 because two placements -- `workers` and `home` -- are enough to prove the declaration, and neither
 needs a machine that does not exist yet. The declaration carries placements from the first service,
 so each step adds an implementation rather than a field.

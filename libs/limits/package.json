@@ -1,0 +1,8 @@
+{
+	"name": "@canmi/limits",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	}
+}

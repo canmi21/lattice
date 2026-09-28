@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
 	DEVELOPMENT_PORTS,
-	DEVELOPMENT_SERVICE_PORTS,
 	developmentUrls,
 	isDevHost,
 	loopbackUrl,
@@ -103,7 +102,6 @@ describe('development ports', () => {
 			DEVELOPMENT_PORTS.api + 1,
 			DEVELOPMENT_PORTS.alias + 1,
 			DEVELOPMENT_PORTS.cdn + 1,
-			...Object.values(DEVELOPMENT_SERVICE_PORTS).flatMap((port) => [port, port + 1]),
 		];
 		expect(new Set(taken).size).toBe(taken.length);
 		expect(taken).not.toContain(cms);

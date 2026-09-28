@@ -8,14 +8,6 @@
  */
 export const PINNED_PORTS = { site: 26511, api: 26512, alias: 26514, cdn: 26516 } as const;
 
-/**
- * The ports of the services behind the API host in development, pinned for the same reason, past
- * the editor's 26518 and `local`'s 26521. `api` above is the gateway's; nothing addresses these,
- * which the gateway reaches through wrangler's registry of running sessions. See
- * spec/architecture/services.md.
- */
-export const SERVICE_PORTS = { 'site-api': 26522 } as const;
-
 /** Stated by a build for a runtime with no environment to read: a worker, a page. */
 declare const STATED_PORT_OFFSET: number | undefined;
 
@@ -38,25 +30,21 @@ export const DEVELOPMENT_PORTS = Object.fromEntries(
 ) as { readonly [App in keyof typeof PINNED_PORTS]: number };
 
 export type AppName = keyof typeof PINNED_PORTS;
-export type ServiceName = keyof typeof SERVICE_PORTS;
 
-/** The ports this checkout's services bind, shifted like the rest. */
-export const DEVELOPMENT_SERVICE_PORTS = Object.fromEntries(
-	Object.entries(SERVICE_PORTS).map(([service, port]) => [service, port + PORT_OFFSET]),
-) as { readonly [Service in ServiceName]: number };
 export type DevelopmentUrls = Readonly<Record<AppName, string>>;
 
-/**
- * Where the API and the CDN are reached *from a page* in development: through the site.
- *
- * A page carries no host of its own for either prefix -- see spec/toolchain.md, "They bind
- * every interface, and the other two are reached through the site", for why that is what
- * makes the site work from a phone on the same network.
- */
 /** The site's scope of the API host, which is the service's name, `site`. */
 const SITE_SCOPE = 'site';
 
-export const DEVELOPMENT_PROXY_PATHS = { api: '/api', alias: '/alias', cdn: '/cdn' } as const;
+/**
+ * Where the alias layer and the CDN are reached *from a page* in development: through the site.
+ *
+ * A page carries no host of its own for either prefix -- see spec/toolchain.md, "They bind
+ * every interface, and the other two are reached through the site", for why that is what
+ * makes the site work from a phone on the same network. The site's API needs no proxy: the
+ * site's Worker answers it under `/api/` itself.
+ */
+export const DEVELOPMENT_PROXY_PATHS = { alias: '/alias', cdn: '/cdn' } as const;
 
 export function developmentUrl(app: AppName): string {
 	return `http://localhost:${DEVELOPMENT_PORTS[app]}`;

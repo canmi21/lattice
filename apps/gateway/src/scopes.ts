@@ -10,6 +10,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 	site: {
 		placement: 'workers',
 		binding: 'SITE',
-		worker: 'site-api',
+		worker: 'site',
+		prefix: '/api',
 	},
 };

@@ -124,7 +124,7 @@ run = 'if [ -n "${LATTICE_SANDBOX:-}" ]; then echo "refusing in the sandbox: thi
 
 [tasks.cf-login]
 description = "Authenticate wrangler with Cloudflare (interactive)"
-dir = "apps/site-api"
+dir = "apps/site"
 run = "pnpm exec wrangler login"
 
 [tasks.deploy-site]
@@ -135,21 +135,11 @@ dir = "apps/site"
 # spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
 depends = ["outward", "generation"]
 # Two steps because the adapter writes the worker that wrangler then uploads, and the build is
-# also where source maps go to Sentry. Cloudflare will run the same two commands once the repo
-# is connected; this is the same path, run from here.
-run = ["pnpm run build", "pnpm exec wrangler deploy"]
+# also where source maps go to Sentry. The package's deploy applies the API's committed remote D1
+# migrations immediately before upload. Cloudflare runs the same two commands; this is the same
+# path, run from here.
+run = ["pnpm run build", "pnpm run deploy"]
 
-[tasks.deploy-site-api]
-description = "Deploy the site's API worker"
-dir = "apps/site-api"
-# The API is the one worker that parses the root in full, so a generation it cannot read is not
-# a degraded page here -- it is every answer failing. See root.ts.
-depends = ["outward", "generation"]
-# The package command applies committed remote D1 migrations immediately before upload.
-run = "pnpm run deploy"
-
-# `aka` is the deployed name and `alias` is what the code calls the same layer, on purpose. See
-# spec/architecture/delivery.md, "The deployed name and the called name differ".
 [tasks.deploy-aka]
 description = "Deploy the alias layer's worker, which resolves names and stores nothing"
 depends = ["outward"]
@@ -177,11 +167,6 @@ run = 'pnpm exec wrangler deploy --env=""'
 description = "Run the API host, which reaches whichever services are running"
 dir = "apps/gateway"
 run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts api)"
-
-[tasks.dev-site-api]
-description = "Run the site's API worker, reached through the gateway"
-dir = "apps/site-api"
-run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts site-api)"
 
 [tasks.dev-site]
 description = "Run the site worker"

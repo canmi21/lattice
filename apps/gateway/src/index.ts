@@ -6,8 +6,10 @@
  * "One API host, scoped by path".
  */
 import type { ApiResponse } from '@canmi/artifacts';
-import { URLS } from '@canmi/urls';
-import { type Context, Hono } from 'hono';
+import { limited, within } from '@canmi/limits';
+import { robotsTxt } from '@canmi/robots';
+import { DEVELOPMENT_PORTS, developmentUrl, URLS } from '@canmi/urls';
+import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
 import { POLICIES, type Policy } from './policy.ts';
@@ -21,7 +23,7 @@ export type Env = Readonly<Record<string, unknown>>;
 const NODE_API = `api.${new URL(URLS.internal.app).hostname}`;
 
 /** The same envelope every service behind the gateway answers in. */
-function refuse(status: 400 | 404 | 429 | 502, message: string, headers: HeadersInit = {}) {
+function refuse(status: 400 | 404 | 502, message: string, headers: HeadersInit = {}) {
 	return Response.json({ status: 'error', message } satisfies ApiResponse<never>, {
 		status,
 		headers: { 'Cache-Control': 'no-store', ...headers },
@@ -30,10 +32,6 @@ function refuse(status: 400 | 404 | 429 | 502, message: string, headers: Headers
 
 function isFetcher(value: unknown): value is Fetcher {
 	return typeof (value as Fetcher | undefined)?.fetch === 'function';
-}
-
-function isLimiter(value: unknown): value is RateLimit {
-	return typeof (value as RateLimit | undefined)?.limit === 'function';
 }
 
 /** The first path segment, and the path after it as the service sees it. */
@@ -53,17 +51,21 @@ function corsFor(policy: Policy): MiddlewareHandler | undefined {
 	});
 }
 
-/** Whether the caller is within its allowance. One with no address is not limited here. */
-async function allowed(c: Context<{ Bindings: Env }>, policy: Policy, rest: string) {
-	const method = c.req.method;
-	const limit = policy.limits?.find((l) => l.path === rest && l.methods.includes(method));
-	const address = c.req.header('cf-connecting-ip');
-	if (!limit || !address) return true;
-	const limiter = c.env[limit.limiter];
-	// A limit whose binding is missing is a deploy that went wrong, and failing open would hide it.
-	if (!isLimiter(limiter)) return false;
-	return (await limiter.limit({ key: address })).success;
+/**
+ * Where a scope's binding sends the request: the binding itself, or in development, where the
+ * bound Worker may be a Vite server rather than a wrangler session, that Worker's development
+ * address. See spec/architecture/services.md, "Development goes through the gateway too".
+ */
+function destination(value: unknown, target: Scope): Fetcher | string | undefined {
+	if (isFetcher(value)) return value;
+	const worker = target.worker;
+	if (value !== DEVELOPMENT || !worker || !Object.hasOwn(DEVELOPMENT_PORTS, worker))
+		return undefined;
+	return developmentUrl(worker as keyof typeof DEVELOPMENT_PORTS);
 }
+
+/** What a scope's binding is set to, as a variable, where the Worker runs in development. */
+const DEVELOPMENT = 'development';
 
 export function gateway(
 	scopes: Readonly<Record<string, Scope>> = SCOPES,
@@ -76,6 +78,10 @@ export function gateway(
 		}),
 	);
 	const app = new Hono<{ Bindings: Env }>();
+
+	// An API has nothing to index, and its URLs in search results would compete with the pages
+	// that call them.
+	app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
 
 	app.use('*', async (c, next) => {
 		const { scope } = split(new URL(c.req.url));
@@ -91,20 +97,26 @@ export function gateway(
 		const { scope, rest } = split(url);
 		const target = scopes[scope] as Scope;
 		const policy = Object.hasOwn(policies, scope) ? (policies[scope] as Policy) : {};
-		if (!(await allowed(c, policy, rest))) {
-			return refuse(429, 'rate_limited', { 'Retry-After': '60' });
+		const address = c.req.header('cf-connecting-ip');
+		if (
+			!(await within(policy.limits ?? [], c.env, { method: c.req.method, path: rest, address }))
+		) {
+			return limited();
 		}
-		const binding = c.env[target.binding];
-		if (!isFetcher(binding)) return refuse(502, 'scope_unbound');
+		const binding = destination(c.env[target.binding], target);
+		if (!binding) return refuse(502, 'scope_unbound');
 
-		const forwarded = new URL(url);
+		let forwarded = new URL(url);
 		if (target.placement === WORKERS) {
-			forwarded.pathname = rest;
+			forwarded.pathname = `${target.prefix ?? ''}${rest}`;
+			if (typeof binding === 'string')
+				forwarded = new URL(`${forwarded.pathname}${url.search}`, binding);
 		} else {
 			forwarded.protocol = 'http:';
 			forwarded.host = NODE_API;
 		}
-		const answer = await binding.fetch(new Request(forwarded, c.req.raw));
+		const request = new Request(forwarded, c.req.raw);
+		const answer = await (typeof binding === 'string' ? fetch(request) : binding.fetch(request));
 		// A fetched response's headers are immutable, and CORS adds to them on the way out.
 		return new Response(answer.body, answer);
 	});

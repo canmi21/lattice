@@ -9,6 +9,8 @@
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
+		"@canmi/limits": "workspace:*",
+		"@canmi/robots": "workspace:*",
 		"@canmi/urls": "workspace:*",
 		"hono": "^4.13.7"
 	},

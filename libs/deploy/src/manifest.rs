@@ -58,10 +58,11 @@ pub struct Container {
 pub struct Api {
 	#[serde(default)]
 	pub public: bool,
-	/// The Worker answering the scope on a Workers placement, when it is not the service's own
-	/// name. See spec/architecture/services.md, "A service's API half is `<name>-api`".
+	/// Where a Worker answers its API beside its pages. Only a Workers placement serves one: a
+	/// node's Caddy forwards a scope to the container's root. See spec/architecture/services.md,
+	/// "The site's API runs in the site's Worker".
 	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub worker: Option<String>,
+	pub prefix: Option<String>,
 }
 
 /// Reached as a subdomain of its own, privately and -- unless it says otherwise -- publicly
@@ -104,6 +105,8 @@ pub enum Invalid {
 	Health,
 	#[error("the data path has to be absolute")]
 	DataPath,
+	#[error("an API prefix is served on Workers alone, never by a node")]
+	Prefix,
 }
 
 impl Manifest {
@@ -156,6 +159,9 @@ impl Manifest {
 		if self.data.as_ref().is_some_and(|data| !data.path.starts_with('/')) {
 			return Err(Invalid::DataPath);
 		}
+		if self.api.as_ref().is_some_and(|api| api.prefix.is_some()) {
+			return Err(Invalid::Prefix);
+		}
 		Ok(())
 	}
 }
@@ -189,7 +195,7 @@ mod tests {
 	fn reads_the_declaration_geo_ships() {
 		let manifest = Manifest::parse(GEO).unwrap();
 		assert_eq!(manifest.name, "geo");
-		assert_eq!(manifest.api, Some(Api { public: false, worker: None }));
+		assert_eq!(manifest.api, Some(Api { public: false, prefix: None }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
 	}
 
@@ -275,5 +281,12 @@ mod tests {
 			read += 1;
 		}
 		assert!(read >= 3);
+	}
+
+	#[test]
+	fn a_node_refuses_an_api_prefix() {
+		let mut manifest = Manifest::parse(GEO).unwrap();
+		manifest.api.as_mut().unwrap().prefix = Some("/api".into());
+		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Prefix));
 	}
 }

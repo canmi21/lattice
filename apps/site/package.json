@@ -3,11 +3,13 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "pnpm run database:migrate:local && vite dev",
 		"build": "vite build",
 		"preview": "wrangler dev",
-		"deploy": "wrangler deploy",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo"
+		"deploy": "pnpm run database:migrate:remote && wrangler deploy",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo",
+		"database:migrate:local": "wrangler d1 migrations apply api --local",
+		"database:migrate:remote": "wrangler d1 migrations apply api --remote"
 	},
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
@@ -22,6 +24,7 @@
 		"@canmi/primitives": "workspace:*",
 		"@canmi/prose": "workspace:*",
 		"@canmi/robots": "workspace:*",
+		"@canmi/site-api": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/units": "workspace:*",
 		"@canmi/urls": "workspace:*",

@@ -1,0 +1,31 @@
+{
+	"name": "@canmi/site-api",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/boundary.d.ts",
+			"default": "./src/index.ts"
+		},
+		"./routes": "./src/routes.ts"
+	},
+	"scripts": {
+		"database:generate": "drizzle-kit generate"
+	},
+	"dependencies": {
+		"@canmi/artifacts": "workspace:*",
+		"@canmi/cache": "workspace:*",
+		"@canmi/limits": "workspace:*",
+		"@canmi/locales": "workspace:*",
+		"@canmi/store": "workspace:*",
+		"drizzle-orm": "^0.45.2",
+		"hono": "^4.13.7",
+		"valibot": "^1.5.0"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20260911.1",
+		"@types/node": "^26.5.1",
+		"drizzle-kit": "^0.31.10",
+		"miniflare": "5.20260908.0-alpha"
+	}
+}

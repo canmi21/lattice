@@ -8,6 +8,8 @@ export interface Scope {
 	readonly binding: string;
 	/** The Worker behind the binding, on a Workers placement; wrangler.jsonc binds it by name. */
 	readonly worker?: string;
+	/** Where the Worker answers its API, when not at its root; the path goes on after it. */
+	readonly prefix?: string;
 }
 
 /** The placement that is Cloudflare's Workers; the same string as `WORKERS` in manifest.rs. */
@@ -21,7 +23,7 @@ export function bindingOf(name: string): string {
 interface Declaration {
 	name: string;
 	placements: string[];
-	api?: { public?: boolean; worker?: string };
+	api?: { public?: boolean; prefix?: string };
 }
 
 /**
@@ -40,7 +42,8 @@ export function scopeTable(declarations: readonly string[]): Record<string, Scop
 				? {
 						placement,
 						binding: bindingOf(declaration.name),
-						worker: declaration.api.worker ?? declaration.name,
+						worker: declaration.name,
+						...(declaration.api.prefix ? { prefix: declaration.api.prefix } : {}),
 					}
 				: { placement, binding: bindingOf(placement) };
 	}

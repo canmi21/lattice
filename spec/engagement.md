@@ -1,8 +1,9 @@
 # Reader engagement
 
 Newsletter subscriptions and likes are mutable reader state. They belong to the site's API, the
-Worker `site-api` at `apps/site-api` answering the `site` scope of the API host, never to the site
-Worker. The site has no embedded `/api/*` routes.
+routes in `libs/site-api`, which the site's Worker answers under `/api/` on its own origin; see
+architecture/services.md, "The site's API runs in the site's Worker". None of them is a public
+route of the API host.
 
 **What SSR may fetch is decided by who the answer is about, not by whether it is engagement.** A
 number about the site -- how many have subscribed, how many have liked, how many have read an
@@ -47,9 +48,9 @@ nobody has read this, which is a different statement from having nothing to say.
 ## One D1 database owns API state
 
 The API has one Cloudflare D1 database for all of its relational state. The database is named
-`api`, from when the Worker was too, and a D1 database is not renamed for the Worker that reads it;
-its binding is the complete word `DATABASE`. The production database is
-in WNAM, and its id lives in [wrangler.jsonc](../apps/site-api/wrangler.jsonc) -- the only file that
+`api`, from when the API was a Worker of that name, and a D1 database is not renamed for the Worker
+that reads it; its binding is the complete word `DATABASE`. The production database is in WNAM, and
+its id lives in the site's [wrangler.jsonc](../apps/site/wrangler.jsonc) -- the only file that
 consumes it. Copying the id here would make a third home for it, and the only one nothing checks.
 
 Drizzle owns the TypeScript schema and generates committed SQL migrations. Migration filenames use
@@ -57,12 +58,11 @@ Drizzle's indexed random-word form, such as `0000_word_word.sql`; they are not n
 Wrangler, not Drizzle, applies those migrations so D1 has one migration ledger. CI and deploys apply
 committed SQL but never generate it.
 
-Every API `build` applies remote D1 migrations before producing the dry-run Worker bundle. This
-keeps Cloudflare Workers Builds from deploying code before its schema and deliberately means that
-both local and non-production API builds target the production database. The build credential must
-therefore have D1 edit access. The fallback API `deploy` command independently applies remote
-migrations immediately before uploading the Worker. Local development applies local migrations
-before starting Wrangler, whose default local D1 implementation is Miniflare.
+The site's `deploy` applies remote D1 migrations immediately before uploading the Worker, which
+keeps Cloudflare Workers Builds from deploying code before its schema; its deploy command is that
+script, and its credential must therefore have D1 edit access. Not its `build`: the site's build
+also runs inside `verify`, which has no business with the production database. Local development
+applies local migrations before starting Vite, whose emulated D1 is Miniflare's.
 
 ### Schema before code is right until the migration changes a key
 
@@ -288,8 +288,8 @@ the current IP's `liked` boolean together with the global like and subscriber co
 The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints use
 separate Cloudflare Workers Rate Limiting bindings keyed by the raw IP, with a wider allowance for
 reads. This is deliberately approximate, inexpensive abuse resistance rather than a globally
-strict quota. They are the gateway's, in front of the API, and `apps/gateway/src/policy.ts` says
-which route each covers; see architecture/services.md, "The gateway holds what every API would
+strict quota. `libs/site-api/src/limits.ts` says which route each covers, in the one format every
+limit here is written in; see architecture/services.md, "The gateway holds what every API would
 otherwise repeat".
 
 ## A read is counted by the browser that performed it
@@ -331,9 +331,9 @@ five minutes per locale -- nine snapshots of one number that could disagree. A s
 article is dropped from the answer rather than refusing it, so one bad entry in a listing does not
 cost the rest.
 
-Deduplication is one Cloudflare rate limit of one count per IP per article per minute, in the API
-itself, with the gateway's wider per-IP engagement allowance above it to bound somebody walking
-every slug in turn. **Being
+Deduplication is one Cloudflare rate limit of one count per IP per article per minute, in the
+route itself, with the wider per-IP engagement allowance above it to bound somebody walking every
+slug in turn. **Being
 deduplicated is answered with the current count, not with `429`.** The page still needs the number
 to display, and a second look inside the minute is the same read rather than a failure.
 

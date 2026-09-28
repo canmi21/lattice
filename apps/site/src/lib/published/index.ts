@@ -37,6 +37,7 @@ import type { FeedEntry } from '$lib/documents/feed';
 import { noticeHtml } from '$lib/documents/notice';
 import { LOCALE_CODES, type LocaleCode } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
+import { apiPath } from '$lib/api';
 import { createBatcher } from '$lib/engagement/batch';
 import {
 	answer,
@@ -51,18 +52,16 @@ import {
 type Fetch = typeof fetch;
 
 /**
- * Where the two upstreams are, which depends on who is asking rather than on the environment.
+ * Where the CDN and the alias layer are, which depends on who is asking rather than on the
+ * environment.
  *
  * A page asks for the proxy path, since the host it should use is whichever one it was opened
  * from; the Worker needs an origin, because SvelteKit answers a same-origin path from its own
  * router and would never reach the dev proxy. The two are identical in production. See libs/urls.
+ * The API is neither: it is this Worker's own, asked on the site's origin by `apiPath`.
  */
-function upstream(): { api: string; cdn: string; alias: string } {
+function upstream(): { cdn: string; alias: string } {
 	return browser ? pageUrls(dev) : pickUrls(dev);
-}
-
-function api(path: string): string {
-	return `${upstream().api}${path}`;
 }
 
 /**
@@ -98,7 +97,7 @@ export function publishedMetadata(
  * spec/engagement.md.
  */
 export function siteStats(fetch: Fetch): Promise<StatsAnswer | undefined> {
-	return answer<StatsAnswer>(fetch, api('/stats'));
+	return answer<StatsAnswer>(fetch, apiPath('stats'));
 }
 
 /**
@@ -111,7 +110,7 @@ export function siteStats(fetch: Fetch): Promise<StatsAnswer | undefined> {
  */
 export async function publishedReads(fetch: Fetch, slug: string): Promise<number | undefined> {
 	try {
-		const found = await answer<ReadAnswer>(fetch, api(`/read?slug=${encodeURIComponent(slug)}`));
+		const found = await answer<ReadAnswer>(fetch, apiPath('read', { slug }));
 		return found?.read_count;
 	} catch {
 		return undefined;
@@ -134,7 +133,7 @@ export async function askBatch<T extends BatchRequest>(
 	 */
 	asking: Fetch = fetch,
 ): Promise<BatchAnswerOf<T['type']>> {
-	const response = await asking(api('/batch'), {
+	const response = await asking(apiPath('batch'), {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(asked),
@@ -149,7 +148,7 @@ export async function askBatch<T extends BatchRequest>(
 function viewUrl(slug: string, locale: LocaleCode): string {
 	// Both identifiers in the query, and the identity alone in `slug` -- never the path. See
 	// spec/architecture/artifacts.md, "A question asks with a query; a list asks with a body".
-	return api(`/article?slug=${encodeURIComponent(slug)}&lang=${locale}`);
+	return apiPath('article', { slug, lang: locale });
 }
 
 /**
@@ -248,7 +247,7 @@ export async function publishedHome(
 	fetch: Fetch,
 	locale: LocaleCode,
 ): Promise<{ articles: HomeAnswer['articles']; card?: string; page: PublishedPage | undefined }> {
-	const found = await answer<HomeAnswer>(fetch, api(`/homepage?lang=${locale}`));
+	const found = await answer<HomeAnswer>(fetch, apiPath('homepage', { lang: locale }));
 	if (!found) throw new Error(`the API names no homepage for ${locale}`);
 	const page = found.page
 		? await publishedPageView(fetch, found.page.objects.content, HOME_SLUG)
@@ -264,7 +263,7 @@ export async function publishedHome(
  * arrangement `lookupView` keeps over `/article`.
  */
 function resourceUrl(rid: string): string {
-	return api(`/media?rid=${encodeURIComponent(rid)}`);
+	return apiPath('media', { rid });
 }
 
 /**
@@ -346,11 +345,11 @@ function read(into: Record<string, ParsedResource>, rid: string, body: string): 
  * one hop rather than two, and nothing on the rendering path depends on the layer that resolves.
  */
 export function publishedAsset(fetch: Fetch, name: string): Promise<AssetAnswer | undefined> {
-	return answer<AssetAnswer>(fetch, api(`/asset?name=${encodeURIComponent(name)}`));
+	return answer<AssetAnswer>(fetch, apiPath('asset', { name }));
 }
 
 export function publishedSitemap(fetch: Fetch): Promise<SitemapAnswer | undefined> {
-	return answer<SitemapAnswer>(fetch, api('/sitemap'));
+	return answer<SitemapAnswer>(fetch, apiPath('sitemap'));
 }
 
 /**
@@ -365,7 +364,7 @@ export async function publishedFeedEntries(
 	fetch: Fetch,
 	locale: LocaleCode,
 ): Promise<FeedEntry[] | undefined> {
-	const found = await answer<FeedAnswer>(fetch, api(`/feed?lang=${locale}`));
+	const found = await answer<FeedAnswer>(fetch, apiPath('feed', { lang: locale }));
 	if (!found) return undefined;
 	return Promise.all(
 		found.entries.map(async (entry) => {
@@ -399,10 +398,7 @@ export async function publishedMarkdown(
 	fetch: Fetch,
 	slug: string,
 ): Promise<{ path: string; body: Response } | undefined> {
-	const found = await answer<DocumentAnswer>(
-		fetch,
-		api(`/source?slug=${encodeURIComponent(slug)}`),
-	);
+	const found = await answer<DocumentAnswer>(fetch, apiPath('source', { slug }));
 	if (!found) return undefined;
 	return { path: found.path, body: await object(fetch, 'markdown', found.hash) };
 }

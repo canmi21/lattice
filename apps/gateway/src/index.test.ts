@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DEVELOPMENT_PORTS, loopbackUrl, URLS } from '@canmi/urls';
+import { developmentUrl, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway } from './index.ts';
@@ -15,7 +15,7 @@ const HOST = new URL(URLS.apps.production.api).origin;
 function wrangler(): {
 	services: Array<{ binding: string; service: string }>;
 	vpc_services: Array<{ binding: string }>;
-	ratelimits: Array<{ name: string }>;
+	ratelimits?: Array<{ name: string }>;
 } {
 	const text = readFileSync(join(import.meta.dirname, '../wrangler.jsonc'), 'utf8');
 	const bare = text.replace(
@@ -55,7 +55,7 @@ describe('the scope table', () => {
 	});
 
 	it('has a policy only for scopes it has, and a binding for every limit a policy names', () => {
-		const limiters = new Set(wrangler().ratelimits.map((limit) => limit.name));
+		const limiters = new Set((wrangler().ratelimits ?? []).map((limit) => limit.name));
 		for (const [scope, policy] of Object.entries(POLICIES)) {
 			expect(SCOPES).toHaveProperty(scope);
 			for (const limit of policy.limits ?? []) expect(limiters).toContain(limit.limiter);
@@ -73,7 +73,7 @@ describe('the scope table', () => {
 
 describe('the gateway', () => {
 	const table: Record<string, Scope> = {
-		site: { placement: WORKERS, binding: 'SITE', worker: 'site-api' },
+		site: { placement: WORKERS, binding: 'SITE', worker: 'site', prefix: '/api' },
 		hook: { placement: WORKERS, binding: 'HOOK', worker: 'hook' },
 		geo: { placement: 'home', binding: 'HOME' },
 	};
@@ -124,16 +124,36 @@ describe('the gateway', () => {
 		);
 		expect(answer.status).toBe(200);
 		const [sent] = seen;
-		expect(sent?.url).toBe(`${HOST}/like?slug=a`);
+		expect(sent?.url).toBe(`${HOST}/api/like?slug=a`);
 		expect(sent?.method).toBe('PUT');
 		expect(sent?.headers.get('cf-connecting-ip')).toBe('192.0.2.1');
 		expect(await sent?.text()).toBe('x');
 	});
 
-	it('gives the bare scope the root', async () => {
+	it('gives the bare scope the root of its prefix', async () => {
 		const { fetcher, seen } = binding();
 		await ask('/site', { SITE: fetcher });
-		expect(seen[0]?.url).toBe(`${HOST}/`);
+		expect(seen[0]?.url).toBe(`${HOST}/api/`);
+	});
+
+	it("sends a scope bound to `development` to its Worker's development address", async () => {
+		const real = globalThis.fetch;
+		const seen: string[] = [];
+		globalThis.fetch = (async (request: Request) => (
+			seen.push(request.url),
+			new Response('ok')
+		)) as typeof fetch;
+		try {
+			await ask('/site/media?rid=a', { SITE: 'development' });
+		} finally {
+			globalThis.fetch = real;
+		}
+		expect(seen).toEqual([`${developmentUrl('site')}/api/media?rid=a`]);
+	});
+
+	it('answers robots itself, keeping the whole host out of an index', async () => {
+		const answer = await ask('/robots.txt');
+		expect(await answer.text()).toContain('Disallow: /');
 	});
 
 	it("sends a node's scope to its Caddy with the scope left on", async () => {
@@ -195,67 +215,5 @@ describe('the gateway', () => {
 		expect((await ask('/site/like', { SITE: fetcher }, { method: 'PUT', headers })).status).toBe(
 			429,
 		);
-	});
-});
-
-describe("the site's policy", () => {
-	const app = gateway(
-		{ site: { placement: WORKERS, binding: 'SITE', worker: 'site-api' } },
-		POLICIES,
-	);
-	const production = new URL(URLS.apps.production.api).origin;
-	const development = new URL(URLS.apps.development.api).origin;
-
-	async function origin(host: string, sent?: string) {
-		const { fetcher } = binding();
-		const headers: Record<string, string> = sent ? { origin: sent } : {};
-		const answer = await app.fetch(new Request(`${host}/site/stats`, { headers }), {
-			SITE: fetcher,
-		});
-		return answer.headers.get('access-control-allow-origin');
-	}
-
-	it('allows the site, and an unknown origin nothing', async () => {
-		expect(await origin(production, URLS.apps.production.site)).toBe(URLS.apps.production.site);
-		expect(await origin(production, 'https://evil.test')).toBeNull();
-	});
-
-	// SvelteKit simulates CORS inside `load` and throws on an answer with no header, so the
-	// site's own server rendering is the request that arrives without an `Origin` at all.
-	it('answers a request that sent no origin', async () => {
-		expect(await origin(production)).toBe('*');
-	});
-
-	// One machine, two spellings: the list names `localhost`, and browsing the development site
-	// at 127.0.0.1 got no header at all. Only in development, and only on the site's own port.
-	it('allows the development site by IP in development alone', async () => {
-		const byIp = loopbackUrl(DEVELOPMENT_PORTS.site);
-		expect(await origin(development, byIp)).toBe(byIp);
-		expect(await origin(production, byIp)).toBeNull();
-		expect(await origin(development, loopbackUrl(DEVELOPMENT_PORTS.site + 100))).toBeNull();
-	});
-
-	it('limits each engagement route by the allowance spec/engagement.md gives it', async () => {
-		const expected: Array<[string, string, string | undefined]> = [
-			['PUT', '/like', 'SITE_LIKE_LIMIT'],
-			['GET', '/like', 'SITE_ENGAGEMENT_LIMIT'],
-			['GET', '/stats', 'SITE_ENGAGEMENT_LIMIT'],
-			['GET', '/read', 'SITE_ENGAGEMENT_LIMIT'],
-			['POST', '/read', 'SITE_ENGAGEMENT_LIMIT'],
-			['POST', '/newsletter', 'SITE_NEWSLETTER_LIMIT'],
-			['DELETE', '/newsletter', 'SITE_NEWSLETTER_LIMIT'],
-			['GET', '/media', undefined],
-			['POST', '/batch', undefined],
-		];
-		for (const [method, path, name] of expected) {
-			const asked: string[] = [];
-			const env: Record<string, unknown> = { SITE: binding().fetcher };
-			for (const limit of ['SITE_LIKE_LIMIT', 'SITE_ENGAGEMENT_LIMIT', 'SITE_NEWSLETTER_LIMIT']) {
-				env[limit] = { limit: async () => (asked.push(limit), { success: true }) };
-			}
-			const headers = { 'cf-connecting-ip': '192.0.2.1' };
-			await app.fetch(new Request(`${production}/site${path}`, { method, headers }), env);
-			expect(asked, `${method} ${path}`).toEqual(name ? [name] : []);
-		}
 	});
 });

@@ -365,6 +365,9 @@ async function api(
 	const bindings = {
 		ASSETS: store,
 		DATABASE: database as unknown as Bindings['DATABASE'],
+		ENGAGEMENT_LIMIT: allow,
+		NEWSLETTER_LIMIT: allow,
+		LIKE_LIMIT: allow,
 		READ_RATE_LIMITER: allow,
 		...overrides,
 	} satisfies Bindings;

@@ -1,7 +1,7 @@
-import { browser, dev } from '$app/environment';
+import { browser } from '$app/environment';
 import { ReadAnswerSchema, unwrapAs, type ReadAnswer } from '@canmi/artifacts';
-import { pageUrls } from '@canmi/urls';
 import { createQuery } from '@tanstack/svelte-query';
+import { apiPath } from '$lib/api';
 import { askBatch } from '$lib/published';
 import { createBatcher } from './batch';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
@@ -9,8 +9,6 @@ import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 export const READS_QUERY_KEY = 'reads';
 
 export type Reads = ReadAnswer;
-
-const apiUrl = pageUrls(dev).api;
 
 /** Which articles this tab has already counted, so a refresh never counts a second time. */
 const counted = new Set<string>();
@@ -75,7 +73,7 @@ export async function readsOf(slug: string): Promise<Reads> {
 }
 
 async function countRead(slug: string): Promise<Reads> {
-	const response = await fetch(`${apiUrl}/read`, {
+	const response = await fetch(apiPath('read'), {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ slug }),

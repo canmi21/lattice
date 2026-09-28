@@ -14,27 +14,7 @@
 	// "One API host, scoped by path".
 	"services": [
 		{ "binding": "HOOK", "service": "hook" },
-		{ "binding": "SITE", "service": "site-api" },
-	],
-
-	// The per-address limits src/policy.ts names, moved here from the site's API with their
-	// namespaces. See spec/engagement.md for what each allows.
-	"ratelimits": [
-		{
-			"name": "SITE_ENGAGEMENT_LIMIT",
-			"namespace_id": "959379523",
-			"simple": { "limit": 60, "period": 60 },
-		},
-		{
-			"name": "SITE_NEWSLETTER_LIMIT",
-			"namespace_id": "959379521",
-			"simple": { "limit": 5, "period": 60 },
-		},
-		{
-			"name": "SITE_LIKE_LIMIT",
-			"namespace_id": "959379522",
-			"simple": { "limit": 10, "period": 60 },
-		},
+		{ "binding": "SITE", "service": "site" },
 	],
 
 	// The Caddy of the machine at home, the same VPC service `hook` notifies through.
@@ -42,7 +22,7 @@
 		{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true },
 	],
 
-	// Also in libs/urls as the API's development port, which pages ask; wrangler cannot read that
+	// Also in libs/urls as the API's development port, which callers ask; wrangler cannot read that
 	// library. Every interface, so a phone on the same network reaches it. See spec/toolchain.md.
 	"dev": {
 		"ip": "*",
@@ -50,32 +30,14 @@
 		"inspector_port": 26513,
 	},
 
-	// Bindings do not inherit into a named environment. Development binds each service by the name
-	// wrangler registers its dev session under, which a named environment suffixes with `-dev`, and
-	// no node: the machine at home is production's, reached over Cloudflare.
+	// Bindings do not inherit into a named environment. In development a Worker served by wrangler
+	// is bound by the name its session registers under, `-dev` suffixed for a named environment; the
+	// site runs under Vite instead, so its binding is the word `development` and the gateway asks
+	// its development address. No node: the machine at home is production's.
 	"env": {
 		"dev": {
-			"services": [
-				{ "binding": "HOOK", "service": "hook" },
-				{ "binding": "SITE", "service": "site-api-dev" },
-			],
-			"ratelimits": [
-				{
-					"name": "SITE_ENGAGEMENT_LIMIT",
-					"namespace_id": "959379523",
-					"simple": { "limit": 60, "period": 60 },
-				},
-				{
-					"name": "SITE_NEWSLETTER_LIMIT",
-					"namespace_id": "959379521",
-					"simple": { "limit": 5, "period": 60 },
-				},
-				{
-					"name": "SITE_LIKE_LIMIT",
-					"namespace_id": "959379522",
-					"simple": { "limit": 10, "period": 60 },
-				},
-			],
+			"services": [{ "binding": "HOOK", "service": "hook" }],
+			"vars": { "SITE": "development" },
 		},
 	},
 

@@ -205,7 +205,7 @@ tooltips and surrounding statistics use the same surfaces as the rest of the sit
 
 Type checking runs three times, over three programs: [tsconfig.json](../../tsconfig.json) for the
 browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the three Workers and `libs/store`, and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
+for the Workers and the libraries only they run -- `libs/store`, `libs/site-api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
 the node programs under an app's `scripts/`.
 
 The split is forced rather than chosen. `@cloudflare/workers-types` declares its own
@@ -218,7 +218,7 @@ real one would have made every Hono handler disagree about `Response`. Both are 
 casts across that boundary now.
 
 **A file belongs to the program whose globals it actually runs against**, which is not always the
-directory it sits in. `apps/site-api/scripts/` is a node script and is checked as one -- by the third
+directory it sits in. An app's `scripts/` is node, and is checked as node -- by the third
 program, which exists because saying so was not the same as arranging it. `tsconfig.json` excludes
 `apps/site` wholesale, since SvelteKit generates the `$lib` aliases that only svelte-check sees;
 svelte-check in turn reads SvelteKit's own generated file list, which stops at `src`. Every
@@ -252,7 +252,7 @@ the guess is made at the moment least is known. Waiting means the shared shape i
 two real uses instead of one real use and one imagined one.
 
 The counterpart matters as much: once the second consumer exists, extract rather than copy.
-`apps/site-api` -- then `apps/api` -- read its metadata straight out of R2 while `apps/cdn` read the same bucket through
+The API -- then `apps/api` -- read its metadata straight out of R2 while `apps/cdn` read the same bucket through
 a store that also knew how to read the local tree, so the API had no local development at all
 -- every lookup was a 404 until `--remote` reached a bucket that only production writes. The
 copy was not a duplicated function, it was a capability one side silently lacked.

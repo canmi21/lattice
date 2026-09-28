@@ -10,6 +10,7 @@
 import { browser } from '$app/environment';
 import { unwrap } from '@canmi/artifacts';
 import { PUBLICATION_DELAY, WHILE_UNREACHABLE } from '@canmi/cache';
+import { URLS } from '@canmi/urls';
 import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
 
 type Fetch = typeof fetch;
@@ -58,6 +59,15 @@ function colo(): Cache | undefined {
 	return (globalThis as { caches?: { default?: Cache } }).caches?.default;
 }
 
+/**
+ * The colo cache's key for an address. The API is asked on the site's own origin by path, which
+ * SvelteKit answers in-process, but the Cache API keys by absolute URL; the site's production
+ * origin makes one without changing what is asked.
+ */
+function keyOf(url: string): string {
+	return new URL(url, URLS.apps.production.site).href;
+}
+
 function remember(url: string, body: string): void {
 	memo.delete(url);
 	memo.set(url, { at: Date.now(), body });
@@ -70,7 +80,7 @@ function remember(url: string, body: string): void {
 async function held(url: string): Promise<Held | undefined> {
 	const remembered = memo.get(url);
 	if (remembered) return remembered;
-	const stored = await colo()?.match(url);
+	const stored = await colo()?.match(keyOf(url));
 	if (!stored) return undefined;
 	const at = Number(stored.headers.get(STAMP));
 	return at > 0 ? { at, body: await stored.text() } : undefined;
@@ -85,7 +95,7 @@ async function held(url: string): Promise<Held | undefined> {
 async function store(url: string, body: string): Promise<void> {
 	try {
 		await colo()?.put(
-			url,
+			keyOf(url),
 			new Response(body, {
 				headers: {
 					'Content-Type': 'application/json',

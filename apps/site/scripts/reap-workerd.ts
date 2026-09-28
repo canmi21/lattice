@@ -11,7 +11,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PORTS, DEVELOPMENT_SERVICE_PORTS } from '@canmi/urls';
+import { DEVELOPMENT_PORTS } from '@canmi/urls';
 
 /** Only this checkout's workerd. Another clone's, or another project's, is not ours to reap. */
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
@@ -22,10 +22,7 @@ const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
  * Taking + 1 for all four is right rather than lucky: the site's neighbor is the API's own
  * port, so the set is exactly the four pinned ports and the three inspectors. See libs/urls.
  */
-const PINNED = [
-	...Object.values(DEVELOPMENT_PORTS),
-	...Object.values(DEVELOPMENT_SERVICE_PORTS),
-].flatMap((port) => [port, port + 1]);
+const PINNED = Object.values(DEVELOPMENT_PORTS).flatMap((port) => [port, port + 1]);
 
 type Listed = { pid: number; ppid: number; command: string };
 

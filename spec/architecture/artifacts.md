@@ -552,8 +552,8 @@ publish, then deploy.
 The two halves move on separate schedules -- workers deploy from a push through CI, the corpus
 moves when somebody runs `publish` -- and nothing measured the distance. `mise run generation`
 reads the live root out of the metadata bucket and prints its version and publication time
-beside the one this source expects. `publish`, `deploy-site` and `deploy-site-api` all ask first;
-the API asks because it is the one worker that parses the root in full, where a generation it
+beside the one this source expects. `publish` and `deploy-site` both ask first;
+the site's Worker asks for its API too, which parses the root in full, where a generation it
 cannot read is not a degraded page but every answer failing.
 
 **It warns and never refuses.** The gap is normally minutes, closed by the publish that follows,
