@@ -39,7 +39,13 @@ a Worker by its binding, or an app on the node through the one VPC service, with
   How far each browser supports the last two, and the details of both, are to be worked out when
   the first two apps meet; a browser without them navigates plainly.
 
+**The apex is outside Access**; Access stands in front of `*.canmi.app` alone.
+
+**The first scope is `status`**, the status page, which is one app with doors on `canmi.app/status/`,
+`status.canmi.app` and `canmi.vercel.app` -- [probe.md](probe.md), "The page: one app, three
+doors". The core app waits until it has something to hold; until then the router sends `/` to
+`canmi.net?ref=app` and knows the scopes it is given.
+
 ## Open
 
-- What the core holds first, and the path the telemetry view takes.
-- That the apex `canmi.app` stays outside Access while its subdomains are behind it.
+- Where the telemetry view goes, once the telemetry service answers.

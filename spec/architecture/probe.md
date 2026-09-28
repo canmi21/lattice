@@ -60,16 +60,33 @@ Every result is written three ways:
   so the panel shows a failure's full timeline. Passing rounds are counted, not recorded one by one
   -- a second's round is far more than the ledger is for. See [ledger.md](ledger.md).
 
-## The page
+## The page: one app, three doors
 
-**`status.canmi.app` renders on the server from Supabase, read-only, and says when the probe has
-gone quiet.** A result older than a few rounds is shown as the probe silent -- the node, its link,
-or the probe itself -- rather than as the last thing it said. The page reads through supabase-js with the
-anon key, which is granted `SELECT` on the status tables and nothing else, under a row security
-policy that lets it read every row: the grant is what makes it read-only, whatever else changes. It names the second place once the VPS runs a probe: two places agreeing
-that a name fails is Cloudflare, one place failing alone is that place.
+**The status page is one SvelteKit app, built for three places by an environment variable**:
 
-**Its name resolves through Cloudflare, and that is accepted**: the zone is Cloudflare's like every
-other here, and moving one name out is more to keep than the outage it would survive. When
-Cloudflare's DNS itself is down the page is still at its Vercel address, `*.vercel.app`, which the
-page names in its footer so it is known before it is needed.
+| Door                | Served by                                                               | For                                            |
+| ------------------- | ----------------------------------------------------------------------- | ---------------------------------------------- |
+| `status.canmi.app`  | Vercel                                                                  | the one address, the one a search engine keeps |
+| `canmi.vercel.app`  | Vercel, a second name on the same project                               | reaching it while Cloudflare's DNS is down     |
+| `canmi.app/status/` | Cloudflare, a scope of the platform built with `paths.base = '/status'` | the page inside the platform's own name        |
+
+Every door renders the same page from Supabase, read-only, and names `status.canmi.app` as its
+canonical address, so three doors are one page to an index. Its bar carries the platform's links on
+every door, so a visitor who arrives at the status page is one click from the rest of `canmi.app`.
+The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and nothing else.
+
+**`status.canmi.app` is a DNS-only record pointing at Vercel**, not proxied: `*.canmi.app` is
+behind Access, and Access stands only in front of proxied names, so the status page stays public
+and never passes Cloudflare's proxy. When Access becomes a list of what is let through, this is on
+it.
+
+**The page reads through supabase-js with the anon key, which is granted `SELECT` on the status
+tables and nothing else**, under a row security policy that lets it read every row: the grant is
+what makes it read-only. A result older than a few rounds is shown as the probe silent -- the node,
+its link, or the probe itself -- rather than as the last thing it said. It names the second place
+once the VPS runs a probe: two places agreeing that a name fails is Cloudflare, one place failing
+alone is that place.
+
+**Its name resolves through Cloudflare's DNS, and that is accepted**, since `canmi.vercel.app`
+does not: when Cloudflare's DNS is down, that door is still open, and the page names it in its
+footer so it is known before it is needed.
