@@ -132,9 +132,6 @@ impl Store {
 			) WITHOUT ROWID;
 			CREATE INDEX IF NOT EXISTS tasks_updated_at ON tasks (updated_at, id);
 			CREATE INDEX IF NOT EXISTS tasks_parent ON tasks (parent_service, parent_id, updated_at, id);
-			-- Answers GET /counts's window scan and its group-by in one pass; see
-			-- spec/architecture/ledger.md, section Counted for telemetry.
-			CREATE INDEX IF NOT EXISTS tasks_asked_at ON tasks (asked_at, service, state);
 			CREATE TABLE IF NOT EXISTS events (
 				service TEXT NOT NULL,
 				task TEXT NOT NULL,
@@ -161,6 +158,12 @@ impl Store {
 			"UPDATE tasks SET asked_at = CAST(unixepoch(json_extract(record, '$.asked_at')) AS INTEGER)
 				* 1000000000
 			WHERE asked_at IS NULL",
+			[],
+		)?;
+		// After the ALTER, which an older table needs before the column can be indexed. Answers GET
+		// /counts's window scan and its group-by in one pass; see spec/architecture/ledger.md.
+		connection.execute(
+			"CREATE INDEX IF NOT EXISTS tasks_asked_at ON tasks (asked_at, service, state)",
 			[],
 		)?;
 		Ok(Self { connection })
