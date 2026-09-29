@@ -26,7 +26,7 @@ URLS_RS = ROOT / "libs/urls/src/lib.rs"
 # Cloudflare's own limit on one expression.
 LIMIT = 4096
 PHASES = {"http_request_firewall_custom", "http_ratelimit", "http_request_dynamic_redirect"}
-ACTIONS = {"block", "redirect"}
+ACTIONS = {"block", "redirect", "skip"}
 ZONES = sorted(p.name for p in RULES.iterdir() if p.is_dir() and p.name != "all")
 # Every `${NAME}` an expression may hold, filled from the environment at sync time. The probe's
 # token is the first: see spec/architecture/probe.md, "The probe passes the limits it is checking
@@ -153,6 +153,14 @@ def check():
 				problems.append(f"{zone}/zone.toml: {rule.get('name')!r} has no valid phase")
 			if rule.get("action") not in ACTIONS:
 				problems.append(f"{zone}/zone.toml: {rule.get('name')!r} has no valid action")
+			if rule.get("action") == "skip":
+				name = rule.get("name")
+				phases = rule.get("skip_phases")
+				if not phases:
+					problems.append(f"{zone}/zone.toml: {name!r} is a skip without skip_phases")
+				for skipped in phases or ():
+					if skipped not in PHASES:
+						problems.append(f"{zone}/zone.toml: {name!r} skips an unknown phase {skipped!r}")
 			if rule.get("phase") == "http_ratelimit":
 				for field in ("characteristics", "period", "requests_per_period", "mitigation_timeout"):
 					if field not in rule:
@@ -266,6 +274,10 @@ def rule_body(rule):
 				"preserve_query_string": rule.get("preserve_query_string", False),
 			}
 		}
+	if rule["action"] == "skip":
+		# Logged by default only for a block; unlogged, a skip firing would show nowhere.
+		body["action_parameters"] = {"phases": rule["skip_phases"]}
+		body["logging"] = {"enabled": True}
 	return body
 
 
@@ -328,16 +340,36 @@ def sync(zone_arg, dry_run):
 			with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as handle:
 				handle.write(text)
 				paths[phase] = handle.name
+		# cf echoes the ruleset it read or wrote, filled placeholders included, so its own
+		# stdout is captured and thrown away rather than let onto a terminal that logs.
+		secrets = {name: env.get(name) for name in PLACEHOLDERS if env.get(name)}
+
+		def scrubbed(text):
+			for name, value in secrets.items():
+				text = text.replace(value, f"${{{name}}}")
+			return text
+
+		def call(phase, body_path, validate_only):
+			return subprocess.run(
+				command(phase, zone, body_path, validate_only),
+				env=env,
+				cwd=ROOT,
+				capture_output=True,
+				text=True,
+			)
+
 		try:
 			for phase, body_path in paths.items():
-				validated = subprocess.run(command(phase, zone, body_path, True), env=env, cwd=ROOT)
+				validated = call(phase, body_path, True)
 				if validated.returncode != 0:
 					print(f"sync: {zone} {phase} failed validation, nothing applied for {zone}", file=sys.stderr)
+					print(scrubbed(validated.stderr or validated.stdout), file=sys.stderr)
 					return 1
 			for phase, body_path in paths.items():
-				applied = subprocess.run(command(phase, zone, body_path, False), env=env, cwd=ROOT)
+				applied = call(phase, body_path, False)
 				if applied.returncode != 0:
 					print(f"sync: {zone} {phase} failed to apply", file=sys.stderr)
+					print(scrubbed(applied.stderr or applied.stdout), file=sys.stderr)
 					return 1
 		finally:
 			for body_path in paths.values():

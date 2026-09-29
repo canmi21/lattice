@@ -1,0 +1,1 @@
+any(http.request.headers["x-probe"][*] eq "${PROBE_TOKEN}")
