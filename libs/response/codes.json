@@ -41,6 +41,7 @@
 	"no_such_app": "No app has this name",
 	"no_such_article": "No published article has this slug",
 	"no_such_asset": "No asset is published under this name",
+	"no_such_check": "No check is declared under this id",
 	"no_such_form": "This resource has no canonical form",
 	"no_such_object": "No object is stored at this address",
 	"no_such_picture": "No picture is kept under this name; one is kept five minutes once its task is done",

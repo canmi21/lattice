@@ -94,6 +94,9 @@ export const GITHUB_OWNER = 'canmi21';
  * spec/architecture/host.md; `ledger` is where every service records its tasks, see ledger.md;
  * `shot` is the public scope a capture's pictures are named under, see shot.md.
  */
+/** The API host's two sides: private, where every container asks, and public, past the gateway. */
+const API = { private: 'https://api.canmi.icu', public: 'https://api.ffoni.com' } as const;
+
 const INTERNAL = {
 	app: 'https://canmi.app',
 	infra: 'https://ffoni.com',
@@ -101,9 +104,10 @@ const INTERNAL = {
 	panel: 'https://infra.canmi.icu',
 	keeper: 'https://keeper.canmi.icu',
 	host: 'http://host:11011',
-	ledger: 'https://api.canmi.icu/ledger',
-	cron: 'https://api.canmi.icu/cron',
-	shot: 'https://api.ffoni.com/shot',
+	ledger: `${API.private}/ledger`,
+	cron: `${API.private}/cron`,
+	shot: `${API.public}/shot`,
+	api: API,
 } as const;
 
 export const URLS = {
@@ -113,7 +117,7 @@ export const URLS = {
 			site: 'https://canmi.net',
 			// The site's public scope of the API host, which the alias layer reads; see
 			// spec/architecture/services.md, "The site's API runs in the site's Worker".
-			api: `https://api.ffoni.com/${SITE_SCOPE}`,
+			api: `${API.public}/${SITE_SCOPE}`,
 			// An apex of its own rather than a label under `infra`, because here the address is
 			// the product: a resolved name is read aloud and typed, and `ill.li/k7m2x` is short
 			// enough to be either. See spec/architecture/delivery.md.
