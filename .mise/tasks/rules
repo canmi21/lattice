@@ -6,11 +6,11 @@ zone's rules replace what is live for each phase they use, through Cloudflare's 
 
 A zone.toml's `[[rules]]`, one per rule in order within a phase, each preceded by a `#` comment
 saying why it is there: `name`, `phase`, `action`, `expression` (a .txt file, the one part that
-grows). A rate limit adds `characteristics`, `period`, `requests_per_period`,
-`mitigation_timeout`. A redirect adds `status` and `target`: a raw Rulesets target expression
-(a TOML literal string, quotes and all) or `{ url = "<libs/urls constant>" }`, appending
-`path = "<path>"` when fixed and the request's own path otherwise; either form may add
-`preserve_query_string = true` (default false)."""
+grows, and may hold `${NAME}` -- see spec/architecture/firewall.md). A rate limit adds
+`characteristics`, `period`, `requests_per_period`, `mitigation_timeout`. A redirect adds
+`status` and `target`: a raw Rulesets target expression (a TOML literal string, quotes and all)
+or `{ url = "<libs/urls constant>" }`, appending `path = "<path>"` when fixed and the request's
+own path otherwise; either form may add `preserve_query_string = true` (default false)."""
 
 import json
 import os
@@ -28,6 +28,35 @@ LIMIT = 4096
 PHASES = {"http_request_firewall_custom", "http_ratelimit", "http_request_dynamic_redirect"}
 ACTIONS = {"block", "redirect"}
 ZONES = sorted(p.name for p in RULES.iterdir() if p.is_dir() and p.name != "all")
+# Every `${NAME}` an expression may hold, filled from the environment at sync time. The probe's
+# token is the first: see spec/architecture/probe.md, "The probe passes the limits it is checking
+# through with a token of its own".
+PLACEHOLDERS = {"PROBE_TOKEN"}
+PLACEHOLDER = re.compile(r"\$\{([A-Z][A-Z0-9_]*)\}")
+
+
+def placeholders_of(text):
+	"""Every `${NAME}` in an expression's text, whether or not it is one of PLACEHOLDERS."""
+	return PLACEHOLDER.findall(text)
+
+
+def fill(text, env, *, mask):
+	"""`text` with every `${NAME}` replaced from `env`, or left exactly as written when `mask` --
+	`--dry-run`'s way of showing that a placeholder is there without ever reading the secret it
+	stands for. Raises on a name outside PLACEHOLDERS or, unless `mask`, one absent from `env`."""
+
+	def one(match):
+		name = match.group(1)
+		if name not in PLACEHOLDERS:
+			raise ValueError(f"${{{name}}} is not a known placeholder")
+		if mask:
+			return match.group(0)
+		value = env.get(name)
+		if not value:
+			raise ValueError(f"{name} is not set in the environment")
+		return value
+
+	return PLACEHOLDER.sub(one, text)
 
 
 def urls():
@@ -154,6 +183,9 @@ def check():
 			problems.append(f"{name}: {len(text)} characters, past Cloudflare's {LIMIT}")
 		if text.count("(") != text.count(")") or text.count('"') % 2:
 			problems.append(f"{name}: unbalanced parentheses or quotes")
+		for placeholder in placeholders_of(text):
+			if placeholder not in PLACEHOLDERS:
+				problems.append(f"{name}: ${{{placeholder}}} is not a known placeholder")
 
 	# Every whitelist lets the RFC-fixed paths through, security.txt among them.
 	for name, text in files.items():
@@ -237,11 +269,13 @@ def rule_body(rule):
 	return body
 
 
-def phase_bodies(zone):
-	"""zone's rules grouped by phase, each a ruleset body: `{"rules": [...]}`, in zone.toml order."""
+def phase_bodies(zone, env, *, mask):
+	"""zone's rules grouped by phase, each a ruleset body: `{"rules": [...]}`, in zone.toml order.
+	Each rule's expression has had `fill` run over it -- see the module docstring."""
 	bodies = {}
 	for rule in load_zone(zone):
-		bodies.setdefault(rule["phase"], {"rules": []})["rules"].append(rule_body(rule))
+		filled = {**rule, "expression_text": fill(rule["expression_text"], env, mask=mask)}
+		bodies.setdefault(rule["phase"], {"rules": []})["rules"].append(rule_body(filled))
 	return bodies
 
 
@@ -273,7 +307,11 @@ def sync(zone_arg, dry_run):
 		return base + ["--validate-only"] if validate_only else base
 
 	for zone in zones:
-		bodies = phase_bodies(zone)
+		try:
+			bodies = phase_bodies(zone, env, mask=dry_run)
+		except ValueError as error:
+			print(f"sync: {zone}: {error}", file=sys.stderr)
+			return 1
 		texts = {phase: json.dumps(body, indent="\t") + "\n" for phase, body in bodies.items()}
 
 		if dry_run:

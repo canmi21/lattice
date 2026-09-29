@@ -36,8 +36,9 @@ export const POLICIES: Readonly<Record<string, Policy>> = {
 		// A place's address changes only when the gazetteer is deployed again.
 		cache: { success: 86_400 },
 	},
-	// `internal` reaches the LAN, which is ours alone. See spec/architecture/shot.md.
+	// `internal` reaches the LAN, and `fresh` skips the thirty-minute reuse -- both ours alone.
+	// See spec/architecture/shot.md.
 	shot: {
-		forbidden: ['internal'],
+		forbidden: ['internal', 'fresh'],
 	},
 };

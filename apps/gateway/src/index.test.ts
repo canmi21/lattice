@@ -266,6 +266,38 @@ describe('the gateway', () => {
 		expect((await ask('/site/like', env, { method: 'PUT' })).status).toBe(200);
 	});
 
+	it('skips the counter for a request carrying the probe token, and counts everyone else', async () => {
+		const { fetcher, seen } = binding();
+		const refused = counters(false);
+		const env = { SITE: fetcher, limits: refused.counters, PROBE_TOKEN: 'shh' };
+		const headers = { 'cf-connecting-ip': '192.0.2.1' };
+		const probe = await ask('/site/like', env, {
+			method: 'PUT',
+			headers: { ...headers, 'x-probe': 'shh' },
+		});
+		expect(probe.status).toBe(200);
+		expect(seen).toHaveLength(1);
+		expect(refused.asked).toHaveLength(0);
+		const stranger = await ask('/site/like', env, {
+			method: 'PUT',
+			headers: { ...headers, 'x-probe': 'nope' },
+		});
+		expect(stranger.status).toBe(429);
+		const nobody = await ask('/site/like', env, { method: 'PUT', headers });
+		expect(nobody.status).toBe(429);
+	});
+
+	it('never exempts a probe header when the secret is not set', async () => {
+		const { fetcher } = binding();
+		const refused = counters(false);
+		const env = { SITE: fetcher, limits: refused.counters };
+		const answer = await ask('/site/like', env, {
+			method: 'PUT',
+			headers: { 'cf-connecting-ip': '192.0.2.1', 'x-probe': '' },
+		});
+		expect(answer.status).toBe(429);
+	});
+
 	it('marks what it passes on as public, over whatever the caller claimed', async () => {
 		const { fetcher, seen } = binding();
 		await ask('/geo/address', { HOME: fetcher }, { headers: { [MARK.name]: 'internal' } });
@@ -372,6 +404,41 @@ describe("shot's policy", () => {
 		);
 		expect((await post('not json')).status).toBe(200);
 		expect(seen).toHaveLength(2);
+	});
+
+	it('refuses `fresh` from the public, whatever its value, before the service or a limit', async () => {
+		const { fetcher, seen } = binding();
+		const allowing = counters(true);
+		const env = { HOME: fetcher, limits: allowing.counters };
+		for (const query of ['fresh=true', 'fresh=false', 'fresh', 'host=a.test&fresh=1']) {
+			const answer = await app.fetch(new Request(`${HOST}/shot/capture?${query}`, { headers }), env);
+			expect(answer.status, query).toBe(403);
+			expect(await answer.json()).toMatchObject({ code: 'forbidden_parameter' });
+		}
+		expect(seen).toHaveLength(0);
+		expect(allowing.asked).toHaveLength(0);
+	});
+
+	it('refuses `access.fresh` in a JSON body, however deep, and lets any other body through', async () => {
+		const { fetcher, seen } = binding();
+		const env = { HOME: fetcher, limits: counters(true).counters };
+		const post = (body: string) =>
+			app.fetch(
+				new Request(`${HOST}/shot/capture`, {
+					method: 'POST',
+					headers: { ...headers, 'content-type': 'application/json' },
+					body,
+				}),
+				env,
+			);
+		for (const body of ['{"fresh":true}', '{"access":{"fresh":false}}', '[{"a":{"fresh":1}}]']) {
+			const answer = await post(body);
+			expect(answer.status, body).toBe(403);
+		}
+		expect(seen).toHaveLength(0);
+		expect((await post('{"access":{"insecure":true},"target":{"host":"a.test"}}')).status).toBe(
+			200,
+		);
 	});
 
 	it('limits starting a capture, and neither asking after one nor fetching it', async () => {

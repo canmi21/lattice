@@ -44,6 +44,11 @@ mailbox behind it can change without the file.
   and `""` for none, so one `in {...}` replaces a column of `ends_with`.
 - `matches` (regular expressions) is a Business feature and is not used.
 - An expression holds no comments and at most 4,096 characters. What a rule is for is this file.
+- **A secret in an expression is `${NAME}`**, filled at sync from the environment mise decrypts
+  the repository's secrets into -- the probe's token, `${PROBE_TOKEN}`, is the one today. Only a
+  name the rules task knows may appear, which the check holds to; a sync refuses a zone whose
+  secret is unset before it asks Cloudflare anything, and a dry run prints the name, never the
+  value. See [probe.md](probe.md).
 
 ## Keeping them in step, and deploying them
 

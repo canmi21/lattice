@@ -20,7 +20,15 @@ import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';
 
 /** Every binding a scope or a limit names, read by name and checked at the one place it is used. */
-export type Env = Readonly<Record<string, unknown>>;
+export type Env = Readonly<Record<string, unknown>> & {
+	/**
+	 * The probe's own token, a Worker secret: a request carrying it in `x-probe` is not counted
+	 * against any address's limit, as Cloudflare's own rate rules leave it uncounted too. Absent,
+	 * nothing is ever exempt. See spec/architecture/probe.md, "The probe passes the limits it is
+	 * checking through with a token of its own".
+	 */
+	readonly PROBE_TOKEN?: string;
+};
 
 /**
  * The header every request the gateway passes on carries, set here whatever the caller sent, so a
@@ -63,6 +71,32 @@ async function forbids(forbidden: readonly string[], url: URL, request: Request)
 	} catch {
 		return false;
 	}
+}
+
+/**
+ * Compares two strings without a data-dependent branch, so a mismatch's length or first differing
+ * byte cannot be timed out of it. The probe's token is a secret, and this is the one place it is
+ * compared against what a caller sent.
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+	const x = new TextEncoder().encode(a);
+	const y = new TextEncoder().encode(b);
+	let diff = x.length ^ y.length;
+	for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
+	return diff === 0;
+}
+
+/**
+ * Whether a request is the probe's, by `x-probe` equaling `env.PROBE_TOKEN`: exempt from the
+ * per-address limit here, as from Cloudflare's rate rules too. See spec/architecture/probe.md. An
+ * absent secret means nothing is ever exempt, rather than an empty comparison the probe could
+ * pass with an empty header.
+ */
+function isProbe(headers: Headers, env: Env): boolean {
+	const token = env.PROBE_TOKEN;
+	if (typeof token !== 'string' || token === '') return false;
+	const sent = headers.get('x-probe');
+	return sent !== null && timingSafeEqual(sent, token);
 }
 
 function isFetcher(value: unknown): value is Fetcher {
@@ -171,11 +205,13 @@ export function gateway(
 			returned.headers.set(CACHE_HEADER, 'miss');
 			return returned;
 		};
-		const taken = await counted(c.env.limits, scope, target.limits ?? [], {
-			method: c.req.method,
-			path: rest,
-			address,
-		});
+		const taken = isProbe(c.req.raw.headers, c.env)
+			? { allowed: true, retryAfter: 0 }
+			: await counted(c.env.limits, scope, target.limits ?? [], {
+					method: c.req.method,
+					path: rest,
+					address,
+				});
 		if (!taken.allowed) {
 			return failure(429, 'rate_limited', { headers: { 'Retry-After': String(taken.retryAfter) } });
 		}
