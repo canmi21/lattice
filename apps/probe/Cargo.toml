@@ -1,0 +1,39 @@
+[package]
+name = "probe"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = "1.0.104"
+axum = "0.8.9"
+bytes = "1.12.1"
+http-body-util = "0.1.5"
+hyper = { version = "1.11.1", features = ["client", "http1"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "tls12", "ring", "webpki-tokio"] }
+hyper-util = { version = "0.1.20", features = ["client-legacy", "http1", "tokio"] }
+jiff = { version = "0.2", features = ["serde"] }
+ledger = { path = "../../libs/ledger" }
+mimalloc = "0.1.52"
+response = { path = "../../libs/response", features = ["axum"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+# The driver and its core rather than the `sqlx` facade: the facade names `sqlx-sqlite` as an
+# optional dependency, and Cargo resolves the `links = "sqlite3"` of every optional dependency
+# into the one lockfile, where it collides with rusqlite's newer libsqlite3-sys. So no `migrate!`
+# either -- build.rs embeds the migrations instead. The underscored features are how the facade
+# itself picks tokio and rustls with compiled-in roots, which a scratch image needs.
+sqlx-core = { version = "=0.9.0", features = ["_rt-tokio", "_tls-rustls-ring-webpki", "migrate"] }
+sqlx-postgres = { version = "=0.9.0", features = ["migrate"] }
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time"] }
+toml = "1.1.6"
+url = "2.5.8"
+urls = { path = "../../libs/urls" }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+tower = { version = "0.5", features = ["util"] }

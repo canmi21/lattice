@@ -25,6 +25,24 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 		binding: 'HOOK',
 		worker: 'hook',
 	},
+	probe: {
+		placement: 'home',
+		binding: 'HOME',
+		limits: [
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/checks',
+				count: 60,
+				seconds: 60,
+			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/results',
+				count: 30,
+				seconds: 60,
+			},
+		],
+	},
 	shot: {
 		placement: 'home',
 		binding: 'HOME',

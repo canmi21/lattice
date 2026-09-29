@@ -8,6 +8,7 @@ members = [
 	"apps/apt",
 	"apps/cron",
 	"apps/meter",
+	"apps/probe",
 	"apps/geo",
 	"apps/host",
 	"apps/keeper",

@@ -1,0 +1,35 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "probe"
+placements = ["home"]
+
+[container]
+# Voyager 1 left in 1977, the probe furthest out. See spec/architecture/services.md, "A service
+# keeps one port".
+port = 19770
+health = "/health"
+# One Postgres connection, SQLite, and small JSON answers; no browser, which shot holds.
+memory_mb = 128
+
+# `probe.db`, every round for good. See spec/architecture/probe.md, "Where the results go".
+[data]
+path = "/data"
+
+# The `probe` scope of the API host: the archive, public through the gateway, which limits it by
+# address. See spec/architecture/probe.md, "Where the results go".
+[api]
+public = true
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/checks"
+count = 60
+seconds = 60
+
+# A page is up to ten thousand rounds read from disk.
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/results"
+count = 30
+seconds = 60

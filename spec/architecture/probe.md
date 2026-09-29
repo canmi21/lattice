@@ -22,6 +22,11 @@ beat for everything. They fall into two kinds, and it is the first that finds a 
   `fresh=true` so each round is a capture of its own, which reports the page's errors, failed
   requests, status and title from a real Chromium. The probe holds no browser. Outside checks are the chain working, not availability; they cost more and run slower.
 
+**A check's target names an address rather than spelling it**: a `libs/urls` constant's name,
+`API_PRIVATE` or `API_PUBLIC` for the API host's two sides, followed by a path or a query as it
+needs -- `API_PRIVATE/geo/health` -- so `checks.toml` holds no address that could drift from the
+one the rest of the platform uses. The target is kept and shown as written, never resolved.
+
 A check's kind is one of `dns` (a name resolves, through Cloudflare's resolver and Google's alike,
 to what it should), `api` (a URL answers with the status expected, the envelope's `success`, the
 fields a check names, within a time), `page` (as above) and `health` (a service's own health path).
@@ -60,9 +65,10 @@ Every result is written three ways:
   since Vercel and Cloudflare share nothing and the status page's history has to come from
   somewhere. When Cloudflare is down, that history is what the page goes without.
   The scope answers `GET /checks`, every declared check; `GET /results?check=&since=&until=`,
-  one check's results oldest first, `since` and `until` whole seconds since the epoch and at most a
-  day apart, at most ten thousand a page with the next page's `since` said; and `/health`. Each is
-  the envelope, kept a minute by the gateway.
+  one check's results oldest first, `since` inclusive and `until` exclusive, whole seconds since
+  the epoch and at most a day apart, at most ten thousand a page with the next page's `since` said,
+  as `{ place, results: [{ at, ok, duration_ms, detail }], next }`; and `/health`. Each is the
+  envelope, kept a minute by the gateway; a check not declared is `404 no_such_check`.
 - **To the ledger**, for what fails: a failing check opens a task with each check's events on it,
   so the panel shows a failure's full timeline. Passing rounds are counted, not recorded one by one
   -- a second's round is far more than the ledger is for. See [ledger.md](ledger.md).
@@ -118,3 +124,9 @@ places agreeing that a name fails is Cloudflare, one place failing alone is that
 **Its name resolves through Cloudflare's DNS, and that is accepted**, since `canmi.vercel.app`
 does not: when Cloudflare's DNS is down, that door is still open, and the page names it in its
 footer so it is known before it is needed.
+
+## Open
+
+- **A second place shares `checks` with the first.** A check's row is keyed by its id alone, so a
+  probe on the VPS declaring the same checks would overwrite the node's; the key gains `place`
+  when the second probe is written.

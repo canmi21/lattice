@@ -1,0 +1,91 @@
+# What the probe checks, each a kind, a target, what it expects and how often. A target is a
+# libs/urls name -- or API_PRIVATE / API_PUBLIC, derived from it -- then a path or query; the
+# names and the fields each kind reads are in src/checks.rs. See spec/architecture/probe.md.
+
+# Inside: each service's own health, on the private side.
+
+[[check]]
+id = "health.geo"
+kind = "health"
+target = "API_PRIVATE/geo/health"
+interval = 5
+
+[[check]]
+id = "health.ledger"
+kind = "health"
+target = "API_PRIVATE/ledger/health"
+interval = 5
+
+[[check]]
+id = "health.cron"
+kind = "health"
+target = "API_PRIVATE/cron/health"
+interval = 5
+
+[[check]]
+id = "health.shot"
+kind = "health"
+target = "API_PRIVATE/shot/health"
+interval = 5
+
+[[check]]
+id = "health.telemetry"
+kind = "health"
+target = "API_PRIVATE/telemetry/health"
+interval = 5
+
+# Outside: the chain a visitor's request takes, through Cloudflare.
+
+# Every thirty seconds rather than every one: each round is a request of the gateway Worker's
+# free daily allowance, which a round a second would spend nearly whole.
+[[check]]
+id = "api.geo.ip"
+kind = "api"
+target = "API_PUBLIC/geo/ip"
+interval = 30
+expect = { fields = ["credit"], within = 5 }
+
+# The public capture flow end to end: asked, followed, done. Hourly, since it costs a browser.
+[[check]]
+id = "api.shot.capture"
+kind = "api"
+target = "API_PUBLIC/shot/capture?host=canmi.net"
+interval = 3600
+expect = { follow = true, fields = ["page.status"], within = 60 }
+
+[[check]]
+id = "page.site.home"
+kind = "page"
+target = "APPS_PRODUCTION_SITE"
+interval = 60
+expect = { status = 200, errors = 0, failed_requests = 0 }
+
+[[check]]
+id = "dns.site"
+kind = "dns"
+target = "APPS_PRODUCTION_SITE"
+interval = 60
+
+[[check]]
+id = "dns.api"
+kind = "dns"
+target = "API_PUBLIC"
+interval = 60
+
+[[check]]
+id = "dns.cdn"
+kind = "dns"
+target = "APPS_PRODUCTION_CDN"
+interval = 60
+
+[[check]]
+id = "dns.alias"
+kind = "dns"
+target = "APPS_PRODUCTION_ALIAS"
+interval = 60
+
+[[check]]
+id = "dns.app"
+kind = "dns"
+target = "INTERNAL_APP"
+interval = 60

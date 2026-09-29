@@ -411,7 +411,10 @@ describe("shot's policy", () => {
 		const allowing = counters(true);
 		const env = { HOME: fetcher, limits: allowing.counters };
 		for (const query of ['fresh=true', 'fresh=false', 'fresh', 'host=a.test&fresh=1']) {
-			const answer = await app.fetch(new Request(`${HOST}/shot/capture?${query}`, { headers }), env);
+			const answer = await app.fetch(
+				new Request(`${HOST}/shot/capture?${query}`, { headers }),
+				env,
+			);
 			expect(answer.status, query).toBe(403);
 			expect(await answer.json()).toMatchObject({ code: 'forbidden_parameter' });
 		}
