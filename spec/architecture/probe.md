@@ -127,6 +127,9 @@ footer so it is known before it is needed.
 
 ## Open
 
+- **`status.canmi.app` answers `307` to `canmi.vercel.app` for now**, set in Vercel, while the page
+  is redesigned; once it is, the redirect goes and the canonical address serves the page again, the
+  one an index keeps.
 - **A second place shares `checks` with the first.** A check's row is keyed by its id alone, so a
   probe on the VPS declaring the same checks would overwrite the node's; the key gains `place`
   when the second probe is written.
