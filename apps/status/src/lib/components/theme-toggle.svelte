@@ -1,3 +1,30 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import { duration, easing, radius, transition } from '@canmi/tokens/vocabulary.stylex';
+
+	/** The visual half: a quiet round control, as the bar's links are. */
+	const styles = stylex.create({
+		// How a colour change is drawn, as the site's `colorShift` draws it.
+		shift: {
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
+		},
+		toggle: {
+			borderRadius: radius.full,
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+			backgroundColor: {
+				default: null,
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-paper-hover)' },
+			},
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { applyTheme, currentTheme, observeTheme, themeCookie, type Theme } from '@canmi/theme';
 
@@ -19,7 +46,10 @@
 
 <button
 	type="button"
-	class="focus-ring grid size-8 place-items-center rounded-full text-text-soft transition-colors hover:bg-paper-hover hover:text-text-strong"
+	class="focus-ring grid size-8 cursor-pointer place-items-center {stylex.attrs(
+		styles.shift,
+		styles.toggle,
+	).class}"
 	aria-label={theme ? `Switch to the ${next} theme` : 'Switch theme'}
 	onclick={toggle}
 >

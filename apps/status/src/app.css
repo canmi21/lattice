@@ -1,3 +1,7 @@
+/* The layers, declared before anything opens one, in the order the site declares them, so the
+   frame, the vocabulary and the escape hatch resolve here as they do there. See
+   spec/architecture/css/layers.md. */
+@layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
 @import '@canmi/theme/palettes/mono.css';
 @import '@canmi/tokens/interaction.css';

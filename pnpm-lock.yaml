@@ -805,6 +805,9 @@ importers:
 
   apps/status:
     devDependencies:
+      '@canmi/motion':
+        specifier: workspace:*
+        version: link:../../libs/motion
       '@canmi/status-schema':
         specifier: workspace:*
         version: link:../../libs/status-schema
@@ -817,6 +820,12 @@ importers:
       '@canmi/urls':
         specifier: workspace:*
         version: link:../../libs/urls
+      '@stylexjs/stylex':
+        specifier: ^0.19.1
+        version: 0.19.1
+      '@stylexjs/unplugin':
+        specifier: ^0.19.1
+        version: 0.19.1(supports-color@10.2.2)(unplugin@2.3.11)
       '@supabase/postgrest-js':
         specifier: ^2.117.2
         version: 2.117.2
@@ -835,6 +844,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+      motion:
+        specifier: ^13.2.0
+        version: 13.4.0
       svelte:
         specifier: ^5.57.1
         version: 5.57.1

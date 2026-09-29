@@ -1,8 +1,65 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import {
+		border,
+		duration,
+		easing,
+		leading,
+		line,
+		radius,
+		text,
+		weight,
+	} from '@canmi/tokens/vocabulary.stylex';
+
+	/**
+	 * The visual half of the board. Colours are palette names, read rather than retyped, and the
+	 * accents appear only where they say a state. See spec/architecture/css/authoring.md.
+	 */
+	const styles = stylex.create({
+		headline: {
+			color: 'var(--color-text-strong)',
+			// unnamed: the page's one display size, above the ladder's top step.
+			fontSize: '1.5rem',
+			lineHeight: line.tight,
+			fontWeight: weight.semibold,
+			// unnamed: display tracking, on this headline alone.
+			letterSpacing: '-0.02em',
+		},
+		dot: {
+			borderRadius: radius.full,
+			transitionProperty: 'background-color',
+			transitionDuration: {
+				default: duration.base,
+				'@media (prefers-reduced-motion: reduce)': '0s',
+			},
+			transitionTimingFunction: easing.inOut,
+		},
+		up: { backgroundColor: 'var(--color-green)' },
+		down: { backgroundColor: 'var(--color-red)' },
+		quiet: { backgroundColor: 'var(--color-text-soft)' },
+		empty: { backgroundColor: 'var(--color-border-strong)' },
+		soft: { color: 'var(--color-text-soft)' },
+		group: {
+			fontSize: text.px14,
+			lineHeight: leading.px20,
+		},
+		heading: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
+		list: {
+			backgroundColor: 'var(--color-paper)',
+			borderWidth: border.hairlinePx,
+			borderStyle: 'solid',
+			borderColor: 'var(--color-border)',
+			borderRadius: radius.lg,
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { byKind, key, overallOf } from '$lib/board';
 	import CheckRow from '$lib/components/check-row.svelte';
 	import { Live } from '$lib/live.svelte';
+	import { settle } from '$lib/motion';
 	import { ago } from '$lib/time';
 	import type { PageProps } from './$types';
 
@@ -30,21 +87,18 @@
 	const headline = $derived.by(() => {
 		switch (overall.state) {
 			case 'up':
-				return { text: 'All checks passing', dot: 'bg-green' };
+				return { text: 'All checks passing', dot: styles.up };
 			case 'down':
-				return {
-					text: `${overall.failing} of ${overall.total} checks failing`,
-					dot: 'bg-red',
-				};
+				return { text: `${overall.failing} of ${overall.total} checks failing`, dot: styles.down };
 			case 'partial':
 				return {
 					text: `${overall.silent} of ${overall.total} checks gone quiet`,
-					dot: 'bg-text-soft',
+					dot: styles.quiet,
 				};
 			case 'silent':
-				return { text: 'The probe is silent', dot: 'bg-text-soft' };
+				return { text: 'The probe is silent', dot: styles.quiet };
 			case 'empty':
-				return { text: 'No checks reported yet', dot: 'bg-border-strong' };
+				return { text: 'No checks reported yet', dot: styles.empty };
 		}
 	});
 </script>
@@ -57,12 +111,19 @@
 	/>
 </svelte:head>
 
-<section aria-labelledby="overall" class="mb-12">
-	<h1 id="overall" class="flex items-center gap-3 text-2xl font-semibold text-text-strong">
-		<span class="size-3 shrink-0 rounded-full {headline.dot}" aria-hidden="true"></span>
+<section aria-labelledby="overall" class="mb-14 sm:mb-16">
+	<h1
+		id="overall"
+		use:settle={headline.text}
+		class="flex items-center gap-3 {stylex.attrs(styles.headline).class}"
+	>
+		<span
+			class="size-2.5 shrink-0 {stylex.attrs(styles.dot, headline.dot).class}"
+			aria-hidden="true"
+		></span>
 		{headline.text}
 	</h1>
-	<p class="mt-2 text-sm text-text-soft" aria-live="polite">
+	<p class="mt-3 max-w-prose {stylex.attrs(styles.soft).class}" aria-live="polite">
 		{#if overall.state === 'silent'}
 			Nothing has been heard from the probe
 			{overall.lastHeard ? `since ${ago(overall.lastHeard.getTime(), live.clock)}` : 'yet'}: the
@@ -78,14 +139,14 @@
 </section>
 
 {#each groups as [kind, checks] (kind)}
-	<section aria-labelledby="kind-{kind}" class="mb-10">
-		<h2 id="kind-{kind}" class="text-sm font-semibold text-text-strong">
+	<section aria-labelledby="kind-{kind}" class="mb-12 {stylex.attrs(styles.group).class}">
+		<h2 id="kind-{kind}" class={stylex.attrs(styles.heading).class}>
 			{KIND[kind]?.title ?? kind}
 		</h2>
 		{#if KIND[kind]}
-			<p class="mt-0.5 text-sm text-text-soft">{KIND[kind].about}</p>
+			<p class="mt-0.5 {stylex.attrs(styles.soft).class}">{KIND[kind].about}</p>
 		{/if}
-		<ul class="mt-2 divide-y divide-border border-y border-border">
+		<ul class="mt-4 overflow-hidden {stylex.attrs(styles.list).class}">
 			{#each checks as check (key(check.id, check.place))}
 				<CheckRow
 					{check}
