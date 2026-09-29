@@ -3834,6 +3834,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "telemetry"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "bytes",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
+ "mimalloc",
+ "response",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tower",
+ "url",
+ "urls",
+]
+
+[[package]]
 name = "tempfile"
 version = "3.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

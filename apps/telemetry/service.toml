@@ -1,0 +1,54 @@
+# What host needs to run this service. The record is read by host on the machine, a program
+# deployed apart from this file, so it carries a version. See spec/architecture/host.md.
+version = 1
+name = "telemetry"
+placements = ["home"]
+
+[container]
+# Sputnik sent the first telemetry in 1957. See spec/architecture/services.md, "A service keeps
+# one port".
+port = 19570
+health = "/health"
+# It keeps nothing of its own: three sources read fresh on every answer. See
+# spec/architecture/telemetry.md, "The service".
+memory_mb = 64
+
+# `services.json`, written by host, as it writes `schedules.json` for `cron`. See
+# spec/architecture/telemetry.md, "`services.json`, what host tells".
+[data]
+path = "/data"
+
+# The `telemetry` scope of the API host: public through the gateway, which limits it by address.
+# See spec/architecture/telemetry.md.
+[api]
+public = true
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/machine"
+count = 120
+seconds = 60
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/machine/series"
+count = 120
+seconds = 60
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/services"
+count = 120
+seconds = 60
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/topology"
+count = 120
+seconds = 60
+
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/activity"
+count = 120
+seconds = 60
