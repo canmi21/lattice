@@ -241,6 +241,10 @@ run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 # The article renderer is a package of Svelte components, and `tsc` does not read `.svelte`. It
 # is checked on its own rather than inside the site's project: a component still reaching for
 # `$lib` or `$app` fails here instead of passing because an application happened to compile it.
+[tasks.check-status-schema]
+description = "Fail when the status schema changed and its migrations were not generated again"
+run = "pnpm --filter @canmi/status-schema run check"
+
 [tasks.check-prose]
 description = "Type check the article renderer, which is Svelte components in a library"
 dir = "libs/prose"

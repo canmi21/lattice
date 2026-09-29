@@ -1,0 +1,384 @@
+{
+	"id": "ff0e2d24-07a8-4b37-a227-6ed75455eaa7",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.checks": {
+			"name": "checks",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"kind": {
+					"name": "kind",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"target": {
+					"name": "target",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"place": {
+					"name": "place",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"interval_seconds": {
+					"name": "interval_seconds",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {
+				"checks_kind": {
+					"name": "checks_kind",
+					"value": "\"checks\".\"kind\" in ('dns', 'api', 'page', 'health')"
+				}
+			},
+			"isRLSEnabled": true
+		},
+		"public.results": {
+			"name": "results",
+			"schema": "",
+			"columns": {
+				"check_id": {
+					"name": "check_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"place": {
+					"name": "place",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"at": {
+					"name": "at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"ok": {
+					"name": "ok",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"duration_ms": {
+					"name": "duration_ms",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"detail": {
+					"name": "detail",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"results_check_id_checks_id_fk": {
+					"name": "results_check_id_checks_id_fk",
+					"tableFrom": "results",
+					"tableTo": "checks",
+					"columnsFrom": ["check_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"results_check_id_place_at_pk": {
+					"name": "results_check_id_place_at_pk",
+					"columns": ["check_id", "place", "at"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": true
+		},
+		"public.rollups": {
+			"name": "rollups",
+			"schema": "",
+			"columns": {
+				"check_id": {
+					"name": "check_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"place": {
+					"name": "place",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"grain": {
+					"name": "grain",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"bucket_start": {
+					"name": "bucket_start",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"passed": {
+					"name": "passed",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"failed": {
+					"name": "failed",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"median_ms": {
+					"name": "median_ms",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"worst_ms": {
+					"name": "worst_ms",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"rollups_check_id_checks_id_fk": {
+					"name": "rollups_check_id_checks_id_fk",
+					"tableFrom": "rollups",
+					"tableTo": "checks",
+					"columnsFrom": ["check_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"rollups_check_id_place_grain_bucket_start_pk": {
+					"name": "rollups_check_id_place_grain_bucket_start_pk",
+					"columns": ["check_id", "place", "grain", "bucket_start"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {
+				"rollups_grain": {
+					"name": "rollups_grain",
+					"value": "\"rollups\".\"grain\" in ('1m', '5m', '10m', '30m', '1h')"
+				}
+			},
+			"isRLSEnabled": true
+		}
+	},
+	"enums": {},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {
+		"public.status_checks": {
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"kind": {
+					"name": "kind",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"target": {
+					"name": "target",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"place": {
+					"name": "place",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"interval_seconds": {
+					"name": "interval_seconds",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"definition": "select \"id\", \"kind\", \"target\", \"place\", \"interval_seconds\", \"updated_at\" from \"checks\"",
+			"name": "status_checks",
+			"schema": "public",
+			"isExisting": false,
+			"materialized": false
+		},
+		"public.status_history": {
+			"columns": {
+				"check_id": {
+					"name": "check_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"place": {
+					"name": "place",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"grain": {
+					"name": "grain",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"bucket_start": {
+					"name": "bucket_start",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"passed": {
+					"name": "passed",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"failed": {
+					"name": "failed",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"median_ms": {
+					"name": "median_ms",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"worst_ms": {
+					"name": "worst_ms",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"definition": "\n\tselect \"results\".\"check_id\", \"results\".\"place\", 'raw' as grain, \"results\".\"at\" as bucket_start,\n\t\tcase when \"results\".\"ok\" then 1 else 0 end as passed,\n\t\tcase when \"results\".\"ok\" then 0 else 1 end as failed,\n\t\t\"results\".\"duration_ms\" as median_ms, \"results\".\"duration_ms\" as worst_ms\n\tfrom \"results\"\n\tunion all\n\tselect \"rollups\".\"check_id\", \"rollups\".\"place\", \"rollups\".\"grain\", \"rollups\".\"bucket_start\",\n\t\t\"rollups\".\"passed\", \"rollups\".\"failed\", \"rollups\".\"median_ms\", \"rollups\".\"worst_ms\"\n\tfrom \"rollups\"\n",
+			"name": "status_history",
+			"schema": "public",
+			"isExisting": false,
+			"materialized": false
+		},
+		"public.status_now": {
+			"columns": {
+				"check_id": {
+					"name": "check_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"place": {
+					"name": "place",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"kind": {
+					"name": "kind",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"target": {
+					"name": "target",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"interval_seconds": {
+					"name": "interval_seconds",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"at": {
+					"name": "at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"ok": {
+					"name": "ok",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"duration_ms": {
+					"name": "duration_ms",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"detail": {
+					"name": "detail",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"definition": "select distinct on (\"results\".\"check_id\", \"results\".\"place\") \"results\".\"check_id\", \"results\".\"place\", \"checks\".\"kind\", \"checks\".\"target\", \"checks\".\"interval_seconds\", \"results\".\"at\", \"results\".\"ok\", \"results\".\"duration_ms\", \"results\".\"detail\" from \"results\" inner join \"checks\" on \"checks\".\"id\" = \"results\".\"check_id\" order by \"results\".\"check_id\", \"results\".\"place\", \"results\".\"at\" desc",
+			"name": "status_now",
+			"schema": "public",
+			"isExisting": false,
+			"materialized": false
+		}
+	},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}

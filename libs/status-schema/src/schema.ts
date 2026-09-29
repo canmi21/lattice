@@ -16,7 +16,6 @@ import {
 	QueryBuilder,
 	text,
 	timestamp,
-	unionAll,
 } from 'drizzle-orm/pg-core';
 
 /** A declared check: what is asked, of what, how often, and from where. */
@@ -30,9 +29,7 @@ export const checks = pgTable(
 		intervalSeconds: integer('interval_seconds').notNull(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
 	},
-	(table) => [
-		check('checks_kind', sql`${table.kind} in ('dns', 'api', 'page', 'health')`),
-	],
+	(table) => [check('checks_kind', sql`${table.kind} in ('dns', 'api', 'page', 'health')`)],
 ).enableRLS();
 
 /**
@@ -111,35 +108,31 @@ export const statusNow = pgView('status_now').as(() =>
 /**
  * Raw rounds and every rollup grain, in one shape. `results` becomes grain `'raw'`, its own
  * bucket collapsed to the round it is -- one pass, one median, one worst.
+ *
+ * Columns are declared explicitly rather than inferred from a query builder: the union's two
+ * arms are typed too differently for `unionAll` to unify (a `QueryBuilder`-mode select against
+ * a `PgSetOperatorInterface`, in drizzle-orm 0.45.2), so the query is one hand-written `SQL`.
  */
-export const statusHistory = pgView('status_history').as(() =>
-	unionAll(
-		qb
-			.select({
-				checkId: results.checkId,
-				place: results.place,
-				grain: sql<string>`'raw'`.as('grain'),
-				bucketStart: results.at,
-				passed: sql<number>`case when ${results.ok} then 1 else 0 end`.as('passed'),
-				failed: sql<number>`case when ${results.ok} then 0 else 1 end`.as('failed'),
-				medianMs: results.durationMs,
-				worstMs: results.durationMs,
-			})
-			.from(results),
-		qb
-			.select({
-				checkId: rollups.checkId,
-				place: rollups.place,
-				grain: rollups.grain,
-				bucketStart: rollups.bucketStart,
-				passed: rollups.passed,
-				failed: rollups.failed,
-				medianMs: rollups.medianMs,
-				worstMs: rollups.worstMs,
-			})
-			.from(rollups),
-	),
-);
+export const statusHistory = pgView('status_history', {
+	checkId: text('check_id').notNull(),
+	place: text('place').notNull(),
+	grain: text('grain').notNull(),
+	bucketStart: timestamp('bucket_start', { withTimezone: true }).notNull(),
+	passed: integer('passed').notNull(),
+	failed: integer('failed').notNull(),
+	medianMs: integer('median_ms').notNull(),
+	worstMs: integer('worst_ms').notNull(),
+}).as(sql`
+	select ${results.checkId}, ${results.place}, 'raw' as grain, ${results.at} as bucket_start,
+		case when ${results.ok} then 1 else 0 end as passed,
+		case when ${results.ok} then 0 else 1 end as failed,
+		${results.durationMs} as median_ms, ${results.durationMs} as worst_ms
+	from ${results}
+	union all
+	select ${rollups.checkId}, ${rollups.place}, ${rollups.grain}, ${rollups.bucketStart},
+		${rollups.passed}, ${rollups.failed}, ${rollups.medianMs}, ${rollups.worstMs}
+	from ${rollups}
+`);
 
 export type StatusCheckRow = typeof statusChecks.$inferSelect;
 export type StatusNowRow = typeof statusNow.$inferSelect;
