@@ -480,22 +480,24 @@ describe("umami's policy", () => {
 	const app = gateway({ umami: SCOPES.umami as Scope }, POLICIES);
 	const headers = { 'cf-connecting-ip': '192.0.2.1' };
 
-	it('reaches the tracker script and where it posts, nothing else of the dashboard', async () => {
+	it('reaches only where the tracker posts, nothing else of the dashboard', async () => {
 		const { fetcher, seen } = binding();
 		const env = { HOME: fetcher, limits: counters(true).counters };
-		expect((await app.fetch(new Request(`${HOST}/umami/script.js`, { headers }), env)).status).toBe(
-			200,
-		);
 		expect(
 			(await app.fetch(new Request(`${HOST}/umami/api/send`, { method: 'POST', headers }), env))
 				.status,
 		).toBe(200);
-		for (const path of ['/umami/', '/umami/api/website', '/umami/api/auth/login']) {
+		for (const path of [
+			'/umami/',
+			'/umami/script.js',
+			'/umami/api/website',
+			'/umami/api/auth/login',
+		]) {
 			const answer = await app.fetch(new Request(`${HOST}${path}`, { headers }), env);
 			expect(answer.status, path).toBe(404);
 			expect(await answer.json()).toMatchObject({ code: 'no_such_route' });
 		}
-		expect(seen).toHaveLength(2);
+		expect(seen).toHaveLength(1);
 	});
 
 	it('limits reports, not the script, and only past the allowlist', async () => {
@@ -511,20 +513,23 @@ describe("umami's policy", () => {
 		]);
 	});
 
-	it('answers a page on the site and on the status page, and refuses a stranger', async () => {
+	it('answers a page on the status page and the platform door, and refuses a stranger', async () => {
 		const { fetcher } = binding();
 		const env = { HOME: fetcher, limits: counters(true).counters };
 		const from = async (origin: string) =>
 			(
 				await app.fetch(
-					new Request(`${HOST}/umami/script.js`, { headers: { ...headers, origin } }),
+					new Request(`${HOST}/umami/api/send`, {
+						method: 'POST',
+						headers: { ...headers, origin },
+					}),
 					env,
 				)
 			).headers;
 		for (const origin of [
-			URLS.apps.production.site,
 			URLS.internal.status.canonical,
 			URLS.internal.status.mirror,
+			URLS.internal.app,
 		]) {
 			expect((await from(origin)).get('access-control-allow-origin')).toBe(origin);
 		}

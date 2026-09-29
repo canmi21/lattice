@@ -13,11 +13,34 @@
 		{ href: URLS.apps.production.site, label: host(URLS.apps.production.site) },
 		{ href: URLS.internal.app, label: host(URLS.internal.app) },
 	];
+
+	// Where this page reports to: the gateway's `umami` scope, on the public API host. Not a
+	// literal URL, since the address is `libs/urls`' to declare. See spec/analytics.md, "umami,
+	// self-hosted, for the pages that matter less".
+	const umamiHostUrl = `${URLS.internal.api.public}/umami`;
+	// This page's production hostnames, so a dev build stays silent: the two doors of its own
+	// (canonical, mirror) and the platform door it links to, which also loads this tracker. See
+	// spec/analytics.md, "Development loads the client and reports nothing".
+	const umamiDomains = [canonical, mirror, URLS.internal.app]
+		.map((url) => new URL(url).hostname)
+		.join(',');
 </script>
 
 <svelte:head>
 	<!-- Every door names the one address, so three doors are one page to an index. -->
 	<link rel="canonical" href={new URL('/', canonical).href} />
+	<!-- Resolved early, not connected early: the same trade the site makes for its own tracker.
+	     See spec/analytics.md, "The analytics hosts are resolved early, not connected early". -->
+	<link rel="dns-prefetch" href={new URL(URLS.external.umami).origin} />
+	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
+	     See spec/analytics.md. -->
+	<script
+		defer
+		src={URLS.external.umami}
+		data-website-id="6dea3b82-46a0-4baf-8585-b9138cea5296"
+		data-host-url={umamiHostUrl}
+		data-domains={umamiDomains}
+	></script>
 </svelte:head>
 
 <div class="flex min-h-dvh flex-col bg-page text-text">

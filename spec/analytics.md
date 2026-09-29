@@ -88,12 +88,15 @@ is short of.
 **`apps/umami` is the upstream umami image at a pinned version**, with `[postgres]` for its one
 database -- see [databases.md](architecture/databases.md) -- and its `APP_SECRET` set once through
 host. Its dashboard is `umami.canmi.app`, behind Access. What a page reports to is the `umami`
-scope of the public API host, which the gateway opens only as far as a reporting page needs: the
-tracker script and `POST /api/send`, every other path refused there, so nothing of the dashboard's
-API is public. Reports are never cached, the script is, and one address may report sixty times a
-minute. umami reads the visitor's address from the header the gateway forwards it in.
+scope of the public API host, which the gateway opens only as far as a reporting page needs:
+`POST /api/send`, every other path refused there, so nothing of the dashboard's API is public.
+Reports are never cached, and one address may report sixty times a minute. umami reads the
+visitor's address from the header the gateway forwards it in.
 
-A page reports here with the tracker's `data-host-url` set to that scope. The site does not: it
+**A page loads umami's own tracker from its cloud, as the site does, and reports here** with
+`data-host-url` set to that scope: the script is the same program either way, so no path of ours
+serves it. `data-domains` names the page's production hosts, so a development page stays silent,
+per "Development loads the client and reports nothing". The site does not: it
 reports to both clouds as it did, since its own `umami.track()` calls reach only the first tracker
 a page loads, and a second count missing its events would look whole and not be.
 

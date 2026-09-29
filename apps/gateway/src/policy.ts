@@ -2,13 +2,14 @@ import { URLS } from '@canmi/urls';
 import type { Lifetime } from './cache.ts';
 
 /**
- * Where a page that reports to umami is served: the site, and the status page's two doors, since a
- * mirror is still a page loading the tracker. See spec/analytics.md.
+ * Where a page that reports to umami is served: the status page's two doors and the platform
+ * door it links to, since each loads this tracker. Not the site: it reports to both clouds from
+ * its own tracker load and never reaches this scope. See spec/analytics.md.
  */
 const UMAMI_ORIGINS: ReadonlySet<string> = new Set([
-	URLS.apps.production.site,
 	URLS.internal.status.canonical,
 	URLS.internal.status.mirror,
+	URLS.internal.app,
 ]);
 
 /**
@@ -68,11 +69,13 @@ export const POLICIES: Readonly<Record<string, Policy>> = {
 	shot: {
 		forbidden: ['internal', 'fresh'],
 	},
-	// A reporting page's two calls: the tracker script and where it posts. Nothing else of umami's
-	// API is public -- its dashboard is `umami.canmi.app`, behind Access. See spec/analytics.md,
-	// "umami, self-hosted, for the pages that matter less".
+	// A reporting page's one call: where the tracker posts. The script itself is umami's own
+	// cloud, not served here -- see spec/analytics.md, "A page loads umami's own tracker from its
+	// cloud, as the site does". Nothing else of umami's API is public -- its dashboard is
+	// `umami.canmi.app`, behind Access. See spec/analytics.md, "umami, self-hosted, for the pages
+	// that matter less".
 	umami: {
-		paths: ['/script.js', '/api/send'],
+		paths: ['/api/send'],
 		origin: (origin) => (UMAMI_ORIGINS.has(origin) ? origin : null),
 	},
 };
