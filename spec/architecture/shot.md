@@ -144,7 +144,12 @@ capture's pictures and its record leave together; until then `status?task=<id>` 
 answer for it however long ago it was made. A failure keeps its record alone.
 
 **The same page asked again within thirty minutes is the capture already made**; after that it is
-captured again, and the older one stays by its own id until the store rolls it out.
+captured again, and the older one stays by its own id until the store rolls it out. **`fresh=true`
+captures anew even so, and only ours may send it**, refused and ignored exactly as `internal` is:
+the probe checks a page every minute, and a check answered from a capture half an hour old checks
+nothing. A fresh capture takes a new id, and the one it passed over keeps its own. It is not part
+of what makes two asks one: the capture it makes is the one the next plain ask of the same
+parameters is answered with. In a POST body it is `access.fresh`.
 
 **Every capture is a record in the ledger**, queued, running and done, sent as it happens, and kept
 there after the store has let the pictures go. See [ledger.md](ledger.md).

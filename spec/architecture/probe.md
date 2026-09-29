@@ -18,9 +18,9 @@ beat for everything. They fall into two kinds, and it is the first that finds a 
   catches a fault before a visitor meets it.
 - **Outside**: the whole chain a visitor's request takes, through the public names and Cloudflare,
   end to end. A route that costs nothing but CPU, `geo`'s, can be asked every second; a page that
-  renders -- every article's -- is asked once a minute, through `shot`, whose capture reports a
-  page's errors, failed requests, status and title from a real Chromium. The probe holds no
-  browser. Outside checks are the chain working, not availability; they cost more and run slower.
+  renders -- every article's -- is asked once a minute, through `shot`'s private scope with
+  `fresh=true` so each round is a capture of its own, which reports the page's errors, failed
+  requests, status and title from a real Chromium. The probe holds no browser. Outside checks are the chain working, not availability; they cost more and run slower.
 
 A check's kind is one of `dns` (a name resolves, through Cloudflare's resolver and Google's alike,
 to what it should), `api` (a URL answers with the status expected, the envelope's `success`, the
@@ -43,7 +43,10 @@ Every result is written three ways:
   window rolling. A check asked every second keeps some twenty-one thousand rows across them, about
   3 MB, so the budget holds some ninety such checks, and more of those asked less often. The number
   of checks will change, so the budget and not the windows is the rule: the probe measures the
-  tables' size, and past 300 MB shortens the coarsest, oldest window first until it fits again.
+  tables' size, and past 300 MB shortens the coarsest, oldest window first -- once for each time
+  the size grows past both the budget and what it measured when it last shortened, since Postgres
+  reuses the space a delete frees rather than handing it back, and a size that never falls would
+  otherwise shorten every window to nothing.
   Nothing is lost by it, since the archive below keeps everything. The probe writes in batches
   every ten seconds and thins as it goes. Supabase's free database is always running rather than billed by the time it is awake --
   Neon's was, and a page reporting every second never lets a database sleep, so what Neon saves
@@ -56,6 +59,10 @@ Every result is written three ways:
   through Cloudflare -- **the one route an outside service of ours calls over the public API**,
   since Vercel and Cloudflare share nothing and the status page's history has to come from
   somewhere. When Cloudflare is down, that history is what the page goes without.
+  The scope answers `GET /checks`, every declared check; `GET /results?check=&since=&until=`,
+  one check's results oldest first, `since` and `until` whole seconds since the epoch and at most a
+  day apart, at most ten thousand a page with the next page's `since` said; and `/health`. Each is
+  the envelope, kept a minute by the gateway.
 - **To the ledger**, for what fails: a failing check opens a task with each check's events on it,
   so the panel shows a failure's full timeline. Passing rounds are counted, not recorded one by one
   -- a second's round is far more than the ledger is for. See [ledger.md](ledger.md).
