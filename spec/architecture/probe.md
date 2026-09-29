@@ -60,6 +60,22 @@ Every result is written three ways:
   so the panel shows a failure's full timeline. Passing rounds are counted, not recorded one by one
   -- a second's round is far more than the ledger is for. See [ledger.md](ledger.md).
 
+## The schema: declared once, in Drizzle, applied by the probe
+
+**The tables and views are written once, in TypeScript with Drizzle, in `libs/status-schema`**,
+and nothing else describes them. `drizzle-kit generate` turns them into SQL migrations, committed
+beside them; the grants and row policies are declared there too, so what the database allows is
+what the repository says. `mise run verify` fails when the schema has changed and its migrations
+were not generated again.
+
+- **The probe applies them and writes, in Rust alone**, with sqlx: at start it runs the
+  migrations it has not yet run, then writes as the database's owner over the pooler. It is the one
+  writer, so the schema is its to move forward. No Node runs on the node for it.
+- **The page takes its types from the same schema**, by Drizzle's inference, and reads the views,
+  which are the contract between the two: a table may be split, thinned or renamed behind a view,
+  and the page does not change. Drizzle does not run where the page renders; reading needs nothing
+  PostgREST cannot say, and the day it does is a view more, or a function.
+
 ## The page: one app, three doors
 
 **The status page is one SvelteKit app, built for three places by an environment variable**:
@@ -80,12 +96,17 @@ behind Access, and Access stands only in front of proxied names, so the status p
 and never passes Cloudflare's proxy. When Access becomes a list of what is let through, this is on
 it.
 
-**The page reads through supabase-js with the anon key, which is granted `SELECT` on the status
-tables and nothing else**, under a row security policy that lets it read every row: the grant is
-what makes it read-only. A result older than a few rounds is shown as the probe silent -- the node,
-its link, or the probe itself -- rather than as the last thing it said. It names the second place
-once the VPS runs a probe: two places agreeing that a name fails is Cloudflare, one place failing
-alone is that place.
+**The page reads PostgREST with the anon key, from views alone -- first on the server, then in
+the browser.** The first screen is rendered where the page is served -- Vercel's function, or the
+Worker -- by a `load` that asks through `@supabase/postgrest-js`, not the whole of supabase-js,
+since reading is all it does; so the page arrives whole, which is what an index reads, and a render
+is kept at the edge for a few seconds. Once hydrated it is a single-page app: the browser asks
+PostgREST itself, with the same client and the same key, for what changed since, and the server is
+asked for nothing more. The anon key is granted `SELECT` on the status views and nothing else --
+no table -- under a row security policy that lets it read every row: the grant is what makes it
+read-only. A result older than a few rounds is shown as the probe silent -- the node, its link, or
+the probe itself -- rather than as the last thing it said. It names the second place once the VPS runs a probe: two
+places agreeing that a name fails is Cloudflare, one place failing alone is that place.
 
 **Its name resolves through Cloudflare's DNS, and that is accepted**, since `canmi.vercel.app`
 does not: when Cloudflare's DNS is down, that door is still open, and the page names it in its
