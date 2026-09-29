@@ -43,4 +43,40 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 		worker: 'site',
 		prefix: '/api',
 	},
+	telemetry: {
+		placement: 'home',
+		binding: 'HOME',
+		limits: [
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/machine',
+				count: 120,
+				seconds: 60,
+			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/machine/series',
+				count: 120,
+				seconds: 60,
+			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/services',
+				count: 120,
+				seconds: 60,
+			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/topology',
+				count: 120,
+				seconds: 60,
+			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/activity',
+				count: 120,
+				seconds: 60,
+			},
+		],
+	},
 };
