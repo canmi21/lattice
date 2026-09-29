@@ -68,6 +68,20 @@ pub struct Filter {
 	pub parent_id: Option<String>,
 }
 
+/// A nanosecond-wide bucket the way `asked_at` truncates to the hour: dividing a nanosecond count
+/// by this and back rounds down to the hour it falls in, per spec/architecture/ledger.md,
+/// "Counted for telemetry".
+const NANOS_PER_HOUR: i64 = 3_600_000_000_000;
+
+/// One row of `GET /counts`: how many of `service`'s tasks asked in `hour`'s bucket hold `state`.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Count {
+	pub service: String,
+	pub hour: Timestamp,
+	pub state: String,
+	pub count: i64,
+}
+
 pub struct Store {
 	connection: Connection,
 }
@@ -110,6 +124,7 @@ impl Store {
 				caller TEXT NOT NULL,
 				updated_at INTEGER NOT NULL,
 				finished_at INTEGER,
+				asked_at INTEGER,
 				parent_service TEXT,
 				parent_id TEXT,
 				record TEXT NOT NULL,
@@ -117,6 +132,9 @@ impl Store {
 			) WITHOUT ROWID;
 			CREATE INDEX IF NOT EXISTS tasks_updated_at ON tasks (updated_at, id);
 			CREATE INDEX IF NOT EXISTS tasks_parent ON tasks (parent_service, parent_id, updated_at, id);
+			-- Answers GET /counts's window scan and its group-by in one pass; see
+			-- spec/architecture/ledger.md, section Counted for telemetry.
+			CREATE INDEX IF NOT EXISTS tasks_asked_at ON tasks (asked_at, service, state);
 			CREATE TABLE IF NOT EXISTS events (
 				service TEXT NOT NULL,
 				task TEXT NOT NULL,
@@ -134,6 +152,17 @@ impl Store {
 		// columns already exist, on a fresh table made above) is not an error.
 		let _ = connection.execute("ALTER TABLE tasks ADD COLUMN parent_service TEXT", []);
 		let _ = connection.execute("ALTER TABLE tasks ADD COLUMN parent_id TEXT", []);
+		let _ = connection.execute("ALTER TABLE tasks ADD COLUMN asked_at INTEGER", []);
+		// A row from before `asked_at` existed gets it NULL from the ALTER above and would be
+		// missing from GET /counts forever; backfilled from the record's own `asked_at`, in seconds
+		// since `unixepoch` reads it and widened to nanoseconds to match the column. Guarded by
+		// `IS NULL`, so re-running this at every open costs nothing once a row is backfilled.
+		connection.execute(
+			"UPDATE tasks SET asked_at = CAST(unixepoch(json_extract(record, '$.asked_at')) AS INTEGER)
+				* 1000000000
+			WHERE asked_at IS NULL",
+			[],
+		)?;
 		Ok(Self { connection })
 	}
 
@@ -255,6 +284,35 @@ impl Store {
 		Ok(stored)
 	}
 
+	/// Grouped by service, the hour bucket of `asked_at`, and state, for the last `hours` whole
+	/// hours plus the one under way. Oldest hour first, then service, then state, per
+	/// spec/architecture/ledger.md, "Counted for telemetry". `hours` is the caller's to clamp.
+	pub fn counts(&self, hours: u32) -> anyhow::Result<Vec<Count>> {
+		let now = Timestamp::now().as_nanosecond() as i64;
+		let current_bucket = now.div_euclid(NANOS_PER_HOUR);
+		let window_start = (current_bucket - i64::from(hours)) * NANOS_PER_HOUR;
+		let mut select = self.connection.prepare(
+			"SELECT service, asked_at / ?1 AS bucket, state, COUNT(*) FROM tasks
+			WHERE asked_at >= ?2
+			GROUP BY bucket, service, state
+			ORDER BY bucket ASC, service ASC, state ASC",
+		)?;
+		let rows = select.query_map(params![NANOS_PER_HOUR, window_start], |row| {
+			let service: String = row.get(0)?;
+			let bucket: i64 = row.get(1)?;
+			let state: String = row.get(2)?;
+			let count: i64 = row.get(3)?;
+			Ok((service, bucket, state, count))
+		})?;
+		let mut counts = Vec::new();
+		for row in rows {
+			let (service, bucket, state, count) = row?;
+			let hour = Timestamp::from_nanosecond((bucket * NANOS_PER_HOUR) as i128)?;
+			counts.push(Count { service, hour, state, count });
+		}
+		Ok(counts)
+	}
+
 	/// Applies a batch of items in one transaction: a task item goes through the upsert rule, an
 	/// event item is inserted once by `(service, task, seq)`, a duplicate ignored. Answers how many
 	/// items were taken. See spec/architecture/ledger.md, "Pushed to, never asking".
@@ -315,11 +373,12 @@ fn upsert_in(transaction: &rusqlite::Transaction, task: Task) -> anyhow::Result<
 	let stored = StoredTask { task, updated_at };
 	let text = serde_json::to_string(&stored)?;
 	transaction.execute(
-		"INSERT INTO tasks (service, id, kind, state, caller, updated_at, finished_at, parent_service, parent_id, record)
-		VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+		"INSERT INTO tasks (service, id, kind, state, caller, updated_at, finished_at, asked_at, parent_service, parent_id, record)
+		VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
 		ON CONFLICT (service, id) DO UPDATE SET
 			kind = excluded.kind, state = excluded.state, caller = excluded.caller,
 			updated_at = excluded.updated_at, finished_at = excluded.finished_at,
+			asked_at = excluded.asked_at,
 			parent_service = excluded.parent_service, parent_id = excluded.parent_id,
 			record = excluded.record",
 		params![
@@ -330,6 +389,7 @@ fn upsert_in(transaction: &rusqlite::Transaction, task: Task) -> anyhow::Result<
 			caller_word(stored.task.record.caller),
 			updated_at.as_nanosecond() as i64,
 			stored.task.record.finished_at.map(|at| at.as_nanosecond() as i64),
+			stored.task.record.asked_at.as_nanosecond() as i64,
 			stored.task.parent.as_ref().map(|parent| parent.service.clone()),
 			stored.task.parent.as_ref().map(|parent| parent.id.clone()),
 			text,
@@ -370,6 +430,18 @@ impl Store {
 			.execute(
 				"UPDATE tasks SET updated_at = ?1, record = ?2 WHERE service = ?3 AND id = ?4",
 				params![nanos, text, service, id],
+			)
+			.unwrap();
+	}
+
+	/// Test-only: nulls a stored task's `asked_at` column directly, as a row from before the
+	/// column existed reads after the ALTER, leaving the record's own `asked_at` as the only copy.
+	pub fn force_asked_at_null(&mut self, service: &str, id: &str) {
+		self
+			.connection
+			.execute(
+				"UPDATE tasks SET asked_at = NULL WHERE service = ?1 AND id = ?2",
+				params![service, id],
 			)
 			.unwrap();
 	}
@@ -590,5 +662,93 @@ mod tests {
 		store.batch(vec![Item::Task(task("a", State::Done, Some("2026-09-28T12:05:00Z")))]).unwrap();
 		store.batch(vec![Item::Task(task("a", State::Running, Some("2026-09-28T12:04:00Z")))]).unwrap();
 		assert_eq!(store.get("shot", "a").unwrap().unwrap().task.record.state, State::Done);
+	}
+
+	/// A task `hours_ago` hours before now, for `service` under `id` and `state`. See
+	/// spec/architecture/ledger.md, "Counted for telemetry".
+	fn asked_hours_ago(service: &str, id: &str, state: State, hours_ago: i64) -> Task {
+		let asked_at =
+			Timestamp::now().checked_sub(jiff::SignedDuration::from_hours(hours_ago)).unwrap();
+		Task {
+			record: Record {
+				service: service.into(),
+				id: id.into(),
+				kind: "capture".into(),
+				state,
+				caller: Caller::Public,
+				asked_at,
+				started_at: None,
+				finished_at: None,
+				summary: serde_json::json!({}),
+				detail: None,
+			},
+			parent: None,
+		}
+	}
+
+	#[test]
+	fn counts_group_by_service_hour_bucket_and_state() {
+		let (_directory, mut store) = open();
+		store.upsert(asked_hours_ago("shot", "a", State::Done, 0)).unwrap();
+		store.upsert(asked_hours_ago("shot", "b", State::Done, 0)).unwrap();
+		store.upsert(asked_hours_ago("shot", "c", State::Failed, 0)).unwrap();
+		store.upsert(asked_hours_ago("geo", "d", State::Done, 0)).unwrap();
+
+		let counts = store.counts(1).unwrap();
+		let shot_done = counts
+			.iter()
+			.find(|row| row.service == "shot" && row.state == "done")
+			.expect("shot/done bucket");
+		assert_eq!(shot_done.count, 2);
+		let shot_failed = counts
+			.iter()
+			.find(|row| row.service == "shot" && row.state == "failed")
+			.expect("shot/failed bucket");
+		assert_eq!(shot_failed.count, 1);
+		let geo_done = counts
+			.iter()
+			.find(|row| row.service == "geo" && row.state == "done")
+			.expect("geo/done bucket");
+		assert_eq!(geo_done.count, 1);
+	}
+
+	#[test]
+	fn the_window_covers_the_last_hours_plus_the_one_under_way() {
+		let (_directory, mut store) = open();
+		store.upsert(asked_hours_ago("shot", "now", State::Done, 0)).unwrap();
+		store.upsert(asked_hours_ago("shot", "one-ago", State::Done, 1)).unwrap();
+		store.upsert(asked_hours_ago("shot", "two-ago", State::Done, 2)).unwrap();
+
+		// hours=1 keeps the current hour plus one whole hour before it, so "two-ago" falls outside.
+		let counts = store.counts(1).unwrap();
+		let total: i64 = counts.iter().map(|row| row.count).sum();
+		assert_eq!(total, 2);
+
+		let counts = store.counts(2).unwrap();
+		let total: i64 = counts.iter().map(|row| row.count).sum();
+		assert_eq!(total, 3);
+	}
+
+	#[test]
+	fn counts_are_empty_with_nothing_asked() {
+		let (_directory, store) = open();
+		assert!(store.counts(24).unwrap().is_empty());
+	}
+
+	#[test]
+	fn a_row_with_asked_at_null_is_counted_after_reopening() {
+		let directory = tempfile::tempdir().unwrap();
+		let path = directory.path().join("ledger.db");
+		let mut store = Store::open(&path).unwrap();
+		store.upsert(asked_hours_ago("shot", "a", State::Done, 0)).unwrap();
+		store.force_asked_at_null("shot", "a");
+		assert!(store.counts(1).unwrap().is_empty());
+		drop(store);
+
+		// Reopening runs the backfill, which is what a pre-existing row relies on to be counted.
+		let store = Store::open(&path).unwrap();
+		let counts = store.counts(1).unwrap();
+		let total: i64 = counts.iter().map(|row| row.count).sum();
+		assert_eq!(total, 1);
 	}
 }

@@ -86,6 +86,14 @@ it.
 else's browsing -- so no route of a public scope lists records; a public caller reads its own task
 by the id it was given, from the service that made it.
 
+## Counted for telemetry
+
+`GET /counts?hours=` answers how many tasks each service was asked for in each of the last `hours`
+whole hours and the one under way -- 1 to 168, 24 when absent -- by `asked_at`, as
+`[{ service, hour, state, count }]`, `hour` the RFC 3339 instant it starts, oldest first. It says
+nothing of a task but its service, when it was asked and how it stands, which is what `telemetry`
+may publish. See [telemetry.md](telemetry.md).
+
 ## Kept for good, in SQLite
 
 **Nothing is ever deleted, tasks or events.** A task is a few hundred bytes and an event less; a

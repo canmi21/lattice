@@ -16,12 +16,18 @@ pub type Shared = Arc<Mutex<Store>>;
 const DEFAULT_LIMIT: usize = 50;
 const MAX_LIMIT: usize = 500;
 
+/// `GET /counts`'s window, in whole hours; see spec/architecture/ledger.md, "Counted for
+/// telemetry".
+const DEFAULT_HOURS: u32 = 24;
+const MAX_HOURS: u32 = 168;
+
 pub fn routes(store: Shared) -> Router {
 	Router::new()
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
 		.route("/tasks", get(list))
 		.route("/tasks/{service}/{id}", put(upsert).get(get_one))
 		.route("/events", post(events))
+		.route("/counts", get(counts))
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(store)
 }
@@ -124,6 +130,30 @@ async fn list(State(store): State<Shared>, Query(asked): Query<Asked>) -> Respon
 		Ok(rows) => {
 			response::success(StatusCode::OK, rows.into_iter().map(Listed::from).collect::<Vec<_>>())
 		}
+		Err(error) => {
+			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
+		}
+	}
+}
+
+#[derive(serde::Deserialize)]
+struct CountsAsked {
+	hours: Option<String>,
+}
+
+/// `hours` out of range is brought into it and a value that does not parse falls back to the
+/// default, both per the "forgiven" rule spec/architecture/ledger.md states for `GET /tasks` and
+/// extends here.
+fn hours_asked(hours: Option<&str>) -> u32 {
+	hours.and_then(|text| text.parse::<u32>().ok()).unwrap_or(DEFAULT_HOURS).clamp(1, MAX_HOURS)
+}
+
+/// `GET /counts`: tasks by service, hour bucket and state, for the window `hours` names. See
+/// spec/architecture/ledger.md, "Counted for telemetry".
+async fn counts(State(store): State<Shared>, Query(asked): Query<CountsAsked>) -> Response {
+	let hours = hours_asked(asked.hours.as_deref());
+	match lock(&store).counts(hours) {
+		Ok(rows) => response::success(StatusCode::OK, rows),
 		Err(error) => {
 			response::failure_with(StatusCode::INTERNAL_SERVER_ERROR, "store_unavailable", error)
 		}
@@ -408,5 +438,70 @@ mod tests {
 		for code in response::codes_named(include_str!("api.rs")) {
 			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
 		}
+	}
+
+	/// A record asked `hours_ago` hours before now. See spec/architecture/ledger.md, "Counted for
+	/// telemetry".
+	fn record_asked(service: &str, id: &str, state: TaskState, hours_ago: i64) -> Record {
+		let asked_at =
+			jiff::Timestamp::now().checked_sub(jiff::SignedDuration::from_hours(hours_ago)).unwrap();
+		Record { asked_at, state, ..record(service, id) }
+	}
+
+	#[tokio::test]
+	async fn counts_buckets_by_service_hour_and_state() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		put(router.clone(), "/tasks/shot/a", &record_asked("shot", "a", TaskState::Done, 0)).await;
+		put(router.clone(), "/tasks/shot/b", &record_asked("shot", "b", TaskState::Done, 0)).await;
+		put(router.clone(), "/tasks/shot/c", &record_asked("shot", "c", TaskState::Failed, 0)).await;
+		put(router.clone(), "/tasks/geo/d", &record_asked("geo", "d", TaskState::Done, 0)).await;
+
+		let (status, body) = ask(router, "/counts?hours=1").await;
+		assert_eq!(status, StatusCode::OK);
+		let rows = body["data"].as_array().unwrap();
+		let find = |service: &str, state: &str| {
+			rows.iter().find(|row| row["service"] == service && row["state"] == state).cloned()
+		};
+		assert_eq!(find("shot", "done").unwrap()["count"], 2);
+		assert_eq!(find("shot", "failed").unwrap()["count"], 1);
+		assert_eq!(find("geo", "done").unwrap()["count"], 1);
+	}
+
+	#[tokio::test]
+	async fn counts_window_keeps_hours_plus_the_one_under_way() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		put(router.clone(), "/tasks/shot/now", &record_asked("shot", "now", TaskState::Done, 0)).await;
+		put(router.clone(), "/tasks/shot/one", &record_asked("shot", "one", TaskState::Done, 1)).await;
+		put(router.clone(), "/tasks/shot/two", &record_asked("shot", "two", TaskState::Done, 2)).await;
+
+		let (_, body) = ask(router.clone(), "/counts?hours=1").await;
+		let total: i64 =
+			body["data"].as_array().unwrap().iter().map(|row| row["count"].as_i64().unwrap()).sum();
+		assert_eq!(total, 2);
+
+		let (_, body) = ask(router, "/counts?hours=2").await;
+		let total: i64 =
+			body["data"].as_array().unwrap().iter().map(|row| row["count"].as_i64().unwrap()).sum();
+		assert_eq!(total, 3);
+	}
+
+	#[test]
+	fn counts_hours_is_clamped_and_forgiven() {
+		assert_eq!(hours_asked(None), DEFAULT_HOURS);
+		assert_eq!(hours_asked(Some("not a number")), DEFAULT_HOURS);
+		assert_eq!(hours_asked(Some("0")), 1);
+		assert_eq!(hours_asked(Some("9999")), MAX_HOURS);
+		assert_eq!(hours_asked(Some("48")), 48);
+	}
+
+	#[tokio::test]
+	async fn counts_is_empty_with_nothing_asked() {
+		let (_directory, store) = shared();
+		let router = routes(store);
+		let (status, body) = ask(router, "/counts").await;
+		assert_eq!(status, StatusCode::OK);
+		assert_eq!(body["data"].as_array().unwrap().len(), 0);
 	}
 }
