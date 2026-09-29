@@ -26,10 +26,11 @@ PACKAGE_GATES = {
 		"check-css-ramp",
 	],
 	"@canmi/cms": ["check-cms"],
-	"@canmi/host-panel": ["check-panel"],
+	"@canmi/panel": ["check-panel"],
 	"@canmi/prose": ["check-prose"],
 	"@canmi/fonts": ["check-fonts"],
 	"@canmi/status-schema": ["check-status-schema"],
+	"@canmi/status": ["check-status"],
 }
 RUST = ["lint-rust", "test-rust"]
 EVERYTHING = ALWAYS + NODE + [g for gates in PACKAGE_GATES.values() for g in gates] + RUST

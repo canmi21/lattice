@@ -21,6 +21,7 @@ build/
 dist/
 target/
 .svelte-kit/
+.vercel/
 # Compiled from .inlang on every build; settings.json and messages/ are what is authored.
 libs/messages/src/
 apps/site/.inlang/cache/

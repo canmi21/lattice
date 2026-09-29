@@ -12,12 +12,13 @@
 		"**/dist",
 		"**/build",
 		"data",
-		// Both check themselves with svelte-check instead: SvelteKit generates the `$lib` and
+		// Each checks itself with svelte-check instead: SvelteKit generates the `$lib` and
 		// `$app` aliases and the `*.svelte` module types elsewhere, so this file alone sees half
 		// a project.
 		"apps/site",
 		"apps/cms",
 		"apps/panel",
+		"apps/status",
 		// Checked by tsconfig.workers.json against workerd's globals instead. Whole directories,
 		// not just `src`: importing the worker is enough to pull it into this program.
 		"libs/store",

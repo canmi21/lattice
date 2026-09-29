@@ -1,0 +1,27 @@
+{
+	"name": "@canmi/status",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+	},
+	"devDependencies": {
+		"@canmi/status-schema": "workspace:*",
+		"@canmi/theme": "workspace:*",
+		"@canmi/tokens": "workspace:*",
+		"@canmi/urls": "workspace:*",
+		"@supabase/postgrest-js": "^2.117.2",
+		"@sveltejs/adapter-cloudflare": "^7.2.9",
+		"@sveltejs/adapter-vercel": "^6.3.4",
+		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/vite-plugin-svelte": "^7.3.0",
+		"@tailwindcss/vite": "^4.3.3",
+		"svelte": "^5.57.1",
+		"svelte-check": "^4.7.6",
+		"tailwindcss": "^4.3.3",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.0"
+	}
+}
