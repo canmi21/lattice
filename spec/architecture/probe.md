@@ -104,6 +104,10 @@ canonical address, so three doors are one page to an index. Its bar carries the 
 every door, so a visitor who arrives at the status page is one click from the rest of `canmi.app`.
 The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and nothing else.
 
+**It is styled as the site is**: the three layers of
+[css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves, and the `mono`
+palette -- see [palettes.md](../styling/palettes.md).
+
 **`status.canmi.app` is a DNS-only record pointing at Vercel**, not proxied: `*.canmi.app` is
 behind Access, and Access stands only in front of proxied names, so the status page stays public
 and never passes Cloudflare's proxy. When Access becomes a list of what is let through, this is on
