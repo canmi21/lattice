@@ -15,7 +15,7 @@ import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
 import { CACHE_HEADER, cacheable, keyOf, secondsFor, store, toKeep } from './cache.ts';
 import { counted } from './limit.ts';
-import { POLICIES, type Policy } from './policy.ts';
+import { pathAllowed, POLICIES, type Policy } from './policy.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';
 
@@ -181,6 +181,9 @@ export function gateway(
 		const target = scopes[scope] as Scope;
 		const policy = Object.hasOwn(policies, scope) ? (policies[scope] as Policy) : {};
 		const address = c.req.header('cf-connecting-ip');
+		// A path outside the scope's allowlist does not exist as far as the public is concerned --
+		// the same answer an unknown route gives -- before a limit is counted or the service asked.
+		if (!pathAllowed(policy.paths, rest)) return failure(404, 'no_such_route');
 		if (await forbids(policy.forbidden ?? [], url, c.req.raw)) {
 			return failure(403, 'forbidden_parameter');
 		}

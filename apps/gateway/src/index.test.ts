@@ -4,7 +4,7 @@ import { developmentUrl, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, MARK } from './index.ts';
-import { POLICIES, type Policy } from './policy.ts';
+import { pathAllowed, POLICIES, type Policy } from './policy.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, scopeTable, WORKERS } from './table.ts';
 
@@ -85,6 +85,17 @@ describe('the scope table', () => {
 			'version = 1\nname = "open"\nplacements = ["home"]\n[api]\npublic = true\n',
 		]);
 		expect(table).toEqual({ open: { placement: 'home', binding: 'HOME' } });
+	});
+});
+
+describe('a paths allowlist', () => {
+	it('lets everything through when absent, exactly when named, and under a prefix ending in `/`', () => {
+		expect(pathAllowed(undefined, '/anything')).toBe(true);
+		expect(pathAllowed(['/api/send'], '/api/send')).toBe(true);
+		expect(pathAllowed(['/api/send'], '/api/sender')).toBe(false);
+		expect(pathAllowed(['/api/'], '/api/send')).toBe(true);
+		expect(pathAllowed(['/api/'], '/apiary')).toBe(false);
+		expect(pathAllowed(['/script.js', '/api/send'], '/api/website')).toBe(false);
 	});
 });
 
@@ -462,5 +473,61 @@ describe("shot's policy", () => {
 		expect(refused.asked.map((asked) => asked.name)).toEqual([
 			'shot_get-head-post_capture_192.0.2.1',
 		]);
+	});
+});
+
+describe("umami's policy", () => {
+	const app = gateway({ umami: SCOPES.umami as Scope }, POLICIES);
+	const headers = { 'cf-connecting-ip': '192.0.2.1' };
+
+	it('reaches the tracker script and where it posts, nothing else of the dashboard', async () => {
+		const { fetcher, seen } = binding();
+		const env = { HOME: fetcher, limits: counters(true).counters };
+		expect((await app.fetch(new Request(`${HOST}/umami/script.js`, { headers }), env)).status).toBe(
+			200,
+		);
+		expect(
+			(await app.fetch(new Request(`${HOST}/umami/api/send`, { method: 'POST', headers }), env))
+				.status,
+		).toBe(200);
+		for (const path of ['/umami/', '/umami/api/website', '/umami/api/auth/login']) {
+			const answer = await app.fetch(new Request(`${HOST}${path}`, { headers }), env);
+			expect(answer.status, path).toBe(404);
+			expect(await answer.json()).toMatchObject({ code: 'no_such_route' });
+		}
+		expect(seen).toHaveLength(2);
+	});
+
+	it('limits reports, not the script, and only past the allowlist', async () => {
+		const refused = counters(false);
+		const env = { HOME: binding().fetcher, limits: refused.counters };
+		const send = await app.fetch(
+			new Request(`${HOST}/umami/api/send`, { method: 'POST', headers }),
+			env,
+		);
+		expect(send.status).toBe(429);
+		expect(refused.asked).toEqual([
+			{ name: 'umami_post_api-send_192.0.2.1', count: 60, seconds: 60 },
+		]);
+	});
+
+	it('answers a page on the site and on the status page, and refuses a stranger', async () => {
+		const { fetcher } = binding();
+		const env = { HOME: fetcher, limits: counters(true).counters };
+		const from = async (origin: string) =>
+			(
+				await app.fetch(
+					new Request(`${HOST}/umami/script.js`, { headers: { ...headers, origin } }),
+					env,
+				)
+			).headers;
+		for (const origin of [
+			URLS.apps.production.site,
+			URLS.internal.status.canonical,
+			URLS.internal.status.mirror,
+		]) {
+			expect((await from(origin)).get('access-control-allow-origin')).toBe(origin);
+		}
+		expect((await from('https://stranger.test')).get('access-control-allow-origin')).toBeNull();
 	});
 });

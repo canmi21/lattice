@@ -97,4 +97,16 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 			},
 		],
 	},
+	umami: {
+		placement: 'home',
+		binding: 'HOME',
+		limits: [
+			{
+				methods: ['POST'],
+				path: '/api/send',
+				count: 60,
+				seconds: 60,
+			},
+		],
+	},
 };
