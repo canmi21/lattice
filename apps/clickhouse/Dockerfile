@@ -55,8 +55,8 @@ COPY --from=builder /tmp/clickhouse /usr/bin/clickhouse
 RUN ln -s /usr/bin/clickhouse /usr/bin/clickhouse-server \
 	&& ln -s /usr/bin/clickhouse /usr/bin/clickhouse-client
 
-COPY config.xml /etc/clickhouse-server/config.xml
-COPY entrypoint.sh /entrypoint.sh
+COPY apps/clickhouse/config.xml /etc/clickhouse-server/config.xml
+COPY apps/clickhouse/entrypoint.sh /entrypoint.sh
 RUN chmod 0755 /entrypoint.sh
 
 USER 101:101
