@@ -33,6 +33,12 @@ memory_mb = 1536
   `secret.env`, the sidecar given the same credentials as its owner:
   - Postgres: `DATABASE_URL`, `postgresql://<app>:<password>@<app>-postgres:5432/<app>`.
   - ClickHouse: `CLICKHOUSE_URL`, `http://<app>:<password>@<app>-clickhouse:8123/<app>`.
+- **The password is made once and never rotated by host**: the URL in `secret.env` is the record
+  of it, read back on every start, and a URL edited past reading fails the deploy rather than being
+  replaced. Postgres takes its password only when it first makes the cluster, so a new one is set
+  inside the database first and in the URL after.
+- **A driver keeps its database's own port** -- 5432, 8123 -- outside the range an app's port is
+  drawn from, since nothing but its app ever dials it.
 
 The names `postgres` and `clickhouse` are reserved, and so is every `<app>-postgres` and
 `<app>-clickhouse`.

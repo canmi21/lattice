@@ -3,7 +3,8 @@
 //! check put back both the directory and the version before. See spec/architecture/host.md, "One
 //! version runs, and a failed deploy puts the last one back".
 
-use crate::engine::{self, Engine, Shape, Sidecar, Version};
+use crate::engine::{self, Engine, Shape, Version};
+use crate::sidecar::{Driver, Sidecar};
 use crate::volume::{self, Volumes};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -29,11 +30,11 @@ pub enum Error {
 	Sidecar(String),
 }
 
-/// The sidecar each side of a replacement runs beside its app, when it declares one.
+/// The sidecars each side of a replacement runs beside its app, one per driver it declares.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Beside<'a> {
-	pub next: Option<&'a Sidecar>,
-	pub current: Option<&'a Sidecar>,
+	pub next: &'a [Sidecar],
+	pub current: &'a [Sidecar],
 }
 
 /// Run `next` in place of `current`, on the app's own network with `members` attached to it, and
@@ -52,10 +53,10 @@ pub async fn replace(
 	replace_beside(engine, volumes, members, shape, next, current, restore, Beside::default()).await
 }
 
-/// The same, with the app's sidecar stopped before the snapshot, so the snapshot holds its files at
-/// rest, and started after any restore and before the app, so the app never meets an endpoint that
-/// is not there yet. See spec/architecture/objects.md, "A sidecar per app, over the app's own
-/// directory".
+/// The same, with the app's sidecars stopped before the snapshot, so the snapshot holds their files
+/// at rest, and started after any restore and before the app, so the app never meets an endpoint
+/// that is not there yet. See spec/architecture/objects.md, "A sidecar per app, over the app's own
+/// directory", and spec/architecture/databases.md, "Declared by the app, run beside it".
 #[allow(clippy::too_many_arguments)]
 pub async fn replace_beside(
 	engine: &Engine,
@@ -68,7 +69,8 @@ pub async fn replace_beside(
 	beside: Beside<'_>,
 ) -> Result<PathBuf, Error> {
 	let name = next.manifest.name.as_str();
-	let sidecar = crate::manifest::sidecar_of(name);
+	// Every kind, declared or not: a sidecar the next version no longer declares goes too.
+	let sidecars: Vec<String> = Driver::ALL.iter().map(|driver| driver.sidecar_of(name)).collect();
 	if shape.networked() {
 		engine.network(name, members).await?;
 	}
@@ -76,8 +78,10 @@ pub async fn replace_beside(
 
 	engine.archive(name, &volumes.logs(name)).await?;
 	engine.remove(name).await?;
-	engine.archive(&sidecar, &volumes.logs(&sidecar)).await?;
-	engine.remove(&sidecar).await?;
+	for sidecar in &sidecars {
+		engine.archive(sidecar, &volumes.logs(sidecar)).await?;
+		engine.remove(sidecar).await?;
+	}
 	let snapshot = volumes.snapshot(name).await?;
 	if let Some(restore) = restore {
 		volumes.restore(name, restore).await?;
@@ -85,10 +89,13 @@ pub async fn replace_beside(
 	if let Some((uid, gid)) = engine.user_of(&next.image).await? {
 		volumes.hand_over(name, uid, gid).await?;
 	}
-	let beside_next = match beside.next {
-		Some(next) => start_sidecar(engine, next).await,
-		None => Ok(()),
-	};
+	let mut beside_next = Ok(());
+	for sidecar in beside.next {
+		beside_next = start_sidecar(engine, sidecar).await;
+		if beside_next.is_err() {
+			break;
+		}
+	}
 	let checked = match beside_next {
 		Err(reason) => Err(reason),
 		Ok(()) => match engine.run(next, shape, &volumes.data(name)).await {
@@ -104,16 +111,18 @@ pub async fn replace_beside(
 	let logs = engine.tail(name).await;
 	engine.archive(name, &volumes.logs(name)).await?;
 	engine.remove(name).await?;
-	engine.archive(&sidecar, &volumes.logs(&sidecar)).await?;
-	engine.remove(&sidecar).await?;
+	for sidecar in &sidecars {
+		engine.archive(sidecar, &volumes.logs(sidecar)).await?;
+		engine.remove(sidecar).await?;
+	}
 	volumes.restore(name, &snapshot).await?;
 	let Some(current) = current else {
 		return Err(Error::FirstFailed { reason, logs });
 	};
-	if let Some(before) = beside.current
-		&& let Err(reason) = start_sidecar(engine, before).await
-	{
-		eprintln!("deploy: putting back {}: {reason}", before.name);
+	for before in beside.current {
+		if let Err(reason) = start_sidecar(engine, before).await {
+			eprintln!("deploy: putting back {}: {reason}", before.name);
+		}
 	}
 	engine.run(current, shape, &volumes.data(name)).await?;
 	Err(Error::Unhealthy { reason, logs })
@@ -126,11 +135,14 @@ pub async fn sidecar(engine: &Engine, volumes: &Volumes, sidecar: &Sidecar) -> R
 	start_sidecar(engine, sidecar).await.map_err(Error::Sidecar)
 }
 
-/// Make its directories, give them to the user its image runs as, start it and wait for it to
-/// answer. A failure is a reason, carrying the last lines it wrote.
+/// Make its directories, give them to the user it runs as, start it and wait for it to answer. A
+/// failure is a reason, carrying the last lines it wrote.
 async fn start_sidecar(engine: &Engine, sidecar: &Sidecar) -> Result<(), String> {
 	let started = async {
-		let owner = engine.user_of(&sidecar.image).await?;
+		let owner = match sidecar.user {
+			Some(user) => Some(user),
+			None => engine.user_of(&sidecar.image).await?,
+		};
 		for directory in std::iter::once(sidecar.source.clone())
 			.chain(sidecar.directories.iter().map(|bucket| sidecar.source.join(bucket)))
 		{
@@ -142,7 +154,6 @@ async fn start_sidecar(engine: &Engine, sidecar: &Sidecar) -> Result<(), String>
 	if let Err(error) = started.await {
 		return Err(format!("{}: {error}", sidecar.name));
 	}
-	let address = format!("{}:{}", sidecar.name, sidecar.port);
 	let started = tokio::time::Instant::now();
 	let mut last = String::from("no answer yet");
 	while started.elapsed() < SIDECAR_DEADLINE {
@@ -150,10 +161,9 @@ async fn start_sidecar(engine: &Engine, sidecar: &Sidecar) -> Result<(), String>
 			last = "it exited".into();
 			break;
 		}
-		match crate::http::status(&address, &sidecar.health).await {
-			Ok(status) if (200..300).contains(&status) => return Ok(()),
-			Ok(status) => last = format!("{} answered {status}", sidecar.health),
-			Err(error) => last = error.to_string(),
+		match sidecar.ask().await {
+			Ok(()) => return Ok(()),
+			Err(answer) => last = answer,
 		}
 		tokio::time::sleep(Duration::from_secs(1)).await;
 	}

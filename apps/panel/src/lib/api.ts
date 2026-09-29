@@ -19,6 +19,8 @@ export interface App extends Version {
 	restorable: boolean;
 	/** host, keeper, Caddy or the tunnel: restarted from here, never stopped. */
 	platform: boolean;
+	/** objects, postgres or clickhouse: no container of its own, so nothing to start or stop. */
+	driver: boolean;
 }
 
 /** An image on the machine, and why it stays: `no` is nothing could run it again. */

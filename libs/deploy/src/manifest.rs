@@ -2,6 +2,7 @@
 //! about how. What it may ask for is decided here -- see spec/architecture/host.md, "What a
 //! deployment may ask for is host's decision".
 
+use crate::sidecar::Driver;
 use serde::{Deserialize, Serialize};
 use std::ops::RangeInclusive;
 
@@ -10,11 +11,11 @@ use std::ops::RangeInclusive;
 pub const VERSION: u32 = 1;
 
 /// Names taken by the platform itself: its programs, the meter that watches the machine, the API
-/// host and the Worker answering it, the object storage driver, the scheduler that calls every
-/// job, the door onto the machine's own packages and the public telemetry, and the containers an
-/// app's name would collide with. See spec/architecture/cron.md, spec/architecture/apt.md and
-/// spec/architecture/telemetry.md.
-const RESERVED: [&str; 13] = [
+/// host and the Worker answering it, the object storage and database drivers, the scheduler that
+/// calls every job, the door onto the machine's own packages and the public telemetry, and the
+/// containers an app's name would collide with. See spec/architecture/cron.md,
+/// spec/architecture/apt.md, spec/architecture/telemetry.md and spec/architecture/databases.md.
+const RESERVED: [&str; 15] = [
 	"host",
 	"keeper",
 	"meter",
@@ -25,6 +26,8 @@ const RESERVED: [&str; 13] = [
 	"panel",
 	"cloudflared",
 	"objects",
+	"postgres",
+	"clickhouse",
 	"cron",
 	"apt",
 	"telemetry",
@@ -45,12 +48,24 @@ const RESERVED_LABELS: [&str; 1] = ["cms"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
 /// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel, the object
-/// storage driver, the scheduler, the door onto the machine's own packages and telemetry. See
-/// spec/architecture/host.md, "host never updates itself; keeper updates host",
-/// spec/architecture/meter.md, spec/architecture/objects.md, spec/architecture/cron.md and
-/// spec/architecture/apt.md.
-pub const OWN: [&str; 10] =
-	["host", "keeper", "meter", "caddy", "tunnel", "panel", "objects", "cron", "apt", "telemetry"];
+/// storage and database drivers, the scheduler, the door onto the machine's own packages and
+/// telemetry. See spec/architecture/host.md, "host never updates itself; keeper updates host",
+/// spec/architecture/meter.md, spec/architecture/objects.md, spec/architecture/databases.md,
+/// spec/architecture/cron.md and spec/architecture/apt.md.
+pub const OWN: [&str; 12] = [
+	"host",
+	"keeper",
+	"meter",
+	"caddy",
+	"tunnel",
+	"panel",
+	"objects",
+	"postgres",
+	"clickhouse",
+	"cron",
+	"apt",
+	"telemetry",
+];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -76,6 +91,10 @@ pub struct Manifest {
 	pub data: Option<Data>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub objects: Option<Objects>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub postgres: Option<Database>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub clickhouse: Option<Database>,
 	/// The jobs `cron` calls for it. See spec/architecture/cron.md, "A job is declared by the
 	/// service that does it".
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -86,6 +105,16 @@ impl Manifest {
 	/// The container its object storage runs in, when it declares any.
 	pub fn sidecar(&self) -> Option<String> {
 		self.objects.as_ref().map(|_| sidecar_of(&self.name))
+	}
+
+	/// The drivers it declares, each run beside it as a sidecar.
+	pub fn drivers(&self) -> impl Iterator<Item = Driver> + '_ {
+		Driver::ALL.into_iter().filter(|driver| driver.declared(self))
+	}
+
+	/// The containers its sidecars run in, one per driver it declares.
+	pub fn sidecars(&self) -> Vec<String> {
+		self.drivers().map(|driver| driver.sidecar_of(&self.name)).collect()
 	}
 }
 
@@ -193,6 +222,15 @@ pub struct Data {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Objects {
 	pub buckets: Vec<String>,
+}
+
+/// A database of the app's own, run beside it over `postgres/` or `clickhouse/` in its directory.
+/// See spec/architecture/databases.md, "Declared by the app, run beside it".
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Database {
+	/// Its ceiling, in place of the driver's default.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub memory_mb: Option<u32>,
 }
 
 /// Whether `name` is a bucket S3 itself would take: 3 to 63 lowercase letters, digits, hyphens and
@@ -315,8 +353,10 @@ pub enum Invalid {
 	Bucket(String),
 	#[error("`[objects]` names at least one bucket, each once")]
 	Buckets,
-	#[error("`{0}-objects` is longer than the 63 characters a container's name on a network may be")]
+	#[error("`{0}` is longer than the 63 characters a container's name on a network may be")]
 	SidecarName(String),
+	#[error("`[{0}]` asks for no memory at all, which Docker would read as no ceiling")]
+	SidecarMemory(String),
 	#[error(
 		"schedule `{0}` needs exactly one of `cron` (five fields) or `every` (like `30s`), a path \
 		 from /, and a timeout from 1 to 86400 seconds"
@@ -368,7 +408,11 @@ impl Manifest {
 			return Err(Invalid::NoContainer(self.name.clone()));
 		};
 		match (container.port, &container.socket) {
-			(Some(port), None) if !PORTS.contains(&port) => return Err(Invalid::Port(port)),
+			// A driver's port is its sidecars', each on its own app's network, where no service's
+			// port can meet it: Postgres keeps 5432. See spec/architecture/databases.md.
+			(Some(port), None) if !PORTS.contains(&port) && Driver::named(&self.name).is_none() => {
+				return Err(Invalid::Port(port));
+			}
 			(Some(_), None) => {}
 			(None, Some(socket)) => {
 				let file = !socket.is_empty() && !socket.contains('/') && socket != "." && socket != "..";
@@ -419,7 +463,15 @@ impl Manifest {
 			return Err(Invalid::Limit);
 		}
 		if let Some(objects) = &self.objects {
-			check_objects(&self.name, objects)?;
+			check_objects(objects)?;
+		}
+		for driver in self.drivers() {
+			if !is_label(&driver.sidecar_of(&self.name)) {
+				return Err(Invalid::SidecarName(driver.sidecar_of(&self.name)));
+			}
+			if driver.memory_mb(self) == Some(0) {
+				return Err(Invalid::SidecarMemory(driver.name().into()));
+			}
 		}
 		if !self.schedules.is_empty() {
 			if let Some(bad) = self.schedules.iter().find(|schedule| !sound_schedule(schedule)) {
@@ -444,18 +496,15 @@ fn sound_schedule(schedule: &Schedule) -> bool {
 	clocked && schedule.path.starts_with('/') && TIMEOUTS.contains(&schedule.timeout)
 }
 
-/// Buckets S3 takes, each once, and a sidecar name that resolves on the app's network. See
-/// spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
-fn check_objects(name: &str, objects: &Objects) -> Result<(), Invalid> {
+/// Buckets S3 takes, each once. See spec/architecture/objects.md, "A sidecar per app, over the
+/// app's own directory".
+fn check_objects(objects: &Objects) -> Result<(), Invalid> {
 	if let Some(bucket) = objects.buckets.iter().find(|bucket| !is_bucket(bucket)) {
 		return Err(Invalid::Bucket(bucket.clone()));
 	}
 	let distinct: std::collections::HashSet<&String> = objects.buckets.iter().collect();
 	if objects.buckets.is_empty() || distinct.len() != objects.buckets.len() {
 		return Err(Invalid::Buckets);
-	}
-	if !is_label(&sidecar_of(name)) {
-		return Err(Invalid::SidecarName(name.into()));
 	}
 	Ok(())
 }
@@ -475,7 +524,8 @@ pub fn check_name(name: &str) -> Result<(), Invalid> {
 	if !is_label(name) {
 		return Err(Invalid::Name(name.into()));
 	}
-	if RESERVED.contains(&name) || RESERVED_LABELS.contains(&name) || name.ends_with(SIDECAR_SUFFIX) {
+	let sidecar = Driver::ALL.iter().any(|driver| name.ends_with(driver.suffix()));
+	if RESERVED.contains(&name) || RESERVED_LABELS.contains(&name) || sidecar {
 		return Err(Invalid::Reserved(name.into()));
 	}
 	Ok(())
@@ -736,7 +786,8 @@ mod tests {
 		assert_eq!(declared("\"photos\", \"photos\"").check("geo", "home"), Err(Invalid::Buckets));
 		let mut long = declared("\"photos\"");
 		long.name = "a".repeat(56);
-		assert_eq!(long.check(&"a".repeat(56), "home"), Err(Invalid::SidecarName("a".repeat(56))));
+		let named = Invalid::SidecarName(format!("{}-objects", "a".repeat(56)));
+		assert_eq!(long.check(&"a".repeat(56), "home"), Err(named));
 		long.name = "a".repeat(55);
 		assert_eq!(long.check(&"a".repeat(55), "home"), Ok(()));
 	}
@@ -749,6 +800,47 @@ mod tests {
 		let driver = Manifest::parse(include_str!("../../../apps/objects/service.toml")).unwrap();
 		assert_eq!(driver.check_own("objects", "home"), Ok(()));
 		assert_eq!(driver.check("objects", "home"), Err(Invalid::Reserved("objects".into())));
+	}
+
+	#[test]
+	fn databases_are_declared_each_with_an_optional_ceiling() {
+		let text = format!("{GEO}\n[postgres]\nmemory_mb = 192\n[clickhouse]\n");
+		let manifest = Manifest::parse(&text).unwrap();
+		assert_eq!(manifest.postgres, Some(Database { memory_mb: Some(192) }));
+		assert_eq!(manifest.clickhouse, Some(Database { memory_mb: None }));
+		assert_eq!(manifest.check("geo", "home"), Ok(()));
+		assert_eq!(manifest.sidecars(), ["geo-postgres", "geo-clickhouse"]);
+		assert_eq!(Driver::Postgres.memory_mb(&manifest), Some(192));
+		assert_eq!(Driver::ClickHouse.memory_mb(&manifest), None);
+		// Objects are not declared, so its sidecar is not among them, and the one it names is none.
+		assert_eq!(manifest.sidecar(), None);
+		let geo = Manifest::parse(GEO).unwrap();
+		assert!(geo.sidecars().is_empty() && geo.postgres.is_none() && geo.clickhouse.is_none());
+
+		let unbounded = Manifest::parse(&format!("{GEO}\n[postgres]\nmemory_mb = 0\n")).unwrap();
+		assert_eq!(unbounded.check("geo", "home"), Err(Invalid::SidecarMemory("postgres".into())));
+		let mut long = Manifest::parse(&format!("{GEO}\n[clickhouse]\n")).unwrap();
+		long.name = "a".repeat(53);
+		let named = Invalid::SidecarName(format!("{}-clickhouse", "a".repeat(53)));
+		assert_eq!(long.check(&"a".repeat(53), "home"), Err(named));
+		long.name = "a".repeat(52);
+		assert_eq!(long.check(&"a".repeat(52), "home"), Ok(()));
+	}
+
+	#[test]
+	fn the_database_drivers_and_every_sidecar_of_theirs_are_reserved() {
+		for name in ["postgres", "clickhouse", "geo-postgres", "geo-clickhouse"] {
+			assert_eq!(check_name(name), Err(Invalid::Reserved(name.into())), "{name}");
+		}
+		assert!(check_name("postgres-geo").is_ok());
+		assert!(OWN.contains(&"postgres") && OWN.contains(&"clickhouse"));
+		let driver = Manifest::parse(include_str!("../../../apps/postgres/service.toml")).unwrap();
+		assert_eq!(driver.check_own("postgres", "home"), Ok(()));
+		assert_eq!(driver.check("postgres", "home"), Err(Invalid::Reserved("postgres".into())));
+		// Only a driver keeps a port outside the services' range; an app on 5432 is still refused.
+		let mut geo = Manifest::parse(GEO).unwrap();
+		geo.container.as_mut().unwrap().port = Some(5432);
+		assert_eq!(geo.check("geo", "home"), Err(Invalid::Port(5432)));
 	}
 
 	#[test]

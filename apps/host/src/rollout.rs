@@ -2,12 +2,12 @@
 //! procedure, then record the new version, route it and collect what is no longer needed. See
 //! spec/architecture/host.md.
 
-use crate::environment::Credentials;
+use crate::sidecars::{self, drive};
 use crate::store::{Action, Deployed, Source};
 use crate::{Host, caddy, store};
-use deploy::engine::Sidecar;
 use deploy::manifest::{Invalid, Manifest, OBJECTS};
 use deploy::replace::{self, Beside, replace_beside};
+use deploy::sidecar::Driver;
 use deploy::{Shape, Version, engine};
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -46,10 +46,10 @@ pub enum Error {
 	/// Docker would not load the archive: it is the upload that is wrong, not the node.
 	#[error("the archive did not load: {0}")]
 	Load(engine::Error),
-	#[error("`{0}` declares `[objects]`, and `objects`, the driver, is not deployed on this node")]
-	NoDriver(String),
-	#[error("`objects` is the driver every sidecar runs, and has no container of its own to act on")]
-	Driver,
+	#[error("`{0}` declares `[{1}]`, and `{1}`, the driver, is not deployed on this node")]
+	NoDriver(String, &'static str),
+	#[error("`{0}` is the driver every sidecar runs, and has no container of its own to act on")]
+	Driver(String),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -67,23 +67,27 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
 
-/// The platform's own that host deploys, each in the shape its name gives it; `objects` runs none.
-const TAKEN: [&str; 9] =
-	["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS, "cron", "apt", "telemetry"];
+/// The platform's own that host deploys, each in the shape its name gives it; a driver runs none.
+const TAKEN: [&str; 11] = [
+	"keeper",
+	"meter",
+	"caddy",
+	"tunnel",
+	"panel",
+	OBJECTS,
+	"postgres",
+	"clickhouse",
+	"cron",
+	"apt",
+	"telemetry",
+];
 
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";
 
 /// The platform's own that stand on no network of their own: the meter has none, Caddy and the
-/// tunnel stand on the edge, and the object storage driver runs no container.
-const UNNETWORKED: [&str; 4] = ["meter", "caddy", "tunnel", OBJECTS];
-
-/// The region every sidecar answers as and every app is told. Versity's own default; one node is
-/// one region, and a client insists only that it be named.
-const REGION: &str = "us-east-1";
-
-/// Where a sidecar mounts the app's `objects/`.
-const OBJECTS_TARGET: &str = "/data";
+/// tunnel stand on the edge, and a driver runs no container.
+const UNNETWORKED: [&str; 6] = ["meter", "caddy", "tunnel", OBJECTS, "postgres", "clickhouse"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
@@ -96,8 +100,10 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	let Some(container) = manifest.container.as_ref() else {
 		return Err(deploy::manifest::Invalid::NoContainer(manifest.name.clone()).into());
 	};
-	if manifest.objects.is_some() && host.store.app(OBJECTS)?.is_none() {
-		return Err(Error::NoDriver(manifest.name.clone()));
+	for driver in manifest.drivers() {
+		if host.store.app(driver.name())?.is_none() {
+			return Err(Error::NoDriver(manifest.name.clone(), driver.name()));
+		}
 	}
 	// An app on a socket holds no port.
 	let Some(port) = container.port else { return Ok(()) };
@@ -169,77 +175,8 @@ fn shape_named(
 	})
 }
 
-/// What an app declaring `[objects]` is told beside its credentials, which are in its `secret.env`
-/// already: where its sidecar answers, as what region, and its buckets. See
-/// spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
-fn binding(app: &Manifest, driver: &Manifest) -> Vec<String> {
-	let (Some(objects), Some(sidecar)) = (&app.objects, app.sidecar()) else { return Vec::new() };
-	let port = driver.container.as_ref().and_then(|container| container.port).unwrap_or_default();
-	vec![
-		format!("S3_ENDPOINT=http://{sidecar}:{port}"),
-		format!("S3_REGION={REGION}"),
-		format!("S3_BUCKETS={}", objects.buckets.join(",")),
-	]
-}
-
-/// The sidecar an app declaring `[objects]` runs beside it on the driver's current image: its
-/// `objects/` alone, the app's credentials as its root account, and the driver's port, health and
-/// memory. None for an app that declares none.
-fn sidecar_of(
-	root: &Path,
-	app: &Manifest,
-	driver: &Version,
-	credentials: &Credentials,
-) -> Option<Sidecar> {
-	let objects = app.objects.as_ref()?;
-	let container = driver.manifest.container.as_ref();
-	let port = container.and_then(|container| container.port).unwrap_or_default();
-	let health = container.map_or_else(|| "/".into(), |container| container.health.clone());
-	Some(Sidecar {
-		name: app.sidecar()?,
-		app: app.name.clone(),
-		image: driver.image.clone(),
-		env: vec![
-			format!("ROOT_ACCESS_KEY_ID={}", credentials.access_key_id),
-			format!("ROOT_SECRET_ACCESS_KEY={}", credentials.secret_access_key),
-			format!("VGW_PORT=:{port}"),
-			format!("VGW_REGION={REGION}"),
-			format!("VGW_HEALTH={health}"),
-		],
-		source: root.join("objects"),
-		target: OBJECTS_TARGET.into(),
-		directories: objects.buckets.clone(),
-		port,
-		health,
-		memory_mb: container.and_then(|container| container.memory_mb),
-	})
-}
-
-/// The driver as this node runs it, when it is deployed.
-fn driver(host: &Host) -> Result<Option<Version>, Error> {
-	let driver = host.store.app(OBJECTS)?;
-	Ok(driver.map(|driver| Version { manifest: driver.manifest, image: driver.image }))
-}
-
-/// The sidecar `app` runs on `driver`, its credentials made when it has none yet. Its subvolume is
-/// made first, so the credentials are never written into a plain directory in its place.
-async fn sidecar_for(
-	host: &Host,
-	app: &Manifest,
-	driver: Option<&Version>,
-) -> Result<Option<Sidecar>, Error> {
-	if app.objects.is_none() {
-		return Ok(None);
-	}
-	let driver = driver.ok_or_else(|| Error::NoDriver(app.name.clone()))?;
-	host.volumes.ensure(&app.name).await.map_err(replace::Error::from)?;
-	let root = host.volumes.root(&app.name);
-	let credentials = crate::environment::credentials(&root)?;
-	Ok(sidecar_of(&root, app, driver, &credentials))
-}
-
 /// Every name in `binding` in place of whatever the app's own files said under it.
-fn bound(env: &mut Vec<String>, binding: Vec<String>) {
+pub(crate) fn bound(env: &mut Vec<String>, binding: Vec<String>) {
 	let names: Vec<String> = binding
 		.iter()
 		.filter_map(|line| line.split_once('='))
@@ -250,25 +187,25 @@ fn bound(env: &mut Vec<String>, binding: Vec<String>) {
 }
 
 /// The one step every action that runs a version shares: replace what runs with `next`, restoring
-/// `restore` first, and answer with the snapshot taken before `next` started. The driver has no
-/// container and so no snapshot: running it is moving every sidecar onto it.
+/// `restore` first, and answer with the snapshot taken before `next` started. A driver has no
+/// container and so no snapshot: running it is moving every sidecar of its kind onto it.
 async fn run_version(
 	host: &Host,
 	next: &Version,
 	current: Option<&Version>,
 	restore: Option<&Path>,
 ) -> Result<Option<PathBuf>, Error> {
-	if next.manifest.name == OBJECTS {
-		drive(host, next, current).await?;
+	if let Some(kind) = Driver::named(&next.manifest.name) {
+		drive(host, kind, next, current).await?;
 		return Ok(None);
 	}
 	let mut shape = shape_of(host, &next.manifest.name)?;
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
-	let driver = driver(host)?;
-	let beside_next = sidecar_for(host, &next.manifest, driver.as_ref()).await?;
+	let driver = sidecars::driver(host, Driver::Objects)?;
+	let beside_next = sidecars::sidecars_for(host, &next.manifest).await?;
 	let beside_current = match current {
-		Some(current) => sidecar_for(host, &current.manifest, driver.as_ref()).await?,
-		None => None,
+		Some(current) => sidecars::sidecars_for(host, &current.manifest).await?,
+		None => Vec::new(),
 	};
 	// cron and apt declare no `[objects]`, so binding always no-ops for them; only the shapes that
 	// could carry a sidecar's address need the match at all.
@@ -279,13 +216,13 @@ async fn run_version(
 		| Shape::Edge { env }
 		| Shape::Tunnel { env, .. } = &mut shape
 	{
-		bound(env, binding(&next.manifest, &driver.manifest));
+		bound(env, sidecars::binding(&next.manifest, &driver.manifest));
 	}
 	// The tunnel has no network of its own for host to ask its health on; host stands on the edge.
 	if matches!(shape, Shape::Tunnel { .. }) {
 		host.engine.join(deploy::engine::EDGE_NETWORK, &members[..1], false).await?;
 	}
-	let beside = Beside { next: beside_next.as_ref(), current: beside_current.as_ref() };
+	let beside = Beside { next: &beside_next, current: &beside_current };
 	let snapshot =
 		replace_beside(&host.engine, &host.volumes, &members, &shape, next, current, restore, beside)
 			.await?;
@@ -303,55 +240,6 @@ async fn run_version(
 		eprintln!("host: attaching the new Caddy: {error}");
 	}
 	Ok(Some(snapshot))
-}
-
-/// Run the driver: recreate every app's sidecar on `next`, one app at a time, leaving a held app's
-/// stopped. When one fails, every sidecar already moved goes back to `current`, and the deploy
-/// fails. See spec/architecture/objects.md, "The driver is deployed like an app, and is not one".
-async fn drive(host: &Host, next: &Version, current: Option<&Version>) -> Result<(), Error> {
-	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
-	let apps: Vec<Deployed> =
-		host.store.apps()?.into_iter().filter(|app| app.manifest.objects.is_some()).collect();
-	let mut moved = Vec::new();
-	let mut failure = None;
-	for app in &apps {
-		moved.push(app);
-		let ran = async {
-			host.engine.network(&app.manifest.name, &members).await?;
-			let Some(sidecar) = sidecar_for(host, &app.manifest, Some(next)).await? else {
-				return Ok(());
-			};
-			replace::sidecar(&host.engine, &host.volumes, &sidecar).await?;
-			if app.held {
-				host.engine.stop(&sidecar.name).await?;
-			}
-			Ok::<_, Error>(())
-		}
-		.await;
-		if let Err(error) = ran {
-			failure = Some(error);
-			break;
-		}
-	}
-	let Some(failure) = failure else { return Ok(()) };
-	if let Some(current) = current {
-		for app in moved {
-			let back = async {
-				let Some(sidecar) = sidecar_for(host, &app.manifest, Some(current)).await? else {
-					return Ok(());
-				};
-				replace::sidecar(&host.engine, &host.volumes, &sidecar).await?;
-				if app.held {
-					host.engine.stop(&sidecar.name).await?;
-				}
-				Ok::<_, Error>(())
-			};
-			if let Err(error) = back.await {
-				eprintln!("host: putting {}'s sidecar back: {error}", app.manifest.name);
-			}
-		}
-	}
-	Err(failure)
 }
 
 /// Close event `id` with how `result` went, keeping the snapshot a success took.
@@ -629,8 +517,8 @@ pub async fn rollback(host: &Arc<Host>, name: &str, with_data: bool) -> Result<O
 /// restart ends the hold. The platform's own are restarted and nothing else.
 pub async fn act(host: &Arc<Host>, name: &str, action: Action) -> Result<(), Error> {
 	permitted(name, action)?;
-	if name == OBJECTS {
-		return Err(Error::Driver);
+	if Driver::named(name).is_some() {
+		return Err(Error::Driver(name.into()));
 	}
 	if ON_THE_WAY.contains(&name) {
 		return restart_later(host, name).await;
@@ -639,13 +527,15 @@ pub async fn act(host: &Arc<Host>, name: &str, action: Action) -> Result<(), Err
 	let app = actionable(host, name)?;
 	let source = Source::panel();
 	let id = host.store.record(name, action, &source, Some(&app.image), store::Outcome::Running)?;
-	// The sidecar is up before its app and down after it. See spec/architecture/objects.md.
-	let sidecar = app.manifest.sidecar();
+	// Sidecars are up before their app and down after it. See spec/architecture/objects.md.
+	let sidecars = app.manifest.sidecars();
 	let done = async {
-		match (action, sidecar.as_deref()) {
-			(Action::Start, Some(sidecar)) => host.engine.start(sidecar).await?,
-			(Action::Restart, Some(sidecar)) => host.engine.restart(sidecar).await?,
-			_ => {}
+		for sidecar in &sidecars {
+			match action {
+				Action::Start => host.engine.start(sidecar).await?,
+				Action::Restart => host.engine.restart(sidecar).await?,
+				_ => {}
+			}
 		}
 		match action {
 			Action::Start => host.engine.start(name).await?,
@@ -653,8 +543,10 @@ pub async fn act(host: &Arc<Host>, name: &str, action: Action) -> Result<(), Err
 			Action::Restart => host.engine.restart(name).await?,
 			_ => return Err(Error::NotAnAct),
 		}
-		if let (Action::Stop, Some(sidecar)) = (action, sidecar.as_deref()) {
-			host.engine.stop(sidecar).await?;
+		if action == Action::Stop {
+			for sidecar in &sidecars {
+				host.engine.stop(sidecar).await?;
+			}
 		}
 		Ok(())
 	}
@@ -867,92 +759,12 @@ mod tests {
 		assert!(deployable("tunnel").is_ok());
 		assert!(deployable("panel").is_ok());
 		assert!(deployable("objects").is_ok());
+		assert!(deployable("postgres").is_ok());
+		assert!(deployable("clickhouse").is_ok());
+		assert_eq!(deployable("geo-postgres"), Err(Invalid::Reserved("geo-postgres".into())));
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
 		assert_eq!(deployable("geo-objects"), Err(Invalid::Reserved("geo-objects".into())));
-	}
-
-	fn photos() -> deploy::Manifest {
-		let geo = include_str!("../../geo/service.toml");
-		let text = geo.replace("name = \"geo\"", "name = \"photos\"");
-		deploy::Manifest::parse(&format!("{text}\n[objects]\nbuckets = [\"originals\", \"thumbs\"]\n"))
-			.unwrap()
-	}
-
-	fn driver() -> deploy::Version {
-		let manifest = deploy::Manifest::parse(include_str!("../../objects/service.toml")).unwrap();
-		deploy::Version { manifest, image: "sha256:driver".into() }
-	}
-
-	fn credentials() -> crate::environment::Credentials {
-		crate::environment::Credentials {
-			access_key_id: "AKID".into(),
-			secret_access_key: "SECRET".into(),
-		}
-	}
-
-	#[test]
-	fn an_app_declaring_objects_is_told_where_they_are() {
-		let driver = driver();
-		assert_eq!(
-			super::binding(&photos(), &driver.manifest),
-			[
-				format!("S3_ENDPOINT=http://{}:{}", "photos-objects", 17070),
-				"S3_REGION=us-east-1".into(),
-				"S3_BUCKETS=originals,thumbs".into(),
-			]
-		);
-		let geo = deploy::Manifest::parse(include_str!("../../geo/service.toml")).unwrap();
-		assert!(super::binding(&geo, &driver.manifest).is_empty());
-		// What the app's own files said under a bound name gives way; the rest stays.
-		let mut env = vec!["S3_REGION=mars".into(), "S3_REGIONAL=kept".into(), "LEVEL=debug".into()];
-		super::bound(&mut env, super::binding(&photos(), &driver.manifest));
-		assert_eq!(env[..2], ["S3_REGIONAL=kept", "LEVEL=debug"]);
-		assert_eq!(env.iter().filter(|line| line.starts_with("S3_REGION=")).count(), 1);
-	}
-
-	#[test]
-	fn a_sidecar_mounts_the_apps_objects_alone_with_its_credentials_as_root() {
-		let root = std::path::Path::new("/data/apps/photos");
-		let driver = driver();
-		let sidecar = super::sidecar_of(root, &photos(), &driver, &credentials()).unwrap();
-		assert_eq!(sidecar.name, "photos-objects");
-		assert_eq!(sidecar.app, "photos");
-		assert_eq!(sidecar.image, "sha256:driver");
-		assert_eq!(sidecar.source, root.join("objects"));
-		assert_eq!(sidecar.target, "/data");
-		assert_eq!(sidecar.directories, ["originals", "thumbs"]);
-		let declared = (sidecar.port, sidecar.health.as_str(), sidecar.memory_mb);
-		assert_eq!(declared, (17070, "/health", Some(256)));
-		assert_eq!(
-			sidecar.env,
-			[
-				"ROOT_ACCESS_KEY_ID=AKID",
-				"ROOT_SECRET_ACCESS_KEY=SECRET",
-				"VGW_PORT=:17070",
-				"VGW_REGION=us-east-1",
-				"VGW_HEALTH=/health",
-			]
-		);
-		let geo = deploy::Manifest::parse(include_str!("../../geo/service.toml")).unwrap();
-		assert_eq!(super::sidecar_of(root, &geo, &driver, &credentials()), None);
-
-		// What Docker is asked for: the app's network and no other, one bind mount, sandboxed.
-		let body = sidecar.body();
-		let config = body.host_config.unwrap();
-		assert_eq!(config.network_mode.as_deref(), Some("app-photos"));
-		let endpoints = body.networking_config.unwrap().endpoints_config.unwrap();
-		assert_eq!(endpoints.keys().collect::<Vec<_>>(), ["app-photos"]);
-		let mounts = config.mounts.unwrap();
-		assert_eq!(mounts.len(), 1);
-		assert_eq!(mounts[0].source.as_deref(), Some("/data/apps/photos/objects"));
-		assert_eq!(mounts[0].target.as_deref(), Some("/data"));
-		assert_eq!(config.readonly_rootfs, Some(true));
-		assert_eq!(config.cap_drop, Some(vec!["ALL".to_owned()]));
-		assert_eq!(config.memory, Some(256 * 1024 * 1024));
-		assert_eq!(config.memory_swap, config.memory);
-		assert!(config.port_bindings.is_none() && config.binds.is_none());
-		assert!(config.privileged.is_none());
 	}
 
 	#[test]

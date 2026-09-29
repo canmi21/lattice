@@ -197,13 +197,16 @@ struct Shown {
 	restorable: bool,
 	/// One of the platform's own four, which the panel restarts and never stops.
 	platform: bool,
+	/// A driver, which has no container of its own for the panel to act on.
+	driver: bool,
 }
 
 async fn shown(host: &Host, app: Deployed) -> Shown {
 	let running = host.engine.running(&app.manifest.name).await.unwrap_or(false);
 	let restorable = rollout::restorable(host, &app).ok().flatten().is_some();
 	let platform = rollout::PLATFORM.contains(&app.manifest.name.as_str());
-	Shown { app, running, restorable, platform }
+	let driver = deploy::sidecar::Driver::named(&app.manifest.name).is_some();
+	Shown { app, running, restorable, platform, driver }
 }
 
 /// Every app the store holds, and host itself among them, read from its container.

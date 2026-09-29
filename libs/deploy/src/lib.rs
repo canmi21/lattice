@@ -9,6 +9,7 @@ pub mod github;
 pub mod http;
 pub mod manifest;
 pub mod replace;
+pub mod sidecar;
 pub mod volume;
 
 pub use engine::{Engine, Shape, Version};

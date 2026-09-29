@@ -12,6 +12,7 @@ mod images;
 mod inspect;
 mod node;
 mod rollout;
+mod sidecars;
 mod store;
 mod telemetry;
 

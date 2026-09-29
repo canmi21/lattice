@@ -70,6 +70,8 @@ pub enum Error {
 	Value,
 	#[error("{path}: {source}")]
 	File { path: String, source: std::io::Error },
+	#[error("`{0}` in `secret.env` is not the URL host made, so its password cannot be read from it")]
+	Binding(String),
 }
 
 fn failed(path: &Path) -> impl FnOnce(std::io::Error) -> Error + '_ {
@@ -173,6 +175,29 @@ pub fn credentials(root: &Path) -> Result<Credentials, Error> {
 		access_key_id: kept(ACCESS_KEY_ID, 20, upper)?,
 		secret_access_key: kept(SECRET_ACCESS_KEY, 40, mixed)?,
 	})
+}
+
+/// A database's password, kept inside the URL its app is handed under `variable` in `secret.env`:
+/// read back out of what is there, after `prefix`, or made with the URL `url` builds around it when
+/// nothing is. See spec/architecture/databases.md, "Declared by the app, run beside it".
+pub fn database_password(
+	root: &Path,
+	variable: &str,
+	prefix: &str,
+	url: impl FnOnce(&str) -> String,
+) -> Result<String, Error> {
+	let secrets = read(&Kind::Secret.file(root))?;
+	if let Some(kept) = secrets.get(variable).filter(|value| !value.is_empty()) {
+		let password = kept.strip_prefix(prefix).and_then(|rest| rest.split_once('@'));
+		return match password {
+			Some((password, _)) if !password.is_empty() => Ok(password.to_owned()),
+			_ => Err(Error::Binding(variable.into())),
+		};
+	}
+	let alphabet = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	let password = random(32, alphabet)?;
+	set(root, Kind::Secret, variable, Some(&url(&password)))?;
+	Ok(password)
 }
 
 /// `length` characters of `alphabet` from the kernel's randomness, each byte past the largest
@@ -295,6 +320,25 @@ mod tests {
 		let again = credentials(root.path()).unwrap();
 		assert_eq!(again.access_key_id, made.access_key_id);
 		assert_ne!(again.secret_access_key, made.secret_access_key);
+	}
+
+	#[test]
+	fn a_database_url_is_made_once_and_its_password_read_back() {
+		let root = tempfile::tempdir().unwrap();
+		let prefix = "postgresql://umami:";
+		let url = |password: &str| format!("{prefix}{password}@umami-postgres:5432/umami");
+		let made = database_password(root.path(), "DATABASE_URL", prefix, url).unwrap();
+		assert_eq!(made.len(), 32);
+		assert!(made.bytes().all(|b| b.is_ascii_alphanumeric()));
+		let kept = &read(&Kind::Secret.file(root.path())).unwrap()["DATABASE_URL"];
+		assert_eq!(kept, &url(&made));
+		// A redeploy is given the same password, and never writes the URL again.
+		let unasked = |_: &str| -> String { panic!("the URL is kept") };
+		assert_eq!(database_password(root.path(), "DATABASE_URL", prefix, unasked).unwrap(), made);
+		// One changed by hand past reading is refused rather than written over.
+		set(root.path(), Kind::Secret, "DATABASE_URL", Some("postgresql://elsewhere")).unwrap();
+		let refused = database_password(root.path(), "DATABASE_URL", prefix, unasked);
+		assert!(matches!(refused, Err(Error::Binding(_))));
 	}
 
 	#[test]
