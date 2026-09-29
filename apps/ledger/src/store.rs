@@ -131,7 +131,6 @@ impl Store {
 				PRIMARY KEY (service, id)
 			) WITHOUT ROWID;
 			CREATE INDEX IF NOT EXISTS tasks_updated_at ON tasks (updated_at, id);
-			CREATE INDEX IF NOT EXISTS tasks_parent ON tasks (parent_service, parent_id, updated_at, id);
 			CREATE TABLE IF NOT EXISTS events (
 				service TEXT NOT NULL,
 				task TEXT NOT NULL,
@@ -149,6 +148,12 @@ impl Store {
 		// columns already exist, on a fresh table made above) is not an error.
 		let _ = connection.execute("ALTER TABLE tasks ADD COLUMN parent_service TEXT", []);
 		let _ = connection.execute("ALTER TABLE tasks ADD COLUMN parent_id TEXT", []);
+		// After the ALTERs above, which an older table (from before parents existed) needs before
+		// the columns can be indexed.
+		connection.execute(
+			"CREATE INDEX IF NOT EXISTS tasks_parent ON tasks (parent_service, parent_id, updated_at, id)",
+			[],
+		)?;
 		let _ = connection.execute("ALTER TABLE tasks ADD COLUMN asked_at INTEGER", []);
 		// A row from before `asked_at` existed gets it NULL from the ALTER above and would be
 		// missing from GET /counts forever; backfilled from the record's own `asked_at`, in seconds
@@ -753,5 +758,229 @@ mod tests {
 		let counts = store.counts(1).unwrap();
 		let total: i64 = counts.iter().map(|row| row.count).sum();
 		assert_eq!(total, 1);
+	}
+
+	/// A database as an older commit's `Store::open` left it, with tasks as its `upsert` wrote
+	/// them, so today's `Store::open` meets every ALTER, backfill and index on the shape it exists
+	/// for -- a fresh database never does. Add an entry the next time the schema changes; never
+	/// replace one.
+	struct HistoricalSchema {
+		/// The commit this schema is frozen from, named in every failure so a mismatch is easy to
+		/// place.
+		name: &'static str,
+		build: fn(&Path),
+		verify: fn(&Store),
+	}
+
+	const HISTORICAL_SCHEMAS: &[HistoricalSchema] = &[
+		HistoricalSchema {
+			name: "5c055b24e8d9 (the ledger's first schema)",
+			build: build_schema_v1,
+			verify: verify_schema_v1,
+		},
+		HistoricalSchema {
+			name: "bea017eed3cd (events and parent added, before asked_at)",
+			build: build_schema_v2,
+			verify: verify_schema_v2,
+		},
+	];
+
+	fn timestamp_nanos(at: &str) -> i64 {
+		at.parse::<Timestamp>().unwrap().as_nanosecond() as i64
+	}
+
+	/// The flat JSON an old `Stored` or `StoredTask` wrote: `Record`'s own fields plus
+	/// `updated_at`, both flattened to the top level, and `parent` alongside them only from the
+	/// schema where `Task` existed to carry it -- the same shape serves every historical fixture.
+	fn old_record_json(
+		id: &str,
+		state: &str,
+		asked_at: &str,
+		parent: Option<(&str, &str)>,
+	) -> String {
+		let mut value = serde_json::json!({
+			"service": "shot",
+			"id": id,
+			"kind": "capture",
+			"state": state,
+			"caller": "public",
+			"asked_at": asked_at,
+			"summary": {},
+			"updated_at": asked_at,
+		});
+		if let Some((service, task_id)) = parent {
+			value["parent"] = serde_json::json!({ "service": service, "id": task_id });
+		}
+		value.to_string()
+	}
+
+	/// The oldest schema this crate ever wrote: one `tasks` table, no `events`, no
+	/// `parent_service`, `parent_id` or `asked_at` columns, and a bare `Record` (no `Task`
+	/// wrapper) as the stored JSON. From 5c055b24e8d9, "feat: add the ledger, one record of every
+	/// task any service is asked to do".
+	fn build_schema_v1(path: &Path) {
+		let connection = Connection::open(path).unwrap();
+		connection
+			.execute_batch(
+				"CREATE TABLE tasks (
+					service TEXT NOT NULL,
+					id TEXT NOT NULL,
+					kind TEXT NOT NULL,
+					state TEXT NOT NULL,
+					caller TEXT NOT NULL,
+					updated_at INTEGER NOT NULL,
+					finished_at INTEGER,
+					record TEXT NOT NULL,
+					PRIMARY KEY (service, id)
+				) WITHOUT ROWID;
+				CREATE INDEX tasks_updated_at ON tasks (updated_at, id);",
+			)
+			.unwrap();
+		for (id, state) in [("a", "done"), ("b", "failed")] {
+			let asked_at = Timestamp::now().to_string();
+			connection
+				.execute(
+					"INSERT INTO tasks (service, id, kind, state, caller, updated_at, finished_at, record)
+					VALUES ('shot', ?1, 'capture', ?2, 'public', ?3, NULL, ?4)",
+					params![
+						id,
+						state,
+						timestamp_nanos(&asked_at),
+						old_record_json(id, state, &asked_at, None)
+					],
+				)
+				.unwrap();
+		}
+	}
+
+	fn verify_schema_v1(store: &Store) {
+		let a = store.get("shot", "a").unwrap().expect("row a survives");
+		assert_eq!(a.task.record.state, State::Done);
+		assert!(a.task.parent.is_none());
+		let b = store.get("shot", "b").unwrap().expect("row b survives");
+		assert_eq!(b.task.record.state, State::Failed);
+
+		let counts = store.counts(24).unwrap();
+		let total: i64 = counts
+			.iter()
+			.filter(|row| row.service == "shot" && (row.state == "done" || row.state == "failed"))
+			.map(|row| row.count)
+			.sum();
+		assert_eq!(total, 2, "both rows are backfilled into asked_at and so counted");
+	}
+
+	/// The schema after events and `parent` landed but before `asked_at`: `parent_service` and
+	/// `parent_id` columns exist, `events` exists, and the stored JSON is a `Task` (`Record`
+	/// flattened with an optional `parent`). From bea017eed3cd, "feat: record a task's events in
+	/// order in the ledger, and tie tasks to their parent".
+	fn build_schema_v2(path: &Path) {
+		let connection = Connection::open(path).unwrap();
+		connection
+			.execute_batch(
+				"CREATE TABLE tasks (
+					service TEXT NOT NULL,
+					id TEXT NOT NULL,
+					kind TEXT NOT NULL,
+					state TEXT NOT NULL,
+					caller TEXT NOT NULL,
+					updated_at INTEGER NOT NULL,
+					finished_at INTEGER,
+					parent_service TEXT,
+					parent_id TEXT,
+					record TEXT NOT NULL,
+					PRIMARY KEY (service, id)
+				) WITHOUT ROWID;
+				CREATE INDEX tasks_updated_at ON tasks (updated_at, id);
+				CREATE INDEX tasks_parent ON tasks (parent_service, parent_id, updated_at, id);
+				CREATE TABLE events (
+					service TEXT NOT NULL,
+					task TEXT NOT NULL,
+					seq INTEGER NOT NULL,
+					at INTEGER NOT NULL,
+					stage TEXT NOT NULL,
+					level TEXT NOT NULL,
+					message TEXT NOT NULL,
+					data TEXT NOT NULL,
+					PRIMARY KEY (service, task, seq)
+				) WITHOUT ROWID;",
+			)
+			.unwrap();
+		let asked_at = Timestamp::now().to_string();
+		connection
+			.execute(
+				"INSERT INTO tasks
+					(service, id, kind, state, caller, updated_at, finished_at, parent_service, parent_id, record)
+				VALUES ('shot', 'c', 'capture', 'running', 'public', ?1, NULL, 'shot', 'a', ?2)",
+				params![
+					timestamp_nanos(&asked_at),
+					old_record_json("c", "running", &asked_at, Some(("shot", "a")))
+				],
+			)
+			.unwrap();
+		connection
+			.execute(
+				"INSERT INTO events (service, task, seq, at, stage, level, message, data)
+				VALUES ('shot', 'c', 1, ?1, 'resolving', 'info', 'starting', 'null')",
+				params![timestamp_nanos(&asked_at)],
+			)
+			.unwrap();
+	}
+
+	fn verify_schema_v2(store: &Store) {
+		let view = store.view("shot", "c").unwrap().expect("row c survives");
+		assert_eq!(view.task.task.record.state, State::Running);
+		assert_eq!(
+			view.task.task.parent,
+			Some(ledger::Parent { service: "shot".into(), id: "a".into() })
+		);
+		assert_eq!(view.events.len(), 1);
+		assert_eq!(view.events[0].stage, "resolving");
+
+		let counts = store.counts(24).unwrap();
+		let total: i64 = counts
+			.iter()
+			.filter(|row| row.service == "shot" && row.state == "running")
+			.map(|row| row.count)
+			.sum();
+		assert_eq!(total, 1, "the pre-asked_at row is backfilled and counted too");
+	}
+
+	/// The index a query plan can actually use is not the same fact as a row in `sqlite_master`
+	/// existing under that name, but a name collision with a non-index object is not a failure
+	/// mode this crate's own migrations can hit, so the cheaper check is the one worth writing.
+	fn index_exists(store: &Store, name: &str) -> bool {
+		store
+			.connection
+			.query_row(
+				"SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?1",
+				params![name],
+				|_| Ok(()),
+			)
+			.optional()
+			.unwrap()
+			.is_some()
+	}
+
+	#[test]
+	fn every_historical_schema_opens_backfills_and_reopens_cleanly() {
+		for schema in HISTORICAL_SCHEMAS {
+			let directory = tempfile::tempdir().unwrap();
+			let path = directory.path().join("ledger.db");
+			(schema.build)(&path);
+
+			let store = Store::open(&path)
+				.unwrap_or_else(|error| panic!("{}: failed to open: {error}", schema.name));
+			assert!(index_exists(&store, "tasks_asked_at"), "{}: tasks_asked_at exists", schema.name);
+			assert!(index_exists(&store, "tasks_parent"), "{}: tasks_parent exists", schema.name);
+			(schema.verify)(&store);
+			drop(store);
+
+			// The ALTERs are guarded by SQLite's own "column already exists" error and the
+			// backfill by `WHERE asked_at IS NULL`, so a second open must be as harmless as the
+			// first.
+			let reopened = Store::open(&path)
+				.unwrap_or_else(|error| panic!("{}: failed to reopen: {error}", schema.name));
+			(schema.verify)(&reopened);
+		}
 	}
 }
