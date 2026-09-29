@@ -13,11 +13,11 @@ nothing waits on it:
 **One question a route**: whether a capture was taken, how it stands, whether its picture is there.
 Each tells its own and nothing of the others'.
 
-| Request                                                       | Answer                                                                                      |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after }` and `Location: tasks/<id>`: its state, nothing more |
-| `GET /shot/tasks/<id>`                                        | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done   |
-| `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said         |
+| Request                                                       | Answer                                                                                            |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after }` and `Location: status?task=<id>`: its state, nothing more |
+| `GET /shot/status?task=<id>`                                  | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done         |
+| `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said               |
 
 - **The id is said once, in the body; where to ask is the `Location` header's**, never a second
   field repeating the id.
@@ -73,7 +73,9 @@ Each tells its own and nothing of the others'.
   `<shot>` is the scope's public address in `libs/urls`, never written into the code, so an answer
   read anywhere -- saved, pasted, passed on -- still reaches the picture. It is the public one
   whichever door the task was asked through, since the pictures are the same behind both.
-  `Location: tasks/<id>` stays relative, which an HTTP client resolves against the address asked.
+  `Location: status?task=<id>` stays relative, which an HTTP client resolves against the address
+  asked. A `status` asked without a `task`, or with one that is not an id, is `404 no_such_task`,
+  as an id never made is.
 - **An id is a random UUID**, so a picture cannot be found by guessing what somebody else asked
   for. The same parameters while a capture of them is kept get the same id, and are not captured
   twice.
@@ -135,10 +137,10 @@ on".
 
 **Nothing held in memory is a picture.** Each capture is written beside its id in the service's
 directory, through a temporary file and a rename: its pictures, and what its task says -- the
-record `tasks/<id>` answers with -- as `<id>.json`. The directory is kept across restarts.
+record `status?task=<id>` answers with -- as `<id>.json`. The directory is kept across restarts.
 
 **The store holds four gigabytes, and the oldest capture goes when a new one would pass it.** A
-capture's pictures and its record leave together; until then `tasks/<id>` and `pictures/<id>.png`
+capture's pictures and its record leave together; until then `status?task=<id>` and `pictures/<id>.png`
 answer for it however long ago it was made. A failure keeps its record alone.
 
 **The same page asked again within thirty minutes is the capture already made**; after that it is
@@ -208,3 +210,9 @@ the browser at once. A browser that has died is started again for the next captu
   Sans for Latin, Sans CJK for Chinese and Japanese -- and no emoji.
 - The image's root is read-only and its `/tmp` small, so `HOME` and `TMPDIR` point inside the
   service's directory, where the browser keeps its profile, cache and shared memory.
+
+## Open
+
+- **A picture is served at its id, to whoever holds it, for as long as it is kept.** What it lacks is
+  a place that issues a temporary file -- an address signed for a while and then refused -- which
+  `pictures/<id>.png` would give way to. Until one exists the route stays as it is.

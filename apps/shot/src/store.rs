@@ -152,7 +152,7 @@ impl Store {
 		self.put(self.path(id, format.extension()), bytes).await
 	}
 
-	/// What `tasks/<id>` answers with, kept beside the pictures.
+	/// What `status?task=<id>` answers with, kept beside the pictures.
 	pub async fn write_record(&self, id: Uuid, bytes: &[u8]) -> std::io::Result<()> {
 		self.put(self.path(id, "json"), bytes).await
 	}

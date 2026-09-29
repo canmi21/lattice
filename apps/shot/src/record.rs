@@ -1,5 +1,5 @@
-//! What `tasks/<id>` answers with once a capture is settled: built once, answered from memory while
-//! the queue remembers it, and kept on disk as `<id>.json` for after. See
+//! What `status?task=<id>` answers with once a capture is settled: built once, answered from
+//! memory while the queue remembers it, and kept on disk as `<id>.json` for after. See
 //! spec/architecture/shot.md, "What an answer tells" and "Kept on disk, four gigabytes, oldest
 //! first".
 
