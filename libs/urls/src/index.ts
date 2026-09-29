@@ -108,6 +108,9 @@ const INTERNAL = {
 	cron: `${API.private}/cron`,
 	shot: `${API.public}/shot`,
 	api: API,
+	// The status page's doors: the one address, and Vercel's own name for it, reached while
+	// Cloudflare's DNS is not. See spec/architecture/probe.md, "The page: one app, three doors".
+	status: { canonical: 'https://status.canmi.app', mirror: 'https://canmi.vercel.app' },
 } as const;
 
 export const URLS = {
