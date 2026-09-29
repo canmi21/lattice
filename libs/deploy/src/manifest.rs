@@ -11,9 +11,10 @@ pub const VERSION: u32 = 1;
 
 /// Names taken by the platform itself: its programs, the meter that watches the machine, the API
 /// host and the Worker answering it, the object storage driver, the scheduler that calls every
-/// job and the door onto the machine's own packages, and the containers an app's name would
-/// collide with. See spec/architecture/cron.md and spec/architecture/apt.md.
-const RESERVED: [&str; 12] = [
+/// job, the door onto the machine's own packages and the public telemetry, and the containers an
+/// app's name would collide with. See spec/architecture/cron.md, spec/architecture/apt.md and
+/// spec/architecture/telemetry.md.
+const RESERVED: [&str; 13] = [
 	"host",
 	"keeper",
 	"meter",
@@ -26,6 +27,7 @@ const RESERVED: [&str; 12] = [
 	"objects",
 	"cron",
 	"apt",
+	"telemetry",
 ];
 
 /// What an app's object storage sidecar is named after it, so no app may end its own name so. See
@@ -43,12 +45,12 @@ const RESERVED_LABELS: [&str; 1] = ["cms"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
 /// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel, the object
-/// storage driver, the scheduler and the door onto the machine's own packages. See
+/// storage driver, the scheduler, the door onto the machine's own packages and telemetry. See
 /// spec/architecture/host.md, "host never updates itself; keeper updates host",
 /// spec/architecture/meter.md, spec/architecture/objects.md, spec/architecture/cron.md and
 /// spec/architecture/apt.md.
-pub const OWN: [&str; 9] =
-	["host", "keeper", "meter", "caddy", "tunnel", "panel", "objects", "cron", "apt"];
+pub const OWN: [&str; 10] =
+	["host", "keeper", "meter", "caddy", "tunnel", "panel", "objects", "cron", "apt", "telemetry"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is

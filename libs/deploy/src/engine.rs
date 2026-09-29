@@ -72,6 +72,10 @@ pub enum Shape {
 	/// machine's D-Bus system bus socket bound at the same path. See spec/architecture/apt.md,
 	/// "The door".
 	Steward { env: Vec<String> },
+	/// `telemetry` only: sandboxed like any app, on its own network, plus the meter's data
+	/// directory, `meter`, bound read-only at `socket_mount("meter")`. See
+	/// spec/architecture/telemetry.md, "Where it comes from".
+	Reporter { env: Vec<String>, meter: PathBuf },
 }
 
 impl Shape {
@@ -165,6 +169,16 @@ fn scheduler_mounts(own: Option<Mount>, sockets: &[(String, PathBuf)]) -> Vec<Mo
 				.iter()
 				.map(|(service, source)| bind(source.display().to_string(), socket_mount(service), false)),
 		)
+		.collect()
+}
+
+/// The reporter shape's mounts: the app's own directory, if declared, plus the meter's data
+/// directory at `/sockets/meter`, read-only -- telemetry asks and never changes. See
+/// spec/architecture/telemetry.md, "Where it comes from".
+fn reporter_mounts(own: Option<Mount>, meter: &Path) -> Vec<Mount> {
+	own
+		.into_iter()
+		.chain(std::iter::once(bind(meter.display().to_string(), socket_mount("meter"), true)))
 		.collect()
 }
 
@@ -588,6 +602,7 @@ impl Engine {
 			}
 			Shape::Scheduler { env, sockets } => (sandboxed(scheduler_mounts(own, sockets)), env.clone()),
 			Shape::Steward { env } => (sandboxed(steward_mounts(own)), env.clone()),
+			Shape::Reporter { env, meter } => (sandboxed(reporter_mounts(own, meter)), env.clone()),
 			Shape::Platform { env } => {
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
@@ -1087,5 +1102,20 @@ mod tests {
 		assert_eq!(mounts[0].read_only, Some(false));
 		let own = Some(bind("/data/apps/apt/data".into(), "/state".into(), false));
 		assert_eq!(steward_mounts(own).len(), 2);
+	}
+
+	#[test]
+	fn the_reporter_shape_mounts_the_meters_directory_read_only() {
+		let own = Some(bind("/data/apps/telemetry/data".into(), "/data".into(), false));
+		let mounts = reporter_mounts(own, Path::new("/data/apps/meter/data"));
+		assert_eq!(mounts.len(), 2);
+		assert_eq!(
+			(mounts[1].source.as_deref(), mounts[1].target.as_deref()),
+			(Some("/data/apps/meter/data"), Some("/sockets/meter"))
+		);
+		assert_eq!(mounts[1].read_only, Some(true));
+		assert_eq!(reporter_mounts(None, Path::new("/m")).len(), 1);
+		let shape = Shape::Reporter { env: vec![], meter: "/m".into() };
+		assert!(shape.networked());
 	}
 }

@@ -68,7 +68,8 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it; `objects` runs none.
-const TAKEN: [&str; 8] = ["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS, "cron", "apt"];
+const TAKEN: [&str; 9] =
+	["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS, "cron", "apt", "telemetry"];
 
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";
@@ -112,8 +113,9 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 
 /// How the node runs an app: keeper in the platform's shape, the meter as an observer, Caddy on the
 /// edge, the tunnel at the address Caddy trusts, `cron` as the scheduler with every socket-served
-/// service it schedules mounted in, `apt` as the steward, and every other app sandboxed. All but
-/// keeper read their own environment.
+/// service it schedules mounted in, `apt` as the steward, `telemetry` as the reporter with the
+/// meter's directory mounted in, and every other app sandboxed. All but keeper read their own
+/// environment.
 fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	if name == "keeper" {
 		let path = &host.config.platform_env;
@@ -122,21 +124,47 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 		return Ok(Shape::Platform { env });
 	}
 	let env = crate::environment::variables(&host.volumes.root(name))?;
-	Ok(match name {
-		"meter" => Shape::Observer { env },
-		"caddy" => Shape::Edge { env },
-		"tunnel" => Shape::Tunnel { env, address: host.config.caddy.tunnel_source.clone() },
-		"cron" => {
-			let sockets = crate::cron::socket_services(&host.store.apps()?)
+	let sockets = || {
+		Ok(
+			crate::cron::socket_services(&host.store.apps()?)
 				.into_iter()
 				.map(|service| {
 					let directory = host.volumes.data(&service);
 					(service, directory)
 				})
-				.collect();
-			Shape::Scheduler { env, sockets }
-		}
+				.collect(),
+		)
+	};
+	let placed = Placed {
+		tunnel: &host.config.caddy.tunnel_source,
+		meter: host.volumes.data(crate::node::METER),
+	};
+	shape_named(name, env, placed, sockets)
+}
+
+/// What a shape is given from the node beside its environment.
+struct Placed<'a> {
+	/// The one address Caddy believes a visitor's address from.
+	tunnel: &'a str,
+	/// The meter's data directory, which the reporter shape mounts.
+	meter: PathBuf,
+}
+
+/// `shape_of` for every name but keeper's, apart from the host it reads: the choice by name alone.
+/// `sockets` is asked only for `cron`, since it reads the store.
+fn shape_named(
+	name: &str,
+	env: Vec<String>,
+	placed: Placed<'_>,
+	sockets: impl FnOnce() -> Result<Vec<(String, PathBuf)>, Error>,
+) -> Result<Shape, Error> {
+	Ok(match name {
+		crate::node::METER => Shape::Observer { env },
+		"caddy" => Shape::Edge { env },
+		"tunnel" => Shape::Tunnel { env, address: placed.tunnel.to_owned() },
+		crate::cron::NAME => Shape::Scheduler { env, sockets: sockets()? },
 		"apt" => Shape::Steward { env },
+		crate::telemetry::NAME => Shape::Reporter { env, meter: placed.meter },
 		_ => Shape::Sandboxed { env },
 	})
 }
@@ -345,7 +373,18 @@ async fn settle(host: &Arc<Host>, name: String, image: String) -> Result<Outcome
 	let routed = route(host).await.map_err(|error| error.to_string());
 	collect(host).await?;
 	tell_cron(host).await;
+	tell_telemetry(host).await;
 	Ok(Outcome { name, image, routed })
+}
+
+/// Write telemetry's `services.json` from the state as it now is: at start, and after a deploy, a
+/// redeploy, a rollback, a stop or a start. Logged and skipped rather than failing the caller, as
+/// `tell_cron` is. See spec/architecture/telemetry.md, "`services.json`, what host tells".
+pub async fn tell_telemetry(host: &Host) {
+	let directory = host.volumes.data(crate::telemetry::NAME);
+	if let Err(error) = crate::telemetry::write(&host.store, &directory).await {
+		eprintln!("host: writing telemetry's services: {error}");
+	}
 }
 
 /// Write `cron`'s schedule table from the state as it now is: what a deploy, a redeploy or a
@@ -630,6 +669,7 @@ pub async fn act(host: &Arc<Host>, name: &str, action: Action) -> Result<(), Err
 	host.store.finish(id, outcome, None, detail.as_deref())?;
 	done?;
 	host.store.hold(name, action == Action::Stop)?;
+	tell_telemetry(host).await;
 	Ok(())
 }
 
@@ -913,5 +953,25 @@ mod tests {
 		assert_eq!(config.memory_swap, config.memory);
 		assert!(config.port_bindings.is_none() && config.binds.is_none());
 		assert!(config.privileged.is_none());
+	}
+
+	#[test]
+	fn telemetry_is_the_reporter_with_the_meters_directory() {
+		use super::{Placed, shape_named};
+		use deploy::Shape;
+		use std::path::PathBuf;
+		let placed = || Placed { tunnel: "172.30.0.2", meter: PathBuf::from("/data/apps/meter/data") };
+		let unasked = || -> Result<Vec<(String, PathBuf)>, super::Error> {
+			panic!("only cron's shape reads the store")
+		};
+		let shape = shape_named("telemetry", vec!["A=1".into()], placed(), unasked).unwrap();
+		let Shape::Reporter { env, meter } = shape else { panic!("{shape:?}") };
+		assert_eq!((env, meter), (vec!["A=1".to_owned()], PathBuf::from("/data/apps/meter/data")));
+		let geo = shape_named("geo", vec![], placed(), unasked).unwrap();
+		assert!(matches!(geo, Shape::Sandboxed { .. }));
+		let meter = shape_named("meter", vec![], placed(), unasked).unwrap();
+		assert!(matches!(meter, Shape::Observer { .. }));
+		let cron = shape_named("cron", vec![], placed(), || Ok(vec![])).unwrap();
+		assert!(matches!(cron, Shape::Scheduler { .. }));
 	}
 }

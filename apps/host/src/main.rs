@@ -13,6 +13,7 @@ mod inspect;
 mod node;
 mod rollout;
 mod store;
+mod telemetry;
 
 use std::sync::Arc;
 
@@ -73,13 +74,14 @@ async fn main() -> anyhow::Result<()> {
 		Err(error) => eprintln!("host: Caddy was not updated: {error}"),
 	}
 	rollout::tell_cron(&host).await;
+	rollout::tell_telemetry(&host).await;
 
 	tokio::spawn(images::run(host.clone()));
 
 	let telling = host.clone();
 	tokio::spawn(async move {
 		loop {
-			let directory = telling.volumes.data("meter");
+			let directory = telling.volumes.data(node::METER);
 			if let Err(error) = node::tell(&telling.engine, &directory).await {
 				eprintln!("host: telling the meter which container is which: {error}");
 			}

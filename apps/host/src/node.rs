@@ -6,6 +6,9 @@ use axum::http::{StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use std::path::Path;
 
+/// The meter's own name, whose data directory holds its socket and what host tells it.
+pub const METER: &str = "meter";
+
 /// The file the meter reads which container is which from, in its directory; the same name as
 /// `NAMES` in the meter. See spec/architecture/meter.md, "Each container".
 pub const NAMES: &str = "containers.json";
