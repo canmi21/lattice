@@ -18,7 +18,9 @@ writing the operating system's configuration. Their timers are gone: when they r
 ## The door
 
 **`apt` answers on a Unix socket, `apt.sock` in its directory, and on no port**: only what the
-socket is mounted into can ask, which is `cron` alone, so it needs no token.
+socket is mounted into can ask, which is `cron` alone, so it needs no token. The socket is made
+writable by anyone, since `apt` runs as root and `cron` does not: the mount is the door, not the
+file's mode.
 
 | Route                | Answer                                                                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |

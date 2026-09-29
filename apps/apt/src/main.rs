@@ -26,6 +26,9 @@ async fn main() -> anyhow::Result<()> {
 	let socket = directory.join(SOCKET);
 	let _ = std::fs::remove_file(&socket);
 	let listener = tokio::net::UnixListener::bind(&socket)?;
+	// Made by root, it would refuse `cron`, which runs as nobody; the mount is the door. See
+	// spec/architecture/apt.md, "The door".
+	std::fs::set_permissions(&socket, std::os::unix::fs::PermissionsExt::from_mode(0o666))?;
 	eprintln!("apt: answering on {}", socket.display());
 	axum::serve(listener, api::routes(state)).with_graceful_shutdown(stopped()).await?;
 
