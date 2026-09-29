@@ -82,3 +82,11 @@ deliberately `fetchpriority="low"`, and the two reporting addresses are not cont
 reader already has the page. The lookup is the part that is slow on a cold cache and it is the
 part worth buying; the handshake would compete with the article for the one thing a first paint
 is short of.
+
+## Open
+
+- **OpenPanel is self-hosted once a VPS runs on x86** (or on an ARM core past ARMv8.2), and not on
+  the node: its events live in ClickHouse, whose arm64 build needs ARMv8.2, and the node's RK3576
+  -- Cortex-A72 and A53 -- is ARMv8.0. ClickHouse's ARMv8.0 build ships as a binary with no image,
+  and an image of our own making would be ours to keep in step with every release. Until then the
+  site reports to OpenPanel's cloud.
