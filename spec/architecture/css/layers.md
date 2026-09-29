@@ -865,4 +865,6 @@ correcting them is work this file records rather than work it does.
 the workspace.** StyleX gathers every rule an app's routes use into the one sheet it loads first;
 compiled per app, that sheet is one app's routes and no more. What the apps share lives in
 `libs/tokens` as `defineConsts`, which a build inlines where it is read, so a library's names cost
-an app only the rules it writes with them.
+an app only the rules it writes with them. **`surfaces.ts` is not that**: it is a `stylex.create`,
+and importing one key compiles every key, so an app other than the site builds its own recipes
+from the consts rather than importing the site's.
