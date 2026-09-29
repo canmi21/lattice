@@ -22,5 +22,6 @@ COPY --from=build /src/apps/panel/package.json ./
 COPY --from=build /src/apps/panel/build ./build
 # The image's own `node` user, by number, so host runs it as that and nothing more.
 USER 1000:1000
-ENV PORT=26519 HOST=0.0.0.0 NODE_ENV=production
+# An app's image is uploaded through here, hundreds of megabytes; the adapter's own cap is 512 KB.
+ENV PORT=26519 HOST=0.0.0.0 NODE_ENV=production BODY_SIZE_LIMIT=Infinity
 CMD ["node", "build"]

@@ -52,7 +52,8 @@ function upload(name: string, declaration: string, archive: string, token: strin
 			'\n%{http_code}',
 			address,
 		],
-		{ input: `authorization: Bearer ${token}\n`, encoding: 'utf8' },
+		// The panel is SvelteKit, which refuses a form POST from no origin of its own.
+		{ input: `authorization: Bearer ${token}\norigin: ${receiver}\n`, encoding: 'utf8' },
 	);
 	const lines = `${sent.stdout}`.trimEnd().split('\n');
 	const status = Number(lines.pop());
