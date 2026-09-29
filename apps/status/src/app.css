@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@canmi/tokens/colors.css';
+@import '@canmi/theme/palettes/mono.css';
 @import '@canmi/tokens/interaction.css';
 @source '.';
 

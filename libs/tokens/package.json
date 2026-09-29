@@ -3,7 +3,6 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		"./colors.css": "./src/colors.css",
 		"./interaction.css": "./src/interaction.css",
 		"./player.css": "./src/player.css",
 		"./surfaces": "./src/surfaces.ts",

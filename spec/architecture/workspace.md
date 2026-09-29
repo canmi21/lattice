@@ -71,7 +71,7 @@ to this file is not one anybody would remember. Nothing in that directory is han
 whether `mise run fonts` produced it or it arrived in a prebuilt web package, so the glob is the
 honest shape and a list would be a maintenance obligation bought for nothing.
 
-**Every other stylesheet stays counted.** `libs/tokens/src/colors.css`, `apps/site/src/styles/`
+**Every other stylesheet stays counted.** `libs/theme/src/palettes/`, `apps/site/src/styles/`
 and the rest are decisions somebody made and should weigh what they weigh. The mark is for
 output, not for files that are merely long.
 

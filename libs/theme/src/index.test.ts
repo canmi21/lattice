@@ -3,9 +3,11 @@ import { inlineScriptString } from './inline-script';
 import {
 	applyTheme,
 	currentTheme,
+	fillTheme,
 	followSystemTheme,
 	observeTheme,
 	themeCookie,
+	themeOf,
 	themeScript,
 	type Theme,
 } from './index';
@@ -32,6 +34,41 @@ describe('themeScript', () => {
 		expect(attributes).not.toBe('');
 		expect(themeCookie('dark')).toBe(`theme=dark${attributes}`);
 		expect(themeCookie('light')).toBe(`theme=light${attributes}`);
+	});
+});
+
+/** A cookie jar holding at most a `theme` cookie. */
+function jar(value?: string) {
+	return { get: (name: string) => (name === 'theme' ? value : undefined) };
+}
+
+describe('themeOf', () => {
+	it('reads dark only from a dark cookie', () => {
+		expect(themeOf(jar('dark'))).toBe('dark');
+		expect(themeOf(jar('light'))).toBe('light');
+	});
+
+	it('renders light when the cookie is missing or unrecognized', () => {
+		// A first visit, and anything the script would not have written.
+		expect(themeOf(jar())).toBe('light');
+		expect(themeOf(jar('nord'))).toBe('light');
+	});
+});
+
+describe('fillTheme', () => {
+	const page = '<html class="%theme.class%"><script>%theme.script%</script></html>';
+
+	it('classes a dark render and leaves a light one bare', () => {
+		expect(fillTheme(page, 'dark')).toBe(
+			`<html class="dark"><script>${themeScript}</script></html>`,
+		);
+		expect(fillTheme(page, 'light')).toBe(`<html class=""><script>${themeScript}</script></html>`);
+	});
+
+	it('fills only the script when the render does not know the theme', () => {
+		expect(fillTheme(page)).toBe(
+			`<html class="%theme.class%"><script>${themeScript}</script></html>`,
+		);
 	});
 });
 

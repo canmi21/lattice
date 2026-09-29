@@ -401,7 +401,7 @@ visual layer would have to state does not resolve at all.
 [link-card.svelte](../../libs/prose/src/blocks/link-card.svelte) writes its title and its corner
 arrow in `text-black` or `text-white` according to the tone the block declares. Measured across the
 markup, those two elements are the only users of either utility on the site, and neither colour is
-in [`libs/tokens`](../../libs/tokens/src/colors.css): they are Tailwind's own `--color-black` and
+in [`@canmi/theme`](../../libs/theme/src/palettes/concrete.css): they are Tailwind's own `--color-black` and
 `--color-white`.
 
 [architecture/css/authoring.md](../architecture/css/authoring.md) says a colour is read as the variable the token layer

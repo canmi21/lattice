@@ -16,6 +16,25 @@ const COOKIE_ATTRIBUTES = ';path=/;max-age=31536000;SameSite=Lax';
 
 export const themeScript = `(function(){var mm=document.cookie.match(/\\btheme=(light|dark)\\b/);var pm=document.cookie.match(/\\bpalette=(nord|contrast)\\b/);var m=mm?mm[1]:window.matchMedia(${inlineScriptString(SYSTEM_DARK_QUERY)}).matches?"dark":"light";var h=document.documentElement;if(m==="dark")h.classList.add("dark");if(pm)h.classList.add(pm[1]);if(!mm)document.cookie="theme="+m+${inlineScriptString(COOKIE_ATTRIBUTES)}})()`;
 
+/**
+ * The theme a request asks for, read the way the server reads it: `dark` only when the cookie
+ * says so. A first visit has no cookie and renders light; the script above corrects it before
+ * the first frame.
+ */
+export function themeOf(cookies: { get(name: string): string | undefined }): Theme {
+	return cookies.get('theme') === 'dark' ? 'dark' : 'light';
+}
+
+/**
+ * Fill an `app.html`'s theme placeholders: `%theme.script%` always, and `%theme.class%` when the
+ * render knows the theme. A render shared between readers passes none -- see
+ * spec/styling/palettes.md, "Light and dark are one cookie, read the same way everywhere".
+ */
+export function fillTheme(html: string, theme?: Theme): string {
+	const classed = theme ? html.replace('%theme.class%', theme === 'dark' ? 'dark' : '') : html;
+	return classed.replace('%theme.script%', themeScript);
+}
+
 /** The cookie a control writes when the reader picks a theme. */
 export function themeCookie(theme: Theme): string {
 	return `theme=${theme}${COOKIE_ATTRIBUTES}`;

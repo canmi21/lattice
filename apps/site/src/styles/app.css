@@ -10,7 +10,7 @@
    to buy a new position in the cascade". */
 @layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
-@import '@canmi/tokens/colors.css';
+@import '@canmi/theme/palettes/concrete.css';
 @import '@canmi/tokens/player.css';
 @import '@canmi/primitives/style.css';
 @import '@canmi/prose/rail.css';

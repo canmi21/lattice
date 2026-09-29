@@ -8,7 +8,7 @@ entitled to say each decision here, and what happens where two of them say the s
 
 ## The player brings its own colours, because it cannot know what is behind them
 
-Every colour in `colors.css` is a page colour: it has a light value and a dark one because it is
+Every colour in a palette is a page colour: it has a light value and a dark one because it is
 read against the page, and the reader picks which. A player's controls are read against a _video
 frame_ -- a surface this site does not choose, cannot know, and which changes twenty-four times a
 second. A control tinted for a light page disappears over a bright sky; one tinted for a dark page

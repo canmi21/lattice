@@ -1,5 +1,5 @@
 import { building, dev } from '$app/environment';
-import { themeScript } from '@canmi/theme';
+import { fillTheme, themeOf } from '@canmi/theme';
 import { URLS } from '@canmi/urls';
 import { handleErrorWithSentry, initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
 import type { Handle, RequestEvent } from '@sveltejs/kit';
@@ -139,18 +139,16 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 	}
 	// Settled once and used twice: the class the document is painted from, and the value a control
 	// renders from. A control that read the class back would be deriving what is already known.
-	const theme = event.cookies.get('theme') === 'dark' ? 'dark' : 'light';
+	const theme = themeOf(event.cookies);
 	event.locals.theme = theme;
 	const response = await resolve(event, {
 		transformPageChunk: ({ html }) =>
 			hoistCharset(
-				html
+				fillTheme(html, theme)
 					.replace('%language.tag%', event.locals.locale?.language_tag ?? 'en-US')
 					// The internal code for the client-side Paraglide strategy. The rendered
 					// document is the authoritative result of the worker's full negotiation.
 					.replace('%language.code%', event.locals.locale?.code ?? 'mw')
-					.replace('%theme.class%', theme === 'dark' ? 'dark' : '')
-					.replace('%theme.script%', themeScript)
 					.replace('%article.hash.script%', isPage ? articleHashScript : '')
 					.replace('%video.ground.script%', videoGroundScript)
 					.replace('%measured.ground.script%', measuredGroundScript)
