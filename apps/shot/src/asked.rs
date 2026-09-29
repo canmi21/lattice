@@ -54,6 +54,8 @@ pub struct Query {
 	pub height: Option<String>,
 	pub full: Option<String>,
 	pub internal: Option<String>,
+	/// Whether to capture anew rather than answer a kept capture; only ours may send it.
+	pub fresh: Option<String>,
 	pub timeout: Option<String>,
 	pub delay: Option<String>,
 	pub insecure: Option<String>,
@@ -86,6 +88,7 @@ impl Query {
 				"height" => &mut query.height,
 				"full" => &mut query.full,
 				"internal" => &mut query.internal,
+				"fresh" => &mut query.fresh,
 				"timeout" => &mut query.timeout,
 				"delay" => &mut query.delay,
 				"insecure" => &mut query.insecure,
@@ -118,6 +121,7 @@ impl Query {
 			height: number(viewport.height),
 			full: flag(viewport.full),
 			internal: flag(access.internal),
+			fresh: flag(access.fresh),
 			timeout: text(timing.timeout),
 			delay: text(timing.delay),
 			insecure: flag(access.insecure),
@@ -172,6 +176,7 @@ pub struct Timing {
 pub struct Access {
 	pub insecure: Option<bool>,
 	pub internal: Option<bool>,
+	pub fresh: Option<bool>,
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
@@ -307,6 +312,13 @@ fn page(query: &Query) -> Result<Url, Refused> {
 	}
 	url.set_fragment(given(&query.hash, '#').as_deref());
 	Ok(url)
+}
+
+/// Whether `fresh=true` was asked and honored: read the same as `internal`, ignored on a request
+/// the gateway marked, and left out of `Asked` since it is not part of what makes two asks one.
+/// See spec/architecture/shot.md, "`fresh=true` captures anew even so".
+pub fn fresh(query: &Query, public: bool) -> bool {
+	!public && yes(query.fresh.as_deref())
 }
 
 impl Asked {
@@ -464,16 +476,18 @@ mod tests {
 					"query": { "z": "last", "tag": ["a", "b"] }, "hash": "top" },
 				"viewport": { "width": 390, "full": true },
 				"timing": { "timeout": 2.5, "delay": 0.1 },
-				"access": { "insecure": true, "internal": true },
+				"access": { "insecure": true, "internal": true, "fresh": true },
 				"browser": { "javascript": false }
 			}"#,
 		)
 		.unwrap();
-		let asked = Asked::read(&Query::from_body(body), false).unwrap();
+		let query = Query::from_body(body);
+		let asked = Asked::read(&query, false).unwrap();
 		// Written in the order it was given, not sorted.
 		assert_eq!(asked.url.as_str(), "http://x.test:8080/docs?z=last&tag=a&tag=b#top");
 		assert_eq!((asked.width, asked.full, asked.timeout, asked.delay), (390, true, 2_500, 100));
 		assert!(asked.internal && !asked.insecure && !asked.javascript);
+		assert!(fresh(&query, false) && !fresh(&query, true));
 		let public =
 			serde_json::from_str::<Body>(r#"{"target":{"host":"x.test"},"access":{"internal":true}}"#)
 				.unwrap();
@@ -493,6 +507,13 @@ mod tests {
 	fn the_public_never_reaches_inside() {
 		let asked = Asked::read(&query(&[("host", "x.test"), ("internal", "true")]), true).unwrap();
 		assert!(!asked.internal);
+	}
+
+	#[test]
+	fn fresh_is_read_like_internal_and_ignored_on_the_public() {
+		assert!(fresh(&query(&[("host", "x.test"), ("fresh", "true")]), false));
+		assert!(!fresh(&query(&[("host", "x.test"), ("fresh", "true")]), true));
+		assert!(!fresh(&query(&[("host", "x.test")]), false));
 	}
 
 	#[test]

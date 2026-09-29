@@ -74,23 +74,32 @@ async fn capture_post<R: Render>(
 	}
 }
 
+fn refused(reason: Refused) -> Response {
+	let code = match reason {
+		Refused::Url => "invalid_url",
+		Refused::Viewport => "invalid_viewport",
+		Refused::Timing => "invalid_timing",
+	};
+	settled(response::failure(StatusCode::BAD_REQUEST, code))
+}
+
 fn capture<R: Render>(
 	shot: &Shot<R>,
 	headers: &HeaderMap,
 	query: Result<Query, Refused>,
 ) -> Response {
 	let lane = lane(headers);
-	let asked = match query.and_then(|query| Asked::read(&query, lane == Lane::Public)) {
-		Ok(asked) => asked,
-		Err(Refused::Url) => return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_url")),
-		Err(Refused::Viewport) => {
-			return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_viewport"));
-		}
-		Err(Refused::Timing) => {
-			return settled(response::failure(StatusCode::BAD_REQUEST, "invalid_timing"));
-		}
+	let public = lane == Lane::Public;
+	let query = match query {
+		Ok(query) => query,
+		Err(reason) => return refused(reason),
 	};
-	match shot.ask(asked, lane) {
+	let asked = match Asked::read(&query, public) {
+		Ok(asked) => asked,
+		Err(reason) => return refused(reason),
+	};
+	let fresh = crate::asked::fresh(&query, public);
+	match shot.ask(asked, lane, fresh) {
 		Err(Full) => {
 			let mut answer = response::failure(StatusCode::SERVICE_UNAVAILABLE, "queue_unavailable");
 			answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from_static("30"));
@@ -328,6 +337,34 @@ mod tests {
 	}
 
 	#[tokio::test]
+	async fn fresh_captures_anew_and_only_ours_may_ask_it() {
+		let (_root, shot, router) = service();
+		let old = capture(&router, "/capture?host=example.test").await;
+		drain(&shot).await;
+
+		// The public may not ask fresh: ignored, so the kept capture answers as it would anyway.
+		let public = ask(&router, "/capture?host=example.test&fresh=true", true).await;
+		assert_eq!(public.json()["data"]["id"], old);
+
+		// Ours does: a new id, queued rather than the kept capture.
+		let fresh = ask(&router, "/capture?host=example.test&fresh=true", false).await;
+		let new_id = fresh.json()["data"]["id"].as_str().unwrap().to_owned();
+		assert_ne!(new_id, old);
+		assert_eq!(fresh.json()["data"]["state"], "queued");
+
+		// The next plain ask of the same parameters, from anyone, is answered with the fresh id.
+		assert_eq!(ask(&router, "/capture?host=example.test", true).await.json()["data"]["id"], new_id);
+
+		drain(&shot).await;
+		// The one fresh passed over stays readable by its own id.
+		let kept = ask(&router, &format!("/status?task={old}"), false).await;
+		assert_eq!(kept.status, StatusCode::OK);
+		assert_eq!(kept.json()["data"]["request"]["fresh"], false);
+		let made = ask(&router, &format!("/status?task={new_id}"), false).await;
+		assert_eq!(made.json()["data"]["request"]["fresh"], true);
+	}
+
+	#[tokio::test]
 	async fn a_whole_page_may_have_no_webp() {
 		let (_root, shot, router) = service();
 		let id = ask(&router, "/capture?host=tall.test&full=true", false).await.json()["data"]["id"]
@@ -497,6 +534,18 @@ mod tests {
 		}
 		let whole = ask(&router, "/capture?host=x.test&query=a%3D1", false).await;
 		assert_eq!(whole.json()["code"], "invalid_url");
+	}
+
+	#[tokio::test]
+	async fn a_post_asks_fresh_as_access_fresh() {
+		let (_root, shot, router) = service();
+		let old = capture(&router, "/capture?host=example.test").await;
+		drain(&shot).await;
+		let posted =
+			post(&router, r#"{"target":{"host":"example.test"},"access":{"fresh":true}}"#).await;
+		let new_id = posted.json()["data"]["id"].as_str().unwrap().to_owned();
+		assert_ne!(new_id, old);
+		assert_eq!(capture(&router, "/capture?host=example.test").await, new_id);
 	}
 
 	#[test]

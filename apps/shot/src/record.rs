@@ -33,6 +33,8 @@ fn story(details: &Details) -> (Value, Value) {
 		"insecure": asked.insecure,
 		"internal": asked.internal,
 		"javascript": asked.javascript,
+		// Not part of `Asked`, so not part of what makes two asks one; told all the same.
+		"fresh": details.fresh,
 	});
 	(task, request)
 }

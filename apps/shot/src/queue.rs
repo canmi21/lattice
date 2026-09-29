@@ -71,6 +71,9 @@ struct Job {
 	asked_at: jiff::Timestamp,
 	started_at: Option<jiff::Timestamp>,
 	finished_at: Option<jiff::Timestamp>,
+	/// Whether this capture was made by a `fresh` ask rather than a plain one. Not part of `Asked`,
+	/// since it is not part of what makes two asks one; told alongside the rest of the story.
+	fresh: bool,
 }
 
 /// A capture's own story, told alongside its state: what was asked, and when each thing happened.
@@ -81,6 +84,7 @@ pub struct Details {
 	pub asked_at: jiff::Timestamp,
 	pub started_at: Option<jiff::Timestamp>,
 	pub finished_at: Option<jiff::Timestamp>,
+	pub fresh: bool,
 }
 
 /// A capture as a caller is told about it.
@@ -138,12 +142,15 @@ impl Queue {
 	/// Take an ask: the capture it already is, or a new one in `lane`. A failed one is tried again,
 	/// since the page may be back; one of ours asked for what the public is waiting on moves it up.
 	pub fn ask(&mut self, asked: Asked, lane: Lane) -> Result<Uuid, Full> {
-		self.enter(asked, lane).map(|entered| entered.id)
+		self.enter(asked, lane, false).map(|entered| entered.id)
 	}
 
-	/// `ask`, saying whether the ask queued anything.
-	pub fn enter(&mut self, asked: Asked, lane: Lane) -> Result<Entered, Full> {
-		if let Some(&id) = self.by_asked.get(&asked) {
+	/// `ask`, saying whether the ask queued anything. `fresh` skips the capture already kept for
+	/// `asked` and makes a new one, whose id the next plain ask of the same parameters is answered
+	/// with; the one it passed over is untouched, readable by its own id until its window or the
+	/// store's takes it. See spec/architecture/shot.md, "`fresh=true` captures anew even so".
+	pub fn enter(&mut self, asked: Asked, lane: Lane, fresh: bool) -> Result<Entered, Full> {
+		if !fresh && let Some(&id) = self.by_asked.get(&asked) {
 			let job = self.jobs.get_mut(&id).expect("an ask names a job it holds");
 			match job.state {
 				State::Queued if lane == Lane::Ours && job.lane == Lane::Public => {
@@ -181,6 +188,7 @@ impl Queue {
 			asked_at: jiff::Timestamp::now(),
 			started_at: None,
 			finished_at: None,
+			fresh,
 		};
 		self.jobs.insert(id, job);
 		self.waiting[lane.index()].push_back(id);
@@ -235,6 +243,7 @@ impl Queue {
 			asked_at: job.asked_at,
 			started_at: job.started_at,
 			finished_at: job.finished_at,
+			fresh: job.fresh,
 		})
 	}
 
@@ -413,9 +422,34 @@ mod tests {
 		let id = queue.ask(asked("f"), Lane::Public).unwrap();
 		queue.take();
 		queue.finish(id, Err("timed out".into()), Duration::from_secs(20), jiff::Timestamp::now());
-		assert_eq!(queue.enter(asked("f"), Lane::Public), Ok(Entered { id, queued: true }));
-		assert_eq!(queue.enter(asked("f"), Lane::Public), Ok(Entered { id, queued: false }));
+		assert_eq!(queue.enter(asked("f"), Lane::Public, false), Ok(Entered { id, queued: true }));
+		assert_eq!(queue.enter(asked("f"), Lane::Public, false), Ok(Entered { id, queued: false }));
 		assert!(matches!(queue.view(id), Some(View::Waiting { rendering: false, .. })));
 		assert_eq!(queue.take().map(|(next, _)| next), Some(id));
+	}
+
+	#[test]
+	fn fresh_makes_a_new_id_and_the_index_points_at_it() {
+		let mut queue = Queue::new(2);
+		let old = queue.ask(asked("f"), Lane::Ours).unwrap();
+		queue.take();
+		queue.finish(old, Ok(made()), Duration::from_secs(1), jiff::Timestamp::now());
+
+		let entered = queue.enter(asked("f"), Lane::Ours, true).unwrap();
+		assert!(entered.queued && entered.id != old);
+		// The kept capture is not what a fresh ask answers with.
+		assert!(matches!(queue.view(entered.id), Some(View::Waiting { rendering: false, .. })));
+		// The next plain ask of the same parameters is answered with the fresh id.
+		assert_eq!(queue.ask(asked("f"), Lane::Ours), Ok(entered.id));
+		// The one it passed over stays readable by its own id.
+		assert_eq!(queue.view(old), Some(View::Done { made: made() }));
+	}
+
+	#[test]
+	fn fresh_on_a_first_ask_still_queues_one_capture() {
+		let mut queue = Queue::new(2);
+		let entered = queue.enter(asked("f"), Lane::Ours, true).unwrap();
+		assert!(entered.queued);
+		assert_eq!(queue.ask(asked("f"), Lane::Ours), Ok(entered.id));
 	}
 }

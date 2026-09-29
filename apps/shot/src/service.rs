@@ -50,8 +50,8 @@ impl<R: Render> Shot<R> {
 	}
 
 	/// Take an ask, telling the ledger of what it queued and waking a renderer for it.
-	pub fn ask(&self, asked: Asked, lane: Lane) -> Result<Uuid, Full> {
-		let entered = self.queue().enter(asked, lane)?;
+	pub fn ask(&self, asked: Asked, lane: Lane, fresh: bool) -> Result<Uuid, Full> {
+		let entered = self.queue().enter(asked, lane, fresh)?;
 		if entered.queued {
 			self.tell(entered.id);
 			if let Some(events) = self.events(entered.id) {
@@ -317,7 +317,7 @@ mod tests {
 			timeout: 15_000,
 			delay: 210,
 		};
-		let id = shot.ask(asked, Lane::Public).unwrap();
+		let id = shot.ask(asked, Lane::Public, false).unwrap();
 		let queued = shot.record(id).unwrap();
 		assert_eq!((queued.state, queued.caller), (ledger::State::Queued, ledger::Caller::Public));
 		assert_eq!((queued.service.as_str(), queued.kind.as_str()), ("shot", "capture"));
