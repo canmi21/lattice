@@ -73,7 +73,7 @@
 		up: { backgroundColor: 'var(--color-green)' },
 		down: { backgroundColor: 'var(--color-red)' },
 		quiet: { backgroundColor: 'var(--color-border-strong)' },
-		segment: { borderRadius: '1px' }, // unnamed
+		bar: { borderRadius: radius.full },
 		partial: { backgroundColor: 'var(--color-red)', opacity: 0.45 },
 		none: { backgroundColor: 'var(--color-border)' },
 	});
@@ -109,7 +109,16 @@
 	import Bell from '@lucide/svelte/icons/bell';
 	import MessageCircleWarning from '@lucide/svelte/icons/message-circle-warning';
 	import { onMount, untrack } from 'svelte';
-	import { byKind, key, overallOf, segmentsOf, stateOf, uptimeOf } from '$lib/board';
+	import {
+		byKind,
+		daysOf,
+		key,
+		overallOf,
+		segmentsOf,
+		stateOf,
+		todayOf,
+		uptimeOf,
+	} from '$lib/board';
 	import { Live } from '$lib/live.svelte';
 	import { ago, percent } from '$lib/time';
 	import type { PageProps } from './$types';
@@ -185,7 +194,7 @@
 	</div>
 </header>
 
-<div class="flex flex-col gap-10">
+<div class="flex flex-col gap-12">
 	{#each groups as [kind, checks] (kind)}
 		<section>
 			<h2 class="mb-3 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
@@ -193,8 +202,9 @@
 				{#each checks as check (key(check.id, check.place))}
 					{@const latest = live.nowByKey.get(key(check.id, check.place))}
 					{@const state = stateOf(latest, live.clock)}
-					{@const segments = segmentsOf(live.historyOf(check), live.clock)}
-					{@const uptime = uptimeOf(segments)}
+					{@const recent = segmentsOf(live.historyOf(check), live.clock)}
+					{@const days = daysOf([], todayOf(recent, live.clock), live.clock)}
+					{@const uptime = uptimeOf(days)}
 					<li class="px-5 py-4 {stylex.attrs(styles.row).class}">
 						<div class="flex items-center justify-between gap-4">
 							<div class="flex min-w-0 items-center gap-2.5">
@@ -202,23 +212,21 @@
 								<span class="truncate {stylex.attrs(styles.name).class}">{check.id}</span>
 							</div>
 							<span class="shrink-0 {stylex.attrs(styles.figure).class}">
-								{latest ? `${latest.durationMs} ms` : '--'}
+								{uptime === null ? 'No data' : percent(uptime)}
 							</span>
 						</div>
-						<div class="mt-3 flex h-6 gap-[2px]">
-							{#each segments as segment (segment.start)}
-								<span class="flex-1 {stylex.attrs(styles.segment, fill(segment.state)).class}"
-								></span>
+						<div class="mt-3 flex h-8 items-stretch gap-[3px]">
+							{#each days as day (day.start)}
+								<span class="min-w-0 flex-1 {stylex.attrs(styles.bar, fill(day.state)).class}"></span>
 							{/each}
-						</div>
-						<div class="mt-2 flex justify-between {stylex.attrs(styles.figure).class}">
-							<span>24 hours ago</span>
-							<span>{uptime === null ? 'No data' : `${percent(uptime)} uptime`}</span>
-							<span>Now</span>
 						</div>
 					</li>
 				{/each}
 			</ul>
+			<div class="mt-2 flex justify-between px-5 {stylex.attrs(styles.figure).class}">
+				<span>90 days ago</span>
+				<span>Today</span>
+			</div>
 		</section>
 	{/each}
 </div>

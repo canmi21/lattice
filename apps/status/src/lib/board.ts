@@ -210,3 +210,45 @@ export function byKind(checks: readonly StatusCheckRow[]): [string, StatusCheckR
 	}
 	return [...groups].filter(([, group]) => group.length > 0);
 }
+
+/** How many days a check's bar covers, one bar a day, oldest first. */
+export const DAYS = 90;
+const DAY_MS = 24 * 60 * MINUTE;
+
+/** A day's counts, keyed by the UTC midnight it starts at. */
+export interface DayCounts {
+	day: number;
+	passed: number;
+	failed: number;
+}
+
+/**
+ * The last `DAYS` UTC days, oldest first: past days from `days`, today from `today` -- the 24-hour
+ * history already holds all of it -- and a day with neither empty.
+ */
+export function daysOf(
+	days: readonly DayCounts[],
+	today: { passed: number; failed: number },
+	clock: number,
+): Segment[] {
+	const midnight = Math.floor(clock / DAY_MS) * DAY_MS;
+	const byDay = new Map(days.map((row) => [row.day, row]));
+	return Array.from({ length: DAYS }, (_, index) => {
+		const day = midnight - (DAYS - 1 - index) * DAY_MS;
+		const { passed, failed } = day === midnight ? today : (byDay.get(day) ?? { passed: 0, failed: 0 });
+		return { start: day, passed, failed, state: segmentState(passed, failed) };
+	});
+}
+
+/** What the 24-hour segments hold since today's UTC midnight. */
+export function todayOf(segments: readonly Segment[], clock: number): { passed: number; failed: number } {
+	const midnight = Math.floor(clock / DAY_MS) * DAY_MS;
+	let passed = 0;
+	let failed = 0;
+	for (const segment of segments) {
+		if (segment.start < midnight) continue;
+		passed += segment.passed;
+		failed += segment.failed;
+	}
+	return { passed, failed };
+}
