@@ -79,6 +79,23 @@
 		return state === 'up' ? styles.up : state === 'down' ? styles.down : styles.quiet;
 	}
 
+	/**
+	 * How many days a row shows at each width: bars keep their size, and the board steps its width
+	 * with the count. `shown` shows a figure for its span only.
+	 */
+	const SPANS = [
+		{ days: 30, shown: 'md:hidden' },
+		{ days: 60, shown: 'hidden md:inline min-[67.5rem]:hidden' },
+		{ days: 90, shown: 'hidden min-[67.5rem]:inline' },
+	] as const;
+
+	/** A bar's visibility by its index among the ninety, oldest first. */
+	function barShown(index: number): string {
+		if (index < 30) return 'hidden min-[67.5rem]:block';
+		if (index < 60) return 'hidden md:block';
+		return '';
+	}
+
 	const KIND_NAMES: Record<string, string> = {
 		health: 'Services',
 		api: 'APIs',
@@ -177,33 +194,37 @@
 	</div>
 </header>
 
-<div class="flex flex-col gap-12">
+<div class="mx-auto flex w-[300px] flex-col gap-12 md:w-[697px] min-[67.5rem]:w-[1027px]">
 	{#each groups as [kind, checks] (kind)}
 		<section>
 			<h2 class="mb-4 px-1 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
-			<ul class="px-6 py-2 {stylex.attrs(styles.card).class}">
+			<ul class="px-4 py-2 md:px-5 {stylex.attrs(styles.card).class}">
 				{#each checks as check (key(check.id, check.place))}
 					{@const latest = live.nowByKey.get(key(check.id, check.place))}
 					{@const state = stateOf(latest, live.clock)}
 					{@const recent = segmentsOf(live.historyOf(check), live.clock)}
 					{@const days = daysOf(live.dailyOf(check), todayOf(recent, live.clock), live.clock)}
-					{@const uptime = uptimeOf(days)}
+					{@const shown = SPANS.map((span) => uptimeOf(days.slice(-span.days)))}
 					<li class="py-5 {stylex.attrs(styles.row).class}">
 						<div class="flex items-center justify-between gap-4">
 							<div class="flex min-w-0 items-center gap-2.5">
 								<span class="size-2 shrink-0 rounded-full {stylex.attrs(dot(state)).class}"></span>
 								<span class="truncate {stylex.attrs(styles.name).class}">{check.name}</span>
 							</div>
-							<span class="shrink-0 {stylex.attrs(styles.figure).class}">
-								{uptime === null ? 'No data' : percent(uptime)}
-							</span>
+							{#each SPANS as span, index (span.days)}
+								<span class="shrink-0 {span.shown} {stylex.attrs(styles.figure).class}">
+									{shown[index] === null ? 'No data' : percent(shown[index]!)}
+								</span>
+							{/each}
 						</div>
-						<div class="mt-3 flex h-8 items-stretch gap-[3px]">
-							{#each days as day (day.start)}
+						<div class="mt-3 flex h-8 items-stretch justify-end gap-[2px] md:gap-[3px]">
+							{#each days as day, index (day.start)}
 								{@const color = dayColor(day, check.intervalSeconds)}
 								<span
-									class="min-w-0 flex-1 {stylex.attrs(styles.bar, color === null && styles.none)
-										.class}"
+									class="w-[7px] shrink-0 md:w-2 {barShown(index)} {stylex.attrs(
+										styles.bar,
+										color === null && styles.none,
+									).class}"
 									style:background-color={color}
 								></span>
 							{/each}
@@ -211,8 +232,10 @@
 					</li>
 				{/each}
 			</ul>
-			<div class="mt-3 flex justify-between px-6 {stylex.attrs(styles.figure).class}">
-				<span>90 days ago</span>
+			<div class="mt-3 flex justify-between px-4 md:px-5 {stylex.attrs(styles.figure).class}">
+				{#each SPANS as span (span.days)}
+					<span class={span.shown}>{span.days} days ago</span>
+				{/each}
 				<span>Today</span>
 			</div>
 		</section>

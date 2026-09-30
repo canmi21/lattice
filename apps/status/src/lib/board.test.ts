@@ -123,7 +123,12 @@ describe('daysOf', () => {
 });
 
 describe('dayColor', () => {
-	const day = (passed: number, failed: number) => ({ start: 0, passed, failed, state: 'up' as const });
+	const day = (passed: number, failed: number) => ({
+		start: 0,
+		passed,
+		failed,
+		state: 'up' as const,
+	});
 	it('is green with no downtime, and nothing for a day with no rounds', () => {
 		expect(dayColor(day(100, 0), 5)).toBe('var(--color-green)');
 		expect(dayColor(day(0, 0), 5)).toBeNull();
