@@ -123,8 +123,8 @@
 </script>
 
 <script lang="ts">
-	import Bell from '@lucide/svelte/icons/bell';
-	import MessageCircleWarning from '@lucide/svelte/icons/message-circle-warning';
+	import Bell from 'phosphor-svelte/lib/Bell';
+	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
 	import { onMount, untrack } from 'svelte';
 	import {
 		byKind,
@@ -206,7 +206,7 @@
 				styles.primary,
 			).class}"
 		>
-			<MessageCircleWarning size={18} aria-hidden="true" />
+			<WarningCircle size={18} weight="bold" aria-hidden="true" />
 			Report a problem
 		</button>
 		<button
@@ -216,7 +216,7 @@
 				styles.secondary,
 			).class}"
 		>
-			<Bell size={18} aria-hidden="true" />
+			<Bell size={18} weight="bold" aria-hidden="true" />
 			Subscribe
 		</button>
 	</div>

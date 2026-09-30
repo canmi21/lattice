@@ -871,6 +871,9 @@ importers:
       motion:
         specifier: ^13.2.0
         version: 13.4.0
+      phosphor-svelte:
+        specifier: ^3.1.0
+        version: 3.1.0(svelte@5.57.1)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
       svelte:
         specifier: ^5.57.1
         version: 5.57.1
