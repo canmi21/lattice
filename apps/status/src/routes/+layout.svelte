@@ -31,6 +31,20 @@
 			letterSpacing: '-0.03em', // unnamed
 			color: 'var(--color-text-soft)',
 		},
+		toggle: {
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+			},
+			backgroundColor: {
+				default: 'transparent',
+				'@media (hover: hover)': {
+					default: null,
+					':hover': 'color-mix(in oklch, var(--color-text) 6%, transparent)',
+				},
+			},
+			borderRadius: radius.full,
+		},
 		button: {
 			fontSize: text.px14,
 			fontWeight: 510, // unnamed
@@ -55,6 +69,9 @@
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import Globe from '@lucide/svelte/icons/globe';
+	import Moon from '@lucide/svelte/icons/moon';
+	import Sun from '@lucide/svelte/icons/sun';
+	import { applyTheme, currentTheme, themeCookie } from '@canmi/theme';
 	import type { Snippet } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
@@ -64,6 +81,12 @@
 	const project = projectUrl();
 
 	let { children }: { children: Snippet } = $props();
+
+	function toggleTheme() {
+		const next = currentTheme() === 'dark' ? 'light' : 'dark';
+		applyTheme(next);
+		document.cookie = themeCookie(next);
+	}
 
 	/** Whether the page has scrolled, read off a zero-height sentinel above the nav; false in SSR. */
 	let scrolled = $state(false);
@@ -165,15 +188,28 @@
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
 			<span class={stylex.attrs(styles.byline).class}>by Canmi</span>
 		</a>
-		<a
-			href={URLS.apps.production.site}
-			class="focus-ring inline-flex h-8 items-center gap-1.5 py-1.5 pr-3 pl-2.5 {stylex.attrs(
-				styles.button,
-			).class}"
-		>
-			<Globe size={16} aria-hidden="true" />
-			Site
-		</a>
+		<div class="flex items-center gap-2">
+			<button
+				type="button"
+				onclick={toggleTheme}
+				aria-label="Switch between light and dark"
+				class="focus-ring inline-flex size-8 items-center justify-center {stylex.attrs(
+					styles.toggle,
+				).class}"
+			>
+				<Moon size={16} aria-hidden="true" class="dark:hidden" />
+				<Sun size={16} aria-hidden="true" class="hidden dark:block" />
+			</button>
+			<a
+				href={URLS.apps.production.site}
+				class="focus-ring inline-flex h-8 items-center gap-1.5 py-1.5 pr-3 pl-2.5 {stylex.attrs(
+					styles.button,
+				).class}"
+			>
+				<Globe size={16} aria-hidden="true" />
+				Site
+			</a>
+		</div>
 	</div>
 </nav>
 
