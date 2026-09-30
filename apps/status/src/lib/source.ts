@@ -39,6 +39,11 @@ function project(): { url: string; key: string } {
 	return { url: url.replace(/\/$/, ''), key };
 }
 
+/** The project's address for a page to reach early, or nothing where it is not configured. */
+export function projectUrl(): string | undefined {
+	return env.PUBLIC_SUPABASE_URL?.replace(/\/$/, '') || undefined;
+}
+
 export function statusClient(fetch?: typeof globalThis.fetch): Client {
 	const { url, key } = project();
 	return new PostgrestClient(`${url}/rest/v1`, {

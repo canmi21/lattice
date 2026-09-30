@@ -2,6 +2,7 @@
 	import { browser, dev } from '$app/environment';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS, pageUrls } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
@@ -17,7 +18,17 @@
 	import '../styles/app.css';
 	import '@canmi/fonts/mono.css';
 
-	const cdn = pageUrls(dev).cdn;
+	// What the pages reach early, and how early. See spec/architecture/hints.md.
+	const early = hints(
+		{
+			fonts: ['stylesheets', 'files'],
+			ours: ['cdn', 'alias'],
+			jsdelivr: { files: 'connect' },
+			analytics: ['umami', 'umamiCloud', 'openpanel'],
+		},
+		{ dev },
+	);
+	const tracker = scriptPolicy('analytics', 'umami');
 	// The site's own marks are asked for by name, not by hash: the alias layer says what each one
 	// currently means, so the bytes keep a year and this markup never has to be republished when
 	// one is redrawn. `/symlink` is where that layer keeps the names it answers for, the root
@@ -210,19 +221,9 @@
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
-	<link rel="preconnect" href={cdn} crossorigin="anonymous" />
-	<link rel="preconnect" href={URLS.external.googleFonts.css} />
-	<link rel="preconnect" href={URLS.external.googleFonts.static} crossorigin="anonymous" />
-	<link rel="preconnect" href={new URL(URLS.external.github.cdn).origin} crossorigin="anonymous" />
-	<!-- Resolved early, not connected early. These three serve the analytics: the loader, and the
-	     two addresses the loaders report to. A preconnect would open a socket and negotiate TLS
-	     ahead of the first paint for a script deliberately marked `fetchpriority="low"` and for
-	     two requests that happen after the reader already has the page. `dns-prefetch` buys the
-	     lookup, which is the part that is slow on a cold cache, and costs nothing that competes
-	     with the article. See spec/analytics.md. -->
-	<link rel="dns-prefetch" href={new URL(URLS.external.umami).origin} />
-	<link rel="dns-prefetch" href={URLS.external.umamiGateway} />
-	<link rel="dns-prefetch" href={URLS.external.openpanel} />
+	{#each early as hint (hint.href)}
+		<link rel={hint.rel} href={hint.href} crossorigin={hint.crossorigin} />
+	{/each}
 	<link
 		rel="stylesheet"
 		href="{URLS.external.googleFonts
@@ -250,12 +251,11 @@
 	<link rel="icon" type="image/png" sizes="512x512" href="{marks}/favicon-512x512.png" />
 	<link rel="icon" type="image/svg+xml" sizes="any" href="{marks}/favicon.svg" />
 	<link rel="apple-touch-icon" href="{marks}/apple-touch-icon.png" />
-	<link rel="preconnect" href={pageUrls(dev).alias} crossorigin="anonymous" />
 	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
 	     See spec/analytics.md. -->
 	<script
-		defer
-		fetchpriority="low"
+		defer={tracker.defer}
+		fetchpriority={tracker.fetchpriority}
 		src={URLS.external.umami}
 		data-website-id="2b0a1e79-405a-47c0-a263-05732e0a130c"
 		data-domains={new URL(URLS.apps.production.site).hostname}

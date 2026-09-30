@@ -17,6 +17,7 @@
 		"@canmi/cache": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",
+		"@canmi/hints": "workspace:*",
 		"@canmi/imgsrc": "workspace:*",
 		"@canmi/locales": "workspace:*",
 		"@canmi/messages": "workspace:*",

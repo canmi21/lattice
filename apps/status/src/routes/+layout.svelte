@@ -30,10 +30,14 @@
 </script>
 
 <script lang="ts">
+	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import type { Snippet } from 'svelte';
 	import { dev } from '$app/environment';
+	import { projectUrl } from '$lib/source';
 	import '../app.css';
+
+	const project = projectUrl();
 
 	let { children }: { children: Snippet } = $props();
 
@@ -66,6 +70,18 @@
 	const umamiDomains = [canonical, mirror, URLS.internal.app]
 		.map((url) => new URL(url).hostname)
 		.join(',');
+
+	// What the page reaches early, and how early. See spec/architecture/hints.md.
+	const early = hints(
+		{
+			fonts: ['stylesheets', 'files'],
+			api: ['public'],
+			...(project ? { data: { status: project } } : {}),
+			analytics: ['umami'],
+		},
+		{ dev },
+	);
+	const tracker = scriptPolicy('analytics', 'umami');
 </script>
 
 <svelte:head>
@@ -79,13 +95,14 @@
 		type="image/svg+xml"
 		href={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
 	/>
-	<!-- Resolved early, not connected early: the same trade the site makes for its own tracker.
-	     See spec/analytics.md, "The analytics hosts are resolved early, not connected early". -->
-	<link rel="dns-prefetch" href={new URL(URLS.external.umami).origin} />
+	{#each early as hint (hint.href)}
+		<link rel={hint.rel} href={hint.href} crossorigin={hint.crossorigin} />
+	{/each}
 	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
 	     See spec/analytics.md. -->
 	<script
-		defer
+		defer={tracker.defer}
+		fetchpriority={tracker.fetchpriority}
 		src={URLS.external.umami}
 		data-website-id="6dea3b82-46a0-4baf-8585-b9138cea5296"
 		data-host-url={umamiHostUrl}

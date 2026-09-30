@@ -542,6 +542,9 @@ importers:
       '@canmi/fonts':
         specifier: workspace:*
         version: link:../../libs/fonts
+      '@canmi/hints':
+        specifier: workspace:*
+        version: link:../../libs/hints
       '@canmi/imgsrc':
         specifier: workspace:*
         version: link:../../libs/imgsrc
@@ -805,6 +808,9 @@ importers:
 
   apps/status:
     devDependencies:
+      '@canmi/hints':
+        specifier: workspace:*
+        version: link:../../libs/hints
       '@canmi/motion':
         specifier: workspace:*
         version: link:../../libs/motion
@@ -989,6 +995,12 @@ importers:
         version: 4.0.4
 
   libs/fonts: {}
+
+  libs/hints:
+    dependencies:
+      '@canmi/urls':
+        specifier: workspace:*
+        version: link:../urls
 
   libs/imgsrc:
     dependencies:

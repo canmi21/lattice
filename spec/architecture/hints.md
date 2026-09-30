@@ -17,10 +17,10 @@ they serve:
 | Group       | Entries                                                                               | Default   | Loads                          |
 | ----------- | ------------------------------------------------------------------------------------- | --------- | ------------------------------ |
 | `fonts`     | `stylesheets`, Google Fonts' css host; `files`, its file host, anonymous              | `connect` |                                |
-| `api`       | `public`, the API host's public side                                                  | `connect` |                                |
+| `api`       | `public`, the API host's public side, anonymous                                       | `connect` |                                |
 | `ours`      | `cdn`, anonymous; `alias`, anonymous                                                  | `connect` |                                |
 | `jsdelivr`  | `files`, jsDelivr, anonymous                                                          | `resolve` |                                |
-| `data`      | `status`, the Supabase project, named at run time by the app                          | `connect` |                                |
+| `data`      | `status`, the Supabase project, named at run time, anonymous                          | `connect` |                                |
 | `analytics` | `umami`, its tracker host; `umamiCloud`, `openpanel`, where each cloud is reported to | `resolve` | `defer`, `fetchpriority="low"` |
 
 **A level is how early an entry's host is reached:**
