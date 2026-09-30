@@ -1,6 +1,14 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, easing, radius, text, transition } from '@canmi/tokens/vocabulary.stylex';
+	import {
+		border,
+		duration,
+		easing,
+		leading,
+		radius,
+		text,
+		transition,
+	} from '@canmi/tokens/vocabulary.stylex';
 
 	/** The shell's recipes. See spec/architecture/css/layers.md and spec/styling/palettes.md. */
 	const styles = stylex.create({
@@ -46,8 +54,12 @@
 			borderRadius: radius.full,
 		},
 		footer: {
-			fontSize: text.px12,
-			color: 'var(--color-text-soft)',
+			fontSize: text.px14,
+			lineHeight: leading.px20,
+			color: 'var(--color-text)',
+			borderTopWidth: border.hairlinePx,
+			borderTopStyle: 'solid',
+			borderTopColor: 'color-mix(in oklch, var(--color-text) 8%, transparent)',
 		},
 		// The social row's links: soft, strong on hover or keyboard focus.
 		social: {
@@ -56,7 +68,7 @@
 			transitionTimingFunction: easing.inOut,
 			borderRadius: '0.3125rem', // unnamed
 			color: {
-				default: 'var(--color-text-soft)',
+				default: 'var(--color-text)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
@@ -237,15 +249,18 @@
 	{@render children()}
 </main>
 
-<footer
-	class="mt-4 flex min-h-14 flex-wrap items-center justify-between gap-x-4 gap-y-3 py-3 {CONTAINER} {stylex.attrs(
-		styles.footer,
-	).class}"
->
-	<p>© {data.year} {author.name}</p>
-	<SocialLinks
-		entries={ACCOUNTS}
-		newTab="opens in new tab"
-		linkClass={stylex.attrs(styles.social).class}
-	/>
+<footer class="pt-10 pb-16">
+	<div
+		class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 pt-6 {CONTAINER} {stylex.attrs(
+			styles.footer,
+		).class}"
+	>
+		<p>© {data.year} {author.name}</p>
+		<SocialLinks
+			entries={ACCOUNTS}
+			newTab="opens in new tab"
+			scale="1.25rem"
+			linkClass={stylex.attrs(styles.social).class}
+		/>
+	</div>
 </footer>
