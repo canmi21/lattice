@@ -9,7 +9,9 @@
 	},
 	"devDependencies": {
 		"@canmi/hints": "workspace:*",
+		"@canmi/identity": "workspace:*",
 		"@canmi/motion": "workspace:*",
+		"@canmi/social": "workspace:*",
 		"@canmi/status-schema": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/tokens": "workspace:*",

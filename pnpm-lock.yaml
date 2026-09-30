@@ -545,6 +545,9 @@ importers:
       '@canmi/hints':
         specifier: workspace:*
         version: link:../../libs/hints
+      '@canmi/identity':
+        specifier: workspace:*
+        version: link:../../libs/identity
       '@canmi/imgsrc':
         specifier: workspace:*
         version: link:../../libs/imgsrc
@@ -575,6 +578,9 @@ importers:
       '@canmi/site-api':
         specifier: workspace:*
         version: link:server
+      '@canmi/social':
+        specifier: workspace:*
+        version: link:../../libs/social
       '@canmi/theme':
         specifier: workspace:*
         version: link:../../libs/theme
@@ -811,9 +817,15 @@ importers:
       '@canmi/hints':
         specifier: workspace:*
         version: link:../../libs/hints
+      '@canmi/identity':
+        specifier: workspace:*
+        version: link:../../libs/identity
       '@canmi/motion':
         specifier: workspace:*
         version: link:../../libs/motion
+      '@canmi/social':
+        specifier: workspace:*
+        version: link:../../libs/social
       '@canmi/status-schema':
         specifier: workspace:*
         version: link:../../libs/status-schema
@@ -1005,6 +1017,8 @@ importers:
         specifier: workspace:*
         version: link:../urls
 
+  libs/identity: {}
+
   libs/imgsrc:
     dependencies:
       '@canmi/urls':
@@ -1136,6 +1150,28 @@ importers:
       '@canmi/urls':
         specifier: workspace:*
         version: link:../urls
+
+  libs/social:
+    dependencies:
+      '@canmi/identity':
+        specifier: workspace:*
+        version: link:../identity
+      '@canmi/prose':
+        specifier: workspace:*
+        version: link:../prose
+      '@canmi/urls':
+        specifier: workspace:*
+        version: link:../urls
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+    devDependencies:
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   libs/status-schema:
     dependencies:

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { easing, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { duration, easing, radius, text, transition } from '@canmi/tokens/vocabulary.stylex';
 
 	/** The shell's recipes. See spec/architecture/css/layers.md and spec/styling/palettes.md. */
 	const styles = stylex.create({
@@ -45,6 +45,22 @@
 			},
 			borderRadius: radius.full,
 		},
+		footer: {
+			fontSize: text.px12,
+			color: 'var(--color-text-soft)',
+		},
+		// The social row's links: soft, strong on hover or keyboard focus.
+		social: {
+			transitionProperty: transition.colors,
+			transitionDuration: duration.base,
+			transitionTimingFunction: easing.inOut,
+			borderRadius: '0.3125rem', // unnamed
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+		},
 		button: {
 			fontSize: text.px14,
 			fontWeight: 510, // unnamed
@@ -58,8 +74,8 @@
 	});
 
 	/**
-	 * The column the nav's row and `<main>` share: 64.5rem, centered; a 1.5rem gutter below
-	 * 67.5rem, 1rem below 37.5rem.
+	 * The column the nav's row, `<main>` and the footer share: 64.5rem, centered; a 1.5rem gutter
+	 * below 67.5rem, 1rem below 37.5rem.
 	 */
 	const CONTAINER =
 		'mx-auto w-[min(100%,64.5rem)] max-[67.5rem]:mx-6 max-[67.5rem]:w-auto max-[37.5rem]:mx-4';
@@ -72,15 +88,19 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
 	import { applyTheme, currentTheme, themeCookie } from '@canmi/theme';
+	import { author } from '@canmi/identity';
+	import { ACCOUNTS } from '@canmi/social';
+	import SocialLinks from '@canmi/social/social-links.svelte';
 	import type { Snippet } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { projectUrl } from '$lib/source';
+	import type { LayoutData } from './$types';
 	import '../app.css';
 
 	const project = projectUrl();
 
-	let { children }: { children: Snippet } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
 	function toggleTheme() {
 		const next = currentTheme() === 'dark' ? 'light' : 'dark';
@@ -186,7 +206,7 @@
 			/>
 			<span class={stylex.attrs(styles.wordmark).class}>Status</span>
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
-			<span class={stylex.attrs(styles.byline).class}>by Canmi</span>
+			<span class={stylex.attrs(styles.byline).class}>by {author.name}</span>
 		</a>
 		<div class="flex items-center gap-2">
 			<button
@@ -216,3 +236,16 @@
 <main class="{CONTAINER} pb-16">
 	{@render children()}
 </main>
+
+<footer
+	class="mt-4 flex min-h-14 flex-wrap items-center justify-between gap-x-4 gap-y-3 py-3 {CONTAINER} {stylex.attrs(
+		styles.footer,
+	).class}"
+>
+	<p>© {data.year} {author.name}</p>
+	<SocialLinks
+		entries={ACCOUNTS}
+		newTab="opens in new tab"
+		linkClass={stylex.attrs(styles.social).class}
+	/>
+</footer>
