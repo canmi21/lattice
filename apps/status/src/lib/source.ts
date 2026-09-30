@@ -1,11 +1,13 @@
 /**
- * PostgREST, asked with the anon key: by the server for the first screen, then by the browser for
- * what changed. The same client in both, and only the three views. See spec/architecture/probe.md,
- * "The page reads PostgREST with the anon key, from views alone".
+ * PostgREST, asked with the anon key: by the server for the first screen, then by the browser only
+ * when a broadcast cannot say it. The same client in both, and only the three views. Realtime, with
+ * the same key, for the broadcasts. See spec/architecture/probe.md, "The page reads PostgREST with
+ * the anon key, from views alone, once; after that it is told".
  */
 import { env } from '$env/dynamic/public';
 import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
 import { PostgrestClient } from '@supabase/postgrest-js';
+import { RealtimeClient } from '@supabase/realtime-js';
 import { SEGMENT_GRAIN, TAIL_GRAIN } from './board.ts';
 import {
 	CHECK_COLUMNS,
@@ -24,16 +26,33 @@ const TIMEOUT_MS = 8000;
 
 export type Client = PostgrestClient;
 
-export function statusClient(fetch?: typeof globalThis.fetch): Client {
+/** The public channel and event the database broadcasts each batch on. */
+export const CHANNEL = 'status';
+export const EVENT = 'results';
+
+function project(): { url: string; key: string } {
 	const url = env.PUBLIC_SUPABASE_URL;
 	const key = env.PUBLIC_SUPABASE_ANON_KEY;
 	if (!url || !key) {
 		throw new Error('PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY must both be set');
 	}
-	return new PostgrestClient(`${url.replace(/\/$/, '')}/rest/v1`, {
+	return { url: url.replace(/\/$/, ''), key };
+}
+
+export function statusClient(fetch?: typeof globalThis.fetch): Client {
+	const { url, key } = project();
+	return new PostgrestClient(`${url}/rest/v1`, {
 		headers: { apikey: key },
 		fetch,
 		timeout: TIMEOUT_MS,
+	});
+}
+
+/** The key as `apikey` alone: a public channel is joined with no user's token. */
+export function statusRealtime(): RealtimeClient {
+	const { url, key } = project();
+	return new RealtimeClient(`${url.replace(/^http/, 'ws')}/realtime/v1`, {
+		params: { apikey: key },
 	});
 }
 
@@ -70,7 +89,8 @@ export async function fetchNow(client: Client): Promise<StatusNowRow[]> {
 
 /**
  * Both grains the bar reads, each from its own instant: `gte` for the first screen's floor, `gt`
- * for a poll's cursor. Values are quoted because an ISO time carries PostgREST's separators.
+ * for the cursor a closed half-hour is asked from. Values are quoted because an ISO time carries
+ * PostgREST's separators.
  */
 export async function fetchHistory(
 	client: Client,

@@ -16,10 +16,16 @@ export const SEGMENT_COUNT = WINDOW_MS / SEGMENT_MS;
 /** The rollup grain a segment is, and the finer one filling segments not rolled up yet. */
 export const SEGMENT_GRAIN = '30m';
 export const TAIL_GRAIN = '5m';
+export const TAIL_MS = 5 * MINUTE;
+/**
+ * Counts folded in from broadcasts, per five minutes, standing in for a `5m` row the page has not
+ * read yet: a bucket the history view has answered for is taken from it instead.
+ */
+export const LIVE_GRAIN = 'live';
 
 /**
  * A round older than this many of its intervals is the probe silent, not the check's state. The
- * slack covers the probe writing in ten-second batches and the page asking every five.
+ * slack covers the probe writing, and so broadcasting, in ten-second batches.
  */
 export const SILENT_ROUNDS = 3;
 export const SILENT_SLACK_MS = 20_000;
@@ -73,24 +79,31 @@ function segmentState(passed: number, failed: number): SegmentState {
 	return passed === 0 ? 'down' : 'partial';
 }
 
-/** One check's bar: a rolled-up half-hour where there is one, else the five-minute rows in it. */
+/**
+ * One check's bar: a rolled-up half-hour where there is one, else the five-minute rows in it, each
+ * five minutes read from the history view where it has answered and from broadcasts where not.
+ */
 export function segmentsOf(rows: readonly HistoryRow[], clock: number): Segment[] {
 	const { start } = windowAt(clock);
 	const rolled = new Map<number, HistoryRow>();
-	const tail = new Map<number, { passed: number; failed: number }>();
+	const read = new Map<number, HistoryRow>();
+	const heard = new Map<number, HistoryRow>();
 	for (const row of rows) {
 		const at = row.bucketStart.getTime();
+		if (row.grain === SEGMENT_GRAIN) rolled.set(at, row);
+		else if (row.grain === TAIL_GRAIN) read.set(at, row);
+		else if (row.grain === LIVE_GRAIN) heard.set(at, row);
+	}
+	for (const [at, row] of heard) if (!read.has(at)) read.set(at, row);
+	const tail = new Map<number, { passed: number; failed: number }>();
+	for (const [at, row] of read) {
 		const index = Math.floor((at - start) / SEGMENT_MS);
 		if (index < 0 || index >= SEGMENT_COUNT) continue;
 		const segment = start + index * SEGMENT_MS;
-		if (row.grain === SEGMENT_GRAIN) {
-			rolled.set(segment, row);
-		} else if (row.grain === TAIL_GRAIN) {
-			const sum = tail.get(segment) ?? { passed: 0, failed: 0 };
-			sum.passed += row.passed;
-			sum.failed += row.failed;
-			tail.set(segment, sum);
-		}
+		const sum = tail.get(segment) ?? { passed: 0, failed: 0 };
+		sum.passed += row.passed;
+		sum.failed += row.failed;
+		tail.set(segment, sum);
 	}
 	return Array.from({ length: SEGMENT_COUNT }, (_, index) => {
 		const segment = start + index * SEGMENT_MS;
@@ -124,7 +137,7 @@ export function mergeHistory(
 	const floor = historyFloor(clock);
 	const byKey = new Map<string, HistoryRow>();
 	for (const row of [...held, ...fresh]) {
-		const since = row.grain === TAIL_GRAIN ? floor.tail : floor.segment;
+		const since = row.grain === SEGMENT_GRAIN ? floor.segment : floor.tail;
 		if (row.bucketStart < since) continue;
 		byKey.set(
 			`${key(row.checkId, row.place)}\u0000${row.grain}\u0000${row.bucketStart.getTime()}`,

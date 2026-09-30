@@ -15,6 +15,13 @@
 			"when": 1790654654652,
 			"tag": "0001_grant-anon-views",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1790730489753,
+			"tag": "0002_broadcast-status",
+			"breakpoints": true
 		}
 	]
 }

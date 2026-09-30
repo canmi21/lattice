@@ -1,16 +1,26 @@
 /**
- * The board after hydration: the browser asks PostgREST itself for what changed and our server
- * is asked for nothing more. It stops while the tab is hidden and asks at once when it returns.
- * See spec/architecture/probe.md, "The page reads PostgREST with the anon key, from views alone".
+ * The board after hydration: told each batch the probe writes, over one socket, and asking
+ * PostgREST only for what a broadcast cannot say -- the history when a half-hour closes, the latest
+ * rounds after the socket was down, the declared checks when one it has not seen is heard of. See
+ * spec/architecture/probe.md, "The page reads PostgREST with the anon key, from views alone, once;
+ * after that it is told".
  */
 import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
-import { historyCursor, key, mergeHistory } from './board.ts';
-import type { HistoryRow } from './rows.ts';
-import { type Client, fetchChecks, fetchHistory, fetchNow, statusClient } from './source.ts';
+import { historyCursor, key, mergeHistory, windowAt } from './board.ts';
+import { foldHistory, foldNow } from './fold.ts';
+import { type HistoryRow, readBroadcast } from './rows.ts';
+import {
+	CHANNEL,
+	type Client,
+	EVENT,
+	fetchChecks,
+	fetchHistory,
+	fetchNow,
+	statusClient,
+	statusRealtime,
+} from './source.ts';
 
-/** Latest rounds every five seconds; history and the declared checks move by the five minutes. */
-const NOW_EVERY_MS = 5_000;
-const HISTORY_EVERY_MS = 60_000;
+/** Staleness and "how long ago" are judged against this, ticking once a second. */
 const CLOCK_EVERY_MS = 1_000;
 
 export interface Snapshot {
@@ -27,7 +37,10 @@ export class Live {
 	history = $state.raw<HistoryRow[]>([]);
 	/** The instant every judgement is made at; the server's until the browser takes over. */
 	clock = $state(0);
-	/** When the database last answered, and whether the last ask failed. */
+	/**
+	 * When the database last answered or was last heard from, and whether the socket is down or
+	 * the last ask failed.
+	 */
 	answeredAt = $state(0);
 	unreachable = $state(false);
 
@@ -46,11 +59,11 @@ export class Live {
 		return this.history.filter((row) => row.checkId === check.id && row.place === check.place);
 	}
 
-	/** Start polling; the returned function stops it. */
+	/** Start listening; the returned function stops it. */
 	start(): () => void {
 		const client = statusClient();
-		const timers: ReturnType<typeof setInterval>[] = [];
-		// An ask still out when its next turn comes is left to finish rather than doubled.
+		const realtime = statusRealtime();
+		// An ask still out when it is wanted again is left to finish rather than doubled.
 		const busy = new Set<string>();
 
 		const guarded = (name: string, ask: () => Promise<void>) => async () => {
@@ -66,36 +79,60 @@ export class Live {
 				busy.delete(name);
 			}
 		};
-		const pollNow = guarded('now', async () => {
+		const readNow = guarded('now', async () => {
 			this.now = await fetchNow(client);
 		});
-		const pollHistory = guarded('history', () => this.#refreshHistory(client));
+		const readHistory = guarded('history', () => this.#refreshHistory(client));
+		const readChecks = guarded('checks', async () => {
+			this.checks = await fetchChecks(client);
+		});
 
-		const run = () => {
+		let segment = windowAt(Date.now()).open;
+		const tick = () => {
 			this.clock = Date.now();
-			void pollNow();
-			void pollHistory();
-			timers.push(
-				setInterval(() => (this.clock = Date.now()), CLOCK_EVERY_MS),
-				setInterval(pollNow, NOW_EVERY_MS),
-				setInterval(pollHistory, HISTORY_EVERY_MS),
-			);
+			const open = windowAt(this.clock).open;
+			if (open === segment) return;
+			segment = open;
+			void readHistory();
 		};
-		const pause = () => timers.splice(0).forEach(clearInterval);
-		const onVisibility = () => (document.hidden ? pause() : run());
+		tick();
+		const timer = setInterval(tick, CLOCK_EVERY_MS);
 
-		document.addEventListener('visibilitychange', onVisibility);
-		if (!document.hidden) run();
+		let dropped = false;
+		const channel = realtime
+			.channel(CHANNEL)
+			.on('broadcast', { event: EVENT }, (message) => {
+				const heard = readBroadcast(message.payload);
+				if (heard.length === 0) return;
+				const folded = foldNow(this.now, heard, this.checks);
+				this.now = folded.now;
+				this.history = foldHistory(this.history, heard, Date.now());
+				this.answeredAt = Date.now();
+				this.unreachable = false;
+				if (folded.unknown) void readChecks();
+			})
+			.subscribe((status) => {
+				if (status !== 'SUBSCRIBED') {
+					dropped = true;
+					this.unreachable = true;
+					return;
+				}
+				this.unreachable = false;
+				// What was written while the socket was down was broadcast to nobody.
+				if (dropped) void readNow();
+				dropped = false;
+			});
+
 		return () => {
-			document.removeEventListener('visibilitychange', onVisibility);
-			pause();
+			clearInterval(timer);
+			void realtime.removeChannel(channel).then(() => realtime.disconnect());
 		};
 	}
 
 	async #refreshHistory(client: Client): Promise<void> {
 		const clock = Date.now();
-		// A server render cached at the edge, or a first screen with no answer, may be behind
-		// the declared checks, so they are asked again with the history.
+		// A server render cached at the edge may be behind the declared checks, so they are asked
+		// again with the history.
 		const [checks, fresh] = await Promise.all([
 			fetchChecks(client),
 			fetchHistory(client, historyCursor(this.history, clock), 'gt'),

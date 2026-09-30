@@ -52,6 +52,21 @@ describe('the probe schema', () => {
 		expect(sql).toMatch(/grant select on "status_checks", "status_now", "status_history" to anon/);
 	});
 
+	it('broadcasts each insert into results once, publicly, on status', () => {
+		const sql = migrationsText();
+		expect(sql).toMatch(
+			/after insert on "results"\s+referencing new table as inserted\s+for each statement/,
+		);
+		expect(sql).toMatch(/event => 'results',\s+topic => 'status',\s+private => false/);
+		// Looked up when it fires, so a Postgres without Supabase's Realtime still takes inserts.
+		expect(sql).toMatch(
+			/to_regprocedure\('realtime\.send\(jsonb, text, text, boolean\)'\) is null/,
+		);
+		for (const field of ['check_id', 'place', 'at', 'ok', 'duration_ms', 'detail']) {
+			expect(sql).toContain(`'${field}', last.${field}`);
+		}
+	});
+
 	it('exposes every public column of checks through status_checks', () => {
 		const check = {} as StatusCheckRow;
 		check.id = 'geo';

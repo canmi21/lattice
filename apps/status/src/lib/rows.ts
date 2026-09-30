@@ -61,3 +61,32 @@ export function readHistory(row: Wire<HistoryRow>): HistoryRow {
 		failed: row.failed,
 	};
 }
+
+/**
+ * One check's entry in a broadcast: its latest round in the probe's batch, as `status_now` has it,
+ * and how many of its rounds in that batch passed and failed. See
+ * libs/status-schema/migrations/0002_broadcast-status.sql.
+ */
+export type Heard = Pick<
+	StatusNowRow,
+	'checkId' | 'place' | 'at' | 'ok' | 'durationMs' | 'detail'
+> & { passed: number; failed: number };
+
+export function readHeard(row: Wire<Heard>): Heard {
+	return {
+		checkId: row.check_id,
+		place: row.place,
+		at: new Date(row.at),
+		ok: row.ok,
+		durationMs: row.duration_ms,
+		detail: row.detail,
+		passed: row.passed,
+		failed: row.failed,
+	};
+}
+
+/** A broadcast's payload, `{ results: [...] }`; anything else is heard as nothing. */
+export function readBroadcast(payload: unknown): Heard[] {
+	const results = (payload as { results?: unknown } | null)?.results;
+	return Array.isArray(results) ? results.map((row: Wire<Heard>) => readHeard(row)) : [];
+}

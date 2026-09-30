@@ -86,7 +86,7 @@ describe('the uptime bar', () => {
 	});
 });
 
-describe('history kept between polls', () => {
+describe('history kept between reads', () => {
 	it('drops what fell out of the window and keeps one row per bucket', () => {
 		const { start } = windowAt(CLOCK);
 		const held = [bucket('30m', start - SEGMENT_MS, 1), bucket('30m', start, 1)];
