@@ -43,7 +43,6 @@
 		},
 	});
 
-
 	/**
 	 * The column the nav's row and `<main>` share: 64.5rem, centered; a 1.5rem gutter below
 	 * 67.5rem, 1rem below 37.5rem.

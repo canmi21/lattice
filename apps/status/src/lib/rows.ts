@@ -5,7 +5,13 @@
  * the page never sees the wire. The views are the contract; see spec/architecture/probe.md, "The
  * schema: declared once, in Drizzle, applied by the probe".
  */
-import type { StatusCheckRow, StatusHistoryRow, StatusNowRow } from '@canmi/status-schema';
+import type {
+	StatusCheckRow,
+	StatusDailyRow,
+	StatusHistoryRow,
+	StatusNowRow,
+} from '@canmi/status-schema';
+import type { DayCounts } from './board.ts';
 
 type Snake<S extends string> = S extends `${infer Head}${infer Rest}`
 	? `${Head extends Lowercase<Head> ? Head : `_${Lowercase<Head>}`}${Snake<Rest>}`
@@ -22,13 +28,16 @@ export type HistoryRow = Pick<
 	'checkId' | 'place' | 'grain' | 'bucketStart' | 'passed' | 'failed'
 >;
 
-export const CHECK_COLUMNS = 'id,kind,target,place,interval_seconds,updated_at';
-export const NOW_COLUMNS = 'check_id,place,kind,target,interval_seconds,at,ok,duration_ms,detail';
+export const CHECK_COLUMNS = 'id,name,kind,target,place,interval_seconds,updated_at';
+export const NOW_COLUMNS =
+	'check_id,place,name,kind,target,interval_seconds,at,ok,duration_ms,detail';
 export const HISTORY_COLUMNS = 'check_id,place,grain,bucket_start,passed,failed';
+export const DAILY_COLUMNS = 'check_id,place,day,passed,failed';
 
 export function readCheck(row: Wire<StatusCheckRow>): StatusCheckRow {
 	return {
 		id: row.id,
+		name: row.name,
 		kind: row.kind,
 		target: row.target,
 		place: row.place,
@@ -41,6 +50,7 @@ export function readNow(row: Wire<StatusNowRow>): StatusNowRow {
 	return {
 		checkId: row.check_id,
 		place: row.place,
+		name: row.name,
 		kind: row.kind,
 		target: row.target,
 		intervalSeconds: row.interval_seconds,
@@ -89,4 +99,20 @@ export function readHeard(row: Wire<Heard>): Heard {
 export function readBroadcast(payload: unknown): Heard[] {
 	const results = (payload as { results?: unknown } | null)?.results;
 	return Array.isArray(results) ? results.map((row: Wire<Heard>) => readHeard(row)) : [];
+}
+
+/** A check's day: its UTC midnight in milliseconds, and the rounds that passed and failed. */
+export interface DayRow extends DayCounts {
+	checkId: string;
+	place: string;
+}
+
+export function readDaily(row: Wire<StatusDailyRow>): DayRow {
+	return {
+		checkId: row.check_id,
+		place: row.place,
+		day: Date.parse(`${row.day}T00:00:00Z`),
+		passed: row.passed,
+		failed: row.failed,
+	};
 }

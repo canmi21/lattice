@@ -6,14 +6,15 @@
  * after that it is told".
  */
 import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
-import { historyCursor, key, mergeHistory, windowAt } from './board.ts';
+import { dayName, historyCursor, key, mergeHistory, windowAt } from './board.ts';
 import { foldHistory, foldNow } from './fold.ts';
-import { type HistoryRow, readBroadcast } from './rows.ts';
+import { type DayRow, type HistoryRow, readBroadcast } from './rows.ts';
 import {
 	CHANNEL,
 	type Client,
 	EVENT,
 	fetchChecks,
+	fetchDaily,
 	fetchHistory,
 	fetchNow,
 	statusClient,
@@ -28,6 +29,7 @@ export interface Snapshot {
 	checks: StatusCheckRow[];
 	now: StatusNowRow[];
 	history: HistoryRow[];
+	daily: DayRow[];
 	unreachable: boolean;
 }
 
@@ -35,6 +37,8 @@ export class Live {
 	checks = $state.raw<StatusCheckRow[]>([]);
 	now = $state.raw<StatusNowRow[]>([]);
 	history = $state.raw<HistoryRow[]>([]);
+	/** Past days, from the daily view; today is the history's. */
+	daily = $state.raw<DayRow[]>([]);
 	/** The instant every judgement is made at; the server's until the browser takes over. */
 	clock = $state(0);
 	/**
@@ -50,9 +54,14 @@ export class Live {
 		this.checks = snapshot.checks;
 		this.now = snapshot.now;
 		this.history = snapshot.history;
+		this.daily = snapshot.daily;
 		this.clock = snapshot.clock;
 		this.answeredAt = snapshot.unreachable ? 0 : snapshot.clock;
 		this.unreachable = snapshot.unreachable;
+	}
+
+	dailyOf(check: StatusCheckRow): DayRow[] {
+		return this.daily.filter((row) => row.checkId === check.id && row.place === check.place);
 	}
 
 	historyOf(check: StatusCheckRow): HistoryRow[] {
@@ -133,11 +142,17 @@ export class Live {
 		const clock = Date.now();
 		// A server render cached at the edge may be behind the declared checks, so they are asked
 		// again with the history.
-		const [checks, fresh] = await Promise.all([
+		const today = dayName(clock);
+		const newDay = !this.daily.some(
+			(row) => row.day === Date.parse(`${today}T00:00:00Z`) - 86_400_000,
+		);
+		const [checks, fresh, daily] = await Promise.all([
 			fetchChecks(client),
 			fetchHistory(client, historyCursor(this.history, clock), 'gt'),
+			newDay ? fetchDaily(client, today) : Promise.resolve(this.daily),
 		]);
 		this.checks = checks;
 		this.history = mergeHistory(this.history, fresh, clock);
+		this.daily = daily;
 	}
 }

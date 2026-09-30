@@ -41,22 +41,19 @@
 			},
 		},
 		kind: {
-			fontSize: text.px13,
-			fontWeight: weight.medium,
-			color: 'var(--color-text-muted)',
+			fontSize: text.px15,
+			fontWeight: weight.semibold,
+			color: 'var(--color-text-strong)',
 		},
 		card: {
-			backgroundColor: 'var(--color-paper)',
-			borderWidth: border.hairlinePx,
-			borderStyle: 'solid',
-			borderColor: 'var(--color-border)',
-			borderRadius: radius.lg,
+			backgroundColor: 'color-mix(in oklch, var(--color-text) 4%, transparent)',
+			borderRadius: '1.5rem', // unnamed
 		},
 		row: {
 			borderTopWidth: border.hairlinePx,
 			borderTopStyle: 'solid',
 			borderTopColor: {
-				default: 'var(--color-border)',
+				default: 'color-mix(in oklch, var(--color-text) 6%, transparent)',
 				':first-child': 'transparent',
 			},
 		},
@@ -197,19 +194,19 @@
 <div class="flex flex-col gap-12">
 	{#each groups as [kind, checks] (kind)}
 		<section>
-			<h2 class="mb-3 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
-			<ul class={stylex.attrs(styles.card).class}>
+			<h2 class="mb-4 px-1 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
+			<ul class="px-6 py-2 {stylex.attrs(styles.card).class}">
 				{#each checks as check (key(check.id, check.place))}
 					{@const latest = live.nowByKey.get(key(check.id, check.place))}
 					{@const state = stateOf(latest, live.clock)}
 					{@const recent = segmentsOf(live.historyOf(check), live.clock)}
-					{@const days = daysOf([], todayOf(recent, live.clock), live.clock)}
+					{@const days = daysOf(live.dailyOf(check), todayOf(recent, live.clock), live.clock)}
 					{@const uptime = uptimeOf(days)}
-					<li class="px-5 py-4 {stylex.attrs(styles.row).class}">
+					<li class="py-5 {stylex.attrs(styles.row).class}">
 						<div class="flex items-center justify-between gap-4">
 							<div class="flex min-w-0 items-center gap-2.5">
 								<span class="size-2 shrink-0 rounded-full {stylex.attrs(dot(state)).class}"></span>
-								<span class="truncate {stylex.attrs(styles.name).class}">{check.id}</span>
+								<span class="truncate {stylex.attrs(styles.name).class}">{check.name}</span>
 							</div>
 							<span class="shrink-0 {stylex.attrs(styles.figure).class}">
 								{uptime === null ? 'No data' : percent(uptime)}
@@ -217,13 +214,14 @@
 						</div>
 						<div class="mt-3 flex h-8 items-stretch gap-[3px]">
 							{#each days as day (day.start)}
-								<span class="min-w-0 flex-1 {stylex.attrs(styles.bar, fill(day.state)).class}"></span>
+								<span class="min-w-0 flex-1 {stylex.attrs(styles.bar, fill(day.state)).class}"
+								></span>
 							{/each}
 						</div>
 					</li>
 				{/each}
 			</ul>
-			<div class="mt-2 flex justify-between px-5 {stylex.attrs(styles.figure).class}">
+			<div class="mt-3 flex justify-between px-6 {stylex.attrs(styles.figure).class}">
 				<span>90 days ago</span>
 				<span>Today</span>
 			</div>

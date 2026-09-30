@@ -211,6 +211,11 @@ export function byKind(checks: readonly StatusCheckRow[]): [string, StatusCheckR
 	return [...groups].filter(([, group]) => group.length > 0);
 }
 
+/** A UTC day as the daily view names it, `YYYY-MM-DD`. */
+export function dayName(clock: number): string {
+	return new Date(clock).toISOString().slice(0, 10);
+}
+
 /** How many days a check's bar covers, one bar a day, oldest first. */
 export const DAYS = 90;
 const DAY_MS = 24 * 60 * MINUTE;
@@ -235,13 +240,17 @@ export function daysOf(
 	const byDay = new Map(days.map((row) => [row.day, row]));
 	return Array.from({ length: DAYS }, (_, index) => {
 		const day = midnight - (DAYS - 1 - index) * DAY_MS;
-		const { passed, failed } = day === midnight ? today : (byDay.get(day) ?? { passed: 0, failed: 0 });
+		const { passed, failed } =
+			day === midnight ? today : (byDay.get(day) ?? { passed: 0, failed: 0 });
 		return { start: day, passed, failed, state: segmentState(passed, failed) };
 	});
 }
 
 /** What the 24-hour segments hold since today's UTC midnight. */
-export function todayOf(segments: readonly Segment[], clock: number): { passed: number; failed: number } {
+export function todayOf(
+	segments: readonly Segment[],
+	clock: number,
+): { passed: number; failed: number } {
 	const midnight = Math.floor(clock / DAY_MS) * DAY_MS;
 	let passed = 0;
 	let failed = 0;

@@ -1,6 +1,8 @@
 import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
 import { describe, expect, it } from 'vitest';
 import {
+	DAYS,
+	daysOf,
 	historyCursor,
 	historyFloor,
 	key,
@@ -20,6 +22,7 @@ function round(at: number, ok = true, intervalSeconds = 5): StatusNowRow {
 	return {
 		checkId: 'health.geo',
 		place: 'home',
+		name: 'Geolocation',
 		kind: 'health',
 		target: 'API_PRIVATE/geo/health',
 		intervalSeconds,
@@ -36,6 +39,7 @@ function bucket(grain: string, at: number, passed: number, failed = 0): HistoryR
 
 const check: StatusCheckRow = {
 	id: 'health.geo',
+	name: 'Geolocation',
 	kind: 'health',
 	target: 'API_PRIVATE/geo/health',
 	place: 'home',
@@ -99,5 +103,20 @@ describe('history kept between reads', () => {
 		const cursor = historyCursor([], CLOCK);
 		expect(cursor.segment < floor.segment).toBe(true);
 		expect(cursor.tail < floor.tail).toBe(true);
+	});
+});
+
+describe('daysOf', () => {
+	const midnight = Date.UTC(2026, 8, 29);
+	it('draws ninety days, oldest first, today from the live counts and gaps empty', () => {
+		const days = daysOf(
+			[{ day: midnight - 86_400_000, passed: 10, failed: 0 }],
+			{ passed: 3, failed: 1 },
+			CLOCK,
+		);
+		expect(days).toHaveLength(DAYS);
+		expect(days.at(-1)).toMatchObject({ start: midnight, passed: 3, failed: 1, state: 'partial' });
+		expect(days.at(-2)).toMatchObject({ passed: 10, state: 'up' });
+		expect(days[0]).toMatchObject({ start: midnight - 89 * 86_400_000, state: 'none' });
 	});
 });

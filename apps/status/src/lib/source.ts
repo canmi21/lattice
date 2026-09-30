@@ -1,20 +1,23 @@
 /**
  * PostgREST, asked with the anon key: by the server for the first screen, then by the browser only
- * when a broadcast cannot say it. The same client in both, and only the three views. Realtime, with
+ * when a broadcast cannot say it. The same client in both, and only the views. Realtime, with
  * the same key, for the broadcasts. See spec/architecture/probe.md, "The page reads PostgREST with
  * the anon key, from views alone, once; after that it is told".
  */
 import { env } from '$env/dynamic/public';
-import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
+import type { StatusCheckRow, StatusDailyRow, StatusNowRow } from '@canmi/status-schema';
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { RealtimeClient } from '@supabase/realtime-js';
 import { SEGMENT_GRAIN, TAIL_GRAIN } from './board.ts';
 import {
 	CHECK_COLUMNS,
+	DAILY_COLUMNS,
+	type DayRow,
 	HISTORY_COLUMNS,
 	type HistoryRow,
 	NOW_COLUMNS,
 	readCheck,
+	readDaily,
 	readHistory,
 	readNow,
 	type Wire,
@@ -117,4 +120,19 @@ export async function fetchHistory(
 			.range(from, to),
 	);
 	return rows.map(readHistory);
+}
+
+/** Every past day the daily view holds; today is the live history's. */
+export async function fetchDaily(client: Client, today: string): Promise<DayRow[]> {
+	const rows = await everyPage<Wire<StatusDailyRow>>((from, to) =>
+		client
+			.from('status_daily')
+			.select(DAILY_COLUMNS)
+			.lt('day', today)
+			.order('day')
+			.order('check_id')
+			.order('place')
+			.range(from, to),
+	);
+	return rows.map(readDaily);
 }

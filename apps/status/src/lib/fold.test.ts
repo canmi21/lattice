@@ -9,6 +9,7 @@ const { open } = windowAt(CLOCK);
 
 const check: StatusCheckRow = {
 	id: 'health.geo',
+	name: 'Geolocation',
 	kind: 'health',
 	target: 'API_PRIVATE/geo/health',
 	place: 'home',
@@ -33,6 +34,7 @@ function held(at: number, ok = true): StatusNowRow {
 	return {
 		checkId: check.id,
 		place: 'home',
+		name: check.name,
 		kind: check.kind,
 		target: check.target,
 		intervalSeconds: check.intervalSeconds,

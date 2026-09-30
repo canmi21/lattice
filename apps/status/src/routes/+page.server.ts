@@ -1,5 +1,5 @@
-import { historyFloor } from '$lib/board';
-import { fetchChecks, fetchHistory, fetchNow, statusClient } from '$lib/source';
+import { dayName, historyFloor } from '$lib/board';
+import { fetchChecks, fetchDaily, fetchHistory, fetchNow, statusClient } from '$lib/source';
 import type { PageServerLoad } from './$types';
 
 /**
@@ -12,13 +12,14 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 	const clock = Date.now();
 	const client = statusClient(fetch);
 	try {
-		const [checks, now, history] = await Promise.all([
+		const [checks, now, history, daily] = await Promise.all([
 			fetchChecks(client),
 			fetchNow(client),
 			fetchHistory(client, historyFloor(clock), 'gte'),
+			fetchDaily(client, dayName(clock)),
 		]);
-		return { clock, checks, now, history, unreachable: false };
+		return { clock, checks, now, history, daily, unreachable: false };
 	} catch {
-		return { clock, checks: [], now: [], history: [], unreachable: true };
+		return { clock, checks: [], now: [], history: [], daily: [], unreachable: true };
 	}
 };

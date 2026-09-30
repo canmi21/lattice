@@ -32,6 +32,7 @@ export function foldNow(
 		byKey.set(at, {
 			checkId: round.checkId,
 			place: round.place,
+			name: check.name,
 			kind: check.kind,
 			target: check.target,
 			intervalSeconds: check.intervalSeconds,
