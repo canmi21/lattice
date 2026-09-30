@@ -149,6 +149,8 @@
 	}
 
 	const { canonical, mirror } = URLS.internal.status;
+	/** The site, marked as reached from here. */
+	const SITE = `${URLS.apps.production.site}?ref=status`;
 	/** The status page's icon, by its content id in the objects bucket. */
 	const FAVICON = '484b05c1ab8c6800371c862e4f071d73';
 
@@ -233,7 +235,7 @@
 				<Sun size={16} aria-hidden="true" class="hidden dark:block" />
 			</button>
 			<a
-				href={URLS.apps.production.site}
+				href={SITE}
 				class="focus-ring inline-flex h-8 items-center gap-1.5 py-1.5 pr-3 pl-2.5 {stylex.attrs(
 					styles.button,
 				).class}"
@@ -255,7 +257,7 @@
 			styles.footer,
 		).class}"
 	>
-		<p>© {data.year} {author.name}</p>
+		<p>© {data.year} <a href={SITE} class="focus-link {stylex.attrs(styles.social).class}">{author.name}</a></p>
 		<SocialLinks
 			entries={ACCOUNTS}
 			newTab="opens in new tab"

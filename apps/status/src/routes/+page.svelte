@@ -222,8 +222,8 @@
 	</div>
 </header>
 
-<div class="mx-auto flex w-[300px] flex-col gap-12 md:w-[697px] min-[67.5rem]:w-[1027px]">
-	<div class="-mb-6 flex justify-end">
+<div class="mx-auto flex w-full flex-col gap-12 md:w-[697px] min-[67.5rem]:w-[1027px]">
+	<div class="-mb-6 flex justify-center md:justify-end">
 		<div
 			role="radiogroup"
 			aria-label="Each bar spans"
@@ -248,7 +248,7 @@
 	{#each groups as [kind, checks] (kind)}
 		<section>
 			<h2 class="mb-4 px-1 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
-			<ul class="px-4 py-2 md:px-5 {stylex.attrs(styles.card).class}">
+			<ul class="px-2.5 py-2 md:px-5 {stylex.attrs(styles.card).class}">
 				{#each checks as check (key(check.id, check.place))}
 					{@const latest = live.nowByKey.get(key(check.id, check.place))}
 					{@const state = stateOf(latest, live.clock)}
@@ -274,7 +274,7 @@
 							{#each days as day, index (day.start)}
 								{@const color = dayColor(day, check.intervalSeconds, SPAN[live.range].unit)}
 								<span
-									class="w-[7px] shrink-0 md:w-2 {barShown(index)} {stylex.attrs(
+									class="min-w-0 flex-1 md:w-2 md:flex-none {barShown(index)} {stylex.attrs(
 										styles.bar,
 										color === null && styles.none,
 									).class}"
@@ -285,7 +285,7 @@
 					</li>
 				{/each}
 			</ul>
-			<div class="mt-3 flex justify-between px-4 md:px-5 {stylex.attrs(styles.figure).class}">
+			<div class="mt-3 flex justify-between px-2.5 md:px-5 {stylex.attrs(styles.figure).class}">
 				{#each SPANS as span (span.days)}
 					<span class={span.shown}>{sinceLabel(live.range, span.days)}</span>
 				{/each}
