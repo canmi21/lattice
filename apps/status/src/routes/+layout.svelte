@@ -37,7 +37,11 @@
 		byline: {
 			fontSize: text.px12,
 			letterSpacing: '-0.03em', // unnamed
-			color: 'var(--color-text-soft)',
+			textDecorationLine: 'none',
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+			},
 		},
 		toggle: {
 			color: {
@@ -210,18 +214,22 @@
 	class="sticky top-0 z-20 {stylex.attrs(styles.nav, scrolled && styles.navBorderVisible).class}"
 >
 	<div class="flex min-h-14 items-center justify-between gap-4 py-3 {CONTAINER}">
-		<a href={resolve('/')} class="focus-link flex h-9 items-center gap-1.5">
-			<img
-				src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
-				alt=""
-				width="28"
-				height="28"
-				class="size-7"
-			/>
-			<span class={stylex.attrs(styles.wordmark).class}>Status</span>
+		<div class="flex h-9 items-center gap-1.5">
+			<a href={resolve('/')} class="focus-ring flex items-center gap-1.5 rounded-md">
+				<img
+					src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
+					alt=""
+					width="28"
+					height="28"
+					class="size-7"
+				/>
+				<span class={stylex.attrs(styles.wordmark).class}>Status</span>
+			</a>
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
-			<span class={stylex.attrs(styles.byline).class}>by {author.name}</span>
-		</a>
+			<a href={SITE} class="focus-ring rounded-sm {stylex.attrs(styles.byline).class}">
+				by {author.name}
+			</a>
+		</div>
 		<div class="flex items-center gap-2">
 			<button
 				type="button"
@@ -257,7 +265,12 @@
 			styles.footer,
 		).class}"
 	>
-		<p>© {data.year} <a href={SITE} class="focus-link {stylex.attrs(styles.social).class}">{author.name}</a></p>
+		<p>
+			© {data.year}
+			<a href={SITE} class="focus-ring rounded-sm {stylex.attrs(styles.social).class}"
+				>{author.name}</a
+			>
+		</p>
 		<SocialLinks
 			entries={ACCOUNTS}
 			newTab="opens in new tab"
