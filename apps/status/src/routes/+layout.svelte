@@ -155,6 +155,7 @@
 	const { canonical, mirror } = URLS.internal.status;
 	/** The site, marked as reached from here. */
 	const SITE = `${URLS.apps.production.site}?ref=status`;
+	const GITHUB = `${URLS.external.github.web}/${author.github}`;
 	/** The status page's icon, by its content id in the objects bucket. */
 	const FAVICON = '484b05c1ab8c6800371c862e4f071d73';
 
@@ -226,7 +227,12 @@
 				<span class={stylex.attrs(styles.wordmark).class}>Status</span>
 			</a>
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
-			<a href={SITE} class="focus-ring rounded-sm {stylex.attrs(styles.byline).class}">
+			<a
+				href={GITHUB}
+				target="_blank"
+				rel="noopener"
+				class="focus-ring rounded-sm {stylex.attrs(styles.byline).class}"
+			>
 				by {author.name}
 			</a>
 		</div>
@@ -244,6 +250,8 @@
 			</button>
 			<a
 				href={SITE}
+				target="_blank"
+				rel="noopener"
 				class="focus-ring inline-flex h-8 items-center gap-1.5 py-1.5 pr-3 pl-2.5 {stylex.attrs(
 					styles.button,
 				).class}"
@@ -267,8 +275,11 @@
 	>
 		<p>
 			© {data.year}
-			<a href={SITE} class="focus-ring rounded-sm {stylex.attrs(styles.social).class}"
-				>{author.name}</a
+			<a
+				href={SITE}
+				target="_blank"
+				rel="noopener"
+				class="focus-ring rounded-sm {stylex.attrs(styles.social).class}">{author.name}</a
 			>
 		</p>
 		<SocialLinks
