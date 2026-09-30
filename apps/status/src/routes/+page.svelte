@@ -3,15 +3,12 @@
 	import { border, figures, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 	import type { SegmentState, State } from '$lib/board';
 
-	/**
-	 * A first pass at the board: a headline, then each kind of check as one bordered list of rows.
-	 * Colours are the palette's names and nothing else. See spec/styling/palettes.md.
-	 */
+	/** The board's recipes. See spec/styling/palettes.md. */
 	const styles = stylex.create({
 		headline: {
-			fontSize: '1.5rem', // unnamed: above the ladder's top step
+			fontSize: '1.5rem', // unnamed
 			fontWeight: weight.semibold,
-			letterSpacing: '-0.02em', // unnamed: display tracking, one place
+			letterSpacing: '-0.02em', // unnamed
 			color: 'var(--color-text-strong)',
 		},
 		lede: {
@@ -51,7 +48,7 @@
 		up: { backgroundColor: 'var(--color-green)' },
 		down: { backgroundColor: 'var(--color-red)' },
 		quiet: { backgroundColor: 'var(--color-border-strong)' },
-		segment: { borderRadius: '1px' }, // unnamed: a bar segment's corner
+		segment: { borderRadius: '1px' }, // unnamed
 		partial: { backgroundColor: 'var(--color-red)', opacity: 0.45 },
 		none: { backgroundColor: 'var(--color-border)' },
 	});
@@ -92,11 +89,10 @@
 
 	let { data }: PageProps = $props();
 
-	// The server's answer seeds the board once; from here on the browser keeps it.
+	// Seeded once from the server's answer.
 	const live = new Live(untrack(() => data));
 
-	// Once, on mount: an effect would rerun whenever what start() reads changes, and each rerun
-	// closes the socket and opens another.
+	// On mount, not in an effect: an effect reruns on what start() reads, reopening the socket.
 	onMount(() => live.start());
 
 	const overall = $derived(overallOf(live.checks, live.nowByKey, live.clock));

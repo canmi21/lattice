@@ -2,24 +2,19 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { easing, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
-	/**
-	 * The shell's own recipes: the nav's hairline, a shadow so it takes no room, transparent at
-	 * rest and coloured once scrolled; the wordmark and its byline; the one button. See
-	 * spec/architecture/css/layers.md and spec/styling/palettes.md.
-	 */
+	/** The shell's recipes. See spec/architecture/css/layers.md and spec/styling/palettes.md. */
 	const styles = stylex.create({
 		nav: {
 			backgroundColor: 'var(--color-page)',
 			boxShadow: '0 1px 0 0 transparent',
 			transitionProperty: 'box-shadow',
 			transitionDuration: {
-				default: '180ms', // unnamed: the nav's line, quicker than the base step
+				default: '180ms', // unnamed
 				'@media (prefers-reduced-motion: reduce)': '0ms',
 			},
 			transitionTimingFunction: easing.inOut,
 		},
-		// The text's own colour at four percent, lighter than any border: present once the page
-		// moves under it, and barely.
+		// The text colour at 4%, shown once the page has scrolled.
 		navBorderVisible: {
 			boxShadow: '0 1px 0 0 color-mix(in oklch, var(--color-text) 4%, transparent)',
 		},
@@ -33,12 +28,12 @@
 		},
 		byline: {
 			fontSize: text.px12,
-			letterSpacing: '-0.03em', // unnamed: the byline's tracking, one place
+			letterSpacing: '-0.03em', // unnamed
 			color: 'var(--color-text-soft)',
 		},
 		button: {
 			fontSize: text.px14,
-			fontWeight: 510, // unnamed: between normal and medium, the button's own
+			fontWeight: 510, // unnamed
 			color: 'var(--color-paper)',
 			backgroundColor: {
 				default: 'var(--color-ink)',
@@ -50,13 +45,11 @@
 
 
 	/**
-	 * The one width every route inside this layout lines up on: the nav's inner row and `<main>`
-	 * share it character for character, so their edges land on the same pixel. Not a Tailwind
-	 * scale step, so it is the arbitrary value rather than a name -- see
-	 * spec/architecture/css/layers.md, "The frame stays in the markup because structure is what
-	 * the markup is".
+	 * The column the nav's row and `<main>` share: 64.5rem, centered; a 1.5rem gutter below
+	 * 67.5rem, 1rem below 37.5rem.
 	 */
-	const CONTAINER = 'mx-auto w-full max-w-[56rem] px-4 sm:px-6';
+	const CONTAINER =
+		'mx-auto w-[min(100%,64.5rem)] max-[67.5rem]:mx-6 max-[67.5rem]:w-auto max-[37.5rem]:mx-4';
 </script>
 
 <script lang="ts">
@@ -73,13 +66,7 @@
 
 	let { children }: { children: Snippet } = $props();
 
-	/**
-	 * Whether the page has scrolled past its top, which is the only thing the nav's hairline
-	 * border answers to. A 1px sentinel in the normal flow, ahead of the nav, costs no layout of
-	 * its own -- it has no height -- and an `IntersectionObserver` on it costs no per-frame scroll
-	 * work either. SSR has no window to observe, so the border starts absent and only ever turns
-	 * on once a browser is watching.
-	 */
+	/** Whether the page has scrolled, read off a zero-height sentinel above the nav; false in SSR. */
 	let scrolled = $state(false);
 	let sentinel: HTMLElement | undefined;
 
@@ -167,13 +154,13 @@
 	class="sticky top-0 z-20 {stylex.attrs(styles.nav, scrolled && styles.navBorderVisible).class}"
 >
 	<div class="flex min-h-14 items-center justify-between gap-4 py-3 {CONTAINER}">
-		<a href={resolve('/')} class="focus-link flex h-8 items-center gap-1.5">
+		<a href={resolve('/')} class="focus-link flex h-9 items-center gap-1.5">
 			<img
 				src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
 				alt=""
-				width="32"
-				height="32"
-				class="size-8"
+				width="37"
+				height="37"
+				class="size-[2.28125rem]"
 			/>
 			<span class={stylex.attrs(styles.wordmark).class}>Status</span>
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
