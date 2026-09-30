@@ -8,10 +8,11 @@ its `author` from here, so `site.author` reads as it always has. The data is a J
 corpus read the same file the TypeScript does. A service's address is `libs/urls`'
 and a handle is this library's: the link is the two put together.
 
-**`@canmi/social` is the row of links to where the author is found**, one catalog entry per link --
-its icon, drawn as the icon needs to read at the same weight as the rest, and the address it goes
-to -- in the order the site shows them. An app names the entries it shows and passes the addresses
-only it can know, such as its own sitemap and feed; nothing else is written twice.
+**`@canmi/social` is the row of links to where the author is found, and only its shape**: the row's
+layout, each icon drawn as it needs to read at the same weight as the rest, and each link's default
+address, in the order the site shows them. An app names the entries it shows, may give any of them
+another address -- its own sitemap and feed always -- and colors the row itself: the icons draw in
+the current color, and the library sets none.
 
 | App    | Shows                                                                          |
 | ------ | ------------------------------------------------------------------------------ |
