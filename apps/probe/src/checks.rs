@@ -69,6 +69,7 @@ struct File {
 #[serde(deny_unknown_fields)]
 struct Declared {
 	id: String,
+	name: String,
 	kind: Kind,
 	target: String,
 	/// Seconds between rounds.
@@ -81,6 +82,8 @@ struct Declared {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Check {
 	pub id: String,
+	/// What a reader is shown in place of the id: "Scheduler", "Site DNS".
+	pub name: String,
 	pub kind: Kind,
 	/// The target as declared, symbolically: what `checks` and `GET /checks` show, so no address
 	/// is written anywhere but `libs/urls`.
@@ -186,6 +189,9 @@ pub fn parse(source: &str) -> Result<Vec<Check>, String> {
 		if !seen.insert(id.clone()) {
 			return Err(format!("`{id}` is declared twice"));
 		}
+		if declared.name.trim().is_empty() {
+			return Err(format!("`{id}`: a name is required, and not blank"));
+		}
 		if !(declared.interval.is_finite() && declared.interval >= SHORTEST) {
 			return Err(format!("`{id}`: an interval is at least {SHORTEST} second"));
 		}
@@ -201,6 +207,7 @@ pub fn parse(source: &str) -> Result<Vec<Check>, String> {
 		}
 		checks.push(Check {
 			id,
+			name: declared.name,
 			kind: declared.kind,
 			target: declared.target,
 			url,
@@ -222,6 +229,8 @@ mod tests {
 		for kind in [Kind::Dns, Kind::Api, Kind::Page, Kind::Health] {
 			assert!(checks.iter().any(|check| check.kind == kind), "{kind:?} has a check");
 		}
+		let names: HashSet<&str> = checks.iter().map(|check| check.name.as_str()).collect();
+		assert_eq!(names.len(), checks.len(), "no two checks share a name");
 	}
 
 	#[test]
@@ -250,6 +259,7 @@ mod tests {
 		let one = r#"
 			[[check]]
 			id = "geo-ip"
+			name = "Geolocation API"
 			kind = "api"
 			target = "API_PUBLIC/geo/ip"
 			interval = 30
@@ -260,11 +270,16 @@ mod tests {
 		assert_eq!(check.interval, Duration::from_secs(30));
 		assert_eq!(check.within(), Duration::from_secs(2));
 		assert_eq!(check.expect.fields, ["credit"]);
+		assert_eq!(check.name, "Geolocation API");
 
 		let twice = format!("{one}\n{one}");
 		assert!(parse(&twice).unwrap_err().contains("twice"));
 		let unknown = one.replace("within = 2", "within = 2, colour = 1");
 		assert!(parse(&unknown).is_err());
+		let unnamed = one.replace("name = \"Geolocation API\"\n", "");
+		assert!(parse(&unnamed).unwrap_err().contains("name"));
+		let blank = one.replace("\"Geolocation API\"", "\" \"");
+		assert!(parse(&blank).unwrap_err().contains("a name is required"));
 		let too_often = one.replace("interval = 30", "interval = 0.5");
 		assert!(parse(&too_often).is_err());
 		let wrong_kind = one.replace("kind = \"api\"", "kind = \"dns\"");
@@ -272,6 +287,7 @@ mod tests {
 		let bad_record = r#"
 			[[check]]
 			id = "dns"
+			name = "Site DNS"
 			kind = "dns"
 			target = "APPS_PRODUCTION_SITE"
 			interval = 60

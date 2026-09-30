@@ -156,11 +156,11 @@ async fn follow(
 	headers: &[(&'static str, String)],
 ) -> Result<Answer, Outcome> {
 	let mut answer = ask(context, check, &url, headers).await?;
+	// Only the first 202 names where to look; a later one, still queued, is asked again as it is.
 	while answer.status == 202 {
-		let Some(location) = answer.location.as_deref() else {
-			return Err(Outcome::fail("202 without a location"));
-		};
-		url = url.join(location).map_err(|_| Outcome::fail("202 with a location that is no URL"))?;
+		if let Some(location) = answer.location.as_deref() {
+			url = url.join(location).map_err(|_| Outcome::fail("202 with a location that is no URL"))?;
+		}
 		let wait = answer.retry_after.unwrap_or(POLL.0).clamp(POLL.0, POLL.1);
 		tokio::time::sleep(Duration::from_secs(wait)).await;
 		answer = ask(context, check, &url, headers).await?;
@@ -352,13 +352,21 @@ mod tests {
 	#[derive(Default)]
 	struct Fake {
 		answers: HashMap<String, Answer>,
+		/// Answered first, one each time the URL is asked, before `answers` takes over.
+		queued: Mutex<HashMap<String, Vec<Answer>>>,
 		asked: Mutex<Vec<(String, Headers)>>,
 	}
 
 	impl Http for Fake {
 		fn get(&self, url: &Url, headers: &[(&'static str, String)]) -> Asked {
 			self.asked.lock().unwrap().push((url.to_string(), headers.to_vec()));
-			let answer = self.answers.get(url.as_str()).cloned();
+			let queued = self
+				.queued
+				.lock()
+				.unwrap()
+				.get_mut(url.as_str())
+				.and_then(|queue| (!queue.is_empty()).then(|| queue.remove(0)));
+			let answer = queued.or_else(|| self.answers.get(url.as_str()).cloned());
 			Box::pin(async move { answer.ok_or_else(|| "connection refused".to_owned()) })
 		}
 	}
@@ -376,6 +384,7 @@ mod tests {
 		let check = one(
 			r#"[[check]]
 			id = "h"
+			name = "Test h"
 			kind = "health"
 			target = "API_PRIVATE/geo/health"
 			interval = 5"#,
@@ -396,6 +405,7 @@ mod tests {
 		let check = one(
 			r#"[[check]]
 			id = "a"
+			name = "Test a"
 			kind = "api"
 			target = "API_PUBLIC/shot/capture?host=canmi.net"
 			interval = 3600
@@ -421,11 +431,41 @@ mod tests {
 		assert_eq!(run(&check, &context).await, Outcome::fail("unreachable"));
 	}
 
+	#[tokio::test]
+	async fn a_later_202_without_a_location_is_asked_again_where_it_is() {
+		let check = one(
+			r#"[[check]]
+			id = "a"
+			name = "Test a"
+			kind = "api"
+			target = "API_PUBLIC/shot/capture?host=canmi.net"
+			interval = 3600
+			expect = { follow = true, fields = ["page.status"] }"#,
+		);
+		let mut fake = Fake::default();
+		let mut first = answer(202, serde_json::json!({"status": "success", "data": {}}));
+		first.location = Some("status?task=1".into());
+		first.retry_after = Some(0);
+		fake.answers.insert(check.url.to_string(), first);
+		let status = format!("{}/shot/status?task=1", urls::INTERNAL_API_PUBLIC);
+		let rendering = answer(202, serde_json::json!({"status": "success", "data": {}}));
+		fake.queued.lock().unwrap().insert(status.clone(), vec![rendering]);
+		let done = serde_json::json!({"status": "success", "data": {"page": {"status": 200}}});
+		fake.answers.insert(status.clone(), answer(200, done));
+		let fake = Arc::new(fake);
+		let context = Context::new(fake.clone(), Some("secret".into()));
+		assert_eq!(run(&check, &context).await, Outcome::pass());
+		let asked: Vec<String> =
+			fake.asked.lock().unwrap().iter().map(|(url, _)| url.clone()).collect();
+		assert_eq!(asked, [check.url.to_string(), status.clone(), status]);
+	}
+
 	#[test]
 	fn an_answer_is_judged_by_status_envelope_and_fields() {
 		let check = one(
 			r#"[[check]]
 			id = "a"
+			name = "Test a"
 			kind = "api"
 			target = "API_PUBLIC/geo/ip"
 			interval = 30
@@ -447,6 +487,7 @@ mod tests {
 		let check = one(
 			r#"[[check]]
 			id = "d"
+			name = "Test d"
 			kind = "dns"
 			target = "APPS_PRODUCTION_SITE"
 			interval = 60"#,
@@ -515,6 +556,7 @@ mod tests {
 		let check = one(
 			r#"[[check]]
 			id = "p"
+			name = "Test p"
 			kind = "page"
 			target = "APPS_PRODUCTION_SITE"
 			interval = 60

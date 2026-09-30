@@ -44,6 +44,7 @@ fn kept(body: impl Serialize) -> Response {
 #[derive(Serialize)]
 struct Declared<'a> {
 	id: &'a str,
+	name: &'a str,
 	kind: &'static str,
 	target: &'a str,
 	place: &'a str,
@@ -57,6 +58,7 @@ async fn checks(State(state): State<AppState>) -> Response {
 		.iter()
 		.map(|check| Declared {
 			id: &check.id,
+			name: &check.name,
 			kind: check.kind.name(),
 			target: &check.target,
 			place: &state.place,
@@ -161,6 +163,7 @@ mod tests {
 		assert_eq!((status, cache.unwrap()), (StatusCode::OK, HeaderValue::from_static(KEPT)));
 		let first = &body["data"][0];
 		assert_eq!(first["id"], "health.geo");
+		assert_eq!(first["name"], "Geolocation");
 		assert_eq!(first["target"], "API_PRIVATE/geo/health");
 		assert_eq!(
 			(first["kind"].as_str(), first["interval_seconds"].as_f64()),

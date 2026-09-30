@@ -2,13 +2,14 @@
  * The probe's schema, declared once and applied by the Rust probe through sqlx.
  *
  * See spec/architecture/probe.md, "The schema: declared once, in Drizzle, applied by the probe".
- * Tables are the probe's alone; the three views at the bottom are the only surface `anon` reads,
+ * Tables are the probe's alone; the views at the bottom are the only surface `anon` reads,
  * and RLS with no policies is what keeps a table unreadable to everyone but its owner.
  */
 import { sql } from 'drizzle-orm';
 import {
 	boolean,
 	check,
+	date,
 	integer,
 	pgTable,
 	pgView,
@@ -23,6 +24,7 @@ export const checks = pgTable(
 	'checks',
 	{
 		id: text('id').primaryKey(),
+		name: text('name').notNull(),
 		kind: text('kind').notNull(),
 		target: text('target').notNull(),
 		place: text('place').notNull(),
@@ -92,6 +94,7 @@ export const statusNow = pgView('status_now').as(() =>
 		.selectDistinctOn([results.checkId, results.place], {
 			checkId: results.checkId,
 			place: results.place,
+			name: checks.name,
 			kind: checks.kind,
 			target: checks.target,
 			intervalSeconds: checks.intervalSeconds,
@@ -134,6 +137,28 @@ export const statusHistory = pgView('status_history', {
 	from ${rollups}
 `);
 
+/**
+ * Each check's passed and failed rounds per place and UTC day, from the hourly rollups, for
+ * today and the 89 days before it. See spec/architecture/probe.md, "The page draws ninety days".
+ * Today holds only the hours already closed; the page adds the broadcasts for the rest.
+ */
+export const statusDaily = pgView('status_daily', {
+	checkId: text('check_id').notNull(),
+	place: text('place').notNull(),
+	day: date('day', { mode: 'string' }).notNull(),
+	passed: integer('passed').notNull(),
+	failed: integer('failed').notNull(),
+}).as(sql`
+	select ${rollups.checkId}, ${rollups.place},
+		(${rollups.bucketStart} at time zone 'UTC')::date as day,
+		sum(${rollups.passed})::integer as passed, sum(${rollups.failed})::integer as failed
+	from ${rollups}
+	where ${rollups.grain} = '1h'
+		and ${rollups.bucketStart} >= ((now() at time zone 'UTC')::date - 89) at time zone 'UTC'
+	group by 1, 2, 3
+`);
+
 export type StatusCheckRow = typeof statusChecks.$inferSelect;
 export type StatusNowRow = typeof statusNow.$inferSelect;
 export type StatusHistoryRow = typeof statusHistory.$inferSelect;
+export type StatusDailyRow = typeof statusDaily.$inferSelect;

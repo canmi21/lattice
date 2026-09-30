@@ -79,4 +79,92 @@ mod tests {
 		migrator().run(&mut connection).await.unwrap();
 		migrator().run(&mut connection).await.unwrap();
 	}
+
+	/// A database the probe wrote before checks had names takes the migrations that add them: the
+	/// first three are applied alone, a check is written without a name, then the rest run. In a
+	/// database of its own, created and dropped here, so the test above cannot race it.
+	#[tokio::test]
+	#[ignore = "needs PROBE_TEST_DATABASE_URL"]
+	async fn a_database_from_before_names_is_brought_forward() {
+		use sqlx_core::connection::Connection;
+		use sqlx_core::query::query;
+		use sqlx_core::query_scalar::query_scalar;
+		let url = url::Url::parse(&std::env::var("PROBE_TEST_DATABASE_URL").unwrap()).unwrap();
+		let mut admin = sqlx_postgres::PgConnection::connect(url.as_str()).await.unwrap();
+		let name = format!("probe_upgrade_{}", std::process::id());
+		query(AssertSqlSafe(format!("DROP DATABASE IF EXISTS {name}")))
+			.execute(&mut admin)
+			.await
+			.unwrap();
+		query(AssertSqlSafe(format!("CREATE DATABASE {name}"))).execute(&mut admin).await.unwrap();
+		let mut own = url.clone();
+		own.set_path(&name);
+		let mut connection = sqlx_postgres::PgConnection::connect(own.as_str()).await.unwrap();
+		for role in ["anon", "authenticated"] {
+			let create = format!(
+				"DO $$ BEGIN CREATE ROLE {role}; \
+				EXCEPTION WHEN duplicate_object OR unique_violation THEN NULL; END $$"
+			);
+			query(AssertSqlSafe(create)).execute(&mut connection).await.unwrap();
+		}
+
+		// As a fresh Supabase project has it, so the revoke in 0004 is what keeps anon out.
+		query("alter default privileges in schema public grant all on tables to anon, authenticated")
+			.execute(&mut connection)
+			.await
+			.unwrap();
+		let before = Migrator::with_migrations(migrator().iter().take(3).cloned().collect());
+		before.run(&mut connection).await.unwrap();
+		query(
+			"insert into checks (id, kind, target, place, interval_seconds, updated_at)
+			values ('health.geo', 'health', 'API_PRIVATE/geo/health', 'home', 5, now())",
+		)
+		.execute(&mut connection)
+		.await
+		.unwrap();
+		query(
+			"insert into rollups values ('health.geo', 'home', '1h', date_trunc('hour', now()), 3, 1, 5, 9),
+				('health.geo', 'home', '1h', date_trunc('hour', now()) - interval '1 hour', 2, 0, 5, 9),
+				('health.geo', 'home', '1h', now() - interval '120 days', 7, 7, 5, 9)",
+		)
+		.execute(&mut connection)
+		.await
+		.unwrap();
+		migrator().run(&mut connection).await.unwrap();
+
+		let named: String = query_scalar("select name from status_checks where id = 'health.geo'")
+			.fetch_one(&mut connection)
+			.await
+			.unwrap();
+		assert_eq!(named, "health.geo");
+		let unnamed = query(
+			"insert into checks (id, kind, target, place, interval_seconds, updated_at)
+			values ('dns.site', 'dns', 'APPS_PRODUCTION_SITE', 'home', 60, now())",
+		)
+		.execute(&mut connection)
+		.await;
+		assert!(unnamed.is_err(), "a check without a name is refused");
+
+		query("set role anon").execute(&mut connection).await.unwrap();
+		let days: Vec<(String, i32, i32)> = sqlx_core::query_as::query_as(
+			"select day::text, passed, failed from status_daily
+			where check_id = 'health.geo' and place = 'home' order by day",
+		)
+		.fetch_all(&mut connection)
+		.await
+		.unwrap();
+		let summed: (i32, i32) = days.iter().fold((0, 0), |(p, f), day| (p + day.1, f + day.2));
+		assert_eq!(summed, (5, 1), "the last ninety days alone: {days:?}");
+		let denied = |result: Result<_, sqlx_core::Error>| {
+			result.is_err_and(|error| error.to_string().contains("permission denied"))
+		};
+		let written = query("update status_checks set name = 'x'").execute(&mut connection).await;
+		assert!(denied(written), "anon reads the views and writes none of them");
+		let table = query("select 1 from checks").execute(&mut connection).await;
+		assert!(denied(table), "anon reads no table");
+		query("reset role").execute(&mut connection).await.unwrap();
+
+		drop(connection);
+		query(AssertSqlSafe(format!("DROP DATABASE {name}"))).execute(&mut admin).await.unwrap();
+	}
 }

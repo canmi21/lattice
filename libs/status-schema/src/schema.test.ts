@@ -8,8 +8,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import type { StatusCheckRow, StatusHistoryRow, StatusNowRow } from './schema.ts';
-import { checks, statusChecks, statusHistory, statusNow } from './schema.ts';
+import type { StatusCheckRow, StatusDailyRow, StatusHistoryRow, StatusNowRow } from './schema.ts';
+import { checks, statusChecks, statusDaily, statusHistory, statusNow } from './schema.ts';
 
 function tableColumnNames(table: Parameters<typeof getTableColumns>[0]): string[] {
 	return Object.values(getTableColumns(table)).map((column) => column.name);
@@ -47,9 +47,21 @@ describe('the probe schema', () => {
 		expect(sql).toMatch(/revoke all on table "checks", "results", "rollups" from anon/);
 	});
 
-	it('grants anon select on the three views and nothing else', () => {
+	it('grants anon select on every view and nothing else', () => {
 		const sql = migrationsText();
-		expect(sql).toMatch(/grant select on "status_checks", "status_now", "status_history" to anon/);
+		const views = '"status_checks", "status_now", "status_history", "status_daily"';
+		expect(sql).toContain(`revoke all on table ${views}\n\tfrom anon, authenticated;`);
+		expect(sql).toContain(`grant select on ${views} to anon;`);
+	});
+
+	it('names every existing check before the name is required', () => {
+		const sql = migrationsText();
+		const added = sql.indexOf('ALTER TABLE "checks" ADD COLUMN "name" text;');
+		const filled = sql.indexOf('update "checks" set "name" = "id" where "name" is null;');
+		const required = sql.indexOf('ALTER TABLE "checks" ALTER COLUMN "name" SET NOT NULL;');
+		expect(added).toBeGreaterThan(-1);
+		expect(filled).toBeGreaterThan(added);
+		expect(required).toBeGreaterThan(filled);
 	});
 
 	it('broadcasts each insert into results once, publicly, on status', () => {
@@ -70,12 +82,14 @@ describe('the probe schema', () => {
 	it('exposes every public column of checks through status_checks', () => {
 		const check = {} as StatusCheckRow;
 		check.id = 'geo';
+		check.name = 'Geolocation';
 		check.kind = 'api';
 		check.target = 'geo';
 		check.place = 'home';
 		check.intervalSeconds = 1;
 		check.updatedAt = new Date();
 		expect(viewColumnNames(statusChecks)).toEqual(tableColumnNames(checks));
+		expect(viewColumnNames(statusChecks)).toContain('name');
 	});
 
 	it('leaves staleness as data on status_now', () => {
@@ -84,6 +98,8 @@ describe('the probe schema', () => {
 		now.place = 'home';
 		now.at = new Date();
 		now.intervalSeconds = 1;
+		now.name = 'Geolocation';
+		expect(viewColumnNames(statusNow)).toContain('name');
 		expect(viewColumnNames(statusNow)).toContain('interval_seconds');
 		expect(viewColumnNames(statusNow)).toContain('at');
 	});
@@ -106,5 +122,19 @@ describe('the probe schema', () => {
 			'median_ms',
 			'worst_ms',
 		]);
+	});
+
+	it('sums each check per UTC day from the hourly rollups on status_daily', () => {
+		const row = {} as StatusDailyRow;
+		row.checkId = 'health.geo';
+		row.place = 'home';
+		row.day = '2026-09-29';
+		row.passed = 17_280;
+		row.failed = 0;
+		expect(viewColumnNames(statusDaily)).toEqual(['check_id', 'place', 'day', 'passed', 'failed']);
+		const sql = migrationsText();
+		expect(sql).toMatch(/CREATE VIEW "public"."status_daily"/);
+		expect(sql).toContain(`where "rollups"."grain" = '1h'`);
+		expect(sql).toContain(`("rollups"."bucket_start" at time zone 'UTC')::date as day`);
 	});
 });

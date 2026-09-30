@@ -280,13 +280,14 @@ impl Database for Postgres {
 		}
 		for check in checks {
 			sqlx_core::query::query(
-				"insert into checks (id, kind, target, place, interval_seconds, updated_at)
-				values ($1, $2, $3, $4, $5, now())
-				on conflict (id) do update set kind = excluded.kind, target = excluded.target,
-					place = excluded.place, interval_seconds = excluded.interval_seconds,
-					updated_at = excluded.updated_at",
+				"insert into checks (id, name, kind, target, place, interval_seconds, updated_at)
+				values ($1, $2, $3, $4, $5, $6, now())
+				on conflict (id) do update set name = excluded.name, kind = excluded.kind,
+					target = excluded.target, place = excluded.place,
+					interval_seconds = excluded.interval_seconds, updated_at = excluded.updated_at",
 			)
 			.bind(&check.id)
+			.bind(&check.name)
 			.bind(check.kind.name())
 			.bind(&check.target)
 			.bind(place)

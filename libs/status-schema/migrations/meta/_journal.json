@@ -22,6 +22,27 @@
 			"when": 1790730489753,
 			"tag": "0002_broadcast-status",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1790736185664,
+			"tag": "0003_checks-name",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1790736186025,
+			"tag": "0004_fill-names-grant-views",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1790736191713,
+			"tag": "0005_checks-name-required",
+			"breakpoints": true
 		}
 	]
 }
