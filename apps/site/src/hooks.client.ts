@@ -1,10 +1,10 @@
 import { dev } from '$app/environment';
+import { prepareBrowserRuntime } from '@canmi/compat';
 import { URLS } from '@canmi/urls';
 import { initClient } from '@canmi/sentry/client';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import type { ClientInit } from '@sveltejs/kit';
 import { registerAnalytics } from '$lib/analytics';
-import { prepareBrowserRuntime } from '$lib/client/compatibility';
 import { withoutLanguageParameter } from '$lib/locale';
 import { registerClientStrategy } from '$lib/locale/paraglide';
 

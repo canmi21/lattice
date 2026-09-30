@@ -8,6 +8,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
+		"@canmi/compat": "workspace:*",
 		"@canmi/hints": "workspace:*",
 		"@canmi/identity": "workspace:*",
 		"@canmi/motion": "workspace:*",
@@ -35,5 +36,11 @@
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"vite": "^8.3.0"
-	}
+	},
+	"browserslist": [
+		"chrome >= 110",
+		"edge >= 110",
+		"firefox >= 115",
+		"safari >= 16.0"
+	]
 }

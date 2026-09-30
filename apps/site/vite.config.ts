@@ -7,6 +7,7 @@ import {
 	PORT_OFFSET,
 	URLS,
 } from '@canmi/urls';
+import { esbuildTarget } from '@canmi/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import stylex from '@stylexjs/unplugin/vite';
@@ -56,22 +57,11 @@ const commitHash = (() => {
 // Sitemap <lastmod> for routes like "/" that have no article of their own to date from.
 const buildTime = new Date().toISOString();
 
-// The syntax floor, and the only place it is written down. `browserslist` in package.json says
-// which browsers the emitted JavaScript has to parse on, esbuild compiles down to it here, and
-// it deliberately matches the compatibility canary's line -- see spec/compat.md, "The syntax
-// floor is set to the same line, deliberately".
+// `browserslist` in package.json is the syntax floor; see spec/compat.md, "The syntax floor is
+// set to the same line, deliberately".
 const BROWSERSLIST: string[] = JSON.parse(
 	readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
 ).browserslist;
-
-// esbuild wants `chrome110`; browserslist writes `chrome >= 110`. Same fact, two spellings,
-// and this is the whole distance between them.
-const esbuildTarget = BROWSERSLIST.map((query) => {
-	const floor = /^(\S+)\s*>=\s*(\S+)$/.exec(query);
-	if (!floor)
-		throw new Error(`browserslist entry is not a floor, so esbuild cannot take it: ${query}`);
-	return `${floor[1]}${floor[2]}`;
-});
 
 export default defineConfig(({ mode }) => {
 	// The page-facing map, because both readers of it below end up in a document: the redirect
@@ -242,7 +232,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			// Stated rather than left to Vite's default, which is a baseline of its own choosing
 			// and can move under a major. See BROWSERSLIST above.
-			target: esbuildTarget,
+			target: esbuildTarget(BROWSERSLIST),
 			sourcemap: sourcemapSetting(uploadSourceMaps),
 			rollupOptions: {
 				output: {

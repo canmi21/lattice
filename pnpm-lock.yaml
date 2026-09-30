@@ -536,6 +536,9 @@ importers:
       '@canmi/cache':
         specifier: workspace:*
         version: link:../../libs/cache
+      '@canmi/compat':
+        specifier: workspace:*
+        version: link:../../libs/compat
       '@canmi/compile':
         specifier: workspace:*
         version: link:../../libs/compile
@@ -635,9 +638,6 @@ importers:
       bits-ui:
         specifier: ^2.19.2
         version: 2.19.2(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.0(svelte@5.57.1)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)))(svelte@5.57.1)
-      core-js:
-        specifier: ^3.50.0
-        version: 3.50.0
       d3-hierarchy:
         specifier: ^3.1.2
         version: 3.1.2
@@ -817,6 +817,9 @@ importers:
 
   apps/status:
     devDependencies:
+      '@canmi/compat':
+        specifier: workspace:*
+        version: link:../../libs/compat
       '@canmi/hints':
         specifier: workspace:*
         version: link:../../libs/hints
@@ -962,6 +965,12 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
+
+  libs/compat:
+    dependencies:
+      core-js:
+        specifier: ^3.50.0
+        version: 3.50.0
 
   libs/compile:
     dependencies:

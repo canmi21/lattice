@@ -1,0 +1,12 @@
+{
+	"name": "@canmi/compat",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./build": "./src/build.ts"
+	},
+	"dependencies": {
+		"core-js": "^3.50.0"
+	}
+}

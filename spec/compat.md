@@ -16,11 +16,10 @@ call site is indistinguishable from any other method call.
 This was learned the expensive way. `toSorted` reached production, threw for a real reader, and
 arrived as a Sentry issue. No configuration would have predicted it.
 
-## The API floor: one canary, and all of core-js behind it
+## The API floor: a short list of canaries, and all of core-js behind it
 
-[compatibility.ts](../apps/site/src/lib/client/compatibility.ts) checks for
-`Array.prototype.toSorted` and, if it is absent, dynamically imports `core-js/stable` before
-hydration.
+[`@canmi/compat`](../libs/compat/src/index.ts) checks for each canary -- `Array.prototype.toSorted`,
+`URL.canParse` -- and, if any is absent, dynamically imports `core-js/stable` before hydration.
 
 **There is no list of modules any more, and that is the point.** A hand-written list has no
 knowable correct length: an entry missing from it is a crash in somebody's browser, discovered
@@ -40,7 +39,14 @@ The closure is the measurement that matters and text search cannot give it: `man
 `imports` are the static edges, `dynamicImports` are not, so grepping chunks for a core-js marker
 counts the lazy ones too and reads as though the bundle were bloated.
 
-### Why `toSorted`, and why only one check
+**The canaries grow one at a time, each an edge case met in production.** `toSorted` was the
+first. `URL.canParse` is the second: Chrome 120, above the floor, so a Chrome 110 to 119 reader
+passes the first canary and loads nothing, and a Chrome 99 reader of the status page crashed on it.
+Either missing loads core-js. The floor itself does not move for a canary: it is where the syntax
+must parse, and a canary is only a cheaper way of noticing a browser that needs the rest. The list
+is in `@canmi/compat`, one line an entry.
+
+### Why `toSorted` first, and why so few checks
 
 It is the one that actually broke. Chrome 110, Firefox 115 and Safari 16.0 shipped it, and a
 reader below that line reached production.
@@ -50,8 +56,8 @@ have this has the decade of features before it, and a browser without it needs e
 The canary is not a claim about which API the next crash involves -- it is a cheap proxy for
 "this browser is old", and the whole of core-js is what answers the crash.
 
-**The canary is where the API floor is declared.** Not in a config file, not in a table. Moving
-that line is editing this one condition.
+**The canaries are where the API floor is declared.** Not in a config file, not in a table. Moving
+that line is editing that list.
 
 `stable` rather than `es`, which omits `URL` and `structuredClone`, or `actual`, which adds
 proposals nothing here writes.

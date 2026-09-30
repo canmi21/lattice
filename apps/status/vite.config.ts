@@ -1,4 +1,6 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { esbuildTarget } from '@canmi/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/sentry/build';
 import { URLS } from '@canmi/urls';
 import { sentrySvelteKit } from '@sentry/sveltekit';
@@ -9,6 +11,11 @@ import { defineConfig } from 'vite';
 
 // The workspace root, as the site and the panel set it: StyleX hashes a class from the file's path
 // relative to this, and reads `libs/tokens` from under it.
+// `browserslist` in package.json is the syntax floor, the site's exactly; see spec/compat.md.
+const BROWSERSLIST: string[] = JSON.parse(
+	readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
+).browserslist;
+
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 // Where each door's adapter writes the maps; see svelte.config.js for the doors.
@@ -49,6 +56,7 @@ export default defineConfig({
 	],
 	// Hashed file names in hex, as the site's are.
 	build: {
+		target: esbuildTarget(BROWSERSLIST),
 		sourcemap: sourcemapSetting(upload),
 		rollupOptions: { output: { hashCharacters: 'hex' } },
 	},

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { prepareBrowserRuntime } from './compatibility';
+import { prepareBrowserRuntime } from './index';
 
 it('installs non-mutating array sorting before an older browser hydrates', async () => {
 	const native = Object.getOwnPropertyDescriptor(Array.prototype, 'toSorted');
