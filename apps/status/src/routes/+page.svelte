@@ -5,15 +5,40 @@
 
 	/** The board's recipes. See spec/styling/palettes.md. */
 	const styles = stylex.create({
-		headline: {
-			fontSize: '1.5rem', // unnamed
-			fontWeight: weight.semibold,
-			letterSpacing: '-0.02em', // unnamed
+		title: {
+			fontSize: 'clamp(2.5rem, 7vw, 4rem)', // unnamed
+			lineHeight: 1.125,
+			fontWeight: 590, // unnamed
+			letterSpacing: '-0.015625em', // unnamed
 			color: 'var(--color-text-strong)',
+			textWrap: 'balance',
 		},
-		lede: {
-			fontSize: text.px14,
+		subtitle: {
+			fontSize: '1rem',
+			lineHeight: 1.5,
 			color: 'var(--color-text-soft)',
+		},
+		action: {
+			fontSize: text.px14,
+			fontWeight: 510, // unnamed
+			borderRadius: radius.full,
+		},
+		primary: {
+			color: 'var(--color-paper)',
+			backgroundColor: {
+				default: 'var(--color-ink)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+			},
+		},
+		secondary: {
+			color: 'var(--color-text)',
+			backgroundColor: {
+				default: 'color-mix(in oklch, var(--color-text) 6%, transparent)',
+				'@media (hover: hover)': {
+					default: null,
+					':hover': 'color-mix(in oklch, var(--color-text) 10%, transparent)',
+				},
+			},
 		},
 		kind: {
 			fontSize: text.px13,
@@ -81,10 +106,12 @@
 </script>
 
 <script lang="ts">
+	import Bell from '@lucide/svelte/icons/bell';
+	import MessageCircleWarning from '@lucide/svelte/icons/message-circle-warning';
 	import { onMount, untrack } from 'svelte';
 	import { byKind, key, overallOf, segmentsOf, stateOf, uptimeOf } from '$lib/board';
 	import { Live } from '$lib/live.svelte';
-	import { percent } from '$lib/time';
+	import { ago, percent } from '$lib/time';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -98,22 +125,28 @@
 	const overall = $derived(overallOf(live.checks, live.nowByKey, live.clock));
 	const groups = $derived(byKind(live.checks));
 
-	const headline = $derived.by(() => {
+	/**
+	 * Four states: all up; minor; severe -- the probe silent, or at least two checks and a quarter
+	 * of them failing or quiet; no data yet.
+	 */
+	const title = $derived.by((): [string, string] => {
 		switch (overall.state) {
-			case 'up':
-				return 'All checks passing';
-			case 'down':
-				return `${overall.failing} of ${overall.total} checks failing`;
-			case 'partial':
-				return `${overall.silent} of ${overall.total} checks gone quiet`;
-			case 'silent':
-				return 'The probe is silent';
 			case 'empty':
-				return 'No checks reported yet';
+				return ['Awaiting the probe,', 'shortly.'];
+			case 'up':
+				return ['All systems up,', 'all clear.'];
+			case 'silent':
+				return ['Something is down,', 'no reports.'];
 		}
+		const affected = overall.state === 'down' ? overall.failing : overall.silent;
+		const severe = affected >= 2 && affected * 4 >= overall.total;
+		return severe
+			? ['Something is down,', `${affected} affected.`]
+			: ['Minor issues found,', `${affected} affected.`];
 	});
-	const headlineDot = $derived(
-		overall.state === 'up' ? styles.up : overall.state === 'down' ? styles.down : styles.quiet,
+
+	const subtitle = $derived(
+		live.answeredAt ? `Updated ${ago(live.answeredAt, live.clock)}.` : 'Not reached yet.',
 	);
 </script>
 
@@ -125,14 +158,31 @@
 	/>
 </svelte:head>
 
-<header class="mb-12">
-	<div class="flex items-center gap-3">
-		<span class="size-2.5 shrink-0 rounded-full {stylex.attrs(headlineDot).class}"></span>
-		<h1 class={stylex.attrs(styles.headline).class}>{headline}</h1>
+<header class="flex flex-col items-center pt-20 pb-16 text-center">
+	<h1 class={stylex.attrs(styles.title).class}>{title[0]}<br />{title[1]}</h1>
+	<p class="mt-2 {stylex.attrs(styles.subtitle).class}">{subtitle}</p>
+	<div class="mt-4 flex flex-wrap justify-center gap-4">
+		<button
+			type="button"
+			class="focus-ring inline-flex h-10 items-center gap-1 px-4 {stylex.attrs(
+				styles.action,
+				styles.primary,
+			).class}"
+		>
+			<MessageCircleWarning size={18} aria-hidden="true" />
+			Report a problem
+		</button>
+		<button
+			type="button"
+			class="focus-ring inline-flex h-10 items-center gap-1 px-4 {stylex.attrs(
+				styles.action,
+				styles.secondary,
+			).class}"
+		>
+			<Bell size={18} aria-hidden="true" />
+			Subscribe
+		</button>
 	</div>
-	<p class="mt-2 {stylex.attrs(styles.lede).class}">
-		Checked from outside every few seconds, and told to this page as it happens.
-	</p>
 </header>
 
 <div class="flex flex-col gap-10">

@@ -178,6 +178,6 @@
 	</div>
 </nav>
 
-<main class="{CONTAINER} py-10 sm:py-12">
+<main class="{CONTAINER} pb-16">
 	{@render children()}
 </main>
