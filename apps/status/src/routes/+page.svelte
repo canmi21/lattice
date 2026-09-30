@@ -223,7 +223,7 @@
 </header>
 
 <div class="mx-auto flex w-full flex-col gap-12 md:w-[697px] min-[67.5rem]:w-[1027px]">
-	<div class="-mb-6 flex justify-center md:justify-end">
+	<div class="-mb-6 flex justify-start md:justify-end">
 		<div
 			role="radiogroup"
 			aria-label="Each bar spans"
