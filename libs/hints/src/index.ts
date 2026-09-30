@@ -160,5 +160,10 @@ function address(entry: Entry, dev: boolean): string {
 
 /** A hint is for a host, so an address is cut to its origin; a development proxy path stays. */
 function origin(href: string): string {
-	return URL.canParse(href) ? new URL(href).origin : href;
+	// Not `URL.canParse`: Chrome 120 is above the API floor. See spec/compat.md.
+	try {
+		return new URL(href).origin;
+	} catch {
+		return href;
+	}
 }

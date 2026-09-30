@@ -82,8 +82,15 @@ which is above the canary for Firefox and would have had precisely the effect de
 `caniuse-lite`, so the compiled output would change on an unrelated dependency update and
 rebuilding one commit twice would not produce the same bytes.
 
-Only the site declares one. `api` and `cdn` run on workerd, and the CMS is opened in whatever
-browser its author uses; none of them meets an arbitrary browser.
+The site and the status page declare one, the same, through `@canmi/compat`, which holds the
+canary, the lazy import and the reading of `browserslist` into esbuild's target, so the two cannot
+drift. `api` and `cdn` run on workerd, and the CMS is opened in whatever browser its author uses;
+none of them meets an arbitrary browser.
+
+**The floor binds every line a browser runs, the shared libraries' included.** `URL.canParse` is
+Chrome 120, above the canary: `@canmi/hints` called it, a Chrome 99 reader of the status page
+crashed on hydration, and on the site a Chrome 110 to 119 reader would have too, since the canary
+passes there and loads nothing. An API newer than the floor is written around, not relied on.
 
 ### Tailwind's floor is higher and is not this one
 
