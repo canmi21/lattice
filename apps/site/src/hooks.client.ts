@@ -1,6 +1,7 @@
 import { dev } from '$app/environment';
 import { URLS } from '@canmi/urls';
-import * as Sentry from '@sentry/sveltekit';
+import { initClient } from '@canmi/sentry/client';
+import { handleErrorWithSentry } from '@sentry/sveltekit';
 import type { ClientInit } from '@sveltejs/kit';
 import { registerAnalytics } from '$lib/analytics';
 import { prepareBrowserRuntime } from '$lib/client/compatibility';
@@ -13,14 +14,7 @@ registerAnalytics();
 // The feedback dialog is deliberately absent here. Naming it in `integrations` puts its widget
 // in the app entry, which every reader downloads for a control that only the error page has --
 // measured at 24KB gzipped. It is added on demand instead; see lib/error/report.ts.
-//
-// `enabled: false` sets up no integrations, so a disabled client has none to find. Adding one to
-// it still works, which is why the dialog can be opened in development at all.
-Sentry.init({
-	dsn: URLS.external.sentry.site,
-	enabled: !dev,
-	environment: dev ? 'development' : 'production',
-});
+initClient({ dsn: URLS.external.sentry.site, dev });
 
 export const init: ClientInit = prepareBrowserRuntime;
 /**
@@ -30,7 +24,7 @@ export const init: ClientInit = prepareBrowserRuntime;
  * so an `origin` is the page's signal that something broke rather than that a question was
  * answered. See app.d.ts and routes/+error.svelte.
  */
-export const handleError = Sentry.handleErrorWithSentry(({ message }): App.Error => ({
+export const handleError = handleErrorWithSentry(({ message }): App.Error => ({
 	message,
 	origin: 'client',
 }));

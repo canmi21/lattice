@@ -300,6 +300,9 @@ uploaded. And a build that does not upload emits no maps at all, because the plu
 `filesToDeleteAfterUpload` only runs after an upload -- leaving them would put the site's own
 source in the directory wrangler deploys.
 
+Both halves live in `libs/sentry`, shared with the status page, which uploads whenever the token
+is present and skips without it. See [probe.md](probe.md), "Errors go to Sentry".
+
 ## Assets are addressed by their content
 
 Every published image asset -- an original and each variant derived from it -- is stored under

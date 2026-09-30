@@ -1,0 +1,14 @@
+{
+	"name": "@canmi/sentry",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./build": "./src/build.ts",
+		"./client": "./src/client.ts",
+		"./server": "./src/server.ts"
+	},
+	"dependencies": {
+		"@sentry/sveltekit": "^10.74.0",
+		"@sveltejs/kit": "^2.70.3"
+	}
+}

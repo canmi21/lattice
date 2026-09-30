@@ -161,6 +161,30 @@ places agreeing that a name fails is Cloudflare, one place failing alone is that
 does not: when Cloudflare's DNS is down, that door is still open, and the page names it in its
 footer so it is known before it is needed.
 
+## Errors go to Sentry
+
+**Each app that reports errors has its own Sentry project and its own DSN, declared in
+`libs/urls` as `URLS.external.sentry.<app>`** -- `site`, and `status` for this page. A DSN only
+sends, and a browser bundle carries it, so it is public and sits beside the other URLs. An app
+whose DSN is absent initializes nothing and registers no Sentry request handle; the status page
+then drops the build plugin as well.
+
+**What the apps share is `libs/sentry`**: the upload decision, the `sentrySvelteKit` options,
+and the client and server init. **Source maps upload only when `SENTRY_AUTH_TOKEN` is set**, and
+are deleted after the upload; without it the build emits none and skips silently.
+`SENTRY_SKIP_UPLOAD` turns the upload off locally, as [data.md](data.md) records under "A CI
+build compiles the site, and no longer compiles the corpus". The site alone fails a CI build that lacks the token, since that build is the one
+deployed; the status page is built on Vercel, where the token may not exist.
+
+**Development initializes the SDK and sends nothing**: every integration is installed, and the
+transport drops what it is handed -- the rule [analytics.md](../analytics.md) states under
+"Development loads the client and reports nothing". `enabled: false` would install no
+integrations, so capture would go unexercised.
+
+The page's server uses `initCloudflareSentryHandle` on both doors: the SDK's `worker` build wraps
+the request in Cloudflare's context, and its `node` build, which Vercel's function runs,
+initializes on the first request.
+
 ## Open
 
 - **`status.canmi.app` answers `307` to `canmi.vercel.app` for now**, set in Vercel, while the page

@@ -189,6 +189,12 @@ export const URLS = {
 		// stays a wrangler secret. Each is treated according to whether it is exposed.
 		sentry: {
 			site: 'https://a7f2f790ed2fa4f8e0c4310d26d9c39f@o4511131162116096.ingest.us.sentry.io/4511380121976832',
+			// Possibly absent: an app without a DSN sends and uploads nothing. See
+			// spec/architecture/probe.md, "Errors go to Sentry".
+			status:
+				'https://0c9dd7de9a89dddc79dbdc2252e1c940@o4511131162116096.ingest.us.sentry.io/4512173650542592' as
+					| string
+					| undefined,
 		},
 		// Named as the feed's generator. Nothing fetches it, but it is emitted into published
 		// output, so it belongs with the other URLs rather than inline in a route.

@@ -1,7 +1,8 @@
 import { building, dev } from '$app/environment';
 import { fillTheme, themeOf } from '@canmi/theme';
 import { URLS } from '@canmi/urls';
-import { handleErrorWithSentry, initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
+import { serverHandles } from '@canmi/sentry/server';
+import { handleErrorWithSentry } from '@sentry/sveltekit';
 import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { articleRailScript } from '@canmi/prose/rail';
@@ -197,12 +198,7 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 const apiHandle: Handle = async ({ event, resolve }) => (await apiAnswer(event)) ?? resolve(event);
 
 export const handle = sequence(
-	initCloudflareSentryHandle({
-		dsn: URLS.external.sentry.site,
-		enabled: !dev,
-		environment: dev ? 'development' : 'production',
-	}),
-	sentryHandle(),
+	...serverHandles({ dsn: URLS.external.sentry.site, dev }),
 	securityHandle,
 	apiHandle,
 	markdownHandle,
