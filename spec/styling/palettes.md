@@ -2,7 +2,7 @@
 
 Every page here paints from the same color names -- `page`, `border`, `border-strong`, `text`,
 `text-muted`, `text-soft`, `text-strong`, `ink`, `paper`, `paper-hover`, the native and selection
-colors, and the accents `blue`, `green` and `red` with their `-ink` pairs -- so a component written
+colors, and the accents `blue`, `green`, `amber` and `red` with their `-ink` pairs -- so a component written
 for one app reads right in another. **What differs between apps is the values, and a set of values
 is a palette.** `@canmi/theme` holds them, each a stylesheet defining every name for light, and
 again under `.dark`; an app imports the one it wears.
