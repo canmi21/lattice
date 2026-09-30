@@ -19,8 +19,8 @@
 			boxShadow: '0 1px 0 0 color-mix(in oklch, var(--color-text) 4%, transparent)',
 		},
 		wordmark: {
-			fontSize: text.px15,
-			fontWeight: weight.semibold,
+			fontSize: '1.0625rem', // unnamed
+			fontWeight: 700, // unnamed
 			color: 'var(--color-text-strong)',
 		},
 		rule: {
