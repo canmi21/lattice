@@ -158,9 +158,9 @@
 			<img
 				src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
 				alt=""
-				width="37"
-				height="37"
-				class="size-[2.28125rem]"
+				width="28"
+				height="28"
+				class="size-7"
 			/>
 			<span class={stylex.attrs(styles.wordmark).class}>Status</span>
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
