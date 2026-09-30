@@ -107,8 +107,8 @@ The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and 
 **Its icon is an SVG in the objects bucket, named by its content id** and served by the CDN, so it
 is kept a year and never stale; while Cloudflare is down the page goes without it.
 
-**It reaches its fonts, our hosts and its database early, and its analytics late**, as
-[hints.md](hints.md) declares for it.
+**It connects early to its fonts, our hosts and its database, and only resolves its analytics'**,
+as [hints.md](hints.md) declares for it.
 
 **It is styled as the site is**: the three layers of
 [css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves, and the `mono`
