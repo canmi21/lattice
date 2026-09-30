@@ -81,7 +81,8 @@ negotiates TLS before the first paint, which is the wrong trade for all three: t
 deliberately `fetchpriority="low"`, and the two reporting addresses are not contacted until the
 reader already has the page. The lookup is the part that is slow on a cold cache and it is the
 part worth buying; the handshake would compete with the article for the one thing a first paint
-is short of.
+is short of. The tags are `@canmi/hints`' `analytics` group at its `idle` level, which also starts
+the loaders only once the page is idle -- see [hints.md](architecture/hints.md).
 
 ## umami, self-hosted, for the pages that matter less
 
