@@ -22,6 +22,10 @@ beat for everything. They fall into two kinds, and it is the first that finds a 
   `fresh=true` so each round is a capture of its own, which reports the page's errors, failed
   requests, status and title from a real Chromium. The probe holds no browser. Outside checks are the chain working, not availability; they cost more and run slower.
 
+**A check has a name a reader understands**, `name` in `checks.toml` -- "Scheduler", "Site DNS" --
+beside its id, which stays the probe's and the ledger's. The probe writes it with the rest of the
+check, and the page shows it and never the id or the target.
+
 **A check's target names an address rather than spelling it**: a `libs/urls` constant's name,
 `API_PRIVATE` or `API_PUBLIC` for the API host's two sides, followed by a path or a query as it
 needs -- `API_PRIVATE/geo/health` -- so `checks.toml` holds no address that could drift from the
@@ -72,6 +76,10 @@ Every result is written three ways:
 - **To the ledger**, for what fails: a failing check opens a task with each check's events on it,
   so the panel shows a failure's full timeline. Passing rounds are counted, not recorded one by one
   -- a second's round is far more than the ledger is for. See [ledger.md](ledger.md).
+
+**The page draws ninety days, a bar a day**, from the `status_daily` view: each check's passed and
+failed rounds summed per UTC day from the hourly rollups, which are kept a year. A day with no rows
+is drawn empty; today's bar grows from what the broadcasts carry.
 
 ## The schema: declared once, in Drizzle, applied by the probe
 
