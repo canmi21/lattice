@@ -3,7 +3,9 @@
 **`@canmi/identity` holds the author**: the name a page signs with, the full name, the role, the
 email, and the handle on each service -- GitHub, X, the fediverse, Bluesky, Telegram. Every app
 reads it; none spells the name. The site's `site.config.yaml` keeps what is the site's own and takes
-its `author` from here, so `site.author` reads as it always has. A service's address is `libs/urls`'
+its `author` from here, so `site.author` reads as it always has. The data is a JSON file,
+`libs/identity/author.json`, so the Rust that draws the home card and the scripts that compile the
+corpus read the same file the TypeScript does. A service's address is `libs/urls`'
 and a handle is this library's: the link is the two put together.
 
 **`@canmi/social` is the row of links to where the author is found**, one catalog entry per link --
