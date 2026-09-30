@@ -535,4 +535,34 @@ describe("umami's policy", () => {
 		}
 		expect((await from('https://stranger.test')).get('access-control-allow-origin')).toBeNull();
 	});
+
+	it("preflights the tracker's own headers, and gives another scope only Content-Type", async () => {
+		const asked = 'x-umami-website-id, x-umami-hostname, x-umami-cache';
+		const preflight = await app.fetch(
+			new Request(`${HOST}/umami/api/send`, {
+				method: 'OPTIONS',
+				headers: {
+					origin: URLS.internal.status.canonical,
+					'access-control-request-method': 'POST',
+					'access-control-request-headers': asked,
+				},
+			}),
+		);
+		expect(preflight.status).toBe(204);
+		expect(preflight.headers.get('access-control-allow-headers')).toBe(
+			'Content-Type,x-umami-website-id,x-umami-hostname,x-umami-cache',
+		);
+		const other = gateway({ geo: SCOPES.geo as Scope }, POLICIES);
+		const elsewhere = await other.fetch(
+			new Request(`${HOST}/geo/address`, {
+				method: 'OPTIONS',
+				headers: {
+					origin: URLS.internal.status.canonical,
+					'access-control-request-method': 'GET',
+					'access-control-request-headers': asked,
+				},
+			}),
+		);
+		expect(elsewhere.headers.get('access-control-allow-headers')).toBe('Content-Type');
+	});
 });

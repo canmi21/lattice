@@ -115,7 +115,7 @@ function corsFor(policy: Policy): MiddlewareHandler | undefined {
 	return cors({
 		origin: (asked, c) => origin(asked, c.req.raw),
 		allowMethods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-		allowHeaders: ['Content-Type'],
+		allowHeaders: ['Content-Type', ...(policy.headers ?? [])],
 		maxAge: 86_400,
 	});
 }

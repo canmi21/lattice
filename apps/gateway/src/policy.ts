@@ -39,6 +39,12 @@ export interface Policy {
 	 */
 	readonly paths?: readonly string[];
 	/**
+	 * Request headers a browser may send to the scope, besides `Content-Type`, which every scope
+	 * already allows: what a preflight is answered with in `Access-Control-Allow-Headers`. Absent,
+	 * none besides `Content-Type`.
+	 */
+	readonly headers?: readonly string[];
+	/**
 	 * How long answers are kept at the gateway when the service does not say: five minutes for a
 	 * success and a failure alike unless given here, and `false` for none kept.
 	 */
@@ -77,5 +83,8 @@ export const POLICIES: Readonly<Record<string, Policy>> = {
 	umami: {
 		paths: ['/api/send'],
 		origin: (origin) => (UMAMI_ORIGINS.has(origin) ? origin : null),
+		// What v3's tracker sends beside `Content-Type`, from its one `fetch` in `send` --
+		// github.com/umami-software/umami, src/tracker/index.ts.
+		headers: ['x-umami-website-id', 'x-umami-hostname', 'x-umami-cache'],
 	},
 };
