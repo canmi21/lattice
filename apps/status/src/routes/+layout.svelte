@@ -1,3 +1,34 @@
+<script module lang="ts">
+	import * as stylex from '@stylexjs/stylex';
+	import { border, text, weight } from '@canmi/tokens/vocabulary.stylex';
+
+	/**
+	 * The shell's own recipes: the nav's hairline bottom border and its two type sizes, plus the
+	 * link colour states neither Tailwind nor a bare `<a>` can name. See
+	 * spec/architecture/css/layers.md and spec/styling/palettes.md.
+	 */
+	const styles = stylex.create({
+		nav: {
+			borderBottomWidth: border.hairlinePx,
+			borderBottomStyle: 'solid',
+			borderBottomColor: 'var(--color-border)',
+		},
+		brand: {
+			fontSize: text.px14,
+			fontWeight: weight.medium,
+			color: 'var(--color-text-strong)',
+		},
+		link: {
+			fontSize: text.px13,
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+				':focus-visible': 'var(--color-text-strong)',
+			},
+		},
+	});
+</script>
+
 <script lang="ts">
 	import { URLS } from '@canmi/urls';
 	import type { Snippet } from 'svelte';
@@ -62,4 +93,18 @@
 	></script>
 </svelte:head>
 
-{@render children()}
+<nav
+	class="flex h-14 items-center justify-between gap-4 px-4 sm:px-6 {stylex.attrs(styles.nav).class}"
+>
+	<span class={stylex.attrs(styles.brand).class}>Status</span>
+	<div class="flex items-center gap-4 sm:gap-6">
+		<a href={URLS.apps.production.site} class="focus-link {stylex.attrs(styles.link).class}">
+			Site
+		</a>
+		<a href={URLS.internal.app} class="focus-link {stylex.attrs(styles.link).class}"> Platform </a>
+	</div>
+</nav>
+
+<main class="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
+	{@render children()}
+</main>
