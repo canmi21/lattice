@@ -85,6 +85,14 @@ amber at an hour and red at twelve, and the color between two stops mixed in pro
 minute's blip is all but green, one with a bad afternoon is plainly amber, and a day lost is red --
 the eye reads how bad, not only whether.
 
+**One switch over the page sets what a bar is: a day, fifteen minutes, or a minute.** The count
+stays -- ninety, sixty or thirty as the window allows -- so days show ninety days, hours twenty-two
+and a half, minutes an hour and a half. A day is read from `status_daily`, fifteen minutes from the
+five-minute rollups three at a time, a minute from the minute rollups; what has not been rolled up
+yet is filled from the broadcasts, counted by the minute. The color stops scale with the bar: a bar
+a sixtieth of a day long turns amber at a sixtieth of an hour. The choice is `?range=` in the address,
+so a link shows what its sender saw, and the server renders it first.
+
 ## The schema: declared once, in Drizzle, applied by the probe
 
 **The tables and views are written once, in TypeScript with Drizzle, in `libs/status-schema`**,
