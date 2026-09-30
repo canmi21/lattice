@@ -14,6 +14,7 @@
 		"@canmi/theme": "workspace:*",
 		"@canmi/tokens": "workspace:*",
 		"@canmi/urls": "workspace:*",
+		"@lucide/svelte": "^1.47.0",
 		"@stylexjs/stylex": "^0.19.1",
 		"@stylexjs/unplugin": "^0.19.1",
 		"@supabase/postgrest-js": "^2.117.2",

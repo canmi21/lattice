@@ -1,43 +1,53 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, duration, easing, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { easing, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
-	 * The shell's own recipes: the nav's background and its hairline bottom border -- transparent
-	 * at rest, coloured once scrolled, its width never changing -- its two type sizes, and the
-	 * link colour states neither Tailwind nor a bare `<a>` can name. See
+	 * The shell's own recipes: the nav's hairline, a shadow so it takes no room, transparent at
+	 * rest and coloured once scrolled; the wordmark and its byline; the one button. See
 	 * spec/architecture/css/layers.md and spec/styling/palettes.md.
 	 */
 	const styles = stylex.create({
 		nav: {
 			backgroundColor: 'var(--color-page)',
-			borderBottomWidth: border.hairlinePx,
-			borderBottomStyle: 'solid',
-			borderBottomColor: 'transparent',
-			transitionProperty: 'border-color',
+			boxShadow: '0 1px 0 0 transparent',
+			transitionProperty: 'box-shadow',
 			transitionDuration: {
-				default: duration.base,
+				default: '180ms', // unnamed: the nav's line, quicker than the base step
 				'@media (prefers-reduced-motion: reduce)': '0ms',
 			},
 			transitionTimingFunction: easing.inOut,
 		},
+		// The text's own colour at four percent, lighter than any border: present once the page
+		// moves under it, and barely.
 		navBorderVisible: {
-			borderBottomColor: 'var(--color-border)',
+			boxShadow: '0 1px 0 0 color-mix(in oklch, var(--color-text) 4%, transparent)',
 		},
-		brand: {
-			fontSize: text.px14,
-			fontWeight: weight.medium,
+		wordmark: {
+			fontSize: text.px15,
+			fontWeight: weight.semibold,
 			color: 'var(--color-text-strong)',
 		},
-		link: {
-			fontSize: text.px13,
-			color: {
-				default: 'var(--color-text-soft)',
+		rule: {
+			backgroundColor: 'var(--color-border-strong)',
+		},
+		byline: {
+			fontSize: text.px12,
+			letterSpacing: '-0.03em', // unnamed: the byline's tracking, one place
+			color: 'var(--color-text-soft)',
+		},
+		button: {
+			fontSize: text.px14,
+			fontWeight: 510, // unnamed: between normal and medium, the button's own
+			color: 'var(--color-paper)',
+			backgroundColor: {
+				default: 'var(--color-ink)',
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
-				':focus-visible': 'var(--color-text-strong)',
 			},
+			borderRadius: radius.full,
 		},
 	});
+
 
 	/**
 	 * The one width every route inside this layout lines up on: the nav's inner row and `<main>`
@@ -46,12 +56,13 @@
 	 * spec/architecture/css/layers.md, "The frame stays in the markup because structure is what
 	 * the markup is".
 	 */
-	const CONTAINER = 'mx-auto w-full max-w-[51.25rem] px-4 sm:px-6';
+	const CONTAINER = 'mx-auto w-full max-w-[56rem] px-4 sm:px-6';
 </script>
 
 <script lang="ts">
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
+	import Globe from '@lucide/svelte/icons/globe';
 	import type { Snippet } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
@@ -155,26 +166,28 @@
 <nav
 	class="sticky top-0 z-20 {stylex.attrs(styles.nav, scrolled && styles.navBorderVisible).class}"
 >
-	<div class="flex h-14 items-center justify-between gap-4 {CONTAINER}">
-		<a
-			href={resolve('/')}
-			class="focus-link flex items-center gap-2 {stylex.attrs(styles.brand).class}"
-		>
+	<div class="flex min-h-14 items-center justify-between gap-4 py-3 {CONTAINER}">
+		<a href={resolve('/')} class="focus-link flex h-8 items-center gap-1.5">
 			<img
 				src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
 				alt=""
-				width="24"
-				height="24"
-				class="size-6"
+				width="32"
+				height="32"
+				class="size-8"
 			/>
-			Status
+			<span class={stylex.attrs(styles.wordmark).class}>Status</span>
+			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>
+			<span class={stylex.attrs(styles.byline).class}>by Canmi</span>
 		</a>
-		<div class="flex items-center gap-4 sm:gap-6">
-			<a href={URLS.apps.production.site} class="focus-link {stylex.attrs(styles.link).class}">
-				Site
-			</a>
-			<a href={URLS.internal.app} class="focus-link {stylex.attrs(styles.link).class}"> Platform </a>
-		</div>
+		<a
+			href={URLS.apps.production.site}
+			class="focus-ring inline-flex h-8 items-center gap-1.5 py-1.5 pr-3 pl-2.5 {stylex.attrs(
+				styles.button,
+			).class}"
+		>
+			<Globe size={16} aria-hidden="true" />
+			Site
+		</a>
 	</div>
 </nav>
 
