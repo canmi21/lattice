@@ -116,13 +116,19 @@ behind Access, and Access stands only in front of proxied names, so the status p
 and never passes Cloudflare's proxy. When Access becomes a list of what is let through, this is on
 it.
 
-**The page reads PostgREST with the anon key, from views alone -- first on the server, then in
-the browser.** The first screen is rendered where the page is served -- Vercel's function, or the
-Worker -- by a `load` that asks through `@supabase/postgrest-js`, not the whole of supabase-js,
-since reading is all it does; so the page arrives whole, which is what an index reads, and a render
-is kept at the edge for a few seconds. Once hydrated it is a single-page app: the browser asks
-PostgREST itself, with the same client and the same key, for what changed since, and the server is
-asked for nothing more. The anon key is granted `SELECT` on the status views and nothing else --
+**The page reads PostgREST with the anon key, from views alone, once; after that it is told.** The
+first screen is rendered where the page is served -- Vercel's function, or the Worker -- by a `load`
+that asks through `@supabase/postgrest-js`, not the whole of supabase-js, since reading is all it
+does; so the page arrives whole, which is what an index reads, and a render is kept at the edge for
+a few seconds. Once hydrated it asks nothing on a timer: **the database broadcasts each batch the
+probe writes**, on the public Realtime channel `status`, from a statement trigger on `results` that
+calls `realtime.send` with every check's latest result in the batch, and the page listens over one
+WebSocket through `@supabase/realtime-js`. A broadcast is Realtime's own, not a change feed, so it
+needs no grant on any table: the database says what is sent, and the anon key hears only that. The
+page folds each result into the half-hour it falls in and asks the history view again only when a
+half-hour closes; a reconnected socket asks for `status_now` once, for what it missed. The broadcast
+is the heartbeat as well -- one every ten seconds while the probe writes -- so a page that hears
+nothing for a few rounds shows the probe silent, which is the truth it should tell. The anon key is granted `SELECT` on the status views and nothing else --
 no table -- under a row security policy that lets it read every row: the grant is what makes it
 read-only. A result older than a few rounds is shown as the probe silent -- the node, its link, or
 the probe itself -- rather than as the last thing it said. It names the second place once the VPS runs a probe: two
