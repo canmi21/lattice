@@ -1,5 +1,6 @@
 import type { PageBlock, PublishedPage } from '@canmi/artifacts';
 import type { LocaleCode } from '../locale/index';
+import { author } from '@canmi/identity';
 import * as m from '@canmi/messages';
 
 export type HomepageContent = {
@@ -22,7 +23,7 @@ export function homepageContent(
 	code: LocaleCode,
 ): HomepageContent {
 	return {
-		title: page?.meta.title ?? 'Canmi',
+		title: page?.meta.title ?? author.name,
 		description: page?.meta.description ?? '',
 		bio: page?.blocks ?? [],
 		writing: m['nav.writing']({}, { locale: code }),

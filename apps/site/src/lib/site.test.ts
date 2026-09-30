@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { author } from '@canmi/identity';
 import { URLS } from '@canmi/urls';
 import { describe, expect, it } from 'vitest';
 
@@ -26,17 +27,10 @@ describe('site config', () => {
 		expect(domain).toBe(new URL(URLS.apps.production.site).hostname);
 	});
 
-	// The home card repeats these, rendered by a separate program. An empty one would render a
-	// card with a gap where the author should be, and nothing else would notice.
-	it('names the author the home card introduces', () => {
-		expect(scalar('  fullName')).toBeTruthy();
-		expect(scalar('  role')).toBeTruthy();
-	});
-
 	/**
 	 * A card drawn by `local og` and a page rendered by SvelteKit have no other way to agree than
-	 * both reading the config -- the name, role, GitHub handle and avatar id had drifted into the
-	 * markup as literals once already. Checked against the source text rather than a render,
+	 * both reading @canmi/identity -- the name, role, GitHub handle and avatar id had drifted into
+	 * the markup as literals once already. Checked against the source text rather than a render,
 	 * because a render agrees with a hardcoded value as happily as with a read one.
 	 */
 	it('leaves the author out of the page that introduces them', () => {
@@ -44,9 +38,9 @@ describe('site config', () => {
 			fileURLToPath(new URL('../routes/+page.svelte', import.meta.url)),
 			'utf8',
 		);
-		for (const key of ['name', 'fullName', 'role', 'github', 'githubId']) {
-			const value = scalar(`  ${key}`);
-			expect(value, `site.config.yaml is missing ${key}`).toBeTruthy();
+		for (const key of ['name', 'fullName', 'role', 'github', 'githubId'] as const) {
+			const value = String(author[key]);
+			expect(value, `@canmi/identity is missing ${key}`).toBeTruthy();
 			expect(home, `+page.svelte hardcodes author.${key}`).not.toContain(value);
 		}
 	});

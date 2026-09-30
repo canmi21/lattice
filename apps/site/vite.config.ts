@@ -16,6 +16,7 @@ import Icons from 'unplugin-icons/vite';
 import { execFileSync } from 'node:child_process';
 import { defineConfig, type UserConfig } from 'vite';
 import { addresses } from '@canmi/site-api/contracts';
+import { author } from '@canmi/identity';
 import { parse as parseYaml } from 'yaml';
 import { reap } from './scripts/reap-workerd.ts';
 
@@ -218,7 +219,8 @@ export default defineConfig(({ mode }) => {
 			},
 			{
 				// site.config.yaml baked into the bundle, which keeps the YAML parser out of
-				// the client and the file out of the deployed worker.
+				// the client and the file out of the deployed worker. The author is
+				// @canmi/identity's; see spec/architecture/identity.md.
 				name: 'virtual-site-config',
 				resolveId(id: string) {
 					return id === 'virtual:site' ? '\0virtual:site' : null;
@@ -227,7 +229,7 @@ export default defineConfig(({ mode }) => {
 					if (id !== '\0virtual:site') return null;
 					this.addWatchFile(SITE_CONFIG);
 					const { redirects: _redirects, ...data } = parseYaml(readFileSync(SITE_CONFIG, 'utf8'));
-					return `export const site = ${JSON.stringify(data)};`;
+					return `export const site = ${JSON.stringify({ ...data, author })};`;
 				},
 			},
 		],

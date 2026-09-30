@@ -11,31 +11,8 @@ tagline: One developer's journey through code, circuits, pixels — and life in 
 # resolvable address is still declared there alone, and a test holds the two to the same host.
 domain: canmi.net
 
-author:
-  name: Canmi
-  # How the home page introduces the author, and what its OpenGraph card repeats. Kept here
-  # rather than written into the page, because a card rendered by `cms og` and a page rendered
-  # by SvelteKit have no other way to agree. Not translated: a name is a name, and a job title
-  # is one of the things this site leaves in English on purpose.
-  fullName: Canmi Wu
-  role: Systems Engineer
-  # A person's address, and the one the feed names as its author. The site's own boxes are `mail`.
-  email: t@canmi.icu
-  # Handles, not URLs. Where to reach them is libs/urls' business; who they identify lives here.
-  telegram: canmimua
-  twitter: canmi21
-  github: canmi21
-  # GitHub addresses an avatar by the account's numeric id, which never changes when the handle
-  # does. A handle in its place would break the picture the day the account is renamed, and the
-  # two are the same fact -- who this is -- so both belong here rather than in the page.
-  githubId: 72544151
-  fediverse: canmi
-  # Bluesky identifies an account by a domain the owner proves; the handle being the site's
-  # domain is that proof, not a second copy of the address.
-  bluesky: canmi.net
-
 # Every address the site answers on is a name at this domain, so moving the domain is one edit.
-# The author's own address is in `author` and is deliberately not one of these.
+# The author's own address is @canmi/identity's and is deliberately not one of these.
 mail:
   domain: canmi.net
   boxes:

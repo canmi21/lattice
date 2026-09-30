@@ -28,27 +28,44 @@ use std::path::{Path, PathBuf};
 /// fetched into `data/` once rather than requested by a command that has to work offline.
 const AVATAR: &str = "data/source/avatar.png";
 
-/// The identity the home card repeats, read from the file the pages read it from.
+/// The site's name and domain the cards repeat, read from the file the pages read it from.
 #[derive(Debug, Deserialize)]
 struct SiteConfig {
 	#[serde(default)]
 	name: String,
 	#[serde(default)]
 	domain: String,
-	#[serde(default)]
-	author: SiteAuthor,
+	#[serde(skip)]
+	author: Author,
 }
 
+/// The author the home card introduces, from `@canmi/identity`. Required rather than defaulted:
+/// an empty field would draw a card with a gap where the author should be.
 #[derive(Debug, Default, Deserialize)]
-struct SiteAuthor {
-	#[serde(default, rename = "fullName")]
+struct Author {
+	#[serde(rename = "fullName")]
 	full_name: String,
-	#[serde(default)]
 	role: String,
 }
 
 pub fn config_path(repo: &Path) -> PathBuf {
 	repo.join("apps").join("site").join("site.config.yaml")
+}
+
+fn author_path(repo: &Path) -> PathBuf {
+	repo.join("libs").join("identity").join("author.json")
+}
+
+fn read_author(repo: &Path) -> Result<Author, String> {
+	let path = author_path(repo);
+	let text = std::fs::read_to_string(&path)
+		.map_err(|error| format!("could not read {}: {error}", path.display()))?;
+	let author: Author =
+		serde_json::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
+	if author.full_name.is_empty() || author.role.is_empty() {
+		return Err(format!("{}: fullName and role must not be empty", path.display()));
+	}
+	Ok(author)
 }
 
 /// The family name inside the TTF, which is what the layout asks for by name.
@@ -591,8 +608,9 @@ pub fn wanted(articles: &Path) -> std::io::Result<BTreeSet<String>> {
 pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<Outcome, String> {
 	let text = std::fs::read_to_string(config_path(repo))
 		.map_err(|error| format!("could not read the site config: {error}"))?;
-	let config: SiteConfig =
+	let mut config: SiteConfig =
 		serde_yaml_ng::from_str(&text).map_err(|error| format!("site config: {error}"))?;
+	config.author = read_author(repo)?;
 
 	// Nine files, read here and nowhere else. Each card wants the catalogue for its own view, and
 	// asking per card meant several thousand reads and parses to arrive at nine answers.
@@ -622,6 +640,14 @@ fn encode(pixels: &[u8]) -> Result<Vec<u8>, String> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn reads_the_author_the_home_card_introduces() {
+		let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+		let author = read_author(&repo).expect("libs/identity/author.json");
+		assert!(!author.full_name.is_empty() && !author.role.is_empty());
+		assert!(read_author(&repo.join("missing")).is_err());
+	}
 
 	/// A title the hand-rolled reader got wrong, and the reason the reader was replaced.
 	///

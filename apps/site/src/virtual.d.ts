@@ -22,18 +22,7 @@ declare module 'virtual:site' {
 	export const site: {
 		name: string;
 		tagline: string;
-		author: {
-			name: string;
-			fullName: string;
-			role: string;
-			email: string;
-			telegram: string;
-			twitter?: string;
-			github: string;
-			githubId: number;
-			fediverse: string;
-			bluesky: string;
-		};
+		author: import('@canmi/identity').Author;
 		// The boxes the site answers on, name to purpose. The address is the name at `domain`,
 		// composed where it is used, so no address is written out.
 		mail: { domain: string; boxes: { support: string } };

@@ -64,21 +64,20 @@ const ADDRESS = /^[^@\s]+@[^@\s]+$/u;
 /**
  * Every mailbox the corpus may name, as a name to an address.
  *
- * Read from the file rather than through `virtual:site`, because this runs outside the Vite
+ * Read from the files rather than through `virtual:site`, because this runs outside the Vite
  * graph -- the same reason `scripts/indexnow.ts` reads it. The site's boxes are composed from
  * the one domain the config carries, so no article and no consumer writes an address out.
  */
 function readMailboxes(): Record<string, string> {
 	const path = fileURLToPath(new URL('../../../apps/site/site.config.yaml', import.meta.url));
 	const config = parseYaml(readFileSync(path, 'utf8')) as {
-		author?: { email?: string };
 		mail?: { domain?: string; boxes?: Record<string, string> };
 	};
-	const author = config.author?.email;
+	const identity = fileURLToPath(new URL('../../identity/author.json', import.meta.url));
+	const author = (JSON.parse(readFileSync(identity, 'utf8')) as { email?: string }).email;
 	const domain = config.mail?.domain;
-	if (!author || !domain) {
-		throw new Error('site.config.yaml: author.email and mail.domain are both required');
-	}
+	if (!author) throw new Error('libs/identity/author.json: email is required');
+	if (!domain) throw new Error('site.config.yaml: mail.domain is required');
 	// The author is a person and a box is not, so that one name is reserved: a box called
 	// `author` would put two addresses under one token with nothing to say which won.
 	const named: Record<string, string> = { author };

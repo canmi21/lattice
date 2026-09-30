@@ -1,0 +1,9 @@
+{
+	"name": "@canmi/identity",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./author.json": "./author.json"
+	}
+}
