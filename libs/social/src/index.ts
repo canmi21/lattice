@@ -46,7 +46,8 @@ export interface SocialEntry {
 	document?: true;
 }
 
-const BASE = 'h-4 w-4';
+/** Every size is in `em` of the row's scale, so a caller resizes the whole row with one value. */
+const BASE = 'size-[1em]';
 const { github, social, webring } = URLS.external;
 
 export const CATALOG: Readonly<Record<SocialName, SocialEntry>> = {
@@ -72,7 +73,7 @@ export const CATALOG: Readonly<Record<SocialName, SocialEntry>> = {
 	telegram: {
 		label: 'Telegram',
 		icon: 'telegram',
-		size: 'h-5 w-5',
+		size: 'size-[1.25em]',
 		href: `${social.telegram}/${author.telegram}`,
 	},
 	sitemap: {
