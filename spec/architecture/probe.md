@@ -107,6 +107,11 @@ The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and 
 **Its icon is an SVG in the objects bucket, named by its content id** and served by the CDN, so it
 is kept a year and never stale; while Cloudflare is down the page goes without it.
 
+**It connects early to what it will ask for**: Google Fonts' two hosts, the Supabase project and
+umami's -- the tracker's host and the scope it reports to. Unlike the site, which resolves its
+analytics hosts and connects to none, this page has little else to fetch, and the connections it
+makes are few.
+
 **It is styled as the site is**: the three layers of
 [css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves, and the `mono`
 palette -- see [palettes.md](../styling/palettes.md).
