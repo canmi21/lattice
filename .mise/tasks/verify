@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from graph import ROOT, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
+from graph import ROOT, build_inputs, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
 
 # Whole-tree and cheap, so they run whatever changed.
 ALWAYS = ["secrets", "refs", "comments", "shape", "rules", "check-scopes"]
@@ -57,6 +57,7 @@ def plan(files):
 		return EVERYTHING, None, "the gates themselves changed"
 
 	crate_dirs, crate_edges, included = rust_graph()
+	built = build_inputs(crate_dirs)
 	package_dirs, package_edges = node_graph()
 	crates, packages, gates = set(), set(), list(ALWAYS)
 	all_crates = all_packages = site_inputs = False
@@ -66,6 +67,7 @@ def plan(files):
 		if f in RUST_ROOT_FILES or f == "rust-toolchain.toml":
 			all_crates = True
 		crates |= included.get(f, set())
+		crates |= built.get(owner(f, built) or f, set())
 		if f.startswith("apps/") and Path(f).name == DECLARATION:
 			crates |= DECLARATION_READERS
 			packages |= DECLARATION_PACKAGES

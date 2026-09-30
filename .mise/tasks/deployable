@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from graph import ROOT, changed, dependents, owner, rust_graph  # noqa: E402
+from graph import ROOT, build_inputs, changed, dependents, owner, rust_graph  # noqa: E402
 
 # How every image is built: a change here is a change to all of them.
 EVERY_IMAGE = {"Cargo.toml", "Cargo.lock", ".dockerignore", ".mise/tasks/image"}
@@ -47,8 +47,10 @@ def needed(files, declared):
 	# A file another crate includes is ignored here: every such include today is a test's, which
 	# no image carries. A binary that embedded another crate's file would need it counted.
 	crate_dirs, crate_edges, _included = rust_graph()
+	built = build_inputs(crate_dirs)
 	crates, chosen = set(), set()
 	for f in files:
+		crates |= built.get(owner(f, built) or f, set())
 		parts = f.split("/")
 		if len(parts) > 2 and parts[0] == "apps" and parts[1] in declared:
 			chosen.add(parts[1])

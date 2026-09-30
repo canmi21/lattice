@@ -68,6 +68,21 @@ def rust_graph():
 	return directories, edges, included
 
 
+def build_inputs(directories):
+	"""Path -> crates whose build script reads it: a relative literal in a `build.rs`, resolved
+	from the crate's directory. What a build script embeds is in the binary as much as its source."""
+	inputs = {}
+	for directory, crate in directories.items():
+		script = ROOT / directory / "build.rs"
+		if not script.exists():
+			continue
+		for literal in re.findall(r'"(\.\.?/[^"]+)"', script.read_text()):
+			target = (ROOT / directory / literal).resolve()
+			if target.exists() and target.is_relative_to(ROOT):
+				inputs.setdefault(str(target.relative_to(ROOT)), set()).add(crate)
+	return inputs
+
+
 def node_graph():
 	"""Package directories and dependency -> dependent edges among this repository's packages."""
 	directories, manifests = {}, {}
