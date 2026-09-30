@@ -25,4 +25,6 @@ export default defineConfig({
 			enforce: undefined,
 		},
 	],
+	// Hashed file names in hex, as the site's are.
+	build: { rollupOptions: { output: { hashCharacters: 'hex' } } },
 });
