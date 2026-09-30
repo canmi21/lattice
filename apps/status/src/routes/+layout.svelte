@@ -259,7 +259,7 @@
 		<SocialLinks
 			entries={ACCOUNTS}
 			newTab="opens in new tab"
-			scale="1.25rem"
+			scale="1rem"
 			linkClass={stylex.attrs(styles.social).class}
 		/>
 	</div>
