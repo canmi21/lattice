@@ -1,0 +1,19 @@
+{
+	"name": "@canmi/social",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./social-links.svelte": "./src/social-links.svelte"
+	},
+	"dependencies": {
+		"@canmi/identity": "workspace:*",
+		"@canmi/prose": "workspace:*",
+		"@canmi/urls": "workspace:*",
+		"svelte": "^5.57.1"
+	},
+	"devDependencies": {
+		"svelte-check": "^4.7.6",
+		"typescript": "^6.0.3"
+	}
+}

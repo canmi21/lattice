@@ -28,6 +28,7 @@ PACKAGE_GATES = {
 	"@canmi/cms": ["check-cms"],
 	"@canmi/panel": ["check-panel"],
 	"@canmi/prose": ["check-prose"],
+	"@canmi/social": ["check-social"],
 	"@canmi/fonts": ["check-fonts"],
 	"@canmi/status-schema": ["check-status-schema"],
 	"@canmi/status": ["check-status"],

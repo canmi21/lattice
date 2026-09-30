@@ -250,6 +250,11 @@ run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 description = "Fail when the status schema changed and its migrations were not generated again"
 run = "pnpm --filter @canmi/status-schema run check"
 
+[tasks.check-social]
+description = "Type check the social links row, Svelte components in a library"
+dir = "libs/social"
+run = 'pnpm exec svelte-check --tsconfig ./tsconfig.json ${AUDIT:+--fail-on-warnings}'
+
 [tasks.check-prose]
 description = "Type check the article renderer, which is Svelte components in a library"
 dir = "libs/prose"

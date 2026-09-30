@@ -72,7 +72,8 @@
 	import ArticleList from '$lib/article/list.svelte';
 	import Modal from '$lib/components/modal.svelte';
 	import PageBody from '$lib/home/body.svelte';
-	import Icon from '@canmi/prose/icons.svelte';
+	import { SOCIAL } from '@canmi/social';
+	import SocialLinks from '@canmi/social/social-links.svelte';
 	import LanguageSwitcher from '$lib/locale/switcher.svelte';
 	import { localeUrl } from '$lib/locale';
 	import { warmListed } from '$lib/client/warm.svelte';
@@ -104,66 +105,14 @@
 			data.locale.code,
 		);
 	});
-	const githubProfileUrl = `${URLS.external.github.web}/${site.author.github}`;
 	const googleSourceUrl = new URL(URLS.external.google.sourcePreferences);
 	googleSourceUrl.searchParams.set('q', URLS.apps.production.site);
-	// Icons are center-anchored, so each is size-compensated independently. Base
-	// matches the inline text icons (h-4); wide/flat glyphs (Telegram) get a larger
-	// box to read optically equal.
-	const base = 'h-4 w-4';
-	// `document` keeps server-only resources out of the client page router.
-	// See spec/locale/addressing.md#server-only-documents-leave-the-page-router.
-	//
-	// Derived, not built once: the feed is the one entry here that names a language, and taking
-	// one no longer reloads the page.
-	const links = $derived([
-		{ name: 'github', label: 'GitHub', href: githubProfileUrl, size: base },
-		...(site.author.twitter
-			? ([
-					{
-						name: 'twitter',
-						label: 'Twitter',
-						href: `${URLS.external.social.twitterIntent}?screen_name=${site.author.twitter}`,
-						size: base,
-					},
-				] as const)
-			: []),
-		{
-			name: 'nyaone',
-			label: 'Nya.one',
-			href: `${URLS.external.social.fediverse}/@${site.author.fediverse}`,
-			size: base,
-		},
-		{
-			name: 'bluesky',
-			label: 'Bluesky',
-			href: `${URLS.external.social.bluesky}/${site.author.bluesky}`,
-			size: base,
-		},
-		{
-			name: 'telegram',
-			label: 'Telegram',
-			href: `${URLS.external.social.telegram}/${site.author.telegram}`,
-			size: 'h-5 w-5',
-		},
-		{ name: 'sitemap', label: 'Sitemap', href: '/sitemap.xml', size: base, document: true },
-		{
-			name: 'travellings',
-			label: 'Travellings',
-			href: URLS.external.webring.travellings,
-			size: base,
-		},
-		{ name: 'moe', label: 'Travellings Moe', href: URLS.external.webring.moe, size: base },
-		// The feed a reader subscribes to is the one they are reading, so it carries the view they
-		// are in. The source view keeps the bare address, which is what `localeUrl` is for.
-		{
-			name: 'rss',
-			label: 'RSS feed',
-			href: localeUrl('/atom.xml', data.locale.code),
-			size: base,
-			document: true,
-		},
-	] as const);
+	// The feed a reader subscribes to is the one they are reading, so it carries the view they are
+	// in. The source view keeps the bare address, which is what `localeUrl` is for.
+	const socialHrefs = $derived({
+		sitemap: '/sitemap.xml',
+		rss: localeUrl('/atom.xml', data.locale.code),
+	});
 </script>
 
 <svelte:head>
@@ -243,25 +192,12 @@
 		<div
 			class="mt-12 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 max-sm:justify-center"
 		>
-			<nav aria-label="Find me elsewhere" class="flex flex-wrap items-center gap-3">
-				{#each links as link (link.label)}
-					<a
-						href={link.href}
-						aria-label={link.href.startsWith('/')
-							? link.label
-							: `${link.label} (${m['support.new-tab']({}, { locale: data.locale.code })})`}
-						title={link.label}
-						data-sveltekit-reload={'document' in link ? true : undefined}
-						class="focus-ring inline-flex size-5 items-center justify-center {stylex.attrs(
-							surfaces.colorShift,
-							styles.socialLink,
-						).class}"
-						{...link.href.startsWith('/') ? {} : { target: '_blank', rel: 'noopener' }}
-					>
-						<Icon name={link.name} class={link.size} />
-					</a>
-				{/each}
-			</nav>
+			<SocialLinks
+				entries={SOCIAL}
+				hrefs={socialHrefs}
+				newTab={m['support.new-tab']({}, { locale: data.locale.code })}
+				linkClass={stylex.attrs(surfaces.colorShift, styles.socialLink).class}
+			/>
 
 			<a
 				href="{URLS.external.icpmoe}/?keyword=20260000"
