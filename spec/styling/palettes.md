@@ -7,10 +7,10 @@ for one app reads right in another. **What differs between apps is the values, a
 is a palette.** `@canmi/theme` holds them, each a stylesheet defining every name for light, and
 again under `.dark`; an app imports the one it wears.
 
-| Palette    | Look                                                                           | Worn by       |
-| ---------- | ------------------------------------------------------------------------------ | ------------- |
-| `concrete` | the site's: a black that is not quite black, a white that is not quite clean   | site, cms     |
-| `mono`     | black and white, Vercel's restraint, with the site's grey ramp step for step   | status        |
+| Palette    | Look                                                                         | Worn by   |
+| ---------- | ---------------------------------------------------------------------------- | --------- |
+| `concrete` | the site's: a black that is not quite black, a white that is not quite clean | site, cms |
+| `mono`     | black and white, Vercel's restraint, with the site's grey ramp step for step | status    |
 
 - **`mono` keeps the ramp, not just the ends.** Vercel's own greys are few; here every name above
   gets a value of its own, so a page built on `concrete`'s tiers -- a heading over a row over a

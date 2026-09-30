@@ -95,6 +95,8 @@
 	}
 
 	const { canonical, mirror } = URLS.internal.status;
+	/** The status page's icon, by its content id in the objects bucket. */
+	const FAVICON = '92e51faf762500b5142fec3e9dadf0e8';
 	const host = (url: string) => new URL(url).host;
 	const platform = [
 		{ href: URLS.apps.production.site, label: host(URLS.apps.production.site) },
@@ -118,6 +120,12 @@
 	{#if dev}{@html DEV_STYLEX}{/if}
 	<!-- Every door names the one address, so three doors are one page to an index. -->
 	<link rel="canonical" href={new URL('/', canonical).href} />
+	<!-- Content-addressed on the CDN, so its name is its bytes. See spec/architecture/probe.md. -->
+	<link
+		rel="icon"
+		type="image/svg+xml"
+		href={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
+	/>
 	<!-- Resolved early, not connected early: the same trade the site makes for its own tracker.
 	     See spec/analytics.md, "The analytics hosts are resolved early, not connected early". -->
 	<link rel="dns-prefetch" href={new URL(URLS.external.umami).origin} />

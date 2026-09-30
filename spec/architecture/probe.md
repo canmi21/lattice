@@ -104,6 +104,9 @@ canonical address, so three doors are one page to an index. Its bar carries the 
 every door, so a visitor who arrives at the status page is one click from the rest of `canmi.app`.
 The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and nothing else.
 
+**Its icon is an SVG in the objects bucket, named by its content id** and served by the CDN, so it
+is kept a year and never stale; while Cloudflare is down the page goes without it.
+
 **It is styled as the site is**: the three layers of
 [css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves, and the `mono`
 palette -- see [palettes.md](../styling/palettes.md).
