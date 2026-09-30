@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { byKind, key, overallOf, segmentsOf, stateOf, uptimeOf } from '$lib/board';
 	import { Live } from '$lib/live.svelte';
 	import { percent } from '$lib/time';
@@ -10,7 +10,9 @@
 	// The server's answer seeds the board once; from here on the browser keeps it.
 	const live = new Live(untrack(() => data));
 
-	$effect(() => live.start());
+	// Once, on mount: an effect would rerun whenever what start() reads changes, and each rerun
+	// closes the socket and opens another.
+	onMount(() => live.start());
 
 	const overall = $derived(overallOf(live.checks, live.nowByKey, live.clock));
 	const groups = $derived(byKind(live.checks));
