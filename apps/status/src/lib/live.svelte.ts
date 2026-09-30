@@ -8,6 +8,7 @@
 import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
 import { dayName, historyCursor, key, mergeHistory, windowAt } from './board.ts';
 import { foldHistory, foldNow } from './fold.ts';
+import { RAW_GRAIN, type Range, rangeFloor, rawFloor, SPAN } from './ranges.ts';
 import { type DayRow, type HistoryRow, readBroadcast } from './rows.ts';
 import {
 	CHANNEL,
@@ -15,6 +16,7 @@ import {
 	EVENT,
 	fetchChecks,
 	fetchDaily,
+	fetchGrain,
 	fetchHistory,
 	fetchNow,
 	statusClient,
@@ -30,6 +32,8 @@ export interface Snapshot {
 	now: StatusNowRow[];
 	history: HistoryRow[];
 	daily: DayRow[];
+	range: Range;
+	rangeRows: HistoryRow[];
 	unreachable: boolean;
 }
 
@@ -39,6 +43,10 @@ export class Live {
 	history = $state.raw<HistoryRow[]>([]);
 	/** Past days, from the daily view; today is the history's. */
 	daily = $state.raw<DayRow[]>([]);
+	/** What a bar spans, and the rollups read for it when finer than a day. */
+	range = $state<Range>('days');
+	rangeRows = $state.raw<HistoryRow[]>([]);
+	#client: Client | undefined;
 	/** The instant every judgement is made at; the server's until the browser takes over. */
 	clock = $state(0);
 	/**
@@ -55,6 +63,8 @@ export class Live {
 		this.now = snapshot.now;
 		this.history = snapshot.history;
 		this.daily = snapshot.daily;
+		this.range = snapshot.range;
+		this.rangeRows = snapshot.rangeRows;
 		this.clock = snapshot.clock;
 		this.answeredAt = snapshot.unreachable ? 0 : snapshot.clock;
 		this.unreachable = snapshot.unreachable;
@@ -64,6 +74,31 @@ export class Live {
 		return this.daily.filter((row) => row.checkId === check.id && row.place === check.place);
 	}
 
+	/** A check's rows for a finer range: the range's rollups and the live minutes. */
+	rangeOf(check: StatusCheckRow): HistoryRow[] {
+		const mine = (row: HistoryRow) => row.checkId === check.id && row.place === check.place;
+		return [...this.rangeRows.filter(mine), ...this.history.filter(mine)];
+	}
+
+	/** Show bars of `range`, reading its rollups when finer than a day. */
+	async setRange(range: Range): Promise<void> {
+		this.range = range;
+		this.rangeRows = [];
+		await this.#readRange();
+	}
+
+	async #readRange(): Promise<void> {
+		const { grain } = SPAN[this.range];
+		if (!grain || !this.#client) return;
+		const range = this.range;
+		const clock = Date.now();
+		const [rolled, raw] = await Promise.all([
+			fetchGrain(this.#client, grain, new Date(rangeFloor(range, clock))),
+			fetchGrain(this.#client, RAW_GRAIN, new Date(rawFloor(range, clock))),
+		]);
+		if (this.range === range) this.rangeRows = [...rolled, ...raw];
+	}
+
 	historyOf(check: StatusCheckRow): HistoryRow[] {
 		return this.history.filter((row) => row.checkId === check.id && row.place === check.place);
 	}
@@ -71,6 +106,7 @@ export class Live {
 	/** Start listening; the returned function stops it. */
 	start(): () => void {
 		const client = statusClient();
+		this.#client = client;
 		const realtime = statusRealtime();
 		// An ask still out when it is wanted again is left to finish rather than doubled.
 		const busy = new Set<string>();
@@ -97,8 +133,17 @@ export class Live {
 		});
 
 		let segment = windowAt(Date.now()).open;
+		// A finer range re-reads its rollups each time one of its grain closes.
+		let rolled = 0;
 		const tick = () => {
 			this.clock = Date.now();
+			const grain = SPAN[this.range].grain;
+			const size = grain === '5m' ? 300_000 : 60_000;
+			const closed = Math.floor(this.clock / size);
+			if (grain && closed !== rolled) {
+				rolled = closed;
+				void this.#readRange();
+			}
 			const open = windowAt(this.clock).open;
 			if (open === segment) return;
 			segment = open;

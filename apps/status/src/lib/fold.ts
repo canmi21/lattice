@@ -5,7 +5,7 @@
  * after that it is told".
  */
 import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
-import { historyFloor, key, LIVE_GRAIN, TAIL_MS } from './board.ts';
+import { historyFloor, key, LIVE_GRAIN, LIVE_MS } from './board.ts';
 import type { Heard, HistoryRow } from './rows.ts';
 
 /**
@@ -50,9 +50,9 @@ function liveKey(checkId: string, place: string, at: number): string {
 }
 
 /**
- * Adds each heard batch's counts to its check's `live` row for the five minutes its latest round
- * falls in. A batch spans ten seconds, so the few rounds of one that crossed into the next five
- * minutes are counted in it -- the price of a broadcast carrying counts rather than every round.
+ * Adds each heard batch's counts to its check's `live` row for the minute its latest round falls
+ * in. A batch spans ten seconds, so the few rounds of one that crossed into the next minute are
+ * counted in it -- the price of a broadcast carrying counts rather than every round.
  */
 export function foldHistory(
 	held: readonly HistoryRow[],
@@ -70,7 +70,7 @@ export function foldHistory(
 		}
 	}
 	for (const round of heard) {
-		const bucket = Math.floor(round.at.getTime() / TAIL_MS) * TAIL_MS;
+		const bucket = Math.floor(round.at.getTime() / LIVE_MS) * LIVE_MS;
 		if (bucket < floor) continue;
 		const at = liveKey(round.checkId, round.place, bucket);
 		const last = live.get(at);

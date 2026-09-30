@@ -18,10 +18,12 @@ export const SEGMENT_GRAIN = '30m';
 export const TAIL_GRAIN = '5m';
 export const TAIL_MS = 5 * MINUTE;
 /**
- * Counts folded in from broadcasts, per five minutes, standing in for a `5m` row the page has not
- * read yet: a bucket the history view has answered for is taken from it instead.
+ * Counts folded in from broadcasts, per minute, standing in for rollups the page has not read yet:
+ * a minute inside a bucket the history view has answered for is taken from that bucket instead.
  */
 export const LIVE_GRAIN = 'live';
+/** A live row's bucket: a minute, the finest any bar is drawn at. */
+export const LIVE_MS = MINUTE;
 
 /**
  * A round older than this many of its intervals is the probe silent, not the check's state. The
@@ -94,9 +96,13 @@ export function segmentsOf(rows: readonly HistoryRow[], clock: number): Segment[
 		else if (row.grain === TAIL_GRAIN) read.set(at, row);
 		else if (row.grain === LIVE_GRAIN) heard.set(at, row);
 	}
-	for (const [at, row] of heard) if (!read.has(at)) read.set(at, row);
 	const tail = new Map<number, { passed: number; failed: number }>();
-	for (const [at, row] of read) {
+	const counted: [number, HistoryRow][] = [...read];
+	// A live minute counts only where its five minutes have not been read.
+	for (const [at, row] of heard) {
+		if (!read.has(Math.floor(at / TAIL_MS) * TAIL_MS)) counted.push([at, row]);
+	}
+	for (const [at, row] of counted) {
 		const index = Math.floor((at - start) / SEGMENT_MS);
 		if (index < 0 || index >= SEGMENT_COUNT) continue;
 		const segment = start + index * SEGMENT_MS;
@@ -275,12 +281,13 @@ export function downMinutes(segment: Segment, intervalSeconds: number): number {
 }
 
 /**
- * A day's color on the downtime line: the two stops around its minutes mixed in proportion, the
- * last stop past its end, and null for a day with no rounds.
+ * A bar's color on the downtime line: the two stops around its minutes mixed in proportion, the
+ * last stop past its end, and null for a bar with no rounds. The stops are a day's, scaled to
+ * `span`, the bar's length in milliseconds.
  */
-export function dayColor(segment: Segment, intervalSeconds: number): string | null {
+export function dayColor(segment: Segment, intervalSeconds: number, span = DAY_MS): string | null {
 	if (segment.passed + segment.failed === 0) return null;
-	const minutes = downMinutes(segment, intervalSeconds);
+	const minutes = (downMinutes(segment, intervalSeconds) * DAY_MS) / span;
 	for (let index = 1; index < DOWN_STOPS.length; index++) {
 		const [from, low] = DOWN_STOPS[index - 1]!;
 		const [to, high] = DOWN_STOPS[index]!;

@@ -15,6 +15,7 @@ import {
 	stateOf,
 	windowAt,
 } from './board.ts';
+import { barsOf } from './ranges.ts';
 import type { HistoryRow } from './rows.ts';
 
 const CLOCK = Date.UTC(2026, 8, 29, 12, 10);
@@ -149,5 +150,37 @@ describe('dayColor', () => {
 			'color-mix(in oklch, var(--color-red) 45.5%, var(--color-amber))',
 		);
 		expect(dayColor(day(0, 20000), 5)).toBe('var(--color-red)');
+	});
+});
+
+describe('barsOf', () => {
+	const at = (minute: number) => new Date(Date.UTC(2026, 8, 29, 12, minute));
+	const row = (grain: string, minute: number, passed: number, failed = 0) => ({
+		checkId: 'health.geo',
+		place: 'home',
+		grain,
+		bucketStart: at(minute),
+		passed,
+		failed,
+	});
+	it('counts a rolled-up minute once, and an unrolled one from raw or live, whichever holds more', () => {
+		const bars = barsOf(
+			'minutes',
+			[
+				row('1m', 5, 12),
+				row('live', 5, 3), // inside a read minute: ignored
+				row('raw', 7, 1),
+				row('raw', 7, 1),
+				row('live', 7, 5), // more than raw's two: stands
+				row('raw', 8, 1, 1),
+			],
+			CLOCK,
+		);
+		const byMinute = (minute: number) => bars.find((bar) => bar.start === at(minute).getTime());
+		expect(byMinute(5)).toMatchObject({ passed: 12, failed: 0 });
+		expect(byMinute(7)).toMatchObject({ passed: 5 });
+		expect(byMinute(8)).toMatchObject({ passed: 1, failed: 1, state: 'partial' });
+		expect(bars).toHaveLength(DAYS);
+		expect(bars.at(-1)!.start).toBe(at(10).getTime());
 	});
 });

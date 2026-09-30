@@ -70,6 +70,24 @@
 		up: { backgroundColor: 'var(--color-green)' },
 		down: { backgroundColor: 'var(--color-red)' },
 		quiet: { backgroundColor: 'var(--color-border-strong)' },
+		switch: {
+			backgroundColor: 'color-mix(in oklch, var(--color-text) 4%, transparent)',
+			borderRadius: radius.full,
+		},
+		option: {
+			fontSize: text.px13,
+			fontWeight: weight.medium,
+			borderRadius: radius.full,
+			color: {
+				default: 'var(--color-text-soft)',
+				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
+			},
+		},
+		chosen: {
+			color: 'var(--color-text-strong)',
+			backgroundColor: 'var(--color-paper)',
+			boxShadow: '0 1px 2px color-mix(in oklch, var(--color-text) 10%, transparent)',
+		},
 		bar: { borderRadius: radius.full },
 		none: { backgroundColor: 'var(--color-border)' },
 	});
@@ -120,6 +138,7 @@
 		uptimeOf,
 	} from '$lib/board';
 	import { Live } from '$lib/live.svelte';
+	import { barsOf, RANGES, type Range, sinceLabel, SPAN } from '$lib/ranges';
 	import { ago, percent } from '$lib/time';
 	import type { PageProps } from './$types';
 
@@ -130,6 +149,15 @@
 
 	// On mount, not in an effect: an effect reruns on what start() reads, reopening the socket.
 	onMount(() => live.start());
+
+	/** Show `range`, and keep it in the address so a link shows the same. */
+	function choose(range: Range) {
+		void live.setRange(range);
+		const url = new URL(window.location.href);
+		if (range === 'days') url.searchParams.delete('range');
+		else url.searchParams.set('range', range);
+		history.replaceState(history.state, '', url);
+	}
 
 	const overall = $derived(overallOf(live.checks, live.nowByKey, live.clock));
 	const groups = $derived(byKind(live.checks));
@@ -195,6 +223,28 @@
 </header>
 
 <div class="mx-auto flex w-[300px] flex-col gap-12 md:w-[697px] min-[67.5rem]:w-[1027px]">
+	<div class="-mb-6 flex justify-end">
+		<div
+			role="radiogroup"
+			aria-label="Each bar spans"
+			class="flex gap-1 p-1 {stylex.attrs(styles.switch).class}"
+		>
+			{#each RANGES as range (range)}
+				<button
+					type="button"
+					role="radio"
+					aria-checked={live.range === range}
+					onclick={() => choose(range)}
+					class="focus-ring h-7 px-3 {stylex.attrs(
+						styles.option,
+						live.range === range && styles.chosen,
+					).class}"
+				>
+					{SPAN[range].label}
+				</button>
+			{/each}
+		</div>
+	</div>
 	{#each groups as [kind, checks] (kind)}
 		<section>
 			<h2 class="mb-4 px-1 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
@@ -203,7 +253,10 @@
 					{@const latest = live.nowByKey.get(key(check.id, check.place))}
 					{@const state = stateOf(latest, live.clock)}
 					{@const recent = segmentsOf(live.historyOf(check), live.clock)}
-					{@const days = daysOf(live.dailyOf(check), todayOf(recent, live.clock), live.clock)}
+					{@const days =
+						live.range === 'days'
+							? daysOf(live.dailyOf(check), todayOf(recent, live.clock), live.clock)
+							: barsOf(live.range, live.rangeOf(check), live.clock)}
 					{@const shown = SPANS.map((span) => uptimeOf(days.slice(-span.days)))}
 					<li class="py-5 {stylex.attrs(styles.row).class}">
 						<div class="flex items-center justify-between gap-4">
@@ -219,7 +272,7 @@
 						</div>
 						<div class="mt-3 flex h-8 items-stretch justify-end gap-[2px] md:gap-[3px]">
 							{#each days as day, index (day.start)}
-								{@const color = dayColor(day, check.intervalSeconds)}
+								{@const color = dayColor(day, check.intervalSeconds, SPAN[live.range].unit)}
 								<span
 									class="w-[7px] shrink-0 md:w-2 {barShown(index)} {stylex.attrs(
 										styles.bar,
@@ -234,9 +287,9 @@
 			</ul>
 			<div class="mt-3 flex justify-between px-4 md:px-5 {stylex.attrs(styles.figure).class}">
 				{#each SPANS as span (span.days)}
-					<span class={span.shown}>{span.days} days ago</span>
+					<span class={span.shown}>{sinceLabel(live.range, span.days)}</span>
 				{/each}
-				<span>Today</span>
+				<span>{live.range === 'days' ? 'Today' : 'Now'}</span>
 			</div>
 		</section>
 	{/each}

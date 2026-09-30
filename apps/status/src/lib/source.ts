@@ -122,6 +122,26 @@ export async function fetchHistory(
 	return rows.map(readHistory);
 }
 
+/** One rollup grain from `since` on, for a range finer than a day. */
+export async function fetchGrain(
+	client: Client,
+	grain: string,
+	since: Date,
+): Promise<HistoryRow[]> {
+	const rows = await everyPage<Wire<HistoryRow>>((from, to) =>
+		client
+			.from('status_history')
+			.select(HISTORY_COLUMNS)
+			.eq('grain', grain)
+			.gte('bucket_start', since.toISOString())
+			.order('bucket_start')
+			.order('check_id')
+			.order('place')
+			.range(from, to),
+	);
+	return rows.map(readHistory);
+}
+
 /** Every past day the daily view holds; today is the live history's. */
 export async function fetchDaily(client: Client, today: string): Promise<DayRow[]> {
 	const rows = await everyPage<Wire<StatusDailyRow>>((from, to) =>
