@@ -96,7 +96,7 @@
 
 	const { canonical, mirror } = URLS.internal.status;
 	/** The status page's icon, by its content id in the objects bucket. */
-	const FAVICON = '92e51faf762500b5142fec3e9dadf0e8';
+	const FAVICON = '484b05c1ab8c6800371c862e4f071d73';
 	const host = (url: string) => new URL(url).host;
 	const platform = [
 		{ href: URLS.apps.production.site, label: host(URLS.apps.production.site) },
