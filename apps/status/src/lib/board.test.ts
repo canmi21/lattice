@@ -2,6 +2,7 @@ import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
 import { describe, expect, it } from 'vitest';
 import {
 	DAYS,
+	dayColor,
 	daysOf,
 	historyCursor,
 	historyFloor,
@@ -118,5 +119,30 @@ describe('daysOf', () => {
 		expect(days.at(-1)).toMatchObject({ start: midnight, passed: 3, failed: 1, state: 'partial' });
 		expect(days.at(-2)).toMatchObject({ passed: 10, state: 'up' });
 		expect(days[0]).toMatchObject({ start: midnight - 89 * 86_400_000, state: 'none' });
+	});
+});
+
+describe('dayColor', () => {
+	const day = (passed: number, failed: number) => ({ start: 0, passed, failed, state: 'up' as const });
+	it('is green with no downtime, and nothing for a day with no rounds', () => {
+		expect(dayColor(day(100, 0), 5)).toBe('var(--color-green)');
+		expect(dayColor(day(0, 0), 5)).toBeNull();
+	});
+	it('mixes toward amber in proportion to the minutes down, up to an hour', () => {
+		// 12 rounds of 5 s is one minute: a sixtieth of the way to amber.
+		expect(dayColor(day(100, 12), 5)).toBe(
+			'color-mix(in oklch, var(--color-amber) 1.7%, var(--color-green))',
+		);
+		// 360 rounds of 5 s is half an hour: halfway.
+		expect(dayColor(day(100, 360), 5)).toBe(
+			'color-mix(in oklch, var(--color-amber) 50%, var(--color-green))',
+		);
+	});
+	it('mixes amber toward red past the hour, and is red past twelve', () => {
+		// 6 hours down: halfway from the hour to twelve.
+		expect(dayColor(day(0, 4320), 5)).toBe(
+			'color-mix(in oklch, var(--color-red) 45.5%, var(--color-amber))',
+		);
+		expect(dayColor(day(0, 20000), 5)).toBe('var(--color-red)');
 	});
 });

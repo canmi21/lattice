@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { border, figures, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
-	import type { SegmentState, State } from '$lib/board';
+	import type { State } from '$lib/board';
 
 	/** The board's recipes. See spec/styling/palettes.md. */
 	const styles = stylex.create({
@@ -71,27 +71,12 @@
 		down: { backgroundColor: 'var(--color-red)' },
 		quiet: { backgroundColor: 'var(--color-border-strong)' },
 		bar: { borderRadius: radius.full },
-		partial: { backgroundColor: 'var(--color-red)', opacity: 0.45 },
 		none: { backgroundColor: 'var(--color-border)' },
 	});
 
 	/** The dot's colour for a check's state. */
 	function dot(state: State) {
 		return state === 'up' ? styles.up : state === 'down' ? styles.down : styles.quiet;
-	}
-
-	/** A bar segment's colour for its half-hour. */
-	function fill(state: SegmentState) {
-		switch (state) {
-			case 'up':
-				return styles.up;
-			case 'down':
-				return styles.down;
-			case 'partial':
-				return styles.partial;
-			case 'none':
-				return styles.none;
-		}
 	}
 
 	const KIND_NAMES: Record<string, string> = {
@@ -108,6 +93,7 @@
 	import { onMount, untrack } from 'svelte';
 	import {
 		byKind,
+		dayColor,
 		daysOf,
 		key,
 		overallOf,
@@ -214,7 +200,11 @@
 						</div>
 						<div class="mt-3 flex h-8 items-stretch gap-[3px]">
 							{#each days as day (day.start)}
-								<span class="min-w-0 flex-1 {stylex.attrs(styles.bar, fill(day.state)).class}"
+								{@const color = dayColor(day, check.intervalSeconds)}
+								<span
+									class="min-w-0 flex-1 {stylex.attrs(styles.bar, color === null && styles.none)
+										.class}"
+									style:background-color={color}
 								></span>
 							{/each}
 						</div>

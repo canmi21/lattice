@@ -261,3 +261,32 @@ export function todayOf(
 	}
 	return { passed, failed };
 }
+
+/** Minutes of downtime at each color stop, and the palette name drawn there. */
+export const DOWN_STOPS: readonly (readonly [number, string])[] = [
+	[0, 'var(--color-green)'],
+	[60, 'var(--color-amber)'],
+	[720, 'var(--color-red)'],
+];
+
+/** Minutes a check was down in a segment: its failed rounds times its interval. */
+export function downMinutes(segment: Segment, intervalSeconds: number): number {
+	return (segment.failed * intervalSeconds) / 60;
+}
+
+/**
+ * A day's color on the downtime line: the two stops around its minutes mixed in proportion, the
+ * last stop past its end, and null for a day with no rounds.
+ */
+export function dayColor(segment: Segment, intervalSeconds: number): string | null {
+	if (segment.passed + segment.failed === 0) return null;
+	const minutes = downMinutes(segment, intervalSeconds);
+	for (let index = 1; index < DOWN_STOPS.length; index++) {
+		const [from, low] = DOWN_STOPS[index - 1]!;
+		const [to, high] = DOWN_STOPS[index]!;
+		if (minutes > to) continue;
+		const share = Math.round(((minutes - from) / (to - from)) * 1000) / 10;
+		return share === 0 ? low : `color-mix(in oklch, ${high} ${share}%, ${low})`;
+	}
+	return DOWN_STOPS.at(-1)![1];
+}

@@ -79,7 +79,11 @@ Every result is written three ways:
 
 **The page draws ninety days, a bar a day**, from the `status_daily` view: each check's passed and
 failed rounds summed per UTC day from the hourly rollups, which are kept a year. A day with no rows
-is drawn empty; today's bar grows from what the broadcasts carry.
+is drawn empty; today's bar grows from what the broadcasts carry. **A bar's color is how long the
+check was down that day, on a line**: its failed rounds times its interval, with green at none,
+amber at an hour and red at twelve, and the color between two stops mixed in proportion. A day with a
+minute's blip is all but green, one with a bad afternoon is plainly amber, and a day lost is red --
+the eye reads how bad, not only whether.
 
 ## The schema: declared once, in Drizzle, applied by the probe
 
