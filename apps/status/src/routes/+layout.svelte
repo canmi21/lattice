@@ -1,16 +1,27 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { border, duration, easing, text, weight } from '@canmi/tokens/vocabulary.stylex';
 
 	/**
-	 * The shell's own recipes: the nav's hairline bottom border and its two type sizes, plus the
+	 * The shell's own recipes: the nav's background and its hairline bottom border -- transparent
+	 * at rest, coloured once scrolled, its width never changing -- its two type sizes, and the
 	 * link colour states neither Tailwind nor a bare `<a>` can name. See
 	 * spec/architecture/css/layers.md and spec/styling/palettes.md.
 	 */
 	const styles = stylex.create({
 		nav: {
+			backgroundColor: 'var(--color-page)',
 			borderBottomWidth: border.hairlinePx,
 			borderBottomStyle: 'solid',
+			borderBottomColor: 'transparent',
+			transitionProperty: 'border-color',
+			transitionDuration: {
+				default: duration.base,
+				'@media (prefers-reduced-motion: reduce)': '0ms',
+			},
+			transitionTimingFunction: easing.inOut,
+		},
+		navBorderVisible: {
 			borderBottomColor: 'var(--color-border)',
 		},
 		brand: {
@@ -27,6 +38,15 @@
 			},
 		},
 	});
+
+	/**
+	 * The one width every route inside this layout lines up on: the nav's inner row and `<main>`
+	 * share it character for character, so their edges land on the same pixel. Not a Tailwind
+	 * scale step, so it is the arbitrary value rather than a name -- see
+	 * spec/architecture/css/layers.md, "The frame stays in the markup because structure is what
+	 * the markup is".
+	 */
+	const CONTAINER = 'mx-auto w-full max-w-[51.25rem] px-4 sm:px-6';
 </script>
 
 <script lang="ts">
@@ -34,12 +54,32 @@
 	import { URLS } from '@canmi/urls';
 	import type { Snippet } from 'svelte';
 	import { dev } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import { projectUrl } from '$lib/source';
 	import '../app.css';
 
 	const project = projectUrl();
 
 	let { children }: { children: Snippet } = $props();
+
+	/**
+	 * Whether the page has scrolled past its top, which is the only thing the nav's hairline
+	 * border answers to. A 1px sentinel in the normal flow, ahead of the nav, costs no layout of
+	 * its own -- it has no height -- and an `IntersectionObserver` on it costs no per-frame scroll
+	 * work either. SSR has no window to observe, so the border starts absent and only ever turns
+	 * on once a browser is watching.
+	 */
+	let scrolled = $state(false);
+	let sentinel: HTMLElement | undefined;
+
+	$effect(() => {
+		if (!sentinel) return;
+		const observer = new IntersectionObserver(([entry]) => {
+			scrolled = !(entry?.isIntersecting ?? true);
+		});
+		observer.observe(sentinel);
+		return () => observer.disconnect();
+	});
 
 	/**
 	 * The visual layer in development, linked as the site and the panel link it: the layer order
@@ -110,18 +150,34 @@
 	></script>
 </svelte:head>
 
+<div bind:this={sentinel} class="h-0 w-full" aria-hidden="true"></div>
+
 <nav
-	class="flex h-14 items-center justify-between gap-4 px-4 sm:px-6 {stylex.attrs(styles.nav).class}"
+	class="sticky top-0 z-20 {stylex.attrs(styles.nav, scrolled && styles.navBorderVisible).class}"
 >
-	<span class={stylex.attrs(styles.brand).class}>Status</span>
-	<div class="flex items-center gap-4 sm:gap-6">
-		<a href={URLS.apps.production.site} class="focus-link {stylex.attrs(styles.link).class}">
-			Site
+	<div class="flex h-14 items-center justify-between gap-4 {CONTAINER}">
+		<a
+			href={resolve('/')}
+			class="focus-link flex items-center gap-2 {stylex.attrs(styles.brand).class}"
+		>
+			<img
+				src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
+				alt=""
+				width="24"
+				height="24"
+				class="size-6"
+			/>
+			Status
 		</a>
-		<a href={URLS.internal.app} class="focus-link {stylex.attrs(styles.link).class}"> Platform </a>
+		<div class="flex items-center gap-4 sm:gap-6">
+			<a href={URLS.apps.production.site} class="focus-link {stylex.attrs(styles.link).class}">
+				Site
+			</a>
+			<a href={URLS.internal.app} class="focus-link {stylex.attrs(styles.link).class}"> Platform </a>
+		</div>
 	</div>
 </nav>
 
-<main class="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
+<main class="{CONTAINER} py-10 sm:py-12">
 	{@render children()}
 </main>
