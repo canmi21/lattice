@@ -80,7 +80,7 @@
 	import { warmListed } from '$lib/client/warm.svelte';
 	import { publishedHome } from '$lib/published';
 	import Newsletter from '$lib/newsletter/newsletter.svelte';
-	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
+	import { CARD_HEIGHT, CARD_WIDTH, cardUrl, HOME_SLUG } from '$lib/opengraph';
 	import * as m from '@canmi/messages';
 	import { site } from '$lib/site';
 	import Support from '$lib/support/support.svelte';
@@ -119,6 +119,8 @@
 <Title full={data.title} short={data.shortTitle} />
 
 <svelte:head>
+	<!-- The homepage's source, as every article names its own. See spec/architecture/markdown.md. -->
+	<link rel="alternate" type="text/markdown" href="/{HOME_SLUG}.md" />
 	<meta name="description" content={data.description} />
 	<!--
 		The home page had no card at all, while `local og` had been rendering one for it since the

@@ -17,10 +17,13 @@ export const SIGNALS = { search: true, aiInput: true, aiTrain: true } as const;
 
 const yes = (value: boolean, word: string, no: string) => (value ? word : no);
 
-export const signalLines = [
-	`Content-Signal: search=${yes(SIGNALS.search, 'yes', 'no')}, ai-input=${yes(SIGNALS.aiInput, 'yes', 'no')}, ai-train=${yes(SIGNALS.aiTrain, 'yes', 'no')}`,
-	`Content-Usage: search=${yes(SIGNALS.search, 'y', 'n')}, ai-use=${yes(SIGNALS.aiInput, 'y', 'n')}, train-ai=${yes(SIGNALS.aiTrain, 'y', 'n')}`,
+/** Each spelling as a name and a value: a robots.txt line, and a header on a page or markdown. */
+export const SIGNAL_HEADERS = [
+	['Content-Signal', `search=${yes(SIGNALS.search, 'yes', 'no')}, ai-input=${yes(SIGNALS.aiInput, 'yes', 'no')}, ai-train=${yes(SIGNALS.aiTrain, 'yes', 'no')}`],
+	['Content-Usage', `search=${yes(SIGNALS.search, 'y', 'n')}, ai-use=${yes(SIGNALS.aiInput, 'y', 'n')}, train-ai=${yes(SIGNALS.aiTrain, 'y', 'n')}`],
 ] as const;
+
+export const signalLines = SIGNAL_HEADERS.map(([name, value]) => `${name}: ${value}`) as [string, string];
 
 /**
  * Cloudflare's terms for content signals, as the comment its own generator writes: the three

@@ -264,6 +264,13 @@ every one of them a tile. To anything that reads a link's text -- a crawler, a t
 engine -- they are links with no name, and to a keyboard each is a stop of its own. Open; the
 approach is the author's to decide.
 
+## A page's markdown is its source in every language
+
+The markdown a page serves -- at `.md`, or at the page to a reader asking for markdown -- is the
+source, in the source's language, with a line saying so and where the asked language is as HTML.
+The translations exist only as compiled HTML; a markdown view per locale would let an answer engine
+read the asked language as markdown too. See [architecture/markdown.md](../architecture/markdown.md).
+
 ## The author has no entity home yet
 
 The author's structured-data identifier is `https://canmi.net/about#person`, chosen as the page

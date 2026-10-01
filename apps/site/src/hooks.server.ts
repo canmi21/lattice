@@ -18,6 +18,8 @@ import {
 	SITE_LANGUAGE,
 } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
+import { SIGNAL_HEADERS } from '@canmi/robots';
+import { languageOf, noticeFor, prefersMarkdown, tokensIn, withNotice } from '$lib/server/markdown';
 import { publishedMarkdown, publishedMetadata } from '$lib/published';
 import { answer as apiAnswer } from '$lib/server/api';
 import { registerServerStrategy } from '$lib/locale/paraglide';
@@ -50,16 +52,58 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
 					headers: { Location: `/${found.path}.md` },
 				});
 			}
-			return new Response(found.body.body, {
-				headers: {
-					'Content-Type': 'text/markdown; charset=utf-8',
-					'Cache-Control': 'public, max-age=300, s-maxage=300',
-				},
+			return markdownAnswer(await found.body.text(), found.path);
+		}
+	}
+	// The same source at a page's own address, for a reader whose `Accept` asks for markdown
+	// first. See spec/architecture/markdown.md.
+	if (prefersMarkdown(event.request.headers.get('accept')) && !DOCUMENT_PATH.test(pathname)) {
+		const asked = pathname === '/' ? HOME_SLUG : pathname.replace(/^\/+|\/+$/g, '');
+		const found = asked ? await publishedMarkdown(event.fetch, identityIn(asked)) : undefined;
+		if (found && found.path === asked) {
+			const code = resolveLocale({
+				query: event.url.searchParams.get('lang'),
+				cookie: event.cookies.get('language'),
+				acceptLanguage: event.request.headers.get('accept-language'),
 			});
+			return markdownAnswer(await found.body.text(), found.path, code);
 		}
 	}
 	return resolve(event);
 };
+
+/** A page's address on the site, the homepage's being the root. */
+function pageAddress(path: string): string {
+	return `${URLS.apps.production.site}/${path === HOME_SLUG ? '' : path}`;
+}
+
+/**
+ * A page's markdown source, said to be the source as written. Asked for at the page's own address
+ * -- `code` given -- it also says where the asked language is when it is another, and varies by
+ * what was asked, so nothing shared may keep it.
+ */
+function markdownAnswer(text: string, path: string, code?: LocaleCode): Response {
+	const page = pageAddress(path);
+	const source = languageOf(text) ?? SITE_LANGUAGE;
+	const asked =
+		code && code !== 'mw'
+			? { tag: languageTag(code, SITE_LANGUAGE), page: `${page}?lang=${code}` }
+			: undefined;
+	const body = withNotice(text, noticeFor({ source, asked }));
+	const headers = new Headers({
+		'Content-Type': 'text/markdown; charset=utf-8',
+		'Content-Language': source,
+		'Cache-Control': code ? 'private, no-store' : 'public, max-age=300, s-maxage=300',
+		'x-markdown-tokens': String(tokensIn(body)),
+		Link: `<${page}>; rel="canonical"`,
+	});
+	for (const [name, value] of SIGNAL_HEADERS) headers.set(name, value);
+	if (code) {
+		headers.set('Vary', 'Accept');
+		headers.set('Content-Location', `/${path}.md`);
+	}
+	return new Response(body, { headers });
+}
 
 /**
  * A request for a document rather than a page.
@@ -156,7 +200,18 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 					.replace('%article.rail.script%', articleRailScript),
 			),
 	});
-	return privateHtml(response);
+	const html = privateHtml(response);
+	// A page and its markdown are one address: say so, and say where the markdown is. See
+	// spec/architecture/markdown.md.
+	if ((isPage || pathname === '/') && html.status === 200) {
+		html.headers.append('Vary', 'Accept');
+		html.headers.append(
+			'Link',
+			`<${pathname === '/' ? `/${HOME_SLUG}` : pathname}.md>; rel="alternate"; type="text/markdown"`,
+		);
+		for (const [name, value] of SIGNAL_HEADERS) html.headers.set(name, value);
+	}
+	return html;
 };
 
 /**
