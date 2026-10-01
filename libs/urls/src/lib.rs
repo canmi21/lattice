@@ -44,7 +44,7 @@ pub const EXTERNAL_REGISTRIES_CARGO: &str = "https://crates.io";
 pub const EXTERNAL_REGISTRIES_CARGO_INDEX: &str = "https://index.crates.io";
 pub const EXTERNAL_SPDX: &str = "https://spdx.org/licenses";
 pub const EXTERNAL_ROBOTSTXT: &str = "https://www.robotstxt.org/robotstxt.html";
-pub const EXTERNAL_CONTENT_SIGNALS: &str = "https://contentsignals.org/";
+pub const EXTERNAL_CONTENT_SIGNALS: &str = "https://contentsignals.org";
 pub const EXTERNAL_CONTENT_USAGE: &str =
 	"https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/";
 pub const EXTERNAL_SENTRY_SITE: &str =

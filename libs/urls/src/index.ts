@@ -182,7 +182,7 @@ export const URLS = {
 		robotstxt: 'https://www.robotstxt.org/robotstxt.html',
 		// Where each content-signal spelling is defined, which a robots.txt names above its line:
 		// Cloudflare's, and the IETF AI Preferences draft that defines the `Content-Usage` rule.
-		contentSignals: 'https://contentsignals.org/',
+		contentSignals: 'https://contentsignals.org',
 		contentUsage: 'https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/',
 		// A Sentry DSN only permits *sending* events to one project -- it grants no read
 		// access -- and the browser SDK compiles it into the bundle, where anyone can read it
