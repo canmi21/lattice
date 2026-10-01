@@ -68,7 +68,9 @@ export function opening(title: string, page: string, now: Date, notice: string):
 	return [
 		`# ${title}`,
 		'',
-		`> This is the agent view of ${page}, generated ${stamp(now)}. The same page for humans is the address without \`.md\`. Every page on this site has its agent view at its own address with \`.md\` appended, so ask for that address directly.`,
+		`> This is the agent view of ${page}, generated ${stamp(now)}. The same page for humans is the address without \`.md\`.`,
+		'>',
+		'> Every page on this site has its agent view at its own address with `.md` appended, so ask for that address directly.',
 		'',
 		notice,
 	].join('\n');
