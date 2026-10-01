@@ -1,16 +1,8 @@
-import { robotsTxt } from '@canmi/robots';
-import { URLS } from '@canmi/urls';
+import { robotsFor } from '@canmi/robots';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;
 
+// The site's policy is the robots library's, beside every other host's.
 export const GET: RequestHandler = () =>
-	new Response(
-		robotsTxt({
-			// `/@/` is this site's internal namespace; the other two are infrastructure paths
-			// Cloudflare answers on every zone and that have nothing to index.
-			disallow: ['/@/', '/cgi-bin/', '/cdn-cgi/'],
-			sitemap: `${URLS.apps.production.site}/sitemap.xml`,
-		}),
-		{ headers: { 'Content-Type': 'text/plain; charset=utf-8' } },
-	);
+	new Response(robotsFor('site'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });

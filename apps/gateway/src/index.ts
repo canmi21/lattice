@@ -7,7 +7,7 @@
  */
 import { failure } from '@canmi/response';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
-import { robotsTxt } from '@canmi/robots';
+import { robotsFor } from '@canmi/robots';
 import { followSymlink, symlinkOf } from '@canmi/symlink';
 import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
@@ -148,9 +148,9 @@ export function gateway(
 	);
 	const app = new Hono<{ Bindings: Env }>();
 
-	// An API has nothing to index, and its URLs in search results would compete with the pages
-	// that call them.
-	app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
+	// Out of an index but for the site's scope, which a crawler rendering a page asks. See
+	// spec/architecture/robots.md.
+	app.get('/robots.txt', (c) => c.text(robotsFor('api')));
 	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
 	// The name a browser asks every origin for: the `api` scope's mark, followed in one hop. See
 	// spec/architecture/delivery.md, "A page follows the name for the browser".

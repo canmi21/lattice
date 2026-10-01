@@ -1,4 +1,4 @@
-import { robotsTxt } from '@canmi/robots';
+import { robotsFor } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
@@ -46,7 +46,7 @@ app.get('/favicon.ico', (c) => resolve(c, 'aka/favicon.ico'));
  */
 app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', REFUSED);
-	return c.text(robotsTxt({ disallow: [''] }));
+	return c.text(robotsFor('aka'));
 });
 
 // security.txt, the same on every host of ours; see spec/architecture/firewall.md.

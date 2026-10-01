@@ -15,6 +15,7 @@
 		"@canmi/identity": "workspace:*",
 		"@canmi/motion": "workspace:*",
 		"@canmi/sentry": "workspace:*",
+		"@canmi/robots": "workspace:*",
 		"@canmi/social": "workspace:*",
 		"@canmi/symlink": "workspace:*",
 		"@canmi/status-schema": "workspace:*",

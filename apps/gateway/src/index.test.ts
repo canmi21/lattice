@@ -210,9 +210,11 @@ describe('the gateway', () => {
 		expect(await answer.text()).toContain('Contact: mailto:');
 	});
 
-	it('answers robots itself, keeping the whole host out of an index', async () => {
-		const answer = await ask('/robots.txt');
-		expect(await answer.text()).toContain('Disallow: /');
+	it('answers robots itself, keeping out all but the scope a rendered page asks', async () => {
+		const text = await (await ask('/robots.txt')).text();
+		expect(text).toContain('Allow: /site/');
+		expect(text).toContain('Disallow: /');
+		expect(text).not.toContain('Content-Signal');
 	});
 
 	it('follows its own mark for the browser rather than reading it as a scope', async () => {

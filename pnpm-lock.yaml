@@ -847,6 +847,9 @@ importers:
       '@canmi/referer':
         specifier: workspace:*
         version: link:../../libs/referer
+      '@canmi/robots':
+        specifier: workspace:*
+        version: link:../../libs/robots
       '@canmi/sentry':
         specifier: workspace:*
         version: link:../../libs/sentry

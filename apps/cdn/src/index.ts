@@ -1,5 +1,5 @@
 import { PUBLISHED } from '@canmi/cache';
-import { robotsTxt } from '@canmi/robots';
+import { robotsFor } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { followSymlink, symlinkOf } from '@canmi/symlink';
 import { isDevHost, pickUrls } from '@canmi/urls';
@@ -57,7 +57,7 @@ app.get('/favicon.ico', (c) => {
 // Not a symlink: a robots policy is a statement about the host serving it, and these differ.
 app.get('/robots.txt', (c) => {
 	c.header('Cache-Control', PUBLISHED);
-	return c.text(robotsTxt({ disallow: [''] }));
+	return c.text(robotsFor('cdn'));
 });
 
 // security.txt, the same on every host of ours; see spec/architecture/firewall.md.

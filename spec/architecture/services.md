@@ -221,8 +221,8 @@ an answer. Our own callers do not pass the gateway and so meet no limit: a Worke
 VPC service and asks `api.canmi.app` directly, and the LAN and the tailnet ask `api.canmi.icu`.
 
 **The gateway is written with Hono**, for its CORS middleware and the one error envelope, which
-every service here already answers in. It answers `/robots.txt` itself, keeping the whole host out
-of an index.
+every service here already answers in. It answers `/robots.txt` itself, keeping the host out of an
+index but for the site's scope -- see [robots.md](robots.md).
 
 **Development goes through the gateway too.** It binds the API's pinned port, so a caller reaches
 every API at one address with the same CORS it will meet in production. Each service behind it runs
