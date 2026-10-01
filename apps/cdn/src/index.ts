@@ -2,7 +2,7 @@ import { PUBLISHED } from '@canmi/cache';
 import { robotsFor } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { followSymlink, symlinkOf } from '@canmi/symlink';
-import { isDevHost, pickUrls } from '@canmi/urls';
+import { isDevHost, normalizedLocation, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { cacheControl } from './cache';
@@ -32,6 +32,12 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
 // One rule over the three groups, and the floor under everything else. See ./cache.ts.
 app.use('*', cacheControl);
+// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// See spec/architecture/delivery.md, "Every address has one spelling".
+app.use('*', async (c, next) => {
+	const location = normalizedLocation(new URL(c.req.url));
+	return location ? c.redirect(location, 308) : next();
+});
 
 // Permanent: which host the site is reached at is not a thing that changes, so a browser that
 // learns this once need never ask again.

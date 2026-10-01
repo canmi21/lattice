@@ -307,3 +307,22 @@ export function loopbackUrl(port: number): string {
 	url.port = String(port);
 	return url.origin;
 }
+
+/**
+ * A request path in its one spelling: every backslash a slash, every run of slashes one, and no
+ * trailing slash -- so the root alone is `''`, the bare host. See spec/architecture/delivery.md,
+ * "Every address has one spelling".
+ */
+export function normalizePath(path: string): string {
+	return path.replaceAll('\\', '/').replace(/\/{2,}/g, '/').replace(/\/+$/, '');
+}
+
+/**
+ * Where a request for `url` belongs, path and query, or `undefined` when it is already there. The
+ * bare host goes on the wire as `/`, so `/` -- with a query or without -- is already there: sending
+ * it to `''` would come back as `/` and loop.
+ */
+export function normalizedLocation(url: URL): string | undefined {
+	const path = normalizePath(url.pathname) || '/';
+	return path === url.pathname ? undefined : `${path}${url.search}`;
+}

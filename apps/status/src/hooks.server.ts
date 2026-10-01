@@ -1,7 +1,7 @@
 import { dev } from '$app/environment';
 import { serverHandles } from '@canmi/sentry/server';
 import { fillTheme } from '@canmi/theme';
-import { URLS } from '@canmi/urls';
+import { normalizedLocation, URLS } from '@canmi/urls';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -13,10 +13,18 @@ import { sequence } from '@sveltejs/kit/hooks';
 const themeHandle: Handle = ({ event, resolve }) =>
 	resolve(event, { transformPageChunk: ({ html }) => fillTheme(html) });
 
+// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// See spec/architecture/delivery.md, "Every address has one spelling".
+const spellingHandle: Handle = ({ event, resolve }) => {
+	const location = normalizedLocation(event.url);
+	return location ? new Response(null, { status: 308, headers: { location } }) : resolve(event);
+};
+
 // Sentry's handles first, and none when the DSN is unset. The same handles serve both doors; see
 // libs/sentry/src/server.ts.
 export const handle = sequence(
 	...serverHandles({ dsn: URLS.external.sentry.status, dev }),
+	spellingHandle,
 	themeHandle,
 );
 

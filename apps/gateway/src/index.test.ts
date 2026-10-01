@@ -119,11 +119,15 @@ describe('the gateway', () => {
 	const ask = (path: string, env: Env = {}, init?: RequestInit) =>
 		app.fetch(new Request(`${HOST}${path}`, init), env);
 
-	it('refuses a path with no scope as malformed', async () => {
-		for (const path of ['//stats', '//']) {
+	it('sends a path in another spelling to its one spelling, query and method kept', async () => {
+		for (const [path, location] of [
+			['//stats', '/stats'],
+			['//', '/'],
+			['/geo/address/?latitude=1', '/geo/address?latitude=1'],
+		] as const) {
 			const answer = await ask(path);
-			expect(answer.status).toBe(400);
-			expect(await answer.json()).toMatchObject({ status: 'error', code: 'invalid_path' });
+			expect(answer.status).toBe(308);
+			expect(answer.headers.get('location')).toBe(location);
 		}
 	});
 
@@ -495,7 +499,7 @@ describe("umami's policy", () => {
 				.status,
 		).toBe(200);
 		for (const path of [
-			'/umami/',
+			'/umami',
 			'/umami/script.js',
 			'/umami/api/website',
 			'/umami/api/auth/login',

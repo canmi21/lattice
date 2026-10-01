@@ -1,6 +1,6 @@
 import { building, dev } from '$app/environment';
 import { fillTheme, themeOf } from '@canmi/theme';
-import { URLS } from '@canmi/urls';
+import { normalizedLocation, URLS } from '@canmi/urls';
 import { serverHandles } from '@canmi/sentry/server';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import type { Handle, RequestEvent } from '@sveltejs/kit';
@@ -252,11 +252,19 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
+// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// See spec/architecture/delivery.md, "Every address has one spelling".
+const spellingHandle: Handle = ({ event, resolve }) => {
+	const location = normalizedLocation(event.url);
+	return location ? new Response(null, { status: 308, headers: { location } }) : resolve(event);
+};
+
 // The site's API, before anything that would read the path as a page's.
 const apiHandle: Handle = async ({ event, resolve }) => (await apiAnswer(event)) ?? resolve(event);
 
 export const handle = sequence(
 	...serverHandles({ dsn: URLS.external.sentry.site, dev }),
+	spellingHandle,
 	securityHandle,
 	apiHandle,
 	markdownHandle,

@@ -3,6 +3,8 @@ import {
 	DEVELOPMENT_PORTS,
 	developmentUrls,
 	isDevHost,
+	normalizedLocation,
+	normalizePath,
 	loopbackUrl,
 	pickUrls,
 	URLS,
@@ -123,3 +125,30 @@ describe('loopbackUrl', () => {
 function hostname(url: string): string {
 	return new URL(url).hostname;
 }
+
+describe('normalizePath', () => {
+	it.each([
+		['/', ''],
+		['//', ''],
+		['/a/', '/a'],
+		['/a//b///', '/a/b'],
+		['/a\\b\\', '/a/b'],
+		['//evil.example/x', '/evil.example/x'],
+		['/a/b', '/a/b'],
+	])('%s -> %s', (from, to) => {
+		expect(normalizePath(from)).toBe(to);
+	});
+
+	it('keeps the query, and answers nothing for a path already in its spelling', () => {
+		expect(normalizedLocation(new URL('https://canmi.net/a//b/?lang=ja'))).toBe('/a/b?lang=ja');
+		expect(normalizedLocation(new URL('https://canmi.net/a/b?lang=ja'))).toBeUndefined();
+	});
+
+	it('leaves the root where it is, alone or with a query, since the bare host is sent as /', () => {
+		expect(normalizedLocation(new URL('https://canmi.net'))).toBeUndefined();
+		expect(normalizedLocation(new URL('https://canmi.net/'))).toBeUndefined();
+		expect(normalizedLocation(new URL('https://canmi.net/?abc='))).toBeUndefined();
+		expect(normalizedLocation(new URL('https://canmi.net//?abc='))).toBe('/?abc=');
+		expect(normalizedLocation(new URL('https://canmi.net//'))).toBe('/');
+	});
+});

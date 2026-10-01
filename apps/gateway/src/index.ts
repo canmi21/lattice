@@ -9,7 +9,14 @@ import { failure } from '@canmi/response';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { robotsFor } from '@canmi/robots';
 import { followSymlink, symlinkOf } from '@canmi/symlink';
-import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@canmi/urls';
+import {
+	DEVELOPMENT_PORTS,
+	developmentUrl,
+	isDevHost,
+	normalizedLocation,
+	pickUrls,
+	URLS,
+} from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
@@ -147,6 +154,13 @@ export function gateway(
 		}),
 	);
 	const app = new Hono<{ Bindings: Env }>();
+
+	// One spelling per address: a path that normalizes differently goes where it should, method kept.
+	// See spec/architecture/delivery.md, "Every address has one spelling".
+	app.use('*', async (c, next) => {
+		const location = normalizedLocation(new URL(c.req.url));
+		return location ? c.redirect(location, 308) : next();
+	});
 
 	// Out of an index but for the site's scope, which a crawler rendering a page asks. See
 	// spec/architecture/robots.md.

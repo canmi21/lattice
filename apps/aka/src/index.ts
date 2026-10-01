@@ -1,6 +1,6 @@
 import { robotsFor } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
-import { isDevHost, pickUrls } from '@canmi/urls';
+import { isDevHost, normalizedLocation, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { cacheControl, NEVER, REFUSED } from './cache';
@@ -24,6 +24,12 @@ const app = new Hono();
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
 // Before any route, so nothing can answer without a lifetime. See ./cache.ts.
 app.use('*', cacheControl);
+// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// See spec/architecture/delivery.md, "Every address has one spelling".
+app.use('*', async (c, next) => {
+	const location = normalizedLocation(new URL(c.req.url));
+	return location ? c.redirect(location, 308) : next();
+});
 
 // Permanent, because this host's root resolves nothing: which site it belongs to is not a thing
 // that changes, so a browser that learns it once need never ask again. `ref` marks where the
