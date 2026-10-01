@@ -19,7 +19,7 @@ export interface LlmsInput {
 	/** Each article's original language, by slug, where the API said. */
 	languages: Readonly<Record<string, string>>;
 	site: { name: string; tagline: string };
-	author: { name: string; fullName: string };
+	author: { name: string };
 	/** Each of the author's own accounts. */
 	profiles: readonly string[];
 	/** When the published corpus was written. */
@@ -33,7 +33,7 @@ function opening({ site, author, generated, now }: LlmsInput): string[] {
 	return [
 		`# ${site.name}`,
 		'',
-		`> ${site.tagline} The site of ${author.name} (${author.fullName}).`,
+		`> ${site.tagline} The site of ${author.name}.`,
 		'',
 		`Generated ${stamp(now)}${generated ? `, from the corpus published ${stamp(generated)}` : ''}.`,
 		'',

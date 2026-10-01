@@ -28,6 +28,15 @@ name.
 identifier every page of every app refers to. What it says and why is
 [entities.md](entities.md).
 
+## One name, said plainly
+
+**The author goes by Canmi, bare, and that is the name every page uses.** The full name, `fullName`,
+is said only where the author is introduced: the home page and its card, the homepage's agent view
+once, and the structured data, where `alternateName` lets an engine join the two. Anywhere else that
+names the author in full -- an article's agent view, an index -- says `Canmi <t@canmi.icu>`, the
+name and the address, which is `mailbox` in `@canmi/identity`; anywhere that only mentions the
+author says `Canmi`. The homepage's agent view says which name to use.
+
 **A page signs itself `© <year> <name>`**, the year the server's when the page was rendered, and not
 moved by the browser after: a page rendered on New Year's Eve says the old year until it is rendered
 again.

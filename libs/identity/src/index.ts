@@ -5,9 +5,13 @@ import data from '../author.json' with { type: 'json' };
  * scripts outside the Vite graph read the same file. See spec/architecture/identity.md.
  */
 export interface Author {
-	/** The name a page signs with. */
+	/** The name a page signs with, and the one the author goes by. */
 	name: string;
-	/** How the home page and its OpenGraph card introduce the author. Not translated. */
+	/**
+	 * Said only where the author is introduced: the home page, its card and its agent view once, and
+	 * the structured data. Not translated. See spec/architecture/identity.md, "One name, said
+	 * plainly".
+	 */
 	fullName: string;
 	role: string;
 	/** A person's address, and the one the feed names as its author. */
@@ -27,3 +31,6 @@ export interface Author {
 }
 
 export const author: Readonly<Author> = data;
+
+/** The author named in full anywhere but the home page: the name, then the address. */
+export const mailbox = `${author.name} <${author.email}>`;

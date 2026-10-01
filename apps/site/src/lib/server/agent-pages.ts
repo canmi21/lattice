@@ -2,7 +2,7 @@
  * The agent views of the pages that have one -- every article and the homepage -- fetched from the
  * answers the human pages render from. See spec/architecture/markdown.md.
  */
-import { author } from '@canmi/identity';
+import { author, mailbox } from '@canmi/identity';
 import { aliasesOf, graph, person, profiles } from '@canmi/social/structured';
 import { URLS } from '@canmi/urls';
 import { articleEntity, citationsOf, kindOf } from '$lib/article/entity';
@@ -105,7 +105,7 @@ export async function articleAgentView(
 				['Short subtitle', metadata.meta.short.subtitle || undefined],
 				['Description', view.meta.description],
 				['Kind', `${kindOf(category)}, in ${category}`],
-				['Author', `${author.name} (${author.fullName})`],
+				['Author', mailbox],
 				['Language', `${nameOf(source)} (${source}), the original`],
 				['Published', view.meta.published],
 				['Last changed', view.meta.lastmod],
@@ -200,7 +200,7 @@ export async function homeAgentView(
 				['Name', site.name],
 				['Also known as', author.name],
 				['Description', site.tagline],
-				['Author', `${author.name} (${author.fullName})`],
+				['Author', `${author.name} (${author.fullName}) <${author.email}>`],
 				['Articles', home.articles.length],
 				['Words', `${words}, each article counted in its original language`],
 				['Languages', `${LOCALE_CODES.length}, each article in each`],
@@ -241,7 +241,9 @@ export async function homeAgentView(
 			'Author',
 			undefined,
 			[
-				`${author.name}, also known as ${aliasesOf().join(', ')}.`,
+				`${author.name} is the name to use. Also known as ${aliasesOf()
+					.filter((alias) => alias !== author.fullName)
+					.join(', ')}.`,
 				'',
 				...profiles().map((profile) => `- ${profile}`),
 			].join('\n'),

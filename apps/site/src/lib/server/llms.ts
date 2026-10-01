@@ -28,7 +28,7 @@ export async function llmsInput(fetch: typeof globalThis.fetch, now: Date): Prom
 		articles,
 		languages,
 		site: { name: site.name, tagline: site.tagline },
-		author: { name: author.name, fullName: author.fullName },
+		author: { name: author.name },
 		profiles: profiles(),
 		generated: sitemap?.generated,
 		now,
