@@ -506,14 +506,19 @@ so the browser fetches the bytes with no redirect at all; a mark that resolves t
 out of the head. Each answer is held in the server's memory for the publication delay, so a render
 asks again at most every five minutes.
 
+**A file a browser takes only from the page's own origin is served, not redirected to.** A sitemap's
+XSL stylesheet is the case: `serveSymlink` follows the name and returns the bytes from the asking
+origin, kept as long as the redirect would be.
+
 **What a name means is the alias layer's alone.** A page knows the scope and file it asks for and
 never the record behind it, and no page or worker writes down a content id: a mark changes by
 publishing, not by redeploying anything.
 
-### The marks are a record
+### Every fixed name is a record
 
-**`data/record/marks.json` names every scope's marks by content id**, and the bytes are objects
-like any other, in the published tree and out of git. A scope is a service's internal name -- `site`,
+**`data/record/symlinks.json` names every scope's fixed names by content id** -- its marks, and any
+other file a host answers under a name of its own, such as a sitemap's stylesheet -- and the bytes
+are objects like any other, in the published tree and out of git. A scope is a service's internal name -- `site`,
 `status`, `api`, `cdn`, `aka` -- never a host, since one service may be deployed under several, and
 each of its files points at a content id; the extension is the file's. A service with no page names
 only its `favicon.ico`. The alias layer answers each at `/symlink/{scope}/{file}`, which is what every page asks.

@@ -74,3 +74,30 @@ export async function marksOf<File extends string>(
 		files.flatMap((file, index) => (targets[index] ? [[file, targets[index]]] : [])),
 	) as Partial<Record<File, string>>;
 }
+
+/**
+ * The bytes `name` stands for, answered from the asking origin rather than redirected to: for a
+ * file a browser uses only from the document's own origin, such as a sitemap's XSL stylesheet. A
+ * miss and a failure are answered as `followSymlink` answers them; the bytes are kept as the alias
+ * layer keeps its redirect.
+ */
+export async function serveSymlink(
+	name: string,
+	contentType: string,
+	fetcher: typeof fetch = fetch,
+): Promise<Response> {
+	const followed = await followSymlink(name, fetcher);
+	const target = followed.headers.get('Location');
+	if (followed.status !== 302 || !target) return followed;
+	let object: Response;
+	try {
+		object = await fetcher(target);
+	} catch {
+		return answer(502, NEVER);
+	}
+	if (!object.ok) return answer(502, NEVER);
+	return new Response(object.body, {
+		status: 200,
+		headers: { 'Content-Type': contentType, 'Cache-Control': RESOLVED },
+	});
+}

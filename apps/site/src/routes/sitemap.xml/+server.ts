@@ -1,3 +1,4 @@
+import { sitemapXml } from '@canmi/robots';
 import { URLS } from '@canmi/urls';
 import type { Alternate } from '@canmi/artifacts/types';
 import { publishedSitemap } from '$lib/published';
@@ -66,28 +67,7 @@ export const GET: RequestHandler = async ({ fetch }) => {
 		}),
 	];
 
-	const items = entries
-		.map((e) => {
-			const parts = [
-				`\t\t<loc>${e.loc}</loc>`,
-				...(e.alternates ?? []).map(
-					(alternate) =>
-						`\t\t<xhtml:link rel="alternate" hreflang="${alternate.language_tag}" href="${alternate.href}" />`,
-				),
-				`\t\t<lastmod>${e.lastmod}</lastmod>`,
-				`\t\t<changefreq>${e.changefreq}</changefreq>`,
-				`\t\t<priority>${e.priority}</priority>`,
-			];
-			return `\t<url>\n${parts.join('\n')}\n\t</url>`;
-		})
-		.join('\n');
-
-	const body = `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-${items}
-</urlset>
-`;
+	const body = sitemapXml(entries);
 	return new Response(body, {
 		headers: {
 			'Content-Type': 'application/xml; charset=utf-8',

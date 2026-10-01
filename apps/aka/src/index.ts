@@ -72,7 +72,7 @@ app.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.r
 
 /**
  * A scope's marks, `/symlink/{scope}/{file}`: the form every page asks. See
- * spec/architecture/delivery.md, "The marks are a record".
+ * spec/architecture/delivery.md, "Every fixed name is a record".
  */
 app.get('/symlink/:scope{[a-z][a-z0-9-]*}/:file{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) =>
 	resolve(c, `${c.req.param('scope')}/${c.req.param('file')}`),

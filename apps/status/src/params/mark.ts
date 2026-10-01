@@ -1,6 +1,6 @@
 import type { ParamMatcher } from '@sveltejs/kit';
 
-/** This page's marks, as `data/record/marks.json` registers them under `status`. */
+/** This page's marks, as `data/record/symlinks.json` registers them under `status`. */
 export const MARKS = [
 	'favicon.ico',
 	'favicon.svg',

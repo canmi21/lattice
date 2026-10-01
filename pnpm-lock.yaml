@@ -832,6 +832,9 @@ importers:
       '@canmi/behavior':
         specifier: workspace:*
         version: link:../../libs/behavior
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../../libs/cache
       '@canmi/compat':
         specifier: workspace:*
         version: link:../../libs/compat

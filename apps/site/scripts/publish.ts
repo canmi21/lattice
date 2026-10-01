@@ -37,7 +37,7 @@ const SITE = new URL('apps/site/', ROOT);
  * pass that wrote it was run.
  */
 const INPUTS = {
-	marks: fileURLToPath(new URL('data/record/marks.json', ROOT)),
+	symlinks: fileURLToPath(new URL('data/record/symlinks.json', ROOT)),
 	notice: fileURLToPath(new URL('data/build/licenses-full.txt', ROOT)),
 	cards: fileURLToPath(new URL('data/build/opengraph.json', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
@@ -265,20 +265,20 @@ async function publishPage(
 }
 
 /**
- * Every scope's marks, named in the root by the record that registers them.
+ * Every scope's fixed names, named in the root by the record that registers them.
  *
- * The bytes are objects already, in the tree and never in git; `data/record/marks.json` says which
- * name each scope's marks answer to, by content id. Each is `{scope}/{file}`, and the site's are
- * also bare, for the addresses already handed out. See spec/architecture/delivery.md, "The marks
- * are a record".
+ * The bytes are objects already, in the tree and never in git; `data/record/symlinks.json` says
+ * which name each scope's files answer to, by content id. Each is `{scope}/{file}`, and the site's
+ * are also bare, for the addresses already handed out. See spec/architecture/delivery.md, "Every
+ * fixed name is a record".
  */
-async function publishMarks(tree: Tree): Promise<Root['assets']> {
-	const marks = JSON.parse(await readFile(INPUTS.marks, 'utf8')) as Record<
+async function publishSymlinks(tree: Tree): Promise<Root['assets']> {
+	const symlinks = JSON.parse(await readFile(INPUTS.symlinks, 'utf8')) as Record<
 		string,
 		Record<string, string>
 	>;
 	const assets: Root['assets'] = {};
-	for (const [scope, files] of Object.entries(marks)) {
+	for (const [scope, files] of Object.entries(symlinks)) {
 		for (const [file, cid] of Object.entries(files)) {
 			const extension = file.slice(file.lastIndexOf('.') + 1);
 			await tree.hold(cid, extension);
@@ -328,7 +328,7 @@ async function publishCorpus(
 		// and writes the record, a card compiles to a rid, and the page asks what that rid means.
 		// See spec/architecture/resource.md, "The catalogue".
 		assets: {
-			...(await publishMarks(tree)),
+			...(await publishSymlinks(tree)),
 			...(await publishNotice(tree)),
 		},
 		articles: rootArticles,

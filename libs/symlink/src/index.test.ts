@@ -1,6 +1,6 @@
 import { PUBLISHED, RESOLVED } from '@canmi/cache';
 import { expect, it } from 'vitest';
-import { followSymlink, marksOf } from './index';
+import { followSymlink, marksOf, serveSymlink } from './index';
 
 const NAME = 'https://alias.example/symlink/favicon.ico';
 const replying = (response: Response | Error): typeof fetch =>
@@ -53,4 +53,21 @@ it('names each mark by the object it resolves to, and leaves out what resolves t
 	}) as typeof fetch;
 	const marks = await marksOf('https://alias.example', 'test', ['a.svg', 'missing.png'], fetcher);
 	expect(marks).toEqual({ 'a.svg': 'https://cdn.example/object/a.svg' });
+});
+
+it('answers the bytes a name stands for from the asking origin, typed as asked', async () => {
+	const fetcher = (async (input: RequestInfo | URL) =>
+		String(input) === NAME
+			? new Response(null, { status: 302, headers: { Location: 'https://cdn.example/object/a.xsl' } })
+			: new Response('<xsl/>', { status: 200 })) as typeof fetch;
+	const res = await serveSymlink(NAME, 'text/xsl', fetcher);
+	expect(res.status).toBe(200);
+	expect(res.headers.get('Content-Type')).toBe('text/xsl');
+	expect(res.headers.get('Cache-Control')).toBe(RESOLVED);
+	expect(await res.text()).toBe('<xsl/>');
+});
+
+it('passes a miss through rather than serving it', async () => {
+	const res = await serveSymlink(NAME, 'text/xsl', replying(new Response(null, { status: 404 })));
+	expect(res.status).toBe(404);
 });

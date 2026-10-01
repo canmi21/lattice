@@ -345,14 +345,14 @@ evidence that this is not hypothetical -- five days of curation are already outs
 | `record/media.yaml`, `record/tags.yaml`, `record/metadata.json`                  | 3     | imported already; the readers move to the collection           |
 | `record/diagram.json`, `fonts.json`, `indexnow.json`, `licenses.yaml`, `tn.yaml` | 5     | each is decided: a row in the collection, or a file that stays |
 | `build/*.json`                                                                   | 4     | derived, but fetched over a network; they become derived rows  |
-| `record/marks.json`                                                              | 1     | done for the bytes: they are objects, the record names them    |
+| `record/symlinks.json`                                                           | 1     | done for the bytes: they are objects, the record names them    |
 | `source/favicon/*`                                                               | 14    | bytes, refetchable, and cheaper to back up than to refetch     |
 | `bucket/*/.gitkeep`                                                              | 3     | the skeleton, which goes when the tree it marks does           |
 
 The site's own marks were the row that decided the order: losing them is not a rebuild. They left
 git before C0 by the author's decision, as objects named by a record -- the bucket and its mirror
 hold the bytes, and C0 is still what makes that more than two copies. See
-[architecture/delivery.md](../architecture/delivery.md), "The marks are a record".
+[architecture/delivery.md](../architecture/delivery.md), "Every fixed name is a record".
 
 C2 is why the collection growing to a terabyte is not a problem that has to be solved later.
 Published objects are immutable and already served, so development reads them where they are; the

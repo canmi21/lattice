@@ -6,8 +6,8 @@ there, and the rules every host shares are written once.
 
 | Service  | Rules                                     | Content signals |
 | -------- | ----------------------------------------- | --------------- |
-| `site`   | all but `/@/`, the internal namespace     | yes, and the sitemap |
-| `status` | all                                       | yes             |
+| `site`   | all but `/@/`, `/cgi-bin/`, `/cdn-cgi/`   | yes, and the sitemap |
+| `status` | all                                       | yes, and the sitemap |
 | `cdn`    | all                                       | no              |
 | `aka`    | all                                       | no              |
 | `api`    | only the site's scope, `/site/`           | no              |
@@ -37,11 +37,28 @@ Content-Usage: search=y, ai-use=y, train-ai=y
   header. An unstated one is unknown rather than either answer.
 
 **All three are yes.** This site wants to be found, quoted in answers, and known to models -- see
-[entities.md](entities.md) -- and a no on any of them would work against the rest. Cloudflare's
-legal preamble, which turns a no into a reservation of rights under EU copyright law, is left out:
-with nothing reserved there is nothing for it to say.
+[entities.md](entities.md) -- and a no on any of them would work against the rest.
+
+**A page host's file reads in one order**: the robots reference, the group's rules, Cloudflare's
+terms as a comment -- the three meanings, and the EU reservation of rights a `no` would make --
+then each spelling under the address that defines it, then the sitemap. A comment or a blank line
+does not end a group, so the signals stay `User-agent: *`'s. The terms are Cloudflare's wording,
+kept as written.
 
 **The policy is the repository's, not the edge's.** Cloudflare can write content signals into a
 zone's `robots.txt` itself; that setting stays off, for the reason the security headers came into
 the repository -- see [referrer.md](../referrer.md): a header the edge sets is one nobody can grep
 for.
+
+## Every page host has a sitemap, styled from its own origin
+
+The site's lists every page; the status page's lists its one. Both are rendered by `sitemapXml` in
+`@canmi/robots`, which points a browser at `/sitemap.xsl` -- a path on the sitemap's own origin,
+because a browser applies an XSL stylesheet to an XML document from nowhere else. There is one
+stylesheet, an object named `sitemap.xsl` under each scope in the symlink record, and each origin
+answers `/sitemap.xsl` by fetching it through the alias layer and returning the bytes as its own --
+see [delivery.md](delivery.md), "A page follows the name for the browser".
+
+Chrome stops applying XSLT on 17 November 2026, version 158, and other engines may follow; a
+sitemap then shows as plain XML in that browser. Crawlers never read the stylesheet, so nothing a
+sitemap is for depends on it.
