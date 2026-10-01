@@ -32,11 +32,11 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
 // One rule over the three groups, and the floor under everything else. See ./cache.ts.
 app.use('*', cacheControl);
-// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// One spelling per address: a path that normalizes differently goes where it should.
 // See spec/architecture/delivery.md, "Every address has one spelling".
 app.use('*', async (c, next) => {
-	const location = normalizedLocation(new URL(c.req.url));
-	return location ? c.redirect(location, 308) : next();
+	const normal = normalizedLocation(new URL(c.req.url));
+	return normal ? c.redirect(normal.location, normal.status) : next();
 });
 
 // Permanent: which host the site is reached at is not a thing that changes, so a browser that

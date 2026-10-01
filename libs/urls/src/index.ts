@@ -317,12 +317,19 @@ export function normalizePath(path: string): string {
 	return path.replaceAll('\\', '/').replace(/\/{2,}/g, '/').replace(/\/+$/, '');
 }
 
+/** Where a request belongs and how it is sent there. */
+export type Normalized = { location: string; status: 301 | 308 };
+
 /**
- * Where a request for `url` belongs, path and query, or `undefined` when it is already there. The
- * bare host goes on the wire as `/`, so `/` -- with a query or without -- is already there: sending
- * it to `''` would come back as `/` and loop.
+ * Where a request for `url` belongs, or `undefined` when it is already there. The bare host goes
+ * on the wire as `/`, so `/` -- alone or with a query -- is already there, and sending it anywhere
+ * would come back as `/` and loop. Any other spelling of the bare host goes to the host itself,
+ * no slash, by a 301; any other path to its spelling with the query kept, by a 308.
  */
-export function normalizedLocation(url: URL): string | undefined {
-	const path = normalizePath(url.pathname) || '/';
-	return path === url.pathname ? undefined : `${path}${url.search}`;
+export function normalizedLocation(url: URL): Normalized | undefined {
+	if (url.pathname === '/') return undefined;
+	const path = normalizePath(url.pathname);
+	if (path === url.pathname) return undefined;
+	if (path === '' && url.search === '') return { location: url.origin, status: 301 };
+	return { location: `${path || '/'}${url.search}`, status: 308 };
 }

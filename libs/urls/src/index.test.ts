@@ -140,15 +140,24 @@ describe('normalizePath', () => {
 	});
 
 	it('keeps the query, and answers nothing for a path already in its spelling', () => {
-		expect(normalizedLocation(new URL('https://canmi.net/a//b/?lang=ja'))).toBe('/a/b?lang=ja');
+		expect(normalizedLocation(new URL('https://canmi.net/a//b/?lang=ja'))).toEqual({
+			location: '/a/b?lang=ja',
+			status: 308,
+		});
 		expect(normalizedLocation(new URL('https://canmi.net/a/b?lang=ja'))).toBeUndefined();
 	});
 
-	it('leaves the root where it is, alone or with a query, since the bare host is sent as /', () => {
+	it('leaves / alone or with a query, and sends another spelling of the root to the bare host', () => {
 		expect(normalizedLocation(new URL('https://canmi.net'))).toBeUndefined();
 		expect(normalizedLocation(new URL('https://canmi.net/'))).toBeUndefined();
 		expect(normalizedLocation(new URL('https://canmi.net/?abc='))).toBeUndefined();
-		expect(normalizedLocation(new URL('https://canmi.net//?abc='))).toBe('/?abc=');
-		expect(normalizedLocation(new URL('https://canmi.net//'))).toBe('/');
+		expect(normalizedLocation(new URL('https://canmi.net//'))).toEqual({
+			location: 'https://canmi.net',
+			status: 301,
+		});
+		expect(normalizedLocation(new URL('https://canmi.net//?abc='))).toEqual({
+			location: '/?abc=',
+			status: 308,
+		});
 	});
 });

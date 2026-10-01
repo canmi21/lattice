@@ -13,11 +13,13 @@ import { sequence } from '@sveltejs/kit/hooks';
 const themeHandle: Handle = ({ event, resolve }) =>
 	resolve(event, { transformPageChunk: ({ html }) => fillTheme(html) });
 
-// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// One spelling per address: a path that normalizes differently goes where it should.
 // See spec/architecture/delivery.md, "Every address has one spelling".
 const spellingHandle: Handle = ({ event, resolve }) => {
-	const location = normalizedLocation(event.url);
-	return location ? new Response(null, { status: 308, headers: { location } }) : resolve(event);
+	const normal = normalizedLocation(event.url);
+	return normal
+		? new Response(null, { status: normal.status, headers: { location: normal.location } })
+		: resolve(event);
 };
 
 // Sentry's handles first, and none when the DSN is unset. The same handles serve both doors; see

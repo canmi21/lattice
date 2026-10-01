@@ -252,11 +252,13 @@ const securityHandle: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-// One spelling per address: a path that normalizes differently goes where it should, method kept.
+// One spelling per address: a path that normalizes differently goes where it should.
 // See spec/architecture/delivery.md, "Every address has one spelling".
 const spellingHandle: Handle = ({ event, resolve }) => {
-	const location = normalizedLocation(event.url);
-	return location ? new Response(null, { status: 308, headers: { location } }) : resolve(event);
+	const normal = normalizedLocation(event.url);
+	return normal
+		? new Response(null, { status: normal.status, headers: { location: normal.location } })
+		: resolve(event);
 };
 
 // The site's API, before anything that would read the path as a page's.

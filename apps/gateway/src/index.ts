@@ -155,11 +155,11 @@ export function gateway(
 	);
 	const app = new Hono<{ Bindings: Env }>();
 
-	// One spelling per address: a path that normalizes differently goes where it should, method kept.
+	// One spelling per address: a path that normalizes differently goes where it should.
 	// See spec/architecture/delivery.md, "Every address has one spelling".
 	app.use('*', async (c, next) => {
-		const location = normalizedLocation(new URL(c.req.url));
-		return location ? c.redirect(location, 308) : next();
+		const normal = normalizedLocation(new URL(c.req.url));
+		return normal ? c.redirect(normal.location, normal.status) : next();
 	});
 
 	// Out of an index but for the site's scope, which a crawler rendering a page asks. See

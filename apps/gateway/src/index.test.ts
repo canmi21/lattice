@@ -119,17 +119,18 @@ describe('the gateway', () => {
 	const ask = (path: string, env: Env = {}, init?: RequestInit) =>
 		app.fetch(new Request(`${HOST}${path}`, init), env);
 
-	it('sends a path in another spelling to its one spelling, query and method kept', async () => {
-		for (const [path, location] of [
-			['//stats', '/stats'],
-			['//', '/'],
-			['/geo/address/?latitude=1', '/geo/address?latitude=1'],
+	it('sends a path in another spelling to its one spelling, the query kept', async () => {
+		for (const [path, status, location] of [
+			['//stats', 308, '/stats'],
+			['//', 301, HOST],
+			['//?abc=', 308, '/?abc='],
+			['/geo/address/?latitude=1', 308, '/geo/address?latitude=1'],
 		] as const) {
 			const answer = await ask(path);
-			expect(answer.status).toBe(308);
+			expect(answer.status, path).toBe(status);
 			expect(answer.headers.get('location')).toBe(location);
 		}
-	});
+	});;
 
 	it('does not know a scope outside its table, or one inherited from Object', async () => {
 		for (const path of ['/nothing/x', '/constructor/x', '/__proto__/x']) {

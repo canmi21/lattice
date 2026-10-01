@@ -628,15 +628,20 @@ it costs no request and reports nothing.
 ## Every address has one spelling
 
 **A request whose path is not in its one spelling is redirected to it**: every backslash a slash,
-every run of slashes one, and no trailing slash, the query kept. The root alone normalizes to
-`''`, the bare host -- and is never redirected, with a query or without: the bare host goes on the
-wire as `/`, so a redirect to `''` would come straight back as `/`. The rule is
-`normalizePath` in `@canmi/urls`, and `normalizedLocation` says where a request belongs or that it
-is already there; each entry point does the redirecting in its own framework's terms, first, before
-any route reads the path -- a Hono middleware on the gateway, the CDN and the alias layer, a
-SvelteKit handle on the site, the status page and the panel. The redirect is a 308, permanent and
-method-keeping, so an API call that was misspelled arrives as the call it was. The CMS is a static
-build with no server to redirect from, so it has none.
+every run of slashes one, and no trailing slash, the query kept. The rule is `normalizePath` in
+`@canmi/urls`, and `normalizedLocation` says where a request belongs and by which status, or that
+it is already there; each entry point does the redirecting in its own framework's terms, first,
+before any route reads the path -- a Hono middleware on the gateway, the CDN and the alias layer, a
+SvelteKit handle on the site, the status page and the panel, each with `trailingSlash = 'ignore'`
+in its root layout, since SvelteKit's own redirect runs before any handle and would answer first. The CMS is a static build with no
+server to redirect from, so it has none.
+
+**The root is the bare host.** `/` alone and `/` with a query are already where they belong and
+are never redirected: the bare host goes on the wire as `GET /`, so no server can tell the two
+apart, and a redirect from one to the other would loop. Any other spelling of the root alone --
+`//`, `/\` -- goes to the bare host itself, `https://canmi.net` with no slash, by a 301; with a
+query it goes to `/?` and the query. Every other path goes by a 308, which keeps the method, so an
+API call that was misspelled arrives as the call it was.
 
 A browser already turns a backslash into a slash before it sends an `http` address, so that half of
 the rule is for a client that does not.
