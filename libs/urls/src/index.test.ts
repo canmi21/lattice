@@ -133,6 +133,11 @@ describe('normalizePath', () => {
 		['/a/', '/a'],
 		['/a//b///', '/a/b'],
 		['/a\\b\\', '/a/b'],
+		['/\\', ''],
+		['/\\/', ''],
+		['/\\\\', ''],
+		['/a\\/b', '/a/b'],
+		['/robots.txt\\', '/robots.txt'],
 		['//evil.example/x', '/evil.example/x'],
 		['/a/b', '/a/b'],
 	])('%s -> %s', (from, to) => {
@@ -152,6 +157,10 @@ describe('normalizePath', () => {
 		expect(normalizedLocation(new URL('https://canmi.net/'))).toBeUndefined();
 		expect(normalizedLocation(new URL('https://canmi.net/?abc='))).toBeUndefined();
 		expect(normalizedLocation(new URL('https://canmi.net//'))).toEqual({
+			location: 'https://canmi.net',
+			status: 301,
+		});
+		expect(normalizedLocation(new URL('https://canmi.net/\\/'))).toEqual({
 			location: 'https://canmi.net',
 			status: 301,
 		});
