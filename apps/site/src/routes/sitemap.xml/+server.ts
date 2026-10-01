@@ -1,16 +1,9 @@
-import { sitemapXml } from '@canmi/robots';
+import { peerEntries, type SitemapEntry, sitemapXml } from '@canmi/robots';
 import { URLS } from '@canmi/urls';
-import type { Alternate } from '@canmi/artifacts/types';
 import { publishedSitemap } from '$lib/published';
 import type { RequestHandler } from './$types';
 
-type Entry = {
-	loc: string;
-	lastmod?: string;
-	changefreq: string;
-	priority: string;
-	alternates?: Alternate[];
-};
+type Entry = SitemapEntry;
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -26,14 +19,9 @@ function staticEntries(generated: string): Entry[] {
 			changefreq: 'daily',
 			priority: '1.0',
 		},
-		// The status page, another of the author's sites, listed here as Search Console allows for
-		// a verified one and as its robots.txt confirms for every other engine. It changes as
-		// often as it is read, so it names no modification time. See spec/architecture/robots.md.
-		{
-			loc: new URL('/', URLS.internal.status.canonical).href,
-			changefreq: 'always',
-			priority: '0.5',
-		},
+		// Every other page host, by its root; each lists its own routes. See
+		// spec/architecture/robots.md, "Every page host names every other".
+		...peerEntries('site'),
 	];
 }
 

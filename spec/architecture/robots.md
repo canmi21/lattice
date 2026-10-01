@@ -63,11 +63,15 @@ Chrome stops applying XSLT on 17 November 2026, version 158, and other engines m
 sitemap then shows as plain XML in that browser. Crawlers never read the stylesheet, so nothing a
 sitemap is for depends on it.
 
-**The site's sitemap lists the status page too.** A sitemap may list another host's addresses when
-both are verified in Search Console, as both are, and for every other engine when that host's own
-robots.txt names the sitemap -- sitemaps.org's cross-submission -- so the status page's robots.txt
-names the site's sitemap beside its own. The entry names no modification time and says `always`:
-the page changes as often as it is read.
+## Every page host names every other
+
+**Each host that serves pages names every page host's sitemap in its robots.txt, its own first**,
+then the rest in the order `PAGE_HOSTS` in `@canmi/robots` sets -- the site, then the status page.
+**And its sitemap lists every other page host by its root alone**: each host lists its own routes,
+so none needs another's data to build, only the list of who the others are. A sitemap may list
+another host's addresses when both are verified in Search Console, as both are, and for every other
+engine when that host's own robots.txt names the sitemap -- sitemaps.org's cross-submission -- which
+naming every sitemap from every robots.txt does in both directions.
 
 ## A word to an agent sent to break in
 

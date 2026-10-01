@@ -1,6 +1,6 @@
 import { URLS } from '@canmi/urls';
 import { describe, expect, it } from 'vitest';
-import { robotsFor, robotsTxt, robotsTxtBase, sitemapXml } from './index';
+import { peerEntries, robotsFor, robotsTxt, robotsTxtBase, sitemapXml } from './index';
 
 describe('robotsTxt', () => {
 	it('returns the shared base without site additions', () => {
@@ -87,6 +87,20 @@ it("ends every host's file with its own word to an agent and where the code is",
 	expect(new Set(notes).size).toBe(files.length);
 });
 
-it("names the site's sitemap from the status page's robots, which the site's sitemap lists", () => {
-	expect(robotsFor('status')).toContain(`Sitemap: ${URLS.apps.production.site}/sitemap.xml`);
+it("names every page host's sitemap, its own first", () => {
+	const sitemaps = (text: string) => text.split('\n').filter((line) => line.startsWith('Sitemap: '));
+	expect(sitemaps(robotsFor('site'))).toEqual([
+		`Sitemap: ${URLS.apps.production.site}/sitemap.xml`,
+		`Sitemap: ${URLS.internal.status.canonical}/sitemap.xml`,
+	]);
+	expect(sitemaps(robotsFor('status'))).toEqual([
+		`Sitemap: ${URLS.internal.status.canonical}/sitemap.xml`,
+		`Sitemap: ${URLS.apps.production.site}/sitemap.xml`,
+	]);
+	expect(sitemaps(robotsFor('cdn'))).toEqual([]);
+});
+
+it('lists every other page host by its root alone', () => {
+	expect(peerEntries('site')).toEqual([{ loc: `${URLS.internal.status.canonical}/` }]);
+	expect(peerEntries('status')).toEqual([{ loc: `${URLS.apps.production.site}/` }]);
 });

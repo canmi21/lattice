@@ -110,6 +110,37 @@ export function robotsTxt(options: RobotsTxtOptions = {}): string {
 export type RobotsService = Service;
 
 /**
+ * The services that serve pages, each at its origin, in the order every sitemap list follows. A
+ * host names its own first; see spec/architecture/robots.md, "Every page host names every other".
+ */
+export const PAGE_HOSTS: readonly (readonly [Service, string])[] = [
+	['site', URLS.apps.production.site],
+	['status', URLS.internal.status.canonical],
+];
+
+/** `service` first, then every other page host in the shared order. */
+function ownFirst(service: Service): string[] {
+	const own = PAGE_HOSTS.filter(([name]) => name === service);
+	const others = PAGE_HOSTS.filter(([name]) => name !== service);
+	return [...own, ...others].map(([, origin]) => origin);
+}
+
+/** Every page host's sitemap, `service`'s first: what its robots.txt names. */
+export function sitemapsFor(service: Service): string[] {
+	return ownFirst(service).map((origin) => `${origin}/sitemap.xml`);
+}
+
+/**
+ * The other page hosts, by their roots alone, for `service`'s sitemap: each lists its own routes,
+ * so a host knows the others by name and needs nothing of theirs to build.
+ */
+export function peerEntries(service: Service): SitemapEntry[] {
+	return ownFirst(service)
+		.slice(1)
+		.map((origin) => ({ loc: new URL('/', origin).href }));
+}
+
+/**
  * What each service lets a crawler fetch. The site keeps its internal namespace out; the API lets
  * in the one scope a rendered page asks, so a crawler that runs the page can fetch what it fetches,
  * and nothing else.
@@ -121,17 +152,12 @@ export const ROBOTS: Readonly<Record<RobotsService, RobotsTxtOptions>> = {
 		disallow: ['/@/', '/cgi-bin/', '/cdn-cgi/'],
 		signals: true,
 		agent: 'site',
-		sitemap: `${URLS.apps.production.site}/sitemap.xml`,
+		sitemap: sitemapsFor('site'),
 	},
 	status: {
 		signals: true,
 		agent: 'status',
-		// Its own, and the site's, which lists this page too: naming it here is what lets an engine
-		// other than Google accept the site's listing of another host. See spec/architecture/robots.md.
-		sitemap: [
-			`${URLS.internal.status.canonical}/sitemap.xml`,
-			`${URLS.apps.production.site}/sitemap.xml`,
-		],
+		sitemap: sitemapsFor('status'),
 	},
 	cdn: { disallow: [''], agent: 'cdn' },
 	aka: { disallow: [''], agent: 'aka' },
