@@ -99,6 +99,23 @@ It is not sharded. At the corpus's size a locale split would be arithmetic perfo
 small enough to send whole, and a shard is a second thing to keep consistent. The question comes
 back when the file stops being small, and not before.
 
+## What is stored is what cannot be worked out
+
+**A published object holds what nothing could derive from the rest of it**: what the author wrote,
+and what took judgment to produce -- a heading's id, a summary, a translation, each of which a
+person or a model had to be asked for. **What a function of the stored data gives back, every time,
+is worked out where it is used**: a block's anchor is its kind and its place, so the page and the
+compiler each number the blocks themselves, and nothing stores the result. See
+[anchors.md](anchors.md).
+
+The test is whether working it out needs anything the object does not hold. Storing what does not
+is a second copy of a decision that can fall out of step with the first, and it changes the
+published shape, which asks for a new `ARTIFACT_VERSION` for no new fact.
+
+Some stored fields fail this test and predate it: a view's word count, a phone's title and the
+table of contents are each worked out from the view at build. They stay until the shape is next
+reworked, and are reworked by this rule then rather than piecemeal now.
+
 ## Which objects exist
 
 | Type       | Holds                                                | Produced per     |

@@ -6,6 +6,7 @@
 </script>
 
 <script lang="ts">
+	import { nearestBlockAnchor } from '@canmi/artifacts/anchors';
 	import { animate, frame as motionFrame } from 'motion';
 	import {
 		DEFAULT_PIXELS_PER_REM,
@@ -340,8 +341,24 @@
 			);
 			delete window.canmiArticleInitialHash;
 		}
-		const initialTarget =
-			initialHash && nav?.type === 'navigate' ? document.getElementById(initialHash) : null;
+		const asked = initialHash && nav?.type === 'navigate' ? initialHash : '';
+		// A block anchor that names nothing lands on its kind's nearest, and the address says which.
+		// See spec/architecture/anchors.md.
+		const landing =
+			asked && !document.getElementById(asked)
+				? nearestBlockAnchor(
+						asked,
+						[...document.querySelectorAll('.article-content [id]')].map((el) => el.id),
+					)
+				: undefined;
+		if (landing) {
+			history.replaceState(
+				history.state,
+				'',
+				`${window.location.pathname}${window.location.search}#${landing}`,
+			);
+		}
+		const initialTarget = asked ? document.getElementById(landing ?? asked) : null;
 		if (initialTarget) {
 			const targetIdx = headings.indexOf(initialTarget as HTMLHeadingElement);
 			if (targetIdx >= 0) activeIndex = targetIdx;

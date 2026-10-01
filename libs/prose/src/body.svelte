@@ -77,6 +77,8 @@
 	import type { LocaleCode } from '@canmi/locales';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';
+	import Anchored from './anchored.svelte';
+	import { blockAnchors } from '@canmi/artifacts/anchors';
 
 	/**
 	 * What every rid on this page currently means, resolved by the load and handed down.
@@ -208,6 +210,9 @@
 	 * `iframe`, and a media element's own fetches are not covered by it. `preload="metadata"` is
 	 * the whole of what a clip's loading can be told.
 	 */
+	/** Each block's anchor, by its kind and place. See spec/architecture/anchors.md. */
+	const anchors = $derived(blockAnchors(blocks));
+
 	const lead = $derived.by(() => {
 		const at = blocks.findIndex((block) => block.type === 'image');
 		return at >= 0 && at < ABOVE_THE_FOLD ? at : -1;
@@ -222,7 +227,9 @@
 			{@html block.html}
 		{:else if block.type === 'heading'}
 			<Section slug={block.slug} depth={block.depth} notes={block.notes}>{block.text}</Section>
-		{:else if block.type === 'code'}
+		{:else}
+			<Anchored id={anchors[i]}>
+		{#if block.type === 'code'}
 			<CodeBlock
 				label={block.label}
 				title={block.title}
@@ -328,6 +335,8 @@
 			<Twitter tweet={block.tweet} />
 		{:else if block.type === 'github'}
 			<GitHub repo={block.repo} git_ref={block.git_ref} title={block.title} align={block.align} />
+		{/if}
+			</Anchored>
 		{/if}
 	{/each}
 </div>

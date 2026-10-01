@@ -1,4 +1,5 @@
 import { URLS } from '@canmi/urls';
+import { blockAnchors, isBlockAnchor } from '@canmi/artifacts/anchors';
 import { toString as mdastToString } from 'mdast-util-to-string';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import type { Resolved, ResolvedVideo } from './assets.ts';
@@ -172,6 +173,13 @@ export async function compile(
 			// which is why a note in a heading never reaches the ToC or the slug.
 			const marks = numberNotes(node, notes, sourceFile ?? url);
 			const { slug, text: heading } = headingParts(node);
+			// A block's anchor is `{kind}-{n}`, worked out wherever blocks are drawn, so a heading may
+			// not claim one. See spec/architecture/anchors.md.
+			if (isBlockAnchor(slug)) {
+				throw new Error(
+					`${sourceFile ?? url}: heading "${heading}" takes the id #${slug}, which names a block -- give it an explicit {#id}`,
+				);
+			}
 			const superscripts = marks.map((number) => `[^${number}]`).join('');
 			blocks.push({
 				type: 'heading',
@@ -500,6 +508,16 @@ export async function compile(
 
 	if (!meta) throw new Error(`missing frontmatter: ${url}`);
 
+	// Each block's markdown says where the block is on the page, by the anchor the page gives it.
+	// The two lists are built a pair at a time, which is what lets one index serve both.
+	if (md.length !== blocks.length) {
+		throw new Error(`${url}: ${blocks.length} blocks but ${md.length} markdown parts`);
+	}
+	const anchors = blockAnchors(blocks);
+	const located = md.map((part, index) =>
+		anchors[index] ? `${part}\n\n> On the page: ${url}#${anchors[index]}` : part,
+	);
+
 	// Provenance/recency rides as frontmatter on the full article markdown; the
 	// index (/llms.txt) stays metadata-free per convention.
 	// All three dates, `created` included, even though only `published` is shown anywhere: this
@@ -518,7 +536,7 @@ export async function compile(
 		meta,
 		toc,
 		blocks,
-		markdown: `---\n${frontmatter}---\n\n# ${meta.title}\n\n${meta.description}\n\n${md.join('\n\n')}\n`,
+		markdown: `---\n${frontmatter}---\n\n# ${meta.title}\n\n${meta.description}\n\n${located.join('\n\n')}\n`,
 		text: text.join('\n\n'),
 	};
 }

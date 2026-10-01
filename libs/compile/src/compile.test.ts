@@ -446,3 +446,29 @@ it('turns a link card url into the rid of that site mark, keeping the tone unres
 	// No address anywhere in the block: a hostname or a cid here would be the baked resolution.
 	expect(JSON.stringify(cards[0])).not.toContain('example.com/favicon');
 });
+
+const OPTIONS = {
+	newTabNote: 'opens in new tab',
+	resolveAsset: () => null,
+	highlight: async () => '',
+	sourceFile: 'contents/example.md',
+};
+
+it("refuses a heading whose id would take a block's anchor, and allows one that only starts like it", async () => {
+	await expect(
+		compile('---\ntitle: Test\nlang: en-US\n---\n\n## Code 1\n', '/article', OPTIONS),
+	).rejects.toThrow('takes the id #code-1, which names a block');
+	await expect(
+		compile('---\ntitle: Test\nlang: en-US\n---\n\n## Code review\n', '/article', OPTIONS),
+	).resolves.toBeDefined();
+});
+
+it("says where each block is on the page in the article's markdown", async () => {
+	const compiled = await compile(
+		'---\ntitle: Test\nlang: en-US\n---\n\nText.\n\n```ts\nconst a = 1;\n```\n\n```ts\nconst b = 2;\n```\n',
+		'/article',
+		OPTIONS,
+	);
+	expect(compiled.markdown).toContain('> On the page: /article#code-1');
+	expect(compiled.markdown).toContain('> On the page: /article#code-2');
+});
