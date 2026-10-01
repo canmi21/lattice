@@ -129,7 +129,8 @@
 	import { dev } from '$app/environment';
 	import { page } from '$app/state';
 	import { pageUrls } from '@canmi/urls';
-	import { site } from '$lib/site';
+	import Title from '@canmi/behavior/title.svelte';
+	import { ldJson, person } from '@canmi/social/structured';
 	import BookOpenText from '@lucide/svelte/icons/book-open-text';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Type from '@lucide/svelte/icons/type';
@@ -249,19 +250,6 @@
 	 */
 	const card = $derived(cardUrl(urls.cdn, cardId));
 
-	/**
-	 * A JSON-LD block, safe to drop into markup.
-	 *
-	 * Every `<` in the payload becomes `\u003c`, and the closing tag is assembled rather than
-	 * written, so no `</script` sequence exists anywhere here. A tokenizer scanning for one does
-	 * not care that it sits inside a string, and neither case stays hypothetical once this data
-	 * includes text written by something other than us.
-	 */
-	function ldJson(data: unknown): string {
-		const json = JSON.stringify(data).replaceAll('<', String.raw`\u003c`);
-		return `<script type="application/ld+json">${json}</${'script'}>`;
-	}
-
 	/** A grapheme cluster whose base is a letter, which is the only ink this anchor is read off. */
 	const LETTER_BASE = /^\p{L}/u;
 
@@ -335,7 +323,7 @@
 		dateModified: meta.lastmod,
 		inLanguage: locale.tag,
 		mainEntityOfPage: locale.canonical,
-		author: { '@type': 'Person', name: site.author.name },
+		author: person(),
 	});
 
 	// Pin UTC so the shown day matches the authored frontmatter date everywhere it
@@ -357,7 +345,6 @@
 </script>
 
 <svelte:head>
-	<title>{meta.title}: {meta.subtitle}</title>
 	<meta name="description" content={meta.description} />
 
 	<meta property="og:type" content="article" />
@@ -393,6 +380,8 @@
 	     suppressed; see +layout.svelte and spec/lint-format.md. -->
 	{@html ldJson(article)}
 </svelte:head>
+
+<Title full="{meta.title}: {meta.subtitle}" short={meta.title} />
 
 <Shell {toc} {rail} locale={locale.code} {theme}>
 	{#snippet home()}<HomeLink locale={locale.code} />{/snippet}

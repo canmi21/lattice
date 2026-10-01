@@ -4,7 +4,10 @@ import { author } from '@canmi/identity';
 import * as m from '@canmi/messages';
 
 export type HomepageContent = {
+	/** The name, then what the site is, for a first load; see spec/architecture/titles.md. */
 	title: string;
+	/** The name alone, once the reader is known. */
+	shortTitle: string;
 	description: string;
 	bio: PageBlock[];
 	writing: string;
@@ -23,7 +26,10 @@ export function homepageContent(
 	code: LocaleCode,
 ): HomepageContent {
 	return {
-		title: page?.meta.title ?? author.name,
+		title: page?.meta.subtitle
+			? `${page.meta.title ?? author.name} - ${page.meta.subtitle}`
+			: (page?.meta.title ?? author.name),
+		shortTitle: page?.meta.title ?? author.name,
 		description: page?.meta.description ?? '',
 		bio: page?.blocks ?? [],
 		writing: m['nav.writing']({}, { locale: code }),

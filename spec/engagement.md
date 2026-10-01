@@ -388,6 +388,11 @@ migrations. Two records hold different facts and will version independently, and
 for one running against the other is the failure the whole mechanism exists to prevent. Both are
 called `state`, because the storage area already says which record it is.
 
+**`visit.seen` is the reader record's on every app, not the site's alone.** It says the browser has
+loaded a page of that app before, which decides the title a fresh load shows; see
+[architecture/titles.md](architecture/titles.md). The status page keeps it in its own origin's
+record, through the same container.
+
 **The reading trail is in the tab record too, and this paragraph used to say it was not.** It
 stayed outside on two arguments: that it carried its own self-validating shape and its own
 module, and that moving it would be churn with nothing on the other side of it.

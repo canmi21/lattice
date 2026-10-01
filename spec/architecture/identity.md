@@ -19,6 +19,11 @@ the current color, and the library sets none.
 | site   | all nine: GitHub, X, fediverse, Bluesky, Telegram, sitemap, two webrings, feed |
 | status | the first five, the author's own accounts                                      |
 
+**`@canmi/social/structured` is the author as schema.org reads a person**, built from the same two
+libraries: the name, the full name as `alternateName`, the site as `url`, and each account's profile
+in `sameAs`, so a search engine can tell the accounts are one person and the site is theirs. Every
+app's JSON-LD names it as `author`, and `ldJson` there is the one way any page writes JSON-LD.
+
 **A page signs itself `© <year> <name>`**, the year the server's when the page was rendered, and not
 moved by the browser after: a page rendered on New Year's Eve says the old year until it is rendered
 again.

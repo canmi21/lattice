@@ -4,7 +4,8 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./social-links.svelte": "./src/social-links.svelte"
+		"./social-links.svelte": "./src/social-links.svelte",
+		"./structured": "./src/structured.ts"
 	},
 	"dependencies": {
 		"@canmi/identity": "workspace:*",

@@ -1,5 +1,6 @@
 ---
 title: Canmi
+subtitle: Notes on the software and hardware I build
 description: A developer building software, hardware, and the weird things in between.
 summary: The landing page — a brief introduction and the entry point to the rest
   of the site.

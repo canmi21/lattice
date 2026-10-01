@@ -9,6 +9,7 @@
 	},
 	"devDependencies": {
 		"@canmi/referer": "workspace:*",
+		"@canmi/behavior": "workspace:*",
 		"@canmi/compat": "workspace:*",
 		"@canmi/hints": "workspace:*",
 		"@canmi/identity": "workspace:*",

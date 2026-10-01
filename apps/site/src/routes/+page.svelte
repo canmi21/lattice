@@ -65,6 +65,7 @@
 
 <script lang="ts">
 	import { dev } from '$app/environment';
+	import Title from '@canmi/behavior/title.svelte';
 	import { imgsrc } from '@canmi/imgsrc';
 	import { pageUrls, URLS } from '@canmi/urls';
 	import Coffee from '@lucide/svelte/icons/coffee';
@@ -115,8 +116,9 @@
 	});
 </script>
 
+<Title full={data.title} short={data.shortTitle} />
+
 <svelte:head>
-	<title>{data.title}</title>
 	<meta name="description" content={data.description} />
 	<!--
 		The home page had no card at all, while `local og` had been rendering one for it since the
@@ -131,7 +133,7 @@
 		<meta property="og:image" content={card} />
 		<meta property="og:image:width" content={CARD_WIDTH} />
 		<meta property="og:image:height" content={CARD_HEIGHT} />
-		<meta property="og:image:alt" content={data.title} />
+		<meta property="og:image:alt" content={data.shortTitle} />
 	{/if}
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>

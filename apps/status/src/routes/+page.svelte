@@ -118,6 +118,9 @@
 </script>
 
 <script lang="ts">
+	import Title from '@canmi/behavior/title.svelte';
+	import { ldJson, person } from '@canmi/social/structured';
+	import { URLS } from '@canmi/urls';
 	import Bell from 'phosphor-svelte/lib/Bell';
 	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
 	import { onMount, untrack } from 'svelte';
@@ -138,6 +141,19 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	/** The page's name, and what it is for a first load. See spec/architecture/titles.md. */
+	const NAME = 'Canmi Status';
+	const DESCRIPTION = 'Live uptime of the services I run, checked from outside every few seconds.';
+	const CANONICAL = new URL('/', URLS.internal.status.canonical).href;
+	const website = {
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: NAME,
+		description: DESCRIPTION,
+		url: CANONICAL,
+		author: person(),
+	};
 
 	// Seeded once from the server's answer.
 	const live = new Live(untrack(() => data));
@@ -182,12 +198,18 @@
 	);
 </script>
 
+<Title full="{NAME} - Is everything up right now" short={NAME} />
+
 <svelte:head>
-	<title>Status</title>
-	<meta
-		name="description"
-		content="Whether the platform's services, APIs, names and pages are answering, checked from outside every few seconds."
-	/>
+	<meta name="description" content={DESCRIPTION} />
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content={NAME} />
+	<meta property="og:title" content="{NAME} - Is everything up right now" />
+	<meta property="og:description" content={DESCRIPTION} />
+	<meta property="og:url" content={CANONICAL} />
+	<meta name="twitter:card" content="summary" />
+	<!-- Safe despite the raw insertion: ldJson escapes what it serialises. -->
+	{@html ldJson(website)}
 </svelte:head>
 
 <header class="flex flex-col items-center pt-20 pb-16 text-center">

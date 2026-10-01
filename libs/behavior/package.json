@@ -4,18 +4,21 @@
 	"type": "module",
 	"exports": {
 		"./arrival": "./src/arrival.ts",
+		"./brevity": "./src/brevity.svelte.ts",
 		"./collapse": "./src/collapse.ts",
 		"./edge": "./src/edge.ts",
 		"./jump": "./src/jump.ts",
 		"./progress": "./src/progress.ts",
 		"./resize": "./src/resize.ts",
-		"./state": "./src/state.ts"
+		"./state": "./src/state.ts",
+		"./title.svelte": "./src/title.svelte"
 	},
 	"dependencies": {
 		"@canmi/motion": "workspace:*",
 		"@canmi/units": "workspace:*",
 		"motion": "^13.2.0",
-		"thumbhash": "^0.1.1"
+		"thumbhash": "^0.1.1",
+		"svelte": "^5.57.1"
 	},
 	"devDependencies": {
 		"vitest": "^5.0.1"

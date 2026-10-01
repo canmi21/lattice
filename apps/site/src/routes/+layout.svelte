@@ -2,7 +2,9 @@
 	import { browser, dev } from '$app/environment';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
+	import { ldJson, person } from '@canmi/social/structured';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS, pageUrls } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -106,7 +108,10 @@
 	let { children } = $props();
 
 	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
-	onMount(takeArrivalParameters);
+	onMount(() => {
+		takeArrivalParameters();
+		settleBrevity();
+	});
 
 	$effect(() => installFocusSourceTracker());
 
@@ -171,6 +176,7 @@
 	 */
 	afterNavigate(({ from, to, type }) => {
 		if (!to) return;
+		if (type !== 'enter') shortenTitles();
 		writeTrail(
 			sessionStorage,
 			advance(readTrail(sessionStorage), to.url.pathname, from?.url.pathname),
@@ -186,19 +192,6 @@
 	});
 
 	/**
-	 * A JSON-LD block, safe to drop into markup.
-	 *
-	 * Every `<` in the payload becomes `\u003c`, and the closing tag is assembled rather than
-	 * written, so no `</script` sequence exists anywhere here. A tokenizer scanning for one does
-	 * not care that it sits inside a string, and neither case stays hypothetical once this data
-	 * includes text written by something other than us.
-	 */
-	function ldJson(data: unknown): string {
-		const json = JSON.stringify(data).replaceAll('<', String.raw`\u003c`);
-		return `<script type="application/ld+json">${json}</${'script'}>`;
-	}
-
-	/**
 	 * Structured data for the site itself.
 	 *
 	 * Built from the same config the visible chrome reads, so there is no second copy of the
@@ -209,15 +202,10 @@
 		'@context': 'https://schema.org',
 		'@type': 'WebSite',
 		name: site.name,
+		alternateName: site.author.name,
 		description: site.tagline,
 		url: URLS.apps.production.site,
-		author: {
-			'@type': 'Person',
-			name: site.author.name,
-			...(site.author.twitter
-				? { url: `${URLS.external.social.twitter}/${site.author.twitter}` }
-				: {}),
-		},
+		author: person(),
 	};
 </script>
 

@@ -4,7 +4,7 @@
 # object, never shipped as env. URLs/ports live in libs/urls, not here.
 
 name: サボり記
-tagline: One developer's journey through code, circuits, pixels — and life in between.
+tagline: Notes on the software and hardware I build.
 
 # The site's address as a label, drawn on the OpenGraph card. Not a URL: nothing resolves it,
 # it is read by a person looking at a picture, which is why it may live outside libs/urls. The

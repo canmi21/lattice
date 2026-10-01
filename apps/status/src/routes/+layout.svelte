@@ -98,6 +98,7 @@
 </script>
 
 <script lang="ts">
+	import { settleBrevity } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
@@ -126,7 +127,10 @@
 	}
 
 	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
-	onMount(takeArrivalParameters);
+	onMount(() => {
+		takeArrivalParameters();
+		settleBrevity();
+	});
 
 	/** Whether the page has scrolled, read off a zero-height sentinel above the nav; false in SSR. */
 	let scrolled = $state(false);

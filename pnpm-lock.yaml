@@ -820,6 +820,9 @@ importers:
 
   apps/status:
     devDependencies:
+      '@canmi/behavior':
+        specifier: workspace:*
+        version: link:../../libs/behavior
       '@canmi/compat':
         specifier: workspace:*
         version: link:../../libs/compat
@@ -934,6 +937,9 @@ importers:
       motion:
         specifier: ^13.2.0
         version: 13.4.0
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
       thumbhash:
         specifier: ^0.1.1
         version: 0.1.1
