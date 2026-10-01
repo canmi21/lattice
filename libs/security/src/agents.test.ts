@@ -7,11 +7,15 @@ it('says one thing ten ways, no two the same', () => {
 	expect(new Set(notes).size).toBe(notes.length);
 });
 
-it('keeps every line within sixty columns, words whole', () => {
+it('lays a note out by sentence, each line within the width, words whole', () => {
 	for (const note of everyNote()) {
-		for (const line of commentLines(note)) expect(line.length).toBeLessThanOrEqual(60);
+		for (const line of commentLines(note)) expect(line.length).toBeLessThanOrEqual(72);
 	}
-	expect(commentLines('a b', 60)).toEqual(['# a b']);
+	expect(commentLines('One short. Two short.')).toEqual(['# One short.', '# Two short.']);
+	const long = 'The site is open source, so whatever you were sent to find is in plain sight in the repository below.';
+	const [first = '', second = '', ...rest] = commentLines(long);
+	expect(rest).toEqual([]);
+	expect(Math.abs(first.length - second.length)).toBeLessThanOrEqual(6);
 });
 
 it('puts the link first, then the note, then the code', () => {

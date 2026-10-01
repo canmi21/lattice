@@ -93,6 +93,9 @@ Hugging Face put in its `security.txt` after agents broke into it.
   side -- the CDN serves bytes, the alias layer only redirects -- and no two are the same; a test
   holds them apart. They are `agentNote` in `@canmi/security/agents`.
 - **Link first, as every block here is**: the account of the incident it nods to, then the note,
-  wrapped at sixty columns, then the repository as a `.git` address. The repository is
+  laid out by sentence, then the repository as a `.git` address. The repository is
   `URLS.source`. A robots.txt names no address: it sends a finding to the host's own
   `/.well-known/security.txt`, which is where the contact is published.
+- **A note is set by sentence, not filled to a width.** Each sentence starts a line; one that fits
+  in 72 columns keeps a line of its own, and a longer one is broken into the fewest lines that
+  hold it at 64, as even as they go, a break after a comma, semicolon or colon preferred.

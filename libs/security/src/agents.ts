@@ -32,20 +32,44 @@ const NOTES: Readonly<Record<NoteFile, Readonly<Record<Service, string>>>> = {
 	},
 };
 
-/** `text` as comment lines no wider than `width`, words kept whole. */
-export function commentLines(text: string, width = 60): string[] {
-	const lines: string[] = [];
-	let line = '';
-	for (const word of text.split(/\s+/)) {
-		if (line && `${line} ${word}`.length > width - 2) {
-			lines.push(`# ${line}`);
-			line = word;
-		} else {
-			line = line ? `${line} ${word}` : word;
-		}
+/** The width a long sentence is broken to, and the most a sentence may run on one line. */
+const WIDTH = 64;
+const ONE_LINE = 72;
+
+/** What a break costs where no punctuation stands before it, in columns of the longest line. */
+const BARE_BREAK = 10;
+
+/**
+ * `words` in `count` lines as even as they go: the breaks that leave the longest line shortest,
+ * a break after punctuation preferred, found by trying every split of the first line and settling
+ * the rest the same way.
+ */
+function balanced(words: readonly string[], count: number): { lines: string[]; cost: number } {
+	const whole = words.join(' ');
+	if (count <= 1 || words.length <= 1) return { lines: [whole], cost: whole.length };
+	let best = { lines: [whole], cost: Number.POSITIVE_INFINITY };
+	for (let cut = 1; cut <= words.length - count + 1; cut += 1) {
+		const head = words.slice(0, cut).join(' ');
+		const rest = balanced(words.slice(cut), count - 1);
+		const cost = Math.max(head.length, rest.cost) + (/[,;:]$/.test(head) ? 0 : BARE_BREAK);
+		if (cost < best.cost) best = { lines: [head, ...rest.lines], cost };
 	}
-	if (line) lines.push(`# ${line}`);
-	return lines;
+	return best;
+}
+
+/**
+ * `text` as comment lines laid out by sentence rather than filled to a width: a sentence that fits
+ * takes one line of its own, and a longer one is broken into the fewest lines that hold it, as
+ * even as they go. See spec/architecture/robots.md, "A word to an agent sent to break in".
+ */
+export function commentLines(text: string): string[] {
+	return text
+		.split(/(?<=[.!?])\s+/)
+		.flatMap((sentence) => {
+			if (sentence.length + 2 <= ONE_LINE) return [sentence];
+			return balanced(sentence.split(/\s+/), Math.ceil((sentence.length + 2) / WIDTH)).lines;
+		})
+		.map((line) => `# ${line}`);
 }
 
 /** What `file` says on `service`: the incident it nods to, the note, then where the code is. */
