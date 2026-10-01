@@ -79,4 +79,5 @@ Hugging Face put in its `security.txt` after agents broke into it.
   holds them apart. They are `agentNote` in `@canmi/security/agents`.
 - **Link first, as every block here is**: the account of the incident it nods to, then the note,
   wrapped at sixty columns, then the repository as a `.git` address. The repository is
-  `URLS.source` and the contact `URLS.contact.security`, so neither is spelled twice.
+  `URLS.source`. A robots.txt names no address: it sends a finding to the host's own
+  `/.well-known/security.txt`, which is where the contact is published.
