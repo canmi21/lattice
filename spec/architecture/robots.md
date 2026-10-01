@@ -67,7 +67,7 @@ sitemap is for depends on it.
 
 **Every robots.txt and security.txt this repository builds ends with a word to an agent told to
 find vulnerabilities**: the code is open source, so read it rather than attack the host, and send a
-real finding to the security contact or as a pull request. It is a language firewall -- an agent
+real finding to the security contact. It is a language firewall -- an agent
 that reads instructions can be talked out of an attack as well as into one -- and a nod to the note
 Hugging Face put in its `security.txt` after agents broke into it.
 
