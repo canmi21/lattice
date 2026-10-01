@@ -565,14 +565,11 @@ claiming a tall section of their own. A single SPDX term is one link, not plain 
 an identical chip; only a compound expression needs separate links to its terms. Dependency paths
 have their own section because they answer a different question: why this package is present.
 
-**The sitemap enters the licence directories and stops there.** `/licenses`, `/licenses/pkgs`,
-each registry and each licence term are pages somebody could search for -- what is Apache
-licensed here, what comes from crates.io -- and there are a few dozen of them. One package page
-is a single row of a directory that is already listed, there are several hundred, and entering
-them would make the dependency tree the bulk of this site's sitemap. They stay `noindex,
-follow`, so a crawler still walks them and the links out of them count. The entries are derived
-from the record rather than written down, because the set of licence terms is whatever the tree
-currently resolves to.
+**The sitemap lists no licence route.** It used to enter the directories -- `/licenses`,
+`/licenses/pkgs`, each registry and each licence term -- and stop before the package pages, but
+the licence surface is not what this site is for, and a sitemap is a statement of what is. The
+routes stay and keep serving, and the package pages stay `noindex, follow`; whether the surface
+stays at all is a cleanup not yet done.
 
 That directive is emitted once per page, by the root layout, defaulting to `index, follow` and
 overridden by a page returning `robots` from its loader. It was a fixed tag in `app.html`, which

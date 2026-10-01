@@ -1,6 +1,5 @@
 import { URLS } from '@canmi/urls';
 import type { Alternate } from '@canmi/artifacts/types';
-import { licenseDirectory, packageRows } from '$lib/licenses/directory';
 import { publishedSitemap } from '$lib/published';
 import type { RequestHandler } from './$types';
 
@@ -26,33 +25,6 @@ function staticEntries(generated: string): Entry[] {
 			changefreq: 'daily',
 			priority: '1.0',
 		},
-	];
-}
-
-/**
- * The licence surface, down to the directories and no further.
- *
- * Why the line is drawn at the directory and not the package, and why the entries are derived
- * from the record rather than written out -- see spec/architecture/data.md, "The sitemap enters
- * the licence directories and stops there". The build time, not the root's: this record is still
- * baked into the bundle, so a rebuild is still exactly when these last changed.
- */
-function licenseEntries(): Entry[] {
-	const site = URLS.apps.production.site;
-	const at = (path: string, weight: string): Entry => ({
-		loc: `${site}${path}`,
-		lastmod: import.meta.env.VITE_BUILD_TIME,
-		changefreq: 'monthly',
-		priority: weight,
-	});
-
-	const registries = [...new Set(packageRows().map(({ registry }) => registry))].toSorted();
-
-	return [
-		at('/licenses', '0.3'),
-		at('/licenses/pkgs', '0.3'),
-		...registries.map((registry) => at(`/licenses/pkgs/${registry}`, '0.2')),
-		...licenseDirectory().map(({ slug }) => at(`/licenses/${slug}`, '0.2')),
 	];
 }
 
@@ -82,7 +54,6 @@ export const GET: RequestHandler = async ({ fetch }) => {
 
 	const entries: Entry[] = [
 		...staticEntries(published?.generated ?? import.meta.env.VITE_BUILD_TIME),
-		...licenseEntries(),
 		...(published?.views ?? []).map(({ loc, lastmod, alternates }) => {
 			const ageMs = now - Date.parse(lastmod);
 			return {
