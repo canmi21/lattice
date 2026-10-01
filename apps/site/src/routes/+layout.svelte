@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
-	import { ldJson, person } from '@canmi/social/structured';
+	import { graph, ldJson, person, PERSON_ID, ref, SITE_ID } from '@canmi/social/structured';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -189,21 +189,23 @@
 	});
 
 	/**
-	 * Structured data for the site itself.
-	 *
-	 * Built from the same config the visible chrome reads, so there is no second copy of the
-	 * site's name to fall out of step. An article adds its own `Article` node; this one says
-	 * what the site is, which no page has to repeat.
+	 * The site and its author, on every page: the graph each page's own nodes refer into. Built
+	 * from the config the chrome reads, so the site's name is said once. See
+	 * spec/architecture/entities.md.
 	 */
-	const website = {
-		'@context': 'https://schema.org',
-		'@type': 'WebSite',
-		name: site.name,
-		alternateName: site.author.name,
-		description: site.tagline,
-		url: URLS.apps.production.site,
-		author: person(),
-	};
+	const entities = graph(
+		{
+			'@type': 'WebSite',
+			'@id': SITE_ID,
+			name: site.name,
+			alternateName: site.author.name,
+			description: site.tagline,
+			url: URLS.apps.production.site,
+			author: ref(PERSON_ID),
+			publisher: ref(PERSON_ID),
+		},
+		person(),
+	);
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />
@@ -234,7 +236,7 @@
 	     suppressed, because no linter here checks it -- oxlint does not parse svelte templates
 	     and has no svelte plugin, so a `svelte/no-at-html-tags` directive would be decoration.
 	     See spec/lint-format.md. -->
-	{@html ldJson(website)}
+	{@html ldJson(entities)}
 	<link rel="alternate" type="application/atom+xml" href={feed} title={site.name} />
 	<link rel="describedby" type="text/markdown" href="/llms.txt" />
 	<!-- Each mark is the object the alias layer resolved it to at render; one that resolved to

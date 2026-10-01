@@ -1,19 +1,48 @@
 /**
- * The author as schema.org reads a person, and the one safe way to put structured data on a page.
- * See spec/architecture/identity.md.
+ * The author as one entity every page names by the same identifier, and the one safe way to put
+ * structured data on a page. See spec/architecture/entities.md.
  */
 import { author } from '@canmi/identity';
 import { URLS } from '@canmi/urls';
 
+const SITE = URLS.apps.production.site;
 const { github, social } = URLS.external;
 
-/** The author: the name a page signs with, the full name, the site, and each account's profile. */
+/** The author's identifier: their entity home, `/about`, which every graph refers to. */
+export const PERSON_ID = `${SITE}/about#person`;
+
+/** The site's identifier, beside rather than on its address, so the author keeps theirs. */
+export const SITE_ID = `${SITE}/#website`;
+
+/** A node by its identifier alone, which is how every graph names an entity another one holds. */
+export function ref(id: string): { '@id': string } {
+	return { '@id': id };
+}
+
+/** Every name the author goes by besides `name`: the full name, then each handle, once each. */
+export function aliasesOf(of: typeof author = author): string[] {
+	const names = [of.fullName, of.github, of.twitter, of.fediverse, of.telegram, of.telegramGroup];
+	return [...new Set(names.filter((name): name is string => Boolean(name)))].filter(
+		(name) => name !== of.name,
+	);
+}
+
+/** The author, whole: who they are, every name, every account, all from `@canmi/identity`. */
 export function person() {
 	return {
 		'@type': 'Person',
+		'@id': PERSON_ID,
 		name: author.name,
-		alternateName: author.fullName,
-		url: URLS.apps.production.site,
+		alternateName: aliasesOf(),
+		jobTitle: author.role,
+		url: SITE,
+		email: `mailto:${author.email}`,
+		image: `${github.avatars}/u/${author.githubId}`,
+		identifier: {
+			'@type': 'PropertyValue',
+			propertyID: 'GitHub user ID',
+			value: String(author.githubId),
+		},
 		sameAs: [
 			`${github.web}/${author.github}`,
 			...(author.twitter ? [`${social.twitter}/${author.twitter}`] : []),
@@ -22,6 +51,11 @@ export function person() {
 			`${social.telegram}/${author.telegram}`,
 		],
 	};
+}
+
+/** Several nodes as one graph, related by their identifiers. */
+export function graph(...nodes: object[]) {
+	return { '@context': 'https://schema.org', '@graph': nodes };
 }
 
 /**

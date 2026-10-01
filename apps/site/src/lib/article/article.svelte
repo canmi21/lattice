@@ -130,7 +130,8 @@
 	import { page } from '$app/state';
 	import { pageUrls } from '@canmi/urls';
 	import Title from '@canmi/behavior/title.svelte';
-	import { ldJson, person } from '@canmi/social/structured';
+	import { graph, ldJson } from '@canmi/social/structured';
+	import { articleEntity } from './entity';
 	import BookOpenText from '@lucide/svelte/icons/book-open-text';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Type from '@lucide/svelte/icons/type';
@@ -313,18 +314,20 @@
 	}
 
 	/** What this page is, for a reader that parses rather than renders. */
-	const article = $derived({
-		'@context': 'https://schema.org',
-		'@type': 'Article',
-		headline: meta.title,
-		description: meta.description,
-		image: card,
-		datePublished: meta.published,
-		dateModified: meta.lastmod,
-		inLanguage: locale.tag,
-		mainEntityOfPage: locale.canonical,
-		author: person(),
-	});
+	const article = $derived(
+		graph(
+			articleEntity({
+				meta,
+				canonical: locale.canonical,
+				alternates: locale.alternates,
+				code: locale.code,
+				translated: locale.translated,
+				languageTag: locale.tag,
+				words,
+				image: card,
+			}),
+		),
+	);
 
 	// Pin UTC so the shown day matches the authored frontmatter date everywhere it
 	// renders, mirroring the article list (see card.svelte).

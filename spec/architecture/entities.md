@@ -1,0 +1,97 @@
+# Entities: the author and their work as one graph every page refers into
+
+**Structured data here is written for an engine that wants to know who someone is and what they
+made, not for a rich result.** The aim is entity-first GEO: answer engines and generative search
+resolve a page to entities -- a person, a site, an article, a program -- and the more certain they
+are that two mentions are one entity, the more they can say about it. The vocabulary is
+schema.org, the mechanics are entity SEO's, and what a rich result needs is a floor rather than the
+plan. A field goes in when schema.org defines it for that type and the data behind it is true; it
+does not wait for Google to use it.
+
+**What this is worth, as far as anyone has shown.** Bing has said on the record that schema
+markup helps its LLMs understand content for Copilot, which grounds its answers in Bing's index.
+Google says nothing special is needed for its AI features beyond structured data that matches the
+visible page. No study has shown markup raising how often an answer engine cites a page. What the
+practice is agreed on is resolution: stable identifiers and `sameAs` let an engine merge every
+mention of one entity into one, and a person written out inline on each page is, to an engine, as
+many people as pages. So the graph is for being understood, and what gets cited is still the
+writing -- sources, figures, quotations.
+
+## One entity, one identifier, declared once
+
+Every node a page emits has an `@id`, and a node another page also names is referred to by that
+`@id`, never repeated. Two nodes sharing an `@id` are merged into one by JSON-LD, so a site and the
+person who runs it can never share one; each takes a fragment of its own.
+
+| Entity                       | `@id`                                   | Emitted by                  |
+| ---------------------------- | --------------------------------------- | --------------------------- |
+| the author, `Person`         | `https://canmi.net/about#person`        | every page of both sites    |
+| the site, `WebSite`          | `https://canmi.net/#website`            | every page of the site      |
+| an article view              | `{that view's canonical}#article`       | the article page            |
+| the status site, `WebSite`   | `https://status.canmi.app/#website`     | the status page             |
+| the status page, `WebPage`   | `https://status.canmi.app/#webpage`     | the status page             |
+| the status program           | `https://status.canmi.app/#app`         | the status page             |
+
+**The author's identifier is their entity home, `/about`, which does not exist yet.** An entity
+home is the one page that says, first-hand, who an entity is; the identifier names it now so it
+never has to move when the page arrives. Until then the IRI does not resolve, which a parser does
+not mind. `/about` is a fixed address because of this: see [todo/site.md](../todo/site.md), "The
+author has no entity home yet". The site's identifier sits beside its address rather than on it,
+so the root is the site's and the author is not standing on it.
+
+`@canmi/social/structured` holds the identifiers, the person, and `graph()` and `ldJson()`, which
+every page writes its block with.
+
+## The author is derived from `@canmi/identity`, whole
+
+The `Person` node is built from the identity record and nothing else, so a new account is one line
+there and every page says it next render:
+
+- `name` is the name a page signs with; `alternateName` is every other name the author goes by,
+  derived: the full name, then each handle -- GitHub, X, the fediverse, Telegram, the Telegram
+  group's -- once each and never the name itself. A handle is a name somebody searches for.
+- `sameAs` is each account's profile, the author's own: the Telegram account, not the group, since
+  the group is a place the author runs rather than the author. The row of links on a page points at
+  the group, which is a different question -- see [identity.md](identity.md).
+- `identifier` is GitHub's numeric user id, which outlives a renamed handle.
+- `jobTitle`, `url`, `email` and `image` are the role, the site, the address the home page already
+  shows, and the GitHub avatar.
+
+## What each page emits
+
+- **Every page of the site**: the `WebSite`, with `alternateName` the author's name and the author
+  as `author` and `publisher`, and the `Person`. One block, from the root layout.
+- **An article page** adds its article in a block of its own, naming the author and the site by
+  reference: `headline`, `alternativeHeadline` from the subtitle, `description`, `image` from its
+  card, the two dates, `inLanguage`, `url` and `mainEntityOfPage`, `articleSection` from its
+  category, and `wordCount` from the same count the page shows.
+- **Each translated view is a work of its own** with its own identifier, and says which it is a
+  translation of with `translationOfWork`; the original lists every translation with
+  `workTranslation`. A locale that has no view of its own shows the source, and is the source work
+  under the source's identifier. `translator` is not set: a model translates these, and the
+  property takes a person or an organization.
+- **The status page** emits its own site, the page, and the program behind it, which are three
+  things: the page is `about` the program, the program's `creator` is the author, and the site's
+  `publisher` is the author. It is a site of its own, on its own host, so it does not claim to be
+  part of the author's site; the author is what joins the two.
+
+**An article's type is what kind of writing its category is**, from one table in
+`apps/site/src/lib/article/entity.ts`:
+
+| Category                      | Type          | Because                                   |
+| ----------------------------- | ------------- | ----------------------------------------- |
+| `architecture`, `development` | `TechArticle` | technical depth                           |
+| `milestone`                   | `BlogPosting` | a post about what happened                |
+| `mirror`                      | `Article`     | reflection, which no narrower type fits   |
+| anything else                 | `Article`     | the general type is true of every article |
+
+## Only what is true, and only what the page shows
+
+- A field is written only where there is data behind it. `TechArticle.proficiencyLevel` waits for
+  the author to state one; guessing it from the category would be a claim nobody made.
+- A node says what the page says. The graph is a second rendering of the visible page, never a
+  place for words the page does not carry.
+- `status` is not a property of a service: schema.org defines it for medical types only. Whether a
+  service is up is the page's content, not a fact the markup asserts.
+- `isPartOf` and `hasPart` take creative works. A service or a list relates to a page by `about` or
+  `mainEntity`.

@@ -74,7 +74,7 @@ export const CATALOG: Readonly<Record<SocialName, SocialEntry>> = {
 		label: 'Telegram',
 		icon: 'telegram',
 		size: 'size-[1.25em]',
-		href: `${social.telegram}/${author.telegram}`,
+		href: `${social.telegram}/${author.telegramGroup}`,
 	},
 	sitemap: {
 		label: 'Sitemap',

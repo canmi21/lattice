@@ -253,3 +253,30 @@ until this is decided, rather than inventing a look the page does not have.
 
 **What deciding it would cost.** A rule for `ul`, `ol` and `li` beside the blockquote's in the
 prose root, which the editor then draws to match: the marker, the indent, the space between items.
+
+## The author has no entity home yet
+
+The author's structured-data identifier is `https://canmi.net/about#person`, chosen as the page
+that will say first-hand who the author is -- see
+[architecture/entities.md](../architecture/entities.md). That page does not exist, so the identifier
+does not resolve. **`/about` is therefore a fixed address**: when it is built it is a
+`ProfilePage` whose `mainEntity` is that person, the person's full node moves there, and every other
+page keeps only the reference. Nothing else may take the path.
+
+## The structured graph stops at what today's data says
+
+Each of these waits on data or a page that does not exist yet; the graph grows by the same rules
+when it does. See [architecture/entities.md](../architecture/entities.md).
+
+- **The home page as a `CollectionPage`**, its articles as `hasPart`, once the home page is decided
+  to be the list it is.
+- **What an article is about**: `about` and `mentions` naming Wikidata entities rather than strings,
+  which needs a record mapping each tag to its item; the author's `knowsAbout` follows from the same
+  record.
+- **A project as two entities**: the running service as `WebApplication` and the code as
+  `SoftwareSourceCode` with `codeRepository` and `programmingLanguage`, once a page shows projects.
+  Something that fits no narrower type -- hardware, an experiment -- is a `CreativeWork`.
+- **The status page's checks as `Service` nodes** in an `ItemList`, each identified by an anchor on
+  its row, which the page does not have yet; `about` from the page, never `status` on the service.
+- **`TechArticle.proficiencyLevel` and `dependencies`**, when the author states them in an
+  article's frontmatter.
