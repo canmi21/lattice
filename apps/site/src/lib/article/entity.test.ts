@@ -29,8 +29,10 @@ it('is the kind of writing its category is, and names the author and the site by
 		translated: true,
 		languageTag: 'en-US',
 		words: 1200,
+		abstract: 'What the page says it says.',
 	});
 	expect(node['@type']).toBe('TechArticle');
+	expect(node.abstract).toBe('What the page says it says.');
 	expect(node['@id']).toBe(`${source}#article`);
 	expect(node.author).toEqual({ '@id': PERSON_ID });
 	expect(node.isPartOf).toEqual({ '@id': SITE_ID });

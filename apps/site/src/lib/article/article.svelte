@@ -325,6 +325,7 @@
 				languageTag: locale.tag,
 				words,
 				image: card,
+				abstract: summary?.text,
 			}),
 		),
 	);

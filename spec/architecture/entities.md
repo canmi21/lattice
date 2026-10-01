@@ -77,7 +77,8 @@ page, and a link to a page that does not exist yet is worse than none.
 - **An article page** adds its article in a block of its own, naming the author and the site by
   reference: `headline`, `alternativeHeadline` from the subtitle, `description`, `image` from its
   card, the two dates, `inLanguage`, `url` and `mainEntityOfPage`, `articleSection` from its
-  category, and `wordCount` from the same count the page shows.
+  category, `wordCount` from the same count the page shows, and `abstract` from the summary the page
+  shows above the article, where it has one.
 - **Each translated view is a work of its own** with its own identifier, and says which it is a
   translation of with `translationOfWork`; the original lists every translation with
   `workTranslation`. A locale that has no view of its own shows the source, and is the source work

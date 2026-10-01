@@ -27,6 +27,8 @@ export interface ArticleEntityInput {
 	languageTag: string;
 	words: number;
 	image?: string;
+	/** The summary the page shows above the article, where it has one. */
+	abstract?: string;
 }
 
 /** A view's identifier: its own address, so each translation is a work of its own. */
@@ -60,6 +62,7 @@ export function articleEntity(input: ArticleEntityInput): ArticleEntity {
 		headline: meta.title,
 		...(meta.subtitle ? { alternativeHeadline: meta.subtitle } : {}),
 		description: meta.description,
+		...(input.abstract ? { abstract: input.abstract } : {}),
 		...(input.image ? { image: input.image } : {}),
 		datePublished: meta.published,
 		dateModified: meta.lastmod,
