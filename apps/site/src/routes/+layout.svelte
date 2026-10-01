@@ -27,7 +27,8 @@
 	const early = hints(
 		{
 			fonts: ['stylesheets', 'files'],
-			ours: ['cdn', 'alias'],
+			ours: ['cdn'],
+			api: ['public'],
 			jsdelivr: { files: 'connect' },
 			analytics: ['umami', 'umamiCloud', 'openpanel'],
 		},
