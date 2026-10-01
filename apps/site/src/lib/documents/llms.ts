@@ -1,53 +1,92 @@
 /**
- * `llms.txt`, assembled at request time.
- *
- * A whole-corpus document like the feed beside it, and it stopped being published for the same
- * reason: every word of it is a projection of the root, which the API already answers with. This
- * one needs no object at all -- the homepage answer is the whole input. See
- * spec/architecture/artifacts.md, "Which objects exist".
+ * `llms.txt` and `llms-full.txt`, assembled at request time in the shape llmstxt.org sets out: the
+ * site's name, its one description, how to read it, then the articles and the site's other
+ * documents, the skippable ones last under `Optional`. Every fact is a projection of the published
+ * root, so neither is an object of its own. See spec/architecture/markdown.md, "The index".
  */
-import { URLS } from '@canmi/urls';
 import type { HomeAnswer } from '@canmi/artifacts';
+import { URLS } from '@canmi/urls';
+import { stamp } from '../server/agent-view';
+import { nameOf } from '../server/markdown';
 
-// The site's nature, distinct from site.tagline (which is the RSS description).
-const DESCRIPTION =
-	"A developer's personal space for daily life, engineering, and research — part FAQ, part archive, a place to record and collect what's worth keeping.";
-
-const LANGUAGE_GUIDE =
-	'To fetch a translated HTML page or Atom feed, append `?lang={code}`, where `code` is one of `de`, `en`, `es`, `fr`, `ja`, `ko`, `zh`, or `tw`; fetch the original with `?lang=mw`, or with the bare URL when no language preference has yet been stored. Markdown (`.md`) endpoints always return the source exactly as written.';
-
-// Collapse YAML-folded whitespace so a subtitle stays on one line.
+/** Collapse YAML-folded whitespace so a subtitle stays on one line. */
 function oneline(value: string): string {
 	return value.replace(/\s+/g, ' ').trim();
 }
 
-// LLM entry point: the site name, a one-line nature blurb, then link sections,
-// each link as [name](url) with a short note. Site collects the homepage,
-// sitemap and feed; Writing lists every article as title -> clean markdown with
-// the subtitle. See https://llmstxt.org/.
-// Deliberately not locale-aware -- see spec/locale/addressing.md, "Every page negotiates; the
-// exceptions are documents", for why this is one of the exceptions.
-export function buildLlms(articles: HomeAnswer['articles'], site: { name: string }): string {
+export interface LlmsInput {
+	articles: HomeAnswer['articles'];
+	/** Each article's original language, by slug, where the API said. */
+	languages: Readonly<Record<string, string>>;
+	site: { name: string; tagline: string };
+	author: { name: string; fullName: string };
+	/** Each of the author's own accounts. */
+	profiles: readonly string[];
+	/** When the published corpus was written. */
+	generated?: string;
+	now: Date;
+}
+
+/** The opening both share: the name, the one description, and how the site is read. */
+function opening({ site, author, generated, now }: LlmsInput): string[] {
 	const web = URLS.apps.production.site;
-	const body = [
+	return [
 		`# ${site.name}`,
 		'',
-		`> ${DESCRIPTION}`,
+		`> ${site.tagline} The site of ${author.name} (${author.fullName}).`,
 		'',
-		LANGUAGE_GUIDE,
+		`Generated ${stamp(now)}${generated ? `, from the corpus published ${stamp(generated)}` : ''}.`,
+		'',
+		`- Every page has an agent view at its own address with \`.md\` appended; the homepage's is ${web}/homepage.md. A request with \`Accept: text/markdown\` at a page's own address gets the same view.`,
+		'- A view is in the original language of what it shows. Translations are text/html, at the page\'s address with `?lang=` and one of `de`, `en`, `es`, `fr`, `ja`, `ko`, `zh` or `tw`.',
+		`- Search, AI input and AI training are all permitted, as the Content-Signal and Content-Usage lines in ${web}/robots.txt say.`,
+	];
+}
+
+/**
+ * One article as a list item: its view, the facts that rank it, then its subtitle last, which
+ * keeps its own punctuation in its own script.
+ */
+function articleItem(article: HomeAnswer['articles'][number], language?: string): string {
+	const subtitle = oneline(article.meta.subtitle);
+	const facts = [
+		`In ${article.path.split('/')[0]}`,
+		`published ${article.dates.published.slice(0, 10)}`,
+		...(language ? [`in ${nameOf(language)} (${language})`] : []),
+		`${article.metrics.words.toLocaleString('en-US')} words`,
+	];
+	return `- [${article.meta.title}](${article.url}.md): ${facts.join(', ')}. ${subtitle}`;
+}
+
+// Deliberately not locale-aware -- see spec/locale/addressing.md, "Every page negotiates; the
+// exceptions are documents", for why this is one of the exceptions.
+export function buildLlms(input: LlmsInput): string {
+	const web = URLS.apps.production.site;
+	const body = [
+		...opening(input),
+		'',
+		'## Articles',
+		'',
+		...input.articles.map((article) => articleItem(article, input.languages[article.slug])),
 		'',
 		'## Site',
 		'',
-		`- [Homepage](${web}/homepage.md): The landing page as clean markdown — a short introduction and the way into the site.`,
-		`- [Sitemap](${web}/sitemap.xml): Every page and article with last-modified hints, for crawlers.`,
-		`- [Atom feed](${web}/atom.xml): Full-text feed of all writing, newest first, for subscribers.`,
-		'',
-		'## Writing',
-		'',
-		...articles.map(
-			(article) =>
-				`- [${article.meta.title}](${article.url}.md): ${oneline(article.meta.subtitle)}`,
+		`- [Homepage](${web}/homepage.md): The site, its author, and every article with its date, section and length.`,
+		...input.profiles.map(
+			(profile) => `- [${input.author.name} at ${new URL(profile).hostname}](${profile}): An account of the author's.`,
 		),
+		'',
+		'## Optional',
+		'',
+		`- [Full text](${web}/llms-full.txt): Every article's agent view, in one document.`,
+		`- [Sitemap](${web}/sitemap.xml): Every page, with when it last changed.`,
+		`- [Atom feed](${web}/atom.xml): The full text of every article, newest first.`,
+		`- [Status](${URLS.internal.status.canonical}): Whether the services behind this site are up.`,
 	].join('\n');
 	return `${body}\n`;
+}
+
+/** `llms-full.txt`: the same opening, then every article's agent view, newest first. */
+export function buildLlmsFull(input: LlmsInput, views: readonly string[]): string {
+	return `${[...opening(input), '', ...views.map((view) => `---\n\n${view.trim()}\n`)].join('\n')}\n`;
 }

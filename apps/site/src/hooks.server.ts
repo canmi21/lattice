@@ -31,8 +31,8 @@ registerServerStrategy();
 // address to a reader asking for markdown. See spec/architecture/markdown.md.
 const markdownHandle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
-	// The llms.txt convention's name for a root page's view, kept to the one this site has.
-	if (pathname === '/index.html.md') {
+	// The llms.txt convention's names for a root page's view, kept to the one this site has.
+	if (pathname === '/index.html.md' || pathname === '/index.md') {
 		return new Response(null, { status: 301, headers: { Location: `/${HOME_SLUG}.md` } });
 	}
 	if (pathname.endsWith('.md')) {

@@ -48,8 +48,8 @@ Chinese (zh), as written.` Asked for at the page's address in a language that is
 says no markdown exists in that language and where it is as `text/html`. A regional variant of the
 original's language is the original's language.
 
-**The homepage's view is `/homepage.md`**, `/.md` and `/index.html.md` -- the llms.txt convention's
-name for a root page -- redirecting to it.
+**The homepage's view is `/homepage.md`**, `/.md`, `/index.html.md` and `/index.md` -- the llms.txt
+convention's names for a root page -- redirecting to it.
 
 **The headers say the rest**:
 
@@ -69,3 +69,19 @@ keeps it; `.md` keeps the publication delay.
 **And the page says where its markdown is**: every article and the homepage name it in the head as
 `<link rel="alternate" type="text/markdown">`, and their HTML responses carry the same as a `Link`
 header with `Vary: Accept` and the two signals, so a reader that asks for headers alone finds it.
+
+## The index
+
+**`/llms.txt` is the site's index for language models, in the shape llmstxt.org sets out**: the site's
+name as the title; its one description -- the site's tagline, the same one its structured data and
+feed carry, with the author named -- as the summary; when it was generated and from which
+publication; how the site is read, as a list -- the `.md` rule, `Accept: text/markdown`, translations
+as `?lang=`, the content signals; then `## Articles`, each as its view's link with its section,
+date, original language and length, then its subtitle in its own script, newest first; `## Site`, the homepage's view and the
+author's accounts; and `## Optional`, what an agent may skip -- the full text, the sitemap, the feed,
+the status page.
+
+**`/llms-full.txt` is the same opening and then every article's agent view**, newest first, in one
+document, for a reader that takes the whole site into its context. llmstxt.org names no such file;
+it is the convention around it. Both are assembled per request from the published answers, so a new
+article is in them the moment it is published.
