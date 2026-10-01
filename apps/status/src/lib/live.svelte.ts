@@ -25,6 +25,8 @@ import {
 
 /** Staleness and "how long ago" are judged against this, ticking once a second. */
 const CLOCK_EVERY_MS = 1_000;
+/** How long a hidden tab keeps listening before it lets go, so a glance away costs nothing. */
+const HIDDEN_GRACE_MS = 30_000;
 
 export interface Snapshot {
 	clock: number;
@@ -103,8 +105,34 @@ export class Live {
 		return this.history.filter((row) => row.checkId === check.id && row.place === check.place);
 	}
 
-	/** Start listening; the returned function stops it. */
+	/**
+	 * Listen while the tab is shown: hidden past the grace it lets go of the socket and the clock,
+	 * and shown again it asks for what it missed before listening. The returned function stops it.
+	 */
 	start(): () => void {
+		let stop = document.hidden ? undefined : this.#listen(false);
+		let grace: ReturnType<typeof setTimeout> | undefined;
+		const onVisibility = () => {
+			clearTimeout(grace);
+			if (document.hidden) {
+				grace = setTimeout(() => {
+					stop?.();
+					stop = undefined;
+				}, HIDDEN_GRACE_MS);
+			} else {
+				stop ??= this.#listen(true);
+			}
+		};
+		document.addEventListener('visibilitychange', onVisibility);
+		return () => {
+			document.removeEventListener('visibilitychange', onVisibility);
+			clearTimeout(grace);
+			stop?.();
+		};
+	}
+
+	/** One stretch of listening; `resumed` catches up on what was written while nobody listened. */
+	#listen(resumed: boolean): () => void {
 		const client = statusClient();
 		this.#client = client;
 		const realtime = statusRealtime();
@@ -149,8 +177,15 @@ export class Live {
 			segment = open;
 			void readHistory();
 		};
-		tick();
-		const timer = setInterval(tick, CLOCK_EVERY_MS);
+		let stopped = false;
+		let timer: ReturnType<typeof setInterval> | undefined;
+		// Resumed, the clock waits for the latest rounds, or every check would read silent first.
+		const caughtUp = resumed ? Promise.all([readNow(), readHistory()]) : Promise.resolve();
+		void caughtUp.then(() => {
+			if (stopped) return;
+			tick();
+			timer = setInterval(tick, CLOCK_EVERY_MS);
+		});
 
 		let dropped = false;
 		const channel = realtime
@@ -166,6 +201,7 @@ export class Live {
 				if (folded.unknown) void readChecks();
 			})
 			.subscribe((status) => {
+				if (stopped) return;
 				if (status !== 'SUBSCRIBED') {
 					dropped = true;
 					this.unreachable = true;
@@ -178,6 +214,7 @@ export class Live {
 			});
 
 		return () => {
+			stopped = true;
 			clearInterval(timer);
 			void realtime.removeChannel(channel).then(() => realtime.disconnect());
 		};

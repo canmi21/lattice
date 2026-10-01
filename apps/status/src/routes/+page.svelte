@@ -13,11 +13,6 @@
 			color: 'var(--color-text-strong)',
 			textWrap: 'balance',
 		},
-		subtitle: {
-			fontSize: '1rem',
-			lineHeight: 1.5,
-			color: 'var(--color-text-soft)',
-		},
 		action: {
 			fontSize: text.px14,
 			fontWeight: 510, // unnamed
@@ -182,8 +177,8 @@
 			: ['Minor issues found,', `${affected} affected.`];
 	});
 
-	const subtitle = $derived(
-		live.answeredAt ? `Updated ${ago(live.answeredAt, live.clock)}.` : 'Not reached yet.',
+	const updated = $derived(
+		live.answeredAt ? `Updated ${ago(live.answeredAt, live.clock)}` : 'Not reached yet',
 	);
 </script>
 
@@ -197,8 +192,7 @@
 
 <header class="flex flex-col items-center pt-20 pb-16 text-center">
 	<h1 class={stylex.attrs(styles.title).class}>{title[0]}<br />{title[1]}</h1>
-	<p class="mt-2 {stylex.attrs(styles.subtitle).class}">{subtitle}</p>
-	<div class="mt-4 flex flex-wrap justify-center gap-4">
+	<div class="mt-6 flex flex-wrap justify-center gap-4">
 		<button
 			type="button"
 			class="focus-ring inline-flex h-10 items-center gap-1 px-4 {stylex.attrs(
@@ -245,9 +239,14 @@
 			{/each}
 		</div>
 	</div>
-	{#each groups as [kind, checks] (kind)}
+	{#each groups as [kind, checks], order (kind)}
 		<section>
-			<h2 class="mb-4 px-1 {stylex.attrs(styles.kind).class}">{KIND_NAMES[kind] ?? kind}</h2>
+			<div class="mb-4 flex items-baseline justify-between gap-4 px-1">
+				<h2 class={stylex.attrs(styles.kind).class}>{KIND_NAMES[kind] ?? kind}</h2>
+				{#if order === 0}
+					<span class={stylex.attrs(styles.figure).class}>{updated}</span>
+				{/if}
+			</div>
 			<ul class="px-2.5 py-2 md:px-5 {stylex.attrs(styles.card).class}">
 				{#each checks as check (key(check.id, check.place))}
 					{@const latest = live.nowByKey.get(key(check.id, check.place))}

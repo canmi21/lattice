@@ -91,7 +91,9 @@ and a half, minutes an hour and a half. A day is read from `status_daily`, fifte
 five-minute rollups three at a time, a minute from the minute rollups; what has not been rolled up
 yet is filled from the broadcasts, counted by the minute. The color stops scale with the bar: a bar
 a sixtieth of a day long turns amber at a sixtieth of an hour. The choice is `?range=` in the address,
-so a link shows what its sender saw, and the server renders it first.
+so a link shows what its sender saw, and the server renders it first. The switch sits above the board, at the right
+on a tablet or wider and at the left on a phone; when the database was last heard from sits at the right of the first group's
+heading, beside its name, rather than under the title.
 
 ## The schema: declared once, in Drizzle, applied by the probe
 
@@ -163,6 +165,12 @@ no table -- under a row security policy that lets it read every row: the grant i
 read-only. A result older than a few rounds is shown as the probe silent -- the node, its link, or
 the probe itself -- rather than as the last thing it said. It names the second place once the VPS runs a probe: two
 places agreeing that a name fails is Cloudflare, one place failing alone is that place.
+
+**A tab left hidden stops listening.** Thirty seconds after it is hidden the page closes its socket
+and stops its clock; shown again, it asks for the latest rounds and the history it missed, then
+listens. The probe writes at its own rate whoever watches, so what a background tab spent was
+Realtime's: a held connection and each broadcast delivered to it, which the project's quota counts.
+A glance at another tab costs nothing, since the grace outlasts it.
 
 **Its name resolves through Cloudflare's DNS, and that is accepted**, since `canmi.vercel.app`
 does not: when Cloudflare's DNS is down, that door is still open, and the page names it in its
