@@ -1,5 +1,4 @@
-import { peerEntries, type SitemapEntry, sitemapXml } from '@canmi/robots';
-import { URLS } from '@canmi/urls';
+import { peerEntries, rootEntry, type SitemapEntry, sitemapXml } from '@canmi/robots';
 import { publishedSitemap } from '$lib/published';
 import type { RequestHandler } from './$types';
 
@@ -13,12 +12,7 @@ const DAY = 24 * HOUR;
 // answered nothing at all.
 function staticEntries(generated: string): Entry[] {
 	return [
-		{
-			loc: `${URLS.apps.production.site}/`,
-			lastmod: generated,
-			changefreq: 'daily',
-			priority: '1.0',
-		},
+		{ ...rootEntry('site'), lastmod: generated },
 		// Every other page host, by its root; each lists its own routes. See
 		// spec/architecture/robots.md, "Every page host names every other".
 		...peerEntries('site'),

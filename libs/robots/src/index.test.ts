@@ -1,6 +1,6 @@
 import { URLS } from '@canmi/urls';
 import { describe, expect, it } from 'vitest';
-import { peerEntries, robotsFor, robotsTxt, robotsTxtBase, sitemapXml } from './index';
+import { peerEntries, robotsFor, robotsTxt, robotsTxtBase, rootEntry, sitemapXml } from './index';
 
 describe('robotsTxt', () => {
 	it('returns the shared base without site additions', () => {
@@ -100,7 +100,12 @@ it("names every page host's sitemap, its own first", () => {
 	expect(sitemaps(robotsFor('cdn'))).toEqual([]);
 });
 
-it('lists every other page host by its root alone', () => {
-	expect(peerEntries('site')).toEqual([{ loc: `${URLS.internal.status.canonical}/` }]);
-	expect(peerEntries('status')).toEqual([{ loc: `${URLS.apps.production.site}/` }]);
+it('lists every other page host by its root alone, as that host declares it', () => {
+	expect(peerEntries('site')).toEqual([
+		{ loc: `${URLS.internal.status.canonical}/`, changefreq: 'always', priority: '0.5' },
+	]);
+	expect(peerEntries('status')).toEqual([
+		{ loc: `${URLS.apps.production.site}/`, changefreq: 'daily', priority: '1.0' },
+	]);
+	expect(rootEntry('site')).not.toHaveProperty('lastmod');
 });

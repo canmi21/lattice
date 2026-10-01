@@ -110,24 +110,47 @@ export function robotsTxt(options: RobotsTxtOptions = {}): string {
 export type RobotsService = Service;
 
 /**
- * The services that serve pages, each at its origin, in the order every sitemap list follows. A
- * host names its own first; see spec/architecture/robots.md, "Every page host names every other".
+ * The services that serve pages, in the order every sitemap list follows, each with its origin and
+ * how its root is to be read: how often it changes, how much it weighs. A host names its own first;
+ * see spec/architecture/robots.md, "Every page host names every other".
  */
-export const PAGE_HOSTS: readonly (readonly [Service, string])[] = [
-	['site', URLS.apps.production.site],
-	['status', URLS.internal.status.canonical],
+export const PAGE_HOSTS: readonly {
+	service: Service;
+	origin: string;
+	changefreq: string;
+	priority: string;
+}[] = [
+	{ service: 'site', origin: URLS.apps.production.site, changefreq: 'daily', priority: '1.0' },
+	{
+		service: 'status',
+		origin: URLS.internal.status.canonical,
+		// It changes as often as it is read.
+		changefreq: 'always',
+		priority: '0.5',
+	},
 ];
 
 /** `service` first, then every other page host in the shared order. */
-function ownFirst(service: Service): string[] {
-	const own = PAGE_HOSTS.filter(([name]) => name === service);
-	const others = PAGE_HOSTS.filter(([name]) => name !== service);
-	return [...own, ...others].map(([, origin]) => origin);
+function ownFirst(service: Service): (typeof PAGE_HOSTS)[number][] {
+	return [
+		...PAGE_HOSTS.filter((host) => host.service === service),
+		...PAGE_HOSTS.filter((host) => host.service !== service),
+	];
 }
 
 /** Every page host's sitemap, `service`'s first: what its robots.txt names. */
 export function sitemapsFor(service: Service): string[] {
-	return ownFirst(service).map((origin) => `${origin}/sitemap.xml`);
+	return ownFirst(service).map((host) => `${host.origin}/sitemap.xml`);
+}
+
+/**
+ * A page host's root as a sitemap entry, as the host declares it. With no modification time: a
+ * host adds its own to its own root, and nothing reaches across to read another's.
+ */
+export function rootEntry(service: Service): SitemapEntry {
+	const host = PAGE_HOSTS.find((candidate) => candidate.service === service);
+	if (!host) throw new Error(`${service} serves no pages`);
+	return { loc: new URL('/', host.origin).href, changefreq: host.changefreq, priority: host.priority };
 }
 
 /**
@@ -137,7 +160,7 @@ export function sitemapsFor(service: Service): string[] {
 export function peerEntries(service: Service): SitemapEntry[] {
 	return ownFirst(service)
 		.slice(1)
-		.map((origin) => ({ loc: new URL('/', origin).href }));
+		.map((host) => rootEntry(host.service));
 }
 
 /**

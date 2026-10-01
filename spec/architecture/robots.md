@@ -68,7 +68,10 @@ sitemap is for depends on it.
 **Each host that serves pages names every page host's sitemap in its robots.txt, its own first**,
 then the rest in the order `PAGE_HOSTS` in `@canmi/robots` sets -- the site, then the status page.
 **And its sitemap lists every other page host by its root alone**: each host lists its own routes,
-so none needs another's data to build, only the list of who the others are. A sitemap may list
+so none needs another's data to build, only the list of who the others are. Each host declares in
+`PAGE_HOSTS` how its root is read -- how often it changes, how much it weighs -- and that is what
+every sitemap says of it, its own included. A root's modification time is said by its own sitemap
+alone; reaching across hosts for it would be a dependency for one line. A sitemap may list
 another host's addresses when both are verified in Search Console, as both are, and for every other
 engine when that host's own robots.txt names the sitemap -- sitemaps.org's cross-submission -- which
 naming every sitemap from every robots.txt does in both directions.
