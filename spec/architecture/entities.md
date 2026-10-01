@@ -20,7 +20,9 @@ writing -- sources, figures, quotations.
 ## One entity, one identifier, declared once
 
 Every node a page emits has an `@id`, and a node another page also names is referred to by that
-`@id`, never repeated. Two nodes sharing an `@id` are merged into one by JSON-LD, so a site and the
+`@id`, never repeated. Where another node names the author -- `author`, `publisher`, `creator` -- the
+reference carries the author's name and address beside the `@id`: JSON-LD merges it into the one
+person all the same, and a reader that does not follow identifiers still finds a name there. Two nodes sharing an `@id` are merged into one by JSON-LD, so a site and the
 person who runs it can never share one; each takes a fragment of its own.
 
 | Entity                       | `@id`                                   | Emitted by                  |
@@ -79,6 +81,11 @@ page, and a link to a page that does not exist yet is worse than none.
   card, the two dates, `inLanguage`, `url` and `mainEntityOfPage`, `articleSection` from its
   category, `wordCount` from the same count the page shows, and `abstract` from the summary the page
   shows above the article, where it has one.
+- **`citation` lists the works an article names by a block of their own**: a link card as a
+  `CreativeWork` with its title, a repository as `SoftwareSourceCode`, an embedded post as a
+  `SocialMediaPosting`, each once. A link inside a sentence points somewhere and cites nothing, so
+  it stays out. On the page the card's title is a `<cite>`, which is what HTML calls the title of a
+  cited work; a quotation is a `<blockquote>`, which the compiler already writes.
 - **Each translated view is a work of its own** with its own identifier, and says which it is a
   translation of with `translationOfWork`; the original lists every translation with
   `workTranslation`. A locale that has no view of its own shows the source, and is the source work
