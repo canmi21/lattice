@@ -126,7 +126,12 @@ export const ROBOTS: Readonly<Record<RobotsService, RobotsTxtOptions>> = {
 	status: {
 		signals: true,
 		agent: 'status',
-		sitemap: `${URLS.internal.status.canonical}/sitemap.xml`,
+		// Its own, and the site's, which lists this page too: naming it here is what lets an engine
+		// other than Google accept the site's listing of another host. See spec/architecture/robots.md.
+		sitemap: [
+			`${URLS.internal.status.canonical}/sitemap.xml`,
+			`${URLS.apps.production.site}/sitemap.xml`,
+		],
 	},
 	cdn: { disallow: [''], agent: 'cdn' },
 	aka: { disallow: [''], agent: 'aka' },

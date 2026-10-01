@@ -63,6 +63,12 @@ Chrome stops applying XSLT on 17 November 2026, version 158, and other engines m
 sitemap then shows as plain XML in that browser. Crawlers never read the stylesheet, so nothing a
 sitemap is for depends on it.
 
+**The site's sitemap lists the status page too.** A sitemap may list another host's addresses when
+both are verified in Search Console, as both are, and for every other engine when that host's own
+robots.txt names the sitemap -- sitemaps.org's cross-submission -- so the status page's robots.txt
+names the site's sitemap beside its own. The entry names no modification time and says `always`:
+the page changes as often as it is read.
+
 ## A word to an agent sent to break in
 
 **Every robots.txt and security.txt this repository builds ends with a word to an agent told to

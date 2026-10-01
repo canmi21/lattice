@@ -86,3 +86,7 @@ it("ends every host's file with its own word to an agent and where the code is",
 	const notes = files.map((text) => text.split('Note to AI agents')[1]?.split('.git')[0]);
 	expect(new Set(notes).size).toBe(files.length);
 });
+
+it("names the site's sitemap from the status page's robots, which the site's sitemap lists", () => {
+	expect(robotsFor('status')).toContain(`Sitemap: ${URLS.apps.production.site}/sitemap.xml`);
+});

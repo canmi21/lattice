@@ -6,7 +6,7 @@ import type { RequestHandler } from './$types';
 
 type Entry = {
 	loc: string;
-	lastmod: string;
+	lastmod?: string;
 	changefreq: string;
 	priority: string;
 	alternates?: Alternate[];
@@ -25,6 +25,14 @@ function staticEntries(generated: string): Entry[] {
 			lastmod: generated,
 			changefreq: 'daily',
 			priority: '1.0',
+		},
+		// The status page, another of the author's sites, listed here as Search Console allows for
+		// a verified one and as its robots.txt confirms for every other engine. It changes as
+		// often as it is read, so it names no modification time. See spec/architecture/robots.md.
+		{
+			loc: new URL('/', URLS.internal.status.canonical).href,
+			changefreq: 'always',
+			priority: '0.5',
 		},
 	];
 }
