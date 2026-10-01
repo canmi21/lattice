@@ -73,7 +73,6 @@ export const SOURCE_NOTE = [
 	'hack us. And if you do find something, a pull request or a',
 	`word to ${URLS.contact.security.replace(/^mailto:/, '')} beats a breach.`,
 	'',
-	"With a nod to Hugging Face's security.txt, after",
 	URLS.external.agentIncident,
 ] as const;
 
