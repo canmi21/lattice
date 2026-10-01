@@ -257,6 +257,9 @@ importers:
       '@canmi/store':
         specifier: workspace:*
         version: link:../../libs/store
+      '@canmi/symlink':
+        specifier: workspace:*
+        version: link:../../libs/symlink
       '@canmi/urls':
         specifier: workspace:*
         version: link:../../libs/urls
@@ -397,6 +400,9 @@ importers:
       '@canmi/security':
         specifier: workspace:*
         version: link:../../libs/security
+      '@canmi/symlink':
+        specifier: workspace:*
+        version: link:../../libs/symlink
       '@canmi/urls':
         specifier: workspace:*
         version: link:../../libs/urls
@@ -590,6 +596,9 @@ importers:
       '@canmi/social':
         specifier: workspace:*
         version: link:../../libs/social
+      '@canmi/symlink':
+        specifier: workspace:*
+        version: link:../../libs/symlink
       '@canmi/theme':
         specifier: workspace:*
         version: link:../../libs/theme
@@ -847,6 +856,9 @@ importers:
       '@canmi/status-schema':
         specifier: workspace:*
         version: link:../../libs/status-schema
+      '@canmi/symlink':
+        specifier: workspace:*
+        version: link:../../libs/symlink
       '@canmi/theme':
         specifier: workspace:*
         version: link:../../libs/theme
@@ -1240,6 +1252,12 @@ importers:
         version: 5.20260922.1
 
   libs/svg-canvas: {}
+
+  libs/symlink:
+    dependencies:
+      '@canmi/cache':
+        specifier: workspace:*
+        version: link:../cache
 
   libs/theme: {}
 

@@ -5,10 +5,10 @@
  * service would otherwise repeat: CORS, and limits by address. See spec/architecture/services.md,
  * "One API host, scoped by path".
  */
-import { UNCHANGING } from '@canmi/cache';
 import { failure } from '@canmi/response';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { robotsTxt } from '@canmi/robots';
+import { followSymlink, symlinkOf } from '@canmi/symlink';
 import { DEVELOPMENT_PORTS, developmentUrl, isDevHost, pickUrls, URLS } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -152,11 +152,14 @@ export function gateway(
 	// that call them.
 	app.get('/robots.txt', (c) => c.text(robotsTxt({ disallow: ['/'] })));
 	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
-	// The name a browser asks every origin for, sent where the CDN and the site send it.
+	// The name a browser asks every origin for: the `api` scope's mark, followed in one hop. See
+	// spec/architecture/delivery.md, "A page follows the name for the browser".
+	// Development is told by a binding set to it, since `wrangler dev` hands this host the custom
+	// domain's name rather than localhost.
 	app.get('/favicon.ico', (c) => {
-		const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-		c.header('Cache-Control', UNCHANGING);
-		return c.redirect(`${urls.alias}/symlink/favicon.ico`, 301);
+		const developing =
+			Object.values(c.env).includes(DEVELOPMENT) || isDevHost(new URL(c.req.url).hostname);
+		return followSymlink(symlinkOf(pickUrls(developing).alias, 'api', 'favicon.ico'));
 	});
 
 	// The host's own address is somebody typing it, not a malformed call: they go to the site, and

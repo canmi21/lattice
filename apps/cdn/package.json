@@ -13,6 +13,7 @@
 		"@canmi/response": "workspace:*",
 		"@canmi/robots": "workspace:*",
 		"@canmi/security": "workspace:*",
+		"@canmi/symlink": "workspace:*",
 		"@canmi/store": "workspace:*",
 		"@canmi/urls": "workspace:*",
 		"@jsquash/avif": "^2.1.1",

@@ -33,6 +33,7 @@
 		"@canmi/sentry": "workspace:*",
 		"@canmi/site-api": "workspace:*",
 		"@canmi/social": "workspace:*",
+		"@canmi/symlink": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/units": "workspace:*",
 		"@canmi/urls": "workspace:*",

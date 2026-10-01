@@ -1,5 +1,6 @@
 import { URLS } from '@canmi/urls';
-import { describe, expect, it } from 'vitest';
+import { RESOLVED } from '@canmi/cache';
+import { describe, expect, it, vi } from 'vitest';
 import app from './index';
 
 const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
@@ -9,7 +10,6 @@ const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
 // matters -- but it must not be one this worker reads as development.
 const HOST = 'https://cdn.example';
 
-const YEAR = 'public, max-age=31536000, immutable';
 const HOUR = 'public, max-age=3600';
 const MINUTES = 'public, max-age=300';
 
@@ -33,14 +33,20 @@ describe('the fixed names', () => {
 		expect(res.headers.get('Cache-Control')).toBe(HOUR);
 	});
 
-	it('sends the icon to the permanent name, and keeps that for a year', async () => {
+	it('follows its own mark for the browser, in one hop', async () => {
+		const object = `${URLS.apps.production.cdn}/object/abc.ico`;
+		const fetching = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(new Response(null, { status: 302, headers: { Location: object } }));
 		const res = await ask('/favicon.ico');
-		expect(res.status).toBe(301);
-		// The same answer all three hosts give, so a crawler reaching any of them finds one name.
-		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.alias}/symlink/favicon.ico`);
-		// The year is about the name, not the object: what moves when the mark is redrawn is
-		// what the alias layer answers, and that keeps its own five minutes.
-		expect(res.headers.get('Cache-Control')).toBe(YEAR);
+		expect(String(fetching.mock.calls[0]?.[0])).toBe(
+			`${URLS.apps.production.alias}/symlink/cdn/favicon.ico`,
+		);
+		expect(res.status).toBe(302);
+		expect(res.headers.get('Location')).toBe(object);
+		// What the alias layer's own answer keeps: the publication delay, stale through an outage.
+		expect(res.headers.get('Cache-Control')).toBe(RESOLVED);
+		fetching.mockRestore();
 	});
 
 	it('serves its own robots policy, briefly, rather than resolving one', async () => {

@@ -345,13 +345,14 @@ evidence that this is not hypothetical -- five days of curation are already outs
 | `record/media.yaml`, `record/tags.yaml`, `record/metadata.json`                  | 3     | imported already; the readers move to the collection           |
 | `record/diagram.json`, `fonts.json`, `indexnow.json`, `licenses.yaml`, `tn.yaml` | 5     | each is decided: a row in the collection, or a file that stays |
 | `build/*.json`                                                                   | 4     | derived, but fetched over a network; they become derived rows  |
-| `source/brand/*`                                                                 | 6     | **bytes nothing can recompute**; they need C0 before anything  |
+| `record/marks.json`                                                              | 1     | done for the bytes: they are objects, the record names them    |
 | `source/favicon/*`                                                               | 14    | bytes, refetchable, and cheaper to back up than to refetch     |
 | `bucket/*/.gitkeep`                                                              | 3     | the skeleton, which goes when the tree it marks does           |
 
-The site's own marks are the row that decides the order: losing them is not a rebuild, so the
-directory cannot leave git before the backup exists. That is C0, and this is what makes C0's
-position in this group a fact about twenty files rather than a principle.
+The site's own marks were the row that decided the order: losing them is not a rebuild. They left
+git before C0 by the author's decision, as objects named by a record -- the bucket and its mirror
+hold the bytes, and C0 is still what makes that more than two copies. See
+[architecture/delivery.md](../architecture/delivery.md), "The marks are a record".
 
 C2 is why the collection growing to a terabyte is not a problem that has to be solved later.
 Published objects are immutable and already served, so development reads them where they are; the

@@ -215,13 +215,18 @@ describe('the gateway', () => {
 		expect(await answer.text()).toContain('Disallow: /');
 	});
 
-	it('sends the icon to the permanent name rather than reading it as a scope', async () => {
+	it('follows its own mark for the browser rather than reading it as a scope', async () => {
+		const object = `${URLS.apps.production.cdn}/object/abc.ico`;
+		const fetching = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(new Response(null, { status: 302, headers: { Location: object } }));
 		const answer = await ask('/favicon.ico');
-		expect(answer.status).toBe(301);
-		expect(answer.headers.get('Location')).toBe(
-			`${URLS.apps.production.alias}/symlink/favicon.ico`,
+		expect(String(fetching.mock.calls[0]?.[0])).toBe(
+			`${URLS.apps.production.alias}/symlink/api/favicon.ico`,
 		);
-		expect(answer.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
+		expect(answer.status).toBe(302);
+		expect(answer.headers.get('Location')).toBe(object);
+		fetching.mockRestore();
 	});
 
 	it("sends a node's scope to its Caddy with the scope left on", async () => {

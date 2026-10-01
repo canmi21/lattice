@@ -38,10 +38,6 @@ data/**
 # travel until a clone cannot build. See spec/architecture/data.md.
 !data/record/**
 
-# Authored once, by hand, regenerable by nobody -- the one set that cannot be re-derived, and
-# small enough that keeping it costs nothing. See spec/architecture/data.md, "What stays in git".
-!data/source/brand/**
-
 # Re-fetchable in principle, but only from a site that may have redrawn or removed its icon
 # since, so a clone without them cannot reproduce what is published -- which is the test.
 # Fifteen small files. See spec/architecture/delivery.md.

@@ -164,8 +164,6 @@
 	/** The site, marked as reached from here. */
 	const SITE = `${URLS.apps.production.site}?ref=status`;
 	const GITHUB = `${URLS.external.github.web}/${author.github}`;
-	/** The status page's icon, by its content id in the objects bucket. */
-	const FAVICON = '484b05c1ab8c6800371c862e4f071d73';
 
 	// Where this page reports to: the gateway's `umami` scope, on the public API host. Not a
 	// literal URL, since the address is `libs/urls`' to declare. See spec/analytics.md, "umami,
@@ -196,12 +194,21 @@
 	{#if dev}{@html DEV_STYLEX}{/if}
 	<!-- Every door names the one address, so three doors are one page to an index. -->
 	<link rel="canonical" href={new URL('/', canonical).href} />
-	<!-- Content-addressed on the CDN, so its name is its bytes. See spec/architecture/probe.md. -->
-	<link
-		rel="icon"
-		type="image/svg+xml"
-		href={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
-	/>
+	<!-- Each mark is the object the alias layer resolved it to at render; one that resolved to
+	     nothing is left out. See +layout.server.ts. -->
+	{#if data.marks['favicon.ico']}<link rel="icon" href={data.marks['favicon.ico']} sizes="32x32" />{/if}
+	{#if data.marks['favicon-96x96.png']}
+		<link rel="icon" type="image/png" sizes="96x96" href={data.marks['favicon-96x96.png']} />
+	{/if}
+	{#if data.marks['favicon-512x512.png']}
+		<link rel="icon" type="image/png" sizes="512x512" href={data.marks['favicon-512x512.png']} />
+	{/if}
+	{#if data.marks['favicon.svg']}
+		<link rel="icon" type="image/svg+xml" href={data.marks['favicon.svg']} />
+	{/if}
+	{#if data.marks['apple-touch-icon.png']}
+		<link rel="apple-touch-icon" href={data.marks['apple-touch-icon.png']} />
+	{/if}
 	{#each early as hint (hint.href)}
 		<link rel={hint.rel} href={hint.href} crossorigin={hint.crossorigin} />
 	{/each}
@@ -227,7 +234,7 @@
 		<div class="flex h-9 items-center gap-1.5">
 			<a href={resolve('/')} class="focus-ring flex items-center gap-1.5 rounded-md">
 				<img
-					src={`${URLS.apps.production.cdn}/object/${FAVICON}.svg`}
+					src={data.marks['favicon.svg']}
 					alt=""
 					width="28"
 					height="28"

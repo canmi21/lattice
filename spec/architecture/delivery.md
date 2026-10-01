@@ -477,23 +477,55 @@ root names each one under the name a browser asks for, `/asset?name=` is the que
 layer puts to the API, and the name a reader sees never changes.
 
 ```
-site/favicon.ico            301  ill.li/symlink/favicon.ico   a permanent name, and where it lives
-ill.li/symlink/favicon.ico  302  cdn/object/{cid}.ico         what that name means right now
-cdn/object/{cid}.ico             the bytes, for a year
+{host}/favicon.ico               302  cdn/object/{cid}.ico   followed for the browser, one hop
+ill.li/symlink/{scope}/{file}    302  cdn/object/{cid}.{ext} what that name means right now
+cdn/object/{cid}.{ext}                                       the bytes, for a year
 ```
 
-The two redirects look like one too many and are not. **The `301` is about a name and the `302` is
-about a meaning**, and they have different lifetimes for that reason: where the entry lives never
-changes, what it currently points at does. Every host mounts the same permanent name -- the site,
-the API and the CDN all answer `/favicon.ico` with the same `301` -- so a crawler that reaches any
-of them finds the same answer.
+**Every host answers its own `/favicon.ico` in one hop**: the site, the status page, the API, the
+CDN and the alias layer itself each ask the alias layer for their own scope's mark and send the
+browser straight to the object. There used to be a `301` to the alias layer in front of that, a
+permanent name for where the entry lived; it was a second hop on every first visit for a fact no
+reader needed, and it held each host's icon to the site's.
 
-**The marks themselves live in `data/source/brand` and travel with the repository.** They were loose in
-the published tree, which is to say on one machine: authored once by hand, regenerable by nobody,
-and in no clone. That is the one set `data/`'s "the bytes belong to the machine" rule must not
-cover. The icons `local favicon` fetches from other sites travel for the same reason, in
-`data/source/favicon`: re-fetchable in principle, but only from a site that may have redrawn its icon
-since, so a clone without them cannot reproduce what is published.
+### A page follows the name for the browser
+
+**A host asks the alias layer the name, takes the redirect it answers, and hands the browser that
+object's address.** The status page answers every one of its marks this way, at `/{file}`.
+`@canmi/symlink` is the one way a host does this, and it stamps what the alias layer stamps:
+
+| alias layer answers | page answers | kept for                                              |
+| ------------------- | ------------ | ----------------------------------------------------- |
+| a redirect          | `302` there  | `RESOLVED`: five minutes, stale for three hours after |
+| `404`               | `404`        | `PUBLISHED`: five minutes, a fact about the corpus    |
+| anything else       | `502`        | nothing: a fact about this moment                     |
+
+**A head names its marks by the objects they resolve to at render.** The page's server asks the
+alias layer for each mark its head names and writes the object's address straight into the markup,
+so the browser fetches the bytes with no redirect at all; a mark that resolves to nothing is left
+out of the head. Each answer is held in the server's memory for the publication delay, so a render
+asks again at most every five minutes.
+
+**What a name means is the alias layer's alone.** A page knows the scope and file it asks for and
+never the record behind it, and no page or worker writes down a content id: a mark changes by
+publishing, not by redeploying anything.
+
+### The marks are a record
+
+**`data/record/marks.json` names every scope's marks by content id**, and the bytes are objects
+like any other, in the published tree and out of git. A scope is a service's internal name -- `site`,
+`status`, `api`, `cdn`, `aka` -- never a host, since one service may be deployed under several, and
+each of its files points at a content id; the extension is the file's. A service with no page names
+only its `favicon.ico`. The alias layer answers each at `/symlink/{scope}/{file}`, which is what every page asks.
+The site's are also answered bare, `/symlink/favicon.ico`, for the addresses already handed out:
+every host's year-long `301` from `/favicon.ico`, and the BIMI record. Publication names each one
+in the root and refuses to write a root that names an object the tree does not hold.
+
+A new mark is its bytes put in the objects tree under their content id, and one line here. The marks
+were files in git once, under `data/source/brand`; the bytes are in the bucket and its mirror, and
+the record is what travels with the repository. The icons `local favicon` fetches from other sites
+still travel as files, in `data/source/favicon`: re-fetchable in principle, but only from a site
+that may have redrawn its icon since, so a clone without them cannot reproduce what is published.
 
 ### Another site's icon was the case this layer existed for, and it is a resource now
 

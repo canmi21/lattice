@@ -1,6 +1,7 @@
-import { PUBLISHED, UNCHANGING } from '@canmi/cache';
+import { PUBLISHED } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
+import { followSymlink, symlinkOf } from '@canmi/symlink';
 import { isDevHost, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -39,17 +40,11 @@ app.get('/', (c) => {
 	return c.redirect(`${urls.site}/?ref=cdn`, 301);
 });
 
-/**
- * A browser asks any origin it touches for this, and this one serves objects rather than pages.
- *
- * The year is honest because the target is the permanent name and not the object behind it: what
- * moves when the mark is redrawn is what the alias layer answers, and that keeps its own five
- * minutes. Nothing to range over either -- a redirect has no body.
- */
+// A browser asks any origin it touches for this: the `cdn` scope's mark, followed in one hop. See
+// spec/architecture/delivery.md, "A page follows the name for the browser".
 app.get('/favicon.ico', (c) => {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	c.header('Cache-Control', UNCHANGING);
-	return c.redirect(`${urls.alias}/symlink/favicon.ico`, 301);
+	return followSymlink(symlinkOf(urls.alias, 'cdn', 'favicon.ico'));
 });
 
 // Nothing here is disallowed. `Disallow: /` blocked OpenGraph cards too, and adding

@@ -1,4 +1,3 @@
-import { UNCHANGING } from '@canmi/cache';
 import { robotsTxt } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import { isDevHost, pickUrls } from '@canmi/urls';
@@ -34,19 +33,9 @@ app.get('/', (c) => {
 	return c.redirect(`${urls.site}/?ref=alias`, 301);
 });
 
-/**
- * The name a browser asks every origin for, pointed at where this host resolves names.
- *
- * The other three send an absolute redirect here, which states which layer owns the name. On
- * this host that is vacuous, so the redirect is relative and no host is written down. A redirect
- * rather than a second call into `resolve`, because two paths resolving one name are two
- * statements of one decision. The year is the CDN's argument beside its own copy: what moves is
- * what `/symlink/favicon.ico` answers, and that keeps its own five minutes.
- */
-app.get('/favicon.ico', (c) => {
-	c.header('Cache-Control', UNCHANGING);
-	return c.redirect('/symlink/favicon.ico', 301);
-});
+// The name a browser asks every origin for: this layer's own `aka` mark, resolved in one hop. See
+// spec/architecture/delivery.md, "A page follows the name for the browser".
+app.get('/favicon.ico', (c) => resolve(c, 'aka/favicon.ico'));
 
 /**
  * This host's own policy, and not a copy of anybody else's.
@@ -73,13 +62,21 @@ app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
 app.get('/:rid{[0-9a-z]{5}}', (c) => resource(c, c.req.param('rid')));
 
 /**
- * Every fixed name this site publishes, resolved by asking the API.
+ * The site's marks by their bare names, resolved by asking the API.
  *
- * Under a prefix rather than at the root, so the root belongs to rids alone: what reaches here is
- * what a browser, a mail client or a crawler constructs on its own -- `favicon.ico`, `favicon.svg`,
- * the BIMI mark -- and the list of them lives in the corpus rather than in this worker.
+ * Under a prefix rather than at the root, so the root belongs to rids alone. Kept for the addresses
+ * already out there -- every host's year-long `301` from `/favicon.ico`, the BIMI record -- while a
+ * page asks the scoped form below.
  */
 app.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.req.param('name')));
+
+/**
+ * A scope's marks, `/symlink/{scope}/{file}`: the form every page asks. See
+ * spec/architecture/delivery.md, "The marks are a record".
+ */
+app.get('/symlink/:scope{[a-z][a-z0-9-]*}/:file{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) =>
+	resolve(c, `${c.req.param('scope')}/${c.req.param('file')}`),
+);
 
 /**
  * Anything else, and `400` rather than `404` because the two say different things here too.

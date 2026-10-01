@@ -1,0 +1,26 @@
+{
+	"aka": {
+		"favicon.ico": "afaf184af88b9a2378af18c8604a7288"
+	},
+	"api": {
+		"favicon.ico": "afaf184af88b9a2378af18c8604a7288"
+	},
+	"cdn": {
+		"favicon.ico": "afaf184af88b9a2378af18c8604a7288"
+	},
+	"site": {
+		"apple-touch-icon.png": "fe6f2e2ed710d30e55177278ae8588c3",
+		"bimi-svg-tiny-12-ps.svg": "0658723e42af9a5553ab0ba39d7606ab",
+		"favicon-512x512.png": "b360e62ffc42dbddf2df97c8261ba853",
+		"favicon-96x96.png": "5136e061259dfdddb24c63145ba63348",
+		"favicon.ico": "afaf184af88b9a2378af18c8604a7288",
+		"favicon.svg": "01a9fe5fb7c608214e1b9effb40b79f8"
+	},
+	"status": {
+		"apple-touch-icon.png": "5cb161b09302a5c9356661c28e9f2d68",
+		"favicon-512x512.png": "1185412ad9f3d392a44af41695ba3679",
+		"favicon-96x96.png": "cfeecac613393d9c03d74a8d098af857",
+		"favicon.ico": "c9359010e2dbde91abede74438c2078e",
+		"favicon.svg": "484b05c1ab8c6800371c862e4f071d73"
+	}
+}

@@ -158,16 +158,14 @@ describe('the rest of the host', () => {
 		expect(await res.text()).toContain('Contact: mailto:');
 	});
 
-	it('answers the name a browser asks every origin for, without resolving it twice', async () => {
-		// This was a 400 while `/symlink/` was new, on the reasoning that the name had moved under
-		// the prefix. A browser does not read the prefix: it asks every origin it touches for this
-		// one, which is why the other three hosts all answer it. The redirect is relative, so no
-		// host is named, and resolution still happens in exactly one place.
+	it('answers the name a browser asks every origin for with its own mark, in one hop', async () => {
+		// A browser asks every origin it touches for this one. This layer resolves its own `aka`
+		// mark straight to the object rather than redirecting to a name it would then resolve.
 		const fetching = answering(200, named);
 		const res = await ask('/favicon.ico');
-		expect(res.status).toBe(301);
-		expect(res.headers.get('Location')).toBe('/symlink/favicon.ico');
-		expect(fetching).not.toHaveBeenCalled();
+		expect(res.status).toBe(302);
+		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.svg`);
+		expect(String(fetching.mock.calls[0]?.[0])).toContain('name=aka%2Ffavicon.ico');
 	});
 
 	it('refuses everything else, including a name that is neither a rid nor under the prefix', async () => {

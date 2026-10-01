@@ -6,7 +6,7 @@
 	import { takeArrivalParameters } from '@canmi/referer';
 	import { ldJson, person } from '@canmi/social/structured';
 	import { hints, scriptPolicy } from '@canmi/hints';
-	import { URLS, pageUrls } from '@canmi/urls';
+	import { URLS } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '$lib/article/trail';
@@ -18,6 +18,7 @@
 	import { languageTag, localeUrl, SITE_LANGUAGE } from '$lib/locale';
 	import { queryClient, QUERY_CACHE_MAX_AGE } from '$lib/query';
 	import { site } from '$lib/site';
+	import type { LayoutProps } from './$types';
 	import '../styles/app.css';
 	import '@canmi/fonts/mono.css';
 	import { onMount } from 'svelte';
@@ -33,11 +34,6 @@
 		{ dev },
 	);
 	const tracker = scriptPolicy('analytics', 'umami');
-	// The site's own marks are asked for by name, not by hash: the alias layer says what each one
-	// currently means, so the bytes keep a year and this markup never has to be republished when
-	// one is redrawn. `/symlink` is where that layer keeps the names it answers for, the root
-	// being resource ids. See spec/architecture/delivery.md.
-	const marks = `${pageUrls(dev).alias}/symlink`;
 	const locale = $derived('locale' in page.data ? page.data.locale : undefined);
 	const articleLocale = $derived(
 		locale && 'canonical' in locale && 'alternates' in locale ? locale : undefined,
@@ -105,7 +101,7 @@
 			shouldDehydrateMutation: () => false,
 		},
 	};
-	let { children } = $props();
+	let { children, data }: LayoutProps = $props();
 
 	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
 	onMount(() => {
@@ -240,10 +236,20 @@
 	{@html ldJson(website)}
 	<link rel="alternate" type="application/atom+xml" href={feed} title={site.name} />
 	<link rel="describedby" type="text/markdown" href="/llms.txt" />
-	<link rel="icon" type="image/png" sizes="96x96" href="{marks}/favicon-96x96.png" />
-	<link rel="icon" type="image/png" sizes="512x512" href="{marks}/favicon-512x512.png" />
-	<link rel="icon" type="image/svg+xml" sizes="any" href="{marks}/favicon.svg" />
-	<link rel="apple-touch-icon" href="{marks}/apple-touch-icon.png" />
+	<!-- Each mark is the object the alias layer resolved it to at render; one that resolved to
+	     nothing is left out. See +layout.server.ts. -->
+	{#if data.marks['favicon-96x96.png']}
+		<link rel="icon" type="image/png" sizes="96x96" href={data.marks['favicon-96x96.png']} />
+	{/if}
+	{#if data.marks['favicon-512x512.png']}
+		<link rel="icon" type="image/png" sizes="512x512" href={data.marks['favicon-512x512.png']} />
+	{/if}
+	{#if data.marks['favicon.svg']}
+		<link rel="icon" type="image/svg+xml" sizes="any" href={data.marks['favicon.svg']} />
+	{/if}
+	{#if data.marks['apple-touch-icon.png']}
+		<link rel="apple-touch-icon" href={data.marks['apple-touch-icon.png']} />
+	{/if}
 	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
 	     See spec/analytics.md. -->
 	<script

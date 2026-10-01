@@ -1,3 +1,6 @@
+import { dev } from '$app/environment';
+import { marksOf } from '@canmi/symlink';
+import { pickUrls } from '@canmi/urls';
 import { SITE_LANGUAGE } from '$lib/locale';
 import { siteStats } from '$lib/published';
 import type { LayoutServerLoad } from './$types';
@@ -11,10 +14,23 @@ import type { LayoutServerLoad } from './$types';
  * the browser and would spend the request it was meant to save. See spec/locale/addressing.md,
  * "Locale is not negotiated twice", and spec/engagement.md.
  */
-export const load: LayoutServerLoad = async ({ locals, fetch }) => ({
-	locale: locals.locale ?? { code: 'mw' as const, language_tag: SITE_LANGUAGE },
-	// Travels with the locale for the same reason: settled on the server, and a control that
-	// derived it from the painted class would be answering a question already answered.
-	theme: locals.theme ?? ('light' as const),
-	stats: await siteStats(fetch).catch(() => undefined),
-});
+export const load: LayoutServerLoad = async ({ locals, fetch }) => {
+	const [stats, marks] = await Promise.all([
+		siteStats(fetch).catch(() => undefined),
+		marksOf(pickUrls(dev).alias, 'site', MARKS),
+	]);
+	return {
+		locale: locals.locale ?? { code: 'mw' as const, language_tag: SITE_LANGUAGE },
+		// Travels with the locale for the same reason: settled on the server, and a control that
+		// derived it from the painted class would be answering a question already answered.
+		theme: locals.theme ?? ('light' as const),
+		stats,
+		marks,
+	};
+};
+
+/**
+ * The marks the head names, as the objects the alias layer resolves them to at render. See
+ * spec/architecture/delivery.md, "A page follows the name for the browser".
+ */
+const MARKS = ['favicon-96x96.png', 'favicon-512x512.png', 'favicon.svg', 'apple-touch-icon.png'] as const;

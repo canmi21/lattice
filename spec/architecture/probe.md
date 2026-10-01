@@ -133,8 +133,11 @@ Realtime socket with the key. `vite.config.ts` copies a bare name over the prefi
 development server needs nothing set by hand. It runs as `dev-status`, in the base session, on
 26522.
 
-**Its icon is an SVG in the objects bucket, named by its content id** and served by the CDN, so it
-is kept a year and never stale; while Cloudflare is down the page goes without it.
+**Its icons are the `status` scope's marks** in `data/record/marks.json` -- the ICO, the SVG, the two
+PNGs and the touch icon, each derived from the one SVG -- which the page answers at its own `/{file}`
+by following the alias layer; see [delivery.md](delivery.md), "A page follows the name for the
+browser". While Cloudflare is down
+the page goes without it.
 
 **It connects early to its fonts, our hosts and its database, and only resolves its analytics'**,
 as [hints.md](hints.md) declares for it.

@@ -78,3 +78,12 @@ export const NAMED = `public, max-age=${NAMED_LIFE}`;
  * named for the property rather than for the hash that normally carries it.
  */
 export const UNCHANGING = `public, max-age=${UNCHANGING_LIFE}, immutable`;
+
+/**
+ * A name resolved to the object it stands for right now: the publication delay, and served stale
+ * through an outage, since the target is content-addressed and a stale one is still bytes.
+ *
+ * The alias layer stamps it on its redirect, and a page that follows that redirect for a browser
+ * stamps it on its own. See spec/architecture/delivery.md.
+ */
+export const RESOLVED = `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`;

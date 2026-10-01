@@ -1,4 +1,4 @@
-import { PUBLISHED, WHILE_UNREACHABLE } from '@canmi/cache';
+import { PUBLISHED } from '@canmi/cache';
 import type { MiddlewareHandler } from 'hono';
 
 /**
@@ -11,14 +11,8 @@ import type { MiddlewareHandler } from 'hono';
  * spec/architecture/delivery.md.
  */
 
-/**
- * A resolved name, and a miss that is a fact about the corpus.
- *
- * `stale-if-error` because this is the most fragile of the three hosts -- it is the only one that
- * has to reach another to answer at all -- and a redirect it last resolved is a better answer
- * during an outage than no answer. The target is content-addressed, so a stale one is still bytes.
- */
-export const RESOLVED = `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`;
+/** A resolved name; `@canmi/cache`'s, since a page following this layer stamps it too. */
+export { RESOLVED } from '@canmi/cache';
 
 /** A name the corpus does not publish, or an address that could never name one. */
 export const REFUSED = PUBLISHED;

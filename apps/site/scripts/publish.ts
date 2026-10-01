@@ -5,7 +5,7 @@
  * when its own code changes, and the corpus is published on its own schedule from here.
  * See spec/architecture/artifacts.md.
  */
-import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { blake3 } from '@noble/hashes/blake3.js';
@@ -37,7 +37,7 @@ const SITE = new URL('apps/site/', ROOT);
  * pass that wrote it was run.
  */
 const INPUTS = {
-	brand: fileURLToPath(new URL('data/source/brand', ROOT)),
+	marks: fileURLToPath(new URL('data/record/marks.json', ROOT)),
 	notice: fileURLToPath(new URL('data/build/licenses-full.txt', ROOT)),
 	cards: fileURLToPath(new URL('data/build/opengraph.json', ROOT)),
 	contents: fileURLToPath(new URL('contents', ROOT)),
@@ -90,12 +90,7 @@ class Tree {
 		return digest;
 	}
 
-	/**
-	 * Write one immutable object that was already bytes, and answer the hash it is named by.
-	 *
-	 * The site's own marks arrive this way: authored files rather than compiled ones, but objects
-	 * in every other respect. Nothing about the bucket distinguishes them.
-	 */
+	/** Write one immutable object that was already bytes, and answer the hash it is named by. */
 	async putBytes(bytes: Buffer, extension: string): Promise<string> {
 		const digest = bytesToHex(blake3(bytes, { dkLen: 16 }));
 		const file = join(this.#dir, storageKey(digest, extension));
@@ -105,6 +100,16 @@ class Tree {
 		}
 		await this.#write(file, bytes);
 		return digest;
+	}
+
+	/**
+	 * Name an object that is already in the tree, by its content id, and refuse one that is not:
+	 * a root naming a missing object breaks every reader of that name.
+	 */
+	async hold(cid: string, extension: string): Promise<void> {
+		const file = join(this.#dir, storageKey(cid, extension));
+		if (!(await this.#exists(file))) throw new Error(`no object ${storageKey(cid, extension)}`);
+		this.tally.present += 1;
 	}
 
 	/** Write the root, which is the one name in either tree whose bytes change under it. */
@@ -260,20 +265,26 @@ async function publishPage(
 }
 
 /**
- * The site's own marks, published like any other object and named in the root.
+ * Every scope's marks, named in the root by the record that registers them.
  *
- * Authored rather than derived, so they live in `data/source/brand` and travel with the
- * repository: a favicon nobody can regenerate was sitting loose in the published tree, which is
- * to say on one machine. A browser asks for `/favicon.ico`, and the alias layer turns that name
- * into the object named here. See spec/architecture/delivery.md.
+ * The bytes are objects already, in the tree and never in git; `data/record/marks.json` says which
+ * name each scope's marks answer to, by content id. Each is `{scope}/{file}`, and the site's are
+ * also bare, for the addresses already handed out. See spec/architecture/delivery.md, "The marks
+ * are a record".
  */
-async function publishBrand(tree: Tree): Promise<Root['assets']> {
+async function publishMarks(tree: Tree): Promise<Root['assets']> {
+	const marks = JSON.parse(await readFile(INPUTS.marks, 'utf8')) as Record<
+		string,
+		Record<string, string>
+	>;
 	const assets: Root['assets'] = {};
-	for (const name of (await readdir(INPUTS.brand)).toSorted()) {
-		if (name.startsWith('.')) continue;
-		const extension = name.slice(name.lastIndexOf('.') + 1);
-		const bytes = await readFile(join(INPUTS.brand, name));
-		assets[name] = { cid: await tree.putBytes(bytes, extension), extension };
+	for (const [scope, files] of Object.entries(marks)) {
+		for (const [file, cid] of Object.entries(files)) {
+			const extension = file.slice(file.lastIndexOf('.') + 1);
+			await tree.hold(cid, extension);
+			assets[`${scope}/${file}`] = { cid, extension };
+			if (scope === 'site') assets[file] = { cid, extension };
+		}
 	}
 	return assets;
 }
@@ -317,7 +328,7 @@ async function publishCorpus(
 		// and writes the record, a card compiles to a rid, and the page asks what that rid means.
 		// See spec/architecture/resource.md, "The catalogue".
 		assets: {
-			...(await publishBrand(tree)),
+			...(await publishMarks(tree)),
 			...(await publishNotice(tree)),
 		},
 		articles: rootArticles,
