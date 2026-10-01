@@ -309,12 +309,22 @@ export function loopbackUrl(port: number): string {
 }
 
 /**
- * A request path in its one spelling: every backslash a slash, every run of slashes one, and no
- * trailing slash -- so the root alone is `''`, the bare host. See spec/architecture/delivery.md,
- * "Every address has one spelling".
+ * The full stops a CJK keyboard types for `.` -- ideographic, fullwidth and halfwidth -- the three
+ * IDNA already reads as a dot in a hostname, each as written and as a path carries it, encoded.
+ */
+const FULL_STOPS = /[\u3002\uFF0E\uFF61]|%E3%80%82|%EF%BC%8E|%EF%BD%A1/gi;
+
+/**
+ * A request path in its one spelling: every CJK full stop a dot, every backslash a slash, every run
+ * of slashes one, and no trailing slash -- so the root alone is `''`, the bare host. See
+ * spec/architecture/delivery.md, "Every address has one spelling".
  */
 export function normalizePath(path: string): string {
-	return path.replaceAll('\\', '/').replace(/\/{2,}/g, '/').replace(/\/+$/, '');
+	return path
+		.replace(FULL_STOPS, '.')
+		.replaceAll('\\', '/')
+		.replace(/\/{2,}/g, '/')
+		.replace(/\/+$/, '');
 }
 
 /** Where a request belongs and how it is sent there. */

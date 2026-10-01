@@ -138,6 +138,12 @@ describe('normalizePath', () => {
 		['/\\\\', ''],
 		['/a\\/b', '/a/b'],
 		['/robots.txt\\', '/robots.txt'],
+		['/robots\u3002txt', '/robots.txt'],
+		['/robots%E3%80%82txt', '/robots.txt'],
+		['/robots%e3%80%82txt', '/robots.txt'],
+		['/robots%EF%BC%8Etxt', '/robots.txt'],
+		['/robots%EF%BD%A1txt', '/robots.txt'],
+		['/llms\uFF0Etxt\uFF61', '/llms.txt.'],
 		['//evil.example/x', '/evil.example/x'],
 		['/a/b', '/a/b'],
 	])('%s -> %s', (from, to) => {
@@ -150,6 +156,13 @@ describe('normalizePath', () => {
 			status: 308,
 		});
 		expect(normalizedLocation(new URL('https://canmi.net/a/b?lang=ja'))).toBeUndefined();
+	});
+
+	it('reads a CJK full stop in an address as the dot it was meant to be', () => {
+		expect(normalizedLocation(new URL('https://canmi.net/robots。txt'))).toEqual({
+			location: '/robots.txt',
+			status: 308,
+		});
 	});
 
 	it('leaves / alone or with a query, and sends another spelling of the root to the bare host', () => {
