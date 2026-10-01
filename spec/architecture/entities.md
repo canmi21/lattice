@@ -57,6 +57,19 @@ there and every page says it next render:
 - `jobTitle`, `url`, `email` and `image` are the role, the site, the address the home page already
   shows, and the GitHub avatar.
 
+## The head says who wrote it too
+
+**Every page of both sites names its author in plain HTML as well as in the graph**, for a reader
+that parses a head and not a script: `<meta name="author">` with the author's name, and a
+`<link rel="me">` to each of their own accounts -- the same profiles `sameAs` lists, from the same
+function. `rel="me"` is how a profile that links back to the site verifies the two are one person,
+which the fediverse checks and IndieWeb tools read. The Telegram group gets neither, and the row of
+links that does point at it carries no `rel="me"`, since the group is not the author.
+`twitter:creator` names the author's X account on both sites.
+
+`article:author` and `<link rel="author">` wait for `/about`: both would point at the author's
+page, and a link to a page that does not exist yet is worse than none.
+
 ## What each page emits
 
 - **Every page of the site**: the `WebSite`, with `alternateName` the author's name and the author

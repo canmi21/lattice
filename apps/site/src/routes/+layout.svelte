@@ -4,7 +4,15 @@
 	import { page } from '$app/state';
 	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
-	import { graph, ldJson, person, PERSON_ID, ref, SITE_ID } from '@canmi/social/structured';
+	import {
+		graph,
+		ldJson,
+		person,
+		PERSON_ID,
+		profiles,
+		ref,
+		SITE_ID,
+	} from '@canmi/social/structured';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -103,6 +111,8 @@
 		},
 	};
 	let { children, data }: LayoutProps = $props();
+
+	const PROFILES = profiles();
 
 	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
 	onMount(() => {
@@ -228,6 +238,10 @@
 	{/each}
 	<!-- Site-wide, so it sits here rather than being repeated by every page that has a card. -->
 	<meta property="og:site_name" content={site.name} />
+	<!-- The author, said in plain HTML beside the graph, and each of their accounts by `rel="me"`.
+	     See spec/architecture/entities.md, "The head says who wrote it too". -->
+	<meta name="author" content={site.author.name} />
+	{#each PROFILES as profile (profile)}<link rel="me" href={profile} />{/each}
 	{#if site.author.twitter}
 		<meta name="twitter:site" content="@{site.author.twitter}" />
 		<meta name="twitter:creator" content="@{site.author.twitter}" />

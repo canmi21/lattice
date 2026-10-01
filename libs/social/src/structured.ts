@@ -27,6 +27,20 @@ export function aliasesOf(of: typeof author = author): string[] {
 	);
 }
 
+/**
+ * Each of the author's own accounts, by its profile: `sameAs` in the graph, `rel="me"` in a head.
+ * The Telegram group is not one, being a place the author runs rather than the author.
+ */
+export function profiles(): string[] {
+	return [
+		`${github.web}/${author.github}`,
+		...(author.twitter ? [`${social.twitter}/${author.twitter}`] : []),
+		`${social.fediverse}/@${author.fediverse}`,
+		`${social.bluesky}/${author.bluesky}`,
+		`${social.telegram}/${author.telegram}`,
+	];
+}
+
 /** The author, whole: who they are, every name, every account, all from `@canmi/identity`. */
 export function person() {
 	return {
@@ -43,13 +57,7 @@ export function person() {
 			propertyID: 'GitHub user ID',
 			value: String(author.githubId),
 		},
-		sameAs: [
-			`${github.web}/${author.github}`,
-			...(author.twitter ? [`${social.twitter}/${author.twitter}`] : []),
-			`${social.fediverse}/@${author.fediverse}`,
-			`${social.bluesky}/${author.bluesky}`,
-			`${social.telegram}/${author.telegram}`,
-		],
+		sameAs: profiles(),
 	};
 }
 

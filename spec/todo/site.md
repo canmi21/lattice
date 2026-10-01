@@ -261,7 +261,8 @@ that will say first-hand who the author is -- see
 [architecture/entities.md](../architecture/entities.md). That page does not exist, so the identifier
 does not resolve. **`/about` is therefore a fixed address**: when it is built it is a
 `ProfilePage` whose `mainEntity` is that person, the person's full node moves there, and every other
-page keeps only the reference. Nothing else may take the path.
+page keeps only the reference. Nothing else may take the path. The same page is where `article:author` and
+`<link rel="author">` point once it exists.
 
 ## The structured graph stops at what today's data says
 

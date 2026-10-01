@@ -107,6 +107,7 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import { applyTheme, currentTheme, themeCookie } from '@canmi/theme';
 	import { author } from '@canmi/identity';
+	import { profiles } from '@canmi/social/structured';
 	import { ACCOUNTS } from '@canmi/social';
 	import SocialLinks from '@canmi/social/social-links.svelte';
 	import { onMount, type Snippet } from 'svelte';
@@ -164,6 +165,7 @@
 	/** The site, marked as reached from here. */
 	const SITE = `${URLS.apps.production.site}?ref=status`;
 	const GITHUB = `${URLS.external.github.web}/${author.github}`;
+	const PROFILES = profiles();
 
 	// Where this page reports to: the gateway's `umami` scope, on the public API host. Not a
 	// literal URL, since the address is `libs/urls`' to declare. See spec/analytics.md, "umami,
@@ -194,6 +196,11 @@
 	{#if dev}{@html DEV_STYLEX}{/if}
 	<!-- Every door names the one address, so three doors are one page to an index. -->
 	<link rel="canonical" href={new URL('/', canonical).href} />
+	<!-- The author, said in plain HTML beside the graph, and each of their accounts by `rel="me"`.
+	     See spec/architecture/entities.md, "The head says who wrote it too". -->
+	<meta name="author" content={author.name} />
+	{#each PROFILES as profile (profile)}<link rel="me" href={profile} />{/each}
+	{#if author.twitter}<meta name="twitter:creator" content="@{author.twitter}" />{/if}
 	<!-- Each mark is the object the alias layer resolved it to at render; one that resolved to
 	     nothing is left out. See +layout.server.ts. -->
 	{#if data.marks['favicon.ico']}<link rel="icon" href={data.marks['favicon.ico']} sizes="32x32" />{/if}
