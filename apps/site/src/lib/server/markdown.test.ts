@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { languageOf, noticeFor, prefersMarkdown, tokensIn, withNotice } from './markdown';
+import { languageOf, noticeFor, prefersMarkdown, tokensIn } from './markdown';
 
 describe('prefersMarkdown', () => {
 	it('takes markdown only when it is named and weighs no less than HTML', () => {
@@ -22,9 +22,9 @@ lang: zh
 `;
 
 describe('the notice', () => {
-	it('says the source is as written, in its language', () => {
+	it('says the text is the original, as written, in its language', () => {
 		expect(noticeFor({ source: 'zh' })).toBe(
-			'> This is the source of this page, provided as written, in Chinese (zh).',
+			'> The text below is in its original language, Chinese (zh), as written.',
 		);
 	});
 
@@ -35,12 +35,10 @@ describe('the notice', () => {
 	});
 
 	it('treats a regional variant of the source as the source', () => {
-		expect(noticeFor({ source: 'zh', asked: { tag: 'zh-TW', page: 'x' } })).toMatch(/^> This is/);
+		expect(noticeFor({ source: 'zh', asked: { tag: 'zh-TW', page: 'x' } })).toMatch(/^> The text/);
 	});
 
-	it('goes after the front matter, which stays first', () => {
-		const out = withNotice(SOURCE, '> Note.');
-		expect(out.startsWith('---\ntitle: A title\nlang: zh\n---\n\n> Note.\n\n# A title')).toBe(true);
+	it('reads the source language from the front matter', () => {
 		expect(languageOf(SOURCE)).toBe('zh');
 	});
 });

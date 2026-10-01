@@ -4,14 +4,8 @@
 	import { page } from '$app/state';
 	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
-	import {
-		authorRef,
-		graph,
-		ldJson,
-		person,
-		profiles,
-		SITE_ID,
-	} from '@canmi/social/structured';
+	import { graph, ldJson, person, profiles } from '@canmi/social/structured';
+	import { websiteEntity } from '$lib/entities';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -202,19 +196,7 @@
 	 * from the config the chrome reads, so the site's name is said once. See
 	 * spec/architecture/entities.md.
 	 */
-	const entities = graph(
-		{
-			'@type': 'WebSite',
-			'@id': SITE_ID,
-			name: site.name,
-			alternateName: site.author.name,
-			description: site.tagline,
-			url: URLS.apps.production.site,
-			author: authorRef(),
-			publisher: authorRef(),
-		},
-		person(),
-	);
+	const entities = graph(websiteEntity(), person());
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />

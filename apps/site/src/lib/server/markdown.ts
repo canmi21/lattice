@@ -35,7 +35,7 @@ export function tokensIn(text: string): number {
  * A language tag's English name, by its language alone -- `de-DE` is German -- except Chinese,
  * whose region tells the script apart. The tag itself where the runtime cannot name it.
  */
-function nameOf(tag: string): string {
+export function nameOf(tag: string): string {
 	const language = tag.split('-')[0]!;
 	try {
 		return new Intl.DisplayNames(['en'], { type: 'language' }).of(
@@ -57,12 +57,12 @@ export interface NoticeInput {
 	asked?: { tag: string; page: string };
 }
 
-/** One line in English: the source as written, and where the asked language is if another. */
+/** One line in English: the text is the original as written, and where the asked language is. */
 export function noticeFor({ source, asked }: NoticeInput): string {
-	const written = `the source of this page, provided as written, in ${nameOf(source)} (${source})`;
-	if (!asked || !otherLanguage(asked.tag, source)) return `> This is ${written}.`;
+	const written = `the text below is in its original language, ${nameOf(source)} (${source}), as written`;
+	if (!asked || !otherLanguage(asked.tag, source)) return `> ${written[0]!.toUpperCase()}${written.slice(1)}.`;
 	const language = nameOf(asked.tag);
-	return `> No text/markdown version of this page exists in ${language} (${asked.tag}); below is ${written}. The ${language} version is available as text/html at ${asked.page}.`;
+	return `> No text/markdown version of this page exists in ${language} (${asked.tag}); ${written}. The ${language} version is available as text/html at ${asked.page}.`;
 }
 
 const FRONT_MATTER = /^---\n[\s\S]*?\n---\n/;
@@ -71,10 +71,4 @@ const FRONT_MATTER = /^---\n[\s\S]*?\n---\n/;
 export function languageOf(markdown: string): string | undefined {
 	const matter = FRONT_MATTER.exec(markdown)?.[0];
 	return matter ? /^lang:\s*(\S+)\s*$/m.exec(matter)?.[1] : undefined;
-}
-
-/** `markdown` with `notice` as its first line after the front matter, which must stay first. */
-export function withNotice(markdown: string, notice: string): string {
-	const matter = FRONT_MATTER.exec(markdown)?.[0] ?? '';
-	return `${matter}\n${notice}\n\n${markdown.slice(matter.length).replace(/^\n+/, '')}`;
 }

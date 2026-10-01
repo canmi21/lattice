@@ -16,6 +16,11 @@ const KINDS: Readonly<Record<string, string>> = {
 	mirror: 'Article',
 };
 
+/** What kind of writing a category is, as schema.org names it. */
+export function kindOf(section: string): string {
+	return KINDS[section] ?? 'Article';
+}
+
 export interface ArticleEntityInput {
 	meta: ArticleMeta;
 	/** This view's canonical address, `?lang=` included where it is a translation. */
@@ -92,7 +97,7 @@ export function articleEntity(input: ArticleEntityInput): ArticleEntity {
 		.filter((alternate) => alternate.language_tag !== 'x-default' && alternate.href !== source)
 		.map((alternate) => ref(idOf(alternate.href)));
 	return {
-		'@type': KINDS[section] ?? 'Article',
+		'@type': kindOf(section),
 		'@id': translation ? idOf(canonical) : idOf(source),
 		headline: meta.title,
 		...(meta.subtitle ? { alternativeHeadline: meta.subtitle } : {}),

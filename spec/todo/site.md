@@ -271,6 +271,20 @@ source, in the source's language, with a line saying so and where the asked lang
 The translations exist only as compiled HTML; a markdown view per locale would let an answer engine
 read the asked language as markdown too. See [architecture/markdown.md](../architecture/markdown.md).
 
+## The markdown target keeps both halves of a width pair
+
+A `:t[...]{wide}` and its `:t[...]{narrow}` twin are one sentence drawn two ways, and the page shows
+one. The compiler's markdown target writes both, so the homepage's view reads "I hope somedaySomeday
+I hope" -- live at `/homepage.md`, 2026-10-01. Fixing it changes the published markdown, so it waits
+for the corpus to be published again.
+
+## A section has no page, for a person or an agent
+
+An article's agent view says where it sits as the homepage, then its section as plain text, because
+there is no section page to link -- for people or for agents. A section page comes to both at once;
+an agent-only one would be a page people cannot see. See
+[architecture/markdown.md](../architecture/markdown.md).
+
 ## The author has no entity home yet
 
 The author's structured-data identifier is `https://canmi.net/about#person`, chosen as the page

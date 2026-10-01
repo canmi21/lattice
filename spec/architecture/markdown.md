@@ -1,7 +1,8 @@
-# Markdown: every page's source, first-party, at its own address and beside it
+# Markdown: every page's agent view, first-party, at its own address and beside it
 
 **A page's markdown is the site's own, never converted at the edge.** Every article and the
-homepage publish their source, and it is served two ways: at `<page>.md`, the llms.txt convention,
+homepage have an agent view -- the page as an agent reads it, ranked with the page rather than
+beneath it -- served two ways: at `<page>.md`, the llms.txt convention,
 and at the page's own address to a reader whose `Accept` asks for markdown first -- the convention
 Cloudflare's "Markdown for Agents" serves, which is therefore left off, so nothing at the edge turns
 the HTML into a second, different markdown.
@@ -14,15 +15,39 @@ same URL. A document -- an address with an extension -- does not negotiate, as
 [locale/addressing.md](../locale/addressing.md), "Every page negotiates; the exceptions are
 documents", has it.
 
-## What it says about itself
+## What a view is
 
-**The source is the source: one language, as written.** Translations exist as HTML only, so a
-markdown answer is always the original, and its first line after the front matter says so in
-English -- `> This is the source of this page, provided as written, in Chinese (zh).` Asked for at
-the page's address in a language that is not the source's -- by `?lang=`, the cookie or
-`Accept-Language`, negotiated as the page would be -- the line says that, and where that language
-is: no markdown in it, the source below, the asked language available as `text/html` at the page's
-`?lang=` address. A regional variant of the source's language is the source's language.
+**The same as the page shows a person, and what the page only implies, without its styling.** One
+for humans, one for agents, and no third file holding the source alone: the view is complete.
+
+- **No front matter.** Structure is markdown's own: a title, a line saying what this is, then one
+  section per kind of fact, so what belongs together is visible rather than flattened into keys.
+- **It opens by saying what it is**: the agent view of a named page, when it was generated, and
+  that the page for humans is the same address without `.md`. Then where it sits -- the site's
+  homepage view, then the section, which has no page yet and so is text.
+- **Every section says where its data came from and when.** Facts from the published corpus carry
+  the corpus's publication time; a live count says when it was counted and how long it is held; a
+  summary says a model wrote it.
+- **Facts are tables**, field and value, scannable and extractable alike.
+- **An article**: about the article -- the title, the subtitle, the short pair, the description,
+  its kind and section, the author, the language, the dates, the length, the page's address and
+  the view's -- then its reads, its other languages, its summary, its contents linked into the page,
+  the article itself with every heading one level down, the works it cites, and where else to go.
+- **The homepage**: about the site, its readers, the introduction, every article with its date,
+  section, titles, length and both addresses, the author with every name and account, and where
+  else to go.
+- **Each ends with the page's structured data**, the JSON-LD graph its HTML carries, for a reader
+  that parses rather than reads -- one source for the facts, not a second copy in front matter.
+
+**The text is in its original language.** Translations exist as HTML only, so the body is the
+original, and the opening says so in English: `> The text below is in its original language,
+Chinese (zh), as written.` Asked for at the page's address in a language that is not the original's
+-- by `?lang=`, the cookie or `Accept-Language`, negotiated as the page would be -- the line also
+says no markdown exists in that language and where it is as `text/html`. A regional variant of the
+original's language is the original's language.
+
+**The homepage's view is `/homepage.md`**, `/.md` and `/index.html.md` -- the llms.txt convention's
+name for a root page -- redirecting to it.
 
 **The headers say the rest**:
 

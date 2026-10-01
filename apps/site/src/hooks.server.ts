@@ -19,31 +19,36 @@ import {
 } from '$lib/locale';
 import { HOME_SLUG } from '$lib/opengraph';
 import { SIGNAL_HEADERS } from '@canmi/robots';
-import { languageOf, noticeFor, prefersMarkdown, tokensIn, withNotice } from '$lib/server/markdown';
+import { articleAgentView, homeAgentView, pageAddress } from '$lib/server/agent-pages';
+import { prefersMarkdown, tokensIn } from '$lib/server/markdown';
 import { publishedMarkdown, publishedMetadata } from '$lib/published';
 import { answer as apiAnswer } from '$lib/server/api';
 import { registerServerStrategy } from '$lib/locale/paraglide';
 
 registerServerStrategy();
 
-// Serve clean markdown at <url>.md (llms.txt convention) generically, without a
-// per-target route — for articles and standalone pages (e.g. /homepage.md).
+// Serve every page's agent view at <url>.md (the llms.txt convention), and at the page's own
+// address to a reader asking for markdown. See spec/architecture/markdown.md.
 const markdownHandle: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
+	// The llms.txt convention's name for a root page's view, kept to the one this site has.
+	if (pathname === '/index.html.md') {
+		return new Response(null, { status: 301, headers: { Location: `/${HOME_SLUG}.md` } });
+	}
 	if (pathname.endsWith('.md')) {
 		// The identity, which is the last segment: `/mirror/a-b.md` and `/homepage.md` alike.
 		const asked = pathname.slice(1, -3);
-		// `/.md` is the source of `/`, and `/` is the homepage, whose source is filed under its own
-		// slug. The page side redirects the other way -- `/homepage` bounces to `/` below -- because
-		// each side has a different canonical address for the one thing. Asked with no identity at
-		// all, the API answers 400 to an empty slug and `answer` throws, so `/.md` was a 500.
+		// `/.md` is the view of `/`, and `/` is the homepage, filed under its own slug. The page
+		// side redirects the other way -- `/homepage` bounces to `/` below -- because each side has
+		// a different canonical address for the one thing. Asked with no identity at all, the API
+		// answers 400 to an empty slug and `answer` throws, so `/.md` was a 500.
 		if (!identityIn(asked)) {
 			return new Response(null, { status: 302, headers: { Location: `/${HOME_SLUG}.md` } });
 		}
 		const found = await publishedMarkdown(event.fetch, identityIn(asked));
 		if (found) {
-			// A document is redirected on the same terms a page is, because a source served at
-			// every address that reaches it is the same duplicate-content shape. See
+			// A document is redirected on the same terms a page is, because a view served at every
+			// address that reaches it is the same duplicate-content shape. See
 			// spec/architecture/artifacts.md, "Reaching an article by name".
 			if (found.path !== asked) {
 				const permanent = asked.includes('/');
@@ -52,11 +57,10 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
 					headers: { Location: `/${found.path}.md` },
 				});
 			}
-			return markdownAnswer(await found.body.text(), found.path);
+			const answered = await agentAnswer(event.fetch, found.path);
+			if (answered) return answered;
 		}
 	}
-	// The same source at a page's own address, for a reader whose `Accept` asks for markdown
-	// first. See spec/architecture/markdown.md.
 	if (prefersMarkdown(event.request.headers.get('accept')) && !DOCUMENT_PATH.test(pathname)) {
 		const asked = pathname === '/' ? HOME_SLUG : pathname.replace(/^\/+|\/+$/g, '');
 		const found = asked ? await publishedMarkdown(event.fetch, identityIn(asked)) : undefined;
@@ -66,43 +70,42 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
 				cookie: event.cookies.get('language'),
 				acceptLanguage: event.request.headers.get('accept-language'),
 			});
-			return markdownAnswer(await found.body.text(), found.path, code);
+			const answered = await agentAnswer(event.fetch, found.path, code);
+			if (answered) return answered;
 		}
 	}
 	return resolve(event);
 };
 
-/** A page's address on the site, the homepage's being the root. */
-function pageAddress(path: string): string {
-	return `${URLS.apps.production.site}/${path === HOME_SLUG ? '' : path}`;
-}
-
 /**
- * A page's markdown source, said to be the source as written. Asked for at the page's own address
- * -- `code` given -- it also says where the asked language is when it is another, and varies by
- * what was asked, so nothing shared may keep it.
+ * A page's agent view, as a response. Asked for at the page's own address -- `code` given -- it
+ * says where the asked language is when it is another, and varies by what was asked, so nothing
+ * shared may keep it.
  */
-function markdownAnswer(text: string, path: string, code?: LocaleCode): Response {
-	const page = pageAddress(path);
-	const source = languageOf(text) ?? SITE_LANGUAGE;
-	const asked =
-		code && code !== 'mw'
-			? { tag: languageTag(code, SITE_LANGUAGE), page: `${page}?lang=${code}` }
-			: undefined;
-	const body = withNotice(text, noticeFor({ source, asked }));
+async function agentAnswer(
+	fetch: typeof globalThis.fetch,
+	path: string,
+	code?: LocaleCode,
+): Promise<Response | undefined> {
+	const now = new Date();
+	const view =
+		path === HOME_SLUG
+			? await homeAgentView(fetch, code, now)
+			: await articleAgentView(fetch, identityIn(path), code, now);
+	if (!view) return undefined;
 	const headers = new Headers({
 		'Content-Type': 'text/markdown; charset=utf-8',
-		'Content-Language': source,
+		'Content-Language': view.language,
 		'Cache-Control': code ? 'private, no-store' : 'public, max-age=300, s-maxage=300',
-		'x-markdown-tokens': String(tokensIn(body)),
-		Link: `<${page}>; rel="canonical"`,
+		'x-markdown-tokens': String(tokensIn(view.body)),
+		Link: `<${pageAddress(path)}>; rel="canonical"`,
 	});
 	for (const [name, value] of SIGNAL_HEADERS) headers.set(name, value);
 	if (code) {
 		headers.set('Vary', 'Accept');
 		headers.set('Content-Location', `/${path}.md`);
 	}
-	return new Response(body, { headers });
+	return new Response(view.body, { headers });
 }
 
 /**
