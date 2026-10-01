@@ -8,7 +8,6 @@ import {
 	localeUrl,
 	privateHtml,
 	resolveLocale,
-	withoutLanguageParameter,
 } from './index';
 
 describe('locale resolution', () => {
@@ -71,13 +70,6 @@ it('marks HTML private without changing an asset response', async () => {
 	});
 	expect(privateHtml(asset)).toBe(asset);
 	expect(asset.headers.get('cache-control')).toBe('public, max-age=31536000');
-});
-
-it('removes only lang and keeps unrelated query parameters in their original order', () => {
-	const clean = withoutLanguageParameter(
-		new URL('/post?utm=a&lang=ja&draft=1&utm=b#section', import.meta.url),
-	);
-	expect(clean).toBe('/post?utm=a&draft=1&utm=b#section');
 });
 
 it('serialises the client language preference with the server cookie lifetime', () => {

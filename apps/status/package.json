@@ -8,6 +8,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
+		"@canmi/referer": "workspace:*",
 		"@canmi/compat": "workspace:*",
 		"@canmi/hints": "workspace:*",
 		"@canmi/identity": "workspace:*",

@@ -2,6 +2,7 @@
 	import { browser, dev } from '$app/environment';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import { takeArrivalParameters } from '@canmi/referer';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS, pageUrls } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -17,6 +18,7 @@
 	import { site } from '$lib/site';
 	import '../styles/app.css';
 	import '@canmi/fonts/mono.css';
+	import { onMount } from 'svelte';
 
 	// What the pages reach early, and how early. See spec/architecture/hints.md.
 	const early = hints(
@@ -102,6 +104,9 @@
 		},
 	};
 	let { children } = $props();
+
+	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
+	onMount(takeArrivalParameters);
 
 	$effect(() => installFocusSourceTracker());
 
@@ -260,6 +265,7 @@
 		data-website-id="2b0a1e79-405a-47c0-a263-05732e0a130c"
 		data-domains={new URL(URLS.apps.production.site).hostname}
 		data-exclude="/@/*"
+		data-exclude-hash="true"
 	></script>
 </svelte:head>
 

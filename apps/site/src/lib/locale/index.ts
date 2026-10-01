@@ -93,13 +93,6 @@ export function contentLanguageCookie(code: LocaleCode, secure: boolean): string
 	return `language=${code}; Path=/; Max-Age=${LANGUAGE_COOKIE_MAX_AGE}; SameSite=Lax${secure ? '; Secure' : ''}`;
 }
 
-/** Preserve the order and values of every parameter not owned by locale selection. */
-export function withoutLanguageParameter(url: URL): string | undefined {
-	if (!url.searchParams.has('lang')) return undefined;
-	url.searchParams.delete('lang');
-	return `${url.pathname}${url.search}${url.hash}`;
-}
-
 /** Cookie-varying HTML must never pass through a shared cache. */
 export function privateHtml(response: Response): Response {
 	if (!response.headers.get('content-type')?.toLowerCase().startsWith('text/html')) return response;

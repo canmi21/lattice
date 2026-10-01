@@ -98,6 +98,7 @@
 </script>
 
 <script lang="ts">
+	import { takeArrivalParameters } from '@canmi/referer';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import Globe from '@lucide/svelte/icons/globe';
@@ -107,7 +108,7 @@
 	import { author } from '@canmi/identity';
 	import { ACCOUNTS } from '@canmi/social';
 	import SocialLinks from '@canmi/social/social-links.svelte';
-	import type { Snippet } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { projectUrl } from '$lib/source';
@@ -123,6 +124,9 @@
 		applyTheme(next);
 		document.cookie = themeCookie(next);
 	}
+
+	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
+	onMount(takeArrivalParameters);
 
 	/** Whether the page has scrolled, read off a zero-height sentinel above the nav; false in SSR. */
 	let scrolled = $state(false);
@@ -206,6 +210,7 @@
 		data-website-id="6dea3b82-46a0-4baf-8585-b9138cea5296"
 		data-host-url={umamiHostUrl}
 		data-domains={umamiDomains}
+		data-exclude-hash="true"
 	></script>
 </svelte:head>
 

@@ -1,11 +1,11 @@
 import { dev } from '$app/environment';
+import { takeParameter } from '@canmi/referer';
 import { prepareBrowserRuntime } from '@canmi/compat';
 import { URLS } from '@canmi/urls';
 import { initClient } from '@canmi/sentry/client';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import type { ClientInit } from '@sveltejs/kit';
 import { registerAnalytics } from '$lib/analytics';
-import { withoutLanguageParameter } from '$lib/locale';
 import { registerClientStrategy } from '$lib/locale/paraglide';
 
 registerClientStrategy();
@@ -30,8 +30,7 @@ export const handleError = handleErrorWithSentry(({ message }): App.Error => ({
 }));
 
 function cleanLanguageParameter(): void {
-	const replacement = withoutLanguageParameter(new URL(window.location.href));
-	if (replacement) history.replaceState(history.state, '', replacement);
+	takeParameter('lang');
 }
 
 // The Worker has already selected and persisted the view. Address-bar cleanup is deliberately

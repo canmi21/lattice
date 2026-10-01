@@ -158,7 +158,8 @@ A crawler has no cookie and does not run a language switcher, so without a URL t
 language it can only ever see one of the nine views. **The default URL stays bare and every
 other language is reachable at `?lang={code}`.** That is the only reason the parameter exists.
 
-Once the page has loaded, the parameter is removed with `history.replaceState`. The reader
+Once the page has loaded, the parameter is removed through `@canmi/referer`, as
+[architecture/referer.md](../architecture/referer.md) removes `ref`. The reader
 keeps a clean URL, the cookie already holds the choice, and nothing about the page depends on
 the parameter still being there. Interactive selection creates no query at all: it writes the
 cookie and calls `location.reload()` on the clean address. A reload preserves the current

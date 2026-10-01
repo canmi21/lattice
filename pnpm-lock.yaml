@@ -569,6 +569,9 @@ importers:
       '@canmi/prose':
         specifier: workspace:*
         version: link:../../libs/prose
+      '@canmi/referer':
+        specifier: workspace:*
+        version: link:../../libs/referer
       '@canmi/response':
         specifier: workspace:*
         version: link:../../libs/response
@@ -829,6 +832,9 @@ importers:
       '@canmi/motion':
         specifier: workspace:*
         version: link:../../libs/motion
+      '@canmi/referer':
+        specifier: workspace:*
+        version: link:../../libs/referer
       '@canmi/sentry':
         specifier: workspace:*
         version: link:../../libs/sentry
@@ -1157,6 +1163,8 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+
+  libs/referer: {}
 
   libs/response: {}
 

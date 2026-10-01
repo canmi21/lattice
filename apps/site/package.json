@@ -15,6 +15,7 @@
 		"@canmi/artifacts": "workspace:*",
 		"@canmi/behavior": "workspace:*",
 		"@canmi/cache": "workspace:*",
+		"@canmi/referer": "workspace:*",
 		"@canmi/compat": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",

@@ -101,9 +101,24 @@ per "Development loads the client and reports nothing". The site does not: it
 reports to both clouds as it did, since its own `umami.track()` calls reach only the first tracker
 a page loads, and a second count missing its events would look whole and not be.
 
+## A page is its path and query, never its hash
+
+**Both umami tags carry `data-exclude-hash="true"`.** Without it umami reports the full address,
+so `/post#intro` and `/post#notes` count as two pages, and following an anchor inside a page
+reports a fresh view: SvelteKit records the jump with `history.replaceState`, and umami counts a
+view whenever `pushState` or `replaceState` changes the address it would report. With it the hash is cut before both the report and that comparison, so an
+anchor is free to use and a page keeps one row. umami sends one request per view and has no
+batching to turn on; what ran together here is the address, and that is the part fixed.
+
+OpenPanel on the site still counts the hash: its views compare the full address. Its option
+`trackHashChanges` only adds `hashchange` as a trigger, and cutting the hash would take a
+`filter` that rewrites the event. Not done; see Open.
+
 ## Open
 
 - **OpenPanel is self-hosted on the node once ClickHouse runs there**, from a ClickHouse built here
   for ARMv8.0 -- see [databases.md](architecture/databases.md). umami comes first, self-hosted with
   Postgres alone, for the pages that matter less; the site keeps reporting to both clouds until a
   self-hosted one has earned it.
+- **OpenPanel still reports an anchor followed on the site as a view of its own**, with the hash in
+  its path. Whether to rewrite its events or leave it until the site keeps one service is undecided.
