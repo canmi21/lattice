@@ -69,9 +69,11 @@ sitemap is for depends on it.
 then the rest in the order `PAGE_HOSTS` in `@canmi/robots` sets -- the site, then the status page.
 **And its sitemap lists every other page host by its root alone**: each host lists its own routes,
 so none needs another's data to build, only the list of who the others are. Each host declares in
-`PAGE_HOSTS` how its root is read -- how often it changes, how much it weighs -- and that is what
-every sitemap says of it, its own included. A root's modification time is said by its own sitemap
-alone; reaching across hosts for it would be a dependency for one line. A sitemap may list
+`PAGE_HOSTS` how often its root changes, which every sitemap repeats, its own included, and how much
+the host weighs in the whole of what the author runs, which is the priority another host's sitemap
+gives its root. **Within its own sitemap a host weighs its own pages on its own scale** -- the status
+page's one page is its 1.0 -- so the list's weight is never a page's. A root's modification time is
+said by its own sitemap alone; reaching across hosts for it would be a dependency for one line. A sitemap may list
 another host's addresses when both are verified in Search Console, as both are, and for every other
 engine when that host's own robots.txt names the sitemap -- sitemaps.org's cross-submission -- which
 naming every sitemap from every robots.txt does in both directions.

@@ -110,9 +110,10 @@ export function robotsTxt(options: RobotsTxtOptions = {}): string {
 export type RobotsService = Service;
 
 /**
- * The services that serve pages, in the order every sitemap list follows, each with its origin and
- * how its root is to be read: how often it changes, how much it weighs. A host names its own first;
- * see spec/architecture/robots.md, "Every page host names every other".
+ * The services that serve pages, in the order every sitemap list follows, each with its origin, how
+ * often its root changes, and how much the host weighs in the whole of what the author runs -- the
+ * priority another host's sitemap gives its root. A host names its own first, and weighs its own
+ * pages on its own scale; see spec/architecture/robots.md, "Every page host names every other".
  */
 export const PAGE_HOSTS: readonly {
 	service: Service;
@@ -143,14 +144,28 @@ export function sitemapsFor(service: Service): string[] {
 	return ownFirst(service).map((host) => `${host.origin}/sitemap.xml`);
 }
 
-/**
- * A page host's root as a sitemap entry, as the host declares it. With no modification time: a
- * host adds its own to its own root, and nothing reaches across to read another's.
- */
-export function rootEntry(service: Service): SitemapEntry {
+function hostOf(service: Service): (typeof PAGE_HOSTS)[number] {
 	const host = PAGE_HOSTS.find((candidate) => candidate.service === service);
 	if (!host) throw new Error(`${service} serves no pages`);
+	return host;
+}
+
+/**
+ * A page host's root as another host's sitemap lists it: its weight in the whole, and no
+ * modification time -- nothing reaches across hosts to read another's.
+ */
+export function rootEntry(service: Service): SitemapEntry {
+	const host = hostOf(service);
 	return { loc: new URL('/', host.origin).href, changefreq: host.changefreq, priority: host.priority };
+}
+
+/**
+ * A page host's root in its own sitemap: how often it changes, as the list says, and the weight
+ * the host gives it among its own pages. The host adds its own modification time.
+ */
+export function ownRoot(service: Service, priority: string): SitemapEntry {
+	const host = hostOf(service);
+	return { loc: new URL('/', host.origin).href, changefreq: host.changefreq, priority };
 }
 
 /**

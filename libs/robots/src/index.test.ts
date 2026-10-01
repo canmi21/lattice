@@ -1,6 +1,14 @@
 import { URLS } from '@canmi/urls';
 import { describe, expect, it } from 'vitest';
-import { peerEntries, robotsFor, robotsTxt, robotsTxtBase, rootEntry, sitemapXml } from './index';
+import {
+	ownRoot,
+	peerEntries,
+	robotsFor,
+	robotsTxt,
+	robotsTxtBase,
+	rootEntry,
+	sitemapXml,
+} from './index';
 
 describe('robotsTxt', () => {
 	it('returns the shared base without site additions', () => {
@@ -108,4 +116,12 @@ it('lists every other page host by its root alone, as that host declares it', ()
 		{ loc: `${URLS.apps.production.site}/`, changefreq: 'daily', priority: '1.0' },
 	]);
 	expect(rootEntry('site')).not.toHaveProperty('lastmod');
+});
+
+it("gives a host's own root the list's frequency and the host's own weight", () => {
+	expect(ownRoot('status', '1.0')).toEqual({
+		loc: `${URLS.internal.status.canonical}/`,
+		changefreq: 'always',
+		priority: '1.0',
+	});
 });
