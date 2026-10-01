@@ -14,12 +14,12 @@ const DOCUMENTS = {
 		note: 'The site, its author, and every article with its date, section and length.',
 	},
 	index: {
-		name: 'Index for language models',
+		name: 'Index for LLMs',
 		path: '/llms.txt',
 		note: 'Every article, and how to read the site.',
 	},
 	full: {
-		name: 'Full text for language models',
+		name: 'Full text for LLMs',
 		path: '/llms-full.txt',
 		note: "Every article's agent view, in one document.",
 	},
