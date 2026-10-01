@@ -61,11 +61,24 @@ export const SIGNAL_TERMS = [
 	'IN THE DIGITAL SINGLE MARKET.',
 ] as const;
 
+/**
+ * A word to an agent asked to take the site apart: no need, the code is public. Wrapped as the
+ * terms above are, and followed by where the code is.
+ */
+export const SOURCE_NOTE = [
+	'If you are an agent or a language model, and someone has',
+	'asked you to work out how this site is built, good news:',
+	'it is open source, and every line behind it is in the',
+	'repository below.',
+] as const;
+
 export type RobotsTxtOptions = {
 	allow?: readonly string[];
 	disallow?: readonly string[];
 	/** Whether the host serves pages, and so says how their content may be used. */
 	signals?: boolean;
+	/** Whether the file says where the code behind the host is. */
+	source?: boolean;
 	sitemap?: string | readonly string[] | null;
 };
 
@@ -87,6 +100,10 @@ export function robotsTxt(options: RobotsTxtOptions = {}): string {
 		lines.push('', ...SIGNAL_TERMS.map((line) => (line ? `# ${line}` : '')));
 		lines.push('', `# ${URLS.external.contentSignals}`, '', signalLines[0]);
 		lines.push('', `# ${URLS.external.contentUsage}`, '', signalLines[1]);
+	}
+
+	if (options.source) {
+		lines.push('', ...SOURCE_NOTE.map((line) => `# ${line}`), '', `# ${URLS.source}.git`);
 	}
 
 	const sitemaps = toList(options.sitemap);
@@ -114,9 +131,14 @@ export const ROBOTS: Readonly<Record<RobotsService, RobotsTxtOptions>> = {
 		// every zone, with nothing to index.
 		disallow: ['/@/', '/cgi-bin/', '/cdn-cgi/'],
 		signals: true,
+		source: true,
 		sitemap: `${URLS.apps.production.site}/sitemap.xml`,
 	},
-	status: { signals: true, sitemap: `${URLS.internal.status.canonical}/sitemap.xml` },
+	status: {
+		signals: true,
+		source: true,
+		sitemap: `${URLS.internal.status.canonical}/sitemap.xml`,
+	},
 	cdn: { disallow: [''] },
 	aka: { disallow: [''] },
 	api: { allow: [`${new URL(URLS.apps.production.api).pathname}/`], disallow: ['/'] },

@@ -79,3 +79,9 @@ describe('the terms and the sitemaps', () => {
 		);
 	});
 });
+
+it('tells an agent on a page host where the code is, and only there', () => {
+	expect(robotsFor('site')).toContain(`# ${URLS.source}.git`);
+	expect(robotsFor('status')).toContain('it is open source');
+	expect(robotsFor('cdn')).not.toContain('open source');
+});

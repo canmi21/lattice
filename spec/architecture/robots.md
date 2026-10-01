@@ -43,7 +43,9 @@ Content-Usage: search=y, ai-use=y, train-ai=y
 terms as a comment -- the three meanings, and the EU reservation of rights a `no` would make --
 then each spelling under the address that defines it, then the sitemap. A comment or a blank line
 does not end a group, so the signals stay `User-agent: *`'s. The terms are Cloudflare's wording,
-kept as written.
+kept as written. After the signals, a page host's file says the site is open source, for an
+agent asked to work out how it is built, and gives the repository as a `.git` address, from
+`URLS.source`.
 
 **The policy is the repository's, not the edge's.** Cloudflare can write content signals into a
 zone's `robots.txt` itself; that setting stays off, for the reason the security headers came into
