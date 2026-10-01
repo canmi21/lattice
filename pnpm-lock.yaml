@@ -853,6 +853,9 @@ importers:
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
+      '@canmi/security':
+        specifier: workspace:*
+        version: link:../../libs/security
       '@canmi/sentry':
         specifier: workspace:*
         version: link:../../libs/sentry
@@ -1194,6 +1197,9 @@ importers:
 
   libs/robots:
     dependencies:
+      '@canmi/security':
+        specifier: workspace:*
+        version: link:../security
       '@canmi/urls':
         specifier: workspace:*
         version: link:../urls

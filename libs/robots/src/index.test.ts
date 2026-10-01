@@ -56,10 +56,10 @@ describe('robotsFor', () => {
 	});
 
 	it("lets into the API only the scope a site's page asks", () => {
-		expect(robotsFor('api')).toBe(`${robotsTxtBase.join('\n\n')}
+		expect(robotsFor('api').startsWith(`${robotsTxtBase.join('\n\n')}
 Allow: /site/
 Disallow: /
-`);
+`)).toBe(true);
 	});
 });
 
@@ -80,8 +80,9 @@ describe('the terms and the sitemaps', () => {
 	});
 });
 
-it('tells an agent on a page host where the code is, and only there', () => {
-	expect(robotsFor('site')).toContain(`# ${URLS.source}.git`);
-	expect(robotsFor('status')).toContain('this site is open source');
-	expect(robotsFor('cdn')).not.toContain('open source');
+it("ends every host's file with its own word to an agent and where the code is", () => {
+	const files = (['site', 'status', 'cdn', 'aka', 'api'] as const).map(robotsFor);
+	for (const text of files) expect(text).toContain(`# ${URLS.source}.git`);
+	const notes = files.map((text) => text.split('Note to AI agents')[1]?.split('.git')[0]);
+	expect(new Set(notes).size).toBe(files.length);
 });

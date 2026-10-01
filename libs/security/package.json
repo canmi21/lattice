@@ -3,7 +3,8 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./agents": "./src/agents.ts"
 	},
 	"dependencies": {
 		"@canmi/urls": "workspace:*"

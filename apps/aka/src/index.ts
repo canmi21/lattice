@@ -50,7 +50,7 @@ app.get('/robots.txt', (c) => {
 });
 
 // security.txt, the same on every host of ours; see spec/architecture/firewall.md.
-app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
+app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'aka'));
 
 /**
  * A resource, answered with whatever it declares itself canonically to be.

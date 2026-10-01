@@ -61,7 +61,7 @@ app.get('/robots.txt', (c) => {
 });
 
 // security.txt, the same on every host of ours; see spec/architecture/firewall.md.
-app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
+app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'cdn'));
 
 /**
  * Where the proxies used to answer, kept as a redirect rather than as a second spelling.

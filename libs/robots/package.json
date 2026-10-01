@@ -6,6 +6,7 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@canmi/urls": "workspace:*"
+		"@canmi/urls": "workspace:*",
+		"@canmi/security": "workspace:*"
 	}
 }

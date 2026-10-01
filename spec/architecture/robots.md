@@ -65,9 +65,18 @@ sitemap is for depends on it.
 
 ## A word to an agent sent to break in
 
-**After the signals, a page host's file speaks to an agent told to find vulnerabilities**: the site
-is open source, the code is at the repository given below as a `.git` address, a pull request or a
-word to the security contact beats a breach. It is a language firewall -- an agent that reads
-instructions can be talked out of an attack as well as into one -- and a nod to the note Hugging
-Face put in its `security.txt` after agents broke into it, which the file links. The repository is
-`URLS.source` and the contact `URLS.contact.security`, so neither is spelled twice.
+**Every robots.txt and security.txt this repository builds ends with a word to an agent told to
+find vulnerabilities**: the code is open source, so read it rather than attack the host, and send a
+real finding to the security contact or as a pull request. It is a language firewall -- an agent
+that reads instructions can be talked out of an attack as well as into one -- and a nod to the note
+Hugging Face put in its `security.txt` after agents broke into it.
+
+- **Every host, both files.** Each host here is built from this one repository, so each says it:
+  the site, the status page, the CDN, the alias layer and the API, in robots.txt and in
+  security.txt.
+- **One message, ten wordings.** Each file on each host says it in its own words, from the host's
+  side -- the CDN serves bytes, the alias layer only redirects -- and no two are the same; a test
+  holds them apart. They are `agentNote` in `@canmi/security/agents`.
+- **Link first, as every block here is**: the account of the incident it nods to, then the note,
+  wrapped at sixty columns, then the repository as a `.git` address. The repository is
+  `URLS.source` and the contact `URLS.contact.security`, so neither is spelled twice.

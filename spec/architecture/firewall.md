@@ -34,6 +34,10 @@ answer `/.well-known/security.txt` from it. Every whitelist lets `/.well-known/`
 gate checks. The address is `security@canmi.net`, forwarded by Cloudflare's Email Routing, so the
 mailbox behind it can change without the file.
 
+**Each ends with a word to an agent sent to break in**, after the fields, in that host's own
+wording -- see [robots.md](robots.md), "A word to an agent sent to break in". RFC 9116 lets a
+comment and a blank line stand anywhere in the file.
+
 ## How an expression is written
 
 - `wildcard` is already case-insensitive -- `strict wildcard` is the case-sensitive one -- so a

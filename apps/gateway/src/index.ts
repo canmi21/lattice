@@ -151,7 +151,7 @@ export function gateway(
 	// Out of an index but for the site's scope, which a crawler rendering a page asks. See
 	// spec/architecture/robots.md.
 	app.get('/robots.txt', (c) => c.text(robotsFor('api')));
-	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw));
+	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'api'));
 	// The name a browser asks every origin for: the `api` scope's mark, followed in one hop. See
 	// spec/architecture/delivery.md, "A page follows the name for the browser".
 	// Development is told by a binding set to it, since `wrangler dev` hands this host the custom
