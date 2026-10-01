@@ -254,6 +254,16 @@ until this is decided, rather than inventing a look the page does not have.
 **What deciding it would cost.** A rule for `ul`, `ol` and `li` beside the blockquote's in the
 prose root, which the editor then draws to match: the marker, the indent, the space between items.
 
+## The crate chart's tiles are links with no text
+
+The `cargo` block ([cargo.svelte](../../libs/prose/src/blocks/cargo/cargo.svelte)) draws each
+dependency as a tile, and every tile is an `<a>` to crates.io whose name is only an `aria-label`;
+the words drawn on a tile sit outside it. Measured on the live
+`development/rust-cargo-cranelift-tuning`, 2026-10-01: 254 of the page's 301 links carry no text,
+every one of them a tile. To anything that reads a link's text -- a crawler, a translator, an answer
+engine -- they are links with no name, and to a keyboard each is a stop of its own. Open; the
+approach is the author's to decide.
+
 ## The author has no entity home yet
 
 The author's structured-data identifier is `https://canmi.net/about#person`, chosen as the page
