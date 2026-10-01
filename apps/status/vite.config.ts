@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { esbuildTarget } from '@canmi/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/sentry/build';
-import { URLS } from '@canmi/urls';
+import { PORT_OFFSET, URLS } from '@canmi/urls';
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -17,6 +17,13 @@ const BROWSERSLIST: string[] = JSON.parse(
 ).browserslist;
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+
+// The Supabase pair by either name, the bare one first: mise decrypts it bare, Vercel sets it
+// `PUBLIC_`, and only a `PUBLIC_` name reaches the browser. See spec/architecture/probe.md.
+for (const name of ['SUPABASE_URL', 'SUPABASE_ANON_KEY']) {
+	const bare = process.env[name];
+	if (bare) process.env[`PUBLIC_${name}`] = bare;
+}
 
 // Where each door's adapter writes the maps; see svelte.config.js for the doors.
 const MAPS = {
@@ -54,6 +61,8 @@ export default defineConfig({
 			enforce: undefined,
 		},
 	],
+	// Pinned, shifted in the sandbox. See spec/toolchain.md, "Dev ports are pinned".
+	server: { host: '::', port: 26522 + PORT_OFFSET, strictPort: true },
 	// Hashed file names in hex, as the site's are.
 	build: {
 		target: esbuildTarget(BROWSERSLIST),

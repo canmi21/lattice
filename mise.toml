@@ -180,6 +180,11 @@ description = "Run the editor, which reads the collection through local"
 dir = "apps/cms"
 run = "pnpm run dev"
 
+[tasks.dev-status]
+description = "Run the status page against the Supabase project"
+dir = "apps/status"
+run = "pnpm run dev"
+
 [tasks.dev-cdn]
 description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"

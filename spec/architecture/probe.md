@@ -124,6 +124,13 @@ canonical address, so three doors are one page to an index. Its bar carries the 
 every door, so a visitor who arrives at the status page is one click from the rest of `canmi.app`.
 The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and nothing else.
 
+**It reads the Supabase pair as `SUPABASE_URL` and `SUPABASE_ANON_KEY`, or with a `PUBLIC_`
+prefix, the bare name first.** mise decrypts the pair bare from `secrets.json`, and Vercel sets it
+prefixed, because SvelteKit hands the browser only a `PUBLIC_` name and the browser opens the
+Realtime socket with the key. `vite.config.ts` copies a bare name over the prefixed one, so a
+development server needs nothing set by hand. It runs as `dev-status`, in the base session, on
+26522.
+
 **Its icon is an SVG in the objects bucket, named by its content id** and served by the CDN, so it
 is kept a year and never stale; while Cloudflare is down the page goes without it.
 
