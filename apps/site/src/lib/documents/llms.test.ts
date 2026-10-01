@@ -18,6 +18,7 @@ const INPUT: LlmsInput = {
 	site: { name: 'Site', tagline: 'Notes.' },
 	author: { name: 'Canmi' },
 	profiles: ['x:profile'.replace('x:', 'https://example.com/')],
+	group: 'https://example.com/group',
 	generated: '2026-09-21T19:32:18.516Z',
 	now: new Date('2026-10-01T00:00:00Z'),
 };
@@ -34,6 +35,7 @@ it('lists each article with the facts that rank it, and keeps the skippable ones
 	expect(text).toContain(
 		'- [A](x:architecture/a.md): In architecture, published 2026-01-02, in Chinese (zh), 12,345 words. The first.',
 	);
+	expect(text).toContain("- [Canmi's Telegram group](https://example.com/group): A group the author runs.");
 	expect(text.indexOf('## Articles')).toBeLessThan(text.indexOf('## Site'));
 	expect(text.indexOf('## Site')).toBeLessThan(text.indexOf('## Optional'));
 });

@@ -3,7 +3,7 @@
  * answers the human pages render from. See spec/architecture/markdown.md.
  */
 import { author, mailbox } from '@canmi/identity';
-import { aliasesOf, graph, person, profiles } from '@canmi/social/structured';
+import { aliasesOf, graph, person, profiles, telegramGroup } from '@canmi/social/structured';
 import { URLS } from '@canmi/urls';
 import { articleEntity, citationsOf, kindOf } from '$lib/article/entity';
 import { websiteEntity } from '$lib/entities';
@@ -246,6 +246,7 @@ export async function homeAgentView(
 					.join(', ')}.`,
 				'',
 				...profiles().map((profile) => `- ${profile}`),
+				`- Telegram group: ${telegramGroup()}`,
 			].join('\n'),
 		),
 		section('Elsewhere on this site', undefined, elsewhere()),

@@ -3,7 +3,7 @@
  * See spec/architecture/markdown.md, "The index".
  */
 import { author } from '@canmi/identity';
-import { profiles } from '@canmi/social/structured';
+import { profiles, telegramGroup } from '@canmi/social/structured';
 import type { LlmsInput } from '$lib/documents/llms';
 import { publishedHome, publishedMetadata, publishedSitemap } from '$lib/published';
 import { site } from '$lib/site';
@@ -30,6 +30,7 @@ export async function llmsInput(fetch: typeof globalThis.fetch, now: Date): Prom
 		site: { name: site.name, tagline: site.tagline },
 		author: { name: author.name },
 		profiles: profiles(),
+		group: telegramGroup(),
 		generated: sitemap?.generated,
 		now,
 	};

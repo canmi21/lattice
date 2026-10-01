@@ -36,8 +36,9 @@ export function aliasesOf(of: typeof author = author): string[] {
 }
 
 /**
- * Each of the author's own accounts, by its profile: `sameAs` in the graph, `rel="me"` in a head.
- * The Telegram group is not one, being a place the author runs rather than the author.
+ * The author's own accounts that are shown -- `rel="me"` in a head, a list in a document. The
+ * Telegram account is not among them: it is said in the structured data alone, and where Telegram
+ * is shown it is the group. See spec/architecture/identity.md.
  */
 export function profiles(): string[] {
 	return [
@@ -45,8 +46,12 @@ export function profiles(): string[] {
 		...(author.twitter ? [`${social.twitter}/${author.twitter}`] : []),
 		`${social.fediverse}/@${author.fediverse}`,
 		`${social.bluesky}/${author.bluesky}`,
-		`${social.telegram}/${author.telegram}`,
 	];
+}
+
+/** The Telegram group the author runs, which is the Telegram a page shows. */
+export function telegramGroup(): string {
+	return `${social.telegram}/${author.telegramGroup}`;
 }
 
 /** The author, whole: who they are, every name, every account, all from `@canmi/identity`. */
@@ -65,7 +70,7 @@ export function person() {
 			propertyID: 'GitHub user ID',
 			value: String(author.githubId),
 		},
-		sameAs: profiles(),
+		sameAs: [...profiles(), `${social.telegram}/${author.telegram}`],
 	};
 }
 

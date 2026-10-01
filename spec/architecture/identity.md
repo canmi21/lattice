@@ -37,6 +37,11 @@ names the author in full -- an article's agent view, an index -- says `Canmi <t@
 name and the address, which is `mailbox` in `@canmi/identity`; anywhere that only mentions the
 author says `Canmi`. The homepage's agent view says which name to use.
 
+**The author's own Telegram account is said in the structured data alone.** `sameAs` lists it, so
+an engine can join it to the rest; everywhere a page or a document shows Telegram -- the row of
+links, `llms.txt`, the homepage's agent view -- it is the group the author runs, and `rel="me"`
+names no Telegram at all, the group not being the author.
+
 **A page signs itself `© <year> <name>`**, the year the server's when the page was rendered, and not
 moved by the browser after: a page rendered on New Year's Eve says the old year until it is rendered
 again.

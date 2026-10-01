@@ -63,8 +63,8 @@ there and every page says it next render:
 
 **Every page of both sites names its author in plain HTML as well as in the graph**, for a reader
 that parses a head and not a script: `<meta name="author">` with the author's name, and a
-`<link rel="me">` to each of their own accounts -- the same profiles `sameAs` lists, from the same
-function. `rel="me"` is how a profile that links back to the site verifies the two are one person,
+`<link rel="me">` to each of their own accounts that are shown -- the profiles `sameAs` lists, but
+the Telegram account, which is said in the structured data alone. `rel="me"` is how a profile that links back to the site verifies the two are one person,
 which the fediverse checks and IndieWeb tools read. The Telegram group gets neither, and the row of
 links that does point at it carries no `rel="me"`, since the group is not the author.
 `twitter:creator` names the author's X account on both sites.

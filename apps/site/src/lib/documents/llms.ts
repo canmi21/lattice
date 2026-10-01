@@ -20,8 +20,10 @@ export interface LlmsInput {
 	languages: Readonly<Record<string, string>>;
 	site: { name: string; tagline: string };
 	author: { name: string };
-	/** Each of the author's own accounts. */
+	/** Each of the author's own accounts that are shown. */
 	profiles: readonly string[];
+	/** The Telegram group the author runs. */
+	group: string;
 	/** When the published corpus was written. */
 	generated?: string;
 	now: Date;
@@ -75,6 +77,7 @@ export function buildLlms(input: LlmsInput): string {
 		...input.profiles.map(
 			(profile) => `- [${input.author.name} at ${new URL(profile).hostname}](${profile}): An account of the author's.`,
 		),
+		`- [${input.author.name}'s Telegram group](${input.group}): A group the author runs.`,
 		'',
 		'## Optional',
 		'',
