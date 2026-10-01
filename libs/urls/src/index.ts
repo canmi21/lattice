@@ -184,6 +184,9 @@ export const URLS = {
 		// Cloudflare's, and the IETF AI Preferences draft that defines the `Content-Usage` rule.
 		contentSignals: 'https://contentsignals.org',
 		contentUsage: 'https://datatracker.ietf.org/doc/draft-ietf-aipref-attach/',
+		// The agents that broke into Hugging Face, which a robots.txt here tips its hat to. See
+		// spec/architecture/robots.md, "A word to an agent sent to break in".
+		agentIncident: 'https://openai.com/index/hugging-face-incident-and-the-road-ahead/',
 		// A Sentry DSN only permits *sending* events to one project -- it grants no read
 		// access -- and the browser SDK compiles it into the bundle, where anyone can read it
 		// out of devtools. It is therefore public by construction, and declaring it here is

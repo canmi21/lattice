@@ -43,9 +43,7 @@ Content-Usage: search=y, ai-use=y, train-ai=y
 terms as a comment -- the three meanings, and the EU reservation of rights a `no` would make --
 then each spelling under the address that defines it, then the sitemap. A comment or a blank line
 does not end a group, so the signals stay `User-agent: *`'s. The terms are Cloudflare's wording,
-kept as written. After the signals, a page host's file says the site is open source, for an
-agent asked to work out how it is built, and gives the repository as a `.git` address, from
-`URLS.source`.
+kept as written.
 
 **The policy is the repository's, not the edge's.** Cloudflare can write content signals into a
 zone's `robots.txt` itself; that setting stays off, for the reason the security headers came into
@@ -64,3 +62,12 @@ see [delivery.md](delivery.md), "A page follows the name for the browser".
 Chrome stops applying XSLT on 17 November 2026, version 158, and other engines may follow; a
 sitemap then shows as plain XML in that browser. Crawlers never read the stylesheet, so nothing a
 sitemap is for depends on it.
+
+## A word to an agent sent to break in
+
+**After the signals, a page host's file speaks to an agent told to find vulnerabilities**: the site
+is open source, the code is at the repository given below as a `.git` address, a pull request or a
+word to the security contact beats a breach. It is a language firewall -- an agent that reads
+instructions can be talked out of an attack as well as into one -- and a nod to the note Hugging
+Face put in its `security.txt` after agents broke into it, which the file links. The repository is
+`URLS.source` and the contact `URLS.contact.security`, so neither is spelled twice.
