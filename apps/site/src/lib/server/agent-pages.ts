@@ -6,6 +6,7 @@ import { author, mailbox } from '@canmi/identity';
 import { aliasesOf, graph, person, profiles, telegramGroup } from '@canmi/social/structured';
 import { URLS } from '@canmi/urls';
 import { articleEntity, citationsOf, kindOf } from '$lib/article/entity';
+import { elsewhere } from '$lib/documents/elsewhere';
 import { websiteEntity } from '$lib/entities';
 import { LOCALE_CODES, languageTag, type LocaleCode, SITE_LANGUAGE } from '$lib/locale';
 import { cardUrl, HOME_SLUG } from '$lib/opengraph';
@@ -60,15 +61,6 @@ function corpusAsOf(generated: string | undefined): string {
 		: 'From the published corpus.';
 }
 
-/** The machine-readable documents beside every page. */
-function elsewhere(): string {
-	return [
-		`- Homepage: ${HOME}`,
-		`- Index for language models: ${SITE}/llms.txt`,
-		`- Sitemap: ${SITE}/sitemap.xml`,
-		`- Feed: ${SITE}/atom.xml`,
-	].join('\n');
-}
 
 export async function articleAgentView(
 	fetch: Fetch,
@@ -149,7 +141,7 @@ export async function articleAgentView(
 					),
 				]
 			: []),
-		section('Elsewhere on this site', undefined, elsewhere()),
+		elsewhere(),
 		structured(
 			graph(
 				websiteEntity(),
@@ -249,7 +241,7 @@ export async function homeAgentView(
 				`- Telegram group: ${telegramGroup()}`,
 			].join('\n'),
 		),
-		section('Elsewhere on this site', undefined, elsewhere()),
+		elsewhere(),
 		structured(graph(websiteEntity(), person())),
 	];
 	return { body: `${parts.join('\n\n')}\n`, language: source };

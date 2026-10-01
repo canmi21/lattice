@@ -8,6 +8,7 @@ import type { HomeAnswer } from '@canmi/artifacts';
 import { URLS } from '@canmi/urls';
 import { stamp } from '../server/agent-view';
 import { nameOf } from '../server/markdown';
+import { documentLink, documentUrl } from './elsewhere';
 
 /** Collapse YAML-folded whitespace so a subtitle stays on one line. */
 function oneline(value: string): string {
@@ -39,7 +40,7 @@ function opening({ site, author, generated, now }: LlmsInput): string[] {
 		'',
 		`Generated ${stamp(now)}${generated ? `, from the corpus published ${stamp(generated)}` : ''}.`,
 		'',
-		`- Every page has an agent view at its own address with \`.md\` appended; the homepage's is ${web}/homepage.md. A request with \`Accept: text/markdown\` at a page's own address gets the same view.`,
+		`- Every page has an agent view at its own address with \`.md\` appended; the homepage's is ${documentUrl('homepage')}. A request with \`Accept: text/markdown\` at a page's own address gets the same view.`,
 		'- A view is in the original language of what it shows. Translations are text/html, at the page\'s address with `?lang=` and one of `de`, `en`, `es`, `fr`, `ja`, `ko`, `zh` or `tw`.',
 		`- Search, AI input and AI training are all permitted, as the Content-Signal and Content-Usage lines in ${web}/robots.txt say.`,
 	];
@@ -63,7 +64,6 @@ function articleItem(article: HomeAnswer['articles'][number], language?: string)
 // Deliberately not locale-aware -- see spec/locale/addressing.md, "Every page negotiates; the
 // exceptions are documents", for why this is one of the exceptions.
 export function buildLlms(input: LlmsInput): string {
-	const web = URLS.apps.production.site;
 	const body = [
 		...opening(input),
 		'',
@@ -73,7 +73,7 @@ export function buildLlms(input: LlmsInput): string {
 		'',
 		'## Site',
 		'',
-		`- [Homepage](${web}/homepage.md): The site, its author, and every article with its date, section and length.`,
+		documentLink('homepage'),
 		...input.profiles.map(
 			(profile) => `- [${input.author.name} at ${new URL(profile).hostname}](${profile}): An account of the author's.`,
 		),
@@ -81,9 +81,9 @@ export function buildLlms(input: LlmsInput): string {
 		'',
 		'## Optional',
 		'',
-		`- [Full text](${web}/llms-full.txt): Every article's agent view, in one document.`,
-		`- [Sitemap](${web}/sitemap.xml): Every page, with when it last changed.`,
-		`- [Atom feed](${web}/atom.xml): The full text of every article, newest first.`,
+		documentLink('full'),
+		documentLink('sitemap'),
+		documentLink('feed'),
 		`- [Status](${URLS.internal.status.canonical}): Whether the services behind this site are up.`,
 	].join('\n');
 	return `${body}\n`;

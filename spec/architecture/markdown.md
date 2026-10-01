@@ -51,6 +51,10 @@ original's language is the original's language.
 **The homepage's view is `/homepage.md`**, `/.md`, `/index.html.md` and `/index.md` -- the llms.txt
 convention's names for a root page -- redirecting to it.
 
+**Every agent view closes on the same list of the site's documents** -- the homepage's view,
+`llms.txt`, `llms-full.txt`, the sitemap and the feed -- kept once in
+`apps/site/src/lib/documents/elsewhere.ts`, which `llms.txt` links from as well.
+
 **The headers say the rest**:
 
 | Header                             | On                     | Says                                                    |
