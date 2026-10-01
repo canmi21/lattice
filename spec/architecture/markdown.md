@@ -22,8 +22,10 @@ for humans, one for agents, and no third file holding the source alone: the view
 
 - **No front matter.** Structure is markdown's own: a title, a line saying what this is, then one
   section per kind of fact, so what belongs together is visible rather than flattened into keys.
-- **It opens by saying what it is**: the agent view of a named page, when it was generated, and
-  that the page for humans is the same address without `.md`. Then where it sits -- the site's
+- **It opens by saying what it is**: the agent view of a named page, when it was generated, that
+  the page for humans is the same address without `.md`, and the rule -- every page's view is its
+  address with `.md` appended. An agent that negotiated its way here once can ask for `.md` from
+  then on, while a crawler indexing the bare address still gets the page. Then where it sits -- the site's
   homepage view, then the section, which has no page yet and so is text.
 - **Every section says where its data came from and when.** Facts from the published corpus carry
   the corpus's publication time; a live count says when it was counted and how long it is held; a

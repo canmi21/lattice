@@ -63,12 +63,12 @@ export function contents(toc: readonly TocEntry[], page: string): string {
 		.join('\n');
 }
 
-/** The opening every view shares: what it is, when it was made, and where the human page is. */
+/** The opening every view shares: what it is, when it was made, where the page is, and the rule. */
 export function opening(title: string, page: string, now: Date, notice: string): string {
 	return [
 		`# ${title}`,
 		'',
-		`> This is the agent view of ${page}, generated ${stamp(now)}. The same page for humans is the address without \`.md\`.`,
+		`> This is the agent view of ${page}, generated ${stamp(now)}. The same page for humans is the address without \`.md\`. Every page on this site has its agent view at its own address with \`.md\` appended, so ask for that address directly.`,
 		'',
 		notice,
 	].join('\n');
