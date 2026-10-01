@@ -5,12 +5,11 @@
 	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
 	import {
+		authorRef,
 		graph,
 		ldJson,
 		person,
-		PERSON_ID,
 		profiles,
-		ref,
 		SITE_ID,
 	} from '@canmi/social/structured';
 	import { hints, scriptPolicy } from '@canmi/hints';
@@ -211,8 +210,8 @@
 			alternateName: site.author.name,
 			description: site.tagline,
 			url: URLS.apps.production.site,
-			author: ref(PERSON_ID),
-			publisher: ref(PERSON_ID),
+			author: authorRef(),
+			publisher: authorRef(),
 		},
 		person(),
 	);

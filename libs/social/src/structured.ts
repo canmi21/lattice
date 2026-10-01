@@ -19,6 +19,14 @@ export function ref(id: string): { '@id': string } {
 	return { '@id': id };
 }
 
+/**
+ * The author where another node names them: the identifier, which merges this into the author's
+ * node, and the name and address beside it for a reader that does not follow identifiers.
+ */
+export function authorRef() {
+	return { '@type': 'Person', '@id': PERSON_ID, name: author.name, url: SITE };
+}
+
 /** Every name the author goes by besides `name`: the full name, then each handle, once each. */
 export function aliasesOf(of: typeof author = author): string[] {
 	const names = [of.fullName, of.github, of.twitter, of.fediverse, of.telegram, of.telegramGroup];

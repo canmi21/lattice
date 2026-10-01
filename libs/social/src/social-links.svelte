@@ -32,15 +32,20 @@
 	style:font-size={scale}
 >
 	{#each links as link (link.label)}
+		<!-- The name is text inside the link, hidden from sight, rather than an `aria-label`: a reader
+		     that takes a link's text -- a crawler, a translator -- reads it too. See
+		     spec/architecture/identity.md. -->
 		<a
 			href={link.href}
-			aria-label={link.href.startsWith('/') ? link.label : `${link.label} (${newTab})`}
 			title={link.label}
 			data-sveltekit-reload={link.document ? true : undefined}
 			class="focus-ring inline-flex size-[1.25em] items-center justify-center {linkClass}"
 			{...link.href.startsWith('/') ? {} : { target: '_blank', rel: 'noopener' }}
 		>
 			<Icon name={link.icon} class={link.size} />
+			<span class="sr-only"
+				>{link.href.startsWith('/') ? link.label : `${link.label} (${newTab})`}</span
+			>
 		</a>
 	{/each}
 </nav>

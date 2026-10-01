@@ -184,6 +184,7 @@
 		locale,
 		theme,
 		notes = [],
+		citations = [],
 		children,
 	}: {
 		/** The article's identity, which is what the read counter is keyed by. */
@@ -213,6 +214,8 @@
 		theme: Theme;
 		/** Collected author's notes, rendered after the article's closing rule. */
 		notes?: ArticleNote[];
+		/** The works the article cites, for its structured data. */
+		citations?: object[];
 		children: Snippet;
 	} = $props();
 
@@ -326,6 +329,7 @@
 				words,
 				image: card,
 				abstract: summary?.text,
+				citations,
 			}),
 		),
 	);

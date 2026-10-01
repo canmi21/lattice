@@ -14,7 +14,10 @@ and a handle is this library's: the link is the two put together.
 layout, each icon drawn as it needs to read at the same weight as the rest, and each link's default
 address, in the order the site shows them. An app names the entries it shows, may give any of them
 another address -- its own sitemap and feed always -- and colors the row itself: the icons draw in
-the current color, and the library sets none.
+the current color, and the library sets none. **An icon's link carries its name as text**, hidden from sight
+inside the link rather than as an `aria-label`: a screen reader reads either, but a crawler or a
+translator takes a link's text and nothing else, and to them a label-only icon is a link with no
+name.
 
 | App    | Shows                                                                          |
 | ------ | ------------------------------------------------------------------------------ |

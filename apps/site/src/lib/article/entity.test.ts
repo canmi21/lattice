@@ -1,7 +1,7 @@
 import { PERSON_ID, SITE_ID } from '@canmi/social/structured';
 import { URLS } from '@canmi/urls';
 import { expect, it } from 'vitest';
-import { articleEntity } from './entity';
+import { articleEntity, citationsOf } from './entity';
 
 const meta = {
 	title: 'Rendering as a Protocol',
@@ -34,7 +34,8 @@ it('is the kind of writing its category is, and names the author and the site by
 	expect(node['@type']).toBe('TechArticle');
 	expect(node.abstract).toBe('What the page says it says.');
 	expect(node['@id']).toBe(`${source}#article`);
-	expect(node.author).toEqual({ '@id': PERSON_ID });
+	expect(node.author['@id']).toBe(PERSON_ID);
+	expect(node.author.name).toBeTruthy();
 	expect(node.isPartOf).toEqual({ '@id': SITE_ID });
 	expect(node.workTranslation).toEqual([
 		{ '@id': `${source}?lang=de#article` },
@@ -69,4 +70,31 @@ it('is the source work where a locale only falls back to it', () => {
 	expect(node['@id']).toBe(`${source}#article`);
 	expect(node.translationOfWork).toBeUndefined();
 	expect(node.workTranslation).toBeUndefined();
+});
+
+it('cites the works an article names by a card, a repository or a post, once each', () => {
+	const card = { type: 'linkcard', src: 'a', url: 'x:card', title: 'A page' };
+	const works = citationsOf([
+		{ type: 'prose', html: '<p>text</p>' },
+		card,
+		card,
+		{
+			type: 'github',
+			repo: {
+				full_name: 'canmi21/seam',
+				description: null,
+				language: 'Rust',
+				stars: 0,
+				forks: 0,
+				open_issues: 0,
+				license: null,
+				pushed_at: null,
+			},
+			align: 'left',
+		},
+	] as never);
+	expect(works.map((work) => (work as { '@type': string })['@type'])).toEqual([
+		'CreativeWork',
+		'SoftwareSourceCode',
+	]);
 });

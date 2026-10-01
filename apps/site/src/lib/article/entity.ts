@@ -1,8 +1,9 @@
 /**
  * An article as the entity it is, for the page's graph. See spec/architecture/entities.md.
  */
-import type { Alternate, ArticleMeta } from '@canmi/artifacts/types';
-import { PERSON_ID, ref, SITE_ID } from '@canmi/social/structured';
+import type { Alternate, ArticleMeta, Block } from '@canmi/artifacts/types';
+import { URLS } from '@canmi/urls';
+import { authorRef, ref, SITE_ID } from '@canmi/social/structured';
 
 /**
  * What kind of writing each category is, by the first segment of its address: technical depth,
@@ -29,6 +30,40 @@ export interface ArticleEntityInput {
 	image?: string;
 	/** The summary the page shows above the article, where it has one. */
 	abstract?: string;
+	/** The works the article cites, from `citationsOf`. */
+	citations?: readonly object[];
+}
+
+/**
+ * The works an article cites by name: a card for a page, a repository, an embedded post. A link
+ * inside a sentence is not one -- it points somewhere, it does not cite a work.
+ */
+export function citationsOf(blocks: readonly Block[]): object[] {
+	const { github, social } = URLS.external;
+	const seen = new Set<string>();
+	return blocks.flatMap((block) => {
+		const work =
+			block.type === 'linkcard'
+				? { '@type': 'CreativeWork', name: block.title, url: block.url }
+				: block.type === 'github'
+					? {
+							'@type': 'SoftwareSourceCode',
+							name: block.repo.full_name,
+							url: `${github.web}/${block.repo.full_name}`,
+							codeRepository: `${github.web}/${block.repo.full_name}`,
+							...(block.repo.language ? { programmingLanguage: block.repo.language } : {}),
+						}
+					: block.type === 'twitter'
+						? {
+								'@type': 'SocialMediaPosting',
+								url: `${social.twitter}/${block.tweet.author}/status/${block.tweet.id}`,
+								datePublished: block.tweet.created,
+							}
+						: undefined;
+		if (!work || seen.has(work.url)) return [];
+		seen.add(work.url);
+		return [work];
+	});
 }
 
 /** A view's identifier: its own address, so each translation is a work of its own. */
@@ -39,7 +74,7 @@ type Ref = { '@id': string };
 export type ArticleEntity = Record<string, unknown> & {
 	'@type': string;
 	'@id': string;
-	author: Ref;
+	author: Ref & { name: string };
 	isPartOf: Ref;
 	translationOfWork?: Ref;
 	workTranslation?: Ref[];
@@ -63,6 +98,7 @@ export function articleEntity(input: ArticleEntityInput): ArticleEntity {
 		...(meta.subtitle ? { alternativeHeadline: meta.subtitle } : {}),
 		description: meta.description,
 		...(input.abstract ? { abstract: input.abstract } : {}),
+		...(input.citations?.length ? { citation: input.citations } : {}),
 		...(input.image ? { image: input.image } : {}),
 		datePublished: meta.published,
 		dateModified: meta.lastmod,
@@ -71,8 +107,8 @@ export function articleEntity(input: ArticleEntityInput): ArticleEntity {
 		mainEntityOfPage: canonical,
 		...(section ? { articleSection: section } : {}),
 		wordCount: input.words,
-		author: ref(PERSON_ID),
-		publisher: ref(PERSON_ID),
+		author: authorRef(),
+		publisher: authorRef(),
 		isPartOf: ref(SITE_ID),
 		...(translation ? { translationOfWork: ref(idOf(source)) } : {}),
 		...(original && translations.length > 0 ? { workTranslation: translations } : {}),

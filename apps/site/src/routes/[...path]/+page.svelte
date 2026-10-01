@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Article from '$lib/article/article.svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
+	import { citationsOf } from '$lib/article/entity';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -8,6 +9,7 @@
 	// Collected notes leave the block stream here: they render after the article's closing
 	// rule rather than inside the body, because they are apparatus about the article, not part
 	// of it. See spec/styling/notes.md.
+	const citations = $derived(citationsOf(data.body.blocks));
 	const notes = $derived(
 		data.body.blocks.flatMap((block) => (block.type === 'footnotes' ? block.notes : [])),
 	);
@@ -26,6 +28,7 @@
 	locale={data.locale}
 	theme={data.theme}
 	{notes}
+	{citations}
 >
 	<ArticleBody blocks={data.body.blocks} resources={data.resources} locale={data.locale.code} />
 </Article>

@@ -182,13 +182,15 @@
 		{#if faviconSrc}
 			<img src={faviconSrc} alt="" aria-hidden="true" loading="lazy" class="h-4 w-4 shrink-0" />
 		{/if}
-		<span
-			class="truncate {stylex.attrs(surfaces.uiText, styles.title).class} {tone === 'dark'
+		<!-- `cite`: the title of the work this card cites, upright as the card has drawn it. -->
+		<cite
+			class="truncate not-italic {stylex.attrs(surfaces.uiText, styles.title).class} {tone ===
+			'dark'
 				? 'text-black'
 				: 'text-white'}"
 		>
 			{title}
-		</span>
+		</cite>
 		<span class="sr-only">, {domain}, {m['support.new-tab']({}, { locale })}</span>
 	</div>
 	<ArrowUpRight

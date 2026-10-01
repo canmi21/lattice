@@ -119,7 +119,7 @@
 
 <script lang="ts">
 	import Title from '@canmi/behavior/title.svelte';
-	import { graph, ldJson, person, PERSON_ID, ref } from '@canmi/social/structured';
+	import { authorRef, graph, ldJson, person, ref } from '@canmi/social/structured';
 	import { URLS } from '@canmi/urls';
 	import Bell from 'phosphor-svelte/lib/Bell';
 	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
@@ -157,7 +157,7 @@
 			name: NAME,
 			description: DESCRIPTION,
 			url: CANONICAL,
-			publisher: ref(PERSON_ID),
+			publisher: authorRef(),
 		},
 		{
 			'@type': 'WebPage',
@@ -177,7 +177,7 @@
 			url: CANONICAL,
 			applicationCategory: 'DeveloperApplication',
 			operatingSystem: 'Web',
-			creator: ref(PERSON_ID),
+			creator: authorRef(),
 		},
 		person(),
 	);
