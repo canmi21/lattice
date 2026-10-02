@@ -96,6 +96,7 @@ Hugging Face put in its `security.txt` after agents broke into it.
   laid out by sentence, then the repository as a `.git` address. The repository is
   `URLS.source`. A robots.txt names no address: it sends a finding to the host's own
   `/.well-known/security.txt`, which is where the contact is published.
-- **A note is set by sentence, not filled to a width.** Each sentence starts a line; one that fits
-  in 72 columns keeps a line of its own, and a longer one is broken into the fewest lines that
-  hold it at 64, as even as they go, a break after a comma, semicolon or colon preferred.
+- **A note is broken into lines by hand, and stored as its lines.** A line ends where the sentence
+  pauses -- a full stop, a comma, a semicolon -- the lengths run close, within 72 columns, and no
+  line holds a lone word or the first words of a sentence it does not finish. Breaking by rule
+  either filled lines to a width or left them ragged; ten short notes are cheaper set once.
