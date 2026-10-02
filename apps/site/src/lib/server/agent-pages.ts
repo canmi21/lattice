@@ -82,14 +82,14 @@ export async function articleAgentView(
 	const source = view.meta.lang || languageOf(text) || SITE_LANGUAGE;
 	const category = found.path.split('/')[0] ?? '';
 	const translations = view.language.alternates.filter((a) => a.code !== 'x-default');
-	// Each translation's title, from its own view: the one thing of it the original does not say,
+	// Each translation's title and subtitle, from its own view: what of it the original does not say,
 	// and what a reader is shown when an agent hands them the link. See
 	// spec/architecture/markdown.md, "An agent reads the original; the translations are for the
 	// person it answers".
-	const titles = await Promise.all(
+	const headings = await Promise.all(
 		translations.map((a) =>
 			publishedMetadata(fetch, slug, a.code as LocaleCode)
-				.then((answer) => answer?.meta.title)
+				.then((answer) => answer?.meta)
 				.catch(() => undefined),
 		),
 	);
@@ -124,12 +124,13 @@ export async function articleAgentView(
 			? [
 					section(
 						'Other languages',
-						'Each is a translation of this article, served as text/html, under the title its page shows.',
+						'Each is a translation of this article, served as text/html, under the title and subtitle its page shows.',
 						table(
-							['Language', 'Title', 'Page'],
+							['Language', 'Title', 'Subtitle', 'Page'],
 							translations.map((a, i) => [
 								`${nameOf(a.language_tag)} (${a.language_tag})`,
-								titles[i] ?? '',
+								headings[i]?.title ?? '',
+								headings[i]?.subtitle ?? '',
 								a.href,
 							]),
 						),

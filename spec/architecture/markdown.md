@@ -51,8 +51,9 @@ original's language is the original's language.
 **An agent reads the original; the translations are for the person it answers.** An agent reads
 any language, so the original is the best text to give it, and the view carries no translated body,
 summary or description. What it does carry is each translation as a reader would be handed it: the
-language, the title its page shows, and the address -- `## Other languages`, a table of the three --
-so an agent answering someone in Japanese can link the Japanese page under its Japanese title.
+language, the title and subtitle its page shows, and the address -- `## Other languages`, a table
+of the four -- so an agent answering someone in Japanese can link the Japanese page under its
+Japanese title.
 
 **The homepage's view is `/homepage.md`**, `/.md`, `/index.html.md` and `/index.md` -- the llms.txt
 convention's names for a root page -- redirecting to it.
