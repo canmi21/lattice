@@ -1,0 +1,12 @@
+# The house's DNS, one of the platform's own: the gateway's names answered with the node, the rest
+# passed down a chain that skips what fails. See spec/architecture/host.md, "The resolver answers
+# the gateway's names, and passes the rest on".
+version = 1
+name = "resolver"
+placements = ["home"]
+
+[container]
+# Its health, which the rendered Corefile serves; DNS itself is the shape's to publish.
+port = 15353
+health = "/health"
+memory_mb = 64
