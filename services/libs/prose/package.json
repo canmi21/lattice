@@ -29,10 +29,10 @@
 		"./prose-root.svelte": "./src/prose-root.svelte"
 	},
 	"dependencies": {
-		"@canmi/kit": "2026.1004.1",
-		"@canmi/me": "2026.1004.0",
+		"@canmi/kit": ">=2026.1004.1",
+		"@canmi/me": ">=2026.1004.0",
 		"@canmi/messages": "workspace:*",
-		"@canmi/ui": "2026.1004.0",
+		"@canmi/ui": ">=2026.1004.0",
 		"@chenglou/pretext": "^0.0.9",
 		"@lucide/svelte": "^1.51.0",
 		"@monoflake/artifacts": "workspace:*",

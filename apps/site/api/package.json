@@ -14,7 +14,7 @@
 		"database:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
-		"@canmi/me": "2026.1004.0",
+		"@canmi/me": ">=2026.1004.0",
 		"@canmi/response": "^2.0.0",
 		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/cache": "workspace:*",

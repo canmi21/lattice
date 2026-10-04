@@ -6,6 +6,6 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@canmi/me": "2026.1004.0"
+		"@canmi/me": ">=2026.1004.0"
 	}
 }

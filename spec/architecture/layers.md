@@ -169,8 +169,11 @@ split, because the split moves `lib/` into it.
   `YYYY.MDD.N`: the UTC year, the month times a hundred plus the day, and the release's number
   within that day from 0 -- `2026.1004.0`, then `2026.1004.1`, and `2026.104.0` for the fourth of
   January. Nothing is zero-padded, which semver forbids. A push that changes the package publishes
-  it, so a change is never held back for the date to turn. `^` spans a whole year of dated
-  versions, so a consumer pins one exactly and `update` moves it.
+  it, so a change is never held back for the date to turn. A consumer names a dated package `>=`
+  the version it first needed: no date promises anything a range could hold back, so a lockfile
+  pins the exact one, and `mise run update` moves the lockfile alone to the newest -- `pnpm update
+--no-save`, since saving would rewrite each range as `^`, and `cargo update`. A semver package
+  is named `^` as usual.
 - **A package meant for strangers is semver**: `response` in both languages, `axum-governor`,
   `whereabouts`. The level
   is read from the Conventional Commits since the last release by release-plz, and
