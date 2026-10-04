@@ -24,7 +24,15 @@ name = "Referral Redirect"
 phase = "http_request_dynamic_redirect"
 action = "redirect"
 expression = "referral-redirect.txt"
-target = 'wildcard_replace(http.request.full_uri, r"https://www.*/*", r"https://${1}/${2}?ref=www")'
+target = 'concat("https://", substring(http.host, 4), http.request.uri.path, "?ref=www")'
+status = 301
+
+[[rules]]
+name = "Referral Redirect With Query"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "referral-redirect-query.txt"
+target = 'concat("https://", substring(http.host, 4), http.request.uri.path, "?ref=www&", http.request.uri.query)'
 status = 301
 
 [[rules]]

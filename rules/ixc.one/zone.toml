@@ -14,6 +14,22 @@ action = "block"
 expression = "../all/block-probes.txt"
 
 [[rules]]
+name = "Referral Redirect"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "referral-redirect.txt"
+target = 'concat("https://", substring(http.host, 4), http.request.uri.path, "?ref=www")'
+status = 301
+
+[[rules]]
+name = "Referral Redirect With Query"
+phase = "http_request_dynamic_redirect"
+action = "redirect"
+expression = "referral-redirect-query.txt"
+target = 'concat("https://", substring(http.host, 4), http.request.uri.path, "?ref=www&", http.request.uri.query)'
+status = 301
+
+[[rules]]
 name = "Rate Cap"
 phase = "http_ratelimit"
 action = "block"
