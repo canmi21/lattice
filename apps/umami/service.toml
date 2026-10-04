@@ -25,6 +25,17 @@ memory_mb = 384
 [api]
 public = true
 
+# A reporting page's one call, from the status page's doors, and nothing else of umami's API: its
+# dashboard is behind Access. The headers are what v3's tracker sends beside `Content-Type`. See
+# spec/analytics.md, "umami, self-hosted, for the pages that matter less".
+[api.defaults]
+exposed = false
+
+[[api.routes]]
+path = "/api/send"
+exposed = true
+cors = { origins = ["status"], methods = ["POST"], headers = ["x-umami-website-id", "x-umami-hostname", "x-umami-cache"] }
+
 # One address may report sixty times a minute.
 [[api.limits]]
 methods = ["POST"]

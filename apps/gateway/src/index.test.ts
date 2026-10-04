@@ -84,7 +84,8 @@ describe('the scope table', () => {
 			'version = 1\nname = "geo"\nplacements = ["home"]\n[api]\npublic = false\n',
 			'version = 1\nname = "open"\nplacements = ["home"]\n[api]\npublic = true\n',
 		]);
-		expect(table).toEqual({ open: { placement: 'home', binding: 'HOME' } });
+		expect(Object.keys(table)).toEqual(['open']);
+		expect(table.open).toMatchObject({ placement: 'home', binding: 'HOME' });
 	});
 });
 
@@ -107,9 +108,10 @@ describe('the gateway', () => {
 			worker: 'site',
 			prefix: '/api',
 			limits: [{ methods: ['PUT'], path: '/like', count: 10, seconds: 60 }],
+			routes: [],
 		},
-		hook: { placement: WORKERS, binding: 'HOOK', worker: 'hook' },
-		geo: { placement: 'home', binding: 'HOME' },
+		hook: { placement: WORKERS, binding: 'HOOK', worker: 'hook', routes: [] },
+		geo: { placement: 'home', binding: 'HOME', routes: [] },
 	};
 	const listed = 'https://listed.test';
 	const policies: Record<string, Policy> = {

@@ -21,6 +21,10 @@ path = "/data"
 [api]
 public = true
 
+# A round is a minute apart, so an answer is kept one.
+[api.defaults.cache.success]
+fulfilled = "1m"
+
 [[api.limits]]
 methods = ["GET", "HEAD"]
 path = "/checks"

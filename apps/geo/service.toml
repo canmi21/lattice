@@ -21,6 +21,14 @@ path = "/state"
 [api]
 public = true
 
+# Any page may look an address up, and a place's address changes only when the gazetteer is deployed
+# again. See spec/architecture/gateway.md, "The declaration".
+[api.defaults.cors]
+origins = "public"
+
+[api.defaults.cache.success]
+fulfilled = "1d"
+
 # A lookup answers from memory: a minute's worth at once a second keeps a crawler off the machine.
 [[api.limits]]
 methods = ["GET", "HEAD"]

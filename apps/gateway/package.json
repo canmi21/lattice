@@ -21,6 +21,7 @@
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260911.1",
 		"smol-toml": "^1.9.0",
+		"valibot": "^1.5.0",
 		"wrangler": "^4.131.1"
 	}
 }

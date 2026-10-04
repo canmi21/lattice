@@ -23,6 +23,18 @@ path = "/data"
 [api]
 public = true
 
+# What moves is kept five seconds, and the rest a minute. See spec/architecture/telemetry.md.
+[api.defaults.cache.success]
+fulfilled = "1m"
+
+[[api.routes]]
+path = "/machine"
+cache = { success = { fulfilled = "5s" } }
+
+[[api.routes]]
+path = "/services"
+cache = { success = { fulfilled = "5s" } }
+
 [[api.limits]]
 methods = ["GET", "HEAD"]
 path = "/machine"

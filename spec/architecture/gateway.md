@@ -171,7 +171,15 @@ redirected = "1h"
 ```
 
 - **`cors` absent is no browser at all.** `origins` is `"public"` or a list of service codes,
-  `methods` defaults to `GET` and `HEAD`, `headers` to none beyond `Content-Type`.
+  `methods` defaults to `GET` and `HEAD`, `headers` to none beyond `Content-Type`. A route that
+  says `cors = false` takes away what its defaults gave; `cors` is replaced whole, not merged.
+- **A path is written after the version.** `/address` is every version's `/address`; the version
+  is the service's to route on, and a route holds across versions until one says otherwise.
+- **`exposed = false` makes a path no address at all**, refused before the service is asked, and
+  left out of the host's whitelist. A service that opens one route of many, as umami opens
+  `/api/send`, sets it false in its defaults and true on that route.
+- **`forbidden` lists query parameters, or JSON keys anywhere in a body, the public may not
+  send**: what a service offers our own callers alone, until accounts say so instead.
 - **A path is exact, or a prefix ending in `/*`.** The more specific wins -- exact over prefix, the
   longer prefix over the shorter -- whatever the order they are written in; two routes as specific
   as each other are an error when the table is generated.

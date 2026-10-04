@@ -20,6 +20,28 @@ path = "/data"
 [api]
 public = true
 
+# `internal` reaches the LAN and `fresh` skips the thirty-minute reuse, both ours alone. An answer
+# about a capture is about this moment and is kept nowhere; a done task and a picture are. See
+# spec/architecture/shot.md.
+[api.defaults]
+forbidden = ["internal", "fresh"]
+
+[api.defaults.cache.success]
+fulfilled = "none"
+redirected = "none"
+
+[api.defaults.cache.failure]
+rejected = "none"
+faulted = "none"
+
+[[api.routes]]
+path = "/status"
+cache = { success = { fulfilled = "5m" } }
+
+[[api.routes]]
+path = "/pictures/*"
+cache = { success = { fulfilled = "15m" } }
+
 # Starting a capture costs seconds of a browser; asking after one and fetching it are free.
 [[api.limits]]
 methods = ["GET", "HEAD", "POST"]

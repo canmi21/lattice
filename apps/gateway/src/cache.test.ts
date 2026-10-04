@@ -53,7 +53,7 @@ describe('the cache at the gateway', () => {
 
 	afterEach(() => vi.unstubAllGlobals());
 
-	const table: Record<string, Scope> = { geo: { placement: 'home', binding: 'HOME' } };
+	const table: Record<string, Scope> = { geo: { placement: 'home', binding: 'HOME', routes: [] } };
 
 	function node(respond: (request: Request) => Response) {
 		const seen: Request[] = [];
@@ -76,6 +76,7 @@ describe('the cache at the gateway', () => {
 					placement: 'home',
 					binding: 'HOME',
 					limits: [{ methods: ['GET'], path: '/address', count: 60, seconds: 60 }],
+					routes: [],
 				},
 			},
 			{},

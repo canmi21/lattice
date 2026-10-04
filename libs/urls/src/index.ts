@@ -256,6 +256,17 @@ export const URLS = {
 	},
 } as const;
 
+/**
+ * Where each consumer's pages are served, by its service code: what a declaration's `cors.origins`
+ * names, so no `service.toml` spells an origin. The status page has three doors, the platform's
+ * own among them. See spec/architecture/gateway.md, "A route names who may call it by service
+ * code".
+ */
+export const PAGE_ORIGINS: Readonly<Record<string, readonly string[]>> = {
+	site: [URLS.apps.production.site],
+	status: [INTERNAL.status.canonical, INTERNAL.status.mirror, INTERNAL.app],
+};
+
 export type UrlEnvironment = keyof typeof URLS.apps;
 export type UrlMap = (typeof URLS.apps)[UrlEnvironment];
 

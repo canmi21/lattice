@@ -1,4 +1,5 @@
 import { parse } from 'smol-toml';
+import { type Route, routesOf } from './declaration.ts';
 
 /**
  * How often one address may call a route: `count` calls in `seconds`, on these methods, at the path
@@ -24,6 +25,11 @@ export interface Scope {
 	readonly prefix?: string;
 	/** Its routes' allowances, when it declares any. */
 	readonly limits?: readonly Allowance[];
+	/**
+	 * What the gateway does for each path, most specific first and `/*` last, every field resolved.
+	 * See spec/architecture/gateway.md, "The declaration".
+	 */
+	readonly routes: readonly Route[];
 }
 
 /** The placement that is Cloudflare's Workers; the same string as `WORKERS` in manifest.rs. */
@@ -37,7 +43,7 @@ export function bindingOf(name: string): string {
 interface Declaration {
 	name: string;
 	placements: string[];
-	api?: { public?: boolean; prefix?: string; limits?: Allowance[] };
+	api?: { public?: boolean; prefix?: string; limits?: Allowance[] } & Record<string, unknown>;
 }
 
 /**
@@ -52,6 +58,7 @@ export function scopeTable(declarations: readonly string[]): Record<string, Scop
 		const [placement] = declaration.placements;
 		if (!declaration.api?.public || placement === undefined) continue;
 		const limits = declaration.api.limits?.length ? { limits: declaration.api.limits } : {};
+		const routes = routesOf(declaration.name, declaration.api);
 		table[declaration.name] =
 			placement === WORKERS
 				? {
@@ -60,8 +67,9 @@ export function scopeTable(declarations: readonly string[]): Record<string, Scop
 						worker: declaration.name,
 						...(declaration.api.prefix ? { prefix: declaration.api.prefix } : {}),
 						...limits,
+						routes,
 					}
-				: { placement, binding: bindingOf(placement), ...limits };
+				: { placement, binding: bindingOf(placement), ...limits, routes };
 	}
 	return table;
 }
