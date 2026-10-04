@@ -204,7 +204,10 @@ publish` of the tarball by npm 11.5.1 or later, through trusted publishing. `pnp
 - **crates.io**: trusted publishing through `rust-lang/crates-io-auth-action`.
 - **The first version of each is published by hand**, because both registries attach a trusted
   publisher only to a package that exists. A first version carries real code -- `canmi`'s is the
-  author's addresses -- since crates.io removes a crate that only holds a name.
+  author's addresses -- since crates.io removes a crate that only holds a name. A dated package's
+  hand-published first version is `0.0.0`, which claims the name and nothing more; its first dated
+  version is the pipeline's, on the UTC day it first publishes. The repository is renamed before
+  any trusted publisher is registered, since the registries check the repository's name.
 - **Across repositories during development** a dependency comes from Verdaccio, as a local
   prerelease `-local.N` so it never shares a version with the registry's copy, and a crate through
   `[patch]` in a `.cargo/config.toml`.
