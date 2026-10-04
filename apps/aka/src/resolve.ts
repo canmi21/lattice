@@ -16,7 +16,8 @@ import { failure } from './respond';
 export async function resolve(c: Context, name: string): Promise<Response> {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
 
-	const asked = await fetch(`${urls.api}/asset?name=${encodeURIComponent(name)}`);
+	const path = name.split('/').map(encodeURIComponent).join('/');
+	const asked = await fetch(`${urls.api}/v1/assets/${path}`);
 	// Not a fact about the corpus but about this moment -- held for five minutes it would be an
 	// outage rather than a blip.
 	if (asked.status !== 404 && !asked.ok) {

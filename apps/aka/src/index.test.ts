@@ -47,7 +47,7 @@ describe('a resource', () => {
 		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.avif`);
 		// Asked by rid, which is what `/media` takes. A cid names bytes and would answer nothing
 		// about the thing. See spec/architecture/resource.md, "Two ids".
-		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/media?resource=${RID}`);
+		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/v1/media/${RID}`);
 	});
 
 	it('sends a declared slug to the site rather than to the bytes', async () => {
@@ -109,7 +109,7 @@ describe('a name this site publishes', () => {
 
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.svg`);
-		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/asset?name=favicon.svg`);
+		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/v1/assets/favicon.svg`);
 	});
 
 	it('is 404 for a name the corpus does not publish, and holds that briefly', async () => {
@@ -165,7 +165,7 @@ describe('the rest of the host', () => {
 		const res = await ask('/favicon.ico');
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.svg`);
-		expect(String(fetching.mock.calls[0]?.[0])).toContain('name=aka%2Ffavicon.ico');
+		expect(String(fetching.mock.calls[0]?.[0])).toContain('/v1/assets/aka/favicon.ico');
 	});
 
 	it('refuses everything else, including a name that is neither a rid nor under the prefix', async () => {
