@@ -6,7 +6,7 @@
 //! no license key needed. It redirects twice: once from `latest/download/<asset>` to the tagged
 //! release, once from there to signed release-asset storage.
 
-use crate::store::{Readers, Store};
+use crate::store::Store;
 use anyhow::{Context, bail};
 use bytes::Bytes;
 use http_body_util::{BodyExt, Empty};
@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
+use whereabouts::ip::{ASN_FILE, CITY_FILE, Databases};
 
 const CITY_URL: &str = monoflake::EXTERNAL_GEOLITE_CITY;
 const ASN_URL: &str = monoflake::EXTERNAL_GEOLITE_ASN;
@@ -94,21 +95,19 @@ impl Default for Client {
 }
 
 fn city_path(dir: &Path) -> PathBuf {
-	dir.join("GeoLite2-City.mmdb")
+	dir.join(CITY_FILE)
 }
 
 fn asn_path(dir: &Path) -> PathBuf {
-	dir.join("GeoLite2-ASN.mmdb")
+	dir.join(ASN_FILE)
 }
 
 /// Open whatever is already at `dir`, memory-mapped, without fetching anything.
-fn open(dir: &Path) -> anyhow::Result<Readers> {
+fn open(dir: &Path) -> anyhow::Result<Databases> {
 	// SAFETY: a file here is only ever replaced by a rename over a freshly written path, never
 	// modified in place -- so a reader mapping the file that used to be at this path keeps
 	// mapping it, unharmed, even after this call returns a reader for what replaced it.
-	let city = unsafe { maxminddb::Reader::open_mmap(city_path(dir)) }?;
-	let asn = unsafe { maxminddb::Reader::open_mmap(asn_path(dir)) }?;
-	Ok(Readers { city, asn })
+	Ok(unsafe { Databases::open(dir) }?)
 }
 
 /// Open `path` and look up one address, to prove it whole rather than merely present.
@@ -121,8 +120,8 @@ fn verify(path: &Path) -> anyhow::Result<()> {
 }
 
 /// Download both files beside the ones in use, prove each readable, then rename over the old
-/// ones and hand back readers for what now sits at `dir`.
-async fn refresh_once(client: &Client, dir: &Path) -> anyhow::Result<Readers> {
+/// ones and hand back the databases now at `dir`.
+async fn refresh_once(client: &Client, dir: &Path) -> anyhow::Result<Databases> {
 	tokio::fs::create_dir_all(dir).await?;
 	let city_tmp = dir.join("GeoLite2-City.mmdb.tmp");
 	let asn_tmp = dir.join("GeoLite2-ASN.mmdb.tmp");
@@ -142,13 +141,13 @@ async fn refresh_once(client: &Client, dir: &Path) -> anyhow::Result<Readers> {
 /// A failed download or a bad file leaves `store` holding the previous file; `/ip` answers `503`
 /// only until the very first one lands.
 pub async fn refresh_forever(dir: PathBuf, store: Arc<Store>) {
-	if let Ok(readers) = open(&dir) {
-		store.set(readers);
+	if let Ok(databases) = open(&dir) {
+		store.set(databases);
 	}
 	let client = Client::new();
 	loop {
 		match refresh_once(&client, &dir).await {
-			Ok(readers) => store.set(readers),
+			Ok(databases) => store.set(databases),
 			Err(error) => eprintln!("geo: GeoLite2 refresh failed, keeping the previous file: {error:#}"),
 		}
 		tokio::time::sleep(DAY).await;

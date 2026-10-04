@@ -23,7 +23,7 @@
 		"@canmi/me": "2026.1004.0",
 		"@canmi/messages": "workspace:*",
 		"@canmi/prose": "workspace:*",
-		"@canmi/response": "workspace:*",
+		"@canmi/response": "^2.0.0",
 		"@canmi/site-api": "workspace:*",
 		"@canmi/social": "workspace:*",
 		"@canmi/ui": "2026.1004.0",

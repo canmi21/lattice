@@ -106,7 +106,7 @@ pub struct Location {
 	pub direction: Option<f64>,
 }
 
-pub use geocode::Address;
+pub use whereabouts::coordinates::Address;
 
 impl Metadata {
 	/// Whether anything at all was found. Used by the tests, and by a caller that wants to

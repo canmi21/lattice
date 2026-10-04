@@ -1581,7 +1581,6 @@ dependencies = [
  "arc-swap",
  "axum",
  "bytes",
- "geocode",
  "http-body-util",
  "hyper",
  "hyper-rustls",
@@ -1594,15 +1593,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tower",
-]
-
-[[package]]
-name = "geocode"
-version = "0.0.0"
-dependencies = [
- "rstar",
- "serde",
- "tzf-rs",
+ "whereabouts",
 ]
 
 [[package]]
@@ -2459,7 +2450,6 @@ dependencies = [
  "claude-codes",
  "cosmic-text",
  "fast_image_resize",
- "geocode",
  "heic",
  "http-body-util",
  "hyper",
@@ -2488,6 +2478,7 @@ dependencies = [
  "ureq",
  "url",
  "webp",
+ "whereabouts",
  "words-count",
 ]
 
@@ -3359,7 +3350,9 @@ dependencies = [
 
 [[package]]
 name = "response"
-version = "0.0.0"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4140df9486bd5068dc408164d3075bf52150ee9e4668c41a34788d86e8645bd3"
 dependencies = [
  "axum",
  "serde",
@@ -4800,6 +4793,18 @@ name = "weezl"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a28ac98ddc8b9274cb41bb4d9d4d5c425b6020c50c46f25559911905610b4a88"
+
+[[package]]
+name = "whereabouts"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cf08aea10696f61136f2e7aefdb0562b8091a20609246b80d9af511f0d443cd"
+dependencies = [
+ "maxminddb",
+ "rstar",
+ "serde",
+ "tzf-rs",
+]
 
 [[package]]
 name = "whereat"

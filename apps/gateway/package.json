@@ -9,7 +9,7 @@
 		"bundle": "esbuild src/node.ts --bundle --platform=node --format=esm --target=node26 --outfile=dist/node.mjs"
 	},
 	"dependencies": {
-		"@canmi/response": "workspace:*",
+		"@canmi/response": "^2.0.0",
 		"@hono/node-server": "^2.1.3",
 		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/cache": "workspace:*",

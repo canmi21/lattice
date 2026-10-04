@@ -14,7 +14,6 @@ RUN apt-get update \
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY apps apps
-COPY lib lib
 COPY infra infra
 COPY platform platform
 COPY services services

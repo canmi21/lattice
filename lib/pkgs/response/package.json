@@ -1,8 +1,0 @@
-{
-	"name": "@canmi/response",
-	"private": true,
-	"type": "module",
-	"exports": {
-		".": "./src/index.ts"
-	}
-}

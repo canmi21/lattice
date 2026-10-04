@@ -2,8 +2,6 @@
 # ignores the rest, so Rust-only libraries under libs/ are simply invisible to it. Cargo
 # has no such tolerance, which is why Cargo.toml lists its members by hand instead.
 packages:
-  # Until @canmi/response is published from the lib repository; see spec/architecture/layers.md.
-  - lib/pkgs/response
   - infra/apps/*
   - infra/libs/*
   - platform/apps/*

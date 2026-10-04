@@ -6,6 +6,6 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@canmi/response": "workspace:*"
+		"@canmi/response": "^2.0.0"
 	}
 }

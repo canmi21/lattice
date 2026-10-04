@@ -14,12 +14,12 @@ use axum::extract::{ConnectInfo, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::Response;
 use axum::routing::get;
-use geocode::Gazetteer;
 use serde::Deserialize;
 use std::future::IntoFuture;
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
+use whereabouts::coordinates::Gazetteer;
 
 /// musl's allocator is slow under many small allocations, and images are built for speed; see
 /// spec/architecture/host.md, "An image is built for speed, and for any node of its architecture".
@@ -151,11 +151,11 @@ async fn ip_lookup(
 	let Some(address) = resolve_address(asked.address.as_deref(), &headers, peer) else {
 		return response::failure(StatusCode::BAD_REQUEST, "invalid_address");
 	};
-	let Some(readers) = state.geo.get() else {
+	let Some(databases) = state.geo.get() else {
 		let message = "GeoLite2 has not been fetched yet";
 		return response::failure_with(StatusCode::SERVICE_UNAVAILABLE, "service_unavailable", message);
 	};
-	response::success(StatusCode::OK, ip::lookup(&readers, address))
+	response::success(StatusCode::OK, ip::lookup(&databases, address))
 }
 
 /// `given`, when there is one and it parses; otherwise `Cf-Connecting-Ip`, the gateway's own

@@ -11,7 +11,7 @@ workspace = true
 anyhow = "1.0.104"
 axum = "0.8.9"
 mimalloc = "0.1.52"
-response = { path = "../../../lib/crates/response", features = ["axum"] }
+response = { version = "2.0.0", features = ["axum"] }
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 rustix = { version = "1.1.5", features = ["fs"] }
 serde = { version = "1.0.229", features = ["derive"] }

@@ -88,7 +88,7 @@ pub fn favicon_root(repo: &Path) -> PathBuf {
 	source_root(repo).join("favicon")
 }
 
-/// GeoNames' dumps, which `mise run geo` fetches and `geocode` reads.
+/// GeoNames' dumps, which `mise run geo` fetches and `whereabouts` reads.
 pub fn geo_root(repo: &Path) -> PathBuf {
 	source_root(repo).join("geo")
 }

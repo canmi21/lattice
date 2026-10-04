@@ -17,9 +17,7 @@ members = [
 	"platform/apps/shot",
 	"platform/apps/telemetry",
 	"infra/libs/deploy",
-	"lib/crates/geocode",
 	"platform/libs/ledger",
-	"lib/crates/response",
 	"platform/libs/sdk",
 ]
 

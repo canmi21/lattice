@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@canmi/me": "2026.1004.0",
-		"@canmi/response": "workspace:*",
+		"@canmi/response": "^2.0.0",
 		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/cache": "workspace:*",
 		"@monoflake/limits": "workspace:*",

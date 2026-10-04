@@ -8,7 +8,7 @@
 		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
 	},
 	"dependencies": {
-		"@canmi/response": "workspace:*",
+		"@canmi/response": "^2.0.0",
 		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/cache": "workspace:*",
 		"@monoflake/robots": "workspace:*",

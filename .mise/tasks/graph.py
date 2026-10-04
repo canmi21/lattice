@@ -11,15 +11,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 # The places a package can sit, from the bottom: one may depend on its own and those before it.
-# A package's place is the first segment of its path. See spec/architecture/layers.md.
+# A package's place is the first segment of its path; `lib`'s packages are the lib repository's,
+# installed from their registries, so none sits here. See spec/architecture/layers.md.
 LAYERS = ("lib", "infra", "platform", "services")
 
-# Where a package's manifest sits: under its layer, `lib/` split by registry, and `apps/` for the
-# Workers and Vercel apps, which move at the split. See spec/architecture/layers.md.
+# Where a package's manifest sits: under its layer, and `apps/` for the Workers and Vercel apps,
+# which move at the split. See spec/architecture/layers.md.
 PACKAGE_DIRECTORIES = (
 	"apps/*",
 	*(f"{layer}/{kind}/*" for layer in LAYERS[1:] for kind in ("apps", "libs")),
-	"lib/pkgs/*",
 )
 
 

@@ -59,7 +59,7 @@ rand = "0.10.3"
 kamadak-exif = "0.6.1"
 heic = "0.1.6"
 # Naming where a photograph was taken, shared with the `geo` service.
-geocode = { path = "../../../lib/crates/geocode" }
+whereabouts = { version = "1.0.0", features = ["coordinates"] }
 semver = "1.0.28"
 rayon = "1.12.0"
 # Argument parsing. The hand-rolled version read `--limit` with `.parse().ok()`, so a typo in the

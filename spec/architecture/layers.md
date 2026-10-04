@@ -26,7 +26,6 @@ built from the site's own libraries, and the probe and the schema it reads stay 
 ## The directory is the layer
 
 ```
-lib/pkgs/         lib/crates/
 infra/apps/       infra/libs/
 platform/apps/    platform/libs/
 services/apps/    services/libs/
@@ -37,12 +36,9 @@ disagree. **Until the split, `apps/` at the top holds the seven apps Cloudflare 
 -- `aka`, `cdn`, `gateway`, `hook`, `quota`, `site` and `status` -- because their builds name that
 directory; they carry no layer and move with the split, as do `contents/`, `data/` and `rules/`. Each layer keeps `apps/` for what is deployed and `libs/` for what is imported, as the
 repository it becomes will at its top level. A layer is read for what it does, so a deployable
-and a library are the split that matters there, whatever language each is in. `lib/` deploys
-nothing and is read for what it publishes, so it splits by registry instead: `pkgs/` for npm,
-`crates/` for crates.io. A package with a half in each -- `canmi`, `response` -- is two
-directories of one name, and what both halves read, `response`'s `codes.json` and fixtures,
-lives on the TypeScript side, which the Rust side reads, as `canmi`'s Rust is generated from its
-TypeScript. `mise run layers`, which `verify` runs on every
+and a library are the split that matters there, whatever language each is in. **`lib` is the one
+layer with no directory here**: its packages are the lib repository's, split there by registry,
+and are installed from npm and crates.io like anybody else's -- see "Versions" below. `mise run layers`, which `verify` runs on every
 change, reads the layer from the path and fails on a dependency that points up; a package not
 moved yet has no layer and is not held.
 
@@ -67,15 +63,15 @@ moved yet has no layer and is not held.
 
 | Place    | apps                                                                                                      | libs                                                                                           |
 | -------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| lib      | --                                                                                                        | canmi, ui, kit, web, response, geocode -- see below                                            |
+| lib      | --                                                                                                        | me and canmi, ui, kit, web, response, whereabouts -- the lib repository's                      |
 | infra    | host, keeper, panel, meter, caddy, tunnel, resolver                                                       | deploy, urls                                                                                   |
 | platform | gateway, quota, cdn, aka, hook, geo, objects, postgres, ledger, cron, apt, shot, probe, telemetry, gemini | limits, cache, security, robots, symlink, store, artifacts, imgsrc, ledger, status-schema, sdk |
 | services | site and its API, cms, local, status                                                                      | prose, compile, collection, messages, social, hints, fonts                                     |
 
-`geocode` takes `geo`'s address lookup in beside the coordinate one, and is published as
+`geocode` took `geo`'s address lookup in beside the coordinate one and is published as
 `whereabouts`: one crate answering where something is, each lookup behind a feature,
 the data directory the caller's. Fetching the data stays in `geo`, an operational choice and not a
-library's.
+library's, and so does the credit GeoLite2's license asks an answer to carry.
 
 ## The library is five packages, split by what installing one brings
 
