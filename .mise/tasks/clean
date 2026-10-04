@@ -1,0 +1,49 @@
+#!/bin/sh
+#MISE description="Remove what cargo and the JavaScript tools built, never an installed dependency or local state: `clean [--dry-run]`"
+#USAGE flag "-n --dry-run" help="List what would go and remove nothing"
+# A path goes only when a tool writes it, git ignores it and nothing under it is tracked -- the
+# workspace's toolchain spec, "A cache is what a tool can write again". Inside node_modules only
+# what tools dropped there goes; `.wrangler/state` is a local D1, KV and R2, and `.vercel` keeps
+# the project link beside its build output, so only `.wrangler/tmp` and `.vercel/output` go.
+set -e
+cd "$(dirname "$0")/../.."
+dry=${usage_dry_run:-}
+
+if [ -n "$dry" ]; then
+	echo "would run cargo clean, $(du -sh target 2>/dev/null | awk '{print $1}')"
+else
+	cargo clean
+fi
+
+candidates() {
+	find . \( -name .git -o -name .jj -o -name target -o -name node_modules -o -name .wrangler \
+		-o -name .vercel \) -prune -o -type d \( -name .svelte-kit -o -name dist -o -name build \
+		-o -name coverage -o -name .turbo -o -name .output -o -name __pycache__ \) -print -prune
+	find . \( -name .git -o -name .jj -o -name target \) -prune -o -name node_modules -prune -print |
+		while read -r installed; do
+			[ -L "$installed" ] && continue
+			for cache in .vite .vite-temp .cache .vitest .svelte2tsx-language-server-files; do
+				if [ -d "$installed/$cache" ]; then echo "$installed/$cache"; fi
+			done
+		done
+	find . \( -name .git -o -name .jj -o -name target -o -name node_modules \) -prune \
+		-o -type d -name .wrangler -prune -print | while read -r dir; do echo "$dir/tmp"; done
+	find . \( -name .git -o -name .jj -o -name target -o -name node_modules \) -prune \
+		-o -type d -name .vercel -prune -print | while read -r dir; do echo "$dir/output"; done
+	echo ./apps/site/.inlang/cache
+}
+
+found=0
+for path in $(candidates); do
+	[ -e "$path" ] || continue
+	git check-ignore -q "$path" || continue
+	[ -z "$(git ls-files -- "$path" | head -n 1)" ] || continue
+	found=1
+	if [ -n "$dry" ]; then
+		echo "would remove $path, $(du -sh "$path" | awk '{print $1}')"
+	else
+		rm -rf "$path"
+		echo "removed $path"
+	fi
+done
+[ "$found" = 1 ] || echo "no tool caches to remove"
