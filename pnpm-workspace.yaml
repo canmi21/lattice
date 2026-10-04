@@ -5,12 +5,9 @@ packages:
   - apps/*
   - libs/*
   # The site's API, a package inside the site because its type program is workerd's, not the
-  # browser's; see platform's spec/architecture/services.md.
+  # browser's; see spec/architecture/site-api.md.
   - apps/site/api
 
-# SvelteKit 2 retains cookie 0.6 for compatibility with invalid cookie attributes. Match only
-# that vulnerable edge, so a future upstream range starting at 0.7 or a newer SvelteKit major
-# takes precedence automatically.
 overrides:
   # drizzle-orm takes better-sqlite3 as an optional peer, and a package that does not declare it was
   # left on the lockfile's older one while libs/collection moved on: two drizzles whose
@@ -18,13 +15,6 @@ overrides:
   # version for everybody.
   'better-sqlite3': ^13.0.3
   '@types/better-sqlite3': ^9.6.0
-
-  '@sveltejs/kit@2>cookie@<0.7.0': 0.7.2
-
-  # miniflare pins undici exactly and the fix is only on its alpha line. Development-only --
-  # a deployed Worker uses workerd's own fetch -- so this buys a clean alert list rather than
-  # production safety. Drop it once a stable miniflare ships 7.29.
-  'miniflare>undici': ^7.29.0
 
   # 3.0.4 pins lix 0.15.1, which fails every paraglide compile with "No Lix transaction is
   # active" -- silently, leaving the last good catalogues on disk, so a message added after
@@ -35,6 +25,13 @@ overrides:
   # unable to reach the patched 0.25. The advisory is about esbuild's dev server, which this
   # chain never starts; the override exists so the alert does not mask a real one later.
   '@esbuild-kit/core-utils>esbuild': ^0.25.12
+
+# runed declares SvelteKit an optional peer at ^2 and has not been released since SvelteKit 3. It
+# reaches for SvelteKit only in its `runed/kit` subpath, which nothing here imports, bits-ui
+# included; drop this once runed declares 3.
+peerDependencyRules:
+  allowedVersions:
+    'runed>@sveltejs/kit': '3'
 
 # An install script runs arbitrary code before anybody reads the package, which is why pnpm
 # blocks it. These are allowed because they cannot work otherwise: each unpacks a

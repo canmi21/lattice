@@ -165,8 +165,6 @@ settings:
 overrides:
   better-sqlite3: ^13.0.3
   '@types/better-sqlite3': ^9.6.0
-  '@sveltejs/kit@2>cookie@<0.7.0': 0.7.2
-  miniflare>undici: ^7.29.0
   '@inlang/sdk': 3.0.2
   '@esbuild-kit/core-utils>esbuild': ^0.25.12
 
@@ -224,7 +222,7 @@ importers:
         version: 2026.1004.4(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
         specifier: ^2026.1004.4
-        version: 2026.1004.4
+        version: 2026.1004.5
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -527,7 +525,7 @@ importers:
     dependencies:
       '@canmi/me':
         specifier: ^2026.1004.4
-        version: 2026.1004.4
+        version: 2026.1004.5
       '@canmi/response':
         specifier: ^2.0.0
         version: 2.0.0
@@ -667,7 +665,7 @@ importers:
     dependencies:
       '@canmi/me':
         specifier: ^2026.1004.4
-        version: 2026.1004.4
+        version: 2026.1004.5
       '@monoflake/sdk':
         specifier: ^2026.1004.3
         version: 2026.1004.3(@cloudflare/workers-types@5.20261004.1)(typescript@7.0.2)
@@ -742,7 +740,7 @@ importers:
         version: 2026.1004.4(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
         specifier: ^2026.1004.4
-        version: 2026.1004.4
+        version: 2026.1004.5
       '@canmi/messages':
         specifier: workspace:*
         version: link:../messages
@@ -821,7 +819,7 @@ importers:
     dependencies:
       '@canmi/me':
         specifier: ^2026.1004.4
-        version: 2026.1004.4
+        version: 2026.1004.5
       '@canmi/prose':
         specifier: workspace:*
         version: link:../prose
@@ -1021,9 +1019,6 @@ packages:
         optional: true
       svelte:
         optional: true
-
-  '@canmi/me@2026.1004.4':
-    resolution: {integrity: sha512-INyLjju+m+RNd6Kb7KtuHvckbO4SW3cmSc23eqBmvKrzEmEwrPgMRqpGun8eN6vuaQZEnbLYNySpxRRYgJ4AlA==}
 
   '@canmi/me@2026.1004.5':
     resolution: {integrity: sha512-z9lY/1CSKT0q2Nxeymk6D2hqscMWT2c3cGQUMgcMURvJcPmD7AzqyNI4lrmVGHiKojB1IxemGVFSvcTe6SRmbg==}
@@ -4756,8 +4751,8 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@7.30.0:
-    resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
+  undici@7.29.1:
+    resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
     engines: {node: '>=20.18.1'}
 
   undici@8.11.2:
@@ -5316,8 +5311,6 @@ snapshots:
     transitivePeerDependencies:
       - react
       - react-dom
-
-  '@canmi/me@2026.1004.4': {}
 
   '@canmi/me@2026.1004.5': {}
 
@@ -5989,7 +5982,7 @@ snapshots:
 
   '@monoflake/sdk@2026.1004.3(@cloudflare/workers-types@5.20261004.1)(typescript@6.0.3)':
     dependencies:
-      '@canmi/me': 2026.1004.4
+      '@canmi/me': 2026.1004.5
       '@canmi/response': 2.0.0
       '@monoflake/urls': 2026.1004.3
       valibot: 1.5.0(typescript@6.0.3)
@@ -6000,7 +5993,7 @@ snapshots:
 
   '@monoflake/sdk@2026.1004.3(@cloudflare/workers-types@5.20261004.1)(typescript@7.0.2)':
     dependencies:
-      '@canmi/me': 2026.1004.4
+      '@canmi/me': 2026.1004.5
       '@canmi/response': 2.0.0
       '@monoflake/urls': 2026.1004.3
       valibot: 1.5.0(typescript@7.0.2)
@@ -8267,7 +8260,7 @@ snapshots:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       sharp: 0.35.4(@types/node@26.6.4)
-      undici: 7.30.0
+      undici: 7.29.1
       workerd: 1.20261001.1
       ws: 8.21.0
       youch: 4.1.0-beta.10
@@ -8900,7 +8893,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@7.30.0: {}
+  undici@7.29.1: {}
 
   undici@8.11.2: {}
 
