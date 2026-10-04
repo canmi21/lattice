@@ -270,7 +270,8 @@ A path segment may be a short word -- `geo`, `cdn`, `aka` -- but a query paramet
 written in full: `latitude`, not `lat`; `resource`, not `rid`. One concept has one name wherever it
 appears, in a parameter, a body and an answer alike. An identifier this spec defines, `slug` or
 `cid`, is its own full name. `rid` stays the term inside the code and the storage keys, where it is
-defined; outside, it is `resource`.
+defined; outside, it is `resource`. A page's own query is the exception, read by people and short -- `?lang=`,
+`?ref=` -- and a page asks its API with the full names; see the workspace's spec/addresses.md.
 
 ## A service keeps its data in SQLite, in its own directory
 
