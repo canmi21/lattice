@@ -9,18 +9,6 @@ packages:
   - apps/site/api
 
 overrides:
-  # drizzle-orm takes better-sqlite3 as an optional peer, and a package that does not declare it was
-  # left on the lockfile's older one while libs/collection moved on: two drizzles whose
-  # table types cannot meet, which apps/local, holding both, failed to typecheck on. One
-  # version for everybody.
-  'better-sqlite3': ^13.0.3
-  '@types/better-sqlite3': ^9.6.0
-
-  # 3.0.4 pins lix 0.15.1, which fails every paraglide compile with "No Lix transaction is
-  # active" -- silently, leaving the last good catalogues on disk, so a message added after
-  # the break does not exist at runtime. Pinned here because the inner pin is exact.
-  '@inlang/sdk': 3.0.2
-
   # drizzle-kit still pulls the deprecated @esbuild-kit loaders, pinned at ~0.18.20 and so
   # unable to reach the patched 0.25. The advisory is about esbuild's dev server, which this
   # chain never starts; the override exists so the alert does not mask a real one later.
