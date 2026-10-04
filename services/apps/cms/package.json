@@ -15,7 +15,7 @@
 		"@canmi/collection": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",
-		"@canmi/kit": "2026.1004.0",
+		"@canmi/kit": "2026.1004.1",
 		"@canmi/me": "2026.1004.0",
 		"@canmi/messages": "workspace:*",
 		"@canmi/prose": "workspace:*",
