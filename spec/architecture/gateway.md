@@ -125,7 +125,7 @@ by path, on `api.monoflake.com`.
 which the gateway's table is generated from, and nothing about a service's contract is written in
 the gateway. For the service and, where it differs, for each of its paths, it says who may call it
 from a browser, how long a success and a failure are kept, whether a crawler may fetch it, and what
-limits it by address. The service itself sees a request that has already been checked, with the
+limits it, as a bucket counted by [`quota`](quota.md). The service itself sees a request that has already been checked, with the
 version and the path, and writes none of it.
 
 **A route names who may call it by service code, never by origin.** `cors` is `public`, for any
@@ -204,7 +204,7 @@ redirected = "1h"
   longer prefix over the shorter -- whatever the order they are written in; two routes as specific
   as each other are an error when the table is generated.
 - **A limit's path is written as a route's is**: after the version, exact or a prefix ending in
-  `/*`, and the same row is matched alike by the gateway's counters, by Caddy on the node -- which
+  `/*`, and the same row is matched alike by the gateway before it asks `quota`, by Caddy on the node -- which
   matches it with or without a version in front -- and by host when it refuses two rows that would
   count one call twice.
 - **`auth` is reserved.** It takes `"none"` alone until there are accounts.
@@ -307,11 +307,40 @@ and Cloudflare refuses it; the alias layer asks the site's public routes by the 
 under the API host's name so the site reads it as the public door. The gateway resolves its own
 marks through the alias layer's binding for the same reason.
 
-**Inside the house, the same names will answer locally, under the same rules.** The LAN's DNS will
-answer the gateway's hostnames with a gateway of its own on the node -- Caddy and a service that
-works with it -- reading the same table the Worker reads. The two are one gateway deployed twice:
-CORS, lifetimes, crawling and, later, credentials are enforced alike on both, so a service never
-knows, and never needs to know, which side reached it.
+### Inside the house, the same names answer locally
+
+**The gateway is one program deployed twice.** On Workers it is the Worker `gateway`; on the node it
+is the same code under a Node entry point, in a container beside Caddy, on the newest stable Node
+rather than its long-term line. CORS, lifetimes, crawling, each host's files, the path rule and,
+later, credentials are one implementation, so a service never knows, and never needs to know, which
+side reached it. The two entry points differ in how a service is reached and nothing else.
+
+**Caddy answers the gateway's hostnames on the LAN and hands them to it.** Its private side carries
+every hostname the profiles read, with certificates by DNS challenge, as it already has for
+`canmi.icu`; the internal gateway behind it reads each request into its tuple as the Worker does.
+Until the LAN's DNS answers those names with the node, the internal gateway is reached by naming
+the node's address for them, and is checked that way against the public one.
+
+**A service on the node is asked on the node; a service on Workers is asked through the public
+gateway.** What runs at home -- a deployment under `ixc.one` placed `rdu-int`, and every service
+whose placement is the node -- goes to Caddy's internal API host without leaving the house. What
+runs on Workers has no copy here, so the request goes on to the public gateway under the API
+host's spelling, `api.monoflake.com/v{n}/{service}/...`, resolved by public DNS rather than the
+LAN's, so a LAN that answers the names locally never sends the gateway to itself.
+
+**What the internal gateway sends out carries `INTERNAL_TOKEN`**, in `x-internal`, a secret in the
+repository's secrets and in both gateways' environments. Each service-layer zone's firewall lets a
+request carrying it past the rate rule, as it does the probe's, and the public gateway takes the
+header off before any service sees it and does not count the call again: it was counted where it
+entered. Everything else -- CORS, lifetimes, credentials -- the public gateway applies as to any
+call. See [quota.md](quota.md), "Deployed twice, counted where a request enters".
+
+**The internal gateway keeps no answers at first.** It states the same lifetimes, so a browser and
+every cache after it keep what they would from the public one; a store of its own on the node is
+added when a reason is.
+
+**The LAN's DNS answering the names is a step of its own**, after the internal gateway answers
+correctly by address. It is what retires the private side.
 
 **Telling our own callers from the public stays as it is until there are accounts.** What a
 service offers only to our own callers is told today by which side reached it. When the account

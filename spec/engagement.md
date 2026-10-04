@@ -285,12 +285,10 @@ The raw `CF-Connecting-IP` value is the like identity and database primary key. 
 at most one active like. Liking inserts the row if absent; unliking deletes it. A state query returns
 the current IP's `liked` boolean together with the global like and subscriber counts.
 
-The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints use
-separate Cloudflare Workers Rate Limiting bindings keyed by the raw IP, with a wider allowance for
-reads. This is deliberately approximate, inexpensive abuse resistance rather than a globally
-strict quota. `apps/site/server/src/contract/limits.ts` says which route each covers, in the one format every
-limit here is written in; see architecture/services.md, "The gateway holds what every API would
-otherwise repeat".
+The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints are
+limited by `quota`, counted by the caller's address, with a wider allowance for reads.
+`apps/site/server/src/contract/limits.ts` says which route each row covers, in the one format every
+limit here is written in; see architecture/quota.md.
 
 ## A read is counted by the browser that performed it
 

@@ -175,58 +175,57 @@ gateway overwrites it. It is the second lock behind a forbidden parameter, not a
 
 ### A limit is declared once and kept in three places
 
-**How often one address may call a route is a row in the service's `service.toml`, and no service
+**How often one subject may call a route is a row in the service's `service.toml`, and no service
 counts anything itself.** A service stays business logic; three layers outside it keep the row, each
 a check on the others:
 
 1. **Cloudflare's WAF**, one rate rule a zone -- [firewall.md](firewall.md), "Rate Cap" -- is the
    floor under everything: coarse, by path alone, counted per Cloudflare location, and only ever
    meeting a flood.
-2. **The gateway** keeps each row for the public, exactly, in a Durable Object per address and route:
-   one count wherever in the world the requests land. Cloudflare's own rate limit binding counts per
-   location, so an address whose requests land in three locations was allowed three times as much;
-   it is not used here. A counter is named in lowercase, as everything the dashboard shows here is:
-   the class is `counter`, the binding `limits`, and each object its scope, methods, path and
-   address, `shot_get-head_capture_198.51.100.7`. Its log is memory and nothing is written, so a
-   counter costs one request of the free plan's hundred thousand a day; one that fails lets the
-   call through, with the WAF beneath it.
+2. **[`quota`](quota.md)** keeps each row exactly, as a bucket -- a burst at once and a steady rate
+   after it -- in one count per service, route and subject, whatever host or version the call was
+   spelled with. Each gateway asks it for what enters there, and a Worker asks it for the routes its
+   own pages call. One that fails lets the call through, with the WAF beneath it.
 3. **Caddy on the node** keeps the same rows again, for what the gateway forwards and nothing else:
    a request carrying its mark, counted by the visitor's address that Caddy takes from
-   `Cf-Connecting-IP`, which it believes from the tunnel alone. It is there for the moment a
-   counter fails and lets a call through. The LAN, the tailnet and our own Workers meet no limit
-   here either. host renders one zone a row into the tunnel's side, named as the gateway's counters
-   are without the address, and a refusal is the envelope's `rate_limited` with `Retry-After` and
-   `no-store`, so the gateway neither keeps it nor takes it for an unreachable node.
+   `Cf-Connecting-IP`, which it believes from the tunnel alone. It is there for the moment `quota`
+   fails and lets a call through, as a sliding window at the most a bucket ever admits in it. The
+   LAN, the tailnet and our own Workers meet no limit here. host renders one zone a row into the
+   tunnel's side, named as `quota`'s keys are without the subject, and a refusal is the envelope's
+   `rate_limited` with `Retry-After` and `no-store`, so the gateway neither keeps it nor takes it
+   for an unreachable node.
 
 ```toml
 [[api.limits]]
 methods = ["GET", "HEAD"]
-path = "/capture"      # as the service sees it, the scope taken off
-count = 3
-seconds = 60           # 1 to 86400
+path = "/address"      # as the service sees it, after the version
+count = 60             # room comes back at 60 calls
+seconds = 60           #   in 60 seconds, 1 to 86400
+burst = 20             # at most 20 at once; `count` when left out
 ```
 
 The gateway's table carries the rows, generated from every `service.toml` as its scopes are; host
 reads the same files. A row a node cannot count is refused when the service is deployed, and so is
-a call two rows would cover: the gateway counts the first row that covers it, Caddy every one. The site's
-own routes, which its pages call without the gateway, still count in the site's Worker with
-Cloudflare's per-location binding, in the older format below.
+a call two rows would cover: the first row that covers a call counts it, Caddy every one. The site's
+own routes, which its pages call without the gateway, are rows in the same format, counted by the
+same service.
 
 **A limit is a row in one format, wherever it is enforced.** It names methods and a path, so it can
-be as narrow as one route, and one whose binding is missing refuses rather than letting everything
-through; libs/limits is the format and its check. The gateway applies it to what reaches a scope
-through the gateway. Routes that only a Worker's own pages call never pass the gateway, so that
-Worker applies the same rows itself -- the site's are `apps/site/server/src/contract/limits.ts`.
+be as narrow as one route; libs/limits is the format, its check and the bucket's arithmetic. The
+gateway applies it to what reaches a service through the gateway. Routes that only a Worker's own
+pages call never pass the gateway, so that Worker asks `quota` with the same rows itself -- the
+site's are `apps/site/server/src/contract/limits.ts`.
 
 **A limit that is business logic stays with the service.** The read counter's per-article minute
 does not refuse anyone -- the reader still gets the count, only the increment is withheld -- so it
 is part of what `/read` means, and it stays in the site's API.
 
-**A free service is limited where the public reaches it, and nowhere else.** `geo` is a public
-scope: any page may call `api.monoflake.com/v1/geo/address`, and one address may ask sixty times a minute --
-it answers from memory, so the limit keeps a crawler off the machine at home rather than paying for
-an answer. Our own callers do not pass the gateway and so meet no limit: a Worker binds the node's
-VPC service and asks `api.canmi.app` directly, and the LAN and the tailnet ask `api.canmi.icu`.
+**A free service is limited at every gateway, the house's included.** `geo` is a public scope: any
+page may call `api.monoflake.com/v1/geo/address`, and one address may ask sixty times a minute -- it
+answers from memory, so the limit keeps a crawler off the machine at home rather than paying for an
+answer. Our own callers use the same names and meet the same rows, counted by the gateway they
+entered: the internal one for the LAN, once it answers -- see [quota.md](quota.md). Only the
+private side, `api.canmi.icu`, counts nothing, and it retires.
 
 **The gateway is written with Hono**, for its CORS middleware and the one error envelope, which
 every service here already answers in. It answers `/robots.txt` itself, keeping the host out of an
