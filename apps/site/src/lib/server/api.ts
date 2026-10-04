@@ -11,6 +11,23 @@ export const API_PREFIX = '/api/';
 /** The public API host. A request naming it reached this Worker through the gateway's binding. */
 const API_HOST = new URL(URLS.apps.production.api).hostname;
 
+/**
+ * The public routes as `/v1/` names them, the thing in the path, each read back into the route
+ * and the query parameter its handler takes; the rest of the path is the thing, slashes and all,
+ * since an asset's name may hold one. See the workspace's spec/addresses.md.
+ */
+const PUBLIC_V1: readonly { readonly prefix: string; readonly route: string; readonly by: string }[] = [
+	{ prefix: 'v1/media/', route: 'media', by: 'resource' },
+	{ prefix: 'v1/assets/', route: 'asset', by: 'name' },
+];
+
+/** A public `/v1/` path, as the route and the query its handler reads, or undefined for none. */
+function publicV1(segment: string): { route: string; by: string; thing: string } | undefined {
+	const shape = PUBLIC_V1.find(({ prefix }) => segment.startsWith(prefix));
+	const thing = shape ? decodeURIComponent(segment.slice(shape.prefix.length)) : '';
+	return shape && thing ? { route: shape.route, by: shape.by, thing } : undefined;
+}
+
 /** The API's bindings: the Worker's own, with the records read from the tree in development. */
 async function bindings(event: RequestEvent): Promise<Record<string, unknown>> {
 	const env: Record<string, unknown> = { ...event.platform?.env };
@@ -36,11 +53,17 @@ export async function answer(event: RequestEvent): Promise<Response | undefined>
 	const outside = url.hostname === API_HOST;
 	if (!outside && !url.pathname.startsWith(API_PREFIX)) return undefined;
 	const segment = url.pathname.startsWith(API_PREFIX) ? url.pathname.slice(API_PREFIX.length) : '';
-	const route = outside ? (PUBLIC_ROUTES.has(segment) ? segment : undefined) : routeOf(segment);
+	// Public by name, so whichever door asks: in development the gateway reaches this Worker on this
+	// machine's name rather than the API host's.
+	const versioned = publicV1(segment);
+	const route =
+		versioned?.route ??
+		(outside ? (PUBLIC_ROUTES.has(segment) ? segment : undefined) : routeOf(segment));
 	if (!route) return failure(404, 'no_such_route');
 
 	const inner = new URL(url);
 	inner.pathname = `/${route}`;
+	if (versioned) inner.searchParams.set(versioned.by, versioned.thing);
 	return api.fetch(
 		new Request(inner, event.request),
 		await bindings(event),
