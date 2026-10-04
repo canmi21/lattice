@@ -68,8 +68,19 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it; a driver runs none.
-const TAKEN: [&str; 10] =
-	["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS, "postgres", "cron", "apt", "telemetry"];
+const TAKEN: [&str; 11] = [
+	"keeper",
+	"meter",
+	"caddy",
+	"tunnel",
+	"panel",
+	OBJECTS,
+	"postgres",
+	"cron",
+	"apt",
+	"telemetry",
+	"gateway",
+];
 
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";
@@ -718,8 +729,17 @@ async fn collect(host: &Host) -> Result<(), Error> {
 
 #[cfg(test)]
 mod tests {
-	use super::deployable;
-	use deploy::manifest::Invalid;
+	use super::{TAKEN, deployable};
+	use deploy::manifest::{Invalid, OWN};
+
+	#[test]
+	fn deploys_every_name_the_platform_owns_but_its_own() {
+		// host is deployed by keeper, never by itself; every other name the manifest reserves for
+		// the platform is one this host deploys, so the two lists cannot drift apart.
+		let deployed: Vec<&str> = OWN.into_iter().filter(|name| *name != "host").collect();
+		assert_eq!(deployed.len(), TAKEN.len());
+		assert!(deployed.iter().all(|name| TAKEN.contains(name)), "{deployed:?}");
+	}
 
 	#[test]
 	fn the_platforms_own_are_restarted_and_never_stopped_or_started() {
