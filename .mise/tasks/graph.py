@@ -10,6 +10,25 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+# The places a package can sit, from the bottom: one may depend on its own and those before it.
+# A package's place is the first segment of its path. See spec/architecture/layers.md.
+LAYERS = ("lib", "infra", "platform", "services")
+
+# Where a package's manifest sits, before the move and after it: `apps/` and `libs/` at the top
+# until each one moves under its layer, and `lib/` split by registry.
+PACKAGE_DIRECTORIES = (
+	"apps/*",
+	"libs/*",
+	*(f"{layer}/{kind}/*" for layer in LAYERS[1:] for kind in ("apps", "libs")),
+	"lib/pkgs/*",
+)
+
+
+def layer_of(directory):
+	"""The layer `directory` sits in, by its first segment, or None for one not moved yet."""
+	first = directory.split("/", 1)[0]
+	return first if first in LAYERS else None
+
 
 def changed(since):
 	"""Files the working copy changes, or everything after `since`."""
@@ -86,7 +105,7 @@ def build_inputs(directories):
 def node_graph():
 	"""Package directories and dependency -> dependent edges among this repository's packages."""
 	directories, manifests = {}, {}
-	for manifest in [*ROOT.glob("apps/*/package.json"), *ROOT.glob("libs/*/package.json")]:
+	for manifest in sorted({m for one in PACKAGE_DIRECTORIES for m in ROOT.glob(f"{one}/package.json")}):
 		data = json.loads(manifest.read_text())
 		directories[str(manifest.parent.relative_to(ROOT))] = data["name"]
 		manifests[data["name"]] = data

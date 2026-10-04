@@ -40,8 +40,9 @@ nothing and is read for what it publishes, so it splits by registry instead: `pk
 `crates/` for crates.io. A package with a half in each -- `canmi`, `response` -- is two
 directories of one name, and what both halves read, `response`'s `codes.json` and fixtures,
 lives on the TypeScript side, which the Rust side reads, as `canmi`'s Rust is generated from its
-TypeScript. `.mise/tasks/graph.py` reads the layer from the path
-and fails on a dependency that points up.
+TypeScript. `mise run layers`, which `verify` runs on every
+change, reads the layer from the path and fails on a dependency that points up; a package not
+moved yet has no layer and is not held.
 
 ## A scope says whose it is
 
@@ -116,8 +117,10 @@ the system and moves into the library with it.
 ## What the package graph cannot see
 
 A dependency through an address or a name written into code is invisible to `package.json` and
-`Cargo.toml`, and four point up today. The layer check carries them as named exceptions, and **the
-list is empty before the repositories split**; each is fixed by the declaration pattern
+`Cargo.toml`, and four point up today. Once the addresses split, the second and third become
+imports of `@monoflake/sdk` from infra, which `layers` sees and carries in its `EXCEPTIONS`; the
+first and fourth stay names only this list holds. **Both lists are empty before the repositories
+split**; each is fixed by the declaration pattern
 `service.toml` already uses -- the layer above says what it is, the one below reads the saying.
 
 1. host knows the platform's apps by name: `OWN`, `TAKEN`, `RESERVED`, and a `Shape` each for
