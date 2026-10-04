@@ -212,7 +212,11 @@ publish` of the tarball by npm 11.5.1 or later, through trusted publishing. `pnp
   the library and released there.
 - **Across repositories during development** a dependency comes from Verdaccio, as a local
   prerelease `-local.N` so it never shares a version with the registry's copy, and a crate through
-  `[patch]` in a `.cargo/config.toml`.
+  `[patch]` in a `.cargo/config.toml`. The lib repository serves it, `mise run registry`, and
+  publishes to it, `mise run release --local`; `mise run lib-local` here pins every `@canmi/*`
+  package to its newest local version and patches each crate to `../lib`, copying each file it
+  rewrites to `.local/lib/` first. `--off` puts them back, and `verify` refuses to pass between the
+  two, so a local version never reaches a commit.
 
 Until the split this repository publishes nothing, and [workspace.md](workspace.md), "A package
 here has no version", holds.

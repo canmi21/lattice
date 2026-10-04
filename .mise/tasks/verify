@@ -100,6 +100,10 @@ def plan(files):
 
 
 def main():
+	# A library taken from the checkout beside this one is a state for trying a change, never one
+	# to pass in: what it installed is nowhere a clone can reach. See .mise/tasks/lib-local.
+	if (ROOT / ".local" / "lib").exists():
+		sys.exit("verify: the library is local; `mise run lib-local --off` first")
 	arguments = sys.argv[1:]
 	dry = "--dry-run" in arguments or "-n" in arguments
 	since = arguments[arguments.index("--since") + 1] if "--since" in arguments else None

@@ -6,6 +6,10 @@
 # See spec/tasks.md.
 .local/
 
+# Written by `mise run lib-local` alone, for a `[patch]` that points at the lib checkout beside
+# this one; see .mise/tasks/lib-local.
+.cargo/
+
 # Bytecode cache for the Python mise tasks. Produced whenever one is imported rather than run.
 __pycache__/
 

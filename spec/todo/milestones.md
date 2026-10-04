@@ -434,12 +434,8 @@ The arrangement is [../architecture/layers.md](../architecture/layers.md).
 | F2  | The layer check                 | `graph.py` reads a package's layer from its path and fails on one pointing up, the four couplings it cannot see carried as named exceptions          | F1    | **done** |
 | F3  | The move                        | `lib/`, `infra/`, `platform/`, `services/`; the scopes; the library's fourteen packages become five; `libs/urls` becomes three                       | F2    | **done** |
 | F4  | The couplings go                | host reads the platform's apps and names from their declarations; the panel stops naming `cron` and the ledger; the exception list is empty          | F3    | **done** |
-| F5  | The library's repository        | `axum-governor` renamed `lib` and made a monorepo; Verdaccio for development; trusted publishing; each first version by hand                         | F3    | mid      |
+| F5  | The library's repository        | `axum-governor` renamed `lib` and made a monorepo; Verdaccio for development; trusted publishing; each first version by hand                         | F3    | **done** |
 | F6  | The split                       | `web`, `monoflake/infra` and `monoflake/platform` continue from one commit; Cloudflare and Vercel pointed once; the workspace's `repos.toml` follows | F4 F5 | mid      |
-
-**F5 is done but for Verdaccio.** Every package and crate is published from the lib repository
-and installed here from its registry, and `lib/` is gone from this repository; what is left is a
-local registry, so a change to the library can be tried here before it is released.
 
 **The Workers and Vercel apps move in F6, not F3**, so nothing was frozen: Cloudflare's and
 Vercel's builds name each app's own directory and nothing under it, and those seven -- `aka`,

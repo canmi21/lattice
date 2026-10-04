@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+#MISE description="Take the library from the lib checkout beside this one, not from its registries: `lib-local [--off]`"
+"""Use a change to the library here before it is released.
+
+On, every `@canmi/*` package the lib repository publishes is pinned to the newest version
+`release --local` put in the local registry, and installed from there; and each of its crates is
+taken from `../lib` by a `[patch]` in `.cargo/config.toml`, its requirement loosened to the
+version that checkout says. Every file this rewrites is copied to `.local/lib/` first, `--off`
+puts each back, and `verify` refuses to pass while the copies exist, so a local version never
+reaches a commit. See spec/architecture/layers.md, "Publishing".
+"""
+
+import json
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+LIB = ROOT.parent / "lib"
+LOCAL = "http://localhost:4873"
+SAVED = ROOT / ".local" / "lib"
+CARGO_CONFIG = ROOT / ".cargo" / "config.toml"
+PACKAGES = ("@canmi/me", "@canmi/kit", "@canmi/ui", "@canmi/web", "@canmi/response")
+CRATES = ("canmi", "response", "whereabouts")
+
+
+def run(*command, check=True, capture=False):
+	print("$", " ".join(command), flush=True)
+	return subprocess.run(command, cwd=ROOT, check=check, capture_output=capture, text=True)
+
+
+def tracked(pattern):
+	return run("git", "ls-files", pattern, capture=True).stdout.split()
+
+
+def manifests():
+	"""Every manifest that names one of the library's packages or crates, and both lockfiles."""
+	found = ["pnpm-lock.yaml", "Cargo.lock"]
+	for path in tracked("*package.json"):
+		deps = json.loads((ROOT / path).read_text())
+		names = {n for key in ("dependencies", "devDependencies") for n in deps.get(key, {})}
+		if names & set(PACKAGES):
+			found.append(path)
+	crate = re.compile(rf"(?m)^({'|'.join(CRATES)}) = ")
+	found += [path for path in tracked("*Cargo.toml") if crate.search((ROOT / path).read_text())]
+	return found
+
+
+def save(paths):
+	"""Copy each file to `.local/lib/` once: a second `lib-local` keeps the copies of the first."""
+	if SAVED.exists():
+		return
+	for path in paths:
+		(SAVED / path).parent.mkdir(parents=True, exist_ok=True)
+		shutil.copy2(ROOT / path, SAVED / path)
+
+
+def local_versions():
+	"""Each package's newest local version, the registry's `local` tag, for those it holds."""
+	found = {}
+	for name in PACKAGES:
+		answer = run("npm", "view", name, "dist-tags.local", "--registry", LOCAL, check=False, capture=True)
+		if answer.returncode == 0 and answer.stdout.strip():
+			found[name] = answer.stdout.strip()
+	return found
+
+
+def pin(paths, versions):
+	for path in paths:
+		if not path.endswith("package.json"):
+			continue
+		file = ROOT / path
+		data = json.loads(file.read_text())
+		for key in ("dependencies", "devDependencies"):
+			for name in data.get(key, {}):
+				if name in versions:
+					data[key][name] = versions[name]
+		file.write_text(json.dumps(data, indent="\t", ensure_ascii=False) + "\n")
+
+
+def patch(paths):
+	"""Point each crate at `../lib`, at the version that checkout holds: the dated `canmi` reads
+	`0.0.0` there until a release stamps it, which no published requirement matches."""
+	held = {}
+	for crate in CRATES:
+		text = (LIB / "crates" / crate / "Cargo.toml").read_text()
+		held[crate] = re.search(r'(?m)^version = "([^"]+)"', text).group(1)
+	for path in paths:
+		if not path.endswith("Cargo.toml"):
+			continue
+		file = ROOT / path
+		text = file.read_text()
+		for crate, version in held.items():
+			text = re.sub(rf'(?m)^{crate} = "[^"]*"', f'{crate} = "={version}"', text)
+			text = re.sub(rf'(?m)^({crate} = {{ version = )"[^"]*"', rf'\1"={version}"', text)
+		file.write_text(text)
+	CARGO_CONFIG.parent.mkdir(exist_ok=True)
+	lines = ["# Written by `mise run lib-local`, removed by `--off`; never committed.", "[patch.crates-io]"]
+	lines += [f'{crate} = {{ path = "../lib/crates/{crate}" }}' for crate in CRATES]
+	CARGO_CONFIG.write_text("\n".join(lines) + "\n")
+
+
+def on():
+	if run("curl", "-sf", "-o", "/dev/null", f"{LOCAL}/-/ping", check=False).returncode != 0:
+		sys.exit(f"lib-local: nothing answers at {LOCAL}; run `mise run registry` in ../lib")
+	if not LIB.is_dir():
+		sys.exit(f"lib-local: no lib checkout at {LIB}")
+	versions = local_versions()
+	if not versions:
+		sys.exit("lib-local: the local registry holds nothing; run `mise run release --local` in ../lib")
+	paths = manifests()
+	save(paths)
+	pin(paths, versions)
+	patch(paths)
+	run("pnpm", "install", "--registry", LOCAL)
+	run("cargo", "metadata", "--format-version", "1", "--quiet", capture=True)
+	print("lib-local: on, until `mise run lib-local --off`:")
+	for name, version in versions.items():
+		print(f"  {name}@{version}")
+	for crate in CRATES:
+		print(f"  {crate} from ../lib/crates/{crate}")
+
+
+def off():
+	if not SAVED.exists():
+		print("lib-local: already off")
+		return
+	for saved in sorted(p for p in SAVED.rglob("*") if p.is_file()):
+		shutil.copy2(saved, ROOT / saved.relative_to(SAVED))
+	CARGO_CONFIG.unlink(missing_ok=True)
+	if CARGO_CONFIG.parent.exists() and not any(CARGO_CONFIG.parent.iterdir()):
+		CARGO_CONFIG.parent.rmdir()
+	run("pnpm", "install")
+	shutil.rmtree(SAVED)
+	print("lib-local: off; every package and crate is its registry's again")
+
+
+if __name__ == "__main__":
+	off() if "--off" in sys.argv[1:] else on()
