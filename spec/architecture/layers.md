@@ -59,10 +59,9 @@ moved yet has no layer and is not held.
 - **Every name sits under a scope the author owns**, published or not. An unscoped name, or one in
   a scope somebody else can register, is one a stranger can publish first and a misconfigured
   install will fetch.
-- **The one unscoped name is `canmi`**, the author's own, the same on npm and on crates.io: the
-  library's package of facts about them. It is theirs only once published, so its first version
-  goes out when the library's repository does rather than waiting its turn; it has been in
-  production all along.
+- **The author's facts are `@canmi/me` on npm and `canmi` on crates.io.** The bare name was the
+  plan for both, and npm refused it as too near `wagmi` and `vanli`; crates.io took it. A crate
+  has no scope, so a name is all the namespace it has, and `canmi` is the author's there.
 
 ## Who owns what
 
