@@ -16,6 +16,7 @@ WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY apps apps
 COPY libs libs
+COPY lib lib
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
 	--mount=type=cache,target=/src/target \
 	case "$TARGETARCH" in arm64) arch=aarch64 ;; amd64) arch=x86_64 ;; *) exit 1 ;; esac \
