@@ -5,7 +5,8 @@
 	"scripts": {
 		"dev": "wrangler dev",
 		"deploy": "wrangler deploy --env=\"\"",
-		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
+		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\"",
+		"bundle": "esbuild src/node.ts --bundle --platform=node --format=esm --target=node26 --outfile=dist/node.mjs"
 	},
 	"dependencies": {
 		"@canmi/limits": "workspace:*",
@@ -13,6 +14,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260911.1",
+		"esbuild": "^0.28.2",
 		"wrangler": "^4.131.1"
 	}
 }

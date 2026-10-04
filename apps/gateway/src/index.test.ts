@@ -397,22 +397,19 @@ describe('the gateway', () => {
 	});
 
 	it('at home, asks a service on Workers through the public gateway, and a node service at home', async () => {
-		const relayed: Request[] = [];
-		const outside = vi
-			.spyOn(globalThis, 'fetch')
-			.mockImplementation(async (input) => (relayed.push(input as Request), new Response('{}')));
+		const relay = binding();
 		const home = binding();
 		const env = {
 			HOME: home.fetcher,
 			QUOTA: counters(true).counters,
-			RELAY: 'https://api.example',
+			RELAY: relay.fetcher,
 			INTERNAL_TOKEN: 'house',
 		};
 		await ask('/v1/site/stats?x=1', env, { headers: { [INTERNAL_HEADER]: 'forged' } });
 		await ask('/v1/geo/address', env);
-		outside.mockRestore();
+		const relayed = relay.seen;
 		expect(relayed.map((request) => request.url)).toEqual([
-			'https://api.example/v1/site/stats?x=1',
+			`https://${GATEWAY.api}/v1/site/stats?x=1`,
 		]);
 		expect(relayed[0]?.headers.get(INTERNAL_HEADER)).toBe('house');
 		expect(home.seen).toHaveLength(1);

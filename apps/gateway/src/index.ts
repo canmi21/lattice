@@ -56,11 +56,14 @@ export type Env = Readonly<Record<string, unknown>> & {
 	 */
 	readonly INTERNAL_TOKEN?: string;
 	/**
-	 * Set only where the gateway runs at home: the public gateway's origin, through which a service
+	 * Set only where the gateway runs at home: the way to the public gateway, through which a service
 	 * on Workers is asked, having no copy there. Absent, a service on Workers is asked by binding.
 	 */
-	readonly RELAY?: string;
+	readonly RELAY?: unknown;
 };
+
+/** Where the internal gateway asks a service on Workers: the public API host. */
+const RELAYED = `https://${GATEWAY.api}`;
 
 /** The header the internal gateway carries `INTERNAL_TOKEN` in, taken off before a service. */
 export const INTERNAL_HEADER = 'x-internal';
@@ -390,15 +393,15 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		}
 		// At home a service on Workers has no copy: it is asked through the public gateway under the
 		// API host's spelling, with the token that says it was counted here.
-		if (target.placement === WORKERS && typeof c.env.RELAY === 'string') {
+		if (target.placement === WORKERS && isFetcher(c.env.RELAY)) {
 			const relayed = new Request(
-				new URL(`/${tuple.version}/${tuple.service}${tuple.path}${url.search}`, c.env.RELAY),
+				new URL(`/${tuple.version}/${tuple.service}${tuple.path}${url.search}`, RELAYED),
 				c.req.raw,
 			);
 			relayed.headers.delete(INTERNAL_HEADER);
 			if (c.env.INTERNAL_TOKEN) relayed.headers.set(INTERNAL_HEADER, c.env.INTERNAL_TOKEN);
 			try {
-				return answered(await fetch(relayed));
+				return answered(await c.env.RELAY.fetch(relayed));
 			} catch {
 				return answered(failure(502, 'upstream_unavailable'), true);
 			}
