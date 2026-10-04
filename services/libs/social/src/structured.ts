@@ -2,7 +2,7 @@
  * The author as one entity every page names by the same identifier, and the one safe way to put
  * structured data on a page. See spec/architecture/entities.md.
  */
-import { author } from 'canmi/identity';
+import { author } from '@canmi/me/identity';
 import { URLS } from '@monoflake/sdk';
 
 const SITE = URLS.apps.production.site;

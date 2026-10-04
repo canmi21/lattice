@@ -1,4 +1,4 @@
-import { author } from 'canmi/identity';
+import { author } from '@canmi/me/identity';
 import { URLS } from '@monoflake/sdk';
 
 /** Every entry, in the order the site shows them. See spec/architecture/identity.md. */

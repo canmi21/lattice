@@ -6,6 +6,6 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"canmi": "workspace:*"
+		"@canmi/me": "2026.1004.0"
 	}
 }

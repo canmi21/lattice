@@ -84,7 +84,7 @@
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import Dial from './components/dial.svelte';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 
 	/** Passed rather than read; see spec/locale/addressing.md. */

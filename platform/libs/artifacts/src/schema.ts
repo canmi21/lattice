@@ -4,7 +4,7 @@
  * importing one another in a circle.
  */
 import * as v from 'valibot';
-import { LOCALE_CODES, type LocaleCode } from 'canmi/locales';
+import { LOCALE_CODES, type LocaleCode } from '@canmi/me/locales';
 
 /** BLAKE3 truncated to 128 bits, as the bucket spells it. See spec/architecture/artifacts.md. */
 export const HASH_PATTERN = /^[0-9a-f]{32}$/;

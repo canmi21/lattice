@@ -20,7 +20,6 @@ members = [
 	"lib/crates/geocode",
 	"platform/libs/ledger",
 	"lib/crates/response",
-	"lib/crates/canmi",
 	"platform/libs/sdk",
 ]
 

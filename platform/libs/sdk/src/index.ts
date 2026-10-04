@@ -18,7 +18,7 @@ import {
 	normalizedLocation,
 	normalizePath,
 	type Normalized,
-} from 'canmi/urls';
+} from '@canmi/me/urls';
 import { INFRA, PANEL_PORT } from '@monoflake/urls';
 
 /**

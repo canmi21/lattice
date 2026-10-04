@@ -3,7 +3,7 @@
 	import { untrack } from 'svelte';
 	import { ARTICLE_THUMBNAIL_LINES } from '@canmi/ui/primitives';
 	import { arriving } from '@canmi/kit/behavior/arrival';
-	import { shortDate } from 'canmi/locales/format';
+	import { shortDate } from '@canmi/me/locales/format';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	let {

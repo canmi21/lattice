@@ -17,7 +17,7 @@
 	import SpeakerSimpleXIcon from 'phosphor-svelte/lib/SpeakerSimpleXIcon';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import type { VideoRung } from '@monoflake/artifacts/types';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
 	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';

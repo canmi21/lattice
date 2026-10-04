@@ -2,7 +2,8 @@
 # ignores the rest, so Rust-only libraries under libs/ are simply invisible to it. Cargo
 # has no such tolerance, which is why Cargo.toml lists its members by hand instead.
 packages:
-  - lib/pkgs/*
+  # Until @canmi/response is published from the lib repository; see spec/architecture/layers.md.
+  - lib/pkgs/response
   - infra/apps/*
   - infra/libs/*
   - platform/apps/*
@@ -75,3 +76,6 @@ minimumReleaseAgeExclude:
   - wrangler
   - '@cloudflare/unenv-preset@2.16.2'
   - miniflare@5.20260921.0-alpha
+  # The author's own scope, published from the lib repository by the author alone: a day's wait
+  # protects against nobody, and would hold back a change made here and released there.
+  - '@canmi/*'

@@ -9,7 +9,7 @@ import type {
 	ViewAnswer,
 } from '@monoflake/artifacts';
 import { PUBLISHED, WHILE_UNREACHABLE } from '@monoflake/cache';
-import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from 'canmi/locales';
+import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/me/locales';
 import { Hono, type Context } from 'hono';
 import type { Bindings } from '../bindings';
 import { failure, success } from '../lib/respond';

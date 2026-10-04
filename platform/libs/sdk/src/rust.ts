@@ -1,4 +1,4 @@
-import { rustConstants } from 'canmi/rust';
+import { rustConstants } from '@canmi/me/rust';
 import { GATEWAY_HOSTS, GATEWAY_NAMES, URLS } from './index.ts';
 
 /**

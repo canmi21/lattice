@@ -109,7 +109,7 @@
 	} from '#lib/engagement/engagement.svelte.js';
 	import { PUBLIC_LANGUAGE, type LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
-	import { intlLocale } from 'canmi/locales/format';
+	import { intlLocale } from '@canmi/me/locales/format';
 
 	/**
 	 * Expanding answers to whether the pointer can hover, not to how wide the window is -- a tap

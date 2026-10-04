@@ -29,9 +29,10 @@
 		"./prose-root.svelte": "./src/prose-root.svelte"
 	},
 	"dependencies": {
-		"@canmi/kit": "workspace:*",
+		"@canmi/kit": "2026.1004.0",
+		"@canmi/me": "2026.1004.0",
 		"@canmi/messages": "workspace:*",
-		"@canmi/ui": "workspace:*",
+		"@canmi/ui": "2026.1004.0",
 		"@chenglou/pretext": "^0.0.9",
 		"@lucide/svelte": "^1.51.0",
 		"@monoflake/artifacts": "workspace:*",
@@ -41,7 +42,6 @@
 		"@videojs/media": "10.0.1",
 		"@videojs/store": "10.0.1",
 		"bits-ui": "^2.19.5",
-		"canmi": "workspace:*",
 		"d3-hierarchy": "^3.1.2",
 		"esm-env": "^1.2.2",
 		"mermaid": "^12.1.0",

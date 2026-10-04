@@ -1,4 +1,4 @@
-import { endonym } from 'canmi/locales';
+import { endonym } from '@canmi/me/locales';
 import * as m from '@canmi/messages';
 import { PUBLIC_LANGUAGE, type LocaleCode } from './index';
 

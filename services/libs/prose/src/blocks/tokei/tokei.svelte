@@ -161,7 +161,7 @@
 	import { URLS } from '@monoflake/sdk';
 	import { langColor, parseTokei, type LangStat } from './tokei';
 	import type { TokeiView } from '@monoflake/artifacts/types';
-	import { compactCount } from 'canmi/locales/format';
+	import { compactCount } from '@canmi/me/locales/format';
 
 	let {
 		source,

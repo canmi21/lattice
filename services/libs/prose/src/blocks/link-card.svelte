@@ -49,7 +49,7 @@
 	import Picture, { type Source } from '../components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import * as m from '@canmi/messages';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 
 	/**
 	 * What this card is, plus everything its cover is -- which it takes as `Source` rather than

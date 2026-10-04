@@ -29,7 +29,7 @@
 	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
 	import { reader } from '@canmi/kit/behavior/state';
 	import type { VideoRung } from '@monoflake/artifacts/types';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';

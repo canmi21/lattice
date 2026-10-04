@@ -142,7 +142,7 @@ prose lives with the component that renders the article body; a rule about a por
 lives with the component that opens it.
 
 A `:root` block declaring nothing but custom properties is not a layering question at all. It
-belongs to [lib/pkgs/kit/tokens](../../../lib/pkgs/kit/tokens), which is where a value gets a name, and it should
+belongs to lib/pkgs/kit/tokens, which is where a value gets a name, and it should
 not be weighed against the three questions above.
 
 ### Lowering a declaration is only safe where no surface already sets it
@@ -159,7 +159,7 @@ out of the vocabulary means first checking that no surface on the same element s
 
 `font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family` and
 `font-variant-numeric` are vocabulary wherever they appear, whether or not the declaration around
-them is a named recipe, and each takes its value from [vocabulary.stylex.ts](../../../lib/pkgs/kit/tokens/src/vocabulary.stylex.ts) rather than a
+them is a named recipe, and each takes its value from vocabulary.stylex.ts in `@canmi/kit` rather than a
 literal.
 
 **This is an exception to the membership axis and is written as one.** The alternative was worse:
@@ -234,8 +234,8 @@ library sets; a child reached through its parent's `:focus-visible` is the same 
 the escape hatch by the same mechanism read from the other side.
 
 **The vocabulary** owns every declaration that is a member of a named surface in
-[surfaces.ts](../../../lib/pkgs/kit/tokens/src/surfaces.ts) or takes its value from
-[vocabulary.stylex.ts](../../../lib/pkgs/kit/tokens/src/vocabulary.stylex.ts):
+surfaces.ts in `@canmi/kit` or takes its value from
+vocabulary.stylex.ts in `@canmi/kit`:
 
 - colour, in all its spellings: `color`, `background-color`, `border-color`, `outline-color`,
   `fill`, `stroke`
@@ -322,7 +322,7 @@ Typography was the largest thing the old axis left open, because "visual" swallo
 **The type ramp is the vocabulary.** `font-size`, `line-height`, `font-weight`, `letter-spacing`,
 `font-family` and `font-variant-numeric` take their values from a scale this repository maintains
 and names -- the type ladder, the two line ratios, the two weights and the two monospace stacks in
-[vocabulary.stylex.ts](../../../lib/pkgs/kit/tokens/src/vocabulary.stylex.ts). Writing one of those
+vocabulary.stylex.ts in `@canmi/kit`. Writing one of those
 values is a lookup into that scale whether or not the spelling admits it, and a second spelling of
 the ramp is exactly how a ramp drifts. The site's repeated `1.4` line height is the case that
 proves the rule rather than the exception to it: the ladder does not name it and nothing records
@@ -502,7 +502,7 @@ which says the number of files is not a layering question in either direction. N
 
 The file holds four unrelated things. Named recipes past the three-component threshold -- the
 `.focus-link` family, `.spring-underline`, `.article-link`, `.jump-target` -- are the vocabulary,
-and go to [surfaces.ts](../../../lib/pkgs/kit/tokens/src/surfaces.ts). **Four of those
+and go to surfaces.ts in `@canmi/kit`. **Four of those
 names do not go, and the reason is the interface rather than convenience**: `focus-link`,
 `spring-underline`, `article-link` and `jump-target` are written onto compiled prose by
 [compile.ts](../../../services/libs/compile/src/compile.ts), which the corpus publish runs
@@ -511,7 +511,7 @@ stylesheet and they are still the vocabulary -- "A layer is not a mechanism" abo
 That does not give the file back a position: a stylesheet carrying four vocabulary recipes is a
 carrier, and a file is not a layer. **Which stylesheets carry them was settled on 2026-09-24, when
 the CMS came to draw the same prose**: the focus ring, `--ease-spring` and `.spring-underline` are
-[lib/pkgs/kit/tokens/src/interaction.css](../../../lib/pkgs/kit/tokens/src/interaction.css), because every control
+lib/pkgs/kit/tokens/src/interaction.css, because every control
 in either application uses them; `.article-link`, `.jump-target` and the per-language line-breaking
 of `.article-content` are [services/libs/prose/src/prose.css](../../../services/libs/prose/src/prose.css), beside
 `rail.css`, because they are names the compiler writes into prose. Both applications import both

@@ -14,13 +14,13 @@
 		"database:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
+		"@canmi/me": "2026.1004.0",
 		"@canmi/response": "workspace:*",
 		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/cache": "workspace:*",
 		"@monoflake/limits": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
 		"@monoflake/store": "workspace:*",
-		"canmi": "workspace:*",
 		"drizzle-orm": "^0.45.3",
 		"hono": "^4.13.12",
 		"valibot": "^1.5.0"

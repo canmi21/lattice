@@ -90,7 +90,7 @@
 	import LanguageSwitcher from '#lib/locale/switcher.svelte';
 	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
-	import { compactCount, intlLocale } from 'canmi/locales/format';
+	import { compactCount, intlLocale } from '@canmi/me/locales/format';
 
 	let { data }: { data: PageData } = $props();
 	const locale = $derived(data.locale.code);

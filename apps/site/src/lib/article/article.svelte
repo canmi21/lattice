@@ -168,7 +168,7 @@
 	import type { RailWidths } from '@canmi/prose/rail-widths';
 	import TranslationNotice from './translation-notice.svelte';
 	import IconXai from './xai-icon.svelte';
-	import { shortDate } from 'canmi/locales/format';
+	import { shortDate } from '@canmi/me/locales/format';
 
 	type ArticleLocale = {
 		code: LocaleCode;

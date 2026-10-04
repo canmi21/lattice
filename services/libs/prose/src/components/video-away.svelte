@@ -7,7 +7,7 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import PictureInPictureIcon from 'phosphor-svelte/lib/PictureInPictureIcon';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 	import { styles } from './video-controls.styles.ts';
 

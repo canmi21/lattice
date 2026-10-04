@@ -8,7 +8,7 @@
  * the moment one side learned about a directory the other did not.
  */
 
-import { readdirSync, statSync } from 'node:fs';
+import { readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,8 +32,10 @@ const SKIP = new Set(['node_modules', 'paraglide', 'dist', 'target']);
  */
 const TREES: { dir: string; only?: RegExp }[] = [
 	{ dir: join(SITE, 'src') },
-	...['lib/pkgs', 'platform/libs', 'services/libs'].map((dir) => ({
-		dir: join(ROOT, dir),
+	...['platform/libs', 'services/libs'].map((dir) => ({ dir: join(ROOT, dir), only: /\.css$/ })),
+	// The design packages as installed: a new version is new files, newer than the last build.
+	...['@canmi/kit', '@canmi/ui'].map((name) => ({
+		dir: join(realpathSync(join(SITE, 'node_modules', name)), 'dist'),
 		only: /\.css$/,
 	})),
 ];

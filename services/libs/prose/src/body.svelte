@@ -74,7 +74,7 @@
 	import { pageUrls } from '@monoflake/sdk';
 	import { pictured, type ParsedResource } from '@monoflake/artifacts';
 	import type { Block } from '@monoflake/artifacts/types';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';
 	import Anchored from './anchored.svelte';

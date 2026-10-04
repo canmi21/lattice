@@ -1,6 +1,6 @@
 # The surfaces a page stacks, and which way each of them moves
 
-The neutral palette in [`@canmi/kit/theme`](../../lib/pkgs/kit/theme/src/palettes/concrete.css) holds two kinds of colour.
+The neutral palette in `@canmi/kit/theme` holds two kinds of colour.
 [focus.md](focus.md) already names one of them in passing -- the neutral ramp running strong text,
 text, soft text, strong border, border. This file is the other one, and what it costs.
 

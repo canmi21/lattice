@@ -99,7 +99,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@monoflake/sdk';
 	import type { TweetRecord } from '@monoflake/artifacts/types';
-	import { compactCount, shortDate } from 'canmi/locales/format';
+	import { compactCount, shortDate } from '@canmi/me/locales/format';
 	import SocialIcon from '../icons.svelte';
 
 	let { tweet }: { tweet: TweetRecord } = $props();

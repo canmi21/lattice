@@ -2,7 +2,7 @@
  * What `llms.txt` and `llms-full.txt` are built from, fetched once from the answers the pages use.
  * See spec/architecture/markdown.md, "The index".
  */
-import { author } from 'canmi/identity';
+import { author } from '@canmi/me/identity';
 import { profiles, telegramGroup } from '@canmi/social/structured';
 import type { LlmsInput } from '#lib/documents/llms.js';
 import { publishedHome, publishedMetadata, publishedSitemap } from '#lib/published/index.js';

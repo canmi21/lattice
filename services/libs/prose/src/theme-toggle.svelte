@@ -31,7 +31,7 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import { applyTheme, themeCookie, type Theme } from '@canmi/kit/theme';
 	import Dial from './components/dial.svelte';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 
 	/**

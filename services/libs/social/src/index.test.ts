@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { author } from 'canmi/identity';
+import { author } from '@canmi/me/identity';
 import { ACCOUNTS, SOCIAL, socialLinks } from './index';
 import { aliasesOf, person, PERSON_ID, SITE_ID } from './structured';
 

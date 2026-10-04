@@ -39,33 +39,21 @@ struct SiteConfig {
 	author: Author,
 }
 
-/// The author the home card introduces, from `canmi/identity`. Required rather than defaulted:
-/// an empty field would draw a card with a gap where the author should be.
-#[derive(Debug, Default, Deserialize)]
+/// The author the home card introduces, compiled in from the `canmi` crate.
+#[derive(Debug, Default)]
 struct Author {
-	#[serde(rename = "fullName")]
 	full_name: String,
 	role: String,
 }
 
+impl Author {
+	fn own() -> Self {
+		Self { full_name: canmi::AUTHOR_FULL_NAME.into(), role: canmi::AUTHOR_ROLE.into() }
+	}
+}
+
 pub fn config_path(repo: &Path) -> PathBuf {
 	repo.join("apps").join("site").join("site.config.yaml")
-}
-
-fn author_path(repo: &Path) -> PathBuf {
-	repo.join("lib").join("pkgs").join("canmi").join("identity").join("author.json")
-}
-
-fn read_author(repo: &Path) -> Result<Author, String> {
-	let path = author_path(repo);
-	let text = std::fs::read_to_string(&path)
-		.map_err(|error| format!("could not read {}: {error}", path.display()))?;
-	let author: Author =
-		serde_json::from_str(&text).map_err(|error| format!("{}: {error}", path.display()))?;
-	if author.full_name.is_empty() || author.role.is_empty() {
-		return Err(format!("{}: fullName and role must not be empty", path.display()));
-	}
-	Ok(author)
 }
 
 /// The family name inside the TTF, which is what the layout asks for by name.
@@ -610,7 +598,7 @@ pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<O
 		.map_err(|error| format!("could not read the site config: {error}"))?;
 	let mut config: SiteConfig =
 		serde_yaml_ng::from_str(&text).map_err(|error| format!("site config: {error}"))?;
-	config.author = read_author(repo)?;
+	config.author = Author::own();
 
 	// Nine files, read here and nowhere else. Each card wants the catalogue for its own view, and
 	// asking per card meant several thousand reads and parses to arrive at nine answers.
@@ -641,12 +629,12 @@ fn encode(pixels: &[u8]) -> Result<Vec<u8>, String> {
 mod tests {
 	use super::*;
 
+	/// Required rather than defaulted: an empty field would draw a card with a gap where the
+	/// author should be.
 	#[test]
-	fn reads_the_author_the_home_card_introduces() {
-		let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-		let author = read_author(&repo).expect("lib/pkgs/canmi/identity/author.json");
+	fn introduces_an_author_with_a_name_and_a_role() {
+		let author = Author::own();
 		assert!(!author.full_name.is_empty() && !author.role.is_empty());
-		assert!(read_author(&repo.join("missing")).is_err());
 	}
 
 	/// A title the hand-rolled reader got wrong, and the reason the reader was replaced.

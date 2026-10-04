@@ -19,7 +19,7 @@
 	import ToggleLeft from '@lucide/svelte/icons/toggle-left';
 	import ToggleRight from '@lucide/svelte/icons/toggle-right';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { endonym, PUBLIC_LANGUAGE } from 'canmi/locales';
+	import { endonym, PUBLIC_LANGUAGE } from '@canmi/me/locales';
 	import { onMount, tick, type Component } from 'svelte';
 	import { edgeReveal } from '@canmi/kit/behavior/edge';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';

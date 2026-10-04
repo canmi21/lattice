@@ -117,7 +117,7 @@
 	import { URLS } from '@monoflake/sdk';
 	import type { CardAlign, RepoRecord } from '@monoflake/artifacts/types';
 	import { langColor } from './tokei/tokei';
-	import { compactCount, shortDate } from 'canmi/locales/format';
+	import { compactCount, shortDate } from '@canmi/me/locales/format';
 
 	let {
 		repo,

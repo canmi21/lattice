@@ -169,10 +169,12 @@ split, because the split moves `lib/` into it.
 ## Versions
 
 - **A package the author mostly consumes is dated**: `canmi` in both languages, `@canmi/kit`,
-  `@canmi/ui`, `@canmi/web`, `@monoflake/sdk` and `monoflake`, `@monoflake/urls`. The version is the UTC day, `2026.10.4` -- never zero-padded,
-  which semver forbids -- published after the day ends when the package's tree changed since its
-  last release tag. A build within the day is `-next.N` on the `next` tag. `^` spans a whole year
-  of dated versions, so a consumer pins one exactly and `update` moves it.
+  `@canmi/ui`, `@canmi/web`, `@monoflake/sdk` and `monoflake`, `@monoflake/urls`. The version is
+  `YYYY.MDD.N`: the UTC year, the month times a hundred plus the day, and the release's number
+  within that day from 0 -- `2026.1004.0`, then `2026.1004.1`, and `2026.104.0` for the fourth of
+  January. Nothing is zero-padded, which semver forbids. A push that changes the package publishes
+  it, so a change is never held back for the date to turn. `^` spans a whole year of dated
+  versions, so a consumer pins one exactly and `update` moves it.
 - **A package meant for strangers is semver**: `response` in both languages, `axum-governor`,
   `whereabouts`. The level
   is read from the Conventional Commits since the last release by release-plz, and
@@ -191,7 +193,7 @@ package is moved into the library's repository under it, and published.
 been in production by then, which is what 1.0.0 says; a 0.x would only defer a judgment of when it
 is stable that no rule can make, and a major number is cheap afterwards.
 
-- `geocode` will be published as `whereabouts`, the name already chosen, when the author decides.
+- `geocode` is published as `whereabouts` 1.0.0, with `geo`'s address lookup taken in beside it.
 - `response` is the author's own, already run here, and is redone over the published one as 2.0.0.
 - `axum-governor` is published and stays as it is; it only changes repository.
 
@@ -207,6 +209,11 @@ publish` of the tarball by npm 11.5.1 or later, through trusted publishing. `pnp
   hand-published first version is `0.0.0`, which claims the name and nothing more; its first dated
   version is the pipeline's, on the UTC day it first publishes. The repository is renamed before
   any trusted publisher is registered, since the registries check the repository's name.
+- **A consumer of the author's takes every package from its registry, never from git**: what a
+  stranger installs is what runs here first, so a package published broken breaks here before
+  anywhere else, and nothing is built in the consumer. The author's own scope, `@canmi/*`, is
+  exempt from the day's wait `minimumReleaseAge` imposes, which would hold back a change made in
+  the library and released there.
 - **Across repositories during development** a dependency comes from Verdaccio, as a local
   prerelease `-local.N` so it never shares a version with the registry's copy, and a crate through
   `[patch]` in a `.cargo/config.toml`.

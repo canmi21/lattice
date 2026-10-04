@@ -40,7 +40,7 @@
 
 <script lang="ts">
 	import Preview from './preview.svelte';
-	import type { LocaleCode } from 'canmi/locales';
+	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 
 	let {

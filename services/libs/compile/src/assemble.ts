@@ -1,4 +1,4 @@
-import { PUBLIC_LANGUAGE } from 'canmi/locales';
+import { PUBLIC_LANGUAGE } from '@canmi/me/locales';
 
 export type TranslationLocale = (typeof PUBLIC_LANGUAGE)[keyof typeof PUBLIC_LANGUAGE];
 

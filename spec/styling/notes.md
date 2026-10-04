@@ -25,7 +25,7 @@ without moving and scrolls smoothly to it after hydration. Handling reload the s
 throw away the reader's place.
 
 A note's marker and the way back from a note are on this too, and are the reason the modifier
-test and the reduced-motion check live in [jump.ts](../../lib/pkgs/kit/behavior/src/jump.ts) rather
+test and the reduced-motion check live in jump.ts in `@canmi/kit` rather
 than inside one component: a marker in prose arrives as compiled HTML with no component to hang a
 handler on, so the article root listens for all of them at once. Both ends are jump targets, so
 returning to a marker keeps the same band above it that arriving at a section does.

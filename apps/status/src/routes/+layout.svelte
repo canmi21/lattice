@@ -106,7 +106,7 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
 	import { applyTheme, currentTheme, themeCookie } from '@canmi/kit/theme';
-	import { author } from 'canmi/identity';
+	import { author } from '@canmi/me/identity';
 	import { profiles } from '@canmi/social/structured';
 	import { ACCOUNTS } from '@canmi/social';
 	import SocialLinks from '@canmi/social/social-links.svelte';

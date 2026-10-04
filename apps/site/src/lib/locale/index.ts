@@ -1,4 +1,4 @@
-import { localeCode, type LocaleCode } from 'canmi/locales';
+import { localeCode, type LocaleCode } from '@canmi/me/locales';
 
 /**
  * What a tag is now lives in `canmi/locales`, because the compiler needs it and this file is
@@ -14,11 +14,11 @@ export {
 	languageTag,
 	PUBLIC_LANGUAGE,
 	type LocaleCode,
-} from 'canmi/locales';
+} from '@canmi/me/locales';
 
 export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-export { SITE_LANGUAGE } from 'canmi/locales';
+export { SITE_LANGUAGE } from '@canmi/me/locales';
 
 function codeForLanguageRange(value: string): Exclude<LocaleCode, 'mw'> | undefined {
 	const range = value.toLowerCase();

@@ -176,7 +176,7 @@ Importing a styled component kit on top would create a second design system, so 
 under `apps/site/src/lib/components/` expose the small set of surfaces the site alone repeats.
 
 A visible primitive repeated by both the public site and CMS belongs to
-[`@canmi/ui/primitives`](../../lib/pkgs/ui/primitives/src/style.css). Both applications consume it directly;
+`@canmi/ui/primitives`. Both applications consume it directly;
 neither becomes the other's template, and extracting it must leave the established consumer
 visually unchanged. Two real consumers justify that boundary. A single speculative component does
 not, because opening a package per primitive turns reuse into directory ceremony rather than a
@@ -366,10 +366,9 @@ referenced it by name.
 
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
 library, so `mise run urls` renders the composed map into
-[`platform/libs/sdk/src/lib.rs`](../../platform/libs/sdk/src/lib.rs), the `monoflake` crate, and the author's own
-into [`lib/crates/canmi/src/lib.rs`](../../lib/crates/canmi/src/lib.rs), the `canmi` crate, which infra reads
-since it may not read the platform's -- each directory holding both halves of one library -- and
-commits both, like the records under `data/build/`, so a checkout compiles without Node having run
+[`platform/libs/sdk/src/lib.rs`](../../platform/libs/sdk/src/lib.rs), the `monoflake` crate; the author's
+own is the lib repository's `canmi` crate, rendered there the same way, which infra reads since it
+may not read the platform's. Each is committed beside its map, like the records under `data/build/`, so a checkout compiles without Node having run
 first. A mirror is never edited by hand: each package's
 [`rust.test.ts`](../../platform/libs/sdk/src/rust.test.ts) fails `verify` the moment it disagrees with its
 map, so the one-edit measure survives the language boundary. The

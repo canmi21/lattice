@@ -55,7 +55,7 @@ import type {
 	RepoRecord,
 	TweetRecord,
 } from '@monoflake/artifacts/types';
-import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from 'canmi/locales';
+import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/me/locales';
 import { highlight } from './highlight.ts';
 
 const SEGMENT_LAYOUT_VERSION = 5;

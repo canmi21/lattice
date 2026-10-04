@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { LOCALE_CODES, type LocaleCode } from 'canmi/locales';
+import { LOCALE_CODES, type LocaleCode } from '@canmi/me/locales';
 import { byLocale, hash, HASH_PATTERN } from './schema.ts';
 import type {
 	Alternate,

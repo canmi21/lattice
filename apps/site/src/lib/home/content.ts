@@ -1,6 +1,6 @@
 import type { PageBlock, PublishedPage } from '@monoflake/artifacts';
 import type { LocaleCode } from '../locale/index';
-import { author } from 'canmi/identity';
+import { author } from '@canmi/me/identity';
 import * as m from '@canmi/messages';
 
 export type HomepageContent = {

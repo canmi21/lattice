@@ -20,7 +20,7 @@ import Icons from 'unplugin-icons/vite';
 import { execFileSync } from 'node:child_process';
 import { defineConfig, type UserConfig } from 'vite';
 import { addresses } from '@canmi/site-api/contracts';
-import { author } from 'canmi/identity';
+import { author } from '@canmi/me/identity';
 import { parse as parseYaml } from 'yaml';
 import { reap } from './scripts/reap-workerd.ts';
 

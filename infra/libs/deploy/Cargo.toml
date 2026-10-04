@@ -24,7 +24,7 @@ sha2 = "0.11"
 thiserror = "2.0.21"
 tokio = { version = "1.53.2", features = ["net", "fs", "time", "rt", "io-util"] }
 toml = "1.1.6"
-canmi = { path = "../../../lib/crates/canmi" }
+canmi = "=2026.1004.0"
 zip = { version = "8", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
