@@ -69,5 +69,21 @@ export async function answer(event: RequestEvent): Promise<Response | undefined>
 	for (const [name, value] of Object.entries(asked.query)) inner.searchParams.set(name, value);
 	// The API asks only `waitUntil` of its context; the Worker's own comes from the same module.
 	const context = { waitUntil, passThroughOnException: () => {}, props: {} } as ExecutionContext;
-	return api.fetch(new Request(inner, event.request), await bindings(), context);
+	return api.fetch(
+		withAddress(new Request(inner, event.request), event),
+		await bindings(),
+		context,
+	);
+}
+
+/**
+ * `request` as the API reads it. Cloudflare states the caller's address in `CF-Connecting-IP`, and
+ * the routes that count by it refuse a call without one; nothing states it under `vite dev`, so
+ * there the address the dev server was asked from stands in. Production never fills it in.
+ */
+function withAddress(request: Request, event: RequestEvent): Request {
+	if (!dev || request.headers.has('CF-Connecting-IP')) return request;
+	const headers = new Headers(request.headers);
+	headers.set('CF-Connecting-IP', event.getClientAddress());
+	return new Request(request, { headers });
 }
