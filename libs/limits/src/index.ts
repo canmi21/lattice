@@ -34,6 +34,7 @@ export async function takeInOrder(
 	takeOne: (check: Check) => Promise<Taken> | Taken,
 ): Promise<Taken> {
 	for (const check of checks) {
+		// oxlint-disable-next-line no-await-in-loop -- a bucket after a refusal is never asked
 		const taken = await takeOne(check);
 		if (!taken.allowed) return taken;
 	}

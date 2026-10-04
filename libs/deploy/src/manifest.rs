@@ -146,14 +146,16 @@ pub struct Api {
 	/// "The site's API runs in the site's Worker".
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub prefix: Option<String>,
-	/// How often one address may call a route: the gateway counts it for the public and Caddy for
-	/// everything a node answers, so the service itself counts nothing. See
-	/// spec/architecture/services.md, "A limit is declared once and kept in three places".
+	/// How often one subject may call a route: `quota` counts it for each gateway and Caddy keeps a
+	/// floor under it on the node, so the service itself counts nothing. See
+	/// spec/architecture/quota.md.
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
 	pub limits: Vec<Limit>,
 }
 
-/// One route's allowance: `count` calls in `seconds`, by one address, on these methods.
+/// One route's allowance, as a bucket: `burst` calls at once, room coming back at `count` calls in
+/// `seconds`, counted by one kind of subject on these methods. See spec/architecture/quota.md, "A
+/// limit is a bucket".
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Limit {
 	pub methods: Vec<String>,
@@ -161,6 +163,26 @@ pub struct Limit {
 	pub path: String,
 	pub count: u32,
 	pub seconds: u32,
+	/// How many calls may come together; `count` when absent.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub burst: Option<u32>,
+	/// What it counts by; `address` when absent, and the one kind accepted until there are
+	/// accounts.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub subject: Option<String>,
+}
+
+impl Limit {
+	/// The kind of subject it counts by.
+	pub fn subject(&self) -> &str {
+		self.subject.as_deref().unwrap_or("address")
+	}
+
+	/// The most calls the bucket admits in any `seconds`: its burst, and the room that comes back
+	/// meanwhile -- what a sliding window under it allows without refusing what the bucket would not.
+	pub fn most_in_window(&self) -> u32 {
+		self.burst.unwrap_or(self.count).saturating_add(self.count)
+	}
 }
 
 /// The longest window a limit may count over: a day. Anything longer is a quota, not a limit.
@@ -446,10 +468,12 @@ impl Manifest {
 				&& !limit.path.trim_end_matches("/*").contains('*')
 				&& limit.count > 0
 				&& (1..=LONGEST_WINDOW).contains(&limit.seconds)
+				&& limit.burst != Some(0)
+				&& limit.subject() == "address"
 		};
-		// The gateway counts a call under the first row that covers it and Caddy under every one,
-		// so no call may be covered twice: no two rows on one method where either path covers the
-		// other, a prefix ending in `/*` covering everything under it.
+		// A call is counted under one row of each kind of subject and Caddy counts every row, so no
+		// call may be covered twice by one kind: no two rows of a subject on one method where either
+		// path covers the other, a prefix ending in `/*` covering everything under it.
 		let covers = |outer: &str, inner: &str| match outer.strip_suffix('*') {
 			Some(stem) => inner.starts_with(stem),
 			None => outer == inner,
@@ -457,7 +481,8 @@ impl Manifest {
 		let covered = |api: &Api| {
 			api.limits.iter().enumerate().all(|(index, limit)| {
 				api.limits[index + 1..].iter().all(|other| {
-					!limit.methods.iter().any(|method| other.methods.contains(method))
+					limit.subject() != other.subject()
+						|| !limit.methods.iter().any(|method| other.methods.contains(method))
 						|| !(covers(&limit.path, &other.path) || covers(&other.path, &limit.path))
 				})
 			})
@@ -568,12 +593,16 @@ mod tests {
 				path: "/address".into(),
 				count: 60,
 				seconds: 60,
+				burst: None,
+				subject: None,
 			},
 			Limit {
 				methods: vec!["GET".into(), "HEAD".into()],
 				path: "/ip".into(),
 				count: 60,
 				seconds: 60,
+				burst: None,
+				subject: None,
 			},
 		];
 		assert_eq!(manifest.api, Some(Api { public: true, prefix: None, limits }));
@@ -708,6 +737,9 @@ mod tests {
 			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 0",
 			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 86401",
 			"methods = [\"GET\"]\npath = \"/a/*/b\"\ncount = 1\nseconds = 60",
+			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 60\nburst = 0",
+			// Only an address is counted until there are accounts.
+			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 60\nsubject = \"account\"",
 			// geo's own row covers GET /address, and a prefix over it would count it twice.
 			"methods = [\"GET\"]\npath = \"/*\"\ncount = 1\nseconds = 60",
 			// geo's own row covers GET /address already.

@@ -104,8 +104,10 @@ fn limited(scope: &str, limits: &[Limit]) -> Option<Value> {
 	if limits.is_empty() {
 		return None;
 	}
+	// Caddy sees an address and no account, so it keeps a floor under the address's rows alone.
 	let zones: serde_json::Map<String, Value> = limits
 		.iter()
+		.filter(|limit| limit.subject() == "address")
 		.map(|limit| {
 			let methods: Vec<String> = limit.methods.iter().map(|method| method.to_lowercase()).collect();
 			let named = limit.path.replace("/*", "/any");
@@ -127,8 +129,11 @@ fn limited(scope: &str, limits: &[Limit]) -> Option<Value> {
 				// The address Caddy took from Cloudflare's header; `http.request.client_ip` is no
 				// placeholder, and a key that does not resolve counts everyone as one.
 				"key": "{http.vars.client_ip}",
+				// A sliding window cannot be a bucket; it allows the most the bucket ever admits in
+				// one, so the floor never refuses what `quota` lets through. See
+				// spec/architecture/quota.md, "Who asks".
 				"window": format!("{}s", limit.seconds),
-				"max_events": limit.count
+				"max_events": limit.most_in_window()
 			});
 			(format!("{scope}_{}_{path}", methods.join("-")), zone)
 		})
@@ -376,7 +381,8 @@ mod tests {
 		assert!(!pattern.is_match("/address/x") && !pattern.is_match("/v1x/address"));
 		assert_eq!(zone["match"][0]["header"]["X-Gateway"][0], "public");
 		assert_eq!(zone["key"], "{http.vars.client_ip}");
-		assert_eq!((zone["window"].as_str(), zone["max_events"].as_u64()), (Some("60s"), Some(60)));
+		// geo's row is 60 a minute with no burst named: a full bucket of 60, and 60 more meanwhile.
+		assert_eq!((zone["window"].as_str(), zone["max_events"].as_u64()), (Some("60s"), Some(120)));
 		// The LAN and the tailnet meet no limit.
 		assert!(!text(&servers["private"]).contains(r#""handler":"rate_limit""#));
 		// A refusal is the envelope, and the gateway keeps none of it.

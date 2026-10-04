@@ -75,10 +75,10 @@ export function checksOf(
 		const value = call.subjects[kind];
 		if (!value) return [];
 		const row = rows.find(
-			(row) =>
-				(row.subject ?? 'address') === kind &&
-				row.methods.includes(call.method) &&
-				covers(row.path, call.path),
+			(candidate) =>
+				(candidate.subject ?? 'address') === kind &&
+				candidate.methods.includes(call.method) &&
+				covers(candidate.path, call.path),
 		);
 		if (!row) return [];
 		const { count, seconds, burst } = row;
