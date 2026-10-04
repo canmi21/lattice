@@ -310,8 +310,8 @@ fn a_frame_stays_a_frame_when_its_pixels_are_derived_again() {
 	assert_eq!(again.layers.frame.map(|frame| frame.source), Some(clip));
 }
 
-/// Three cids in the order they sort, spelled the way `platform/libs/artifacts` insists a canonical
-/// is.
+/// Three cids in the order they sort, spelled the way `platform/libs/sdk/artifacts` insists a
+/// canonical is.
 const FIRST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const SECOND: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const THIRD: &str = "cccccccccccccccccccccccccccccccc";
@@ -470,7 +470,7 @@ fn a_record_holding_only_the_hash_is_repainted_without_reading_an_original() {
 #[test]
 fn a_record_read_off_disk_gains_what_its_bare_id_means() {
 	// The real record, converted the way `local migrate` converts it: one variant, so the
-	// largest is the only one, and the spelling is the one `platform/libs/artifacts` validates.
+	// largest is the only one, and the spelling is the one `platform/libs/sdk/artifacts` validates.
 	let merged = merged_of(LEGACY_IMAGE);
 	let media = merged.media.get(LEGACY_CID).expect("the record");
 	let canonical = media.canonical.clone().expect("a canonical");

@@ -1,0 +1,18 @@
+{
+	"name": "@monoflake/probe",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/schema.ts"
+	},
+	"scripts": {
+		"database:generate": "drizzle-kit generate",
+		"check": "node scripts/check-migrations.ts"
+	},
+	"dependencies": {
+		"drizzle-orm": "^0.45.3"
+	},
+	"devDependencies": {
+		"drizzle-kit": "^0.31.11"
+	}
+}

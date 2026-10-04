@@ -1,5 +1,5 @@
 import { browser } from '$app/env';
-import { ReadAnswerSchema, unwrapAs, type ReadAnswer } from '@monoflake/artifacts';
+import { ReadAnswerSchema, unwrapAs, type ReadAnswer } from '@monoflake/sdk/artifacts';
 import { createQuery } from '@tanstack/svelte-query';
 import { apiPath } from '#lib/api.js';
 import { askBatch } from '#lib/published/index.js';

@@ -1,5 +1,5 @@
 import { URLS } from '@monoflake/sdk';
-import { blockAnchors, isBlockAnchor } from '@monoflake/artifacts/anchors';
+import { blockAnchors, isBlockAnchor } from '@monoflake/sdk/artifacts/anchors';
 import { toString as mdastToString } from 'mdast-util-to-string';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import type { Resolved, ResolvedVideo } from './assets.ts';
@@ -18,7 +18,7 @@ import type {
 	ArticleMeta,
 	ArticleNote,
 	ArticleReference,
-} from '@monoflake/artifacts/types';
+} from '@monoflake/sdk/artifacts/types';
 import type { Root, RootContent } from 'mdast';
 import {
 	stringifier,

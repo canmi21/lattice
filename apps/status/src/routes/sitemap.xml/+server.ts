@@ -1,5 +1,5 @@
-import { PUBLISHED } from '@monoflake/cache';
-import { ownRoot, peerEntries, sitemapXml } from '@monoflake/robots';
+import { PUBLISHED } from '@monoflake/sdk/cache';
+import { ownRoot, peerEntries, sitemapXml } from '@monoflake/sdk/robots';
 import type { RequestHandler } from './$types';
 
 // The one page there is, then every other page host by its root. See spec/architecture/robots.md,

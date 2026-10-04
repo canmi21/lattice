@@ -7,8 +7,8 @@ import type {
 	RootView,
 	SitemapAnswer,
 	ViewAnswer,
-} from '@monoflake/artifacts';
-import { PUBLISHED, WHILE_UNREACHABLE } from '@monoflake/cache';
+} from '@monoflake/sdk/artifacts';
+import { PUBLISHED, WHILE_UNREACHABLE } from '@monoflake/sdk/cache';
 import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/me/locales';
 import { Hono, type Context } from 'hono';
 import type { Bindings } from '../bindings';
@@ -46,7 +46,7 @@ const ANSWERED = {
 	'Cache-Control': `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`,
 } as const;
 
-/** The only standalone page there is; see platform/libs/artifacts, `PublishedPage`. */
+/** The only standalone page there is; see platform/libs/sdk/artifacts, `PublishedPage`. */
 const HOMEPAGE = 'homepage';
 
 /**

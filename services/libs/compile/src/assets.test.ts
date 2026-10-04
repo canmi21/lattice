@@ -10,7 +10,7 @@ import {
 	ICON_EXTENSION,
 	TONES,
 	VARIANT_EXTENSION,
-} from '@monoflake/artifacts';
+} from '@monoflake/sdk/artifacts';
 import {
 	createAssetResolver,
 	createDiagramResolver,
@@ -23,7 +23,7 @@ import {
 /**
  * The Rust function that names a published file, read out of its source.
  *
- * The table is in platform/libs/artifacts, beside `ICON_EXTENSION`; its test stays here because
+ * The table is in platform/libs/sdk/artifacts, beside `ICON_EXTENSION`; its test stays here because
  * that package's own program is the browser's and has no `node:fs` to read a file with. It rebuilds
  * a URL for a file `local image` already named, and both sides once said `jpg` for a JPEG --
  * `/object` forms a key from the name and reads it, so that disagreement is a 404 now and this is

@@ -54,7 +54,7 @@ import type {
 	PageView,
 	RepoRecord,
 	TweetRecord,
-} from '@monoflake/artifacts/types';
+} from '@monoflake/sdk/artifacts/types';
 import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/me/locales';
 import { highlight } from './highlight.ts';
 

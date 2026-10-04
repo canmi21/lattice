@@ -13,13 +13,7 @@
 		"@jsquash/jpeg": "^1.6.0",
 		"@jsquash/png": "^3.1.1",
 		"@jsquash/webp": "^1.5.0",
-		"@monoflake/artifacts": "workspace:*",
-		"@monoflake/cache": "workspace:*",
-		"@monoflake/robots": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
-		"@monoflake/security": "workspace:*",
-		"@monoflake/store": "workspace:*",
-		"@monoflake/symlink": "workspace:*",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {

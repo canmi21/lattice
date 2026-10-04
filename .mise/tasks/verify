@@ -30,7 +30,7 @@ PACKAGE_GATES = {
 	"@canmi/prose": ["check-prose"],
 	"@canmi/social": ["check-social"],
 	"@canmi/fonts": ["check-fonts"],
-	"@monoflake/status-schema": ["check-status-schema"],
+	"@monoflake/probe": ["check-probe"],
 	"@canmi/status": ["check-status"],
 }
 RUST = ["lint-rust", "test-rust"]

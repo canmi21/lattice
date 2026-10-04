@@ -8,8 +8,8 @@
  */
 
 import { browser } from '$app/env';
-import { unwrap } from '@monoflake/artifacts';
-import { PUBLICATION_DELAY, WHILE_UNREACHABLE } from '@monoflake/cache';
+import { unwrap } from '@monoflake/sdk/artifacts';
+import { PUBLICATION_DELAY, WHILE_UNREACHABLE } from '@monoflake/sdk/cache';
 import { URLS } from '@monoflake/sdk';
 import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
 
@@ -23,8 +23,8 @@ type Held = { at: number; body: string };
  * Converted rather than written. Both numbers below are the ones the API stamps its answers with,
  * and this side holding a copy longer than the shared caches do would be claiming to know something
  * it was not told -- so they are read from where that decision lives and not restated. Milliseconds
- * because this side compares to `Date.now()`; `@monoflake/cache` deals in the seconds a
- * `Cache-Control` is written in. See platform/libs/cache.
+ * because this side compares to `Date.now()`; `@monoflake/sdk/cache` deals in the seconds a
+ * `Cache-Control` is written in. See platform/libs/sdk/cache.
  */
 export const FRESH_MS = PUBLICATION_DELAY * 1_000;
 

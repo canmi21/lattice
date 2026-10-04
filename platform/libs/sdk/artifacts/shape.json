@@ -1,0 +1,15 @@
+{
+	"version": 2,
+	"fingerprint": "0e0c1896deece40c",
+	"covers": [
+		"platform/libs/sdk/artifacts/src/types.ts",
+		"platform/libs/sdk/artifacts/src/index.ts:RootViewSchema",
+		"platform/libs/sdk/artifacts/src/index.ts:RootArticleSchema",
+		"platform/libs/sdk/artifacts/src/index.ts:RootAssetSchema",
+		"platform/libs/sdk/artifacts/src/index.ts:RootSchema",
+		"platform/libs/sdk/artifacts/src/index.ts:EnvelopeSchema",
+		"platform/libs/sdk/artifacts/src/index.ts:PageEnvelopeSchema",
+		"platform/libs/sdk/artifacts/src/index.ts:PublishedView",
+		"platform/libs/sdk/artifacts/src/index.ts:PublishedPage"
+	]
+}

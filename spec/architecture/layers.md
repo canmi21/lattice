@@ -61,17 +61,28 @@ moved yet has no layer and is not held.
 
 ## Who owns what
 
-| Place    | apps                                                                                                      | libs                                                                                           |
-| -------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| lib      | --                                                                                                        | me and canmi, ui, kit, web, response, whereabouts -- the lib repository's                      |
-| infra    | host, keeper, panel, meter, caddy, tunnel, resolver                                                       | deploy, urls                                                                                   |
-| platform | gateway, quota, cdn, aka, hook, geo, objects, postgres, ledger, cron, apt, shot, probe, telemetry, gemini | limits, cache, security, robots, symlink, store, artifacts, imgsrc, ledger, status-schema, sdk |
-| services | site and its API, cms, local, status                                                                      | prose, compile, collection, messages, social, hints, fonts                                     |
+| Place    | apps                                                                                                      | libs                                                                      |
+| -------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| lib      | --                                                                                                        | me and canmi, ui, kit, web, response, whereabouts -- the lib repository's |
+| infra    | host, keeper, panel, meter, caddy, tunnel, resolver                                                       | deploy, urls                                                              |
+| platform | gateway, quota, cdn, aka, hook, geo, objects, postgres, ledger, cron, apt, shot, probe, telemetry, gemini | sdk, probe, ledger                                                        |
+| services | site and its API, cms, local, status                                                                      | prose, compile, collection, messages, social, hints, fonts                |
 
 `geocode` took `geo`'s address lookup in beside the coordinate one and is published as
 `whereabouts`: one crate answering where something is, each lookup behind a feature,
 the data directory the caller's. Fetching the data stays in `geo`, an operational choice and not a
 library's, and so does the credit GeoLite2's license asks an answer to carry.
+
+## The platform publishes the sdk and the probe's schema
+
+What the services read of the platform is published, since they are another repository's after
+the split, and cut the way the library is: where installing one changes what it brings. **The sdk
+is one package**: the addresses at its root and every small part behind a subpath of its own --
+`@monoflake/sdk/artifacts`, `/cache`, `/imgsrc`, `/limits`, `/robots`, `/security`, `/store`,
+`/symlink`. Each is a client of a platform service or one of its policies, and none brings more
+than valibot or `@canmi/response`, so one name says them all. **`@monoflake/probe` is the status
+database's schema**, the probe's records, alone because it brings drizzle. `ledger` is Rust, and
+read by nothing outside the platform. Infra publishes `@monoflake/urls` alone.
 
 ## The library is five packages, split by what installing one brings
 
@@ -165,7 +176,8 @@ split, because the split moves `lib/` into it.
 ## Versions
 
 - **A package the author mostly consumes is dated**: `canmi` in both languages, `@canmi/kit`,
-  `@canmi/ui`, `@canmi/web`, `@monoflake/sdk` and `monoflake`, `@monoflake/urls`. The version is
+  `@canmi/ui`, `@canmi/web`, `@monoflake/sdk` and `monoflake`, `@monoflake/probe`,
+  `@monoflake/urls`. The version is
   `YYYY.MDD.N`: the UTC year, the month times a hundred plus the day, and the release's number
   within that day from 0 -- `2026.1004.0`, then `2026.1004.1`, and `2026.104.0` for the fourth of
   January. Nothing is zero-padded, which semver forbids. A push that changes the package publishes

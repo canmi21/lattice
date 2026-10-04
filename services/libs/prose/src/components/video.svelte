@@ -58,7 +58,7 @@
 	import Controls from './video-controls.svelte';
 	import { chooseRung, playable } from './video-rungs.ts';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
-	import type { VideoRung, VideoTrack } from '@monoflake/artifacts/types';
+	import type { VideoRung, VideoTrack } from '@monoflake/sdk/artifacts/types';
 	import type { LocaleCode } from '@canmi/me/locales';
 	import * as m from '@canmi/messages';
 

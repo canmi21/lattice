@@ -72,13 +72,13 @@
 	import { Popover } from 'bits-ui';
 	import { DEV as dev } from 'esm-env';
 	import { pageUrls } from '@monoflake/sdk';
-	import { pictured, type ParsedResource } from '@monoflake/artifacts';
-	import type { Block } from '@monoflake/artifacts/types';
+	import { pictured, type ParsedResource } from '@monoflake/sdk/artifacts';
+	import type { Block } from '@monoflake/sdk/artifacts/types';
 	import type { LocaleCode } from '@canmi/me/locales';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';
 	import Anchored from './anchored.svelte';
-	import { blockAnchors } from '@monoflake/artifacts/anchors';
+	import { blockAnchors } from '@monoflake/sdk/artifacts/anchors';
 
 	/**
 	 * What every rid on this page currently means, resolved by the load and handed down.
@@ -260,7 +260,7 @@
 					<!-- Resolved here rather than carried by the block: the ladder and the placeholder are
 			     the record's, and the record is a fact about the corpus at the moment somebody
 			     asks. `pictured` refuses a rid that resolved to nothing, which is the one thing a
-			     picture does that a card's mark does not -- see platform/libs/artifacts. -->
+			     picture does that a card's mark does not -- see platform/libs/sdk/artifacts. -->
 					{@const picture = pictured(
 						block.resources.picture,
 						resources[block.resources.picture],

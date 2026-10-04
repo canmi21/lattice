@@ -1,4 +1,4 @@
-import type { PageBlock, PublishedPage } from '@monoflake/artifacts';
+import type { PageBlock, PublishedPage } from '@monoflake/sdk/artifacts';
 import type { LocaleCode } from '../locale/index';
 import { author } from '@canmi/me/identity';
 import * as m from '@canmi/messages';

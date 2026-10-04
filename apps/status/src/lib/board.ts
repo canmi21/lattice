@@ -4,7 +4,7 @@
  * rules are tested without a database. See spec/architecture/probe.md, "The page: one app, three
  * doors".
  */
-import type { StatusCheckRow, StatusNowRow } from '@monoflake/status-schema';
+import type { StatusCheckRow, StatusNowRow } from '@monoflake/probe';
 import type { HistoryRow } from './rows.ts';
 
 const MINUTE = 60_000;

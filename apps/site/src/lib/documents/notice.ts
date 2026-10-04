@@ -9,7 +9,7 @@
  */
 // Relative, not `#lib`: that alias is SvelteKit's and only Vite resolves it, while this module
 // is loaded directly by the workspace's own vitest. The compiler beside it does the same.
-import { escapeHtml } from '@monoflake/artifacts';
+import { escapeHtml } from '@monoflake/sdk/artifacts';
 import type { LocaleCode } from '../locale/index.ts';
 import {
 	languageName,

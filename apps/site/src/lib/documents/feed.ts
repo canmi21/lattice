@@ -9,7 +9,7 @@
  */
 import { generateAtomFeed } from 'feedsmith';
 import { URLS } from '@monoflake/sdk';
-import type { FeedAnswer } from '@monoflake/artifacts';
+import type { FeedAnswer } from '@monoflake/sdk/artifacts';
 import { localeUrl, type LocaleCode } from '#lib/locale/index.js';
 
 const SITE = URLS.apps.production.site;

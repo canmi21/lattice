@@ -1,5 +1,5 @@
 import { dev } from '$app/env';
-import { serveSymlink, symlinkOf } from '@monoflake/symlink';
+import { serveSymlink, symlinkOf } from '@monoflake/sdk/symlink';
 import { pickUrls } from '@monoflake/sdk';
 import type { RequestHandler } from './$types';
 

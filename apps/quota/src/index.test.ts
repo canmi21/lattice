@@ -1,4 +1,4 @@
-import { take } from '@monoflake/limits';
+import { take } from '@monoflake/sdk/limits';
 import { describe, expect, it } from 'vitest';
 import { type Buckets, takeAll } from './index.ts';
 

@@ -1,4 +1,4 @@
-import type { CrateDep } from '@monoflake/artifacts/types';
+import type { CrateDep } from '@monoflake/sdk/artifacts/types';
 
 export const CRATE_PALETTE = [
 	'var(--cargo-1)',

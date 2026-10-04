@@ -18,7 +18,7 @@ import {
 	SITE_LANGUAGE,
 } from '#lib/locale/index.js';
 import { HOME_SLUG } from '#lib/opengraph.js';
-import { SIGNAL_HEADERS } from '@monoflake/robots';
+import { SIGNAL_HEADERS } from '@monoflake/sdk/robots';
 import { articleAgentView, homeAgentView, pageAddress } from '#lib/server/agent-pages.js';
 import { prefersMarkdown, tokensIn } from '#lib/server/markdown.js';
 import { publishedMarkdown, publishedMetadata } from '#lib/published/index.js';

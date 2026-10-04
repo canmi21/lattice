@@ -213,7 +213,7 @@ own routes, which its pages call without the gateway, are rows in the same forma
 same service.
 
 **A limit is a row in one format, wherever it is enforced.** It names methods and a path, so it can
-be as narrow as one route; platform/libs/limits is the format, its check and the bucket's arithmetic. The
+be as narrow as one route; platform/libs/sdk/limits is the format, its check and the bucket's arithmetic. The
 gateway applies it to what reaches a service through the gateway. Routes that only a Worker's own
 pages call never pass the gateway, so that Worker asks `quota` with the same rows itself -- the
 site's are `apps/site/api/src/contract/limits.ts`.

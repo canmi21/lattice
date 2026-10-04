@@ -1,4 +1,4 @@
-import type { StatusCheckRow, StatusNowRow } from '@monoflake/status-schema';
+import type { StatusCheckRow, StatusNowRow } from '@monoflake/probe';
 import { describe, expect, it } from 'vitest';
 import {
 	DAYS,

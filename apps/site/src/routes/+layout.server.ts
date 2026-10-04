@@ -1,5 +1,5 @@
 import { dev } from '$app/env';
-import { marksOf } from '@monoflake/symlink';
+import { marksOf } from '@monoflake/sdk/symlink';
 import { pickUrls } from '@monoflake/sdk';
 import { SITE_LANGUAGE } from '#lib/locale/index.js';
 import { siteStats } from '#lib/published/index.js';

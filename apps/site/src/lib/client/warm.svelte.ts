@@ -11,7 +11,7 @@
  * so the homepage warms the list it is showing and no images. See spec/engagement.md.
  */
 import { browser, dev } from '$app/env';
-import { namedResources, pictured, type Block } from '@monoflake/artifacts';
+import { namedResources, pictured, type Block } from '@monoflake/sdk/artifacts';
 import { pageUrls } from '@monoflake/sdk';
 import { warmReads } from '#lib/engagement/reads.svelte.js';
 import type { LocaleCode } from '#lib/locale/index.js';

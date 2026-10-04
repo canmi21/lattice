@@ -115,7 +115,7 @@
 	import Scale from '@lucide/svelte/icons/scale';
 	import Star from '@lucide/svelte/icons/star';
 	import { URLS } from '@monoflake/sdk';
-	import type { CardAlign, RepoRecord } from '@monoflake/artifacts/types';
+	import type { CardAlign, RepoRecord } from '@monoflake/sdk/artifacts/types';
 	import { langColor } from './tokei/tokei';
 	import { compactCount, shortDate } from '@canmi/me/locales/format';
 

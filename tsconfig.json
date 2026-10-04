@@ -21,7 +21,7 @@
 		"apps/status",
 		// Checked by tsconfig.workers.json against workerd's globals instead. Whole directories,
 		// not just `src`: importing the worker is enough to pull it into this program.
-		"platform/libs/store",
+		"platform/libs/sdk/store",
 		"apps/cdn",
 		"apps/aka",
 		"apps/hook",

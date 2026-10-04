@@ -6,7 +6,7 @@
 </script>
 
 <script lang="ts">
-	import { nearestBlockAnchor } from '@monoflake/artifacts/anchors';
+	import { nearestBlockAnchor } from '@monoflake/sdk/artifacts/anchors';
 	import { animate, frame as motionFrame } from 'motion';
 	import {
 		DEFAULT_PIXELS_PER_REM,
@@ -15,7 +15,7 @@
 	} from '@canmi/kit/units';
 	import { untrack } from 'svelte';
 	import { arriving } from '@canmi/kit/behavior/arrival';
-	import type { TocEntry } from '@monoflake/artifacts/types';
+	import type { TocEntry } from '@monoflake/sdk/artifacts/types';
 	import { measureRail } from './rail-measure';
 	import type { RailWidths } from './rail-widths';
 	import {

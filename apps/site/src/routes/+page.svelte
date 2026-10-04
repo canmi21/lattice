@@ -66,7 +66,7 @@
 <script lang="ts">
 	import { dev } from '$app/env';
 	import Title from '@canmi/kit/behavior/title.svelte';
-	import { imgsrc } from '@monoflake/imgsrc';
+	import { imgsrc } from '@monoflake/sdk/imgsrc';
 	import { pageUrls, URLS } from '@monoflake/sdk';
 	import Coffee from '@lucide/svelte/icons/coffee';
 	import Lollipop from '@lucide/svelte/icons/lollipop';

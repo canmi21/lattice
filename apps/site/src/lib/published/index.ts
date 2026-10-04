@@ -31,7 +31,7 @@ import {
 	type BatchRequest,
 	type ParsedResource,
 	type ViewAnswer,
-} from '@monoflake/artifacts';
+} from '@monoflake/sdk/artifacts';
 import { pageUrls, pickUrls, URLS } from '@monoflake/sdk';
 import type { FeedEntry } from '#lib/documents/feed.js';
 import { noticeHtml } from '#lib/documents/notice.js';
@@ -121,7 +121,7 @@ export async function publishedReads(fetch: Fetch, slug: string): Promise<number
  * The one batch entry point, asked and read in one place.
  *
  * `type` goes out and comes back, so the answer proves which question it answers rather than the
- * caller remembering. See platform/libs/artifacts, `BatchRequest`.
+ * caller remembering. See platform/libs/sdk/artifacts, `BatchRequest`.
  */
 export async function askBatch<T extends BatchRequest>(
 	asked: T,
@@ -237,7 +237,10 @@ export async function publishedView(
 	return { path: found.path, card: found.objects.card, view };
 }
 
-/** A page's envelope names no locale, so it is checked without one. See platform/libs/artifacts. */
+/**
+ * A page's envelope names no locale, so it is checked without one. See
+ * platform/libs/sdk/artifacts.
+ */
 async function publishedPageView(fetch: Fetch, hash: string, slug: string): Promise<PublishedPage> {
 	const page = (await (await object(fetch, 'page', hash)).json()) as PublishedPage;
 	readPageEnvelope(page, slug);
@@ -304,7 +307,7 @@ export async function publishedResources(
 		// One question for every page this corpus has, and the fewest that can answer for a page
 		// that ever outgrows what one request carries -- never a refusal, which on this path is a
 		// blank article rather than a missing picture. The cap belongs to the request shape and is
-		// read from there; see `resourceQuestions` in platform/libs/artifacts.
+		// read from there; see `resourceQuestions` in platform/libs/sdk/artifacts.
 		const answers = await Promise.all(
 			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', resources: rids }, fetch)),
 		);
@@ -388,7 +391,7 @@ export async function publishedFeedEntries(
 /** Where the links a feed body writes are rooted, for whichever hosts are answering. */
 function feedBases(url: string, locale: LocaleCode) {
 	// The alias layer rather than the CDN, because a feed names a rid and has nothing to resolve
-	// one with. See `FeedBases` in platform/libs/artifacts.
+	// one with. See `FeedBases` in platform/libs/sdk/artifacts.
 	return { site: URLS.apps.production.site, resources: `${upstream().alias}/`, url, locale };
 }
 

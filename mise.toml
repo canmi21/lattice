@@ -256,9 +256,9 @@ description = "Type check the status page, a SvelteKit application of its own"
 dir = "apps/status"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
-[tasks.check-status-schema]
+[tasks.check-probe]
 description = "Fail when the status schema changed and its migrations were not generated again"
-run = "pnpm --filter @monoflake/status-schema run check"
+run = "pnpm --filter @monoflake/probe run check"
 
 [tasks.check-social]
 description = "Type check the social links row, Svelte components in a library"

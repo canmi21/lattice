@@ -1,4 +1,4 @@
-//! platform/libs/status-schema's migrations, embedded by build.rs, as a sqlx migrator. The probe is
+//! platform/libs/probe's migrations, embedded by build.rs, as a sqlx migrator. The probe is
 //! the schema's one writer and applies what it has not yet applied at start. See
 //! spec/architecture/probe.md, "The schema: declared once, in Drizzle, applied by the probe".
 
@@ -25,7 +25,7 @@ mod tests {
 	use super::*;
 
 	fn directory() -> std::path::PathBuf {
-		std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../libs/status-schema/migrations")
+		std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../libs/probe/migrations")
 	}
 
 	/// What build.rs embedded is what sqlx itself reads from the directory -- the same versions,

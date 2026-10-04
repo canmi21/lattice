@@ -292,7 +292,7 @@ the distance between a rebuild and seeing it. So `PUBLICATION_DELAY` is zero in 
 bundle, and every number derived from it follows -- the site's held copy of an API answer, the
 client query cache's staleness, and the `max-age` a worker stamps.
 
-**The condition is in `platform/libs/cache` and nowhere else.** Consumers read a number, never a condition,
+**The condition is in `platform/libs/sdk/cache` and nowhere else.** Consumers read a number, never a condition,
 which is the same reason the number itself is shared: eleven stamping sites each asking whether
 they are in development is eleven chances for two of them to answer differently. `platform/libs/sdk` takes
 `isDev` as an argument instead, and that is right for it -- a worker reads its environment from the
@@ -492,7 +492,7 @@ reader needed, and it held each host's icon to the site's.
 
 **A host asks the alias layer the name, takes the redirect it answers, and hands the browser that
 object's address.** The status page answers every one of its marks this way, at `/{file}`.
-`@monoflake/symlink` is the one way a host does this, and it stamps what the alias layer stamps:
+`@monoflake/sdk/symlink` is the one way a host does this, and it stamps what the alias layer stamps:
 
 | alias layer answers | page answers | kept for                                              |
 | ------------------- | ------------ | ----------------------------------------------------- |

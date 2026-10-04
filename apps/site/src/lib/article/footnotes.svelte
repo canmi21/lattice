@@ -161,7 +161,7 @@
 	import { onDestroy } from 'svelte';
 	import { flashOnArrival } from '@canmi/prose/note-flash';
 	import { offerNoteReveal } from '@canmi/prose/note-reveal';
-	import type { ArticleNote } from '@monoflake/artifacts/types';
+	import type { ArticleNote } from '@monoflake/sdk/artifacts/types';
 	import type { LocaleCode } from '#lib/locale/index.js';
 
 	/** `locale` is the view being rendered. Passed rather than read: see

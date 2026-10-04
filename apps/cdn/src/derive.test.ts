@@ -1,4 +1,4 @@
-import { storageKey } from '@monoflake/store';
+import { storageKey } from '@monoflake/sdk/store';
 import { crc32 } from 'node:zlib';
 import { describe, expect, it, vi } from 'vitest';
 import app from './index';
@@ -396,10 +396,9 @@ describe('anything else', () => {
 /**
  * What the one rule says about an address carrying a hash and two extensions.
  *
- * A `3xx` from here is a fact about the address -- the two extensions were the same -- and can
- * no more change than the bytes can, so it earns the year a redirect elsewhere does not. The
- * literal strings are the point: a change to @monoflake/cache's values has to be seen rather than
- * pass.
+ * A `3xx` from here is a fact about the address -- the two extensions were the same -- and can no
+ * more change than the bytes can, so it earns the year a redirect elsewhere does not. The literal
+ * strings are the point: a change to @monoflake/sdk/cache's values has to be seen rather than pass.
  */
 describe('what a derived answer may be kept for', () => {
 	it('keeps a 2xx for a year', async () => {

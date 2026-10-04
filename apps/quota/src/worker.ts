@@ -3,7 +3,7 @@
  * that refuses until there are accounts. See spec/architecture/quota.md.
  */
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers';
-import { type Check, type Rate, type Taken, take } from '@monoflake/limits';
+import { type Check, type Rate, type Taken, take } from '@monoflake/sdk/limits';
 import { failure } from '@canmi/response';
 import { type Buckets, takeAll } from './index.ts';
 

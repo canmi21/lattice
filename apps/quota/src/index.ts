@@ -3,7 +3,7 @@
  * buckets: every bucket of one call, taken in order until one refuses. See
  * spec/architecture/quota.md.
  */
-import { type Check, type Rate, type Taken, takeInOrder } from '@monoflake/limits';
+import { type Check, type Rate, type Taken, takeInOrder } from '@monoflake/sdk/limits';
 
 /** The buckets, as structure, so this module needs no runtime's types. */
 export interface Buckets {

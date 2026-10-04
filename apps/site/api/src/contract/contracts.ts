@@ -11,7 +11,7 @@ import {
 	ReadsAnswerSchema,
 	ResourceSchema,
 	StatsAnswerSchema,
-} from '@monoflake/artifacts';
+} from '@monoflake/sdk/artifacts';
 import type { Route } from './routes';
 
 /**

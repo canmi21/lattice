@@ -5,7 +5,7 @@
  * repeat is answered there without reaching the service. See spec/architecture/gateway.md, "A
  * lifetime is declared for five kinds of answer".
  */
-import { UNCHANGING } from '@monoflake/cache';
+import { UNCHANGING } from '@monoflake/sdk/cache';
 import type { Lifetime, Lifetimes } from './declaration.ts';
 
 /** The header a kept answer is marked with, as it is returned. */

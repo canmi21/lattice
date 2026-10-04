@@ -1,6 +1,6 @@
 # Robots: what each host lets a crawler fetch, and what its pages may be used for
 
-**Every host's `robots.txt` is declared in `@monoflake/robots`, by service, and nowhere else.** A host
+**Every host's `robots.txt` is declared in `@monoflake/sdk/robots`, by service, and nowhere else.** A host
 asks for its own by its internal name -- `robotsFor('site')` -- so a change to one policy is one line
 there, and the rules every host shares are written once.
 
@@ -53,7 +53,7 @@ for.
 ## Every page host has a sitemap, styled from its own origin
 
 The site's lists every page; the status page's lists its one. Both are rendered by `sitemapXml` in
-`@monoflake/robots`, which points a browser at `/sitemap.xsl` -- a path on the sitemap's own origin,
+`@monoflake/sdk/robots`, which points a browser at `/sitemap.xsl` -- a path on the sitemap's own origin,
 because a browser applies an XSL stylesheet to an XML document from nowhere else. There is one
 stylesheet, an object named `sitemap.xsl` under each scope in the symlink record, and each origin
 answers `/sitemap.xsl` by fetching it through the alias layer and returning the bytes as its own --
@@ -66,7 +66,7 @@ sitemap is for depends on it.
 ## Every page host names every other
 
 **Each host that serves pages names every page host's sitemap in its robots.txt, its own first**,
-then the rest in the order `PAGE_HOSTS` in `@monoflake/robots` sets -- the site, then the status page.
+then the rest in the order `PAGE_HOSTS` in `@monoflake/sdk/robots` sets -- the site, then the status page.
 **And its sitemap lists every other page host by its root alone**: each host lists its own routes,
 so none needs another's data to build, only the list of who the others are. Each host declares in
 `PAGE_HOSTS` how often its root changes, which every sitemap repeats, its own included, and how much
@@ -91,7 +91,7 @@ Hugging Face put in its `security.txt` after agents broke into it.
   security.txt.
 - **One message, ten wordings.** Each file on each host says it in its own words, from the host's
   side -- the CDN serves bytes, the alias layer only redirects -- and no two are the same; a test
-  holds them apart. They are `agentNote` in `@monoflake/security/agents`.
+  holds them apart. They are `agentNote` in `@monoflake/sdk/security/agents`.
 - **Link first, as every block here is**: the account of the incident it nods to, then the note,
   laid out by sentence, then the repository as a `.git` address. The repository is
   `URLS.source`. A robots.txt names no address: it sends a finding to the host's own

@@ -31,7 +31,7 @@ impl Grain {
 	/// Finest first.
 	pub const ALL: [Self; 5] = [Self::Minute, Self::Five, Self::Ten, Self::Thirty, Self::Hour];
 
-	/// As `rollups.grain` spells it; platform/libs/status-schema's check constraint holds the same
+	/// As `rollups.grain` spells it; platform/libs/probe's check constraint holds the same
 	/// list.
 	pub fn name(self) -> &'static str {
 		match self {

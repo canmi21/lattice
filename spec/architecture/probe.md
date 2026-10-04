@@ -99,7 +99,7 @@ heading, beside its name, rather than under the title.
 
 ## The schema: declared once, in Drizzle, applied by the probe
 
-**The tables and views are written once, in TypeScript with Drizzle, in `platform/libs/status-schema`**,
+**The tables and views are written once, in TypeScript with Drizzle, in `platform/libs/probe`**,
 and nothing else describes them. `drizzle-kit generate` turns them into SQL migrations, committed
 beside them; the grants and row policies are declared there too, so what the database allows is
 what the repository says. `mise run verify` fails when the schema has changed and its migrations

@@ -17,7 +17,6 @@
 	},
 	"dependencies": {
 		"@canmi/me": "^2026.1004.1",
-		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
 		"hast-util-to-html": "^9.0.5",
 		"mdast-util-directive": "^3.1.0",

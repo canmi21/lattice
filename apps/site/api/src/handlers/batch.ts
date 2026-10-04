@@ -21,8 +21,8 @@ import {
 	type ArticlesRequestSchema,
 	type Resource,
 	type ResourcesRequestSchema,
-} from '@monoflake/artifacts';
-import { read } from '@monoflake/store';
+} from '@monoflake/sdk/artifacts';
+import { read } from '@monoflake/sdk/store';
 import { inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';

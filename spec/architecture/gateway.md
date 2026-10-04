@@ -232,7 +232,7 @@ indexed while the rest of the API is not.
 
 **A consumer is not behind the gateway, and keeps calling the libraries.** The site's routes are
 its own and unlike any API's, so the site, and the status page, still answer their own
-`robots.txt` and `security.txt` from `@monoflake/robots` and `@monoflake/security`. That is one entry point
+`robots.txt` and `security.txt` from `@monoflake/sdk/robots` and `@monoflake/sdk/security`. That is one entry point
 called twice, not the rules written twice.
 
 **An answer's lifetime is declared per route, and a success and a failure are declared apart.**

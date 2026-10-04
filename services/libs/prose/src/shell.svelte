@@ -13,7 +13,7 @@
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import type { LocaleCode } from '@canmi/me/locales';
 	import type { Theme } from '@canmi/kit/theme';
-	import type { TocEntry } from '@monoflake/artifacts/types';
+	import type { TocEntry } from '@monoflake/sdk/artifacts/types';
 	import type { Snippet } from 'svelte';
 	import ActionBar from './action-bar.svelte';
 	import Toc from './toc.svelte';

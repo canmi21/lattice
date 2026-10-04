@@ -4,7 +4,7 @@
  * documents, the skippable ones last under `Optional`. Every fact is a projection of the published
  * root, so neither is an object of its own. See spec/architecture/markdown.md, "The index".
  */
-import type { HomeAnswer } from '@monoflake/artifacts';
+import type { HomeAnswer } from '@monoflake/sdk/artifacts';
 import { URLS } from '@monoflake/sdk';
 import { stamp } from '../server/agent-view';
 import { nameOf } from '../server/markdown';

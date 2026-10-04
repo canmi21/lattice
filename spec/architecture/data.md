@@ -351,8 +351,8 @@ interface is the one thing that cannot be reorganised later. The licence texts l
 exactly as long as they had no route of their own; adding one was the fix.
 
 **The layout is declared once per language and the two are held together by a test.**
-`storageKey` in `platform/libs/store` is what the workers read from, `object_path` in
-`services/apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/store` parses
+`storageKey` in `platform/libs/sdk/store` is what the workers read from, `object_path` in
+`services/apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/sdk/store` parses
 the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
 the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
 404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
@@ -407,7 +407,7 @@ offset and a length, so a seek reads what it asked for and not the file around i
 proxy forwards the header upstream and passes 206 back, and fetches the whole asset behind a
 ranged miss so the requests after it find it at the edge.
 
-The grammar is parsed in one place, in `platform/libs/store`, and it is the part of this with a
+The grammar is parsed in one place, in `platform/libs/sdk/store`, and it is the part of this with a
 specification to obey. `bytes=a-b`, `bytes=a-` and `bytes=-n` are served; an end past the last
 byte clamps, which is what a resumed download does at the tail of a file; a start past the end is
 416 carrying the size, which is a different answer from 404 because the object is there and the

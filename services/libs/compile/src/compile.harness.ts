@@ -1,8 +1,8 @@
 /**
  * What the compiler's tests share. See compile.test.ts, inline.test.ts and fields.test.ts.
  */
-import { feedHtml } from '@monoflake/artifacts';
-import type { Compiled } from '@monoflake/artifacts/types';
+import { feedHtml } from '@monoflake/sdk/artifacts';
+import type { Compiled } from '@monoflake/sdk/artifacts/types';
 import { URLS } from '@monoflake/sdk';
 
 /**
@@ -10,7 +10,7 @@ import { URLS } from '@monoflake/sdk';
  *
  * The feed is a projection of the blocks and is rendered where the view's locale is known, so
  * these assertions call the same function the Worker does rather than reading a second field the
- * compiler kept in step by hand. See platform/libs/artifacts, `feedHtml`.
+ * compiler kept in step by hand. See platform/libs/sdk/artifacts, `feedHtml`.
  */
 export function feedOf(compiled: Pick<Compiled, 'blocks'>): string {
 	return feedHtml(compiled.blocks, {

@@ -7,7 +7,7 @@ import {
 	publishedView,
 } from '#lib/published/index.js';
 import { currentLocale, LOCALE_DEPENDENCY } from '#lib/locale/current.svelte.js';
-import { namedResources } from '@monoflake/artifacts';
+import { namedResources } from '@monoflake/sdk/artifacts';
 import { measureRail } from '@canmi/prose/rail-measure';
 import { measured } from '@canmi/prose/measured';
 import type { PageLoad } from './$types';

@@ -69,7 +69,7 @@
 		QuadrantDirection,
 		QuadrantItem,
 		QuadrantPosition,
-	} from '@monoflake/artifacts/types';
+	} from '@monoflake/sdk/artifacts/types';
 
 	let {
 		title,

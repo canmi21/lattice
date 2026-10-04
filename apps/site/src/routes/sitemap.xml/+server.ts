@@ -1,4 +1,4 @@
-import { ownRoot, peerEntries, type SitemapEntry, sitemapXml } from '@monoflake/robots';
+import { ownRoot, peerEntries, type SitemapEntry, sitemapXml } from '@monoflake/sdk/robots';
 import { publishedSitemap } from '#lib/published/index.js';
 import type { RequestHandler } from './$types';
 

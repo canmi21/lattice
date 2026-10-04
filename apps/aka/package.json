@@ -9,11 +9,7 @@
 	},
 	"dependencies": {
 		"@canmi/response": "^2.0.0",
-		"@monoflake/artifacts": "workspace:*",
-		"@monoflake/cache": "workspace:*",
-		"@monoflake/robots": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
-		"@monoflake/security": "workspace:*",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {

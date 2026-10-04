@@ -4,7 +4,7 @@
  * spec/architecture/probe.md, "The page reads PostgREST with the anon key, from views alone, once;
  * after that it is told".
  */
-import type { StatusCheckRow, StatusNowRow } from '@monoflake/status-schema';
+import type { StatusCheckRow, StatusNowRow } from '@monoflake/probe';
 import { historyFloor, key, LIVE_GRAIN, LIVE_MS } from './board.ts';
 import type { Heard, HistoryRow } from './rows.ts';
 

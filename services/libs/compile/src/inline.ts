@@ -16,7 +16,7 @@ import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
 import { parse as parseYaml } from 'yaml';
 import { styleClasses } from './style-classes.ts';
-import type { InlineSegment, ArticleNote } from '@monoflake/artifacts/types';
+import type { InlineSegment, ArticleNote } from '@monoflake/sdk/artifacts/types';
 import type { TextDirective } from 'mdast-util-directive';
 import type { Heading, Nodes, Paragraph, Root, RootContent } from 'mdast';
 
@@ -418,7 +418,7 @@ export function proseMarkdown(node: RootContent, source: string): string {
 		.trim();
 	// The document is the source view and nothing reading it will negotiate, so a link out of it
 	// names the source. Prose only: a fence is pushed separately and its contents are not ours to
-	// rewrite. The feed does the same to its own prose -- see platform/libs/artifacts, `pinView`.
+	// rewrite. The feed does the same to its own prose -- see platform/libs/sdk/artifacts, `pinView`.
 	return text.replaceAll(
 		new RegExp(`\\]\\((${URLS.apps.production.site}/[^)\\s#]*)`, 'g'),
 		(whole, address: string) => (address.includes('?') ? whole : `](${address}?lang=mw`),

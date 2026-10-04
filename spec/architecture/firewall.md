@@ -29,7 +29,7 @@ Three things hold across every zone, and a new rule keeps to them:
   Cloudflare location, set to catch a flood rather than a reader. A service's own limits -- the
   gateway's, Caddy's -- are the exact ones.
 
-**Every host answers its own security.txt.** `platform/libs/security` writes it -- RFC 9116's two required
+**Every host answers its own security.txt.** `platform/libs/sdk/security` writes it -- RFC 9116's two required
 fields, `Contact` and `Expires`, and the host's own `Canonical` -- with an expiry 180 days out,
 stated per request so it never lapses, and the site, the gateway, the CDN and the alias layer each
 answer `/.well-known/security.txt` from it. Every whitelist lets `/.well-known/` through, which the

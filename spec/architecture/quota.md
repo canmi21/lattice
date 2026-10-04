@@ -27,7 +27,7 @@ every call, which the gateway kept first, holds up to `count` moments per key an
 the rate would have paid for. A refusal says when a call would next pass, to the second, as
 `Retry-After`.
 
-**The arithmetic is written once**, as a pure function in `platform/libs/limits`, and every deployment of
+**The arithmetic is written once**, as a pure function in `platform/libs/sdk/limits`, and every deployment of
 `quota` calls it. Two copies of a counting rule would come to disagree about who is over.
 
 ## A key names the service, the route and the subject, never a host

@@ -112,7 +112,7 @@ subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
 
 ## One name, one thing
 
-A directory under `libs/` is a namespace, not a language choice. `platform/libs/imgsrc` is imgsrc
+A directory under `libs/` is a namespace, not a language choice. `platform/libs/sdk/imgsrc` is imgsrc
 -- whether that is a Cargo crate, a TypeScript package, or a Rust core with a TypeScript
 wrapper around it is an implementation detail living inside.
 
@@ -214,14 +214,14 @@ tooltips and surrounding statistics use the same surfaces as the rest of the sit
 
 Type checking runs three times, over three programs: [tsconfig.json](../../tsconfig.json) for the
 browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the Workers and the code only they run -- `platform/libs/store`, the site's API in `apps/site/api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
+for the Workers and the code only they run -- `platform/libs/sdk/store`, the site's API in `apps/site/api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
 the node programs under an app's `scripts/`.
 
 The split is forced rather than chosen. `@cloudflare/workers-types` declares its own
 `ReadableStream`, `Response` and `Cache`, and the DOM library declares those names too. Nothing
 tells TypeScript they describe the same things, so with both in scope every worker value crossing
 a shared boundary is a type error. Two workarounds had grown from that one cause and neither
-looked related to the other: `as unknown as ReadableStream` across `platform/libs/store`'s public surface,
+looked related to the other: `as unknown as ReadableStream` across `platform/libs/sdk/store`'s public surface,
 and a hand-written structural declaration of `caches.default` in `apps/cdn` because importing the
 real one would have made every Hono handler disagree about `Response`. Both are gone; nothing
 casts across that boundary now.
@@ -416,7 +416,7 @@ Resolving instead at request time, out of the article index, was the cheaper cha
 rejected on what it cannot reach: the feed and `/llms.txt` are strings baked at compile time, so
 a card there would have been a bare path where every other link is a name.
 
-`robots.txt` follows the same shared-base shape, and lives in `platform/libs/robots` rather than in
+`robots.txt` follows the same shared-base shape, and lives in `platform/libs/sdk/robots` rather than in
 `platform/libs/sdk`. It exports the minimal common definition plus a helper that appends site-specific
 rules -- disallowed paths, sitemap entries -- so each site owns its additions while a change to
 the shared policy reaches all of them at once. It sits in its own library because generating a

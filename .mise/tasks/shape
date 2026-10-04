@@ -24,7 +24,7 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-ARTIFACTS = ROOT / "platform/libs/artifacts"
+ARTIFACTS = ROOT / "platform/libs/sdk/artifacts"
 INDEX = ARTIFACTS / "src/index.ts"
 TYPES = ARTIFACTS / "src/types.ts"
 RECORD = ARTIFACTS / "shape.json"
@@ -139,8 +139,8 @@ def write(version_now: int, shape: str) -> None:
 				"version": version_now,
 				"fingerprint": shape,
 				"covers": [
-					"platform/libs/artifacts/src/types.ts",
-					*(f"platform/libs/artifacts/src/index.ts:{name}" for name in NAMED),
+					"platform/libs/sdk/artifacts/src/types.ts",
+					*(f"platform/libs/sdk/artifacts/src/index.ts:{name}" for name in NAMED),
 				],
 			},
 			indent="\t",

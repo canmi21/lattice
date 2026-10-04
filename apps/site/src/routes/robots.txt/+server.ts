@@ -1,4 +1,4 @@
-import { robotsFor } from '@monoflake/robots';
+import { robotsFor } from '@monoflake/sdk/robots';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;

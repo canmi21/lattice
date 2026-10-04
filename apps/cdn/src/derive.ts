@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { isContentId, rangedResponse, toResponse, type Bindings } from '@monoflake/store';
+import { isContentId, rangedResponse, toResponse, type Bindings } from '@monoflake/sdk/store';
 import { findObject, isExtension, measureObject } from './object';
 import { failure } from './respond';
 import { MEDIA_TYPES, isDecodable, isDerivable, transcode } from './transcode';

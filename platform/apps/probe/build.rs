@@ -1,4 +1,4 @@
-//! Embeds `platform/libs/status-schema/migrations`, as `sqlx::migrate!` would: every top-level
+//! Embeds `platform/libs/probe/migrations`, as `sqlx::migrate!` would: every top-level
 //! `<version>_<description>.sql`, sorted by version, written to `$OUT_DIR/migrations.rs` as
 //! `(version, description, sql)`. Cargo.toml says why this is not the macro; `src/schema.rs`
 //! turns the list into a migrator, and its tests hold it to sqlx's own reading of the directory.
@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 fn main() {
 	let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("set by Cargo"));
-	let directory = manifest.join("../../libs/status-schema/migrations");
+	let directory = manifest.join("../../libs/probe/migrations");
 	println!("cargo:rerun-if-changed={}", directory.display());
 
 	let mut found = Vec::new();

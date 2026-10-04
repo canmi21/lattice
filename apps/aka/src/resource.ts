@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { CANONICAL_PATTERN, expandCanonical } from '@monoflake/artifacts';
+import { CANONICAL_PATTERN, expandCanonical } from '@monoflake/sdk/artifacts';
 import { isDevHost, pickUrls } from '@monoflake/sdk';
 import { NEVER, RESOLVED } from './cache';
 import { redirectFor } from './redirect';
@@ -34,7 +34,7 @@ export async function resource(c: Context, rid: string): Promise<Response> {
 	const record = (await asked.json()) as Declared;
 	// Checked against the pattern before it is expanded, and not because the writer is untrusted: the
 	// record arrives over the network, the value becomes the path of a redirect this layer issues,
-	// and `expandCanonical` reads a prefix rather than validating. See platform/libs/artifacts.
+	// and `expandCanonical` reads a prefix rather than validating. See platform/libs/sdk/artifacts.
 	const declared = typeof record.canonical === 'string' ? record.canonical : '';
 	const canonical = CANONICAL_PATTERN.test(declared) ? expandCanonical(declared, urls) : undefined;
 	// A resource declaring no canonical form has no address to be sent to, and choosing one from

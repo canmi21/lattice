@@ -3,7 +3,7 @@
  * when the element first says what it is; the controls ask again whenever the reader hands the
  * choice back ("Auto") or the frame changes size while it is theirs to make.
  */
-import type { VideoRung } from '@monoflake/artifacts/types';
+import type { VideoRung } from '@monoflake/sdk/artifacts/types';
 
 /**
  * Which rung the display needs, once there is a display to ask.

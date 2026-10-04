@@ -19,17 +19,17 @@ import {
 	type ParsedResource,
 	type Picture,
 	type VideoLayer,
-} from '@monoflake/artifacts';
-import type { VideoRung, VideoTrack } from '@monoflake/artifacts/types';
+} from '@monoflake/sdk/artifacts';
+import type { VideoRung, VideoTrack } from '@monoflake/sdk/artifacts/types';
 
 import { sourceFingerprint } from './assemble.ts';
 
 /**
  * What a published rung and a published text track are called.
  *
- * Apart from `VARIANT_EXTENSION` in platform/libs/artifacts rather than folded into it: that table
- * is held to `services/apps/local`'s `for_variant` by a test that reads only its `image/*` arms,
- * and these two are not variants of a picture. One format each, which is
+ * Apart from `VARIANT_EXTENSION` in platform/libs/sdk/artifacts rather than folded into it: that
+ * table is held to `services/apps/local`'s `for_variant` by a test that reads only its `image/*`
+ * arms, and these two are not variants of a picture. One format each, which is
  * spec/architecture/video/pipeline.md's whole point -- AV1 in MP4, and WebVTT beside it.
  */
 export const MEDIA_EXTENSION: Record<string, string> = {

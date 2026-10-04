@@ -3,7 +3,7 @@
  * out as markdown sections, each saying where its data came from and when. See
  * spec/architecture/markdown.md.
  */
-import type { TocEntry } from '@monoflake/artifacts/types';
+import type { TocEntry } from '@monoflake/sdk/artifacts/types';
 
 /** A time as the document states it: ISO 8601 in UTC, to the second. */
 export function stamp(at: Date | string): string {

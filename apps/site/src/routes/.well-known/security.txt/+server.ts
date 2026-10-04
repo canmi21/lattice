@@ -1,4 +1,4 @@
-import { securityResponse } from '@monoflake/security';
+import { securityResponse } from '@monoflake/sdk/security';
 import type { RequestHandler } from './$types';
 
 // Rendered per request, so its expiry moves forward on its own.

@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { ARTIFACT_VERSION, type PublishedPage } from '@monoflake/artifacts';
+import { ARTIFACT_VERSION, type PublishedPage } from '@monoflake/sdk/artifacts';
 import { buildPages } from '@canmi/compile/articles';
 import { homepageContent } from './content';
 
