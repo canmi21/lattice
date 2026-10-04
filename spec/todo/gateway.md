@@ -15,6 +15,14 @@ over it, but the CDN keeps derived pictures in its own cache by that stamp, so i
 there. Whether the CDN's own cache reads its lifetime from the declaration instead, and the alias
 layer's stamps go, is the cleanup pass's to settle.
 
+## An apex answers nothing yet
+
+`monoflake.com`, `monoflake.net`, `ixc.one` and `symlink.si` are service domains, and each apex is
+to answer a placeholder page saying so. Until then `monoflake.com`, `monoflake.net` and `ixc.one`
+have no apex record -- `www.ixc.one`'s redirect to its apex leads nowhere -- and `symlink.si`'s root
+is the gateway's redirect to the site. `ill.li`'s apex keeps its redirect, so its page is on a host one
+label down, named when it is built. Done in the cleanup pass, once the migration is.
+
 ## The whitelists are written by hand, and checked against the table only
 
 `rules/ill.li/alias-paths-only.txt`, `rules/ffoni.com/api-scopes-only.txt` and
@@ -45,4 +53,3 @@ home, where geo runs, all the same: a profile's placement is read and not checke
 service's declared placements, since every service has one placement today. Refusing a placement a
 service is not at, and choosing among several where it is, come together with the gateway's choice
 of where a request runs.
-
