@@ -380,6 +380,36 @@ the volume goes up.
 The machine D1 and D2 assume is made deployable first, so that what moves there arrives by a push
 rather than by hand. See [../architecture/host.md](../architecture/host.md).
 
+## E. The gateway
+
+Every API moves behind one gateway Worker, reached by the hostnames in
+[../architecture/gateway.md](../architecture/gateway.md); what stands between here and there is
+[gateway.md](gateway.md). Each step ships on its own, and none takes an address that answers today
+away before its replacement answers.
+
+| id  | milestone                             | what it is                                                                                              | after    | horizon |
+| --- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| E1  | The declaration                       | `[api.defaults]` and `[[api.routes]]` in `service.toml`, a schema `mise run scopes` holds them to, the richer table, service codes resolved in `libs/urls` | --       | near    |
+| E2  | Hostnames read as profiles            | The profile table, a hostname read from the right, the provider and region registries, every request read into its tuple | E1       | near    |
+| E3  | The gateway enforces the declaration  | CORS, the four lifetimes and crawling per route, and each host's `robots.txt`, `security.txt`, `favicon.ico` and path rule, derived; `policy.ts` retires | E1 E2    | near    |
+| E4  | Services speak `/v{n}/`               | Every service routes on its version -- the CDN on `/v3/`, the rest on `/v1/` -- answering the unversioned path too until E8 | E3       | near    |
+| E5  | The CDN and the alias layer move in   | Both become services behind the gateway by binding, their own CORS, stamps, host files and custom domains gone; `ill.li` and the old hosts become profiles | E3 E4    | near    |
+| E6  | The new domains answer                | `monoflake.com`, `ixc.one` and `symlink.si` bound to the gateway: DNS, routes, certificates                | E5       | near    |
+| E7  | The firewall is generated             | Each service-layer zone's whitelist written from the table, inside the expression and rule-count limits, and synced by `mise run rules sync` | E2 E6    | near    |
+| E8  | Callers move                          | `libs/urls` names the new hosts, every caller here follows, GitHub's webhook moves, the unversioned paths of E4 go | E6 E7    | near    |
+| E9  | `ffoni.com` leaves                    | Its profiles deleted once nothing here calls it, and the domain released                                  | E8       | mid     |
+
+**E1 changes nothing a caller sees.** The declarations grow and the table with them, while the
+gateway still answers as it does today; it is the step that makes the rest a matter of reading the
+table rather than of writing rules.
+
+**E4 answers both spellings for as long as anything sends the old one.** A node's service and the
+gateway deploy apart, so a service that took the unversioned path away before the gateway put the
+version in would break every call in between. The old path goes in E8, with the last caller.
+
+**E6 is work in Cloudflare's dashboard as much as in the repository**, and is the one step whose
+order is forced from outside: a zone has to exist before a route or a rule can name it.
+
 ## Open questions
 
 Each of these is a decision rather than a discovery. One is settled and kept here because the
@@ -423,3 +453,9 @@ for. Blocks the second half of A2, and C5 behind it.
 **What `local` is called once it is not local.** The name describes where it runs, and D2 moves it
 to another machine while D4 puts its surface on the public internet. It is the right name for the
 year it is true and a lie afterwards, so the rename belongs in D2 rather than being avoided now.
+
+**How our own callers spell a versioned path.** The private side is `api.canmi.icu/{scope}/...`,
+and Caddy takes the scope off before the service sees it. Once a service routes on its version, a
+private caller says it too, either as `/{scope}/v1/...`, which leaves Caddy as it is, or as
+`/v1/{scope}/...`, the public side's order, which changes how Caddy reads a path. Blocks E4's
+private half.
