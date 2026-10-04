@@ -23,9 +23,13 @@ path = "/data"
 [api]
 public = true
 
-# What moves is kept five seconds, and the rest a minute. See spec/architecture/telemetry.md.
+# What moves is kept five seconds, and the rest a minute; the node out of reach, half a minute. See
+# spec/architecture/telemetry.md.
 [api.defaults.cache.success]
 fulfilled = "1m"
+
+[api.defaults.cache.failure]
+faulted = "30s"
 
 [[api.routes]]
 path = "/machine"

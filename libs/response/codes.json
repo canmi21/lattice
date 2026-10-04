@@ -48,6 +48,7 @@
 	"no_such_place": "No place is known near this position",
 	"no_such_resource": "No resource has this id",
 	"no_such_route": "No route answers this path",
+	"no_such_host": "No service answers on this host",
 	"no_such_scope": "No API is published under this scope",
 	"no_such_snapshot": "The snapshot from before this version was deployed is no longer kept",
 	"no_such_subscription": "No subscription matches this email and token",

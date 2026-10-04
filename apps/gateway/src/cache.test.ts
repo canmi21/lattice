@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { URLS } from '@canmi/urls';
-import { CACHE_HEADER, DEFAULT_LIFETIME, secondsFor, UNREACHED_SECONDS } from './cache.ts';
+import { UNCHANGING } from '@canmi/cache';
+import { CACHE_HEADER, controlOf, kindOf, secondsOf } from './cache.ts';
+import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { gateway } from './index.ts';
 import type { Scope } from './table.ts';
 
@@ -9,29 +11,22 @@ const HOST = new URL(URLS.apps.production.api).origin;
 const answer = (status: number, headers: Record<string, string> = {}) =>
 	new Response('{}', { status, headers: { 'content-type': 'application/json', ...headers } });
 
-describe('how long an answer is kept', () => {
-	it("takes the service's word first", () => {
-		expect(secondsFor(answer(200, { 'cache-control': 'no-store' }), undefined)).toBe(0);
-		expect(secondsFor(answer(200, { 'cache-control': 'private, max-age=60' }), undefined)).toBe(0);
-		expect(secondsFor(answer(200, { 'cache-control': 'public, max-age=900' }), undefined)).toBe(
-			900,
-		);
-		expect(secondsFor(answer(200, { 'cache-control': 's-maxage=86400' }), { success: 5 })).toBe(
-			86400,
-		);
+describe('which kind an answer is, and what it is told', () => {
+	it('names the five by status, a 202 apart and no answer a fault', () => {
+		expect(kindOf(200)).toBe('fulfilled');
+		expect(kindOf(204)).toBe('fulfilled');
+		expect(kindOf(202)).toBe('accepted');
+		expect(kindOf(301)).toBe('redirected');
+		expect(kindOf(404)).toBe('rejected');
+		expect(kindOf(503)).toBe('faulted');
+		expect(kindOf(200, true)).toBe('faulted');
 	});
 
-	it("takes the scope's otherwise, and five minutes for both when it says nothing", () => {
-		expect(secondsFor(answer(200), undefined)).toBe(DEFAULT_LIFETIME.success);
-		expect(secondsFor(answer(404), undefined)).toBe(DEFAULT_LIFETIME.failure);
-		expect(secondsFor(answer(200), { success: 86400 })).toBe(86400);
-		expect(secondsFor(answer(404), { success: 86400 })).toBe(DEFAULT_LIFETIME.failure);
-		expect(secondsFor(answer(200), false)).toBe(0);
-	});
-
-	it('keeps its own failure to reach a service briefly, and nothing that sets a cookie', () => {
-		expect(secondsFor(answer(502), undefined, true)).toBe(UNREACHED_SECONDS);
-		expect(secondsFor(answer(200, { 'set-cookie': 'a=1' }), undefined)).toBe(0);
+	it('tells a cache after it the lifetime, or to keep nothing', () => {
+		expect(controlOf(300)).toBe('public, max-age=300');
+		expect(controlOf(0)).toBe('no-store');
+		expect(controlOf('immutable')).toBe(UNCHANGING);
+		expect(secondsOf('immutable')).toBe(31_536_000);
 	});
 });
 
@@ -79,7 +74,6 @@ describe('the cache at the gateway', () => {
 					routes: [],
 				},
 			},
-			{},
 		);
 		const { seen, env } = node(() => answer(200));
 		const LIMITS = {
@@ -102,14 +96,15 @@ describe('the cache at the gateway', () => {
 		expect(await second.text()).toBe('{}');
 		expect(seen).toHaveLength(1);
 		expect(counted).toHaveLength(1);
-		expect(put).toEqual([`${HOST}/geo/address?latitude=1 public, max-age=300`]);
+		expect(put).toEqual([`${HOST}/geo/address?latitude=1 public, max-age=900`]);
 	});
 
-	it('keeps nothing the service says not to, nor what a credential asked for, nor a write', async () => {
+	it("keeps by the route's word, not the service's, and nothing for a credential or a write", async () => {
 		const { put } = install();
-		const app = gateway(table, {});
+		const app = gateway(table);
 		const { seen, env } = node(() => answer(200, { 'cache-control': 'no-store' }));
-		await app.fetch(new Request(`${HOST}/geo/a`), env);
+		const said = await app.fetch(new Request(`${HOST}/geo/a`), env);
+		expect(said.headers.get('cache-control')).toBe('public, max-age=900');
 		await app.fetch(new Request(`${HOST}/geo/a`), env);
 		const open = node(() => answer(200));
 		await app.fetch(
@@ -118,24 +113,24 @@ describe('the cache at the gateway', () => {
 		);
 		await app.fetch(new Request(`${HOST}/geo/b`, { method: 'POST', body: 'x' }), open.env);
 		await app.fetch(new Request(`${HOST}/geo/b`, { method: 'HEAD' }), open.env);
-		expect(seen).toHaveLength(2);
-		expect(put).toEqual([]);
+		expect(seen).toHaveLength(1);
+		expect(put).toEqual([`${HOST}/geo/a public, max-age=900`]);
 	});
 
-	it('keeps its own failure to reach the node for thirty seconds', async () => {
+	it('keeps its own failure to reach the node as the route keeps a fault', async () => {
 		const { put } = install();
-		const app = gateway(table, {});
+		const app = gateway(table);
 		const down = {
 			HOME: { fetch: async () => Promise.reject(new Error('tunnel down')) } as unknown as Fetcher,
 		};
 		const answered = await app.fetch(new Request(`${HOST}/geo/address`), down);
 		expect(answered.status).toBe(502);
-		expect(put).toEqual([`${HOST}/geo/address public, max-age=30`]);
+		expect(put).toEqual([`${HOST}/geo/address public, max-age=300`]);
 	});
 
 	it('gives HEAD what GET kept, without its body', async () => {
 		install();
-		const app = gateway(table, {});
+		const app = gateway(table);
 		const { env } = node(() => answer(200));
 		await app.fetch(new Request(`${HOST}/geo/c`), env);
 		const head = await app.fetch(new Request(`${HOST}/geo/c`, { method: 'HEAD' }), env);
@@ -143,9 +138,15 @@ describe('the cache at the gateway', () => {
 		expect(await head.text()).toBe('');
 	});
 
-	it('keeps nothing for a scope that asks for none', async () => {
+	it('keeps nothing for a route that declares none', async () => {
 		const { put } = install();
-		const app = gateway(table, { geo: { cache: false } });
+		const app = gateway({
+			geo: {
+				placement: 'home',
+				binding: 'HOME',
+				routes: [{ ...GATEWAY_DEFAULTS, path: '/*', cache: { fulfilled: 0, accepted: 0, redirected: 0, rejected: 0, faulted: 0 } }],
+			},
+		});
 		const { seen, env } = node(() => answer(200));
 		await app.fetch(new Request(`${HOST}/geo/d`), env);
 		await app.fetch(new Request(`${HOST}/geo/d`), env);

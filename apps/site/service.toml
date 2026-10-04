@@ -12,7 +12,11 @@ prefix = "/api"
 
 # What the API says about the corpus holds until the next publication, and so does a refusal; its
 # own failure is kept nowhere, which would turn a blip into an outage. See
-# spec/architecture/artifacts.md, "The key says what may cache it".
+# spec/architecture/artifacts.md, "The key says what may cache it". A crawler that renders a page
+# asks what the page asks, so it may fetch it.
+[api.defaults]
+crawlable = true
+
 [api.defaults.cache.success]
 fulfilled = "5m"
 redirected = "5m"

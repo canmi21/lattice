@@ -6,58 +6,29 @@ it is agreed, not an entry here.
 
 The rules over an entry are the index's; see [todo.md](todo.md).
 
-## Three Workers answer for the public, each with the rules the gateway is to hold once
+## The CDN and the alias layer still answer for themselves
 
-`gateway` answers `api.ffoni.com`, `cdn` answers `cdn.ffoni.com` and `aka` answers `ill.li`, each
-on a custom domain of its own ([gateway's](../../apps/gateway/wrangler.jsonc)). Each repeats what
-the new design puts in one place:
+The gateway holds CORS, lifetimes, the host files and the path rule from each service's
+declaration. `cdn` on `cdn.ffoni.com` and `aka` on `ill.li` are Workers on custom domains of their
+own, and each still writes all four itself: `*` to every origin from its own middleware; a stamp
+the CDN derives from whether the path is content addressed ([cdn's cache.ts](../../apps/cdn/src/cache.ts))
+and the alias layer gives a resolution, a refusal and a blip three ways
+([aka's cache.ts](../../apps/aka/src/cache.ts)); its own `robots.txt`, `security.txt` and
+`favicon.ico`; and `normalizedLocation` mounted by hand.
 
-- CORS: the gateway's per scope in [policy.ts](../../apps/gateway/src/policy.ts); the CDN and the
-  alias layer answer `*` to every origin from their own middleware.
-- Lifetimes: the gateway keeps an answer five minutes, success or failure alike, unless the scope
-  or the service says otherwise, and thirty seconds when the service could not be reached
-  ([cache.ts](../../apps/gateway/src/cache.ts)); the CDN derives its stamp from whether the path is
-  content addressed ([cdn's cache.ts](../../apps/cdn/src/cache.ts)); the alias layer stamps a
-  resolution, a refusal and a blip three ways ([aka's cache.ts](../../apps/aka/src/cache.ts)).
-- `robots.txt`, `security.txt` and `favicon.ico`: each Worker answers its own, keyed by service in
-  `@canmi/robots` and `@canmi/security`, where the new design keys them by hostname.
-- The path rule: each of the three mounts `normalizedLocation` itself.
+Their routes -- `/object`, `/derive`, `/proxy/github`, the legacy `/github/*`, `/symlink/...`, the
+five-character rids -- move behind the gateway unchanged, reached by binding, and their custom
+domains go; each stamp becomes a declaration.
 
-The CDN's and the alias layer's routes -- `/object`, `/derive`, `/proxy/github`, the legacy
-`/github/*`, `/symlink/...`, the five-character rids -- move behind the gateway unchanged, reached
-by binding, and their custom domains go.
+## No service answers a versioned path
 
-## No hostname reads as a profile, and nothing is versioned
-
-The gateway reads one form, `/{scope}/{path}` on one host. There is no profile table, no reading of
-a hostname from the right, no registry of providers or regions, and no `/v{n}/` in any path. Every
-service is `v1` from the start except the CDN at `v3` and the alias layer at `v1`.
+The gateway reads every hostname as a profile and every request into its tuple, but it is bound to
+`api.ffoni.com` alone, which reads as a retired host and forwards its old, unversioned path. No
+service routes on `/v{n}/` yet. Every service is `v1` from the start except the CDN at `v3` and the
+alias layer at `v1`.
 
 Decided: the gateway forwards the version in the path, and a service routes on it; see the
 gateway's spec.
-
-## The policy is split between a service's file and the gateway's
-
-Limits are in each `service.toml`; CORS, forbidden parameters, the public paths, allowed headers and
-lifetimes are in the gateway's `policy.ts`, written in TypeScript because an origin is a URL and
-every URL is declared once in `libs/urls`. The new design has the service declare and the gateway
-enforce.
-
-Decided: all of it goes into `service.toml`, CORS by service code; see the gateway's spec.
-
-Decided: the shape in the gateway's spec, "The declaration".
-
-## A lifetime is one number for a success and one for a failure
-
-The gateway's `Lifetime` is `{ success, failure }`. The new design declares three per route: an
-answer, a refusal about the request itself, and the service failing or being unreachable -- the
-distinction the alias layer already makes by hand.
-
-Decided: fifteen minutes for a success and five for a failure when nothing is declared.
-
-Decided: four kinds, named, nested under success and failure; see the gateway's spec.
-
-Decided: `fulfilled`, `redirected`, `rejected` and `faulted`; see the gateway's spec.
 
 ## The addresses are spelled for the old hosts
 
@@ -73,12 +44,14 @@ need for every profile's hostname.
 Decided: `rdu`.
 `api-{region}-int.ixc.one` can name it.
 
-## What each new host tells a crawler is not written
+## A deployment's own host would be indexed as a second copy
 
-`@canmi/robots` and `@canmi/security` have a policy and a note per service. The new hosts --
-`api.monoflake.com`, `cdn.monoflake.com`, each `ixc.one` deployment -- have none yet, and a
-deployment's own host is a second address for the same answers, which an index should not take as a
-second copy.
+The gateway writes each host's `robots.txt` from what the routes it reaches say, so a new host
+needs nothing written for it. But a deployment's host under `ixc.one` answers what
+`api.monoflake.com` answers, and a crawler let into both would index the same answers twice.
+
+**Undecided: whether a deployment's host refuses every crawler**, leaving the routes' own
+`crawlable` to the hosts the gateway chooses for.
 
 ## The whitelists are written by hand, and checked against the table only
 

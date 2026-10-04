@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { developmentUrl, URLS } from '@canmi/urls';
+import { developmentUrl, PAGE_ORIGINS, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, MARK } from './index.ts';
-import { pathAllowed, POLICIES, type Policy } from './policy.ts';
+import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, scopeTable, WORKERS } from './table.ts';
 
@@ -71,8 +71,7 @@ describe('the scope table', () => {
 		}
 	});
 
-	it('has a policy only for scopes it has, and the counters every limit is kept in', () => {
-		for (const scope of Object.keys(POLICIES)) expect(SCOPES).toHaveProperty(scope);
+	it('has the counters every limit is kept in', () => {
 		expect(wrangler().durable_objects?.bindings).toContainEqual({
 			name: 'limits',
 			class_name: 'counter',
@@ -89,17 +88,6 @@ describe('the scope table', () => {
 	});
 });
 
-describe('a paths allowlist', () => {
-	it('lets everything through when absent, exactly when named, and under a prefix ending in `/`', () => {
-		expect(pathAllowed(undefined, '/anything')).toBe(true);
-		expect(pathAllowed(['/api/send'], '/api/send')).toBe(true);
-		expect(pathAllowed(['/api/send'], '/api/sender')).toBe(false);
-		expect(pathAllowed(['/api/'], '/api/send')).toBe(true);
-		expect(pathAllowed(['/api/'], '/apiary')).toBe(false);
-		expect(pathAllowed(['/script.js', '/api/send'], '/api/website')).toBe(false);
-	});
-});
-
 describe('the gateway', () => {
 	const table: Record<string, Scope> = {
 		site: {
@@ -108,16 +96,20 @@ describe('the gateway', () => {
 			worker: 'site',
 			prefix: '/api',
 			limits: [{ methods: ['PUT'], path: '/like', count: 10, seconds: 60 }],
-			routes: [],
+			routes: [
+				{
+					...GATEWAY_DEFAULTS,
+					path: '/*',
+					crawlable: true,
+					cors: { origins: ['status'], methods: ['GET', 'HEAD', 'PUT'], headers: [] },
+				},
+			],
 		},
 		hook: { placement: WORKERS, binding: 'HOOK', worker: 'hook', routes: [] },
 		geo: { placement: 'home', binding: 'HOME', routes: [] },
 	};
-	const listed = 'https://listed.test';
-	const policies: Record<string, Policy> = {
-		site: { origin: (origin) => (!origin ? '*' : origin === listed ? origin : null) },
-	};
-	const app = gateway(table, policies);
+	const listed = PAGE_ORIGINS.status?.[0] ?? '';
+	const app = gateway(table);
 	const ask = (path: string, env: Env = {}, init?: RequestInit) =>
 		app.fetch(new Request(`${HOST}${path}`, init), env);
 
@@ -135,9 +127,11 @@ describe('the gateway', () => {
 	});;
 
 	it('does not know a scope outside its table, or one inherited from Object', async () => {
-		for (const path of ['/nothing/x', '/constructor/x', '/__proto__/x']) {
+		for (const path of ['/nothing/x', '/constructor/x']) {
 			expect((await ask(path)).status).toBe(404);
 		}
+		// Not a name a service could have, so the path is malformed rather than its scope unknown.
+		expect((await ask('/__proto__/x')).status).toBe(400);
 	});
 
 	it('says so when a scope it knows has no binding', async () => {
@@ -259,18 +253,18 @@ describe('the gateway', () => {
 		expect(seen).toHaveLength(0);
 	});
 
-	it("adds CORS to the service's answer by the scope's list", async () => {
+	it("adds CORS to the service's answer by the route's service codes", async () => {
 		const { fetcher } = binding();
 		const env = { SITE: fetcher };
 		const from = async (origin?: string) =>
 			(await ask('/site/stats', env, { headers: origin ? { origin } : {} })).headers;
 		expect((await from(listed)).get('access-control-allow-origin')).toBe(listed);
 		expect((await from('https://stranger.test')).get('access-control-allow-origin')).toBeNull();
-		expect((await from()).get('access-control-allow-origin')).toBe('*');
+		expect((await from()).get('access-control-allow-origin')).toBeNull();
 		expect((await from(listed)).get('vary')).toContain('Origin');
 	});
 
-	it('gives a scope with no origin policy no CORS at all', async () => {
+	it('gives a route that declares no CORS none at all', async () => {
 		const { fetcher } = binding();
 		const answer = await ask('/hook/github', { HOOK: fetcher }, { headers: { origin: listed } });
 		expect(answer.headers.get('access-control-allow-origin')).toBeNull();
@@ -357,8 +351,8 @@ describe('the gateway', () => {
 	});
 });
 
-describe("geo's policy", () => {
-	const app = gateway({ geo: SCOPES.geo as Scope }, POLICIES);
+describe("geo's declaration", () => {
+	const app = gateway({ geo: SCOPES.geo as Scope });
 
 	it('lets any page call it, and limits one address on the lookup alone', async () => {
 		const refused = counters(false);
@@ -378,8 +372,8 @@ describe("geo's policy", () => {
 	});
 });
 
-describe("shot's policy", () => {
-	const app = gateway({ shot: SCOPES.shot as Scope }, POLICIES);
+describe("shot's declaration", () => {
+	const app = gateway({ shot: SCOPES.shot as Scope });
 	const headers = { 'cf-connecting-ip': '192.0.2.1' };
 
 	it('refuses `internal` from the public, whatever its value, before the service or a limit', async () => {
@@ -490,8 +484,8 @@ describe("shot's policy", () => {
 	});
 });
 
-describe("umami's policy", () => {
-	const app = gateway({ umami: SCOPES.umami as Scope }, POLICIES);
+describe("umami's declaration", () => {
+	const app = gateway({ umami: SCOPES.umami as Scope });
 	const headers = { 'cf-connecting-ip': '192.0.2.1' };
 
 	it('reaches only where the tracker posts, nothing else of the dashboard', async () => {
@@ -566,7 +560,7 @@ describe("umami's policy", () => {
 		expect(preflight.headers.get('access-control-allow-headers')).toBe(
 			'Content-Type,x-umami-website-id,x-umami-hostname,x-umami-cache',
 		);
-		const other = gateway({ geo: SCOPES.geo as Scope }, POLICIES);
+		const other = gateway({ geo: SCOPES.geo as Scope });
 		const elsewhere = await other.fetch(
 			new Request(`${HOST}/geo/address`, {
 				method: 'OPTIONS',

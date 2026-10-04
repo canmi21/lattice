@@ -19,9 +19,9 @@ memory_mb = 384
 # the pages that matter less".
 [interface]
 
-# The `umami` scope of the API host: the gateway opens only as far as a reporting page needs, the
-# tracker script and `POST /api/send` -- see apps/gateway/src/policy.ts -- and refuses every other
-# path with `no_such_route`, so nothing of the dashboard's own API is public.
+# The `umami` scope of the API host: the gateway opens only as far as a reporting page needs,
+# `POST /api/send`, by the routes below, and refuses every other path with `no_such_route`, so
+# nothing of the dashboard's own API is public.
 [api]
 public = true
 

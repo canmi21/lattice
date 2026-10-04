@@ -6,23 +6,36 @@
  * "One API host, scoped by path".
  */
 import { failure } from '@canmi/response';
+import { robotsTxt } from '@canmi/robots';
 import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
-import { robotsFor } from '@canmi/robots';
+import type { Service } from '@canmi/security/agents';
 import { followSymlink, symlinkOf } from '@canmi/symlink';
 import {
 	DEVELOPMENT_PORTS,
 	developmentUrl,
+	GATEWAY,
 	isDevHost,
 	normalizedLocation,
+	PAGE_ORIGINS,
 	pickUrls,
 	URLS,
 } from '@canmi/urls';
-import { Hono } from 'hono';
+import { type Context, Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';
-import { CACHE_HEADER, cacheable, keyOf, secondsFor, store, toKeep } from './cache.ts';
+import {
+	CACHE_HEADER,
+	cacheable,
+	controlOf,
+	keyOf,
+	kindOf,
+	secondsOf,
+	store,
+	toKeep,
+} from './cache.ts';
+import { GATEWAY_DEFAULTS, type Route } from './declaration.ts';
 import { counted } from './limit.ts';
-import { pathAllowed, POLICIES, type Policy } from './policy.ts';
+import { type Profile, profileOf, readRequest, type Tuple } from './profile.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';
 
@@ -110,21 +123,83 @@ function isFetcher(value: unknown): value is Fetcher {
 	return typeof (value as Fetcher | undefined)?.fetch === 'function';
 }
 
-/** The first path segment, and the path after it as the service sees it. */
-function split(url: URL): { scope: string; rest: string } {
-	const [, scope = '', ...rest] = url.pathname.split('/');
-	return { scope, rest: `/${rest.join('/')}` };
+/** What a path falls to where its service declares nothing for it. */
+const DEFAULT_ROUTE: Route = { path: '/*', ...GATEWAY_DEFAULTS };
+
+/** The route of `scope` that `path` falls under: the first match, most specific first. */
+export function routeOf(scope: Scope, path: string): Route {
+	for (const route of scope.routes) {
+		if (route.path.endsWith('/*') ? path.startsWith(route.path.slice(0, -1)) : path === route.path)
+			return route;
+	}
+	return DEFAULT_ROUTE;
 }
 
-function corsFor(policy: Policy): MiddlewareHandler | undefined {
-	const { origin } = policy;
-	if (!origin) return undefined;
+/** A route's CORS as a middleware, its service codes read as the origins of their pages. */
+function corsFor(route: Route): MiddlewareHandler | undefined {
+	const declared = route.cors;
+	if (!declared) return undefined;
+	const listed =
+		declared.origins === 'public'
+			? null
+			: new Set(declared.origins.flatMap((code) => PAGE_ORIGINS[code] ?? []));
 	return cors({
-		origin: (asked, c) => origin(asked, c.req.raw),
-		allowMethods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-		allowHeaders: ['Content-Type', ...(policy.headers ?? [])],
+		origin: (asked) => (listed ? (listed.has(asked) ? asked : null) : '*'),
+		allowMethods: [...declared.methods, 'OPTIONS'],
+		allowHeaders: ['Content-Type', ...declared.headers],
 		maxAge: 86_400,
 	});
+}
+
+/** Which host a profile is, for the files every host answers: its note, its mark, its `ref`. */
+function hostOf(profile: Profile): Service {
+	if (profile.service === 'cdn') return 'cdn';
+	if (profile.service === 'alias') return 'aka';
+	return 'api';
+}
+
+/** What the site's analytics is told a visitor typing a host's own address came from. */
+const REF: Readonly<Record<Service, string>> = {
+	api: 'api',
+	cdn: 'cdn',
+	aka: 'alias',
+	site: 'site',
+	status: 'status',
+};
+
+/**
+ * A declared route as a crawler would match it on `profile`'s host: the version the path names,
+ * the service the path names, then the route -- a prefix as itself, an exact path ending in `$`.
+ * `undefined` where the host does not reach it.
+ */
+function publicPath(profile: Profile, service: string, path: string): string | undefined {
+	const prefix = profile.prefix ?? '';
+	if (prefix && !path.startsWith(`${prefix}/`) && path !== `${prefix}/*`) return undefined;
+	const own = path.endsWith('/*') ? path.slice(prefix.length, -1) : `${path.slice(prefix.length)}$`;
+	const version = profile.version === undefined ? '/*' : '';
+	const named = profile.service === undefined ? `/${service}` : '';
+	return `${version}${named}${own.startsWith('/') ? own : `/${own}`}`;
+}
+
+/**
+ * A host's robots.txt, from what the routes it reaches say: refused by default, with each route
+ * that differs from its service's own defaults said where it does. See
+ * spec/architecture/gateway.md, "Every host's files and firewall are derived".
+ */
+function robotsOf(profile: Profile, scopes: Readonly<Record<string, Scope>>): string {
+	const allow: string[] = [];
+	const disallow: string[] = [];
+	for (const [service, scope] of Object.entries(scopes)) {
+		if (profile.service !== undefined && profile.service !== service) continue;
+		const base = scope.routes.at(-1) ?? DEFAULT_ROUTE;
+		for (const route of scope.routes) {
+			if (!route.exposed) continue;
+			if (route === base ? !route.crawlable : route.crawlable === base.crawlable) continue;
+			const path = publicPath(profile, service, route.path);
+			if (path) (route.crawlable ? allow : disallow).push(path);
+		}
+	}
+	return robotsTxt({ allow, disallow: [...disallow, '/'], agent: hostOf(profile) });
 }
 
 /**
@@ -143,17 +218,33 @@ function destination(value: unknown, target: Scope): Fetcher | string | undefine
 /** What a scope's binding is set to, as a variable, where the Worker runs in development. */
 const DEVELOPMENT = 'development';
 
-export function gateway(
-	scopes: Readonly<Record<string, Scope>> = SCOPES,
-	policies: Readonly<Record<string, Policy>> = POLICIES,
-) {
-	const corsOf = new Map(
-		Object.entries(policies).flatMap(([scope, policy]) => {
-			const handler = corsFor(policy);
-			return handler ? [[scope, handler] as const] : [];
-		}),
-	);
-	const app = new Hono<{ Bindings: Env }>();
+/** What the gateway has read of a request by the time it is forwarded. */
+interface Read {
+	readonly tuple: Tuple;
+	readonly target: Scope;
+	readonly route: Route;
+}
+
+type Gate = Context<{ Bindings: Env; Variables: { read: Read } }>;
+
+/** Whether this is a development session: a binding set to it, or this machine's own host. */
+function developing(c: Gate): boolean {
+	return Object.values(c.env).includes(DEVELOPMENT) || isDevHost(new URL(c.req.url).hostname);
+}
+
+/**
+ * The address as the profiles read it. A development session answers on this machine's name, and
+ * reads as the API host its callers are written against until they move.
+ */
+function asked(c: Gate): URL {
+	const url = new URL(c.req.url);
+	if (isDevHost(url.hostname)) url.host = GATEWAY.retired.api;
+	return url;
+}
+
+export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
+	const corsOf = new Map<Route, MiddlewareHandler | undefined>();
+	const app = new Hono<{ Bindings: Env; Variables: { read: Read } }>();
 
 	// One spelling per address: a path that normalizes differently goes where it should.
 	// See spec/architecture/delivery.md, "Every address has one spelling".
@@ -162,74 +253,88 @@ export function gateway(
 		return normal ? c.redirect(normal.location, normal.status) : next();
 	});
 
-	// Out of an index but for the site's scope, which a crawler rendering a page asks. See
-	// spec/architecture/robots.md.
-	app.get('/robots.txt', (c) => c.text(robotsFor('api')));
-	app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'api'));
-	// The name a browser asks every origin for: the `api` scope's mark, followed in one hop. See
-	// spec/architecture/delivery.md, "A page follows the name for the browser".
-	// Development is told by a binding set to it, since `wrangler dev` hands this host the custom
-	// domain's name rather than localhost.
-	app.get('/favicon.ico', (c) => {
-		const developing =
-			Object.values(c.env).includes(DEVELOPMENT) || isDevHost(new URL(c.req.url).hostname);
-		return followSymlink(symlinkOf(pickUrls(developing).alias, 'api', 'favicon.ico'));
-	});
-
-	// The host's own address is somebody typing it, not a malformed call: they go to the site, and
-	// `ref` tells the site's analytics where from.
-	app.get('/', (c) => {
-		const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-		return c.redirect(`${urls.site}/?ref=api`, 301);
+	// Every host's own files, from its profile, before any service is read. See
+	// spec/architecture/gateway.md, "Every host's files and firewall are derived".
+	app.use('*', async (c, next) => {
+		const profile = profileOf(asked(c).hostname);
+		if (!profile) return failure(404, 'no_such_host');
+		const host = hostOf(profile);
+		const { pathname } = new URL(c.req.url);
+		if (c.req.method !== 'GET' && c.req.method !== 'HEAD') return next();
+		if (pathname === '/robots.txt') return c.text(robotsOf(profile, scopes));
+		if (pathname === SECURITY_TXT_PATH) return securityResponse(c.req.raw, host);
+		// The name a browser asks every origin for, followed in one hop. See
+		// spec/architecture/delivery.md, "A page follows the name for the browser".
+		if (pathname === '/favicon.ico') {
+			return followSymlink(symlinkOf(pickUrls(developing(c)).alias, host, 'favicon.ico'));
+		}
+		// The host's own address is somebody typing it: they go to the site, and `ref` tells the
+		// site's analytics where from.
+		if (pathname === '/') {
+			return c.redirect(`${pickUrls(developing(c)).site}/?ref=${REF[host]}`, 301);
+		}
+		return next();
 	});
 
 	app.use('*', async (c, next) => {
-		const { scope } = split(new URL(c.req.url));
-		// Every path here is under a scope, so one without is malformed, not missing.
-		if (scope === '') return failure(400, 'invalid_path');
-		if (!Object.hasOwn(scopes, scope)) return failure(404, 'no_such_scope');
-		const handler = corsOf.get(scope);
+		const tuple = readRequest(asked(c));
+		// A path that names no version or no service is malformed, not missing.
+		if (tuple === 'no_such_host') return failure(404, 'no_such_host');
+		if (typeof tuple === 'string') return failure(400, 'invalid_path');
+		if (!Object.hasOwn(scopes, tuple.service)) return failure(404, 'no_such_scope');
+		const target = scopes[tuple.service] as Scope;
+		const route = routeOf(target, tuple.path);
+		// A path the service does not open is no address, before a limit or the service is asked.
+		if (!route.exposed) return failure(404, 'no_such_route');
+		c.set('read', { tuple, target, route });
+		if (!corsOf.has(route)) corsOf.set(route, corsFor(route));
+		const handler = corsOf.get(route);
 		return handler ? handler(c, next) : next();
 	});
 
 	app.all('*', async (c) => {
 		const url = new URL(c.req.url);
-		const { scope, rest } = split(url);
-		const target = scopes[scope] as Scope;
-		const policy = Object.hasOwn(policies, scope) ? (policies[scope] as Policy) : {};
+		const { tuple, target, route } = c.get('read');
 		const address = c.req.header('cf-connecting-ip');
-		// A path outside the scope's allowlist does not exist as far as the public is concerned --
-		// the same answer an unknown route gives -- before a limit is counted or the service asked.
-		if (!pathAllowed(policy.paths, rest)) return failure(404, 'no_such_route');
-		if (await forbids(policy.forbidden ?? [], url, c.req.raw)) {
+		if (await forbids(route.forbidden, url, c.req.raw)) {
 			return failure(403, 'forbidden_parameter');
 		}
 		// A kept answer is given before any limit is counted: it costs the node nothing.
-		const shelf = cacheable(c.req.raw) ? store() : null;
+		const shared = cacheable(c.req.raw);
+		const shelf = shared ? store() : null;
 		const key = keyOf(url);
 		const hit = shelf ? await shelf.match(key) : undefined;
 		if (hit) return new Response(c.req.method === 'HEAD' ? null : hit.body, hit);
-		/** Keep what may be kept, where a GET asked for it, and say it was not already kept. */
+		/**
+		 * The answer as the route declares it is kept: its lifetime stamped over the service's own,
+		 * and kept here too where a GET from nobody in particular asked for it.
+		 */
 		const answered = (answer: Response, unreached = false): Response => {
-			const seconds =
-				shelf && c.req.method === 'GET' ? secondsFor(answer, policy.cache, unreached) : 0;
+			const lifetime = answer.headers.has('set-cookie')
+				? 0
+				: route.cache[kindOf(answer.status, unreached)];
+			const returned = new Response(answer.body, answer);
+			returned.headers.set(
+				'cache-control',
+				shared || c.req.method !== 'GET' ? controlOf(lifetime) : 'private, no-store',
+			);
+			const seconds = shelf && c.req.method === 'GET' ? secondsOf(lifetime) : 0;
 			if (shelf && seconds > 0) {
-				const kept = shelf.put(key, toKeep(answer, seconds));
+				const kept = shelf.put(key, toKeep(returned));
 				try {
 					c.executionCtx.waitUntil(kept);
 				} catch {
 					// No execution context outside a Worker; the put simply runs on its own.
 				}
 			}
-			const returned = new Response(answer.body, answer);
 			returned.headers.set(CACHE_HEADER, 'miss');
 			return returned;
 		};
 		const taken = isProbe(c.req.raw.headers, c.env)
 			? { allowed: true, retryAfter: 0 }
-			: await counted(c.env.limits, scope, target.limits ?? [], {
+			: await counted(c.env.limits, tuple.service, target.limits ?? [], {
 					method: c.req.method,
-					path: rest,
+					path: tuple.path,
 					address,
 				});
 		if (!taken.allowed) {
@@ -240,12 +345,14 @@ export function gateway(
 
 		let forwarded = new URL(url);
 		if (target.placement === WORKERS) {
-			forwarded.pathname = `${target.prefix ?? ''}${rest}`;
+			forwarded.pathname = `${target.prefix ?? ''}${tuple.forward}`;
 			if (typeof binding === 'string')
 				forwarded = new URL(`${forwarded.pathname}${url.search}`, binding);
 		} else {
+			// Caddy takes the scope off itself; see spec/architecture/services.md, "One door per node".
 			forwarded.protocol = 'http:';
 			forwarded.host = NODE_API;
+			forwarded.pathname = `/${tuple.service}${tuple.forward}`;
 		}
 		const request = new Request(forwarded, c.req.raw);
 		request.headers.set(MARK.name, MARK.value);
@@ -258,7 +365,6 @@ export function gateway(
 			return answered(failure(502, 'upstream_unavailable'), true);
 		}
 		if (!serviceOwn(answer)) return answered(failure(502, 'upstream_unavailable'), true);
-		// A fetched response's headers are immutable, and CORS adds to them on the way out.
 		return answered(answer);
 	});
 
