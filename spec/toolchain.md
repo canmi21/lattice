@@ -211,7 +211,9 @@ anything about the code. A dependency update crossing that major has broken the 
 pin, and the repair is to put the 6 back rather than to chase the error into `svelte-check`.
 
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
-Only the site pays this cost, which is why only the site's manifest looks inconsistent.
+Every other package that does -- `apps/cms`, `apps/panel`, `apps/status`, `libs/prose`,
+`libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
+`outdated` listing 7 for each of them is this floor and not an upgrade waiting.
 
 ## verify runs what a change reaches
 
