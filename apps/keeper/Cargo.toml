@@ -13,7 +13,7 @@ deploy = { path = "../../libs/deploy" }
 anyhow = "1.0.104"
 axum = { version = "0.8.9", features = ["multipart"] }
 serde_json = "1.0.151"
-tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "fs"] }
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "fs"] }
 tokio-util = { version = "0.7.19", features = ["io"] }
 mimalloc = "0.1.52"
 serde = { version = "1.0.229", features = ["derive"] }

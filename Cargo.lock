@@ -3727,7 +3727,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "axum",
- "base64 0.22.1",
+ "base64 0.23.1",
  "bytes",
  "chromiumoxide",
  "futures-util",

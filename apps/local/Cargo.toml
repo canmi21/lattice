@@ -49,8 +49,8 @@ serde_json = { version = "1", features = ["preserve_order"] }
 # any machine that reads it.
 jiff = "0.2"
 base64 = "0.23.1"
-claude-codes = "2.1.280"
-tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "process", "signal", "fs"] }
+claude-codes = "2.1.290"
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "net", "process", "signal", "fs"] }
 indicatif = "0.18.6"
 cosmic-text = "0.19.0"
 tiny-skia = "0.12.0"
@@ -73,7 +73,7 @@ anstyle = "1.0.14"
 # Error types. Every fallible operation here names what can go wrong as its own type, so a caller
 # can match on the case rather than read a string, and the derive is what keeps that cheap enough
 # to be worth doing every time. See spec/code.md.
-thiserror = "2.0.20"
+thiserror = "2.0.21"
 anyhow = "1.0.104"
 # How wide a heading will draw, which decides whether it fits the table of contents on one line.
 # The rule is Unicode's East Asian Width table, not a character count -- and not something to
@@ -90,7 +90,7 @@ axum = "0.8.9"
 # Proxying to the TypeScript half, which listens on a socket with no address of its own: a
 # request is a handshake over a `UnixStream` and back, which is what these three are for.
 hyper = { version = "1.11.1", features = ["client", "http1"] }
-hyper-util = "0.1.20"
+hyper-util = "0.1.21"
 http-body-util = "0.1.5"
 
 [dev-dependencies]
