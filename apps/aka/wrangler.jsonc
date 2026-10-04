@@ -12,6 +12,10 @@
 	"compatibility_date": "2026-07-29",
 	"compatibility_flags": ["nodejs_compat"],
 
+	// The site's public routes, asked by binding rather than through the gateway this layer stands
+	// behind; see src/site.ts.
+	"services": [{ "binding": "SITE", "service": "site" }],
+
 	// No bucket, and that is the whole point. This layer holds neither bytes nor records: it
 	// asks the API what a name means and sends the caller to the CDN. See
 	// spec/architecture/delivery.md, "A name is resolved, never stored".

@@ -294,6 +294,12 @@ until the LAN answers those names, a call from the house goes out through the Tu
 private side [services.md](services.md) describes -- `api.canmi.icu/{scope}/...`, through Caddy --
 is retired once every caller has moved, rather than being given versions of its own.
 
+**A Worker behind the gateway asks another by binding, never through the gateway's host.** The
+gateway reaching a Worker that then asks the gateway's own public name is a request in a circle,
+and Cloudflare refuses it; the alias layer asks the site's public routes by the site's binding,
+under the API host's name so the site reads it as the public door. The gateway resolves its own
+marks through the alias layer's binding for the same reason.
+
 **Inside the house, the same names will answer locally, under the same rules.** The LAN's DNS will
 answer the gateway's hostnames with a gateway of its own on the node -- Caddy and a service that
 works with it -- reading the same table the Worker reads. The two are one gateway deployed twice:

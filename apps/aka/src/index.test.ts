@@ -195,3 +195,17 @@ describe('the version', () => {
 		expect(versioned.headers.get('Location')).toBe(plain.headers.get('Location'));
 	});
 });
+
+describe('the site, asked from behind the gateway', () => {
+	it('is asked by its binding, under the API host and its prefix, never through the gateway', async () => {
+		const seen: string[] = [];
+		const SITE = {
+			fetch: async (request: Request) => (seen.push(request.url), Response.json(named)),
+		};
+		const fetching = vi.spyOn(globalThis, 'fetch');
+		const res = await app.fetch(new Request(`${HOST}/symlink/favicon.svg`), { SITE });
+		expect(res.status).toBe(302);
+		expect(seen).toEqual([`${new URL(URLS.apps.production.api).origin}/api/v1/assets/favicon.svg`]);
+		expect(fetching).not.toHaveBeenCalled();
+	});
+});

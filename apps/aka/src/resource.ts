@@ -4,6 +4,7 @@ import { isDevHost, pickUrls } from '@canmi/urls';
 import { NEVER, RESOLVED } from './cache';
 import { redirectFor } from './redirect';
 import { failure } from './respond';
+import { askSite } from './site';
 
 /** The one field of a record this layer reads. Everything else about it belongs to its reader. */
 type Declared = { canonical?: unknown };
@@ -20,7 +21,7 @@ export async function resource(c: Context, rid: string): Promise<Response> {
 
 	// `/media` answers with the record itself rather than with an envelope, the record being a
 	// document with its own version on it already. See apps/site/server/src/handlers/media.ts.
-	const asked = await fetch(`${urls.api}/v1/media/${encodeURIComponent(rid)}`);
+	const asked = await askSite(c, `/v1/media/${encodeURIComponent(rid)}`);
 	if (asked.status === 404) return failure(c, 404, 'no_such_resource');
 	// A fact about this moment rather than about the corpus, so it is not held at all -- the same
 	// asymmetry every other refusal on this host is measured against. See ./cache.ts.

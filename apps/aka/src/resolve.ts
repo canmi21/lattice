@@ -1,9 +1,10 @@
 import { unwrap, type AssetAnswer } from '@canmi/artifacts';
-import { pickUrls, isDevHost } from '@canmi/urls';
+import { isDevHost, pickUrls } from '@canmi/urls';
 import type { Context } from 'hono';
 import { NEVER, RESOLVED } from './cache';
 import { redirectFor } from './redirect';
 import { failure } from './respond';
+import { askSite } from './site';
 
 /**
  * Turning one fixed name into the object it currently stands for.
@@ -17,7 +18,7 @@ export async function resolve(c: Context, name: string): Promise<Response> {
 	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
 
 	const path = name.split('/').map(encodeURIComponent).join('/');
-	const asked = await fetch(`${urls.api}/v1/assets/${path}`);
+	const asked = await askSite(c, `/v1/assets/${path}`);
 	// Not a fact about the corpus but about this moment -- held for five minutes it would be an
 	// outage rather than a blip.
 	if (asked.status !== 404 && !asked.ok) {
