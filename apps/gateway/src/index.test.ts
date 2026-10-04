@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@canmi/urls';
+import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@monoflake/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, INTERNAL_HEADER, MARK } from './index.ts';

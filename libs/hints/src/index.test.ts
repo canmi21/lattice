@@ -1,4 +1,4 @@
-import { pageUrls, URLS } from '@canmi/urls';
+import { pageUrls, URLS } from '@monoflake/sdk';
 import { describe, expect, it } from 'vitest';
 import { hints, scriptPolicy } from './index';
 

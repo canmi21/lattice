@@ -11,7 +11,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PORTS } from '@canmi/urls';
+import { DEVELOPMENT_PORTS } from '@monoflake/sdk';
 
 /** Only this checkout's workerd. Another clone's, or another project's, is not ours to reap. */
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));

@@ -13,7 +13,7 @@
 		"@canmi/response": "workspace:*",
 		"@canmi/robots": "workspace:*",
 		"@canmi/security": "workspace:*",
-		"@canmi/urls": "workspace:*",
+		"@monoflake/sdk": "workspace:*",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {

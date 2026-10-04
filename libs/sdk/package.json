@@ -1,0 +1,12 @@
+{
+	"name": "@monoflake/sdk",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@monoflake/urls": "workspace:*",
+		"canmi": "workspace:*"
+	}
+}

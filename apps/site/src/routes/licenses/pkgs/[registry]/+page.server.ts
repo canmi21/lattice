@@ -1,6 +1,6 @@
 import { LOCALE_DEPENDENCY } from '#lib/locale/current.svelte.js';
 import { error } from '@sveltejs/kit';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { packageRows, REGISTRY_NAMES } from '#lib/licenses/directory.js';
 import type { PageServerLoad } from './$types';
 

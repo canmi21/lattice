@@ -6,7 +6,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { toHtml } from 'hast-util-to-html';
 import { toHast, type Handler } from 'mdast-util-to-hast';
 import { toString as mdastToString } from 'mdast-util-to-string';

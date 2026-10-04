@@ -67,7 +67,7 @@
 </script>
 
 <script lang="ts">
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { localeUrl } from '#lib/locale/index.js';
 	import LanguageSwitcher from '#lib/locale/switcher.svelte';

@@ -1,7 +1,7 @@
 import { dev } from '$app/env';
 import { serverHandles } from '@canmi/sentry/server';
 import { fillTheme } from '@canmi/theme';
-import { normalizedLocation, URLS } from '@canmi/urls';
+import { normalizedLocation, URLS } from '@monoflake/sdk';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 

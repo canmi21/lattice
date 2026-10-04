@@ -2,7 +2,7 @@ import type { ClientInit } from '@sveltejs/kit/hooks';
 import { dev } from '$app/env';
 import { takeParameter } from '@canmi/referer';
 import { prepareBrowserRuntime } from '@canmi/compat';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { initClient } from '@canmi/sentry/client';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { registerAnalytics } from '#lib/analytics.js';

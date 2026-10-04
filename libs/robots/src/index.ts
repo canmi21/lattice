@@ -1,5 +1,5 @@
 import { agentNote, type Service } from '@canmi/security/agents';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 /**
  * Every host's robots policy, declared here by service and nowhere else. See

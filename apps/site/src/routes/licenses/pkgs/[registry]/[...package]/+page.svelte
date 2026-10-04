@@ -135,7 +135,7 @@
 
 <script lang="ts">
 	import { dev } from '$app/env';
-	import { pageUrls, URLS } from '@canmi/urls';
+	import { pageUrls, URLS } from '@monoflake/sdk';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import { localeUrl } from '#lib/locale/index.js';

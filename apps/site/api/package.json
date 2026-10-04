@@ -20,7 +20,7 @@
 		"@canmi/locales": "workspace:*",
 		"@canmi/response": "workspace:*",
 		"@canmi/store": "workspace:*",
-		"@canmi/urls": "workspace:*",
+		"@monoflake/sdk": "workspace:*",
 		"drizzle-orm": "^0.45.3",
 		"hono": "^4.13.12",
 		"valibot": "^1.5.0"

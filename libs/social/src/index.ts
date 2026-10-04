@@ -1,5 +1,5 @@
 import { author } from '@canmi/identity';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 /** Every entry, in the order the site shows them. See spec/architecture/identity.md. */
 export const SOCIAL = [

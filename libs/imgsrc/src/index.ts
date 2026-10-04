@@ -1,4 +1,4 @@
-import { pickUrls, URLS } from '@canmi/urls';
+import { pickUrls, URLS } from '@monoflake/sdk';
 
 const GITHUB_AVATAR_SCHEME = 'github:avatar:';
 const GITHUB_SCHEME = 'github:';

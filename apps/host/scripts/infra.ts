@@ -4,7 +4,7 @@
  * See spec/architecture/inspect.md, "`mise run infra`".
  */
 import { spawnSync } from 'node:child_process';
-import { URLS } from '@canmi/urls';
+import { INFRA } from '@monoflake/urls';
 
 type Envelope<T> =
 	| { status: 'success'; data: T }
@@ -82,7 +82,7 @@ function route(what: What, app: string | undefined, path: string | undefined): s
 export function fetchEnvelope(path: string, token: string): Envelope<unknown> {
 	const sent = spawnSync(
 		'curl',
-		['--silent', '--show-error', '--header', '@-', `${URLS.internal.panel}${path}`],
+		['--silent', '--show-error', '--header', '@-', `${INFRA.panel}${path}`],
 		{ input: `authorization: Bearer ${token}\n`, encoding: 'utf8' },
 	);
 	if (sent.status !== 0) fail(sent.stderr?.trim() || `curl failed reaching ${path}`);

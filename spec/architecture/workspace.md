@@ -305,11 +305,14 @@ check reads links and leaves backticks alone, and neither half has to guess.
 
 ### Every URL is declared once
 
-`libs/urls` is the only place a URL, hostname, or dev port may be written down. Everything
-else imports from it. This covers third-party endpoints too, not just our own hosts -- a CDN
-we forward images through is as much a URL as a domain we own.
+The address packages are the only place a URL, hostname, or dev port may be written down:
+`canmi` for the author's own and the world's, `@monoflake/urls` for infra's and `@monoflake/sdk`
+for the platform's, each declaring what its owner owns -- see [layers.md](layers.md), "Addresses
+are split by who owns the name". Everything else imports from them, and above infra from the sdk,
+which composes the three into one map. This covers third-party endpoints too, not just our own
+hosts -- a CDN we forward images through is as much a URL as a domain we own.
 
-The URL map is grouped by role:
+The composed map is grouped by role:
 
 - `apps`: deployable things in this repo, with development and production entries.
 - `internal`: domains the repo owner controls, but that are not apps in this repo.
@@ -317,7 +320,8 @@ The URL map is grouped by role:
 
 **The test: who resolves this URL?**
 
-- _The software_ -- it is fetched, linked against, or served from. It goes in `libs/urls`, with
+- _The software_ -- it is fetched, linked against, or served from. It goes in its owner's address
+  package, with
   no exceptions for app code, libraries, stylesheets, or config.
 - _A person reading_ -- a link to a standard, a `# see <url>` note. It stays where it is useful.
   Nothing breaks if it rots except somebody's curiosity.
@@ -329,7 +333,7 @@ rule, it is a dead one -- it gets ignored wholesale rather than in the one place
 
 An identity is not an address. A social handle, an email local part, a feed's tag URI --
 these say who someone is, and they live in `site.config.yaml` beside the author's name. What
-`libs/urls` owns is where to reach them. The two compose: `URLS.external.social.x` plus the
+the address packages own is where to reach them. The two compose: `URLS.external.social.x` plus the
 handle is the profile URL, assembled at the point of use rather than stored a second time as
 a whole. Putting the handle in the URL library would make the library the owner of a fact
 about a person, and the config the owner of nothing.
@@ -351,7 +355,7 @@ the document means rather than where anything points.
 Generated dependency lockfiles are vendor metadata, not an application address source. A package
 manager may copy a dependency's deprecation or funding URL into `pnpm-lock.yaml`; the software does
 not resolve it, and the next install owns that line. The reference check therefore skips the
-lockfile rather than asking `libs/urls` to duplicate metadata that this repository does not control.
+lockfile rather than asking an address package to duplicate metadata that this repository does not control.
 
 The measure this exists to protect: **moving a domain costs one edit to one file.** Every
 literal written elsewhere adds one more place that has to be found, and the ones that get
@@ -361,12 +365,14 @@ library long after that host stopped being part of the URL map, invisible becaus
 referenced it by name.
 
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
-library, so `mise run urls` renders the map into
-[`libs/urls/src/lib.rs`](../../libs/urls/src/lib.rs), the `urls` crate every Rust program depends
-on -- one directory holding both halves of one library -- and committed, like the records under
-`data/build/`, so a checkout compiles without Node having run first. The mirror is never
-edited by hand: [`rust.test.ts`](../../libs/urls/src/rust.test.ts) fails `verify` the moment it
-disagrees with the map, so the one-edit measure survives the language boundary. The
+library, so `mise run urls` renders the composed map into
+[`libs/sdk/src/lib.rs`](../../libs/sdk/src/lib.rs), the `monoflake` crate, and the author's own
+into [`libs/canmi/src/lib.rs`](../../libs/canmi/src/lib.rs), the `canmi` crate, which infra reads
+since it may not read the platform's -- each directory holding both halves of one library -- and
+commits both, like the records under `data/build/`, so a checkout compiles without Node having run
+first. A mirror is never edited by hand: each package's
+[`rust.test.ts`](../../libs/sdk/src/rust.test.ts) fails `verify` the moment it disagrees with its
+map, so the one-edit measure survives the language boundary. The
 alternative, exempting Rust from the rule, would have left half the repo carrying literals
 that the check answers for everywhere else.
 

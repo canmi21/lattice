@@ -4,7 +4,7 @@
  * node checks against GitHub itself. See spec/architecture/services.md, "Every node is the same
  * node".
  */
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 /** This repository as GitHub names it, read from its address rather than spelled a second time. */
 export const REPOSITORY = new URL(URLS.source).pathname.slice(1);

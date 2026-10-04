@@ -128,7 +128,7 @@
 <script lang="ts">
 	import { dev } from '$app/env';
 	import { page } from '$app/state';
-	import { pageUrls } from '@canmi/urls';
+	import { pageUrls } from '@monoflake/sdk';
 	import Title from '@canmi/behavior/title.svelte';
 	import { graph, ldJson } from '@canmi/social/structured';
 	import { articleEntity } from './entity';

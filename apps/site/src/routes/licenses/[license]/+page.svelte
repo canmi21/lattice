@@ -52,7 +52,7 @@
 </script>
 
 <script lang="ts">
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import { localeUrl } from '#lib/locale/index.js';

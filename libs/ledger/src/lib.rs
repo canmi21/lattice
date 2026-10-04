@@ -190,7 +190,8 @@ impl Ledger {
 	/// Start sending to the ledger at `base`: `LEDGER_URL` when it is set, the platform's ledger
 	/// otherwise. Needs a Tokio runtime.
 	pub fn start() -> Self {
-		let base = std::env::var("LEDGER_URL").unwrap_or_else(|_| urls::INTERNAL_LEDGER.to_owned());
+		let base =
+			std::env::var("LEDGER_URL").unwrap_or_else(|_| monoflake::INTERNAL_LEDGER.to_owned());
 		Self::to(base)
 	}
 

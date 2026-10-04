@@ -114,7 +114,7 @@
 	import GitFork from '@lucide/svelte/icons/git-fork';
 	import Scale from '@lucide/svelte/icons/scale';
 	import Star from '@lucide/svelte/icons/star';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import type { CardAlign, RepoRecord } from '@canmi/artifacts/types';
 	import { langColor } from './tokei/tokei';
 	import { compactCount, shortDate } from '@canmi/locales/format';

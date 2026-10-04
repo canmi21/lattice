@@ -4,7 +4,7 @@
  */
 import { author, mailbox } from '@canmi/identity';
 import { aliasesOf, graph, person, profiles, telegramGroup } from '@canmi/social/structured';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { articleEntity, citationsOf, kindOf } from '#lib/article/entity.js';
 import { elsewhere } from '#lib/documents/elsewhere.js';
 import { websiteEntity } from '#lib/entities.js';

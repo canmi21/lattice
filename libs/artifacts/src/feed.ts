@@ -12,7 +12,7 @@
  * fetched. See spec/architecture/artifacts.md, "Which objects exist".
  */
 import type { LocaleCode } from '@canmi/locales';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import type { Block, QuadrantDirection, QuadrantItem } from './types.ts';
 
 /** Where the two absolute links a feed writes are rooted. */

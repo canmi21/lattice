@@ -25,15 +25,15 @@ fn literal(text: &str) -> String {
 /// right as the profiles read it. Nothing else in those zones is matched, so a record of another
 /// name there answers as it does in public.
 fn names() -> Vec<(String, String)> {
-	let mut names: Vec<(String, String)> = urls::GATEWAY_EXACT
+	let mut names: Vec<(String, String)> = monoflake::GATEWAY_EXACT
 		.iter()
 		.map(|name| ((*name).to_owned(), format!("^{}[.]$", literal(name))))
 		.collect();
-	let zone = urls::GATEWAY_DEPLOYMENTS;
+	let zone = monoflake::GATEWAY_DEPLOYMENTS;
 	let deployment = format!(
 		"^[a-z][a-z0-9-]*-({})-({})[.]{}[.]$",
-		urls::GATEWAY_REGIONS.join("|"),
-		urls::GATEWAY_PROVIDERS.join("|"),
+		monoflake::GATEWAY_REGIONS.join("|"),
+		monoflake::GATEWAY_PROVIDERS.join("|"),
 		literal(zone)
 	);
 	names.push((zone.to_owned(), deployment));
@@ -100,7 +100,7 @@ mod tests {
 		assert!(
 			text.contains(&format!("template ANY ANY ixc.one {{\n\t\t{deployment}\n\t\trcode NOERROR"))
 		);
-		assert_eq!(text.matches("template IN A ").count(), urls::GATEWAY_EXACT.len() + 1);
+		assert_eq!(text.matches("template IN A ").count(), monoflake::GATEWAY_EXACT.len() + 1);
 	}
 
 	#[test]

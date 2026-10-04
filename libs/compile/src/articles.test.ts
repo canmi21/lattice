@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildArticles, summaryFor, translatedRaws } from './articles';
 import { sourceFingerprint, type SegmentSpan } from './assemble';

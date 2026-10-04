@@ -140,8 +140,10 @@ impl GitHub {
 			.https_only()
 			.enable_http1()
 			.build();
-		let repository =
-			urls::SOURCE.trim_start_matches(urls::EXTERNAL_GITHUB_WEB).trim_start_matches('/').to_owned();
+		let repository = canmi::SOURCE
+			.trim_start_matches(canmi::EXTERNAL_GITHUB_WEB)
+			.trim_start_matches('/')
+			.to_owned();
 		Self { client: Client::builder(TokioExecutor::new()).build(https), repository, token }
 	}
 
@@ -159,7 +161,7 @@ impl GitHub {
 	}
 
 	async fn json<T: DeserializeOwned>(&self, path: &str) -> Result<T, Error> {
-		let uri = format!("{}/repos/{}{path}", urls::EXTERNAL_GITHUB_API, self.repository);
+		let uri = format!("{}/repos/{}{path}", canmi::EXTERNAL_GITHUB_API, self.repository);
 		let response = self.get(&uri, true).await?;
 		let status = response.status().as_u16();
 		let body = response.into_body().collect().await.map_err(|e| Error::Http(e.to_string()))?;
@@ -191,7 +193,7 @@ impl GitHub {
 		// GitHub answers with a redirect to storage, which is signed and must not be sent the token.
 		let uri = format!(
 			"{}/repos/{}/actions/artifacts/{}/zip",
-			urls::EXTERNAL_GITHUB_API,
+			canmi::EXTERNAL_GITHUB_API,
 			self.repository,
 			artifact.id
 		);

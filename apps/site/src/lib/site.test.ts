@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { author } from '@canmi/identity';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { describe, expect, it } from 'vitest';
 
 // The config itself, read from disk rather than through `virtual:site`: the claim below is

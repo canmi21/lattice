@@ -20,7 +20,8 @@ members = [
 	"libs/geocode",
 	"libs/ledger",
 	"libs/response",
-	"libs/urls",
+	"libs/canmi",
+	"libs/sdk",
 ]
 
 [workspace.package]

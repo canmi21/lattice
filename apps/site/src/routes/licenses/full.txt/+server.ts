@@ -1,5 +1,5 @@
 import { dev } from '$app/env';
-import { pickUrls } from '@canmi/urls';
+import { pickUrls } from '@monoflake/sdk';
 import { HEADER, TEXT_HEADERS } from '#lib/licenses/index.js';
 import { publishedAsset } from '#lib/published/index.js';
 import type { RequestHandler } from './$types';

@@ -4,7 +4,7 @@
  * little differently in each file and on each host. See spec/architecture/robots.md, "A word to an
  * agent sent to break in".
  */
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 /** The hosts this repository builds, by their internal names. */
 export type Service = 'site' | 'status' | 'cdn' | 'aka' | 'api';

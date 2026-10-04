@@ -1,7 +1,8 @@
 import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PORTS } from '@canmi/urls';
+import { PORT_OFFSET } from 'canmi';
+import { PANEL_PORT } from '@monoflake/urls';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -35,7 +36,7 @@ export default defineConfig({
 		},
 	],
 	server: {
-		port: DEVELOPMENT_PORTS.panel,
+		port: PANEL_PORT + PORT_OFFSET,
 		strictPort: true,
 	},
 });

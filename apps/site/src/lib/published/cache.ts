@@ -10,7 +10,7 @@
 import { browser } from '$app/env';
 import { unwrap } from '@canmi/artifacts';
 import { PUBLICATION_DELAY, WHILE_UNREACHABLE } from '@canmi/cache';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
 
 type Fetch = typeof fetch;

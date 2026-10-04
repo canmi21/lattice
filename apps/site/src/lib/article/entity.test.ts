@@ -1,5 +1,5 @@
 import { PERSON_ID, SITE_ID } from '@canmi/social/structured';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { expect, it } from 'vitest';
 import { articleEntity, citationsOf } from './entity';
 

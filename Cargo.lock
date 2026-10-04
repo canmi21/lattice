@@ -528,6 +528,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
+name = "canmi"
+version = "0.0.0"
+
+[[package]]
 name = "cc"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -835,6 +839,7 @@ dependencies = [
  "jiff",
  "ledger",
  "mimalloc",
+ "monoflake",
  "response",
  "rusqlite",
  "serde",
@@ -842,7 +847,6 @@ dependencies = [
  "tempfile",
  "tokio",
  "tower",
- "urls",
  "uuid",
 ]
 
@@ -1026,6 +1030,7 @@ version = "0.0.0"
 dependencies = [
  "bollard",
  "bytes",
+ "canmi",
  "futures-util",
  "http-body-util",
  "hyper",
@@ -1040,7 +1045,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
- "urls",
  "zip",
 ]
 
@@ -1582,12 +1586,12 @@ dependencies = [
  "hyper-util",
  "maxminddb",
  "mimalloc",
+ "monoflake",
  "response",
  "serde",
  "serde_json",
  "tokio",
  "tower",
- "urls",
 ]
 
 [[package]]
@@ -1804,6 +1808,7 @@ dependencies = [
  "http-body-util",
  "jiff",
  "mimalloc",
+ "monoflake",
  "regex",
  "response",
  "rusqlite",
@@ -1814,7 +1819,6 @@ dependencies = [
  "tokio",
  "tokio-util",
  "url",
- "urls",
 ]
 
 [[package]]
@@ -2327,10 +2331,10 @@ dependencies = [
  "hyper-rustls",
  "hyper-util",
  "jiff",
+ "monoflake",
  "serde",
  "serde_json",
  "tokio",
- "urls",
 ]
 
 [[package]]
@@ -2449,6 +2453,7 @@ dependencies = [
  "axum",
  "base64 0.23.1",
  "blake3",
+ "canmi",
  "clap",
  "claude-codes",
  "cosmic-text",
@@ -2481,7 +2486,6 @@ dependencies = [
  "unicode-width",
  "ureq",
  "url",
- "urls",
  "webp",
  "words-count",
 ]
@@ -2657,6 +2661,10 @@ dependencies = [
  "wasi",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "monoflake"
+version = "0.0.0"
 
 [[package]]
 name = "moxcms"
@@ -3004,6 +3012,7 @@ dependencies = [
  "jiff",
  "ledger",
  "mimalloc",
+ "monoflake",
  "response",
  "rusqlite",
  "serde",
@@ -3015,7 +3024,6 @@ dependencies = [
  "toml",
  "tower",
  "url",
- "urls",
 ]
 
 [[package]]
@@ -3738,6 +3746,7 @@ dependencies = [
  "jiff",
  "ledger",
  "mimalloc",
+ "monoflake",
  "response",
  "rustls",
  "serde",
@@ -3747,7 +3756,6 @@ dependencies = [
  "tokio-rustls",
  "tower",
  "url",
- "urls",
  "uuid",
  "webpki-roots",
 ]
@@ -4085,6 +4093,7 @@ dependencies = [
  "hyper-rustls",
  "hyper-util",
  "mimalloc",
+ "monoflake",
  "response",
  "serde",
  "serde_json",
@@ -4092,7 +4101,6 @@ dependencies = [
  "tokio",
  "tower",
  "url",
- "urls",
 ]
 
 [[package]]
@@ -4595,10 +4603,6 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
-
-[[package]]
-name = "urls"
-version = "0.0.0"
 
 [[package]]
 name = "utf-8"

@@ -10,7 +10,7 @@
 	"dependencies": {
 		"@canmi/identity": "workspace:*",
 		"@canmi/prose": "workspace:*",
-		"@canmi/urls": "workspace:*",
+		"@monoflake/sdk": "workspace:*",
 		"svelte": "^5.57.1"
 	},
 	"devDependencies": {

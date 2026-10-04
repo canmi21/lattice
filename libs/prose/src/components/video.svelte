@@ -53,7 +53,7 @@
 <script lang="ts">
 	import { DEV as dev } from 'esm-env';
 	import { positionOf } from '@canmi/behavior/progress';
-	import { pageUrls } from '@canmi/urls';
+	import { pageUrls } from '@monoflake/sdk';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
 	import { chooseRung, playable } from './video-rungs.ts';

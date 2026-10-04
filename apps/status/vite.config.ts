@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { esbuildTarget } from '@canmi/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/sentry/build';
-import { PORT_OFFSET, URLS } from '@canmi/urls';
+import { PORT_OFFSET, URLS } from '@monoflake/sdk';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';

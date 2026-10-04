@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GATEWAY } from '@canmi/urls';
+import { GATEWAY } from '@monoflake/sdk';
 import { profileOf, readRequest } from './profile.ts';
 
 /** A deployment's hostname, from its parts. */

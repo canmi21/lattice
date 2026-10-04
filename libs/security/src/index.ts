@@ -2,7 +2,7 @@
  * The security.txt every host of ours answers with: RFC 9116's two required fields and where the
  * file lives. See spec/architecture/firewall.md, "Every host answers its own security.txt".
  */
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { agentNote, type Service } from './agents';
 
 /** The path the RFC fixes, which every whitelist lets through. */

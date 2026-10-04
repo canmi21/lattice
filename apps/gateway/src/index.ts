@@ -19,7 +19,7 @@ import {
 	pickUrls,
 	PINNED_PORTS,
 	URLS,
-} from '@canmi/urls';
+} from '@monoflake/sdk';
 import { type Context, Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { MiddlewareHandler } from 'hono/types';

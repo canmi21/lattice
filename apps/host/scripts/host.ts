@@ -10,7 +10,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { URLS } from '@canmi/urls';
+import { INFRA } from '@monoflake/urls';
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const USAGE = 'usage: host deploy <name> | host image <name> <path>';
@@ -34,7 +34,7 @@ function build(name: string, archive: string): void {
 function upload(name: string, declaration: string, archive: string, token: string): boolean {
 	// keeper takes host at its own address; host takes every other app under its API, which the
 	// panel passes on.
-	const receiver = name === 'host' ? URLS.internal.keeper : URLS.internal.panel;
+	const receiver = name === 'host' ? INFRA.keeper : INFRA.panel;
 	const address = name === 'host' ? `${receiver}/apps/host` : `${receiver}/api/apps/${name}`;
 	console.log(`handing ${name} to ${receiver}`);
 	const sent = spawnSync(

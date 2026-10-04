@@ -1,6 +1,6 @@
 import { PUBLISHED } from '@canmi/cache';
 import { counted, limited } from '@canmi/limits';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 import batch from './handlers/batch';

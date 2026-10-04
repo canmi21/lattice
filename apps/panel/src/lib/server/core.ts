@@ -5,7 +5,7 @@
  */
 import { dev } from '$app/env';
 import { HOST_API, HOST_TOKEN } from '$app/env/private';
-import { URLS } from '@canmi/urls';
+import { INFRA } from '@monoflake/urls';
 import type { ApiResponse } from '@canmi/response';
 
 /** The session cookie host sets, which is the token itself. */
@@ -15,7 +15,7 @@ export const SESSION = 'host_token';
  * Where host answers. In development there is no host beside the panel, so it asks the running
  * panel on the machine, which passes the request on as it passes on any other.
  */
-export const CORE = HOST_API || (dev ? URLS.internal.panel : URLS.internal.host);
+export const CORE = HOST_API || (dev ? INFRA.panel : INFRA.host);
 
 /** In development only: the token mise decrypts, so a development panel reads a real host. */
 const DEVELOPMENT_TOKEN = dev ? HOST_TOKEN : undefined;

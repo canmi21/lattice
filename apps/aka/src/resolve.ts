@@ -1,5 +1,5 @@
 import { unwrap, type AssetAnswer } from '@canmi/artifacts';
-import { isDevHost, pickUrls } from '@canmi/urls';
+import { isDevHost, pickUrls } from '@monoflake/sdk';
 import type { Context } from 'hono';
 import { NEVER, RESOLVED } from './cache';
 import { redirectFor } from './redirect';

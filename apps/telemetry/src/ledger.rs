@@ -63,7 +63,7 @@ impl Default for Network {
 
 impl Ledger for Network {
 	fn counts(&self, hours: u32) -> Counts {
-		let url = format!("{}/counts?hours={hours}", urls::INTERNAL_LEDGER);
+		let url = format!("{}/counts?hours={hours}", monoflake::INTERNAL_LEDGER);
 		let Ok(request) = Request::get(&url).body(Full::new(Bytes::new())) else {
 			return Box::pin(async { None });
 		};

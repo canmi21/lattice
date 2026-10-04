@@ -7,6 +7,6 @@
 	},
 	"dependencies": {
 		"@canmi/security": "workspace:*",
-		"@canmi/urls": "workspace:*"
+		"@monoflake/sdk": "workspace:*"
 	}
 }

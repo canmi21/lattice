@@ -24,11 +24,11 @@
 		"@canmi/prose": "workspace:*",
 		"@canmi/theme": "workspace:*",
 		"@canmi/tokens": "workspace:*",
-		"@canmi/urls": "workspace:*",
 		"@codemirror/commands": "^6.11.1",
 		"@codemirror/state": "^6.7.6",
 		"@codemirror/view": "^6.43.13",
-		"@lucide/svelte": "^1.51.0"
+		"@lucide/svelte": "^1.51.0",
+		"@monoflake/sdk": "workspace:*"
 	},
 	"devDependencies": {
 		"@stylexjs/stylex": "^0.19.1",

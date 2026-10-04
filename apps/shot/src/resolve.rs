@@ -90,7 +90,7 @@ impl Doh {
 			.build();
 		Self {
 			client: Client::builder(TokioExecutor::new()).build(https),
-			servers: [urls::EXTERNAL_DOH_CLOUDFLARE, urls::EXTERNAL_DOH_GOOGLE],
+			servers: [monoflake::EXTERNAL_DOH_CLOUDFLARE, monoflake::EXTERNAL_DOH_GOOGLE],
 			remembered: Mutex::default(),
 		}
 	}

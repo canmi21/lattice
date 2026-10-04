@@ -397,7 +397,7 @@ export function isLayerName(value: string): value is LayerName {
  * What a bare resource id means, written as a scheme rather than as an address.
  *
  * An absolute URL here would bake a hostname into every record, so changing one would mean
- * rewriting all of them. A scheme is expanded by whoever answers, from `@canmi/urls`, which is
+ * rewriting all of them. A scheme is expanded by whoever answers, from `@monoflake/sdk`, which is
  * the one place a hostname is declared. `libs/fonts` already does this with `__CDN_URL__`.
  */
 export const CANONICAL_PATTERN = /^(?:cid:[0-9a-f]{32}\.[a-z0-9]+|slug:[a-z0-9][a-z0-9-]*)$/;

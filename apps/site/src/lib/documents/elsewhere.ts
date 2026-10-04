@@ -2,7 +2,7 @@
  * The site's documents for machines, said once: what each is and where. Every agent view ends by
  * listing them, and llms.txt links them. See spec/architecture/markdown.md.
  */
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { section } from '../server/agent-view';
 
 export type SiteDocument = { name: string; path: string; note: string };

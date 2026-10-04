@@ -79,7 +79,7 @@
 </script>
 
 <script lang="ts">
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';

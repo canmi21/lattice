@@ -9,7 +9,7 @@ saying why it is there: `name`, `phase`, `action`, `expression` (a .txt file, th
 grows, and may hold `${NAME}` -- see spec/architecture/firewall.md). A rate limit adds
 `characteristics`, `period`, `requests_per_period`, `mitigation_timeout`. A redirect adds
 `status` and `target`: a raw Rulesets target expression (a TOML literal string, quotes and all)
-or `{ url = "<libs/urls constant>" }`, appending `path = "<path>"` when fixed and the request's
+or `{ url = "<libs/sdk constant>" }`, appending `path = "<path>"` when fixed and the request's
 own path otherwise; either form may add `preserve_query_string = true` (default false)."""
 
 import json
@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RULES = ROOT / "rules"
-URLS_RS = ROOT / "libs/urls/src/lib.rs"
+URLS_RS = ROOT / "libs/sdk/src/lib.rs"
 # Cloudflare's own limit on one expression.
 LIMIT = 4096
 PHASES = {"http_request_firewall_custom", "http_ratelimit", "http_request_dynamic_redirect"}
@@ -60,7 +60,7 @@ def fill(text, env, *, mask):
 
 
 def urls():
-	"""The generated Rust mirror of libs/urls, name -> value -- a redirect's `target` names one
+	"""The generated Rust mirror of libs/sdk, name -> value -- a redirect's `target` names one
 	of these instead of writing a URL, per spec/architecture/workspace.md, "Every URL is
 	declared once"."""
 	text = URLS_RS.read_text()
@@ -176,7 +176,7 @@ def check():
 					if "url" not in target:
 						problems.append(f"{zone}/zone.toml: {name!r} target names no url")
 					elif target["url"] not in urls():
-						problems.append(f"{zone}/zone.toml: {name!r} names an unknown libs/urls constant {target['url']!r}")
+						problems.append(f"{zone}/zone.toml: {name!r} names an unknown libs/sdk constant {target['url']!r}")
 				else:
 					if len(target) > LIMIT:
 						problems.append(f"{zone}/zone.toml: {name!r} target is {len(target)} characters, past Cloudflare's {LIMIT}")

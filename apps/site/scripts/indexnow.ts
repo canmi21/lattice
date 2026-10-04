@@ -13,7 +13,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 const SITE = URLS.apps.production.site;
 const HOST = new URL(SITE).hostname;

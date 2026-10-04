@@ -21,8 +21,8 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 
-const CITY_URL: &str = urls::EXTERNAL_GEOLITE_CITY;
-const ASN_URL: &str = urls::EXTERNAL_GEOLITE_ASN;
+const CITY_URL: &str = monoflake::EXTERNAL_GEOLITE_CITY;
+const ASN_URL: &str = monoflake::EXTERNAL_GEOLITE_ASN;
 
 /// GitHub's own redirect to the tagged release, then to signed storage: two hops, seen live.
 const MAX_REDIRECTS: u8 = 5;

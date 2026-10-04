@@ -5,7 +5,7 @@
  * root, so neither is an object of its own. See spec/architecture/markdown.md, "The index".
  */
 import type { HomeAnswer } from '@canmi/artifacts';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { stamp } from '../server/agent-view';
 import { nameOf } from '../server/markdown';
 import { documentLink, documentUrl } from './elsewhere';

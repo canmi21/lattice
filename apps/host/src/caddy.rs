@@ -254,7 +254,7 @@ fn gateway_hosts(config: &CaddyConfig, apps: &[Deployed]) -> Option<Value> {
 	proxy["headers"] =
 		json!({ "request": { "set": { "Cf-Connecting-Ip": ["{http.vars.client_ip}"] } } });
 	Some(json!({
-		"match": [{ "host": urls::GATEWAY_HOSTS }],
+		"match": [{ "host": monoflake::GATEWAY_HOSTS }],
 		"handle": [{ "handler": "subroute", "routes": [
 			refuse_unless(&config.private_sources),
 			{ "handle": [encode(), proxy] }
@@ -319,7 +319,7 @@ pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Valu
 	}));
 	let mut subjects = vec![format!("*.{private}")];
 	if lan.len() > 1 {
-		subjects.extend(urls::GATEWAY_HOSTS.iter().map(|host| (*host).to_owned()));
+		subjects.extend(monoflake::GATEWAY_HOSTS.iter().map(|host| (*host).to_owned()));
 	}
 
 	// The visitor's address comes from Cloudflare's header, and only when cloudflared sent it.
@@ -473,7 +473,7 @@ mod tests {
 		assert!(!text(&without).contains("monoflake"));
 		let with = render(&config(), &[geo(), gateway()], &[]);
 		let route = &with["apps"]["http"]["servers"]["private"]["routes"][0];
-		assert_eq!(text(&route["match"][0]["host"]), text(&json!(urls::GATEWAY_HOSTS)));
+		assert_eq!(text(&route["match"][0]["host"]), text(&json!(monoflake::GATEWAY_HOSTS)));
 		let handle = &route["handle"][0]["routes"];
 		assert_eq!(handle[0]["handle"][0]["abort"], true);
 		let proxy = &handle[1]["handle"][1];

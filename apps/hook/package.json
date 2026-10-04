@@ -8,7 +8,7 @@
 	},
 	"dependencies": {
 		"@canmi/response": "workspace:*",
-		"@canmi/urls": "workspace:*"
+		"@monoflake/sdk": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261004.1",

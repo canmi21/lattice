@@ -46,8 +46,8 @@ pub fn done(id: Uuid, made: &Made, details: &Details) -> Value {
 	let mut body = serde_json::json!({
 		"id": id,
 		"state": "done",
-		"png": format!("{}/pictures/{id}.png", urls::INTERNAL_SHOT),
-		"webp": made.pictures.webp_bytes.map(|_| format!("{}/pictures/{id}.webp", urls::INTERNAL_SHOT)),
+		"png": format!("{}/pictures/{id}.png", monoflake::INTERNAL_SHOT),
+		"webp": made.pictures.webp_bytes.map(|_| format!("{}/pictures/{id}.webp", monoflake::INTERNAL_SHOT)),
 		"task": task,
 		"request": request,
 		"pictures": made.pictures,

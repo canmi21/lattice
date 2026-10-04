@@ -13,7 +13,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { buildArticles } from '@canmi/compile/articles';
 import { LOCALE_CODES } from '../src/lib/locale/index.ts';
 import type { Article, ArticleView } from '@canmi/artifacts/types';

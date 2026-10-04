@@ -23,7 +23,7 @@ import {
 	type RootView,
 } from '@canmi/artifacts';
 import type { Article, Page } from '@canmi/artifacts/types';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { buildArticles, buildPages } from '@canmi/compile/articles';
 import { LOCALE_CODES } from '../src/lib/locale/index.ts';
 

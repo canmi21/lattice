@@ -3,7 +3,7 @@
  * structured data on a page. See spec/architecture/entities.md.
  */
 import { author } from '@canmi/identity';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 const SITE = URLS.apps.production.site;
 const { github, social } = URLS.external;

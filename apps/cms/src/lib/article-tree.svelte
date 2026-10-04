@@ -33,7 +33,7 @@
 	import Type from '@lucide/svelte/icons/type';
 	import X from '@lucide/svelte/icons/x';
 	import { surfaces } from '@canmi/tokens/surfaces';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import { onMount, tick, type Component } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { forget } from './buffer.ts';

@@ -4,7 +4,7 @@
  * and to keeper, which alone deploys host. See spec/architecture/services.md.
  */
 import { failure, success } from '@canmi/response';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { runToDeploy, signed } from './github';
 
 export interface Env {

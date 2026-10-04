@@ -7,7 +7,7 @@
 	import { graph, ldJson, person, profiles } from '@canmi/social/structured';
 	import { websiteEntity } from '#lib/entities.js';
 	import { hints, scriptPolicy } from '@canmi/hints';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '#lib/article/trail.js';

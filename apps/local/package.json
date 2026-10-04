@@ -5,7 +5,7 @@
 	"dependencies": {
 		"@canmi/collection": "workspace:*",
 		"@canmi/compile": "workspace:*",
-		"@canmi/urls": "workspace:*",
+		"@monoflake/sdk": "workspace:*",
 		"drizzle-orm": "^0.45.3"
 	},
 	"devDependencies": {

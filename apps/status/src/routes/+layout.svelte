@@ -101,7 +101,7 @@
 	import { settleBrevity } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
 	import { hints } from '@canmi/hints';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';

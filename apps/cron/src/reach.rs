@@ -20,7 +20,7 @@ pub const PARENT: &str = "x-task-parent";
 /// The private API host's origin. `urls` names the ledger's scope on it and not the host itself,
 /// so the origin is that URL less its scope.
 pub fn origin() -> &'static str {
-	urls::INTERNAL_LEDGER.strip_suffix("/ledger").unwrap_or(urls::INTERNAL_LEDGER)
+	monoflake::INTERNAL_LEDGER.strip_suffix("/ledger").unwrap_or(monoflake::INTERNAL_LEDGER)
 }
 
 /// Where a request goes.
@@ -130,7 +130,7 @@ mod tests {
 
 	#[test]
 	fn the_origin_is_the_api_host() {
-		assert!(urls::INTERNAL_LEDGER.starts_with(origin()));
+		assert!(monoflake::INTERNAL_LEDGER.starts_with(origin()));
 		assert!(!origin().ends_with('/'));
 		assert_eq!(origin().matches('/').count(), 2);
 	}

@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { blockAnchors, isBlockAnchor } from '@canmi/artifacts/anchors';
 import { toString as mdastToString } from 'mdast-util-to-string';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';

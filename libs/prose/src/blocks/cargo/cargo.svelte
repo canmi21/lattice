@@ -146,7 +146,7 @@
 <script lang="ts">
 	import './palette.css';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import { hierarchy, treemap, treemapBinary } from 'd3-hierarchy';
 	import { remFromMeasuredPixels } from '@canmi/units';
 	import {

@@ -358,8 +358,14 @@ mod tests {
 		drain(&shot).await;
 		let done = ask(&router, &format!("/v1/tasks/{id}"), true).await;
 		assert_eq!(done.status, StatusCode::OK);
-		assert_eq!(done.json()["data"]["png"], format!("{}/pictures/{id}.png", urls::INTERNAL_SHOT));
-		assert_eq!(done.json()["data"]["webp"], format!("{}/pictures/{id}.webp", urls::INTERNAL_SHOT));
+		assert_eq!(
+			done.json()["data"]["png"],
+			format!("{}/pictures/{id}.png", monoflake::INTERNAL_SHOT)
+		);
+		assert_eq!(
+			done.json()["data"]["webp"],
+			format!("{}/pictures/{id}.webp", monoflake::INTERNAL_SHOT)
+		);
 		assert_eq!(done.headers[header::CACHE_CONTROL], TASK_CACHE);
 		let data = done.json()["data"].clone();
 		assert_eq!(data["pictures"]["width"], 390);

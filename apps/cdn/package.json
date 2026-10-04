@@ -15,11 +15,11 @@
 		"@canmi/security": "workspace:*",
 		"@canmi/store": "workspace:*",
 		"@canmi/symlink": "workspace:*",
-		"@canmi/urls": "workspace:*",
 		"@jsquash/avif": "^2.1.1",
 		"@jsquash/jpeg": "^1.6.0",
 		"@jsquash/png": "^3.1.1",
 		"@jsquash/webp": "^1.5.0",
+		"@monoflake/sdk": "workspace:*",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {

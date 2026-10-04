@@ -100,8 +100,8 @@ once, in the same pass that changes the infra and platform packages' scope.
 
 ## Addresses are split by who owns the name
 
-`libs/urls` is one map today and three after the move. An address goes with whoever owns the name,
-not with whoever reads it: `canmi.net` is the author's even where the platform probes it, and
+The one map `libs/urls` was is three packages. An address goes with whoever owns the name, not
+with whoever reads it: `canmi.net` is the author's even where the platform probes it, and
 `api.monoflake.com` is the platform's even where the site calls it.
 
 | Package           | Rust        | Holds                                                                                                                                                                     |
@@ -110,7 +110,9 @@ not with whoever reads it: `canmi.net` is the author's even where the platform p
 | `@monoflake/sdk`  | `monoflake` | the API host on both sides, the gateway's names, the CDN, the alias hosts, `canmi.app`, the ledger, cron and capture, the status page's doors, the platform's own mirrors |
 | `@monoflake/urls` | --          | the panel, keeper, host's own address and the private suffix                                                                                                              |
 
-Each repository generates its Rust half from its own TypeScript, as `mise run urls` does here, so
+The sdk composes the three into the one map everything above infra reads, so a caller asks one
+place and the Rust mirror keeps its names; infra reads `canmi` and its own package directly, since
+it may not read the platform's. Each repository generates its Rust half from its own TypeScript, as `mise run urls` does here, so
 an address is written once and never across a repository boundary. The generator knows nothing of
 the system and moves into the library with it.
 

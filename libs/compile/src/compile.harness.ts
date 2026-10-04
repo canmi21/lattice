@@ -3,7 +3,7 @@
  */
 import { feedHtml } from '@canmi/artifacts';
 import type { Compiled } from '@canmi/artifacts/types';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 /**
  * What a feed makes of this article, which the compiler no longer produces beside it.

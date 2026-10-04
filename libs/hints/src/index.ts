@@ -2,10 +2,10 @@
  * The hosts a page reaches early, each with its policy, and the one way an app declares them.
  *
  * An app names the entries its pages reach and gets back the `<link>` tags to write, in the
- * catalog's order; the addresses are `@canmi/urls`', the policies are written here once. See
+ * catalog's order; the addresses are `@monoflake/sdk`', the policies are written here once. See
  * spec/architecture/hints.md.
  */
-import { pageUrls, URLS } from '@canmi/urls';
+import { pageUrls, URLS } from '@monoflake/sdk';
 
 /** `connect` is a preconnect, lookup through TLS; `resolve` is a dns-prefetch, the lookup alone. */
 export type Level = 'connect' | 'resolve';

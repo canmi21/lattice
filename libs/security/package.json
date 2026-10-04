@@ -7,6 +7,6 @@
 		"./agents": "./src/agents.ts"
 	},
 	"dependencies": {
-		"@canmi/urls": "workspace:*"
+		"@monoflake/sdk": "workspace:*"
 	}
 }

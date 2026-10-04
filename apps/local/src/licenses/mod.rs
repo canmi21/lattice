@@ -263,7 +263,7 @@ pub fn github_profile(value: &str) -> Option<String> {
 	let candidate =
 		value[start..].split([')', '>', ' ', '\t', '\r', '\n']).next().unwrap_or_default();
 	let url = url::Url::parse(candidate).ok()?;
-	let github = url::Url::parse(urls::EXTERNAL_GITHUB_WEB).ok()?;
+	let github = url::Url::parse(canmi::EXTERNAL_GITHUB_WEB).ok()?;
 	if url.host_str() != github.host_str() || url.query().is_some() || url.fragment().is_some() {
 		return None;
 	}
@@ -495,7 +495,7 @@ mod tests {
 			author("Ada <12345+octo-cat@users.noreply.github.com>").and_then(|person| person.github),
 			Some("octo-cat".to_owned())
 		);
-		let github = urls::EXTERNAL_GITHUB_WEB;
+		let github = canmi::EXTERNAL_GITHUB_WEB;
 		assert_eq!(
 			author(&format!("Ada ({github}/octo-cat)")).and_then(|person| person.github),
 			Some("octo-cat".to_owned())

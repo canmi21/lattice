@@ -12,7 +12,7 @@ static CREDIT: LazyLock<&'static str> = LazyLock::new(|| {
 	Box::leak(
 		format!(
 			"This product includes GeoLite2 data created by MaxMind, available from {}",
-			urls::EXTERNAL_GEOLITE_MAXMIND
+			monoflake::EXTERNAL_GEOLITE_MAXMIND
 		)
 		.into_boxed_str(),
 	)

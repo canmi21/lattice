@@ -2,7 +2,7 @@
  * The ledger, as the panel's server reaches it: over the confirmed-token path every private
  * service shares. See spec/architecture/ledger.md, "Read by the panel", and ./private.ts.
  */
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { askPrivate, tryReadPrivate } from './private';
 
 /**

@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { describe, expect, it } from 'vitest';
 import { imgsrc } from './index';
 

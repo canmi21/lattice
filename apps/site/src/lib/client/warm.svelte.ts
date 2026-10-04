@@ -12,7 +12,7 @@
  */
 import { browser, dev } from '$app/env';
 import { namedResources, pictured, type Block } from '@canmi/artifacts';
-import { pageUrls } from '@canmi/urls';
+import { pageUrls } from '@monoflake/sdk';
 import { warmReads } from '#lib/engagement/reads.svelte.js';
 import type { LocaleCode } from '#lib/locale/index.js';
 import { publishedResources, publishedView } from '#lib/published/index.js';

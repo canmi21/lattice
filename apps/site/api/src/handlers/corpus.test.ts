@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { Miniflare } from 'miniflare';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import app from '../app';

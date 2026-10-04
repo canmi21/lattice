@@ -71,7 +71,7 @@
 	import X from '@lucide/svelte/icons/x';
 	import { Popover } from 'bits-ui';
 	import { DEV as dev } from 'esm-env';
-	import { pageUrls } from '@canmi/urls';
+	import { pageUrls } from '@monoflake/sdk';
 	import { pictured, type ParsedResource } from '@canmi/artifacts';
 	import type { Block } from '@canmi/artifacts/types';
 	import type { LocaleCode } from '@canmi/locales';

@@ -158,7 +158,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { hierarchy, treemap } from 'd3-hierarchy';
 	import { remFromMeasuredPixels } from '@canmi/units';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import { langColor, parseTokei, type LangStat } from './tokei';
 	import type { TokeiView } from '@canmi/artifacts/types';
 	import { compactCount } from '@canmi/locales/format';

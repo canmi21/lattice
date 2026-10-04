@@ -1,6 +1,6 @@
 [env]
 # Read by both the Rust binary that binds it and the Vite config that proxies to it, which is
-# why it lives here rather than in libs/urls -- Rust cannot read a TypeScript library.
+# why it lives here rather than in the address packages -- Rust cannot read TypeScript.
 # Pinned, never auto-incremented; see spec/toolchain.md.
 # Shifted in the sandbox, whose own config sets the offset; 26521 everywhere else. See
 # spec/architecture/modes.md.
@@ -159,14 +159,14 @@ dir = "apps/cdn"
 run = 'pnpm exec wrangler deploy --env=""'
 
 # Each dev server binds the number pinned in its own wrangler.jsonc, and the site's Vite config
-# reads the same number from libs/urls. One checkout runs one set, so the collision is the mutex
+# reads the same number from libs/sdk. One checkout runs one set, so the collision is the mutex
 # and the slot arithmetic is gone. See spec/toolchain.md, "Dev ports are pinned". The sandbox
-# hands each worker a shifted number, which libs/urls/scripts/wrangler-dev.ts prints and prints
+# hands each worker a shifted number, which libs/sdk/scripts/wrangler-dev.ts prints and prints
 # nothing outside it -- see spec/architecture/modes.md.
 [tasks.dev-gateway]
 description = "Run the API host, which reaches whichever services are running"
 dir = "apps/gateway"
-run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts api)"
+run = "pnpm run dev $(node ../../libs/sdk/scripts/wrangler-dev.ts api)"
 
 [tasks.dev-site]
 description = "Run the site worker"
@@ -188,17 +188,17 @@ run = "pnpm run dev"
 [tasks.dev-cdn]
 description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"
-run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts cdn)"
+run = "pnpm run dev $(node ../../libs/sdk/scripts/wrangler-dev.ts cdn)"
 
 [tasks.dev-quota]
 description = "Run the buckets every limit is counted in, for a gateway or the site beside it"
 dir = "apps/quota"
-run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts quota)"
+run = "pnpm run dev $(node ../../libs/sdk/scripts/wrangler-dev.ts quota)"
 
 [tasks.dev-aka]
 description = "Run the alias layer's worker, which resolves names and stores nothing"
 dir = "apps/aka"
-run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts alias)"
+run = "pnpm run dev $(node ../../libs/sdk/scripts/wrangler-dev.ts alias)"
 
 # The HTTP shell and the collection half behind it, on the pinned port. One command because they
 # are one service: the Rust half spawns the other and dies with it. See spec/architecture/local.md.
@@ -279,11 +279,15 @@ dir = "apps/site"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
 [tasks.urls]
-description = "Regenerate the Rust mirror of the URL map from libs/urls"
+description = "Regenerate the Rust halves of the address packages, canmi and libs/sdk"
 # Formatted here rather than left for the next `cargo fmt`, so the file this writes is the file
 # that gets committed. The generator emits one constant per line and rustfmt wraps the long ones,
 # so skipping this step means the mirror changes shape after it is generated.
-run = ["node libs/urls/scripts/rust.ts", "cargo fmt -- libs/urls/src/lib.rs"]
+run = [
+	"node libs/canmi/scripts/rust.ts",
+	"node libs/sdk/scripts/rust.ts",
+	"cargo fmt -- libs/canmi/src/lib.rs libs/sdk/src/lib.rs",
+]
 
 [tasks.check-scopes]
 description = "Fail when the gateway's table no longer matches the services' declarations"

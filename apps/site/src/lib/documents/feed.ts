@@ -8,7 +8,7 @@
  * it instead. See spec/architecture/artifacts.md, "Which objects exist".
  */
 import { generateAtomFeed } from 'feedsmith';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import type { FeedAnswer } from '@canmi/artifacts';
 import { localeUrl, type LocaleCode } from '#lib/locale/index.js';
 

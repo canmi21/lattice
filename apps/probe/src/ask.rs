@@ -115,12 +115,12 @@ pub struct Context {
 
 impl Context {
 	pub fn new(http: Arc<dyn Http>, token: Option<String>) -> Self {
-		let shot = Url::parse(&format!("{}/shot/", urls::INTERNAL_API_PRIVATE))
+		let shot = Url::parse(&format!("{}/shot/", monoflake::INTERNAL_API_PRIVATE))
 			.expect("the private API host is a URL");
 		let resolver = |url| Url::parse(url).expect("a resolver is a URL");
 		let resolvers = [
-			("cloudflare", resolver(urls::EXTERNAL_DOH_CLOUDFLARE)),
-			("google", resolver(urls::EXTERNAL_DOH_GOOGLE)),
+			("cloudflare", resolver(monoflake::EXTERNAL_DOH_CLOUDFLARE)),
+			("google", resolver(monoflake::EXTERNAL_DOH_GOOGLE)),
 		];
 		Self { http, token, shot, resolvers }
 	}
@@ -442,7 +442,7 @@ mod tests {
 		let done = serde_json::json!({"status": "success", "data": {"page": {"status": 200}}});
 		fake
 			.answers
-			.insert(format!("{}/shot/status?task=1", urls::INTERNAL_API_PUBLIC), answer(200, done));
+			.insert(format!("{}/shot/status?task=1", monoflake::INTERNAL_API_PUBLIC), answer(200, done));
 		let fake = Arc::new(fake);
 		let context = Context::new(fake.clone(), Some("secret".into()));
 		assert_eq!(run(&check, &context).await, Outcome::pass());
@@ -475,7 +475,7 @@ mod tests {
 		let done = serde_json::json!({"status": "success", "data": {"page": {"status": 200}}});
 		fake
 			.answers
-			.insert(format!("{}/shot/v1/tasks/1", urls::INTERNAL_API_PUBLIC), answer(200, done));
+			.insert(format!("{}/shot/v1/tasks/1", monoflake::INTERNAL_API_PUBLIC), answer(200, done));
 		let fake = Arc::new(fake);
 		let context = Context::new(fake.clone(), None);
 		assert_eq!(run(&check, &context).await, Outcome::pass());
@@ -499,7 +499,7 @@ mod tests {
 		first.location = Some("status?task=1".into());
 		first.retry_after = Some(0);
 		fake.answers.insert(check.url.to_string(), first);
-		let status = format!("{}/shot/status?task=1", urls::INTERNAL_API_PUBLIC);
+		let status = format!("{}/shot/status?task=1", monoflake::INTERNAL_API_PUBLIC);
 		let rendering = answer(202, serde_json::json!({"status": "success", "data": {}}));
 		fake.queued.lock().unwrap().insert(status.clone(), vec![rendering]);
 		let done = serde_json::json!({"status": "success", "data": {"page": {"status": 200}}});
@@ -584,7 +584,7 @@ mod tests {
 
 	#[test]
 	fn a_page_is_asked_of_shot_as_its_parts_and_fresh() {
-		let site = Url::parse(urls::APPS_PRODUCTION_SITE).unwrap();
+		let site = Url::parse(monoflake::APPS_PRODUCTION_SITE).unwrap();
 		let host = site.host_str().unwrap();
 		let mut page = site.join("a/b?x=1&x=2#top").unwrap();
 		page.set_port(Some(8443)).unwrap();

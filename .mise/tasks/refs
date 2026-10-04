@@ -6,7 +6,7 @@ chosen because they are objective rather than stylistic:
 1. A markdown link in a doc points at a file that exists.
 2. A `spec/**/*.md` cited from code, or from the extensionless text beside it, exists.
 3. A section name quoted beside such a citation, in code or in another doc, exists in it.
-4. No URL the running system resolves is written outside `libs/urls`.
+4. No URL the running system resolves is written outside the address packages.
 
 The first three break silently on rename and are shared with the workspace's own gate, which is
 where they live. The fourth is this repository's and enforces spec/architecture/workspace.md,
@@ -71,8 +71,8 @@ CODE_SUFFIXES = {
 }
 # Directories whose files are records or prose rather than code, plus the lockfile. `contents/`
 # is excluded whatever the extension -- a translation sidecar is YAML by format and prose by
-# nature, and asking its links to live in libs/urls would be asking an article not to cite
-# anything. `data/` holds curated records, not code, and is excluded the same way.
+# nature, and asking its links to live in the address packages would be asking an article not to
+# cite anything. `data/` holds curated records, not code, and is excluded the same way.
 SKIP_DIRS = {"data", "contents"}
 SKIP_FILES = {"pnpm-lock.yaml"}
 
@@ -86,10 +86,10 @@ ROOT_DOC = re.compile(ROOT_DOCS)
 # as the address alone, not the address plus its escape.
 URL = re.compile(r"https?://[^\s\"'`)\],;\\]+")
 COMMENT = re.compile(r"^\s*(//|#|\*|/\*|<!--)")
-# The library itself, and the generated Rust mirror a `mise run urls` writes from it -- one
-# map, two languages. rust.test.ts holds the mirror to the map, so the exemption cannot hide
+# The three address packages, and the generated Rust halves `mise run urls` writes from them --
+# each map, two languages. rust.test.ts holds the mirror to the map, so the exemption cannot hide
 # an edit made to the Rust side alone.
-URL_HOMES = ("libs/urls/", "apps/local/src/urls.rs")
+URL_HOMES = ("libs/canmi/", "libs/sdk/", "libs/urls/", "apps/local/src/urls.rs")
 # `$schema` keys have to be URLs because mise-installed tools have no node_modules to point
 # at (spec/toolchain.md). JSON-LD's `@context` is a namespace identifier like an xmlns:
 # changing it changes what the document means, not where anything points. `registry+https://`
@@ -163,7 +163,7 @@ def resolve(path: pathlib.Path, cited: str) -> pathlib.Path | None:
 
 
 def stray_urls() -> list[str]:
-	"""URLs written outside libs/urls that something other than a reader would resolve."""
+	"""URLs written outside the address packages that something other than a reader would resolve."""
 	stray = []
 	for path in code_files():
 		rel = str(path.relative_to(ROOT))

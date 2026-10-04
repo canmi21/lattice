@@ -67,7 +67,7 @@
 	import { dev } from '$app/env';
 	import Title from '@canmi/behavior/title.svelte';
 	import { imgsrc } from '@canmi/imgsrc';
-	import { pageUrls, URLS } from '@canmi/urls';
+	import { pageUrls, URLS } from '@monoflake/sdk';
 	import Coffee from '@lucide/svelte/icons/coffee';
 	import Lollipop from '@lucide/svelte/icons/lollipop';
 	import ArticleList from '#lib/article/list.svelte';

@@ -1,6 +1,6 @@
 import { dev } from '$app/env';
 import { error } from '@sveltejs/kit';
-import { pageUrls } from '@canmi/urls';
+import { pageUrls } from '@monoflake/sdk';
 import { HEADER, TEXT_HEADERS, find, licenseOf, textUrl } from '#lib/licenses/index.js';
 import type { RequestHandler } from './$types';
 

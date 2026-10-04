@@ -4,7 +4,7 @@
  * and what the path is left to say. See spec/architecture/gateway.md, "Every request is one
  * address, written several ways".
  */
-import { GATEWAY } from '@canmi/urls';
+import { GATEWAY } from '@monoflake/sdk';
 
 export type Provider = keyof typeof GATEWAY.providers;
 export type Region = keyof typeof GATEWAY.regions;

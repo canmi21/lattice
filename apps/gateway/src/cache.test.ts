@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { UNCHANGING } from '@canmi/cache';
 import { CACHE_HEADER, controlOf, kindOf, secondsOf } from './cache.ts';
 import { GATEWAY_DEFAULTS } from './declaration.ts';

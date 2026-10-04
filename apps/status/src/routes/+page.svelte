@@ -120,7 +120,7 @@
 <script lang="ts">
 	import Title from '@canmi/behavior/title.svelte';
 	import { authorRef, graph, ldJson, person, ref } from '@canmi/social/structured';
-	import { URLS } from '@canmi/urls';
+	import { URLS } from '@monoflake/sdk';
 	import Bell from 'phosphor-svelte/lib/Bell';
 	import WarningCircle from 'phosphor-svelte/lib/WarningCircle';
 	import { onMount, untrack } from 'svelte';

@@ -2,7 +2,7 @@
  * cron, as the panel's server reaches it: over the same confirmed-token path as the ledger. See
  * spec/architecture/cron.md, "Seen in the panel", and ./private.ts.
  */
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { askPrivate, tryReadPrivate } from './private';
 
 /** cron's private scope on the API host. See spec/architecture/cron.md. */

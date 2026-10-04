@@ -1,4 +1,4 @@
-import { GITHUB_OWNER, URLS } from '@canmi/urls';
+import { GITHUB_OWNER, URLS } from '@monoflake/sdk';
 import { Hono } from 'hono';
 import { lifetimeFor } from './cache';
 import { failure } from './respond';

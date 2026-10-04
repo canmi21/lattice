@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 
 export type LicenseText = {
 	/** The file name the package shipped the text under, such as `LICENSE-MIT`. */

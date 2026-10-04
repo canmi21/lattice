@@ -124,18 +124,18 @@ pub const SHORTEST: f64 = 1.0;
 /// A name not here is an error when the file is read, never a request to somewhere unmeant.
 fn named(name: &str) -> Option<&'static str> {
 	Some(match name {
-		"API_PRIVATE" => urls::INTERNAL_API_PRIVATE,
-		"API_PUBLIC" => urls::INTERNAL_API_PUBLIC,
-		"APPS_PRODUCTION_SITE" => urls::APPS_PRODUCTION_SITE,
-		"APPS_PRODUCTION_API" => urls::APPS_PRODUCTION_API,
-		"APPS_PRODUCTION_ALIAS" => urls::APPS_PRODUCTION_ALIAS,
-		"APPS_PRODUCTION_CDN" => urls::APPS_PRODUCTION_CDN,
-		"APPS_PRODUCTION_PANEL" => urls::APPS_PRODUCTION_PANEL,
-		"INTERNAL_APP" => urls::INTERNAL_APP,
-		"INTERNAL_INFRA" => urls::INTERNAL_INFRA,
-		"INTERNAL_LEDGER" => urls::INTERNAL_LEDGER,
-		"INTERNAL_CRON" => urls::INTERNAL_CRON,
-		"INTERNAL_SHOT" => urls::INTERNAL_SHOT,
+		"API_PRIVATE" => monoflake::INTERNAL_API_PRIVATE,
+		"API_PUBLIC" => monoflake::INTERNAL_API_PUBLIC,
+		"APPS_PRODUCTION_SITE" => monoflake::APPS_PRODUCTION_SITE,
+		"APPS_PRODUCTION_API" => monoflake::APPS_PRODUCTION_API,
+		"APPS_PRODUCTION_ALIAS" => monoflake::APPS_PRODUCTION_ALIAS,
+		"APPS_PRODUCTION_CDN" => monoflake::APPS_PRODUCTION_CDN,
+		"APPS_PRODUCTION_PANEL" => monoflake::APPS_PRODUCTION_PANEL,
+		"INTERNAL_APP" => monoflake::INTERNAL_APP,
+		"INTERNAL_INFRA" => monoflake::INTERNAL_INFRA,
+		"INTERNAL_LEDGER" => monoflake::INTERNAL_LEDGER,
+		"INTERNAL_CRON" => monoflake::INTERNAL_CRON,
+		"INTERNAL_SHOT" => monoflake::INTERNAL_SHOT,
 		_ => return None,
 	})
 }
@@ -276,21 +276,21 @@ mod tests {
 
 	#[test]
 	fn a_name_resolves_against_urls_and_keeps_what_follows() {
-		let site = Url::parse(urls::APPS_PRODUCTION_SITE).unwrap();
+		let site = Url::parse(monoflake::APPS_PRODUCTION_SITE).unwrap();
 		assert_eq!(resolve("APPS_PRODUCTION_SITE").unwrap(), site);
 		assert_eq!(
 			resolve("API_PRIVATE/geo/health").unwrap().as_str(),
-			format!("{}/geo/health", urls::INTERNAL_API_PRIVATE)
+			format!("{}/geo/health", monoflake::INTERNAL_API_PRIVATE)
 		);
 		assert_eq!(
 			resolve("API_PUBLIC/shot/capture?host=canmi.net").unwrap().as_str(),
-			format!("{}/shot/capture?host=canmi.net", urls::INTERNAL_API_PUBLIC)
+			format!("{}/shot/capture?host=canmi.net", monoflake::INTERNAL_API_PUBLIC)
 		);
 	}
 
 	#[test]
 	fn a_target_that_is_not_a_known_name_is_refused() {
-		assert!(resolve(urls::APPS_PRODUCTION_SITE).is_err());
+		assert!(resolve(monoflake::APPS_PRODUCTION_SITE).is_err());
 		assert!(resolve("NO_SUCH_NAME/x").is_err());
 		assert!(resolve("APPS_PRODUCTION_SITEx").is_err());
 	}

@@ -1,7 +1,7 @@
 import { refuseBadSlugs, reservedNames, slugOf } from './slugs.ts';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { parse as parseYaml } from 'yaml';
 import {
 	createAssetResolver,

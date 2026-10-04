@@ -3,7 +3,7 @@ import { env as worker, waitUntil } from 'cloudflare:workers';
 import api, { PUBLIC_ROUTES } from '@canmi/site-api';
 import { read, SHAPES, type Route } from '@canmi/site-api/routes';
 import { failure } from '@canmi/response';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import type { RequestEvent } from '@sveltejs/kit';
 import { readAddress } from '#lib/api.js';
 

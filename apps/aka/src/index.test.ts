@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import app from './index';
 

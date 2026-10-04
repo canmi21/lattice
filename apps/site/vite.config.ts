@@ -8,7 +8,7 @@ import {
 	pageUrls,
 	PORT_OFFSET,
 	URLS,
-} from '@canmi/urls';
+} from '@monoflake/sdk';
 import { esbuildTarget } from '@canmi/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
@@ -272,7 +272,7 @@ export default defineConfig(({ mode }) => {
 				},
 			},
 		},
-		// URLs are imported from @canmi/urls at their use sites rather than injected here, so
+		// URLs are imported from @monoflake/sdk at their use sites rather than injected here, so
 		// there is one spelling of each. What is left is the pair of values that genuinely
 		// only exist at build time.
 		define: {

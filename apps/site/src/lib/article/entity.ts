@@ -2,7 +2,7 @@
  * An article as the entity it is, for the page's graph. See spec/architecture/entities.md.
  */
 import type { Alternate, ArticleMeta, Block } from '@canmi/artifacts/types';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { authorRef, ref, SITE_ID } from '@canmi/social/structured';
 
 /**

@@ -35,7 +35,7 @@ fn agent() -> &'static ureq::Agent {
 // this is. The URL is a citation for a human, not something this program resolves -- but it
 // is still the site's address, so it comes from the map rather than being a second copy.
 fn user_agent() -> String {
-	format!("Mozilla/5.0 (compatible; favicon/1.0; +{})", urls::APPS_PRODUCTION_SITE)
+	format!("Mozilla/5.0 (compatible; favicon/1.0; +{})", canmi::SITE)
 }
 
 /// The site's home page, or None for anything that is not reachable HTML.

@@ -1,4 +1,4 @@
-import { GITHUB_OWNER, URLS } from '@canmi/urls';
+import { GITHUB_OWNER, URLS } from '@monoflake/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import app from './index';
 import { isGitHubHost, isReleaseName, releaseUpstream } from './github';

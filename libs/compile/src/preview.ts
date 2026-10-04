@@ -17,7 +17,7 @@ import type {
 	RepoRecord,
 	TweetRecord,
 } from '@canmi/artifacts/types';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import {
 	createAssetResolver,
 	createDiagramResolver,

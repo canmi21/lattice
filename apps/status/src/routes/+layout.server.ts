@@ -1,6 +1,6 @@
 import { dev } from '$app/env';
 import { marksOf } from '@canmi/symlink';
-import { pickUrls } from '@canmi/urls';
+import { pickUrls } from '@monoflake/sdk';
 import { MARKS } from '../params';
 import type { LayoutServerLoad } from './$types';
 

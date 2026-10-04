@@ -17,7 +17,7 @@ import { allocate } from '@canmi/collection/allocate';
 import { discard } from '@canmi/collection/discard';
 import { dates, publish, textAt } from '@canmi/collection/revise';
 import { compileDraft, previewResources } from '@canmi/compile/preview';
-import { developmentUrl } from '@canmi/urls';
+import { developmentUrl } from '@monoflake/sdk';
 import { fileStore, OBJECTS_DIR } from '@canmi/collection/store';
 import { revisions } from '@canmi/collection/source';
 import { asc, desc, eq } from 'drizzle-orm';

@@ -14,9 +14,9 @@ import { lookup } from 'node:dns/promises';
 import { request as plain, createServer, type IncomingHttpHeaders } from 'node:http';
 import { request as secure } from 'node:https';
 import { createServer as createProbe } from 'node:net';
-import { REACH_PORT, URLS } from '@canmi/urls';
+import { INFRA, REACH_PORT } from '@monoflake/urls';
 
-const HOME = new URL(URLS.internal.panel).hostname;
+const HOME = new URL(INFRA.panel).hostname;
 const SUFFIX = HOME.slice(HOME.indexOf('.') + 1);
 const name = process.argv[2] ?? 'panel';
 if (!/^[a-z0-9-]+$/.test(name)) {

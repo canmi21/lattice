@@ -1,7 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls, PORT_OFFSET } from '@canmi/urls';
+import { DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls, PORT_OFFSET } from '@monoflake/sdk';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';

@@ -14,8 +14,9 @@
 	"devDependencies": {
 		"@canmi/motion": "workspace:*",
 		"@canmi/response": "workspace:*",
-		"@canmi/urls": "workspace:*",
 		"@lucide/svelte": "^1.51.0",
+		"@monoflake/sdk": "workspace:*",
+		"@monoflake/urls": "workspace:*",
 		"@stylexjs/stylex": "^0.19.1",
 		"@stylexjs/unplugin": "^0.19.1",
 		"@sveltejs/adapter-node": "^6.0.0",
@@ -25,6 +26,7 @@
 		"@types/d3-array": "^3.2.2",
 		"@types/d3-scale": "^4.0.9",
 		"@types/d3-shape": "^3.2.0",
+		"canmi": "workspace:*",
 		"d3-array": "^3.2.4",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.2.0",

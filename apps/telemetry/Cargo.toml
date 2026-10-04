@@ -21,7 +21,7 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "net", "signal", "time", "fs"] }
 url = "2.5.8"
-urls = { path = "../../libs/urls" }
+monoflake = { path = "../../libs/sdk" }
 
 [dev-dependencies]
 tempfile = "3.27.0"

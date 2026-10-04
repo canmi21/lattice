@@ -4,7 +4,7 @@
  * Run when the table is generated, never in the Worker. See spec/architecture/gateway.md, "The
  * declaration".
  */
-import { PAGE_ORIGINS } from '@canmi/urls';
+import { PAGE_ORIGINS } from '@monoflake/sdk';
 import * as v from 'valibot';
 
 /** Seconds an answer is kept, or `immutable` for a year the bytes will not change in. */

@@ -32,7 +32,7 @@ import {
 	type ParsedResource,
 	type ViewAnswer,
 } from '@canmi/artifacts';
-import { pageUrls, pickUrls, URLS } from '@canmi/urls';
+import { pageUrls, pickUrls, URLS } from '@monoflake/sdk';
 import type { FeedEntry } from '#lib/documents/feed.js';
 import { noticeHtml } from '#lib/documents/notice.js';
 import { LOCALE_CODES, type LocaleCode } from '#lib/locale/index.js';

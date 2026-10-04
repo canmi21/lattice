@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { describe, expect, it } from 'vitest';
 import {
 	HEADER,

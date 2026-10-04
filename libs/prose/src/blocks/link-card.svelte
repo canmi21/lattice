@@ -44,7 +44,7 @@
 
 <script lang="ts">
 	import { DEV as dev } from 'esm-env';
-	import { pageUrls } from '@canmi/urls';
+	import { pageUrls } from '@monoflake/sdk';
 	import { ICON_EXTENSION, objectUrl, toned, type ParsedResource } from '@canmi/artifacts';
 	import Picture, { type Source } from '../components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';

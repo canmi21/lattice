@@ -1,4 +1,4 @@
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { Miniflare } from 'miniflare';
 import { standUpDatabase } from '../testing/d1.harness';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';

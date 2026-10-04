@@ -2,7 +2,7 @@
  * The site as the entity every page's graph refers into. See spec/architecture/entities.md.
  */
 import { authorRef, SITE_ID } from '@canmi/social/structured';
-import { URLS } from '@canmi/urls';
+import { URLS } from '@monoflake/sdk';
 import { site } from '#lib/site.js';
 
 /** The site, from the config the chrome reads, so its name is said once. */
