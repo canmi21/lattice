@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
-import { type Env, gateway, MARK } from './index.ts';
+import { type Env, gateway, INTERNAL_HEADER, MARK } from './index.ts';
 import { type Check, covers } from '@canmi/limits';
 import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { SCOPES } from './scopes.ts';
@@ -382,6 +382,40 @@ describe('the gateway', () => {
 			headers: { 'cf-connecting-ip': '192.0.2.1', 'x-probe': '' },
 		});
 		expect(answer.status).toBe(429);
+	});
+
+	it('does not count again what the internal gateway counted, and takes its token off', async () => {
+		const { fetcher, seen } = binding();
+		const refused = counters(false);
+		const env = { SITE: fetcher, QUOTA: refused.counters, INTERNAL_TOKEN: 'house' };
+		const headers = { 'cf-connecting-ip': '192.0.2.1', [INTERNAL_HEADER]: 'house' };
+		expect((await ask('/v1/site/like', env, { method: 'PUT', headers })).status).toBe(200);
+		expect(refused.asked).toHaveLength(0);
+		expect(seen[0]?.headers.has(INTERNAL_HEADER)).toBe(false);
+		const forged = { ...headers, [INTERNAL_HEADER]: 'guess' };
+		expect((await ask('/v1/site/like', env, { method: 'PUT', headers: forged })).status).toBe(429);
+	});
+
+	it('at home, asks a service on Workers through the public gateway, and a node service at home', async () => {
+		const relayed: Request[] = [];
+		const outside = vi
+			.spyOn(globalThis, 'fetch')
+			.mockImplementation(async (input) => (relayed.push(input as Request), new Response('{}')));
+		const home = binding();
+		const env = {
+			HOME: home.fetcher,
+			QUOTA: counters(true).counters,
+			RELAY: 'https://api.example',
+			INTERNAL_TOKEN: 'house',
+		};
+		await ask('/v1/site/stats?x=1', env, { headers: { [INTERNAL_HEADER]: 'forged' } });
+		await ask('/v1/geo/address', env);
+		outside.mockRestore();
+		expect(relayed.map((request) => request.url)).toEqual([
+			'https://api.example/v1/site/stats?x=1',
+		]);
+		expect(relayed[0]?.headers.get(INTERNAL_HEADER)).toBe('house');
+		expect(home.seen).toHaveLength(1);
 	});
 
 	it('marks what it passes on as public, over whatever the caller claimed', async () => {

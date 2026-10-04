@@ -49,7 +49,21 @@ export type Env = Readonly<Record<string, unknown>> & {
 	 * checking through with a token of its own".
 	 */
 	readonly PROBE_TOKEN?: string;
+	/**
+	 * The internal gateway's token, a secret in both gateways: a request carrying it in `x-internal`
+	 * was counted where it entered, at home, and is not counted again. See
+	 * spec/architecture/gateway.md, "Inside the house, the same names answer locally".
+	 */
+	readonly INTERNAL_TOKEN?: string;
+	/**
+	 * Set only where the gateway runs at home: the public gateway's origin, through which a service
+	 * on Workers is asked, having no copy there. Absent, a service on Workers is asked by binding.
+	 */
+	readonly RELAY?: string;
 };
+
+/** The header the internal gateway carries `INTERNAL_TOKEN` in, taken off before a service. */
+export const INTERNAL_HEADER = 'x-internal';
 
 /**
  * The header every request the gateway passes on carries, set here whatever the caller sent, so a
@@ -114,9 +128,13 @@ function timingSafeEqual(a: string, b: string): boolean {
  * pass with an empty header.
  */
 function isProbe(headers: Headers, env: Env): boolean {
-	const token = env.PROBE_TOKEN;
+	return carries(headers, 'x-probe', env.PROBE_TOKEN);
+}
+
+/** Whether `header` holds `token`, which is never so for a token that is not set. */
+function carries(headers: Headers, header: string, token: string | undefined): boolean {
 	if (typeof token !== 'string' || token === '') return false;
-	const sent = headers.get('x-probe');
+	const sent = headers.get(header);
 	return sent !== null && timingSafeEqual(sent, token);
 }
 
@@ -357,7 +375,10 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 			returned.headers.set(CACHE_HEADER, 'miss');
 			return returned;
 		};
-		const taken = isProbe(c.req.raw.headers, c.env)
+		const countedElsewhere =
+			isProbe(c.req.raw.headers, c.env) ||
+			carries(c.req.raw.headers, INTERNAL_HEADER, c.env.INTERNAL_TOKEN);
+		const taken = countedElsewhere
 			? { allowed: true, retryAfter: 0 }
 			: await counted(c.env.QUOTA, tuple.service, target.limits ?? [], {
 					method: c.req.method,
@@ -367,6 +388,22 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		if (!taken.allowed) {
 			return failure(429, 'rate_limited', { headers: { 'Retry-After': String(taken.retryAfter) } });
 		}
+		// At home a service on Workers has no copy: it is asked through the public gateway under the
+		// API host's spelling, with the token that says it was counted here.
+		if (target.placement === WORKERS && typeof c.env.RELAY === 'string') {
+			const relayed = new Request(
+				new URL(`/${tuple.version}/${tuple.service}${tuple.path}${url.search}`, c.env.RELAY),
+				c.req.raw,
+			);
+			relayed.headers.delete(INTERNAL_HEADER);
+			if (c.env.INTERNAL_TOKEN) relayed.headers.set(INTERNAL_HEADER, c.env.INTERNAL_TOKEN);
+			try {
+				return answered(await fetch(relayed));
+			} catch {
+				return answered(failure(502, 'upstream_unavailable'), true);
+			}
+		}
+
 		const binding = destination(c.env[target.binding], target);
 		if (!binding) return failure(502, 'scope_unavailable');
 
@@ -383,6 +420,7 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		}
 		const request = new Request(forwarded, c.req.raw);
 		request.headers.set(MARK.name, MARK.value);
+		request.headers.delete(INTERNAL_HEADER);
 		// The machine at home can be off, or its tunnel down; either is the service being out of
 		// reach, which is what the caller is told, in the envelope, rather than a proxy's page.
 		let answer: Response;

@@ -8,6 +8,13 @@ skip_phases = ["http_ratelimit"]
 expression = "../all/pass-probe.txt"
 
 [[rules]]
+name = "Pass Internal"
+phase = "http_request_firewall_custom"
+action = "skip"
+skip_phases = ["http_ratelimit"]
+expression = "pass-internal.txt"
+
+[[rules]]
 name = "Block Probes"
 phase = "http_request_firewall_custom"
 action = "block"

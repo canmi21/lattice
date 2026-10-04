@@ -1,0 +1,2 @@
+http.host eq "api.monoflake.com"
+and any(http.request.headers["x-internal"][*] eq "${INTERNAL_TOKEN}")
