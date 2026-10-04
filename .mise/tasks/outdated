@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+#MISE description="What waits beyond the packages' ranges, judged by the newest version the workspace holds: `outdated [--names]`"
+#USAGE flag "--names" help="Print only the names `update --major` should move, one a line"
+"""A package is out of date only when the newest version anywhere in the workspace is older than
+the registry's latest. One already on the latest somewhere while another package holds an older
+major is two majors at once: a warning, unless `versions.toml` allows it. See spec/toolchain.md,
+"A package at two majors is a warning unless it is allowed"."""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def allowed():
+	"""`versions.toml`'s `[several]`: package name -> why it may hold two majors."""
+	found, section = {}, None
+	path = ROOT / "versions.toml"
+	for line in path.read_text().splitlines() if path.exists() else []:
+		line = line.strip()
+		if not line or line.startswith("#"):
+			continue
+		if line.startswith("["):
+			section = line.strip("[]")
+			continue
+		match = re.match(r'^("?)([^"=\s]+)\1\s*=\s*"(.*)"$', line)
+		if section == "several" and match:
+			found[match.group(2)] = match.group(3).replace('\\"', '"')
+	return found
+
+
+def key(version):
+	"""A version as something to sort by: its numbers, then a release above any prerelease of it."""
+	core, _, pre = version.partition("-")
+	numbers = tuple(int(part) if part.isdigit() else 0 for part in core.split("."))
+	return numbers + ((1,) if not pre else (0,))
+
+
+def major(version):
+	"""The part a `^` range holds: the first non-zero number, as `^0.x` does."""
+	parts = version.split("-")[0].split(".")
+	for index, part in enumerate(parts):
+		if part != "0":
+			return ".".join(parts[: index + 1])
+	return version
+
+
+def run(*command):
+	return subprocess.run(command, cwd=ROOT, capture_output=True, text=True).stdout
+
+
+def held():
+	"""Package name -> version -> the workspace packages that hold it directly."""
+	versions = {}
+	for project in json.loads(run("pnpm", "list", "-r", "--depth", "0", "--json") or "[]"):
+		for group in ("dependencies", "devDependencies", "optionalDependencies"):
+			for name, info in (project.get(group) or {}).items():
+				version = info.get("version", "")
+				if not version or version.startswith(("link:", "file:", "workspace:")):
+					continue
+				versions.setdefault(name, {}).setdefault(version, set()).add(project.get("name", "?"))
+	return versions
+
+
+def main():
+	versions = held()
+	several = allowed()
+	outdated = json.loads(run("pnpm", "outdated", "-r", "--format", "json") or "{}")
+	behind, split = [], []
+	for name, entry in sorted(outdated.items()):
+		present = versions.get(name) or {entry["current"]: {p["name"] for p in entry["dependentPackages"]}}
+		newest = max(present, key=key)
+		if key(newest) >= key(entry["latest"]):
+			split.append((name, present))
+		else:
+			who = sorted(set().union(*present.values()))
+			behind.append((name, ", ".join(sorted(present, key=key)), entry["latest"], who))
+	# A package at two majors that nothing calls out of date: every copy is on its own latest line.
+	for name, present in sorted(versions.items()):
+		if name not in outdated and len({major(v) for v in present}) > 1:
+			split.append((name, present))
+
+	if "--names" in sys.argv[1:] or os.environ.get("usage_names") == "true":
+		for name, *_ in behind:
+			if name not in several:
+				print(name)
+		return 0
+
+	if behind:
+		print("Out of date -- the newest the workspace holds is behind the registry:\n")
+		width = max(len(name) for name, *_ in behind)
+		for name, have, latest, who in behind:
+			print(f"  {name.ljust(width)}  {have} -> {latest}   ({', '.join(who)})")
+	else:
+		print("Nothing is out of date: every package's newest copy here is the registry's latest.")
+
+	warned = 0
+	for name, present in split:
+		lines = [f"{v} in {', '.join(sorted(present[v]))}" for v in sorted(present, key=key)]
+		if name in several:
+			print(f"\nallowed at several majors: {name}\n    " + "\n    ".join(lines) + f"\n    because {several[name]}")
+		else:
+			warned += 1
+			print(f"\nwarning: {name} is held at several majors\n    " + "\n    ".join(lines))
+	if warned:
+		print("\nMove every copy to one major, or allow the pair in versions.toml with the reason.")
+	for name in sorted(set(several) - {name for name, _ in split}):
+		print(f"\nversions.toml allows {name} at several majors, and the workspace holds one: drop the line.")
+	return 0
+
+
+if __name__ == "__main__":
+	sys.exit(main())

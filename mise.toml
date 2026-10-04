@@ -387,12 +387,16 @@ fi
 cargo update $n
 echo
 if [ -n "$n" ]; then
-	echo '$ pnpm outdated -r'
-	pnpm outdated -r || true
+	.mise/tasks/outdated
 	exit 0
 fi
-echo "\$ pnpm update -r${major:+ --latest}"
-if ! out=$(pnpm update -r ${major:+--latest} 2>&1); then
+# Across the ranges, only what the report calls behind: a package versions.toml allows at two
+# majors is left on both. See spec/toolchain.md, "A package at two majors is a warning unless it is
+# allowed".
+names=$([ -n "$major" ] && .mise/tasks/outdated --names | tr '\n' ' ')
+echo "\$ pnpm update -r${major:+ --latest $names}"
+if [ -n "$major" ] && [ -z "$names" ]; then echo "nothing waits beyond its range"; exit 0; fi
+if ! out=$(pnpm update -r ${major:+--latest $names} 2>&1); then
 	echo "$out"
 	echo "$out" | grep -q ERR_PNPM_NO_MATURE_MATCHING_VERSION || exit 1
 	echo "held by the supply-chain delay, nothing moved in the pnpm half; run again once it has aged"

@@ -198,6 +198,20 @@ What it costs is that a server's exit is silent until somebody asks. `base statu
 Nothing here supervises anything, and a window reading `idle` is the report a supervisor would
 have made.
 
+## A package at two majors is a warning unless it is allowed
+
+**Out of date is judged by the newest copy the workspace holds, not by each package's.** `update
+--dry-run` asks pnpm what is outdated and what every package holds directly, and calls a package
+behind only when its newest copy anywhere here is older than the registry's latest. One already on
+the latest somewhere while another package keeps an older major is not behind: it is two majors at
+once, which is reported apart, as a warning.
+
+**`versions.toml` allows a pair, with the reason.** Its `[several]` names each package that may
+hold two majors and why, as a transition somebody chose; the report then lists it without the
+warning, and `update --major` crosses only what the report calls behind, so an allowed pair is
+never collapsed by it. A line the workspace no longer needs -- one major left -- is reported for
+removal. `.mise/tasks/outdated` is the report.
+
 ## The site holds TypeScript 6 and 7 at once, on purpose
 
 `apps/site` declares `typescript` at 6 and `@typescript/native` as an npm alias for 7. That pair
@@ -213,7 +227,8 @@ pin, and the repair is to put the 6 back rather than to chase the error into `sv
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
 Every other package that does -- `apps/cms`, `apps/panel`, `apps/status`, `libs/prose`,
 `libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
-`outdated` listing 7 for each of them is this floor and not an upgrade waiting.
+`outdated` listing 7 for each of them is this floor and not an upgrade waiting. `versions.toml`
+allows the pair, so the report says so rather than warning.
 
 ## verify runs what a change reaches
 
