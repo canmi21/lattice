@@ -14,11 +14,10 @@ ROOT = Path(__file__).resolve().parents[2]
 # A package's place is the first segment of its path. See spec/architecture/layers.md.
 LAYERS = ("lib", "infra", "platform", "services")
 
-# Where a package's manifest sits, before the move and after it: `apps/` and `libs/` at the top
-# until each one moves under its layer, and `lib/` split by registry.
+# Where a package's manifest sits: under its layer, `lib/` split by registry, and `apps/` for the
+# Workers and Vercel apps, which move at the split. See spec/architecture/layers.md.
 PACKAGE_DIRECTORIES = (
 	"apps/*",
-	"libs/*",
 	*(f"{layer}/{kind}/*" for layer in LAYERS[1:] for kind in ("apps", "libs")),
 	"lib/pkgs/*",
 )

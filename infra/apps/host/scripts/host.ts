@@ -15,6 +15,15 @@ import { INFRA } from '@monoflake/urls';
 const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
 const USAGE = 'usage: host deploy <name> | host image <name> <path>';
 
+/** Where an app's directory sits: `apps/` until it moves under its layer. See graph.py. */
+const APP_ROOTS = ['apps', 'infra/apps', 'platform/apps', 'services/apps'];
+
+/** The app's directory, under whichever layer holds it. */
+function appDirectory(name: string): string {
+	const found = APP_ROOTS.map((root) => join(ROOT, root, name)).find((dir) => existsSync(dir));
+	return found ?? fail(`no app named ${name}`);
+}
+
 function fail(message: string): never {
 	console.error(message);
 	process.exit(1);
@@ -22,7 +31,7 @@ function fail(message: string): never {
 
 /** The one build, shared with CI; see .mise/tasks/image. */
 function build(name: string, archive: string): void {
-	if (!existsSync(join(ROOT, 'apps', name, 'Dockerfile'))) fail(`apps/${name} has no Dockerfile`);
+	if (!existsSync(join(appDirectory(name), 'Dockerfile'))) fail(`${name} has no Dockerfile`);
 	execFileSync(join(ROOT, '.mise/tasks/image'), [name, archive], { cwd: ROOT, stdio: 'inherit' });
 }
 
@@ -64,8 +73,8 @@ function upload(name: string, declaration: string, archive: string, token: strin
 
 function deploy(name: string): void {
 	const token = process.env.HOST_TOKEN ?? fail('HOST_TOKEN is not set; it comes from secrets.json');
-	const declaration = join(ROOT, 'apps', name, 'service.toml');
-	if (!existsSync(declaration)) fail(`apps/${name} has no service.toml`);
+	const declaration = join(appDirectory(name), 'service.toml');
+	if (!existsSync(declaration)) fail(`${name} has no service.toml`);
 	const scratch = mkdtempSync(join(tmpdir(), 'host-'));
 	try {
 		const archive = join(scratch, `${name}.tar`);

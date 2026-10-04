@@ -50,7 +50,7 @@ export default defineConfig({
 			{
 				test: {
 					name: 'node',
-					include: ['{lib,infra,platform,services,apps,libs}/**/*.test.ts'],
+					include: ['{lib,infra,platform,services,apps}/**/*.test.ts'],
 					exclude: ['**/node_modules/**', '**/*.svelte.test.ts'],
 				},
 			},

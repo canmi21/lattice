@@ -9,7 +9,6 @@ packages:
   - platform/libs/*
   - services/apps/*
   - services/libs/*
-  - libs/*
   - apps/*
   # The site's API, a package inside the site because its type program is workerd's, not the
   # browser's; see spec/architecture/services.md.

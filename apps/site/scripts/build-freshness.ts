@@ -25,15 +25,17 @@ const SKIP = new Set(['node_modules', 'paraglide', 'dist', 'target']);
 /**
  * The trees that can move what these checks measure, and which files in each can.
  *
- * libs/ is watched through its CSS alone, because that is how it reaches the site: `0.*.css` is
- * assembled by `@import` from tokens, primitives and fonts, and is most of every figure. Walking
- * the rest of libs/ would fail a gate on a change that cannot move what it measures, and a gate
- * people satisfy by reflex has stopped being read. The narrow list is the coverage, not a
- * compromise on it.
+ * The libraries are watched through their CSS alone, because that is how they reach the site:
+ * `0.*.css` is assembled by `@import` from tokens, primitives and fonts, and is most of every
+ * figure. Walking the rest would fail a gate on a change that cannot move what it measures, and a
+ * gate people satisfy by reflex has stopped being read. The narrow list is the coverage.
  */
 const TREES: { dir: string; only?: RegExp }[] = [
 	{ dir: join(SITE, 'src') },
-	{ dir: join(ROOT, 'libs'), only: /\.css$/ },
+	...['lib/pkgs', 'platform/libs', 'services/libs'].map((dir) => ({
+		dir: join(ROOT, dir),
+		only: /\.css$/,
+	})),
 ];
 
 /** The configs that decide how those sheets are compiled, layered and split per route. */
@@ -42,7 +44,7 @@ const FILES = [join(SITE, 'vite.config.ts')];
 /**
  * What to print when the build is not the one this tree produces, or nothing when it is.
  *
- * Still outside it: a change under libs/ that reaches a sheet as TypeScript rather than as CSS,
+ * Still outside it: a change to a library that reaches a sheet as TypeScript rather than as CSS,
  * by a path neither reader of this has found. That one is measured a build late.
  */
 export function staleBuild(): string | undefined {

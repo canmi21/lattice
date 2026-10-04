@@ -33,7 +33,9 @@ services/apps/    services/libs/
 ```
 
 A package's layer is the directory it sits in, and is written nowhere else, so the two cannot
-disagree. Each layer keeps `apps/` for what is deployed and `libs/` for what is imported, as the
+disagree. **Until the split, `apps/` at the top holds the seven apps Cloudflare and Vercel build**
+-- `aka`, `cdn`, `gateway`, `hook`, `quota`, `site` and `status` -- because their builds name that
+directory; they carry no layer and move with the split, as do `contents/`, `data/` and `rules/`. Each layer keeps `apps/` for what is deployed and `libs/` for what is imported, as the
 repository it becomes will at its top level. A layer is read for what it does, so a deployable
 and a library are the split that matters there, whatever language each is in. `lib/` deploys
 nothing and is read for what it publishes, so it splits by registry instead: `pkgs/` for npm,
@@ -151,11 +153,10 @@ deleting what is not its own, so every signed commit keeps its signature. GitHub
 its author date and by repository, so the history before the split shows three times on the
 contribution graph and nothing lands on the day of the split; the history was judged worth more.
 
-**The order is layers, the library, then the split.** The move happens here first. Cloudflare's and
-Vercel's builds point at paths that stop existing, and are left so: a failed build keeps the last
-good one serving, so nothing breaks and the Workers and Vercel apps take no deploys until the
-split, when the repositories they build from change anyway and each is pointed once. The gap is
-kept short, since a new article is a site deploy. The library's repository is ready before the
+**The order is layers, the library, then the split.** Everything but the seven apps above moved
+here first, beneath them: their builds name only their own directories, so they kept deploying
+throughout. They move at the split, when the repositories they build from change anyway and each
+build is pointed once. The library's repository is ready before the
 split, because the split moves `lib/` into it.
 
 ## Versions

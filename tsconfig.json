@@ -11,7 +11,6 @@
 		"infra/**/*.ts",
 		"platform/**/*.ts",
 		"services/**/*.ts",
-		"libs/**/*.ts",
 		"apps/**/*.ts",
 		"*.ts"
 	],
