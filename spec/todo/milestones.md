@@ -433,7 +433,7 @@ The arrangement is [../architecture/layers.md](../architecture/layers.md).
 | F1  | Every file under the line limit | `infra/libs/deploy`'s engine and manifest split by their seams; a generated file says so by `@generated`, the one marker every check reads           | --    | **done** |
 | F2  | The layer check                 | `graph.py` reads a package's layer from its path and fails on one pointing up, the four couplings it cannot see carried as named exceptions          | F1    | **done** |
 | F3  | The move                        | `lib/`, `infra/`, `platform/`, `services/`; the scopes; the library's fourteen packages become five; `libs/urls` becomes three                       | F2    | **done** |
-| F4  | The couplings go                | host reads the platform's apps and names from their declarations; the panel stops naming `cron` and the ledger; the exception list is empty          | F3    | mid      |
+| F4  | The couplings go                | host reads the platform's apps and names from their declarations; the panel stops naming `cron` and the ledger; the exception list is empty          | F3    | **done** |
 | F5  | The library's repository        | `axum-governor` renamed `lib` and made a monorepo; Verdaccio for development; trusted publishing; each first version by hand                         | F3    | mid      |
 | F6  | The split                       | `web`, `monoflake/infra` and `monoflake/platform` continue from one commit; Cloudflare and Vercel pointed once; the workspace's `repos.toml` follows | F4 F5 | mid      |
 
