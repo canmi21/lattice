@@ -8,32 +8,11 @@ const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
 // matters -- but it must not be one this worker reads as development.
 const HOST = 'https://cdn.example';
 
-const HOUR = 'public, max-age=3600';
 const MINUTES = 'public, max-age=300';
 
 async function ask(path: string, init?: RequestInit): Promise<Response> {
-	return app.fetch(new Request(HOST + path, init), {} as never);
+	return app.fetch(new Request(`${HOST}/v3${path}`, init), {} as never);
 }
-
-/**
- * The proxies moved under `/proxy`, and the old prefix is kept as a redirect rather than as a
- * second spelling of the same route. 308 because the move is permanent and a client must not
- * turn what it was doing into a `GET` on the way.
- */
-describe('where the proxies used to answer', () => {
-	it('forwards the whole path permanently, without letting the method change', async () => {
-		const res = await ask('/github/release/rdm/latest/rdm.dmg');
-		expect(res.status).toBe(308);
-		expect(res.headers.get('Location')).toBe('/proxy/github/release/rdm/latest/rdm.dmg');
-		expect(res.headers.get('Cache-Control')).toBe(HOUR);
-	});
-
-	it('carries the query, which is where the avatar route takes its size', async () => {
-		const res = await ask('/github/avatar/canmi21?width=64');
-		expect(res.status).toBe(308);
-		expect(res.headers.get('Location')).toBe('/proxy/github/avatar/canmi21?width=64');
-	});
-});
 
 /**
  * Everything outside the three groups, and `400` rather than `404`.
@@ -85,13 +64,3 @@ describe('the catch-all', () => {
 	});
 });
 
-describe('the version', () => {
-	it('answers the three groups at /v3/ as it answers them unversioned', async () => {
-		for (const path of [`/object/${CID}.avif`, `/derive/${CID}.png.avif`, '/proxy/github/x']) {
-			const [versioned, plain] = [await ask(`/v3${path}`), await ask(path)];
-			expect(versioned.status, path).toBe(plain.status);
-			expect(await versioned.text(), path).toBe(await plain.text());
-		}
-		expect((await ask('/v3/nothing')).status).toBe(400);
-	});
-});

@@ -46,7 +46,7 @@ async function deliver(
 	body: string,
 	event = 'workflow_run',
 	signature?: string,
-	path = '/github',
+	path = '/v1/github',
 ) {
 	return new Request(new URL(path, 'https://api.example.com'), {
 		method: 'POST',

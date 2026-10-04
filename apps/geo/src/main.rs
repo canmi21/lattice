@@ -104,15 +104,13 @@ async fn main() -> anyhow::Result<()> {
 	Ok(serving.await??)
 }
 
-/// The lookups at `/v1/`, and unversioned until their callers move; `/health` is host's and never
-/// versioned. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
-/// break".
+/// The lookups at `/v1/`; `/health` is host's and never versioned. See
+/// spec/architecture/gateway.md, "A version is in the path, and it moves only on a break".
 fn routes(state: AppState) -> Router {
 	let v1 = Router::new().route("/address", get(address)).route("/ip", get(ip_lookup));
 	Router::new()
 		.route("/health", get(health))
-		.nest("/v1", v1.clone())
-		.merge(v1)
+		.nest("/v1", v1)
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(state)
 }
@@ -233,18 +231,18 @@ mod tests {
 
 	#[tokio::test]
 	async fn refuses_a_position_it_cannot_read_in_the_envelope() {
-		for path in ["/address", "/address?lat=1&lon=2", "/address?latitude=a&longitude=2"] {
+		for path in ["/v1/address", "/v1/address?lat=1&lon=2", "/v1/address?latitude=a&longitude=2"] {
 			let (status, body) = ask(path).await;
 			assert_eq!(status, StatusCode::BAD_REQUEST, "{path}");
 			assert_eq!(body["code"], "invalid_position", "{path}");
 		}
-		let (status, body) = ask("/address?latitude=91&longitude=0").await;
+		let (status, body) = ask("/v1/address?latitude=91&longitude=0").await;
 		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_position".into()));
 	}
 
 	#[tokio::test]
 	async fn says_it_is_loading_rather_than_answering_nothing() {
-		let (status, body) = ask("/address?latitude=35.68&longitude=139.69").await;
+		let (status, body) = ask("/v1/address?latitude=35.68&longitude=139.69").await;
 		assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
 		assert_eq!(body["code"], "service_unavailable");
 		assert_eq!(ask("/health").await.0, StatusCode::SERVICE_UNAVAILABLE);
@@ -254,23 +252,17 @@ mod tests {
 
 	#[tokio::test]
 	async fn refuses_an_address_it_cannot_parse() {
-		let (status, body) = ask("/ip?address=not-an-address").await;
+		let (status, body) = ask("/v1/ip?address=not-an-address").await;
 		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_address".into()));
 	}
 
 	#[tokio::test]
 	async fn is_unavailable_rather_than_wrong_before_geolite2_has_landed() {
-		let (status, body) = ask("/ip?address=1.1.1.1").await;
+		let (status, body) = ask("/v1/ip?address=1.1.1.1").await;
 		assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
 		assert_eq!(body["code"], "service_unavailable");
 		// /address and /health answer on their own data, unaffected by geo's still being empty.
 		assert_eq!(ask("/health").await.0, StatusCode::SERVICE_UNAVAILABLE);
-	}
-
-	#[tokio::test]
-	async fn answers_the_same_at_v1_as_unversioned() {
-		assert_eq!(ask("/v1/ip?address=1.1.1.1").await, ask("/ip?address=1.1.1.1").await);
-		assert_eq!(ask("/v1/health").await.0, StatusCode::NOT_FOUND);
 	}
 
 	#[test]

@@ -1,6 +1,7 @@
 //! What `shot` answers, under the scope the gateway and Caddy take off, one question a route:
-//! `/capture` whether it was taken, `/status?task=<id>` how it stands and all it found, and
-//! `/pictures/<id>.png` or `.webp` whether the picture is there, which alone is not the envelope.
+//! `POST /v1/tasks` whether a capture was taken, `/v1/tasks/<id>` how it stands and all it found,
+//! and `/v1/pictures/<id>.png` or `.webp` whether the picture is there, which alone is not the
+//! envelope.
 //! See spec/architecture/shot.md, "Asking for one".
 
 use crate::asked::{Asked, Query, Refused};
@@ -10,7 +11,7 @@ use crate::service::Shot;
 use crate::store::Format;
 use axum::Router;
 use axum::body::Bytes;
-use axum::extract::{Path, RawQuery, State};
+use axum::extract::{Path, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
@@ -28,19 +29,9 @@ const PICTURE_CACHE: &str = "public, max-age=900";
 /// any time, so a few minutes rather than until a fixed expiry, which there is none of.
 const TASK_CACHE: &str = "public, max-age=300";
 
-/// Which shape a request was asked in, and so where its answer points to ask after a capture.
-#[derive(Clone, Copy)]
-enum Shape {
-	/// `capture` and `status?task=`, unversioned, until its callers move.
-	Old,
-	/// `/v1/tasks` and `/v1/tasks/{id}`: a task is a thing, and starting one is a write. See the
-	/// workspace's spec/addresses.md.
-	V1,
-}
-
-/// The API at `/v1/` in its own shape, and unversioned in the old one until its callers move;
-/// `/health` is host's and never versioned. See spec/architecture/gateway.md, "A version is in the
-/// path, and it moves only on a break".
+/// The API at `/v1/`, where a task is a thing and starting one is a write; `/health` is host's and
+/// never versioned. See spec/architecture/gateway.md, "A version is in the path, and it moves only
+/// on a break", and the workspace's spec/addresses.md.
 pub fn routes<R: Render>(shot: Arc<Shot<R>>) -> Router {
 	let v1 = Router::new()
 		.route("/tasks", post(task_post::<R>))
@@ -49,11 +40,6 @@ pub fn routes<R: Render>(shot: Arc<Shot<R>>) -> Router {
 	Router::new()
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
 		.nest("/v1", v1)
-		.route("/capture", get(capture_get::<R>).post(capture_post::<R>))
-		.route("/status", get(status::<R>))
-		// A signed, temporary address awaits a place to issue one. See
-		// spec/architecture/shot.md, "Open".
-		.route("/pictures/{file}", get(picture::<R>))
 		.fallback(|| async { settled(response::failure(StatusCode::NOT_FOUND, "no_such_route")) })
 		.with_state(shot)
 }
@@ -69,38 +55,14 @@ fn lane(headers: &HeaderMap) -> Lane {
 	if marked { Lane::Public } else { Lane::Ours }
 }
 
-/// A capture asked for in a GET's query, its pairs read in the order they were sent.
-async fn capture_get<R: Render>(
-	State(shot): State<Arc<Shot<R>>>,
-	headers: HeaderMap,
-	RawQuery(raw): RawQuery,
-) -> Response {
-	let raw = raw.unwrap_or_default();
-	let pairs = url::form_urlencoded::parse(raw.as_bytes()).into_owned();
-	capture(&shot, &headers, Query::from_pairs(pairs), Shape::Old)
-}
-
-/// The same, asked in a POST's JSON.
-async fn capture_post<R: Render>(
-	State(shot): State<Arc<Shot<R>>>,
-	headers: HeaderMap,
-	body: Bytes,
-) -> Response {
-	posted(&shot, &headers, &body, Shape::Old)
-}
-
 /// A task started, as `/v1/` has it: the one way to start one, since a `GET` changes nothing.
 async fn task_post<R: Render>(
 	State(shot): State<Arc<Shot<R>>>,
 	headers: HeaderMap,
 	body: Bytes,
 ) -> Response {
-	posted(&shot, &headers, &body, Shape::V1)
-}
-
-fn posted<R: Render>(shot: &Shot<R>, headers: &HeaderMap, body: &Bytes, shape: Shape) -> Response {
-	match serde_json::from_slice::<crate::asked::Body>(body) {
-		Ok(body) => capture(shot, headers, Ok(Query::from_body(body)), shape),
+	match serde_json::from_slice::<crate::asked::Body>(&body) {
+		Ok(body) => capture(&shot, &headers, Ok(Query::from_body(body))),
 		Err(error) => settled(response::failure_with(StatusCode::BAD_REQUEST, "invalid_body", error)),
 	}
 }
@@ -118,7 +80,6 @@ fn capture<R: Render>(
 	shot: &Shot<R>,
 	headers: &HeaderMap,
 	query: Result<Query, Refused>,
-	shape: Shape,
 ) -> Response {
 	let lane = lane(headers);
 	let public = lane == Lane::Public;
@@ -137,15 +98,15 @@ fn capture<R: Render>(
 			answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from_static("30"));
 			settled(answer)
 		}
-		Ok(id) => taken(id, shot.about(id), shape),
+		Ok(id) => taken(id, shot.about(id)),
 	}
 }
 
 /// That a capture was taken, and where to ask after it: its state and nothing it found, which is
 /// the task's to tell. `Location` is relative, since this service does not know the scope it is
-/// reached under: `status?task=<id>` beside `capture`, or `tasks/<id>` beside `/v1/tasks`. See
+/// reached under: `tasks/<id>` beside `/v1/tasks`. See
 /// spec/architecture/shot.md, "A picture is named by its whole public address".
-fn taken(id: Uuid, known: Option<(View, Details)>, shape: Shape) -> Response {
+fn taken(id: Uuid, known: Option<(View, Details)>) -> Response {
 	let (state, retry_after) = match known.map(|(view, _)| view) {
 		Some(View::Waiting { rendering, retry_after }) => {
 			(if rendering { "rendering" } else { "queued" }, retry_after)
@@ -160,11 +121,7 @@ fn taken(id: Uuid, known: Option<(View, Details)>, shape: Shape) -> Response {
 	if retry_after > 0 {
 		headers.insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
 	}
-	let location = match shape {
-		Shape::Old => format!("status?task={id}"),
-		Shape::V1 => format!("tasks/{id}"),
-	};
-	if let Ok(location) = HeaderValue::from_str(&location) {
+	if let Ok(location) = HeaderValue::from_str(&format!("tasks/{id}")) {
 		headers.insert(header::LOCATION, location);
 	}
 	settled(answer)
@@ -172,22 +129,17 @@ fn taken(id: Uuid, known: Option<(View, Details)>, shape: Shape) -> Response {
 
 /// How a capture stands: `202` while it waits or renders, `200` with all it found once done, which
 /// may be kept a while. Answered from memory while the queue remembers the capture, and from its
-/// record on disk after, until the store rolls it out. A query without `task`, or one that is not
-/// an id, is `no_such_task`, as an id never made is; any other query parameter is ignored.
-async fn status<R: Render>(State(shot): State<Arc<Shot<R>>>, RawQuery(raw): RawQuery) -> Response {
-	let raw = raw.unwrap_or_default();
-	let pairs = url::form_urlencoded::parse(raw.as_bytes());
-	let task = pairs.into_iter().find(|(name, _)| name == "task").map(|(_, value)| value);
-	task_of(&shot, task.as_deref()).await
+/// record on disk after, until the store rolls it out. A path that names no id is `no_such_task`,
+/// as an id never made is; a query is ignored.
+async fn task_get<R: Render>(
+	State(shot): State<Arc<Shot<R>>>,
+	Path(task): Path<String>,
+) -> Response {
+	task_of(&shot, &task).await
 }
 
-/// A task, as `/v1/` names it: by its id, in the path.
-async fn task_get<R: Render>(State(shot): State<Arc<Shot<R>>>, Path(task): Path<String>) -> Response {
-	task_of(&shot, Some(&task)).await
-}
-
-async fn task_of<R: Render>(shot: &Shot<R>, task: Option<&str>) -> Response {
-	let Some(id) = task.and_then(|id| Uuid::parse_str(id).ok()) else {
+async fn task_of<R: Render>(shot: &Shot<R>, task: &str) -> Response {
+	let Ok(id) = Uuid::parse_str(task) else {
 		return settled(response::failure(StatusCode::NOT_FOUND, "no_such_task"));
 	};
 	if let Some((view, details)) = shot.about(id) {
@@ -297,6 +249,56 @@ mod tests {
 		}
 	}
 
+	/// What a capture asks, written as the pairs a query would carry, as the JSON `/v1/tasks` takes:
+	/// the tests read as the cases they were, and every one starts a task the one way there is.
+	fn body_of(pairs: &str) -> String {
+		let mut body = serde_json::json!({});
+		for (name, value) in url::form_urlencoded::parse(pairs.as_bytes()) {
+			let number = || match value.parse::<i64>() {
+				Ok(whole) => serde_json::Value::from(whole),
+				Err(_) => value.parse::<f64>().map(serde_json::Value::from).unwrap_or(value.clone().into()),
+			};
+			let flag = || serde_json::Value::Bool(value == "true");
+			let (group, field, written) = match name.as_ref() {
+				"scheme" | "host" | "path" | "hash" => ("target", name.to_string(), value.clone().into()),
+				"port" => ("target", "port".into(), number()),
+				"width" | "height" => ("viewport", name.to_string(), number()),
+				"full" => ("viewport", "full".into(), flag()),
+				"delay" | "timeout" => ("timing", name.to_string(), number()),
+				"fresh" | "internal" | "insecure" => ("access", name.to_string(), flag()),
+				"javascript" => ("browser", "javascript".into(), flag()),
+				query if query.starts_with("query.") => {
+					let key = query.trim_start_matches("query.").to_owned();
+					let values = &mut body["target"]["query"][&key];
+					if !values.is_array() {
+						*values = serde_json::json!([]);
+					}
+					values.as_array_mut().unwrap().push(value.clone().into());
+					continue;
+				}
+				other => ("target", other.to_owned(), value.clone().into()),
+			};
+			body[group][field] = written;
+		}
+		body.to_string()
+	}
+
+	/// A task started as `/v1/tasks` starts one, from the pairs a query would have carried.
+	async fn start(router: &Router, pairs: &str, public: bool) -> Answer {
+		let mut request = Request::post("/v1/tasks").header(header::CONTENT_TYPE, "application/json");
+		if public {
+			request = request.header(MARK.0, MARK.1);
+		}
+		let request = request.body(Body::from(body_of(pairs))).unwrap();
+		let answer = router.clone().oneshot(request).await.unwrap();
+		let (parts, body) = answer.into_parts();
+		Answer {
+			status: parts.status,
+			headers: parts.headers,
+			body: body.collect().await.unwrap().to_bytes().to_vec(),
+		}
+	}
+
 	fn service() -> (tempfile::TempDir, Arc<Shot<Fake>>, Router) {
 		let root = tempfile::tempdir().unwrap();
 		let (shot, router) = over(root.path(), CAPACITY);
@@ -310,8 +312,8 @@ mod tests {
 		(shot, router)
 	}
 
-	async fn capture(router: &Router, path: &str) -> String {
-		ask(router, path, false).await.json()["data"]["id"].as_str().unwrap().to_owned()
+	async fn capture(router: &Router, pairs: &str) -> String {
+		start(router, pairs, false).await.json()["data"]["id"].as_str().unwrap().to_owned()
 	}
 
 	/// Render whatever is queued, as the background renderers would.
@@ -326,12 +328,12 @@ mod tests {
 	#[tokio::test]
 	async fn answers_at_once_then_serves_both_pictures() {
 		let (_root, shot, router) = service();
-		let first = ask(&router, "/capture?host=example.test&width=390", false).await;
+		let first = start(&router, "host=example.test&width=390", false).await;
 		assert_eq!(first.status, StatusCode::ACCEPTED);
 		let body = first.json();
 		assert_eq!(body["data"]["state"], "queued");
 		let id = body["data"]["id"].as_str().unwrap().to_owned();
-		assert_eq!(first.headers[header::LOCATION], format!("status?task={id}"));
+		assert_eq!(first.headers[header::LOCATION], format!("tasks/{id}"));
 		// The id is said once; where to ask is the header's.
 		assert!(body["data"].get("task").is_none());
 		assert_eq!(first.headers[header::RETRY_AFTER], "5");
@@ -339,22 +341,22 @@ mod tests {
 		// Taking it tells nothing of what it will find.
 		assert!(body["data"].get("request").is_none() && body["data"].get("page").is_none());
 		// Waiting: the task says so, and the picture is simply not there.
-		let waiting = ask(&router, &format!("/status?task={id}"), true).await;
+		let waiting = ask(&router, &format!("/v1/tasks/{id}"), true).await;
 		assert_eq!(waiting.status, StatusCode::ACCEPTED);
 		assert_eq!(waiting.json()["data"]["state"], "queued");
 		assert_eq!(waiting.headers[header::CACHE_CONTROL], "no-store");
-		let early = ask(&router, &format!("/pictures/{id}.png"), true).await;
+		let early = ask(&router, &format!("/v1/pictures/{id}.png"), true).await;
 		assert_eq!(
 			(early.status, early.json()["code"].clone()),
 			(StatusCode::NOT_FOUND, "no_such_picture".into())
 		);
 		assert_eq!(early.headers[header::CACHE_CONTROL], "no-store");
 		// Asked again before it is done: the same capture.
-		let again = ask(&router, "/capture?host=example.test&width=390", true).await;
+		let again = start(&router, "host=example.test&width=390", true).await;
 		assert_eq!(again.json()["data"]["id"], id.as_str());
 
 		drain(&shot).await;
-		let done = ask(&router, &format!("/status?task={id}"), true).await;
+		let done = ask(&router, &format!("/v1/tasks/{id}"), true).await;
 		assert_eq!(done.status, StatusCode::OK);
 		assert_eq!(done.json()["data"]["png"], format!("{}/pictures/{id}.png", urls::INTERNAL_SHOT));
 		assert_eq!(done.json()["data"]["webp"], format!("{}/pictures/{id}.webp", urls::INTERNAL_SHOT));
@@ -367,14 +369,14 @@ mod tests {
 		assert!(data["task"]["rendered_ms"].is_i64() && data["task"].get("expires_at").is_none());
 		assert_eq!(data["page"]["title"], "Fake");
 		for (extension, media) in [("png", "image/png"), ("webp", "image/webp")] {
-			let picture = ask(&router, &format!("/pictures/{id}.{extension}"), true).await;
+			let picture = ask(&router, &format!("/v1/pictures/{id}.{extension}"), true).await;
 			assert_eq!(picture.status, StatusCode::OK);
 			assert_eq!(picture.headers[header::CONTENT_TYPE], media);
 			assert_eq!(picture.headers[header::CACHE_CONTROL], PICTURE_CACHE);
 			assert_eq!(picture.body, extension.as_bytes());
 		}
 		// Done, asking again says so, and still only where to look.
-		let cached = ask(&router, "/capture?host=example.test&width=390", false).await;
+		let cached = start(&router, "host=example.test&width=390", false).await;
 		let data = cached.json()["data"].clone();
 		assert_eq!((cached.status, data["id"].clone()), (StatusCode::ACCEPTED, id.clone().into()));
 		assert_eq!((data["state"].clone(), data["retry_after"].clone()), ("done".into(), 0.into()));
@@ -384,45 +386,45 @@ mod tests {
 	#[tokio::test]
 	async fn fresh_captures_anew_and_only_ours_may_ask_it() {
 		let (_root, shot, router) = service();
-		let old = capture(&router, "/capture?host=example.test").await;
+		let old = capture(&router, "host=example.test").await;
 		drain(&shot).await;
 
 		// The public may not ask fresh: ignored, so the kept capture answers as it would anyway.
-		let public = ask(&router, "/capture?host=example.test&fresh=true", true).await;
+		let public = start(&router, "host=example.test&fresh=true", true).await;
 		assert_eq!(public.json()["data"]["id"], old);
 
 		// Ours does: a new id, queued rather than the kept capture.
-		let fresh = ask(&router, "/capture?host=example.test&fresh=true", false).await;
+		let fresh = start(&router, "host=example.test&fresh=true", false).await;
 		let new_id = fresh.json()["data"]["id"].as_str().unwrap().to_owned();
 		assert_ne!(new_id, old);
 		assert_eq!(fresh.json()["data"]["state"], "queued");
 
 		// The next plain ask of the same parameters, from anyone, is answered with the fresh id.
-		assert_eq!(ask(&router, "/capture?host=example.test", true).await.json()["data"]["id"], new_id);
+		assert_eq!(start(&router, "host=example.test", true).await.json()["data"]["id"], new_id);
 
 		drain(&shot).await;
 		// The one fresh passed over stays readable by its own id.
-		let kept = ask(&router, &format!("/status?task={old}"), false).await;
+		let kept = ask(&router, &format!("/v1/tasks/{old}"), false).await;
 		assert_eq!(kept.status, StatusCode::OK);
 		assert_eq!(kept.json()["data"]["request"]["fresh"], false);
-		let made = ask(&router, &format!("/status?task={new_id}"), false).await;
+		let made = ask(&router, &format!("/v1/tasks/{new_id}"), false).await;
 		assert_eq!(made.json()["data"]["request"]["fresh"], true);
 	}
 
 	#[tokio::test]
 	async fn a_whole_page_may_have_no_webp() {
 		let (_root, shot, router) = service();
-		let id = ask(&router, "/capture?host=tall.test&full=true", false).await.json()["data"]["id"]
+		let id = start(&router, "host=tall.test&full=true", false).await.json()["data"]["id"]
 			.as_str()
 			.unwrap()
 			.to_owned();
 		drain(&shot).await;
 		assert_eq!(
-			ask(&router, &format!("/status?task={id}"), false).await.json()["data"]["webp"],
+			ask(&router, &format!("/v1/tasks/{id}"), false).await.json()["data"]["webp"],
 			serde_json::Value::Null
 		);
 		assert_eq!(
-			ask(&router, &format!("/pictures/{id}.webp"), false).await.status,
+			ask(&router, &format!("/v1/pictures/{id}.webp"), false).await.status,
 			StatusCode::NOT_FOUND
 		);
 	}
@@ -430,94 +432,99 @@ mod tests {
 	#[tokio::test]
 	async fn says_why_a_capture_failed_after_memory_forgets_it() {
 		let (_root, shot, router) = service();
-		let id = ask(&router, "/capture?host=broken.test", false).await.json()["data"]["id"]
+		let id = start(&router, "host=broken.test", false).await.json()["data"]["id"]
 			.as_str()
 			.unwrap()
 			.to_owned();
 		drain(&shot).await;
-		let failed = ask(&router, &format!("/status?task={id}"), false).await;
+		let failed = ask(&router, &format!("/v1/tasks/{id}"), false).await;
 		assert_eq!(failed.status, StatusCode::BAD_GATEWAY);
 		assert_eq!(failed.json()["code"], "page_unavailable");
 		assert_eq!(failed.json()["message"], "net::ERR_NAME_NOT_RESOLVED");
 		assert_eq!(
-			ask(&router, &format!("/pictures/{id}.png"), false).await.status,
+			ask(&router, &format!("/v1/pictures/{id}.png"), false).await.status,
 			StatusCode::NOT_FOUND
 		);
 		shot.queue().sweep(Instant::now() + crate::queue::WINDOW);
 		assert!(shot.view(id.parse().unwrap()).is_none());
-		let kept = ask(&router, &format!("/status?task={id}"), false).await;
+		let kept = ask(&router, &format!("/v1/tasks/{id}"), false).await;
 		assert_eq!(kept.status, StatusCode::BAD_GATEWAY);
 		assert_eq!(kept.json()["message"], "net::ERR_NAME_NOT_RESOLVED");
 		assert_eq!(kept.headers[header::CACHE_CONTROL], "no-store");
 		// Its window past, the same ask is a capture of its own.
-		assert_ne!(capture(&router, "/capture?host=broken.test").await, id);
+		assert_ne!(capture(&router, "host=broken.test").await, id);
 	}
 
 	#[tokio::test]
 	async fn answers_from_disk_after_a_restart() {
 		let (root, shot, router) = service();
-		let id = capture(&router, "/capture?host=example.test").await;
-		let broken = capture(&router, "/capture?host=broken.test").await;
+		let id = capture(&router, "host=example.test").await;
+		let broken = capture(&router, "host=broken.test").await;
 		drain(&shot).await;
-		let before = ask(&router, &format!("/status?task={id}"), false).await.json();
+		let before = ask(&router, &format!("/v1/tasks/{id}"), false).await.json();
 		drop((shot, router));
 
 		let (_shot, router) = over(root.path(), CAPACITY);
-		let after = ask(&router, &format!("/status?task={id}"), false).await;
+		let after = ask(&router, &format!("/v1/tasks/{id}"), false).await;
 		assert_eq!(after.status, StatusCode::OK);
 		assert_eq!(after.headers[header::CACHE_CONTROL], TASK_CACHE);
 		assert_eq!(after.json(), before);
-		assert_eq!(ask(&router, &format!("/pictures/{id}.webp"), false).await.body, b"webp");
-		let failed = ask(&router, &format!("/status?task={broken}"), false).await;
+		assert_eq!(ask(&router, &format!("/v1/pictures/{id}.webp"), false).await.body, b"webp");
+		let failed = ask(&router, &format!("/v1/tasks/{broken}"), false).await;
 		assert_eq!(failed.status, StatusCode::BAD_GATEWAY);
 		assert_eq!(failed.json()["message"], "net::ERR_NAME_NOT_RESOLVED");
 		// Remembered by nobody now, the same ask is captured afresh.
-		assert_ne!(capture(&router, "/capture?host=example.test").await, id);
+		assert_ne!(capture(&router, "host=example.test").await, id);
 	}
 
 	#[tokio::test]
 	async fn rolls_out_the_oldest_capture_past_its_capacity() {
 		// One capture's size, measured, sets a store with room for one and a half.
 		let (root, shot, router) = service();
-		capture(&router, "/capture?host=a.test").await;
+		capture(&router, "host=a.test").await;
 		drain(&shot).await;
 		let one = shot.store.bytes();
 		drop(root);
 		let root = tempfile::tempdir().unwrap();
 		let (shot, router) = over(root.path(), one + one / 2);
 
-		let first = capture(&router, "/capture?host=a.test").await;
+		let first = capture(&router, "host=a.test").await;
 		drain(&shot).await;
-		let second = capture(&router, "/capture?host=b.test").await;
+		let second = capture(&router, "host=b.test").await;
 		drain(&shot).await;
-		for path in [format!("/status?task={first}"), format!("/pictures/{first}.png")] {
+		for path in [format!("/v1/tasks/{first}"), format!("/v1/pictures/{first}.png")] {
 			assert_eq!(ask(&router, &path, false).await.status, StatusCode::NOT_FOUND, "{path}");
 		}
 		assert_eq!(
-			ask(&router, &format!("/status?task={first}"), false).await.json()["code"],
+			ask(&router, &format!("/v1/tasks/{first}"), false).await.json()["code"],
 			"no_such_task"
 		);
-		assert_eq!(ask(&router, &format!("/status?task={second}"), false).await.status, StatusCode::OK);
+		assert_eq!(ask(&router, &format!("/v1/tasks/{second}"), false).await.status, StatusCode::OK);
 		assert!(shot.store.bytes() <= one + one / 2);
 		// Rolled out, it is forgotten by the queue as well, and asked again is a new capture.
-		assert_ne!(capture(&router, "/capture?host=a.test").await, first);
+		assert_ne!(capture(&router, "host=a.test").await, first);
 	}
 
 	#[tokio::test]
 	async fn refuses_what_it_cannot_read_or_find() {
 		let (_root, _shot, router) = service();
+		for (pairs, code) in [
+			("", "invalid_url"),
+			("scheme=file&host=x.test", "invalid_url"),
+			("host=a.test&width=10", "invalid_viewport"),
+			("host=a.test&delay=11", "invalid_timing"),
+		] {
+			let answer = start(&router, pairs, false).await;
+			assert_eq!(answer.json()["code"], code, "{pairs}");
+			assert_eq!(answer.headers[header::CACHE_CONTROL], "no-store", "{pairs}");
+		}
 		let cases = [
-			("/capture", "invalid_url"),
-			("/capture?scheme=file&host=x.test", "invalid_url"),
-			("/capture?host=a.test&width=10", "invalid_viewport"),
-			("/capture?host=a.test&delay=11", "invalid_timing"),
-			("/status", "no_such_task"),
-			("/status?task=not-an-id", "no_such_task"),
-			("/status?task=00000000-0000-0000-0000-000000000000", "no_such_task"),
-			("/pictures/not-an-id.png", "no_such_picture"),
-			("/pictures/00000000-0000-0000-0000-000000000000", "no_such_picture"),
-			("/pictures/00000000-0000-0000-0000-000000000000.gif", "no_such_picture"),
-			("/pictures/00000000-0000-0000-0000-000000000000.png", "no_such_picture"),
+			("/v1/tasks/not-an-id", "no_such_task"),
+			("/v1/tasks/00000000-0000-0000-0000-000000000000", "no_such_task"),
+			("/v1/pictures/not-an-id.png", "no_such_picture"),
+			("/v1/pictures/00000000-0000-0000-0000-000000000000", "no_such_picture"),
+			("/v1/pictures/00000000-0000-0000-0000-000000000000.gif", "no_such_picture"),
+			("/v1/pictures/00000000-0000-0000-0000-000000000000.png", "no_such_picture"),
 			("/00000000-0000-0000-0000-000000000000", "no_such_route"),
 		];
 		for (path, code) in cases {
@@ -531,19 +538,19 @@ mod tests {
 	async fn a_full_public_queue_refuses_the_public_and_not_us() {
 		let (_root, _shot, router) = service();
 		for n in 0..Lane::Public.capacity() {
-			let answer = ask(&router, &format!("/capture?host=p{n}.test"), true).await;
+			let answer = start(&router, &format!("host=p{n}.test"), true).await;
 			assert_eq!(answer.status, StatusCode::ACCEPTED);
 		}
-		let refused = ask(&router, "/capture?host=late.test", true).await;
+		let refused = start(&router, "host=late.test", true).await;
 		assert_eq!(refused.status, StatusCode::SERVICE_UNAVAILABLE);
 		assert_eq!(refused.json()["code"], "queue_unavailable");
 		assert_eq!(refused.headers[header::RETRY_AFTER], "30");
-		let ours = ask(&router, "/capture?host=late.test", false).await;
+		let ours = start(&router, "host=late.test", false).await;
 		assert_eq!(ours.status, StatusCode::ACCEPTED);
 	}
 
 	async fn post(router: &Router, body: &str) -> Answer {
-		post_to(router, "/capture", body).await
+		post_to(router, "/v1/tasks", body).await
 	}
 
 	async fn post_to(router: &Router, path: &str, body: &str) -> Answer {
@@ -558,10 +565,10 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn a_post_asks_what_the_same_get_asks() {
+	async fn pairs_and_json_ask_the_same() {
 		let (_root, shot, router) = service();
 		let got =
-			ask(&router, "/capture?host=x.test&path=docs&query.tag=a&query.tag=b&width=390", false).await;
+			start(&router, "host=x.test&path=docs&query.tag=a&query.tag=b&width=390", false).await;
 		let posted = post(
 			&router,
 			r#"{"target":{"host":"x.test","path":"docs","query":{"tag":["a","b"]}},"viewport":{"width":390}}"#,
@@ -571,7 +578,7 @@ mod tests {
 		assert_eq!(posted.json()["data"]["id"], got.json()["data"]["id"]);
 		drain(&shot).await;
 		let id = posted.json()["data"]["id"].as_str().unwrap().to_owned();
-		let task = ask(&router, &format!("/status?task={id}"), false).await.json();
+		let task = ask(&router, &format!("/v1/tasks/{id}"), false).await.json();
 		assert_eq!(task["data"]["request"]["url"], "https://x.test/docs?tag=a&tag=b");
 		for broken in ["not json", r#"{"url":"https://x.test"}"#, r#"{"viewport":{"width":"wide"}}"#] {
 			let answer = post(&router, broken).await;
@@ -581,8 +588,6 @@ mod tests {
 				"{broken}"
 			);
 		}
-		let whole = ask(&router, "/capture?host=x.test&query=a%3D1", false).await;
-		assert_eq!(whole.json()["code"], "invalid_url");
 	}
 
 	#[tokio::test]
@@ -593,13 +598,13 @@ mod tests {
 		assert_eq!(started.status, StatusCode::ACCEPTED);
 		let id = started.json()["data"]["id"].as_str().unwrap().to_owned();
 		assert_eq!(started.headers[header::LOCATION], format!("tasks/{id}").as_str());
-		assert_eq!(post(&router, body).await.headers[header::LOCATION], format!("status?task={id}").as_str());
 		drain(&shot).await;
 		let task = ask(&router, &format!("/v1/tasks/{id}"), false).await;
-		assert_eq!(task.json(), ask(&router, &format!("/status?task={id}"), false).await.json());
 		assert_eq!(task.status, StatusCode::OK);
 		assert_eq!(ask(&router, "/v1/tasks/not-an-id", false).await.json()["code"], "no_such_task");
-		for old in ["/v1/capture?host=x.test", "/v1/status?task=x"] {
+		let old =
+			["/capture?host=x.test", &format!("/status?task={id}"), &format!("/pictures/{id}.png")];
+		for old in old {
 			assert_eq!(ask(&router, old, false).await.status, StatusCode::NOT_FOUND, "{old}");
 		}
 		assert_eq!(ask(&router, "/v1/tasks", false).await.status, StatusCode::METHOD_NOT_ALLOWED);
@@ -608,13 +613,13 @@ mod tests {
 	#[tokio::test]
 	async fn a_post_asks_fresh_as_access_fresh() {
 		let (_root, shot, router) = service();
-		let old = capture(&router, "/capture?host=example.test").await;
+		let old = capture(&router, "host=example.test").await;
 		drain(&shot).await;
 		let posted =
 			post(&router, r#"{"target":{"host":"example.test"},"access":{"fresh":true}}"#).await;
 		let new_id = posted.json()["data"]["id"].as_str().unwrap().to_owned();
 		assert_ne!(new_id, old);
-		assert_eq!(capture(&router, "/capture?host=example.test").await, new_id);
+		assert_eq!(capture(&router, "host=example.test").await, new_id);
 	}
 
 	#[test]

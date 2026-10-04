@@ -21,14 +21,10 @@ const SUFFIX = new URL(URLS.internal.app).hostname;
  * See spec/architecture/host.md, "One name inside, and a domain label outside". */
 export const RECEIVERS = ['infra', 'keeper'].map((label) => `http://${label}.${SUFFIX}/notice`);
 
-/** Where GitHub's notice may arrive, the scope taken off. */
-const ADDRESSES: ReadonlySet<string> = new Set(['/v1/github', '/github']);
-
 export async function handle(request: Request, env: Env): Promise<Response> {
 	const { pathname } = new URL(request.url);
-	// The gateway has taken the scope off; see spec/architecture/services.md. `/v1/github`, and the
-	// unversioned path GitHub is set to call until it moves; see spec/architecture/gateway.md.
-	if (request.method !== 'POST' || !ADDRESSES.has(pathname)) {
+	// The gateway has taken the scope off; see spec/architecture/services.md.
+	if (request.method !== 'POST' || pathname !== '/v1/github') {
 		return failure(404, 'no_such_route');
 	}
 	const body = await request.text();

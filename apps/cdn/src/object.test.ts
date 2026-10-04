@@ -70,7 +70,7 @@ describe('an object named by its id alone', () => {
 			},
 		} as never;
 		const response = await app.request(
-			`/object/${CID}.avif`,
+			`/v3/object/${CID}.avif`,
 			{ headers: { 'If-None-Match': `"${CID}.avif"` } },
 			bucket,
 		);
@@ -79,7 +79,7 @@ describe('an object named by its id alone', () => {
 	});
 
 	it('is 404 when the object is absent, and holds that briefly', async () => {
-		const response = await app.request(`/object/${CID}.avif`, {}, bucketWith([]));
+		const response = await app.request(`/v3/object/${CID}.avif`, {}, bucketWith([]));
 		expect(response.status).toBe(404);
 		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_object' });
 		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
@@ -91,7 +91,7 @@ describe('an object named by its id alone', () => {
 		// A name with no extension, and one with an empty one: neither is a key.
 		expect((await object.request(`/${CID}`, {}, bucket)).status).toBe(400);
 		expect((await object.request(`/${CID}.`, {}, bucket)).status).toBe(400);
-		const response = await app.request(`/object/${CID}.a-b`, {}, bucket);
+		const response = await app.request(`/v3/object/${CID}.a-b`, {}, bucket);
 		expect(response.status).toBe(400);
 		expect(response.headers.get('Cache-Control')).toBe(MINUTES);
 	});
@@ -102,7 +102,7 @@ describe('the group as the worker mounts it', () => {
 	// only true of the mounted group -- which is what a reader reaches.
 	it('reaches the route rather than being refused as an address', async () => {
 		const response = await app.request(
-			`/object/${CID}.avif`,
+			`/v3/object/${CID}.avif`,
 			{},
 			bucketWith([storageKey(CID, 'avif')]),
 		);
@@ -114,7 +114,7 @@ describe('the group as the worker mounts it', () => {
 	// reader ever fetches a face through is this address answering a woff2 like anything else.
 	it('serves a font chunk, which has no route of its own any more', async () => {
 		const response = await app.request(
-			`/object/${CID}.woff2`,
+			`/v3/object/${CID}.woff2`,
 			{},
 			bucketWith([storageKey(CID, 'woff2')]),
 		);
@@ -126,7 +126,7 @@ describe('the group as the worker mounts it', () => {
 	// The id is one segment. The fan-out it is stored under is the bucket's business, and an
 	// address spelling it falls past the group into the catch-all.
 	it('still refuses an address carrying the storage layout', async () => {
-		const response = await app.request(`/object/44/b6/${CID}.avif`, {}, bucketWith([]));
+		const response = await app.request(`/v3/object/44/b6/${CID}.avif`, {}, bucketWith([]));
 		expect(response.status).toBe(400);
 	});
 });

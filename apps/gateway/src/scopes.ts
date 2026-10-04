@@ -164,12 +164,6 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 			},
 			{
 				methods: ['GET', 'HEAD'],
-				path: '/results',
-				count: 30,
-				seconds: 60,
-			},
-			{
-				methods: ['GET', 'HEAD'],
 				path: '/checks/*',
 				count: 30,
 				seconds: 60,
@@ -197,12 +191,6 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 		binding: 'HOME',
 		limits: [
 			{
-				methods: ['GET', 'HEAD', 'POST'],
-				path: '/capture',
-				count: 3,
-				seconds: 60,
-			},
-			{
 				methods: ['POST'],
 				path: '/tasks',
 				count: 3,
@@ -210,20 +198,6 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 			},
 		],
 		routes: [
-			{
-				path: '/status',
-				cache: {
-					fulfilled: 300,
-					accepted: 0,
-					redirected: 0,
-					rejected: 0,
-					faulted: 0,
-				},
-				crawlable: false,
-				exposed: true,
-				forbidden: ['internal', 'fresh'],
-				auth: 'none',
-			},
 			{
 				path: '/pictures/*',
 				cache: {

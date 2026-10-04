@@ -62,7 +62,7 @@ describe('the group as the worker mounts it', () => {
 	});
 
 	async function ask(path: string): Promise<Response> {
-		return app.fetch(new Request(HOST + path), {} as never);
+		return app.fetch(new Request(`${HOST}/v3${path}`), {} as never);
 	}
 
 	it('keeps a proxied answer for an hour, having no hash to promise more with', async () => {

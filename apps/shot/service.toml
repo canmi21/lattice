@@ -35,10 +35,6 @@ rejected = "none"
 faulted = "none"
 
 [[api.routes]]
-path = "/status"
-cache = { success = { fulfilled = "5m" } }
-
-[[api.routes]]
 path = "/tasks/*"
 cache = { success = { fulfilled = "5m" } }
 
@@ -47,13 +43,6 @@ path = "/pictures/*"
 cache = { success = { fulfilled = "15m" } }
 
 # Starting a capture costs seconds of a browser; asking after one and fetching it are free.
-[[api.limits]]
-methods = ["GET", "HEAD", "POST"]
-path = "/capture"
-count = 3
-seconds = 60
-
-# The same, as `/v1/` starts a task: by POST alone.
 [[api.limits]]
 methods = ["POST"]
 path = "/tasks"

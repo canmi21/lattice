@@ -26,19 +26,16 @@ const KEPT: &str = "public, max-age=60";
 const SPAN: i64 = 86_400;
 const PAGE: usize = 10_000;
 
-/// The API at `/v1/`, where a check's results are under the check, and unversioned in its old
-/// shape until its callers move; `/health` is host's and never versioned. See
+/// The API at `/v1/`, where a check's results are under the check; `/health` is host's and never
+/// versioned. See
 /// spec/architecture/gateway.md, "A version is in the path, and it moves only on a break", and the
 /// workspace's spec/addresses.md.
 pub fn routes(state: AppState) -> Router {
-	let v1 = Router::new()
-		.route("/checks", get(checks))
-		.route("/checks/{check}/results", get(results_of));
+	let v1 =
+		Router::new().route("/checks", get(checks)).route("/checks/{check}/results", get(results_of));
 	Router::new()
 		.route("/health", get(|| async { kept(()) }))
 		.nest("/v1", v1)
-		.route("/checks", get(checks))
-		.route("/results", get(results))
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(state)
 }
@@ -76,14 +73,6 @@ async fn checks(State(state): State<AppState>) -> Response {
 	kept(declared)
 }
 
-/// The old shape, the check in the query beside the range.
-#[derive(Deserialize)]
-struct Asked {
-	check: String,
-	since: i64,
-	until: i64,
-}
-
 /// The range a check's results are asked for.
 #[derive(Deserialize)]
 struct Range {
@@ -97,16 +86,6 @@ struct Answered {
 	results: Vec<crate::round::Round>,
 	#[serde(skip_serializing_if = "Option::is_none")]
 	next: Option<i64>,
-}
-
-async fn results(
-	State(state): State<AppState>,
-	asked: Result<Query<Asked>, QueryRejection>,
-) -> Response {
-	let Ok(Query(asked)) = asked else {
-		return response::failure(StatusCode::BAD_REQUEST, "invalid_range");
-	};
-	page(state, asked.check, asked.since, asked.until).await
 }
 
 async fn results_of(
@@ -191,7 +170,7 @@ mod tests {
 	async fn answers_the_declared_checks_kept_a_minute() {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(directory.path()));
-		let (status, cache, body) = ask(router.clone(), "/checks").await;
+		let (status, cache, body) = ask(router.clone(), "/v1/checks").await;
 		assert_eq!((status, cache.unwrap()), (StatusCode::OK, HeaderValue::from_static(KEPT)));
 		let first = &body["data"][0];
 		assert_eq!(first["id"], "health.geo");
@@ -210,7 +189,7 @@ mod tests {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(directory.path()));
 		let (status, cache, body) =
-			ask(router.clone(), "/results?check=dns.site&since=0&until=60").await;
+			ask(router.clone(), "/v1/checks/dns.site/results?since=0&until=60").await;
 		assert_eq!((status, cache.unwrap()), (StatusCode::OK, HeaderValue::from_static(KEPT)));
 		let results = body["data"]["results"].as_array().unwrap();
 		assert_eq!(results.len(), 2);
@@ -220,20 +199,22 @@ mod tests {
 		assert!(body["data"].get("next").is_none());
 		assert_eq!(body["data"]["place"], "home");
 
-		let (status, _, body) = ask(router.clone(), "/results?check=dns.site&since=6&until=60").await;
+		let (status, _, body) =
+			ask(router.clone(), "/v1/checks/dns.site/results?since=6&until=60").await;
 		assert_eq!((status, body["data"]["results"].as_array().unwrap().len()), (StatusCode::OK, 1));
 	}
 
 	#[tokio::test]
-	async fn answers_a_checks_results_under_the_check_at_v1_as_the_old_shape_does() {
+	async fn answers_a_checks_results_under_the_check_and_nothing_at_the_old_shape() {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(directory.path()));
-		let versioned = ask(router.clone(), "/v1/checks/dns.site/results?since=0&until=60").await;
-		assert_eq!(versioned, ask(router.clone(), "/results?check=dns.site&since=0&until=60").await);
 		let (status, _, body) = ask(router.clone(), "/v1/checks/nope/results?since=0&until=1").await;
 		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_check".into()));
-		assert_eq!(ask(router.clone(), "/v1/checks").await.0, StatusCode::OK);
-		assert_eq!(ask(router, "/v1/results?check=dns.site&since=0&until=60").await.0, StatusCode::NOT_FOUND);
+		let shapes =
+			["/checks", concat!("/results?check=", "dns.site&since=0&until=60"), "/v1/results"];
+		for old in shapes {
+			assert_eq!(ask(router.clone(), old).await.0, StatusCode::NOT_FOUND, "{old}");
+		}
 	}
 
 	#[tokio::test]
@@ -241,10 +222,10 @@ mod tests {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(directory.path()));
 		for path in [
-			"/results?check=dns.site&since=10&until=10",
-			"/results?check=dns.site&since=0&until=86401",
-			"/results?check=dns.site&since=x&until=1",
-			"/results?check=dns.site",
+			"/v1/checks/dns.site/results?since=10&until=10",
+			"/v1/checks/dns.site/results?since=0&until=86401",
+			"/v1/checks/dns.site/results?since=x&until=1",
+			"/v1/checks/dns.site/results",
 		] {
 			let (status, _, body) = ask(router.clone(), path).await;
 			assert_eq!(
@@ -253,7 +234,7 @@ mod tests {
 				"{path}"
 			);
 		}
-		let (status, _, body) = ask(router.clone(), "/results?check=nope&since=0&until=1").await;
+		let (status, _, body) = ask(router.clone(), "/v1/checks/nope/results?since=0&until=1").await;
 		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_check".into()));
 		let (status, _, body) = ask(router, "/nothing").await;
 		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_route".into()));

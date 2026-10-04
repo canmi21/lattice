@@ -35,9 +35,8 @@ disk.read,disk.written,storage.used,temperature.";
 const ACTIVITY_HOURS: std::ops::RangeInclusive<u32> = 1..=168;
 const ACTIVITY_DEFAULT_HOURS: u32 = 24;
 
-/// The API at `/v1/`, and unversioned until its callers move; `/health` is host's and never
-/// versioned. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
-/// break".
+/// The API at `/v1/`; `/health` is host's and never versioned. See
+/// spec/architecture/gateway.md, "A version is in the path, and it moves only on a break".
 pub fn routes(state: AppState) -> Router {
 	let v1 = Router::new()
 		.route("/machine", get(machine))
@@ -48,8 +47,7 @@ pub fn routes(state: AppState) -> Router {
 		.route("/activity", get(activity));
 	Router::new()
 		.route("/health", get(health))
-		.nest("/v1", v1.clone())
-		.merge(v1)
+		.nest("/v1", v1)
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(state)
 }
@@ -324,27 +322,18 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn answers_the_same_at_v1_as_unversioned() {
-		let directory = tempfile::tempdir().unwrap();
-		let router = routes(state(down_meter(), Arc::new(FakeLedger), directory.path()));
-		let versioned = ask(router.clone(), "/v1/machine").await;
-		assert_eq!(versioned, ask(router.clone(), "/machine").await);
-		assert_eq!(ask(router, "/v1/health").await.0, StatusCode::NOT_FOUND);
-	}
-
-	#[tokio::test]
 	async fn machine_answers_the_meter_and_null_when_it_is_down() {
 		let (_dir, meter) = fake_meter().await;
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(meter, Arc::new(FakeLedger), directory.path()));
-		let (status, cache, body) = ask(router, "/machine").await;
+		let (status, cache, body) = ask(router, "/v1/machine").await;
 		assert_eq!(status, StatusCode::OK);
 		assert_eq!(cache, "public, max-age=5");
 		assert_eq!(body["data"]["sample"], 1);
 
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(down_meter(), Arc::new(FakeLedger), directory.path()));
-		let (status, _, body) = ask(router, "/machine").await;
+		let (status, _, body) = ask(router, "/v1/machine").await;
 		assert_eq!((status, &body["data"]), (StatusCode::OK, &Value::Null));
 	}
 
@@ -353,7 +342,7 @@ mod tests {
 		let (_dir, meter) = fake_meter().await;
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(meter, Arc::new(FakeLedger), directory.path()));
-		let (status, _, body) = ask(router, "/machine/series?grain=bad").await;
+		let (status, _, body) = ask(router, "/v1/machine/series?grain=bad").await;
 		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_series".into()));
 	}
 
@@ -362,7 +351,7 @@ mod tests {
 		let (_dir, meter) = fake_meter().await;
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(meter, Arc::new(FakeLedger), directory.path()));
-		let (status, cache, body) = ask(router, "/services").await;
+		let (status, cache, body) = ask(router, "/v1/services").await;
 		assert_eq!((status, cache), (StatusCode::OK, HeaderValue::from_static("public, max-age=5")));
 		let geo = &body["data"][0];
 		assert_eq!((&geo["name"], &geo["state"]), (&"geo".into(), &"running".into()));
@@ -376,12 +365,12 @@ mod tests {
 		let (_dir, meter) = fake_meter().await;
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(meter, Arc::new(FakeLedger), directory.path()));
-		let (status, cache, body) = ask(router.clone(), "/services/geo").await;
+		let (status, cache, body) = ask(router.clone(), "/v1/services/geo").await;
 		assert_eq!((status, cache), (StatusCode::OK, HeaderValue::from_static("public, max-age=60")));
 		assert_eq!(body["data"]["declaration"]["name"], "geo");
 		assert_eq!(body["data"]["series"], serde_json::json!([{"at": 1}]));
 
-		let (status, _, body) = ask(router, "/services/nothing").await;
+		let (status, _, body) = ask(router, "/v1/services/nothing").await;
 		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_app".into()));
 	}
 
@@ -389,7 +378,7 @@ mod tests {
 	async fn topology_is_drawn_from_services_json_alone() {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(down_meter(), Arc::new(FakeLedger), directory.path()));
-		let (status, cache, body) = ask(router, "/topology").await;
+		let (status, cache, body) = ask(router, "/v1/topology").await;
 		assert_eq!((status, cache), (StatusCode::OK, HeaderValue::from_static("public, max-age=60")));
 		assert_eq!(body["data"]["services"][0]["name"], "geo");
 	}
@@ -398,13 +387,13 @@ mod tests {
 	async fn activity_reads_the_ledger_and_refuses_an_hours_out_of_range() {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(down_meter(), Arc::new(FakeLedger), directory.path()));
-		let (status, _, body) = ask(router.clone(), "/activity").await;
+		let (status, _, body) = ask(router.clone(), "/v1/activity").await;
 		assert_eq!(status, StatusCode::OK);
 		assert_eq!(body["data"][0]["count"], 24);
 
-		let (status, _, body) = ask(router.clone(), "/activity?hours=0").await;
+		let (status, _, body) = ask(router.clone(), "/v1/activity?hours=0").await;
 		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_range".into()));
-		let (status, _, body) = ask(router, "/activity?hours=169").await;
+		let (status, _, body) = ask(router, "/v1/activity?hours=169").await;
 		assert_eq!((status, &body["code"]), (StatusCode::BAD_REQUEST, &"invalid_range".into()));
 	}
 
@@ -412,7 +401,7 @@ mod tests {
 	async fn activity_is_null_rather_than_failing_when_the_ledger_is_down() {
 		let directory = tempfile::tempdir().unwrap();
 		let router = routes(state(down_meter(), Arc::new(DownLedger), directory.path()));
-		let (status, _, body) = ask(router, "/activity?hours=6").await;
+		let (status, _, body) = ask(router, "/v1/activity?hours=6").await;
 		assert_eq!((status, &body["data"]), (StatusCode::OK, &Value::Null));
 	}
 

@@ -47,10 +47,9 @@ names.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c
 names.get('/symlink/:scope{[a-z][a-z0-9-]*}/:file{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) =>
 	resolve(c, `${c.req.param('scope')}/${c.req.param('file')}`),
 );
-// At `/v1/`, and unversioned until its callers move. See spec/architecture/gateway.md, "A version
-// is in the path, and it moves only on a break".
+// At `/v1/`. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
+// break".
 app.route('/v1', names);
-app.route('/', names);
 
 /**
  * Anything else, and `400` rather than `404` because the two say different things here too.

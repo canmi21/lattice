@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 async function ask(path: string, init?: RequestInit): Promise<Response> {
-	return app.fetch(new Request(HOST + path, init));
+	return app.fetch(new Request(`${HOST}/v1${path}`, init));
 }
 
 /**
@@ -47,7 +47,7 @@ describe('a resource', () => {
 		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.avif`);
 		// Asked by rid, which is what `/media` takes. A cid names bytes and would answer nothing
 		// about the thing. See spec/architecture/resource.md, "Two ids".
-		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/v1/media/${RID}`);
+		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/media/${RID}`);
 	});
 
 	it('sends a declared slug to the site rather than to the bytes', async () => {
@@ -109,7 +109,7 @@ describe('a name this site publishes', () => {
 
 		expect(res.status).toBe(302);
 		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.svg`);
-		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/v1/assets/favicon.svg`);
+		expect(fetching).toHaveBeenCalledWith(`${URLS.apps.production.api}/assets/favicon.svg`);
 	});
 
 	it('is 404 for a name the corpus does not publish, and holds that briefly', async () => {
@@ -159,15 +159,6 @@ describe('the rest of the host', () => {
 	});
 });
 
-describe('the version', () => {
-	it('resolves a name at /v1/ as it does unversioned', async () => {
-		answering(200, named);
-		const [versioned, plain] = [await app.fetch(new Request(`${HOST}/v1/symlink/favicon.svg`)), await app.fetch(new Request(`${HOST}/symlink/favicon.svg`))];
-		expect(versioned.status).toBe(plain.status);
-		expect(versioned.headers.get('Location')).toBe(plain.headers.get('Location'));
-	});
-});
-
 describe('the site, asked from behind the gateway', () => {
 	it('is asked by its binding, under the API host and its prefix, never through the gateway', async () => {
 		const seen: string[] = [];
@@ -175,7 +166,7 @@ describe('the site, asked from behind the gateway', () => {
 			fetch: async (request: Request) => (seen.push(request.url), Response.json(named)),
 		};
 		const fetching = vi.spyOn(globalThis, 'fetch');
-		const res = await app.fetch(new Request(`${HOST}/symlink/favicon.svg`), { SITE });
+		const res = await app.fetch(new Request(`${HOST}/v1/symlink/favicon.svg`), { SITE });
 		expect(res.status).toBe(302);
 		expect(seen).toEqual([`${new URL(URLS.apps.production.api).origin}/api/v1/assets/favicon.svg`]);
 		expect(fetching).not.toHaveBeenCalled();

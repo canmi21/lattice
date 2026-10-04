@@ -124,7 +124,7 @@ describe('the short spelling of JPEG', () => {
 	// Asked of the mounted worker rather than of the route, because the lifetime is the half
 	// that matters here and the rule that stamps it lives above the group.
 	it('answers a `jpg` target with the canonical spelling of the same address', async () => {
-		const response = await app.request(`/derive/${CID}.avif.jpg`, {}, holding('avif'));
+		const response = await app.request(`/v3/derive/${CID}.avif.jpg`, {}, holding('avif'));
 		expect(response.status).toBe(301);
 		expect(response.headers.get('Location')).toBe(`/derive/${CID}.avif.jpeg`);
 		// A function of the address rather than a fact about now: these two spellings will
@@ -141,7 +141,7 @@ describe('the short spelling of JPEG', () => {
 	 * a name that was never stored, and nothing would report it.
 	 */
 	it('leaves a `jpg` source alone, so it is the plain 404 a missing object is', async () => {
-		const response = await app.request(`/derive/${CID}.jpg.webp`, {}, holding('jpeg'));
+		const response = await app.request(`/v3/derive/${CID}.jpg.webp`, {}, holding('jpeg'));
 		expect(response.status).toBe(404);
 		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_object' });
 		// Five minutes, because a 404 on a hashed address is a fact about the bucket rather than
@@ -403,13 +403,13 @@ describe('anything else', () => {
  */
 describe('what a derived answer may be kept for', () => {
 	it('keeps a 2xx for a year', async () => {
-		const response = await app.request(`/derive/${CID}.avif.zip`, {}, holding('avif'));
+		const response = await app.request(`/v3/derive/${CID}.avif.zip`, {}, holding('avif'));
 		expect(response.status).toBe(200);
 		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
 
 	it('keeps a 3xx for a year too, which is where this parts company', async () => {
-		const response = await app.request(`/derive/${CID}.avif.avif`, {}, holding('avif'));
+		const response = await app.request(`/v3/derive/${CID}.avif.avif`, {}, holding('avif'));
 		expect(response.status).toBe(301);
 		expect(response.headers.get('Cache-Control')).toBe(YEAR);
 	});
@@ -417,7 +417,7 @@ describe('what a derived answer may be kept for', () => {
 	// A 206 is a 2xx, and the bytes behind it are as settled as the whole answer they came from.
 	it('keeps a 206 for a year, which is the half a status check is easy to lose', async () => {
 		const response = await app.request(
-			`/derive/${CID}.avif.zip`,
+			`/v3/derive/${CID}.avif.zip`,
 			{ headers: { Range: 'bytes=0-15' } },
 			holding('avif'),
 		);
@@ -426,16 +426,16 @@ describe('what a derived answer may be kept for', () => {
 	});
 
 	it('holds a refusal for five minutes', async () => {
-		const missing = await app.request(`/derive/${CID}.avif.webp`, {}, bucketWith({}));
+		const missing = await app.request(`/v3/derive/${CID}.avif.webp`, {}, bucketWith({}));
 		expect(missing.status).toBe(404);
 		expect(missing.headers.get('Cache-Control')).toBe(MINUTES);
 
-		const malformed = await app.request(`/derive/${CID}.avif.exe`, {}, holding('avif'));
+		const malformed = await app.request(`/v3/derive/${CID}.avif.exe`, {}, holding('avif'));
 		expect(malformed.status).toBe(400);
 		expect(malformed.headers.get('Cache-Control')).toBe(MINUTES);
 
 		const unsatisfiable = await app.request(
-			`/derive/${CID}.avif.zip`,
+			`/v3/derive/${CID}.avif.zip`,
 			{ headers: { Range: 'bytes=99999-' } },
 			holding('avif'),
 		);
@@ -458,7 +458,7 @@ describe('the lookup is a call, never a request', () => {
 
 describe('the group as the worker mounts it', () => {
 	it('reaches the route rather than falling into the catch-all', async () => {
-		const response = await app.request(`/derive/${CID}.avif.avif`, {}, holding('avif'));
+		const response = await app.request(`/v3/derive/${CID}.avif.avif`, {}, holding('avif'));
 		expect(response.status).toBe(301);
 	});
 });

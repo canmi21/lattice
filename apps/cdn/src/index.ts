@@ -24,33 +24,13 @@ const app = new Hono<{ Bindings: Bindings }>();
 // its own cache; the gateway stamps what leaves it. See ./cache.ts.
 app.use('*', cacheControl);
 
-/**
- * Where the proxies used to answer, kept as a redirect rather than as a second spelling.
- *
- * Permanent and method-preserving: the path moved under `/proxy` and will not move back, and a
- * 308 is the one code that says so without inviting a client to turn its request into a `GET`.
- */
-app.all('/github/*', (c) => {
-	const url = new URL(c.req.url);
-	return c.redirect(`/proxy${url.pathname}${url.search}`, 308);
-});
-
-/**
- * The three groups, and the whole of what this host expresses.
- *
- * Two of them are content-addressed: `/object/{cid}.{ext}` is the lookup on its own, and
- * `/derive/{cid}.{ext}.{ext}` is that same lookup plus one conversion the caller spelled out in
- * full. `/proxy/{vendor}` is a live fetch from somebody else. None of the three asks anything
- * anywhere what a name means, which is what lets this host answer with every other one down.
- */
 const groups = new Hono<{ Bindings: Bindings }>();
 groups.route('/object', object);
 groups.route('/derive', derive);
 groups.route('/proxy/github', github);
-// At `/v3/`, and unversioned until its callers move. See spec/architecture/gateway.md, "A version
-// is in the path, and it moves only on a break".
+// At `/v3/`. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
+// break".
 app.route('/v3', groups);
-app.route('/', groups);
 
 /**
  * Anything else, and `400` rather than `404` because the two say different things.

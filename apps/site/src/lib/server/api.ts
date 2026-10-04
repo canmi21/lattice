@@ -50,14 +50,11 @@ export async function answer(event: RequestEvent): Promise<Response | undefined>
 	if (!outside && !url.pathname.startsWith(API_PREFIX)) return undefined;
 	const segment = url.pathname.startsWith(API_PREFIX) ? url.pathname.slice(API_PREFIX.length) : '';
 	// A public route at `/v1/` is public by name, so whichever door asks: in development the gateway
-	// reaches this Worker on this machine's name rather than the API host's. Its old name, with its
-	// query, is answered on the API host until its callers move.
+	// reaches this Worker on this machine's name rather than the API host's.
 	const asked = segment.startsWith('v1/')
 		? publicV1(segment.slice('v1/'.length))
 		: outside
-			? PUBLIC_ROUTES.has(segment)
-				? { route: segment as Route, query: {} }
-				: undefined
+			? undefined
 			: readAddress(segment);
 	if (!asked) return failure(404, 'no_such_route');
 

@@ -13,17 +13,16 @@ nothing waits on it:
 **One question a route**: whether a capture was taken, how it stands, whether its picture is there.
 Each tells its own and nothing of the others'.
 
-| Request                                                       | Answer                                                                                            |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `GET /shot/capture?host=&…`, `POST /shot/capture`             | always `202 { id, state, retry_after }` and `Location: status?task=<id>`: its state, nothing more |
-| `GET /shot/status?task=<id>`                                  | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done         |
-| `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said               |
+| Request                                                     | Answer                                                                                     |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `POST /v1/shot/tasks`                                       | always `202 { id, state, retry_after }` and `Location: tasks/<id>`: its state, nothing more |
+| `GET /v1/shot/tasks/<id>`                                   | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done  |
+| `GET /v1/shot/pictures/<id>.png`, `GET /v1/shot/pictures/<id>.webp` | `200`, the picture itself; or `404`, and no more said                              |
 
-**`/v1/` names a task as a thing and starts one by a write**, as the workspace's
-`spec/addresses.md` has it: `POST /shot/v1/tasks` takes what `POST /shot/capture` takes and answers
-`Location: tasks/<id>`; `GET /shot/v1/tasks/<id>` is what `status?task=<id>` is; the pictures are
-`/shot/v1/pictures/<id>.png` and `.webp`. The table above is the unversioned shape, answered until
-its callers move, and `/v1/` has no `GET` that starts a capture.
+**A task is a thing and starting one is a write**, as the workspace's `spec/addresses.md` has it:
+there is no `GET` that starts a capture. What a capture asks is the JSON below, and the version is
+in the path as the gateway's `api` host has it -- `api.monoflake.com/v1/shot/...`; a caller on the
+private side asks `api.canmi.icu/shot/v1/...`, which Caddy takes the scope off.
 
 - **The id is said once, in the body; where to ask is the `Location` header's**, never a second
   field repeating the id.

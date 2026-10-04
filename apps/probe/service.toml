@@ -35,14 +35,7 @@ path = "/checks"
 count = 60
 seconds = 60
 
-# A page is up to ten thousand rounds read from disk.
-[[api.limits]]
-methods = ["GET", "HEAD"]
-path = "/results"
-count = 30
-seconds = 60
-
-# The same page, asked under the check, as `/v1/` has it.
+# A page is up to ten thousand rounds read from disk, asked under its check.
 [[api.limits]]
 methods = ["GET", "HEAD"]
 path = "/checks/*"
