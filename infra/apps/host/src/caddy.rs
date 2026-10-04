@@ -6,7 +6,9 @@
 //! route per suffix, a guard on the source address first, and a subroute of names inside it.
 
 use crate::config::CaddyConfig;
+use crate::grants::Grants;
 use crate::store::{Deployed, Route};
+use deploy::manifest::Edge;
 use deploy::manifest::Limit;
 use serde_json::{Value, json};
 use std::path::Path;
@@ -187,9 +189,6 @@ const INSIDE_LISTEN: &str = ":8080";
 /// gateway.
 const INTERNAL_HEADER: &str = "X-Internal";
 
-/// The internal gateway: the one app the LAN's side hands the gateway's hostnames to.
-const GATEWAY: &str = "gateway";
-
 /// Each API scope a side carries, its prefix stripped before the service sees the request; what the
 /// public may reach of it is the gateway's table, not this render. Limits are only ever counted on
 /// the tunnel's side, over what the gateway forwards. See spec/architecture/services.md, "A path
@@ -243,18 +242,28 @@ fn inside_side(apps: &[Deployed]) -> Vec<Value> {
 	]
 }
 
-/// The gateway's hostnames on the LAN's side, handed to the internal gateway with the address they
-/// were asked from in `Cf-Connecting-Ip`, over whatever the caller sent. None while the internal
-/// gateway is not deployed. See spec/architecture/host.md, "The inside side answers the internal
-/// gateway alone".
-fn gateway_hosts(config: &CaddyConfig, apps: &[Deployed]) -> Option<Value> {
-	let app = apps.iter().find(|app| app.manifest.name == GATEWAY)?;
+/// The app the node lets claim hostnames, and what it claims: the first deployed that declares an
+/// `[edge]` and is granted `hosts`. See spec/architecture/host.md, "A role is asked for by the app
+/// and granted by the node".
+pub fn claimant<'a>(grants: &Grants, apps: &'a [Deployed]) -> Option<(&'a Deployed, &'a Edge)> {
+	apps.iter().find_map(|app| {
+		let edge = app.manifest.edge.as_ref()?;
+		grants.claims_hosts(&app.manifest).then_some((app, edge))
+	})
+}
+
+/// The claimed hostnames on the LAN's side, handed to the app that claims them with the address
+/// they were asked from in `Cf-Connecting-Ip`, over whatever the caller sent. None while no app
+/// claims any. See spec/architecture/host.md, "The inside side answers the internal gateway alone".
+fn claimed_hosts(config: &CaddyConfig, claimant: Option<(&Deployed, &Edge)>) -> Option<Value> {
+	let (app, edge) = claimant?;
+	let name = app.manifest.name.as_str();
 	let port = app.manifest.container.as_ref()?.port?;
-	let mut proxy = proxy(&format!("{GATEWAY}:{port}"), GATEWAY);
+	let mut proxy = proxy(&format!("{name}:{port}"), name);
 	proxy["headers"] =
 		json!({ "request": { "set": { "Cf-Connecting-Ip": ["{http.vars.client_ip}"] } } });
 	Some(json!({
-		"match": [{ "host": monoflake::GATEWAY_HOSTS }],
+		"match": [{ "host": edge.hosts }],
 		"handle": [{ "handler": "subroute", "routes": [
 			refuse_unless(&config.private_sources),
 			{ "handle": [encode(), proxy] }
@@ -293,7 +302,7 @@ fn interfaces(apps: &[Deployed], routes: &[Route], public: bool) -> Vec<Target> 
 	targets
 }
 
-pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Value {
+pub fn render(config: &CaddyConfig, grants: &Grants, apps: &[Deployed], routes: &[Route]) -> Value {
 	let private = &config.private_suffix;
 	let public = &config.public_suffix;
 
@@ -311,15 +320,18 @@ pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Valu
 	}
 	outside.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
 
-	let mut lan = Vec::from_iter(gateway_hosts(config, apps));
+	let claimant = claimant(grants, apps);
+	let mut lan = Vec::from_iter(claimed_hosts(config, claimant));
 	lan.push(json!({
 		"match": [{ "host": [format!("*.{private}")] }],
 		"handle": [{ "handler": "subroute", "routes": inside }],
 		"terminal": true
 	}));
 	let mut subjects = vec![format!("*.{private}")];
-	if lan.len() > 1 {
-		subjects.extend(monoflake::GATEWAY_HOSTS.iter().map(|host| (*host).to_owned()));
+	if lan.len() > 1
+		&& let Some((_, edge)) = claimant
+	{
+		subjects.extend(edge.hosts.iter().cloned());
 	}
 
 	// The visitor's address comes from Cloudflare's header, and only when cloudflared sent it.
@@ -435,13 +447,18 @@ mod tests {
 		deployed(include_str!("../../../../apps/quota/service.toml"))
 	}
 
+	/// The node's grants as a test node has them: the gateway may claim its hostnames.
+	fn grants() -> Grants {
+		Grants::parse("gateway:hosts").unwrap()
+	}
+
 	fn gateway() -> Deployed {
 		deployed(include_str!("../../../../apps/gateway/service.toml"))
 	}
 
 	#[test]
 	fn the_inside_side_carries_every_scope_to_a_holder_of_the_token_alone() {
-		let rendered = render(&config(), &[geo(), quota()], &[]);
+		let rendered = render(&config(), &grants(), &[geo(), quota()], &[]);
 		let inside = &rendered["apps"]["http"]["servers"]["inside"];
 		assert_eq!(inside["listen"][0], ":8080");
 		assert_eq!(inside["automatic_https"]["disable"], true);
@@ -460,7 +477,7 @@ mod tests {
 
 	#[test]
 	fn a_scope_on_the_inside_side_alone_is_on_neither_api_host() {
-		let rendered = text(&render(&config(), &[quota()], &[]));
+		let rendered = text(&render(&config(), &grants(), &[quota()], &[]));
 		let servers =
 			serde_json::from_str::<Value>(&rendered).unwrap()["apps"]["http"]["servers"].clone();
 		assert!(!text(&servers["private"]).contains("/quota"));
@@ -470,11 +487,12 @@ mod tests {
 
 	#[test]
 	fn the_lan_hands_the_gateways_hostnames_to_the_internal_gateway_once_it_runs() {
-		let without = render(&config(), &[geo()], &[]);
+		let without = render(&config(), &grants(), &[geo()], &[]);
 		assert!(!text(&without).contains("monoflake"));
-		let with = render(&config(), &[geo(), gateway()], &[]);
+		let with = render(&config(), &grants(), &[geo(), gateway()], &[]);
 		let route = &with["apps"]["http"]["servers"]["private"]["routes"][0];
-		assert_eq!(text(&route["match"][0]["host"]), text(&json!(monoflake::GATEWAY_HOSTS)));
+		let hosts = &gateway().manifest.edge.unwrap().hosts;
+		assert_eq!(text(&route["match"][0]["host"]), text(&json!(hosts)));
 		let handle = &route["handle"][0]["routes"];
 		assert_eq!(handle[0]["handle"][0]["abort"], true);
 		let proxy = &handle[1]["handle"][1];
@@ -488,7 +506,7 @@ mod tests {
 	fn an_api_scope_answers_on_both_api_hosts_regardless_of_its_public_flag() {
 		let mut private = geo();
 		private.manifest.api.as_mut().unwrap().public = false;
-		let rendered = text(&render(&config(), &[private], &[]));
+		let rendered = text(&render(&config(), &grants(), &[private], &[]));
 		assert!(rendered.contains(r#""host":["api.inside.test"]"#));
 		assert!(rendered.contains(r#""host":["api.outside.test"]"#));
 		assert!(rendered.contains(r#""path":["/geo","/geo/*"]"#));
@@ -504,7 +522,7 @@ mod tests {
 
 	#[test]
 	fn a_public_scope_is_on_the_tunnels_api_host_too() {
-		let rendered = render(&config(), &[geo()], &[]);
+		let rendered = render(&config(), &grants(), &[geo()], &[]);
 		let tunnel = &rendered["apps"]["http"]["servers"]["tunnel"]["routes"][0]["handle"][0]["routes"];
 		assert_eq!(tunnel[1]["match"][0]["host"][0], "api.outside.test");
 		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 3);
@@ -512,7 +530,7 @@ mod tests {
 
 	#[test]
 	fn a_limit_counts_what_the_gateway_forwards_on_the_tunnels_side_alone() {
-		let rendered = render(&config(), &[geo()], &[]);
+		let rendered = render(&config(), &grants(), &[geo()], &[]);
 		let servers = &rendered["apps"]["http"]["servers"];
 		let tunnel = &servers["tunnel"]["routes"][0]["handle"][0]["routes"][1]["handle"][0]["routes"];
 		let handle = &tunnel[1]["handle"];
@@ -541,7 +559,9 @@ mod tests {
 	fn a_scope_with_no_limits_has_no_limiter() {
 		let mut free = geo();
 		free.manifest.api.as_mut().unwrap().limits.clear();
-		assert!(!text(&render(&config(), &[free], &[])).contains(r#""handler":"rate_limit""#));
+		assert!(
+			!text(&render(&config(), &grants(), &[free], &[])).contains(r#""handler":"rate_limit""#)
+		);
 	}
 
 	#[test]
@@ -577,13 +597,13 @@ mod tests {
 			}
 		}
 		let mut proxies = 0;
-		check(&render(&config(), &[geo()], &[nas]), &mut proxies);
+		check(&render(&config(), &grants(), &[geo()], &[nas]), &mut proxies);
 		assert!(proxies >= 3);
 	}
 
 	#[test]
 	fn the_source_guard_comes_first_on_both_sides() {
-		let rendered = render(&config(), &[], &[]);
+		let rendered = render(&config(), &grants(), &[], &[]);
 		let servers = &rendered["apps"]["http"]["servers"];
 		for (server, source) in [("private", "10.0.0.0/24"), ("tunnel", "172.30.0.20")] {
 			let first = &servers[server]["routes"][0]["handle"][0]["routes"][0];
@@ -600,7 +620,7 @@ mod tests {
 			public: true,
 			home: None,
 		};
-		let rendered = text(&render(&config(), &[], &[nas]));
+		let rendered = text(&render(&config(), &grants(), &[], &[nas]));
 		assert!(rendered.contains("nas.outside.test"));
 		assert!(!rendered.contains("nas.inside.test"));
 		// host is on neither: the panel is its only way in.
@@ -617,7 +637,7 @@ mod tests {
 			deployed_at: String::new(),
 			held: false,
 		};
-		let rendered = super::tests::text(&render(&config(), &[gemini], &[]));
+		let rendered = super::tests::text(&render(&config(), &grants(), &[gemini], &[]));
 		assert!(rendered.contains(r#""Location":["/admin"]"#));
 		assert_eq!(rendered.matches(r#""dial":"gemini:20830""#).count(), 2);
 	}
@@ -631,7 +651,7 @@ mod tests {
 			public: true,
 			home: Some("/admin".into()),
 		};
-		let rendered = text(&render(&config(), &[], &[gemini]));
+		let rendered = text(&render(&config(), &grants(), &[], &[gemini]));
 		assert!(rendered.contains(r#""match":[{"path":["/"]}]"#));
 		assert!(rendered.contains(r#""Location":["/admin"]"#));
 		assert!(rendered.contains(r#""status_code":307"#));
@@ -648,7 +668,7 @@ mod tests {
 			public: true,
 			home: None,
 		};
-		let rendered = text(&render(&config(), &[], &[unifi]));
+		let rendered = text(&render(&config(), &grants(), &[], &[unifi]));
 		assert!(rendered.contains(r#""dial":"device.test:443""#));
 		assert!(rendered.contains(r#""tls":{"insecure_skip_verify":true}"#));
 		assert_eq!(
@@ -686,7 +706,7 @@ mod tests {
 		// keeper's whole interface is on `.app` now, behind Access like any other -- not the one
 		// `/notice` path the Worker used to reach it by. See spec/architecture/host.md, "The private
 		// suffix is a mirror of part of `.app`, and nothing else".
-		let rendered = text(&render(&config(), &[keeper], &[]));
+		let rendered = text(&render(&config(), &grants(), &[keeper], &[]));
 		assert!(rendered.contains(r#"{"host":["keeper.outside.test"]}"#));
 		assert!(rendered.contains(r#"{"host":["keeper.inside.test"]}"#));
 		assert_eq!(rendered.matches(r#""dial":"keeper:11010""#).count(), 2);
@@ -695,6 +715,9 @@ mod tests {
 	#[test]
 	fn the_render_is_the_same_for_the_same_state() {
 		// Stable output is what makes a diff of two renders mean something changed.
-		assert_eq!(text(&render(&config(), &[geo()], &[])), text(&render(&config(), &[geo()], &[])));
+		assert_eq!(
+			text(&render(&config(), &grants(), &[geo()], &[])),
+			text(&render(&config(), &grants(), &[geo()], &[]))
+		);
 	}
 }

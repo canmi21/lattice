@@ -130,14 +130,17 @@ split**; each is fixed by the declaration pattern
 1. ~~host knows the platform's apps by name.~~ It knows roles: an app asks for one in its
    declaration and the node grants it in `GRANTS`. See [host.md](host.md), "A role is asked for by
    the app and granted by the node".
-2. host renders Caddy's routes and the resolver from the platform's `GATEWAY_*`.
+2. ~~host renders Caddy's routes and the resolver from the platform's `GATEWAY_*`.~~ The gateway
+   claims its names in its declaration's `[edge]`, written there from the sdk by `mise run scopes`,
+   and host renders the names of whichever app the node grants `hosts`.
 3. ~~The panel reads `cron`'s and the ledger's addresses to show them.~~ It reads them from its
    environment now, `CRON_API` and `LEDGER_API`, which the node sets in the panel's `config.env`;
    unset, their pages are not offered. A stopgap: infra and the platform each get a dashboard of
    their own, the platform's showing its own services, since a layer above may read the one below
    and the reverse is what this list exists to end.
-4. The deploy crate reads `URLS.source`, which is this repository's address and will be each
-   repository's own.
+4. ~~The deploy crate reads `URLS.source`.~~ A node deploys from the repositories its
+   `DEPLOY_SOURCES` lists, and each notice names its own. See [host.md](host.md), "The machine
+   pulls; nothing pushes into it".
 
 ## The repositories it becomes
 

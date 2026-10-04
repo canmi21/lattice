@@ -330,9 +330,9 @@ all three when left out. `quota` names `inside` alone, so its door, which takes 
 neither the LAN's API host nor the tunnel's. `inside` is never left out, since it is how the
 internal gateway reaches every service at home.
 
-**The LAN's side carries the gateway's hostnames too**, every one the profiles read from
-`monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li` and `symlink.si`, with certificates by DNS
-challenge as the private suffix has, and hands them to the internal gateway. It sets `Cf-Connecting-Ip` to
+**The LAN's side carries the gateway's hostnames too** -- the `[edge]` its declaration claims, which
+host renders because the node grants the gateway `hosts` -- with certificates by DNS challenge as
+the private suffix has, and hands them to the internal gateway. It sets `Cf-Connecting-Ip` to
 the address it was asked from, over whatever the caller sent, which is the one place the internal
 gateway takes a caller's address from.
 
@@ -346,8 +346,9 @@ nothing about it is written by hand.
 **A query passes down one chain, and a step that fails is skipped, never waited on:**
 
 1. **The gateway's names**, answered in the resolver's own process with the node's address, so the
-   LAN and the tailnet reach the internal gateway: `GATEWAY_NAMES`, the API and CDN hosts, the two
-   apexes, and a deployment's name read from the registered regions and providers. Every other name
+   LAN and the tailnet reach the internal gateway: the names its `[edge]` claims -- the API and CDN
+   hosts, the two apexes -- and a deployment's name read from its regions and providers, all
+   written there from the sdk's `GATEWAY_NAMES`. Every other name
    in those zones -- `www.`, a record of the author's own -- goes on down the chain and answers as it
    does in public. Nothing outside the process is asked, so this step has nothing to fail on.
 2. **A filter**, when one is deployed -- an ad blocker, say -- asked first for every other name. It

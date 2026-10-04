@@ -5,6 +5,7 @@
 
 use crate::caddy;
 use crate::config::ResolverConfig;
+use deploy::manifest::Edge;
 
 /// Where CoreDNS answers inside its container; the node publishes it as 53.
 const LISTEN: u16 = 1053;
@@ -24,19 +25,19 @@ fn literal(text: &str) -> String {
 /// under, and what in that zone it matches -- one exact name, or a deployment's, read from the
 /// right as the profiles read it. Nothing else in those zones is matched, so a record of another
 /// name there answers as it does in public.
-fn names() -> Vec<(String, String)> {
-	let mut names: Vec<(String, String)> = monoflake::GATEWAY_EXACT
-		.iter()
-		.map(|name| ((*name).to_owned(), format!("^{}[.]$", literal(name))))
-		.collect();
-	let zone = monoflake::GATEWAY_DEPLOYMENTS;
-	let deployment = format!(
-		"^[a-z][a-z0-9-]*-({})-({})[.]{}[.]$",
-		monoflake::GATEWAY_REGIONS.join("|"),
-		monoflake::GATEWAY_PROVIDERS.join("|"),
-		literal(zone)
-	);
-	names.push((zone.to_owned(), deployment));
+fn names(edge: &Edge) -> Vec<(String, String)> {
+	let mut names: Vec<(String, String)> =
+		edge.names.iter().map(|name| (name.clone(), format!("^{}[.]$", literal(name)))).collect();
+	if let Some(deployments) = &edge.deployments {
+		let zone = &deployments.zone;
+		let deployment = format!(
+			"^[a-z][a-z0-9-]*-({})-({})[.]{}[.]$",
+			deployments.regions.join("|"),
+			deployments.providers.join("|"),
+			literal(zone)
+		);
+		names.push((zone.clone(), deployment));
+	}
 	names
 }
 
@@ -44,13 +45,13 @@ fn names() -> Vec<(String, String)> {
 /// the node's address over IPv4 and nothing else, so no device is handed Cloudflare's address for
 /// it by a record of another type; every other name goes to `filters` and then the configured
 /// upstreams, in order, one that fails passed over.
-pub fn render(config: &ResolverConfig, filters: &[String]) -> Option<String> {
+pub fn render(config: &ResolverConfig, filters: &[String], edge: Option<&Edge>) -> Option<String> {
 	let address = config.address.as_deref()?;
 	let mut out =
 		String::from("# Rendered by host, never edited by hand; see spec/architecture/host.md.\n");
 	out
 		.push_str(&format!(".:{LISTEN} {{\n\terrors\n\thealth :{HEALTH}\n\treload 10s\n\tcache 300\n"));
-	for (zone, pattern) in names() {
+	for (zone, pattern) in edge.map(names).unwrap_or_default() {
 		out.push_str(&format!(
 			"\ttemplate IN A {zone} {{\n\t\tmatch {pattern}\n\t\tanswer \"{{{{ .Name }}}} {OWN_TTL} IN A {address}\"\n\t\tfallthrough\n\t}}\n"
 		));
@@ -68,8 +69,12 @@ pub fn render(config: &ResolverConfig, filters: &[String]) -> Option<String> {
 }
 
 /// Render and write it, when the node runs a resolver; CoreDNS notices the file change itself.
-pub async fn apply(config: &ResolverConfig, filters: &[String]) -> Result<(), caddy::Error> {
-	match render(config, filters) {
+pub async fn apply(
+	config: &ResolverConfig,
+	filters: &[String],
+	edge: Option<&Edge>,
+) -> Result<(), caddy::Error> {
+	match render(config, filters, edge) {
 		Some(text) => caddy::write(&config.file, text.as_bytes()).await,
 		None => Ok(()),
 	}
@@ -78,6 +83,12 @@ pub async fn apply(config: &ResolverConfig, filters: &[String]) -> Result<(), ca
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	/// What the gateway's own declaration claims, as a node granting it `hosts` reads it.
+	fn edge() -> Edge {
+		let text = include_str!("../../../../apps/gateway/service.toml");
+		deploy::Manifest::parse(text).unwrap().edge.unwrap()
+	}
 
 	fn config() -> ResolverConfig {
 		ResolverConfig {
@@ -89,7 +100,7 @@ mod tests {
 
 	#[test]
 	fn answers_every_gateway_name_with_the_node_and_nothing_else_for_it() {
-		let text = render(&config(), &[]).unwrap();
+		let text = render(&config(), &[], Some(&edge())).unwrap();
 		assert!(text.contains(".:1053 {"));
 		assert!(
 			text.contains("template IN A api.monoflake.com {\n\t\tmatch ^api[.]monoflake[.]com[.]$")
@@ -100,32 +111,32 @@ mod tests {
 		assert!(
 			text.contains(&format!("template ANY ANY ixc.one {{\n\t\t{deployment}\n\t\trcode NOERROR"))
 		);
-		assert_eq!(text.matches("template IN A ").count(), monoflake::GATEWAY_EXACT.len() + 1);
+		assert_eq!(text.matches("template IN A ").count(), edge().names.len() + 1);
 	}
 
 	#[test]
 	fn leaves_every_other_name_in_the_gateways_zones_to_the_upstreams() {
-		let deployment = regex::Regex::new(&names().last().unwrap().1).unwrap();
+		let deployment = regex::Regex::new(&names(&edge()).last().unwrap().1).unwrap();
 		for own in ["geo-rdu-int.ixc.one.", "api-glo-cf.ixc.one.", "two-words-rdu-int.ixc.one."] {
 			assert!(deployment.is_match(own), "{own}");
 		}
 		for other in ["lo.ixc.one.", "api.internal.ixc.one.", "geo-xyz-int.ixc.one.", "www.ixc.one."] {
 			assert!(!deployment.is_match(other), "{other}");
 		}
-		let text = render(&config(), &[]).unwrap();
+		let text = render(&config(), &[], Some(&edge())).unwrap();
 		// No zone is taken whole: every pattern names an exact host or a deployment's shape.
 		assert!(!text.contains("www") && !text.contains("^.+"));
 	}
 
 	#[test]
 	fn passes_the_rest_down_the_chain_a_filter_first() {
-		let text = render(&config(), &["10.0.0.53".into()]).unwrap();
+		let text = render(&config(), &["10.0.0.53".into()], Some(&edge())).unwrap();
 		assert!(text.contains("forward . 10.0.0.53 10.0.0.1 1.1.1.1 {\n\t\tpolicy sequential"));
 	}
 
 	#[test]
 	fn renders_nothing_on_a_node_with_no_address_for_it() {
 		let none = ResolverConfig { address: None, ..config() };
-		assert_eq!(render(&none, &[]), None);
+		assert_eq!(render(&none, &[], Some(&edge())), None);
 	}
 }
