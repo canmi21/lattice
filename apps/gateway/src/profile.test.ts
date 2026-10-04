@@ -22,9 +22,11 @@ describe('a hostname read as a profile', () => {
 		});
 	});
 
-	it('admits crawlers on the CDN host alone', () => {
-		expect(profileOf(GATEWAY.cdn)?.crawled).toBe(true);
-		for (const host of [GATEWAY.api, GATEWAY.alias, GATEWAY.symlink, deployed('cdn-glo-cf')]) {
+	it('admits crawlers everywhere but an API host and a deployment of its own', () => {
+		for (const host of [GATEWAY.cdn, GATEWAY.alias, GATEWAY.symlink, GATEWAY.retired.cdn]) {
+			expect(profileOf(host)?.crawled, host).toBe(true);
+		}
+		for (const host of [GATEWAY.api, GATEWAY.retired.api, deployed('cdn-glo-cf')]) {
 			expect(profileOf(host)?.crawled, host).toBe(false);
 		}
 	});

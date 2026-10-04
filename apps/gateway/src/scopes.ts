@@ -21,7 +21,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 					rejected: 300,
 					faulted: 0,
 				},
-				crawlable: false,
+				crawlable: true,
 				exposed: true,
 				forbidden: [],
 				auth: 'none',

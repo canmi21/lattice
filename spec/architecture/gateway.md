@@ -267,10 +267,11 @@ the same paths.
 ### A host admits crawlers or does not
 
 **The service layer says whether a crawler may fetch, never whether something is indexed twice.**
-Each profile says whether its host admits crawlers at all: an API host -- `api.monoflake.com`, a
-deployment's own under `ixc.one`, `ill.li`, `symlink.si` -- refuses every one, whatever its routes
-say; `cdn.monoflake.com` admits them as far as its routes are `crawlable`, since what the CDN
-serves is public and a crawler reading a page is better for reaching what the page shows. A
+Each profile says whether its host admits crawlers at all: an API host -- `api.monoflake.com` and a
+deployment's own under `ixc.one` -- refuses every one, whatever its routes say; the CDN, the short
+links and the symlinks -- `cdn.monoflake.com`, `ill.li`, `symlink.si` -- admit them as far as
+their routes are `crawlable`, since what they lead to is public and a crawler reading a page is
+better for reaching what the page shows. A
 retired host answers as the host it was replaced by. That two hosts serve the same bytes is the
 application layer's concern, where pages are; here there are none.
 

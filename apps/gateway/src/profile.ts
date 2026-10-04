@@ -60,13 +60,13 @@ const NAMED: Readonly<Record<string, Profile>> = {
 	),
 	// Every old path as it was, until the pages ask `symlink.si` for their marks; then the short
 	// links alone, at `v1`. See spec/architecture/gateway.md, "A domain leaves without a redirect".
-	[GATEWAY.alias]: { name: 'alias', service: 'aka', version: null, crawled: false },
+	[GATEWAY.alias]: { name: 'alias', service: 'aka', version: null, crawled: true },
 	[GATEWAY.symlink]: {
 		name: 'symlink',
 		service: 'aka',
 		version: 'v1',
 		prefix: '/symlink',
-		crawled: false,
+		crawled: true,
 	},
 	[GATEWAY.retired.api]: { name: 'retired-api', version: null, crawled: false },
 	[GATEWAY.retired.cdn]: { name: 'retired-cdn', service: 'cdn', version: null, crawled: true },

@@ -10,6 +10,10 @@ placements = ["workers"]
 [api]
 public = true
 
+# Every answer is a redirect to a public object, so a crawler may follow any of them.
+[api.defaults]
+crawlable = true
+
 [api.defaults.cors]
 origins = "public"
 
