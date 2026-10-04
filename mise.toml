@@ -190,6 +190,11 @@ description = "Run the CDN worker against the local objects tree"
 dir = "apps/cdn"
 run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts cdn)"
 
+[tasks.dev-quota]
+description = "Run the buckets every limit is counted in, for a gateway or the site beside it"
+dir = "apps/quota"
+run = "pnpm run dev $(node ../../libs/urls/scripts/wrangler-dev.ts quota)"
+
 [tasks.dev-aka]
 description = "Run the alias layer's worker, which resolves names and stores nothing"
 dir = "apps/aka"

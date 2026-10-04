@@ -106,6 +106,7 @@ describe('development ports', () => {
 			DEVELOPMENT_PORTS.api + 1,
 			DEVELOPMENT_PORTS.alias + 1,
 			DEVELOPMENT_PORTS.cdn + 1,
+			DEVELOPMENT_PORTS.quota + 1,
 		];
 		expect(new Set(taken).size).toBe(taken.length);
 		expect(taken).not.toContain(cms);

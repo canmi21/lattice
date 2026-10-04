@@ -66,10 +66,11 @@ export async function counted(
 	const subjects = address === undefined ? {} : { address };
 	const checks = checksOf(service, rows, { method: call.method, path: call.path, subjects });
 	if (checks.length === 0) return ALLOWED;
-	if (!isQuota(quota)) {
-		return { allowed: false, retryAfter: Math.max(...checks.map((check) => check.rate.seconds)) };
-	}
 	try {
+		// Inside the `try`: a binding to a Worker that is not running throws on being looked at.
+		if (!isQuota(quota)) {
+			return { allowed: false, retryAfter: Math.max(...checks.map((check) => check.rate.seconds)) };
+		}
 		return await quota.take(checks);
 	} catch (error) {
 		console.error(`${service}: quota failed, and the call was let through`, error);

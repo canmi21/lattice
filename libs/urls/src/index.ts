@@ -14,6 +14,11 @@ export const PINNED_PORTS = {
 	panel: 26519,
 } as const;
 
+/** Workers reached by binding alone: a port that is the mutex, and no address. */
+export const BOUND_PORTS = {
+	quota: 26523,
+} as const;
+
 /** Stated by a build for a runtime with no environment to read: a worker, a page. */
 declare const STATED_PORT_OFFSET: number | undefined;
 
@@ -32,8 +37,8 @@ export const PORT_OFFSET: number =
 
 /** The ports this checkout's servers bind: the pinned ones, shifted in the sandbox. */
 export const DEVELOPMENT_PORTS = Object.fromEntries(
-	Object.entries(PINNED_PORTS).map(([app, port]) => [app, port + PORT_OFFSET]),
-) as { readonly [App in keyof typeof PINNED_PORTS]: number };
+	Object.entries({ ...PINNED_PORTS, ...BOUND_PORTS }).map(([app, port]) => [app, port + PORT_OFFSET]),
+) as { readonly [App in keyof typeof PINNED_PORTS | keyof typeof BOUND_PORTS]: number };
 
 /**
  * Where `mise run reach` answers: a plain-HTTP door on this machine to an interface that only the

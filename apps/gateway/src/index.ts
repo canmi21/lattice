@@ -10,13 +10,14 @@ import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
 import type { Service } from '@canmi/security/agents';
 import { followSymlink, symlinkOf } from '@canmi/symlink';
 import {
-	DEVELOPMENT_PORTS,
+	type AppName,
 	developmentUrl,
 	GATEWAY,
 	isDevHost,
 	normalizedLocation,
 	PAGE_ORIGINS,
 	pickUrls,
+	PINNED_PORTS,
 	URLS,
 } from '@canmi/urls';
 import { type Context, Hono } from 'hono';
@@ -219,9 +220,8 @@ function robotsOf(profile: Profile, scopes: Readonly<Record<string, Scope>>): st
 function destination(value: unknown, target: Scope): Fetcher | string | undefined {
 	if (isFetcher(value)) return value;
 	const worker = target.worker && (PORTED[target.worker] ?? target.worker);
-	if (value !== DEVELOPMENT || !worker || !Object.hasOwn(DEVELOPMENT_PORTS, worker))
-		return undefined;
-	return developmentUrl(worker as keyof typeof DEVELOPMENT_PORTS);
+	if (value !== DEVELOPMENT || !worker || !Object.hasOwn(PINNED_PORTS, worker)) return undefined;
+	return developmentUrl(worker as AppName);
 }
 
 /** A Worker whose development port is pinned under another name: the alias layer's is `alias`. */
