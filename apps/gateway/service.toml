@@ -10,3 +10,10 @@ placements = ["workers", "home"]
 port = 26512
 health = "/health"
 memory_mb = 128
+
+# Written by `mise run scopes` from @monoflake/sdk's gateway names; do not edit.
+# Claimed only where the node grants the gateway `hosts`.
+[edge]
+hosts = ["*.monoflake.com", "*.monoflake.net", "*.ixc.one", "ill.li", "symlink.si"]
+names = ["api.monoflake.com", "cdn.monoflake.com", "api.monoflake.net", "cdn.monoflake.net", "ill.li", "symlink.si"]
+deployments = { zone = "ixc.one", regions = ["rdu", "glo"], providers = ["int", "cf", "vcl"] }

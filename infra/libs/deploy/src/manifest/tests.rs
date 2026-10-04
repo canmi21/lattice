@@ -404,3 +404,17 @@ fn a_scheduled_service_answers_through_its_scope_or_its_socket() {
 	.unwrap();
 	assert_eq!(unreachable.check("probe", "home"), Err(Invalid::Unscheduled("probe".into())));
 }
+
+#[test]
+fn an_edge_claims_hostnames_and_nothing_else() {
+	let gateway = Manifest::parse(include_str!("../../../../../apps/gateway/service.toml")).unwrap();
+	let edge = gateway.edge.as_ref().expect("the gateway claims its names");
+	assert!(edge.hosts.iter().any(|host| host.starts_with("*.")));
+	assert!(edge.deployments.is_some());
+	assert_eq!(gateway.check("gateway", "home"), Ok(()));
+	for bad in ["*", "*.*.com", "localhost", "Api.example.com", "a..b"] {
+		let text = format!("{GEO}\n[edge]\nhosts = [\"{bad}\"]\n");
+		let manifest = Manifest::parse(&text).unwrap();
+		assert_eq!(manifest.check("geo", "home"), Err(Invalid::Edge(bad.into())), "{bad}");
+	}
+}

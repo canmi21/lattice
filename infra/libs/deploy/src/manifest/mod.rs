@@ -80,6 +80,34 @@ pub struct Manifest {
 	/// The driver it is, run by host beside every app declaring one, when the node grants it.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub driver: Option<DriverRequest>,
+	/// The hostnames it claims at home, which Caddy routes to it and the resolver answers with the
+	/// node, where the node grants it `hosts`.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub edge: Option<Edge>,
+}
+
+/// Hostnames claimed: what Caddy matches and certifies, a name or a wildcard over one zone; the
+/// names the resolver answers exactly; and a zone whose names are spelled from regions and
+/// providers, as a deployment's are.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Edge {
+	pub hosts: Vec<String>,
+	#[serde(default)]
+	pub names: Vec<String>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub deployments: Option<Deployments>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Deployments {
+	pub zone: String,
+	pub regions: Vec<String>,
+	pub providers: Vec<String>,
+}
+
+/// Whether `name` is a hostname of at least two labels, each one a label this format takes.
+pub fn is_hostname(name: &str) -> bool {
+	name.split('.').count() >= 2 && name.split('.').all(check::is_label)
 }
 
 /// A role asked for, one of [`SHAPES`].
