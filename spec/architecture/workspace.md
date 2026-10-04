@@ -253,7 +253,8 @@ the implementation are one claim instead of two that happened to agree.
 `apps/` is flat. Introduce a grouping directory only once one category exceeds four members,
 and let the growth force it rather than predicting it. Four apps, as here, do not need a taxonomy.
 The platform's `apps/` passed it at fifteen and is grouped by what each app does -- see platform's
-`spec/repository.md`.
+`spec/repository.md` -- and infra's seven are grouped the same way, so the two read alike; see
+infra's `spec/repository.md`.
 
 ## Extraction threshold
 
