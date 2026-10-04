@@ -294,7 +294,7 @@ client query cache's staleness, and the `max-age` a worker stamps.
 
 **The condition is in `libs/cache` and nowhere else.** Consumers read a number, never a condition,
 which is the same reason the number itself is shared: eleven stamping sites each asking whether
-they are in development is eleven chances for two of them to answer differently. `libs/urls` takes
+they are in development is eleven chances for two of them to answer differently. `libs/sdk` takes
 `isDev` as an argument instead, and that is right for it -- a worker reads its environment from the
 request it is answering, and an address is a per-request question. A lifetime is not.
 
@@ -573,7 +573,7 @@ as the tag takes GitHub's own alias for the newest non-prerelease. jsDelivr alre
 repository's files at a tag, a branch or a commit, so those are not proxied here; a release
 asset is the one thing it does not carry.
 
-**The account is not in the URL.** It is `GITHUB_OWNER` in `libs/urls`, and there is no segment
+**The account is not in the URL.** It is `GITHUB_OWNER` in `libs/sdk`, and there is no segment
 in the CDN's path to name another, which is how "only my repositories" is enforced rather than
 checked. A repository the account does not have, a tag that was never cut and an asset that was
 never attached are all one answer from GitHub, 404, and the proxy says the same.

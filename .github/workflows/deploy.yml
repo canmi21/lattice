@@ -74,7 +74,10 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/deploy"
           repos/lattice/.mise/tasks/image "$APP" "$RUNNER_TEMP/deploy/image.tar"
-          cp "repos/lattice/apps/$APP/service.toml" "$RUNNER_TEMP/deploy/"
+          for root in apps infra/apps platform/apps services/apps; do
+            [ -d "repos/lattice/$root/$APP" ] && cp "repos/lattice/$root/$APP/service.toml" "$RUNNER_TEMP/deploy/"
+          done
+          [ -f "$RUNNER_TEMP/deploy/service.toml" ]
       # The image layers are compressed already; the node needs it for as long as a deploy takes.
       - uses: actions/upload-artifact@v7
         with:

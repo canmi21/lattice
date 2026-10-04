@@ -24,7 +24,7 @@
 	// production differ in no way worth naming and `wrangler dev` reads the top level. Declaring
 	// an empty environment would only make wrangler refuse to guess between two identical ones.
 	//
-	// The port also appears in libs/urls as the development alias URL. wrangler cannot read a
+	// The port also appears in libs/sdk as the development alias URL. wrangler cannot read a
 	// TypeScript library, so the number is written twice on purpose.
 	"dev": {
 		// Every interface, so a phone on the same network can reach this worker. The port is

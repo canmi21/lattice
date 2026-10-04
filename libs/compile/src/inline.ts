@@ -32,7 +32,7 @@ declare module 'mdast-util-directive' {
 }
 
 // Feed and markdown targets need absolute image URLs, and they must resolve the same way the
-// rendered page does. Both now read the host from libs/urls rather than each spelling it out.
+// rendered page does. Both now read the host from libs/sdk rather than each spelling it out.
 
 export const stringifier = unified()
 	.use(remarkStringify, { bullet: '-', fences: true })

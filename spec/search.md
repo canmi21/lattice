@@ -209,7 +209,7 @@ the same edge, named the same way -- beside the IndexNow key and for the same re
 ([analytics.md](analytics.md)). What restricts them is Algolia's own key scoping and rate
 limiting, not obscurity. They are identities, not addresses; the host they
 resolve to is assembled from the application id at the point of use, against a base in
-`libs/urls`.
+`libs/sdk`.
 
 The cost of keeping the push local is that a deploy does not update the index -- someone has to
 run the command. `indexnow` already behaves this way, so it is consistent rather than a new

@@ -26,7 +26,7 @@ beat for everything. They fall into two kinds, and it is the first that finds a 
 beside its id, which stays the probe's and the ledger's. The probe writes it with the rest of the
 check, and the page shows it and never the id or the target.
 
-**A check's target names an address rather than spelling it**: a `libs/urls` constant's name,
+**A check's target names an address rather than spelling it**: a `libs/sdk` constant's name,
 `API_PRIVATE` or `API_PUBLIC` for the API host's two sides, followed by a path or a query as it
 needs -- `API_PRIVATE/geo/health` -- so `checks.toml` holds no address that could drift from the
 one the rest of the platform uses. The target is kept and shown as written, never resolved.
@@ -183,7 +183,7 @@ footer so it is known before it is needed.
 ## Errors go to Sentry
 
 **Each app that reports errors has its own Sentry project and its own DSN, declared in
-`libs/urls` as `URLS.external.sentry.<app>`** -- `site`, and `status` for this page. A DSN only
+`libs/sdk` as `URLS.external.sentry.<app>`** -- `site`, and `status` for this page. A DSN only
 sends, and a browser bundle carries it, so it is public and sits beside the other URLs. An app
 whose DSN is absent initializes nothing and registers no Sentry request handle; the status page
 then drops the build plugin as well.

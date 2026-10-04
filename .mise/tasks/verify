@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from graph import ROOT, build_inputs, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
+from graph import ROOT, app_of, build_inputs, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
 
 # Whole-tree and cheap, so they run whatever changed.
 ALWAYS = ["secrets", "refs", "comments", "shape", "rules", "check-scopes", "layers"]
@@ -26,7 +26,7 @@ PACKAGE_GATES = {
 		"check-css-ramp",
 	],
 	"@canmi/cms": ["check-cms"],
-	"@canmi/panel": ["check-panel"],
+	"@monoflake/panel": ["check-panel"],
 	"@canmi/prose": ["check-prose"],
 	"@canmi/social": ["check-social"],
 	"@canmi/fonts": ["check-fonts"],
@@ -69,7 +69,7 @@ def plan(files):
 			all_crates = True
 		crates |= included.get(f, set())
 		crates |= built.get(owner(f, built) or f, set())
-		if f.startswith("apps/") and Path(f).name == DECLARATION:
+		if app_of(f) and Path(f).name == DECLARATION:
 			crates |= DECLARATION_READERS
 			packages |= DECLARATION_PACKAGES
 		crate = crate_dirs.get(owner(f, crate_dirs) or "")

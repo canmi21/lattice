@@ -95,7 +95,7 @@ protected still holds, and more simply: `local` is the one process that writes `
 second copy of it collides on `LOCAL_PORT`, which is the mutex doing its job.
 
 A port both a TypeScript tool and a Rust binary need is declared in `mise.toml` under `[env]`,
-not in `libs/urls`. The single-source rule asks for one place to edit, not one particular
+not in `libs/sdk`. The single-source rule asks for one place to edit, not one particular
 file, and a TypeScript library cannot be read by a Rust process -- putting a cross-language
 fact there would force the duplication the rule exists to prevent. URLs only the TypeScript
 side resolves still belong in [workspace.md](architecture/workspace.md)'s URL map.
@@ -124,7 +124,7 @@ OpenGraph card are rendered into the HTML by the worker before any script runs, 
 at the phone itself. A page served from this machine's address now asks that same address for
 everything.
 
-Two consequences worth stating. `libs/urls` returns paths rather than origins for those two in
+Two consequences worth stating. `libs/sdk` returns paths rather than origins for those two in
 development, so the Rust mirror does too -- the two languages still give one answer, which is what
 that mirror is for. And `og:image` is a relative URL in development, which is invalid to a crawler
 and reaches none; production is unaffected.
@@ -153,14 +153,14 @@ may still be reading, and closing it is not a build's business.
 **`mise run reach [name]` answers on `http://localhost:26520` for `<name>.internal.ixc.one`**, host's
 panel when no name is given. macOS asks before a program reaches the local network, and a browser
 an agent drives, like node from mise, is refused; the system's own `ssh` and `curl` never are.
-So [`reach.ts`](../apps/host/scripts/reach.ts) has ssh carry the node's port 443 to a loopback
+So [`reach.ts`](../infra/apps/host/scripts/reach.ts) has ssh carry the node's port 443 to a loopback
 port and speaks to that alone, sending every request as the name would arrive: TLS with the name
 as SNI and as `Host`, so Caddy routes it. Caddy's guard sees the node's own address, which is a
 LAN one; a tunnel to the node's loopback is refused by the same guard, which is why the far end
 is the LAN address.
 
 Plain HTTP on this side, because localhost is a secure context: the session cookie's `Secure` is
-kept and still sent. The port is `REACH_PORT` in `libs/urls`, beside the pinned ones and outside
+kept and still sent. The port is `REACH_PORT` in `infra/libs/urls`, beside the pinned ones and outside
 their map, since what answers there is not an app.
 
 ## The base session
@@ -225,7 +225,7 @@ anything about the code. A dependency update crossing that major has broken the 
 pin, and the repair is to put the 6 back rather than to chase the error into `svelte-check`.
 
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
-Every other package that does -- `apps/cms`, `apps/panel`, `apps/status`, `libs/prose`,
+Every other package that does -- `apps/cms`, `infra/apps/panel`, `apps/status`, `libs/prose`,
 `libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
 `outdated` listing 7 for each of them is this floor and not an upgrade waiting. `versions.toml`
 allows the pair, so the report says so rather than warning.
@@ -250,7 +250,7 @@ mapping, and these are the rules it keeps:
   `cargo metadata` rather than listed, and clippy and the tests run over those alone. A test that
   reads another crate's file through `include_str!` depends on it without its manifest saying so;
   those paths are read out of the source, so changing geo's `service.toml` tests host and
-  `libs/deploy` too. `Cargo.lock`, the workspace manifest and the toolchain file reach every crate.
+  `infra/libs/deploy` too. `Cargo.lock`, the workspace manifest and the toolchain file reach every crate.
 - **A TypeScript, Svelte or style change reaches its package and every package that imports it**,
   read from the `workspace:` dependencies. Any of them runs the three whole-program gates -- the
   type check, the linter, the test suite -- and a package with gates of its own runs them only when

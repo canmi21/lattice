@@ -85,7 +85,7 @@ region, both short fixed codes; whatever is left is the service, hyphens and all
 
 A provider is two or three lowercase letters, chosen once when the provider is first used and never
 reused: `int` for our own machines, `cf` for Cloudflare, `vcl` for Vercel. A new provider is a row
-added to the registry before anything is placed on it. The registry is `GATEWAY` in `libs/urls`, beside
+added to the registry before anything is placed on it. The registry is `GATEWAY` in `libs/sdk`, beside
 the hostnames themselves, and the regions are kept in the same place; the gateway reads a
 deployment's hostname against it in `apps/gateway/src/profile.ts`.
 
@@ -130,8 +130,8 @@ version and the path, and writes none of it.
 
 **A route names who may call it by service code, never by origin.** `cors` is `public`, for any
 origin, or a list of the codes of the services whose pages may call it -- `["site", "status"]` --
-which the gateway reads against `libs/urls` for their origins. A page moving to another host is
-then one change in `libs/urls`, and no declaration names a URL.
+which the gateway reads against `libs/sdk` for their origins. A page moving to another host is
+then one change in `libs/sdk`, and no declaration names a URL.
 
 **Every field is declared for the service, and may be declared again for any one of its paths.**
 CORS, lifetimes, crawling and, later, credentials are all route-level: a service's defaults say

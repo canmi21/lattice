@@ -20,7 +20,7 @@ mimalloc = "0.1.52"
 arc-swap = "1.9.2"
 # Memory-mapped so the page cache holds what is asked and the heap nothing; see geo.md.
 maxminddb = { version = "0.32.0", features = ["mmap"] }
-# Fetching GeoLite2 from its mirror, the same way libs/deploy/src/github.rs reaches GitHub.
+# Fetching GeoLite2 from its mirror, the same way infra/libs/deploy/src/github.rs reaches GitHub.
 bytes = "1.12.1"
 http-body-util = "0.1.5"
 hyper = { version = "1.11.1", features = ["client", "http1"] }

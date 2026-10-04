@@ -1150,7 +1150,7 @@ questions. The destination half is an example that generalised.
 
 It holds for the rail block, on a reason the sentence does not give: `--rail-width` and
 `--rail-column` are a cross-language contract that `apps/local/src/i18n/width.rs` derives two
-constants from by hand, and `libs/urls` is this repository's established answer for a value two
+constants from by hand, and `libs/sdk` is this repository's established answer for a value two
 languages need. It is untested for a block that is genuinely one site's and crosses no boundary,
 where `apps/site/src/styles/` would be the better home.
 

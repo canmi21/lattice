@@ -1,6 +1,6 @@
 # `meter`: what the machine is doing
 
-`apps/meter` samples the machine at home every second -- processors, memory, temperatures, disks,
+`infra/apps/meter` samples the machine at home every second -- processors, memory, temperatures, disks,
 the network -- keeps what it sampled, and answers host, whose panel draws it. It reads and never acts:
 an instrument, as its name says. host itself stays out of this: it holds the Docker socket and the panel, and
 a sampler that stalled or leaked inside it would take both down with it.

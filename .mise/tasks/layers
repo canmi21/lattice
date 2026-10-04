@@ -12,7 +12,10 @@ from graph import LAYERS, layer_of, node_graph, rust_graph  # noqa: E402
 
 # Upward dependencies known and owed a fix, as (dependent, dependency) -> where it is written
 # down. Each is removed with its fix, and the list is empty before the repositories split.
-EXCEPTIONS = {}
+EXCEPTIONS = {
+	("host", "monoflake"): "layers.md, coupling 2: host renders the gateway's names",
+	("@monoflake/panel", "@monoflake/sdk"): "layers.md, coupling 3: the panel shows cron and the ledger",
+}
 
 
 def upward(directories, edges):

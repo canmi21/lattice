@@ -13,7 +13,7 @@ type Declared = { canonical?: unknown };
  * A bare resource id, answered with whatever that resource says it canonically is.
  *
  * The record is the authority and this layer keeps none of it: the API is asked, the `canonical`
- * field is expanded against `libs/urls`, and the caller is sent there. See
+ * field is expanded against `libs/sdk`, and the caller is sent there. See
  * spec/architecture/resource.md for the two ids, spec/architecture/delivery.md for the ladder.
  */
 export async function resource(c: Context, rid: string): Promise<Response> {

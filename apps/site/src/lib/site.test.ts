@@ -16,12 +16,12 @@ function scalar(key: string): string | undefined {
 describe('site config', () => {
 	/**
 	 * `domain` is a label drawn on the OpenGraph card, not an address anything resolves, which
-	 * is why it may sit outside libs/urls at all. That exemption only holds while the two agree
+	 * is why it may sit outside libs/sdk at all. That exemption only holds while the two agree
 	 * -- a card advertising a host the site no longer answers on is worse than no card -- and
 	 * nothing structural can enforce it, because one is read by Rust and the other by the
 	 * bundler. So it is enforced here.
 	 */
-	it('draws the same host on a card that libs/urls resolves', () => {
+	it('draws the same host on a card that libs/sdk resolves', () => {
 		const domain = scalar('domain');
 		expect(domain).toBeDefined();
 		expect(domain).toBe(new URL(URLS.apps.production.site).hostname);

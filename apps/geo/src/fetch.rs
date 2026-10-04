@@ -37,7 +37,7 @@ pub struct Client {
 
 impl Client {
 	/// Roots compiled in rather than read from the system: the image is built from scratch and
-	/// has none. See libs/deploy/src/github.rs, `GitHub::new`.
+	/// has none. See infra/libs/deploy/src/github.rs, `GitHub::new`.
 	pub fn new() -> Self {
 		let https = hyper_rustls::HttpsConnectorBuilder::new()
 			.with_webpki_roots()

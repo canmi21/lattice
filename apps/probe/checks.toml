@@ -1,6 +1,6 @@
 # What the probe checks, each a name a reader is shown, a kind, a target, what it expects and how
-# often. A target is a libs/urls name -- or API_PRIVATE / API_PUBLIC, derived from it -- then a
-# path or query; the names and the fields each kind reads are in src/checks.rs. See
+# often. A target is a libs/sdk name -- or API_PRIVATE / API_PUBLIC, derived from it -- then
+# a path or query; the names and the fields each kind reads are in src/checks.rs. See
 # spec/architecture/probe.md.
 
 # Inside: each service's own health, on the private side.

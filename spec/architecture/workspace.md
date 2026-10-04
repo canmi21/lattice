@@ -418,7 +418,7 @@ rejected on what it cannot reach: the feed and `/llms.txt` are strings baked at 
 a card there would have been a bare path where every other link is a name.
 
 `robots.txt` follows the same shared-base shape, and lives in `libs/robots` rather than in
-`libs/urls`. It exports the minimal common definition plus a helper that appends site-specific
+`libs/sdk`. It exports the minimal common definition plus a helper that appends site-specific
 rules -- disallowed paths, sitemap entries -- so each site owns its additions while a change to
 the shared policy reaches all of them at once. It sits in its own library because generating a
 file is not the same job as mapping URLs, even though it consumes them.

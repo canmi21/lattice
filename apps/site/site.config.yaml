@@ -1,7 +1,7 @@
 # Site identity, baked in at build via the `virtual:site` module (see
 # vite.config.ts). Hexo-style single config: change rarely, e.g. when standing
 # the site up somewhere new. Not environment variables — compiled to a plain
-# object, never shipped as env. URLs/ports live in libs/urls, not here.
+# object, never shipped as env. URLs/ports live in libs/sdk, not here.
 
 name: サボり記
 tagline: Notes on the software and hardware I build.

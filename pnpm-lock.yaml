@@ -438,16 +438,6 @@ importers:
         specifier: ^4.147.0
         version: 4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4)
 
-  apps/host:
-    dependencies:
-      '@monoflake/urls':
-        specifier: workspace:*
-        version: link:../../libs/urls
-    devDependencies:
-      '@types/node':
-        specifier: ^26.6.4
-        version: 26.6.4
-
   apps/local:
     dependencies:
       '@canmi/collection':
@@ -466,78 +456,6 @@ importers:
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
-
-  apps/panel:
-    devDependencies:
-      '@canmi/kit':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/kit
-      '@canmi/response':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/response
-      '@lucide/svelte':
-        specifier: ^1.51.0
-        version: 1.51.0(svelte@5.57.1)
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../libs/sdk
-      '@monoflake/urls':
-        specifier: workspace:*
-        version: link:../../libs/urls
-      '@stylexjs/stylex':
-        specifier: ^0.19.1
-        version: 0.19.1
-      '@stylexjs/unplugin':
-        specifier: ^0.19.1
-        version: 0.19.1(supports-color@10.2.2)(unplugin@2.3.11)
-      '@sveltejs/adapter-node':
-        specifier: ^6.0.0
-        version: 6.0.0(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
-      '@sveltejs/kit':
-        specifier: ^3.0.0
-        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^7.3.1
-        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@tailwindcss/vite':
-        specifier: ^4.3.3
-        version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@types/d3-array':
-        specifier: ^3.2.2
-        version: 3.2.2
-      '@types/d3-scale':
-        specifier: ^4.0.9
-        version: 4.0.9
-      '@types/d3-shape':
-        specifier: ^3.2.0
-        version: 3.2.0
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-      d3-array:
-        specifier: ^3.2.4
-        version: 3.2.4
-      d3-scale:
-        specifier: ^4.0.2
-        version: 4.0.2
-      d3-shape:
-        specifier: ^3.2.0
-        version: 3.2.0
-      svelte:
-        specifier: ^5.57.1
-        version: 5.57.1
-      svelte-check:
-        specifier: ^4.7.6
-        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
-      tailwindcss:
-        specifier: ^4.3.3
-        version: 4.3.3
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vite:
-        specifier: ^8.3.2
-        version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
   apps/quota:
     dependencies:
@@ -923,6 +841,94 @@ importers:
         specifier: ^8.3.2
         version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  infra/apps/host:
+    dependencies:
+      '@monoflake/urls':
+        specifier: workspace:*
+        version: link:../../libs/urls
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
+
+  infra/apps/panel:
+    devDependencies:
+      '@canmi/kit':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/kit
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/response
+      '@lucide/svelte':
+        specifier: ^1.51.0
+        version: 1.51.0(svelte@5.57.1)
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../libs/sdk
+      '@monoflake/urls':
+        specifier: workspace:*
+        version: link:../../libs/urls
+      '@stylexjs/stylex':
+        specifier: ^0.19.1
+        version: 0.19.1
+      '@stylexjs/unplugin':
+        specifier: ^0.19.1
+        version: 0.19.1(supports-color@10.2.2)(unplugin@2.3.11)
+      '@sveltejs/adapter-node':
+        specifier: ^6.0.0
+        version: 6.0.0(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
+      '@sveltejs/kit':
+        specifier: ^3.0.0
+        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/d3-array':
+        specifier: ^3.2.2
+        version: 3.2.2
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/d3-shape':
+        specifier: ^3.2.0
+        version: 3.2.0
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+      d3-array:
+        specifier: ^3.2.4
+        version: 3.2.4
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: ^3.2.0
+        version: 3.2.0
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.3.2
+        version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  infra/libs/urls:
+    dependencies:
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+
   lib/pkgs/canmi: {}
 
   lib/pkgs/kit:
@@ -1181,7 +1187,7 @@ importers:
     dependencies:
       '@monoflake/urls':
         specifier: workspace:*
-        version: link:../urls
+        version: link:../../infra/libs/urls
       canmi:
         specifier: workspace:*
         version: link:../../lib/pkgs/canmi
@@ -1241,12 +1247,6 @@ importers:
       '@canmi/cache':
         specifier: workspace:*
         version: link:../cache
-
-  libs/urls:
-    dependencies:
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
 
 packages:
 

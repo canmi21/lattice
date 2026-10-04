@@ -24,6 +24,28 @@ PACKAGE_DIRECTORIES = (
 )
 
 
+# Where a deployable app's directory sits: `apps/` until it moves under its layer.
+APP_ROOTS = ("apps", *(f"{layer}/apps" for layer in LAYERS[1:]))
+
+
+def app_directories():
+	"""Every app directory, by its name; a name is the app's wherever its layer puts it."""
+	found = {}
+	for root in APP_ROOTS:
+		for directory in sorted((ROOT / root).glob("*/")):
+			found[directory.name] = directory
+	return found
+
+
+def app_of(path):
+	"""The app `path` sits in, by name, or None for a path in no app."""
+	for root in APP_ROOTS:
+		if path.startswith(root + "/"):
+			rest = path[len(root) + 1 :].split("/")
+			return rest[0] if len(rest) > 1 else None
+	return None
+
+
 def layer_of(directory):
 	"""The layer `directory` sits in, by its first segment, or None for one not moved yet."""
 	first = directory.split("/", 1)[0]

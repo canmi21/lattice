@@ -10,7 +10,7 @@ at which level.**
 
 **Every host a page here reaches early is an entry in the catalog, and the entry carries its
 policy**: how early it is reached, whether it is asked anonymously, and, where the page loads a
-script from it, that script's priority. An address is from `libs/urls`; a policy is written once,
+script from it, that script's priority. An address is from `libs/sdk`; a policy is written once,
 on its entry, and never again where the entry is used. Entries sit in groups by the kind of request
 they serve:
 

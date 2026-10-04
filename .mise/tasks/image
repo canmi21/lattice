@@ -21,6 +21,13 @@ while [ "$dir" != / ] && ! grep -qs '^node = "' "$dir/mise.toml"; do dir="$(dirn
 node="$(sed -n 's/^node = "\(.*\)"/\1/p' "$dir/mise.toml" 2>/dev/null || true)"
 [ -n "$node" ] || { echo "image: no node in a mise.toml above $ROOT" >&2; exit 1; }
 
-docker buildx build --platform "${PLATFORM:-linux/arm64}" --file "$ROOT/apps/$name/Dockerfile" \
+# The app's directory, under whichever layer holds it; see spec/architecture/layers.md.
+app=""
+for root in apps infra/apps platform/apps services/apps; do
+	[ -d "$ROOT/$root/$name" ] && app="$ROOT/$root/$name"
+done
+[ -n "$app" ] || { echo "image: no app named $name" >&2; exit 1; }
+
+docker buildx build --platform "${PLATFORM:-linux/arm64}" --file "$app/Dockerfile" \
 	--build-arg "RUST_VERSION=$version" --build-arg "NODE_VERSION=$node" \
 	--tag "$name:local" --output "type=docker,dest=$archive" "$ROOT"

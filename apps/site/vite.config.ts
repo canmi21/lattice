@@ -240,7 +240,7 @@ export default defineConfig(({ mode }) => {
 			host: '::',
 			// The other two workers, reached through this one. The prefix is stripped on the way
 			// out, so each worker sees only the paths it actually serves. Both the prefix and the
-			// target come from libs/urls, the one place every address here is declared and where
+			// target come from libs/sdk, the one place every address here is declared and where
 			// the reasoning lives for why development collapses three origins into one. The target
 			// is the same map anything else uses to reach these workers, not a resolver of its own.
 			proxy: Object.fromEntries(

@@ -3,15 +3,26 @@ import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { renderScopes, scopeTable } from '../src/table.ts';
 
-const APPS = join(import.meta.dirname, '../..');
 const ROOT = join(import.meta.dirname, '../../..');
+/** Where an app's directory sits: `apps/` until it moves under its layer. See graph.py. */
+const APP_ROOTS = ['apps', 'infra/apps', 'platform/apps', 'services/apps'].map((root) =>
+	join(ROOT, root),
+);
 const SCOPES = join(import.meta.dirname, '../src/scopes.ts');
 
 /** Every app's declaration, as text. Shared with the test that holds the committed table to it. */
 export function declarations(): string[] {
-	return readdirSync(APPS).flatMap((app) => {
+	const apps = APP_ROOTS.flatMap((root) => {
 		try {
-			return [readFileSync(join(APPS, app, 'service.toml'), 'utf8')];
+			return readdirSync(root).map((app) => ({ app, root }));
+		} catch {
+			return [];
+		}
+	});
+	apps.sort((a, b) => a.app.localeCompare(b.app));
+	return apps.flatMap(({ app, root }) => {
+		try {
+			return [readFileSync(join(root, app, 'service.toml'), 'utf8')];
 		} catch {
 			return [];
 		}

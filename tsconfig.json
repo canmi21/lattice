@@ -25,7 +25,7 @@
 		// a project.
 		"apps/site",
 		"apps/cms",
-		"apps/panel",
+		"infra/apps/panel",
 		"apps/status",
 		// Checked by tsconfig.workers.json against workerd's globals instead. Whole directories,
 		// not just `src`: importing the worker is enough to pull it into this program.

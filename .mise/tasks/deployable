@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from graph import ROOT, build_inputs, changed, dependents, owner, rust_graph  # noqa: E402
+from graph import ROOT, app_directories, app_of, build_inputs, changed, dependents, owner, rust_graph  # noqa: E402
 
 # How every image is built: a change here is a change to all of them.
 EVERY_IMAGE = {"Cargo.toml", "Cargo.lock", ".dockerignore", ".mise/tasks/image"}
@@ -21,8 +21,9 @@ EVERY_IMAGE = {"Cargo.toml", "Cargo.lock", ".dockerignore", ".mise/tasks/image"}
 def apps():
 	"""App directory name -> its crate's name, for every app that declares an image."""
 	found = {}
-	for declaration in sorted(ROOT.glob("apps/*/service.toml")):
-		if not (declaration.parent / "Dockerfile").exists():
+	for directory in app_directories().values():
+		declaration = directory / "service.toml"
+		if not declaration.exists() or not (directory / "Dockerfile").exists():
 			continue
 		manifest = declaration.parent / "Cargo.toml"
 		name = declaration.parent.name
@@ -51,9 +52,8 @@ def needed(files, declared):
 	crates, chosen = set(), set()
 	for f in files:
 		crates |= built.get(owner(f, built) or f, set())
-		parts = f.split("/")
-		if len(parts) > 2 and parts[0] == "apps" and parts[1] in declared:
-			chosen.add(parts[1])
+		if app_of(f) in declared:
+			chosen.add(app_of(f))
 		crate = crate_dirs.get(owner(f, crate_dirs) or "")
 		if crate and (f.endswith(".rs") or f.endswith("/Cargo.toml")):
 			crates.add(crate)

@@ -1,6 +1,6 @@
 # `host`: deploying to the machine at home
 
-`apps/host` is a small deployment platform for the always-on machine on the home network -- the one
+`infra/apps/host` is a small deployment platform for the always-on machine on the home network -- the one
 milestones D1 and D2 in [../todo/milestones.md](../todo/milestones.md) assume. An app in this
 repository declares that it runs there the way another declares a Worker, and a push to `main` then
 reaches it without anybody logging into the machine. Images somebody else publishes are not declared
@@ -161,7 +161,7 @@ An app states what it needs in `apps/<name>/service.toml` and ships it with its 
 program deployed apart from the file it reads, so the file carries a `version` and host refuses one
 it does not know before reading anything else, while a key it does not know is ignored -- see the
 workspace's `json.md`. What the keys are is
-[manifest/mod.rs](../../libs/deploy/src/manifest/mod.rs); host reads geo's own file in its tests, so
+[manifest/mod.rs](../../infra/libs/deploy/src/manifest/mod.rs); host reads geo's own file in its tests, so
 the reader and a real declaration cannot drift apart.
 
 An upload is written to disk whole before anything is stopped, so a transfer cut short never leaves
@@ -188,7 +188,7 @@ An updater cannot be the thing it updates: a broken update leaves nothing runnin
 it. So there are two programs, and each updates the other, never itself.
 
 - **keeper** is small and rarely changes. It deploys host by the same stop, snapshot, start and check
-  as any app -- one procedure, in `libs/deploy`, that both programs call -- against host's
+  as any app -- one procedure, in `infra/libs/deploy`, that both programs call -- against host's
   `/health`, which answers only once host reads its own database and reaches Docker. On failure it
   puts the previous host back.
 - **host** deploys everything else, keeper included.
@@ -254,7 +254,7 @@ own policy, and Caddy starts from the file host last wrote whether or not host i
 
 ### Caddy is deployed like any app, and is the one door
 
-**Caddy is `apps/caddy`, built here and deployed by host, in a shape its name alone gets: the
+**Caddy is `infra/apps/caddy`, built here and deployed by host, in a shape its name alone gets: the
 edge.** The official build with two modules, xcaddy's Cloudflare DNS provider for its certificates
 and the rate limiter host renders each service's limits into; declared, versioned, rolled back and
 shown in the panel as every app is. The shape differs from an app's sandbox in four things:
@@ -276,7 +276,7 @@ beside it, `docker compose up -d`.
 
 ### The tunnel is deployed like any app, at the address Caddy trusts
 
-**cloudflared is `apps/tunnel`, deployed by host in a shape its name alone gets**: sandboxed as an
+**cloudflared is `infra/apps/tunnel`, deployed by host in a shape its name alone gets**: sandboxed as an
 app is, but standing on `edge` at `tunnel_source` from host's configuration -- the one address
 Caddy believes `Cf-Connecting-Ip` from, so a visitor's address is only ever taken from it. Its
 routes are the dashboard's, a remotely-managed tunnel; its token is `TUNNEL_TOKEN` in its
@@ -310,7 +310,7 @@ gateway takes a caller's address from.
 
 ### The resolver answers the gateway's names, and passes the rest on
 
-**The house's DNS is `apps/resolver`, CoreDNS adopted from upstream, in a shape its name alone
+**The house's DNS is `infra/apps/resolver`, CoreDNS adopted from upstream, in a shape its name alone
 gets**: sandboxed as an app is, and publishing 53 over UDP and TCP on the machine, the one container
 beside Caddy that publishes anything. host renders its whole configuration, as it does Caddy's, and
 nothing about it is written by hand.
@@ -402,7 +402,7 @@ remedy is one request rather than a list of commands.
 
 ## The panel is an app of its own
 
-**The panel is `apps/panel`, a SvelteKit server on Node, and host's interface; host itself has
+**The panel is `infra/apps/panel`, a SvelteKit server on Node, and host's interface; host itself has
 none.** host holds the Docker socket and the whole of `/data`, so what faces a browser is kept out
 of it: a panel broken into reaches host's API and nothing below it, and holds no token of its own to
 reach even that with -- it passes on the one the visitor signed in with. host deploys it like any
@@ -423,7 +423,7 @@ app, in the sandbox, under a reserved name, restarted and never stopped from its
   the browser.
 - It answers `/health` itself, without asking host, so it stays up to say that host does not.
 
-It is written in `apps/panel/`, its components named in lowercase like every file.
+It is written in `infra/apps/panel/`, its components named in lowercase like every file.
 
 **It is styled as the site is, in the site's three layers, and colored as nothing else here is.**
 Tailwind in the markup for where a thing sits, StyleX for what it looks like, a `<style>` block
@@ -573,7 +573,7 @@ container the paths are Linux's own, so host binds what it would bind on the mac
    host inside it as the compose file does, with a token of its own; Caddy's absence is logged and
    ignored.
 4. Deploy through its API as `mise run host deploy` would, and point the panel at it:
-   `HOST_API=http://localhost:11011 pnpm run dev` in `apps/panel`. Without `HOST_API` a
+   `HOST_API=http://localhost:11011 pnpm run dev` in `infra/apps/panel`. Without `HOST_API` a
    development panel asks the running panel on the machine, signed in as the token mise decrypts.
 
 A copy of the machine's three databases, read over SSH, gives the panel the real apps and history to

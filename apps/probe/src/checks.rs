@@ -1,4 +1,4 @@
-//! The declared checks, read from `checks.toml`, with each target resolved against `libs/urls`.
+//! The declared checks, read from `checks.toml`, with each target resolved against `libs/sdk`.
 //! See spec/architecture/probe.md, "What is checked, and how often".
 
 use crate::ask::Method;
@@ -91,7 +91,7 @@ pub struct Check {
 	pub name: String,
 	pub kind: Kind,
 	/// The target as declared, symbolically: what `checks` and `GET /checks` show, so no address
-	/// is written anywhere but `libs/urls`.
+	/// is written anywhere but `libs/sdk`.
 	pub target: String,
 	/// The target resolved.
 	pub url: Url,
@@ -120,7 +120,7 @@ pub const LONGEST: f64 = 60.0;
 /// The fewest seconds between two rounds of one check: "as often as every second".
 pub const SHORTEST: f64 = 1.0;
 
-/// The names a target may start with: `libs/urls`' own, the API host's two sides shortened.
+/// The names a target may start with: `libs/sdk`' own, the API host's two sides shortened.
 /// A name not here is an error when the file is read, never a request to somewhere unmeant.
 fn named(name: &str) -> Option<&'static str> {
 	Some(match name {
@@ -148,7 +148,7 @@ pub fn resolve(target: &str) -> Result<Url, String> {
 		.unwrap_or(target.len());
 	let (name, rest) = target.split_at(end);
 	let Some(base) = named(name) else {
-		return Err(format!("`{target}` does not start with a name libs/urls holds"));
+		return Err(format!("`{target}` does not start with a name libs/sdk holds"));
 	};
 	if !(rest.is_empty() || rest.starts_with('/') || rest.starts_with('?')) {
 		return Err(format!("`{target}`: what follows the name must be a path or a query"));

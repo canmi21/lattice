@@ -1,0 +1,11 @@
+{
+	"name": "@monoflake/host",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"@monoflake/urls": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^26.6.4"
+	}
+}

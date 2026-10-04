@@ -8,7 +8,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-# The URL map, generated from libs/urls; no address is written in this crate.
+# The URL map, generated from libs/sdk; no address is written in this crate.
 canmi = { path = "../../lib/crates/canmi" }
 # Blocking HTTP, which is what fetching a handful of icons wants: a synchronous call inside an
 # operation that is already running on its own thread. The runtime below is for serving, not for
