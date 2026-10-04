@@ -262,6 +262,9 @@ export const URLS = {
  * region is added here before anything is placed on it. See spec/architecture/gateway.md.
  */
 export const GATEWAY = {
+	// Each answers the same, the first the one published and the rest a way round a domain that
+	// fails. See spec/architecture/gateway.md, "A second domain answers the same".
+	domains: ['monoflake.com', 'monoflake.net'],
 	api: 'api.monoflake.com',
 	cdn: 'cdn.monoflake.com',
 	deployments: 'ixc.one',

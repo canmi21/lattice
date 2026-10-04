@@ -50,6 +50,15 @@ publish, the second the one to pin a node, debug one, or -- later -- for a clien
 which node is nearest and asks it directly. A page rendered on the server would use
 `monoflake.com`, so that what it renders can always be reached.
 
+### A second domain answers the same
+
+**`monoflake.net` answers everything `monoflake.com` does**: `api.monoflake.net` and
+`cdn.monoflake.net` are the same profiles as their `.com` twins, with the same rules, crawlers
+included. `.com` is the one published; `.net` is a way round the day a registry, a registrar or a
+resolver fails one of them, since two top-level domains are run by two registries. That both
+serve the same bytes is no concern of the service layer's -- see "A host admits crawlers or does
+not". `ixc.one` has no second: a deployment's own host is for pinning, not for publishing.
+
 **A profile is a row in a table, not code.** A new short host, or a new node, is one more row: the
 hostname, what it fixes, the version it pins, and the path it puts in front, if any.
 `symlink.si/{path}` reaches the alias layer as `/v1/symlink/{path}`; `ill.li/symlink/...` is then no

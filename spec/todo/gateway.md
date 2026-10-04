@@ -38,7 +38,7 @@ layer's, and the Rust mirror follows. The published corpus spells none of them -
 made at render from `libs/urls` -- so moving them republishes nothing.
 
 Outside the repository: GitHub's webhook calls `hook` at the old API host; Cloudflare holds the
-custom domains, the DNS for `monoflake.com` and `ixc.one`, and the Worker routes the gateway would
+custom domains, the DNS for `monoflake.com`, `monoflake.net` and `ixc.one`, and the Worker routes the gateway would
 need for every profile's hostname.
 
 Decided: `rdu`.

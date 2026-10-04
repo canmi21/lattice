@@ -29,6 +29,14 @@ describe('a hostname read as a profile', () => {
 		}
 	});
 
+	it('answers every domain of the service layer alike', () => {
+		for (const domain of GATEWAY.domains) {
+			expect(profileOf(`api.${domain}`)).toEqual(profileOf(GATEWAY.api));
+			expect(profileOf(`cdn.${domain}`)).toEqual(profileOf(GATEWAY.cdn));
+		}
+		expect(GATEWAY.api).toBe(`api.${GATEWAY.domains[0]}`);
+	});
+
 	it('knows a hostname whatever its case', () => {
 		expect(profileOf(GATEWAY.api.toUpperCase())?.name).toBe('api');
 	});

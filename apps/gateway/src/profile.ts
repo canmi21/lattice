@@ -52,8 +52,12 @@ export type Refusal = 'no_such_host' | 'no_version' | 'no_service';
 
 /** The hostnames named exactly. The deployments under `ixc.one` are read by their parts. */
 const NAMED: Readonly<Record<string, Profile>> = {
-	[GATEWAY.api]: { name: 'api', crawled: false },
-	[GATEWAY.cdn]: { name: 'cdn', service: 'cdn', version: 'v3', crawled: true },
+	...Object.fromEntries(
+		GATEWAY.domains.flatMap((domain) => [
+			[`api.${domain}`, { name: 'api', crawled: false }],
+			[`cdn.${domain}`, { name: 'cdn', service: 'cdn', version: 'v3', crawled: true }],
+		]),
+	),
 	[GATEWAY.alias]: { name: 'alias', service: 'alias', version: 'v1', crawled: false },
 	[GATEWAY.symlink]: {
 		name: 'symlink',
