@@ -25,6 +25,7 @@
 		"apps/cdn",
 		"apps/aka",
 		"apps/hook",
-		"apps/gateway"
+		"apps/gateway",
+		"apps/quota"
 	]
 }

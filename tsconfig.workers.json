@@ -27,6 +27,8 @@
 		"apps/gateway/src/**/*.ts",
 		"apps/gateway/scripts/**/*.ts",
 		"apps/gateway/*.d.ts",
+		"apps/quota/src/**/*.ts",
+		"apps/quota/*.d.ts",
 		"libs/store/src/**/*.ts",
 		// Types, schemas and constants only, so neither carries a runtime global and both are
 		// safe in this program and in the browser one at once.

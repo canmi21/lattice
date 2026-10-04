@@ -1,0 +1,10 @@
+# How often one subject may call one route: the buckets every gateway and Worker asks, and nothing
+# else counts. See spec/architecture/quota.md.
+version = 1
+name = "quota"
+placements = ["workers"]
+
+# Its HTTP door stays closed to the gateway until a caller's keys can be fixed to its account. See
+# spec/architecture/quota.md, "Two doors: one inside, and one held for later".
+[api]
+public = false

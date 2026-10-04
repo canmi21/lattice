@@ -1,0 +1,17 @@
+{
+	"name": "@canmi/quota",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"deploy": "wrangler deploy --env=\"\"",
+		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
+	},
+	"dependencies": {
+		"@canmi/limits": "workspace:*",
+		"@canmi/response": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20260911.1",
+		"wrangler": "^4.131.1"
+	}
+}

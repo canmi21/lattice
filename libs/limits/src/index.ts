@@ -7,6 +7,38 @@
  */
 
 import { failure } from '@canmi/response';
+import type { Taken } from './bucket.ts';
+import type { Check } from './key.ts';
+
+export { type Rate, type Taken, take } from './bucket.ts';
+export {
+	addressOf,
+	type Check,
+	checksOf,
+	covers,
+	type Row,
+	type Subject,
+	SUBJECTS,
+	type Subjects,
+} from './key.ts';
+
+const ALLOWED: Taken = { allowed: true, retryAfter: 0 };
+
+/**
+ * A call's buckets taken in order, the first refusal ending it: what was taken before it stays
+ * taken, and the ones after it are never asked. See spec/architecture/quota.md, "The buckets of one
+ * call are taken in order, and the first refusal ends it".
+ */
+export async function takeInOrder(
+	checks: readonly Check[],
+	takeOne: (check: Check) => Promise<Taken> | Taken,
+): Promise<Taken> {
+	for (const check of checks) {
+		const taken = await takeOne(check);
+		if (!taken.allowed) return taken;
+	}
+	return ALLOWED;
+}
 
 export interface Limit {
 	readonly methods: readonly string[];

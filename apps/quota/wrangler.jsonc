@@ -1,0 +1,19 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "quota",
+	"main": "src/worker.ts",
+	"compatibility_date": "2026-07-29",
+
+	// No route of its own: a Worker reaches its inside door, the `Internal` entrypoint, by binding.
+	// See spec/architecture/quota.md, "Two doors: one inside, and one held for later".
+
+	// One bucket a key, wherever in the world its calls land. SQLite-backed, the one kind the free
+	// plan has, though it writes nothing. See spec/architecture/quota.md, "Deployed twice, counted
+	// where a request enters".
+	"durable_objects": { "bindings": [{ "name": "buckets", "class_name": "bucket" }] },
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["bucket"] }],
+
+	"observability": { "logs": { "enabled": true } },
+	"workers_dev": false,
+	"preview_urls": false,
+}
