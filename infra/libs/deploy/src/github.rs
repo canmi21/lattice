@@ -82,12 +82,24 @@ struct Record {
 	digest: Option<String>,
 }
 
-/// One app's image as a run left it.
+/// One app's image as a run left it, and the repository whose run left it.
 #[derive(Debug, Clone)]
 pub struct Artifact {
 	pub app: String,
+	repository: String,
 	id: u64,
 	digest: String,
+}
+
+/// The repositories a node deploys from, as `DEPLOY_SOURCES` names them: `owner/name` pairs
+/// separated by whitespace. See spec/architecture/host.md, "The machine pulls; nothing pushes into
+/// it".
+pub fn sources(value: &str) -> Vec<String> {
+	value
+		.split_whitespace()
+		.filter(|source| source.split('/').count() == 2)
+		.map(str::to_owned)
+		.collect()
 }
 
 /// An artifact on disk: the image archive, and the declaration built beside it.
@@ -105,7 +117,7 @@ pub fn app_of(artifact: &str) -> Option<String> {
 	named.then(|| app.to_owned())
 }
 
-/// Whether `record` is a finished, successful run of this repository's deploy workflow on `main`.
+/// Whether `record` is a finished, successful run of `repository`'s deploy workflow on `main`.
 pub fn check(run: u64, record: &Run, repository: &str) -> Result<(), Error> {
 	let refuse = |why: String| Err(Error::NotDeployable { run, why });
 	if record.repository.full_name != repository {
@@ -128,23 +140,41 @@ pub fn check(run: u64, record: &Run, repository: &str) -> Result<(), Error> {
 
 pub struct GitHub {
 	client: Client<hyper_rustls::HttpsConnector<HttpConnector>, Empty<Bytes>>,
-	repository: String,
+	/// The repositories this node deploys from; a run of any other is refused before it is read.
+	sources: Vec<String>,
 	token: String,
 }
 
 impl GitHub {
 	/// Roots compiled in rather than read from the system: an image built from scratch has none.
-	pub fn new(token: String) -> Self {
+	pub fn new(token: String, sources: Vec<String>) -> Self {
 		let https = hyper_rustls::HttpsConnectorBuilder::new()
 			.with_webpki_roots()
 			.https_only()
 			.enable_http1()
 			.build();
-		let repository = canmi::SOURCE
-			.trim_start_matches(canmi::EXTERNAL_GITHUB_WEB)
-			.trim_start_matches('/')
-			.to_owned();
-		Self { client: Client::builder(TokioExecutor::new()).build(https), repository, token }
+		Self { client: Client::builder(TokioExecutor::new()).build(https), sources, token }
+	}
+
+	/// The client a node's environment configures: its token, and the sources it deploys from. None
+	/// without both, and then the node refuses CI's notices rather than guessing a repository.
+	pub fn from_env() -> Option<Self> {
+		let token = std::env::var("GITHUB_ACTIONS_TOKEN").ok().filter(|token| !token.is_empty())?;
+		let sources = sources(&std::env::var("DEPLOY_SOURCES").unwrap_or_default());
+		if sources.is_empty() {
+			eprintln!("deploy: DEPLOY_SOURCES names no repository, so no run is deployed");
+			return None;
+		}
+		Some(Self::new(token, sources))
+	}
+
+	/// The repository a notice that names none is about: the one source, when there is one. A
+	/// notice from before notices named their repository can mean nothing else.
+	pub fn only_source(&self) -> Option<&str> {
+		match self.sources.as_slice() {
+			[only] => Some(only),
+			_ => None,
+		}
 	}
 
 	/// A GET, with the token only when it is GitHub's own API being asked.
@@ -160,8 +190,8 @@ impl GitHub {
 		self.client.request(request).await.map_err(|e| Error::Http(e.to_string()))
 	}
 
-	async fn json<T: DeserializeOwned>(&self, path: &str) -> Result<T, Error> {
-		let uri = format!("{}/repos/{}{path}", canmi::EXTERNAL_GITHUB_API, self.repository);
+	async fn json<T: DeserializeOwned>(&self, repository: &str, path: &str) -> Result<T, Error> {
+		let uri = format!("{}/repos/{repository}{path}", canmi::EXTERNAL_GITHUB_API);
 		let response = self.get(&uri, true).await?;
 		let status = response.status().as_u16();
 		let body = response.into_body().collect().await.map_err(|e| Error::Http(e.to_string()))?;
@@ -171,17 +201,27 @@ impl GitHub {
 		serde_json::from_slice(&body.to_bytes()).map_err(|e| Error::Http(e.to_string()))
 	}
 
-	/// The deploy artifacts of `run`, once its record says it is one to deploy.
-	pub async fn artifacts(&self, run: u64) -> Result<Built, Error> {
-		let record: Run = self.json(&format!("/actions/runs/{run}")).await?;
-		check(run, &record, &self.repository)?;
-		let listed: Listed = self.json(&format!("/actions/runs/{run}/artifacts?per_page=100")).await?;
+	/// The deploy artifacts of `repository`'s `run`, once its record says it is one to deploy.
+	pub async fn artifacts(&self, repository: &str, run: u64) -> Result<Built, Error> {
+		if !self.sources.iter().any(|source| source == repository) {
+			let why = format!("{repository} is not a repository this node deploys from");
+			return Err(Error::NotDeployable { run, why });
+		}
+		let record: Run = self.json(repository, &format!("/actions/runs/{run}")).await?;
+		check(run, &record, repository)?;
+		let path = format!("/actions/runs/{run}/artifacts?per_page=100");
+		let listed: Listed = self.json(repository, &path).await?;
 		let artifacts = listed
 			.artifacts
 			.into_iter()
 			.filter(|record| !record.expired)
 			.filter_map(|record| {
-				Some(Artifact { app: app_of(&record.name)?, id: record.id, digest: record.digest? })
+				Some(Artifact {
+					app: app_of(&record.name)?,
+					repository: repository.to_owned(),
+					id: record.id,
+					digest: record.digest?,
+				})
 			})
 			.collect();
 		Ok(Built { commit: record.head_sha, artifacts })
@@ -194,7 +234,7 @@ impl GitHub {
 		let uri = format!(
 			"{}/repos/{}/actions/artifacts/{}/zip",
 			canmi::EXTERNAL_GITHUB_API,
-			self.repository,
+			artifact.repository,
 			artifact.id
 		);
 		let redirect = self.get(&uri, true).await?;
@@ -295,8 +335,13 @@ mod tests {
 	}
 
 	#[test]
-	fn the_repository_is_read_from_the_source_address() {
-		assert_eq!(GitHub::new(String::new()).repository, "canmi21/lattice");
+	fn the_sources_are_the_owner_and_name_pairs_the_node_lists() {
+		assert_eq!(sources(" canmi21/web\tmonoflake/infra \n"), ["canmi21/web", "monoflake/infra"]);
+		assert!(sources("lattice a/b/c").is_empty());
+		let one = GitHub::new(String::new(), sources("canmi21/lattice"));
+		assert_eq!(one.only_source(), Some("canmi21/lattice"));
+		let two = GitHub::new(String::new(), sources("a/b c/d"));
+		assert_eq!(two.only_source(), None);
 	}
 
 	#[test]

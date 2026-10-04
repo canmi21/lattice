@@ -84,6 +84,9 @@ async fn health(State(host): State<Arc<Host>>) -> Response {
 #[derive(Deserialize)]
 struct Notice {
 	run: u64,
+	/// Whose run, as `owner/name`. A notice from before they named one means the one source.
+	#[serde(default)]
+	repository: Option<String>,
 	/// Set by keeper when it passes a run on, having dealt with the host that run built. Also read
 	/// under the name a keeper built before the rename sends.
 	#[serde(default, alias = "host_done")]
@@ -94,22 +97,28 @@ struct Notice {
 /// GitHub before anything is fetched. See spec/architecture/host.md, "The machine pulls; nothing
 /// pushes into it". Each run is taken once, and again only if taking it failed.
 async fn notice(State(host): State<Arc<Host>>, Json(notice): Json<Notice>) -> Response {
-	if host.github.is_none() {
+	let Some(github) = host.github.as_ref() else {
 		return response::failure(StatusCode::SERVICE_UNAVAILABLE, "github_unavailable");
-	}
+	};
+	let repository = notice.repository.or_else(|| github.only_source().map(str::to_owned));
+	let Some(repository) = repository else {
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_repository");
+	};
+	let key = (repository.clone(), notice.run);
 	let fresh =
-		host.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).insert(notice.run);
+		host.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).insert(key.clone());
+	let answer = serde_json::json!({ "run": notice.run, "repository": repository });
 	if !fresh {
-		return response::success(StatusCode::OK, serde_json::json!({ "run": notice.run }));
+		return response::success(StatusCode::OK, answer);
 	}
 	let taker = host.clone();
 	tokio::spawn(async move {
-		if !rollout::from_run(taker.clone(), notice.run, notice.host_replaced).await {
+		if !rollout::from_run(taker.clone(), &repository, notice.run, notice.host_replaced).await {
 			let mut notices = taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-			notices.remove(&notice.run);
+			notices.remove(&key);
 		}
 	});
-	response::success(StatusCode::ACCEPTED, serde_json::json!({ "run": notice.run }))
+	response::success(StatusCode::ACCEPTED, answer)
 }
 
 /// Compared in time independent of where the first difference is.

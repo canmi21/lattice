@@ -21,6 +21,13 @@ import {
 } from 'canmi/urls';
 import { INFRA, PANEL_PORT } from '@monoflake/urls';
 
+/**
+ * The repositories whose deploy runs the hook passes to the nodes, as GitHub names them. One until
+ * the repositories split; each node holds its own list too, in `DEPLOY_SOURCES`, and that one
+ * decides. See spec/architecture/host.md, "The machine pulls; nothing pushes into it".
+ */
+export const DEPLOY_SOURCES: readonly string[] = [new URL(SOURCE).pathname.slice(1)];
+
 export {
 	GITHUB_OWNER,
 	isDevHost,

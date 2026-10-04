@@ -4,10 +4,7 @@
  * node checks against GitHub itself. See spec/architecture/services.md, "Every node is the same
  * node".
  */
-import { URLS } from '@monoflake/sdk';
-
-/** This repository as GitHub names it, read from its address rather than spelled a second time. */
-export const REPOSITORY = new URL(URLS.source).pathname.slice(1);
+import { DEPLOY_SOURCES } from '@monoflake/sdk';
 
 /** The workflow that builds images; a run of any other says nothing about a deploy. */
 export const WORKFLOW = '.github/workflows/deploy.yml';
@@ -55,16 +52,19 @@ interface WorkflowRunEvent {
 	};
 }
 
-/** The run a `workflow_run` delivery asks the nodes to deploy from, or none. */
-export function runToDeploy(payload: WorkflowRunEvent): number | undefined {
+/** The run a `workflow_run` delivery asks the nodes to deploy from, and whose it is, or none. */
+export function runToDeploy(
+	payload: WorkflowRunEvent,
+): { run: number; repository: string } | undefined {
 	const run = payload.workflow_run;
+	const repository = payload.repository?.full_name ?? '';
 	const deploys =
 		payload.action === 'completed' &&
-		payload.repository?.full_name === REPOSITORY &&
+		DEPLOY_SOURCES.includes(repository) &&
 		run?.path === WORKFLOW &&
 		run.head_branch === 'main' &&
 		run.status === 'completed' &&
 		run.conclusion === 'success' &&
 		EVENTS.has(run.event ?? '');
-	return deploys && typeof run?.id === 'number' ? run.id : undefined;
+	return deploys && typeof run?.id === 'number' ? { run: run.id, repository } : undefined;
 }

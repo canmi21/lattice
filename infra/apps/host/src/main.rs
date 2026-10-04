@@ -31,10 +31,10 @@ pub struct Host {
 	pub engine: deploy::Engine,
 	pub volumes: deploy::Volumes,
 	pub deploying: tokio::sync::Mutex<()>,
-	/// Absent without a GITHUB_ACTIONS_TOKEN, and then CI's notices are refused.
+	/// Absent without a GITHUB_ACTIONS_TOKEN and DEPLOY_SOURCES, and then CI's notices are refused.
 	pub github: Option<deploy::github::GitHub>,
-	/// The runs a notice has been taken for.
-	pub notices: std::sync::Mutex<std::collections::HashSet<u64>>,
+	/// The runs a notice has been taken for, each by its repository.
+	pub notices: std::sync::Mutex<std::collections::HashSet<(String, u64)>>,
 	/// The images as the background last found them, and what the panel asked of them.
 	pub images: images::Images,
 	/// When `cron` was last redeployed for its socket mounts, so a read-back that never settles
@@ -56,10 +56,7 @@ async fn main() -> anyhow::Result<()> {
 			config.logs_root.clone(),
 		),
 		deploying: tokio::sync::Mutex::new(()),
-		github: std::env::var("GITHUB_ACTIONS_TOKEN")
-			.ok()
-			.filter(|token| !token.is_empty())
-			.map(deploy::github::GitHub::new),
+		github: deploy::github::GitHub::from_env(),
 		notices: std::sync::Mutex::default(),
 		images: images::Images::default(),
 		cron_mount_redeployed_at: std::sync::Mutex::new(None),

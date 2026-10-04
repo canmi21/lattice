@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { REPOSITORY, WORKFLOW, runToDeploy, signed } from './github';
+import { DEPLOY_SOURCES } from '@monoflake/sdk';
+import { WORKFLOW, runToDeploy, signed } from './github';
 
 // GitHub's own example from "Validating webhook deliveries", so the check agrees with how GitHub
 // signs rather than with how this file assumes it does.
@@ -25,7 +26,7 @@ describe('signed', () => {
 describe('runToDeploy', () => {
 	const run = {
 		action: 'completed',
-		repository: { full_name: REPOSITORY },
+		repository: { full_name: 'canmi21/lattice' },
 		workflow_run: {
 			id: 42,
 			path: WORKFLOW,
@@ -41,9 +42,10 @@ describe('runToDeploy', () => {
 	});
 
 	it('names a successful run of the deploy workflow on main', () => {
-		expect(REPOSITORY).toBe('canmi21/lattice');
-		expect(runToDeploy(run)).toBe(42);
-		expect(runToDeploy(without({ event: 'schedule' }))).toBe(42);
+		expect(DEPLOY_SOURCES).toEqual(['canmi21/lattice']);
+		const named = { run: 42, repository: 'canmi21/lattice' };
+		expect(runToDeploy(run)).toEqual(named);
+		expect(runToDeploy(without({ event: 'schedule' }))).toEqual(named);
 	});
 
 	it('names nothing for any run that is not that', () => {

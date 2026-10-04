@@ -95,10 +95,16 @@ So the direction is reversed, and trust is moved off the channel.
   passes the run's number on -- see [services.md](services.md), "Every node is the same node".
   There is no polling and no step in the workflow for it; the event says exactly which run ended,
   and that it succeeded.
-- host asks GitHub about that run with a read-only token scoped to this repository's Actions, and
-  **runs nothing unless the answer is this repository's deploy workflow, on `main`, finished and
+- host asks GitHub about that run with a read-only token scoped to its sources' Actions, and **runs
+  nothing unless the answer is one of its sources' deploy workflows, on `main`, finished and
   successful**; then downloads the artifact and checks it against the digest GitHub recorded. The
   notice is a hint, not an authority: a forged one can at worst redeploy what `main` already built.
+- **A node's sources are its own to name**, in `DEPLOY_SOURCES` in the node's `.env`, as
+  `owner/name` pairs: a run is numbered within its repository, so a notice names the repository
+  with the run, and one that names a repository the node does not list is refused before GitHub is
+  asked. Without the list a node deploys nothing rather than guessing. The hook keeps a list of its
+  own, `DEPLOY_SOURCES` in the sdk, to pass on only what some node might take; the node's decides.
+  A notice that names no repository, from before they did, means the node's one source.
 
 **Rejected: verifying a Sigstore attestation of each archive.** An attestation proves an artifact came
 from a given repository's workflow on a given ref, which is what matters when the artifact is taken

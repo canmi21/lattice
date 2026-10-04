@@ -35,10 +35,11 @@ export async function handle(request: Request, env: Env): Promise<Response> {
 	if (request.headers.get('x-github-event') !== 'workflow_run') {
 		return new Response(null, { status: 204 });
 	}
-	const run = runToDeploy(JSON.parse(body));
-	if (run === undefined) return new Response(null, { status: 204 });
+	const deploy = runToDeploy(JSON.parse(body));
+	if (deploy === undefined) return new Response(null, { status: 204 });
+	const { run, repository } = deploy;
 
-	const notice = JSON.stringify({ run });
+	const notice = JSON.stringify({ run, repository });
 	const answers = await Promise.allSettled(
 		RECEIVERS.map((receiver) =>
 			env.HOME.fetch(receiver, {
@@ -55,7 +56,7 @@ export async function handle(request: Request, env: Env): Promise<Response> {
 	// A receiver that did not take it fails the delivery, so GitHub shows it and it can be
 	// redelivered.
 	const taken = answers.every((answer) => answer.status === 'fulfilled' && answer.value.ok);
-	if (taken) return success({ run, reached }, { status: 202 });
+	if (taken) return success({ run, repository, reached }, { status: 202 });
 	const each = reached.map(({ receiver, status }) => `${receiver} ${status}`);
 	return failure(502, 'upstream_unavailable', {
 		message: `The machine at home did not take run ${run}: ${each.join(', ')}`,

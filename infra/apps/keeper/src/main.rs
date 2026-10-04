@@ -39,10 +39,10 @@ struct Keeper {
 	engine: Engine,
 	volumes: Volumes,
 	replacing: tokio::sync::Mutex<()>,
-	/// Absent without a GITHUB_ACTIONS_TOKEN, and then CI's notices are refused.
+	/// Absent without a GITHUB_ACTIONS_TOKEN and DEPLOY_SOURCES, and then CI's notices are refused.
 	github: Option<deploy::github::GitHub>,
 	/// The runs a notice has been taken for.
-	notices: std::sync::Mutex<std::collections::HashSet<u64>>,
+	notices: std::sync::Mutex<std::collections::HashSet<(String, u64)>>,
 }
 
 fn setting(key: &str, default: &str) -> String {
@@ -65,10 +65,7 @@ async fn main() -> anyhow::Result<()> {
 			PathBuf::from(setting("LOGS_ROOT", "/data/logs")),
 		),
 		replacing: tokio::sync::Mutex::new(()),
-		github: std::env::var("GITHUB_ACTIONS_TOKEN")
-			.ok()
-			.filter(|token| !token.is_empty())
-			.map(deploy::github::GitHub::new),
+		github: deploy::github::GitHub::from_env(),
 		notices: std::sync::Mutex::default(),
 	});
 	deploy::clear_arrivals(&keeper.incoming)?;
@@ -205,32 +202,41 @@ async fn from_archive(
 #[derive(serde::Deserialize)]
 struct Notice {
 	run: u64,
+	/// Whose run, as `owner/name`. A notice from before they named one means the one source.
+	#[serde(default)]
+	repository: Option<String>,
 }
 
 /// A CI run has finished; if it built host, host is replaced. Open, since it can only ask keeper
 /// to look: the run is checked against GitHub first. Each run is taken once, and again only if
 /// taking it failed. See spec/architecture/host.md, "keeper has its own intake".
 async fn notice(State(keeper): State<Arc<Keeper>>, Json(notice): Json<Notice>) -> Response {
-	if keeper.github.is_none() {
+	let Some(github) = keeper.github.as_ref() else {
 		return response::failure(StatusCode::SERVICE_UNAVAILABLE, "github_unavailable");
-	}
+	};
+	let repository = notice.repository.or_else(|| github.only_source().map(str::to_owned));
+	let Some(repository) = repository else {
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_repository");
+	};
+	let key = (repository.clone(), notice.run);
 	let notices = || keeper.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
-	if !notices().insert(notice.run) {
-		return response::success(StatusCode::OK, serde_json::json!({ "run": notice.run }));
+	let answer = serde_json::json!({ "run": notice.run, "repository": repository });
+	if !notices().insert(key.clone()) {
+		return response::success(StatusCode::OK, answer);
 	}
 	let taker = keeper.clone();
 	tokio::spawn(async move {
-		if !from_run(&taker, notice.run).await {
-			taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).remove(&notice.run);
+		if !from_run(&taker, &repository, notice.run).await {
+			taker.notices.lock().unwrap_or_else(std::sync::PoisonError::into_inner).remove(&key);
 		}
 	});
-	response::success(StatusCode::ACCEPTED, serde_json::json!({ "run": notice.run }))
+	response::success(StatusCode::ACCEPTED, answer)
 }
 
 /// The host a run built, if it built one, put in place. True when nothing failed.
-async fn from_run(keeper: &Keeper, run: u64) -> bool {
+async fn from_run(keeper: &Keeper, repository: &str, run: u64) -> bool {
 	let Some(github) = keeper.github.as_ref() else { return false };
-	let artifacts = match github.artifacts(run).await {
+	let artifacts = match github.artifacts(repository, run).await {
 		Ok(built) => built.artifacts,
 		Err(error) => {
 			eprintln!("keeper: run {run}: {error}");
@@ -266,13 +272,14 @@ async fn from_run(keeper: &Keeper, run: u64) -> bool {
 		}
 	};
 	// Whether the new host stayed or the old one is back, the run's other images are host's now.
-	pass_on(run).await;
+	pass_on(repository, run).await;
 	replaced
 }
 
 /// Hand `run` to host with host's part done, over the network the replacement joined keeper to.
-async fn pass_on(run: u64) {
-	let body = serde_json::json!({ "run": run, "host_replaced": true }).to_string().into_bytes();
+async fn pass_on(repository: &str, run: u64) {
+	let notice = serde_json::json!({ "run": run, "repository": repository, "host_replaced": true });
+	let body = notice.to_string().into_bytes();
 	let address = format!("host:{HOST_PORT}");
 	match deploy::http::post(&address, "/notice", body).await {
 		Ok(status) if (200..300).contains(&status) => {}

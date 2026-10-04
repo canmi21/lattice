@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type Env, RECEIVERS, handle } from './index';
-import { REPOSITORY, WORKFLOW } from './github';
+import { DEPLOY_SOURCES } from '@monoflake/sdk';
+import { WORKFLOW } from './github';
 
 const SECRET = 'test-secret';
 
@@ -31,7 +32,7 @@ function home(status = 204) {
 
 const DELIVERY = JSON.stringify({
 	action: 'completed',
-	repository: { full_name: REPOSITORY },
+	repository: { full_name: DEPLOY_SOURCES[0] },
 	workflow_run: {
 		id: 7,
 		path: WORKFLOW,
@@ -62,6 +63,8 @@ describe('handle', () => {
 		expect(response.status).toBe(202);
 		expect(sent.map((notice) => notice.url)).toEqual(RECEIVERS);
 		expect(sent.every((notice) => JSON.parse(notice.body).run === 7)).toBe(true);
+		const named = sent.map((notice) => JSON.parse(notice.body).repository);
+		expect(named.every((repository) => repository === DEPLOY_SOURCES[0])).toBe(true);
 	});
 
 	it('takes the same delivery at /v1/github', async () => {
