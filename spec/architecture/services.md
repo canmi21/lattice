@@ -57,6 +57,8 @@ is [firewall.md](firewall.md).
 
 ## A domain says who can reach it, not what is behind it
 
+> Being replaced by [gateway.md](gateway.md), which wins where the two differ.
+
 | Name          | Who reaches it                                     | What goes there            |
 | ------------- | -------------------------------------------------- | -------------------------- |
 | `canmi.net`   | everyone                                           | the site, and nothing else |
@@ -92,6 +94,8 @@ DNS, which the alternative -- the tailnet answering its own address for the name
 
 ## One API host, scoped by path
 
+> Being replaced by [gateway.md](gateway.md), which wins where the two differ.
+
 Every API is `api.canmi.icu/{scope}/...` privately and `api.ffoni.com/{scope}/...` publicly: one
 path space, of which the public side is a subset. The scope is the service's name, so the site's own
 API is `/site/` and gemini's is `/gemini/`. A new API is a row in a table, never a new domain.
@@ -124,6 +128,8 @@ gateway sends them to the site with a 301 and `?ref=api` for the analytics. Ther
 moved to `/site/`, links in mail already sent included, and that was accepted rather than carried.
 
 ## The gateway holds what every API would otherwise repeat
+
+> Being replaced by [gateway.md](gateway.md), which wins where the two differ.
 
 **CORS and limits by address are the gateway's, per scope, and a service writes neither.** Which
 origins may call a scope and how often one address may call which of its routes is a row in
