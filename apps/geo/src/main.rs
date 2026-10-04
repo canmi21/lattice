@@ -104,11 +104,15 @@ async fn main() -> anyhow::Result<()> {
 	Ok(serving.await??)
 }
 
+/// The lookups at `/v1/`, and unversioned until their callers move; `/health` is host's and never
+/// versioned. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
+/// break".
 fn routes(state: AppState) -> Router {
+	let v1 = Router::new().route("/address", get(address)).route("/ip", get(ip_lookup));
 	Router::new()
-		.route("/address", get(address))
-		.route("/ip", get(ip_lookup))
 		.route("/health", get(health))
+		.nest("/v1", v1.clone())
+		.merge(v1)
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(state)
 }
@@ -261,6 +265,12 @@ mod tests {
 		assert_eq!(body["code"], "service_unavailable");
 		// /address and /health answer on their own data, unaffected by geo's still being empty.
 		assert_eq!(ask("/health").await.0, StatusCode::SERVICE_UNAVAILABLE);
+	}
+
+	#[tokio::test]
+	async fn answers_the_same_at_v1_as_unversioned() {
+		assert_eq!(ask("/v1/ip?address=1.1.1.1").await, ask("/ip?address=1.1.1.1").await);
+		assert_eq!(ask("/v1/health").await.0, StatusCode::NOT_FOUND);
 	}
 
 	#[test]

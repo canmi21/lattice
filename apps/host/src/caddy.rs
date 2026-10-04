@@ -99,10 +99,13 @@ fn limited(scope: &str, limits: &[Limit]) -> Option<Value> {
 			let methods: Vec<String> = limit.methods.iter().map(|method| method.to_lowercase()).collect();
 			let path = limit.path.split('/').filter(|part| !part.is_empty()).collect::<Vec<_>>();
 			let path = if path.is_empty() { "root".to_owned() } else { path.join("-") };
+			// A limit names the path after the version, so it counts every version's call to it, and
+			// the unversioned one until its callers move. See spec/architecture/gateway.md, "A path is
+			// written after the version".
 			let zone = json!({
 				"match": [{
 					"method": limit.methods,
-					"path": [limit.path],
+					"path": [limit.path.clone(), format!("/v*{}", limit.path)],
 					"header": { MARK.0: [MARK.1] }
 				}],
 				// The address Caddy took from Cloudflare's header; `http.request.client_ip` is no
@@ -352,6 +355,7 @@ mod tests {
 		let zone = &handle[1]["rate_limits"]["geo_get-head_address"];
 		assert_eq!(text(&zone["match"][0]["method"]), r#"["GET","HEAD"]"#);
 		assert_eq!(zone["match"][0]["path"][0], "/address");
+		assert_eq!(zone["match"][0]["path"][1], "/v*/address");
 		assert_eq!(zone["match"][0]["header"]["X-Gateway"][0], "public");
 		assert_eq!(zone["key"], "{http.vars.client_ip}");
 		assert_eq!((zone["window"].as_str(), zone["max_events"].as_u64()), (Some("60s"), Some(60)));

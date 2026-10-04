@@ -35,15 +35,21 @@ disk.read,disk.written,storage.used,temperature.";
 const ACTIVITY_HOURS: std::ops::RangeInclusive<u32> = 1..=168;
 const ACTIVITY_DEFAULT_HOURS: u32 = 24;
 
+/// The API at `/v1/`, and unversioned until its callers move; `/health` is host's and never
+/// versioned. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
+/// break".
 pub fn routes(state: AppState) -> Router {
-	Router::new()
-		.route("/health", get(health))
+	let v1 = Router::new()
 		.route("/machine", get(machine))
 		.route("/machine/series", get(machine_series))
 		.route("/services", get(list_services))
 		.route("/services/{name}", get(one_service))
 		.route("/topology", get(topology))
-		.route("/activity", get(activity))
+		.route("/activity", get(activity));
+	Router::new()
+		.route("/health", get(health))
+		.nest("/v1", v1.clone())
+		.merge(v1)
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
 		.with_state(state)
 }
@@ -315,6 +321,15 @@ mod tests {
 		assert_eq!((status, &body["status"]), (StatusCode::OK, &"success".into()));
 		let (status, _, body) = ask(router, "/nothing").await;
 		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_route".into()));
+	}
+
+	#[tokio::test]
+	async fn answers_the_same_at_v1_as_unversioned() {
+		let directory = tempfile::tempdir().unwrap();
+		let router = routes(state(down_meter(), Arc::new(FakeLedger), directory.path()));
+		let versioned = ask(router.clone(), "/v1/machine").await;
+		assert_eq!(versioned, ask(router.clone(), "/machine").await);
+		assert_eq!(ask(router, "/v1/health").await.0, StatusCode::NOT_FOUND);
 	}
 
 	#[tokio::test]
