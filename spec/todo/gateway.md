@@ -20,8 +20,8 @@ layer's stamps go, is the cleanup pass's to settle.
 rdm, a sibling repository, fetches its updates from `cdn.ffoni.com/github/release/...`, the old
 spelling the CDN still redirects to `/proxy/github/release/...`, and reads Cloudflare's trace at
 `cdn.ffoni.com/cdn-cgi/trace`. Every build already installed keeps asking there, so `ffoni.com` is
-not released while one is in use: rdm moves to `cdn.monoflake.com/proxy/github/release/...` first,
-and the domain waits for its builds to update past that.
+not released while one is in use. rdm now asks `cdn.monoflake.com/proxy/github/release/...` and
+that host's trace; the domain waits for the builds out there to update past that change.
 
 ## An apex answers nothing yet
 
