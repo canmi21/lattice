@@ -159,13 +159,27 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 		prefix: '/api',
 		routes: [
 			{
+				path: '/like',
+				cache: {
+					fulfilled: 0,
+					accepted: 0,
+					redirected: 300,
+					rejected: 0,
+					faulted: 0,
+				},
+				crawlable: false,
+				exposed: true,
+				forbidden: [],
+				auth: 'none',
+			},
+			{
 				path: '/*',
 				cache: {
-					fulfilled: 900,
+					fulfilled: 300,
 					accepted: 0,
-					redirected: 900,
+					redirected: 300,
 					rejected: 300,
-					faulted: 300,
+					faulted: 0,
 				},
 				crawlable: false,
 				exposed: true,
