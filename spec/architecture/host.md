@@ -15,7 +15,7 @@ are placed on it, and how names and APIs reach them, is [services.md](services.m
 An app has one name, and every place inside the node it appears is that name: `panel` is the app in
 host, the container, `/data/apps/panel/` on the machine, its network and its logs. **What it is
 reached by from outside is a DNS label of its own**, `[interface] domain` in its `service.toml`,
-which is the name unless it says otherwise: the panel is `infra.canmi.icu` and `infra.canmi.app`.
+which is the name unless it says otherwise: the panel is `infra.internal.ixc.one` and `infra.canmi.app`.
 A service's name is what code and people use; the label is what the address says, and it can
 change without the service being renamed.
 
@@ -29,11 +29,11 @@ change without the service being renamed.
   before host deployed it.
 - **Labels are reserved too, for what is on its way**: `cms`, for the editor, which keeps its own
   address until it moves. No app or route may take a reserved label.
-- **`.icu` is a mirror of part of `.app`, and nothing else.** Every label is on `.app`, reached
-  from the public side behind Access and from the LAN alike; `.icu` carries a label only as a copy
+- **The private suffix is a mirror of part of `.app`, and nothing else.** Every label is on `.app`, reached
+  from the public side behind Access and from the LAN alike; `internal.ixc.one` carries a label only as a copy
   of what `.app` answers on it, same paths, same service, for reaching it on the LAN without
-  Access. A label may be left off `.icu` -- `lan = false` on an interface or a route -- and nothing
-  is ever on `.icu` alone. So keeper's whole interface is on `keeper.canmi.app` behind Access as
+  Access. A label may be left off `internal.ixc.one` -- `lan = false` on an interface or a route -- and nothing
+  is ever on `internal.ixc.one` alone. So keeper's whole interface is on `keeper.canmi.app` behind Access as
   well, and the API host answers every scope on both, the private ones included: the public never
   reaches a private scope, since Access stands in front of `api.canmi.app` and the gateway passes
   on only the scopes in its table, and our Workers reach every scope through the one VPC service.
@@ -46,7 +46,7 @@ collaborator given access to the repository like a person, so what it proposes i
 anyone's and its token opens pull requests and nothing more. It is not built yet; until it is, a
 label is changed in `service.toml`.
 
-`.icu` is private and `.app` is public, and what each admits is
+`internal.ixc.one` is private and `.app` is public, and what each admits is
 [services.md](services.md), "A domain says who can reach it, not what is behind it".
 
 ## One version runs, and a failed deploy puts the last one back
@@ -212,7 +212,7 @@ carried by keeper and never by the program that is broken. That is what lets kee
 enough to read at once, and its stability comes from its size rather than from rules about it. CI
 builds only what changed, so keeper's image moves only when keeper's code does.
 
-**keeper has its own intake.** `mise run host deploy host` goes to `keeper.canmi.icu`, never to
+**keeper has its own intake.** `mise run host deploy host` goes to `keeper.internal.ixc.one`, never to
 host, and a notice about a run that built host goes to keeper too. Routed through host, a broken
 host would stand between the fix and the machine. keeper's interface is private to the LAN and the
 tailnet; on the tunnel's side it answers `/notice` and nothing else, since that is the path the
@@ -303,7 +303,7 @@ internal gateway reaches every service at home.
 
 **The LAN's side carries the gateway's hostnames too**, every one the profiles read from
 `monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li` and `symlink.si`, with certificates by DNS
-challenge as `canmi.icu` has, and hands them to the internal gateway. It sets `Cf-Connecting-Ip` to
+challenge as the private suffix has, and hands them to the internal gateway. It sets `Cf-Connecting-Ip` to
 the address it was asked from, over whatever the caller sent, which is the one place the internal
 gateway takes a caller's address from.
 
@@ -409,7 +409,7 @@ app, in the sandbox, under a reserved name, restarted and never stopped from its
 
 - **host answers on its own network alone.** It binds its port to its address on `app-host`,
   which the panel and keeper join and Caddy does not; every app network host joins to check an
-  app's health leaves that port out of reach. Nothing routes a name to host: `infra.canmi.icu` and
+  app's health leaves that port out of reach. Nothing routes a name to host: `infra.internal.ixc.one` and
   `infra.canmi.app` are the panel's.
 - **The panel passes `/api/*` and `/notice` on to host**, carrying the session cookie as the
   token, the request's type and the answer's cookies back, and nothing else of either. An upload is

@@ -10,8 +10,9 @@
 	import PageHeader from './page-header.svelte';
 	import { tone, type } from './style/surfaces';
 
-	// A route is always on `.app`; only `private` -- whether it is also on `.icu` -- is the
-	// panel's to set. See spec/architecture/host.md, "One name inside, and a domain label outside".
+	// A route is always on `.app`; only `private` -- whether the private suffix carries it too --
+	// is the panel's to set. See spec/architecture/host.md, "One name inside, and a domain label
+	// outside".
 	const blank = (): Route => ({ name: '', upstream: '', private: true, public: true, home: '' });
 	let { initial }: { initial?: Route[] } = $props();
 

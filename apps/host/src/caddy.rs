@@ -265,9 +265,9 @@ fn gateway_hosts(config: &CaddyConfig, apps: &[Deployed]) -> Option<Value> {
 
 /// Everything reached by a subdomain of its own on one side, by its label: each app with an
 /// interface, the panel among them, and each route. host has none: only the panel reaches it.
-/// Every label is on `.app`; `.icu` carries it only when the interface's `lan`, or the route's
-/// `private`, says so. See spec/architecture/host.md, "`.icu` is a mirror of part of `.app`, and
-/// nothing else".
+/// Every label is on `.app`; the private suffix carries it only when the interface's `lan`, or the
+/// route's `private`, says so. See spec/architecture/host.md, "The private suffix is a mirror of
+/// part of `.app`, and nothing else".
 fn interfaces(apps: &[Deployed], routes: &[Route], public: bool) -> Vec<Target> {
 	let mut targets = Vec::new();
 	targets.extend(
@@ -683,8 +683,8 @@ mod tests {
 			held: false,
 		};
 		// keeper's whole interface is on `.app` now, behind Access like any other -- not the one
-		// `/notice` path the Worker used to reach it by. See spec/architecture/host.md, "`.icu` is
-		// a mirror of part of `.app`, and nothing else".
+		// `/notice` path the Worker used to reach it by. See spec/architecture/host.md, "The private
+		// suffix is a mirror of part of `.app`, and nothing else".
 		let rendered = text(&render(&config(), &[keeper], &[]));
 		assert!(rendered.contains(r#"{"host":["keeper.outside.test"]}"#));
 		assert!(rendered.contains(r#"{"host":["keeper.inside.test"]}"#));

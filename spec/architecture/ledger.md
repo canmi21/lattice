@@ -66,7 +66,7 @@ task sends them in batches, and holds what could not be sent in a bounded queue,
 first, trying again with backoff. A ledger that is down costs records, never a capture.
 
 **It is reached through Caddy, as a scope that is never public**: services write to
-`api.canmi.icu/ledger`, which every container reaches, since Caddy admits Docker's private range
+`api.internal.ixc.one/ledger`, which every container reaches, since Caddy admits Docker's private range
 there. Like every scope it is on `api.canmi.app` too, where Access stands in front and our Workers
 reach it over VPC; it is not in the gateway's table, so the public never does. Nothing asks for a
 token, as nothing on the private side does; host is the exception, and the ledger is not host.

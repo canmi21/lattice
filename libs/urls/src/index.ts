@@ -108,14 +108,14 @@ export const GITHUB_OWNER = 'canmi21';
  * `shot` is the public scope a capture's pictures are named under, see shot.md.
  */
 /** The API host's two sides: private, where every container asks, and public, past the gateway. */
-const API = { private: 'https://api.canmi.icu', public: 'https://api.monoflake.com' } as const;
+const API = { private: 'https://api.internal.ixc.one', public: 'https://api.monoflake.com' } as const;
 
 const INTERNAL = {
 	app: 'https://canmi.app',
 	infra: 'https://ffoni.com',
 	alias: 'https://ill.li',
-	panel: 'https://infra.canmi.icu',
-	keeper: 'https://keeper.canmi.icu',
+	panel: 'https://infra.internal.ixc.one',
+	keeper: 'https://keeper.internal.ixc.one',
 	host: 'http://host:11011',
 	ledger: `${API.private}/ledger`,
 	cron: `${API.private}/cron`,

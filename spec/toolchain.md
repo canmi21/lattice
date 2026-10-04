@@ -150,7 +150,7 @@ may still be reading, and closing it is not a build's business.
 
 ### Reaching the LAN from a browser that cannot
 
-**`mise run reach [name]` answers on `http://localhost:26520` for `<name>.canmi.icu`**, host's
+**`mise run reach [name]` answers on `http://localhost:26520` for `<name>.internal.ixc.one`**, host's
 panel when no name is given. macOS asks before a program reaches the local network, and a browser
 an agent drives, like node from mise, is refused; the system's own `ssh` and `curl` never are.
 So [`reach.ts`](../apps/host/scripts/reach.ts) has ssh carry the node's port 443 to a loopback

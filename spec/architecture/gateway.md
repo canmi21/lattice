@@ -297,11 +297,14 @@ service on Workers is reached by binding; a service on a node is reached through
 Choosing among several placements of one service -- by load, by distance -- is the gateway's later,
 and the reason `monoflake.com` does not name one.
 
-**There is one entrance, and the private side goes.** Our own callers use the same hostnames the
-public does, `api.monoflake.com` and the `ixc.one` names, rather than a private host of their own;
-until the LAN answers those names, a call from the house goes out through the Tunnel and back. The
-private side [services.md](services.md) describes -- `api.canmi.icu/{scope}/...`, through Caddy --
-is retired once every caller has moved, rather than being given versions of its own.
+**A caller off the node uses the public names; what runs on the node keeps the private side.** A
+device, a page, a third party asks `api.monoflake.com` and the `ixc.one` names, which the house's
+resolver answers with the node at home. A service on the node asking another -- `cron` at a job's
+time, a service pushing to the ledger, the probe's inside checks -- asks the private side
+[services.md](services.md) describes, `api.internal.ixc.one/{scope}/...`, through Caddy, which
+admits the node's own containers and counts no limit; those calls are our own and are given no
+versions. The private suffix moved there from `canmi.icu` when the token Caddy proves certificates
+with stopped covering that domain.
 
 **A Worker behind the gateway asks another by binding, never through the gateway's host.** The
 gateway reaching a Worker that then asks the gateway's own public name is a request in a circle,
@@ -322,7 +325,7 @@ Workers, so what a caller meets is the same on both.
 
 **Caddy answers the gateway's hostnames on the LAN and hands them to it.** Its private side carries
 every hostname the profiles read, with certificates by DNS challenge, as it already has for
-`canmi.icu`; the internal gateway behind it reads each request into its tuple as the Worker does.
+the private suffix; the internal gateway behind it reads each request into its tuple as the Worker does.
 Caddy sets `Cf-Connecting-Ip` to the LAN address it was asked from, over whatever the caller sent,
 so the internal gateway counts each device as the public one counts each visitor.
 Until the LAN's DNS answers those names with the node, the internal gateway is reached by naming

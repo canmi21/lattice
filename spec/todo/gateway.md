@@ -15,14 +15,6 @@ over it, but the CDN keeps derived pictures in its own cache by that stamp, so i
 there. Whether the CDN's own cache reads its lifetime from the declaration instead, and the alias
 layer's stamps go, is the cleanup pass's to settle.
 
-## `*.canmi.icu`'s certificate cannot be renewed
-
-The Cloudflare token Caddy proves certificates with writes DNS for the gateway's zones --
-`monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li`, `symlink.si` -- and no longer for
-`canmi.icu`, which retires with the private side. The wildcard certificate Caddy holds for it runs
-to 2026-12-26, and Caddy starts failing to renew it about a month before: the private side is
-retired before then, or the token is given `canmi.icu` again until it is.
-
 ## rdm's builds out there ask `cdn.ffoni.com`
 
 rdm, a sibling repository, fetches its updates from `cdn.ffoni.com/github/release/...`, the old

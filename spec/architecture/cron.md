@@ -72,7 +72,7 @@ of services changes, host redeploys `cron`** so its mounts follow: a socket serv
 
 ## A run is a request, and a task in the ledger
 
-**At its time, `cron` asks `POST api.canmi.icu/<scope><path>` through Caddy** -- the private side,
+**At its time, `cron` asks `POST api.internal.ixc.one/<scope><path>` through Caddy** -- the private side,
 which every container reaches -- or `POST <path>` on the service's socket, with the run's id in
 `X-Task-Parent: cron:<id>`. A service that
 records the work as a ledger task takes that as its `parent`, so the chain reads from the schedule

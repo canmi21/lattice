@@ -64,11 +64,11 @@ is [firewall.md](firewall.md).
 | `canmi.net`   | everyone                                           | the site, and nothing else |
 | `*.canmi.app` | the author, from anywhere, through Access          | interfaces                 |
 | `monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li`, `symlink.si` | the public; whether a login is needed is per route | the gateway, and every API behind it |
-| `*.canmi.icu` | the LAN and the tailnet only                       | everything, APIs included  |
+| `*.internal.ixc.one` | the LAN and the tailnet only                       | everything, APIs included  |
 
-**"The LAN" includes the node's own containers.** Caddy admits `.icu` from the sources host is told
+**"The LAN" includes the node's own containers.** Caddy admits `internal.ixc.one` from the sources host is told
 in `PRIVATE_SOURCES`: the LAN, the tailnet, loopback, and Docker's private range, `172.16.0.0/12`.
-The last is for an app reaching another app by its name -- `shot` capturing `infra.canmi.icu` -- whose request arrives from its container's address. It opens nothing a container could
+The last is for an app reaching another app by its name -- `shot` capturing `infra.internal.ixc.one` -- whose request arrives from its container's address. It opens nothing a container could
 not already reach: every container reaches the LAN directly, and host asks for its token on every
 door regardless.
 
@@ -84,23 +84,22 @@ API's client takes a base URL and does not care.
 login in the same moment. A browser carries the Access cookie and needs no change to the app. A
 program cannot, which is why an application serving its panel and its API on one route needs no
 splitting: on `.app` its API is unusable to anything but the author's browser, and a program the
-author runs reaches the API over `.icu`.
+author runs reaches the API over `internal.ixc.one`.
 
-`*.canmi.icu` resolves in public DNS to the machine's LAN address, which answers nobody outside the
+`*.internal.ixc.one` resolves in public DNS to the machine's LAN address, which answers nobody outside the
 house. The machine advertises that one address, as a `/32`, as a tailnet route, so a device on the
 tailnet reaches it from anywhere under the same name. **The answer DNS gives never changes; what
-changes is whether the address is reachable.** That held while `.icu` was the private side; the
-gateway's names are public and answer differently at home, so the house has a resolver of its own
-for them -- see [host.md](host.md), "The resolver answers the gateway's names, and passes the rest
-on".
+changes is whether the address is reachable.** The gateway's names are another matter: they are
+public and answer differently at home, so the house has a resolver of its own for them -- see
+[host.md](host.md), "The resolver answers the gateway's names, and passes the rest on".
 
 ## One API host, scoped by path
 
 > Being replaced by [gateway.md](gateway.md), which wins where the two differ.
 
-Every API is `api.canmi.icu/{scope}/...` privately and `api.monoflake.com/v{n}/{scope}/...`
-publicly, the private side retiring in favor of the public names -- see
-[gateway.md](gateway.md). One path space, of which the public side is a subset. The scope is the service's name, so the site's own
+Every API is `api.internal.ixc.one/{scope}/...` privately and `api.monoflake.com/v{n}/{scope}/...`
+publicly, the private side kept for what runs on the node -- see [gateway.md](gateway.md), "Where
+a request goes". One path space, of which the public side is a subset. The scope is the service's name, so the site's own
 API is `/site/` and gemini's is `/gemini/`. A new API is a row in a table, never a new domain.
 
 The gateway strips the scope, forwards, and decides per scope what the service never has to:
@@ -171,7 +170,7 @@ never kept.
 **Every request the gateway forwards carries `x-gateway: public`, set over whatever the caller
 sent.** The public reaches a node's services through the gateway and nowhere else, so a request
 without the mark came from the LAN, the tailnet or one of our Workers over VPC -- the three callers
-that ask `api.canmi.icu` or `api.canmi.app` directly. A service that treats our own calls
+that ask `api.internal.ixc.one` or `api.canmi.app` directly. A service that treats our own calls
 differently reads the mark rather than an address; it cannot be forged from outside, because the
 gateway overwrites it. It is the second lock behind a forbidden parameter, not a replacement for it.
 
@@ -228,7 +227,7 @@ page may call `api.monoflake.com/v1/geo/address`, and one address may ask sixty 
 answers from memory, so the limit keeps a crawler off the machine at home rather than paying for an
 answer. Our own callers use the same names and meet the same rows, counted by the gateway they
 entered: the internal one for the LAN, once it answers -- see [quota.md](quota.md). Only the
-private side, `api.canmi.icu`, counts nothing, and it retires.
+private side, `api.internal.ixc.one`, counts nothing, and it retires.
 
 **The gateway is written with Hono**, for its CORS middleware and the one error envelope, which
 every service here already answers in. It answers `/robots.txt` itself, keeping the host out of an
@@ -331,7 +330,7 @@ cannot tell a Worker's request from a visitor's, since both arrive from the tunn
 the one Access stops first, at Cloudflare. The VPC service's HTTPS port is never used: Caddy's
 tunnel side answers plain HTTP on 80.
 
-This is a single entrance, not zero trust, and the difference is worth knowing: `.icu` admits by
+This is a single entrance, not zero trust, and the difference is worth knowing: `internal.ixc.one` admits by
 where a request comes from, `.app` by who sent it. For one person that is the right trade. host is
 the exception: it is root on its machine, so it asks for its token even on the LAN.
 

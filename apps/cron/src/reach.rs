@@ -1,6 +1,6 @@
-//! How a run asks its service: `POST api.canmi.icu/<scope><path>` through Caddy, or `POST <path>`
-//! on the service's socket. See spec/architecture/cron.md, "A run is a request, and a task in the
-//! ledger".
+//! How a run asks its service: `POST api.internal.ixc.one/<scope><path>` through Caddy, or
+//! `POST <path>` on the service's socket. See spec/architecture/cron.md, "A run is a request, and a
+//! task in the ledger".
 
 use crate::table::{Job, Reach};
 use bytes::Bytes;

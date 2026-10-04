@@ -204,9 +204,9 @@ impl Limit {
 /// The longest window a limit may count over: a day. Anything longer is a quota, not a limit.
 pub const LONGEST_WINDOW: u32 = 86_400;
 
-/// Reached as a subdomain of its own: always on `.app`, behind Access, and on `.icu` too unless
-/// `lan` says otherwise. See spec/architecture/host.md, "One name inside, and a domain label
-/// outside", and spec/architecture/services.md, "A domain says who can reach it, not what is
+/// Reached as a subdomain of its own: always on `.app`, behind Access, and on the private suffix
+/// too unless `lan` says otherwise. See spec/architecture/host.md, "One name inside, and a domain
+/// label outside", and spec/architecture/services.md, "A domain says who can reach it, not what is
 /// behind it".
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Interface {
@@ -214,7 +214,8 @@ pub struct Interface {
 	/// share one namespace of labels: no two things answer on one label.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub domain: Option<String>,
-	/// Whether the label is also on `.icu`, the LAN's mirror of `.app`. `.app` always carries it.
+	/// Whether the label is also on the private suffix, the LAN's mirror of `.app`, which always
+	/// carries it.
 	#[serde(default = "lan_by_default")]
 	pub lan: bool,
 	/// Where a request for exactly `/` is sent, when the app's own page is not at its root.

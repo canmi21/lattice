@@ -22,7 +22,7 @@ Each tells its own and nothing of the others'.
 **A task is a thing and starting one is a write**, as the workspace's `spec/addresses.md` has it:
 there is no `GET` that starts a capture. What a capture asks is the JSON below, and the version is
 in the path as the gateway's `api` host has it -- `api.monoflake.com/v1/shot/...`; a caller on the
-private side asks `api.canmi.icu/shot/v1/...`, which Caddy takes the scope off.
+private side asks `api.internal.ixc.one/shot/v1/...`, which Caddy takes the scope off.
 
 - **The id is said once, in the body; where to ask is the `Location` header's**, never a second
   field repeating the id.
