@@ -1,4 +1,3 @@
-import cloudflare from '@sveltejs/adapter-cloudflare';
 import vercel from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
@@ -29,38 +28,20 @@ for (const name of ['SUPABASE_URL', 'SUPABASE_ANON_KEY']) {
 	if (bare) process.env[`PUBLIC_${name}`] = bare;
 }
 
-// Where each door's adapter writes the maps; see `DOORS` below for the doors.
-const MAPS = {
-	vercel: ['.svelte-kit/output/**/*.map', '.vercel/output/**/*.map'],
-	cloudflare: ['.svelte-kit/cloudflare/**/*.map'],
-};
+// Where the build writes the maps that Sentry takes and the deployment must not carry.
+const MAPS = ['.svelte-kit/output/**/*.map', '.vercel/output/**/*.map'];
 
 // No DSN, no plugin: the build then carries nothing of Sentry's. Vercel's build may hold no
 // token, so a missing one skips the upload rather than failing.
 const sentry = Boolean(URLS.external.sentry.status);
 const upload = sentry && uploadsSourceMaps(process.env);
-const maps = process.env.STATUS_TARGET === 'cloudflare' ? MAPS.cloudflare : MAPS.vercel;
 
 /**
- * One app, built for a door by `STATUS_TARGET`: the adapter and the base path, and nothing else.
- * Unset is Vercel's, the door that is the page's one address; anything unknown fails the build
- * rather than guessing. See platform's spec/architecture/probe.md, "The page: one app, three
- * doors".
+ * Vercel's adapter alone: the page is served from outside the platform it reports on. The runtime
+ * is stated, since the adapter otherwise takes the building Node's, and mise's is newer than Vercel
+ * runs. See platform's spec/architecture/probe.md, "The page: one app, served by Vercel".
  */
-const DOORS = {
-	// Stated, since the adapter otherwise takes the building Node's, and mise's is newer than
-	// Vercel runs.
-	vercel: { adapter: () => vercel({ runtime: 'nodejs24.x' }), base: '' },
-	cloudflare: { adapter: () => cloudflare(), base: '/status' },
-};
-
-const target = process.env.STATUS_TARGET || 'vercel';
-
-if (!Object.hasOwn(DOORS, target)) {
-	throw new Error(`STATUS_TARGET must be one of ${Object.keys(DOORS).join(', ')}, not ${target}`);
-}
-
-const door = DOORS/** @type {keyof typeof DOORS} */ [target];
+const adapter = vercel({ runtime: 'nodejs24.x' });
 
 export default defineConfig({
 	plugins: [
@@ -68,7 +49,7 @@ export default defineConfig({
 		...(sentry
 			? [
 					sentrySvelteKit(
-						pluginOptions({ project: 'status', upload, env: process.env, mapsToDelete: maps }),
+						pluginOptions({ project: 'status', upload, env: process.env, mapsToDelete: MAPS }),
 					),
 				]
 			: []),
@@ -76,8 +57,7 @@ export default defineConfig({
 		sveltekit({
 			preprocess: vitePreprocess(),
 			compilerOptions: { runes: true },
-			adapter: door.adapter(),
-			paths: { base: door.base },
+			adapter,
 			// `#lib` for svelte-check, as the site's config says.
 			alias: { '#lib': 'src/lib' },
 		}),

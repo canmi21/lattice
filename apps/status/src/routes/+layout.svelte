@@ -180,7 +180,7 @@
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
-	<!-- Every door names the one address, so three doors are one page to an index. -->
+	<!-- Both names say the one address, so the two are one page to an index. -->
 	<link rel="canonical" href={new URL('/', canonical).href} />
 	<!-- The author, said in plain HTML beside the graph, and each of their accounts by `rel="me"`.
 	     See spec/architecture/entities.md, "The head says who wrote it too". -->

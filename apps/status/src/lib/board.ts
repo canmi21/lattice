@@ -2,7 +2,7 @@
  * What the page concludes from the three views: each check's state, its uptime bar, and the one
  * line at the top. Pure, so the server's first screen and the browser's polling agree, and so the
  * rules are tested without a database. See platform's spec/architecture/probe.md, "The page: one
- * app, three doors".
+ * app, served by Vercel".
  */
 import type { StatusCheckRow, StatusNowRow } from '@monoflake/probe';
 import type { HistoryRow } from './rows.ts';
