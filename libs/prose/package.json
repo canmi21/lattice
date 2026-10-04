@@ -49,8 +49,8 @@
 		"bits-ui": "^2.19.5",
 		"d3-hierarchy": "^3.1.2",
 		"esm-env": "^1.2.2",
-		"mermaid": "^11.17.2",
-		"motion": "^13.5.1",
+		"mermaid": "^12.1.0",
+		"motion": "^14.0.0",
 		"phosphor-svelte": "^3.1.0",
 		"svelte": "^5.57.1"
 	},

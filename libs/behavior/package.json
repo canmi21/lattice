@@ -16,7 +16,7 @@
 	"dependencies": {
 		"@canmi/motion": "workspace:*",
 		"@canmi/units": "workspace:*",
-		"motion": "^13.5.1",
+		"motion": "^14.0.0",
 		"svelte": "^5.57.1",
 		"thumbhash": "^0.1.1"
 	},

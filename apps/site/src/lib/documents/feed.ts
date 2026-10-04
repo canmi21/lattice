@@ -31,11 +31,11 @@ export type FeedEntry = FeedAnswer['entries'][number] & { html: string };
 export function buildFeed(entries: readonly FeedEntry[], code: LocaleCode, site: FeedSite): string {
 	const prepared = entries.map((entry) => ({
 		id: entry.url,
-		title: entry.meta.title,
+		title: { value: entry.meta.title },
 		updated: new Date(entry.dates.lastmod),
 		published: new Date(entry.dates.published),
-		summary: entry.meta.description,
-		content: entry.html,
+		summary: { value: entry.meta.description },
+		content: { value: entry.html, type: 'html' },
 		links: [{ href: entry.locale.canonical }],
 		lang: entry.locale.language_tag,
 	}));
@@ -47,8 +47,8 @@ export function buildFeed(entries: readonly FeedEntry[], code: LocaleCode, site:
 
 	let xml = generateAtomFeed({
 		id: site.feed.id,
-		title: site.name,
-		subtitle: site.tagline,
+		title: { value: site.name },
+		subtitle: { value: site.tagline },
 		updated: prepared[0]?.updated ?? new Date(),
 		authors: [{ name: site.author.name, email: site.author.email }],
 		icon: `${MARKS}/favicon.svg`,
@@ -65,8 +65,6 @@ export function buildFeed(entries: readonly FeedEntry[], code: LocaleCode, site:
 		`<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="${feedLanguage}">
   <description>${site.feed.followDescription}</description>`,
 	);
-
-	xml = xml.replace(/<content>/g, '<content type="html">');
 
 	let entryIdx = 0;
 	xml = xml.replace(/<entry>/g, () => {
