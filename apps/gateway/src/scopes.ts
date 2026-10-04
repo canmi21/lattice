@@ -2,6 +2,96 @@
 import type { Scope } from './table.ts';
 
 export const SCOPES: Readonly<Record<string, Scope>> = {
+	aka: {
+		placement: 'workers',
+		binding: 'AKA',
+		worker: 'aka',
+		routes: [
+			{
+				path: '/*',
+				cors: {
+					origins: 'public',
+					methods: ['GET', 'HEAD'],
+					headers: [],
+				},
+				cache: {
+					fulfilled: 300,
+					accepted: 0,
+					redirected: 300,
+					rejected: 300,
+					faulted: 0,
+				},
+				crawlable: false,
+				exposed: true,
+				forbidden: [],
+				auth: 'none',
+			},
+		],
+	},
+	cdn: {
+		placement: 'workers',
+		binding: 'CDN',
+		worker: 'cdn',
+		routes: [
+			{
+				path: '/derive/*',
+				cors: {
+					origins: 'public',
+					methods: ['GET', 'HEAD'],
+					headers: [],
+				},
+				cache: {
+					fulfilled: 'immutable',
+					accepted: 0,
+					redirected: 'immutable',
+					rejected: 300,
+					faulted: 0,
+				},
+				crawlable: true,
+				exposed: true,
+				forbidden: [],
+				auth: 'none',
+			},
+			{
+				path: '/object/*',
+				cors: {
+					origins: 'public',
+					methods: ['GET', 'HEAD'],
+					headers: [],
+				},
+				cache: {
+					fulfilled: 'immutable',
+					accepted: 0,
+					redirected: 'immutable',
+					rejected: 300,
+					faulted: 0,
+				},
+				crawlable: true,
+				exposed: true,
+				forbidden: [],
+				auth: 'none',
+			},
+			{
+				path: '/*',
+				cors: {
+					origins: 'public',
+					methods: ['GET', 'HEAD'],
+					headers: [],
+				},
+				cache: {
+					fulfilled: 3600,
+					accepted: 0,
+					redirected: 3600,
+					rejected: 300,
+					faulted: 0,
+				},
+				crawlable: false,
+				exposed: true,
+				forbidden: [],
+				auth: 'none',
+			},
+		],
+	},
 	geo: {
 		placement: 'home',
 		binding: 'HOME',

@@ -1,5 +1,34 @@
-# Content-addressed bytes on cdn.ffoni.com, an origin of its own rather than a scope of the API
-# host. See spec/architecture/services.md.
+# Content-addressed bytes: the `cdn` service behind the gateway, at `cdn.monoflake.com` and as a
+# scope of the API host. See spec/architecture/gateway.md and spec/architecture/delivery.md.
 version = 1
 name = "cdn"
 placements = ["workers"]
+
+# Everything here is public, so any page may read it; a fact about the bucket holds until the next
+# publication, and a failure of this moment is kept nowhere. See spec/architecture/delivery.md,
+# "What each lifetime is earned by".
+[api]
+public = true
+
+[api.defaults.cors]
+origins = "public"
+
+[api.defaults.cache.success]
+fulfilled = "1h"
+redirected = "1h"
+
+[api.defaults.cache.failure]
+rejected = "5m"
+faulted = "none"
+
+# Content addressed, so the bytes behind an address never change, and a crawler may take them.
+[[api.routes]]
+path = "/object/*"
+crawlable = true
+cache = { success = { fulfilled = "immutable", redirected = "immutable" } }
+
+# A conversion of content-addressed bytes, as settled as the bytes it names.
+[[api.routes]]
+path = "/derive/*"
+crawlable = true
+cache = { success = { fulfilled = "immutable", redirected = "immutable" } }

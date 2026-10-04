@@ -15,12 +15,19 @@ export const CACHE_HEADER = 'x-gateway-cache';
 const YEAR = 31_536_000;
 
 /**
- * Whether a request may be answered from, and stored in, the cache: a read, from nobody in
- * particular. A request carrying credentials is somebody's, and its answer may be theirs alone.
+ * Whether a request may be answered from, and stored in, the cache: a whole read, from nobody in
+ * particular. A request carrying credentials is somebody's, and its answer may be theirs alone; one
+ * asking a range wants part of what is kept under the address, and its answer is only that part.
  */
 export function cacheable(request: Request): boolean {
 	if (request.method !== 'GET' && request.method !== 'HEAD') return false;
+	if (request.headers.has('range')) return false;
 	return !request.headers.has('authorization') && !request.headers.has('cookie');
+}
+
+/** Whether an answer is the whole of what its address names, and so worth keeping under it. */
+export function whole(answer: Response): boolean {
+	return answer.status !== 206;
 }
 
 /** Which of the five an answer is: a `202` apart from every other `2xx`, and no answer a fault. */

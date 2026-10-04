@@ -12,6 +12,8 @@
 	// src/index.test.ts holds this list to the generated table. See spec/architecture/services.md,
 	// "One API host, scoped by path".
 	"services": [
+		{ "binding": "AKA", "service": "aka" },
+		{ "binding": "CDN", "service": "cdn" },
 		{ "binding": "HOOK", "service": "hook" },
 		{ "binding": "SITE", "service": "site" },
 	],
@@ -43,7 +45,7 @@
 	"env": {
 		"dev": {
 			"services": [{ "binding": "HOOK", "service": "hook" }],
-			"vars": { "SITE": "development" },
+			"vars": { "SITE": "development", "CDN": "development", "AKA": "development" },
 			"durable_objects": { "bindings": [{ "name": "limits", "class_name": "counter" }] },
 		},
 	},

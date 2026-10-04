@@ -58,10 +58,12 @@ const NAMED: Readonly<Record<string, Profile>> = {
 			[`cdn.${domain}`, { name: 'cdn', service: 'cdn', version: 'v3', crawled: true }],
 		]),
 	),
-	[GATEWAY.alias]: { name: 'alias', service: 'alias', version: 'v1', crawled: false },
+	// Every old path as it was, until the pages ask `symlink.si` for their marks; then the short
+	// links alone, at `v1`. See spec/architecture/gateway.md, "A domain leaves without a redirect".
+	[GATEWAY.alias]: { name: 'alias', service: 'aka', version: null, crawled: false },
 	[GATEWAY.symlink]: {
 		name: 'symlink',
-		service: 'alias',
+		service: 'aka',
 		version: 'v1',
 		prefix: '/symlink',
 		crawled: false,
@@ -129,6 +131,12 @@ export function readRequest(url: URL): Tuple | Refusal {
 		const [segment, after] = shift(rest);
 		if (!SERVICE.test(segment)) return 'no_service';
 		[service, rest] = [segment, after];
+	}
+	// A retired host forwards its old paths as they were, and a caller already moved to a version
+	// may send one through it: read it as the version, so its routes are matched as declared.
+	if (version === null) {
+		const [segment, after] = shift(rest);
+		if (VERSION.test(segment)) [version, rest] = [segment, after];
 	}
 	const path = `${profile.prefix ?? ''}${rest === '/' && profile.prefix ? '' : rest}`;
 	return {

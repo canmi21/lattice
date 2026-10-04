@@ -186,3 +186,12 @@ describe('the rest of the host', () => {
 		expect(res.headers.get('Content-Type')).toContain('application/json');
 	});
 });
+
+describe('the version', () => {
+	it('resolves a name at /v1/ as it does unversioned', async () => {
+		answering(200, named);
+		const [versioned, plain] = [await app.fetch(new Request(`${HOST}/v1/symlink/favicon.svg`)), await app.fetch(new Request(`${HOST}/symlink/favicon.svg`))];
+		expect(versioned.status).toBe(plain.status);
+		expect(versioned.headers.get('Location')).toBe(plain.headers.get('Location'));
+	});
+});

@@ -134,3 +134,14 @@ describe('the catch-all', () => {
 		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_address' });
 	});
 });
+
+describe('the version', () => {
+	it('answers the three groups at /v3/ as it answers them unversioned', async () => {
+		for (const path of [`/object/${CID}.avif`, `/derive/${CID}.png.avif`, '/proxy/github/x']) {
+			const [versioned, plain] = [await ask(`/v3${path}`), await ask(path)];
+			expect(versioned.status, path).toBe(plain.status);
+			expect(await versioned.text(), path).toBe(await plain.text());
+		}
+		expect((await ask('/v3/nothing')).status).toBe(400);
+	});
+});

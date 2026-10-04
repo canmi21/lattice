@@ -138,6 +138,16 @@ describe('the cache at the gateway', () => {
 		expect(await head.text()).toBe('');
 	});
 
+	it('keeps neither a range asked for nor a part answered', async () => {
+		const { put } = install();
+		const app = gateway(table);
+		const ranged = node(() => answer(206, { 'content-range': 'bytes 0-1/10' }));
+		await app.fetch(new Request(`${HOST}/geo/r`, { headers: { range: 'bytes=0-1' } }), ranged.env);
+		const partial = node(() => answer(206));
+		await app.fetch(new Request(`${HOST}/geo/p`), partial.env);
+		expect(put).toEqual([]);
+	});
+
 	it('keeps nothing for a route that declares none', async () => {
 		const { put } = install();
 		const app = gateway({

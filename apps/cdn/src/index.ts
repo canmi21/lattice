@@ -88,9 +88,14 @@ app.all('/github/*', (c) => {
  * full. `/proxy/{vendor}` is a live fetch from somebody else. None of the three asks anything
  * anywhere what a name means, which is what lets this host answer with every other one down.
  */
-app.route('/object', object);
-app.route('/derive', derive);
-app.route('/proxy/github', github);
+const groups = new Hono<{ Bindings: Bindings }>();
+groups.route('/object', object);
+groups.route('/derive', derive);
+groups.route('/proxy/github', github);
+// At `/v3/`, and unversioned until its callers move. See spec/architecture/gateway.md, "A version
+// is in the path, and it moves only on a break".
+app.route('/v3', groups);
+app.route('/', groups);
 
 /**
  * Anything else, and `400` rather than `404` because the two say different things.

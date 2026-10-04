@@ -1,6 +1,8 @@
 http.host eq "api.ffoni.com"
 and not starts_with(http.request.uri.path, "/.well-known/")
 and not http.request.uri.path in {"/" "/robots.txt" "/favicon.ico"}
+and not starts_with(http.request.uri.path, "/aka/")
+and not starts_with(http.request.uri.path, "/cdn/")
 and not starts_with(http.request.uri.path, "/geo/")
 and not starts_with(http.request.uri.path, "/hook/")
 and not starts_with(http.request.uri.path, "/probe/")

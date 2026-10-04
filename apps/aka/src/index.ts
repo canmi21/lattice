@@ -65,7 +65,8 @@ app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'aka'));
  * A fixed name always carries a dot and `robots.txt` is six characters before one, so nothing
  * that belongs elsewhere on this host can parse as a rid: the split is arithmetic, not a guess.
  */
-app.get('/:rid{[0-9a-z]{5}}', (c) => resource(c, c.req.param('rid')));
+const names = new Hono();
+names.get('/:rid{[0-9a-z]{5}}', (c) => resource(c, c.req.param('rid')));
 
 /**
  * The site's marks by their bare names, resolved by asking the API.
@@ -74,15 +75,19 @@ app.get('/:rid{[0-9a-z]{5}}', (c) => resource(c, c.req.param('rid')));
  * already out there -- every host's year-long `301` from `/favicon.ico`, the BIMI record -- while a
  * page asks the scoped form below.
  */
-app.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.req.param('name')));
+names.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.req.param('name')));
 
 /**
  * A scope's marks, `/symlink/{scope}/{file}`: the form every page asks. See
  * spec/architecture/delivery.md, "Every fixed name is a record".
  */
-app.get('/symlink/:scope{[a-z][a-z0-9-]*}/:file{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) =>
+names.get('/symlink/:scope{[a-z][a-z0-9-]*}/:file{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) =>
 	resolve(c, `${c.req.param('scope')}/${c.req.param('file')}`),
 );
+// At `/v1/`, and unversioned until its callers move. See spec/architecture/gateway.md, "A version
+// is in the path, and it moves only on a break".
+app.route('/v1', names);
+app.route('/', names);
 
 /**
  * Anything else, and `400` rather than `404` because the two say different things here too.

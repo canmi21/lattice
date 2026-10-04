@@ -39,8 +39,8 @@ path, so the CDN receives `/v3/object/...` whichever host was asked.
 | ----------------------------------------- | ------------------------------------- | ---------------------------- |
 | `api.monoflake.com`                       | nothing                               | `/v{n}/{service}/{path}`     |
 | `cdn.monoflake.com`                       | the service, `cdn`, at `v3`           | `/{path}`                    |
-| `ill.li`                                  | the service, `alias`, at `v1`         | `/{rid}`, a short link       |
-| `symlink.si`                              | `alias` at `v1`, under `/symlink`     | `/{path}`                    |
+| `ill.li`                                  | the service, `aka`, at `v1`           | `/{rid}`, a short link       |
+| `symlink.si`                              | `aka` at `v1`, under `/symlink`       | `/{path}`                    |
 | `api-{region}-{provider}.ixc.one`         | where it runs                         | `/v{n}/{service}/{path}`     |
 | `{service}-{region}-{provider}.ixc.one`   | the service, and where it runs        | `/v{n}/{path}`               |
 
@@ -62,7 +62,11 @@ not". `ixc.one` has no second: a deployment's own host is for pinning, not for p
 **A profile is a row in a table, not code.** A new short host, or a new node, is one more row: the
 hostname, what it fixes, the version it pins, and the path it puts in front, if any.
 `symlink.si/{path}` reaches the alias layer as `/v1/symlink/{path}`; `ill.li/symlink/...` is then no
-address at all, and `ill.li` carries short links alone.
+address at all, and `ill.li` carries short links alone. Until the pages ask `symlink.si` for their
+marks, `ill.li` forwards every old path as it was, as a retired host does.
+
+**The alias layer's code is `aka`**, the name its Worker and its directory have always had: short,
+and what it has been called everywhere it is named.
 
 ## Hostnames are one label deep, spelled with hyphens
 
@@ -234,6 +238,11 @@ One lifetime for every answer -- five minutes, success or failure -- is too coar
 are facts that hold until the next publication, and some are a blip that must not be kept at all.
 A route says how long each of these is kept: an answer, a refusal about the request itself, and
 the service failing or being unreachable.
+
+**A range is never kept.** A request asking for part of what an address names, and a `206`
+answering it, pass the gateway's cache by: kept under the whole address, a part would be served as
+the whole to the next reader. The lifetime still goes on to the browser, which keeps ranges as
+ranges.
 
 **Whether an object can be read is the route's to say, not the object's.** Objects are content
 addressed and stored once, so a content id says what the bytes are and nothing about who may have

@@ -32,6 +32,7 @@ import {
 	secondsOf,
 	store,
 	toKeep,
+	whole,
 } from './cache.ts';
 import { GATEWAY_DEFAULTS, type Route } from './declaration.ts';
 import { counted } from './limit.ts';
@@ -154,7 +155,7 @@ function corsFor(route: Route): MiddlewareHandler | undefined {
 /** Which host a profile is, for the files every host answers: its note, its mark, its `ref`. */
 function hostOf(profile: Profile): Service {
 	if (profile.service === 'cdn') return 'cdn';
-	if (profile.service === 'alias') return 'aka';
+	if (profile.service === 'aka') return 'aka';
 	return 'api';
 }
 
@@ -211,11 +212,14 @@ function robotsOf(profile: Profile, scopes: Readonly<Record<string, Scope>>): st
  */
 function destination(value: unknown, target: Scope): Fetcher | string | undefined {
 	if (isFetcher(value)) return value;
-	const worker = target.worker;
+	const worker = target.worker && (PORTED[target.worker] ?? target.worker);
 	if (value !== DEVELOPMENT || !worker || !Object.hasOwn(DEVELOPMENT_PORTS, worker))
 		return undefined;
 	return developmentUrl(worker as keyof typeof DEVELOPMENT_PORTS);
 }
+
+/** A Worker whose development port is pinned under another name: the alias layer's is `alias`. */
+const PORTED: Readonly<Record<string, string>> = { aka: 'alias' };
 
 /** What a scope's binding is set to, as a variable, where the Worker runs in development. */
 const DEVELOPMENT = 'development';
@@ -316,11 +320,12 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 				? 0
 				: route.cache[kindOf(answer.status, unreached)];
 			const returned = new Response(answer.body, answer);
+			const personal = c.req.raw.headers.has('authorization') || c.req.raw.headers.has('cookie');
 			returned.headers.set(
 				'cache-control',
-				shared || c.req.method !== 'GET' ? controlOf(lifetime) : 'private, no-store',
+				personal && c.req.method === 'GET' ? 'private, no-store' : controlOf(lifetime),
 			);
-			const seconds = shelf && c.req.method === 'GET' ? secondsOf(lifetime) : 0;
+			const seconds = shelf && c.req.method === 'GET' && whole(answer) ? secondsOf(lifetime) : 0;
 			if (shelf && seconds > 0) {
 				const kept = shelf.put(key, toKeep(returned));
 				try {
