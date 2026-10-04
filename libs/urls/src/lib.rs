@@ -72,3 +72,7 @@ pub const EXTERNAL_UMAMI_GATEWAY: &str = "https://gateway.umami.is";
 pub const EXTERNAL_OPENPANEL: &str = "https://api.openpanel.dev";
 pub const EXTERNAL_GOOGLE_FONTS_CSS: &str = "https://fonts.googleapis.com";
 pub const EXTERNAL_GOOGLE_FONTS_STATIC: &str = "https://fonts.gstatic.com";
+
+/// Every hostname the gateway answers at home.
+#[rustfmt::skip]
+pub const GATEWAY_HOSTS: [&str; 5] = ["*.monoflake.com", "*.monoflake.net", "*.ixc.one", "ill.li", "symlink.si"];

@@ -159,22 +159,56 @@ fn refused() -> Value {
 	})
 }
 
-/// Each API scope, its prefix stripped before the service sees the request; the API host answers
-/// every scope on both sides, since `.icu` is the LAN and `.app` sits behind Access -- what the
+/// One of Caddy's sides: the LAN's, the tunnel's, and the internal gateway's. See
+/// spec/architecture/host.md, "The inside side answers the internal gateway alone".
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Side {
+	Private,
+	Tunnel,
+	Inside,
+}
+
+impl Side {
+	/// As a declaration's `sides` names it.
+	fn name(self) -> &'static str {
+		match self {
+			Side::Private => "private",
+			Side::Tunnel => "tunnel",
+			Side::Inside => "inside",
+		}
+	}
+}
+
+/// The name the inside side answers, and its port, published nowhere.
+const INSIDE_HOST: &str = "api.inside";
+const INSIDE_LISTEN: &str = ":8080";
+
+/// The header the internal gateway carries its token in; the same name as `INTERNAL_HEADER` in the
+/// gateway.
+const INTERNAL_HEADER: &str = "X-Internal";
+
+/// The internal gateway: the one app the LAN's side hands the gateway's hostnames to.
+const GATEWAY: &str = "gateway";
+
+/// Each API scope a side carries, its prefix stripped before the service sees the request; what the
 /// public may reach of it is the gateway's table, not this render. Limits are only ever counted on
 /// the tunnel's side, over what the gateway forwards. See spec/architecture/services.md, "A path
 /// with no scope is a 400, on both gateways".
-fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
+fn scopes(apps: &[Deployed], side: Side) -> Vec<Value> {
 	let mut routes = vec![json!({
 		"match": [{ "path": ["/"] }],
 		"handle": [{ "handler": "static_response", "status_code": 400 }]
 	})];
-	routes.extend(apps.iter().filter(|app| app.manifest.api.is_some()).filter_map(|app| {
+	routes.extend(apps.iter().filter_map(|app| {
 		let name = &app.manifest.name;
+		let api = app.manifest.api.as_ref().filter(|api| api.carried_on(side.name()))?;
 		let port = app.manifest.container.as_ref()?.port?;
-		let api = app.manifest.api.as_ref()?;
 		let mut handle = vec![json!({ "handler": "rewrite", "strip_path_prefix": format!("/{name}") })];
-		handle.extend(public.then(|| limited(name, &api.limits)).flatten());
+		handle.extend((side == Side::Tunnel).then(|| limited(name, &api.limits)).flatten());
+		// The token stops at Caddy: no service behind it ever sees it.
+		if side == Side::Inside {
+			handle.push(json!({ "handler": "headers", "request": { "delete": [INTERNAL_HEADER] } }));
+		}
 		handle.extend([encode(), proxy(&format!("{name}:{port}"), name)]);
 		Some(json!({
 			"match": [{ "path": [format!("/{name}"), format!("/{name}/*")] }],
@@ -185,11 +219,48 @@ fn scopes(apps: &[Deployed], public: bool) -> Vec<Value> {
 	routes
 }
 
-fn api_host(host: String, apps: &[Deployed], public: bool) -> Value {
+fn api_host(host: String, apps: &[Deployed], side: Side) -> Value {
 	json!({
 		"match": [{ "host": [host] }],
-		"handle": [{ "handler": "subroute", "routes": scopes(apps, public) }]
+		"handle": [{ "handler": "subroute", "routes": scopes(apps, side) }]
 	})
+}
+
+/// The inside side: every scope a declaration lets it carry, to a caller holding `INTERNAL_TOKEN`
+/// from Caddy's own environment, and nothing to anyone else. A token that is not set lets nobody
+/// in, rather than matching a header that is absent too.
+fn inside_side(apps: &[Deployed]) -> Vec<Value> {
+	let holds = format!(
+		"{{env.INTERNAL_TOKEN}} != '' && {{http.request.header.{INTERNAL_HEADER}}} == {{env.INTERNAL_TOKEN}}"
+	);
+	vec![
+		json!({
+			"match": [{ "host": [INSIDE_HOST], "expression": holds }],
+			"handle": [{ "handler": "subroute", "routes": scopes(apps, Side::Inside) }],
+			"terminal": true
+		}),
+		abort(),
+	]
+}
+
+/// The gateway's hostnames on the LAN's side, handed to the internal gateway with the address they
+/// were asked from in `Cf-Connecting-Ip`, over whatever the caller sent. None while the internal
+/// gateway is not deployed. See spec/architecture/host.md, "The inside side answers the internal
+/// gateway alone".
+fn gateway_hosts(config: &CaddyConfig, apps: &[Deployed]) -> Option<Value> {
+	let app = apps.iter().find(|app| app.manifest.name == GATEWAY)?;
+	let port = app.manifest.container.as_ref()?.port?;
+	let mut proxy = proxy(&format!("{GATEWAY}:{port}"), GATEWAY);
+	proxy["headers"] =
+		json!({ "request": { "set": { "Cf-Connecting-Ip": ["{http.vars.client_ip}"] } } });
+	Some(json!({
+		"match": [{ "host": urls::GATEWAY_HOSTS }],
+		"handle": [{ "handler": "subroute", "routes": [
+			refuse_unless(&config.private_sources),
+			{ "handle": [encode(), proxy] }
+		]}],
+		"terminal": true
+	}))
 }
 
 /// Everything reached by a subdomain of its own on one side, by its label: each app with an
@@ -227,18 +298,29 @@ pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Valu
 	let public = &config.public_suffix;
 
 	let mut inside = vec![refuse_unless(&config.private_sources)];
-	inside.push(api_host(format!("api.{private}"), apps, false));
+	inside.push(api_host(format!("api.{private}"), apps, Side::Private));
 	for target in interfaces(apps, routes, false) {
 		inside.push(named(format!("{}.{private}", target.name), &target));
 	}
 	inside.push(abort());
 
 	let mut outside = vec![refuse_unless(std::slice::from_ref(&config.tunnel_source))];
-	outside.push(api_host(format!("api.{public}"), apps, true));
+	outside.push(api_host(format!("api.{public}"), apps, Side::Tunnel));
 	for target in interfaces(apps, routes, true) {
 		outside.push(named(format!("{}.{public}", target.name), &target));
 	}
 	outside.push(json!({ "handle": [{ "handler": "static_response", "status_code": 404 }] }));
+
+	let mut lan = Vec::from_iter(gateway_hosts(config, apps));
+	lan.push(json!({
+		"match": [{ "host": [format!("*.{private}")] }],
+		"handle": [{ "handler": "subroute", "routes": inside }],
+		"terminal": true
+	}));
+	let mut subjects = vec![format!("*.{private}")];
+	if lan.len() > 1 {
+		subjects.extend(urls::GATEWAY_HOSTS.iter().map(|host| (*host).to_owned()));
+	}
 
 	// The visitor's address comes from Cloudflare's header, and only when cloudflared sent it.
 	let trusted = json!({ "source": "static", "ranges": [config.tunnel_source] });
@@ -248,11 +330,7 @@ pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Valu
 			"http": { "servers": {
 				"private": {
 					"listen": [":443"],
-					"routes": [{
-						"match": [{ "host": [format!("*.{private}")] }],
-						"handle": [{ "handler": "subroute", "routes": inside }],
-						"terminal": true
-					}],
+					"routes": lan,
 					"trusted_proxies": trusted,
 					"client_ip_headers": ["Cf-Connecting-Ip"]
 				},
@@ -266,10 +344,16 @@ pub fn render(config: &CaddyConfig, apps: &[Deployed], routes: &[Route]) -> Valu
 					"errors": { "routes": [refused()] },
 					"trusted_proxies": trusted,
 					"client_ip_headers": ["Cf-Connecting-Ip"]
+				},
+				// Plain HTTP on a port no one outside Caddy's networks reaches, so no certificate.
+				"inside": {
+					"listen": [INSIDE_LISTEN],
+					"routes": inside_side(apps),
+					"automatic_https": { "disable": true }
 				}
 			}},
 			"tls": { "automation": { "policies": [{
-				"subjects": [format!("*.{private}")],
+				"subjects": subjects,
 				"issuers": [{
 					"module": "acme",
 					"email": config.acme_email,
@@ -340,6 +424,63 @@ mod tests {
 		serde_json::to_string(value).unwrap()
 	}
 
+	fn deployed(declaration: &str) -> Deployed {
+		Deployed { manifest: Manifest::parse(declaration).unwrap(), ..geo() }
+	}
+
+	fn quota() -> Deployed {
+		deployed(include_str!("../../quota/service.toml"))
+	}
+
+	fn gateway() -> Deployed {
+		deployed(include_str!("../../gateway/service.toml"))
+	}
+
+	#[test]
+	fn the_inside_side_carries_every_scope_to_a_holder_of_the_token_alone() {
+		let rendered = render(&config(), &[geo(), quota()], &[]);
+		let inside = &rendered["apps"]["http"]["servers"]["inside"];
+		assert_eq!(inside["listen"][0], ":8080");
+		assert_eq!(inside["automatic_https"]["disable"], true);
+		let route = &inside["routes"][0];
+		assert_eq!(route["match"][0]["host"][0], "api.inside");
+		let holds = route["match"][0]["expression"].as_str().unwrap();
+		assert!(holds.contains("{env.INTERNAL_TOKEN} != ''"));
+		assert!(holds.contains("{http.request.header.X-Internal} == {env.INTERNAL_TOKEN}"));
+		let carried = text(&route["handle"][0]["routes"]);
+		assert!(carried.contains(r#""/geo/*""#) && carried.contains(r#""/quota/*""#));
+		// The token stops at Caddy, and what reaches this side was counted already.
+		assert!(carried.contains(r#""delete":["X-Internal"]"#));
+		assert!(!carried.contains(r#""handler":"rate_limit""#));
+		assert_eq!(inside["routes"][1]["handle"][0]["abort"], true);
+	}
+
+	#[test]
+	fn a_scope_on_the_inside_side_alone_is_on_neither_api_host() {
+		let rendered = text(&render(&config(), &[quota()], &[]));
+		let servers =
+			serde_json::from_str::<Value>(&rendered).unwrap()["apps"]["http"]["servers"].clone();
+		assert!(!text(&servers["private"]).contains("/quota"));
+		assert!(!text(&servers["tunnel"]).contains("/quota"));
+		assert!(text(&servers["inside"]).contains("/quota"));
+	}
+
+	#[test]
+	fn the_lan_hands_the_gateways_hostnames_to_the_internal_gateway_once_it_runs() {
+		let without = render(&config(), &[geo()], &[]);
+		assert!(!text(&without).contains("monoflake"));
+		let with = render(&config(), &[geo(), gateway()], &[]);
+		let route = &with["apps"]["http"]["servers"]["private"]["routes"][0];
+		assert_eq!(text(&route["match"][0]["host"]), text(&json!(urls::GATEWAY_HOSTS)));
+		let handle = &route["handle"][0]["routes"];
+		assert_eq!(handle[0]["handle"][0]["abort"], true);
+		let proxy = &handle[1]["handle"][1];
+		assert_eq!(proxy["upstreams"][0]["dial"], "gateway:26512");
+		assert_eq!(proxy["headers"]["request"]["set"]["Cf-Connecting-Ip"][0], "{http.vars.client_ip}");
+		let subjects = text(&with["apps"]["tls"]["automation"]["policies"][0]["subjects"]);
+		assert!(subjects.contains("*.monoflake.com") && subjects.contains("symlink.si"));
+	}
+
 	#[test]
 	fn an_api_scope_answers_on_both_api_hosts_regardless_of_its_public_flag() {
 		let mut private = geo();
@@ -354,7 +495,8 @@ mod tests {
 		// scope table's alone; see spec/architecture/services.md, "One API host, scoped by path".
 		assert!(!rendered.contains("geo.outside.test"));
 		assert!(!rendered.contains("geo.inside.test"));
-		assert_eq!(rendered.matches(r#""dial":"geo:23440""#).count(), 2);
+		// The LAN's side, the tunnel's, and the inside side the internal gateway asks.
+		assert_eq!(rendered.matches(r#""dial":"geo:23440""#).count(), 3);
 	}
 
 	#[test]
@@ -362,7 +504,7 @@ mod tests {
 		let rendered = render(&config(), &[geo()], &[]);
 		let tunnel = &rendered["apps"]["http"]["servers"]["tunnel"]["routes"][0]["handle"][0]["routes"];
 		assert_eq!(tunnel[1]["match"][0]["host"][0], "api.outside.test");
-		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 2);
+		assert_eq!(text(&rendered).matches(r#""dial":"geo:23440""#).count(), 3);
 	}
 
 	#[test]
@@ -401,7 +543,7 @@ mod tests {
 
 	#[test]
 	fn a_path_with_no_scope_is_malformed() {
-		let first = &scopes(&[geo()], false)[0];
+		let first = &scopes(&[geo()], Side::Private)[0];
 		assert_eq!(first["match"][0]["path"][0], "/");
 		assert_eq!(first["handle"][0]["status_code"], 400);
 	}

@@ -1814,6 +1814,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "url",
+ "urls",
 ]
 
 [[package]]

@@ -2,9 +2,18 @@
 # else counts. See spec/architecture/quota.md.
 version = 1
 name = "quota"
-placements = ["workers"]
+placements = ["workers", "home"]
+
+[container]
+# The port it has in development, kept inside its container too.
+port = 26523
+health = "/health"
+memory_mb = 64
 
 # Its HTTP door stays closed to the gateway until a caller's keys can be fixed to its account. See
 # spec/architecture/quota.md, "Two doors: one inside, and one held for later".
 [api]
 public = false
+# Its inside door takes any key, so Caddy carries it on the inside side alone. See
+# spec/architecture/host.md, "The inside side answers the internal gateway alone".
+sides = ["inside"]

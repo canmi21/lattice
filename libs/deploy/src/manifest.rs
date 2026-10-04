@@ -46,12 +46,11 @@ pub const OBJECTS: &str = "objects";
 const RESERVED_LABELS: [&str; 1] = ["cms"];
 
 /// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel, the object
-/// storage and database drivers, the scheduler, the door onto the machine's own packages and
-/// telemetry. See spec/architecture/host.md, "host never updates itself; keeper updates host",
-/// spec/architecture/meter.md, spec/architecture/objects.md, spec/architecture/databases.md,
-/// spec/architecture/cron.md and spec/architecture/apt.md.
-pub const OWN: [&str; 11] = [
+/// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel, the object storage
+/// and database drivers, the scheduler, the door onto the machine's packages, telemetry and the
+/// internal gateway. See spec/architecture/host.md, "host never updates itself; keeper updates
+/// host", and the file each is named for under spec/architecture/.
+pub const OWN: [&str; 12] = [
 	"host",
 	"keeper",
 	"meter",
@@ -63,6 +62,7 @@ pub const OWN: [&str; 11] = [
 	"cron",
 	"apt",
 	"telemetry",
+	"gateway",
 ];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
@@ -151,6 +151,20 @@ pub struct Api {
 	/// spec/architecture/quota.md.
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
 	pub limits: Vec<Limit>,
+	/// Which of Caddy's sides carry it, of [`SIDES`]; all of them when absent, and never without
+	/// `inside`. See spec/architecture/host.md, "The inside side answers the internal gateway alone".
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub sides: Option<Vec<String>>,
+}
+
+/// Caddy's sides an API may be carried on: the LAN's, the tunnel's, and the internal gateway's.
+pub const SIDES: [&str; 3] = ["private", "tunnel", "inside"];
+
+impl Api {
+	/// Whether Caddy carries it on `side`.
+	pub fn carried_on(&self, side: &str) -> bool {
+		self.sides.as_ref().is_none_or(|sides| sides.iter().any(|named| named == side))
+	}
 }
 
 /// One route's allowance, as a bucket: `burst` calls at once, room coming back at `count` calls in
@@ -367,6 +381,8 @@ pub enum Invalid {
 		"a limit names HTTP methods and a path from /, and allows at least once in 1 to 86400 seconds"
 	)]
 	Limit,
+	#[error("an API's sides are named from `private`, `tunnel` and `inside`, and include `inside`")]
+	Sides,
 	#[error("`{0}` is not a bucket name S3 takes")]
 	Bucket(String),
 	#[error("`[objects]` names at least one bucket, each once")]
@@ -490,6 +506,13 @@ impl Manifest {
 		if self.api.as_ref().is_some_and(|api| !api.limits.iter().all(sound) || !covered(api)) {
 			return Err(Invalid::Limit);
 		}
+		let sided = |sides: &Vec<String>| {
+			sides.iter().all(|side| SIDES.contains(&side.as_str()))
+				&& sides.iter().any(|side| side == "inside")
+		};
+		if self.api.as_ref().and_then(|api| api.sides.as_ref()).is_some_and(|sides| !sided(sides)) {
+			return Err(Invalid::Sides);
+		}
 		if let Some(objects) = &self.objects {
 			check_objects(objects)?;
 		}
@@ -605,7 +628,7 @@ mod tests {
 				subject: None,
 			},
 		];
-		assert_eq!(manifest.api, Some(Api { public: true, prefix: None, limits }));
+		assert_eq!(manifest.api, Some(Api { public: true, prefix: None, limits, sides: None }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
 	}
 
@@ -748,6 +771,21 @@ mod tests {
 			let text = format!("{GEO}\n[[api.limits]]\n{broken}\n");
 			let manifest = Manifest::parse(&text).unwrap();
 			assert_eq!(manifest.check("geo", "home"), Err(Invalid::Limit), "{broken}");
+		}
+	}
+
+	#[test]
+	fn names_its_sides_from_three_and_never_leaves_out_inside() {
+		let mut geo = Manifest::parse(GEO).unwrap();
+		let api = geo.api.as_mut().unwrap();
+		assert!(api.carried_on("private") && api.carried_on("tunnel") && api.carried_on("inside"));
+		api.sides = Some(vec!["inside".into()]);
+		assert!(!api.carried_on("private") && api.carried_on("inside"));
+		assert_eq!(geo.check("geo", "home"), Ok(()));
+		for sides in [vec!["private"], vec!["inside", "outside"], vec![]] {
+			let mut broken = geo.clone();
+			broken.api.as_mut().unwrap().sides = Some(sides.iter().map(|side| (*side).into()).collect());
+			assert_eq!(broken.check("geo", "home"), Err(Invalid::Sides), "{sides:?}");
 		}
 	}
 

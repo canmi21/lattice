@@ -1,0 +1,12 @@
+# The gateway, deployed twice: on Workers by Cloudflare, and at home by host, where the LAN asks the
+# same names. One of the platform's own. See spec/architecture/gateway.md, "Inside the house, the
+# same names answer locally".
+version = 1
+name = "gateway"
+placements = ["workers", "home"]
+
+[container]
+# The port it has in development, kept inside its container too.
+port = 26512
+health = "/health"
+memory_mb = 128

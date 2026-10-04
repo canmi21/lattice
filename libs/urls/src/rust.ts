@@ -1,4 +1,4 @@
-import { URLS } from './index.ts';
+import { GATEWAY_HOSTS, URLS } from './index.ts';
 
 /**
  * The Rust mirror of the URL map.
@@ -15,11 +15,16 @@ export function rustUrlMap(): string {
 	const constants = pairs
 		.map(([name, value]) => `pub const ${name}: &str = "${value}";`)
 		.join('\n');
+	const hosts = GATEWAY_HOSTS.map((host) => `"${host}"`).join(', ');
 	return [
 		'//! Generated from libs/urls/src/index.ts by `mise run urls`; do not edit.',
 		'//! One URL map for both languages -- see spec/architecture/workspace.md.',
 		'',
 		constants,
+		'',
+		'/// Every hostname the gateway answers at home.',
+		'#[rustfmt::skip]',
+		`pub const GATEWAY_HOSTS: [&str; ${GATEWAY_HOSTS.length}] = [${hosts}];`,
 		'',
 	].join('\n');
 }

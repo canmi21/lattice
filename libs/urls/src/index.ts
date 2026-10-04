@@ -294,6 +294,19 @@ export const GATEWAY = {
 } as const;
 
 /**
+ * Every hostname the gateway answers at home, as a certificate and a router name them: a wildcard
+ * over each zone it owns below the apex, and the two apexes it is. The retired hosts are left out:
+ * the house never asks them. See spec/architecture/host.md, "The inside side answers the internal
+ * gateway alone".
+ */
+export const GATEWAY_HOSTS: readonly string[] = [
+	...GATEWAY.domains.map((domain) => `*.${domain}`),
+	`*.${GATEWAY.deployments}`,
+	GATEWAY.alias,
+	GATEWAY.symlink,
+];
+
+/**
  * Where each consumer's pages are served, by its service code: what a declaration's `cors.origins`
  * names, so no `service.toml` spells an origin. The status page has three doors, the platform's
  * own among them. See spec/architecture/gateway.md, "A route names who may call it by service
