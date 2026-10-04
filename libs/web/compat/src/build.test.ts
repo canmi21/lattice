@@ -6,7 +6,7 @@ import { esbuildTarget } from './build';
 const floorOf = (app: string): string[] =>
 	JSON.parse(
 		readFileSync(
-			fileURLToPath(new URL(`../../../apps/${app}/package.json`, import.meta.url)),
+			fileURLToPath(new URL(`../../../../apps/${app}/package.json`, import.meta.url)),
 			'utf8',
 		),
 	).browserslist;

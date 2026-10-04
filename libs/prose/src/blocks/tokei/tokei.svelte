@@ -1,11 +1,11 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the Tokei figure. Every interface colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo/todo.md, "Tokei draws
 	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip
@@ -157,11 +157,11 @@
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { hierarchy, treemap } from 'd3-hierarchy';
-	import { remFromMeasuredPixels } from '@canmi/units';
+	import { remFromMeasuredPixels } from '@canmi/kit/units';
 	import { URLS } from '@monoflake/sdk';
 	import { langColor, parseTokei, type LangStat } from './tokei';
 	import type { TokeiView } from '@canmi/artifacts/types';
-	import { compactCount } from '@canmi/locales/format';
+	import { compactCount } from 'canmi/locales/format';
 
 	let {
 		source,

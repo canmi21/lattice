@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the quadrant figure. Every colour is the token variable `libs/tokens`
+	 * The visual half of the quadrant figure. Every colour is the token variable `libs/kit/tokens`
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The figure's geometry is the frame, written on the elements in the markup. What is left in

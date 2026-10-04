@@ -1,13 +1,13 @@
 # Referer: where a reader came from, taken out of the address bar
 
-The library is `@canmi/referer`, spelled as HTTP spells its header -- a misspelling the header has
+The library is `@canmi/web/referer`, spelled as HTTP spells its header -- a misspelling the header has
 carried since it was specified, kept so the name reads as the header's job. What the site sends to
 others is a different matter, in [referrer.md](../referrer.md).
 
 **Every web page here accepts `?ref=` and takes it out once it has hydrated.** A link from one of
 the author's own places carries it -- `?ref=status`, `?ref=app`, `?ref=api` -- to say where the
 reader came from. That is analytics, and a reader cannot read it, so it does not stay in the
-address they copy. `@canmi/referer` holds the list of such parameters, `ARRIVAL_PARAMETERS`, and
+address they copy. `@canmi/web/referer` holds the list of such parameters, `ARRIVAL_PARAMETERS`, and
 each app's root layout calls `takeArrivalParameters` on mount. Nothing reads the values yet; a
 report of where readers arrive from is one more line where they are taken.
 

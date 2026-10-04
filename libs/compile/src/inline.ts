@@ -73,10 +73,10 @@ function readMailboxes(): Record<string, string> {
 	const config = parseYaml(readFileSync(path, 'utf8')) as {
 		mail?: { domain?: string; boxes?: Record<string, string> };
 	};
-	const identity = fileURLToPath(new URL('../../identity/author.json', import.meta.url));
+	const identity = fileURLToPath(new URL('../../canmi/identity/author.json', import.meta.url));
 	const author = (JSON.parse(readFileSync(identity, 'utf8')) as { email?: string }).email;
 	const domain = config.mail?.domain;
-	if (!author) throw new Error('libs/identity/author.json: email is required');
+	if (!author) throw new Error('libs/canmi/identity/author.json: email is required');
 	if (!domain) throw new Error('site.config.yaml: mail.domain is required');
 	// The author is a person and a box is not, so that one name is reserved: a box called
 	// `author` would put two addresses under one token with nothing to say which won.

@@ -220,6 +220,6 @@ theme, and spinning the icon on every load would announce something that did not
 the same line the newsletter draws in [engagement.md](../engagement.md) between what a reader just
 did and what they are.
 
-Path and lifetime for the cookie come from `@canmi/theme`, which also builds the pre-paint
+Path and lifetime for the cookie come from `@canmi/kit/theme`, which also builds the pre-paint
 script, and a test holds the two to the same string. A control writing a shorter life than the
 script would expire a preference on one path and not the other, and nothing would report it.

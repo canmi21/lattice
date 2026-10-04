@@ -23,7 +23,7 @@ where it does not.
 - **A page reached by a navigation inside the app shows the short title.** Only the landing page
   of a first visit is the full one.
 
-`@canmi/behavior` holds both halves: `brevity` decides, and `title.svelte` renders the page's
+`@canmi/kit/behavior` holds both halves: `brevity` decides, and `title.svelte` renders the page's
 `<title>` from it. Each app's root layout settles it on mount, and the site's `afterNavigate`
 shortens it on any navigation that is not the first.
 

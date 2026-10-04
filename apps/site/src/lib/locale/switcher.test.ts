@@ -291,7 +291,7 @@ describe('the closed switcher', () => {
 	});
 
 	it('folds the script into the Chinese name instead of leaving two brackets', () => {
-		// The menu row keeps the endonym as `@canmi/locales` writes it; only the trigger folds it,
+		// The menu row keeps the endonym as `canmi/locales` writes it; only the trigger folds it,
 		// because only the trigger already ends in a bracket.
 		expect(LANGUAGE_ENDONYMS.zh).toBe('中文 (简体)');
 		expect(LANGUAGE_ENDONYMS.tw).toBe('中文 (繁體)');

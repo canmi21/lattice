@@ -10,7 +10,7 @@ import {
 	text,
 	tracking,
 	weight,
-} from '@canmi/tokens/vocabulary.stylex';
+} from '@canmi/kit/tokens/vocabulary.stylex';
 
 /**
  * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
@@ -223,7 +223,7 @@ export const styles = stylex.create({
 
 	/**
 	 * The settings menu, on a ground of its own rather than the disc's glass: see `--player-menu`
-	 * in `libs/tokens/src/player.css`. Its corner is a literal, 0.5rem, which is a row's
+	 * in `libs/kit/tokens/src/player.css`. Its corner is a literal, 0.5rem, which is a row's
 	 * `radius.md` plus the 2px the panel keeps around its rows, so the two corners share a center.
 	 */
 	menu: {

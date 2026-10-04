@@ -3,7 +3,7 @@ import { blockAnchors, isBlockAnchor } from '@canmi/artifacts/anchors';
 import { toString as mdastToString } from 'mdast-util-to-string';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import type { Resolved, ResolvedVideo } from './assets.ts';
-import { assertLanguageTag } from '@canmi/locales';
+import { assertLanguageTag } from 'canmi/locales';
 import { languageLabel } from './highlight.ts';
 import { parser } from './parser.ts';
 import type {

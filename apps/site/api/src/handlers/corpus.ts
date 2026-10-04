@@ -9,7 +9,7 @@ import type {
 	ViewAnswer,
 } from '@canmi/artifacts';
 import { PUBLISHED, WHILE_UNREACHABLE } from '@canmi/cache';
-import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from '@canmi/locales';
+import { LOCALE_CODES, SITE_LANGUAGE, type LocaleCode } from 'canmi/locales';
 import { Hono, type Context } from 'hono';
 import type { Bindings } from '../bindings';
 import { failure, success } from '../lib/respond';

@@ -19,11 +19,11 @@
 	import ToggleLeft from '@lucide/svelte/icons/toggle-left';
 	import ToggleRight from '@lucide/svelte/icons/toggle-right';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { endonym, PUBLIC_LANGUAGE } from '@canmi/locales';
+	import { endonym, PUBLIC_LANGUAGE } from 'canmi/locales';
 	import { onMount, tick, type Component } from 'svelte';
-	import { edgeReveal } from '@canmi/behavior/edge';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { edgeReveal } from '@canmi/kit/behavior/edge';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, figures, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Editor from '#lib/editor.svelte';
 	import { forget, recall, remember } from '#lib/buffer.ts';
 	import { EDGE_MARGINS, useChrome } from '#lib/chrome.svelte.ts';
@@ -121,7 +121,7 @@
 	}
 
 	// The right edge brings the drawer out the way the left edge brings out a folded sidebar, on the
-	// same margins. See @canmi/behavior/edge.
+	// same margins. See @canmi/kit/behavior/edge.
 	const edge = edgeReveal({
 		side: 'right',
 		...EDGE_MARGINS,

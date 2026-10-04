@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { duration } from '@canmi/tokens/vocabulary.stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { duration } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	/**
 	 * The `#` beside anything a reader can be pointed at -- a heading or a block -- revealed when

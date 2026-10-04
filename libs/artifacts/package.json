@@ -8,9 +8,9 @@
 		"./anchors": "./src/anchors.ts"
 	},
 	"dependencies": {
-		"@canmi/locales": "workspace:*",
 		"@canmi/response": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
+		"canmi": "workspace:*",
 		"valibot": "^1.5.0"
 	}
 }

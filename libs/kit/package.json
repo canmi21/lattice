@@ -1,0 +1,34 @@
+{
+	"name": "@canmi/kit",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./theme": "./theme/src/index.ts",
+		"./theme/palettes/concrete.css": "./theme/src/palettes/concrete.css",
+		"./theme/palettes/mono.css": "./theme/src/palettes/mono.css",
+		"./tokens/interaction.css": "./tokens/src/interaction.css",
+		"./tokens/player.css": "./tokens/src/player.css",
+		"./tokens/surfaces": "./tokens/src/surfaces.ts",
+		"./tokens/vocabulary.stylex": "./tokens/src/vocabulary.stylex.ts",
+		"./motion": "./motion/src/index.ts",
+		"./behavior/arrival": "./behavior/src/arrival.ts",
+		"./behavior/brevity": "./behavior/src/brevity.svelte.ts",
+		"./behavior/collapse": "./behavior/src/collapse.ts",
+		"./behavior/edge": "./behavior/src/edge.ts",
+		"./behavior/jump": "./behavior/src/jump.ts",
+		"./behavior/progress": "./behavior/src/progress.ts",
+		"./behavior/resize": "./behavior/src/resize.ts",
+		"./behavior/state": "./behavior/src/state.ts",
+		"./behavior/title.svelte": "./behavior/src/title.svelte",
+		"./units": "./units/src/index.ts"
+	},
+	"dependencies": {
+		"@stylexjs/stylex": "^0.19.1",
+		"motion": "^14.0.0",
+		"svelte": "^5.57.1",
+		"thumbhash": "^0.1.1"
+	},
+	"devDependencies": {
+		"vitest": "^5.0.3"
+	}
+}

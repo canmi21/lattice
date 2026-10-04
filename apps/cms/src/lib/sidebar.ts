@@ -1,4 +1,4 @@
-import type { Divider } from '@canmi/behavior/resize';
+import type { Divider } from '@canmi/kit/behavior/resize';
 
 /**
  * The sidebar's narrowest width, measured rather than chosen: the widest single-line section row

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import {
 		border,
 		duration,
@@ -10,10 +10,10 @@
 		text,
 		transition,
 		weight,
-	} from '@canmi/tokens/vocabulary.stylex';
+	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a code block. Every colour is the token variable `libs/tokens` already
+	 * The visual half of a code block. Every colour is the token variable `libs/kit/tokens` already
 	 * declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot styles what no class reaches: Shiki's own preformatted element
@@ -132,7 +132,7 @@
 		prefersReducedMotion,
 		type AnimationControl,
 		type CollapsePhase,
-	} from '@canmi/behavior/collapse';
+	} from '@canmi/kit/behavior/collapse';
 
 	type Props = {
 		label?: string;

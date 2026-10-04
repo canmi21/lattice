@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { family, figures, line, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { family, figures, line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of one registry's page. Every colour is the token variable `libs/tokens`
+	 * The visual half of one registry's page. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * A sibling of the two directories above it, writing the same trail, header and quiet
@@ -57,7 +57,7 @@
 	import PackageList from '#lib/licenses/package-list.svelte';
 	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
-	import { compactCount, intlLocale } from '@canmi/locales/format';
+	import { compactCount, intlLocale } from 'canmi/locales/format';
 
 	let { data }: { data: PageData } = $props();
 	const locale = $derived(data.locale.code);

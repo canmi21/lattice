@@ -1,5 +1,5 @@
 import type { MermaidConfig, RenderResult } from 'mermaid';
-import type { Theme } from '@canmi/theme';
+import type { Theme } from '@canmi/kit/theme';
 
 type Mermaid = (typeof import('mermaid'))['default'];
 

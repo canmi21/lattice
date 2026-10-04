@@ -8,7 +8,7 @@
 		radius,
 		text,
 		transition,
-	} from '@canmi/tokens/vocabulary.stylex';
+	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/** The shell's recipes. See spec/architecture/css/layers.md and spec/styling/palettes.md. */
 	const styles = stylex.create({
@@ -98,15 +98,15 @@
 </script>
 
 <script lang="ts">
-	import { settleBrevity } from '@canmi/behavior/brevity';
-	import { takeArrivalParameters } from '@canmi/referer';
+	import { settleBrevity } from '@canmi/kit/behavior/brevity';
+	import { takeArrivalParameters } from '@canmi/web/referer';
 	import { hints } from '@canmi/hints';
 	import { URLS } from '@monoflake/sdk';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
-	import { applyTheme, currentTheme, themeCookie } from '@canmi/theme';
-	import { author } from '@canmi/identity';
+	import { applyTheme, currentTheme, themeCookie } from '@canmi/kit/theme';
+	import { author } from 'canmi/identity';
 	import { profiles } from '@canmi/social/structured';
 	import { ACCOUNTS } from '@canmi/social';
 	import SocialLinks from '@canmi/social/social-links.svelte';

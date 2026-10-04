@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { line, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the popover surface. Every colour is the token variable `libs/tokens`
+	 * The visual half of the popover surface. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md. The
 	 * block at the foot of this file is `:global` because Bits UI portals this surface out of the
 	 * component tree, where a scoped rule cannot reach it. `shadow-sm` stayed in the markup: Tailwind

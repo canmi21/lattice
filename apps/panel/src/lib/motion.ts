@@ -1,9 +1,9 @@
 /**
- * How the panel moves, on the site's timing (`@canmi/motion`) and played by the browser, as the
+ * How the panel moves, on the site's timing (`@canmi/kit/motion`) and played by the browser, as the
  * editor plays it: a page arriving, and the sidebar's marker crossing to the page it now names.
  * Under reduced motion nothing moves, and everything is where it would have ended.
  */
-import { pressMotion, prefersReducedMotion, travelMotion } from '@canmi/motion';
+import { pressMotion, prefersReducedMotion, travelMotion } from '@canmi/kit/motion';
 
 function curve(points: readonly number[]): string {
 	return `cubic-bezier(${points.join(', ')})`;

@@ -9,11 +9,11 @@
 	import Link from '@lucide/svelte/icons/link';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Settings from '@lucide/svelte/icons/settings';
-	import { edgeReveal } from '@canmi/behavior/edge';
-	import { reader } from '@canmi/behavior/state';
-	import { resizeHandle } from '@canmi/behavior/resize';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, radius } from '@canmi/tokens/vocabulary.stylex';
+	import { edgeReveal } from '@canmi/kit/behavior/edge';
+	import { reader } from '@canmi/kit/behavior/state';
+	import { resizeHandle } from '@canmi/kit/behavior/resize';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, radius } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
 	import ArticleTree from '#lib/article-tree.svelte';
 	import { EDGE_MARGINS, provideChrome } from '#lib/chrome.svelte.ts';
@@ -124,7 +124,7 @@
 	/**
 	 * Dragging the divider past the sidebar's minimum. It holds there through a margin, and past
 	 * it the drag is asking to fold: the sidebar says so while it is, and letting go folds it.
-	 * See `Fold` in @canmi/behavior/resize.
+	 * See `Fold` in @canmi/kit/behavior/resize.
 	 */
 	let folding = $state(false);
 	const RESIZING = {
@@ -202,7 +202,7 @@
 	}
 
 	// The edge lifts a folded sidebar out, and moving clear of it lets it down; one pinned by the
-	// float is the float's, and the edge leaves it alone. See @canmi/behavior/edge.
+	// float is the float's, and the edge leaves it alone. See @canmi/kit/behavior/edge.
 	const moved = edgeReveal({
 		side: 'left',
 		...EDGE_MARGINS,
@@ -361,7 +361,7 @@
 	</nav>
 
 	<!-- The gap between the two regions is the divider: drag it, step it with the arrow keys, or
-	     double-click it to go back to the fallback. See @canmi/behavior/resize. -->
+	     double-click it to go back to the fallback. See @canmi/kit/behavior/resize. -->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex (a focusable separator with a value is a widget
 	     in ARIA -- the arrow keys move it -- and the rule reads the role as static) -->
 	<div

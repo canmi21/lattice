@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, leading, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { border, leading, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the translator's note, the only surface this component draws itself.
-	 * Every colour is the token variable `libs/tokens` already declares, so nothing here can
+	 * Every colour is the token variable `libs/kit/tokens` already declares, so nothing here can
 	 * change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file does not shrink: every rule in it reaches the
@@ -62,7 +62,7 @@
 	import Tokei from './blocks/tokei/tokei.svelte';
 	import Twitter from './blocks/twitter.svelte';
 	import Video from './components/video.svelte';
-	import { jumpTo, movesThisPage, targetOf } from '@canmi/behavior/jump';
+	import { jumpTo, movesThisPage, targetOf } from '@canmi/kit/behavior/jump';
 	import { flashOnArrival } from './note-flash';
 	import { revealNoteBeforeJump } from './note-reveal';
 	import PopoverContent from './components/popover-content.svelte';
@@ -74,7 +74,7 @@
 	import { pageUrls } from '@monoflake/sdk';
 	import { pictured, type ParsedResource } from '@canmi/artifacts';
 	import type { Block } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import ArticleCard from './card.svelte';
 	import Section from './section.svelte';
 	import Anchored from './anchored.svelte';

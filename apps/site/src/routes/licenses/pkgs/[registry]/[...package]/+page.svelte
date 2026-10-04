@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the package page. Every colour is the token variable `libs/tokens`
+	 * The visual half of the package page. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * Two of Tailwind's own theme variables are read differently and the difference is whether

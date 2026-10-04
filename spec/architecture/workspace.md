@@ -73,7 +73,7 @@ to this file is not one anybody would remember. Nothing in that directory is han
 whether `mise run fonts` produced it or it arrived in a prebuilt web package, so the glob is the
 honest shape and a list would be a maintenance obligation bought for nothing.
 
-**Every other file stays counted.** `libs/theme/src/palettes/`, `apps/site/src/styles/` and the
+**Every other file stays counted.** `libs/kit/theme/src/palettes/`, `apps/site/src/styles/` and the
 rest are decisions somebody made and should weigh what they weigh. The mark is for output, not for
 files that are merely long; a file that is long and owed a split is marked `lines=deferred`
 instead, which the line check reports and passes.
@@ -176,7 +176,7 @@ Importing a styled component kit on top would create a second design system, so 
 under `apps/site/src/lib/components/` expose the small set of surfaces the site alone repeats.
 
 A visible primitive repeated by both the public site and CMS belongs to
-[`@canmi/primitives`](../../libs/primitives/src/style.css). Both applications consume it directly;
+[`@canmi/ui/primitives`](../../libs/ui/primitives/src/style.css). Both applications consume it directly;
 neither becomes the other's template, and extracting it must leave the established consumer
 visually unchanged. Two real consumers justify that boundary. A single speculative component does
 not, because opening a package per primitive turns reuse into directory ceremony rather than a
@@ -367,7 +367,7 @@ referenced it by name.
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
 library, so `mise run urls` renders the composed map into
 [`libs/sdk/src/lib.rs`](../../libs/sdk/src/lib.rs), the `monoflake` crate, and the author's own
-into [`libs/canmi/src/lib.rs`](../../libs/canmi/src/lib.rs), the `canmi` crate, which infra reads
+into [`libs/canmi/urls/src/lib.rs`](../../libs/canmi/urls/src/lib.rs), the `canmi` crate, which infra reads
 since it may not read the platform's -- each directory holding both halves of one library -- and
 commits both, like the records under `data/build/`, so a checkout compiles without Node having run
 first. A mirror is never edited by hand: each package's
@@ -377,7 +377,7 @@ alternative, exempting Rust from the rule, would have left half the repo carryin
 that the check answers for everywhere else.
 
 Colors follow the same shape at a smaller scale: OKLCH values are declared in
-`libs/tokens` and consumed by name. The rule covers the design system that the site's own UI
+`libs/kit/tokens` and consumed by name. The rule covers the design system that the site's own UI
 and theme are built from; a palette mirrored from an external convention keeps whatever
 format that convention ships.
 

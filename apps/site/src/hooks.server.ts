@@ -1,8 +1,8 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { building, dev } from '$app/env';
-import { fillTheme, themeOf } from '@canmi/theme';
+import { fillTheme, themeOf } from '@canmi/kit/theme';
 import { normalizedLocation, URLS } from '@monoflake/sdk';
-import { serverHandles } from '@canmi/sentry/server';
+import { serverHandles } from '@canmi/web/sentry/server';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { articleRailScript } from '@canmi/prose/rail';

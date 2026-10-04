@@ -2,11 +2,18 @@
 	import * as stylex from '@stylexjs/stylex';
 	import Shell from '@canmi/prose/shell.svelte';
 	import { bodyStyles } from '@canmi/prose/article-body';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, line, radius, text, tracking, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import {
+		border,
+		line,
+		radius,
+		text,
+		tracking,
+		weight,
+	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the article shell. Every colour is the token variable `libs/tokens`
+	 * The visual half of the article shell. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
@@ -129,7 +136,7 @@
 	import { dev } from '$app/env';
 	import { page } from '$app/state';
 	import { pageUrls } from '@monoflake/sdk';
-	import Title from '@canmi/behavior/title.svelte';
+	import Title from '@canmi/kit/behavior/title.svelte';
 	import { graph, ldJson } from '@canmi/social/structured';
 	import { articleEntity } from './entity';
 	import BookOpenText from '@lucide/svelte/icons/book-open-text';
@@ -148,7 +155,7 @@
 		ArticleSummary,
 		TocEntry,
 	} from '@canmi/artifacts/types';
-	import type { Theme } from '@canmi/theme';
+	import type { Theme } from '@canmi/kit/theme';
 	import type { LocaleCode } from '#lib/locale/index.js';
 	import LanguageSwitcher from '#lib/locale/switcher.svelte';
 	import { warmView } from '#lib/published/index.js';
@@ -161,7 +168,7 @@
 	import type { RailWidths } from '@canmi/prose/rail-widths';
 	import TranslationNotice from './translation-notice.svelte';
 	import IconXai from './xai-icon.svelte';
-	import { shortDate } from '@canmi/locales/format';
+	import { shortDate } from 'canmi/locales/format';
 
 	type ArticleLocale = {
 		code: LocaleCode;

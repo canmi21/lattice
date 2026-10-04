@@ -8,7 +8,7 @@
 	import { bisector } from 'd3-array';
 	import { scaleLinear, scaleTime } from 'd3-scale';
 	import { area, curveMonotoneX, line as linePath } from 'd3-shape';
-	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
+	import { pressMotion, prefersReducedMotion } from '@canmi/kit/motion';
 	import { binaryTicks, moment, tickLabel, withGaps, type Datum, type Line } from './series';
 	import { type } from '../style/surfaces';
 	import { radius, text, weight } from '../style/vocabulary.stylex';

@@ -4,7 +4,7 @@ Every page here paints from the same color names -- `page`, `border`, `border-st
 `text-muted`, `text-soft`, `text-strong`, `ink`, `paper`, `paper-hover`, the native and selection
 colors, and the accents `blue`, `green`, `amber` and `red` with their `-ink` pairs -- so a component written
 for one app reads right in another. **What differs between apps is the values, and a set of values
-is a palette.** `@canmi/theme` holds them, each a stylesheet defining every name for light, and
+is a palette.** `@canmi/kit/theme` holds them, each a stylesheet defining every name for light, and
 again under `.dark`; an app imports the one it wears.
 
 | Palette    | Look                                                                         | Worn by   |
@@ -24,7 +24,7 @@ again under `.dark`; an app imports the one it wears.
 
 ## Light and dark are one cookie, read the same way everywhere
 
-**`theme` is `light` or `dark`, and `@canmi/theme` is the only code that reads or writes it**: the
+**`theme` is `light` or `dark`, and `@canmi/kit/theme` is the only code that reads or writes it**: the
 inline script that settles it before the first frame, the server's reading of it, and the control's
 writing of it. An app wires the script into its `app.html` and, where its render is its own, the
 server's reading into its hooks -- the site does both, so its first byte already carries the class.

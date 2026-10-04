@@ -11,7 +11,7 @@
  * and no route at all. See spec/architecture/artifacts.md, "One batch entry point".
  */
 import * as v from 'valibot';
-import { LOCALE_CODES, type LocaleCode } from '@canmi/locales';
+import { LOCALE_CODES, type LocaleCode } from 'canmi/locales';
 import type { Resource, ViewAnswer } from './index.ts';
 
 /** A slug names an article; the list is bounded so one request cannot ask for the whole corpus. */

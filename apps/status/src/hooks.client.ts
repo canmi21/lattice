@@ -1,7 +1,7 @@
 import type { ClientInit } from '@sveltejs/kit/hooks';
 import { dev } from '$app/env';
-import { prepareBrowserRuntime } from '@canmi/compat';
-import { initClient } from '@canmi/sentry/client';
+import { prepareBrowserRuntime } from '@canmi/web/compat';
+import { initClient } from '@canmi/web/sentry/client';
 import { URLS } from '@monoflake/sdk';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 

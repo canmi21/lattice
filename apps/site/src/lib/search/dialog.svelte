@@ -1,10 +1,17 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, easing, line, radius, text, transition } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import {
+		border,
+		easing,
+		line,
+		radius,
+		text,
+		transition,
+	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the search dialog. Every colour is the token variable `libs/tokens`
+	 * The visual half of the search dialog. Every colour is the token variable `libs/kit/tokens`
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps its whole length: overlay and panel are portalled out
@@ -95,7 +102,7 @@
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
 	import { Dialog } from 'bits-ui';
 	import { goto } from '$app/navigation';
-	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
+	import { animateHeight, type AnimationControl } from '@canmi/kit/behavior/collapse';
 	import { remFromMeasuredPixels } from '#lib/client/units.js';
 	import * as m from '@canmi/messages';
 	import type { LocaleCode } from '#lib/locale/index.ts';

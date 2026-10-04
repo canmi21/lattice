@@ -13,13 +13,13 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import GearSixIcon from 'phosphor-svelte/lib/GearSixIcon';
-	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
-	import { pressMotion, prefersReducedMotion } from '@canmi/motion';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { animateHeight, type AnimationControl } from '@canmi/kit/behavior/collapse';
+	import { pressMotion, prefersReducedMotion } from '@canmi/kit/motion';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import { animate, cubicBezier } from 'motion';
 	import { tick } from 'svelte';
 	import type { VideoRung } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 	import { styles } from './video-controls.styles.ts';
 

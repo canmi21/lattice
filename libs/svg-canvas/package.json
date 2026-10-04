@@ -1,8 +1,0 @@
-{
-	"name": "@canmi/svg-canvas",
-	"private": true,
-	"type": "module",
-	"exports": {
-		"./style.css": "./src/style.css"
-	}
-}

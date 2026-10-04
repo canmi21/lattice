@@ -34,7 +34,7 @@
 	 * opened for may have moved.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import { onMount, tick } from 'svelte';
 
 	let { x, y, items, close }: { x: number; y: number; items: MenuItem[]; close: () => void } =

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	const styles = stylex.create({
 		/**
@@ -29,9 +29,9 @@
 	import { untrack } from 'svelte';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
-	import { applyTheme, themeCookie, type Theme } from '@canmi/theme';
+	import { applyTheme, themeCookie, type Theme } from '@canmi/kit/theme';
 	import Dial from './components/dial.svelte';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 
 	/**

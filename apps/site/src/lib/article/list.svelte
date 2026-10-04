@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import type { ViewMeta } from '@canmi/artifacts';
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 </script>
 
 <script lang="ts">

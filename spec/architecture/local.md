@@ -118,7 +118,7 @@ window is below.
 the `reader` record in `localStorage` -- the mechanism the site keeps its own per-person facts in,
 [engagement.md](../engagement.md), "What this site remembers is two records and one mechanism" --
 under `cms.sidebar.width`, on the CMS's own origin. The divider itself is
-[resize.ts](../../libs/behavior/src/resize.ts) in `@canmi/behavior`, shared rather than written for
+[resize.ts](../../libs/kit/behavior/src/resize.ts) in `@canmi/kit/behavior`, shared rather than written for
 this page: the handle, the range a width may take, and the script that sets a remembered width
 before the first frame. The script is the part that matters. The server cannot read
 `localStorage`, so it renders the fallback width, and applying the remembered one after hydration
@@ -143,7 +143,7 @@ that margin the sidebar recedes behind a notice -- an arrow into the edge, and n
 at its narrowest there -- saying that letting go will fold it, dragging back
 withdraws the notice, and letting go folds. The width remembered is the one from before the drag,
 so unfolding returns to it rather than to the minimum the drag was pinned at. The gesture is
-`Fold` in [resize.ts](../../libs/behavior/src/resize.ts), beside the rest of the divider.
+`Fold` in [resize.ts](../../libs/kit/behavior/src/resize.ts), beside the rest of the divider.
 
 **The sidebar folds away when the window cannot hold both regions, and floats back on demand.**
 Each region has a minimum, measured rather than chosen: the sidebar's is its widest section row
@@ -158,7 +158,7 @@ that folds and unfolds it, beside a search that is a place kept for a feature no
 sidebar carries no fold control of its own. Running the pointer to the window's left edge lifts a
 folded sidebar out over the pane, and moving well clear of it lets it down; on a window too narrow
 to dock it, the float's button lifts it instead and pins it until a click elsewhere. Every
-movement takes the site's timing for a surface answering a press, from `@canmi/motion`, and nothing
+movement takes the site's timing for a surface answering a press, from `@canmi/kit/motion`, and nothing
 a movement writes outlives it -- the resting place is always the stylesheet's.
 
 **A top-level row reads lit, and what sits under Articles reads soft.** The sections, Settings and
@@ -294,7 +294,7 @@ The toolbar is icons alone, each named for a screen reader and on hover, and sma
 over the text without asking to be read. The drawer comes out the way a folded sidebar does, and
 only that way: the pointer at the window's right edge brings it out and moving clear of it puts it
 back. Nothing pins it open, so it carries no control to close it. Both edges are one gesture on one pair
-of margins, [edge.ts](../../libs/behavior/src/edge.ts) in `@canmi/behavior`. When the draft was
+of margins, [edge.ts](../../libs/kit/behavior/src/edge.ts) in `@canmi/kit/behavior`. When the draft was
 last saved, and why a publication was refused, are said at the top of the drawer for now -- that is
 a place kept, not a place decided.
 
@@ -419,7 +419,7 @@ under, and the drawing wraps words in the elements the page has -- `strong`, `em
 the page's own rules style them. The alternative was a writing theme of the CMS's own, and it was
 refused because every difference between it and the page is a difference the author has to
 translate back in their head; the preview remains the exact rendering. The CMS loads the site's
-type, `@canmi/fonts/mono.css`, and the shared surfaces, `@canmi/tokens/interaction.css` and
+type, `@canmi/fonts/mono.css`, and the shared surfaces, `@canmi/kit/tokens/interaction.css` and
 `@canmi/prose/prose.css`, for the same reason it loads the site's components.
 
 **A custom block is compiled, never interpreted.** Its markdown goes to `local` the way a preview
@@ -492,7 +492,7 @@ sheet within the main pane. Compact marks identify the live workspace state and 
 attention; they sit immediately after their labels without entering the text flow, while ordinary
 section labels remain text-only. Recently updated rows reuse the public homepage's article preview:
 row geometry, paper thumbnail, title, dotted leader, date and subtitle are one
-`@canmi/primitives` surface. The site keeps its link, focus and content-derived line motion; the
+`@canmi/ui/primitives` surface. The site keeps its link, focus and content-derived line motion; the
 CMS keeps a read-only static rendering. Those are consumer behaviours rather than two visual
 definitions. Hover was counted among them until the CMS wanted it as well, and the row it got
 stayed flat where the site's lit up -- one row, two answers, which is the thing the shared package
@@ -623,7 +623,7 @@ nobody can see, and playing one is only delay.
 **Anything that opens or closes animates its own height, on the one spring.** A group folding, an
 article's panel, and whatever grows a disclosure next: if a press changes the shape of a box, the
 box travels between the two shapes rather than snapping. The gesture is `animateHeight` in
-`motion.ts` and the spring is `@canmi/motion`, shared with the
+`motion.ts` and the spring is `@canmi/kit/motion`, shared with the
 site, so there is one way a thing opens here and no second set of numbers to keep in step.
 
 Two consequences follow and both are load-bearing. **A panel is built whether or not it is open**,
@@ -722,7 +722,7 @@ bar being thrown rather than one moving. Travel is also slower for its distance 
 opening, because a tab strip's hops are short enough that the panel curve would be over before the
 movement could be read as one.
 
-The spring is `@canmi/motion`, shared with the site's disclosures, which is the pair that moved it
+The spring is `@canmi/kit/motion`, shared with the site's disclosures, which is the pair that moved it
 out of the site. The gesture itself is in `motion.ts` rather than
 in the page, because every page that grows a tab strip wants the same one.
 
@@ -811,7 +811,7 @@ a scheme list and lose their `href` when they fail it. One hole, closed where it
 a claim about what the corpus contains.
 
 **A language is named the way it names itself.** `ko-KR` tells a writer nothing they were asking;
-한국어 tells them immediately. The names are `@canmi/locales`, shared with the site's language
+한국어 tells them immediately. The names are `canmi/locales`, shared with the site's language
 picker, which is what moved them out of the site: one table keyed by the tag the corpus stores,
 read there through the short code its URLs use. Only the pair that needs telling apart carries a
 qualifier -- there is one English and two Chinese, each written in its own script.
@@ -871,8 +871,8 @@ them before showing the next window. `localStorage` holds page state, not coordi
 depends on monitors and their scale factors. The configured window begins hidden so restoration
 does not flash the default rectangle before moving to the saved one.
 
-Theme behaviour is shared separately from its colour values. `@canmi/tokens` remains the palette;
-`@canmi/theme` owns the system dark-mode query and the site's pre-paint bootstrap. The desktop shell
+Theme behaviour is shared separately from its colour values. `@canmi/kit/tokens` remains the palette;
+`@canmi/kit/theme` owns the system dark-mode query and the site's pre-paint bootstrap. The desktop shell
 follows that system query live, while the public site can still honour its explicit `theme` cookie.
 
 The WebView is one application shell with a persistent left sidebar. Its top-level destinations are

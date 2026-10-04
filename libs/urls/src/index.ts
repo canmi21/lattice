@@ -2,7 +2,7 @@
  * Infra's own addresses: the panel, keeper and host, which bootstrap everything else and so are
  * named below it. See spec/architecture/layers.md, "Addresses are split by who owns the name".
  */
-import { PORT_OFFSET } from 'canmi';
+import { PORT_OFFSET } from 'canmi/urls';
 
 export const INFRA = {
 	// The panel, host's interface, an app of its own; see spec/architecture/host.md.

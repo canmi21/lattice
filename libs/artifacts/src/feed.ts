@@ -11,7 +11,7 @@
  * compiler to keep emitting the same bytes, and the Worker to build a document out of objects it
  * fetched. See spec/architecture/artifacts.md, "Which objects exist".
  */
-import type { LocaleCode } from '@canmi/locales';
+import type { LocaleCode } from 'canmi/locales';
 import { URLS } from '@monoflake/sdk';
 import type { Block, QuadrantDirection, QuadrantItem } from './types.ts';
 

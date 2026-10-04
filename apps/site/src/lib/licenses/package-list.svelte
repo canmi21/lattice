@@ -1,9 +1,9 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, family, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { border, family, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a package list. Every colour is the token variable `libs/tokens` already
+	 * The visual half of a package list. Every colour is the token variable `libs/kit/tokens` already
 	 * declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The row is the licence directory's row with a second column, its three declarations copied

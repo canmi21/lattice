@@ -1,9 +1,9 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, line, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { border, line, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the error page. Every colour is the token variable `libs/tokens` already
+	 * The visual half of the error page. Every colour is the token variable `libs/kit/tokens` already
 	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md. No scoped
 	 * block: two elements, both the component's own, so a class on each reaches everything there is.
 	 *

@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the home page. Every colour is the token variable `libs/tokens` already
+	 * The visual half of the home page. Every colour is the token variable `libs/kit/tokens` already
 	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The two link styles below say the same thing twice at two sizes. They are written out
@@ -65,7 +65,7 @@
 
 <script lang="ts">
 	import { dev } from '$app/env';
-	import Title from '@canmi/behavior/title.svelte';
+	import Title from '@canmi/kit/behavior/title.svelte';
 	import { imgsrc } from '@canmi/imgsrc';
 	import { pageUrls, URLS } from '@monoflake/sdk';
 	import Coffee from '@lucide/svelte/icons/coffee';

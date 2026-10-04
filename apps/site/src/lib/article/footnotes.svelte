@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, duration, line, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, duration, line, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the notes. Every colour is the token variable `libs/tokens` already
+	 * The visual half of the notes. Every colour is the token variable `libs/kit/tokens` already
 	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The block below keeps what a class cannot reach: the fold's mask and its two phase rules, the
@@ -151,12 +151,12 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
 	import * as m from '@canmi/messages';
-	import { jumpTo, movesThisPage, targetOf } from '@canmi/behavior/jump';
+	import { jumpTo, movesThisPage, targetOf } from '@canmi/kit/behavior/jump';
 	import {
 		animateHeight,
 		type AnimationControl,
 		type CollapsePhase,
-	} from '@canmi/behavior/collapse';
+	} from '@canmi/kit/behavior/collapse';
 	import { DEFAULT_PIXELS_PER_REM } from '#lib/client/units.js';
 	import { onDestroy } from 'svelte';
 	import { flashOnArrival } from '@canmi/prose/note-flash';

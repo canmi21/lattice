@@ -1,11 +1,11 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, line, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
 	 * component-local mirror in palette.css (see spec/styling/blocks.md).
@@ -60,7 +60,7 @@
 
 <script lang="ts">
 	import './palette.css';
-	import { currentTheme, observeTheme, type Theme } from '@canmi/theme';
+	import { currentTheme, observeTheme, type Theme } from '@canmi/kit/theme';
 	import { renderMermaid, type Drawings } from './mermaid';
 
 	let {

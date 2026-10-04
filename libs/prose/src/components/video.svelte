@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { border, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of a clip: a frame, and the notice under it when nothing else is on screen.
@@ -52,14 +52,14 @@
 
 <script lang="ts">
 	import { DEV as dev } from 'esm-env';
-	import { positionOf } from '@canmi/behavior/progress';
+	import { positionOf } from '@canmi/kit/behavior/progress';
 	import { pageUrls } from '@monoflake/sdk';
 	import { onMount } from 'svelte';
 	import Controls from './video-controls.svelte';
 	import { chooseRung, playable } from './video-rungs.ts';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 
 	let {
@@ -472,8 +472,9 @@
 	/* Captions, in the page's own voice: `font-family: inherit` picks a Latin or CJK glyph the way
 	   the prose around it would. The rest is the player's palette, not the page's, because a
 	   caption is read against a video frame this site does not choose -- see
-	   `libs/tokens/src/player.css`. `--cue-size` is measured rather than declared, since a caption
-	   is read at whatever size the picture happens to be; the controls set it in `placeCaptions`. */
+	   `libs/kit/tokens/src/player.css`. `--cue-size` is measured rather than declared, since a
+	   caption is read at whatever size the picture happens to be; the controls set it in
+	   `placeCaptions`. */
 	.video-surface::cue {
 		font-family: inherit;
 		font-size: var(--cue-size, 1rem);

@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { duration } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { duration } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the language switcher. Every colour is the token variable `libs/tokens`
+	 * The visual half of the language switcher. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The row's highlight and the mark's pair stay in the markup, gated on `data-highlighted`:

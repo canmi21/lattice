@@ -2,8 +2,8 @@
 	import { browser, dev } from '$app/env';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
-	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
-	import { takeArrivalParameters } from '@canmi/referer';
+	import { settleBrevity, shortenTitles } from '@canmi/kit/behavior/brevity';
+	import { takeArrivalParameters } from '@canmi/web/referer';
 	import { graph, ldJson, person, profiles } from '@canmi/social/structured';
 	import { websiteEntity } from '#lib/entities.js';
 	import { hints, scriptPolicy } from '@canmi/hints';
@@ -11,7 +11,7 @@
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '#lib/article/trail.js';
-	import { leaveArrival } from '@canmi/behavior/arrival';
+	import { leaveArrival } from '@canmi/kit/behavior/arrival';
 	import { installFocusSourceTracker } from '#lib/client/focus-source.js';
 	import { goTo, keepPlace, placeOf } from '#lib/client/scroll.js';
 	import { followPointerKind, warmWhatThePointerRests } from '#lib/client/warm.svelte.js';

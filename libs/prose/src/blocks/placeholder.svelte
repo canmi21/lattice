@@ -1,11 +1,11 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, leading, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, leading, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the placeholder a block falls back to. Every colour is the token
-	 * variable `libs/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * variable `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The file keeps no scoped block: the box's padding and the step between metadata rows are
 	 * layout, and stay in the markup where layout belongs. See spec/architecture/css/authoring.md, "A

@@ -1,9 +1,9 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	/**
-	 * The visual half of the return control. Every colour is the token variable `libs/tokens`
+	 * The visual half of the return control. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * See spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag

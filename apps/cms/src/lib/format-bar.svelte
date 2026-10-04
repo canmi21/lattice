@@ -21,7 +21,7 @@
 	 * stands and what a press does belong to text-bar.ts.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import type { FormatState } from './block-props.svelte';
 	import { floating } from './floating';
 

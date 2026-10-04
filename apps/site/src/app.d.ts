@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import type { Theme } from '@canmi/theme';
+import type { Theme } from '@canmi/kit/theme';
 import type { LocaleCode } from '#lib/locale/index.js';
 
 declare global {

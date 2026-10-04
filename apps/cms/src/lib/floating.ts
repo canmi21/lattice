@@ -6,7 +6,7 @@
  * sidebar's ground instead. See spec/architecture/local.md.
  */
 import * as stylex from '@stylexjs/stylex';
-import { radius } from '@canmi/tokens/vocabulary.stylex';
+import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
 
 export const floating = stylex.create({
 	pill: {

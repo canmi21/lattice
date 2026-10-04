@@ -1,6 +1,6 @@
 import type { PageBlock, PublishedPage } from '@canmi/artifacts';
 import type { LocaleCode } from '../locale/index';
-import { author } from '@canmi/identity';
+import { author } from 'canmi/identity';
 import * as m from '@canmi/messages';
 
 export type HomepageContent = {

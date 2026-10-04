@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	/**
 	 * The two ways out of an error page, as one sentence. See spec/architecture/css/authoring.md.
@@ -85,7 +85,7 @@
      the text inside the tag, so the words stay in the message file with their sentence. Stroke and
      ring sit on the span, because a button's box is a line box: the stroke sat 2.5px below the
      address's in the same sentence, and the ring stood 20px against its 15.5px. That is what
-     `focus-link-inner` is for; see libs/tokens/src/interaction.css. -->
+     `focus-link-inner` is for; see libs/kit/tokens/src/interaction.css. -->
 {#snippet reportForm({ children }: { children?: Snippet })}<button
 		type="button"
 		onclick={openReport}

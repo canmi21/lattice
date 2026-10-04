@@ -15,9 +15,9 @@
 	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
 	import SpeakerHighIcon from 'phosphor-svelte/lib/SpeakerHighIcon';
 	import SpeakerSimpleXIcon from 'phosphor-svelte/lib/SpeakerSimpleXIcon';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import type { VideoRung } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 	import CornersInWideIcon from './video-glyphs/corners-in-wide.svelte';
 	import CornersOutWideIcon from './video-glyphs/corners-out-wide.svelte';

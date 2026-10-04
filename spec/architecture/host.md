@@ -431,15 +431,15 @@ for what carries no class -- [css/layers.md](css/layers.md) decides which is whi
 and development arrangements there are copied rather than re-derived. Its colors are Nord's, one
 theme and dark, with no light twin: the sixteen are declared under their own names in `panel.css`,
 what the panel means by each is declared beside them, and a surface in `src/lib/style/` reads the
-meaning. They are its own rather than `libs/tokens`', which is the site's. Icons are Lucide's, and
+meaning. They are its own rather than `libs/kit/tokens`', which is the site's. Icons are Lucide's, and
 what moves -- a page arriving, the sidebar's marker crossing to the next page -- moves on
-`@canmi/motion`'s timing, as the editor's panels do.
+`@canmi/kit/motion`'s timing, as the editor's panels do.
 
 **Its charts are d3's arithmetic and Svelte's drawing.** d3's scale, shape and array modules
 compute the axes, the paths and the point nearest the pointer; the SVG is written in the component,
 so it follows the component's state like any other markup and nothing reaches into the DOM behind
 Svelte's back. The rest of d3 -- selections, transitions, its axis generator -- is not taken: each
-would draw on its own, and the motion is `@canmi/motion`'s. A chart of bytes ticks in binary
+would draw on its own, and the motion is `@canmi/kit/motion`'s. A chart of bytes ticks in binary
 units, and a series breaks where points are missing rather than drawing across the gap. **A fill is
 for a chart of one or two lines.** One line keeps its gradient and two share it; three or more are
 drawn as lines alone, because every fill layered on the others washes the plot toward grey.

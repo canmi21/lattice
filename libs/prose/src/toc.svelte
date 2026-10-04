@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import { labelStyles } from './toc-label.ts';
 	import { styles } from './toc.styles.ts';
 </script>
@@ -12,9 +12,9 @@
 		DEFAULT_PIXELS_PER_REM,
 		remFromDefaultPixels,
 		remFromMeasuredPixels,
-	} from '@canmi/units';
+	} from '@canmi/kit/units';
 	import { untrack } from 'svelte';
-	import { arriving } from '@canmi/behavior/arrival';
+	import { arriving } from '@canmi/kit/behavior/arrival';
 	import type { TocEntry } from '@canmi/artifacts/types';
 	import { measureRail } from './rail-measure';
 	import type { RailWidths } from './rail-widths';

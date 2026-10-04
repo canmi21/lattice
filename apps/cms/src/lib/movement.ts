@@ -4,12 +4,12 @@
  * same way.
  *
  * On the site's timing -- a surface answering a press, scaled by the distance it moves
- * (`@canmi/motion`). Played by the browser and held at its last frame until the caller has moved
- * the state the stylesheet reads, then cancelled, so nothing a movement wrote outlives it and the
- * resting place is always the rules' and never a leftover inline. A new movement cancels the one
- * in flight. Under reduced motion there is none. See spec/architecture/local.md.
+ * (`@canmi/kit/motion`). Played by the browser and held at its last frame until the caller has
+ * moved the state the stylesheet reads, then cancelled, so nothing a movement wrote outlives it and
+ * the resting place is always the rules' and never a leftover inline. A new movement cancels the
+ * one in flight. Under reduced motion there is none. See spec/architecture/local.md.
  */
-import { pressMotion, prefersReducedMotion } from '@canmi/motion';
+import { pressMotion, prefersReducedMotion } from '@canmi/kit/motion';
 import { tick } from 'svelte';
 
 export class Movement {

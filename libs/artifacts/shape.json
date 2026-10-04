@@ -1,6 +1,6 @@
 {
 	"version": 2,
-	"fingerprint": "f2059786b640595f",
+	"fingerprint": "adce42c3ad25c74d",
 	"covers": [
 		"libs/artifacts/src/types.ts",
 		"libs/artifacts/src/index.ts:RootViewSchema",

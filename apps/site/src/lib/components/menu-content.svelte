@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	/**
 	 * A dropdown's panel draws `surfaces.menu`, the one menu style the site and the CMS share. See

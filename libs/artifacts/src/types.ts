@@ -1,4 +1,4 @@
-import type { LocaleCode } from '@canmi/locales';
+import type { LocaleCode } from 'canmi/locales';
 
 /** Which of the three things a text track is. WebVTT's own vocabulary, not ours. */
 export type CaptionKind = 'captions' | 'subtitles' | 'descriptions';

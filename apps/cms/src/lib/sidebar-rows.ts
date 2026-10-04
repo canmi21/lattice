@@ -4,7 +4,7 @@
  * spec/architecture/local.md.
  */
 import * as stylex from '@stylexjs/stylex';
-import { border, duration, easing, radius } from '@canmi/tokens/vocabulary.stylex';
+import { border, duration, easing, radius } from '@canmi/kit/tokens/vocabulary.stylex';
 
 export const rows = stylex.create({
 	// A section is a pill on the ground rather than a word in a list, so its corner is the

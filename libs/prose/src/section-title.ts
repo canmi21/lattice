@@ -7,7 +7,7 @@
  * lives in a module both sides resolve the same way. See spec/architecture/css/authoring.md.
  */
 import * as stylex from '@stylexjs/stylex';
-import { weight } from '@canmi/tokens/vocabulary.stylex';
+import { weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 export const titleStyles = stylex.create({
 	title: {

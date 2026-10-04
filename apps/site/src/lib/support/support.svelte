@@ -1,11 +1,11 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { figures, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { figures, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the support row. Every colour is the token variable `libs/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the support row. Every colour is the token variable `libs/kit/tokens`
+	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * What is left in the block at the foot of this file is the reveal's geometry -- the masks, the
 	 * grid the fallback stacks in, the widths the script animates -- and the states the pill's own
@@ -99,7 +99,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import Star from '@lucide/svelte/icons/star';
 	import { animate } from 'motion';
-	import { reader, tab } from '@canmi/behavior/state';
+	import { reader, tab } from '@canmi/kit/behavior/state';
 	import { remFromMeasuredPixels } from '#lib/client/units.js';
 	import { page } from '$app/state';
 	import {
@@ -109,7 +109,7 @@
 	} from '#lib/engagement/engagement.svelte.js';
 	import { PUBLIC_LANGUAGE, type LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
-	import { intlLocale } from '@canmi/locales/format';
+	import { intlLocale } from 'canmi/locales/format';
 
 	/**
 	 * Expanding answers to whether the pointer can hover, not to how wide the window is -- a tap

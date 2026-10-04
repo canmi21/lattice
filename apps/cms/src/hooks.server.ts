@@ -1,6 +1,6 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit/hooks';
-import { dividerScript } from '@canmi/behavior/resize';
-import { themeScript } from '@canmi/theme';
+import { dividerScript } from '@canmi/kit/behavior/resize';
+import { themeScript } from '@canmi/kit/theme';
 import { LOCAL_ORIGIN } from '#lib/local.ts';
 import { foldedScript, SIDEBAR } from '#lib/sidebar.ts';
 

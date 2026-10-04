@@ -16,8 +16,8 @@
 </script>
 
 <script lang="ts">
-	import type { Theme } from '@canmi/theme';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { Theme } from '@canmi/kit/theme';
+	import type { LocaleCode } from 'canmi/locales';
 	import ThemeToggle from './theme-toggle.svelte';
 	import ReadingProgress from './reading-progress.svelte';
 

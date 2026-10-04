@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { easing, line, radius, text, transition } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { easing, line, radius, text, transition } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the modal. Every colour is the token variable `libs/tokens` already
+	 * The visual half of the modal. Every colour is the token variable `libs/kit/tokens` already
 	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md, "A comment in
 	 * the module script cannot write a tag in angle brackets", including for why this one may not.
 	 *

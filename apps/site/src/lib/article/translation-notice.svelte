@@ -1,9 +1,9 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { border, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the translation strip. Every colour is the token variable `libs/tokens`
+	 * The visual half of the translation strip. Every colour is the token variable `libs/kit/tokens`
 	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * This file has no scoped block left: its wash and the tint mixed from it were both visual

@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { border, figures, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { border, figures, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 	import type { State } from '#lib/board.js';
 
 	/** The board's recipes. See spec/styling/palettes.md. */
@@ -118,7 +118,7 @@
 </script>
 
 <script lang="ts">
-	import Title from '@canmi/behavior/title.svelte';
+	import Title from '@canmi/kit/behavior/title.svelte';
 	import { authorRef, graph, ldJson, person, ref } from '@canmi/social/structured';
 	import { URLS } from '@monoflake/sdk';
 	import Bell from 'phosphor-svelte/lib/Bell';

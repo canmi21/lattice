@@ -1,6 +1,6 @@
 import { dev } from '$app/env';
-import { serverHandles } from '@canmi/sentry/server';
-import { fillTheme } from '@canmi/theme';
+import { serverHandles } from '@canmi/web/sentry/server';
+import { fillTheme } from '@canmi/kit/theme';
 import { normalizedLocation, URLS } from '@monoflake/sdk';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
@@ -22,7 +22,7 @@ const spellingHandle: Handle = ({ event, resolve }) => {
 };
 
 // Sentry's handles first, and none when the DSN is unset. The same handles serve both doors; see
-// libs/sentry/src/server.ts.
+// libs/web/sentry/src/server.ts.
 export const handle = sequence(
 	...serverHandles({ dsn: URLS.external.sentry.status, dev }),
 	spellingHandle,

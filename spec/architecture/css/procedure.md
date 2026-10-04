@@ -62,7 +62,7 @@ ranking them; the same file anticipates that case.
 
 ### The vocabulary is a key in `stylex.create`, and the class it emits is merged by hand
 
-Write a key whose declarations name a colour by reading the custom property `libs/tokens` already
+Write a key whose declarations name a colour by reading the custom property `libs/kit/tokens` already
 declares rather than retyping it -- [authoring.md](authoring.md), "Colour is never retyped" -- and
 whose lengths are lengths rather than the arithmetic that produced one, because the compiler
 evaluates and rounds where CSS would not: [authoring.md](authoring.md), "A ratio that does not

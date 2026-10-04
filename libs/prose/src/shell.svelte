@@ -10,9 +10,9 @@
 	 * See spec/architecture/workspace.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import type { LocaleCode } from '@canmi/locales';
-	import type { Theme } from '@canmi/theme';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import type { LocaleCode } from 'canmi/locales';
+	import type { Theme } from '@canmi/kit/theme';
 	import type { TocEntry } from '@canmi/artifacts/types';
 	import type { Snippet } from 'svelte';
 	import ActionBar from './action-bar.svelte';

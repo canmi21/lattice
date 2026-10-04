@@ -1,11 +1,11 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { border, family, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { border, family, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * The visual half of the Cargo widget. Every interface colour is the token variable
-	 * `libs/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a local mirror this
 	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on it (spec/todo/css.md,
@@ -148,7 +148,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@monoflake/sdk';
 	import { hierarchy, treemap, treemapBinary } from 'd3-hierarchy';
-	import { remFromMeasuredPixels } from '@canmi/units';
+	import { remFromMeasuredPixels } from '@canmi/kit/units';
 	import {
 		KIND_COLORS,
 		crateColors,

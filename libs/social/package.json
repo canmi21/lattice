@@ -8,9 +8,9 @@
 		"./structured": "./src/structured.ts"
 	},
 	"dependencies": {
-		"@canmi/identity": "workspace:*",
 		"@canmi/prose": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
+		"canmi": "workspace:*",
 		"svelte": "^5.57.1"
 	},
 	"devDependencies": {

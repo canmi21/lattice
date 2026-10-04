@@ -6,7 +6,7 @@
  * `.svelte` file once the measurement and the component are in different packages.
  */
 import * as stylex from '@stylexjs/stylex';
-import { line, text } from '@canmi/tokens/vocabulary.stylex';
+import { line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 export const labelStyles = stylex.create({
 	label: {

@@ -12,7 +12,7 @@ tagline: Notes on the software and hardware I build.
 domain: canmi.net
 
 # Every address the site answers on is a name at this domain, so moving the domain is one edit.
-# The author's own address is @canmi/identity's and is deliberately not one of these.
+# The author's own address is canmi/identity's and is deliberately not one of these.
 mail:
   domain: canmi.net
   boxes:

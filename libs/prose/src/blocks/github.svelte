@@ -1,10 +1,10 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { family, figures, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import { family, figures, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the repository card. Every colour is the token variable `libs/tokens`
+	 * The visual half of the repository card. Every colour is the token variable `libs/kit/tokens`
 	 * already declares. See spec/architecture/css/authoring.md.
 	 *
 	 * The corner glyph's other opacity is in the block at the foot, gated on the card's hover and
@@ -117,7 +117,7 @@
 	import { URLS } from '@monoflake/sdk';
 	import type { CardAlign, RepoRecord } from '@canmi/artifacts/types';
 	import { langColor } from './tokei/tokei';
-	import { compactCount, shortDate } from '@canmi/locales/format';
+	import { compactCount, shortDate } from 'canmi/locales/format';
 
 	let {
 		repo,

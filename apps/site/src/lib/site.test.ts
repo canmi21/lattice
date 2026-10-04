@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { author } from '@canmi/identity';
+import { author } from 'canmi/identity';
 import { URLS } from '@monoflake/sdk';
 import { describe, expect, it } from 'vitest';
 
@@ -29,7 +29,7 @@ describe('site config', () => {
 
 	/**
 	 * A card drawn by `local og` and a page rendered by SvelteKit have no other way to agree than
-	 * both reading @canmi/identity -- the name, role, GitHub handle and avatar id had drifted into
+	 * both reading canmi/identity -- the name, role, GitHub handle and avatar id had drifted into
 	 * the markup as literals once already. Checked against the source text rather than a render,
 	 * because a render agrees with a hardcoded value as happily as with a read one.
 	 */
@@ -40,7 +40,7 @@ describe('site config', () => {
 		);
 		for (const key of ['name', 'fullName', 'role', 'github', 'githubId'] as const) {
 			const value = String(author[key]);
-			expect(value, `@canmi/identity is missing ${key}`).toBeTruthy();
+			expect(value, `canmi/identity is missing ${key}`).toBeTruthy();
 			expect(home, `+page.svelte hardcodes author.${key}`).not.toContain(value);
 		}
 	});

@@ -4,7 +4,7 @@
  * as the article ends. Pure functions and one action; the state they are asked about is
  * `toc.svelte`'s.
  */
-import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '@canmi/units';
+import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '@canmi/kit/units';
 import { railEndOffset } from './rail';
 
 /** The resting height of a collapsed bar, and of the open indicator, in default-root pixels. */

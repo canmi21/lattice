@@ -18,7 +18,7 @@ arrived as a Sentry issue. No configuration would have predicted it.
 
 ## The API floor: a short list of canaries, and all of core-js behind it
 
-[`@canmi/compat`](../libs/compat/src/index.ts) checks for each canary -- `Array.prototype.toSorted`,
+[`@canmi/web/compat`](../libs/web/compat/src/index.ts) checks for each canary -- `Array.prototype.toSorted`,
 `URL.canParse` -- and, if any is absent, dynamically imports `core-js/stable` before hydration.
 
 **There is no list of modules any more, and that is the point.** A hand-written list has no
@@ -44,7 +44,7 @@ first. `URL.canParse` is the second: Chrome 120, above the floor, so a Chrome 11
 passes the first canary and loads nothing, and a Chrome 99 reader of the status page crashed on it.
 Either missing loads core-js. The floor itself does not move for a canary: it is where the syntax
 must parse, and a canary is only a cheaper way of noticing a browser that needs the rest. The list
-is in `@canmi/compat`, one line an entry.
+is in `@canmi/web/compat`, one line an entry.
 
 ### Why `toSorted` first, and why so few checks
 
@@ -88,7 +88,7 @@ which is above the canary for Firefox and would have had precisely the effect de
 `caniuse-lite`, so the compiled output would change on an unrelated dependency update and
 rebuilding one commit twice would not produce the same bytes.
 
-The site and the status page declare one, the same, through `@canmi/compat`, which holds the
+The site and the status page declare one, the same, through `@canmi/web/compat`, which holds the
 canary, the lazy import and the reading of `browserslist` into esbuild's target, so the two cannot
 drift. `api` and `cdn` run on workerd, and the CMS is opened in whatever browser its author uses;
 none of them meets an arbitrary browser.

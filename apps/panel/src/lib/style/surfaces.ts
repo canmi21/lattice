@@ -3,7 +3,7 @@ import { duration, font, radius, text, weight } from './vocabulary.stylex.ts';
 
 /**
  * The declaration groups the panel repeats, each with one name -- the site's
- * libs/tokens/src/surfaces.ts is the pattern. Color, border, radius and type live here; where a
+ * libs/kit/tokens/src/surfaces.ts is the pattern. Color, border, radius and type live here; where a
  * thing sits and how big it is stays in the markup. See spec/architecture/css/layers.md, "What each
  * layer owns, by name".
  */

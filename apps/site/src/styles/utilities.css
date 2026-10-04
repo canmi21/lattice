@@ -1,5 +1,5 @@
 /* The site's page alone. What the CMS draws too has left for the libraries: the focus ring and the
-   link underline for `@canmi/tokens/interaction.css`, the prose's own names for
+   link underline for `@canmi/kit/tokens/interaction.css`, the prose's own names for
    `@canmi/prose/prose.css`. `components` rather than unlayered: a rule here has to lose to a
    utility written in the markup and to a StyleX surface. See spec/architecture/css/layers.md,
    "`utilities.css` is dissolved, not given a position". */

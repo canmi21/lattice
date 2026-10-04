@@ -39,7 +39,7 @@ struct SiteConfig {
 	author: Author,
 }
 
-/// The author the home card introduces, from `@canmi/identity`. Required rather than defaulted:
+/// The author the home card introduces, from `canmi/identity`. Required rather than defaulted:
 /// an empty field would draw a card with a gap where the author should be.
 #[derive(Debug, Default, Deserialize)]
 struct Author {
@@ -53,7 +53,7 @@ pub fn config_path(repo: &Path) -> PathBuf {
 }
 
 fn author_path(repo: &Path) -> PathBuf {
-	repo.join("libs").join("identity").join("author.json")
+	repo.join("libs").join("canmi").join("identity").join("author.json")
 }
 
 fn read_author(repo: &Path) -> Result<Author, String> {
@@ -644,7 +644,7 @@ mod tests {
 	#[test]
 	fn reads_the_author_the_home_card_introduces() {
 		let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-		let author = read_author(&repo).expect("libs/identity/author.json");
+		let author = read_author(&repo).expect("libs/canmi/identity/author.json");
 		assert!(!author.full_name.is_empty() && !author.role.is_empty());
 		assert!(read_author(&repo.join("missing")).is_err());
 	}

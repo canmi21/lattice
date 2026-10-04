@@ -1,9 +1,9 @@
 import type { ClientInit } from '@sveltejs/kit/hooks';
 import { dev } from '$app/env';
-import { takeParameter } from '@canmi/referer';
-import { prepareBrowserRuntime } from '@canmi/compat';
+import { takeParameter } from '@canmi/web/referer';
+import { prepareBrowserRuntime } from '@canmi/web/compat';
 import { URLS } from '@monoflake/sdk';
-import { initClient } from '@canmi/sentry/client';
+import { initClient } from '@canmi/web/sentry/client';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { registerAnalytics } from '#lib/analytics.js';
 import { registerClientStrategy } from '#lib/locale/paraglide.js';

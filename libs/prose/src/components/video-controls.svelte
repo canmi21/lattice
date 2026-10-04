@@ -15,7 +15,7 @@
 	 * The chrome a clip is driven by, on Video.js v10's headless core rather than its skin: see
 	 * spec/architecture/video/player.md, "The chrome is built on `@videojs/core`'s headless store,
 	 * not its skin". Every color is a `--player-*` token, which does not follow the theme; see
-	 * `libs/tokens/src/player.css`. The scoped blocks hold only selectors no class can reach. The
+	 * `libs/kit/tokens/src/player.css`. The scoped blocks hold only selectors no class can reach. The
 	 * row is drawn by `video-chrome.svelte` and `video-settings.svelte`; the rest is here.
 	 */
 	// Phosphor here and Lucide everywhere else -- see spec/styling/player.md, "The player's glyphs
@@ -27,12 +27,12 @@
 	import PauseIcon from 'phosphor-svelte/lib/PauseIcon';
 	import PictureInPictureIcon from 'phosphor-svelte/lib/PictureInPictureIcon';
 	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
-	import { reader } from '@canmi/behavior/state';
+	import { reader } from '@canmi/kit/behavior/state';
 	import type { VideoRung } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import { placeCaptions } from './video-captions.ts';
 	import VideoChrome from './video-chrome.svelte';
 	import { styles } from './video-controls.styles.ts';
@@ -733,7 +733,7 @@
 	   flush, suppressed on a pointer. Which utility depends on the control's visible edge: a circle
 	   or a row's own width takes `focus-ring`; a 30px button around a 16px glyph hands the outline
 	   to the glyph with `focus-ring-inner`, the 7px around it being hit target, not control. See
-	   spec/styling/focus.md and libs/tokens/src/interaction.css for the measurement. */
+	   spec/styling/focus.md and libs/kit/tokens/src/interaction.css for the measurement. */
 
 	/* The cover's ring is drawn on the glyph and follows its actual shape, not a box around it --
 	   neither the 64px disc nor a box around the 30px glyph is the thing being pointed at. `w` is

@@ -1,0 +1,18 @@
+{
+	"name": "@canmi/web",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./compat": "./compat/src/index.ts",
+		"./compat/build": "./compat/src/build.ts",
+		"./referer": "./referer/src/index.ts",
+		"./sentry/build": "./sentry/src/build.ts",
+		"./sentry/client": "./sentry/src/client.ts",
+		"./sentry/server": "./sentry/src/server.ts"
+	},
+	"dependencies": {
+		"@sentry/sveltekit": "^11.4.0",
+		"@sveltejs/kit": "^3.0.0",
+		"core-js": "^3.50.0"
+	}
+}

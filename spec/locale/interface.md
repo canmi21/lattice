@@ -23,7 +23,7 @@ and `CN` / `TW` is what separates them; it is also the answer `Original (CN)` ha
 Putting `ZH` there would move an internal code into the interface, which is the one thing the two
 vocabularies in [addressing.md](addressing.md) exist to prevent.
 
-**The Chinese names are folded, and only the Chinese ones.** `@canmi/locales` writes them as
+**The Chinese names are folded, and only the Chinese ones.** `canmi/locales` writes them as
 `中文 (简体)` and `中文 (繁體)`, which is right for a menu row and wrong for a label that already
 ends in a bracket -- `中文 (简体) (CN)` reads as two afterthoughts. Chinese is the only language
 here whose name splits by script, so the fold is applied to it by language rather than to any

@@ -3,7 +3,7 @@ import { parse as parseYaml } from 'yaml';
 import { describe, expect, it } from 'vitest';
 import { assemble, similarity, type SegmentLayout, type TranslationSidecar } from './assemble';
 import { CANONICAL_SIMILARITY_THRESHOLD, indexingMetadata } from './indexing';
-import { LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/locales';
+import { LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from 'canmi/locales';
 
 // Real articles, measured rather than invented: the threshold is a claim about actual
 // translations, and a fixture written to sit on one side of it would prove nothing.

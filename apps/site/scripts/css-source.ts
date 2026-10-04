@@ -25,17 +25,17 @@ export const ROOT = join(SITE, '../..');
 const SRC = [
 	join(SITE, 'src'),
 	join(SITE, '../../libs/prose/src'),
-	join(SITE, '../../libs/tokens/src'),
+	join(SITE, '../../libs/kit/tokens/src'),
 ];
 const SCAN = relative(ROOT, fileURLToPath(import.meta.url));
 
 /** The module every `stylex.create` call comes from, and the only one this scan recognises. */
 const STYLEX = '@stylexjs/stylex';
 /** Where the visual layer's named values live, and where its named groups do. */
-const VOCABULARY = '@canmi/tokens/vocabulary.stylex';
-const SURFACES = '@canmi/tokens/surfaces';
+const VOCABULARY = '@canmi/kit/tokens/vocabulary.stylex';
+const SURFACES = '@canmi/kit/tokens/surfaces';
 /** Where those two resolve to, so each module is spelled once. */
-const LIB = 'libs/tokens/src';
+const LIB = 'libs/kit/tokens/src';
 
 /**
  * The two homes of a name, as paths. A gate counting application sites has to tell a read inside

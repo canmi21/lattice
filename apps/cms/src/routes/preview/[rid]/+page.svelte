@@ -12,8 +12,8 @@
 	import ArticleBody from '@canmi/prose/body.svelte';
 	import Shell from '@canmi/prose/shell.svelte';
 	import { articleRailScript } from '@canmi/prose/rail';
-	import { currentTheme, type Theme } from '@canmi/theme';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { currentTheme, type Theme } from '@canmi/kit/theme';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import type { PageProps } from './$types';
 
 	// Compiled where the compiler is, then rendered with the components the site renders with --

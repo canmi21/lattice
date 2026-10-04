@@ -387,7 +387,7 @@ follow a link. Escape closes it the same way, and goes no further than the menu.
 it: the menu closed only from its own cog, which nobody reaches for first.
 
 **Turning a page moves the way the site moves.** The panel's height travels to the next page's
-with `animateHeight` from `@canmi/behavior/collapse`, the disclosure's own animation, and the page
+with `animateHeight` from `@canmi/kit/behavior/collapse`, the disclosure's own animation, and the page
 comes in from its side -- forward from the right, back from the left -- on `pressMotion` for that
 height, so the two finish together. The panel's width is fixed, so only the height moves; reduced
 motion turns the page at once.

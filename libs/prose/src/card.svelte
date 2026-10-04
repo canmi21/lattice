@@ -1,10 +1,10 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { untrack } from 'svelte';
-	import { ARTICLE_THUMBNAIL_LINES } from '@canmi/primitives';
-	import { arriving } from '@canmi/behavior/arrival';
-	import { shortDate } from '@canmi/locales/format';
-	import { surfaces } from '@canmi/tokens/surfaces';
+	import { ARTICLE_THUMBNAIL_LINES } from '@canmi/ui/primitives';
+	import { arriving } from '@canmi/kit/behavior/arrival';
+	import { shortDate } from 'canmi/locales/format';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	let {
 		title,

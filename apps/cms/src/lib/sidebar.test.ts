@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { reader, type Store } from '@canmi/behavior/state';
+import { reader, type Store } from '@canmi/kit/behavior/state';
 import {
 	ARTICLE_COLUMN,
 	FOLD_BELOW,

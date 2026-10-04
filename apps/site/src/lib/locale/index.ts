@@ -1,7 +1,7 @@
-import { localeCode, type LocaleCode } from '@canmi/locales';
+import { localeCode, type LocaleCode } from 'canmi/locales';
 
 /**
- * What a tag is now lives in `@canmi/locales`, because the compiler needs it and this file is
+ * What a tag is now lives in `canmi/locales`, because the compiler needs it and this file is
  * an application's. Re-exported rather than relocated at every call site: thirty-five modules
  * here ask `#lib/locale/index.js` for a mix of both halves, and the halves are what moved, not
  * the name.
@@ -14,11 +14,11 @@ export {
 	languageTag,
 	PUBLIC_LANGUAGE,
 	type LocaleCode,
-} from '@canmi/locales';
+} from 'canmi/locales';
 
 export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-export { SITE_LANGUAGE } from '@canmi/locales';
+export { SITE_LANGUAGE } from 'canmi/locales';
 
 function codeForLanguageRange(value: string): Exclude<LocaleCode, 'mw'> | undefined {
 	const range = value.toLowerCase();

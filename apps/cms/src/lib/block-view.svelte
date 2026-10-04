@@ -32,7 +32,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import ArticleBody from '@canmi/prose/body.svelte';
-	import { family, radius, text } from '@canmi/tokens/vocabulary.stylex';
+	import { family, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	let { markdown, language, selected }: { markdown: string; language: string; selected: boolean } =
 		$props();

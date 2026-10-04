@@ -10,15 +10,15 @@
  * search panel uses the same spring for a different measurement -- see spec/search.md.
  */
 
-import { NEGLIGIBLE_PIXELS, pressMotion, prefersReducedMotion } from '@canmi/motion';
+import { NEGLIGIBLE_PIXELS, pressMotion, prefersReducedMotion } from '@canmi/kit/motion';
 import { animate } from 'motion';
-import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '@canmi/units';
+import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '@canmi/kit/units';
 
 /**
  * A panel answering a press, not a thing being thrown.
  *
  * Derived from the distance rather than fixed, so a short disclosure is a quick one, and a tween
- * rather than a spring so it ends when it says it will -- see `@canmi/motion` for the
+ * rather than a spring so it ends when it says it will -- see `@canmi/kit/motion` for the
  * measurements behind both.
  */
 export const collapseMotion = pressMotion;

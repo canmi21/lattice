@@ -4,7 +4,7 @@
  * by `video-controls.svelte`, while it initializes, and its effects are that component's. See
  * spec/architecture/video/player.md, "A reload finds a clip where the tab left it".
  */
-import { keepPosition, positionOf, stillOf } from '@canmi/behavior/progress';
+import { keepPosition, positionOf, stillOf } from '@canmi/kit/behavior/progress';
 
 /**
  * A seek small enough to land inside the first frame, and large enough to be a seek.

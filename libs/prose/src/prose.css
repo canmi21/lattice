@@ -1,7 +1,7 @@
 /* The rules for names the markdown compiler writes into an article, which both the site's page and
    the CMS draw: a prose link's colours, where a jump lands, and where a line of body prose may end.
    Beside `rail.css` for the same reason it is here -- the prose is this package's, and a consumer
-   that draws it loads its rules. The underline itself is `@canmi/tokens/interaction.css`. */
+   that draws it loads its rules. The underline itself is `@canmi/kit/tokens/interaction.css`. */
 
 @layer components {
 	.article-link {

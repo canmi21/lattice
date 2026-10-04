@@ -7,7 +7,7 @@ license.workspace = true
 [lints]
 workspace = true
 
-# The Rust half of the `canmi` package: `src/lib.rs` is generated from `src/index.ts` by `mise run
-# urls`. See spec/architecture/layers.md, "Addresses are split by who owns the name".
+# The Rust half of the `canmi` package: `urls/src/lib.rs` is generated from `urls/src/index.ts` by
+# `mise run urls`. See spec/architecture/layers.md, "Addresses are split by who owns the name".
 [lib]
-path = "src/lib.rs"
+path = "urls/src/lib.rs"

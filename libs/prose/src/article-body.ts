@@ -7,7 +7,7 @@
  * reason as `section-title.ts`, and the same fix. See spec/architecture/css/authoring.md.
  */
 import * as stylex from '@stylexjs/stylex';
-import { line, text } from '@canmi/tokens/vocabulary.stylex';
+import { line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 export const bodyStyles = stylex.create({
 	body: {

@@ -8,7 +8,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
-	import { radius } from '@canmi/tokens/vocabulary.stylex';
+	import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
 	import type { GripState } from './block-props.svelte';
 
 	let { grip, press }: { grip: GripState; press: (event: PointerEvent) => void } = $props();

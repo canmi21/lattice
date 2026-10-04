@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
-	import { radius } from '@canmi/tokens/vocabulary.stylex';
+	import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
 	 * How far down the article the reader is, drawn as a ring, and a way back to the top.
@@ -80,11 +80,11 @@
 
 <script lang="ts">
 	import { BROWSER as browser } from 'esm-env';
-	import { arriving } from '@canmi/behavior/arrival';
+	import { arriving } from '@canmi/kit/behavior/arrival';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import Dial from './components/dial.svelte';
-	import type { LocaleCode } from '@canmi/locales';
+	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 
 	/** Passed rather than read; see spec/locale/addressing.md. */

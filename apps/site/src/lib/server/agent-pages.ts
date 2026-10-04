@@ -2,7 +2,7 @@
  * The agent views of the pages that have one -- every article and the homepage -- fetched from the
  * answers the human pages render from. See spec/architecture/markdown.md.
  */
-import { author, mailbox } from '@canmi/identity';
+import { author, mailbox } from 'canmi/identity';
 import { aliasesOf, graph, person, profiles, telegramGroup } from '@canmi/social/structured';
 import { URLS } from '@monoflake/sdk';
 import { articleEntity, citationsOf, kindOf } from '#lib/article/entity.js';

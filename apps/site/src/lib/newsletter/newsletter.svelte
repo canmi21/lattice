@@ -1,12 +1,19 @@
 <script module lang="ts">
 	import { page } from '$app/state';
 	import * as stylex from '@stylexjs/stylex';
-	import { surfaces } from '@canmi/tokens/surfaces';
-	import { duration, easing, line, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
+	import { surfaces } from '@canmi/kit/tokens/surfaces';
+	import {
+		duration,
+		easing,
+		line,
+		radius,
+		text,
+		weight,
+	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the subscription surface. Every colour is the token variable `libs/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the subscription surface. Every colour is a `libs/kit/tokens` variable,
+	 * so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file keeps the eight keyframes and their names, the
 	 * `--pill-overhang` geometry, and `--pill-height`, read back down through `app.css` -- a

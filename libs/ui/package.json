@@ -1,0 +1,10 @@
+{
+	"name": "@canmi/ui",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./primitives": "./primitives/src/index.ts",
+		"./primitives/style.css": "./primitives/src/style.css",
+		"./svg-canvas/style.css": "./svg-canvas/src/style.css"
+	}
+}

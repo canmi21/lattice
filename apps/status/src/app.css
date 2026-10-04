@@ -3,8 +3,8 @@
    spec/architecture/css/layers.md. */
 @layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
-@import '@canmi/theme/palettes/mono.css';
-@import '@canmi/tokens/interaction.css';
+@import '@canmi/kit/theme/palettes/mono.css';
+@import '@canmi/kit/tokens/interaction.css';
 @source '.';
 @source '../../../libs/social/src';
 

@@ -4,7 +4,7 @@
  * name. A category that no longer exists is dropped the next time the set is written, so the
  * record holds only names the tree still has. See spec/architecture/local.md.
  */
-import { reader, type Store } from '@canmi/behavior/state';
+import { reader, type Store } from '@canmi/kit/behavior/state';
 
 /** Whether the Articles folder is open. */
 export const ARTICLES_OPEN_KEY = 'cms.articles.open';
