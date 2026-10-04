@@ -1,6 +1,7 @@
 //! The declared checks, read from `checks.toml`, with each target resolved against `libs/urls`.
 //! See spec/architecture/probe.md, "What is checked, and how often".
 
+use crate::ask::Method;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::time::Duration;
@@ -72,6 +73,10 @@ struct Declared {
 	name: String,
 	kind: Kind,
 	target: String,
+	/// `GET` when absent; `POST` sends `body`, which is how an `api` check starts a task.
+	method: Option<String>,
+	/// The JSON a `POST` sends.
+	body: Option<String>,
 	/// Seconds between rounds.
 	interval: f64,
 	#[serde(default)]
@@ -90,6 +95,8 @@ pub struct Check {
 	pub target: String,
 	/// The target resolved.
 	pub url: Url,
+	/// How the target is first asked; a followed `Location` is always a GET.
+	pub method: Method,
 	pub interval: Duration,
 	pub expect: Expect,
 }
@@ -202,6 +209,18 @@ pub fn parse(source: &str) -> Result<Vec<Check>, String> {
 		}
 		allowed(declared.kind, &declared.expect).map_err(|error| format!("`{id}`: {error}"))?;
 		let url = resolve(&declared.target)?;
+		let method = match (declared.method.as_deref(), declared.body) {
+			(None | Some("GET"), None) => Method::Get,
+			(Some("POST"), Some(body)) if declared.kind == Kind::Api => {
+				serde_json::from_str::<serde_json::Value>(&body)
+					.map_err(|error| format!("`{id}`: a body is JSON: {error}"))?;
+				Method::Post(body.into())
+			}
+			(Some("POST"), Some(_)) => return Err(format!("`{id}`: only an api check posts")),
+			(Some("POST"), None) => return Err(format!("`{id}`: a POST sends a body")),
+			(None | Some("GET"), Some(_)) => return Err(format!("`{id}`: a body is sent by POST")),
+			(Some(other), _) => return Err(format!("`{id}`: a method is GET or POST, not {other}")),
+		};
 		if declared.kind == Kind::Dns && url.host_str().is_none() {
 			return Err(format!("`{id}`: a dns target needs a host"));
 		}
@@ -211,6 +230,7 @@ pub fn parse(source: &str) -> Result<Vec<Check>, String> {
 			kind: declared.kind,
 			target: declared.target,
 			url,
+			method,
 			interval: Duration::from_secs_f64(declared.interval),
 			expect: declared.expect,
 		});
@@ -221,6 +241,27 @@ pub fn parse(source: &str) -> Result<Vec<Check>, String> {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn posts_only_a_json_body_and_only_from_an_api_check() {
+		let check = |kind: &str, rest: &str| {
+			parse(&format!(
+				"[[check]]\nid = \"c\"\nname = \"C\"\nkind = \"{kind}\"\ntarget = \"API_PUBLIC/shot/v1/tasks\"\ninterval = 60\n{rest}"
+			))
+		};
+		let posted = check("api", "method = \"POST\"\nbody = '{\"a\":1}'").unwrap();
+		assert_eq!(posted[0].method, Method::Post(r#"{"a":1}"#.into()));
+		assert_eq!(check("api", "").unwrap()[0].method, Method::Get);
+		for (kind, rest) in [
+			("api", "method = \"POST\""),
+			("api", "body = '{}'"),
+			("api", "method = \"POST\"\nbody = 'not json'"),
+			("api", "method = \"PUT\"\nbody = '{}'"),
+			("health", "method = \"POST\"\nbody = '{}'"),
+		] {
+			assert!(check(kind, rest).is_err(), "{kind}: {rest}");
+		}
+	}
 
 	#[test]
 	fn the_declared_file_reads_and_every_target_resolves() {

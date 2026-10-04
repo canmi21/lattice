@@ -18,8 +18,8 @@ beat for everything. They fall into two kinds, and it is the first that finds a 
   catches a fault before a visitor meets it.
 - **Outside**: the whole chain a visitor's request takes, through the public names and Cloudflare,
   end to end. A route that costs nothing but CPU, `geo`'s, can be asked every second; a page that
-  renders -- every article's -- is asked once a minute, through `shot`'s private scope with
-  `fresh=true` so each round is a capture of its own, which reports the page's errors, failed
+  renders -- every article's -- is asked once a minute, started as a task of `shot`'s private scope,
+  `POST /shot/v1/tasks` with `access.fresh` so each round is a capture of its own, which reports the page's errors, failed
   requests, status and title from a real Chromium. The probe holds no browser. Outside checks are the chain working, not availability; they cost more and run slower.
 
 **A check has a name a reader understands**, `name` in `checks.toml` -- "Scheduler", "Site DNS" --
@@ -34,6 +34,8 @@ one the rest of the platform uses. The target is kept and shown as written, neve
 A check's kind is one of `dns` (a name resolves, through Cloudflare's resolver and Google's alike,
 to what it should), `api` (a URL answers with the status expected, the envelope's `success`, the
 fields a check names, within a time), `page` (as above) and `health` (a service's own health path).
+An `api` check asks by `GET` unless it declares `method = "POST"` and the JSON `body` it sends,
+which is how a check starts a task; a `Location` it follows is always asked by `GET`.
 
 **The probe passes the limits it is checking through with a token of its own**, `x-probe`, which
 Cloudflare's rate rules and the gateway's counters both leave uncounted: the probe asks far more

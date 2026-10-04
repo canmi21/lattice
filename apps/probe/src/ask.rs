@@ -5,7 +5,7 @@
 use crate::checks::{Check, Kind};
 use crate::round::Outcome;
 use bytes::Bytes;
-use http_body_util::{BodyExt, Empty, Limited};
+use http_body_util::{BodyExt, Full, Limited};
 use hyper::Request;
 use hyper_rustls::HttpsConnector;
 use hyper_util::client::legacy::Client;
@@ -38,13 +38,20 @@ pub struct Answer {
 
 pub type Asked = Pin<Box<dyn Future<Output = Result<Answer, String>> + Send>>;
 
-/// A GET and its answer; a fake one in the tests.
+/// How a request is sent: a GET, or a POST of a JSON body, which is how a task is started.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Method {
+	Get,
+	Post(Bytes),
+}
+
+/// A request and its answer; a fake one in the tests.
 pub trait Http: Send + Sync + 'static {
-	fn get(&self, url: &Url, headers: &[(&'static str, String)]) -> Asked;
+	fn send(&self, method: &Method, url: &Url, headers: &[(&'static str, String)]) -> Asked;
 }
 
 pub struct Network {
-	client: Client<HttpsConnector<HttpConnector>, Empty<Bytes>>,
+	client: Client<HttpsConnector<HttpConnector>, Full<Bytes>>,
 }
 
 impl Network {
@@ -66,12 +73,19 @@ impl Default for Network {
 }
 
 impl Http for Network {
-	fn get(&self, url: &Url, headers: &[(&'static str, String)]) -> Asked {
-		let mut builder = Request::get(url.as_str());
+	fn send(&self, method: &Method, url: &Url, headers: &[(&'static str, String)]) -> Asked {
+		let (verb, body) = match method {
+			Method::Get => (hyper::Method::GET, Bytes::new()),
+			Method::Post(body) => (hyper::Method::POST, body.clone()),
+		};
+		let mut builder = Request::builder().method(verb).uri(url.as_str());
+		if matches!(method, Method::Post(_)) {
+			builder = builder.header(hyper::header::CONTENT_TYPE, "application/json");
+		}
 		for (name, value) in headers {
 			builder = builder.header(*name, value);
 		}
-		let request = builder.body(Empty::new());
+		let request = builder.body(Full::new(body));
 		let client = self.client.clone();
 		Box::pin(async move {
 			let answer = client.request(request.map_err(|error| error.to_string())?).await;
@@ -139,23 +153,25 @@ pub async fn run(check: &Check, context: &Context) -> Outcome {
 async fn ask(
 	context: &Context,
 	check: &Check,
+	method: &Method,
 	url: &Url,
 	headers: &[(&'static str, String)],
 ) -> Result<Answer, Outcome> {
-	context.http.get(url, headers).await.map_err(|error| {
+	context.http.send(method, url, headers).await.map_err(|error| {
 		eprintln!("probe: {}: {error}", check.id);
 		Outcome::fail("unreachable")
 	})
 }
 
-/// Ask, and while the answer is `202` with a `Location`, wait and ask there.
+/// Ask as `first` says, and while the answer is `202` with a `Location`, wait and GET there.
 async fn follow(
 	context: &Context,
 	check: &Check,
+	first: &Method,
 	mut url: Url,
 	headers: &[(&'static str, String)],
 ) -> Result<Answer, Outcome> {
-	let mut answer = ask(context, check, &url, headers).await?;
+	let mut answer = ask(context, check, first, &url, headers).await?;
 	// Only the first 202 names where to look; a later one, still queued, is asked again as it is.
 	while answer.status == 202 {
 		if let Some(location) = answer.location.as_deref() {
@@ -163,13 +179,13 @@ async fn follow(
 		}
 		let wait = answer.retry_after.unwrap_or(POLL.0).clamp(POLL.0, POLL.1);
 		tokio::time::sleep(Duration::from_secs(wait)).await;
-		answer = ask(context, check, &url, headers).await?;
+		answer = ask(context, check, &Method::Get, &url, headers).await?;
 	}
 	Ok(answer)
 }
 
 async fn health(check: &Check, context: &Context) -> Outcome {
-	match ask(context, check, &check.url, &[]).await {
+	match ask(context, check, &Method::Get, &check.url, &[]).await {
 		Ok(answer) => judge_http(check, &answer),
 		Err(outcome) => outcome,
 	}
@@ -178,9 +194,9 @@ async fn health(check: &Check, context: &Context) -> Outcome {
 async fn api(check: &Check, context: &Context) -> Outcome {
 	let headers = context.outside();
 	let answer = if check.expect.follow {
-		follow(context, check, check.url.clone(), &headers).await
+		follow(context, check, &check.method, check.url.clone(), &headers).await
 	} else {
-		ask(context, check, &check.url, &headers).await
+		ask(context, check, &check.method, &check.url, &headers).await
 	};
 	match answer {
 		Ok(answer) => judge_http(check, &answer),
@@ -231,7 +247,7 @@ async fn dns(check: &Check, context: &Context) -> Outcome {
 		url.query_pairs_mut().append_pair("name", &host).append_pair("type", record);
 		let headers = &headers;
 		async move {
-			let found = match ask(context, check, &url, headers).await {
+			let found = match ask(context, check, &Method::Get, &url, headers).await {
 				Ok(answer) if answer.status == 200 => {
 					judge_dns(&answer.body, record, &check.expect.answers)
 				}
@@ -272,35 +288,39 @@ pub fn judge_dns(body: &[u8], record: &str, expected: &[String]) -> Result<(), S
 	}
 }
 
-/// shot's capture address for a page: the page as its parts, each alone, and `fresh=true`. See
-/// spec/architecture/shot.md, "Asking for one".
-pub fn capture_url(shot: &Url, page: &Url) -> Url {
-	let mut url = shot.join("capture").expect("a relative path joins");
-	{
-		let mut query = url.query_pairs_mut();
-		query.append_pair("scheme", page.scheme());
-		query.append_pair("host", page.host_str().unwrap_or_default());
-		if let Some(port) = page.port() {
-			query.append_pair("port", &port.to_string());
-		}
-		let path = page.path().trim_start_matches('/');
-		if !path.is_empty() {
-			query.append_pair("path", path);
-		}
-		for (name, value) in page.query_pairs() {
-			query.append_pair(&format!("query.{name}"), &value);
-		}
-		if let Some(hash) = page.fragment() {
-			query.append_pair("hash", hash);
-		}
-		query.append_pair("fresh", "true");
+/// What shot is asked to start for a page: the page as its parts, each alone, and fresh, as
+/// `POST /v1/tasks` takes them. See spec/architecture/shot.md, "Asking for one".
+pub fn capture_body(page: &Url) -> Bytes {
+	let mut target = serde_json::Map::new();
+	target.insert("scheme".into(), page.scheme().into());
+	target.insert("host".into(), page.host_str().unwrap_or_default().into());
+	if let Some(port) = page.port() {
+		target.insert("port".into(), port.into());
 	}
-	url
+	let path = page.path().trim_start_matches('/');
+	if !path.is_empty() {
+		target.insert("path".into(), path.into());
+	}
+	let mut query = serde_json::Map::new();
+	for (name, value) in page.query_pairs() {
+		let values = query.entry(name.into_owned()).or_insert_with(|| Value::Array(Vec::new()));
+		if let Value::Array(values) = values {
+			values.push(value.into_owned().into());
+		}
+	}
+	if !query.is_empty() {
+		target.insert("query".into(), query.into());
+	}
+	if let Some(hash) = page.fragment() {
+		target.insert("hash".into(), hash.into());
+	}
+	serde_json::json!({ "target": target, "access": { "fresh": true } }).to_string().into()
 }
 
 async fn page(check: &Check, context: &Context) -> Outcome {
-	let url = capture_url(&context.shot, &check.url);
-	match follow(context, check, url, &[]).await {
+	let tasks = context.shot.join("v1/tasks").expect("a relative path joins");
+	let started = Method::Post(capture_body(&check.url));
+	match follow(context, check, &started, tasks, &[]).await {
 		Ok(answer) => judge_page(check, &answer),
 		Err(outcome) => outcome,
 	}
@@ -355,11 +375,14 @@ mod tests {
 		/// Answered first, one each time the URL is asked, before `answers` takes over.
 		queued: Mutex<HashMap<String, Vec<Answer>>>,
 		asked: Mutex<Vec<(String, Headers)>>,
+		/// Each ask's method, in order.
+		methods: Mutex<Vec<Method>>,
 	}
 
 	impl Http for Fake {
-		fn get(&self, url: &Url, headers: &[(&'static str, String)]) -> Asked {
+		fn send(&self, method: &Method, url: &Url, headers: &[(&'static str, String)]) -> Asked {
 			self.asked.lock().unwrap().push((url.to_string(), headers.to_vec()));
+			self.methods.lock().unwrap().push(method.clone());
 			let queued = self
 				.queued
 				.lock()
@@ -429,6 +452,33 @@ mod tests {
 
 		let context = Context::new(Arc::new(Fake::default()), None);
 		assert_eq!(run(&check, &context).await, Outcome::fail("unreachable"));
+	}
+
+	#[tokio::test]
+	async fn api_starts_a_task_by_post_and_follows_it_by_get() {
+		let check = one(
+			r#"[[check]]
+			id = "a"
+			name = "Test a"
+			kind = "api"
+			target = "API_PUBLIC/shot/v1/tasks"
+			method = "POST"
+			body = '{"target":{"host":"canmi.net"}}'
+			interval = 3600
+			expect = { follow = true, fields = ["page.status"] }"#,
+		);
+		let mut fake = Fake::default();
+		let mut first = answer(202, serde_json::json!({"status": "success", "data": {}}));
+		first.location = Some("tasks/1".into());
+		first.retry_after = Some(0);
+		fake.answers.insert(check.url.to_string(), first);
+		let done = serde_json::json!({"status": "success", "data": {"page": {"status": 200}}});
+		fake.answers.insert(format!("{}/shot/v1/tasks/1", urls::INTERNAL_API_PUBLIC), answer(200, done));
+		let fake = Arc::new(fake);
+		let context = Context::new(fake.clone(), None);
+		assert_eq!(run(&check, &context).await, Outcome::pass());
+		let methods = fake.methods.lock().unwrap().clone();
+		assert_eq!(methods, [Method::Post(r#"{"target":{"host":"canmi.net"}}"#.into()), Method::Get]);
 	}
 
 	#[tokio::test]
@@ -532,23 +582,23 @@ mod tests {
 
 	#[test]
 	fn a_page_is_asked_of_shot_as_its_parts_and_fresh() {
-		let shot = Context::new(Arc::new(Fake::default()), None).shot;
 		let site = Url::parse(urls::APPS_PRODUCTION_SITE).unwrap();
 		let host = site.host_str().unwrap();
 		let mut page = site.join("a/b?x=1&x=2#top").unwrap();
 		page.set_port(Some(8443)).unwrap();
+		let body: Value = serde_json::from_slice(&capture_body(&page)).unwrap();
 		assert_eq!(
-			capture_url(&shot, &page).as_str(),
-			format!(
-				"{}/shot/capture?scheme=https&host={host}&port=8443&path=a%2Fb\
-&query.x=1&query.x=2&hash=top&fresh=true",
-				urls::INTERNAL_API_PRIVATE
-			)
+			body,
+			serde_json::json!({
+				"target": {
+					"scheme": "https", "host": host, "port": 8443, "path": "a/b",
+					"query": { "x": ["1", "2"] }, "hash": "top"
+				},
+				"access": { "fresh": true }
+			})
 		);
-		assert_eq!(
-			capture_url(&shot, &site).as_str(),
-			format!("{}/shot/capture?scheme=https&host={host}&fresh=true", urls::INTERNAL_API_PRIVATE)
-		);
+		let bare: Value = serde_json::from_slice(&capture_body(&site)).unwrap();
+		assert_eq!(bare["target"], serde_json::json!({ "scheme": "https", "host": host }));
 	}
 
 	#[test]
