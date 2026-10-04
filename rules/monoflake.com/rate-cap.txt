@@ -1,0 +1,3 @@
+http.host eq "api.monoflake.com"
+and not http.request.uri.path wildcard "/*/hook/*"
+and not cf.client.bot

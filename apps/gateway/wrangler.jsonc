@@ -12,6 +12,13 @@
 		{ "pattern": "api.ffoni.com", "custom_domain": true },
 		{ "pattern": "cdn.ffoni.com", "custom_domain": true },
 		{ "pattern": "ill.li", "custom_domain": true },
+		{ "pattern": "api.monoflake.com", "custom_domain": true },
+		{ "pattern": "cdn.monoflake.com", "custom_domain": true },
+		{ "pattern": "api.monoflake.net", "custom_domain": true },
+		{ "pattern": "cdn.monoflake.net", "custom_domain": true },
+		{ "pattern": "symlink.si", "custom_domain": true },
+		// Every deployment's own host, one label under the apex, by the zone's wildcard record.
+		{ "pattern": "*.ixc.one/*", "zone_name": "ixc.one" },
 	],
 
 	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and

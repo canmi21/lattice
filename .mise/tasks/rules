@@ -288,6 +288,10 @@ def phase_bodies(zone, env, *, mask):
 	for rule in load_zone(zone):
 		filled = {**rule, "expression_text": fill(rule["expression_text"], env, mask=mask)}
 		bodies.setdefault(rule["phase"], {"rules": []})["rules"].append(rule_body(filled))
+	# A phase the zone names no rule in is sent empty, so what is live is the repository's whole and
+	# nothing set by hand outlives a sync. See spec/architecture/firewall.md.
+	for phase in sorted(PHASES):
+		bodies.setdefault(phase, {"rules": []})
 	return bodies
 
 

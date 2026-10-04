@@ -63,7 +63,8 @@ zone's `zone.toml`, and to what the apps serve: a public scope of the API host t
 refuse, or an extension among the site's routes and public files that it would, fails the check.
 
 **`mise run rules sync [zone]` deploys them**, through Cloudflare's `cf` CLI: each phase of each zone
-is sent whole, first to Cloudflare's own validation, and only if every one passes is each put as
+is sent whole -- one the zone names no rule in is sent empty, so a rule set by hand does not outlive
+a sync -- first to Cloudflare's own validation, and only if every one passes is each put as
 the zone's entry point for that phase, replacing what was there. It is run by hand after a change
 lands, and it is safe to run again. It authenticates with `CLOUDFLARE_ZONES_TOKEN`, decrypted from the
 repository's secrets: one token for every script that works on the zones, scoped to all of them
