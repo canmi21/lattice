@@ -257,6 +257,24 @@ export const URLS = {
 } as const;
 
 /**
+ * The service layer's hostnames, every one bound to the gateway, and the codes a deployment's own
+ * hostname is spelled from: `{service}-{region}-{provider}` under `deployments`. A provider or a
+ * region is added here before anything is placed on it. See spec/architecture/gateway.md.
+ */
+export const GATEWAY = {
+	api: 'api.monoflake.com',
+	cdn: 'cdn.monoflake.com',
+	deployments: 'ixc.one',
+	alias: 'ill.li',
+	symlink: 'symlink.si',
+	// Proxied, never redirected, until nothing here calls them. See spec/architecture/gateway.md,
+	// "A domain leaves without a redirect".
+	retired: { api: 'api.ffoni.com', cdn: 'cdn.ffoni.com' },
+	providers: { int: 'our own machines', cf: 'Cloudflare', vcl: 'Vercel' },
+	regions: { rdu: 'the machine at home, by Raleigh-Durham', glo: 'everywhere, as a Worker runs' },
+} as const;
+
+/**
  * Where each consumer's pages are served, by its service code: what a declaration's `cors.origins`
  * names, so no `service.toml` spells an origin. The status page has three doors, the platform's
  * own among them. See spec/architecture/gateway.md, "A route names who may call it by service

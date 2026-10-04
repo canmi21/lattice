@@ -72,7 +72,9 @@ region, both short fixed codes; whatever is left is the service, hyphens and all
 
 A provider is two or three lowercase letters, chosen once when the provider is first used and never
 reused: `int` for our own machines, `cf` for Cloudflare, `vcl` for Vercel. A new provider is a row
-added to the registry before anything is placed on it.
+added to the registry before anything is placed on it. The registry is `GATEWAY` in `libs/urls`, beside
+the hostnames themselves, and the regions are kept in the same place; the gateway reads a
+deployment's hostname against it in `apps/gateway/src/profile.ts`.
 
 ### Regions are where a deployment runs
 
@@ -276,5 +278,6 @@ then.
 **A domain being retired is a profile that proxies, not one that redirects.** `cdn.ffoni.com` and
 `api.ffoni.com` stay bound to the gateway, as profiles that read their old addresses into the new
 tuple and answer as the new hosts would. A link to them keeps working, unchanged, with no 301 for
-a client to follow or a cache to remember. Once every caller here has moved, the rows are deleted
+a client to follow or a cache to remember. Until the services answer only versioned paths, a
+retired host forwards its old, unversioned path as it was. Once every caller here has moved, the rows are deleted
 and the domain goes quiet; `ffoni.com` is then released.
