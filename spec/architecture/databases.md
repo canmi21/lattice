@@ -1,8 +1,9 @@
 # Databases: Postgres and ClickHouse, as drivers beside an app
 
 Our own services keep SQLite, one file each -- see [services.md](services.md). Some programs we
-adopt rather than write keep nothing but Postgres, or keep their events in ClickHouse: umami, and
-later OpenPanel. For those a database is a capability an app declares, run the way
+adopt rather than write keep nothing but Postgres, or keep their events in ClickHouse; umami and
+OpenPanel were why, and neither is run any more -- see [../analytics.md](../analytics.md). For such a
+program a database is a capability an app declares, run the way
 [objects.md](objects.md) runs Versity: **one driver image, a sidecar per app over the app's own
 directory**. The driver is shared, the data never is.
 

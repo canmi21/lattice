@@ -45,7 +45,7 @@ declaration says so. The same entry at the same level is the same tag in every a
 | App    | Declares                                                                                 |
 | ------ | ---------------------------------------------------------------------------------------- |
 | site   | `fonts` both; `ours.cdn`; `api.public`; `jsdelivr.files` raised to `connect`; `analytics` all three |
-| status | `fonts` both; `api.public`, which its umami reports to; `data.status`; `analytics.umami` |
+| status | `fonts` both; `data.status`                                                          |
 
 **The site connects to the API, not to the alias layer.** After hydration the page asks the API for
 what it renders, and its marks are written into the head as the objects they resolve to, so a page

@@ -100,7 +100,7 @@
 <script lang="ts">
 	import { settleBrevity } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
-	import { hints, scriptPolicy } from '@canmi/hints';
+	import { hints } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Moon from '@lucide/svelte/icons/moon';
@@ -161,34 +161,20 @@
 		});
 	}
 
-	const { canonical, mirror } = URLS.internal.status;
+	const { canonical } = URLS.internal.status;
 	/** The site, marked as reached from here. */
 	const SITE = `${URLS.apps.production.site}?ref=status`;
 	const GITHUB = `${URLS.external.github.web}/${author.github}`;
 	const PROFILES = profiles();
 
-	// Where this page reports to: the gateway's `umami` scope, on the public API host. Not a
-	// literal URL, since the address is `libs/urls`' to declare. See spec/analytics.md, "Neither
-	// service is self-hosted, and analytics of our own comes later".
-	const umamiHostUrl = `${URLS.internal.api.public}/umami`;
-	// This page's production hostnames, so a dev build stays silent: the two doors of its own
-	// (canonical, mirror) and the platform door, which also loads this tracker. See
-	// spec/analytics.md, "Development loads the client and reports nothing".
-	const umamiDomains = [canonical, mirror, URLS.internal.app]
-		.map((url) => new URL(url).hostname)
-		.join(',');
-
 	// What the page reaches early, and how early. See spec/architecture/hints.md.
 	const early = hints(
 		{
 			fonts: ['stylesheets', 'files'],
-			api: ['public'],
 			...(project ? { data: { status: project } } : {}),
-			analytics: ['umami'],
 		},
 		{ dev },
 	);
-	const tracker = scriptPolicy('analytics', 'umami');
 </script>
 
 <svelte:head>
@@ -219,17 +205,6 @@
 	{#each early as hint (hint.href)}
 		<link rel={hint.rel} href={hint.href} crossorigin={hint.crossorigin} />
 	{/each}
-	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
-	     See spec/analytics.md. -->
-	<script
-		defer={tracker.defer}
-		fetchpriority={tracker.fetchpriority}
-		src={URLS.external.umami}
-		data-website-id="6dea3b82-46a0-4baf-8585-b9138cea5296"
-		data-host-url={umamiHostUrl}
-		data-domains={umamiDomains}
-		data-exclude-hash="true"
-	></script>
 </svelte:head>
 
 <div bind:this={sentinel} class="h-0 w-full" aria-hidden="true"></div>
