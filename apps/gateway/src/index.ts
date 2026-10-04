@@ -351,7 +351,13 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		const shelf = shared ? store() : null;
 		const key = keyOf(url);
 		const hit = shelf ? await shelf.match(key) : undefined;
-		if (hit) return new Response(c.req.method === 'HEAD' ? null : hit.body, hit);
+		if (hit) {
+			// Cloudflare hands a kept answer back under its zone's browser lifetime rather than the one
+			// it was kept with, so the route's is stamped again on the way out.
+			const kept = new Response(c.req.method === 'HEAD' ? null : hit.body, hit);
+			kept.headers.set('cache-control', controlOf(route.cache[kindOf(hit.status)]));
+			return kept;
+		}
 		/**
 		 * The answer as the route declares it is kept: its lifetime stamped over the service's own,
 		 * and kept here too where a GET from nobody in particular asked for it.

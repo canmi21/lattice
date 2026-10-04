@@ -65,16 +65,14 @@ describe('the cache at the gateway', () => {
 	it('answers a repeat from the cache without reaching the service, or a limit', async () => {
 		const { put } = install();
 		const counted: string[] = [];
-		const app = gateway(
-			{
-				geo: {
-					placement: 'home',
-					binding: 'HOME',
-					limits: [{ methods: ['GET'], path: '/address', count: 60, seconds: 60 }],
-					routes: [],
-				},
+		const app = gateway({
+			geo: {
+				placement: 'home',
+				binding: 'HOME',
+				limits: [{ methods: ['GET'], path: '/address', count: 60, seconds: 60 }],
+				routes: [],
 			},
-		);
+		});
 		const { seen, env } = node(() => answer(200));
 		const QUOTA = {
 			take: async (checks: readonly { key: string }[]) => (
@@ -97,6 +95,21 @@ describe('the cache at the gateway', () => {
 		expect(seen).toHaveLength(1);
 		expect(counted).toHaveLength(1);
 		expect(put).toEqual([`${HOST}/v1/geo/address?latitude=1 public, max-age=900`]);
+	});
+
+	it('answers a kept answer with its route lifetime, whatever the cache handed back', async () => {
+		const { kept } = install();
+		const app = gateway(table);
+		const { env } = node(() => answer(404));
+		await app.fetch(new Request(`${HOST}/v1/geo/a`), env);
+		// What a zone's browser lifetime makes of it on the way back out of Cloudflare's cache.
+		const stored = kept.get(`${HOST}/v1/geo/a`) as Response;
+		const rewritten = new Headers(stored.headers);
+		rewritten.set('cache-control', 'public, max-age=14400');
+		kept.set(`${HOST}/v1/geo/a`, new Response('{}', { status: stored.status, headers: rewritten }));
+		const hit = await app.fetch(new Request(`${HOST}/v1/geo/a`), env);
+		expect(hit.headers.get(CACHE_HEADER)).toBe('hit');
+		expect(hit.headers.get('cache-control')).toBe(controlOf(GATEWAY_DEFAULTS.cache.rejected));
 	});
 
 	it("keeps by the route's word, not the service's, and nothing for a credential or a write", async () => {
@@ -142,7 +155,10 @@ describe('the cache at the gateway', () => {
 		const { put } = install();
 		const app = gateway(table);
 		const ranged = node(() => answer(206, { 'content-range': 'bytes 0-1/10' }));
-		await app.fetch(new Request(`${HOST}/v1/geo/r`, { headers: { range: 'bytes=0-1' } }), ranged.env);
+		await app.fetch(
+			new Request(`${HOST}/v1/geo/r`, { headers: { range: 'bytes=0-1' } }),
+			ranged.env,
+		);
 		const partial = node(() => answer(206));
 		await app.fetch(new Request(`${HOST}/v1/geo/p`), partial.env);
 		expect(put).toEqual([]);
@@ -154,7 +170,13 @@ describe('the cache at the gateway', () => {
 			geo: {
 				placement: 'home',
 				binding: 'HOME',
-				routes: [{ ...GATEWAY_DEFAULTS, path: '/*', cache: { fulfilled: 0, accepted: 0, redirected: 0, rejected: 0, faulted: 0 } }],
+				routes: [
+					{
+						...GATEWAY_DEFAULTS,
+						path: '/*',
+						cache: { fulfilled: 0, accepted: 0, redirected: 0, rejected: 0, faulted: 0 },
+					},
+				],
 			},
 		});
 		const { seen, env } = node(() => answer(200));
