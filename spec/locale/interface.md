@@ -1,6 +1,6 @@
 # The site's own words, and the control that changes them
 
-The language switcher, what it names each language for whom, and the message catalogue the
+The language switcher, what it names each language for whom, and the message catalog the
 interface itself is written in. None of this is article content, which negotiates separately --
 see [addressing.md](addressing.md) for that and [i18n/](../i18n/) for where a translation comes
 from.
@@ -23,7 +23,7 @@ and `CN` / `TW` is what separates them; it is also the answer `Original (CN)` ha
 Putting `ZH` there would move an internal code into the interface, which is the one thing the two
 vocabularies in [addressing.md](addressing.md) exist to prevent.
 
-**The Chinese names are folded, and only the Chinese ones.** `canmi/locales` writes them as
+**The Chinese names are folded, and only the Chinese ones.** `@canmi/me/locales` writes them as
 `中文 (简体)` and `中文 (繁體)`, which is right for a menu row and wrong for a label that already
 ends in a bracket -- `中文 (简体) (CN)` reads as two afterthoughts. Chinese is the only language
 here whose name splits by script, so the fold is applied to it by language rather than to any
@@ -83,7 +83,7 @@ document language behind the content being shown. The query URLs remain crawler 
 the no-JavaScript fallback, not the interactive switching transport.
 
 The trigger exposes its expanded state, the selected row is announced, and the menu supports
-native activation plus arrow, Home, End, Escape, and Tab keyboard behaviour. Endonyms help a
+native activation plus arrow, Home, End, Escape, and Tab keyboard behavior. Endonyms help a
 reader find the right row without first understanding the current content language; keyboard
 and screen-reader access are part of that same requirement.
 
@@ -179,6 +179,6 @@ The compiler reports success when it has loaded no plugin and found no messages.
 `modules` path or a wrong `pathPattern` prints `✔ Successfully compiled` and emits an empty
 index; both are resolved relative to the project directory's _parent_. When messages vanish,
 check that first rather than the message files. The plugin is a local dependency rather than the
-CDN URL the docs show, which keeps its version in the lockfile and out of `platform/libs/sdk` -- and it is
+CDN URL the docs show, which keeps its version in the lockfile and out of `@monoflake/sdk` -- and it is
 a dependency of `libs/messages` rather than of the site, because the parent this resolves against
 is the package holding the project and not whichever application asked for the compile.

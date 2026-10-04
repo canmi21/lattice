@@ -39,7 +39,7 @@ const upload = sentry && uploadsSourceMaps(process.env);
 /**
  * Vercel's adapter alone: the page is served from outside the platform it reports on. The runtime
  * is stated, since the adapter otherwise takes the building Node's, and mise's is newer than Vercel
- * runs. See platform's spec/architecture/probe.md, "The page: one app, served by Vercel".
+ * runs. See spec/architecture/status.md, "The page: one app, served by Vercel".
  */
 const adapter = vercel({ runtime: 'nodejs24.x' });
 

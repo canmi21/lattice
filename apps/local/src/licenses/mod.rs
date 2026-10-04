@@ -2,7 +2,7 @@
 //!
 //! Two registries answer the same question in different shapes; packages are identified by purl
 //! and the licence texts are content addressed like any other asset. See spec/architecture/data.md,
-//! "A dependency's licence is an asset like any other" for why.
+//! "A dependency's license is an asset like any other" for why.
 
 pub mod cargo;
 pub mod npm;

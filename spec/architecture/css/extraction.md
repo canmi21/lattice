@@ -81,7 +81,7 @@ surfaces are one style: that is the answer to the question the bar exists to ask
 panel by decision -- and a name opened this way says so beside it, so the next reader does not
 mistake it for a count that was miscounted.
 
-**A video clip does not draw `blockFrame`.** Its neighbour in a column of prose is almost always
+**A video clip does not draw `blockFrame`.** Its neighbor in a column of prose is almost always
 a picture, so it takes `picture.svelte`'s 2px edge and 1rem corner instead -- two media boxes with
 different corners next to each other would read as a mistake in a way a figure and a code block
 never do.

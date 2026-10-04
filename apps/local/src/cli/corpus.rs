@@ -35,7 +35,7 @@ pub(super) fn check_assets() -> anyhow::Result<ExitCode> {
 
 /// Collect the licence of everything the deployables are built out of.
 ///
-/// See spec/architecture/data.md, "A dependency's licence is an asset like any other" for why
+/// See spec/architecture/data.md, "A dependency's license is an asset like any other" for why
 /// this runs locally rather than in CI, and why a package with no declared licence fails it.
 pub(super) fn collect_licenses() -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;

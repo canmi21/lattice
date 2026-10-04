@@ -42,7 +42,7 @@ chooses an input, never the rendered view.
 The cookie is written, the page re-runs its own universal load, and what it shows is exactly what
 the server would have resolved from that cookie -- a prediction, not a second negotiation. What
 makes it possible is that the interface's whole vocabulary is already in the browser: every
-message call names its locale explicitly, from page data, so no catalogue is fetched and no
+message call names its locale explicitly, from page data, so no catalog is fetched and no
 runtime state is switched. The article is one request, which is what the published corpus made
 cheap. See platform's `spec/architecture/artifacts.md`.
 
@@ -81,7 +81,7 @@ browser asking the API and the CDN directly (platform's `spec/architecture/artif
 so the client holds a locale and could plausibly re-derive one. It must not. Two implementations
 of this negotiation -- one reading a cookie and `Accept-Language` in a Worker, one reading
 `document.cookie` in a browser -- would be two readings of one input, and
-[the workspace code.md](../../../../spec/code.md) names that shape as a defect waiting for the
+the workspace's `spec/code.md` names that shape as a defect waiting for the
 first input that separates them.
 
 The resolved code reaches the client as page data and is carried from there. Changing language
@@ -92,9 +92,9 @@ deciding again; nothing about that changes.
 
 Being multilingual is what a page here is, so nothing has to opt in. What
 [hooks.server.ts](../../apps/site/src/hooks.server.ts) carries is the exception, and the exception
-is documents: Atom, the sitemap, `robots.txt`, `llms.txt` and the licence text routes.
+is documents: Atom, the sitemap, `robots.txt`, `llms.txt` and the license text routes.
 
-**A document is recognised by having an extension, and ordinary pages do not have one.** That
+**A document is recognized by having an extension, and ordinary pages do not have one.** That
 is a convention this site already keeps -- `/atom.xml` and `/licenses/full.txt` against `/` and
 `/licenses` -- so the test reads the distinction that exists rather than restating a list
 beside it. The article lookup is tried first, so a slug that happens to carry a dot is still a
@@ -108,9 +108,9 @@ comparable. A page missing from a list of pages serves the original to every rea
 nothing about it, which is exactly the kind of thing nobody notices; a document missing from
 this list merely negotiates when it did not need to.
 
-The licence page shows both halves at once. The page negotiates like any other, while
-`/licenses.txt`, `/licenses/full.txt` and the per-package routes beside it do not: a licence is
-not translated, and a translated one would be a different licence.
+The license page shows both halves at once. The page negotiates like any other, while
+`/licenses.txt`, `/licenses/full.txt` and the per-package routes beside it do not: a license is
+not translated, and a translated one would be a different license.
 
 ### `<html lang>` belongs to the layout, and says what the server would say
 
@@ -215,7 +215,7 @@ The mix is the owner's and is made string by string, which is why the rule here 
 ones: **a message added to `mw` takes the English wording**, the same as under `en`. Whoever wants
 one of them in another language changes that one. So a handful of Chinese entries in `mw.json` is
 the file working as intended and not a gap to fill in -- somebody chose each of them -- while a
-`mw` catalogue that had drifted mostly into Chinese would be the mistake.
+`mw` catalog that had drifted mostly into Chinese would be the mistake.
 
 The default settles the case that keeps coming up: who decides the wording of a message nobody has
 an opinion about yet. English, so a message added today is legible rather than a guess at the mood

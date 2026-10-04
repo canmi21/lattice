@@ -13,7 +13,7 @@
 </script>
 
 <!-- A block a reader can be pointed at, by the anchor its kind and place give it. See
-     platform's spec/architecture/anchors.md. -->
+     spec/architecture/anchors.md. -->
 {#if id}
 	<div {id} class="jump-target relative {stylex.attrs(holder).class}">
 		<AnchorButton target={id} label="Link to this {id.split('-')[0]}" place="top" />

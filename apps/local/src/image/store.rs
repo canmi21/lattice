@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 const FAN: usize = 2;
 
 /// **The one declaration of the bucket's layout, on this side.** The twin of `storageKey` in
-/// `platform/libs/sdk/store`, kept in sync by a test there. Nothing is filed by kind: the id
+/// `@monoflake/sdk/store`, kept in sync by a test there. Nothing is filed by kind: the id
 /// already identifies it, and `/object/{cid}.{ext}` is where a reader gets one. See
 /// spec/architecture/data.md, "The bucket stores content ids, and so does the address".
 fn object_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {

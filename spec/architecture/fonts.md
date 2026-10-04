@@ -58,7 +58,7 @@ Two families therefore remain separate entries when their local-first stacks dif
 share the same published chunks. Keeping the choice and its sources together prevents a second
 selectable-font list from disagreeing with the published faces.
 
-The stylesheets live in `libs/fonts`, apart from the colour tokens. They are a different kind
+The stylesheets live in `libs/fonts`, apart from the color tokens. They are a different kind
 of fact -- what a family is and where its files are, rather than what the site looks like --
 and a CJK sheet is large enough that nothing should import one until the site actually sets that
 family. `wenkai.css` gzips to 75KB, `klee-one.css` to 28KB and `tang-guo-wei-de-xia-tian.css` to
@@ -76,11 +76,11 @@ said neither syntax theme emits `font-style` or `font-weight`, and that was wron
 marks every comment italic, `one-light` did too, and 88 published objects carry the mark. What
 saves it is that a dual-theme render emits the style as a custom property, `--shiki-dark-font-style`
 beside `--shiki-dark`, and [code-block.svelte](../../libs/prose/src/blocks/code-block.svelte)
-reads only the colour. The declaration is never made, so the browser is never asked. (`min-light`,
+reads only the color. The declaration is never made, so the browser is never asked. (`min-light`,
 the light half since, emits no style at all, which makes the light side true in both readings.)
 
 **So the reachable set is held by an omission, and a rule reading that variable would end it.**
-Writing `font-style: var(--shiki-dark-font-style)` beside the colour is a one-line change that
+Writing `font-style: var(--shiki-dark-font-style)` beside the color is a one-line change that
 looks like a fix and puts two more cuts on the wire for every article with a comment in its code.
 No article writes code inside bold or italic markup either, and no rule gives `code` a weight of
 its own. Six of the eight cuts therefore cannot be requested,
@@ -103,9 +103,9 @@ settled.** There is no `/fonts/` prefix and nothing in between for a font to fal
 
 This section has now been wrong twice, and the second time is the one worth keeping. It first
 named two tiers and sent everything unhashed to five minutes; the correction to that named a week,
-which no constant in `platform/libs/sdk/cache` has ever held. There are three tiers -- a year for a hashed key,
+which no constant in `@monoflake/sdk/cache` has ever held. There are three tiers -- a year for a hashed key,
 an hour for a key that only names, five minutes for anything that is not a settled answer -- and a
-font chunk meets only the first. `platform/libs/sdk/cache` is the account being corrected to, and `cache.ts`
+font chunk meets only the first. `@monoflake/sdk/cache` is the account being corrected to, and `cache.ts`
 reads from it rather than restating it.
 
 HTML is the one thing that is not cached at all, because its body varies by the reader's

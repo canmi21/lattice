@@ -2,7 +2,7 @@
  * The board after hydration: told each batch the probe writes, over one socket, and asking
  * PostgREST only for what a broadcast cannot say -- the history when a half-hour closes, the latest
  * rounds after the socket was down, the declared checks when one it has not seen is heard of. See
- * platform's spec/architecture/probe.md, "The page reads PostgREST with the anon key, from views
+ * spec/architecture/status.md, "The page reads PostgREST with the anon key, from views
  * alone, once; after that it is told".
  */
 import type { StatusCheckRow, StatusNowRow } from '@monoflake/probe';

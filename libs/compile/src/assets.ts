@@ -27,7 +27,7 @@ import { sourceFingerprint } from './assemble.ts';
 /**
  * What a published rung and a published text track are called.
  *
- * Apart from `VARIANT_EXTENSION` in platform/libs/sdk/artifacts rather than folded into it: that
+ * Apart from `VARIANT_EXTENSION` in @monoflake/sdk/artifacts rather than folded into it: that
  * table is held to `apps/local`'s `for_variant` by a test that reads only its `image/*`
  * arms, and these two are not variants of a picture. One format each, which is
  * spec/architecture/video/pipeline.md's whole point -- AV1 in MP4, and WebVTT beside it.
@@ -76,7 +76,7 @@ export type AssetLibrary = {
 	 * A third index rather than a third id: a link card names a URL and never a resource, so the
 	 * hostname is the only thing the compiler has to look one up with. The record's own `domain`
 	 * is what it is keyed by here, so nothing has to agree on a convention. See
-	 * platform's spec/architecture/resource.md, "The catalogue".
+	 * platform's spec/architecture/resource.md, "The catalog".
 	 */
 	byIconDomain: Map<string, ParsedResource>;
 };

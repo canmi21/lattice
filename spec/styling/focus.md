@@ -1,12 +1,12 @@
 # Keyboard focus, and the controls it is drawn on
 
-Where the ring goes, what colour it is at rest, and the compact controls it most often lands on.
+Where the ring goes, what color it is at rest, and the compact controls it most often lands on.
 Which of the three systems writing CSS is entitled to say each decision here, and what happens
 where two of them say the same thing, is [architecture/css/layers.md](../architecture/css/layers.md).
 
 ## Keyboard focus follows the visible control
 
-Keyboard focus uses a real `0.125rem` outline in the accessibility accent colour. The outline is
+Keyboard focus uses a real `0.125rem` outline in the accessibility accent color. The outline is
 flush with the control rather than floating outside it: the visible edge is the location being
 identified, and a second page-coloured moat makes compact controls look larger than they are. A
 real outline also remains available to forced-colours mode; a `box-shadow` is not a substitute.
@@ -54,16 +54,16 @@ same accent outline rather than removing it, so a control that was never given a
 visible to the keyboard rather than going silent. Suppressing focus outright belongs only where
 something else already marks the position, as with a parent that hands its outline to a child.
 
-### The ring's colour is declared at rest, or it fades in from the text
+### The ring's color is declared at rest, or it fades in from the text
 
-An outline has a colour even while `outline-style` is `none` and nothing is drawn, and unless it
-is set that colour is `currentColor`. Naming the accent only inside `:focus-visible` therefore
-leaves a control whose outline colour _changes_ when it is focused -- which is invisible until
+An outline has a color even while `outline-style` is `none` and nothing is drawn, and unless it
+is set that color is `currentColor`. Naming the accent only inside `:focus-visible` therefore
+leaves a control whose outline color _changes_ when it is focused -- which is invisible until
 something animates it.
 
 Something does. Tailwind v4 added `outline-color` to `transition-colors`, and nearly every
 control here carries that utility for its hover. So the ring faded in from the element's own text
-colour over whatever duration the hover happened to use: a pale flash ahead of the blue, worst on
+color over whatever duration the hover happened to use: a pale flash ahead of the blue, worst on
 anything light-on-dark, and reported as "a white ring, then the blue one". Ten controls on the
 home page alone were doing it, measured as a resting `outline-color` equal to each element's
 `color`.
@@ -77,7 +77,7 @@ will not know to.
 The general rule, which outlives this one property: **a value that only appears under a state
 should be declared in the base too, whenever anything transitions it.** A transition interpolates
 from the value that was already there, and "there was no value" resolves to something -- here the
-text colour -- rather than to nothing.
+text color -- rather than to nothing.
 
 Text links are a separate visual category from buttons and cards. Their outline follows the text
 line height and a tight corner, even when an outer button has padding to make its hit target larger.
@@ -90,8 +90,8 @@ along the bottom of the same box, so a resting radius shortens that stroke's low
 touching its upper one and bows a straight line into a lens. On a text link the radius has no work
 to do outside focus, so it belongs to the focus state rather than the base rule.
 
-Article prose links carry a thin, rounded underline in the strong border colour at rest, then draw
-another in the article metadata text colour from left to right on hover or keyboard focus. Each
+Article prose links carry a thin, rounded underline in the strong border color at rest, then draw
+another in the article metadata text color from left to right on hover or keyboard focus. Each
 stroke sits one step below the previous one on the neutral ramp, which runs strong text, text, soft
 text, strong border, border. That ramp is the palette's contrast half, and the grounds it is read
 against answer to a different rule -- [surfaces.md](surfaces.md). Holding both strokes under the
@@ -107,20 +107,20 @@ Compact icon-and-label controls in metadata rows draw one shared surface. At res
 text with no ground. Hover and keyboard focus strengthen the text **and** add the `paper-hover`
 background; changing only the ink leaves too little feedback for a padded button, while a
 permanent surface would make secondary actions compete with the content. The article summary
-disclosure is the reference control, and language selection and licence-page actions take the
+disclosure is the reference control, and language selection and license-page actions take the
 same geometry and states rather than copying its utility list.
 
 The surface is `surfaces.quietControl`, a StyleX recipe. It was the `quiet-control` class in
 [utilities.css](../../apps/site/src/styles/utilities.css) until it stopped being able to hold its own
 users, and that is the argument for the move rather than a preference between two spellings. **A
-class cannot be specialised.** A control wanting this surface with one difference has to win a
+class cannot be specialized.** A control wanting this surface with one difference has to win a
 cascade fight whose outcome depends on which plugin appends its stylesheet last, so every control
 that needed a variant abandoned the name and wrote the declarations out -- which is to say the
 vocabulary decayed exactly where it was most needed. Seven controls kept the class, and they are
-the ones that wanted it unchanged: the four licence routes add a font size, the language
+the ones that wanted it unchanged: the four license routes add a font size, the language
 switcher and the theme toggle add nothing at all, and the article's summary disclosure adds only
 what it does while there is nothing to disclose. A recipe composes, so the name survives being
-specialised. See [architecture/css/extraction.md](../architecture/css/extraction.md).
+specialized. See [architecture/css/extraction.md](../architecture/css/extraction.md).
 
 Only the appearance is in the recipe. The geometry -- the inline-flex box, the centred items, the
 padding, and the negative inline margin that lets a padded control keep its ink aligned with the
@@ -143,7 +143,7 @@ counting painted pixels, `translate-line` and `translate-2-line` reach 12.00px o
 besides. The English, Spanish and Simplified rows read up to 15.5% smaller than the five beside
 them, in a column whose whole job is to be compared by scanning straight down it.
 
-**The figure each mark is normalised on is `sqrt(extent * sqrt(mass))`**: how far the ink reaches,
+**The figure each mark is normalized on is `sqrt(extent * sqrt(mass))`**: how far the ink reaches,
 corrected by how much of it is inside that reach. Reach alone is the wrong thing to equalise --
 bringing a narrow mark up to the widest reach scales its strokes with it and it arrives as the
 heaviest mark in the menu -- and mass alone under-corrects for the same reason in reverse. Both
@@ -163,7 +163,7 @@ drawing matching, which is the thing actually being looked at.
 This is an exception and is written as one. Two marks qualify only when they are the same drawing
 differing by a decoration; glyphs that merely resemble each other are still measured apart.
 
-**The size they are normalised to is the compass on the closed trigger**, which is itself a
+**The size they are normalized to is the compass on the closed trigger**, which is itself a
 correction: `size-3.75` rather than the row's Lucide `size-3.5`, because a circle that reaches its
 box reads smaller than a glyph that only reaches it at the corners. That mark is the one this
 control was already right at, so the menu is brought to it. It settles the trigger as well, which

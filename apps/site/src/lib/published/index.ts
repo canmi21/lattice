@@ -57,7 +57,7 @@ type Fetch = typeof fetch;
  *
  * A page asks for the proxy path, since the host it should use is whichever one it was opened from;
  * the Worker needs an origin, because SvelteKit answers a same-origin path from its own router and
- * would never reach the dev proxy. The two are identical in production. See platform/libs/sdk. The
+ * would never reach the dev proxy. The two are identical in production. See @monoflake/sdk. The
  * API is neither: it is this Worker's own, asked on the site's origin by `apiPath`.
  */
 function upstream(): { cdn: string; alias: string } {
@@ -121,7 +121,7 @@ export async function publishedReads(fetch: Fetch, slug: string): Promise<number
  * The one batch entry point, asked and read in one place.
  *
  * `type` goes out and comes back, so the answer proves which question it answers rather than the
- * caller remembering. See platform/libs/sdk/artifacts, `BatchRequest`.
+ * caller remembering. See @monoflake/sdk/artifacts, `BatchRequest`.
  */
 export async function askBatch<T extends BatchRequest>(
 	asked: T,
@@ -240,7 +240,7 @@ export async function publishedView(
 
 /**
  * A page's envelope names no locale, so it is checked without one. See
- * platform/libs/sdk/artifacts.
+ * @monoflake/sdk/artifacts.
  */
 async function publishedPageView(fetch: Fetch, hash: string, slug: string): Promise<PublishedPage> {
 	const page = (await (await object(fetch, 'page', hash)).json()) as PublishedPage;
@@ -308,7 +308,7 @@ export async function publishedResources(
 		// One question for every page this corpus has, and the fewest that can answer for a page
 		// that ever outgrows what one request carries -- never a refusal, which on this path is a
 		// blank article rather than a missing picture. The cap belongs to the request shape and is
-		// read from there; see `resourceQuestions` in platform/libs/sdk/artifacts.
+		// read from there; see `resourceQuestions` in @monoflake/sdk/artifacts.
 		const answers = await Promise.all(
 			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', resources: rids }, fetch)),
 		);
@@ -392,7 +392,7 @@ export async function publishedFeedEntries(
 /** Where the links a feed body writes are rooted, for whichever hosts are answering. */
 function feedBases(url: string, locale: LocaleCode) {
 	// The alias layer rather than the CDN, because a feed names a rid and has nothing to resolve
-	// one with. See `FeedBases` in platform/libs/sdk/artifacts.
+	// one with. See `FeedBases` in @monoflake/sdk/artifacts.
 	return { site: URLS.apps.production.site, resources: `${upstream().alias}/`, url, locale };
 }
 

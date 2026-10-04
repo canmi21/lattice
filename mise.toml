@@ -247,8 +247,6 @@ run = [
 	".mise/tasks/sync",
 ]
 
-# A browser here is refused the local network, and the panel answers only there. See
-# spec/toolchain.md, "Reaching the LAN from a browser that cannot".
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"
 depends = ["outward"]

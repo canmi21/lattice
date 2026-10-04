@@ -54,7 +54,7 @@ export function telegramGroup(): string {
 	return `${social.telegram}/${author.telegramGroup}`;
 }
 
-/** The author, whole: who they are, every name, every account, all from `canmi/identity`. */
+/** The author, whole: who they are, every name, every account, all from `@canmi/me/identity`. */
 export function person() {
 	return {
 		'@type': 'Person',

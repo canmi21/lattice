@@ -45,8 +45,8 @@ which is above the canary for Firefox and would have had precisely the effect de
 
 The site and the status page declare one, the same, through `@canmi/web/compat`, which holds the
 canary, the lazy import and the reading of `browserslist` into esbuild's target, so the two cannot
-drift. `api` and `cdn` run on workerd, and the CMS is opened in whatever browser its author uses;
-none of them meets an arbitrary browser.
+drift. The site's API runs on workerd inside the site's Worker, and the CMS is opened in whatever browser
+its author uses; neither meets an arbitrary browser.
 
 **The floor binds every line a browser runs, the shared libraries' included.** `URL.canParse` is
 Chrome 120, above the canary: `@canmi/hints` called it, a Chrome 99 reader of the status page

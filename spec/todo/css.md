@@ -6,7 +6,7 @@ The rules over an entry are the index's; see [todo.md](todo.md).
 
 ## The named layer in CSS is the visual layer, written before there was one
 
-`utilities.css` and `lib/pkgs/ui/primitives/src/style.css` hold a
+`utilities.css` and `@canmi/ui/primitives/style.css` hold a
 vocabulary of named surfaces -- `focus-link`, `spring-underline`, `article-link`, `pill`, `value`,
 `jump-target`, `selectable`. Measured across the site's markup before any of them moved, 426 of
 1601 class tokens were these rather than Tailwind utilities, which is the vocabulary announcing
@@ -16,16 +16,16 @@ itself.
 `quiet-control` is now `surfaces.quietControl` and the class is deleted. It went first because its
 users had already measured the defect this entry describes: seven components kept it and the ones
 that needed a variant wrote its declarations out instead, a class being the one kind of name that
-cannot be specialised. It was also a mixed rule, so the move split it -- the appearance to the
+cannot be specialized. It was also a mixed rule, so the move split it -- the appearance to the
 recipe, and the box, the alignment, the padding and the negative inline margin to Tailwind
 utilities at each of the seven call sites. Nothing else moved with it. The prose names --
 `focus-link`, `spring-underline`, `article-link`, `jump-target` -- have since left `utilities.css`
-for `lib/pkgs/kit/tokens/src/interaction.css` and `libs/prose/src/prose.css`, still hand-written, because
+for `@canmi/kit/tokens/interaction.css` and `libs/prose/src/prose.css`, still hand-written, because
 the CMS draws the same prose; see [architecture/css/layers.md](../architecture/css/layers.md).
-`lib/pkgs/ui/primitives` is untouched and still deferred, for the reason below rather than for want of a
+`@canmi/ui/primitives` is untouched and still deferred, for the reason below rather than for want of a
 spelling.
 
-`lib/pkgs/ui/primitives` is the interesting half. It is CSS rather than TypeScript for one reason: a
+`@canmi/ui/primitives` is the interesting half. It is CSS rather than TypeScript for one reason: a
 Svelte application and a plain-TypeScript application both consume it, and CSS was the only thing
 both could read. StyleX removes that constraint, so the package could become typed and composable
 for both consumers at once. That is the strongest single argument for this whole arrangement and it
@@ -65,7 +65,7 @@ than into a stylesheet.
 UI portals them out of the component tree. Same shape as the paragraph above and a different cause:
 here the element exists and is ours, it is simply somewhere else in the document.
 
-## `lib/pkgs/ui/svg-canvas` is a 527-line global stylesheet
+## `@canmi/ui/svg-canvas` is a 527-line global stylesheet
 
 It styles generated SVG, so it is the selector layer by the definition in
 [architecture/css/layers.md](../architecture/css/layers.md). It is also five times the size of every other file in
@@ -139,7 +139,7 @@ will disagree.
 
 So there are two things to settle and one place to settle them. **Where a shared visual constant
 lives**: a `.stylex.ts` module components import, which is the same boundary question as
-`lib/pkgs/ui/primitives` above and should be answered with it rather
+`@canmi/ui/primitives` above and should be answered with it rather
 than beside it. And **what the shared surfaces are called**, which is the part that cannot be
 mechanical, because a name that describes the markup it came from stops being true the third time
 it is used.
@@ -169,9 +169,9 @@ today. What it buys is a block that finally means one thing.
 
 ## A directory row asks for a focus ring and every rule that could draw one declines
 
-The licence directory and the registry directory write their rows the same way:
+The license directory and the registry directory write their rows the same way:
 `focus-ring-within` on the anchor, `focus-visible:outline-none` beside it, and a `focus-link-inner`
-on the licence name two levels down, inside the flex span that also holds the leader. Driven with
+on the license name two levels down, inside the flex span that also holds the leader. Driven with
 the keyboard at 1600px, no ring appears on either page. The row reports `outline-style: none` and
 so does the name inside it, while every other control in the same tab order reports
 `solid 2px oklch(0.623 0.214 259.815)`.
@@ -183,7 +183,7 @@ wants a direct child, and the name is a grandchild. So the row is reaching for t
 variant of a vocabulary whose direct variant is the one it wants: its hit area and its visible
 control are the same element.
 
-Measured on the migrated licence directory and on the registry directory, which is unmigrated and
+Measured on the migrated license directory and on the registry directory, which is unmigrated and
 writes the identical row -- both read the same, so this is not something the migration introduced.
 Moving `outline-none` out of Tailwind's `utilities` layer and into StyleX's changes nothing here
 either, because both of them beat the `base` layer the ring is declared in.
@@ -248,7 +248,7 @@ moved it into the visual layer, `transition-colors duration-200` beside them. Me
 reported `transition-property: --underline-progress`, a duration of 315ms and the shared spring:
 `.spring-underline` in [utilities.css](../../apps/site/src/styles/utilities.css) sat outside every
 `@layer`, an unlayered rule outranks every layered one, and its `transition` shorthand takes all
-four longhands. The ten-property list never reached the element, and the hover colour on that
+four longhands. The ten-property list never reached the element, and the hover color on that
 control snapped rather than faded. Moving the declaration changed nothing, because StyleX is
 layered too and lost to the same rule -- which is why it was carried across unchanged rather than
 dropped, a migration moving what the markup said rather than what it achieved.
@@ -272,12 +272,12 @@ same reason. The swallowing is gone and the snap it produced is deliberate. What
 comment at each call site, which is weaker than a check and stronger than the accident it replaced.
 
 **What is still open is the general half, and it has lost the half that made it general.**
-`lib/pkgs/ui/primitives` declares no `@layer` at all, so the named
+`@canmi/ui/primitives` declares no `@layer` at all, so the named
 layer is unlayered there and layered in `utilities.css` with nothing saying which a given rule
 should be, and an element carrying a primitives class and a utility for the same property still has
 no way to say which it meant. The deciding sentence here was giving `utilities.css` and
-`lib/pkgs/ui/primitives` a layer of their own; `utilities.css` took Tailwind's `components` instead, which
-answered the cascade and settled nothing about the boundary. What is left is `lib/pkgs/ui/primitives`
+`@canmi/ui/primitives` a layer of their own; `utilities.css` took Tailwind's `components` instead, which
+answered the cascade and settled nothing about the boundary. What is left is `@canmi/ui/primitives`
 alone, and it is the first entry in this file's question rather than this one's.
 
 ## The gate compares a list, and a list is not a test
@@ -304,7 +304,7 @@ grows.
 **The first of those has since been taken and the second is still open.** The list went from
 seventy-three properties to ninety-eight, audited against what the site actually declares rather
 than against what a migration was expected to touch, and `border-*-style` was found compared on two
-edges where width and colour were compared on four. What is still true is that a list maintained by
+edges where width and color were compared on four. What is still true is that a list maintained by
 hand drifts from a test applied honestly, and that nothing reports the drift. Two properties remain
 knowingly outside it -- `transition-duration` and `-delay`, which the harness freezes so that two
 runs agree, which is the same act that makes them unreadable -- and no custom property is compared
@@ -325,11 +325,11 @@ of visual declarations sits below all three with nothing saying it should. Neith
 today, which is why the migration left these alone -- moving `fill` while `stroke` stayed an
 attribute changed no pixel, because nothing anywhere sets `stroke` on these elements.
 
-Deciding it costs a behaviour change rather than a rendering one: a stroke written in the visual
+Deciding it costs a behavior change rather than a rendering one: a stroke written in the visual
 layer stops being overridable by a caller's utility and starts outranking it, on a glyph the
 homepage and the tweet block both render. It also asks whether a path's own description belongs to
 the site at all -- `fill-rule` is closer to the artwork than to the interface -- which is the
-question `lib/pkgs/ui/svg-canvas` above is already holding.
+question `@canmi/ui/svg-canvas` above is already holding.
 
 ## A shadow is one utility, two declarations and four variables the visual layer cannot restate
 
@@ -396,27 +396,27 @@ moving it would change which layer wins. Here the declaration cannot be written 
 layer: an `@property` registration is not something a component emits, and without it the value the
 visual layer would have to state does not resolve at all.
 
-## Two of the site's colours are not the token layer's, and cannot be read from it
+## Two of the site's colors are not the token layer's, and cannot be read from it
 
 [link-card.svelte](../../libs/prose/src/blocks/link-card.svelte) writes its title and its corner
 arrow in `text-black` or `text-white` according to the tone the block declares. Measured across the
-markup, those two elements are the only users of either utility on the site, and neither colour is
+markup, those two elements are the only users of either utility on the site, and neither color is
 in `@canmi/kit/theme`: they are Tailwind's own `--color-black` and
 `--color-white`.
 
-[architecture/css/authoring.md](../architecture/css/authoring.md) says a colour is read as the variable the token layer
+[architecture/css/authoring.md](../architecture/css/authoring.md) says a color is read as the variable the token layer
 declares and is never retyped, and neither half of that is available here. Retyping gives `#000`,
-which the rule forbids and which puts a colour somewhere other than `lib/pkgs/kit/tokens`. Reading
+which the rule forbids and which puts a color somewhere other than `@canmi/kit/tokens`. Reading
 `var(--color-black)` works only for as long as some utility still names it: `app.css` imports
 `tailwindcss` rather than declaring `@theme static`, so a theme variable no generated utility
 mentions is not emitted at all -- and moving the last two uses out of the markup is what stops it
 being mentioned. The declaration would resolve to nothing and the caption would fall back to
 whatever the cover inherits.
 
-So both stayed in the markup and the card is the one migrated component whose colours are not all
-in one place. Deciding it is either a black and a white in `lib/pkgs/kit/tokens`, which is a decision about
+So both stayed in the markup and the card is the one migrated component whose colors are not all
+in one place. Deciding it is either a black and a white in `@canmi/kit/tokens`, which is a decision about
 the palette rather than about this card -- a caption over a photograph is the only thing on the site
-that is deliberately the same colour in both themes -- or a rule that Tailwind's own theme variables
+that is deliberately the same color in both themes -- or a rule that Tailwind's own theme variables
 are readable from the visual layer, which needs a way to keep them emitted.
 
 That last half is the shadow entry above arriving from the other direction. There the visual layer
@@ -473,8 +473,8 @@ depends on the same answer.
 ## A data attribute on the element itself is a condition the visual layer cannot state
 
 [support.svelte](../../apps/site/src/lib/support/support.svelte) draws its like pill dark once the
-reader has liked: `.like[data-liked='true']:is(:hover, :focus-visible)` sets a border colour, a
-background and a text colour. All three are visual, the element is one the component renders
+reader has liked: `.like[data-liked='true']:is(:hover, :focus-visible)` sets a border color, a
+background and a text color. All three are visual, the element is one the component renders
 itself, and no descendant or ancestor is involved -- so by every test in
 [architecture/css/layers.md](../architecture/css/layers.md) the declarations belong in the visual layer. StyleX
 cannot hold them. Its conditions are pseudo-classes, pseudo-elements and at-rules; an attribute
@@ -511,8 +511,8 @@ of these surfaces -- the ground, the stage and the close -- without a selector o
 
 It was not taken, and the reasons are worth recording because they are not the portal. The ground's
 `#000` and the close's wash and hairline are literals rather than tokens, argued as such in
-[styling/blocks.md](../styling/blocks.md), so moving them would put the site's only unthemed colours
-into the layer whose one structural guarantee is that a colour is a token variable. And every one of
+[styling/blocks.md](../styling/blocks.md), so moving them would put the site's only unthemed colors
+into the layer whose one structural guarantee is that a color is a token variable. And every one of
 those rules has a second half conditioned on a data attribute, which is the entry above: the
 transitions would move and the opacities they animate could not. Three rules split across two
 layers, for nothing gained.
@@ -558,18 +558,18 @@ is still open, and this entry stays with it.
 ## Tokei draws from a palette of its own, and it is the third one
 
 [architecture/css/authoring.md](../architecture/css/authoring.md) exempts two component-local palettes from the rule that
-a colour is the token layer's -- Cargo's and Mermaid's -- argued in
+a color is the token layer's -- Cargo's and Mermaid's -- argued in
 [styling/controls.md](../styling/controls.md) and [styling/blocks.md](../styling/blocks.md).
 [tokei.svelte](../../libs/prose/src/blocks/tokei/tokei.svelte) has a third that neither file names:
-a colour per language from `langColor`, three hexes in `FUNCTION_COLORS` for code, comments and
+a color per language from `langColor`, three hexes in `FUNCTION_COLORS` for code, comments and
 blanks, two `rgba()` literals inline on the tile's completion bar, and two whites inking a tile's
-label over whatever colour the language happens to be.
+label over whatever color the language happens to be.
 
 The whites are the ones the migration had to rule on, because they are `fill` on an element this
 component renders and `fill` is visual by the same test that moved `fill-current` in
 [icons.svelte](../../libs/prose/src/icons.svelte). They stayed, for the reason the link card's
-black and white stayed two entries above: a colour that no token declares cannot be stated in the
-layer whose one structural guarantee is that a colour is a token variable. So `.tile-name` and
+black and white stayed two entries above: a color that no token declares cannot be stated in the
+layer whose one structural guarantee is that a color is a token variable. So `.tile-name` and
 `.tile-size` are now a `fill` in the selector layer and a size and a weight in the visual one.
 
 What is unresolved is smaller than the palette and larger than this component. Two exemptions
@@ -595,7 +595,7 @@ single-item, so a two-property transition that moves into the visual layer compu
 computed `0s, 0s` and `normal` where it computed `normal, normal`.
 
 Nothing renders differently and nothing animates differently: the delay is zero either way and the
-behaviour is normal either way. What changes is the computed value, and
+behavior is normal either way. What changes is the computed value, and
 [architecture/css/migration.md](../architecture/css/migration.md) makes the computed value the measure -- it is the same
 argument that keeps three `--tw-gradient-*` variables in every migrated `transition-colors`, where
 the names are another framework's and the values animate nothing. The two answers disagree, and
@@ -646,7 +646,7 @@ which did move, so one figure's ink is now written in two layers from the same t
 axis to a different one leaves the arrowhead behind, which is the trap the keyframe entry above
 describes in a different property. StyleX can reach a pseudo-element -- the newsletter already
 writes `'::placeholder'` -- so the split is available; what stops it is that taking it means
-rewriting the shorthand into longhands in the selector layer to make room for the colour, which is
+rewriting the shorthand into longhands in the selector layer to make room for the color, which is
 restructuring rather than moving.
 
 Deciding it is either that a shape drawn out of borders is one declaration however many properties
@@ -674,17 +674,17 @@ four say the literal `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`.
 carries Monaco, Liberation Mono and Courier New; the literal one does not. A reader on a machine
 that has Monaco and not Menlo reads two different fonts on one page today, and has for as long as
 both spellings have existed. [`blocks/github.svelte`](../../libs/prose/src/blocks/github.svelte)
-says in a comment why it kept the literal one, which is the correct behaviour for a migration and
+says in a comment why it kept the literal one, which is the correct behavior for a migration and
 also the reason this entry exists rather than a commit.
 
 The rest is a scale nobody named, and the counts say which parts are already agreed and which are
-not. Colour is agreed: of 198 colour declarations, 186 read a token and the twelve that do not are
+not. Color is agreed: of 198 color declarations, 186 read a token and the twelve that do not are
 keywords -- `transparent`, `inherit`, `currentColor` -- plus two literal fills inside one icon.
 Weight is nearly agreed at three values for 32 declarations. Radius is not: 42 declarations take
 eleven distinct values, and two of them, `calc(infinity * 1px)` and `624.9375rem`, are the same
 pill written twice. Size is not: 90 declarations take twelve values including `0.71875rem` and
 `0.78125rem`, eleven and a half and twelve and a half pixels, which are two components each
-rounding a judgement rather than a decision anyone made twice, and one `0.9em` among rems. Line
+rounding a judgment rather than a decision anyone made twice, and one `0.9em` among rems. Line
 height is the least settled of all -- 41 declarations, fifteen values, mixing unitless ratios with
 `rem` lengths, which are not the same kind of thing.
 
@@ -693,7 +693,7 @@ declarations are the visual layer's, and a corner that is fully round is written
 the site: `calc(infinity * 1px)`, `624.9375rem`, `9999px` -- in
 [preview.svelte](../../libs/prose/src/components/preview.svelte)'s scoped block and again on
 `.article-preview-thumbnail [data-icon-bar]` in
-`lib/pkgs/ui/primitives` -- and `50%` on
+`@canmi/ui/primitives` -- and `50%` on
 [`blocks/github.svelte`](../../libs/prose/src/blocks/github.svelte)'s language dot. The last is the
 one that is not a synonym: a percentage is a share of the box, so on anything that is not square it
 draws an ellipse where the other three draw a stadium. Every element carrying it is square today,
@@ -731,7 +731,7 @@ before anything read it, and a later rename is not the free edit it looks like.
 [mermaid](../../libs/prose/src/blocks/mermaid/mermaid.svelte) -- so it clears the three-component
 threshold that every other name in the vocabulary was admitted by. It was left a literal anyway.
 
-Nothing distinguishes it. It is on no scale: Tailwind's neighbours are `leading-snug` at 1.375 and
+Nothing distinguishes it. It is on no scale: Tailwind's neighbors are `leading-snug` at 1.375 and
 `leading-normal` at 1.5, and no utility writes 1.4. No comment beside any of the three says why.
 Two of the three are the same block copied -- cargo's tooltip and tokei's are the same eight
 declarations in the same order -- so the three components are closer to two decisions than to
@@ -741,7 +741,7 @@ there is a fourth, and a reader following the name arrives at the same three cha
 started from.
 
 That is the same shape as the `0.71875rem` and `0.78125rem` the entry above names, one step
-further on: there two components each rounded a judgement, here three landed on one number and
+further on: there two components each rounded a judgment, here three landed on one number and
 nobody chose it. Deciding it is either moving each of the three onto the scale, which is a visual
 change on at least two of them and therefore needs the gate rather than an argument, or writing
 down that a scale is allowed members nobody chose -- in which case the threshold for a name is not
@@ -810,7 +810,7 @@ Japanese it takes that gap from 1.6% to 7.9% and the loose lines from 1 to 58.
 [styling/prose.md](../styling/prose.md) argues each of those numbers, and the comment beside the rule
 calls the narrow column the correction a phone forced.
 
-Four licence pages answer the same property with no condition at all. `summary` in
+Four license pages answer the same property with no condition at all. `summary` in
 `routes/licenses/[license]`, `routes/licenses/pkgs`, `routes/licenses/pkgs/[registry]` and
 `routes/licenses/pkgs/[registry]/[...package]` is the same three declarations in the same order --
 `lineHeight: line.relaxed`, `textWrap: 'pretty'` and `color: var(--color-text-soft)` -- and the
@@ -818,7 +818,7 @@ middle one is what the rule above spends a paragraph deciding not to give to Jap
 narrow column.
 
 Nothing overrides anything today, because the two reach different elements: one is article prose
-and the other is a licence page's summary line. What is unresolved is that one property now has a
+and the other is a license page's summary line. What is unresolved is that one property now has a
 policy in one layer and a flat assertion in the other, and the flat one is what a reader gets on a
 phone.
 
@@ -845,7 +845,7 @@ of the two it meant, and neither layer knows the other wrote it.
 
 **One instance, verified by reading the markup and the style object together. No sweep was run**,
 and the sweep is the part worth doing: the same shape is available anywhere a component carries
-`focus-ring` or `focus-link` and writes a radius, a colour or a transition of its own. What the
+`focus-ring` or `focus-link` and writes a radius, a color or a transition of its own. What the
 count would be is not known here. `quiet-control` was the third name in that list and is a recipe
 now, where the same shape is not a redundancy but a merge: a component restating one of the
 recipe's properties replaces its whole value for that property, which is a thing to get right
@@ -881,7 +881,7 @@ therefore never reaches an element carrying the class. That is a fact about toda
 is written out at each site.
 
 It becomes a trap the moment the list is written once. Six components carry the whole of one soft
-control -- a colour going from `var(--color-text-soft)` to `var(--color-text-strong)` under `@media
+control -- a color going from `var(--color-text-soft)` to `var(--color-text-strong)` under `@media
 (hover: hover) :hover` and under `:focus-visible`, beside `transition.colors`, `duration.base` and
 `easing.inOut` -- and twelve carry the transition pair alone, which is the group most likely to be
 named first. A composed style holding those three, applied to an element that also carries
@@ -898,29 +898,29 @@ nobody has looked at yet.
 [architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at three components,
 and the count is taken over the thirty-five `stylex.create` blocks. The named surfaces are not all
 in those blocks. [utilities.css](../../apps/site/src/styles/utilities.css) holds fifteen classes,
-`lib/pkgs/ui/primitives` holds eight across eleven selectors, and
+`@canmi/ui/primitives` holds eight across eleven selectors, and
 `app.css` holds four more -- `.pill-metrics`, `.pill`, `.value` and `.value-cell` -- so a surface
 can have two instances in the visual layer, sit below the bar, and already be written a third time
 in a stylesheet.
 
 Two of those three files sit above the visual layer, which makes the miscount worse than an
 accounting error. Measured on `app.css`: it opens with four imports,
-`lib/pkgs/ui/primitives`'s stylesheet third and
+`@canmi/ui/primitives`'s stylesheet third and
 [utilities.css](../../apps/site/src/styles/utilities.css) fourth, and neither is inside an `@layer`.
-`utilities.css` layers part of itself and `lib/pkgs/ui/primitives` layers none of itself, so every rule in
+`utilities.css` layers part of itself and `@canmi/ui/primitives` layers none of itself, so every rule in
 the second is unlayered and, by [architecture/css/layers.md](../architecture/css/layers.md)'s count, nineteen of the
 twenty-seven selectors in the first are too -- and an unlayered rule outranks every layered one.
 That is the fourth participant that file already records for `utilities.css`, now confirmed by
-measurement for `lib/pkgs/ui/primitives` rather than inferred from the import form. So a surface named
+measurement for `@canmi/ui/primitives` rather than inferred from the import form. So a surface named
 in the visual layer and also written in one of those two is not merely counted twice: on an
 element carrying both, the copy that renders is the one the count did not see.
 
 Three cases, measured. **The dashed leader** is `border-top: 1px dashed var(--color-border-strong)`
-in `.article-preview-leader::before` and the same three declarations in `leader` on two licence
+in `.article-preview-leader::before` and the same three declarations in `leader` on two license
 pages: two in the counted layer, three in the site. **The bordered paper surface** --
 `background-color: var(--color-paper)` with `border-style: solid` and `border-color:
 var(--color-border)` -- is ten style keys in ten components, plus `.value-cell` in `app.css` and
-`.article-preview-thumbnail` in `lib/pkgs/ui/primitives`, each at its own radius: four radii for one
+`.article-preview-thumbnail` in `@canmi/ui/primitives`, each at its own radius: four radii for one
 surface across three layers. And **`color: var(--color-text-strong)` with `font-weight: 500`** is
 thirteen style keys in twelve components, and the first two declarations of
 `.article-preview-title`.
@@ -996,7 +996,7 @@ Three declarations kept their literals through the value-naming step, all in `ch
 package route: `borderRadius: 'calc(infinity * 1px)'` and `borderWidth: '1px'` under `'::before'`,
 and `borderLeftWidth: '1px'` under `'::after'`. Each has a name -- `radius.full` and
 `border.hairlinePx` -- and they are exactly the three declarations in that key which do. The other
-five are two `solid` keywords and three token colours, which the vocabulary never held.
+five are two `solid` keywords and three token colors, which the vocabulary never held.
 
 The cause is a property of the source rather than of whoever swept it. A style key's value is
 either a declaration or an object, and it is an object in two unrelated cases: a **conditional
@@ -1008,9 +1008,9 @@ visited and left.
 
 The counts say how narrow this instance was and how wide the shape is. Ten declarations across the
 site sit under a pseudo-element block, in three keys: `chainMarker`, and the `::placeholder`
-colours in [newsletter.svelte](../../apps/site/src/lib/newsletter/newsletter.svelte)'s field and
+colors in [newsletter.svelte](../../apps/site/src/lib/newsletter/newsletter.svelte)'s field and
 [dialog.svelte](../../apps/site/src/lib/search/dialog.svelte)'s query. The other two hold token
-colours only, so three was the whole of the miss. Conditional values are much the larger half and
+colors only, so three was the whole of the miss. Conditional values are much the larger half and
 were not missed, which is luck rather than design -- the value-naming step happened to read them.
 
 **Nothing in the tree makes the next sweep walk to the leaves.** The entry on the extraction
@@ -1028,7 +1028,7 @@ in five of them those two were the whole style object. They read
 the question underneath it untouched.
 
 The question is why a route declares the ground at all. Every one of the thirteen addresses puts
-the pair on its own `<main>`, so the colour is stated once per route rather than once for the
+the pair on its own `<main>`, so the color is stated once per route rather than once for the
 document, and a route that forgot it would render on whatever `body` happens to be. One declaration
 on `body` would say it once for the site, and the routes would say nothing.
 
@@ -1036,13 +1036,13 @@ on `body` would say it once for the site, and the routes would say nothing.
 moves no declaration between elements and renders identically, which is what the gates can prove.
 Moving the pair to `body` changes which element carries it: the ground would paint the whole
 viewport rather than a `min-h-screen` box, `color` would inherit from one level further up, and
-anything that reads a computed colour off `<main>` would read an inherited value instead of a
+anything that reads a computed color off `<main>` would read an inherited value instead of a
 declared one. None of that is visible in a stylesheet diff and all of it wants the capture.
 
 What deciding it costs is that capture plus a reading of what still needs the pair locally. The
 homepage is the one that would not simply lose its key -- it carries `user-select` in the same
 object for a reason spec/architecture/css/layers.md records -- so the answer is not uniform even if the
-colour moves.
+color moves.
 
 ## The vocabulary counts components and a recipe is not one
 
@@ -1071,7 +1071,7 @@ split is what [architecture/css/layers.md](../architecture/css/layers.md) requir
 places.
 
 What went with it is that the rule could not be half-applied and the recipe can. Composing
-`surfaces.quietControl` and forgetting the utilities gives a control the right colours in the
+`surfaces.quietControl` and forgetting the utilities gives a control the right colors in the
 wrong box, and nothing says so: the recipe is a valid style object on its own, so the compiler is
 content, and the stylesheet is unchanged either way because those utilities were already emitted
 for some other element on the page. Every gate this repository has is blind to it.
@@ -1087,7 +1087,7 @@ markup string composes.
 
 [architecture/css/extraction.md](../architecture/css/extraction.md) records why a video clip takes `picture.svelte`'s 2px
 edge and 1rem corner rather than `surfaces.blockFrame` in `@canmi/kit`'s
-hairline and `radius.xl`: its neighbour in a column of prose is almost always a picture, and two
+hairline and `radius.xl`: its neighbor in a column of prose is almost always a picture, and two
 different corners side by side would read as a mistake. Left open is whether the site should have
 one answer for both media boxes instead of two, which is a question about who else draws
 `blockFrame` rather than about the clip alone.
@@ -1132,7 +1132,7 @@ Checked against the tree on 2026-09-21:
 
 **What is not answered is whether the file empties at all**, and that is the whole of what is left
 of this entry. With those groups staying and the `:root` rail tokens going to
-lib/pkgs/kit/tokens under the entry below, what remains in `utilities.css` is a question
+@canmi/kit/tokens under the entry below, what remains in `utilities.css` is a question
 for whoever picks it up rather than a backlog item with a known answer. The count that was here --
 26 rule blocks, 18 unable to move on the rules as they stood and 2 awaiting a decision -- predates
 every ruling above and is evidence of nothing now; counting again is the first thing that work
@@ -1141,16 +1141,16 @@ than a dissolution: `app.css` is itself one `@layer components` block now, wrapp
 `utilities.css` records at its own wrapper, so `.pill` and `.value` sit at the position the rules
 would arrive at.
 
-## `lib/pkgs/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
+## `@canmi/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
 
 The same file sends a `:root` block declaring nothing but custom properties to
-lib/pkgs/kit/tokens, "which is where a value gets a name". The load-bearing half is
+@canmi/kit/tokens, "which is where a value gets a name". The load-bearing half is
 "not a layering question at all" -- that is what stops the block being weighed against the three
 questions. The destination half is an example that generalised.
 
 It holds for the rail block, on a reason the sentence does not give: `--rail-width` and
 `--rail-column` are a cross-language contract that `apps/local/src/i18n/width.rs` derives two
-constants from by hand, and `platform/libs/sdk` is this repository's established answer for a value two
+constants from by hand, and `@monoflake/sdk` is this repository's established answer for a value two
 languages need. It is untested for a block that is genuinely one site's and crosses no boundary,
 where `apps/site/src/styles/` would be the better home.
 
@@ -1207,7 +1207,7 @@ paragraphs, so nothing reads it, and nobody has checked it.
 Measured 2026-09-21 over `apps/site/src`, taking every `stylex.create` block and every `class`
 attribute in a `.svelte` file: 20 frame-owned declarations are written in the visual layer -- 11
 `textWrap`, 6 `overflowWrap`, 3 `whiteSpace` -- and 14 vocabulary-owned ones are written as
-utilities in the markup, 7 appearance and 7 colour. The three `whiteSpace` are the sites that file
+utilities in the markup, 7 appearance and 7 color. The three `whiteSpace` are the sites that file
 already accounts for as a different value at each; the other 31 are drift nobody recorded.
 
 A table that is data rather than prose could be compared against what the tree declares. What it

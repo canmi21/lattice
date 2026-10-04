@@ -1,6 +1,6 @@
 # Images and the records that describe them
 
-What the record _is_ -- the two ids, the layered shape, the catalogue of what earns one -- is
+What the record _is_ -- the two ids, the layered shape, the catalog of what earns one -- is
 platform's `spec/architecture/resource.md`. This file is what the pipeline does to get there.
 
 ## Variants stop where the layout does
@@ -42,7 +42,7 @@ that has been through an editor carries nothing true about its origin either. So
 claim somebody makes, and `local image --force` must not be able to take it away.
 
 **The label names the origin, not the route.** An `web.archive.org` address for a page Apple
-published is labelled Apple: the Internet Archive is how the page can still be read, not who wrote
+published is labeled Apple: the Internet Archive is how the page can still be read, not who wrote
 it. Crediting the library for the book is the mistake the rule exists to prevent.
 
 **The label is the name the origin publishes under, verbatim, in the language it publishes in
@@ -238,7 +238,7 @@ it breaks, because the card sums every article -- five in Chinese and one in Eng
 together is Han characters plus English words, not a quantity of anything -- and `mw` is also the
 card a bare link resolves to, the default social card for the site. So that one card carries the
 English figure instead, because `mw.json` is English copy and "N words" written in English has to
-mean English words. The two move together: translating that catalogue means changing which view's
+mean English words. The two move together: translating that catalog means changing which view's
 figure the source card prints.
 
 **Prose only, and only what a visitor can open.** A code block is not writing, and neither is a
@@ -259,9 +259,9 @@ and the rejected candidates are argued.
 
 The address is drawn opposite the site name across the top, because the other free corner is
 the bottom-left and that one belongs to X. It lives in `site.config.yaml` rather than in
-`platform/libs/sdk`, and the distinction is real: what is drawn there is a label a person reads off a
+`@monoflake/sdk`, and the distinction is real: what is drawn there is a label a person reads off a
 picture, not an address anything resolves. The exemption only holds while the two agree, so a
-test compares it against the host `platform/libs/sdk` declares -- nothing structural can, since one is
+test compares it against the host `@monoflake/sdk` declares -- nothing structural can, since one is
 read by Rust and the other by the bundler.
 
 The portrait is fetched into `data/` once, like the font and for the same reason: it is bytes
@@ -317,15 +317,15 @@ shape in each of the nine -- saying how many other languages this article exists
 "and this many more" without a word for it, which is why the line stays short enough to read at
 thumbnail size and identical in form across scripts that share no vocabulary.
 
-**The licence routes have no card, and the routes stay.** They had one: the article template
-drew a card per licence, per registry and per package, in each of the nine views. That is
+**The license routes have no card, and the routes stay.** They had one: the article template
+drew a card per license, per registry and per package, in each of the nine views. That is
 6804 files and 518 MiB -- 87% of everything the bucket held, for a surface whose future is
 still open. Articles and the home page keep theirs.
 
 The cost is what decided it rather than the design being wrong: a card per package per view was
 a defensible trade while the bucket held nothing else, and it stopped being one once the corpus
 moved in beside it. The pages still render, still carry `og:title` and `og:description`, and a
-crawler that wants a picture gets none rather than a wrong one. What to do with the licence
+crawler that wants a picture gets none rather than a wrong one. What to do with the license
 surface at all is [todo.md](../todo/todo.md)'s, and a decision there is what would bring cards back
 or retire the question.
 
@@ -389,7 +389,7 @@ A subtitle begins at 38px and stays there when it fits. Package descriptions are
 hundreds of upstream projects and can run much longer than an article subtitle, so a long one
 steps down to 20px to keep the complete description between the header and the bottom metadata.
 Clipping would make the package's own sentence incomplete; allowing it to overlap would make
-the version and licence unreadable. This is measured from shaped lines for the same reason as
+the version and license unreadable. This is measured from shaped lines for the same reason as
 the title rather than guessed from character count.
 
 The bottom band is aligned right because X draws the domain over the bottom left of every card
@@ -438,7 +438,7 @@ One syntax, because a default only holds where writing the thing is itself a dec
 `![]()` is what a hand reaches for without choosing, so giving it an opinionated crop would
 have been deciding for the author; a directive has to be typed on purpose, and there the
 default reads as "you said nothing else, so this". The first version of this rule kept both
-and made the directive opt-in, which optimised for not editing existing articles and paid for
+and made the directive opt-in, which optimized for not editing existing articles and paid for
 it with two permanent code paths and two rules for alt text -- markdown cannot express
 "decorative" at all, so `alt=""` meant one thing in a directive and another in an image.
 

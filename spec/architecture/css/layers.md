@@ -34,7 +34,7 @@ questions, asked in this order; the first one that answers, answers.
    the part the old axis already had right.
 2. **Is the declaration a member of a named, reused recipe, or one of the type ramp's six
    properties?** Then it is the vocabulary. A surface is a set of declarations with a name, used
-   in several places, and every declaration inside one belongs to it whether it draws a colour or
+   in several places, and every declaration inside one belongs to it whether it draws a color or
    sets a cursor. What puts a declaration there is the name it arrived under, not the subject it
    addresses. The ramp is the one exception to that sentence and it is stated as one below.
 3. **Otherwise it is the frame.** A one-off on one element, taking its value from a CSS keyword or
@@ -142,7 +142,7 @@ prose lives with the component that renders the article body; a rule about a por
 lives with the component that opens it.
 
 A `:root` block declaring nothing but custom properties is not a layering question at all. It
-belongs to lib/pkgs/kit/tokens, which is where a value gets a name, and it should
+belongs to @canmi/kit/tokens, which is where a value gets a name, and it should
 not be weighed against the three questions above.
 
 ### Lowering a declaration is only safe where no surface already sets it
@@ -191,7 +191,7 @@ the comment beside it reads the property as typography rather than geometry; it 
 the same property as the width being reserved rather than how the text looks. Neither comment is
 careless. The test produced two answers because the test was an adjective.
 
-**The old lists survive as a heuristic, and they are a good one.** Colour, type, border, radius,
+**The old lists survive as a heuristic, and they are a good one.** Color, type, border, radius,
 shadow and motion are the declarations that in practice turn out to be recipe members; flow, box,
 spacing, alignment, size and position are nearly always one-off. If you want to guess an answer
 before looking it up, guess with those. They no longer decide anything.
@@ -237,7 +237,7 @@ the escape hatch by the same mechanism read from the other side.
 surfaces.ts in `@canmi/kit` or takes its value from
 vocabulary.stylex.ts in `@canmi/kit`:
 
-- colour, in all its spellings: `color`, `background-color`, `border-color`, `outline-color`,
+- color, in all its spellings: `color`, `background-color`, `border-color`, `outline-color`,
   `fill`, `stroke`
 - `border-radius`, `border-width`, `border-style`, `box-shadow`, `opacity`
 - the four `transition-*` longhands, `animation-*` where a class can reach the element
@@ -258,7 +258,7 @@ vocabulary.stylex.ts in `@canmi/kit`:
 **The frame** owns the one-offs: `display` and the flex and grid properties, `gap`, `margin`,
 `padding`, `width`, `height` and their `min-`/`max-` forms, `aspect-ratio`, `position` and
 `inset`, `z-index`, `align-*`, `justify-*`, `overflow`, `visibility`, `pointer-events`,
-`user-select`, `scrollbar-width`, `will-change`, `border-collapse`, and text behaviour --
+`user-select`, `scrollbar-width`, `will-change`, `border-collapse`, and text behavior --
 `white-space`, `text-wrap`, `overflow-wrap`, `word-break`, `line-break`, `hyphens`,
 `text-overflow`, `text-align`, and the `text-decoration-*` family with `text-underline-offset`.
 
@@ -286,7 +286,7 @@ same border or the same underline they happened to be looking at. A ruling on on
 ruling on the family, and it is written into the list that way.
 
 **The `text-decoration-*` family is the frame, and it is where that rule was paid for a fourth
-time.** The colour row above listed `text-decoration-color` while the row below rules
+time.** The color row above listed `text-decoration-color` while the row below rules
 `text-decoration-line` the frame: one underline across two layers, which is the `white-space`
 mistake inside a single property family. The three questions settle it against the list, by "The
 enumeration is the rule, and the test is only how the enumeration grows" above, and the list is
@@ -328,7 +328,7 @@ the ramp is exactly how a ramp drifts. The site's repeated `1.4` line height is 
 proves the rule rather than the exception to it: the ladder does not name it and nothing records
 why it is 1.4, which makes it vocabulary that has not been given its name yet, not a frame value.
 
-**Text behaviour is the frame.** `white-space`, `text-wrap`, `overflow-wrap`, `word-break`,
+**Text behavior is the frame.** `white-space`, `text-wrap`, `overflow-wrap`, `word-break`,
 `hyphens` and `text-overflow` have no house scale, and there is no plausible one: `nowrap` is a
 local fact about one element's content, and it describes itself where it is written. Nothing is
 looked up, nothing drifts, and nobody needs a name to read it.
@@ -343,7 +343,7 @@ Two things pointed at this line from opposite sides, and both were errors of the
   [tokei.svelte](../../../libs/prose/src/blocks/tokei/tokei.svelte),
   [quadrant.svelte](../../../libs/prose/src/blocks/quadrant.svelte),
   [support.svelte](../../../apps/site/src/lib/support/support.svelte) and
-  [switcher.svelte](../../../apps/site/src/lib/locale/switcher.svelte) -- text behaviour in the
+  [switcher.svelte](../../../apps/site/src/lib/locale/switcher.svelte) -- text behavior in the
   vocabulary. **This list said four and there were five**, which is the enumeration being caught
   at being wrong, exactly the way the section above says a list can be. All five have since moved
   to the markup and the `white-space` still in StyleX is a different value at every site.
@@ -358,10 +358,10 @@ None of these changes answer. What changes is the reason, and the reasons were c
 adjective.
 
 - **`cursor` splits by site, and only one of its sites was the vocabulary.** The declaration
-  inside `surfaces.quietControl` is a member: it travels beside that surface's colour, radius and
+  inside `surfaces.quietControl` is a member: it travels beside that surface's color, radius and
   transitions, the quiet control is one named thing seven files apply, and you get all of it or
   none of it. The `.quiet-control` class in `utilities.css` had already written `cursor` beside
-  colour and a transition before there was any rule, which is the membership answer reached by
+  color and a transition before there was any rule, which is the membership answer reached by
   instinct. Twelve other declarations were in StyleX on the same reasoning and did not earn it --
   `titleControl` and `copy` in `code-block.svelte`, `option` in `switcher.svelte`, `frame` in
   `preview.svelte`, `action` in `support.svelte`, `toggle` in `footnotes.svelte`, `anchor` in
@@ -398,7 +398,7 @@ adjective.
 with a gap says so on the element, where somebody reading the structure is already looking, and
 they read it without leaving the file. That is the whole argument for utilities and it is an
 argument about one-offs read in place; it stops being true the moment a value is a lookup into
-something the markup cannot show, which is what a colour, a type step or a radius is.
+something the markup cannot show, which is what a color, a type step or a radius is.
 
 **Reading a declaration in place is a benefit of the frame where it applies, and it is not the test
 for belonging to it.** The three questions send things to the frame that no amount of reading in
@@ -476,7 +476,7 @@ what the axis implies is this file's work and the execution is somebody else's.
 Measured on the newsletter's unsubscribe control, which carries `focus-link spring-underline` and
 carried `transition-colors duration-200` beside them: the element reports
 `transition-property: --underline-progress` at 315ms. `.spring-underline`'s `transition` shorthand
-takes all four longhands and wins, so the ten-property list never reached it and the hover colour
+takes all four longhands and wins, so the ten-property list never reached it and the hover color
 snaps rather than fades. That was true before the migration and is true after it, which is why the
 declaration was carried across unchanged: a migration moves what the markup said, not what it
 achieved.
@@ -511,7 +511,7 @@ stylesheet and they are still the vocabulary -- "A layer is not a mechanism" abo
 That does not give the file back a position: a stylesheet carrying four vocabulary recipes is a
 carrier, and a file is not a layer. **Which stylesheets carry them was settled on 2026-09-24, when
 the CMS came to draw the same prose**: the focus ring, `--ease-spring` and `.spring-underline` are
-lib/pkgs/kit/tokens/src/interaction.css, because every control
+@canmi/kit/tokens/interaction.css, because every control
 in either application uses them; `.article-link`, `.jump-target` and the per-language line-breaking
 of `.article-content` are [libs/prose/src/prose.css](../../../libs/prose/src/prose.css), beside
 `rail.css`, because they are names the compiler writes into prose. Both applications import both
@@ -544,7 +544,7 @@ this file's, and they travel with it: `.value-cell`'s `font-family`, `font-size`
 `font-variant-numeric` are ramp members wherever they appear and go to the vocabulary, the rest
 of it to the markup.
 
-**Layering the file first is an interim step, and it is not behaviour-preserving.** Twenty of
+**Layering the file first is an interim step, and it is not behavior-preserving.** Twenty of
 its rule blocks sit outside every layer and therefore outrank the vocabulary unconditionally,
 which is a silent wrong answer and the one a partial port walks into -- a rule moved to StyleX
 loses to whatever of its block is still unlayered here, and nothing reports it. Putting them in a
@@ -601,7 +601,7 @@ The threshold sent the family to the vocabulary. Worked through rule by rule, no
 
 Two of its five rules can be reached by a class and both are written to lose.
 `:where(.focus-ring, .focus-ring-inner, .focus-ring-within)` sets a `0.25rem` fallback corner, and
-the rule below it states the ring's colour at rest; each zeroes its own specificity with `:where()`
+the rule below it states the ring's color at rest; each zeroes its own specificity with `:where()`
 and each sits in `components`, low in the frame's stack. The corner is live rather than dead --
 across the thirty-eight elements wearing one of the three classes it draws at fourteen, the
 section glyph, the rail's text ring, the card thumbnail and eleven player glyphs, none of which
@@ -616,12 +616,12 @@ could reach, `.focus-ring:focus-visible`'s outline, shares its block with three 
 cannot, so lifting it would write the same outline twice and leave the rest standing. There is no
 genuinely shared appearance left over to move, so nothing does.
 
-**The colour rule names `.focus-link` and `.focus-link-inner` too**, and the question of which half
+**The color rule names `.focus-link` and `.focus-link-inner` too**, and the question of which half
 of it travels presupposed a split. There is none. The declaration is a member of the ring's recipe
 and a recipe migrates whole -- every declaration belonging to a surface belongs to it, whether it
-paints a colour or sets a cursor. Its reason for existing is to sit beside the ring: it states the
-colour at rest so that Tailwind's `transition-colors`, which nearly every control here carries,
-cannot fade the ring in from the element's own text colour. A declaration whose whole job is to
+paints a color or sets a cursor. Its reason for existing is to sit beside the ring: it states the
+color at rest so that Tailwind's `transition-colors`, which nearly every control here carries,
+cannot fade the ring in from the element's own text color. A declaration whose whole job is to
 defend against a frame utility, filed anywhere but beside the ring, is one the next reader deletes
 as redundant.
 
@@ -666,7 +666,7 @@ two sheets neither vendor splits, which means maintaining a bundler plugin -- fa
 bytes are worth. The other direction, growing the escape hatch because it happens to split, is
 the axis running backwards for a reason that has nothing to do with where a declaration belongs.
 
-What it gets instead is a number somebody watches: `mise run check-css` fails when first-load CSS
+What it gets instead is a number somebody watches: `mise run check-css-budget` fails when first-load CSS
 for a route category passes a recorded budget, so a regression here is a failing check rather
 than a page that feels slow. Raising a budget is a deliberate edit, which is the point of
 recording it.
@@ -861,10 +861,10 @@ correcting them is work this file records rather than work it does.
 
 ## Every app compiles its own StyleX
 
-**StyleX runs in each app's own build -- the site, the status page, the panel -- and never once for
-the workspace.** StyleX gathers every rule an app's routes use into the one sheet it loads first;
+**StyleX runs in each app's own build -- the site, the status page, the editor -- and never once
+for the workspace.** StyleX gathers every rule an app's routes use into the one sheet it loads first;
 compiled per app, that sheet is one app's routes and no more. What the apps share lives in
-`lib/pkgs/kit/tokens` as `defineConsts`, which a build inlines where it is read, so a library's names cost
+`@canmi/kit/tokens` as `defineConsts`, which a build inlines where it is read, so a library's names cost
 an app only the rules it writes with them. **`surfaces.ts` is not that**: it is a `stylex.create`,
 and importing one key compiles every key, so an app other than the site builds its own recipes
 from the consts rather than importing the site's.

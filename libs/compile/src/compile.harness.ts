@@ -10,7 +10,7 @@ import { URLS } from '@monoflake/sdk';
  *
  * The feed is a projection of the blocks and is rendered where the view's locale is known, so
  * these assertions call the same function the Worker does rather than reading a second field the
- * compiler kept in step by hand. See platform/libs/sdk/artifacts, `feedHtml`.
+ * compiler kept in step by hand. See @monoflake/sdk/artifacts, `feedHtml`.
  */
 export function feedOf(compiled: Pick<Compiled, 'blocks'>): string {
 	return feedHtml(compiled.blocks, {

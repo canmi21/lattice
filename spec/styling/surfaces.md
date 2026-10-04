@@ -1,17 +1,17 @@
 # The surfaces a page stacks, and which way each of them moves
 
-The neutral palette in `@canmi/kit/theme` holds two kinds of colour.
+The neutral palette in `@canmi/kit/theme` holds two kinds of color.
 [focus.md](focus.md) already names one of them in passing -- the neutral ramp running strong text,
 text, soft text, strong border, border. This file is the other one, and what it costs.
 
 ## A sheet takes the theme's own end of the range, and a step off it goes the other way
 
-**Contrast colours** -- `text`, `text-strong`, `text-muted`, `text-soft`, `ink`, `border`,
+**Contrast colors** -- `text`, `text-strong`, `text-muted`, `text-soft`, `ink`, `border`,
 `border-strong` -- exist to be seen against whatever is behind them. Their job is distance from the
 ground, so each theme sends them toward the opposite extreme: darker than the page in light, lighter
 than it in dark.
 
-**Surface colours** are the ground itself. `page` is what the document is painted on. `paper` is a
+**Surface colors** are the ground itself. `page` is what the document is painted on. `paper` is a
 sheet laid on it, and a sheet takes the end of the range the theme calls its own -- pure white in
 light, the deepest surface in dark. `paper-hover` is one step off that sheet, which therefore means
 darker in light and lighter in dark.

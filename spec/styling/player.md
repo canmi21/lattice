@@ -1,19 +1,19 @@
 # The video player's own surface
 
-The one place on the site whose colours do not answer to the page theme, and the one icon set that
+The one place on the site whose colors do not answer to the page theme, and the one icon set that
 is not the site's. What the controls _do_, and when each of them is on screen, is
 [architecture/video/player.md](../architecture/video/player.md). Which of the three systems writing CSS is
 entitled to say each decision here, and what happens where two of them say the same thing, is
 [architecture/css/layers.md](../architecture/css/layers.md).
 
-## The player brings its own colours, because it cannot know what is behind them
+## The player brings its own colors, because it cannot know what is behind them
 
-Every colour in a palette is a page colour: it has a light value and a dark one because it is
+Every color in a palette is a page color: it has a light value and a dark one because it is
 read against the page, and the reader picks which. A player's controls are read against a _video
 frame_ -- a surface this site does not choose, cannot know, and which changes twenty-four times a
 second. A control tinted for a light page disappears over a bright sky; one tinted for a dark page
 disappears over a night interior. So the player does not ask what theme the page is in. It brings
-its own ground, the way every native player does, and `lib/pkgs/kit/tokens/src/player.css` is deliberately
+its own ground, the way every native player does, and `@canmi/kit/tokens/player.css` is deliberately
 not derived from any `--color-*` -- a derivation would re-introduce the theme the file exists to
 escape. What the player _does_ take from the page is the focus ring, and only that:
 see [focus.md](focus.md).
@@ -31,15 +31,15 @@ rather than as detail. Two things carry it over content bright enough to swallow
 **The disc in the middle is glass, and the row along the bottom is a plate.** The difference is
 what is behind them. The row sits on the bottom strip of a frame and is mostly ink; the disc is
 64px of surface over the middle of the picture, and what it covers is worth seeing. So it takes
-less of its own colour, more blur, and the saturation push that stops a blurred frame going grey
--- blur alone averages colour towards nothing, which is why every native vibrancy effect pairs the
+less of its own color, more blur, and the saturation push that stops a blurred frame going gray
+-- blur alone averages color towards nothing, which is why every native vibrancy effect pairs the
 two. At `0.45` the frame behind reads at 55%, against the plate's 34%. Alpha is the share of the
-disc's own colour, so **more of it is less glass, not more**.
+disc's own color, so **more of it is less glass, not more**.
 
 **The menu has its own ground.** It wore the disc's glass until it was looked at beside the disc:
 the same tokens read differently, because the disc floats in the middle of the picture and the
 menu sits on the veil, and because the disc is one glyph while the menu is a list of words at
-12px. So `--player-menu` is still glass, with the frame showing through as colour, but a little
+12px. So `--player-menu` is still glass, with the frame showing through as color, but a little
 more of its own ground (0.5 against 0.45), a little less blur (24px against 32) and a little less
 saturation (170% against 180%). It has no edge: a light line round it read as a frame drawn on
 the glass, and a dark one still read as a line. `--player-menu-shadow` lifts it off the picture,
@@ -125,7 +125,7 @@ thicken, so the weight is put back as an actual stroke laid along the outline th
 has: `stroke-width` of w user units adds w to the apparent thickness, and w/2 to every edge -- so
 it changes the size too, and the two corrections have to be solved together rather than in
 sequence. Wanting a 1.5px stroke and a 12.0px mean diameter at once gives w = 4.571 on a 304.76
-canvas. Measured after: stroke 1.500px against the neighbours' 1.500px, ink 12.42 by 11.58 against
+canvas. Measured after: stroke 1.500px against the neighbors' 1.500px, ink 12.42 by 11.58 against
 13.5 by 10.5, both a mean of 12.0.
 
 `stroke` inherits, so Phosphor's transparent sizing rect inherits it too and draws a square around
@@ -136,9 +136,9 @@ something a consumer of the component can reach.
 its mass behind its point, so a box drawn around a play glyph sits right of where the eye puts the
 shape, and this site nudged its play glyphs left to compensate. Phosphor had already done it:
 sampling the outline and taking the area centroid off the shoelace puts `Play` at fill weight with
-its bounding box at x 64..240, centre 152, and its centroid at 127.65 -- the path is drawn 24
-units off its own box on purpose, and the centroid is already on the viewBox's centre line.
+its bounding box at x 64..240, center 152, and its centroid at 127.65 -- the path is drawn 24
+units off its own box on purpose, and the centroid is already on the viewBox's center line.
 `Pause` is two equal bars at 40..108 and 148..216, symmetric about 128. So the nudge was a
-correction on top of a correction and pushed the triangle past centre; both glyphs are now placed
-by the grid and nothing else, measured at 0.04px from the disc's centre. The rules stay in the
+correction on top of a correction and pushed the triangle past center; both glyphs are now placed
+by the grid and nothing else, measured at 0.04px from the disc's center. The rules stay in the
 stylesheet with the numbers in them, because "no offset" is a result and not an omission.

@@ -7,8 +7,8 @@ entitled to say each decision here, and what happens where two of them say the s
 
 ## An in-page jump scrolls without becoming an address
 
-Navigation within one page -- an article's table of contents, the licence page's list of
-licences -- moves the reader and leaves the URL alone. These are a way around a long document
+Navigation within one page -- an article's table of contents, the license page's list of
+licenses -- moves the reader and leaves the URL alone. These are a way around a long document
 rather than addresses worth collecting: a reader walking six sections would otherwise leave six
 history entries behind and have to press Back six times to get out of a page they never left.
 
@@ -31,7 +31,7 @@ handler on, so the article root listens for all of them at once. Both ends are j
 returning to a marker keeps the same band above it that arriving at a section does.
 
 The control stays an `<a href="#id">` and the handler cancels the default. Without JavaScript
-the native jump happens instead, hash and all, which is worse than the scripted behaviour and
+the native jump happens instead, hash and all, which is worse than the scripted behavior and
 much better than a dead control. A modified click -- meta, control, shift, alt, or any button
 but the first -- is the reader asking for a new tab, so it is left to the browser untouched.
 
@@ -105,22 +105,22 @@ it is not worth reaching for until a note actually needs it.
 ### The collected notes are set like the article
 
 The section at the end is small and quiet, at roughly three quarters the prose's size and the
-soft text colour. That is what a note at the foot of a page is: something to step over on the way
+soft text color. That is what a note at the foot of a page is: something to step over on the way
 past and come back to deliberately, not something competing with the article for the same
-attention. Set at the article's own size and colour it did compete, which is how the ratio was
+attention. Set at the article's own size and color it did compete, which is how the ratio was
 arrived at rather than guessed.
 
 **One bright thing per note, and it is the number.** The whole line is soft, the quoted phrase
-included -- weight alone marks the phrase, which is enough to find it by without spending colour
-on it. The colour goes to the superscript, because that is the part a reader is actually looking
+included -- weight alone marks the phrase, which is enough to find it by without spending color
+on it. The color goes to the superscript, because that is the part a reader is actually looking
 for: it says which of the markers above this note answers.
 
-An earlier attempt at quiet was uniformly grey and small with nothing to catch on at all, and read
-as somebody else's apparatus rather than the writer speaking under their breath. Grey was not the
-mistake; grey with nothing in it was.
+An earlier attempt at quiet was uniformly gray and small with nothing to catch on at all, and read
+as somebody else's apparatus rather than the writer speaking under their breath. Gray was not the
+mistake; gray with nothing in it was.
 
 The heading above the section is the exception in the other direction: it renders at the same
-size and colour as the article title and the newsletter heading, none of which sets a size of
+size and color as the article title and the newsletter heading, none of which sets a size of
 its own -- three section names on one page, matched by sharing the inheritance chain rather
 than by copying a number. Only the notes under it stay small.
 
@@ -156,7 +156,7 @@ modes render identically. This class of property is for the languages that break
 **The walk back from a note lights the words it lands on.** Arriving in the right scroll band
 is not the same as knowing which words were left: the noted words may sit anywhere in their
 line and appear more than once in the paragraph. So the return fills the words with the
-selection colour the instant the scroll settles -- the reader's own "I marked this" ink,
+selection color the instant the scroll settles -- the reader's own "I marked this" ink,
 themed for both modes, worn tailored where a drag is raw: rounded, hugging the glyphs, whole
 on its first frame because the instant of arrival is the message -- and fades it slowly, the
 marker's number lit beside it and letting go on the same clock.
@@ -164,12 +164,12 @@ marker's number lit beside it and letting go on the same clock.
 The light is painted above the text as its own translucent layer, never as a background on
 it. A background sits under the element's children, and any child that brings its own -- an
 inline code span is the ordinary case -- swallows the light exactly where it lands; a layer
-on top cannot be covered by anything the content grows later, and the selection colour's own
+on top cannot be covered by anything the content grows later, and the selection color's own
 alpha keeps the words readable through it. The layer's boxes are read off the text's rendered
 line fragments at the moment of arrival, one per fragment, so the wrap semantics below are
 geometry the layer copies rather than CSS it relies on. A dotted underline was tried
 under the fill and cut: two inks were saying one thing, and the fill already says it in the
-reader's own colour.
+reader's own color.
 
 The walk down gets the same light, on the note's whole line: the phrase and the explanation
 compose one sentence, so the fill covers both rather than picking a half. Across a wrap the
@@ -180,7 +180,7 @@ prose are short and each fragment is wholly "the words", so their boxes close.
 `:target` cannot carry this, deliberately: the move never touches the URL (see above), so a
 class set by the jump does, and the compiled prose wraps the noted words in a span that exists
 only to receive it. Accent is not spent here -- appearing and disappearing is what catches the
-eye, and the colour that means focus should not also mean "you came from over there". Under
+eye, and the color that means focus should not also mean "you came from over there". Under
 reduced motion the highlight appears and leaves without animating; the information is kept.
 
 **The notes render after the article, not at the end of it.** The rule above the newsletter had
@@ -198,7 +198,7 @@ closing a door the page wants open. Between the notes and the newsletter, though
 separates two offerings from each other, and that is ordinary chrome: plain, like the divider
 inside a translator's note popover. The site draws dashed elsewhere on the boundary reasoning:
 the leader on an article card, joining a title to its date rather than dividing them, and the
-leaders on the licence pages.
+leaders on the license pages.
 
 The notes are spaced tightly, closer than the paragraphs above them. At this size they are a
 block to be scanned rather than paragraphs to be read apart, and spacing carried over from larger
@@ -237,7 +237,7 @@ chose; five is enough to show that this is a list and how dense it is.
 The fold is left one line tall rather than closed to nothing, and that line fades out. A hard
 cut says the list ends there, which is the one thing it must not say; text dissolving mid-line
 says it continues and something is holding it back, and the control's count then says how
-much. The fade is a mask rather than a gradient painted in the paper's colour -- a painted one
+much. The fade is a mask rather than a gradient painted in the paper's color -- a painted one
 would be a second place the background is written down, wrong the moment either changes.
 
 **A fold that clips has to be positioned.** `overflow: hidden` does not clip an absolutely

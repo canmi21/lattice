@@ -31,7 +31,7 @@ can grow from zero width and `text-decoration` cannot. That buys the animation a
 liability: a background knows where the box is and nothing about where the baseline is.
 
 Flex and grid stretch their items by default, so a link inside either gets whatever height the
-row grew to, and paints its stroke at the bottom of that. Measured on a licence page, the same
+row grew to, and paints its stroke at the bottom of that. Measured on a license page, the same
 class of link sat 27.5px under its glyphs in one row and 2.5px in the next -- the difference was
 a neighbouring cell being tall, not anything about the link. `align-self: baseline` on the class
 is the fix, declared once rather than at each call site: the failure is invisible until some
@@ -41,7 +41,7 @@ remembers to guard at the point of use. It is ignored outside a flex or grid con
 ## A label column is measured, never guessed
 
 A two-column definition list whose label column is a fixed width is a bet that no translation
-is wider than the number. The licence pages lost that bet in five of nine locales at
+is wider than the number. The license pages lost that bet in five of nine locales at
 `6.5rem`: `Documentación` needs 111px against 104px and had nowhere to go, while
 `Archivos de licencia` and `ライセンスファイル` wrapped to a second line beside a single-line
 value. Both are the same fault wearing two faces, one for a word that cannot break and one for
@@ -106,7 +106,7 @@ and only one of them was spaced.
 markup, nothing overlaps, and the margin is there in the computed style -- it simply has no effect
 on that box. A new block type is one `display` value away from the same bug, so the check is one
 line: every child of `.article-content` must compute to a block-level display. Measured after the
-fix, across every article: no inline children, and every picture sits 16px from its neighbours
+fix, across every article: no inline children, and every picture sits 16px from its neighbors
 except where the next thing is a heading, which brings its own 48.
 
 ## A pill's rounded cap is optically pulled in, so the box is pulled out to match

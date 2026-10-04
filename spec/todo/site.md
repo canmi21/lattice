@@ -60,7 +60,7 @@ sound for six and wasteful for sixty; and the read-count batcher carries up to 2
 number chosen against today's list rather than against anything. Both follow whatever the fold
 turns out to be, so neither is worth changing before it is decided.
 
-## The licence surface is eight addresses and one baked record
+## The license surface is eight addresses and one baked record
 
 `/licenses`, `/licenses/{spdx}`, `/licenses/pkgs`, `/licenses/pkgs/{registry}`,
 `/licenses/pkgs/{registry}/{package}`, `/licenses/{registry}/{name}@{version}.txt`,
@@ -71,7 +71,7 @@ a dependency list.
 Behind them, the `virtual-licenses` plugin in [vite.config.ts](../../apps/site/vite.config.ts) bakes
 `data/build/licenses.json` into the server bundle. Measured on a production build: 482KB raw and
 71.7KB gzipped, the largest chunk the Worker carries after the corpus itself -- ahead of
-`index-server.js` at 40.6KB and `surfaces.js` at 36.5KB. Only the metadata travels; the licence
+`index-server.js` at 40.6KB and `surfaces.js` at 36.5KB. Only the metadata travels; the license
 texts are already published objects the CDN serves.
 
 What makes it a finding rather than a preference is that the record sits on the wrong side of a
@@ -82,9 +82,9 @@ classification reaches it, and the answer it gives -- publish it as an artifact 
 any other -- is an answer about a surface nobody has decided to keep.
 
 **One piece has already been taken, and it was the expensive one.** The surface had an OpenGraph
-card per licence, per registry and per package, in each of the nine views: 6804 files and 518 MiB,
+card per license, per registry and per package, in each of the nine views: 6804 files and 518 MiB,
 87% of everything the bucket held. Those are gone and the routes are not -- see
-[architecture/media.md](../architecture/media.md), "The licence routes have no card". It narrows
+[architecture/media.md](../architecture/media.md), "The license routes have no card". It narrows
 nothing about the addresses; it stops an undecided surface from being the largest thing published.
 
 **What deciding it would cost.** The intent is two or three addresses rather than eight, and which
@@ -97,7 +97,7 @@ of it.
 
 ## The site's non-page routes are SvelteKit's, and every other worker's are hono's
 
-`apps/site/api`, `apps/cdn` and `apps/gateway` are hono. `apps/site` is not, and it serves eight `+server.ts` routes
+`apps/site/api` is hono, as the platform's Workers are. `apps/site` is not, and it serves eight `+server.ts` routes
 plus a handle that answers `<url>.md` before the router sees it:
 
 | Route                                                           | Answers                                     |
@@ -107,14 +107,14 @@ plus a handle that answers `<url>.md` before the router sees it:
 | `/llms.txt`                                                     | the assembled index                         |
 | `/robots.txt`                                                   | a constant                                  |
 | `/{key}.txt`                                                    | the IndexNow key                            |
-| `/licenses.txt`, `/licenses/full.txt`, `/licenses/{...package}` | licence text                                |
+| `/licenses.txt`, `/licenses/full.txt`, `/licenses/{...package}` | license text                                |
 | `<url>.md`                                                      | an article's source, from `hooks.server.ts` |
 
 The intent is that a page stays SvelteKit's and everything else becomes one hono app mounted
 inside it, so that every non-HTML response this project serves is written the same way: one
 router, one `failure` helper, one place a cache header is decided. Today the site answers those
-questions in eight files and a handle, none of which share the helpers `apps/site/api` and `apps/cdn`
-already have.
+questions in eight files and a handle, none of which share the helpers `apps/site/api`
+already has.
 
 **What has to be decided before it can be done.** Where the hono app is mounted -- a catch-all
 `+server.ts` forwarding `event.request`, or `handle` in `hooks.server.ts` ahead of the router --
@@ -122,7 +122,7 @@ and the two differ in what they can reach. Hono would not have `event.fetch`, wh
 a same-origin subrequest work in SSR and what `$lib/published` takes as an argument, so that has
 to be passed in rather than imported. `<url>.md` is the awkward one: it is a suffix on every
 page's path rather than a route, so it is the case that decides whether the mount point can be a
-route at all. And whether the licence text routes survive the surface decision above is open, so
+route at all. And whether the license text routes survive the surface decision above is open, so
 there is no reason to move them first.
 
 ## The resolution path on the site has no tests, because the site's modules do not resolve under vitest
@@ -134,17 +134,17 @@ relative path and none touches `$lib` or `$app`, and that is not a convention --
 `vitest.config.ts` declares no alias for either, so a test that imported `$lib/published` would
 fail to resolve before an assertion ran.
 
-The behaviour was verified by execution rather than by assertion while this was written: driving
+The behavior was verified by execution rather than by assertion while this was written: driving
 `publishedResources` against a recording fetch under a throwaway config shows one question for a
 page, a rid the corpus does not publish stored and not asked for again, nothing stored at all when
 the API cannot be reached, and a 65-rid page split into 64 and 1 rather than refused. Each of those
-was confirmed to fail when the behaviour behind it was removed. None of it is committed.
+was confirmed to fail when the behavior behind it was removed. None of it is committed.
 
 **What deciding it would cost.** Three aliases -- `$app/environment`, `$lib`, and a stub for
 `@tanstack/svelte-query`, which publishes `.svelte` source that Node cannot load. The first two are
 a line each. The third is the decision: either a stub module that every test in the workspace would
 then resolve to, or `@sveltejs/vite-plugin-svelte` in the root config, which pulls the site's whole
-Svelte pipeline into `apps/cdn`'s test run as well. Neither is a change to make as a side effect of
+Svelte pipeline into the root test run as well. Neither is a change to make as a side effect of
 a task about batching.
 
 ## An article written in English is told it has no English version
@@ -178,14 +178,14 @@ Three repairs were tried against the running site and each one is a trade rather
 Swapping the component's two tokens, which is what the current assignment is, moves the inversion
 from light to dark rather than removing it. Swapping the palette's
 two light values makes both tables right and costs the homepage thumbnail, which stops being a
-white sheet and becomes a grey one on a lighter page, along with every card and the light hover
+white sheet and becomes a gray one on a lighter page, along with every card and the light hover
 feedback. Giving the head a border instead of a ground was not built; it changes what the block is
-rather than which colour it takes, so it belongs to whoever decides the table's shape.
+rather than which color it takes, so it belongs to whoever decides the table's shape.
 
 Deciding it costs a token pair. A band that must always recede needs two values of its own that do
 not mirror -- roughly 0.962 and 1.000 in light, 0.157 and 0.213 in dark, which is the existing pair
 with the two themes crossed over. That is a fourth and fifth entry in a palette whose argument is
-that it has one home for a colour, and it is worth spending only if a second band turns up. So far
+that it has one home for a color, and it is worth spending only if a second band turns up. So far
 the table is the only one.
 
 ## A wrap policy is one decision per language, and the paragraph is where it is wanted
@@ -238,7 +238,7 @@ above -- exactly where `pretty` already lives.
 
 What deciding it costs: a named policy per language, which is the shape prose.md already has; an
 optional per-paragraph override in the compiled article, which is a change to the block contract in
-`platform/libs/sdk/artifacts` and to both ends that read it; and a measuring layer chosen from the three above.
+`@monoflake/sdk/artifacts` and to both ends that read it; and a measuring layer chosen from the three above.
 The threshold is a constant in whichever layer measures, and the table above is what it should be
 argued from. The language half stays as it is: English opts in, every other language keeps one
 answer per article until somebody measures it.
@@ -312,3 +312,14 @@ when it does. See [architecture/entities.md](../architecture/entities.md).
   its row, which the page does not have yet; `about` from the page, never `status` on the service.
 - **`TechArticle.proficiencyLevel` and `dependencies`**, when the author states them in an
   article's frontmatter.
+
+## An application has no way to stand apart from the infrastructure it is built on
+
+The gateway gives the service layer one place for its hosts, its files and its rules. The
+application layer -- the site, the status page -- has none: each answers its own robots, its own
+security.txt, its own canonical and its own mirrors by calling the libraries, and nothing says
+which of its concerns are its own and which it only borrows from the platform.
+
+**Undecided: what separates an application from the infrastructure**, so that the questions only
+an application asks -- which of two hosts a page is indexed under, what a page's title is -- stay
+with it, and none of the platform's leaks into it.

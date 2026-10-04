@@ -6,7 +6,7 @@ import { bytesToHex } from '@noble/hashes/utils.js';
 //
 // Node rather than the Python pipeline that calls it: BLAKE3 is not in the standard library and a
 // pure-Python one is too slow to hash the whole published set on every check. This is the same
-// digest `apps/site/scripts/publish.ts` names an object by -- see platform/libs/sdk/artifacts'
+// digest `apps/site/scripts/publish.ts` names an object by -- see @monoflake/sdk/artifacts'
 // `storageKey`.
 
 const input = [];

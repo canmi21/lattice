@@ -66,13 +66,13 @@ article is translated. What follows is kept as the record of what the existing s
 by, which the redesign has to read.
 
 Article bodies are split on markdown block boundaries and each block is keyed by a hash,
-truncated the same way asset ids are. The synchronisation behaviour falls out of that rather than
+truncated the same way asset ids are. The synchronisation behavior falls out of that rather than
 being built:
 
 - Edit a paragraph and only its id changes, so only its translations go stale.
 - Move a paragraph and nothing changes at all, because order is not stored.
-- Reflow a paragraph and nothing changes, because whitespace is normalised before hashing.
-- **Restyle a paragraph and nothing changes, because the id is taken after normalisation.**
+- Reflow a paragraph and nothing changes, because whitespace is normalized before hashing.
+- **Restyle a paragraph and nothing changes, because the id is taken after normalization.**
 
 The last of those is the reason this is not simply a hash of the source bytes.
 
@@ -95,7 +95,7 @@ orphan translations somebody paid for -- not once during a migration, but on eve
 
 ### Canonical text, not the syntax tree
 
-The id is the hash of the block **after normalisation**, where normalisation means: parse it, then
+The id is the hash of the block **after normalization**, where normalization means: parse it, then
 serialize it again with one fixed set of options. Structurally equivalent inputs converge on the
 same text and therefore the same id.
 
@@ -107,16 +107,16 @@ the two canonical forms and see why.
 
 ### The file on disk is written in canonical form
 
-Normalisation is not only for hashing. Articles are stored normalised, so the bytes on disk are
+Normalization is not only for hashing. Articles are stored normalized, so the bytes on disk are
 already the canonical form and the id is the hash of what is there. An article imported from
-elsewhere is normalised the first time it is saved.
+elsewhere is normalized the first time it is saved.
 
 This retires an older requirement rather than contradicting it. Byte-identical round-tripping
 mattered while the file was the authority; once the canonical form is the authority, the file is
 its projection, and the editor is free to write whatever the normaliser produces. The round-trip
 harness stays useful for a narrower question: whether the transform is lossy in _meaning_.
 
-Normalisation belongs to the TypeScript path that writes an article, and Rust hashes the bytes it
+Normalization belongs to the TypeScript path that writes an article, and Rust hashes the bytes it
 finds there. Teaching Rust to reproduce remark's canonical form would put the same parser,
 extensions, YAML handling, and serializer choices in two languages; agreement would then be a
 second invariant with no shared implementation. Making the write boundary canonical is cheaper
@@ -148,7 +148,7 @@ already present is frontmatter quoting: one article quotes its dates and four do
 | Rules         | `---`        | Also the frontmatter delimiter, so one horizontal form appears in the file.            |
 | Frontmatter   | remark's own | Not re-spelled by us; see below.                                                       |
 
-Frontmatter is normalised by parsing and re-emitting the YAML, which is what makes the two
+Frontmatter is normalized by parsing and re-emitting the YAML, which is what makes the two
 existing spellings of a date converge. It is deliberately the one place where the rule is applied
 to a nested format rather than to markdown, because those values are hashed as segments too.
 
@@ -215,7 +215,7 @@ always worked that way; invalidation is just deletion aimed well.
 Dry by default, like `local gc`: the selection prints, `--live` deletes. An empty selection is
 refused rather than meaning everything -- that is what `--force` on a translation run is for.
 And a `review: true` entry outranks every selector: the flag means a person read that text,
-and a policy sweep must not undo a judgement it cannot see; the run reports what it kept.
+and a policy sweep must not undo a judgment it cannot see; the run reports what it kept.
 This was a throwaway script twice before it became a command, which is the extraction
 threshold doing its job -- see [workspace.md](../architecture/workspace.md).
 
@@ -224,12 +224,12 @@ threshold doing its job -- see [workspace.md](../architecture/workspace.md).
 Recomputing ids invalidates every existing translation by construction, and those translations
 cost real money. So the change is a migration, not a reset:
 
-1. Normalise every article.
+1. Normalize every article.
 2. For each old segment, compute the id its canonical form produces.
 3. Move the sidecar entry from the old id to the new one.
 4. Only genuinely new or changed content is left to translate.
 
-Step 4 should be empty. Normalisation does not change structure, so a block's translations remain
+Step 4 should be empty. Normalization does not change structure, so a block's translations remain
 correct for it; only the key changes. Anything left over after the migration is a finding worth
 reading rather than a batch to run.
 
@@ -286,7 +286,7 @@ reach twenty do wrap.
 legitimate outcome, and the rail is built for them, so `audit` reports that band and a person
 judges whether the language could have said it shorter -- rejecting it would buy the same answer
 repeatedly and eventually take a worse one. Past the clamp the end is never shown, which is a
-loss rather than a judgement, and that is what `validate` refuses. The same division as the note
+loss rather than a judgment, and that is what `validate` refuses. The same division as the note
 policies above, for the same reason.
 
 **The prompt states the budget as a width, anchored to the source, with the permission that makes
@@ -294,7 +294,7 @@ it reachable.** A model is poor at counting characters and good at picturing a r
 characters wide; it is also told how wide this heading is in the source, which the author sized
 by hand. The instruction that actually does the work is the reason it may drop detail: the
 section's own opening paragraph is already in the request as context, and a reader who picks the
-entry arrives there immediately, so the label only has to let them recognise the section rather
+entry arrives there immediately, so the label only has to let them recognize the section rather
 than explain it. Overrun was a translator trying to make the heading say what the section says.
 
 ### A directive needs the spacing its own script uses
@@ -313,7 +313,7 @@ the build on translations bought before the rule existed.
 The active indicator stays centred on its label. A multi-line indicator spans one centred
 single-line mark plus a full line height for every additional visible line, so the space
 between lines is represented rather than collapsed. Moving between one- and two-line labels
-animates its centre and length together with the same spring, so changing length cannot bend
+animates its center and length together with the same spring, so changing length cannot bend
 or lag behind the existing motion path.
 
 Rust is the only implementation of those block boundaries and hashes. `local segments` writes

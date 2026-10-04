@@ -1,7 +1,7 @@
 # What a clip does as a reader moves through it
 
 The three stages a clip has, what raises the chrome and what withholds it, and what the page ships
-before any of it is alive. What the controls look like, and why they take none of their colours
+before any of it is alive. What the controls look like, and why they take none of their colors
 from the page, is [styling/player.md](../../styling/player.md); what the clip itself is made of is
 [pipeline.md](pipeline.md).
 
@@ -31,7 +31,7 @@ and `subscribe` fired not once.
 
 ## A clip is a picture, then a silent picture, then a player
 
-What the controls look like, and why they take none of their colours from the page, is in
+What the controls look like, and why they take none of their colors from the page, is in
 [styling/player.md](../../styling/player.md) -- this section is what they do. The player has three
 stages and they are not decoration: each one is a different answer to "what is this thing", and the
 reader moves through them by doing something. `sleeping` looks like a
@@ -102,7 +102,7 @@ represented here by a dimmed still of its first frame. Neither the black nor the
 what left.
 
 So the frame it leaves on is copied into a canvas at `enterpictureinpicture`, and the canvas
-stands in for it: same box, same crop, nothing moves when one replaces the other. **Grey and
+stands in for it: same box, same crop, nothing moves when one replaces the other. **Gray and
 dimmed, because it is a picture of the clip and not the clip** -- the live one is in the other
 window, and a full-colour still would be claiming otherwise. It sits above the element rather than
 inside it, because the browser's placeholder is shadow content and no selector reaches it.
@@ -113,13 +113,13 @@ mounted by that same state would not exist yet. Tainting does not matter -- it i
 read back, and a cross-origin draw only blocks `getImageData` and `toDataURL`.
 
 **And it says where the clip went, and offers it back, and nothing else.** While the clip is away
-the still is grey, dimmed and blurred -- blurred so it reads as where the clip was, scaled past
+the still is gray, dimmed and blurred -- blurred so it reads as where the clip was, scaled past
 the frame's edge so the blur leaves no pale rim -- the row and the scrubber are hidden, and the
 play disc is withheld: a picture that is not playing here has nothing to seek or start. One line
 in its top-left corner says the clip is playing in picture in picture, and one button in its
 middle, in words and on the disc's glass, brings it back. The picture behind is pressable too,
 since pressing it can only mean one thing. It was first the disc alone wearing the
-picture-in-picture glyph, and a symbol on a grey picture with nothing beside it read as nothing.
+picture-in-picture glyph, and a symbol on a gray picture with nothing beside it read as nothing.
 A clip in the other window is not paused for being scrolled past, which a clip on the page is.
 
 ### Picture in picture is ours where the browser allows it
@@ -145,7 +145,7 @@ browser's own is used as before.
 
 ### The system's controls drive the clip last played
 
-The media keys, the lock screen, the control centre and the buttons a browser puts in its own
+The media keys, the lock screen, the control center and the buttons a browser puts in its own
 picture-in-picture window reach the page through one Media Session, and a page with several
 clips has one session. A clip claims it when it starts playing, so it is the clip last played
 that answers; it hands over its own play, so a key restores a position the way the page does, and
@@ -178,7 +178,7 @@ so anything that is not the window's shape is bordered by black on the other. Bo
 paint the same way -- no border, no corner, black ground -- and they arrive by different routes,
 one an attribute this file's own markup writes and the other the Fullscreen API promoting the same
 element. Written apart, only the attribute turned the frame off, and a light theme drew a
-two-pixel grey rectangle around the picture in full screen. `:fullscreen` sits alone in its
+two-pixel gray rectangle around the picture in full screen. `:fullscreen` sits alone in its
 selector list and not beside a prefixed spelling, because an unknown selector in a list
 invalidates the whole rule.
 
@@ -211,24 +211,24 @@ restoring at all: one restored on some paths and not others is worse than one re
 ### The poster is a fallback, and the wait is a blur
 
 The poster is cut from the clip and it still does not match it. Encoded separately it lands a
-shade off on colour, and where its pixel dimensions differ from the rung being played `object-fit:
+shade off on color, and where its pixel dimensions differ from the rung being played `object-fit:
 cover` crops the two differently, so the first frame of playback arrives with a small visible
 shift: two pictures of the same instant, one of them slightly wrong.
 
 The answer is not to show it better but to stop showing it. **A near-miss is only visible because
 something sharp is being replaced by something else sharp**, so what fills the wait is the blurred
 ground underneath instead -- and a blur gives nothing away, because it is the same handful of
-colours whichever encoder made it. The poster becomes what a poster is: the thing on screen when
+colors whichever encoder made it. The poster becomes what a poster is: the thing on screen when
 there is nothing else, which now means when the element has errored.
 
 **The blur is made the way every other blur on this site is made.** A small copy of a photograph
 is a small photograph: stretched back across a 668px frame it reads as a picture out of focus,
 which is what the first version of this looked like and is not what the pictures look like. Their
 placeholder is a _thumbhash_ decoded back to pixels -- a handful of coefficients with the rest
-thrown away -- so it is a field of colour that was never pretending to be in focus. A clip's frame
+thrown away -- so it is a field of color that was never pretending to be in focus. A clip's frame
 is an image like any other, so it takes the same route: sampled, hashed with `rgbaToThumbHash`,
 decoded with `thumbHashToRGBA`, and encoded through the canvas at the build's own quality.
-Measured as mean neighbour difference, a captured frame reads 3.49 against 0.95 to 11.14 for the
+Measured as mean neighbor difference, a captured frame reads 3.49 against 0.95 to 11.14 for the
 build's own previews -- the same class of picture, which is the whole claim.
 
 WebP through the canvas rather than `thumbHashToDataURL`, which writes an uncompressed PNG: the
@@ -309,7 +309,7 @@ than the box was what let this look right while it was wrong -- `--clip-ground` 
 on time, on an element nothing asked.
 
 Measured against the picture as well, since the point of the blur is that it is a blur of
-somewhere: the mean colour of a clip left at 21.98 seconds, its remembered still, and the build
+somewhere: the mean color of a clip left at 21.98 seconds, its remembered still, and the build
 thumbhash are (137, 141, 131), (139, 145, 135) and (49, 70, 63). Six apart against a hundred and
 thirty-two.
 

@@ -2,7 +2,7 @@
 
 Newsletter subscriptions and likes are mutable reader state. They belong to the site's API, the
 routes in `apps/site/api`, which the site's Worker answers under `/api/` on its own origin; see
-architecture/services.md, "The site's API runs in the site's Worker". None of them is a public
+[architecture/site-api.md](architecture/site-api.md), "The site's API runs in the site's Worker". None of them is a public
 route of the API host.
 
 **What SSR may fetch is decided by who the answer is about, not by whether it is engagement.** A
@@ -167,7 +167,7 @@ fails, which is worse than not offering one.
 **The confirmed state and the ability to cancel are separate facts.** Subscribing again from a
 device that never held the token confirms the address and offers no cancellation, because that
 device genuinely cannot cancel. A cancellation the API answers with `404` clears the local record
-and reports success: the subscription is already gone -- most likely cancelled from another
+and reports success: the subscription is already gone -- most likely canceled from another
 browser -- and an error would leave the reader looking at a subscription they cannot get rid of.
 
 Cancelling takes one click and no confirmation step. Resubscribing is the same form that is
@@ -222,14 +222,14 @@ focus, drifting slightly, gone. It is also the longest stage of the four, which 
 read as dissolving rather than being cleared away.
 
 **The pill keeps showing the address it is undoing until that finishes**, so the record outlives
-the request that cancelled it by exactly that long -- which is also why a second click is refused
+the request that canceled it by exactly that long -- which is also why a second click is refused
 for the duration rather than spent on a subscription that is already gone.
 
 The submit button is the one thing that does not fade in at the end. It is the shape the chip has
 just finished warming back into and arrives at the same ink it was handed; fading it would blink
 the one element that was continuous across the swap. It springs up to size instead, because the
 moment it becomes pressable again is worth marking and scale carries that without touching the
-colour that made it continuous.
+color that made it continuous.
 
 **A record read at mount animates nothing.** Someone returning to the page did not just do
 anything, and replaying the confirmation would claim they had. The animation belongs to the
@@ -288,7 +288,7 @@ the current IP's `liked` boolean together with the global like and subscriber co
 The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints are
 limited by `quota`, counted by the caller's address, with a wider allowance for reads.
 `apps/site/api/src/contract/limits.ts` says which route each row covers, in the one format every
-limit here is written in; see architecture/quota.md.
+limit here is written in; see platform's `spec/architecture/quota.md`.
 
 ## A read is counted by the browser that performed it
 
@@ -345,7 +345,7 @@ changed.
 `localStorage["state"]` holds the site's own small facts about the reader. `cache` belongs to
 TanStack Query and `email` to the newsletter; each is somebody else's record with its own lifetime
 and eviction, and neither is this. What was left was facts like whether the Support slot's first
-favour has been done, and the first of those arrived as a loose key of its own. A second would
+favor has been done, and the first of those arrived as a loose key of its own. A second would
 have arrived the same way, and a tenth -- which is how a reader's storage becomes a scatter of
 names nothing owns and nothing can move together.
 
@@ -456,7 +456,7 @@ server. It is two routes now:
 | `/liked` | whether this address has liked | `private, no-cache`   |
 
 **What forced the split is not tidiness.** A page cached for one reader would have told the next
-one they had clicked something they had not, so as long as the two travelled together the counts
+one they had clicked something they had not, so as long as the two traveled together the counts
 could not be in the HTML. Now the server renders them and the heart is unmarked until the browser
 asks -- which is the honest order, because the mark is the only part of it that is nobody else's
 business. `/stats` is answered without a client address at all: a shared cache asking on
@@ -477,7 +477,7 @@ not to know yet.**
 
 ### An answer is parsed, not assumed
 
-Every engagement answer has a valibot schema in platform/libs/sdk/artifacts (platform's `libs/sdk/artifacts/src/engagement.ts`),
+Every engagement answer has a valibot schema in @monoflake/sdk/artifacts (platform's `libs/sdk/artifacts/src/engagement.ts`),
 and both sides use the same one -- the Worker builds an answer satisfying the inferred type, the
 browser parses what arrives against the schema it was inferred from. It used to be a hand-written
 `typeof` beside each fetch: the same sentence six times, each only as current as whoever last
@@ -490,7 +490,7 @@ platform's `spec/architecture/artifacts.md`, "Validation is heavy where it is fr
 
 ## Engagement data is a persisted client query
 
-The site fetches engagement state in the browser from the standalone API origin. TanStack Query
+The site fetches engagement state in the browser from its own origin, under `/api/`. TanStack Query
 deduplicates the shared request used by Newsletter and Support. Its sync-storage persister writes
 all successful TanStack Query query data into the single global `localStorage["cache"]` container
 across page reloads. All queries remain fresh for five minutes; once stale, normal TanStack Query

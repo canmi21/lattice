@@ -8,7 +8,7 @@
 	 * its holder is hovered. The holder carries `stylex.defaultMarker()`; see spec/todo/todo.md,
 	 * "Ancestor state reaches the visual layer only through a marker nobody owns", for why both the
 	 * resting and hovered opacity have to sit here and why the default marker rather than a named
-	 * one. See platform's spec/architecture/anchors.md.
+	 * one. See spec/architecture/anchors.md.
 	 */
 	const styles = stylex.create({
 		anchor: {

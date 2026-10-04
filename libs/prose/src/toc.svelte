@@ -343,7 +343,7 @@
 		}
 		const asked = initialHash && nav?.type === 'navigate' ? initialHash : '';
 		// A block anchor that names nothing lands on its kind's nearest, and the address says which.
-		// See platform's spec/architecture/anchors.md.
+		// See spec/architecture/anchors.md.
 		const landing =
 			asked && !document.getElementById(asked)
 				? nearestBlockAnchor(

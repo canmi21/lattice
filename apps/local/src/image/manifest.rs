@@ -5,7 +5,7 @@
 //! reading anything else. One merged file, committed, so the site build can inline placeholders
 //! into articles without the images being present at all.
 //!
-//! The layer shapes here are the twin of the schemas in `platform/libs/sdk/artifacts`, which is
+//! The layer shapes here are the twin of the schemas in `@monoflake/sdk/artifacts`, which is
 //! what reads them on the other side. Two readings of one format is a defect waiting for the first
 //! record that separates them, so a change here is a change there. See
 //! platform's spec/architecture/resource.md.
@@ -180,7 +180,7 @@ impl Tones {
 	/// **A named tone is that tone or nothing.** A caller that asked for dark and received light
 	/// cannot tell it happened, and would draw a light mark on a dark surface believing it had the
 	/// right one. With no tone named either will do, and light goes first because an untinted mark is
-	/// drawn for light backgrounds. The twin of `toned` in platform/libs/sdk/artifacts.
+	/// drawn for light backgrounds. The twin of `toned` in @monoflake/sdk/artifacts.
 	pub fn of(&self, tone: Option<&str>) -> Option<&ImageVariant> {
 		match tone {
 			Some("light") => self.light.as_ref(),
@@ -425,7 +425,7 @@ impl Merged {
 	///
 	/// A domain rather than a reference, because an article never names an icon: it names a URL,
 	/// and the hostname of that URL is the identity. A scan for the same reason `by_resource` is
-	/// one. See platform's spec/architecture/resource.md, "The catalogue".
+	/// one. See platform's spec/architecture/resource.md, "The catalog".
 	pub fn by_icon_domain(&self, domain: &str) -> Option<(&str, &Media)> {
 		self
 			.media

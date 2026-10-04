@@ -16,12 +16,12 @@ function scalar(key: string): string | undefined {
 describe('site config', () => {
 	/**
 	 * `domain` is a label drawn on the OpenGraph card, not an address anything resolves, which is why
-	 * it may sit outside platform/libs/sdk at all. That exemption only holds while the two agree -- a
+	 * it may sit outside @monoflake/sdk at all. That exemption only holds while the two agree -- a
 	 * card advertising a host the site no longer answers on is worse than no card -- and nothing
 	 * structural can enforce it, because one is read by Rust and the other by the bundler. So it is
 	 * enforced here.
 	 */
-	it('draws the same host on a card that platform/libs/sdk resolves', () => {
+	it('draws the same host on a card that @monoflake/sdk resolves', () => {
 		const domain = scalar('domain');
 		expect(domain).toBeDefined();
 		expect(domain).toBe(new URL(URLS.apps.production.site).hostname);
@@ -29,7 +29,7 @@ describe('site config', () => {
 
 	/**
 	 * A card drawn by `local og` and a page rendered by SvelteKit have no other way to agree than
-	 * both reading canmi/identity -- the name, role, GitHub handle and avatar id had drifted into
+	 * both reading @canmi/me/identity -- the name, role, GitHub handle and avatar id had drifted into
 	 * the markup as literals once already. Checked against the source text rather than a render,
 	 * because a render agrees with a hardcoded value as happily as with a read one.
 	 */
@@ -40,7 +40,7 @@ describe('site config', () => {
 		);
 		for (const key of ['name', 'fullName', 'role', 'github', 'githubId'] as const) {
 			const value = String(author[key]);
-			expect(value, `canmi/identity is missing ${key}`).toBeTruthy();
+			expect(value, `@canmi/me/identity is missing ${key}`).toBeTruthy();
 			expect(home, `+page.svelte hardcodes author.${key}`).not.toContain(value);
 		}
 	});

@@ -17,11 +17,10 @@ which areas exist and which entries are worth reaching for first.
 
 | area                     | entries | what it holds                                             |
 | ------------------------ | ------- | --------------------------------------------------------- |
-| [css.md](css.md)         | 49      | the layer migration's leftovers                           |
-| [site.md](site.md)       | 9       | routing, rendering, the article page, the tests           |
+| [css.md](css.md)         | 48      | the layer migration's leftovers                           |
+| [site.md](site.md)       | 16      | routing, rendering, the article page, the tests           |
 | [cms.md](cms.md)         | 3       | what the CMS cannot yet offer, and what it cannot reach   |
-| [tooling.md](tooling.md) | 5       | the files that describe the repository rather than run it |
-| [gateway.md](gateway.md) | 5       | the hosts against the one gateway they are moving to      |
+| [tooling.md](tooling.md) | 4       | the files that describe the repository rather than run it |
 
 ## The plan is not a finding
 
@@ -59,7 +58,7 @@ reasons.
 - Geometry is derived through a cascade of custom properties
 - The article body's typography reaches elements no component renders
 - The floating surfaces are styled from the component that summons them
-- `lib/pkgs/ui/svg-canvas` is a 527-line global stylesheet
+- `@canmi/ui/svg-canvas` is a 527-line global stylesheet
 - Ancestor state reaches the visual layer only through a marker nobody owns
 - `truncate` is one utility and two layers
 - A shared visual vocabulary, arrived at by two people writing it separately
@@ -71,7 +70,7 @@ reasons.
 - The gate compares a list, and a list is not a test
 - An SVG presentation attribute is a fourth writer, and it sits below every layer
 - A shadow is one utility, two declarations and four variables the visual layer cannot restate
-- Two of the site's colours are not the token layer's, and cannot be read from it
+- Two of the site's colors are not the token layer's, and cannot be read from it
 - A style that is only ever conditional cannot be merged into a class attribute
 - A wrapping floor moved and the language override on top of it could not
 - A data attribute on the element itself is a condition the visual layer cannot state
@@ -97,7 +96,7 @@ reasons.
 - A recipe's other half is a convention and nothing checks that a call site kept it
 - Whether a clip and a picture should draw one frame is a question about `blockFrame`'s users
 - The dissolution section's argument stopped following from its premise
-- `lib/pkgs/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
+- `@canmi/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
 - The three-component threshold is a memory, and nothing counts the components
 - The enumeration is normative and the code has drifted from it
 - The `// unnamed:` ledger has no entries and no counter
@@ -108,7 +107,7 @@ reasons.
 
 - A total function answers for input it does not know, and is wrong instead of failing
 - The homepage lists every article, and will not be able to for long
-- The licence surface is eight addresses and one baked record
+- The license surface is eight addresses and one baked record
 - The site's non-page routes are SvelteKit's, and every other worker's are hono's
 - The resolution path on the site has no tests, because the site's modules do not resolve under vitest
 - An article written in English is told it has no English version

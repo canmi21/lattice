@@ -12,7 +12,7 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the subscription surface. Every colour is a `lib/pkgs/kit/tokens` variable,
+	 * The visual half of the subscription surface. Every colour is a `@canmi/kit/tokens` variable,
 	 * so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file keeps the eight keyframes and their names, the

@@ -27,7 +27,7 @@ Every non-original article view places a blue note directly below the metadata r
 the current view's UI language that the reader is seeing a translation and names the source
 language in that same UI language. The source-language name is the link back to `mw`; ordinary
 activation writes the cookie and reloads like the menu, while its `?lang=mw` address remains a
-no-JavaScript and modified-click fallback. The original view has no note, because labelling
+no-JavaScript and modified-click fallback. The original view has no note, because labeling
 untouched content as untranslated would repeat what the language switcher already says.
 
 This notice is a state indicator rather than article content. Keeping it beside the metadata
@@ -84,7 +84,7 @@ the switcher menu, and the notice's way back to the original. Both now fetch the
 the same `chooseLocale`, so there is one way to change language rather than two.
 
 Two full navigations remain and both are deliberate. A server-only document -- `atom.xml`,
-`sitemap.xml`, a licence text -- carries `data-sveltekit-reload`, because it is not a page and
+`sitemap.xml`, a license text -- carries `data-sveltekit-reload`, because it is not a page and
 the router has nothing to render. And `orReload` turns a failed fetch in the browser into a
 document navigation, because the server path still works and the alternative is a click that does
 nothing.
@@ -93,7 +93,7 @@ nothing.
 
 A Chinese article read at `zh` is neither the original nor a translation in the ordinary sense.
 The view exists because every language gets one, and what it holds is the article regularised --
-a misspelling corrected, a mark normalised -- not carried across a language boundary. Telling
+a misspelling corrected, a mark normalized -- not carried across a language boundary. Telling
 that reader they are reading a translation is simply false, and it is false in the one direction
 that costs something: they are the reader best placed to go read the original, and the notice
 would give them no reason to.
@@ -189,7 +189,7 @@ An article written entirely in one language will come back from that language's 
 almost unchanged. Two of the nine views are then the same text at two addresses, and the pair
 competes with itself.
 
-**When a locale is at least 0.90 similar to the original after normalisation, that locale
+**When a locale is at least 0.90 similar to the original after normalization, that locale
 canonicals to the bare URL instead of to itself, and its `hreflang` entry points there too.**
 Below the threshold it is a translation like any other.
 

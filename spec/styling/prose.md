@@ -13,7 +13,7 @@ change again while the page is open.
 
 A number that is simply true of the site does not earn boxes merely by being numeric. In running
 prose it takes the surrounding text's own figures. A repeated trailing metric column has a
-different job: the licence directories end each row or section with a package count, and
+different job: the license directories end each row or section with a package count, and
 monospace tabular figures let those narrow values scan as one column. Soft ink and the absence of
 boxes keep them subordinate to the names they quantify; this is directory structure, not a live
 state.
@@ -33,7 +33,7 @@ must not move the page while answering.
 
 Counts below one thousand stay as whole numbers. At one thousand and above, compact indicators
 use the shared `compactCount` notation: lowercase `k`, uppercase `M`, and a decimal only while it
-carries useful precision (`1k`, `1.5k`, `16k`, `2.3M`). This applies to the licence metric columns
+carries useful precision (`1k`, `1.5k`, `16k`, `2.3M`). This applies to the license metric columns
 as well as stat rows and chart axes. A count written into prose remains complete and
 locale-formatted through `Intl.NumberFormat`; compact notation is for a bounded indicator, not a
 sentence.
@@ -179,7 +179,7 @@ that lands on one browser and is invisible when it does is not worth the line it
 ## An article rule is a pause, not a wall
 
 A Markdown thematic break inside article prose renders as five short strokes in the strong border
-colour. Together they occupy roughly three sixteenths of the text measure and stay centred, because
+color. Together they occupy roughly three sixteenths of the text measure and stay centred, because
 the mark separates thoughts rather than dividing the page into structural regions. The strokes are
 two pixels thick: enough to remain deliberate at that short length without becoming a structural
 rule. Generous vertical space supplies the pause the compact mark implies.

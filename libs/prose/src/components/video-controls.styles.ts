@@ -15,8 +15,8 @@ import {
 /**
  * The player's own vocabulary, and a member of no named surface in `surfaces.ts`: those are
  * read against the page and these against a video frame. See spec/styling/player.md, "The
- * player brings its own colours, because it cannot know what is behind them", and
- * spec/architecture/css/authoring.md, "Colour is never retyped".
+ * player brings its own colors, because it cannot know what is behind them", and
+ * spec/architecture/css/authoring.md, "Color is never retyped".
  *
  * A transition naming two properties writes its lists doubled and as literals, the way
  * `surfaces.quietControl` does: spec/todo/todo.md, "A `transition` shorthand sets five lists".
@@ -223,7 +223,7 @@ export const styles = stylex.create({
 
 	/**
 	 * The settings menu, on a ground of its own rather than the disc's glass: see `--player-menu`
-	 * in `lib/pkgs/kit/tokens/src/player.css`. Its corner is a literal, 0.5rem, which is a row's
+	 * in `@canmi/kit/tokens/player.css`. Its corner is a literal, 0.5rem, which is a row's
 	 * `radius.md` plus the 2px the panel keeps around its rows, so the two corners share a center.
 	 */
 	menu: {

@@ -326,7 +326,7 @@ async function publishCorpus(
 		// entries here, named `favicon/{domain}/{tone}` because that is what a link card could
 		// build from the domain it knew. It is a resource now: `cms favicon` hashes the bytes in
 		// and writes the record, a card compiles to a rid, and the page asks what that rid means.
-		// See platform's spec/architecture/resource.md, "The catalogue".
+		// See platform's spec/architecture/resource.md, "The catalog".
 		assets: {
 			...(await publishSymlinks(tree)),
 			...(await publishNotice(tree)),

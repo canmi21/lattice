@@ -6,7 +6,7 @@ declare const STATED_API_ADDRESSES: Readonly<Record<Route, string>> | undefined;
 /**
  * Each route's shape under `/api/`: in production the contract address the build stated, which
  * moves only with the route's contract, followed by the placeholders of the route's own shape; in
- * development the route's shape itself. See platform's spec/architecture/services.md, "The pages
+ * development the route's shape itself. See spec/architecture/site-api.md, "The pages
  * ask by contract, not by name", and the workspace's spec/addresses.md.
  */
 const ASKED: Readonly<Record<Route, string>> = Object.fromEntries(

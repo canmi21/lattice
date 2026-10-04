@@ -4,19 +4,19 @@
 [local.md](architecture/local.md). This is how the work it schedules is described, kept from
 colliding with itself, and observed.
 
-## The catalogue is data, and it is complete before the runner
+## The catalog is data, and it is complete before the runner
 
 Every operation that takes more than an instant is declared in
 [task/mod.rs](../apps/local/src/task/mod.rs): what it is, whether it asks a model, what it reads,
 what it writes, and which tasks must have run first. Nothing there runs anything.
 
-Splitting the description from the execution is what lets the catalogue be finished first. A GUI
+Splitting the description from the execution is what lets the catalog be finished first. A GUI
 listing what exists, a scheduler ordering it, and a person asking how much a full run would cost
 are all answerable now, against seventeen entries, rather than after seventeen operations have
 been rewritten. Adding an entry makes a task **known**, not runnable.
 
 Reads and writes name **records**, not paths. Two tasks contend when they mutate the same records,
-and stating it that way leaves the file layout free to move without the catalogue following it.
+and stating it that way leaves the file layout free to move without the catalog following it.
 
 `after` is declared and nothing reads it. The dependency is a fact about the task, so it belongs
 beside the task rather than inside whatever eventually orders them. It is tested even though it is
@@ -28,7 +28,7 @@ is only safe because the test holds them.
 behind rather than by how it is invoked.** A second category stood here -- hand-run operations
 whose input is a person's argument, covering `captions`, `invalidate` and `twitter` -- and it did
 not survive its own test. Taking an argument was the only thing those three shared, and `local
-captions` is catalogued now while still taking two of them.
+captions` is cataloged now while still taking two of them.
 
 **Commands that write no record** -- `overview`, `articles`, `derived`, `check`, `port`, `tasks`,
 `runs` and `twitter`. Listing them would put eight entries in every task view that can never be
@@ -38,7 +38,7 @@ true of `local twitter` -- it waits on somebody else's network and is the slowes
 instant was not the reason and never had been; writing nothing is.
 
 That leaves the rule the rest of the commands are held to: **a command that takes more than an
-instant and writes a record is catalogued, whatever it takes on the command line.** `local captions`
+instant and writes a record is cataloged, whatever it takes on the command line.** `local captions`
 is where that was settled. It takes a clip and a track path, so there is no set of tracks to fan
 out over -- a clip and its track do not arrive on the same day, and often the track never arrives
 -- but it writes `PublicCaptions`, `PublicMeta` and `Manifest`, and the sweep writes all three.
@@ -80,9 +80,9 @@ See platform's `spec/architecture/artifacts.md`, "An object is swept an hour aft
 nothing names it".
 
 **The sweep comes after everything whose output it can delete.** That is tested as an invariant over
-the catalogue rather than kept as a list, because the list is what went stale: `licenses` and `i18n`
+the catalog rather than kept as a list, because the list is what went stale: `licenses` and `i18n`
 were both missing from `gc`'s `after`, and both were missing because a tree was added to the sweep
-without the catalogue being re-read.
+without the catalog being re-read.
 
 Why it is worth stating: `Spec::conflicts_with` intersects `writes` and nothing else. A publisher
 that does not declare what it writes is invisible to the only mechanism that would keep it from
@@ -92,14 +92,14 @@ run would report anything wrong.
 
 ### One gap is recorded rather than closed
 
-The two that stood here are closed. `local captions` has a catalogue entry, so the mechanism can see
+The two that stood here are closed. `local captions` has a catalog entry, so the mechanism can see
 that it and `local gc` contend over three records; a card is swept against the record that names it,
 which is settled in [architecture/media.md](architecture/media.md).
 
 `local invalidate` is what the corrected exemption leaves behind. It writes `Translations` -- the
 same record `local i18n` writes and `local gc --segments` deletes from -- and it has no entry, so the
 one mechanism that would keep it from running beside either of them cannot see it. Every ground
-that took `local captions` into the catalogue holds here word for word, and the only thing still
+that took `local captions` into the catalog holds here word for word, and the only thing still
 keeping it out is that nobody has decided it. That decision is the reader's, not this file's.
 
 Two build records are deliberately left without one. `data/build/licenses.json` and
@@ -110,8 +110,8 @@ neither can be contended over. A record for a store one task owns would name a l
 
 **A task holds no lock while it thinks.** The expensive part of `local alt` and `local tag` is minutes
 of model calls; the part that touches `data/record/media.yaml` is milliseconds at the end. Leasing that
-file for the length of a run would serialise the two tasks over a critical section a ten-thousandth
-of its length, and serialise them at exactly the point where parallelism is worth the most.
+file for the length of a run would serialize the two tasks over a critical section a ten-thousandth
+of its length, and serialize them at exactly the point where parallelism is worth the most.
 
 So mutations are values, not writes. A worker finishes an item, pushes the mutation it produced,
 and moves on. Applying it is somebody else's job.

@@ -35,8 +35,8 @@ application layer's job under the rule below, not a page's.
 A view that has found outstanding work shows the command that closes it. The command becomes a
 button only after the operation has moved below both shells and the task substrate can report its
 progress and refuse a second copy; known but unmigrated operations remain text. The Derived page
-implements that boundary in `client/derived.ts`, while the task centre will
-eventually provide the complete catalogue and scheduling surface.
+implements that boundary in `client/derived.ts`, while the task center will
+eventually provide the complete catalog and scheduling surface.
 
 The reason is what these operations are. They run for minutes, several of them spend money on a
 model, and they are not safe to run twice at once over the same files. A control that cannot be
@@ -308,7 +308,7 @@ construct cost a schema, a parser and a serializer, and letting the author see a
 meant converting between the two representations wherever the caret went -- which is a boundary
 case per gesture per state, and no amount of rules closes it. With the text as the document there is
 nothing to convert: what is saved is what was typed, broken syntax is text the parser has not yet
-recognised, and bold set from a toolbar is `**` inserted around the selection. How it looks is a
+recognized, and bold set from a toolbar is `**` inserted around the selection. How it looks is a
 function of the text and the caret alone:
 
 - **The site's parser is the judge of what the text means**, run with positions, and its answer is
@@ -339,7 +339,7 @@ function of the text and the caret alone:
   a fence opened swallows everything after it. So an edit is parsed again from the island before it
   until the new boundaries meet the old ones again. A whole parse of the longest article -- 34,860
   characters, 191 blocks -- measured 16 ms, so parsing everything is the correct first version and
-  parsing islands is an optimisation over it, not a condition of it.
+  parsing islands is an optimization over it, not a condition of it.
 - **A line break the author makes is a line break on the page.** CommonMark's single newline is a
   soft break, which the page joins into a space; only a blank line starts a paragraph, and only a
   trailing backslash or two spaces break a line inside one. So Enter writes a blank line -- a new
@@ -360,7 +360,7 @@ function of the text and the caret alone:
   character reaches the editor's input handler and a paste its clipboard handler, so a paste always
   replaces. A wrap just made is taken back by deleting: Backspace or Delete while the
   selection is still the one it left removes the last layer, not the words, so a `*` typed once too
-  often goes the way it came. Each wrap is remembered as its own inverse, not recognised in the
+  often goes the way it came. Each wrap is remembered as its own inverse, not recognized in the
   text afterwards, and any other change to the text or the selection forgets it -- so the exception
   holds only in the one state where deleting can mean nothing else.
 - **Deleting a delimiter deletes its partner; adding one never adds another.** Backspace or Delete
@@ -493,7 +493,7 @@ attention; they sit immediately after their labels without entering the text flo
 section labels remain text-only. Recently updated rows reuse the public homepage's article preview:
 row geometry, paper thumbnail, title, dotted leader, date and subtitle are one
 `@canmi/ui/primitives` surface. The site keeps its link, focus and content-derived line motion; the
-CMS keeps a read-only static rendering. Those are consumer behaviours rather than two visual
+CMS keeps a read-only static rendering. Those are consumer behaviors rather than two visual
 definitions. Hover was counted among them until the CMS wanted it as well, and the row it got
 stayed flat where the site's lit up -- one row, two answers, which is the thing the shared package
 exists to prevent. It is a property of the surface rather than of what a consumer does with it, so
@@ -532,7 +532,7 @@ number, but the site spends it as a background fill, and one name meaning both a
 text weight is how a palette stops being readable.
 
 The rail that marked a row needing work is gone with it. The Todo band already says so, and a
-second statement of the same fact was competing with the tick for the same edge. Colour on this
+second statement of the same fact was competing with the tick for the same edge. Color on this
 page is now spent on exactly one thing: blue, on the line of an article a run is touching right
 now, which nothing else says.
 
@@ -643,7 +643,7 @@ the list, because a rebuild mid-flight would destroy the element the animation i
 
 A row's grid sets `column-gap` rather than `gap`. With both, the folded panel underneath still cost
 a row-gap's band beneath the title, so the hover rectangle stood 7px taller than its content and
-the title sat above its centre -- a gap around a zero-height thing is still a gap.
+the title sat above its center -- a gap around a zero-height thing is still a gap.
 
 **Rows carry ticks, and the actions read what the ticks mean.** A row's tick sits directly under
 its group's mark, which is why the band, the column names and the rows share one leading column --
@@ -670,7 +670,7 @@ and for an open menu.
 **A column name is the sort control, and the last one pressed is the one in force.** Pressing a
 second column moves the ordering onto it rather than adding a tie-break nobody asked for.
 
-Each heading draws both arrows, grey, and a press walks a ring of three: off, up, down, off. That
+Each heading draws both arrows, gray, and a press walks a ring of three: off, up, down, off. That
 ring is why there is no reset control anywhere -- the way back out is one more press of the same
 heading, which is where somebody would look for it. Drawing the arrows greyed rather than only on
 the active column is what makes the third state discoverable: a heading with nothing beside it
@@ -679,7 +679,7 @@ gives no reason to believe pressing it a third time would do anything.
 With no column pressed the menu above decides, which is what default means here, and choosing from
 that menu takes the ordering back off whichever column was holding it.
 
-**A mutation is not a task, and does not wait for the task substrate.** The catalogue exists for
+**A mutation is not a task, and does not wait for the task substrate.** The catalog exists for
 work that takes minutes, asks a model, or cannot safely run twice at once. Sweeping an article's
 stale segments is a YAML rewrite taken under that record's own lock: it has no progress worth
 reporting and nothing to refuse a second copy of beyond the lock it already takes. So it is a live
@@ -703,19 +703,19 @@ The first placement is silent: there is no previous tab to travel from, and a ba
 load reads as a loading animation.
 
 **It travels on its own gesture, not the one panels open with.** A box growing and an object
-crossing a strip are different things. What the bar has is a **centre** that moves and a **width**
-that adapts, and those are separate facts: the centre is where it is, the width is how much of the
+crossing a strip are different things. What the bar has is a **center** that moves and a **width**
+that adapts, and those are separate facts: the center is where it is, the width is how much of the
 label beneath it is covered. Driving offset and width together conflates them into a rectangle
 redrawn at successive positions -- correct, and inert.
 
-So the centre is animated on one curve and the width on another, over a single duration, starting
+So the center is animated on one curve and the width on another, over a single duration, starting
 and landing together; left and width are derived from that pair each frame and neither is animated
-directly. The centre's curve leaves decisively and settles, because the movement is the gesture.
+directly. The center's curve leaves decisively and settles, because the movement is the gesture.
 The width's is the flatter of the two -- a resize that raced the movement would look like the bar
 snapping to its new size before arriving, and one that lagged would leave it the wrong length at
 rest for a frame.
 
-Measured across this page's own tabs, the centre crosses 27.5 to 104 while the width goes 55 to 62
+Measured across this page's own tabs, the center crosses 27.5 to 104 while the width goes 55 to 62
 and stays strictly between them: it grows or shrinks, and never overshoots. An earlier version
 drove the two edges instead, which stretched the bar past both widths mid-flight; that reads as a
 bar being thrown rather than one moving. Travel is also slower for its distance than a panel
@@ -727,7 +727,7 @@ out of the site. The gesture itself is in `motion.ts` rather than
 in the page, because every page that grows a tab strip wants the same one.
 
 Marks appear on the tabs and on the group bands, and the type on both rises to the size the band's
-own name is set in. The restraint this file asks for is about colour, and applying it to size and
+own name is set in. The restraint this file asks for is about color, and applying it to size and
 contrast as well had left the controls quieter than the rows they act on.
 
 **A control that shows a state offers the way out of it.** When a column heading takes the
@@ -763,7 +763,7 @@ fighting itself.
 
 **A control is a surface, not a word.** The page is the ground; anything pressable sits on paper
 with a hairline around it, the same pairing the derived cards and the run panel already use. The
-restraint this file asks for is about colour carrying meaning, not about removing the contrast that
+restraint this file asks for is about color carrying meaning, not about removing the contrast that
 tells a button from a label -- taken absolutely it left the controls indistinguishable from text.
 
 **A row in the library is a press to the page that reads the article.** It used to open into a
@@ -803,7 +803,7 @@ comparing nine renderings of one paragraph is reading the prose, not the marks. 
 site's own: remark, GFM, mdast to hast, hast to HTML. A smaller renderer here would be a second
 answer to what a paragraph looks like, and this is the copy nobody would check.
 
-Its output is inserted rather than escaped, and the licence for that is narrower than "the corpus
+Its output is inserted rather than escaped, and the license for that is narrower than "the corpus
 is trusted". Measured on this chain: `<script>`, an `onerror` attribute and an `onclick` one are
 all dropped, because `mdast-util-to-hast` ignores HTML nodes unless asked not to. What does come
 through is a `javascript:` URL written as an ordinary markdown link, so links are checked against
@@ -811,7 +811,7 @@ a scheme list and lose their `href` when they fail it. One hole, closed where it
 a claim about what the corpus contains.
 
 **A language is named the way it names itself.** `ko-KR` tells a writer nothing they were asking;
-한국어 tells them immediately. The names are `canmi/locales`, shared with the site's language
+한국어 tells them immediately. The names are `@canmi/me/locales`, shared with the site's language
 picker, which is what moved them out of the site: one table keyed by the tag the corpus stores,
 read there through the short code its URLs use. Only the pair that needs telling apart carries a
 qualifier -- there is one English and two Chinese, each written in its own script.
@@ -871,9 +871,9 @@ them before showing the next window. `localStorage` holds page state, not coordi
 depends on monitors and their scale factors. The configured window begins hidden so restoration
 does not flash the default rectangle before moving to the saved one.
 
-Theme behaviour is shared separately from its colour values. `@canmi/kit/tokens` remains the palette;
+Theme behavior is shared separately from its color values. `@canmi/kit/tokens` remains the palette;
 `@canmi/kit/theme` owns the system dark-mode query and the site's pre-paint bootstrap. The desktop shell
-follows that system query live, while the public site can still honour its explicit `theme` cookie.
+follows that system query live, while the public site can still honor its explicit `theme` cookie.
 
 The WebView is one application shell with a persistent left sidebar. Its top-level destinations are
 Overview, Articles, Segments, Media, Derived, Automations and Activity: content and resources are
@@ -886,13 +886,8 @@ information architecture wider.
 
 The CMS interface is `en-US` only. It is an authoring and operations tool for the local workspace,
 not a reader-facing surface, so it does not carry a locale selector, message catalog or translated
-UI copy. Internationalisation belongs to interfaces the site's readers use; the CMS manages that
-content without localising itself.
-
-`dev-cms` enables the MCP bridge as an optional Cargo feature and exposes Tauri's JavaScript global
-only through its runtime development config. The bridge is additionally gated by Rust debug
-assertions and binds to loopback, so an agent can inspect and evaluate the native WebView without
-putting a debugging server in a release client or on the local network.
+UI copy. Internationalization belongs to interfaces the site's readers use; the CMS manages that
+content without localizing itself.
 
 The two package managers disagree about strictness, and the layout has to respect that.
 

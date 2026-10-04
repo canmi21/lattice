@@ -472,7 +472,7 @@
 	/* Captions, in the page's own voice: `font-family: inherit` picks a Latin or CJK glyph the way
 	   the prose around it would. The rest is the player's palette, not the page's, because a
 	   caption is read against a video frame this site does not choose -- see
-	   `lib/pkgs/kit/tokens/src/player.css`. `--cue-size` is measured rather than declared, since a
+	   `@canmi/kit/tokens/player.css`. `--cue-size` is measured rather than declared, since a
 	   caption is read at whatever size the picture happens to be; the controls set it in
 	   `placeCaptions`. */
 	.video-surface::cue {

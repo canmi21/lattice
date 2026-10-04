@@ -217,7 +217,7 @@
 
 <!-- `cargo-widget` carries no rule here and is not dead: it is the hook `palette.css` hangs the
      twenty-five crate colours and the four kind colours off, and that file is a component-local
-     mirror this layer does not own. See spec/architecture/css/authoring.md, "Colour is never
+     mirror this layer does not own. See spec/architecture/css/authoring.md, "Color is never
      retyped", and spec/styling/controls.md. -->
 <div class="cargo-widget my-[1.8em]">
 	<div class="min-h-[3.75rem]">

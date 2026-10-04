@@ -4,8 +4,8 @@ version = 1
 name = "site"
 placements = ["workers"]
 
-# The Worker answers its API under `/api/`, beside its pages. See platform's
-# spec/architecture/services.md, "The site's API runs in the site's Worker".
+# The Worker answers its API under `/api/`, beside its pages. See
+# spec/architecture/site-api.md, "The site's API runs in the site's Worker".
 [api]
 public = true
 prefix = "/api"

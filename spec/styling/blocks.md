@@ -38,31 +38,31 @@ or icon transition.
 
 Shiki's bundle holds 65 themes and two of the One family: `one-dark-pro` and `one-light`. There is
 no `one-light-pro`, and the pair is mismatched because of it. One Dark Pro is the elaborated One
-Dark -- it colours 250 scopes One Light leaves alone, bare identifiers among them -- so a light
+Dark -- it colors 250 scopes One Light leaves alone, bare identifiers among them -- so a light
 page read beside a dark one looked bare, and the difference was visible in ordinary prose: the
 component name inside a closing JSX tag is coloured in dark and was not in light.
 
 So the light half is derived rather than picked.
 [one-light-pro.ts](../../libs/compile/src/one-light-pro.ts) keeps every rule One
-Dark Pro writes and swaps only the colour, through a table pairing the two
+Dark Pro writes and swaps only the color, through a table pairing the two
 palettes. The pairing was voted from the selectors both themes already define, so it is One Light's
-own answer wherever One Light has one; four colours had no shared scope and were settled against
-what One Light does with the same scope family. A colour with no counterpart throws rather than
-passing through, because a dark colour surviving onto a light page is the kind of wrong that
+own answer wherever One Light has one; four colors had no shared scope and were settled against
+what One Light does with the same scope family. A color with no counterpart throws rather than
+passing through, because a dark color surviving onto a light page is the kind of wrong that
 reaches a reader before it reaches a test. Measured on the case that started it, the derived theme
-colours the same 63% of tokens One Dark Pro does, against One Light's 54%, and spends no colour
+colors the same 63% of tokens One Dark Pro does, against One Light's 54%, and spends no color
 One Light does not.
 
 **The theme is not a palette the interface may read.** It is a third component-local mirror beside
 Cargo's and Mermaid's, exempted for the reason those are --
-[architecture/css/authoring.md](../architecture/css/authoring.md), "Colour is never retyped" --
+[architecture/css/authoring.md](../architecture/css/authoring.md), "Color is never retyped" --
 and the open question about where such a palette should live is
 [css.md](../todo/css.md), "Tokei draws from a palette of its own, and it is the third one".
 
-**A theme change is a recompilation of the corpus, not a deploy.** The colours are resolved while
+**A theme change is a recompilation of the corpus, not a deploy.** The colors are resolved while
 an article is compiled and stored in its published object, so nothing on a reader's machine can
 change them. What that costs and what deferring it would cost is measured in
-platform's `spec/architecture/delivery.md`, "Where the syntax colours are resolved".
+platform's `spec/architecture/delivery.md`, "Where the syntax colors are resolved".
 
 ### A scrolling code block fades at both edges instead of drawing a bar
 
@@ -97,8 +97,8 @@ panel. A collapsed panel is inert as well as visually clipped, so Shiki's focusa
 receive keyboard focus while hidden. The panel uses `motion` to spring between its measured current
 height and its content height, including when a reader reverses direction mid-animation. The title
 separator remains until a collapse settles, so the moving surfaces never expose a transient seam.
-Its border colour remains assigned while its zero-width collapsed edge is dormant; otherwise the
-header's colour transition reveals a frame of text-coloured border when that edge returns.
+Its border color remains assigned while its zero-width collapsed edge is dormant; otherwise the
+header's color transition reveals a frame of text-coloured border when that edge returns.
 Once expanded, the panel returns to natural height rather than retaining a stale measurement;
 reduced-motion readers receive the state change without animation.
 
@@ -136,7 +136,7 @@ the range, and a step off it goes the other way". An inset border or contrasting
 a diagram look heavier than the prose and is not used. The stage centres every result vertically
 within its reserved height; Mermaid already centres the SVG horizontally. A short horizontal flow
 therefore does not cling to the top of the fallback-height frame, and the loading and final
-compositions share the same centre. Horizontal overflow remains scrollable. A failed render leaves
+compositions share the same center. Horizontal overflow remains scrollable. A failed render leaves
 the authored source readable inside that surface. The reveal is opacity and blur and carries no
 movement: the loading surface already holds the space the diagram lands in, so a rise into it reads
 as the picture having been in the wrong place a moment before. It belongs to arriving rather than to
@@ -152,7 +152,7 @@ The boundary is implemented in
 Every other surface answers a theme change for free: the class moves on the root element, the tokens
 beneath it repaint, and whatever is drawn from them is already correct in the frame that follows.
 A Mermaid diagram is the one thing that is not, because Mermaid resolves the palette while it
-renders and writes the resulting colours into a `style` element inside the SVG. Those colours are a
+renders and writes the resulting colors into a `style` element inside the SVG. Those colors are a
 copy, and a copy does not repaint.
 
 Redrawing on the change was the first repair and it is not enough. Measured on an article holding
@@ -163,20 +163,20 @@ anywhere near it. A render is asynchronous and can therefore never land inside a
 window, which is the whole of why the `!important` sheet cannot help here.
 
 So both drawings are made while the loading surface is still up, and the toggle picks one. The
-subscription is `observeTheme` in lib/pkgs/kit/theme, whose callback is a
+subscription is `observeTheme` in @canmi/kit/theme, whose callback is a
 microtask: it runs before the next paint, so an assignment made there turns the diagram in the same
 frame as the page. The adapter serialises its renders because Mermaid's `initialize` is global and
 every diagram now configures twice, and the two palettes are named rather than switched by a `.dark`
 ancestor so the theme that is not on screen stays readable. The price is a second render per diagram
 on first load, behind a surface that was already reserving the space.
 
-Mermaid's theme engine accepts hex colours while the site palette is authored in OKLCH. It does not
+Mermaid's theme engine accepts hex colors while the site palette is authored in OKLCH. It does not
 justify changing the shared palette or scattering overrides across generated SVG selectors. A
 component-only [palette](../../libs/prose/src/blocks/mermaid/palette.css) therefore mirrors the
-interface colours in hex for this adapter alone, with every light and dark value kept together.
+interface colors in hex for this adapter alone, with every light and dark value kept together.
 Mermaid receives those values through its supported theme configuration; article-authored config
 cannot replace the site's security, type, or palette decisions. The duplication is accepted and
-local: changing a shared colour may require changing its Mermaid mirror, while every other consumer
+local: changing a shared color may require changing its Mermaid mirror, while every other consumer
 continues to have one OKLCH source.
 
 ### A dark SVG canvas uses one perceptual ramp across its hues
@@ -239,7 +239,7 @@ body asks.
 **The node hover is a CSS capability query, not the script one.** `(hover: hover)` is the same
 question the Support rail asks and the answer is the same answer, but the two are settled in
 different places because they are different kinds of thing: the rail changes what a press does and
-has to know before it renders, while this changes only a colour. A touch screen synthesises hover
+has to know before it renders, while this changes only a color. A touch screen synthesises hover
 from a tap and leaves it applied, so without the query the node under the finger stays dimmed
 behind the view that tap opened, and is still dimmed when it closes. In CSS that costs a media
 block and is right in the first frame the server sends.
@@ -247,14 +247,14 @@ block and is right in the first frame the server sends.
 ### The ground is pure black, and the picture brings its own
 
 The ground behind an enlarged picture is `#000` in both themes. It is the one surface on this site
-that does not answer to the palette, and its colour is written as a literal rather than taken from
+that does not answer to the palette, and its color is written as a literal rather than taken from
 a token for exactly that reason. The page's two grounds are a warm near-white and a warm near-black
 and neither of them is black; a picture read against either is being read against the site rather
 than on its own.
 
 What the picture keeps is its own ground, which is the page's and therefore the theme's. A diagram
 paints no background -- it is strokes and text over whatever is behind it -- so the enlarged view
-puts the page colour behind it as a plate: ink on light in the light theme, light on dark in the
+puts the page color behind it as a plate: ink on light in the light theme, light on dark in the
 dark one, whichever the reader was already looking at. The plate sits on the black and the black
 does not move. An opaque photograph covers the plate and never knows it is there.
 
@@ -367,20 +367,20 @@ that structural fallback rather than replacing it. The template connective langu
 English-only; author-provided labels remain in their source language, matching the code-like directive
 translation boundary.
 
-The rendered figure uses a centred Cartesian cross. Its intersection stays at the exact centre of the
+The rendered figure uses a centred Cartesian cross. Its intersection stays at the exact center of the
 outer frame. The four regions first take their intrinsic item sizes, then the largest region defines
 four equal-width and equal-height corner tracks. Content is not centred within those tracks. Every
 non-empty region anchors its first authored item by the card corner nearest the cross, using the same
 inline and block gap in all four directions; further items flow away from the cross. The nearest card
 in a sparse region therefore aligns with the nearest card in a denser region opposite it, while an
-empty region draws nothing and cannot pull another region towards the centre. The layout is tuned for
+empty region draws nothing and cannot pull another region towards the center. The layout is tuned for
 the common case of one to three items in a region; further independent items wrap outward instead of
 being merged or stretching an axis indefinitely. A small minimum keeps sparse figures legible, while
 maximum inline and block sizes preserve breathing room around dense ones.
 
 Both lines span the full item area. Only after that boundary does the positive end add its arrow and
 then its axis label; negative labels sit beyond the opposite boundary without an arrow. The result is
-four content corners with a short axis extension at the centre of each outer edge, rather than labels
+four content corners with a short axis extension at the center of each outer edge, rather than labels
 stealing length from the cross. The vertical line carries an arrow only at its top end and the
 horizontal line only at its right end, so the positive directions remain explicit without decorating
 all four endpoints. A region accepts zero or more independent items. Each item becomes its own

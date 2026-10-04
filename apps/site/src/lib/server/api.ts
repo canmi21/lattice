@@ -47,7 +47,7 @@ async function bindings(): Promise<Record<string, unknown>> {
  *
  * Two doors reach it. The site's pages ask under `/api/`, by the address `readAddress` reads; the
  * gateway asks as the public API host, for the public routes alone. See
- * platform's spec/architecture/services.md, "The site's API runs in the site's Worker".
+ * spec/architecture/site-api.md, "The site's API runs in the site's Worker".
  */
 export async function answer(event: RequestEvent): Promise<Response | undefined> {
 	const { url } = event;

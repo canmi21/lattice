@@ -141,7 +141,7 @@ pub fn plan(repo: &Path, articles: &Path) -> Result<Plan, Error> {
 
 	// A poster is a frame and could not say so before: a frame is a frame because its `source`
 	// names the clip it was cut from, and that is a rid. The same pass that grants the ids is the
-	// only one that can classify them. See platform's spec/architecture/resource.md, "The catalogue".
+	// only one that can classify them. See platform's spec/architecture/resource.md, "The catalog".
 	let mut frames = Vec::new();
 	let covers: Vec<(String, ResourceId)> = unnamed
 		.media

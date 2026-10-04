@@ -14,10 +14,10 @@ export type LanguageChoice = {
 /**
  * Each language named as its own readers write it, and never translated.
  *
- * Derived from `canmi/locales`, which keys the same names by the tag the corpus stores. This view
- * is keyed by the short code the URL uses, so the two are one table read through `PUBLIC_LANGUAGE`
- * rather than two lists to keep in step -- the CMS became the second consumer and that is what
- * moved them.
+ * Derived from `@canmi/me/locales`, which keys the same names by the tag the corpus stores. This
+ * view is keyed by the short code the URL uses, so the two are one table read through
+ * `PUBLIC_LANGUAGE` rather than two lists to keep in step -- the CMS became the second consumer and
+ * that is what moved them.
  */
 export const LANGUAGE_ENDONYMS = Object.fromEntries(
 	Object.entries(PUBLIC_LANGUAGE).map(([code, tag]) => [code, endonym(tag)]),
@@ -135,7 +135,7 @@ function regionOf(sourceLanguage: string): string | undefined {
 /**
  * A language's own name, with the script folded into it.
  *
- * `canmi/locales` spells the two Chinese views `中文 (简体)` and `中文 (繁體)`. That is the right
+ * `@canmi/me/locales` spells the two Chinese views `中文 (简体)` and `中文 (繁體)`. That is the right
  * shape for a menu row and the wrong one for a control that already ends in a bracketed region --
  * `中文 (简体) (CN)` reads as two afterthoughts on one label. Chinese is the only language here
  * whose name splits by script, which `displayTag` below relies on as well, so the fold is applied

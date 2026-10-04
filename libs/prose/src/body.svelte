@@ -210,7 +210,7 @@
 	 * `iframe`, and a media element's own fetches are not covered by it. `preload="metadata"` is
 	 * the whole of what a clip's loading can be told.
 	 */
-	/** Each block's anchor, by its kind and place. See platform's spec/architecture/anchors.md. */
+	/** Each block's anchor, by its kind and place. See spec/architecture/anchors.md. */
 	const anchors = $derived(blockAnchors(blocks));
 
 	const lead = $derived.by(() => {
@@ -260,7 +260,7 @@
 					<!-- Resolved here rather than carried by the block: the ladder and the placeholder are
 			     the record's, and the record is a fact about the corpus at the moment somebody
 			     asks. `pictured` refuses a rid that resolved to nothing, which is the one thing a
-			     picture does that a card's mark does not -- see platform/libs/sdk/artifacts. -->
+			     picture does that a card's mark does not -- see @monoflake/sdk/artifacts. -->
 					{@const picture = pictured(
 						block.resources.picture,
 						resources[block.resources.picture],

@@ -32,7 +32,7 @@
 	// counter's own minute. See platform's spec/architecture/quota.md.
 	"services": [{ "binding": "QUOTA", "service": "quota", "entrypoint": "Internal" }],
 
-	// `vite dev` on 26511 is the development server, and is what platform/libs/sdk records. This port
+	// `vite dev` on 26511 is the development server, and is what @monoflake/sdk records. This port
 	// is for `wrangler dev`, which exercises the built worker instead.
 	"dev": {
 		"port": 26514,

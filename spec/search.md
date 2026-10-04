@@ -54,7 +54,7 @@ separate setting, not something `queryLanguages` switches on. The earlier argume
 index rested on a knob that was never being turned.
 
 So: one index, no language settings, and the only setting that earns its place is
-`searchableAttributes` -- the one thing measured to change behaviour.
+`searchableAttributes` -- the one thing measured to change behavior.
 
 ### Which deletes the mapping table before it was written
 
@@ -209,7 +209,7 @@ the same edge, named the same way -- beside the IndexNow key and for the same re
 ([analytics.md](analytics.md)). What restricts them is Algolia's own key scoping and rate
 limiting, not obscurity. They are identities, not addresses; the host they
 resolve to is assembled from the application id at the point of use, against a base in
-`platform/libs/sdk`.
+`@monoflake/sdk`.
 
 The cost of keeping the push local is that a deploy does not update the index -- someone has to
 run the command. `indexnow` already behaves this way, so it is consistent rather than a new

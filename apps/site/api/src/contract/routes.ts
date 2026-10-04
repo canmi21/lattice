@@ -22,7 +22,7 @@ export type Route = (typeof ROUTES)[number];
 
 /**
  * The routes the public API host serves as the `site` scope, under their names. The rest are the
- * site's own and reached only from its pages. See platform's spec/architecture/services.md, "The
+ * site's own and reached only from its pages. See spec/architecture/site-api.md, "The
  * site's API runs in the site's Worker".
  */
 export const PUBLIC_ROUTES: ReadonlySet<string> = new Set<Route>(['asset', 'media']);
@@ -32,7 +32,7 @@ export const PUBLIC_ROUTES: ReadonlySet<string> = new Set<Route>(['asset', 'medi
  * named for the query parameter its handler reads -- `{name*}` for one that may hold a slash -- and
  * whatever else it takes in the query. In development a page asks at the shape itself; in
  * production at the route's contract address followed by the placeholders' values. See the
- * workspace's spec/addresses.md, and platform's spec/architecture/services.md, "The pages ask by
+ * workspace's spec/addresses.md, and spec/architecture/site-api.md, "The pages ask by
  * contract".
  */
 export const SHAPES: Readonly<Record<Route, string>> = {

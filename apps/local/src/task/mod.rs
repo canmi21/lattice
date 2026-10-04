@@ -2,7 +2,7 @@
 //!
 //! Every operation that takes more than an instant is described here and nowhere else: data,
 //! not execution, so the catalogue can be complete before a runner exists. See spec/tasks.md,
-//! "The catalogue is data, and it is complete before the runner" for why, and for what is
+//! "The catalog is data, and it is complete before the runner" for why, and for what is
 //! deliberately absent from it.
 
 pub mod claim;

@@ -165,7 +165,7 @@ the second line.
 These four are not: the owner already wrote the long forms in Chinese, and a short form is the
 same sentence for a narrower box. Pairing an English short with a Chinese long would swap language
 at the breakpoint, which is the one thing the pair must not do. The `mw` view renders no notice at
-all -- the component takes every code but that one -- so these strings are the catalogue staying
+all -- the component takes every code but that one -- so these strings are the catalog staying
 whole rather than copy anybody reads.
 
 **Nothing sets `text-wrap: pretty` on copy tuned this way.** Chrome ignores the value on these
@@ -221,12 +221,12 @@ the least. It is hidden below `sm` rather than removed, because the room exists 
 number nobody asked to hide is still worth showing where it fits.
 
 **The summary label gets a short reading, on the mechanism the notice and the pitch already use.**
-`article.summary.short` exists in all nine catalogues and the button renders both with CSS
+`article.summary.short` exists in all nine catalogs and the button renders both with CSS
 choosing. Eight of them repeat their own word, because `Summary`, `总结`, `要約` and `Résumé` have
 nothing shorter to say. German does: `Zusammenfassung` is fifteen characters and the longest label
 in the row by half, and `Resümee` is the same word for the same thing at seven. Keeping this as a
 message rather than a condition in the component means the next language that finds a shorter word
-changes a catalogue, not a component.
+changes a catalog, not a component.
 
 **The switcher takes the article's right frame wherever the rail is absent.** The question is not
 how wide the window is but whether the table of contents is on screen, and those are different

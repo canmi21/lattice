@@ -207,7 +207,7 @@ async function setLike(liked: boolean): Promise<LikeAnswer> {
  * The one place an engagement answer is opened.
  *
  * `unwrap` decides whether the call worked; every caller below checks only the shape of what it
- * asked for. See lib/pkgs/response, `ApiResponse`.
+ * asked for. See @canmi/response, `ApiResponse`.
  */
 export async function jsonResponse<T>(response: Response): Promise<T> {
 	if (!response.ok) throw new Error(`engagement request failed with ${response.status}`);
@@ -220,7 +220,7 @@ export async function jsonResponse<T>(response: Response): Promise<T> {
  * Two steps and not one: the envelope says whether the call worked, and the schema says whether
  * what came back is what this call asked for. Each used to be a hand-written `typeof` beside every
  * fetch, which is the same sentence written six times and only as current as whoever last edited
- * the route. See platform/libs/sdk/artifacts/engagement.ts.
+ * the route. See @monoflake/sdk/artifacts/engagement.ts.
  */
 async function answered<S extends Parameters<typeof unwrapAs>[0]>(
 	schema: S,

@@ -44,7 +44,7 @@ so the root is the site's and the author is not standing on it.
 `@canmi/social/structured` holds the identifiers, the person, and `graph()` and `ldJson()`, which
 every page writes its block with.
 
-## The author is derived from `canmi/identity`, whole
+## The author is derived from `@canmi/me/identity`, whole
 
 The `Person` node is built from the identity record and nothing else, so a new account is one line
 there and every page says it next render:

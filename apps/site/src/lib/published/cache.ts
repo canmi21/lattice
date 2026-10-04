@@ -24,7 +24,7 @@ type Held = { at: number; body: string };
  * and this side holding a copy longer than the shared caches do would be claiming to know something
  * it was not told -- so they are read from where that decision lives and not restated. Milliseconds
  * because this side compares to `Date.now()`; `@monoflake/sdk/cache` deals in the seconds a
- * `Cache-Control` is written in. See platform/libs/sdk/cache.
+ * `Cache-Control` is written in. See @monoflake/sdk/cache.
  */
 export const FRESH_MS = PUBLICATION_DELAY * 1_000;
 

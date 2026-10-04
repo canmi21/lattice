@@ -29,7 +29,7 @@ What was true in it, and stays, is the half that never needed the folder to hold
 **Source-level reuse is the point inside this repository.** A library under `libs/` is consumed by
 this repository's own applications without being built or published first, which is what
 "Libraries export source" below is arguing; publishing is something a library earns after it
-stabilises, not a precondition for a second consumer here. What it is not is an argument for
+stabilizes, not a precondition for a second consumer here. What it is not is an argument for
 keeping unrelated projects in one tree, and it never was.
 
 The word "workspace" in this file's title is the pnpm and Cargo one -- `pnpm-workspace.yaml` and
@@ -73,13 +73,13 @@ to this file is not one anybody would remember. Nothing in that directory is han
 whether `mise run fonts` produced it or it arrived in a prebuilt web package, so the glob is the
 honest shape and a list would be a maintenance obligation bought for nothing.
 
-**Every other file stays counted.** `lib/pkgs/kit/theme/src/palettes/`, `apps/site/src/styles/` and the
+**Every other file stays counted.** `apps/site/src/styles/`, `libs/prose/src/prose.css` and the
 rest are decisions somebody made and should weigh what they weigh. The mark is for output, not for
 files that are merely long; a file that is long and owed a split is marked `lines=deferred`
 instead, which the line check reports and passes.
 
-A generator writing code also opens it with `@generated` in its first five lines -- `urls`,
-`scopes` and `fonts` do -- which rustfmt and the comment check read, and a reader opening the file
+A generator writing code also opens it with `@generated` in its first five lines -- `fonts`
+here, and the platform's `urls` and `scopes`, do -- which rustfmt and the comment check read, and a reader opening the file
 sees before editing it.
 
 A generated file over the hard limit that nobody marked fails the line check, which is how this
@@ -103,8 +103,7 @@ project at the root with the rest nested inside it. That was abandoned: this pro
 cloned into the workspace's own `repos/`, a sibling of the others, and `repos/` and the entry
 point both belong one directory up.
 
-The layout is moving to three layers and the library under them, each laid out as the repository
-it becomes; see [layers.md](layers.md).
+The repositories the system is split into, and which way each leans, are [layers.md](layers.md).
 
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
 subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
@@ -112,7 +111,7 @@ subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
 
 ## One name, one thing
 
-A directory under `libs/` is a namespace, not a language choice. `platform/libs/sdk/imgsrc` is imgsrc
+A directory under `libs/` is a namespace, not a language choice. `libs/collection` is the collection
 -- whether that is a Cargo crate, a TypeScript package, or a Rust core with a TypeScript
 wrapper around it is an implementation detail living inside.
 
@@ -194,36 +193,38 @@ Nothing was extracted to do it, because there was nothing left to extract. The l
 was the filing that hid it. The counterpart is the rule above: had it _not_ already been shared,
 moving it first would have been the guess this threshold exists to prevent.
 
-Feature directories compose those primitives and keep their own state, copy and specialised
+Feature directories compose those primitives and keep their own state, copy and specialized
 styling. A locale picker, for example, imports the shared menu surface but owns language order,
 selection and navigation itself. A primitive is added for a real repeated interaction, not to
-predict a future component catalogue; unused Button or Input wrappers are not architecture.
+predict a future component catalog; unused Button or Input wrappers are not architecture.
 
 Use a primitive where the interaction is conventional and accessibility-heavy, such as a
-menu or popover. Do not force data visualisation through it: Cargo and Tokei deliberately keep
-one specialised tooltip for hundreds of SVG regions rather than instantiating a general
-component per region. Headless is a boundary for shared behaviour, not a requirement that
+menu or popover. Do not force data visualization through it: Cargo and Tokei deliberately keep
+one specialized tooltip for hundreds of SVG regions rather than instantiating a general
+component per region. Headless is a boundary for shared behavior, not a requirement that
 every interactive pixel come from the same package.
 
 The visual language stays independent of that boundary. Interface chrome is neutral paper,
-a quiet one-pixel border, compact type and a small shadow only on floating surfaces; colour is
-reserved for focus, state and data. A categorical chart may be colourful, but its controls,
+a quiet one-pixel border, compact type and a small shadow only on floating surfaces; color is
+reserved for focus, state and data. A categorical chart may be colorful, but its controls,
 tooltips and surrounding statistics use the same surfaces as the rest of the site.
 
 ## A runtime's globals decide which program checks a file
 
-Type checking runs three times, over three programs: [tsconfig.json](../../tsconfig.json) for the
-browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the Workers and the code only they run -- `platform/libs/sdk/store`, the site's API in `apps/site/api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
-the node programs under an app's `scripts/`.
+Type checking runs three times here, over three programs: [tsconfig.json](../../tsconfig.json) for
+the browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
+for the site's API in `apps/site/api`, a Worker, and [tsconfig.scripts.json](../../tsconfig.scripts.json)
+for the node programs under an app's `scripts/`. The platform keeps the same three, its workers
+program holding its five Workers and `libs/sdk/store`; infra needs two, having no Worker. The rule
+below is all three repositories'.
 
 The split is forced rather than chosen. `@cloudflare/workers-types` declares its own
 `ReadableStream`, `Response` and `Cache`, and the DOM library declares those names too. Nothing
 tells TypeScript they describe the same things, so with both in scope every worker value crossing
-a shared boundary is a type error. Two workarounds had grown from that one cause and neither
-looked related to the other: `as unknown as ReadableStream` across `platform/libs/sdk/store`'s public surface,
-and a hand-written structural declaration of `caches.default` in `apps/cdn` because importing the
-real one would have made every Hono handler disagree about `Response`. Both are gone; nothing
+a shared boundary is a type error. Two workarounds had grown from that one cause, both in what is now
+the platform, and neither looked related to the other: `as unknown as ReadableStream` across the
+store's public surface, and a hand-written structural declaration of `caches.default` in the CDN
+because importing the real one would have made every Hono handler disagree about `Response`. Both are gone; nothing
 casts across that boundary now.
 
 **A file belongs to the program whose globals it actually runs against**, which is not always the
@@ -241,7 +242,7 @@ A worker's tests are checked _with the worker_, because they exercise worker cod
 -- putting them elsewhere pulls the whole worker into a program that has the browser's globals,
 which is the thing being avoided.
 
-What the separation exposed is the argument for it. `apps/cdn` polyfills `ImageData` because
+What the separation exposed is the argument for it. The platform's `apps/cdn` polyfills `ImageData` because
 workerd has none, and the polyfill needed a `@ts-expect-error` to install itself -- it was being
 checked against a browser's `ImageData`, which it is not. The type now lives in
 `apps/cdn/worker-runtime.d.ts` and describes what the polyfill supplies, so the declaration and
@@ -250,8 +251,9 @@ the implementation are one claim instead of two that happened to agree.
 ## Grouping threshold
 
 `apps/` is flat. Introduce a grouping directory only once one category exceeds four members,
-and let the growth force it rather than predicting it. Four apps do not need a taxonomy;
-`api` and `cdn` announce themselves as infrastructure without a parent directory saying so.
+and let the growth force it rather than predicting it. Four apps, as here, do not need a taxonomy.
+The platform's `apps/` holds fifteen and is flat too; whether it groups them is open in its own
+spec.
 
 ## Extraction threshold
 
@@ -267,7 +269,7 @@ a store that also knew how to read the local tree, so the API had no local devel
 copy was not a duplicated function, it was a capability one side silently lacked.
 
 Extraction is also the moment to write the tests that only make sense for shared code. A
-private helper is covered by its one caller; a library is not, because the behaviour each
+private helper is covered by its one caller; a library is not, because the behavior each
 consumer depends on is no longer visible from any single one of them.
 
 ## `app.html` carries no comments
@@ -282,7 +284,7 @@ Verified rather than assumed. A comment removed from it was found intact in the 
 bundle, `.svelte-kit/output/server/chunks/internal.js`, with its indentation and newlines
 preserved -- inside the template string, not beside it.
 
-So an explanation that wants to be near the shell goes where the behaviour it explains lives: the
+So an explanation that wants to be near the shell goes where the behavior it explains lives: the
 component whose head emits the tag, the library the value comes from, or this file. What cannot
 happen is the explanation shipping to readers who did not ask for it.
 
@@ -299,23 +301,24 @@ Path-shaped strings in prose are ignored on purpose. These documents use invente
 examples -- `apps/r2`, `user-profile.ts`, `libs/canvas` as a name that was rejected -- and a
 check that flagged those would be wrong far more often than right.
 
-The convention is what makes the distinction mechanical rather than a judgement the checker has
+The convention is what makes the distinction mechanical rather than a judgment the checker has
 to make: an illustration stays in inline code, a real reference is a markdown link. So the
 check reads links and leaves backticks alone, and neither half has to guess.
 
 ### Every URL is declared once
 
 The address packages are the only place a URL, hostname, or dev port may be written down:
-`canmi` for the author's own and the world's, `@monoflake/urls` for infra's and `@monoflake/sdk`
-for the platform's, each declaring what its owner owns -- see [layers.md](layers.md), "Addresses
+`@canmi/me/urls` (crate `canmi`) for the author's own and the world's, `@monoflake/urls` for infra's
+and `@monoflake/sdk` for the platform's, each declaring what its owner owns -- see [layers.md](layers.md), "Addresses
 are split by who owns the name". Everything else imports from them, and above infra from the sdk,
 which composes the three into one map. This covers third-party endpoints too, not just our own
 hosts -- a CDN we forward images through is as much a URL as a domain we own.
 
 The composed map is grouped by role:
 
-- `apps`: deployable things in this repo, with development and production entries.
-- `internal`: domains the repo owner controls, but that are not apps in this repo.
+- `apps`: every deployable app of the system, the site's and the platform's, with development and
+  production entries.
+- `internal`: domains the owner controls that are not apps.
 - `external`: third-party endpoints and hostnames.
 
 **The test: who resolves this URL?**
@@ -365,18 +368,17 @@ library long after that host stopped being part of the URL map, invisible becaus
 referenced it by name.
 
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
-library, so `mise run urls` renders the composed map into
-platform's `libs/sdk/src/lib.rs`, the `monoflake` crate; the author's
-own is the lib repository's `canmi` crate, rendered there the same way, which infra reads since it
-may not read the platform's. Each is committed beside its map, like the records under `data/build/`, so a checkout compiles without Node having run
-first. A mirror is never edited by hand: each package's
-platform's `libs/sdk/src/rust.test.ts` fails `verify` the moment it disagrees with its
-map, so the one-edit measure survives the language boundary. The
+library, so each owner renders its own: the platform's `mise run urls` writes its `libs/sdk/src/lib.rs`,
+the `monoflake` crate, and the lib repository's writes the `canmi` crate, which infra reads since
+it may not read the platform's; `local` here reads both from crates.io. Each is committed beside
+its map, so a checkout compiles without Node having run first. A mirror is never edited by hand:
+each package's `rust.test.ts` fails its `verify` the moment it disagrees with its map, so the
+one-edit measure survives the language boundary. The
 alternative, exempting Rust from the rule, would have left half the repo carrying literals
 that the check answers for everywhere else.
 
 Colors follow the same shape at a smaller scale: OKLCH values are declared in
-`lib/pkgs/kit/tokens` and consumed by name. The rule covers the design system that the site's own UI
+`@canmi/kit/tokens` and consumed by name. The rule covers the design system that the site's own UI
 and theme are built from; a palette mirrored from an external convention keeps whatever
 format that convention ships.
 
@@ -416,8 +418,8 @@ Resolving instead at request time, out of the article index, was the cheaper cha
 rejected on what it cannot reach: the feed and `/llms.txt` are strings baked at compile time, so
 a card there would have been a bare path where every other link is a name.
 
-`robots.txt` follows the same shared-base shape, and lives in `platform/libs/sdk/robots` rather than in
-`platform/libs/sdk`. It exports the minimal common definition plus a helper that appends site-specific
-rules -- disallowed paths, sitemap entries -- so each site owns its additions while a change to
-the shared policy reaches all of them at once. It sits in its own library because generating a
-file is not the same job as mapping URLs, even though it consumes them.
+`robots.txt` follows the same shared-base shape, from `@monoflake/sdk/robots`: a minimal common
+definition plus a helper that appends site-specific rules -- disallowed paths, sitemap entries --
+so each site owns its additions while a change to the shared policy reaches all of them at once.
+It is a subpath of its own beside the addresses, because generating a file is not the same job as
+mapping URLs, even though it consumes them. See platform's `spec/architecture/robots.md`.

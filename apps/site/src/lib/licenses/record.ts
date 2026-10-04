@@ -176,7 +176,7 @@ export function routeTable(record: LicenseRecord): Map<string, string> {
 
 /**
  * The distinct licences an SPDX expression names, in the order it names them, so a package under
- * `MIT OR Apache-2.0` is filed under both. See spec/architecture/data.md, "A dependency's licence
+ * `MIT OR Apache-2.0` is filed under both. See spec/architecture/data.md, "A dependency's license
  * is an asset like any other", for why it flattens this way and the tree's test cases for how an
  * expression can go wrong (`WITH`, `FSL-1.1-MIT`/`MIT-0`, `-or-later`, nested parentheses).
  * `/` is Cargo's deprecated spelling of `OR` and is treated as one.

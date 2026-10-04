@@ -11,7 +11,7 @@ import type { Quota } from '@monoflake/sdk/limits';
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
  * every route shares. `unwrap` is the same one the site uses; a route that stops wrapping fails
- * here first. See lib/pkgs/response, `ApiResponse`.
+ * here first. See @canmi/response, `ApiResponse`.
  */
 async function payload<T = unknown>(response: Response): Promise<T> {
 	return unwrap<T>(await response.json(), response.url || 'test');
@@ -60,7 +60,7 @@ const ROOT = {
 };
 
 // `read` takes whichever store is bound, so a fetcher answering with the root is the whole of
-// what these routes need from one. See platform/libs/sdk/store.
+// what these routes need from one. See @monoflake/sdk/store.
 const store = {
 	fetch: async () => new Response(JSON.stringify(ROOT)),
 } as unknown as Bindings['ASSETS'];

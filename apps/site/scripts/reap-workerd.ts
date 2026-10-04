@@ -20,7 +20,7 @@ const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
  * Every port a dev server answers on, counting the inspector wrangler takes as port + 1.
  *
  * Taking + 1 for all four is right rather than lucky: the site's neighbor is the API's own port, so
- * the set is exactly the four pinned ports and the three inspectors. See platform/libs/sdk.
+ * the set is exactly the four pinned ports and the three inspectors. See @monoflake/sdk.
  */
 const PINNED = Object.values(DEVELOPMENT_PORTS).flatMap((port) => [port, port + 1]);
 

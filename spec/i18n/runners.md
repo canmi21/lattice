@@ -21,7 +21,7 @@ Gemini, and Cursor read the path named in the prompt. Grok takes the image as AC
 blocks on `--prompt-json`, with `data` and `mimeType` at the top of the block -- the help
 text names the flag but not that shape, and the Anthropic-style
 `{"source":{"type":"base64",...}}` nesting is rejected. Vision uses `grok-4.6`, the prose
-model: both tiers can see, measured, so this is the same quality judgement as the text
+model: both tiers can see, measured, so this is the same quality judgment as the text
 split, not a capability gate.
 
 `--model` continues to name the runner. For an intentional comparison rather than ordinary
@@ -142,7 +142,7 @@ can only identify itself inside the answer.
 
 ## Model names
 
-The families order their parts differently and none is normalised into another's shape. Dots
+The families order their parts differently and none is normalized into another's shape. Dots
 become hyphens, everything is lower case, and the provider is its own field rather than a
 prefix. An OpenAI runner that includes reasoning effort in the requested id keeps it there.
 

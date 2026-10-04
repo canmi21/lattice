@@ -45,7 +45,7 @@ than an exception to it: the source goes out, nothing comes back into the source
 **The description belongs to the drawing, not to an article carrying it.** It is keyed by the hash
 of the block -- the segment id, which is already what addresses that block everywhere else -- and
 kept in `data/record/diagram.json`, so one drawing used by two articles is described once and paid for
-once. The store is JSON where its neighbours are YAML. `media.yaml` and `tags.yaml` are files a
+once. The store is JSON where its neighbors are YAML. `media.yaml` and `tags.yaml` are files a
 person opens, edits a few entries in and saves back, and YAML is for them; this one is written by
 a command and read by a build, and the only field a person ever reaches into it for is `review`.
 
@@ -75,7 +75,7 @@ than serve a reader directly.
 
 **Not the open-weight text model.** `local diagram` asks for the picture and not the markup, which
 is a constraint the model holds against what it is literally reading, and the default measurably
-does not hold it: asked for the drawing, it reported fill colours, opacities and the size of the
+does not hold it: asked for the drawing, it reported fill colors, opacities and the size of the
 legend squares. That is the same failure, and the same remedy, as `local summary`.
 
 One detail of the reply is worth recording because it cost two failed runs. The request fences the
@@ -106,7 +106,7 @@ stated both before and after it.
 
 Three properties, and all three are needed:
 
-- **Random per request**, because the defence is that the author cannot have written it. A
+- **Random per request**, because the defense is that the author cannot have written it. A
   fixed sentinel could appear in an article discussing this system.
 - **Identical top and bottom**, so the region is unambiguous.
 - **Instructions on both sides**, so the last thing read is not the untrusted text.
@@ -122,7 +122,7 @@ lead. For a long time only the material was fenced and the context was simply tw
 below the instruction not to translate it -- which put three passages of article prose in one
 request with exactly one of them marked. The unmarked ones read as the _cleaner_ text, because
 the marked one is full of `⟦tk:N⟧` placeholders where its inline code used to be. Answers came
-back translating a neighbour, and once a neighbour is the same shape and length as the block,
+back translating a neighbor, and once a neighbor is the same shape and length as the block,
 no check of the output alone can tell the two apart.
 
 So the fault is fixed where it is created rather than detected afterwards. The context gets a
@@ -130,7 +130,7 @@ fence of its own, derived from the material's -- `{fence}CONTEXT`, so an echo of
 still trips the single boundary-leak check -- and each side is named, `PREVIOUS BLOCK` and
 `NEXT BLOCK`, so there is no reading in which the two run together.
 
-**The neighbours are folded, not reproduced.** A neighbour is there for continuity and is never
+**The neighbors are folded, not reproduced.** A neighbor is there for continuity and is never
 the answer, so it arrives shortened: code, a directive and a rule collapse to a phrase saying
 what sits there, and prose keeps its words but loses its inline code to a placeholder that
 restores to nothing. That asymmetry is deliberate and load-bearing. The masked block is the
@@ -139,13 +139,13 @@ arrives carrying a marker that resolves to nothing, and is refused as evidence o
 from rather than as a guess about its length.
 
 **Metadata takes no context and gives none.** Title, subtitle and description are segments, and
-they sort ahead of the body, so the neighbour list built from every translatable segment made
+they sort ahead of the body, so the neighbor list built from every translatable segment made
 the article's own description the "previous paragraph" of its first body block -- a dense,
 self-contained summary offered to the model as the thing this paragraph follows on from. It
 came back translated in the paragraph's place, in one locale, and stayed there until a reader
 noticed. Frontmatter is not prose that leads anywhere.
 
-**The neighbour is the neighbour.** The list is built from every block rather than every
+**The neighbor is the neighbor.** The list is built from every block rather than every
 _translatable_ block, because filtering it first made a code fence or a figure invisible and
 promoted whatever prose lay beyond it to "the previous paragraph". Folding keeps that honest at
 no cost: the block is named, its bytes are not sent.
@@ -154,7 +154,7 @@ no cost: the block is named, its bytes are not sent.
 
 The initial request covers one segment in all eight locales. A repair request names only the
 locales still missing or rejected; an already stored locale is never paid for again merely
-because its neighbour failed. `local i18n --locale L` applies the same selection deliberately,
+because its neighbor failed. `local i18n --locale L` applies the same selection deliberately,
 and may be repeated. The answer is a marker line per requested locale followed by its text.
 
 JSON is the obvious choice and the wrong one. Translations are prose full of quotes, colons
@@ -173,11 +173,11 @@ discard or rebill a paid-for answer from earlier in the same command.
 
 ### A block that will not come back is asked for one locale at a time
 
-A segment can refuse every attempt while its neighbours pass, and the reason is not the
+A segment can refuse every attempt while its neighbors pass, and the reason is not the
 segment being hard. Asked for several locales at once, the model answers with the
 _neighbouring context paragraph_ instead of the fenced block -- a complete, fluent translation
 of the wrong text. Nothing about the reply is malformed, so only the code markers catch it:
-they belong to this block and not to its neighbour, and `intact` throws the whole reply away.
+they belong to this block and not to its neighbor, and `intact` throws the whole reply away.
 Every locale in that request dies together, which is what makes it look like the block is at
 fault rather than the request.
 
@@ -203,7 +203,7 @@ decides the answer rather than a threshold approximating it.
 **The author's notes must come back exactly as many as went out.** `:fn` is the author's and
 `:tn` is the translator's, so a translation neither gains a `:fn` nor loses one, whatever the
 target grammar does. Measured over 2744 stored translations the count never differed on a
-correct one, and it named every locale of the block whose answer was its previous neighbour's.
+correct one, and it named every locale of the block whose answer was its previous neighbor's.
 
 **No marker may survive restoration.** Every `⟦tk:N⟧` the block owns is put back before the
 check runs, so a bracket still standing came from the folded context described above.
@@ -216,7 +216,7 @@ them.
 A size band was tried first and kept, but only for what it is good at. A reply four times its
 source plus forty columns is answering something else -- a two-column `OR` came back with five
 hundred -- and that catches the case where the source is too short to carry any other signal.
-It cannot catch a neighbour of ordinary length: the block that produced this section was twice
+It cannot catch a neighbor of ordinary length: the block that produced this section was twice
 its source, and twice is what an ordinary German paragraph does. **A check with only an upper
 bound is half a check**, which is how a reply at 0.56 of its source walked through it. Measured
 over the stored corpus, the widest legitimate translation ran 2.4x its source; nine entries
@@ -225,7 +225,7 @@ exceeded 4x+40, and all nine were faults.
 ### Two views of one language are each other's control
 
 The remaining case carries no invariant at all: a block with no code and no author's note,
-answered with a neighbour of similar length. Nothing about that translation, read on its own,
+answered with a neighbor of similar length. Nothing about that translation, read on its own,
 is wrong.
 
 Read beside its sibling it is obvious. `zh-CN` and `zh-TW` are two views of one language
@@ -250,7 +250,7 @@ out, and the article has a missing body segment: not a paragraph a reader loses,
 locale view falling back to the source, for a horizontal line.
 
 So a rule is its own kind and is never translated, like a directive and for the same reason. It
-is recognised positively rather than left over, and any structural spelling added later has to
+is recognized positively rather than left over, and any structural spelling added later has to
 be named there too: the fall-through ending is what sent this one for translation, and a new one
 would go the same way in silence.
 

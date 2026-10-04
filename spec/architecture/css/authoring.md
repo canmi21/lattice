@@ -4,15 +4,15 @@ The constraints the three layers put on a component's own source: what a value m
 retyped as, what a comment may not contain, what a selector cannot express, and where a merge has
 to be done by hand. Which layer owns which declaration is [layers.md](layers.md).
 
-## Colour is never retyped
+## Color is never retyped
 
-A StyleX declaration names a colour by reading the custom property `lib/pkgs/kit/tokens` already declares
+A StyleX declaration names a color by reading the custom property `@canmi/kit/tokens` already declares
 -- `var(--color-text-soft)`, not the OKLCH value behind it. Measured: a StyleX style resolving a
 Tailwind `@theme` variable renders that variable's value, so the two systems read one table.
 
 This is the single cheapest guarantee available here and it is structural rather than tested.
-`lib/pkgs/kit/tokens` stays the one home for a colour, as
-[workspace.md](../workspace.md) requires; a migrated declaration therefore cannot change a colour,
+`@canmi/kit/tokens` stays the one home for a color, as
+[workspace.md](../workspace.md) requires; a migrated declaration therefore cannot change a color,
 because it is the same variable it was before. What a migration can get wrong is a number it
 retyped, which is geometry, and geometry is what the migration's diff polices.
 
@@ -108,7 +108,7 @@ A compiler that builds a class name by joining strings produces a name the scann
 and Tailwind generates nothing for it. The declaration is absent from the stylesheet and the
 markup carrying it is silently unstyled.
 
-`compile.ts` did this for the colour and family classes an article directive can ask for, and
+`compile.ts` did this for the color and family classes an article directive can ask for, and
 `text-blue`, `text-accent`, `font-mono` and `font-serif` were not in the built CSS at all.
 `text-text-strong` worked, because that exact string happened to be written as a literal
 elsewhere in the repository -- which is the failure mode's whole character: it looks fine until
@@ -123,7 +123,7 @@ that does nothing.
 The rule above says what a class name may be; this one says when one may be written at all. The
 compiler can class anything: [compile.ts](../../../libs/compile/src/compile.ts)
 puts `focus-link`, `spring-underline` and `article-link` on every prose link, and two frozen
-tables turn a `:t` token into a colour or a font class. So the discipline is written as a rule
+tables turn a `:t` token into a color or a font class. So the discipline is written as a rule
 rather than left as a habit -- **the compiler writes a class on an element where that element's
 styling belongs to a named recipe, and nowhere else.** Without it, question one of
 [layers.md](layers.md) is back to asking whether somebody felt like classing something, because

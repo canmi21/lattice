@@ -73,7 +73,7 @@ Three hosts serve the two counters: `cloud.umami.is`, which the loader is fetche
 `gateway.umami.is` and `api.openpanel.dev`, which the two clients report to. Neither reporting
 host is written in this repository's own code -- umami's is a constant inside the script it
 downloads and OpenPanel's is the default baked into `@openpanel/sdk` -- so both are recorded in
-platform/libs/sdk from having been read out of them, where every address this repository resolves is
+@monoflake/sdk from having been read out of them, where every address this repository resolves is
 declared.
 
 All three carry `dns-prefetch` rather than `preconnect`. A preconnect opens a socket and
@@ -89,7 +89,7 @@ see [hints.md](architecture/hints.md).
 **Self-hosting umami and OpenPanel was given up.** Running a vendor's image beside the platform
 meant adapting the platform to it -- a scope it could not version, a database it alone used -- for a
 count the two clouds already give. The site keeps reporting to both clouds with their official
-clients. Analytics worth owning will be built here, into the platform, as a service like the rest,
+clients. Analytics worth owning will be built in the platform's repository, as a service like the rest,
 rather than borrowed and adapted.
 
 ## A page is its path and query, never its hash

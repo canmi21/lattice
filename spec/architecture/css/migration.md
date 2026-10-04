@@ -12,14 +12,14 @@ per route, so the two behave differently and the difference is not configurable.
 
 Accepted rather than worked around. Atomic CSS deduplicates across the whole site, so the total is
 smaller than per-route sheets holding the same declarations repeatedly, and one stylesheet that
-every page shares is one cache entry. What it costs is that a style only the licence pages use is
+every page shares is one cache entry. What it costs is that a style only the license pages use is
 bytes an article reader also fetches.
 
 ## Migrating proves sameness, not correctness
 
 **A migrated component renders exactly what it rendered before.** What the migration changes is
 where a declaration is written, never what it says and never how its value is arrived at. A length
-derived through a cascade of custom properties keeps being derived that way; a colour keeps being
+derived through a cascade of custom properties keeps being derived that way; a color keeps being
 the same variable.
 
 **The test applies to a declaration, and stops applying to a member of a set.** A group of
@@ -29,7 +29,7 @@ resting frame, two of them are placement and one has its counterpart in a descen
 fourth -- an `opacity` that is visual and single-element and would otherwise move -- stays with
 them. Splitting it would leave half a mirror in another layer.
 
-The bound, so this does not become a licence to leave anything where it is: **the set has to be one
+The bound, so this does not become a license to leave anything where it is: **the set has to be one
 that something else already writes as a unit.** There, `renderCopyReveal(0)` writes all four inline,
 which is checkable. Declarations that merely feel related do not qualify.
 
@@ -70,7 +70,7 @@ eight computed properties each, plus geometry to half a pixel.
 
 **The whole migration moved one value, on three elements, by eight thousandths of a pixel.** The
 support section's three action controls read `border-radius: 9999px` before and `9999.01px` after.
-Nothing else on the site differs: not a colour, not a length, not a font, not a geometry, in any
+Nothing else on the site differs: not a color, not a length, not a font, not a geometry, in any
 theme, at any width, in any locale, at rest or hovered or focused or with a menu open.
 
 The cause is precision, not the migration. The declared value is `624.9375rem`, which is seven
@@ -93,7 +93,7 @@ one holding the layer order.
 ### Coverage is counted in components, not in URLs
 
 The corpus renders every block component somewhere, and the smallest set of addresses that reaches
-all of them is ten: four articles, the homepage and the four licence route shapes, plus one article
+all of them is ten: four articles, the homepage and the four license route shapes, plus one article
 that carries almost no blocks as a control on the article shell itself. `observation-to-lowering`
 alone carries the quadrant, the Mermaid fences, the author's notes, the spoilers, the in-corpus card
 and the blockquotes; `rust-cargo-cranelift-tuning` carries the images, the link card, the repository
@@ -102,7 +102,7 @@ card, the Cargo widget and Tokei; `friends-come-in-phases` is the only article w
 Two dimensions are not optional. **A translated view renders components the source view has none
 of** -- the translation notice, and a translator's note, which appears in no `.md` file because it
 lives in a sidecar. And the widths that matter are the ones [styling/rail.md](../../styling/rail.md)
-already identifies as behaviour boundaries rather than a round number picked here.
+already identifies as behavior boundaries rather than a round number picked here.
 
 ### A name that promises a translation is where the value changes
 
@@ -183,7 +183,7 @@ The list has since gone from seventy-three properties to ninety-eight, and the a
 kind of hole it had. `translate`, `rotate` and `scale` are separate properties from `transform` in
 modern CSS and were not covered by it -- the code block's chevron turn migrated unwatched for that
 reason, and was checked by hand afterwards rather than by the gate. `border-*-style` was compared
-on two edges while width and colour were compared on four, so a single longhand where a shorthand
+on two edges while width and color were compared on four, so a single longhand where a shorthand
 belonged would have passed. The spring underline is drawn as a background, and
 `background-size`, `-position` and `-repeat` were absent.
 
@@ -230,7 +230,7 @@ value is right. It can tell whether one went missing.
 are full of brackets.** `apps/site/src/routes/licenses/[license]/+page.svelte` returns empty and
 exits non-zero, which a script reads as "the file did not exist before" and skips. Four route files
 -- the densest Tailwind on the site among them -- were silently absent from the first run of all
-three checks, and the second run appeared to find five hover behaviours invented out of nothing.
+three checks, and the second run appeared to find five hover behaviors invented out of nothing.
 Both were the quoting. The literal form is `file:"<path>"`, and a check that walks a tree should
 count what it could not read and say the number rather than treat it as zero.
 

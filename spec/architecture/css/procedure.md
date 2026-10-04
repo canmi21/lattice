@@ -62,8 +62,8 @@ ranking them; the same file anticipates that case.
 
 ### The vocabulary is a key in `stylex.create`, and the class it emits is merged by hand
 
-Write a key whose declarations name a colour by reading the custom property `lib/pkgs/kit/tokens` already
-declares rather than retyping it -- [authoring.md](authoring.md), "Colour is never retyped" -- and
+Write a key whose declarations name a color by reading the custom property `@canmi/kit/tokens` already
+declares rather than retyping it -- [authoring.md](authoring.md), "Color is never retyped" -- and
 whose lengths are lengths rather than the arithmetic that produced one, because the compiler
 evaluates and rounds where CSS would not: [authoring.md](authoring.md), "A ratio that does not
 terminate cannot be written as a ratio". A condition key is a pseudo-class or an at-rule and
@@ -184,7 +184,7 @@ ramp value is marked, so it can be counted". Both hold a number that may only fa
 in the failure that the number is a debt and not a target. **A count they cannot take fails
 them.** A file, a block or a value the scan cannot read is named and the gate stops, because a
 scan that quietly measures less returns a smaller number and reports nothing about the gap --
-the defect [the workspace code.md](../../../../../spec/code.md), "A rule is maintainable only
+the defect the workspace's `spec/code.md`, "A rule is maintainable only
 when breaking it fails loudly", records `check-css-budget` having had.
 
 ## The enumeration is data, and this file is not where it lives

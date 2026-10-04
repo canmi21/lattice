@@ -46,7 +46,7 @@ const ANSWERED = {
 	'Cache-Control': `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`,
 } as const;
 
-/** The only standalone page there is; see platform/libs/sdk/artifacts, `PublishedPage`. */
+/** The only standalone page there is; see @monoflake/sdk/artifacts, `PublishedPage`. */
 const HOMEPAGE = 'homepage';
 
 /**

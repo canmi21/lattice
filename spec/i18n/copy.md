@@ -2,7 +2,7 @@
 
 Interface strings, tag labels and article summaries: short display-ready text that carries none
 of the segment machinery the rest of this directory describes. UI strings have a separate tool
-again; which localised view a reader is served is
+again; which localized view a reader is served is
 [locale/addressing.md](../locale/addressing.md).
 
 ## UI copy carries intent, not English syntax
@@ -28,7 +28,7 @@ Japanese uses `、` where English uses a word at all.
 
 So a message carries one slot for the whole list, and `Intl.ListFormat` supplies the
 connectives. `formatToParts` keeps the items separable from the words between them, which is
-what lets each item stay a link. The licence page names its registries this way: the copy says
+what lets each item stay a link. The license page names its registries this way: the copy says
 where the packages came from, the list says which registries those are, and a third registry
 appearing in the record would appear in the sentence without a message being touched.
 
@@ -137,7 +137,7 @@ beyond the text.
 
 `review` has teeth here. A summary somebody has read and vouched for is not regenerated, and
 `--force` does not override that: the flag means the model's last answer was wrong, not that a
-person's judgement is discarded.
+person's judgment is discarded.
 
 The homepage has no `lang` and so is not an article to this command. Its summary is written by
 hand in its frontmatter and is not translated -- nothing renders a translated one.

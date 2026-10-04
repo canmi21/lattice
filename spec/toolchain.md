@@ -1,7 +1,7 @@
 # Toolchain, as this repository uses it
 
 The rules that follow the author rather than the project -- shell, secrets, version
-control, tool versions, dependency policy, default stacks -- are the meta repository's.
+control, tool versions, dependency policy, default stacks -- are the workspace's.
 What is here is what this repository alone decides.
 
 One of those is worth naming here rather than leaving to be found, because it is reached for
@@ -34,19 +34,8 @@ from outside: another Worker's `fetch` passing through a route does not run that
 which is how the alias layer found `api.ffoni.com/site/*` answering it with nothing while the
 gateway held the path by a route. A scope of the API host is reached by binding.
 
-**The gateway declares its hosts in its `wrangler.jsonc`.** Attached in the dashboard,
-`api.ffoni.com` was gone after a deploy that followed its move from the old API Worker -- the DNS
-record went with it, and the first sign was the host not resolving. Declared, every deploy asserts
-them, and a custom domain left out of the list is detached by the deploy, its DNS record with it.
-The other Workers' domains are still the dashboard's, and move the same way if one goes.
-
-**A zone that is the gateway's alone is one wildcard route; an apex is a custom domain.**
-`monoflake.com`, `monoflake.net`, `ixc.one` and `ffoni.com` serve nothing but the gateway below
-their apex, so each is `*.{zone}/*` over a proxied `*` record, and a host the profiles add needs no
-change here or in the dashboard -- one the profiles do not know is refused by the gateway and its
-whitelist. A route matches no apex, so `ill.li` and `symlink.si`, which are their apexes, are
-custom domains. The wildcard record exists before the deploy that drops a custom domain on it,
-since the explicit record goes with the domain and the wildcard is what answers after.
+How the platform's gateway declares its hosts and zones is platform's
+`spec/architecture/gateway.md`, "The gateway declares its hosts in its `wrangler.jsonc`".
 
 The cost is real and accepted: there is no URL to open between uploading a version and
 promoting it, so a deploy is the first time the code meets production. What replaces that
@@ -66,8 +55,8 @@ Cloudflare builds from the connected repository, so a push is what ships. Nobody
 by hand as the normal path, and an agent runs one neither by hand nor on request -- pushing is
 the user's, and so is everything downstream of it.
 
-The `deploy-*` tasks stay as a fallback for the case where the platform's build is broken or a
-worker has to be created before its settings exist. Using one means production now holds
+`deploy-site` stays as a fallback for the case where Cloudflare's build is broken or the Worker
+has to be created before its settings exist. Using one means production now holds
 something no commit accounts for, which is worth doing knowingly and not by habit.
 
 Two things follow from CI holding the build. It compiles what is in git and derives nothing --
@@ -95,7 +84,7 @@ protected still holds, and more simply: `local` is the one process that writes `
 second copy of it collides on `LOCAL_PORT`, which is the mutex doing its job.
 
 A port both a TypeScript tool and a Rust binary need is declared in `mise.toml` under `[env]`,
-not in `platform/libs/sdk`. The single-source rule asks for one place to edit, not one particular
+not in `@monoflake/sdk`. The single-source rule asks for one place to edit, not one particular
 file, and a TypeScript library cannot be read by a Rust process -- putting a cross-language
 fact there would force the duplication the rule exists to prevent. URLs only the TypeScript
 side resolves still belong in [workspace.md](architecture/workspace.md)'s URL map.
@@ -113,10 +102,12 @@ only reach this machine over the network. The port is still the mutex above -- w
 that somebody else on the same network can also reach a dev API, which writes the local D1 and
 never the deployed one.
 
-**In development the API, the alias layer and the CDN answer under the site, at `/api`, `/alias`
-and `/cdn`.** The site's dev server proxies all three, stripping the prefix, so each worker still
-sees the paths it serves and knows nothing about the arrangement. Production has three domains and no proxy; only development
-collapses them, and only because there they are three processes on one machine.
+**In development the alias layer, its symlinks and the CDN answer under the site, at `/alias`,
+`/symlink` and `/cdn`**, and the API is the site Worker's own `/api`. The three are the platform's
+dev servers, which the base session starts from its checkout beside this one; the site's dev
+server proxies them, stripping the prefix, so each worker still sees the paths it serves and knows
+nothing about the arrangement. Production has a domain for each and no proxy; only development
+collapses them, and only because there they are processes on one machine.
 
 That is what makes a phone work, and a runtime fix would not have. Fonts, avatars and the
 OpenGraph card are rendered into the HTML by the worker before any script runs, so reading
@@ -124,7 +115,7 @@ OpenGraph card are rendered into the HTML by the worker before any script runs, 
 at the phone itself. A page served from this machine's address now asks that same address for
 everything.
 
-Two consequences worth stating. `platform/libs/sdk` returns paths rather than origins for those two in
+Two consequences worth stating. `@monoflake/sdk` returns paths rather than origins for those in
 development, so the Rust mirror does too -- the two languages still give one answer, which is what
 that mirror is for. And `og:image` is a relative URL in development, which is invalid to a crawler
 and reaches none; production is unaffected.
@@ -147,21 +138,6 @@ Two are spared. One whose parent is alive belongs to whoever started it, which i
 in the tmux session below. And one holding a pinned port is spared even with no parent, because
 `wrangler dev` has workerd bind that port itself -- a wrangler that died leaves a page somebody
 may still be reading, and closing it is not a build's business.
-
-### Reaching the LAN from a browser that cannot
-
-**`mise run reach [name]` answers on `http://localhost:26520` for `<name>.internal.ixc.one`**, host's
-panel when no name is given. macOS asks before a program reaches the local network, and a browser
-an agent drives, like node from mise, is refused; the system's own `ssh` and `curl` never are.
-So infra's `apps/host/scripts/reach.ts` has ssh carry the node's port 443 to a loopback
-port and speaks to that alone, sending every request as the name would arrive: TLS with the name
-as SNI and as `Host`, so Caddy routes it. Caddy's guard sees the node's own address, which is a
-LAN one; a tunnel to the node's loopback is refused by the same guard, which is why the far end
-is the LAN address.
-
-Plain HTTP on this side, because localhost is a secure context: the session cookie's `Secure` is
-kept and still sent. The port is `REACH_PORT` in `infra/libs/urls`, beside the pinned ones and outside
-their map, since what answers there is not an app.
 
 ## The base session
 
@@ -225,18 +201,17 @@ anything about the code. A dependency update crossing that major has broken the 
 pin, and the repair is to put the 6 back rather than to chase the error into `svelte-check`.
 
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
-Every other package that does -- `apps/cms`, `infra/apps/panel`, `apps/status`, `libs/prose`,
-`libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
+Every other package that does -- `apps/cms`, `apps/status`, `libs/prose`, `libs/social`, and infra's `apps/panel` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
 `outdated` listing 7 for each of them is this floor and not an upgrade waiting. `versions.toml`
 allows the pair, so the report says so rather than warning.
 
 ## verify runs what a change reaches
 
 **`mise run verify` checks the gates a change can affect, not the whole repository.** The
-repository holds a site, three Workers, a CMS and a growing set of Rust services, and a change to one
-of them used to compile, lint and test every other: an edit to a stylesheet built every crate, and
-geo's gazetteer was fetched and tested on a machine where nothing of geo had moved. The Rust target
-directory grew with each of those builds. So what a change touched decides what runs.
+repository holds a site and its API, a status page, an editor and `local`, and before the split it
+held the platform and infra too: a change to one of them used to compile, lint and test every
+other, and an edit to a stylesheet built every crate. The Rust target directory grew with each of
+those builds. So what a change touched decides what runs.
 
 What it touched is the working copy's own change -- what is about to be committed -- or, with
 `--since REV`, everything after that revision. `--all` runs every gate, and so does `mise run
@@ -244,13 +219,13 @@ audit`, which asks about the whole tree by definition. `--dry-run` prints the ch
 names files to ask about without changing them. [The script](../.mise/tasks/verify) is the
 mapping, and these are the rules it keeps:
 
-- **Four gates always run** -- secrets, references, comment lengths, the published shape. Each is
+- **Three gates always run** -- secrets, references, comment lengths. Each is
   whole-tree and takes seconds, and a reference can break from anywhere.
 - **A Rust change reaches its crate and every crate that depends on it**, read from
   `cargo metadata` rather than listed, and clippy and the tests run over those alone. A test that
   reads another crate's file through `include_str!` depends on it without its manifest saying so;
-  those paths are read out of the source, so changing geo's `service.toml` tests host and
-  `infra/libs/deploy` too. `Cargo.lock`, the workspace manifest and the toolchain file reach every crate.
+  those paths are read out of the source, so changing a record `local`'s tests read reaches
+  `local`. `Cargo.lock`, the workspace manifest and the toolchain file reach every crate.
 - **A TypeScript, Svelte or style change reaches its package and every package that imports it**,
   read from the `workspace:` dependencies. Any of them runs the three whole-program gates -- the
   type check, the linter, the test suite -- and a package with gates of its own runs them only when
@@ -259,7 +234,7 @@ mapping, and these are the rules it keeps:
 - **A change to the gates reaches every gate.** `mise.toml` and `.mise/tasks/` are how everything
   is checked, so a change there is checked against everything.
 
-**What the graph cannot see is named, and kept short.** The one entry today is the Rust mirror of
-the URL map: it is `.rs`, and its only check is a TypeScript test. A dependency the graph misses is
+**What the graph cannot see is named, and kept short.** Nothing is named today: the one entry, the
+Rust mirror of the URL map, left with the platform. A dependency the graph misses is
 a gate that silently does not run, which is the failure `code.md` in the workspace describes, so a
 second such entry is worth a structural fix before it is worth a line in the list.

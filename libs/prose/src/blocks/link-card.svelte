@@ -81,7 +81,7 @@
 
 	// The CDN, because what the record names is a content id: the resolution that could not happen at
 	// build time already happened, in the load, and what is left is an object address. A named tone
-	// is that tone or nothing -- see `toned` in platform/libs/sdk/artifacts for why nothing is the
+	// is that tone or nothing -- see `toned` in @monoflake/sdk/artifacts for why nothing is the
 	// right answer rather than the other file.
 	const cdnUrl = pageUrls(dev).cdn;
 	const domain = $derived(new URL(url).hostname);

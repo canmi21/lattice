@@ -14,7 +14,7 @@ regularised, mixed-language phrasing resolved where a natural local expression e
 implicit connections made plain enough to follow without changing what the author meant.
 
 That freedom is bounded. A same-language localisation preserves facts, first-person perspective,
-emotional force, emphasis, jokes and uncertainty. It does not summarise, sanitise, flatten the
+emotional force, emphasis, jokes and uncertainty. It does not summarize, sanitize, flatten the
 author's position or invent connective claims. A sibling target such as `zh-TW` additionally
 uses its own script and idiom under the same rule.
 
@@ -56,7 +56,7 @@ sentence reads entirely in the target language and its own script -- never a rom
 which is neither the original nor a translation, and never the source script carried into the
 prose -- while the note quotes the original word exactly as the source wrote it, original
 script included, and then says what it did. A zh-TW note quoting a Simplified original keeps
-the Simplified characters: the quote is a citation of the source, not text being localised.
+the Simplified characters: the quote is a citation of the source, not text being localized.
 The two halves have one job each: the prose owes the reader fluency, the note owes them the
 original. Before this was stated the runs produced all three shapes -- pinyin, retained
 Chinese, translated words -- article by article, which is the failure mode of an unwritten
@@ -131,7 +131,7 @@ per line.
 A translation follows the source it was given, which is the same thing it does for every other
 mark. That falls out of translating the field rather than being a rule of its own -- the point of
 writing this down is that a later reader finding one subtitle stopped and another not has found a
-preference, not a defect to normalise.
+preference, not a defect to normalize.
 
 ### The error page's sentence ends without one, in every language
 
@@ -214,7 +214,7 @@ shortens, the ratio says only that it did it. The long form of the same field is
 is where padding shows up in any case.
 
 **It would have caught the case that prompted it, but only just, and the reason is worth keeping.**
-Seven of the eight locales padded by about the same amount, which moved the sibling centre with
+Seven of the eight locales padded by about the same amount, which moved the sibling center with
 them and left that half silent; one flag survived, on the Japanese, from the absolute half. One
 flag on a segment is the whole intent -- it is read by a person, who then reads all eight. A check
 that had to name all seven to be useful would need to know what the source means, and then it

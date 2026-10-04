@@ -66,7 +66,7 @@ pub fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 	// Icons are fetched from other people's sites, into a source tree rather than a published
 	// one. What publishes them is the record below: an icon is a resource now, so the bytes are
 	// hashed into the objects tree here and the root names nothing. See
-	// platform's spec/architecture/resource.md, "The catalogue".
+	// platform's spec/architecture/resource.md, "The catalog".
 	let icon_root = crate::paths::favicon_root(repository);
 
 	let progress = crate::task::start(repository, "favicon", shell, wanted.len() as u64, sink)?;

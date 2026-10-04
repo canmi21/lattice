@@ -137,9 +137,9 @@ collaboration once the code has reached it.
 ### Building the home node is done in collaboration, and it is what retires the sandbox
 
 The sandbox exists because the author's working servers and an agent's development servers both
-run on the author's machine, from one repository whose files they watch. `host`, `keeper` and the
-services they deploy -- see infra's `spec/architecture/host.md` and platform's `spec/architecture/services.md` -- change no data and
-nothing those servers load, so they are built in this checkout directly.
+run on the author's machine, from one repository whose files they watch. Infra's `host` and `keeper`
+and the platform's services they deploy -- see infra's `spec/architecture/host.md` -- are built in
+their own repositories and touch nothing these servers load.
 
 They are also the way out of that arrangement. Once what needs no public reach runs on the machine
 at home, the servers the author uses are no longer the ones an edit here reloads, and the sandbox

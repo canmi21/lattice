@@ -1,7 +1,7 @@
 # Where bytes and records live
 
 What a _thing_ is, as opposed to what a run of bytes is, is platform's `spec/architecture/resource.md`: the
-resource id, the layered record, and the catalogue of what earns one. This file is where both
+resource id, the layered record, and the catalog of what earns one. This file is where both
 kinds of thing are kept.
 
 Git holds code. `data/` holds everything else -- photos, fetched favicons, drafts -- and the
@@ -62,7 +62,7 @@ until a clone cannot build. A directory cannot be forgotten the way a line can.
 | `media.yaml`    | descriptions bought one model call at a time, and a window a person chose                                                                                                     |
 | `tags.yaml`     | what each tag is called, in every language, curated                                                                                                                           |
 | `tn.yaml`       | which passages a translator has to gloss                                                                                                                                      |
-| `licenses.yaml` | the licence a person worked out for a package that declared none                                                                                                              |
+| `licenses.yaml` | the license a person worked out for a package that declared none                                                                                                              |
 | `fonts.json`    | which families are split, and how                                                                                                                                             |
 | `diagram.json`  | what each diagram says, bought one model call at a time and keyed by block hash                                                                                               |
 | `indexnow.json` | what has already been announced; losing it cannot be recomputed, only re-sent, which is the one thing that protocol asks us not to do -- see [../indexing.md](../indexing.md) |
@@ -92,7 +92,7 @@ because a view spliced from a stale layout is wrong in a way nothing reports.
 
 **`licenses.json` answers the same way and has not left**, which is worth stating rather than
 hiding. It is a pure function of the lockfile, but the site's own build still reads it -- the
-licence pages were held out of the move to published objects, so a CI build with no `data/` would
+license pages were held out of the move to published objects, so a CI build with no `data/` would
 fail without it. It stays until that surface is decided; [todo.md](../todo/todo.md) holds why.
 
 The question is deliberately not "was it generated", which was the shape that misled. Three
@@ -166,8 +166,8 @@ write, none to forget.
 
 **The one mistake that shape allows is naming the parent instead of a leaf**, which would publish
 the draft tree sitting beside them. That is the single case a source path cannot fail closed on by
-itself, so it is checked: `sync` exits before any transfer if a source it was handed contains the
-draft tree.
+itself, so it is checked: `sync` exits before any transfer if a source it was handed is the
+directory holding the mirrors rather than a mirror.
 
 The alternative, syncing `data/` minus a denylist, fails in the worse direction. Miss a rule
 there and a draft is published silently; miss one here and a file merely fails to appear,
@@ -222,7 +222,7 @@ where a site's icon should come from when its own is not wanted. `local favicon`
 into that domain's slot and records the result as a resource; the page draws whatever the rid
 its card compiled to currently holds. So the attribute is never rewritten: it is the only record
 of where the icon came from, and destroying it would make the choice unrepeatable. See
-platform's `spec/architecture/resource.md`, "The catalogue".
+platform's `spec/architecture/resource.md`, "The catalog".
 
 Alongside that attribute, `tone` says which shade the named icon _is_. On its own it only says
 what the card renders against, which is no instruction to the collector at all.
@@ -283,7 +283,7 @@ things it needs that a local build gets for free stay pinned rather than resolve
 
 - `packageManager` and `.node-version`, because `mise.toml` does not apply outside this
   machine and the lockfile is only readable by a pnpm new enough to know its format.
-- `SENTRY_AUTH_TOKEN`, from the platform's own encrypted build variables. `secrets.json` is
+- `SENTRY_AUTH_TOKEN`, from Cloudflare's encrypted build variables. `secrets.json` is
   committed but sops-encrypted, and CI holds no age private key -- so the local path through
   mise cannot work there, and the two routes to the same variable stay separate on purpose.
 
@@ -300,8 +300,8 @@ uploaded. And a build that does not upload emits no maps at all, because the plu
 `filesToDeleteAfterUpload` only runs after an upload -- leaving them would put the site's own
 source in the directory wrangler deploys.
 
-Both halves live in `lib/pkgs/web/sentry`, shared with the status page, which uploads whenever the token
-is present and skips without it. See platform's `spec/architecture/probe.md`, "Errors go to Sentry".
+Both halves live in `@canmi/web/sentry`, shared with the status page, which uploads whenever the token
+is present and skips without it. See [status.md](status.md), "Errors go to Sentry".
 
 ## Assets are addressed by their content
 
@@ -347,13 +347,13 @@ resolves under any type has no canonical spelling; so a wrong one was corrected 
 carve-out, for a segment the bucket never stored and the extension already settled.
 
 Spelling the storage key into a link would publish the bucket's layout as an interface, and an
-interface is the one thing that cannot be reorganised later. The licence texts leaked it for
+interface is the one thing that cannot be reorganised later. The license texts leaked it for
 exactly as long as they had no route of their own; adding one was the fix.
 
 **The layout is declared once per language and the two are held together by a test.**
-`storageKey` in `platform/libs/sdk/store` is what the workers read from, `object_path` in
-`apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/sdk/store` parses
-the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
+`storageKey` in `@monoflake/sdk/store` is what the workers read from, `object_path` in
+`apps/local/src/image/store.rs` is what the writer writes from, and
+`apps/local/src/store-agreement.test.ts` parses the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
 the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
 404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
 
@@ -407,7 +407,7 @@ offset and a length, so a seek reads what it asked for and not the file around i
 proxy forwards the header upstream and passes 206 back, and fetches the whole asset behind a
 ranged miss so the requests after it find it at the edge.
 
-The grammar is parsed in one place, in `platform/libs/sdk/store`, and it is the part of this with a
+The grammar is parsed in one place, in `@monoflake/sdk/store`, and it is the part of this with a
 specification to obey. `bytes=a-b`, `bytes=a-` and `bytes=-n` are served; an end past the last
 byte clamps, which is what a resumed download does at the tail of a file; a start past the end is
 416 carrying the size, which is a different answer from 404 because the object is there and the
@@ -438,10 +438,10 @@ change of source bytes alone. The old aggregate manifest record is removed only 
 record exists, or commands that enumerate the manifest would mistake the superseded source for
 an unlabelled asset; deleting its published bytes still waits for an explicit garbage collection.
 
-## A dependency's licence is an asset like any other
+## A dependency's license is an asset like any other
 
 `local licenses` records every third-party package the deployables are built out of: the
-production closure of the three Workers, and every crate this repository's own tooling
+production closure of the site, its API and the status page, and every crate this repository's own tooling
 resolves. Workspace packages are excluded -- they are this project, not something it credits.
 
 **Packages are identified by purl**, the Package URL that SPDX and CycloneDX already key an
@@ -459,14 +459,14 @@ changed. It also deduplicates by roughly ten to one, because several hundred cra
 same Apache-2.0 text byte for byte, and a registry added later will mostly ship texts already
 stored.
 
-Texts are published exactly as they were shipped. Normalising line endings would deduplicate
-better and would also mean publishing a licence its author did not write, which is not a trade
+Texts are published exactly as they were shipped. Normalizing line endings would deduplicate
+better and would also mean publishing a license its author did not write, which is not a trade
 available on a legal text.
 
 The aggregate is not an exception to any of this, and it used to be. One object holds every notice
 in full -- built as `data/build/licenses-full.txt` and published content-addressed like everything
 else, then reached by the permanent name `licenses.txt` through the alias layer's `/symlink`. It is
-what the permissive licences actually ask for -- reproducible in one fetch -- and assembling it per
+what the permissive licenses actually ask for -- reproducible in one fetch -- and assembling it per
 request would mean a Worker fetching several hundred objects. The name it is reached by moves; the
 bytes it resolves to never do.
 
@@ -475,11 +475,11 @@ git like every other asset. The record is produced locally because the crate hal
 cargo registry cache, which no CI container has -- so both halves are collected by one command
 into one reviewable diff, rather than half the answer arriving at build time.
 
-**A package that declares no licence fails the command.** It is the one finding in the record
+**A package that declares no license fails the command.** It is the one finding in the record
 that needs a person, and `data/record/licenses.yaml` is where that person's answer goes, with the
 evidence beside it. An entry there only ever fills a gap, never overrides a package's own
 declaration, and the published record marks it as asserted rather than declared -- presenting
-a judgement as the package's own statement is the one dishonest thing this record could do.
+a judgment as the package's own statement is the one dishonest thing this record could do.
 
 **The name survives from every usable author field; a GitHub login survives only when the
 field identifies it explicitly.** Both registries pack a name, an address and a homepage into
@@ -497,7 +497,7 @@ avatars use the CDN's existing avatar proxy, so the site does not add a second l
 path or expose readers to a new image origin.
 
 Each package also records **one shortest dependency path from every workspace root that reaches
-it**. For npm the roots are the deployed `api`, `cdn` and `site` apps; linked workspace packages
+it**. For npm the roots are the deployed `site`, `site-api` and `status` packages; linked workspace packages
 remain visible as intermediate nodes even though they are not third-party credits. For Cargo the
 roots are Cargo's workspace members and paths follow the resolved dependency graph. Equal-length
 paths settle lexicographically so a regenerated record is stable. Keeping one path per root says
@@ -520,8 +520,8 @@ only ever agree with them or be wrong, which would leave the record holding two 
 question. A generated record keeps the primitive facts and lets the derived ones be derived. A
 package reachable both ways is listed once, as direct, because the stronger fact is the true one.
 
-`/licenses` is the page over the same data, grouped by licence and ordered by what each covers.
-**An expression is flattened to the licences it names, and a package is filed under each of
+`/licenses` is the page over the same data, grouped by license and ordered by what each covers.
+**An expression is flattened to the licenses it names, and a package is filed under each of
 them** -- somebody looking for what is Apache-licensed here wants the packages that offer it as
 one of two. `AND` flattens the same way while meaning the opposite, so the unflattened
 expression stays on the row wherever it is longer than the heading; without that the grouping
@@ -531,43 +531,43 @@ therefore add up to more than the number of packages, which the page says out lo
 Splitting is on whole tokens, case-sensitively, because SPDX writes its operators in capitals
 and the tree already contains every way that can go wrong: `LGPL-2.1-or-later` carries a
 lowercase `or` inside one identifier, `FSL-1.1-MIT` and `MIT-0` contain shorter identifiers,
-`Apache-2.0 WITH LLVM-exception` is one licence rather than two, and `(MIT OR Apache-2.0) AND
+`Apache-2.0 WITH LLVM-exception` is one license rather than two, and `(MIT OR Apache-2.0) AND
 NCSA` brackets a disjunction inside a conjunction. `/` is Cargo's deprecated spelling of `OR`.
 Every expression in the record is a case in the splitter's test table, and a test fails when
-the tree grows one the table has not been updated for. The licence is the one column that would otherwise repeat itself hundreds of
+the tree grows one the table has not been updated for. The license is the one column that would otherwise repeat itself hundreds of
 times, so it becomes a heading and the rows underneath get shorter -- and the grouping answers
 the question somebody arriving actually has, which is what all of this stands on rather than
-what any single package is. An asserted licence is not a group of its own: the packages under
+what any single package is. An asserted license is not a group of its own: the packages under
 it are MIT, they simply never said so, and the row carries where that is known from.
 
 An identifier is not a family label, so `MIT-0` remains separate from `MIT`. SPDX gives
 [MIT No Attribution](https://spdx.org/licenses/MIT-0.html) its own identifier because it removes
 the attribution paragraph from the [MIT License](https://spdx.org/licenses/MIT.html). Collapsing
 the two would make the directory state a notice-preservation condition the package's terms do
-not carry; grouping legal terms by resemblance is not normalisation.
+not carry; grouping legal terms by resemblance is not normalization.
 
 The browser surface follows those two kinds of identity instead of nesting one inside the
-other. `/licenses` is the licence directory, `/licenses/{licence}` is one licence's package
+other. `/licenses` is the license directory, `/licenses/{licence}` is one license's package
 directory, and `/licenses/pkgs/{type}/{name}@{version}` is one package. A package route does not
-sit below a licence route because an expression can place the same package under several
-licences; doing so would give one package several equally plausible addresses. `pkgs` is an
-explicit namespace so a registry type or package name can never be mistaken for a licence slug.
+sit below a license route because an expression can place the same package under several
+licenses; doing so would give one package several equally plausible addresses. `pkgs` is an
+explicit namespace so a registry type or package name can never be mistaken for a license slug.
 The version remains part of the address because the resolved tree may contain several versions
 of one package, with different metadata or terms.
 
 The directory root completes that hierarchy with a back link to the homepage above its heading,
-in the same place each child route links to its parent. Home is navigation rather than a licence
+in the same place each child route links to its parent. Home is navigation rather than a license
 action, so it stays out of the Packages, index and full-notice control row.
 
 One package page is dense where the source metadata is sparse. Its SPDX expression, credited
-people and shipped licence files share one compact terms-and-attribution section instead of each
+people and shipped license files share one compact terms-and-attribution section instead of each
 claiming a tall section of their own. A single SPDX term is one link, not plain text followed by
 an identical chip; only a compound expression needs separate links to its terms. Dependency paths
 have their own section because they answer a different question: why this package is present.
 
-**The sitemap lists no licence route.** It used to enter the directories -- `/licenses`,
-`/licenses/pkgs`, each registry and each licence term -- and stop before the package pages, but
-the licence surface is not what this site is for, and a sitemap is a statement of what is. The
+**The sitemap lists no license route.** It used to enter the directories -- `/licenses`,
+`/licenses/pkgs`, each registry and each license term -- and stop before the package pages, but
+the license surface is not what this site is for, and a sitemap is a statement of what is. The
 routes stay and keep serving, and the package pages stay `noindex, follow`; whether the surface
 stays at all is a cleanup not yet done.
 
@@ -582,7 +582,7 @@ and `/licenses/{type}/{name}@{version}.txt`. They are stable legal artefacts rat
 package pages, so reorganising the browser surface is not a reason to move them.
 
 The page is locale-negotiated like every other page, while the three plain-text routes beside
-it are prerendered. A licence is not translated, and those routes vary on nothing.
+it are prerendered. A license is not translated, and those routes vary on nothing.
 
 A package resolved for another platform is not in the record at all. A dependency tree carries
 an optional binary for every operating system and only one is ever installed; reporting the
@@ -640,8 +640,7 @@ platform's `spec/architecture/delivery.md`.
 | backup | would losing this hurt?    | whatever backs up `data/`, outside this repo |
 
 They disagree on exactly the content that matters. `data/` is git's least wanted and backup's
-most wanted. `data/bucket/draft` is worth backing up and must never publish. Build output is unwanted
-by all three.
+most wanted. Build output is unwanted by all three.
 
 So no list is ever derived from another. Driving backups from `.gitignore` silently drops
 every photo; driving sync from the backup list publishes the drafts.

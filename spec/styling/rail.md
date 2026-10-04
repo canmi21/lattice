@@ -33,15 +33,15 @@ on the other. Three stages follow:
    from the window while the entries had 47. Two thirds gives it 43, which is what the next stage
    gives it anyway.
 3. Roomier: the margin holds flat at `--rail-hold` while the halves catch up.
-4. Wide: the even split, the rail's centre line on the region's centre line, so its margin from the
+4. Wide: the even split, the rail's center line on the region's center line, so its margin from the
    window edge and its gap to the article are equal.
 5. Past `--rail-left-max`: the left margin holds still, and every further pixel goes into the gap
    between rail and article.
 
-**Stage 5 caps the margin, and it used to cap the centre line.** That was right while the box was
+**Stage 5 caps the margin, and it used to cap the center line.** That was right while the box was
 `fit-content` and its width was the browser's answer rather than a number this file held. The box
 is `--rail-width` now, so the two say the same thing and the margin is the one the eye reads --
-and reading it is what showed the cap was set too far in. At 14rem of centre the rail sat 156px
+and reading it is what showed the cap was set too far in. At 14rem of center the rail sat 156px
 from the window on a 1600px screen, which is a rail drifted halfway to the text rather than one
 beside the window, and a rail is read from the corner of the eye.
 
@@ -93,9 +93,9 @@ it is running.
 at one position and jumped to another the moment it hydrated.
 
 **A box sized to its entries.** `width: fit-content` reads as obviously right -- the entries are
-the only thing a reader sees, so why centre anything else -- and it is stable within one view: a
+the only thing a reader sees, so why center anything else -- and it is stable within one view: a
 web font swapping in re-sizes and re-centres it with no listener to forget. What it is not stable
-across is _content_. The box moves its own centre whenever its entries change width, and the
+across is _content_. The box moves its own center whenever its entries change width, and the
 return control is centred on that box, so the control tracks the length of the longest heading.
 Switching one article between languages took the widest entry from 48px of Korean to 104px of
 German and slid `Back` 28px across the page. Measured across the corpus, the source views alone
@@ -111,7 +111,7 @@ in the article whose headings are longest, five of thirteen Spanish entries take
 a legible outcome and a moving control is not, so the trade is made in that direction.
 
 The cost is accepted rather than hidden: an article with short headings no longer fills its box,
-so its entries sit left of centre with space to their right. That space buys a control that does
+so its entries sit left of center with space to their right. That space buys a control that does
 not move.
 
 **The number lives in more than one place, and nothing but a pointer connects them.** It is
@@ -130,7 +130,7 @@ what it is derived from rather than one record at a time.
 fill and spill, the break lands wherever the width runs out -- `Independencia de la` over `UI` put
 nineteen characters above two, which reads as a mistake rather than as a wrapped label. Balance is
 built for exactly this shape of text, short and headline-like, and it evens out one label's own
-lines without looking at its neighbours. Where it is unsupported the text fills as before.
+lines without looking at its neighbors. Where it is unsupported the text fills as before.
 
 **Balance evens the lines; it does not choose where the break may land, and for Han that is the
 part that matters.** The label also carries `overflow-wrap: anywhere`, which lets a break fall
@@ -200,15 +200,15 @@ headings of six and seven characters a third of the rail apart.
 Three rules then shape the column, and each exists because the step alone produced something
 that read badly.
 
-**No entry stands more than three steps above a neighbour, and the outlier comes down.** Raising
+**No entry stands more than three steps above a neighbor, and the outlier comes down.** Raising
 everything around it satisfies the same constraint and is not the same thing: one entry towering
-over its neighbours is what reads badly, so the fix is to pull _it_ back rather than stretch the
+over its neighbors is what reads badly, so the fix is to pull _it_ back rather than stretch the
 rest of the column toward it, which would spend the top of the scale on an article that has
 nothing that long in it. **The tenth step is therefore not something every article reaches** --
 it is there for a heading long enough to earn it against the company it keeps, and an outlier, by
 being an outlier, does not.
 
-**Two neighbours on the same step are separated by one step**, toward whichever side they were
+**Two neighbors on the same step are separated by one step**, toward whichever side they were
 already nearer. One step rather than more: these two headings are genuinely the same length, and
 a bigger push would say they are not. Two steps was tried and is too much -- with evenly sized
 headings it leaves only differences of two and three, so the column can do nothing but alternate,
@@ -247,7 +247,7 @@ one occasion it has to appear -- and it appears while the column beneath it is s
 of its collapsed stack. Its open position is therefore where its entry is _going_, and writing it
 there the moment the mark becomes visible puts it as far from its own label as everything above
 that label has yet to expand: a tenth of a column for the first entry and the better part of one
-for the last. Nothing then moves it, but the rail grows around its centre underneath it, and the
+for the last. Nothing then moves it, but the rail grows around its center underneath it, and the
 mark rides up with the box -- measured at 209px of separation at the instant it appeared and 125px
 of travel afterwards, which reads as the mark flying in rather than the column opening.
 
@@ -323,7 +323,7 @@ question on its own terms.
 
 Treating rail, gap and article as one block centred in the window balances the page at every width
 and was built to see. It moves the article -- right by half the rail as the rail appears, and off
-the window's centre from then on. The article holding still is worth more than the balance.
+the window's center from then on. The article holding still is worth more than the balance.
 
 The lengths this is computed from sit together on `:root` in
 [utilities.css](../../apps/site/src/styles/utilities.css) so they can be argued with in one place. One
@@ -369,7 +369,7 @@ below 68rem.
 
 ## A subsection is nearer, and for that reason unlisted
 
-An article may carry a second heading level. It renders at the same size, weight and colour as
+An article may carry a second heading level. It renders at the same size, weight and color as
 a section, and differs only in sitting closer to what precedes it -- `mt-8` where a section
 takes `mt-12`.
 

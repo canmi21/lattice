@@ -33,7 +33,7 @@ declare module 'mdast-util-directive' {
 }
 
 // Feed and markdown targets need absolute image URLs, and they must resolve the same way the
-// rendered page does. Both now read the host from platform/libs/sdk rather than each spelling it
+// rendered page does. Both now read the host from @monoflake/sdk rather than each spelling it
 // out.
 
 export const stringifier = unified()
@@ -418,7 +418,7 @@ export function proseMarkdown(node: RootContent, source: string): string {
 		.trim();
 	// The document is the source view and nothing reading it will negotiate, so a link out of it
 	// names the source. Prose only: a fence is pushed separately and its contents are not ours to
-	// rewrite. The feed does the same to its own prose -- see platform/libs/sdk/artifacts, `pinView`.
+	// rewrite. The feed does the same to its own prose -- see @monoflake/sdk/artifacts, `pinView`.
 	return text.replaceAll(
 		new RegExp(`\\]\\((${URLS.apps.production.site}/[^)\\s#]*)`, 'g'),
 		(whole, address: string) => (address.includes('?') ? whole : `](${address}?lang=mw`),

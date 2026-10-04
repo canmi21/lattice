@@ -17,8 +17,8 @@ text in `site.config.yaml` for the same reason the analytics client id is -- see
 [analytics.md](analytics.md) -- rather than kept somewhere that implies a secrecy the protocol
 does not allow.
 
-It lives in the site config rather than in `platform/libs/sdk` because it is not an address. It is an
-identity this site proves, like the Bluesky handle beside it, and `platform/libs/sdk` holds what
+It lives in the site config rather than in `@monoflake/sdk` because it is not an address. It is an
+identity this site proves, like the Bluesky handle beside it, and `@monoflake/sdk` holds what
 resolves.
 
 **There is no verification step that completes.** An engine fetches the key file on _every_
@@ -98,9 +98,9 @@ yet; `sources()` would hand any query variant of `/` the same fingerprint if one
 
 Paths, not URLs: the record describes one site, and storing the origin on every row would repeat
 one string a few hundred times. It is machine-written JSON in `data/`, not hand-edited YAML,
-because nothing about it is a judgement a person makes.
+because nothing about it is a judgment a person makes.
 
-**The licence directories are not announced.** They are in the sitemap so they can be crawled,
+**The license directories are not announced.** They are in the sitemap so they can be crawled,
 and that is all they need: derived pages nobody is waiting on, whose only timestamp is the
 build's. Announcing them would mean announcing thirty URLs on every deploy.
 

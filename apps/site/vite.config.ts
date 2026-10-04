@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => {
 	// The page-facing map, because both readers of it below end up in a document: the redirect
 	// targets a browser follows, and the font stylesheet's `__CDN_URL__`. In development those
 	// must be the proxied paths, or a page opened from another device asks that device for its
-	// own fonts. See platform/libs/sdk.
+	// own fonts. See @monoflake/sdk.
 	const urls = pageUrls(mode !== 'production');
 	// Asked once. It can throw, and a predicate that throws should do so at a point in the build
 	// somebody can place, rather than from inside a plugin's option list. In CI a missing
@@ -197,7 +197,7 @@ export default defineConfig(({ mode }) => {
 			// TODO: this record and the surface it feeds are both going. It is held out of the
 			// move of generated records into R2 on purpose, so the eight licence addresses can
 			// be collapsed first and the record follow whatever they become.
-			// See spec/todo/site.md, "The licence surface is eight addresses and one baked record".
+			// See spec/todo/site.md, "The license surface is eight addresses and one baked record".
 			{
 				// The dependency licence record, baked in. Only the metadata travels: the texts
 				// themselves are published objects the CDN serves, so the Worker carries a few
@@ -215,7 +215,7 @@ export default defineConfig(({ mode }) => {
 			{
 				// site.config.yaml baked into the bundle, which keeps the YAML parser out of
 				// the client and the file out of the deployed worker. The author is
-				// canmi/identity's; see spec/architecture/identity.md.
+				// @canmi/me/identity's; see spec/architecture/identity.md.
 				name: 'virtual-site-config',
 				resolveId(id: string) {
 					return id === 'virtual:site' ? '\0virtual:site' : null;
@@ -240,7 +240,7 @@ export default defineConfig(({ mode }) => {
 			host: '::',
 			// The other two workers, reached through this one. The prefix is stripped on the way
 			// out, so each worker sees only the paths it actually serves. Both the prefix and the
-			// target come from platform/libs/sdk, the one place every address here is declared and where
+			// target come from @monoflake/sdk, the one place every address here is declared and where
 			// the reasoning lives for why development collapses three origins into one. The target
 			// is the same map anything else uses to reach these workers, not a resolver of its own.
 			proxy: Object.fromEntries(
@@ -283,7 +283,7 @@ export default defineConfig(({ mode }) => {
 			...(mode === 'production' ? {} : { STATED_PORT_OFFSET: PORT_OFFSET }),
 			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
 			// the two agree by construction. Production only: development asks by name. See
-			// platform's spec/architecture/services.md, "The pages ask by contract, not by name".
+			// spec/architecture/site-api.md, "The pages ask by contract, not by name".
 			...(mode === 'production' ? { STATED_API_ADDRESSES: JSON.stringify(addresses()) } : {}),
 		},
 	} satisfies UserConfig;

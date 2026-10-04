@@ -7,7 +7,7 @@ Grok can search Twitter. No other runner can. This file is the decision about wh
 ## A single-provider job is not a runner choice
 
 `Runner` answers which assistant does a piece of work that every assistant can do. Every
-variant can translate, summarise, tag. The Twitter tools exist only for Grok.
+variant can translate, summarize, tag. The Twitter tools exist only for Grok.
 
 Putting them on that enum -- a `model_for_x` that returns `None` for five of six variants --
 would make the type look like it is choosing among assistants when it is really choosing

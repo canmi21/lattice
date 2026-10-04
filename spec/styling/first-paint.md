@@ -154,7 +154,7 @@ come.
 
 The decision is never "is this component mounting for the first time". A component mounts on
 every client navigation that renders it, and one that asked itself would animate on all of them
--- which is the behaviour this rule exists to stop.
+-- which is the behavior this rule exists to stop.
 
 It is one fact about the document, held in one module: **whether any client navigation has
 happened in this document yet.** True until the first one starts, false forever after. It is set

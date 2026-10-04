@@ -174,7 +174,7 @@ export async function compile(
 			const marks = numberNotes(node, notes, sourceFile ?? url);
 			const { slug, text: heading } = headingParts(node);
 			// A block's anchor is `{kind}-{n}`, worked out wherever blocks are drawn, so a heading may
-			// not claim one. See platform's spec/architecture/anchors.md.
+			// not claim one. See spec/architecture/anchors.md.
 			if (isBlockAnchor(slug)) {
 				throw new Error(
 					`${sourceFile ?? url}: heading "${heading}" takes the id #${slug}, which names a block -- give it an explicit {#id}`,

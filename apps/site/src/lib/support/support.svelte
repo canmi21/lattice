@@ -138,7 +138,7 @@
 		locale: LocaleCode;
 		sourcePreferenceHref: string;
 		repositoryHref: string;
-		/** Becomes an `<a>` once there is somewhere to send people; see platform/libs/sdk. */
+		/** Becomes an `<a>` once there is somewhere to send people; see @monoflake/sdk. */
 		onsponsor?: () => void;
 	} = $props();
 

@@ -64,15 +64,15 @@ subscription invitation instead.
 
 ## Compact action rails reveal detail on demand
 
-The homepage Support surface holds Like, one favour to ask, and Sponsor. These are reader actions
+The homepage Support surface holds Like, one favor to ask, and Sponsor. These are reader actions
 and read as one small section; revision and Follow stay off the page until they have a quieter
 placement of their own. Visitor, uptime, word-count, update-age and license rows do not appear on
 the homepage.
 
-**The middle slot moves on once its favour has been done.** Asking the same reader to set the same
+**The middle slot moves on once its favor has been done.** Asking the same reader to set the same
 source preference on every visit is asking nothing: once it is set there is nothing left to set,
 and a control that goes on offering it is furniture. So it offers Google first and a star on the
-repository afterwards -- a different favour, in the same slot, rather than a second pill that
+repository afterwards -- a different favor, in the same slot, rather than a second pill that
 would be permanent clutter for the readers who never do either.
 
 Which one is showing is decided from two stores, and each answers a different question about the
@@ -105,7 +105,7 @@ shared text stays as one DOM segment. Prefix and suffix segments sit in zero-wid
 the same spring as the pill: a suffix is uncovered after a stationary label, while a prefix pushes
 the shared label right as it is uncovered. This makes the copy read as material revealed by the
 pill rather than one string replacing another. Every shipped locale preserves that substring for
-all four Support labels -- both of the middle slot's favours included -- with a message contract
+all four Support labels -- both of the middle slot's favors included -- with a message contract
 test guarding the relationship. The component
 keeps a crossfade only as a defensive fallback; these actions must not rely on it. Translations
 choose an idiomatic local short label first rather than forcing an English noun into every locale.
@@ -146,17 +146,17 @@ survives translation is the only version of that sentence worth having.
 Its heading is visible rather than announced to assistive technology alone. A modal carrying one
 sentence and a bare close control reads as a fragment of the page rather than a surface of its
 own, so the notice opens with the icon of the action that summoned it beside a heading weighted
-like the page's other section headings, with the sentence below in the metadata text colour. The
+like the page's other section headings, with the sentence below in the metadata text color. The
 icon and the close control are each centred on one line box, so a heading that wraps in a longer
 locale moves the text without dragging them out of line with its first line.
 
-Data palettes belong to the visualisation that gives them meaning, not to the site theme. The
+Data palettes belong to the visualization that gives them meaning, not to the site theme. The
 Cargo palette lives in a component-only stylesheet scoped below `.cargo-widget`; it stays vivid
 in both page themes and never becomes a token available to unrelated interface chrome.
 
 ## A value the reader is already driving takes no easing at all
 
-Easing is for a value that moves on its own: a panel that opens, a colour that answers a hover,
+Easing is for a value that moves on its own: a panel that opens, a color that answers a hover,
 anything whose start and end the page chose. A value bound to a scroll, a drag or a pointer has
 no such pair -- it is wherever the hand put it, every frame. Putting a transition on one eases
 the _input_, so the mark arrives where the reader already is a frame or two late, and a hand
@@ -191,7 +191,7 @@ from there; a second copy of those points is how two animations meant to feel id
 drift apart.
 
 One trap worth stating, because it is invisible until someone wonders why the bounce never
-shows: an overshoot has to have somewhere to go. A spring driving `background-size` or a colour
+shows: an overshoot has to have somewhere to go. A spring driving `background-size` or a color
 is clipped at its limit, so the overshoot is spent on nothing and the curve should simply be
 damped out. A transform or an unconstrained layout dimension such as width has room to show it.
 
@@ -201,7 +201,7 @@ It is built and has no home yet: nothing on the site renders it while its placem
 decided. What follows is the component's own contract, which does not depend on where it lands.
 
 Two states, so the control is the choice rather than a way to reach it. It writes the cookie and
-toggles the class, and nothing reloads: every colour on the page is a token under that one class,
+toggles the class, and nothing reloads: every color on the page is a token under that one class,
 which is the whole reason the class exists.
 
 **It reads the class, never the cookie.** The pre-paint script in `app.html` settles the theme

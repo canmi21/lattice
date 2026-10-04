@@ -219,7 +219,7 @@ pub struct Record<L> {
 	/// Granted once and written back, never derived on read: an id minted while loading differs
 	/// between two runs, and an identity that changes every time the file is read is not one. So
 	/// nothing on a load path calls `allocate`. Not optional, because the schema in
-	/// `platform/libs/sdk/artifacts` is not: a record without one is a record from before `local
+	/// `@monoflake/sdk/artifacts` is not: a record without one is a record from before `local
 	/// migrate`, and that command reads the shape without it so nothing else has to.
 	pub resource: ResourceId,
 	/// `type` on disk; a keyword here.
@@ -393,7 +393,7 @@ mod tests {
 
 	#[test]
 	fn a_canonical_round_trips_and_refuses_an_address() {
-		// The two spellings have to match `CANONICAL_PATTERN` in platform/libs/sdk/artifacts, because
+		// The two spellings have to match `CANONICAL_PATTERN` in @monoflake/sdk/artifacts, because
 		// the record this writes is the record that schema reads. A URL is refused on both sides for
 		// the same reason: a hostname in a record is a hostname in every record.
 		let object: Canonical = "cid:44b6081deaf0242ca3bf83d62a3b6c95.avif".parse().expect("object");
@@ -443,7 +443,7 @@ mod tests {
 		assert!(matches!(Namespace::parse("media..photo"), Err(MalformedType::Empty(_))));
 		assert!(matches!(Namespace::parse("media."), Err(MalformedType::Empty(_))));
 		assert!(matches!(Namespace::parse("Media"), Err(MalformedType::Character('M'))));
-		// Letters only, which is what `platform/libs/sdk/artifacts` accepts. A segment names a schema
+		// Letters only, which is what `@monoflake/sdk/artifacts` accepts. A segment names a schema
 		// and nothing here numbers one.
 		assert!(matches!(Namespace::parse("image2"), Err(MalformedType::Character('2'))));
 	}

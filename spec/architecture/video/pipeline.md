@@ -73,8 +73,8 @@ it is, and the reader is told the format is not supported with a link to the sou
 the whole of what is built.
 
 The three-branch arrangement below is decided rather than speculative, and it is deferred. It is
-written here rather than in a ticket because the reason it is not built is a judgement about
-priority, and a judgement that leaves no trace gets re-argued from nothing.
+written here rather than in a ticket because the reason it is not built is a judgment about
+priority, and a judgment that leaves no trace gets re-argued from nothing.
 
 ### Decided, not built
 
@@ -315,7 +315,7 @@ clip in the same place, which makes a clip with one door slam and quiet dialogue
 LUFS is K-weighted and gated -- built to agree with what an ear calls equally loud -- and is not an
 arithmetic average.
 
-**This is normalisation, not compression, and the distinction is the whole point.** One constant
+**This is normalization, not compression, and the distinction is the whole point.** One constant
 multiplies the whole clip, so every peak and every valley moves by the same decibel and the
 dynamic range is exactly what it was. Pushing loud parts down to a ceiling and leaving quiet parts
 alone is a limiter, and a limiter is the thing that changes how a recording sounds. What sounds

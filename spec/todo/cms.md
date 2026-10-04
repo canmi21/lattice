@@ -42,7 +42,7 @@ inside every content object that plays it, so the object's id moves and the arti
 for a change the article did not make. It is also the reason an editor that runs online cannot yet
 write a clip reference -- the write would need a recompile to take effect.
 
-**What deciding it would cost.** The record side is ready: `media.video.clip` is in the catalogue
+**What deciding it would cost.** The record side is ready: `media.video.clip` is in the catalog
 with its rungs and caption tracks, and `media.image.frame` already points at its clip through
 `source`. What is not settled is which of a clip's several references are roles on one block --
 the clip and its poster frame are two resources, and `namedResources` reads a map, so

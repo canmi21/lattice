@@ -8,7 +8,7 @@ that stack is [architecture/fonts.md](../fonts.md).
 
 **The type is the prose's, and that is the whole of the decision.** The body's stack already names
 a Latin face and then a CJK one, and a browser picks per glyph, so `font-family: inherit` sets a
-caption in either script the way the paragraph above it is set. The colours are the player's
+caption in either script the way the paragraph above it is set. The colors are the player's
 rather than the page's, for the player's reason: a caption is read against a frame this site does
 not choose and which changes twenty-four times a second.
 
@@ -105,10 +105,10 @@ screen being entered or left. Measured across ten samples spanning several one- 
 the line stayed at a single value and moved only on leaving full screen.
 
 That worst case is also what the bar is measured against, and what is centred in it, and the two
-follow from each other: a fixed bottom edge cannot centre a one-line caption and a two-line one at
+follow from each other: a fixed bottom edge cannot center a one-line caption and a two-line one at
 the same time, and the one that is centred has to be the one the space was reserved for. So a
 caption that turns out to be a single line hangs at the bottom of its reserve -- half a line, 14px
-at the size a 900px-tall window gives -- below the middle of the bar. The alternative is to centre
+at the size a 900px-tall window gives -- below the middle of the bar. The alternative is to center
 one line and let a second grow upwards, which puts a two-line caption against the picture's bottom
 edge in the narrowest bar this rule accepts; reserving the worst case is the error that falls on
 the common case rather than on the awkward one, and it is bounded by half a line either way.
@@ -123,7 +123,7 @@ whichever clip they happened to be watching. So there is one answer for the whol
 **A clip with no tracks is not an answer.** It cannot show captions, so the store reports them as
 not showing, and a preference that mirrored the store would be turned off by every silent diagram
 and title card on the page: the reader says "on" once and has it taken away by a clip that was
-never able to honour it. So the preference is written only by the button and read only where there
+never able to honor it. So the preference is written only by the button and read only where there
 are tracks to read it onto. A clip without them does not use the value and leaves it exactly as it
 was, and the next clip that has them comes up with captions already on.
 
