@@ -26,7 +26,7 @@ describe('signed', () => {
 describe('runToDeploy', () => {
 	const run = {
 		action: 'completed',
-		repository: { full_name: 'canmi21/lattice' },
+		repository: { full_name: 'canmi21/web' },
 		workflow_run: {
 			id: 42,
 			path: WORKFLOW,
@@ -42,8 +42,8 @@ describe('runToDeploy', () => {
 	});
 
 	it('names a successful run of the deploy workflow on main', () => {
-		expect(DEPLOY_SOURCES).toEqual(['canmi21/lattice']);
-		const named = { run: 42, repository: 'canmi21/lattice' };
+		expect(DEPLOY_SOURCES).toEqual(['canmi21/web']);
+		const named = { run: 42, repository: 'canmi21/web' };
 		expect(runToDeploy(run)).toEqual(named);
 		expect(runToDeploy(without({ event: 'schedule' }))).toEqual(named);
 	});

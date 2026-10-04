@@ -387,8 +387,8 @@ importers:
         specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../services/libs/messages
@@ -604,8 +604,8 @@ importers:
   apps/site/api:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/response':
         specifier: ^2.0.0
         version: 2.0.0
@@ -656,8 +656,8 @@ importers:
         specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/social':
         specifier: workspace:*
         version: link:../../services/libs/social
@@ -753,8 +753,8 @@ importers:
         specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/response':
         specifier: ^2.0.0
         version: 2.0.0
@@ -819,14 +819,14 @@ importers:
   infra/libs/urls:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
 
   platform/libs/artifacts:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/response':
         specifier: ^2.0.0
         version: 2.0.0
@@ -863,8 +863,8 @@ importers:
   platform/libs/sdk:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@monoflake/urls':
         specifier: workspace:*
         version: link:../../../infra/libs/urls
@@ -918,8 +918,8 @@ importers:
         specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -1038,8 +1038,8 @@ importers:
   services/libs/compile:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@monoflake/artifacts':
         specifier: workspace:*
         version: link:../../../platform/libs/artifacts
@@ -1116,8 +1116,8 @@ importers:
         specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/messages':
         specifier: workspace:*
         version: link:../messages
@@ -1189,8 +1189,8 @@ importers:
   services/libs/social:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1004.0
-        version: 2026.1004.0
+        specifier: ^2026.1004.1
+        version: 2026.1004.1
       '@canmi/prose':
         specifier: workspace:*
         version: link:../prose
@@ -1391,8 +1391,8 @@ packages:
       svelte:
         optional: true
 
-  '@canmi/me@2026.1004.0':
-    resolution: {integrity: sha512-ZaPnJB7uEj/skhTkShJ494NaPXfJcC/HWYcnphbpL55Spb3N8/G212up7FJklY4ylwcn0VZgiooL9E+c9QneYw==}
+  '@canmi/me@2026.1004.1':
+    resolution: {integrity: sha512-LGgEclVsS6YEuS2E6m+2unXm/6C77uah6UFRR7TdFW87V/fMefHyNwQe8nFUSoCW6YSu900Zws5Csp4X7tD2Cg==}
 
   '@canmi/response@2.0.0':
     resolution: {integrity: sha512-fQh5D0dAcdvccqWLcGQKzpGNa1TbyhZ+4B5kq5/LWPOnacdq5OY8uJoCn7zgdM0MNZMsZiDVsOXSu9fIQEdC4w==}
@@ -5875,7 +5875,7 @@ snapshots:
       - react
       - react-dom
 
-  '@canmi/me@2026.1004.0': {}
+  '@canmi/me@2026.1004.1': {}
 
   '@canmi/response@2.0.0': {}
 

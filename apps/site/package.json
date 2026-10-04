@@ -20,7 +20,7 @@
 		"@canmi/fonts": "workspace:*",
 		"@canmi/hints": "workspace:*",
 		"@canmi/kit": "^2026.1004.1",
-		"@canmi/me": "^2026.1004.0",
+		"@canmi/me": "^2026.1004.1",
 		"@canmi/messages": "workspace:*",
 		"@canmi/prose": "workspace:*",
 		"@canmi/response": "^2.0.0",

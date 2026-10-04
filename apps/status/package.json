@@ -14,7 +14,7 @@
 	"devDependencies": {
 		"@canmi/hints": "workspace:*",
 		"@canmi/kit": "^2026.1004.1",
-		"@canmi/me": "^2026.1004.0",
+		"@canmi/me": "^2026.1004.1",
 		"@canmi/social": "workspace:*",
 		"@canmi/web": "^2026.1004.2",
 		"@lucide/svelte": "^1.51.0",

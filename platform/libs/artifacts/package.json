@@ -8,7 +8,7 @@
 		"./anchors": "./src/anchors.ts"
 	},
 	"dependencies": {
-		"@canmi/me": "^2026.1004.0",
+		"@canmi/me": "^2026.1004.1",
 		"@canmi/response": "^2.0.0",
 		"@monoflake/sdk": "workspace:*",
 		"valibot": "^1.5.0"
