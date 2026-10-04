@@ -1,4 +1,4 @@
-// Generated from every apps/*/service.toml by `mise run scopes`; do not edit.
+// @generated from every apps/*/service.toml by `mise run scopes`; do not edit.
 import type { Scope } from './table.ts';
 
 export const SCOPES: Readonly<Record<string, Scope>> = {

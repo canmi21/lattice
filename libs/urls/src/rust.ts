@@ -19,7 +19,7 @@ export function rustUrlMap(): string {
 	const hosts = quoted(GATEWAY_HOSTS);
 	const { exact, deployments } = GATEWAY_NAMES;
 	return [
-		'//! Generated from libs/urls/src/index.ts by `mise run urls`; do not edit.',
+		'//! @generated from libs/urls/src/index.ts by `mise run urls`; do not edit.',
 		'//! One URL map for both languages -- see spec/architecture/workspace.md.',
 		'',
 		constants,

@@ -72,7 +72,7 @@ export function scopeTable(declarations: readonly string[]): Record<string, Scop
 /** The table as the committed module `src/scopes.ts`, which the Worker imports. */
 export function renderScopes(table: Record<string, Scope>): string {
 	return [
-		'// Generated from every apps/*/service.toml by `mise run scopes`; do not edit.',
+		'// @generated from every apps/*/service.toml by `mise run scopes`; do not edit.',
 		"import type { Scope } from './table.ts';",
 		'',
 		`export const SCOPES: Readonly<Record<string, Scope>> = ${JSON.stringify(table, null, '\t')};`,

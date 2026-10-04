@@ -1,4 +1,4 @@
-//! Generated from libs/urls/src/index.ts by `mise run urls`; do not edit.
+//! @generated from libs/urls/src/index.ts by `mise run urls`; do not edit.
 //! One URL map for both languages -- see spec/architecture/workspace.md.
 
 pub const APPS_DEVELOPMENT_SITE: &str = "http://localhost:26511";
