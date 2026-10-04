@@ -307,6 +307,26 @@ export const GATEWAY_HOSTS: readonly string[] = [
 ];
 
 /**
+ * The names the gateway answers at home, exactly, as the house's resolver answers them: the API and
+ * CDN hosts of each domain and the two apexes, and a deployment's own name, read as the profiles
+ * read it, from the registered regions and providers. Nothing else in those zones is the gateway's,
+ * so nothing else is answered with the node. See spec/architecture/host.md, "The resolver answers
+ * the gateway's names, and passes the rest on".
+ */
+export const GATEWAY_NAMES = {
+	exact: [
+		...GATEWAY.domains.flatMap((domain) => [`api.${domain}`, `cdn.${domain}`]),
+		GATEWAY.alias,
+		GATEWAY.symlink,
+	],
+	deployments: {
+		zone: GATEWAY.deployments,
+		regions: Object.keys(GATEWAY.regions),
+		providers: Object.keys(GATEWAY.providers),
+	},
+} as const;
+
+/**
  * Where each consumer's pages are served, by its service code: what a declaration's `cors.origins`
  * names, so no `service.toml` spells an origin. The status page has three doors, the platform's
  * own among them. See spec/architecture/gateway.md, "A route names who may call it by service

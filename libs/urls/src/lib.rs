@@ -76,3 +76,11 @@ pub const EXTERNAL_GOOGLE_FONTS_STATIC: &str = "https://fonts.gstatic.com";
 /// Every hostname the gateway answers at home.
 #[rustfmt::skip]
 pub const GATEWAY_HOSTS: [&str; 5] = ["*.monoflake.com", "*.monoflake.net", "*.ixc.one", "ill.li", "symlink.si"];
+/// The names the gateway answers at home exactly, and the zone its deployments are read under.
+#[rustfmt::skip]
+pub const GATEWAY_EXACT: [&str; 6] = ["api.monoflake.com", "cdn.monoflake.com", "api.monoflake.net", "cdn.monoflake.net", "ill.li", "symlink.si"];
+pub const GATEWAY_DEPLOYMENTS: &str = "ixc.one";
+#[rustfmt::skip]
+pub const GATEWAY_REGIONS: [&str; 2] = ["rdu", "glo"];
+#[rustfmt::skip]
+pub const GATEWAY_PROVIDERS: [&str; 3] = ["int", "cf", "vcl"];

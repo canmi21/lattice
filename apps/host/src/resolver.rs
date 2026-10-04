@@ -20,13 +20,24 @@ fn literal(text: &str) -> String {
 	text.replace('.', "[.]")
 }
 
-/// One of the gateway's hostnames as CoreDNS's template plugin takes it: the zone it is under, and
-/// what in that zone it matches -- every name below it for a wildcard, the name itself otherwise.
-fn matched(host: &str) -> (String, String) {
-	match host.strip_prefix("*.") {
-		Some(zone) => (zone.to_owned(), format!("^.+[.]{}[.]$", literal(zone))),
-		None => (host.to_owned(), format!("^{}[.]$", literal(host))),
-	}
+/// Each name the gateway answers at home as CoreDNS's template plugin takes it: the zone it is
+/// under, and what in that zone it matches -- one exact name, or a deployment's, read from the
+/// right as the profiles read it. Nothing else in those zones is matched, so a record of another
+/// name there answers as it does in public.
+fn names() -> Vec<(String, String)> {
+	let mut names: Vec<(String, String)> = urls::GATEWAY_EXACT
+		.iter()
+		.map(|name| ((*name).to_owned(), format!("^{}[.]$", literal(name))))
+		.collect();
+	let zone = urls::GATEWAY_DEPLOYMENTS;
+	let deployment = format!(
+		"^[a-z][a-z0-9-]*-({})-({})[.]{}[.]$",
+		urls::GATEWAY_REGIONS.join("|"),
+		urls::GATEWAY_PROVIDERS.join("|"),
+		literal(zone)
+	);
+	names.push((zone.to_owned(), deployment));
+	names
 }
 
 /// The Corefile, or nothing on a node that runs no resolver. Each of the gateway's names answers
@@ -39,8 +50,7 @@ pub fn render(config: &ResolverConfig, filters: &[String]) -> Option<String> {
 		String::from("# Rendered by host, never edited by hand; see spec/architecture/host.md.\n");
 	out
 		.push_str(&format!(".:{LISTEN} {{\n\terrors\n\thealth :{HEALTH}\n\treload 10s\n\tcache 300\n"));
-	for host in urls::GATEWAY_HOSTS {
-		let (zone, pattern) = matched(host);
+	for (zone, pattern) in names() {
 		out.push_str(&format!(
 			"\ttemplate IN A {zone} {{\n\t\tmatch {pattern}\n\t\tanswer \"{{{{ .Name }}}} {OWN_TTL} IN A {address}\"\n\t\tfallthrough\n\t}}\n"
 		));
@@ -81,13 +91,30 @@ mod tests {
 	fn answers_every_gateway_name_with_the_node_and_nothing_else_for_it() {
 		let text = render(&config(), &[]).unwrap();
 		assert!(text.contains(".:1053 {"));
-		assert!(text.contains("template IN A monoflake.com {\n\t\tmatch ^.+[.]monoflake[.]com[.]$"));
+		assert!(
+			text.contains("template IN A api.monoflake.com {\n\t\tmatch ^api[.]monoflake[.]com[.]$")
+		);
 		assert!(text.contains("template IN A ill.li {\n\t\tmatch ^ill[.]li[.]$"));
 		assert!(text.contains("answer \"{{ .Name }} 60 IN A 10.0.0.11\""));
+		let deployment = "match ^[a-z][a-z0-9-]*-(rdu|glo)-(int|cf|vcl)[.]ixc[.]one[.]$";
 		assert!(
-			text.contains("template ANY ANY ixc.one {\n\t\tmatch ^.+[.]ixc[.]one[.]$\n\t\trcode NOERROR")
+			text.contains(&format!("template ANY ANY ixc.one {{\n\t\t{deployment}\n\t\trcode NOERROR"))
 		);
-		assert_eq!(text.matches("template IN A ").count(), urls::GATEWAY_HOSTS.len());
+		assert_eq!(text.matches("template IN A ").count(), urls::GATEWAY_EXACT.len() + 1);
+	}
+
+	#[test]
+	fn leaves_every_other_name_in_the_gateways_zones_to_the_upstreams() {
+		let deployment = regex::Regex::new(&names().last().unwrap().1).unwrap();
+		for own in ["geo-rdu-int.ixc.one.", "api-glo-cf.ixc.one.", "two-words-rdu-int.ixc.one."] {
+			assert!(deployment.is_match(own), "{own}");
+		}
+		for other in ["lo.ixc.one.", "api.internal.ixc.one.", "geo-xyz-int.ixc.one.", "www.ixc.one."] {
+			assert!(!deployment.is_match(other), "{other}");
+		}
+		let text = render(&config(), &[]).unwrap();
+		// No zone is taken whole: every pattern names an exact host or a deployment's shape.
+		assert!(!text.contains("www") && !text.contains("^.+"));
 	}
 
 	#[test]

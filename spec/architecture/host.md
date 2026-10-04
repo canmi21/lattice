@@ -316,9 +316,11 @@ nothing about it is written by hand.
 
 **A query passes down one chain, and a step that fails is skipped, never waited on:**
 
-1. **The gateway's names**, every one `GATEWAY_HOSTS` holds, answered in the resolver's own process
-   with the node's address, so the LAN and the tailnet reach the internal gateway. Nothing outside
-   the process is asked, so this step has nothing to fail on.
+1. **The gateway's names**, answered in the resolver's own process with the node's address, so the
+   LAN and the tailnet reach the internal gateway: `GATEWAY_NAMES`, the API and CDN hosts, the two
+   apexes, and a deployment's name read from the registered regions and providers. Every other name
+   in those zones -- `www.`, a record of the author's own -- goes on down the chain and answers as it
+   does in public. Nothing outside the process is asked, so this step has nothing to fail on.
 2. **A filter**, when one is deployed -- an ad blocker, say -- asked first for every other name. It
    is in the chain because it runs, and out of it because it does not, with nothing changed by
    hand. A name it blocks comes back blocked: that is an answer, not a failure, and is not asked
