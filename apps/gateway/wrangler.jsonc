@@ -4,21 +4,17 @@
 	"main": "src/worker.ts",
 	"compatibility_date": "2026-07-29",
 
-	// The public API host, declared here so every deploy asserts it: attached in the dashboard, it
-	// was gone after a deploy and nothing said so. See spec/toolchain.md.
-	// The service layer's hosts this Worker answers; each is a profile in src/profile.ts. See
-	// spec/architecture/gateway.md.
+	// Declared here so every deploy asserts them: a host attached in the dashboard was gone after a
+	// deploy and nothing said so. Each is a profile in src/profile.ts. A zone that is the gateway's
+	// alone is one wildcard route over its proxied wildcard record; an apex is a custom domain. See
+	// spec/toolchain.md and spec/architecture/gateway.md.
 	"routes": [
-		{ "pattern": "api.ffoni.com", "custom_domain": true },
-		{ "pattern": "cdn.ffoni.com", "custom_domain": true },
-		{ "pattern": "ill.li", "custom_domain": true },
-		{ "pattern": "api.monoflake.com", "custom_domain": true },
-		{ "pattern": "cdn.monoflake.com", "custom_domain": true },
-		{ "pattern": "api.monoflake.net", "custom_domain": true },
-		{ "pattern": "cdn.monoflake.net", "custom_domain": true },
-		{ "pattern": "symlink.si", "custom_domain": true },
-		// Every deployment's own host, one label under the apex, by the zone's wildcard record.
+		{ "pattern": "*.monoflake.com/*", "zone_name": "monoflake.com" },
+		{ "pattern": "*.monoflake.net/*", "zone_name": "monoflake.net" },
 		{ "pattern": "*.ixc.one/*", "zone_name": "ixc.one" },
+		{ "pattern": "*.ffoni.com/*", "zone_name": "ffoni.com" },
+		{ "pattern": "ill.li", "custom_domain": true },
+		{ "pattern": "symlink.si", "custom_domain": true },
 	],
 
 	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and

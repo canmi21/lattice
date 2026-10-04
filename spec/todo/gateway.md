@@ -15,12 +15,6 @@ over it, but the CDN keeps derived pictures in its own cache by that stamp, so i
 there. Whether the CDN's own cache reads its lifetime from the declaration instead, and the alias
 layer's stamps go, is the cleanup pass's to settle.
 
-## GitHub's webhook still calls the old host
-
-Every address here names the new hosts. GitHub's webhook for workflow runs is set outside the
-repository, at `api.ffoni.com/hook/github`, which the retired profile still reads as
-`/v1/hook/github`; it moves to `api.monoflake.com/v1/hook/github` before `ffoni.com` is released.
-
 ## The whitelists are written by hand, and checked against the table only
 
 `rules/ill.li/alias-paths-only.txt`, `rules/ffoni.com/api-scopes-only.txt` and

@@ -247,7 +247,7 @@ function developing(c: Gate): boolean {
 
 /**
  * The address as the profiles read it. A development session reads as the API host, whatever name
- * it was asked on: `wrangler dev` hands it the first custom domain's rather than this machine's.
+ * it was asked on: `wrangler dev` hands it a host of the first route's rather than this machine's.
  */
 function asked(c: Gate): URL {
 	const url = new URL(c.req.url);

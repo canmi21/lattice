@@ -34,10 +34,19 @@ from outside: another Worker's `fetch` passing through a route does not run that
 which is how the alias layer found `api.ffoni.com/site/*` answering it with nothing while the
 gateway held the path by a route. A scope of the API host is reached by binding.
 
-**The gateway declares its custom domain in its `wrangler.jsonc`.** Attached in the dashboard,
+**The gateway declares its hosts in its `wrangler.jsonc`.** Attached in the dashboard,
 `api.ffoni.com` was gone after a deploy that followed its move from the old API Worker -- the DNS
 record went with it, and the first sign was the host not resolving. Declared, every deploy asserts
-it. The other Workers' domains are still the dashboard's, and move the same way if one goes.
+them, and a custom domain left out of the list is detached by the deploy, its DNS record with it.
+The other Workers' domains are still the dashboard's, and move the same way if one goes.
+
+**A zone that is the gateway's alone is one wildcard route; an apex is a custom domain.**
+`monoflake.com`, `monoflake.net`, `ixc.one` and `ffoni.com` serve nothing but the gateway below
+their apex, so each is `*.{zone}/*` over a proxied `*` record, and a host the profiles add needs no
+change here or in the dashboard -- one the profiles do not know is refused by the gateway and its
+whitelist. A route matches no apex, so `ill.li` and `symlink.si`, which are their apexes, are
+custom domains. The wildcard record exists before the deploy that drops a custom domain on it,
+since the explicit record goes with the domain and the wildcard is what answers after.
 
 The cost is real and accepted: there is no URL to open between uploading a version and
 promoting it, so a deploy is the first time the code meets production. What replaces that
