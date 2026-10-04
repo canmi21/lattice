@@ -228,6 +228,24 @@ describe('the gateway', () => {
 		expect(text).not.toContain('Content-Signal');
 	});
 
+	it('says nothing a crawler reading no Allow would read as a refusal, where all is open', async () => {
+		const open: Record<string, Scope> = {
+			cdn: {
+				placement: WORKERS,
+				binding: 'CDN',
+				worker: 'cdn',
+				routes: [{ ...GATEWAY_DEFAULTS, path: '/*', crawlable: true }],
+			},
+		};
+		const answer = await gateway(open).fetch(
+			new Request(new URL('/robots.txt', `https://${GATEWAY.retired.cdn}`)),
+			{},
+		);
+		const lines = (await answer.text()).split('\n');
+		expect(lines).toContain('Disallow: ');
+		expect(lines).not.toContain('Disallow: /');
+	});
+
 	it("lets a crawler into a CDN host as far as its routes say", async () => {
 		const cdn: Record<string, Scope> = {
 			cdn: {

@@ -192,9 +192,11 @@ function robotsOf(profile: Profile, scopes: Readonly<Record<string, Scope>>): st
 	if (!profile.crawled) return robotsTxt({ disallow: ['/'], agent: hostOf(profile) });
 	const allow: string[] = [];
 	const disallow: string[] = [];
+	let open = true;
 	for (const [service, scope] of Object.entries(scopes)) {
 		if (profile.service !== undefined && profile.service !== service) continue;
 		const base = scope.routes.at(-1) ?? DEFAULT_ROUTE;
+		open &&= base.crawlable;
 		for (const route of scope.routes) {
 			if (!route.exposed) continue;
 			if (route === base ? !route.crawlable : route.crawlable === base.crawlable) continue;
@@ -202,7 +204,12 @@ function robotsOf(profile: Profile, scopes: Readonly<Record<string, Scope>>): st
 			if (path) (route.crawlable ? allow : disallow).push(path);
 		}
 	}
-	return robotsTxt({ allow, disallow: [...disallow, '/'], agent: hostOf(profile) });
+	const agent = hostOf(profile);
+	// Everything the host reaches admits crawlers by default: say only what it refuses, and nothing
+	// at all where it refuses nothing. A `Disallow: /` under `Allow` lines shuts out a crawler that
+	// reads no `Allow` -- Twitterbot, fetching a card's picture, is one.
+	if (open) return robotsTxt({ disallow: disallow.length > 0 ? disallow : [''], agent });
+	return robotsTxt({ allow, disallow: [...disallow, '/'], agent });
 }
 
 /**

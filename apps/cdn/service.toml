@@ -10,6 +10,11 @@ placements = ["workers"]
 [api]
 public = true
 
+# All of it may be fetched by a crawler, and is: a card's picture is fetched by crawlers that read no
+# `Allow`, so the host says nothing it does not refuse. See spec/architecture/gateway.md.
+[api.defaults]
+crawlable = true
+
 [api.defaults.cors]
 origins = "public"
 
@@ -21,14 +26,12 @@ redirected = "1h"
 rejected = "5m"
 faulted = "none"
 
-# Content addressed, so the bytes behind an address never change, and a crawler may take them.
+# Content addressed, so the bytes behind an address never change.
 [[api.routes]]
 path = "/object/*"
-crawlable = true
 cache = { success = { fulfilled = "immutable", redirected = "immutable" } }
 
 # A conversion of content-addressed bytes, as settled as the bytes it names.
 [[api.routes]]
 path = "/derive/*"
-crawlable = true
 cache = { success = { fulfilled = "immutable", redirected = "immutable" } }

@@ -274,6 +274,12 @@ serves is public and a crawler reading a page is better for reaching what the pa
 retired host answers as the host it was replaced by. That two hosts serve the same bytes is the
 application layer's concern, where pages are; here there are none.
 
+**A host that admits crawlers everywhere says so with nothing refused.** Where every service a host
+reaches is crawlable by default, its robots.txt lists only what is refused, and an empty `Disallow:`
+when nothing is -- never `Allow` lines over a `Disallow: /`. Twitterbot reads the 1994 draft, which
+has no `Allow`, and would see only the refusal: a card's picture on the CDN went unfetched once for
+exactly that.
+
 **The firewall's whitelist is generated from the same set, and synced by the same script.** A
 service-layer zone's rules in `rules/` -- which paths each of its hosts lets through to a Worker at
 all -- are written by `mise run scopes` beside the table, never by hand, so the WAF refuses exactly
