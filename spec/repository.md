@@ -28,7 +28,7 @@ moved here with the split, `apps/local/src/store-agreement.test.ts`: the store c
 app, and this app reads the store as published.
 
 **The site's API scope is granted by the platform.** The gateway routes it, and its declaration,
-`apps/site/service.toml`, is copied into the platform's `apps/gateway/elsewhere/`; a change to the
+`apps/site/service.toml`, is copied into the platform's `apps/edge/gateway/elsewhere/`; a change to the
 site's API is made in both.
 
 This repository is `canmi21/lattice` renamed, so its history and its stars stayed with the site.

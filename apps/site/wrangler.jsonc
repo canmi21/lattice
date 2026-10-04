@@ -42,7 +42,7 @@
 	"observability": { "logs": { "enabled": true, "invocation_logs": true } },
 	"placement": { "mode": "smart" },
 
-	// Custom domains only; see apps/cdn for the reasoning.
+	// Custom domains only; see apps/delivery/cdn for the reasoning.
 	"workers_dev": false,
 	"preview_urls": false,
 }

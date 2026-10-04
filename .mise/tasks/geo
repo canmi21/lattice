@@ -9,7 +9,7 @@ set -euo pipefail
 # repository cloned beside this one, holds the only copy of the addresses, and what `local` reads
 # here is what the service answers from.
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-GEO="$ROOT/../platform/apps/geo"
+GEO="$ROOT/../platform/apps/compute/geo"
 [ -f "$GEO/Dockerfile" ] || { echo "geo: no platform checkout beside this one at $GEO" >&2; exit 1; }
 TARGET="$ROOT/data/source/geo"
 

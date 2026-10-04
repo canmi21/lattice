@@ -242,18 +242,18 @@ A worker's tests are checked _with the worker_, because they exercise worker cod
 -- putting them elsewhere pulls the whole worker into a program that has the browser's globals,
 which is the thing being avoided.
 
-What the separation exposed is the argument for it. The platform's `apps/cdn` polyfills `ImageData` because
+What the separation exposed is the argument for it. The platform's `apps/delivery/cdn` polyfills `ImageData` because
 workerd has none, and the polyfill needed a `@ts-expect-error` to install itself -- it was being
 checked against a browser's `ImageData`, which it is not. The type now lives in
-`apps/cdn/worker-runtime.d.ts` and describes what the polyfill supplies, so the declaration and
+`apps/delivery/cdn/worker-runtime.d.ts` and describes what the polyfill supplies, so the declaration and
 the implementation are one claim instead of two that happened to agree.
 
 ## Grouping threshold
 
 `apps/` is flat. Introduce a grouping directory only once one category exceeds four members,
 and let the growth force it rather than predicting it. Four apps, as here, do not need a taxonomy.
-The platform's `apps/` holds fifteen and is flat too, past
-this threshold; whether it groups them is not decided.
+The platform's `apps/` passed it at fifteen and is grouped by what each app does -- see platform's
+`spec/repository.md`.
 
 ## Extraction threshold
 
@@ -263,7 +263,7 @@ the guess is made at the moment least is known. Waiting means the shared shape i
 two real uses instead of one real use and one imagined one.
 
 The counterpart matters as much: once the second consumer exists, extract rather than copy.
-The API -- then `apps/api` -- read its metadata straight out of R2 while `apps/cdn` read the same bucket through
+The API -- then `apps/api` -- read its metadata straight out of R2 while `apps/delivery/cdn` read the same bucket through
 a store that also knew how to read the local tree, so the API had no local development at all
 -- every lookup was a 404 until `--remote` reached a bucket that only production writes. The
 copy was not a duplicated function, it was a capability one side silently lacked.
