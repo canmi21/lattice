@@ -86,9 +86,10 @@ describe('development ports', () => {
 	it('gives every app its pinned address', () => {
 		expect(developmentUrls()).toEqual({
 			site: 'http://localhost:26511',
-			api: 'http://localhost:26512/site',
-			alias: 'http://localhost:26514',
-			cdn: 'http://localhost:26516',
+			api: 'http://localhost:26512/v1/site',
+			alias: 'http://localhost:26512/v1/aka',
+			symlink: 'http://localhost:26512/v1/aka/symlink',
+			cdn: 'http://localhost:26512/v3/cdn',
 			panel: 'http://localhost:26519',
 		});
 	});

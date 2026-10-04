@@ -48,7 +48,7 @@ interval = 5
 id = "api.geo.ip"
 name = "Geolocation API"
 kind = "api"
-target = "API_PUBLIC/geo/v1/ip"
+target = "API_PUBLIC/v1/geo/ip"
 interval = 30
 expect = { fields = ["credit"], within = 5 }
 
@@ -57,7 +57,7 @@ expect = { fields = ["credit"], within = 5 }
 id = "api.shot.capture"
 name = "Screenshot API"
 kind = "api"
-target = "API_PUBLIC/shot/v1/tasks"
+target = "API_PUBLIC/v1/shot/tasks"
 method = "POST"
 body = '{"target":{"host":"canmi.net"}}'
 interval = 3600

@@ -62,8 +62,8 @@ not". `ixc.one` has no second: a deployment's own host is for pinning, not for p
 **A profile is a row in a table, not code.** A new short host, or a new node, is one more row: the
 hostname, what it fixes, the version it pins, and the path it puts in front, if any.
 `symlink.si/{path}` reaches the alias layer as `/v1/symlink/{path}`; `ill.li/symlink/...` is then no
-address at all, and `ill.li` carries short links alone. Until the pages ask `symlink.si` for their
-marks, `ill.li` forwards every old path as it was, as a retired host does.
+address at all, and `ill.li` carries short links alone. `ill.li` is pinned at `v1`, where the alias layer
+answers a short link and, still, the old `/symlink/...` a mark was once asked at.
 
 **The alias layer's code is `aka`**, the name its Worker and its directory have always had: short,
 and what it has been called everywhere it is named.
@@ -323,6 +323,7 @@ then.
 **A domain being retired is a profile that proxies, not one that redirects.** `cdn.ffoni.com` and
 `api.ffoni.com` stay bound to the gateway, as profiles that read their old addresses into the new
 tuple and answer as the new hosts would. A link to them keeps working, unchanged, with no 301 for
-a client to follow or a cache to remember. Until the services answer only versioned paths, a
-retired host forwards its old, unversioned path as it was. Once every caller here has moved, the rows are deleted
+a client to follow or a cache to remember. A retired host is pinned at the version its old paths
+were spelled for -- `api.ffoni.com/geo/ip` is `/v1/geo/ip` -- so what kept its shape answers there
+still, and a route that changed shape with its first version does not. Once every caller here has moved, the rows are deleted
 and the domain goes quiet; `ffoni.com` is then released.

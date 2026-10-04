@@ -16,5 +16,5 @@ export const trailingSlash = 'ignore';
  */
 export const load: LayoutServerLoad = async () => ({
 	year: new Date().getUTCFullYear(),
-	marks: await marksOf(pickUrls(dev).alias, 'status', MARKS),
+	marks: await marksOf(pickUrls(dev).symlink, 'status', MARKS),
 });

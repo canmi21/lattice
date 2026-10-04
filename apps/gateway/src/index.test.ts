@@ -137,15 +137,15 @@ describe('the gateway', () => {
 	});;
 
 	it('does not know a scope outside its table, or one inherited from Object', async () => {
-		for (const path of ['/nothing/x', '/constructor/x']) {
+		for (const path of ['/v1/nothing/x', '/v1/constructor/x']) {
 			expect((await ask(path)).status).toBe(404);
 		}
 		// Not a name a service could have, so the path is malformed rather than its scope unknown.
-		expect((await ask('/__proto__/x')).status).toBe(400);
+		expect((await ask('/v1/__proto__/x')).status).toBe(400);
 	});
 
 	it('says so when a scope it knows has no binding', async () => {
-		const answer = await ask('/site/x');
+		const answer = await ask('/v1/site/x');
 		expect(answer.status).toBe(502);
 		expect(await answer.json()).toMatchObject({ code: 'scope_unavailable' });
 	});
@@ -162,25 +162,25 @@ describe('the gateway', () => {
 				Response.json({ status: 'error', code: 'service_unavailable' }, { status: 503 }),
 		} as unknown as Fetcher;
 		for (const HOME of [thrown, page]) {
-			const answer = await ask('/geo/address', { HOME });
+			const answer = await ask('/v1/geo/address', { HOME });
 			expect(answer.status).toBe(502);
 			expect(await answer.json()).toMatchObject({ code: 'upstream_unavailable' });
 		}
 		// A service's own failure is passed on as it said it.
-		const passed = await ask('/geo/address', { HOME: own });
+		const passed = await ask('/v1/geo/address', { HOME: own });
 		expect(passed.status).toBe(503);
 	});
 
 	it('hands a Workers scope its request with the scope taken off', async () => {
 		const { fetcher, seen } = binding();
 		const answer = await ask(
-			'/site/like?slug=a',
+			'/v1/site/like?slug=a',
 			{ SITE: fetcher, limits: counters(true).counters },
 			{ method: 'PUT', headers: { 'cf-connecting-ip': '192.0.2.1' }, body: 'x' },
 		);
 		expect(answer.status).toBe(200);
 		const [sent] = seen;
-		expect(sent?.url).toBe(`${HOST}/api/like?slug=a`);
+		expect(sent?.url).toBe(`${HOST}/api/v1/like?slug=a`);
 		expect(sent?.method).toBe('PUT');
 		expect(sent?.headers.get('cf-connecting-ip')).toBe('192.0.2.1');
 		expect(await sent?.text()).toBe('x');
@@ -188,8 +188,8 @@ describe('the gateway', () => {
 
 	it('gives the bare scope the root of its prefix', async () => {
 		const { fetcher, seen } = binding();
-		await ask('/site', { SITE: fetcher });
-		expect(seen[0]?.url).toBe(`${HOST}/api/`);
+		await ask('/v1/site', { SITE: fetcher });
+		expect(seen[0]?.url).toBe(`${HOST}/api/v1/`);
 	});
 
 	it("sends a scope bound to `development` to its Worker's development address", async () => {
@@ -200,11 +200,11 @@ describe('the gateway', () => {
 			new Response('ok')
 		)) as typeof fetch;
 		try {
-			await ask('/site/media?resource=a', { SITE: 'development' });
+			await ask('/v1/site/media?resource=a', { SITE: 'development' });
 		} finally {
 			globalThis.fetch = real;
 		}
-		expect(seen).toEqual([`${developmentUrl('site')}/api/media?resource=a`]);
+		expect(seen).toEqual([`${developmentUrl('site')}/api/v1/media?resource=a`]);
 	});
 
 	it("sends the host's own address to the site", async () => {
@@ -275,7 +275,7 @@ describe('the gateway', () => {
 			.mockResolvedValue(new Response(null, { status: 302, headers: { Location: object } }));
 		const answer = await ask('/favicon.ico');
 		expect(String(fetching.mock.calls[0]?.[0])).toBe(
-			`${URLS.apps.production.alias}/symlink/api/favicon.ico`,
+			`${URLS.apps.production.symlink}/api/favicon.ico`,
 		);
 		expect(answer.status).toBe(302);
 		expect(answer.headers.get('Location')).toBe(object);
@@ -292,7 +292,7 @@ describe('the gateway', () => {
 		} as unknown as Fetcher;
 		const fetching = vi.spyOn(globalThis, 'fetch');
 		const answer = await ask('/favicon.ico', { AKA });
-		expect(seen).toEqual([`${URLS.apps.production.alias}/symlink/api/favicon.ico`]);
+		expect(seen).toEqual([`${URLS.apps.production.symlink}/v1/symlink/api/favicon.ico`]);
 		expect(fetching).not.toHaveBeenCalled();
 		expect(answer.headers.get('Location')).toBe(object);
 		fetching.mockRestore();
@@ -300,17 +300,17 @@ describe('the gateway', () => {
 
 	it("sends a node's scope to its Caddy with the scope left on", async () => {
 		const { fetcher, seen } = binding();
-		await ask('/geo/address?latitude=1&longitude=2', { HOME: fetcher });
+		await ask('/v1/geo/address?latitude=1&longitude=2', { HOME: fetcher });
 		const node = new URL(URLS.internal.app);
 		node.hostname = `api.${node.hostname}`;
 		node.protocol = 'http:';
-		expect(seen[0]?.url).toBe(`${node.origin}/geo/address?latitude=1&longitude=2`);
+		expect(seen[0]?.url).toBe(`${node.origin}/geo/v1/address?latitude=1&longitude=2`);
 	});
 
 	it('answers a preflight from a listed origin itself', async () => {
 		const { fetcher, seen } = binding();
 		const answer = await ask(
-			'/site/like',
+			'/v1/site/like',
 			{ SITE: fetcher },
 			{ method: 'OPTIONS', headers: { origin: listed, 'access-control-request-method': 'PUT' } },
 		);
@@ -323,7 +323,7 @@ describe('the gateway', () => {
 		const { fetcher } = binding();
 		const env = { SITE: fetcher };
 		const from = async (origin?: string) =>
-			(await ask('/site/stats', env, { headers: origin ? { origin } : {} })).headers;
+			(await ask('/v1/site/stats', env, { headers: origin ? { origin } : {} })).headers;
 		expect((await from(listed)).get('access-control-allow-origin')).toBe(listed);
 		expect((await from('https://stranger.test')).get('access-control-allow-origin')).toBeNull();
 		expect((await from()).get('access-control-allow-origin')).toBeNull();
@@ -332,7 +332,7 @@ describe('the gateway', () => {
 
 	it('gives a route that declares no CORS none at all', async () => {
 		const { fetcher } = binding();
-		const answer = await ask('/hook/github', { HOOK: fetcher }, { headers: { origin: listed } });
+		const answer = await ask('/v1/hook/github', { HOOK: fetcher }, { headers: { origin: listed } });
 		expect(answer.headers.get('access-control-allow-origin')).toBeNull();
 	});
 
@@ -341,14 +341,14 @@ describe('the gateway', () => {
 		const refused = counters(false);
 		const env = { SITE: fetcher, limits: refused.counters };
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
-		const answer = await ask('/site/like', env, { method: 'PUT', headers });
+		const answer = await ask('/v1/site/like', env, { method: 'PUT', headers });
 		expect(answer.status).toBe(429);
 		expect(answer.headers.get('retry-after')).toBe('7');
 		expect(refused.asked).toEqual([{ name: 'site_put_like_192.0.2.1', count: 10, seconds: 60 }]);
 		expect(seen).toHaveLength(0);
 		// Another method on the same path, and a caller with no address, are not this limit's.
-		expect((await ask('/site/like', env, { headers })).status).toBe(200);
-		expect((await ask('/site/like', env, { method: 'PUT' })).status).toBe(200);
+		expect((await ask('/v1/site/like', env, { headers })).status).toBe(200);
+		expect((await ask('/v1/site/like', env, { method: 'PUT' })).status).toBe(200);
 	});
 
 	it('skips the counter for a request carrying the probe token, and counts everyone else', async () => {
@@ -356,19 +356,19 @@ describe('the gateway', () => {
 		const refused = counters(false);
 		const env = { SITE: fetcher, limits: refused.counters, PROBE_TOKEN: 'shh' };
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
-		const probe = await ask('/site/like', env, {
+		const probe = await ask('/v1/site/like', env, {
 			method: 'PUT',
 			headers: { ...headers, 'x-probe': 'shh' },
 		});
 		expect(probe.status).toBe(200);
 		expect(seen).toHaveLength(1);
 		expect(refused.asked).toHaveLength(0);
-		const stranger = await ask('/site/like', env, {
+		const stranger = await ask('/v1/site/like', env, {
 			method: 'PUT',
 			headers: { ...headers, 'x-probe': 'nope' },
 		});
 		expect(stranger.status).toBe(429);
-		const nobody = await ask('/site/like', env, { method: 'PUT', headers });
+		const nobody = await ask('/v1/site/like', env, { method: 'PUT', headers });
 		expect(nobody.status).toBe(429);
 	});
 
@@ -376,7 +376,7 @@ describe('the gateway', () => {
 		const { fetcher } = binding();
 		const refused = counters(false);
 		const env = { SITE: fetcher, limits: refused.counters };
-		const answer = await ask('/site/like', env, {
+		const answer = await ask('/v1/site/like', env, {
 			method: 'PUT',
 			headers: { 'cf-connecting-ip': '192.0.2.1', 'x-probe': '' },
 		});
@@ -385,8 +385,8 @@ describe('the gateway', () => {
 
 	it('marks what it passes on as public, over whatever the caller claimed', async () => {
 		const { fetcher, seen } = binding();
-		await ask('/geo/address', { HOME: fetcher }, { headers: { [MARK.name]: 'internal' } });
-		await ask('/site/stats', { SITE: binding().fetcher });
+		await ask('/v1/geo/address', { HOME: fetcher }, { headers: { [MARK.name]: 'internal' } });
+		await ask('/v1/site/stats', { SITE: binding().fetcher });
 		expect(seen[0]?.headers.get(MARK.name)).toBe(MARK.value);
 	});
 
@@ -399,7 +399,7 @@ describe('the gateway', () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
 		const answer = await ask(
-			'/site/like',
+			'/v1/site/like',
 			{ SITE: fetcher, limits: broken },
 			{ method: 'PUT', headers },
 		);
@@ -411,7 +411,7 @@ describe('the gateway', () => {
 	it('refuses rather than skips a limit whose binding is missing', async () => {
 		const { fetcher } = binding();
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
-		expect((await ask('/site/like', { SITE: fetcher }, { method: 'PUT', headers })).status).toBe(
+		expect((await ask('/v1/site/like', { SITE: fetcher }, { method: 'PUT', headers })).status).toBe(
 			429,
 		);
 	});
@@ -425,14 +425,14 @@ describe("geo's declaration", () => {
 		const env = { HOME: binding().fetcher, limits: refused.counters };
 		const headers = { 'cf-connecting-ip': '192.0.2.1', origin: 'https://anyone.test' };
 		const lookup = await app.fetch(
-			new Request(`${HOST}/geo/address?latitude=1&longitude=2`, { headers }),
+			new Request(`${HOST}/v1/geo/address?latitude=1&longitude=2`, { headers }),
 			env,
 		);
 		expect(lookup.status).toBe(429);
 		expect(refused.asked).toEqual([
 			{ name: 'geo_get-head_address_192.0.2.1', count: 60, seconds: 60 },
 		]);
-		const health = await app.fetch(new Request(`${HOST}/geo/health`, { headers }), env);
+		const health = await app.fetch(new Request(`${HOST}/v1/geo/health`, { headers }), env);
 		expect(health.status).toBe(200);
 		expect(health.headers.get('access-control-allow-origin')).toBe('*');
 	});
@@ -448,14 +448,14 @@ describe("shot's declaration", () => {
 		const env = { HOME: fetcher, limits: allowing.counters };
 		for (const query of ['internal=true', 'internal=false', 'internal', 'host=a.test&internal=1']) {
 			const answer = await app.fetch(
-				new Request(`${HOST}/shot/capture?${query}`, { headers }),
+				new Request(`${HOST}/v1/shot/capture?${query}`, { headers }),
 				env,
 			);
 			expect(answer.status, query).toBe(403);
 			expect(await answer.json()).toMatchObject({ code: 'forbidden_parameter' });
 		}
 		const status = await app.fetch(
-			new Request(`${HOST}/shot/tasks/abc?internal=true`, { headers }),
+			new Request(`${HOST}/v1/shot/tasks/abc?internal=true`, { headers }),
 			env,
 		);
 		expect(status.status).toBe(403);
@@ -468,7 +468,7 @@ describe("shot's declaration", () => {
 		const env = { HOME: fetcher, limits: counters(true).counters };
 		const post = (body: string) =>
 			app.fetch(
-				new Request(`${HOST}/shot/capture`, {
+				new Request(`${HOST}/v1/shot/capture`, {
 					method: 'POST',
 					headers: { ...headers, 'content-type': 'application/json' },
 					body,
@@ -497,7 +497,7 @@ describe("shot's declaration", () => {
 		const env = { HOME: fetcher, limits: allowing.counters };
 		for (const query of ['fresh=true', 'fresh=false', 'fresh', 'host=a.test&fresh=1']) {
 			const answer = await app.fetch(
-				new Request(`${HOST}/shot/capture?${query}`, { headers }),
+				new Request(`${HOST}/v1/shot/capture?${query}`, { headers }),
 				env,
 			);
 			expect(answer.status, query).toBe(403);
@@ -512,7 +512,7 @@ describe("shot's declaration", () => {
 		const env = { HOME: fetcher, limits: counters(true).counters };
 		const post = (body: string) =>
 			app.fetch(
-				new Request(`${HOST}/shot/capture`, {
+				new Request(`${HOST}/v1/shot/capture`, {
 					method: 'POST',
 					headers: { ...headers, 'content-type': 'application/json' },
 					body,
@@ -533,19 +533,19 @@ describe("shot's declaration", () => {
 		const refused = counters(false);
 		const env = { HOME: binding().fetcher, limits: refused.counters };
 		const start = await app.fetch(
-			new Request(`${HOST}/shot/capture?host=a.test`, { headers }),
+			new Request(`${HOST}/v1/shot/tasks`, { method: 'POST', headers, body: '{}' }),
 			env,
 		);
 		expect(start.status).toBe(429);
 		for (const path of [
-			'/shot/tasks/0e6f',
-			'/shot/pictures/0e6f.png',
-			'/shot/pictures/0e6f.webp',
+			'/v1/shot/tasks/0e6f',
+			'/v1/shot/pictures/0e6f.png',
+			'/v1/shot/pictures/0e6f.webp',
 		]) {
 			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
 		}
 		expect(refused.asked.map((asked) => asked.name)).toEqual([
-			'shot_get-head-post_capture_192.0.2.1',
+			'shot_post_tasks_192.0.2.1',
 		]);
 	});
 });

@@ -19,11 +19,8 @@ export interface Placement {
 export interface Profile {
 	readonly name: string;
 	readonly service?: string;
-	/**
-	 * The version the hostname pins, or `null` for a retired host that forwards its old,
-	 * unversioned paths as they are.
-	 */
-	readonly version?: string | null;
+	/** The version the hostname pins; absent, the path names it. */
+	readonly version?: string;
 	/** Put in front of the path the hostname was asked, after the version. */
 	readonly prefix?: string;
 	readonly placement?: Placement;
@@ -38,8 +35,8 @@ export interface Profile {
 export interface Tuple {
 	readonly profile: string;
 	readonly service: string;
-	/** `v1`, `v3`; `null` for a retired host's unversioned path. */
-	readonly version: string | null;
+	/** `v1`, `v3`. */
+	readonly version: string;
 	readonly placement?: Placement;
 	/** The path after the version, as the service's declaration names its routes. */
 	readonly path: string;
@@ -58,9 +55,8 @@ const NAMED: Readonly<Record<string, Profile>> = {
 			[`cdn.${domain}`, { name: 'cdn', service: 'cdn', version: 'v3', crawled: true }],
 		]),
 	),
-	// Every old path as it was, until the pages ask `symlink.si` for their marks; then the short
-	// links alone, at `v1`. See spec/architecture/gateway.md, "A domain leaves without a redirect".
-	[GATEWAY.alias]: { name: 'alias', service: 'aka', version: null, crawled: true },
+	// Short links, and the old marks under `/symlink` until nothing asks for them there.
+	[GATEWAY.alias]: { name: 'alias', service: 'aka', version: 'v1', crawled: true },
 	[GATEWAY.symlink]: {
 		name: 'symlink',
 		service: 'aka',
@@ -68,8 +64,10 @@ const NAMED: Readonly<Record<string, Profile>> = {
 		prefix: '/symlink',
 		crawled: true,
 	},
-	[GATEWAY.retired.api]: { name: 'retired-api', version: null, crawled: false },
-	[GATEWAY.retired.cdn]: { name: 'retired-cdn', service: 'cdn', version: null, crawled: true },
+	// Read as the hosts that replaced them, at the version their old paths are spelled for. See
+	// spec/architecture/gateway.md, "A domain leaves without a redirect".
+	[GATEWAY.retired.api]: { name: 'retired-api', version: 'v1', crawled: false },
+	[GATEWAY.retired.cdn]: { name: 'retired-cdn', service: 'cdn', version: 'v3', crawled: true },
 };
 
 const VERSION = /^v[1-9]\d*$/;
@@ -132,12 +130,6 @@ export function readRequest(url: URL): Tuple | Refusal {
 		if (!SERVICE.test(segment)) return 'no_service';
 		[service, rest] = [segment, after];
 	}
-	// A retired host forwards its old paths as they were, and a caller already moved to a version
-	// may send one through it: read it as the version, so its routes are matched as declared.
-	if (version === null) {
-		const [segment, after] = shift(rest);
-		if (VERSION.test(segment)) [version, rest] = [segment, after];
-	}
 	const path = `${profile.prefix ?? ''}${rest === '/' && profile.prefix ? '' : rest}`;
 	return {
 		profile: profile.name,
@@ -145,6 +137,6 @@ export function readRequest(url: URL): Tuple | Refusal {
 		version,
 		...(profile.placement ? { placement: profile.placement } : {}),
 		path,
-		forward: `${version ? `/${version}` : ''}${path}`,
+		forward: `/${version}${path}`,
 	};
 }

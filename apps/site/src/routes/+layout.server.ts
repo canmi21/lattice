@@ -22,7 +22,7 @@ export const trailingSlash = 'ignore';
 export const load: LayoutServerLoad = async ({ locals, fetch }) => {
 	const [stats, marks] = await Promise.all([
 		siteStats(fetch).catch(() => undefined),
-		marksOf(pickUrls(dev).alias, 'site', MARKS),
+		marksOf(pickUrls(dev).symlink, 'site', MARKS),
 	]);
 	return {
 		locale: locals.locale ?? { code: 'mw' as const, language_tag: SITE_LANGUAGE },

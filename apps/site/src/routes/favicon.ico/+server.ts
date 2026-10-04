@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { followSymlink } from '@canmi/symlink';
+import { followSymlink, symlinkOf } from '@canmi/symlink';
 import { pickUrls } from '@canmi/urls';
 import type { RequestHandler } from './$types';
 
@@ -10,4 +10,5 @@ import type { RequestHandler } from './$types';
  */
 export const prerender = false;
 
-export const GET: RequestHandler = () => followSymlink(`${pickUrls(dev).alias}/symlink/site/favicon.ico`);
+export const GET: RequestHandler = () =>
+	followSymlink(symlinkOf(pickUrls(dev).symlink, 'site', 'favicon.ico'));

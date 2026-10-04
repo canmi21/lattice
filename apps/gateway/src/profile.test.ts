@@ -64,14 +64,14 @@ describe('a request read into its tuple', () => {
 		});
 	});
 
-	it("puts a short host's pinned version, and its prefix, in front of the path, and forwards ill.li's old paths as they were", () => {
+	it("puts a short host's pinned version, and its prefix, in front of the path", () => {
 		expect(read(GATEWAY.cdn, '/object/abc.avif')).toMatchObject({
 			service: 'cdn',
 			version: 'v3',
 			forward: '/v3/object/abc.avif',
 		});
-		expect(read(GATEWAY.alias, '/k7m2x')).toMatchObject({ service: 'aka', forward: '/k7m2x' });
-		expect(read(GATEWAY.alias, '/symlink/x.ico')).toMatchObject({ forward: '/symlink/x.ico' });
+		expect(read(GATEWAY.alias, '/k7m2x')).toMatchObject({ service: 'aka', forward: '/v1/k7m2x' });
+		expect(read(GATEWAY.alias, '/symlink/x.ico')).toMatchObject({ forward: '/v1/symlink/x.ico' });
 		expect(read(GATEWAY.symlink, '/site/favicon.ico')).toMatchObject({
 			service: 'aka',
 			path: '/symlink/site/favicon.ico',
@@ -95,29 +95,15 @@ describe('a request read into its tuple', () => {
 		});
 	});
 
-	it('reads a version a caller sends through a retired host, forwarding the same path', () => {
-		expect(read(GATEWAY.retired.api, '/probe/v1/checks/x/results')).toMatchObject({
-			service: 'probe',
-			version: 'v1',
-			path: '/checks/x/results',
-			forward: '/v1/checks/x/results',
-		});
-		expect(read(GATEWAY.retired.cdn, '/v3/object/a.avif')).toMatchObject({
-			version: 'v3',
-			path: '/object/a.avif',
-			forward: '/v3/object/a.avif',
-		});
-	});
-
-	it("forwards a retired host's old path as it was, unversioned", () => {
+	it("reads a retired host's old path as the version it was spelled for", () => {
 		expect(read(GATEWAY.retired.api, '/geo/ip')).toMatchObject({
 			service: 'geo',
-			version: null,
-			forward: '/ip',
+			version: 'v1',
+			forward: '/v1/ip',
 		});
 		expect(read(GATEWAY.retired.cdn, '/object/abc.avif')).toMatchObject({
 			service: 'cdn',
-			forward: '/object/abc.avif',
+			forward: '/v3/object/abc.avif',
 		});
 	});
 

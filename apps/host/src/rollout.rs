@@ -68,18 +68,8 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it; a driver runs none.
-const TAKEN: [&str; 10] = [
-	"keeper",
-	"meter",
-	"caddy",
-	"tunnel",
-	"panel",
-	OBJECTS,
-	"postgres",
-	"cron",
-	"apt",
-	"telemetry",
-];
+const TAKEN: [&str; 10] =
+	["keeper", "meter", "caddy", "tunnel", "panel", OBJECTS, "postgres", "cron", "apt", "telemetry"];
 
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";

@@ -15,29 +15,11 @@ over it, but the CDN keeps derived pictures in its own cache by that stamp, so i
 there. Whether the CDN's own cache reads its lifetime from the declaration instead, and the alias
 layer's stamps go, is the cleanup pass's to settle.
 
-## The CDN and the alias layer are not yet versioned, and the old paths still answer
+## GitHub's webhook still calls the old host
 
-geo, telemetry, probe, shot, hook and the site's public routes answer at `/v1/` in the shape the
-workspace's `spec/addresses.md` gives, and still answer their unversioned paths, which E8 takes
-away with the last caller. The CDN at `/v3/` and the alias layer at `/v1/` come with E5, when both
-move behind the gateway.
-
-Decided: the gateway forwards the version in the path, and a service routes on it; see the
-gateway's spec.
-
-## The addresses are spelled for the old hosts
-
-`libs/urls` names `API.public` as `https://api.ffoni.com`, the CDN as `https://cdn.ffoni.com` and
-the alias layer as `https://ill.li`; ten files read the CDN's, eight the API's and four the alias
-layer's, and the Rust mirror follows. The published corpus spells none of them -- every address is
-made at render from `libs/urls` -- so moving them republishes nothing.
-
-Outside the repository: GitHub's webhook calls `hook` at the old API host; Cloudflare holds the
-custom domains, the DNS for `monoflake.com`, `monoflake.net` and `ixc.one`, and the Worker routes the gateway would
-need for every profile's hostname.
-
-Decided: `rdu`.
-`api-{region}-int.ixc.one` can name it.
+Every address here names the new hosts. GitHub's webhook for workflow runs is set outside the
+repository, at `api.ffoni.com/hook/github`, which the retired profile still reads as
+`/v1/hook/github`; it moves to `api.monoflake.com/v1/hook/github` before `ffoni.com` is released.
 
 ## The whitelists are written by hand, and checked against the table only
 

@@ -44,7 +44,7 @@ export const REACH_PORT: number = 26520 + PORT_OFFSET;
 
 export type AppName = keyof typeof PINNED_PORTS;
 
-export type DevelopmentUrls = Readonly<Record<AppName, string>>;
+export type DevelopmentUrls = Readonly<Record<AppName | 'symlink', string>>;
 
 /** The site's scope of the API host, which is the service's name, `site`. */
 const SITE_SCOPE = 'site';
@@ -57,19 +57,27 @@ const SITE_SCOPE = 'site';
  * makes the site work from a phone on the same network. The site's API needs no proxy: the
  * site's Worker answers it under `/api/` itself.
  */
-export const DEVELOPMENT_PROXY_PATHS = { alias: '/alias', cdn: '/cdn' } as const;
+export const DEVELOPMENT_PROXY_PATHS = { alias: '/alias', symlink: '/symlink', cdn: '/cdn' } as const;
 
 export function developmentUrl(app: AppName): string {
 	return `http://localhost:${DEVELOPMENT_PORTS[app]}`;
 }
 
-/** Every app's address in development. */
+/**
+ * Every app's address in development. The service layer is reached through the development gateway,
+ * as it is in production, so its CORS and its lifetimes hold here too; the gateway has no short
+ * hosts here, so each is a service of the API host, at the version its short host pins. See
+ * spec/architecture/gateway.md and spec/architecture/services.md, "Development goes through the
+ * gateway too".
+ */
 export function developmentUrls(): DevelopmentUrls {
+	const gateway = developmentUrl('api');
 	return {
 		site: developmentUrl('site'),
-		api: `${developmentUrl('api')}/${SITE_SCOPE}`,
-		alias: developmentUrl('alias'),
-		cdn: developmentUrl('cdn'),
+		api: `${gateway}/v1/${SITE_SCOPE}`,
+		alias: `${gateway}/v1/aka`,
+		symlink: `${gateway}/v1/aka/symlink`,
+		cdn: `${gateway}/v3/cdn`,
 		panel: developmentUrl('panel'),
 	};
 }
@@ -95,7 +103,7 @@ export const GITHUB_OWNER = 'canmi21';
  * `shot` is the public scope a capture's pictures are named under, see shot.md.
  */
 /** The API host's two sides: private, where every container asks, and public, past the gateway. */
-const API = { private: 'https://api.canmi.icu', public: 'https://api.ffoni.com' } as const;
+const API = { private: 'https://api.canmi.icu', public: 'https://api.monoflake.com' } as const;
 
 const INTERNAL = {
 	app: 'https://canmi.app',
@@ -106,7 +114,7 @@ const INTERNAL = {
 	host: 'http://host:11011',
 	ledger: `${API.private}/ledger`,
 	cron: `${API.private}/cron`,
-	shot: `${API.public}/shot`,
+	shot: `${API.public}/v1/shot`,
 	api: API,
 	// The status page's doors: the one address, and Vercel's own name for it, reached while
 	// Cloudflare's DNS is not. See spec/architecture/probe.md, "The page: one app, three doors".
@@ -120,12 +128,15 @@ export const URLS = {
 			site: 'https://canmi.net',
 			// The site's public scope of the API host, which the alias layer reads; see
 			// spec/architecture/services.md, "The site's API runs in the site's Worker".
-			api: `${API.public}/${SITE_SCOPE}`,
+			api: `${API.public}/v1/${SITE_SCOPE}`,
 			// An apex of its own rather than a label under `infra`, because here the address is
 			// the product: a resolved name is read aloud and typed, and `ill.li/k7m2x` is short
 			// enough to be either. See spec/architecture/delivery.md.
 			alias: INTERNAL.alias,
-			cdn: 'https://cdn.ffoni.com',
+			// Where a scope's fixed names are followed: the alias layer's own host for them. See
+			// spec/architecture/gateway.md, "Every request is one address".
+			symlink: 'https://symlink.si',
+			cdn: 'https://cdn.monoflake.com',
 			// The panel, host's interface, an app of its own; see spec/architecture/host.md.
 			panel: INTERNAL.panel,
 		},

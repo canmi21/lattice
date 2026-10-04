@@ -246,12 +246,12 @@ function developing(c: Gate): boolean {
 }
 
 /**
- * The address as the profiles read it. A development session answers on this machine's name, and
- * reads as the API host its callers are written against until they move.
+ * The address as the profiles read it. A development session reads as the API host, whatever name
+ * it was asked on: `wrangler dev` hands it the first custom domain's rather than this machine's.
  */
 function asked(c: Gate): URL {
 	const url = new URL(c.req.url);
-	if (isDevHost(url.hostname)) url.host = GATEWAY.retired.api;
+	if (developing(c)) url.host = GATEWAY.api;
 	return url;
 }
 
@@ -281,11 +281,16 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		if (pathname === '/favicon.ico') {
 			// Through the alias layer's binding where there is one: once the gateway answers the alias
 			// layer's own host, asking that host would be asking itself.
+			// The binding takes the alias layer's own path for a fixed name, which `symlink.si`'s
+			// profile would otherwise put in front.
 			const aka = c.env.AKA;
 			const fetcher: typeof fetch = isFetcher(aka)
-				? (input, init) => aka.fetch(new Request(input, init))
+				? (input, init) => {
+						const name = new URL(input instanceof Request ? input.url : String(input));
+						return aka.fetch(new Request(new URL(`/v1/symlink${name.pathname}`, name), init));
+					}
 				: fetch;
-			return followSymlink(symlinkOf(pickUrls(developing(c)).alias, host, 'favicon.ico'), fetcher);
+			return followSymlink(symlinkOf(pickUrls(developing(c)).symlink, host, 'favicon.ico'), fetcher);
 		}
 		// The host's own address is somebody typing it: they go to the site, and `ref` tells the
 		// site's analytics where from.

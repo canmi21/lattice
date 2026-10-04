@@ -10,4 +10,4 @@ import type { RequestHandler } from './$types';
 export const prerender = false;
 
 export const GET: RequestHandler = () =>
-	serveSymlink(symlinkOf(pickUrls(dev).alias, 'site', 'sitemap.xsl'), 'text/xsl; charset=utf-8');
+	serveSymlink(symlinkOf(pickUrls(dev).symlink, 'site', 'sitemap.xsl'), 'text/xsl; charset=utf-8');

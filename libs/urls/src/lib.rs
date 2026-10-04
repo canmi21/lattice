@@ -2,14 +2,16 @@
 //! One URL map for both languages -- see spec/architecture/workspace.md.
 
 pub const APPS_DEVELOPMENT_SITE: &str = "http://localhost:26511";
-pub const APPS_DEVELOPMENT_API: &str = "http://localhost:26512/site";
-pub const APPS_DEVELOPMENT_ALIAS: &str = "http://localhost:26514";
-pub const APPS_DEVELOPMENT_CDN: &str = "http://localhost:26516";
+pub const APPS_DEVELOPMENT_API: &str = "http://localhost:26512/v1/site";
+pub const APPS_DEVELOPMENT_ALIAS: &str = "http://localhost:26512/v1/aka";
+pub const APPS_DEVELOPMENT_SYMLINK: &str = "http://localhost:26512/v1/aka/symlink";
+pub const APPS_DEVELOPMENT_CDN: &str = "http://localhost:26512/v3/cdn";
 pub const APPS_DEVELOPMENT_PANEL: &str = "http://localhost:26519";
 pub const APPS_PRODUCTION_SITE: &str = "https://canmi.net";
-pub const APPS_PRODUCTION_API: &str = "https://api.ffoni.com/site";
+pub const APPS_PRODUCTION_API: &str = "https://api.monoflake.com/v1/site";
 pub const APPS_PRODUCTION_ALIAS: &str = "https://ill.li";
-pub const APPS_PRODUCTION_CDN: &str = "https://cdn.ffoni.com";
+pub const APPS_PRODUCTION_SYMLINK: &str = "https://symlink.si";
+pub const APPS_PRODUCTION_CDN: &str = "https://cdn.monoflake.com";
 pub const APPS_PRODUCTION_PANEL: &str = "https://infra.canmi.icu";
 pub const SOURCE: &str = "https://github.com/canmi21/lattice";
 pub const INTERNAL_APP: &str = "https://canmi.app";
@@ -20,9 +22,9 @@ pub const INTERNAL_KEEPER: &str = "https://keeper.canmi.icu";
 pub const INTERNAL_HOST: &str = "http://host:11011";
 pub const INTERNAL_LEDGER: &str = "https://api.canmi.icu/ledger";
 pub const INTERNAL_CRON: &str = "https://api.canmi.icu/cron";
-pub const INTERNAL_SHOT: &str = "https://api.ffoni.com/shot";
+pub const INTERNAL_SHOT: &str = "https://api.monoflake.com/v1/shot";
 pub const INTERNAL_API_PRIVATE: &str = "https://api.canmi.icu";
-pub const INTERNAL_API_PUBLIC: &str = "https://api.ffoni.com";
+pub const INTERNAL_API_PUBLIC: &str = "https://api.monoflake.com";
 pub const INTERNAL_STATUS_CANONICAL: &str = "https://status.canmi.app";
 pub const INTERNAL_STATUS_MIRROR: &str = "https://canmi.vercel.app";
 pub const CONTACT_SECURITY: &str = "mailto:security@canmi.net";

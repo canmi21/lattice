@@ -84,7 +84,7 @@ describe('the cache at the gateway', () => {
 		};
 		const ask = () =>
 			app.fetch(
-				new Request(`${HOST}/geo/address?latitude=1`, {
+				new Request(`${HOST}/v1/geo/address?latitude=1`, {
 					headers: { 'cf-connecting-ip': '192.0.2.1' },
 				}),
 				{ ...env, limits: LIMITS },
@@ -96,25 +96,25 @@ describe('the cache at the gateway', () => {
 		expect(await second.text()).toBe('{}');
 		expect(seen).toHaveLength(1);
 		expect(counted).toHaveLength(1);
-		expect(put).toEqual([`${HOST}/geo/address?latitude=1 public, max-age=900`]);
+		expect(put).toEqual([`${HOST}/v1/geo/address?latitude=1 public, max-age=900`]);
 	});
 
 	it("keeps by the route's word, not the service's, and nothing for a credential or a write", async () => {
 		const { put } = install();
 		const app = gateway(table);
 		const { seen, env } = node(() => answer(200, { 'cache-control': 'no-store' }));
-		const said = await app.fetch(new Request(`${HOST}/geo/a`), env);
+		const said = await app.fetch(new Request(`${HOST}/v1/geo/a`), env);
 		expect(said.headers.get('cache-control')).toBe('public, max-age=900');
-		await app.fetch(new Request(`${HOST}/geo/a`), env);
+		await app.fetch(new Request(`${HOST}/v1/geo/a`), env);
 		const open = node(() => answer(200));
 		await app.fetch(
-			new Request(`${HOST}/geo/b`, { headers: { authorization: 'Bearer x' } }),
+			new Request(`${HOST}/v1/geo/b`, { headers: { authorization: 'Bearer x' } }),
 			open.env,
 		);
-		await app.fetch(new Request(`${HOST}/geo/b`, { method: 'POST', body: 'x' }), open.env);
-		await app.fetch(new Request(`${HOST}/geo/b`, { method: 'HEAD' }), open.env);
+		await app.fetch(new Request(`${HOST}/v1/geo/b`, { method: 'POST', body: 'x' }), open.env);
+		await app.fetch(new Request(`${HOST}/v1/geo/b`, { method: 'HEAD' }), open.env);
 		expect(seen).toHaveLength(1);
-		expect(put).toEqual([`${HOST}/geo/a public, max-age=900`]);
+		expect(put).toEqual([`${HOST}/v1/geo/a public, max-age=900`]);
 	});
 
 	it('keeps its own failure to reach the node as the route keeps a fault', async () => {
@@ -123,17 +123,17 @@ describe('the cache at the gateway', () => {
 		const down = {
 			HOME: { fetch: async () => Promise.reject(new Error('tunnel down')) } as unknown as Fetcher,
 		};
-		const answered = await app.fetch(new Request(`${HOST}/geo/address`), down);
+		const answered = await app.fetch(new Request(`${HOST}/v1/geo/address`), down);
 		expect(answered.status).toBe(502);
-		expect(put).toEqual([`${HOST}/geo/address public, max-age=300`]);
+		expect(put).toEqual([`${HOST}/v1/geo/address public, max-age=300`]);
 	});
 
 	it('gives HEAD what GET kept, without its body', async () => {
 		install();
 		const app = gateway(table);
 		const { env } = node(() => answer(200));
-		await app.fetch(new Request(`${HOST}/geo/c`), env);
-		const head = await app.fetch(new Request(`${HOST}/geo/c`, { method: 'HEAD' }), env);
+		await app.fetch(new Request(`${HOST}/v1/geo/c`), env);
+		const head = await app.fetch(new Request(`${HOST}/v1/geo/c`, { method: 'HEAD' }), env);
 		expect(head.headers.get(CACHE_HEADER)).toBe('hit');
 		expect(await head.text()).toBe('');
 	});
@@ -142,9 +142,9 @@ describe('the cache at the gateway', () => {
 		const { put } = install();
 		const app = gateway(table);
 		const ranged = node(() => answer(206, { 'content-range': 'bytes 0-1/10' }));
-		await app.fetch(new Request(`${HOST}/geo/r`, { headers: { range: 'bytes=0-1' } }), ranged.env);
+		await app.fetch(new Request(`${HOST}/v1/geo/r`, { headers: { range: 'bytes=0-1' } }), ranged.env);
 		const partial = node(() => answer(206));
-		await app.fetch(new Request(`${HOST}/geo/p`), partial.env);
+		await app.fetch(new Request(`${HOST}/v1/geo/p`), partial.env);
 		expect(put).toEqual([]);
 	});
 
@@ -158,8 +158,8 @@ describe('the cache at the gateway', () => {
 			},
 		});
 		const { seen, env } = node(() => answer(200));
-		await app.fetch(new Request(`${HOST}/geo/d`), env);
-		await app.fetch(new Request(`${HOST}/geo/d`), env);
+		await app.fetch(new Request(`${HOST}/v1/geo/d`), env);
+		await app.fetch(new Request(`${HOST}/v1/geo/d`), env);
 		expect(seen).toHaveLength(2);
 		expect(put).toEqual([]);
 	});

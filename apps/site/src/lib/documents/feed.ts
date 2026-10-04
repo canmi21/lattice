@@ -13,8 +13,8 @@ import type { FeedAnswer } from '@canmi/artifacts';
 import { localeUrl, type LocaleCode } from '$lib/locale';
 
 const SITE = URLS.apps.production.site;
-/** The site's own marks are named rather than hashed, and `/symlink` is where a name lives. */
-const MARKS = `${URLS.apps.production.alias}/symlink`;
+/** The site's own marks are named rather than hashed, and `symlink` is where a name lives. */
+const MARKS = URLS.apps.production.symlink;
 
 /** The site identity a feed carries, which `site.config.yaml` is the one source of. */
 export type FeedSite = {

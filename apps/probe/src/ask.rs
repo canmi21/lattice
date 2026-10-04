@@ -473,7 +473,9 @@ mod tests {
 		first.retry_after = Some(0);
 		fake.answers.insert(check.url.to_string(), first);
 		let done = serde_json::json!({"status": "success", "data": {"page": {"status": 200}}});
-		fake.answers.insert(format!("{}/shot/v1/tasks/1", urls::INTERNAL_API_PUBLIC), answer(200, done));
+		fake
+			.answers
+			.insert(format!("{}/shot/v1/tasks/1", urls::INTERNAL_API_PUBLIC), answer(200, done));
 		let fake = Arc::new(fake);
 		let context = Context::new(fake.clone(), None);
 		assert_eq!(run(&check, &context).await, Outcome::pass());

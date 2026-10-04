@@ -35,9 +35,9 @@ export async function followSymlink(name: string, fetcher: typeof fetch = fetch)
 	return answer(502, NEVER);
 }
 
-/** Where a scope's file is named on the alias layer, `alias` being that layer's origin. */
-export function symlinkOf(alias: string, scope: string, file: string): string {
-	return `${alias}/symlink/${scope}/${file}`;
+/** Where a scope's file is named, `symlink` being where the alias layer answers fixed names. */
+export function symlinkOf(symlink: string, scope: string, file: string): string {
+	return `${symlink}/${scope}/${file}`;
 }
 
 /** What each name last resolved to, held as long as the alias layer says its answer may be. */
@@ -62,13 +62,13 @@ export async function resolveSymlink(
 
 /** Each of `files` in `scope`, resolved together: what a head names its marks by. */
 export async function marksOf<File extends string>(
-	alias: string,
+	symlink: string,
 	scope: string,
 	files: readonly File[],
 	fetcher: typeof fetch = fetch,
 ): Promise<Partial<Record<File, string>>> {
 	const targets = await Promise.all(
-		files.map((file) => resolveSymlink(symlinkOf(alias, scope, file), fetcher)),
+		files.map((file) => resolveSymlink(symlinkOf(symlink, scope, file), fetcher)),
 	);
 	return Object.fromEntries(
 		files.flatMap((file, index) => (targets[index] ? [[file, targets[index]]] : [])),
