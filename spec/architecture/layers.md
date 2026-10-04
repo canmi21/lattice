@@ -174,7 +174,7 @@ published.
 **A semver package's first published version is 1.0.0**, whatever it was called before. It has
 been in production by then, which is what 1.0.0 says; a 0.x would only defer a judgment of when it
 is stable that no rule can make, and a major number is cheap afterwards. `response`, the author's
-own already, was redone over the published crate of that name as 2.0.0.
+own already, went on to 2.0.0 on its own line, the same envelope with the design it has now.
 
 ## Publishing
 
