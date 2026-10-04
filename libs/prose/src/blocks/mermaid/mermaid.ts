@@ -128,6 +128,9 @@ function configuration(root: HTMLElement, theme: Theme): MermaidConfig {
 		],
 		themeVariables: {
 			darkMode,
+			// Mermaid 12 casts a light shadow under every node by default, a halo on a dark page and
+			// a smudge on a light one; the nodes here are drawn flat, as they were before it.
+			dropShadow: 'none',
 			background: paper,
 			fontFamily: style.fontFamily,
 			// Mermaid's theme API documents this value in pixels and uses it while measuring labels.
@@ -182,8 +185,31 @@ function configuration(root: HTMLElement, theme: Theme): MermaidConfig {
 			gitBranchLabel0: paper,
 			gitBranchLabel1: strongText,
 		},
+		// Mermaid 12 draws with a different hand by default: ELK's orthogonal edges for dagre's
+		// curves, and for each of these diagrams a look and a theme of its own that win over the
+		// ones above. Held to what every diagram here was drawn in, Mermaid 11's.
+		layout: 'dagre',
+		...Object.fromEntries(
+			OWN_LOOKS.map((diagram) => [diagram, { look: 'classic', theme: 'base' }]),
+		),
+		// And its flowchart wraps a label at 120 rather than 200, with a 120 floor under a node.
+		flowchart: { look: 'classic', theme: 'base', wrappingWidth: 200, minNodeWidth: 0 },
 	};
 }
+
+/** The diagrams Mermaid 12 gives a look and a theme of their own by default. */
+const OWN_LOOKS = [
+	'flowchart',
+	'swimlane',
+	'agentflow',
+	'sequence',
+	'class',
+	'state',
+	'er',
+	'requirement',
+	'usecase',
+	'venn',
+] as const;
 
 async function draw(source: string, root: HTMLElement): Promise<Drawings> {
 	modulePromise ??= import('mermaid').then(({ default: mermaid }) => mermaid);
