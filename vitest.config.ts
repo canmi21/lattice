@@ -4,7 +4,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vitest/config';
 
 const SITE = fileURLToPath(new URL('./apps/site/', import.meta.url));
-const PROSE = fileURLToPath(new URL('./libs/prose/src/', import.meta.url));
+const PROSE = fileURLToPath(new URL('./services/libs/prose/src/', import.meta.url));
 const ROOT = fileURLToPath(new URL('./', import.meta.url));
 
 /**
@@ -92,7 +92,7 @@ export default defineConfig({
 				test: {
 					name: 'component',
 					environment: 'jsdom',
-					include: ['src/**/*.svelte.test.ts', '../../libs/prose/src/**/*.svelte.test.ts'],
+					include: ['src/**/*.svelte.test.ts', '../../services/libs/prose/src/**/*.svelte.test.ts'],
 				},
 			},
 		],

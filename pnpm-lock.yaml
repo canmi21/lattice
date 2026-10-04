@@ -288,91 +288,6 @@ importers:
         specifier: ^4.147.0
         version: 4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4)
 
-  apps/cms:
-    dependencies:
-      '@canmi/collection':
-        specifier: workspace:*
-        version: link:../../libs/collection
-      '@canmi/compile':
-        specifier: workspace:*
-        version: link:../../libs/compile
-      '@canmi/fonts':
-        specifier: workspace:*
-        version: link:../../libs/fonts
-      '@canmi/kit':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/kit
-      '@canmi/messages':
-        specifier: workspace:*
-        version: link:../../libs/messages
-      '@canmi/prose':
-        specifier: workspace:*
-        version: link:../../libs/prose
-      '@canmi/ui':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/ui
-      '@codemirror/commands':
-        specifier: ^6.11.1
-        version: 6.11.1
-      '@codemirror/state':
-        specifier: ^6.7.6
-        version: 6.7.6
-      '@codemirror/view':
-        specifier: ^6.43.13
-        version: 6.43.13
-      '@lucide/svelte':
-        specifier: ^1.51.0
-        version: 1.51.0(svelte@5.57.1)
-      '@monoflake/artifacts':
-        specifier: workspace:*
-        version: link:../../platform/libs/artifacts
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../platform/libs/sdk
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-    devDependencies:
-      '@stylexjs/stylex':
-        specifier: ^0.19.1
-        version: 0.19.1
-      '@stylexjs/unplugin':
-        specifier: ^0.19.1
-        version: 0.19.1(supports-color@10.2.2)(unplugin@2.3.11)
-      '@sveltejs/adapter-static':
-        specifier: ^4.0.0
-        version: 4.0.0(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
-      '@sveltejs/kit':
-        specifier: ^3.0.0
-        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^7.3.1
-        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@tailwindcss/vite':
-        specifier: ^4.3.3
-        version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@types/mdast':
-        specifier: ^4.0.4
-        version: 4.0.4
-      mdast-util-directive:
-        specifier: ^3.1.0
-        version: 3.1.0(supports-color@10.2.2)
-      svelte:
-        specifier: ^5.57.1
-        version: 5.57.1
-      svelte-check:
-        specifier: ^4.7.6
-        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
-      tailwindcss:
-        specifier: ^4.3.3
-        version: 4.3.3
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vite:
-        specifier: ^8.3.2
-        version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
-
   apps/gateway:
     dependencies:
       '@canmi/response':
@@ -438,25 +353,6 @@ importers:
         specifier: ^4.147.0
         version: 4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4)
 
-  apps/local:
-    dependencies:
-      '@canmi/collection':
-        specifier: workspace:*
-        version: link:../../libs/collection
-      '@canmi/compile':
-        specifier: workspace:*
-        version: link:../../libs/compile
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../platform/libs/sdk
-      drizzle-orm:
-        specifier: ^0.45.3
-        version: 0.45.3(@cloudflare/workers-types@5.20261004.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)(kysely@0.28.17)
-    devDependencies:
-      '@types/node':
-        specifier: ^26.6.4
-        version: 26.6.4
-
   apps/quota:
     dependencies:
       '@canmi/response':
@@ -480,22 +376,22 @@ importers:
     dependencies:
       '@canmi/compile':
         specifier: workspace:*
-        version: link:../../libs/compile
+        version: link:../../services/libs/compile
       '@canmi/fonts':
         specifier: workspace:*
-        version: link:../../libs/fonts
+        version: link:../../services/libs/fonts
       '@canmi/hints':
         specifier: workspace:*
-        version: link:../../libs/hints
+        version: link:../../services/libs/hints
       '@canmi/kit':
         specifier: workspace:*
         version: link:../../lib/pkgs/kit
       '@canmi/messages':
         specifier: workspace:*
-        version: link:../../libs/messages
+        version: link:../../services/libs/messages
       '@canmi/prose':
         specifier: workspace:*
-        version: link:../../libs/prose
+        version: link:../../services/libs/prose
       '@canmi/response':
         specifier: workspace:*
         version: link:../../lib/pkgs/response
@@ -504,7 +400,7 @@ importers:
         version: link:api
       '@canmi/social':
         specifier: workspace:*
-        version: link:../../libs/social
+        version: link:../../services/libs/social
       '@canmi/ui':
         specifier: workspace:*
         version: link:../../lib/pkgs/ui
@@ -755,13 +651,13 @@ importers:
     devDependencies:
       '@canmi/hints':
         specifier: workspace:*
-        version: link:../../libs/hints
+        version: link:../../services/libs/hints
       '@canmi/kit':
         specifier: workspace:*
         version: link:../../lib/pkgs/kit
       '@canmi/social':
         specifier: workspace:*
-        version: link:../../libs/social
+        version: link:../../services/libs/social
       '@canmi/web':
         specifier: workspace:*
         version: link:../../lib/pkgs/web
@@ -966,207 +862,6 @@ importers:
         specifier: ^3.50.0
         version: 3.50.0
 
-  libs/collection:
-    dependencies:
-      '@noble/hashes':
-        specifier: ^2.4.0
-        version: 2.4.0
-      '@sanity/diff-match-patch':
-        specifier: ^3.2.1
-        version: 3.2.1
-      better-sqlite3:
-        specifier: ^13.0.3
-        version: 13.0.3
-      drizzle-orm:
-        specifier: ^0.45.3
-        version: 0.45.3(@cloudflare/workers-types@5.20261004.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)(kysely@0.28.17)
-      valibot:
-        specifier: ^1.5.0
-        version: 1.5.0(typescript@7.0.2)
-      yaml:
-        specifier: ^2.9.1
-        version: 2.9.1
-    devDependencies:
-      '@types/better-sqlite3':
-        specifier: ^9.6.0
-        version: 9.6.0
-      drizzle-kit:
-        specifier: ^0.31.11
-        version: 0.31.11
-
-  libs/compile:
-    dependencies:
-      '@monoflake/artifacts':
-        specifier: workspace:*
-        version: link:../../platform/libs/artifacts
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../platform/libs/sdk
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-      hast-util-to-html:
-        specifier: ^9.0.5
-        version: 9.0.5
-      mdast-util-directive:
-        specifier: ^3.1.0
-        version: 3.1.0(supports-color@10.2.2)
-      mdast-util-to-hast:
-        specifier: ^13.2.1
-        version: 13.2.1
-      mdast-util-to-string:
-        specifier: ^4.0.0
-        version: 4.0.0
-      remark-cjk-friendly:
-        specifier: ^2.3.2
-        version: 2.3.2(@types/mdast@4.0.4)(micromark-util-types@2.0.3)(micromark@4.0.3(supports-color@10.2.2))(unified@11.0.5)
-      remark-cjk-friendly-gfm-strikethrough:
-        specifier: ^2.3.1
-        version: 2.3.1(@types/mdast@4.0.4)(micromark-util-types@2.0.3)(micromark@4.0.3(supports-color@10.2.2))(supports-color@10.2.2)(unified@11.0.5)
-      remark-directive:
-        specifier: ^4.0.0
-        version: 4.0.0(supports-color@10.2.2)
-      remark-frontmatter:
-        specifier: ^5.0.0
-        version: 5.0.0(supports-color@10.2.2)
-      remark-gfm:
-        specifier: ^4.0.1
-        version: 4.0.1(supports-color@10.2.2)
-      remark-parse:
-        specifier: ^11.0.0
-        version: 11.0.0(supports-color@10.2.2)
-      remark-stringify:
-        specifier: ^11.0.0
-        version: 11.0.0
-      shiki:
-        specifier: ^4.5.0
-        version: 4.5.0
-      unified:
-        specifier: ^11.0.5
-        version: 11.0.5
-      yaml:
-        specifier: ^2.9.1
-        version: 2.9.1
-    devDependencies:
-      '@types/mdast':
-        specifier: ^4.0.4
-        version: 4.0.4
-
-  libs/fonts: {}
-
-  libs/hints:
-    dependencies:
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../platform/libs/sdk
-
-  libs/messages:
-    devDependencies:
-      '@inlang/paraglide-js':
-        specifier: ^2.25.4
-        version: 2.25.4(typescript@7.0.2)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      '@inlang/plugin-message-format':
-        specifier: ^4.4.4
-        version: 4.4.4
-
-  libs/prose:
-    dependencies:
-      '@canmi/kit':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/kit
-      '@canmi/messages':
-        specifier: workspace:*
-        version: link:../messages
-      '@canmi/ui':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/ui
-      '@chenglou/pretext':
-        specifier: ^0.0.9
-        version: 0.0.9
-      '@lucide/svelte':
-        specifier: ^1.51.0
-        version: 1.51.0(svelte@5.57.1)
-      '@monoflake/artifacts':
-        specifier: workspace:*
-        version: link:../../platform/libs/artifacts
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../platform/libs/sdk
-      '@stylexjs/stylex':
-        specifier: ^0.19.1
-        version: 0.19.1
-      '@videojs/core':
-        specifier: 10.0.1
-        version: 10.0.1(react@19.3.0)
-      '@videojs/media':
-        specifier: 10.0.1
-        version: 10.0.1
-      '@videojs/store':
-        specifier: 10.0.1
-        version: 10.0.1(react@19.3.0)
-      bits-ui:
-        specifier: ^2.19.5
-        version: 2.19.5(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-      d3-hierarchy:
-        specifier: ^3.1.2
-        version: 3.1.2
-      esm-env:
-        specifier: ^1.2.2
-        version: 1.2.2
-      mermaid:
-        specifier: ^12.1.0
-        version: 12.1.0
-      motion:
-        specifier: ^14.0.0
-        version: 14.0.0(react@19.3.0)
-      phosphor-svelte:
-        specifier: ^3.1.0
-        version: 3.1.0(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      svelte:
-        specifier: ^5.57.1
-        version: 5.57.1
-    devDependencies:
-      '@testing-library/svelte':
-        specifier: ^5.4.2
-        version: 5.4.2(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
-      '@types/d3-hierarchy':
-        specifier: ^3.1.7
-        version: 3.1.7
-      '@types/node':
-        specifier: ^26.6.4
-        version: 26.6.4
-      svelte-check:
-        specifier: ^4.7.6
-        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
-  libs/social:
-    dependencies:
-      '@canmi/prose':
-        specifier: workspace:*
-        version: link:../prose
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../platform/libs/sdk
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-      svelte:
-        specifier: ^5.57.1
-        version: 5.57.1
-    devDependencies:
-      svelte-check:
-        specifier: ^4.7.6
-        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
   platform/libs/artifacts:
     dependencies:
       '@canmi/response':
@@ -1247,6 +942,311 @@ importers:
       '@monoflake/cache':
         specifier: workspace:*
         version: link:../cache
+
+  services/apps/cms:
+    dependencies:
+      '@canmi/collection':
+        specifier: workspace:*
+        version: link:../../libs/collection
+      '@canmi/compile':
+        specifier: workspace:*
+        version: link:../../libs/compile
+      '@canmi/fonts':
+        specifier: workspace:*
+        version: link:../../libs/fonts
+      '@canmi/kit':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/kit
+      '@canmi/messages':
+        specifier: workspace:*
+        version: link:../../libs/messages
+      '@canmi/prose':
+        specifier: workspace:*
+        version: link:../../libs/prose
+      '@canmi/ui':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/ui
+      '@codemirror/commands':
+        specifier: ^6.11.1
+        version: 6.11.1
+      '@codemirror/state':
+        specifier: ^6.7.6
+        version: 6.7.6
+      '@codemirror/view':
+        specifier: ^6.43.13
+        version: 6.43.13
+      '@lucide/svelte':
+        specifier: ^1.51.0
+        version: 1.51.0(svelte@5.57.1)
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../../platform/libs/artifacts
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../platform/libs/sdk
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+    devDependencies:
+      '@stylexjs/stylex':
+        specifier: ^0.19.1
+        version: 0.19.1
+      '@stylexjs/unplugin':
+        specifier: ^0.19.1
+        version: 0.19.1(supports-color@10.2.2)(unplugin@2.3.11)
+      '@sveltejs/adapter-static':
+        specifier: ^4.0.0
+        version: 4.0.0(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
+      '@sveltejs/kit':
+        specifier: ^3.0.0
+        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      mdast-util-directive:
+        specifier: ^3.1.0
+        version: 3.1.0(supports-color@10.2.2)
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.3.2
+        version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  services/apps/local:
+    dependencies:
+      '@canmi/collection':
+        specifier: workspace:*
+        version: link:../../libs/collection
+      '@canmi/compile':
+        specifier: workspace:*
+        version: link:../../libs/compile
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../platform/libs/sdk
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@cloudflare/workers-types@5.20261004.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)(kysely@0.28.17)
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
+
+  services/libs/collection:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^2.4.0
+        version: 2.4.0
+      '@sanity/diff-match-patch':
+        specifier: ^3.2.1
+        version: 3.2.1
+      better-sqlite3:
+        specifier: ^13.0.3
+        version: 13.0.3
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@cloudflare/workers-types@5.20261004.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)(kysely@0.28.17)
+      valibot:
+        specifier: ^1.5.0
+        version: 1.5.0(typescript@7.0.2)
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^9.6.0
+        version: 9.6.0
+      drizzle-kit:
+        specifier: ^0.31.11
+        version: 0.31.11
+
+  services/libs/compile:
+    dependencies:
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../../platform/libs/artifacts
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../platform/libs/sdk
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+      hast-util-to-html:
+        specifier: ^9.0.5
+        version: 9.0.5
+      mdast-util-directive:
+        specifier: ^3.1.0
+        version: 3.1.0(supports-color@10.2.2)
+      mdast-util-to-hast:
+        specifier: ^13.2.1
+        version: 13.2.1
+      mdast-util-to-string:
+        specifier: ^4.0.0
+        version: 4.0.0
+      remark-cjk-friendly:
+        specifier: ^2.3.2
+        version: 2.3.2(@types/mdast@4.0.4)(micromark-util-types@2.0.3)(micromark@4.0.3(supports-color@10.2.2))(unified@11.0.5)
+      remark-cjk-friendly-gfm-strikethrough:
+        specifier: ^2.3.1
+        version: 2.3.1(@types/mdast@4.0.4)(micromark-util-types@2.0.3)(micromark@4.0.3(supports-color@10.2.2))(supports-color@10.2.2)(unified@11.0.5)
+      remark-directive:
+        specifier: ^4.0.0
+        version: 4.0.0(supports-color@10.2.2)
+      remark-frontmatter:
+        specifier: ^5.0.0
+        version: 5.0.0(supports-color@10.2.2)
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1(supports-color@10.2.2)
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0(supports-color@10.2.2)
+      remark-stringify:
+        specifier: ^11.0.0
+        version: 11.0.0
+      shiki:
+        specifier: ^4.5.0
+        version: 4.5.0
+      unified:
+        specifier: ^11.0.5
+        version: 11.0.5
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+    devDependencies:
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+
+  services/libs/fonts: {}
+
+  services/libs/hints:
+    dependencies:
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../platform/libs/sdk
+
+  services/libs/messages:
+    devDependencies:
+      '@inlang/paraglide-js':
+        specifier: ^2.25.4
+        version: 2.25.4(typescript@7.0.2)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@inlang/plugin-message-format':
+        specifier: ^4.4.4
+        version: 4.4.4
+
+  services/libs/prose:
+    dependencies:
+      '@canmi/kit':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/kit
+      '@canmi/messages':
+        specifier: workspace:*
+        version: link:../messages
+      '@canmi/ui':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/ui
+      '@chenglou/pretext':
+        specifier: ^0.0.9
+        version: 0.0.9
+      '@lucide/svelte':
+        specifier: ^1.51.0
+        version: 1.51.0(svelte@5.57.1)
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../../platform/libs/artifacts
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../platform/libs/sdk
+      '@stylexjs/stylex':
+        specifier: ^0.19.1
+        version: 0.19.1
+      '@videojs/core':
+        specifier: 10.0.1
+        version: 10.0.1(react@19.3.0)
+      '@videojs/media':
+        specifier: 10.0.1
+        version: 10.0.1
+      '@videojs/store':
+        specifier: 10.0.1
+        version: 10.0.1(react@19.3.0)
+      bits-ui:
+        specifier: ^2.19.5
+        version: 2.19.5(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+      d3-hierarchy:
+        specifier: ^3.1.2
+        version: 3.1.2
+      esm-env:
+        specifier: ^1.2.2
+        version: 1.2.2
+      mermaid:
+        specifier: ^12.1.0
+        version: 12.1.0
+      motion:
+        specifier: ^14.0.0
+        version: 14.0.0(react@19.3.0)
+      phosphor-svelte:
+        specifier: ^3.1.0
+        version: 3.1.0(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+    devDependencies:
+      '@testing-library/svelte':
+        specifier: ^5.4.2
+        version: 5.4.2(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(vitest@5.0.3(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
+      '@types/d3-hierarchy':
+        specifier: ^3.1.7
+        version: 3.1.7
+      '@types/node':
+        specifier: ^26.6.4
+        version: 26.6.4
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  services/libs/social:
+    dependencies:
+      '@canmi/prose':
+        specifier: workspace:*
+        version: link:../prose
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../../../platform/libs/sdk
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+    devDependencies:
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 

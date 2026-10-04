@@ -12,7 +12,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { INFRA } from '@monoflake/urls';
 
-const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
+const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
 const USAGE = 'usage: host deploy <name> | host image <name> <path>';
 
 function fail(message: string): never {

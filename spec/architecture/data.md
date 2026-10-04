@@ -352,7 +352,7 @@ exactly as long as they had no route of their own; adding one was the fix.
 
 **The layout is declared once per language and the two are held together by a test.**
 `storageKey` in `platform/libs/store` is what the workers read from, `object_path` in
-`apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/store` parses
+`services/apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/store` parses
 the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
 the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
 404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
@@ -605,7 +605,7 @@ the bytes sit in that checkout's `data/` and every process reads them there.
 
 **A reader finds the directory by walking up for it, not by being told where it is.** Each
 command looks for `data/bucket` above its working directory and joins its own paths onto the
-repository root the marker sits in -- [paths.rs](../../apps/local/src/paths.rs) is the Rust side of
+repository root the marker sits in -- [paths.rs](../../services/apps/local/src/paths.rs) is the Rust side of
 that. A compile-time path would bake in whichever machine built the binary, and an environment
 variable would be one more thing to set correctly before any command works. Walking up means a
 command run from anywhere inside the tree reaches the same bytes.

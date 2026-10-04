@@ -132,8 +132,8 @@ async function toPixels(bytes: ArrayBuffer, from: Decodable): Promise<ImageData>
 		await readyPngDecode();
 		pixels = await decodePng(bytes);
 	}
-	// The decoders answer null rather than throwing on input they cannot read. Stored objects
-	// were written by apps/cms and should always decode, so reaching this means the object is
+	// The decoders answer null rather than throwing on input they cannot read. Stored objects were
+	// written by services/apps/cms and should always decode, so reaching this means the object is
 	// damaged -- which the caller turns into a 502 rather than an empty image.
 	if (!pixels) throw new Error(`could not decode the stored ${from}`);
 	return pixels;

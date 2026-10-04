@@ -24,8 +24,9 @@ packages:
 # takes precedence automatically.
 overrides:
   # drizzle-orm takes better-sqlite3 as an optional peer, and a package that does not declare it was
-  # left on the lockfile's older one while libs/collection moved on: two drizzles whose table types
-  # cannot meet, which apps/local, holding both, failed to typecheck on. One version for everybody.
+  # left on the lockfile's older one while services/libs/collection moved on: two drizzles whose
+  # table types cannot meet, which services/apps/local, holding both, failed to typecheck on. One
+  # version for everybody.
   'better-sqlite3': ^13.0.3
   '@types/better-sqlite3': ^9.6.0
 

@@ -75,8 +75,8 @@ derive.get('/:name', async (c) => {
 		return failure(c, 404, 'no_such_object');
 	}
 
-	// The target alone, and never the source. A source spelled `jpg` is a key the bucket cannot
-	// hold -- apps/cms names every JPEG it writes `jpeg` -- so it is already the 404 above, and
+	// The target alone, and never the source. A source spelled `jpg` is a key the bucket cannot hold
+	// -- services/apps/cms names every JPEG it writes `jpeg` -- so it is already the 404 above, and
 	// rewriting it here would read one object's bytes out from under a name nobody stored.
 	if (to === SHORT_JPEG) {
 		return c.redirect(`/derive/${cid}.${from}.${JPEG}`, 301);

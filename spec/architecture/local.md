@@ -53,7 +53,7 @@ operation does not become a button until that warning is part of the path that s
 
 ## Two shells and one home
 
-`apps/local` owns both ways a person reaches content management: the command line that builds and
+`services/apps/local` owns both ways a person reaches content management: the command line that builds and
 local workflows drive, and the HTTP surface an editor talks to. They are one program because a
 deployment shape does not create a second responsibility.
 
@@ -131,7 +131,7 @@ dock it folds it without saying anything about what they want on a wider one.
 
 **So do the article tree's folders.** Whether Articles is open is kept under `cms.articles.open`,
 and the categories closed, by name, under `cms.articles.closed`, in the same record
-([folders.ts](../../apps/cms/src/lib/folders.ts)). A category that no longer exists is dropped
+([folders.ts](../../services/apps/cms/src/lib/folders.ts)). A category that no longer exists is dropped
 the next time the set is written. Unlike the fold these are put back after hydration, not before
 the first frame: the tree is below the fold of the page's attention and a script for it would be
 one more thing reading the record raw. Put back, a folder goes where it was left without moving,
@@ -150,7 +150,7 @@ Each region has a minimum, measured rather than chosen: the sidebar's is its wid
 with the room its icon keeps from the window's edge repeated after the label, and the pane's is the
 site's article column, `--rail-column`, with the pane's inset around it -- the narrowest the writing
 can be and still be set as it will be read. Both numbers and their sum live in
-[sidebar.ts](../../apps/cms/src/lib/sidebar.ts). While the window holds both, the sidebar keeps its
+[sidebar.ts](../../services/apps/cms/src/lib/sidebar.ts). While the window holds both, the sidebar keeps its
 remembered width but never so wide the pane drops below its own. Below the sum, and whenever the
 writer folds it, the sidebar is gone entirely rather than shrunk to its icons, and the pane takes
 the whole width. A float held at the pane's top-left corner, docked or folded, is the one control
@@ -171,7 +171,7 @@ do.
 below hold still; the articles between them are the one list that grows, so they are the one that
 moves, and the Articles row itself -- with the control that creates an article -- stays at the top
 of its region while the tree under it scrolls. The tree fades at an edge only where rows are cut off there
-([scroll-fade.ts](../../apps/cms/src/lib/scroll-fade.ts)): sharp at the top until it is scrolled,
+([scroll-fade.ts](../../services/apps/cms/src/lib/scroll-fade.ts)): sharp at the top until it is scrolled,
 sharp at the bottom once the end is reached, so a fade always means there is more.
 
 **The Articles row carries the tree's controls, and is lit as one.** Beside its name sit, in order,
@@ -205,7 +205,7 @@ version control and not yet backed up, so a deletion cannot be undone; the first
 entry into the question and only the second deletes. A published article is not deleted at all --
 taking one off the site is its own act -- and the entry says so. Only the draft and the identity
 reserved for it go, and the database's own foreign keys refuse the deletion if anything else still
-names the rid. See [discard.ts](../../libs/collection/src/discard.ts).
+names the rid. See [discard.ts](../../services/libs/collection/src/discard.ts).
 
 **Articles is a folder, and every article is in it.** The row opens and closes the list under it,
 and the list is the draft rows, which is every article whether published or not -- the draft row
@@ -219,7 +219,7 @@ row beside the control that creates an article; a category says whether it is op
 icon alone, which is a signal the row already had to show. A folder opens and closes by its
 height, the way the site's footnotes fold -- the list stays in the page, the box around it clips, and
 the box moves between two measured heights on the site's disclosure timing
-([fold.ts](../../apps/cms/src/lib/fold.ts)) -- because the sidebar's height changes with it, and a
+([fold.ts](../../services/apps/cms/src/lib/fold.ts)) -- because the sidebar's height changes with it, and a
 list that appeared all at once would jump everything below it. There is no list page besides it: the folder is where an article is found, and opening one is
 opening its draft.
 
@@ -267,7 +267,7 @@ at the pane's foot, above everything else in it. A draft is written before it is
 described, and a writer who has not decided a title should not be looking at an empty field asking
 for one. Both float over the pane rather than inside it, so they hold still while the text scrolls;
 the layout draws them and a page hands over what goes in them
-([chrome.svelte.ts](../../apps/cms/src/lib/chrome.svelte.ts)), early enough that the server renders
+([chrome.svelte.ts](../../services/apps/cms/src/lib/chrome.svelte.ts)), early enough that the server renders
 them with the page. A publication refused for a missing field is said on the publish button, and
 the fields it names are marked in the drawer.
 
@@ -279,7 +279,7 @@ off the saved drafts and is kept nowhere else. The language is picked from the s
 
 The drawer is the same kind of thing as the lifted sidebar: the same ground, corner and shadow,
 the whole height of the window at its edge, and the same movement,
-[movement.ts](../../apps/cms/src/lib/movement.ts), in from its edge and out past it. It is a little
+[movement.ts](../../services/apps/cms/src/lib/movement.ts), in from its edge and out past it. It is a little
 wider than the sidebar, because it holds fields rather than a list.
 
 The text fades out before it reaches the toolbar: a veil at the pane's foot, held still with the
@@ -314,7 +314,7 @@ function of the text and the caret alone:
 - **The site's parser is the judge of what the text means**, run with positions, and its answer is
   drawn as decorations: a mark's delimiters hidden unless the caret touches them, a heading's line
   set in the heading's type, a block directive or a fence replaced by the site's rendering until
-  the caret is inside it. `libs/compile` keeps sole ownership of what a directive means; the editor
+  the caret is inside it. `services/libs/compile` keeps sole ownership of what a directive means; the editor
   only needs to know where one is. Where the judge is wrong for the language, it is corrected for the site
   and the editor at once, never for one: CommonMark's flanking rules leave `中文**「引号」**中文`
   as asterisks, because they expect a space Chinese does not write, so the parser carries the
@@ -394,7 +394,7 @@ function of the text and the caret alone:
   width, a long attribute or address broken wherever it must be, so the box scrolls one way only;
   a table's source wraps too, its pipes out of line, because the box is for the text and not the
   layout. Source longer than the box scrolls down inside it, with no scrollbar and the code block's own edge fades on all four sides
-  (`libs/prose/src/components/edge-fades.svelte`, which the code block draws on its two unseen
+  (`services/libs/prose/src/components/edge-fades.svelte`, which the code block draws on its two unseen
   edges as well); a scroll at the box's end is the browser's: a gesture that began in the box
   stays in it and stops at its end, momentum included, and the next gesture goes on to the page --
   the same for a trackpad and a wheel. Handing the rest of a gesture on to the page was tried and
@@ -414,7 +414,7 @@ function of the text and the caret alone:
   [../i18n/segments.md](../i18n/segments.md).
 
 **The editor writes in the article's own typography.** Its text sits under
-[prose-root.svelte](../../libs/prose/src/prose-root.svelte), the same root the article body is drawn
+[prose-root.svelte](../../services/libs/prose/src/prose-root.svelte), the same root the article body is drawn
 under, and the drawing wraps words in the elements the page has -- `strong`, `em`, `code`, `a` -- so
 the page's own rules style them. The alternative was a writing theme of the CMS's own, and it was
 refused because every difference between it and the page is a difference the author has to
@@ -431,7 +431,7 @@ it. A block the compiler refuses shows the reason and its source in its place.
 `:link` is given the element and attribute the compiler writes for it, so the article body's own
 rules draw it: a spoiler is fogged and clears while the caret is in it, a note's words are followed
 by its number counted through the whole document, a `:t` run takes the classes from the one table
-the compiler reads (`libs/compile/src/style-classes.ts`). What a directive says beyond its words --
+the compiler reads (`services/libs/compile/src/style-classes.ts`). What a directive says beyond its words --
 a note's text, a link's target -- is shown on hover and edited in its source, which the caret
 beside it shows. **A run the page hides at some width is never hidden in the editor**: `wide` and
 `narrow` would otherwise put words out of the author's reach at whatever width the window happens to

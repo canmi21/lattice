@@ -15,8 +15,8 @@
 	}
 
 	/* The number here is the rail's, and the rail took it with it -- see
-	   `libs/prose/src/rail.css`. This rejoins the metadata row's flow at the same width for the
-	   reason stated above, so the two agree by both naming 68rem rather than by sharing a block. */
+	   `services/libs/prose/src/rail.css`. This rejoins the metadata row's flow at the same width for
+	   the reason stated above, so the two agree by both naming 68rem rather than sharing a block. */
 	@media (min-width: 68rem) {
 		.meta-language {
 			margin-inline-start: 0;

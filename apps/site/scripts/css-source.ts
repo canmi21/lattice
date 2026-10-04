@@ -19,12 +19,12 @@ const SITE = fileURLToPath(new URL('..', import.meta.url));
 export const ROOT = join(SITE, '../..');
 /**
  * Every tree the visual layer is written in. It became two when the article renderer moved to
- * `libs/prose`: a gate that scans one of them reports a smaller corpus rather than a failure,
- * which is the way this kind of check goes quietly wrong.
+ * `services/libs/prose`: a gate that scans one of them reports a smaller corpus rather than a
+ * failure, which is the way this kind of check goes quietly wrong.
  */
 const SRC = [
 	join(SITE, 'src'),
-	join(SITE, '../../libs/prose/src'),
+	join(SITE, '../../services/libs/prose/src'),
 	join(SITE, '../../lib/pkgs/kit/tokens/src'),
 ];
 const SCAN = relative(ROOT, fileURLToPath(import.meta.url));

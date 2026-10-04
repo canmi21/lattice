@@ -79,7 +79,8 @@ describe('the optimistic table', () => {
 });
 
 /**
- * The account `apps/local/src/image/exif.rs` flattens into a photograph and a screenshot alike.
+ * The account `services/apps/local/src/image/exif.rs` flattens into a photograph and a screenshot
+ * alike.
  *
  * A layer with no home for a field strips it rather than refusing it, so the two sides drifting
  * apart here costs data on the way past and reports nothing. Ten records carry these.

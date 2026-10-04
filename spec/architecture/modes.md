@@ -119,7 +119,7 @@ across and may conflict, which jj records in the files rather than refusing. An 
 when the author asks for it; otherwise it names the command and stops at step 2.
 
 What the reload does not reach is restarted by hand. `local` is a Rust binary run once, so a
-change under `apps/local` needs its window stopped and `mise run base up` again, which restarts
+change under `services/apps/local` needs its window stopped and `mise run base up` again, which restarts
 an idle window. A change to the collection schema also needs `mise run collection` against the
 real databases, which is a change to the real data and ranks as one.
 

@@ -254,7 +254,7 @@ The counting itself is the `words-count` crate's rather than this repository's, 
 running five candidates against one table of cases instead of reading their descriptions --
 which are identical, while their answers are not. The one thing added on top is that Hangul is
 not Han: Korean is written with spaces, so a word processor counts it like Latin, and the
-crate's `is_cjk` disagrees. See `apps/local/src/words.rs`, where the table is the specification
+crate's `is_cjk` disagrees. See `services/apps/local/src/words.rs`, where the table is the specification
 and the rejected candidates are argued.
 
 The address is drawn opposite the site name across the top, because the other free corner is

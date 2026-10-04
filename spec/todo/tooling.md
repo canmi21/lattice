@@ -71,7 +71,7 @@ that same set rule, and `footnotes`' `.notes-fold:not(...)` whose only declarati
 `tsconfig.json` takes every `.ts` under `apps/` and excludes each Worker by name, and
 `tsconfig.workers.json` includes each Worker by name. A Worker added to one and not the other is
 checked against the browser's globals, and its `worker-runtime.d.ts` brings workerd's into that
-program with it: adding `hook` turned three untouched DOM calls in `libs/prose` into type errors
+program with it: adding `hook` turned three untouched DOM calls in `services/libs/prose` into type errors
 whose message pointed at `HTMLRewriter` and nowhere near the cause. Nothing fails at the moment of
 the omission, only somewhere else later. Deriving both lists from one fact -- a Worker is a
 directory with a `wrangler.jsonc` -- would make the second list impossible to forget.

@@ -14,7 +14,7 @@ eight prebuilt chunks and no retained input; that is a complete family, not a mi
 
 That manifest stays in `data/` because it is a curated asset record and the slicing pipeline must
 read it without depending on a TypeScript runtime. Consumers do not cross that directory boundary:
-the root export of [`@canmi/fonts`](../../libs/fonts/package.json) provides the typed family list and
+the root export of [`@canmi/fonts`](../../services/libs/fonts/package.json) provides the typed family list and
 its package stylesheet paths. This keeps one authored list while making the library the public
 answer to what a family is and where its stylesheet lives.
 
@@ -49,7 +49,7 @@ content id makes that true instead of asking for it.
 The strategy is explicit in the manifest rather than inferred from glyph coverage. Coverage says
 what a face contains, but not whether its existing readable URLs are a compatibility promise;
 inferring would let a font update silently change both its publication layout and cache identity.
-See the [font runbook](../../libs/fonts/README.md) for the operational side.
+See the [font runbook](../../services/libs/fonts/README.md) for the operational side.
 
 A selectable family is the name a person picks, not a set of bytes. Its generic fallback completes
 the CSS stack, and its faces say which local or redistributable typefaces may satisfy that choice.
@@ -58,7 +58,7 @@ Two families therefore remain separate entries when their local-first stacks dif
 share the same published chunks. Keeping the choice and its sources together prevents a second
 selectable-font list from disagreeing with the published faces.
 
-The stylesheets live in `libs/fonts`, apart from the colour tokens. They are a different kind
+The stylesheets live in `services/libs/fonts`, apart from the colour tokens. They are a different kind
 of fact -- what a family is and where its files are, rather than what the site looks like --
 and a CJK sheet is large enough that nothing should import one until the site actually sets that
 family. `wenkai.css` gzips to 75KB, `klee-one.css` to 28KB and `tang-guo-wei-de-xia-tian.css` to
@@ -75,7 +75,7 @@ Measured, nothing there is ever emphasised -- but not for the reason this file u
 said neither syntax theme emits `font-style` or `font-weight`, and that was wrong: `one-dark-pro`
 marks every comment italic, `one-light` did too, and 88 published objects carry the mark. What
 saves it is that a dual-theme render emits the style as a custom property, `--shiki-dark-font-style`
-beside `--shiki-dark`, and [code-block.svelte](../../libs/prose/src/blocks/code-block.svelte)
+beside `--shiki-dark`, and [code-block.svelte](../../services/libs/prose/src/blocks/code-block.svelte)
 reads only the colour. The declaration is never made, so the browser is never asked. (`min-light`,
 the light half since, emits no style at all, which makes the light side true in both readings.)
 

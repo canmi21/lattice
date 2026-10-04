@@ -13,10 +13,10 @@ import {
 	toResponse,
 } from './index';
 
-/** A source file of apps/local, read for what it declares rather than for what it does. */
+/** A source file of services/apps/local, read for what it declares rather than for what it does. */
 function cms(path: string): string {
 	return readFileSync(
-		fileURLToPath(new URL(`../../../../apps/local/${path}`, import.meta.url).href),
+		fileURLToPath(new URL(`../../../../services/apps/local/${path}`, import.meta.url).href),
 		'utf8',
 	);
 }
@@ -101,9 +101,9 @@ describe('contentTypeFor', () => {
 	});
 
 	/**
-	 * Nothing writes a `.jpg`; `apps/local/src/extension.rs` spells every JPEG `jpeg`. The arm stays
-	 * for the case this whole function exists for -- an object put in the bucket by hand, which is
-	 * also the only object with no `httpMetadata` to serve instead.
+	 * Nothing writes a `.jpg`; `services/apps/local/src/extension.rs` spells every JPEG `jpeg`. The
+	 * arm stays for the case this whole function exists for -- an object put in the bucket by hand,
+	 * which is also the only object with no `httpMetadata` to serve instead.
 	 */
 	it('still answers for a name this repository does not write', () => {
 		expect(contentTypeFor(`44/b6/${ID}.jpg`)).toBe('image/jpeg');
@@ -117,10 +117,11 @@ describe('contentTypeFor', () => {
 /**
  * The favicon round trip, which crosses the language boundary twice and was held by nothing.
  *
- * `apps/local/src/favicon/fetch.rs` names a content type from a URL when the server declares none,
- * `apps/local/src/extension.rs` turns that into the extension the file is stored under, and
- * `contentTypeFor` turns that back into what a browser is served. A leg that does not close is an
- * icon that downloads instead of drawing. Both Rust ends are read rather than restated.
+ * `services/apps/local/src/favicon/fetch.rs` names a content type from a URL when the server
+ * declares none, `services/apps/local/src/extension.rs` turns that into the extension the file is
+ * stored under, and `contentTypeFor` turns that back into what a browser is served. A leg that does
+ * not close is an icon that downloads instead of drawing. Both Rust ends are read rather than
+ * restated.
  */
 describe('the loop an icon travels', () => {
 	const ID = '44b6081deaf0242ca3bf83d62a3b6c95';
@@ -160,10 +161,12 @@ describe('the loop an icon travels', () => {
 		contentType: arm[2]!,
 	}));
 
-	it('serves every extension apps/local stores an icon under', () => {
-		expect(JPEG, 'the JPEG constant moved in apps/local').toBeDefined();
-		expect(stored, 'ICON_EXTENSIONS moved or changed shape in apps/local').toBeDefined();
-		expect(chain.length, 'for_icon moved or changed shape in apps/local').toBeGreaterThan(0);
+	it('serves every extension services/apps/local stores an icon under', () => {
+		expect(JPEG, 'the JPEG constant moved in services/apps/local').toBeDefined();
+		expect(stored, 'ICON_EXTENSIONS moved or changed shape in services/apps/local').toBeDefined();
+		expect(chain.length, 'for_icon moved or changed shape in services/apps/local').toBeGreaterThan(
+			0,
+		);
 
 		for (const extension of stored!) {
 			const contentType = contentTypeFor(`44/b6/${ID}.${extension}`);
@@ -180,7 +183,7 @@ describe('the loop an icon travels', () => {
 	it('stores every type the fetcher invents when a server declares none', () => {
 		expect(
 			inferred.length,
-			'infer_content_type moved or changed shape in apps/local',
+			'infer_content_type moved or changed shape in services/apps/local',
 		).toBeGreaterThan(0);
 
 		for (const arm of inferred.filter((found) => found.contentType.startsWith('image/'))) {
@@ -202,7 +205,7 @@ describe('where an object lives', () => {
 	 * fact is written, and the CDN's `/{type}/` is where a reader gets one instead.
 	 *
 	 * The split exists for a filesystem mirror rather than for R2, which has no directories: two
-	 * characters, then two more, then the whole id again -- matching what apps/local writes.
+	 * characters, then two more, then the whole id again -- matching what services/apps/local writes.
 	 */
 	it.each([
 		['avif', `44/b6/${CID}.avif`],
@@ -235,7 +238,7 @@ describe('where an object lives', () => {
 		expect(recordKey('k7m2x')).toBe('meta/k7m2x.json');
 	});
 
-	it('accepts an id of the shape apps/local writes, and nothing else', () => {
+	it('accepts an id of the shape services/apps/local writes, and nothing else', () => {
 		expect(isContentId(CID)).toBe(true);
 		expect(isContentId(CID.toUpperCase())).toBe(false);
 		expect(isContentId(CID.slice(0, 31))).toBe(false);
@@ -324,18 +327,20 @@ describe('a range request', () => {
 /**
  * The two declarations of the layout, held together.
  *
- * apps/local writes what the workers read, so the two have to agree about where an object lands.
- * They did not once: clips were given a path on the writing side and no key on the reading side,
- * and four rung URLs answered 404 while the files sat on disk. This is the test that fails
+ * services/apps/local writes what the workers read, so the two have to agree about where an object
+ * lands. They did not once: clips were given a path on the writing side and no key on the reading
+ * side, and four rung URLs answered 404 while the files sat on disk. This is the test that fails
  * instead. Read off the Rust source rather than restated, so a change there has to come here.
  */
-it('files an object exactly where apps/local writes it', () => {
+it('files an object exactly where services/apps/local writes it', () => {
 	const source = readFileSync(
-		fileURLToPath(new URL('../../../../apps/local/src/image/store.rs', import.meta.url).href),
+		fileURLToPath(
+			new URL('../../../../services/apps/local/src/image/store.rs', import.meta.url).href,
+		),
 		'utf8',
 	);
 	const body = /fn object_path\([^)]*\) -> PathBuf \{([\s\S]*?)\n\}/.exec(source);
-	expect(body, 'object_path moved or changed shape in apps/local').not.toBeNull();
+	expect(body, 'object_path moved or changed shape in services/apps/local').not.toBeNull();
 
 	// Two fanout segments off the id, then `{cid}.{ext}`, and no prefix between the root and the
 	// first segment. A type directory reappearing on either side is what this catches.
@@ -350,6 +355,6 @@ it('files an object exactly where apps/local writes it', () => {
 	// the metadata tree that this side reaches through `recordKey`. Keyed by the rid, which is
 	// what both sides spell the parameter, because the record is rewritten in place.
 	const record = /fn meta_path\([^)]*\) -> PathBuf \{([\s\S]*?)\n\}/.exec(source);
-	expect(record, 'meta_path moved or changed shape in apps/local').not.toBeNull();
+	expect(record, 'meta_path moved or changed shape in services/apps/local').not.toBeNull();
 	expect(record![1]).toContain('.join("meta").join(format!("{resource}.json"))');
 });

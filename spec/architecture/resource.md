@@ -199,7 +199,7 @@ lookup.
 
 A URL here would put a hostname in every record, so moving a domain would mean rewriting all of
 them; a scheme is expanded by whoever answers, from the one place a hostname is declared.
-`libs/fonts` already publishes stylesheets carrying `__CDN_URL__` for the same reason, which is
+`services/libs/fonts` already publishes stylesheets carrying `__CDN_URL__` for the same reason, which is
 this idea before it had a name. `slug:` needs no lookup either: the site resolves a bare name to
 the article's real path itself, so a moved article keeps its short link.
 

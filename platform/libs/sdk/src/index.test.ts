@@ -55,7 +55,7 @@ describe('development ports', () => {
 	// singleton, and a collision there is the mutex that stops a second copy writing data/.
 	it('keeps the ports clear of the inspector ports and of the CMS port', () => {
 		const cms = Number(process.env.LOCAL_PORT ?? 26521);
-		// The editor's dev server, pinned in apps/cms/vite.config.ts rather than here.
+		// The editor's dev server, pinned in services/apps/cms/vite.config.ts rather than here.
 		const editor = 26518;
 		const taken = [
 			...Object.values(DEVELOPMENT_PORTS),

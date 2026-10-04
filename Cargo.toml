@@ -13,7 +13,7 @@ members = [
 	"infra/apps/host",
 	"infra/apps/keeper",
 	"platform/apps/ledger",
-	"apps/local",
+	"services/apps/local",
 	"platform/apps/shot",
 	"platform/apps/telemetry",
 	"infra/libs/deploy",

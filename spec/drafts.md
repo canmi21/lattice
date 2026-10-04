@@ -12,7 +12,7 @@ through a text-only accessor.
 
 **Both readers accept the quoted form, and both trim it.** `draft: "true"` is a draft to
 `local document::is_draft` and to the site, which normalises the flag once in
-[compile.ts](../libs/compile/src/compile.ts)'s frontmatter reader rather than at
+[compile.ts](../services/libs/compile/src/compile.ts)'s frontmatter reader rather than at
 each place that asks -- so `articleFrontmatter(...).draft` is the boolean the type promises and a
 caller testing `=== true` is right without knowing any of this.
 
@@ -40,7 +40,7 @@ where the writing already is and needs no published bytes at all, so all five ar
 [todo/milestones.md](todo/milestones.md), B3a.
 
 **Objects are not what is withheld, and were never what was withheld.**
-[refs.rs](../apps/local/src/refs.rs) has never read the draft flag, so a draft's pictures and clips
+[refs.rs](../services/apps/local/src/refs.rs) has never read the draft flag, so a draft's pictures and clips
 are derived into the published tree and mirrored with everything else. What keeps them from a
 reader is that nothing hands out their content ids -- a 128-bit hash of the bytes is not something
 anyone reaches without being told it. What a root added was **a name somebody can guess**: a slug
@@ -50,7 +50,7 @@ one rule where there were two. See
 [architecture/artifacts.md](architecture/artifacts.md), "Drafts leave the corpus at publication,
 not at build".
 
-Dropping happens in [articles.ts](../libs/compile/src/articles.ts), before the article is
+Dropping happens in [articles.ts](../services/libs/compile/src/articles.ts), before the article is
 compiled, so there is one place to read and no list of consumers to keep in step. The homepage
 listing, the sitemap, the Atom feed, `/llms.txt` and the per-article markdown all resolve through
 the root, and a draft is simply not in it.

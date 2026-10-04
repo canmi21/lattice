@@ -177,7 +177,7 @@ run = "pnpm run dev"
 # server forwards, so the browser only ever talks to its own origin. See architecture/local.md.
 [tasks.dev-cms]
 description = "Run the editor, which reads the collection through local"
-dir = "apps/cms"
+dir = "services/apps/cms"
 run = "pnpm run dev"
 
 [tasks.dev-status]
@@ -210,37 +210,37 @@ run = "cargo run -q -p local -- serve"
 # only way either is changed: a hand-altered database cannot be migrated afterwards, and neither
 # file is in git. See spec/todo/milestones.md.
 [tasks.collection]
-description = "Bring the collection's databases up to the schema in libs/collection"
-run = "node libs/collection/src/migrate.ts"
+description = "Bring the collection's databases up to the schema in services/libs/collection"
+run = "node services/libs/collection/src/migrate.ts"
 
 # What an article says about itself, now that it is rows rather than frontmatter. The editor
 # edits the fields it shows and this edits the rest, which is A5's own condition for moving them.
 [tasks.meta]
 description = "Read or set an article's metadata in the collection"
-run = "node libs/collection/src/meta.ts"
+run = "node services/libs/collection/src/meta.ts"
 
 # What the translation sidecars hold and where it would land. Read-only: the shape it reports is
 # the thing to agree on before anything is written. See spec/todo/milestones.md, A7.
 [tasks.translations]
 description = "Survey the translation sidecars against the collection, writing nothing"
-run = "node libs/collection/src/translations.ts"
+run = "node services/libs/collection/src/translations.ts"
 
 # What still names a run of bytes, and what has stopped. Reporting is the default; `--collect`
 # takes what the grace period released, and cannot be undone. See spec/todo/milestones.md, A6.
 [tasks.sweep]
 description = "Report what the collection no longer references; --collect takes it"
-run = "node libs/collection/src/sweep.ts"
+run = "node services/libs/collection/src/sweep.ts"
 
 # The corpus, read out of `contents` and written into the collection. Re-runnable because it
 # empties what it wrote last time: the files are the only source until they retire. Ids are
 # granted afresh each run, which is free only while nothing outside names an article by its rid.
 [tasks.articles]
 description = "Import the markdown corpus into the collection, replacing what a previous run wrote"
-run = "node libs/collection/src/articles.ts"
+run = "node services/libs/collection/src/articles.ts"
 
 [tasks.check-cms]
 description = "Type check the editor, which is a SvelteKit application"
-dir = "apps/cms"
+dir = "services/apps/cms"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
 [tasks.check-panel]
@@ -262,12 +262,12 @@ run = "pnpm --filter @monoflake/status-schema run check"
 
 [tasks.check-social]
 description = "Type check the social links row, Svelte components in a library"
-dir = "libs/social"
+dir = "services/libs/social"
 run = 'pnpm exec svelte-check --tsconfig ./tsconfig.json ${AUDIT:+--fail-on-warnings}'
 
 [tasks.check-prose]
 description = "Type check the article renderer, which is Svelte components in a library"
-dir = "libs/prose"
+dir = "services/libs/prose"
 depends = ["messages"]
 run = 'pnpm exec svelte-check --tsconfig ./tsconfig.json ${AUDIT:+--fail-on-warnings}'
 

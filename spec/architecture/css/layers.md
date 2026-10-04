@@ -77,7 +77,7 @@ membership does not change with it.** A named, reused recipe past the three-comp
 the vocabulary whether it is written as a `stylex.create` key or by hand in a shared stylesheet.
 
 What forces the distinction is a consumer that cannot reach StyleX. The corpus is compiled by
-[compile.ts](../../../libs/compile/src/compile.ts), which runs from
+[compile.ts](../../../services/libs/compile/src/compile.ts), which runs from
 `node apps/site/scripts/publish.ts` outside the Vite graph, so the plugin never transforms it and
 it writes literal class names only. And a StyleX class name is a content hash of the property and
 its value, so changing a value moves the name. The CSS ships with the site build and the HTML
@@ -185,9 +185,9 @@ the largest file in `spec/` and is largely made of it.
 
 The clearest evidence that the adjective does not decide is in the tree, where one property has
 already been ruled both ways by two people applying the same test in good faith. `white-space:
-nowrap` is StyleX in [cargo.svelte](../../../libs/prose/src/blocks/cargo/cargo.svelte), where
+nowrap` is StyleX in [cargo.svelte](../../../services/libs/prose/src/blocks/cargo/cargo.svelte), where
 the comment beside it reads the property as typography rather than geometry; it is a scoped rule in
-[github.svelte](../../../libs/prose/src/blocks/github.svelte), where the comment beside it reads
+[github.svelte](../../../services/libs/prose/src/blocks/github.svelte), where the comment beside it reads
 the same property as the width being reserved rather than how the text looks. Neither comment is
 careless. The test produced two answers because the test was an adjective.
 
@@ -303,7 +303,7 @@ on a link, `list-style: none` on a list, `appearance: none` on a control, `borde
 recipe to hold. The exception is real and is the focus ring's own suppression, where the
 `outline: none` is a member of that recipe and travels with it -- question two, reached before this
 row. The two sites writing it as the shorthand are the frame by it: `textDecoration: 'none'` in
-[github.svelte](../../../libs/prose/src/blocks/github.svelte) and
+[github.svelte](../../../services/libs/prose/src/blocks/github.svelte) and
 [footnotes.svelte](../../../apps/site/src/lib/article/footnotes.svelte), each a component turning
 off a link's underline and belonging to no named recipe, and both are `no-underline` in the markup.
 The `textDecorationLine: 'none'` keys in the blocks answer to the same row. It earns its place by
@@ -336,12 +336,12 @@ looked up, nothing drifts, and nobody needs a name to read it.
 Two things pointed at this line from opposite sides, and both were errors of the same kind:
 
 - `font-variant-numeric: tabular-nums` was written as a Tailwind class in the markup at three
-  places in [github.svelte](../../../libs/prose/src/blocks/github.svelte) -- a ramp member in the
+  places in [github.svelte](../../../services/libs/prose/src/blocks/github.svelte) -- a ramp member in the
   frame. Corrected: it is one `fontVariantNumeric` in that component's vocabulary now.
 - `white-space: nowrap` was written in StyleX in
-  [cargo.svelte](../../../libs/prose/src/blocks/cargo/cargo.svelte),
-  [tokei.svelte](../../../libs/prose/src/blocks/tokei/tokei.svelte),
-  [quadrant.svelte](../../../libs/prose/src/blocks/quadrant.svelte),
+  [cargo.svelte](../../../services/libs/prose/src/blocks/cargo/cargo.svelte),
+  [tokei.svelte](../../../services/libs/prose/src/blocks/tokei/tokei.svelte),
+  [quadrant.svelte](../../../services/libs/prose/src/blocks/quadrant.svelte),
   [support.svelte](../../../apps/site/src/lib/support/support.svelte) and
   [switcher.svelte](../../../apps/site/src/lib/locale/switcher.svelte) -- text behaviour in the
   vocabulary. **This list said four and there were five**, which is the enumeration being caught
@@ -505,7 +505,7 @@ The file holds four unrelated things. Named recipes past the three-component thr
 and go to [surfaces.ts](../../../lib/pkgs/kit/tokens/src/surfaces.ts). **Four of those
 names do not go, and the reason is the interface rather than convenience**: `focus-link`,
 `spring-underline`, `article-link` and `jump-target` are written onto compiled prose by
-[compile.ts](../../../libs/compile/src/compile.ts), which the corpus publish runs
+[compile.ts](../../../services/libs/compile/src/compile.ts), which the corpus publish runs
 outside the Vite graph and on its own schedule. They stay hand-written recipes in a shared
 stylesheet and they are still the vocabulary -- "A layer is not a mechanism" above, condition (a).
 That does not give the file back a position: a stylesheet carrying four vocabulary recipes is a
@@ -513,7 +513,7 @@ carrier, and a file is not a layer. **Which stylesheets carry them was settled o
 the CMS came to draw the same prose**: the focus ring, `--ease-spring` and `.spring-underline` are
 [lib/pkgs/kit/tokens/src/interaction.css](../../../lib/pkgs/kit/tokens/src/interaction.css), because every control
 in either application uses them; `.article-link`, `.jump-target` and the per-language line-breaking
-of `.article-content` are [libs/prose/src/prose.css](../../../libs/prose/src/prose.css), beside
+of `.article-content` are [services/libs/prose/src/prose.css](../../../services/libs/prose/src/prose.css), beside
 `rail.css`, because they are names the compiler writes into prose. Both applications import both
 after Tailwind. `utilities.css` keeps `.meta-language` alone, which is the site's page.
 One-off classes
@@ -635,7 +635,7 @@ already ruled it the frame.
 
 The disposition read escape hatch because the rules reach markdown-compiled prose. They do not
 reach it by selector. Every one of the seven properties is inherited and all seven are declared
-on the wrapper -- a `<div>` [body.svelte](../../../libs/prose/src/body.svelte)
+on the wrapper -- a `<div>` [body.svelte](../../../services/libs/prose/src/body.svelte)
 authors and already classes with `space-y-4` -- while `.article-summary` is a `<p>`
 [article.svelte](../../../apps/site/src/lib/article/article.svelte) authors outright. An author
 of each of those elements can write a class on it, so question one does not answer; two call

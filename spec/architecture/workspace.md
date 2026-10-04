@@ -61,7 +61,7 @@ A forge reads the tree and says what it is written in, and the workspace's line 
 every file in it. Both would answer for this repository's generators instead of its authors, so
 what the generators write is marked `linguist-generated=true` in `.gitattributes`, which both read.
 
-`libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
+`services/libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
 hundred lines of stylesheet anybody wrote. `data/record/metadata.json` is written by `local
 image`, and `diagram.json` beside it by the model calls that describe each diagram; `data/build/`
 holds what a build derives; Drizzle writes its own snapshots. Each is tracked because a build
@@ -128,7 +128,7 @@ subject: [local.md](local.md).
 
 ## The editor is configured by reading the site, not by working it out again
 
-**When `apps/cms` will not render something the way the site does, the answer is in
+**When `services/apps/cms` will not render something the way the site does, the answer is in
 `apps/site`.** Both are SvelteKit over the same components, and every time the editor has been
 wrong so far the site already held the fix: the StyleX sheet arrives in development through a
 link and a runtime module rather than an import, `@canmi/prose` has to be aliased to its source
@@ -407,7 +407,7 @@ free, which a written-in one could never have: the directive is one line and a v
 nine.
 
 The cost is that the site's content build runs
-[two passes](../../libs/compile/src/articles.ts): every view's frontmatter is
+[two passes](../../services/libs/compile/src/articles.ts): every view's frontmatter is
 read before anything compiles, because the compiler sees one article at a time while a card
 names another. A path no article answers to fails the build rather than degrading to a
 placeholder -- unlike an embed, nothing has to be fetched first, so an unresolved path is a typo

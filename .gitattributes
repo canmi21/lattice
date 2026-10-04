@@ -2,11 +2,11 @@
 # subsetter and the image pipeline, and so the workspace's line check passes over it. See
 # spec/architecture/workspace.md, "Machine output is marked, so the language statistics describe
 # the repository".
-libs/fonts/src/*.css linguist-generated=true
+services/libs/fonts/src/*.css linguist-generated=true
 data/record/metadata.json linguist-generated=true
 data/record/diagram.json linguist-generated=true
 data/build/*.json linguist-generated=true
-libs/collection/drizzle/*/meta/*.json linguist-generated=true
+services/libs/collection/drizzle/*/meta/*.json linguist-generated=true
 
 # Over the workspace's hard limit, known, and owed a split after the migration rather than now:
 # the curated records until A2 moves them into the database, the CSS backlog, and the translation

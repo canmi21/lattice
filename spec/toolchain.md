@@ -225,8 +225,8 @@ anything about the code. A dependency update crossing that major has broken the 
 pin, and the repair is to put the 6 back rather than to chase the error into `svelte-check`.
 
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
-Every other package that does -- `apps/cms`, `infra/apps/panel`, `apps/status`, `libs/prose`,
-`libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
+Every other package that does -- `services/apps/cms`, `infra/apps/panel`, `apps/status`, `services/libs/prose`,
+`services/libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
 `outdated` listing 7 for each of them is this floor and not an upgrade waiting. `versions.toml`
 allows the pair, so the report says so rather than warning.
 

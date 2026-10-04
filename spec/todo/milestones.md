@@ -288,7 +288,7 @@ and the five places the draft root lived are gone with the tree itself.
 site's components and nothing around them, which looked close and was not: the rail had no box to
 sit in, the bar had nothing to position against, and the 197 lines of prose typography were still
 in the application the body had left -- so code, tables and quotes were unstyled. The shell is one
-component now, in `libs/prose`, and the site uses the same one. What stays the site's is every
+component now, in `services/libs/prose`, and the site uses the same one. What stays the site's is every
 snippet it passes in, because those reach for its own data.
 
 **The editor is configured by reading the site.** Both are SvelteKit over the same components,

@@ -121,9 +121,12 @@ fn a_node_refuses_a_service_with_no_container() {
 fn every_declaration_in_the_repository_is_one_this_reader_takes() {
 	// The gateway's table is generated from these files by a second reader, so this one has to
 	// accept each of them too. See apps/gateway/scripts/scopes.ts.
-	let apps = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../apps");
+	let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+	let roots = ["apps", "infra/apps", "platform/apps", "services/apps"].map(|apps| root.join(apps));
 	let mut read = 0;
-	for entry in std::fs::read_dir(apps).unwrap() {
+	for entry in
+		roots.iter().filter(|apps| apps.exists()).flat_map(|apps| std::fs::read_dir(apps).unwrap())
+	{
 		let path = entry.unwrap().path().join("service.toml");
 		let Ok(text) = std::fs::read_to_string(&path) else { continue };
 		let manifest = Manifest::parse(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()));

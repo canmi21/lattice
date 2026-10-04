@@ -115,8 +115,8 @@ export const ImageLayerSchema = v.object({
  * decoding, and `address` is not in the file at all -- it is looked up offline from `location`.
  * See spec/architecture/media.md, "Where a photograph was taken is worked out offline".
  *
- * Spread into two layers rather than named as one, because `apps/local/src/image/exif.rs` is
- * flattened into both and a wrapper here would be a key the Rust side never writes.
+ * Spread into two layers rather than named as one, because `services/apps/local/src/image/exif.rs`
+ * is flattened into both and a wrapper here would be a key the Rust side never writes.
  */
 const exif = {
 	captured: v.optional(v.string()),
@@ -398,7 +398,7 @@ export function isLayerName(value: string): value is LayerName {
  *
  * An absolute URL here would bake a hostname into every record, so changing one would mean
  * rewriting all of them. A scheme is expanded by whoever answers, from `@monoflake/sdk`, which is
- * the one place a hostname is declared. `libs/fonts` already does this with `__CDN_URL__`.
+ * the one place a hostname is declared. `services/libs/fonts` already does this with `__CDN_URL__`.
  */
 export const CANONICAL_PATTERN = /^(?:cid:[0-9a-f]{32}\.[a-z0-9]+|slug:[a-z0-9][a-z0-9-]*)$/;
 

@@ -7,7 +7,7 @@ colliding with itself, and observed.
 ## The catalogue is data, and it is complete before the runner
 
 Every operation that takes more than an instant is declared in
-[task/mod.rs](../apps/local/src/task/mod.rs): what it is, whether it asks a model, what it reads,
+[task/mod.rs](../services/apps/local/src/task/mod.rs): what it is, whether it asks a model, what it reads,
 what it writes, and which tasks must have run first. Nothing there runs anything.
 
 Splitting the description from the execution is what lets the catalogue be finished first. A GUI
@@ -197,7 +197,7 @@ observe that would change the answer.
 **The two import commands edit `contents/**/*.md`, and nothing else does.** `local image` and
 `local video` each do it because an author wrote a temporary filename -- `![](shot.png)`,
 `![](take-3.mov)` -- and the reference has to become the resource id once the asset is derived;
-[video/run.rs](../apps/local/src/video/run.rs) calls the same `rewrite_references` `local image` does.
+[video/run.rs](../services/apps/local/src/video/run.rs) calls the same `rewrite_references` `local image` does.
 A test asserts the pair, and a third writer of `Articles` would fail it. Every other task reading
 `Articles` declares `after: ["image"]` largely to stay clear of that rewrite.
 

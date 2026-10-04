@@ -24,7 +24,7 @@
 		// `$app` aliases and the `*.svelte` module types elsewhere, so this file alone sees half
 		// a project.
 		"apps/site",
-		"apps/cms",
+		"services/apps/cms",
 		"infra/apps/panel",
 		"apps/status",
 		// Checked by tsconfig.workers.json against workerd's globals instead. Whole directories,

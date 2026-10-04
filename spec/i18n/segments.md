@@ -276,7 +276,7 @@ the CMS has no other reason to load.
 The layout supplies the numbers, and it supplies them from another language. The rail's width is
 declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css) and argued in
 [styling/rail.md](../styling/rail.md) under "The rail's box is one declared width"; what this file's
-rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/local/src/i18n/width.rs). A label is given
+rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../services/apps/local/src/i18n/width.rs). A label is given
 the rail's whole 136px at 13px type, which holds ten Han characters or nineteen Latin ones, so one
 line is 19 columns and the two-line clamp is 38. Both are measured in the rendered rail: nineteen
 is the widest a label goes without wrapping anywhere in the corpus, and three of the nine that
