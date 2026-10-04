@@ -10,11 +10,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-/// The workspace packages that carry a Worker.
+/// The workspace packages that are deployed: the site, its API and the status page.
 ///
 /// Named rather than globbed. `apps/local` is this program and has no npm side, and a
 /// directory appearing under `apps/` is not by itself a thing that gets deployed.
-pub const APPS: [&str; 3] = ["api", "cdn", "site"];
+pub const APPS: [&str; 3] = ["site", "site-api", "status"];
 
 #[derive(Debug, Deserialize)]
 struct Project {
@@ -59,7 +59,7 @@ struct Declared {
 /// Workspace libraries are excluded: pnpm links them, so their version reads `link:../..`,
 /// which is both the reliable marker and the accurate statement -- they are this project, not
 /// something it credits. Packages resolved for another platform are excluded too; see
-/// spec/architecture/data.md, "A dependency's licence is an asset like any other", for why an
+/// spec/architecture/data.md, "A dependency's license is an asset like any other", for why an
 /// excluded package is not a package declaring nothing.
 pub fn collect(repo: &Path) -> Result<Vec<Found>, String> {
 	let mut packages: BTreeMap<String, Found> = BTreeMap::new();

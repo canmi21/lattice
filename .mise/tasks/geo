@@ -5,14 +5,17 @@ set -euo pipefail
 # Outside git like the photographs it describes. Absent, addresses are simply missing -- the same
 # state as an image whose EXIF carried no position -- so this is run once rather than by a build.
 #
-# The files are the geo image's own data stage, exported: its Dockerfile holds the only copy of
-# the addresses, and what `local` reads here is what the service answers from.
+# The files are the platform's geo image's own data stage, exported: its Dockerfile, in the platform
+# repository cloned beside this one, holds the only copy of the addresses, and what `local` reads
+# here is what the service answers from.
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+GEO="$ROOT/../platform/apps/geo"
+[ -f "$GEO/Dockerfile" ] || { echo "geo: no platform checkout beside this one at $GEO" >&2; exit 1; }
 TARGET="$ROOT/data/source/geo"
 
 # Every stage's base is parsed even when one is built, so the compiler version is passed as the
 # image build passes it; the data stage itself never uses it.
 RUST_VERSION="$(cd "$ROOT" && rustc --version | cut -d' ' -f2)"
-docker buildx build --file "$ROOT/apps/geo/Dockerfile" --target data \
-	--build-arg "RUST_VERSION=$RUST_VERSION" --output "type=local,dest=$TARGET" "$ROOT/apps/geo"
+docker buildx build --file "$GEO/Dockerfile" --target data \
+	--build-arg "RUST_VERSION=$RUST_VERSION" --output "type=local,dest=$TARGET" "$GEO"
 echo "  $(wc -l < "$TARGET/cities500.txt" | tr -d ' ') settlements, $(du -sh "$TARGET" | cut -f1) on disk"
