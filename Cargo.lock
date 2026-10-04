@@ -365,9 +365,9 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "canmi"
-version = "2026.1004.1"
+version = "2026.1004.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f2031ddef4e3678c5dbadd8a0ed1bf48de9a1dca8581a1acd4ea1a0661ac0c8"
+checksum = "9bb8e2cd275a770319ea0cb51b13d99bd7737dab63dee76dbadd8be6f17c5b58"
 
 [[package]]
 name = "cc"
@@ -454,9 +454,9 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "claude-codes"
-version = "2.1.290"
+version = "2.1.291"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea2907bdf894e2afa03ccd29d53c9be7a072a3c27df089c6450919187da2ebf7"
+checksum = "3a2be5e64218721f72e34e0ecff2ccadd406f3a13f0cc91022c3ecb9662f342d"
 dependencies = [
  "anyhow",
  "chrono",
