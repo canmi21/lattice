@@ -65,7 +65,7 @@ if [ "$PUBLISHED" -lt "$WANTED" ] 2>/dev/null; then
 	echo "  live      generation $PUBLISHED, published $GENERATED"
 	echo "  this code reads generation $WANTED"
 	echo
-	echo "  Deploying is allowed and this is not stopping it. Until \`mise run publish lattice"
+	echo "  Deploying is allowed and this is not stopping it. Until \`mise run publish web"
 	echo "  --live\` has run, a worker built from this source is reading objects written under an"
 	echo "  older shape, and what that costs is whatever the two generations disagree about."
 else

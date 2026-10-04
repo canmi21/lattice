@@ -109,7 +109,7 @@ checkout has not changed a byte.
 checkout:
 
 ```sh
-cd ~/workspace/repos/lattice
+cd ~/workspace/repos/web
 jj rebase -s @ -d main        # the author's uncommitted edits, carried onto the new main
 ```
 

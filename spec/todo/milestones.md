@@ -435,12 +435,17 @@ The arrangement is [../architecture/layers.md](../architecture/layers.md).
 | F3  | The move                        | `lib/`, `infra/`, `platform/`, `services/`; the scopes; the library's fourteen packages become five; `libs/urls` becomes three                       | F2    | **done** |
 | F4  | The couplings go                | host reads the platform's apps and names from their declarations; the panel stops naming `cron` and the ledger; the exception list is empty          | F3    | **done** |
 | F5  | The library's repository        | `axum-governor` renamed `lib` and made a monorepo; Verdaccio for development; trusted publishing; each first version by hand                         | F3    | **done** |
-| F6  | The split                       | `web`, `monoflake/infra` and `monoflake/platform` continue from one commit; Cloudflare and Vercel pointed once; the workspace's `repos.toml` follows | F4 F5 | mid      |
+| F6  | The split                       | `web`, `monoflake/infra` and `monoflake/platform` continue from one commit; Cloudflare and Vercel pointed once; the workspace's `repos.toml` follows | F4 F5 | **done** |
 
 **The Workers and Vercel apps move in F6, not F3**, so nothing was frozen: Cloudflare's and
 Vercel's builds name each app's own directory and nothing under it, and those seven -- `aka`,
 `cdn`, `gateway`, `hook`, `quota`, `site`, `status` -- stay in `apps/` until the repositories split
 and each build is pointed once. The libraries they read moved freely beneath them.
+
+**Owed after F6: the sandbox's names still say lattice.** `LATTICE_SANDBOX`, `LATTICE_PORT_OFFSET`,
+the `lattice-sandbox-dev` session and `/tmp/sandbox/lattice` are identifiers rather than prose, and
+`@canmi/me` reads the offset too, so renaming them is a change to the lib repository and a release
+before it is one here; they were left standing through the split for that reason.
 
 **Owed after F6: every repository's code scanning alerts are read again.** CodeQL keys an alert
 by its file, so moving a file reopened the false positives dismissed before the split, in all three

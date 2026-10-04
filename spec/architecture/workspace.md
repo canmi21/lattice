@@ -2,9 +2,9 @@
 
 ## What this repository is
 
-lattice is one project of several and its own repository, cloned into the workspace's `repos/` as a
-sibling of the others. It holds the site, the three Workers beside it, the local service that edits
-it, the corpus they serve, and the libraries those share. Nothing else, and the absences are as
+web is one project of several and its own repository, cloned into the workspace's `repos/` as a
+sibling of the others. It holds the site, its status page, the local service that edits it, the
+corpus they serve, and the libraries those share. Nothing else, and the absences are as
 much of the description as the contents: there is no `.editorconfig`, no `rustfmt.toml`, no
 `.oxlintrc.json`, no agent hook and no `AGENTS.md` anywhere below this root -- nor a `CLAUDE.md`,
 which would stop Claude Code reading the workspace's `AGENTS.md`. Every one of those
@@ -21,8 +21,8 @@ nested, and a name reads correctly either way.
 
 **This section is a correction.** It used to open "one folder holding most of what its owner
 writes, across every language", which described the arrangement that was abandoned -- one project
-at the root with the rest nested inside it -- and stopped being true when lattice was demoted to a
-sibling. The layout block below was corrected first; this rested on the same premise and was
+at the root with the rest nested inside it -- and stopped being true when this project was demoted
+to a sibling. The layout block below was corrected first; this rested on the same premise and was
 left standing.
 
 What was true in it, and stays, is the half that never needed the folder to hold everything.
@@ -99,7 +99,7 @@ data/       Assets and the records describing them. Bytes stay out of git; recor
 
 Two lines of that block are a correction. They used to say `spec/` was indexed by a `CLAUDE.md`
 here and to name a `repos/` directory below it, which described the earlier arrangement -- one
-project at the root with the rest nested inside it. That was abandoned: lattice is a project
+project at the root with the rest nested inside it. That was abandoned: this project is one
 cloned into the workspace's own `repos/`, a sibling of the others, and `repos/` and the entry
 point both belong one directory up.
 
