@@ -32,17 +32,55 @@ the rate would have paid for. A refusal says when a call would next pass, to the
 
 ## A key names the service, the route and the subject, never a host
 
-**A key is the service's code, the row's methods, the row's path and the subject**:
-`shot_post_tasks_198.51.100.7`, lowercase, as everything the dashboard shows here is. The
+**A key is the service's code, the row's methods, the row's path and the subject, kind and value**:
+`shot_post_tasks_address-198.51.100.7`, lowercase, as everything the dashboard shows here is. The
 hostname a call came in on is not part of it, nor is the version: `api.monoflake.com/v1/shot/...`,
 `shot-rdu-int.ixc.one/v1/...` and a retired host's spelling of the same route fill one bucket, and so
 does every version of it, since a row's path is written after the version. No spelling of an
-address and no change of version is a way round a limit.
+address and no change of version is a way round a limit. The subject's kind is spelled in the key, so
+an account's identifier and an address can never name the same bucket.
 
-**The subject is the caller's address until there are accounts, and the account after.** An IPv4
-address counts whole. An IPv6 address counts by its `/64`, the block one machine is usually given,
-so a caller cannot step round its limit by changing the last half of its address. When the account
-system issues tokens, a signed-in caller's subject is the account, and the key keeps its shape.
+**A row counts one kind of subject, named by `subject`, and a route may have a row of each.** A call
+is let through only when every row that covers it does: one device asking for many accounts meets
+the address's row, one account asking from many devices meets the account's. Two rows of the same
+kind covering one call are refused when the table is generated; rows of different kinds stack.
+
+| `subject`  | Counts                                                    | A key's subject                      |
+| ---------- | --------------------------------------------------------- | ------------------------------------ |
+| `address`  | the caller's address: IPv4 whole, IPv6 by its `/64`       | `address-198.51.100.7`               |
+| `account`  | one account, over all its sessions and devices            | `account-{account}`                  |
+| `session`  | one signed-in session, inside the account it belongs to   | `session-{account}.{session}`        |
+
+**Only `address` is accepted until there are accounts**, as `auth` takes `"none"` alone, and it is
+what a row without `subject` counts. An IPv6 address counts by its `/64`, the block one machine is
+usually given, so a caller cannot step round its limit by changing the last half of its address. A
+call that carries no subject of a row's kind -- nobody signed in, for an account's row -- is not
+counted by that row. When the account system issues tokens, the gateway reads the account and the
+session out of the credential and the rows for them start counting; no key, call or store changes.
+
+```toml
+[[api.limits]]          # one device
+methods = ["POST"]
+path = "/tasks"
+subject = "address"     # what a row without `subject` counts
+count = 60
+seconds = 60
+
+[[api.limits]]          # one account, from however many devices
+methods = ["POST"]
+path = "/tasks"
+subject = "account"
+count = 300
+seconds = 60
+```
+
+**The buckets of one call are taken in order, and the first refusal ends it.** `address`, then
+`account`, then `session`: each is taken as it is reached, and a refusal leaves the ones after it
+untouched and answers with its own `Retry-After`. What was taken before a refusal is not given back,
+so a refused call may have spent the address's room -- a limit that errs strict, never loose, at one
+Durable Object request a bucket. Checking every bucket before taking any would cost two requests a
+bucket and still race between them, since the buckets are separate objects. The address comes first
+so that one device cycling through accounts is stopped there, before it spends any account's room.
 
 ## Deployed twice, counted where a request enters
 
@@ -65,9 +103,9 @@ buckets, nor the public's the node's; there is no sharing between them to keep i
 
 ## Two doors: one inside, and one held for later
 
-**The inside door is a binding's.** `quota`'s Worker exports a named entrypoint whose `take(key,
-row)` answers `{ allowed, retryAfter }`; a Worker reaches it by service binding, which costs nothing
-beyond the Durable Object request it makes. On the node the same call is an HTTP request on the
+**The inside door is a binding's.** `quota`'s Worker exports a named entrypoint whose `take` is
+given every key and row of one call, in order, and answers once, `{ allowed, retryAfter }`; a Worker
+reaches it by service binding, which costs nothing beyond the Durable Object requests it makes. On the node the same call is an HTTP request on the
 node's own network. The inside door takes any key, so nothing outside the platform reaches it.
 
 **The outside door is not open until there are accounts.** `quota` is declared `public = false`, so
@@ -95,6 +133,7 @@ through would hide it.
 - **Both gateways**, for every route of a service that declares rows.
 - **A Worker's own routes**, which its pages call without the gateway: the site's, in
   `apps/site/server/src/contract/limits.ts`, in the same row format.
-- **Caddy on the node** keeps a sliding window under the rows, as a floor for the moment `quota`
-  fails, at `burst + count` calls in `seconds` -- the most a bucket ever admits in that window, so the
-  floor never refuses what the bucket allows. Caddy's limiter has no bucket of its own.
+- **Caddy on the node** keeps a sliding window under the `address` rows, as a floor for the moment
+  `quota` fails, at `burst + count` calls in `seconds` -- the most a bucket ever admits in that
+  window, so the floor never refuses what the bucket allows. Caddy's limiter has no bucket of its
+  own, and sees no account.

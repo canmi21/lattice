@@ -205,8 +205,10 @@ redirected = "1h"
   as each other are an error when the table is generated.
 - **A limit's path is written as a route's is**: after the version, exact or a prefix ending in
   `/*`, and the same row is matched alike by the gateway before it asks `quota`, by Caddy on the node -- which
-  matches it with or without a version in front -- and by host when it refuses two rows that would
-  count one call twice.
+  matches it with or without a version in front -- and by host when it refuses two rows of one kind
+  that would count one call twice. Each row counts one kind of subject, and rows of different kinds covering one
+  call stack -- see [quota.md](quota.md), "A key names the service, the route and the subject,
+  never a host".
 - **`auth` is reserved.** It takes `"none"` alone until there are accounts.
 
 ### The table is built, not read at run time

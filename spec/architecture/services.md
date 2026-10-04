@@ -206,7 +206,8 @@ burst = 20             # at most 20 at once; `count` when left out
 
 The gateway's table carries the rows, generated from every `service.toml` as its scopes are; host
 reads the same files. A row a node cannot count is refused when the service is deployed, and so is
-a call two rows would cover: the first row that covers a call counts it, Caddy every one. The site's
+a call two rows of one subject would cover; rows of different subjects stack, each counting
+the call. See [quota.md](quota.md). The site's
 own routes, which its pages call without the gateway, are rows in the same format, counted by the
 same service.
 
