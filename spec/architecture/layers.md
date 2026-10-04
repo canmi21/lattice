@@ -127,8 +127,9 @@ first and fourth stay names only this list holds. **Both lists are empty before 
 split**; each is fixed by the declaration pattern
 `service.toml` already uses -- the layer above says what it is, the one below reads the saying.
 
-1. host knows the platform's apps by name: `OWN`, `TAKEN`, `RESERVED`, and a `Shape` each for
-   `cron`, `apt`, `telemetry`, `objects`, `postgres` and the gateway.
+1. ~~host knows the platform's apps by name.~~ It knows roles: an app asks for one in its
+   declaration and the node grants it in `GRANTS`. See [host.md](host.md), "A role is asked for by
+   the app and granted by the node".
 2. host renders Caddy's routes and the resolver from the platform's `GATEWAY_*`.
 3. ~~The panel reads `cron`'s and the ledger's addresses to show them.~~ It reads them from its
    environment now, `CRON_API` and `LEDGER_API`, which the node sets in the panel's `config.env`;

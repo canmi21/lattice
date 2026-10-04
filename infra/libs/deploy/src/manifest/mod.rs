@@ -18,62 +18,29 @@ use std::ops::RangeInclusive;
 /// sense of a newer file; a key an older host can ignore is not a bump. See spec/json.md.
 pub const VERSION: u32 = 1;
 
-/// Names taken by the platform itself: its programs, the meter that watches the machine, the API
-/// host and the Worker answering it, the object storage and database drivers, the scheduler that
-/// calls every job, the door onto the machine's own packages and the public telemetry, and the
-/// containers an app's name would collide with. See spec/architecture/cron.md,
-/// spec/architecture/apt.md, spec/architecture/telemetry.md and spec/architecture/databases.md.
-const RESERVED: [&str; 15] = [
-	"host",
-	"keeper",
-	"meter",
-	"api",
-	"gateway",
-	"caddy",
-	"tunnel",
-	"panel",
-	"cloudflared",
-	"objects",
-	"postgres",
-	"cron",
-	"apt",
-	"telemetry",
-	"resolver",
-];
+/// Names infra takes for itself: its programs, the meter that watches the machine, the API host's
+/// label, and the containers an app's name would collide with. A service above infra is named like
+/// any app, and what it may do beyond one is the node's grant, not its name. See
+/// spec/architecture/host.md, "A role is asked for by the app and granted by the node".
+const RESERVED: [&str; 9] =
+	["host", "keeper", "meter", "api", "caddy", "tunnel", "panel", "cloudflared", "resolver"];
 
 /// What an app's object storage sidecar is named after it, so no app may end its own name so. See
 /// spec/architecture/objects.md, "A sidecar per app, over the app's own directory".
 pub const SIDECAR_SUFFIX: &str = "-objects";
-
-/// The object storage driver: the image every sidecar runs, deployed and never run itself. See
-/// spec/architecture/objects.md, "The driver is deployed like an app, and is not one".
-pub const OBJECTS: &str = "objects";
 
 /// Labels reserved for what is on its way, not yet a real app or route: `cms`, the editor, which
 /// keeps its own address until it moves. See spec/architecture/host.md, "One name inside, and a
 /// domain label outside".
 const RESERVED_LABELS: [&str; 1] = ["cms"];
 
-/// The reserved names the platform still deploys, each in a shape its name alone chooses: host and
-/// keeper, which each deploy the other, the meter, Caddy, the tunnel, the panel, the object storage
-/// and database drivers, the scheduler, the door onto the machine's packages, telemetry, the
-/// internal gateway and the house's DNS. See spec/architecture/host.md, "host never updates
-/// itself; keeper updates host", and the file each is named for under spec/architecture/.
-pub const OWN: [&str; 13] = [
-	"host",
-	"keeper",
-	"meter",
-	"caddy",
-	"tunnel",
-	"panel",
-	"objects",
-	"postgres",
-	"cron",
-	"apt",
-	"telemetry",
-	"gateway",
-	"resolver",
-];
+/// The reserved names infra still deploys, each in a shape its name alone chooses: host and keeper,
+/// which each deploy the other, the meter, Caddy, the tunnel, the panel and the house's DNS. See
+/// spec/architecture/host.md, "host never updates itself; keeper updates host".
+pub const OWN: [&str; 7] = ["host", "keeper", "meter", "caddy", "tunnel", "panel", "resolver"];
+
+/// The roles an app may ask for beyond a sandbox, by the word its `[shape]` names each with.
+pub const SHAPES: [&str; 3] = ["scheduler", "steward", "reporter"];
 
 /// The placement that is Cloudflare's Workers rather than a node. Cloudflare deploys it, so no host
 /// ever runs what is placed there. See spec/architecture/services.md, "A Workers placement is
@@ -105,6 +72,26 @@ pub struct Manifest {
 	/// service that does it".
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
 	pub schedules: Vec<Schedule>,
+	/// The role it asks the node for beyond a sandbox. Asking grants nothing: the node's `GRANTS`
+	/// has to name it too. See spec/architecture/host.md, "A role is asked for by the app and
+	/// granted by the node".
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub shape: Option<ShapeRequest>,
+	/// The driver it is, run by host beside every app declaring one, when the node grants it.
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub driver: Option<DriverRequest>,
+}
+
+/// A role asked for, one of [`SHAPES`].
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ShapeRequest {
+	pub kind: String,
+}
+
+/// A driver offered: the `[objects]` or `[postgres]` an app declares, which this image serves.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DriverRequest {
+	pub provides: String,
 }
 
 impl Manifest {

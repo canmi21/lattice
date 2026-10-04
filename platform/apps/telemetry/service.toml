@@ -68,3 +68,8 @@ methods = ["GET", "HEAD"]
 path = "/activity"
 count = 120
 seconds = 60
+
+# The reporter: host's account of the services and the meter's readings, where the node grants it.
+# See spec/architecture/host.md, "A role is asked for by the app and granted by the node".
+[shape]
+kind = "reporter"

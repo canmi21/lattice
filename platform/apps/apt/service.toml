@@ -32,3 +32,8 @@ path = "/jobs/upgrade"
 catch_up = "once"
 overlap = "skip"
 timeout = 7200
+
+# The steward: root and the machine's D-Bus socket, where the node grants it. See
+# spec/architecture/host.md, "A role is asked for by the app and granted by the node".
+[shape]
+kind = "steward"

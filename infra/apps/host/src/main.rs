@@ -8,6 +8,7 @@ mod caddy;
 mod config;
 mod cron;
 mod environment;
+mod grants;
 mod images;
 mod inspect;
 mod node;

@@ -11,3 +11,8 @@ placements = ["home"]
 port = 5432
 health = "/"
 memory_mb = 192
+
+# The driver every app's database sidecar runs; a driver only where the node grants it. See
+# spec/architecture/host.md, "A role is asked for by the app and granted by the node".
+[driver]
+provides = "postgres"

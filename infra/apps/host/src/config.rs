@@ -28,6 +28,8 @@ pub struct Config {
 	pub platform_env: PathBuf,
 	pub caddy: CaddyConfig,
 	pub resolver: ResolverConfig,
+	/// The roles the node grants beyond a sandbox, from `GRANTS`; none when it is unset.
+	pub grants: crate::grants::Grants,
 }
 
 /// The house's DNS: where host writes its configuration, the node's LAN address it answers the
@@ -120,6 +122,8 @@ impl Config {
 					.map(str::to_owned)
 					.collect(),
 			},
+			grants: crate::grants::Grants::parse(&optional("GRANTS", ""))
+				.map_err(|pair| Missing::Unreadable("GRANTS", format!("`{pair}` is not app:role")))?,
 			apps_root,
 		})
 	}

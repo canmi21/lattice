@@ -131,7 +131,10 @@ pub fn database_of(
 
 /// `kind`'s driver as this node runs it, when it is deployed.
 pub fn driver(host: &Host, kind: Driver) -> Result<Option<Version>, Error> {
-	let driver = host.store.app(kind.name())?;
+	let Some(name) = host.config.grants.holder(crate::grants::Role::Driver(kind)) else {
+		return Ok(None);
+	};
+	let driver = host.store.app(name)?;
 	Ok(driver.map(|driver| Version { manifest: driver.manifest, image: driver.image }))
 }
 

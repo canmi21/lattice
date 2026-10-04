@@ -214,7 +214,7 @@ async fn shown(host: &Host, app: Deployed) -> Shown {
 	let running = host.engine.running(&app.manifest.name).await.unwrap_or(false);
 	let restorable = rollout::restorable(host, &app).ok().flatten().is_some();
 	let platform = rollout::PLATFORM.contains(&app.manifest.name.as_str());
-	let driver = deploy::sidecar::Driver::named(&app.manifest.name).is_some();
+	let driver = host.config.grants.driver_of(&app.manifest).is_some();
 	Shown { app, running, restorable, platform, driver }
 }
 

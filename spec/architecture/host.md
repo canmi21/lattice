@@ -128,6 +128,28 @@ at all. A network of its own shared with Caddy alone, the app's own directory an
 `privileged`, no host network, no Docker socket, resource limits always. This translation is the
 whole of what host adds over a compose file, and it is why a manifest declares rather than executes.
 
+### A role is asked for by the app and granted by the node
+
+**A service above infra that needs more than a sandbox asks for a role, and the node grants it.**
+The roles are what host can make of a container beyond the sandbox: the scheduler, which is given
+every job's table and each socket service's directory; the steward, which runs as root with the
+machine's D-Bus socket; the reporter, which is given host's account of the services and the
+meter's readings; the driver of a kind, whose image every sidecar of that kind runs; and a claim on
+hostnames, which Caddy routes and the resolver answers. An app asks in its `service.toml` --
+`[shape] kind = "scheduler"`, `[driver] provides = "objects"` -- and the node's `.env` grants, in
+`GRANTS`, as `app:role` pairs: `cron:scheduler objects:objects gateway:hosts`.
+
+**Both keys, always.** A declaration ships with an image CI built, and anything that reaches CI
+could write one, so asking alone grants nothing: an app that asks for a role the node does not
+grant it is refused before anything is stopped, rather than run sandboxed to fail somewhere later.
+A grant alone does nothing either, since an app that asks for no role gets none. So a role is the
+operator's decision as every privilege here is, and host knows roles rather than the names of the
+services that hold them -- which is what lets infra be built without naming anything above it. See
+[layers.md](layers.md), "What the package graph cannot see".
+
+Infra's own are the exception, shaped by name as before: host and keeper, the meter, Caddy, the
+tunnel and the resolver are what the node is made of, and naming them is infra naming itself.
+
 **An app's directory belongs to the user its image runs as.** host creates it as root, and an image
 that runs as someone else -- which every image from this repository does, as 65532 -- could not
 write to it. So before each version starts, host reads the image's `USER` and, when it is a number

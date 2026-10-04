@@ -10,3 +10,8 @@ placements = ["home"]
 port = 17070
 health = "/health"
 memory_mb = 256
+
+# The driver every app's object storage sidecar runs; a driver only where the node grants it. See
+# spec/architecture/host.md, "A role is asked for by the app and granted by the node".
+[driver]
+provides = "objects"

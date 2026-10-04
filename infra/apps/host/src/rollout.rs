@@ -2,10 +2,11 @@
 //! procedure, then record the new version, route it and collect what is no longer needed. See
 //! spec/architecture/host.md.
 
+use crate::grants::Role;
 use crate::sidecars::{self, drive};
 use crate::store::{Action, Deployed, Source};
 use crate::{Host, caddy, store};
-use deploy::manifest::{Invalid, Manifest, OBJECTS};
+use deploy::manifest::{Invalid, Manifest};
 use deploy::replace::{self, Beside, replace_beside};
 use deploy::sidecar::Driver;
 use deploy::{Shape, Version, engine};
@@ -54,6 +55,8 @@ pub enum Error {
 	NoDriver(String, &'static str),
 	#[error("`{0}` is the driver every sidecar runs, and has no container of its own to act on")]
 	Driver(String),
+	#[error(transparent)]
+	Refused(#[from] crate::grants::Refused),
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -71,21 +74,9 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 	if TAKEN.contains(&name) { Ok(()) } else { deploy::manifest::check_name(name) }
 }
 
-/// The platform's own that host deploys, each in the shape its name gives it; a driver runs none.
-const TAKEN: [&str; 12] = [
-	"keeper",
-	"meter",
-	"caddy",
-	"tunnel",
-	"panel",
-	OBJECTS,
-	"postgres",
-	"cron",
-	"apt",
-	"telemetry",
-	"gateway",
-	RESOLVER,
-];
+/// Infra's own that host deploys, each in the shape its name gives it. Every other app's shape is
+/// the role it asks for and the node grants; see crate::grants.
+const TAKEN: [&str; 6] = ["keeper", "meter", "caddy", "tunnel", "panel", RESOLVER];
 
 /// The house's DNS, in a shape of its own and with its configuration written before it starts.
 const RESOLVER: &str = "resolver";
@@ -93,9 +84,9 @@ const RESOLVER: &str = "resolver";
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";
 
-/// The platform's own that stand on no network of their own: the meter has none, Caddy and the
-/// tunnel stand on the edge, and a driver runs no container.
-const UNNETWORKED: [&str; 5] = ["meter", "caddy", "tunnel", OBJECTS, "postgres"];
+/// Infra's own that stand on no network of their own: the meter has none, and Caddy and the tunnel
+/// stand on the edge. A granted driver runs no container, so has none either.
+const UNNETWORKED: [&str; 3] = ["meter", "caddy", "tunnel"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
@@ -108,8 +99,10 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 	let Some(container) = manifest.container.as_ref() else {
 		return Err(deploy::manifest::Invalid::NoContainer(manifest.name.clone()).into());
 	};
+	// Refused before anything is stopped, as everything here is.
+	host.config.grants.shape_of(manifest)?;
 	for driver in manifest.drivers() {
-		if host.store.app(driver.name())?.is_none() {
+		if sidecars::driver(host, driver)?.is_none() {
 			return Err(Error::NoDriver(manifest.name.clone(), driver.name()));
 		}
 	}
@@ -126,11 +119,12 @@ pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Er
 }
 
 /// How the node runs an app: keeper in the platform's shape, the meter as an observer, Caddy on the
-/// edge, the tunnel at the address Caddy trusts, `cron` as the scheduler with every socket-served
-/// service it schedules mounted in, `apt` as the steward, `telemetry` as the reporter with the
-/// meter's directory mounted in, and every other app sandboxed. All but keeper read their own
-/// environment.
-fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
+/// edge, the tunnel at the address Caddy trusts, the resolver on the LAN, and every other app in
+/// the role it asks for and the node grants -- the scheduler with every socket-served service it
+/// schedules mounted in, the steward, the reporter with the meter's directory -- or sandboxed. All
+/// but keeper read their own environment.
+fn shape_of(host: &Host, manifest: &Manifest) -> Result<Shape, Error> {
+	let name = manifest.name.as_str();
 	if name == "keeper" {
 		let path = &host.config.platform_env;
 		let env = deploy::read_env(path)
@@ -154,7 +148,8 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 		meter: host.volumes.data(crate::node::METER),
 		lan: host.config.resolver.address.as_deref(),
 	};
-	shape_named(name, env, placed, sockets)
+	let role = host.config.grants.shape_of(manifest)?;
+	shape_named(name, role, env, placed, sockets)
 }
 
 /// What a shape is given from the node beside its environment.
@@ -167,25 +162,27 @@ struct Placed<'a> {
 	lan: Option<&'a str>,
 }
 
-/// `shape_of` for every name but keeper's, apart from the host it reads: the choice by name alone.
-/// `sockets` is asked only for `cron`, since it reads the store.
+/// `shape_of` for every name but keeper's, apart from the host it reads: infra's own by name, and
+/// any other by the role granted it. `sockets` is asked only for the scheduler, since it reads the
+/// store.
 fn shape_named(
 	name: &str,
+	role: Option<Role>,
 	env: Vec<String>,
 	placed: Placed<'_>,
 	sockets: impl FnOnce() -> Result<Vec<(String, PathBuf)>, Error>,
 ) -> Result<Shape, Error> {
-	Ok(match name {
-		crate::node::METER => Shape::Observer { env },
-		"caddy" => Shape::Edge { env },
-		"tunnel" => Shape::Tunnel { env, address: placed.tunnel.to_owned() },
-		crate::cron::NAME => Shape::Scheduler { env, sockets: sockets()? },
-		"apt" => Shape::Steward { env },
-		crate::telemetry::NAME => Shape::Reporter { env, meter: placed.meter },
-		RESOLVER => {
+	Ok(match (name, role) {
+		(crate::node::METER, _) => Shape::Observer { env },
+		("caddy", _) => Shape::Edge { env },
+		("tunnel", _) => Shape::Tunnel { env, address: placed.tunnel.to_owned() },
+		(RESOLVER, _) => {
 			let address = placed.lan.ok_or(Error::NoLanAddress)?;
 			Shape::Resolver { env, address: address.to_owned() }
 		}
+		(_, Some(Role::Scheduler)) => Shape::Scheduler { env, sockets: sockets()? },
+		(_, Some(Role::Steward)) => Shape::Steward { env },
+		(_, Some(Role::Reporter)) => Shape::Reporter { env, meter: placed.meter },
 		_ => Shape::Sandboxed { env },
 	})
 }
@@ -210,11 +207,11 @@ async fn run_version(
 	current: Option<&Version>,
 	restore: Option<&Path>,
 ) -> Result<Option<PathBuf>, Error> {
-	if let Some(kind) = Driver::named(&next.manifest.name) {
+	if let Some(kind) = host.config.grants.driver_of(&next.manifest) {
 		drive(host, kind, next, current).await?;
 		return Ok(None);
 	}
-	let mut shape = shape_of(host, &next.manifest.name)?;
+	let mut shape = shape_of(host, &next.manifest)?;
 	// CoreDNS will not start without its file, so it is written before the container is -- into
 	// the subvolume host makes for it, never a directory the write would make, which could not be
 	// snapshotted.
@@ -291,7 +288,8 @@ async fn settle(host: &Arc<Host>, name: String, image: String) -> Result<Outcome
 /// redeploy, a rollback, a stop or a start. Logged and skipped rather than failing the caller, as
 /// `tell_cron` is. See spec/architecture/telemetry.md, "`services.json`, what host tells".
 pub async fn tell_telemetry(host: &Host) {
-	let directory = host.volumes.data(crate::telemetry::NAME);
+	let Some(reporter) = host.config.grants.holder(Role::Reporter) else { return };
+	let directory = host.volumes.data(reporter);
 	if let Err(error) = crate::telemetry::write(&host.store, &directory).await {
 		eprintln!("host: writing telemetry's services: {error}");
 	}
@@ -312,16 +310,17 @@ pub async fn tell_cron(host: &Arc<Host>) {
 			return;
 		}
 	};
-	let directory = host.volumes.data(crate::cron::NAME);
+	let Some(scheduler) = host.config.grants.holder(Role::Scheduler) else { return };
+	let directory = host.volumes.data(scheduler);
 	if let Err(error) = crate::cron::write(&apps, &directory).await {
 		eprintln!("host: writing cron's schedule table: {error}");
 		return;
 	}
-	if host.store.app(crate::cron::NAME).ok().flatten().is_none() {
+	if host.store.app(scheduler).ok().flatten().is_none() {
 		return;
 	}
 	let desired = crate::cron::socket_services(&apps);
-	let mounted = match host.engine.socket_mounts(crate::cron::NAME).await {
+	let mounted = match host.engine.socket_mounts(scheduler).await {
 		Ok(mounted) => mounted,
 		Err(error) => {
 			eprintln!("host: reading cron's own mounts: {error}");
@@ -367,7 +366,10 @@ fn redeploy_cron(
 	host: Arc<Host>,
 ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
 	Box::pin(async move {
-		if let Err(error) = redeploy(&host, crate::cron::NAME).await {
+		let Some(scheduler) = host.config.grants.holder(Role::Scheduler).map(str::to_owned) else {
+			return;
+		};
+		if let Err(error) = redeploy(&host, &scheduler).await {
 			eprintln!("host: redeploying cron for its mounts: {error}");
 		}
 	})
@@ -539,7 +541,8 @@ pub async fn rollback(host: &Arc<Host>, name: &str, with_data: bool) -> Result<O
 /// restart ends the hold. The platform's own are restarted and nothing else.
 pub async fn act(host: &Arc<Host>, name: &str, action: Action) -> Result<(), Error> {
 	permitted(name, action)?;
-	if Driver::named(name).is_some() {
+	let driver = host.store.app(name)?.and_then(|app| host.config.grants.driver_of(&app.manifest));
+	if driver.is_some() {
 		return Err(Error::Driver(name.into()));
 	}
 	if ON_THE_WAY.contains(&name) {
@@ -732,7 +735,8 @@ pub async fn attach(host: &Host) -> Result<(), RouteError> {
 	}
 	for app in host.store.apps()? {
 		let name = app.manifest.name.as_str();
-		if !UNNETWORKED.contains(&name) && name != host.config.caddy.container {
+		let driver = host.config.grants.driver_of(&app.manifest).is_some();
+		if !UNNETWORKED.contains(&name) && !driver && name != host.config.caddy.container {
 			host.engine.network(name, &members).await?;
 		}
 	}
@@ -795,6 +799,9 @@ mod tests {
 		assert!(deployable("panel").is_ok());
 		assert!(deployable("objects").is_ok());
 		assert!(deployable("postgres").is_ok());
+		// Above infra a name is any app's; the node's grants, not the name, make it more.
+		assert!(deployable("cron").is_ok());
+		assert!(deployable("gateway").is_ok());
 		assert_eq!(deployable("geo-postgres"), Err(Invalid::Reserved("geo-postgres".into())));
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));
@@ -802,8 +809,9 @@ mod tests {
 	}
 
 	#[test]
-	fn telemetry_is_the_reporter_with_the_meters_directory() {
+	fn infra_is_shaped_by_name_and_every_other_app_by_the_role_it_is_granted() {
 		use super::{Placed, shape_named};
+		use crate::grants::Role;
 		use deploy::Shape;
 		use std::path::PathBuf;
 		let placed = || Placed {
@@ -812,23 +820,30 @@ mod tests {
 			lan: Some("10.0.0.11"),
 		};
 		let unasked = || -> Result<Vec<(String, PathBuf)>, super::Error> {
-			panic!("only cron's shape reads the store")
+			panic!("only the scheduler's shape reads the store")
 		};
-		let shape = shape_named("telemetry", vec!["A=1".into()], placed(), unasked).unwrap();
+		let reporter = Some(Role::Reporter);
+		let shape = shape_named("telemetry", reporter, vec!["A=1".into()], placed(), unasked).unwrap();
 		let Shape::Reporter { env, meter } = shape else { panic!("{shape:?}") };
 		assert_eq!((env, meter), (vec!["A=1".to_owned()], PathBuf::from("/data/apps/meter/data")));
-		let geo = shape_named("geo", vec![], placed(), unasked).unwrap();
+		// The same name with no role granted is any app; a role, not a name, is what is shaped.
+		let plain = shape_named("telemetry", None, vec![], placed(), unasked).unwrap();
+		assert!(matches!(plain, Shape::Sandboxed { .. }));
+		let geo = shape_named("geo", None, vec![], placed(), unasked).unwrap();
 		assert!(matches!(geo, Shape::Sandboxed { .. }));
-		let meter = shape_named("meter", vec![], placed(), unasked).unwrap();
-		assert!(matches!(meter, Shape::Observer { .. }));
-		let cron = shape_named("cron", vec![], placed(), || Ok(vec![])).unwrap();
+		let scheduler = Some(Role::Scheduler);
+		let cron = shape_named("cron", scheduler, vec![], placed(), || Ok(vec![])).unwrap();
 		assert!(matches!(cron, Shape::Scheduler { .. }));
-		let resolver = shape_named("resolver", vec![], placed(), unasked).unwrap();
+		let apt = shape_named("apt", Some(Role::Steward), vec![], placed(), unasked).unwrap();
+		assert!(matches!(apt, Shape::Steward { .. }));
+		let meter = shape_named("meter", None, vec![], placed(), unasked).unwrap();
+		assert!(matches!(meter, Shape::Observer { .. }));
+		let resolver = shape_named("resolver", None, vec![], placed(), unasked).unwrap();
 		let Shape::Resolver { address, .. } = resolver else { panic!("{resolver:?}") };
 		assert_eq!(address, "10.0.0.11");
 		let nowhere = Placed { lan: None, ..placed() };
 		assert!(matches!(
-			shape_named("resolver", vec![], nowhere, unasked),
+			shape_named("resolver", None, vec![], nowhere, unasked),
 			Err(super::Error::NoLanAddress)
 		));
 	}

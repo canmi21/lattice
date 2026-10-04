@@ -2,8 +2,8 @@
 //! spec/architecture/host.md, "What a deployment may ask for is host's decision".
 
 use super::{
-	Api, LONGEST_WINDOW, Limit, Manifest, OWN, Objects, PORTS, RESERVED, RESERVED_LABELS, SIDES,
-	Schedule, TIMEOUTS, VERSION, is_bucket, is_cron, is_every, is_home,
+	Api, LONGEST_WINDOW, Limit, Manifest, OWN, Objects, PORTS, RESERVED, RESERVED_LABELS, SHAPES,
+	SIDES, Schedule, TIMEOUTS, VERSION, is_bucket, is_cron, is_every, is_home,
 };
 use crate::sidecar::Driver;
 
@@ -62,6 +62,10 @@ pub enum Invalid {
 	Schedule(String),
 	#[error("`{0}` declares `[[schedules]]` but answers through neither `[api]` nor a socket")]
 	Unscheduled(String),
+	#[error("`[shape]` asks for `{0}`, and a role is one of scheduler, steward and reporter")]
+	Shape(String),
+	#[error("`[driver]` provides `{0}`, and a driver is one of objects and postgres")]
+	Driver(String),
 }
 
 impl Manifest {
@@ -108,7 +112,7 @@ impl Manifest {
 		match (container.port, &container.socket) {
 			// A driver's port is its sidecars', each on its own app's network, where no service's
 			// port can meet it: Postgres keeps 5432. See spec/architecture/databases.md.
-			(Some(port), None) if !PORTS.contains(&port) && Driver::named(&self.name).is_none() => {
+			(Some(port), None) if !PORTS.contains(&port) && self.driver.is_none() => {
 				return Err(Invalid::Port(port));
 			}
 			(Some(_), None) => {}
@@ -187,6 +191,14 @@ impl Manifest {
 			if driver.memory_mb(self) == Some(0) {
 				return Err(Invalid::SidecarMemory(driver.name().into()));
 			}
+		}
+		if let Some(shape) = self.shape.as_ref().filter(|shape| !SHAPES.contains(&shape.kind.as_str()))
+		{
+			return Err(Invalid::Shape(shape.kind.clone()));
+		}
+		let provides = self.driver.as_ref().map(|driver| driver.provides.as_str());
+		if let Some(provides) = provides.filter(|provides| Driver::named(provides).is_none()) {
+			return Err(Invalid::Driver(provides.to_owned()));
 		}
 		if !self.schedules.is_empty() {
 			if let Some(bad) = self.schedules.iter().find(|schedule| !sound_schedule(schedule)) {

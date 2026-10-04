@@ -6,11 +6,8 @@ use deploy::manifest::{CatchUp, Manifest, Overlap};
 use serde::Serialize;
 use std::path::Path;
 
-/// `cron`'s own name, whose data directory this table is written into and whose container mounts
-/// each name `socket_services` names at `/sockets/<service>`.
-pub const NAME: &str = "cron";
-
-/// Where host writes the table, in `cron`'s own directory.
+/// Where host writes the table, in the scheduler's own directory: whichever app the node grants
+/// the role, whose container mounts each name `socket_services` names at `/sockets/<service>`.
 const TABLE: &str = "schedules.json";
 
 #[derive(Debug, Serialize, PartialEq)]

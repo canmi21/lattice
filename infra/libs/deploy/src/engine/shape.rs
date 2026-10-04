@@ -11,9 +11,9 @@ use bollard::query_parameters::CreateContainerOptionsBuilder;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-/// How a container is run. Chosen by the program deploying it from the app's name, never by the
-/// app's declaration -- see spec/architecture/host.md, "What a deployment may ask for is host's
-/// decision".
+/// How a container is run. Chosen by the program deploying it: infra's own by name, and any other
+/// app by the role it asks for and the node grants, never by its declaration alone -- see
+/// spec/architecture/host.md, "A role is asked for by the app and granted by the node".
 #[derive(Debug, Clone)]
 pub enum Shape {
 	/// Every app: no capabilities, a read-only root, its own directory and nothing else, and the
@@ -35,16 +35,16 @@ pub enum Shape {
 	/// believes a visitor's address from. See spec/architecture/host.md, "The tunnel is deployed like
 	/// any app, at the address Caddy trusts".
 	Tunnel { env: Vec<String>, address: String },
-	/// `cron` only: sandboxed like any app, on its own network, plus a bind of each socket-served
-	/// service's data directory at `/sockets/<service>`. See spec/architecture/cron.md, "host gives
-	/// `cron` the table".
+	/// The scheduler, `cron` here: sandboxed like any app, on its own network, plus a bind of each
+	/// socket-served service's data directory at `/sockets/<service>`. See spec/architecture/cron.md,
+	/// "host gives `cron` the table".
 	Scheduler { env: Vec<String>, sockets: Vec<(String, PathBuf)> },
-	/// `apt` only: sandboxed, its own network, root so systemd lets it start a unit, and the
-	/// machine's D-Bus system bus socket bound at the same path. See spec/architecture/apt.md,
+	/// The steward, `apt` here: sandboxed, its own network, root so systemd lets it start a unit, and
+	/// the machine's D-Bus system bus socket bound at the same path. See spec/architecture/apt.md,
 	/// "The door".
 	Steward { env: Vec<String> },
-	/// `telemetry` only: sandboxed like any app, on its own network, plus the meter's data
-	/// directory, `meter`, bound read-only at `socket_mount("meter")`. See
+	/// The reporter, `telemetry` here: sandboxed like any app, on its own network, plus the meter's
+	/// data directory, `meter`, bound read-only at `socket_mount("meter")`. See
 	/// spec/architecture/telemetry.md, "Where it comes from".
 	Reporter { env: Vec<String>, meter: PathBuf },
 	/// The resolver only: sandboxed on its own network, DNS published on the node's LAN `address`

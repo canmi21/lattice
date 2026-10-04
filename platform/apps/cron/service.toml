@@ -20,3 +20,8 @@ path = "/data"
 # service that does it".
 [api]
 public = false
+
+# The scheduler: the table of every job and each socket service's directory, where the node grants
+# it. See spec/architecture/host.md, "A role is asked for by the app and granted by the node".
+[shape]
+kind = "scheduler"

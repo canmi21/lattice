@@ -6,11 +6,8 @@ use deploy::Manifest;
 use serde::Serialize;
 use std::path::Path;
 
-/// `telemetry`'s own name, whose data directory this file is written into and whose container is
-/// given the reporter shape.
-pub const NAME: &str = "telemetry";
-
-/// Where host writes the file, in telemetry's own directory.
+/// Where host writes the file, in the reporter's own directory: whichever app the node grants the
+/// role.
 const SERVICES: &str = "services.json";
 
 /// How many of an app's history rows are told, newest first.

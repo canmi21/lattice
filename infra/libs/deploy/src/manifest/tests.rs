@@ -279,14 +279,15 @@ fn objects_are_declared_as_buckets_s3_takes() {
 }
 
 #[test]
-fn the_driver_and_every_sidecar_name_are_reserved() {
-	assert_eq!(check_name("objects"), Err(Invalid::Reserved("objects".into())));
+fn every_sidecar_name_is_reserved_and_the_driver_is_named_like_any_app() {
 	assert_eq!(check_name("geo-objects"), Err(Invalid::Reserved("geo-objects".into())));
 	assert!(check_name("objects-geo").is_ok());
+	// A driver is what its declaration offers and the node grants, not what it is called.
+	assert!(check_name("objects").is_ok());
 	let driver =
 		Manifest::parse(include_str!("../../../../../platform/apps/objects/service.toml")).unwrap();
-	assert_eq!(driver.check_own("objects", "home"), Ok(()));
-	assert_eq!(driver.check("objects", "home"), Err(Invalid::Reserved("objects".into())));
+	assert_eq!(driver.driver.as_ref().map(|driver| driver.provides.as_str()), Some("objects"));
+	assert_eq!(driver.check("objects", "home"), Ok(()));
 }
 
 #[test]
@@ -313,16 +314,12 @@ fn databases_are_declared_each_with_an_optional_ceiling() {
 }
 
 #[test]
-fn the_database_drivers_and_every_sidecar_of_theirs_are_reserved() {
-	for name in ["postgres", "geo-postgres"] {
-		assert_eq!(check_name(name), Err(Invalid::Reserved(name.into())), "{name}");
-	}
+fn every_database_sidecar_name_is_reserved_and_only_a_driver_keeps_its_own_port() {
+	assert_eq!(check_name("geo-postgres"), Err(Invalid::Reserved("geo-postgres".into())));
 	assert!(check_name("postgres-geo").is_ok());
-	assert!(OWN.contains(&"postgres"));
 	let driver =
 		Manifest::parse(include_str!("../../../../../platform/apps/postgres/service.toml")).unwrap();
-	assert_eq!(driver.check_own("postgres", "home"), Ok(()));
-	assert_eq!(driver.check("postgres", "home"), Err(Invalid::Reserved("postgres".into())));
+	assert_eq!(driver.check("postgres", "home"), Ok(()));
 	// Only a driver keeps a port outside the services' range; an app on 5432 is still refused.
 	let mut geo = Manifest::parse(GEO).unwrap();
 	geo.container.as_mut().unwrap().port = Some(5432);
@@ -340,10 +337,16 @@ fn lan_defaults_to_on_and_can_be_turned_off() {
 }
 
 #[test]
-fn cron_and_apt_are_reserved_and_deployed_by_host() {
-	assert_eq!(check_name("cron"), Err(Invalid::Reserved("cron".into())));
-	assert_eq!(check_name("apt"), Err(Invalid::Reserved("apt".into())));
-	assert!(OWN.contains(&"cron") && OWN.contains(&"apt"));
+fn a_role_or_a_driver_is_asked_for_by_a_word_the_node_knows() {
+	// Infra's names are its own; a service above it is named like any app and asks for a role.
+	assert!(check_name("cron").is_ok() && check_name("apt").is_ok());
+	assert!(OWN.contains(&"keeper") && !OWN.contains(&"cron"));
+	let cron = Manifest::parse(include_str!("../../../../../platform/apps/cron/service.toml"));
+	assert_eq!(cron.unwrap().shape.map(|shape| shape.kind), Some("scheduler".into()));
+	let root = Manifest::parse(&format!("{GEO}\n[shape]\nkind = \"root\"\n")).unwrap();
+	assert_eq!(root.check("geo", "home"), Err(Invalid::Shape("root".into())));
+	let redis = Manifest::parse(&format!("{GEO}\n[driver]\nprovides = \"redis\"\n")).unwrap();
+	assert_eq!(redis.check("geo", "home"), Err(Invalid::Driver("redis".into())));
 }
 
 #[test]
