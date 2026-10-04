@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { esbuildTarget } from '@canmi/web/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
-import { PORT_OFFSET, URLS } from '@monoflake/sdk';
+import { URLS } from '@monoflake/sdk';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -75,8 +75,8 @@ export default defineConfig({
 			enforce: undefined,
 		},
 	],
-	// Pinned, shifted in the sandbox. See spec/toolchain.md, "Dev ports are pinned".
-	server: { host: '::', port: 26522 + PORT_OFFSET, strictPort: true },
+	// Pinned. See spec/toolchain.md, "Dev ports are pinned".
+	server: { host: '::', port: 26522, strictPort: true },
 	// Hashed file names in hex, as the site's are.
 	build: {
 		target: esbuildTarget(BROWSERSLIST),

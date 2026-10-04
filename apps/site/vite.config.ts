@@ -2,13 +2,7 @@ import adapter from '@sveltejs/adapter-cloudflare';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import {
-	DEVELOPMENT_PORTS,
-	DEVELOPMENT_PROXY_PATHS,
-	pageUrls,
-	PORT_OFFSET,
-	URLS,
-} from '@monoflake/sdk';
+import { DEVELOPMENT_PORTS, DEVELOPMENT_PROXY_PATHS, pageUrls, URLS } from '@monoflake/sdk';
 import { esbuildTarget } from '@canmi/web/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
@@ -278,9 +272,6 @@ export default defineConfig(({ mode }) => {
 		define: {
 			'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
 			'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
-			// A page has no environment to read the sandbox's shift from. Development only: a
-			// production build states nothing and reads 0. See spec/architecture/modes.md.
-			...(mode === 'production' ? {} : { STATED_PORT_OFFSET: PORT_OFFSET }),
 			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
 			// the two agree by construction. Production only: development asks by name. See
 			// spec/architecture/site-api.md, "The pages ask by contract, not by name".

@@ -392,11 +392,6 @@ repositories they became, then split: `canmi21/lattice` is this repository, `can
 `monoflake/infra` and `monoflake/platform` continue from the same commit. The arrangement is
 [../architecture/layers.md](../architecture/layers.md).
 
-**Owed after F6: the sandbox's names still say lattice.** `LATTICE_SANDBOX`, `LATTICE_PORT_OFFSET`,
-the `lattice-sandbox-dev` session and `/tmp/sandbox/lattice` are identifiers rather than prose, and
-`@canmi/me` reads the offset too, so renaming them is a change to the lib repository and a release
-before it is one here; they were left standing through the split for that reason.
-
 ## Open questions
 
 Each of these is a decision rather than a discovery. One is settled and kept here because the

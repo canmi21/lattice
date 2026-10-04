@@ -1,7 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
-import { DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls, PORT_OFFSET } from '@monoflake/sdk';
+import { DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls } from '@monoflake/sdk';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -59,10 +59,9 @@ export default defineConfig({
 	],
 	server: {
 		host: '::',
-		// Shifted in the sandbox, and never otherwise another number: a second copy of this would
-		// be a second editor writing one collection. See spec/toolchain.md, "Dev ports are pinned",
-		// and spec/architecture/modes.md.
-		port: 26518 + PORT_OFFSET,
+		// Never another number: a second copy of this would be a second editor writing one
+		// collection. See spec/toolchain.md, "Dev ports are pinned".
+		port: 26518,
 		strictPort: true,
 		// Both prefixes are forwarded rather than called across origins, so the browser only ever
 		// talks to itself: no CORS, and no second address in the client. `/cdn` is the site's own
@@ -78,7 +77,4 @@ export default defineConfig({
 		},
 	},
 	build: { target: 'es2023' },
-	// The page has no environment to read the sandbox's shift from; this editor only ever runs as
-	// a development server.
-	define: { STATED_PORT_OFFSET: PORT_OFFSET },
 });
