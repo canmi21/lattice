@@ -86,16 +86,16 @@ ROOT_DOC = re.compile(ROOT_DOCS)
 # as the address alone, not the address plus its escape.
 URL = re.compile(r"https?://[^\s\"'`)\],;\\]+")
 COMMENT = re.compile(r"^\s*(//|#|\*|/\*|<!--)")
-# The two address packages here, and the generated Rust half `mise run urls` writes from the sdk's
-# map; the author's own are the lib repository's. rust.test.ts holds the mirror to the map, so the
-# exemption cannot hide an edit made to the Rust side alone.
-URL_HOMES = ("platform/libs/sdk/", "infra/libs/urls/", "services/apps/local/src/urls.rs")
+# The local app's own addresses, which Rust cannot read from a TypeScript package; the platform's
+# and infra's are their repositories', the author's the lib repository's.
+URL_HOMES = ("apps/local/src/urls.rs",)
 # `$schema` keys have to be URLs because mise-installed tools have no node_modules to point
 # at (spec/toolchain.md). JSON-LD's `@context` is a namespace identifier like an xmlns:
 # changing it changes what the document means, not where anything points. `registry+https://`
 # is cargo's own source-id syntax, quoted in test fixtures in cargo's spelling -- an
-# identifier again, and not this software's to respell.
-URL_EXEMPT = ('"$schema"', "'@context'", '"@context"', "registry+https://")
+# identifier again, and not this software's to respell. `git+https://` is a package's
+# `repository` as npm spells it: metadata a registry shows, never an address this code calls.
+URL_EXEMPT = ('"$schema"', "'@context'", '"@context"', "registry+https://", "git+https://")
 # Names RFC 2606 reserves so they can never resolve. A URL on one of these is a placeholder --
 # for an API demanding an absolute URL, or a value a test needs rejected -- and never an
 # endpoint. Exempting by rule rather than case by case is what keeps this from collecting
@@ -147,8 +147,14 @@ def locate(cited: str) -> pathlib.Path | None:
 		if (directory / cited).exists():
 			return directory / cited
 		if directory.parent == directory:
-			return None
+			break
 		directory = directory.parent
+	# A rule another repository of this system holds, cited as `platform's spec/...`: it resolves
+	# in that repository, cloned beside this one, and is missing when it is not.
+	for sibling in sorted(ROOT.parent.iterdir()):
+		if sibling != ROOT and (sibling / cited).is_file():
+			return sibling / cited
+	return None
 
 
 def resolve(path: pathlib.Path, cited: str) -> pathlib.Path | None:

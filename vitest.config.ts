@@ -4,34 +4,10 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vitest/config';
 
 const SITE = fileURLToPath(new URL('./apps/site/', import.meta.url));
-const PROSE = fileURLToPath(new URL('./services/libs/prose/src/', import.meta.url));
+const PROSE = fileURLToPath(new URL('./libs/prose/src/', import.meta.url));
 const ROOT = fileURLToPath(new URL('./', import.meta.url));
 
-/**
- * The one thing the default configuration cannot resolve.
- *
- * `apps/cdn` imports its codecs' `.wasm` files directly, which wrangler substitutes at bundle
- * time and node does not -- so any test reaching one failed to load. An empty stub is safe
- * because a codec initialises lazily: a path that does not encode or decode never touches it.
- *
- * **The limit, invisible otherwise:** a test that does transcode will not fail honestly, it will
- * fail inside a codec initialised from nothing. That path needs a real Worker runtime.
- */
 export default defineConfig({
-	plugins: [
-		{
-			name: 'stub-wasm',
-			// Ahead of Vite's own resolver, which otherwise hands the bytes to the JS loader and
-			// fails while reading them as source.
-			enforce: 'pre' as const,
-			resolveId(id) {
-				return id.endsWith('.wasm') ? '\0stub-wasm' : null;
-			},
-			load(id) {
-				return id === '\0stub-wasm' ? 'export default {};' : null;
-			},
-		},
-	],
 	/**
 	 * Two suites, because a component needs a DOM and nothing else here does.
 	 *
@@ -50,7 +26,7 @@ export default defineConfig({
 			{
 				test: {
 					name: 'node',
-					include: ['{lib,infra,platform,services,apps}/**/*.test.ts'],
+					include: ['{apps,libs}/**/*.test.ts'],
 					exclude: ['**/node_modules/**', '**/*.svelte.test.ts'],
 				},
 			},
@@ -92,7 +68,7 @@ export default defineConfig({
 				test: {
 					name: 'component',
 					environment: 'jsdom',
-					include: ['src/**/*.svelte.test.ts', '../../services/libs/prose/src/**/*.svelte.test.ts'],
+					include: ['src/**/*.svelte.test.ts', '../../libs/prose/src/**/*.svelte.test.ts'],
 				},
 			},
 		],

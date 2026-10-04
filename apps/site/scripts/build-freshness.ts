@@ -32,7 +32,7 @@ const SKIP = new Set(['node_modules', 'paraglide', 'dist', 'target']);
  */
 const TREES: { dir: string; only?: RegExp }[] = [
 	{ dir: join(SITE, 'src') },
-	...['platform/libs', 'services/libs'].map((dir) => ({ dir: join(ROOT, dir), only: /\.css$/ })),
+	{ dir: join(ROOT, 'libs'), only: /\.css$/ },
 	// The design packages as installed: a new version is new files, newer than the last build.
 	...['@canmi/kit', '@canmi/ui'].map((name) => ({
 		dir: join(realpathSync(join(SITE, 'node_modules', name)), 'dist'),

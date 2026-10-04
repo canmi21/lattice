@@ -10,7 +10,7 @@ import { failure } from '../lib/respond';
  *
  * **Asked by resource id and never by a content id.** A cid names what the CDN serves; this
  * record says what the thing is, survives a re-derive and is rewritten in place, so it is asked
- * for by the id granted to the thing. See spec/architecture/resource.md, "Two ids".
+ * for by the id granted to the thing. See platform's spec/architecture/resource.md, "Two ids".
  *
  * Reads through the same store as the CDN, so `mise run dev-site-api` answers from the local tree
  * without needing `--remote` to reach a bucket only production writes.

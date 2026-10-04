@@ -13,8 +13,8 @@ import { LIMITS } from './contract/limits';
 /**
  * The site's JSON API, which the site's own Worker serves: its pages under `/api/`, and the public
  * routes through the gateway. Which request reaches which route is the Worker's to decide; this is
- * the routes and nothing else. See spec/architecture/services.md, "The site's API runs in the
- * site's Worker".
+ * the routes and nothing else. See platform's spec/architecture/services.md, "The site's API runs
+ * in the site's Worker".
  */
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -23,7 +23,7 @@ const API_HOST = new URL(URLS.apps.production.api).hostname;
 
 // Limits first, so a request over its allowance never reaches a handler. A call is counted once, by
 // the door it entered: the gateway's own rows for what it passes on, these for the pages'. See
-// spec/architecture/quota.md, "Deployed twice, counted where a request enters".
+// platform's spec/architecture/quota.md, "Deployed twice, counted where a request enters".
 app.use('*', async (c, next) => {
 	if (new URL(c.req.url).hostname === API_HOST) return next();
 	const taken = await counted(c.env.QUOTA, 'site', LIMITS, {
@@ -46,16 +46,16 @@ app.route('/', engagement);
  * a message -- which is what asking for `GET /batch` looked like, that route being POST-only. The
  * envelope is the whole point of having one: a consumer reads one shape whether the refusal came
  * from a handler or from never reaching one. Five minutes, because which routes exist changes when
- * this worker is deployed and not before. See spec/architecture/artifacts.md.
+ * this worker is deployed and not before. See platform's spec/architecture/artifacts.md.
  */
 app.notFound((c) => failure(c, 404, 'no_such_route', { 'Cache-Control': PUBLISHED }));
 
 /**
  * A failure is JSON and is never stored, however far up it was thrown.
  *
- * Five minutes on "the API failed" would turn a blip into an outage -- see
- * spec/architecture/artifacts.md. Logged rather than reported: the site's error reporter wraps
- * the Worker around this app and cannot see what is handled here.
+ * Five minutes on "the API failed" would turn a blip into an outage -- see platform's
+ * spec/architecture/artifacts.md. Logged rather than reported: the site's error reporter wraps the
+ * Worker around this app and cannot see what is handled here.
  */
 app.onError((error, c) => {
 	console.error(error);

@@ -132,7 +132,7 @@ description = "Build and deploy the site worker"
 dir = "apps/site"
 # Asked before the build, not after: a worker that reads a generation the corpus has not got yet
 # is the failure this exists to name, and naming it live is too late. It never refuses. See
-# spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
+# platform's spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
 depends = ["outward", "generation"]
 # Two steps because the adapter writes the worker that wrangler then uploads, and the build is
 # also where source maps go to Sentry. The package's deploy applies the API's committed remote D1
@@ -140,34 +140,11 @@ depends = ["outward", "generation"]
 # path, run from here.
 run = ["pnpm run build", "pnpm run deploy"]
 
-[tasks.deploy-aka]
-description = "Deploy the alias layer's worker, which resolves names and stores nothing"
-depends = ["outward"]
-dir = "apps/aka"
-# `--env=""` for the same reason the CDN passes it, even though this worker declares no
-# environment: naming the top level explicitly means a dev environment added later cannot
-# change which one a bare deploy picks.
-run = 'pnpm exec wrangler deploy --env=""'
-
-[tasks.deploy-cdn]
-description = "Deploy the CDN worker"
-depends = ["outward"]
-dir = "apps/cdn"
-# `--env=""` names the top-level environment explicitly. Defining any environment makes wrangler
-# refuse to guess, and here it would be guessing between production and the dev config that
-# mounts the objects tree as assets -- picking wrong uploads every one of those files.
-run = 'pnpm exec wrangler deploy --env=""'
-
 # Each dev server binds the number pinned in its own wrangler.jsonc, and the site's Vite config
-# reads the same number from platform/libs/sdk. One checkout runs one set, so the collision is the
+# reads the same number from @monoflake/sdk. One checkout runs one set, so the collision is the
 # mutex and the slot arithmetic is gone. See spec/toolchain.md, "Dev ports are pinned". The sandbox
-# hands each worker a shifted number, which platform/libs/sdk/scripts/wrangler-dev.ts prints and
-# prints nothing outside it -- see spec/architecture/modes.md.
-[tasks.dev-gateway]
-description = "Run the API host, which reaches whichever services are running"
-dir = "apps/gateway"
-run = "pnpm run dev $(node ../../platform/libs/sdk/scripts/wrangler-dev.ts api)"
-
+# hands each worker a shifted number, which the platform's wrangler-dev.ts prints for its own
+# Workers -- see spec/architecture/modes.md.
 [tasks.dev-site]
 description = "Run the site worker"
 dir = "apps/site"
@@ -177,28 +154,13 @@ run = "pnpm run dev"
 # server forwards, so the browser only ever talks to its own origin. See architecture/local.md.
 [tasks.dev-cms]
 description = "Run the editor, which reads the collection through local"
-dir = "services/apps/cms"
+dir = "apps/cms"
 run = "pnpm run dev"
 
 [tasks.dev-status]
 description = "Run the status page against the Supabase project"
 dir = "apps/status"
 run = "pnpm run dev"
-
-[tasks.dev-cdn]
-description = "Run the CDN worker against the local objects tree"
-dir = "apps/cdn"
-run = "pnpm run dev $(node ../../platform/libs/sdk/scripts/wrangler-dev.ts cdn)"
-
-[tasks.dev-quota]
-description = "Run the buckets every limit is counted in, for a gateway or the site beside it"
-dir = "apps/quota"
-run = "pnpm run dev $(node ../../platform/libs/sdk/scripts/wrangler-dev.ts quota)"
-
-[tasks.dev-aka]
-description = "Run the alias layer's worker, which resolves names and stores nothing"
-dir = "apps/aka"
-run = "pnpm run dev $(node ../../platform/libs/sdk/scripts/wrangler-dev.ts alias)"
 
 # The HTTP shell and the collection half behind it, on the pinned port. One command because they
 # are one service: the Rust half spawns the other and dies with it. See spec/architecture/local.md.
@@ -210,42 +172,37 @@ run = "cargo run -q -p local -- serve"
 # only way either is changed: a hand-altered database cannot be migrated afterwards, and neither
 # file is in git. See spec/todo/milestones.md.
 [tasks.collection]
-description = "Bring the collection's databases up to the schema in services/libs/collection"
-run = "node services/libs/collection/src/migrate.ts"
+description = "Bring the collection's databases up to the schema in libs/collection"
+run = "node libs/collection/src/migrate.ts"
 
 # What an article says about itself, now that it is rows rather than frontmatter. The editor
 # edits the fields it shows and this edits the rest, which is A5's own condition for moving them.
 [tasks.meta]
 description = "Read or set an article's metadata in the collection"
-run = "node services/libs/collection/src/meta.ts"
+run = "node libs/collection/src/meta.ts"
 
 # What the translation sidecars hold and where it would land. Read-only: the shape it reports is
 # the thing to agree on before anything is written. See spec/todo/milestones.md, A7.
 [tasks.translations]
 description = "Survey the translation sidecars against the collection, writing nothing"
-run = "node services/libs/collection/src/translations.ts"
+run = "node libs/collection/src/translations.ts"
 
 # What still names a run of bytes, and what has stopped. Reporting is the default; `--collect`
 # takes what the grace period released, and cannot be undone. See spec/todo/milestones.md, A6.
 [tasks.sweep]
 description = "Report what the collection no longer references; --collect takes it"
-run = "node services/libs/collection/src/sweep.ts"
+run = "node libs/collection/src/sweep.ts"
 
 # The corpus, read out of `contents` and written into the collection. Re-runnable because it
 # empties what it wrote last time: the files are the only source until they retire. Ids are
 # granted afresh each run, which is free only while nothing outside names an article by its rid.
 [tasks.articles]
 description = "Import the markdown corpus into the collection, replacing what a previous run wrote"
-run = "node services/libs/collection/src/articles.ts"
+run = "node libs/collection/src/articles.ts"
 
 [tasks.check-cms]
 description = "Type check the editor, which is a SvelteKit application"
-dir = "services/apps/cms"
-run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
-
-[tasks.check-panel]
-description = "Type check the panel, host's interface, a SvelteKit application of its own"
-dir = "infra/apps/panel"
+dir = "apps/cms"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
 # The article renderer is a package of Svelte components, and `tsc` does not read `.svelte`. It
@@ -256,18 +213,14 @@ description = "Type check the status page, a SvelteKit application of its own"
 dir = "apps/status"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
-[tasks.check-probe]
-description = "Fail when the status schema changed and its migrations were not generated again"
-run = "pnpm --filter @monoflake/probe run check"
-
 [tasks.check-social]
 description = "Type check the social links row, Svelte components in a library"
-dir = "services/libs/social"
+dir = "libs/social"
 run = 'pnpm exec svelte-check --tsconfig ./tsconfig.json ${AUDIT:+--fail-on-warnings}'
 
 [tasks.check-prose]
 description = "Type check the article renderer, which is Svelte components in a library"
-dir = "services/libs/prose"
+dir = "libs/prose"
 depends = ["messages"]
 run = 'pnpm exec svelte-check --tsconfig ./tsconfig.json ${AUDIT:+--fail-on-warnings}'
 
@@ -277,22 +230,6 @@ dir = "apps/site"
 # No `--` before the flag: svelte-check's parser reads that as end-of-options and silently drops
 # what follows, so the strict run would pass. See spec/lint-format.md.
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
-
-[tasks.urls]
-description = "Regenerate the Rust half of platform/libs/sdk; canmi's is the lib repository's"
-# Formatted here rather than left for the next `cargo fmt`, so the file this writes is the file
-# that gets committed. The generator emits one constant per line and rustfmt wraps the long ones,
-# so skipping this step means the mirror changes shape after it is generated.
-run = ["node platform/libs/sdk/scripts/rust.ts", "cargo fmt -- platform/libs/sdk/src/lib.rs"]
-
-[tasks.check-scopes]
-description = "Fail when the gateway's table no longer matches the services' declarations"
-run = "node apps/gateway/scripts/scopes.ts --check"
-
-[tasks.scopes]
-description = "Regenerate the public API host's scope table from every service.toml"
-# Formatted for the reason `urls` is: so the file this writes is the file that gets committed.
-run = ["node apps/gateway/scripts/scopes.ts", "pnpm exec oxfmt apps/gateway/src/scopes.ts"]
 
 # What `mise run publish lattice` runs. For this project publishing is the corpus rather than a
 # release: compile every view into `data/bucket`, then mirror. Dry by default because `sync` is,
@@ -310,24 +247,8 @@ run = [
 	".mise/tasks/sync",
 ]
 
-[tasks.host]
-description = "Build an app for the machine at home: `host deploy <name>` hands it to host there"
-# Leaves this machine and stays there, like every other deploy. See spec/architecture/host.md.
-depends = ["outward"]
-run = "node infra/apps/host/scripts/host.ts"
-
-[tasks.infra]
-description = "Read the node over host's API: `infra <what> [app] [path]`, before reaching for SSH"
-# Read-only, so unlike `host` above it never writes off this machine and needs no `outward`. See
-# spec/architecture/inspect.md, "`mise run infra`".
-run = "node infra/apps/host/scripts/infra.ts"
-
 # A browser here is refused the local network, and the panel answers only there. See
 # spec/toolchain.md, "Reaching the LAN from a browser that cannot".
-[tasks.reach]
-description = "Answer on localhost for an interface only the LAN reaches: `reach [name]`, the panel by default"
-run = "node infra/apps/host/scripts/reach.ts"
-
 [tasks.indexnow]
 description = "Submit changed URLs to the IndexNow participants"
 depends = ["outward"]

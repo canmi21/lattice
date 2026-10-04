@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # **This warns and never refuses**, and not being able to ask is not a failure either: the gap
 # is normally minutes, and a check that blocked the deploy would be wrong more often than right.
-# See spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
+# See platform's spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
 
 BASE="$(cd "$(dirname "$0")/../.." && pwd)"
 INDEX="$BASE/libs/artifacts/src/index.ts"

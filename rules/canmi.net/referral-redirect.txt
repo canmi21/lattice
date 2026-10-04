@@ -1,2 +1,0 @@
-(http.request.full_uri wildcard r"https://www.*/*")
-and http.request.uri.query eq ""

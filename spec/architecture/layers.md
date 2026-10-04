@@ -28,7 +28,7 @@ built from the site's own libraries, and the probe and the schema it reads stay 
 ```
 infra/apps/       infra/libs/
 platform/apps/    platform/libs/
-services/apps/    services/libs/
+apps/    libs/
 ```
 
 A package's layer is the directory it sits in, and is written nowhere else, so the two cannot
@@ -134,7 +134,7 @@ split**; each is fixed by the declaration pattern
 `service.toml` already uses -- the layer above says what it is, the one below reads the saying.
 
 1. ~~host knows the platform's apps by name.~~ It knows roles: an app asks for one in its
-   declaration and the node grants it in `GRANTS`. See [host.md](host.md), "A role is asked for by
+   declaration and the node grants it in `GRANTS`. See infra's `spec/architecture/host.md`, "A role is asked for by
    the app and granted by the node".
 2. ~~host renders Caddy's routes and the resolver from the platform's `GATEWAY_*`.~~ The gateway
    claims its names in its declaration's `[edge]`, written there from the sdk by `mise run scopes`,
@@ -145,7 +145,7 @@ split**; each is fixed by the declaration pattern
    their own, the platform's showing its own services, since a layer above may read the one below
    and the reverse is what this list exists to end.
 4. ~~The deploy crate reads `URLS.source`.~~ A node deploys from the repositories its
-   `DEPLOY_SOURCES` lists, and each notice names its own. See [host.md](host.md), "The machine
+   `DEPLOY_SOURCES` lists, and each notice names its own. See infra's `spec/architecture/host.md`, "The machine
    pulls; nothing pushes into it".
 
 ## The repositories it becomes

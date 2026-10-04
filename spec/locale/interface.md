@@ -171,7 +171,7 @@ code that nobody can edit.
 
 ### Two traps worth writing down
 
-The project directory is `services/libs/messages/.inlang/`. The SDK refuses any path not ending in
+The project directory is `libs/messages/.inlang/`. The SDK refuses any path not ending in
 `.inlang`, so the entire name is the suffix -- a directory called `inlang` loads fine once its
 metadata exists and fails on a fresh clone, which is the worst way for this to be discovered.
 
@@ -180,5 +180,5 @@ The compiler reports success when it has loaded no plugin and found no messages.
 index; both are resolved relative to the project directory's _parent_. When messages vanish,
 check that first rather than the message files. The plugin is a local dependency rather than the
 CDN URL the docs show, which keeps its version in the lockfile and out of `platform/libs/sdk` -- and it is
-a dependency of `services/libs/messages` rather than of the site, because the parent this resolves against
+a dependency of `libs/messages` rather than of the site, because the parent this resolves against
 is the package holding the project and not whichever application asked for the compile.

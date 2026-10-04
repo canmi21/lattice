@@ -43,8 +43,8 @@ export const load: PageLoad = async ({ url, fetch, parent, depends }) => {
 
 	return {
 		shapes,
-		// Both halves of the article's name: the path is what a card links to, the slug is what
-		// every question about it asks with. See spec/architecture/artifacts.md, "A slug is the
+		// Both halves of the article's name: the path is what a card links to, the slug is what every
+		// question about it asks with. See platform's spec/architecture/artifacts.md, "A slug is the
 		// identity and the path is the address".
 		articles,
 		card: home.card,

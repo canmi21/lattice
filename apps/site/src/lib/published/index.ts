@@ -1,10 +1,10 @@
 /**
  * The published corpus as the site reads it: the API for metadata and hashes, the CDN for bytes.
  *
- * Every function here runs in three places -- the Worker during SSR, the browser after
- * hydration, and a universal `load` that is either -- so none may reach for a binding, a Worker
- * global or a DOM one. See spec/architecture/artifacts.md, "Two consumers, and the second one
- * is the browser".
+ * Every function here runs in three places -- the Worker during SSR, the browser after hydration,
+ * and a universal `load` that is either -- so none may reach for a binding, a Worker global or a
+ * DOM one. See platform's spec/architecture/artifacts.md, "Two consumers, and the second one is the
+ * browser".
  */
 
 import { browser, dev } from '$app/env';
@@ -70,7 +70,7 @@ function upstream(): { cdn: string; alias: string } {
  * The one fetch on this side deliberately outside the query cache. A content-addressed key cannot
  * denote different bytes, so the browser's own HTTP cache already holds it for a year and a second
  * copy in `localStorage` would be the same bytes twice. What the query layer is for is answers
- * that go stale. See spec/architecture/artifacts.md, "The key says what may cache it".
+ * that go stale. See platform's spec/architecture/artifacts.md, "The key says what may cache it".
  */
 async function object(fetch: Fetch, type: ArtifactType, hash: string): Promise<Response> {
 	const address = artifactAddress(type, hash);
@@ -147,7 +147,8 @@ export async function askBatch<T extends BatchRequest>(
 /** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */
 function viewUrl(slug: string, locale: LocaleCode): string {
 	// Both identifiers in the query, and the identity alone in `slug` -- never the path. See
-	// spec/architecture/artifacts.md, "A question asks with a query; a list asks with a body".
+	// platform's spec/architecture/artifacts.md, "A question asks with a query; a list asks with a
+	// body".
 	return apiPath('article', { slug, locale });
 }
 
@@ -214,8 +215,8 @@ export async function warmView(slug: string, locale: LocaleCode): Promise<void> 
  * The path comes back with the view because the question could not carry it: `?slug=` takes the
  * identity alone, so the answer is the only thing that knows whether the address in the browser's
  * bar is the real one. A caller that renders without checking serves the article at every address
- * that reaches it, which is the duplicate-content shape. See spec/architecture/artifacts.md,
- * "Reaching an article by name".
+ * that reaches it, which is the duplicate-content shape. See platform's
+ * spec/architecture/artifacts.md, "Reaching an article by name".
  */
 export type FoundArticle = { path: string; card?: string; view: PublishedView };
 
@@ -278,7 +279,7 @@ function resourceUrl(rid: string): string {
  * `load` so the Worker asks while rendering and the browser reads the inlined answer back on
  * hydration. A rid the corpus does not publish is remembered and keeps the publication delay; an
  * unreachable API is stored nowhere, and whatever is still held answers. See
- * spec/architecture/resource.md, "A rid is resolved three times".
+ * platform's spec/architecture/resource.md, "A rid is resolved three times".
  */
 export async function publishedResources(
 	fetch: Fetch,
@@ -363,7 +364,7 @@ export function publishedSitemap(fetch: Fetch): Promise<SitemapAnswer | undefine
  *
  * The objects are fetched together rather than in turn. They are immutable and a year old at the
  * edge, so the cost of a cold assembly is one round trip rather than N, and the document itself
- * is held for five minutes after that. See spec/architecture/artifacts.md.
+ * is held for five minutes after that. See platform's spec/architecture/artifacts.md.
  */
 export async function publishedFeedEntries(
 	fetch: Fetch,
@@ -399,7 +400,7 @@ function feedBases(url: string, locale: LocaleCode) {
  * The source served at `<url>.md`, for an article and for the one standalone page alike.
  *
  * One lookup and no locale in it: the route spans both kinds of thing, and a `.md` endpoint
- * returns the source exactly as written. See spec/architecture/artifacts.md.
+ * returns the source exactly as written. See platform's spec/architecture/artifacts.md.
  */
 export async function publishedMarkdown(
 	fetch: Fetch,
@@ -415,7 +416,7 @@ export async function publishedMarkdown(
  *
  * The server path still works, so the recovery is to use it; without this the failure is a
  * click that does nothing. The promise deliberately never settles -- the page it belongs to is
- * already being replaced. See spec/architecture/artifacts.md, "Two consumers".
+ * already being replaced. See platform's spec/architecture/artifacts.md, "Two consumers".
  */
 export async function orReload<T>(url: URL, work: Promise<T>): Promise<T> {
 	try {

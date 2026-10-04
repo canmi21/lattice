@@ -19,10 +19,10 @@ const SITE = fileURLToPath(new URL('..', import.meta.url));
 export const ROOT = join(SITE, '../..');
 /**
  * Every tree the visual layer is written in. It became two when the article renderer moved to
- * `services/libs/prose`: a gate that scans one of them reports a smaller corpus rather than a
+ * `libs/prose`: a gate that scans one of them reports a smaller corpus rather than a
  * failure, which is the way this kind of check goes quietly wrong.
  */
-const SRC = [join(SITE, 'src'), join(SITE, '../../services/libs/prose/src')];
+const SRC = [join(SITE, 'src'), join(SITE, '../../libs/prose/src')];
 /**
  * The kit's tokens as published, compiled to JavaScript: the one tree read from the installed
  * package rather than this repository, since the lib repository is where it is written.

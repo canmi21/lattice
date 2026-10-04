@@ -10,21 +10,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-# The places a package can sit, from the bottom: one may depend on its own and those before it.
-# A package's place is the first segment of its path; `lib`'s packages are the lib repository's,
-# installed from their registries, so none sits here. See spec/architecture/layers.md.
-LAYERS = ("lib", "infra", "platform", "services")
+# Where a package's manifest sits: `apps/` for what is deployed, `libs/` for what is imported.
+PACKAGE_DIRECTORIES = ("apps/*", "libs/*")
 
-# Where a package's manifest sits: under its layer, and `apps/` for the Workers and Vercel apps,
-# which move at the split. See spec/architecture/layers.md.
-PACKAGE_DIRECTORIES = (
-	"apps/*",
-	*(f"{layer}/{kind}/*" for layer in LAYERS[1:] for kind in ("apps", "libs")),
-)
-
-
-# Where a deployable app's directory sits: `apps/` until it moves under its layer.
-APP_ROOTS = ("apps", *(f"{layer}/apps" for layer in LAYERS[1:]))
+# Where a deployable app's directory sits.
+APP_ROOTS = ("apps",)
 
 
 def app_directories():
@@ -43,12 +33,6 @@ def app_of(path):
 			rest = path[len(root) + 1 :].split("/")
 			return rest[0] if len(rest) > 1 else None
 	return None
-
-
-def layer_of(directory):
-	"""The layer `directory` sits in, by its first segment, or None for one not moved yet."""
-	first = directory.split("/", 1)[0]
-	return first if first in LAYERS else None
 
 
 def changed(since):

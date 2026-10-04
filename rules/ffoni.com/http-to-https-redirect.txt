@@ -1,1 +1,0 @@
-(http.request.full_uri wildcard r"http://*")

@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from graph import ROOT, app_of, build_inputs, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
+from graph import ROOT, build_inputs, changed, dependents, node_graph, owner, rust_graph  # noqa: E402
 
 # Whole-tree and cheap, so they run whatever changed.
-ALWAYS = ["secrets", "refs", "comments", "shape", "rules", "check-scopes", "layers"]
+ALWAYS = ["secrets", "refs", "comments"]
 # Whole-program by nature: tsc reads three programs, vitest one suite, oxlint the tree.
 NODE = ["check", "lint", "test"]
 # Gates that belong to one package, run when it or anything it imports changed.
@@ -26,11 +26,9 @@ PACKAGE_GATES = {
 		"check-css-ramp",
 	],
 	"@canmi/cms": ["check-cms"],
-	"@monoflake/panel": ["check-panel"],
 	"@canmi/prose": ["check-prose"],
 	"@canmi/social": ["check-social"],
 	"@canmi/fonts": ["check-fonts"],
-	"@monoflake/probe": ["check-probe"],
 	"@canmi/status": ["check-status"],
 }
 RUST = ["lint-rust", "test-rust"]
@@ -43,13 +41,6 @@ NODE_ROOT_FILES = {"package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "vit
 RUST_ROOT_FILES = {"Cargo.toml", "Cargo.lock"}
 # Read by the site's build and the corpus tests rather than imported, so no graph reaches them.
 SITE_INPUTS = ("contents/", "data/")
-# Rust files whose only check is a TypeScript test: the generated halves of the address maps.
-NODE_CHECKED_RUST = {"platform/libs/sdk/src/lib.rs"}
-# Every app's declaration is read by the deploy crate's tests and by the gateway's scope table,
-# whichever app it sits in.
-DECLARATION = "service.toml"
-DECLARATION_READERS = {"deploy"}
-DECLARATION_PACKAGES = {"@canmi/gateway"}
 
 
 def plan(files):
@@ -69,9 +60,6 @@ def plan(files):
 			all_crates = True
 		crates |= included.get(f, set())
 		crates |= built.get(owner(f, built) or f, set())
-		if app_of(f) and Path(f).name == DECLARATION:
-			crates |= DECLARATION_READERS
-			packages |= DECLARATION_PACKAGES
 		crate = crate_dirs.get(owner(f, crate_dirs) or "")
 		if crate and (suffix == ".rs" or f.endswith("/Cargo.toml")):
 			crates.add(crate)
@@ -81,7 +69,7 @@ def plan(files):
 		if f.startswith(SITE_INPUTS):
 			site_inputs = True
 		package = package_dirs.get(owner(f, package_dirs) or "")
-		if package and (suffix in NODE_SUFFIXES or f in NODE_CHECKED_RUST):
+		if package and suffix in NODE_SUFFIXES:
 			packages.add(package)
 
 	reached_packages = set(package_dirs.values()) if all_packages else dependents(packages, package_edges)

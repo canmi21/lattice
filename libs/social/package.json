@@ -1,0 +1,20 @@
+{
+	"name": "@canmi/social",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./social-links.svelte": "./src/social-links.svelte",
+		"./structured": "./src/structured.ts"
+	},
+	"dependencies": {
+		"@canmi/me": "^2026.1004.1",
+		"@canmi/prose": "workspace:*",
+		"@monoflake/sdk": "^2026.1004.0",
+		"svelte": "^5.57.1"
+	},
+	"devDependencies": {
+		"svelte-check": "^4.7.6",
+		"typescript": "^6.0.3"
+	}
+}

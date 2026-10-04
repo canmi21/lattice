@@ -119,7 +119,7 @@ across and may conflict, which jj records in the files rather than refusing. An 
 when the author asks for it; otherwise it names the command and stops at step 2.
 
 What the reload does not reach is restarted by hand. `local` is a Rust binary run once, so a
-change under `services/apps/local` needs its window stopped and `mise run base up` again, which restarts
+change under `apps/local` needs its window stopped and `mise run base up` again, which restarts
 an idle window. A change to the collection schema also needs `mise run collection` against the
 real databases, which is a change to the real data and ranks as one.
 
@@ -138,7 +138,7 @@ collaboration once the code has reached it.
 
 The sandbox exists because the author's working servers and an agent's development servers both
 run on the author's machine, from one repository whose files they watch. `host`, `keeper` and the
-services they deploy -- see [host.md](host.md) and [services.md](services.md) -- change no data and
+services they deploy -- see infra's `spec/architecture/host.md` and platform's `spec/architecture/services.md` -- change no data and
 nothing those servers load, so they are built in this checkout directly.
 
 They are also the way out of that arrangement. Once what needs no public reach runs on the machine

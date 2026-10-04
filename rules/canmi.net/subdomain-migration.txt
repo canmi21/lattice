@@ -1,1 +1,0 @@
-http.host wildcard "*.canmi.net" and http.host ne "www.canmi.net"

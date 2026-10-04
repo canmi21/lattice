@@ -1,0 +1,513 @@
+//! Deriving everything an article needs from one original image.
+//!
+//! The original never leaves this machine by default. What gets published are the derived
+//! variants, each addressed by the hash of its own bytes, so a key can never denote different
+//! content than it did before. See spec/architecture/data.md.
+
+pub mod encode;
+pub mod exif;
+pub mod ladder;
+pub mod manifest;
+pub mod run;
+pub mod store;
+
+use base64::Engine as _;
+use base64::engine::general_purpose::STANDARD;
+use encode::Format;
+use fast_image_resize::images::Image as FirImage;
+use fast_image_resize::{PixelType, ResizeOptions, Resizer};
+use image::DynamicImage;
+use ladder::Size;
+use manifest::Media;
+use std::path::Path;
+
+/// A content id: BLAKE3 truncated to 128 bits, hex encoded.
+///
+/// Truncation leaves roughly 64-bit collision resistance, which is far more than addressing
+/// a lifetime of personal assets needs and deliberately not a tamper-evidence claim. Unrelated
+/// to an IPFS CID, which is a structured multihash rather than a bare digest.
+pub fn cid(bytes: &[u8]) -> String {
+	let digest = blake3::hash(bytes);
+	digest.to_hex()[..32].to_string()
+}
+
+#[derive(Debug, Clone)]
+pub struct Variant {
+	pub cid: String,
+	pub bytes: Vec<u8>,
+	pub width: u32,
+	pub height: u32,
+	pub format: Format,
+}
+
+#[derive(Debug)]
+pub struct Derived {
+	/// Content id of the original bytes, and the identity of the asset as a whole.
+	pub cid: String,
+	pub width: u32,
+	pub height: u32,
+	/// Thumbhash bytes, 19 of them for any image.
+	pub thumb: Vec<u8>,
+	pub variants: Vec<Variant>,
+}
+
+/// One image after every decision has been made and before anything is written.
+#[derive(Debug)]
+pub struct Prepared {
+	pub derived: Derived,
+	pub media: Media,
+}
+
+#[derive(Debug)]
+pub enum Error {
+	Read(std::io::Error),
+	Decode,
+	Encode(encode::Error),
+	Serialize(serde_json::Error),
+	Write(std::io::Error),
+}
+
+impl std::fmt::Display for Error {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Read(error) => write!(f, "could not read: {error}"),
+			Self::Decode => write!(f, "not a readable image"),
+			Self::Encode(error) => write!(f, "{error}"),
+			Self::Serialize(error) => write!(f, "could not encode record: {error}"),
+			Self::Write(error) => write!(f, "could not write: {error}"),
+		}
+	}
+}
+
+impl std::error::Error for Error {
+	fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+		match self {
+			Self::Read(error) | Self::Write(error) => Some(error),
+			Self::Serialize(error) => Some(error),
+			Self::Decode | Self::Encode(_) => None,
+		}
+	}
+}
+
+/// Decode whatever was handed over. HEIC goes through a pure-Rust decoder rather than libheif
+/// bindings, and only the primary image is taken. See spec/architecture/media.md, "Where a
+/// photograph was taken is worked out offline", for why.
+fn load(original: &[u8]) -> Result<DynamicImage, Error> {
+	if is_heic(original) {
+		let out = heic::DecoderConfig::new()
+			.decode(original, heic::PixelLayout::Rgba8)
+			.map_err(|_| Error::Decode)?;
+		return image::RgbaImage::from_raw(out.width, out.height, out.data)
+			.map(DynamicImage::ImageRgba8)
+			.ok_or(Error::Decode);
+	}
+	image::load_from_memory(original).map_err(|_| Error::Decode)
+}
+
+/// Whether this is HEIF carrying HEVC, by its `ftyp` brand.
+///
+/// Read from the container rather than the filename: the extension is whatever the file was
+/// called when it arrived, and `data/source/image` holds files named by hash.
+fn is_heic(bytes: &[u8]) -> bool {
+	if bytes.len() < 12 || &bytes[4..8] != b"ftyp" {
+		return false;
+	}
+	matches!(
+		&bytes[8..12],
+		b"heic" | b"heix" | b"hevc" | b"hevx" | b"heim" | b"heis" | b"hevm" | b"hevs" | b"mif1"
+	)
+}
+
+/// Everything published for one original: its identity, its placeholder, and one variant per
+/// size and format.
+pub fn derive(original: &[u8], keep_original: bool) -> Result<Derived, Error> {
+	let image = load(original)?;
+	let size = Size::new(image.width(), image.height());
+	let formats = encode::formats_for(&image);
+
+	let mut variants = Vec::new();
+	for target in ladder::ladder(size, keep_original) {
+		let resized = resize(&image, target);
+		for &format in &formats {
+			let bytes = encode::encode(&resized, format).map_err(Error::Encode)?;
+			variants.push(Variant {
+				cid: cid(&bytes),
+				width: target.width,
+				height: target.height,
+				format,
+				bytes,
+			});
+		}
+	}
+
+	// The hash. `painted` turns it into the copy a page draws, and `media_for` keeps both on the
+	// record -- see that function for why the decoded one cannot be produced where it is used.
+	let thumb = placeholder(&image)?;
+	Ok(Derived { cid: cid(original), width: size.width, height: size.height, thumb, variants })
+}
+
+/// Derive one source into a value ready to write, without touching the published tree.
+pub fn derive_for(
+	original: &[u8],
+	source_mime: &str,
+	previous: Option<&Media>,
+	keep_original: bool,
+	gazetteer: Option<&whereabouts::coordinates::Gazetteer>,
+	resource: crate::resource::ResourceId,
+) -> Result<Prepared, Error> {
+	let derived = derive(original, keep_original)?;
+	// Read once, at import. The published variants are stripped, so this is the only place the
+	// camera's account of the picture survives.
+	let mut metadata = exif::read(original);
+	// The address is derived from the recorded position rather than read from the file.
+	if let Some(found) = metadata.as_mut()
+		&& let Some(location) = found.location.clone()
+		&& let (Some(lat), Some(lon)) = (location.latitude, location.longitude)
+		&& let Some(gazetteer) = gazetteer
+	{
+		found.address = gazetteer.lookup(lat, lon);
+	}
+	let media =
+		manifest::media_for(&derived, source_mime, original.len() as u64, previous, metadata, resource);
+	Ok(Prepared { derived, media })
+}
+
+/// Write a completed derivation: the variants into the objects tree, the record into the other.
+///
+/// Two roots rather than one, because they become two buckets. Both are `&Path` and the compiler
+/// cannot tell them apart, which is exactly why they are named and never derived from each other.
+pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Result<(), Error> {
+	for variant in &prepared.derived.variants {
+		let target = store::variant_path(public, &variant.cid, variant.format.extension());
+		store::write(&target, &variant.bytes).map_err(Error::Write)?;
+	}
+
+	// Minified, unlike the merged manifest beside it: this record is served rather than read in a
+	// diff, and `GET /media` is a byte pipe that cannot reshape it on the way out. See
+	// spec/architecture/media.md, "A published record is minified; a committed one is not".
+	let json = serde_json::to_string(&prepared.media).map_err(Error::Serialize)?;
+	store::write(&store::meta_path(metadata, prepared.media.resource.as_str()), json.as_bytes())
+		.map_err(Error::Write)
+}
+
+/// Derive and publish one image, preserving its first-seen timestamp when it already exists.
+pub fn publish(
+	original: &[u8],
+	source_mime: &str,
+	public: &Path,
+	metadata: &Path,
+	previous: Option<&Media>,
+	keep_original: bool,
+	gazetteer: Option<&whereabouts::coordinates::Gazetteer>,
+	resource: crate::resource::ResourceId,
+) -> Result<Media, Error> {
+	let prepared = derive_for(original, source_mime, previous, keep_original, gazetteer, resource)?;
+	let media = prepared.media.clone();
+	write_derived(public, metadata, &prepared)?;
+	Ok(media)
+}
+
+/// Derive and store one source synchronously, returning the id an editor should insert.
+///
+/// The rid, because that is what an article names. A cid still addresses every published byte and
+/// still keys the manifest; neither is what goes into a sentence.
+pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Result<String, Error> {
+	let bytes = std::fs::read(source).map_err(Error::Read)?;
+	let id = cid(&bytes);
+	let merged_path = repository.join(run::MERGED);
+	let mut merged = run::load(&merged_path).map_err(Error::Read)?;
+
+	// The returned id may be inserted into an article immediately. Published bytes and records
+	// must exist first so a crash can only leave an unreferenced image. See spec/tasks.md.
+	let resource = manifest::resource_for(merged.media.get(&id), &manifest::register(&merged.media));
+	let media = publish(
+		&bytes,
+		mime_of(source),
+		&crate::paths::objects_root(repository),
+		&crate::paths::metadata_root(repository),
+		merged.media.get(&id),
+		keep_original,
+		whereabouts::coordinates::Gazetteer::open(&crate::paths::geo_root(repository)).as_ref(),
+		resource,
+	)?;
+	// The rid, because that is what an article names now. The cid is still the manifest's key and
+	// still the address of every published byte; neither is what goes into a sentence.
+	let named = media.resource.to_string();
+	merged.media.insert(id, media);
+	merged.updated = manifest::now();
+	let json = serde_json::to_string_pretty(&merged).map_err(Error::Serialize)?;
+	store::write(&merged_path, format!("{json}\n").as_bytes()).map_err(Error::Write)?;
+
+	Ok(named)
+}
+
+pub(crate) fn mime_of(path: &Path) -> &'static str {
+	match path
+		.extension()
+		.and_then(|extension| extension.to_str())
+		.unwrap_or_default()
+		.to_ascii_lowercase()
+		.as_str()
+	{
+		"png" => "image/png",
+		"jpg" | "jpeg" => "image/jpeg",
+		"webp" => "image/webp",
+		"avif" => "image/avif",
+		"gif" => "image/gif",
+		"heic" | "heif" => "image/heic",
+		_ => "application/octet-stream",
+	}
+}
+
+fn resize(image: &DynamicImage, target: Size) -> DynamicImage {
+	if target.width == image.width() && target.height == image.height() {
+		return image.clone();
+	}
+	// The resizer requires the source and destination pixel types to match, and the destination
+	// below is RGBA8. A PNG saved without an alpha channel decodes as RGB8 -- most screenshots
+	// are -- so without converting first, a resize failure used to fall through to the original at
+	// full size; `placeholder` then handed that to thumbhash at up to 100px, which asserts on
+	// anything larger, so an alpha-less screenshot panicked the import three frames away.
+	// Converting first fixes the common case; the fallback below stays for anything it still misses.
+	let source = DynamicImage::ImageRgba8(image.to_rgba8());
+	let mut destination = FirImage::new(target.width, target.height, PixelType::U8x4);
+	if Resizer::new().resize(&source, &mut destination, &ResizeOptions::new()).is_err() {
+		return image.clone();
+	}
+	image::RgbaImage::from_raw(target.width, target.height, destination.into_vec())
+		.map(DynamicImage::ImageRgba8)
+		.unwrap_or_else(|| image.clone())
+}
+
+/// The compact hash a page paints before any image arrives.
+///
+/// The canonical form, and the one a record is keyed on: `painted` below is what it decodes to,
+/// stored beside it because the side that needs it cannot run a codec.
+fn placeholder(image: &DynamicImage) -> Result<Vec<u8>, Error> {
+	// thumbhash reads a small input by design; anything larger is wasted work.
+	let small = resize(image, Size::new(image.width(), image.height()).scaled_to_long_edge(100));
+	let rgba = small.to_rgba8();
+	Ok(thumbhash::rgba_to_thumb_hash(rgba.width() as usize, rgba.height() as usize, rgba.as_raw()))
+}
+
+/// What that hash is encoded at, for a picture roughly 32 pixels on its long edge.
+///
+/// Higher is wasted: the source is a thumbhash, which has already discarded everything but an
+/// impression of colour and shape. This only has to avoid adding artefacts of its own to a
+/// picture about to be covered by the real one.
+const PAINT_QUALITY: f32 = 70.0;
+
+/// The thumbhash decoded once, as the data URI the record carries.
+///
+/// Stored rather than derived where it is wanted, and the reason is not size: the side that
+/// wants it is a **universal** load, run in the Worker and again in the browser, and a WebP
+/// codec reached through `node:fs` can exist in the first and never in the second. One decode
+/// here serves both. See platform's spec/architecture/resource.md, "A rid is resolved three times".
+///
+/// `None` where thumbhash refuses the hash: the picture draws without a colour block under it.
+pub fn painted(thumb: &[u8]) -> Option<String> {
+	let (width, height, rgba) = thumbhash::thumb_hash_to_rgba(thumb).ok()?;
+	let encoded =
+		webp::Encoder::from_rgba(&rgba, u32::try_from(width).ok()?, u32::try_from(height).ok()?)
+			.encode(PAINT_QUALITY);
+	Some(format!("data:image/webp;base64,{}", STANDARD.encode(&*encoded)))
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use image::{Rgba, RgbaImage};
+
+	/// A fixed id, because nothing here is about which one allocation hands out.
+	fn rid() -> crate::resource::ResourceId {
+		crate::resource::ResourceId::parse("k7m2x").expect("a rid")
+	}
+
+	/// A directory that removes itself, however the test ends.
+	///
+	/// `TempDir` deletes on drop, which the hand-rolled predecessor could not: a panicking test
+	/// left its directory behind, and the name carried the process id because two tests choosing
+	/// the same one would otherwise share a directory. Both problems belonged to the workaround.
+	fn temp() -> tempfile::TempDir {
+		tempfile::tempdir().expect("temp")
+	}
+
+	fn photo(width: u32, height: u32) -> Vec<u8> {
+		let mut buffer = RgbaImage::new(width, height);
+		let mut state: u32 = 0x9e37_79b9;
+		for pixel in buffer.pixels_mut() {
+			state = state.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
+			let [r, g, b, _] = state.to_le_bytes();
+			*pixel = Rgba([r, g, b, 255]);
+		}
+		let mut out = Vec::new();
+		DynamicImage::ImageRgba8(buffer)
+			.write_to(&mut std::io::Cursor::new(&mut out), image::ImageFormat::Png)
+			.expect("encode fixture");
+		out
+	}
+
+	#[test]
+	fn a_cid_is_thirty_two_hex_characters() {
+		let value = cid(b"anything");
+		assert_eq!(value.len(), 32);
+		assert!(value.chars().all(|c| c.is_ascii_hexdigit()));
+	}
+
+	#[test]
+	fn identical_bytes_give_identical_cids() {
+		// This is what makes a key immutable by construction rather than by promise.
+		assert_eq!(cid(b"same"), cid(b"same"));
+		assert_ne!(cid(b"same"), cid(b"other"));
+	}
+
+	#[test]
+	fn rejects_something_that_is_not_an_image() {
+		assert!(matches!(derive(b"not an image", false), Err(Error::Decode)));
+	}
+
+	#[test]
+	fn derives_every_tier_below_the_original_plus_the_original() {
+		let derived = derive(&photo(1500, 1000), false).expect("derive");
+		let mut widths: Vec<u32> = derived.variants.iter().map(|v| v.width).collect();
+		widths.sort_unstable();
+		widths.dedup();
+		assert_eq!(widths, vec![640, 1280, 1500]);
+	}
+
+	#[test]
+	fn stores_one_format_per_tier() {
+		// Only AVIF is kept. A browser without it gets a conversion at the edge, which costs
+		// one transformation rather than a second permanent copy of every image.
+		let derived = derive(&photo(1500, 1000), false).expect("derive");
+		for width in [640, 1280, 1500] {
+			let at_tier: Vec<encode::Format> =
+				derived.variants.iter().filter(|v| v.width == width).map(|v| v.format).collect();
+			assert_eq!(at_tier, vec![encode::Format::Avif], "wrong formats at {width}");
+		}
+	}
+
+	#[test]
+	fn keeps_the_aspect_ratio_of_a_portrait_original() {
+		let derived = derive(&photo(600, 1200), false).expect("derive");
+		for variant in &derived.variants {
+			assert!(variant.height > variant.width, "orientation flipped");
+		}
+	}
+
+	#[test]
+	fn re_encodes_a_small_image_without_resizing_it() {
+		let derived = derive(&photo(200, 150), false).expect("derive");
+		for variant in &derived.variants {
+			assert_eq!((variant.width, variant.height), (200, 150));
+		}
+	}
+
+	#[test]
+	fn every_variant_is_addressed_by_its_own_bytes() {
+		let derived = derive(&photo(700, 500), false).expect("derive");
+		for variant in &derived.variants {
+			assert_eq!(variant.cid, cid(&variant.bytes));
+		}
+		// The asset id is the original's hash, never a variant's.
+		assert!(derived.variants.iter().all(|v| v.cid != derived.cid));
+	}
+
+	#[test]
+	fn produces_a_placeholder_small_enough_to_inline() {
+		let derived = derive(&photo(1500, 1000), false).expect("derive");
+		// Thumbhash length is not fixed: the payload carries more or fewer coefficients
+		// depending on the aspect ratio and whether alpha is present. What matters is that it
+		// stays small enough to sit in a manifest without thought, so the bound is asserted
+		// rather than a value that happened to come out of one image.
+		assert!((16..=32).contains(&derived.thumb.len()), "thumbhash is {} bytes", derived.thumb.len());
+	}
+
+	#[test]
+	fn decodes_that_placeholder_into_something_a_page_can_paint_directly() {
+		let derived = derive(&photo(1500, 1000), false).expect("derive");
+		let painted = painted(&derived.thumb).expect("a decoded placeholder");
+		// A data URI and not a URL, because the point of it is to be painted before any request
+		// is made -- and WebP rather than PNG, which is measurably smaller at this size.
+		assert!(painted.starts_with("data:image/webp;base64,"), "{painted}");
+		let bytes =
+			STANDARD.decode(painted.trim_start_matches("data:image/webp;base64,")).expect("base64");
+		// RIFF, then the length, then WEBP. Enough to say a decoder was actually run rather than
+		// a prefix being pasted in front of something else.
+		assert_eq!(&bytes[..4], b"RIFF");
+		assert_eq!(&bytes[8..12], b"WEBP");
+		// Small enough to inline into a record a page fetches on its critical path. 167
+		// characters is the corpus median; the bound is what keeps a future quality change from
+		// quietly making every record heavier.
+		assert!(painted.len() < 512, "placeholder is {} characters", painted.len());
+	}
+
+	#[test]
+	fn a_record_carries_both_forms_of_its_placeholder() {
+		let prepared =
+			derive_for(&photo(40, 30), "image/png", None, false, None, rid()).expect("derive for write");
+		let image = prepared.media.image().expect("a picture");
+		// The hash is the canonical one and the decoded copy is what gets painted. A record
+		// holding only the first is one a universal load cannot paint under, because the codec
+		// that decodes it cannot exist in a browser bundle.
+		assert!(image.thumbhash.is_some());
+		assert!(image.placeholder.as_deref().is_some_and(|p| p.starts_with("data:image/webp;base64,")));
+	}
+
+	#[test]
+	fn deriving_prepares_the_record_without_writing_public_data() {
+		let temporary = temp();
+		let root = temporary.path();
+		let public = crate::paths::objects_root(root);
+		let original = photo(20, 12);
+		let prepared =
+			derive_for(&original, "image/png", None, false, None, rid()).expect("derive for write");
+
+		assert!(!public.exists());
+		assert_eq!(prepared.derived.cid, cid(&original));
+		assert_eq!(prepared.media.origin_cid(), Some(prepared.derived.cid.as_str()));
+
+		let metadata = crate::paths::metadata_root(root);
+		write_derived(&public, &metadata, &prepared).expect("write derivation");
+		for variant in &prepared.derived.variants {
+			assert!(store::variant_path(&public, &variant.cid, variant.format.extension()).is_file());
+		}
+		let document: Media = serde_json::from_str(
+			&std::fs::read_to_string(store::meta_path(&metadata, prepared.media.resource.as_str()))
+				.expect("record"),
+		)
+		.expect("document");
+		assert_eq!(document, prepared.media);
+		std::fs::remove_dir_all(root).ok();
+	}
+
+	#[test]
+	fn a_single_image_returns_only_after_its_bytes_and_records_exist() {
+		let temporary = temp();
+		let root = temporary.path();
+		let source = root.join("source.png");
+		let original = photo(20, 12);
+		std::fs::write(&source, &original).expect("source");
+
+		// The rid, which is what an editor inserts: an article names a thing, and the cid that
+		// still keys the manifest names the bytes it happens to have been made from.
+		let named = store_one(&root, &source, false).expect("store one");
+
+		let merged = run::load(&root.join(run::MERGED)).expect("merged");
+		let media = merged.media.get(&cid(&original)).expect("merged record");
+		assert_eq!(named, media.resource.to_string());
+		let picture = media.image().expect("a stored picture is a picture");
+		assert!(store::meta_path(&crate::paths::metadata_root(root), &named).is_file());
+		for variant in &picture.variants {
+			assert!(
+				store::variant_path(
+					&crate::paths::objects_root(root),
+					&variant.content,
+					variant.mime.strip_prefix("image/").expect("image mime"),
+				)
+				.is_file()
+			);
+		}
+		std::fs::remove_dir_all(root).ok();
+	}
+}

@@ -61,7 +61,7 @@ A forge reads the tree and says what it is written in, and the workspace's line 
 every file in it. Both would answer for this repository's generators instead of its authors, so
 what the generators write is marked `linguist-generated=true` in `.gitattributes`, which both read.
 
-`services/libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
+`libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
 hundred lines of stylesheet anybody wrote. `data/record/metadata.json` is written by `local
 image`, and `diagram.json` beside it by the model calls that describe each diagram; `data/build/`
 holds what a build derives; Drizzle writes its own snapshots. Each is tracked because a build
@@ -108,7 +108,7 @@ it becomes; see [layers.md](layers.md).
 
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
 subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
-[fonts.md](fonts.md) and [delivery.md](delivery.md).
+[fonts.md](fonts.md) and platform's `spec/architecture/delivery.md`.
 
 ## One name, one thing
 
@@ -128,7 +128,7 @@ subject: [local.md](local.md).
 
 ## The editor is configured by reading the site, not by working it out again
 
-**When `services/apps/cms` will not render something the way the site does, the answer is in
+**When `apps/cms` will not render something the way the site does, the answer is in
 `apps/site`.** Both are SvelteKit over the same components, and every time the editor has been
 wrong so far the site already held the fix: the StyleX sheet arrives in development through a
 link and a runtime module rather than an import, `@canmi/prose` has to be aliased to its source
@@ -366,11 +366,11 @@ referenced it by name.
 
 **Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
 library, so `mise run urls` renders the composed map into
-[`platform/libs/sdk/src/lib.rs`](../../platform/libs/sdk/src/lib.rs), the `monoflake` crate; the author's
+platform's `libs/sdk/src/lib.rs`, the `monoflake` crate; the author's
 own is the lib repository's `canmi` crate, rendered there the same way, which infra reads since it
 may not read the platform's. Each is committed beside its map, like the records under `data/build/`, so a checkout compiles without Node having run
 first. A mirror is never edited by hand: each package's
-[`rust.test.ts`](../../platform/libs/sdk/src/rust.test.ts) fails `verify` the moment it disagrees with its
+platform's `libs/sdk/src/rust.test.ts` fails `verify` the moment it disagrees with its
 map, so the one-edit measure survives the language boundary. The
 alternative, exempting Rust from the rule, would have left half the repo carrying literals
 that the check answers for everywhere else.
@@ -406,7 +406,7 @@ free, which a written-in one could never have: the directive is one line and a v
 nine.
 
 The cost is that the site's content build runs
-[two passes](../../services/libs/compile/src/articles.ts): every view's frontmatter is
+[two passes](../../libs/compile/src/articles.ts): every view's frontmatter is
 read before anything compiles, because the compiler sees one article at a time while a card
 names another. A path no article answers to fails the build rather than degrading to a
 placeholder -- unlike an embed, nothing has to be fetched first, so an unresolved path is a typo

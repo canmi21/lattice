@@ -1,3 +1,0 @@
-not http.host wildcard "cdn-*"
-and not http.request.uri.path wildcard "*/hook/*"
-and not cf.client.bot

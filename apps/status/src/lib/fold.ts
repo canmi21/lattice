@@ -1,6 +1,6 @@
 /**
- * What a broadcast changes: each check's latest round, and the counts in the five minutes it
- * falls in. Pure, beside board.ts, so what the page is told is tested without a socket. See
+ * What a broadcast changes: each check's latest round, and the counts in the five minutes it falls
+ * in. Pure, beside board.ts, so what the page is told is tested without a socket. See platform's
  * spec/architecture/probe.md, "The page reads PostgREST with the anon key, from views alone, once;
  * after that it is told".
  */

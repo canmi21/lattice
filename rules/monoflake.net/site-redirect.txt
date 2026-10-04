@@ -1,1 +1,0 @@
-http.host in {"monoflake.net" "www.monoflake.net"}

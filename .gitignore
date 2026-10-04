@@ -27,7 +27,7 @@ target/
 .svelte-kit/
 .vercel/
 # Compiled from .inlang on every build; settings.json and messages/ are what is authored.
-services/libs/messages/src/
+libs/messages/src/
 apps/site/.inlang/cache/
 apps/site/.inlang/.meta.json
 
@@ -85,5 +85,5 @@ age-key*.txt
 .DS_Store
 
 # The editor's SvelteKit output, generated on every dev run and build.
-services/apps/cms/.svelte-kit/
-services/apps/cms/build/
+apps/cms/.svelte-kit/
+apps/cms/build/

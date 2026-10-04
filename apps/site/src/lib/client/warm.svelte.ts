@@ -105,7 +105,7 @@ export async function warmArticle(
  *
  * A document has an extension and an article does not -- the same test `hooks.server.ts` makes.
  * The last segment is the slug, and a name with no hyphen is one of this site's own routes. See
- * spec/locale/addressing.md and spec/architecture/artifacts.md.
+ * spec/locale/addressing.md and platform's spec/architecture/artifacts.md.
  */
 function articleAt(anchor: HTMLAnchorElement): string | undefined {
 	if (anchor.target === '_blank' || anchor.hasAttribute('download')) return undefined;

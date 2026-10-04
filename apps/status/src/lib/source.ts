@@ -1,8 +1,8 @@
 /**
  * PostgREST, asked with the anon key: by the server for the first screen, then by the browser only
- * when a broadcast cannot say it. The same client in both, and only the views. Realtime, with
- * the same key, for the broadcasts. See spec/architecture/probe.md, "The page reads PostgREST with
- * the anon key, from views alone, once; after that it is told".
+ * when a broadcast cannot say it. The same client in both, and only the views. Realtime, with the
+ * same key, for the broadcasts. See platform's spec/architecture/probe.md, "The page reads
+ * PostgREST with the anon key, from views alone, once; after that it is told".
  */
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$app/env/public';
 import type { StatusCheckRow, StatusDailyRow, StatusNowRow } from '@monoflake/probe';

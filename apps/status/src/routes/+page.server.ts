@@ -11,9 +11,10 @@ import {
 import type { PageServerLoad } from './$types';
 
 /**
- * The first screen, whole, so it is what an index reads; the edge keeps a render a few seconds.
- * A database that does not answer renders an empty board saying so rather than an error page,
- * and the browser keeps asking. See spec/architecture/probe.md, "The page: one app, three doors".
+ * The first screen, whole, so it is what an index reads; the edge keeps a render a few seconds. A
+ * database that does not answer renders an empty board saying so rather than an error page, and the
+ * browser keeps asking. See platform's spec/architecture/probe.md, "The page: one app, three
+ * doors".
  */
 export const load: PageServerLoad = async ({ fetch, setHeaders, url }) => {
 	const range = readRange(url.searchParams.get('range'));

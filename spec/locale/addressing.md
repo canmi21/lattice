@@ -44,7 +44,7 @@ the server would have resolved from that cookie -- a prediction, not a second ne
 makes it possible is that the interface's whole vocabulary is already in the browser: every
 message call names its locale explicitly, from page data, so no catalogue is fetched and no
 runtime state is switched. The article is one request, which is what the published corpus made
-cheap. See [architecture/artifacts.md](../architecture/artifacts.md).
+cheap. See platform's `spec/architecture/artifacts.md`.
 
 **Nothing moves until the article is in hand.** Not the interface, not the menu. The page reads
 its locale out of page data and page data changes only when the load has finished, so the swap is
@@ -77,7 +77,7 @@ negotiation of its own -- not after hydration, and not when it navigates without
 server at all.
 
 That mattered less when every page came from the server. Now a navigation after hydration is the
-browser asking the API and the CDN directly ([architecture/artifacts.md](../architecture/artifacts.md)),
+browser asking the API and the CDN directly (platform's `spec/architecture/artifacts.md`),
 so the client holds a locale and could plausibly re-derive one. It must not. Two implementations
 of this negotiation -- one reading a cookie and `Accept-Language` in a Worker, one reading
 `document.cookie` in a browser -- would be two readings of one input, and

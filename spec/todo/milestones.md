@@ -60,7 +60,7 @@ The split is not tidiness; it is what makes replacing bytes free. `media.yaml` h
 descriptions in nine languages today, keyed by an original's cid, so a better scan of any of them
 costs either a careful migration or the money a second time. Held against the rid, a better scan
 costs nothing, because the rid did not change -- which is the argument
-[architecture/resource.md](../architecture/resource.md) already made when it granted ids in the
+platform's `spec/architecture/resource.md` already made when it granted ids in the
 first place. What stays on the cid is what a new original invalidates anyway and what any run can
 recompute.
 
@@ -128,7 +128,7 @@ malformed id and a wrong kind are both 400, and only an id nothing holds is 404.
 | `api`        | the public worker, which answers for reader state and carries no authored endpoint   |
 | the archive  | the Tauri client's source, at `canmi21/desktop-cms-archive` and built by nothing     |
 
-`collection` rather than `content` because [architecture/resource.md](../architecture/resource.md)
+`collection` rather than `content` because platform's `spec/architecture/resource.md`
 already settled that only one thing here may be spelled "content", and that thing is the bytes a
 cid identifies. A store called `content` makes "content id" read as "the id of something in the
 store", which is the exact confusion that file exists to end. `library` was rejected for colliding
@@ -288,7 +288,7 @@ and the five places the draft root lived are gone with the tree itself.
 site's components and nothing around them, which looked close and was not: the rail had no box to
 sit in, the bar had nothing to position against, and the 197 lines of prose typography were still
 in the application the body had left -- so code, tables and quotes were unstyled. The shell is one
-component now, in `services/libs/prose`, and the site uses the same one. What stays the site's is every
+component now, in `libs/prose`, and the site uses the same one. What stays the site's is every
 snippet it passes in, because those reach for its own data.
 
 **The editor is configured by reading the site.** Both are SvelteKit over the same components,
@@ -352,7 +352,7 @@ evidence that this is not hypothetical -- five days of curation are already outs
 The site's own marks were the row that decided the order: losing them is not a rebuild. They left
 git before C0 by the author's decision, as objects named by a record -- the bucket and its mirror
 hold the bytes, and C0 is still what makes that more than two copies. See
-[architecture/delivery.md](../architecture/delivery.md), "Every fixed name is a record".
+platform's `spec/architecture/delivery.md`, "Every fixed name is a record".
 
 C2 is why the collection growing to a terabyte is not a problem that has to be solved later.
 Published objects are immutable and already served, so development reads them where they are; the
@@ -378,12 +378,12 @@ blocked on it today, and that changes the moment B3 through B7 make publishing c
 the volume goes up.
 
 The machine D1 and D2 assume is made deployable first, so that what moves there arrives by a push
-rather than by hand. See [../architecture/host.md](../architecture/host.md).
+rather than by hand. See infra's `spec/architecture/host.md`.
 
 ## E. The gateway
 
 Every API moves behind one gateway Worker, reached by the hostnames in
-[../architecture/gateway.md](../architecture/gateway.md); what stands between here and there is
+platform's `spec/architecture/gateway.md`; what stands between here and there is
 [gateway.md](gateway.md). Each step ships on its own, and none takes an address that answers today
 away before its replacement answers.
 
@@ -398,7 +398,7 @@ away before its replacement answers.
 | E7  | The firewall is generated              | Each service-layer zone's whitelist written from the table, inside the expression and rule-count limits, and synced by `mise run rules sync`                                                                                                                                                                                                                                                                                                               | E2 E6 | near     |
 | E8  | Callers move                           | `libs/urls` names the new hosts, every caller here follows, GitHub's webhook moves, the unversioned paths of E4 go                                                                                                                                                                                                                                                                                                                                         | E6    | **done** |
 | E9  | `ffoni.com` leaves                     | Its profiles deleted once nothing calls it -- rdm's installed builds among the callers, see [gateway.md](gateway.md) -- and the domain released                                                                                                                                                                                                                                                                                                            | E8    | mid      |
-| E10 | Limits are buckets, counted by `quota` | The bucket's arithmetic in `platform/libs/sdk/limits` and `burst` in every row; `quota` on Workers with its Durable Object and inside door; the gateway's own counter and the site's rate limiting bindings retire in favor of it. See [../architecture/quota.md](../architecture/quota.md)                                                                                                                                                                | E8    | **done** |
+| E10 | Limits are buckets, counted by `quota` | The bucket's arithmetic in `platform/libs/sdk/limits` and `burst` in every row; `quota` on Workers with its Durable Object and inside door; the gateway's own counter and the site's rate limiting bindings retire in favor of it. See platform's `spec/architecture/quota.md`                                                                                                                                                                             | E8    | **done** |
 | E11 | The house has a gateway                | The gateway and `quota` deployed again on the node under Node, reached through Caddy's `inside` side; Caddy answering the gateway's hostnames on the LAN; services on Workers reached through the public gateway with `INTERNAL_TOKEN`; checked by address against the public one                                                                                                                                                                          | E10   | **done** |
 | E12 | The house answers its own names        | `infra/apps/resolver`, CoreDNS rendered by host, answers the gateway's hostnames with the node and passes the rest down a chain that skips what fails; DHCP and the tailnet's split DNS point at it; the private suffix moves from `canmi.icu` to `internal.ixc.one`, whose certificate the zones' token can renew                                                                                                                                         | E11   | **done** |
 | E13 | Cleanup                                | A pass over what the move left behind, and what was found and held while it ran: host, which has no way to forget an app removed from the repository -- umami was forgotten by hand, its row deleted from host's store and host restarted so Caddy was rendered without it, its containers, network, image, data and snapshots removed over SSH; and the service domains' placeholder pages -- see [gateway.md](gateway.md), "An apex answers nothing yet" | E9    | mid      |
@@ -441,6 +441,11 @@ The arrangement is [../architecture/layers.md](../architecture/layers.md).
 Vercel's builds name each app's own directory and nothing under it, and those seven -- `aka`,
 `cdn`, `gateway`, `hook`, `quota`, `site`, `status` -- stay in `apps/` until the repositories split
 and each build is pointed once. The libraries they read moved freely beneath them.
+
+**Owed after F6: every repository's code scanning alerts are read again.** CodeQL keys an alert
+by its file, so moving a file reopened the false positives dismissed before the split, in all three
+repositories. Each is read again before it is dismissed -- not dismissed by matching the old list --
+so a real finding that arrived with the move is not waved through with them.
 
 ## Open questions
 

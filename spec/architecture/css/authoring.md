@@ -37,7 +37,7 @@ markup, so everything below is never type-checked. Nothing is deleted and nothin
 file still appears in the run and still says zero errors.
 
 Measured on this repository's largest component. Taking `<style>` out of the opening doc comment of
-[video-controls.svelte](../../../services/libs/prose/src/components/video-controls.svelte), changing
+[video-controls.svelte](../../../libs/prose/src/components/video-controls.svelte), changing
 nothing else, turned `66 FILES 0 ERRORS` into `67 FILES 10 ERRORS`. **The file count is the tell**:
 the swallowed script imported nothing, so its imports never entered the program either. The ten
 errors it was hiding had been there long enough that nobody could say when they arrived.
@@ -121,7 +121,7 @@ that does nothing.
 ### The compiler writes a class only where the element's styling is a recipe
 
 The rule above says what a class name may be; this one says when one may be written at all. The
-compiler can class anything: [compile.ts](../../../services/libs/compile/src/compile.ts)
+compiler can class anything: [compile.ts](../../../libs/compile/src/compile.ts)
 puts `focus-link`, `spring-underline` and `article-link` on every prose link, and two frozen
 tables turn a `:t` token into a colour or a font class. So the discipline is written as a rule
 rather than left as a habit -- **the compiler writes a class on an element where that element's
@@ -130,7 +130,7 @@ styling belongs to a named recipe, and nowhere else.** Without it, question one 
 the boundary moves the first time it is convenient.
 
 **A class the content author asked for is allowed.** The `:t` directive path -- `styleClasses`,
-`COLOR_CLASSES`, `FONT_CLASSES`, in `services/libs/compile/src/style-classes.ts` so the editor draws a run
+`COLOR_CLASSES`, `FONT_CLASSES`, in `libs/compile/src/style-classes.ts` so the editor draws a run
 with the same table -- resolves a token the author wrote in the article into a
 utility, which is the compiler standing in for the markup author rather than inventing anything.
 The separator is observable and is not intent: **did the class come from something the author

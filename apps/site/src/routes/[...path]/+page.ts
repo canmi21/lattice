@@ -18,11 +18,12 @@ export const prerender = false;
  * An article is asked for by identity and served only at its address.
  *
  * The last segment finds it, so a stale directory and the bare name both resolve. Neither is
- * served: both redirect, and why the two codes differ is spec/architecture/artifacts.md,
+ * served: both redirect, and why the two codes differ is platform's spec/architecture/artifacts.md,
  * "Reaching an article by name".
  */
 // Universal, so a navigation after hydration renders in the browser and never calls this site's
-// Worker. See spec/architecture/artifacts.md, "Two consumers, and the second one is the browser".
+// Worker. See platform's spec/architecture/artifacts.md, "Two consumers, and the second one is the
+// browser".
 export const load: PageLoad = async ({ params, url, fetch, parent, depends }) => {
 	depends(LOCALE_DEPENDENCY);
 	const target = redirects[`/${params.path}`];
@@ -34,7 +35,7 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 
 	// The hyphen is what reserves every single word for this site's own router, so a name without
 	// one cannot be an article and this is a 404 without asking the corpus at all. The build
-	// refuses a corpus that would make this test lie; see services/libs/compile/src/slugs.ts.
+	// refuses a corpus that would make this test lie; see libs/compile/src/slugs.ts.
 	if (!slug.includes('-')) error(404, 'Not found');
 
 	const { locale } = await parent();
@@ -48,12 +49,11 @@ export const load: PageLoad = async ({ params, url, fetch, parent, depends }) =>
 		redirect(segments.length > 1 ? 301 : 302, `/${found.path}${url.search}`);
 
 	const view = found.view;
-	// The second and third calls on this path, together because neither is the other's input.
-	// A compiled article names rids and stops, so rendering one also asks what those currently
-	// mean -- once for the whole page; see spec/architecture/resource.md, "One question per page,
-	// not one per resource". The count is asked here rather than after hydration so the figure is
-	// in the first frame; see spec/engagement.md, "The count is asked for and recorded
-	// separately".
+	// The second and third calls on this path, together because neither is the other's input. A
+	// compiled article names rids and stops, so rendering one also asks what those currently mean --
+	// once for the whole page; see platform's spec/architecture/resource.md, "One question per page,
+	// not one per resource". The count is asked here rather than after hydration so the figure is in
+	// the first frame; see spec/engagement.md, "The count is asked for and recorded separately".
 	const [resources, reads] = await Promise.all([
 		publishedResources(fetch, namedResources(view.body.blocks)),
 		publishedReads(fetch, view.slug),

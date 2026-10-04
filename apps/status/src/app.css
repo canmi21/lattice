@@ -6,7 +6,7 @@
 @import '@canmi/kit/theme/palettes/mono.css';
 @import '@canmi/kit/tokens/interaction.css';
 @source '.';
-@source '../../../services/libs/social/src';
+@source '../../../libs/social/src';
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
 

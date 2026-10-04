@@ -21,7 +21,7 @@ import { findArticle, rootOf } from '../data/root';
  * An answer carries metadata and hashes, never a body: the objects it names are content-addressed
  * and are fetched from the CDN, which may hold them for a year. One variant dimension and it is
  * the locale, because every further one divides a five-minute cache by the values it takes. See
- * spec/architecture/artifacts.md, "The API is the only thing that changes".
+ * platform's spec/architecture/artifacts.md, "The API is the only thing that changes".
  */
 const corpus = new Hono<{ Bindings: Bindings }>();
 
@@ -30,7 +30,7 @@ const corpus = new Hono<{ Bindings: Bindings }>();
  *
  * A new article invisible for five minutes is the delay this design already accepts. Five minutes
  * on "the API failed" would turn a blip into an outage, which is why a 5xx is `no-store` instead;
- * the asymmetry is spec/architecture/artifacts.md's, not this file's.
+ * the asymmetry is platform's spec/architecture/artifacts.md's, not this file's.
  */
 const MISSED = { 'Cache-Control': PUBLISHED } as const;
 
@@ -40,7 +40,7 @@ const MISSED = { 'Cache-Control': PUBLISHED } as const;
  * Three hours, because a root that old names objects that are all still there and still
  * immutable, so what it renders is a coherent older page. Only a 2xx carries it: a 404 is not an
  * error worth serving stale. The site holds the cache that acts on this -- see
- * spec/architecture/artifacts.md, "The site keeps serving when the API does not".
+ * platform's spec/architecture/artifacts.md, "The site keeps serving when the API does not".
  */
 const ANSWERED = {
 	'Cache-Control': `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`,
@@ -54,7 +54,7 @@ const HOMEPAGE = 'homepage';
  *
  * Both identifiers are query parameters, which is the rule here rather than this route's taste: a
  * single lookup asks with a query and a batch asks with a body, so nothing about a question lives
- * in the path. See spec/architecture/artifacts.md.
+ * in the path. See platform's spec/architecture/artifacts.md.
  *
  * `slug` takes the identity and nothing else -- one segment, no directory. The answer names the
  * path, so a caller that had only a stale address gets the real one back rather than a 404.
@@ -90,7 +90,7 @@ corpus.get('/article', async (c) => {
  * The one question the alias layer asks. A name like `favicon.ico` is what a browser or a mail
  * client is able to construct on its own, and this says which content-addressed object it stands
  * for today -- so the bytes keep a year and the name keeps its meaning. See
- * spec/architecture/delivery.md, "A name is resolved, never stored".
+ * platform's spec/architecture/delivery.md, "A name is resolved, never stored".
  */
 corpus.get('/asset', async (c) => {
 	const name = c.req.query('name');
@@ -209,7 +209,7 @@ function homepage(root: Root, locale: LocaleCode): HomeAnswer['page'] {
 /**
  * Which view was asked for: `?locale=`, and the source when nothing was asked. Absent means `mw`,
  * the same answer a bare URL gives; an unknown value is a 400 and never a fallback to another
- * view. See spec/architecture/artifacts.md, "The locale is a query parameter".
+ * view. See platform's spec/architecture/artifacts.md, "The locale is a query parameter".
  */
 function askedLocale(c: Context): LocaleCode | undefined {
 	const asked = c.req.query('locale');

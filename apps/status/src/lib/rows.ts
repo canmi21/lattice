@@ -2,8 +2,8 @@
  * The three views as PostgREST sends them, turned into the rows platform/libs/probe infers.
  *
  * PostgREST answers with the SQL names and timestamps as text, so each row is read once here and
- * the page never sees the wire. The views are the contract; see spec/architecture/probe.md, "The
- * schema: declared once, in Drizzle, applied by the probe".
+ * the page never sees the wire. The views are the contract; see platform's
+ * spec/architecture/probe.md, "The schema: declared once, in Drizzle, applied by the probe".
  */
 import type {
 	StatusCheckRow,

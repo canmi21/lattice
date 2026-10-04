@@ -6,9 +6,10 @@ import type { Bindings } from '../bindings';
 /**
  * The one mutable object, read and parsed.
  *
- * The only full schema parse in this worker -- see spec/architecture/artifacts.md, "Validation is
- * heavy where it is free and light where it is not". A root that will not read or will not parse
- * is a failure rather than an empty corpus, which would blank the site for as long as it cached.
+ * The only full schema parse in this worker -- see platform's spec/architecture/artifacts.md,
+ * "Validation is heavy where it is free and light where it is not". A root that will not read or
+ * will not parse is a failure rather than an empty corpus, which would blank the site for as long
+ * as it cached.
  */
 
 /**
@@ -49,8 +50,8 @@ export function forgetRoot(): void {
  * The identity alone, never the address: a slug is unique whatever directory holds it, so the
  * directory is derivable and asking for it too would be a second copy of a fact this could then
  * disagree with. It is also what makes `/{wrong}/{slug}` resolvable at all -- the site sends the
- * last segment and compares the `path` that comes back. See spec/architecture/artifacts.md,
- * "A slug is the identity and the path is the address".
+ * last segment and compares the `path` that comes back. See platform's
+ * spec/architecture/artifacts.md, "A slug is the identity and the path is the address".
  */
 export function findArticle(root: Root, slug: string): RootArticle | undefined {
 	return root.articles.find((article) => article.slug === slug);

@@ -16,7 +16,7 @@
 	"dependencies": {
 		"@canmi/me": "^2026.1004.1",
 		"@canmi/response": "^2.0.0",
-		"@monoflake/sdk": "workspace:*",
+		"@monoflake/sdk": "^2026.1004.0",
 		"drizzle-orm": "^0.45.3",
 		"hono": "^4.13.12",
 		"valibot": "^1.5.0"

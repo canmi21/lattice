@@ -133,4 +133,4 @@ longer moves an article, so waiting for one would be waiting for the wrong event
 is now the frequent one while a deploy is rare. What the ordering is really waiting for is
 unchanged: the address has to answer before anyone is told about it. That is publication plus the
 API's five minutes, not a deploy. See
-[architecture/artifacts.md](architecture/artifacts.md).
+platform's `spec/architecture/artifacts.md`.

@@ -1,6 +1,6 @@
 # Where bytes and records live
 
-What a _thing_ is, as opposed to what a run of bytes is, is [resource.md](resource.md): the
+What a _thing_ is, as opposed to what a run of bytes is, is platform's `spec/architecture/resource.md`: the
 resource id, the layered record, and the catalogue of what earns one. This file is where both
 kinds of thing are kept.
 
@@ -80,7 +80,7 @@ file whenever a consumer needs one without that growth being a question.
 
 **Which of them git keeps was once decided by one question -- does a CI build read it? -- and
 that question no longer has an answer.** No CI build reads any of them; the corpus is compiled
-here and published as objects. See [artifacts.md](artifacts.md); the section below says what
+here and published as objects. See platform's `spec/architecture/artifacts.md`; the section below says what
 replaced the requirement.
 
 Two questions decide it now, and they are asked in order.
@@ -128,7 +128,7 @@ were paid for and read by a person who set `review: true`.
 **This is pinned to a condition rather than settled.** When an online editor exists and writing
 stops going through a file on this machine, that write path has to answer backup and history
 itself, and once it does the reason to hold any of this here is gone. The condition and the
-other decision waiting on it are recorded together in [artifacts.md](artifacts.md), "What
+other decision waiting on it are recorded together in platform's `spec/architecture/artifacts.md`, "What
 happens when writing moves online".
 
 The rule was first written as "`data/` is never in git", which held until it needed several
@@ -188,7 +188,7 @@ was right and was being applied in the wrong place.** The window it protects aga
 it is a property of _when a sweep may delete_, not of what a mirror may transfer -- and putting it
 in the mirror meant the local tree and the bucket disagreed forever, while the sweep deleted with
 no delay at all. The delay now lives in the sweep, which is the only thing that knows when an
-object stopped being named: see [artifacts.md](artifacts.md), "An object is swept an hour after
+object stopped being named: see platform's `spec/architecture/artifacts.md`, "An object is swept an hour after
 nothing names it". The mirror simply mirrors.
 
 ## Assets are prepared locally, never in CI
@@ -222,7 +222,7 @@ where a site's icon should come from when its own is not wanted. `local favicon`
 into that domain's slot and records the result as a resource; the page draws whatever the rid
 its card compiled to currently holds. So the attribute is never rewritten: it is the only record
 of where the icon came from, and destroying it would make the choice unrepeatable. See
-[resource.md](resource.md), "The catalogue".
+platform's `spec/architecture/resource.md`, "The catalogue".
 
 Alongside that attribute, `tone` says which shade the named icon _is_. On its own it only says
 what the card renders against, which is no instruction to the collector at all.
@@ -271,7 +271,7 @@ would say so.
 **This section required a CI build to be able to compile every article from git alone, and that
 requirement is gone rather than relaxed.** The site does not compile articles at all now: it
 reads published objects at request time, and what produces them runs here, on the machine that
-holds the originals. See [artifacts.md](artifacts.md).
+holds the originals. See platform's `spec/architecture/artifacts.md`.
 
 So the records that used to be committed _because a CI build read them_ -- the merged image
 manifest, the segment layout, the embed and tweet records -- are read by the publish step
@@ -301,7 +301,7 @@ uploaded. And a build that does not upload emits no maps at all, because the plu
 source in the directory wrangler deploys.
 
 Both halves live in `lib/pkgs/web/sentry`, shared with the status page, which uploads whenever the token
-is present and skips without it. See [probe.md](probe.md), "Errors go to Sentry".
+is present and skips without it. See platform's `spec/architecture/probe.md`, "Errors go to Sentry".
 
 ## Assets are addressed by their content
 
@@ -352,7 +352,7 @@ exactly as long as they had no route of their own; adding one was the fix.
 
 **The layout is declared once per language and the two are held together by a test.**
 `storageKey` in `platform/libs/sdk/store` is what the workers read from, `object_path` in
-`services/apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/sdk/store` parses
+`apps/local/src/image/store.rs` is what the writer writes from, and a test in `platform/libs/sdk/store` parses
 the second and compares. It replaced a pair of tables that had drifted: clips arrived as a path on
 the writing side, URLs on the site, and nothing on the reading side, so four rung URLs answered
 404 with the files sitting on disk and nothing reported a fault -- the page simply did not play.
@@ -394,7 +394,7 @@ of BLAKE3 over the bytes. It does not survive one `list()`.
 So there is no listing anywhere a request can reach. `findOne` was the last one and went with the
 favicon lookup that needed it; a new one is a decision to make here first, not a convenience to
 reach for. The CDN has no route that answers for whatever happens to be in the bucket either --
-see [delivery.md](delivery.md), "The CDN is four route groups and a refusal".
+see platform's `spec/architecture/delivery.md`, "The CDN is four route groups and a refusal".
 
 This is the reason a sweep is careful rather than clever: what keeps an object alive is being
 named, and nothing else can be asked what is there.
@@ -605,7 +605,7 @@ the bytes sit in that checkout's `data/` and every process reads them there.
 
 **A reader finds the directory by walking up for it, not by being told where it is.** Each
 command looks for `data/bucket` above its working directory and joins its own paths onto the
-repository root the marker sits in -- [paths.rs](../../services/apps/local/src/paths.rs) is the Rust side of
+repository root the marker sits in -- [paths.rs](../../apps/local/src/paths.rs) is the Rust side of
 that. A compile-time path would bake in whichever machine built the binary, and an environment
 variable would be one more thing to set correctly before any command works. Walking up means a
 command run from anywhere inside the tree reaches the same bytes.
@@ -629,7 +629,7 @@ for, obtained from the operating system instead of from a directory layout.
 Deriving a picture, describing it, drawing its card, slicing a face and serving any of it are
 each their own subject and live beside this file:
 [media.md](media.md), [fonts.md](fonts.md) and
-[delivery.md](delivery.md).
+platform's `spec/architecture/delivery.md`.
 
 ## Three ignore lists, no sharing
 

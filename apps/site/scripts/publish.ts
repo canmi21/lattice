@@ -3,7 +3,7 @@
  *
  * This is what the site's build used to do in-process. It no longer does: the site is rebuilt
  * when its own code changes, and the corpus is published on its own schedule from here.
- * See spec/architecture/artifacts.md.
+ * See platform's spec/architecture/artifacts.md.
  */
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -79,8 +79,8 @@ class Tree {
 		const digest = bytesToHex(blake3(bytes, { dkLen: 16 }));
 		// Stored by content id alone; the type only appears in the address the CDN serves it at.
 		const file = join(this.#dir, storageKey(digest, ARTIFACT_EXTENSIONS[type]));
-		// A content-addressed key cannot denote different bytes, so a file already there is this
-		// file. Nothing is compared and nothing is swept: see spec/architecture/artifacts.md,
+		// A content-addressed key cannot denote different bytes, so a file already there is this file.
+		// Nothing is compared and nothing is swept: see platform's spec/architecture/artifacts.md,
 		// "Publication is ordered, and deletion is not part of it".
 		if (await this.#exists(file)) {
 			this.tally.present += 1;
@@ -181,7 +181,7 @@ async function publishArticle(
 			version: ARTIFACT_VERSION,
 			// The identity, never the address. An object outlives the directory it was published
 			// from, so an envelope naming the path would fail its own check the first time this
-			// article was recategorised. See spec/architecture/artifacts.md.
+			// article was recategorised. See platform's spec/architecture/artifacts.md.
 			slug: article.slug,
 			locale: code,
 			meta: view.meta,
@@ -269,8 +269,8 @@ async function publishPage(
  *
  * The bytes are objects already, in the tree and never in git; `data/record/symlinks.json` says
  * which name each scope's files answer to, by content id. Each is `{scope}/{file}`, and the site's
- * are also bare, for the addresses already handed out. See spec/architecture/delivery.md, "Every
- * fixed name is a record".
+ * are also bare, for the addresses already handed out. See platform's
+ * spec/architecture/delivery.md, "Every fixed name is a record".
  */
 async function publishSymlinks(tree: Tree): Promise<Root['assets']> {
 	const symlinks = JSON.parse(await readFile(INPUTS.symlinks, 'utf8')) as Record<
@@ -318,7 +318,7 @@ async function publishCorpus(
 	for (const page of pages) rootPages[page.path] = await publishPage(tree, page, cards);
 	// Last, and only once every object it names is on disk. A root that arrives first names
 	// objects that answer 404, and a 404 on a content-addressed key is the one answer this
-	// design cannot afford to have cached. See spec/architecture/artifacts.md.
+	// design cannot afford to have cached. See platform's spec/architecture/artifacts.md.
 	await tree.putRoot({
 		version: ARTIFACT_VERSION,
 		generated: new Date().toISOString(),
@@ -326,7 +326,7 @@ async function publishCorpus(
 		// entries here, named `favicon/{domain}/{tone}` because that is what a link card could
 		// build from the domain it knew. It is a resource now: `cms favicon` hashes the bytes in
 		// and writes the record, a card compiles to a rid, and the page asks what that rid means.
-		// See spec/architecture/resource.md, "The catalogue".
+		// See platform's spec/architecture/resource.md, "The catalogue".
 		assets: {
 			...(await publishSymlinks(tree)),
 			...(await publishNotice(tree)),

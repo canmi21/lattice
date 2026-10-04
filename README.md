@@ -1,9 +1,10 @@
-# Everything Behind
+# web
 
-Personal interconnected monorepo.  
-Built from scratch. See `mise.toml` for project tasks.
+The author's site, canmi.net, and what is built around it: its API, the status page, the editor,
+and the desktop application that compiles and publishes the corpus.
 
-Mostly built for myself, but feel free to browse the code for reference.
+Mostly built for myself, but feel free to browse the code for reference. See `mise.toml` for the
+tasks, and [spec/repository.md](spec/repository.md) for how it is laid out.
 
 ## License
 

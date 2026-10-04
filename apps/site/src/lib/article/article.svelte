@@ -197,7 +197,7 @@
 		/** The article's identity, which is what the read counter is keyed by. */
 		/** The content id of this view's OpenGraph card, when one has been drawn. */
 		/** The title a phone sees: `meta.title` where it fits the column, the short one where it
-		 *  does not. Decided in the build; see services/libs/compile/src/width.ts. */
+		 *  does not. Decided in the build; see libs/compile/src/width.ts. */
 		/** What the rail's bars measure, when the load already knew. See toc.svelte. */
 		/** How long the article is in the view being read. Body prose only -- see ArticleView. */
 		/**

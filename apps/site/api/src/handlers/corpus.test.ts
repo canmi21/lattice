@@ -127,7 +127,7 @@ describe('GET /view/:slug', () => {
 	});
 
 	// Five minutes on a miss too, but no `stale-if-error`: a 404 is not an error worth serving
-	// stale. See spec/architecture/artifacts.md.
+	// stale. See platform's spec/architecture/artifacts.md.
 	it('caches a miss as long as an answer, without offering it stale', async () => {
 		const unknown = await get('/article?slug=made/up&locale=en');
 		expect(unknown.status).toBe(404);
@@ -143,7 +143,7 @@ describe('GET /view/:slug', () => {
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
-	// spec/architecture/artifacts.md, "A fact appears in exactly one answer".
+	// platform's spec/architecture/artifacts.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
 		expect(await payload(await get('/article?slug=the-first&locale=en'))).not.toHaveProperty(
 			'markdown',
@@ -225,7 +225,7 @@ describe('GET /sitemap', () => {
  *
  * A handler's refusal was wrapped from the start; hono's own was not, and the gap only showed in
  * production -- `GET /batch` answered `text/plain` `404 Not Found`, which a caller parsing JSON
- * reads as a syntax error rather than a message. See spec/architecture/artifacts.md.
+ * reads as a syntax error rather than a message. See platform's spec/architecture/artifacts.md.
  */
 describe('a refusal nothing handled', () => {
 	it('wraps a route that does not exist, and caches it as a miss', async () => {
@@ -248,7 +248,7 @@ describe('a refusal nothing handled', () => {
 describe('POST /batch', () => {
 	// One route for every question asked about many things, discriminated by `type`. A language
 	// menu is one slug and many locales; a homepage warming its list is the other way round, and
-	// this is one question. See spec/architecture/artifacts.md, "One batch entry point".
+	// this is one question. See platform's spec/architecture/artifacts.md, "One batch entry point".
 	it('answers the cross product, names each article once, and leaves out what it has not', async () => {
 		const answered = await payload<BatchAnswerOf<'articles'>>(
 			await get('/batch', {
@@ -306,7 +306,7 @@ describe('POST /batch', () => {
 	 * How many things an arm names is the schema's, and going over it is a mistake in the question
 	 * -- a `400`. How many bytes the body is is the route's backstop against a question no arm's
 	 * caps could produce -- a `413`. Both leave through the envelope; see
-	 * spec/architecture/artifacts.md, "A refusal nobody handled is still a refusal".
+	 * platform's spec/architecture/artifacts.md, "A refusal nobody handled is still a refusal".
 	 */
 	it('refuses more rids than one question carries, and says so in the envelope', async () => {
 		const many = Array.from({ length: RESOURCES_PER_QUESTION + 1 }, (_, at) =>
@@ -334,8 +334,8 @@ describe('POST /batch', () => {
 	});
 
 	/**
-	 * A page names resources and asks what they mean once. See spec/architecture/resource.md,
-	 * "One question per page, not one per resource".
+	 * A page names resources and asks what they mean once. See platform's
+	 * spec/architecture/resource.md, "One question per page, not one per resource".
 	 */
 	it('answers rids with their stored records, and leaves out the ones nothing publishes', async () => {
 		const record = { version: 5, resource: 'k7m2x', type: 'media.image.icon' };
@@ -405,7 +405,7 @@ describe('POST /batch', () => {
 
 describe('the feed', () => {
 	// Entries and not a document: the feed is assembled by whoever asked, out of objects this
-	// answer names. See spec/architecture/artifacts.md, "Which objects exist".
+	// answer names. See platform's spec/architecture/artifacts.md, "Which objects exist".
 	it('lists what one locale has, newest change first, and nothing for a locale with none', async () => {
 		const answered = await payload<FeedAnswer>(await get('/feed?locale=en'));
 		expect(answered.locale).toEqual({ code: 'en' });

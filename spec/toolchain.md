@@ -153,7 +153,7 @@ may still be reading, and closing it is not a build's business.
 **`mise run reach [name]` answers on `http://localhost:26520` for `<name>.internal.ixc.one`**, host's
 panel when no name is given. macOS asks before a program reaches the local network, and a browser
 an agent drives, like node from mise, is refused; the system's own `ssh` and `curl` never are.
-So [`reach.ts`](../infra/apps/host/scripts/reach.ts) has ssh carry the node's port 443 to a loopback
+So infra's `apps/host/scripts/reach.ts` has ssh carry the node's port 443 to a loopback
 port and speaks to that alone, sending every request as the name would arrive: TLS with the name
 as SNI and as `Host`, so Caddy routes it. Caddy's guard sees the node's own address, which is a
 LAN one; a tunnel to the node's loopback is refused by the same guard, which is why the far end
@@ -225,8 +225,8 @@ anything about the code. A dependency update crossing that major has broken the 
 pin, and the repair is to put the 6 back rather than to chase the error into `svelte-check`.
 
 The root manifest carries 7 in both slots and is right to: nothing there runs `svelte-check`.
-Every other package that does -- `services/apps/cms`, `infra/apps/panel`, `apps/status`, `services/libs/prose`,
-`services/libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
+Every other package that does -- `apps/cms`, `infra/apps/panel`, `apps/status`, `libs/prose`,
+`libs/social` -- holds `typescript` at 6 for the same reason, reaching 7 through the root, so
 `outdated` listing 7 for each of them is this floor and not an upgrade waiting. `versions.toml`
 allows the pair, so the report says so rather than warning.
 

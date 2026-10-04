@@ -5,7 +5,7 @@
  * worst at: a document the size of the whole corpus, rewritten whenever any one article changes.
  * Nine locales of a quarter-megabyte each, per edit, kept for ever. Every field it writes is
  * already in the API's answer or in the content objects that answer names, so the Worker builds
- * it instead. See spec/architecture/artifacts.md, "Which objects exist".
+ * it instead. See platform's spec/architecture/artifacts.md, "Which objects exist".
  */
 import { generateAtomFeed } from 'feedsmith';
 import { URLS } from '@monoflake/sdk';

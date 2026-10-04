@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ fetch }) => {
 	// Asked of the API rather than of a fixed name on the CDN, and never through the alias layer:
 	// nothing on this site's own rendering path resolves. `pickUrls` because this runs on the
 	// server, where a page's relative proxy path would be answered by SvelteKit's own router.
-	// See spec/architecture/delivery.md.
+	// See platform's spec/architecture/delivery.md.
 	const found = await publishedAsset(fetch, 'licenses.txt');
 	const upstream = found
 		? await fetch(`${pickUrls(dev).cdn}/object/${found.cid}.${found.extension}`)

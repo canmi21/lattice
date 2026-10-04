@@ -276,7 +276,7 @@ the CMS has no other reason to load.
 The layout supplies the numbers, and it supplies them from another language. The rail's width is
 declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css) and argued in
 [styling/rail.md](../styling/rail.md) under "The rail's box is one declared width"; what this file's
-rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../services/apps/local/src/i18n/width.rs). A label is given
+rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/local/src/i18n/width.rs). A label is given
 the rail's whole 136px at 13px type, which holds ten Han characters or nineteen Latin ones, so one
 line is 19 columns and the two-line clamp is 38. Both are measured in the rendered rail: nineteen
 is the widest a label goes without wrapping anywhere in the corpus, and three of the nine that
@@ -328,7 +328,7 @@ no longer compiles the corpus at build time, so there is no multi-megabyte ESM m
 no development snapshot to replace atomically, and no deployed bundle whose size argues for
 de-duplicating a locale payload. Those were real problems and each was solved; they were all
 consequences of compiling the corpus into the Worker. See
-[architecture/artifacts.md](../architecture/artifacts.md).
+platform's `spec/architecture/artifacts.md`.
 
 Two of them were worth keeping as facts rather than as mechanisms. De-duplication is now free and
 total: a view whose bytes are identical to another's has the same hash and is one object, so a

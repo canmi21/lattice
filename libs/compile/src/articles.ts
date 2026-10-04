@@ -1,0 +1,536 @@
+import { refuseBadSlugs, reservedNames, slugOf } from './slugs.ts';
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { URLS } from '@monoflake/sdk';
+import { parse as parseYaml } from 'yaml';
+import {
+	createAssetResolver,
+	createIconResolver,
+	createDiagramResolver,
+	createVideoResolver,
+	readAssets,
+	type DiagramStore,
+	type MediaManifest,
+} from './assets.ts';
+import {
+	assemble,
+	type SegmentLayout,
+	type SegmentSpan,
+	type TranslationLocale,
+	type TranslationSidecar,
+} from './assemble.ts';
+import { articleFrontmatter, compile, compilePage } from './compile.ts';
+import { indexingMetadata } from './indexing.ts';
+import { ARTICLE_TITLE_BUDGET, fits } from './width.ts';
+
+/**
+ * One interface string the compiler emits into markup rather than a component rendering it.
+ *
+ * Read out of the message files directly. Paraglide compiles its messages through a Vite plugin,
+ * and this module is imported by vite.config.ts before that plugin has run -- so a build-time
+ * caller reads the same JSON the plugin does rather than the code it will generate. A key that
+ * disappears fails loudly here rather than emitting an empty parenthesis into every article.
+ */
+export async function newTabNotes(messages: string): Promise<Record<LocaleCode, string>> {
+	const notes = {} as Record<LocaleCode, string>;
+	for (const code of LOCALE_CODES) {
+		const catalog = JSON.parse(await readFile(join(messages, `${code}.json`), 'utf8'));
+		const note = catalog['support.new-tab'];
+		if (typeof note !== 'string') {
+			throw new Error(`${code}.json: support.new-tab is missing`);
+		}
+		notes[code] = note;
+	}
+	return notes;
+}
+import type {
+	Article,
+	ArticleReference,
+	ArticleSummary,
+	ArticleView,
+	CompiledPage,
+	CrateRecord,
+	Page,
+	PageView,
+	RepoRecord,
+	TweetRecord,
+} from '@monoflake/sdk/artifacts/types';
+import { languageTag, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/me/locales';
+import { highlight } from './highlight.ts';
+
+const SEGMENT_LAYOUT_VERSION = 5;
+
+type SummarySidecar = { summary?: Record<string, { text?: string; provider?: string }> };
+
+/**
+ * The locale an article's own language names, as the records are keyed.
+ *
+ * Frontmatter writes the short form; every locale-addressed record here uses the public tag.
+ * Traditional Chinese is matched by script before the language falls through -- the same rule
+ * `local summary` applies on the other side of the file. See spec/i18n/copy.md.
+ */
+export function sourceLocale(lang: string): string {
+	const [primary = lang, ...rest] = lang.toLowerCase().split('-');
+	if (primary === 'zh') {
+		const traditional = rest.some((part) => part === 'hant' || ['tw', 'hk', 'mo'].includes(part));
+		return traditional ? 'zh-TW' : 'zh-CN';
+	}
+	const code = (Object.keys(PUBLIC_LANGUAGE) as Exclude<LocaleCode, 'mw'>[]).find(
+		(candidate) => PUBLIC_LANGUAGE[candidate].toLowerCase().split('-')[0] === primary,
+	);
+	return code ? PUBLIC_LANGUAGE[code] : 'en-US';
+}
+
+/** The summary sidecar, which is absent until `local summary` has been run for that article. */
+async function readSummaries(file: string): Promise<Record<string, ArticleSummary>> {
+	try {
+		const text = await readFile(file.replace(/\.md$/, '.summary.yaml'), 'utf8');
+		const parsed = parseYaml(text) as SummarySidecar;
+		const summaries: Record<string, ArticleSummary> = {};
+		for (const [locale, entry] of Object.entries(parsed.summary ?? {})) {
+			const summary = entry?.text?.trim();
+			if (!summary) continue;
+			summaries[locale] = {
+				text: summary,
+				provider: entry?.provider?.trim() ?? '',
+			};
+		}
+		return summaries;
+	} catch {
+		return {};
+	}
+}
+
+/** Prefer the requested summary, then the one fallback language every view can name. */
+export function summaryFor(
+	summaries: Readonly<Record<string, ArticleSummary>>,
+	locale: string,
+): ArticleSummary | undefined {
+	return summaries[locale] ?? summaries['en-US'];
+}
+
+type BuildPaths = {
+	contents: string;
+	/** Which CDN the built markup names; see createAssetResolver. */
+	cdnUrl: string;
+	/** Where the Paraglide message catalogues live, read directly; see newTabNotes. */
+	messages: string;
+	assets: string;
+	media: string;
+	diagrams: string;
+	segments: string;
+	/** The site's own route directory, so a slug cannot be given a name the router answers for. */
+	routes: string;
+	crates: string;
+	repos: string;
+	tweets: string;
+};
+
+async function articleFiles(contents: string): Promise<string[]> {
+	const files: string[] = [];
+	for (const category of await readdir(contents, { withFileTypes: true })) {
+		if (!category.isDirectory()) continue;
+		const directory = join(contents, category.name);
+		for (const entry of await readdir(directory, { withFileTypes: true })) {
+			if (entry.isFile() && entry.name.endsWith('.md')) files.push(join(directory, entry.name));
+		}
+	}
+	return files.toSorted();
+}
+
+async function pageFiles(contents: string): Promise<string[]> {
+	return (await readdir(contents, { withFileTypes: true }))
+		.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+		.map((entry) => join(contents, entry.name))
+		.toSorted();
+}
+
+export function articlePath(contents: string, file: string): string {
+	return file.slice(contents.length + 1).replace(/\.md$/, '');
+}
+
+function pageDocument(path: string, { meta, body }: Pick<CompiledPage, 'meta' | 'body'>): string {
+	const name = path.charAt(0).toUpperCase() + path.slice(1);
+	const lines = [`# ${name}`, ''];
+	if (meta.summary) lines.push(`> ${meta.summary}`, '');
+	if (meta.title) {
+		lines.push(`## ${meta.title}`, '');
+		if (meta.description) lines.push(meta.description, '');
+	}
+	if (body) lines.push('## Bio', '', body, '');
+	return `${lines.join('\n').trim()}\n`;
+}
+
+export function translatedRaws(
+	file: string,
+	article: string,
+	raw: string,
+	sidecar: TranslationSidecar,
+	layout: SegmentLayout,
+): {
+	raws: Record<LocaleCode, string>;
+	translatable: Record<LocaleCode, string>;
+	translation_available: Record<LocaleCode, boolean>;
+	short: Record<LocaleCode, { title?: string; subtitle?: string }>;
+} {
+	const spans = layout.articles[article];
+	if (!spans) throw new Error(`${file}: missing from data/build/segments.json`);
+	const raws = { mw: raw } as Record<LocaleCode, string>;
+	const translatable = {} as Record<LocaleCode, string>;
+	const translation_available = { mw: true } as Record<LocaleCode, boolean>;
+	// A short form is asked for rather than written, so it is not in the article and never
+	// reaches `assemble`. It is read straight out of the sidecar by the id its display span
+	// carries. Absent is the ordinary case for a view nobody has run the CMS for yet, and the
+	// caller falls back to the full form.
+	const shortSpans = spans.filter((span) => span.region === 'display');
+	const short = {} as Record<LocaleCode, { title?: string; subtitle?: string }>;
+	for (const [code, locale] of Object.entries(PUBLIC_LANGUAGE) as [
+		Exclude<LocaleCode, 'mw'>,
+		(typeof PUBLIC_LANGUAGE)[Exclude<LocaleCode, 'mw'>],
+	][]) {
+		const assembled = assemble(raw, spans, sidecar, locale, file);
+		if (assembled.missing.length > 0) {
+			// One missing body block falls back the whole view. Mixing translated and source
+			// paragraphs would look complete while changing language halfway through the article.
+			raws[code] = raw;
+			translatable[code] = assembled.translatable.source;
+			translation_available[code] = false;
+		} else {
+			raws[code] = assembled.raw;
+			translatable[code] = assembled.translatable.translated;
+			translation_available[code] = true;
+		}
+		translatable.mw = assembled.translatable.source;
+		// A view that fell back to the source article takes the source's title and subtitle with
+		// it, so its short forms have to fall back too. Otherwise a card reads `Untitled` above a
+		// German `Ohne Titel`: one string from the article, the other from the sidecar, and the
+		// gate that decided the first never saw the second.
+		short[code] = translation_available[code] ? shortForms(shortSpans, sidecar, locale) : {};
+	}
+	// The source view reads whatever was written for the language the article is in; there is no
+	// separate entry for it, and the full forms stand where there is none.
+	short.mw = {};
+	return { raws, translatable, translation_available, short };
+}
+
+/** The short title and subtitle a view has, by the ids their display spans carry. */
+function shortForms(
+	spans: readonly SegmentSpan[],
+	sidecar: TranslationSidecar,
+	locale: TranslationLocale,
+): { title?: string; subtitle?: string } {
+	const found: { title?: string; subtitle?: string } = {};
+	for (const span of spans) {
+		const text = sidecar.segments?.[span.id]?.[locale]?.text?.trim();
+		if (!text) continue;
+		if (span.field === 'short-title') found.title = text;
+		if (span.field === 'short-subtitle') found.subtitle = text;
+	}
+	return found;
+}
+
+/** One article's assembled views, carried from the frontmatter pass into the compile pass. */
+type Prepared = {
+	file: string;
+	path: string;
+	url: string;
+	originLocale: string;
+	summaries: Record<string, ArticleSummary>;
+	raws: Record<LocaleCode, string>;
+	translatable: Record<LocaleCode, string>;
+	translation_available: Record<LocaleCode, boolean>;
+	short: Record<LocaleCode, { title?: string; subtitle?: string }>;
+};
+
+/**
+ * Whether this build keeps the articles marked `draft`.
+ *
+ * Required rather than defaulted, and stated by the caller rather than read from the
+ * environment here: a build that forgets to decide is a type error, where a default would be a
+ * draft quietly shipped. The two callers answer it from what they are for -- the site build from
+ * its mode, the search indexer from the fact that it only ever writes to production.
+ */
+export type DraftPolicy = { drafts: boolean };
+
+export async function buildArticles(
+	paths: BuildPaths,
+	{ drafts }: DraftPolicy,
+): Promise<{ articles: Article[]; files: string[] }> {
+	const files = await articleFiles(paths.contents);
+	// First, and before anything is read: a corpus that cannot be addressed by name compiles into
+	// artifacts that are wrong rather than missing. See ./slugs.ts.
+	refuseBadSlugs(files, await reservedNames(paths.routes));
+	const notes = await newTabNotes(paths.messages);
+	const assets = readAssets(JSON.parse(await readFile(paths.assets, 'utf8')));
+	// One resolver for every view, because a rid is the same in all nine of them.
+	const resolveIcon = createIconResolver(assets);
+	const media = (parseYaml(await readFile(paths.media, 'utf8')) ?? { media: {} }) as MediaManifest;
+	// Absent until `local diagram` has been run, which is a state the build has to survive: every
+	// consumer of a description falls back to what it said without one.
+	const drawings = JSON.parse(
+		await readFile(paths.diagrams, 'utf8').catch(() => '{"diagrams":{}}'),
+	) as DiagramStore;
+	const layout = JSON.parse(await readFile(paths.segments, 'utf8')) as SegmentLayout;
+	// Captured before the build. An absent record is a working state rather than an error: the
+	// article keeps the directive as a placeholder until its external facts have been fetched.
+	const embeds = {
+		crates:
+			(
+				JSON.parse(await readFile(paths.crates, 'utf8').catch(() => '{}')) as {
+					crates?: Record<string, CrateRecord>;
+				}
+			).crates ?? {},
+		repos:
+			(
+				JSON.parse(await readFile(paths.repos, 'utf8').catch(() => '{}')) as {
+					repos?: Record<string, RepoRecord>;
+				}
+			).repos ?? {},
+		tweets:
+			(
+				JSON.parse(await readFile(paths.tweets, 'utf8').catch(() => '{}')) as {
+					tweets?: Record<string, TweetRecord>;
+				}
+			).tweets ?? {},
+	};
+	if (layout.version !== SEGMENT_LAYOUT_VERSION) {
+		throw new Error(
+			`${paths.segments}: expected version ${SEGMENT_LAYOUT_VERSION}, got ${layout.version}`,
+		);
+	}
+	const articles: Article[] = [];
+
+	// Two passes over the corpus, because an `::article` card names an article that nothing has
+	// compiled yet. The first assembles every view and reads its frontmatter; the second
+	// compiles, by which point every article is nameable in every locale.
+	const prepared: Prepared[] = [];
+	const references = Object.fromEntries(
+		LOCALE_CODES.map((code) => [code, {} as Record<string, ArticleReference>]),
+	) as Record<LocaleCode, Record<string, ArticleReference>>;
+
+	for (const file of files) {
+		const sidecarFile = file.replace(/\.md$/, '.i18n.yaml');
+		const [raw, sidecarText] = await Promise.all([
+			readFile(file, 'utf8'),
+			// A translation sidecar is generated output. Its absence is a source-only article,
+			// not a reason the site cannot render that article at all.
+			readFile(sidecarFile, 'utf8').catch(() => ''),
+		]);
+		const sidecar = (parseYaml(sidecarText) ?? {}) as TranslationSidecar;
+		// Dropped here rather than filtered out of the result, so a withheld article is never
+		// compiled and never becomes a reference either. An `::article` card naming a draft is
+		// then a failed production build rather than a dead card on a published page -- which is
+		// the report worth having, since the two articles were written to ship together.
+		// `draft` is not translatable, so the source frontmatter is the whole answer.
+		if (!drafts && articleFrontmatter(raw, file).draft === true) continue;
+		const summaries = await readSummaries(file);
+		const path = articlePath(paths.contents, file);
+		const url = `${URLS.apps.production.site}/${path}`;
+		// The original's own locale, read off the frontmatter before anything is compiled --
+		// `compile` reports it, but the resolver below needs it to run at all.
+		const originLocale = sourceLocale(/^lang:\s*(\S+)/m.exec(raw)?.[1] ?? 'en-US');
+		const { raws, translatable, translation_available, short } = translatedRaws(
+			file,
+			`${path}.md`,
+			raw,
+			sidecar,
+			layout,
+		);
+		for (const code of LOCALE_CODES) {
+			const { title, subtitle, published } = articleFrontmatter(raws[code], file);
+			// The short forms fall back to the full ones. A view the CMS has not been run for has
+			// none, and a card that showed nothing would be worse than one that clips.
+			references[code][path] = {
+				title,
+				subtitle,
+				published,
+				short_title: short[code].title ?? title,
+				short_subtitle: short[code].subtitle ?? subtitle,
+			};
+		}
+		prepared.push({
+			file,
+			path,
+			url,
+			originLocale,
+			summaries,
+			raws,
+			translatable,
+			translation_available,
+			short,
+		});
+	}
+
+	for (const {
+		file,
+		path,
+		url,
+		originLocale,
+		summaries,
+		raws,
+		translatable,
+		translation_available,
+		short,
+	} of prepared) {
+		const source = await compile(raws.mw, url, {
+			newTabNote: notes.mw,
+			// Not `en-US`. On the original view an image's alt is read beside prose in the
+			// article's own language, and a description generated in English and translated into
+			// eight is available in that one too. Reading the original meant hearing the pictures
+			// described in a language the article never used.
+			resolveAsset: createAssetResolver(assets, media, paths.cdnUrl, originLocale),
+			// No locale and no CDN: an icon resolves to a rid, and what that rid holds is neither
+			// this build's to settle nor translated. See platform's spec/architecture/resource.md.
+			resolveIcon,
+			resolveVideo: createVideoResolver(assets, media, paths.cdnUrl, originLocale),
+			describeDiagram: createDiagramResolver(drawings, originLocale),
+			articles: references.mw,
+			highlight,
+			sourceFile: file,
+			embeds,
+		});
+		const compiled = {
+			mw: source,
+			...Object.fromEntries(
+				await Promise.all(
+					(Object.keys(PUBLIC_LANGUAGE) as Exclude<LocaleCode, 'mw'>[]).map(async (code) => [
+						code,
+						translation_available[code]
+							? await compile(raws[code], url, {
+									newTabNote: notes[code],
+									resolveAsset: createAssetResolver(
+										assets,
+										media,
+										paths.cdnUrl,
+										PUBLIC_LANGUAGE[code],
+									),
+									resolveIcon,
+									resolveVideo: createVideoResolver(
+										assets,
+										media,
+										paths.cdnUrl,
+										PUBLIC_LANGUAGE[code],
+									),
+									describeDiagram: createDiagramResolver(drawings, PUBLIC_LANGUAGE[code]),
+									articles: references[code],
+									highlight,
+									sourceFile: file,
+									embeds,
+								})
+							: source,
+					]),
+				),
+			),
+		} as Record<LocaleCode, Awaited<ReturnType<typeof compile>>>;
+
+		const sourceLanguage = compiled.mw.meta.lang;
+		const { canonical, canonical_urls, alternates } = indexingMetadata(url, translatable);
+		const views = Object.fromEntries(
+			LOCALE_CODES.map((code) => {
+				const view = compiled[code];
+				const summaryLocale = code === 'mw' ? originLocale : PUBLIC_LANGUAGE[code];
+				return [
+					code,
+					{
+						meta: view.meta,
+						toc: view.toc,
+						blocks: view.blocks,
+						text: view.text,
+						// Read rather than counted; see `SegmentLayout.words`. Zero for a file the
+						// layout has no entry for, which `translatedRaws` has already refused above,
+						// so it is a shape the type needs rather than a case that happens.
+						words: layout.words?.[`${path}.md`]?.[code] ?? 0,
+						code,
+						language_tag: languageTag(code, sourceLanguage),
+						canonical: canonical[code],
+						translation_available: translation_available[code],
+						short: {
+							title: short[code]?.title ?? view.meta.title,
+							subtitle: short[code]?.subtitle ?? view.meta.subtitle,
+						},
+						// The article page gives its title 85% of the column and no more. A title
+						// that fits is shown whole; one that does not is replaced rather than
+						// wrapped, because a short title is a phrase written for this and a
+						// wrapped one is a full title that ran out of room.
+						phone_title: fits(view.meta.title, ARTICLE_TITLE_BUDGET)
+							? view.meta.title
+							: (short[code]?.title ?? view.meta.title),
+						// `mw` takes the summary written in the article's own language rather
+						// than a translation of it, for the same reason it takes that language's
+						// alt text: the original view is the one nothing was done to.
+						summary: summaryFor(summaries, summaryLocale),
+					} satisfies ArticleView,
+				];
+			}),
+		) as Record<LocaleCode, ArticleView>;
+		articles.push({
+			...compiled.mw,
+			slug: slugOf(path),
+			path,
+			url,
+			views,
+			canonical_urls,
+			alternates,
+		});
+	}
+
+	return {
+		// By the date each entry prints beside itself, which is `published`: this order reaches
+		// the homepage list, the feed and /llms.txt, and a list sorted by a date it does not show
+		// reads as broken the first time the two disagree. It is also the only thing that makes
+		// moving a `published` date by hand do anything -- ordering is most of what one is for.
+		articles: articles.toSorted(
+			(a, b) => Date.parse(b.meta.published) - Date.parse(a.meta.published),
+		),
+		files: [
+			...files,
+			...files.map((file) => file.replace(/\.md$/, '.i18n.yaml')),
+			...files.map((file) => file.replace(/\.md$/, '.summary.yaml')),
+			paths.assets,
+			paths.media,
+			paths.diagrams,
+			paths.segments,
+			paths.crates,
+			paths.repos,
+			paths.tweets,
+		],
+	};
+}
+
+export async function buildPages(
+	paths: Pick<BuildPaths, 'contents' | 'messages' | 'segments'>,
+): Promise<{ pages: Page[]; files: string[] }> {
+	const files = await pageFiles(paths.contents);
+	const layout = JSON.parse(await readFile(paths.segments, 'utf8')) as SegmentLayout;
+	if (layout.version !== SEGMENT_LAYOUT_VERSION) {
+		throw new Error(
+			`${paths.segments}: expected version ${SEGMENT_LAYOUT_VERSION}, got ${layout.version}`,
+		);
+	}
+	const pages: Page[] = [];
+
+	for (const file of files) {
+		const raw = await readFile(file, 'utf8');
+		const path = articlePath(paths.contents, file);
+		const source = compilePage(raw, file);
+		// Every view of a page is the source. A page is not an article: the homepage is identity
+		// copy, its bio was always rendered from `mw` whatever the view, and the eight
+		// translations sitting beside it were never read by anything. Keeping them meant a
+		// sidecar the build could not start without, holding text nobody would ever see.
+		// See spec/i18n/copy.md.
+		const compiled = Object.fromEntries(LOCALE_CODES.map((code) => [code, source])) as Record<
+			LocaleCode,
+			CompiledPage
+		>;
+		const views = Object.fromEntries(
+			LOCALE_CODES.map((code) => {
+				const { meta, blocks } = compiled[code];
+				return [code, { meta, blocks } satisfies PageView];
+			}),
+		) as Record<LocaleCode, PageView>;
+
+		pages.push({ path, markdown: pageDocument(path, source), views });
+	}
+
+	return { pages, files: [...files, paths.segments] };
+}

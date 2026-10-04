@@ -27,7 +27,7 @@ taking while the publish path is still new enough that its shape may move.
 
 ## A clip is the one resource reference the compiler still resolves into bytes
 
-[architecture/resource.md](../architecture/resource.md), "A rid is resolved three times", says a
+platform's `spec/architecture/resource.md`, "A rid is resolved three times", says a
 compile may bake the article's own shape and nothing derived from a resource's current content.
 Two of the three references that name a resource now obey it: `::linkcard`'s mark and `::image`'s
 picture compile to a rid under `resources` and are resolved per render. `::video` does not. Its

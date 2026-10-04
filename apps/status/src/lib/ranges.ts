@@ -1,6 +1,6 @@
 /**
- * What a bar spans, chosen by one switch over the page. See spec/architecture/probe.md, "One switch
- * over the page sets what a bar is: a day, fifteen minutes, or a minute".
+ * What a bar spans, chosen by one switch over the page. See platform's spec/architecture/probe.md,
+ * "One switch over the page sets what a bar is: a day, fifteen minutes, or a minute".
  */
 import { DAYS, LIVE_GRAIN, type Segment } from './board.ts';
 import type { HistoryRow } from './rows.ts';

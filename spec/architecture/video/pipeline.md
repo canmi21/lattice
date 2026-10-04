@@ -203,7 +203,7 @@ written and therefore the only place it can go wrong.
 The record is not in this list, and that is what the second bucket is for. It is keyed by the
 resource's granted id -- `meta/{rid}.json` -- rather than by a hash of anything, because it is
 rewritten in place every time its asset is re-derived, which is the one thing a content-addressed
-key may not do. See [../resource.md](../resource.md).
+key may not do. See platform's `spec/architecture/resource.md`.
 
 The two fanout levels are [media.md](../media.md)'s and exist for the same reason.
 
@@ -220,7 +220,7 @@ in `thumbhash` -- the poster's, or an empty string -- and both are untrue. Absen
 answer, and a layer that is simply not declared gives it.
 
 What each layer holds, what happens to a record naming a layer this repository does not know, and
-why the version did not move when the record became layered are [../resource.md](../resource.md)'s.
+why the version did not move when the record became layered are platform's `spec/architecture/resource.md`'s.
 Nothing here restates them.
 
 `quality` does not carry over: it is a 0..1 the image encoder was given, and a video's CRF is not

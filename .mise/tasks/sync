@@ -12,7 +12,7 @@ set -euo pipefail
 # **`sync` rather than `copy`, for every tree**, because a bucket is a mirror and one that keeps
 # what the source dropped diverges invisibly. Which is also why the default is a dry run.
 # See spec/architecture/data.md, "One bucket holds records and the other holds bytes", and
-# spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
+# platform's spec/architecture/artifacts.md, "An object is swept an hour after nothing names it".
 
 # Asserted here as well as by the tasks that reach it: this is the gate, and it is run by hand.
 # See spec/architecture/modes.md.

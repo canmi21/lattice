@@ -312,7 +312,7 @@ arrangement is gone with the build it depended on: publishing an article no long
 anything, so a generated list would have gone stale with nothing to regenerate it. What it bought
 -- a slug validated without a round trip -- survives, because the root is parsed once per isolate
 and cached. What it cost was a deploy of this Worker per article, and that is what was wrong with
-it. See [architecture/artifacts.md](architecture/artifacts.md).
+it. See platform's `spec/architecture/artifacts.md`.
 
 A newly published article is still briefly unknown here, for a different and smaller reason: the
 root is cached, so the window is the cache rather than a deploy. It heals itself.
@@ -477,7 +477,7 @@ not to know yet.**
 
 ### An answer is parsed, not assumed
 
-Every engagement answer has a valibot schema in [platform/libs/sdk/artifacts](../platform/libs/sdk/artifacts/src/engagement.ts),
+Every engagement answer has a valibot schema in platform/libs/sdk/artifacts (platform's `libs/sdk/artifacts/src/engagement.ts`),
 and both sides use the same one -- the Worker builds an answer satisfying the inferred type, the
 browser parses what arrives against the schema it was inferred from. It used to be a hand-written
 `typeof` beside each fetch: the same sentence six times, each only as current as whoever last
@@ -486,7 +486,7 @@ edited the route, and none of it checking more than the field it happened to nam
 The corpus answers are not parsed this way and that is deliberate. They are checked by their
 envelope instead, which is what a content-addressed object needs and all it needs; nothing under
 engagement is content-addressed. See
-[architecture/artifacts.md](architecture/artifacts.md), "Validation is heavy where it is free".
+platform's `spec/architecture/artifacts.md`, "Validation is heavy where it is free".
 
 ## Engagement data is a persisted client query
 

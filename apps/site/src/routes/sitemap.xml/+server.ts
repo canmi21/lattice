@@ -14,7 +14,7 @@ function staticEntries(generated: string): Entry[] {
 	return [
 		{ ...ownRoot('site', '1.0'), lastmod: generated },
 		// Every other page host, by its root; each lists its own routes. See
-		// spec/architecture/robots.md, "Every page host names every other".
+		// platform's spec/architecture/robots.md, "Every page host names every other".
 		...peerEntries('site'),
 	];
 }
@@ -38,7 +38,7 @@ function priority(ageMs: number): string {
 
 // Still assembled rather than published: it needs only paths and dates, which the API already
 // carries, and its changefreq is a function of the time of the request rather than of the
-// corpus. See spec/architecture/artifacts.md, "Which objects exist".
+// corpus. See platform's spec/architecture/artifacts.md, "Which objects exist".
 export const GET: RequestHandler = async ({ fetch }) => {
 	const now = Date.now();
 	const published = await publishedSitemap(fetch);

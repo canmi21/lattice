@@ -1,0 +1,8 @@
+{
+	// Checked on its own terms, as libs/prose is. See spec/architecture/workspace.md.
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["es2023", "dom"]
+	},
+	"include": ["src/**/*.ts", "src/**/*.svelte"]
+}

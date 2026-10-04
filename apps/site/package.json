@@ -31,7 +31,7 @@
 		"@chenglou/pretext": "^0.0.9",
 		"@inlang/paraglide-js-svelte": "^1.0.4",
 		"@lucide/svelte": "^1.51.0",
-		"@monoflake/sdk": "workspace:*",
+		"@monoflake/sdk": "^2026.1004.0",
 		"@openpanel/web": "^1.4.1",
 		"@sentry/sveltekit": "^11.4.0",
 		"@stylexjs/stylex": "^0.19.1",

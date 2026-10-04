@@ -9,7 +9,7 @@
  *
  * Nothing here is cacheable, which is the trade a batch makes. A `POST` is not a cacheable request,
  * so the caller memoises what it asked for; see the site's `cache.ts`. See
- * spec/architecture/artifacts.md, "One batch entry point".
+ * platform's spec/architecture/artifacts.md, "One batch entry point".
  */
 import {
 	BatchRequestSchema,

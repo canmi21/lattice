@@ -13,7 +13,7 @@ const themeHandle: Handle = ({ event, resolve }) =>
 	resolve(event, { transformPageChunk: ({ html }) => fillTheme(html) });
 
 // One spelling per address: a path that normalizes differently goes where it should.
-// See spec/architecture/delivery.md, "Every address has one spelling".
+// See platform's spec/architecture/delivery.md, "Every address has one spelling".
 const spellingHandle: Handle = ({ event, resolve }) => {
 	const normal = normalizedLocation(event.url);
 	return normal

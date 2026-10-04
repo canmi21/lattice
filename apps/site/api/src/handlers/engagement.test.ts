@@ -22,7 +22,7 @@ const IP_TWO = '2001:db8::20';
 const allow: Quota = { take: async () => ({ allowed: true, retryAfter: 0 }) };
 
 // The counter is keyed by identity, so the directory these two sit in is deliberately not the
-// thing being asked with. See spec/architecture/artifacts.md.
+// thing being asked with. See platform's spec/architecture/artifacts.md.
 const SLUG = 'compile-time-rendering';
 const PATH = `architecture/${SLUG}`;
 /** A second published article, so a batch can hold one that has been read and one that has not. */

@@ -95,10 +95,10 @@ export default defineConfig(({ mode }) => {
 			// See spec/locale/addressing.md.
 			paraglideVitePlugin({
 				// The SDK refuses any project path not ending in `.inlang`, so the whole name is
-				// the suffix. See spec/locale/interface.md. Both live in `services/libs/messages` because
+				// the suffix. See spec/locale/interface.md. Both live in `libs/messages` because
 				// the article components import the output and a library cannot reach `$lib`.
-				project: '../../services/libs/messages/.inlang',
-				outdir: '../../services/libs/messages/src',
+				project: '../../libs/messages/.inlang',
+				outdir: '../../libs/messages/src',
 				strategy: ['custom-negotiated'],
 			}),
 			// Iconify sets compiled to Svelte components at build time, so a set contributes only
@@ -134,7 +134,7 @@ export default defineConfig(({ mode }) => {
 					// the second is the one that bites: `svelte-check` types what the project contains, and
 					// the runes rule above turns runes off for anything under `node_modules` -- which is
 					// where a workspace package resolves through. These are runes components.
-					'@canmi/prose': '../../services/libs/prose/src',
+					'@canmi/prose': '../../libs/prose/src',
 
 					// Articles live at the repository root, not inside this app, because they are
 					// written and revised rather than compiled -- see
@@ -283,7 +283,7 @@ export default defineConfig(({ mode }) => {
 			...(mode === 'production' ? {} : { STATED_PORT_OFFSET: PORT_OFFSET }),
 			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
 			// the two agree by construction. Production only: development asks by name. See
-			// spec/architecture/services.md, "The pages ask by contract, not by name".
+			// platform's spec/architecture/services.md, "The pages ask by contract, not by name".
 			...(mode === 'production' ? { STATED_API_ADDRESSES: JSON.stringify(addresses()) } : {}),
 		},
 	} satisfies UserConfig;

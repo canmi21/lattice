@@ -2,15 +2,10 @@
 # ignores the rest, so Rust-only libraries under libs/ are simply invisible to it. Cargo
 # has no such tolerance, which is why Cargo.toml lists its members by hand instead.
 packages:
-  - infra/apps/*
-  - infra/libs/*
-  - platform/apps/*
-  - platform/libs/*
-  - services/apps/*
-  - services/libs/*
   - apps/*
+  - libs/*
   # The site's API, a package inside the site because its type program is workerd's, not the
-  # browser's; see spec/architecture/services.md.
+  # browser's; see platform's spec/architecture/services.md.
   - apps/site/api
   # Each is a separate repository this workspace ignores; the glob matches nothing when none
   # are cloned. Membership here is what makes a sub-repo's git dependency resolve to local
@@ -22,8 +17,8 @@ packages:
 # takes precedence automatically.
 overrides:
   # drizzle-orm takes better-sqlite3 as an optional peer, and a package that does not declare it was
-  # left on the lockfile's older one while services/libs/collection moved on: two drizzles whose
-  # table types cannot meet, which services/apps/local, holding both, failed to typecheck on. One
+  # left on the lockfile's older one while libs/collection moved on: two drizzles whose
+  # table types cannot meet, which apps/local, holding both, failed to typecheck on. One
   # version for everybody.
   'better-sqlite3': ^13.0.3
   '@types/better-sqlite3': ^9.6.0
@@ -74,6 +69,7 @@ minimumReleaseAgeExclude:
   - wrangler
   - '@cloudflare/unenv-preset@2.16.2'
   - miniflare@5.20260921.0-alpha
-  # The author's own scope, published from the lib repository by the author alone: a day's wait
-  # protects against nobody, and would hold back a change made here and released there.
+  # The author's own scopes, published from their own repositories by the author alone: a day's
+  # wait protects against nobody, and would hold back a change made there and released.
   - '@canmi/*'
+  - '@monoflake/*'

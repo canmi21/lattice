@@ -1,7 +1,7 @@
 # Images and the records that describe them
 
 What the record _is_ -- the two ids, the layered shape, the catalogue of what earns one -- is
-[resource.md](resource.md). This file is what the pipeline does to get there.
+platform's `spec/architecture/resource.md`. This file is what the pipeline does to get there.
 
 ## Variants stop where the layout does
 
@@ -76,10 +76,10 @@ disagreeing.
 
 Both belong to the picture rather than to the article that references it, and neither is
 repeated there. What separates them is the asset's clock, which is
-[delivery.md](delivery.md)'s rule: a description is written by `local alt` into a file in this
+platform's `spec/architecture/delivery.md`'s rule: a description is written by `local alt` into a file in this
 repository, so it moves when the repository does and the build inlines it; a placeholder moves
 when the picture is encoded again, so it travels with the record and is resolved per render.
-See [resource.md](resource.md), "A rid is resolved three times". An article written before any
+See platform's `spec/architecture/resource.md`, "A rid is resolved three times". An article written before any
 description existed still picks one up on the next build, without being edited.
 
 Writing `alt` overrides it for one page's context. The two syntaxes differ in what they can
@@ -254,7 +254,7 @@ The counting itself is the `words-count` crate's rather than this repository's, 
 running five candidates against one table of cases instead of reading their descriptions --
 which are identical, while their answers are not. The one thing added on top is that Hangul is
 not Han: Korean is written with spaces, so a word processor counts it like Latin, and the
-crate's `is_cjk` disagrees. See `services/apps/local/src/words.rs`, where the table is the specification
+crate's `is_cjk` disagrees. See `apps/local/src/words.rs`, where the table is the specification
 and the rejected candidates are argued.
 
 The address is drawn opposite the site name across the top, because the other free corner is
@@ -372,7 +372,7 @@ in the answer the page already fetches. Three things follow, and the third is th
 **The card's id is in the answer rather than derived**, which is the rule the alias layer's charter
 gives: a card changes when the article changes, so it resolves at build time. Compare an external
 site's favicon, which changes on somebody else's schedule and therefore does not. See
-[delivery.md](delivery.md), "A name is resolved, never stored".
+platform's `spec/architecture/delivery.md`, "A name is resolved, never stored".
 
 `local og` still decides what to draw from its own record -- the hash of everything a card was drawn
 from -- and that record now carries the content id beside it, because with no path to derive there

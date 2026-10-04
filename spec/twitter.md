@@ -2,7 +2,7 @@
 
 Grok can search Twitter. No other runner can. This file is the decision about what that means for
 `local`, not a description of the four operations; those live in
-[twitter/mod.rs](../services/apps/local/src/twitter/mod.rs).
+[twitter/mod.rs](../apps/local/src/twitter/mod.rs).
 
 ## A single-provider job is not a runner choice
 
@@ -14,7 +14,7 @@ would make the type look like it is choosing among assistants when it is really 
 whether the job exists. The shape would lie.
 
 So the operations live in their own module and name Grok as a fact. They reuse the grok
-binding already in [runner.rs](../services/apps/local/src/i18n/runner.rs) because that file owns how
+binding already in [runner.rs](../apps/local/src/i18n/runner.rs) because that file owns how
 the binary is invoked, not because a runner is being selected. Extra flags that only this
 job needs -- no web search, no subagents, a turn cap -- stay with the operation.
 
@@ -31,7 +31,7 @@ format we specify, so that churn costs a prompt change rather than a parser chan
 The format is the line-anchored convention already used for translations; see
 [i18n/request.md](i18n/request.md). Post text is worse than prose -- emoji, URLs, code, unbalanced
 brackets -- which is why JSON is even less appropriate here than it was there. `⟦` and
-`⟧` are U+27E6 and U+27E7; [segment.rs](../services/apps/local/src/i18n/segment.rs) explains the
+`⟧` are U+27E6 and U+27E7; [segment.rs](../apps/local/src/i18n/segment.rs) explains the
 choice. The sentinels stay defined there; this module imports them.
 
 A line that _ends_ with a marker is still a marker. The workspace voice rule made one

@@ -4,7 +4,7 @@
  * Two layers. The isolate's own memo makes the hook and the load that follows it one request;
  * the colo cache outlives an isolate and is what actually keeps the site serving when the API
  * does not. Neither applies to a CDN object, which is immutable and needs no policy of its own.
- * See spec/architecture/artifacts.md, "The site keeps serving when the API does not".
+ * See platform's spec/architecture/artifacts.md, "The site keeps serving when the API does not".
  */
 
 import { browser } from '$app/env';
@@ -48,8 +48,8 @@ const memo = new Map<string, Held>();
 /**
  * Stored where a body would be, so "no such thing" is cached rather than asked again.
  *
- * Exported because a batch learns the same fact: a rid the answer omits is a fact about the
- * corpus, and it keeps the publication delay like every other one. See
+ * Exported because a batch learns the same fact: a rid the answer omits is a fact about the corpus,
+ * and it keeps the publication delay like every other one. See platform's
  * spec/architecture/resource.md, "Two failures, and only one of them is about the corpus".
  */
 export const MISSING = '\u0000missing';

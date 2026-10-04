@@ -5,7 +5,8 @@ import type { RequestHandler } from './$types';
 
 /**
  * The sitemap's stylesheet, from this origin because a browser applies one from nowhere else; the
- * bytes are the one shared object the alias layer names. See spec/architecture/robots.md.
+ * bytes are the one shared object the alias layer names. See platform's
+ * spec/architecture/robots.md.
  */
 export const prerender = false;
 

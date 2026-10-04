@@ -1,1 +1,0 @@
-ALTER TABLE "checks" ALTER COLUMN "name" SET NOT NULL;

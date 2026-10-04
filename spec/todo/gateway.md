@@ -1,6 +1,6 @@
 # Deferred: the gateway
 
-Where the hosts are today against [the gateway](../architecture/gateway.md) they are moving to:
+Where the hosts are today against the gateway (platform's `spec/architecture/gateway.md`) they are moving to:
 what has to change, and what is not yet decided. The order the work is done in is a milestone once
 it is agreed, not an entry here.
 

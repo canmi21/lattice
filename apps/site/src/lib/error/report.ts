@@ -19,7 +19,8 @@ let form: Dialog | undefined;
  * Show the dialog, registering the integration the first time.
  *
  * Answers whether it opened, so the caller can say nothing rather than guess. In development it
- * opens, and what is sent is dropped; see spec/architecture/probe.md, "Errors go to Sentry".
+ * opens, and what is sent is dropped; see platform's spec/architecture/probe.md, "Errors go to
+ * Sentry".
  */
 export async function openReport(): Promise<boolean> {
 	const client = getClient();

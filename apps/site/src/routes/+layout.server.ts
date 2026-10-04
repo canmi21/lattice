@@ -7,7 +7,7 @@ import type { LayoutServerLoad } from './$types';
 
 // The path's spelling is the entry point's to settle, by the one rule every server shares, before
 // any route reads it; SvelteKit's own trailing-slash redirect would answer first and by another.
-// See spec/architecture/delivery.md, "Every address has one spelling".
+// See platform's spec/architecture/delivery.md, "Every address has one spelling".
 export const trailingSlash = 'ignore';
 
 /**
@@ -36,7 +36,7 @@ export const load: LayoutServerLoad = async ({ locals, fetch }) => {
 
 /**
  * The marks the head names, as the objects the alias layer resolves them to at render. See
- * spec/architecture/delivery.md, "A page follows the name for the browser".
+ * platform's spec/architecture/delivery.md, "A page follows the name for the browser".
  */
 const MARKS = [
 	'favicon-96x96.png',

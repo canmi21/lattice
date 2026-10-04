@@ -13,9 +13,9 @@
 		"binding": "ASSETS",
 	},
 
-	// The site's API, which runs in this Worker; see spec/architecture/services.md, "The site's API
-	// runs in the site's Worker". Records only, and read-only: the published root and one per
-	// asset, never the bucket the CDN serves. See spec/architecture/data.md, "One bucket holds
+	// The site's API, which runs in this Worker; see platform's spec/architecture/services.md, "The
+	// site's API runs in the site's Worker". Records only, and read-only: the published root and one
+	// per asset, never the bucket the CDN serves. See spec/architecture/data.md, "One bucket holds
 	// records and the other holds bytes".
 	"r2_buckets": [{ "binding": "STORE", "bucket_name": "metadata" }],
 	// Named `api` from when the API was a Worker of its own; a database is not renamed for the
@@ -29,7 +29,7 @@
 		},
 	],
 	// `quota`'s inside door, which counts apps/site/api/src/contract/limits.ts and the read
-	// counter's own minute. See spec/architecture/quota.md.
+	// counter's own minute. See platform's spec/architecture/quota.md.
 	"services": [{ "binding": "QUOTA", "service": "quota", "entrypoint": "Internal" }],
 
 	// `vite dev` on 26511 is the development server, and is what platform/libs/sdk records. This port

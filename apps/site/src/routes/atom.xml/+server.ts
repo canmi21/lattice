@@ -10,8 +10,8 @@ export const prerender = false;
 /**
  * Assembled here rather than fetched: every field is a projection of objects the bucket already
  * holds, and publishing the document meant rewriting the whole corpus into nine immutable
- * quarter-megabyte objects on every edit. See spec/architecture/artifacts.md, "Which objects
- * exist".
+ * quarter-megabyte objects on every edit. See platform's spec/architecture/artifacts.md, "Which
+ * objects exist".
  *
  * Shared-cacheable because the URL decides the whole answer -- `?lang=` and nothing else. No
  * cookie is read and no header is negotiated, which is what `feedLocale` exists to guarantee.
