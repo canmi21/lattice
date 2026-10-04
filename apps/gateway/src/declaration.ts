@@ -123,8 +123,11 @@ const RouteSchema = v.strictObject({
 const LimitSchema = v.strictObject({
 	methods: v.array(v.picklist(METHODS)),
 	path: v.pipe(v.string(), v.regex(PATH, 'a limit names a path exact, or a prefix ending in /*')),
-	count: v.number(),
-	seconds: v.number(),
+	count: v.pipe(v.number(), v.integer(), v.minValue(1)),
+	seconds: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(86_400)),
+	burst: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+	// Only `address` until there are accounts. See spec/architecture/quota.md.
+	subject: v.optional(v.picklist(['address'])),
 });
 
 export const ApiSchema = v.strictObject({

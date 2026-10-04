@@ -76,18 +76,18 @@ describe('the cache at the gateway', () => {
 			},
 		);
 		const { seen, env } = node(() => answer(200));
-		const LIMITS = {
-			idFromName: (name: string) => name,
-			get: (name: string) => ({
-				take: async () => (counted.push(name), { allowed: true, retryAfter: 0 }),
-			}),
+		const QUOTA = {
+			take: async (checks: readonly { key: string }[]) => (
+				counted.push(...checks.map((check) => check.key)),
+				{ allowed: true, retryAfter: 0 }
+			),
 		};
 		const ask = () =>
 			app.fetch(
 				new Request(`${HOST}/v1/geo/address?latitude=1`, {
 					headers: { 'cf-connecting-ip': '192.0.2.1' },
 				}),
-				{ ...env, limits: LIMITS },
+				{ ...env, QUOTA },
 			);
 		const first = await ask();
 		expect(first.headers.get(CACHE_HEADER)).toBe('miss');

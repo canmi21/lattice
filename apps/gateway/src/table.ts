@@ -1,17 +1,12 @@
+import type { Row } from '@canmi/limits';
 import { parse } from 'smol-toml';
 import { type Route, routesOf } from './declaration.ts';
 
 /**
- * How often one address may call a route: `count` calls in `seconds`, on these methods, at the path
- * the service sees. Declared in the service's `service.toml`, and the same rows Caddy counts on the
- * node. See spec/architecture/services.md, "A limit is declared once and kept in three places".
+ * How often one subject may call a route, as a bucket: a row of `[[api.limits]]`, the same rows
+ * Caddy counts on the node. See spec/architecture/quota.md, "A limit is a bucket".
  */
-export interface Allowance {
-	readonly methods: readonly string[];
-	readonly path: string;
-	readonly count: number;
-	readonly seconds: number;
-}
+export type Allowance = Row;
 
 /** One scope the public API host answers, as the gateway routes it. */
 export interface Scope {

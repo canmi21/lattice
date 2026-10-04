@@ -356,7 +356,7 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		};
 		const taken = isProbe(c.req.raw.headers, c.env)
 			? { allowed: true, retryAfter: 0 }
-			: await counted(c.env.limits, tuple.service, target.limits ?? [], {
+			: await counted(c.env.QUOTA, tuple.service, target.limits ?? [], {
 					method: c.req.method,
 					path: tuple.path,
 					address,

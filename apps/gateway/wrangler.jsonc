@@ -25,14 +25,16 @@
 		{ "binding": "CDN", "service": "cdn" },
 		{ "binding": "HOOK", "service": "hook" },
 		{ "binding": "SITE", "service": "site" },
+		// Not a scope: the inside door every limit is counted at.
+		{ "binding": "QUOTA", "service": "quota", "entrypoint": "Internal" },
 	],
 
-	// One counter per address and route, for the limits every service.toml declares: a Durable
-	// Object, since Cloudflare's rate limit binding counts per location. SQLite-backed, the one kind
-	// the free plan has, though it writes nothing. See spec/architecture/services.md, "A limit is
-	// declared once and kept in three places".
-	"durable_objects": { "bindings": [{ "name": "limits", "class_name": "counter" }] },
-	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["counter"] }],
+	// The limits every service.toml declares are counted by `quota`, at its inside door. The counter
+	// this Worker kept before it is deleted. See spec/architecture/quota.md.
+	"migrations": [
+		{ "tag": "v1", "new_sqlite_classes": ["counter"] },
+		{ "tag": "v2", "deleted_classes": ["counter"] },
+	],
 
 	// The Caddy of the machine at home, the same VPC service `hook` notifies through.
 	"vpc_services": [
@@ -53,9 +55,11 @@
 	// its development address. No node: the machine at home is production's.
 	"env": {
 		"dev": {
-			"services": [{ "binding": "HOOK", "service": "hook" }],
+			"services": [
+				{ "binding": "HOOK", "service": "hook" },
+				{ "binding": "QUOTA", "service": "quota", "entrypoint": "Internal" },
+			],
 			"vars": { "SITE": "development", "CDN": "development", "AKA": "development" },
-			"durable_objects": { "bindings": [{ "name": "limits", "class_name": "counter" }] },
 		},
 	},
 

@@ -1,60 +1,46 @@
 /**
- * The gateway's side of a limit: which allowance a request falls under, and asking that address's
- * counter. Declared in the service's `service.toml` and carried in the scope table. See
- * spec/architecture/services.md, "A limit is declared once and kept in three places".
+ * The gateway's side of a limit: the buckets a call is counted in, asked of `quota` at its inside
+ * door. Declared in the service's `service.toml` and carried in the scope table. See
+ * spec/architecture/quota.md.
  */
-import type { Allowance } from './table.ts';
-import type { Taken } from './window.ts';
+import { addressOf, type Check, checksOf, type Row, type Taken } from '@canmi/limits';
 
-/** The binding the counters are reached through, as structure, so a test can stand in for it. */
-export interface Counters {
-	idFromName(name: string): unknown;
-	get(id: unknown): { take(count: number, seconds: number): Promise<Taken> | Taken };
+export { covers } from '@canmi/limits';
+
+/** `quota`'s inside door, as structure, so a test can stand in for it. */
+export interface Quota {
+	take(checks: readonly Check[]): Promise<Taken> | Taken;
 }
 
-function isCounters(value: unknown): value is Counters {
-	const counters = value as Counters | undefined;
-	return typeof counters?.idFromName === 'function' && typeof counters.get === 'function';
+function isQuota(value: unknown): value is Quota {
+	return typeof (value as Quota | undefined)?.take === 'function';
 }
 
 const ALLOWED: Taken = { allowed: true, retryAfter: 0 };
 
 /**
- * Whether a limit's path covers a call's: the same path, or under a prefix ending in `/*`, as a
- * route's is. See spec/architecture/gateway.md, "The declaration".
- */
-export function covers(limit: string, path: string): boolean {
-	return limit.endsWith('/*') ? path.startsWith(limit.slice(0, -1)) : limit === path;
-}
-
-/** A counter's name, lowercase: scope, methods, path, address, `shot_get-head_capture_1.2.3.4`. */
-export function counterName(scope: string, allowance: Allowance, address: string): string {
-	const methods = allowance.methods.map((method) => method.toLowerCase()).join('-');
-	const path = allowance.path.replace('/*', '/any').split('/').filter(Boolean).join('-') || 'root';
-	return [scope, methods, path, address.toLowerCase()].join('_');
-}
-
-/**
- * Whether a call is within the allowance that covers it. One no allowance covers, or with no
- * address to count, is not limited here. A missing binding refuses, as a deploy that went wrong; a
- * counter that fails lets the call through, with the zone's rate rule still beneath it.
+ * Whether a call is within every row that covers it, one of each kind of subject it carries -- for
+ * now its address, IPv6 by its `/64`. A call no row covers, or with no address, is not limited
+ * here. A missing binding refuses, as a deploy that went wrong; a `quota` that fails lets the call
+ * through, with the zone's rate rule still beneath it.
  */
 export async function counted(
-	counters: unknown,
-	scope: string,
-	limits: readonly Allowance[],
-	request: { method: string; path: string; address: string | undefined },
+	quota: unknown,
+	service: string,
+	rows: readonly Row[],
+	call: { method: string; path: string; address: string | undefined },
 ): Promise<Taken> {
-	const allowance = limits.find(
-		(limit) => covers(limit.path, request.path) && limit.methods.includes(request.method),
-	);
-	if (!allowance || !request.address) return ALLOWED;
-	if (!isCounters(counters)) return { allowed: false, retryAfter: allowance.seconds };
-	const name = counterName(scope, allowance, request.address);
+	const address = call.address === undefined ? undefined : addressOf(call.address);
+	const subjects = address === undefined ? {} : { address };
+	const checks = checksOf(service, rows, { method: call.method, path: call.path, subjects });
+	if (checks.length === 0) return ALLOWED;
+	if (!isQuota(quota)) {
+		return { allowed: false, retryAfter: Math.max(...checks.map((check) => check.rate.seconds)) };
+	}
 	try {
-		return await counters.get(counters.idFromName(name)).take(allowance.count, allowance.seconds);
+		return await quota.take(checks);
 	} catch (error) {
-		console.error('gateway: a counter failed, and the call was let through', error);
+		console.error('gateway: quota failed, and the call was let through', error);
 		return ALLOWED;
 	}
 }

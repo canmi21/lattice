@@ -4,6 +4,7 @@ import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, MARK } from './index.ts';
+import type { Check } from '@canmi/limits';
 import { covers } from './limit.ts';
 import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { SCOPES } from './scopes.ts';
@@ -35,19 +36,16 @@ function binding() {
 	return { fetcher: fetcher as unknown as Fetcher, seen };
 }
 
-/** Counters that allow or refuse every call, and remember whose they were asked to count. */
+/** A `quota` that allows or refuses every call, and remembers which buckets it was asked. */
 function counters(allowed: boolean) {
-	const asked: Array<{ name: string; count: number; seconds: number }> = [];
+	const asked: Check[] = [];
 	return {
 		asked,
 		counters: {
-			idFromName: (name: string) => name,
-			get: (name: string) => ({
-				take: async (count: number, seconds: number) => (
-					asked.push({ name, count, seconds }),
-					{ allowed, retryAfter: allowed ? 0 : 7 }
-				),
-			}),
+			take: async (checks: readonly Check[]) => (
+				asked.push(...checks),
+				{ allowed, retryAfter: allowed ? 0 : 7 }
+			),
 		},
 	};
 }
@@ -63,7 +61,8 @@ describe('the scope table', () => {
 		const workers = Object.values(SCOPES)
 			.filter((scope) => scope.placement === WORKERS)
 			.map((scope) => ({ binding: scope.binding, service: scope.worker }));
-		expect(config.services.toSorted((a, b) => a.binding.localeCompare(b.binding))).toEqual(
+		const scopes = config.services.filter((service) => service.binding !== 'QUOTA');
+		expect(scopes.toSorted((a, b) => a.binding.localeCompare(b.binding))).toEqual(
 			workers.toSorted((a, b) => a.binding.localeCompare(b.binding)),
 		);
 		const nodes = new Set(config.vpc_services.map((service) => service.binding));
@@ -72,10 +71,11 @@ describe('the scope table', () => {
 		}
 	});
 
-	it('has the counters every limit is kept in', () => {
-		expect(wrangler().durable_objects?.bindings).toContainEqual({
-			name: 'limits',
-			class_name: 'counter',
+	it("binds quota's inside door, which every limit is counted at", () => {
+		expect(wrangler().services).toContainEqual({
+			binding: 'QUOTA',
+			service: 'quota',
+			entrypoint: 'Internal',
 		});
 	});
 
@@ -175,7 +175,7 @@ describe('the gateway', () => {
 		const { fetcher, seen } = binding();
 		const answer = await ask(
 			'/v1/site/like?slug=a',
-			{ SITE: fetcher, limits: counters(true).counters },
+			{ SITE: fetcher, QUOTA: counters(true).counters },
 			{ method: 'PUT', headers: { 'cf-connecting-ip': '192.0.2.1' }, body: 'x' },
 		);
 		expect(answer.status).toBe(200);
@@ -339,12 +339,14 @@ describe('the gateway', () => {
 	it('limits by address on the method and path a limit names, and nothing else', async () => {
 		const { fetcher, seen } = binding();
 		const refused = counters(false);
-		const env = { SITE: fetcher, limits: refused.counters };
+		const env = { SITE: fetcher, QUOTA: refused.counters };
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
 		const answer = await ask('/v1/site/like', env, { method: 'PUT', headers });
 		expect(answer.status).toBe(429);
 		expect(answer.headers.get('retry-after')).toBe('7');
-		expect(refused.asked).toEqual([{ name: 'site_put_like_192.0.2.1', count: 10, seconds: 60 }]);
+		expect(refused.asked).toEqual([
+			{ key: 'site_put_like_address-192.0.2.1', rate: { count: 10, seconds: 60 } },
+		]);
 		expect(seen).toHaveLength(0);
 		// Another method on the same path, and a caller with no address, are not this limit's.
 		expect((await ask('/v1/site/like', env, { headers })).status).toBe(200);
@@ -354,7 +356,7 @@ describe('the gateway', () => {
 	it('skips the counter for a request carrying the probe token, and counts everyone else', async () => {
 		const { fetcher, seen } = binding();
 		const refused = counters(false);
-		const env = { SITE: fetcher, limits: refused.counters, PROBE_TOKEN: 'shh' };
+		const env = { SITE: fetcher, QUOTA: refused.counters, PROBE_TOKEN: 'shh' };
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
 		const probe = await ask('/v1/site/like', env, {
 			method: 'PUT',
@@ -375,7 +377,7 @@ describe('the gateway', () => {
 	it('never exempts a probe header when the secret is not set', async () => {
 		const { fetcher } = binding();
 		const refused = counters(false);
-		const env = { SITE: fetcher, limits: refused.counters };
+		const env = { SITE: fetcher, QUOTA: refused.counters };
 		const answer = await ask('/v1/site/like', env, {
 			method: 'PUT',
 			headers: { 'cf-connecting-ip': '192.0.2.1', 'x-probe': '' },
@@ -392,15 +394,12 @@ describe('the gateway', () => {
 
 	it('lets a call through when its counter fails, rather than failing it', async () => {
 		const { fetcher } = binding();
-		const broken = {
-			idFromName: (name: string) => name,
-			get: () => ({ take: async () => Promise.reject(new Error('over quota')) }),
-		};
+		const broken = { take: async () => Promise.reject(new Error('over quota')) };
 		const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 		const headers = { 'cf-connecting-ip': '192.0.2.1' };
 		const answer = await ask(
 			'/v1/site/like',
-			{ SITE: fetcher, limits: broken },
+			{ SITE: fetcher, QUOTA: broken },
 			{ method: 'PUT', headers },
 		);
 		expect(answer.status).toBe(200);
@@ -422,7 +421,7 @@ describe("geo's declaration", () => {
 
 	it('lets any page call it, and limits one address on the lookup alone', async () => {
 		const refused = counters(false);
-		const env = { HOME: binding().fetcher, limits: refused.counters };
+		const env = { HOME: binding().fetcher, QUOTA: refused.counters };
 		const headers = { 'cf-connecting-ip': '192.0.2.1', origin: 'https://anyone.test' };
 		const lookup = await app.fetch(
 			new Request(`${HOST}/v1/geo/address?latitude=1&longitude=2`, { headers }),
@@ -430,7 +429,7 @@ describe("geo's declaration", () => {
 		);
 		expect(lookup.status).toBe(429);
 		expect(refused.asked).toEqual([
-			{ name: 'geo_get-head_address_192.0.2.1', count: 60, seconds: 60 },
+			{ key: 'geo_get-head_address_address-192.0.2.1', rate: { count: 60, seconds: 60 } },
 		]);
 		const health = await app.fetch(new Request(`${HOST}/v1/geo/health`, { headers }), env);
 		expect(health.status).toBe(200);
@@ -445,7 +444,7 @@ describe("shot's declaration", () => {
 	it('refuses `internal` from the public, whatever its value, before the service or a limit', async () => {
 		const { fetcher, seen } = binding();
 		const allowing = counters(true);
-		const env = { HOME: fetcher, limits: allowing.counters };
+		const env = { HOME: fetcher, QUOTA: allowing.counters };
 		for (const query of ['internal=true', 'internal=false', 'internal', 'host=a.test&internal=1']) {
 			const answer = await app.fetch(
 				new Request(`${HOST}/v1/shot/capture?${query}`, { headers }),
@@ -465,7 +464,7 @@ describe("shot's declaration", () => {
 
 	it('refuses `internal` in a JSON body, however deep, and lets any other body through', async () => {
 		const { fetcher, seen } = binding();
-		const env = { HOME: fetcher, limits: counters(true).counters };
+		const env = { HOME: fetcher, QUOTA: counters(true).counters };
 		const post = (body: string) =>
 			app.fetch(
 				new Request(`${HOST}/v1/shot/capture`, {
@@ -494,7 +493,7 @@ describe("shot's declaration", () => {
 	it('refuses `fresh` from the public, whatever its value, before the service or a limit', async () => {
 		const { fetcher, seen } = binding();
 		const allowing = counters(true);
-		const env = { HOME: fetcher, limits: allowing.counters };
+		const env = { HOME: fetcher, QUOTA: allowing.counters };
 		for (const query of ['fresh=true', 'fresh=false', 'fresh', 'host=a.test&fresh=1']) {
 			const answer = await app.fetch(
 				new Request(`${HOST}/v1/shot/capture?${query}`, { headers }),
@@ -509,7 +508,7 @@ describe("shot's declaration", () => {
 
 	it('refuses `access.fresh` in a JSON body, however deep, and lets any other body through', async () => {
 		const { fetcher, seen } = binding();
-		const env = { HOME: fetcher, limits: counters(true).counters };
+		const env = { HOME: fetcher, QUOTA: counters(true).counters };
 		const post = (body: string) =>
 			app.fetch(
 				new Request(`${HOST}/v1/shot/capture`, {
@@ -531,7 +530,7 @@ describe("shot's declaration", () => {
 
 	it('limits starting a capture, and neither asking after one nor fetching it', async () => {
 		const refused = counters(false);
-		const env = { HOME: binding().fetcher, limits: refused.counters };
+		const env = { HOME: binding().fetcher, QUOTA: refused.counters };
 		const start = await app.fetch(
 			new Request(`${HOST}/v1/shot/tasks`, { method: 'POST', headers, body: '{}' }),
 			env,
@@ -544,8 +543,8 @@ describe("shot's declaration", () => {
 		]) {
 			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
 		}
-		expect(refused.asked.map((asked) => asked.name)).toEqual([
-			'shot_post_tasks_192.0.2.1',
+		expect(refused.asked.map((asked) => asked.key)).toEqual([
+			'shot_post_tasks_address-192.0.2.1',
 		]);
 	});
 });
