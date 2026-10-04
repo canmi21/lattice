@@ -42,8 +42,13 @@ const DELIVERY = JSON.stringify({
 	},
 });
 
-async function deliver(body: string, event = 'workflow_run', signature?: string) {
-	return new Request('https://api.example.com/github', {
+async function deliver(
+	body: string,
+	event = 'workflow_run',
+	signature?: string,
+	path = '/github',
+) {
+	return new Request(new URL(path, 'https://api.example.com'), {
 		method: 'POST',
 		headers: { 'x-github-event': event, 'x-hub-signature-256': signature ?? (await sign(body)) },
 		body,
@@ -57,6 +62,13 @@ describe('handle', () => {
 		expect(response.status).toBe(202);
 		expect(sent.map((notice) => notice.url)).toEqual(RECEIVERS);
 		expect(sent.every((notice) => JSON.parse(notice.body).run === 7)).toBe(true);
+	});
+
+	it('takes the same delivery at /v1/github', async () => {
+		const { sent, env } = home();
+		const response = await handle(await deliver(DELIVERY, 'workflow_run', undefined, '/v1/github'), env);
+		expect(response.status).toBe(202);
+		expect(sent.map((notice) => notice.url)).toEqual(RECEIVERS);
 	});
 
 	it('refuses a delivery whose signature is not the secret', async () => {
