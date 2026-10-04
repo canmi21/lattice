@@ -264,6 +264,22 @@ describe('the gateway', () => {
 		fetching.mockRestore();
 	});
 
+	it('asks the alias layer by its binding for its own mark, never by a host it may answer', async () => {
+		const object = `${URLS.apps.production.cdn}/object/abc.ico`;
+		const seen: string[] = [];
+		const AKA = {
+			fetch: async (request: Request) => (
+				seen.push(request.url), new Response(null, { status: 302, headers: { Location: object } })
+			),
+		} as unknown as Fetcher;
+		const fetching = vi.spyOn(globalThis, 'fetch');
+		const answer = await ask('/favicon.ico', { AKA });
+		expect(seen).toEqual([`${URLS.apps.production.alias}/symlink/api/favicon.ico`]);
+		expect(fetching).not.toHaveBeenCalled();
+		expect(answer.headers.get('Location')).toBe(object);
+		fetching.mockRestore();
+	});
+
 	it("sends a node's scope to its Caddy with the scope left on", async () => {
 		const { fetcher, seen } = binding();
 		await ask('/geo/address?latitude=1&longitude=2', { HOME: fetcher });

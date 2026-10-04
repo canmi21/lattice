@@ -272,7 +272,13 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 		// The name a browser asks every origin for, followed in one hop. See
 		// spec/architecture/delivery.md, "A page follows the name for the browser".
 		if (pathname === '/favicon.ico') {
-			return followSymlink(symlinkOf(pickUrls(developing(c)).alias, host, 'favicon.ico'));
+			// Through the alias layer's binding where there is one: once the gateway answers the alias
+			// layer's own host, asking that host would be asking itself.
+			const aka = c.env.AKA;
+			const fetcher: typeof fetch = isFetcher(aka)
+				? (input, init) => aka.fetch(new Request(input, init))
+				: fetch;
+			return followSymlink(symlinkOf(pickUrls(developing(c)).alias, host, 'favicon.ico'), fetcher);
 		}
 		// The host's own address is somebody typing it: they go to the site, and `ref` tells the
 		// site's analytics where from.
