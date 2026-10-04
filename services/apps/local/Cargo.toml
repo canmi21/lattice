@@ -9,7 +9,7 @@ workspace = true
 
 [dependencies]
 # The URL map, generated from platform/libs/sdk; no address is written in this crate.
-canmi = ">=2026.1004.0"
+canmi = "2026.1004.0"
 # Blocking HTTP, which is what fetching a handful of icons wants: a synchronous call inside an
 # operation that is already running on its own thread. The runtime below is for serving, not for
 # fetching, and a second HTTP client would be a second set of TLS and redirect behaviour.

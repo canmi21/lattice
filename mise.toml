@@ -394,14 +394,9 @@ fi
 # majors is left on both. See spec/toolchain.md, "A package at two majors is a warning unless it is
 # allowed".
 names=$([ -n "$major" ] && .mise/tasks/outdated --names | tr '\n' ' ')
-# The library's own packages are named `>=` and moved by the lockfile alone: `pnpm update` saving
-# them would rewrite each range as `^`. See spec/architecture/layers.md, "Versions".
-echo "\$ pnpm update -r --no-save '@canmi/*'"
-pnpm update -r --no-save '@canmi/*'
+echo "\$ pnpm update -r${major:+ --latest $names}"
 if [ -n "$major" ] && [ -z "$names" ]; then echo "nothing waits beyond its range"; exit 0; fi
-if [ -n "$major" ]; then set -- --latest $names '!@canmi/*'; else set -- '*' '!@canmi/*'; fi
-echo "\$ pnpm update -r $*"
-if ! out=$(pnpm update -r "$@" 2>&1); then
+if ! out=$(pnpm update -r ${major:+--latest $names} 2>&1); then
 	echo "$out"
 	echo "$out" | grep -q ERR_PNPM_NO_MATURE_MATCHING_VERSION || exit 1
 	echo "held by the supply-chain delay, nothing moved in the pnpm half; run again once it has aged"

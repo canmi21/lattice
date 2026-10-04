@@ -16,7 +16,7 @@
 		"./style-classes": "./src/style-classes.ts"
 	},
 	"dependencies": {
-		"@canmi/me": ">=2026.1004.0",
+		"@canmi/me": "^2026.1004.0",
 		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
 		"hast-util-to-html": "^9.0.5",

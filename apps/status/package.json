@@ -13,10 +13,10 @@
 	},
 	"devDependencies": {
 		"@canmi/hints": "workspace:*",
-		"@canmi/kit": ">=2026.1004.1",
-		"@canmi/me": ">=2026.1004.0",
+		"@canmi/kit": "^2026.1004.1",
+		"@canmi/me": "^2026.1004.0",
 		"@canmi/social": "workspace:*",
-		"@canmi/web": ">=2026.1004.2",
+		"@canmi/web": "^2026.1004.2",
 		"@lucide/svelte": "^1.51.0",
 		"@monoflake/cache": "workspace:*",
 		"@monoflake/robots": "workspace:*",

@@ -384,10 +384,10 @@ importers:
         specifier: workspace:*
         version: link:../../services/libs/hints
       '@canmi/kit':
-        specifier: '>=2026.1004.1'
+        specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/messages':
         specifier: workspace:*
@@ -405,10 +405,10 @@ importers:
         specifier: workspace:*
         version: link:../../services/libs/social
       '@canmi/ui':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/web':
-        specifier: '>=2026.1004.2'
+        specifier: ^2026.1004.2
         version: 2026.1004.2(@sentry/sveltekit@11.4.0(@babel/core@7.29.7(supports-color@10.2.2))(@cloudflare/workers-types@5.20261004.1)(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(rollup@4.64.0)(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4)))(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
       '@chenglou/pretext':
         specifier: ^0.0.9
@@ -604,7 +604,7 @@ importers:
   apps/site/api:
     dependencies:
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/response':
         specifier: ^2.0.0
@@ -653,16 +653,16 @@ importers:
         specifier: workspace:*
         version: link:../../services/libs/hints
       '@canmi/kit':
-        specifier: '>=2026.1004.1'
+        specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/social':
         specifier: workspace:*
         version: link:../../services/libs/social
       '@canmi/web':
-        specifier: '>=2026.1004.2'
+        specifier: ^2026.1004.2
         version: 2026.1004.2(@sentry/sveltekit@11.4.0(@babel/core@7.29.7(supports-color@10.2.2))(@cloudflare/workers-types@5.20261004.1)(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(rollup@4.64.0)(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4)))(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
       '@lucide/svelte':
         specifier: ^1.51.0
@@ -750,10 +750,10 @@ importers:
   infra/apps/panel:
     devDependencies:
       '@canmi/kit':
-        specifier: '>=2026.1004.1'
+        specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/response':
         specifier: ^2.0.0
@@ -819,13 +819,13 @@ importers:
   infra/libs/urls:
     dependencies:
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
 
   platform/libs/artifacts:
     dependencies:
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/response':
         specifier: ^2.0.0
@@ -863,7 +863,7 @@ importers:
   platform/libs/sdk:
     dependencies:
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@monoflake/urls':
         specifier: workspace:*
@@ -915,10 +915,10 @@ importers:
         specifier: workspace:*
         version: link:../../libs/fonts
       '@canmi/kit':
-        specifier: '>=2026.1004.1'
+        specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/messages':
         specifier: workspace:*
@@ -927,7 +927,7 @@ importers:
         specifier: workspace:*
         version: link:../../libs/prose
       '@canmi/ui':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@codemirror/commands':
         specifier: ^6.11.1
@@ -1038,7 +1038,7 @@ importers:
   services/libs/compile:
     dependencies:
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@monoflake/artifacts':
         specifier: workspace:*
@@ -1113,16 +1113,16 @@ importers:
   services/libs/prose:
     dependencies:
       '@canmi/kit':
-        specifier: '>=2026.1004.1'
+        specifier: ^2026.1004.1
         version: 2026.1004.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/messages':
         specifier: workspace:*
         version: link:../messages
       '@canmi/ui':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@chenglou/pretext':
         specifier: ^0.0.9
@@ -1189,7 +1189,7 @@ importers:
   services/libs/social:
     dependencies:
       '@canmi/me':
-        specifier: '>=2026.1004.0'
+        specifier: ^2026.1004.0
         version: 2026.1004.0
       '@canmi/prose':
         specifier: workspace:*
