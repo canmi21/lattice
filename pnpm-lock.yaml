@@ -758,9 +758,6 @@ importers:
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../../../platform/libs/sdk
       '@monoflake/urls':
         specifier: workspace:*
         version: link:../../libs/urls

@@ -55,7 +55,7 @@
 	<Login onsignedin={signIn} />
 {:else}
 	<div class="flex min-h-screen">
-		<Sidebar machine={data.machine} onsignout={signOut} />
+		<Sidebar machine={data.machine} shown={data.shown} onsignout={signOut} />
 		<main class="min-w-0 flex-1">
 			{#key page.url.pathname}
 				<div class="mx-auto w-full max-w-[90rem] px-8 py-7" use:arrive>

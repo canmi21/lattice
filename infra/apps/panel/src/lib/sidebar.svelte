@@ -17,9 +17,14 @@
 	import { surfaces, type } from './style/surfaces';
 	import { duration, radius, text, weight } from './style/vocabulary.stylex';
 
-	let { machine, onsignout }: { machine?: string; onsignout: () => void } = $props();
+	let {
+		machine,
+		shown,
+		onsignout,
+	}: { machine?: string; shown: { tasks: boolean; schedules: boolean }; onsignout: () => void } =
+		$props();
 
-	const pages = [
+	const all = [
 		{ href: '/', label: 'Overview', icon: LayoutDashboard, here: (path: string) => path === '/' },
 		{ href: '/apps', label: 'Apps', icon: Boxes, here: (path: string) => path.startsWith('/apps') },
 		{
@@ -48,6 +53,12 @@
 		},
 	];
 
+	// The platform's two pages only where the node names their services.
+	const pages = $derived(
+		all
+			.filter((item) => item.href !== '/tasks' || shown.tasks)
+			.filter((item) => item.href !== '/schedules' || shown.schedules),
+	);
 	const current = $derived(pages.findIndex((item) => item.here(page.url.pathname)));
 	const links: HTMLAnchorElement[] = $state([]);
 	let marker: HTMLElement | undefined = $state();

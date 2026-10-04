@@ -130,7 +130,11 @@ split**; each is fixed by the declaration pattern
 1. host knows the platform's apps by name: `OWN`, `TAKEN`, `RESERVED`, and a `Shape` each for
    `cron`, `apt`, `telemetry`, `objects`, `postgres` and the gateway.
 2. host renders Caddy's routes and the resolver from the platform's `GATEWAY_*`.
-3. The panel reads `cron`'s and the ledger's addresses to show them.
+3. ~~The panel reads `cron`'s and the ledger's addresses to show them.~~ It reads them from its
+   environment now, `CRON_API` and `LEDGER_API`, which the node sets in the panel's `config.env`;
+   unset, their pages are not offered. A stopgap: infra and the platform each get a dashboard of
+   their own, the platform's showing its own services, since a layer above may read the one below
+   and the reverse is what this list exists to end.
 4. The deploy crate reads `URLS.source`, which is this repository's address and will be each
    repository's own.
 

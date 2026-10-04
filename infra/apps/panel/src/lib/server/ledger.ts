@@ -2,7 +2,7 @@
  * The ledger, as the panel's server reaches it: over the confirmed-token path every private
  * service shares. See spec/architecture/ledger.md, "Read by the panel", and ./private.ts.
  */
-import { URLS } from '@monoflake/sdk';
+import { LEDGER_API } from '$app/env/private';
 import { askPrivate, tryReadPrivate } from './private';
 
 /**
@@ -15,7 +15,7 @@ export async function ledger(
 	search: string,
 	token: string | undefined,
 ): Promise<Response> {
-	return askPrivate(URLS.internal.ledger, path, search, token);
+	return askPrivate(LEDGER_API, path, search, token);
 }
 
 /** What the ledger answers, or nothing when it cannot be read: the page reads from the browser. */
@@ -24,5 +24,5 @@ export async function tryReadLedger<T>(
 	search: string,
 	token: string | undefined,
 ): Promise<T | undefined> {
-	return tryReadPrivate<T>(URLS.internal.ledger, path, search, token);
+	return tryReadPrivate<T>(LEDGER_API, path, search, token);
 }

@@ -4,7 +4,7 @@
  * The ledger and cron both forward through this. See spec/architecture/ledger.md, "Read by the
  * panel", and spec/architecture/cron.md, "Seen in the panel".
  */
-import type { ApiResponse } from '@canmi/response';
+import { failure, type ApiResponse } from '@canmi/response';
 import { read, SignedOut } from './core';
 
 /** How long a confirmed token is trusted before host is asked about it again. */
@@ -37,6 +37,8 @@ export async function askPrivate(
 	init?: RequestInit,
 ): Promise<Response> {
 	await confirm(token);
+	// A service the node names no address for is not one this panel shows.
+	if (!base) return failure(503, 'service_unavailable', { message: 'this node names no address' });
 	try {
 		return await fetch(`${base}${path}${search}`, init);
 	} catch {

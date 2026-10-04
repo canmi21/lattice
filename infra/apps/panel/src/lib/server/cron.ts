@@ -2,11 +2,11 @@
  * cron, as the panel's server reaches it: over the same confirmed-token path as the ledger. See
  * spec/architecture/cron.md, "Seen in the panel", and ./private.ts.
  */
-import { URLS } from '@monoflake/sdk';
+import { CRON_API } from '$app/env/private';
 import { askPrivate, tryReadPrivate } from './private';
 
-/** cron's private scope on the API host. See spec/architecture/cron.md. */
-const CRON_BASE = URLS.internal.cron;
+/** cron's private scope on the API host, as the node names it; empty where it names none. */
+const CRON_BASE = CRON_API;
 
 /**
  * Ask cron at `path` (leading slash, e.g. `/schedules`) with `search` (leading `?` or empty) and

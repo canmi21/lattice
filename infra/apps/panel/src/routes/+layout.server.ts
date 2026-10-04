@@ -1,5 +1,6 @@
 // Whether this visitor is signed in, and the machine's name, read once on the server so the first
 // paint is the right one: the sign-in form, or the panel.
+import { CRON_API, LEDGER_API } from '$app/env/private';
 import { read, SESSION, SignedOut } from '#lib/server/core.js';
 import type { MachineInfo, Sample } from '#lib/api.js';
 import type { LayoutServerLoad } from '././$types';
@@ -11,14 +12,16 @@ export const trailingSlash = 'ignore';
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
 	const token = cookies.get(SESSION);
+	// The platform's pages the node has given an address for; the rest are not offered.
+	const shown = { tasks: Boolean(LEDGER_API), schedules: Boolean(CRON_API) };
 	try {
 		await read('/api/apps', token);
 	} catch (error) {
-		if (error instanceof SignedOut) return { signedIn: false, machine: undefined };
-		return { signedIn: true, machine: undefined };
+		if (error instanceof SignedOut) return { signedIn: false, machine: undefined, shown };
+		return { signedIn: true, machine: undefined, shown };
 	}
 	const now = await read<{ info: MachineInfo; sample: Sample }>('/api/node/now', token).catch(
 		() => undefined,
 	);
-	return { signedIn: true, machine: now?.info.model ?? undefined };
+	return { signedIn: true, machine: now?.info.model ?? undefined, shown };
 };

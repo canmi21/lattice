@@ -15,7 +15,6 @@
 		"@canmi/kit": "workspace:*",
 		"@canmi/response": "workspace:*",
 		"@lucide/svelte": "^1.51.0",
-		"@monoflake/sdk": "workspace:*",
 		"@monoflake/urls": "workspace:*",
 		"@stylexjs/stylex": "^0.19.1",
 		"@stylexjs/unplugin": "^0.19.1",
