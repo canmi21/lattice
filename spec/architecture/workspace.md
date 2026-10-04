@@ -97,6 +97,9 @@ project at the root with the rest nested inside it. That was abandoned: lattice 
 cloned into the workspace's own `repos/`, a sibling of the others, and `repos/` and the entry
 point both belong one directory up.
 
+The layout is moving to three layers and the library under them, each laid out as the repository
+it becomes; see [layers.md](layers.md).
+
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
 subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
 [fonts.md](fonts.md) and [delivery.md](delivery.md).

@@ -423,6 +423,23 @@ order is forced from outside: a zone has to exist before a route or a rule can n
 through the Tunnel and back, which costs a round trip and nothing else; E12 takes the round trip
 away without any caller changing again.
 
+## F. The layers
+
+Three layers and the library under them, laid out here as the repositories they become, then split.
+The arrangement is [../architecture/layers.md](../architecture/layers.md).
+
+| Id  | Step                            | What it is                                                                                                                                           | After | Horizon  |
+| --- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | -------- |
+| F1  | Every file under the line limit | `libs/deploy`'s engine and manifest split by their seams; a generated file says so by `@generated`, the one marker every check reads                 | --    | **done** |
+| F2  | The layer check                 | `graph.py` reads a package's layer from its path and fails on one pointing up, the four couplings it cannot see carried as named exceptions          | F1    | near     |
+| F3  | The move                        | `lib/`, `infra/`, `platform/`, `services/`; the scopes; the library's fourteen packages become five; `libs/urls` becomes three                       | F2    | near     |
+| F4  | The couplings go                | host reads the platform's apps and names from their declarations; the panel stops naming `cron` and the ledger; the exception list is empty          | F3    | mid      |
+| F5  | The library's repository        | `axum-governor` renamed `lib` and made a monorepo; Verdaccio for development; trusted publishing; each first version by hand                         | F3    | mid      |
+| F6  | The split                       | `web`, `monoflake/infra` and `monoflake/platform` continue from one commit; Cloudflare and Vercel pointed once; the workspace's `repos.toml` follows | F4 F5 | mid      |
+
+**F3 freezes the Workers and Vercel apps until F6**, since their builds name paths that move; a
+failed build keeps the last good one serving. The gap is kept short.
+
 ## Open questions
 
 Each of these is a decision rather than a discovery. One is settled and kept here because the
