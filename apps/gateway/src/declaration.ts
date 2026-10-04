@@ -10,9 +10,12 @@ import * as v from 'valibot';
 /** Seconds an answer is kept, or `immutable` for a year the bytes will not change in. */
 export type Lifetime = number | 'immutable';
 
-/** The four kinds of answer a lifetime is declared for, named for their class. */
+/** The five kinds of answer a lifetime is declared for, named rather than numbered. */
 export interface Lifetimes {
+	/** A `2xx` but `202`: the request was met. */
 	readonly fulfilled: Lifetime;
+	/** `202`: taken, and not yet done, so an answer about this moment. */
+	readonly accepted: Lifetime;
 	readonly redirected: Lifetime;
 	readonly rejected: Lifetime;
 	readonly faulted: Lifetime;
@@ -43,7 +46,7 @@ export interface Route {
 
 /** What a route gets when neither it nor its service says. */
 export const GATEWAY_DEFAULTS = {
-	cache: { fulfilled: 900, redirected: 900, rejected: 300, faulted: 300 },
+	cache: { fulfilled: 900, accepted: 0, redirected: 900, rejected: 300, faulted: 300 },
 	crawlable: false,
 	exposed: true,
 	forbidden: [],
@@ -79,7 +82,11 @@ const Written = v.pipe(
 
 const CacheSchema = v.strictObject({
 	success: v.optional(
-		v.strictObject({ fulfilled: v.optional(Written), redirected: v.optional(Written) }),
+		v.strictObject({
+			fulfilled: v.optional(Written),
+			accepted: v.optional(Written),
+			redirected: v.optional(Written),
+		}),
 	),
 	failure: v.optional(v.strictObject({ rejected: v.optional(Written), faulted: v.optional(Written) })),
 });
@@ -155,6 +162,7 @@ function cacheOf(...layers: readonly (Fields['cache'] | undefined)[]): Lifetimes
 	const fallback = GATEWAY_DEFAULTS.cache;
 	return {
 		fulfilled: pick((c) => c.success?.fulfilled) ?? fallback.fulfilled,
+		accepted: pick((c) => c.success?.accepted) ?? fallback.accepted,
 		redirected: pick((c) => c.success?.redirected) ?? fallback.redirected,
 		rejected: pick((c) => c.failure?.rejected) ?? fallback.rejected,
 		faulted: pick((c) => c.failure?.faulted) ?? fallback.faulted,

@@ -91,16 +91,3 @@ domain anything answers.
 A generated whitelist has two limits to fit inside: an expression is at most 4,096 characters, and
 the Free plan allows a zone five custom rules. Every deployment of `ixc.one` is in one zone, so its
 whitelist covers every service on every node in one expression.
-
-## A lifetime declared by class cannot tell two answers of one class apart
-
-`shot`'s `/status` answers `200` for a done task, which it keeps five minutes, and `202` for one
-still queued, which it keeps nowhere -- both `fulfilled`. A declaration by class gives the route one
-lifetime for the two, so either the queued task is kept five minutes, or the done one is never
-kept. Every service today stamps its own `Cache-Control`, and `shot` is the one that stamps two for
-one class.
-
-**Undecided: whether a service may shorten what it declared.** The declaration can be the ceiling,
-with a service's own `no-store` -- or a shorter `max-age` -- honored beneath it, so an answer about
-this moment says so itself; or the declaration is the only word, and a route that needs two
-lifetimes is split, or the status codes changed so the two land in different classes.

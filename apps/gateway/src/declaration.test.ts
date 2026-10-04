@@ -30,8 +30,14 @@ describe("a service's routes", () => {
 			defaults: { cache: { success: { fulfilled: '1m' }, failure: { faulted: 'none' } } },
 			routes: [{ path: '/fast', cache: { success: { fulfilled: '5s' } } }],
 		});
-		expect(route?.cache).toEqual({ fulfilled: 5, redirected: 900, rejected: 300, faulted: 0 });
-		expect(rest?.cache).toEqual({ fulfilled: 60, redirected: 900, rejected: 300, faulted: 0 });
+		expect(route?.cache).toEqual({
+			fulfilled: 5,
+			accepted: 0,
+			redirected: 900,
+			rejected: 300,
+			faulted: 0,
+		});
+		expect(rest?.cache).toMatchObject({ fulfilled: 60, faulted: 0 });
 	});
 
 	it('matches exact before prefix, and the longer prefix first, whatever the written order', () => {
@@ -39,6 +45,16 @@ describe("a service's routes", () => {
 			routes: [{ path: '/a/*' }, { path: '/a/b/*' }, { path: '/a/b' }],
 		}).map((route) => route.path);
 		expect(paths).toEqual(['/a/b', '/a/b/*', '/a/*', '/*']);
+	});
+
+	it('keeps a 202 nowhere unless a route says otherwise, apart from what a 200 keeps', () => {
+		const [status, rest] = routesOf('svc', {
+			routes: [{ path: '/status', cache: { success: { fulfilled: '5m' } } }],
+		});
+		expect(status?.cache).toMatchObject({ fulfilled: 300, accepted: 0 });
+		expect(rest?.cache.accepted).toBe(0);
+		const [kept] = routesOf('svc', { defaults: { cache: { success: { accepted: '5s' } } } });
+		expect(kept?.cache.accepted).toBe(5);
 	});
 
 	it('gives a browser nothing unless cors is declared, and lets a route take it away', () => {

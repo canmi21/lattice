@@ -122,15 +122,18 @@ then one change in `libs/urls`, and no declaration names a URL.
 CORS, lifetimes, crawling and, later, credentials are all route-level: a service's defaults say
 what its paths get, a route says what it gets instead, and the nearest declaration wins.
 
-**A lifetime is declared for four kinds of answer, named rather than numbered.** A success is a
+**A lifetime is declared for five kinds of answer, named rather than numbered.** A success is a
 `2xx` or a `3xx`, a failure a `4xx` or a `5xx` -- the request's fault, or the service's, an answer
-that never came counting as the service's. Each has a name, nested under success and failure, so a
-route can keep a redirect apart from what it points at, and a blip apart from a refusal that holds
-until the next publication:
+that never came counting as the service's. A `202` is a success of its own: the request was taken
+and is not done, so the answer is about this moment, where a `200` from the same route may be
+settled. Each has a name, nested under success and failure, so a route can keep a redirect apart
+from what it points at, a task still queued apart from a task done, and a blip apart from a refusal
+that holds until the next publication:
 
 | Class | Name                 | What it says                                       |
 | ----- | -------------------- | -------------------------------------------------- |
-| `2xx` | `success.fulfilled`  | the request was met                                |
+| `2xx` | `success.fulfilled`  | the request was met; every `2xx` but `202`         |
+| `202` | `success.accepted`   | the request was taken and is not done              |
 | `3xx` | `success.redirected` | the answer is elsewhere                            |
 | `4xx` | `failure.rejected`   | the request was at fault                           |
 | `5xx` | `failure.faulted`    | the service was at fault, or never answered        |
@@ -138,13 +141,14 @@ until the next publication:
 A lifetime is written `"30s"`, `"15m"`, `"1h"` or `"1d"`; `"immutable"` is a year and says the
 bytes will not change; `"none"` keeps nothing.
 
-**What nobody declares falls to one default: a success is kept fifteen minutes, a failure five.**
+**What nobody declares falls to one default: a success is kept fifteen minutes, a failure five,
+and an accepted request not at all**, since a `202` is never more than a moment's answer.
 
 ### The declaration
 
 `[api.defaults]` holds what every path of the service gets; each `[[api.routes]]` names a `path`
 and what it gets instead. Each field is looked up on the route, then the service's defaults, then
-the gateway's own, field by field, so a route that names one lifetime inherits the other three.
+the gateway's own, field by field, so a route that names one lifetime inherits the other four.
 
 ```toml
 [api.defaults]
@@ -157,6 +161,7 @@ headers = []                  # request headers allowed beside Content-Type
 
 [api.defaults.cache.success]
 fulfilled = "15m"
+accepted = "none"
 redirected = "15m"
 
 [api.defaults.cache.failure]

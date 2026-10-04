@@ -29,6 +29,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				},
 				cache: {
 					fulfilled: 86400,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -49,6 +50,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/*',
 				cache: {
 					fulfilled: 900,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -82,6 +84,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/*',
 				cache: {
 					fulfilled: 60,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -109,6 +112,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/status',
 				cache: {
 					fulfilled: 300,
+					accepted: 0,
 					redirected: 0,
 					rejected: 0,
 					faulted: 0,
@@ -122,6 +126,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/pictures/*',
 				cache: {
 					fulfilled: 900,
+					accepted: 0,
 					redirected: 0,
 					rejected: 0,
 					faulted: 0,
@@ -135,6 +140,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/*',
 				cache: {
 					fulfilled: 0,
+					accepted: 0,
 					redirected: 0,
 					rejected: 0,
 					faulted: 0,
@@ -156,6 +162,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/*',
 				cache: {
 					fulfilled: 900,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -207,6 +214,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/services',
 				cache: {
 					fulfilled: 5,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -220,6 +228,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/machine',
 				cache: {
 					fulfilled: 5,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -233,6 +242,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/*',
 				cache: {
 					fulfilled: 60,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -265,6 +275,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				},
 				cache: {
 					fulfilled: 900,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
@@ -278,6 +289,7 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/*',
 				cache: {
 					fulfilled: 900,
+					accepted: 0,
 					redirected: 900,
 					rejected: 300,
 					faulted: 300,
