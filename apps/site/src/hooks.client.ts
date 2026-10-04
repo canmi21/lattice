@@ -1,12 +1,12 @@
-import { dev } from '$app/environment';
+import type { ClientInit } from '@sveltejs/kit/hooks';
+import { dev } from '$app/env';
 import { takeParameter } from '@canmi/referer';
 import { prepareBrowserRuntime } from '@canmi/compat';
 import { URLS } from '@canmi/urls';
 import { initClient } from '@canmi/sentry/client';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
-import type { ClientInit } from '@sveltejs/kit';
-import { registerAnalytics } from '$lib/analytics';
-import { registerClientStrategy } from '$lib/locale/paraglide';
+import { registerAnalytics } from '#lib/analytics.js';
+import { registerClientStrategy } from '#lib/locale/paraglide.js';
 
 registerClientStrategy();
 registerAnalytics();
@@ -20,14 +20,14 @@ export const init: ClientInit = prepareBrowserRuntime;
 /**
  * Every unexpected error that happens in the browser, stamped as this side's.
  *
- * Only unexpected ones reach here -- an `error()` carries its own body straight to the page --
- * so an `origin` is the page's signal that something broke rather than that a question was
- * answered. See app.d.ts and routes/+error.svelte.
+ * Every error reaches here since SvelteKit 3, but only an unknown one -- thrown by code, rather
+ * than by `error()` or by SvelteKit itself -- is stamped; the rest keep the status and message
+ * they came with. So an `origin` is the page's signal that something broke rather than that a
+ * question was answered. See app.d.ts and routes/+error.svelte.
  */
-export const handleError = handleErrorWithSentry(({ message }): App.Error => ({
-	message,
-	origin: 'client',
-}));
+export const handleError = handleErrorWithSentry(({ kind }) =>
+	kind === 'unknown' ? { origin: 'client' as const } : undefined,
+);
 
 function cleanLanguageParameter(): void {
 	takeParameter('lang');

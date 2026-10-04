@@ -3,7 +3,8 @@ import { localeCode, type LocaleCode } from '@canmi/locales';
 /**
  * What a tag is now lives in `@canmi/locales`, because the compiler needs it and this file is
  * an application's. Re-exported rather than relocated at every call site: thirty-five modules
- * here ask `$lib/locale` for a mix of both halves, and the halves are what moved, not the name.
+ * here ask `#lib/locale/index.js` for a mix of both halves, and the halves are what moved, not
+ * the name.
  */
 export {
 	assertLanguageTag,

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Article from '$lib/article/article.svelte';
+	import Article from '#lib/article/article.svelte';
 	import ArticleBody from '@canmi/prose/body.svelte';
-	import { citationsOf } from '$lib/article/entity';
+	import { citationsOf } from '#lib/article/entity.js';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

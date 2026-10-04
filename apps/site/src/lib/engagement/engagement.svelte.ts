@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import {
 	CancelAnswerSchema,
 	LikeAnswerSchema,
@@ -14,8 +14,8 @@ import {
 	type StatsAnswer,
 } from '@canmi/artifacts';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
-import { apiPath } from '$lib/api';
-import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
+import { apiPath } from '#lib/api.js';
+import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
 
 /**
  * Two keys, because the two answers are not the same kind of fact.

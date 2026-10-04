@@ -97,7 +97,7 @@ of it.
 
 ## The site's non-page routes are SvelteKit's, and every other worker's are hono's
 
-`apps/site/server`, `apps/cdn` and `apps/gateway` are hono. `apps/site` is not, and it serves eight `+server.ts` routes
+`apps/site/api`, `apps/cdn` and `apps/gateway` are hono. `apps/site` is not, and it serves eight `+server.ts` routes
 plus a handle that answers `<url>.md` before the router sees it:
 
 | Route                                                           | Answers                                     |
@@ -113,7 +113,7 @@ plus a handle that answers `<url>.md` before the router sees it:
 The intent is that a page stays SvelteKit's and everything else becomes one hono app mounted
 inside it, so that every non-HTML response this project serves is written the same way: one
 router, one `failure` helper, one place a cache header is decided. Today the site answers those
-questions in eight files and a handle, none of which share the helpers `apps/site/server` and `apps/cdn`
+questions in eight files and a handle, none of which share the helpers `apps/site/api` and `apps/cdn`
 already have.
 
 **What has to be decided before it can be done.** Where the hono app is mounted -- a catch-all

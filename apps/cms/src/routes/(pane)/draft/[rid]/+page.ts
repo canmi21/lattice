@@ -1,4 +1,4 @@
-import { listRevisions, readDraft } from '$lib/collection.ts';
+import { listRevisions, readDraft } from '#lib/collection.ts';
 import type { PageLoad } from './$types';
 
 /** The draft and its revisions, so the fields render with the page and not after it. */

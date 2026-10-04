@@ -1,10 +1,9 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { serverHandles } from '@canmi/sentry/server';
 import { fillTheme } from '@canmi/theme';
 import { normalizedLocation, URLS } from '@canmi/urls';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
-import type { Handle } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
+import { sequence, type Handle } from '@sveltejs/kit/hooks';
 
 /**
  * The script alone, never the class: the render is cached at the edge for every reader, so it

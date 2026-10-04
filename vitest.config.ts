@@ -82,9 +82,9 @@ export default defineConfig({
 					},
 				],
 				resolve: {
-					// The renderer is aliased to its source for the reason svelte.config.js gives:
+					// The renderer is aliased to its source for the reason apps/site/vite.config.ts gives:
 					// resolved through `node_modules` it would be compiled as a legacy component.
-					alias: { $lib: `${SITE}src/lib`, '@canmi/prose': PROSE.replace(/\/$/, '') },
+					alias: { '@canmi/prose': PROSE.replace(/\/$/, '') },
 					// Svelte publishes a server build that throws from `mount`, and it is what a test
 					// file resolves to by default -- the suite is jsdom, so ask for the other one.
 					conditions: ['browser'],

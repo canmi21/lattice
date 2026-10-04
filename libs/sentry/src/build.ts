@@ -1,4 +1,4 @@
-import type { sentrySvelteKit } from '@sentry/sveltekit';
+import type { sentrySvelteKit } from '@sentry/sveltekit/vite';
 
 /** What `sentrySvelteKit` takes. Its own name for this is not part of the published surface. */
 export type SentryPluginOptions = NonNullable<Parameters<typeof sentrySvelteKit>[0]>;

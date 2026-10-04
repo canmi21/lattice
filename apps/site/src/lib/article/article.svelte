@@ -126,7 +126,7 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import { page } from '$app/state';
 	import { pageUrls } from '@canmi/urls';
 	import Title from '@canmi/behavior/title.svelte';
@@ -138,7 +138,7 @@
 	import IconClaude from '~icons/mingcute/claude-line';
 	import IconGemini from '~icons/mingcute/google-gemini-line';
 	import IconOpenAi from '~icons/mingcute/openai-line';
-	import { remFromMeasuredPixels } from '$lib/client/units';
+	import { remFromMeasuredPixels } from '#lib/client/units.js';
 	import * as m from '@canmi/messages';
 	import type { Snippet } from 'svelte';
 	import type {
@@ -149,13 +149,13 @@
 		TocEntry,
 	} from '@canmi/artifacts/types';
 	import type { Theme } from '@canmi/theme';
-	import type { LocaleCode } from '$lib/locale';
-	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import { warmView } from '$lib/published';
-	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '$lib/opengraph';
-	import Newsletter from '$lib/newsletter/newsletter.svelte';
+	import type { LocaleCode } from '#lib/locale/index.js';
+	import LanguageSwitcher from '#lib/locale/switcher.svelte';
+	import { warmView } from '#lib/published/index.js';
+	import { CARD_HEIGHT, CARD_WIDTH, cardUrl } from '#lib/opengraph.js';
+	import Newsletter from '#lib/newsletter/newsletter.svelte';
 	import Footnotes from './footnotes.svelte';
-	import { createReadsQuery } from '$lib/engagement/reads.svelte';
+	import { createReadsQuery } from '#lib/engagement/reads.svelte.js';
 	import { formatCompact } from './format';
 	import HomeLink from './home-link.svelte';
 	import type { RailWidths } from '@canmi/prose/rail-widths';
@@ -186,35 +186,36 @@
 		notes = [],
 		citations = [],
 		children,
-	}: {
+
 		/** The article's identity, which is what the read counter is keyed by. */
-		slug: string;
 		/** The content id of this view's OpenGraph card, when one has been drawn. */
-		card?: string;
-		meta: ArticleMeta;
 		/** The title a phone sees: `meta.title` where it fits the column, the short one where it
 		 *  does not. Decided in the build; see libs/compile/src/width.ts. */
-		phone_title: string;
-		toc: TocEntry[];
 		/** What the rail's bars measure, when the load already knew. See toc.svelte. */
-		rail?: RailWidths;
 		/** How long the article is in the view being read. Body prose only -- see ArticleView. */
-		words: number;
 		/**
 		 * How many have read it, as the load found out -- absent when the API would not say.
 		 *
 		 * The figure to draw until this reader's own visit has been recorded, which is a thing
 		 * only the browser can do. See spec/engagement.md.
 		 */
-		reads?: number;
 		/** The selected locale, or its English fallback. Absent only when neither exists. */
+		/** What the document is painted in, settled on the server beside the class. */
+		/** Collected author's notes, rendered after the article's closing rule. */
+		/** The works the article cites, for its structured data. */
+	}: {
+		slug: string;
+		card?: string;
+		meta: ArticleMeta;
+		phone_title: string;
+		toc: TocEntry[];
+		rail?: RailWidths;
+		words: number;
+		reads?: number;
 		summary?: ArticleSummary;
 		locale: ArticleLocale;
-		/** What the document is painted in, settled on the server beside the class. */
 		theme: Theme;
-		/** Collected author's notes, rendered after the article's closing rule. */
 		notes?: ArticleNote[];
-		/** The works the article cites, for its structured data. */
 		citations?: object[];
 		children: Snippet;
 	} = $props();
@@ -392,7 +393,10 @@
 <Title full="{meta.title}: {meta.subtitle}" short={meta.title} />
 
 <Shell {toc} {rail} locale={locale.code} {theme}>
-	{#snippet home()}<HomeLink locale={locale.code} />{/snippet}
+	{#snippet home()}
+		<HomeLink locale={locale.code} />
+	{/snippet}
+
 	{#snippet header()}
 		<!-- Inside the heading rather than beside it. A wrapper would exist on every article to
 				     serve the few that are drafts, and the side rail measures this very box to place the

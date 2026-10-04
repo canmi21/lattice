@@ -2,6 +2,10 @@
 	"name": "@canmi/site",
 	"private": true,
 	"type": "module",
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
+	},
 	"scripts": {
 		"dev": "pnpm run database:migrate:local && vite dev",
 		"build": "vite build",
@@ -41,7 +45,7 @@
 		"@inlang/paraglide-js-svelte": "^1.0.4",
 		"@lucide/svelte": "^1.51.0",
 		"@openpanel/web": "^1.4.1",
-		"@sentry/sveltekit": "^10.76.0",
+		"@sentry/sveltekit": "^11.4.0",
 		"@stylexjs/stylex": "^0.19.1",
 		"@tanstack/query-sync-storage-persister": "^5.104.1",
 		"@tanstack/svelte-query": "^6.3.1",
@@ -77,8 +81,8 @@
 		"@inlang/plugin-message-format": "^4.4.4",
 		"@noble/hashes": "^2.4.0",
 		"@stylexjs/unplugin": "^0.19.1",
-		"@sveltejs/adapter-cloudflare": "^7.2.9",
-		"@sveltejs/kit": "^2.70.3",
+		"@sveltejs/adapter-cloudflare": "^8.0.0",
+		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/vite": "^4.3.3",
 		"@testing-library/svelte": "^5.4.2",

@@ -1,7 +1,7 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { pickUrls } from '@canmi/urls';
-import { HEADER, TEXT_HEADERS } from '$lib/licenses';
-import { publishedAsset } from '$lib/published';
+import { HEADER, TEXT_HEADERS } from '#lib/licenses/index.js';
+import { publishedAsset } from '#lib/published/index.js';
 import type { RequestHandler } from './$types';
 
 // Not prerendered, because prerendering means fetching the CDN during the build and CI

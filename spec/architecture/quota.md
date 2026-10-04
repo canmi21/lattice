@@ -135,7 +135,7 @@ through would hide it.
 
 - **Both gateways**, for every route of a service that declares rows.
 - **A Worker's own routes**, which its pages call without the gateway: the site's, in
-  `apps/site/server/src/contract/limits.ts`, in the same row format.
+  `apps/site/api/src/contract/limits.ts`, in the same row format.
 - **Caddy on the node** keeps a sliding window under the `address` rows, as a floor for the moment
   `quota` fails, at `burst + count` calls in `seconds` -- the most a bucket ever admits in that
   window, so the floor never refuses what the bucket allows. Caddy's limiter has no bucket of its

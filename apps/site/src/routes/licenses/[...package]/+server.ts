@@ -1,7 +1,7 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { error } from '@sveltejs/kit';
 import { pageUrls } from '@canmi/urls';
-import { HEADER, TEXT_HEADERS, find, licenseOf, textUrl } from '$lib/licenses';
+import { HEADER, TEXT_HEADERS, find, licenseOf, textUrl } from '#lib/licenses/index.js';
 import type { RequestHandler } from './$types';
 
 export const prerender = false;
@@ -26,6 +26,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		...(found.package.authors?.length
 			? [`Authors: ${found.package.authors.map(({ name }) => name).join(', ')}`]
 			: []),
+
 		...(found.package.asserted
 			? [
 					'',

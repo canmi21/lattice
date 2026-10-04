@@ -157,12 +157,12 @@
 		type AnimationControl,
 		type CollapsePhase,
 	} from '@canmi/behavior/collapse';
-	import { DEFAULT_PIXELS_PER_REM } from '$lib/client/units';
+	import { DEFAULT_PIXELS_PER_REM } from '#lib/client/units.js';
 	import { onDestroy } from 'svelte';
 	import { flashOnArrival } from '@canmi/prose/note-flash';
 	import { offerNoteReveal } from '@canmi/prose/note-reveal';
 	import type { ArticleNote } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '#lib/locale/index.js';
 
 	/** `locale` is the view being rendered. Passed rather than read: see
 	 *  spec/locale/addressing.md. */

@@ -6,7 +6,7 @@ packages:
   - apps/*
   # The site's API, a package inside the site because its type program is workerd's, not the
   # browser's; see spec/architecture/services.md.
-  - apps/site/server
+  - apps/site/api
   # Each is a separate repository this workspace ignores; the glob matches nothing when none
   # are cloned. Membership here is what makes a sub-repo's git dependency resolve to local
   # source. See spec/architecture/repos.md.

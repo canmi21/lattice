@@ -1,7 +1,12 @@
 import { error, redirect } from '@sveltejs/kit';
 import { redirects } from 'virtual:redirects';
-import { orReload, publishedReads, publishedResources, publishedView } from '$lib/published';
-import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
+import {
+	orReload,
+	publishedReads,
+	publishedResources,
+	publishedView,
+} from '#lib/published/index.js';
+import { currentLocale, LOCALE_DEPENDENCY } from '#lib/locale/current.svelte.js';
 import { namedResources } from '@canmi/artifacts';
 import { measureRail } from '@canmi/prose/rail-measure';
 import { measured } from '@canmi/prose/measured';

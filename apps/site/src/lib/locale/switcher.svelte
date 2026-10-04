@@ -62,7 +62,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Compass from '@lucide/svelte/icons/compass';
 	import { DropdownMenu } from 'bits-ui';
-	import MenuContent from '$lib/components/menu-content.svelte';
+	import MenuContent from '#lib/components/menu-content.svelte';
 	import {
 		languageChoices,
 		MARK_SIZE,

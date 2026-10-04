@@ -1,6 +1,6 @@
 {
 	// The Workers and the code only they run -- libs/store speaks R2 and the asset fetcher,
-	// apps/site/server is the site's API, which the site's program sees through a declaration. No
+	// apps/site/api is the site's API, which the site's program sees through a declaration. No
 	// `dom`; see spec/architecture/workspace.md, "A runtime's globals decide which program checks
 	// a file".
 	"extends": "./tsconfig.base.json",
@@ -10,14 +10,14 @@
 		// `types`: that field resolves from this directory, and the package is installed per
 		// member. `node` is for the tests alone, and its globals are namespaced behind `node:`.
 		"types": ["node"],
-		"typeRoots": ["apps/site/server/node_modules/@types", "node_modules/@types"]
+		"typeRoots": ["apps/site/api/node_modules/@types", "node_modules/@types"]
 	},
 	// A worker's tests belong here with it: they exercise worker code and mock worker bindings,
 	// so checking them elsewhere drags the whole worker into a program with the browser's
 	// globals. Tried, and that is what happened. `scripts/` is the node program and stays out.
 	"include": [
-		"apps/site/server/src/**/*.ts",
-		"apps/site/server/*.d.ts",
+		"apps/site/api/src/**/*.ts",
+		"apps/site/api/*.d.ts",
 		"apps/cdn/src/**/*.ts",
 		"apps/cdn/*.d.ts",
 		"apps/aka/src/**/*.ts",

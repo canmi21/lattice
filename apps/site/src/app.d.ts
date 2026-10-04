@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { Theme } from '@canmi/theme';
-import type { LocaleCode } from '$lib/locale';
+import type { LocaleCode } from '#lib/locale/index.js';
 
 declare global {
 	namespace App {
@@ -10,9 +10,9 @@ declare global {
 			/**
 			 * Which side failed, and **absent when nothing did**.
 			 *
-			 * Only unexpected errors reach `handleError`; an `error()` goes straight to the page
-			 * with its own body. So no stamp means an answer rather than a failure -- a 404 is a
-			 * 404 whichever side worked it out. One gap: an error surfaced through `__data.json`
+			 * `handleError` stamps only an unexpected error; an `error()` keeps its own body. So
+			 * no stamp means an answer rather than a failure -- a 404 is a 404 whichever side
+			 * worked it out. One gap: an error surfaced through `__data.json`
 			 * arrives as a status and a string and loses this, which draws the page with the
 			 * code -- the right fallback, since the status is the part that survived.
 			 */
@@ -25,12 +25,6 @@ declare global {
 		}
 		// interface PageData {}
 		// interface PageState {}
-		interface Platform {
-			env: Record<string, unknown>;
-			context: ExecutionContext;
-			caches: CacheStorage;
-			cf?: IncomingRequestCfProperties;
-		}
 	}
 
 	interface ImportMetaEnv {

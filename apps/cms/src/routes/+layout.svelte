@@ -7,7 +7,7 @@
 	import '../styles/app.css';
 	// The site's type, so the editor and the preview set words in the faces the page does.
 	import '@canmi/fonts/mono.css';
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();

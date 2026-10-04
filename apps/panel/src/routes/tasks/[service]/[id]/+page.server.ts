@@ -1,6 +1,6 @@
-import { SESSION } from '$lib/server/core';
-import { tryReadLedger } from '$lib/server/ledger';
-import type { TaskDetail } from '$lib/api';
+import { SESSION } from '#lib/server/core.js';
+import { tryReadLedger } from '#lib/server/ledger.js';
+import type { TaskDetail } from '#lib/api.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies, params }) => ({

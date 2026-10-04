@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { invalidate } from '$app/navigation';
 import { contentLanguageCookie, type LocaleCode } from './index';
 

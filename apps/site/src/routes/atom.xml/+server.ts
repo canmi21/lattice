@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
-import { publishedFeedEntries } from '$lib/published';
-import { buildFeed } from '$lib/documents/feed';
-import { feedLocale } from '$lib/server/feed';
-import { site } from '$lib/site';
+import { publishedFeedEntries } from '#lib/published/index.js';
+import { buildFeed } from '#lib/documents/feed.js';
+import { feedLocale } from '#lib/server/feed.js';
+import { site } from '#lib/site.js';
 import type { RequestHandler } from './$types';
 
 export const prerender = false;

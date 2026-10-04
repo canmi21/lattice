@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Task from '$lib/task.svelte';
+	import Task from '#lib/task.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

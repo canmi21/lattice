@@ -56,7 +56,7 @@
 
 <script lang="ts">
 	import * as m from '@canmi/messages';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '#lib/locale/index.js';
 	import Offer from './offer.svelte';
 
 	/**

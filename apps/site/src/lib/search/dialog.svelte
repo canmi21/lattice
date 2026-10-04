@@ -96,9 +96,9 @@
 	import { Dialog } from 'bits-ui';
 	import { goto } from '$app/navigation';
 	import { animateHeight, type AnimationControl } from '@canmi/behavior/collapse';
-	import { remFromMeasuredPixels } from '$lib/client/units';
+	import { remFromMeasuredPixels } from '#lib/client/units.js';
 	import * as m from '@canmi/messages';
-	import type { LocaleCode } from '$lib/locale/index.ts';
+	import type { LocaleCode } from '#lib/locale/index.ts';
 	import { groupHits, markup, search, worthSearching, type SearchHit } from './index.ts';
 
 	let { locale }: { locale: LocaleCode } = $props();
@@ -211,7 +211,11 @@
 		onOpenChange(false);
 		// An index record's address is absolute and may carry `?lang=`; `goto` keeps it a client
 		// navigation rather than a reload.
-		void goto(new URL(hit.url).pathname + new URL(hit.url).search + new URL(hit.url).hash);
+		const target = new URL(hit.url);
+		// A hit names one of this site's pages; one no route answers is still somewhere to go.
+		goto(target.pathname + target.search + target.hash).catch(() => {
+			window.location.href = hit.url;
+		});
 	}
 
 	function onKeydown(event: KeyboardEvent) {

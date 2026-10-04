@@ -1,5 +1,5 @@
 import { URLS } from '@canmi/urls';
-import { HEADER, TEXT_HEADERS, licenseOf, packages } from '$lib/licenses';
+import { HEADER, TEXT_HEADERS, licenseOf, packages } from '#lib/licenses/index.js';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;

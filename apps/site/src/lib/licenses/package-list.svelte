@@ -55,7 +55,7 @@
 
 <script lang="ts">
 	import * as m from '@canmi/messages';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '#lib/locale/index.js';
 	import type { PackageRow } from './directory';
 
 	let { rows, locale, license }: { rows: PackageRow[]; locale: LocaleCode; license?: string } =

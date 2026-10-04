@@ -5,11 +5,11 @@
 import { author, mailbox } from '@canmi/identity';
 import { aliasesOf, graph, person, profiles, telegramGroup } from '@canmi/social/structured';
 import { URLS } from '@canmi/urls';
-import { articleEntity, citationsOf, kindOf } from '$lib/article/entity';
-import { elsewhere } from '$lib/documents/elsewhere';
-import { websiteEntity } from '$lib/entities';
-import { LOCALE_CODES, languageTag, type LocaleCode, SITE_LANGUAGE } from '$lib/locale';
-import { cardUrl, HOME_SLUG } from '$lib/opengraph';
+import { articleEntity, citationsOf, kindOf } from '#lib/article/entity.js';
+import { elsewhere } from '#lib/documents/elsewhere.js';
+import { websiteEntity } from '#lib/entities.js';
+import { LOCALE_CODES, languageTag, type LocaleCode, SITE_LANGUAGE } from '#lib/locale/index.js';
+import { cardUrl, HOME_SLUG } from '#lib/opengraph.js';
 import {
 	publishedHome,
 	publishedMarkdown,
@@ -18,8 +18,8 @@ import {
 	publishedSitemap,
 	publishedView,
 	siteStats,
-} from '$lib/published';
-import { site } from '$lib/site';
+} from '#lib/published/index.js';
+import { site } from '#lib/site.js';
 import { bodyOf, contents, fields, opening, section, stamp, structured, table } from './agent-view';
 import { languageOf, nameOf, noticeFor } from './markdown';
 

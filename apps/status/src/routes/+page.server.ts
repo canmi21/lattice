@@ -1,5 +1,5 @@
-import { dayName, historyFloor } from '$lib/board';
-import { RAW_GRAIN, rangeFloor, rawFloor, readRange, SPAN } from '$lib/ranges';
+import { dayName, historyFloor } from '#lib/board.js';
+import { RAW_GRAIN, rangeFloor, rawFloor, readRange, SPAN } from '#lib/ranges.js';
 import {
 	fetchChecks,
 	fetchDaily,
@@ -7,7 +7,7 @@ import {
 	fetchHistory,
 	fetchNow,
 	statusClient,
-} from '$lib/source';
+} from '#lib/source.js';
 import type { PageServerLoad } from './$types';
 
 /**

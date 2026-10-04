@@ -4,8 +4,8 @@
  * spec/architecture/cron.md, "cron answers on its own `[api]` scope, privately", and
  * spec/architecture/host.md, "The panel is an app of its own".
  */
-import { SESSION } from '$lib/server/core';
-import { cron } from '$lib/server/cron';
+import { SESSION } from '#lib/server/core.js';
+import { cron } from '#lib/server/cron.js';
 import type { RequestHandler } from './$types';
 
 /** `/schedules/<service>/<name>/run|pause|resume` -- the only paths POST is let through to. */

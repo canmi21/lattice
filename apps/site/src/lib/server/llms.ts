@@ -4,9 +4,9 @@
  */
 import { author } from '@canmi/identity';
 import { profiles, telegramGroup } from '@canmi/social/structured';
-import type { LlmsInput } from '$lib/documents/llms';
-import { publishedHome, publishedMetadata, publishedSitemap } from '$lib/published';
-import { site } from '$lib/site';
+import type { LlmsInput } from '#lib/documents/llms.js';
+import { publishedHome, publishedMetadata, publishedSitemap } from '#lib/published/index.js';
+import { site } from '#lib/site.js';
 
 export async function llmsInput(fetch: typeof globalThis.fetch, now: Date): Promise<LlmsInput> {
 	const [{ articles }, sitemap] = await Promise.all([

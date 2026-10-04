@@ -1,7 +1,7 @@
 <script module lang="ts">
 	import * as stylex from '@stylexjs/stylex';
 	import { border, figures, radius, text, weight } from '@canmi/tokens/vocabulary.stylex';
-	import type { State } from '$lib/board';
+	import type { State } from '#lib/board.js';
 
 	/** The board's recipes. See spec/styling/palettes.md. */
 	const styles = stylex.create({
@@ -134,10 +134,10 @@
 		stateOf,
 		todayOf,
 		uptimeOf,
-	} from '$lib/board';
-	import { Live } from '$lib/live.svelte';
-	import { barsOf, RANGES, type Range, sinceLabel, SPAN } from '$lib/ranges';
-	import { ago, percent } from '$lib/time';
+	} from '#lib/board.js';
+	import { Live } from '#lib/live.svelte.js';
+	import { barsOf, RANGES, type Range, sinceLabel, SPAN } from '#lib/ranges.js';
+	import { ago, percent } from '#lib/time.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

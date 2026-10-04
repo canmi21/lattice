@@ -1,6 +1,6 @@
-import { SESSION } from '$lib/server/core';
-import { tryReadCron } from '$lib/server/cron';
-import type { Schedule } from '$lib/api';
+import { SESSION } from '#lib/server/core.js';
+import { tryReadCron } from '#lib/server/cron.js';
+import type { Schedule } from '#lib/api.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies }) => ({

@@ -1,3 +1,5 @@
+import adapter from '@sveltejs/adapter-cloudflare';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
@@ -9,7 +11,7 @@ import {
 } from '@canmi/urls';
 import { esbuildTarget } from '@canmi/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/sentry/build';
-import { sentrySvelteKit } from '@sentry/sveltekit';
+import { sentrySvelteKit } from '@sentry/sveltekit/vite';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -111,7 +113,37 @@ export default defineConfig(({ mode }) => {
 					mapsToDelete: ['.svelte-kit/cloudflare/**/*.map'],
 				}),
 			),
-			sveltekit(),
+
+			sveltekit({
+				preprocess: vitePreprocess(),
+				compilerOptions: {
+					// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+					runes: ({ filename }) =>
+						filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
+				},
+				adapter: adapter(),
+				appDir: '_',
+				files: { assets: 'public' },
+				alias: {
+					// `#lib` is package.json's subpath import, which Vite and TypeScript read on their own;
+					// stated here too only so the generated `paths` carry it, since svelte-check 4.7 finds
+					// a `.svelte` file through `paths` and not through `imports`. Drop it once it does.
+					'#lib': 'src/lib',
+
+					// The article renderer is a package and is still aliased to its source. Two reasons, and
+					// the second is the one that bites: `svelte-check` types what the project contains, and
+					// the runes rule above turns runes off for anything under `node_modules` -- which is
+					// where a workspace package resolves through. These are runes components.
+					'@canmi/prose': '../../libs/prose/src',
+
+					// Articles live at the repository root, not inside this app, because they are
+					// written and revised rather than compiled -- see
+					// spec/architecture/workspace.md. An alias rather than a relative path, so moving a
+					// source file cannot silently change how many `../` are needed.
+					$contents: '../../contents',
+				},
+			}),
+
 			{
 				// The visual layer, appended after Tailwind's so its cascade layers land above
 				// Tailwind's utilities and below Svelte's scoped rules -- see
@@ -120,7 +152,7 @@ export default defineConfig(({ mode }) => {
 				// below is stated rather than defaulted.
 				...stylex({
 					useCSSLayers: true,
-					aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
+					aliases: { '#lib/*': ['/ROOT/src/lib/*'] },
 					unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
 					// Appending after Tailwind's CSS also means appending after Vite has minified
 					// it, so this layer used to ship its newlines while everything above it had

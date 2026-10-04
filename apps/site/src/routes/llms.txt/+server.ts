@@ -1,5 +1,5 @@
-import { buildLlms } from '$lib/documents/llms';
-import { llmsInput } from '$lib/server/llms';
+import { buildLlms } from '#lib/documents/llms.js';
+import { llmsInput } from '#lib/server/llms.js';
 import type { RequestHandler } from './$types';
 
 // Not prerendered, which it used to be. The corpus is no longer built with the site, so a copy

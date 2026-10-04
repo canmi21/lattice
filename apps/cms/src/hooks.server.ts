@@ -1,8 +1,8 @@
+import type { Handle, HandleFetch } from '@sveltejs/kit/hooks';
 import { dividerScript } from '@canmi/behavior/resize';
 import { themeScript } from '@canmi/theme';
-import type { Handle, HandleFetch } from '@sveltejs/kit';
-import { LOCAL_ORIGIN } from '$lib/local.ts';
-import { foldedScript, SIDEBAR } from '$lib/sidebar.ts';
+import { LOCAL_ORIGIN } from '#lib/local.ts';
+import { foldedScript, SIDEBAR } from '#lib/sidebar.ts';
 
 /**
  * The theme bootstrap and the sidebar's remembered width, written into the shell before anything

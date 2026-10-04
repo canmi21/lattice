@@ -85,9 +85,9 @@
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
 	import Scale from '@lucide/svelte/icons/scale';
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
-	import { localeUrl } from '$lib/locale';
-	import { spaceScriptBoundaries } from '$lib/locale/spacing';
-	import LanguageSwitcher from '$lib/locale/switcher.svelte';
+	import { localeUrl } from '#lib/locale/index.js';
+	import { spaceScriptBoundaries } from '#lib/locale/spacing.js';
+	import LanguageSwitcher from '#lib/locale/switcher.svelte';
 	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
 	import { compactCount, intlLocale } from '@canmi/locales/format';

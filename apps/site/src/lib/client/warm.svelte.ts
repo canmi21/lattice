@@ -10,12 +10,12 @@
  * at a time and is worth following precisely; a touch screen names nothing until it is too late,
  * so the homepage warms the list it is showing and no images. See spec/engagement.md.
  */
-import { browser, dev } from '$app/environment';
+import { browser, dev } from '$app/env';
 import { namedResources, pictured, type Block } from '@canmi/artifacts';
 import { pageUrls } from '@canmi/urls';
-import { warmReads } from '$lib/engagement/reads.svelte';
-import type { LocaleCode } from '$lib/locale';
-import { publishedResources, publishedView } from '$lib/published';
+import { warmReads } from '#lib/engagement/reads.svelte.js';
+import type { LocaleCode } from '#lib/locale/index.js';
+import { publishedResources, publishedView } from '#lib/published/index.js';
 
 const HOVERS = '(hover: hover) and (pointer: fine)';
 

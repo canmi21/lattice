@@ -1,4 +1,4 @@
-import { DRAFTS, listDrafts } from '$lib/collection.ts';
+import { DRAFTS, listDrafts } from '#lib/collection.ts';
 import type { LayoutLoad } from './$types';
 
 /**

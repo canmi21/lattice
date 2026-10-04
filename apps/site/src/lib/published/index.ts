@@ -7,7 +7,7 @@
  * is the browser".
  */
 
-import { browser, dev } from '$app/environment';
+import { browser, dev } from '$app/env';
 import {
 	artifactAddress,
 	feedHtml,
@@ -33,12 +33,12 @@ import {
 	type ViewAnswer,
 } from '@canmi/artifacts';
 import { pageUrls, pickUrls, URLS } from '@canmi/urls';
-import type { FeedEntry } from '$lib/documents/feed';
-import { noticeHtml } from '$lib/documents/notice';
-import { LOCALE_CODES, type LocaleCode } from '$lib/locale';
-import { HOME_SLUG } from '$lib/opengraph';
-import { apiPath } from '$lib/api';
-import { createBatcher } from '$lib/engagement/batch';
+import type { FeedEntry } from '#lib/documents/feed.js';
+import { noticeHtml } from '#lib/documents/notice.js';
+import { LOCALE_CODES, type LocaleCode } from '#lib/locale/index.js';
+import { HOME_SLUG } from '#lib/opengraph.js';
+import { apiPath } from '#lib/api.js';
+import { createBatcher } from '#lib/engagement/batch.js';
 import {
 	answer,
 	heldBody,
@@ -226,9 +226,11 @@ export async function publishedView(
 ): Promise<FoundArticle | undefined> {
 	const found = await publishedMetadata(fetch, slug, locale);
 	if (!found) return undefined;
+
 	const view = (await (
 		await object(fetch, 'content', found.objects.content)
 	).json()) as PublishedView;
+
 	// Against the identity the API answered with, not the one that was asked for: that is the one
 	// the object declares, and the two disagreeing is what this check is here to catch.
 	readEnvelope(view, found.slug, locale);
@@ -366,11 +368,13 @@ export async function publishedFeedEntries(
 ): Promise<FeedEntry[] | undefined> {
 	const found = await answer<FeedAnswer>(fetch, apiPath('feed', { locale }));
 	if (!found) return undefined;
+
 	return Promise.all(
 		found.entries.map(async (entry) => {
 			const view = (await (
 				await object(fetch, 'content', entry.objects.content)
 			).json()) as PublishedView;
+
 			readEnvelope(view, entry.slug, locale);
 			// Above the article, as on the page. The original's address is the bare URL, which is
 			// what the source view is addressed by. See spec/locale/views.md.

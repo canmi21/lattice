@@ -34,9 +34,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
-	import { site } from '$lib/site';
+	import { site } from '#lib/site.js';
 
 	// The error page speaks for the site, so it offers the site's box and not the author's. The
 	// annotation is what makes renaming the box in site.config.yaml fail here rather than ship an

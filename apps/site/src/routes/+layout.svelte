@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { browser, dev } from '$app/environment';
+	import { browser, dev } from '$app/env';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { settleBrevity, shortenTitles } from '@canmi/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/referer';
 	import { graph, ldJson, person, profiles } from '@canmi/social/structured';
-	import { websiteEntity } from '$lib/entities';
+	import { websiteEntity } from '#lib/entities.js';
 	import { hints, scriptPolicy } from '@canmi/hints';
 	import { URLS } from '@canmi/urls';
 	import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
-	import { advance, readTrail, writeTrail } from '$lib/article/trail';
+	import { advance, readTrail, writeTrail } from '#lib/article/trail.js';
 	import { leaveArrival } from '@canmi/behavior/arrival';
-	import { installFocusSourceTracker } from '$lib/client/focus-source';
-	import { goTo, keepPlace, placeOf } from '$lib/client/scroll';
-	import { followPointerKind, warmWhatThePointerRests } from '$lib/client/warm.svelte';
-	import SearchDialog from '$lib/search/dialog.svelte';
-	import { languageTag, localeUrl, SITE_LANGUAGE } from '$lib/locale';
-	import { queryClient, QUERY_CACHE_MAX_AGE } from '$lib/query';
-	import { site } from '$lib/site';
+	import { installFocusSourceTracker } from '#lib/client/focus-source.js';
+	import { goTo, keepPlace, placeOf } from '#lib/client/scroll.js';
+	import { followPointerKind, warmWhatThePointerRests } from '#lib/client/warm.svelte.js';
+	import SearchDialog from '#lib/search/dialog.svelte';
+	import { languageTag, localeUrl, SITE_LANGUAGE } from '#lib/locale/index.js';
+	import { queryClient, QUERY_CACHE_MAX_AGE } from '#lib/query.js';
+	import { site } from '#lib/site.js';
 	import type { LayoutProps } from './$types';
 	import '../styles/app.css';
 	import '@canmi/fonts/mono.css';
@@ -149,7 +149,7 @@
 		if (event.key?.toLowerCase() !== 'i' || !(event.metaKey || event.ctrlKey)) return;
 		if (event.shiftKey || event.altKey) return;
 		event.preventDefault();
-		const { openReport } = await import('$lib/error/report');
+		const { openReport } = await import('#lib/error/report.js');
 		await openReport();
 	}
 
@@ -160,7 +160,9 @@
 	 * Before rather than after, because the navigation renders its page first and both answers
 	 * would already be the new page's by then. See spec/styling/first-paint.md.
 	 */
-	beforeNavigate(({ from }) => {
+	beforeNavigate(({ from, shallow }) => {
+		if (shallow) return;
+
 		leaveArrival();
 		if (from) keepPlace(sessionStorage, from.url.pathname, window.scrollY);
 	});
@@ -174,7 +176,8 @@
 	 * and the first load alike; on the first load `from` is null, which `advance` reads as "trust
 	 * the record only if it claims this page". See $lib/article/trail.ts.
 	 */
-	afterNavigate(({ from, to, type }) => {
+	afterNavigate(({ from, to, type, shallow }) => {
+		if (shallow) return;
 		if (!to) return;
 		if (type !== 'enter') shortenTitles();
 		writeTrail(

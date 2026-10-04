@@ -10,7 +10,7 @@
 import { generateAtomFeed } from 'feedsmith';
 import { URLS } from '@canmi/urls';
 import type { FeedAnswer } from '@canmi/artifacts';
-import { localeUrl, type LocaleCode } from '$lib/locale';
+import { localeUrl, type LocaleCode } from '#lib/locale/index.js';
 
 const SITE = URLS.apps.production.site;
 /** The site's own marks are named rather than hashed, and `symlink` is where a name lives. */

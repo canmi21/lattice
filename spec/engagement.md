@@ -1,7 +1,7 @@
 # Reader engagement
 
 Newsletter subscriptions and likes are mutable reader state. They belong to the site's API, the
-routes in `apps/site/server`, which the site's Worker answers under `/api/` on its own origin; see
+routes in `apps/site/api`, which the site's Worker answers under `/api/` on its own origin; see
 architecture/services.md, "The site's API runs in the site's Worker". None of them is a public
 route of the API host.
 
@@ -287,7 +287,7 @@ the current IP's `liked` boolean together with the global like and subscriber co
 
 The stored IP values are not D1 rate-limit counters. The state query and mutation endpoints are
 limited by `quota`, counted by the caller's address, with a wider allowance for reads.
-`apps/site/server/src/contract/limits.ts` says which route each row covers, in the one format every
+`apps/site/api/src/contract/limits.ts` says which route each row covers, in the one format every
 limit here is written in; see architecture/quota.md.
 
 ## A read is counted by the browser that performed it

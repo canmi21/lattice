@@ -8,7 +8,7 @@ declare module 'virtual:redirects' {
 }
 
 declare module 'virtual:licenses' {
-	import type { LicenseRecord } from '$lib/licenses/record';
+	import type { LicenseRecord } from '#lib/licenses/record.js';
 
 	/**
 	 * Every dependency the deployables ship, keyed by purl. Written by `local licenses` into

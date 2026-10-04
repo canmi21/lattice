@@ -1,6 +1,6 @@
-import { LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
+import { LOCALE_DEPENDENCY } from '#lib/locale/current.svelte.js';
 import { URLS } from '@canmi/urls';
-import { licenseDirectory, packageRows, REGISTRY_NAMES } from '$lib/licenses/directory';
+import { licenseDirectory, packageRows, REGISTRY_NAMES } from '#lib/licenses/directory.js';
 import type { PageServerLoad } from './$types';
 
 export const prerender = false;

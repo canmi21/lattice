@@ -64,26 +64,26 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import Title from '@canmi/behavior/title.svelte';
 	import { imgsrc } from '@canmi/imgsrc';
 	import { pageUrls, URLS } from '@canmi/urls';
 	import Coffee from '@lucide/svelte/icons/coffee';
 	import Lollipop from '@lucide/svelte/icons/lollipop';
-	import ArticleList from '$lib/article/list.svelte';
-	import Modal from '$lib/components/modal.svelte';
-	import PageBody from '$lib/home/body.svelte';
+	import ArticleList from '#lib/article/list.svelte';
+	import Modal from '#lib/components/modal.svelte';
+	import PageBody from '#lib/home/body.svelte';
 	import { SOCIAL } from '@canmi/social';
 	import SocialLinks from '@canmi/social/social-links.svelte';
-	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import { localeUrl } from '$lib/locale';
-	import { warmListed } from '$lib/client/warm.svelte';
-	import { publishedHome } from '$lib/published';
-	import Newsletter from '$lib/newsletter/newsletter.svelte';
-	import { CARD_HEIGHT, CARD_WIDTH, cardUrl, HOME_SLUG } from '$lib/opengraph';
+	import LanguageSwitcher from '#lib/locale/switcher.svelte';
+	import { localeUrl } from '#lib/locale/index.js';
+	import { warmListed } from '#lib/client/warm.svelte.js';
+	import { publishedHome } from '#lib/published/index.js';
+	import Newsletter from '#lib/newsletter/newsletter.svelte';
+	import { CARD_HEIGHT, CARD_WIDTH, cardUrl, HOME_SLUG } from '#lib/opengraph.js';
 	import * as m from '@canmi/messages';
-	import { site } from '$lib/site';
-	import Support from '$lib/support/support.svelte';
+	import { site } from '#lib/site.js';
+	import Support from '#lib/support/support.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

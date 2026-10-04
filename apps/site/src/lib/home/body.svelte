@@ -22,7 +22,7 @@
 	import Icon from '@canmi/prose/icons.svelte';
 	import * as m from '@canmi/messages';
 	import type { PageBlock } from '@canmi/artifacts/types';
-	import type { LocaleCode } from '$lib/locale';
+	import type { LocaleCode } from '#lib/locale/index.js';
 
 	/** `locale` is the view being rendered. Passed rather than read: see
 	 *  spec/locale/addressing.md. */

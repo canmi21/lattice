@@ -15,21 +15,21 @@
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, radius } from '@canmi/tokens/vocabulary.stylex';
 	import { onMount, tick, type Component } from 'svelte';
-	import ArticleTree from '$lib/article-tree.svelte';
-	import { EDGE_MARGINS, provideChrome } from '$lib/chrome.svelte.ts';
-	import ContextMenu, { SEPARATOR, type MenuItem } from '$lib/context-menu.svelte';
-	import SearchGlyph from '$lib/glyphs/search.svelte';
-	import SidebarHidden from '$lib/glyphs/sidebar-hidden.svelte';
-	import SidebarShown from '$lib/glyphs/sidebar-shown.svelte';
-	import { arriving, leaving, Movement } from '$lib/movement.ts';
+	import ArticleTree from '#lib/article-tree.svelte';
+	import { EDGE_MARGINS, provideChrome } from '#lib/chrome.svelte.ts';
+	import ContextMenu, { SEPARATOR, type MenuItem } from '#lib/context-menu.svelte';
+	import SearchGlyph from '#lib/glyphs/search.svelte';
+	import SidebarHidden from '#lib/glyphs/sidebar-hidden.svelte';
+	import SidebarShown from '#lib/glyphs/sidebar-shown.svelte';
+	import { arriving, leaving, Movement } from '#lib/movement.ts';
 	import {
 		FOLD_BELOW,
 		FOLDED_ATTRIBUTE,
 		FOLDED_KEY,
 		SIDEBAR,
 		sidebarStyles,
-	} from '$lib/sidebar.ts';
-	import { ITEM, rows } from '$lib/sidebar-rows.ts';
+	} from '#lib/sidebar.ts';
+	import { ITEM, rows } from '#lib/sidebar-rows.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -103,7 +103,7 @@
 	let divider = $state<HTMLElement>();
 	let float: HTMLElement;
 
-	/** Every movement of the sidebar, one at a time. See `$lib/movement.ts`. */
+	/** Every movement of the sidebar, one at a time. See `#lib/movement.ts`. */
 	const movement = new Movement();
 	const play = (keyframes: Keyframe[], pixels: number) => movement.play(nav, keyframes, pixels);
 	const release = (animation: Animation | undefined) => movement.release(animation);
@@ -243,24 +243,22 @@
 	});
 
 	// Choosing somewhere to go is what a lifted sidebar was for.
-	afterNavigate(() => void lower());
+	afterNavigate(({ shallow }) => {
+		if (shallow) return;
+
+		return void lower();
+	});
 
 	const LINE =
 		'linear-gradient(to right, transparent calc(50% - 1px), var(--color-border-strong) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px))';
 
-	// The page is laid out as a ground with the content pane set on it: the section column is the
-	// ground itself, and the pane is the site's own page color with a corner, so what is being
-	// written sits on exactly the ground a reader sees it on. See spec/architecture/local.md.
 	const styles = stylex.create({
 		pane: { borderRadius: radius.xl },
 		veil: {
-			// Solid only at the very edge, and fading all the way up: no band of it covers a whole line.
 			backgroundImage: 'linear-gradient(to top, var(--color-page), transparent)',
 			borderBottomLeftRadius: radius.xl,
 			borderBottomRightRadius: radius.xl,
 		},
-		// The notice a drag asking to fold stands in front of the receding sidebar with: what letting
-		// go will do, said on the region it will happen to.
 		notice: {
 			color: 'var(--color-text-strong)',
 			backgroundColor: 'var(--color-page)',
@@ -269,8 +267,6 @@
 			borderStyle: 'dashed',
 			borderColor: 'var(--color-border-strong)',
 		},
-		// The divider draws nothing at rest; a line appears down its middle while it is pointed at,
-		// held or focused, which is the only time it is anything but the gap between two regions.
 		handle: {
 			backgroundImage: {
 				default: 'none',
@@ -280,16 +276,11 @@
 			},
 			outlineStyle: { default: null, ':focus-visible': 'none' },
 		},
-		// The sidebar's own ground, so the control reads as part of the chrome around the pane rather
-		// than as a menu over it.
 		float: {
 			backgroundColor: 'var(--color-paper-hover)',
 			borderRadius: radius.lg,
 			boxShadow: '0 0.25rem 1rem oklch(0 0 0 / 0.14), 0 0 0 1px var(--color-border)',
 		},
-		// Lit at rest, like the toolbar's, and answered in the pane's color: on the sidebar's ground
-		// the quiet control's own hover color is the ground itself. Its corner follows the float's,
-		// a rounded rectangle inside a rounded rectangle, rather than the toolbar's circle.
 		floatControl: {
 			color: 'var(--color-text-strong)',
 			borderRadius: radius.md,
@@ -321,7 +312,7 @@
 	</a>
 {/snippet}
 
-<svelte:document onpointermove={moved} onpointerdown={pressed} onkeydown={key} />
+<svelte:document onpointermove={moved} onpointerdown={pressed} onkeydown={key}></svelte:document>
 
 <svelte:head>
 	<!-- Built from the sidebar's constants, which a stylesheet cannot read. Raw, and stated rather

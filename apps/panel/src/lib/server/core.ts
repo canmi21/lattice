@@ -3,8 +3,8 @@
  * with the visitor's own token, since the panel holds none. See spec/architecture/host.md, "The
  * panel is an app of its own".
  */
-import { dev } from '$app/environment';
-import { env } from '$env/dynamic/private';
+import { dev } from '$app/env';
+import { HOST_API, HOST_TOKEN } from '$app/env/private';
 import { URLS } from '@canmi/urls';
 import type { ApiResponse } from '@canmi/response';
 
@@ -15,10 +15,10 @@ export const SESSION = 'host_token';
  * Where host answers. In development there is no host beside the panel, so it asks the running
  * panel on the machine, which passes the request on as it passes on any other.
  */
-export const CORE = env.HOST_API || (dev ? URLS.internal.panel : URLS.internal.host);
+export const CORE = HOST_API || (dev ? URLS.internal.panel : URLS.internal.host);
 
 /** In development only: the token mise decrypts, so a development panel reads a real host. */
-const DEVELOPMENT_TOKEN = dev ? env.HOST_TOKEN : undefined;
+const DEVELOPMENT_TOKEN = dev ? HOST_TOKEN : undefined;
 
 /** Headers a request carries on to host, and nothing else of what the browser sent. */
 const CARRIED = ['accept', 'content-type', 'authorization'];

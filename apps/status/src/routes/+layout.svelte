@@ -111,9 +111,9 @@
 	import { ACCOUNTS } from '@canmi/social';
 	import SocialLinks from '@canmi/social/social-links.svelte';
 	import { onMount, type Snippet } from 'svelte';
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import { resolve } from '$app/paths';
-	import { projectUrl } from '$lib/source';
+	import { projectUrl } from '#lib/source.js';
 	import type { LayoutData } from './$types';
 	import '../app.css';
 

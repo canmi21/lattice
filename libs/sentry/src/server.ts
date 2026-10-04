@@ -1,5 +1,5 @@
 import { initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { initOptions, type SentryApp } from './options.ts';
 
 export type { SentryApp } from './options.ts';

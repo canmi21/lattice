@@ -1,10 +1,11 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
+import { env as worker, waitUntil } from 'cloudflare:workers';
 import api, { PUBLIC_ROUTES } from '@canmi/site-api';
 import { read, SHAPES, type Route } from '@canmi/site-api/routes';
 import { failure } from '@canmi/response';
 import { URLS } from '@canmi/urls';
 import type { RequestEvent } from '@sveltejs/kit';
-import { readAddress } from '$lib/api';
+import { readAddress } from '#lib/api.js';
 
 /** Where the site's pages ask its API, on the site's own origin. */
 export const API_PREFIX = '/api/';
@@ -24,9 +25,13 @@ function publicV1(path: string): { route: Route; query: Record<string, string> }
 	return undefined;
 }
 
-/** The API's bindings: the Worker's own, with the records read from the tree in development. */
-async function bindings(event: RequestEvent): Promise<Record<string, unknown>> {
-	const env: Record<string, unknown> = { ...event.platform?.env };
+/**
+ * The API's bindings: the Worker's own, with the records read from the tree in development. They
+ * come from `cloudflare:workers`, which the adapter emulates under `vite dev`; `event.platform`
+ * carries none since SvelteKit 3.
+ */
+async function bindings(): Promise<Record<string, unknown>> {
+	const env: Record<string, unknown> = { ...(worker as unknown as Record<string, unknown>) };
 	// `ASSETS` is the site's build, not the records; the API reads the bucket in production and the
 	// tree in development, where the bucket the adapter emulates is empty.
 	delete env.ASSETS;
@@ -56,14 +61,13 @@ export async function answer(event: RequestEvent): Promise<Response | undefined>
 		: outside
 			? undefined
 			: readAddress(segment);
+
 	if (!asked) return failure(404, 'no_such_route');
 
 	const inner = new URL(url);
 	inner.pathname = `/${asked.route}`;
 	for (const [name, value] of Object.entries(asked.query)) inner.searchParams.set(name, value);
-	return api.fetch(
-		new Request(inner, event.request),
-		await bindings(event),
-		event.platform?.context,
-	);
+	// The API asks only `waitUntil` of its context; the Worker's own comes from the same module.
+	const context = { waitUntil, passThroughOnException: () => {}, props: {} } as ExecutionContext;
+	return api.fetch(new Request(inner, event.request), await bindings(), context);
 }

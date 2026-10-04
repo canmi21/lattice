@@ -51,16 +51,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
-	import type { LocaleCode } from '$lib/locale';
-	import { chooseLocale } from '$lib/locale/current.svelte';
+	import type { LocaleCode } from '#lib/locale/index.js';
+	import { chooseLocale } from '#lib/locale/current.svelte.js';
 	import {
 		contentLanguageHref,
 		languageName,
 		publishedLabel,
 		sourceCode,
 		sourceLanguageName,
-	} from '$lib/locale/switcher';
-	import { fillSlot } from '$lib/locale/spacing';
+	} from '#lib/locale/switcher.js';
+	import { fillSlot } from '#lib/locale/spacing.js';
 	import * as m from '@canmi/messages';
 
 	type TranslationCode = Exclude<LocaleCode, 'mw'>;

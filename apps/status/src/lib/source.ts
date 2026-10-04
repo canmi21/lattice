@@ -4,7 +4,7 @@
  * the same key, for the broadcasts. See spec/architecture/probe.md, "The page reads PostgREST with
  * the anon key, from views alone, once; after that it is told".
  */
-import { env } from '$env/dynamic/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$app/env/public';
 import type { StatusCheckRow, StatusDailyRow, StatusNowRow } from '@canmi/status-schema';
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { RealtimeClient } from '@supabase/realtime-js';
@@ -34,8 +34,8 @@ export const CHANNEL = 'status';
 export const EVENT = 'results';
 
 function project(): { url: string; key: string } {
-	const url = env.PUBLIC_SUPABASE_URL;
-	const key = env.PUBLIC_SUPABASE_ANON_KEY;
+	const url = PUBLIC_SUPABASE_URL;
+	const key = PUBLIC_SUPABASE_ANON_KEY;
 	if (!url || !key) {
 		throw new Error('PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_ANON_KEY must both be set');
 	}
@@ -44,7 +44,7 @@ function project(): { url: string; key: string } {
 
 /** The project's address for a page to reach early, or nothing where it is not configured. */
 export function projectUrl(): string | undefined {
-	return env.PUBLIC_SUPABASE_URL?.replace(/\/$/, '') || undefined;
+	return PUBLIC_SUPABASE_URL?.replace(/\/$/, '') || undefined;
 }
 
 export function statusClient(fetch?: typeof globalThis.fetch): Client {
@@ -59,6 +59,7 @@ export function statusClient(fetch?: typeof globalThis.fetch): Client {
 /** The key as `apikey` alone: a public channel is joined with no user's token. */
 export function statusRealtime(): RealtimeClient {
 	const { url, key } = project();
+
 	return new RealtimeClient(`${url.replace(/^http/, 'ws')}/realtime/v1`, {
 		params: { apikey: key },
 	});

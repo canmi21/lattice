@@ -1,10 +1,10 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { ReadAnswerSchema, unwrapAs, type ReadAnswer } from '@canmi/artifacts';
 import { createQuery } from '@tanstack/svelte-query';
-import { apiPath } from '$lib/api';
-import { askBatch } from '$lib/published';
+import { apiPath } from '#lib/api.js';
+import { askBatch } from '#lib/published/index.js';
 import { createBatcher } from './batch';
-import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
+import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
 
 export const READS_QUERY_KEY = 'reads';
 

@@ -1,14 +1,14 @@
-import { building, dev } from '$app/environment';
+import type { RequestEvent } from '@sveltejs/kit';
+import { building, dev } from '$app/env';
 import { fillTheme, themeOf } from '@canmi/theme';
 import { normalizedLocation, URLS } from '@canmi/urls';
 import { serverHandles } from '@canmi/sentry/server';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
-import type { Handle, RequestEvent } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
+import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { articleRailScript } from '@canmi/prose/rail';
 import { articleHashScript } from '@canmi/prose/toc';
-import { videoGroundScript } from '$lib/client/ground';
-import { measuredGroundScript } from '$lib/client/measured-ground';
+import { videoGroundScript } from '#lib/client/ground.js';
+import { measuredGroundScript } from '#lib/client/measured-ground.js';
 import {
 	LANGUAGE_COOKIE_MAX_AGE,
 	languageTag,
@@ -16,14 +16,14 @@ import {
 	privateHtml,
 	resolveLocale,
 	SITE_LANGUAGE,
-} from '$lib/locale';
-import { HOME_SLUG } from '$lib/opengraph';
+} from '#lib/locale/index.js';
+import { HOME_SLUG } from '#lib/opengraph.js';
 import { SIGNAL_HEADERS } from '@canmi/robots';
-import { articleAgentView, homeAgentView, pageAddress } from '$lib/server/agent-pages';
-import { prefersMarkdown, tokensIn } from '$lib/server/markdown';
-import { publishedMarkdown, publishedMetadata } from '$lib/published';
-import { answer as apiAnswer } from '$lib/server/api';
-import { registerServerStrategy } from '$lib/locale/paraglide';
+import { articleAgentView, homeAgentView, pageAddress } from '#lib/server/agent-pages.js';
+import { prefersMarkdown, tokensIn } from '#lib/server/markdown.js';
+import { publishedMarkdown, publishedMetadata } from '#lib/published/index.js';
+import { answer as apiAnswer } from '#lib/server/api.js';
+import { registerServerStrategy } from '#lib/locale/paraglide.js';
 
 registerServerStrategy();
 
@@ -193,8 +193,7 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 		transformPageChunk: ({ html }) =>
 			hoistCharset(
 				fillTheme(html, theme)
-					.replace('%language.tag%', event.locals.locale?.language_tag ?? 'en-US')
-					// The internal code for the client-side Paraglide strategy. The rendered
+					.replace('%language.tag%', event.locals.locale?.language_tag ?? 'en-US') // The internal code for the client-side Paraglide strategy. The rendered
 					// document is the authoritative result of the worker's full negotiation.
 					.replace('%language.code%', event.locals.locale?.code ?? 'mw')
 					.replace('%article.hash.script%', isPage ? articleHashScript : '')
@@ -274,7 +273,6 @@ export const handle = sequence(
 );
 
 /** The same stamp from the other side; see hooks.client.ts. */
-export const handleError = handleErrorWithSentry(({ message }): App.Error => ({
-	message,
-	origin: 'server',
-}));
+export const handleError = handleErrorWithSentry(({ kind }) =>
+	kind === 'unknown' ? { origin: 'server' as const } : undefined,
+);

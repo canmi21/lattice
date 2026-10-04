@@ -37,7 +37,7 @@ const TREES: { dir: string; only?: RegExp }[] = [
 ];
 
 /** The configs that decide how those sheets are compiled, layered and split per route. */
-const FILES = [join(SITE, 'vite.config.ts'), join(SITE, 'svelte.config.js')];
+const FILES = [join(SITE, 'vite.config.ts')];
 
 /**
  * What to print when the build is not the one this tree produces, or nothing when it is.

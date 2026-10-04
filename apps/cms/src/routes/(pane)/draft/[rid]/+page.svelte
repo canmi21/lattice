@@ -24,11 +24,11 @@
 	import { edgeReveal } from '@canmi/behavior/edge';
 	import { surfaces } from '@canmi/tokens/surfaces';
 	import { border, family, figures, radius, text } from '@canmi/tokens/vocabulary.stylex';
-	import Editor from '$lib/editor.svelte';
-	import { forget, recall, remember } from '$lib/buffer.ts';
-	import { EDGE_MARGINS, useChrome } from '$lib/chrome.svelte.ts';
-	import { floating } from '$lib/floating.ts';
-	import { arriving, leaving, Movement } from '$lib/movement.ts';
+	import Editor from '#lib/editor.svelte';
+	import { forget, recall, remember } from '#lib/buffer.ts';
+	import { EDGE_MARGINS, useChrome } from '#lib/chrome.svelte.ts';
+	import { floating } from '#lib/floating.ts';
+	import { arriving, leaving, Movement } from '#lib/movement.ts';
 	import {
 		DRAFTS,
 		splitPath,
@@ -36,7 +36,7 @@
 		publishDraft,
 		saveDraft,
 		type Publication,
-	} from '$lib/collection.ts';
+	} from '#lib/collection.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

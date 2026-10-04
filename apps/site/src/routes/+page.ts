@@ -1,8 +1,8 @@
-import { thumbnails } from '$lib/article/thumbnail';
+import { thumbnails } from '#lib/article/thumbnail.js';
 import { fontOfClass, measured } from '@canmi/prose/measured';
-import { homepageContent } from '$lib/home/content';
-import { orReload, publishedHome } from '$lib/published';
-import { currentLocale, LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
+import { homepageContent } from '#lib/home/content.js';
+import { orReload, publishedHome } from '#lib/published/index.js';
+import { currentLocale, LOCALE_DEPENDENCY } from '#lib/locale/current.svelte.js';
 import type { PageLoad } from './$types';
 
 // HTML passes through the Worker so the site-wide private/no-store rule also applies here.

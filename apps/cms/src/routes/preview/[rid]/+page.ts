@@ -1,4 +1,4 @@
-import { previewDraft, readDraft } from '$lib/collection.ts';
+import { previewDraft, readDraft } from '#lib/collection.ts';
 import type { PageLoad } from './$types';
 
 /** The draft compiled the way the site compiles a published one, rendered with the page. */

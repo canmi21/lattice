@@ -1,7 +1,7 @@
 // Whether this visitor is signed in, and the machine's name, read once on the server so the first
 // paint is the right one: the sign-in form, or the panel.
-import { read, SESSION, SignedOut } from '$lib/server/core';
-import type { MachineInfo, Sample } from '$lib/api';
+import { read, SESSION, SignedOut } from '#lib/server/core.js';
+import type { MachineInfo, Sample } from '#lib/api.js';
 import type { LayoutServerLoad } from './$types';
 
 // The path's spelling is the entry point's to settle, by the one rule every server shares, before

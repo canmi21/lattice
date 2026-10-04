@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import ClientError from '$lib/error/client.svelte';
-	import StatusError from '$lib/error/status.svelte';
-	import type { LocaleCode } from '$lib/locale';
+	import ClientError from '#lib/error/client.svelte';
+	import StatusError from '#lib/error/status.svelte';
+	import type { LocaleCode } from '#lib/locale/index.js';
 
 	// The view being rendered, read off what the server stamped. An error page still answers in
 	// the language the reader asked for. See spec/locale/addressing.md.

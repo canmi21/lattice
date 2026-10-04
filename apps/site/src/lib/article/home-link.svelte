@@ -37,8 +37,8 @@
 	import { afterNavigate } from '$app/navigation';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import { animate } from 'motion';
-	import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '$lib/client/units';
-	import type { LocaleCode } from '$lib/locale';
+	import { DEFAULT_PIXELS_PER_REM, remFromMeasuredPixels } from '#lib/client/units.js';
+	import type { LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
 	import { homeRestingCenter, railEndOffset } from '@canmi/prose/rail';
 	import { backTarget, readTrail } from './trail';
@@ -64,7 +64,9 @@
 	 */
 	let href = $state('/');
 
-	afterNavigate(() => {
+	afterNavigate(({ shallow }) => {
+		if (shallow) return;
+
 		href = backTarget(readTrail(sessionStorage));
 	});
 

@@ -1,5 +1,5 @@
-import { SESSION, tryRead } from '$lib/server/core';
-import type { Route } from '$lib/api';
+import { SESSION, tryRead } from '#lib/server/core.js';
+import type { Route } from '#lib/api.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies }) => ({

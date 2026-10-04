@@ -1,4 +1,4 @@
-import { LOCALE_DEPENDENCY } from '$lib/locale/current.svelte';
+import { LOCALE_DEPENDENCY } from '#lib/locale/current.svelte.js';
 import { error } from '@sveltejs/kit';
 import { URLS } from '@canmi/urls';
 import {
@@ -9,8 +9,8 @@ import {
 	licenseTerms,
 	packagePagePath,
 	registryPackageUrl,
-} from '$lib/licenses';
-import { packageForRoute, REGISTRY_NAMES } from '$lib/licenses/directory';
+} from '#lib/licenses/index.js';
+import { packageForRoute, REGISTRY_NAMES } from '#lib/licenses/directory.js';
 import type { PageServerLoad } from './$types';
 
 export const prerender = false;

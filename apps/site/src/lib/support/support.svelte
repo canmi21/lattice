@@ -100,14 +100,14 @@
 	import Star from '@lucide/svelte/icons/star';
 	import { animate } from 'motion';
 	import { reader, tab } from '@canmi/behavior/state';
-	import { remFromMeasuredPixels } from '$lib/client/units';
+	import { remFromMeasuredPixels } from '#lib/client/units.js';
 	import { page } from '$app/state';
 	import {
 		createLikedQuery,
 		createLikeMutation,
 		createStatsQuery,
-	} from '$lib/engagement/engagement.svelte';
-	import { PUBLIC_LANGUAGE, type LocaleCode } from '$lib/locale';
+	} from '#lib/engagement/engagement.svelte.js';
+	import { PUBLIC_LANGUAGE, type LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
 	import { intlLocale } from '@canmi/locales/format';
 

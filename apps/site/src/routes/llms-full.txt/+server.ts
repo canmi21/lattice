@@ -1,6 +1,6 @@
-import { buildLlmsFull } from '$lib/documents/llms';
-import { articleAgentView } from '$lib/server/agent-pages';
-import { llmsInput } from '$lib/server/llms';
+import { buildLlmsFull } from '#lib/documents/llms.js';
+import { articleAgentView } from '#lib/server/agent-pages.js';
+import { llmsInput } from '#lib/server/llms.js';
 import type { RequestHandler } from './$types';
 
 export const prerender = false;

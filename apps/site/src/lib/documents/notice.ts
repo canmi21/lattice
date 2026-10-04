@@ -7,7 +7,7 @@
  * column, so there is no short reading, and no cookie to set, so the link is an ordinary one to
  * the source view. See spec/locale/views.md.
  */
-// Relative, not `$lib`: that alias is SvelteKit's and only Vite resolves it, while this module
+// Relative, not `#lib`: that alias is SvelteKit's and only Vite resolves it, while this module
 // is loaded directly by the workspace's own vitest. The compiler beside it does the same.
 import { escapeHtml } from '@canmi/artifacts';
 import type { LocaleCode } from '../locale/index.ts';

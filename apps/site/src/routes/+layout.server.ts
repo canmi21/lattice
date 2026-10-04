@@ -1,8 +1,8 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { marksOf } from '@canmi/symlink';
 import { pickUrls } from '@canmi/urls';
-import { SITE_LANGUAGE } from '$lib/locale';
-import { siteStats } from '$lib/published';
+import { SITE_LANGUAGE } from '#lib/locale/index.js';
+import { siteStats } from '#lib/published/index.js';
 import type { LayoutServerLoad } from './$types';
 
 // The path's spelling is the entry point's to settle, by the one rule every server shares, before

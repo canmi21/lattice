@@ -105,23 +105,23 @@
 
 <script lang="ts">
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
-	import Counter from '$lib/components/counter.svelte';
+	import Counter from '#lib/components/counter.svelte';
 	import {
 		createCancelMutation,
 		createStatsQuery,
 		createNewsletterMutation,
 		readSubscription,
 		type Subscription,
-	} from '$lib/engagement/engagement.svelte';
-	import type { LocaleCode } from '$lib/locale';
-	import { maskEmail } from '$lib/newsletter/mask';
+	} from '#lib/engagement/engagement.svelte.js';
+	import type { LocaleCode } from '#lib/locale/index.js';
+	import { maskEmail } from '#lib/newsletter/mask.js';
 	import {
 		REVERSE,
 		REVERSE_TOTAL,
 		SEQUENCE,
 		SEQUENCE_TOTAL,
 		sequenceStyle,
-	} from '$lib/newsletter/sequence';
+	} from '#lib/newsletter/sequence.js';
 	import * as m from '@canmi/messages';
 
 	let {

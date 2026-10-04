@@ -7,11 +7,11 @@
  * See spec/architecture/artifacts.md, "The site keeps serving when the API does not".
  */
 
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { unwrap } from '@canmi/artifacts';
 import { PUBLICATION_DELAY, WHILE_UNREACHABLE } from '@canmi/cache';
 import { URLS } from '@canmi/urls';
-import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '$lib/query';
+import { queryClient, QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
 
 type Fetch = typeof fetch;
 

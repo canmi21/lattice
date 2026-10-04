@@ -132,7 +132,7 @@ account system is what lets the editor stop being a second origin; after it, the
 router rather than two, and configuration that already agrees is configuration that does not
 have to be reconciled. See [../todo/milestones.md](../todo/milestones.md), D3 and D4.
 
-So: read the site's `vite.config.ts`, `svelte.config.js`, `app.html` and `styles/app.css`
+So: read the site's `vite.config.ts`, `app.html` and `styles/app.css`
 before deciding the editor needs something of its own. What genuinely differs is worth a
 comment saying which of the two this one is and why.
 
@@ -205,7 +205,7 @@ tooltips and surrounding statistics use the same surfaces as the rest of the sit
 
 Type checking runs three times, over three programs: [tsconfig.json](../../tsconfig.json) for the
 browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the Workers and the code only they run -- `libs/store`, the site's API in `apps/site/server` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
+for the Workers and the code only they run -- `libs/store`, the site's API in `apps/site/api` -- and [tsconfig.scripts.json](../../tsconfig.scripts.json) for
 the node programs under an app's `scripts/`.
 
 The split is forced rather than chosen. `@cloudflare/workers-types` declares its own

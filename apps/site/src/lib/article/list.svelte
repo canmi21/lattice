@@ -6,7 +6,7 @@
 
 <script lang="ts">
 	import { animate } from 'motion';
-	import { remFromDefaultPixels, remFromMeasuredPixels } from '$lib/client/units';
+	import { remFromDefaultPixels, remFromMeasuredPixels } from '#lib/client/units.js';
 	import ArticleCard from '@canmi/prose/card.svelte';
 	import { thumbnails, type Bar } from './thumbnail';
 

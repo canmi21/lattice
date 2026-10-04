@@ -25,10 +25,10 @@
 			"binding": "DATABASE",
 			"database_name": "api",
 			"database_id": "959379fe-f528-4304-9f40-3e1c957208fe",
-			"migrations_dir": "server/drizzle",
+			"migrations_dir": "api/drizzle",
 		},
 	],
-	// `quota`'s inside door, which counts apps/site/server/src/contract/limits.ts and the read
+	// `quota`'s inside door, which counts apps/site/api/src/contract/limits.ts and the read
 	// counter's own minute. See spec/architecture/quota.md.
 	"services": [{ "binding": "QUOTA", "service": "quota", "entrypoint": "Internal" }],
 

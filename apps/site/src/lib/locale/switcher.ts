@@ -277,8 +277,12 @@ export function selectContentLanguage(
 }
 
 /** Preserve unrelated query state while asking the worker for another article view. */
-export function contentLanguageHref(selectedCode: LocaleCode, currentUrl: URL): string {
-	const target = new URL(currentUrl);
+export function contentLanguageHref(
+	selectedCode: LocaleCode,
+	currentUrl: { readonly href: string },
+): string {
+	// A copy: the page's own URL is readonly since SvelteKit 3.
+	const target = new URL(currentUrl.href);
 	target.searchParams.set('lang', selectedCode);
 	return `${target.pathname}${target.search}${target.hash}`;
 }

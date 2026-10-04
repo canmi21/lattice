@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
-	import { api } from '$lib/api';
-	import Login from '$lib/login.svelte';
-	import { arrive } from '$lib/motion';
-	import { session } from '$lib/session.svelte';
-	import Sidebar from '$lib/sidebar.svelte';
+	import { api } from '#lib/api.js';
+	import Login from '#lib/login.svelte';
+	import { arrive } from '#lib/motion.js';
+	import { session } from '#lib/session.svelte.js';
+	import Sidebar from '#lib/sidebar.svelte';
 	import '../panel.css';
 
 	import type { LayoutData } from './$types';

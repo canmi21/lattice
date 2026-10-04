@@ -3,8 +3,8 @@
  * with host. Never under `/api/`, which is host's own. See spec/architecture/ledger.md, "Read by
  * the panel", and spec/architecture/host.md, "The panel is an app of its own".
  */
-import { SESSION } from '$lib/server/core';
-import { ledger } from '$lib/server/ledger';
+import { SESSION } from '#lib/server/core.js';
+import { ledger } from '#lib/server/ledger.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, url, cookies }) => {

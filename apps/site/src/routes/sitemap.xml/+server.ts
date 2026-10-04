@@ -1,5 +1,5 @@
 import { ownRoot, peerEntries, type SitemapEntry, sitemapXml } from '@canmi/robots';
-import { publishedSitemap } from '$lib/published';
+import { publishedSitemap } from '#lib/published/index.js';
 import type { RequestHandler } from './$types';
 
 type Entry = SitemapEntry;

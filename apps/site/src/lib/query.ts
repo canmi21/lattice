@@ -6,7 +6,7 @@
  * is how long an answer stays worth restoring from storage after the tab is gone -- a different
  * question from whether it is still fresh, which is what the five minutes answers.
  */
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { PUBLICATION_DELAY } from '@canmi/cache';
 import { QueryClient } from '@tanstack/svelte-query';
 

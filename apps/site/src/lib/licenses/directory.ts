@@ -8,7 +8,7 @@ import {
 	routePath,
 	type LicensePackage,
 	type PackageCoordinates,
-} from '$lib/licenses';
+} from '#lib/licenses/index.js';
 
 export const REGISTRY_NAMES: Record<string, string> = {
 	cargo: 'crates.io',

@@ -1,6 +1,6 @@
 import { liteClient } from 'algoliasearch/lite';
-import { site } from '$lib/site';
-import type { LocaleCode } from '$lib/locale/index.ts';
+import { site } from '#lib/site.js';
+import type { LocaleCode } from '#lib/locale/index.ts';
 import { MARK_CLOSE, MARK_OPEN, type SearchHit } from './query.ts';
 
 /**

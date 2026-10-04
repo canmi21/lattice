@@ -3,7 +3,7 @@
  */
 import { authorRef, SITE_ID } from '@canmi/social/structured';
 import { URLS } from '@canmi/urls';
-import { site } from '$lib/site';
+import { site } from '#lib/site.js';
 
 /** The site, from the config the chrome reads, so its name is said once. */
 export function websiteEntity() {

@@ -134,13 +134,13 @@
 </script>
 
 <script lang="ts">
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import { pageUrls, URLS } from '@canmi/urls';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import FileText from '@lucide/svelte/icons/file-text';
-	import { localeUrl } from '$lib/locale';
-	import LanguageSwitcher from '$lib/locale/switcher.svelte';
-	import { githubAvatar, textUrl } from '$lib/licenses';
+	import { localeUrl } from '#lib/locale/index.js';
+	import LanguageSwitcher from '#lib/locale/switcher.svelte';
+	import { githubAvatar, textUrl } from '#lib/licenses/index.js';
 	import * as m from '@canmi/messages';
 	import type { PageData } from './$types';
 
@@ -407,9 +407,10 @@
 											target="_blank"
 											rel="noopener"
 											class="focus-link spring-underline article-link min-w-0 truncate"
-											>{author.name}
-											<span class={stylex.attrs(styles.handle).class}>@{author.github}</span></a
 										>
+											{author.name}
+											<span class={stylex.attrs(styles.handle).class}>@{author.github}</span>
+										</a>
 									{:else}
 										<span class="min-w-0 {stylex.attrs(styles.authorName).class}"
 											>{author.name}</span
