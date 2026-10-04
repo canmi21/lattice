@@ -259,7 +259,7 @@ and the rate limiter host renders each service's limits into; declared, versione
 shown in the panel as every app is. The shape differs from an app's sandbox in four things:
 
 - Its ports, 80, 443 and 443 over UDP, are published on the machine; no other container publishes
-  any.
+  any but the resolver, which publishes DNS's.
 - It stands on the `edge` network, which the tunnel shares, rather than on one of its own, and
   after every deploy host joins it to each app's network again, since a new container is on none.
 - Beside its `data/` -- certificates, and the admin socket -- it mounts `host/`, the configuration
@@ -306,6 +306,36 @@ internal gateway reaches every service at home.
 challenge as `canmi.icu` has, and hands them to the internal gateway. It sets `Cf-Connecting-Ip` to
 the address it was asked from, over whatever the caller sent, which is the one place the internal
 gateway takes a caller's address from.
+
+### The resolver answers the gateway's names, and passes the rest on
+
+**The house's DNS is `apps/resolver`, CoreDNS adopted from upstream, in a shape its name alone
+gets**: sandboxed as an app is, and publishing 53 over UDP and TCP on the machine, the one container
+beside Caddy that publishes anything. host renders its whole configuration, as it does Caddy's, and
+nothing about it is written by hand.
+
+**A query passes down one chain, and a step that fails is skipped, never waited on:**
+
+1. **The gateway's names**, every one `GATEWAY_HOSTS` holds, answered in the resolver's own process
+   with the node's address, so the LAN and the tailnet reach the internal gateway. Nothing outside
+   the process is asked, so this step has nothing to fail on.
+2. **A filter**, when one is deployed -- an ad blocker, say -- asked first for every other name. It
+   is in the chain because it runs, and out of it because it does not, with nothing changed by
+   hand. A name it blocks comes back blocked: that is an answer, not a failure, and is not asked
+   again further down. Its own upstream is the router or a public resolver, never this one, or a
+   query would go round in a circle.
+3. **The router**, then **the public resolvers**, from host's configuration, since they are the
+   node's.
+
+From step 2 on, each is asked in that order, the first that answers wins, and one that is down --
+timing out, refusing, failing its health check -- is passed over until it answers again. A cache
+sits in front, so the chain is walked once per answer's lifetime.
+
+**The resolver is the house's first DNS, and the router its second.** DHCP hands both out: with the
+node down, a device falls back to the router, reaches the gateway's names through Cloudflare as the
+public does, and loses only the filter. The router's own upstream is never the node, for the same
+circle's sake. Devices away from home on the tailnet ask it too, for the gateway's zones alone, by
+the tailnet's split DNS.
 
 ### An upstream image is adopted, not rebuilt
 

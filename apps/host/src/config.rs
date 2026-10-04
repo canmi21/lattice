@@ -27,6 +27,20 @@ pub struct Config {
 	/// The node's one `.env`, which keeper is started with as host is.
 	pub platform_env: PathBuf,
 	pub caddy: CaddyConfig,
+	pub resolver: ResolverConfig,
+}
+
+/// The house's DNS: where host writes its configuration, the node's LAN address it answers the
+/// gateway's names with and publishes DNS on, and what it asks after its own names. See
+/// spec/architecture/host.md, "The resolver answers the gateway's names, and passes the rest on".
+#[derive(Debug, Clone)]
+pub struct ResolverConfig {
+	/// The Corefile, as this container sees it.
+	pub file: PathBuf,
+	/// Unset on a node that runs no resolver, which then neither renders nor deploys one.
+	pub address: Option<String>,
+	/// The router, then the public resolvers, in the order they are asked.
+	pub upstreams: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -97,6 +111,14 @@ impl Config {
 				tunnel_source: required("TUNNEL_SOURCE")?,
 				acme_email: required("ACME_EMAIL")?,
 				dns_resolver: optional("DNS_RESOLVER", "1.1.1.1"),
+			},
+			resolver: ResolverConfig {
+				file: apps_root.join("resolver").join("host").join("Corefile"),
+				address: std::env::var("LAN_ADDRESS").ok().filter(|value| !value.is_empty()),
+				upstreams: optional("RESOLVER_UPSTREAMS", "1.1.1.1 1.0.0.1")
+					.split_whitespace()
+					.map(str::to_owned)
+					.collect(),
 			},
 			apps_root,
 		})

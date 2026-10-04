@@ -11,6 +11,7 @@ mod environment;
 mod images;
 mod inspect;
 mod node;
+mod resolver;
 mod rollout;
 mod sidecars;
 mod store;

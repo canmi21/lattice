@@ -77,6 +77,10 @@ pub enum Shape {
 	/// directory, `meter`, bound read-only at `socket_mount("meter")`. See
 	/// spec/architecture/telemetry.md, "Where it comes from".
 	Reporter { env: Vec<String>, meter: PathBuf },
+	/// The resolver only: sandboxed on its own network, DNS published on the node's LAN `address`
+	/// alone, and its configuration, which host writes, read-only. See spec/architecture/host.md,
+	/// "The resolver answers the gateway's names, and passes the rest on".
+	Resolver { env: Vec<String>, address: String },
 }
 
 impl Shape {
@@ -97,6 +101,13 @@ pub const EDGE_PORTS: [&str; 3] = ["80/tcp", "443/tcp", "443/udp"];
 /// configuration, read-only, and Caddy's own configuration state.
 pub const EDGE_MOUNTS: [(&str, &str, bool); 2] =
 	[("host", "/etc/caddy/host", true), ("config", "/config", false)];
+
+/// The port the resolver answers DNS on inside its container, above the ones a user may not bind,
+/// and what it is published as on the node.
+pub const RESOLVER_PORTS: [(&str, &str); 2] = [("1053/udp", "53"), ("1053/tcp", "53")];
+
+/// Where the resolver shape mounts host's rendered configuration, read-only.
+pub const RESOLVER_MOUNT: (&str, &str) = ("host", "/etc/coredns");
 
 /// Where the observer shape puts the machine's two kernel filesystems.
 pub const OBSERVED: [(&str, &str); 2] = [("/proc", "/host/proc"), ("/sys", "/host/sys")];
@@ -564,6 +575,24 @@ impl Engine {
 			Shape::Scheduler { env, sockets } => (sandboxed(scheduler_mounts(own, sockets)), env.clone()),
 			Shape::Steward { env } => (sandboxed(steward_mounts(own)), env.clone()),
 			Shape::Reporter { env, meter } => (sandboxed(reporter_mounts(own, meter)), env.clone()),
+			Shape::Resolver { env, address } => {
+				let (from, to) = RESOLVER_MOUNT;
+				let beside = data.parent().unwrap_or(data).join(from);
+				tokio::fs::create_dir_all(&beside)
+					.await
+					.map_err(|source| Error::Directory { path: beside.display().to_string(), source })?;
+				let configured = bind(beside.display().to_string(), to.into(), true);
+				let published = RESOLVER_PORTS.iter().map(|(inside, outside)| {
+					let binding =
+						PortBinding { host_ip: Some(address.clone()), host_port: Some((*outside).into()) };
+					((*inside).to_owned(), Some(vec![binding]))
+				});
+				let config = HostConfig {
+					port_bindings: Some(published.collect()),
+					..sandboxed(own.into_iter().chain(std::iter::once(configured)).collect())
+				};
+				(config, env.clone())
+			}
 			Shape::Platform { env } => {
 				let config = HostConfig {
 					network_mode: Some(network_of(name)),
@@ -593,8 +622,13 @@ impl Engine {
 				("host.app".into(), name.clone()),
 				(VERSION_LABEL.into(), recorded),
 			])),
-			exposed_ports: matches!(shape, Shape::Edge { .. })
-				.then(|| EDGE_PORTS.iter().map(|port| (*port).to_owned()).collect()),
+			exposed_ports: match shape {
+				Shape::Edge { .. } => Some(EDGE_PORTS.iter().map(|port| (*port).to_owned()).collect()),
+				Shape::Resolver { .. } => {
+					Some(RESOLVER_PORTS.iter().map(|(inside, _)| (*inside).to_owned()).collect())
+				}
+				_ => None,
+			},
 			host_config: Some(host_config),
 			networking_config: match shape {
 				Shape::Observer { .. } => None,

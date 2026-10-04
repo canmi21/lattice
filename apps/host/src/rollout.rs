@@ -17,6 +17,10 @@ use std::sync::Arc;
 pub enum Error {
 	#[error(transparent)]
 	Invalid(#[from] Invalid),
+	#[error("the resolver needs the node's LAN address, `LAN_ADDRESS`, to publish DNS on")]
+	NoLanAddress,
+	#[error("writing the resolver's configuration: {0}")]
+	Resolver(#[from] caddy::Error),
 	#[error("port {port} is already `{holder}`'s")]
 	PortTaken { port: u16, holder: String },
 	#[error(transparent)]
@@ -68,7 +72,7 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it; a driver runs none.
-const TAKEN: [&str; 11] = [
+const TAKEN: [&str; 12] = [
 	"keeper",
 	"meter",
 	"caddy",
@@ -80,7 +84,11 @@ const TAKEN: [&str; 11] = [
 	"apt",
 	"telemetry",
 	"gateway",
+	RESOLVER,
 ];
+
+/// The house's DNS, in a shape of its own and with its configuration written before it starts.
+const RESOLVER: &str = "resolver";
 
 /// The panel's name: the one app host's own network admits.
 const PANEL: &str = "panel";
@@ -144,6 +152,7 @@ fn shape_of(host: &Host, name: &str) -> Result<Shape, Error> {
 	let placed = Placed {
 		tunnel: &host.config.caddy.tunnel_source,
 		meter: host.volumes.data(crate::node::METER),
+		lan: host.config.resolver.address.as_deref(),
 	};
 	shape_named(name, env, placed, sockets)
 }
@@ -154,6 +163,8 @@ struct Placed<'a> {
 	tunnel: &'a str,
 	/// The meter's data directory, which the reporter shape mounts.
 	meter: PathBuf,
+	/// The node's LAN address, which the resolver publishes DNS on; absent where it runs none.
+	lan: Option<&'a str>,
 }
 
 /// `shape_of` for every name but keeper's, apart from the host it reads: the choice by name alone.
@@ -171,6 +182,10 @@ fn shape_named(
 		crate::cron::NAME => Shape::Scheduler { env, sockets: sockets()? },
 		"apt" => Shape::Steward { env },
 		crate::telemetry::NAME => Shape::Reporter { env, meter: placed.meter },
+		RESOLVER => {
+			let address = placed.lan.ok_or(Error::NoLanAddress)?;
+			Shape::Resolver { env, address: address.to_owned() }
+		}
 		_ => Shape::Sandboxed { env },
 	})
 }
@@ -200,6 +215,10 @@ async fn run_version(
 		return Ok(None);
 	}
 	let mut shape = shape_of(host, &next.manifest.name)?;
+	// CoreDNS will not start without its file, so it is written before the container is.
+	if next.manifest.name == RESOLVER {
+		crate::resolver::apply(&host.config.resolver, &[]).await?;
+	}
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
 	let driver = sidecars::driver(host, Driver::Objects)?;
 	let beside_next = sidecars::sidecars_for(host, &next.manifest).await?;
@@ -686,6 +705,7 @@ pub enum RouteError {
 pub async fn route(host: &Host) -> Result<(), RouteError> {
 	let rendered = render(host)?;
 	caddy::apply(&host.config.caddy, &rendered).await?;
+	crate::resolver::apply(&host.config.resolver, &[]).await?;
 	Ok(())
 }
 
@@ -780,7 +800,11 @@ mod tests {
 		use super::{Placed, shape_named};
 		use deploy::Shape;
 		use std::path::PathBuf;
-		let placed = || Placed { tunnel: "172.30.0.2", meter: PathBuf::from("/data/apps/meter/data") };
+		let placed = || Placed {
+			tunnel: "172.30.0.2",
+			meter: PathBuf::from("/data/apps/meter/data"),
+			lan: Some("10.0.0.11"),
+		};
 		let unasked = || -> Result<Vec<(String, PathBuf)>, super::Error> {
 			panic!("only cron's shape reads the store")
 		};
@@ -793,5 +817,13 @@ mod tests {
 		assert!(matches!(meter, Shape::Observer { .. }));
 		let cron = shape_named("cron", vec![], placed(), || Ok(vec![])).unwrap();
 		assert!(matches!(cron, Shape::Scheduler { .. }));
+		let resolver = shape_named("resolver", vec![], placed(), unasked).unwrap();
+		let Shape::Resolver { address, .. } = resolver else { panic!("{resolver:?}") };
+		assert_eq!(address, "10.0.0.11");
+		let nowhere = Placed { lan: None, ..placed() };
+		assert!(matches!(
+			shape_named("resolver", vec![], nowhere, unasked),
+			Err(super::Error::NoLanAddress)
+		));
 	}
 }

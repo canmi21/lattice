@@ -89,8 +89,10 @@ author runs reaches the API over `.icu`.
 `*.canmi.icu` resolves in public DNS to the machine's LAN address, which answers nobody outside the
 house. The machine advertises that one address, as a `/32`, as a tailnet route, so a device on the
 tailnet reaches it from anywhere under the same name. **The answer DNS gives never changes; what
-changes is whether the address is reachable.** So there is no DNS server of our own and no split
-DNS, which the alternative -- the tailnet answering its own address for the name -- would need.
+changes is whether the address is reachable.** That held while `.icu` was the private side; the
+gateway's names are public and answer differently at home, so the house has a resolver of its own
+for them -- see [host.md](host.md), "The resolver answers the gateway's names, and passes the rest
+on".
 
 ## One API host, scoped by path
 
@@ -310,7 +312,8 @@ without a network, see [meter.md](meter.md).
 
 ## One door per node
 
-**No container publishes a port.** Each app has a Docker network of its own that it shares with
+**No container publishes a port but Caddy and the resolver**, each in a shape its name alone gets.
+Each app has a Docker network of its own that it shares with
 Caddy and nothing else, so an app that is compromised cannot reach another around Caddy.
 The tunnel reaches Caddy only, and Workers VPC reaches a node through Caddy too.
 

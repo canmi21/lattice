@@ -379,13 +379,15 @@ pub async fn apply(config: &CaddyConfig, rendered: &Value) -> Result<(), Error> 
 	Ok(())
 }
 
-/// Through a temporary file and a rename, so Caddy never starts from half of one.
-async fn write(path: &Path, bytes: &[u8]) -> Result<(), Error> {
+/// Through a temporary file and a rename, so neither Caddy nor the resolver ever starts from half
+/// of one.
+pub async fn write(path: &Path, bytes: &[u8]) -> Result<(), Error> {
 	let failed = |source| Error::Write { path: path.display().to_string(), source };
 	if let Some(parent) = path.parent() {
 		tokio::fs::create_dir_all(parent).await.map_err(failed)?;
 	}
-	let temporary = path.with_extension("json.next");
+	let name = path.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
+	let temporary = path.with_file_name(format!("{name}.next"));
 	tokio::fs::write(&temporary, bytes).await.map_err(failed)?;
 	tokio::fs::rename(&temporary, path).await.map_err(failed)
 }
