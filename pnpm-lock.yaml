@@ -324,8 +324,8 @@ importers:
         specifier: ^2026.1004.4
         version: 2026.1004.4(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.4
-        version: 2026.1004.4
+        specifier: ^2026.1004.5
+        version: 2026.1004.5
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -335,6 +335,9 @@ importers:
       '@canmi/response':
         specifier: ^2.0.0
         version: 2.0.0
+      '@canmi/robots':
+        specifier: workspace:*
+        version: link:../../libs/robots
       '@canmi/site-api':
         specifier: workspace:*
         version: link:api
@@ -563,8 +566,11 @@ importers:
         specifier: ^2026.1004.4
         version: 2026.1004.4(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1004.4
-        version: 2026.1004.4
+        specifier: ^2026.1004.5
+        version: 2026.1004.5
+      '@canmi/robots':
+        specifier: workspace:*
+        version: link:../../libs/robots
       '@canmi/social':
         specifier: workspace:*
         version: link:../../libs/social
@@ -802,6 +808,15 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  libs/robots:
+    dependencies:
+      '@canmi/me':
+        specifier: ^2026.1004.5
+        version: 2026.1004.5
+      '@monoflake/sdk':
+        specifier: ^2026.1004.3
+        version: 2026.1004.3(@cloudflare/workers-types@5.20261004.1)(typescript@7.0.2)
+
   libs/social:
     dependencies:
       '@canmi/me':
@@ -1009,6 +1024,9 @@ packages:
 
   '@canmi/me@2026.1004.4':
     resolution: {integrity: sha512-INyLjju+m+RNd6Kb7KtuHvckbO4SW3cmSc23eqBmvKrzEmEwrPgMRqpGun8eN6vuaQZEnbLYNySpxRRYgJ4AlA==}
+
+  '@canmi/me@2026.1004.5':
+    resolution: {integrity: sha512-z9lY/1CSKT0q2Nxeymk6D2hqscMWT2c3cGQUMgcMURvJcPmD7AzqyNI4lrmVGHiKojB1IxemGVFSvcTe6SRmbg==}
 
   '@canmi/response@2.0.0':
     resolution: {integrity: sha512-fQh5D0dAcdvccqWLcGQKzpGNa1TbyhZ+4B5kq5/LWPOnacdq5OY8uJoCn7zgdM0MNZMsZiDVsOXSu9fIQEdC4w==}
@@ -5300,6 +5318,8 @@ snapshots:
       - react-dom
 
   '@canmi/me@2026.1004.4': {}
+
+  '@canmi/me@2026.1004.5': {}
 
   '@canmi/response@2.0.0': {}
 

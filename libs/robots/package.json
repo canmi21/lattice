@@ -1,0 +1,12 @@
+{
+	"name": "@canmi/robots",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@canmi/me": "^2026.1004.5",
+		"@monoflake/sdk": "^2026.1004.3"
+	}
+}

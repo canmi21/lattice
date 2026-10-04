@@ -418,8 +418,8 @@ Resolving instead at request time, out of the article index, was the cheaper cha
 rejected on what it cannot reach: the feed and `/llms.txt` are strings baked at compile time, so
 a card there would have been a bare path where every other link is a name.
 
-`robots.txt` follows the same shared-base shape, from `@monoflake/sdk/robots`: a minimal common
-definition plus a helper that appends site-specific rules -- disallowed paths, sitemap entries --
-so each site owns its additions while a change to the shared policy reaches all of them at once.
-It is a subpath of its own beside the addresses, because generating a file is not the same job as
-mapping URLs, even though it consumes them. See platform's `spec/architecture/robots.md`.
+`robots.txt` follows the same shared-base shape, from `@canmi/me/robots`: a common definition every
+host shares, and each repository's own hosts declared on top of it -- disallowed paths, sitemaps,
+each one's note -- so each owns its additions while a change to the shared policy reaches all of
+them at once. It is a subpath of its own beside the addresses, because generating a file is not the
+same job as mapping URLs, even though it consumes them. See [robots.md](robots.md).

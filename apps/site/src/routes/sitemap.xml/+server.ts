@@ -1,4 +1,5 @@
-import { ownRoot, peerEntries, type SitemapEntry, sitemapXml } from '@monoflake/sdk/robots';
+import { type SitemapEntry, sitemapXml } from '@canmi/me/robots';
+import { ownRoot, peerEntries } from '@canmi/robots';
 import { publishedSitemap } from '#lib/published/index.js';
 import type { RequestHandler } from './$types';
 
@@ -14,7 +15,7 @@ function staticEntries(generated: string): Entry[] {
 	return [
 		{ ...ownRoot('site', '1.0'), lastmod: generated },
 		// Every other page host, by its root; each lists its own routes. See
-		// platform's spec/architecture/robots.md, "Every page host names every other".
+		// lib's spec/me/robots.md, "Every page host names every other".
 		...peerEntries('site'),
 	];
 }
