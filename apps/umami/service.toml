@@ -15,8 +15,8 @@ memory_mb = 384
 # Its one database. See spec/architecture/databases.md.
 [postgres]
 
-# The dashboard, behind Access: `umami.canmi.app`. See spec/analytics.md, "umami, self-hosted, for
-# the pages that matter less".
+# The dashboard, behind Access: `umami.canmi.app`. See spec/analytics.md, "Neither service is
+# self-hosted, and analytics of our own comes later".
 [interface]
 
 # The `umami` scope of the API host: the gateway opens only as far as a reporting page needs,
@@ -27,7 +27,7 @@ public = true
 
 # A reporting page's one call, from the status page's doors, and nothing else of umami's API: its
 # dashboard is behind Access. The headers are what v3's tracker sends beside `Content-Type`. See
-# spec/analytics.md, "umami, self-hosted, for the pages that matter less".
+# spec/analytics.md, "Neither service is self-hosted, and analytics of our own comes later".
 [api.defaults]
 exposed = false
 

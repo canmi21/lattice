@@ -18,6 +18,6 @@ ENV HOSTNAME=0.0.0.0
 ENV DISABLE_TELEMETRY=1
 # The header the gateway forwards a visitor's address in, unchanged from what Cloudflare sent it --
 # see spec/architecture/services.md, "The gateway marks what it passes on" -- and the same one
-# geo's `resolve_address` reads. See spec/analytics.md, "umami, self-hosted, for the pages that
-# matter less".
+# geo's `resolve_address` reads. See spec/analytics.md, "Neither service is
+# self-hosted, and analytics of our own comes later".
 ENV CLIENT_IP_HEADER=cf-connecting-ip

@@ -168,8 +168,8 @@
 	const PROFILES = profiles();
 
 	// Where this page reports to: the gateway's `umami` scope, on the public API host. Not a
-	// literal URL, since the address is `libs/urls`' to declare. See spec/analytics.md, "umami,
-	// self-hosted, for the pages that matter less".
+	// literal URL, since the address is `libs/urls`' to declare. See spec/analytics.md, "Neither
+	// service is self-hosted, and analytics of our own comes later".
 	const umamiHostUrl = `${URLS.internal.api.public}/umami`;
 	// This page's production hostnames, so a dev build stays silent: the two doors of its own
 	// (canonical, mirror) and the platform door, which also loads this tracker. See

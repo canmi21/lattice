@@ -84,22 +84,13 @@ part worth buying; the handshake would compete with the article for the one thin
 is short of. The tags, and the loader's priority, are `@canmi/hints`' `analytics` group at its default --
 see [hints.md](architecture/hints.md).
 
-## umami, self-hosted, for the pages that matter less
+## Neither service is self-hosted, and analytics of our own comes later
 
-**`apps/umami` is the upstream umami image at a pinned version**, with `[postgres]` for its one
-database -- see [databases.md](architecture/databases.md) -- and its `APP_SECRET` set once through
-host. Its dashboard is `umami.canmi.app`, behind Access. What a page reports to is the `umami`
-scope of the public API host, which the gateway opens only as far as a reporting page needs:
-`POST /api/send`, every other path refused there, so nothing of the dashboard's API is public.
-Reports are never cached, and one address may report sixty times a minute. umami reads the
-visitor's address from the header the gateway forwards it in.
-
-**A page loads umami's own tracker from its cloud, as the site does, and reports here** with
-`data-host-url` set to that scope: the script is the same program either way, so no path of ours
-serves it. `data-domains` names the page's production hosts, so a development page stays silent,
-per "Development loads the client and reports nothing". The site does not: it
-reports to both clouds as it did, since its own `umami.track()` calls reach only the first tracker
-a page loads, and a second count missing its events would look whole and not be.
+**Self-hosting umami and OpenPanel was given up.** Running a vendor's image beside the platform
+meant adapting the platform to it -- a scope it could not version, a database it alone used -- for a
+count the two clouds already give. The site keeps reporting to both clouds with their official
+clients. Analytics worth owning will be built here, into the platform, as a service like the rest,
+rather than borrowed and adapted.
 
 ## A page is its path and query, never its hash
 
@@ -116,9 +107,5 @@ OpenPanel on the site still counts the hash: its views compare the full address.
 
 ## Open
 
-- **OpenPanel is self-hosted on the node once ClickHouse runs there**, from a ClickHouse built here
-  for ARMv8.0 -- see [databases.md](architecture/databases.md). umami comes first, self-hosted with
-  Postgres alone, for the pages that matter less; the site keeps reporting to both clouds until a
-  self-hosted one has earned it.
 - **OpenPanel still reports an anchor followed on the site as a view of its own**, with the hash in
   its path. Whether to rewrite its events or leave it until the site keeps one service is undecided.
