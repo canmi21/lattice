@@ -399,7 +399,7 @@ away before its replacement answers.
 | E8  | Callers move                          | `libs/urls` names the new hosts, every caller here follows, GitHub's webhook moves, the unversioned paths of E4 go | E6 E7    | near    |
 | E9  | `ffoni.com` leaves                    | Its profiles deleted once nothing here calls it, and the domain released                                  | E8       | mid     |
 | E10 | The house answers its own names       | The LAN's DNS answers the gateway's hostnames with a gateway on the node, Caddy and a service beside it, reading the same table; the private side of `api.canmi.icu` retires | E8       | mid     |
-| E11 | Cleanup                               | A pass over what the move left behind, and what was found and held while it ran: `libs/deploy/src/engine.rs`, over the workspace's hard limit of a thousand lines | E9       | mid     |
+| E11 | Cleanup                               | A pass over what the move left behind, and what was found and held while it ran: `libs/deploy/src/engine.rs`, over the workspace's hard limit of a thousand lines; and host, which has no way to forget an app removed from the repository -- umami was forgotten by hand, its row deleted from host's store and host restarted so Caddy was rendered without it, its containers, network, image, data and snapshots removed over SSH | E9       | mid     |
 
 **E1 changes nothing a caller sees.** The declarations grow and the table with them, while the
 gateway still answers as it does today; it is the step that makes the rest a matter of reading the
