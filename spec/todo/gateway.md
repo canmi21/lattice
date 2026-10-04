@@ -20,12 +20,12 @@ Their routes -- `/object`, `/derive`, `/proxy/github`, the legacy `/github/*`, `
 five-character rids -- move behind the gateway unchanged, reached by binding, and their custom
 domains go; each stamp becomes a declaration.
 
-## No service answers a versioned path
+## The CDN and the alias layer are not yet versioned, and the old paths still answer
 
-The gateway reads every hostname as a profile and every request into its tuple, but it is bound to
-`api.ffoni.com` alone, which reads as a retired host and forwards its old, unversioned path. No
-service routes on `/v{n}/` yet. Every service is `v1` from the start except the CDN at `v3` and the
-alias layer at `v1`.
+geo, telemetry, probe, shot, hook and the site's public routes answer at `/v1/` in the shape the
+workspace's `spec/addresses.md` gives, and still answer their unversioned paths, which E8 takes
+away with the last caller. The CDN at `/v3/` and the alias layer at `/v1/` come with E5, when both
+move behind the gateway.
 
 Decided: the gateway forwards the version in the path, and a service routes on it; see the
 gateway's spec.
