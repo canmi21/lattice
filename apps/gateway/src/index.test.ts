@@ -4,6 +4,7 @@ import { developmentUrl, PAGE_ORIGINS, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, MARK } from './index.ts';
+import { covers } from './limit.ts';
 import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, scopeTable, WORKERS } from './table.ts';
@@ -85,6 +86,15 @@ describe('the scope table', () => {
 		]);
 		expect(Object.keys(table)).toEqual(['open']);
 		expect(table.open).toMatchObject({ placement: 'home', binding: 'HOME' });
+	});
+});
+
+describe('a limit covering a call', () => {
+	it('covers its own path exactly, or everything under a prefix ending in /*', () => {
+		expect(covers('/checks', '/checks')).toBe(true);
+		expect(covers('/checks', '/checks/a/results')).toBe(false);
+		expect(covers('/checks/*', '/checks/a/results')).toBe(true);
+		expect(covers('/checks/*', '/checks')).toBe(false);
 	});
 });
 

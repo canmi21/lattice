@@ -447,16 +447,23 @@ impl Manifest {
 			!limit.methods.is_empty()
 				&& limit.methods.iter().all(|method| methods.contains(&method.as_str()))
 				&& limit.path.starts_with('/')
-				&& !limit.path.contains('*')
+				&& !limit.path.trim_end_matches("/*").contains('*')
 				&& limit.count > 0
 				&& (1..=LONGEST_WINDOW).contains(&limit.seconds)
 		};
 		// The gateway counts a call under the first row that covers it and Caddy under every one,
-		// so no call may be covered twice.
+		// so no call may be covered twice: no two rows on one method where either path covers the
+		// other, a prefix ending in `/*` covering everything under it.
+		let covers = |outer: &str, inner: &str| match outer.strip_suffix('*') {
+			Some(stem) => inner.starts_with(stem),
+			None => outer == inner,
+		};
 		let covered = |api: &Api| {
-			let mut seen = std::collections::HashSet::new();
-			api.limits.iter().all(|limit| {
-				limit.methods.iter().all(|method| seen.insert((method.as_str(), limit.path.as_str())))
+			api.limits.iter().enumerate().all(|(index, limit)| {
+				api.limits[index + 1..].iter().all(|other| {
+					!limit.methods.iter().any(|method| other.methods.contains(method))
+						|| !(covers(&limit.path, &other.path) || covers(&other.path, &limit.path))
+				})
 			})
 		};
 		if self.api.as_ref().is_some_and(|api| !api.limits.iter().all(sound) || !covered(api)) {
@@ -688,6 +695,14 @@ mod tests {
 	}
 
 	#[test]
+	fn counts_a_prefix_beside_an_exact_path_it_does_not_cover() {
+		let rows = "[[api.limits]]\nmethods = [\"GET\"]\npath = \"/checks\"\ncount = 1\nseconds = 60\n\
+			[[api.limits]]\nmethods = [\"GET\"]\npath = \"/checks/*\"\ncount = 1\nseconds = 60";
+		let manifest = Manifest::parse(&format!("{GEO}\n{rows}\n")).unwrap();
+		assert_eq!(manifest.check("geo", "home"), Ok(()));
+	}
+
+	#[test]
 	fn refuses_a_limit_it_could_not_count() {
 		for broken in [
 			"methods = []\npath = \"/a\"\ncount = 1\nseconds = 60",
@@ -696,7 +711,9 @@ mod tests {
 			"methods = [\"GET\"]\npath = \"/a\"\ncount = 0\nseconds = 60",
 			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 0",
 			"methods = [\"GET\"]\npath = \"/a\"\ncount = 1\nseconds = 86401",
-			"methods = [\"GET\"]\npath = \"/a/*\"\ncount = 1\nseconds = 60",
+			"methods = [\"GET\"]\npath = \"/a/*/b\"\ncount = 1\nseconds = 60",
+			// geo's own row covers GET /address, and a prefix over it would count it twice.
+			"methods = [\"GET\"]\npath = \"/*\"\ncount = 1\nseconds = 60",
 			// geo's own row covers GET /address already.
 			"methods = [\"GET\"]\npath = \"/address\"\ncount = 1\nseconds = 60",
 		] {

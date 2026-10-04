@@ -190,6 +190,10 @@ redirected = "1h"
 - **A path is exact, or a prefix ending in `/*`.** The more specific wins -- exact over prefix, the
   longer prefix over the shorter -- whatever the order they are written in; two routes as specific
   as each other are an error when the table is generated.
+- **A limit's path is written as a route's is**: after the version, exact or a prefix ending in
+  `/*`, and the same row is matched alike by the gateway's counters, by Caddy on the node -- which
+  matches it with or without a version in front -- and by host when it refuses two rows that would
+  count one call twice.
 - **`auth` is reserved.** It takes `"none"` alone until there are accounts.
 
 ### The table is built, not read at run time

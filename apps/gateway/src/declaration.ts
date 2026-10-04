@@ -122,7 +122,7 @@ const RouteSchema = v.strictObject({
 
 const LimitSchema = v.strictObject({
 	methods: v.array(v.picklist(METHODS)),
-	path: v.string(),
+	path: v.pipe(v.string(), v.regex(PATH, 'a limit names a path exact, or a prefix ending in /*')),
 	count: v.number(),
 	seconds: v.number(),
 });

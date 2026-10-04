@@ -85,6 +85,17 @@ fn refuse_unless(sources: &[String]) -> Value {
 /// The gateway's mark, on what it forwards from the public; the same pair as `MARK` in the gateway.
 const MARK: (&str, &str) = ("X-Gateway", "public");
 
+/// `path` as a regular expression matching itself and nothing else.
+fn escaped(path: &str) -> String {
+	path.chars().fold(String::new(), |mut out, character| {
+		if "\\.+*?()|[]{}^$".contains(character) {
+			out.push('\\');
+		}
+		out.push(character);
+		out
+	})
+}
+
 /// A scope's limits, counted by the visitor's address on what the gateway forwards, and on nothing
 /// else: our own callers meet none. One zone a row, named as the gateway's counters are without
 /// the address. See spec/architecture/services.md, "A limit is declared once and kept in three
@@ -97,15 +108,20 @@ fn limited(scope: &str, limits: &[Limit]) -> Option<Value> {
 		.iter()
 		.map(|limit| {
 			let methods: Vec<String> = limit.methods.iter().map(|method| method.to_lowercase()).collect();
-			let path = limit.path.split('/').filter(|part| !part.is_empty()).collect::<Vec<_>>();
+			let named = limit.path.replace("/*", "/any");
+			let path = named.split('/').filter(|part| !part.is_empty()).collect::<Vec<_>>();
 			let path = if path.is_empty() { "root".to_owned() } else { path.join("-") };
 			// A limit names the path after the version, so it counts every version's call to it, and
-			// the unversioned one until its callers move. See spec/architecture/gateway.md, "A path is
-			// written after the version".
+			// the unversioned one until its callers move; a prefix ending in `/*` counts everything
+			// under it. See spec/architecture/gateway.md, "The declaration".
+			let pattern = match limit.path.strip_suffix('*') {
+				Some(stem) => format!("^(/v[1-9][0-9]*)?{}", escaped(stem)),
+				None => format!("^(/v[1-9][0-9]*)?{}$", escaped(&limit.path)),
+			};
 			let zone = json!({
 				"match": [{
 					"method": limit.methods,
-					"path": [limit.path.clone(), format!("/v*{}", limit.path)],
+					"path_regexp": { "pattern": pattern },
 					"header": { MARK.0: [MARK.1] }
 				}],
 				// The address Caddy took from Cloudflare's header; `http.request.client_ip` is no
@@ -354,8 +370,10 @@ mod tests {
 		assert_eq!(handle[1]["handler"], "rate_limit");
 		let zone = &handle[1]["rate_limits"]["geo_get-head_address"];
 		assert_eq!(text(&zone["match"][0]["method"]), r#"["GET","HEAD"]"#);
-		assert_eq!(zone["match"][0]["path"][0], "/address");
-		assert_eq!(zone["match"][0]["path"][1], "/v*/address");
+		let pattern = regex::Regex::new(zone["match"][0]["path_regexp"]["pattern"].as_str().unwrap());
+		let pattern = pattern.unwrap();
+		assert!(pattern.is_match("/address") && pattern.is_match("/v1/address"));
+		assert!(!pattern.is_match("/address/x") && !pattern.is_match("/v1x/address"));
 		assert_eq!(zone["match"][0]["header"]["X-Gateway"][0], "public");
 		assert_eq!(zone["key"], "{http.vars.client_ip}");
 		assert_eq!((zone["window"].as_str(), zone["max_events"].as_u64()), (Some("60s"), Some(60)));

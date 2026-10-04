@@ -19,10 +19,18 @@ function isCounters(value: unknown): value is Counters {
 
 const ALLOWED: Taken = { allowed: true, retryAfter: 0 };
 
+/**
+ * Whether a limit's path covers a call's: the same path, or under a prefix ending in `/*`, as a
+ * route's is. See spec/architecture/gateway.md, "The declaration".
+ */
+export function covers(limit: string, path: string): boolean {
+	return limit.endsWith('/*') ? path.startsWith(limit.slice(0, -1)) : limit === path;
+}
+
 /** A counter's name, lowercase: scope, methods, path, address, `shot_get-head_capture_1.2.3.4`. */
 export function counterName(scope: string, allowance: Allowance, address: string): string {
 	const methods = allowance.methods.map((method) => method.toLowerCase()).join('-');
-	const path = allowance.path.split('/').filter(Boolean).join('-') || 'root';
+	const path = allowance.path.replace('/*', '/any').split('/').filter(Boolean).join('-') || 'root';
 	return [scope, methods, path, address.toLowerCase()].join('_');
 }
 
@@ -38,7 +46,7 @@ export async function counted(
 	request: { method: string; path: string; address: string | undefined },
 ): Promise<Taken> {
 	const allowance = limits.find(
-		(limit) => limit.path === request.path && limit.methods.includes(request.method),
+		(limit) => covers(limit.path, request.path) && limit.methods.includes(request.method),
 	);
 	if (!allowance || !request.address) return ALLOWED;
 	if (!isCounters(counters)) return { allowed: false, retryAfter: allowance.seconds };

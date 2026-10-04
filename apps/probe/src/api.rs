@@ -5,7 +5,7 @@ use crate::archive::Archive;
 use crate::checks::Check;
 use axum::Router;
 use axum::extract::rejection::QueryRejection;
-use axum::extract::{Query, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{HeaderValue, StatusCode, header};
 use axum::response::Response;
 use axum::routing::get;
@@ -26,9 +26,17 @@ const KEPT: &str = "public, max-age=60";
 const SPAN: i64 = 86_400;
 const PAGE: usize = 10_000;
 
+/// The API at `/v1/`, where a check's results are under the check, and unversioned in its old
+/// shape until its callers move; `/health` is host's and never versioned. See
+/// spec/architecture/gateway.md, "A version is in the path, and it moves only on a break", and the
+/// workspace's spec/addresses.md.
 pub fn routes(state: AppState) -> Router {
+	let v1 = Router::new()
+		.route("/checks", get(checks))
+		.route("/checks/{check}/results", get(results_of));
 	Router::new()
 		.route("/health", get(|| async { kept(()) }))
+		.nest("/v1", v1)
 		.route("/checks", get(checks))
 		.route("/results", get(results))
 		.fallback(|| async { response::failure(StatusCode::NOT_FOUND, "no_such_route") })
@@ -68,9 +76,17 @@ async fn checks(State(state): State<AppState>) -> Response {
 	kept(declared)
 }
 
+/// The old shape, the check in the query beside the range.
 #[derive(Deserialize)]
 struct Asked {
 	check: String,
+	since: i64,
+	until: i64,
+}
+
+/// The range a check's results are asked for.
+#[derive(Deserialize)]
+struct Range {
 	since: i64,
 	until: i64,
 }
@@ -90,17 +106,33 @@ async fn results(
 	let Ok(Query(asked)) = asked else {
 		return response::failure(StatusCode::BAD_REQUEST, "invalid_range");
 	};
-	if !(asked.since < asked.until && asked.until - asked.since <= SPAN) {
+	page(state, asked.check, asked.since, asked.until).await
+}
+
+async fn results_of(
+	State(state): State<AppState>,
+	Path(check): Path<String>,
+	range: Result<Query<Range>, QueryRejection>,
+) -> Response {
+	let Ok(Query(range)) = range else {
+		return response::failure(StatusCode::BAD_REQUEST, "invalid_range");
+	};
+	page(state, check, range.since, range.until).await
+}
+
+/// One check's rounds from `since` to `until`, a page at a time.
+async fn page(state: AppState, check: String, since: i64, until: i64) -> Response {
+	if !(since < until && until - since <= SPAN) {
 		return response::failure(StatusCode::BAD_REQUEST, "invalid_range");
 	}
-	if !state.checks.iter().any(|check| check.id == asked.check) {
+	if !state.checks.iter().any(|declared| declared.id == check) {
 		return response::failure(StatusCode::NOT_FOUND, "no_such_check");
 	}
 	let archive = state.archive.clone();
 	let place = state.place.clone();
 	let read = tokio::task::spawn_blocking(move || {
 		let archive = archive.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-		archive.page(&asked.check, &place, asked.since, asked.until, PAGE)
+		archive.page(&check, &place, since, until, PAGE)
 	})
 	.await;
 	match read {
@@ -190,6 +222,18 @@ mod tests {
 
 		let (status, _, body) = ask(router.clone(), "/results?check=dns.site&since=6&until=60").await;
 		assert_eq!((status, body["data"]["results"].as_array().unwrap().len()), (StatusCode::OK, 1));
+	}
+
+	#[tokio::test]
+	async fn answers_a_checks_results_under_the_check_at_v1_as_the_old_shape_does() {
+		let directory = tempfile::tempdir().unwrap();
+		let router = routes(state(directory.path()));
+		let versioned = ask(router.clone(), "/v1/checks/dns.site/results?since=0&until=60").await;
+		assert_eq!(versioned, ask(router.clone(), "/results?check=dns.site&since=0&until=60").await);
+		let (status, _, body) = ask(router.clone(), "/v1/checks/nope/results?since=0&until=1").await;
+		assert_eq!((status, &body["code"]), (StatusCode::NOT_FOUND, &"no_such_check".into()));
+		assert_eq!(ask(router.clone(), "/v1/checks").await.0, StatusCode::OK);
+		assert_eq!(ask(router, "/v1/results?check=dns.site&since=0&until=60").await.0, StatusCode::NOT_FOUND);
 	}
 
 	#[tokio::test]

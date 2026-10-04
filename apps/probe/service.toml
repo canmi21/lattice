@@ -41,3 +41,10 @@ methods = ["GET", "HEAD"]
 path = "/results"
 count = 30
 seconds = 60
+
+# The same page, asked under the check, as `/v1/` has it.
+[[api.limits]]
+methods = ["GET", "HEAD"]
+path = "/checks/*"
+count = 30
+seconds = 60

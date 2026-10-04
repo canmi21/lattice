@@ -78,6 +78,12 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				count: 30,
 				seconds: 60,
 			},
+			{
+				methods: ['GET', 'HEAD'],
+				path: '/checks/*',
+				count: 30,
+				seconds: 60,
+			},
 		],
 		routes: [
 			{
