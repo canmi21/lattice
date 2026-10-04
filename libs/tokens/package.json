@@ -9,6 +9,6 @@
 		"./vocabulary.stylex": "./src/vocabulary.stylex.ts"
 	},
 	"dependencies": {
-		"@stylexjs/stylex": "^0.19.0"
+		"@stylexjs/stylex": "^0.19.1"
 	}
 }

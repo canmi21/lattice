@@ -6,9 +6,9 @@
 		"@canmi/collection": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/urls": "workspace:*",
-		"drizzle-orm": "^0.45.2"
+		"drizzle-orm": "^0.45.3"
 	},
 	"devDependencies": {
-		"@types/node": "^26.5.1"
+		"@types/node": "^26.6.4"
 	}
 }

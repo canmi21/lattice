@@ -8,7 +8,7 @@
 		"./server": "./src/server.ts"
 	},
 	"dependencies": {
-		"@sentry/sveltekit": "^10.74.0",
+		"@sentry/sveltekit": "^10.76.0",
 		"@sveltejs/kit": "^2.70.3"
 	}
 }

@@ -41,23 +41,23 @@
 		"@canmi/units": "workspace:*",
 		"@canmi/urls": "workspace:*",
 		"@chenglou/pretext": "^0.0.9",
-		"@lucide/svelte": "^1.45.0",
-		"@stylexjs/stylex": "^0.19.0",
+		"@lucide/svelte": "^1.51.0",
+		"@stylexjs/stylex": "^0.19.1",
 		"@videojs/core": "10.0.0-rc.2",
 		"@videojs/media": "10.0.0-rc.2",
 		"@videojs/store": "10.0.0-rc.2",
-		"bits-ui": "^2.19.2",
+		"bits-ui": "^2.19.5",
 		"d3-hierarchy": "^3.1.2",
 		"esm-env": "^1.2.2",
 		"mermaid": "^11.17.2",
-		"motion": "^13.2.0",
+		"motion": "^13.5.1",
 		"phosphor-svelte": "^3.1.0",
 		"svelte": "^5.57.1"
 	},
 	"devDependencies": {
 		"@testing-library/svelte": "^5.4.2",
 		"@types/d3-hierarchy": "^3.1.7",
-		"@types/node": "^26.5.1",
+		"@types/node": "^26.6.4",
 		"svelte-check": "^4.7.6",
 		"typescript": "^6.0.3"
 	}

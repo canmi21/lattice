@@ -8,6 +8,6 @@
 	"dependencies": {
 		"@canmi/artifacts": "workspace:*",
 		"@canmi/response": "workspace:*",
-		"@cloudflare/workers-types": "^5.20260911.1"
+		"@cloudflare/workers-types": "^5.20261004.1"
 	}
 }
