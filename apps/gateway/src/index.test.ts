@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { developmentUrl, PAGE_ORIGINS, URLS } from '@canmi/urls';
+import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, MARK } from './index.ts';
@@ -221,12 +221,34 @@ describe('the gateway', () => {
 		expect(await answer.text()).toContain('Contact: mailto:');
 	});
 
-	it('answers robots itself, keeping out all but the scope a rendered page asks', async () => {
+	it('answers robots itself, refusing every crawler on an API host', async () => {
 		const text = await (await ask('/robots.txt')).text();
-		expect(text).toContain('Allow: /site/');
 		expect(text).toContain('Disallow: /');
+		expect(text).not.toContain('Allow:');
 		expect(text).not.toContain('Content-Signal');
 	});
+
+	it("lets a crawler into a CDN host as far as its routes say", async () => {
+		const cdn: Record<string, Scope> = {
+			cdn: {
+				placement: WORKERS,
+				binding: 'CDN',
+				worker: 'cdn',
+				routes: [
+					{ ...GATEWAY_DEFAULTS, path: '/object/*', crawlable: true },
+					{ ...GATEWAY_DEFAULTS, path: '/*' },
+				],
+			},
+		};
+		const answer = await gateway(cdn).fetch(
+			new Request(new URL('/robots.txt', `https://${GATEWAY.retired.cdn}`)),
+			{},
+		);
+		const text = await answer.text();
+		expect(text).toContain('Allow: /object/');
+		expect(text).toContain('Disallow: /');
+	});
+
 
 	it('follows its own mark for the browser rather than reading it as a scope', async () => {
 		const object = `${URLS.apps.production.cdn}/object/abc.ico`;

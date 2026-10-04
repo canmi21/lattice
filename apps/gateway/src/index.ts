@@ -182,11 +182,13 @@ function publicPath(profile: Profile, service: string, path: string): string | u
 }
 
 /**
- * A host's robots.txt, from what the routes it reaches say: refused by default, with each route
- * that differs from its service's own defaults said where it does. See
- * spec/architecture/gateway.md, "Every host's files and firewall are derived".
+ * A host's robots.txt: every crawler refused where the host admits none, and otherwise what the
+ * routes it reaches say, refused by default, with each route that differs from its service's own
+ * defaults said where it does. See spec/architecture/gateway.md, "A host admits crawlers or does
+ * not".
  */
 function robotsOf(profile: Profile, scopes: Readonly<Record<string, Scope>>): string {
+	if (!profile.crawled) return robotsTxt({ disallow: ['/'], agent: hostOf(profile) });
 	const allow: string[] = [];
 	const disallow: string[] = [];
 	for (const [service, scope] of Object.entries(scopes)) {

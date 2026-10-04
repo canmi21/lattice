@@ -12,12 +12,21 @@ describe('a hostname read as a profile', () => {
 			name: 'deployment',
 			service: 'geo',
 			placement: { region: 'rdu', provider: 'int' },
+			crawled: false,
 		});
 		expect(profileOf(deployed('two-part-glo-cf'))?.service).toBe('two-part');
 		expect(profileOf(deployed('api-glo-cf'))).toEqual({
 			name: 'deployment-api',
 			placement: { region: 'glo', provider: 'cf' },
+			crawled: false,
 		});
+	});
+
+	it('admits crawlers on the CDN host alone', () => {
+		expect(profileOf(GATEWAY.cdn)?.crawled).toBe(true);
+		for (const host of [GATEWAY.api, GATEWAY.alias, GATEWAY.symlink, deployed('cdn-glo-cf')]) {
+			expect(profileOf(host)?.crawled, host).toBe(false);
+		}
 	});
 
 	it('knows a hostname whatever its case', () => {

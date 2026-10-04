@@ -246,6 +246,16 @@ its route is `crawlable`, refused otherwise -- its `/.well-known/security.txt`, 
 and the redirect of a path to its one spelling. No two hosts answer the same file unless they serve
 the same paths.
 
+### A host admits crawlers or does not
+
+**The service layer says whether a crawler may fetch, never whether something is indexed twice.**
+Each profile says whether its host admits crawlers at all: an API host -- `api.monoflake.com`, a
+deployment's own under `ixc.one`, `ill.li`, `symlink.si` -- refuses every one, whatever its routes
+say; `cdn.monoflake.com` admits them as far as its routes are `crawlable`, since what the CDN
+serves is public and a crawler reading a page is better for reaching what the page shows. A
+retired host answers as the host it was replaced by. That two hosts serve the same bytes is the
+application layer's concern, where pages are; here there are none.
+
 **The firewall's whitelist is generated from the same set, and synced by the same script.** A
 service-layer zone's rules in `rules/` -- which paths each of its hosts lets through to a Worker at
 all -- are written by `mise run scopes` beside the table, never by hand, so the WAF refuses exactly

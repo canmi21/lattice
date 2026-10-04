@@ -21,7 +21,7 @@ which areas exist and which entries are worth reaching for first.
 | [site.md](site.md)       | 9       | routing, rendering, the article page, the tests           |
 | [cms.md](cms.md)         | 3       | what the CMS cannot yet offer, and what it cannot reach   |
 | [tooling.md](tooling.md) | 3       | the files that describe the repository rather than run it |
-| [gateway.md](gateway.md) | 5       | the hosts against the one gateway they are moving to      |
+| [gateway.md](gateway.md) | 4       | the hosts against the one gateway they are moving to      |
 
 ## The plan is not a finding
 

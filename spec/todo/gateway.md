@@ -44,15 +44,6 @@ need for every profile's hostname.
 Decided: `rdu`.
 `api-{region}-int.ixc.one` can name it.
 
-## A deployment's own host would be indexed as a second copy
-
-The gateway writes each host's `robots.txt` from what the routes it reaches say, so a new host
-needs nothing written for it. But a deployment's host under `ixc.one` answers what
-`api.monoflake.com` answers, and a crawler let into both would index the same answers twice.
-
-**Undecided: whether a deployment's host refuses every crawler**, leaving the routes' own
-`crawlable` to the hosts the gateway chooses for.
-
 ## The whitelists are written by hand, and checked against the table only
 
 `rules/ill.li/alias-paths-only.txt`, `rules/ffoni.com/api-scopes-only.txt` and

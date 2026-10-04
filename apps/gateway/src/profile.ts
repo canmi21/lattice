@@ -27,6 +27,11 @@ export interface Profile {
 	/** Put in front of the path the hostname was asked, after the version. */
 	readonly prefix?: string;
 	readonly placement?: Placement;
+	/**
+	 * Whether the host admits a crawler at all; where it does, each route's `crawlable` says what.
+	 * See spec/architecture/gateway.md, "A host admits crawlers or does not".
+	 */
+	readonly crawled: boolean;
 }
 
 /** A request read: what the service is asked, and how. */
@@ -47,12 +52,18 @@ export type Refusal = 'no_such_host' | 'no_version' | 'no_service';
 
 /** The hostnames named exactly. The deployments under `ixc.one` are read by their parts. */
 const NAMED: Readonly<Record<string, Profile>> = {
-	[GATEWAY.api]: { name: 'api' },
-	[GATEWAY.cdn]: { name: 'cdn', service: 'cdn', version: 'v3' },
-	[GATEWAY.alias]: { name: 'alias', service: 'alias', version: 'v1' },
-	[GATEWAY.symlink]: { name: 'symlink', service: 'alias', version: 'v1', prefix: '/symlink' },
-	[GATEWAY.retired.api]: { name: 'retired-api', version: null },
-	[GATEWAY.retired.cdn]: { name: 'retired-cdn', service: 'cdn', version: null },
+	[GATEWAY.api]: { name: 'api', crawled: false },
+	[GATEWAY.cdn]: { name: 'cdn', service: 'cdn', version: 'v3', crawled: true },
+	[GATEWAY.alias]: { name: 'alias', service: 'alias', version: 'v1', crawled: false },
+	[GATEWAY.symlink]: {
+		name: 'symlink',
+		service: 'alias',
+		version: 'v1',
+		prefix: '/symlink',
+		crawled: false,
+	},
+	[GATEWAY.retired.api]: { name: 'retired-api', version: null, crawled: false },
+	[GATEWAY.retired.cdn]: { name: 'retired-cdn', service: 'cdn', version: null, crawled: true },
 };
 
 const VERSION = /^v[1-9]\d*$/;
@@ -83,9 +94,10 @@ export function profileOf(hostname: string): Profile | undefined {
 	const service = parts.join('-');
 	if (!isProvider(provider) || !isRegion(region) || !SERVICE.test(service)) return undefined;
 	const placement = { region, provider };
+	// A deployment's own host refuses every crawler: it is an address to pin, not one to index.
 	return service === 'api'
-		? { name: 'deployment-api', placement }
-		: { name: 'deployment', service, placement };
+		? { name: 'deployment-api', placement, crawled: false }
+		: { name: 'deployment', service, placement, crawled: false };
 }
 
 /** The path's leading segment, and the path after it. */
