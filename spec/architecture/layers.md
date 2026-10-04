@@ -26,7 +26,7 @@ built from the site's own libraries, and the probe and the schema it reads stay 
 ## The directory is the layer
 
 ```
-lib/
+lib/pkgs/         lib/crates/
 infra/apps/       infra/libs/
 platform/apps/    platform/libs/
 services/apps/    services/libs/
@@ -34,8 +34,13 @@ services/apps/    services/libs/
 
 A package's layer is the directory it sits in, and is written nowhere else, so the two cannot
 disagree. Each layer keeps `apps/` for what is deployed and `libs/` for what is imported, as the
-repository it becomes will at its top level; `lib/` deploys nothing, so its packages sit in it
-directly. `.mise/tasks/graph.py` reads the layer from the path
+repository it becomes will at its top level. A layer is read for what it does, so a deployable
+and a library are the split that matters there, whatever language each is in. `lib/` deploys
+nothing and is read for what it publishes, so it splits by registry instead: `pkgs/` for npm,
+`crates/` for crates.io. A package with a half in each -- `canmi`, `response` -- is two
+directories of one name, and what both halves read, `response`'s `codes.json` and fixtures,
+lives on the TypeScript side, which the Rust side reads, as `canmi`'s Rust is generated from its
+TypeScript. `.mise/tasks/graph.py` reads the layer from the path
 and fails on a dependency that points up.
 
 ## A scope says whose it is
