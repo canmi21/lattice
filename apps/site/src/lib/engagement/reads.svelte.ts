@@ -73,11 +73,7 @@ export async function readsOf(slug: string): Promise<Reads> {
 }
 
 async function countRead(slug: string): Promise<Reads> {
-	const response = await fetch(apiPath('read'), {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ slug }),
-	});
+	const response = await fetch(apiPath('read', { slug }), { method: 'POST' });
 	if (!response.ok) throw new Error(`read request failed with ${response.status}`);
 	// Parsed against the schema the Worker answers to, then checked for the one thing a schema
 	// cannot know: that this is the article that was asked about.

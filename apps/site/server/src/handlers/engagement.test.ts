@@ -240,19 +240,18 @@ describe('article reads', () => {
 	const slug = SLUG;
 
 	it('counts from the first read and answers with the running total', async () => {
-		const first = await api('/read', { method: 'POST', ip: IP_ONE, body: { slug } });
+		const first = await api(`/read?slug=${slug}`, { method: 'POST', ip: IP_ONE });
 		expect(first.status).toBe(200);
 		expect(await payload(first)).toEqual({ slug, read_count: 1 });
 
-		const second = await api('/read', { method: 'POST', ip: IP_TWO, body: { slug } });
+		const second = await api(`/read?slug=${slug}`, { method: 'POST', ip: IP_TWO });
 		expect(await payload(second)).toEqual({ slug, read_count: 2 });
 	});
 
 	it('refuses a slug that does not name an article', async () => {
-		const response = await api('/read', {
+		const response = await api('/read?slug=made-up', {
 			method: 'POST',
 			ip: IP_ONE,
-			body: { slug: 'made/up' },
 		});
 		expect(response.status).toBe(404);
 		expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_article' });
@@ -266,12 +265,12 @@ describe('article reads', () => {
 	// A second look inside the minute is the same read. The reader still needs the number to
 	// put on the page, so the request is answered rather than refused.
 	it('returns the unchanged count instead of an error once deduplicated', async () => {
-		await api('/read', { method: 'POST', ip: IP_ONE, body: { slug } });
+		await api(`/read?slug=${slug}`, { method: 'POST', ip: IP_ONE });
 
 		const deny: RateLimit = { limit: async () => ({ success: false }) };
 		const repeated = await api(
-			'/read',
-			{ method: 'POST', ip: IP_ONE, body: { slug } },
+			`/read?slug=${slug}`,
+			{ method: 'POST', ip: IP_ONE },
 			{ READ_RATE_LIMITER: deny },
 		);
 		expect(repeated.status).toBe(200);
@@ -281,8 +280,8 @@ describe('article reads', () => {
 	it('reports an unread article as zero rather than creating its row', async () => {
 		const deny: RateLimit = { limit: async () => ({ success: false }) };
 		const response = await api(
-			'/read',
-			{ method: 'POST', ip: IP_ONE, body: { slug } },
+			`/read?slug=${slug}`,
+			{ method: 'POST', ip: IP_ONE },
 			{ READ_RATE_LIMITER: deny },
 		);
 		expect(await payload(response)).toEqual({ slug, read_count: 0 });
@@ -296,7 +295,7 @@ describe('article reads', () => {
 	// The half the site renders from. Cacheable is the whole reason it is a separate method, so
 	// the header is as much the contract here as the number is.
 	it('answers the count without recording one, and lets a shared cache hold the answer', async () => {
-		await api('/read', { method: 'POST', ip: IP_ONE, body: { slug } });
+		await api(`/read?slug=${slug}`, { method: 'POST', ip: IP_ONE });
 
 		const asked = await api(`/read?slug=${slug}`, { ip: IP_TWO });
 		expect(asked.status).toBe(200);

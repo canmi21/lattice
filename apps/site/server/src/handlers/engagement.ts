@@ -179,18 +179,16 @@ engagement.get('/read', async (c) => {
  * Count a read of one article, and answer with the count it now has -- because the caller's
  * figure is known to be wrong here, not as a second way to ask. See spec/engagement.md.
  *
- * The slug rides in the body rather than the path because an article path contains a slash, and
- * a route pattern that has to encode one is a worse contract than the JSON body every other
- * mutation here already uses. Which slugs exist comes from the published root, so the database
- * never learns a slug from a request and a new article needs no deploy of this worker.
+ * The article is named in its address, `articles/{slug}/reads`, read into `slug` before this
+ * handler is asked. Which slugs exist comes from the published root, so the database never learns
+ * a slug from a request and a new article needs no deploy of this worker.
  */
 engagement.post('/read', JSON_LIMIT, async (c) => {
 	const ip = clientIp(c.req.raw);
 	if (!ip) return failure(c, 400, 'client_address_unavailable', NO_STORE);
 
-	const body = await readObject(c.req.raw);
-	const slug = body?.slug;
-	if (typeof slug !== 'string' || !findArticle(await rootOf(c.env), slug)) {
+	const slug = c.req.query('slug');
+	if (!slug || !findArticle(await rootOf(c.env), slug)) {
 		return failure(c, 404, 'no_such_article', NO_STORE);
 	}
 

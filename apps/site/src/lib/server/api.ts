@@ -1,9 +1,10 @@
 import { dev } from '$app/environment';
 import api, { PUBLIC_ROUTES } from '@canmi/site-api';
+import { read, SHAPES, type Route } from '@canmi/site-api/routes';
 import { failure } from '@canmi/response';
 import { URLS } from '@canmi/urls';
 import type { RequestEvent } from '@sveltejs/kit';
-import { routeOf } from '$lib/api';
+import { readAddress } from '$lib/api';
 
 /** Where the site's pages ask its API, on the site's own origin. */
 export const API_PREFIX = '/api/';
@@ -12,20 +13,15 @@ export const API_PREFIX = '/api/';
 const API_HOST = new URL(URLS.apps.production.api).hostname;
 
 /**
- * The public routes as `/v1/` names them, the thing in the path, each read back into the route
- * and the query parameter its handler takes; the rest of the path is the thing, slashes and all,
- * since an asset's name may hold one. See the workspace's spec/addresses.md.
+ * A public route as `/v1/` names it, by its shape rather than its contract: the route, and the
+ * query its handler reads. See the workspace's spec/addresses.md.
  */
-const PUBLIC_V1: readonly { readonly prefix: string; readonly route: string; readonly by: string }[] = [
-	{ prefix: 'v1/media/', route: 'media', by: 'resource' },
-	{ prefix: 'v1/assets/', route: 'asset', by: 'name' },
-];
-
-/** A public `/v1/` path, as the route and the query its handler reads, or undefined for none. */
-function publicV1(segment: string): { route: string; by: string; thing: string } | undefined {
-	const shape = PUBLIC_V1.find(({ prefix }) => segment.startsWith(prefix));
-	const thing = shape ? decodeURIComponent(segment.slice(shape.prefix.length)) : '';
-	return shape && thing ? { route: shape.route, by: shape.by, thing } : undefined;
+function publicV1(path: string): { route: Route; query: Record<string, string> } | undefined {
+	for (const route of PUBLIC_ROUTES as ReadonlySet<Route>) {
+		const query = read(SHAPES[route], path);
+		if (query) return { route, query };
+	}
+	return undefined;
 }
 
 /** The API's bindings: the Worker's own, with the records read from the tree in development. */
@@ -44,7 +40,7 @@ async function bindings(event: RequestEvent): Promise<Record<string, unknown>> {
 /**
  * The API's answer to `event`, or undefined when it is not the API's to answer.
  *
- * Two doors reach it. The site's pages ask under `/api/`, by the name `routeOf` resolves; the
+ * Two doors reach it. The site's pages ask under `/api/`, by the address `readAddress` reads; the
  * gateway asks as the public API host, for the public routes alone. See
  * spec/architecture/services.md, "The site's API runs in the site's Worker".
  */
@@ -53,17 +49,21 @@ export async function answer(event: RequestEvent): Promise<Response | undefined>
 	const outside = url.hostname === API_HOST;
 	if (!outside && !url.pathname.startsWith(API_PREFIX)) return undefined;
 	const segment = url.pathname.startsWith(API_PREFIX) ? url.pathname.slice(API_PREFIX.length) : '';
-	// Public by name, so whichever door asks: in development the gateway reaches this Worker on this
-	// machine's name rather than the API host's.
-	const versioned = publicV1(segment);
-	const route =
-		versioned?.route ??
-		(outside ? (PUBLIC_ROUTES.has(segment) ? segment : undefined) : routeOf(segment));
-	if (!route) return failure(404, 'no_such_route');
+	// A public route at `/v1/` is public by name, so whichever door asks: in development the gateway
+	// reaches this Worker on this machine's name rather than the API host's. Its old name, with its
+	// query, is answered on the API host until its callers move.
+	const asked = segment.startsWith('v1/')
+		? publicV1(segment.slice('v1/'.length))
+		: outside
+			? PUBLIC_ROUTES.has(segment)
+				? { route: segment as Route, query: {} }
+				: undefined
+			: readAddress(segment);
+	if (!asked) return failure(404, 'no_such_route');
 
 	const inner = new URL(url);
-	inner.pathname = `/${route}`;
-	if (versioned) inner.searchParams.set(versioned.by, versioned.thing);
+	inner.pathname = `/${asked.route}`;
+	for (const [name, value] of Object.entries(asked.query)) inner.searchParams.set(name, value);
 	return api.fetch(
 		new Request(inner, event.request),
 		await bindings(event),

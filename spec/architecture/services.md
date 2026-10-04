@@ -397,8 +397,12 @@ In production a page asks for a route at `/api/{address}`, twelve hex digits of 
 route's name and its contract: the schemas its answer and request are read by, taken as data, and a
 revision for whatever of its shape no schema describes. `apps/site/server/src/contract/contracts.ts` holds the
 contracts, and the site's build states every address to the pages and to the Worker in one
-`define`, so the two agree by construction. Development asks by the route's name, and a production
-Worker answers a name with a 404.
+`define`, so the two agree by construction. A route has a shape as well -- `articles/{slug}/reads`,
+`assets/{name*}`, in `SHAPES` beside the routes -- which puts the thing it is about in the path, as
+the workspace's `spec/addresses.md` has every address do; a production page asks at the route's
+address followed by the shape's placeholders, `/api/{address}/{slug}`, and the Worker reads the
+values back into the parameters its handler takes. Development asks at the shape itself, and a
+production Worker answers a shape with a 404.
 
 **The address moves with the contract and with nothing else.** A deploy that leaves a route alone
 leaves its address, and whatever cached it, alone. A deploy that changes it gives it a new address,
