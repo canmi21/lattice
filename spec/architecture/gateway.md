@@ -315,17 +315,23 @@ marks through the alias layer's binding for the same reason.
 is the same code under a Node entry point, in a container beside Caddy, on the newest stable Node
 rather than its long-term line. CORS, lifetimes, crawling, each host's files, the path rule and,
 later, credentials are one implementation, so a service never knows, and never needs to know, which
-side reached it. The two entry points differ in how a service is reached and nothing else.
+side reached it. The two entry points differ in what they are handed and nothing else: the Worker
+its bindings, the Node entry the same names as HTTP -- `HOME` and `QUOTA` asked on Caddy's inside
+side, `RELAY` and `INTERNAL_TOKEN` from its environment. The deployment at home mirrors the one on
+Workers, so what a caller meets is the same on both.
 
 **Caddy answers the gateway's hostnames on the LAN and hands them to it.** Its private side carries
 every hostname the profiles read, with certificates by DNS challenge, as it already has for
 `canmi.icu`; the internal gateway behind it reads each request into its tuple as the Worker does.
+Caddy sets `Cf-Connecting-Ip` to the LAN address it was asked from, over whatever the caller sent,
+so the internal gateway counts each device as the public one counts each visitor.
 Until the LAN's DNS answers those names with the node, the internal gateway is reached by naming
 the node's address for them, and is checked that way against the public one.
 
 **A service on the node is asked on the node; a service on Workers is asked through the public
 gateway.** What runs at home -- a deployment under `ixc.one` placed `rdu-int`, and every service
-whose placement is the node -- goes to Caddy's internal API host without leaving the house. What
+whose placement is the node -- goes to Caddy's inside side without leaving the house; see
+[host.md](host.md), "The inside side answers the internal gateway alone". What
 runs on Workers has no copy here, so the request goes on to the public gateway under the API
 host's spelling, `api.monoflake.com/v{n}/{service}/...`, resolved by public DNS rather than the
 LAN's, so a LAN that answers the names locally never sends the gateway to itself.

@@ -89,7 +89,8 @@ Durable Objects, one per key, one class in `quota`'s own Worker: the one place e
 agrees on, which is why Cloudflare's rate limiting binding, counted per location, is not used --
 an address whose calls land in three locations was allowed three times as much, no closer than the
 firewall's floor. On the node it is a Node container whose counts are memory in one process, which
-is the same single place there. Neither writes anything down: a count lost to an evicted object or
+is the same single place there, reached as every service at home is: through Caddy, on its inside
+side, which nothing but a holder of `INTERNAL_TOKEN` reaches. Neither writes anything down: a count lost to an evicted object or
 a restarted process is a window started again, which a limit can afford.
 
 **A call is counted once, by the gateway it entered.** The internal gateway counts what the LAN asks
@@ -105,8 +106,10 @@ buckets, nor the public's the node's; there is no sharing between them to keep i
 
 **The inside door is a binding's.** `quota`'s Worker exports a named entrypoint whose `take` is
 given every key and row of one call, in order, and answers once, `{ allowed, retryAfter }`; a Worker
-reaches it by service binding, which costs nothing beyond the Durable Object requests it makes. On the node the same call is an HTTP request on the
-node's own network. The inside door takes any key, so nothing outside the platform reaches it.
+reaches it by service binding, which costs nothing beyond the Durable Object requests it makes. On
+the node the same call is `POST /take` with the checks as its body, on Caddy's inside side, and
+`quota` declares that side alone, so neither the LAN's API host nor the tunnel's carries it. The
+inside door takes any key, so nothing outside the platform reaches it.
 
 **The outside door is not open until there are accounts.** `quota` is declared `public = false`, so
 the gateway's table does not know it and no host answers it. Opening it to a third party anonymously

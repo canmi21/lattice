@@ -284,6 +284,29 @@ standing on `edge` too. A tunnel that is down closes the public side and the not
 the one it replaced is brought back by hand, and the LAN and the tailnet, which never pass it, are
 how.
 
+### The inside side answers the internal gateway alone
+
+**Caddy has a third side, `inside`, beside the LAN's and the tunnel's**: plain HTTP on 8080,
+published nowhere, so only a container sharing a network with Caddy reaches it -- and every app
+shares one, so that is not enough on its own. It refuses any request whose `x-internal` is not
+`INTERNAL_TOKEN`, from Caddy's `secret.env`, so of those containers only a holder of the token gets
+through: the internal gateway, and a service at home with a limit to count. It answers one name,
+`api.inside`, with every scope, taken off as the tunnel's side does, and counts no limit, since what
+reaches it was counted by the gateway that sent it. It is the node's counterpart of what a Worker
+has by binding and by VPC service; see [gateway.md](gateway.md), "Inside the house, the same names
+answer locally".
+
+**A scope says which sides carry it**, as `sides` under `[api]`: `private`, `tunnel` and `inside`,
+all three when left out. `quota` names `inside` alone, so its door, which takes any key, is on
+neither the LAN's API host nor the tunnel's. `inside` is never left out, since it is how the
+internal gateway reaches every service at home.
+
+**The LAN's side carries the gateway's hostnames too**, every one the profiles read from
+`monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li` and `symlink.si`, with certificates by DNS
+challenge as `canmi.icu` has, and hands them to the internal gateway. It sets `Cf-Connecting-Ip` to
+the address it was asked from, over whatever the caller sent, which is the one place the internal
+gateway takes a caller's address from.
+
 ### An upstream image is adopted, not rebuilt
 
 **An image from elsewhere becomes an app by a directory like any other**: its `service.toml`, and a

@@ -314,6 +314,10 @@ without a network, see [meter.md](meter.md).
 Caddy and nothing else, so an app that is compromised cannot reach another around Caddy.
 The tunnel reaches Caddy only, and Workers VPC reaches a node through Caddy too.
 
+**The internal gateway reaches Caddy too, on a side of its own**, `inside`, which only a holder of
+`INTERNAL_TOKEN` passes; see [host.md](host.md), "The inside side answers the internal gateway
+alone".
+
 **A node has one VPC service, `home`, and it points at Caddy.** A Worker binds it as `HOME` and
 names what it wants as `Host` -- `api.canmi.app` for an API, `gemini.canmi.app` for gemini -- so a
 new service a Worker needs is never a new VPC service in the dashboard. What a Worker can reach is
