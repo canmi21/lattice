@@ -96,7 +96,8 @@ def content_ids(paths: list[pathlib.Path]) -> list[str]:
 
 
 def object_path(cid: str) -> pathlib.Path:
-	"""Where an object lives: its content id, fanned out. The twin of `storageKey` in libs/store."""
+	"""Where an object lives: its content id, fanned out. The twin of `storageKey` in
+	platform/libs/store."""
 	return PUBLIC / cid[:2] / cid[2:4] / f"{cid}.woff2"
 
 

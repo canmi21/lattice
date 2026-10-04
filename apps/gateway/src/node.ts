@@ -8,7 +8,7 @@
 import { Resolver } from 'node:dns';
 import type { LookupFunction } from 'node:net';
 import { serve } from '@hono/node-server';
-import type { Check, Taken } from '@canmi/limits';
+import type { Check, Taken } from '@monoflake/limits';
 import { gateway, INTERNAL_HEADER } from './index.ts';
 import { profileOf } from './profile.ts';
 import { send, type Target } from './send.ts';

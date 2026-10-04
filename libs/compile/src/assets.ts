@@ -19,18 +19,18 @@ import {
 	type ParsedResource,
 	type Picture,
 	type VideoLayer,
-} from '@canmi/artifacts';
-import type { VideoRung, VideoTrack } from '@canmi/artifacts/types';
+} from '@monoflake/artifacts';
+import type { VideoRung, VideoTrack } from '@monoflake/artifacts/types';
 
 import { sourceFingerprint } from './assemble.ts';
 
 /**
  * What a published rung and a published text track are called.
  *
- * Apart from `VARIANT_EXTENSION` in libs/artifacts rather than folded into it: that table is
- * held to `apps/local`'s `for_variant` by a test that reads only its `image/*` arms, and these two
- * are not variants of a picture. One format each, which is spec/architecture/video/pipeline.md's
- * whole point -- AV1 in MP4, and WebVTT beside it.
+ * Apart from `VARIANT_EXTENSION` in platform/libs/artifacts rather than folded into it: that table
+ * is held to `apps/local`'s `for_variant` by a test that reads only its `image/*` arms, and these
+ * two are not variants of a picture. One format each, which is
+ * spec/architecture/video/pipeline.md's whole point -- AV1 in MP4, and WebVTT beside it.
  */
 export const MEDIA_EXTENSION: Record<string, string> = {
 	'video/mp4': 'mp4',

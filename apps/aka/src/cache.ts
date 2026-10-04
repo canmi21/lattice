@@ -1,4 +1,4 @@
-import { PUBLISHED } from '@canmi/cache';
+import { PUBLISHED } from '@monoflake/cache';
 import type { MiddlewareHandler } from 'hono';
 
 /**
@@ -7,12 +7,12 @@ import type { MiddlewareHandler } from 'hono';
  * **This layer's answer is exactly as fresh as the API answer behind it**, so a resolved redirect
  * takes the same life the `/asset` answer takes. Any other number would be a second publication
  * delay on one resource, which is the thing the arrangement exists to avoid -- so the numbers
- * are `@canmi/cache`'s and only the three decisions below are this layer's. See
+ * are `@monoflake/cache`'s and only the three decisions below are this layer's. See
  * spec/architecture/delivery.md.
  */
 
-/** A resolved name; `@canmi/cache`'s, since a page following this layer stamps it too. */
-export { RESOLVED } from '@canmi/cache';
+/** A resolved name; `@monoflake/cache`'s, since a page following this layer stamps it too. */
+export { RESOLVED } from '@monoflake/cache';
 
 /** A name the corpus does not publish, or an address that could never name one. */
 export const REFUSED = PUBLISHED;

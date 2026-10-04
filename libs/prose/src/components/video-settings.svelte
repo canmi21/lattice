@@ -18,7 +18,7 @@
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import { animate, cubicBezier } from 'motion';
 	import { tick } from 'svelte';
-	import type { VideoRung } from '@canmi/artifacts/types';
+	import type { VideoRung } from '@monoflake/artifacts/types';
 	import type { LocaleCode } from 'canmi/locales';
 	import * as m from '@canmi/messages';
 	import { styles } from './video-controls.styles.ts';

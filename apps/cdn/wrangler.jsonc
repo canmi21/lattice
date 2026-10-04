@@ -18,7 +18,7 @@
 		},
 	],
 
-	// The port also appears in libs/sdk as the development CDN URL. wrangler cannot read a
+	// The port also appears in platform/libs/sdk as the development CDN URL. wrangler cannot read a
 	// TypeScript library, so the number is written twice on purpose. It is the only pair there
 	// is: one checkout runs one set, and a second copy collides here rather than drifting to a
 	// free port. See spec/toolchain.md.

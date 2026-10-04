@@ -238,7 +238,7 @@ above -- exactly where `pretty` already lives.
 
 What deciding it costs: a named policy per language, which is the shape prose.md already has; an
 optional per-paragraph override in the compiled article, which is a change to the block contract in
-`libs/artifacts` and to both ends that read it; and a measuring layer chosen from the three above.
+`platform/libs/artifacts` and to both ends that read it; and a measuring layer chosen from the three above.
 The threshold is a constant in whichever layer measures, and the table above is what it should be
 argued from. The language half stays as it is: English opts in, every other language keeps one
 answer per article until somebody measures it.

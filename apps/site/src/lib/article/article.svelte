@@ -154,7 +154,7 @@
 		ArticleNote,
 		ArticleSummary,
 		TocEntry,
-	} from '@canmi/artifacts/types';
+	} from '@monoflake/artifacts/types';
 	import type { Theme } from '@canmi/kit/theme';
 	import type { LocaleCode } from '#lib/locale/index.js';
 	import LanguageSwitcher from '#lib/locale/switcher.svelte';

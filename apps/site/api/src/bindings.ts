@@ -1,5 +1,5 @@
-import type { Quota } from '@canmi/limits';
-import type { Bindings as StoreBindings } from '@canmi/store';
+import type { Quota } from '@monoflake/limits';
+import type { Bindings as StoreBindings } from '@monoflake/store';
 
 /**
  * What the site's Worker hands this API: its database, the records bucket, and `quota`'s inside

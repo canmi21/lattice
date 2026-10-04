@@ -3,7 +3,7 @@ import { cacheControl } from './cache';
 import github from './github';
 import object from './object';
 import derive from './derive';
-import type { Bindings } from '@canmi/store';
+import type { Bindings } from '@monoflake/store';
 import { failure } from './respond';
 
 /**

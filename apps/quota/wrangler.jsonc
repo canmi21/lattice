@@ -13,7 +13,7 @@
 	"durable_objects": { "bindings": [{ "name": "buckets", "class_name": "bucket" }] },
 	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["bucket"] }],
 
-	// Also in libs/sdk, whose dev task asks for it; a gateway or the site running beside it
+	// Also in platform/libs/sdk, whose dev task asks for it; a gateway or the site running beside it
 	// finds it by name through wrangler's registry. See spec/toolchain.md, "Dev ports are pinned".
 	"dev": {
 		"ip": "*",

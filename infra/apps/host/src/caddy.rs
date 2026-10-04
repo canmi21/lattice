@@ -414,7 +414,8 @@ mod tests {
 
 	fn geo() -> Deployed {
 		Deployed {
-			manifest: Manifest::parse(include_str!("../../../../apps/geo/service.toml")).unwrap(),
+			manifest: Manifest::parse(include_str!("../../../../platform/apps/geo/service.toml"))
+				.unwrap(),
 			image: "sha256:a".into(),
 			previous: None,
 			deployed_at: String::new(),
@@ -608,7 +609,7 @@ mod tests {
 
 	#[test]
 	fn an_apps_declared_home_redirects_its_root() {
-		let text = include_str!("../../../../apps/gemini/service.toml");
+		let text = include_str!("../../../../platform/apps/gemini/service.toml");
 		let gemini = Deployed {
 			manifest: Manifest::parse(text).unwrap(),
 			image: "sha256:g".into(),

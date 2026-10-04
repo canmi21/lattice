@@ -2,7 +2,7 @@ use super::*;
 
 /// The file geo ships. Two programs read this format, so the reader is tested against a real
 /// declaration rather than one written to suit it.
-const GEO: &str = include_str!("../../../../../apps/geo/service.toml");
+const GEO: &str = include_str!("../../../../../platform/apps/geo/service.toml");
 
 #[test]
 fn reads_the_declaration_geo_ships() {
@@ -190,7 +190,8 @@ fn names_its_sides_from_three_and_never_leaves_out_inside() {
 
 #[test]
 fn a_home_stays_on_the_apps_own_site() {
-	let gemini = Manifest::parse(include_str!("../../../../../apps/gemini/service.toml")).unwrap();
+	let gemini =
+		Manifest::parse(include_str!("../../../../../platform/apps/gemini/service.toml")).unwrap();
 	assert_eq!(gemini.check("gemini", "home"), Ok(()));
 	for home in ["/", "admin", "//evil.example"] {
 		let mut elsewhere = gemini.clone();
@@ -210,7 +211,8 @@ fn a_node_refuses_an_api_prefix() {
 
 #[test]
 fn a_label_maps_an_apps_name_for_what_reaches_it_from_outside() {
-	let gemini = Manifest::parse(include_str!("../../../../../apps/gemini/service.toml")).unwrap();
+	let gemini =
+		Manifest::parse(include_str!("../../../../../platform/apps/gemini/service.toml")).unwrap();
 	let interface = gemini.interface.as_ref().unwrap();
 	// No `domain` set: the label is the app's own name.
 	assert_eq!(interface.label("gemini"), "gemini");
@@ -278,7 +280,8 @@ fn the_driver_and_every_sidecar_name_are_reserved() {
 	assert_eq!(check_name("objects"), Err(Invalid::Reserved("objects".into())));
 	assert_eq!(check_name("geo-objects"), Err(Invalid::Reserved("geo-objects".into())));
 	assert!(check_name("objects-geo").is_ok());
-	let driver = Manifest::parse(include_str!("../../../../../apps/objects/service.toml")).unwrap();
+	let driver =
+		Manifest::parse(include_str!("../../../../../platform/apps/objects/service.toml")).unwrap();
 	assert_eq!(driver.check_own("objects", "home"), Ok(()));
 	assert_eq!(driver.check("objects", "home"), Err(Invalid::Reserved("objects".into())));
 }
@@ -313,7 +316,8 @@ fn the_database_drivers_and_every_sidecar_of_theirs_are_reserved() {
 	}
 	assert!(check_name("postgres-geo").is_ok());
 	assert!(OWN.contains(&"postgres"));
-	let driver = Manifest::parse(include_str!("../../../../../apps/postgres/service.toml")).unwrap();
+	let driver =
+		Manifest::parse(include_str!("../../../../../platform/apps/postgres/service.toml")).unwrap();
 	assert_eq!(driver.check_own("postgres", "home"), Ok(()));
 	assert_eq!(driver.check("postgres", "home"), Err(Invalid::Reserved("postgres".into())));
 	// Only a driver keeps a port outside the services' range; an app on 5432 is still refused.
@@ -324,7 +328,8 @@ fn the_database_drivers_and_every_sidecar_of_theirs_are_reserved() {
 
 #[test]
 fn lan_defaults_to_on_and_can_be_turned_off() {
-	let gemini = Manifest::parse(include_str!("../../../../../apps/gemini/service.toml")).unwrap();
+	let gemini =
+		Manifest::parse(include_str!("../../../../../platform/apps/gemini/service.toml")).unwrap();
 	assert!(gemini.interface.as_ref().unwrap().lan);
 	let mut off = gemini;
 	off.interface.as_mut().unwrap().lan = false;

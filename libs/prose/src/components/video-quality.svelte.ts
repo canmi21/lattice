@@ -4,7 +4,7 @@
  * initializes, and its effects are that component's. See spec/architecture/video/player.md,
  * "Quality has an Auto, and it is where a clip starts".
  */
-import type { VideoRung } from '@canmi/artifacts/types';
+import type { VideoRung } from '@monoflake/artifacts/types';
 import { automatic, playing } from './video-rungs.ts';
 
 export class Quality {

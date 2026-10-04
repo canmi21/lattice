@@ -65,7 +65,11 @@
 </script>
 
 <script lang="ts">
-	import type { QuadrantDirection, QuadrantItem, QuadrantPosition } from '@canmi/artifacts/types';
+	import type {
+		QuadrantDirection,
+		QuadrantItem,
+		QuadrantPosition,
+	} from '@monoflake/artifacts/types';
 
 	let {
 		title,

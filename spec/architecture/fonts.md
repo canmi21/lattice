@@ -103,9 +103,9 @@ settled.** There is no `/fonts/` prefix and nothing in between for a font to fal
 
 This section has now been wrong twice, and the second time is the one worth keeping. It first
 named two tiers and sent everything unhashed to five minutes; the correction to that named a week,
-which no constant in `libs/cache` has ever held. There are three tiers -- a year for a hashed key,
+which no constant in `platform/libs/cache` has ever held. There are three tiers -- a year for a hashed key,
 an hour for a key that only names, five minutes for anything that is not a settled answer -- and a
-font chunk meets only the first. `libs/cache` is the account being corrected to, and `cache.ts`
+font chunk meets only the first. `platform/libs/cache` is the account being corrected to, and `cache.ts`
 reads from it rather than restating it.
 
 HTML is the one thing that is not cached at all, because its body varies by the reader's

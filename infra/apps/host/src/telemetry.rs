@@ -105,7 +105,7 @@ pub async fn write(store: &Store, directory: &Path) -> anyhow::Result<()> {
 mod tests {
 	use super::*;
 
-	const GEO: &str = include_str!("../../../../apps/geo/service.toml");
+	const GEO: &str = include_str!("../../../../platform/apps/geo/service.toml");
 
 	fn app() -> Deployed {
 		Deployed {

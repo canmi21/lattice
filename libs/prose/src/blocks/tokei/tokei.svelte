@@ -160,7 +160,7 @@
 	import { remFromMeasuredPixels } from '@canmi/kit/units';
 	import { URLS } from '@monoflake/sdk';
 	import { langColor, parseTokei, type LangStat } from './tokei';
-	import type { TokeiView } from '@canmi/artifacts/types';
+	import type { TokeiView } from '@monoflake/artifacts/types';
 	import { compactCount } from 'canmi/locales/format';
 
 	let {

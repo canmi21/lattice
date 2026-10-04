@@ -9,7 +9,7 @@ import {
 	type Bindings,
 	type Found,
 	type Measured,
-} from '@canmi/store';
+} from '@monoflake/store';
 import { parseName, validatorFor } from './key';
 import { failure } from './respond';
 

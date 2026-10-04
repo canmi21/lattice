@@ -131,7 +131,7 @@ The feed was published for a while and it is the shape a content-addressed store
 a document the size of the whole corpus, rewritten whenever any one article changes. Nine
 locales at a quarter-megabyte each, per edit, immutable and never swept -- a one-line fix to an
 image URL wrote 2.0 MB. What made it look necessary was the belief that a feed says something a
-block does not. It does not: `feedHtml` in libs/artifacts is the whole difference, and every
+block does not. It does not: `feedHtml` in platform/libs/artifacts is the whole difference, and every
 field it reads is already in `content/{hash}.json`. `llms.txt` needs no object at all, being a
 projection of the root the homepage answer already carries.
 
@@ -406,7 +406,7 @@ inside the `content` object the view names. Two answers holding one fact is the 
 [the workspace code.md](../../../../spec/code.md) warns about, where the second reader is the one
 that eventually disagrees.
 
-**These shapes are typed in `libs/artifacts` and are not restated here.** They changed seven times
+**These shapes are typed in `platform/libs/artifacts` and are not restated here.** They changed seven times
 in one afternoon while two Workers held two hand-written spellings of them, and every disagreement
 was silent until somebody described one out loud. Each route is annotated `satisfies` its shared
 type and each consumer imports the same one, so the next disagreement is a compile error. Three
@@ -465,7 +465,7 @@ works, so the recovery is to use it; without this the failure is a click that do
 -- and asks it in one place rather than at every call site. What the envelope carries is not
 standardised: `data` is whatever that route answers with, checked by whoever asked for it. A
 stored object streamed through this API is not composed by it and is not wrapped. The type and the
-one function that opens it are in `libs/artifacts`.
+one function that opens it are in `platform/libs/artifacts`.
 
 **The server's own fetch is a cross-origin request with no `Origin`, and that combination has a
 trap in it.** SvelteKit's universal `load` simulates CORS on the server for a cross-origin

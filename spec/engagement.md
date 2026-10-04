@@ -507,7 +507,7 @@ not to know yet.**
 
 ### An answer is parsed, not assumed
 
-Every engagement answer has a valibot schema in [libs/artifacts](../libs/artifacts/src/engagement.ts),
+Every engagement answer has a valibot schema in [platform/libs/artifacts](../platform/libs/artifacts/src/engagement.ts),
 and both sides use the same one -- the Worker builds an answer satisfying the inferred type, the
 browser parses what arrives against the schema it was inferred from. It used to be a hand-written
 `typeof` beside each fetch: the same sentence six times, each only as current as whoever last

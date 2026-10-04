@@ -1,6 +1,6 @@
 # `cron`: every scheduled job on a node, in one place
 
-`apps/cron` calls the services on a node when their time comes. It does no work of its own: a job is
+`platform/apps/cron` calls the services on a node when their time comes. It does no work of its own: a job is
 a service's route, and `cron` is what knows when to ask for it, what came of it, and when it last
 did. Workers keep Cloudflare's own cron triggers; this is the node's.
 

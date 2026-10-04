@@ -21,8 +21,8 @@ import {
 	type Root,
 	type RootArticle,
 	type RootView,
-} from '@canmi/artifacts';
-import type { Article, Page } from '@canmi/artifacts/types';
+} from '@monoflake/artifacts';
+import type { Article, Page } from '@monoflake/artifacts/types';
 import { URLS } from '@monoflake/sdk';
 import { buildArticles, buildPages } from '@canmi/compile/articles';
 import { LOCALE_CODES } from '../src/lib/locale/index.ts';

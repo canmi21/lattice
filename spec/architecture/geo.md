@@ -1,6 +1,6 @@
 # `geo`: where a place is, and where an address is
 
-`apps/geo` answers two questions from data it holds in memory: which place is near a position,
+`platform/apps/geo` answers two questions from data it holds in memory: which place is near a position,
 `/geo/address`, from GeoNames; and where an IP address is, `/geo/ip`, from MaxMind's GeoLite2.
 Both are public scopes of the API host: CPU alone, and cheap enough to answer anyone, within the
 limits every public route has.

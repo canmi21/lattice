@@ -1,4 +1,4 @@
-import type { Row } from '@canmi/limits';
+import type { Row } from '@monoflake/limits';
 import { parse } from 'smol-toml';
 import { type Route, routesOf } from './declaration.ts';
 

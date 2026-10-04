@@ -45,7 +45,7 @@ asks, measured and capped as every container is.
 
 ## The driver is deployed like an app, and is not one
 
-**`apps/objects` is the image, and deploying it upgrades every sidecar.** Its Dockerfile is the
+**`platform/apps/objects` is the image, and deploying it upgrades every sidecar.** Its Dockerfile is the
 upstream Versity image at a pinned version with the posix backend's command, per host.md, "An
 upstream image is adopted, not rebuilt"; CI builds it like anything else, and host takes it as the
 driver's version: it runs no container of its own under that name, and recreates each app's sidecar

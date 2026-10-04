@@ -157,7 +157,7 @@
 		kindColor,
 		type DependencyItem,
 	} from './cargo';
-	import type { CargoView, CrateDep, CrateRecord } from '@canmi/artifacts/types';
+	import type { CargoView, CrateDep, CrateRecord } from '@monoflake/artifacts/types';
 
 	let { crate, view = 'treemap' }: { crate: CrateRecord; view?: CargoView } = $props();
 	let chart = $state<HTMLDivElement>();

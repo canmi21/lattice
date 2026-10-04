@@ -7,14 +7,14 @@
  * question from whether it is still fresh, which is what the five minutes answers.
  */
 import { browser } from '$app/env';
-import { PUBLICATION_DELAY } from '@canmi/cache';
+import { PUBLICATION_DELAY } from '@monoflake/cache';
 import { QueryClient } from '@tanstack/svelte-query';
 
-/** The publication delay itself, not a copy of it: see libs/cache for why there is one number. */
+/** The publication delay itself, not a copy: see `@monoflake/cache` for why there is one number. */
 export const QUERY_STALE_TIME = PUBLICATION_DELAY * 1_000;
 
 /**
- * How long an answer stays worth restoring after the tab is gone, which `@canmi/cache` does not
+ * How long an answer stays worth restoring after the tab is gone, which `@monoflake/cache` does not
  * own: nothing stamps it on a response, and it answers retention rather than freshness.
  */
 export const QUERY_CACHE_MAX_AGE = 3 * 24 * 60 * 60 * 1_000;

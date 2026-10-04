@@ -1,4 +1,4 @@
-import { robotsFor } from '@canmi/robots';
+import { robotsFor } from '@monoflake/robots';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;

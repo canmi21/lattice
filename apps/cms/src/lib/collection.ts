@@ -9,8 +9,8 @@
  * SvelteKit's, which `hooks.server.ts` points at `local`, and its answer is carried to the browser
  * so hydration does not ask again.
  */
-import type { ParsedResource } from '@canmi/artifacts';
-import type { Block, TocEntry } from '@canmi/artifacts/types';
+import type { ParsedResource } from '@monoflake/artifacts';
+import type { Block, TocEntry } from '@monoflake/artifacts/types';
 import type { DraftMeta } from '@canmi/collection/article';
 
 export type Draft = {

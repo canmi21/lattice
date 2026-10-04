@@ -41,8 +41,8 @@
 		{ "binding": "HOME", "service_id": "01a0e5b1-1072-72d3-81cf-5b1c69ad7a6e", "remote": true },
 	],
 
-	// Also in libs/sdk as the API's development port, which callers ask; wrangler cannot read
-	// that library. Every interface, so a phone on the same network reaches it. See
+	// Also in platform/libs/sdk as the API's development port, which callers ask; wrangler cannot
+	// read that library. Every interface, so a phone on the same network reaches it. See
 	// spec/toolchain.md.
 	"dev": {
 		"ip": "*",

@@ -29,12 +29,12 @@
 		"./prose-root.svelte": "./src/prose-root.svelte"
 	},
 	"dependencies": {
-		"@canmi/artifacts": "workspace:*",
 		"@canmi/kit": "workspace:*",
 		"@canmi/messages": "workspace:*",
 		"@canmi/ui": "workspace:*",
 		"@chenglou/pretext": "^0.0.9",
 		"@lucide/svelte": "^1.51.0",
+		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
 		"@stylexjs/stylex": "^0.19.1",
 		"@videojs/core": "10.0.1",

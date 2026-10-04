@@ -4,7 +4,7 @@ import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@monoflake/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, INTERNAL_HEADER, MARK } from './index.ts';
-import { type Check, covers } from '@canmi/limits';
+import { type Check, covers } from '@monoflake/limits';
 import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, scopeTable, WORKERS } from './table.ts';

@@ -1,5 +1,5 @@
 {
-	// The Workers and the code only they run -- libs/store speaks R2 and the asset fetcher,
+	// The Workers and the code only they run -- platform/libs/store speaks R2 and the asset fetcher,
 	// apps/site/api is the site's API, which the site's program sees through a declaration. No
 	// `dom`; see spec/architecture/workspace.md, "A runtime's globals decide which program checks
 	// a file".
@@ -29,11 +29,11 @@
 		"apps/gateway/*.d.ts",
 		"apps/quota/src/**/*.ts",
 		"apps/quota/*.d.ts",
-		"libs/store/src/**/*.ts",
+		"platform/libs/store/src/**/*.ts",
 		// Types, schemas and constants only, so neither carries a runtime global and both are
 		// safe in this program and in the browser one at once.
-		"libs/artifacts/src/**/*.ts",
-		"libs/cache/src/**/*.ts"
+		"platform/libs/artifacts/src/**/*.ts",
+		"platform/libs/cache/src/**/*.ts"
 	],
 	"exclude": ["**/node_modules", "**/dist", "**/build"]
 }

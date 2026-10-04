@@ -1,6 +1,6 @@
-import { isResourceId } from '@canmi/artifacts';
-import { PUBLISHED } from '@canmi/cache';
-import { read, recordKey } from '@canmi/store';
+import { isResourceId } from '@monoflake/artifacts';
+import { PUBLISHED } from '@monoflake/cache';
+import { read, recordKey } from '@monoflake/store';
 import { Hono } from 'hono';
 import type { Bindings } from '../bindings';
 import { failure } from '../lib/respond';

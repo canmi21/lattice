@@ -8,12 +8,12 @@
 		"build": "wrangler deploy --dry-run --outdir=dist --env=\"\""
 	},
 	"dependencies": {
-		"@canmi/artifacts": "workspace:*",
-		"@canmi/cache": "workspace:*",
 		"@canmi/response": "workspace:*",
-		"@canmi/robots": "workspace:*",
-		"@canmi/security": "workspace:*",
+		"@monoflake/artifacts": "workspace:*",
+		"@monoflake/cache": "workspace:*",
+		"@monoflake/robots": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
+		"@monoflake/security": "workspace:*",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {

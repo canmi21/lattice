@@ -31,7 +31,7 @@ import {
 	type BatchRequest,
 	type ParsedResource,
 	type ViewAnswer,
-} from '@canmi/artifacts';
+} from '@monoflake/artifacts';
 import { pageUrls, pickUrls, URLS } from '@monoflake/sdk';
 import type { FeedEntry } from '#lib/documents/feed.js';
 import { noticeHtml } from '#lib/documents/notice.js';
@@ -55,10 +55,10 @@ type Fetch = typeof fetch;
  * Where the CDN and the alias layer are, which depends on who is asking rather than on the
  * environment.
  *
- * A page asks for the proxy path, since the host it should use is whichever one it was opened
- * from; the Worker needs an origin, because SvelteKit answers a same-origin path from its own
- * router and would never reach the dev proxy. The two are identical in production. See libs/urls.
- * The API is neither: it is this Worker's own, asked on the site's origin by `apiPath`.
+ * A page asks for the proxy path, since the host it should use is whichever one it was opened from;
+ * the Worker needs an origin, because SvelteKit answers a same-origin path from its own router and
+ * would never reach the dev proxy. The two are identical in production. See platform/libs/sdk. The
+ * API is neither: it is this Worker's own, asked on the site's origin by `apiPath`.
  */
 function upstream(): { cdn: string; alias: string } {
 	return browser ? pageUrls(dev) : pickUrls(dev);
@@ -121,7 +121,7 @@ export async function publishedReads(fetch: Fetch, slug: string): Promise<number
  * The one batch entry point, asked and read in one place.
  *
  * `type` goes out and comes back, so the answer proves which question it answers rather than the
- * caller remembering. See libs/artifacts, `BatchRequest`.
+ * caller remembering. See platform/libs/artifacts, `BatchRequest`.
  */
 export async function askBatch<T extends BatchRequest>(
 	asked: T,
@@ -237,7 +237,7 @@ export async function publishedView(
 	return { path: found.path, card: found.objects.card, view };
 }
 
-/** A page's envelope names no locale, so it is checked without one. See libs/artifacts. */
+/** A page's envelope names no locale, so it is checked without one. See platform/libs/artifacts. */
 async function publishedPageView(fetch: Fetch, hash: string, slug: string): Promise<PublishedPage> {
 	const page = (await (await object(fetch, 'page', hash)).json()) as PublishedPage;
 	readPageEnvelope(page, slug);
@@ -304,7 +304,7 @@ export async function publishedResources(
 		// One question for every page this corpus has, and the fewest that can answer for a page
 		// that ever outgrows what one request carries -- never a refusal, which on this path is a
 		// blank article rather than a missing picture. The cap belongs to the request shape and is
-		// read from there; see `resourceQuestions` in libs/artifacts.
+		// read from there; see `resourceQuestions` in platform/libs/artifacts.
 		const answers = await Promise.all(
 			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', resources: rids }, fetch)),
 		);
@@ -388,7 +388,7 @@ export async function publishedFeedEntries(
 /** Where the links a feed body writes are rooted, for whichever hosts are answering. */
 function feedBases(url: string, locale: LocaleCode) {
 	// The alias layer rather than the CDN, because a feed names a rid and has nothing to resolve
-	// one with. See `FeedBases` in libs/artifacts.
+	// one with. See `FeedBases` in platform/libs/artifacts.
 	return { site: URLS.apps.production.site, resources: `${upstream().alias}/`, url, locale };
 }
 

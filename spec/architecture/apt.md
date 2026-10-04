@@ -1,7 +1,7 @@
 # `apt`: the machine's own packages, through a narrow door
 
 The node's operating system updates its packages as any Debian machine does, with `apt-get`, as
-root, from systemd units on the machine. `apps/apt` is how the platform asks for that without being
+root, from systemd units on the machine. `platform/apps/apt` is how the platform asks for that without being
 root: a small service that can start two fixed systemd units and read how they went, and nothing
 else. It is the pattern for any privilege the platform needs from the machine -- a proxy that holds
 the privilege, and a door narrow enough that holding the door is not holding the privilege.
@@ -11,7 +11,7 @@ the privilege, and a door narrow enough that holding the door is not holding the
 **What runs is two systemd services on the machine, `apt-nightly-update.service` and
 `apt-weekly-upgrade.service`**: the first `apt-get update`; the second `update`, `full-upgrade`,
 `autoremove --purge` and `clean`, then a note when a newer kernel waits for a reboot. Their unit
-files are kept in `apps/apt/units/` and installed on the machine by hand, since host has no business
+files are kept in `platform/apps/apt/units/` and installed on the machine by hand, since host has no business
 writing the operating system's configuration. Their timers are gone: when they run is `cron`'s, per
 [cron.md](cron.md).
 

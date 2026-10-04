@@ -1,5 +1,5 @@
 <script module lang="ts">
-	import type { ViewMeta } from '@canmi/artifacts';
+	import type { ViewMeta } from '@monoflake/artifacts';
 	import * as stylex from '@stylexjs/stylex';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 </script>

@@ -1,0 +1,13 @@
+{
+	"name": "@monoflake/store",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"dependencies": {
+		"@canmi/response": "workspace:*",
+		"@cloudflare/workers-types": "^5.20261004.1",
+		"@monoflake/artifacts": "workspace:*"
+	}
+}

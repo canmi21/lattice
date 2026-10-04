@@ -1,5 +1,5 @@
-import { ROOT_KEY, RootSchema, type Root, type RootArticle } from '@canmi/artifacts';
-import { read } from '@canmi/store';
+import { ROOT_KEY, RootSchema, type Root, type RootArticle } from '@monoflake/artifacts';
+import { read } from '@monoflake/store';
 import * as v from 'valibot';
 import type { Bindings } from '../bindings';
 

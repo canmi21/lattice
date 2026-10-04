@@ -12,7 +12,7 @@ import {
 	type LikedAnswer,
 	type NewsletterAnswer,
 	type StatsAnswer,
-} from '@canmi/artifacts';
+} from '@monoflake/artifacts';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
 import { apiPath } from '#lib/api.js';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
@@ -220,7 +220,7 @@ export async function jsonResponse<T>(response: Response): Promise<T> {
  * Two steps and not one: the envelope says whether the call worked, and the schema says whether
  * what came back is what this call asked for. Each used to be a hand-written `typeof` beside every
  * fetch, which is the same sentence written six times and only as current as whoever last edited
- * the route. See libs/artifacts/engagement.ts.
+ * the route. See platform/libs/artifacts/engagement.ts.
  */
 async function answered<S extends Parameters<typeof unwrapAs>[0]>(
 	schema: S,

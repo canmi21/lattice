@@ -95,7 +95,7 @@ protected still holds, and more simply: `local` is the one process that writes `
 second copy of it collides on `LOCAL_PORT`, which is the mutex doing its job.
 
 A port both a TypeScript tool and a Rust binary need is declared in `mise.toml` under `[env]`,
-not in `libs/sdk`. The single-source rule asks for one place to edit, not one particular
+not in `platform/libs/sdk`. The single-source rule asks for one place to edit, not one particular
 file, and a TypeScript library cannot be read by a Rust process -- putting a cross-language
 fact there would force the duplication the rule exists to prevent. URLs only the TypeScript
 side resolves still belong in [workspace.md](architecture/workspace.md)'s URL map.
@@ -124,7 +124,7 @@ OpenGraph card are rendered into the HTML by the worker before any script runs, 
 at the phone itself. A page served from this machine's address now asks that same address for
 everything.
 
-Two consequences worth stating. `libs/sdk` returns paths rather than origins for those two in
+Two consequences worth stating. `platform/libs/sdk` returns paths rather than origins for those two in
 development, so the Rust mirror does too -- the two languages still give one answer, which is what
 that mirror is for. And `og:image` is a relative URL in development, which is invalid to a crawler
 and reaches none; production is unaffected.

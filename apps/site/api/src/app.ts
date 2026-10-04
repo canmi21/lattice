@@ -1,5 +1,5 @@
-import { PUBLISHED } from '@canmi/cache';
-import { counted, limited } from '@canmi/limits';
+import { PUBLISHED } from '@monoflake/cache';
+import { counted, limited } from '@monoflake/limits';
 import { URLS } from '@monoflake/sdk';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';

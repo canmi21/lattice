@@ -14,7 +14,7 @@ import type {
 	QuadrantPosition,
 	TokeiView,
 	ArticleMeta,
-} from '@canmi/artifacts/types';
+} from '@monoflake/artifacts/types';
 import type { ContainerDirective, LeafDirective } from 'mdast-util-directive';
 import type { Image as MdImage, RootContent } from 'mdast';
 

@@ -5,7 +5,7 @@
  * the anon key, from views alone, once; after that it is told".
  */
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$app/env/public';
-import type { StatusCheckRow, StatusDailyRow, StatusNowRow } from '@canmi/status-schema';
+import type { StatusCheckRow, StatusDailyRow, StatusNowRow } from '@monoflake/status-schema';
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { RealtimeClient } from '@supabase/realtime-js';
 import { SEGMENT_GRAIN, TAIL_GRAIN } from './board.ts';

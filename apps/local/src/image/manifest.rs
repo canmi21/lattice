@@ -5,9 +5,10 @@
 //! reading anything else. One merged file, committed, so the site build can inline placeholders
 //! into articles without the images being present at all.
 //!
-//! The layer shapes here are the twin of the schemas in `libs/artifacts`, which is what reads
-//! them on the other side. Two readings of one format is a defect waiting for the first record
-//! that separates them, so a change here is a change there. See spec/architecture/resource.md.
+//! The layer shapes here are the twin of the schemas in `platform/libs/artifacts`, which is what
+//! reads them on the other side. Two readings of one format is a defect waiting for the first
+//! record that separates them, so a change here is a change there. See
+//! spec/architecture/resource.md.
 
 use super::{Derived, Variant, exif};
 use crate::resource::{self, Canonical, Layered, Namespace, ResourceId};
@@ -179,7 +180,7 @@ impl Tones {
 	/// **A named tone is that tone or nothing.** A caller that asked for dark and received light
 	/// cannot tell it happened, and would draw a light mark on a dark surface believing it had
 	/// the right one. With no tone named either will do, and light goes first because an
-	/// untinted mark is drawn for light backgrounds. The twin of `toned` in libs/artifacts.
+	/// untinted mark is drawn for light backgrounds. The twin of `toned` in platform/libs/artifacts.
 	pub fn of(&self, tone: Option<&str>) -> Option<&ImageVariant> {
 		match tone {
 			Some("light") => self.light.as_ref(),

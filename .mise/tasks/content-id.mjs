@@ -4,9 +4,10 @@ import { bytesToHex } from '@noble/hashes/utils.js';
 
 // The content id of every file named on stdin, one per line, answered in the same order.
 //
-// Node rather than the Python pipeline that calls it: BLAKE3 is not in the standard library and
-// a pure-Python one is too slow to hash the whole published set on every check. This is the same
-// digest `apps/site/scripts/publish.ts` names an object by -- see libs/artifacts' `storageKey`.
+// Node rather than the Python pipeline that calls it: BLAKE3 is not in the standard library and a
+// pure-Python one is too slow to hash the whole published set on every check. This is the same
+// digest `apps/site/scripts/publish.ts` names an object by -- see platform/libs/artifacts'
+// `storageKey`.
 
 const input = [];
 for await (const chunk of process.stdin) input.push(chunk);

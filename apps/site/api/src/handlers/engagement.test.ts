@@ -5,8 +5,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import app from '../app';
 import type { Bindings } from '../bindings';
 import { forgetRoot } from '../data/root';
-import { unwrap } from '@canmi/artifacts';
-import type { Quota } from '@canmi/limits';
+import { unwrap } from '@monoflake/artifacts';
+import type { Quota } from '@monoflake/limits';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
@@ -60,7 +60,7 @@ const ROOT = {
 };
 
 // `read` takes whichever store is bound, so a fetcher answering with the root is the whole of
-// what these routes need from one. See libs/store.
+// what these routes need from one. See platform/libs/store.
 const store = {
 	fetch: async () => new Response(JSON.stringify(ROOT)),
 } as unknown as Bindings['ASSETS'];

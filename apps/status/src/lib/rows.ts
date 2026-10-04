@@ -1,5 +1,5 @@
 /**
- * The three views as PostgREST sends them, turned into the rows libs/status-schema infers.
+ * The three views as PostgREST sends them, turned into the rows platform/libs/status-schema infers.
  *
  * PostgREST answers with the SQL names and timestamps as text, so each row is read once here and
  * the page never sees the wire. The views are the contract; see spec/architecture/probe.md, "The
@@ -10,7 +10,7 @@ import type {
 	StatusDailyRow,
 	StatusHistoryRow,
 	StatusNowRow,
-} from '@canmi/status-schema';
+} from '@monoflake/status-schema';
 import type { DayCounts } from './board.ts';
 
 type Snake<S extends string> = S extends `${infer Head}${infer Rest}`
@@ -75,7 +75,7 @@ export function readHistory(row: Wire<HistoryRow>): HistoryRow {
 /**
  * One check's entry in a broadcast: its latest round in the probe's batch, as `status_now` has it,
  * and how many of its rounds in that batch passed and failed. See
- * libs/status-schema/migrations/0002_broadcast-status.sql.
+ * platform/libs/status-schema/migrations/0002_broadcast-status.sql.
  */
 export type Heard = Pick<
 	StatusNowRow,

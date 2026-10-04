@@ -1,4 +1,4 @@
-import { securityResponse } from '@canmi/security';
+import { securityResponse } from '@monoflake/security';
 import type { RequestHandler } from './$types';
 
 // Every host answers its own; see spec/architecture/firewall.md, "Every host answers its own

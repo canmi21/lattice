@@ -210,24 +210,24 @@ importers:
 
   apps/aka:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../../libs/artifacts
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../../libs/cache
       '@canmi/response':
         specifier: workspace:*
         version: link:../../lib/pkgs/response
-      '@canmi/robots':
+      '@monoflake/artifacts':
         specifier: workspace:*
-        version: link:../../libs/robots
-      '@canmi/security':
+        version: link:../../platform/libs/artifacts
+      '@monoflake/cache':
         specifier: workspace:*
-        version: link:../../libs/security
+        version: link:../../platform/libs/cache
+      '@monoflake/robots':
+        specifier: workspace:*
+        version: link:../../platform/libs/robots
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
+      '@monoflake/security':
+        specifier: workspace:*
+        version: link:../../platform/libs/security
       hono:
         specifier: ^4.13.12
         version: 4.13.12
@@ -241,27 +241,9 @@ importers:
 
   apps/cdn:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../../libs/artifacts
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../../libs/cache
       '@canmi/response':
         specifier: workspace:*
         version: link:../../lib/pkgs/response
-      '@canmi/robots':
-        specifier: workspace:*
-        version: link:../../libs/robots
-      '@canmi/security':
-        specifier: workspace:*
-        version: link:../../libs/security
-      '@canmi/store':
-        specifier: workspace:*
-        version: link:../../libs/store
-      '@canmi/symlink':
-        specifier: workspace:*
-        version: link:../../libs/symlink
       '@jsquash/avif':
         specifier: ^2.1.1
         version: 2.1.1
@@ -274,9 +256,27 @@ importers:
       '@jsquash/webp':
         specifier: ^1.5.0
         version: 1.5.0
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../platform/libs/artifacts
+      '@monoflake/cache':
+        specifier: workspace:*
+        version: link:../../platform/libs/cache
+      '@monoflake/robots':
+        specifier: workspace:*
+        version: link:../../platform/libs/robots
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
+      '@monoflake/security':
+        specifier: workspace:*
+        version: link:../../platform/libs/security
+      '@monoflake/store':
+        specifier: workspace:*
+        version: link:../../platform/libs/store
+      '@monoflake/symlink':
+        specifier: workspace:*
+        version: link:../../platform/libs/symlink
       hono:
         specifier: ^4.13.12
         version: 4.13.12
@@ -290,9 +290,6 @@ importers:
 
   apps/cms:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../../libs/artifacts
       '@canmi/collection':
         specifier: workspace:*
         version: link:../../libs/collection
@@ -326,9 +323,12 @@ importers:
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../platform/libs/artifacts
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
       canmi:
         specifier: workspace:*
         version: link:../../lib/pkgs/canmi
@@ -375,33 +375,33 @@ importers:
 
   apps/gateway:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../../libs/artifacts
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../../libs/cache
-      '@canmi/limits':
-        specifier: workspace:*
-        version: link:../../libs/limits
       '@canmi/response':
         specifier: workspace:*
         version: link:../../lib/pkgs/response
-      '@canmi/robots':
-        specifier: workspace:*
-        version: link:../../libs/robots
-      '@canmi/security':
-        specifier: workspace:*
-        version: link:../../libs/security
-      '@canmi/symlink':
-        specifier: workspace:*
-        version: link:../../libs/symlink
       '@hono/node-server':
         specifier: ^2.1.3
         version: 2.1.3(hono@4.13.12)
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../platform/libs/artifacts
+      '@monoflake/cache':
+        specifier: workspace:*
+        version: link:../../platform/libs/cache
+      '@monoflake/limits':
+        specifier: workspace:*
+        version: link:../../platform/libs/limits
+      '@monoflake/robots':
+        specifier: workspace:*
+        version: link:../../platform/libs/robots
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
+      '@monoflake/security':
+        specifier: workspace:*
+        version: link:../../platform/libs/security
+      '@monoflake/symlink':
+        specifier: workspace:*
+        version: link:../../platform/libs/symlink
       hono:
         specifier: ^4.13.12
         version: 4.13.12
@@ -429,7 +429,7 @@ importers:
         version: link:../../lib/pkgs/response
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261004.1
@@ -448,7 +448,7 @@ importers:
         version: link:../../libs/compile
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@cloudflare/workers-types@5.20261004.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)(kysely@0.28.17)
@@ -459,12 +459,12 @@ importers:
 
   apps/quota:
     dependencies:
-      '@canmi/limits':
-        specifier: workspace:*
-        version: link:../../libs/limits
       '@canmi/response':
         specifier: workspace:*
         version: link:../../lib/pkgs/response
+      '@monoflake/limits':
+        specifier: workspace:*
+        version: link:../../platform/libs/limits
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261004.1
@@ -478,12 +478,6 @@ importers:
 
   apps/site:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../../libs/artifacts
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../../libs/cache
       '@canmi/compile':
         specifier: workspace:*
         version: link:../../libs/compile
@@ -493,9 +487,6 @@ importers:
       '@canmi/hints':
         specifier: workspace:*
         version: link:../../libs/hints
-      '@canmi/imgsrc':
-        specifier: workspace:*
-        version: link:../../libs/imgsrc
       '@canmi/kit':
         specifier: workspace:*
         version: link:../../lib/pkgs/kit
@@ -508,21 +499,12 @@ importers:
       '@canmi/response':
         specifier: workspace:*
         version: link:../../lib/pkgs/response
-      '@canmi/robots':
-        specifier: workspace:*
-        version: link:../../libs/robots
-      '@canmi/security':
-        specifier: workspace:*
-        version: link:../../libs/security
       '@canmi/site-api':
         specifier: workspace:*
         version: link:api
       '@canmi/social':
         specifier: workspace:*
         version: link:../../libs/social
-      '@canmi/symlink':
-        specifier: workspace:*
-        version: link:../../libs/symlink
       '@canmi/ui':
         specifier: workspace:*
         version: link:../../lib/pkgs/ui
@@ -538,9 +520,27 @@ importers:
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../platform/libs/artifacts
+      '@monoflake/cache':
+        specifier: workspace:*
+        version: link:../../platform/libs/cache
+      '@monoflake/imgsrc':
+        specifier: workspace:*
+        version: link:../../platform/libs/imgsrc
+      '@monoflake/robots':
+        specifier: workspace:*
+        version: link:../../platform/libs/robots
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
+      '@monoflake/security':
+        specifier: workspace:*
+        version: link:../../platform/libs/security
+      '@monoflake/symlink':
+        specifier: workspace:*
+        version: link:../../platform/libs/symlink
       '@openpanel/web':
         specifier: ^1.4.1
         version: 1.4.1
@@ -707,24 +707,24 @@ importers:
 
   apps/site/api:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../../../libs/artifacts
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../../../libs/cache
-      '@canmi/limits':
-        specifier: workspace:*
-        version: link:../../../libs/limits
       '@canmi/response':
         specifier: workspace:*
         version: link:../../../lib/pkgs/response
-      '@canmi/store':
+      '@monoflake/artifacts':
         specifier: workspace:*
-        version: link:../../../libs/store
+        version: link:../../../platform/libs/artifacts
+      '@monoflake/cache':
+        specifier: workspace:*
+        version: link:../../../platform/libs/cache
+      '@monoflake/limits':
+        specifier: workspace:*
+        version: link:../../../platform/libs/limits
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../../libs/sdk
+        version: link:../../../platform/libs/sdk
+      '@monoflake/store':
+        specifier: workspace:*
+        version: link:../../../platform/libs/store
       canmi:
         specifier: workspace:*
         version: link:../../../lib/pkgs/canmi
@@ -753,39 +753,39 @@ importers:
 
   apps/status:
     devDependencies:
-      '@canmi/cache':
-        specifier: workspace:*
-        version: link:../../libs/cache
       '@canmi/hints':
         specifier: workspace:*
         version: link:../../libs/hints
       '@canmi/kit':
         specifier: workspace:*
         version: link:../../lib/pkgs/kit
-      '@canmi/robots':
-        specifier: workspace:*
-        version: link:../../libs/robots
-      '@canmi/security':
-        specifier: workspace:*
-        version: link:../../libs/security
       '@canmi/social':
         specifier: workspace:*
         version: link:../../libs/social
-      '@canmi/status-schema':
-        specifier: workspace:*
-        version: link:../../libs/status-schema
-      '@canmi/symlink':
-        specifier: workspace:*
-        version: link:../../libs/symlink
       '@canmi/web':
         specifier: workspace:*
         version: link:../../lib/pkgs/web
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
+      '@monoflake/cache':
+        specifier: workspace:*
+        version: link:../../platform/libs/cache
+      '@monoflake/robots':
+        specifier: workspace:*
+        version: link:../../platform/libs/robots
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../libs/sdk
+        version: link:../../platform/libs/sdk
+      '@monoflake/security':
+        specifier: workspace:*
+        version: link:../../platform/libs/security
+      '@monoflake/status-schema':
+        specifier: workspace:*
+        version: link:../../platform/libs/status-schema
+      '@monoflake/symlink':
+        specifier: workspace:*
+        version: link:../../platform/libs/symlink
       '@sentry/sveltekit':
         specifier: ^11.4.0
         version: 11.4.0(@babel/core@7.29.7(supports-color@10.2.2))(@cloudflare/workers-types@5.20261004.1)(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(rollup@4.64.0)(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4))
@@ -864,7 +864,7 @@ importers:
         version: 1.51.0(svelte@5.57.1)
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../../../libs/sdk
+        version: link:../../../platform/libs/sdk
       '@monoflake/urls':
         specifier: workspace:*
         version: link:../../libs/urls
@@ -966,23 +966,6 @@ importers:
         specifier: ^3.50.0
         version: 3.50.0
 
-  libs/artifacts:
-    dependencies:
-      '@canmi/response':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/response
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-      valibot:
-        specifier: ^1.5.0
-        version: 1.5.0(typescript@7.0.2)
-
-  libs/cache: {}
-
   libs/collection:
     dependencies:
       '@noble/hashes':
@@ -1013,12 +996,12 @@ importers:
 
   libs/compile:
     dependencies:
-      '@canmi/artifacts':
+      '@monoflake/artifacts':
         specifier: workspace:*
-        version: link:../artifacts
+        version: link:../../platform/libs/artifacts
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../sdk
+        version: link:../../platform/libs/sdk
       canmi:
         specifier: workspace:*
         version: link:../../lib/pkgs/canmi
@@ -1075,19 +1058,7 @@ importers:
     dependencies:
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../sdk
-
-  libs/imgsrc:
-    dependencies:
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-
-  libs/limits:
-    dependencies:
-      '@canmi/response':
-        specifier: workspace:*
-        version: link:../../lib/pkgs/response
+        version: link:../../platform/libs/sdk
 
   libs/messages:
     devDependencies:
@@ -1100,9 +1071,6 @@ importers:
 
   libs/prose:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../artifacts
       '@canmi/kit':
         specifier: workspace:*
         version: link:../../lib/pkgs/kit
@@ -1118,9 +1086,12 @@ importers:
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../../platform/libs/artifacts
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../sdk
+        version: link:../../platform/libs/sdk
       '@stylexjs/stylex':
         specifier: ^0.19.1
         version: 0.19.1
@@ -1174,30 +1145,6 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  libs/robots:
-    dependencies:
-      '@canmi/security':
-        specifier: workspace:*
-        version: link:../security
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-
-  libs/sdk:
-    dependencies:
-      '@monoflake/urls':
-        specifier: workspace:*
-        version: link:../../infra/libs/urls
-      canmi:
-        specifier: workspace:*
-        version: link:../../lib/pkgs/canmi
-
-  libs/security:
-    dependencies:
-      '@monoflake/sdk':
-        specifier: workspace:*
-        version: link:../sdk
-
   libs/social:
     dependencies:
       '@canmi/prose':
@@ -1205,7 +1152,7 @@ importers:
         version: link:../prose
       '@monoflake/sdk':
         specifier: workspace:*
-        version: link:../sdk
+        version: link:../../platform/libs/sdk
       canmi:
         specifier: workspace:*
         version: link:../../lib/pkgs/canmi
@@ -1220,7 +1167,60 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  libs/status-schema:
+  platform/libs/artifacts:
+    dependencies:
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/response
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+      valibot:
+        specifier: ^1.5.0
+        version: 1.5.0(typescript@7.0.2)
+
+  platform/libs/cache: {}
+
+  platform/libs/imgsrc:
+    dependencies:
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+
+  platform/libs/limits:
+    dependencies:
+      '@canmi/response':
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/response
+
+  platform/libs/robots:
+    dependencies:
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      '@monoflake/security':
+        specifier: workspace:*
+        version: link:../security
+
+  platform/libs/sdk:
+    dependencies:
+      '@monoflake/urls':
+        specifier: workspace:*
+        version: link:../../../infra/libs/urls
+      canmi:
+        specifier: workspace:*
+        version: link:../../../lib/pkgs/canmi
+
+  platform/libs/security:
+    dependencies:
+      '@monoflake/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+
+  platform/libs/status-schema:
     dependencies:
       drizzle-orm:
         specifier: ^0.45.3
@@ -1230,21 +1230,21 @@ importers:
         specifier: ^0.31.11
         version: 0.31.11
 
-  libs/store:
+  platform/libs/store:
     dependencies:
-      '@canmi/artifacts':
-        specifier: workspace:*
-        version: link:../artifacts
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../lib/pkgs/response
+        version: link:../../../lib/pkgs/response
       '@cloudflare/workers-types':
         specifier: ^5.20261004.1
         version: 5.20261004.1
+      '@monoflake/artifacts':
+        specifier: workspace:*
+        version: link:../artifacts
 
-  libs/symlink:
+  platform/libs/symlink:
     dependencies:
-      '@canmi/cache':
+      '@monoflake/cache':
         specifier: workspace:*
         version: link:../cache
 

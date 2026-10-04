@@ -21,7 +21,7 @@ code block moves only the code blocks after it.
 
 Prose, headings, footnotes and placeholders take none. A name is what a reader sees, so the two ways
 of drawing a diagram are one kind and counted together. The table is `BLOCK_ANCHORS` in
-`@canmi/artifacts/anchors`, which every consumer reads: the page, the compiler, the hash landing.
+`@monoflake/artifacts/anchors`, which every consumer reads: the page, the compiler, the hash landing.
 
 **Worked out wherever blocks are, never stored** -- see [artifacts.md](artifacts.md), "What is stored is what cannot be worked out". The page numbers its blocks as it draws them, and
 the compiler numbers them the same way as it writes the markdown, both with `blockAnchors`. Storing

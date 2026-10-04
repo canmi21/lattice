@@ -179,6 +179,6 @@ The compiler reports success when it has loaded no plugin and found no messages.
 `modules` path or a wrong `pathPattern` prints `✔ Successfully compiled` and emits an empty
 index; both are resolved relative to the project directory's _parent_. When messages vanish,
 check that first rather than the message files. The plugin is a local dependency rather than the
-CDN URL the docs show, which keeps its version in the lockfile and out of `libs/sdk` -- and it is
+CDN URL the docs show, which keeps its version in the lockfile and out of `platform/libs/sdk` -- and it is
 a dependency of `libs/messages` rather than of the site, because the parent this resolves against
 is the package holding the project and not whichever application asked for the compile.

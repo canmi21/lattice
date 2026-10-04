@@ -45,7 +45,7 @@
 <script lang="ts">
 	import { DEV as dev } from 'esm-env';
 	import { pageUrls } from '@monoflake/sdk';
-	import { ICON_EXTENSION, objectUrl, toned, type ParsedResource } from '@canmi/artifacts';
+	import { ICON_EXTENSION, objectUrl, toned, type ParsedResource } from '@monoflake/artifacts';
 	import Picture, { type Source } from '../components/picture.svelte';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import * as m from '@canmi/messages';
@@ -79,9 +79,9 @@
 
 	const describedBy = $props.id();
 
-	// The CDN, because what the record names is a content id: the resolution that could not happen
-	// at build time already happened, in the load, and what is left is an object address. A named
-	// tone is that tone or nothing -- see `toned` in libs/artifacts for why nothing is the right
+	// The CDN, because what the record names is a content id: the resolution that could not happen at
+	// build time already happened, in the load, and what is left is an object address. A named tone
+	// is that tone or nothing -- see `toned` in platform/libs/artifacts for why nothing is the right
 	// answer rather than the other file.
 	const cdnUrl = pageUrls(dev).cdn;
 	const domain = $derived(new URL(url).hostname);

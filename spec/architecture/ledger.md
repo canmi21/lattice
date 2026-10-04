@@ -1,6 +1,6 @@
 # `ledger`: every task any service was asked to do
 
-`apps/ledger` is the one record of the work the platform's services take on: a capture `shot`
+`platform/apps/ledger` is the one record of the work the platform's services take on: a capture `shot`
 queued, and later whatever a scheduled job, a conversion or an import runs. A service keeps what it
 needs to do the work; the ledger keeps that it was asked, by whom, how it went, and keeps it for
 good. It is written to by every service and read by the panel, so a task whose result is long gone
@@ -60,7 +60,7 @@ asking, a record without a `finished_at`, or with an older one, does not replace
 so a late `running` cannot undo a `done`. An event of a later asking follows the earlier asking's
 events in `seq`, since its numbers are later moments.
 
-**Delivery is the service's to retry, and never its to wait on.** `libs/ledger` is the client every
+**Delivery is the service's to retry, and never its to wait on.** `platform/libs/ledger` is the client every
 Rust service uses: a task or an event is handed to it and the call returns at once; a background
 task sends them in batches, and holds what could not be sent in a bounded queue, oldest dropped
 first, trying again with backoff. A ledger that is down costs records, never a capture.

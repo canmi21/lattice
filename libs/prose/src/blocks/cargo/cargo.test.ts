@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dependencyItems } from './cargo';
-import type { CrateDep } from '@canmi/artifacts/types';
+import type { CrateDep } from '@monoflake/artifacts/types';
 
 function dep(name: string, version: string, depth: number): CrateDep {
 	return {

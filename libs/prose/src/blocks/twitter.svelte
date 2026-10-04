@@ -98,7 +98,7 @@
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@monoflake/sdk';
-	import type { TweetRecord } from '@canmi/artifacts/types';
+	import type { TweetRecord } from '@monoflake/artifacts/types';
 	import { compactCount, shortDate } from 'canmi/locales/format';
 	import SocialIcon from '../icons.svelte';
 

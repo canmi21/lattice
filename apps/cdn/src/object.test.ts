@@ -1,4 +1,4 @@
-import { storageKey } from '@canmi/store';
+import { storageKey } from '@monoflake/store';
 import { describe, expect, it } from 'vitest';
 import app from './index';
 import object from './object';

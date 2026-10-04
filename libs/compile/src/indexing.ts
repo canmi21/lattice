@@ -1,6 +1,6 @@
 import { similarity } from './assemble.ts';
 import { localeUrl, LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from 'canmi/locales';
-import type { Alternate } from '@canmi/artifacts/types';
+import type { Alternate } from '@monoflake/artifacts/types';
 
 export const CANONICAL_SIMILARITY_THRESHOLD = 0.9;
 

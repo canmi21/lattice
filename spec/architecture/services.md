@@ -139,7 +139,7 @@ origins may call a scope and how often one address may call which of its routes 
 `apps/gateway/src/policy.ts`; the service behind it is business logic and nothing else. A preflight
 is answered at the gateway without reaching the service, and a scope with no origin policy gives a
 browser no CORS at all. The policy lives in TypeScript rather than in `service.toml` because it
-names origins, and every URL is declared once in libs/urls.
+names origins, and every URL is declared once in platform/libs/sdk.
 
 **A parameter the public may not send is refused at the gateway.** A policy lists query parameters
 it forbids, and a request carrying one is answered `403 forbidden_parameter` before it is counted
@@ -213,7 +213,7 @@ own routes, which its pages call without the gateway, are rows in the same forma
 same service.
 
 **A limit is a row in one format, wherever it is enforced.** It names methods and a path, so it can
-be as narrow as one route; libs/limits is the format, its check and the bucket's arithmetic. The
+be as narrow as one route; platform/libs/limits is the format, its check and the bucket's arithmetic. The
 gateway applies it to what reaches a service through the gateway. Routes that only a Worker's own
 pages call never pass the gateway, so that Worker asks `quota` with the same rows itself -- the
 site's are `apps/site/api/src/contract/limits.ts`.

@@ -1,4 +1,4 @@
-import { unwrap, type AssetAnswer } from '@canmi/artifacts';
+import { unwrap, type AssetAnswer } from '@monoflake/artifacts';
 import { isDevHost, pickUrls } from '@monoflake/sdk';
 import type { Context } from 'hono';
 import { NEVER, RESOLVED } from './cache';

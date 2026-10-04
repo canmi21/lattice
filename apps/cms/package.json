@@ -12,7 +12,6 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo"
 	},
 	"dependencies": {
-		"@canmi/artifacts": "workspace:*",
 		"@canmi/collection": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",
@@ -24,6 +23,7 @@
 		"@codemirror/state": "^6.7.6",
 		"@codemirror/view": "^6.43.13",
 		"@lucide/svelte": "^1.51.0",
+		"@monoflake/artifacts": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
 		"canmi": "workspace:*"
 	},

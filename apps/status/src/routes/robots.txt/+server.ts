@@ -1,4 +1,4 @@
-import { robotsFor } from '@canmi/robots';
+import { robotsFor } from '@monoflake/robots';
 import type { RequestHandler } from './$types';
 
 // The status page's policy is the robots library's, beside every other host's.

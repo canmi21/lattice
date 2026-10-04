@@ -5,7 +5,7 @@
  * spec/architecture/probe.md, "The page reads PostgREST with the anon key, from views alone, once;
  * after that it is told".
  */
-import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
+import type { StatusCheckRow, StatusNowRow } from '@monoflake/status-schema';
 import { dayName, historyCursor, key, mergeHistory, windowAt } from './board.ts';
 import { foldHistory, foldNow } from './fold.ts';
 import { RAW_GRAIN, type Range, rangeFloor, rawFloor, SPAN } from './ranges.ts';

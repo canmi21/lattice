@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => {
 	// The page-facing map, because both readers of it below end up in a document: the redirect
 	// targets a browser follows, and the font stylesheet's `__CDN_URL__`. In development those
 	// must be the proxied paths, or a page opened from another device asks that device for its
-	// own fonts. See libs/urls.
+	// own fonts. See platform/libs/sdk.
 	const urls = pageUrls(mode !== 'production');
 	// Asked once. It can throw, and a predicate that throws should do so at a point in the build
 	// somebody can place, rather than from inside a plugin's option list. In CI a missing
@@ -240,7 +240,7 @@ export default defineConfig(({ mode }) => {
 			host: '::',
 			// The other two workers, reached through this one. The prefix is stripped on the way
 			// out, so each worker sees only the paths it actually serves. Both the prefix and the
-			// target come from libs/sdk, the one place every address here is declared and where
+			// target come from platform/libs/sdk, the one place every address here is declared and where
 			// the reasoning lives for why development collapses three origins into one. The target
 			// is the same map anything else uses to reach these workers, not a resolver of its own.
 			proxy: Object.fromEntries(

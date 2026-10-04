@@ -1,4 +1,4 @@
-import { storageKey } from '@canmi/store';
+import { storageKey } from '@monoflake/store';
 import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
 import { cacheControl, isContentAddressed, lifetimeFor } from './cache';

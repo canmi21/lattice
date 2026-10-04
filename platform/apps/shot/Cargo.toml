@@ -1,0 +1,37 @@
+[package]
+name = "shot"
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = "1.0.104"
+axum = "0.8.9"
+base64 = "0.23.1"
+jiff = { version = "0.2", features = ["serde"] }
+ledger = { path = "../../libs/ledger" }
+bytes = "1.12.1"
+chromiumoxide = { version = "0.9.1", default-features = false }
+futures-util = "0.3.34"
+http-body-util = "0.1.5"
+hyper = { version = "1.11.1", features = ["client", "http1"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "tls12", "ring", "webpki-tokio"] }
+hyper-util = { version = "0.1.21", features = ["client-legacy", "http1", "tokio"] }
+mimalloc = "0.1.52"
+response = { path = "../../../lib/crates/response", features = ["axum"] }
+rustls = { version = "0.23.45", default-features = false, features = ["ring", "std", "tls12"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tokio-rustls = { version = "0.26.6", default-features = false, features = ["ring", "tls12"] }
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "net", "signal", "fs", "sync", "time", "io-util"] }
+url = "2.5.8"
+monoflake = { path = "../../libs/sdk" }
+webpki-roots = "1.0.9"
+uuid = { version = "1.27.0", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+tower = { version = "0.5", features = ["util"] }

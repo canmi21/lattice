@@ -1,5 +1,5 @@
-import { HASH_PATTERN } from '@canmi/artifacts';
-import { NAMED, PUBLISHED, UNCHANGING } from '@canmi/cache';
+import { HASH_PATTERN } from '@monoflake/artifacts';
+import { NAMED, PUBLISHED, UNCHANGING } from '@monoflake/cache';
 import type { MiddlewareHandler } from 'hono';
 
 /** What may follow the hash: one extension, or the two a derivation names. */

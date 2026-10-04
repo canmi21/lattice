@@ -9,15 +9,15 @@
 		"bundle": "esbuild src/node.ts --bundle --platform=node --format=esm --target=node26 --outfile=dist/node.mjs"
 	},
 	"dependencies": {
-		"@canmi/artifacts": "workspace:*",
-		"@canmi/cache": "workspace:*",
-		"@canmi/limits": "workspace:*",
 		"@canmi/response": "workspace:*",
-		"@canmi/robots": "workspace:*",
-		"@canmi/security": "workspace:*",
-		"@canmi/symlink": "workspace:*",
 		"@hono/node-server": "^2.1.3",
+		"@monoflake/artifacts": "workspace:*",
+		"@monoflake/cache": "workspace:*",
+		"@monoflake/limits": "workspace:*",
+		"@monoflake/robots": "workspace:*",
 		"@monoflake/sdk": "workspace:*",
+		"@monoflake/security": "workspace:*",
+		"@monoflake/symlink": "workspace:*",
 		"hono": "^4.13.12"
 	},
 	"devDependencies": {

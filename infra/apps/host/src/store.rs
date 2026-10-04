@@ -504,7 +504,7 @@ mod tests {
 	use super::*;
 
 	fn geo() -> Manifest {
-		Manifest::parse(include_str!("../../../../apps/geo/service.toml")).unwrap()
+		Manifest::parse(include_str!("../../../../platform/apps/geo/service.toml")).unwrap()
 	}
 
 	#[test]
@@ -634,7 +634,7 @@ mod split {
 		let legacy = directory.path().join("host.db");
 		let old = Connection::open(&legacy).unwrap();
 		let manifest = serde_json::to_string(
-			&Manifest::parse(include_str!("../../../../apps/geo/service.toml")).unwrap(),
+			&Manifest::parse(include_str!("../../../../platform/apps/geo/service.toml")).unwrap(),
 		)
 		.unwrap();
 		old
@@ -714,7 +714,8 @@ mod history {
 	fn a_hold_is_kept_until_released_and_survives_a_new_version() {
 		let directory = tempfile::tempdir().unwrap();
 		let store = Store::open(directory.path()).unwrap();
-		let manifest = Manifest::parse(include_str!("../../../../apps/geo/service.toml")).unwrap();
+		let manifest =
+			Manifest::parse(include_str!("../../../../platform/apps/geo/service.toml")).unwrap();
 		let app = |image: &str| Deployed {
 			manifest: manifest.clone(),
 			image: image.into(),

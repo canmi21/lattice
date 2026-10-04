@@ -5,7 +5,7 @@
  * where a request enters".
  */
 import { createServer } from 'node:http';
-import { type Check, type Rate, take } from '@canmi/limits';
+import { type Check, type Rate, take } from '@monoflake/limits';
 import { type Buckets, takeAll } from './index.ts';
 
 const port = Number(process.env.PORT ?? 26523);

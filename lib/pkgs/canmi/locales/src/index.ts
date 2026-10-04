@@ -44,8 +44,8 @@ export function endonym(tag: string): string {
  * The codes the corpus keys a view by, and `mw` for the article's own language.
  *
  * The short internal spelling of the same set [[LOCALE_TAGS]] names in BCP-47. It moved here for
- * the reason those did: a third consumer appeared -- `@canmi/artifacts`, which types a published
- * view -- and a vocabulary two packages spell out separately is a vocabulary that drifts.
+ * the reason those did: a third consumer appeared -- `@monoflake/artifacts`, which types a
+ * published view -- and a vocabulary two packages spell out separately is a vocabulary that drifts.
  */
 export const LOCALE_CODES = ['mw', 'de', 'en', 'es', 'fr', 'ja', 'ko', 'zh', 'tw'] as const;
 

@@ -1,13 +1,13 @@
 # Site identity, baked in at build via the `virtual:site` module (see
 # vite.config.ts). Hexo-style single config: change rarely, e.g. when standing
 # the site up somewhere new. Not environment variables — compiled to a plain
-# object, never shipped as env. URLs/ports live in libs/sdk, not here.
+# object, never shipped as env. URLs/ports live in platform/libs/sdk, not here.
 
 name: サボり記
 tagline: Notes on the software and hardware I build.
 
-# The site's address as a label, drawn on the OpenGraph card. Not a URL: nothing resolves it,
-# it is read by a person looking at a picture, which is why it may live outside libs/urls. The
+# The site's address as a label, drawn on the OpenGraph card. Not a URL: nothing resolves it, it is
+# read by a person looking at a picture, which is why it may live outside platform/libs/sdk. The
 # resolvable address is still declared there alone, and a test holds the two to the same host.
 domain: canmi.net
 

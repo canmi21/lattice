@@ -17,8 +17,8 @@ text in `site.config.yaml` for the same reason the analytics client id is -- see
 [analytics.md](analytics.md) -- rather than kept somewhere that implies a secrecy the protocol
 does not allow.
 
-It lives in the site config rather than in `libs/sdk` because it is not an address. It is an
-identity this site proves, like the Bluesky handle beside it, and `libs/sdk` holds what
+It lives in the site config rather than in `platform/libs/sdk` because it is not an address. It is an
+identity this site proves, like the Bluesky handle beside it, and `platform/libs/sdk` holds what
 resolves.
 
 **There is no verification step that completes.** An engine fetches the key file on _every_

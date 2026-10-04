@@ -138,7 +138,7 @@
 		locale: LocaleCode;
 		sourcePreferenceHref: string;
 		repositoryHref: string;
-		/** Becomes an `<a>` once there is somewhere to send people; see libs/urls. */
+		/** Becomes an `<a>` once there is somewhere to send people; see platform/libs/sdk. */
 		onsponsor?: () => void;
 	} = $props();
 

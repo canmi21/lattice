@@ -199,10 +199,10 @@ export interface LastRun {
 }
 
 /**
- * One job cron runs on this node, its own `Job` fields flattened in, as `GET /schedules` answers
- * -- cron's `scheduler::View`, read directly from `apps/cron/src/scheduler.rs` and
- * `apps/cron/src/store.rs` while both are written in parallel, kept here in one place so it stays
- * easy to re-align. See spec/architecture/cron.md, "cron answers on its own `[api]` scope,
+ * One job cron runs on this node, its own `Job` fields flattened in, as `GET /schedules` answers --
+ * cron's `scheduler::View`, read directly from `platform/apps/cron/src/scheduler.rs` and
+ * `platform/apps/cron/src/store.rs` while both are written in parallel, kept here in one place so
+ * it stays easy to re-align. See spec/architecture/cron.md, "cron answers on its own `[api]` scope,
  * privately", "Seen in the panel".
  */
 export interface Schedule {

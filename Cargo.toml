@@ -5,23 +5,23 @@ resolver = "3"
 # Cargo.toml, so a glob over `apps/*` would break every cargo command the moment a
 # TypeScript-only directory appeared there.
 members = [
-	"apps/apt",
-	"apps/cron",
+	"platform/apps/apt",
+	"platform/apps/cron",
 	"infra/apps/meter",
-	"apps/probe",
-	"apps/geo",
+	"platform/apps/probe",
+	"platform/apps/geo",
 	"infra/apps/host",
 	"infra/apps/keeper",
-	"apps/ledger",
+	"platform/apps/ledger",
 	"apps/local",
-	"apps/shot",
-	"apps/telemetry",
+	"platform/apps/shot",
+	"platform/apps/telemetry",
 	"infra/libs/deploy",
 	"lib/crates/geocode",
-	"libs/ledger",
+	"platform/libs/ledger",
 	"lib/crates/response",
 	"lib/crates/canmi",
-	"libs/sdk",
+	"platform/libs/sdk",
 ]
 
 [workspace.package]

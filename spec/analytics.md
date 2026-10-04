@@ -73,7 +73,7 @@ Three hosts serve the two counters: `cloud.umami.is`, which the loader is fetche
 `gateway.umami.is` and `api.openpanel.dev`, which the two clients report to. Neither reporting
 host is written in this repository's own code -- umami's is a constant inside the script it
 downloads and OpenPanel's is the default baked into `@openpanel/sdk` -- so both are recorded in
-libs/sdk from having been read out of them, where every address this repository resolves is
+platform/libs/sdk from having been read out of them, where every address this repository resolves is
 declared.
 
 All three carry `dns-prefetch` rather than `preconnect`. A preconnect opens a socket and

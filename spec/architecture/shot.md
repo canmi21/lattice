@@ -1,6 +1,6 @@
 # `shot`: a page, as a picture
 
-`apps/shot` renders a web page -- or an API, which a browser shows as its JSON -- in Chromium and
+`platform/apps/shot` renders a web page -- or an API, which a browser shows as its JSON -- in Chromium and
 answers with a PNG and a WebP of it. It is for the pictures of each of our services, as a deploy
 dashboard shows them, and for an article's external links, captured as they are cited. It keeps
 nothing: a capture lives five minutes on disk and is gone.
@@ -75,7 +75,7 @@ private side asks `api.internal.ixc.one/shot/v1/...`, which Caddy takes the scop
   `502 page_unavailable` with why, in the browser's words; one expired or never made is
   `404 no_such_task`; a full queue is `503 queue_unavailable` with `Retry-After`.
 - **A picture is named by its whole public address**, `png: "<shot>/pictures/<id>.png"` where
-  `<shot>` is the scope's public address in `libs/sdk`, never written into the code, so an answer
+  `<shot>` is the scope's public address in `platform/libs/sdk`, never written into the code, so an answer
   read anywhere -- saved, pasted, passed on -- still reaches the picture. It is the public one
   whichever door the task was asked through, since the pictures are the same behind both.
   `Location: status?task=<id>` stays relative, which an HTTP client resolves against the address
@@ -168,7 +168,7 @@ the proxy is the only way out, and it resolves each name itself and connects to 
 judged:
 
 - Names are asked of Cloudflare's and Google's DNS over HTTPS, both at once, for A and AAAA, and by
-  their addresses (`libs/sdk`' `external.doh`), so the asking needs no DNS of its own and the
+  their addresses (`platform/libs/sdk`' `external.doh`), so the asking needs no DNS of its own and the
   system's resolver is never read for the public. What they give is the union, kept for its TTL and
   a minute at most; one server failing is not a failure, since the other's addresses meet the same
   rule.

@@ -10,9 +10,9 @@ use std::path::{Path, PathBuf};
 const FAN: usize = 2;
 
 /// **The one declaration of the bucket's layout, on this side.** The twin of `storageKey` in
-/// `libs/store`, kept in sync by a test there. Nothing is filed by kind: the id already identifies
-/// it, and `/object/{cid}.{ext}` is where a reader gets one. See spec/architecture/data.md,
-/// "The bucket stores content ids, and so does the address".
+/// `platform/libs/store`, kept in sync by a test there. Nothing is filed by kind: the id already
+/// identifies it, and `/object/{cid}.{ext}` is where a reader gets one. See
+/// spec/architecture/data.md, "The bucket stores content ids, and so does the address".
 fn object_path(public_root: &Path, cid: &str, extension: &str) -> PathBuf {
 	let (first, second) = fanout(cid);
 	public_root.join(first).join(second).join(format!("{cid}.{extension}"))

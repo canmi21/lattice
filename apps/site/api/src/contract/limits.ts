@@ -1,4 +1,4 @@
-import type { Row } from '@canmi/limits';
+import type { Row } from '@monoflake/limits';
 
 /**
  * The per-address allowances of spec/engagement.md, counted by `quota`. These routes are called by

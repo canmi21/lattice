@@ -5,10 +5,10 @@
  * crawling, limits by address and each host's own files. See spec/architecture/gateway.md.
  */
 import { failure } from '@canmi/response';
-import { robotsTxt } from '@canmi/robots';
-import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
-import type { Service } from '@canmi/security/agents';
-import { followSymlink, symlinkOf } from '@canmi/symlink';
+import { robotsTxt } from '@monoflake/robots';
+import { SECURITY_TXT_PATH, securityResponse } from '@monoflake/security';
+import type { Service } from '@monoflake/security/agents';
+import { followSymlink, symlinkOf } from '@monoflake/symlink';
 import {
 	type AppName,
 	developmentUrl,
@@ -35,7 +35,7 @@ import {
 	whole,
 } from './cache.ts';
 import { GATEWAY_DEFAULTS, type Route } from './declaration.ts';
-import { counted } from '@canmi/limits';
+import { counted } from '@monoflake/limits';
 import { type Profile, profileOf, readRequest, type Tuple } from './profile.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';

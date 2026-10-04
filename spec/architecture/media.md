@@ -259,9 +259,9 @@ and the rejected candidates are argued.
 
 The address is drawn opposite the site name across the top, because the other free corner is
 the bottom-left and that one belongs to X. It lives in `site.config.yaml` rather than in
-`libs/sdk`, and the distinction is real: what is drawn there is a label a person reads off a
+`platform/libs/sdk`, and the distinction is real: what is drawn there is a label a person reads off a
 picture, not an address anything resolves. The exemption only holds while the two agree, so a
-test compares it against the host `libs/sdk` declares -- nothing structural can, since one is
+test compares it against the host `platform/libs/sdk` declares -- nothing structural can, since one is
 read by Rust and the other by the bundler.
 
 The portrait is fetched into `data/` once, like the font and for the same reason: it is bytes

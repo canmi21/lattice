@@ -1,6 +1,6 @@
 # `probe` and `status.canmi.app`: the platform seen from outside
 
-`apps/probe` checks the platform the way a visitor meets it, and `status.canmi.app` shows what it
+`platform/apps/probe` checks the platform the way a visitor meets it, and `status.canmi.app` shows what it
 found. The checking is a Rust service on the node -- later on the VPS too, a second place to look
 from -- because what it checks is more than a request: a name resolving, an API answering what it
 should, a page rendering without an error. The showing is a SvelteKit app on Vercel that reads a
@@ -9,7 +9,7 @@ Cloudflare, so a Cloudflare outage is something the page reports rather than som
 
 ## What is checked, and how often
 
-**Checks are declared in the repository**, `apps/probe/checks.toml`, each a kind, a target, what is
+**Checks are declared in the repository**, `platform/apps/probe/checks.toml`, each a kind, a target, what is
 expected of it, and how often -- set by what the target is and how much it matters, not by one
 beat for everything. They fall into two kinds, and it is the first that finds a fault first.
 
@@ -26,7 +26,7 @@ beat for everything. They fall into two kinds, and it is the first that finds a 
 beside its id, which stays the probe's and the ledger's. The probe writes it with the rest of the
 check, and the page shows it and never the id or the target.
 
-**A check's target names an address rather than spelling it**: a `libs/sdk` constant's name,
+**A check's target names an address rather than spelling it**: a `platform/libs/sdk` constant's name,
 `API_PRIVATE` or `API_PUBLIC` for the API host's two sides, followed by a path or a query as it
 needs -- `API_PRIVATE/geo/health` -- so `checks.toml` holds no address that could drift from the
 one the rest of the platform uses. The target is kept and shown as written, never resolved.
@@ -99,7 +99,7 @@ heading, beside its name, rather than under the title.
 
 ## The schema: declared once, in Drizzle, applied by the probe
 
-**The tables and views are written once, in TypeScript with Drizzle, in `libs/status-schema`**,
+**The tables and views are written once, in TypeScript with Drizzle, in `platform/libs/status-schema`**,
 and nothing else describes them. `drizzle-kit generate` turns them into SQL migrations, committed
 beside them; the grants and row policies are declared there too, so what the database allows is
 what the repository says. `mise run verify` fails when the schema has changed and its migrations
@@ -183,7 +183,7 @@ footer so it is known before it is needed.
 ## Errors go to Sentry
 
 **Each app that reports errors has its own Sentry project and its own DSN, declared in
-`libs/sdk` as `URLS.external.sentry.<app>`** -- `site`, and `status` for this page. A DSN only
+`platform/libs/sdk` as `URLS.external.sentry.<app>`** -- `site`, and `status` for this page. A DSN only
 sends, and a browser bundle carries it, so it is public and sits beside the other URLs. An app
 whose DSN is absent initializes nothing and registers no Sentry request handle; the status page
 then drops the build plugin as well.

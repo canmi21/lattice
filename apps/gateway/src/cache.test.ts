@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { URLS } from '@monoflake/sdk';
-import { UNCHANGING } from '@canmi/cache';
+import { UNCHANGING } from '@monoflake/cache';
 import { CACHE_HEADER, controlOf, kindOf, secondsOf } from './cache.ts';
 import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { gateway } from './index.ts';

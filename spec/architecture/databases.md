@@ -40,7 +40,7 @@ The name `postgres` is reserved, and so is every `<app>-postgres`.
 
 ## The drivers
 
-**`apps/postgres` is the official `postgres` image at a pinned major and digest**, adopted rather
+**`platform/apps/postgres` is the official `postgres` image at a pinned major and digest**, adopted rather
 than rebuilt, with settings for a small instance: `shared_buffers` 32 MB, no parallel workers,
 twenty connections. Deploying it recreates each app's sidecar on the new image, one at a time, and
 a failure puts every one back -- as `objects` does. A new major is not a deploy: Postgres needs its

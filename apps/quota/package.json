@@ -9,8 +9,8 @@
 		"bundle": "esbuild src/node.ts --bundle --platform=node --format=esm --target=node26 --outfile=dist/node.mjs"
 	},
 	"dependencies": {
-		"@canmi/limits": "workspace:*",
-		"@canmi/response": "workspace:*"
+		"@canmi/response": "workspace:*",
+		"@monoflake/limits": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261004.1",

@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { CANONICAL_PATTERN, expandCanonical } from '@canmi/artifacts';
+import { CANONICAL_PATTERN, expandCanonical } from '@monoflake/artifacts';
 import { isDevHost, pickUrls } from '@monoflake/sdk';
 import { NEVER, RESOLVED } from './cache';
 import { redirectFor } from './redirect';
@@ -13,7 +13,7 @@ type Declared = { canonical?: unknown };
  * A bare resource id, answered with whatever that resource says it canonically is.
  *
  * The record is the authority and this layer keeps none of it: the API is asked, the `canonical`
- * field is expanded against `libs/sdk`, and the caller is sent there. See
+ * field is expanded against `platform/libs/sdk`, and the caller is sent there. See
  * spec/architecture/resource.md for the two ids, spec/architecture/delivery.md for the ladder.
  */
 export async function resource(c: Context, rid: string): Promise<Response> {
@@ -32,9 +32,9 @@ export async function resource(c: Context, rid: string): Promise<Response> {
 	}
 
 	const record = (await asked.json()) as Declared;
-	// Checked against the pattern before it is expanded, and not because the writer is untrusted:
-	// the record arrives over the network, the value becomes the path of a redirect this layer
-	// issues, and `expandCanonical` reads a prefix rather than validating. See libs/artifacts.
+	// Checked against the pattern before it is expanded, and not because the writer is untrusted: the
+	// record arrives over the network, the value becomes the path of a redirect this layer issues,
+	// and `expandCanonical` reads a prefix rather than validating. See platform/libs/artifacts.
 	const declared = typeof record.canonical === 'string' ? record.canonical : '';
 	const canonical = CANONICAL_PATTERN.test(declared) ? expandCanonical(declared, urls) : undefined;
 	// A resource declaring no canonical form has no address to be sent to, and choosing one from

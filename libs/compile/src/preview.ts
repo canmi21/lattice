@@ -16,7 +16,7 @@ import type {
 	CrateRecord,
 	RepoRecord,
 	TweetRecord,
-} from '@canmi/artifacts/types';
+} from '@monoflake/artifacts/types';
 import { URLS } from '@monoflake/sdk';
 import {
 	createAssetResolver,
@@ -27,7 +27,7 @@ import {
 	type DiagramStore,
 	type MediaManifest,
 } from './assets.ts';
-import { namedResources, parseResource, type ParsedResource } from '@canmi/artifacts';
+import { namedResources, parseResource, type ParsedResource } from '@monoflake/artifacts';
 import { articleFrontmatter, compile } from './compile.ts';
 import { articlePath, newTabNotes, sourceLocale } from './articles.ts';
 import { highlight } from './highlight.ts';

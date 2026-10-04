@@ -1,4 +1,4 @@
-import type { StatusCheckRow, StatusNowRow } from '@canmi/status-schema';
+import type { StatusCheckRow, StatusNowRow } from '@monoflake/status-schema';
 import { describe, expect, it } from 'vitest';
 import { historyFloor, LIVE_GRAIN, mergeHistory, segmentsOf, TAIL_MS, windowAt } from './board.ts';
 import { foldHistory, foldNow } from './fold.ts';

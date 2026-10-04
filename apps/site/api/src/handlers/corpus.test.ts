@@ -10,7 +10,7 @@ import {
 	unwrap,
 	type BatchAnswerOf,
 	type FeedAnswer,
-} from '@canmi/artifacts';
+} from '@monoflake/artifacts';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope

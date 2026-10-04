@@ -16,7 +16,7 @@ import { parse as parseYaml } from 'yaml';
 import { URLS } from '@monoflake/sdk';
 import { buildArticles } from '@canmi/compile/articles';
 import { LOCALE_CODES } from '../src/lib/locale/index.ts';
-import type { Article, ArticleView } from '@canmi/artifacts/types';
+import type { Article, ArticleView } from '@monoflake/artifacts/types';
 
 const ROOT = new URL('../../../', import.meta.url);
 const SITE = new URL('apps/site/', ROOT);

@@ -1,7 +1,7 @@
 # `telemetry`: the platform, shown to anyone
 
 The platform's code is public, and so is what it is doing: which services run, at which versions,
-how the machine under them is, how much work they take on. `apps/telemetry` gathers that into one
+how the machine under them is, how much work they take on. `platform/apps/telemetry` gathers that into one
 public, read-only API, which a page under `canmi.app` draws for anyone who wants to see how it is
 built. It answers on the `telemetry` scope of the public API host, through the gateway, with its
 caching and its limits.
@@ -72,7 +72,7 @@ already does:
 
 ## The service
 
-`apps/telemetry` is a Rust service on port `19570` -- Sputnik sent the first telemetry in 1957 --
+`platform/apps/telemetry` is a Rust service on port `19570` -- Sputnik sent the first telemetry in 1957 --
 answering on the `telemetry` scope, public, every answer the envelope. It keeps nothing of its
 own: each answer is built from the three sources as they stand, and a source that cannot be read
 leaves its part `null` rather than failing the rest.
