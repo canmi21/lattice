@@ -252,8 +252,8 @@ the implementation are one claim instead of two that happened to agree.
 
 `apps/` is flat. Introduce a grouping directory only once one category exceeds four members,
 and let the growth force it rather than predicting it. Four apps, as here, do not need a taxonomy.
-The platform's `apps/` holds fifteen and is flat too; whether it groups them is open in its own
-spec.
+The platform's `apps/` holds fifteen and is flat too, past
+this threshold; whether it groups them is not decided.
 
 ## Extraction threshold
 
